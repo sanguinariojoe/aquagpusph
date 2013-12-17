@@ -1,0 +1,33 @@
+<?xml version="1.0" ?>
+<!--
+   %    %%   %  %   %
+  % %  %  %  %  %  % %                          %
+ %%%%% %  %  %  % %%%%%  %%  %%%  %  %  %% %%%  %%%
+ %   % %  %  %  % %   % %  % %  % %  % %   %  % %  %
+ %   % %  %  %  % %   % %  % %  % %  %   % %  % %  %
+ %   %  %% %  %%  %   %  %%% %%%   %%% %%  %%%  %  %
+                           % %             %
+                         %%  %             %
+
+Another QUAlity GPU-SPH, by CEHINAV.
+	http://canal.etsin.upm.es/
+Authors:
+	Cercos Pita, Jose Luis
+	Miguel Gonzalez, Leo
+	Souto Iglesias, Antonio
+-->
+
+<Movement>
+	<!-- Set the OpenCL kernel. Ussually you want tom use AQUAgpusph's
+	 provided kernel, but you can want to set your own version. -->
+	<Script file="@RESOURCES_DIR@/OpenCL/Movements/Quaternion.cl" />
+	<!-- LIQuaternion specific options. -->
+	<!-- DataFile: Tabulated file with the quaternion position as time function.
+	5 columns are mandatory In 2D:
+	* Time
+	* Center of rotation [x,y]
+	* X vector [x,y]
+	Y vector will obtained by X vector.
+	@warning Please, be ensure that X is normalized. -->
+	<DataFile file="@EXAMPLE_DEST_DIR@/Move/6DOF.dat"/>
+</Movement>

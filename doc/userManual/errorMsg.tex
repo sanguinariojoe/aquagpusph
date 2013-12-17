@@ -1,0 +1,96 @@
+\subsubsection{$[$ERROR$]$ VTK output called, but not supported:}
+%
+If \NAME has been built without VTK support, but VTK files output have
+been requested, this error will be reported each time that output is
+called. See chapter \ref{sss:install:cmake} in order to know how to
+activate support for VTK files.
+%
+\subsubsection{$[$ERROR$]$ H5Part output called, but not supported:}
+%
+If \NAME has been built without H5Part support, but H5Part files output
+have been requested, this error will be reported each time that output
+is called. See chapter \ref{sss:install:cmake} in order to know how to
+activate support for H5Part files.
+%
+\subsubsection{$[$ERROR$]$ Can't send variable to kernel:}
+%
+Error produced when \NAME can't send a variable to an OpenCL kernel. If
+you modified an OpenCL kernel and/or the source code to customize \NAME
+functionality, ensure that sent variables from \NAME and declared ones
+on OpenCL kernel matchs.\rc
+This error will stop \NAME execution.
+%
+\subsubsection{$[$ERROR$]$ Can't execute the kernel:}
+%
+OpenCL kernel can't be launched. If the problem is specifically documented,
+it will be added to the log too. Common causes of this problem is a custom
+OpenCL kernel, or unallocatable resources.\rc
+This error will stop the \NAME execution.
+%
+\subsubsection{$[$ERROR$]$ Can't wait to kernels end:}
+%
+If \NAME has been built in Debug mode, an execution profile will be activated in
+order to report time consumed by each stage of the code. This error is reported when
+program can't wait for kernel execution, usually caused by a kernel execution error.\rc
+This error will stop the \NAME execution.
+%
+\subsubsection{$[$ERROR$]$ Can't profile kernel execution:}
+%
+Similar to previous one, in this case program can wait to kernel finish, but can not be
+profiled (execution time can not be extracted).\rc
+This error will stop the \NAME execution.
+%
+\subsubsection{$[$ERROR$]$ Resultant keys overflows unsigned int type:}
+%
+Radix sort stage related error. This error is usually caused by a too large number
+of cells, that can happen if a domain is not bounded (see section \ref{sss:XML:SPH} in order t
+know how to set it) and one or more particles go out of physical boundaries.\rc
+This error will stop the \NAME execution.
+%
+\subsubsection{$[$ERROR$]$ perform() execution fail:}
+%
+Error associated to simulations with Python script motion control. The error is
+caused by a Python runtime execution error detected at perform() required method.
+Motion control Python script must be fixed.\rc
+Check chapter \ref{sss:XML:Movements} in order to learn more about how to set a Python script
+controlled motion, and \ref{sss:aquagpusph:motions:Controls} to learn more about the Python scripting.\rc 
+This error will stop the \NAME execution.
+%
+\subsubsection{$[$ERROR$]$ perform() returned quaternion is not valid:}
+%
+Error associated to simulations with Python script motion control. The error is
+caused by a wrong returned value by Python script perform() method.
+Motion control Python script must be fixed.\rc
+You can see chapter \ref{sss:XML:Movements} in order to learn more about how to set a Python script
+controlled motion, and \ref{sss:aquagpusph:motions:Controls} to learn more about the Python scripting.\rc 
+This error will stop the \NAME execution.
+%
+\subsubsection{$[$ERROR$]$ Failure retrieving memory from server:}
+%
+OpenCL memory can not be recovered on host. \NAME eventually provide details
+of this error into the log.\rc
+This error will stop the \NAME execution.
+%
+\subsubsection{$[$ERROR$]$ Failure sending memory to server:}
+%
+Data can not be sent from host to OpenCL platform. \NAME eventually provide details
+of this error into the log.\rc
+This error will stop the \NAME execution.
+%
+\subsubsection{$[$ERROR$]$ Fail allocating memory for $array$ ($m$ bytes):}
+%
+Produced by an unacceptable number of cells number. Requested memory on OpenCL
+platform can't be allocated.\rc
+This error will stop the \NAME execution.
+%
+\subsubsection{$[$ERROR$]$ timestep has dramaticaly decreased! [$dt_t$ -$>$ $dt_{t+dt}$]:}
+%
+In \NAME a variable time step can be set, see chapter \ref{sss:XML:Timing} to learn more
+about the time step alternatives. Variable time step is a good way to walk around
+some transitional instabilities, decreasing instantaneously the time step,
+and trying to avoid that the particles pass trough walls therefore.\rc
+This error is reported when the time step is reduced in one or more orders of
+magnitude. If this error is reported the simulation can continue, but long
+computational times with wrong results can be expected, and you may
+consider the possibility of stop and fix simulation in order to relaunch it.
+%

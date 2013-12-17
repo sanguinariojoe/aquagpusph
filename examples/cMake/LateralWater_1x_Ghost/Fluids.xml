@@ -1,0 +1,47 @@
+<?xml version="1.0" ?>
+<!--
+   %    %%   %  %   %
+  % %  %  %  %  %  % %                          %
+ %%%%% %  %  %  % %%%%%  %%  %%%  %  %  %% %%%  %%%
+ %   % %  %  %  % %   % %  % %  % %  % %   %  % %  %
+ %   % %  %  %  % %   % %  % %  % %  %   % %  % %  %
+ %   %  %% %  %%  %   %  %%% %%%   %%% %%  %%%  %  %
+                           % %             %
+                         %%  %             %
+
+Another QUAlity GPU-SPH, by CEHINAV.
+	http://canal.etsin.upm.es/
+Authors:
+	Cercos Pita, Jose Luis
+	Miguel Gonzalez, Leo
+	Souto Iglesias, Antonio
+-->
+
+<sphInput>
+	<!-- Include a new fluid, specifing the number of particles. -->
+	<Fluid n="255223">
+		<!-- Gamma of fluid. Gamma is the exponent of Batchelor-67 state equation.
+		 If you omit this data, default value specified at SPH will used. -->
+		<Option name="gamma" value="1.0" />
+		<!-- Reference density of fluid. -->
+		<Option name="refd" value="998.0" />
+		<!-- Fluid dynamic viscosity. -->
+		<Option name="Viscdyn" value="0.000894" />
+		<!-- Dinamic viscosity must be selected in order than artificial viscosity term
+		 don't instabilize the method. Let $\alpha=C*Viscdyn/(\rho cs h)$, where C is
+		 equal to 8 at 2D, and 10 for 3D, \alpha value must be greather than 0.01.
+		 In order to improve SPH stability, or in order to reduce/remove artificial
+		 viscosity you can choose edit alpha value (002 as default)
+		 All data can be taken from SPH and this section:
+		 $C = 8 if 2D, 10 if 3D
+		 $\rho = refd$
+		 $cs = csmax$
+		 $h = hfac*deltar. -->
+		<Option name="alpha" value="0.03" />
+		<!-- Fluid file. valid file formats are ASCII file, GiD file, or XML file (not
+		 recommended for large cases)
+		 @note If any valid extension provided, AQUAgpusph ASCII file will be considered
+		 @warning If script initialization has been provided, this file will not be used. -->
+		<Load file="@EXAMPLE_DEST_DIR@/Fluid.dat" />
+	</Fluid>
+</sphInput>

@@ -1,0 +1,35 @@
+<?xml version="1.0" ?>
+<!--
+   %    %%   %  %   %
+  % %  %  %  %  %  % %                          %
+ %%%%% %  %  %  % %%%%%  %%  %%%  %  %  %% %%%  %%%
+ %   % %  %  %  % %   % %  % %  % %  % %   %  % %  %
+ %   % %  %  %  % %   % %  % %  % %  %   % %  % %  %
+ %   %  %% %  %%  %   %  %%% %%%   %%% %%  %%%  %  %
+                           % %             %
+                         %%  %             %
+
+Another QUAlity GPU-SPH, by CEHINAV.
+	http://canal.etsin.upm.es/
+Authors:
+	Cercos Pita, Jose Luis
+	Miguel Gonzalez, Leo
+	Souto Iglesias, Antonio
+-->
+
+<sphInput>
+	<!-- Include Commonly used OpenCL kernels -->
+	<Include file="@RESOURCES_DIR@/OpenCLMain.xml" />
+	<!-- Include general settings -->
+	<Include file="@EXAMPLE_DEST_DIR@/Settings.xml" />
+	<!-- Include timing settings -->
+	<Include file="@EXAMPLE_DEST_DIR@/Time.xml" />
+	<!-- Include SPH simulation variables -->
+	<Include file="@EXAMPLE_DEST_DIR@/SPH.xml" />
+	<!-- Include Fluids to simulate -->
+	<Include file="@EXAMPLE_DEST_DIR@/Fluids.xml" />
+	<!-- Include Movements to simulate -->
+	<Include file="@EXAMPLE_DEST_DIR@/Movements.xml" />
+	<!-- Add sensors -->
+	<Include file="@EXAMPLE_DEST_DIR@/Sensors.xml" />
+</sphInput>

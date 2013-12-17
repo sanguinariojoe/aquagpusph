@@ -1,0 +1,461 @@
+SET(RESOURCES_DIR ${CMAKE_SOURCE_DIR}/resources)
+
+IF(AQUAGPUSPH_3D)
+
+# ===================================================== #
+# perezrojas_etal_stab_2012 (Local)                     #
+# ===================================================== #
+# Folders
+SET(EXAMPLE_DEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012)
+SET(BINARY_DIR ${CMAKE_BINARY_DIR}/bin)
+# XML definition files
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/Move/6DOF.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012/Move/6DOF.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/Move/move.py
+	${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012/Move/move.py @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/Fluids.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012/Fluids.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/Main.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012/Main.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/Movements.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012/Movements.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/Settings.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012/Settings.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/SPH.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012/SPH.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/Time.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012/Time.xml @ONLY)
+# Execution script
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/run.sh
+	${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012/run.sh @ONLY)
+# Target
+ADD_CUSTOM_TARGET(perezrojas_etal_stab_2012 ALL
+	COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/perezrojas_etal_stab_2012/Create.py
+	COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/Fluid.dat ${CMAKE_CURRENT_BINARY_DIR}/perezrojas_etal_stab_2012/Fluid.dat
+	COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_SOURCE_DIR}/Fluid.dat
+	COMMAND chmod a+x ${CMAKE_CURRENT_BINARY_DIR}/perezrojas_etal_stab_2012/run.sh
+	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
+ADD_DEPENDENCIES( perezrojas_etal_stab_2012 AQUAgpusph )
+
+# ===================================================== #
+# perezrojas_etal_stab_2012 (Install)                   #
+# ===================================================== #
+# Folders
+SET(EXAMPLE_DEST_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/examples/perezrojas_etal_stab_2012)
+SET(BINARY_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
+# XML definition files
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/Move/6DOF.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/Move/6DOF.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/Move/move.py
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/Move/move.py @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/Fluids.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/Fluids.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/Main.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/Main.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/Movements.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/Movements.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/Settings.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/Settings.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/SPH.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/SPH.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/Time.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/Time.xml @ONLY)
+# Execution script
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/run.sh
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/run.sh @ONLY)
+# Install
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012/Fluid.dat
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}
+)
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012/Move/T_1-94_A100mm.txt
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}/Move
+)
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012/doc/plot.gnuplot
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}/doc
+)
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/Fluids.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/Main.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/Movements.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/Settings.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/SPH.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/Time.xml
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}
+)
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/run.sh
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}
+    PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                GROUP_EXECUTE             GROUP_READ
+                WORLD_EXECUTE             WORLD_READ             
+)
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/Move/6DOF.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/Move/move.py
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}/Move
+)
+
+ELSE(AQUAGPUSPH_3D)
+
+# ===================================================== #
+# LateralWater_1x_DeLeffe (Local)                       #
+# ===================================================== #
+# Folders
+SET(EXAMPLE_DEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_DeLeffe)
+SET(BINARY_DIR ${CMAKE_BINARY_DIR}/bin)
+# XML definition files
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_DeLeffe/Move/6DOF.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_DeLeffe/Move/6DOF.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_DeLeffe/Fluids.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_DeLeffe/Fluids.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_DeLeffe/Main.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_DeLeffe/Main.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_DeLeffe/Movements.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_DeLeffe/Movements.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_DeLeffe/Sensors.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_DeLeffe/Sensors.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_DeLeffe/Settings.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_DeLeffe/Settings.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_DeLeffe/SPH.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_DeLeffe/SPH.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_DeLeffe/Time.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_DeLeffe/Time.xml @ONLY)
+# Execution script
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_DeLeffe/run.sh
+	${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_DeLeffe/run.sh @ONLY)
+# Target
+ADD_CUSTOM_TARGET(LateralWater_1x_DeLeffe ALL
+	COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/LateralWater_1x_DeLeffe/Create.py
+	COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/Fluid.dat ${CMAKE_CURRENT_BINARY_DIR}/LateralWater_1x_DeLeffe/Fluid.dat
+	COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_SOURCE_DIR}/Fluid.dat
+	COMMAND chmod a+x ${CMAKE_CURRENT_BINARY_DIR}/LateralWater_1x_DeLeffe/run.sh
+	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
+ADD_DEPENDENCIES( LateralWater_1x_DeLeffe AQUAgpusph2D )
+
+# ===================================================== #
+# LateralWater_1x_DeLeffe (Install)                     #
+# ===================================================== #
+# Folders
+SET(EXAMPLE_DEST_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/examples/LateralWater_1x_DeLeffe)
+SET(BINARY_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
+# XML definition files
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_DeLeffe/Move/6DOF.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_DeLeffe/Move/6DOF.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_DeLeffe/Fluids.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_DeLeffe/Fluids.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_DeLeffe/Main.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_DeLeffe/Main.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_DeLeffe/Movements.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_DeLeffe/Movements.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_DeLeffe/Sensors.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_DeLeffe/Sensors.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_DeLeffe/Settings.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_DeLeffe/Settings.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_DeLeffe/SPH.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_DeLeffe/SPH.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_DeLeffe/Time.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_DeLeffe/Time.xml @ONLY)
+# Execution script
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_DeLeffe/run.sh
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_DeLeffe/run.sh @ONLY)
+# Install
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_DeLeffe/Fluid.dat
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}
+)
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_DeLeffe/Move/6DOF.dat
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}/Move
+)
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_DeLeffe/doc/plot.gnuplot
+        ${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_DeLeffe/doc/lateral_water_1x.txt
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}/doc
+)
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_DeLeffe/Fluids.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_DeLeffe/Main.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_DeLeffe/Movements.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_DeLeffe/Sensors.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_DeLeffe/Settings.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_DeLeffe/SPH.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_DeLeffe/Time.xml
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}
+)
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_DeLeffe/run.sh
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}
+    PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                GROUP_EXECUTE             GROUP_READ
+                WORLD_EXECUTE             WORLD_READ             
+)
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_DeLeffe/Move/6DOF.xml
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}/Move
+)
+
+# ===================================================== #
+# LateralWater_1x_Ghost (Local)                         #
+# ===================================================== #
+# Folders
+SET(EXAMPLE_DEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Ghost)
+SET(BINARY_DIR ${CMAKE_BINARY_DIR}/bin)
+# XML definition files
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Ghost/Move/6DOF.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Ghost/Move/6DOF.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Ghost/Fluids.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Ghost/Fluids.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Ghost/GhostParticles.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Ghost/GhostParticles.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Ghost/Main.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Ghost/Main.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Ghost/Movements.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Ghost/Movements.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Ghost/Sensors.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Ghost/Sensors.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Ghost/Settings.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Ghost/Settings.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Ghost/SPH.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Ghost/SPH.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Ghost/Time.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Ghost/Time.xml @ONLY)
+# Execution script
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Ghost/run.sh
+	${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Ghost/run.sh @ONLY)
+# Target
+ADD_CUSTOM_TARGET(LateralWater_1x_Ghost ALL
+	COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/LateralWater_1x_Ghost/Create.py
+	COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/Fluid.dat ${CMAKE_CURRENT_BINARY_DIR}/LateralWater_1x_Ghost/Fluid.dat
+	COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_SOURCE_DIR}/Fluid.dat
+	COMMAND chmod a+x ${CMAKE_CURRENT_BINARY_DIR}/LateralWater_1x_Ghost/run.sh
+	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
+# Since generated particles file is the same, wait for previous
+# examples have been built before start working with this.
+ADD_DEPENDENCIES( LateralWater_1x_Ghost AQUAgpusph2D LateralWater_1x_DeLeffe )
+
+# ===================================================== #
+# LateralWater_1x_Ghost (Install)                       #
+# ===================================================== #
+# Folders
+SET(EXAMPLE_DEST_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/examples/LateralWater_1x_Ghost)
+SET(BINARY_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
+# XML definition files
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Ghost/Move/6DOF.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Ghost/Move/6DOF.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Ghost/Fluids.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Ghost/Fluids.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Ghost/GhostParticles.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Ghost/GhostParticles.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Ghost/Main.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Ghost/Main.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Ghost/Movements.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Ghost/Movements.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Ghost/Sensors.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Ghost/Sensors.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Ghost/Settings.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Ghost/Settings.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Ghost/SPH.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Ghost/SPH.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Ghost/Time.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Ghost/Time.xml @ONLY)
+# Execution script
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Ghost/run.sh
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Ghost/run.sh @ONLY)
+# Install
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Ghost/Fluid.dat
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}
+)
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Ghost/Move/6DOF.dat
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}/Move
+)
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Ghost/doc/plot.gnuplot
+        ${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Ghost/doc/lateral_water_1x.txt
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}/doc
+)
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Ghost/Fluids.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Ghost/GhostParticles.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Ghost/Main.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Ghost/Movements.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Ghost/Sensors.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Ghost/Settings.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Ghost/SPH.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Ghost/Time.xml
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}
+)
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Ghost/run.sh
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}
+    PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                GROUP_EXECUTE             GROUP_READ
+                WORLD_EXECUTE             WORLD_READ             
+)
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Ghost/Move/6DOF.xml
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}/Move
+)
+
+# ===================================================== #
+# lobovsky_etal_jfs_2013 (Local)                        #
+# ===================================================== #
+# Folders
+SET(EXAMPLE_DEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013)
+SET(BINARY_DIR ${CMAKE_BINARY_DIR}/bin)
+# XML definition files
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2013/Fluids.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/Fluids.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2013/Main.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/Main.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2013/Sensors.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/Sensors.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2013/Settings.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/Settings.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2013/SPH.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/SPH.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2013/Time.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/Time.xml @ONLY)
+# Execution script
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2013/run.sh
+	${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/run.sh @ONLY)
+# Target
+ADD_CUSTOM_TARGET(lobovsky_etal_jfs_2013 ALL
+	COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/lobovsky_etal_jfs_2013/Create.py
+	COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/Fluid.dat ${CMAKE_CURRENT_BINARY_DIR}/lobovsky_etal_jfs_2013/Fluid.dat
+	COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_SOURCE_DIR}/Fluid.dat
+	COMMAND chmod a+x ${CMAKE_CURRENT_BINARY_DIR}/lobovsky_etal_jfs_2013/run.sh
+	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
+ADD_DEPENDENCIES( lobovsky_etal_jfs_2013 AQUAgpusph2D LateralWater_1x_DeLeffe LateralWater_1x_Ghost )
+
+# ===================================================== #
+# lobovsky_etal_jfs_2013 (Install)                      #
+# ===================================================== #
+# Folders
+SET(EXAMPLE_DEST_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/examples/lobovsky_etal_jfs_2013)
+SET(BINARY_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
+# XML definition files
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2013/Fluids.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2013/Fluids.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2013/Main.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2013/Main.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2013/Sensors.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2013/Sensors.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2013/Settings.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2013/Settings.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2013/SPH.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2013/SPH.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2013/Time.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2013/Time.xml @ONLY)
+# Execution script
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2013/run.sh
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2013/run.sh @ONLY)
+# Install
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/Fluid.dat
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}
+)
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/sensor1.gnuplot
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/sensor2.gnuplot
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/sensor3.gnuplot
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/sensor4.gnuplot
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/sensors.gnuplot
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/x.gnuplot
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig12_01_ETSIN_Front_Dressler_Martin_2.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig12_01_ETSIN_Front_Dressler_Martin_3.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig12_01_ETSIN_Front_Dressler_Martin_4.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig12_01_ETSIN_Front_Dressler_Martin_5.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig12_01_ETSIN_Front_Dressler_Martin_6.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig12_01_ETSIN_Front_Dressler_Martin_7.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig12_02_ETSIN_Front_Hu_Koshizuka_3.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig12_02_ETSIN_Front_Hu_Koshizuka_4.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig12_02_ETSIN_Front_Hu_Koshizuka_5.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig20_filtered_1.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig20_filtered_2.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig20_filtered_3.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig29_filtered_1.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig29_filtered_2.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig29_filtered_3.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig29_filtered_4.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig30_filtered_1.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig30_filtered_2.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig30_filtered_3.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig30_filtered_4.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig30_filtered_5.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig31_filtered_1.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig31_filtered_2.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig31_filtered_3.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig31_filtered_4.dat
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}/doc
+)
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2013/Fluids.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2013/Main.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2013/Sensors.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2013/Settings.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2013/SPH.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2013/Time.xml
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}
+)
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2013/run.sh
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}
+    PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                GROUP_EXECUTE             GROUP_READ
+                WORLD_EXECUTE             WORLD_READ             
+)
+
+ENDIF(AQUAGPUSPH_3D)

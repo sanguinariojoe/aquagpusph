@@ -1,0 +1,31 @@
+Tabulators and spacing
+======================
+
+The tabulators will consist in a set of 4 spaces.
+
+All the lines between braces should be tabulated.
+
+The opening brace should be placed just after the sentence, except in the
+case of functions or classes definition where the opening brace is placed in
+the next line.
+
+The lines must not exceed the 80 cahracters.
+
+The private variables of a class should be named with an underscore prefix.
+
+Naming
+======
+
+File names: File names will be inherited from the main class name inside them.
+
+Type/ClassNameSpace names: Without underscores or dashes, the type names should
+have upper case letters at the start of the name, and at the start of each word
+of the name.
+
+Function names: Without underscores or dashes, the type names should have a
+lower case letter at the start of the name, and an upper case letter at the
+start of each word of the name.
+
+Variable names: Must be started with a lower case letter, and all the words
+must be separated by underscores.
+

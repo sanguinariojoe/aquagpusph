@@ -1,0 +1,96 @@
+<?xml version="1.0" ?>
+<!--
+   %    %%   %  %   %
+  % %  %  %  %  %  % %                          %
+ %%%%% %  %  %  % %%%%%  %%  %%%  %  %  %% %%%  %%%
+ %   % %  %  %  % %   % %  % %  % %  % %   %  % %  %
+ %   % %  %  %  % %   % %  % %  % %  %   % %  % %  %
+ %   %  %% %  %%  %   %  %%% %%%   %%% %%  %%%  %  %
+                           % %             %
+                         %%  %             %
+
+Another QUAlity GPU-SPH, by CEHINAV.
+	http://canal.etsin.upm.es/
+Authors:
+	Cercos Pita, Jose Luis
+	Miguel Gonzalez, Leo
+	Souto Iglesias, Antonio
+-->
+
+<sphInput>
+	<!-- Starts a SPH section -->
+	<SPH>
+		<!-- Gamma of fluid. Gamma is the exponent of Batchelor-67 state equation. -->
+		<Option name="gamma" value="1.0" />
+		<!-- Gravity force vector [m/s2] -->
+		<Option name="g" x="0.0" y="-9.81" />
+		<!-- Kernel height multiplier. Kernel height will be calculated as hfac times deltar,
+		 and specify the number of neighbour particles. -->
+		<Option name="hfac" value="4.0" />
+		<!-- Distance between particles. If variable maximum value is suggested, but small
+		 variation are not relevant. -->
+		<Option name="deltar" x="0.000578778" y="0.000578778" />  
+		<!-- Sound speed of fluid. Take care when you change this value if you are loading
+		 fluid from file, because the density field must be corrected too. -->
+		<Option name="cs" value="45.0" />
+		<!-- Time step divisor. Time step is calculated every time, and clamped to be lower than
+		 a maximum value, but the time step resultant is divided by this factor, that can help
+		 to solve some instabilities improving the Courant number. -->
+		<Option name="DivDt" value="4.0" />
+		<!-- Number of steps between LinkList perform [int].
+		  LinkList is a relative complex operation, so decreasing the times that this operation is
+		  performed, some speed-ups can taken. At the other hand, increasing this value cells size
+		  is increased, reverting in a dramatic increase of particles neighbours, increasing the time
+		  spent in rates calculation.
+		  Depending the number of neighbours (deltar & hfac) and DivDt, the best value can vary.
+		  -->
+		<Option name="LLSteps" value="1" />
+		<!-- Number of steps before density field interpolation [int].
+		  Density field interpolation reinitializates the density field interpolating it (and discarding
+		  evolution data). This operation can restore smooth density fields. If 0 value set, density
+		  interpolation will not performed.
+		  -->
+		<Option name="DensSteps" value="0" />
+		<!-- Boundary condition employed:
+		  value="ElasticBounce": Elastic bounce will considered on walls. An elastic factor is applied too. This
+		  method is used internally on FixParticles and DeLeffe boundaries.
+		  value="FixParticles" (default value): A set of particles (several rows) must be placed at boundary as
+		  extension of the fluid (U0Model).
+		  value="DeLeffe": Boundary integrals will used at boundary.
+		  -->
+		<Option name="Boundary" value="DeLeffe" />
+		<!-- Walls slip condition:
+		  * NoSlip: Zero tangencial velocity is imposed at wall.
+		  * FreeSlip: Only normal velocity is imposed at wall.
+		  -->
+		<Option name="SlipCondition" value="FreeSlip" />
+		<!-- Distance to the wall where elastic shock is applied.
+		  @note Distance is provided as kernel height rate.
+		  @warning Ussually 0.1 (default value) is a good value, but depending the problem, kernel height,
+		  time step, and others, this value must be increased. It's strongly recommended don't use high
+		  values or undessireable fluid reactions may happens, try to change csmin or hfac before.
+		  -->
+		<Option name="BoundDist" value="0.1" />
+		<!-- Elastic factor at boundary. 0.0 for total energy dissipation, 1.0 for fully conservative
+		 reaction on wall.
+		 -->
+		<Option name="BoundElasticFactor" value="0.0" />
+		<!-- Environment where renormalization (formerly Shepard correction) must be applied.
+		 value="None": Shepard correction will not be applied.
+		 value="Force": Computed force over particles will be renormalized.
+		 value="Dens": Density rate computed will be renormalized.
+		 value="ForceDens": Force and density rate will be renormalized.
+		 Renormalization can result in some instabilities. At the other hand DeLeffe formulation requires
+		 Shepard correction, so Force is suggested if you use DeLeffe boundary condition.
+		 -->
+		<Option name="Shepard" value="Force" />
+		<!-- Domain bounds. Optionally you can add domain bounds in order to fix particles that go out. If
+		  you don't add this option, particles can go as far as possible, that in case of wall penetration
+		  can cause program crash.
+		  @note Ussually is a good idea has a domain bounds.
+		  @warning In 2D h is associated to y coordinate, but in 3D h is associated to z, and new d dimensions
+		  is associated to y coordiante.
+		  -->
+		<Option name="Domain" x="-0.60" y="-0.15" l="1.2" h="0.85" />
+	</SPH>
+</sphInput>

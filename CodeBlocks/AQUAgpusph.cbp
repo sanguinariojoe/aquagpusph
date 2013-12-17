@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="AQUAgpusph" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/AQUAgpusph" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../example/" />
+				<Option object_output="../Linux/obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/AQUAgpusph" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../example/" />
+				<Option object_output="../Linux/obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+			<Target title="Debug64">
+				<Option output="AQUAgpusph" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../example/" />
+				<Option object_output="../Linux/obj/Debug64/" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-m64" />
+				</Compiler>
+				<Linker>
+					<Add option="-m64 -L/usr/lib64" />
+				</Linker>
+			</Target>
+			<Target title="Release64">
+				<Option output="AQUAgpusph" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../example/" />
+				<Option object_output="../Linux/obj/Release64/" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-m64" />
+				</Compiler>
+				<Linker>
+					<Add option="-m64 -L/usr/lib64" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fexceptions" />
+			<Add option="-I../include" />
+			<Add option="-I/usr/include/mpi" />
+			<Add option="-I/usr/include/vtk-5.6" />
+			<Add option="-I/usr/include/python3.1" />
+			<Add option="-DHAVE_H5PART" />
+			<Add option="-DHAVE_VTK" />
+			<Add option="-DHAVE_GPUPROFILE" />
+			<Add option="-D_sphVERBOSE" />
+			<Add option="-DPARALLEL_IO" />
+			<Add option="-DH5_HAVE_PARALLEL" />
+			<Add option="-DMPICH_IGNORE_CXX_SEEK" />
+		</Compiler>
+		<Linker>
+			<Add option="-lhdf5" />
+			<Add option="-lpH5Part" />
+			<Add option="-lvtkCommon" />
+			<Add option="-lvtkHybrid" />
+			<Add option="-lvtkIO" />
+			<Add option="-lvtkFiltering" />
+			<Add option="-ltinyxml" />
+			<Add option="-lm" />
+			<Add option="-lncurses" />
+			<Add option="-fPIC" />
+			<Add option="-lOpenCL" />
+			<Add option="-lpython3.1" />
+		</Linker>
+		<Unit filename="../include/ArgumentsManager.h" />
+		<Unit filename="../include/AuxiliarMethods.h" />
+		<Unit filename="../include/CalcServer.h" />
+		<Unit filename="../include/CalcServer/Boundary/DeLeffe.h" />
+		<Unit filename="../include/CalcServer/Boundary/ElasticBounce.h" />
+		<Unit filename="../include/CalcServer/Boundary/GhostParticles.h" />
+		<Unit filename="../include/CalcServer/Bounds.h" />
+		<Unit filename="../include/CalcServer/Corrector.h" />
+		<Unit filename="../include/CalcServer/DensityInterpolation.h" />
+		<Unit filename="../include/CalcServer/Domain.h" />
+		<Unit filename="../include/CalcServer/Energy.h" />
+		<Unit filename="../include/CalcServer/Grid.h" />
+		<Unit filename="../include/CalcServer/Kernel.h" />
+		<Unit filename="../include/CalcServer/LinkList.h" />
+		<Unit filename="../include/CalcServer/Movements/C1Interpolation.h" />
+		<Unit filename="../include/CalcServer/Movements/C1Quaternion.h" />
+		<Unit filename="../include/CalcServer/Movements/LIQuaternion.h" />
+		<Unit filename="../include/CalcServer/Movements/LinearInterpolation.h" />
+		<Unit filename="../include/CalcServer/Movements/Movement.h" />
+		<Unit filename="../include/CalcServer/Movements/Quaternion.h" />
+		<Unit filename="../include/CalcServer/Movements/ScriptQuaternion.h" />
+		<Unit filename="../include/CalcServer/Portal/Portal.h" />
+		<Unit filename="../include/CalcServer/Predictor.h" />
+		<Unit filename="../include/CalcServer/RadixSort.h" />
+		<Unit filename="../include/CalcServer/Rates.h" />
+		<Unit filename="../include/CalcServer/Reduction.h" />
+		<Unit filename="../include/CalcServer/Sensors.h" />
+		<Unit filename="../include/CalcServer/Shepard.h" />
+		<Unit filename="../include/CalcServer/TimeStep.h" />
+		<Unit filename="../include/CalcServer/Torque.h" />
+		<Unit filename="../include/FileManager.h" />
+		<Unit filename="../include/Fluid.h" />
+		<Unit filename="../include/Input.h" />
+		<Unit filename="../include/Input/ASCII.h" />
+		<Unit filename="../include/Input/GiD.h" />
+		<Unit filename="../include/Input/XML.h" />
+		<Unit filename="../include/Output.h" />
+		<Unit filename="../include/ProblemSetup.h" />
+		<Unit filename="../include/ScreenManager.h" />
+		<Unit filename="../include/Singleton.h" />
+		<Unit filename="../include/TimeManager.h" />
+		<Unit filename="../include/Tokenizer/Tokenizer.h" />
+		<Unit filename="../include/sphPrerequisites.h" />
+		<Unit filename="../src/ArgumentsManager.cpp" />
+		<Unit filename="../src/AuxiliarMethods.cpp" />
+		<Unit filename="../src/CalcServer/Boundary/DeLeffe.cpp" />
+		<Unit filename="../src/CalcServer/Boundary/ElasticBounce.cpp" />
+		<Unit filename="../src/CalcServer/Boundary/GhostParticles.cpp" />
+		<Unit filename="../src/CalcServer/Bounds.cpp" />
+		<Unit filename="../src/CalcServer/CalcServer.cpp" />
+		<Unit filename="../src/CalcServer/Corrector.cpp" />
+		<Unit filename="../src/CalcServer/DensityInterpolation.cpp" />
+		<Unit filename="../src/CalcServer/Domain.cpp" />
+		<Unit filename="../src/CalcServer/Energy.cpp" />
+		<Unit filename="../src/CalcServer/Grid.cpp" />
+		<Unit filename="../src/CalcServer/Kernel.cpp" />
+		<Unit filename="../src/CalcServer/LinkList.cpp" />
+		<Unit filename="../src/CalcServer/Movements/C1Interpolation.cpp" />
+		<Unit filename="../src/CalcServer/Movements/C1Quaternion.cpp" />
+		<Unit filename="../src/CalcServer/Movements/LIQuaternion.cpp" />
+		<Unit filename="../src/CalcServer/Movements/LinearInterpolation.cpp" />
+		<Unit filename="../src/CalcServer/Movements/Movement.cpp" />
+		<Unit filename="../src/CalcServer/Movements/Quaternion.cpp" />
+		<Unit filename="../src/CalcServer/Movements/ScriptQuaternion.cpp" />
+		<Unit filename="../src/CalcServer/Portal/Portal.cpp" />
+		<Unit filename="../src/CalcServer/Predictor.cpp" />
+		<Unit filename="../src/CalcServer/RadixSort.cpp" />
+		<Unit filename="../src/CalcServer/Rates.cpp" />
+		<Unit filename="../src/CalcServer/Reduction.cpp" />
+		<Unit filename="../src/CalcServer/Sensors.cpp" />
+		<Unit filename="../src/CalcServer/Shepard.cpp" />
+		<Unit filename="../src/CalcServer/TimeStep.cpp" />
+		<Unit filename="../src/CalcServer/Torque.cpp" />
+		<Unit filename="../src/FileManager.cpp" />
+		<Unit filename="../src/Fluid.cpp" />
+		<Unit filename="../src/Input.cpp" />
+		<Unit filename="../src/Input/ASCII.cpp" />
+		<Unit filename="../src/Input/GiD.cpp" />
+		<Unit filename="../src/Input/XML.cpp" />
+		<Unit filename="../src/Output.cpp" />
+		<Unit filename="../src/ProblemSetup.cpp" />
+		<Unit filename="../src/ScreenManager.cpp" />
+		<Unit filename="../src/TimeManager.cpp" />
+		<Unit filename="../src/Tokenizer/Tokenizer.cpp" />
+		<Unit filename="../src/main.cpp" />
+		<Extensions>
+			<envvars />
+			<code_completion />
+			<lib_finder disable_auto="1" />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

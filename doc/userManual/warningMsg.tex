@@ -1,0 +1,24 @@
+\subsubsection{$[$WARNING$]$ timestep changed [$dt_t$ -$>$ $dt_{t+dt}$]:}
+%
+In \NAME a variable time step can be set, see chapter \ref{sss:XML:Timing} to learn more
+about the time step alternatives. Variable time step is a good way to walk around
+some transitional instabilities, decreasing instantaneously the time step, and
+trying to avoid that the particles pass trough walls therefore.\rc
+This message indicates that the time step has been adapted. The time step variation
+is an indicative that the simulation is not running right, so if you receive
+too much time step change reports, or the time step change is large, maybe you
+must consider repeat the simulation increasing the sound speed or the time step
+divisor.
+%
+\subsubsection{$[$WARNING$]$ Number of cells increased [$n_t$ -$>$ $n_{t+dt}$]:}
+%
+Like other SPH codes, \NAME neighbour particles localization is based on a
+PIC algorithm, where each particle is marked by a grid cell where is situated. The
+number of cells where the particles can be located depends on the extension of
+fluid domain. Therefore, it can be modified along the simulation. You can learn more about
+cells usage on \NAME at chapter \ref{ss:aquagpusph:linklist}.\rc
+In most simulations fluid bounds are not constant along the simulation, so some
+reports about cell numbers increase can occur. If this increase is too large the reallocation of
+memory can be impossible, breaking the simulation, and possibly indicating that some
+particles has abandoned the physical domain.
+%

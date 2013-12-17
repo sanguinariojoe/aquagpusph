@@ -1,0 +1,116 @@
+# ===================================================== #
+# Dependencies                                          #
+# ===================================================== #
+IF(HAVE_NCURSES)
+	SET(OPTIONAL_INCLUDE_PATH ${OPTIONAL_INCLUDE_PATH} ${CURSES_INCLUDE_PATH})
+	SET(OPTIONAL_LIBS ${OPTIONAL_LIBS} ${CURSES_LIBRARY})
+ENDIF(HAVE_NCURSES)
+IF(HAVE_H5PART)
+	SET(OPTIONAL_INCLUDE_PATH ${OPTIONAL_INCLUDE_PATH} ${HDF5_INCLUDE_PATH} ${H5PART_INCLUDE_PATH})
+	SET(OPTIONAL_LIBS ${OPTIONAL_LIBS} ${HDF5_LIBRARY} ${H5PART_LIBRARY})
+ENDIF(HAVE_H5PART)
+IF(HAVE_VTK)
+	SET(OPTIONAL_INCLUDE_PATH ${OPTIONAL_INCLUDE_PATH} ${VTK_INCLUDE_DIRS})
+	SET(OPTIONAL_LIBS ${OPTIONAL_LIBS} ${VTK_LIBRARIES})
+ENDIF(HAVE_VTK)
+IF(HAVE_MPI)
+	SET(OPTIONAL_INCLUDE_PATH ${OPTIONAL_INCLUDE_PATH} ${MPI_INCLUDE_PATH})
+	SET(OPTIONAL_LIBS ${OPTIONAL_LIBS} ${MPI_LIBRARIES})
+ENDIF(HAVE_MPI)
+
+# ===================================================== #
+# Include & Link                                        #
+# ===================================================== #
+INCLUDE_DIRECTORIES(
+	${CMAKE_BINARY_DIR}/include
+	${CMAKE_SOURCE_DIR}/include
+	${CMAKE_CURRENT_BINARY_DIR}
+	${PYTHON_INCLUDE_PATH}
+	${OPENCL_INCLUDE_DIRS}
+	${XERCESC_INCLUDE_PATH}
+	${EIGEN3_INCLUDE_DIR}
+	${OPTIONAL_INCLUDE_PATH}
+)
+
+SET(DEP_LIBS 
+	${OPENCL_LIBRARIES}
+	${PYTHON_LIBRARIES}
+	${XERCESC_LIBRARIES}
+	${OPTIONAL_LIBS}
+)
+
+# ===================================================== #
+# Sources to compile                                    #
+# ===================================================== #
+SET(Server_CPP_SRCS
+	Bounds.cpp
+	CalcServer.cpp
+	Corrector.cpp
+	DensityInterpolation.cpp
+	Domain.cpp
+	Energy.cpp
+	Grid.cpp
+	Kernel.cpp
+	LinkList.cpp
+	Predictor.cpp
+	RadixSort.cpp
+	Rates.cpp
+	Reduction.cpp
+	Sensors.cpp
+	Shepard.cpp
+	TimeStep.cpp
+	Torque.cpp
+	Boundary/DeLeffe.cpp
+	Boundary/GhostParticles.cpp
+	Boundary/ElasticBounce.cpp
+	Movements/C1Interpolation.cpp
+	Movements/C1Quaternion.cpp
+	Movements/LinearInterpolation.cpp
+	Movements/LIQuaternion.cpp
+	Movements/Movement.cpp
+	Movements/Quaternion.cpp
+	Movements/ScriptQuaternion.cpp
+	Portal/Portal.cpp
+)
+
+# ===================================================== #
+# Target                                                #
+# ===================================================== #
+SOURCE_GROUP("AQUAgpusphServer" FILES ${Server_CPP_SRCS})
+
+IF(AQUAGPUSPH_3D)
+	SET(ServerTagetName AQUAgpusphServer)
+ELSE(AQUAGPUSPH_3D)
+	SET(ServerTagetName AQUAgpusphServer2D)
+ENDIF(AQUAGPUSPH_3D)
+
+add_library(${ServerTagetName} SHARED ${Server_CPP_SRCS})
+
+target_link_libraries(${ServerTagetName} ${DEP_LIBS})
+
+# ===================================================== #
+# Install                                               #
+# ===================================================== #
+if(MSVC)
+    set_target_properties(${ServerTagetName} PROPERTIES DEBUG_OUTPUT_NAME "${ServerTagetName}D")
+    set_target_properties(${ServerTagetName} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
+    # dirty hack to avoid Debug/Release subdirectory
+    set_target_properties(${ServerTagetName} PROPERTIES PREFIX "../")
+elseif(MINGW)
+    set_target_properties(${ServerTagetName} PROPERTIES DEBUG_OUTPUT_NAME "${ServerTagetName}D")
+    set_target_properties(${ServerTagetName} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
+else(MSVC)
+    set_target_properties(${ServerTagetName} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
+    set_target_properties(${ServerTagetName} PROPERTIES INSTALL_RPATH ${INSTALL_RPATH})
+endif(MSVC)
+
+if(WIN32)
+    INSTALL(TARGETS ${ServerTagetName}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    )
+else(WIN32)
+    INSTALL(TARGETS ${ServerTagetName}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    )
+endif(WIN32)

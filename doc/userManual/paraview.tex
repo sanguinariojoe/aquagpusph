@@ -1,0 +1,65 @@
+\section{Visualization files}
+\label{ss:running:visualizationoutput}
+%
+\subsection{General}
+%
+\NAME actually offers 2 types of visualization output files, Tecplot and H5Part
+ones. Tecplot output files are outdated, and since is a plain text output format,
+is created and loaded slowly and hight hard disk consuming, so is strongly
+recommended to don't use this format. However H5Part has been spicifically designed
+to perform particles output in a binary form, being computationally efficient
+compared with other formats, and is the format that will be documented here.
+%
+\NAME VTK format support is incoming, but not implemented yet.
+%
+\subsection{H5Part}
+\label{sss:visualizationoutput:H5Part}
+%
+H5Part is an high efficient implementation of \href{http://www.hdfgroup.org/HDF5}{hdf5}
+file template oriented to particles based output. Main advantages are:
+%
+\begin{enumerate}
+	\item Is a binary format that reduce significantly the Hard Disk resources consuming.
+	\item Is a free library.
+	\item All time steps can be packed on one file.
+\end{enumerate}
+%
+And main disadvantages are:
+%
+\begin{enumerate}
+	\item Is not generalized format, so is not commonly introduced on standard package repository
+	of most usually used Linux distributions.
+	\item If program fails before file is right closed, will result on unrecoverable data.
+\end{enumerate}
+%
+On actual \NAME implementation this is the main output format. H5Part files can be postprocessed
+with ParaView\footnote{ParaView H5Part Reader plugin must be loaded}. This chapter is not
+oriented to describe the work with ParaView, please refer to ParaView's web page to find tutorials,
+in this chapter we will describe some specific operations that can helps you processing data.\rc
+%
+In \NAME particles have 2 relevant flags, \textit{\textbf{imove}} and \textit{\textbf{ifluid}}. The
+first one marks if the particle is:
+%
+\begin{enumerate}
+	\item $imove < 0$ a fix particle or a wall vertex.
+	\item $imove = 0$ a sensor.
+	\item $imove > 0$ a fluid particle.
+\end{enumerate}
+%
+So you can use \textbf{Clip} tool over this scalar in order to split particles in this 3 categories
+that can be visualized independently. Regarding \textit{\textbf{ifluid}} flag, marks the fluid of
+each particle, allowing you extract different fluids in order to process it independently of the 
+other ones, with the \textbf{Clip} filter as well.\rc
+%
+All the fields exported by \NAME are scalars, including vectors components. You can build vectorial
+fields for some specific purposes with the \textbf{Calculator} tool, simply set the sum of each
+vector component multiplied by \textit{iHat, jHat or kHat} associated variable.\rc
+%
+You can get a large number of additional plugins specifically oriented to SPH visualization works
+from
+\href{https://hpcforge.org/plugins/mediawiki/wiki/pv-meshless/index.php/Main_Page_for_pv-meshless_WIKI}{pv-meshless}.\rc
+%
+On actual \NAME package is not possible to select what fields will be printed, printing all relevant
+particles data. Future releases will offer the possibility of discard some fields of output in order
+to decrease the output file size.
+%

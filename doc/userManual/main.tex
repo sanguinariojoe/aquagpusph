@@ -1,0 +1,136 @@
+\documentclass[a4paper,12pt]{book}
+\usepackage[numbers]{natbib}
+\bibliographystyle{plainnat}
+\usepackage{graphicx}
+\usepackage{verbatim}
+\usepackage{color, colortbl}
+%\usepackage[pdftex]{color}
+\usepackage{hyperref}
+\usepackage[utf8]{inputenc}
+\setcounter{tocdepth}{2}
+\usepackage{alltt}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\graphicspath{{./images/}}
+\usepackage{txfonts}   %%does not work on Windows
+\usepackage{dsfont}
+%
+\newcommand{\NAME}{AQUAgpusph }
+\newcommand{\VERSION}{1.4.03 }
+\newcommand{\rc}{\\[0.2 in]}
+\newcommand{\rcc}{\\[0.3 in]}
+\newcommand{\rccc}{\\[0.4 in]}
+% \newcommand{\bs}[1]{\boldsymbol{#1}}
+\newcommand{\bs}[1]{\pmb{#1}}
+\newcommand{\SPHint}{\int_{\bs{y} \in \Omega}}
+\newcommand{\SPHboundint}{\int_{\bs{y} \in \partial \Omega}}
+\newcommand{\gradient}{\nabla}
+\newcommand{\divergence}{\mbox{div}}
+\newcommand{\laplacian}{\bigtriangleup}
+\newcommand{\dsty}{\displaystyle}
+\newcommand{\sph}[1]{\langle {#1} \rangle}
+%
+\author{JL Cercos-Pita $<$jl.cercos@upm.es$>$}
+\title{\NAME- \VERSION.\rcc
+\textbf{Users guide}}
+\date{\today\\[5.0 in]
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.2\textwidth]{CC_88x31}
+\end{figure}
+}
+%
+\setlength{\parindent}{0em}
+%
+\usepackage{anysize}
+\marginsize{1.5cm}{1cm}{1cm}{1cm}
+%
+\usepackage{fancyhdr}
+\pagestyle{fancyplain}
+% Pages header and foot
+\lhead{}
+\rhead{\NAME- \VERSION users guide}
+\lfoot{JL Cercos-Pita}
+\cfoot{\url{http://canal.etsin.upm.es}}
+\rfoot{\thepage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+% -------------------------------
+% Title and summary
+% -------------------------------
+\maketitle
+\thispagestyle{empty}
+%
+\newpage
+\tableofcontents
+\newpage
+\newpage
+% -------------------------------
+% Introduction items
+% -------------------------------
+\input{abstract}
+\input{physics}
+\input{install}
+
+% -------------------------------
+% Case generation explanation
+% -------------------------------
+\input{xmlInput}
+\input{partsInput}
+
+% -------------------------------
+% Running simulation
+% -------------------------------
+\input{running}
+
+% -------------------------------
+% Post-process simulation
+% -------------------------------
+\chapter{PostProcessing simulations}
+\label{s:outputFiles}
+%
+\section{General}
+%
+\NAME output files can be organized in 4 groups:
+%
+\begin{enumerate}
+	\item Log.
+	\item Data files.
+	\item Custom data files.
+	\item Visualization files.
+\end{enumerate}
+%
+Log files are commented on chapter \ref{ss:running:tracking}.\rc
+%
+Data files output are selected by the user. In chapters \ref{ss:running:energyoutput} to
+\ref{ss:running:sensorsoutput} the content of data files are discussed.\rc
+%
+If you select a Python scripted motion, you can perform custom output data files. In chapter
+\ref{sss:aquagpusph:motions:Controls} you can learn more about the motion controlled by a Python
+script.\rc
+%
+Ending files designed to visualization processes can be printed too, as explained into \ref{sss:XML:Timing}
+section. In this user manual, the visualization using paraview will be explained.
+%
+\input{outputFiles}
+\input{paraview}
+
+% -------------------------------
+% Program functionality
+% -------------------------------
+\input{aquagpusph}
+
+% -------------------------------
+% Examples
+% -------------------------------
+\input{examples}
+
+% -------------------------------
+% Bibliography
+% -------------------------------
+\bibliography{bib}
+\addcontentsline{toc}{chapter}{Bibliography} 
+\end{document}

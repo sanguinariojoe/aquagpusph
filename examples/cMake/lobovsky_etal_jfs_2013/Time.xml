@@ -1,0 +1,64 @@
+<?xml version="1.0" ?>
+<!--
+   %    %%   %  %   %
+  % %  %  %  %  %  % %                          %
+ %%%%% %  %  %  % %%%%%  %%  %%%  %  %  %% %%%  %%%
+ %   % %  %  %  % %   % %  % %  % %  % %   %  % %  %
+ %   % %  %  %  % %   % %  % %  % %  %   % %  % %  %
+ %   %  %% %  %%  %   %  %%% %%%   %%% %%  %%%  %  %
+                           % %             %
+                         %%  %             %
+
+Another QUAlity GPU-SPH, by CEHINAV.
+	http://canal.etsin.upm.es/
+Authors:
+	Cercos Pita, Jose Luis
+	Miguel Gonzalez, Leo
+	Souto Iglesias, Antonio
+-->
+
+<sphInput>
+	<!-- Starts a timing section -->
+	<Timing>
+		<!-- Set the simulation end citeria             
+			type="Frames" Simulation ends after print specified number of frames
+			type="Time" Simulation ends after specified seconds of simulation
+		You can combine both stop criteria simply setting the tag two times.
+		-->
+		<Option name="SimulationStop" type="Time" value="1.25" />
+		<!-- Set log file print criteria. Log file contains relevant data about AQUAgpusph
+		execution, i.e.- Warnings, errors, or information about printed files and the status.
+			type="FPS" Log file will be updated by specified value times per second.
+			type="IPF" Log file will be updated when specified iteration was completed.
+		You can combine both criteria simply setting the tag two times.
+		-->
+		<Option name="LogFiles" type="FPS" value="120" />
+		<!-- Set energy report print criteria. Energy report contains fluid energy data,
+		like momentum and angular momentum, or potential, kinetic and total energy.
+			type="FPS" Energy report file will be updated by specified value times per second.
+			type="IPF" Energy report will be updated when specified iteration was completed.
+		You can combine both criteria simply setting the tag two times.
+		-->
+		<Option name="EnFiles" type="FPS" value="120" />
+		<!-- Set fluid bounds report print criteria.
+			type="FPS" Fluid bounds report file will be updated by specified value times per second.
+			type="IPF" Fluid bounds report will be updated when specified iteration was completed.
+		You can combine both criteria simply setting the tag two times.
+		-->
+		<Option name="BoundsFiles" type="FPS" value="120" />
+		<!-- Set output files print criteria -->
+			<!-- format="H5Part" H5Part files laodables with paraview -->
+			<!-- format="Tecplot" Tecplot files (strongly not recommended) -->
+			<!-- type="FPS" Iterations per frame -->
+			<!-- type="IPF" Frames per second  -->
+		<Option name="Output" format="H5Part" type="FPS" value="30" />
+		<!-- Time step alternatives. 
+		value="Variable": Time step is calculated every iteration in order to preserve Courant number.
+		value="Fix": Time step is calculated at simulation starting, and preserved along it. 
+		value="*FloatValue*": Time step is the float number provided as value. -->
+		<Option name="TimeStep" value="Variable"/>
+		<!-- Stabilisation time. During the stabilisation time motions will be disabled and fluid
+		viscosity dramatically increased. -->
+		<Option name="Stabilization" value="0.0"/>
+	</Timing>
+</sphInput>

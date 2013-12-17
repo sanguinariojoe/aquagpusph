@@ -1,0 +1,283 @@
+\chapter{\NAME in detail}
+\label{s:aquagpusph}
+%
+\section{General}
+\label{ss:aquagpusph:general}
+%
+\NAME functionality can be deeply analyzed using Doxygen documentation. In section \ref{s:install}
+you can find how to build Doxygen developers documentation during \NAME compile process. When \NAME
+have been already built you can open Doxygen documentation web page with your internet browser,
+loading doc/Doxygen/html/index.html web page file.\rc
+%
+The objective of this chapter is provide some key notes about how \NAME works in order to allow users
+understand well what can do or not with this software.\rc
+%
+In figure \ref{fig:aquagpusph:generalDiagram} you can see the general flux diagram. \NAME is based on a
+host-server structure. Host is designed to prepare the case, and to receive and process results, since
+server is designed to receive data from server, and compute as many time steps as possible until no new
+output is needed.\rc
+%
+This structure does not only simplify the process and allows more comprehensive code, also is designed
+for tolerate several calculation servers working simultaneously on future releases, trying to preserve
+the actual simplicity.
+%
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=0.7\textwidth]{GeneralDiagram}
+  \caption{General \NAME flux diagram}
+  \label{fig:aquagpusph:generalDiagram}
+\end{figure}
+%
+\section{Arguments manager}
+\label{ss:aquagpusph:argmanager}
+%
+Arguments manager is the piece of code that analyse input command line options/arguments. You can get a
+list of valid options and arguments executing:
+%
+\begin{verbatim}
+AQUAgpusph --help
+\end{verbatim}
+%
+Valid options are:
+%
+\begin{itemize}
+	\item \textbf{-i, -\--input=INPUT}: Set the definition XML file of the simulation.
+	\item \textbf{-o, -\--output-prefix=PREFIX}: Set a prefix for output files.
+	\item \textbf{-n, -\--no-reassembly}: Visualization output files will not reassembled.
+	\item \textbf{-v, -\--version}: Show \NAME version and stop the execution.
+	\item \textbf{-h, -\--help}: Show \NAME helps page and stop the execution.
+\end{itemize}
+%
+Options can be freely used simultaneously until incompatibilities are not notified here, or at the help
+page. Some combinations of command line options can result on undesired behaviour, like for instance
+mixing -\--version with -\--help will discard one of them.\rc
+%
+In almost cases -\--no-reassembly is a good option, due to reassembly output files can be a really
+hard-disk \& CPU consuming process.
+%
+\section{Problem setup}
+\label{ss:aquagpusph:problemsetup}
+%
+The problem setup stage basically consist on loads all settings established as explained on chapter
+\ref{s:caseSetup}, and load the particles/vertexes data from described files on chapter \ref{ss:partsFile}.\rc
+%
+Problem setup will report work done, and the eventually incidences, on the initialization screen output.
+The screen output during initialization and close stages of \NAME execution will be preserved if NCurses
+support has been activated, but if NCurses support is not active you can lost the initialization process
+reported messages due to the large amount of these printed during the simulation. In this case you
+can redirect the screen output to a file typing:
+%
+\begin{alltt}
+AQUAgpusph \emph{COMMANDLINE_OPTIONS} > screen.out
+\end{alltt}
+%
+You can also detach the execution from terminal, for instance using:
+%
+\begin{alltt}
+nohup AQUAgpusph \emph{COMMANDLINE_OPTIONS} > screen.out &
+\end{alltt}
+%
+Allowing you to run \NAME remotely, but in this case you will lost the possibility of stop simulation using `c'
+key\footnote{Advanced Linux users can get the process PID and then reinject keys to program}, that as described
+on chapter \ref{ss:running:launching} allows you to right stop the simulation closing files.\rc
+%
+In both cases you will preserve a file called ``screen.out'' that saves the messages reported during
+initialization and close stages, and along the simulation as well.
+%
+\section{Leap-Frog integration scheme}
+\label{ss:aquagpusph:leapfrog}
+%
+Weakly compressible SPH method is able to return the instantaneous acceleration and density rate for each
+particle in a Lagrangian point of view, so 3 variables must be integrated along the time, velocity, position
+and density of each particle. \NAME time integration is based on a Leap-Frog predictor-corrector scheme:
+%
+\begin{enumerate}
+	\item Predictor:
+	\[
+	\dot x_{t+dt}^{\mathrm{pred}} = 
+	\dot x_{t} + 
+	dt \left(
+		\ddot x_{t} + g
+	\right)
+	\]
+	\[
+	x_{t+dt}^{\mathrm{pred}} = 
+	x_{t} + 
+	dt \dot x_{t} + 
+	\frac{dt^2}{2} \left(
+		\ddot x_{t} + g
+	\right)
+	\]
+	\[
+	\rho_{t+dt}^{\mathrm{pred}} = 
+	\rho_{t} + 
+	dt \dot\rho_{t}
+	\]
+	\item SPH interactions:
+	\[
+	\ddot x_{t+dt} \leftarrow \mbox{SPH}
+	\]
+	\[
+	\dot\rho_{t+dt} \leftarrow \mbox{SPH}
+	\]
+	\item Corrector:
+	\[
+	\dot x_{t+dt} = 
+	\dot x_{t+dt}^{\mathrm{pred}} + 
+	\frac{dt}{2} \left(
+		\ddot x_{t+dt} - \ddot x_{t}
+	\right)
+	\]
+	\[
+	x_{t+dt} = x_{t+dt}^{\mathrm{pred}}
+	\]
+	\[
+	\rho_{t+dt} = 
+	\rho_{t+dt}^{\mathrm{pred}} + 
+	\frac{dt}{2} \left(
+		\dot\rho_{t+dt} - \dot\rho_{t}
+	\right)
+	\]
+\end{enumerate}
+%
+\section{Link-List}
+\label{ss:aquagpusph:linklist}
+%
+SPH codes commonly uses a PIC (Particle In Cell) based algorithm to easily locate particle's neighbours, called
+Link-List. The main difference with typical PIC algorithm is that on SPH a chain is built from the cells data,
+linking each particle with the next one on the same cell, allowing that cell only saves the index of the
+first particle of the chain.\rc
+%
+In figure \ref{fig:aquagpusph:LinkList} a simplified scheme of Link-List stored data is shown. Particles are
+located in cells that have a length of the maximum interaction distance, then each cell allocates a particle
+index called ``head of chain'' (\textit{ihoc}). Each particle stores the next one of the cell chain (\textit{ll})
+until last particle is reached, where some invalid index is set  (-1 for instance).\rc
+%
+In GPU oriented code this behaviour can be conveniently modified looking for sorted memory address reading, that
+is really more efficient, sorting particles by cell index. The problem is that traditional method implies storing
+Link-List chain, and more over, implies a chaotic memory access at particles interaction stage, with a heavy
+performance penalty. So, as many other GPU based SPH codes, \NAME sorts the particles, transforming the Link-List
+array ll[\textit{i}] in \textit{i}+1 variables, so is not anymore needed to store it therefore.\rc
+%
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.7\textwidth]{LinkList}
+  \caption{Conventional Link-List scheme}
+  \label{fig:aquagpusph:LinkList}
+\end{figure}
+%
+\section{Particles interactions}
+\label{ss:aquagpusph:rates}
+%
+Particles interactions is the core of every SPH method, and is the most complex stage too, being the most
+time consuming one. \NAME can perform several particles interaction stages by time step depending on simulation
+settings, for instance, if `DeLeffe' boundary condition is set at least 3 interactions stages will be performed,
+the usual one, the boundary integrals, and `ElasticBounce' non wall trespassing condition, but since only the usual one
+needs to compute all possible particles interactions, the others may take less time.\rc
+%
+As explained in section \ref{ss:aquagpusph:linklist}, the particles interactions computation performance is
+heavily dependant on Link-List stage and \NAME performs a particles sorting based on cell as many other GPU
+oriented SPH codes, but two main differences must be remarked:
+%
+\subsection{Unsorted output arguments}
+%
+In section \ref{ss:aquagpusph:leapfrog} time integration scheme is described, and we can find that after predictor
+stage, variables $\dot x_{t}$, $\mathbf{x}_{t}$, and $\rho_{t}$ are not needed anymore until new time step,
+so \NAME can use these arrays in order to store sorted data for SPH interactions stage, decreasing memory
+requirements, but the same process can not be applied to output data $\ddot x_{t}$ and $\dot\rho_{t}$,
+because is needed on corrector stage, so there are 2 ways to solve it:
+%
+\begin{enumerate}
+	\item Create new arrays for the sorted output data, working all time in sorted space.
+	\item Work on sorted space, but write at unsorted space.
+\end{enumerate}
+%
+\NAME use the second way, that have some significant advantages:
+%
+\begin{enumerate}
+	\item Less memory requirements that the first way.
+	\item Since \NAME is using non needed arrays to store the sorted input data, the unsorted data is preserved.
+	\item Since the output data is written on unsorted space directly, after SPH interactions stage all the
+	unsorted data is available to continue working, including to print output files (Note that the unsorted space
+	is the original one).
+	\item No unsort operation is required.
+\end{enumerate}
+%
+Of course, write into the unsorted space at the interactions stage can be more expensive, but since the writing
+operations are really less frequent than the reading ones, performance decrease can be assumed.
+%
+\subsection{Coalescence read}
+%
+Newest hardware not suffers really heavy penalties when a lot of threads try to read from the same memory address,
+nevertheless \NAME incorporates an algorithm in order to reduce as much as possible the number of readers over
+unique address. In figure \ref{fig:aquagpusph:CoalescenceRead} a scheme about the interactions process is shown.
+Interactions stage is divided in 3 substages:
+%
+\begin{enumerate}
+	\item Interacts with next particles of the home cell\footnote{Home cell is the cell where the computing
+	particle is located} chain.
+	\item Interacts with the particles on the neighbour cells.
+	\item Interacts with previous particles of the home cell chain.
+\end{enumerate}
+%
+As you can see in figure \ref{fig:aquagpusph:CoalescenceRead} the particles does not reads from the same memory
+address in any interactions. In practice, due to the particles interactions can take different times, due to the
+neighbour cells particles can try to read from same memory address, several simultaneous reads can happens, but
+in much less number.
+%
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=0.7\textwidth]{CoalescenceRead}
+  \caption{Coalescence reading flow}
+  \label{fig:aquagpusph:CoalescenceRead}
+\end{figure}
+%
+\section{Boundary conditions}
+\label{ss:aquagpusph:boundaries}
+%
+\subsection{General}
+%
+\NAME provides most commonly used boundary conditions in order to allow users to can choose the one than better fit
+to their problem. The generally suggested method is Boundary integrals (formerly `DeLeffe') that is flexible and
+powerful, but have the disadvantage that requires `Shepard' correction for consistency.\rc
+%
+Along this chapter all boundary conditions will be described, and advantages discussed. Also the mixing possibilities
+will be introduced.
+%
+\input{elasticbounce}
+\input{fixparticles}
+\input{DeLeffe}
+\input{ghostparticles}
+%
+\section{Motions}
+\label{ss:aquagpusph:motions}
+%
+\subsection{General}
+%
+In \NAME the motions imposed externally can be classified in 2 ways, by the method to impose the motion, and
+by the method to compute the motion data. In table \ref{tables:aquagpusph:motions} all the available motions
+in \NAME are listed, with their classification.\rc
+%
+Along this section all the different motion types, and control methods will be described. You can go to the
+chapter \ref{s:examples} to see practical applications of some number of available motions.
+%
+\begin{table}[h!b!p!]\small
+	\centering
+	\begin{tabular}{| c | c | c | l | }
+		\hline
+		\cellcolor[rgb]{0.7,0.7,0.7}Movement & \cellcolor[rgb]{0.7,0.7,0.7}Motion type & \cellcolor[rgb]{0.7,0.7,0.7}Computation method \\
+		\hline
+		LIQuaternion     & Quaternion defined by axes & Linear interpolated data table \\
+		\hline
+		ScriptQuaternion & Quaternion defined by axes & Python script \\
+		\hline
+	\end{tabular}
+	\caption{\NAME available motions.}
+	\label{tables:aquagpusph:motions}
+\end{table}
+%
+\input{motionTypes}
+\input{motionControls}
+%
+\input{sensors}
+%

@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<sphInput>
+	<Settings>
+		<!-- Verbose level:
+		 2 Slowest alternative, prints relevant data every timestep.
+		 1 (Default value) Prints relevant data every frame.
+		 0 Fastest alternative, prints minimum data.
+		-->
+		<Verbose level="1" />
+		<!-- Start mode:
+		 0 Starts at 0s.
+	         1 Uses last H5Part file printed as initial point.
+		-->
+		<Start mode="0" />
+	</Settings>
+</sphInput>
+

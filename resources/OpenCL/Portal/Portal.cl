@@ -1,0 +1,113 @@
+/*
+ *  This file is part of AQUA-gpusph, a free CFD program based on SPH.
+ *  Copyright (C) 2012  Jose Luis Cercos Pita <jl.cercos@upm.es>
+ *
+ *  AQUA-gpusph is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  AQUA-gpusph is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with AQUA-gpusph.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef M_PI
+	#define M_PI 3.14159265359f
+#endif
+#ifndef iM_PI
+	#define iM_PI 0.318309886f
+#endif
+
+#ifndef uint
+	#define uint unsigned int
+#endif
+
+#ifdef _g
+	#error '_g' is already defined.
+#endif
+#define _g __global
+
+#ifdef _c
+	#error '_c' is already defined.
+#endif
+#define _c __constant
+
+#ifdef _l
+	#error '_l' is already defined.
+#endif
+#define _l __local
+
+/** \struct Portal
+* Specific portal storage, that get inlet or outlet.
+* @note Interior normals.
+*/
+struct Portal
+{
+	/// Start corner
+	vec corner;
+	/// Up vector
+	vec up;
+	/// Side vector
+	vec side;
+	/// Normal
+	vec normal;
+};
+
+/** \struct PortalPair
+ * Full portal data structure, that contains a pair of portals as inlet/outlet.
+ */
+struct PortalPair
+{
+	struct Portal in,out;
+};
+
+/** Teleport particles that pass trought a portal.
+ * @param iMove Movement flags. Fixed particles will not considered.
+ * @param pos Position of particles.
+ * @param N Number of particles.
+ * @param in First portal plane.
+ * @param out Second portal plane.
+ */
+__kernel void Portal( _g int* iMove, _g vec* pos, uint N,
+                      struct PortalPair portal)
+{
+	// find position in global arrays
+	uint i = get_global_id(0);
+	if(i >= N)
+		return;
+	if(iMove[i]<=0)
+		return;
+
+	// ---- | ------------------------ | ----
+	// ---- V ---- Your code here ---- V ----
+
+	struct Portal in  = portal.in;
+	struct Portal out = portal.out;
+	// Get some usefull data
+	float inX  = fast_length(in.side);
+	float inY  = fast_length(in.up);
+	float outX = fast_length(out.side);
+	float outY = fast_length(out.up);
+	// Test if particle pass throught out portal
+	vec relPos = pos[i] - out.corner;
+	float relY = dot(relPos, out.up) / (outY*outY);
+	float relX = 0.f;
+	#ifdef HAVE_3D
+		relX = dot(relPos, out.side) / (outX*outX);
+	#endif
+	float n    = dot(relPos, out.normal);
+	if( (n < 0.f) && (relX >= 0.f) && (relX <= 1.f) && (relY >= 0.f) && (relY <= 1.f) ){
+		// Teleport the particle to in portal
+		pos[i] = in.corner + relX*in.side + relY*in.up + n*in.normal;
+		return;
+	}
+
+	// ---- A ---- Your code here ---- A ----
+	// ---- | ------------------------ | ----
+
+}

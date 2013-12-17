@@ -1,0 +1,49 @@
+\subsection{XML formatted file}
+\label{sss:partsFile:XML}
+%
+This is an auxiliar method that is only recommended for a really
+low number of particles. In this method an XML file is requested,
+similar to the explained in chapter \ref{s:caseSetup}, but
+expecting \textbf{Particle} group instances (one per particle).\rc
+%
+In table \ref{tables:caseSetup:PartInput:Options} a list with the
+valid tags and their attributes for each particle are related. The
+configurable fields are similar to the introduced at
+\ref{sss:partsFile:ASCII} section about the ASCII formatted input;
+revisit this section in order to know the possibilities of initial
+configuration file.
+%
+\begin{table}[h!b!p!]\small
+	\centering
+	\begin{tabular}{| c | c | c | l | }
+		\hline
+		\cellcolor[rgb]{0.7,0.7,0.7}Tag & \cellcolor[rgb]{0.7,0.7,0.7}Attributes & \cellcolor[rgb]{0.7,0.7,0.7}Description \\
+		\hline
+		Position & x     & (Mandatory) X coordinate $[\mbox{m}]$. \\
+		         & y     & (Mandatory) Y coordinate $[\mbox{m}]$. \\
+		         & z     & (Mandatory, only for 3D) Z coordinate $[\mbox{m}]$. \\
+		\hline
+		Normal   & x     & (Mandatory) X normal component. \\
+		         & y     & (Mandatory) Y normal component. \\
+		         & z     & (Mandatory, only for 3D) Z normal component. \\
+		\hline
+		Velocity & x     & (Mandatory) X velocity component $[\mbox{m/s}]$. \\
+		         & y     & (Mandatory) Y velocity component $[\mbox{m/s}]$. \\
+		         & z     & (Mandatory, only for 3D) Z velocity component $[\mbox{m/s}]$. \\
+		\hline
+		Mass     & value & (Mandatory) Mass for fluid or fix particles $[\mbox{kg}]$, \\
+		         &       & area for vertexes $[\mbox{m}^2]$. \\
+		\hline
+		Imove    & value & (Optional) Moving flag. \\
+		\hline
+		Density  & value & (Optional) Density $[\mbox{kg/m}^3]$. \\
+		\hline
+		Cs       & value & (Optional) Sound speed $[\mbox{m/s}]$. \\
+		\hline
+		KernelH  & value & (Optional) Kernel characteristic height $[\mbox{m}]$. \\
+		\hline
+	\end{tabular}
+	\caption{Particles valid fields tags.}
+	\label{tables:caseSetup:PartInput:Options}
+\end{table}
+%

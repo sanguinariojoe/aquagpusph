@@ -1,0 +1,256 @@
+\chapter{Install \NAME}
+\label{s:install}
+%
+\section{General}
+%
+\NAME can be downloaded from
+%
+\begin{center}
+\url{http://canal.etsin.upm.es/aquagpusph/descargas.php}
+\end{center}
+%
+The process to configure, build and install is described below. The files
+uploaded to this web page are the latest stable version, but optionally
+you can download the developers version, that has more fresh features, but
+can carry some bugs and unstabilities. Developers version is allocated in
+\href{https://github.com/}{github}, so you must have git installed on your
+system to access to the source code. To download the developers package
+version execute
+%
+\begin{verbatim}
+git clone git://github.com/jlcercos/aquagpusph.git
+\end{verbatim}
+%
+that will generate a folder called ``aquagpusph'' with the package inside.\rc
+%
+The instructions included below are valid for both the stable and the
+developers versions, but some additional dependencies and configuration can
+be missed.\rc
+%
+For the moment no specific GNU/Linux distributions installable packages have
+been created.
+%
+\section{Dependencies}
+%
+\NAME has some dependencies that must be installed before. Almost dependencies
+are mandatory, but exist other dependencies that can be optionally ignored
+depending on the needed capabilities on \NAME built program.\rc
+%
+Dependencies are classified in 4 categories therefore:
+%
+\begin{enumerate}
+	\item Mandatory: \NAME needs the dependency available on system in order to
+	run.
+	\item Optional: If dependency is not available, \NAME can be built, but some
+	features will be disabled.
+	\item Recommended: If dependency is not available, \NAME can be built with
+	all the features, but some
+	additional package characteristics may not run.
+	\item Suggested: \NAME can have some synergies with other softwares, for
+	preporcessing or postprocessing for instance.
+\end{enumerate}
+%
+In table \ref{tables:install:dependencies} you can see the list of dependencies
+required. Each dependency can require more other dependencies that will not be
+documented. Take into account the following considerations:
+%
+\begin{enumerate}
+	\item OpenCL is a little bit special dependency due to is really hardware
+	depending, therefore at the web page only OpenCL specification will found.
+	We encourage you to contact your hardware provider in order to know the
+	best way to install it.
+	\item NCurses can be used to perform smart screen output, that can revert
+	on slightly reduced computational time. Any relevant functionality will
+	be lost if \NAME is compiled without NCurses support therefore.
+	\item VTK support is actually on development, so it can be safely discarded,
+	but future versions on \NAME can require it.
+	\item H5Part is the main \NAME output format, that is post-processable with
+	Paraview. It's strongly recommended to have H5Part support on \NAME, but if
+	you don't plain to use Paraview for post-processing cases you can consider
+	don't install this library. If H5Part parallel version is installed, a MPI
+	must be installed too (OpenMPI has been tested, but other platforms can be
+	theoretically used). Must be noticed that \NAME is not a MPI oriented
+	software, so please, don't try to perform parallel execution with
+	\textit{mpirun}.
+	\item Doxygen and Graphviz are only needed if you want to build Doxygen
+	developers documentation. This documentation is mainly oriented to developers,
+	but can be really useful for users in some number of cases, so is recommended
+	to build it.
+	\item Regarding Paraview, even though almost Linux distributions have a
+	package to easily install it, if you want to use it to postprocess \NAME
+	simulations probably you want to add H5Part files loading module, and then
+	probably you want to build Paraview from sources.
+\end{enumerate}
+%
+\begin{table}[h!b!p!]\small
+	\centering
+	\begin{tabular}{| c | c | c | }
+		\hline
+		\cellcolor[rgb]{0.7,0.7,0.7}Dependency &\cellcolor[rgb]{0.7,0.7,0.7}Status &\cellcolor[rgb]{0.7,0.7,0.7}Web page\\
+		\hline
+		CMake    & Mandatory   & \url{http://www.cmake.org} \\
+		\hline
+		xerces-c & Mandatory   & \url{http://xerces.apache.org/xerces-c} \\
+		\hline
+		Python   & Mandatory   & \url{http://www.python.org} \\
+		\hline
+		OpenCL   & Mandatory   & \url{http://www.khronos.org/opencl} \\
+		\hline
+		Ncurses  & Optional    & \url{http://www.gnu.org/software/ncurses/ncurses.html} \\
+		\hline
+		VTK      & Optional    & \url{http://www.vtk.org} \\
+		\hline
+		H5Part   & Optional    & \url{http://vis.lbl.gov/Research/H5Part} \\
+		\hline
+		OpenMPI  & Optional    & \url{http://www.open-mpi.org} \\
+		\hline
+		Doxygen  & Recommended & \url{http://www.doxygen.org} \\
+		\hline
+		Graphviz & Recommended & \url{http://www.graphviz.org} \\
+		\hline
+		gnuplot  & Suggested   & \url{http://www.gnuplot.info} \\
+		\hline
+		ParaView & Suggested   & \url{http://www.paraview.org/} \\
+		\hline
+	\end{tabular}
+	\caption{\NAME dependencies.}
+	\label{tables:install:dependencies}
+\end{table}
+%
+\section{Install}
+%
+\subsection{General}
+%
+\NAME use \href{http://www.cmake.org}{CMake} to the configure, build and install
+process. CMake installation process is performed in 3 steps therefore:
+%
+\begin{enumerate}
+	\item \textbf{CMake configuration}: In this stage main options and features
+	that the built version of \NAME will have.
+	\item \textbf{Compilation}: In this step the source code is compiled into a
+	binary ready to be launched.
+	\item \textbf{Install}: This step is optional, aiming to install the software
+	on the system in order to be available for all the users of the computer.
+\end{enumerate}
+%
+To perform the CMake configuration process 2 ways are described.
+%
+\subsection{CMake configuration}
+\label{sss:install:cmake}
+%
+To start configuring CMake you can run the following command on the folder where
+you downloaded \NAME sources:
+%
+\begin{verbatim}
+cmake .
+\end{verbatim}
+%
+That will configure \NAME with default options. You can modify some options, for
+instance, to change installation prefix from $\mbox{/usr/local}$ to $\mbox{/usr}$
+folder, and build Release version (If not build type is selected, Release version
+will set by default), you can launch following command:
+%
+\begin{verbatim}
+cmake . -D CMAKE_INSTALL_PREFIX:PATH=/usr -D CMAKE_BUILD_TYPE:STRING=Release
+\end{verbatim}
+%
+In \url{http://www.cmake.org/Wiki/CMake_Useful_Variables} web page you can find a
+list with the most commonly CMake used options. Also \NAME provides some additional
+options:
+%
+\begin{enumerate}
+	\item \textbf{AQUAGPUSPH\_3D}: ON to build 3D \NAME version, OFF to build 2D
+	version. \NAME 2D and 3D versions can be installed on the same system. Be
+	mindful that 3D version must not be used to perform 2D simulations.
+	\item \textbf{AQUAGPUSPH\_BUILD\_DOC}: ON to build
+	\href{http://www.doxygen.org}{Doxygen} developers documentation, OFF otherwise.
+	Requires \href{http://www.doxygen.org}{Doxygen} and
+	\href{www.graphviz.org}{Graphviz} packages installed.
+	\item \textbf{AQUAGPUSPH\_BUILD\_EXAMPLES}: ON to generate the examples.
+	Generated examples are the associated to the selected 2D/3D version.
+	\item \textbf{AQUAGPUSPH\_ENABLE\_MPI}: ON to enable MPI support, OFF otherwise.
+	Actually \NAME don't use MPI, but if you installed H5Part with MPI support, you
+	need to build \NAME with MPI support too.
+	\item \textbf{AQUAGPUSPH\_USE\_H5PART}: ON to build \NAME with H5Part output
+	support, OFF otherwise. It's strongly recommended activate H5Part support, but
+	require H5Part library installed.
+	\item \textbf{AQUAGPUSPH\_USE\_NCURSES}: ON to build \NAME with NCurses output
+	terminal, OFF otherwise. NCurses has more efficient screen streamed functionality,
+	so you can win some performance using it.
+	\item \textbf{AQUAGPUSPH\_USE\_TECPLOT}: ON to build \NAME with Tecplot output
+	support, OFF otherwise. Since Tecplot output is an ASCII format, don't cause
+	additional dependencies, so let it ON, but is strongly recommended don't use
+	this output format, that is not actively developed.
+	\item \textbf{AQUAGPUSPH\_USE\_VTK}: ON to build \NAME with Tecplot output
+	support, OFF otherwise. Actually \NAME don't use this output format, but will
+	developed on future. Deactivate it if you detect troubles.
+\end{enumerate}
+%
+\subsection{CMake configuration with ccmake}
+%
+I order to simplify the process you can use ccmake\footnote{Or eventually CMake-GUI}
+to configure \NAME with a more friendly user interface (Of course you must install
+ccmake before). Simply launch the command:
+%
+\begin{verbatim}
+ccmake .
+\end{verbatim}
+%
+If you did not configure \NAME before, an empty cache page will shown up, press
+\textbf{'c'} key to perform initial default configuration. After some seconds working,
+errors, warnings, and most relevant selected options report will be returned; press
+\textbf{'e'} key to continue.\rc
+%
+Now some options are shown in order to allow you to edit them. In case you did not
+receive errors at configuration process, you only need to set
+\textbf{AQUAGPUSPH\_ENABLE\_MPI} according to H5Part library, otherwise you may solve
+the problems or disable related features if possible.\rc
+%
+Probably you want to edit CMAKE\_INSTALL\_PREFIX too. Take care about
+CMAKE\_BUILD\_TYPE, Debug mode is a lot of more resources consuming and slow, it's
+strongly recommended to let Release mode for almost users.\rc
+%
+After this, press \textbf{'c'} key in order to configure the package again. Repeat the
+process until no new options are shown (that are marked with an asterisk), and no more
+errors are reported. At this point ccmake will offer generating final project pressing
+\textbf{'g'} key.\rc
+%
+Same options introduced in \ref{sss:install:cmake} can be set using ccmake.
+%
+\subsection{Compilation}
+%
+After configuration process you can start the compilation in order to create the binary.
+You can launch the following command:
+%
+\begin{verbatim}
+make all
+\end{verbatim}
+%
+Since \NAME build process is not really time consuming parallel compiling process is not
+generally needed, but of course you can set several processors building simultaneously.
+For instance, if you want to use 8 cores you can type:
+%
+\begin{verbatim}
+make -j8
+\end{verbatim}
+%
+Additionally, if you want to get more info about the building process, you can use
+VERBOSE flag:
+%
+\begin{verbatim}
+make VERBOSE=1
+\end{verbatim}
+%
+This will report the command executed to compile or generate each file.
+%
+\subsection{Install}
+%
+\NAME can be used without installing it, see generated examples to learn more about this,
+but if \NAME must be provided to several users probably you want to install it typing:
+%
+\begin{verbatim}
+make install
+\end{verbatim}
+%
+Note that depending the selected installation folder you may need administrative permissions.
+%

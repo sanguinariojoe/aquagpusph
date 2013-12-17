@@ -1,0 +1,38 @@
+<?xml version="1.0" ?>
+<!--
+   %    %%   %  %   %
+  % %  %  %  %  %  % %                          %
+ %%%%% %  %  %  % %%%%%  %%  %%%  %  %  %% %%%  %%%
+ %   % %  %  %  % %   % %  % %  % %  % %   %  % %  %
+ %   % %  %  %  % %   % %  % %  % %  %   % %  % %  %
+ %   %  %% %  %%  %   %  %%% %%%   %%% %%  %%%  %  %
+                           % %             %
+                         %%  %             %
+
+Another QUAlity GPU-SPH, by CEHINAV.
+	http://canal.etsin.upm.es/
+Authors:
+	Cercos Pita, Jose Luis
+	Miguel Gonzalez, Leo
+	Souto Iglesias, Antonio
+-->
+
+<sphInput>
+	<Sensors>
+		<!-- Set output rate. Sensors will print using frames per second.
+		 If you want to print each iteration set this value too higher as
+		 possible-->
+		<FPS value="10000.0" />
+		<!-- Set commonly used sensors OpenCL kernel -->
+		<Script file="@RESOURCES_DIR@/OpenCL/Sensors" />
+		<!-- Add sensors. You can add as many sensors as you need.
+		 type="Interpolated": Ussual SPH interpolation will performed.
+		 type="Maximum": Maximum value found at position will chosen
+		 -->
+		<Sensor x="-1.01" y="0.003" type="Interpolated" />
+		<Sensor x="-1.01" y="0.015" type="Interpolated" />
+		<Sensor x="-1.01" y="0.030" type="Interpolated" />
+		<Sensor x="-1.01" y="0.080" type="Interpolated" />
+	</Sensors>
+</sphInput>
+

@@ -1,0 +1,18 @@
+%
+\subsubsection{$[$INFO$]$ List too small, local memory usage will be avoided:}
+%
+When the number of particles is too small, local memory can't be used in the transpose
+stage of the Radix sort process (See the chapter \ref{s:aquagpusph}). \NAME will run more slowly
+therefore, but since the number of particles is not large probably you must can ignore
+this notification.\rc
+Sometimes you can try to increase sightly the number of particles in order to recover
+the possibility of using local memory, increasing the resolution and the performance.
+%
+\subsubsection{$[$INFO$]$ Interrumption detected:}
+%
+Notice that 'c' key has been pressed, and the simulation will stop.
+%
+\subsubsection{$[$INFO$]$ Allocated memory = $m$ bytes:}
+%
+Reports allocated memory on OpenCL platform.
+%
