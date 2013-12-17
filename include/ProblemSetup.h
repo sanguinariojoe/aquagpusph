@@ -421,6 +421,13 @@ public:
 	 */
 	struct sphFluidParameters
 	{
+		/** Init the fluid options structure
+		 */
+		void init();
+		/** Delete the allocated memory
+		 */
+		void destroy();
+
 	    /// Number of particles
 	    unsigned int n;
 		/// Gamma exponent for the EOS \f$ \gamma \f$.
@@ -451,6 +458,9 @@ public:
          * \f$\alpha\f$)
          */
 		float visc_dyn_corrected;
+		/// Fluid particles data file to load
+		char *path;
+
 		/** Script folder path
 		 * @warning This method is outdated and it will be removed in future
 		 * releases.
@@ -461,15 +471,6 @@ public:
 		 * releases.
 		 */
 		char *Script;
-		/// Fluid particles data file to load
-		char *path;
-
-		/** Init the fluid options structure
-		 */
-		void init();
-		/** Delete the allocated memory
-		 */
-		void destroy();
 	}*fluids;
 	/// Number of fluids
 	unsigned int n_fluids;

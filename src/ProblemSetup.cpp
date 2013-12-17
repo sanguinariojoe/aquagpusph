@@ -44,7 +44,7 @@ ProblemSetup::ProblemSetup()
 	//! 3rd.- Init timing values
 	time_opts.sim_end_mode = __NO_OUTPUT_MODE__;
 	time_opts.sim_end_time = 0.f;
-	time_opts.sim_end_step  = 0;
+	time_opts.sim_end_step = 0;
 	time_opts.sim_end_frame = 0;
 	time_opts.log_mode = __NO_OUTPUT_MODE__;
 	time_opts.log_fps = 0.f;
@@ -72,7 +72,7 @@ ProblemSetup::ProblemSetup()
 	SPH_opts.deltar.x = 0.05f;
 	SPH_opts.deltar.y = 0.05f;
 	SPH_opts.h = SPH_opts.hfac * (SPH_opts.deltar.x + SPH_opts.deltar.y)/2.f;
-	SPH_opts.cs    = 5.f;
+	SPH_opts.cs = 5.f;
 	SPH_opts.dt_divisor = 8.f;
 	SPH_opts.link_list_steps = 1;
 	SPH_opts.dens_int_steps = 0;
@@ -105,8 +105,8 @@ ProblemSetup::ProblemSetup()
 	fluids = NULL;
 	//! 6th.- Ghost particles parameters.
 	ghost_particles.p_extension = 1;
-	ghost_particles.vn_extension  = 0;
-	ghost_particles.vt_extension  = 1;
+	ghost_particles.vn_extension = 0;
+	ghost_particles.vt_extension = 1;
 }
 
 ProblemSetup::~ProblemSetup()
@@ -142,8 +142,8 @@ bool ProblemSetup::perform()
 	//! 1st.- Check for errors
 	if(n_fluids <= 0)
 	{
-        sprintf(msg, "(ProblemSetup::perform): There are not any fluid.\n");
-        S->addMessage(3, msg);
+        sprintf(msg, "There are not any fluid.\n");
+        S->addMessageF(3, msg);
         sprintf(msg, "\tDo you include any Fluid section at input?.\n");
         S->addMessage(0, msg);
 		return true;
@@ -152,17 +152,19 @@ bool ProblemSetup::perform()
     float K = 8.f;
 	#ifndef HAVE_3D
         K = 15.f;
-	    SPH_opts.h = SPH_opts.hfac * (SPH_opts.deltar.x + SPH_opts.deltar.y) / 2.f;
+	    SPH_opts.h = SPH_opts.hfac * (SPH_opts.deltar.x
+                                   + SPH_opts.deltar.y) / 2.f;
 	#else
-	    SPH_opts.h = SPH_opts.hfac * (SPH_opts.deltar.x + SPH_opts.deltar.y + SPH_opts.deltar.z) / 3.f;
+	    SPH_opts.h = SPH_opts.hfac * (SPH_opts.deltar.x
+                                   + SPH_opts.deltar.y
+                                   + SPH_opts.deltar.z) / 3.f;
 	#endif
-	for(i=0;i<n_fluids;i++)
-	{
+	for(i=0;i<n_fluids;i++) {
 	    fluids[i].visc_dyn_corrected = fluids[i].visc_dyn;
 		if(fluids[i].alpha > K * fluids[i].visc_dyn_corrected / fluids[i].refd / SPH_opts.h / SPH_opts.cs){
 		    fluids[i].visc_dyn_corrected = fluids[i].alpha / K * fluids[i].refd * SPH_opts.h * SPH_opts.cs;
-            sprintf(msg, "(ProblemSetup::perform): fluid %u dynamic viscosity corrected\n", i);
-            S->addMessage(2, msg);
+            sprintf(msg, "fluid %u dynamic viscosity corrected\n", i);
+            S->addMessageF(2, msg);
             sprintf(msg, "\tValue changed from %g [Pa/s] to %g [Pa/s] (alpha = %g)\n",
 	                fluids[i].visc_dyn,
 	                fluids[i].visc_dyn_corrected,
@@ -216,23 +218,23 @@ void ProblemSetup::sphOpenCLKernels::init()
 	domain        = new char[256];
 	portal        = new char[256];
 	//! 3rd.- Set default paths
-	strcpy(predictor,    "Input/Common/Kernels/Predictor");
+	strcpy(predictor,     "Input/Common/Kernels/Predictor");
 	strcpy(link_list,     "Input/Common/Kernels/LinkList");
-	strcpy(rates,        "Input/Common/Kernels/Rates");
-	strcpy(corrector,    "Input/Common/Kernels/Corrector");
+	strcpy(rates,         "Input/Common/Kernels/Rates");
+	strcpy(corrector,     "Input/Common/Kernels/Corrector");
 	strcpy(time_step,     "Input/Common/Kernels/TimeStep");
-	strcpy(reduction,    "Input/Common/Kernels/Reduction");
+	strcpy(reduction,     "Input/Common/Kernels/Reduction");
 	strcpy(radix_sort,    "Input/Common/Kernels/RadixSort");
 	strcpy(dens_int,      "Input/Common/Kernels/DensInt");
-	strcpy(shepard,      "Input/Common/Kernels/Shepard");
+	strcpy(shepard,       "Input/Common/Kernels/Shepard");
 	strcpy(elastic_bounce,"Input/Common/Kernels/Boundary/ElasticBounce");
 	strcpy(de_Leffe,      "Input/Common/Kernels/Boundary/DeLeffe");
-	strcpy(ghost,        "Input/Common/Kernels/Boundary/GhostParticles");
-	strcpy(torque,       "Input/Common/Kernels/Torque");
-	strcpy(energy,       "Input/Common/Kernels/Energy");
-	strcpy(bounds,       "Input/Common/Kernels/Bounds");
-	strcpy(domain,       "Input/Common/Kernels/Domain");
-	strcpy(portal,       "Input/Common/Kernels/Portal/Portal");
+	strcpy(ghost,         "Input/Common/Kernels/Boundary/GhostParticles");
+	strcpy(torque,        "Input/Common/Kernels/Torque");
+	strcpy(energy,        "Input/Common/Kernels/Energy");
+	strcpy(bounds,        "Input/Common/Kernels/Bounds");
+	strcpy(domain,        "Input/Common/Kernels/Domain");
+	strcpy(portal,        "Input/Common/Kernels/Portal/Portal");
 }
 
 void ProblemSetup::sphOpenCLKernels::destroy()
@@ -259,7 +261,7 @@ void ProblemSetup::sphOpenCLKernels::destroy()
 void ProblemSetup::sphFluidParameters::init()
 {
     ProblemSetup *P = ProblemSetup::singleton();
-	//! 1st.- Default values.
+
 	n       = 0;
 	gamma   = P->SPH_opts.gamma;
 	refd    = 1.f;
@@ -267,21 +269,23 @@ void ProblemSetup::sphFluidParameters::init()
 	visc_kin = visc_dyn/refd;
 	alpha   = 0.f;
 	delta   = 0.f;
-	//! 2nd.- Alloc memory for scripts
+
+	path = new char[256];
+
+	strcpy(path, "");
+
 	Script = new char[256];
 	Path = new char[256];
-	path = new char[256];
-	//! 3rd.- Script default path
 	strcpy(Path, "");
 	strcpy(Script, "");
-	strcpy(path, "");
 }
 
 void ProblemSetup::sphFluidParameters::destroy()
 {
-	delete[] Script;
-	delete[] Path;
-	delete[] path;
+	delete[] path; path=NULL;
+
+	delete[] Script; Script=NULL;
+	delete[] Path; Path=NULL;
 }
 
 ProblemSetup::sphMoveParameters::sphMoveParameters()
