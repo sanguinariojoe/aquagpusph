@@ -55,7 +55,7 @@ TimeStep::TimeStep()
 	if(P->TimeParameters.dtMode != __DT_VARIABLE__)
 		return;
 	//! 1st.- Get data
-	nChar = strlen(P->OpenCLKernels.TimeStep);
+	nChar = strlen(P->OpenCL_kernels.time_step);
 	if(nChar <= 0) {
 		S->addMessage(3, "(TimeStep::TimeStep): Path of TimeStep kernel is empty.\n");
 		exit(EXIT_FAILURE);
@@ -65,7 +65,7 @@ TimeStep::TimeStep()
 		S->addMessage(3, "(TimeStep::TimeStep): Can't allocate memory for path.\n");
 		exit(EXIT_FAILURE);
 	}
-	strcpy(mPath, P->OpenCLKernels.TimeStep);
+	strcpy(mPath, P->OpenCL_kernels.time_step);
 	strcat(mPath, ".cl");
 	//! 2nd.- Setup the kernel
 	clLocalWorkSize = 256;

@@ -51,7 +51,7 @@ Rates::Rates()
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P  = InputOutput::ProblemSetup::singleton();
-	unsigned int i, nChar = strlen(P->OpenCLKernels.Rates);
+	unsigned int i, nChar = strlen(P->OpenCL_kernels.rates);
 	if(nChar <= 0) {
 	    S->addMessage(3, "(Rates::Rates): Path of rates kernel is empty.\n");
 	    exit(EXIT_FAILURE);
@@ -61,7 +61,7 @@ Rates::Rates()
 	    S->addMessage(3, "(Rates::Rates): Can't allocate memory for path.\n");
 	    exit(EXIT_FAILURE);
 	}
-	strcpy(mPath, P->OpenCLKernels.Rates);
+	strcpy(mPath, P->OpenCL_kernels.rates);
 	strcat(mPath, ".cl");
     for(i=0;i<P->nFluids;i++){
         if(P->FluidParameters[i].delta > 0.f){

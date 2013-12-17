@@ -53,7 +53,7 @@ Energy::Energy()
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P  = InputOutput::ProblemSetup::singleton();
-	unsigned int nChar = strlen(P->OpenCLKernels.Energy);
+	unsigned int nChar = strlen(P->OpenCL_kernels.energy);
 	if(nChar <= 0) {
 		S->addMessage(3, "(Energy::Energy): Path of the kernels (2D) is empty.\n");
 		exit(EXIT_FAILURE);
@@ -63,7 +63,7 @@ Energy::Energy()
 		S->addMessage(3, "(Energy::Energy): Can't allocate memory for path.\n");
 		exit(EXIT_FAILURE);
 	}
-	strcpy(mPath, P->OpenCLKernels.Energy);
+	strcpy(mPath, P->OpenCL_kernels.energy);
 	strcat(mPath, ".cl");
 
 	clLocalWorkSize  = localWorkSize();

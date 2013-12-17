@@ -46,7 +46,7 @@ Portal::Portal(InputOutput::ProblemSetup::sphPortal *portal)
 	    exit(1);
 	}
 	//! 1st.- Get data
-	int nChar = strlen(P->OpenCLKernels.Portal);
+	int nChar = strlen(P->OpenCL_kernels.portal);
 	if(nChar <= 0) {
 	    printf("ERROR (Portal::Portal): mPath of Portal kernel is empty.\n");
 	    exit(2);
@@ -56,7 +56,7 @@ Portal::Portal(InputOutput::ProblemSetup::sphPortal *portal)
 	    printf("ERROR (Portal::Portal): Can't allocate memory for path.\n");
 	    exit(3);
 	}
-	strcpy(mPath, P->OpenCLKernels.Portal);
+	strcpy(mPath, P->OpenCL_kernels.portal);
 	strcat(mPath, ".cl");
 	//! 2nd.- Setup the kernel
 	clLocalWorkSize = 256;

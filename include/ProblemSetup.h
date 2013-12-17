@@ -178,44 +178,44 @@ public:
 		void destroy();
 
 	    /// Predictor kernel
-		char *Predictor;
+		char *predictor;
 	    /// LinkList kernel
-		char *LinkList;
+		char *link_list;
 	    /// Rates kernel
-		char *Rates;
+		char *rates;
 	    /// Corrector kernel
-		char *Corrector;
+		char *corrector;
 	    /// TimeStep kernel
-		char *TimeStep;
+		char *time_step;
 
 	    // Non specific tools
 	    /// Reduction tool
-		char *Reduction;
+		char *reduction;
 	    /// Radix sort tool kernels
-		char *RadixSort;
+		char *radix_sort;
 
 		// Optional tools
 	    /// Density interpolation
-		char *DensInt;
+		char *dens_int;
 	    /// 0th order correction
-		char *Shepard;
-	    /// ElasticBounce boundary condition
-		char *ElasticBounce;
+		char *shepard;
+	    /// Elastic Bounce boundary condition
+		char *elastic_bounce;
 	    /// DeLeffe boundary condition
-		char *DeLeffe;
+		char *de_Leffe;
 	    /// Torque calculation
-		char *Torque;
+		char *torque;
 	    /// Energies calculation
-		char *Energy;
+		char *energy;
 	    /// Bounds calculation
-		char *Bounds;
+		char *bounds;
 	    /// Domain bounds test
-		char *Domain;
+		char *domain;
 	    /// Teleporting particles
-		char *Portal;
+		char *portal;
 	    /// Ghost particles boundary condition
-		char *Ghost;
-	}OpenCLKernels;
+		char *ghost;
+	}OpenCL_kernels;
 
 	/** \struct sphTimingParameters
 	 *  Struct that stores timing parameters
@@ -370,7 +370,7 @@ public:
 	     * 1 = Free Slip condition.
 	     */
 	    unsigned int SlipCondition;
-	    /** Elastic factor for ElasticBounce boundary condition. When a particle is reflected
+	    /** Elastic factor for Elastic Bounce boundary condition. When a particle is reflected
 	     * because will pass trought boundary, part of the energy can be removed. Elastic
 	     * factor indicates the amount of energy preserved.
 	     */

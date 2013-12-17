@@ -52,7 +52,7 @@ Predictor::Predictor()
 	//! 1st.- Get data
 	InputOutput::ProblemSetup *P  = InputOutput::ProblemSetup::singleton();
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	unsigned int nChar = strlen(P->OpenCLKernels.Predictor);
+	unsigned int nChar = strlen(P->OpenCL_kernels.predictor);
 	if(nChar <= 0) {
 	    S->addMessage(3, "(Predictor::Predictor): Path of predictor kernel is empty.\n");
 	    exit(EXIT_FAILURE);
@@ -62,7 +62,7 @@ Predictor::Predictor()
 	    S->addMessage(3, "(Predictor::Predictor): Can't allocate memory for path.\n");
 	    exit(EXIT_FAILURE);
 	}
-	strcpy(mPath, P->OpenCLKernels.Predictor);
+	strcpy(mPath, P->OpenCL_kernels.predictor);
 	strcat(mPath, ".cl");
 	//! 2nd.- Setup the kernel
 	clLocalWorkSize  = localWorkSize();

@@ -51,7 +51,7 @@ DeLeffe::DeLeffe()
 	if(P->SPHParameters.Boundary!=2)  // DeLeffe condition has not been selected
 	    return;
 	//! 1st.- Get data
-	int nChar = strlen(P->OpenCLKernels.DeLeffe);
+	int nChar = strlen(P->OpenCL_kernels.de_Leffe);
 	if(nChar <= 0) {
 	    S->addMessage(3, "(DeLeffe::DeLeffe): mPath of DeLeffe kernel is empty.\n");
 	    exit(EXIT_FAILURE);
@@ -61,7 +61,7 @@ DeLeffe::DeLeffe()
 	    S->addMessage(3, "(DeLeffe::DeLeffe): Can't allocate memory for path.\n");
 	    exit(EXIT_FAILURE);
 	}
-	strcpy(mPath, P->OpenCLKernels.DeLeffe);
+	strcpy(mPath, P->OpenCL_kernels.de_Leffe);
 	strcat(mPath, ".cl");
 	//! 2nd.- Setup the kernel
 	clLocalWorkSize  = localWorkSize();

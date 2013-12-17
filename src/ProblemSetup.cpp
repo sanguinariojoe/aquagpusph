@@ -40,7 +40,7 @@ ProblemSetup::ProblemSetup()
 	//! 1st.- General settings
 	settings.init();
 	//! 2nd.- OpenCL kernels
-	OpenCLKernels.init();
+	OpenCL_kernels.init();
 	//! 3rd.- Init timing values
 	TimeParameters.SimTimingMode = __NO_OUTPUT_MODE__;
 	TimeParameters.SimMaxTime = 0.f;
@@ -117,7 +117,7 @@ ProblemSetup::~ProblemSetup()
 {
 	unsigned int i;
 	settings.destroy();
-	OpenCLKernels.destroy();
+	OpenCL_kernels.destroy();
 	for(i=0;i<nFluids;i++)
 	{
 		FluidParameters[i].destroy();
@@ -209,62 +209,62 @@ void ProblemSetup::sphSettings::destroy()
 void ProblemSetup::sphOpenCLKernels::init()
 {
 	//! 1st.- Alloc memory for paths
-	Predictor     = new char[256];
-	LinkList      = new char[256];
-	Rates         = new char[256];
-	Corrector     = new char[256];
-	TimeStep      = new char[256];
-	Reduction     = new char[256];
-	RadixSort     = new char[256];
-	DensInt       = new char[256];
-	Shepard       = new char[256];
-	ElasticBounce = new char[256];
-	DeLeffe       = new char[256];
-	Torque        = new char[256];
-	Energy        = new char[256];
-	Bounds        = new char[256];
-	Domain        = new char[256];
-	Portal        = new char[256];
-	Ghost         = new char[256];
+	predictor      = new char[256];
+	link_list       = new char[256];
+	rates          = new char[256];
+	corrector      = new char[256];
+	time_step      = new char[256];
+	reduction      = new char[256];
+	radix_sort     = new char[256];
+	dens_int       = new char[256];
+	shepard        = new char[256];
+	elastic_bounce = new char[256];
+	de_Leffe       = new char[256];
+	torque        = new char[256];
+	energy        = new char[256];
+	bounds        = new char[256];
+	domain        = new char[256];
+	portal        = new char[256];
+	ghost         = new char[256];
 	//! 3rd.- Set default paths
-	strcpy(Predictor,    "Input/Common/Kernels/Predictor");
-	strcpy(LinkList,     "Input/Common/Kernels/LinkList");
-	strcpy(Rates,        "Input/Common/Kernels/Rates");
-	strcpy(Corrector,    "Input/Common/Kernels/Corrector");
-	strcpy(TimeStep,     "Input/Common/Kernels/TimeStep");
-	strcpy(Reduction,    "Input/Common/Kernels/Reduction");
-	strcpy(RadixSort,    "Input/Common/Kernels/RadixSort");
-	strcpy(DensInt,      "Input/Common/Kernels/DensInt");
-	strcpy(Shepard,      "Input/Common/Kernels/Shepard");
-	strcpy(ElasticBounce,"Input/Common/Kernels/Boundary/ElasticBounce");
-	strcpy(DeLeffe,      "Input/Common/Kernels/Boundary/DeLeffe");
-	strcpy(Ghost,        "Input/Common/Kernels/Boundary/GhostParticles");
-	strcpy(Torque,       "Input/Common/Kernels/Torque");
-	strcpy(Energy,       "Input/Common/Kernels/Energy");
-	strcpy(Bounds,       "Input/Common/Kernels/Bounds");
-	strcpy(Domain,       "Input/Common/Kernels/Domain");
-	strcpy(Portal,       "Input/Common/Kernels/Portal/Portal");
+	strcpy(predictor,    "Input/Common/Kernels/Predictor");
+	strcpy(link_list,     "Input/Common/Kernels/LinkList");
+	strcpy(rates,        "Input/Common/Kernels/Rates");
+	strcpy(corrector,    "Input/Common/Kernels/Corrector");
+	strcpy(time_step,     "Input/Common/Kernels/TimeStep");
+	strcpy(reduction,    "Input/Common/Kernels/Reduction");
+	strcpy(radix_sort,    "Input/Common/Kernels/RadixSort");
+	strcpy(dens_int,      "Input/Common/Kernels/DensInt");
+	strcpy(shepard,      "Input/Common/Kernels/Shepard");
+	strcpy(elastic_bounce,"Input/Common/Kernels/Boundary/ElasticBounce");
+	strcpy(de_Leffe,      "Input/Common/Kernels/Boundary/DeLeffe");
+	strcpy(ghost,        "Input/Common/Kernels/Boundary/GhostParticles");
+	strcpy(torque,       "Input/Common/Kernels/Torque");
+	strcpy(energy,       "Input/Common/Kernels/Energy");
+	strcpy(bounds,       "Input/Common/Kernels/Bounds");
+	strcpy(domain,       "Input/Common/Kernels/Domain");
+	strcpy(portal,       "Input/Common/Kernels/Portal/Portal");
 }
 
 void ProblemSetup::sphOpenCLKernels::destroy()
 {
-	delete[] Predictor; Predictor=0;
-	delete[] LinkList; LinkList=0;
-	delete[] Rates; Rates=0;
-	delete[] Corrector; Corrector=0;
-	delete[] TimeStep; TimeStep=0;
-	delete[] Reduction; Reduction=0;
-	delete[] RadixSort; RadixSort=0;
-	delete[] DensInt; DensInt=0;
-	delete[] Shepard; Shepard=0;
-	delete[] ElasticBounce; ElasticBounce=0;
-	delete[] DeLeffe; DeLeffe=0;
-	delete[] Ghost; Ghost=0;
-	delete[] Torque; Torque=0;
-	delete[] Energy; Energy=0;
-	delete[] Bounds; Bounds=0;
-	delete[] Domain; Domain=0;
-	delete[] Portal; Portal=0;
+	delete[] predictor; predictor=0;
+	delete[] link_list; link_list=0;
+	delete[] rates; rates=0;
+	delete[] corrector; corrector=0;
+	delete[] time_step; time_step=0;
+	delete[] reduction; reduction=0;
+	delete[] radix_sort; radix_sort=0;
+	delete[] dens_int; dens_int=0;
+	delete[] shepard; shepard=0;
+	delete[] elastic_bounce; elastic_bounce=0;
+	delete[] de_Leffe; de_Leffe=0;
+	delete[] ghost; ghost=0;
+	delete[] torque; torque=0;
+	delete[] energy; energy=0;
+	delete[] bounds; bounds=0;
+	delete[] domain; domain=0;
+	delete[] portal; portal=0;
 }
 
 void ProblemSetup::sphFluidParameters::init(ProblemSetup *P)

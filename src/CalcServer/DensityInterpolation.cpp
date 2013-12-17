@@ -50,7 +50,7 @@ DensityInterpolation::DensityInterpolation()
 	InputOutput::ProblemSetup *P  = InputOutput::ProblemSetup::singleton();
 	if(!P->SPHParameters.DensSteps)  // Density interpolation disabled
 	    return;
-	unsigned int nChar = strlen(P->OpenCLKernels.DensInt);
+	unsigned int nChar = strlen(P->OpenCL_kernels.dens_int);
 	if(nChar <= 0) {
 	    S->addMessage(3, "(DensityInterpolation::DensityInterpolation): Path of kernel is empty.\n");
 	    exit(EXIT_FAILURE);
@@ -60,7 +60,7 @@ DensityInterpolation::DensityInterpolation()
 	    S->addMessage(3, "(DensityInterpolation::DensityInterpolation): Can't allocate memory for path.\n");
 	    exit(EXIT_FAILURE);
 	}
-	strcpy(mPath, P->OpenCLKernels.DensInt);
+	strcpy(mPath, P->OpenCL_kernels.dens_int);
 	strcat(mPath, ".cl");
 	//! 2nd.- Setup the kernel
 	clLocalWorkSize  = localWorkSize();

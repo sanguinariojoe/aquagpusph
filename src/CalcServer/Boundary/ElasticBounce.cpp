@@ -52,7 +52,7 @@ ElasticBounce::ElasticBounce()
 	   )
 	    return;
 	//! 1st.- Get data
-	int nChar = strlen(P->OpenCLKernels.ElasticBounce);
+	int nChar = strlen(P->OpenCL_kernels.elastic_bounce);
 	if(nChar <= 0) {
 	    S->addMessage(3, "(ElasticBounce::ElasticBounce): mPath of ElasticBounce kernel is empty.\n");
 	    exit(EXIT_FAILURE);
@@ -62,7 +62,7 @@ ElasticBounce::ElasticBounce()
 	    S->addMessage(3, "(ElasticBounce::ElasticBounce): Can't allocate memory for path.\n");
 	    exit(EXIT_FAILURE);
 	}
-	strcpy(mPath, P->OpenCLKernels.ElasticBounce);
+	strcpy(mPath, P->OpenCL_kernels.elastic_bounce);
 	strcat(mPath, ".cl");
 	//! 2nd.- Setup the kernel
 	clLocalWorkSize  = localWorkSize();

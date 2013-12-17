@@ -56,7 +56,7 @@ Bounds::Bounds()
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P  = InputOutput::ProblemSetup::singleton();
-	unsigned int nChar = strlen(P->OpenCLKernels.Bounds);
+	unsigned int nChar = strlen(P->OpenCL_kernels.bounds);
 	if(nChar <= 0) {
 		S->addMessage(3, "(Bounds::Bounds): Path of bounds kernels is empty.\n");
 		exit(EXIT_FAILURE);
@@ -66,7 +66,7 @@ Bounds::Bounds()
 		S->addMessage(3, "(Bounds::Bounds): Can't allocate memory for path.\n");
 		exit(EXIT_FAILURE);
 	}
-	strcpy(mPath, P->OpenCLKernels.Bounds);
+	strcpy(mPath, P->OpenCL_kernels.bounds);
 	strcat(mPath, ".cl");
 
 	clLocalWorkSize  = localWorkSize();

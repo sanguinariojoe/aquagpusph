@@ -72,7 +72,7 @@ RadixSort::RadixSort()
 	CalcServer *C = CalcServer::singleton();
 	int nChar = 0;
 	//! 1st.- Get data
-	nChar = strlen(P->OpenCLKernels.RadixSort);
+	nChar = strlen(P->OpenCL_kernels.radix_sort);
 	if(nChar <= 0) {
 	    S->addMessage(3, "(RadixSort::Init): Path of predictor kernel is empty.\n");
 	    exit(EXIT_FAILURE);
@@ -82,7 +82,7 @@ RadixSort::RadixSort()
 	    S->addMessage(3, "(RadixSort::Init): Can't allocate memory for path.\n");
 	    exit(EXIT_FAILURE);
 	}
-	strcpy(Path, P->OpenCLKernels.RadixSort);
+	strcpy(Path, P->OpenCL_kernels.radix_sort);
 	strcat(Path, ".cl");
 	//! 2nd.- Set the number of elements
 	if(setN(C->nLcell))

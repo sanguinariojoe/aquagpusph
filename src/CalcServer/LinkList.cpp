@@ -53,7 +53,7 @@ LinkList::LinkList()
 	CalcServer *C = CalcServer::singleton();
 	int nChar;
 	//! 1st.- Get data
-	nChar = strlen(P->OpenCLKernels.LinkList);
+	nChar = strlen(P->OpenCL_kernels.link_list);
 	if(nChar <= 0) {
 	    printf("ERROR (LinkList::Init): Path of LinkList kernel is empty.\n");
 	    exit(EXIT_FAILURE);
@@ -63,7 +63,7 @@ LinkList::LinkList()
 	    printf("ERROR (LinkList::Init): Can't allocate memory for path.\n");
 	    exit(EXIT_FAILURE);
 	}
-	strcpy(mPath, P->OpenCLKernels.LinkList);
+	strcpy(mPath, P->OpenCL_kernels.link_list);
 	strcat(mPath, ".cl");
 	//! 2nd.- Setup the kernels
 	clLocalWorkSize  = localWorkSize();

@@ -49,7 +49,7 @@ Shepard::Shepard()
 	if(!P->SPHParameters.isShepard)  // Shepard correction has not been selected
 	    return;
 	//! 1st.- Get data
-	int nChar = strlen(P->OpenCLKernels.Shepard);
+	int nChar = strlen(P->OpenCL_kernels.shepard);
 	if(nChar <= 0) {
 	    S->addMessage(3, "(Shepard::Shepard): mPath of Shepard kernel is empty.\n");
 	    exit(EXIT_FAILURE);
@@ -59,7 +59,7 @@ Shepard::Shepard()
 	    S->addMessage(3, "(Shepard::Shepard): Can't allocate memory for path.\n");
 	    exit(EXIT_FAILURE);
 	}
-	strcpy(mPath, P->OpenCLKernels.Shepard);
+	strcpy(mPath, P->OpenCL_kernels.shepard);
 	strcat(mPath, ".cl");
 	//! 2nd.- Setup the kernel
 	clLocalWorkSize  = localWorkSize();

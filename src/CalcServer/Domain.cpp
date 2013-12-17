@@ -49,7 +49,7 @@ Domain::Domain()
 	InputOutput::ProblemSetup *P  = InputOutput::ProblemSetup::singleton();
 	if(!P->SPHParameters.hasDomain)
 	    return;
-	unsigned int nChar = strlen(P->OpenCLKernels.Domain);
+	unsigned int nChar = strlen(P->OpenCL_kernels.domain);
 	if(nChar <= 0) {
 	    S->addMessage(3, "(Domain::Domain): Path of Domain kernel is empty.\n");
 	    exit(EXIT_FAILURE);
@@ -59,7 +59,7 @@ Domain::Domain()
 	    S->addMessage(3, "(Domain::Domain): Can't allocate memory for path.\n");
 	    exit(EXIT_FAILURE);
 	}
-	strcpy(mPath, P->OpenCLKernels.Domain);
+	strcpy(mPath, P->OpenCL_kernels.domain);
 	strcat(mPath, ".cl");
 	//! 2nd.- Setup the kernel
 	clLocalWorkSize  = localWorkSize();

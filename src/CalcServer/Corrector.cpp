@@ -53,7 +53,7 @@ Corrector::Corrector()
 	//! 1st.- Get data
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P  = InputOutput::ProblemSetup::singleton();
-	unsigned int nChar = strlen(P->OpenCLKernels.Corrector);
+	unsigned int nChar = strlen(P->OpenCL_kernels.corrector);
 	if(nChar <= 0) {
 	    S->addMessage(3, "(Corrector::Corrector): Path of corrector kernel is empty.\n");
 	    exit(EXIT_FAILURE);
@@ -63,7 +63,7 @@ Corrector::Corrector()
 	    S->addMessage(3, "(Corrector::Corrector): Can't allocate memory for path.\n");
 	    exit(EXIT_FAILURE);
 	}
-	strcpy(mPath, P->OpenCLKernels.Corrector);
+	strcpy(mPath, P->OpenCL_kernels.corrector);
 	strcat(mPath, ".cl");
 	//! 2nd.- Setup the kernel
 	clLocalWorkSize  = localWorkSize();

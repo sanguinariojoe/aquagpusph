@@ -52,7 +52,7 @@ Torque::Torque()
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P  = InputOutput::ProblemSetup::singleton();
-	unsigned int nChar = strlen(P->OpenCLKernels.Torque);
+	unsigned int nChar = strlen(P->OpenCL_kernels.torque);
 	if(nChar <= 0) {
 		S->addMessage(3, "(Torque::Torque): Path of reduction kernels (2D) is empty.\n");
 		exit(EXIT_FAILURE);
@@ -62,7 +62,7 @@ Torque::Torque()
 		S->addMessage(3, "(Torque::Torque): Can't allocate memory for path.\n");
 		exit(EXIT_FAILURE);
 	}
-	strcpy(mPath, P->OpenCLKernels.Torque);
+	strcpy(mPath, P->OpenCL_kernels.torque);
 	strcat(mPath, ".cl");
 
 	clLocalWorkSize  = localWorkSize();

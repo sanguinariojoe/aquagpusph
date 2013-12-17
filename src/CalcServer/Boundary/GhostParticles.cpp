@@ -51,7 +51,7 @@ GhostParticles::GhostParticles()
     unsigned int i;
 	if(!P->GhostParticles.walls.size())  // Have at least one wall
 	    return;
-	int nChar = strlen(P->OpenCLKernels.Ghost);
+	int nChar = strlen(P->OpenCL_kernels.ghost);
 	if(nChar <= 0) {
 	    S->addMessage(3, "(GhostParticles::GhostParticles): Path of Ghost kernel is empty.\n");
 	    exit(EXIT_FAILURE);
@@ -61,7 +61,7 @@ GhostParticles::GhostParticles()
 	    S->addMessage(3, "(GhostParticles::GhostParticles): Can't allocate memory for path.\n");
 	    exit(EXIT_FAILURE);
 	}
-	strcpy(mPath, P->OpenCLKernels.Ghost);
+	strcpy(mPath, P->OpenCL_kernels.ghost);
 	strcat(mPath, ".cl");
     for(i=0;i<P->nFluids;i++){
         if(P->FluidParameters[i].delta > 0.f){

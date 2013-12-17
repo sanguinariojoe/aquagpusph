@@ -47,7 +47,7 @@ Reduction::Reduction(cl_mem input, unsigned int N, const char* type, const char*
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
 
-	int nChar = strlen(P->OpenCLKernels.Reduction);
+	int nChar = strlen(P->OpenCL_kernels.reduction);
 	if(nChar <= 0) {
 	    S->addMessage(3, "(Reduction::Reduction): mPath of Reduction kernel is empty.\n");
 	    exit(EXIT_FAILURE);
@@ -57,7 +57,7 @@ Reduction::Reduction(cl_mem input, unsigned int N, const char* type, const char*
 	    S->addMessage(3, "(Reduction::Reduction): Can't allocate memory for path.\n");
 	    exit(EXIT_FAILURE);
 	}
-	strcpy(mPath, P->OpenCLKernels.Reduction);
+	strcpy(mPath, P->OpenCL_kernels.reduction);
 	strcat(mPath, ".cl");
 
     mInput  = input;
