@@ -51,7 +51,7 @@ CalcServer::CalcServer()
 	n        = 0;
 	nSensors = P->SensorsParameters.pos.size();
 	for(i=0;i<P->nFluids;i++) {
-	    n += P->FluidParameters[i].n;
+	    n += P->fluids[i].n;
 	}
 	N = n + nSensors;
 	AllocatedMem = 0;
@@ -91,9 +91,9 @@ CalcServer::CalcServer()
 	isValidCell = 0; // isValidCell must be allocated later, when we have a tentative of number of cells
 	Error |= allocMemory(&gamma,   nfluid * sizeof( cl_float ));
 	Error |= allocMemory(&refd,    nfluid * sizeof( cl_float ));
-	Error |= allocMemory(&Viscdyn, nfluid * sizeof( cl_float ));
-	Error |= allocMemory(&Visckin, nfluid * sizeof( cl_float ));
-	Error |= allocMemory(&ViscdynCorr, nfluid * sizeof( cl_float ));
+	Error |= allocMemory(&visc_dyn, nfluid * sizeof( cl_float ));
+	Error |= allocMemory(&visc_kin, nfluid * sizeof( cl_float ));
+	Error |= allocMemory(&visc_dyn_corrected, nfluid * sizeof( cl_float ));
 	Error |= allocMemory(&delta, nfluid * sizeof( cl_float ));
 	DT = 0;     // Minimum time step must be allocated later, into the time step reduction phase.
 	Error |= allocMemory(&sensorMode, max(nSensors,(uint)1) * sizeof( cl_ushort ));
@@ -222,9 +222,9 @@ CalcServer::~CalcServer()
 	if(isValidCell)clReleaseMemObject(isValidCell); isValidCell=0;
 	if(gamma)clReleaseMemObject(gamma); gamma=0;
 	if(refd)clReleaseMemObject(refd); refd=0;
-	if(Viscdyn)clReleaseMemObject(Viscdyn); Viscdyn=0;
-	if(Visckin)clReleaseMemObject(Visckin); Visckin=0;
-	if(ViscdynCorr)clReleaseMemObject(ViscdynCorr); ViscdynCorr=0;
+	if(visc_dyn)clReleaseMemObject(visc_dyn); visc_dyn=0;
+	if(visc_kin)clReleaseMemObject(visc_kin); visc_kin=0;
+	if(visc_dyn_corrected)clReleaseMemObject(visc_dyn_corrected); visc_dyn_corrected=0;
 	if(delta)clReleaseMemObject(delta); delta=0;
 	if(DT)clReleaseMemObject(DT); DT=0;
 	if(sensorMode)clReleaseMemObject(sensorMode); sensorMode=0;
@@ -584,15 +584,15 @@ bool CalcServer::fillFluid()
 
 	for(i=0;i<nfluid;i++) {
 	    // Set the script file
-	    if(!strlen(P->FluidParameters[i].Script)) {
+	    if(!strlen(P->fluids[i].Script)) {
 	        continue;
 	    }
 	    else {
-	        strcpy(P->FluidParameters[i].LoadPath, "");
+	        strcpy(P->fluids[i].path, "");
 	    }
-	    strcpy(file_name, P->FluidParameters[i].Path);
+	    strcpy(file_name, P->fluids[i].Path);
 	    strcat(file_name, "/");
-	    strcat(file_name, P->FluidParameters[i].Script);
+	    strcat(file_name, P->fluids[i].Script);
 	    strcat(file_name, ".cl");
 	    if(!loadKernelFromFile(&clKernel, &clProgram, clContext, clDevice, file_name, "ParticlesDistribution", ""))
 	        return true;
@@ -607,17 +607,17 @@ bool CalcServer::fillFluid()
 	    clFlag |= sendArgument(clKernel,  8, sizeof(cl_mem ), (void*)&mass);
 	    clFlag |= sendArgument(clKernel,  9, sizeof(cl_mem ), (void*)&hp);
 	    clFlag |= sendArgument(clKernel, 10, sizeof(cl_uint), (void*)&AuxN);
-	    clFlag |= sendArgument(clKernel, 11, sizeof(cl_uint), (void*)&(P->FluidParameters[i].n));
+	    clFlag |= sendArgument(clKernel, 11, sizeof(cl_uint), (void*)&(P->fluids[i].n));
 	    clFlag |= sendArgument(clKernel, 12, sizeof(cl_uint), (void*)&i);
 	    clFlag |= sendArgument(clKernel, 13, sizeof(vec    ), (void*)&(P->SPH_opts.deltar));
-	    clFlag |= sendArgument(clKernel, 14, sizeof(cl_float), (void*)&(P->FluidParameters[i].refd));
+	    clFlag |= sendArgument(clKernel, 14, sizeof(cl_float), (void*)&(P->fluids[i].refd));
 	    clFlag |= sendArgument(clKernel, 15, sizeof(cl_float), (void*)&(P->SPH_opts.h));
 	    clFlag |= sendArgument(clKernel, 16, sizeof(cl_float), (void*)&(P->SPH_opts.cs));
-	    AuxN += P->FluidParameters[i].n;
+	    AuxN += P->fluids[i].n;
 	    if(clFlag)
 	        return true;
 	    clLocalWorkSize = 256;
-	    clGlobalWorkSize = getGlobalWorkSize(P->FluidParameters[i].n, clLocalWorkSize);
+	    clGlobalWorkSize = getGlobalWorkSize(P->fluids[i].n, clLocalWorkSize);
 	    sprintf(msg, "(CalcServer::fillFluid): Launching the initialization OpenCL script.\n");
 	    S->addMessage(1, msg);
 	    sprintf(msg, "\tLocal work size = %lu.\n", clLocalWorkSize);
@@ -676,18 +676,18 @@ bool CalcServer::setup()
 	cl_float *VIscdynCorr = new cl_float[nfluid];
 	cl_float *Delta = new cl_float[nfluid];
 	for(i=0;i<nfluid;i++) {
-		Gamma[i] = P->FluidParameters[i].gamma;
-		Refd[i] = P->FluidParameters[i].refd;
-		VIscdyn[i] = P->FluidParameters[i].Viscdyn;
-		VIsckin[i] = P->FluidParameters[i].Visckin;
-		VIscdynCorr[i] = P->FluidParameters[i].ViscdynCorr;
-		Delta[i] = P->FluidParameters[i].delta;
+		Gamma[i] = P->fluids[i].gamma;
+		Refd[i] = P->fluids[i].refd;
+		VIscdyn[i] = P->fluids[i].visc_dyn;
+		VIsckin[i] = P->fluids[i].visc_kin;
+		VIscdynCorr[i] = P->fluids[i].visc_dyn_corrected;
+		Delta[i] = P->fluids[i].delta;
 	}
 	clFlag |= sendData(gamma, Gamma, sizeof(cl_float)*nfluid);
 	clFlag |= sendData(refd, Refd, sizeof(cl_float)*nfluid);
-	clFlag |= sendData(Viscdyn, VIscdyn, sizeof(cl_float)*nfluid);
-	clFlag |= sendData(Visckin, VIsckin, sizeof(cl_float)*nfluid);
-	clFlag |= sendData(ViscdynCorr, VIscdynCorr, sizeof(cl_float)*nfluid);
+	clFlag |= sendData(visc_dyn, VIscdyn, sizeof(cl_float)*nfluid);
+	clFlag |= sendData(visc_kin, VIsckin, sizeof(cl_float)*nfluid);
+	clFlag |= sendData(visc_dyn_corrected, VIscdynCorr, sizeof(cl_float)*nfluid);
 	clFlag |= sendData(delta, Delta, sizeof(cl_float)*nfluid);
 	delete[] Gamma;Gamma=0;
 	delete[] Refd;Refd=0;

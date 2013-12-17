@@ -1202,7 +1202,7 @@ bool FileManager::parseFluid(DOMElement *root)
 	    // Add a new fluid
 	    P->AddFluid();
 	    // Reads the number of particles
-	    P->FluidParameters[P->nFluids-1].n = atoi(xmlAttribute(elem, "n"));
+	    P->fluids[P->nFluids-1].n = atoi(xmlAttribute(elem, "n"));
 	    // Get options
 	    DOMNodeList* s_nodes = elem->getElementsByTagName(XMLString::transcode("Option"));
 	    for( XMLSize_t j=0; j<s_nodes->getLength();j++ ){
@@ -1211,15 +1211,15 @@ bool FileManager::parseFluid(DOMElement *root)
 	            continue;
 	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
 			if(!strcmp(xmlAttribute(s_elem, "name"), "gamma"))
-				P->FluidParameters[P->nFluids-1].gamma   = atof(xmlAttribute(s_elem, "value"));
+				P->fluids[P->nFluids-1].gamma   = atof(xmlAttribute(s_elem, "value"));
 			else if(!strcmp(xmlAttribute(s_elem, "name"), "refd"))
-				P->FluidParameters[P->nFluids-1].refd    = atof(xmlAttribute(s_elem, "value"));
+				P->fluids[P->nFluids-1].refd    = atof(xmlAttribute(s_elem, "value"));
 			else if(!strcmp(xmlAttribute(s_elem, "name"), "Viscdyn"))
-				P->FluidParameters[P->nFluids-1].Viscdyn = atof(xmlAttribute(s_elem, "value"));
+				P->fluids[P->nFluids-1].visc_dyn = atof(xmlAttribute(s_elem, "value"));
 			else if(!strcmp(xmlAttribute(s_elem, "name"), "alpha"))
-				P->FluidParameters[P->nFluids-1].alpha   = atof(xmlAttribute(s_elem, "value"));
+				P->fluids[P->nFluids-1].alpha   = atof(xmlAttribute(s_elem, "value"));
 			else if(!strcmp(xmlAttribute(s_elem, "name"), "delta"))
-				P->FluidParameters[P->nFluids-1].delta   = atof(xmlAttribute(s_elem, "value"));
+				P->fluids[P->nFluids-1].delta   = atof(xmlAttribute(s_elem, "value"));
 			else{
 	            sprintf(msg, "Unknow Fluid option \"%s\"\n", xmlAttribute(s_elem, "name"));
 	            S->addMessageF(3, msg);
@@ -1239,8 +1239,8 @@ bool FileManager::parseFluid(DOMElement *root)
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
 	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
-			strcpy(P->FluidParameters[P->nFluids-1].Path, xmlAttribute(s_elem, "path"));
-			strcpy(P->FluidParameters[P->nFluids-1].Script, xmlAttribute(s_elem, "script"));
+			strcpy(P->fluids[P->nFluids-1].Path, xmlAttribute(s_elem, "path"));
+			strcpy(P->fluids[P->nFluids-1].Script, xmlAttribute(s_elem, "script"));
 	    }
 	    s_nodes = elem->getElementsByTagName(XMLString::transcode("Load"));
 	    for( XMLSize_t j=0; j<s_nodes->getLength();j++ ){
@@ -1248,7 +1248,7 @@ bool FileManager::parseFluid(DOMElement *root)
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
 	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
-			strcpy(P->FluidParameters[P->nFluids-1].LoadPath, xmlAttribute(s_elem, "file"));
+			strcpy(P->fluids[P->nFluids-1].path, xmlAttribute(s_elem, "file"));
 	    }
 	}
 	return false;

@@ -317,11 +317,11 @@ public:
 	/// Reference density for each fluid
 	cl_mem refd;
 	/// Dynamic viscosity for each fluid
-	cl_mem Viscdyn;
+	cl_mem visc_dyn;
 	/// Kinetic viscosity for each fluid
-	cl_mem Visckin;
+	cl_mem visc_kin;
 	/// Alpha corrected dynamic viscosity for each fluid.
-	cl_mem ViscdynCorr;
+	cl_mem visc_dyn_corrected;
 	/// Continuity equation diffusive term multiplier.
 	cl_mem delta;
 	/// Minimum value of the time step (it is a reduction process result)

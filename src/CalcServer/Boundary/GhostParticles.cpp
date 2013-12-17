@@ -64,7 +64,7 @@ GhostParticles::GhostParticles()
 	strcpy(mPath, P->OpenCL_kernels.ghost);
 	strcat(mPath, ".cl");
     for(i=0;i<P->nFluids;i++){
-        if(P->FluidParameters[i].delta > 0.f){
+        if(P->fluids[i].delta > 0.f){
             isDelta = true;
             break;
         }
@@ -126,8 +126,8 @@ bool GhostParticles::execute()
 	    clFlag |= sendArgument(clKernel,  5, sizeof(cl_mem  ), (void*)&(C->hpin));
 	    clFlag |= sendArgument(clKernel,  6, sizeof(cl_mem  ), (void*)&(C->massin));
 	    clFlag |= sendArgument(clKernel,  7, sizeof(cl_mem  ), (void*)&(C->pressin));
-	    clFlag |= sendArgument(clKernel,  8, sizeof(cl_mem  ), (void*)&(C->Visckin));
-	    clFlag |= sendArgument(clKernel,  9, sizeof(cl_mem  ), (void*)&(C->ViscdynCorr));
+	    clFlag |= sendArgument(clKernel,  8, sizeof(cl_mem  ), (void*)&(C->visc_kin));
+	    clFlag |= sendArgument(clKernel,  9, sizeof(cl_mem  ), (void*)&(C->visc_dyn_corrected));
 	    clFlag |= sendArgument(clKernel, 10, sizeof(cl_mem  ), (void*)&(C->refd));
 	    clFlag |= sendArgument(clKernel, 11, sizeof(cl_mem  ), (void*)&(C->f));
 	    clFlag |= sendArgument(clKernel, 12, sizeof(cl_mem  ), (void*)&(C->drdt));

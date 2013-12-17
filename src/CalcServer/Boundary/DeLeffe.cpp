@@ -180,7 +180,7 @@ bool DeLeffe::boundary()
 	clFlag |= sendArgument(clBoundaryKernel,  6, sizeof(cl_mem  ), (void*)&(C->hpin));
 	clFlag |= sendArgument(clBoundaryKernel,  7, sizeof(cl_mem  ), (void*)&(C->pressin));
 	clFlag |= sendArgument(clBoundaryKernel,  8, sizeof(cl_mem  ), (void*)&(C->massin));
-	clFlag |= sendArgument(clBoundaryKernel,  9, sizeof(cl_mem  ), (void*)&(C->Viscdyn));
+	clFlag |= sendArgument(clBoundaryKernel,  9, sizeof(cl_mem  ), (void*)&(C->visc_dyn));
 	clFlag |= sendArgument(clBoundaryKernel, 10, sizeof(cl_mem  ), (void*)&(C->f));
 	clFlag |= sendArgument(clBoundaryKernel, 11, sizeof(cl_mem  ), (void*)&(C->drdt));
 	clFlag |= sendArgument(clBoundaryKernel, 12, sizeof(cl_mem  ), (void*)&(C->gradShepard));

@@ -103,7 +103,7 @@ ProblemSetup::ProblemSetup()
 	//! 5th.- Fluid parameters
 	nFluids = 0;
 	dimFluids = 10;
-	FluidParameters = new sphFluidParameters[dimFluids];
+	fluids = new sphFluidParameters[dimFluids];
 	//! 6th.- Ghost particles parameters.
 	GhostParticles.pressModel = 1;
 	GhostParticles.nVelModel  = 0;
@@ -117,9 +117,9 @@ ProblemSetup::~ProblemSetup()
 	OpenCL_kernels.destroy();
 	for(i=0;i<nFluids;i++)
 	{
-		FluidParameters[i].destroy();
+		fluids[i].destroy();
 	}
-	delete[] FluidParameters; FluidParameters=0;
+	delete[] fluids; fluids=0;
 	for(i=0;i<MoveParameters.size();i++){
 	    delete MoveParameters.at(i);
 	}
@@ -159,19 +159,19 @@ bool ProblemSetup::perform()
 	#endif
 	for(i=0;i<nFluids;i++)
 	{
-	    FluidParameters[i].ViscdynCorr = FluidParameters[i].Viscdyn;
-		if(FluidParameters[i].alpha > K * FluidParameters[i].ViscdynCorr / FluidParameters[i].refd / SPH_opts.h / SPH_opts.cs){
-		    FluidParameters[i].ViscdynCorr = FluidParameters[i].alpha / K * FluidParameters[i].refd * SPH_opts.h * SPH_opts.cs;
+	    fluids[i].visc_dyn_corrected = fluids[i].visc_dyn;
+		if(fluids[i].alpha > K * fluids[i].visc_dyn_corrected / fluids[i].refd / SPH_opts.h / SPH_opts.cs){
+		    fluids[i].visc_dyn_corrected = fluids[i].alpha / K * fluids[i].refd * SPH_opts.h * SPH_opts.cs;
             sprintf(msg, "(ProblemSetup::perform): fluid %u dynamic viscosity corrected\n", i);
             S->addMessage(2, msg);
             sprintf(msg, "\tValue changed from %g [Pa/s] to %g [Pa/s] (alpha = %g)\n",
-	                FluidParameters[i].Viscdyn,
-	                FluidParameters[i].ViscdynCorr,
-	                FluidParameters[i].alpha);
+	                fluids[i].visc_dyn,
+	                fluids[i].visc_dyn_corrected,
+	                fluids[i].alpha);
             S->addMessage(0, msg);
 		}
-		FluidParameters[i].Visckin = FluidParameters[i].ViscdynCorr / FluidParameters[i].refd;
-		FluidParameters[i].alpha = K * FluidParameters[i].ViscdynCorr / FluidParameters[i].refd / SPH_opts.h / SPH_opts.cs;
+		fluids[i].visc_kin = fluids[i].visc_dyn_corrected / fluids[i].refd;
+		fluids[i].alpha = K * fluids[i].visc_dyn_corrected / fluids[i].refd / SPH_opts.h / SPH_opts.cs;
 	}
 
 	if(SPH_opts.rho_max <= SPH_opts.rho_min){
@@ -257,31 +257,32 @@ void ProblemSetup::sphOpenCLKernels::destroy()
 	delete[] portal; portal=0;
 }
 
-void ProblemSetup::sphFluidParameters::init(ProblemSetup *P)
+void ProblemSetup::sphFluidParameters::init()
 {
+    ProblemSetup *P = ProblemSetup::singleton();
 	//! 1st.- Default values.
 	n       = 0;
 	gamma   = P->SPH_opts.gamma;
 	refd    = 1.f;
-	Viscdyn = 0.744f;
-	Visckin = Viscdyn/refd;
+	visc_dyn = 0.744f;
+	visc_kin = visc_dyn/refd;
 	alpha   = 0.f;
 	delta   = 0.f;
 	//! 2nd.- Alloc memory for scripts
 	Script = new char[256];
 	Path = new char[256];
-	LoadPath = new char[256];
+	path = new char[256];
 	//! 3rd.- Script default path
 	strcpy(Path, "");
 	strcpy(Script, "");
-	strcpy(LoadPath, "");
+	strcpy(path, "");
 }
 
 void ProblemSetup::sphFluidParameters::destroy()
 {
 	delete[] Script;
 	delete[] Path;
-	delete[] LoadPath;
+	delete[] path;
 }
 
 ProblemSetup::sphMoveParameters::sphMoveParameters()
@@ -331,19 +332,19 @@ void ProblemSetup::AddFluid()
 		sphFluidParameters *Backup = new sphFluidParameters[dimFluids];
 		for(i=0;i<dimFluids;i++)
 		{
-			Backup[i] = FluidParameters[i];
+			Backup[i] = fluids[i];
 		}
-		delete[] FluidParameters;
-		FluidParameters = new sphFluidParameters[dimFluids+10];
+		delete[] fluids;
+		fluids = new sphFluidParameters[dimFluids+10];
 		for(i=0;i<dimFluids;i++)
 		{
-			FluidParameters[i] = Backup[i];
+			fluids[i] = Backup[i];
 		}
 		delete[] Backup; Backup=0;
 		dimFluids+=10;
 	}
 	//! 3rd.- Init the new fluid
-	FluidParameters[nFluids-1].init(this);
+	fluids[nFluids-1].init();
 }
 
 #ifdef HAVE_3D

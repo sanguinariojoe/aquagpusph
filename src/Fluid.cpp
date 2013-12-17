@@ -47,7 +47,7 @@ Fluid::Fluid()
 	//! 1st.- Take particles amount
 	nParticle = 0;
 	for(i=0;i<P->nFluids;i++) {
-	    nParticle += P->FluidParameters[i].n;
+	    nParticle += P->fluids[i].n;
 	}
 	unsigned int nSensors = P->SensorsParameters.pos.size();
 	nParticle += nSensors;

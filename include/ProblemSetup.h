@@ -217,7 +217,7 @@ public:
 	}OpenCL_kernels;
 
 	/** \struct sphTimingParameters
-	 *  Struct that stores timing parameters
+	 * Data structure used to store the time control options.
 	 */
 	struct sphTimingParameters
 	{
@@ -318,11 +318,11 @@ public:
 	}time_opts;
 
 	/** \struct sphSPHParameters
-	 *  Struct that stores SPH parameters
+	 * Data structure used to store the SPH options.
 	 */
 	struct sphSPHParameters
 	{
-		/** Default \f$ \gamma \f$ exponent for the EOS.
+		/** Default exponent for the EOS \f$ \gamma \f$.
 		 * \f$ p = \frac{c_s^2 \rho_0}{\gamma}
 		 \left(
             \left( \frac{\rho}{\rho_0} \right)^\gamma - 1
@@ -417,51 +417,60 @@ public:
 	}SPH_opts;
 
 	/** \struct sphFluidParameters
-	 *  Struct that stores Fluid parameters
+	 * Data structure used to store the Fluids options.
 	 */
 	struct sphFluidParameters
 	{
 	    /// Number of particles
 	    unsigned int n;
-		/// Gamma for this fluid
+		/// Gamma exponent for the EOS \f$ \gamma \f$.
 		float gamma;
-		/// Referenced density
+		/// Density of reference
 		float refd;
-		/// Dynamic viscosity
-		float Viscdyn;
-		/// Kinematic viscosity
-		float Visckin;
-	    /** Minimum artificial viscosity alpha value.
-	     * alpha define the artificial viscosity term
-	     * that achieve the method stability. Dynamic
-	     * viscosity will be: \n
-	     * \f$ \mu \geq \frac{\alpha}{8} \rho v h \f$
+		/// Dynamic viscosity \f$ \mu \f$
+		float visc_dyn;
+		/// Kinematic viscosity \f$ \nu \f$
+		float visc_kin;
+	    /** Minimum artificial viscosity \f$\alpha\f$ value.
+	     * \f$\alpha\f$ define the artificial viscosity of the fluid, such that
+         * the dynamic viscosity will be: \n
+	     * \f$ \mu \geq \frac{\alpha}{8} \rho c_s h \f$. \n
+	     * Hence if the fluid viscosity is not larger enough to achieve the
+	     * requested \f$\alpha\f$ it will be conveniently modified.
+	     * @note \f$\alpha \geq 0.01\f$ is suggested if \f$\delta\f$ is null.
 	     */
 		float alpha;
-		/** Continuity equation diffusive term factor.
-		 * You may use 1.0 and disable the artificial viscosity
-         * (\f$\alpha=0\f$), or disable it (\f$\delta=0\f$) and use the
-         * artificial viscosity to grant the stable integration
-         * (\f$\alpha \geq 0.01\f$ is strongly recommended).
+		/** Continuity equation diffusive term factor (formerly
+         * \f$\delta\f$-SPH).
+		 * This term have some benefits in front of the artificial viscosity,
+		 * and therefore you may consider setting \f$\alpha = 0\f$ and
+		 * \f$\delta = 1\f$.
 		 */
         float delta;
-		/// Alpha corrected dynamic viscosity (internal data)
-		float ViscdynCorr;
-		/// Script path
-		char *Path;
-		/// Script
-		char *Script;
-		/// Load distribution file path
-		char *LoadPath;
-
-		/** Init the fluid parameters (also allocating distribution)
-		 * @param P Problem setup, to take default values.
+		/** Dynamic viscosity (corrected by the articial viscosity parameter
+         * \f$\alpha\f$)
+         */
+		float visc_dyn_corrected;
+		/** Script folder path
+		 * @warning This method is outdated and it will be removed in future
+		 * releases.
 		 */
-		void init(ProblemSetup *P);
-		/** Destroy the fluid parameters
+		char *Path;
+		/** Script file name
+		 * @warning This method is outdated and it will be removed in future
+		 * releases.
+		 */
+		char *Script;
+		/// Fluid particles data file to load
+		char *path;
+
+		/** Init the fluid options structure
+		 */
+		void init();
+		/** Delete the allocated memory
 		 */
 		void destroy();
-	}*FluidParameters;
+	}*fluids;
 	/// Number of fluids
 	unsigned int nFluids;
 	/** Number of sphFluidParameters allocated (internal data).
@@ -474,7 +483,7 @@ public:
 	void AddFluid();
 
 	/** \class sphMoveParameters ProblemSetup.h ProblemSetup.h
-	 * Struct with movement data.
+	 * Data structure used to store the motions data.
 	 */
 	class sphMoveParameters
 	{
@@ -526,7 +535,7 @@ public:
 	std::deque<sphMoveParameters*> MoveParameters;
 
 	/** \class sphSensorsParameters ProblemSetup.h ProblemSetup.h
-	 * Struct that stores Sensors parameters
+	 * Data structure used to store the sensors.
 	 */
 	class sphSensorsParameters
 	{
@@ -563,7 +572,7 @@ public:
 	}SensorsParameters;
 
 	/** \struct sphPortal
-	 * Struct that stores portals pair parameters.
+	 * Data structure used to store the portals.
 	 * Portals are rectangular planes that transfer particles that pass troguth them
 	 * from one side to the other one. Portals are clasified as in and out.
 	 */
@@ -589,7 +598,7 @@ public:
 	std::deque<sphPortal*> Portals;
 
 	/** \class sphGhostParticles ProblemSetup.h ProblemSetup.h
-	 * Struct that stores ghost particles boundary condition parameters
+	 * Data structure used to store the Ghost particles data.
 	 * and walls.
 	 */
 	class sphGhostParticles
