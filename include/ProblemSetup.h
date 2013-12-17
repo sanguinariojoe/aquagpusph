@@ -473,12 +473,7 @@ public:
 	}*fluids;
 	/// Number of fluids
 	unsigned int n_fluids;
-	/** Number of sphFluidParameters allocated (internal data).
-	 * @remarks This variable is designed to avoid DYNAMIC allocation problems.
-	 */
-	unsigned int dimFluids;
-	/** Method to add a fluid
-	 * @warning Don't increment n_fluids manually.
+	/** Add a fluid to the list
 	 */
 	void addFluid();
 

@@ -101,9 +101,8 @@ ProblemSetup::ProblemSetup()
 	    SPH_opts.domain_max.w = 0.f;
 	#endif
 	//! 5th.- Fluid parameters
-	nFluids = 0;
-	dimFluids = 10;
-	fluids = new sphFluidParameters[dimFluids];
+	n_fluids = 0;
+	fluids = NULL;
 	//! 6th.- Ghost particles parameters.
 	GhostParticles.pressModel = 1;
 	GhostParticles.nVelModel  = 0;
@@ -115,7 +114,7 @@ ProblemSetup::~ProblemSetup()
 	unsigned int i;
 	settings.destroy();
 	OpenCL_kernels.destroy();
-	for(i=0;i<nFluids;i++)
+	for(i=0;i<n_fluids;i++)
 	{
 		fluids[i].destroy();
 	}
@@ -141,7 +140,7 @@ bool ProblemSetup::perform()
 	char msg[512];
 	strcpy(msg, "");
 	//! 1st.- Check for errors
-	if(nFluids <= 0)
+	if(n_fluids <= 0)
 	{
         sprintf(msg, "(ProblemSetup::perform): There are not any fluid.\n");
         S->addMessage(3, msg);
@@ -157,7 +156,7 @@ bool ProblemSetup::perform()
 	#else
 	    SPH_opts.h = SPH_opts.hfac * (SPH_opts.deltar.x + SPH_opts.deltar.y + SPH_opts.deltar.z) / 3.f;
 	#endif
-	for(i=0;i<nFluids;i++)
+	for(i=0;i<n_fluids;i++)
 	{
 	    fluids[i].visc_dyn_corrected = fluids[i].visc_dyn;
 		if(fluids[i].alpha > K * fluids[i].visc_dyn_corrected / fluids[i].refd / SPH_opts.h / SPH_opts.cs){
@@ -271,18 +270,18 @@ void ProblemSetup::sphFluidParameters::init()
 	//! 2nd.- Alloc memory for scripts
 	Script = new char[256];
 	Path = new char[256];
-	LoadPath = new char[256];
+	path = new char[256];
 	//! 3rd.- Script default path
 	strcpy(Path, "");
 	strcpy(Script, "");
-	strcpy(LoadPath, "");
+	strcpy(path, "");
 }
 
 void ProblemSetup::sphFluidParameters::destroy()
 {
 	delete[] Script;
 	delete[] Path;
-	delete[] LoadPath;
+	delete[] path;
 }
 
 ProblemSetup::sphMoveParameters::sphMoveParameters()
@@ -321,30 +320,22 @@ bool ProblemSetup::sphSensorsParameters::add(vec position, cl_ushort mode)
 	return false;
 }
 
-void ProblemSetup::AddFluid()
+void ProblemSetup::addFluid()
 {
-	unsigned int i;
-	//! 1st.- Add the fluid to the index.
-	nFluids++;
-	//! 2nd.- Analize if we need alloc more fluids
-	if(nFluids >= dimFluids)
-	{
-		sphFluidParameters *Backup = new sphFluidParameters[dimFluids];
-		for(i=0;i<dimFluids;i++)
-		{
-			Backup[i] = fluids[i];
-		}
-		delete[] fluids;
-		fluids = new sphFluidParameters[dimFluids+10];
-		for(i=0;i<dimFluids;i++)
-		{
-			fluids[i] = Backup[i];
-		}
-		delete[] Backup; Backup=0;
-		dimFluids+=10;
-	}
-	//! 3rd.- Init the new fluid
-	fluids[nFluids-1].init(this);
+    ScreenManager *S = ScreenManager::singleton();
+	n_fluids++;
+    sphFluidParameters *backup = fluids;
+    fluids = new sphFluidParameters[n_fluids];
+    if(!fluids){
+        S->addMessageF(3, "Memory cannot be allocated.\n");
+        exit(255);
+    }
+    if(backup){
+        memcpy(fluids, backup, (n_fluids-1)*sizeof(sphFluidParameters));
+        free(backup);
+        backup = NULL;
+    }
+    fluids[n_fluids-1].init();
 }
 
 #ifdef HAVE_3D
