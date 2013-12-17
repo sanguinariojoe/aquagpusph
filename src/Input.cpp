@@ -68,7 +68,7 @@ bool input()
 
 	unsigned int i;
 	unsigned int start=0, n=0, Start=0, N=0;
-	for(i=0;i<P->nFluids;i++){
+	for(i=0;i<P->n_fluids;i++){
 	    // File path
 	    const char* path = P->fluids[i].path;
 	    if(!strlen(path)){

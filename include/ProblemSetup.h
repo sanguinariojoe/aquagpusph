@@ -472,15 +472,15 @@ public:
 		void destroy();
 	}*fluids;
 	/// Number of fluids
-	unsigned int nFluids;
+	unsigned int n_fluids;
 	/** Number of sphFluidParameters allocated (internal data).
 	 * @remarks This variable is designed to avoid DYNAMIC allocation problems.
 	 */
 	unsigned int dimFluids;
 	/** Method to add a fluid
-	 * @warning Don't increment nFluids manually.
+	 * @warning Don't increment n_fluids manually.
 	 */
-	void AddFluid();
+	void addFluid();
 
 	/** \class sphMoveParameters ProblemSetup.h ProblemSetup.h
 	 * Data structure used to store the motions data.

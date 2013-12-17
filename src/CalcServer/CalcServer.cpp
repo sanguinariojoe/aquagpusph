@@ -47,10 +47,10 @@ CalcServer::CalcServer()
 	    exit(1);
 	}
 	// Allocate memory for the data in the computational device
-	nfluid   = P->nFluids;
+	nfluid   = P->n_fluids;
 	n        = 0;
 	nSensors = P->SensorsParameters.pos.size();
-	for(i=0;i<P->nFluids;i++) {
+	for(i=0;i<P->n_fluids;i++) {
 	    n += P->fluids[i].n;
 	}
 	N = n + nSensors;

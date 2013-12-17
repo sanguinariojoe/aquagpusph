@@ -63,7 +63,7 @@ GhostParticles::GhostParticles()
 	}
 	strcpy(mPath, P->OpenCL_kernels.ghost);
 	strcat(mPath, ".cl");
-    for(i=0;i<P->nFluids;i++){
+    for(i=0;i<P->n_fluids;i++){
         if(P->fluids[i].delta > 0.f){
             isDelta = true;
             break;

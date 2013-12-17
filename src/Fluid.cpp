@@ -46,7 +46,7 @@ Fluid::Fluid()
 	char msg[512];
 	//! 1st.- Take particles amount
 	nParticle = 0;
-	for(i=0;i<P->nFluids;i++) {
+	for(i=0;i<P->n_fluids;i++) {
 	    nParticle += P->fluids[i].n;
 	}
 	unsigned int nSensors = P->SensorsParameters.pos.size();
@@ -58,7 +58,7 @@ Fluid::Fluid()
 	sprintf(msg, "(Fluid::Fluid): Number of particles = %u\n", nParticle);
 	S->addMessage(1, msg);
 	//! 2nd.- Set the number of fluids
-	nFluid = P->nFluids;
+	nFluid = P->n_fluids;
 	//! 3rd.- Init the fluid (allocating memory)
 	imove = new int[nParticle];
 	ifluid = new int[nParticle];

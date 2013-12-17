@@ -271,18 +271,18 @@ void ProblemSetup::sphFluidParameters::init()
 	//! 2nd.- Alloc memory for scripts
 	Script = new char[256];
 	Path = new char[256];
-	path = new char[256];
+	LoadPath = new char[256];
 	//! 3rd.- Script default path
 	strcpy(Path, "");
 	strcpy(Script, "");
-	strcpy(path, "");
+	strcpy(LoadPath, "");
 }
 
 void ProblemSetup::sphFluidParameters::destroy()
 {
 	delete[] Script;
 	delete[] Path;
-	delete[] path;
+	delete[] LoadPath;
 }
 
 ProblemSetup::sphMoveParameters::sphMoveParameters()
@@ -344,7 +344,7 @@ void ProblemSetup::AddFluid()
 		dimFluids+=10;
 	}
 	//! 3rd.- Init the new fluid
-	fluids[nFluids-1].init();
+	fluids[nFluids-1].init(this);
 }
 
 #ifdef HAVE_3D
