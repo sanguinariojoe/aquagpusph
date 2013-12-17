@@ -223,12 +223,12 @@ bool Quaternion::executeWalls()
 	    #ifdef HAVE_3D
 	        oldPos = add(oldPos, mult(walls.at(i)->p1.z,oldZ));
 	    #endif
-	    P->GhostParticles.walls.at(i)->p1 = newPos;
+	    P->ghost_particles.walls.at(i)->p1 = newPos;
 	    if(C->dt <= 0.f){
-	        P->GhostParticles.walls.at(i)->v1 = Vzero();
+	        P->ghost_particles.walls.at(i)->v1 = Vzero();
 	    }
 	    else{
-	        P->GhostParticles.walls.at(i)->v1 = mult(1.f/C->dt, sub(newPos, oldPos));
+	        P->ghost_particles.walls.at(i)->v1 = mult(1.f/C->dt, sub(newPos, oldPos));
 	    }
 	    newPos = mCOR;
 	    newPos = add(newPos, mult(walls.at(i)->p2.x,X));
@@ -242,12 +242,12 @@ bool Quaternion::executeWalls()
 	    #ifdef HAVE_3D
 	        oldPos = add(oldPos, mult(walls.at(i)->p2.z,oldZ));
 	    #endif
-	    P->GhostParticles.walls.at(i)->p2 = newPos;
+	    P->ghost_particles.walls.at(i)->p2 = newPos;
 	    if(C->dt <= 0.f){
-	        P->GhostParticles.walls.at(i)->v2 = Vzero();
+	        P->ghost_particles.walls.at(i)->v2 = Vzero();
 	    }
 	    else{
-	        P->GhostParticles.walls.at(i)->v2 = mult(1.f/C->dt, sub(newPos, oldPos));
+	        P->ghost_particles.walls.at(i)->v2 = mult(1.f/C->dt, sub(newPos, oldPos));
 	    }
 	    #ifdef HAVE_3D
 	        newPos = mCOR;
@@ -258,12 +258,12 @@ bool Quaternion::executeWalls()
 	        oldPos = add(oldPos, mult(walls.at(i)->p3.x,oldX));
 	        oldPos = add(oldPos, mult(walls.at(i)->p3.y,oldY));
 	        oldPos = add(oldPos, mult(walls.at(i)->p3.z,oldZ));
-	        P->GhostParticles.walls.at(i)->p3 = newPos;
+	        P->ghost_particles.walls.at(i)->p3 = newPos;
 	        if(C->dt <= 0.f){
-	            P->GhostParticles.walls.at(i)->v3 = Vzero();
+	            P->ghost_particles.walls.at(i)->v3 = Vzero();
 	        }
 	        else{
-	            P->GhostParticles.walls.at(i)->v3 = mult(1.f/C->dt, sub(newPos, oldPos));
+	            P->ghost_particles.walls.at(i)->v3 = mult(1.f/C->dt, sub(newPos, oldPos));
 	        }
 	    #endif
 	    #ifdef HAVE_3D
@@ -275,12 +275,12 @@ bool Quaternion::executeWalls()
 	        oldPos = add(oldPos, mult(walls.at(i)->p4.x,oldX));
 	        oldPos = add(oldPos, mult(walls.at(i)->p4.y,oldY));
 	        oldPos = add(oldPos, mult(walls.at(i)->p4.z,oldZ));
-	        P->GhostParticles.walls.at(i)->p4 = newPos;
+	        P->ghost_particles.walls.at(i)->p4 = newPos;
 	        if(C->dt <= 0.f){
-	            P->GhostParticles.walls.at(i)->v4 = Vzero();
+	            P->ghost_particles.walls.at(i)->v4 = Vzero();
 	        }
 	        else{
-	            P->GhostParticles.walls.at(i)->v4 = mult(1.f/C->dt, sub(newPos, oldPos));
+	            P->ghost_particles.walls.at(i)->v4 = mult(1.f/C->dt, sub(newPos, oldPos));
 	        }
 	    #endif
 	    newPos = mult(walls.at(i)->n.x,X);
@@ -288,7 +288,7 @@ bool Quaternion::executeWalls()
 	    #ifdef HAVE_3D
 	        newPos = add(newPos, mult(walls.at(i)->n.z,Z));
 	    #endif
-	    P->GhostParticles.walls.at(i)->n = newPos;
+	    P->ghost_particles.walls.at(i)->n = newPos;
 	}
 	return false;
 }
@@ -373,7 +373,7 @@ bool Quaternion::computeWalls()
 	CalcServer *C = CalcServer::singleton();
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
 	unsigned int i;
-	unsigned int N = P->GhostParticles.walls.size();
+	unsigned int N = P->ghost_particles.walls.size();
 	for(i=0;i<walls.size();i++){
 	    delete walls.at(i);
 	}
@@ -382,16 +382,16 @@ bool Quaternion::computeWalls()
 	    //! Copy wall
 	    InputOutput::ProblemSetup::sphGhostParticles::Wall *wall =
 	                new InputOutput::ProblemSetup::sphGhostParticles::Wall();
-	    wall->p1 = P->GhostParticles.walls.at(i)->p1;
-	    wall->p2 = P->GhostParticles.walls.at(i)->p2;
-	    wall->n  = P->GhostParticles.walls.at(i)->n;
-	    wall->v1 = P->GhostParticles.walls.at(i)->v1;
-	    wall->v2 = P->GhostParticles.walls.at(i)->v2;
+	    wall->p1 = P->ghost_particles.walls.at(i)->p1;
+	    wall->p2 = P->ghost_particles.walls.at(i)->p2;
+	    wall->n  = P->ghost_particles.walls.at(i)->n;
+	    wall->v1 = P->ghost_particles.walls.at(i)->v1;
+	    wall->v2 = P->ghost_particles.walls.at(i)->v2;
 	    #ifdef HAVE_3D
-	        wall->p3 = P->GhostParticles.walls.at(i)->p3;
-	        wall->p4 = P->GhostParticles.walls.at(i)->p4;
-	        wall->v3 = P->GhostParticles.walls.at(i)->v3;
-	        wall->v4 = P->GhostParticles.walls.at(i)->v4;
+	        wall->p3 = P->ghost_particles.walls.at(i)->p3;
+	        wall->p4 = P->ghost_particles.walls.at(i)->p4;
+	        wall->v3 = P->ghost_particles.walls.at(i)->v3;
+	        wall->v4 = P->ghost_particles.walls.at(i)->v4;
 	    #endif
 	    walls.push_back(wall);
 	    //! Transform vertexes and normal to COR coordinates

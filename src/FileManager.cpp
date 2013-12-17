@@ -1574,7 +1574,7 @@ bool FileManager::parsePortals(DOMElement *root)
 	    ProblemSetup::sphPortal *Portal = new ProblemSetup::sphPortal();
 	    Portal->in  = in;
 	    Portal->out = out;
-	    P->Portals.push_back(Portal);
+	    P->portals.push_back(Portal);
 	}
 	return false;
 }
@@ -1598,13 +1598,13 @@ bool FileManager::parseGhostParticles(DOMElement *root)
 	            continue;
 	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
 	        if(!strcmp(xmlAttribute(s_elem, "value"), "ASM")){
-	            P->GhostParticles.pressModel = 0;
+	            P->ghost_particles.p_extension = 0;
 	        }
 	        else if(!strcmp(xmlAttribute(s_elem, "value"), "SSM")){
-	            P->GhostParticles.pressModel = 1;
+	            P->ghost_particles.p_extension = 1;
 	        }
 	        else if(!strcmp(xmlAttribute(s_elem, "value"), "Takeda")){
-	            P->GhostParticles.pressModel = 2;
+	            P->ghost_particles.p_extension = 2;
 	        }
 	        else{
 	            sprintf(msg, "Invalid %s pressure extension model.\n", xmlAttribute(s_elem, "value"));
@@ -1624,16 +1624,16 @@ bool FileManager::parseGhostParticles(DOMElement *root)
 	            continue;
 	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
 	        if(!strcmp(xmlAttribute(s_elem, "value"), "ASM")){
-	            P->GhostParticles.nVelModel = 0;
+	            P->ghost_particles.vn_extension = 0;
 	        }
 	        else if(!strcmp(xmlAttribute(s_elem, "value"), "SSM")){
-	            P->GhostParticles.nVelModel = 1;
+	            P->ghost_particles.vn_extension = 1;
 	        }
 	        else if(!strcmp(xmlAttribute(s_elem, "value"), "Takeda")){
-	            P->GhostParticles.nVelModel = 2;
+	            P->ghost_particles.vn_extension = 2;
 	        }
 	        else if(!strcmp(xmlAttribute(s_elem, "value"), "U0M")){
-	            P->GhostParticles.nVelModel = 3;
+	            P->ghost_particles.vn_extension = 3;
 	        }
 	        else{
 	            sprintf(msg, "Invalid %s normal velocity extension model.\n", xmlAttribute(s_elem, "value"));
@@ -1654,16 +1654,16 @@ bool FileManager::parseGhostParticles(DOMElement *root)
 	            continue;
 	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
 	        if(!strcmp(xmlAttribute(s_elem, "value"), "ASM")){
-	            P->GhostParticles.tVelModel = 0;
+	            P->ghost_particles.vt_extension = 0;
 	        }
 	        else if(!strcmp(xmlAttribute(s_elem, "value"), "SSM")){
-	            P->GhostParticles.tVelModel = 1;
+	            P->ghost_particles.vt_extension = 1;
 	        }
 	        else if(!strcmp(xmlAttribute(s_elem, "value"), "Takeda")){
-	            P->GhostParticles.tVelModel = 2;
+	            P->ghost_particles.vt_extension = 2;
 	        }
 	        else if(!strcmp(xmlAttribute(s_elem, "value"), "U0M")){
-	            P->GhostParticles.tVelModel = 3;
+	            P->ghost_particles.vt_extension = 3;
 	        }
 	        else{
 	            sprintf(msg, "Invalid %s tangent velocity extension model.\n", xmlAttribute(s_elem, "value"));
@@ -1703,7 +1703,7 @@ bool FileManager::parseGhostParticles(DOMElement *root)
 	                    p[k].z = atof(xmlAttribute(ss_elem, "z"));
 	                    p[k].w = 0.f;
 	                }
-	                P->GhostParticles.add(p[0], p[1], p[2]);
+	                P->ghost_particles.add(p[0], p[1], p[2]);
 	            }
 	            if( ss_nodes->getLength() == 4 ){
 	                vec p[4];
@@ -1717,7 +1717,7 @@ bool FileManager::parseGhostParticles(DOMElement *root)
 	                    p[k].z = atof(xmlAttribute(ss_elem, "z"));
 	                    p[k].w = 0.f;
 	                }
-	                P->GhostParticles.add(p[0], p[1], p[2], p[3]);
+	                P->ghost_particles.add(p[0], p[1], p[2], p[3]);
 	            }
 	        #else
 	            if(ss_nodes->getLength() != 2){
@@ -1735,7 +1735,7 @@ bool FileManager::parseGhostParticles(DOMElement *root)
 	                p[k].x = atof(xmlAttribute(ss_elem, "x"));
 	                p[k].y = atof(xmlAttribute(ss_elem, "y"));
 	            }
-	            P->GhostParticles.add(p[0], p[1]);
+	            P->ghost_particles.add(p[0], p[1]);
 	        #endif
 	    }
 	}

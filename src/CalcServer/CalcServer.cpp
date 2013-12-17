@@ -137,8 +137,8 @@ CalcServer::CalcServer()
 	    }
 	}
 	mPortals.clear();
-	for(i=0;i<P->Portals.size();i++){
-	    Portal::Portal *portal = new Portal::Portal(P->Portals.at(i));
+	for(i=0;i<P->portals.size();i++){
+	    Portal::Portal *portal = new Portal::Portal(P->portals.at(i));
 	    mPortals.push_back(portal);
 	}
 }

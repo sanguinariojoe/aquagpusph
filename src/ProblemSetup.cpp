@@ -104,9 +104,9 @@ ProblemSetup::ProblemSetup()
 	n_fluids = 0;
 	fluids = NULL;
 	//! 6th.- Ghost particles parameters.
-	GhostParticles.pressModel = 1;
-	GhostParticles.nVelModel  = 0;
-	GhostParticles.tVelModel  = 1;
+	ghost_particles.p_extension = 1;
+	ghost_particles.vn_extension  = 0;
+	ghost_particles.vt_extension  = 1;
 }
 
 ProblemSetup::~ProblemSetup()
@@ -123,14 +123,14 @@ ProblemSetup::~ProblemSetup()
 	    delete motions.at(i);
 	}
 	motions.clear();
-	for(i=0;i<Portals.size();i++){
-	    delete Portals.at(i);
+	for(i=0;i<portals.size();i++){
+	    delete portals.at(i);
 	}
-	Portals.clear();
-	for(i=0;i<GhostParticles.walls.size();i++){
-	    delete GhostParticles.walls.at(i);
+	portals.clear();
+	for(i=0;i<ghost_particles.walls.size();i++){
+	    delete ghost_particles.walls.at(i);
 	}
-	GhostParticles.walls.clear();
+	ghost_particles.walls.clear();
 }
 
 bool ProblemSetup::perform()

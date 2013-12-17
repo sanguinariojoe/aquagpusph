@@ -49,7 +49,7 @@ GhostParticles::GhostParticles()
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P  = InputOutput::ProblemSetup::singleton();
     unsigned int i;
-	if(!P->GhostParticles.walls.size())  // Have at least one wall
+	if(!P->ghost_particles.walls.size())  // Have at least one wall
 	    return;
 	int nChar = strlen(P->OpenCL_kernels.ghost);
 	if(nChar <= 0) {
@@ -102,16 +102,16 @@ GhostParticles::~GhostParticles()
 bool GhostParticles::execute()
 {
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
-	if(!P->GhostParticles.walls.size())  // Have at least one wall
+	if(!P->ghost_particles.walls.size())  // Have at least one wall
 	    return false;
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
 	cl_int clFlag=0;
 	// Loop over walls
 	unsigned int i;
-	for(i=0;i<P->GhostParticles.walls.size();i++){
+	for(i=0;i<P->ghost_particles.walls.size();i++){
 	    // Transfer data
-	    clFlag = C->sendData(mWalls.at(i), P->GhostParticles.walls.at(i),
+	    clFlag = C->sendData(mWalls.at(i), P->ghost_particles.walls.at(i),
 	                         sizeof(InputOutput::ProblemSetup::sphGhostParticles::Wall));
 	    if(clFlag != CL_SUCCESS) {
 	        S->addMessage(3, "(GhostParticles::execute): Can't send wall data to server.\n");
@@ -213,7 +213,7 @@ bool GhostParticles::setupOpenCL()
 	char args[256];
 	strcpy(args, "");
 	sprintf(args, "-D__PRESS_MODEL__=%u -D__NORMAL_U_MODEL__=%u -D__TANGENT_U_MODEL__=%u ",
-	        P->GhostParticles.pressModel, P->GhostParticles.nVelModel, P->GhostParticles.tVelModel);
+	        P->ghost_particles.p_extension, P->ghost_particles.vn_extension, P->ghost_particles.vt_extension);
 	if(isDelta)
         strcat(args, "-D__DELTA_SPH__");
 	CalcServer *C = CalcServer::singleton();
@@ -297,7 +297,7 @@ bool GhostParticles::createWalls()
 	CalcServer *C = CalcServer::singleton();
 	int clFlag;
 	unsigned int i;
-	for(i=0;i<P->GhostParticles.walls.size();i++){
+	for(i=0;i<P->ghost_particles.walls.size();i++){
 	    // Create memory object
 	    cl_mem wall = clCreateBuffer(C->clContext, CL_MEM_READ_ONLY,
 	                                 sizeof(InputOutput::ProblemSetup::sphGhostParticles::Wall),
@@ -311,7 +311,7 @@ bool GhostParticles::createWalls()
 	    }
 	    C->AllocatedMem += sizeof(InputOutput::ProblemSetup::sphGhostParticles::Wall);
 	    // And transfer data
-	    clFlag = C->sendData(wall, P->GhostParticles.walls.at(i),
+	    clFlag = C->sendData(wall, P->ghost_particles.walls.at(i),
 	                         sizeof(InputOutput::ProblemSetup::sphGhostParticles::Wall));
 	    if(clFlag != CL_SUCCESS) {
 	        S->addMessage(3, "(GhostParticles::createWalls): Can't send walls data to server.\n");

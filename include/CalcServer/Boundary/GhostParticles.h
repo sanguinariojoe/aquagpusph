@@ -37,9 +37,9 @@ namespace Aqua{ namespace CalcServer{ namespace Boundary{
  * and setting fields conveniently modified. In order to improve the consistency
  * the model used at extended fluid for pressure, normal velocity, and tangent
  * velocity can be modified, but purposed model is (Free slip):
- * pressModel = "SSM"
- * normalUModel = "ASM"
- * tangentUModel = "SSM"
+ *   - pressModel = "SSM"
+ *   - normalUModel = "ASM"
+ *   - tangentUModel = "SSM"
  */
 class GhostParticles : public Aqua::CalcServer::Kernel
 {

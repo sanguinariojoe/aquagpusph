@@ -512,6 +512,13 @@ public:
 	class sphSensorsParameters
 	{
 	public:
+		/** Constructor
+		 */
+		sphSensorsParameters();
+		/** Destructor
+		 */
+		~sphSensorsParameters();
+
 	    /// Frecuency of output
 	    float fps;
 
@@ -521,24 +528,18 @@ public:
 	    /// Array of positions
 	    std::deque<vec> pos;
 
-	    /** Array of sensors types: \n
-	     * 0 = Mean value sensor. \n
-	     * 1 = Maximum value sensor.
+	    /** Array of sensors types:
+	     *   - 0 = Mean value sensor.
+	     *   - 1 = Maximum value sensor.
 	     */
 	    std::deque<cl_ushort> mod;
 
-		/** Constructor
-		 */
-		sphSensorsParameters();
-		/** Destructor
-		 */
-		~sphSensorsParameters();
 	    /** Method to add a sensor.
 	     * @param position Position of sensor.
-	     * @param mode Sensor type: \n
-	     * 0 = Mean value sensor. \n
-	     * 1 = Maximum value sensor.
-	     * @return false if all gone right. \n true otherwise.
+	     * @param mode Sensor type:
+	     *   - 0 = Mean value sensor.
+	     *   - 1 = Maximum value sensor.
+	     * @return false if all gone right, true otherwise.
 	     */
 	    bool add(vec position, cl_ushort mode);
 	}SensorsParameters;
@@ -546,13 +547,13 @@ public:
 	/** \struct sphPortal
 	 * Data structure used to store the portals.
 	 * Portals are rectangular planes that transfer particles that pass troguth them
-	 * from one side to the other one. Portals are clasified as in and out.
+	 * from one side to the other.
 	 */
 	struct sphPortal
 	{
 	    /** \struct Portal
-	     * Specific portal storage, that get inlet or outlet.
-	     * @note Interior normals.
+	     * Specific portal storage.
+	     * @note Interior normals are considered.
 	     */
 	    struct Portal
 	    {
@@ -567,7 +568,7 @@ public:
 	    }in,out;
 	};
 	/// Array of portal pairs
-	std::deque<sphPortal*> Portals;
+	std::deque<sphPortal*> portals;
 
 	/** \class sphGhostParticles ProblemSetup.h ProblemSetup.h
 	 * Data structure used to store the Ghost particles data.
@@ -578,7 +579,7 @@ public:
 	public:
 	    #ifdef HAVE_3D
 	        /** \struct Wall
-	         * Wall defined by 4 walls.
+	         * Wall defined by 4 points.
 	         */
 	        struct Wall
 	        {
@@ -627,7 +628,7 @@ public:
 	        bool add(vec p1, vec p2, vec p3);
 	    #else
 	        /** \struct Wall
-	         * Wall defined by 4 walls.
+	         * Wall defined by 2 points.
 	         */
 	        struct Wall
 	        {
@@ -659,7 +660,7 @@ public:
 	     * 2 = Takeda (Variation of ASM).
 	     * @note Hydrostatic pressure will be added.
 	     */
-	    uint pressModel;
+	    uint p_extension;
 
 	    /** Normal velocity extension model. \n
 	     * 0 = ASM (Antisymmetric) \n
@@ -668,7 +669,7 @@ public:
 	     * 3 = U0M (No velocity will considered).
 	     * @note Velocity extension is composed to wall velocity.
 	     */
-	    uint nVelModel;
+	    uint vn_extension;
 
 	    /** Tangent velocity extension model. \n
 	     * 0 = ASM (Antisymmetric) \n
@@ -677,9 +678,9 @@ public:
 	     * 3 = U0M (No velocity will considered).
 	     * @note Velocity extension is composed to wall velocity.
 	     */
-	    uint tVelModel;
+	    uint vt_extension;
 
-	}GhostParticles;
+	}ghost_particles;
 
 };
 
