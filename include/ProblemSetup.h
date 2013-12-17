@@ -165,56 +165,55 @@ public:
 	}settings;
 
 	/** \struct sphOpenCLKernels
-	 * Struct that stores the kernels
-	 * that will be used.
+	 * Data structure used to store the kernel file paths.
 	 */
 	struct sphOpenCLKernels
 	{
-		/** Init the kernels path
+		/** Init the kernel paths.
 		 */
 		void init();
-		/** Destroy the paths
+		/** Delete the kernel paths.
 		 */
 		void destroy();
 
-	    /// Predictor kernel
+	    /// Predictor
 		char *predictor;
-	    /// LinkList kernel
+	    /// LinkList
 		char *link_list;
-	    /// Rates kernel
+	    /// Rates
 		char *rates;
-	    /// Corrector kernel
+	    /// Corrector
 		char *corrector;
-	    /// TimeStep kernel
+	    /// TimeStep
 		char *time_step;
 
 	    // Non specific tools
-	    /// Reduction tool
+	    /// Reductions (It can be used for prefix sums, to compute the max, ...)
 		char *reduction;
-	    /// Radix sort tool kernels
+	    /// Radix sort
 		char *radix_sort;
 
 		// Optional tools
-	    /// Density interpolation
+	    /// Density interpolation (formerly density reinitialization)
 		char *dens_int;
 	    /// 0th order correction
 		char *shepard;
 	    /// Elastic Bounce boundary condition
 		char *elastic_bounce;
-	    /// DeLeffe boundary condition
+	    /// DeLeffe boundary condition (formerly Boundary Integrals method)
 		char *de_Leffe;
+	    /// Ghost particles boundary condition
+		char *ghost;
 	    /// Torque calculation
 		char *torque;
 	    /// Energies calculation
 		char *energy;
 	    /// Bounds calculation
 		char *bounds;
-	    /// Domain bounds test
+	    /// Domain test (to exclude particles out of it)
 		char *domain;
-	    /// Teleporting particles
+	    /// Particles teleporting models
 		char *portal;
-	    /// Ghost particles boundary condition
-		char *ghost;
 	}OpenCL_kernels;
 
 	/** \struct sphTimingParameters

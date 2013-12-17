@@ -220,12 +220,12 @@ void ProblemSetup::sphOpenCLKernels::init()
 	shepard        = new char[256];
 	elastic_bounce = new char[256];
 	de_Leffe       = new char[256];
+	ghost         = new char[256];
 	torque        = new char[256];
 	energy        = new char[256];
 	bounds        = new char[256];
 	domain        = new char[256];
 	portal        = new char[256];
-	ghost         = new char[256];
 	//! 3rd.- Set default paths
 	strcpy(predictor,    "Input/Common/Kernels/Predictor");
 	strcpy(link_list,     "Input/Common/Kernels/LinkList");
