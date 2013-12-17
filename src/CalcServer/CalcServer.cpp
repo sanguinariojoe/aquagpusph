@@ -118,20 +118,20 @@ CalcServer::CalcServer()
 	mEnergy        = new Energy();
 	mBounds        = new Bounds();
 	mMoves.clear();
-	for(i=0;i<P->MoveParameters.size();i++){
-	    if(P->MoveParameters.at(i)->MoveType == 0){
+	for(i=0;i<P->motions.size();i++){
+	    if(P->motions.at(i)->type == 0){
 	        Movement::Quaternion *Move = new Movement::Quaternion();
 	        mMoves.push_back(Move);
 	    }
-	    if(P->MoveParameters.at(i)->MoveType == 1){
+	    if(P->motions.at(i)->type == 1){
 	        Movement::LIQuaternion *Move = new Movement::LIQuaternion();
 	        mMoves.push_back(Move);
 	    }
-	    if(P->MoveParameters.at(i)->MoveType == 2){
+	    if(P->motions.at(i)->type == 2){
 	        Movement::C1Quaternion *Move = new Movement::C1Quaternion();
 	        mMoves.push_back(Move);
 	    }
-	    if(P->MoveParameters.at(i)->MoveType == 3){
+	    if(P->motions.at(i)->type == 3){
 	        Movement::ScriptQuaternion *Move = new Movement::ScriptQuaternion();
 	        mMoves.push_back(Move);
 	    }
@@ -768,7 +768,7 @@ bool CalcServer::setup()
 	dt     = 0;
 	// Movements
 	for(i=0;i<mMoves.size();i++){
-	    if(mMoves.at(i)->parse(P->MoveParameters.at(i)->defFile))
+	    if(mMoves.at(i)->parse(P->motions.at(i)->path))
 	        return true;
 	}
 	// Compute the total fluid mass

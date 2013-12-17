@@ -491,43 +491,20 @@ public:
 	    ~sphMoveParameters();
 
 	    /** Type of movement: \n
-	     * <ul><li>-1 = No movement.</li>
-	     * <li>0 = Quaternion.</li>
-	     * Manually specified quaternion. In this mode a
-	     * quaternion is provided. The quaternion is
-	     * specified by center and moving axis.
-	     * Unless you provide custom kernel, this movement
-	     * only moves fix particles (of all solids)
-	     * <li>1 = LIQuaternion.</li>
-	     * Linear interpolated quaternion. In this mode a
-	     * quaternion file is provided. The quaternion is
-	     * specified by center, x axis vector and y axis
-	     * vector (x,y normalized). Unless you provide
-	     * custom kernel, this movement only moves fix
-	     * particles (of all solids)
-	     * <li>2 = C1Quaternion.</li>
-	     * C1 interpolated quaternion. In this mode a
-	     * quaternion file is provided. The quaternion is
-	     * specified by center, x axis vector and y axis
-	     * vector (x,y normalized). Unless you provide
-	     * custom kernel, this movement only moves fix
-	     * particles (of all solids)
-	     * <li>3 = ScriptQuaternion.</li>
-	     * External scripted quaternion. In this mode,
-	     * an external script provided by user controls
-	     * the quaternion movement. Unless you provide
-	     * custom kernel, this movement only moves fix
-	     * particles (of all solids)
-	     * </ul>
+	     *   - -1 = No movement.
+	     *   - 0 = Quaternion (Fully controlled by the OpenCL script).
+	     *   - 1 = LIQuaternion (Lineary interpolation from a data file).
+	     *   - 2 = C1Quaternion (Continuous C1 interpolation from a data file).
+	     *   - 3 = ScriptQuaternion (Python controlled motion).
 	     */
-	    int MoveType;
+	    int type;
 
-	    /// Movement definition file
-	    char* defFile;
+	    /// Motions definition XML file
+	    char* path;
 	};
 
-	/// Array of movements
-	std::deque<sphMoveParameters*> MoveParameters;
+	/// Array of motions
+	std::deque<sphMoveParameters*> motions;
 
 	/** \class sphSensorsParameters ProblemSetup.h ProblemSetup.h
 	 * Data structure used to store the sensors.

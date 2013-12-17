@@ -1352,16 +1352,16 @@ bool FileManager::parseMotions(DOMElement *root)
 	        ProblemSetup::sphMoveParameters *Move = new ProblemSetup::sphMoveParameters();
 	        // Get movement type
 	        if(!strcmp(xmlAttribute(s_elem, "type"),"Quaternion")){
-	            Move->MoveType = 0;
+	            Move->type = 0;
 	        }
 	        else if(!strcmp(xmlAttribute(s_elem, "type"),"LIQuaternion")){
-	            Move->MoveType = 1;
+	            Move->type = 1;
 	        }
 	        else if(!strcmp(xmlAttribute(s_elem, "type"),"C1Quaternion")){
-	            Move->MoveType = 2;
+	            Move->type = 2;
 	        }
 	        else if(!strcmp(xmlAttribute(s_elem, "type"),"ScriptQuaternion")){
-	            Move->MoveType = 3;
+	            Move->type = 3;
 	        }
 	        else{
 	            sprintf(msg, "Unknow type of movement \"%s\"\n", xmlAttribute(s_elem, "type"));
@@ -1372,9 +1372,9 @@ bool FileManager::parseMotions(DOMElement *root)
 	            return true;
 	        }
 	        // Get definition file
-	        strcpy(Move->defFile, xmlAttribute(s_elem, "file"));
+	        strcpy(Move->path, xmlAttribute(s_elem, "file"));
 	        // Add movement to list
-	        P->MoveParameters.push_back(Move);
+	        P->motions.push_back(Move);
 	    }
 	}
 	return false;

@@ -119,10 +119,10 @@ ProblemSetup::~ProblemSetup()
 		fluids[i].destroy();
 	}
 	delete[] fluids; fluids=0;
-	for(i=0;i<MoveParameters.size();i++){
-	    delete MoveParameters.at(i);
+	for(i=0;i<motions.size();i++){
+	    delete motions.at(i);
 	}
-	MoveParameters.clear();
+	motions.clear();
 	for(i=0;i<Portals.size();i++){
 	    delete Portals.at(i);
 	}
@@ -285,16 +285,16 @@ void ProblemSetup::sphFluidParameters::destroy()
 }
 
 ProblemSetup::sphMoveParameters::sphMoveParameters()
-	: MoveType(0)
-	, defFile(0)
+	: type(0)
+	, path(0)
 {
-	defFile = new char[256];
-	strcpy(defFile,"");
+	path = new char[256];
+	strcpy(path,"");
 }
 
 ProblemSetup::sphMoveParameters::~sphMoveParameters()
 {
-	if(defFile) delete[] defFile; defFile=0;
+	if(path) delete[] path; path=0;
 }
 
 ProblemSetup::sphSensorsParameters::sphSensorsParameters()
