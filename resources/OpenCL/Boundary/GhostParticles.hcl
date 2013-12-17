@@ -150,17 +150,17 @@ if( r1 <= dist )
 		            * ( drfac * rdr ) * fab;
 		*/
 		// Molteni
+		/*
 		rdr = dot( r, r ) / (r1*r1 + 0.01f*hav*hav);
 		drfac = (iPress - press[i]) - rDens*dot(grav,r);
 		_DRDT_F_ += 2.f*iDelta*hav / (cs*pDens)
 		            * ( drfac * rdr ) * fab;
+		*/
 		// Cercos
-		/*
 		rdr = dot( r, r ) / (r1*r1 + 0.01f*hav*hav);
 		drfac = (iPress - press[i]) - rDens*dot(grav,r);
 		_DRDT_F_ += iDelta*dt * iDens/(rDens*pDens)
 		            * ( drfac * rdr ) * fab;
-		*/
 	#endif
 	//---------------------------------------------------------------
 	//       Shepard term
