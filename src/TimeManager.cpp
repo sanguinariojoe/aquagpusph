@@ -64,67 +64,67 @@ TimeManager::TimeManager()
 	ProblemSetup *P = ProblemSetup::singleton();
 	ScreenManager *S = ScreenManager::singleton();
 	//! Take simulation end criteria
-	unsigned int Mode = P->TimeParameters.SimTimingMode;
+	unsigned int Mode = P->time_opts.sim_end_mode;
 	if(Mode & __FRAME_MODE__) {
-		mSimMaxFrames = P->TimeParameters.SimMaxFrames;
+		mSimMaxFrames = P->time_opts.sim_end_frame;
 	}
 	if(Mode & __ITER_MODE__) {
-		mSimMaxSteps = P->TimeParameters.SimMaxSteps;
+		mSimMaxSteps = P->time_opts.sim_end_step;
 	}
 	if(Mode & __TIME_MODE__) {
-		mSimMaxTime = P->TimeParameters.SimMaxTime;
+		mSimMaxTime = P->time_opts.sim_end_time;
 	}
 	//! Take log file print criteria
-	Mode = P->TimeParameters.LogTimingMode;
+	Mode = P->time_opts.log_mode;
 	if(Mode >= __IPF_MODE__)
 	{
 		Mode -= __IPF_MODE__;
-		mLogIPF = P->TimeParameters.LogIPF;
+		mLogIPF = P->time_opts.log_ipf;
 	}
 	if(Mode >= __FPS_MODE__)
 	{
 		Mode -= __FPS_MODE__;
-		mLogFPS = P->TimeParameters.LogFPS;
+		mLogFPS = P->time_opts.log_fps;
 	}
 	//! Take Energy file print criteria
-	Mode = P->TimeParameters.ReTimingMode;
+	Mode = P->time_opts.energy_mode;
 	if(Mode >= __IPF_MODE__)
 	{
 		Mode -= __IPF_MODE__;
-		mReIPF = P->TimeParameters.ReIPF;
+		mReIPF = P->time_opts.energy_ipf;
 	}
 	if(Mode >= __FPS_MODE__)
 	{
 		Mode -= __FPS_MODE__;
-		mReFPS = P->TimeParameters.ReFPS;
+		mReFPS = P->time_opts.energy_fps;
 	}
 	//! Take Bounds file print criteria
-	Mode = P->TimeParameters.BoundsTimingMode;
+	Mode = P->time_opts.bounds_mode;
 	if(Mode >= __IPF_MODE__)
 	{
 		Mode -= __IPF_MODE__;
-		mBoundsIPF = P->TimeParameters.BoundsIPF;
+		mBoundsIPF = P->time_opts.bounds_ipf;
 	}
 	if(Mode >= __FPS_MODE__)
 	{
 		Mode -= __FPS_MODE__;
-		mBoundsFPS = P->TimeParameters.BoundsFPS;
+		mBoundsFPS = P->time_opts.bounds_fps;
 	}
 	//! Take Output file print criteria
-	Mode = P->TimeParameters.OutputMode;
+	Mode = P->time_opts.output_mode;
 	if(Mode >= __IPF_MODE__)
 	{
 		Mode -= __IPF_MODE__;
-		mOutputIPF = P->TimeParameters.OutputIPF;
+		mOutputIPF = P->time_opts.output_ipf;
 	}
 	if(Mode >= __FPS_MODE__)
 	{
 		Mode -= __FPS_MODE__;
-		mOutputFPS = P->TimeParameters.OutputFPS;
+		mOutputFPS = P->time_opts.output_fps;
 	}
 	//! Set stabilization time
-	mTime -= P->TimeParameters.stabTime;
-	zeroTime -= P->TimeParameters.stabTime;
+	mTime -= P->time_opts.stabilization_time;
+	zeroTime -= P->time_opts.stabilization_time;
 	S->addMessage(1, "(TimeManager::TimeManager): Time manager built OK.\n");
 }
 

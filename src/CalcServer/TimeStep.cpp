@@ -52,7 +52,7 @@ TimeStep::TimeStep()
 	int nChar;
 	MainDt = P->SPHParameters.h/P->SPHParameters.cs;
 	MainDt /= P->SPHParameters.DivDt;
-	if(P->TimeParameters.dtMode != __DT_VARIABLE__)
+	if(P->time_opts.dt_mode != __DT_VARIABLE__)
 		return;
 	//! 1st.- Get data
 	nChar = strlen(P->OpenCL_kernels.time_step);
@@ -94,11 +94,11 @@ bool TimeStep::execute()
 	CalcServer *C = CalcServer::singleton();
 	unsigned int i;
 	cl_int clFlag = CL_SUCCESS;
-	if(P->TimeParameters.dtMode == __DT_FIX__){
-		C->dt = P->TimeParameters.dt;
+	if(P->time_opts.dt_mode == __DT_FIX__){
+		C->dt = P->time_opts.dt;
 		return false;
 	}
-	else if(P->TimeParameters.dtMode == __DT_FIXCALCULATED__){
+	else if(P->time_opts.dt_mode == __DT_FIXCALCULATED__){
 		C->dt = MainDt;
 		return false;
 	}
@@ -156,15 +156,15 @@ bool TimeStep::execute()
 		S->addMessage(3, Log);
 		MainDt = C->dt;
 	}
-	if(C->dt < P->TimeParameters.mindt){
+	if(C->dt < P->time_opts.dt_min){
 		if(!dtClamp){
 			char Log[256];
 			sprintf(Log, "(TimeStep::Execute): timestep lower than minimum value [%g < %g], will be clamped therefore\n",
-			        C->dt,P->TimeParameters.mindt);
+			        C->dt,P->time_opts.dt_min);
 			S->addMessage(3, Log);
 		}
 		dtClamp = 1;
-		C->dt = P->TimeParameters.mindt;
+		C->dt = P->time_opts.dt_min;
 	}
 	else
 		dtClamp = 0;

@@ -138,16 +138,16 @@ public:
 		 */
 		void destroy();
 
-	    /** Verbose level: \n
-	     * 2 Slowest alternative, prints relevant data every timestep.
-	     * 1 (Default value) Prints relevant data every frame.
-	     * 0 Fastest alternative, prints minimum data.
+	    /** Verbose level:
+         *   - 2 = Slowest alternative, prints relevant data every timestep.
+         *   - 1 = Prints relevant data every frame (Default value).
+         *   - 0 = Fastest alternative, prints minimum data.
 	     */
 	    int verbose_level;
 
 	    /** Start mode: \n
-	     * 0 Starts at t=0.
-	     * 1 Starts at latest time (using H5Part file).
+	     *   - 0 = Starts at t=0 s.
+	     *   - 1 = Starts at latest time (using H5Part file).
 	     */
 	    int start_mode;
 
@@ -221,100 +221,101 @@ public:
 	 */
 	struct sphTimingParameters
 	{
-		/** Type of criteria to know when the simulation reachs the final.
-		 * @remarks Must a combination of this:\n
-		 * __TIME_MODE__ (default option): The simulation stops when this time is reached (Time/T in XML files).\n
-		 * __ITER_MODE__ : The simulation stops when this number of frames is performed (Frames/F in XML files).
-		 * @warning If any simulation stop cirteria is selected, the simulation will not stop never.\n
-		 * Incompatible with H5Part output.
+		/** Type of criteria to know when the simulation has finished.
+		 * @remarks Must a combination of the following options:
+		 * - __TIME_MODE__ : Maximum simulated time.
+		 * - __ITER_MODE__ : Maximum number os time steps.
+		 * - __FRAME_MODE__ : Maximum number of output frames printed.
+		 * @warning If any simulation stop cirteria is selected, the simulation
+		 * will not stop
 		 */
-		unsigned int SimTimingMode;
+		unsigned int sim_end_mode;
 		/// Maximum simulation time to be reached (in seconds).
-		float SimMaxTime;
+		float sim_end_time;
+		/// Maximum number of steps to be performed.
+		int sim_end_step;
 		/// Maximum number of frames to be performed.
-		int SimMaxSteps;
-		/// Maximum number of frames to be performed.
-		int SimMaxFrames;
+		int sim_end_frame;
 
-		/** Type of criteria to know when a log file must be printed.
-		 * @remarks Must a combination of this:\n
-		 * __NO_OUTPUT_MODE__ (default option) Discard all other options (No in XML files).\n
-		 * __FPS_MODE__ Log files printed per second mode (FPS in XML files).\n
-		 * __IPF_MODE__ Iteration to print a Log file (IPF in XML files).
+		/** Type of criteria to know when the log file must be printed/updated.
+		 * @remarks Must a combination of the following options:
+		 * - __NO_OUTPUT_MODE__ : The log file will not be never printed.
+		 * - __FPS_MODE__ : Updates per second.
+		 * - __IPF_MODE__ : Time steps before to update.
 		 */
-		unsigned int LogTimingMode;
-		/// Log printed per second (in seconds).
-		float LogFPS;
-		/// Frames to print a log.
-		int LogIPF;
+		unsigned int log_mode;
+		/// Update rate (per second of simulation).
+		float log_fps;
+		/// Time steps to be done before to update the data.
+		int log_ipf;
 
-		/** Type of criteria to know when a energy report file must be printed.
-		 * @remarks Must a combination of this:\n
-		 * __NO_OUTPUT_MODE__ (default option) Discard all other options (No in XML files).\n
-		 * __FPS_MODE__ Energy reports printed per second mode (FPS in XML files).\n
-		 * __IPF_MODE__ Iteration to print a Log file (IPF in XML files).
+		/** Type of criteria to know when the energy report file must be
+		 * printed/updated.
+		 * @remarks Must a combination of the following options:
+		 * - __NO_OUTPUT_MODE__ : The log file will not be never printed.
+		 * - __FPS_MODE__ : Updates per second.
+		 * - __IPF_MODE__ : Time steps before to update.
 		 */
-		unsigned int ReTimingMode;
-		/// Energy report printed per second (in seconds).
-		float ReFPS;
-		/// Frames to print a energy report.
-		int ReIPF;
+		unsigned int energy_mode;
+		/// Update rate (per second of simulation).
+		float energy_fps;
+		/// Time steps to be done before to update the data.
+		int energy_ipf;
 
-		/** Type of criteria to know when a Bounds report file must be printed.
-		 * @remarks Must a combination of this:\n
-		 * __NO_OUTPUT_MODE__ (default option) Discard all other options (No in XML files).\n
-		 * __FPS_MODE__ Bounds reports printed per second mode (FPS in XML files).\n
-		 * __IPF_MODE__ Iteration to print a Log file (IPF in XML files).
+		/** Type of criteria to know when the bounds of fluid file must be
+		 * printed/updated.
+		 * @remarks Must a combination of the following options:
+		 * - __NO_OUTPUT_MODE__ : The log file will not be never printed.
+		 * - __FPS_MODE__ : Updates per second.
+		 * - __IPF_MODE__ : Time steps before to update.
 		 */
-		unsigned int BoundsTimingMode;
-		/// Bounds report printed per second (in seconds).
-		float BoundsFPS;
-		/// Frames to print a Bounds report.
-		int BoundsIPF;
+		unsigned int bounds_mode;
+		/// Update rate (per second of simulation).
+		float bounds_fps;
+		/// Time steps to be done before to update the data.
+		int bounds_ipf;
 
-		/** Type of criteria to know when an output file must be printed.
-		 * @remarks Must a combination of this:\n
-		 * __NO_OUTPUT_MODE__ (default option) Discard all other options (No in XML files).\n
-		 * __FPS_MODE__ Output files printed per second mode (FPS in XML files).\n
-		 * __IPF_MODE__ Iteration to print a Log file (IPF in XML files).
+		/** Type of criteria to know when a full fluid output must be
+		 * printed/updated.
+		 * @remarks Must a combination of the following options:
+		 * - __NO_OUTPUT_MODE__ : The log file will not be never printed.
+		 * - __FPS_MODE__ : Updates per second.
+		 * - __IPF_MODE__ : Time steps before to update.
 		 */
-		unsigned int OutputMode;
+		unsigned int output_mode;
 		/** Format of the output.
-		 * @remarks Must be a combination of this:\n
-		 * __H5Part__ H5Parts format files to view into ParaView (H5Part reader plugin must be activated).\n
-		 * __VTK__ VTK format files to view into ParaView.\n
-		 * __TECPLOT__ Tecplot format (in ascii) files to view into Tecplot.
-		 * @warning If any format is specified, any file will be printed.\n
-		 * To could use this formats, the program must be compiled with support for this.
+		 * @remarks Must be a combination of the following options:
+		 *  - __H5Part__ H5Parts format files to view into ParaView.
+		 *  - __VTK__ VTK format files to view into ParaView.
+		 *  - __TECPLOT__ Tecplot format (in ascii) files to view into Tecplot.
 		 */
-		unsigned int OutputFormat;
-		/// Output files printed per second (in seconds).
-		float OutputFPS;
-		/// Frames to print an output file.
-		int OutputIPF;
+		unsigned int output_format;
+		/// Printing rate (per second of simulation).
+		float output_fps;
+		/// Time steps to be done before to print the data again.
+		int output_ipf;
 
 		/** Time step mode.
-		 * @remarks Must be one of this: \n
-		 * __DT_VARIABLE__ If time step must be calculated every iteration in order to preserve Courant number. \n
-		 * __DT_FIXCALCULATED__ If time step must be calculated at the start of simulation, and conserved along it. \n
-		 * __DT_FIX__ If time step is provided by user.
+		 * @remarks Must be one of the following options:
+		 * - __DT_VARIABLE__ If time step must be calculated each step.
+		 * - __DT_FIXCALCULATED__ If time step must be calculated at the start of simulation.
+		 * - __DT_FIX__ If the time step is provided by user.
 		 */
-	    unsigned int dtMode;
-	    /** Provided by user time step.
-	     */
+	    unsigned int dt_mode;
+	    /// Provided by user time step.
 	    float dt;
-	    /** Minimum time step allowed.
+	    /// Minimum time step allowed.
+	    float dt_min;
+	    /** If a minimum time step is set, it can be additionally forced to
+	     * clamp the particles velocity to preserve the Courant factor.
 	     */
-	    float mindt;
-	    /** If a minimum time step is set, additionally can be forced to clamp the
-	     * velocity of the particles in order to ensure that no more than 0.1h distance can be moved in a time step.
+	    bool velocity_clamp;
+	    /** Stabilization time.
+	     * @note During the stabilization stage motions will not be computed,
+	     * and particles velocity will be vanished.
 	     */
-	    bool clampV;
-	    /** Stabilization time. During this time movements will not computed, and accelerations will used as velocities,
-	     * in order to reduce inertial particles movements. Outputs will not printed too.
-	     */
-	    float stabTime;
-	}TimeParameters;
+	    float stabilization_time;
+	}time_opts;
 
 	/** \struct sphSPHParameters
 	 *  Struct that stores SPH parameters

@@ -97,8 +97,8 @@ bool Corrector::execute()
 	/** Execute the velocity clamping if has been requested. If minimum time step is
 	 * not able to do it (\f$ dt_{min} \le 0 \mbox{s} \f$) we skip this step
 	 */
-	if( (P->TimeParameters.clampV) && (P->TimeParameters.mindt > 0.f) && (t >= 0.f)){
-	    clFlag  = sendArgument(clClampVKernel, 5, sizeof(cl_float), (void*)&(P->TimeParameters.mindt));
+	if( (P->time_opts.velocity_clamp) && (P->time_opts.dt_min > 0.f) && (t >= 0.f)){
+	    clFlag  = sendArgument(clClampVKernel, 5, sizeof(cl_float), (void*)&(P->time_opts.dt_min));
 	    clFlag |= sendArgument(clClampVKernel, 6, sizeof(vec),      (void*)&(C->g));
 	    clFlag |= sendArgument(clClampVKernel, 7, sizeof(cl_uint),  (void*)&(C->N));
 	    if(clFlag != CL_SUCCESS) {
@@ -219,7 +219,7 @@ bool Corrector::setupOpenCL()
 	clFlag |= sendArgument(clKernel, 15, sizeof(cl_mem), (void*)&(C->sigma));
 	if(clFlag)
 	    return true;
-	if( (P->TimeParameters.clampV) && (P->TimeParameters.mindt > 0) ){
+	if( (P->time_opts.velocity_clamp) && (P->time_opts.dt_min > 0) ){
 	    if(clProgram)clReleaseProgram(clProgram); clProgram=0;
 	    if(!loadKernelFromFile(&clClampVKernel, &clProgram, C->clContext, C->clDevice, mPath, "ClampVel",""))
 	        return true;

@@ -178,7 +178,7 @@ bool FileManager::parse()
 	delete[] orig_in_file; orig_in_file=0;
 	// Parse
 	parseTiming(root);
-	int format = P->TimeParameters.OutputFormat;
+	int format = P->time_opts.output_format;
 	if(format & __H5Part__) {
 		_must_print_H5 = true;
 	}
@@ -238,7 +238,7 @@ bool FileManager::openFiles()
 	sprintf(_en_file, "%s%s", _out_prefix, _en_file);
 	sprintf(_bounds_file, "%s%s", _out_prefix, _bounds_file);
 	// Open report files
-	if(P->TimeParameters.ReTimingMode > __NO_OUTPUT_MODE__)
+	if(P->time_opts.energy_mode > __NO_OUTPUT_MODE__)
 	{
 	    _en_file_id = fopen( _en_file, "w" );
 		if(!_en_file_id)
@@ -248,7 +248,7 @@ bool FileManager::openFiles()
 		    return true;
 		}
 	}
-	if(P->TimeParameters.BoundsTimingMode > __NO_OUTPUT_MODE__)
+	if(P->time_opts.bounds_mode > __NO_OUTPUT_MODE__)
 	{
 	    _bounds_file_id = fopen( _bounds_file, "w" );
 		if(!_bounds_file_id)
@@ -291,9 +291,9 @@ bool FileManager::openFiles()
 	        sprintf(file_name, "%sParticles0.h5part", _out_prefix);
 	    }
 	    // Open the output files
-	    if(P->TimeParameters.OutputMode > __NO_OUTPUT_MODE__)
+	    if(P->time_opts.output_mode > __NO_OUTPUT_MODE__)
 	    {
-	        if(P->TimeParameters.OutputFormat & __H5Part__)
+	        if(P->time_opts.output_format & __H5Part__)
 	        {
                 sprintf(msg, "Saving into \"%s\"\n", file_name);
                 S->addMessageF(1, msg);
@@ -504,8 +504,8 @@ bool FileManager::closeFiles()
 	if(_bounds_file_id)
 		fclose( _bounds_file_id ); _bounds_file_id=0;
 	#ifdef HAVE_H5PART
-	    if(P->TimeParameters.OutputMode > __NO_OUTPUT_MODE__) {
-	        if(P->TimeParameters.OutputFormat & __H5Part__) {
+	    if(P->time_opts.output_mode > __NO_OUTPUT_MODE__) {
+	        if(P->time_opts.output_format & __H5Part__) {
 	            H5PartCloseFile(_H5Part_file_id);
 	            if(A->mustReassembly()){
 	                assemblyH5Part();
@@ -779,16 +779,16 @@ bool FileManager::parseTiming(DOMElement *root)
 	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
 			if(!strcmp(xmlAttribute(s_elem, "name"), "SimulationStop")) {
 				if(!strcmp(xmlAttribute(s_elem, "type"), "Time") || !strcmp(xmlAttribute(s_elem, "type"), "T")) {
-					P->TimeParameters.SimTimingMode = P->TimeParameters.SimTimingMode | __TIME_MODE__;
-					P->TimeParameters.SimMaxTime = atof(xmlAttribute(s_elem, "value"));
+					P->time_opts.sim_end_mode = P->time_opts.sim_end_mode | __TIME_MODE__;
+					P->time_opts.sim_end_time = atof(xmlAttribute(s_elem, "value"));
 				}
 				else if(!strcmp(xmlAttribute(s_elem, "type"), "Steps") || !strcmp(xmlAttribute(s_elem, "type"), "S")) {
-					P->TimeParameters.SimTimingMode = P->TimeParameters.SimTimingMode | __ITER_MODE__;
-					P->TimeParameters.SimMaxSteps = atoi(xmlAttribute(s_elem, "value"));
+					P->time_opts.sim_end_mode = P->time_opts.sim_end_mode | __ITER_MODE__;
+					P->time_opts.sim_end_step = atoi(xmlAttribute(s_elem, "value"));
 				}
 				else if(!strcmp(xmlAttribute(s_elem, "type"), "Frames") || !strcmp(xmlAttribute(s_elem, "type"), "F")) {
-					P->TimeParameters.SimTimingMode = P->TimeParameters.SimTimingMode | __FRAME_MODE__;
-					P->TimeParameters.SimMaxFrames = atoi(xmlAttribute(s_elem, "value"));
+					P->time_opts.sim_end_mode = P->time_opts.sim_end_mode | __FRAME_MODE__;
+					P->time_opts.sim_end_frame = atoi(xmlAttribute(s_elem, "value"));
 				}
 				else {
 	                sprintf(msg, "Unknow simulation stop criteria \"%s\"\n", xmlAttribute(s_elem, "type"));
@@ -802,15 +802,15 @@ bool FileManager::parseTiming(DOMElement *root)
 			}
 			else if(!strcmp(xmlAttribute(s_elem, "name"), "LogFiles")) {
 				if(!strcmp(xmlAttribute(s_elem, "type"), "No")) {
-					P->TimeParameters.LogTimingMode = __NO_OUTPUT_MODE__;
+					P->time_opts.log_mode = __NO_OUTPUT_MODE__;
 				}
 				else if(!strcmp(xmlAttribute(s_elem, "type"), "FPS")) {
-					P->TimeParameters.LogTimingMode = P->TimeParameters.LogTimingMode | __FPS_MODE__;
-					P->TimeParameters.LogFPS = atof(xmlAttribute(s_elem, "value"));
+					P->time_opts.log_mode = P->time_opts.log_mode | __FPS_MODE__;
+					P->time_opts.log_fps = atof(xmlAttribute(s_elem, "value"));
 				}
 				else if(!strcmp(xmlAttribute(s_elem, "type"), "IPF")) {
-					P->TimeParameters.LogTimingMode = P->TimeParameters.LogTimingMode | __IPF_MODE__;
-					P->TimeParameters.LogIPF = atoi(xmlAttribute(s_elem, "value"));
+					P->time_opts.log_mode = P->time_opts.log_mode | __IPF_MODE__;
+					P->time_opts.log_ipf = atoi(xmlAttribute(s_elem, "value"));
 				}
 				else {
 	                sprintf(msg, "Unknow log file print criteria \"%s\"\n", xmlAttribute(s_elem, "type"));
@@ -824,15 +824,15 @@ bool FileManager::parseTiming(DOMElement *root)
 			}
 			else if(!strcmp(xmlAttribute(s_elem, "name"), "EnFiles")) {
 				if(!strcmp(xmlAttribute(s_elem, "type"), "No")) {
-					P->TimeParameters.ReTimingMode = __NO_OUTPUT_MODE__;
+					P->time_opts.energy_mode = __NO_OUTPUT_MODE__;
 				}
 				else if(!strcmp(xmlAttribute(s_elem, "type"), "FPS")) {
-					P->TimeParameters.ReTimingMode = P->TimeParameters.ReTimingMode | __FPS_MODE__;
-					P->TimeParameters.ReFPS = atof(xmlAttribute(s_elem, "value"));
+					P->time_opts.energy_mode = P->time_opts.energy_mode | __FPS_MODE__;
+					P->time_opts.energy_fps = atof(xmlAttribute(s_elem, "value"));
 				}
 				else if(!strcmp(xmlAttribute(s_elem, "type"), "IPF")) {
-					P->TimeParameters.ReTimingMode = P->TimeParameters.ReTimingMode | __IPF_MODE__;
-					P->TimeParameters.ReIPF = atoi(xmlAttribute(s_elem, "value"));
+					P->time_opts.energy_mode = P->time_opts.energy_mode | __IPF_MODE__;
+					P->time_opts.energy_ipf = atoi(xmlAttribute(s_elem, "value"));
 				}
 				else {
 	                sprintf(msg, "Unknow energy report file print criteria \"%s\"\n", xmlAttribute(s_elem, "type"));
@@ -846,15 +846,15 @@ bool FileManager::parseTiming(DOMElement *root)
 			}
 			else if(!strcmp(xmlAttribute(s_elem, "name"), "BoundsFiles")) {
 				if(!strcmp(xmlAttribute(s_elem, "type"), "No")) {
-					P->TimeParameters.BoundsTimingMode = __NO_OUTPUT_MODE__;
+					P->time_opts.bounds_mode = __NO_OUTPUT_MODE__;
 				}
 				else if(!strcmp(xmlAttribute(s_elem, "type"), "FPS")) {
-					P->TimeParameters.BoundsTimingMode = P->TimeParameters.BoundsTimingMode | __FPS_MODE__;
-					P->TimeParameters.BoundsFPS = atof(xmlAttribute(s_elem, "value"));
+					P->time_opts.bounds_mode = P->time_opts.bounds_mode | __FPS_MODE__;
+					P->time_opts.bounds_fps = atof(xmlAttribute(s_elem, "value"));
 				}
 				else if(!strcmp(xmlAttribute(s_elem, "type"), "IPF")) {
-					P->TimeParameters.BoundsTimingMode = P->TimeParameters.BoundsTimingMode | __IPF_MODE__;
-					P->TimeParameters.BoundsIPF = atoi(xmlAttribute(s_elem, "value"));
+					P->time_opts.bounds_mode = P->time_opts.bounds_mode | __IPF_MODE__;
+					P->time_opts.bounds_ipf = atoi(xmlAttribute(s_elem, "value"));
 				}
 				else {
 	                sprintf(msg, "Unknow fluid bounds file print criteria \"%s\"\n", xmlAttribute(s_elem, "type"));
@@ -868,15 +868,15 @@ bool FileManager::parseTiming(DOMElement *root)
 			}
 			else if(!strcmp(xmlAttribute(s_elem, "name"), "Output")) {
 				if(!strcmp(xmlAttribute(s_elem, "type"), "No")) {
-					P->TimeParameters.OutputMode = __NO_OUTPUT_MODE__;
+					P->time_opts.output_mode = __NO_OUTPUT_MODE__;
 				}
 				else if(!strcmp(xmlAttribute(s_elem, "type"), "FPS")) {
-					P->TimeParameters.OutputMode = P->TimeParameters.OutputMode | __FPS_MODE__;
-					P->TimeParameters.OutputFPS = atof(xmlAttribute(s_elem, "value"));
+					P->time_opts.output_mode = P->time_opts.output_mode | __FPS_MODE__;
+					P->time_opts.output_fps = atof(xmlAttribute(s_elem, "value"));
 				}
 				else if(!strcmp(xmlAttribute(s_elem, "type"), "IPF")) {
-					P->TimeParameters.OutputMode = P->TimeParameters.OutputMode | __IPF_MODE__;
-					P->TimeParameters.OutputIPF = atoi(xmlAttribute(s_elem, "value"));
+					P->time_opts.output_mode = P->time_opts.output_mode | __IPF_MODE__;
+					P->time_opts.output_ipf = atoi(xmlAttribute(s_elem, "value"));
 				}
 				else {
 	                sprintf(msg, "Unknow output file print criteria \"%s\"\n", xmlAttribute(s_elem, "type"));
@@ -889,7 +889,7 @@ bool FileManager::parseTiming(DOMElement *root)
 				}
 				if(!strcmp(xmlAttribute(s_elem, "format"), "H5Part")) {
 					#ifdef HAVE_H5PART
-	                    P->TimeParameters.OutputFormat = P->TimeParameters.OutputFormat | __H5Part__;
+	                    P->time_opts.output_format = P->time_opts.output_format | __H5Part__;
 					#else
 	                    sprintf(msg, "The H5Part format is not supported (due to the compilation).\n");
 	                    S->addMessageF(3, msg);
@@ -898,7 +898,7 @@ bool FileManager::parseTiming(DOMElement *root)
 				}
 				else if(!strcmp(xmlAttribute(s_elem, "format"), "VTK")) {
 					#ifdef HAVE_VTK
-						P->TimeParameters.OutputFormat = P->TimeParameters.OutputFormat | __VTK__;
+						P->time_opts.output_format = P->time_opts.output_format | __VTK__;
 					#else
 	                    sprintf(msg, "The VTK format is not supported (due to the compilation).\n");
 	                    S->addMessageF(3, msg);
@@ -907,7 +907,7 @@ bool FileManager::parseTiming(DOMElement *root)
 				}
 				else if(!strcmp(xmlAttribute(s_elem, "format"), "Tecplot")) {
 					#ifdef HAVE_TECPLOT
-						P->TimeParameters.OutputFormat = P->TimeParameters.OutputFormat | __TECPLOT__;
+						P->time_opts.output_format = P->time_opts.output_format | __TECPLOT__;
 	                    sprintf(msg, "The Tecplot format is outdated.\n");
 	                    S->addMessageF(2, msg);
 					#else
@@ -932,26 +932,26 @@ bool FileManager::parseTiming(DOMElement *root)
 			else if(!strcmp(xmlAttribute(s_elem, "name"), "TimeStep")) {
 				if(   !strcmp(xmlAttribute(s_elem, "value"), "Courant")
 	               || !strcmp(xmlAttribute(s_elem, "value"), "Variable") ) {
-					P->TimeParameters.dtMode = __DT_VARIABLE__;
+					P->time_opts.dt_mode = __DT_VARIABLE__;
 				}
 				else if(   !strcmp(xmlAttribute(s_elem, "value"), "Fix")
 	                    || !strcmp(xmlAttribute(s_elem, "value"), "Fixed") ) {
-					P->TimeParameters.dtMode = __DT_FIXCALCULATED__;
+					P->time_opts.dt_mode = __DT_FIXCALCULATED__;
 				}
 				else {
-					P->TimeParameters.dtMode = __DT_FIX__;
-					P->TimeParameters.dt = atof(xmlAttribute(s_elem, "value"));
-					if(P->TimeParameters.dt <= 0.f){
-	                    sprintf(msg, "%g s is not a valid time step\n", P->TimeParameters.dt);
+					P->time_opts.dt_mode = __DT_FIX__;
+					P->time_opts.dt = atof(xmlAttribute(s_elem, "value"));
+					if(P->time_opts.dt <= 0.f){
+	                    sprintf(msg, "%g s is not a valid time step\n", P->time_opts.dt);
 	                    S->addMessageF(2, msg);
 	                    S->addMessage(0, "\tAutomatic calculated time step will used\n");
-	                    P->TimeParameters.dtMode = __DT_FIXCALCULATED__;
+	                    P->time_opts.dt_mode = __DT_FIXCALCULATED__;
 					}
 				}
 			}
 			else if(!strcmp(xmlAttribute(s_elem, "name"), "MinTimeStep")) {
-	            P->TimeParameters.mindt = atof(xmlAttribute(s_elem, "value"));
-	            if(P->TimeParameters.mindt < 0.f){
+	            P->time_opts.dt_min = atof(xmlAttribute(s_elem, "value"));
+	            if(P->time_opts.dt_min < 0.f){
 	                sprintf(msg, "The minimum time step is lower than 0 s, so it will not take effect\n");
 	                S->addMessageF(2, msg);
 	            }
@@ -960,9 +960,9 @@ bool FileManager::parseTiming(DOMElement *root)
 	            if(!strcmp(xmlAttribute(s_elem, "value"), "True") ||
 	               !strcmp(xmlAttribute(s_elem, "value"), "true"))
 	            {
-	                P->TimeParameters.clampV = true;
-	                if(P->TimeParameters.mindt <= 0.f){
-	                    sprintf(msg, "Velocity clamping has been activated, but minimum time step is %g s\n", P->TimeParameters.mindt);
+	                P->time_opts.velocity_clamp = true;
+	                if(P->time_opts.dt_min <= 0.f){
+	                    sprintf(msg, "Velocity clamping has been activated, but minimum time step is %g s\n", P->time_opts.dt_min);
 	                    S->addMessageF(2, msg);
 	                    S->addMessage(0, "\tVelocity clamping will not take effect until minimum time step is not greather than 0 s\n");
 	                }
@@ -970,7 +970,7 @@ bool FileManager::parseTiming(DOMElement *root)
 	            else if(!strcmp(xmlAttribute(s_elem, "value"), "False") ||
 	                    !strcmp(xmlAttribute(s_elem, "value"), "false"))
 	            {
-	                P->TimeParameters.clampV = false;
+	                P->time_opts.velocity_clamp = false;
 	            }
 	            else{
 	                sprintf(msg, "%s is not a valid velocity clamping option\n", xmlAttribute(s_elem, "value"));
@@ -982,12 +982,12 @@ bool FileManager::parseTiming(DOMElement *root)
 	            }
 			}
 			else if(!strcmp(xmlAttribute(s_elem, "name"), "Stabilization")) {
-	            P->TimeParameters.stabTime = atof(xmlAttribute(s_elem, "value"));
-	            if(P->TimeParameters.stabTime < 0.f){
-	                sprintf(msg, "%g s is not a valid stabilization time\n", P->TimeParameters.stabTime);
+	            P->time_opts.stabilization_time = atof(xmlAttribute(s_elem, "value"));
+	            if(P->time_opts.stabilization_time < 0.f){
+	                sprintf(msg, "%g s is not a valid stabilization time\n", P->time_opts.stabilization_time);
 	                S->addMessageF(2, msg);
 	                S->addMessage(0, "\tNo stabilization time will set\n");
-	                P->TimeParameters.stabTime = 0.f;
+	                P->time_opts.stabilization_time = 0.f;
 	            }
 			}
 			else {
