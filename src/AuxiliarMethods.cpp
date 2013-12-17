@@ -154,8 +154,8 @@ size_t loadKernelFromFile(cl_kernel* kernel, cl_program* program,
 		strcat(default_flags, " -DHAVE_2D -Dvec=float2 -Divec=int2 -Duivec=uint2 -DVEC_ZERO=(float2)(0.f,0.f) ");
 	#endif
 	sprintf(default_flags, "%s -D__BOUNDARY__=%u ", default_flags,
-            problemSetup->SPHParameters.Boundary);
-	switch(problemSetup->SPHParameters.SlipCondition){
+            problemSetup->SPH_opts.boundary_type);
+	switch(problemSetup->SPH_opts.slip_condition){
 	    case 1:
 	        strcat(default_flags, "-D__FREE_SLIP__ ");
 	        break;

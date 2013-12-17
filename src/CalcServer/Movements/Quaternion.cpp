@@ -296,10 +296,10 @@ bool Quaternion::executeWalls()
 bool Quaternion::executeDomain()
 {
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
-	if(!P->SPHParameters.moveDomain)
+	if(!P->SPH_opts.domain_motion)
         return false;
-	P->SPHParameters.minDomain = add(minDomain, mCOR);
-	P->SPHParameters.maxDomain = add(maxDomain, mCOR);
+	P->SPH_opts.domain_min = add(domain_min, mCOR);
+	P->SPH_opts.domain_max = add(domain_max, mCOR);
 	return false;
 }
 
@@ -443,10 +443,10 @@ bool Quaternion::computeWalls()
 bool Quaternion::computeDomain()
 {
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
-	if(!P->SPHParameters.moveDomain)
+	if(!P->SPH_opts.domain_motion)
         return false;
-	minDomain = sub(P->SPHParameters.minDomain, mCOR);
-	maxDomain = sub(P->SPHParameters.maxDomain, mCOR);
+	domain_min = sub(P->SPH_opts.domain_min, mCOR);
+	domain_max = sub(P->SPH_opts.domain_max, mCOR);
 	return false;
 }
 

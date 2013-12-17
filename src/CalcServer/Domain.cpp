@@ -47,7 +47,7 @@ Domain::Domain()
 	//! 1st.- Get data
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P  = InputOutput::ProblemSetup::singleton();
-	if(!P->SPHParameters.hasDomain)
+	if(!P->SPH_opts.has_domain)
 	    return;
 	unsigned int nChar = strlen(P->OpenCL_kernels.domain);
 	if(nChar <= 0) {
@@ -77,7 +77,7 @@ Domain::Domain()
 Domain::~Domain()
 {
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
-	if(!P->SPHParameters.hasDomain)
+	if(!P->SPH_opts.has_domain)
 	    return;
 	if(clKernel)clReleaseKernel(clKernel); clKernel=0;
 	if(clProgram)clReleaseProgram(clProgram); clProgram=0;
@@ -87,15 +87,15 @@ Domain::~Domain()
 bool Domain::execute()
 {
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
-	if(!P->SPHParameters.hasDomain)
+	if(!P->SPH_opts.has_domain)
 	    return false;
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
 	cl_int clFlag=0;
 	//! 1st.- Send arguments
 	clFlag |= sendArgument(clKernel, 5, sizeof(cl_uint), (void*)&(C->n));
-	clFlag |= sendArgument(clKernel, 6, sizeof(vec    ), (void*)&(P->SPHParameters.minDomain));
-	clFlag |= sendArgument(clKernel, 7, sizeof(vec    ), (void*)&(P->SPHParameters.maxDomain));
+	clFlag |= sendArgument(clKernel, 6, sizeof(vec    ), (void*)&(P->SPH_opts.domain_min));
+	clFlag |= sendArgument(clKernel, 7, sizeof(vec    ), (void*)&(P->SPH_opts.domain_max));
 	if(clFlag != CL_SUCCESS) {
 		S->addMessage(3, "(Domain::execute): Can't send variable to kernel.\n");
 	    return true;

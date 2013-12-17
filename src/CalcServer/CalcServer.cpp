@@ -243,7 +243,7 @@ bool CalcServer::update()
 	{
 	    if(mPredictor->execute())
 	        return true;
-	    if(mLLStep >= LLSteps){
+	    if(mLLStep >= link_list_steps){
 	        mLLStep = 0;
 	        if(mGrid->execute())
 	            return true;
@@ -256,7 +256,7 @@ bool CalcServer::update()
         // Since the density interpolation will not take into account the
         // boundaries, we must perform it before the shepard term is corrected.
 	    if(T->time() >= 0.f){
-            if(mDensStep >= DensSteps){
+            if(mDensStep >= dens_int_steps){
                 mDensStep = 0;
                 if(mDensInt->execute())
                     return true;
@@ -609,10 +609,10 @@ bool CalcServer::fillFluid()
 	    clFlag |= sendArgument(clKernel, 10, sizeof(cl_uint), (void*)&AuxN);
 	    clFlag |= sendArgument(clKernel, 11, sizeof(cl_uint), (void*)&(P->FluidParameters[i].n));
 	    clFlag |= sendArgument(clKernel, 12, sizeof(cl_uint), (void*)&i);
-	    clFlag |= sendArgument(clKernel, 13, sizeof(vec    ), (void*)&(P->SPHParameters.deltar));
+	    clFlag |= sendArgument(clKernel, 13, sizeof(vec    ), (void*)&(P->SPH_opts.deltar));
 	    clFlag |= sendArgument(clKernel, 14, sizeof(cl_float), (void*)&(P->FluidParameters[i].refd));
-	    clFlag |= sendArgument(clKernel, 15, sizeof(cl_float), (void*)&(P->SPHParameters.h));
-	    clFlag |= sendArgument(clKernel, 16, sizeof(cl_float), (void*)&(P->SPHParameters.cs));
+	    clFlag |= sendArgument(clKernel, 15, sizeof(cl_float), (void*)&(P->SPH_opts.h));
+	    clFlag |= sendArgument(clKernel, 16, sizeof(cl_float), (void*)&(P->SPH_opts.cs));
 	    AuxN += P->FluidParameters[i].n;
 	    if(clFlag)
 	        return true;
@@ -700,13 +700,13 @@ bool CalcServer::setup()
 	    return true;
 	}
 	// Variables
-	g     = P->SPHParameters.g;
-	hfac  = P->SPHParameters.hfac;
-	DivDt = P->SPHParameters.DivDt;
-	h     = P->SPHParameters.h;
-	cs    = P->SPHParameters.cs;
-	LLSteps = P->SPHParameters.LLSteps;
-	DensSteps = P->SPHParameters.DensSteps;
+	g     = P->SPH_opts.g;
+	hfac  = P->SPH_opts.hfac;
+	dt_divisor = P->SPH_opts.dt_divisor;
+	h     = P->SPH_opts.h;
+	cs    = P->SPH_opts.cs;
+	link_list_steps = P->SPH_opts.link_list_steps;
+	dens_int_steps = P->SPH_opts.dens_int_steps;
 	// Calculate CellFac
 	float sep;
 	#ifdef __CUBIC_KERNEL_TYPE__
@@ -717,11 +717,11 @@ bool CalcServer::setup()
 		sep = 2.0f;
 	#endif
 	float dist  = sep*h;        // Minimum cell size.
-	float ddt   = 0.1f*h/DivDt; // Maximum distance that a particle can move in a step.
-	CellFac = 1.f + (LLSteps-1) * ddt / dist;
+	float ddt   = 0.1f*h/dt_divisor; // Maximum distance that a particle can move in a step.
+	CellFac = 1.f + (link_list_steps-1) * ddt / dist;
 	sprintf(msg, "(CalcServer::setup): Cells size increased with %g factor.\n", CellFac);
     S->addMessage(1, msg);
-	mLLStep = LLSteps;          // Initializating as LinkList needed
+	mLLStep = link_list_steps;          // Initializating as LinkList needed
 	mDensStep = 0;              // Initializating as Density interpolation not needed
 	// Particles data
     S->addMessage(1, "(CalcServer::setup): Sending the particles data to server...\n");

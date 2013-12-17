@@ -130,9 +130,9 @@ private:
 	std::deque<InputOutput::ProblemSetup::sphGhostParticles::Wall*> walls;
 
 	/// Minimum domain coordinates relative to COR
-	vec minDomain;
+	vec domain_min;
 	/// Maximum domain coordinates relative to COR
-	vec maxDomain;
+	vec domain_max;
 };
 
 }}} // namespace

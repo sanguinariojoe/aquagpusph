@@ -98,8 +98,8 @@ bool Predictor::execute()
 	clFlag |= sendArgument(clKernel, 21, sizeof(cl_float), (void*)&(C->dt));
 	clFlag |= sendArgument(clKernel, 22, sizeof(cl_float), (void*)&(C->cs));
 	clFlag |= sendArgument(clKernel, 23, sizeof(vec),      (void*)&(C->g));
-	clFlag |= sendArgument(clKernel, 24, sizeof(cl_float), (void*)&(P->SPHParameters.minDens));
-	clFlag |= sendArgument(clKernel, 25, sizeof(cl_float), (void*)&(P->SPHParameters.maxDens));
+	clFlag |= sendArgument(clKernel, 24, sizeof(cl_float), (void*)&(P->SPH_opts.rho_min));
+	clFlag |= sendArgument(clKernel, 25, sizeof(cl_float), (void*)&(P->SPH_opts.rho_max));
 	if(clFlag != CL_SUCCESS) {
 		S->addMessage(3, "(Predictor::execute): Can't send variable to kernel.\n");
 	    return true;

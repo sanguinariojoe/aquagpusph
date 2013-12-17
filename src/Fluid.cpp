@@ -82,7 +82,7 @@ Fluid::Fluid()
 	    v[i].x      = 0.f; v[i].y = 0.f;
 	    dens[i]     = 0.f;
 	    drdt[i]     = 0.f;
-	    hp[i]       = P->SPHParameters.h;
+	    hp[i]       = P->SPH_opts.h;
 	    f[i].x      = 0.f; f[i].y = 0.f;
 	    mass[i]     = 0.f;
 	    press[i]    = 0.f;

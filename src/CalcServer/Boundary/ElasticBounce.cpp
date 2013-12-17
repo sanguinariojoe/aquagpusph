@@ -46,9 +46,9 @@ ElasticBounce::ElasticBounce()
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P  = InputOutput::ProblemSetup::singleton();
-	if(   P->SPHParameters.Boundary!=0  // ElasticBounce boundary
-	   && P->SPHParameters.Boundary!=1  // Fixed particles boundary
-	   && P->SPHParameters.Boundary!=2  // DeLeffe boundary
+	if(   P->SPH_opts.boundary_type!=0  // ElasticBounce boundary
+	   && P->SPH_opts.boundary_type!=1  // Fixed particles boundary
+	   && P->SPH_opts.boundary_type!=2  // DeLeffe boundary
 	   )
 	    return;
 	//! 1st.- Get data
@@ -88,9 +88,9 @@ bool ElasticBounce::execute()
 {
 	//! Test if boundary condition must be executed
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
-	if(   P->SPHParameters.Boundary!=0  // ElasticBounce boundary
-	   && P->SPHParameters.Boundary!=1  // Fixed particles boundary
-	   && P->SPHParameters.Boundary!=2  // DeLeffe boundary
+	if(   P->SPH_opts.boundary_type!=0  // ElasticBounce boundary
+	   && P->SPH_opts.boundary_type!=1  // Fixed particles boundary
+	   && P->SPH_opts.boundary_type!=2  // DeLeffe boundary
 	   )
 	    return false;
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
@@ -177,9 +177,9 @@ bool ElasticBounce::setupOpenCL()
 	    return true;
 	}
 	char flags[512];
-	sprintf(flags, "-D__ELASTIC_FACTOR__=%ff", P->SPHParameters.BoundElasticFactor);
-	sprintf(flags, "%s -D__MIN_BOUND_DIST__=%ff", flags, fabs(P->SPHParameters.BoundDist));
-    if(P->SPHParameters.BoundDist < 0.f){
+	sprintf(flags, "-D__ELASTIC_FACTOR__=%ff", P->SPH_opts.elastic_factor);
+	sprintf(flags, "%s -D__MIN_BOUND_DIST__=%ff", flags, fabs(P->SPH_opts.elastic_dist));
+    if(P->SPH_opts.elastic_dist < 0.f){
         sprintf(flags, "%s -D__FORCE_MIN_BOUND_DIST__", flags);
     }
 	if(!loadKernelFromFile(&clKernel, &clProgram, C->clContext, C->clDevice, mPath, "Boundary", flags))

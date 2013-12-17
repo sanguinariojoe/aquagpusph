@@ -48,7 +48,7 @@ DeLeffe::DeLeffe()
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
-	if(P->SPHParameters.Boundary!=2)  // DeLeffe condition has not been selected
+	if(P->SPH_opts.boundary_type!=2)  // DeLeffe condition has not been selected
 	    return;
 	//! 1st.- Get data
 	int nChar = strlen(P->OpenCL_kernels.de_Leffe);
@@ -87,7 +87,7 @@ DeLeffe::~DeLeffe()
 bool DeLeffe::execute()
 {
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
-	if(P->SPHParameters.Boundary!=2)  // DeLeffe condition has not been selected
+	if(P->SPH_opts.boundary_type!=2)  // DeLeffe condition has not been selected
 	    return false;
 	if(vertices())
 	    return true;

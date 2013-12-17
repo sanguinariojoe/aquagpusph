@@ -80,15 +80,15 @@ bool input()
 	    n = P->FluidParameters[i].n;
 	    // Load file with selected reader
 	    if(!strcmp(fileType,"xml")){                          // xml file
-	        if(Input::loadXML(path, i, start, n, P->FluidParameters[i].refd, P->SPHParameters.h, F))
+	        if(Input::loadXML(path, i, start, n, P->FluidParameters[i].refd, P->SPH_opts.h, F))
 	            return true;
 	    }
 	    if(!strcmp(fileType,"gid")){                          // xml file
-	        if(Input::loadGiD(path, i, start, n, P->FluidParameters[i].refd, P->SPHParameters.h, F))
+	        if(Input::loadGiD(path, i, start, n, P->FluidParameters[i].refd, P->SPH_opts.h, F))
 	            return true;
 	    }
 	    else{                                           // plain text formatted file
-	        if(Input::loadASCII(path, i, start, n, P->FluidParameters[i].refd, P->SPHParameters.h, F))
+	        if(Input::loadASCII(path, i, start, n, P->FluidParameters[i].refd, P->SPH_opts.h, F))
 	            return true;
 	    }
 	    start += n;

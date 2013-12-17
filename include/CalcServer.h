@@ -194,16 +194,16 @@ public:
 	/// kernel height and particles distance ratio.
 	float hfac;
 	/// Time step divisor (The inverse of the Courant number).
-	float DivDt;
+	float dt_divisor;
 	/** LinkList time steps validity. If this value is grater than 1, the link-list process
 	 * will be avoided sometimes, but the cells size should be increased to ensure that the
 	 * neighbours list still being valid, increasing the number of neighbours per particles.
 	 * Sometimes some performance can be gained increasing this value.
 	 */
-	unsigned int LLSteps;
+	unsigned int link_list_steps;
 	/// LinkList main step, to control if a new link-list is required.
 	unsigned int mLLStep;
-	/// Cell size increasing factor (resulting from LLSteps, deltar, hfac and DivDt).
+	/// Cell size increasing factor (resulting from link_list_steps, deltar, hfac and dt_divisor).
 	float CellFac;
 	/** Density field interpolation steps. The density field is usually computed as an
 	 * evolution process fulfilling the continuity equation, but in order to reduce the
@@ -211,7 +211,7 @@ public:
 	 * therefore a geometric result.
 	 * It is not recommended to use this trick.
 	 */
-	unsigned int DensSteps;
+	unsigned int dens_int_steps;
 	/// Density interpolation main step, to control if the density field should be interpolated.
 	unsigned int mDensStep;
 

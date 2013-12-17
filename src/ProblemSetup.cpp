@@ -65,43 +65,40 @@ ProblemSetup::ProblemSetup()
 	time_opts.velocity_clamp = false;
 	time_opts.stabilization_time = 0.f;
 	//! 4th.- SPH parameters (as Vortex problem)
-	SPHParameters.gamma = 7.f;
-	SPHParameters.g.x = 0.f;
-	SPHParameters.g.y = 0.f;
-	SPHParameters.hfac = 4.f/3.f;
-	SPHParameters.deltar.x = 0.05f;
-	SPHParameters.deltar.y = 0.05f;
-	SPHParameters.h = SPHParameters.hfac * (SPHParameters.deltar.x + SPHParameters.deltar.y)/2.f;
-	SPHParameters.rhomax = 1.f;
-	SPHParameters.rhomin = 1.f;
-	SPHParameters.rhorat = 1.f;
-	SPHParameters.cs    = 5.f;
-	SPHParameters.DivDt = 8.f;
-	SPHParameters.LLSteps = 1;
-	SPHParameters.DensSteps = 0;
-	SPHParameters.minDens = 0.f;
-	SPHParameters.maxDens = -1.f;
-	SPHParameters.Boundary = 1;
-	SPHParameters.SlipCondition = 0;
-	SPHParameters.BoundElasticFactor = 1.f;
-	SPHParameters.BoundDist = 0.1f;
-	SPHParameters.isShepard = 0;
-	SPHParameters.hasDomain = false;
-	SPHParameters.minDomain.x = 0.f;
-	SPHParameters.minDomain.y = 0.f;
-	SPHParameters.maxDomain.x = 0.f;
-	SPHParameters.maxDomain.y = 0.f;
-	SPHParameters.moveDomain  = false;
+	SPH_opts.gamma = 7.f;
+	SPH_opts.g.x = 0.f;
+	SPH_opts.g.y = 0.f;
+	SPH_opts.hfac = 4.f/3.f;
+	SPH_opts.deltar.x = 0.05f;
+	SPH_opts.deltar.y = 0.05f;
+	SPH_opts.h = SPH_opts.hfac * (SPH_opts.deltar.x + SPH_opts.deltar.y)/2.f;
+	SPH_opts.cs    = 5.f;
+	SPH_opts.dt_divisor = 8.f;
+	SPH_opts.link_list_steps = 1;
+	SPH_opts.dens_int_steps = 0;
+	SPH_opts.rho_min = 0.f;
+	SPH_opts.rho_max = -1.f;
+	SPH_opts.boundary_type = 2;
+	SPH_opts.slip_condition = 0;
+	SPH_opts.elastic_factor = 1.f;
+	SPH_opts.elastic_dist = 0.1f;
+	SPH_opts.has_shepard = 0;
+	SPH_opts.has_domain = false;
+	SPH_opts.domain_min.x = 0.f;
+	SPH_opts.domain_min.y = 0.f;
+	SPH_opts.domain_max.x = 0.f;
+	SPH_opts.domain_max.y = 0.f;
+	SPH_opts.domain_motion  = false;
 	#ifdef HAVE_3D
-	    SPHParameters.g.z = 0.f;
-	    SPHParameters.g.w = 0.f;
-	    SPHParameters.deltar.z = 0.05f;
-	    SPHParameters.deltar.w = 0.f;
-	    SPHParameters.h = SPHParameters.hfac * (SPHParameters.deltar.x + SPHParameters.deltar.y + SPHParameters.deltar.z)/3.f;
-	    SPHParameters.minDomain.z = 0.f;
-	    SPHParameters.minDomain.w = 0.f;
-	    SPHParameters.maxDomain.z = 0.f;
-	    SPHParameters.maxDomain.w = 0.f;
+	    SPH_opts.g.z = 0.f;
+	    SPH_opts.g.w = 0.f;
+	    SPH_opts.deltar.z = 0.05f;
+	    SPH_opts.deltar.w = 0.f;
+	    SPH_opts.h = SPH_opts.hfac * (SPH_opts.deltar.x + SPH_opts.deltar.y + SPH_opts.deltar.z)/3.f;
+	    SPH_opts.domain_min.z = 0.f;
+	    SPH_opts.domain_min.w = 0.f;
+	    SPH_opts.domain_max.z = 0.f;
+	    SPH_opts.domain_max.w = 0.f;
 	#endif
 	//! 5th.- Fluid parameters
 	nFluids = 0;
@@ -156,17 +153,15 @@ bool ProblemSetup::perform()
     float K = 8.f;
 	#ifndef HAVE_3D
         K = 15.f;
-	    SPHParameters.h = SPHParameters.hfac * (SPHParameters.deltar.x + SPHParameters.deltar.y) / 2.f;
+	    SPH_opts.h = SPH_opts.hfac * (SPH_opts.deltar.x + SPH_opts.deltar.y) / 2.f;
 	#else
-	    SPHParameters.h = SPHParameters.hfac * (SPHParameters.deltar.x + SPHParameters.deltar.y + SPHParameters.deltar.z) / 3.f;
+	    SPH_opts.h = SPH_opts.hfac * (SPH_opts.deltar.x + SPH_opts.deltar.y + SPH_opts.deltar.z) / 3.f;
 	#endif
-	SPHParameters.rhomax = FluidParameters[0].refd;
-	SPHParameters.rhomin = FluidParameters[0].refd;
 	for(i=0;i<nFluids;i++)
 	{
 	    FluidParameters[i].ViscdynCorr = FluidParameters[i].Viscdyn;
-		if(FluidParameters[i].alpha > K * FluidParameters[i].ViscdynCorr / FluidParameters[i].refd / SPHParameters.h / SPHParameters.cs){
-		    FluidParameters[i].ViscdynCorr = FluidParameters[i].alpha / K * FluidParameters[i].refd * SPHParameters.h * SPHParameters.cs;
+		if(FluidParameters[i].alpha > K * FluidParameters[i].ViscdynCorr / FluidParameters[i].refd / SPH_opts.h / SPH_opts.cs){
+		    FluidParameters[i].ViscdynCorr = FluidParameters[i].alpha / K * FluidParameters[i].refd * SPH_opts.h * SPH_opts.cs;
             sprintf(msg, "(ProblemSetup::perform): fluid %u dynamic viscosity corrected\n", i);
             S->addMessage(2, msg);
             sprintf(msg, "\tValue changed from %g [Pa/s] to %g [Pa/s] (alpha = %g)\n",
@@ -176,16 +171,11 @@ bool ProblemSetup::perform()
             S->addMessage(0, msg);
 		}
 		FluidParameters[i].Visckin = FluidParameters[i].ViscdynCorr / FluidParameters[i].refd;
-		FluidParameters[i].alpha = K * FluidParameters[i].ViscdynCorr / FluidParameters[i].refd / SPHParameters.h / SPHParameters.cs;
-		if(FluidParameters[i].refd > SPHParameters.rhomax)
-			SPHParameters.rhomax = FluidParameters[i].refd;
-		if(FluidParameters[i].refd < SPHParameters.rhomin)
-			SPHParameters.rhomin = FluidParameters[i].refd;
+		FluidParameters[i].alpha = K * FluidParameters[i].ViscdynCorr / FluidParameters[i].refd / SPH_opts.h / SPH_opts.cs;
 	}
-	SPHParameters.rhorat = SPHParameters.rhomax / SPHParameters.rhomin;
 
-	if(SPHParameters.maxDens <= SPHParameters.minDens){
-        SPHParameters.maxDens = std::numeric_limits<float>::max();
+	if(SPH_opts.rho_max <= SPH_opts.rho_min){
+        SPH_opts.rho_max = std::numeric_limits<float>::max();
 	}
 	return false;
 }
@@ -271,7 +261,7 @@ void ProblemSetup::sphFluidParameters::init(ProblemSetup *P)
 {
 	//! 1st.- Default values.
 	n       = 0;
-	gamma   = P->SPHParameters.gamma;
+	gamma   = P->SPH_opts.gamma;
 	refd    = 1.f;
 	Viscdyn = 0.744f;
 	Visckin = Viscdyn/refd;

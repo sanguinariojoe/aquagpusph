@@ -50,8 +50,8 @@ TimeStep::TimeStep()
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P  = InputOutput::ProblemSetup::singleton();
 	int nChar;
-	MainDt = P->SPHParameters.h/P->SPHParameters.cs;
-	MainDt /= P->SPHParameters.DivDt;
+	MainDt = P->SPH_opts.h/P->SPH_opts.cs;
+	MainDt /= P->SPH_opts.dt_divisor;
 	if(P->time_opts.dt_mode != __DT_VARIABLE__)
 		return;
 	//! 1st.- Get data
@@ -148,7 +148,7 @@ bool TimeStep::execute()
         return true;
 	if(C->getData((void *)&C->dt, reduced, sizeof(cl_float)))
 		return true;
-	C->dt /= C->DivDt;
+	C->dt /= C->dt_divisor;
 	if(MainDt > 10.f*C->dt)
 	{
 		char Log[256];

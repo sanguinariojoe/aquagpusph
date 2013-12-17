@@ -1019,56 +1019,56 @@ bool FileManager::parseSPH(DOMElement *root)
 	            continue;
 	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
 			if(!strcmp(xmlAttribute(s_elem, "name"), "gamma")) {
-				P->SPHParameters.gamma = atof(xmlAttribute(s_elem, "value"));
+				P->SPH_opts.gamma = atof(xmlAttribute(s_elem, "value"));
 			}
 			else if(!strcmp(xmlAttribute(s_elem, "name"), "g")) {
-				P->SPHParameters.g.x = atof(xmlAttribute(s_elem, "x"));
-				P->SPHParameters.g.y = atof(xmlAttribute(s_elem, "y"));
+				P->SPH_opts.g.x = atof(xmlAttribute(s_elem, "x"));
+				P->SPH_opts.g.y = atof(xmlAttribute(s_elem, "y"));
 	            #ifdef HAVE_3D
-	                P->SPHParameters.g.z = atof(xmlAttribute(s_elem, "z"));
+	                P->SPH_opts.g.z = atof(xmlAttribute(s_elem, "z"));
 	            #endif
 			}
 			else if(!strcmp(xmlAttribute(s_elem, "name"), "hfac")) {
-				P->SPHParameters.hfac = atof(xmlAttribute(s_elem, "value"));
+				P->SPH_opts.hfac = atof(xmlAttribute(s_elem, "value"));
 			}
 			else if(!strcmp(xmlAttribute(s_elem, "name"), "deltar")) {
-				P->SPHParameters.deltar.x = atof(xmlAttribute(s_elem, "x"));
-	            P->SPHParameters.deltar.y = atof(xmlAttribute(s_elem, "y"));
+				P->SPH_opts.deltar.x = atof(xmlAttribute(s_elem, "x"));
+	            P->SPH_opts.deltar.y = atof(xmlAttribute(s_elem, "y"));
 	            #ifdef HAVE_3D
-	                P->SPHParameters.deltar.z = atof(xmlAttribute(s_elem, "z"));
+	                P->SPH_opts.deltar.z = atof(xmlAttribute(s_elem, "z"));
 	            #endif
 			}
 			else if(!strcmp(xmlAttribute(s_elem, "name"), "cs")) {
-				P->SPHParameters.cs = atof(xmlAttribute(s_elem, "value"));
+				P->SPH_opts.cs = atof(xmlAttribute(s_elem, "value"));
 			}
 			else if(!strcmp(xmlAttribute(s_elem, "name"), "DivDt")) {
-				P->SPHParameters.DivDt = atof(xmlAttribute(s_elem, "value"));
+				P->SPH_opts.dt_divisor = atof(xmlAttribute(s_elem, "value"));
 			}
 			else if(!strcmp(xmlAttribute(s_elem, "name"), "LLSteps")) {
-				P->SPHParameters.LLSteps = atoi(xmlAttribute(s_elem, "value"));
-				if(P->SPHParameters.LLSteps < 1){
+				P->SPH_opts.link_list_steps = atoi(xmlAttribute(s_elem, "value"));
+				if(P->SPH_opts.link_list_steps < 1){
 	                S->addMessageF(2, "LLSteps minor than 1 (value will be ignored).\n");
-	                P->SPHParameters.LLSteps = 1;
+	                P->SPH_opts.link_list_steps = 1;
 				}
 			}
 			else if(!strcmp(xmlAttribute(s_elem, "name"), "DensSteps")) {
-				P->SPHParameters.DensSteps = atoi(xmlAttribute(s_elem, "value"));
+				P->SPH_opts.dens_int_steps = atoi(xmlAttribute(s_elem, "value"));
 			}
 			else if(!strcmp(xmlAttribute(s_elem, "name"), "DensBounds")) {
 			    if(xmlHasAttribute(s_elem,"min"))
-                    P->SPHParameters.minDens = atof(xmlAttribute(s_elem, "min"));
+                    P->SPH_opts.rho_min = atof(xmlAttribute(s_elem, "min"));
 			    if(xmlHasAttribute(s_elem,"max"))
-                    P->SPHParameters.maxDens = atof(xmlAttribute(s_elem, "max"));
+                    P->SPH_opts.rho_max = atof(xmlAttribute(s_elem, "max"));
 			}
 			else if(!strcmp(xmlAttribute(s_elem, "name"), "Boundary")) {
 	            if(!strcmp(xmlAttribute(s_elem, "value"), "ElasticBounce")){
-	                P->SPHParameters.Boundary = 0;
+	                P->SPH_opts.boundary_type = 0;
 	            }
 	            else if(!strcmp(xmlAttribute(s_elem, "value"), "FixedParticles")){
-	                P->SPHParameters.Boundary = 1;
+	                P->SPH_opts.boundary_type = 1;
 	            }
 	            else if(!strcmp(xmlAttribute(s_elem, "value"), "DeLeffe")){
-	                P->SPHParameters.Boundary = 2;
+	                P->SPH_opts.boundary_type = 2;
 	            }
 	            else{
 	                sprintf(msg, "Unknow boundary condition \"%s\"\n", xmlAttribute(s_elem, "value"));
@@ -1082,10 +1082,10 @@ bool FileManager::parseSPH(DOMElement *root)
 			}
 			else if(!strcmp(xmlAttribute(s_elem, "name"), "SlipCondition")) {
 	            if(!strcmp(xmlAttribute(s_elem, "value"), "NoSlip")){
-	                P->SPHParameters.SlipCondition = 0;
+	                P->SPH_opts.slip_condition = 0;
 	            }
 	            else if(!strcmp(xmlAttribute(s_elem, "value"), "FreeSlip")){
-	                P->SPHParameters.SlipCondition = 1;
+	                P->SPH_opts.slip_condition = 1;
 	            }
 	            else{
 	                sprintf(msg, "Unknow slip condition \"%s\".\n", xmlAttribute(s_elem, "value"));
@@ -1097,26 +1097,26 @@ bool FileManager::parseSPH(DOMElement *root)
 	            }
 			}
 			else if(!strcmp(xmlAttribute(s_elem, "name"), "BoundElasticFactor")) {
-			    P->SPHParameters.BoundElasticFactor = atof(xmlAttribute(s_elem, "value"));
+			    P->SPH_opts.elastic_factor = atof(xmlAttribute(s_elem, "value"));
 			}
 			else if(!strcmp(xmlAttribute(s_elem, "name"), "BoundDist")) {
-			    P->SPHParameters.BoundDist = fabs(atof(xmlAttribute(s_elem, "value")));
+			    P->SPH_opts.elastic_dist = fabs(atof(xmlAttribute(s_elem, "value")));
 			    if(!strcmp(xmlAttribute(s_elem, "force"), "true") || !strcmp(xmlAttribute(s_elem, "force"), "True")){
-                    P->SPHParameters.BoundDist = - P->SPHParameters.BoundDist;
+                    P->SPH_opts.elastic_dist = - P->SPH_opts.elastic_dist;
 			    }
 			}
 			else if(!strcmp(xmlAttribute(s_elem, "name"), "Shepard")) {
 			    if(!strcmp(xmlAttribute(s_elem, "value"), "None")) {
-	                P->SPHParameters.isShepard = 0;
+	                P->SPH_opts.has_shepard = 0;
 			    }
 			    else if (!strcmp(xmlAttribute(s_elem, "value"), "Force")) {
-	                P->SPHParameters.isShepard = 1;
+	                P->SPH_opts.has_shepard = 1;
 			    }
 			    else if (!strcmp(xmlAttribute(s_elem, "value"), "Dens")) {
-	                P->SPHParameters.isShepard = 2;
+	                P->SPH_opts.has_shepard = 2;
 			    }
 			    else if (!strcmp(xmlAttribute(s_elem, "value"), "ForceDens")) {
-	                P->SPHParameters.isShepard = 3;
+	                P->SPH_opts.has_shepard = 3;
 			    }
 			    else {
 	                sprintf(msg, "Unknow shepard application environment \"%s\".\n", xmlAttribute(s_elem, "value"));
@@ -1130,46 +1130,46 @@ bool FileManager::parseSPH(DOMElement *root)
 			    }
 			}
 			else if(!strcmp(xmlAttribute(s_elem, "name"), "Domain")) {
-			    P->SPHParameters.hasDomain = true;
-			    P->SPHParameters.minDomain.x = atof(xmlAttribute(s_elem, "x"));
-			    P->SPHParameters.minDomain.y = atof(xmlAttribute(s_elem, "y"));
-			    P->SPHParameters.maxDomain.x = atof(xmlAttribute(s_elem, "l")) + P->SPHParameters.minDomain.x;
+			    P->SPH_opts.has_domain = true;
+			    P->SPH_opts.domain_min.x = atof(xmlAttribute(s_elem, "x"));
+			    P->SPH_opts.domain_min.y = atof(xmlAttribute(s_elem, "y"));
+			    P->SPH_opts.domain_max.x = atof(xmlAttribute(s_elem, "l")) + P->SPH_opts.domain_min.x;
 	            #ifdef HAVE_3D
-	                P->SPHParameters.minDomain.z = atof(xmlAttribute(s_elem, "z"));
-	                P->SPHParameters.maxDomain.y = atof(xmlAttribute(s_elem, "d")) + P->SPHParameters.minDomain.y;
-	                P->SPHParameters.maxDomain.z = atof(xmlAttribute(s_elem, "h")) + P->SPHParameters.minDomain.z;
+	                P->SPH_opts.domain_min.z = atof(xmlAttribute(s_elem, "z"));
+	                P->SPH_opts.domain_max.y = atof(xmlAttribute(s_elem, "d")) + P->SPH_opts.domain_min.y;
+	                P->SPH_opts.domain_max.z = atof(xmlAttribute(s_elem, "h")) + P->SPH_opts.domain_min.z;
 	            #else
-	                P->SPHParameters.maxDomain.y = atof(xmlAttribute(s_elem, "h")) + P->SPHParameters.minDomain.y;
+	                P->SPH_opts.domain_max.y = atof(xmlAttribute(s_elem, "h")) + P->SPH_opts.domain_min.y;
 	            #endif
 	            if(!strcmp(xmlAttribute(s_elem, "move"), "true") || !strcmp(xmlAttribute(s_elem, "move"), "True")){
-                    P->SPHParameters.moveDomain = true;
+                    P->SPH_opts.domain_motion = true;
 	            }
 	            else if(!strcmp(xmlAttribute(s_elem, "move"), "false") || !strcmp(xmlAttribute(s_elem, "move"), "False")){
-                    P->SPHParameters.moveDomain = false;
+                    P->SPH_opts.domain_motion = false;
 	            }
 	            // Fix negative lengths
-	            if(P->SPHParameters.minDomain.x > P->SPHParameters.maxDomain.x){
-	                float aux = P->SPHParameters.minDomain.x;
-	                P->SPHParameters.minDomain.x = P->SPHParameters.maxDomain.x;
-	                P->SPHParameters.maxDomain.x = aux;
+	            if(P->SPH_opts.domain_min.x > P->SPH_opts.domain_max.x){
+	                float aux = P->SPH_opts.domain_min.x;
+	                P->SPH_opts.domain_min.x = P->SPH_opts.domain_max.x;
+	                P->SPH_opts.domain_max.x = aux;
 	            }
-	            if(P->SPHParameters.minDomain.y > P->SPHParameters.maxDomain.y){
-	                float aux = P->SPHParameters.minDomain.y;
-	                P->SPHParameters.minDomain.y = P->SPHParameters.maxDomain.y;
-	                P->SPHParameters.maxDomain.y = aux;
+	            if(P->SPH_opts.domain_min.y > P->SPH_opts.domain_max.y){
+	                float aux = P->SPH_opts.domain_min.y;
+	                P->SPH_opts.domain_min.y = P->SPH_opts.domain_max.y;
+	                P->SPH_opts.domain_max.y = aux;
 	            }
 	            #ifdef HAVE_3D
-	                if(P->SPHParameters.minDomain.z > P->SPHParameters.maxDomain.z){
-	                    float aux = P->SPHParameters.minDomain.z;
-	                    P->SPHParameters.minDomain.z = P->SPHParameters.maxDomain.z;
-	                    P->SPHParameters.maxDomain.z = aux;
+	                if(P->SPH_opts.domain_min.z > P->SPH_opts.domain_max.z){
+	                    float aux = P->SPH_opts.domain_min.z;
+	                    P->SPH_opts.domain_min.z = P->SPH_opts.domain_max.z;
+	                    P->SPH_opts.domain_max.z = aux;
 	                }
 	            #endif
 	            // Look for errors
-	            if(    (P->SPHParameters.minDomain.x == P->SPHParameters.maxDomain.x)
-	                || (P->SPHParameters.minDomain.y == P->SPHParameters.maxDomain.y)
+	            if(    (P->SPH_opts.domain_min.x == P->SPH_opts.domain_max.x)
+	                || (P->SPH_opts.domain_min.y == P->SPH_opts.domain_max.y)
 	                #ifdef HAVE_3D
-	                    || (P->SPHParameters.minDomain.z == P->SPHParameters.maxDomain.z)
+	                    || (P->SPH_opts.domain_min.z == P->SPH_opts.domain_max.z)
 	                #endif
 	              )
 	            {

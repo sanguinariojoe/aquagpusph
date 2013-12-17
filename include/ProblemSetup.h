@@ -322,90 +322,99 @@ public:
 	 */
 	struct sphSPHParameters
 	{
-		/** Default gamma
-		 * @note All the fluids uses this gamma as default.
+		/** Default \f$ \gamma \f$ exponent for the EOS.
+		 * \f$ p = \frac{c_s^2 \rho_0}{\gamma}
+		 \left(
+            \left( \frac{\rho}{\rho_0} \right)^\gamma - 1
+         \right) \f$.
+		 * @note The fluids which an undefined gamma value will use this one.
 		 */
 		float gamma;
-		/// Garivity aceleration
+		/// Garivity aceleration \f$ \mathbf{g} \f$.
 		vec g;
-		/// Factor between particles distance and kernel height.
+		/// Kernel height factor \f$ \frac{h}{\Delta r} \f$.
 		float hfac;
-		/// Tipical particle distance
+		/// Tipical particle distance \f$ \Delta r \f$.
 		vec deltar;
-		/// kernel height (internal data)
+		/// kernel height \f$ h \f$.
 		float h;
-		/// Maximum density found
-		float rhomax;
-		/// Minimum density found
-		float rhomin;
-		/// Density rate
-		float rhorat;
-		/// Sound speed
+		/// Characteristic sound speed \f$ c_s \f$.
 		float cs;
-		/// Time step divisor
-		float DivDt;
-	    /// LinkList steps (steps before LinkList must be performed).
-	    unsigned int LLSteps;
+		/// Inverse of the Courant factor \f$ \frac{1}{Cf} \f$.
+		float dt_divisor;
+	    /// LinkList steps (steps before LinkList must be performed again).
+	    unsigned int link_list_steps;
 
-	    /** Density interpolation steps (steps before density interpolation must be performed).
-	     * 0 if density interpolation don't needed.
+	    /** Density interpolation steps (steps before density interpolation
+         * must be performed again).
+	     * 0 if density interpolation will not be applied.
 	     */
-	    unsigned int DensSteps;
-	    /// Minimum tolerated value for the density, 0  by default
-	    float minDens;
+	    unsigned int dens_int_steps;
+	    /** Minimum tolerated value for the density, 0  by default. If the
+	     * density of a particle goes below this value it will be clamped.
+	     */
+	    float rho_min;
 	    /** Maximum tolerated value for the density, -1 by default.
 	     * If this value is lower or equal to the minimum value,
 	     * maximum density value clamping will not be applied.
 	     */
-        float maxDens;
+        float rho_max;
 
-	    /** Boundary type: \n
-	     * 0 = Elastic bounce. \n
-	     * 1 = Fixed particles. \n
-	     * 2 = DeLeffe.
+	    /** Boundary type:
+	     *   - 0 = Elastic bounce.
+	     *   - 1 = Fixed particles.
+	     *   - 2 = DeLeffe.
+	     * @note Ghost particles boundary condition are managed in a different
+         * way.
 	     */
-	    unsigned int Boundary;
-	    /** Slip condition: \n
-	     * 0 = No Slip condition. \n
+	    unsigned int boundary_type;
+	    /** Slip condition:
+	     * 0 = No Slip condition.
 	     * 1 = Free Slip condition.
 	     */
-	    unsigned int SlipCondition;
-	    /** Elastic factor for Elastic Bounce boundary condition. When a particle is reflected
-	     * because will pass trought boundary, part of the energy can be removed. Elastic
-	     * factor indicates the amount of energy preserved.
+	    unsigned int slip_condition;
+	    /** Elastic factor for elastic bounce boundary condition. When a
+	     * particle velocity is mirrored to avoid the wall trespass, part of
+	     * the energy can be removed. Elastic factor indicates the amount of
+	     * energy preserved.
 	     */
-	    float BoundElasticFactor;
-	    /** Minimum distance to wall rate, if a particle is nearer than this distance
-	     * velocity will forced to don't advance against the wall.
-	     * @note Distance is provided as kernel height rate.
+	    float elastic_factor;
+	    /** Minimum distance to the wall \f$ r_{min} \f$. If a particle is
+	     * nearer than this distance a elastic bounce will be performed.
+	     * @note Distance is provided as kernel height rate
+	     * \f$ \vert \mathbf{r}_{min} \vert = r_{min} h \f$.
 	     */
-	    float BoundDist;
+	    float elastic_dist;
 
-	    /** 0th order correction (formerly Shepard correction) application: \n
-	     * 0 = No 0th order correction. \n
-	     * 1 = 0th order correction will be applied over computed forces. \n
-	     * 2 = 0th order correction will be applied over computed density rate. \n
-	     * 3 = 0th order correction will be applied over both of them.
-	     * @remarks 0th order correction (formerly Shepard correction) is mandatory when
-	     * free surface is being computed, or DeLeffe boundary condition imposed,
-	     * but since Shepard term can be a little bit unstable, will not executed if is
-	     * disabled from options (is active by default).
+	    /** 0th order correction (formerly Shepard correction)
+	     * \f$ \gamma(\mathbf{x}) = \int_{Omega}
+	     *     W(\mathbf{y} - \mathbf{x})
+	     *     \mathrm{d}\mathbf{x} \f$.
+	     * Must be one of the following values:
+	     *   - 0 = No 0th order correction.
+	     *   - 1 = It will be applied to the computed forces.
+	     *   - 2 = It will be applied to computed density rate.
+	     *   - 3 = It will be applied to both of them.
+	     * @remarks 0th order correction (formerly Shepard correction) is
+         * mandatory when Boundary Integrals based boundary condition is
+         * imposed, but since Shepard term can carry some instabilities, it
+         * is strongly recommended to do not apply it if it is not required by
+         * the formulation.
 	     */
-	    unsigned int isShepard;
+	    unsigned int has_shepard;
 
-	    /** Domain bounds flag. If true, domain bounds will used.
-	     * If a particle go out from domain bounds, will be corrected
-	     * as zero mass fixed particle. The particle will not deleted
-	     * or removed.
+	    /** Domain bounds flag. If true, domain bounds will be established such
+	     * that the particles out of the domian will be replaced by zero mass
+	     * fixed particles. The particle will not be deleted.
 	     */
-	    bool hasDomain;
-	    /// Minimum domain bounds coordinates
-	    vec minDomain;
-	    /// Maximum domain bounds coordinates
-	    vec maxDomain;
-	    /// Must domain be translated
-	    bool moveDomain;
-	}SPHParameters;
+	    bool has_domain;
+	    /// Minimum domain bounds coordinates.
+	    vec domain_min;
+	    /// Maximum domain bounds coordinates.
+	    vec domain_max;
+	    /// Must domain be translated following the motions.
+	    bool domain_motion;
+	}SPH_opts;
 
 	/** \struct sphFluidParameters
 	 *  Struct that stores Fluid parameters

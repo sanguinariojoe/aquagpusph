@@ -48,7 +48,7 @@ DensityInterpolation::DensityInterpolation()
 	//! 1st.- Get data
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P  = InputOutput::ProblemSetup::singleton();
-	if(!P->SPHParameters.DensSteps)  // Density interpolation disabled
+	if(!P->SPH_opts.dens_int_steps)  // Density interpolation disabled
 	    return;
 	unsigned int nChar = strlen(P->OpenCL_kernels.dens_int);
 	if(nChar <= 0) {
@@ -85,7 +85,7 @@ DensityInterpolation::~DensityInterpolation()
 bool DensityInterpolation::execute()
 {
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
-	if(!P->SPHParameters.DensSteps)  // Density interpolation disabled
+	if(!P->SPH_opts.dens_int_steps)  // Density interpolation disabled
 	    return false;
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();

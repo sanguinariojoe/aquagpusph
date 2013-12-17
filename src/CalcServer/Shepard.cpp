@@ -46,7 +46,7 @@ Shepard::Shepard()
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
-	if(!P->SPHParameters.isShepard)  // Shepard correction has not been selected
+	if(!P->SPH_opts.has_shepard)  // Shepard correction has not been selected
 	    return;
 	//! 1st.- Get data
 	int nChar = strlen(P->OpenCL_kernels.shepard);
@@ -84,7 +84,7 @@ Shepard::~Shepard()
 bool Shepard::execute()
 {
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
-	if(!P->SPHParameters.isShepard)  // Shepard condition has not been selected
+	if(!P->SPH_opts.has_shepard)  // Shepard condition has not been selected
 	    return false;
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
@@ -147,10 +147,10 @@ bool Shepard::setupOpenCL()
 	// Create arguments
 	char args[256];
 	strcpy(args, "");
-	if(P->SPHParameters.isShepard & 1){
+	if(P->SPH_opts.has_shepard & 1){
 	    strcat(args, "-D__FORCE_CORRECTION__ ");
 	}
-	if(P->SPHParameters.isShepard & 2){
+	if(P->SPH_opts.has_shepard & 2){
 	    strcat(args, "-D__DENS_CORRECTION__ ");
 	}
 	if(!loadKernelFromFile(&clKernel, &clProgram, C->clContext, C->clDevice, mPath, "Shepard", args))
