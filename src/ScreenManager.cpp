@@ -186,19 +186,19 @@ void ScreenManager::update()
 	#endif
 	// Print profiling info if needed
 	#ifdef HAVE_GPUPROFILE
-	    float Sum = c->mPredictor->profileTime() +
-	                c->mGrid->profileTime() +
-	                c->mLinkList->profileTime() +
-	                c->mRates->profileTime() +
-	                c->mElasticBounce->profileTime() +
-	                c->mDeLeffe->profileTime() +
-	                c->mCorrector->profileTime() +
-	                c->mDomain->profileTime() +
-	                c->mTimeStep->profileTime() +
-	                c->mDensInt->profileTime() +
-	                c->mSensors->profileTime();
-	    for(i=0;i<c->mMoves.size();i++){
-	        Sum += c->mMoves.at(i)->profileTime();
+	    float Sum = c->predictor->profileTime() +
+	                c->grid->profileTime() +
+	                c->link_list->profileTime() +
+	                c->rates->profileTime() +
+	                c->elastic_bounce->profileTime() +
+	                c->de_Leffe->profileTime() +
+	                c->corrector->profileTime() +
+	                c->domain->profileTime() +
+	                c->time_step->profileTime() +
+	                c->dens_int->profileTime() +
+	                c->sensors->profileTime();
+	    for(i=0;i<c->motions.size();i++){
+	        Sum += c->motions.at(i)->profileTime();
 	    }
 	    char *str = new char[512]; strcpy(str, "");
 	    char *aux = new char[512]; strcpy(str, "");
@@ -206,68 +206,68 @@ void ScreenManager::update()
 	        strcat(str, "\t");
 	    #endif
 	    unsigned int relTime;
-	    relTime = 100*c->mPredictor->profileTime()/Sum;
+	    relTime = 100*c->predictor->profileTime()/Sum;
 	    if(relTime){
-	        sprintf(aux, "%s=%u ", c->mPredictor->name(), relTime);
+	        sprintf(aux, "%s=%u ", c->predictor->name(), relTime);
 	        strcat(str, aux);
 	    }
-	    relTime = 100*c->mGrid->profileTime()/Sum;
+	    relTime = 100*c->grid->profileTime()/Sum;
 	    if(relTime){
-	        sprintf(aux, "%s=%u ", c->mGrid->name(), relTime);
+	        sprintf(aux, "%s=%u ", c->grid->name(), relTime);
 	        strcat(str, aux);
 	    }
-	    relTime = 100*c->mLinkList->profileTime()/Sum;
+	    relTime = 100*c->link_list->profileTime()/Sum;
 	    if(relTime){
-	        sprintf(aux, "%s=%u ", c->mLinkList->name(), relTime);
+	        sprintf(aux, "%s=%u ", c->link_list->name(), relTime);
 	        strcat(str, aux);
 	    }
-	    relTime = 100*c->mRates->profileTime()/Sum;
+	    relTime = 100*c->rates->profileTime()/Sum;
 	    if(relTime){
-	        sprintf(aux, "%s=%u (%g) ", c->mRates->name(), relTime, c->mRates->profileTime());
+	        sprintf(aux, "%s=%u (%g) ", c->rates->name(), relTime, c->rates->profileTime());
 	        strcat(str, aux);
 	    }
-	    relTime = 100*c->mElasticBounce->profileTime()/Sum;
+	    relTime = 100*c->elastic_bounce->profileTime()/Sum;
 	    if(relTime){
-	        sprintf(aux, "%s=%u ", c->mElasticBounce->name(), relTime);
+	        sprintf(aux, "%s=%u ", c->elastic_bounce->name(), relTime);
 	        strcat(str, aux);
 	    }
-	    relTime = 100*c->mDeLeffe->profileTime()/Sum;
+	    relTime = 100*c->de_Leffe->profileTime()/Sum;
 	    if(relTime){
-	        sprintf(aux, "%s=%u ", c->mDeLeffe->name(), relTime);
+	        sprintf(aux, "%s=%u ", c->de_Leffe->name(), relTime);
 	        strcat(str, aux);
 	    }
-	    relTime = 100*c->mDensInt->profileTime()/Sum;
+	    relTime = 100*c->dens_int->profileTime()/Sum;
 	    if(relTime){
-	        sprintf(aux, "%s=%u ", c->mDensInt->name(), relTime);
+	        sprintf(aux, "%s=%u ", c->dens_int->name(), relTime);
 	        strcat(str, aux);
 	    }
-	    relTime = 100*c->mCorrector->profileTime()/Sum;
+	    relTime = 100*c->corrector->profileTime()/Sum;
 	    if(relTime){
-	        sprintf(aux, "%s=%u ", c->mCorrector->name(), relTime);
+	        sprintf(aux, "%s=%u ", c->corrector->name(), relTime);
 	        strcat(str, aux);
 	    }
-	    relTime = 100*c->mDomain->profileTime()/Sum;
+	    relTime = 100*c->domain->profileTime()/Sum;
 	    if(relTime){
-	        sprintf(aux, "%s=%u ", c->mDomain->name(), relTime);
+	        sprintf(aux, "%s=%u ", c->domain->name(), relTime);
 	        strcat(str, aux);
 	    }
-	    relTime = 100*c->mTimeStep->profileTime()/Sum;
+	    relTime = 100*c->time_step->profileTime()/Sum;
 	    if(relTime){
-	        sprintf(aux, "%s=%u ", c->mTimeStep->name(), relTime);
+	        sprintf(aux, "%s=%u ", c->time_step->name(), relTime);
 	        strcat(str, aux);
 	    }
 	    relTime = 0;
-	    for(i=0;i<c->mMoves.size();i++){
-	        relTime += c->mMoves.at(i)->profileTime();
+	    for(i=0;i<c->motions.size();i++){
+	        relTime += c->motions.at(i)->profileTime();
 	    }
 	    relTime = 100*relTime/Sum;
 	    if(relTime){
 	        sprintf(aux, "Motions=%u ", relTime);
 	        strcat(str, aux);
 	    }
-	    relTime = 100.f*c->mSensors->profileTime()/Sum;
+	    relTime = 100.f*c->sensors->profileTime()/Sum;
 	    if(relTime){
-	        sprintf(aux, "%s=%u ", c->mSensors->name(), relTime);
+	        sprintf(aux, "%s=%u ", c->sensors->name(), relTime);
 	        strcat(str, aux);
 	    }
 	    #ifdef HAVE_NCURSES
@@ -286,12 +286,12 @@ void ScreenManager::update()
 		move(5, 2);
 		printw("Number of particles: %d", c->n);
 		move(6, 2);
-		printw("Number of cells (allocated in memory): %d", c->lxydim);
+		printw("Number of cells (allocated in memory): %d", c->num_cells_allocated);
 		move(7, 2);
-		printw("Allocated memory: %d bytes", (int)c->AllocatedMem);
+		printw("Allocated memory: %d bytes", (int)c->allocated_mem);
 	#else
 		printf("\tNumber of particles: %d,", c->n);
-		printf("\tAllocated memory: %d bytes\n", (int)c->AllocatedMem);
+		printf("\tAllocated memory: %d bytes\n", (int)c->allocated_mem);
 	#endif
 	//! 7th.- Print simulation results data
 	#ifdef HAVE_NCURSES
@@ -311,45 +311,45 @@ void ScreenManager::update()
             move(10, 62);
             printw("E = %g (J)",c->etot);
             move(11, 2);
-            printw("xmin = %g (m)",c->minCoords.x);
+            printw("xmin = %g (m)",c->min_fluid_bound.x);
             move(11, 32);
-            printw("ymin = %g (m)",c->minCoords.y);
+            printw("ymin = %g (m)",c->min_fluid_bound.y);
             #ifdef HAVE_3D
                 move(11, 62);
-                printw("zmin = %g (m)",c->minCoords.z);
+                printw("zmin = %g (m)",c->min_fluid_bound.z);
             #endif
             move(12, 2);
-            printw("xmax = %g (m)",c->maxCoords.x);
+            printw("xmax = %g (m)",c->max_fluid_bound.x);
             move(12, 32);
-            printw("ymax = %g (m)",c->maxCoords.y);
+            printw("ymax = %g (m)",c->max_fluid_bound.y);
             #ifdef HAVE_3D
                 move(12, 62);
-                printw("zmax = %g (m)",c->maxCoords.z);
+                printw("zmax = %g (m)",c->max_fluid_bound.z);
             #endif
             move(13, 2);
-            printw("Vmin = %g (m/s)",c->minV);
+            printw("Vmin = %g (m/s)",c->min_v);
             move(13, 32);
-            printw("Vmax = %g (m/s)",c->maxV);
+            printw("Vmax = %g (m/s)",c->max_v);
 	    #else
 	        printf("\tU = %g (J), ", c->eint);
 	        printf("Ekin = %g (J), ", c->ekin);
 	        printf("E = %g (J), ", c->etot);
-	        printf("\txmin = %g (m), ",c->minCoords.x);
-	        printf("ymin = %g (m)",c->minCoords.y);
+	        printf("\txmin = %g (m), ",c->min_fluid_bound.x);
+	        printf("ymin = %g (m)",c->min_fluid_bound.y);
             #ifdef HAVE_3D
-                printf(", zmin = %g (m)\n",c->minCoords.z);
+                printf(", zmin = %g (m)\n",c->min_fluid_bound.z);
             #else
                 printf("\n");
             #endif
-	        printf("\txmax = %g (m), ",c->maxCoords.x);
-	        printf("ymax = %g (m)",c->maxCoords.y);
+	        printf("\txmax = %g (m), ",c->max_fluid_bound.x);
+	        printf("ymax = %g (m)",c->max_fluid_bound.y);
             #ifdef HAVE_3D
-                printf(", zmax = %g (m)\n",c->maxCoords.z);
+                printf(", zmax = %g (m)\n",c->max_fluid_bound.z);
             #else
                 printf("\n");
             #endif
-	        printf("\tvmin = %g (m/s), ",c->minV);
-	        printf("vmax = %g (m/s)\n",c->maxV);
+	        printf("\tvmin = %g (m/s), ",c->min_v);
+	        printf("vmax = %g (m/s)\n",c->max_v);
 	    #endif
 	}
 	else {

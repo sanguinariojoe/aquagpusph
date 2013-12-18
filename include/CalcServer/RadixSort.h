@@ -118,11 +118,11 @@ public:
 	 */
 	~RadixSort();
 
-	/** Sorts the lcell components, returning permutations too.
+	/** Sorts the icell components, returning permutations too.
 	 * @return false if all gone right. \n true otherwise.
 	 * @note This structure assumes number of particle as amount of
 	 * data to sort, if not correct change it before calling this method.
-	 * @warning After calling this method, CalcServer lcell array, and permutation
+	 * @warning After calling this method, CalcServer icell array, and permutation
 	 * array may change (as memory direction), don't forgive resend it to the
 	 * forwarded kernels.
 	 */
@@ -190,9 +190,9 @@ private:
 	/// Number of elements to sort (don't set manually)
 	unsigned int n;
 	/// Local work size (default value = 128)
-	size_t clLocalWorkSize;
+	size_t local_work_size;
 	/// Global work size
-	size_t clGlobalWorkSize;
+	size_t global_work_size;
 	/// Key bits (maximum)
 	unsigned int keyBits;
 	/// Needed radix pass (keyBits / _STEPBITS)
@@ -200,7 +200,7 @@ private:
 	/// Active pass (keyBits / _STEPBITS)
 	unsigned int pass;
 
-	/// Input keys (CalcServer lcell array)
+	/// Input keys (CalcServer icell array)
 	cl_mem clInKeys;
 	/// Output keys
 	cl_mem clOutKeys;
@@ -229,7 +229,7 @@ private:
 	/// OpenCL reverse permutations kernel
 	cl_kernel ckReversePermutations;
 	/// OpenCL program
-	cl_program clProgram;
+	cl_program program;
 
 	#ifdef HAVE_GPUPROFILE
 	    /// Kernel real time consumed

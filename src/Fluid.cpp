@@ -49,8 +49,8 @@ Fluid::Fluid()
 	for(i=0;i<P->n_fluids;i++) {
 	    nParticle += P->fluids[i].n;
 	}
-	unsigned int nSensors = P->SensorsParameters.pos.size();
-	nParticle += nSensors;
+	unsigned int num_sensors = P->SensorsParameters.pos.size();
+	nParticle += num_sensors;
 	if(nParticle<=0){
 	    S->addMessage(3, "(Fluid::Fluid): Any particle found.\n");
 		exit(1);
@@ -72,12 +72,12 @@ Fluid::Fluid()
 	mass = new float[nParticle];
 	press = new float[nParticle];
 	shepard = new float[nParticle];
-	gradShepard = new vec[nParticle];
+	shepard_gradient = new vec[nParticle];
 	//! 4th.- Set sensors (That have been already specified)
-	for(i=nParticle-nSensors;i<nParticle;i++) {
+	for(i=nParticle-num_sensors;i<nParticle;i++) {
 	    imove[i]    = 0;
 	    ifluid[i]   = 0;
-	    pos[i]      = P->SensorsParameters.pos.at(i-nParticle+nSensors);
+	    pos[i]      = P->SensorsParameters.pos.at(i-nParticle+num_sensors);
 	    normal[i].x = 0.f; normal[i].y = 0.f;
 	    v[i].x      = 0.f; v[i].y = 0.f;
 	    dens[i]     = 0.f;
@@ -87,8 +87,8 @@ Fluid::Fluid()
 	    mass[i]     = 0.f;
 	    press[i]    = 0.f;
 	    shepard[i]  = 0.f;
-	    gradShepard[i].x = 0.f;
-	    gradShepard[i].y = 0.f;
+	    shepard_gradient[i].x = 0.f;
+	    shepard_gradient[i].y = 0.f;
 	    #ifdef HAVE_3D
 	        normal[i].z = 0.f;
 	        normal[i].w = 0.f;
@@ -96,8 +96,8 @@ Fluid::Fluid()
 	        v[i].w      = 0.f;
 	        f[i].z      = 0.f;
 	        f[i].w      = 0.f;
-	        gradShepard[i].z = 0.f;
-	        gradShepard[i].w = 0.f;
+	        shepard_gradient[i].z = 0.f;
+	        shepard_gradient[i].w = 0.f;
 	    #endif
 	}
     sprintf(msg, "(Fluid::Fluid): %u particles allocated OK, we can continue happily! ;-)\n", nParticle);
@@ -120,28 +120,28 @@ Fluid::~Fluid()
 	delete[] mass; mass=0;
 	delete[] press; press=0;
 	delete[] shepard; shepard=0;
-	delete[] gradShepard; gradShepard=0;
+	delete[] shepard_gradient; shepard_gradient=0;
 }
 
 bool Fluid::retrieveData()
 {
 	ProblemSetup *P = ProblemSetup::singleton();
 	CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
-	int clFlag;
-	clFlag  = C->getData((void*)imove,   C->imove,   sizeof(cl_int)*nParticle);
-	clFlag |= C->getData((void*)ifluid,  C->ifluid,  sizeof(cl_int)*nParticle);
-	clFlag |= C->getData((void*)pos,     C->posin,   sizeof(vec)*nParticle);
-	clFlag |= C->getData((void*)normal,  C->normal,  sizeof(vec)*nParticle);
-	clFlag |= C->getData((void*)v,       C->vin,     sizeof(vec)*nParticle);
-	clFlag |= C->getData((void*)f,       C->fin,     sizeof(vec)*nParticle);
-	clFlag |= C->getData((void*)dens,    C->densin,  sizeof(cl_float)*nParticle);
-	clFlag |= C->getData((void*)drdt,    C->drdt,    sizeof(cl_float)*nParticle);
-	clFlag |= C->getData((void*)press,   C->press,   sizeof(cl_float)*nParticle);
-	clFlag |= C->getData((void*)mass,    C->mass,    sizeof(cl_float)*nParticle);
-	clFlag |= C->getData((void*)shepard, C->shepard, sizeof(cl_float)*nParticle);
-	clFlag |= C->getData((void*)gradShepard, C->gradShepard, sizeof(vec)*nParticle);
-	clFlag |= C->getData((void*)hp,      C->hpin,    sizeof(cl_float)*nParticle);
-	if(clFlag)
+	int flag;
+	flag  = C->getData((void*)imove,   C->imove,   sizeof(cl_int)*nParticle);
+	flag |= C->getData((void*)ifluid,  C->ifluid,  sizeof(cl_int)*nParticle);
+	flag |= C->getData((void*)pos,     C->posin,   sizeof(vec)*nParticle);
+	flag |= C->getData((void*)normal,  C->normal,  sizeof(vec)*nParticle);
+	flag |= C->getData((void*)v,       C->vin,     sizeof(vec)*nParticle);
+	flag |= C->getData((void*)f,       C->fin,     sizeof(vec)*nParticle);
+	flag |= C->getData((void*)dens,    C->densin,  sizeof(cl_float)*nParticle);
+	flag |= C->getData((void*)drdt,    C->drdt,    sizeof(cl_float)*nParticle);
+	flag |= C->getData((void*)press,   C->press,   sizeof(cl_float)*nParticle);
+	flag |= C->getData((void*)mass,    C->mass,    sizeof(cl_float)*nParticle);
+	flag |= C->getData((void*)shepard, C->shepard, sizeof(cl_float)*nParticle);
+	flag |= C->getData((void*)shepard_gradient, C->shepard_gradient, sizeof(vec)*nParticle);
+	flag |= C->getData((void*)hp,      C->hpin,    sizeof(cl_float)*nParticle);
+	if(flag)
 	    return true;
 	return false;
 }

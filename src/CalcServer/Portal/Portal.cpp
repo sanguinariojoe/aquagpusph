@@ -37,8 +37,8 @@ Portal::Portal(InputOutput::ProblemSetup::sphPortal *portal)
 	: Kernel("Portal")
 	, mPath(0)
 	, mPortal(portal)
-	, clProgram(0)
-	, clKernel(0)
+	, program(0)
+	, kernel(0)
 {
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
 	if(!mPortal){
@@ -59,8 +59,8 @@ Portal::Portal(InputOutput::ProblemSetup::sphPortal *portal)
 	strcpy(mPath, P->OpenCL_kernels.portal);
 	strcat(mPath, ".cl");
 	//! 2nd.- Setup the kernel
-	clLocalWorkSize = 256;
-	clGlobalWorkSize = globalWorkSize(clLocalWorkSize);
+	local_work_size = 256;
+	global_work_size = globalWorkSize(local_work_size);
 	if(setupOpenCL()) {
 	    exit(4);
 	}
@@ -69,8 +69,8 @@ Portal::Portal(InputOutput::ProblemSetup::sphPortal *portal)
 
 Portal::~Portal()
 {
-	if(clKernel)clReleaseKernel(clKernel); clKernel=0;
-	if(clProgram)clReleaseProgram(clProgram); clProgram=0;
+	if(kernel)clReleaseKernel(kernel); kernel=0;
+	if(program)clReleaseProgram(program); program=0;
 	if(mPath) delete[] mPath; mPath=0;
 }
 
@@ -80,18 +80,18 @@ bool Portal::execute()
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
-	cl_int clFlag=0;
+	cl_int flag=0;
 	if(!mPortal){
 	    S->addMessage(3, (char*)"(Portal::execute): Portal data unavailable.\n");
 	    return true;
 	}
 	// printf("%f,%f\n", mPortal->out.normal.x, mPortal->out.normal.y);
 	//! Send all variables to the server
-	clFlag |= sendArgument(clKernel, 0, sizeof(cl_mem ), (void*)&(C->imove));
-	clFlag |= sendArgument(clKernel, 1, sizeof(cl_mem ), (void*)&(C->posin));
-	clFlag |= sendArgument(clKernel, 2, sizeof(cl_uint), (void*)&(C->n));
-	clFlag |= sendArgument(clKernel, 3, sizeof(InputOutput::ProblemSetup::sphPortal), (void*)mPortal);
-	if(clFlag != CL_SUCCESS) {
+	flag |= sendArgument(kernel, 0, sizeof(cl_mem ), (void*)&(C->imove));
+	flag |= sendArgument(kernel, 1, sizeof(cl_mem ), (void*)&(C->posin));
+	flag |= sendArgument(kernel, 2, sizeof(cl_uint), (void*)&(C->n));
+	flag |= sendArgument(kernel, 3, sizeof(InputOutput::ProblemSetup::sphPortal), (void*)mPortal);
+	if(flag != CL_SUCCESS) {
 	    S->addMessage(3, (char*)"(Portal::execute): Imposible to send arguments to portal kernel.\n");
 	    return true;
 	}
@@ -100,36 +100,36 @@ bool Portal::execute()
 	    cl_event event;
 	    cl_ulong end, start;
 	    profileTime(0.f);
-	    clFlag = clEnqueueNDRangeKernel(C->clComQueue, clKernel, 1, NULL, &clGlobalWorkSize, NULL, 0, NULL, &event);
+	    flag = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &global_work_size, NULL, 0, NULL, &event);
 	#else
-	    clFlag = clEnqueueNDRangeKernel(C->clComQueue, clKernel, 1, NULL, &clGlobalWorkSize, NULL, 0, NULL, NULL);
+	    flag = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &global_work_size, NULL, 0, NULL, NULL);
 	#endif
-	if(clFlag != CL_SUCCESS) {
+	if(flag != CL_SUCCESS) {
 	    S->addMessage(3, (char*)"(Portal::execute): Can't execute the kernel.\n");
-	    if(clFlag == CL_INVALID_KERNEL_ARGS)
+	    if(flag == CL_INVALID_KERNEL_ARGS)
 	        S->addMessage(3, (char*)"\tInvalid kernel arguments.\n");
-	    else if(clFlag == CL_INVALID_WORK_GROUP_SIZE)
+	    else if(flag == CL_INVALID_WORK_GROUP_SIZE)
 	        S->addMessage(3, (char*)"\tInvalid local work group size.\n");
-	    else if(clFlag == CL_INVALID_WORK_ITEM_SIZE)
+	    else if(flag == CL_INVALID_WORK_ITEM_SIZE)
 	        S->addMessage(3, (char*)"\tInvalid local work group size (greather than maximum allowed value).\n");
-	    else if(clFlag == CL_OUT_OF_RESOURCES)
+	    else if(flag == CL_OUT_OF_RESOURCES)
 	        S->addMessage(3, (char*)"\tDevice out of resources.\n");
-	    else if(clFlag == CL_MEM_OBJECT_ALLOCATION_FAILURE)
+	    else if(flag == CL_MEM_OBJECT_ALLOCATION_FAILURE)
 	        S->addMessage(3, (char*)"\tAllocation error at device.\n");
-	    else if(clFlag == CL_OUT_OF_HOST_MEMORY)
+	    else if(flag == CL_OUT_OF_HOST_MEMORY)
 	        S->addMessage(3, (char*)"\tfailure to allocate resources required by the OpenCL implementation on the host.\n");
 	    return true;
 	}
 	//! Profile the kernel execution
 	#ifdef HAVE_GPUPROFILE
-	    clFlag = clWaitForEvents(1, &event);
-	    if(clFlag != CL_SUCCESS) {
+	    flag = clWaitForEvents(1, &event);
+	    if(flag != CL_SUCCESS) {
 	        S->addMessage(2, (char*)"(Portal::execute): Can't wait to kernels end.\n");
 	        return true;
 	    }
-	    clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
-	    clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
-	    if(clFlag != CL_SUCCESS) {
+	    flag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
+	    flag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
+	    if(flag != CL_SUCCESS) {
 	        S->addMessage(3, (char*)"(Portal::execute): Can't profile kernel execution.\n");
 	        return true;
 	    }
@@ -143,7 +143,7 @@ bool Portal::setupOpenCL()
 	CalcServer *C = CalcServer::singleton();
 	printf("\tINFO (Portal::SetupOpenCL): Using OpenCL script \"%s\"\n", mPath);
 	//! Load the kernels
-	if(!loadKernelFromFile(&clKernel, &clProgram, C->clContext, C->clDevice, mPath, "Portal", ""))
+	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, mPath, "Portal", ""))
 	    return true;
 	return false;
 }

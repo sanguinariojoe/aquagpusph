@@ -33,17 +33,24 @@ namespace Aqua{ namespace CalcServer{
 
 /** @class Energy Energy.h CalcServer/Energy.h
  * @brief Computes fluid energy Components:
- *     -# Mechanical energy: \f$ E = E_{pot} + E_{elas} + E_{kin} \f$
- *     -# Potential energy: \f$ E_{pot} = - sum_a
- *          m_a \mathbf{g} \cdot \mathbf{r}_a \f$
- *     -# Elastic energy: \f$ E_{elas} = - \int_0^t sum_a
- *          m_a \frac{p_a - \rho_a \mathbf{g} \cdot \mathbf{r}_a}{\rho_a^2}
- *          \frac{\mathrm{d} \rho_a}{\mathrm{d} t} \mathrm{d} t\f$
- *     -# Kinetic energy: \f$ E_{kin} = sum_a
- *          \frac{1}{2} m_a \vert \mathbf{v}_a \vert^2 \f$
- * @remarks Since the elastic energy component must be integrated in time, a
- * low energy output frequency may imply too big time steps for the numerical
- * integration process whith poor results.
+ *   -# Potential energy: \f$ E_{pot} = - \sum_i m_i
+     \mathbf{g} \cdot \mathbf{r}_i \f$.
+ *   -# Kinetic energy: \f$ E_{kin} = \sum_i \frac{1}{2} m_i
+     \vert \mathbf{u}_i \vert^2 \f$.
+ *   -# Internal energy: \f$ U = \int_0^t sum_i \frac{p_i}{\rho_i^2}
+     \left(
+        \frac{\mathrm{d} \rho_i}{\mathrm{d} t}
+        - \left. \frac{\mathrm{d} \rho_i}{\mathrm{d} t} \right\vert_F
+     \right) m_i \mathrm{d}t \f$.
+ *   -# Enthalpy: \f$ H = \int_0^t sum_i \frac{p_i}{\rho_i^2}
+     \frac{\mathrm{d} \rho_i}{\mathrm{d} t} m_i \mathrm{d}t \f$.
+ *   -# Entropy: \f$ TS = U - H \f$.
+ *   -# Total energy: \f$ E = U + E_{kin} \f$.
+ * @remarks Since some energy components must be integrated in time, a low
+ * energy file output/update frequency may imply too big time steps for the
+ * numerical integration process whith poor results.
+ * @note The energy computation is accelerated with OpenCL, so its computation
+ * should not significantly affect to the preformance.
  */
 class Energy : public Aqua::CalcServer::Kernel
 {
@@ -64,17 +71,17 @@ public:
 
 	/** Get the internal energy.
 	 * @return Internal energy: \f$ U = \int_0^t sum_i \frac{p_i}{\rho_i^2}
-	 *   \left(
-     *      \frac{\mathrm{d} \rho_i}{\mathrm{d} t}
-     *      - \left. \frac{\mathrm{d} \rho_i}{\mathrm{d} t} \right\vert_F
-	 *   \right) m_i \mathrm{d}t \f$.
+	     \left(
+            \frac{\mathrm{d} \rho_i}{\mathrm{d} t}
+            - \left. \frac{\mathrm{d} \rho_i}{\mathrm{d} t} \right\vert_F
+	     \right) m_i \mathrm{d}t \f$.
 	 * @warning The viscous dissipation is not implemented yet.
 	 */
 	float internalEnergy(){return mEnergy.x;}
 
 	/** Get the enthalpy.
 	 * @return Enthalpy: \f$ H = \int_0^t sum_i \frac{p_i}{\rho_i^2}
-     *   \frac{\mathrm{d} \rho_i}{\mathrm{d} t} m_i \mathrm{d}t \f$.
+         \frac{\mathrm{d} \rho_i}{\mathrm{d} t} m_i \mathrm{d}t \f$.
 	 * @warning The viscous dissipation is not implemented yet.
 	 */
 	float enthalpy(){return mEnergy.y;}
@@ -87,13 +94,13 @@ public:
 
 	/** Get the potential energy.
 	 * @return Potential energy: \f$ E_{pot} = - \sum_i m_i
-	 *   \mathbf{g} \cdot \mathbf{r}_i \f$.
+	     \mathbf{g} \cdot \mathbf{r}_i \f$.
 	 */
 	float potentialEnergy(){return mEnergy.z;}
 
 	/** Get the total kinetic energy.
 	 * @return Kinetic energy: \f$ E_{kin} = \sum_i \frac{1}{2} m_i
-	 *   \vert \mathbf{u}_i \vert^2 \f$.
+	     \vert \mathbf{u}_i \vert^2 \f$.
 	 */
 	float kineticEnergy(){return mEnergy.w;}
 
@@ -124,13 +131,13 @@ private:
 	/// Kernel path
 	char *mPath;
 	/// OpenCL program
-	cl_program clProgram;
+	cl_program program;
 	/// OpenCL kernel
-	cl_kernel clKernel;
+	cl_kernel kernel;
 	/// Global work size
-	size_t clGlobalWorkSize;
+	size_t global_work_size;
 	/// Local work size
-	size_t clLocalWorkSize;
+	size_t local_work_size;
     /// Energy values reduction tool
     Reduction *mReduction;
 };

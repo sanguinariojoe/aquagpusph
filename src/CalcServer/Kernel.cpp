@@ -54,7 +54,7 @@ size_t Kernel::localWorkSize(unsigned int n, cl_command_queue queue)
 	if(!n)
 	    n = CalcServer::CalcServer::singleton()->N;
 	if(!queue)
-	    queue = CalcServer::CalcServer::singleton()->clComQueue;
+	    queue = CalcServer::CalcServer::singleton()->command_queue;
 	return getLocalWorkSize(n,queue);
 }
 

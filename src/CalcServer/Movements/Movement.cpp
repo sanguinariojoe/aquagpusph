@@ -41,18 +41,18 @@ namespace Aqua{ namespace CalcServer{ namespace Movement{
 
 Movement::Movement()
 	: Kernel("Movement")
-	, clProgram(0)
-	, clKernel(0)
-	, clGlobalWorkSize(0)
-	, clLocalWorkSize(0)
+	, program(0)
+	, kernel(0)
+	, global_work_size(0)
+	, local_work_size(0)
 	, mPath(0)
 {
 }
 
 Movement::~Movement()
 {
-	if(clKernel)clReleaseKernel(clKernel); clKernel=0;
-	if(clProgram)clReleaseProgram(clProgram); clProgram=0;
+	if(kernel)clReleaseKernel(kernel); kernel=0;
+	if(program)clReleaseProgram(program); program=0;
 	if(mPath) delete[] mPath; mPath=0;
 }
 
@@ -135,32 +135,32 @@ bool Movement::setupOpenCL()
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
-	cl_int clFlag;
-	if(!loadKernelFromFile(&clKernel, &clProgram, C->clContext, C->clDevice, mPath, "Movement", ""))
+	cl_int err_code;
+	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, mPath, "Movement", ""))
 	    return true;
 	//! Look for work group size
-	clLocalWorkSize  = localWorkSize();
-	if(!clLocalWorkSize){
+	local_work_size  = localWorkSize();
+	if(!local_work_size){
 	    S->addMessage(3, "(Movement::setupOpenCL): No valid local work size for required computation.\n");
 	    exit(EXIT_FAILURE);
 	}
 	cl_device_id device;
 	size_t localWorkGroupSize=0;
-	clFlag |= clGetCommandQueueInfo(C->clComQueue,CL_QUEUE_DEVICE,
+	err_code |= clGetCommandQueueInfo(C->command_queue,CL_QUEUE_DEVICE,
 	                                sizeof(cl_device_id),&device, NULL);
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Movement::setupOpenCL): Can't get device from command queue.\n");
 	    return true;
 	}
-	clFlag |= clGetKernelWorkGroupInfo(clKernel,device,CL_KERNEL_WORK_GROUP_SIZE,
+	err_code |= clGetKernelWorkGroupInfo(kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
 	                                   sizeof(size_t), &localWorkGroupSize, NULL);
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Movement::setupOpenCL): Can't get maximum local work group size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < clLocalWorkSize)
-	    clLocalWorkSize  = localWorkGroupSize;
-	clGlobalWorkSize = globalWorkSize(clLocalWorkSize);
+	if(localWorkGroupSize < local_work_size)
+	    local_work_size  = localWorkGroupSize;
+	global_work_size = globalWorkSize(local_work_size);
 	return false;
 }
 

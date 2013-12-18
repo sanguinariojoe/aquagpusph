@@ -55,15 +55,15 @@ private:
 	char* mPath;
 
 	/// OpenCL program
-	cl_program clProgram;
+	cl_program program;
 	/// OpenCL kernel
-	cl_kernel clKernel;
+	cl_kernel kernel;
 	/// Velocity clamping
 	cl_kernel clClampVKernel;
 	/// Global work size
-	size_t clGlobalWorkSize;
+	size_t global_work_size;
 	/// Local work size
-	size_t clLocalWorkSize;
+	size_t local_work_size;
 };
 
 }}  // namespace

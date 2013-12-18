@@ -41,8 +41,8 @@ namespace Aqua{ namespace CalcServer{ namespace Boundary{
 GhostParticles::GhostParticles()
 	: Kernel("GhostParticles")
 	, mPath(0)
-	, clProgram(0)
-	, clKernel(0)
+	, program(0)
+	, kernel(0)
 	, isDelta(false)
 	, isLocalMemory(true)
 {
@@ -70,12 +70,12 @@ GhostParticles::GhostParticles()
         }
     }
 
-	clLocalWorkSize  = localWorkSize();
-	if(!clLocalWorkSize){
+	local_work_size  = localWorkSize();
+	if(!local_work_size){
 	    S->addMessage(3, "(GhostParticles::GhostParticles): No valid local work size for required computation.\n");
 	    exit(EXIT_FAILURE);
 	}
-	clGlobalWorkSize = globalWorkSize(clLocalWorkSize);
+	global_work_size = globalWorkSize(local_work_size);
 	if(setupOpenCL()) {
 	    exit(EXIT_FAILURE);
 	}
@@ -91,11 +91,11 @@ GhostParticles::~GhostParticles()
 	unsigned int i;
 	for(i=0;i<mWalls.size();i++){
 	    if(mWalls.at(i))clReleaseMemObject(mWalls.at(i)); mWalls.at(i)=0;
-	    C->AllocatedMem -= sizeof(InputOutput::ProblemSetup::sphGhostParticles::Wall);
+	    C->allocated_mem -= sizeof(InputOutput::ProblemSetup::sphGhostParticles::Wall);
 	}
 	mWalls.clear();
-	if(clKernel)clReleaseKernel(clKernel); clKernel=0;
-	if(clProgram)clReleaseProgram(clProgram); clProgram=0;
+	if(kernel)clReleaseKernel(kernel); kernel=0;
+	if(program)clReleaseProgram(program); program=0;
 	if(mPath) delete[] mPath; mPath=0;
 }
 
@@ -106,96 +106,96 @@ bool GhostParticles::execute()
 	    return false;
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
-	cl_int clFlag=0;
+	cl_int err_code=0;
 	// Loop over walls
 	unsigned int i;
 	for(i=0;i<P->ghost_particles.walls.size();i++){
 	    // Transfer data
-	    clFlag = C->sendData(mWalls.at(i), P->ghost_particles.walls.at(i),
+	    err_code = C->sendData(mWalls.at(i), P->ghost_particles.walls.at(i),
 	                         sizeof(InputOutput::ProblemSetup::sphGhostParticles::Wall));
-	    if(clFlag != CL_SUCCESS) {
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(GhostParticles::execute): Can't send wall data to server.\n");
 	        return true;
 	    }
 	    // Send constant variables to the server
-	    clFlag |= sendArgument(clKernel,  0, sizeof(cl_mem  ), (void*)&(C->ifluidin));
-	    clFlag |= sendArgument(clKernel,  1, sizeof(cl_mem  ), (void*)&(C->imovein));
-	    clFlag |= sendArgument(clKernel,  2, sizeof(cl_mem  ), (void*)&(C->posin));
-	    clFlag |= sendArgument(clKernel,  3, sizeof(cl_mem  ), (void*)&(C->vin));
-	    clFlag |= sendArgument(clKernel,  4, sizeof(cl_mem  ), (void*)&(C->densin));
-	    clFlag |= sendArgument(clKernel,  5, sizeof(cl_mem  ), (void*)&(C->hpin));
-	    clFlag |= sendArgument(clKernel,  6, sizeof(cl_mem  ), (void*)&(C->massin));
-	    clFlag |= sendArgument(clKernel,  7, sizeof(cl_mem  ), (void*)&(C->pressin));
-	    clFlag |= sendArgument(clKernel,  8, sizeof(cl_mem  ), (void*)&(C->visc_kin));
-	    clFlag |= sendArgument(clKernel,  9, sizeof(cl_mem  ), (void*)&(C->visc_dyn_corrected));
-	    clFlag |= sendArgument(clKernel, 10, sizeof(cl_mem  ), (void*)&(C->refd));
-	    clFlag |= sendArgument(clKernel, 11, sizeof(cl_mem  ), (void*)&(C->f));
-	    clFlag |= sendArgument(clKernel, 12, sizeof(cl_mem  ), (void*)&(C->drdt));
-	    clFlag |= sendArgument(clKernel, 13, sizeof(cl_mem  ), (void*)&(C->drdt_F));
-	    clFlag |= sendArgument(clKernel, 14, sizeof(cl_mem  ), (void*)&(C->sigma));
-	    clFlag |= sendArgument(clKernel, 15, sizeof(cl_mem  ), (void*)&(C->shepard));
-	    clFlag |= sendArgument(clKernel, 16, sizeof(cl_mem  ), (void*)&(C->gradShepard));
-	    clFlag |= sendArgument(clKernel, 17, sizeof(cl_mem  ), (void*)&(C->lcell));
-	    clFlag |= sendArgument(clKernel, 18, sizeof(cl_mem  ), (void*)&(C->ihoc));
-	    clFlag |= sendArgument(clKernel, 19, sizeof(cl_mem  ), (void*)&(C->isValidCell));
-	    clFlag |= sendArgument(clKernel, 20, sizeof(cl_mem  ), (void*)&(C->permutation));
-	    clFlag |= sendArgument(clKernel, 21, sizeof(cl_mem  ), (void*)&(C->reversePermutation));
-	    clFlag |= sendArgument(clKernel, 22, sizeof(cl_uint ), (void*)&(C->n));
-	    clFlag |= sendArgument(clKernel, 23, sizeof(cl_uint ), (void*)&(C->N));
-	    clFlag |= sendArgument(clKernel, 24, sizeof(cl_float), (void*)&(C->hfac));
-	    clFlag |= sendArgument(clKernel, 25, sizeof(uivec   ), (void*)&(C->lvec));
-	    clFlag |= sendArgument(clKernel, 26, sizeof(vec     ), (void*)&(C->g));
-	    clFlag |= sendArgument(clKernel, 27, sizeof(cl_mem  ), (void*)&(mWalls.at(i)));
+	    err_code |= sendArgument(kernel,  0, sizeof(cl_mem  ), (void*)&(C->ifluidin));
+	    err_code |= sendArgument(kernel,  1, sizeof(cl_mem  ), (void*)&(C->imovein));
+	    err_code |= sendArgument(kernel,  2, sizeof(cl_mem  ), (void*)&(C->posin));
+	    err_code |= sendArgument(kernel,  3, sizeof(cl_mem  ), (void*)&(C->vin));
+	    err_code |= sendArgument(kernel,  4, sizeof(cl_mem  ), (void*)&(C->densin));
+	    err_code |= sendArgument(kernel,  5, sizeof(cl_mem  ), (void*)&(C->hpin));
+	    err_code |= sendArgument(kernel,  6, sizeof(cl_mem  ), (void*)&(C->massin));
+	    err_code |= sendArgument(kernel,  7, sizeof(cl_mem  ), (void*)&(C->pressin));
+	    err_code |= sendArgument(kernel,  8, sizeof(cl_mem  ), (void*)&(C->visc_kin));
+	    err_code |= sendArgument(kernel,  9, sizeof(cl_mem  ), (void*)&(C->visc_dyn_corrected));
+	    err_code |= sendArgument(kernel, 10, sizeof(cl_mem  ), (void*)&(C->refd));
+	    err_code |= sendArgument(kernel, 11, sizeof(cl_mem  ), (void*)&(C->f));
+	    err_code |= sendArgument(kernel, 12, sizeof(cl_mem  ), (void*)&(C->drdt));
+	    err_code |= sendArgument(kernel, 13, sizeof(cl_mem  ), (void*)&(C->drdt_F));
+	    err_code |= sendArgument(kernel, 14, sizeof(cl_mem  ), (void*)&(C->sigma));
+	    err_code |= sendArgument(kernel, 15, sizeof(cl_mem  ), (void*)&(C->shepard));
+	    err_code |= sendArgument(kernel, 16, sizeof(cl_mem  ), (void*)&(C->shepard_gradient));
+	    err_code |= sendArgument(kernel, 17, sizeof(cl_mem  ), (void*)&(C->icell));
+	    err_code |= sendArgument(kernel, 18, sizeof(cl_mem  ), (void*)&(C->ihoc));
+	    err_code |= sendArgument(kernel, 19, sizeof(cl_mem  ), (void*)&(C->cell_has_particles));
+	    err_code |= sendArgument(kernel, 20, sizeof(cl_mem  ), (void*)&(C->permutation));
+	    err_code |= sendArgument(kernel, 21, sizeof(cl_mem  ), (void*)&(C->permutation_inverse));
+	    err_code |= sendArgument(kernel, 22, sizeof(cl_uint ), (void*)&(C->n));
+	    err_code |= sendArgument(kernel, 23, sizeof(cl_uint ), (void*)&(C->N));
+	    err_code |= sendArgument(kernel, 24, sizeof(cl_float), (void*)&(C->hfac));
+	    err_code |= sendArgument(kernel, 25, sizeof(uivec   ), (void*)&(C->num_cells_vec));
+	    err_code |= sendArgument(kernel, 26, sizeof(vec     ), (void*)&(C->g));
+	    err_code |= sendArgument(kernel, 27, sizeof(cl_mem  ), (void*)&(mWalls.at(i)));
         unsigned int nAddedArgs = 0;
         if(isDelta) {
-            clFlag |= sendArgument(clKernel, 28, sizeof(cl_mem), (void*)&(C->delta));
-            clFlag |= sendArgument(clKernel, 29, sizeof(cl_float), (void*)&(C->dt));
-            clFlag |= sendArgument(clKernel, 30, sizeof(cl_float), (void*)&(C->cs));
+            err_code |= sendArgument(kernel, 28, sizeof(cl_mem), (void*)&(C->delta));
+            err_code |= sendArgument(kernel, 29, sizeof(cl_float), (void*)&(C->dt));
+            err_code |= sendArgument(kernel, 30, sizeof(cl_float), (void*)&(C->cs));
             nAddedArgs = 3;
         }
 	    if(isLocalMemory){
-	        clFlag |= sendArgument(clKernel, 28+nAddedArgs, clLocalWorkSize*sizeof(cl_float), NULL);
-	        clFlag |= sendArgument(clKernel, 29+nAddedArgs, clLocalWorkSize*sizeof(vec     ), NULL);
-	        clFlag |= sendArgument(clKernel, 30+nAddedArgs, clLocalWorkSize*sizeof(cl_float), NULL);
-	        clFlag |= sendArgument(clKernel, 31+nAddedArgs, clLocalWorkSize*sizeof(cl_float), NULL);
-	        clFlag |= sendArgument(clKernel, 32+nAddedArgs, clLocalWorkSize*sizeof(cl_float), NULL);
-	        clFlag |= sendArgument(clKernel, 33+nAddedArgs, clLocalWorkSize*sizeof(vec     ), NULL);
+	        err_code |= sendArgument(kernel, 28+nAddedArgs, local_work_size*sizeof(cl_float), NULL);
+	        err_code |= sendArgument(kernel, 29+nAddedArgs, local_work_size*sizeof(vec     ), NULL);
+	        err_code |= sendArgument(kernel, 30+nAddedArgs, local_work_size*sizeof(cl_float), NULL);
+	        err_code |= sendArgument(kernel, 31+nAddedArgs, local_work_size*sizeof(cl_float), NULL);
+	        err_code |= sendArgument(kernel, 32+nAddedArgs, local_work_size*sizeof(cl_float), NULL);
+	        err_code |= sendArgument(kernel, 33+nAddedArgs, local_work_size*sizeof(vec     ), NULL);
 	    }
-	    if(clFlag != CL_SUCCESS) {
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(GhostParticles::execute): Can't send arguments to GhostParticles effect computation kernel.\n");
 	        return true;
 	    }
 	    // Execute the kernel
-	    size_t globalWorkSize = getGlobalWorkSize(C->n, clLocalWorkSize);
+	    size_t globalWorkSize = getGlobalWorkSize(C->n, local_work_size);
 	    #ifdef HAVE_GPUPROFILE
 	        cl_event event;
 	        cl_ulong end, start;
-	        clFlag = clEnqueueNDRangeKernel(C->clComQueue, clKernel, 1, NULL, &globalWorkSize, NULL, 0, NULL, &event);
+	        err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &globalWorkSize, NULL, 0, NULL, &event);
 	    #else
-	        clFlag = clEnqueueNDRangeKernel(C->clComQueue, clKernel, 1, NULL, &globalWorkSize, NULL, 0, NULL, NULL);
+	        err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &globalWorkSize, NULL, 0, NULL, NULL);
 	    #endif
-	    if(clFlag != CL_SUCCESS) {
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(GhostParticles::execute): Can't execute the kernel.\n");
-	        if(clFlag == CL_INVALID_WORK_GROUP_SIZE)
+	        if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 	            S->addMessage(0, "\tInvalid local work group size.\n");
-	        else if(clFlag == CL_OUT_OF_RESOURCES)
+	        else if(err_code == CL_OUT_OF_RESOURCES)
 	            S->addMessage(0, "\tDevice out of resources.\n");
-	        else if(clFlag == CL_MEM_OBJECT_ALLOCATION_FAILURE)
+	        else if(err_code == CL_MEM_OBJECT_ALLOCATION_FAILURE)
 	            S->addMessage(0, "\tAllocation error at device.\n");
-	        else if(clFlag == CL_OUT_OF_HOST_MEMORY)
+	        else if(err_code == CL_OUT_OF_HOST_MEMORY)
 	            S->addMessage(0, "\tfailure to allocate resources required by the OpenCL implementation on the host.\n");
 	        return true;
 	    }
 	    // Profile the kernel execution
 	    #ifdef HAVE_GPUPROFILE
-	        clFlag = clWaitForEvents(1, &event);
-	        if(clFlag != CL_SUCCESS) {
+	        err_code = clWaitForEvents(1, &event);
+	        if(err_code != CL_SUCCESS) {
 	            S->addMessage(3, "(GhostParticles::execute): Can't wait to kernels end.\n");
 	            return true;
 	        }
-	        clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
-	        clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
-	        if(clFlag != CL_SUCCESS) {
+	        err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
+	        err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
+	        if(err_code != CL_SUCCESS) {
 	            S->addMessage(3, "(GhostParticles::execute): Can't profile kernel execution.\n");
 	            return true;
 	        }
@@ -218,27 +218,27 @@ bool GhostParticles::setupOpenCL()
         strcat(args, "-D__DELTA_SPH__");
 	CalcServer *C = CalcServer::singleton();
 	char msg[1024];
-	cl_int clFlag;
+	cl_int err_code;
 	cl_device_id device;
 	cl_ulong localMem, reqLocalMem;
-	clFlag |= clGetCommandQueueInfo(C->clComQueue,CL_QUEUE_DEVICE,
+	err_code |= clGetCommandQueueInfo(C->command_queue,CL_QUEUE_DEVICE,
 	                                sizeof(cl_device_id),&device, NULL);
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(GhostParticles::setupOpenCL): Can't get device from command queue.\n");
 	    return true;
 	}
-	clFlag |= clGetDeviceInfo(device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(localMem), &localMem, NULL);
-	if(clFlag != CL_SUCCESS) {
+	err_code |= clGetDeviceInfo(device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(localMem), &localMem, NULL);
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(GhostParticles::setupOpenCL): Can't get local memory available on device.\n");
 	    return true;
 	}
-	if(!loadKernelFromFile(&clKernel, &clProgram, C->clContext, C->clDevice, mPath, "Boundary", args))
+	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, mPath, "Boundary", args))
 	    return true;
-	if(clProgram)clReleaseProgram(clProgram); clProgram=0;
+	if(program)clReleaseProgram(program); program=0;
 	//! Test if there are enough local memory
-	clFlag |= clGetKernelWorkGroupInfo(clKernel,device,CL_KERNEL_LOCAL_MEM_SIZE,
+	err_code |= clGetKernelWorkGroupInfo(kernel,device,CL_KERNEL_LOCAL_MEM_SIZE,
 	                                   sizeof(cl_ulong), &reqLocalMem, NULL);
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(GhostParticles::setupOpenCL): Can't get kernel memory usage.\n");
 	    return true;
 	}
@@ -251,25 +251,25 @@ bool GhostParticles::setupOpenCL()
 	}
 	//! Test if local work gorup size must be modified
 	size_t localWorkGroupSize=0;
-	clFlag |= clGetKernelWorkGroupInfo(clKernel,device,CL_KERNEL_WORK_GROUP_SIZE,
+	err_code |= clGetKernelWorkGroupInfo(kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
 	                                   sizeof(size_t), &localWorkGroupSize, NULL);
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(GhostParticles::setupOpenCL): Can't get maximum local work group size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < clLocalWorkSize)
-	    clLocalWorkSize  = localWorkGroupSize;
+	if(localWorkGroupSize < local_work_size)
+	    local_work_size  = localWorkGroupSize;
 	//! Look for better local work group size
-	clFlag |= clGetKernelWorkGroupInfo(clKernel,device,CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
+	err_code |= clGetKernelWorkGroupInfo(kernel,device,CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
 	                                   sizeof(size_t), &localWorkGroupSize, NULL);
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(GhostParticles::setupOpenCL): Can't get preferred local work group size.\n");
 	    return true;
 	}
-	clLocalWorkSize  = (clLocalWorkSize/localWorkGroupSize) * localWorkGroupSize;
-	clGlobalWorkSize = globalWorkSize(clLocalWorkSize);
+	local_work_size  = (local_work_size/localWorkGroupSize) * localWorkGroupSize;
+	global_work_size = globalWorkSize(local_work_size);
 	//! Test if computation can be accelerated with local memory
-	reqLocalMem += clLocalWorkSize*(  sizeof(cl_float)
+	reqLocalMem += local_work_size*(  sizeof(cl_float)
 	                                + sizeof(vec     )
 	                                + sizeof(cl_float)
 	                                + sizeof(cl_float)
@@ -283,9 +283,9 @@ bool GhostParticles::setupOpenCL()
 	    S->addMessage(0, "\tLocal memory usage will be avoided therefore.\n");
 	    isLocalMemory = false;
 	    strcat(args,"-D__NO_LOCAL_MEM__ ");
-	    if(!loadKernelFromFile(&clKernel, &clProgram, C->clContext, C->clDevice, mPath, "Boundary", args))
+	    if(!loadKernelFromFile(&kernel, &program, C->context, C->device, mPath, "Boundary", args))
 	        return true;
-	    if(clProgram)clReleaseProgram(clProgram); clProgram=0;
+	    if(program)clReleaseProgram(program); program=0;
 	}
 	return false;
 }
@@ -295,25 +295,25 @@ bool GhostParticles::createWalls()
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P  = InputOutput::ProblemSetup::singleton();
 	CalcServer *C = CalcServer::singleton();
-	int clFlag;
+	int err_code;
 	unsigned int i;
 	for(i=0;i<P->ghost_particles.walls.size();i++){
 	    // Create memory object
-	    cl_mem wall = clCreateBuffer(C->clContext, CL_MEM_READ_ONLY,
+	    cl_mem wall = clCreateBuffer(C->context, CL_MEM_READ_ONLY,
 	                                 sizeof(InputOutput::ProblemSetup::sphGhostParticles::Wall),
-	                                 NULL, &clFlag);
-	    if(clFlag != CL_SUCCESS) {
+	                                 NULL, &err_code);
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(GhostParticles::createWalls): Allocation failure.\n");
-	        if(clFlag == CL_OUT_OF_HOST_MEMORY) {
+	        if(err_code == CL_OUT_OF_HOST_MEMORY) {
 	            S->addMessage(0, "\tNot enough resources on host.\n");
 	        }
 	        return true;
 	    }
-	    C->AllocatedMem += sizeof(InputOutput::ProblemSetup::sphGhostParticles::Wall);
+	    C->allocated_mem += sizeof(InputOutput::ProblemSetup::sphGhostParticles::Wall);
 	    // And transfer data
-	    clFlag = C->sendData(wall, P->ghost_particles.walls.at(i),
+	    err_code = C->sendData(wall, P->ghost_particles.walls.at(i),
 	                         sizeof(InputOutput::ProblemSetup::sphGhostParticles::Wall));
-	    if(clFlag != CL_SUCCESS) {
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(GhostParticles::createWalls): Can't send walls data to server.\n");
 	        return true;
 	    }

@@ -118,7 +118,7 @@ bool Input::loadH5Part()
     ScreenManager *S = ScreenManager::singleton();
     char msg[256];
 	H5PartFile *H5PartFileID;
-	h5part_int64_t n, nfluid, iStep;
+	h5part_int64_t n, num_fluids, iStep;
 	double dTime, ddt;
 	h5part_int64_t *imove, *ifluid;
 	double *x, *y, *nx, *ny, *vx, *vy, *dvx, *dvy, *press, *dens, *ddens, *hp, *mass;
@@ -152,12 +152,12 @@ bool Input::loadH5Part()
 	T->frame(iFrame+T->startFrame());
 	T->startFrame(T->frame());
 	//! 3rd.- Read attributes
-	H5PartReadStepAttrib(H5PartFileID,"nfluid",&nfluid);
-	if(C->nfluid != (unsigned int)nfluid){
+	H5PartReadStepAttrib(H5PartFileID,"nfluid",&num_fluids);
+	if(C->num_fluids != (unsigned int)num_fluids){
 	    S->addMessage(3, "(Input::loadH5Part): Number of fluids of the file don't match than calcserver.\n");
-        sprintf(msg, "\tFluid on server = %u\n", C->nfluid);
+        sprintf(msg, "\tFluid on server = %u\n", C->num_fluids);
         S->addMessage(0, msg);
-        sprintf(msg, "\tFile fluids      = %u\n", nfluid);
+        sprintf(msg, "\tFile fluids      = %u\n", num_fluids);
         S->addMessage(0, msg);
 	    return true;
 	}

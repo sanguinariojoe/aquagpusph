@@ -203,7 +203,7 @@ bool Output::printH5Part()
 	TimeManager *T = TimeManager::singleton();
 	FileManager *Files = FileManager::singleton();
 	unsigned int i;
-	h5part_int64_t n, nfluid, iStep;
+	h5part_int64_t n, num_fluids, iStep;
 	h5part_int64_t *imove, *ifluid, *id;
 	double dTime, ddt;
 	double *x, *y, *z, *nx, *ny, *vx, *vy, *vv, *dvx, *dvy, *press, *dens, *ddens, *hp, *mass, *sumW, *gradWx, *gradWy;
@@ -256,8 +256,8 @@ bool Output::printH5Part()
 	    hp[i]    = F->hp[i];
 	    mass[i]  = F->mass[i];
 	    sumW[i]  = F->shepard[i];
-	    gradWx[i]= F->gradShepard[i].x;
-	    gradWy[i]= F->gradShepard[i].y;
+	    gradWx[i]= F->shepard_gradient[i].x;
+	    gradWy[i]= F->shepard_gradient[i].y;
 	    imove[i] = F->imove[i];
 	    ifluid[i] = F->ifluid[i];
 	    id[i]    = i;
@@ -267,11 +267,11 @@ bool Output::printH5Part()
 	        vz[i]    = F->v[i].z;
 	        vv[i]    = sqrt(pow(F->v[i].x,2.f) + pow(F->v[i].y,2.f) + pow(F->v[i].z,2.f));
 	        dvz[i]   = F->f[i].z;
-	        gradWz[i]= F->gradShepard[i].z;
+	        gradWz[i]= F->shepard_gradient[i].z;
 	    #endif // HAVE_3D
 	}
 	n = F->n();
-	nfluid = C->nfluid;
+	num_fluids = C->num_fluids;
 	iStep = T->step();
 	dTime = T->time();
 	ddt = T->dt();
@@ -283,7 +283,7 @@ bool Output::printH5Part()
 	//! 2st: Writing step parameters
 	H5PartSetStep(Files->h5File(),T->frame()-1-T->startFrame()); // Set of step
 	H5PartSetNumParticles(Files->h5File(),n); // Set number of particles
-	H5PartWriteStepAttrib(Files->h5File(),"nfluid",H5T_NATIVE_INT64,&nfluid,1);
+	H5PartWriteStepAttrib(Files->h5File(),"nfluid",H5T_NATIVE_INT64,&num_fluids,1);
 	H5PartWriteStepAttrib(Files->h5File(),"step",H5T_NATIVE_INT64,&iStep,1);
 	H5PartWriteStepAttrib(Files->h5File(),"time",H5T_NATIVE_DOUBLE,&dTime,1);
 	H5PartWriteStepAttrib(Files->h5File(),"dt",H5T_NATIVE_DOUBLE,&ddt,1);
@@ -382,7 +382,7 @@ bool assemblyH5Part()
 	int dim=0;
 	char file_name[256], msg[256];
 	H5PartFile *Input, *Output;
-	h5part_int64_t n, nfluid, iStep;
+	h5part_int64_t n, num_fluids, iStep;
 	h5part_int64_t *imove=0, *ifluid=0;
 	double dTime, ddt;
 	double *x=0, *y=0, *z=0, *nx=0, *ny=0, *vx=0, *vy=0, *vv=0, *dvx=0, *dvy=0,
@@ -448,8 +448,8 @@ bool assemblyH5Part()
 	        H5PartWriteStepAttrib(Output,"time",H5T_NATIVE_DOUBLE,&dTime,1);
 	        H5PartWriteStepAttrib(Output,"dt",H5T_NATIVE_DOUBLE,&ddt,1);
 	        // Read fluid info
-	        H5PartReadStepAttrib(Input,"nfluid",&nfluid);
-	        H5PartWriteStepAttrib(Output,"nfluid",H5T_NATIVE_INT64,&nfluid,1);
+	        H5PartReadStepAttrib(Input,"nfluid",&num_fluids);
+	        H5PartWriteStepAttrib(Output,"nfluid",H5T_NATIVE_INT64,&num_fluids,1);
 	        // Allocate memory
 	        if(dim != n){
 	            delete[] x; x=0;
@@ -635,7 +635,7 @@ bool assemblyH5Part()
 	            v->InsertNextTupleValue(vect);
 	            vect[0] = F->f[i].x; vect[1] = F->f[i].y; vect[2] = F->f[i].z;
 	            dv->InsertNextTupleValue(vect);
-	            vect[0] = F->gradShepard[i].x; vect[1] = F->gradShepard[i].y; vect[2] = F->gradShepard[i].z;
+	            vect[0] = F->shepard_gradient[i].x; vect[1] = F->shepard_gradient[i].y; vect[2] = F->shepard_gradient[i].z;
 	            dW->InsertNextTupleValue(vect);
 	        #else // HAVE_3D
 	            points->InsertNextPoint(F->pos[i].x, F->pos[i].y, 0.f);
@@ -645,7 +645,7 @@ bool assemblyH5Part()
 	            v->InsertNextTupleValue(vect);
 	            vect[0] = F->f[i].x; vect[1] = F->f[i].y;
 	            dv->InsertNextTupleValue(vect);
-	            vect[0] = F->gradShepard[i].x; vect[1] = F->gradShepard[i].y;
+	            vect[0] = F->shepard_gradient[i].x; vect[1] = F->shepard_gradient[i].y;
 	            dW->InsertNextTupleValue(vect);
 	        #endif // HAVE_3D
 	        p->InsertNextValue(F->press[i]);

@@ -145,7 +145,7 @@ public:
 	     */
 	    int verbose_level;
 
-	    /** Start mode: \n
+	    /** Start mode:
 	     *   - 0 = Starts at t=0 s.
 	     *   - 1 = Starts at latest time (using H5Part file).
 	     */
@@ -302,7 +302,7 @@ public:
 		 * - __DT_FIX__ If the time step is provided by user.
 		 */
 	    unsigned int dt_mode;
-	    /// Provided by user time step.
+	    /// Provided by user time step \f$ \Delta t \f$.
 	    float dt;
 	    /// Minimum time step allowed.
 	    float dt_min;

@@ -30,31 +30,32 @@
 namespace Aqua{ namespace CalcServer{
 
 CalcServer::CalcServer()
-	: clPlatforms(NULL)
-	, clDevices(NULL)
-	, clComQueues(NULL)
-	, energyPerformed(false)
-	, boundsPerformed(false)
-	, fluidMass(0.f)
+	: platforms(NULL)
+	, devices(NULL)
+	, command_queues(NULL)
+	, energy_computed(false)
+	, bounds_computed(false)
+	, fluid_mass(0.f)
 {
-	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
 	unsigned int i;
-	int Error=0;
+	char msg[1024];
+	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
+	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	verbose_level = P->settings.verbose_level;
-	// Create the OpenCL working environment
-	clDeviceType = CL_DEVICE_TYPE_ALL;
+
 	if(setupOpenCL()) {
-	    exit(1);
+	    exit(255);
 	}
-	// Allocate memory for the data in the computational device
-	nfluid   = P->n_fluids;
-	n        = 0;
-	nSensors = P->SensorsParameters.pos.size();
+
+	num_fluids  = P->n_fluids;
+	num_sensors = P->SensorsParameters.pos.size();
+	n = 0;
 	for(i=0;i<P->n_fluids;i++) {
 	    n += P->fluids[i].n;
 	}
-	N = n + nSensors;
-	AllocatedMem = 0;
+	N = n + num_sensors;
+
+	allocated_mem = 0;
 	imove = allocMemory(N * sizeof( cl_int ));
 	if(!imove) exit(255);
 	imovein = allocMemory(N * sizeof( cl_int ));
@@ -107,73 +108,78 @@ CalcServer::CalcServer()
 	if(!dtconv) exit(255);
 	shepard = allocMemory(N * sizeof( cl_float ));
 	if(!shepard) exit(255);
-	gradShepard = allocMemory(N * sizeof( vec ));
-	if(!gradShepard) exit(255);
-	nLcell = nextPowerOf2(N);
-	nLcell = roundUp(nLcell, _ITEMS*_GROUPS);
-	permutation = allocMemory(nLcell * sizeof( cl_uint ));
+	shepard_gradient = allocMemory(N * sizeof( vec ));
+	if(!shepard_gradient) exit(255);
+
+	num_icell = nextPowerOf2(N);
+	num_icell = roundUp(num_icell, _ITEMS*_GROUPS);
+	permutation = allocMemory(num_icell * sizeof( cl_uint ));
 	if(!permutation) exit(255);
-	reversePermutation = allocMemory(nLcell * sizeof( cl_uint ));
-	if(!reversePermutation) exit(255);
-	lcell = allocMemory(nLcell * sizeof( cl_uint ));
-	if(!lcell) exit(255);
-	ihoc = 0;        // ihoc must be allocated later, when we have a tentative of number of cells
-	isValidCell = 0; // isValidCell must be allocated later, when we have a tentative of number of cells
-	gamma = allocMemory(nfluid * sizeof( cl_float ));
+	permutation_inverse = allocMemory(num_icell * sizeof( cl_uint ));
+	if(!permutation_inverse) exit(255);
+	icell = allocMemory(num_icell * sizeof( cl_uint ));
+	if(!icell) exit(255);
+	ihoc = NULL;               // ihoc must be allocated later
+	cell_has_particles = NULL; // cell_has_particles must be allocated later
+
+	gamma = allocMemory(num_fluids * sizeof( cl_float ));
 	if(!gamma) exit(255);
-	refd = allocMemory(nfluid * sizeof( cl_float ));
+	refd = allocMemory(num_fluids * sizeof( cl_float ));
 	if(!refd) exit(255);
-	visc_dyn = allocMemory(nfluid * sizeof( cl_float ));
+	visc_dyn = allocMemory(num_fluids * sizeof( cl_float ));
 	if(!visc_dyn) exit(255);
-	visc_kin = allocMemory(nfluid * sizeof( cl_float ));
+	visc_kin = allocMemory(num_fluids * sizeof( cl_float ));
 	if(!visc_kin) exit(255);
-	visc_dyn_corrected = allocMemory(nfluid * sizeof( cl_float ));
+	visc_dyn_corrected = allocMemory(num_fluids * sizeof( cl_float ));
 	if(!visc_dyn_corrected) exit(255);
-	delta = allocMemory(nfluid * sizeof( cl_float ));
+	delta = allocMemory(num_fluids * sizeof( cl_float ));
 	if(!delta) exit(255);
-	DT = 0;     // Minimum time step must be allocated later, into the time step reduction phase.
-	sensorMode = allocMemory(max(nSensors,(uint)1) * sizeof( cl_ushort ));
-	if(!sensorMode) exit(255);
-	printf("\tINFO (CalcServer::Init): Allocated memory = %u bytes\n", (unsigned int)AllocatedMem);
+
+	DT = NULL;     // Reduction auxiliar time step must be allocated later
+	sensor_mode = allocMemory(max(num_sensors,(uint)1) * sizeof( cl_ushort ));
+	if(!sensor_mode) exit(255);
+
+	sprintf(msg, "Allocated memory = %u bytes\n", (unsigned int)allocated_mem);
+	S->addMessageF(1, msg);
 	// Create the computation tools
-	mPredictor     = new Predictor();
-	mGrid          = new Grid();
-	mLinkList      = new LinkList();
-	mRates         = new Rates();
-	mElasticBounce = new Boundary::ElasticBounce();
-	mDeLeffe       = new Boundary::DeLeffe();
-	mGhost         = new Boundary::GhostParticles();
-	mShepard       = new Shepard();
-	mCorrector     = new Corrector();
-	mDomain        = new Domain();
-	mTimeStep      = new TimeStep();
-	mDensInt       = new DensityInterpolation();
-	mSensors       = new Sensors();
-	mEnergy        = new Energy();
-	mBounds        = new Bounds();
-	mMoves.clear();
+	predictor       = new Predictor();
+	grid            = new Grid();
+	link_list       = new LinkList();
+	rates           = new Rates();
+	elastic_bounce  = new Boundary::ElasticBounce();
+	de_Leffe        = new Boundary::DeLeffe();
+	ghost_particles = new Boundary::GhostParticles();
+	shepard_tool    = new Shepard();
+	corrector       = new Corrector();
+	domain          = new Domain();
+	time_step       = new TimeStep();
+	dens_int        = new DensityInterpolation();
+	sensors         = new Sensors();
+	energy_tool     = new Energy();
+	bounds_tool     = new Bounds();
+	motions.clear();
 	for(i=0;i<P->motions.size();i++){
 	    if(P->motions.at(i)->type == 0){
 	        Movement::Quaternion *Move = new Movement::Quaternion();
-	        mMoves.push_back(Move);
+	        motions.push_back(Move);
 	    }
 	    if(P->motions.at(i)->type == 1){
 	        Movement::LIQuaternion *Move = new Movement::LIQuaternion();
-	        mMoves.push_back(Move);
+	        motions.push_back(Move);
 	    }
 	    if(P->motions.at(i)->type == 2){
 	        Movement::C1Quaternion *Move = new Movement::C1Quaternion();
-	        mMoves.push_back(Move);
+	        motions.push_back(Move);
 	    }
 	    if(P->motions.at(i)->type == 3){
 	        Movement::ScriptQuaternion *Move = new Movement::ScriptQuaternion();
-	        mMoves.push_back(Move);
+	        motions.push_back(Move);
 	    }
 	}
-	mPortals.clear();
+	portals.clear();
 	for(i=0;i<P->portals.size();i++){
 	    Portal::Portal *portal = new Portal::Portal(P->portals.at(i));
-	    mPortals.push_back(portal);
+	    portals.push_back(portal);
 	}
 }
 
@@ -181,91 +187,91 @@ CalcServer::~CalcServer()
 {
 	unsigned int i;
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-    S->addMessage(1, "(CalcServer::~CalcServer): Destroying the predictor manager...\n");
-	delete mPredictor; mPredictor=0;
-    S->addMessage(1, "(CalcServer::~CalcServer): Destroying the grid manager...\n");
-	delete mGrid; mGrid=0;
-    S->addMessage(1, "(CalcServer::~CalcServer): Destroying the link list manager...\n");
-	delete mLinkList; mLinkList=0;
-    S->addMessage(1, "(CalcServer::~CalcServer): Destroying the rates manager...\n");
-	delete mRates; mRates=0;
-    S->addMessage(1, "(CalcServer::~CalcServer): Destroying the elasticBounce boundary condition manager...\n");
-	delete mElasticBounce; mElasticBounce=0;
-    S->addMessage(1, "(CalcServer::~CalcServer): Destroying the DeLeffe boundary condition manager...\n");
-	delete mDeLeffe; mDeLeffe=0;
-    S->addMessage(1, "(CalcServer::~CalcServer): Destroying the ghost particles manager...\n");
-	delete mGhost; mGhost=0;
-    S->addMessage(1, "(CalcServer::~CalcServer): Destroying the 0th order correction manager...\n");
-	delete mShepard; mShepard=0;
-    S->addMessage(1, "(CalcServer::~CalcServer): Destroying the corrector manager...\n");
-	delete mCorrector; mCorrector=0;
-    S->addMessage(1, "(CalcServer::~CalcServer): Destroying the domain bounds manager...\n");
-	delete mDomain; mDomain=0;
-    S->addMessage(1, "(CalcServer::~CalcServer): Destroying the time step manager...\n");
-	delete mTimeStep; mTimeStep=0;
-    S->addMessage(1, "(CalcServer::~CalcServer): Destroying the density interpolator...\n");
-	delete mDensInt; mDensInt=0;
-    S->addMessage(1, "(CalcServer::~CalcServer): Destroying the sensors manager...\n");
-	delete mSensors; mSensors=0;
-    S->addMessage(1, "(CalcServer::~CalcServer): Destroying the energy computation tool...\n");
-	delete mEnergy; mEnergy=0;
-    S->addMessage(1, "(CalcServer::~CalcServer): Destroying the bounds computation tool...\n");
-	delete mBounds; mBounds=0;
-    S->addMessage(1, "(CalcServer::~CalcServer): Destroying the movement managers...\n");
-	for(i=0;i<mMoves.size();i++) {
-	    delete mMoves.at(i);
+    S->addMessageF(1, "Destroying the predictor manager...\n");
+	delete predictor; predictor=NULL;
+    S->addMessageF(1, "Destroying the grid manager...\n");
+	delete grid; grid=NULL;
+    S->addMessageF(1, "Destroying the link list manager...\n");
+	delete link_list; link_list=NULL;
+    S->addMessageF(1, "Destroying the rates manager...\n");
+	delete rates; rates=NULL;
+    S->addMessageF(1, "Destroying the elasticBounce boundary condition manager...\n");
+	delete elastic_bounce; elastic_bounce=NULL;
+    S->addMessageF(1, "Destroying the DeLeffe boundary condition manager...\n");
+	delete de_Leffe; de_Leffe=NULL;
+    S->addMessageF(1, "Destroying the ghost particles manager...\n");
+	delete ghost_particles; ghost_particles=NULL;
+    S->addMessageF(1, "Destroying the 0th order correction manager...\n");
+	delete shepard_tool; shepard_tool=NULL;
+    S->addMessageF(1, "Destroying the corrector manager...\n");
+	delete corrector; corrector=NULL;
+    S->addMessageF(1, "Destroying the domain bounds manager...\n");
+	delete domain; domain=NULL;
+    S->addMessageF(1, "Destroying the time step manager...\n");
+	delete time_step; time_step=NULL;
+    S->addMessageF(1, "Destroying the density interpolator...\n");
+	delete dens_int; dens_int=NULL;
+    S->addMessageF(1, "Destroying the sensors manager...\n");
+	delete sensors; sensors=NULL;
+    S->addMessageF(1, "Destroying the energy computation tool...\n");
+	delete energy_tool; energy_tool=NULL;
+    S->addMessageF(1, "Destroying the bounds computation tool...\n");
+	delete bounds_tool; bounds_tool=NULL;
+    S->addMessageF(1, "Destroying the movement managers...\n");
+	for(i=0;i<motions.size();i++) {
+	    delete motions.at(i);
 	}
-	mMoves.clear();
-    S->addMessage(1, "(CalcServer::~CalcServer): Sutting down the OpenCL context...\n");
-	if(clContext)clReleaseContext(clContext);
-	for(i=0;i<clNDevices;i++) {
-	    if(clComQueues[i])clReleaseCommandQueue(clComQueues[i]);
+	motions.clear();
+    S->addMessageF(1, "Sutting down the OpenCL context...\n");
+	if(context)clReleaseContext(context);
+	for(i=0;i<num_devices;i++) {
+	    if(command_queues[i])clReleaseCommandQueue(command_queues[i]);
 	}
-    S->addMessage(1, "(CalcServer::~CalcServer): Deallocating memory from the devices...\n");
-	if(imove)clReleaseMemObject(imove); imove=0;
-	if(imovein)clReleaseMemObject(imovein); imovein=0;
-	if(ifluid)clReleaseMemObject(ifluid); ifluid=0;
-	if(ifluidin)clReleaseMemObject(ifluidin); ifluidin=0;
-	if(pos)clReleaseMemObject(pos); pos=0;
-	if(normal)clReleaseMemObject(normal); normal=0;
-	if(v)clReleaseMemObject(v); v=0;
-	if(f)clReleaseMemObject(f); f=0;
-	if(dens)clReleaseMemObject(dens); dens=0;
-	if(drdt)clReleaseMemObject(drdt); drdt=0;
-	if(drdt_F)clReleaseMemObject(drdt_F); drdt_F=0;
-	if(mass)clReleaseMemObject(mass); mass=0;
-	if(hp)clReleaseMemObject(hp); hp=0;
-	if(press)clReleaseMemObject(press); press=0;
-	if(posin)clReleaseMemObject(posin); posin=0;
-	if(normalin)clReleaseMemObject(normalin); normalin=0;
-	if(vin)clReleaseMemObject(vin); vin=0;
-	if(fin)clReleaseMemObject(fin); fin=0;
-	if(densin)clReleaseMemObject(densin); densin=0;
-	if(drdtin)clReleaseMemObject(drdtin); drdtin=0;
-	if(massin)clReleaseMemObject(massin); massin=0;
-	if(hpin)clReleaseMemObject(hpin); hpin=0;
-	if(pressin)clReleaseMemObject(pressin); pressin=0;
-	if(sigma)clReleaseMemObject(sigma); sigma=0;
-	if(dtconv)clReleaseMemObject(dtconv); dtconv=0;
-	if(shepard)clReleaseMemObject(shepard); shepard=0;
-	if(gradShepard)clReleaseMemObject(gradShepard); gradShepard=0;
-	if(permutation)clReleaseMemObject(permutation); permutation=0;
-	if(reversePermutation)clReleaseMemObject(reversePermutation); reversePermutation=0;
-	if(lcell)clReleaseMemObject(lcell); lcell=0;
-	if(ihoc)clReleaseMemObject(ihoc); ihoc=0;
-	if(isValidCell)clReleaseMemObject(isValidCell); isValidCell=0;
-	if(gamma)clReleaseMemObject(gamma); gamma=0;
-	if(refd)clReleaseMemObject(refd); refd=0;
-	if(visc_dyn)clReleaseMemObject(visc_dyn); visc_dyn=0;
-	if(visc_kin)clReleaseMemObject(visc_kin); visc_kin=0;
-	if(visc_dyn_corrected)clReleaseMemObject(visc_dyn_corrected); visc_dyn_corrected=0;
-	if(delta)clReleaseMemObject(delta); delta=0;
-	if(DT)clReleaseMemObject(DT); DT=0;
-	if(sensorMode)clReleaseMemObject(sensorMode); sensorMode=0;
-    S->addMessage(1, "(CalcServer::~CalcServer): Deallocating host memory...\n");
-	if(clPlatforms) delete[] clPlatforms; clPlatforms=0;
-	if(clDevices) delete[] clDevices; clDevices=0;
-	if(clComQueues) delete[] clComQueues; clComQueues=0;
+    S->addMessageF(1, "Deallocating memory from the devices...\n");
+	if(imove)clReleaseMemObject(imove); imove=NULL;
+	if(imovein)clReleaseMemObject(imovein); imovein=NULL;
+	if(ifluid)clReleaseMemObject(ifluid); ifluid=NULL;
+	if(ifluidin)clReleaseMemObject(ifluidin); ifluidin=NULL;
+	if(pos)clReleaseMemObject(pos); pos=NULL;
+	if(normal)clReleaseMemObject(normal); normal=NULL;
+	if(v)clReleaseMemObject(v); v=NULL;
+	if(f)clReleaseMemObject(f); f=NULL;
+	if(dens)clReleaseMemObject(dens); dens=NULL;
+	if(drdt)clReleaseMemObject(drdt); drdt=NULL;
+	if(drdt_F)clReleaseMemObject(drdt_F); drdt_F=NULL;
+	if(mass)clReleaseMemObject(mass); mass=NULL;
+	if(hp)clReleaseMemObject(hp); hp=NULL;
+	if(press)clReleaseMemObject(press); press=NULL;
+	if(posin)clReleaseMemObject(posin); posin=NULL;
+	if(normalin)clReleaseMemObject(normalin); normalin=NULL;
+	if(vin)clReleaseMemObject(vin); vin=NULL;
+	if(fin)clReleaseMemObject(fin); fin=NULL;
+	if(densin)clReleaseMemObject(densin); densin=NULL;
+	if(drdtin)clReleaseMemObject(drdtin); drdtin=NULL;
+	if(massin)clReleaseMemObject(massin); massin=NULL;
+	if(hpin)clReleaseMemObject(hpin); hpin=NULL;
+	if(pressin)clReleaseMemObject(pressin); pressin=NULL;
+	if(sigma)clReleaseMemObject(sigma); sigma=NULL;
+	if(dtconv)clReleaseMemObject(dtconv); dtconv=NULL;
+	if(shepard)clReleaseMemObject(shepard); shepard=NULL;
+	if(shepard_gradient)clReleaseMemObject(shepard_gradient); shepard_gradient=NULL;
+	if(permutation)clReleaseMemObject(permutation); permutation=NULL;
+	if(permutation_inverse)clReleaseMemObject(permutation_inverse); permutation_inverse=NULL;
+	if(icell)clReleaseMemObject(icell); icell=NULL;
+	if(ihoc)clReleaseMemObject(ihoc); ihoc=NULL;
+	if(cell_has_particles)clReleaseMemObject(cell_has_particles); cell_has_particles=NULL;
+	if(gamma)clReleaseMemObject(gamma); gamma=NULL;
+	if(refd)clReleaseMemObject(refd); refd=NULL;
+	if(visc_dyn)clReleaseMemObject(visc_dyn); visc_dyn=NULL;
+	if(visc_kin)clReleaseMemObject(visc_kin); visc_kin=NULL;
+	if(visc_dyn_corrected)clReleaseMemObject(visc_dyn_corrected); visc_dyn_corrected=NULL;
+	if(delta)clReleaseMemObject(delta); delta=NULL;
+	if(DT)clReleaseMemObject(DT); DT=NULL;
+	if(sensor_mode)clReleaseMemObject(sensor_mode); sensor_mode=NULL;
+    S->addMessageF(1, "Deallocating host memory...\n");
+	if(platforms) delete[] platforms; platforms=NULL;
+	if(devices) delete[] devices; devices=NULL;
+	if(command_queues) delete[] command_queues; command_queues=NULL;
 }
 
 bool CalcServer::update()
@@ -273,54 +279,53 @@ bool CalcServer::update()
 	InputOutput::TimeManager *T   = InputOutput::TimeManager::singleton();
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	unsigned int i;
-	while(!T->mustPrintOutput() && !T->mustStop())
-	{
-	    if(mPredictor->execute())
+	while(!T->mustPrintOutput() && !T->mustStop()){
+	    if(predictor->execute())
 	        return true;
-	    if(mLLStep >= link_list_steps){
-	        mLLStep = 0;
-	        if(mGrid->execute())
+	    if(link_list_step >= link_list_steps){
+	        link_list_step = 0;
+	        if(grid->execute())
 	            return true;
-	        if(mLinkList->execute())
+	        if(link_list->execute())
 	            return true;
 	    }
-	    mLLStep++;
-	    if(mRates->execute())
+	    link_list_step++;
+	    if(rates->execute())
 	        return true;
         // Since the density interpolation will not take into account the
         // boundaries, we must perform it before the shepard term is corrected.
 	    if(T->time() >= 0.f){
-            if(mDensStep >= dens_int_steps){
-                mDensStep = 0;
-                if(mDensInt->execute())
+            if(dens_int_step >= dens_int_steps){
+                dens_int_step = 0;
+                if(dens_int->execute())
                     return true;
             }
-            mDensStep++;
+            dens_int_step++;
 	    }
-	    if(mDeLeffe->execute())
+	    if(de_Leffe->execute())
 	        return true;
-	    if(mGhost->execute())
+	    if(ghost_particles->execute())
 	        return true;
-	    if(mShepard->execute())
+	    if(shepard_tool->execute())
 	        return true;
-	    if(mElasticBounce->execute())
+	    if(elastic_bounce->execute())
 	        return true;
-	    if(mCorrector->execute())
+	    if(corrector->execute())
 	        return true;
-	    for(i=0;i<mPortals.size();i++){
-	        if(mPortals.at(i)->execute())
+	    for(i=0;i<portals.size();i++){
+	        if(portals.at(i)->execute())
 	            return true;
 	    }
-	    if(mDomain->execute())
+	    if(domain->execute())
 	        return true;
-	    if(mTimeStep->execute())
+	    if(time_step->execute())
 	        return true;
 	    if(T->time() >= 0.f){
-	        for(i=0;i<mMoves.size();i++){
-	            if(mMoves.at(i)->execute())
+	        for(i=0;i<motions.size();i++){
+	            if(motions.at(i)->execute())
 	                return true;
 	        }
-	        if(mSensors->execute())
+	        if(sensors->execute())
 	            return true;
 	        if(T->mustPrintLog()) {
 	            printLog();
@@ -334,12 +339,12 @@ bool CalcServer::update()
 	    }
 		T->update(dt);
 		S->update();
-		energyPerformed=false;
-		boundsPerformed=false;
+		energy_computed=false;
+		bounds_computed=false;
 		// Key events
 		while(isKeyPressed()){
 	        if(getchar() == 'c'){
-	            S->addMessage(1, (char *)"(CalcServer::Update): Interrumption request detected.\n");
+	            S->addMessageF(1, "Interrumption request detected.\n");
 	            return true;
 	        }
 		}
@@ -347,27 +352,27 @@ bool CalcServer::update()
 	return false;
 }
 
-bool CalcServer::getData(void *Dest, cl_mem Orig, size_t Size, size_t Offset)
+bool CalcServer::getData(void *dest, cl_mem orig, size_t size, size_t offset)
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	cl_int clFlag;
-	clFlag  = clEnqueueReadBuffer(clComQueue, Orig, CL_TRUE, Offset, Size, Dest, 0, NULL, NULL);
-	if(clFlag != CL_SUCCESS) {
-	    S->addMessage(3, "(CalcServer::getData): Failure retrieving memory from the server.\n");
-	    S->printOpenCLError(clFlag);
+	cl_int err_code = clEnqueueReadBuffer(command_queue, orig, CL_TRUE, offset,
+                                          size, dest, 0, NULL, NULL);
+	if(err_code != CL_SUCCESS) {
+	    S->addMessageF(3, "Failure retrieving memory from the server.\n");
+	    S->printOpenCLError(err_code);
 	    return true;
 	}
 	return false;
 }
 
-bool CalcServer::sendData(cl_mem Dest, void* Orig, size_t Size)
+bool CalcServer::sendData(cl_mem dest, void* orig, size_t size)
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	cl_int clFlag;
-	clFlag  = clEnqueueWriteBuffer(clComQueue, Dest, CL_TRUE, 0, Size, Orig, 0, NULL, NULL);
-	if(clFlag != CL_SUCCESS) {
-	    S->addMessage(3, "(CalcServer::sendData): Failure sending memory to the server.\n");
-	    S->printOpenCLError(clFlag);
+	cl_int err_code;
+	err_code  = clEnqueueWriteBuffer(command_queue, dest, CL_TRUE, 0, size, orig, 0, NULL, NULL);
+	if(err_code != CL_SUCCESS) {
+	    S->addMessageF(3, "Failure sending memory to the server.\n");
+	    S->printOpenCLError(err_code);
 	    return true;
 	}
 	return false;
@@ -376,7 +381,7 @@ bool CalcServer::sendData(cl_mem Dest, void* Orig, size_t Size)
 bool CalcServer::setupOpenCL()
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	S->addMessage(1, "(CalcServer::setupOpenCL): Initializating OpenCL...\n");
+	S->addMessageF(1, "Initializating OpenCL...\n");
 	if(queryOpenCL()){
 	    return true;
 	}
@@ -384,84 +389,88 @@ bool CalcServer::setupOpenCL()
 	    return true;
 	}
 	if(getDevices()){
-	    if(clPlatforms) delete[] clPlatforms; clPlatforms=0;
+	    if(platforms) delete[] platforms; platforms=0;
 	    return true;
 	}
-	S->addMessage(1, "(CalcServer::setupOpenCL): OpenCL is ready to work!\n");
+	S->addMessageF(1, "OpenCL is ready to work!\n");
 	return false;
 }
 
 bool CalcServer::queryOpenCL()
 {
+	cl_int err_code;
+	cl_uint i,j,num_devices=0;
 	cl_device_id *devices;
-	cl_uint i,j,nDevices=0;
-	cl_int clFlag;
 	char msg[1024], aux[1024];
-	clPlatforms = NULL;
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+	platforms = NULL;
 	strcpy(msg, "");
 	// Gets the total number of platforms
-	clFlag = clGetPlatformIDs(0, NULL, &clNPlatforms);
-	if(clFlag != CL_SUCCESS) {
-	    S->addMessage(3, "(CalcServer::queryOpenCL): Can't take the number of platforms.\n");
-	    S->printOpenCLError(clFlag);
+	err_code = clGetPlatformIDs(0, NULL, &num_platforms);
+	if(err_code != CL_SUCCESS) {
+	    S->addMessageF(3, "Can't take the number of platforms.\n");
+	    S->printOpenCLError(err_code);
 	    return true;
 	}
 	// Get array of patforms
-	clPlatforms = new cl_platform_id[clNPlatforms];
-	if(!clPlatforms) {
-	    S->addMessage(3, "(CalcServer::queryOpenCL): Allocation memory error.\n");
+	platforms = new cl_platform_id[num_platforms];
+	if(!platforms) {
+	    S->addMessageF(3, "Allocation memory error.\n");
 	    S->addMessage(0, "\tPlatforms array can't be allocated\n");
 	    return true;
 	}
-	clFlag = clGetPlatformIDs(clNPlatforms, clPlatforms, NULL);
-	if(clFlag != CL_SUCCESS) {
-	    S->addMessage(3, "(CalcServer::queryOpenCL): Can't take the platforms list.\n");
-	    S->printOpenCLError(clFlag);
+	err_code = clGetPlatformIDs(num_platforms, platforms, NULL);
+	if(err_code != CL_SUCCESS) {
+	    S->addMessageF(3, "Can't take the platforms list.\n");
+	    S->printOpenCLError(err_code);
 	    return true;
 	}
-	for(i=0;i<clNPlatforms;i++){
+	for(i=0;i<num_platforms;i++){
 	    // Get the number of devices
-	    clFlag = clGetDeviceIDs (clPlatforms[i], CL_DEVICE_TYPE_ALL, 0, NULL, &nDevices);
-	    if(clFlag != CL_SUCCESS) {
-	        S->addMessage(3, "(CalcServer::queryOpenCL): Can't take the number of devices.\n");
-            S->printOpenCLError(clFlag);
+	    err_code = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_ALL, 0, NULL,
+                                  &num_devices);
+	    if(err_code != CL_SUCCESS) {
+	        S->addMessageF(3, "Can't take the number of devices.\n");
+            S->printOpenCLError(err_code);
 	        return true;
 	    }
 	    // Gets the devices array
-	    devices = new cl_device_id[nDevices];
+	    devices = new cl_device_id[num_devices];
 	    if(!devices) {
-	        S->addMessage(3, "(CalcServer::queryOpenCL): Allocation memory error.\n");
+	        S->addMessageF(3, "Allocation memory error.\n");
 	        S->addMessage(0, "\tDevices array can't be allocated\n");
 	        return true;
 	    }
-	    clFlag = clGetDeviceIDs(clPlatforms[i], CL_DEVICE_TYPE_ALL, nDevices, devices, &nDevices);
-	    if(clFlag != CL_SUCCESS) {
-	        S->addMessage(3, "(CalcServer::queryOpenCL): Can't take the devices list.\n");
-            S->printOpenCLError(clFlag);
+	    err_code = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_ALL,
+                                  num_devices, devices, &num_devices);
+	    if(err_code != CL_SUCCESS) {
+	        S->addMessageF(3, "Can't take the devices list.\n");
+            S->printOpenCLError(err_code);
 	        return true;
 	    }
 	    // Shows device arrays
-	    for(j=0;j<nDevices;j++){
+	    for(j=0;j<num_devices;j++){
 	        // Identifier
 	        strcpy(msg, "");
 	        sprintf(msg, "\tDevice %u, Platform %u...\n", j, i);
 	        S->addMessage(1, msg);
 	        // Device name
-	        clFlag = clGetDeviceInfo(devices[j], CL_DEVICE_NAME, 1024*sizeof(char), &aux, NULL);
-	        if(clFlag != CL_SUCCESS) {
-	            S->addMessage(3, "(CalcServer::queryOpenCL): Can't get the device name.\n");
-                S->printOpenCLError(clFlag);
+	        err_code = clGetDeviceInfo(devices[j], CL_DEVICE_NAME,
+                                       1024*sizeof(char), &aux, NULL);
+	        if(err_code != CL_SUCCESS) {
+	            S->addMessageF(3, "Can't get the device name.\n");
+                S->printOpenCLError(err_code);
 	            return true;
 	        }
 	        strcpy(msg, "");
 	        sprintf(msg, "\t\tDEVICE: %s\n", aux);
 	        S->addMessage(0, msg);
 	        // Platform vendor
-	        clFlag = clGetDeviceInfo(devices[j], CL_DEVICE_VENDOR, 1024*sizeof(char), &aux, NULL);
-	        if(clFlag != CL_SUCCESS) {
-	            S->addMessage(3, "(CalcServer::queryOpenCL): Can't get the device vendor.\n");
-                S->printOpenCLError(clFlag);
+	        err_code = clGetDeviceInfo(devices[j], CL_DEVICE_VENDOR,
+                                       1024*sizeof(char), &aux, NULL);
+	        if(err_code != CL_SUCCESS) {
+	            S->addMessageF(3, "Can't get the device vendor.\n");
+                S->printOpenCLError(err_code);
 	            return true;
 	        }
 	        strcpy(msg, "");
@@ -469,10 +478,11 @@ bool CalcServer::queryOpenCL()
 	        S->addMessage(0, msg);
 	        // Device type
 	        cl_device_type dType;
-	        clFlag = clGetDeviceInfo(devices[j], CL_DEVICE_TYPE, sizeof(cl_device_type), &dType, NULL);
-	        if(clFlag != CL_SUCCESS) {
-	            S->addMessage(3, "(CalcServer::queryOpenCL): Can't get the device type.\n");
-                S->printOpenCLError(clFlag);
+	        err_code = clGetDeviceInfo(devices[j], CL_DEVICE_TYPE,
+                                       sizeof(cl_device_type), &dType, NULL);
+	        if(err_code != CL_SUCCESS) {
+	            S->addMessageF(3, "Can't get the device type.\n");
+                S->printOpenCLError(err_code);
 	            return true;
 	        }
 	        if(dType == CL_DEVICE_TYPE_CPU)
@@ -494,36 +504,39 @@ bool CalcServer::getPlatform()
 	char msg[1024];
 	InputOutput::ProblemSetup  *P = InputOutput::ProblemSetup::singleton();
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	if(P->settings.platform_id >= clNPlatforms){
-	    S->addMessage(3, "(CalcServer::getPlatform): Can't find the requested platform.\n");
+	if(P->settings.platform_id >= num_platforms){
+	    S->addMessageF(3, "Can't find the requested platform.\n");
 	    strcpy(msg, "");
-	    sprintf(msg, "\t%u platform requested, but just %u platforms can be found\n", P->settings.platform_id, clNPlatforms);
+	    sprintf(msg, "\t%u platform requested, but just %u platforms can be found\n",
+                P->settings.platform_id, num_platforms);
 	    S->addMessage(0, msg);
 	    return true;
 	}
-	clPlatform = clPlatforms[P->settings.platform_id];
+	platform = platforms[P->settings.platform_id];
 	return false;
 }
 
 bool CalcServer::getDevices()
 {
-	cl_int clFlag;
+	cl_int err_code;
 	cl_uint i;
 	char msg[1024];
 	InputOutput::ProblemSetup  *P = InputOutput::ProblemSetup::singleton();
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	clDevices = NULL;
+	devices = NULL;
 	// Gets the number of valid devices
-	clFlag = clGetDeviceIDs (clPlatform, P->settings.device_type, 0, NULL, &clNDevices);
-	if(clFlag != CL_SUCCESS) {
-	    S->addMessage(3, "(CalcServer::getDevices): Can't take the number of devices.\n");
-	    S->printOpenCLError(clFlag);
+	err_code = clGetDeviceIDs(platform, P->settings.device_type, 0, NULL,
+                              &num_devices);
+	if(err_code != CL_SUCCESS) {
+	    S->addMessageF(3, "Can't take the number of devices.\n");
+	    S->printOpenCLError(err_code);
 	    return true;
 	}
-	if(P->settings.device_id >= clNDevices) {
-	    S->addMessage(3, "(CalcServer::getDevices): Can't find the requested device.\n");
+	if(P->settings.device_id >= num_devices) {
+	    S->addMessageF(3, "Can't find the requested device.\n");
 	    strcpy(msg, "");
-	    sprintf(msg, "\t%u device requested, but just %u devices have been found\n", P->settings.device_id, clNDevices);
+	    sprintf(msg, "\t%u device requested, but just %u devices have been found\n",
+                P->settings.device_id, num_devices);
 	    S->addMessage(0, msg);
 	    if(P->settings.device_type == CL_DEVICE_TYPE_ALL)
 	        S->addMessage(0, "\t\tCL_DEVICE_TYPE_ALL filter activated\n");
@@ -539,85 +552,88 @@ bool CalcServer::getDevices()
 	    return true;
 	}
 	// Gets the devices array
-	clDevices = new cl_device_id[clNDevices];
-	if(!clDevices) {
-	    S->addMessage(3, "(CalcServer::getDevices): Allocation memory error.\n");
+	devices = new cl_device_id[num_devices];
+	if(!devices) {
+	    S->addMessageF(3, "Allocation memory error.\n");
 	    S->addMessage(0, "\tDevices array can't be allocated\n");
 	    return true;
 	}
-	clFlag = clGetDeviceIDs(clPlatform, P->settings.device_type, clNDevices, clDevices, &clNDevices);
-	if(clFlag != CL_SUCCESS) {
+	err_code = clGetDeviceIDs(platform, P->settings.device_type, num_devices,
+                              devices, &num_devices);
+	if(err_code != CL_SUCCESS) {
 	    S->addMessage(3, "(CalcServer::getDevices): Can't take the devices list.\n");
-	    S->printOpenCLError(clFlag);
+	    S->printOpenCLError(err_code);
 	    return true;
 	}
 	// Create a devices context
-	clContext = clCreateContext(0, clNDevices, clDevices, NULL, NULL, &clFlag);
-	if(clFlag != CL_SUCCESS) {
+	context = clCreateContext(0, num_devices, devices, NULL, NULL, &err_code);
+	if(err_code != CL_SUCCESS) {
 	    S->addMessage(3, "(CalcServer::getDevices): Can't create an OpenCL context.\n");
-	    S->printOpenCLError(clFlag);
+	    S->printOpenCLError(err_code);
 	    return true;
 	}
 	// Create command queues
-	clComQueues = new cl_command_queue[clNDevices];
-	if(clComQueues == NULL) {
+	command_queues = new cl_command_queue[num_devices];
+	if(command_queues == NULL) {
 	    S->addMessage(3, "(CalcServer::getDevices): Allocation memory error.\n");
 	    S->addMessage(0, "\tCommand queues array can't be allocated\n");
 	    return true;
 	}
-	for(i=0;i<clNDevices;i++) {
+	for(i=0;i<num_devices;i++) {
 	    #ifdef HAVE_GPUPROFILE
-	        clComQueues[i] = clCreateCommandQueue(clContext, clDevices[i], CL_QUEUE_PROFILING_ENABLE, &clFlag);
+	        command_queues[i] = clCreateCommandQueue(context, devices[i],
+                                                     CL_QUEUE_PROFILING_ENABLE,
+                                                     &err_code);
 	    #else
-	        clComQueues[i] = clCreateCommandQueue(clContext, clDevices[i], 0, &clFlag);
+	        command_queues[i] = clCreateCommandQueue(context, devices[i], 0,
+                                                     &err_code);
 	    #endif
-	    if(clFlag != CL_SUCCESS) {
+	    if(err_code != CL_SUCCESS) {
 	        strcpy(msg, "");
-	        sprintf(msg, "(CalcServer::getDevices): Can't create a command queue for the device %u.\n",i);
-	        S->addMessage(3, msg);
-            S->printOpenCLError(clFlag);
+	        sprintf(msg, "Can't create a command queue for the device %u.\n",i);
+	        S->addMessageF(3, msg);
+            S->printOpenCLError(err_code);
 	        return true;
 	    }
 	}
 	// Store the selected ones
-	clDevice   = clDevices[P->settings.device_id];
-	clComQueue = clComQueues[P->settings.device_id];
+	device   = devices[P->settings.device_id];
+	command_queue = command_queues[P->settings.device_id];
 	return false;
 }
 
 cl_mem CalcServer::allocMemory(size_t size)
 {
-	int clFlag;
+	int err_code;
 	cl_mem mem_obj;
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	mem_obj = clCreateBuffer(clContext, CL_MEM_READ_WRITE, size, NULL, &clFlag);
-	if(clFlag != CL_SUCCESS) {
+	mem_obj = clCreateBuffer(context, CL_MEM_READ_WRITE, size, NULL, &err_code);
+	if(err_code != CL_SUCCESS) {
 	    S->addMessageF(3, "Allocation failure.\n");
-	    S->printOpenCLError(clFlag);
+	    S->printOpenCLError(err_code);
 	    return NULL;
 	}
 
-	AllocatedMem += size;
+	allocated_mem += size;
 	return mem_obj;
 }
 
 bool CalcServer::fillFluid()
 {
 	unsigned int i;
+	int err_code = CL_SUCCESS;
+	char msg[512], file_name[256];
+	cl_program program;
+	cl_kernel kernel;
+	size_t global_work_size;
+	size_t local_work_size;
+	unsigned int num_parts_parsed=0;
 	InputOutput::Fluid *F = InputOutput::Fluid::singleton();
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	char msg[512];
 	strcpy(msg, "");
-	char *file_name = new char[256];
-	int clFlag=0;
-	cl_program clProgram;
-	cl_kernel clKernel;
-	size_t clGlobalWorkSize;
-	size_t clLocalWorkSize;
-	unsigned int AuxN=0;
 
-	for(i=0;i<nfluid;i++) {
+	for(i=0;i<num_fluids;i++) {
 	    // Set the script file
 	    if(!strlen(P->fluids[i].Script)) {
 	        continue;
@@ -629,120 +645,119 @@ bool CalcServer::fillFluid()
 	    strcat(file_name, "/");
 	    strcat(file_name, P->fluids[i].Script);
 	    strcat(file_name, ".cl");
-	    if(!loadKernelFromFile(&clKernel, &clProgram, clContext, clDevice, file_name, "ParticlesDistribution", ""))
+	    if(!loadKernelFromFile(&kernel, &program, context, device, file_name, "ParticlesDistribution", ""))
 	        return true;
-	    clFlag |= sendArgument(clKernel,  0, sizeof(cl_mem ), (void*)&imove);
-	    clFlag |= sendArgument(clKernel,  1, sizeof(cl_mem ), (void*)&ifluid);
-	    clFlag |= sendArgument(clKernel,  2, sizeof(cl_mem ), (void*)&pos);
-	    clFlag |= sendArgument(clKernel,  3, sizeof(cl_mem ), (void*)&normal);
-	    clFlag |= sendArgument(clKernel,  4, sizeof(cl_mem ), (void*)&v);
-	    clFlag |= sendArgument(clKernel,  5, sizeof(cl_mem ), (void*)&f);
-	    clFlag |= sendArgument(clKernel,  6, sizeof(cl_mem ), (void*)&dens);
-	    clFlag |= sendArgument(clKernel,  7, sizeof(cl_mem ), (void*)&drdt);
-	    clFlag |= sendArgument(clKernel,  8, sizeof(cl_mem ), (void*)&mass);
-	    clFlag |= sendArgument(clKernel,  9, sizeof(cl_mem ), (void*)&hp);
-	    clFlag |= sendArgument(clKernel, 10, sizeof(cl_uint), (void*)&AuxN);
-	    clFlag |= sendArgument(clKernel, 11, sizeof(cl_uint), (void*)&(P->fluids[i].n));
-	    clFlag |= sendArgument(clKernel, 12, sizeof(cl_uint), (void*)&i);
-	    clFlag |= sendArgument(clKernel, 13, sizeof(vec    ), (void*)&(P->SPH_opts.deltar));
-	    clFlag |= sendArgument(clKernel, 14, sizeof(cl_float), (void*)&(P->fluids[i].refd));
-	    clFlag |= sendArgument(clKernel, 15, sizeof(cl_float), (void*)&(P->SPH_opts.h));
-	    clFlag |= sendArgument(clKernel, 16, sizeof(cl_float), (void*)&(P->SPH_opts.cs));
-	    AuxN += P->fluids[i].n;
-	    if(clFlag)
+	    err_code |= sendArgument(kernel,  0, sizeof(cl_mem ), (void*)&imove);
+	    err_code |= sendArgument(kernel,  1, sizeof(cl_mem ), (void*)&ifluid);
+	    err_code |= sendArgument(kernel,  2, sizeof(cl_mem ), (void*)&pos);
+	    err_code |= sendArgument(kernel,  3, sizeof(cl_mem ), (void*)&normal);
+	    err_code |= sendArgument(kernel,  4, sizeof(cl_mem ), (void*)&v);
+	    err_code |= sendArgument(kernel,  5, sizeof(cl_mem ), (void*)&f);
+	    err_code |= sendArgument(kernel,  6, sizeof(cl_mem ), (void*)&dens);
+	    err_code |= sendArgument(kernel,  7, sizeof(cl_mem ), (void*)&drdt);
+	    err_code |= sendArgument(kernel,  8, sizeof(cl_mem ), (void*)&mass);
+	    err_code |= sendArgument(kernel,  9, sizeof(cl_mem ), (void*)&hp);
+	    err_code |= sendArgument(kernel, 10, sizeof(cl_uint), (void*)&num_parts_parsed);
+	    err_code |= sendArgument(kernel, 11, sizeof(cl_uint), (void*)&(P->fluids[i].n));
+	    err_code |= sendArgument(kernel, 12, sizeof(cl_uint), (void*)&i);
+	    err_code |= sendArgument(kernel, 13, sizeof(vec    ), (void*)&(P->SPH_opts.deltar));
+	    err_code |= sendArgument(kernel, 14, sizeof(cl_float), (void*)&(P->fluids[i].refd));
+	    err_code |= sendArgument(kernel, 15, sizeof(cl_float), (void*)&(P->SPH_opts.h));
+	    err_code |= sendArgument(kernel, 16, sizeof(cl_float), (void*)&(P->SPH_opts.cs));
+	    num_parts_parsed += P->fluids[i].n;
+	    if(err_code)
 	        return true;
-	    clLocalWorkSize = 256;
-	    clGlobalWorkSize = getGlobalWorkSize(P->fluids[i].n, clLocalWorkSize);
-	    sprintf(msg, "(CalcServer::fillFluid): Launching the initialization OpenCL script.\n");
-	    S->addMessage(1, msg);
-	    sprintf(msg, "\tLocal work size = %lu.\n", clLocalWorkSize);
+	    local_work_size = 256;
+	    global_work_size = getGlobalWorkSize(P->fluids[i].n, local_work_size);
+	    sprintf(msg, "Launching the initialization OpenCL script.\n");
+	    S->addMessageF(1, msg);
+	    sprintf(msg, "\tLocal work size = %lu.\n", local_work_size);
 	    S->addMessage(0, msg);
-	    sprintf(msg, "\tGlobal work size = %lu.\n", clGlobalWorkSize);
+	    sprintf(msg, "\tGlobal work size = %lu.\n", global_work_size);
 	    S->addMessage(0, msg);
-	    clFlag = clEnqueueNDRangeKernel(clComQueue, clKernel, 1, NULL, &clGlobalWorkSize, NULL, 0, NULL, NULL);
-	    if(clFlag != CL_SUCCESS) {
-	        S->addMessage(3, "(CalcServer::fillFluid): Can't execute the kernel.\n");
-            S->printOpenCLError(clFlag);
+	    err_code = clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, &global_work_size, NULL, 0, NULL, NULL);
+	    if(err_code != CL_SUCCESS) {
+	        S->addMessageF(3, "Can't execute the kernel.\n");
+            S->printOpenCLError(err_code);
 	        return true;
 	    }
-	    if(clKernel)clReleaseKernel(clKernel);
-	    if(clProgram)clReleaseProgram(clProgram);
+	    if(kernel)clReleaseKernel(kernel);
+	    if(program)clReleaseProgram(program);
 	}
-	S->addMessage(1, "(CalcServer::fillFluid): Finished the work, reading back the info...\n");
+	S->addMessageF(1, "Finished the work, reading back the info...\n");
 
-	clFlag |= getData((void*)F->imove, imove, sizeof(cl_int)*n);
-	clFlag |= getData((void*)F->ifluid, ifluid, sizeof(cl_int)*n);
-	clFlag |= getData((void*)F->pos, pos, sizeof(vec)*n);
-	clFlag |= getData((void*)F->normal, normal, sizeof(vec)*n);
-	clFlag |= getData((void*)F->v, v, sizeof(vec)*n);
-	clFlag |= getData((void*)F->f, f, sizeof(vec)*n);
-	clFlag |= getData((void*)F->dens, dens, sizeof(cl_float)*n);
-	clFlag |= getData((void*)F->drdt, drdt, sizeof(cl_float)*n);
-	clFlag |= getData((void*)F->mass, mass, sizeof(cl_float)*n);
-	clFlag |= getData((void*)F->hp, hp, sizeof(cl_float)*n);
-	if(clFlag != CL_SUCCESS) {
-	    S->addMessage(3, "(CalcServer::fillFluid): Failure retrieving memory from the server.\n");
-	    S->printOpenCLError(clFlag);
+	err_code |= getData((void*)F->imove, imove, sizeof(cl_int)*n);
+	err_code |= getData((void*)F->ifluid, ifluid, sizeof(cl_int)*n);
+	err_code |= getData((void*)F->pos, pos, sizeof(vec)*n);
+	err_code |= getData((void*)F->normal, normal, sizeof(vec)*n);
+	err_code |= getData((void*)F->v, v, sizeof(vec)*n);
+	err_code |= getData((void*)F->f, f, sizeof(vec)*n);
+	err_code |= getData((void*)F->dens, dens, sizeof(cl_float)*n);
+	err_code |= getData((void*)F->drdt, drdt, sizeof(cl_float)*n);
+	err_code |= getData((void*)F->mass, mass, sizeof(cl_float)*n);
+	err_code |= getData((void*)F->hp, hp, sizeof(cl_float)*n);
+	if(err_code != CL_SUCCESS) {
+	    S->addMessageF(3, "Failure retrieving memory from the server.\n");
+	    S->printOpenCLError(err_code);
 	    return true;
 	}
-	sprintf(msg, "(CalcServer::fillFluid): %u particles have been transfered from the server to the host.\n", n);
-	S->addMessage(1,msg);
-	S->addMessage(1, "(CalcServer::fillFluid): All the fluids are running! ;-)\n");
+	sprintf(msg, "%u particles have been transfered from the server to the host.\n", n);
+	S->addMessageF(1,msg);
+	S->addMessageF(1, "All the fluids are running! ;-)\n");
 
-	delete[] file_name;
 	return false;
 }
 
 bool CalcServer::setup()
 {
 	unsigned int i;
-	cl_uint clFlag=0;
+	cl_uint err_code=0;
+	char msg[512];
 	InputOutput::Fluid *F = InputOutput::Fluid::singleton();
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	char msg[512];
 	strcpy(msg, "");
 	// Fluids data
-    S->addMessage(1, "(CalcServer::setup): Sending fluids data to the server...\n");
-	cl_float *Gamma   = new cl_float[nfluid];
-	cl_float *Refd    = new cl_float[nfluid];
-	cl_float *VIscdyn = new cl_float[nfluid];
-	cl_float *VIsckin = new cl_float[nfluid];
-	cl_float *VIscdynCorr = new cl_float[nfluid];
-	cl_float *Delta = new cl_float[nfluid];
-	for(i=0;i<nfluid;i++) {
+    S->addMessageF(1, "Sending fluids data to the server...\n");
+	cl_float *Gamma   = new cl_float[num_fluids];
+	cl_float *Refd    = new cl_float[num_fluids];
+	cl_float *Viscdyn = new cl_float[num_fluids];
+	cl_float *Visckin = new cl_float[num_fluids];
+	cl_float *ViscdynCorr = new cl_float[num_fluids];
+	cl_float *Delta = new cl_float[num_fluids];
+	for(i=0;i<num_fluids;i++) {
 		Gamma[i] = P->fluids[i].gamma;
 		Refd[i] = P->fluids[i].refd;
-		VIscdyn[i] = P->fluids[i].visc_dyn;
-		VIsckin[i] = P->fluids[i].visc_kin;
-		VIscdynCorr[i] = P->fluids[i].visc_dyn_corrected;
+		Viscdyn[i] = P->fluids[i].visc_dyn;
+		Visckin[i] = P->fluids[i].visc_kin;
+		ViscdynCorr[i] = P->fluids[i].visc_dyn_corrected;
 		Delta[i] = P->fluids[i].delta;
 	}
-	clFlag |= sendData(gamma, Gamma, sizeof(cl_float)*nfluid);
-	clFlag |= sendData(refd, Refd, sizeof(cl_float)*nfluid);
-	clFlag |= sendData(visc_dyn, VIscdyn, sizeof(cl_float)*nfluid);
-	clFlag |= sendData(visc_kin, VIsckin, sizeof(cl_float)*nfluid);
-	clFlag |= sendData(visc_dyn_corrected, VIscdynCorr, sizeof(cl_float)*nfluid);
-	clFlag |= sendData(delta, Delta, sizeof(cl_float)*nfluid);
-	delete[] Gamma;Gamma=0;
-	delete[] Refd;Refd=0;
-	delete[] VIscdyn;VIscdyn=0;
-	delete[] VIsckin;VIsckin=0;
-	delete[] VIscdynCorr;VIscdynCorr=0;
-	delete[] Delta;Delta=0;
-	if(clFlag != CL_SUCCESS) {
-        S->addMessage(3, "(CalcServer::setup): Can't send the fluids data to the server.\n");
+	err_code |= sendData(gamma, Gamma, sizeof(cl_float)*num_fluids);
+	err_code |= sendData(refd, Refd, sizeof(cl_float)*num_fluids);
+	err_code |= sendData(visc_dyn, Viscdyn, sizeof(cl_float)*num_fluids);
+	err_code |= sendData(visc_kin, Visckin, sizeof(cl_float)*num_fluids);
+	err_code |= sendData(visc_dyn_corrected, ViscdynCorr, sizeof(cl_float)*num_fluids);
+	err_code |= sendData(delta, Delta, sizeof(cl_float)*num_fluids);
+	delete[] Gamma; Gamma=NULL;
+	delete[] Refd; Refd=NULL;
+	delete[] Viscdyn; Viscdyn=NULL;
+	delete[] Visckin; Visckin=NULL;
+	delete[] ViscdynCorr; ViscdynCorr=NULL;
+	delete[] Delta; Delta=NULL;
+	if(err_code != CL_SUCCESS) {
+        S->addMessageF(3, "Can't send the fluids data to the server.\n");
 	    return true;
 	}
 	// Variables
-	g     = P->SPH_opts.g;
-	hfac  = P->SPH_opts.hfac;
+	g          = P->SPH_opts.g;
+	hfac       = P->SPH_opts.hfac;
 	dt_divisor = P->SPH_opts.dt_divisor;
-	h     = P->SPH_opts.h;
-	cs    = P->SPH_opts.cs;
+	h          = P->SPH_opts.h;
+	cs         = P->SPH_opts.cs;
 	link_list_steps = P->SPH_opts.link_list_steps;
-	dens_int_steps = P->SPH_opts.dens_int_steps;
-	// Calculate CellFac
+	dens_int_steps  = P->SPH_opts.dens_int_steps;
+	// Calculate cell_length_factor
 	float sep;
 	#ifdef __CUBIC_KERNEL_TYPE__
 		sep = 2.0f;
@@ -751,144 +766,149 @@ bool CalcServer::setup()
 	#else   // Wendland
 		sep = 2.0f;
 	#endif
-	float dist  = sep*h;        // Minimum cell size.
-	float ddt   = 0.1f*h/dt_divisor; // Maximum distance that a particle can move in a step.
-	CellFac = 1.f + (link_list_steps-1) * ddt / dist;
-	sprintf(msg, "(CalcServer::setup): Cells size increased with %g factor.\n", CellFac);
-    S->addMessage(1, msg);
-	mLLStep = link_list_steps;          // Initializating as LinkList needed
-	mDensStep = 0;              // Initializating as Density interpolation not needed
+	float dist = sep*h;             // Minimum cell size.
+	float ddt  = 0.1f*h/dt_divisor; // Maximum distance that a particle can move in a step.
+	cell_length_factor = 1.f + (link_list_steps-1) * ddt / dist;
+	sprintf(msg, "Cells size increased with %g factor.\n", cell_length_factor);
+    S->addMessageF(1, msg);
+	link_list_step = link_list_steps;
+	dens_int_step  = 0;
 	// Particles data
-    S->addMessage(1, "(CalcServer::setup): Sending the particles data to server...\n");
-	clFlag  = sendData(imove, F->imove, sizeof(cl_int)*N);
-	clFlag |= sendData(imovein, F->imove, sizeof(cl_int)*N);
-	clFlag |= sendData(ifluid, F->ifluid, sizeof(cl_int)*N);
-	clFlag |= sendData(ifluidin, F->ifluid, sizeof(cl_int)*N);
-	clFlag |= sendData(posin, F->pos, sizeof(vec)*N);
-	clFlag |= sendData(normalin, F->normal, sizeof(vec)*N);
-	clFlag |= sendData(vin, F->v, sizeof(vec)*N);
-	clFlag |= sendData(densin, F->dens, sizeof(cl_float)*N);
-	clFlag |= sendData(hpin, F->hp, sizeof(cl_float)*N);
-	clFlag |= sendData(drdtin, F->drdt, sizeof(cl_float)*N);
-	clFlag |= sendData(fin, F->f, sizeof(vec)*N);
-	clFlag |= sendData(massin, F->mass, sizeof(cl_float)*N);
-	clFlag |= sendData(pressin, F->press, sizeof(cl_float)*N);
-	clFlag |= sendData(pos, F->pos, sizeof(vec)*N);
-	clFlag |= sendData(normal, F->normal, sizeof(vec)*N);
-	clFlag |= sendData(v, F->v, sizeof(vec)*N);
-	clFlag |= sendData(dens, F->dens, sizeof(cl_float)*N);
-	clFlag |= sendData(drdt, F->drdt, sizeof(cl_float)*N);
-	clFlag |= sendData(hp, F->hp, sizeof(cl_float)*N);
-	clFlag |= sendData(f, F->f, sizeof(vec)*N);
-	clFlag |= sendData(mass, F->mass, sizeof(cl_float)*N);
-	clFlag |= sendData(press, F->press, sizeof(cl_float)*N);
+    S->addMessageF(1, "Sending the particles data to server...\n");
+	err_code  = sendData(imove, F->imove, sizeof(cl_int)*N);
+	err_code |= sendData(imovein, F->imove, sizeof(cl_int)*N);
+	err_code |= sendData(ifluid, F->ifluid, sizeof(cl_int)*N);
+	err_code |= sendData(ifluidin, F->ifluid, sizeof(cl_int)*N);
+	err_code |= sendData(posin, F->pos, sizeof(vec)*N);
+	err_code |= sendData(normalin, F->normal, sizeof(vec)*N);
+	err_code |= sendData(vin, F->v, sizeof(vec)*N);
+	err_code |= sendData(densin, F->dens, sizeof(cl_float)*N);
+	err_code |= sendData(hpin, F->hp, sizeof(cl_float)*N);
+	err_code |= sendData(drdtin, F->drdt, sizeof(cl_float)*N);
+	err_code |= sendData(fin, F->f, sizeof(vec)*N);
+	err_code |= sendData(massin, F->mass, sizeof(cl_float)*N);
+	err_code |= sendData(pressin, F->press, sizeof(cl_float)*N);
+	err_code |= sendData(pos, F->pos, sizeof(vec)*N);
+	err_code |= sendData(normal, F->normal, sizeof(vec)*N);
+	err_code |= sendData(v, F->v, sizeof(vec)*N);
+	err_code |= sendData(dens, F->dens, sizeof(cl_float)*N);
+	err_code |= sendData(drdt, F->drdt, sizeof(cl_float)*N);
+	err_code |= sendData(hp, F->hp, sizeof(cl_float)*N);
+	err_code |= sendData(f, F->f, sizeof(vec)*N);
+	err_code |= sendData(mass, F->mass, sizeof(cl_float)*N);
+	err_code |= sendData(press, F->press, sizeof(cl_float)*N);
 	cl_float *Sigma = new cl_float[N];
 	for(i=0;i<N;i++)
 	    Sigma[i] = 1000.f;
-	clFlag |= sendData(sigma, Sigma, N*sizeof(cl_float));
+	err_code |= sendData(sigma, Sigma, N*sizeof(cl_float));
 	delete[] Sigma; Sigma=0;
-	if(clFlag != CL_SUCCESS) {
-        S->addMessage(3, "(CalcServer::setup): Can't send the particles data to the server.\n");
+	if(err_code != CL_SUCCESS) {
+        S->addMessageF(3, "Can't send the particles data to the server.\n");
 	    return true;
 	}
-	cl_ushort *mode = new cl_ushort[nSensors];
+	cl_ushort *mode = new cl_ushort[num_sensors];
 	for(i=0;i<N-n;i++)
 	    mode[i] = P->SensorsParameters.mod.at(i);
-	clFlag |= sendData(sensorMode, mode, sizeof(cl_ushort)*(N-n));
+	err_code |= sendData(sensor_mode, mode, sizeof(cl_ushort)*(N-n));
 	delete[] mode; mode = 0;
 
-	// Inital values
-	lxy    = 0;
-	lxydim = 0;
-	dt     = 0;
-	// Movements
-	for(i=0;i<mMoves.size();i++){
-	    if(mMoves.at(i)->parse(P->motions.at(i)->path))
+	num_cells = 0;
+	num_cells_allocated = 0;
+	dt = 0;
+
+	for(i=0;i<motions.size();i++){
+	    if(motions.at(i)->parse(P->motions.at(i)->path))
 	        return true;
 	}
-	// Compute the total fluid mass
+
 	for(i=0;i<N;i++) {
 	    if(F->imove[i] > 0)
-	        fluidMass += F->mass[i];
+	        fluid_mass += F->mass[i];
 	}
-    S->addMessage(1, "(CalcServer::setup): Calculation server is ready! ;-) \n");
+    S->addMessageF(1, "Calculation server is ready! ;-) \n");
 	return false;
 }
 
 void CalcServer::printLog()
 {
-	InputOutput::TimeManager *T = InputOutput::TimeManager::singleton();
-	InputOutput::FileManager *Files = InputOutput::FileManager::singleton();
-	energy();
 	struct timeval now_time;
+	char date[64], *aux;
+	InputOutput::TimeManager *T = InputOutput::TimeManager::singleton();
+	InputOutput::FileManager *files = InputOutput::FileManager::singleton();
+
+	energy();
+
 	gettimeofday(&now_time, NULL);
 	const time_t seconds = now_time.tv_sec;
-	char date[64], *aux;
 	strcpy(date, ctime(&seconds));
 	aux = strstr(date, "\n");
 	if(aux) strcpy(aux, "");
-	fprintf(Files->logFile(),"<i>%s: Printed file (%d)</i><br>\n",date,T->frame());
-	fprintf(Files->logFile(),"<ul><li><i>nstep=%d, n=%d, time=%f, dt=%g</i></li>\n",T->step(),n,T->time() - T->dt(),dt);
-	fprintf(Files->logFile(),"<li><i>Epot=%g, Ekin=%g, U=%g, E=%g</i></li></ul>\n",mEnergy->potentialEnergy(),ekin,eint,etot);
-	fflush(Files->logFile());
+
+	fprintf(files->logFile(),"<i>%s: Printed file (%d)</i><br>\n",date,T->frame());
+	fprintf(files->logFile(),"<ul><li><i>nstep=%d, n=%d, time=%f, dt=%g</i></li>\n",T->step(),n,T->time() - T->dt(),dt);
+	fprintf(files->logFile(),"<li><i>Epot=%g, Ekin=%g, U=%g, E=%g</i></li></ul>\n",energy_tool->potentialEnergy(),ekin,eint,etot);
+	fflush(files->logFile());
 }
 
 void CalcServer::printEnergy()
 {
 	InputOutput::TimeManager *T = InputOutput::TimeManager::singleton();
-	InputOutput::FileManager *Files = InputOutput::FileManager::singleton();
+	InputOutput::FileManager *files = InputOutput::FileManager::singleton();
 	energy();
-	fprintf(Files->enFile(),"%g\t",T->time() - T->dt());
-	fprintf(Files->enFile(),"%g\t%g\t%g\t%g\t%g\t%g\n", mEnergy->potentialEnergy(),
-                                                        mEnergy->kineticEnergy(),
-                                                        mEnergy->internalEnergy(),
-                                                        mEnergy->enthalpy(),
-                                                        mEnergy->entropy(),
-                                                        mEnergy->energy());
-	fflush(Files->enFile());
+
+	fprintf(files->enFile(),"%g\t",T->time() - T->dt());
+	fprintf(files->enFile(),"%g\t%g\t%g\t%g\t%g\t%g\n", energy_tool->potentialEnergy(),
+                                                        energy_tool->kineticEnergy(),
+                                                        energy_tool->internalEnergy(),
+                                                        energy_tool->enthalpy(),
+                                                        energy_tool->entropy(),
+                                                        energy_tool->energy());
+	fflush(files->enFile());
 }
 
 void CalcServer::printBounds()
 {
 	InputOutput::TimeManager *T = InputOutput::TimeManager::singleton();
-	InputOutput::FileManager *Files = InputOutput::FileManager::singleton();
+	InputOutput::FileManager *files = InputOutput::FileManager::singleton();
+
 	bounds();
-	fprintf(Files->boundsFile(),"%g\t",T->time() - T->dt());
-	fprintf(Files->boundsFile(),"%g\t%g\t",minCoords.x,minCoords.y);
+
+	fprintf(files->boundsFile(),"%g\t",T->time() - T->dt());
+	fprintf(files->boundsFile(),"%g\t%g\t",min_fluid_bound.x,min_fluid_bound.y);
 	#ifdef HAVE_3D
-	    fprintf(Files->boundsFile(),"%g\t",minCoords.z);
+	    fprintf(files->boundsFile(),"%g\t",min_fluid_bound.z);
 	#endif
-	fprintf(Files->boundsFile(),"%g\t%g\t",maxCoords.x,maxCoords.y);
+	fprintf(files->boundsFile(),"%g\t%g\t",max_fluid_bound.x,max_fluid_bound.y);
 	#ifdef HAVE_3D
-	    fprintf(Files->boundsFile(),"%g\t",maxCoords.z);
+	    fprintf(files->boundsFile(),"%g\t",max_fluid_bound.z);
 	#endif
-	fprintf(Files->boundsFile(),"%g\t%g\n",minV, maxV);
-	fflush(Files->boundsFile());
+	fprintf(files->boundsFile(),"%g\t%g\n",min_v, max_v);
+	fflush(files->boundsFile());
 }
 
 void CalcServer::energy()
 {
-	if(energyPerformed)
+	if(energy_computed)
 	    return;
-    if(mEnergy->execute())
+    if(energy_tool->execute())
         return;
-    eint = mEnergy->internalEnergy();
-    ekin = mEnergy->kineticEnergy();
-    etot = mEnergy->energy();
-	energyPerformed = true;
+    eint = energy_tool->internalEnergy();
+    ekin = energy_tool->kineticEnergy();
+    etot = energy_tool->energy();
+	energy_computed = true;
 }
 
 void CalcServer::bounds()
 {
-	if(boundsPerformed)
+	if(bounds_computed)
 	    return;
-    if(mBounds->execute())
+    if(bounds_tool->execute())
         return;
-    minCoords = mBounds->minCoords();
-    maxCoords = mBounds->maxCoords();
-    minV = length(mBounds->minVel());
-    maxV = length(mBounds->maxVel());
-	boundsPerformed = true;
+    min_fluid_bound = bounds_tool->minCoords();
+    max_fluid_bound = bounds_tool->maxCoords();
+    min_v = length(bounds_tool->minVel());
+    max_v = length(bounds_tool->maxVel());
+	bounds_computed = true;
 }
 
 }}  // namespace

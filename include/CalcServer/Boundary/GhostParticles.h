@@ -72,13 +72,13 @@ private:
 	char* mPath;
 
 	/// OpenCL program
-	cl_program clProgram;
+	cl_program program;
 	/// OpenCL vertices set kernel
-	cl_kernel clKernel;
-	/// Global work size (calculated with clLocalWorkSize).
-	size_t clGlobalWorkSize;
+	cl_kernel kernel;
+	/// Global work size (calculated with local_work_size).
+	size_t global_work_size;
 	/// Local work size (default value = 256)
-	size_t clLocalWorkSize;
+	size_t local_work_size;
 	/// Array of walls with all parameters
 	std::deque<cl_mem> mWalls;
 	/// true if \f$delta\f$-SPH (cont. eq. diffusive term) must be applied.

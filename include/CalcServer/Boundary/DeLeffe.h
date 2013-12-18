@@ -70,15 +70,15 @@ private:
 	char* mPath;
 
 	/// OpenCL program
-	cl_program clProgram;
+	cl_program program;
 	/// OpenCL vertices set kernel
 	cl_kernel clVerticesKernel;
 	/// OpenCL boundary effect kernel
 	cl_kernel clBoundaryKernel;
-	/// Global work size (calculated with clLocalWorkSize).
-	size_t clGlobalWorkSize;
+	/// Global work size (calculated with local_work_size).
+	size_t global_work_size;
 	/// Local work size (default value = 256)
-	size_t clLocalWorkSize;
+	size_t local_work_size;
 	/// true if local memory can be used on kernel.
 	bool isLocalMemory;
 };

@@ -121,7 +121,7 @@ private:
 	/// Kernel path
 	char *mPath;
 	/// OpenCL program
-	cl_program clProgram;
+	cl_program program;
 	/// OpenCL maximum coordinates setup kernel
 	cl_kernel clMaxCoordsKernel;
 	/// OpenCL minimum coordinates setup kernel
@@ -131,9 +131,9 @@ private:
 	/// OpenCL minimum velocity setup kernel
 	cl_kernel clMinVelKernel;
 	/// Global work size
-	size_t clGlobalWorkSize;
+	size_t global_work_size;
 	/// Local work size
-	size_t clLocalWorkSize;
+	size_t local_work_size;
     /// Maximum coordiantes reduction tool
     Reduction *maxCoordsReduction;
     /// Minimum coordinates reduction tool

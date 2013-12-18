@@ -41,14 +41,14 @@ namespace Aqua{ namespace CalcServer{
 Bounds::Bounds()
 	: Kernel("Bounds")
 	, mDevMem(NULL)
-	, clProgram(NULL)
+	, program(NULL)
 	, mPath(NULL)
 	, clMaxCoordsKernel(NULL)
 	, clMinCoordsKernel(NULL)
 	, clMaxVelKernel(NULL)
 	, clMinVelKernel(NULL)
-	, clGlobalWorkSize(0)
-	, clLocalWorkSize(0)
+	, global_work_size(0)
+	, local_work_size(0)
 	, maxCoordsReduction(NULL)
 	, minCoordsReduction(NULL)
 	, maxVelReduction(NULL)
@@ -69,12 +69,12 @@ Bounds::Bounds()
 	strcpy(mPath, P->OpenCL_kernels.bounds);
 	strcat(mPath, ".cl");
 
-	clLocalWorkSize  = localWorkSize();
-	if(!clLocalWorkSize){
+	local_work_size  = localWorkSize();
+	if(!local_work_size){
 	    S->addMessage(3, "(Bounds::Bounds): No valid local work size for required computation.\n");
 	    exit(EXIT_FAILURE);
 	}
-	clGlobalWorkSize = globalWorkSize(clLocalWorkSize);
+	global_work_size = globalWorkSize(local_work_size);
 	if(setupBounds()) {
 		exit(EXIT_FAILURE);
 	}
@@ -114,7 +114,7 @@ Bounds::~Bounds()
 	if(clMinCoordsKernel)clReleaseKernel(clMinCoordsKernel); clMinCoordsKernel=0;
 	if(clMaxVelKernel)clReleaseKernel(clMaxVelKernel); clMaxVelKernel=0;
 	if(clMinVelKernel)clReleaseKernel(clMinVelKernel); clMinVelKernel=0;
-	if(clProgram)clReleaseProgram(clProgram); clProgram=0;
+	if(program)clReleaseProgram(program); program=0;
 	if(mPath)delete[] mPath; mPath=0;
 }
 
@@ -146,24 +146,24 @@ bool Bounds::execute(vec *output, int op)
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
-	int clFlag=0;
+	int err_code=0;
     // Get the desired tools
-	cl_kernel clKernel = NULL;
+	cl_kernel kernel = NULL;
 	Reduction *reduction = NULL;
 	if(op == __BOUNDS_COORDS_MAX_OP__){
-        clKernel = clMaxCoordsKernel;
+        kernel = clMaxCoordsKernel;
         reduction = maxCoordsReduction;
 	}
 	if(op == __BOUNDS_COORDS_MIN_OP__){
-        clKernel = clMinCoordsKernel;
+        kernel = clMinCoordsKernel;
         reduction = minCoordsReduction;
 	}
 	if(op == __BOUNDS_VEL_MAX_OP__){
-        clKernel = clMaxVelKernel;
+        kernel = clMaxVelKernel;
         reduction = maxVelReduction;
 	}
 	if(op == __BOUNDS_VEL_MIN_OP__){
-        clKernel = clMinVelKernel;
+        kernel = clMinVelKernel;
         reduction = minVelReduction;
 	}
     // Prepare the data array, discarding fixed particles
@@ -171,27 +171,27 @@ bool Bounds::execute(vec *output, int op)
 		cl_event event;
 		cl_ulong end, start;
 		profileTime(0.f);
-		clFlag = clEnqueueNDRangeKernel(C->clComQueue, clKernel, 1, NULL, &clGlobalWorkSize, NULL, 0, NULL, &event);
+		err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &global_work_size, NULL, 0, NULL, &event);
 	#else
-		clFlag = clEnqueueNDRangeKernel(C->clComQueue, clKernel, 1, NULL, &clGlobalWorkSize, NULL, 0, NULL, NULL);
+		err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &global_work_size, NULL, 0, NULL, NULL);
 	#endif
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Bounds::Execute): Can't execute bounds data setup kernel.\n");
-        S->printOpenCLError(clFlag);
+        S->printOpenCLError(err_code);
 		return true;
 	}
 	#ifdef HAVE_GPUPROFILE
-		clFlag = clWaitForEvents(1, &event);
-		if(clFlag != CL_SUCCESS) {
+		err_code = clWaitForEvents(1, &event);
+		if(err_code != CL_SUCCESS) {
 			S->addMessage(3, "(Bounds::Execute): Can't wait to the kernel end.\n");
-            S->printOpenCLError(clFlag);
+            S->printOpenCLError(err_code);
 			return true;
 		}
-		clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
-		clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
-		if(clFlag != CL_SUCCESS) {
+		err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
+		err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
+		if(err_code != CL_SUCCESS) {
 			S->addMessage(3, "(Bounds::Execute): Can't profile the kernel execution.\n");
-            S->printOpenCLError(clFlag);
+            S->printOpenCLError(err_code);
 			return true;
 		}
 		profileTime(profileTime() + (end - start)/1000.f);  // 10^-3 ms
@@ -209,65 +209,65 @@ bool Bounds::setupBounds()
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
-	cl_int clFlag = 0;
+	cl_int err_code = 0;
 	char msg[1024];
 	mDevMem = C->allocMemory(C->n * sizeof( vec ));
 	if(!mDevMem)
 		return true;
-	sprintf(msg, "\tAllocated memory = %u bytes\n", (unsigned int)C->AllocatedMem);
+	sprintf(msg, "\tAllocated memory = %u bytes\n", (unsigned int)C->allocated_mem);
 	S->addMessage(0, msg);
-	if(!loadKernelFromFile(&clMaxCoordsKernel, &clProgram, C->clContext, C->clDevice, mPath, "MaximumCoordsFilter", ""))
+	if(!loadKernelFromFile(&clMaxCoordsKernel, &program, C->context, C->device, mPath, "MaximumCoordsFilter", ""))
 		return true;
-	clFlag  = sendArgument(clMaxCoordsKernel,  0, sizeof(cl_mem ), (void*)&mDevMem);
-	clFlag |= sendArgument(clMaxCoordsKernel,  1, sizeof(cl_mem ), (void*)&(C->imove));
-	clFlag |= sendArgument(clMaxCoordsKernel,  2, sizeof(cl_mem ), (void*)&(C->pos));
-	clFlag |= sendArgument(clMaxCoordsKernel,  3, sizeof(cl_uint), (void*)&(C->n));
-	if(clFlag)
+	err_code  = sendArgument(clMaxCoordsKernel,  0, sizeof(cl_mem ), (void*)&mDevMem);
+	err_code |= sendArgument(clMaxCoordsKernel,  1, sizeof(cl_mem ), (void*)&(C->imove));
+	err_code |= sendArgument(clMaxCoordsKernel,  2, sizeof(cl_mem ), (void*)&(C->pos));
+	err_code |= sendArgument(clMaxCoordsKernel,  3, sizeof(cl_uint), (void*)&(C->n));
+	if(err_code)
 		return true;
-	if(!loadKernelFromFile(&clMinCoordsKernel, &clProgram, C->clContext, C->clDevice, mPath, "MinimumCoordsFilter", ""))
+	if(!loadKernelFromFile(&clMinCoordsKernel, &program, C->context, C->device, mPath, "MinimumCoordsFilter", ""))
 		return true;
-	clFlag  = sendArgument(clMinCoordsKernel,  0, sizeof(cl_mem ), (void*)&mDevMem);
-	clFlag |= sendArgument(clMinCoordsKernel,  1, sizeof(cl_mem ), (void*)&(C->imove));
-	clFlag |= sendArgument(clMinCoordsKernel,  2, sizeof(cl_mem ), (void*)&(C->pos));
-	clFlag |= sendArgument(clMinCoordsKernel,  3, sizeof(cl_uint), (void*)&(C->n));
-	if(clFlag)
+	err_code  = sendArgument(clMinCoordsKernel,  0, sizeof(cl_mem ), (void*)&mDevMem);
+	err_code |= sendArgument(clMinCoordsKernel,  1, sizeof(cl_mem ), (void*)&(C->imove));
+	err_code |= sendArgument(clMinCoordsKernel,  2, sizeof(cl_mem ), (void*)&(C->pos));
+	err_code |= sendArgument(clMinCoordsKernel,  3, sizeof(cl_uint), (void*)&(C->n));
+	if(err_code)
 		return true;
-	if(!loadKernelFromFile(&clMaxVelKernel, &clProgram, C->clContext, C->clDevice, mPath, "MaximumVelFilter", ""))
+	if(!loadKernelFromFile(&clMaxVelKernel, &program, C->context, C->device, mPath, "MaximumVelFilter", ""))
 		return true;
-	clFlag  = sendArgument(clMaxVelKernel,  0, sizeof(cl_mem ), (void*)&mDevMem);
-	clFlag |= sendArgument(clMaxVelKernel,  1, sizeof(cl_mem ), (void*)&(C->imove));
-	clFlag |= sendArgument(clMaxVelKernel,  2, sizeof(cl_mem ), (void*)&(C->v));
-	clFlag |= sendArgument(clMaxVelKernel,  3, sizeof(cl_uint), (void*)&(C->n));
-	if(clFlag)
+	err_code  = sendArgument(clMaxVelKernel,  0, sizeof(cl_mem ), (void*)&mDevMem);
+	err_code |= sendArgument(clMaxVelKernel,  1, sizeof(cl_mem ), (void*)&(C->imove));
+	err_code |= sendArgument(clMaxVelKernel,  2, sizeof(cl_mem ), (void*)&(C->v));
+	err_code |= sendArgument(clMaxVelKernel,  3, sizeof(cl_uint), (void*)&(C->n));
+	if(err_code)
 		return true;
-	if(!loadKernelFromFile(&clMinVelKernel, &clProgram, C->clContext, C->clDevice, mPath, "MinimumVelFilter", ""))
+	if(!loadKernelFromFile(&clMinVelKernel, &program, C->context, C->device, mPath, "MinimumVelFilter", ""))
 		return true;
-	clFlag  = sendArgument(clMinVelKernel,  0, sizeof(cl_mem ), (void*)&mDevMem);
-	clFlag |= sendArgument(clMinVelKernel,  1, sizeof(cl_mem ), (void*)&(C->imove));
-	clFlag |= sendArgument(clMinVelKernel,  2, sizeof(cl_mem ), (void*)&(C->v));
-	clFlag |= sendArgument(clMinVelKernel,  3, sizeof(cl_uint), (void*)&(C->n));
-	if(clFlag)
+	err_code  = sendArgument(clMinVelKernel,  0, sizeof(cl_mem ), (void*)&mDevMem);
+	err_code |= sendArgument(clMinVelKernel,  1, sizeof(cl_mem ), (void*)&(C->imove));
+	err_code |= sendArgument(clMinVelKernel,  2, sizeof(cl_mem ), (void*)&(C->v));
+	err_code |= sendArgument(clMinVelKernel,  3, sizeof(cl_uint), (void*)&(C->n));
+	if(err_code)
 		return true;
 	//! Test for right work group size
 	cl_device_id device;
 	size_t localWorkGroupSize=0;
-	clFlag |= clGetCommandQueueInfo(C->clComQueue,CL_QUEUE_DEVICE,
+	err_code |= clGetCommandQueueInfo(C->command_queue,CL_QUEUE_DEVICE,
 	                                sizeof(cl_device_id),&device, NULL);
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Bounds::setupBounds): Can't get device from command queue.\n");
-	    S->printOpenCLError(clFlag);
+	    S->printOpenCLError(err_code);
 	    return true;
 	}
-	clFlag |= clGetKernelWorkGroupInfo(clMaxCoordsKernel,device,CL_KERNEL_WORK_GROUP_SIZE,
+	err_code |= clGetKernelWorkGroupInfo(clMaxCoordsKernel,device,CL_KERNEL_WORK_GROUP_SIZE,
 	                                   sizeof(size_t), &localWorkGroupSize, NULL);
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Bounds::setupBounds): Can't get maximum local work group size.\n");
-	    S->printOpenCLError(clFlag);
+	    S->printOpenCLError(err_code);
 	    return true;
 	}
-	if(localWorkGroupSize < clLocalWorkSize)
-	    clLocalWorkSize  = localWorkGroupSize;
-	clGlobalWorkSize = globalWorkSize(clLocalWorkSize);
+	if(localWorkGroupSize < local_work_size)
+	    local_work_size  = localWorkGroupSize;
+	global_work_size = globalWorkSize(local_work_size);
 	return false;
 }
 

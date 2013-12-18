@@ -355,21 +355,21 @@ void FileManager::endLogFile()
 	char msg[512];
 	strcpy(msg, "");
 	// Compute fluid mass
-	float fluidMass = 0.f;
+	float fluid_mass = 0.f;
 	CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
 	InputOutput::Fluid *F = InputOutput::Fluid::singleton();
 	int *imove = new int[C->N];
 	float *mass = new float[C->N];
-	int clFlag=0;
-	clFlag |= C->getData(imove, C->imove, C->N * sizeof( int ));
-	clFlag |= C->getData(mass, C->mass, C->N * sizeof( float ));
+	int flag=0;
+	flag |= C->getData(imove, C->imove, C->N * sizeof( int ));
+	flag |= C->getData(mass, C->mass, C->N * sizeof( float ));
 	for(i=0;i<C->N;i++) {
 	    if(imove[i] > 0)
-	        fluidMass += mass[i];
+	        fluid_mass += mass[i];
 	}
 	delete[] imove; imove=0;
 	delete[] mass; mass=0;
-    sprintf(msg, "Lost mass = %g [kg] (from %g [kg])\n", C->fluidMass - fluidMass, C->fluidMass);
+    sprintf(msg, "Lost mass = %g [kg] (from %g [kg])\n", C->fluid_mass - fluid_mass, C->fluid_mass);
     S->addMessageF(1, msg);
 	// Closing data data
 	if(!_log_file_id)
@@ -378,7 +378,7 @@ void FileManager::endLogFile()
 	struct timeval now_time;
 	gettimeofday(&now_time, NULL);
 	const time_t seconds = now_time.tv_sec;
-	fprintf(_log_file_id, "<b><font color=\"#000000\">[INFO (End of simulation)] Lost mass = %g [kg] (from %g [kg])</font></b><br>\n", C->fluidMass - fluidMass, C->fluidMass);
+	fprintf(_log_file_id, "<b><font color=\"#000000\">[INFO (End of simulation)] Lost mass = %g [kg] (from %g [kg])</font></b><br>\n", C->fluid_mass - fluid_mass, C->fluid_mass);
 	fprintf(_log_file_id, "<p align=\"left\">%s</p>\n", ctime(&seconds));
 
 	fprintf(_log_file_id, "</body>\n");

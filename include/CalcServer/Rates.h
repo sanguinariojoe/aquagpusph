@@ -61,15 +61,15 @@ private:
 	char *mPath;
 
 	/// OpenCL program
-	cl_program clProgram;
-	/// OpenCL lcell kernel
-	cl_kernel clKernel;
+	cl_program program;
+	/// OpenCL icell kernel
+	cl_kernel kernel;
 	/// OpenCL ihoc init kernel
 	cl_kernel clSortKernel;
 	/// Global work size.
-	size_t clGlobalWorkSize;
+	size_t global_work_size;
 	/// Local work size
-	size_t clLocalWorkSize;
+	size_t local_work_size;
 	/// true if \f$delta\f$-SPH (cont. eq. diffusive term) must be applied.
 	bool isDelta;
 	/// true if local memory can be used on kernel.

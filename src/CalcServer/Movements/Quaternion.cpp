@@ -119,28 +119,28 @@ bool Quaternion::execute()
 	    oldZ.x = 0.f; oldZ.y = 0.f;
 	#endif
 	//! Send variables to kernel
-	cl_int clFlag=0;
-	clFlag |= sendArgument(clKernel,  0, sizeof(cl_mem  ), (void*)&(C->imove));
-	clFlag |= sendArgument(clKernel,  1, sizeof(cl_mem  ), (void*)&(C->ifluid));
-	clFlag |= sendArgument(clKernel,  2, sizeof(cl_mem  ), (void*)&(C->posin));
-	clFlag |= sendArgument(clKernel,  3, sizeof(cl_mem  ), (void*)&(C->normal));
-	clFlag |= sendArgument(clKernel,  4, sizeof(cl_mem  ), (void*)&(C->vin));
-	clFlag |= sendArgument(clKernel,  5, sizeof(cl_mem  ), (void*)&(C->densin));
-	clFlag |= sendArgument(clKernel,  6, sizeof(cl_mem  ), (void*)&(C->mass));
-	clFlag |= sendArgument(clKernel,  7, sizeof(cl_mem  ), (void*)&(C->hpin));
-	clFlag |= sendArgument(clKernel,  8, sizeof(cl_mem  ), (void*)&(mRelPos));
-	clFlag |= sendArgument(clKernel,  9, sizeof(cl_mem  ), (void*)&(mRelNormal));
-	clFlag |= sendArgument(clKernel, 10, sizeof(cl_uint ), (void*)&(C->N));
-	clFlag |= sendArgument(clKernel, 11, sizeof(cl_float), (void*)&(C->dt));
-	clFlag |= sendArgument(clKernel, 12, sizeof(vec     ), (void*)&(mCOR));
-	clFlag |= sendArgument(clKernel, 13, sizeof(vec     ), (void*)&(X));
-	clFlag |= sendArgument(clKernel, 14, sizeof(vec     ), (void*)&(Y));
-	clFlag |= sendArgument(clKernel, 15, sizeof(vec     ), (void*)&(Z));
-	clFlag |= sendArgument(clKernel, 16, sizeof(vec     ), (void*)&(mOldCOR));
-	clFlag |= sendArgument(clKernel, 17, sizeof(vec     ), (void*)&(oldX));
-	clFlag |= sendArgument(clKernel, 18, sizeof(vec     ), (void*)&(oldY));
-	clFlag |= sendArgument(clKernel, 19, sizeof(vec     ), (void*)&(oldZ));
-	if(clFlag != CL_SUCCESS) {
+	cl_int err_code=0;
+	err_code |= sendArgument(kernel,  0, sizeof(cl_mem  ), (void*)&(C->imove));
+	err_code |= sendArgument(kernel,  1, sizeof(cl_mem  ), (void*)&(C->ifluid));
+	err_code |= sendArgument(kernel,  2, sizeof(cl_mem  ), (void*)&(C->posin));
+	err_code |= sendArgument(kernel,  3, sizeof(cl_mem  ), (void*)&(C->normal));
+	err_code |= sendArgument(kernel,  4, sizeof(cl_mem  ), (void*)&(C->vin));
+	err_code |= sendArgument(kernel,  5, sizeof(cl_mem  ), (void*)&(C->densin));
+	err_code |= sendArgument(kernel,  6, sizeof(cl_mem  ), (void*)&(C->mass));
+	err_code |= sendArgument(kernel,  7, sizeof(cl_mem  ), (void*)&(C->hpin));
+	err_code |= sendArgument(kernel,  8, sizeof(cl_mem  ), (void*)&(mRelPos));
+	err_code |= sendArgument(kernel,  9, sizeof(cl_mem  ), (void*)&(mRelNormal));
+	err_code |= sendArgument(kernel, 10, sizeof(cl_uint ), (void*)&(C->N));
+	err_code |= sendArgument(kernel, 11, sizeof(cl_float), (void*)&(C->dt));
+	err_code |= sendArgument(kernel, 12, sizeof(vec     ), (void*)&(mCOR));
+	err_code |= sendArgument(kernel, 13, sizeof(vec     ), (void*)&(X));
+	err_code |= sendArgument(kernel, 14, sizeof(vec     ), (void*)&(Y));
+	err_code |= sendArgument(kernel, 15, sizeof(vec     ), (void*)&(Z));
+	err_code |= sendArgument(kernel, 16, sizeof(vec     ), (void*)&(mOldCOR));
+	err_code |= sendArgument(kernel, 17, sizeof(vec     ), (void*)&(oldX));
+	err_code |= sendArgument(kernel, 18, sizeof(vec     ), (void*)&(oldY));
+	err_code |= sendArgument(kernel, 19, sizeof(vec     ), (void*)&(oldZ));
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Quaternion::execute): Can't send arguments to kernel.\n");
 	    return true;
 	}
@@ -149,32 +149,32 @@ bool Quaternion::execute()
 	    cl_event event;
 	    cl_ulong end, start;
 	    profileTime(0.f);
-	    clFlag = clEnqueueNDRangeKernel(C->clComQueue, clKernel, 1, NULL, &clGlobalWorkSize, NULL, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &global_work_size, NULL, 0, NULL, &event);
 	#else
-	    clFlag = clEnqueueNDRangeKernel(C->clComQueue, clKernel, 1, NULL, &clGlobalWorkSize, NULL, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &global_work_size, NULL, 0, NULL, NULL);
 	#endif
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Rates::Execute): Can't execute the kernel.\n");
-	    if(clFlag == CL_INVALID_WORK_GROUP_SIZE)
+	    if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 	        S->addMessage(0, "\tInvalid local work group size.\n");
-	    else if(clFlag == CL_OUT_OF_RESOURCES)
+	    else if(err_code == CL_OUT_OF_RESOURCES)
 	        S->addMessage(0, "\tDevice out of resources.\n");
-	    else if(clFlag == CL_MEM_OBJECT_ALLOCATION_FAILURE)
+	    else if(err_code == CL_MEM_OBJECT_ALLOCATION_FAILURE)
 	        S->addMessage(0, "\tAllocation error at device.\n");
-	    else if(clFlag == CL_OUT_OF_HOST_MEMORY)
+	    else if(err_code == CL_OUT_OF_HOST_MEMORY)
 	        S->addMessage(0, "\tfailure to allocate resources required by the OpenCL implementation on the host.\n");
 	    return true;
 	}
 	// Profile the kernel execution
 	#ifdef HAVE_GPUPROFILE
-	    clFlag = clWaitForEvents(1, &event);
-	    if(clFlag != CL_SUCCESS) {
+	    err_code = clWaitForEvents(1, &event);
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(Rates::Execute): Can't wait to sorting kernel ends.\n");
 	        return true;
 	    }
-	    clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
-	    clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
-	    if(clFlag != CL_SUCCESS) {
+	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
+	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(Rates::Execute): Can't profile sorting kernel execution.\n");
 	        return true;
 	    }

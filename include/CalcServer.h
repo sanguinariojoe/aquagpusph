@@ -105,153 +105,177 @@ public:
 
 	/** Fills the fluid using an OpenCL script
 	 * @return false if the fluid has been succesfully set, true otherwise
-	 * @warning The OpenCL script initialization way is deprecated.
+	 * @warning This initialization way is deprecated and it will be removed in
+	 * future releases.
 	 */
 	bool fillFluid();
 
-	/** Setup the calculation server with the data recopilated by the host during
-	 * the simulation setup process.
-	 * @return false if the caluclation server has been succesfully setup, true otherwise
+	/** Setup the calculation server with the data recopilated by the host
+	 * during the initialization process.
+	 * @return false if the caluclation server has been succesfully setup,
+     * true otherwise
 	 */
 	bool setup();
 
-	/** Prints the log file.
+	/** Updates the log file.
 	 */
 	void printLog();
 
-	/** Prints the energy report. The energy components are:
-     *     -# Internal energy: \f$ E = E_pot + E_kin \f$
-     *     -# Potential energy: \f$ E_pot = m \frac{p}{\rho} \f$
-     *     -# Kinetic energy: \f$ E_kin = \frac{1}{2} m \vert v \vert^2 \f$
+	/** Updates the energy report. The energy components printed are:
+     *   -# Potential energy: \f$ E_{pot} = - \sum_i m_i
+	     \mathbf{g} \cdot \mathbf{r}_i \f$.
+     *   -# Kinetic energy: \f$ E_{kin} = \sum_i \frac{1}{2} m_i
+	     \vert \mathbf{u}_i \vert^2 \f$.
+	 *   -# Internal energy: \f$ U = \int_0^t sum_i \frac{p_i}{\rho_i^2}
+	     \left(
+            \frac{\mathrm{d} \rho_i}{\mathrm{d} t}
+            - \left. \frac{\mathrm{d} \rho_i}{\mathrm{d} t} \right\vert_F
+	     \right) m_i \mathrm{d}t \f$.
+	 *   -# Enthalpy: \f$ H = \int_0^t sum_i \frac{p_i}{\rho_i^2}
+         \frac{\mathrm{d} \rho_i}{\mathrm{d} t} m_i \mathrm{d}t \f$.
+     *   -# Entropy: \f$ TS = U - H \f$.
+     *   -# Total energy: \f$ E = U + E_{kin} \f$.
 	 */
 	void printEnergy();
 
-	/** Prints the bounds report, including the bounds of the fluid particles
-	 * the maximum and minimum velocities.
+	/** Updates the bounds report, where the bounding box of the fluid
+	 * particles and the maximum and minimum velocities is printed.
 	 */
 	void printBounds();
 
-	/** Perform the energy calculation.
+	/** Performs the energy calculation. When this method is called a flag
+	 * is set in order to don't recompute it until the next time step.
 	 */
 	void energy();
 
-	/** Perform the bounds calculation.
+	/** Perform the bounds calculation. When this method is called a flag
+	 * is set in order to don't recompute it until the next time step.
 	 */
 	void bounds();
 
 	/// Verbose level
 	int verbose_level;
 
-	/// Device type
-	cl_device_type clDeviceType;
 	/// Number of available platforms
-	cl_uint clNPlatforms;
+	cl_uint num_platforms;
 	/// Array of platforms
-	cl_platform_id *clPlatforms;
+	cl_platform_id *platforms;
 	/// Number of devices
-	cl_uint clNDevices;
+	cl_uint num_devices;
 	/// Array of devices
-	cl_device_id *clDevices;
+	cl_device_id *devices;
 	/// OpenCL context
-	cl_context clContext;
+	cl_context context;
 	/// OpenCL command queue
-	cl_command_queue *clComQueues;
+	cl_command_queue *command_queues;
 	/// Selected platform
-	cl_platform_id clPlatform;
+	cl_platform_id platform;
 	/// Selected device
-	cl_device_id clDevice;
+	cl_device_id device;
 	/// Selected command queue
-	cl_command_queue clComQueue;
+	cl_command_queue command_queue;
 
 	/// Memory allocated in bytes
-	size_t AllocatedMem;
+	size_t allocated_mem;
 	/// Total number of particles (including sensors)
 	unsigned int N;
 	/// Number of fluid particles (including boundary areas and fixed particles)
 	unsigned int n;
 	/// Number of sensors
-	unsigned int nSensors;
-	/// Number of fluids
-	unsigned int nfluid;
-	/// Total number of cells allocated
-	unsigned int lxydim;
-	/// Number of cells in each direction
-	uivec lvec;
-	/// Total number of cells
-	unsigned int lxy;
-	/// Length of the cells
-	float rdist;
-	/// Minimum particle position (fluid or fixed, it is used for the Link-List definition)
-	vec posmin;
-	/// Maximum particle position (fluid or fixed, it is used for the Link-List definition)
-	vec posmax;
+	unsigned int num_sensors;
 
+	/// Number of fluids
+	unsigned int num_fluids;
+	/// Total number of cells allocated
+	unsigned int num_cells_allocated;
+
+	/** Minimum particle position (fluid and fixed particles are taken into
+     * account)
+     */
+	vec pos_min;
+	/** Maximum particle position (fluid and fixed particles are taken into
+     * account)
+     */
+	vec pos_max;
+
+	/// Number of cells in each direction
+	uivec num_cells_vec;
+	/// Total number of cells
+	unsigned int num_cells;
+	/// Length of the cells
+	float cell_length;
 	/// Maximum kernel height value, to control the linklist grid
 	float h;
-	/// Gravity force
+
+	/// Gravity force \f$ \mathbf{g} \f$
 	vec g;
-	/// kernel height and particles distance ratio.
+	/// Kernel height factor \f$ \frac{h}{\Delta r} \f$.
 	float hfac;
-	/// Time step divisor (The inverse of the Courant number).
+	/// Inverse of the Courant factor \f$ \frac{1}{Cf} \f$.
 	float dt_divisor;
-	/** LinkList time steps validity. If this value is grater than 1, the link-list process
-	 * will be avoided sometimes, but the cells size should be increased to ensure that the
-	 * neighbours list still being valid, increasing the number of neighbours per particles.
+	/** LinkList time steps validity. If this value is grater than 1, the
+	 * link-list computation process will be avoided some time steps, but the
+	 * cells size should be increased to ensure that the neighbours list still
+	 * being valid, increasing the number of neighbours per particles.
 	 * Sometimes some performance can be gained increasing this value.
 	 */
 	unsigned int link_list_steps;
 	/// LinkList main step, to control if a new link-list is required.
-	unsigned int mLLStep;
-	/// Cell size increasing factor (resulting from link_list_steps, deltar, hfac and dt_divisor).
-	float CellFac;
-	/** Density field interpolation steps. The density field is usually computed as an
-	 * evolution process fulfilling the continuity equation, but in order to reduce the
-	 * pressure noise sometimes it can be interpolated through the SPH model, being
-	 * therefore a geometric result.
-	 * It is not recommended to use this trick.
+	unsigned int link_list_step;
+	/** Cell size increasing factor (resulting from link_list_steps, deltar,
+     * hfac and dt_divisor).
+     */
+	float cell_length_factor;
+	/** Density field interpolation steps. The density field is usually
+	 * computed as an evolution process fulfilling the continuity equation, but
+	 * in order to reduce the pressure noise sometimes it can be interpolated
+	 * through the SPH model, being therefore a geometrical result.
+	 * It is strongly not recommended to apply this technique.
 	 */
 	unsigned int dens_int_steps;
-	/// Density interpolation main step, to control if the density field should be interpolated.
-	unsigned int mDensStep;
+	/** Density interpolation main step, to control if the density field should
+	 * be interpolated.
+	 */
+	unsigned int dens_int_step;
 
-	/// Time step
+	/// Time step \f$ \Delta t \f$.
 	float dt;
-	/// Sound speed
+	/// Sound speed \f$ c_s \f$.
 	float cs;
 
 	/** Fixed/fluid particles flag.
-	 *   - > 0 for every fluid. \n
-	 *   - = 0 for sensors. \n
-	 *   - < 0 for fixed particles or boundary elements.
+	 *   - imove > 0 for every fluid.
+	 *   - imove = 0 for sensors.
+	 *   - imove < 0 for fixed particles or boundary elements.
 	 */
 	cl_mem imove;
 	/// Fixed/fluid particles flag (predictor-corrector backup variable).
 	cl_mem imovein;
-	/// Fluid identifier
+	/// Fluid identifier.
 	cl_mem ifluid;
-	/// Fluid identifier (predictor-corrector backup variable)
+	/// Fluid identifier (predictor-corrector backup variable).
 	cl_mem ifluidin;
-	/// Position
+	/// Position \f$ \mathbf{r} \f$.
 	cl_mem pos;
-	/// Normal, for boundary particles/elements
+	/// Normal, for boundary particles/elements \f$ \mathbf{n} \f$.
 	cl_mem normal;
-	/// Velocity
+	/// Velocity \f$ \mathbf{u} \f$.
 	cl_mem v;
-	/// Acceleration
+	/// Acceleration \f$ \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \f$.
 	cl_mem f;
-	/// Density
+	/// Density \f$ \rho \f$.
 	cl_mem dens;
-	/// Density change rate
+	/// Density change rate \f$ \frac{\mathrm{d}\rho}{\mathrm{d}t} \f$
 	cl_mem drdt;
 	/** Density change rate (restricted to the numerical diffusive term of
      * \f$\delta\f$-SPH technique)
      */
 	cl_mem drdt_F;
-	/// Mass
+	/// Mass \f$ m \f$.
 	cl_mem mass;
-	/// Kernel height
+	/// Kernel height \f$ h \f$.
 	cl_mem hp;
-	/// Pressure
+	/// Pressure \f$ p \f$.
 	cl_mem press;
 	/// Position (predictor-corrector backup variable)
 	cl_mem posin;
@@ -271,82 +295,81 @@ public:
 	cl_mem hpin;
 	/// Pressure (predictor-corrector backup variable)
 	cl_mem pressin;
-	/// Viscous timestep term
+	/// Viscous timestep term \f$ \Delta t_{visc} \f$.
 	cl_mem sigma;
-	/// Convective timestep term
+	/// Convective timestep term \f$ \Delta t_{conv} \f$.
 	cl_mem dtconv;
-	/// Shepard term (0th correction)
+	/** Shepard term (0th correction) \f$ \gamma(\mathbf{x}) = \int_{Omega}
+           W(\mathbf{y} - \mathbf{x})
+           \mathrm{d}\mathbf{x} \f$.
+     */
 	cl_mem shepard;
-	/// Shepard term gradient (0th correction)
-	cl_mem gradShepard;
-	/** Permutations vector, that gives for each particle index in
-	 * the sorted space, their index in the unsorted space.
-	 * @note See also lcell variable.
+	/** Shepard term gradient (0th correction) \f$ \gamma(\mathbf{x}) = \int_{Omega}
+           \nabla W(\mathbf{y} - \mathbf{x})
+           \mathrm{d}\mathbf{x} \f$.
+     */
+	cl_mem shepard_gradient;
+	/** Permutations vector, that gives for each particle index in the sorted
+	 * space, their index in the unsorted space.
 	 */
 	cl_mem permutation;
-	/** Inversed permutations vector, that gives for each particle
-	 * index in the unsorted space, their index in the sorted space.
-	 * @note See also lcell variable.
+	/** Inversed permutations vector, that gives for each particle index in the
+	 * unsorted space, their index in the sorted space.
 	 */
-	cl_mem reversePermutation;
+	cl_mem permutation_inverse;
 	/** Head of chain for each cell in the sorted space, meaning the
 	 * first particle in each cell.
-	 * @note See also lcell variable.
 	 */
 	cl_mem ihoc;
 	/** Mark about cells which contains at least one fluid particle.
-	 * @note See also lcell variable.
 	 */
-	cl_mem isValidCell;
+	cl_mem cell_has_particles;
 	/** Cell where each particle is placed, in the sorted space.
-	 * @note To improve the use of multicore platform the particles
-	 * are sorted by their cell position at the linklist phase. Therefore
-	 * two identifier spaces must be considered, the original one, and
-	 * the sorted one.
+	 * @note To improve the use of multicore platforms the particles are sorted
+	 * by their cell position at the linklist phase. Therefore two identifier
+	 * spaces must be considered, the original one (formerly unsorted space),
+	 * and the sorted one.
 	 */
-	cl_mem lcell;
+	cl_mem icell;
 
-	/** lcell vector dimension, that must be power of two in order to
-	 * use the radix sort process.
-	 * This dimension is applied to the permutation vectors as well.
+	/** icell array dimension, that must be power of two in order to use the
+	 * radix sort process. This dimension is applied to the permutation vectors
+	 * as well.
 	 */
-	unsigned int nLcell;
-	/// EOS gamma value for each fluid
+	unsigned int num_icell;
+	/** EOS gamma exponent \f$ \gamma \f$.
+     * \f$ p = \frac{c_s^2 \rho_0}{\gamma}
+		 \left(
+            \left( \frac{\rho}{\rho_0} \right)^\gamma - 1
+         \right) \f$.
+     */
 	cl_mem gamma;
-	/// Reference density for each fluid
+	/// Density of reference \f$ \rho_0 \f$.
 	cl_mem refd;
-	/// Dynamic viscosity for each fluid
+	/// Dynamic viscosity \f$ \mu \f$.
 	cl_mem visc_dyn;
-	/// Kinetic viscosity for each fluid
+	/// Kinetic viscosity \f$ \nu \f$.
 	cl_mem visc_kin;
-	/// Alpha corrected dynamic viscosity for each fluid.
+	/// Alpha corrected dynamic viscosity.
 	cl_mem visc_dyn_corrected;
-	/// Continuity equation diffusive term multiplier.
+	/// Continuity equation diffusive term factor \f$\delta\f$.
 	cl_mem delta;
 	/// Minimum value of the time step (it is a reduction process result)
 	cl_mem DT;
 
-	/// Sensors type for each sensor
-	cl_mem sensorMode;
-
-	/** Platform identifiers:
-	 *   - -1 = Any valid platform (Generic one)
-	 *   - 0 = nVIDIA
-	 *   - 1 = AMD
-	 *   - 2 = Intel
-	 */
-	int PlatformID;
+	/// Sensors types
+	cl_mem sensor_mode;
 
 	/** Internal energy: \f$ U = \int_0^t sum_i \frac{p_i}{\rho_i^2}
-	 *   \left(
-     *      \frac{\mathrm{d} \rho_i}{\mathrm{d} t}
-     *      - \left. \frac{\mathrm{d} \rho_i}{\mathrm{d} t} \right\vert_F
-	 *   \right) m_i \mathrm{d}t \f$.
+	     \left(
+            \frac{\mathrm{d} \rho_i}{\mathrm{d} t}
+            - \left. \frac{\mathrm{d} \rho_i}{\mathrm{d} t} \right\vert_F
+	     \right) m_i \mathrm{d}t \f$.
 	 * @warning The viscous dissipation is not implemented yet.
 	 */
 	float eint;
     /** Kinetic energy: \f$ E_{kin} = \sum_i \frac{1}{2} m_i
-	 *   \vert \mathbf{u}_i \vert^2 \f$.
+	    \vert \mathbf{u}_i \vert^2 \f$.
 	 * @warning The viscous dissipation is not implemented yet.
 	 */
 	float ekin;
@@ -355,64 +378,66 @@ public:
 	 */
 	float etot;
 	/// Minimum X,Y,Z coordinates for the fluid
-	vec minCoords;
+	vec min_fluid_bound;
 	/// Maximum X,Y,Z coordinates for the fluid
-	vec maxCoords;
+	vec max_fluid_bound;
 	/// Minimum velocity for the fluid
-	float minV;
+	float min_v;
 	/// Maximum velocity for the fluid
-	float maxV;
+	float max_v;
 	/// true if the energy data has been calculated, false otherwise
-	bool energyPerformed;
+	bool energy_computed;
 	/// true if the bounds data has been calculated, false otherwise
-	bool boundsPerformed;
+	bool bounds_computed;
 	/// Total fluid mass
-	float fluidMass;
+	float fluid_mass;
 
 	// --------------------------------------------
 	// Kernels
 	// --------------------------------------------
 	/// Predictor stage.
-	Predictor *mPredictor;
+	Predictor *predictor;
 	/// Grid, that determine the number of cells at each direction.
-	Grid *mGrid;
+	Grid *grid;
 	/// Link-list that allocate each particle in a cell to know the neighbours list.
-	LinkList *mLinkList;
+	LinkList *link_list;
 	/// Rates stage, where the SPH interactions are performed.
-	Rates *mRates;
+	Rates *rates;
 	/// ElasticBounce boundary condition, used only if it is selected.
-	Boundary::ElasticBounce *mElasticBounce;
+	Boundary::ElasticBounce *elastic_bounce;
 	/// DeLeffe boundary condition, used only if it is selected.
-	Boundary::DeLeffe *mDeLeffe;
+	Boundary::DeLeffe *de_Leffe;
 	/// Ghost particles, used only if it is selected.
-	Boundary::GhostParticles *mGhost;
+	Boundary::GhostParticles *ghost_particles;
 	/// 0th order correction stage, used only if it is selected.
-	Shepard *mShepard;
+	Shepard *shepard_tool;
 	/// Corrector stage.
-	Corrector *mCorrector;
+	Corrector *corrector;
 	/// Domain bounds test.
-	Domain *mDomain;
+	Domain *domain;
 	/// Time-step calculation for the next iteration.
-	TimeStep *mTimeStep;
+	TimeStep *time_step;
 	/// Density reinitialization process.
-	DensityInterpolation *mDensInt;
+	DensityInterpolation *dens_int;
 	/// Motions array.
-	std::deque<Movement::Movement*> mMoves;
+	std::deque<Movement::Movement*> motions;
 	/// Sensors measurement.
-	Sensors *mSensors;
+	Sensors *sensors;
 	/// Energy computation.
-	Energy *mEnergy;
+	Energy *energy_tool;
 	/// Bounds computation.
-	Bounds *mBounds;
+	Bounds *bounds_tool;
 	/// Portals array.
-	std::deque<Portal::Portal*> mPortals;
+	std::deque<Portal::Portal*> portals;
 private:
 	/** Setup the OpenCL stuff.
-	 * @return false if the OpenCL environment has been succesfully built, true otherwise
+	 * @return false if the OpenCL environment has been succesfully built,
+	 * true otherwise
 	 */
 	bool setupOpenCL();
 	/** Prints all the available platforms and devices returned by OpenCL.
-	 * @return false if the OpenCL environment can be succesfully built, true otherwise
+	 * @return false if the OpenCL environment can be succesfully built,
+	 * true otherwise
 	 */
 	bool queryOpenCL();
 	/** Get a platform from the available ones.
@@ -420,7 +445,8 @@ private:
 	 */
 	bool getPlatform();
 	/** Get the available devices in the selected platform.
-	 * @return false if the devices have been succesfully obtained, true otherwise
+	 * @return false if the devices have been succesfully obtained, true
+	 * otherwise
 	 */
 	bool getDevices();
 

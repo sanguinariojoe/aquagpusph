@@ -55,7 +55,7 @@ RadixSort::RadixSort()
 	, ckPasteHistogram(0)
 	, ckReorder(0)
 	, ckReversePermutations(0)
-	, clProgram(0)
+	, program(0)
 	#ifdef HAVE_GPUPROFILE
 	    , mTime(0.f)
 	#endif
@@ -85,7 +85,7 @@ RadixSort::RadixSort()
 	strcpy(Path, P->OpenCL_kernels.radix_sort);
 	strcat(Path, ".cl");
 	//! 2nd.- Set the number of elements
-	if(setN(C->nLcell))
+	if(setN(C->num_icell))
 	    exit(EXIT_FAILURE);
 	//! 3rd.- Setup OpenCL
 	if(setupOpenCL())
@@ -110,7 +110,7 @@ RadixSort::~RadixSort()
 	if(ckPasteHistogram)clReleaseKernel(ckPasteHistogram);ckPasteHistogram=0;
 	if(ckReorder)clReleaseKernel(ckReorder);ckReorder=0;
 	if(ckReversePermutations)clReleaseKernel(ckReversePermutations);ckReversePermutations=0;
-	if(clProgram)clReleaseProgram(clProgram);clProgram=0;
+	if(program)clReleaseProgram(program);program=0;
 }
 
 bool RadixSort::sort()
@@ -122,7 +122,7 @@ bool RadixSort::sort()
 	#endif
 	// Get maximum key bits, and needed pass
 	unsigned int i, maxLcell;
-	maxLcell = nextPowerOf2(C->lxy);                   // Any cell value cant be greather than this one (this value must be power of two)
+	maxLcell = nextPowerOf2(C->num_cells);                   // Any cell value cant be greather than this one (this value must be power of two)
 	for(i=0; (maxLcell&1) == 0; maxLcell >>= 1, i++);  // Decompose value into power of two factors
 	keyBits = i;
 	keyBits = roundUp(keyBits, mBits);
@@ -153,7 +153,7 @@ bool RadixSort::sort()
 	// if(_transpose(nbcol,nbrow))
 	//     return true;
 	/// Send data to CalcServer
-	C->lcell = clInKeys;            // Take care, swaped into _reorder
+	C->icell = clInKeys;            // Take care, swaped into _reorder
 	C->permutation = clInPermut;    // Take care, swaped into _reorder
 	if(_reversePermutations())
 	    return true;
@@ -164,10 +164,10 @@ bool RadixSort::_init()
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
-	int clFlag=0;
+	int err_code=0;
 	//! 1st.- Send arguments
-	clFlag |= sendArgument(ckInit, 0, sizeof(cl_mem), (void*)&clInPermut);
-	if(clFlag != CL_SUCCESS) {
+	err_code |= sendArgument(ckInit, 0, sizeof(cl_mem), (void*)&clInPermut);
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(RadixSort::_init): Can't send variable to kernel.\n");
 	    return true;
 	}
@@ -176,31 +176,31 @@ bool RadixSort::_init()
 	    cl_event event;
 	    cl_ulong end, start;
 	    profileTime(0.f);
-	    clFlag = clEnqueueNDRangeKernel(C->clComQueue, ckInit, 1, NULL, &clGlobalWorkSize, NULL, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckInit, 1, NULL, &global_work_size, NULL, 0, NULL, &event);
 	#else
-	    clFlag = clEnqueueNDRangeKernel(C->clComQueue, ckInit, 1, NULL, &clGlobalWorkSize, NULL, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckInit, 1, NULL, &global_work_size, NULL, 0, NULL, NULL);
 	#endif
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(RadixSort::_init): Can't execute the kernel.\n");
-	    if(clFlag == CL_INVALID_WORK_GROUP_SIZE)
+	    if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 	        S->addMessage(0, "\tInvalid local work group size.\n");
-	    else if(clFlag == CL_OUT_OF_RESOURCES)
+	    else if(err_code == CL_OUT_OF_RESOURCES)
 	        S->addMessage(0, "\tDevice out of resources.\n");
-	    else if(clFlag == CL_MEM_OBJECT_ALLOCATION_FAILURE)
+	    else if(err_code == CL_MEM_OBJECT_ALLOCATION_FAILURE)
 	        S->addMessage(0, "\tAllocation error at device.\n");
-	    else if(clFlag == CL_OUT_OF_HOST_MEMORY)
+	    else if(err_code == CL_OUT_OF_HOST_MEMORY)
 	        S->addMessage(0, "\tfailure to allocate resources required by the OpenCL implementation on the host.\n");
 	    return true;
 	}
 	#ifdef HAVE_GPUPROFILE
-	    clFlag = clWaitForEvents(1, &event);
-	    if(clFlag != CL_SUCCESS) {
+	    err_code = clWaitForEvents(1, &event);
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(RadixSort::_init): Can't wait to kernels end.\n");
 	        return true;
 	    }
-	    clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
-	    clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
-	    if(clFlag != CL_SUCCESS) {
+	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
+	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(RadixSort::_init): Can't profile kernel execution.\n");
 	        return true;
 	    }
@@ -213,7 +213,7 @@ bool RadixSort::_transpose(unsigned int nbrow, unsigned int nbcol)
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
-	int clFlag=0;
+	int err_code=0;
 	unsigned int tilesize=__CL_MIN_LOCALSIZE__;
 	if (nbrow%tilesize != 0) tilesize=1;
 	if (nbcol%tilesize != 0) tilesize=1;
@@ -225,16 +225,16 @@ bool RadixSort::_transpose(unsigned int nbrow, unsigned int nbcol)
 	    tilesizeWarning=true;
 	}
 	//! 1st.- Send arguments
-	clFlag |= sendArgument(ckTranspose, 0, sizeof(cl_mem), (void*)&clInKeys);
-	clFlag |= sendArgument(ckTranspose, 1, sizeof(cl_mem), (void*)&clOutKeys);
-	clFlag |= sendArgument(ckTranspose, 2, sizeof(cl_uint), (void*)&nbcol);
-	clFlag |= sendArgument(ckTranspose, 3, sizeof(cl_uint), (void*)&nbrow);
-	clFlag |= sendArgument(ckTranspose, 4, sizeof(cl_mem), (void*)&clInPermut);
-	clFlag |= sendArgument(ckTranspose, 5, sizeof(cl_mem), (void*)&clOutPermut);
-	clFlag |= sendArgument(ckTranspose, 6, sizeof(cl_uint)*tilesize*tilesize, NULL);
-	clFlag |= sendArgument(ckTranspose, 7, sizeof(cl_uint)*tilesize*tilesize, NULL);
-	clFlag |= sendArgument(ckTranspose, 8, sizeof(cl_uint), (void*)&tilesize);
-	if(clFlag != CL_SUCCESS) {
+	err_code |= sendArgument(ckTranspose, 0, sizeof(cl_mem), (void*)&clInKeys);
+	err_code |= sendArgument(ckTranspose, 1, sizeof(cl_mem), (void*)&clOutKeys);
+	err_code |= sendArgument(ckTranspose, 2, sizeof(cl_uint), (void*)&nbcol);
+	err_code |= sendArgument(ckTranspose, 3, sizeof(cl_uint), (void*)&nbrow);
+	err_code |= sendArgument(ckTranspose, 4, sizeof(cl_mem), (void*)&clInPermut);
+	err_code |= sendArgument(ckTranspose, 5, sizeof(cl_mem), (void*)&clOutPermut);
+	err_code |= sendArgument(ckTranspose, 6, sizeof(cl_uint)*tilesize*tilesize, NULL);
+	err_code |= sendArgument(ckTranspose, 7, sizeof(cl_uint)*tilesize*tilesize, NULL);
+	err_code |= sendArgument(ckTranspose, 8, sizeof(cl_uint), (void*)&tilesize);
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(RadixSort::_transpose): Can't send variable to kernel.\n");
 	    return 1;
 	}
@@ -252,31 +252,31 @@ bool RadixSort::_transpose(unsigned int nbrow, unsigned int nbcol)
 	#ifdef HAVE_GPUPROFILE
 	    cl_event event;
 	    cl_ulong end, start;
-	    clFlag = clEnqueueNDRangeKernel(C->clComQueue, ckTranspose, 2, NULL, global_work_size, local_work_size, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckTranspose, 2, NULL, global_work_size, local_work_size, 0, NULL, &event);
 	#else
-	    clFlag = clEnqueueNDRangeKernel(C->clComQueue, ckTranspose, 2, NULL, global_work_size, local_work_size, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckTranspose, 2, NULL, global_work_size, local_work_size, 0, NULL, NULL);
 	#endif
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(RadixSort::_transpose): Can't execute the kernel.\n");
-	    if(clFlag == CL_INVALID_WORK_GROUP_SIZE)
+	    if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 	        S->addMessage(0, "\tInvalid local work group size.\n");
-	    else if(clFlag == CL_OUT_OF_RESOURCES)
+	    else if(err_code == CL_OUT_OF_RESOURCES)
 	        S->addMessage(0, "\tDevice out of resources.\n");
-	    else if(clFlag == CL_MEM_OBJECT_ALLOCATION_FAILURE)
+	    else if(err_code == CL_MEM_OBJECT_ALLOCATION_FAILURE)
 	        S->addMessage(0, "\tAllocation error at device.\n");
-	    else if(clFlag == CL_OUT_OF_HOST_MEMORY)
+	    else if(err_code == CL_OUT_OF_HOST_MEMORY)
 	        S->addMessage(0, "\tfailure to allocate resources required by the OpenCL implementation on the host.\n");
 	    return true;
 	}
 	#ifdef HAVE_GPUPROFILE
-	    clFlag = clWaitForEvents(1, &event);
-	    if(clFlag != CL_SUCCESS) {
+	    err_code = clWaitForEvents(1, &event);
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(RadixSort::_transpose): Can't wait to kernels end.\n");
 	        return true;
 	    }
-	    clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
-	    clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
-	    if(clFlag != CL_SUCCESS) {
+	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
+	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(RadixSort::_transpose): Can't profile kernel execution.\n");
 	        return true;
 	    }
@@ -299,14 +299,14 @@ bool RadixSort::_histograms()
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
-	int clFlag=0;
+	int err_code=0;
 	size_t localSize = mItems;
 	size_t globalSize = mGroups*mItems;
 	//! 1st.- Send arguments
-	clFlag |= sendArgument(ckHistogram, 0, sizeof(cl_mem), (void*)&clInKeys);
-	clFlag |= sendArgument(ckHistogram, 2, sizeof(cl_uint), (void*)&pass);
-	clFlag |= sendArgument(ckHistogram, 3, sizeof(cl_uint)*mRadix*mItems, NULL);
-	if(clFlag != CL_SUCCESS) {
+	err_code |= sendArgument(ckHistogram, 0, sizeof(cl_mem), (void*)&clInKeys);
+	err_code |= sendArgument(ckHistogram, 2, sizeof(cl_uint), (void*)&pass);
+	err_code |= sendArgument(ckHistogram, 3, sizeof(cl_uint)*mRadix*mItems, NULL);
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(RadixSort::_histograms): Can't send variable to kernel.\n");
 	    return true;
 	}
@@ -314,31 +314,31 @@ bool RadixSort::_histograms()
 	#ifdef HAVE_GPUPROFILE
 	    cl_event event;
 	    cl_ulong end, start;
-	    clFlag = clEnqueueNDRangeKernel(C->clComQueue, ckHistogram, 1, NULL, &globalSize, &localSize, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckHistogram, 1, NULL, &globalSize, &localSize, 0, NULL, &event);
 	#else
-	    clFlag = clEnqueueNDRangeKernel(C->clComQueue, ckHistogram, 1, NULL, &globalSize, &localSize, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckHistogram, 1, NULL, &globalSize, &localSize, 0, NULL, NULL);
 	#endif
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(RadixSort::_histograms): Can't execute the kernel.\n");
-	    if(clFlag == CL_INVALID_WORK_GROUP_SIZE)
+	    if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 	        S->addMessage(0, "\tInvalid local work group size.\n");
-	    else if(clFlag == CL_OUT_OF_RESOURCES)
+	    else if(err_code == CL_OUT_OF_RESOURCES)
 	        S->addMessage(0, "\tDevice out of resources.\n");
-	    else if(clFlag == CL_MEM_OBJECT_ALLOCATION_FAILURE)
+	    else if(err_code == CL_MEM_OBJECT_ALLOCATION_FAILURE)
 	        S->addMessage(0, "\tAllocation error at device.\n");
-	    else if(clFlag == CL_OUT_OF_HOST_MEMORY)
+	    else if(err_code == CL_OUT_OF_HOST_MEMORY)
 	        S->addMessage(0, "\tfailure to allocate resources required by the OpenCL implementation on the host.\n");
 	    return true;
 	}
 	#ifdef HAVE_GPUPROFILE
-	    clFlag = clWaitForEvents(1, &event);
-	    if(clFlag != CL_SUCCESS) {
+	    err_code = clWaitForEvents(1, &event);
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(RadixSort::_histograms): Can't wait to kernels end.\n");
 	        return true;
 	    }
-	    clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
-	    clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
-	    if(clFlag != CL_SUCCESS) {
+	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
+	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(RadixSort::_histograms): Can't profile kernel execution.\n");
 	        return true;
 	    }
@@ -351,15 +351,15 @@ bool RadixSort::_scan()
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
-	int clFlag=0;
+	int err_code=0;
 	size_t globalSize = mRadix*mGroups*mItems/2;
 	size_t localSize = globalSize / mHistoSplit;
 	unsigned int maxmemcache=max(mHistoSplit,mItems * mGroups * mRadix / mHistoSplit);
 	//! 1st.- Send arguments to first scan pass
-	clFlag |= sendArgument(ckScanHistogram, 0, sizeof(cl_mem), (void*)&clHistograms);
-	clFlag |= sendArgument(ckScanHistogram, 1, sizeof(cl_uint)* maxmemcache, NULL);
-	clFlag |= sendArgument(ckScanHistogram, 2, sizeof(cl_mem), (void*)&clGlobalSums);
-	if(clFlag != CL_SUCCESS) {
+	err_code |= sendArgument(ckScanHistogram, 0, sizeof(cl_mem), (void*)&clHistograms);
+	err_code |= sendArgument(ckScanHistogram, 1, sizeof(cl_uint)* maxmemcache, NULL);
+	err_code |= sendArgument(ckScanHistogram, 2, sizeof(cl_mem), (void*)&clGlobalSums);
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(RadixSort::_scan): Can't send arguments to first pass scan kernel.\n");
 	    return true;
 	}
@@ -367,31 +367,31 @@ bool RadixSort::_scan()
 	#ifdef HAVE_GPUPROFILE
 	    cl_event event;
 	    cl_ulong end, start;
-	    clFlag = clEnqueueNDRangeKernel(C->clComQueue, ckScanHistogram, 1, NULL, &globalSize, &localSize, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckScanHistogram, 1, NULL, &globalSize, &localSize, 0, NULL, &event);
 	#else
-	    clFlag = clEnqueueNDRangeKernel(C->clComQueue, ckScanHistogram, 1, NULL, &globalSize, &localSize, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckScanHistogram, 1, NULL, &globalSize, &localSize, 0, NULL, NULL);
 	#endif
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(RadixSort::_scan): Can't execute first pass kernel.\n");
-	    if(clFlag == CL_INVALID_WORK_GROUP_SIZE)
+	    if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 	        S->addMessage(0, "\tInvalid local work group size.\n");
-	    else if(clFlag == CL_OUT_OF_RESOURCES)
+	    else if(err_code == CL_OUT_OF_RESOURCES)
 	        S->addMessage(0, "\tDevice out of resources.\n");
-	    else if(clFlag == CL_MEM_OBJECT_ALLOCATION_FAILURE)
+	    else if(err_code == CL_MEM_OBJECT_ALLOCATION_FAILURE)
 	        S->addMessage(0, "\tAllocation error at device.\n");
-	    else if(clFlag == CL_OUT_OF_HOST_MEMORY)
+	    else if(err_code == CL_OUT_OF_HOST_MEMORY)
 	        S->addMessage(0, "\tfailure to allocate resources required by the OpenCL implementation on the host.\n");
 	    return true;
 	}
 	#ifdef HAVE_GPUPROFILE
-	    clFlag = clWaitForEvents(1, &event);
-	    if(clFlag != CL_SUCCESS) {
+	    err_code = clWaitForEvents(1, &event);
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(RadixSort::_scan): Can't wait to first pass kernel end.\n");
 	        return true;
 	    }
-	    clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
-	    clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
-	    if(clFlag != CL_SUCCESS) {
+	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
+	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(RadixSort::_scan): Can't profile first pass kernel execution.\n");
 	        return true;
 	    }
@@ -400,39 +400,39 @@ bool RadixSort::_scan()
 	//! 3rd.- Send arguments to second scan pass
 	globalSize = mHistoSplit/2;
 	localSize = globalSize;
-	clFlag |= sendArgument(ckScanHistogram, 0, sizeof(cl_mem), (void*)&clGlobalSums);
-	clFlag |= sendArgument(ckScanHistogram, 2, sizeof(cl_mem), (void*)&clTempMem);
-	if(clFlag != CL_SUCCESS) {
+	err_code |= sendArgument(ckScanHistogram, 0, sizeof(cl_mem), (void*)&clGlobalSums);
+	err_code |= sendArgument(ckScanHistogram, 2, sizeof(cl_mem), (void*)&clTempMem);
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(RadixSort::_scan): Can't send arguments to second pass scan kernel.\n");
 	    return true;
 	}
 	//! 4th.- Execute the second scan pass kernel
 	#ifdef HAVE_GPUPROFILE
-	    clFlag = clEnqueueNDRangeKernel(C->clComQueue, ckScanHistogram, 1, NULL, &globalSize, &localSize, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckScanHistogram, 1, NULL, &globalSize, &localSize, 0, NULL, &event);
 	#else
-	    clFlag = clEnqueueNDRangeKernel(C->clComQueue, ckScanHistogram, 1, NULL, &globalSize, &localSize, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckScanHistogram, 1, NULL, &globalSize, &localSize, 0, NULL, NULL);
 	#endif
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(RadixSort::_scan): Can't execute second pass kernel.\n");
-	    if(clFlag == CL_INVALID_WORK_GROUP_SIZE)
+	    if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 	        S->addMessage(0, "\tInvalid local work group size.\n");
-	    else if(clFlag == CL_OUT_OF_RESOURCES)
+	    else if(err_code == CL_OUT_OF_RESOURCES)
 	        S->addMessage(0, "\tDevice out of resources.\n");
-	    else if(clFlag == CL_MEM_OBJECT_ALLOCATION_FAILURE)
+	    else if(err_code == CL_MEM_OBJECT_ALLOCATION_FAILURE)
 	        S->addMessage(0, "\tAllocation error at device.\n");
-	    else if(clFlag == CL_OUT_OF_HOST_MEMORY)
+	    else if(err_code == CL_OUT_OF_HOST_MEMORY)
 	        S->addMessage(0, "\tfailure to allocate resources required by the OpenCL implementation on the host.\n");
 	    return true;
 	}
 	#ifdef HAVE_GPUPROFILE
-	    clFlag = clWaitForEvents(1, &event);
-	    if(clFlag != CL_SUCCESS) {
+	    err_code = clWaitForEvents(1, &event);
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(RadixSort::_scan): Can't wait to second pass kernel end.\n");
 	        return true;
 	    }
-	    clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
-	    clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
-	    if(clFlag != CL_SUCCESS) {
+	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
+	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(RadixSort::_scan): Can't profile second pass kernel execution.\n");
 	        return true;
 	    }
@@ -443,31 +443,31 @@ bool RadixSort::_scan()
 	localSize = globalSize / mHistoSplit;
 	//! 6th.- Execute the third scan pass kernel
 	#ifdef HAVE_GPUPROFILE
-	    clFlag = clEnqueueNDRangeKernel(C->clComQueue, ckPasteHistogram, 1, NULL, &globalSize, &localSize, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckPasteHistogram, 1, NULL, &globalSize, &localSize, 0, NULL, &event);
 	#else
-	    clFlag = clEnqueueNDRangeKernel(C->clComQueue, ckPasteHistogram, 1, NULL, &globalSize, &localSize, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckPasteHistogram, 1, NULL, &globalSize, &localSize, 0, NULL, NULL);
 	#endif
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(RadixSort::_scan): Can't execute paste pass kernel.\n");
-	    if(clFlag == CL_INVALID_WORK_GROUP_SIZE)
+	    if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 	        S->addMessage(0, "\tInvalid local work group size.\n");
-	    else if(clFlag == CL_OUT_OF_RESOURCES)
+	    else if(err_code == CL_OUT_OF_RESOURCES)
 	        S->addMessage(0, "\tDevice out of resources.\n");
-	    else if(clFlag == CL_MEM_OBJECT_ALLOCATION_FAILURE)
+	    else if(err_code == CL_MEM_OBJECT_ALLOCATION_FAILURE)
 	        S->addMessage(0, "\tAllocation error at device.\n");
-	    else if(clFlag == CL_OUT_OF_HOST_MEMORY)
+	    else if(err_code == CL_OUT_OF_HOST_MEMORY)
 	        S->addMessage(0, "\tfailure to allocate resources required by the OpenCL implementation on the host.\n");
 	    return true;
 	}
 	#ifdef HAVE_GPUPROFILE
-	    clFlag = clWaitForEvents(1, &event);
-	    if(clFlag != CL_SUCCESS) {
+	    err_code = clWaitForEvents(1, &event);
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(RadixSort::_scan): Can't wait to paste pass kernel end.\n");
 	        return true;
 	    }
-	    clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
-	    clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
-	    if(clFlag != CL_SUCCESS) {
+	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
+	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(RadixSort::_scan): Can't profile paste pass kernel execution.\n");
 	        return 4;
 	    }
@@ -480,17 +480,17 @@ bool RadixSort::_reorder()
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
-	int clFlag=0;
+	int err_code=0;
 	size_t localSize =  mItems;
 	size_t globalSize = mGroups*mItems;
 	//! 1st.- Send arguments
-	clFlag |= sendArgument(ckReorder, 0, sizeof(cl_mem), (void*)&clInKeys);
-	clFlag |= sendArgument(ckReorder, 1, sizeof(cl_mem), (void*)&clOutKeys);
-	clFlag |= sendArgument(ckReorder, 3, sizeof(cl_uint), (void*)&pass);
-	clFlag |= sendArgument(ckReorder, 4, sizeof(cl_mem), (void*)&clInPermut);
-	clFlag |= sendArgument(ckReorder, 5, sizeof(cl_mem), (void*)&clOutPermut);
-	clFlag |= sendArgument(ckReorder, 6, sizeof(cl_uint)*mRadix*mItems, NULL);
-	if(clFlag != CL_SUCCESS) {
+	err_code |= sendArgument(ckReorder, 0, sizeof(cl_mem), (void*)&clInKeys);
+	err_code |= sendArgument(ckReorder, 1, sizeof(cl_mem), (void*)&clOutKeys);
+	err_code |= sendArgument(ckReorder, 3, sizeof(cl_uint), (void*)&pass);
+	err_code |= sendArgument(ckReorder, 4, sizeof(cl_mem), (void*)&clInPermut);
+	err_code |= sendArgument(ckReorder, 5, sizeof(cl_mem), (void*)&clOutPermut);
+	err_code |= sendArgument(ckReorder, 6, sizeof(cl_uint)*mRadix*mItems, NULL);
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, (char*)"(RadixSort::_reorder): Can't send variable to kernel.\n");
 	    return true;
 	}
@@ -498,49 +498,49 @@ bool RadixSort::_reorder()
 	#ifdef HAVE_GPUPROFILE
 	    cl_event event;
 	    cl_ulong end, start;
-	    clFlag = clEnqueueNDRangeKernel(C->clComQueue, ckReorder, 1, NULL, &globalSize, &localSize, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckReorder, 1, NULL, &globalSize, &localSize, 0, NULL, &event);
 	#else
-	    clFlag = clEnqueueNDRangeKernel(C->clComQueue, ckReorder, 1, NULL, &globalSize, &localSize, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckReorder, 1, NULL, &globalSize, &localSize, 0, NULL, NULL);
 	#endif
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(RadixSort::_reorder): Can't execute the kernel.\n");
-	    if(clFlag == CL_INVALID_PROGRAM_EXECUTABLE)
+	    if(err_code == CL_INVALID_PROGRAM_EXECUTABLE)
 	        S->addMessage(0, "\tInvalid program (Compile errors maybe?).\n");
-	    else if(clFlag == CL_INVALID_COMMAND_QUEUE)
+	    else if(err_code == CL_INVALID_COMMAND_QUEUE)
 	        S->addMessage(0, "\tInvalid command queue.\n");
-	    else if(clFlag == CL_INVALID_KERNEL)
+	    else if(err_code == CL_INVALID_KERNEL)
 	        S->addMessage(0, "\tKernel is not a valid object.\n");
-	    else if(clFlag == CL_INVALID_CONTEXT)
+	    else if(err_code == CL_INVALID_CONTEXT)
 	        S->addMessage(0, "\tContext associated to command queue don't match qith kernel context.\n");
-	    else if(clFlag == CL_INVALID_KERNEL_ARGS)
+	    else if(err_code == CL_INVALID_KERNEL_ARGS)
 	        S->addMessage(0, "\tOne or more arguments are invalid (maybe don't specified).\n");
-	    else if(clFlag == CL_INVALID_WORK_DIMENSION)
+	    else if(err_code == CL_INVALID_WORK_DIMENSION)
 	        S->addMessage(0, "\tDimension must be a value between 1 and 3.\n");
-	    else if(clFlag == CL_INVALID_WORK_GROUP_SIZE)
+	    else if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 	        S->addMessage(0, "\tInvalid local work group size.\n");
-	    else if(clFlag == CL_INVALID_WORK_ITEM_SIZE)
+	    else if(err_code == CL_INVALID_WORK_ITEM_SIZE)
 	        S->addMessage(0, "\tLocal work group size is out of bounds.\n");
-	    else if(clFlag == CL_INVALID_GLOBAL_OFFSET)
+	    else if(err_code == CL_INVALID_GLOBAL_OFFSET)
 	        S->addMessage(0, "\tGlobal offset must be NULL.\n");
-	    else if(clFlag == CL_OUT_OF_RESOURCES)
+	    else if(err_code == CL_OUT_OF_RESOURCES)
 	        S->addMessage(0, "\tDevice out of resources.\n");
-	    else if(clFlag == CL_MEM_OBJECT_ALLOCATION_FAILURE)
+	    else if(err_code == CL_MEM_OBJECT_ALLOCATION_FAILURE)
 	        S->addMessage(0, "\tAllocation error at device.\n");
-	    else if(clFlag == CL_INVALID_EVENT_WAIT_LIST)
+	    else if(err_code == CL_INVALID_EVENT_WAIT_LIST)
 	        S->addMessage(0, "\tInvalid event wait instruction.\n");
-	    else if(clFlag == CL_OUT_OF_HOST_MEMORY)
+	    else if(err_code == CL_OUT_OF_HOST_MEMORY)
 	        S->addMessage(0, "\tfailure to allocate resources required by the OpenCL implementation on the host.\n");
 	    return true;
 	}
 	#ifdef HAVE_GPUPROFILE
-	    clFlag = clWaitForEvents(1, &event);
-	    if(clFlag != CL_SUCCESS) {
+	    err_code = clWaitForEvents(1, &event);
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, (char*)"(RadixSort::_reorder): Can't wait to kernels end.\n");
 	        return true;
 	    }
-	    clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
-	    clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
-	    if(clFlag != CL_SUCCESS) {
+	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
+	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, (char*)"(RadixSort::_reorder): Can't profile kernel execution.\n");
 	        return true;
 	    }
@@ -563,10 +563,10 @@ bool RadixSort::_reversePermutations()
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
-	int clFlag=0;
+	int err_code=0;
 	//! 1st.- Send arguments
-	clFlag |= sendArgument(ckReversePermutations, 0, sizeof(cl_mem), (void*)&clInPermut);
-	if(clFlag != CL_SUCCESS) {
+	err_code |= sendArgument(ckReversePermutations, 0, sizeof(cl_mem), (void*)&clInPermut);
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(RadixSort::_reversePermutations): Can't send variable to kernel.\n");
 	    return true;
 	}
@@ -574,31 +574,31 @@ bool RadixSort::_reversePermutations()
 	#ifdef HAVE_GPUPROFILE
 	    cl_event event;
 	    cl_ulong end, start;
-	    clFlag = clEnqueueNDRangeKernel(C->clComQueue, ckReversePermutations, 1, NULL, &clGlobalWorkSize, NULL, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckReversePermutations, 1, NULL, &global_work_size, NULL, 0, NULL, &event);
 	#else
-	    clFlag = clEnqueueNDRangeKernel(C->clComQueue, ckReversePermutations, 1, NULL, &clGlobalWorkSize, NULL, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckReversePermutations, 1, NULL, &global_work_size, NULL, 0, NULL, NULL);
 	#endif
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(RadixSort::_reversePermutations): Can't execute the kernel.\n");
-	    if(clFlag == CL_INVALID_WORK_GROUP_SIZE)
+	    if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 	        S->addMessage(0, "\tInvalid local work group size.\n");
-	    else if(clFlag == CL_OUT_OF_RESOURCES)
+	    else if(err_code == CL_OUT_OF_RESOURCES)
 	        S->addMessage(0, "\tDevice out of resources.\n");
-	    else if(clFlag == CL_MEM_OBJECT_ALLOCATION_FAILURE)
+	    else if(err_code == CL_MEM_OBJECT_ALLOCATION_FAILURE)
 	        S->addMessage(0, "\tAllocation error at device.\n");
-	    else if(clFlag == CL_OUT_OF_HOST_MEMORY)
+	    else if(err_code == CL_OUT_OF_HOST_MEMORY)
 	        S->addMessage(0, "\tfailure to allocate resources required by the OpenCL implementation on the host.\n");
 	    return true;
 	}
 	#ifdef HAVE_GPUPROFILE
-	    clFlag = clWaitForEvents(1, &event);
-	    if(clFlag != CL_SUCCESS) {
+	    err_code = clWaitForEvents(1, &event);
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(RadixSort::_reversePermutations): Can't wait to kernels end.\n");
 	        return true;
 	    }
-	    clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
-	    clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
-	    if(clFlag != CL_SUCCESS) {
+	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
+	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(RadixSort::_reversePermutations): Can't profile kernel execution.\n");
 	        return true;
 	    }
@@ -612,7 +612,7 @@ bool RadixSort::setN(unsigned int N)
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
 	char msg[1024];
-	int clFlag = 0;
+	int err_code = 0;
 	if(n == N)
 	    return false;
 	if(N <= 0){
@@ -620,13 +620,13 @@ bool RadixSort::setN(unsigned int N)
 	    S->addMessage(3, msg);
 	    return true;
 	}
-	clLocalWorkSize  = getLocalWorkSize(N, C->clComQueue);
-	if(!clLocalWorkSize){
+	local_work_size  = getLocalWorkSize(N, C->command_queue);
+	if(!local_work_size){
 	    sprintf(msg, "(RadixSort::setN): No valid local work size for %u cells.\n", N);
 	    S->addMessage(3, msg);
 	    return true;
 	}
-	clGlobalWorkSize = getGlobalWorkSize(N, clLocalWorkSize);
+	global_work_size = getGlobalWorkSize(N, local_work_size);
 	// Analise the amount of data
 	unsigned int oldN = n;
 	n = N;
@@ -657,11 +657,11 @@ bool RadixSort::setN(unsigned int N)
 	    return true;
 	}
 	// Get the memory identifiers
-	clInKeys = C->lcell;
+	clInKeys = C->icell;
 	clOutPermut = C->permutation;
 	// Keys and permutations
 	if(clOutKeys){
-	    C->AllocatedMem -= oldN*sizeof( unsigned int );
+	    C->allocated_mem -= oldN*sizeof( unsigned int );
 	    clReleaseMemObject(clOutKeys);
 	    clOutKeys=0;
 	}
@@ -669,7 +669,7 @@ bool RadixSort::setN(unsigned int N)
 	if(!clOutKeys)
         return true;
 	if(clInPermut){
-	    C->AllocatedMem -= oldN*sizeof( unsigned int );
+	    C->allocated_mem -= oldN*sizeof( unsigned int );
 	    clReleaseMemObject(clInPermut);
 	    clInPermut=0;
 	}
@@ -681,7 +681,7 @@ bool RadixSort::setN(unsigned int N)
 	if(clHistograms){
 	    clReleaseMemObject(clHistograms);
 	    clHistograms=0;
-	    C->AllocatedMem -= (mRadix * mGroups * mItems)*sizeof( unsigned int );
+	    C->allocated_mem -= (mRadix * mGroups * mItems)*sizeof( unsigned int );
 	}
 	clHistograms = C->allocMemory((mRadix * mGroups * mItems)*sizeof( unsigned int ));
 	if(!clHistograms)
@@ -689,7 +689,7 @@ bool RadixSort::setN(unsigned int N)
 	if(clGlobalSums){
 	    clReleaseMemObject(clGlobalSums);
 	    clGlobalSums=0;
-	    C->AllocatedMem -= (mHistoSplit)*sizeof( unsigned int );
+	    C->allocated_mem -= (mHistoSplit)*sizeof( unsigned int );
 	}
 	clGlobalSums = C->allocMemory(mHistoSplit*sizeof( unsigned int ));
 	if(!clGlobalSums)
@@ -697,14 +697,14 @@ bool RadixSort::setN(unsigned int N)
 	if(clTempMem){
 	    clReleaseMemObject(clTempMem);
 	    clTempMem=0;
-	    C->AllocatedMem -= sizeof( unsigned int );
+	    C->allocated_mem -= sizeof( unsigned int );
 	}
 	clTempMem = C->allocMemory(sizeof( unsigned int ));
 	if(!clTempMem)
         return true;
 	sprintf(msg, "Radix sort components = %u\n", n);
 	S->addMessageF(1, msg);
-	sprintf(msg, "\tAllocated memory = %lu bytes\n", C->AllocatedMem);
+	sprintf(msg, "\tAllocated memory = %lu bytes\n", C->allocated_mem);
 	S->addMessage(0, msg);
 	return 0;
 }
@@ -717,7 +717,7 @@ bool RadixSort::setupOpenCL()
 	// sprintf(CFlags, "-D_BITS=%u -D_RADIX=%u -DTRANSPOSE -DPERMUT", mBits, mRadix);
 	sprintf(CFlags, "-D_BITS=%u -D_RADIX=%u -DPERMUT", mBits, mRadix);
 	char msg[1024];
-	int clFlag = 0;
+	int err_code = 0;
 	// ------------------------------------------------------------------------
 	// Clean up all the previously generated kernels
 	// ------------------------------------------------------------------------
@@ -728,57 +728,57 @@ bool RadixSort::setupOpenCL()
 	if(ckPasteHistogram)clReleaseKernel(ckPasteHistogram);ckPasteHistogram=0;
 	if(ckReorder)clReleaseKernel(ckReorder);ckReorder=0;
 	if(ckReversePermutations)clReleaseKernel(ckReversePermutations);ckReversePermutations=0;
-	if(clProgram)clReleaseProgram(clProgram);clProgram=0;
+	if(program)clReleaseProgram(program);program=0;
     // Load the new kernels
-	if(!loadKernelFromFile(&ckInit, &clProgram, C->clContext, C->clDevice, Path, "init", CFlags))
+	if(!loadKernelFromFile(&ckInit, &program, C->context, C->device, Path, "init", CFlags))
 	    return true;
-	clReleaseProgram(clProgram);clProgram=0;
-	if(!loadKernelFromFile(&ckTranspose, &clProgram, C->clContext, C->clDevice, Path, "transpose", CFlags))
+	clReleaseProgram(program);program=0;
+	if(!loadKernelFromFile(&ckTranspose, &program, C->context, C->device, Path, "transpose", CFlags))
 	    return true;
-	clReleaseProgram(clProgram);clProgram=0;
-	if(!loadKernelFromFile(&ckHistogram, &clProgram, C->clContext, C->clDevice, Path, "histogram", CFlags))
+	clReleaseProgram(program);program=0;
+	if(!loadKernelFromFile(&ckHistogram, &program, C->context, C->device, Path, "histogram", CFlags))
 	    return true;
-	clReleaseProgram(clProgram);clProgram=0;
-	if(!loadKernelFromFile(&ckScanHistogram, &clProgram, C->clContext, C->clDevice, Path, "scanhistograms", CFlags))
+	clReleaseProgram(program);program=0;
+	if(!loadKernelFromFile(&ckScanHistogram, &program, C->context, C->device, Path, "scanhistograms", CFlags))
 	    return true;
-	clReleaseProgram(clProgram);clProgram=0;
-	if(!loadKernelFromFile(&ckPasteHistogram, &clProgram, C->clContext, C->clDevice, Path, "pastehistograms", CFlags))
+	clReleaseProgram(program);program=0;
+	if(!loadKernelFromFile(&ckPasteHistogram, &program, C->context, C->device, Path, "pastehistograms", CFlags))
 	    return true;
-	clReleaseProgram(clProgram);clProgram=0;
-	if(!loadKernelFromFile(&ckReorder, &clProgram, C->clContext, C->clDevice, Path, "reorder", CFlags))
+	clReleaseProgram(program);program=0;
+	if(!loadKernelFromFile(&ckReorder, &program, C->context, C->device, Path, "reorder", CFlags))
 	    return true;
-	clReleaseProgram(clProgram);clProgram=0;
-	if(!loadKernelFromFile(&ckReversePermutations, &clProgram, C->clContext, C->clDevice, Path, "reversePermutation", CFlags))
+	clReleaseProgram(program);program=0;
+	if(!loadKernelFromFile(&ckReversePermutations, &program, C->context, C->device, Path, "reversePermutation", CFlags))
 	    return true;
 	// ------------------------------------------------------------------------
     // Send the fixed arguments
 	// ------------------------------------------------------------------------
-	clFlag |= sendArgument(ckInit, 1, sizeof(cl_uint), (void*)&n);
-	if(clFlag != CL_SUCCESS) {
+	err_code |= sendArgument(ckInit, 1, sizeof(cl_uint), (void*)&n);
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(RadixSort::setupOpenCL): Fail sending fix variables to the initialization kernel.\n");
 	    return true;
 	}
-	clFlag |= sendArgument(ckHistogram, 1, sizeof(cl_mem), (void*)&clHistograms);
-	clFlag |= sendArgument(ckHistogram, 4, sizeof(cl_uint), (void*)&n);
-	if(clFlag != CL_SUCCESS) {
+	err_code |= sendArgument(ckHistogram, 1, sizeof(cl_mem), (void*)&clHistograms);
+	err_code |= sendArgument(ckHistogram, 4, sizeof(cl_uint), (void*)&n);
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(RadixSort::setupOpenCL): Fail sending fix variables to the histograms kernel.\n");
 	    return true;
 	}
-	clFlag |= sendArgument(ckPasteHistogram, 0, sizeof(cl_mem), (void*)&clHistograms);
-	clFlag |= sendArgument(ckPasteHistogram, 1, sizeof(cl_mem), (void*)&clGlobalSums);
-	if(clFlag != CL_SUCCESS) {
+	err_code |= sendArgument(ckPasteHistogram, 0, sizeof(cl_mem), (void*)&clHistograms);
+	err_code |= sendArgument(ckPasteHistogram, 1, sizeof(cl_mem), (void*)&clGlobalSums);
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(RadixSort::setupOpenCL): Fail sending fix variables to the histograms pasting kernel.\n");
 	    return true;
 	}
-	clFlag |= sendArgument(ckReorder, 2, sizeof(cl_mem), (void*)&clHistograms);
-	clFlag |= sendArgument(ckReorder, 7, sizeof(cl_uint), (void*)&n);
-	if(clFlag != CL_SUCCESS) {
+	err_code |= sendArgument(ckReorder, 2, sizeof(cl_mem), (void*)&clHistograms);
+	err_code |= sendArgument(ckReorder, 7, sizeof(cl_uint), (void*)&n);
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(RadixSort::setupOpenCL): Fail sending fix variables to the sorting kernel.\n");
 	    return true;
 	}
-	clFlag |= sendArgument(ckReversePermutations, 1, sizeof(cl_mem), (void*)&C->reversePermutation);
-	clFlag |= sendArgument(ckReversePermutations, 2, sizeof(cl_uint), (void*)&n);
-	if(clFlag != CL_SUCCESS) {
+	err_code |= sendArgument(ckReversePermutations, 1, sizeof(cl_mem), (void*)&C->permutation_inverse);
+	err_code |= sendArgument(ckReversePermutations, 2, sizeof(cl_uint), (void*)&n);
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(RadixSort::setupOpenCL): Fail sending fix variables to the reverse permutations kernel.\n");
 	    return true;
 	}
@@ -786,16 +786,16 @@ bool RadixSort::setupOpenCL()
 	// Local work sizes
 	// ------------------------------------------------------------------------
     cl_device_id device;
-	clFlag |= clGetCommandQueueInfo(C->clComQueue,CL_QUEUE_DEVICE,
+	err_code |= clGetCommandQueueInfo(C->command_queue,CL_QUEUE_DEVICE,
 	                                sizeof(cl_device_id),&device, NULL);
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(RadixSort::setupOpenCL): Can't get the device from the command queue.\n");
 		S->addMessage(0, "\tUnhandled exception\n");
 	    return true;
 	}
 	cl_uint dims;
-	clFlag |= clGetDeviceInfo(device,CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS,sizeof(cl_uint),&dims, NULL);
-	if(clFlag != CL_SUCCESS){
+	err_code |= clGetDeviceInfo(device,CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS,sizeof(cl_uint),&dims, NULL);
+	if(err_code != CL_SUCCESS){
 		S->addMessage(3, "(RadixSort::setupOpenCL): Can't get the number of dimensions allowed in the device.\n");
 		S->addMessage(0, "\tUnhandled exception\n");
 	    return true;
@@ -806,9 +806,9 @@ bool RadixSort::setupOpenCL()
 	}
     // The transposition process requires __CL_MIN_LOCALSIZE__, otherwise the device can't be used
     size_t maxLocalSize = 0;
-	clFlag |= clGetKernelWorkGroupInfo(ckTranspose,device,CL_KERNEL_WORK_GROUP_SIZE,
+	err_code |= clGetKernelWorkGroupInfo(ckTranspose,device,CL_KERNEL_WORK_GROUP_SIZE,
 	                                   sizeof(size_t), &maxLocalSize, NULL);
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(LinkList::setupOpenCL): Can't get maximum local work group size from the transposition kernel.\n");
 		S->addMessage(0, "\tUnhandled exception\n");
 	    return true;
@@ -819,25 +819,25 @@ bool RadixSort::setupOpenCL()
 	    return true;
     }
     // With the ckHistogram and ckReorder we can assign a maximum bound to mItems
-	clFlag |= clGetKernelWorkGroupInfo(ckReorder,device,CL_KERNEL_WORK_GROUP_SIZE,
+	err_code |= clGetKernelWorkGroupInfo(ckReorder,device,CL_KERNEL_WORK_GROUP_SIZE,
 	                                   sizeof(size_t), &maxLocalSize, NULL);
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(LinkList::setupOpenCL): Can't get maximum local work group size from the histograms kernel.\n");
 	    return true;
 	}
 	if(maxLocalSize < mItems) mItems = maxLocalSize;
-	clFlag |= clGetKernelWorkGroupInfo(ckHistogram,device,CL_KERNEL_WORK_GROUP_SIZE,
+	err_code |= clGetKernelWorkGroupInfo(ckHistogram,device,CL_KERNEL_WORK_GROUP_SIZE,
 	                                   sizeof(size_t), &maxLocalSize, NULL);
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(LinkList::setupOpenCL): Can't get maximum local work group size from the histograms kernel.\n");
 		S->addMessage(0, "\tUnhandled exception\n");
 	    return true;
 	}
 	if(maxLocalSize < mItems) mItems = maxLocalSize;
     // With the scan process we can easily set a bound for the number of histograms splits as well
-	clFlag |= clGetKernelWorkGroupInfo(ckScanHistogram,device,CL_KERNEL_WORK_GROUP_SIZE,
+	err_code |= clGetKernelWorkGroupInfo(ckScanHistogram,device,CL_KERNEL_WORK_GROUP_SIZE,
 	                                   sizeof(size_t), &maxLocalSize, NULL);
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(LinkList::setupOpenCL): Can't get maximum local work group size from the histograms scan kernel.\n");
 		S->addMessage(0, "\tUnhandled exception\n");
 	    return true;
@@ -845,9 +845,9 @@ bool RadixSort::setupOpenCL()
 	if(maxLocalSize < mHistoSplit/2) mHistoSplit = 2*maxLocalSize;
     // With the scan histograms kernel and the paste them one we must adjust GROUPS, ITEMS and RADIX
     size_t maxForScan = maxLocalSize;
-	clFlag |= clGetKernelWorkGroupInfo(ckReorder,device,CL_KERNEL_WORK_GROUP_SIZE,
+	err_code |= clGetKernelWorkGroupInfo(ckReorder,device,CL_KERNEL_WORK_GROUP_SIZE,
 	                                   sizeof(size_t), &maxLocalSize, NULL);
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(LinkList::setupOpenCL): Can't get maximum local work group size from the sorting kernel.\n");
 		S->addMessage(0, "\tUnhandled exception\n");
 	    return true;
@@ -879,8 +879,8 @@ bool RadixSort::setupOpenCL()
 	// Local memory
 	// ------------------------------------------------------------------------
     cl_ulong usedMem = 0, availableMem = 0;
-	clFlag |= clGetDeviceInfo(device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(cl_ulong), &availableMem, NULL);
-	if(clFlag != CL_SUCCESS) {
+	err_code |= clGetDeviceInfo(device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(cl_ulong), &availableMem, NULL);
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(RadixSort::setupOpenCL): Can't get available local memory available on the device.\n");
 		S->addMessage(0, "\tUnhandled exception\n");
 	    return true;
@@ -891,25 +891,25 @@ bool RadixSort::setupOpenCL()
 	unsigned int nbrow    = mGroups * mItems;
 	if (nbrow%tilesize != 0) tilesize = 1;
 	if (nbcol%tilesize != 0) tilesize = 1;
-	clFlag |= sendArgument(ckTranspose, 6, sizeof(cl_uint)*tilesize*tilesize, NULL);
-	clFlag |= sendArgument(ckTranspose, 7, sizeof(cl_uint)*tilesize*tilesize, NULL);
-	if(clFlag != CL_SUCCESS) {
+	err_code |= sendArgument(ckTranspose, 6, sizeof(cl_uint)*tilesize*tilesize, NULL);
+	err_code |= sendArgument(ckTranspose, 7, sizeof(cl_uint)*tilesize*tilesize, NULL);
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(RadixSort::setupOpenCL): Can't set the local memory for the transpose kernel.\n");
 		S->addMessage(0, "\tUnhandled exception\n");
 	    return true;
 	}
-	clFlag |= clGetKernelWorkGroupInfo(ckTranspose,device,CL_KERNEL_LOCAL_MEM_SIZE,
+	err_code |= clGetKernelWorkGroupInfo(ckTranspose,device,CL_KERNEL_LOCAL_MEM_SIZE,
 	                                   sizeof(size_t), &usedMem, NULL);
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(RadixSort::setupOpenCL): Can't get the local memory used by the transpose kernel.\n");
-		if(clFlag == CL_INVALID_DEVICE)
+		if(err_code == CL_INVALID_DEVICE)
             S->addMessage(0, "\tCL_INVALID_DEVICE\n");
-		else if(clFlag == CL_INVALID_VALUE)
+		else if(err_code == CL_INVALID_VALUE)
             S->addMessage(0, "\tCL_INVALID_VALUE\n");
-		else if(clFlag == CL_INVALID_KERNEL)
+		else if(err_code == CL_INVALID_KERNEL)
             S->addMessage(0, "\tCL_INVALID_KERNEL\n");
         else{
-            sprintf(msg, "\tUnhandled exception %i\n", clFlag);
+            sprintf(msg, "\tUnhandled exception %i\n", err_code);
             S->addMessage(0, msg);
         }
 	    return true;
@@ -920,19 +920,19 @@ bool RadixSort::setupOpenCL()
 	    return true;
     }
     // The histograms and sorting kernels requires an array of radix*items
-	clFlag |= sendArgument(ckHistogram, 3, sizeof(cl_uint)*mRadix*mItems, NULL);
-	clFlag |= sendArgument(ckReorder, 6, sizeof(cl_uint)*mRadix*mItems, NULL);
-	if(clFlag != CL_SUCCESS) {
+	err_code |= sendArgument(ckHistogram, 3, sizeof(cl_uint)*mRadix*mItems, NULL);
+	err_code |= sendArgument(ckReorder, 6, sizeof(cl_uint)*mRadix*mItems, NULL);
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(RadixSort::setupOpenCL): Can't set the local memory for histograms and sorting kernels.\n");
 		S->addMessage(0, "\tUnhandled exception\n");
 	    return true;
 	}
 	cl_ulong histoUsed = 0;
-	clFlag |= clGetKernelWorkGroupInfo(ckHistogram,device,CL_KERNEL_LOCAL_MEM_SIZE,
+	err_code |= clGetKernelWorkGroupInfo(ckHistogram,device,CL_KERNEL_LOCAL_MEM_SIZE,
 	                                   sizeof(size_t), &histoUsed, NULL);
-	clFlag |= clGetKernelWorkGroupInfo(ckReorder,device,CL_KERNEL_LOCAL_MEM_SIZE,
+	err_code |= clGetKernelWorkGroupInfo(ckReorder,device,CL_KERNEL_LOCAL_MEM_SIZE,
 	                                   sizeof(size_t), &usedMem, NULL);
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(RadixSort::setupOpenCL): Can't get the local memory used by the histograms and sorting kernels.\n");
 		S->addMessage(0, "\tUnhandled exception\n");
 	    return true;
@@ -945,18 +945,18 @@ bool RadixSort::setupOpenCL()
             mItems = __CL_MIN_LOCALSIZE__;
             break;
         }
-        clFlag |= sendArgument(ckHistogram, 3, sizeof(cl_uint)*mRadix*mItems, NULL);
-        clFlag |= sendArgument(ckReorder, 6, sizeof(cl_uint)*mRadix*mItems, NULL);
-        if(clFlag != CL_SUCCESS) {
+        err_code |= sendArgument(ckHistogram, 3, sizeof(cl_uint)*mRadix*mItems, NULL);
+        err_code |= sendArgument(ckReorder, 6, sizeof(cl_uint)*mRadix*mItems, NULL);
+        if(err_code != CL_SUCCESS) {
             S->addMessage(3, "(RadixSort::setupOpenCL): Can't set the local memory for histograms and sorting kernels.\n");
             S->addMessage(0, "\tUnhandled exception\n");
             return true;
         }
-        clFlag |= clGetKernelWorkGroupInfo(ckHistogram,device,CL_KERNEL_LOCAL_MEM_SIZE,
+        err_code |= clGetKernelWorkGroupInfo(ckHistogram,device,CL_KERNEL_LOCAL_MEM_SIZE,
                                            sizeof(size_t), &histoUsed, NULL);
-        clFlag |= clGetKernelWorkGroupInfo(ckReorder,device,CL_KERNEL_LOCAL_MEM_SIZE,
+        err_code |= clGetKernelWorkGroupInfo(ckReorder,device,CL_KERNEL_LOCAL_MEM_SIZE,
                                            sizeof(size_t), &usedMem, NULL);
-        if(clFlag != CL_SUCCESS) {
+        if(err_code != CL_SUCCESS) {
             S->addMessage(3, "(RadixSort::setupOpenCL): Can't get the local memory used by the histograms and sorting kernels.\n");
             S->addMessage(0, "\tUnhandled exception\n");
             return true;
@@ -971,15 +971,15 @@ bool RadixSort::setupOpenCL()
     }
     // The scan steps requires an amount of memory of max(mHistoSplit,mItems * mGroups * mRadix / mHistoSplit);
     unsigned int maxmemcache=max(mHistoSplit,mItems*mGroups*mRadix / mHistoSplit);
-    clFlag |= sendArgument(ckScanHistogram, 1, sizeof(cl_uint)* maxmemcache, NULL);
-    if(clFlag != CL_SUCCESS) {
+    err_code |= sendArgument(ckScanHistogram, 1, sizeof(cl_uint)* maxmemcache, NULL);
+    if(err_code != CL_SUCCESS) {
         S->addMessage(3, "(RadixSort::setupOpenCL): Can't set the local memory for scanning kernel.\n");
         S->addMessage(0, "\tUnhandled exception\n");
         return true;
     }
-    clFlag |= clGetKernelWorkGroupInfo(ckScanHistogram,device,CL_KERNEL_LOCAL_MEM_SIZE,
+    err_code |= clGetKernelWorkGroupInfo(ckScanHistogram,device,CL_KERNEL_LOCAL_MEM_SIZE,
                                        sizeof(size_t), &usedMem, NULL);
-    if(clFlag != CL_SUCCESS) {
+    if(err_code != CL_SUCCESS) {
         S->addMessage(3, "(RadixSort::setupOpenCL): Can't get the local memory used by the scanning kernel.\n");
         S->addMessage(0, "\tUnhandled exception\n");
         return true;

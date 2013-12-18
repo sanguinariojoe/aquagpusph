@@ -58,10 +58,10 @@ Sensors::Sensors()
 	, hPress(0)
 	, hDens(0)
 	, hSumW(0)
-	, clProgram(0)
-	, clKernel(0)
-	, clGlobalWorkSize(0)
-	, clLocalWorkSize(0)
+	, program(0)
+	, kernel(0)
+	, global_work_size(0)
+	, local_work_size(0)
 {
 	//! 1st.- Get data
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
@@ -92,12 +92,12 @@ Sensors::Sensors()
 	    exit(EXIT_FAILURE);
 	}
 	//! 2nd.- Setup the kernel
-	clLocalWorkSize  = localWorkSize();
-	if(!clLocalWorkSize){
+	local_work_size  = localWorkSize();
+	if(!local_work_size){
 	    S->addMessage(3, "(Sensors::Sensors): No valid local work size for required computation.\n");
 	    exit(EXIT_FAILURE);
 	}
-	clGlobalWorkSize = globalWorkSize(clLocalWorkSize);
+	global_work_size = globalWorkSize(local_work_size);
 	if(setupOpenCL()) {
 	    exit(EXIT_FAILURE);
 	}
@@ -113,66 +113,66 @@ Sensors::~Sensors()
 	if(hPress)delete[] hPress; hPress=0;
 	if(hDens)delete[] hDens; hDens=0;
 	if(hSumW)delete[] hSumW; hSumW=0;
-	if(clKernel)clReleaseKernel(clKernel); clKernel=0;
-	if(clProgram)clReleaseProgram(clProgram); clProgram=0;
+	if(kernel)clReleaseKernel(kernel); kernel=0;
+	if(program)clReleaseProgram(program); program=0;
 }
 
 bool Sensors::execute()
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
-	cl_int clFlag=0;
+	cl_int err_code=0;
 	if(!n)
 	    return false;
 	//! 1st.- Send data
 	unsigned int i0 = C->N - n;
-	clFlag |= sendArgument(clKernel,  0, sizeof(cl_mem), (void*)&(C->f));
-	clFlag |= sendArgument(clKernel,  1, sizeof(cl_mem), (void*)&(C->drdt));
-	clFlag |= sendArgument(clKernel,  2, sizeof(cl_mem), (void*)&(C->press));
-	clFlag |= sendArgument(clKernel,  3, sizeof(cl_mem), (void*)&(C->pressin));
-	clFlag |= sendArgument(clKernel,  4, sizeof(cl_mem), (void*)&(C->dens));
-	clFlag |= sendArgument(clKernel,  5, sizeof(cl_mem), (void*)&(C->densin));
-	clFlag |= sendArgument(clKernel,  6, sizeof(cl_mem), (void*)&(C->refd));
-	clFlag |= sendArgument(clKernel,  7, sizeof(cl_mem), (void*)&(C->ifluid));
-	clFlag |= sendArgument(clKernel,  8, sizeof(cl_mem), (void*)&(C->gamma));
-	clFlag |= sendArgument(clKernel,  9, sizeof(cl_mem), (void*)&(C->shepard));
-	clFlag |= sendArgument(clKernel, 10, sizeof(cl_mem), (void*)&(C->sensorMode));
-	clFlag |= sendArgument(clKernel, 11, sizeof(cl_float), (void*)&(C->cs));
-	clFlag |= sendArgument(clKernel, 12, sizeof(cl_uint), (void*)&(i0));
-	clFlag |= sendArgument(clKernel, 13, sizeof(cl_uint), (void*)&(n));
-	if(clFlag)
+	err_code |= sendArgument(kernel,  0, sizeof(cl_mem), (void*)&(C->f));
+	err_code |= sendArgument(kernel,  1, sizeof(cl_mem), (void*)&(C->drdt));
+	err_code |= sendArgument(kernel,  2, sizeof(cl_mem), (void*)&(C->press));
+	err_code |= sendArgument(kernel,  3, sizeof(cl_mem), (void*)&(C->pressin));
+	err_code |= sendArgument(kernel,  4, sizeof(cl_mem), (void*)&(C->dens));
+	err_code |= sendArgument(kernel,  5, sizeof(cl_mem), (void*)&(C->densin));
+	err_code |= sendArgument(kernel,  6, sizeof(cl_mem), (void*)&(C->refd));
+	err_code |= sendArgument(kernel,  7, sizeof(cl_mem), (void*)&(C->ifluid));
+	err_code |= sendArgument(kernel,  8, sizeof(cl_mem), (void*)&(C->gamma));
+	err_code |= sendArgument(kernel,  9, sizeof(cl_mem), (void*)&(C->shepard));
+	err_code |= sendArgument(kernel, 10, sizeof(cl_mem), (void*)&(C->sensor_mode));
+	err_code |= sendArgument(kernel, 11, sizeof(cl_float), (void*)&(C->cs));
+	err_code |= sendArgument(kernel, 12, sizeof(cl_uint), (void*)&(i0));
+	err_code |= sendArgument(kernel, 13, sizeof(cl_uint), (void*)&(n));
+	if(err_code)
 	    return true;
 	//! 2nd.- Execute the kernel
 	#ifdef HAVE_GPUPROFILE
 	    cl_event event;
 	    cl_ulong end, start;
 	    profileTime(0.f);
-	    clFlag = clEnqueueNDRangeKernel(C->clComQueue, clKernel, 1, NULL, &clGlobalWorkSize, NULL, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &global_work_size, NULL, 0, NULL, &event);
 	#else
-	    clFlag = clEnqueueNDRangeKernel(C->clComQueue, clKernel, 1, NULL, &clGlobalWorkSize, NULL, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &global_work_size, NULL, 0, NULL, NULL);
 	#endif
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Sensors::Execute): Can't execute the kernel.\n");
-	    if(clFlag == CL_INVALID_WORK_GROUP_SIZE)
+	    if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 	        S->addMessage(0, "\tInvalid local work group size.\n");
-	    else if(clFlag == CL_OUT_OF_RESOURCES)
+	    else if(err_code == CL_OUT_OF_RESOURCES)
 	        S->addMessage(0, "\tDevice out of resources.\n");
-	    else if(clFlag == CL_MEM_OBJECT_ALLOCATION_FAILURE)
+	    else if(err_code == CL_MEM_OBJECT_ALLOCATION_FAILURE)
 	        S->addMessage(0, "\tAllocation error at device.\n");
-	    else if(clFlag == CL_OUT_OF_HOST_MEMORY)
+	    else if(err_code == CL_OUT_OF_HOST_MEMORY)
 	        S->addMessage(0, "\tfailure to allocate resources required by the OpenCL implementation on the host.\n");
 	    return true;
 	}
 	// Profile the kernel execution
 	#ifdef HAVE_GPUPROFILE
-	    clFlag = clWaitForEvents(1, &event);
-	    if(clFlag != CL_SUCCESS) {
+	    err_code = clWaitForEvents(1, &event);
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(Rates::Execute): Can't wait to sorting kernel ends.\n");
 	        return true;
 	    }
-	    clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
-	    clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
-	    if(clFlag != CL_SUCCESS) {
+	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
+	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(Rates::Execute): Can't profile sorting kernel execution.\n");
 	        return true;
 	    }
@@ -190,17 +190,17 @@ bool Sensors::printOutput()
 	InputOutput::TimeManager *T = InputOutput::TimeManager::singleton();
 	CalcServer *C = CalcServer::singleton();
 	int i;
-	cl_int clFlag=0;
+	cl_int err_code=0;
 	if(T->time() - OutputTime < 1.f / P->SensorsParameters.fps)    // Don't needed output
 	    return false;
 	OutputTime = T->time();
 	//! 1st.- Retrieve data from server
 	unsigned int i0 = C->N - n;
-	clFlag  = C->getData((void*)hPos, C->pos, n*sizeof(vec), i0*sizeof(vec));
-	clFlag |= C->getData((void*)hPress, C->press, n*sizeof(cl_float), i0*sizeof(cl_float));
-	clFlag |= C->getData((void*)hDens, C->dens, n*sizeof(cl_float), i0*sizeof(cl_float));
-	clFlag |= C->getData((void*)hSumW, C->shepard, n*sizeof(cl_float), i0*sizeof(cl_float));
-	if(clFlag){
+	err_code  = C->getData((void*)hPos, C->pos, n*sizeof(vec), i0*sizeof(vec));
+	err_code |= C->getData((void*)hPress, C->press, n*sizeof(cl_float), i0*sizeof(cl_float));
+	err_code |= C->getData((void*)hDens, C->dens, n*sizeof(cl_float), i0*sizeof(cl_float));
+	err_code |= C->getData((void*)hSumW, C->shepard, n*sizeof(cl_float), i0*sizeof(cl_float));
+	if(err_code){
 	    return true;
 	}
 	//! 2nd.- Print data
@@ -221,27 +221,27 @@ bool Sensors::setupOpenCL()
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
-	int clFlag = 0;
-	if(!loadKernelFromFile(&clKernel, &clProgram, C->clContext, C->clDevice, mPath, "Sensors", ""))
+	int err_code = 0;
+	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, mPath, "Sensors", ""))
 	    return true;
 	//! Test for right work group size
 	cl_device_id device;
 	size_t localWorkGroupSize=0;
-	clFlag |= clGetCommandQueueInfo(C->clComQueue,CL_QUEUE_DEVICE,
+	err_code |= clGetCommandQueueInfo(C->command_queue,CL_QUEUE_DEVICE,
 	                                sizeof(cl_device_id),&device, NULL);
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Sensors::setupOpenCL): Can't get device from command queue.\n");
 	    return true;
 	}
-	clFlag |= clGetKernelWorkGroupInfo(clKernel,device,CL_KERNEL_WORK_GROUP_SIZE,
+	err_code |= clGetKernelWorkGroupInfo(kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
 	                                   sizeof(size_t), &localWorkGroupSize, NULL);
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Sensors::setupOpenCL): Can't get maximum local work group size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < clLocalWorkSize)
-	    clLocalWorkSize  = localWorkGroupSize;
-	clGlobalWorkSize = globalWorkSize(clLocalWorkSize);
+	if(localWorkGroupSize < local_work_size)
+	    local_work_size  = localWorkGroupSize;
+	global_work_size = globalWorkSize(local_work_size);
 	return false;
 }
 

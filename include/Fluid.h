@@ -109,7 +109,7 @@ public:
 	/// Shepard term.
 	float *shepard;
 	/// Shepard term gradient.
-	vec *gradShepard;
+	vec *shepard_gradient;
 	/// grad(p) output
 	vec *gradP;
 private:

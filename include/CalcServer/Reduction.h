@@ -91,9 +91,9 @@ private:
 	char* mPath;
 
 	/// OpenCL program
-	cl_program clProgram;
+	cl_program program;
 	/// OpenCL kernel
-	std::deque<cl_kernel> clKernel;
+	std::deque<cl_kernel> kernels;
 
     /// Global work sizes in each step
     std::deque<size_t> mGSize;

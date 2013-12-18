@@ -83,7 +83,7 @@ bool Grid::execute()
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
 	unsigned int i;
-	int clFlag=0;
+	int err_code=0;
 	float sep=2.f;
 	#if defined(__GAUSS_KERNEL_TYPE__)
 		sep = 3.f;
@@ -91,21 +91,21 @@ bool Grid::execute()
     cl_mem reduced = maximum->execute();
     if(!reduced)
         return true;
-	if(C->getData((void *)&C->posmax, reduced, sizeof(vec)))
+	if(C->getData((void *)&C->pos_max, reduced, sizeof(vec)))
 		return true;
     reduced = minimum->execute();
     if(!reduced)
         return true;
-	if(C->getData((void *)&C->posmin, reduced, sizeof(vec)))
+	if(C->getData((void *)&C->pos_min, reduced, sizeof(vec)))
 		return true;
-	C->rdist = 1.0f / (C->CellFac * sep * C->h);
-	C->lvec.x   = (unsigned int)((C->posmax.x - C->posmin.x) * C->rdist)+(unsigned int)6;
-	C->lvec.y   = (unsigned int)((C->posmax.y - C->posmin.y) * C->rdist)+(unsigned int)6;
-	C->lxy	  = C->lvec.x * C->lvec.y;
+	C->cell_length = 1.0f / (C->cell_length_factor * sep * C->h);
+	C->num_cells_vec.x   = (unsigned int)((C->pos_max.x - C->pos_min.x) * C->cell_length)+(unsigned int)6;
+	C->num_cells_vec.y   = (unsigned int)((C->pos_max.y - C->pos_min.y) * C->cell_length)+(unsigned int)6;
+	C->num_cells	  = C->num_cells_vec.x * C->num_cells_vec.y;
 	#ifdef HAVE_3D
-		C->lvec.z  = (unsigned int)((C->posmax.z - C->posmin.z) * C->rdist)+(unsigned int)6;
-		C->lvec.w  = 0;
-		C->lxy	*= C->lvec.z;
+		C->num_cells_vec.z  = (unsigned int)((C->pos_max.z - C->pos_min.z) * C->cell_length)+(unsigned int)6;
+		C->num_cells_vec.w  = 0;
+		C->num_cells	*= C->num_cells_vec.z;
 	#endif
 	return false;
 }

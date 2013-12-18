@@ -41,8 +41,8 @@ namespace Aqua{ namespace CalcServer{
 TimeStep::TimeStep()
 	: Kernel("TimeStep")
 	, mPath(NULL)
-	, clProgram(NULL)
-	, clKernel(NULL)
+	, program(NULL)
+	, kernel(NULL)
 	, reduction(NULL)
 	, MainDt(0.f)
 	, dtClamp(0)
@@ -68,8 +68,8 @@ TimeStep::TimeStep()
 	strcpy(mPath, P->OpenCL_kernels.time_step);
 	strcat(mPath, ".cl");
 	//! 2nd.- Setup the kernel
-	clLocalWorkSize = 256;
-	clGlobalWorkSize = globalWorkSize(clLocalWorkSize);
+	local_work_size = 256;
+	global_work_size = globalWorkSize(local_work_size);
 	if(setupOpenCL()) {
 		exit(EXIT_FAILURE);
 	}
@@ -80,8 +80,8 @@ TimeStep::~TimeStep()
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
-	if(clKernel)clReleaseKernel(clKernel); clKernel=NULL;
-	if(clProgram)clReleaseProgram(clProgram); clProgram=NULL;
+	if(kernel)clReleaseKernel(kernel); kernel=NULL;
+	if(program)clReleaseProgram(program); program=NULL;
 	if(mPath)delete[] mPath; mPath=NULL;
 	S->addMessage(1, "(TimeStep::~TimeStep): Destroying time step reduction processor...\n");
 	if(reduction) delete reduction; reduction=NULL;
@@ -93,7 +93,7 @@ bool TimeStep::execute()
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
 	CalcServer *C = CalcServer::singleton();
 	unsigned int i;
-	cl_int clFlag = CL_SUCCESS;
+	cl_int err_code = CL_SUCCESS;
 	if(P->time_opts.dt_mode == __DT_FIX__){
 		C->dt = P->time_opts.dt;
 		return false;
@@ -102,9 +102,9 @@ bool TimeStep::execute()
 		C->dt = MainDt;
 		return false;
 	}
-	clFlag |= sendArgument(clKernel,  6, sizeof(cl_float), (void*)&(C->dt));
-	clFlag |= sendArgument(clKernel,  7, sizeof(cl_float), (void*)&(C->cs));
-	if(clFlag != CL_SUCCESS) {
+	err_code |= sendArgument(kernel,  6, sizeof(cl_float), (void*)&(C->dt));
+	err_code |= sendArgument(kernel,  7, sizeof(cl_float), (void*)&(C->cs));
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(TimeStep::Execute): Can't send variable to kernel.\n");
 		return true;
 	}
@@ -112,31 +112,31 @@ bool TimeStep::execute()
 		cl_event event;
 		cl_ulong end, start;
 		profileTime(0.f);
-		clFlag = clEnqueueNDRangeKernel(C->clComQueue, clKernel, 1, NULL, &clGlobalWorkSize, NULL, 0, NULL, &event);
+		err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &global_work_size, NULL, 0, NULL, &event);
 	#else
-		clFlag = clEnqueueNDRangeKernel(C->clComQueue, clKernel, 1, NULL, &clGlobalWorkSize, NULL, 0, NULL, NULL);
+		err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &global_work_size, NULL, 0, NULL, NULL);
 	#endif
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(TimeStep::Execute): Can't execute the kernel.\n");
-		if(clFlag == CL_INVALID_WORK_GROUP_SIZE)
+		if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 			S->addMessage(0, "\tInvalid local work group size.\n");
-		else if(clFlag == CL_OUT_OF_RESOURCES)
+		else if(err_code == CL_OUT_OF_RESOURCES)
 			S->addMessage(0, "\tDevice out of resources.\n");
-		else if(clFlag == CL_MEM_OBJECT_ALLOCATION_FAILURE)
+		else if(err_code == CL_MEM_OBJECT_ALLOCATION_FAILURE)
 			S->addMessage(0, "\tAllocation error at device.\n");
-		else if(clFlag == CL_OUT_OF_HOST_MEMORY)
+		else if(err_code == CL_OUT_OF_HOST_MEMORY)
 			S->addMessage(0, "\tfailure to allocate resources required by the OpenCL implementation on the host.\n");
 		return true;
 	}
 	#ifdef HAVE_GPUPROFILE
-		clFlag = clWaitForEvents(1, &event);
-		if(clFlag != CL_SUCCESS) {
+		err_code = clWaitForEvents(1, &event);
+		if(err_code != CL_SUCCESS) {
 			S->addMessage(3, "(TimeStep::Execute): Can't wait to kernels end.\n");
 			return true;
 		}
-		clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
-		clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
-		if(clFlag != CL_SUCCESS) {
+		err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
+		err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
+		if(err_code != CL_SUCCESS) {
 			S->addMessage(3, "(TimeStep::Execute): Can't profile kernel execution.\n");
 			return true;
 		}
@@ -174,17 +174,17 @@ bool TimeStep::execute()
 bool TimeStep::setupOpenCL()
 {
 	CalcServer *C = CalcServer::singleton();
-	int clFlag;
-	if(!loadKernelFromFile(&clKernel, &clProgram, C->clContext, C->clDevice, mPath, "TimeStep", ""))
+	int err_code;
+	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, mPath, "TimeStep", ""))
 		return true;
-	clFlag  = sendArgument(clKernel,  0, sizeof(cl_mem ), (void*)&(C->dtconv));
-	clFlag |= sendArgument(clKernel,  1, sizeof(cl_mem ), (void*)&(C->v));
-	clFlag |= sendArgument(clKernel,  2, sizeof(cl_mem ), (void*)&(C->f));
-	clFlag |= sendArgument(clKernel,  3, sizeof(cl_mem ), (void*)&(C->hp));
-	clFlag |= sendArgument(clKernel,  4, sizeof(cl_mem ), (void*)&(C->sigma));
-    clFlag |= sendArgument(clKernel,  5, sizeof(cl_uint), (void*)&(C->n));
+	err_code  = sendArgument(kernel,  0, sizeof(cl_mem ), (void*)&(C->dtconv));
+	err_code |= sendArgument(kernel,  1, sizeof(cl_mem ), (void*)&(C->v));
+	err_code |= sendArgument(kernel,  2, sizeof(cl_mem ), (void*)&(C->f));
+	err_code |= sendArgument(kernel,  3, sizeof(cl_mem ), (void*)&(C->hp));
+	err_code |= sendArgument(kernel,  4, sizeof(cl_mem ), (void*)&(C->sigma));
+    err_code |= sendArgument(kernel,  5, sizeof(cl_uint), (void*)&(C->n));
 
-	if(clFlag)
+	if(err_code)
 		return true;
     reduction = new Reduction(C->dtconv, C->n, "float", "INFINITY", "c = (a < b) ? a : b;");
 	return false;

@@ -41,8 +41,8 @@ namespace Aqua{ namespace CalcServer{
 Reduction::Reduction(cl_mem input, unsigned int N, const char* type, const char* identity, const char* operation)
 	: Kernel("Reduction")
 	, mPath(0)
-	, clProgram(0)
-	, clKernel(0)
+	, program(0)
+	, kernels(0)
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
@@ -74,11 +74,11 @@ Reduction::~Reduction()
     for(i=1;i<mMems.size();i++){ // Don't try to remove input memory object, strat with i=1
         if(mMems.at(i))clReleaseMemObject(mMems.at(i)); mMems.at(i)=NULL;
     }
-    for(i=0;i<clKernel.size();i++){
-        if(clKernel.at(i))clReleaseKernel(clKernel.at(i)); clKernel.at(i)=NULL;
+    for(i=0;i<kernels.size();i++){
+        if(kernels.at(i))clReleaseKernel(kernels.at(i)); kernels.at(i)=NULL;
     }
-    clKernel.clear();
-	if(clProgram)clReleaseProgram(clProgram); clProgram=0;
+    kernels.clear();
+	if(program)clReleaseProgram(program); program=0;
 	if(mPath) delete[] mPath; mPath=0;
 	mGSize.clear();
 	mLSize.clear();
@@ -91,15 +91,15 @@ cl_mem Reduction::execute()
 	CalcServer *C = CalcServer::singleton();
     cl_int flag;
     unsigned int i;
-	for(i=0;i<clKernel.size();i++){
+	for(i=0;i<kernels.size();i++){
         size_t global_work_size = mGSize.at(i);
         size_t local_work_size  = mLSize.at(i);
 		#ifdef HAVE_GPUPROFILE
 			cl_event event;
 			cl_ulong end, start;
-			flag = clEnqueueNDRangeKernel(C->clComQueue, clKernel.at(i), 1, NULL, &global_work_size, &local_work_size, 0, NULL, &event);
+			flag = clEnqueueNDRangeKernel(C->command_queue, kernels.at(i), 1, NULL, &global_work_size, &local_work_size, 0, NULL, &event);
 		#else
-			flag = clEnqueueNDRangeKernel(C->clComQueue, clKernel.at(i), 1, NULL, &global_work_size, &local_work_size, 0, NULL, NULL);
+			flag = clEnqueueNDRangeKernel(C->command_queue, kernels.at(i), 1, NULL, &global_work_size, &local_work_size, 0, NULL, NULL);
 		#endif
 		if(flag != CL_SUCCESS) {
 			S->addMessage(3, "(Reduction::execute): Can't execute the kernel.\n");
@@ -134,7 +134,7 @@ cl_mem Reduction::execute()
 bool Reduction::setInput(cl_mem input)
 {
     mMems.at(0) = input;
-    cl_int flag = sendArgument(clKernel.at(0), 0, sizeof(cl_mem ), (void*)&(input));
+    cl_int flag = sendArgument(kernels.at(0), 0, sizeof(cl_mem ), (void*)&(input));
     if(flag != CL_SUCCESS)
         return true;
     return false;
@@ -167,7 +167,7 @@ bool Reduction::setupOpenCL(const char* type, const char* identity, const char* 
     char args[512];
     sprintf(args, "-DT=%s -DIDENTITY=%s -DLOCAL_WORK_SIZE=%luu", type, identity, lsize);
     cl_kernel kernel;
-    size_t maxlsize = loadKernelFromFile(&kernel, &clProgram, C->clContext, C->clDevice, mPath, "Reduction", args, header);
+    size_t maxlsize = loadKernelFromFile(&kernel, &program, C->context, C->device, mPath, "Reduction", args, header);
     if(maxlsize < __CL_MIN_LOCALSIZE__){
         S->addMessage(3, "(Reduction::Reduction): Reduction can't be performed due to insufficient local memory\n");
         sprintf(msg, "\t%lu elements can be executed, but __CL_MIN_LOCALSIZE__=%lu\n", maxlsize, __CL_MIN_LOCALSIZE__);
@@ -186,7 +186,7 @@ bool Reduction::setupOpenCL(const char* type, const char* identity, const char* 
     }
     sprintf(args, "-DT=%s -DIDENTITY=%s -DLOCAL_WORK_SIZE=%luu", type, identity, lsize);
 	if(kernel)clReleaseKernel(kernel); kernel=NULL;
-	if(clProgram)clReleaseProgram(clProgram); clProgram=NULL;
+	if(program)clReleaseProgram(program); program=NULL;
     // Now we can start a loop while the amount of resulting data was upper than one
     unsigned int N = mN.at(0);
     mN.clear();
@@ -206,10 +206,10 @@ bool Reduction::setupOpenCL(const char* type, const char* identity, const char* 
         }
         mMems.push_back(output);
         // Build the kernel
-        if(!loadKernelFromFile(&kernel, &clProgram, C->clContext, C->clDevice, mPath, "Reduction", args, header))
+        if(!loadKernelFromFile(&kernel, &program, C->context, C->device, mPath, "Reduction", args, header))
             return true;
-        clKernel.push_back(kernel);
-        if(clProgram)clReleaseProgram(clProgram); clProgram=NULL;
+        kernels.push_back(kernel);
+        if(program)clReleaseProgram(program); program=NULL;
 
         flag  = CL_SUCCESS;
         flag |= sendArgument(kernel, 0, sizeof(cl_mem ), (void*)&(mMems.at(i)));

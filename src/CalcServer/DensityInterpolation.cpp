@@ -41,8 +41,8 @@ namespace Aqua{ namespace CalcServer{
 DensityInterpolation::DensityInterpolation()
 	: Kernel("DensityInterpolation")
 	, mPath(0)
-	, clProgram(0)
-	, clKernel(0)
+	, program(0)
+	, kernel(0)
 	, isLocalMemory(true)
 {
 	//! 1st.- Get data
@@ -63,12 +63,12 @@ DensityInterpolation::DensityInterpolation()
 	strcpy(mPath, P->OpenCL_kernels.dens_int);
 	strcat(mPath, ".cl");
 	//! 2nd.- Setup the kernel
-	clLocalWorkSize  = localWorkSize();
-	if(!clLocalWorkSize){
+	local_work_size  = localWorkSize();
+	if(!local_work_size){
 	    S->addMessage(3, "(DensityInterpolation::DensityInterpolation): No valid local work size for required computation.\n");
 	    exit(EXIT_FAILURE);
 	}
-	clGlobalWorkSize = globalWorkSize(clLocalWorkSize);
+	global_work_size = globalWorkSize(local_work_size);
 	if(setupOpenCL()) {
 	    exit(EXIT_FAILURE);
 	}
@@ -77,8 +77,8 @@ DensityInterpolation::DensityInterpolation()
 
 DensityInterpolation::~DensityInterpolation()
 {
-	if(clKernel)clReleaseKernel(clKernel); clKernel=0;
-	if(clProgram)clReleaseProgram(clProgram); clProgram=0;
+	if(kernel)clReleaseKernel(kernel); kernel=0;
+	if(program)clReleaseProgram(program); program=0;
 	if(mPath)delete[] mPath; mPath=0;
 }
 
@@ -89,25 +89,25 @@ bool DensityInterpolation::execute()
 	    return false;
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
-	cl_int clFlag=0;
+	cl_int err_code=0;
 	//! Send data to device
-	clFlag |= sendArgument(clKernel,  0, sizeof(cl_mem  ), (void*)&(C->dens));
-	clFlag |= sendArgument(clKernel,  1, sizeof(cl_mem  ), (void*)&(C->imovein));
-	clFlag |= sendArgument(clKernel,  2, sizeof(cl_mem  ), (void*)&(C->posin));
-	clFlag |= sendArgument(clKernel,  3, sizeof(cl_mem  ), (void*)&(C->hpin));
-	clFlag |= sendArgument(clKernel,  4, sizeof(cl_mem  ), (void*)&(C->massin));
-	clFlag |= sendArgument(clKernel,  5, sizeof(cl_mem  ), (void*)&(C->shepard));
-	clFlag |= sendArgument(clKernel,  6, sizeof(cl_mem  ), (void*)&(C->lcell));
-	clFlag |= sendArgument(clKernel,  7, sizeof(cl_mem  ), (void*)&(C->ihoc));
-	clFlag |= sendArgument(clKernel,  8, sizeof(cl_mem  ), (void*)&(C->permutation));
-	clFlag |= sendArgument(clKernel,  9, sizeof(cl_mem  ), (void*)&(C->reversePermutation));
-	clFlag |= sendArgument(clKernel, 10, sizeof(cl_uint ), (void*)&(C->N));
-	clFlag |= sendArgument(clKernel, 11, sizeof(cl_float), (void*)&(C->hfac));
-	clFlag |= sendArgument(clKernel, 12, sizeof(uivec   ), (void*)&(C->lvec));
+	err_code |= sendArgument(kernel,  0, sizeof(cl_mem  ), (void*)&(C->dens));
+	err_code |= sendArgument(kernel,  1, sizeof(cl_mem  ), (void*)&(C->imovein));
+	err_code |= sendArgument(kernel,  2, sizeof(cl_mem  ), (void*)&(C->posin));
+	err_code |= sendArgument(kernel,  3, sizeof(cl_mem  ), (void*)&(C->hpin));
+	err_code |= sendArgument(kernel,  4, sizeof(cl_mem  ), (void*)&(C->massin));
+	err_code |= sendArgument(kernel,  5, sizeof(cl_mem  ), (void*)&(C->shepard));
+	err_code |= sendArgument(kernel,  6, sizeof(cl_mem  ), (void*)&(C->icell));
+	err_code |= sendArgument(kernel,  7, sizeof(cl_mem  ), (void*)&(C->ihoc));
+	err_code |= sendArgument(kernel,  8, sizeof(cl_mem  ), (void*)&(C->permutation));
+	err_code |= sendArgument(kernel,  9, sizeof(cl_mem  ), (void*)&(C->permutation_inverse));
+	err_code |= sendArgument(kernel, 10, sizeof(cl_uint ), (void*)&(C->N));
+	err_code |= sendArgument(kernel, 11, sizeof(cl_float), (void*)&(C->hfac));
+	err_code |= sendArgument(kernel, 12, sizeof(uivec   ), (void*)&(C->num_cells_vec));
 	if(isLocalMemory){
-	    clFlag |= sendArgument(clKernel, 13, clLocalWorkSize*sizeof(cl_float), NULL);
+	    err_code |= sendArgument(kernel, 13, local_work_size*sizeof(cl_float), NULL);
 	}
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(DensityInterpolation::execute): Can't send arguments to kernel.\n");
 	    return true;
 	}
@@ -116,32 +116,32 @@ bool DensityInterpolation::execute()
 	    cl_event event;
 	    cl_ulong end, start;
 	    profileTime(0.f);
-	    clFlag = clEnqueueNDRangeKernel(C->clComQueue, clKernel, 1, NULL, &clGlobalWorkSize, NULL, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &global_work_size, NULL, 0, NULL, &event);
 	#else
-	    clFlag = clEnqueueNDRangeKernel(C->clComQueue, clKernel, 1, NULL, &clGlobalWorkSize, NULL, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &global_work_size, NULL, 0, NULL, NULL);
 	#endif
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(DensityInterpolation::execute): Can't execute the kernel.\n");
-	    if(clFlag == CL_INVALID_WORK_GROUP_SIZE)
+	    if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 	        S->addMessage(0, "\tInvalid local work group size.\n");
-	    else if(clFlag == CL_OUT_OF_RESOURCES)
+	    else if(err_code == CL_OUT_OF_RESOURCES)
 	        S->addMessage(0, "\tDevice out of resources.\n");
-	    else if(clFlag == CL_MEM_OBJECT_ALLOCATION_FAILURE)
+	    else if(err_code == CL_MEM_OBJECT_ALLOCATION_FAILURE)
 	        S->addMessage(0, "\tAllocation error at device.\n");
-	    else if(clFlag == CL_OUT_OF_HOST_MEMORY)
+	    else if(err_code == CL_OUT_OF_HOST_MEMORY)
 	        S->addMessage(0, "\tfailure to allocate resources required by the OpenCL implementation on the host.\n");
 	    return true;
 	}
 	//! Profile the kernel execution
 	#ifdef HAVE_GPUPROFILE
-	    clFlag = clWaitForEvents(1, &event);
-	    if(clFlag != CL_SUCCESS) {
+	    err_code = clWaitForEvents(1, &event);
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(DensityInterpolation::execute): Can't wait to kernels end.\n");
 	        return true;
 	    }
-	    clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
-	    clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
-	    if(clFlag != CL_SUCCESS) {
+	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
+	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(DensityInterpolation::execute): Can't profile kernel execution.\n");
 	        return true;
 	    }
@@ -157,27 +157,27 @@ bool DensityInterpolation::setupOpenCL()
 	InputOutput::ProblemSetup *P  = InputOutput::ProblemSetup::singleton();
 	CalcServer *C = CalcServer::singleton();
 	char msg[1024];
-	cl_int clFlag;
+	cl_int err_code;
 	cl_device_id device;
 	cl_ulong localMem, reqLocalMem;
-	clFlag |= clGetCommandQueueInfo(C->clComQueue,CL_QUEUE_DEVICE,
+	err_code |= clGetCommandQueueInfo(C->command_queue,CL_QUEUE_DEVICE,
 	                                sizeof(cl_device_id),&device, NULL);
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(DensityInterpolation::setupOpenCL): Can't get device from command queue.\n");
 	    return true;
 	}
-	clFlag |= clGetDeviceInfo(device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(localMem), &localMem, NULL);
-	if(clFlag != CL_SUCCESS) {
+	err_code |= clGetDeviceInfo(device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(localMem), &localMem, NULL);
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(DensityInterpolation::setupOpenCL): Can't get local memory available on device.\n");
 	    return true;
 	}
-	if(!loadKernelFromFile(&clKernel, &clProgram, C->clContext, C->clDevice, mPath, "DensityInterpolation", ""))
+	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, mPath, "DensityInterpolation", ""))
 	    return true;
-	if(clProgram)clReleaseProgram(clProgram); clProgram=0;
+	if(program)clReleaseProgram(program); program=0;
 	//! Test if there are enough local memory
-	clFlag |= clGetKernelWorkGroupInfo(clKernel,device,CL_KERNEL_LOCAL_MEM_SIZE,
+	err_code |= clGetKernelWorkGroupInfo(kernel,device,CL_KERNEL_LOCAL_MEM_SIZE,
 	                                   sizeof(cl_ulong), &reqLocalMem, NULL);
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(DensityInterpolation::setupOpenCL): Can't get kernel memory usage.\n");
 	    return true;
 	}
@@ -190,25 +190,25 @@ bool DensityInterpolation::setupOpenCL()
 	}
 	//! Test if local work gorup size must be modified
 	size_t localWorkGroupSize=0;
-	clFlag |= clGetKernelWorkGroupInfo(clKernel,device,CL_KERNEL_WORK_GROUP_SIZE,
+	err_code |= clGetKernelWorkGroupInfo(kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
 	                                   sizeof(size_t), &localWorkGroupSize, NULL);
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(DensityInterpolation::setupOpenCL): Can't get maximum local work group size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < clLocalWorkSize)
-	    clLocalWorkSize  = localWorkGroupSize;
+	if(localWorkGroupSize < local_work_size)
+	    local_work_size  = localWorkGroupSize;
 	//! Look for better local work group size
-	clFlag |= clGetKernelWorkGroupInfo(clKernel,device,CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
+	err_code |= clGetKernelWorkGroupInfo(kernel,device,CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
 	                                   sizeof(size_t), &localWorkGroupSize, NULL);
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(DensityInterpolation::setupOpenCL): Can't get preferred local work group size.\n");
 	    return true;
 	}
-	clLocalWorkSize  = (clLocalWorkSize/localWorkGroupSize) * localWorkGroupSize;
-	clGlobalWorkSize = globalWorkSize(clLocalWorkSize);
+	local_work_size  = (local_work_size/localWorkGroupSize) * localWorkGroupSize;
+	global_work_size = globalWorkSize(local_work_size);
 	//! Test if computation can be accelerated with local memory
-	reqLocalMem += clLocalWorkSize*(sizeof(cl_float));
+	reqLocalMem += local_work_size*(sizeof(cl_float));
 	if(localMem < reqLocalMem){
 		S->addMessage(2, "(DensityInterpolation::setupOpenCL): Not enough local memory.\n");
 	    sprintf(msg, "\tNeeds %lu bytes, but only %lu bytes are available.\n",
@@ -217,10 +217,10 @@ bool DensityInterpolation::setupOpenCL()
 	    S->addMessage(0, "\tLocal memory usage will be avoided therefore.\n");
 	    isLocalMemory = false;
 	    char options[19]; strcpy(options,"-D__NO_LOCAL_MEM__");
-	    if(clKernel)clReleaseKernel(clKernel); clKernel=0;
-	    if(!loadKernelFromFile(&clKernel, &clProgram, C->clContext, C->clDevice, mPath, "DensityInterpolation", options))
+	    if(kernel)clReleaseKernel(kernel); kernel=0;
+	    if(!loadKernelFromFile(&kernel, &program, C->context, C->device, mPath, "DensityInterpolation", options))
 	        return true;
-	    if(clProgram)clReleaseProgram(clProgram); clProgram=0;
+	    if(program)clReleaseProgram(program); program=0;
 	}
 	return false;
 }

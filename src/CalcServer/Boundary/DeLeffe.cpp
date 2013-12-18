@@ -41,7 +41,7 @@ namespace Aqua{ namespace CalcServer{ namespace Boundary{
 DeLeffe::DeLeffe()
 	: Kernel("DeLeffe")
 	, mPath(0)
-	, clProgram(0)
+	, program(0)
 	, clVerticesKernel(0)
 	, clBoundaryKernel(0)
 	, isLocalMemory(true)
@@ -64,12 +64,12 @@ DeLeffe::DeLeffe()
 	strcpy(mPath, P->OpenCL_kernels.de_Leffe);
 	strcat(mPath, ".cl");
 	//! 2nd.- Setup the kernel
-	clLocalWorkSize  = localWorkSize();
-	if(!clLocalWorkSize){
+	local_work_size  = localWorkSize();
+	if(!local_work_size){
 	    S->addMessage(3, "(DeLeffe::DeLeffe): No valid local work size for required computation.\n");
 	    exit(EXIT_FAILURE);
 	}
-	clGlobalWorkSize = globalWorkSize(clLocalWorkSize);
+	global_work_size = globalWorkSize(local_work_size);
 	if(setupOpenCL()) {
 	    exit(EXIT_FAILURE);
 	}
@@ -80,7 +80,7 @@ DeLeffe::~DeLeffe()
 {
 	if(clBoundaryKernel)clReleaseKernel(clBoundaryKernel); clBoundaryKernel=0;
 	if(clVerticesKernel)clReleaseKernel(clVerticesKernel); clVerticesKernel=0;
-	if(clProgram)clReleaseProgram(clProgram); clProgram=0;
+	if(program)clReleaseProgram(program); program=0;
 	if(mPath) delete[] mPath; mPath=0;
 }
 
@@ -100,25 +100,25 @@ bool DeLeffe::vertices()
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
-	cl_int clFlag=0;
+	cl_int err_code=0;
 	//! Send all variables to the server
-	clFlag |= sendArgument(clVerticesKernel,  0, sizeof(cl_mem  ), (void*)&(C->imove));
-	clFlag |= sendArgument(clVerticesKernel,  1, sizeof(cl_mem  ), (void*)&(C->f));
-	clFlag |= sendArgument(clVerticesKernel,  2, sizeof(cl_mem  ), (void*)&(C->drdt));
-	clFlag |= sendArgument(clVerticesKernel,  3, sizeof(cl_mem  ), (void*)&(C->press));
-	clFlag |= sendArgument(clVerticesKernel,  4, sizeof(cl_mem  ), (void*)&(C->pressin));
-	clFlag |= sendArgument(clVerticesKernel,  5, sizeof(cl_mem  ), (void*)&(C->dens));
-	clFlag |= sendArgument(clVerticesKernel,  6, sizeof(cl_mem  ), (void*)&(C->densin));
-	clFlag |= sendArgument(clVerticesKernel,  7, sizeof(cl_mem  ), (void*)&(C->refd));
-	clFlag |= sendArgument(clVerticesKernel,  8, sizeof(cl_mem  ), (void*)&(C->ifluid));
-	clFlag |= sendArgument(clVerticesKernel,  9, sizeof(cl_mem  ), (void*)&(C->gamma));
-	clFlag |= sendArgument(clVerticesKernel, 10, sizeof(cl_mem  ), (void*)&(C->normal));
-	clFlag |= sendArgument(clVerticesKernel, 11, sizeof(cl_mem  ), (void*)&(C->normalin));
-	clFlag |= sendArgument(clVerticesKernel, 12, sizeof(cl_mem  ), (void*)&(C->shepard));
-	clFlag |= sendArgument(clVerticesKernel, 13, sizeof(cl_mem  ), (void*)&(C->reversePermutation));
-	clFlag |= sendArgument(clVerticesKernel, 14, sizeof(cl_uint ), (void*)&(C->n));
-	clFlag |= sendArgument(clVerticesKernel, 15, sizeof(cl_float), (void*)&(C->cs));
-	if(clFlag != CL_SUCCESS) {
+	err_code |= sendArgument(clVerticesKernel,  0, sizeof(cl_mem  ), (void*)&(C->imove));
+	err_code |= sendArgument(clVerticesKernel,  1, sizeof(cl_mem  ), (void*)&(C->f));
+	err_code |= sendArgument(clVerticesKernel,  2, sizeof(cl_mem  ), (void*)&(C->drdt));
+	err_code |= sendArgument(clVerticesKernel,  3, sizeof(cl_mem  ), (void*)&(C->press));
+	err_code |= sendArgument(clVerticesKernel,  4, sizeof(cl_mem  ), (void*)&(C->pressin));
+	err_code |= sendArgument(clVerticesKernel,  5, sizeof(cl_mem  ), (void*)&(C->dens));
+	err_code |= sendArgument(clVerticesKernel,  6, sizeof(cl_mem  ), (void*)&(C->densin));
+	err_code |= sendArgument(clVerticesKernel,  7, sizeof(cl_mem  ), (void*)&(C->refd));
+	err_code |= sendArgument(clVerticesKernel,  8, sizeof(cl_mem  ), (void*)&(C->ifluid));
+	err_code |= sendArgument(clVerticesKernel,  9, sizeof(cl_mem  ), (void*)&(C->gamma));
+	err_code |= sendArgument(clVerticesKernel, 10, sizeof(cl_mem  ), (void*)&(C->normal));
+	err_code |= sendArgument(clVerticesKernel, 11, sizeof(cl_mem  ), (void*)&(C->normalin));
+	err_code |= sendArgument(clVerticesKernel, 12, sizeof(cl_mem  ), (void*)&(C->shepard));
+	err_code |= sendArgument(clVerticesKernel, 13, sizeof(cl_mem  ), (void*)&(C->permutation_inverse));
+	err_code |= sendArgument(clVerticesKernel, 14, sizeof(cl_uint ), (void*)&(C->n));
+	err_code |= sendArgument(clVerticesKernel, 15, sizeof(cl_float), (void*)&(C->cs));
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(DeLeffe::vertices): Can't send arguments to Vertex set kernel.\n");
 	    return true;
 	}
@@ -126,36 +126,36 @@ bool DeLeffe::vertices()
 	#ifdef HAVE_GPUPROFILE
 	    cl_event event;
 	    cl_ulong end, start;
-	    clFlag = clEnqueueNDRangeKernel(C->clComQueue, clVerticesKernel, 1, NULL, &clGlobalWorkSize, NULL, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, clVerticesKernel, 1, NULL, &global_work_size, NULL, 0, NULL, &event);
 	#else
-	    clFlag = clEnqueueNDRangeKernel(C->clComQueue, clVerticesKernel, 1, NULL, &clGlobalWorkSize, NULL, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, clVerticesKernel, 1, NULL, &global_work_size, NULL, 0, NULL, NULL);
 	#endif
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(DeLeffe::vertices): Can't execute the kernel.\n");
-	    if(clFlag == CL_INVALID_KERNEL_ARGS)
+	    if(err_code == CL_INVALID_KERNEL_ARGS)
 	        S->addMessage(0, "\tInvalid kernel arguments.\n");
-	    else if(clFlag == CL_INVALID_WORK_GROUP_SIZE)
+	    else if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 	        S->addMessage(0, "\tInvalid local work group size.\n");
-	    else if(clFlag == CL_INVALID_WORK_ITEM_SIZE)
+	    else if(err_code == CL_INVALID_WORK_ITEM_SIZE)
 	        S->addMessage(0, "\tInvalid local work group size (greather than maximum allowed value).\n");
-	    else if(clFlag == CL_OUT_OF_RESOURCES)
+	    else if(err_code == CL_OUT_OF_RESOURCES)
 	        S->addMessage(0, "\tDevice out of resources.\n");
-	    else if(clFlag == CL_MEM_OBJECT_ALLOCATION_FAILURE)
+	    else if(err_code == CL_MEM_OBJECT_ALLOCATION_FAILURE)
 	        S->addMessage(0, "\tAllocation error at device.\n");
-	    else if(clFlag == CL_OUT_OF_HOST_MEMORY)
+	    else if(err_code == CL_OUT_OF_HOST_MEMORY)
 	        S->addMessage(0, "\tfailure to allocate resources required by the OpenCL implementation on the host.\n");
 	    return true;
 	}
 	//! Profile the kernel execution
 	#ifdef HAVE_GPUPROFILE
-	    clFlag = clWaitForEvents(1, &event);
-	    if(clFlag != CL_SUCCESS) {
+	    err_code = clWaitForEvents(1, &event);
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(DeLeffe::vertices): Can't wait to kernels end.\n");
 	        return true;
 	    }
-	    clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
-	    clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
-	    if(clFlag != CL_SUCCESS) {
+	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
+	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(DeLeffe::vertices): Can't profile kernel execution.\n");
 	        return true;
 	    }
@@ -169,34 +169,34 @@ bool DeLeffe::boundary()
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
-	cl_int clFlag=0;
+	cl_int err_code=0;
 	//! Send all variables to the server
-	clFlag |= sendArgument(clBoundaryKernel,  0, sizeof(cl_mem  ), (void*)&(C->ifluidin));
-	clFlag |= sendArgument(clBoundaryKernel,  1, sizeof(cl_mem  ), (void*)&(C->imovein));
-	clFlag |= sendArgument(clBoundaryKernel,  2, sizeof(cl_mem  ), (void*)&(C->posin));
-	clFlag |= sendArgument(clBoundaryKernel,  3, sizeof(cl_mem  ), (void*)&(C->normalin));
-	clFlag |= sendArgument(clBoundaryKernel,  4, sizeof(cl_mem  ), (void*)&(C->vin));
-	clFlag |= sendArgument(clBoundaryKernel,  5, sizeof(cl_mem  ), (void*)&(C->densin));
-	clFlag |= sendArgument(clBoundaryKernel,  6, sizeof(cl_mem  ), (void*)&(C->hpin));
-	clFlag |= sendArgument(clBoundaryKernel,  7, sizeof(cl_mem  ), (void*)&(C->pressin));
-	clFlag |= sendArgument(clBoundaryKernel,  8, sizeof(cl_mem  ), (void*)&(C->massin));
-	clFlag |= sendArgument(clBoundaryKernel,  9, sizeof(cl_mem  ), (void*)&(C->visc_dyn));
-	clFlag |= sendArgument(clBoundaryKernel, 10, sizeof(cl_mem  ), (void*)&(C->f));
-	clFlag |= sendArgument(clBoundaryKernel, 11, sizeof(cl_mem  ), (void*)&(C->drdt));
-	clFlag |= sendArgument(clBoundaryKernel, 12, sizeof(cl_mem  ), (void*)&(C->gradShepard));
-	clFlag |= sendArgument(clBoundaryKernel, 13, sizeof(cl_mem  ), (void*)&(C->lcell));
-	clFlag |= sendArgument(clBoundaryKernel, 14, sizeof(cl_mem  ), (void*)&(C->ihoc));
-	clFlag |= sendArgument(clBoundaryKernel, 15, sizeof(cl_mem  ), (void*)&(C->permutation));
-	clFlag |= sendArgument(clBoundaryKernel, 16, sizeof(cl_mem  ), (void*)&(C->reversePermutation));
-	clFlag |= sendArgument(clBoundaryKernel, 17, sizeof(cl_uint ), (void*)&(C->N));
-	clFlag |= sendArgument(clBoundaryKernel, 18, sizeof(cl_float), (void*)&(C->hfac));
-	clFlag |= sendArgument(clBoundaryKernel, 19, sizeof(uivec   ), (void*)&(C->lvec));
+	err_code |= sendArgument(clBoundaryKernel,  0, sizeof(cl_mem  ), (void*)&(C->ifluidin));
+	err_code |= sendArgument(clBoundaryKernel,  1, sizeof(cl_mem  ), (void*)&(C->imovein));
+	err_code |= sendArgument(clBoundaryKernel,  2, sizeof(cl_mem  ), (void*)&(C->posin));
+	err_code |= sendArgument(clBoundaryKernel,  3, sizeof(cl_mem  ), (void*)&(C->normalin));
+	err_code |= sendArgument(clBoundaryKernel,  4, sizeof(cl_mem  ), (void*)&(C->vin));
+	err_code |= sendArgument(clBoundaryKernel,  5, sizeof(cl_mem  ), (void*)&(C->densin));
+	err_code |= sendArgument(clBoundaryKernel,  6, sizeof(cl_mem  ), (void*)&(C->hpin));
+	err_code |= sendArgument(clBoundaryKernel,  7, sizeof(cl_mem  ), (void*)&(C->pressin));
+	err_code |= sendArgument(clBoundaryKernel,  8, sizeof(cl_mem  ), (void*)&(C->massin));
+	err_code |= sendArgument(clBoundaryKernel,  9, sizeof(cl_mem  ), (void*)&(C->visc_dyn));
+	err_code |= sendArgument(clBoundaryKernel, 10, sizeof(cl_mem  ), (void*)&(C->f));
+	err_code |= sendArgument(clBoundaryKernel, 11, sizeof(cl_mem  ), (void*)&(C->drdt));
+	err_code |= sendArgument(clBoundaryKernel, 12, sizeof(cl_mem  ), (void*)&(C->shepard_gradient));
+	err_code |= sendArgument(clBoundaryKernel, 13, sizeof(cl_mem  ), (void*)&(C->icell));
+	err_code |= sendArgument(clBoundaryKernel, 14, sizeof(cl_mem  ), (void*)&(C->ihoc));
+	err_code |= sendArgument(clBoundaryKernel, 15, sizeof(cl_mem  ), (void*)&(C->permutation));
+	err_code |= sendArgument(clBoundaryKernel, 16, sizeof(cl_mem  ), (void*)&(C->permutation_inverse));
+	err_code |= sendArgument(clBoundaryKernel, 17, sizeof(cl_uint ), (void*)&(C->N));
+	err_code |= sendArgument(clBoundaryKernel, 18, sizeof(cl_float), (void*)&(C->hfac));
+	err_code |= sendArgument(clBoundaryKernel, 19, sizeof(uivec   ), (void*)&(C->num_cells_vec));
 	if(isLocalMemory){
-	    clFlag |= sendArgument(clBoundaryKernel, 20, clLocalWorkSize*sizeof(vec     ), NULL);
-	    clFlag |= sendArgument(clBoundaryKernel, 21, clLocalWorkSize*sizeof(cl_float), NULL);
-	    clFlag |= sendArgument(clBoundaryKernel, 22, clLocalWorkSize*sizeof(vec     ), NULL);
+	    err_code |= sendArgument(clBoundaryKernel, 20, local_work_size*sizeof(vec     ), NULL);
+	    err_code |= sendArgument(clBoundaryKernel, 21, local_work_size*sizeof(cl_float), NULL);
+	    err_code |= sendArgument(clBoundaryKernel, 22, local_work_size*sizeof(vec     ), NULL);
 	}
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(DeLeffe::boundary): Can't send arguments to boundary computation kernel.\n");
 	    return true;
 	}
@@ -205,32 +205,32 @@ bool DeLeffe::boundary()
 	    cl_event event;
 	    cl_ulong end, start;
 	    profileTime(0.f);
-	    clFlag = clEnqueueNDRangeKernel(C->clComQueue, clBoundaryKernel, 1, NULL, &clGlobalWorkSize, &clLocalWorkSize, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, clBoundaryKernel, 1, NULL, &global_work_size, &local_work_size, 0, NULL, &event);
 	#else
-	    clFlag = clEnqueueNDRangeKernel(C->clComQueue, clBoundaryKernel, 1, NULL, &clGlobalWorkSize, &clLocalWorkSize, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, clBoundaryKernel, 1, NULL, &global_work_size, &local_work_size, 0, NULL, NULL);
 	#endif
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(DeLeffe::boundary): Can't execute the kernel.\n");
-	    if(clFlag == CL_INVALID_WORK_GROUP_SIZE)
+	    if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 	        S->addMessage(0, "\tInvalid local work group size.\n");
-	    else if(clFlag == CL_OUT_OF_RESOURCES)
+	    else if(err_code == CL_OUT_OF_RESOURCES)
 	        S->addMessage(0, "\tDevice out of resources.\n");
-	    else if(clFlag == CL_MEM_OBJECT_ALLOCATION_FAILURE)
+	    else if(err_code == CL_MEM_OBJECT_ALLOCATION_FAILURE)
 	        S->addMessage(0, "\tAllocation error at device.\n");
-	    else if(clFlag == CL_OUT_OF_HOST_MEMORY)
+	    else if(err_code == CL_OUT_OF_HOST_MEMORY)
 	        S->addMessage(0, "\tfailure to allocate resources required by the OpenCL implementation on the host.\n");
 	    return true;
 	}
 	//! Profile the kernel execution
 	#ifdef HAVE_GPUPROFILE
-	    clFlag = clWaitForEvents(1, &event);
-	    if(clFlag != CL_SUCCESS) {
+	    err_code = clWaitForEvents(1, &event);
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(DeLeffe::boundary): Can't wait to kernels end.\n");
 	        return true;
 	    }
-	    clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
-	    clFlag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
-	    if(clFlag != CL_SUCCESS) {
+	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
+	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
+	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(DeLeffe::boundary): Can't profile kernel execution.\n");
 	        return true;
 	    }
@@ -245,30 +245,30 @@ bool DeLeffe::setupOpenCL()
 	InputOutput::ProblemSetup *P  = InputOutput::ProblemSetup::singleton();
 	CalcServer *C = CalcServer::singleton();
 	char msg[1024];
-	cl_int clFlag;
+	cl_int err_code;
 	cl_device_id device;
 	cl_ulong localMem, reqLocalMem;
-	clFlag |= clGetCommandQueueInfo(C->clComQueue,CL_QUEUE_DEVICE,
+	err_code |= clGetCommandQueueInfo(C->command_queue,CL_QUEUE_DEVICE,
 	                                sizeof(cl_device_id),&device, NULL);
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(DeLeffe::setupOpenCL): Can't get device from command queue.\n");
 	    return true;
 	}
-	clFlag |= clGetDeviceInfo(device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(localMem), &localMem, NULL);
-	if(clFlag != CL_SUCCESS) {
+	err_code |= clGetDeviceInfo(device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(localMem), &localMem, NULL);
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(DeLeffe::setupOpenCL): Can't get local memory available on device.\n");
 	    return true;
 	}
-	if(!loadKernelFromFile(&clVerticesKernel, &clProgram, C->clContext, C->clDevice, mPath, "Vertices", ""))
+	if(!loadKernelFromFile(&clVerticesKernel, &program, C->context, C->device, mPath, "Vertices", ""))
 	    return true;
-	if(clProgram)clReleaseProgram(clProgram); clProgram=0;
-	if(!loadKernelFromFile(&clBoundaryKernel, &clProgram, C->clContext, C->clDevice, mPath, "Boundary", ""))
+	if(program)clReleaseProgram(program); program=0;
+	if(!loadKernelFromFile(&clBoundaryKernel, &program, C->context, C->device, mPath, "Boundary", ""))
 	    return true;
-	if(clProgram)clReleaseProgram(clProgram); clProgram=0;
+	if(program)clReleaseProgram(program); program=0;
 	//! Test if there are enough local memory
-	clFlag |= clGetKernelWorkGroupInfo(clVerticesKernel,device,CL_KERNEL_LOCAL_MEM_SIZE,
+	err_code |= clGetKernelWorkGroupInfo(clVerticesKernel,device,CL_KERNEL_LOCAL_MEM_SIZE,
 	                                   sizeof(cl_ulong), &reqLocalMem, NULL);
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(DeLeffe::setupOpenCL): Can't get vertices kernel memory usage.\n");
 	    return true;
 	}
@@ -279,9 +279,9 @@ bool DeLeffe::setupOpenCL()
 	    S->addMessage(0, msg);
 	    return true;
 	}
-	clFlag |= clGetKernelWorkGroupInfo(clBoundaryKernel,device,CL_KERNEL_LOCAL_MEM_SIZE,
+	err_code |= clGetKernelWorkGroupInfo(clBoundaryKernel,device,CL_KERNEL_LOCAL_MEM_SIZE,
 	                                   sizeof(cl_ulong), &reqLocalMem, NULL);
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(DeLeffe::setupOpenCL): Can't get boundary kernel memory usage.\n");
 	    return true;
 	}
@@ -294,33 +294,33 @@ bool DeLeffe::setupOpenCL()
 	}
 	//! Test if local work gorup size must be modified
 	size_t localWorkGroupSize=0;
-	clFlag |= clGetKernelWorkGroupInfo(clVerticesKernel,device,CL_KERNEL_WORK_GROUP_SIZE,
+	err_code |= clGetKernelWorkGroupInfo(clVerticesKernel,device,CL_KERNEL_WORK_GROUP_SIZE,
 	                                   sizeof(size_t), &localWorkGroupSize, NULL);
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(DeLeffe::setupOpenCL): Can't get vertices maximum local work group size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < clLocalWorkSize)
-	    clLocalWorkSize  = localWorkGroupSize;
-	clFlag |= clGetKernelWorkGroupInfo(clBoundaryKernel,device,CL_KERNEL_WORK_GROUP_SIZE,
+	if(localWorkGroupSize < local_work_size)
+	    local_work_size  = localWorkGroupSize;
+	err_code |= clGetKernelWorkGroupInfo(clBoundaryKernel,device,CL_KERNEL_WORK_GROUP_SIZE,
 	                                   sizeof(size_t), &localWorkGroupSize, NULL);
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(DeLeffe::setupOpenCL): Can't get boundary maximum local work group size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < clLocalWorkSize)
-	    clLocalWorkSize  = localWorkGroupSize;
+	if(localWorkGroupSize < local_work_size)
+	    local_work_size  = localWorkGroupSize;
 	//! Look for better local work group size
-	clFlag |= clGetKernelWorkGroupInfo(clBoundaryKernel,device,CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
+	err_code |= clGetKernelWorkGroupInfo(clBoundaryKernel,device,CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
 	                                   sizeof(size_t), &localWorkGroupSize, NULL);
-	if(clFlag != CL_SUCCESS) {
+	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(DeLeffe::setupOpenCL): Can't get boundary preferred local work group size.\n");
 	    return true;
 	}
-	clLocalWorkSize  = (clLocalWorkSize/localWorkGroupSize) * localWorkGroupSize;
-	clGlobalWorkSize = globalWorkSize(clLocalWorkSize);
+	local_work_size  = (local_work_size/localWorkGroupSize) * localWorkGroupSize;
+	global_work_size = globalWorkSize(local_work_size);
 	//! Test if computation can be accelerated with local memory
-	reqLocalMem += clLocalWorkSize*(  sizeof(vec     )
+	reqLocalMem += local_work_size*(  sizeof(vec     )
 	                                + sizeof(cl_float)
 	                                + sizeof(vec     ));
 	if(localMem < reqLocalMem){
@@ -332,9 +332,9 @@ bool DeLeffe::setupOpenCL()
 	    isLocalMemory = false;
 	    char options[19]; strcpy(options,"-D__NO_LOCAL_MEM__");
 	    if(clBoundaryKernel)clReleaseKernel(clBoundaryKernel); clBoundaryKernel=0;
-	    if(!loadKernelFromFile(&clBoundaryKernel, &clProgram, C->clContext, C->clDevice, mPath, "Boundary", options))
+	    if(!loadKernelFromFile(&clBoundaryKernel, &program, C->context, C->device, mPath, "Boundary", options))
 	        return true;
-	    if(clProgram)clReleaseProgram(clProgram); clProgram=0;
+	    if(program)clReleaseProgram(program); program=0;
 	}
 	return false;
 }
