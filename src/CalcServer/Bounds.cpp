@@ -209,9 +209,10 @@ bool Bounds::setupBounds()
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
+	cl_int clFlag = 0;
 	char msg[1024];
-	cl_int clFlag = C->allocMemory(&mDevMem, C->n * sizeof( vec ));
-	if(clFlag)
+	mDevMem = C->allocMemory(C->n * sizeof( vec ));
+	if(!mDevMem)
 		return true;
 	sprintf(msg, "\tAllocated memory = %u bytes\n", (unsigned int)C->AllocatedMem);
 	S->addMessage(0, msg);

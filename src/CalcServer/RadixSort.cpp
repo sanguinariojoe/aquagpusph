@@ -665,13 +665,17 @@ bool RadixSort::setN(unsigned int N)
 	    clReleaseMemObject(clOutKeys);
 	    clOutKeys=0;
 	}
-	clFlag |= C->allocMemory(&clOutKeys, n*sizeof( unsigned int ));
+	clOutKeys = C->allocMemory(n*sizeof( unsigned int ));
+	if(!clOutKeys)
+        return true;
 	if(clInPermut){
 	    C->AllocatedMem -= oldN*sizeof( unsigned int );
 	    clReleaseMemObject(clInPermut);
 	    clInPermut=0;
 	}
-	clFlag |= C->allocMemory(&clInPermut, n*sizeof( unsigned int ));
+	clInPermut = C->allocMemory(n*sizeof( unsigned int ));
+	if(!clInPermut)
+        return true;
 	C->permutation = clInPermut;
 	// Auxiliar data
 	if(clHistograms){
@@ -679,23 +683,27 @@ bool RadixSort::setN(unsigned int N)
 	    clHistograms=0;
 	    C->AllocatedMem -= (mRadix * mGroups * mItems)*sizeof( unsigned int );
 	}
-	clFlag |= C->allocMemory(&clHistograms, (mRadix * mGroups * mItems)*sizeof( unsigned int ));
+	clHistograms = C->allocMemory((mRadix * mGroups * mItems)*sizeof( unsigned int ));
+	if(!clHistograms)
+        return true;
 	if(clGlobalSums){
 	    clReleaseMemObject(clGlobalSums);
 	    clGlobalSums=0;
 	    C->AllocatedMem -= (mHistoSplit)*sizeof( unsigned int );
 	}
-	clFlag |= C->allocMemory(&clGlobalSums, mHistoSplit*sizeof( unsigned int ));
+	clGlobalSums = C->allocMemory(mHistoSplit*sizeof( unsigned int ));
+	if(!clGlobalSums)
+        return true;
 	if(clTempMem){
 	    clReleaseMemObject(clTempMem);
 	    clTempMem=0;
 	    C->AllocatedMem -= sizeof( unsigned int );
 	}
-	clFlag |= C->allocMemory(&clTempMem, sizeof( unsigned int ));
-	if(clFlag)
-	    return 8;
-	sprintf(msg, "(RadixSort::setN): Radix sort components = %u\n", n);
-	S->addMessage(1, msg);
+	clTempMem = C->allocMemory(sizeof( unsigned int ));
+	if(!clTempMem)
+        return true;
+	sprintf(msg, "Radix sort components = %u\n", n);
+	S->addMessageF(1, msg);
 	sprintf(msg, "\tAllocated memory = %lu bytes\n", C->AllocatedMem);
 	S->addMessage(0, msg);
 	return 0;

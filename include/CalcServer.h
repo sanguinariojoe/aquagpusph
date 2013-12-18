@@ -51,15 +51,14 @@
 #include <Singleton.h>
 
 namespace Aqua{
-/** @namespace CalcServer Calculation server space. Almost calculation tools
- * will be included in this name space.
+/** @namespace CalcServer Calculation server name space.
  */
 namespace CalcServer{
 
 /** @class CalcServer CalcServer.h CalcServer.h
  * @brief Entity that perform the main work of the simulation. Therefore this
  * class have an internal loop which iterates while no data must be sent to
- * the host for output files writing.
+ * the host for an output file writing process.
  * @remarks Some output files are managed internally by this class, like the
  * log file, the energy file, pressure sensors file, or bounds file.
  */
@@ -75,34 +74,34 @@ public:
 	~CalcServer();
 
 	/** Internal server loop. Calculation server will be iterating while the
-	 * next output file event is reached (or the end of the simulation as well).
+	 * next output file event is reached (or the simulation is finished).
 	 * @return false if all gone right, true otherwise.
 	 */
 	bool update();
 
 	/** Transfer the data from the computational device to the host.
 	 * @param dest Array where the data should be copied.
-	 * @param orig Data to copy.
+	 * @param orig Computational device allocated data to copy.
 	 * @param size Size of the data to copy.
 	 * @param offset Offset into the array to start reading.
-	 * @return false if the data has been succesfully copied, true otherwise
+	 * @return false if the data has been succesfully copied, true otherwise.
 	 */
 	bool getData(void *dest, cl_mem orig, size_t size, size_t offset=0);
 
-	/** Store data in a computational device array.
+	/** Send data to a computational device array.
 	 * @param dest Identifier of the destination in the server.
-	 * @param drig Array of data to read.
+	 * @param orig Array of data to read.
 	 * @param size Size of the data to copy.
-	 * @return false if the data has been succesfully copied, true otherwise
+	 * @return false if the data has been succesfully copied, true otherwise.
 	 */
-	bool sendData(cl_mem Dest, void* Orig, size_t Size);
+	bool sendData(cl_mem dest, void* orig, size_t size);
 
-	/** Allocate memory in the server in a safe way.
-	 * @param clID OpenCL memory identifier where the memory has been allocated.
-	 * @param size Amount of memory to allocate, in bytes.
-	 * @return false if the memory has been succesfully allocated, true otherwise
+	/** Allocate memory in the server.
+	 * @param size Amount of memory in bytes to allocate.
+	 * @return The new memory object, NULL if the memory could not been
+	 * allocated.
 	 */
-	bool allocMemory(cl_mem *clID, size_t size);
+	cl_mem allocMemory(size_t size);
 
 	/** Fills the fluid using an OpenCL script
 	 * @return false if the fluid has been succesfully set, true otherwise

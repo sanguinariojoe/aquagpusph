@@ -167,11 +167,12 @@ bool Energy::setupEnergy()
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
+	cl_int clFlag = 0;
 	char msg[1024];
 	if(!loadKernelFromFile(&clKernel, &clProgram, C->clContext, C->clDevice, mPath, "Energy", "-Dvec4=float4"))
 		return true;
-	cl_int clFlag = C->allocMemory(&mDevEnergy, C->n * sizeof( vec4 ));
-	if(clFlag)
+	mDevEnergy = C->allocMemory(C->n * sizeof( vec4 ));
+	if(!mDevEnergy)
 		return true;
 	sprintf(msg, "\tAllocated memory = %u bytes\n", (unsigned int)C->AllocatedMem);
 	S->addMessage(0, msg);

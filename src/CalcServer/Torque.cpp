@@ -175,9 +175,9 @@ bool Torque::setupTorque()
 	cl_int clFlag=0;
 	if(!loadKernelFromFile(&clKernel, &clProgram, C->clContext, C->clDevice, mPath, "Torque", ""))
 		return true;
-	clFlag |= C->allocMemory(&mDevTorque, C->n * sizeof( vec ));
-	clFlag |= C->allocMemory(&mDevForce, C->n * sizeof( vec ));
-	if(clFlag)
+	mDevTorque = C->allocMemory(C->n * sizeof( vec ));
+	mDevForce = C->allocMemory(C->n * sizeof( vec ));
+	if(!mDevTorque || !mDevForce)
 		return true;
 	sprintf(msg, "\tAllocated memory = %u bytes\n", (unsigned int)C->AllocatedMem);
 	S->addMessage(0, msg);

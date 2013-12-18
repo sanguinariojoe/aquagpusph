@@ -335,25 +335,31 @@ bool LinkList::allocLinkList()
 	char Log[256];
 	if(C->lxy > C->lxydim)
 	{
-	    sprintf(Log, "(LinkList::sphAllocLinkList): Number of cells increased [%d -> %d]\n",C->lxydim,C->lxy);
-		S->addMessage(2, Log);
+	    sprintf(Log, "Number of cells increased [%d -> %d]\n",
+                C->lxydim,C->lxy);
+		S->addMessageF(2, Log);
 	    if(C->lxydim > 0) {
-	        if(C->ihoc)clReleaseMemObject(C->ihoc); C->ihoc=0;
-	        if(C->isValidCell)clReleaseMemObject(C->isValidCell); C->isValidCell=0;
+	        if(C->ihoc)clReleaseMemObject(C->ihoc); C->ihoc=NULL;
+	        if(C->isValidCell)clReleaseMemObject(C->isValidCell); C->isValidCell=NULL;
 			C->AllocatedMem -= C->lxydim * sizeof( cl_uint );
 			C->AllocatedMem -= C->lxydim * sizeof( cl_short );
 	    }
-		if(C->allocMemory(&(C->ihoc), C->lxy * sizeof( cl_uint ))) {
-	        sprintf(Log, "(LinkList::sphAllocLinkList): Fail allocating memory for ihoc (%u bytes).\n", (unsigned int)(C->lxy * sizeof( cl_uint )) );
-		    S->addMessage(3, Log);
+	    C->ihoc = C->allocMemory(C->lxy * sizeof( cl_uint ));
+		if(!C->ihoc) {
+	        sprintf(Log, "Fail allocating memory for ihoc (%u bytes).\n",
+                    (unsigned int)(C->lxy * sizeof( cl_uint )) );
+		    S->addMessageF(3, Log);
 		    return true;
 		}
-		if(C->allocMemory(&(C->isValidCell), C->lxy * sizeof( cl_short ))) {
-	        sprintf(Log, "(LinkList::sphAllocLinkList): Fail allocating memory for isValidCell (%u bytes).\n", (unsigned int)(C->lxy * sizeof( cl_short )) );
-		    S->addMessage(3, Log);
+		C->isValidCell = C->allocMemory(C->lxy * sizeof( cl_short ));
+		if(!C->isValidCell) {
+	        sprintf(Log, "Fail allocating memory for isValidCell (%u bytes).\n",
+                    (unsigned int)(C->lxy * sizeof( cl_short )) );
+		    S->addMessageF(3, Log);
 		    return true;
 		}
-		sprintf(Log, "\tAllocated memory = %u bytes\n", (unsigned int)C->AllocatedMem);
+		sprintf(Log, "\tAllocated memory = %u bytes\n",
+                (unsigned int)C->AllocatedMem);
 		S->addMessage(1, Log);
 	    C->lxydim = C->lxy;
 	    clLocalWorkSize = 256;

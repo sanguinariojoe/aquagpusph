@@ -64,13 +64,15 @@ Quaternion::Quaternion()
 	#endif
 	//! Allocate memory at server
 	unsigned int N = C->N;
-	if(C->allocMemory(&mRelPos, N*sizeof(vec)))
-	    exit(1);
-	if(C->allocMemory(&mRelNormal, N*sizeof(vec)))
-	    exit(1);
+	mRelPos = C->allocMemory(N*sizeof(vec));
+	if(!mRelPos)
+	    exit(255);
+    mRelNormal = C->allocMemory(N*sizeof(vec));
+	if(!mRelNormal)
+	    exit(255);
 	//! Compute initial relative positions
 	if(set(mCOR,mAxis,true))
-	    exit(2);
+	    exit(255);
 }
 
 Quaternion::~Quaternion()

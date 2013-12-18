@@ -199,8 +199,8 @@ bool Reduction::setupOpenCL(const char* type, const char* identity, const char* 
         mNGroups.push_back(mGSize.at(i) / mLSize.at(i)); // Number of work groups (and amount of output data)
         // Build the output memory object
         cl_mem output = NULL;
-        flag = C->allocMemory(&output, mNGroups.at(i) * dataSize);
-        if(flag != CL_SUCCESS){
+        output = C->allocMemory(mNGroups.at(i) * dataSize);
+        if(!output){
             S->addMessage(3, "(Reduction::Reduction): Can't create output array.\n");
             return true;
         }

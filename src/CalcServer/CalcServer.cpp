@@ -55,51 +55,85 @@ CalcServer::CalcServer()
 	}
 	N = n + nSensors;
 	AllocatedMem = 0;
-	Error |= allocMemory(&imove,   N * sizeof( cl_int ));
-	Error |= allocMemory(&imovein, N * sizeof( cl_int ));
-	Error |= allocMemory(&ifluid,  N * sizeof( cl_int ));
-	Error |= allocMemory(&ifluidin,N * sizeof( cl_int ));
-	Error |= allocMemory(&pos,     N * sizeof( vec ));
-	Error |= allocMemory(&normal,  N * sizeof( vec ));
-	Error |= allocMemory(&v,       N * sizeof( vec ));
-	Error |= allocMemory(&f,       N * sizeof( vec ));
-	Error |= allocMemory(&dens,    N * sizeof( cl_float ));
-	Error |= allocMemory(&drdt,    N * sizeof( cl_float ));
-	Error |= allocMemory(&drdt_F,  N * sizeof( cl_float ));
-	Error |= allocMemory(&mass,    N * sizeof( cl_float ));
-	Error |= allocMemory(&hp,      N * sizeof( cl_float ));
-	Error |= allocMemory(&press,   N * sizeof( cl_float ));
-	Error |= allocMemory(&posin,   N * sizeof( vec ));
-	Error |= allocMemory(&normalin,N * sizeof( vec ));
-	Error |= allocMemory(&vin,     N * sizeof( vec ));
-	Error |= allocMemory(&fin,     N * sizeof( vec ));
-	Error |= allocMemory(&densin,  N * sizeof( cl_float ));
-	Error |= allocMemory(&drdtin,  N * sizeof( cl_float ));
-	Error |= allocMemory(&massin,  N * sizeof( cl_float ));
-	Error |= allocMemory(&hpin,    N * sizeof( cl_float ));
-	Error |= allocMemory(&pressin, N * sizeof( cl_float ));
-	Error |= allocMemory(&sigma,   N * sizeof( cl_float ));
-	Error |= allocMemory(&dtconv,  N * sizeof( cl_float ));
-	Error |= allocMemory(&shepard, N * sizeof( cl_float ));
-	Error |= allocMemory(&gradShepard, N * sizeof( vec ));
+	imove = allocMemory(N * sizeof( cl_int ));
+	if(!imove) exit(255);
+	imovein = allocMemory(N * sizeof( cl_int ));
+	if(!imovein) exit(255);
+	ifluid = allocMemory(N * sizeof( cl_int ));
+	if(!ifluid) exit(255);
+	ifluidin = allocMemory(N * sizeof( cl_int ));
+	if(!ifluidin) exit(255);
+	pos = allocMemory(N * sizeof( vec ));
+	if(!pos) exit(255);
+	normal = allocMemory(N * sizeof( vec ));
+	if(!normal) exit(255);
+	v = allocMemory(N * sizeof( vec ));
+	if(!v) exit(255);
+	f = allocMemory(N * sizeof( vec ));
+	if(!f) exit(255);
+	dens = allocMemory(N * sizeof( cl_float ));
+	if(!dens) exit(255);
+	drdt = allocMemory(N * sizeof( cl_float ));
+	if(!drdt) exit(255);
+	drdt_F = allocMemory(N * sizeof( cl_float ));
+	if(!drdt_F) exit(255);
+	mass = allocMemory(N * sizeof( cl_float ));
+	if(!mass) exit(255);
+	hp = allocMemory(N * sizeof( cl_float ));
+	if(!hp) exit(255);
+	press = allocMemory(N * sizeof( cl_float ));
+	if(!press) exit(255);
+	posin = allocMemory(N * sizeof( vec ));
+	if(!posin) exit(255);
+	normalin = allocMemory(N * sizeof( vec ));
+	if(!normalin) exit(255);
+	vin = allocMemory(N * sizeof( vec ));
+	if(!vin) exit(255);
+	fin = allocMemory(N * sizeof( vec ));
+	if(!fin) exit(255);
+	densin = allocMemory(N * sizeof( cl_float ));
+	if(!densin) exit(255);
+	drdtin = allocMemory(N * sizeof( cl_float ));
+	if(!drdtin) exit(255);
+	massin = allocMemory(N * sizeof( cl_float ));
+	if(!massin) exit(255);
+	hpin = allocMemory(N * sizeof( cl_float ));
+	if(!hpin) exit(255);
+	pressin = allocMemory(N * sizeof( cl_float ));
+	if(!pressin) exit(255);
+	sigma = allocMemory(N * sizeof( cl_float ));
+	if(!sigma) exit(255);
+	dtconv = allocMemory(N * sizeof( cl_float ));
+	if(!dtconv) exit(255);
+	shepard = allocMemory(N * sizeof( cl_float ));
+	if(!shepard) exit(255);
+	gradShepard = allocMemory(N * sizeof( vec ));
+	if(!gradShepard) exit(255);
 	nLcell = nextPowerOf2(N);
 	nLcell = roundUp(nLcell, _ITEMS*_GROUPS);
-	Error |= allocMemory(&permutation,        nLcell * sizeof( cl_uint ));
-	Error |= allocMemory(&reversePermutation, nLcell * sizeof( cl_uint ));
-	Error |= allocMemory(&lcell,              nLcell * sizeof( cl_uint ));
+	permutation = allocMemory(nLcell * sizeof( cl_uint ));
+	if(!permutation) exit(255);
+	reversePermutation = allocMemory(nLcell * sizeof( cl_uint ));
+	if(!reversePermutation) exit(255);
+	lcell = allocMemory(nLcell * sizeof( cl_uint ));
+	if(!lcell) exit(255);
 	ihoc = 0;        // ihoc must be allocated later, when we have a tentative of number of cells
 	isValidCell = 0; // isValidCell must be allocated later, when we have a tentative of number of cells
-	Error |= allocMemory(&gamma,   nfluid * sizeof( cl_float ));
-	Error |= allocMemory(&refd,    nfluid * sizeof( cl_float ));
-	Error |= allocMemory(&visc_dyn, nfluid * sizeof( cl_float ));
-	Error |= allocMemory(&visc_kin, nfluid * sizeof( cl_float ));
-	Error |= allocMemory(&visc_dyn_corrected, nfluid * sizeof( cl_float ));
-	Error |= allocMemory(&delta, nfluid * sizeof( cl_float ));
+	gamma = allocMemory(nfluid * sizeof( cl_float ));
+	if(!gamma) exit(255);
+	refd = allocMemory(nfluid * sizeof( cl_float ));
+	if(!refd) exit(255);
+	visc_dyn = allocMemory(nfluid * sizeof( cl_float ));
+	if(!visc_dyn) exit(255);
+	visc_kin = allocMemory(nfluid * sizeof( cl_float ));
+	if(!visc_kin) exit(255);
+	visc_dyn_corrected = allocMemory(nfluid * sizeof( cl_float ));
+	if(!visc_dyn_corrected) exit(255);
+	delta = allocMemory(nfluid * sizeof( cl_float ));
+	if(!delta) exit(255);
 	DT = 0;     // Minimum time step must be allocated later, into the time step reduction phase.
-	Error |= allocMemory(&sensorMode, max(nSensors,(uint)1) * sizeof( cl_ushort ));
-	if(Error) {
-	    exit(2);
-	}
+	sensorMode = allocMemory(max(nSensors,(uint)1) * sizeof( cl_ushort ));
+	if(!sensorMode) exit(255);
 	printf("\tINFO (CalcServer::Init): Allocated memory = %u bytes\n", (unsigned int)AllocatedMem);
 	// Create the computation tools
 	mPredictor     = new Predictor();
@@ -551,19 +585,20 @@ bool CalcServer::getDevices()
 	return false;
 }
 
-bool CalcServer::allocMemory(cl_mem *clID, size_t size)
+cl_mem CalcServer::allocMemory(size_t size)
 {
 	int clFlag;
+	cl_mem mem_obj;
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	*clID = clCreateBuffer(clContext, CL_MEM_READ_WRITE, size, NULL, &clFlag);
+	mem_obj = clCreateBuffer(clContext, CL_MEM_READ_WRITE, size, NULL, &clFlag);
 	if(clFlag != CL_SUCCESS) {
-	    S->addMessage(3, "(CalcServer::allocMemory): Allocation failure.\n");
+	    S->addMessageF(3, "Allocation failure.\n");
 	    S->printOpenCLError(clFlag);
-	    return true;
+	    return NULL;
 	}
 
 	AllocatedMem += size;
-	return false;
+	return mem_obj;
 }
 
 bool CalcServer::fillFluid()
