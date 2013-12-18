@@ -19,35 +19,23 @@
 #ifndef FLUID_H_INCLUDED
 #define FLUID_H_INCLUDED
 
-// ----------------------------------------------------------------------------
-// Include Prerequisites
-// ----------------------------------------------------------------------------
 #include <sphPrerequisites.h>
 
-// ----------------------------------------------------------------------------
-// Include standar libraries
-// ----------------------------------------------------------------------------
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
 
-// ----------------------------------------------------------------------------
-// Include OpenCL libraries
-// ----------------------------------------------------------------------------
 #include <CL/cl.h>
 
-// ----------------------------------------------------------------------------
-// Include Singleton abstract class
-// ----------------------------------------------------------------------------
 #include <Singleton.h>
 
 namespace Aqua{ namespace InputOutput{
 
 /** @class Fluid Fluid.h Fluid.h
- * @brief Host - Server transfer layer for fluid entity. This transfer layer
- * builds the fluid, and send to Server, when server end a round of
- * iterations, this class recovers all info, and send it to the output manager.
+ * @brief Mirroring allocated in the host of the fluid data. This data storage
+ * is used to initializae the fluid data and transfer it to the server, and to
+ * download the data from the server in order to perform file outputs.
  */
 class Fluid : public Aqua::Singleton<Aqua::InputOutput::Fluid>
 {
@@ -68,7 +56,7 @@ public:
 	/** Get the number of particles
 	 * @return Number of particles.
 	 */
-	unsigned int n(){return nParticle;}
+	unsigned int n(){return num_particles;}
 	/** Get the number of particles
 	 * @return Number of particles.
 	 */
@@ -77,46 +65,49 @@ public:
 	/** Get the number of fluids
 	 * @return Number of fuid species.
 	 */
-	unsigned int nFluids(){return nFluid;}
+	unsigned int nFluids(){return num_fluids;}
 
-	/** Fix particles & fluid flag. \n
-	 * imove>0 for every fluid. \n
-	 * imove=0 for sensors. \n
-	 * imove<0 for boundary particles/vertex.
-	 * @note different imove number imply different fluid species.
+	/** Fixed/sensor/regular part flag:
+	 *   - imove > 0 for regular fluid particles.
+	 *   - imove = 0 for sensors.
+	 *   - imove < 0 for boundary elements/particles.
 	 */
 	int *imove;
-	/// Fluid of any particle
+	/// Fluid identifier.
 	int *ifluid;
-	/// Position of all particles.
+	/// Position \f$ \mathbf{r} \f$.
 	vec *pos;
-	/// Normal at each particle. (Used for boundary particles/vertexes)
+	/// Normal \f$ \mathbf{n} \f$.
 	vec *normal;
-	/// Velocity of all particles.
+	/// Velocity \f$ \mathbf{u} \f$.
 	vec *v;
-	/// Density of all particles.
+	/// Density \f$ \rho \f$.
 	float *dens;
-	/// Density variation of all particles.
+	/// Density variation rate \f$ \frac{\mathrm{d}\rho}{\mathrm{d}t} \f$.
 	float *drdt;
-	/// hp of all particles.
+	/// Kernel height \f$ h \f$.
 	float *hp;
-	/// Acceleration of all particles.
+	/// Acceleration \f$ \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \f$.
 	vec *f;
-	/// Mass of all particles.
+	/// Mass \f$ m \f$.
 	float *mass;
-	/// Pressure of all particles.
+	/// Pressure \f$ p \f$.
 	float *press;
-	/// Shepard term.
+	/** Shepard term \f$ \gamma(\mathbf{x}) = \int_{Omega}
+           W(\mathbf{y} - \mathbf{x})
+           \mathrm{d}\mathbf{x} \f$.
+     */
 	float *shepard;
-	/// Shepard term gradient.
+	/** Shepard term gradient (0th correction) \f$ \gamma(\mathbf{x}) = \int_{Omega}
+           \nabla W(\mathbf{y} - \mathbf{x})
+           \mathrm{d}\mathbf{x} \f$.
+     */
 	vec *shepard_gradient;
-	/// grad(p) output
-	vec *gradP;
 private:
 	/// Number of particles
-	unsigned int nParticle;
+	unsigned int num_particles;
 	/// Number of fluids
-	unsigned int nFluid;
+	unsigned int num_fluids;
 };
 
 }}  // namespace

@@ -265,7 +265,7 @@ public:
 	cl_mem f;
 	/// Density \f$ \rho \f$.
 	cl_mem dens;
-	/// Density change rate \f$ \frac{\mathrm{d}\rho}{\mathrm{d}t} \f$
+	/// Density change rate \f$ \frac{\mathrm{d}\rho}{\mathrm{d}t} \f$.
 	cl_mem drdt;
 	/** Density change rate (restricted to the numerical diffusive term of
      * \f$\delta\f$-SPH technique)
