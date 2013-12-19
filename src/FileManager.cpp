@@ -16,6 +16,21 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+#include <sstream>
+#include <stdexcept>
+#include <math.h>
+#include <string>
+#include <string.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <list>
+#include <unistd.h>
+#include <errno.h>
+
 #include <FileManager.h>
 #include <ArgumentsManager.h>
 #include <Fluid.h>

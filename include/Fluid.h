@@ -21,13 +21,6 @@
 
 #include <sphPrerequisites.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
-
-#include <CL/cl.h>
-
 #include <Singleton.h>
 
 namespace Aqua{ namespace InputOutput{

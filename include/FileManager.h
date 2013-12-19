@@ -19,20 +19,6 @@
 #ifndef FILEMANAGER_H_INCLUDED
 #define FILEMANAGER_H_INCLUDED
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <iostream>
-#include <sstream>
-#include <stdexcept>
-#include <math.h>
-#include <string>
-#include <string.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <list>
-#include <unistd.h>
-#include <errno.h>
 #include <deque>
 
 #include <sphPrerequisites.h>

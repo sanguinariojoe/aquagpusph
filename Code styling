@@ -11,7 +11,8 @@ the next line.
 
 The lines must not exceed the 80 cahracters.
 
-The private variables of a class should be named with an underscore prefix.
+The private/protected variables of a class should be named with an underscore
+prefix.
 
 Naming
 ======
