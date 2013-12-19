@@ -16,158 +16,148 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// ----------------------------------------------------------------------------
-// Include the main header
-// ----------------------------------------------------------------------------
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <string.h>
+
 #include <TimeManager.h>
-
-// ----------------------------------------------------------------------------
-// Include the problem setup header
-// ----------------------------------------------------------------------------
 #include <ProblemSetup.h>
-
-// ----------------------------------------------------------------------------
-// Include the screen manager
-// ----------------------------------------------------------------------------
 #include <ScreenManager.h>
 
 namespace Aqua{ namespace InputOutput{
 
 TimeManager::TimeManager()
-	: iStep(0)
-	, mTime(0.f)
-	, iFrame(0)
-	, zeroTime(0.f)
-	, zeroFrame(0)
-	, mSimMaxTime(-1.f)
-	, mSimMaxSteps(-1)
-	, mSimMaxFrames(-1)
-	, mDt(0.f)
-	, mSigma(0.f)
-	, mLogTime(0.f)
-	, mLogFPS(-1.f)
-	, mLogStep(0)
-	, mLogIPF(-1)
-	, mReTime(0.f)
-	, mReFPS(-1.f)
-	, mReStep(0)
-	, mReIPF(-1)
-	, mBoundsTime(0.f)
-	, mBoundsFPS(-1.f)
-	, mBoundsStep(0)
-	, mBoundsIPF(-1)
-	, mOutputTime(0.f)
-	, mOutputFPS(-1.f)
-	, mOutputStep(0)
-	, mOutputIPF(-1)
+	: _step(0)
+	, _time(0.f)
+	, _frame(0)
+	, _start_time(0.f)
+	, _start_frame(0)
+	, _time_max(-1.f)
+	, _steps_max(-1)
+	, _frames_max(-1)
+	, _dt(0.f)
+	, _log_time(0.f)
+	, _log_fps(-1.f)
+	, _log_step(0)
+	, _log_ipf(-1)
+	, _en_time(0.f)
+	, _en_fps(-1.f)
+	, _en_step(0)
+	, _en_ipf(-1)
+	, _bounds_time(0.f)
+	, _bounds_fps(-1.f)
+	, _bounds_step(0)
+	, _bounds_ipf(-1)
+	, _output_time(0.f)
+	, _output_fps(-1.f)
+	, _output_step(0)
+	, _output_ipf(-1)
 {
 	ProblemSetup *P = ProblemSetup::singleton();
 	ScreenManager *S = ScreenManager::singleton();
-	//! Take simulation end criteria
-	unsigned int Mode = P->time_opts.sim_end_mode;
-	if(Mode & __FRAME_MODE__) {
-		mSimMaxFrames = P->time_opts.sim_end_frame;
+
+	unsigned int mode = P->time_opts.sim_end_mode;
+	if(mode & __FRAME_MODE__) {
+		_frames_max = P->time_opts.sim_end_frame;
 	}
-	if(Mode & __ITER_MODE__) {
-		mSimMaxSteps = P->time_opts.sim_end_step;
+	if(mode & __ITER_MODE__) {
+		_steps_max = P->time_opts.sim_end_step;
 	}
-	if(Mode & __TIME_MODE__) {
-		mSimMaxTime = P->time_opts.sim_end_time;
+	if(mode & __TIME_MODE__) {
+		_time_max = P->time_opts.sim_end_time;
 	}
-	//! Take log file print criteria
-	Mode = P->time_opts.log_mode;
-	if(Mode >= __IPF_MODE__)
+
+	mode = P->time_opts.log_mode;
+	if(mode >= __IPF_MODE__)
 	{
-		Mode -= __IPF_MODE__;
-		mLogIPF = P->time_opts.log_ipf;
+		mode -= __IPF_MODE__;
+		_log_ipf = P->time_opts.log_ipf;
 	}
-	if(Mode >= __FPS_MODE__)
+	if(mode >= __FPS_MODE__)
 	{
-		Mode -= __FPS_MODE__;
-		mLogFPS = P->time_opts.log_fps;
+		mode -= __FPS_MODE__;
+		_log_fps = P->time_opts.log_fps;
 	}
-	//! Take Energy file print criteria
-	Mode = P->time_opts.energy_mode;
-	if(Mode >= __IPF_MODE__)
+
+	mode = P->time_opts.energy_mode;
+	if(mode >= __IPF_MODE__)
 	{
-		Mode -= __IPF_MODE__;
-		mReIPF = P->time_opts.energy_ipf;
+		mode -= __IPF_MODE__;
+		_en_ipf = P->time_opts.energy_ipf;
 	}
-	if(Mode >= __FPS_MODE__)
+	if(mode >= __FPS_MODE__)
 	{
-		Mode -= __FPS_MODE__;
-		mReFPS = P->time_opts.energy_fps;
+		mode -= __FPS_MODE__;
+		_en_fps = P->time_opts.energy_fps;
 	}
-	//! Take Bounds file print criteria
-	Mode = P->time_opts.bounds_mode;
-	if(Mode >= __IPF_MODE__)
+
+	mode = P->time_opts.bounds_mode;
+	if(mode >= __IPF_MODE__)
 	{
-		Mode -= __IPF_MODE__;
-		mBoundsIPF = P->time_opts.bounds_ipf;
+		mode -= __IPF_MODE__;
+		_bounds_ipf = P->time_opts.bounds_ipf;
 	}
-	if(Mode >= __FPS_MODE__)
+	if(mode >= __FPS_MODE__)
 	{
-		Mode -= __FPS_MODE__;
-		mBoundsFPS = P->time_opts.bounds_fps;
+		mode -= __FPS_MODE__;
+		_bounds_fps = P->time_opts.bounds_fps;
 	}
-	//! Take Output file print criteria
-	Mode = P->time_opts.output_mode;
-	if(Mode >= __IPF_MODE__)
+
+	mode = P->time_opts.output_mode;
+	if(mode >= __IPF_MODE__)
 	{
-		Mode -= __IPF_MODE__;
-		mOutputIPF = P->time_opts.output_ipf;
+		mode -= __IPF_MODE__;
+		_output_ipf = P->time_opts.output_ipf;
 	}
-	if(Mode >= __FPS_MODE__)
+	if(mode >= __FPS_MODE__)
 	{
-		Mode -= __FPS_MODE__;
-		mOutputFPS = P->time_opts.output_fps;
+		mode -= __FPS_MODE__;
+		_output_fps = P->time_opts.output_fps;
 	}
-	//! Set stabilization time
-	mTime -= P->time_opts.stabilization_time;
-	zeroTime -= P->time_opts.stabilization_time;
-	S->addMessage(1, "(TimeManager::TimeManager): Time manager built OK.\n");
+
+	_time -= P->time_opts.stabilization_time;
+	_start_time -= P->time_opts.stabilization_time;
+	S->addMessageF(1, "Time manager built OK.\n");
 }
 
 TimeManager::~TimeManager()
 {
 }
 
-void TimeManager::update(float DT)
+void TimeManager::update(float dt)
 {
-	mDt = DT;
-	iStep++;
-	mTime += mDt;
+	_dt = dt;
+	_step++;
+	_time += _dt;
 }
 
 bool TimeManager::mustStop()
 {
-	if( (mSimMaxTime >= 0.f) && (mTime >= mSimMaxTime) )
+	if( (_time_max >= 0.f) && (_time >= _time_max) )
 		return true;
-	if( (mSimMaxSteps >= 0) && (iStep >= mSimMaxSteps) )
+	if( (_steps_max >= 0) && (_step >= _steps_max) )
 		return true;
-	if( (mSimMaxFrames >= 0) && (iFrame >= mSimMaxFrames) )
+	if( (_frames_max >= 0) && (_frame >= _frames_max) )
 		return true;
 	return false;
 }
 
 bool TimeManager::mustPrintLog()
 {
-	if( ( (mLogFPS >= 0.f) || (mLogIPF >= 0.f) ) && (iFrame==1) && (iStep==1) )
-	{
-		mLogTime = mTime;
-		mLogStep = iStep;
+	if( ( (_log_fps >= 0.f) || (_log_ipf >= 0.f) ) && (_frame==1) && (_step==1) ) {
+		_log_time = _time;
+		_log_step = _step;
 		return true;
 	}
-	if( (mLogFPS >= 0.f) && (mTime - mLogTime >= 1.f/mLogFPS) )
-	{
-		mLogTime += 1.f/mLogFPS;
-		mLogStep = iStep;
+	if( (_log_fps >= 0.f) && (_time - _log_time >= 1.f/_log_fps) ) {
+		_log_time += 1.f/_log_fps;
+		_log_step = _step;
 		return true;
 	}
-	if( (mLogIPF > 0) && (iStep - mLogStep >= mLogIPF) )
-	{
-		mLogTime = mTime;
-		mLogStep = iStep;
+	if( (_log_ipf > 0) && (_step - _log_step >= _log_ipf) ) {
+		_log_time = _time;
+		_log_step = _step;
 		return true;
 	}
 	return false;
@@ -175,22 +165,19 @@ bool TimeManager::mustPrintLog()
 
 bool TimeManager::mustPrintEnergy()
 {
-	if( ( (mReFPS >= 0.f) || (mReIPF >= 0.f) ) && (iFrame==1) && (iStep==1) )
-	{
-		mReTime = mTime;
-		mReStep = iStep;
+	if( ( (_en_fps >= 0.f) || (_en_ipf >= 0.f) ) && (_frame==1) && (_step==1) ) {
+		_en_time = _time;
+		_en_step = _step;
 		return true;
 	}
-	if( (mReFPS >= 0.f) && (mTime - mReTime >= 1.f/mReFPS) )
-	{
-		mReTime += 1.f/mReFPS;
-		mReStep = iStep;
+	if( (_en_fps >= 0.f) && (_time - _en_time >= 1.f/_en_fps) ) {
+		_en_time += 1.f/_en_fps;
+		_en_step = _step;
 		return true;
 	}
-	if( (mReIPF > 0) && (iStep - mReStep >= mReIPF) )
-	{
-		mReTime = mTime;
-		mReStep = iStep;
+	if( (_en_ipf > 0) && (_step - _en_step >= _en_ipf) ) {
+		_en_time = _time;
+		_en_step = _step;
 		return true;
 	}
 	return false;
@@ -198,22 +185,19 @@ bool TimeManager::mustPrintEnergy()
 
 bool TimeManager::mustPrintBounds()
 {
-	if( ( (mBoundsFPS >= 0.f) || (mBoundsIPF >= 0.f) ) && (iFrame==1) && (iStep==1) )
-	{
-		mBoundsTime = mTime;
-		mBoundsStep = iStep;
+	if( ( (_bounds_fps >= 0.f) || (_bounds_ipf >= 0.f) ) && (_frame==1) && (_step==1) ) {
+		_bounds_time = _time;
+		_bounds_step = _step;
 		return true;
 	}
-	if( (mBoundsFPS >= 0.f) && (mTime - mBoundsTime >= 1.f/mBoundsFPS) )
-	{
-		mBoundsTime += 1.f/mBoundsFPS;
-		mBoundsStep = iStep;
+	if( (_bounds_fps >= 0.f) && (_time - _bounds_time >= 1.f/_bounds_fps) ) {
+		_bounds_time += 1.f/_bounds_fps;
+		_bounds_step = _step;
 		return true;
 	}
-	if( (mBoundsIPF > 0) && (iStep - mBoundsStep >= mBoundsIPF) )
-	{
-		mBoundsTime = mTime;
-		mBoundsStep = iStep;
+	if( (_bounds_ipf > 0) && (_step - _bounds_step >= _bounds_ipf) ) {
+		_bounds_time = _time;
+		_bounds_step = _step;
 		return true;
 	}
 	return false;
@@ -221,32 +205,29 @@ bool TimeManager::mustPrintBounds()
 
 bool TimeManager::mustPrintOutput()
 {
-	if(mTime < 0.f){
-	    iStep = 0;
+	if(_time < 0.f){
+	    _step = 0;
 	    return false;
 	}
-	if( ( (mOutputFPS >= 0.f) || (mOutputIPF >= 0.f) ) && (iFrame==0) && (iStep==1) )
-	{
-		mOutputTime = mTime;
-		mOutputStep = iStep;
-		iFrame++;
+	if( ( (_output_fps >= 0.f) || (_output_ipf >= 0.f) ) && (_frame==0) && (_step==1) ) {
+		_output_time = _time;
+		_output_step = _step;
+		_frame++;
 		return true;
 	}
-	if( (mOutputFPS > 0.f) && (mTime - mOutputTime >= 1.f/mOutputFPS) )
-	{
-		mOutputTime += 1.f/mOutputFPS;
-		mOutputStep = iStep;
-		iFrame++;
+	if( (_output_fps > 0.f) && (_time - _output_time >= 1.f/_output_fps) ) {
+		_output_time += 1.f/_output_fps;
+		_output_step = _step;
+		_frame++;
 		return true;
 	}
-	if( (mOutputIPF > 0) && (iStep - mOutputStep >= mOutputIPF) )
-	{
-		mOutputTime = mTime;
-		mOutputStep = iStep;
-		iFrame++;
+	if( (_output_ipf > 0) && (_step - _output_step >= _output_ipf) ) {
+		_output_time = _time;
+		_output_step = _step;
+		_frame++;
 		return true;
 	}
-	// Special case about the simulation was end
+	// We are interested into print an output in the simulation end state
 	if(mustStop()){
         return true;
 	}

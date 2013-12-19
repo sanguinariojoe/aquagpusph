@@ -19,28 +19,14 @@
 #ifndef TIMEMANAGER_H_INCLUDED
 #define TIMEMANAGER_H_INCLUDED
 
-// ----------------------------------------------------------------------------
-// Include Prerequisites
-// ----------------------------------------------------------------------------
 #include <sphPrerequisites.h>
-
-// ----------------------------------------------------------------------------
-// Include standar libraries
-// ----------------------------------------------------------------------------
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
-
-// ----------------------------------------------------------------------------
-// Include Singleton abstract class
-// ----------------------------------------------------------------------------
 #include <Singleton.h>
 
 namespace Aqua{ namespace InputOutput{
 
 /** @class TimeManager TimeManager.h TimeManager.h
- * @brief Simulation timing manager.
+ * @brief Control the simulation time, including the events triggering like the
+ * ouput files updating.
  */
 struct TimeManager : public Aqua::Singleton<Aqua::InputOutput::TimeManager>
 {
@@ -54,184 +40,185 @@ public:
 	~TimeManager();
 
 	/** Update method.
-	 * @param DT Simulation time elapsed in this frame.
-	 * @remarks This method must be called every step.
+	 * @param dt Simulation time elapsed in this frame.
 	 */
-	void update(float DT);
+	void update(float dt);
 
-	/** Must stop the simulation.
-	 * @return true if simulation end has been reached.
+	/** Get if the simulation must be end.
+	 * @return true if simulation has finished, false otherwise.
 	 */
 	bool mustStop();
 
-	/** Must print a log file.
-	 * @return true if a log file must be printed.
-	 * @remarks This method asumes that a file will be printed if returns 1, so
-	 * control flag will be reset, aiming to the next time that need print a file.
+	/** Get if the log file must be updated.
+	 * @return true if the log should be updated, false otherwise.
+	 * @remarks This method is assuming that when it is asked, the file will be
+	 * updated, so asking it again will return false until the next file
+	 * updating event.
 	 */
 	bool mustPrintLog();
 
-	/** Must print an energy report.
-	 * @return true if an energy file must be printed.
-	 * @remarks This method asumes that a file will be printed if returns 1, so
-	 * control flag will be reset, aiming to the next time that need print a file.
+	/** Get if the energy file must be updated.
+	 * @return true if the energy should be updated, false otherwise.
+	 * @remarks This method is assuming that when it is asked, the file will be
+	 * updated, so asking it again will return false until the next file
+	 * updating event.
 	 */
 	bool mustPrintEnergy();
 
-	/** Must print a Bounds file.
-	 * @return true if a bounds file must be printed.
-	 * @remarks This method asumes that a file will be printed if returns 1, so
-	 * control flag will be reset, aiming to the next time that need print a file.
+	/** Get if the fluid bounds file must be updated.
+	 * @return true if the bounds file should be updated, false otherwise.
+	 * @remarks This method is assuming that when it is asked, the file will be
+	 * updated, so asking it again will return false until the next file
+	 * updating event.
 	 */
 	bool mustPrintBounds();
 
-	/** Must print a output file.
-	 * @return true if a output file must be printed.
-	 * @remarks This method asumes that a file will be printed if returns 1, so
-	 * control flag will be reset, aiming to the next time that need print a file.
+	/** Get if a general simulation output must be printed.
+	 * @return true if an output should be printed, false otherwise.
+	 * @remarks This method is assuming that when it is asked, the file will be
+	 * updated, so asking it again will return false until the next file
+	 * updating event.
 	 */
 	bool mustPrintOutput();
 
 	/** Set the simulation step.
 	 * @param s Simulation step.
 	 */
-	void step(int s){iStep = s;}
+	void step(unsigned int s){_step = s;}
 	/** Get the simulation step.
 	 * @return Simulation step.
 	 */
-	unsigned int step(){return iStep;}
+	unsigned int step(){return _step;}
 	/** Set the simulation time.
 	 * @param t Simulation time.
 	 */
-	void time(float t){mTime = t;}
+	void time(float t){_time = t;}
 	/** Get the simulation time.
 	 * @return Simulation time.
 	 */
-	float time(){return mTime;}
+	float time(){return _time;}
 	/** Set the simulation frame.
 	 * @param frame Simulation frame.
 	 */
-	void frame(int frame){iFrame = frame;}
+	void frame(unsigned int frame){_frame = frame;}
 	/** Get the simulation frame.
 	 * @return Simulation frame.
 	 */
-	unsigned int frame(){return iFrame;}
+	unsigned int frame(){return _frame;}
 	/** Set the simulation time step.
-	 * @param t Simulation time step.
+	 * @param dt Simulation time step.
 	 */
-	void dt(float t){mDt = t;}
+	void dt(float dt){_dt = dt;}
 	/** Get the simulation time step.
 	 * @return Simulation time step.
 	 */
-	float dt(){return mDt;}
-	/** Set the simulation inital frame.
-	 * @param start intial frame.
+	float dt(){return _dt;}
+	/** Set the simulation starting frame.
+	 * @param start starting frame.
 	 */
-	void startFrame(int start){zeroFrame=start;}
-	/** Get the simulation inital frame.
-	 * @return Simulation intial frame.
+	void startFrame(int start){_start_frame=start;}
+	/** Get the simulation starting frame.
+	 * @return Simulation starting frame.
 	 */
-	int startFrame(){return zeroFrame;}
-	/** Set the simulation inital time.
-	 * @param start Simulation intial time.
+	int startFrame(){return _start_frame;}
+	/** Set the simulation starting time.
+	 * @param start Simulation starting time.
 	 */
-	void startTime(float start){zeroTime=start;}
+	void startTime(float start){_start_time=start;}
 	/** Get the simulation inital time.
 	 * @return Simulation intial time.
 	 */
-	float startTime(){return zeroTime;}
+	float startTime(){return _start_time;}
 
-	/** Set the output step.
-	 * @param s last output step.
+	/** Set the last output event step.
+	 * @param s last output event step.
 	 */
-	void outputStep(int s){mOutputStep = s;}
-	/** Get the output step.
-	 * @return Last output step.
+	void outputStep(int s){_output_step = s;}
+	/** Get the last output event step.
+	 * @return Last output event step.
 	 */
-	int outputStep(){return mOutputStep;}
-	/** Get the output iteration per frame.
-	 * @return Iterations per frame.
+	int outputStep(){return _output_step;}
+	/** Get the iterations per output frame.
+	 * @return Iterations per output frame.
 	 */
-	int outputIPF(){return mOutputIPF;}
-	/** Set the output time.
-	 * @param t last output time.
+	int outputIPF(){return _output_ipf;}
+	/** Set the last output event time instant.
+	 * @param t Last output event time instant.
 	 */
-	void outputTime(float t){mOutputTime = t;}
+	void outputTime(float t){_output_time = t;}
 	/** Get the output time.
 	 * @return Last output time.
 	 */
-	float outputTime(){return mOutputTime;}
+	float outputTime(){return _output_time;}
 	/** Get the output frames per second.
 	 * @return Frames per second.
 	 */
-	float outputFPS(){return mOutputFPS;}
+	float outputFPS(){return _output_fps;}
 
 	/** Get maximum simulation time.
 	 * @return maximum simulation time.
 	 */
-	float maxTime(){return mSimMaxTime;}
+	float maxTime(){return _time_max;}
 	/** Get maximum simulation frame.
 	 * @return maximum simulation frame.
 	 */
-	int maxFrame(){return mSimMaxFrames;}
+	int maxFrame(){return _frames_max;}
 
 private:
 	/// Actual step
-	unsigned int iStep;
+	unsigned int _step;
 	/// Actual time
-	float mTime;
+	float _time;
 	/// Actual frame
-	unsigned int iFrame;
+	unsigned int _frame;
 	/// Start frame
-	float zeroTime;
+	float _start_time;
 	/// Start frame
-	int zeroFrame;
+	int _start_frame;
 	/// Maximum time into simulation (-1 if simulation don't stop by time criteria)
-	float mSimMaxTime;
+	float _time_max;
 	/// Maximum number of steps into simulation (-1 if simulation don't stop by steps criteria)
-	int mSimMaxSteps;
+	int _steps_max;
 	/// Maximum number of frames into simulation (-1 if simulation don't stop by frames criteria)
-	int mSimMaxFrames;
+	int _frames_max;
 	/// Time step
-	float mDt;
-	/// Convection time step viscosity
-	float mSigma;
+	float _dt;
 
 	/// Time when last log file printed
-	float mLogTime;
+	float _log_time;
 	/// FPS for Log files (-1 if Log file must not be printed)
-	float mLogFPS;
+	float _log_fps;
 	/// Step when last log file printed
-	int mLogStep;
+	int _log_step;
 	/// IPF for Log files (-1 if Log file must not be printed)
-	int mLogIPF;
+	int _log_ipf;
 
 	/// Time when last Energy file printed
-	float mReTime;
+	float _en_time;
 	/// FPS for Energy files (-1 if Energy file must not be printed)
-	float mReFPS;
+	float _en_fps;
 	/// Step when last Energy file printed
-	int mReStep;
+	int _en_step;
 	/// IPF for Energy files (-1 if Energy file must not be printed)
-	int mReIPF;
+	int _en_ipf;
 
 	/// Time when last Bounds file printed
-	float mBoundsTime;
+	float _bounds_time;
 	/// FPS for Bounds files (-1 if Bounds file must not be printed)
-	float mBoundsFPS;
+	float _bounds_fps;
 	/// Step when last Bounds file printed
-	int mBoundsStep;
+	int _bounds_step;
 	/// IPF for Bounds files (-1 if Bounds file must not be printed)
-	int mBoundsIPF;
+	int _bounds_ipf;
 
 	/// Time when last Output file printed
-	float mOutputTime;
+	float _output_time;
 	/// FPS for Output files (-1 if Output file must not be printed)
-	float mOutputFPS;
+	float _output_fps;
 	/// Step when last Output file printed
-	int mOutputStep;
+	int _output_step;
 	/// IPF for Output files (-1 if Output file must not be printed)
-	int mOutputIPF;
+	int _output_ipf;
 };
 
 }}  // namespace
