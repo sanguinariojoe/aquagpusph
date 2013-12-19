@@ -122,12 +122,12 @@ public:
 	     \mathbf{g} \cdot \mathbf{r}_i \f$.
      *   -# Kinetic energy: \f$ E_{kin} = \sum_i \frac{1}{2} m_i
 	     \vert \mathbf{u}_i \vert^2 \f$.
-	 *   -# Internal energy: \f$ U = \int_0^t sum_i \frac{p_i}{\rho_i^2}
+	 *   -# Internal energy: \f$ U = \int_0^t \sum_i \frac{p_i}{\rho_i^2}
 	     \left(
             \frac{\mathrm{d} \rho_i}{\mathrm{d} t}
             - \left. \frac{\mathrm{d} \rho_i}{\mathrm{d} t} \right\vert_F
 	     \right) m_i \mathrm{d}t \f$.
-	 *   -# Enthalpy: \f$ H = \int_0^t sum_i \frac{p_i}{\rho_i^2}
+	 *   -# Enthalpy: \f$ H = \int_0^t \sum_i \frac{p_i}{\rho_i^2}
          \frac{\mathrm{d} \rho_i}{\mathrm{d} t} m_i \mathrm{d}t \f$.
      *   -# Entropy: \f$ TS = U - H \f$.
      *   -# Total energy: \f$ E = U + E_{kin} \f$.
@@ -356,7 +356,7 @@ public:
 	/// Sensors types
 	cl_mem sensor_mode;
 
-	/** Internal energy: \f$ U = \int_0^t sum_i \frac{p_i}{\rho_i^2}
+	/** Internal energy: \f$ U = \int_0^t \sum_i \frac{p_i}{\rho_i^2}
 	     \left(
             \frac{\mathrm{d} \rho_i}{\mathrm{d} t}
             - \left. \frac{\mathrm{d} \rho_i}{\mathrm{d} t} \right\vert_F

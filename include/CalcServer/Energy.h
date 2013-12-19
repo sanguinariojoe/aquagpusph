@@ -37,12 +37,12 @@ namespace Aqua{ namespace CalcServer{
      \mathbf{g} \cdot \mathbf{r}_i \f$.
  *   -# Kinetic energy: \f$ E_{kin} = \sum_i \frac{1}{2} m_i
      \vert \mathbf{u}_i \vert^2 \f$.
- *   -# Internal energy: \f$ U = \int_0^t sum_i \frac{p_i}{\rho_i^2}
+ *   -# Internal energy: \f$ U = \int_0^t \sum_i \frac{p_i}{\rho_i^2}
      \left(
         \frac{\mathrm{d} \rho_i}{\mathrm{d} t}
         - \left. \frac{\mathrm{d} \rho_i}{\mathrm{d} t} \right\vert_F
      \right) m_i \mathrm{d}t \f$.
- *   -# Enthalpy: \f$ H = \int_0^t sum_i \frac{p_i}{\rho_i^2}
+ *   -# Enthalpy: \f$ H = \int_0^t \sum_i \frac{p_i}{\rho_i^2}
      \frac{\mathrm{d} \rho_i}{\mathrm{d} t} m_i \mathrm{d}t \f$.
  *   -# Entropy: \f$ TS = U - H \f$.
  *   -# Total energy: \f$ E = U + E_{kin} \f$.
@@ -70,7 +70,7 @@ public:
 	float energy(){return mEnergy.x + mEnergy.w;}
 
 	/** Get the internal energy.
-	 * @return Internal energy: \f$ U = \int_0^t sum_i \frac{p_i}{\rho_i^2}
+	 * @return Internal energy: \f$ U = \int_0^t \sum_i \frac{p_i}{\rho_i^2}
 	     \left(
             \frac{\mathrm{d} \rho_i}{\mathrm{d} t}
             - \left. \frac{\mathrm{d} \rho_i}{\mathrm{d} t} \right\vert_F
@@ -80,7 +80,7 @@ public:
 	float internalEnergy(){return mEnergy.x;}
 
 	/** Get the enthalpy.
-	 * @return Enthalpy: \f$ H = \int_0^t sum_i \frac{p_i}{\rho_i^2}
+	 * @return Enthalpy: \f$ H = \int_0^t \sum_i \frac{p_i}{\rho_i^2}
          \frac{\mathrm{d} \rho_i}{\mathrm{d} t} m_i \mathrm{d}t \f$.
 	 * @warning The viscous dissipation is not implemented yet.
 	 */
