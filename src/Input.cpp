@@ -16,44 +16,25 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// ----------------------------------------------------------------------------
-// Include the main header
-// ----------------------------------------------------------------------------
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <string.h>
+
 #include <Input.h>
 
-// ----------------------------------------------------------------------------
-// Include the Host-Server fluid transfer layer
-// ----------------------------------------------------------------------------
+#ifdef HAVE_H5PART
+	#include <H5Part.h>
+	#include <hdf5.h>
+#endif // HAVE_H5PART
+
 #include <Fluid.h>
-
-// ----------------------------------------------------------------------------
-// Include the simulation time manager
-// ----------------------------------------------------------------------------
 #include <TimeManager.h>
-
-// ----------------------------------------------------------------------------
-// Include the problem setup
-// ----------------------------------------------------------------------------
 #include <ProblemSetup.h>
-
-// ----------------------------------------------------------------------------
-// Include the calculation server
-// ----------------------------------------------------------------------------
 #include <CalcServer.h>
-
-// ----------------------------------------------------------------------------
-// Include auxiliar methods
-// ----------------------------------------------------------------------------
 #include <AuxiliarMethods.h>
-
-// ----------------------------------------------------------------------------
-// Include the screen manager
-// ----------------------------------------------------------------------------
 #include <ScreenManager.h>
 
-// ----------------------------------------------------------------------------
-// Include readers
-// ----------------------------------------------------------------------------
 #include <Input/ASCII.h>
 #include <Input/GiD.h>
 #include <Input/XML.h>
@@ -75,19 +56,19 @@ bool input()
 	        continue;
 	    }
 	    // Get extension
-	    const char* fileType = getExtensionFromFilePath(path);
+	    const char* file_type = getExtensionFromFilePath(path);
 	    // Get data
 	    n = P->fluids[i].n;
 	    // Load file with selected reader
-	    if(!strcmp(fileType,"xml")){                          // xml file
+	    if(!strcmp(file_type,"xml")){    // XML file
 	        if(Input::loadXML(path, i, start, n, P->fluids[i].refd, P->SPH_opts.h, F))
 	            return true;
 	    }
-	    if(!strcmp(fileType,"gid")){                          // xml file
+	    if(!strcmp(file_type,"gid")){    // GiD file
 	        if(Input::loadGiD(path, i, start, n, P->fluids[i].refd, P->SPH_opts.h, F))
 	            return true;
 	    }
-	    else{                                           // plain text formatted file
+	    else{                            // Plain text tabulated file
 	        if(Input::loadASCII(path, i, start, n, P->fluids[i].refd, P->SPH_opts.h, F))
 	            return true;
 	    }
@@ -99,7 +80,7 @@ bool input()
 	        if(Input::loadH5Part())
 	            return true;
 	    #else
-            S->addMessage(3, "(input): Can't read H5Part input file.\n");
+            S->addMessageF(3, "Can't read H5Part input file.\n");
             S->addMessage(0, "\tFormat not supported (Consider recompile using H5PART support).\n");
 	        return true;
 	    #endif // HAVE_H5PART
@@ -118,7 +99,7 @@ bool Input::loadH5Part()
     ScreenManager *S = ScreenManager::singleton();
     char msg[256];
 	H5PartFile *H5PartFileID;
-	h5part_int64_t n, num_fluids, iStep;
+	h5part_int64_t n, num_fluids, step;
 	double dTime, ddt;
 	h5part_int64_t *imove, *ifluid;
 	double *x, *y, *nx, *ny, *vx, *vy, *dvx, *dvy, *press, *dens, *ddens, *hp, *mass;
@@ -126,15 +107,14 @@ bool Input::loadH5Part()
 	    double *z, *nz, *vz, *dvz;
 	#endif
 
-	//! 1st.- Open the file.
-	sprintf("(Input::loadH5Part): Loading fluid from \"%s\"\n", P->settings.fluid_file);
-	S->addMessage(1, msg);
+	sprintf("Loading fluid from \"%s\"\n", P->settings.fluid_file);
+	S->addMessageF(1, msg);
 	#ifdef HAVE_MPI
 	    H5PartFileID = H5PartOpenFileParallel(P->settings.fluid_file,H5PART_READ,MPI_COMM_WORLD);
 	#else
 	    H5PartFileID = H5PartOpenFile(P->settings.fluid_file,H5PART_WRITE);
 	#endif
-	//! 2nd.- Set last time step
+
 	h5part_int64_t zeroFrame;
 	H5PartReadFileAttrib(H5PartFileID, "zeroFrame", &zeroFrame);
 	T->startFrame(zeroFrame);
@@ -142,7 +122,7 @@ bool Input::loadH5Part()
 	H5PartSetStep(H5PartFileID,iFrame-1);
 	n = H5PartGetNumParticles(H5PartFileID);
 	if(F->n() != (unsigned int)n){
-	    S->addMessage(3, "(Input::loadH5Part): Number of particles of the file don't match than fluid particles.\n");
+	    S->addMessageF(3, "Number of particles of the file don't match than fluid particles.\n");
         sprintf(msg, "\tFluid particles = %u\n", F->n());
         S->addMessage(0, msg);
         sprintf(msg, "\tFile particles  = %u\n", n);
@@ -151,26 +131,26 @@ bool Input::loadH5Part()
 	}
 	T->frame(iFrame+T->startFrame());
 	T->startFrame(T->frame());
-	//! 3rd.- Read attributes
+
 	H5PartReadStepAttrib(H5PartFileID,"nfluid",&num_fluids);
 	if(C->num_fluids != (unsigned int)num_fluids){
-	    S->addMessage(3, "(Input::loadH5Part): Number of fluids of the file don't match than calcserver.\n");
+	    S->addMessageF(3, "Number of fluids of the file don't match than calcserver.\n");
         sprintf(msg, "\tFluid on server = %u\n", C->num_fluids);
         S->addMessage(0, msg);
         sprintf(msg, "\tFile fluids      = %u\n", num_fluids);
         S->addMessage(0, msg);
 	    return true;
 	}
-	H5PartReadStepAttrib(H5PartFileID,"step",&iStep);
+	H5PartReadStepAttrib(H5PartFileID,"step",&step);
 	H5PartReadStepAttrib(H5PartFileID,"time",&dTime);
 	H5PartReadStepAttrib(H5PartFileID,"dt",&ddt);
-	T->step(iStep);
+	T->step(step);
 	T->time(dTime);
 	T->startTime(dTime);
 	T->dt(ddt);
-	T->outputStep(iStep);
+	T->outputStep(step);
 	T->outputTime(dTime);
-	//! 4th.- Read datasheets
+
 	imove = new h5part_int64_t[F->n()];
 	ifluid = new h5part_int64_t[F->n()];
 	x     = new double[F->n()];
@@ -217,7 +197,7 @@ bool Input::loadH5Part()
 	    H5PartReadDataFloat64(H5PartFileID,"nz",nz);
 	    H5PartReadDataFloat64(H5PartFileID,"dvz",dvz);
 	#endif
-	//! 5th.- Transfer data to the fluid
+
 	for(i=0;i<F->n();i++)
 	{
 	    F->pos[i].x    = x[i];

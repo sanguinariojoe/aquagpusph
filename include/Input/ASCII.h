@@ -19,40 +19,12 @@
 #ifndef ASCII_H_INCLUDED
 #define ASCII_H_INCLUDED
 
-// ----------------------------------------------------------------------------
-// Include Prerequisites
-// ----------------------------------------------------------------------------
 #include <sphPrerequisites.h>
-
-// ----------------------------------------------------------------------------
-// Include standar libraries
-// ----------------------------------------------------------------------------
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
-
-// ----------------------------------------------------------------------------
-// Include the h5part library
-// ----------------------------------------------------------------------------
-#ifdef HAVE_H5PART
-	#include <H5Part.h>
-	#include <hdf5.h>
-#endif // HAVE_H5PART
-
-// ----------------------------------------------------------------------------
-// Include the Host-Server fluid transfer layer
-// ----------------------------------------------------------------------------
 #include <Fluid.h>
-
-// ----------------------------------------------------------------------------
-// Include the equation reader
-// ----------------------------------------------------------------------------
-#include <Tokenizer/Tokenizer.h>
 
 namespace Aqua{ namespace InputOutput{ namespace Input{
 
-/** Reads ASCII data file to set the fluid.
+/** Reads an ASCII data file to setup the particles.
  * @param path Input file path.
  * @param ifluid Index of the fluid.
  * @param i0 Starting index of the particle.
@@ -60,7 +32,7 @@ namespace Aqua{ namespace InputOutput{ namespace Input{
  * @param refd Reference density.
  * @param h Reference kernel height.
  * @param F Fluid host instance.
- * @return false if all gone right. \n true otherwise.
+ * @return false if all gone right, true otherwise.
  */
 bool loadASCII(const char* path, int ifluid, unsigned int i0, unsigned int n, float refd, float h, Fluid *F);
 

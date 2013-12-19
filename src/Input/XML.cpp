@@ -16,45 +16,51 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// ----------------------------------------------------------------------------
-// Include the main header
-// ----------------------------------------------------------------------------
-#include <Input/XML.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <string.h>
 
-// ----------------------------------------------------------------------------
-// Include the screen manager
-// ----------------------------------------------------------------------------
-#include <ScreenManager.h>
-
-// ----------------------------------------------------------------------------
-// xerces XML parser stuff
-// ----------------------------------------------------------------------------
-//! @def xmlAttribute Short definition of a method that returns an attribute of an element as char*
+#include <xercesc/dom/DOM.hpp>
+#include <xercesc/dom/DOMDocument.hpp>
+#include <xercesc/dom/DOMDocumentType.hpp>
+#include <xercesc/dom/DOMElement.hpp>
+#include <xercesc/dom/DOMImplementation.hpp>
+#include <xercesc/dom/DOMImplementationLS.hpp>
+#include <xercesc/dom/DOMNodeIterator.hpp>
+#include <xercesc/dom/DOMNodeList.hpp>
+#include <xercesc/dom/DOMText.hpp>
+#include <xercesc/parsers/XercesDOMParser.hpp>
+#include <xercesc/util/XMLUni.hpp>
 #ifdef xmlAttribute
 	#undef xmlAttribute
 #endif
 #define xmlAttribute(elem, att) XMLString::transcode( elem->getAttribute(XMLString::transcode(att)) )
+
 using namespace xercesc;
+
+#include <Input/XML.h>
+#include <ScreenManager.h>
 
 namespace Aqua{ namespace InputOutput{ namespace Input{
 
-int loadXML(const char* path, int ifluid, unsigned int i0, unsigned int n, float refd, float h, Fluid *F)
+bool loadXML(const char* path, int ifluid, unsigned int i0, unsigned int n, float refd, float h, Fluid *F)
 {
     ScreenManager *S = ScreenManager::singleton();
     char msg[256];
-	//! 1st.- Open xml file
-    sprintf(msg, "(loadXML): Loading fluid from XML file \"%s\"\n", path);
-    S->addMessage(1, msg);
+
+    sprintf(msg, "Loading fluid from XML file \"%s\"\n", path);
+    S->addMessageF(1, msg);
     sprintf(msg, "\tParticles from %u to %u\n", i0, i0+n-1);
     S->addMessage(0, msg);
     sprintf(msg, "\tCan take some time, please wait...\n");
     S->addMessage(0, msg);
-	// Try to open as ascii file in order to know if file exist
+	// Try to open as an ascii file in order to know if the file already exist
 	FILE *dummy=0; dummy = fopen(path, "r");
 	if(!dummy){
-        sprintf(msg, "(loadXML): File don't exist.\n");
-        S->addMessage(3, msg);
-	    return 1;
+        sprintf(msg, "File don't exist.\n");
+        S->addMessageF(3, msg);
+	    return true;
 	}
 	xercesc::XercesDOMParser *mParser = new XercesDOMParser;
 	mParser->setValidationScheme( XercesDOMParser::Val_Never );
@@ -62,18 +68,18 @@ int loadXML(const char* path, int ifluid, unsigned int i0, unsigned int n, float
 	mParser->setDoSchema( false );
 	mParser->setLoadExternalDTD( false );
 	mParser->parse( path );
-	//! 2nd.- Handling
+
 	DOMDocument* doc = mParser->getDocument();
 	DOMElement* root = doc->getDocumentElement();
 	if( !root ){
-        sprintf(msg, "(loadXML): Empty XML file\n");
-        S->addMessage(3, msg);
-	    return 2;
+        sprintf(msg, "Empty XML file\n");
+        S->addMessageF(3, msg);
+	    return true;
 	}
-	//! 3rd.- Look for particles
+
 	DOMNodeList* nodes = root->getElementsByTagName(XMLString::transcode("Particle"));
 	unsigned int count=0;
-	unsigned int Percentage=-1;
+	unsigned int progress=-1;
 	for( XMLSize_t i=0; i<nodes->getLength();i++ ){
 	    DOMNode* node = nodes->item(i);
 	    if( node->getNodeType() != DOMNode::ELEMENT_NODE )
@@ -81,25 +87,25 @@ int loadXML(const char* path, int ifluid, unsigned int i0, unsigned int n, float
 	    DOMElement* elem = dynamic_cast< xercesc::DOMElement* >( node );
 	    count++;
 	    if(count > n){
-            sprintf(msg, "(loadXML): File contains more particles than specified for this fluid.\n");
-            S->addMessage(2, msg);
+            sprintf(msg, "File contains more particles than specified for this fluid.\n");
+            S->addMessageF(2, msg);
             sprintf(msg, "\t%u particles will be discarded.\n", n-count);
             S->addMessage(0, msg);
 	        break;
 	    }
-	    if(Percentage != count*100/n){
-	        Percentage = count*100/n;
-            sprintf(msg, "\t\t%u%%\n", Percentage);
+	    if(progress != count*100/n){
+	        progress = count*100/n;
+            sprintf(msg, "\t\t%u%%\n", progress);
             S->addMessage(0, msg);
 	    }
-	    DOMNodeList* s_nodes = elem->getElementsByTagName(XMLString::transcode("Position")); // Mandatory field
-	    bool haveMe = false;
+	    DOMNodeList* s_nodes = elem->getElementsByTagName(XMLString::transcode("Position"));
+	    bool data_exist = false;
 	    for( XMLSize_t j=0; j<nodes->getLength();j++ ){
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
 	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
-	        haveMe = true;
+	        data_exist = true;
 	        F->pos[count+i0-1].x = atof(xmlAttribute(s_elem, "x"));
 	        F->pos[count+i0-1].y = atof(xmlAttribute(s_elem, "y"));
 	        #if HAVE_3D
@@ -107,19 +113,19 @@ int loadXML(const char* path, int ifluid, unsigned int i0, unsigned int n, float
 	            F->pos[count+i0-1].w = 0.f;
 	        #endif
 	    }
-	    if(!haveMe){
-            sprintf(msg, "(loadXML): Particle %u position don't specified.\n", count-1);
-            S->addMessage(3, msg);
-	        return 4;
+	    if(!data_exist){
+            sprintf(msg, "Particle %u position don't specified.\n", count-1);
+            S->addMessageF(3, msg);
+	        return true;
 	    }
-	    s_nodes = elem->getElementsByTagName(XMLString::transcode("Normal")); // Mandatory field
-	    haveMe = false;
+	    s_nodes = elem->getElementsByTagName(XMLString::transcode("Normal"));
+	    data_exist = false;
 	    for( XMLSize_t j=0; j<nodes->getLength();j++ ){
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
 	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
-	        haveMe = true;
+	        data_exist = true;
 	        F->normal[count+i0-1].x = atof(xmlAttribute(s_elem, "x"));
 	        F->normal[count+i0-1].y = atof(xmlAttribute(s_elem, "y"));
 	        #if HAVE_3D
@@ -127,19 +133,19 @@ int loadXML(const char* path, int ifluid, unsigned int i0, unsigned int n, float
 	            F->normal[count+i0-1].w = 0.f;
 	        #endif
 	    }
-	    if(!haveMe){
-            sprintf(msg, "(loadXML): Particle %u normal don't specified.\n", count-1);
-            S->addMessage(3, msg);
-	        return 4;
+	    if(!data_exist){
+            sprintf(msg, "Particle %u normal don't specified.\n", count-1);
+            S->addMessageF(3, msg);
+	        return true;
 	    }
-	    s_nodes = elem->getElementsByTagName(XMLString::transcode("Velocity")); // Mandatory field
-	    haveMe = false;
+	    s_nodes = elem->getElementsByTagName(XMLString::transcode("Velocity"));
+	    data_exist = false;
 	    for( XMLSize_t j=0; j<nodes->getLength();j++ ){
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
 	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
-	        haveMe = true;
+	        data_exist = true;
 	        F->v[count+i0-1].x = atof(xmlAttribute(s_elem, "x"));
 	        F->v[count+i0-1].y = atof(xmlAttribute(s_elem, "y"));
 	        #if HAVE_3D
@@ -147,19 +153,19 @@ int loadXML(const char* path, int ifluid, unsigned int i0, unsigned int n, float
 	            F->v[count+i0-1].w = 0.f;
 	        #endif
 	    }
-	    if(!haveMe){
-            sprintf(msg, "(loadXML): Particle %u position don't specified.\n", count-1);
-            S->addMessage(3, msg);
-	        return 5;
+	    if(!data_exist){
+            sprintf(msg, "Particle %u position don't specified.\n", count-1);
+            S->addMessageF(3, msg);
+	        return true;
 	    }
 	    s_nodes = elem->getElementsByTagName(XMLString::transcode("Force"));
-	    haveMe = false;
+	    data_exist = false;
 	    for( XMLSize_t j=0; j<nodes->getLength();j++ ){
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
 	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
-	        haveMe = true;
+	        data_exist = true;
 	        F->f[count+i0-1].x = atof(xmlAttribute(s_elem, "x"));
 	        F->f[count+i0-1].y = atof(xmlAttribute(s_elem, "y"));
 	        #if HAVE_3D
@@ -167,7 +173,7 @@ int loadXML(const char* path, int ifluid, unsigned int i0, unsigned int n, float
 	            F->f[count+i0-1].w = 0.f;
 	        #endif
 	    }
-	    if(!haveMe){
+	    if(!data_exist){
 	        F->f[count+i0-1].x = 0.f;
 	        F->f[count+i0-1].y = 0.f;
 	        #if HAVE_3D
@@ -176,96 +182,96 @@ int loadXML(const char* path, int ifluid, unsigned int i0, unsigned int n, float
 	        #endif
 	    }
 	    s_nodes = elem->getElementsByTagName(XMLString::transcode("Density"));
-	    haveMe = false;
+	    data_exist = false;
 	    for( XMLSize_t j=0; j<nodes->getLength();j++ ){
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
 	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
-	        haveMe = true;
+	        data_exist = true;
 	        F->dens[count+i0-1] = atof(xmlAttribute(s_elem, "value"));
 	    }
-	    if(!haveMe){
+	    if(!data_exist){
 	        F->dens[count+i0-1] = refd;
 	    }
 	    s_nodes = elem->getElementsByTagName(XMLString::transcode("DensityRate"));
-	    haveMe = false;
+	    data_exist = false;
 	    for( XMLSize_t j=0; j<nodes->getLength();j++ ){
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
 	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
-	        haveMe = true;
+	        data_exist = true;
 	        F->drdt[count+i0-1] = atof(xmlAttribute(s_elem, "value"));
 	    }
-	    if(!haveMe){
+	    if(!data_exist){
 	        F->drdt[count+i0-1] = 0.f;
 	    }
-	    s_nodes = elem->getElementsByTagName(XMLString::transcode("Mass")); // Mandatory field
-	    haveMe = false;
+	    s_nodes = elem->getElementsByTagName(XMLString::transcode("Mass"));
+	    data_exist = false;
 	    for( XMLSize_t j=0; j<nodes->getLength();j++ ){
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
 	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
-	        haveMe = true;
+	        data_exist = true;
 	        F->mass[count+i0-1] = atof(xmlAttribute(s_elem, "value"));
 	    }
-	    if(!haveMe){
-            sprintf(msg, "(loadXML): Particle %u mass don't specified.\n", count-1);
-            S->addMessage(3, msg);
-	        return 5;
+	    if(!data_exist){
+            sprintf(msg, "Particle %u mass don't specified.\n", count-1);
+            S->addMessageF(3, msg);
+	        return true;
 	    }
-	    s_nodes = elem->getElementsByTagName(XMLString::transcode("KernelH")); // Mandatory field
-	    haveMe = false;
+	    s_nodes = elem->getElementsByTagName(XMLString::transcode("KernelH"));
+	    data_exist = false;
 	    for( XMLSize_t j=0; j<nodes->getLength();j++ ){
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
 	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
-	        haveMe = true;
+	        data_exist = true;
 	        F->hp[count+i0-1] = atof(xmlAttribute(s_elem, "value"));
 	    }
-	    if(!haveMe){
+	    if(!data_exist){
 	        F->hp[count+i0-1] = h;
 	    }
-	    s_nodes = elem->getElementsByTagName(XMLString::transcode("Imove")); // Mandatory field
-	    haveMe = false;
+	    s_nodes = elem->getElementsByTagName(XMLString::transcode("Imove"));
+	    data_exist = false;
 	    for( XMLSize_t j=0; j<nodes->getLength();j++ ){
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
 	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
-	        haveMe = true;
+	        data_exist = true;
 	        F->imove[count+i0-1] = atoi(xmlAttribute(s_elem, "value"));
 	    }
-	    if(!haveMe){
+	    if(!data_exist){
 	        F->imove[count+i0-1] = 1;
 	    }
-	    s_nodes = elem->getElementsByTagName(XMLString::transcode("Ifluid")); // Mandatory field
-	    haveMe = false;
+	    s_nodes = elem->getElementsByTagName(XMLString::transcode("Ifluid"));
+	    data_exist = false;
 	    for( XMLSize_t j=0; j<nodes->getLength();j++ ){
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
 	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
-	        haveMe = true;
+	        data_exist = true;
 	        F->ifluid[count+i0-1] = atoi(xmlAttribute(s_elem, "value"));
 	    }
-	    if(!haveMe){
+	    if(!data_exist){
 	        F->ifluid[count+i0-1] = ifluid;
 	    }
 	}
 	if(count < n){
-        sprintf(msg, "(loadXML): Not enought particles in the file\n");
-        S->addMessage(3, msg);
+        sprintf(msg, "Not enought particles in the file\n");
+        S->addMessageF(3, msg);
         sprintf(msg, "\t%u of %u particles readed\n", count, n);
         S->addMessage(0, msg);
-	    return 6;
+	    return true;
 	}
-    sprintf(msg, "(loadXML): Fluid set!\n");
-    S->addMessage(1, msg);
-	return 0;
+    sprintf(msg, "Fluid set!\n");
+    S->addMessageF(1, msg);
+	return false;
 }
 
 }}} // namespace

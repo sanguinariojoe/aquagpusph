@@ -19,40 +19,12 @@
 #ifndef GID_H_INCLUDED
 #define GID_H_INCLUDED
 
-// ----------------------------------------------------------------------------
-// Include Prerequisites
-// ----------------------------------------------------------------------------
 #include <sphPrerequisites.h>
-
-// ----------------------------------------------------------------------------
-// Include standar libraries
-// ----------------------------------------------------------------------------
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
-
-// ----------------------------------------------------------------------------
-// Include the h5part library
-// ----------------------------------------------------------------------------
-#ifdef HAVE_H5PART
-	#include <H5Part.h>
-	#include <hdf5.h>
-#endif // HAVE_H5PART
-
-// ----------------------------------------------------------------------------
-// Include the Host-Server fluid transfer layer
-// ----------------------------------------------------------------------------
 #include <Fluid.h>
-
-// ----------------------------------------------------------------------------
-// Include the equation reader
-// ----------------------------------------------------------------------------
-#include <Tokenizer/Tokenizer.h>
 
 namespace Aqua{ namespace InputOutput{ namespace Input{
 
-/** Reads GiD file to set the fluid.
+/** Reads a GiD mesh file to setup the particles.
  * @param path Input file path.
  * @param ifluid Index of the fluid.
  * @param i0 Starting index of the particle.
@@ -60,9 +32,9 @@ namespace Aqua{ namespace InputOutput{ namespace Input{
  * @param refd Reference density.
  * @param h Reference kernel height.
  * @param F Fluid host instance.
- * @return false if all gone right. \n true otherwise.
+ * @return false if all gone right, true otherwise.
  */
-int loadGiD(const char* path, int ifluid, unsigned int i0, unsigned int n, float refd, float h, Fluid *F);
+bool loadGiD(const char* path, int ifluid, unsigned int i0, unsigned int n, float refd, float h, Fluid *F);
 
 }}} //namespaces
 

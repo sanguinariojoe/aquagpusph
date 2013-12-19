@@ -16,14 +16,12 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// ----------------------------------------------------------------------------
-// Include the main header
-// ----------------------------------------------------------------------------
-#include <Input/ASCII.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <string.h>
 
-// ----------------------------------------------------------------------------
-// Include the screen manager
-// ----------------------------------------------------------------------------
+#include <Input/ASCII.h>
 #include <ScreenManager.h>
 
 namespace Aqua{ namespace InputOutput{ namespace Input{
@@ -34,103 +32,103 @@ bool loadASCII(const char* path, int ifluid, unsigned int i0, unsigned int n, fl
 	FILE *input=0;
     ScreenManager *S = ScreenManager::singleton();
     char msg[256];
-	//! 1st.- Open file
-	sprintf(msg, "(loadASCII): Loading fluid from ASCII file \"%s\"\n", path);
-	S->addMessage(1, msg);
+
+	sprintf(msg, "Loading fluid from ASCII file \"%s\"\n", path);
+	S->addMessageF(1, msg);
 	sprintf(msg, "\tParticles from %u to %u\n", i0, i0+n-1);
 	S->addMessage(0, msg);
 	input = fopen(path,"r");
 	if(!input){
-	    S->addMessage(3, "(loadASCII): Can't open file.\n");
+	    S->addMessageF(3, "Can't open file.\n");
 	    return true;
 	}
-	//! 1st.- Get the number of data lines.
-	char Line[256];
-	unsigned int nPoints=0;
-	int LineStartChar;
-	while( fgets( Line, 256*sizeof(char), input) )
+
+	char line[256];
+	unsigned int num_points=0;
+	int line_start;
+	while( fgets( line, 256*sizeof(char), input) )
 	{
-	    LineStartChar=0;
-	    while( (Line[LineStartChar] == ' ') || (Line[LineStartChar] == '\t') )
-	        LineStartChar++;
-	    if( (Line[LineStartChar] != '#') && (Line[LineStartChar] != '\n') && (Line[LineStartChar] != EOF) )
-	        nPoints++;
+	    line_start=0;
+	    while( (line[line_start] == ' ') || (line[line_start] == '\t') )
+	        line_start++;
+	    if( (line[line_start] != '#') && (line[line_start] != '\n') && (line[line_start] != EOF) )
+	        num_points++;
 	}
-	if(nPoints < n-1){
-	    S->addMessage(3, "(loadASCII): Seems that file doesn't contain enought particles.\n");
-	    sprintf(msg, "\t%u particles, %u particles needed.\n", nPoints, n);
+	if(num_points < n-1){
+	    S->addMessageF(3, "Seems that file doesn't contain enought particles.\n");
+	    sprintf(msg, "\t%u particles, %u particles needed.\n", num_points, n);
         S->addMessage(0, msg);
 	    return true;
 	}
-	else if(nPoints > n){
-	    S->addMessage(2, "(loadASCII): File contains more particles than the fluid.\n");
-	    sprintf(msg, "\t%u particles will be discarded.\n", nPoints - n);
+	else if(num_points > n){
+	    S->addMessageF(2, "File contains more particles than the fluid.\n");
+	    sprintf(msg, "\t%u particles will be discarded.\n", num_points - n);
         S->addMessage(0, msg);
 	}
-	//! 2nd.- Reads data
+
 	rewind(input);
-	unsigned int Percentage=-1;
-	while( fgets( Line, 256*sizeof(char), input) )
+	unsigned int progress=-1;
+	while( fgets( line, 256*sizeof(char), input) )
 	{
-	    LineStartChar=0;
-	    while( (Line[LineStartChar] == ' ') || (Line[LineStartChar] == '\t') )
-	        LineStartChar++;
-	    if( (Line[LineStartChar] != '#') && (Line[LineStartChar] != '\n') && (Line[LineStartChar] != EOF) ){
+	    line_start=0;
+	    while( (line[line_start] == ' ') || (line[line_start] == '\t') )
+	        line_start++;
+	    if( (line[line_start] != '#') && (line[line_start] != '\n') && (line[line_start] != EOF) ){
 	        if(i >= n){
 	            break;
 	        }
-	        if(Percentage != i*100/n){
-	            Percentage = i*100/n;
-	            if(!(Percentage%10)){
-                    sprintf(msg, "\t\t%u%%\n", Percentage);
+	        if(progress != i*100/n){
+	            progress = i*100/n;
+	            if(!(progress%10)){
+                    sprintf(msg, "\t\t%u%%\n", progress);
                     S->addMessage(0, msg);
 	            }
 	        }
-	        // Replace , ; ( ) - \t by spaces
-	        char *ReplacePoint=0;
-	        ReplacePoint = strstr(Line,",");
-	        while(ReplacePoint) {
-	            strncpy(ReplacePoint," ",1);
-	            ReplacePoint = strstr(Line,",");
+	        // Replace the separators , ; ( ) - \t by spaces
+	        char *replace_str=NULL;
+	        replace_str = strstr(line,",");
+	        while(replace_str) {
+	            strncpy(replace_str," ",1);
+	            replace_str = strstr(line,",");
 	        }
-	        ReplacePoint = strstr(Line,";");
-	        while(ReplacePoint){
-	            strncpy(ReplacePoint," ",1);
-	            ReplacePoint = strstr(Line,";");
+	        replace_str = strstr(line,";");
+	        while(replace_str){
+	            strncpy(replace_str," ",1);
+	            replace_str = strstr(line,";");
 	        }
-	        ReplacePoint = strstr(Line,"(");
-	        while(ReplacePoint){
-	            strncpy(ReplacePoint," ",1);
-	            ReplacePoint = strstr(Line,"(");
+	        replace_str = strstr(line,"(");
+	        while(replace_str){
+	            strncpy(replace_str," ",1);
+	            replace_str = strstr(line,"(");
 	        }
-	        ReplacePoint = strstr(Line,")");
-	        while(ReplacePoint){
-	            strncpy(ReplacePoint," ",1);
-	            ReplacePoint = strstr(Line,")");
+	        replace_str = strstr(line,")");
+	        while(replace_str){
+	            strncpy(replace_str," ",1);
+	            replace_str = strstr(line,")");
 	        }
-	        ReplacePoint = strstr(Line,"\t");
-	        while(ReplacePoint){
-	            strncpy(ReplacePoint," ",1);
-	            ReplacePoint = strstr(Line,"\t");
+	        replace_str = strstr(line,"\t");
+	        while(replace_str){
+	            strncpy(replace_str," ",1);
+	            replace_str = strstr(line,"\t");
 	        }
 	        // Erase concatenated spaces
-	        ReplacePoint = strstr(Line,"  ");
-	        while(ReplacePoint){
+	        replace_str = strstr(line,"  ");
+	        while(replace_str){
 	            char StrBackup[256];
-	            strcpy(StrBackup, &(ReplacePoint[2]));
-	            strcpy(&(ReplacePoint[1]),StrBackup);
-	            ReplacePoint = strstr(Line,"  ");
+	            strcpy(StrBackup, &(replace_str[2]));
+	            strcpy(&(replace_str[1]),StrBackup);
+	            replace_str = strstr(line,"  ");
 	        }
 	        #ifndef HAVE_3D
-	            int readed = sscanf(Line, "%g %g %g %g %g %g %g %i %g %g %i %g %g %g",
+	            int readed = sscanf(line, "%g %g %g %g %g %g %g %i %g %g %i %g %g %g",
 	               &F->pos[i+i0].x,&F->pos[i+i0].y,&F->normal[i+i0].x,&F->normal[i+i0].y,
 	               &F->v[i+i0].x,&F->v[i+i0].y,&F->mass[i+i0],
 	               &F->imove[i+i0],&F->dens[i+i0],&F->hp[i+i0],
 	               &F->ifluid[i+i0],&F->drdt[i+i0],&F->f[i+i0].x,&F->f[i+i0].y);
 	            if( readed < 7)
 	            {
-	                S->addMessage(3, "(loadASCII): Minimum data has not been provided.\n");
-                    sprintf(msg, "\t\"%s\"\n",Line);
+	                S->addMessageF(3, "Minimum data has not been provided.\n");
+                    sprintf(msg, "\t\"%s\"\n",line);
                     S->addMessage(0, msg);
                     sprintf(msg, "\tAt least Pos, vel and mass must be set.\n");
                     S->addMessage(0, msg);
@@ -156,7 +154,7 @@ bool loadASCII(const char* path, int ifluid, unsigned int i0, unsigned int n, fl
 	                    break;
 	            }
 	        #else
-	            int readed = sscanf(Line, "%g %g %g %g %g %g %g %g %g %g %i %g %g %i %g %g %g %g",
+	            int readed = sscanf(line, "%g %g %g %g %g %g %g %g %g %g %i %g %g %i %g %g %g %g",
 	               &F->pos[i+i0].x,&F->pos[i+i0].y,&F->pos[i+i0].z,
 	               &F->normal[i+i0].x,&F->normal[i+i0].y,&F->normal[i+i0].z,
 	               &F->v[i+i0].x,&F->v[i+i0].y,&F->v[i+i0].z,&F->mass[i+i0],
@@ -164,8 +162,8 @@ bool loadASCII(const char* path, int ifluid, unsigned int i0, unsigned int n, fl
 	               &F->ifluid[i+i0],&F->drdt[i+i0],&F->f[i+i0].x,&F->f[i+i0].y,&F->f[i+i0].z);
 	            if( readed < 10)
 	            {
-	                S->addMessage(3, "(loadASCII): Minimum data has not been provided.\n");
-                    sprintf(msg, "\t\"%s\"\n",Line);
+	                S->addMessageF(3, "Minimum data has not been provided.\n");
+                    sprintf(msg, "\t\"%s\"\n",line);
                     S->addMessage(0, msg);
                     sprintf(msg, "\tAt least Pos, vel and mass must be set.\n");
                     S->addMessage(0, msg);
@@ -201,7 +199,7 @@ bool loadASCII(const char* path, int ifluid, unsigned int i0, unsigned int n, fl
 	    }
 	}
 	fclose( input );
-	S->addMessage(1, "(loadASCII): Fluid set!...\n");
+	S->addMessageF(1, "Fluid set!...\n");
 	return false;
 }
 

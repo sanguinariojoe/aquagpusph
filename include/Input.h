@@ -19,31 +19,12 @@
 #ifndef INPUT_H_INCLUDED
 #define INPUT_H_INCLUDED
 
-// ----------------------------------------------------------------------------
-// Include Prerequisites
-// ----------------------------------------------------------------------------
 #include <sphPrerequisites.h>
-
-// ----------------------------------------------------------------------------
-// Include standar libraries
-// ----------------------------------------------------------------------------
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
-
-// ----------------------------------------------------------------------------
-// Include the h5part library
-// ----------------------------------------------------------------------------
-#ifdef HAVE_H5PART
-	#include <H5Part.h>
-	#include <hdf5.h>
-#endif // HAVE_H5PART
 
 namespace Aqua{ namespace InputOutput{
 
-/** Read files to load the fluid state.
- * @return true if all gone right. \n False otherwise.
+/** Read a particles file.
+ * @return true if all gone right, false otherwise.
  */
 bool input();
 
@@ -51,7 +32,7 @@ bool input();
 namespace Input{
 
 	#ifdef HAVE_H5PART
-	    /** Reads H5Part to set the fluid.
+	    /** Reads H5Part f.
 	     * @return true if all gone right. \n False otherwise.
 	     */
 	    bool loadH5Part();
