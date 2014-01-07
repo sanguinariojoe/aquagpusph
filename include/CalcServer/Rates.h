@@ -58,7 +58,7 @@ private:
 	bool allocLinkList();
 
 	/// OpenCL script path
-	char *mPath;
+	char *_path;
 
 	/// OpenCL program
 	cl_program program;
@@ -67,9 +67,9 @@ private:
 	/// OpenCL ihoc init kernel
 	cl_kernel clSortKernel;
 	/// Global work size.
-	size_t global_work_size;
+	size_t _global_work_size;
 	/// Local work size
-	size_t local_work_size;
+	size_t _local_work_size;
 	/// true if \f$delta\f$-SPH (cont. eq. diffusive term) must be applied.
 	bool isDelta;
 	/// true if local memory can be used on kernel.

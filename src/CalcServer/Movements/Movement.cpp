@@ -43,9 +43,9 @@ Movement::Movement()
 	: Kernel("Movement")
 	, program(0)
 	, kernel(0)
-	, global_work_size(0)
-	, local_work_size(0)
-	, mPath(0)
+	, _global_work_size(0)
+	, _local_work_size(0)
+	, _path(0)
 {
 }
 
@@ -53,7 +53,7 @@ Movement::~Movement()
 {
 	if(kernel)clReleaseKernel(kernel); kernel=0;
 	if(program)clReleaseProgram(program); program=0;
-	if(mPath) delete[] mPath; mPath=0;
+	if(_path) delete[] _path; _path=0;
 }
 
 bool Movement::parse(const char* def)
@@ -62,7 +62,7 @@ bool Movement::parse(const char* def)
 	char msg[1024];
 	//! Open the definition file
 	if(!strlen(def)) {
-	    S->addMessage(3, "(Movement::parse): mPath of movement definition file is empty.\n");
+	    S->addMessage(3, "(Movement::parse): _path of movement definition file is empty.\n");
 	    return true;
 	}
 	sprintf(msg, "(Movement::parse): Parsing XML file \"%s\"\n", def);
@@ -113,13 +113,13 @@ bool Movement::parse(const char* def)
 	        continue;
 	    }
 		// Change script file
-		if(mPath) delete[] mPath; mPath=0;
-		mPath = new char[nChar+1];
-		if(!mPath){
+		if(_path) delete[] _path; _path=0;
+		_path = new char[nChar+1];
+		if(!_path){
 	        S->addMessage(3, "(Movement::parse): Can't allocate memory for OpenCL script path.\n");
 	        return true;
 		}
-		strcpy(mPath,path);
+		strcpy(_path,path);
 	}
 	//! Parse movement type specific options
 	if(_parse(root))
@@ -136,12 +136,12 @@ bool Movement::setupOpenCL()
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
 	cl_int err_code;
-	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, mPath, "Movement", ""))
+	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, _path, "Movement", ""))
 	    return true;
 	//! Look for work group size
-	local_work_size  = localWorkSize();
-	if(!local_work_size){
-	    S->addMessage(3, "(Movement::setupOpenCL): No valid local work size for required computation.\n");
+	_local_work_size  = localWorkSize();
+	if(!_local_work_size){
+	    S->addMessage(3, "(Movement::setupOpenCL): I cannot get a valid local work size for the required computation tool.\n");
 	    exit(EXIT_FAILURE);
 	}
 	cl_device_id device;
@@ -149,7 +149,7 @@ bool Movement::setupOpenCL()
 	err_code |= clGetCommandQueueInfo(C->command_queue,CL_QUEUE_DEVICE,
 	                                sizeof(cl_device_id),&device, NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Movement::setupOpenCL): Can't get device from command queue.\n");
+		S->addMessage(3, "(Movement::setupOpenCL): I Cannot get the device from the command queue.\n");
 	    return true;
 	}
 	err_code |= clGetKernelWorkGroupInfo(kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
@@ -158,9 +158,9 @@ bool Movement::setupOpenCL()
 		S->addMessage(3, "(Movement::setupOpenCL): Can't get maximum local work group size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < local_work_size)
-	    local_work_size  = localWorkGroupSize;
-	global_work_size = globalWorkSize(local_work_size);
+	if(localWorkGroupSize < _local_work_size)
+	    _local_work_size  = localWorkGroupSize;
+	_global_work_size = globalWorkSize(_local_work_size);
 	return false;
 }
 

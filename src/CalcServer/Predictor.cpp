@@ -45,7 +45,7 @@ namespace Aqua{ namespace CalcServer{
 
 Predictor::Predictor()
 	: Kernel("Predictor")
-	, mPath(0)
+	, _path(0)
 	, program(0)
 	, kernel(0)
 {
@@ -57,20 +57,20 @@ Predictor::Predictor()
 	    S->addMessage(3, "(Predictor::Predictor): Path of predictor kernel is empty.\n");
 	    exit(EXIT_FAILURE);
 	}
-	mPath = new char[nChar+4];
-	if(!mPath) {
+	_path = new char[nChar+4];
+	if(!_path) {
 	    S->addMessage(3, "(Predictor::Predictor): Can't allocate memory for path.\n");
 	    exit(EXIT_FAILURE);
 	}
-	strcpy(mPath, P->OpenCL_kernels.predictor);
-	strcat(mPath, ".cl");
+	strcpy(_path, P->OpenCL_kernels.predictor);
+	strcat(_path, ".cl");
 	//! 2nd.- Setup the kernel
-	local_work_size  = localWorkSize();
-	if(!local_work_size){
-	    S->addMessage(3, "(Predictor::Predictor): No valid local work size for required computation.\n");
+	_local_work_size  = localWorkSize();
+	if(!_local_work_size){
+	    S->addMessage(3, "(Predictor::Predictor): I cannot get a valid local work size for the required computation tool.\n");
 	    exit(EXIT_FAILURE);
 	}
-	global_work_size = globalWorkSize(local_work_size);
+	_global_work_size = globalWorkSize(_local_work_size);
 	if(setupOpenCL()) {
 	    exit(EXIT_FAILURE);
 	}
@@ -81,7 +81,7 @@ Predictor::~Predictor()
 {
 	if(kernel)clReleaseKernel(kernel); kernel=0;
 	if(program)clReleaseProgram(program); program=0;
-	if(mPath)delete[] mPath; mPath=0;
+	if(_path)delete[] _path; _path=0;
 }
 
 bool Predictor::execute()
@@ -109,9 +109,9 @@ bool Predictor::execute()
 	    cl_event event;
 	    cl_ulong end, start;
 	    profileTime(0.f);
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &global_work_size, NULL, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, &event);
 	#else
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &global_work_size, NULL, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Predictor::execute): Can't execute the kernel.\n");
@@ -147,7 +147,7 @@ bool Predictor::setupOpenCL()
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
 	cl_int err_code=0;
-	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, mPath, "Predictor", ""))
+	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, _path, "Predictor", ""))
 	    return true;
 	err_code |= sendArgument(kernel,  0, sizeof(cl_mem), (void*)&(C->imove));
 	err_code |= sendArgument(kernel,  1, sizeof(cl_mem), (void*)&(C->ifluid));
@@ -176,7 +176,7 @@ bool Predictor::setupOpenCL()
 	err_code |= clGetCommandQueueInfo(C->command_queue,CL_QUEUE_DEVICE,
 	                                sizeof(cl_device_id),&device, NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Predictor::setupOpenCL): Can't get device from command queue.\n");
+		S->addMessage(3, "(Predictor::setupOpenCL): I Cannot get the device from the command queue.\n");
 	    return true;
 	}
 	err_code |= clGetKernelWorkGroupInfo(kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
@@ -185,9 +185,9 @@ bool Predictor::setupOpenCL()
 		S->addMessage(3, "(Predictor::setupOpenCL): Can't get maximum local work group size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < local_work_size)
-	    local_work_size  = localWorkGroupSize;
-	global_work_size = globalWorkSize(local_work_size);
+	if(localWorkGroupSize < _local_work_size)
+	    _local_work_size  = localWorkGroupSize;
+	_global_work_size = globalWorkSize(_local_work_size);
 	return false;
 }
 

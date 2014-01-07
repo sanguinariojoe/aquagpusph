@@ -40,7 +40,7 @@ namespace Aqua{ namespace CalcServer{
 
 TimeStep::TimeStep()
 	: Kernel("TimeStep")
-	, mPath(NULL)
+	, _path(NULL)
 	, program(NULL)
 	, kernel(NULL)
 	, reduction(NULL)
@@ -60,16 +60,16 @@ TimeStep::TimeStep()
 		S->addMessage(3, "(TimeStep::TimeStep): Path of TimeStep kernel is empty.\n");
 		exit(EXIT_FAILURE);
 	}
-	mPath = new char[nChar+4];
-	if(!mPath) {
+	_path = new char[nChar+4];
+	if(!_path) {
 		S->addMessage(3, "(TimeStep::TimeStep): Can't allocate memory for path.\n");
 		exit(EXIT_FAILURE);
 	}
-	strcpy(mPath, P->OpenCL_kernels.time_step);
-	strcat(mPath, ".cl");
+	strcpy(_path, P->OpenCL_kernels.time_step);
+	strcat(_path, ".cl");
 	//! 2nd.- Setup the kernel
-	local_work_size = 256;
-	global_work_size = globalWorkSize(local_work_size);
+	_local_work_size = 256;
+	_global_work_size = globalWorkSize(_local_work_size);
 	if(setupOpenCL()) {
 		exit(EXIT_FAILURE);
 	}
@@ -82,7 +82,7 @@ TimeStep::~TimeStep()
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
 	if(kernel)clReleaseKernel(kernel); kernel=NULL;
 	if(program)clReleaseProgram(program); program=NULL;
-	if(mPath)delete[] mPath; mPath=NULL;
+	if(_path)delete[] _path; _path=NULL;
 	S->addMessage(1, "(TimeStep::~TimeStep): Destroying time step reduction processor...\n");
 	if(reduction) delete reduction; reduction=NULL;
 }
@@ -112,9 +112,9 @@ bool TimeStep::execute()
 		cl_event event;
 		cl_ulong end, start;
 		profileTime(0.f);
-		err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &global_work_size, NULL, 0, NULL, &event);
+		err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, &event);
 	#else
-		err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &global_work_size, NULL, 0, NULL, NULL);
+		err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(TimeStep::Execute): Can't execute the kernel.\n");
@@ -175,7 +175,7 @@ bool TimeStep::setupOpenCL()
 {
 	CalcServer *C = CalcServer::singleton();
 	int err_code;
-	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, mPath, "TimeStep", ""))
+	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, _path, "TimeStep", ""))
 		return true;
 	err_code  = sendArgument(kernel,  0, sizeof(cl_mem ), (void*)&(C->dtconv));
 	err_code |= sendArgument(kernel,  1, sizeof(cl_mem ), (void*)&(C->v));

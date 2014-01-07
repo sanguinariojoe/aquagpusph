@@ -67,7 +67,7 @@ private:
 	int n;
 
 	/// OpenCL script path
-	char* mPath;
+	char* _path;
 
 	/// Output file
 	FILE* Output;
@@ -90,9 +90,9 @@ private:
 	/// OpenCL kernel
 	cl_kernel kernel;
 	/// Global work size
-	size_t global_work_size;
+	size_t _global_work_size;
 	/// Local work size
-	size_t local_work_size;
+	size_t _local_work_size;
 };
 
 }}  // namespace

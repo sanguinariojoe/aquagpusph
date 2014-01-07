@@ -176,9 +176,9 @@ bool RadixSort::_init()
 	    cl_event event;
 	    cl_ulong end, start;
 	    profileTime(0.f);
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckInit, 1, NULL, &global_work_size, NULL, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckInit, 1, NULL, &_global_work_size, NULL, 0, NULL, &event);
 	#else
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckInit, 1, NULL, &global_work_size, NULL, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckInit, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(RadixSort::_init): Can't execute the kernel.\n");
@@ -239,22 +239,22 @@ bool RadixSort::_transpose(unsigned int nbrow, unsigned int nbcol)
 	    return 1;
 	}
 	//! 2nd.- Execute the kernel
-	size_t global_work_size[2];
-	size_t local_work_size[2];
-	global_work_size[0]=nbrow/tilesize;
-	global_work_size[1]=nbcol;
-	local_work_size[0]=1;
-	local_work_size[1]=tilesize;
-	if(local_work_size[1] < __CL_MIN_LOCALSIZE__){
-	    local_work_size[1]  *= __CL_MIN_LOCALSIZE__ / tilesize;
-	    global_work_size[1] *= __CL_MIN_LOCALSIZE__ / tilesize;
+	size_t _global_work_size[2];
+	size_t _local_work_size[2];
+	_global_work_size[0]=nbrow/tilesize;
+	_global_work_size[1]=nbcol;
+	_local_work_size[0]=1;
+	_local_work_size[1]=tilesize;
+	if(_local_work_size[1] < __CL_MIN_LOCALSIZE__){
+	    _local_work_size[1]  *= __CL_MIN_LOCALSIZE__ / tilesize;
+	    _global_work_size[1] *= __CL_MIN_LOCALSIZE__ / tilesize;
 	}
 	#ifdef HAVE_GPUPROFILE
 	    cl_event event;
 	    cl_ulong end, start;
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckTranspose, 2, NULL, global_work_size, local_work_size, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckTranspose, 2, NULL, _global_work_size, _local_work_size, 0, NULL, &event);
 	#else
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckTranspose, 2, NULL, global_work_size, local_work_size, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckTranspose, 2, NULL, _global_work_size, _local_work_size, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(RadixSort::_transpose): Can't execute the kernel.\n");
@@ -574,9 +574,9 @@ bool RadixSort::_reversePermutations()
 	#ifdef HAVE_GPUPROFILE
 	    cl_event event;
 	    cl_ulong end, start;
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckReversePermutations, 1, NULL, &global_work_size, NULL, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckReversePermutations, 1, NULL, &_global_work_size, NULL, 0, NULL, &event);
 	#else
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckReversePermutations, 1, NULL, &global_work_size, NULL, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckReversePermutations, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(RadixSort::_reversePermutations): Can't execute the kernel.\n");
@@ -620,13 +620,13 @@ bool RadixSort::setN(unsigned int N)
 	    S->addMessage(3, msg);
 	    return true;
 	}
-	local_work_size  = getLocalWorkSize(N, C->command_queue);
-	if(!local_work_size){
+	_local_work_size  = getLocalWorkSize(N, C->command_queue);
+	if(!_local_work_size){
 	    sprintf(msg, "(RadixSort::setN): No valid local work size for %u cells.\n", N);
 	    S->addMessage(3, msg);
 	    return true;
 	}
-	global_work_size = getGlobalWorkSize(N, local_work_size);
+	_global_work_size = getGlobalWorkSize(N, _local_work_size);
 	// Analise the amount of data
 	unsigned int oldN = n;
 	n = N;

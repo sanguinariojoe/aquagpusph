@@ -35,7 +35,7 @@ namespace Aqua{ namespace CalcServer{ namespace Portal{
 
 Portal::Portal(InputOutput::ProblemSetup::sphPortal *portal)
 	: Kernel("Portal")
-	, mPath(0)
+	, _path(0)
 	, mPortal(portal)
 	, program(0)
 	, kernel(0)
@@ -48,19 +48,19 @@ Portal::Portal(InputOutput::ProblemSetup::sphPortal *portal)
 	//! 1st.- Get data
 	int nChar = strlen(P->OpenCL_kernels.portal);
 	if(nChar <= 0) {
-	    printf("ERROR (Portal::Portal): mPath of Portal kernel is empty.\n");
+	    printf("ERROR (Portal::Portal): _path of Portal kernel is empty.\n");
 	    exit(2);
 	}
-	mPath = new char[nChar+4];
-	if(!mPath) {
+	_path = new char[nChar+4];
+	if(!_path) {
 	    printf("ERROR (Portal::Portal): Can't allocate memory for path.\n");
 	    exit(3);
 	}
-	strcpy(mPath, P->OpenCL_kernels.portal);
-	strcat(mPath, ".cl");
+	strcpy(_path, P->OpenCL_kernels.portal);
+	strcat(_path, ".cl");
 	//! 2nd.- Setup the kernel
-	local_work_size = 256;
-	global_work_size = globalWorkSize(local_work_size);
+	_local_work_size = 256;
+	_global_work_size = globalWorkSize(_local_work_size);
 	if(setupOpenCL()) {
 	    exit(4);
 	}
@@ -71,7 +71,7 @@ Portal::~Portal()
 {
 	if(kernel)clReleaseKernel(kernel); kernel=0;
 	if(program)clReleaseProgram(program); program=0;
-	if(mPath) delete[] mPath; mPath=0;
+	if(_path) delete[] _path; _path=0;
 }
 
 bool Portal::execute()
@@ -100,9 +100,9 @@ bool Portal::execute()
 	    cl_event event;
 	    cl_ulong end, start;
 	    profileTime(0.f);
-	    flag = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &global_work_size, NULL, 0, NULL, &event);
+	    flag = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, &event);
 	#else
-	    flag = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &global_work_size, NULL, 0, NULL, NULL);
+	    flag = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
 	#endif
 	if(flag != CL_SUCCESS) {
 	    S->addMessage(3, (char*)"(Portal::execute): Can't execute the kernel.\n");
@@ -141,9 +141,9 @@ bool Portal::execute()
 bool Portal::setupOpenCL()
 {
 	CalcServer *C = CalcServer::singleton();
-	printf("\tINFO (Portal::SetupOpenCL): Using OpenCL script \"%s\"\n", mPath);
+	printf("\tINFO (Portal::SetupOpenCL): Using OpenCL script \"%s\"\n", _path);
 	//! Load the kernels
-	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, mPath, "Portal", ""))
+	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, _path, "Portal", ""))
 	    return true;
 	return false;
 }

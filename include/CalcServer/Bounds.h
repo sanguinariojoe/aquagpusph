@@ -19,14 +19,7 @@
 #ifndef BOUNDS_H_INCLUDED
 #define BOUNDS_H_INCLUDED
 
-// ----------------------------------------------------------------------------
-// Include Generic kernel
-// ----------------------------------------------------------------------------
 #include <CalcServer/Kernel.h>
-
-// ----------------------------------------------------------------------------
-// Include Reduction tool
-// ----------------------------------------------------------------------------
 #include <CalcServer/Reduction.h>
 
 #ifndef __BOUNDS_COORDS_MAX_OP__
@@ -45,7 +38,7 @@
 namespace Aqua{ namespace CalcServer{
 
 /** @class Bounds Bounds.h CalcServer/Bounds.h
- * @brief Computes fluid particles bounds, including coordinates
+ * @brief Computes the fluid particles bounds, which includes the coordinates
  * bounds and maximum and minimum velocities.
  */
 class Bounds : public Aqua::CalcServer::Kernel
@@ -59,29 +52,25 @@ public:
 	 */
 	~Bounds();
 
-	/** Get maximum fluid particles coordinates.
+	/** Get maximum computed fluid particles coordinates.
 	 * @return Maximum coordinates [m].
-	 * @warning Remember call execute before use this method.
 	 */
-	vec maxCoords(){return mMaxCoords;}
+	vec maxCoords(){return _pos_max;}
 
-	/** Get minimum fluid particles coordinates.
+	/** Get minimum computed fluid particles coordinates.
 	 * @return Minimum coordinates [m].
-	 * @warning Remember call execute before use this method.
 	 */
-	vec minCoords(){return mMinCoords;}
+	vec minCoords(){return _pos_min;}
 
-	/** Get maximum fluid particles velocity.
+	/** Get maximum computed fluid particles velocity.
 	 * @return Maximum velocity [m/s].
-	 * @warning Remember call execute before use this method.
 	 */
-	vec maxVel(){return mMaxVel;}
+	vec maxVel(){return _vel_max;}
 
-	/** Get minimum fluid particles velocity.
+	/** Get minimum computed fluid particles velocity.
 	 * @return Minimum velocity [m/s].
-	 * @warning Remember call execute before use this method.
 	 */
-	vec minVel(){return mMinVel;}
+	vec minVel(){return _vel_min;}
 
 	/** Compute the bounds.
 	 * @return false if all gone right. \n true otherwise.
@@ -92,56 +81,75 @@ private:
 	/** Compute the maximum or the minimum desired value.
 	 * @param output Output computed value.
 	 * @param data Input data array.
-	 * @param op Operation to compute, __BOUNDS_COORDS_MAX_OP__,
-	 * __BOUNDS_COORDS_MIN_OP__, __BOUNDS_VEL_MAX_OP__ or __BOUNDS_VEL_MIN_OP__.
-	 * @return false if all gone right. \n true otherwise.
+	 * @param op Operation to compute:
+	 *   - __BOUNDS_COORDS_MAX_OP__ for maximum coordinate
+	 *   - __BOUNDS_COORDS_MIN_OP__ for minimum coordinate
+	 *   - __BOUNDS_VEL_MAX_OP__ for maximum velocity
+	 *   - __BOUNDS_VEL_MIN_OP__ for minimum velocity
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool execute(vec *output, int op);
 
-	/** Setup Bounds OpenCL stuff.
-	 * @return false if all gone right. \n true otherwise.
+	/** Setup the OpenCL stuff.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool setupBounds();
 
-	/** Setup Reductions stuff.
-	 * @return false if all gone right. \n true otherwise.
+	/** Setup the reduction tool.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool setupReduction();
 
-	/// Server allocated auxiliar memory.
-	cl_mem mDevMem;
+	/// Server allocated auxiliar memory to perform the reduction.
+	cl_mem _device_mem;
 	/// Host allocated maximum coordinates.
-	vec mMaxCoords;
+	vec _pos_max;
 	/// Host allocated minimum coordinates.
-	vec mMinCoords;
+	vec _pos_min;
 	/// Host allocated maximum velocity.
-	vec mMaxVel;
+	vec _vel_max;
 	/// Host allocated minimum velocity.
-	vec mMinVel;
+	vec _vel_min;
 	/// Kernel path
-	char *mPath;
+	char *_path;
 	/// OpenCL program
-	cl_program program;
-	/// OpenCL maximum coordinates setup kernel
-	cl_kernel clMaxCoordsKernel;
-	/// OpenCL minimum coordinates setup kernel
-	cl_kernel clMinCoordsKernel;
-	/// OpenCL maximum velocity setup kernel
-	cl_kernel clMaxVelKernel;
-	/// OpenCL minimum velocity setup kernel
-	cl_kernel clMinVelKernel;
+	cl_program _program;
+	/** Maximum coordinates per particle kernel. The maximum coordinates for
+	 * each particle will be the position of the particle for fluid particles,
+	 * and the vector (vec)(-INFINITY,-INFINITY,-INFINITY,0.f) for the other
+	 * types of particles.
+	 */
+	cl_kernel _pos_max_kernel;
+	/** Minimum coordinates per particle kernel. The minimum coordinates for
+	 * each particle will be the position of the particle for fluid particles,
+	 * and the vector (vec)(INFINITY,INFINITY,INFINITY,0.f) for the other
+	 * types of particles.
+	 */
+	cl_kernel _pos_min_kernel;
+	/** Maximum velocity per particle kernel. The maximum velocity for
+	 * each particle will be the velocity of the particle for fluid particles,
+	 * and the vector (vec)(0.f,0.f,0.f,0.f) for the other
+	 * types of particles.
+	 */
+	cl_kernel _vel_max_kernel;
+	/** Minimum velocity per particle kernel. The minimum velocity for
+	 * each particle will be the velocity of the particle for fluid particles,
+	 * and the vector (vec)(INFINITY,INFINITY,INFINITY,0.f) for the other
+	 * types of particles.
+	 */
+	cl_kernel _vel_min_kernel;
 	/// Global work size
-	size_t global_work_size;
+	size_t _global_work_size;
 	/// Local work size
-	size_t local_work_size;
+	size_t _local_work_size;
     /// Maximum coordiantes reduction tool
-    Reduction *maxCoordsReduction;
+    Reduction *_pos_max_reduction;
     /// Minimum coordinates reduction tool
-    Reduction *minCoordsReduction;
+    Reduction *_pos_min_reduction;
     /// Maximum velocity reduction tool
-    Reduction *maxVelReduction;
+    Reduction *_vel_max_reduction;
     /// Minimum velocity reduction tool
-    Reduction *minVelReduction;
+    Reduction *_vel_min_reduction;
 };
 
 }}  // namespace

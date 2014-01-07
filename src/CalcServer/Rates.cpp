@@ -40,12 +40,12 @@ namespace Aqua{ namespace CalcServer{
 
 Rates::Rates()
 	: Kernel("Rates")
-	, mPath(0)
+	, _path(0)
 	, program(0)
 	, kernel(0)
 	, clSortKernel(0)
-	, global_work_size(0)
-	, local_work_size(0)
+	, _global_work_size(0)
+	, _local_work_size(0)
 	, isDelta(false)
 	, isLocalMemory(true)
 {
@@ -56,13 +56,13 @@ Rates::Rates()
 	    S->addMessage(3, "(Rates::Rates): Path of rates kernel is empty.\n");
 	    exit(EXIT_FAILURE);
 	}
-	mPath = new char[nChar+4];
-	if(!mPath) {
+	_path = new char[nChar+4];
+	if(!_path) {
 	    S->addMessage(3, "(Rates::Rates): Can't allocate memory for path.\n");
 	    exit(EXIT_FAILURE);
 	}
-	strcpy(mPath, P->OpenCL_kernels.rates);
-	strcat(mPath, ".cl");
+	strcpy(_path, P->OpenCL_kernels.rates);
+	strcat(_path, ".cl");
     for(i=0;i<P->n_fluids;i++){
         if(P->fluids[i].delta > 0.f){
             isDelta = true;
@@ -70,12 +70,12 @@ Rates::Rates()
         }
     }
 
-	local_work_size  = localWorkSize();
-	if(!local_work_size){
-	    S->addMessage(3, "(Rates::Rates): No valid local work size for required computation.\n");
+	_local_work_size  = localWorkSize();
+	if(!_local_work_size){
+	    S->addMessage(3, "(Rates::Rates): I cannot get a valid local work size for the required computation tool.\n");
 	    exit(EXIT_FAILURE);
 	}
-	global_work_size = globalWorkSize(local_work_size);
+	_global_work_size = globalWorkSize(_local_work_size);
 	if(setupOpenCL()) {
 	    exit(EXIT_FAILURE);
 	}
@@ -87,7 +87,7 @@ Rates::~Rates()
 	if(kernel)clReleaseKernel(kernel); kernel=0;
 	if(clSortKernel)clReleaseKernel(clSortKernel); clSortKernel=0;
 	if(program)clReleaseProgram(program); program=0;
-	if(mPath)delete[] mPath; mPath=0;
+	if(_path)delete[] _path; _path=0;
 }
 
 bool Rates::execute()
@@ -123,9 +123,9 @@ bool Rates::execute()
 	    cl_event event;
 	    cl_ulong end, start;
 	    profileTime(0.f);
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, clSortKernel, 1, NULL, &global_work_size, NULL, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, clSortKernel, 1, NULL, &_global_work_size, NULL, 0, NULL, &event);
 	#else
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, clSortKernel, 1, NULL, &global_work_size, NULL, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, clSortKernel, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Rates::execute): Can't execute the sorting kernel.\n");
@@ -189,21 +189,21 @@ bool Rates::execute()
         nAddedArgs = 4;
 	}
 	if(isLocalMemory) {
-	    err_code |= sendArgument(kernel, 26+nAddedArgs, local_work_size*sizeof(cl_float), NULL);
-	    err_code |= sendArgument(kernel, 27+nAddedArgs, local_work_size*sizeof(vec     ), NULL);
-	    err_code |= sendArgument(kernel, 28+nAddedArgs, local_work_size*sizeof(cl_float), NULL);
-	    err_code |= sendArgument(kernel, 29+nAddedArgs, local_work_size*sizeof(cl_float), NULL);
-	    err_code |= sendArgument(kernel, 30+nAddedArgs, local_work_size*sizeof(cl_float), NULL);
-	    err_code |= sendArgument(kernel, 31+nAddedArgs, local_work_size*sizeof(vec     ), NULL);
+	    err_code |= sendArgument(kernel, 26+nAddedArgs, _local_work_size*sizeof(cl_float), NULL);
+	    err_code |= sendArgument(kernel, 27+nAddedArgs, _local_work_size*sizeof(vec     ), NULL);
+	    err_code |= sendArgument(kernel, 28+nAddedArgs, _local_work_size*sizeof(cl_float), NULL);
+	    err_code |= sendArgument(kernel, 29+nAddedArgs, _local_work_size*sizeof(cl_float), NULL);
+	    err_code |= sendArgument(kernel, 30+nAddedArgs, _local_work_size*sizeof(cl_float), NULL);
+	    err_code |= sendArgument(kernel, 31+nAddedArgs, _local_work_size*sizeof(vec     ), NULL);
 	}
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Rates::execute): Can't send arguments to kernel.\n");
 	    return true;
 	}
 	#ifdef HAVE_GPUPROFILE
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &global_work_size, &local_work_size, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, &_local_work_size, 0, NULL, &event);
 	#else
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &global_work_size, &local_work_size, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, &_local_work_size, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Rates::execute): Can't execute the kernel.\n");
@@ -245,7 +245,7 @@ bool Rates::setupOpenCL()
 	err_code |= clGetCommandQueueInfo(C->command_queue,CL_QUEUE_DEVICE,
 	                                sizeof(cl_device_id),&device, NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Rates::setupOpenCL): Can't get device from command queue.\n");
+		S->addMessage(3, "(Rates::setupOpenCL): I Cannot get the device from the command queue.\n");
 	    return true;
 	}
 	err_code |= clGetDeviceInfo(device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(localMem), &localMem, NULL);
@@ -253,13 +253,13 @@ bool Rates::setupOpenCL()
 		S->addMessage(3, "(Rates::setupOpenCL): Can't get local memory available on device.\n");
 	    return true;
 	}
-	if(!loadKernelFromFile(&clSortKernel, &program, C->context, C->device, mPath, "SortData", ""))
+	if(!loadKernelFromFile(&clSortKernel, &program, C->context, C->device, _path, "SortData", ""))
 	    return true;
 	if(program)clReleaseProgram(program); program=0;
 	char args[32]; strcpy(args, "");
 	if(isDelta)
         strcat(args, "-D__DELTA_SPH__");
-	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, mPath, "Rates", args))
+	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, _path, "Rates", args))
 	    return true;
 	if(program)clReleaseProgram(program); program=0;
 	// Test if there are enough local memory
@@ -297,16 +297,16 @@ bool Rates::setupOpenCL()
 		S->addMessage(3, "(Rates::setupOpenCL): Can't get sort maximum local work group size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < local_work_size)
-	    local_work_size  = localWorkGroupSize;
+	if(localWorkGroupSize < _local_work_size)
+	    _local_work_size  = localWorkGroupSize;
 	err_code |= clGetKernelWorkGroupInfo(kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
 	                                   sizeof(size_t), &localWorkGroupSize, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Rates::setupOpenCL): Can't get rates maximum local work group size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < local_work_size)
-	    local_work_size  = localWorkGroupSize;
+	if(localWorkGroupSize < _local_work_size)
+	    _local_work_size  = localWorkGroupSize;
 	// Look for a better local work group size
 	err_code |= clGetKernelWorkGroupInfo(kernel,device,CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
 	                                   sizeof(size_t), &localWorkGroupSize, NULL);
@@ -314,10 +314,10 @@ bool Rates::setupOpenCL()
 		S->addMessage(3, "(Rates::setupOpenCL): Can't get rates preferred local work group size.\n");
 	    return true;
 	}
-	local_work_size  = (local_work_size/localWorkGroupSize) * localWorkGroupSize;
-	global_work_size = globalWorkSize(local_work_size);
+	_local_work_size  = (_local_work_size/localWorkGroupSize) * localWorkGroupSize;
+	_global_work_size = globalWorkSize(_local_work_size);
 	// Test if the computation can be accelerated with local memory
-	reqLocalMem += local_work_size*(  sizeof(cl_float)
+	reqLocalMem += _local_work_size*(  sizeof(cl_float)
 	                                + sizeof(vec     )
 	                                + sizeof(cl_float)
 	                                + sizeof(cl_float)
@@ -332,7 +332,7 @@ bool Rates::setupOpenCL()
 	    isLocalMemory = false;
 	    char options[19]; strcpy(options,"-D__NO_LOCAL_MEM__");
 	    if(kernel)clReleaseKernel(kernel); kernel=0;
-	    if(!loadKernelFromFile(&kernel, &program, C->context, C->device, mPath, "Rates", options))
+	    if(!loadKernelFromFile(&kernel, &program, C->context, C->device, _path, "Rates", options))
 	        return true;
 	    if(program)clReleaseProgram(program); program=0;
 	}

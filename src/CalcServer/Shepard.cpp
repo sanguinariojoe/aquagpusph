@@ -40,7 +40,7 @@ namespace Aqua{ namespace CalcServer{
 
 Shepard::Shepard()
 	: Kernel("Shepard")
-	, mPath(0)
+	, _path(0)
 	, program(0)
 	, kernel(0)
 {
@@ -51,23 +51,23 @@ Shepard::Shepard()
 	//! 1st.- Get data
 	int nChar = strlen(P->OpenCL_kernels.shepard);
 	if(nChar <= 0) {
-	    S->addMessage(3, "(Shepard::Shepard): mPath of Shepard kernel is empty.\n");
+	    S->addMessage(3, "(Shepard::Shepard): _path of Shepard kernel is empty.\n");
 	    exit(EXIT_FAILURE);
 	}
-	mPath = new char[nChar+4];
-	if(!mPath) {
+	_path = new char[nChar+4];
+	if(!_path) {
 	    S->addMessage(3, "(Shepard::Shepard): Can't allocate memory for path.\n");
 	    exit(EXIT_FAILURE);
 	}
-	strcpy(mPath, P->OpenCL_kernels.shepard);
-	strcat(mPath, ".cl");
+	strcpy(_path, P->OpenCL_kernels.shepard);
+	strcat(_path, ".cl");
 	//! 2nd.- Setup the kernel
-	local_work_size  = localWorkSize();
-	if(!local_work_size){
-	    S->addMessage(3, "(Shepard::Shepard): No valid local work size for required computation.\n");
+	_local_work_size  = localWorkSize();
+	if(!_local_work_size){
+	    S->addMessage(3, "(Shepard::Shepard): I cannot get a valid local work size for the required computation tool.\n");
 	    exit(EXIT_FAILURE);
 	}
-	global_work_size = globalWorkSize(local_work_size);
+	_global_work_size = globalWorkSize(_local_work_size);
 	if(setupOpenCL()) {
 	    exit(EXIT_FAILURE);
 	}
@@ -78,7 +78,7 @@ Shepard::~Shepard()
 {
 	if(kernel)clReleaseKernel(kernel); kernel=0;
 	if(program)clReleaseProgram(program); program=0;
-	if(mPath) delete[] mPath; mPath=0;
+	if(_path) delete[] _path; _path=0;
 }
 
 bool Shepard::execute()
@@ -100,7 +100,7 @@ bool Shepard::execute()
 	    return true;
 	}
 	//! Execute the kernel
-	size_t globalWorkSize = getGlobalWorkSize(C->n, local_work_size);
+	size_t globalWorkSize = getGlobalWorkSize(C->n, _local_work_size);
 	#ifdef HAVE_GPUPROFILE
 	    cl_event event;
 	    cl_ulong end, start;
@@ -153,7 +153,7 @@ bool Shepard::setupOpenCL()
 	if(P->SPH_opts.has_shepard & 2){
 	    strcat(args, "-D__DENS_CORRECTION__ ");
 	}
-	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, mPath, "Shepard", args))
+	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, _path, "Shepard", args))
 	    return true;
 	if(program)clReleaseProgram(program); program=0;
 	//! Test for right work group size
@@ -162,7 +162,7 @@ bool Shepard::setupOpenCL()
 	err_code |= clGetCommandQueueInfo(C->command_queue,CL_QUEUE_DEVICE,
 	                                sizeof(cl_device_id),&device, NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Predictor::setupOpenCL): Can't get device from command queue.\n");
+		S->addMessage(3, "(Predictor::setupOpenCL): I Cannot get the device from the command queue.\n");
 	    return true;
 	}
 	err_code |= clGetKernelWorkGroupInfo(kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
@@ -171,9 +171,9 @@ bool Shepard::setupOpenCL()
 		S->addMessage(3, "(Predictor::setupOpenCL): Can't get maximum local work group size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < local_work_size)
-	    local_work_size  = localWorkGroupSize;
-	global_work_size = globalWorkSize(local_work_size);
+	if(localWorkGroupSize < _local_work_size)
+	    _local_work_size  = localWorkGroupSize;
+	_global_work_size = globalWorkSize(_local_work_size);
 	return false;
 }
 

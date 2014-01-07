@@ -59,16 +59,16 @@ private:
 	bool setupOpenCL();
 
 	/// OpenCL script path
-	char* mPath;
+	char* _path;
 
 	/// OpenCL program
 	cl_program program;
 	/// OpenCL vertices set kernel
 	cl_kernel kernel;
 	/// Global work size (calculated with local_work_size).
-	size_t global_work_size;
+	size_t _global_work_size;
 	/// Local work size (default value = 256)
-	size_t local_work_size;
+	size_t _local_work_size;
 };
 
 }}}  // namespace

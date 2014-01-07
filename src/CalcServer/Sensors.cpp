@@ -51,7 +51,7 @@ namespace Aqua{ namespace CalcServer{
 Sensors::Sensors()
 	: Kernel("Sensors")
 	, n(0)
-	, mPath(0)
+	, _path(0)
 	, Output(0)
 	, OutputTime(0)
 	, hPos(0)
@@ -60,8 +60,8 @@ Sensors::Sensors()
 	, hSumW(0)
 	, program(0)
 	, kernel(0)
-	, global_work_size(0)
-	, local_work_size(0)
+	, _global_work_size(0)
+	, _local_work_size(0)
 {
 	//! 1st.- Get data
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
@@ -71,16 +71,16 @@ Sensors::Sensors()
 	    return;
 	unsigned int nChar = strlen(P->SensorsParameters.script);
 	if(nChar <= 0) {
-	    S->addMessage(3, "(Sensors::Sensors): mPath of rates kernel is empty.\n");
+	    S->addMessage(3, "(Sensors::Sensors): _path of rates kernel is empty.\n");
 	    exit(EXIT_FAILURE);
 	}
-	mPath = new char[nChar+4];
-	if(!mPath) {
+	_path = new char[nChar+4];
+	if(!_path) {
 	    S->addMessage(3, "(Sensors::Sensors): Can't allocate memory for path.\n");
 	    exit(EXIT_FAILURE);
 	}
-	strcpy(mPath, P->SensorsParameters.script);
-	strcat(mPath, ".cl");
+	strcpy(_path, P->SensorsParameters.script);
+	strcat(_path, ".cl");
 	initOutput();
 	//! 2nd.- Allocate memory
 	hPos = new vec[n];
@@ -92,12 +92,12 @@ Sensors::Sensors()
 	    exit(EXIT_FAILURE);
 	}
 	//! 2nd.- Setup the kernel
-	local_work_size  = localWorkSize();
-	if(!local_work_size){
-	    S->addMessage(3, "(Sensors::Sensors): No valid local work size for required computation.\n");
+	_local_work_size  = localWorkSize();
+	if(!_local_work_size){
+	    S->addMessage(3, "(Sensors::Sensors): I cannot get a valid local work size for the required computation tool.\n");
 	    exit(EXIT_FAILURE);
 	}
-	global_work_size = globalWorkSize(local_work_size);
+	_global_work_size = globalWorkSize(_local_work_size);
 	if(setupOpenCL()) {
 	    exit(EXIT_FAILURE);
 	}
@@ -109,7 +109,7 @@ Sensors::~Sensors()
 	if(!n)
 	    return;
 	if(Output)fclose(Output); Output=0;
-	if(mPath)delete[] mPath; mPath=0;
+	if(_path)delete[] _path; _path=0;
 	if(hPress)delete[] hPress; hPress=0;
 	if(hDens)delete[] hDens; hDens=0;
 	if(hSumW)delete[] hSumW; hSumW=0;
@@ -147,9 +147,9 @@ bool Sensors::execute()
 	    cl_event event;
 	    cl_ulong end, start;
 	    profileTime(0.f);
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &global_work_size, NULL, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, &event);
 	#else
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &global_work_size, NULL, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Sensors::Execute): Can't execute the kernel.\n");
@@ -222,7 +222,7 @@ bool Sensors::setupOpenCL()
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
 	int err_code = 0;
-	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, mPath, "Sensors", ""))
+	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, _path, "Sensors", ""))
 	    return true;
 	//! Test for right work group size
 	cl_device_id device;
@@ -230,7 +230,7 @@ bool Sensors::setupOpenCL()
 	err_code |= clGetCommandQueueInfo(C->command_queue,CL_QUEUE_DEVICE,
 	                                sizeof(cl_device_id),&device, NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Sensors::setupOpenCL): Can't get device from command queue.\n");
+		S->addMessage(3, "(Sensors::setupOpenCL): I Cannot get the device from the command queue.\n");
 	    return true;
 	}
 	err_code |= clGetKernelWorkGroupInfo(kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
@@ -239,9 +239,9 @@ bool Sensors::setupOpenCL()
 		S->addMessage(3, "(Sensors::setupOpenCL): Can't get maximum local work group size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < local_work_size)
-	    local_work_size  = localWorkGroupSize;
-	global_work_size = globalWorkSize(local_work_size);
+	if(localWorkGroupSize < _local_work_size)
+	    _local_work_size  = localWorkGroupSize;
+	_global_work_size = globalWorkSize(_local_work_size);
 	return false;
 }
 

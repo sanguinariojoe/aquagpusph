@@ -9,7 +9,7 @@ The opening brace should be placed just after the sentence, except in the
 case of functions or classes definition where the opening brace is placed in
 the next line.
 
-The lines must not exceed the 80 cahracters.
+The lines must not exceed the 80 characters.
 
 The private/protected variables of a class should be named with an underscore
 prefix.

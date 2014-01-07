@@ -425,6 +425,7 @@ public:
 	Bounds *bounds_tool;
 	/// Portals array.
 	std::deque<Portal::Portal*> portals;
+
 private:
 	/** Setup the OpenCL stuff.
 	 * @return false if the OpenCL environment has been succesfully built,

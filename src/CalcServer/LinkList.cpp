@@ -40,7 +40,7 @@ namespace Aqua{ namespace CalcServer{
 
 LinkList::LinkList()
 	: Kernel("LinkList")
-	, mPath(0)
+	, _path(0)
 	, program(0)
 	, clLcellKernel(0)
 	, clIhocKernel(0)
@@ -58,20 +58,20 @@ LinkList::LinkList()
 	    printf("ERROR (LinkList::Init): Path of LinkList kernel is empty.\n");
 	    exit(EXIT_FAILURE);
 	}
-	mPath = new char[nChar+4];
-	if(!mPath) {
+	_path = new char[nChar+4];
+	if(!_path) {
 	    printf("ERROR (LinkList::Init): Can't allocate memory for path.\n");
 	    exit(EXIT_FAILURE);
 	}
-	strcpy(mPath, P->OpenCL_kernels.link_list);
-	strcat(mPath, ".cl");
+	strcpy(_path, P->OpenCL_kernels.link_list);
+	strcat(_path, ".cl");
 	//! 2nd.- Setup the kernels
-	local_work_size  = localWorkSize();
-	if(!local_work_size){
-	    printf("ERROR (LinkList::Init): No valid local work size for required computation.\n");
+	_local_work_size  = localWorkSize();
+	if(!_local_work_size){
+	    printf("ERROR (LinkList::Init): I cannot get a valid local work size for the required computation tool.\n");
 	    exit(EXIT_FAILURE);
 	}
-	global_work_size = globalWorkSize(local_work_size);
+	_global_work_size = globalWorkSize(_local_work_size);
 	if(setupOpenCL()) {
 	    exit(EXIT_FAILURE);
 	}
@@ -87,7 +87,7 @@ LinkList::~LinkList()
 	if(clIhocKernel)clReleaseKernel(clIhocKernel); clIhocKernel=0;
 	if(clLLKernel)clReleaseKernel(clLLKernel); clLLKernel=0;
 	if(program)clReleaseProgram(program); program=0;
-	if(mPath)delete[] mPath; mPath=0;
+	if(_path)delete[] _path; _path=0;
 	S->addMessage(1, "(LinkList::~LinkList): Destroying radix sort processor...\n");
 	if(mRadixSort)delete mRadixSort; mRadixSort=0;
 }
@@ -109,19 +109,19 @@ bool LinkList::execute()
 		S->addMessage(3, (char *)"(LinkList::Execute): Can't send arguments to to ihoc clearer kernel.\n");
 	    return true;
 	}
-	local_work_size  = localWorkSize(C->num_cells);
-	if(!local_work_size){
+	_local_work_size  = localWorkSize(C->num_cells);
+	if(!_local_work_size){
 	    S->addMessage(3, (char*)"(LinkList::Execute): No valid local work size for ihoc clearer.\n");
 	    return true;
 	}
-	global_work_size = globalWorkSize(local_work_size, C->num_cells);
+	_global_work_size = globalWorkSize(_local_work_size, C->num_cells);
 	#ifdef HAVE_GPUPROFILE
 	    cl_event event;
 	    cl_ulong end, start;
 	    profileTime(0.f);
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, clIhocKernel, 1, NULL, &global_work_size, NULL, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, clIhocKernel, 1, NULL, &_global_work_size, NULL, 0, NULL, &event);
 	#else
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, clIhocKernel, 1, NULL, &global_work_size, NULL, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, clIhocKernel, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(LinkList::Execute): Can't execute the kernel \"InitIhoc\".\n");
@@ -182,16 +182,16 @@ bool LinkList::execute()
 		S->addMessage(3, "(LinkList::Execute): Can't send arguments to cell allocation kernel.\n");
 	    return true;
 	}
-	local_work_size  = localWorkSize(C->num_icell);
-	if(!local_work_size){
+	_local_work_size  = localWorkSize(C->num_icell);
+	if(!_local_work_size){
 	    S->addMessage(3, "(LinkList::Execute): No valid local work size for cell allocation.\n");
 	    return true;
 	}
-	global_work_size = globalWorkSize(local_work_size, C->num_icell);
+	_global_work_size = globalWorkSize(_local_work_size, C->num_icell);
 	#ifdef HAVE_GPUPROFILE
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, clLcellKernel, 1, NULL, &global_work_size, &local_work_size, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, clLcellKernel, 1, NULL, &_global_work_size, &_local_work_size, 0, NULL, &event);
 	#else
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, clLcellKernel, 1, NULL, &global_work_size, &local_work_size, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, clLcellKernel, 1, NULL, &_global_work_size, &_local_work_size, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(LinkList::Execute): Can't execute the kernel \"LCell\".\n");
@@ -234,16 +234,16 @@ bool LinkList::execute()
 		S->addMessage(3, "(LinkList::Execute): Can't send arguments to ihoc perform kernel.\n");
 	    return true;
 	}
-	local_work_size  = localWorkSize(nMinOne);
-	if(!local_work_size){
+	_local_work_size  = localWorkSize(nMinOne);
+	if(!_local_work_size){
 	    S->addMessage(3, "(LinkList::Execute): No valid local work size for ihoc computation.\n");
 	    return true;
 	}
-	global_work_size = globalWorkSize(local_work_size, nMinOne);
+	_global_work_size = globalWorkSize(_local_work_size, nMinOne);
 	#ifdef HAVE_GPUPROFILE
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, clLLKernel, 1, NULL, &global_work_size, NULL, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, clLLKernel, 1, NULL, &_global_work_size, NULL, 0, NULL, &event);
 	#else
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, clLLKernel, 1, NULL, &global_work_size, NULL, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, clLLKernel, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(LinkList::Execute): Can't execute the kernel \"LinkList\".\n");
@@ -279,13 +279,13 @@ bool LinkList::setupOpenCL()
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
 	int err_code=0;
-	if(!loadKernelFromFile(&clLcellKernel, &program, C->context, C->device, mPath, "LCell", ""))
+	if(!loadKernelFromFile(&clLcellKernel, &program, C->context, C->device, _path, "LCell", ""))
 	    return true;
 	if(program)clReleaseProgram(program); program=0;
-	if(!loadKernelFromFile(&clIhocKernel, &program, C->context, C->device, mPath, "InitIhoc", ""))
+	if(!loadKernelFromFile(&clIhocKernel, &program, C->context, C->device, _path, "InitIhoc", ""))
 	    return true;
 	if(program)clReleaseProgram(program); program=0;
-	if(!loadKernelFromFile(&clLLKernel, &program, C->context, C->device, mPath, "LinkList", ""))
+	if(!loadKernelFromFile(&clLLKernel, &program, C->context, C->device, _path, "LinkList", ""))
 	    return true;
 	if(program)clReleaseProgram(program); program=0;
 	err_code |= sendArgument(clLcellKernel,  0, sizeof(cl_mem), (void*)&(C->pos));
@@ -297,7 +297,7 @@ bool LinkList::setupOpenCL()
 	err_code |= clGetCommandQueueInfo(C->command_queue,CL_QUEUE_DEVICE,
 	                                sizeof(cl_device_id),&device, NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(LinkList::setupOpenCL): Can't get device from command queue.\n");
+		S->addMessage(3, "(LinkList::setupOpenCL): I Cannot get the device from the command queue.\n");
 	    return true;
 	}
 	err_code |= clGetKernelWorkGroupInfo(clLcellKernel,device,CL_KERNEL_WORK_GROUP_SIZE,
@@ -306,25 +306,25 @@ bool LinkList::setupOpenCL()
 		S->addMessage(3, "(LinkList::setupOpenCL): Can't get Lcell maximum local work group size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < local_work_size)
-	    local_work_size  = localWorkGroupSize;
+	if(localWorkGroupSize < _local_work_size)
+	    _local_work_size  = localWorkGroupSize;
 	err_code |= clGetKernelWorkGroupInfo(clIhocKernel,device,CL_KERNEL_WORK_GROUP_SIZE,
 	                                   sizeof(size_t), &localWorkGroupSize, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(LinkList::setupOpenCL): Can't get ihoc maximum local work group size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < local_work_size)
-	    local_work_size  = localWorkGroupSize;
+	if(localWorkGroupSize < _local_work_size)
+	    _local_work_size  = localWorkGroupSize;
 	err_code |= clGetKernelWorkGroupInfo(clLLKernel,device,CL_KERNEL_WORK_GROUP_SIZE,
 	                                   sizeof(size_t), &localWorkGroupSize, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(LinkList::setupOpenCL): Can't get ll maximum local work group size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < local_work_size)
-	    local_work_size  = localWorkGroupSize;
-	global_work_size = globalWorkSize(local_work_size);
+	if(localWorkGroupSize < _local_work_size)
+	    _local_work_size  = localWorkGroupSize;
+	_global_work_size = globalWorkSize(_local_work_size);
 	return false;
 }
 
@@ -362,8 +362,8 @@ bool LinkList::allocLinkList()
                 (unsigned int)C->allocated_mem);
 		S->addMessage(1, Log);
 	    C->num_cells_allocated = C->num_cells;
-	    local_work_size = 256;
-	    global_work_size = globalWorkSize(local_work_size);
+	    _local_work_size = 256;
+	    _global_work_size = globalWorkSize(_local_work_size);
 	}
 	return false;
 }

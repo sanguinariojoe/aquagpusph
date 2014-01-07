@@ -40,7 +40,7 @@ namespace Aqua{ namespace CalcServer{ namespace Boundary{
 
 ElasticBounce::ElasticBounce()
 	: Kernel("ElasticBounce")
-	, mPath(0)
+	, _path(0)
 	, program(0)
 	, kernel(0)
 {
@@ -54,23 +54,23 @@ ElasticBounce::ElasticBounce()
 	//! 1st.- Get data
 	int nChar = strlen(P->OpenCL_kernels.elastic_bounce);
 	if(nChar <= 0) {
-	    S->addMessage(3, "(ElasticBounce::ElasticBounce): mPath of ElasticBounce kernel is empty.\n");
+	    S->addMessage(3, "(ElasticBounce::ElasticBounce): _path of ElasticBounce kernel is empty.\n");
 	    exit(EXIT_FAILURE);
 	}
-	mPath = new char[nChar+4];
-	if(!mPath) {
+	_path = new char[nChar+4];
+	if(!_path) {
 	    S->addMessage(3, "(ElasticBounce::ElasticBounce): Can't allocate memory for path.\n");
 	    exit(EXIT_FAILURE);
 	}
-	strcpy(mPath, P->OpenCL_kernels.elastic_bounce);
-	strcat(mPath, ".cl");
+	strcpy(_path, P->OpenCL_kernels.elastic_bounce);
+	strcat(_path, ".cl");
 	//! 2nd.- Setup the kernel
-	local_work_size  = localWorkSize();
-	if(!local_work_size){
-	    S->addMessage(3, "(ElasticBounce::ElasticBounce): No valid local work size for required computation.\n");
+	_local_work_size  = localWorkSize();
+	if(!_local_work_size){
+	    S->addMessage(3, "(ElasticBounce::ElasticBounce): I cannot get a valid local work size for the required computation tool.\n");
 	    exit(EXIT_FAILURE);
 	}
-	global_work_size = globalWorkSize(local_work_size);
+	_global_work_size = globalWorkSize(_local_work_size);
 	if(setupOpenCL()) {
 	    exit(EXIT_FAILURE);
 	}
@@ -81,7 +81,7 @@ ElasticBounce::~ElasticBounce()
 {
 	if(kernel)clReleaseKernel(kernel); kernel=0;
 	if(program)clReleaseProgram(program); program=0;
-	if(mPath) delete[] mPath; mPath=0;
+	if(_path) delete[] _path; _path=0;
 }
 
 bool ElasticBounce::execute()
@@ -122,9 +122,9 @@ bool ElasticBounce::execute()
 	    cl_event event;
 	    cl_ulong end, start;
 	    profileTime(0.f);
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &global_work_size, NULL, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, &event);
 	#else
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &global_work_size, NULL, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(ElasticBounce::Boundary): Can't execute the kernel.\n");
@@ -168,7 +168,7 @@ bool ElasticBounce::setupOpenCL()
 	err_code |= clGetCommandQueueInfo(C->command_queue,CL_QUEUE_DEVICE,
 	                                sizeof(cl_device_id),&device, NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(ElasticBounce::setupOpenCL): Can't get device from command queue.\n");
+		S->addMessage(3, "(ElasticBounce::setupOpenCL): I Cannot get the device from the command queue.\n");
 	    return true;
 	}
 	err_code |= clGetDeviceInfo(device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(localMem), &localMem, NULL);
@@ -182,7 +182,7 @@ bool ElasticBounce::setupOpenCL()
     if(P->SPH_opts.elastic_dist < 0.f){
         sprintf(flags, "%s -D__FORCE_MIN_BOUND_DIST__", flags);
     }
-	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, mPath, "Boundary", flags))
+	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, _path, "Boundary", flags))
 	    return true;
 	if(program)clReleaseProgram(program); program=0;
 	//! Test if there are enough local memory
@@ -207,8 +207,8 @@ bool ElasticBounce::setupOpenCL()
 		S->addMessage(3, "(ElasticBounce::setupOpenCL): Can't get maximum local work group size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < local_work_size)
-	    local_work_size  = localWorkGroupSize;
+	if(localWorkGroupSize < _local_work_size)
+	    _local_work_size  = localWorkGroupSize;
 	//! Look for better local work group size
 	err_code |= clGetKernelWorkGroupInfo(kernel,device,CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
 	                                   sizeof(size_t), &localWorkGroupSize, NULL);
@@ -216,8 +216,8 @@ bool ElasticBounce::setupOpenCL()
 		S->addMessage(3, "(ElasticBounce::setupOpenCL): Can't get preferred local work group size.\n");
 	    return true;
 	}
-	local_work_size  = (local_work_size/localWorkGroupSize) * localWorkGroupSize;
-	global_work_size = globalWorkSize(local_work_size);
+	_local_work_size  = (_local_work_size/localWorkGroupSize) * localWorkGroupSize;
+	_global_work_size = globalWorkSize(_local_work_size);
 	return false;
 }
 

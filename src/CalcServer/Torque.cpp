@@ -43,10 +43,10 @@ Torque::Torque()
 	, mDevTorque(NULL)
 	, mDevForce(NULL)
 	, program(NULL)
-	, mPath(NULL)
+	, _path(NULL)
 	, kernel(NULL)
-	, global_work_size(0)
-	, local_work_size(0)
+	, _global_work_size(0)
+	, _local_work_size(0)
 	, torqueReduction(NULL)
 	, forceReduction(NULL)
 {
@@ -57,20 +57,20 @@ Torque::Torque()
 		S->addMessage(3, "(Torque::Torque): Path of reduction kernels (2D) is empty.\n");
 		exit(EXIT_FAILURE);
 	}
-	mPath = new char[nChar+4];
-	if(!mPath) {
+	_path = new char[nChar+4];
+	if(!_path) {
 		S->addMessage(3, "(Torque::Torque): Can't allocate memory for path.\n");
 		exit(EXIT_FAILURE);
 	}
-	strcpy(mPath, P->OpenCL_kernels.torque);
-	strcat(mPath, ".cl");
+	strcpy(_path, P->OpenCL_kernels.torque);
+	strcat(_path, ".cl");
 
-	local_work_size  = localWorkSize();
-	if(!local_work_size){
-	    S->addMessage(3, "(Torque::Torque): No valid local work size for required computation.\n");
+	_local_work_size  = localWorkSize();
+	if(!_local_work_size){
+	    S->addMessage(3, "(Torque::Torque): I cannot get a valid local work size for the required computation tool.\n");
 	    exit(EXIT_FAILURE);
 	}
-	global_work_size = globalWorkSize(local_work_size);
+	_global_work_size = globalWorkSize(_local_work_size);
 	if(setupTorque()) {
 		exit(EXIT_FAILURE);
 	}
@@ -99,7 +99,7 @@ Torque::~Torque()
 	if(mDevForce)clReleaseMemObject(mDevForce); mDevForce=0;
 	if(kernel)clReleaseKernel(kernel); kernel=0;
 	if(program)clReleaseProgram(program); program=0;
-	if(mPath)delete[] mPath; mPath=0;
+	if(_path)delete[] _path; _path=0;
 }
 
 bool Torque::execute()
@@ -119,9 +119,9 @@ bool Torque::execute()
 		cl_event event;
 		cl_ulong end, start;
 		profileTime(0.f);
-		err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &global_work_size, NULL, 0, NULL, &event);
+		err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, &event);
 	#else
-		err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &global_work_size, NULL, 0, NULL, NULL);
+		err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Torque::Execute): Can't execute torque calculation kernel.\n");
@@ -173,7 +173,7 @@ bool Torque::setupTorque()
 	CalcServer *C = CalcServer::singleton();
 	char msg[1024];
 	cl_int err_code=0;
-	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, mPath, "Torque", ""))
+	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, _path, "Torque", ""))
 		return true;
 	mDevTorque = C->allocMemory(C->n * sizeof( vec ));
 	mDevForce = C->allocMemory(C->n * sizeof( vec ));
@@ -200,7 +200,7 @@ bool Torque::setupTorque()
 	err_code |= clGetCommandQueueInfo(C->command_queue,CL_QUEUE_DEVICE,
 	                                sizeof(cl_device_id),&device, NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Torque::setupTorque): Can't get device from command queue.\n");
+		S->addMessage(3, "(Torque::setupTorque): I Cannot get the device from the command queue.\n");
 	    return true;
 	}
 	err_code |= clGetKernelWorkGroupInfo(kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
@@ -209,9 +209,9 @@ bool Torque::setupTorque()
 		S->addMessage(3, "(Torque::setupTorque): Can't get maximum local work group size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < local_work_size)
-	    local_work_size  = localWorkGroupSize;
-	global_work_size = globalWorkSize(local_work_size);
+	if(localWorkGroupSize < _local_work_size)
+	    _local_work_size  = localWorkGroupSize;
+	_global_work_size = globalWorkSize(_local_work_size);
 	return false;
 }
 

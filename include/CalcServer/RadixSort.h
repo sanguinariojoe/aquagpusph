@@ -190,9 +190,9 @@ private:
 	/// Number of elements to sort (don't set manually)
 	unsigned int n;
 	/// Local work size (default value = 128)
-	size_t local_work_size;
+	size_t _local_work_size;
 	/// Global work size
-	size_t global_work_size;
+	size_t _global_work_size;
 	/// Key bits (maximum)
 	unsigned int keyBits;
 	/// Needed radix pass (keyBits / _STEPBITS)

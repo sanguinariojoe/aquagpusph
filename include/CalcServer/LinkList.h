@@ -62,7 +62,7 @@ private:
 	bool allocLinkList();
 
 	/// OpenCL script path
-	char *mPath;
+	char *_path;
 
 	/// OpenCL program
 	cl_program program;
@@ -73,9 +73,9 @@ private:
 	/// OpenCL link-list kernel
 	cl_kernel clLLKernel;
 	/// Global work size.
-	size_t global_work_size;
+	size_t _global_work_size;
 	/// Local work size
-	size_t local_work_size;
+	size_t _local_work_size;
 
 	/// Radix sort module
 	RadixSort *mRadixSort;

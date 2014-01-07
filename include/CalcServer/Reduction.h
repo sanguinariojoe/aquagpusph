@@ -88,7 +88,7 @@ private:
 	bool setupOpenCL(const char* type, const char* identity, const char* operation);
 
 	/// OpenCL script path
-	char* mPath;
+	char* _path;
 
 	/// OpenCL program
 	cl_program program;

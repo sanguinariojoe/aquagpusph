@@ -40,7 +40,7 @@ namespace Aqua{ namespace CalcServer{
 
 Reduction::Reduction(cl_mem input, unsigned int N, const char* type, const char* identity, const char* operation)
 	: Kernel("Reduction")
-	, mPath(0)
+	, _path(0)
 	, program(0)
 	, kernels(0)
 {
@@ -49,16 +49,16 @@ Reduction::Reduction(cl_mem input, unsigned int N, const char* type, const char*
 
 	int nChar = strlen(P->OpenCL_kernels.reduction);
 	if(nChar <= 0) {
-	    S->addMessage(3, "(Reduction::Reduction): mPath of Reduction kernel is empty.\n");
+	    S->addMessage(3, "(Reduction::Reduction): _path of Reduction kernel is empty.\n");
 	    exit(EXIT_FAILURE);
 	}
-	mPath = new char[nChar+4];
-	if(!mPath) {
+	_path = new char[nChar+4];
+	if(!_path) {
 	    S->addMessage(3, "(Reduction::Reduction): Can't allocate memory for path.\n");
 	    exit(EXIT_FAILURE);
 	}
-	strcpy(mPath, P->OpenCL_kernels.reduction);
-	strcat(mPath, ".cl");
+	strcpy(_path, P->OpenCL_kernels.reduction);
+	strcat(_path, ".cl");
 
     mInput  = input;
     mMems.push_back(input);
@@ -79,7 +79,7 @@ Reduction::~Reduction()
     }
     kernels.clear();
 	if(program)clReleaseProgram(program); program=0;
-	if(mPath) delete[] mPath; mPath=0;
+	if(_path) delete[] _path; _path=0;
 	mGSize.clear();
 	mLSize.clear();
 }
@@ -92,14 +92,14 @@ cl_mem Reduction::execute()
     cl_int flag;
     unsigned int i;
 	for(i=0;i<kernels.size();i++){
-        size_t global_work_size = mGSize.at(i);
-        size_t local_work_size  = mLSize.at(i);
+        size_t _global_work_size = mGSize.at(i);
+        size_t _local_work_size  = mLSize.at(i);
 		#ifdef HAVE_GPUPROFILE
 			cl_event event;
 			cl_ulong end, start;
-			flag = clEnqueueNDRangeKernel(C->command_queue, kernels.at(i), 1, NULL, &global_work_size, &local_work_size, 0, NULL, &event);
+			flag = clEnqueueNDRangeKernel(C->command_queue, kernels.at(i), 1, NULL, &_global_work_size, &_local_work_size, 0, NULL, &event);
 		#else
-			flag = clEnqueueNDRangeKernel(C->command_queue, kernels.at(i), 1, NULL, &global_work_size, &local_work_size, 0, NULL, NULL);
+			flag = clEnqueueNDRangeKernel(C->command_queue, kernels.at(i), 1, NULL, &_global_work_size, &_local_work_size, 0, NULL, NULL);
 		#endif
 		if(flag != CL_SUCCESS) {
 			S->addMessage(3, "(Reduction::execute): Can't execute the kernel.\n");
@@ -167,7 +167,7 @@ bool Reduction::setupOpenCL(const char* type, const char* identity, const char* 
     char args[512];
     sprintf(args, "-DT=%s -DIDENTITY=%s -DLOCAL_WORK_SIZE=%luu", type, identity, lsize);
     cl_kernel kernel;
-    size_t maxlsize = loadKernelFromFile(&kernel, &program, C->context, C->device, mPath, "Reduction", args, header);
+    size_t maxlsize = loadKernelFromFile(&kernel, &program, C->context, C->device, _path, "Reduction", args, header);
     if(maxlsize < __CL_MIN_LOCALSIZE__){
         S->addMessage(3, "(Reduction::Reduction): Reduction can't be performed due to insufficient local memory\n");
         sprintf(msg, "\t%lu elements can be executed, but __CL_MIN_LOCALSIZE__=%lu\n", maxlsize, __CL_MIN_LOCALSIZE__);
@@ -206,7 +206,7 @@ bool Reduction::setupOpenCL(const char* type, const char* identity, const char* 
         }
         mMems.push_back(output);
         // Build the kernel
-        if(!loadKernelFromFile(&kernel, &program, C->context, C->device, mPath, "Reduction", args, header))
+        if(!loadKernelFromFile(&kernel, &program, C->context, C->device, _path, "Reduction", args, header))
             return true;
         kernels.push_back(kernel);
         if(program)clReleaseProgram(program); program=NULL;

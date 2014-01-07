@@ -45,7 +45,7 @@ namespace Aqua{ namespace CalcServer{
 
 Corrector::Corrector()
 	: Kernel("Corrector")
-	, mPath(0)
+	, _path(0)
 	, program(0)
 	, kernel(0)
 	, clClampVKernel(0)
@@ -58,20 +58,20 @@ Corrector::Corrector()
 	    S->addMessage(3, "(Corrector::Corrector): Path of corrector kernel is empty.\n");
 	    exit(EXIT_FAILURE);
 	}
-	mPath = new char[nChar+4];
-	if(!mPath) {
+	_path = new char[nChar+4];
+	if(!_path) {
 	    S->addMessage(3, "(Corrector::Corrector): Can't allocate memory for path.\n");
 	    exit(EXIT_FAILURE);
 	}
-	strcpy(mPath, P->OpenCL_kernels.corrector);
-	strcat(mPath, ".cl");
+	strcpy(_path, P->OpenCL_kernels.corrector);
+	strcat(_path, ".cl");
 	//! 2nd.- Setup the kernel
-	local_work_size  = localWorkSize();
-	if(!local_work_size){
-	    S->addMessage(3, "(Corrector::Corrector): No valid local work size for required computation.\n");
+	_local_work_size  = localWorkSize();
+	if(!_local_work_size){
+	    S->addMessage(3, "(Corrector::Corrector): I cannot get a valid local work size for the required computation tool.\n");
 	    exit(EXIT_FAILURE);
 	}
-	global_work_size = globalWorkSize(local_work_size);
+	_global_work_size = globalWorkSize(_local_work_size);
 	if(setupOpenCL()) {
 	    exit(EXIT_FAILURE);
 	}
@@ -83,7 +83,7 @@ Corrector::~Corrector()
 	if(kernel)clReleaseKernel(kernel); kernel=0;
 	if(clClampVKernel)clReleaseKernel(clClampVKernel); clClampVKernel=0;
 	if(program)clReleaseProgram(program); program=0;
-	if(mPath)delete[] mPath; mPath=0;
+	if(_path)delete[] _path; _path=0;
 }
 
 bool Corrector::execute()
@@ -109,9 +109,9 @@ bool Corrector::execute()
 	        cl_event event;
 	        cl_ulong end, start;
 	        profileTime(0.f);
-	        err_code = clEnqueueNDRangeKernel(C->command_queue, clClampVKernel, 1, NULL, &global_work_size, NULL, 0, NULL, &event);
+	        err_code = clEnqueueNDRangeKernel(C->command_queue, clClampVKernel, 1, NULL, &_global_work_size, NULL, 0, NULL, &event);
 	    #else
-	        err_code = clEnqueueNDRangeKernel(C->command_queue, clClampVKernel, 1, NULL, &global_work_size, NULL, 0, NULL, NULL);
+	        err_code = clEnqueueNDRangeKernel(C->command_queue, clClampVKernel, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
 	    #endif
 	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(Corrector::execute): Can't execute the velocity clmaping kernel.\n");
@@ -156,9 +156,9 @@ bool Corrector::execute()
 	    cl_event event;
 	    cl_ulong end, start;
 	    profileTime(0.f);
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &global_work_size, NULL, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, &event);
 	#else
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &global_work_size, NULL, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Corrector::execute): Can't execute the kernel.\n");
@@ -199,7 +199,7 @@ bool Corrector::setupOpenCL()
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
 	cl_int err_code;
-	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, mPath, "Corrector", ""))
+	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, _path, "Corrector", ""))
 	    return true;
 	err_code  = sendArgument(kernel,  0, sizeof(cl_mem), (void*)&(C->imove));
 	err_code |= sendArgument(kernel,  1, sizeof(cl_mem), (void*)&(C->pos));
@@ -221,7 +221,7 @@ bool Corrector::setupOpenCL()
 	    return true;
 	if( (P->time_opts.velocity_clamp) && (P->time_opts.dt_min > 0) ){
 	    if(program)clReleaseProgram(program); program=0;
-	    if(!loadKernelFromFile(&clClampVKernel, &program, C->context, C->device, mPath, "ClampVel",""))
+	    if(!loadKernelFromFile(&clClampVKernel, &program, C->context, C->device, _path, "ClampVel",""))
 	        return true;
 	    err_code  = sendArgument(clClampVKernel, 0, sizeof(cl_mem), (void*)&(C->imove));
 	    err_code |= sendArgument(clClampVKernel, 1, sizeof(cl_mem), (void*)&(C->v));
@@ -237,7 +237,7 @@ bool Corrector::setupOpenCL()
 	err_code |= clGetCommandQueueInfo(C->command_queue,CL_QUEUE_DEVICE,
 	                                sizeof(cl_device_id),&device, NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Corrector::setupOpenCL): Can't get device from command queue.\n");
+		S->addMessage(3, "(Corrector::setupOpenCL): I Cannot get the device from the command queue.\n");
 	    return true;
 	}
 	err_code |= clGetKernelWorkGroupInfo(kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
@@ -246,9 +246,9 @@ bool Corrector::setupOpenCL()
 		S->addMessage(3, "(Corrector::setupOpenCL): Can't get maximum local work group size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < local_work_size)
-	    local_work_size  = localWorkGroupSize;
-	global_work_size = globalWorkSize(local_work_size);
+	if(localWorkGroupSize < _local_work_size)
+	    _local_work_size  = localWorkGroupSize;
+	_global_work_size = globalWorkSize(_local_work_size);
 	return false;
 }
 

@@ -40,7 +40,7 @@ namespace Aqua{ namespace CalcServer{ namespace Boundary{
 
 GhostParticles::GhostParticles()
 	: Kernel("GhostParticles")
-	, mPath(0)
+	, _path(0)
 	, program(0)
 	, kernel(0)
 	, isDelta(false)
@@ -56,13 +56,13 @@ GhostParticles::GhostParticles()
 	    S->addMessage(3, "(GhostParticles::GhostParticles): Path of Ghost kernel is empty.\n");
 	    exit(EXIT_FAILURE);
 	}
-	mPath = new char[nChar+4];
-	if(!mPath) {
+	_path = new char[nChar+4];
+	if(!_path) {
 	    S->addMessage(3, "(GhostParticles::GhostParticles): Can't allocate memory for path.\n");
 	    exit(EXIT_FAILURE);
 	}
-	strcpy(mPath, P->OpenCL_kernels.ghost);
-	strcat(mPath, ".cl");
+	strcpy(_path, P->OpenCL_kernels.ghost);
+	strcat(_path, ".cl");
     for(i=0;i<P->n_fluids;i++){
         if(P->fluids[i].delta > 0.f){
             isDelta = true;
@@ -70,12 +70,12 @@ GhostParticles::GhostParticles()
         }
     }
 
-	local_work_size  = localWorkSize();
-	if(!local_work_size){
-	    S->addMessage(3, "(GhostParticles::GhostParticles): No valid local work size for required computation.\n");
+	_local_work_size  = localWorkSize();
+	if(!_local_work_size){
+	    S->addMessage(3, "(GhostParticles::GhostParticles): I cannot get a valid local work size for the required computation tool.\n");
 	    exit(EXIT_FAILURE);
 	}
-	global_work_size = globalWorkSize(local_work_size);
+	_global_work_size = globalWorkSize(_local_work_size);
 	if(setupOpenCL()) {
 	    exit(EXIT_FAILURE);
 	}
@@ -96,7 +96,7 @@ GhostParticles::~GhostParticles()
 	mWalls.clear();
 	if(kernel)clReleaseKernel(kernel); kernel=0;
 	if(program)clReleaseProgram(program); program=0;
-	if(mPath) delete[] mPath; mPath=0;
+	if(_path) delete[] _path; _path=0;
 }
 
 bool GhostParticles::execute()
@@ -154,19 +154,19 @@ bool GhostParticles::execute()
             nAddedArgs = 3;
         }
 	    if(isLocalMemory){
-	        err_code |= sendArgument(kernel, 28+nAddedArgs, local_work_size*sizeof(cl_float), NULL);
-	        err_code |= sendArgument(kernel, 29+nAddedArgs, local_work_size*sizeof(vec     ), NULL);
-	        err_code |= sendArgument(kernel, 30+nAddedArgs, local_work_size*sizeof(cl_float), NULL);
-	        err_code |= sendArgument(kernel, 31+nAddedArgs, local_work_size*sizeof(cl_float), NULL);
-	        err_code |= sendArgument(kernel, 32+nAddedArgs, local_work_size*sizeof(cl_float), NULL);
-	        err_code |= sendArgument(kernel, 33+nAddedArgs, local_work_size*sizeof(vec     ), NULL);
+	        err_code |= sendArgument(kernel, 28+nAddedArgs, _local_work_size*sizeof(cl_float), NULL);
+	        err_code |= sendArgument(kernel, 29+nAddedArgs, _local_work_size*sizeof(vec     ), NULL);
+	        err_code |= sendArgument(kernel, 30+nAddedArgs, _local_work_size*sizeof(cl_float), NULL);
+	        err_code |= sendArgument(kernel, 31+nAddedArgs, _local_work_size*sizeof(cl_float), NULL);
+	        err_code |= sendArgument(kernel, 32+nAddedArgs, _local_work_size*sizeof(cl_float), NULL);
+	        err_code |= sendArgument(kernel, 33+nAddedArgs, _local_work_size*sizeof(vec     ), NULL);
 	    }
 	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "(GhostParticles::execute): Can't send arguments to GhostParticles effect computation kernel.\n");
 	        return true;
 	    }
 	    // Execute the kernel
-	    size_t globalWorkSize = getGlobalWorkSize(C->n, local_work_size);
+	    size_t globalWorkSize = getGlobalWorkSize(C->n, _local_work_size);
 	    #ifdef HAVE_GPUPROFILE
 	        cl_event event;
 	        cl_ulong end, start;
@@ -224,7 +224,7 @@ bool GhostParticles::setupOpenCL()
 	err_code |= clGetCommandQueueInfo(C->command_queue,CL_QUEUE_DEVICE,
 	                                sizeof(cl_device_id),&device, NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(GhostParticles::setupOpenCL): Can't get device from command queue.\n");
+		S->addMessage(3, "(GhostParticles::setupOpenCL): I Cannot get the device from the command queue.\n");
 	    return true;
 	}
 	err_code |= clGetDeviceInfo(device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(localMem), &localMem, NULL);
@@ -232,7 +232,7 @@ bool GhostParticles::setupOpenCL()
 		S->addMessage(3, "(GhostParticles::setupOpenCL): Can't get local memory available on device.\n");
 	    return true;
 	}
-	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, mPath, "Boundary", args))
+	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, _path, "Boundary", args))
 	    return true;
 	if(program)clReleaseProgram(program); program=0;
 	//! Test if there are enough local memory
@@ -257,8 +257,8 @@ bool GhostParticles::setupOpenCL()
 		S->addMessage(3, "(GhostParticles::setupOpenCL): Can't get maximum local work group size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < local_work_size)
-	    local_work_size  = localWorkGroupSize;
+	if(localWorkGroupSize < _local_work_size)
+	    _local_work_size  = localWorkGroupSize;
 	//! Look for better local work group size
 	err_code |= clGetKernelWorkGroupInfo(kernel,device,CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
 	                                   sizeof(size_t), &localWorkGroupSize, NULL);
@@ -266,10 +266,10 @@ bool GhostParticles::setupOpenCL()
 		S->addMessage(3, "(GhostParticles::setupOpenCL): Can't get preferred local work group size.\n");
 	    return true;
 	}
-	local_work_size  = (local_work_size/localWorkGroupSize) * localWorkGroupSize;
-	global_work_size = globalWorkSize(local_work_size);
+	_local_work_size  = (_local_work_size/localWorkGroupSize) * localWorkGroupSize;
+	_global_work_size = globalWorkSize(_local_work_size);
 	//! Test if computation can be accelerated with local memory
-	reqLocalMem += local_work_size*(  sizeof(cl_float)
+	reqLocalMem += _local_work_size*(  sizeof(cl_float)
 	                                + sizeof(vec     )
 	                                + sizeof(cl_float)
 	                                + sizeof(cl_float)
@@ -283,7 +283,7 @@ bool GhostParticles::setupOpenCL()
 	    S->addMessage(0, "\tLocal memory usage will be avoided therefore.\n");
 	    isLocalMemory = false;
 	    strcat(args,"-D__NO_LOCAL_MEM__ ");
-	    if(!loadKernelFromFile(&kernel, &program, C->context, C->device, mPath, "Boundary", args))
+	    if(!loadKernelFromFile(&kernel, &program, C->context, C->device, _path, "Boundary", args))
 	        return true;
 	    if(program)clReleaseProgram(program); program=0;
 	}

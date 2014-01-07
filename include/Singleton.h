@@ -36,24 +36,24 @@ public:
 	/** Returns the instance of the class.
 	 * @return singleton instance.
 	 */
-	static T* singleton(){return singletonPtr;}
+	static T* singleton(){return _singletonPtr;}
 
 protected:
 	/** Constructor
 	 */
 	Singleton(){
-	    singletonPtr = (T*)this;
+	    _singletonPtr = (T*)this;
 	}
 	/** Destructor
 	 */
-	~Singleton(){singletonPtr = NULL;}
+	~Singleton(){_singletonPtr = NULL;}
 
 private:
 	/// Static singleton pointer store
-	static T *singletonPtr;
+	static T *_singletonPtr;
 };
 
-template <typename T> T* Singleton <T>::singletonPtr = 0;
+template <typename T> T* Singleton <T>::_singletonPtr = 0;
 
 }   // namespaces
 
