@@ -41,8 +41,8 @@ namespace Aqua{ namespace CalcServer{
 Rates::Rates()
 	: Kernel("Rates")
 	, _path(0)
-	, program(0)
-	, kernel(0)
+	, _program(0)
+	, _kernel(0)
 	, clSortKernel(0)
 	, _global_work_size(0)
 	, _local_work_size(0)
@@ -84,9 +84,9 @@ Rates::Rates()
 
 Rates::~Rates()
 {
-	if(kernel)clReleaseKernel(kernel); kernel=0;
+	if(_kernel)clReleaseKernel(_kernel); _kernel=0;
 	if(clSortKernel)clReleaseKernel(clSortKernel); clSortKernel=0;
-	if(program)clReleaseProgram(program); program=0;
+	if(_program)clReleaseProgram(_program); _program=0;
 	if(_path)delete[] _path; _path=0;
 }
 
@@ -128,7 +128,7 @@ bool Rates::execute()
 	    err_code = clEnqueueNDRangeKernel(C->command_queue, clSortKernel, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Rates::execute): Can't execute the sorting kernel.\n");
+		S->addMessage(3, "(Rates::execute): I cannot execute the sorting kernel.\n");
 	    if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 	        S->addMessage(0, "\tInvalid local work group size.\n");
 	    else if(err_code == CL_OUT_OF_RESOURCES)
@@ -142,71 +142,71 @@ bool Rates::execute()
 	#ifdef HAVE_GPUPROFILE
 	    err_code = clWaitForEvents(1, &event);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(Rates::execute): Can't wait to sorting kernel ends.\n");
+	        S->addMessage(3, "(Rates::execute): Impossible to wait for the sorting kernel ends.\n");
 	        return true;
 	    }
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(Rates::execute): Can't profile sorting kernel execution.\n");
+	        S->addMessage(3, "(Rates::execute): I cannot profile the sorting kernel execution.\n");
 	        return true;
 	    }
 	    profileTime(profileTime() + (end - start)/1000.f);  // 10^-3 ms
 	#endif
 	// Compute the variation rates
-	err_code |= sendArgument(kernel,  0, sizeof(cl_mem  ), (void*)&(C->ifluidin));
-	err_code |= sendArgument(kernel,  1, sizeof(cl_mem  ), (void*)&(C->imovein));
-	err_code |= sendArgument(kernel,  2, sizeof(cl_mem  ), (void*)&(C->posin));
-	err_code |= sendArgument(kernel,  3, sizeof(cl_mem  ), (void*)&(C->vin));
-	err_code |= sendArgument(kernel,  4, sizeof(cl_mem  ), (void*)&(C->densin));
-	err_code |= sendArgument(kernel,  5, sizeof(cl_mem  ), (void*)&(C->hpin));
-	err_code |= sendArgument(kernel,  6, sizeof(cl_mem  ), (void*)&(C->massin));
-	err_code |= sendArgument(kernel,  7, sizeof(cl_mem  ), (void*)&(C->pressin));
-	err_code |= sendArgument(kernel,  8, sizeof(cl_mem  ), (void*)&(C->visc_kin));
-	err_code |= sendArgument(kernel,  9, sizeof(cl_mem  ), (void*)&(C->visc_dyn_corrected));
-	err_code |= sendArgument(kernel, 10, sizeof(cl_mem  ), (void*)&(C->f));
-	err_code |= sendArgument(kernel, 11, sizeof(cl_mem  ), (void*)&(C->drdt));
-	err_code |= sendArgument(kernel, 12, sizeof(cl_mem  ), (void*)&(C->drdt_F));
-	err_code |= sendArgument(kernel, 13, sizeof(cl_mem  ), (void*)&(C->sigma));
-	err_code |= sendArgument(kernel, 14, sizeof(cl_mem  ), (void*)&(C->shepard));
-	err_code |= sendArgument(kernel, 15, sizeof(cl_mem  ), (void*)&(C->shepard_gradient));
-	err_code |= sendArgument(kernel, 16, sizeof(cl_mem  ), (void*)&(C->icell));
-	err_code |= sendArgument(kernel, 17, sizeof(cl_mem  ), (void*)&(C->ihoc));
-	err_code |= sendArgument(kernel, 18, sizeof(cl_mem  ), (void*)&(C->cell_has_particles));
-	err_code |= sendArgument(kernel, 19, sizeof(cl_mem  ), (void*)&(C->permutation));
-	err_code |= sendArgument(kernel, 20, sizeof(cl_mem  ), (void*)&(C->permutation_inverse));
-	err_code |= sendArgument(kernel, 21, sizeof(cl_mem  ), (void*)&(C->sensor_mode));
-	err_code |= sendArgument(kernel, 22, sizeof(cl_uint ), (void*)&(C->n));
-	err_code |= sendArgument(kernel, 23, sizeof(cl_uint ), (void*)&(C->N));
-	err_code |= sendArgument(kernel, 24, sizeof(uivec   ), (void*)&(C->num_cells_vec));
-	err_code |= sendArgument(kernel, 25, sizeof(vec     ), (void*)&(C->g));
+	err_code |= sendArgument(_kernel,  0, sizeof(cl_mem  ), (void*)&(C->ifluidin));
+	err_code |= sendArgument(_kernel,  1, sizeof(cl_mem  ), (void*)&(C->imovein));
+	err_code |= sendArgument(_kernel,  2, sizeof(cl_mem  ), (void*)&(C->posin));
+	err_code |= sendArgument(_kernel,  3, sizeof(cl_mem  ), (void*)&(C->vin));
+	err_code |= sendArgument(_kernel,  4, sizeof(cl_mem  ), (void*)&(C->densin));
+	err_code |= sendArgument(_kernel,  5, sizeof(cl_mem  ), (void*)&(C->hpin));
+	err_code |= sendArgument(_kernel,  6, sizeof(cl_mem  ), (void*)&(C->massin));
+	err_code |= sendArgument(_kernel,  7, sizeof(cl_mem  ), (void*)&(C->pressin));
+	err_code |= sendArgument(_kernel,  8, sizeof(cl_mem  ), (void*)&(C->visc_kin));
+	err_code |= sendArgument(_kernel,  9, sizeof(cl_mem  ), (void*)&(C->visc_dyn_corrected));
+	err_code |= sendArgument(_kernel, 10, sizeof(cl_mem  ), (void*)&(C->f));
+	err_code |= sendArgument(_kernel, 11, sizeof(cl_mem  ), (void*)&(C->drdt));
+	err_code |= sendArgument(_kernel, 12, sizeof(cl_mem  ), (void*)&(C->drdt_F));
+	err_code |= sendArgument(_kernel, 13, sizeof(cl_mem  ), (void*)&(C->sigma));
+	err_code |= sendArgument(_kernel, 14, sizeof(cl_mem  ), (void*)&(C->shepard));
+	err_code |= sendArgument(_kernel, 15, sizeof(cl_mem  ), (void*)&(C->shepard_gradient));
+	err_code |= sendArgument(_kernel, 16, sizeof(cl_mem  ), (void*)&(C->icell));
+	err_code |= sendArgument(_kernel, 17, sizeof(cl_mem  ), (void*)&(C->ihoc));
+	err_code |= sendArgument(_kernel, 18, sizeof(cl_mem  ), (void*)&(C->cell_has_particles));
+	err_code |= sendArgument(_kernel, 19, sizeof(cl_mem  ), (void*)&(C->permutation));
+	err_code |= sendArgument(_kernel, 20, sizeof(cl_mem  ), (void*)&(C->permutation_inverse));
+	err_code |= sendArgument(_kernel, 21, sizeof(cl_mem  ), (void*)&(C->sensor_mode));
+	err_code |= sendArgument(_kernel, 22, sizeof(cl_uint ), (void*)&(C->n));
+	err_code |= sendArgument(_kernel, 23, sizeof(cl_uint ), (void*)&(C->N));
+	err_code |= sendArgument(_kernel, 24, sizeof(uivec   ), (void*)&(C->num_cells_vec));
+	err_code |= sendArgument(_kernel, 25, sizeof(vec     ), (void*)&(C->g));
 	unsigned int nAddedArgs = 0;
 	if(isDelta) {
-	    err_code |= sendArgument(kernel, 26, sizeof(cl_mem), (void*)&(C->refd));
-	    err_code |= sendArgument(kernel, 27, sizeof(cl_mem), (void*)&(C->delta));
-	    err_code |= sendArgument(kernel, 28, sizeof(cl_float), (void*)&(C->dt));
-	    err_code |= sendArgument(kernel, 29, sizeof(cl_float), (void*)&(C->cs));
+	    err_code |= sendArgument(_kernel, 26, sizeof(cl_mem), (void*)&(C->refd));
+	    err_code |= sendArgument(_kernel, 27, sizeof(cl_mem), (void*)&(C->delta));
+	    err_code |= sendArgument(_kernel, 28, sizeof(cl_float), (void*)&(C->dt));
+	    err_code |= sendArgument(_kernel, 29, sizeof(cl_float), (void*)&(C->cs));
         nAddedArgs = 4;
 	}
 	if(isLocalMemory) {
-	    err_code |= sendArgument(kernel, 26+nAddedArgs, _local_work_size*sizeof(cl_float), NULL);
-	    err_code |= sendArgument(kernel, 27+nAddedArgs, _local_work_size*sizeof(vec     ), NULL);
-	    err_code |= sendArgument(kernel, 28+nAddedArgs, _local_work_size*sizeof(cl_float), NULL);
-	    err_code |= sendArgument(kernel, 29+nAddedArgs, _local_work_size*sizeof(cl_float), NULL);
-	    err_code |= sendArgument(kernel, 30+nAddedArgs, _local_work_size*sizeof(cl_float), NULL);
-	    err_code |= sendArgument(kernel, 31+nAddedArgs, _local_work_size*sizeof(vec     ), NULL);
+	    err_code |= sendArgument(_kernel, 26+nAddedArgs, _local_work_size*sizeof(cl_float), NULL);
+	    err_code |= sendArgument(_kernel, 27+nAddedArgs, _local_work_size*sizeof(vec     ), NULL);
+	    err_code |= sendArgument(_kernel, 28+nAddedArgs, _local_work_size*sizeof(cl_float), NULL);
+	    err_code |= sendArgument(_kernel, 29+nAddedArgs, _local_work_size*sizeof(cl_float), NULL);
+	    err_code |= sendArgument(_kernel, 30+nAddedArgs, _local_work_size*sizeof(cl_float), NULL);
+	    err_code |= sendArgument(_kernel, 31+nAddedArgs, _local_work_size*sizeof(vec     ), NULL);
 	}
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Rates::execute): Can't send arguments to kernel.\n");
 	    return true;
 	}
 	#ifdef HAVE_GPUPROFILE
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, &_local_work_size, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, _kernel, 1, NULL, &_global_work_size, &_local_work_size, 0, NULL, &event);
 	#else
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, &_local_work_size, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, _kernel, 1, NULL, &_global_work_size, &_local_work_size, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Rates::execute): Can't execute the kernel.\n");
+		S->addMessage(3, "(Rates::execute): I cannot execute the kernel.\n");
 	    if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 	        S->addMessage(0, "\tInvalid local work group size.\n");
 	    else if(err_code == CL_OUT_OF_RESOURCES)
@@ -220,13 +220,13 @@ bool Rates::execute()
 	#ifdef HAVE_GPUPROFILE
 	    err_code = clWaitForEvents(1, &event);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(Rates::execute): Can't wait to kernels end.\n");
+	        S->addMessage(3, "(Rates::execute): Impossible to wait for the kernels end.\n");
 	        return true;
 	    }
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(Rates::execute): Can't profile kernel execution.\n");
+	        S->addMessage(3, "(Rates::execute): I cannot profile the kernel execution.\n");
 	        return true;
 	    }
 	    profileTime(profileTime() + (end - start)/1000.f);  // 10^-3 ms
@@ -253,15 +253,15 @@ bool Rates::setupOpenCL()
 		S->addMessage(3, "(Rates::setupOpenCL): Can't get local memory available on device.\n");
 	    return true;
 	}
-	if(!loadKernelFromFile(&clSortKernel, &program, C->context, C->device, _path, "SortData", ""))
+	if(!loadKernelFromFile(&clSortKernel, &_program, C->context, C->device, _path, "SortData", ""))
 	    return true;
-	if(program)clReleaseProgram(program); program=0;
+	if(_program)clReleaseProgram(_program); _program=0;
 	char args[32]; strcpy(args, "");
 	if(isDelta)
         strcat(args, "-D__DELTA_SPH__");
-	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, _path, "Rates", args))
+	if(!loadKernelFromFile(&_kernel, &_program, C->context, C->device, _path, "Rates", args))
 	    return true;
-	if(program)clReleaseProgram(program); program=0;
+	if(_program)clReleaseProgram(_program); _program=0;
 	// Test if there are enough local memory
 	err_code |= clGetKernelWorkGroupInfo(clSortKernel,device,CL_KERNEL_LOCAL_MEM_SIZE,
 	                                   sizeof(cl_ulong), &reqLocalMem, NULL);
@@ -276,7 +276,7 @@ bool Rates::setupOpenCL()
 	    S->addMessage(0, msg);
 	    return true;
 	}
-	err_code |= clGetKernelWorkGroupInfo(kernel,device,CL_KERNEL_LOCAL_MEM_SIZE,
+	err_code |= clGetKernelWorkGroupInfo(_kernel,device,CL_KERNEL_LOCAL_MEM_SIZE,
 	                                   sizeof(cl_ulong), &reqLocalMem, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Rates::setupOpenCL): Can't get rates kernel memory usage.\n");
@@ -299,7 +299,7 @@ bool Rates::setupOpenCL()
 	}
 	if(localWorkGroupSize < _local_work_size)
 	    _local_work_size  = localWorkGroupSize;
-	err_code |= clGetKernelWorkGroupInfo(kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
+	err_code |= clGetKernelWorkGroupInfo(_kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
 	                                   sizeof(size_t), &localWorkGroupSize, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Rates::setupOpenCL): Can't get rates maximum local work group size.\n");
@@ -308,7 +308,7 @@ bool Rates::setupOpenCL()
 	if(localWorkGroupSize < _local_work_size)
 	    _local_work_size  = localWorkGroupSize;
 	// Look for a better local work group size
-	err_code |= clGetKernelWorkGroupInfo(kernel,device,CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
+	err_code |= clGetKernelWorkGroupInfo(_kernel,device,CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
 	                                   sizeof(size_t), &localWorkGroupSize, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Rates::setupOpenCL): Can't get rates preferred local work group size.\n");
@@ -331,10 +331,10 @@ bool Rates::setupOpenCL()
 	    S->addMessage(0, "\tLocal memory usage will be avoided therefore.\n");
 	    isLocalMemory = false;
 	    char options[19]; strcpy(options,"-D__NO_LOCAL_MEM__");
-	    if(kernel)clReleaseKernel(kernel); kernel=0;
-	    if(!loadKernelFromFile(&kernel, &program, C->context, C->device, _path, "Rates", options))
+	    if(_kernel)clReleaseKernel(_kernel); _kernel=0;
+	    if(!loadKernelFromFile(&_kernel, &_program, C->context, C->device, _path, "Rates", options))
 	        return true;
-	    if(program)clReleaseProgram(program); program=0;
+	    if(_program)clReleaseProgram(_program); _program=0;
 	}
 	return false;
 }

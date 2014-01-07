@@ -680,7 +680,7 @@ bool CalcServer::fillFluid()
 	    S->addMessage(0, msg);
 	    err_code = clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, &global_work_size, NULL, 0, NULL, NULL);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessageF(3, "Can't execute the kernel.\n");
+	        S->addMessageF(3, "I cannot execute the kernel.\n");
             S->printOpenCLError(err_code);
 	        return true;
 	    }

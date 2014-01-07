@@ -41,7 +41,7 @@ namespace Aqua{ namespace CalcServer{
 Reduction::Reduction(cl_mem input, unsigned int N, const char* type, const char* identity, const char* operation)
 	: Kernel("Reduction")
 	, _path(0)
-	, program(0)
+	, _program(0)
 	, kernels(0)
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
@@ -78,7 +78,7 @@ Reduction::~Reduction()
         if(kernels.at(i))clReleaseKernel(kernels.at(i)); kernels.at(i)=NULL;
     }
     kernels.clear();
-	if(program)clReleaseProgram(program); program=0;
+	if(_program)clReleaseProgram(_program); _program=0;
 	if(_path) delete[] _path; _path=0;
 	mGSize.clear();
 	mLSize.clear();
@@ -102,7 +102,7 @@ cl_mem Reduction::execute()
 			flag = clEnqueueNDRangeKernel(C->command_queue, kernels.at(i), 1, NULL, &_global_work_size, &_local_work_size, 0, NULL, NULL);
 		#endif
 		if(flag != CL_SUCCESS) {
-			S->addMessage(3, "(Reduction::execute): Can't execute the kernel.\n");
+			S->addMessage(3, "(Reduction::execute): I cannot execute the kernel.\n");
 			if(flag == CL_INVALID_WORK_GROUP_SIZE)
 				S->addMessage(0, "\tInvalid local work group size.\n");
 			else if(flag == CL_OUT_OF_RESOURCES)
@@ -116,13 +116,13 @@ cl_mem Reduction::execute()
 		#ifdef HAVE_GPUPROFILE
 			flag = clWaitForEvents(1, &event);
 			if(flag != CL_SUCCESS) {
-				S->addMessage(3, "(Reduction::Execute): Can't wait to kernels end.\n");
+				S->addMessage(3, "(Reduction::Execute): Impossible to wait for the kernels end.\n");
 				return NULL;
 			}
 			flag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
 			flag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
 			if(flag != CL_SUCCESS) {
-				S->addMessage(3, "(Reduction::Execute): Can't profile kernel execution.\n");
+				S->addMessage(3, "(Reduction::Execute): I cannot profile the kernel execution.\n");
 				return NULL;
 			}
 			profileTime(profileTime() + (end - start)/1000.f);  // 10^-3 ms
@@ -167,7 +167,7 @@ bool Reduction::setupOpenCL(const char* type, const char* identity, const char* 
     char args[512];
     sprintf(args, "-DT=%s -DIDENTITY=%s -DLOCAL_WORK_SIZE=%luu", type, identity, lsize);
     cl_kernel kernel;
-    size_t maxlsize = loadKernelFromFile(&kernel, &program, C->context, C->device, _path, "Reduction", args, header);
+    size_t maxlsize = loadKernelFromFile(&kernel, &_program, C->context, C->device, _path, "Reduction", args, header);
     if(maxlsize < __CL_MIN_LOCALSIZE__){
         S->addMessage(3, "(Reduction::Reduction): Reduction can't be performed due to insufficient local memory\n");
         sprintf(msg, "\t%lu elements can be executed, but __CL_MIN_LOCALSIZE__=%lu\n", maxlsize, __CL_MIN_LOCALSIZE__);
@@ -186,7 +186,7 @@ bool Reduction::setupOpenCL(const char* type, const char* identity, const char* 
     }
     sprintf(args, "-DT=%s -DIDENTITY=%s -DLOCAL_WORK_SIZE=%luu", type, identity, lsize);
 	if(kernel)clReleaseKernel(kernel); kernel=NULL;
-	if(program)clReleaseProgram(program); program=NULL;
+	if(_program)clReleaseProgram(_program); _program=NULL;
     // Now we can start a loop while the amount of resulting data was upper than one
     unsigned int N = mN.at(0);
     mN.clear();
@@ -206,10 +206,10 @@ bool Reduction::setupOpenCL(const char* type, const char* identity, const char* 
         }
         mMems.push_back(output);
         // Build the kernel
-        if(!loadKernelFromFile(&kernel, &program, C->context, C->device, _path, "Reduction", args, header))
+        if(!loadKernelFromFile(&kernel, &_program, C->context, C->device, _path, "Reduction", args, header))
             return true;
         kernels.push_back(kernel);
-        if(program)clReleaseProgram(program); program=NULL;
+        if(_program)clReleaseProgram(_program); _program=NULL;
 
         flag  = CL_SUCCESS;
         flag |= sendArgument(kernel, 0, sizeof(cl_mem ), (void*)&(mMems.at(i)));

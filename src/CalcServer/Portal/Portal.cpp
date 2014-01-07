@@ -37,8 +37,8 @@ Portal::Portal(InputOutput::ProblemSetup::sphPortal *portal)
 	: Kernel("Portal")
 	, _path(0)
 	, mPortal(portal)
-	, program(0)
-	, kernel(0)
+	, _program(0)
+	, _kernel(0)
 {
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
 	if(!mPortal){
@@ -69,8 +69,8 @@ Portal::Portal(InputOutput::ProblemSetup::sphPortal *portal)
 
 Portal::~Portal()
 {
-	if(kernel)clReleaseKernel(kernel); kernel=0;
-	if(program)clReleaseProgram(program); program=0;
+	if(_kernel)clReleaseKernel(_kernel); _kernel=0;
+	if(_program)clReleaseProgram(_program); _program=0;
 	if(_path) delete[] _path; _path=0;
 }
 
@@ -87,12 +87,12 @@ bool Portal::execute()
 	}
 	// printf("%f,%f\n", mPortal->out.normal.x, mPortal->out.normal.y);
 	//! Send all variables to the server
-	flag |= sendArgument(kernel, 0, sizeof(cl_mem ), (void*)&(C->imove));
-	flag |= sendArgument(kernel, 1, sizeof(cl_mem ), (void*)&(C->posin));
-	flag |= sendArgument(kernel, 2, sizeof(cl_uint), (void*)&(C->n));
-	flag |= sendArgument(kernel, 3, sizeof(InputOutput::ProblemSetup::sphPortal), (void*)mPortal);
+	flag |= sendArgument(_kernel, 0, sizeof(cl_mem ), (void*)&(C->imove));
+	flag |= sendArgument(_kernel, 1, sizeof(cl_mem ), (void*)&(C->posin));
+	flag |= sendArgument(_kernel, 2, sizeof(cl_uint), (void*)&(C->n));
+	flag |= sendArgument(_kernel, 3, sizeof(InputOutput::ProblemSetup::sphPortal), (void*)mPortal);
 	if(flag != CL_SUCCESS) {
-	    S->addMessage(3, (char*)"(Portal::execute): Imposible to send arguments to portal kernel.\n");
+	    S->addMessage(3, (char*)"(Portal::execute): Imposible to send arguments to portal _kernel.\n");
 	    return true;
 	}
 	//! Execute the kernel
@@ -100,12 +100,12 @@ bool Portal::execute()
 	    cl_event event;
 	    cl_ulong end, start;
 	    profileTime(0.f);
-	    flag = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, &event);
+	    flag = clEnqueueNDRangeKernel(C->command_queue, _kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, &event);
 	#else
-	    flag = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
+	    flag = clEnqueueNDRangeKernel(C->command_queue, _kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
 	#endif
 	if(flag != CL_SUCCESS) {
-	    S->addMessage(3, (char*)"(Portal::execute): Can't execute the kernel.\n");
+	    S->addMessage(3, (char*)"(Portal::execute): I cannot execute the kernel.\n");
 	    if(flag == CL_INVALID_KERNEL_ARGS)
 	        S->addMessage(3, (char*)"\tInvalid kernel arguments.\n");
 	    else if(flag == CL_INVALID_WORK_GROUP_SIZE)
@@ -124,13 +124,13 @@ bool Portal::execute()
 	#ifdef HAVE_GPUPROFILE
 	    flag = clWaitForEvents(1, &event);
 	    if(flag != CL_SUCCESS) {
-	        S->addMessage(2, (char*)"(Portal::execute): Can't wait to kernels end.\n");
+	        S->addMessage(2, (char*)"(Portal::execute): Impossible to wait for the kernels end.\n");
 	        return true;
 	    }
 	    flag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
 	    flag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
 	    if(flag != CL_SUCCESS) {
-	        S->addMessage(3, (char*)"(Portal::execute): Can't profile kernel execution.\n");
+	        S->addMessage(3, (char*)"(Portal::execute): I cannot profile the kernel execution.\n");
 	        return true;
 	    }
 	    profileTime(profileTime() + (end - start)/1000.f);  // 10^-3 ms
@@ -143,7 +143,7 @@ bool Portal::setupOpenCL()
 	CalcServer *C = CalcServer::singleton();
 	printf("\tINFO (Portal::SetupOpenCL): Using OpenCL script \"%s\"\n", _path);
 	//! Load the kernels
-	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, _path, "Portal", ""))
+	if(!loadKernelFromFile(&_kernel, &_program, C->context, C->device, _path, "Portal", ""))
 	    return true;
 	return false;
 }

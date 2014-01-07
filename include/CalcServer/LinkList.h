@@ -65,7 +65,7 @@ private:
 	char *_path;
 
 	/// OpenCL program
-	cl_program program;
+	cl_program _program;
 	/// OpenCL icell kernel
 	cl_kernel clLcellKernel;
 	/// OpenCL ihoc init kernel

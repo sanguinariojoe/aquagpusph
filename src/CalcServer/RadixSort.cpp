@@ -55,7 +55,7 @@ RadixSort::RadixSort()
 	, ckPasteHistogram(0)
 	, ckReorder(0)
 	, ckReversePermutations(0)
-	, program(0)
+	, _program(0)
 	#ifdef HAVE_GPUPROFILE
 	    , mTime(0.f)
 	#endif
@@ -110,7 +110,7 @@ RadixSort::~RadixSort()
 	if(ckPasteHistogram)clReleaseKernel(ckPasteHistogram);ckPasteHistogram=0;
 	if(ckReorder)clReleaseKernel(ckReorder);ckReorder=0;
 	if(ckReversePermutations)clReleaseKernel(ckReversePermutations);ckReversePermutations=0;
-	if(program)clReleaseProgram(program);program=0;
+	if(_program)clReleaseProgram(_program);_program=0;
 }
 
 bool RadixSort::sort()
@@ -168,7 +168,7 @@ bool RadixSort::_init()
 	//! 1st.- Send arguments
 	err_code |= sendArgument(ckInit, 0, sizeof(cl_mem), (void*)&clInPermut);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(RadixSort::_init): Can't send variable to kernel.\n");
+		S->addMessage(3, "(RadixSort::_init): I cannot send a variable to the kernel.\n");
 	    return true;
 	}
 	//! 2nd.- Execute the kernel
@@ -181,7 +181,7 @@ bool RadixSort::_init()
 	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckInit, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(RadixSort::_init): Can't execute the kernel.\n");
+		S->addMessage(3, "(RadixSort::_init): I cannot execute the kernel.\n");
 	    if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 	        S->addMessage(0, "\tInvalid local work group size.\n");
 	    else if(err_code == CL_OUT_OF_RESOURCES)
@@ -195,13 +195,13 @@ bool RadixSort::_init()
 	#ifdef HAVE_GPUPROFILE
 	    err_code = clWaitForEvents(1, &event);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(RadixSort::_init): Can't wait to kernels end.\n");
+	        S->addMessage(3, "(RadixSort::_init): Impossible to wait for the kernels end.\n");
 	        return true;
 	    }
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(RadixSort::_init): Can't profile kernel execution.\n");
+	        S->addMessage(3, "(RadixSort::_init): I cannot profile the kernel execution.\n");
 	        return true;
 	    }
 	    mTime += (end - start)/1000.f;  // 10^-3 ms
@@ -235,7 +235,7 @@ bool RadixSort::_transpose(unsigned int nbrow, unsigned int nbcol)
 	err_code |= sendArgument(ckTranspose, 7, sizeof(cl_uint)*tilesize*tilesize, NULL);
 	err_code |= sendArgument(ckTranspose, 8, sizeof(cl_uint), (void*)&tilesize);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(RadixSort::_transpose): Can't send variable to kernel.\n");
+		S->addMessage(3, "(RadixSort::_transpose): I cannot send a variable to the kernel.\n");
 	    return 1;
 	}
 	//! 2nd.- Execute the kernel
@@ -257,7 +257,7 @@ bool RadixSort::_transpose(unsigned int nbrow, unsigned int nbcol)
 	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckTranspose, 2, NULL, _global_work_size, _local_work_size, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(RadixSort::_transpose): Can't execute the kernel.\n");
+		S->addMessage(3, "(RadixSort::_transpose): I cannot execute the kernel.\n");
 	    if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 	        S->addMessage(0, "\tInvalid local work group size.\n");
 	    else if(err_code == CL_OUT_OF_RESOURCES)
@@ -271,13 +271,13 @@ bool RadixSort::_transpose(unsigned int nbrow, unsigned int nbcol)
 	#ifdef HAVE_GPUPROFILE
 	    err_code = clWaitForEvents(1, &event);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(RadixSort::_transpose): Can't wait to kernels end.\n");
+	        S->addMessage(3, "(RadixSort::_transpose): Impossible to wait for the kernels end.\n");
 	        return true;
 	    }
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(RadixSort::_transpose): Can't profile kernel execution.\n");
+	        S->addMessage(3, "(RadixSort::_transpose): I cannot profile the kernel execution.\n");
 	        return true;
 	    }
 	    mTime += (end - start)/1000.f;  // 10^-3 ms
@@ -307,7 +307,7 @@ bool RadixSort::_histograms()
 	err_code |= sendArgument(ckHistogram, 2, sizeof(cl_uint), (void*)&pass);
 	err_code |= sendArgument(ckHistogram, 3, sizeof(cl_uint)*mRadix*mItems, NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(RadixSort::_histograms): Can't send variable to kernel.\n");
+		S->addMessage(3, "(RadixSort::_histograms): I cannot send a variable to the kernel.\n");
 	    return true;
 	}
 	//! 2nd.- Execute the kernel
@@ -319,7 +319,7 @@ bool RadixSort::_histograms()
 	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckHistogram, 1, NULL, &globalSize, &localSize, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(RadixSort::_histograms): Can't execute the kernel.\n");
+		S->addMessage(3, "(RadixSort::_histograms): I cannot execute the kernel.\n");
 	    if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 	        S->addMessage(0, "\tInvalid local work group size.\n");
 	    else if(err_code == CL_OUT_OF_RESOURCES)
@@ -333,13 +333,13 @@ bool RadixSort::_histograms()
 	#ifdef HAVE_GPUPROFILE
 	    err_code = clWaitForEvents(1, &event);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(RadixSort::_histograms): Can't wait to kernels end.\n");
+	        S->addMessage(3, "(RadixSort::_histograms): Impossible to wait for the kernels end.\n");
 	        return true;
 	    }
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(RadixSort::_histograms): Can't profile kernel execution.\n");
+	        S->addMessage(3, "(RadixSort::_histograms): I cannot profile the kernel execution.\n");
 	        return true;
 	    }
 	    mTime += (end - start)/1000.f;  // 10^-3 ms
@@ -372,7 +372,7 @@ bool RadixSort::_scan()
 	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckScanHistogram, 1, NULL, &globalSize, &localSize, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(RadixSort::_scan): Can't execute first pass kernel.\n");
+		S->addMessage(3, "(RadixSort::_scan): I cannot execute first pass kernel.\n");
 	    if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 	        S->addMessage(0, "\tInvalid local work group size.\n");
 	    else if(err_code == CL_OUT_OF_RESOURCES)
@@ -386,13 +386,13 @@ bool RadixSort::_scan()
 	#ifdef HAVE_GPUPROFILE
 	    err_code = clWaitForEvents(1, &event);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(RadixSort::_scan): Can't wait to first pass kernel end.\n");
+	        S->addMessage(3, "(RadixSort::_scan): Impossible to wait for the first pass kernel end.\n");
 	        return true;
 	    }
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(RadixSort::_scan): Can't profile first pass kernel execution.\n");
+	        S->addMessage(3, "(RadixSort::_scan): I cannot profile the first pass kernel execution.\n");
 	        return true;
 	    }
 	    mTime += (end - start)/1000.f;  // 10^-3 ms
@@ -413,7 +413,7 @@ bool RadixSort::_scan()
 	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckScanHistogram, 1, NULL, &globalSize, &localSize, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(RadixSort::_scan): Can't execute second pass kernel.\n");
+		S->addMessage(3, "(RadixSort::_scan): I cannot execute second pass kernel.\n");
 	    if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 	        S->addMessage(0, "\tInvalid local work group size.\n");
 	    else if(err_code == CL_OUT_OF_RESOURCES)
@@ -427,13 +427,13 @@ bool RadixSort::_scan()
 	#ifdef HAVE_GPUPROFILE
 	    err_code = clWaitForEvents(1, &event);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(RadixSort::_scan): Can't wait to second pass kernel end.\n");
+	        S->addMessage(3, "(RadixSort::_scan): Impossible to wait for the second pass kernel end.\n");
 	        return true;
 	    }
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(RadixSort::_scan): Can't profile second pass kernel execution.\n");
+	        S->addMessage(3, "(RadixSort::_scan): I cannot profile the second pass kernel execution.\n");
 	        return true;
 	    }
 	    mTime += (end - start)/1000.f;  // 10^-3 ms
@@ -448,7 +448,7 @@ bool RadixSort::_scan()
 	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckPasteHistogram, 1, NULL, &globalSize, &localSize, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(RadixSort::_scan): Can't execute paste pass kernel.\n");
+		S->addMessage(3, "(RadixSort::_scan): I cannot execute paste pass kernel.\n");
 	    if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 	        S->addMessage(0, "\tInvalid local work group size.\n");
 	    else if(err_code == CL_OUT_OF_RESOURCES)
@@ -462,13 +462,13 @@ bool RadixSort::_scan()
 	#ifdef HAVE_GPUPROFILE
 	    err_code = clWaitForEvents(1, &event);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(RadixSort::_scan): Can't wait to paste pass kernel end.\n");
+	        S->addMessage(3, "(RadixSort::_scan): Impossible to wait for the paste pass kernel end.\n");
 	        return true;
 	    }
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(RadixSort::_scan): Can't profile paste pass kernel execution.\n");
+	        S->addMessage(3, "(RadixSort::_scan): I cannot profile the paste pass kernel execution.\n");
 	        return 4;
 	    }
 	    mTime += (end - start)/1000.f;  // 10^-3 ms
@@ -491,7 +491,7 @@ bool RadixSort::_reorder()
 	err_code |= sendArgument(ckReorder, 5, sizeof(cl_mem), (void*)&clOutPermut);
 	err_code |= sendArgument(ckReorder, 6, sizeof(cl_uint)*mRadix*mItems, NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, (char*)"(RadixSort::_reorder): Can't send variable to kernel.\n");
+		S->addMessage(3, (char*)"(RadixSort::_reorder): I cannot send a variable to the kernel.\n");
 	    return true;
 	}
 	//! 2nd.- Execute the kernel
@@ -503,7 +503,7 @@ bool RadixSort::_reorder()
 	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckReorder, 1, NULL, &globalSize, &localSize, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(RadixSort::_reorder): Can't execute the kernel.\n");
+		S->addMessage(3, "(RadixSort::_reorder): I cannot execute the kernel.\n");
 	    if(err_code == CL_INVALID_PROGRAM_EXECUTABLE)
 	        S->addMessage(0, "\tInvalid program (Compile errors maybe?).\n");
 	    else if(err_code == CL_INVALID_COMMAND_QUEUE)
@@ -535,13 +535,13 @@ bool RadixSort::_reorder()
 	#ifdef HAVE_GPUPROFILE
 	    err_code = clWaitForEvents(1, &event);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, (char*)"(RadixSort::_reorder): Can't wait to kernels end.\n");
+	        S->addMessage(3, (char*)"(RadixSort::_reorder): Impossible to wait for the kernels end.\n");
 	        return true;
 	    }
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, (char*)"(RadixSort::_reorder): Can't profile kernel execution.\n");
+	        S->addMessage(3, (char*)"(RadixSort::_reorder): I cannot profile the kernel execution.\n");
 	        return true;
 	    }
 	    mTime += (end - start)/1000.f;  // 10^-3 ms
@@ -567,7 +567,7 @@ bool RadixSort::_reversePermutations()
 	//! 1st.- Send arguments
 	err_code |= sendArgument(ckReversePermutations, 0, sizeof(cl_mem), (void*)&clInPermut);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(RadixSort::_reversePermutations): Can't send variable to kernel.\n");
+		S->addMessage(3, "(RadixSort::_reversePermutations): I cannot send a variable to the kernel.\n");
 	    return true;
 	}
 	//! 2nd.- Execute the kernel
@@ -579,7 +579,7 @@ bool RadixSort::_reversePermutations()
 	    err_code = clEnqueueNDRangeKernel(C->command_queue, ckReversePermutations, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(RadixSort::_reversePermutations): Can't execute the kernel.\n");
+		S->addMessage(3, "(RadixSort::_reversePermutations): I cannot execute the kernel.\n");
 	    if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 	        S->addMessage(0, "\tInvalid local work group size.\n");
 	    else if(err_code == CL_OUT_OF_RESOURCES)
@@ -593,13 +593,13 @@ bool RadixSort::_reversePermutations()
 	#ifdef HAVE_GPUPROFILE
 	    err_code = clWaitForEvents(1, &event);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(RadixSort::_reversePermutations): Can't wait to kernels end.\n");
+	        S->addMessage(3, "(RadixSort::_reversePermutations): Impossible to wait for the kernels end.\n");
 	        return true;
 	    }
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(RadixSort::_reversePermutations): Can't profile kernel execution.\n");
+	        S->addMessage(3, "(RadixSort::_reversePermutations): I cannot profile the kernel execution.\n");
 	        return true;
 	    }
 	    mTime += (end - start)/1000.f;  // 10^-3 ms
@@ -728,27 +728,27 @@ bool RadixSort::setupOpenCL()
 	if(ckPasteHistogram)clReleaseKernel(ckPasteHistogram);ckPasteHistogram=0;
 	if(ckReorder)clReleaseKernel(ckReorder);ckReorder=0;
 	if(ckReversePermutations)clReleaseKernel(ckReversePermutations);ckReversePermutations=0;
-	if(program)clReleaseProgram(program);program=0;
+	if(_program)clReleaseProgram(_program);_program=0;
     // Load the new kernels
-	if(!loadKernelFromFile(&ckInit, &program, C->context, C->device, Path, "init", CFlags))
+	if(!loadKernelFromFile(&ckInit, &_program, C->context, C->device, Path, "init", CFlags))
 	    return true;
-	clReleaseProgram(program);program=0;
-	if(!loadKernelFromFile(&ckTranspose, &program, C->context, C->device, Path, "transpose", CFlags))
+	clReleaseProgram(_program);_program=0;
+	if(!loadKernelFromFile(&ckTranspose, &_program, C->context, C->device, Path, "transpose", CFlags))
 	    return true;
-	clReleaseProgram(program);program=0;
-	if(!loadKernelFromFile(&ckHistogram, &program, C->context, C->device, Path, "histogram", CFlags))
+	clReleaseProgram(_program);_program=0;
+	if(!loadKernelFromFile(&ckHistogram, &_program, C->context, C->device, Path, "histogram", CFlags))
 	    return true;
-	clReleaseProgram(program);program=0;
-	if(!loadKernelFromFile(&ckScanHistogram, &program, C->context, C->device, Path, "scanhistograms", CFlags))
+	clReleaseProgram(_program);_program=0;
+	if(!loadKernelFromFile(&ckScanHistogram, &_program, C->context, C->device, Path, "scanhistograms", CFlags))
 	    return true;
-	clReleaseProgram(program);program=0;
-	if(!loadKernelFromFile(&ckPasteHistogram, &program, C->context, C->device, Path, "pastehistograms", CFlags))
+	clReleaseProgram(_program);_program=0;
+	if(!loadKernelFromFile(&ckPasteHistogram, &_program, C->context, C->device, Path, "pastehistograms", CFlags))
 	    return true;
-	clReleaseProgram(program);program=0;
-	if(!loadKernelFromFile(&ckReorder, &program, C->context, C->device, Path, "reorder", CFlags))
+	clReleaseProgram(_program);_program=0;
+	if(!loadKernelFromFile(&ckReorder, &_program, C->context, C->device, Path, "reorder", CFlags))
 	    return true;
-	clReleaseProgram(program);program=0;
-	if(!loadKernelFromFile(&ckReversePermutations, &program, C->context, C->device, Path, "reversePermutation", CFlags))
+	clReleaseProgram(_program);_program=0;
+	if(!loadKernelFromFile(&ckReversePermutations, &_program, C->context, C->device, Path, "reversePermutation", CFlags))
 	    return true;
 	// ------------------------------------------------------------------------
     // Send the fixed arguments

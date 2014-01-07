@@ -27,8 +27,30 @@
 namespace Aqua{ namespace CalcServer{
 
 /** @class Predictor Predictor.h CalcServer/Predictor.h
- * @brief Predictor stage. Time integration uses Predictor-Corrector scheme
- * called Leap-Frog, providing 2nd order convergency.
+ * @brief Predictor stage. Time integration uses a quasi-second order
+ * Predictor-Corrector integration scheme:
+ *   - \f$ \mathbf{u}_{n+1} = \mathbf{u}_{n} + \Delta t \left(
+        \mathbf{g} +
+        \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n+1/2}
+     \right)
+     + \frac{\Delta t}{2} \left(
+        \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n + 1/2} -
+        \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n - 1/2}
+     \right)
+     \f$
+ *   - \f$ \mathbf{r}_{n+1} = \mathbf{r}_{n} + \Delta t \, \mathbf{u}_{n}
+     + \frac{\Delta t^2}{2} \left(
+        \mathbf{g} +
+        \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n+1/2}
+     \right)
+     \f$
+ *   - \f$ \rho_{n+1} = \rho_{n} + \Delta t
+        \left. \frac{\mathrm{d}\rho}{\mathrm{d}t} \right\vert_{n+1/2}
+     + \frac{\Delta t}{2} \left(
+        \left. \frac{\mathrm{d}\rho}{\mathrm{d}t} \right\vert_{n + 1/2} -
+        \left. \frac{\mathrm{d}\rho}{\mathrm{d}t} \right\vert_{n - 1/2}
+     \right)
+     \f$
  */
 class Predictor : public Aqua::CalcServer::Kernel
 {
@@ -56,9 +78,9 @@ private:
 	char* _path;
 
 	/// OpenCL program
-	cl_program program;
+	cl_program _program;
 	/// OpenCL kernel
-	cl_kernel kernel;
+	cl_kernel _kernel;
 	/// Global work size
 	size_t _global_work_size;
 	/// Local work size

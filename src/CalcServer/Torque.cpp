@@ -42,9 +42,9 @@ Torque::Torque()
 	: Kernel("Torque")
 	, mDevTorque(NULL)
 	, mDevForce(NULL)
-	, program(NULL)
+	, _program(NULL)
 	, _path(NULL)
-	, kernel(NULL)
+	, _kernel(NULL)
 	, _global_work_size(0)
 	, _local_work_size(0)
 	, torqueReduction(NULL)
@@ -97,8 +97,8 @@ Torque::~Torque()
 	if(forceReduction)  delete forceReduction;
 	if(mDevTorque)clReleaseMemObject(mDevTorque); mDevTorque=0;
 	if(mDevForce)clReleaseMemObject(mDevForce); mDevForce=0;
-	if(kernel)clReleaseKernel(kernel); kernel=0;
-	if(program)clReleaseProgram(program); program=0;
+	if(_kernel)clReleaseKernel(_kernel); _kernel=0;
+	if(_program)clReleaseProgram(_program); _program=0;
 	if(_path)delete[] _path; _path=0;
 }
 
@@ -109,22 +109,22 @@ bool Torque::execute()
 	unsigned int i;
 	int err_code=0;
 
-	err_code |= sendArgument(kernel, 10, sizeof(vec), (void*)&(C->g));
-	err_code |= sendArgument(kernel, 11, sizeof(vec), (void*)&mCOR);
+	err_code |= sendArgument(_kernel, 10, sizeof(vec), (void*)&(C->g));
+	err_code |= sendArgument(_kernel, 11, sizeof(vec), (void*)&mCOR);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Torque::Execute): Can't send variable to kernel.\n");
+		S->addMessage(3, "(Torque::Execute): I cannot send a variable to the kernel.\n");
 		return true;
 	}
 	#ifdef HAVE_GPUPROFILE
 		cl_event event;
 		cl_ulong end, start;
 		profileTime(0.f);
-		err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, &event);
+		err_code = clEnqueueNDRangeKernel(C->command_queue, _kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, &event);
 	#else
-		err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
+		err_code = clEnqueueNDRangeKernel(C->command_queue, _kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Torque::Execute): Can't execute torque calculation kernel.\n");
+		S->addMessage(3, "(Torque::Execute): I cannot execute torque calculation kernel.\n");
 		if(err_code == CL_INVALID_WORK_GROUP_SIZE) {
 			S->addMessage(0, "\tInvalid local work group size.\n");
 		}
@@ -142,13 +142,13 @@ bool Torque::execute()
 	#ifdef HAVE_GPUPROFILE
 		err_code = clWaitForEvents(1, &event);
 		if(err_code != CL_SUCCESS) {
-			S->addMessage(3, "(Torque::Execute): Can't wait to kernels end.\n");
+			S->addMessage(3, "(Torque::Execute): Impossible to wait for the kernels end.\n");
 			return true;
 		}
 		err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
 		err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
 		if(err_code != CL_SUCCESS) {
-			S->addMessage(3, "(Torque::Execute): Can't profile kernel execution.\n");
+			S->addMessage(3, "(Torque::Execute): I cannot profile the kernel execution.\n");
 			return true;
 		}
 		profileTime(profileTime() + (end - start)/1000.f);  // 10^-3 ms
@@ -173,7 +173,7 @@ bool Torque::setupTorque()
 	CalcServer *C = CalcServer::singleton();
 	char msg[1024];
 	cl_int err_code=0;
-	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, _path, "Torque", ""))
+	if(!loadKernelFromFile(&_kernel, &_program, C->context, C->device, _path, "Torque", ""))
 		return true;
 	mDevTorque = C->allocMemory(C->n * sizeof( vec ));
 	mDevForce = C->allocMemory(C->n * sizeof( vec ));
@@ -181,17 +181,17 @@ bool Torque::setupTorque()
 		return true;
 	sprintf(msg, "\tAllocated memory = %u bytes\n", (unsigned int)C->allocated_mem);
 	S->addMessage(0, msg);
-	err_code  = sendArgument(kernel,  0, sizeof(cl_mem ), (void*)&mDevTorque);
-	err_code |= sendArgument(kernel,  1, sizeof(cl_mem ), (void*)&mDevForce);
-	err_code |= sendArgument(kernel,  2, sizeof(cl_mem ), (void*)&(C->imove));
-	err_code |= sendArgument(kernel,  3, sizeof(cl_mem ), (void*)&(C->ifluid));
-	err_code |= sendArgument(kernel,  4, sizeof(cl_mem ), (void*)&(C->pos));
-	err_code |= sendArgument(kernel,  5, sizeof(cl_mem ), (void*)&(C->f));
-	err_code |= sendArgument(kernel,  6, sizeof(cl_mem ), (void*)&(C->mass));
-	err_code |= sendArgument(kernel,  7, sizeof(cl_mem ), (void*)&(C->dens));
-	err_code |= sendArgument(kernel,  8, sizeof(cl_mem ), (void*)&(C->refd));
-	err_code |= sendArgument(kernel,  9, sizeof(cl_uint), (void*)&(C->n));
-	err_code |= sendArgument(kernel, 10, sizeof(vec	   ), (void*)&(C->g));
+	err_code  = sendArgument(_kernel,  0, sizeof(cl_mem ), (void*)&mDevTorque);
+	err_code |= sendArgument(_kernel,  1, sizeof(cl_mem ), (void*)&mDevForce);
+	err_code |= sendArgument(_kernel,  2, sizeof(cl_mem ), (void*)&(C->imove));
+	err_code |= sendArgument(_kernel,  3, sizeof(cl_mem ), (void*)&(C->ifluid));
+	err_code |= sendArgument(_kernel,  4, sizeof(cl_mem ), (void*)&(C->pos));
+	err_code |= sendArgument(_kernel,  5, sizeof(cl_mem ), (void*)&(C->f));
+	err_code |= sendArgument(_kernel,  6, sizeof(cl_mem ), (void*)&(C->mass));
+	err_code |= sendArgument(_kernel,  7, sizeof(cl_mem ), (void*)&(C->dens));
+	err_code |= sendArgument(_kernel,  8, sizeof(cl_mem ), (void*)&(C->refd));
+	err_code |= sendArgument(_kernel,  9, sizeof(cl_uint), (void*)&(C->n));
+	err_code |= sendArgument(_kernel, 10, sizeof(vec	   ), (void*)&(C->g));
 	if(err_code)
 		return true;
 	//! Test for right work group size
@@ -203,10 +203,10 @@ bool Torque::setupTorque()
 		S->addMessage(3, "(Torque::setupTorque): I Cannot get the device from the command queue.\n");
 	    return true;
 	}
-	err_code |= clGetKernelWorkGroupInfo(kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
+	err_code |= clGetKernelWorkGroupInfo(_kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
 	                                   sizeof(size_t), &localWorkGroupSize, NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Torque::setupTorque): Can't get maximum local work group size.\n");
+		S->addMessage(3, "(Torque::setupTorque): Failure retrieving the maximum local work size.\n");
 	    return true;
 	}
 	if(localWorkGroupSize < _local_work_size)

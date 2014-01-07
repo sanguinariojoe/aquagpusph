@@ -61,9 +61,9 @@ private:
 	char *_path;
 
 	/// OpenCL program
-	cl_program program;
+	cl_program _program;
 	/// OpenCL icell kernel
-	cl_kernel kernel;
+	cl_kernel _kernel;
 	/// OpenCL ihoc init kernel
 	cl_kernel clSortKernel;
 	/// Global work size.

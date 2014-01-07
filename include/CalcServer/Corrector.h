@@ -19,16 +19,35 @@
 #ifndef CORRECTOR_H_INCLUDED
 #define CORRECTOR_H_INCLUDED
 
-// ----------------------------------------------------------------------------
-// Include Generic kernel
-// ----------------------------------------------------------------------------
 #include <CalcServer/Kernel.h>
 
 namespace Aqua{ namespace CalcServer{
 
 /** @class Corrector Corrector.h CalcServer/Corrector.h
- * @brief Corrector stage. Time integration uses Predictor-Corrector scheme
- * called Leap-Frog, providing 2nd order convergency.
+ * @brief Corrector stage. Time integration uses a quasi-second order
+ * Predictor-Corrector integration scheme:
+ *   - \f$ \mathbf{u}_{n+1} = \mathbf{u}_{n} + \Delta t \left(
+        \mathbf{g} +
+        \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n+1/2}
+     \right)
+     + \frac{\Delta t}{2} \left(
+        \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n + 1/2} -
+        \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n - 1/2}
+     \right)
+     \f$
+ *   - \f$ \mathbf{r}_{n+1} = \mathbf{r}_{n} + \Delta t \, \mathbf{u}_{n}
+     + \frac{\Delta t^2}{2} \left(
+        \mathbf{g} +
+        \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n+1/2}
+     \right)
+     \f$
+ *   - \f$ \rho_{n+1} = \rho_{n} + \Delta t
+        \left. \frac{\mathrm{d}\rho}{\mathrm{d}t} \right\vert_{n+1/2}
+     + \frac{\Delta t}{2} \left(
+        \left. \frac{\mathrm{d}\rho}{\mathrm{d}t} \right\vert_{n + 1/2} -
+        \left. \frac{\mathrm{d}\rho}{\mathrm{d}t} \right\vert_{n - 1/2}
+     \right)
+     \f$
  */
 struct Corrector : public Aqua::CalcServer::Kernel
 {
@@ -40,14 +59,14 @@ struct Corrector : public Aqua::CalcServer::Kernel
 	 */
 	~Corrector();
 
-	/** Executes time integration corrector stage.
-	 * @return false if all gone right. \n true otherwise.
+	/** Executes the time integration corrector stage.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool execute();
 
 private:
-	/** Setup OpenCL kernel
-	 * @return false if all gone right. \n true otherwise.
+	/** Setup the OpenCL stuff
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool setupOpenCL();
 
@@ -55,11 +74,11 @@ private:
 	char* _path;
 
 	/// OpenCL program
-	cl_program program;
-	/// OpenCL kernel
-	cl_kernel kernel;
-	/// Velocity clamping
-	cl_kernel clClampVKernel;
+	cl_program _program;
+	/// OpenCL main kernel
+	cl_kernel _kernel;
+	/// Velocity clamping kernel
+	cl_kernel _vel_clamp_kernel;
 	/// Global work size
 	size_t _global_work_size;
 	/// Local work size

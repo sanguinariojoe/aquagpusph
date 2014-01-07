@@ -41,8 +41,8 @@ namespace Aqua{ namespace CalcServer{
 TimeStep::TimeStep()
 	: Kernel("TimeStep")
 	, _path(NULL)
-	, program(NULL)
-	, kernel(NULL)
+	, _program(NULL)
+	, _kernel(NULL)
 	, reduction(NULL)
 	, MainDt(0.f)
 	, dtClamp(0)
@@ -80,8 +80,8 @@ TimeStep::~TimeStep()
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
-	if(kernel)clReleaseKernel(kernel); kernel=NULL;
-	if(program)clReleaseProgram(program); program=NULL;
+	if(_kernel)clReleaseKernel(_kernel); _kernel=NULL;
+	if(_program)clReleaseProgram(_program); _program=NULL;
 	if(_path)delete[] _path; _path=NULL;
 	S->addMessage(1, "(TimeStep::~TimeStep): Destroying time step reduction processor...\n");
 	if(reduction) delete reduction; reduction=NULL;
@@ -102,22 +102,22 @@ bool TimeStep::execute()
 		C->dt = MainDt;
 		return false;
 	}
-	err_code |= sendArgument(kernel,  6, sizeof(cl_float), (void*)&(C->dt));
-	err_code |= sendArgument(kernel,  7, sizeof(cl_float), (void*)&(C->cs));
+	err_code |= sendArgument(_kernel,  6, sizeof(cl_float), (void*)&(C->dt));
+	err_code |= sendArgument(_kernel,  7, sizeof(cl_float), (void*)&(C->cs));
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(TimeStep::Execute): Can't send variable to kernel.\n");
+		S->addMessage(3, "(TimeStep::Execute): I cannot send a variable to the kernel.\n");
 		return true;
 	}
 	#ifdef HAVE_GPUPROFILE
 		cl_event event;
 		cl_ulong end, start;
 		profileTime(0.f);
-		err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, &event);
+		err_code = clEnqueueNDRangeKernel(C->command_queue, _kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, &event);
 	#else
-		err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
+		err_code = clEnqueueNDRangeKernel(C->command_queue, _kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(TimeStep::Execute): Can't execute the kernel.\n");
+		S->addMessage(3, "(TimeStep::Execute): I cannot execute the kernel.\n");
 		if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 			S->addMessage(0, "\tInvalid local work group size.\n");
 		else if(err_code == CL_OUT_OF_RESOURCES)
@@ -131,13 +131,13 @@ bool TimeStep::execute()
 	#ifdef HAVE_GPUPROFILE
 		err_code = clWaitForEvents(1, &event);
 		if(err_code != CL_SUCCESS) {
-			S->addMessage(3, "(TimeStep::Execute): Can't wait to kernels end.\n");
+			S->addMessage(3, "(TimeStep::Execute): Impossible to wait for the kernels end.\n");
 			return true;
 		}
 		err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
 		err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
 		if(err_code != CL_SUCCESS) {
-			S->addMessage(3, "(TimeStep::Execute): Can't profile kernel execution.\n");
+			S->addMessage(3, "(TimeStep::Execute): I cannot profile the kernel execution.\n");
 			return true;
 		}
 		profileTime(profileTime() + (end - start)/1000.f);  // 10^-3 ms
@@ -175,14 +175,14 @@ bool TimeStep::setupOpenCL()
 {
 	CalcServer *C = CalcServer::singleton();
 	int err_code;
-	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, _path, "TimeStep", ""))
+	if(!loadKernelFromFile(&_kernel, &_program, C->context, C->device, _path, "TimeStep", ""))
 		return true;
-	err_code  = sendArgument(kernel,  0, sizeof(cl_mem ), (void*)&(C->dtconv));
-	err_code |= sendArgument(kernel,  1, sizeof(cl_mem ), (void*)&(C->v));
-	err_code |= sendArgument(kernel,  2, sizeof(cl_mem ), (void*)&(C->f));
-	err_code |= sendArgument(kernel,  3, sizeof(cl_mem ), (void*)&(C->hp));
-	err_code |= sendArgument(kernel,  4, sizeof(cl_mem ), (void*)&(C->sigma));
-    err_code |= sendArgument(kernel,  5, sizeof(cl_uint), (void*)&(C->n));
+	err_code  = sendArgument(_kernel,  0, sizeof(cl_mem ), (void*)&(C->dtconv));
+	err_code |= sendArgument(_kernel,  1, sizeof(cl_mem ), (void*)&(C->v));
+	err_code |= sendArgument(_kernel,  2, sizeof(cl_mem ), (void*)&(C->f));
+	err_code |= sendArgument(_kernel,  3, sizeof(cl_mem ), (void*)&(C->hp));
+	err_code |= sendArgument(_kernel,  4, sizeof(cl_mem ), (void*)&(C->sigma));
+    err_code |= sendArgument(_kernel,  5, sizeof(cl_uint), (void*)&(C->n));
 
 	if(err_code)
 		return true;

@@ -41,7 +41,7 @@ namespace Aqua{ namespace CalcServer{
 LinkList::LinkList()
 	: Kernel("LinkList")
 	, _path(0)
-	, program(0)
+	, _program(0)
 	, clLcellKernel(0)
 	, clIhocKernel(0)
 	, clLLKernel(0)
@@ -86,7 +86,7 @@ LinkList::~LinkList()
 	if(clLcellKernel)clReleaseKernel(clLcellKernel); clLcellKernel=0;
 	if(clIhocKernel)clReleaseKernel(clIhocKernel); clIhocKernel=0;
 	if(clLLKernel)clReleaseKernel(clLLKernel); clLLKernel=0;
-	if(program)clReleaseProgram(program); program=0;
+	if(_program)clReleaseProgram(_program); _program=0;
 	if(_path)delete[] _path; _path=0;
 	S->addMessage(1, "(LinkList::~LinkList): Destroying radix sort processor...\n");
 	if(mRadixSort)delete mRadixSort; mRadixSort=0;
@@ -124,7 +124,7 @@ bool LinkList::execute()
 	    err_code = clEnqueueNDRangeKernel(C->command_queue, clIhocKernel, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(LinkList::Execute): Can't execute the kernel \"InitIhoc\".\n");
+		S->addMessage(3, "(LinkList::Execute): I cannot execute the kernel \"InitIhoc\".\n");
 	    if(err_code == CL_INVALID_PROGRAM_EXECUTABLE)
 	        S->addMessage(0, "\tInvalid program (Compile errors maybe?).\n");
 	    else if(err_code == CL_INVALID_COMMAND_QUEUE)
@@ -156,13 +156,13 @@ bool LinkList::execute()
 	#ifdef HAVE_GPUPROFILE
 	    err_code = clWaitForEvents(1, &event);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(LinkList::Execute): Can't wait to kernels end.\n");
+	        S->addMessage(3, "(LinkList::Execute): Impossible to wait for the kernels end.\n");
 	        return true;
 	    }
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(LinkList::Execute): Can't profile kernel execution.\n");
+	        S->addMessage(3, "(LinkList::Execute): I cannot profile the kernel execution.\n");
 	        return true;
 	    }
 	    profileTime(profileTime() + (end - start)/1000.f);  // 10^-3 ms
@@ -194,7 +194,7 @@ bool LinkList::execute()
 	    err_code = clEnqueueNDRangeKernel(C->command_queue, clLcellKernel, 1, NULL, &_global_work_size, &_local_work_size, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(LinkList::Execute): Can't execute the kernel \"LCell\".\n");
+		S->addMessage(3, "(LinkList::Execute): I cannot execute the kernel \"LCell\".\n");
 	    if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 	        S->addMessage(0, "\tInvalid local work group size.\n");
 	    else if(err_code == CL_OUT_OF_RESOURCES)
@@ -208,13 +208,13 @@ bool LinkList::execute()
 	#ifdef HAVE_GPUPROFILE
 	    err_code = clWaitForEvents(1, &event);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(LinkList::Execute): Can't wait to kernels end.\n");
+	        S->addMessage(3, "(LinkList::Execute): Impossible to wait for the kernels end.\n");
 	        return true;
 	    }
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(LinkList::Execute): Can't profile kernel execution.\n");
+	        S->addMessage(3, "(LinkList::Execute): I cannot profile the kernel execution.\n");
 	        return true;
 	    }
 	    profileTime(profileTime() + (end - start)/1000.f);  // 10^-3 ms
@@ -246,7 +246,7 @@ bool LinkList::execute()
 	    err_code = clEnqueueNDRangeKernel(C->command_queue, clLLKernel, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(LinkList::Execute): Can't execute the kernel \"LinkList\".\n");
+		S->addMessage(3, "(LinkList::Execute): I cannot execute the kernel \"LinkList\".\n");
 	    if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 	        S->addMessage(0, "\tInvalid local work group size.\n");
 	    else if(err_code == CL_OUT_OF_RESOURCES)
@@ -260,13 +260,13 @@ bool LinkList::execute()
 	#ifdef HAVE_GPUPROFILE
 	    err_code = clWaitForEvents(1, &event);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(LinkList::Execute): Can't wait to kernels end.\n");
+	        S->addMessage(3, "(LinkList::Execute): Impossible to wait for the kernels end.\n");
 	        return true;
 	    }
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(LinkList::Execute): Can't profile kernel execution.\n");
+	        S->addMessage(3, "(LinkList::Execute): I cannot profile the kernel execution.\n");
 	        return true;
 	    }
 	    profileTime(profileTime() + (end - start)/1000.f);  // 10^-3 ms
@@ -279,15 +279,15 @@ bool LinkList::setupOpenCL()
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
 	int err_code=0;
-	if(!loadKernelFromFile(&clLcellKernel, &program, C->context, C->device, _path, "LCell", ""))
+	if(!loadKernelFromFile(&clLcellKernel, &_program, C->context, C->device, _path, "LCell", ""))
 	    return true;
-	if(program)clReleaseProgram(program); program=0;
-	if(!loadKernelFromFile(&clIhocKernel, &program, C->context, C->device, _path, "InitIhoc", ""))
+	if(_program)clReleaseProgram(_program); _program=0;
+	if(!loadKernelFromFile(&clIhocKernel, &_program, C->context, C->device, _path, "InitIhoc", ""))
 	    return true;
-	if(program)clReleaseProgram(program); program=0;
-	if(!loadKernelFromFile(&clLLKernel, &program, C->context, C->device, _path, "LinkList", ""))
+	if(_program)clReleaseProgram(_program); _program=0;
+	if(!loadKernelFromFile(&clLLKernel, &_program, C->context, C->device, _path, "LinkList", ""))
 	    return true;
-	if(program)clReleaseProgram(program); program=0;
+	if(_program)clReleaseProgram(_program); _program=0;
 	err_code |= sendArgument(clLcellKernel,  0, sizeof(cl_mem), (void*)&(C->pos));
 	if(err_code)
 	    return true;

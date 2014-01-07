@@ -62,9 +62,9 @@ private:
 	char* _path;
 
 	/// OpenCL program
-	cl_program program;
+	cl_program _program;
 	/// OpenCL vertices set kernel
-	cl_kernel kernel;
+	cl_kernel _kernel;
 	/// Global work size (calculated with local_work_size).
 	size_t _global_work_size;
 	/// Local work size (default value = 256)

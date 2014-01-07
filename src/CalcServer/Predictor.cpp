@@ -46,8 +46,8 @@ namespace Aqua{ namespace CalcServer{
 Predictor::Predictor()
 	: Kernel("Predictor")
 	, _path(0)
-	, program(0)
-	, kernel(0)
+	, _program(0)
+	, _kernel(0)
 {
 	//! 1st.- Get data
 	InputOutput::ProblemSetup *P  = InputOutput::ProblemSetup::singleton();
@@ -79,8 +79,8 @@ Predictor::Predictor()
 
 Predictor::~Predictor()
 {
-	if(kernel)clReleaseKernel(kernel); kernel=0;
-	if(program)clReleaseProgram(program); program=0;
+	if(_kernel)clReleaseKernel(_kernel); _kernel=0;
+	if(_program)clReleaseProgram(_program); _program=0;
 	if(_path)delete[] _path; _path=0;
 }
 
@@ -93,15 +93,15 @@ bool Predictor::execute()
 	cl_int err_code=0;
 	//! 1st.- Send arguments
 	float t = T->time();
-	err_code |= sendArgument(kernel, 19, sizeof(cl_uint), (void*)&(C->N));
-	err_code |= sendArgument(kernel, 20, sizeof(cl_float), (void*)&t);
-	err_code |= sendArgument(kernel, 21, sizeof(cl_float), (void*)&(C->dt));
-	err_code |= sendArgument(kernel, 22, sizeof(cl_float), (void*)&(C->cs));
-	err_code |= sendArgument(kernel, 23, sizeof(vec),      (void*)&(C->g));
-	err_code |= sendArgument(kernel, 24, sizeof(cl_float), (void*)&(P->SPH_opts.rho_min));
-	err_code |= sendArgument(kernel, 25, sizeof(cl_float), (void*)&(P->SPH_opts.rho_max));
+	err_code |= sendArgument(_kernel, 19, sizeof(cl_uint), (void*)&(C->N));
+	err_code |= sendArgument(_kernel, 20, sizeof(cl_float), (void*)&t);
+	err_code |= sendArgument(_kernel, 21, sizeof(cl_float), (void*)&(C->dt));
+	err_code |= sendArgument(_kernel, 22, sizeof(cl_float), (void*)&(C->cs));
+	err_code |= sendArgument(_kernel, 23, sizeof(vec),      (void*)&(C->g));
+	err_code |= sendArgument(_kernel, 24, sizeof(cl_float), (void*)&(P->SPH_opts.rho_min));
+	err_code |= sendArgument(_kernel, 25, sizeof(cl_float), (void*)&(P->SPH_opts.rho_max));
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Predictor::execute): Can't send variable to kernel.\n");
+		S->addMessage(3, "(Predictor::execute): I cannot send a variable to the kernel.\n");
 	    return true;
 	}
 	//! 2nd.- Execute the kernel
@@ -109,12 +109,12 @@ bool Predictor::execute()
 	    cl_event event;
 	    cl_ulong end, start;
 	    profileTime(0.f);
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, _kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, &event);
 	#else
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, _kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Predictor::execute): Can't execute the kernel.\n");
+		S->addMessage(3, "(Predictor::execute): I cannot execute the kernel.\n");
 	    if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 	        S->addMessage(0, "\tInvalid local work group size.\n");
 	    else if(err_code == CL_OUT_OF_RESOURCES)
@@ -128,13 +128,13 @@ bool Predictor::execute()
 	#ifdef HAVE_GPUPROFILE
 	    err_code = clWaitForEvents(1, &event);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(Predictor::execute): Can't wait to kernels end.\n");
+	        S->addMessage(3, "(Predictor::execute): Impossible to wait for the kernels end.\n");
 	        return true;
 	    }
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(Predictor::execute): Can't profile kernel execution.\n");
+	        S->addMessage(3, "(Predictor::execute): I cannot profile the kernel execution.\n");
 	        return true;
 	    }
 	    profileTime(profileTime() + (end - start)/1000.f);  // 10^-3 ms
@@ -147,27 +147,27 @@ bool Predictor::setupOpenCL()
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
 	cl_int err_code=0;
-	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, _path, "Predictor", ""))
+	if(!loadKernelFromFile(&_kernel, &_program, C->context, C->device, _path, "Predictor", ""))
 	    return true;
-	err_code |= sendArgument(kernel,  0, sizeof(cl_mem), (void*)&(C->imove));
-	err_code |= sendArgument(kernel,  1, sizeof(cl_mem), (void*)&(C->ifluid));
-	err_code |= sendArgument(kernel,  2, sizeof(cl_mem), (void*)&(C->pos));
-	err_code |= sendArgument(kernel,  3, sizeof(cl_mem), (void*)&(C->v));
-	err_code |= sendArgument(kernel,  4, sizeof(cl_mem), (void*)&(C->f));
-	err_code |= sendArgument(kernel,  5, sizeof(cl_mem), (void*)&(C->dens));
-	err_code |= sendArgument(kernel,  6, sizeof(cl_mem), (void*)&(C->mass));
-	err_code |= sendArgument(kernel,  7, sizeof(cl_mem), (void*)&(C->drdt));
-	err_code |= sendArgument(kernel,  8, sizeof(cl_mem), (void*)&(C->hp));
-	err_code |= sendArgument(kernel,  9, sizeof(cl_mem), (void*)&(C->posin));
-	err_code |= sendArgument(kernel, 10, sizeof(cl_mem), (void*)&(C->vin));
-	err_code |= sendArgument(kernel, 11, sizeof(cl_mem), (void*)&(C->fin));
-	err_code |= sendArgument(kernel, 12, sizeof(cl_mem), (void*)&(C->densin));
-	err_code |= sendArgument(kernel, 13, sizeof(cl_mem), (void*)&(C->massin));
-	err_code |= sendArgument(kernel, 14, sizeof(cl_mem), (void*)&(C->drdtin));
-	err_code |= sendArgument(kernel, 15, sizeof(cl_mem), (void*)&(C->hpin));
-	err_code |= sendArgument(kernel, 16, sizeof(cl_mem), (void*)&(C->press));
-	err_code |= sendArgument(kernel, 17, sizeof(cl_mem), (void*)&(C->refd));
-	err_code |= sendArgument(kernel, 18, sizeof(cl_mem), (void*)&(C->gamma));
+	err_code |= sendArgument(_kernel,  0, sizeof(cl_mem), (void*)&(C->imove));
+	err_code |= sendArgument(_kernel,  1, sizeof(cl_mem), (void*)&(C->ifluid));
+	err_code |= sendArgument(_kernel,  2, sizeof(cl_mem), (void*)&(C->pos));
+	err_code |= sendArgument(_kernel,  3, sizeof(cl_mem), (void*)&(C->v));
+	err_code |= sendArgument(_kernel,  4, sizeof(cl_mem), (void*)&(C->f));
+	err_code |= sendArgument(_kernel,  5, sizeof(cl_mem), (void*)&(C->dens));
+	err_code |= sendArgument(_kernel,  6, sizeof(cl_mem), (void*)&(C->mass));
+	err_code |= sendArgument(_kernel,  7, sizeof(cl_mem), (void*)&(C->drdt));
+	err_code |= sendArgument(_kernel,  8, sizeof(cl_mem), (void*)&(C->hp));
+	err_code |= sendArgument(_kernel,  9, sizeof(cl_mem), (void*)&(C->posin));
+	err_code |= sendArgument(_kernel, 10, sizeof(cl_mem), (void*)&(C->vin));
+	err_code |= sendArgument(_kernel, 11, sizeof(cl_mem), (void*)&(C->fin));
+	err_code |= sendArgument(_kernel, 12, sizeof(cl_mem), (void*)&(C->densin));
+	err_code |= sendArgument(_kernel, 13, sizeof(cl_mem), (void*)&(C->massin));
+	err_code |= sendArgument(_kernel, 14, sizeof(cl_mem), (void*)&(C->drdtin));
+	err_code |= sendArgument(_kernel, 15, sizeof(cl_mem), (void*)&(C->hpin));
+	err_code |= sendArgument(_kernel, 16, sizeof(cl_mem), (void*)&(C->press));
+	err_code |= sendArgument(_kernel, 17, sizeof(cl_mem), (void*)&(C->refd));
+	err_code |= sendArgument(_kernel, 18, sizeof(cl_mem), (void*)&(C->gamma));
 	if(err_code)
 	    return true;
 	//! Test for right work group size
@@ -179,10 +179,10 @@ bool Predictor::setupOpenCL()
 		S->addMessage(3, "(Predictor::setupOpenCL): I Cannot get the device from the command queue.\n");
 	    return true;
 	}
-	err_code |= clGetKernelWorkGroupInfo(kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
+	err_code |= clGetKernelWorkGroupInfo(_kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
 	                                   sizeof(size_t), &localWorkGroupSize, NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Predictor::setupOpenCL): Can't get maximum local work group size.\n");
+		S->addMessage(3, "(Predictor::setupOpenCL): Failure retrieving the maximum local work size.\n");
 	    return true;
 	}
 	if(localWorkGroupSize < _local_work_size)

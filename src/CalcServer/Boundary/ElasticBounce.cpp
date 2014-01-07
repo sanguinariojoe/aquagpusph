@@ -41,8 +41,8 @@ namespace Aqua{ namespace CalcServer{ namespace Boundary{
 ElasticBounce::ElasticBounce()
 	: Kernel("ElasticBounce")
 	, _path(0)
-	, program(0)
-	, kernel(0)
+	, _program(0)
+	, _kernel(0)
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P  = InputOutput::ProblemSetup::singleton();
@@ -79,8 +79,8 @@ ElasticBounce::ElasticBounce()
 
 ElasticBounce::~ElasticBounce()
 {
-	if(kernel)clReleaseKernel(kernel); kernel=0;
-	if(program)clReleaseProgram(program); program=0;
+	if(_kernel)clReleaseKernel(_kernel); _kernel=0;
+	if(_program)clReleaseProgram(_program); _program=0;
 	if(_path) delete[] _path; _path=0;
 }
 
@@ -97,22 +97,22 @@ bool ElasticBounce::execute()
 	CalcServer *C = CalcServer::singleton();
 	cl_int err_code=0;
 	//! Send variables to server
-	err_code  = sendArgument(kernel,  0, sizeof(cl_mem  ), (void*)&(C->imovein));
-	err_code |= sendArgument(kernel,  1, sizeof(cl_mem  ), (void*)&(C->posin));
-	err_code |= sendArgument(kernel,  2, sizeof(cl_mem  ), (void*)&(C->v));
-	err_code |= sendArgument(kernel,  3, sizeof(cl_mem  ), (void*)&(C->f));
-	err_code |= sendArgument(kernel,  4, sizeof(cl_mem  ), (void*)&(C->fin));
-	err_code |= sendArgument(kernel,  5, sizeof(cl_mem  ), (void*)&(C->normal));
-	err_code |= sendArgument(kernel,  6, sizeof(cl_mem  ), (void*)&(C->hpin));
-	err_code |= sendArgument(kernel,  7, sizeof(cl_mem  ), (void*)&(C->pos));
-	err_code |= sendArgument(kernel,  8, sizeof(cl_mem  ), (void*)&(C->icell));
-	err_code |= sendArgument(kernel,  9, sizeof(cl_mem  ), (void*)&(C->ihoc));
-	err_code |= sendArgument(kernel, 10, sizeof(cl_mem  ), (void*)&(C->permutation));
-	err_code |= sendArgument(kernel, 11, sizeof(cl_mem  ), (void*)&(C->permutation_inverse));
-	err_code |= sendArgument(kernel, 12, sizeof(cl_uint ), (void*)&(C->N));
-	err_code |= sendArgument(kernel, 13, sizeof(cl_float), (void*)&(C->dt));
-	err_code |= sendArgument(kernel, 14, sizeof(uivec   ), (void*)&(C->num_cells_vec));
-	err_code |= sendArgument(kernel, 15, sizeof(vec     ), (void*)&(C->g));
+	err_code  = sendArgument(_kernel,  0, sizeof(cl_mem  ), (void*)&(C->imovein));
+	err_code |= sendArgument(_kernel,  1, sizeof(cl_mem  ), (void*)&(C->posin));
+	err_code |= sendArgument(_kernel,  2, sizeof(cl_mem  ), (void*)&(C->v));
+	err_code |= sendArgument(_kernel,  3, sizeof(cl_mem  ), (void*)&(C->f));
+	err_code |= sendArgument(_kernel,  4, sizeof(cl_mem  ), (void*)&(C->fin));
+	err_code |= sendArgument(_kernel,  5, sizeof(cl_mem  ), (void*)&(C->normal));
+	err_code |= sendArgument(_kernel,  6, sizeof(cl_mem  ), (void*)&(C->hpin));
+	err_code |= sendArgument(_kernel,  7, sizeof(cl_mem  ), (void*)&(C->pos));
+	err_code |= sendArgument(_kernel,  8, sizeof(cl_mem  ), (void*)&(C->icell));
+	err_code |= sendArgument(_kernel,  9, sizeof(cl_mem  ), (void*)&(C->ihoc));
+	err_code |= sendArgument(_kernel, 10, sizeof(cl_mem  ), (void*)&(C->permutation));
+	err_code |= sendArgument(_kernel, 11, sizeof(cl_mem  ), (void*)&(C->permutation_inverse));
+	err_code |= sendArgument(_kernel, 12, sizeof(cl_uint ), (void*)&(C->N));
+	err_code |= sendArgument(_kernel, 13, sizeof(cl_float), (void*)&(C->dt));
+	err_code |= sendArgument(_kernel, 14, sizeof(uivec   ), (void*)&(C->num_cells_vec));
+	err_code |= sendArgument(_kernel, 15, sizeof(vec     ), (void*)&(C->g));
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(ElasticBounce::Boundary): Can't send arguments to boundary computation kernel.\n");
 	    return true;
@@ -122,12 +122,12 @@ bool ElasticBounce::execute()
 	    cl_event event;
 	    cl_ulong end, start;
 	    profileTime(0.f);
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, _kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, &event);
 	#else
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, _kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(ElasticBounce::Boundary): Can't execute the kernel.\n");
+		S->addMessage(3, "(ElasticBounce::Boundary): I cannot execute the kernel.\n");
 	    if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 	        S->addMessage(0, "\tInvalid local work group size.\n");
 	    else if(err_code == CL_OUT_OF_RESOURCES)
@@ -142,13 +142,13 @@ bool ElasticBounce::execute()
 	#ifdef HAVE_GPUPROFILE
 	    err_code = clWaitForEvents(1, &event);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(ElasticBounce::Boundary): Can't wait to kernels end.\n");
+	        S->addMessage(3, "(ElasticBounce::Boundary): Impossible to wait for the kernels end.\n");
 	        return true;
 	    }
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(ElasticBounce::Boundary): Can't profile kernel execution.\n");
+	        S->addMessage(3, "(ElasticBounce::Boundary): I cannot profile the kernel execution.\n");
 	        return true;
 	    }
 	    profileTime(profileTime() + (end - start)/1000.f);  // 10^-3 ms
@@ -182,11 +182,11 @@ bool ElasticBounce::setupOpenCL()
     if(P->SPH_opts.elastic_dist < 0.f){
         sprintf(flags, "%s -D__FORCE_MIN_BOUND_DIST__", flags);
     }
-	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, _path, "Boundary", flags))
+	if(!loadKernelFromFile(&_kernel, &_program, C->context, C->device, _path, "Boundary", flags))
 	    return true;
-	if(program)clReleaseProgram(program); program=0;
+	if(_program)clReleaseProgram(_program); _program=0;
 	//! Test if there are enough local memory
-	err_code |= clGetKernelWorkGroupInfo(kernel,device,CL_KERNEL_LOCAL_MEM_SIZE,
+	err_code |= clGetKernelWorkGroupInfo(_kernel,device,CL_KERNEL_LOCAL_MEM_SIZE,
 	                                   sizeof(cl_ulong), &reqLocalMem, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(ElasticBounce::setupOpenCL): Can't get kernel memory usage.\n");
@@ -201,16 +201,16 @@ bool ElasticBounce::setupOpenCL()
 	}
 	//! Test if local work gorup size must be modified
 	size_t localWorkGroupSize=0;
-	err_code |= clGetKernelWorkGroupInfo(kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
+	err_code |= clGetKernelWorkGroupInfo(_kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
 	                                   sizeof(size_t), &localWorkGroupSize, NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(ElasticBounce::setupOpenCL): Can't get maximum local work group size.\n");
+		S->addMessage(3, "(ElasticBounce::setupOpenCL): Failure retrieving the maximum local work size.\n");
 	    return true;
 	}
 	if(localWorkGroupSize < _local_work_size)
 	    _local_work_size  = localWorkGroupSize;
 	//! Look for better local work group size
-	err_code |= clGetKernelWorkGroupInfo(kernel,device,CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
+	err_code |= clGetKernelWorkGroupInfo(_kernel,device,CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
 	                                   sizeof(size_t), &localWorkGroupSize, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(ElasticBounce::setupOpenCL): Can't get preferred local work group size.\n");

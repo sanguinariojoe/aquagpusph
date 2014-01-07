@@ -41,8 +41,8 @@ namespace Aqua{ namespace CalcServer{
 Shepard::Shepard()
 	: Kernel("Shepard")
 	, _path(0)
-	, program(0)
-	, kernel(0)
+	, _program(0)
+	, _kernel(0)
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
@@ -76,8 +76,8 @@ Shepard::Shepard()
 
 Shepard::~Shepard()
 {
-	if(kernel)clReleaseKernel(kernel); kernel=0;
-	if(program)clReleaseProgram(program); program=0;
+	if(_kernel)clReleaseKernel(_kernel); _kernel=0;
+	if(_program)clReleaseProgram(_program); _program=0;
 	if(_path) delete[] _path; _path=0;
 }
 
@@ -90,11 +90,11 @@ bool Shepard::execute()
 	CalcServer *C = CalcServer::singleton();
 	cl_int err_code=0;
 	//! Send all variables to the server
-	err_code |= sendArgument(kernel,  0, sizeof(cl_mem  ), (void*)&(C->imove));
-	err_code |= sendArgument(kernel,  1, sizeof(cl_mem  ), (void*)&(C->f));
-	err_code |= sendArgument(kernel,  2, sizeof(cl_mem  ), (void*)&(C->drdt));
-	err_code |= sendArgument(kernel,  3, sizeof(cl_mem  ), (void*)&(C->shepard));
-	err_code |= sendArgument(kernel,  4, sizeof(cl_uint ), (void*)&(C->n));
+	err_code |= sendArgument(_kernel,  0, sizeof(cl_mem  ), (void*)&(C->imove));
+	err_code |= sendArgument(_kernel,  1, sizeof(cl_mem  ), (void*)&(C->f));
+	err_code |= sendArgument(_kernel,  2, sizeof(cl_mem  ), (void*)&(C->drdt));
+	err_code |= sendArgument(_kernel,  3, sizeof(cl_mem  ), (void*)&(C->shepard));
+	err_code |= sendArgument(_kernel,  4, sizeof(cl_uint ), (void*)&(C->n));
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Shepard::Shepard): Can't send arguments to Shepard computation kernel.\n");
 	    return true;
@@ -104,12 +104,12 @@ bool Shepard::execute()
 	#ifdef HAVE_GPUPROFILE
 	    cl_event event;
 	    cl_ulong end, start;
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &globalWorkSize, NULL, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, _kernel, 1, NULL, &globalWorkSize, NULL, 0, NULL, &event);
 	#else
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &globalWorkSize, NULL, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, _kernel, 1, NULL, &globalWorkSize, NULL, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Shepard::Shepard): Can't execute the kernel.\n");
+		S->addMessage(3, "(Shepard::Shepard): I cannot execute the kernel.\n");
 	    if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 	        S->addMessage(0, "\tInvalid local work group size.\n");
 	    else if(err_code == CL_OUT_OF_RESOURCES)
@@ -124,13 +124,13 @@ bool Shepard::execute()
 	#ifdef HAVE_GPUPROFILE
 	    err_code = clWaitForEvents(1, &event);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(Shepard::Shepard): Can't wait to kernels end.\n");
+	        S->addMessage(3, "(Shepard::Shepard): Impossible to wait for the kernels end.\n");
 	        return true;
 	    }
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(Shepard::Shepard): Can't profile kernel execution.\n");
+	        S->addMessage(3, "(Shepard::Shepard): I cannot profile the kernel execution.\n");
 	        return true;
 	    }
 	    profileTime(profileTime() + (end - start)/1000.f);  // 10^-3 ms
@@ -153,9 +153,9 @@ bool Shepard::setupOpenCL()
 	if(P->SPH_opts.has_shepard & 2){
 	    strcat(args, "-D__DENS_CORRECTION__ ");
 	}
-	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, _path, "Shepard", args))
+	if(!loadKernelFromFile(&_kernel, &_program, C->context, C->device, _path, "Shepard", args))
 	    return true;
-	if(program)clReleaseProgram(program); program=0;
+	if(_program)clReleaseProgram(_program); _program=0;
 	//! Test for right work group size
 	cl_device_id device;
 	size_t localWorkGroupSize=0;
@@ -165,10 +165,10 @@ bool Shepard::setupOpenCL()
 		S->addMessage(3, "(Predictor::setupOpenCL): I Cannot get the device from the command queue.\n");
 	    return true;
 	}
-	err_code |= clGetKernelWorkGroupInfo(kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
+	err_code |= clGetKernelWorkGroupInfo(_kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
 	                                   sizeof(size_t), &localWorkGroupSize, NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Predictor::setupOpenCL): Can't get maximum local work group size.\n");
+		S->addMessage(3, "(Predictor::setupOpenCL): Failure retrieving the maximum local work size.\n");
 	    return true;
 	}
 	if(localWorkGroupSize < _local_work_size)

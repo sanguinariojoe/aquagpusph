@@ -188,12 +188,17 @@ bool Bounds::execute(vec *output, int op)
             S->printOpenCLError(err_code);
 			return true;
 		}
-		err_code |= clGetEventProfilingInfo(event,
+		err_code = clGetEventProfilingInfo(event,
                                             CL_PROFILING_COMMAND_END,
                                             sizeof(cl_ulong),
                                             &end,
                                             0);
-		err_code |= clGetEventProfilingInfo(event,
+		if(err_code != CL_SUCCESS) {
+			S->addMessageF(3, "I Cannot profile the kernel execution.\n");
+            S->printOpenCLError(err_code);
+			return true;
+		}
+		err_code = clGetEventProfilingInfo(event,
                                             CL_PROFILING_COMMAND_START,
                                             sizeof(cl_ulong),
                                             &start,
@@ -351,7 +356,7 @@ bool Bounds::setupBounds()
                                          &localWorkGroupSize,
                                          NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessageF(3, "Can't get maximum local work group size.\n");
+		S->addMessageF(3, "Failure retrieving the maximum local work size.\n");
 	    S->printOpenCLError(err_code);
 	    return true;
 	}

@@ -45,8 +45,8 @@ Energy::Energy()
 	, mDevEnergy(NULL)
 	, mTime(0.f)
 	, _path(NULL)
-	, program(NULL)
-	, kernel(NULL)
+	, _program(NULL)
+	, _kernel(NULL)
 	, _global_work_size(0)
 	, _local_work_size(0)
 	, mReduction(NULL)
@@ -91,8 +91,8 @@ Energy::~Energy()
 	S->addMessage(1, "(Energy::~Energy): Destroying reduction processor...\n");
 	if(mReduction) delete mReduction;
 	if(mDevEnergy)clReleaseMemObject(mDevEnergy); mDevEnergy=0;
-	if(kernel)clReleaseKernel(kernel); kernel=0;
-	if(program)clReleaseProgram(program); program=0;
+	if(_kernel)clReleaseKernel(_kernel); _kernel=0;
+	if(_program)clReleaseProgram(_program); _program=0;
 	if(_path)delete[] _path; _path=0;
 }
 
@@ -102,22 +102,22 @@ bool Energy::execute()
 	InputOutput::TimeManager *T   = InputOutput::TimeManager::singleton();
 	CalcServer *C = CalcServer::singleton();
 	int err_code=0;
-	err_code |= sendArgument(kernel, 13, sizeof(cl_float), (void*)&(C->cs));
-	err_code |= sendArgument(kernel, 14, sizeof(vec     ), (void*)&(C->g));
+	err_code |= sendArgument(_kernel, 13, sizeof(cl_float), (void*)&(C->cs));
+	err_code |= sendArgument(_kernel, 14, sizeof(vec     ), (void*)&(C->g));
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Energy::Execute): Fail senting the kernel parameters.\n");
+		S->addMessage(3, "(Energy::Execute): Fail senting the _kernel parameters.\n");
 		S->printOpenCLError(err_code);
 	}
 	#ifdef HAVE_GPUPROFILE
 		cl_event event;
 		cl_ulong end, start;
 		profileTime(0.f);
-		err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, &event);
+		err_code = clEnqueueNDRangeKernel(C->command_queue, _kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, &event);
 	#else
-		err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
+		err_code = clEnqueueNDRangeKernel(C->command_queue, _kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Energy::Execute): Can't execute the energy calculation kernel.\n");
+		S->addMessage(3, "(Energy::Execute): I cannot execute the energy calculation kernel.\n");
 		if(err_code == CL_INVALID_WORK_GROUP_SIZE) {
 			S->addMessage(0, "\tInvalid local work group size.\n");
 		}
@@ -135,13 +135,13 @@ bool Energy::execute()
 	#ifdef HAVE_GPUPROFILE
 		err_code = clWaitForEvents(1, &event);
 		if(err_code != CL_SUCCESS) {
-			S->addMessage(3, "(Energy::Execute): Can't wait to kernels end.\n");
+			S->addMessage(3, "(Energy::Execute): Impossible to wait for the kernels end.\n");
 			return true;
 		}
 		err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
 		err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
 		if(err_code != CL_SUCCESS) {
-			S->addMessage(3, "(Energy::Execute): Can't profile kernel execution.\n");
+			S->addMessage(3, "(Energy::Execute): I cannot profile the kernel execution.\n");
 			return true;
 		}
 		profileTime(profileTime() + (end - start)/1000.f);  // 10^-3 ms
@@ -169,29 +169,29 @@ bool Energy::setupEnergy()
 	CalcServer *C = CalcServer::singleton();
 	cl_int err_code = 0;
 	char msg[1024];
-	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, _path, "Energy", "-Dvec4=float4"))
+	if(!loadKernelFromFile(&_kernel, &_program, C->context, C->device, _path, "Energy", "-Dvec4=float4"))
 		return true;
 	mDevEnergy = C->allocMemory(C->n * sizeof( vec4 ));
 	if(!mDevEnergy)
 		return true;
 	sprintf(msg, "\tAllocated memory = %u bytes\n", (unsigned int)C->allocated_mem);
 	S->addMessage(0, msg);
-	err_code  = sendArgument(kernel,  0, sizeof(cl_mem  ), (void*)&mDevEnergy);
-	err_code |= sendArgument(kernel,  1, sizeof(cl_mem  ), (void*)&(C->imove));
-	err_code |= sendArgument(kernel,  2, sizeof(cl_mem  ), (void*)&(C->ifluid));
-	err_code |= sendArgument(kernel,  3, sizeof(cl_mem  ), (void*)&(C->pos));
-	err_code |= sendArgument(kernel,  4, sizeof(cl_mem  ), (void*)&(C->v));
-	err_code |= sendArgument(kernel,  5, sizeof(cl_mem  ), (void*)&(C->mass));
-	err_code |= sendArgument(kernel,  6, sizeof(cl_mem  ), (void*)&(C->dens));
-	err_code |= sendArgument(kernel,  7, sizeof(cl_mem  ), (void*)&(C->press));
-	err_code |= sendArgument(kernel,  8, sizeof(cl_mem  ), (void*)&(C->drdtin));
-	err_code |= sendArgument(kernel,  9, sizeof(cl_mem  ), (void*)&(C->drdt_F));
-	err_code |= sendArgument(kernel, 10, sizeof(cl_mem  ), (void*)&(C->fin));
-	err_code |= sendArgument(kernel, 11, sizeof(cl_mem  ), (void*)&(C->refd));
-	err_code |= sendArgument(kernel, 12, sizeof(cl_mem  ), (void*)&(C->gamma));
-	err_code |= sendArgument(kernel, 13, sizeof(cl_float), (void*)&(C->cs));
-	err_code |= sendArgument(kernel, 14, sizeof(vec     ), (void*)&(C->g));
-	err_code |= sendArgument(kernel, 15, sizeof(cl_uint ), (void*)&(C->n));
+	err_code  = sendArgument(_kernel,  0, sizeof(cl_mem  ), (void*)&mDevEnergy);
+	err_code |= sendArgument(_kernel,  1, sizeof(cl_mem  ), (void*)&(C->imove));
+	err_code |= sendArgument(_kernel,  2, sizeof(cl_mem  ), (void*)&(C->ifluid));
+	err_code |= sendArgument(_kernel,  3, sizeof(cl_mem  ), (void*)&(C->pos));
+	err_code |= sendArgument(_kernel,  4, sizeof(cl_mem  ), (void*)&(C->v));
+	err_code |= sendArgument(_kernel,  5, sizeof(cl_mem  ), (void*)&(C->mass));
+	err_code |= sendArgument(_kernel,  6, sizeof(cl_mem  ), (void*)&(C->dens));
+	err_code |= sendArgument(_kernel,  7, sizeof(cl_mem  ), (void*)&(C->press));
+	err_code |= sendArgument(_kernel,  8, sizeof(cl_mem  ), (void*)&(C->drdtin));
+	err_code |= sendArgument(_kernel,  9, sizeof(cl_mem  ), (void*)&(C->drdt_F));
+	err_code |= sendArgument(_kernel, 10, sizeof(cl_mem  ), (void*)&(C->fin));
+	err_code |= sendArgument(_kernel, 11, sizeof(cl_mem  ), (void*)&(C->refd));
+	err_code |= sendArgument(_kernel, 12, sizeof(cl_mem  ), (void*)&(C->gamma));
+	err_code |= sendArgument(_kernel, 13, sizeof(cl_float), (void*)&(C->cs));
+	err_code |= sendArgument(_kernel, 14, sizeof(vec     ), (void*)&(C->g));
+	err_code |= sendArgument(_kernel, 15, sizeof(cl_uint ), (void*)&(C->n));
 	if(err_code)
 		return true;
 	//! Test for right work group size
@@ -203,10 +203,10 @@ bool Energy::setupEnergy()
 		S->addMessage(3, "(Energy::setupEnergy): I Cannot get the device from the command queue.\n");
 	    return true;
 	}
-	err_code |= clGetKernelWorkGroupInfo(kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
+	err_code |= clGetKernelWorkGroupInfo(_kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
 	                                   sizeof(size_t), &localWorkGroupSize, NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Energy::setupEnergy): Can't get maximum local work group size.\n");
+		S->addMessage(3, "(Energy::setupEnergy): Failure retrieving the maximum local work size.\n");
 	    return true;
 	}
 	if(localWorkGroupSize < _local_work_size)

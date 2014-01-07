@@ -91,7 +91,7 @@ private:
 	char* _path;
 
 	/// OpenCL program
-	cl_program program;
+	cl_program _program;
 	/// OpenCL kernel
 	std::deque<cl_kernel> kernels;
 

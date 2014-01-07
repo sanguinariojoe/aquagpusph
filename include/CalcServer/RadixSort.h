@@ -229,7 +229,7 @@ private:
 	/// OpenCL reverse permutations kernel
 	cl_kernel ckReversePermutations;
 	/// OpenCL program
-	cl_program program;
+	cl_program _program;
 
 	#ifdef HAVE_GPUPROFILE
 	    /// Kernel real time consumed

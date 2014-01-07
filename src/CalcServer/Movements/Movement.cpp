@@ -41,8 +41,8 @@ namespace Aqua{ namespace CalcServer{ namespace Movement{
 
 Movement::Movement()
 	: Kernel("Movement")
-	, program(0)
-	, kernel(0)
+	, _program(0)
+	, _kernel(0)
 	, _global_work_size(0)
 	, _local_work_size(0)
 	, _path(0)
@@ -51,8 +51,8 @@ Movement::Movement()
 
 Movement::~Movement()
 {
-	if(kernel)clReleaseKernel(kernel); kernel=0;
-	if(program)clReleaseProgram(program); program=0;
+	if(_kernel)clReleaseKernel(_kernel); _kernel=0;
+	if(_program)clReleaseProgram(_program); _program=0;
 	if(_path) delete[] _path; _path=0;
 }
 
@@ -136,7 +136,7 @@ bool Movement::setupOpenCL()
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
 	cl_int err_code;
-	if(!loadKernelFromFile(&kernel, &program, C->context, C->device, _path, "Movement", ""))
+	if(!loadKernelFromFile(&_kernel, &_program, C->context, C->device, _path, "Movement", ""))
 	    return true;
 	//! Look for work group size
 	_local_work_size  = localWorkSize();
@@ -152,10 +152,10 @@ bool Movement::setupOpenCL()
 		S->addMessage(3, "(Movement::setupOpenCL): I Cannot get the device from the command queue.\n");
 	    return true;
 	}
-	err_code |= clGetKernelWorkGroupInfo(kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
+	err_code |= clGetKernelWorkGroupInfo(_kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
 	                                   sizeof(size_t), &localWorkGroupSize, NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Movement::setupOpenCL): Can't get maximum local work group size.\n");
+		S->addMessage(3, "(Movement::setupOpenCL): Failure retrieving the maximum local work size.\n");
 	    return true;
 	}
 	if(localWorkGroupSize < _local_work_size)

@@ -120,28 +120,28 @@ bool Quaternion::execute()
 	#endif
 	//! Send variables to kernel
 	cl_int err_code=0;
-	err_code |= sendArgument(kernel,  0, sizeof(cl_mem  ), (void*)&(C->imove));
-	err_code |= sendArgument(kernel,  1, sizeof(cl_mem  ), (void*)&(C->ifluid));
-	err_code |= sendArgument(kernel,  2, sizeof(cl_mem  ), (void*)&(C->posin));
-	err_code |= sendArgument(kernel,  3, sizeof(cl_mem  ), (void*)&(C->normal));
-	err_code |= sendArgument(kernel,  4, sizeof(cl_mem  ), (void*)&(C->vin));
-	err_code |= sendArgument(kernel,  5, sizeof(cl_mem  ), (void*)&(C->densin));
-	err_code |= sendArgument(kernel,  6, sizeof(cl_mem  ), (void*)&(C->mass));
-	err_code |= sendArgument(kernel,  7, sizeof(cl_mem  ), (void*)&(C->hpin));
-	err_code |= sendArgument(kernel,  8, sizeof(cl_mem  ), (void*)&(mRelPos));
-	err_code |= sendArgument(kernel,  9, sizeof(cl_mem  ), (void*)&(mRelNormal));
-	err_code |= sendArgument(kernel, 10, sizeof(cl_uint ), (void*)&(C->N));
-	err_code |= sendArgument(kernel, 11, sizeof(cl_float), (void*)&(C->dt));
-	err_code |= sendArgument(kernel, 12, sizeof(vec     ), (void*)&(mCOR));
-	err_code |= sendArgument(kernel, 13, sizeof(vec     ), (void*)&(X));
-	err_code |= sendArgument(kernel, 14, sizeof(vec     ), (void*)&(Y));
-	err_code |= sendArgument(kernel, 15, sizeof(vec     ), (void*)&(Z));
-	err_code |= sendArgument(kernel, 16, sizeof(vec     ), (void*)&(mOldCOR));
-	err_code |= sendArgument(kernel, 17, sizeof(vec     ), (void*)&(oldX));
-	err_code |= sendArgument(kernel, 18, sizeof(vec     ), (void*)&(oldY));
-	err_code |= sendArgument(kernel, 19, sizeof(vec     ), (void*)&(oldZ));
+	err_code |= sendArgument(_kernel,  0, sizeof(cl_mem  ), (void*)&(C->imove));
+	err_code |= sendArgument(_kernel,  1, sizeof(cl_mem  ), (void*)&(C->ifluid));
+	err_code |= sendArgument(_kernel,  2, sizeof(cl_mem  ), (void*)&(C->posin));
+	err_code |= sendArgument(_kernel,  3, sizeof(cl_mem  ), (void*)&(C->normal));
+	err_code |= sendArgument(_kernel,  4, sizeof(cl_mem  ), (void*)&(C->vin));
+	err_code |= sendArgument(_kernel,  5, sizeof(cl_mem  ), (void*)&(C->densin));
+	err_code |= sendArgument(_kernel,  6, sizeof(cl_mem  ), (void*)&(C->mass));
+	err_code |= sendArgument(_kernel,  7, sizeof(cl_mem  ), (void*)&(C->hpin));
+	err_code |= sendArgument(_kernel,  8, sizeof(cl_mem  ), (void*)&(mRelPos));
+	err_code |= sendArgument(_kernel,  9, sizeof(cl_mem  ), (void*)&(mRelNormal));
+	err_code |= sendArgument(_kernel, 10, sizeof(cl_uint ), (void*)&(C->N));
+	err_code |= sendArgument(_kernel, 11, sizeof(cl_float), (void*)&(C->dt));
+	err_code |= sendArgument(_kernel, 12, sizeof(vec     ), (void*)&(mCOR));
+	err_code |= sendArgument(_kernel, 13, sizeof(vec     ), (void*)&(X));
+	err_code |= sendArgument(_kernel, 14, sizeof(vec     ), (void*)&(Y));
+	err_code |= sendArgument(_kernel, 15, sizeof(vec     ), (void*)&(Z));
+	err_code |= sendArgument(_kernel, 16, sizeof(vec     ), (void*)&(mOldCOR));
+	err_code |= sendArgument(_kernel, 17, sizeof(vec     ), (void*)&(oldX));
+	err_code |= sendArgument(_kernel, 18, sizeof(vec     ), (void*)&(oldY));
+	err_code |= sendArgument(_kernel, 19, sizeof(vec     ), (void*)&(oldZ));
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Quaternion::execute): Can't send arguments to kernel.\n");
+		S->addMessage(3, "(Quaternion::execute): Can't send arguments to _kernel.\n");
 	    return true;
 	}
 	//! Execute the kernel
@@ -149,12 +149,12 @@ bool Quaternion::execute()
 	    cl_event event;
 	    cl_ulong end, start;
 	    profileTime(0.f);
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, _kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, &event);
 	#else
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, _kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Rates::Execute): Can't execute the kernel.\n");
+		S->addMessage(3, "(Rates::Execute): I cannot execute the kernel.\n");
 	    if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 	        S->addMessage(0, "\tInvalid local work group size.\n");
 	    else if(err_code == CL_OUT_OF_RESOURCES)
@@ -169,13 +169,13 @@ bool Quaternion::execute()
 	#ifdef HAVE_GPUPROFILE
 	    err_code = clWaitForEvents(1, &event);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(Rates::Execute): Can't wait to sorting kernel ends.\n");
+	        S->addMessage(3, "(Rates::Execute): Impossible to wait for the sorting kernel ends.\n");
 	        return true;
 	    }
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(Rates::Execute): Can't profile sorting kernel execution.\n");
+	        S->addMessage(3, "(Rates::Execute): I cannot profile the sorting kernel execution.\n");
 	        return true;
 	    }
 	    profileTime(profileTime() + (end - start)/1000.f);  // 10^-3 ms

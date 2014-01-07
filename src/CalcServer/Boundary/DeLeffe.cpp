@@ -41,7 +41,7 @@ namespace Aqua{ namespace CalcServer{ namespace Boundary{
 DeLeffe::DeLeffe()
 	: Kernel("DeLeffe")
 	, _path(0)
-	, program(0)
+	, _program(0)
 	, clVerticesKernel(0)
 	, clBoundaryKernel(0)
 	, isLocalMemory(true)
@@ -80,7 +80,7 @@ DeLeffe::~DeLeffe()
 {
 	if(clBoundaryKernel)clReleaseKernel(clBoundaryKernel); clBoundaryKernel=0;
 	if(clVerticesKernel)clReleaseKernel(clVerticesKernel); clVerticesKernel=0;
-	if(program)clReleaseProgram(program); program=0;
+	if(_program)clReleaseProgram(_program); _program=0;
 	if(_path) delete[] _path; _path=0;
 }
 
@@ -131,7 +131,7 @@ bool DeLeffe::vertices()
 	    err_code = clEnqueueNDRangeKernel(C->command_queue, clVerticesKernel, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(DeLeffe::vertices): Can't execute the kernel.\n");
+		S->addMessage(3, "(DeLeffe::vertices): I cannot execute the kernel.\n");
 	    if(err_code == CL_INVALID_KERNEL_ARGS)
 	        S->addMessage(0, "\tInvalid kernel arguments.\n");
 	    else if(err_code == CL_INVALID_WORK_GROUP_SIZE)
@@ -150,13 +150,13 @@ bool DeLeffe::vertices()
 	#ifdef HAVE_GPUPROFILE
 	    err_code = clWaitForEvents(1, &event);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(DeLeffe::vertices): Can't wait to kernels end.\n");
+	        S->addMessage(3, "(DeLeffe::vertices): Impossible to wait for the kernels end.\n");
 	        return true;
 	    }
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(DeLeffe::vertices): Can't profile kernel execution.\n");
+	        S->addMessage(3, "(DeLeffe::vertices): I cannot profile the kernel execution.\n");
 	        return true;
 	    }
 	    profileTime(profileTime() + (end - start)/1000.f);  // 10^-3 ms
@@ -210,7 +210,7 @@ bool DeLeffe::boundary()
 	    err_code = clEnqueueNDRangeKernel(C->command_queue, clBoundaryKernel, 1, NULL, &_global_work_size, &_local_work_size, 0, NULL, NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(DeLeffe::boundary): Can't execute the kernel.\n");
+		S->addMessage(3, "(DeLeffe::boundary): I cannot execute the kernel.\n");
 	    if(err_code == CL_INVALID_WORK_GROUP_SIZE)
 	        S->addMessage(0, "\tInvalid local work group size.\n");
 	    else if(err_code == CL_OUT_OF_RESOURCES)
@@ -225,13 +225,13 @@ bool DeLeffe::boundary()
 	#ifdef HAVE_GPUPROFILE
 	    err_code = clWaitForEvents(1, &event);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(DeLeffe::boundary): Can't wait to kernels end.\n");
+	        S->addMessage(3, "(DeLeffe::boundary): Impossible to wait for the kernels end.\n");
 	        return true;
 	    }
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
 	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(DeLeffe::boundary): Can't profile kernel execution.\n");
+	        S->addMessage(3, "(DeLeffe::boundary): I cannot profile the kernel execution.\n");
 	        return true;
 	    }
 	    profileTime(profileTime() + (end - start)/1000.f);  // 10^-3 ms
@@ -259,12 +259,12 @@ bool DeLeffe::setupOpenCL()
 		S->addMessage(3, "(DeLeffe::setupOpenCL): Can't get local memory available on device.\n");
 	    return true;
 	}
-	if(!loadKernelFromFile(&clVerticesKernel, &program, C->context, C->device, _path, "Vertices", ""))
+	if(!loadKernelFromFile(&clVerticesKernel, &_program, C->context, C->device, _path, "Vertices", ""))
 	    return true;
-	if(program)clReleaseProgram(program); program=0;
-	if(!loadKernelFromFile(&clBoundaryKernel, &program, C->context, C->device, _path, "Boundary", ""))
+	if(_program)clReleaseProgram(_program); _program=0;
+	if(!loadKernelFromFile(&clBoundaryKernel, &_program, C->context, C->device, _path, "Boundary", ""))
 	    return true;
-	if(program)clReleaseProgram(program); program=0;
+	if(_program)clReleaseProgram(_program); _program=0;
 	//! Test if there are enough local memory
 	err_code |= clGetKernelWorkGroupInfo(clVerticesKernel,device,CL_KERNEL_LOCAL_MEM_SIZE,
 	                                   sizeof(cl_ulong), &reqLocalMem, NULL);
@@ -332,9 +332,9 @@ bool DeLeffe::setupOpenCL()
 	    isLocalMemory = false;
 	    char options[19]; strcpy(options,"-D__NO_LOCAL_MEM__");
 	    if(clBoundaryKernel)clReleaseKernel(clBoundaryKernel); clBoundaryKernel=0;
-	    if(!loadKernelFromFile(&clBoundaryKernel, &program, C->context, C->device, _path, "Boundary", options))
+	    if(!loadKernelFromFile(&clBoundaryKernel, &_program, C->context, C->device, _path, "Boundary", options))
 	        return true;
-	    if(program)clReleaseProgram(program); program=0;
+	    if(_program)clReleaseProgram(_program); _program=0;
 	}
 	return false;
 }

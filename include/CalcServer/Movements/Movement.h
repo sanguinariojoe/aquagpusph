@@ -78,9 +78,9 @@ protected:
 	virtual bool _parse(xercesc::DOMElement *root)=0;
 
 	/// OpenCL program
-	cl_program program;
+	cl_program _program;
 	/// OpenCL kernel
-	cl_kernel kernel;
+	cl_kernel _kernel;
 	/// Global work size
 	size_t _global_work_size;
 	/// Local work size
