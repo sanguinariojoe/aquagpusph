@@ -1,44 +1,34 @@
 /*
- * This source file is part of AQUA-gpusph.
+ *  This file is part of AQUAgpusph, a free CFD program based on SPH.
+ *  Copyright (C) 2012  Jose Luis Cercos Pita <jl.cercos@upm.es>
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ *  AQUAgpusph is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Library General Public License for more details.
+ *  AQUAgpusph is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
+ *  You should have received a copy of the GNU General Public License
+ *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
-/*
-	Authors:
-	- Cercos Pita, Jose Luis
-	- Miguel Gonzalez, Leo
-	- Rey Villaverde, Anton
-	- Saelices, Jaime
-	- Souto Iglesias, Antonio
-*/
 
 #ifndef DOMAIN_H_INCLUDED
 #define DOMAIN_H_INCLUDED
 
-// ----------------------------------------------------------------------------
-// Include Generic kernel
-// ----------------------------------------------------------------------------
 #include <CalcServer/Kernel.h>
 
 namespace Aqua{ namespace CalcServer{
 
 /** @class Domain Domain.h CalcServer/Domain.h
- * @brief Kernel designed to test if any particle
- * is out of domain bounds. If any particle is
- * detected out of domain bounds must be converted
- * into a fixed zero mass particle.
+ * @brief Tool designed to test for particles out of the computational
+ * domain. When a particle out of bounds is detected it is converted in a
+ * fixed zero mass particle.
+ * The total mass lost due to the particles out of the domain will be computed
+ * along the simulation.
  */
 class Domain : public Aqua::CalcServer::Kernel
 {
@@ -51,14 +41,14 @@ public:
 	 */
 	~Domain();
 
-	/** Executes time integration Domain stage.
-	 * @return false if all gone right. \n true otherwise.
+	/** Executes the particles in domain test.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool execute();
 
 private:
 	/** Setup OpenCL kernel
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool setupOpenCL();
 
