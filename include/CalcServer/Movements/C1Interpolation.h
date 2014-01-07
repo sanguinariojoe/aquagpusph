@@ -155,7 +155,7 @@ private:
 	/// Data file
 	FILE *mDataFile;
 	/// Last requested time
-	float mTime;
+	float _time;
 	/// Last computed curves
 	std::deque<Poly*> mPoly;
 	/// Valid time for the computed curve

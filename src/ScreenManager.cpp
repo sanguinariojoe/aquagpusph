@@ -119,7 +119,7 @@ void ScreenManager::update()
 		printf("Time: %g s (dt = %g s).\n", T->time() - T->dt(), T->dt());
 	#endif
 	//! 3rd.- Print percentage of simulation completed.
-	float mTime = T->time() - T->startTime();
+	float _time = T->time() - T->startTime();
 	float mMaxTime = T->maxTime() - T->startTime();
 	int mFrame = T->frame() - T->startFrame();
 	int mMaxFrame = T->maxFrame() - T->startFrame();
@@ -127,7 +127,7 @@ void ScreenManager::update()
 	Percentage = 0.f;
 	int TimeRules = 0;
 	if(T->maxTime() >= 0.f) {
-	    Percentage = mTime / mMaxTime;
+	    Percentage = _time / mMaxTime;
 	    mDivisor = mMaxTime;
 	    TimeRules = 1;
 	}

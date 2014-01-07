@@ -31,7 +31,7 @@ namespace Aqua{ namespace CalcServer{
 Kernel::Kernel(const char* kernelName)
 	: mName(0)
 	#ifdef HAVE_GPUPROFILE
-	    , mTime(0)
+	    , _time(0)
 	#endif
 {
 	name(kernelName);

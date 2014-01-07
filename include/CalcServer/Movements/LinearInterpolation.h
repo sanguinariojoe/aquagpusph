@@ -93,7 +93,7 @@ private:
 	/// Data file
 	FILE *mDataFile;
 	/// Active time
-	float mTime;
+	float _time;
 	/// Active data array
 	std::deque<float> mData;
 	/// Previous time into the file.

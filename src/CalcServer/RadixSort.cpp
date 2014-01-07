@@ -57,7 +57,7 @@ RadixSort::RadixSort()
 	, ckReversePermutations(0)
 	, _program(0)
 	#ifdef HAVE_GPUPROFILE
-	    , mTime(0.f)
+	    , _time(0.f)
 	#endif
 	, mItems(_ITEMS)
 	, mGroups(_GROUPS)
@@ -118,7 +118,7 @@ bool RadixSort::sort()
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
 	#ifdef HAVE_GPUPROFILE
-	    mTime = 0.f;
+	    _time = 0.f;
 	#endif
 	// Get maximum key bits, and needed pass
 	unsigned int i, maxLcell;
@@ -204,7 +204,7 @@ bool RadixSort::_init()
 	        S->addMessage(3, "(RadixSort::_init): I cannot profile the kernel execution.\n");
 	        return true;
 	    }
-	    mTime += (end - start)/1000.f;  // 10^-3 ms
+	    _time += (end - start)/1000.f;  // 10^-3 ms
 	#endif
 	return false;
 }
@@ -280,7 +280,7 @@ bool RadixSort::_transpose(unsigned int nbrow, unsigned int nbcol)
 	        S->addMessage(3, "(RadixSort::_transpose): I cannot profile the kernel execution.\n");
 	        return true;
 	    }
-	    mTime += (end - start)/1000.f;  // 10^-3 ms
+	    _time += (end - start)/1000.f;  // 10^-3 ms
 	#endif
 	//! 3rd.- Swap input/output arrays
 	cl_mem d_temp;
@@ -342,7 +342,7 @@ bool RadixSort::_histograms()
 	        S->addMessage(3, "(RadixSort::_histograms): I cannot profile the kernel execution.\n");
 	        return true;
 	    }
-	    mTime += (end - start)/1000.f;  // 10^-3 ms
+	    _time += (end - start)/1000.f;  // 10^-3 ms
 	#endif
 	return false;
 }
@@ -395,7 +395,7 @@ bool RadixSort::_scan()
 	        S->addMessage(3, "(RadixSort::_scan): I cannot profile the first pass kernel execution.\n");
 	        return true;
 	    }
-	    mTime += (end - start)/1000.f;  // 10^-3 ms
+	    _time += (end - start)/1000.f;  // 10^-3 ms
 	#endif
 	//! 3rd.- Send arguments to second scan pass
 	globalSize = mHistoSplit/2;
@@ -436,7 +436,7 @@ bool RadixSort::_scan()
 	        S->addMessage(3, "(RadixSort::_scan): I cannot profile the second pass kernel execution.\n");
 	        return true;
 	    }
-	    mTime += (end - start)/1000.f;  // 10^-3 ms
+	    _time += (end - start)/1000.f;  // 10^-3 ms
 	#endif
 	//! 5th.- Send arguments to third scan pass
 	globalSize = mRadix*mGroups*mItems/2;
@@ -471,7 +471,7 @@ bool RadixSort::_scan()
 	        S->addMessage(3, "(RadixSort::_scan): I cannot profile the paste pass kernel execution.\n");
 	        return 4;
 	    }
-	    mTime += (end - start)/1000.f;  // 10^-3 ms
+	    _time += (end - start)/1000.f;  // 10^-3 ms
 	#endif
 	return false;
 }
@@ -544,7 +544,7 @@ bool RadixSort::_reorder()
 	        S->addMessage(3, (char*)"(RadixSort::_reorder): I cannot profile the kernel execution.\n");
 	        return true;
 	    }
-	    mTime += (end - start)/1000.f;  // 10^-3 ms
+	    _time += (end - start)/1000.f;  // 10^-3 ms
 	#endif
 	//! 3rd.- Swap input/output arrays
 	cl_mem d_temp;
@@ -602,7 +602,7 @@ bool RadixSort::_reversePermutations()
 	        S->addMessage(3, "(RadixSort::_reversePermutations): I cannot profile the kernel execution.\n");
 	        return true;
 	    }
-	    mTime += (end - start)/1000.f;  // 10^-3 ms
+	    _time += (end - start)/1000.f;  // 10^-3 ms
 	#endif
 	return false;
 }

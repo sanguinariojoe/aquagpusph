@@ -30,7 +30,7 @@ namespace Aqua{ namespace CalcServer{ namespace Movement{
 
 LinearInterpolation::LinearInterpolation(const char *dataFile)
 	: mDataFile(0)
-	, mTime(0.f)
+	, _time(0.f)
 {
 	// Ensure clean data
 	mData.clear();
@@ -57,16 +57,16 @@ std::deque<float> LinearInterpolation::update(float t)
 	    return mData;
 	}
 	// Rewind file if the time is lower than the last stored time
-	if(t < mTime){
+	if(t < _time){
 	    rewind(mDataFile);
 	    mPrevData.clear();
 	    mNextData.clear();
 	}
 	// Ensure that the new time is not bounded by previous readed data times
-	mTime = t;
+	_time = t;
 	if(mNextData.size() > 0){
-	    if(mNextData.at(0) > mTime){
-	        float factor = (mTime - mPrevData.at(0)) / (mNextData.at(0) - mPrevData.at(0));
+	    if(mNextData.at(0) > _time){
+	        float factor = (_time - mPrevData.at(0)) / (mNextData.at(0) - mPrevData.at(0));
 	        mData.clear();
 	        for(i=0;i<mNextData.size();i++){
 	            float dData = mNextData.at(i) - mPrevData.at(i);
@@ -86,7 +86,7 @@ std::deque<float> LinearInterpolation::update(float t)
 	    mData.clear();
 	    return mData;
 	}
-	while(mNextData.at(0) <= mTime){
+	while(mNextData.at(0) <= _time){
 	    mPrevData = mNextData;
 	    mNextData = readLine();
 	    if(!mNextData.size()){      // Last point reached
@@ -99,7 +99,7 @@ std::deque<float> LinearInterpolation::update(float t)
 	    }
 	}
 	// Linear interpolation of data fields
-	float factor = (mTime - mPrevData.at(0)) / (mNextData.at(0) - mPrevData.at(0));
+	float factor = (_time - mPrevData.at(0)) / (mNextData.at(0) - mPrevData.at(0));
 	mData.clear();
 	for(i=0;i<mNextData.size();i++){
 	    float dData = mNextData.at(i) - mPrevData.at(i);
@@ -132,7 +132,7 @@ bool LinearInterpolation::open(const char *dataFile)
 	    return false;
 	}
 	// Go to selected time
-	update(mTime);
+	update(_time);
 	return true;
 }
 

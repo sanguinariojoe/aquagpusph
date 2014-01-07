@@ -93,11 +93,11 @@ public:
 	    /** Set the kernel time consumed.
 	     * @param t Kernel time consumed.
 	     */
-	    void profileTime(float t){mTime = t;}
+	    void profileTime(float t){_time = t;}
 	    /** Get the kernel time consumed.
 	     * @return Kernel time consumed.
 	     */
-	    float profileTime(){return mTime;}
+	    float profileTime(){return _time;}
 	#endif
 
 private:
@@ -105,7 +105,7 @@ private:
 	char* mName;
 	#ifdef HAVE_GPUPROFILE
 	    /// Kernel real time consumed
-	    float mTime;
+	    float _time;
 	#endif
 };
 

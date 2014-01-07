@@ -122,7 +122,7 @@ void Poly::compute()
 
 C1Interpolation::C1Interpolation(const char *dataFile)
 	: mDataFile(NULL)
-	, mTime(0.f)
+	, _time(0.f)
 	, mPolyTime(0.f)
 {
 	// Open the file (if possible)
@@ -150,7 +150,7 @@ std::deque<float> C1Interpolation::update(float t)
 	    return mData;
 	}
 	// Rewind the file if the time is lower than the last time
-	if(t < mTime){
+	if(t < _time){
 	    rewind(mDataFile);
         for(i=0;i<mPoly.size();i++){
             delete mPoly.at(i); mPoly.at(i) = NULL;
@@ -158,7 +158,7 @@ std::deque<float> C1Interpolation::update(float t)
         mPoly.clear();
 	    mPolyTime = 0.f;
 	}
-	mTime = t;
+	_time = t;
 	// Test if the computed curve still being valid
 	if(mPoly.size() && t <= mPolyTime){
         mData.clear();
@@ -171,7 +171,7 @@ std::deque<float> C1Interpolation::update(float t)
     // Read a new data block
     std::deque<float> *data = NULL, empty; // We don't know the number of fields yet
     unsigned int dataDim = 0;
-	while(mPolyTime <= mTime){
+	while(mPolyTime <= _time){
 	    std::deque<float> line = readLine();
 	    // Test if the last point has been reached
 	    if(!line.size()){
@@ -211,11 +211,11 @@ std::deque<float> C1Interpolation::update(float t)
                 return mData;
             }
             vec2 point;
-            point.x = mTime;
-            point.y = poly.at(i-1)->evaluate(mTime);
+            point.x = _time;
+            point.y = poly.at(i-1)->evaluate(_time);
             vec2 derivative;
-            derivative.x = mTime;
-            derivative.y = poly.at(i-1)->derivate(mTime);
+            derivative.x = _time;
+            derivative.y = poly.at(i-1)->derivate(_time);
             p.push_back(point);
             d.push_back(derivative);
         }
@@ -240,9 +240,9 @@ std::deque<float> C1Interpolation::update(float t)
     delete[] data; data = NULL;
     // Compute the requested data
     mData.clear();
-    mData.push_back(mTime);
+    mData.push_back(_time);
     for(i=0;i<mPoly.size();i++){
-        mData.push_back(mPoly.at(i)->evaluate(mTime));
+        mData.push_back(mPoly.at(i)->evaluate(_time));
     }
     return mData;
 }
@@ -254,9 +254,9 @@ std::deque<float> C1Interpolation::derivative()
 	if(!mPoly.size()){
 	    return data;
 	}
-    data.push_back(mTime);
+    data.push_back(_time);
     for(i=0;i<mPoly.size();i++){
-        data.push_back(mPoly.at(i)->derivate(mTime));
+        data.push_back(mPoly.at(i)->derivate(_time));
     }
     return data;
 }
@@ -284,7 +284,7 @@ bool C1Interpolation::open(const char *dataFile)
 	    return false;
 	}
 	// Go to selected time
-	update(mTime);
+	update(_time);
 	return true;
 }
 
