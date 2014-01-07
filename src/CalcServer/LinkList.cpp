@@ -51,16 +51,16 @@ LinkList::LinkList()
 	InputOutput::ProblemSetup *P  = InputOutput::ProblemSetup::singleton();
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
-	int nChar;
+	int str_len;
 	//! 1st.- Get data
-	nChar = strlen(P->OpenCL_kernels.link_list);
-	if(nChar <= 0) {
+	str_len = strlen(P->OpenCL_kernels.link_list);
+	if(str_len <= 0) {
 	    printf("ERROR (LinkList::Init): Path of LinkList kernel is empty.\n");
 	    exit(EXIT_FAILURE);
 	}
-	_path = new char[nChar+4];
+	_path = new char[str_len+4];
 	if(!_path) {
-	    printf("ERROR (LinkList::Init): Can't allocate memory for path.\n");
+	    printf("ERROR (LinkList::Init): Memory cannot be allocated for the path.\n");
 	    exit(EXIT_FAILURE);
 	}
 	strcpy(_path, P->OpenCL_kernels.link_list);
@@ -293,7 +293,7 @@ bool LinkList::setupOpenCL()
 	    return true;
 	//! Test for right work group size
 	cl_device_id device;
-	size_t localWorkGroupSize=0;
+	size_t local_work_size=0;
 	err_code |= clGetCommandQueueInfo(C->command_queue,CL_QUEUE_DEVICE,
 	                                sizeof(cl_device_id),&device, NULL);
 	if(err_code != CL_SUCCESS) {
@@ -301,29 +301,29 @@ bool LinkList::setupOpenCL()
 	    return true;
 	}
 	err_code |= clGetKernelWorkGroupInfo(clLcellKernel,device,CL_KERNEL_WORK_GROUP_SIZE,
-	                                   sizeof(size_t), &localWorkGroupSize, NULL);
+	                                   sizeof(size_t), &local_work_size, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(LinkList::setupOpenCL): Can't get Lcell maximum local work group size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < _local_work_size)
-	    _local_work_size  = localWorkGroupSize;
+	if(local_work_size < _local_work_size)
+	    _local_work_size  = local_work_size;
 	err_code |= clGetKernelWorkGroupInfo(clIhocKernel,device,CL_KERNEL_WORK_GROUP_SIZE,
-	                                   sizeof(size_t), &localWorkGroupSize, NULL);
+	                                   sizeof(size_t), &local_work_size, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(LinkList::setupOpenCL): Can't get ihoc maximum local work group size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < _local_work_size)
-	    _local_work_size  = localWorkGroupSize;
+	if(local_work_size < _local_work_size)
+	    _local_work_size  = local_work_size;
 	err_code |= clGetKernelWorkGroupInfo(clLLKernel,device,CL_KERNEL_WORK_GROUP_SIZE,
-	                                   sizeof(size_t), &localWorkGroupSize, NULL);
+	                                   sizeof(size_t), &local_work_size, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(LinkList::setupOpenCL): Can't get ll maximum local work group size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < _local_work_size)
-	    _local_work_size  = localWorkGroupSize;
+	if(local_work_size < _local_work_size)
+	    _local_work_size  = local_work_size;
 	_global_work_size = globalWorkSize(_local_work_size);
 	return false;
 }

@@ -69,14 +69,14 @@ Sensors::Sensors()
 	n = P->SensorsParameters.pos.size();
 	if(!n)          // No sensors
 	    return;
-	unsigned int nChar = strlen(P->SensorsParameters.script);
-	if(nChar <= 0) {
+	unsigned int str_len = strlen(P->SensorsParameters.script);
+	if(str_len <= 0) {
 	    S->addMessage(3, "(Sensors::Sensors): _path of rates kernel is empty.\n");
 	    exit(EXIT_FAILURE);
 	}
-	_path = new char[nChar+4];
+	_path = new char[str_len+4];
 	if(!_path) {
-	    S->addMessage(3, "(Sensors::Sensors): Can't allocate memory for path.\n");
+	    S->addMessage(3, "(Sensors::Sensors): Memory cannot be allocated for the path.\n");
 	    exit(EXIT_FAILURE);
 	}
 	strcpy(_path, P->SensorsParameters.script);
@@ -226,7 +226,7 @@ bool Sensors::setupOpenCL()
 	    return true;
 	//! Test for right work group size
 	cl_device_id device;
-	size_t localWorkGroupSize=0;
+	size_t local_work_size=0;
 	err_code |= clGetCommandQueueInfo(C->command_queue,CL_QUEUE_DEVICE,
 	                                sizeof(cl_device_id),&device, NULL);
 	if(err_code != CL_SUCCESS) {
@@ -234,13 +234,13 @@ bool Sensors::setupOpenCL()
 	    return true;
 	}
 	err_code |= clGetKernelWorkGroupInfo(_kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
-	                                   sizeof(size_t), &localWorkGroupSize, NULL);
+	                                   sizeof(size_t), &local_work_size, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Sensors::setupOpenCL): Failure retrieving the maximum local work size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < _local_work_size)
-	    _local_work_size  = localWorkGroupSize;
+	if(local_work_size < _local_work_size)
+	    _local_work_size  = local_work_size;
 	_global_work_size = globalWorkSize(_local_work_size);
 	return false;
 }

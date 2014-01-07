@@ -41,14 +41,14 @@ Bounds::Bounds()
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P  = InputOutput::ProblemSetup::singleton();
-	unsigned int nChar = strlen(P->OpenCL_kernels.bounds);
-	if(nChar <= 0) {
+	unsigned int str_len = strlen(P->OpenCL_kernels.bounds);
+	if(str_len <= 0) {
 		S->addMessageF(3, "Path of bounds kernels is empty.\n");
 		exit(EXIT_FAILURE);
 	}
-	_path = new char[nChar+4];
+	_path = new char[str_len+4];
 	if(!_path) {
-		S->addMessageF(3, "Can't allocate memory for path.\n");
+		S->addMessageF(3, "Memory cannot be allocated for the path.\n");
 		exit(EXIT_FAILURE);
 	}
 	strcpy(_path, P->OpenCL_kernels.bounds);
@@ -189,20 +189,20 @@ bool Bounds::execute(vec *output, int op)
 			return true;
 		}
 		err_code = clGetEventProfilingInfo(event,
-                                            CL_PROFILING_COMMAND_END,
-                                            sizeof(cl_ulong),
-                                            &end,
-                                            0);
+                                           CL_PROFILING_COMMAND_END,
+                                           sizeof(cl_ulong),
+                                           &end,
+                                           0);
 		if(err_code != CL_SUCCESS) {
 			S->addMessageF(3, "I Cannot profile the kernel execution.\n");
             S->printOpenCLError(err_code);
 			return true;
 		}
 		err_code = clGetEventProfilingInfo(event,
-                                            CL_PROFILING_COMMAND_START,
-                                            sizeof(cl_ulong),
-                                            &start,
-                                            0);
+                                           CL_PROFILING_COMMAND_START,
+                                           sizeof(cl_ulong),
+                                           &start,
+                                           0);
 		if(err_code != CL_SUCCESS) {
 			S->addMessageF(3, "I Cannot profile the kernel execution.\n");
             S->printOpenCLError(err_code);
@@ -211,10 +211,10 @@ bool Bounds::execute(vec *output, int op)
 		profileTime(profileTime() + (end - start)/1000.f);  // 10^-3 ms
 	#endif
 
-    cl_mem devOutput = reduction->execute();
-    if(!devOutput)
+    cl_mem device_output = reduction->execute();
+    if(!device_output)
         return true;
-	if(C->getData((void *)output, devOutput, sizeof(vec)))
+	if(C->getData((void *)output, device_output, sizeof(vec)))
 		return true;
 	return false;
 }
@@ -225,6 +225,9 @@ bool Bounds::setupBounds()
 	CalcServer *C = CalcServer::singleton();
 	cl_int err_code = 0;
 	char msg[1024];
+	cl_device_id device;
+	size_t local_work_size=0;
+
 	_device_mem = C->allocMemory(C->n * sizeof( vec ));
 	if(!_device_mem)
 		return true;
@@ -337,8 +340,6 @@ bool Bounds::setupBounds()
 	if(err_code)
 		return true;
 
-	cl_device_id device;
-	size_t localWorkGroupSize=0;
 	err_code |= clGetCommandQueueInfo(C->command_queue,
                                       CL_QUEUE_DEVICE,
 	                                  sizeof(cl_device_id),
@@ -353,15 +354,15 @@ bool Bounds::setupBounds()
                                          device,
                                          CL_KERNEL_WORK_GROUP_SIZE,
 	                                     sizeof(size_t),
-                                         &localWorkGroupSize,
+                                         &local_work_size,
                                          NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessageF(3, "Failure retrieving the maximum local work size.\n");
 	    S->printOpenCLError(err_code);
 	    return true;
 	}
-	if(localWorkGroupSize < _local_work_size)
-	    _local_work_size  = localWorkGroupSize;
+	if(local_work_size < _local_work_size)
+	    _local_work_size  = local_work_size;
 	_global_work_size = globalWorkSize(_local_work_size);
 	return false;
 }

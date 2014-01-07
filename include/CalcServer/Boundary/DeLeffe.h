@@ -80,7 +80,7 @@ private:
 	/// Local work size (default value = 256)
 	size_t _local_work_size;
 	/// true if local memory can be used on kernel.
-	bool isLocalMemory;
+	bool _use_local_mem;
 };
 
 }}}  // namespace

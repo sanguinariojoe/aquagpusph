@@ -106,15 +106,15 @@ bool Movement::parse(const char* def)
 	        continue;
 	    DOMElement* elem = dynamic_cast< xercesc::DOMElement* >( node );
 	    const char* path = XMLString::transcode( elem->getAttribute(XMLString::transcode("file")) );
-	    unsigned int nChar = strlen(path);
-	    if(!nChar){
+	    unsigned int str_len = strlen(path);
+	    if(!str_len){
 	        S->addMessage(3, "(Movement::parse): Movement OpenCL script is empty.\n");
 	        S->addMessage(0, "\tProgram will continue looking for a script.\n");
 	        continue;
 	    }
 		// Change script file
 		if(_path) delete[] _path; _path=0;
-		_path = new char[nChar+1];
+		_path = new char[str_len+1];
 		if(!_path){
 	        S->addMessage(3, "(Movement::parse): Can't allocate memory for OpenCL script path.\n");
 	        return true;
@@ -145,7 +145,7 @@ bool Movement::setupOpenCL()
 	    exit(EXIT_FAILURE);
 	}
 	cl_device_id device;
-	size_t localWorkGroupSize=0;
+	size_t local_work_size=0;
 	err_code |= clGetCommandQueueInfo(C->command_queue,CL_QUEUE_DEVICE,
 	                                sizeof(cl_device_id),&device, NULL);
 	if(err_code != CL_SUCCESS) {
@@ -153,13 +153,13 @@ bool Movement::setupOpenCL()
 	    return true;
 	}
 	err_code |= clGetKernelWorkGroupInfo(_kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
-	                                   sizeof(size_t), &localWorkGroupSize, NULL);
+	                                   sizeof(size_t), &local_work_size, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Movement::setupOpenCL): Failure retrieving the maximum local work size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < _local_work_size)
-	    _local_work_size  = localWorkGroupSize;
+	if(local_work_size < _local_work_size)
+	    _local_work_size  = local_work_size;
 	_global_work_size = globalWorkSize(_local_work_size);
 	return false;
 }

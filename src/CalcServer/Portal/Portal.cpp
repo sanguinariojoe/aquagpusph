@@ -46,14 +46,14 @@ Portal::Portal(InputOutput::ProblemSetup::sphPortal *portal)
 	    exit(1);
 	}
 	//! 1st.- Get data
-	int nChar = strlen(P->OpenCL_kernels.portal);
-	if(nChar <= 0) {
+	int str_len = strlen(P->OpenCL_kernels.portal);
+	if(str_len <= 0) {
 	    printf("ERROR (Portal::Portal): _path of Portal kernel is empty.\n");
 	    exit(2);
 	}
-	_path = new char[nChar+4];
+	_path = new char[str_len+4];
 	if(!_path) {
-	    printf("ERROR (Portal::Portal): Can't allocate memory for path.\n");
+	    printf("ERROR (Portal::Portal): Memory cannot be allocated for the path.\n");
 	    exit(3);
 	}
 	strcpy(_path, P->OpenCL_kernels.portal);

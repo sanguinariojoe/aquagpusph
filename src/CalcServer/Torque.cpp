@@ -52,14 +52,14 @@ Torque::Torque()
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P  = InputOutput::ProblemSetup::singleton();
-	unsigned int nChar = strlen(P->OpenCL_kernels.torque);
-	if(nChar <= 0) {
+	unsigned int str_len = strlen(P->OpenCL_kernels.torque);
+	if(str_len <= 0) {
 		S->addMessage(3, "(Torque::Torque): Path of reduction kernels (2D) is empty.\n");
 		exit(EXIT_FAILURE);
 	}
-	_path = new char[nChar+4];
+	_path = new char[str_len+4];
 	if(!_path) {
-		S->addMessage(3, "(Torque::Torque): Can't allocate memory for path.\n");
+		S->addMessage(3, "(Torque::Torque): Memory cannot be allocated for the path.\n");
 		exit(EXIT_FAILURE);
 	}
 	strcpy(_path, P->OpenCL_kernels.torque);
@@ -196,7 +196,7 @@ bool Torque::setupTorque()
 		return true;
 	//! Test for right work group size
 	cl_device_id device;
-	size_t localWorkGroupSize=0;
+	size_t local_work_size=0;
 	err_code |= clGetCommandQueueInfo(C->command_queue,CL_QUEUE_DEVICE,
 	                                sizeof(cl_device_id),&device, NULL);
 	if(err_code != CL_SUCCESS) {
@@ -204,13 +204,13 @@ bool Torque::setupTorque()
 	    return true;
 	}
 	err_code |= clGetKernelWorkGroupInfo(_kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
-	                                   sizeof(size_t), &localWorkGroupSize, NULL);
+	                                   sizeof(size_t), &local_work_size, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Torque::setupTorque): Failure retrieving the maximum local work size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < _local_work_size)
-	    _local_work_size  = localWorkGroupSize;
+	if(local_work_size < _local_work_size)
+	    _local_work_size  = local_work_size;
 	_global_work_size = globalWorkSize(_local_work_size);
 	return false;
 }

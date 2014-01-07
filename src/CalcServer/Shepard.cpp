@@ -49,14 +49,14 @@ Shepard::Shepard()
 	if(!P->SPH_opts.has_shepard)  // Shepard correction has not been selected
 	    return;
 	//! 1st.- Get data
-	int nChar = strlen(P->OpenCL_kernels.shepard);
-	if(nChar <= 0) {
+	int str_len = strlen(P->OpenCL_kernels.shepard);
+	if(str_len <= 0) {
 	    S->addMessage(3, "(Shepard::Shepard): _path of Shepard kernel is empty.\n");
 	    exit(EXIT_FAILURE);
 	}
-	_path = new char[nChar+4];
+	_path = new char[str_len+4];
 	if(!_path) {
-	    S->addMessage(3, "(Shepard::Shepard): Can't allocate memory for path.\n");
+	    S->addMessage(3, "(Shepard::Shepard): Memory cannot be allocated for the path.\n");
 	    exit(EXIT_FAILURE);
 	}
 	strcpy(_path, P->OpenCL_kernels.shepard);
@@ -158,7 +158,7 @@ bool Shepard::setupOpenCL()
 	if(_program)clReleaseProgram(_program); _program=0;
 	//! Test for right work group size
 	cl_device_id device;
-	size_t localWorkGroupSize=0;
+	size_t local_work_size=0;
 	err_code |= clGetCommandQueueInfo(C->command_queue,CL_QUEUE_DEVICE,
 	                                sizeof(cl_device_id),&device, NULL);
 	if(err_code != CL_SUCCESS) {
@@ -166,13 +166,13 @@ bool Shepard::setupOpenCL()
 	    return true;
 	}
 	err_code |= clGetKernelWorkGroupInfo(_kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
-	                                   sizeof(size_t), &localWorkGroupSize, NULL);
+	                                   sizeof(size_t), &local_work_size, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Predictor::setupOpenCL): Failure retrieving the maximum local work size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < _local_work_size)
-	    _local_work_size  = localWorkGroupSize;
+	if(local_work_size < _local_work_size)
+	    _local_work_size  = local_work_size;
 	_global_work_size = globalWorkSize(_local_work_size);
 	return false;
 }

@@ -49,20 +49,20 @@ TimeStep::TimeStep()
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P  = InputOutput::ProblemSetup::singleton();
-	int nChar;
+	int str_len;
 	MainDt = P->SPH_opts.h/P->SPH_opts.cs;
 	MainDt /= P->SPH_opts.dt_divisor;
 	if(P->time_opts.dt_mode != __DT_VARIABLE__)
 		return;
 	//! 1st.- Get data
-	nChar = strlen(P->OpenCL_kernels.time_step);
-	if(nChar <= 0) {
+	str_len = strlen(P->OpenCL_kernels.time_step);
+	if(str_len <= 0) {
 		S->addMessage(3, "(TimeStep::TimeStep): Path of TimeStep kernel is empty.\n");
 		exit(EXIT_FAILURE);
 	}
-	_path = new char[nChar+4];
+	_path = new char[str_len+4];
 	if(!_path) {
-		S->addMessage(3, "(TimeStep::TimeStep): Can't allocate memory for path.\n");
+		S->addMessage(3, "(TimeStep::TimeStep): Memory cannot be allocated for the path.\n");
 		exit(EXIT_FAILURE);
 	}
 	strcpy(_path, P->OpenCL_kernels.time_step);

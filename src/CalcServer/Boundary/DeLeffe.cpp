@@ -44,21 +44,21 @@ DeLeffe::DeLeffe()
 	, _program(0)
 	, clVerticesKernel(0)
 	, clBoundaryKernel(0)
-	, isLocalMemory(true)
+	, _use_local_mem(true)
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
 	if(P->SPH_opts.boundary_type!=2)  // DeLeffe condition has not been selected
 	    return;
 	//! 1st.- Get data
-	int nChar = strlen(P->OpenCL_kernels.de_Leffe);
-	if(nChar <= 0) {
+	int str_len = strlen(P->OpenCL_kernels.de_Leffe);
+	if(str_len <= 0) {
 	    S->addMessage(3, "(DeLeffe::DeLeffe): _path of DeLeffe kernel is empty.\n");
 	    exit(EXIT_FAILURE);
 	}
-	_path = new char[nChar+4];
+	_path = new char[str_len+4];
 	if(!_path) {
-	    S->addMessage(3, "(DeLeffe::DeLeffe): Can't allocate memory for path.\n");
+	    S->addMessage(3, "(DeLeffe::DeLeffe): Memory cannot be allocated for the path.\n");
 	    exit(EXIT_FAILURE);
 	}
 	strcpy(_path, P->OpenCL_kernels.de_Leffe);
@@ -191,7 +191,7 @@ bool DeLeffe::boundary()
 	err_code |= sendArgument(clBoundaryKernel, 17, sizeof(cl_uint ), (void*)&(C->N));
 	err_code |= sendArgument(clBoundaryKernel, 18, sizeof(cl_float), (void*)&(C->hfac));
 	err_code |= sendArgument(clBoundaryKernel, 19, sizeof(uivec   ), (void*)&(C->num_cells_vec));
-	if(isLocalMemory){
+	if(_use_local_mem){
 	    err_code |= sendArgument(clBoundaryKernel, 20, _local_work_size*sizeof(vec     ), NULL);
 	    err_code |= sendArgument(clBoundaryKernel, 21, _local_work_size*sizeof(cl_float), NULL);
 	    err_code |= sendArgument(clBoundaryKernel, 22, _local_work_size*sizeof(vec     ), NULL);
@@ -247,14 +247,14 @@ bool DeLeffe::setupOpenCL()
 	char msg[1024];
 	cl_int err_code;
 	cl_device_id device;
-	cl_ulong localMem, reqLocalMem;
+	cl_ulong local_mem, required_local_mem;
 	err_code |= clGetCommandQueueInfo(C->command_queue,CL_QUEUE_DEVICE,
 	                                sizeof(cl_device_id),&device, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(DeLeffe::setupOpenCL): I Cannot get the device from the command queue.\n");
 	    return true;
 	}
-	err_code |= clGetDeviceInfo(device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(localMem), &localMem, NULL);
+	err_code |= clGetDeviceInfo(device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(local_mem), &local_mem, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(DeLeffe::setupOpenCL): Can't get local memory available on device.\n");
 	    return true;
@@ -267,69 +267,69 @@ bool DeLeffe::setupOpenCL()
 	if(_program)clReleaseProgram(_program); _program=0;
 	//! Test if there are enough local memory
 	err_code |= clGetKernelWorkGroupInfo(clVerticesKernel,device,CL_KERNEL_LOCAL_MEM_SIZE,
-	                                   sizeof(cl_ulong), &reqLocalMem, NULL);
+	                                   sizeof(cl_ulong), &required_local_mem, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(DeLeffe::setupOpenCL): Can't get vertices kernel memory usage.\n");
 	    return true;
 	}
-	if(localMem < reqLocalMem){
+	if(local_mem < required_local_mem){
 		S->addMessage(3, "(DeLeffe::setupOpenCL): Not enough local memory for vertices execution.\n");
 	    sprintf(msg, "\tNeeds %lu bytes, but only %lu bytes are available.\n",
-	           reqLocalMem, localMem);
+	           required_local_mem, local_mem);
 	    S->addMessage(0, msg);
 	    return true;
 	}
 	err_code |= clGetKernelWorkGroupInfo(clBoundaryKernel,device,CL_KERNEL_LOCAL_MEM_SIZE,
-	                                   sizeof(cl_ulong), &reqLocalMem, NULL);
+	                                   sizeof(cl_ulong), &required_local_mem, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(DeLeffe::setupOpenCL): Can't get boundary kernel memory usage.\n");
 	    return true;
 	}
-	if(localMem < reqLocalMem){
+	if(local_mem < required_local_mem){
 		S->addMessage(3, "(DeLeffe::setupOpenCL): Not enough local memory for boundary execution.\n");
 	    sprintf(msg, "\tNeeds %lu bytes, but only %lu bytes are available.\n",
-	           reqLocalMem, localMem);
+	           required_local_mem, local_mem);
 	    S->addMessage(0, msg);
 	    return true;
 	}
 	//! Test if local work gorup size must be modified
-	size_t localWorkGroupSize=0;
+	size_t local_work_size=0;
 	err_code |= clGetKernelWorkGroupInfo(clVerticesKernel,device,CL_KERNEL_WORK_GROUP_SIZE,
-	                                   sizeof(size_t), &localWorkGroupSize, NULL);
+	                                   sizeof(size_t), &local_work_size, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(DeLeffe::setupOpenCL): Can't get vertices maximum local work group size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < _local_work_size)
-	    _local_work_size  = localWorkGroupSize;
+	if(local_work_size < _local_work_size)
+	    _local_work_size  = local_work_size;
 	err_code |= clGetKernelWorkGroupInfo(clBoundaryKernel,device,CL_KERNEL_WORK_GROUP_SIZE,
-	                                   sizeof(size_t), &localWorkGroupSize, NULL);
+	                                   sizeof(size_t), &local_work_size, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(DeLeffe::setupOpenCL): Can't get boundary maximum local work group size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < _local_work_size)
-	    _local_work_size  = localWorkGroupSize;
+	if(local_work_size < _local_work_size)
+	    _local_work_size  = local_work_size;
 	//! Look for better local work group size
 	err_code |= clGetKernelWorkGroupInfo(clBoundaryKernel,device,CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
-	                                   sizeof(size_t), &localWorkGroupSize, NULL);
+	                                   sizeof(size_t), &local_work_size, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(DeLeffe::setupOpenCL): Can't get boundary preferred local work group size.\n");
 	    return true;
 	}
-	_local_work_size  = (_local_work_size/localWorkGroupSize) * localWorkGroupSize;
+	_local_work_size  = (_local_work_size/local_work_size) * local_work_size;
 	_global_work_size = globalWorkSize(_local_work_size);
 	//! Test if computation can be accelerated with local memory
-	reqLocalMem += _local_work_size*(  sizeof(vec     )
+	required_local_mem += _local_work_size*(  sizeof(vec     )
 	                                + sizeof(cl_float)
 	                                + sizeof(vec     ));
-	if(localMem < reqLocalMem){
+	if(local_mem < required_local_mem){
 		S->addMessage(2, "(DeLeffe::setupOpenCL): Not enough local memory for boundary.\n");
 	    sprintf(msg, "\tNeeds %lu bytes, but only %lu bytes are available.\n",
-	           reqLocalMem, localMem);
+	           required_local_mem, local_mem);
 	    S->addMessage(0, msg);
 	    S->addMessage(0, "\tLocal memory usage will be avoided therefore.\n");
-	    isLocalMemory = false;
+	    _use_local_mem = false;
 	    char options[19]; strcpy(options,"-D__NO_LOCAL_MEM__");
 	    if(clBoundaryKernel)clReleaseKernel(clBoundaryKernel); clBoundaryKernel=0;
 	    if(!loadKernelFromFile(&clBoundaryKernel, &_program, C->context, C->device, _path, "Boundary", options))

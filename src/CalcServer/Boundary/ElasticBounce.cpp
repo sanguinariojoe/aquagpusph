@@ -52,14 +52,14 @@ ElasticBounce::ElasticBounce()
 	   )
 	    return;
 	//! 1st.- Get data
-	int nChar = strlen(P->OpenCL_kernels.elastic_bounce);
-	if(nChar <= 0) {
+	int str_len = strlen(P->OpenCL_kernels.elastic_bounce);
+	if(str_len <= 0) {
 	    S->addMessage(3, "(ElasticBounce::ElasticBounce): _path of ElasticBounce kernel is empty.\n");
 	    exit(EXIT_FAILURE);
 	}
-	_path = new char[nChar+4];
+	_path = new char[str_len+4];
 	if(!_path) {
-	    S->addMessage(3, "(ElasticBounce::ElasticBounce): Can't allocate memory for path.\n");
+	    S->addMessage(3, "(ElasticBounce::ElasticBounce): Memory cannot be allocated for the path.\n");
 	    exit(EXIT_FAILURE);
 	}
 	strcpy(_path, P->OpenCL_kernels.elastic_bounce);
@@ -164,14 +164,14 @@ bool ElasticBounce::setupOpenCL()
 	char msg[1024];
 	cl_int err_code;
 	cl_device_id device;
-	cl_ulong localMem, reqLocalMem;
+	cl_ulong local_mem, required_local_mem;
 	err_code |= clGetCommandQueueInfo(C->command_queue,CL_QUEUE_DEVICE,
 	                                sizeof(cl_device_id),&device, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(ElasticBounce::setupOpenCL): I Cannot get the device from the command queue.\n");
 	    return true;
 	}
-	err_code |= clGetDeviceInfo(device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(localMem), &localMem, NULL);
+	err_code |= clGetDeviceInfo(device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(local_mem), &local_mem, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(ElasticBounce::setupOpenCL): Can't get local memory available on device.\n");
 	    return true;
@@ -187,36 +187,36 @@ bool ElasticBounce::setupOpenCL()
 	if(_program)clReleaseProgram(_program); _program=0;
 	//! Test if there are enough local memory
 	err_code |= clGetKernelWorkGroupInfo(_kernel,device,CL_KERNEL_LOCAL_MEM_SIZE,
-	                                   sizeof(cl_ulong), &reqLocalMem, NULL);
+	                                   sizeof(cl_ulong), &required_local_mem, NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(ElasticBounce::setupOpenCL): Can't get kernel memory usage.\n");
+		S->addMessage(3, "(ElasticBounce::setupOpenCL): Error retrieving the used local memory.\n");
 	    return true;
 	}
-	if(localMem < reqLocalMem){
-		S->addMessage(3, "(ElasticBounce::setupOpenCL): Not enough local memory for execution.\n");
+	if(local_mem < required_local_mem){
+		S->addMessage(3, "(ElasticBounce::setupOpenCL): There are not enough local memory in the device.\n");
 	    sprintf(msg, "\tNeeds %lu bytes, but only %lu bytes are available.\n",
-	           reqLocalMem, localMem);
+	           required_local_mem, local_mem);
 	    S->addMessage(0, msg);
 	    return true;
 	}
 	//! Test if local work gorup size must be modified
-	size_t localWorkGroupSize=0;
+	size_t local_work_size=0;
 	err_code |= clGetKernelWorkGroupInfo(_kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
-	                                   sizeof(size_t), &localWorkGroupSize, NULL);
+	                                   sizeof(size_t), &local_work_size, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(ElasticBounce::setupOpenCL): Failure retrieving the maximum local work size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < _local_work_size)
-	    _local_work_size  = localWorkGroupSize;
+	if(local_work_size < _local_work_size)
+	    _local_work_size  = local_work_size;
 	//! Look for better local work group size
 	err_code |= clGetKernelWorkGroupInfo(_kernel,device,CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
-	                                   sizeof(size_t), &localWorkGroupSize, NULL);
+	                                   sizeof(size_t), &local_work_size, NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(ElasticBounce::setupOpenCL): Can't get preferred local work group size.\n");
+		S->addMessage(3, "(ElasticBounce::setupOpenCL): I cannot query the preferred local work size");
 	    return true;
 	}
-	_local_work_size  = (_local_work_size/localWorkGroupSize) * localWorkGroupSize;
+	_local_work_size  = (_local_work_size/local_work_size) * local_work_size;
 	_global_work_size = globalWorkSize(_local_work_size);
 	return false;
 }

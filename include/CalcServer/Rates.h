@@ -73,7 +73,7 @@ private:
 	/// true if \f$delta\f$-SPH (cont. eq. diffusive term) must be applied.
 	bool isDelta;
 	/// true if local memory can be used on kernel.
-	bool isLocalMemory;
+	bool _use_local_mem;
 };
 
 }}  // namespace

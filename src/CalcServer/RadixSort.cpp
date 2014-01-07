@@ -70,16 +70,16 @@ RadixSort::RadixSort()
 	S->addMessage(1, "INFO (RadixSort::Init): Initializating radix sort tool!\n");
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
 	CalcServer *C = CalcServer::singleton();
-	int nChar = 0;
+	int str_len = 0;
 	//! 1st.- Get data
-	nChar = strlen(P->OpenCL_kernels.radix_sort);
-	if(nChar <= 0) {
+	str_len = strlen(P->OpenCL_kernels.radix_sort);
+	if(str_len <= 0) {
 	    S->addMessage(3, "(RadixSort::Init): Path of predictor kernel is empty.\n");
 	    exit(EXIT_FAILURE);
 	}
-	Path = new char[nChar+4];
+	Path = new char[str_len+4];
 	if(!Path) {
-	    S->addMessage(3, "(RadixSort::Init): Can't allocate memory for path.\n");
+	    S->addMessage(3, "(RadixSort::Init): Memory cannot be allocated for the path.\n");
 	    exit(EXIT_FAILURE);
 	}
 	strcpy(Path, P->OpenCL_kernels.radix_sort);

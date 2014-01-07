@@ -44,21 +44,21 @@ GhostParticles::GhostParticles()
 	, _program(0)
 	, _kernel(0)
 	, isDelta(false)
-	, isLocalMemory(true)
+	, _use_local_mem(true)
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P  = InputOutput::ProblemSetup::singleton();
     unsigned int i;
 	if(!P->ghost_particles.walls.size())  // Have at least one wall
 	    return;
-	int nChar = strlen(P->OpenCL_kernels.ghost);
-	if(nChar <= 0) {
+	int str_len = strlen(P->OpenCL_kernels.ghost);
+	if(str_len <= 0) {
 	    S->addMessage(3, "(GhostParticles::GhostParticles): Path of Ghost kernel is empty.\n");
 	    exit(EXIT_FAILURE);
 	}
-	_path = new char[nChar+4];
+	_path = new char[str_len+4];
 	if(!_path) {
-	    S->addMessage(3, "(GhostParticles::GhostParticles): Can't allocate memory for path.\n");
+	    S->addMessage(3, "(GhostParticles::GhostParticles): Memory cannot be allocated for the path.\n");
 	    exit(EXIT_FAILURE);
 	}
 	strcpy(_path, P->OpenCL_kernels.ghost);
@@ -153,7 +153,7 @@ bool GhostParticles::execute()
             err_code |= sendArgument(_kernel, 30, sizeof(cl_float), (void*)&(C->cs));
             nAddedArgs = 3;
         }
-	    if(isLocalMemory){
+	    if(_use_local_mem){
 	        err_code |= sendArgument(_kernel, 28+nAddedArgs, _local_work_size*sizeof(cl_float), NULL);
 	        err_code |= sendArgument(_kernel, 29+nAddedArgs, _local_work_size*sizeof(vec     ), NULL);
 	        err_code |= sendArgument(_kernel, 30+nAddedArgs, _local_work_size*sizeof(cl_float), NULL);
@@ -220,14 +220,14 @@ bool GhostParticles::setupOpenCL()
 	char msg[1024];
 	cl_int err_code;
 	cl_device_id device;
-	cl_ulong localMem, reqLocalMem;
+	cl_ulong local_mem, required_local_mem;
 	err_code |= clGetCommandQueueInfo(C->command_queue,CL_QUEUE_DEVICE,
 	                                sizeof(cl_device_id),&device, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(GhostParticles::setupOpenCL): I Cannot get the device from the command queue.\n");
 	    return true;
 	}
-	err_code |= clGetDeviceInfo(device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(localMem), &localMem, NULL);
+	err_code |= clGetDeviceInfo(device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(local_mem), &local_mem, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(GhostParticles::setupOpenCL): Can't get local memory available on device.\n");
 	    return true;
@@ -237,51 +237,51 @@ bool GhostParticles::setupOpenCL()
 	if(_program)clReleaseProgram(_program); _program=0;
 	//! Test if there are enough local memory
 	err_code |= clGetKernelWorkGroupInfo(_kernel,device,CL_KERNEL_LOCAL_MEM_SIZE,
-	                                   sizeof(cl_ulong), &reqLocalMem, NULL);
+	                                   sizeof(cl_ulong), &required_local_mem, NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(GhostParticles::setupOpenCL): Can't get kernel memory usage.\n");
+		S->addMessage(3, "(GhostParticles::setupOpenCL): Error retrieving the used local memory.\n");
 	    return true;
 	}
-	if(localMem < reqLocalMem){
-		S->addMessage(3, "(GhostParticles::setupOpenCL): Not enough local memory for execution.\n");
+	if(local_mem < required_local_mem){
+		S->addMessage(3, "(GhostParticles::setupOpenCL): There are not enough local memory in the device.\n");
 	    sprintf(msg, "\tNeeds %lu bytes, but only %lu bytes are available.\n",
-	           reqLocalMem, localMem);
+	           required_local_mem, local_mem);
 	    S->addMessage(0, msg);
 	    return true;
 	}
 	//! Test if local work gorup size must be modified
-	size_t localWorkGroupSize=0;
+	size_t local_work_size=0;
 	err_code |= clGetKernelWorkGroupInfo(_kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
-	                                   sizeof(size_t), &localWorkGroupSize, NULL);
+	                                   sizeof(size_t), &local_work_size, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(GhostParticles::setupOpenCL): Failure retrieving the maximum local work size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < _local_work_size)
-	    _local_work_size  = localWorkGroupSize;
+	if(local_work_size < _local_work_size)
+	    _local_work_size  = local_work_size;
 	//! Look for better local work group size
 	err_code |= clGetKernelWorkGroupInfo(_kernel,device,CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
-	                                   sizeof(size_t), &localWorkGroupSize, NULL);
+	                                   sizeof(size_t), &local_work_size, NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(GhostParticles::setupOpenCL): Can't get preferred local work group size.\n");
+		S->addMessage(3, "(GhostParticles::setupOpenCL): I cannot query the preferred local work size");
 	    return true;
 	}
-	_local_work_size  = (_local_work_size/localWorkGroupSize) * localWorkGroupSize;
+	_local_work_size  = (_local_work_size/local_work_size) * local_work_size;
 	_global_work_size = globalWorkSize(_local_work_size);
 	//! Test if computation can be accelerated with local memory
-	reqLocalMem += _local_work_size*(  sizeof(cl_float)
+	required_local_mem += _local_work_size*(  sizeof(cl_float)
 	                                + sizeof(vec     )
 	                                + sizeof(cl_float)
 	                                + sizeof(cl_float)
 	                                + sizeof(cl_float)
 	                                + sizeof(vec     ));
-	if(localMem < reqLocalMem){
+	if(local_mem < required_local_mem){
 		S->addMessage(2, "(GhostParticles::setupOpenCL): Not enough local memory.\n");
 	    sprintf(msg, "\tNeeds %lu bytes, but only %lu bytes are available.\n",
-	           reqLocalMem, localMem);
+	           required_local_mem, local_mem);
 	    S->addMessage(0, msg);
 	    S->addMessage(0, "\tLocal memory usage will be avoided therefore.\n");
-	    isLocalMemory = false;
+	    _use_local_mem = false;
 	    strcat(args,"-D__NO_LOCAL_MEM__ ");
 	    if(!loadKernelFromFile(&_kernel, &_program, C->context, C->device, _path, "Boundary", args))
 	        return true;

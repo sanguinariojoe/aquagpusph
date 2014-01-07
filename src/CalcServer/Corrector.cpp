@@ -33,14 +33,14 @@ Corrector::Corrector()
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
-	unsigned int nChar = strlen(P->OpenCL_kernels.corrector);
-	if(nChar <= 0) {
+	unsigned int str_len = strlen(P->OpenCL_kernels.corrector);
+	if(str_len <= 0) {
 	    S->addMessageF(3, "Path of corrector kernel is empty.\n");
 	    exit(EXIT_FAILURE);
 	}
-	_path = new char[nChar+4];
+	_path = new char[str_len+4];
 	if(!_path) {
-	    S->addMessageF(3, "Can't allocate memory for path.\n");
+	    S->addMessageF(3, "Memory cannot be allocated for the path.\n");
 	    exit(EXIT_FAILURE);
 	}
 	strcpy(_path, P->OpenCL_kernels.corrector);
@@ -285,7 +285,7 @@ bool Corrector::setupOpenCL()
 	}
 
 	cl_device_id device;
-	size_t localWorkGroupSize=0;
+	size_t local_work_size=0;
 	err_code |= clGetCommandQueueInfo(C->command_queue,
                                       CL_QUEUE_DEVICE,
 	                                  sizeof(cl_device_id),
@@ -300,15 +300,15 @@ bool Corrector::setupOpenCL()
                                          device,
                                          CL_KERNEL_WORK_GROUP_SIZE,
 	                                     sizeof(size_t),
-                                         &localWorkGroupSize,
+                                         &local_work_size,
                                          NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "Failure retrieving the maximum local work size.\n");
         S->printOpenCLError(err_code);
 	    return true;
 	}
-	if(localWorkGroupSize < _local_work_size)
-	    _local_work_size  = localWorkGroupSize;
+	if(local_work_size < _local_work_size)
+	    _local_work_size  = local_work_size;
 	_global_work_size = globalWorkSize(_local_work_size);
 	return false;
 }

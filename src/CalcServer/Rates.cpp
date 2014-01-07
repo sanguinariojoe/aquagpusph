@@ -47,18 +47,18 @@ Rates::Rates()
 	, _global_work_size(0)
 	, _local_work_size(0)
 	, isDelta(false)
-	, isLocalMemory(true)
+	, _use_local_mem(true)
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P  = InputOutput::ProblemSetup::singleton();
-	unsigned int i, nChar = strlen(P->OpenCL_kernels.rates);
-	if(nChar <= 0) {
+	unsigned int i, str_len = strlen(P->OpenCL_kernels.rates);
+	if(str_len <= 0) {
 	    S->addMessage(3, "(Rates::Rates): Path of rates kernel is empty.\n");
 	    exit(EXIT_FAILURE);
 	}
-	_path = new char[nChar+4];
+	_path = new char[str_len+4];
 	if(!_path) {
-	    S->addMessage(3, "(Rates::Rates): Can't allocate memory for path.\n");
+	    S->addMessage(3, "(Rates::Rates): Memory cannot be allocated for the path.\n");
 	    exit(EXIT_FAILURE);
 	}
 	strcpy(_path, P->OpenCL_kernels.rates);
@@ -188,7 +188,7 @@ bool Rates::execute()
 	    err_code |= sendArgument(_kernel, 29, sizeof(cl_float), (void*)&(C->cs));
         nAddedArgs = 4;
 	}
-	if(isLocalMemory) {
+	if(_use_local_mem) {
 	    err_code |= sendArgument(_kernel, 26+nAddedArgs, _local_work_size*sizeof(cl_float), NULL);
 	    err_code |= sendArgument(_kernel, 27+nAddedArgs, _local_work_size*sizeof(vec     ), NULL);
 	    err_code |= sendArgument(_kernel, 28+nAddedArgs, _local_work_size*sizeof(cl_float), NULL);
@@ -197,7 +197,7 @@ bool Rates::execute()
 	    err_code |= sendArgument(_kernel, 31+nAddedArgs, _local_work_size*sizeof(vec     ), NULL);
 	}
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Rates::execute): Can't send arguments to kernel.\n");
+		S->addMessage(3, "(Rates::execute): Failure sending the arguments to the kernel.\n");
 	    return true;
 	}
 	#ifdef HAVE_GPUPROFILE
@@ -241,14 +241,14 @@ bool Rates::setupOpenCL()
 	char msg[1024];
 	cl_int err_code;
 	cl_device_id device;
-	cl_ulong localMem, reqLocalMem;
+	cl_ulong local_mem, required_local_mem;
 	err_code |= clGetCommandQueueInfo(C->command_queue,CL_QUEUE_DEVICE,
 	                                sizeof(cl_device_id),&device, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Rates::setupOpenCL): I Cannot get the device from the command queue.\n");
 	    return true;
 	}
-	err_code |= clGetDeviceInfo(device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(localMem), &localMem, NULL);
+	err_code |= clGetDeviceInfo(device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(local_mem), &local_mem, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Rates::setupOpenCL): Can't get local memory available on device.\n");
 	    return true;
@@ -264,72 +264,72 @@ bool Rates::setupOpenCL()
 	if(_program)clReleaseProgram(_program); _program=0;
 	// Test if there are enough local memory
 	err_code |= clGetKernelWorkGroupInfo(clSortKernel,device,CL_KERNEL_LOCAL_MEM_SIZE,
-	                                   sizeof(cl_ulong), &reqLocalMem, NULL);
+	                                   sizeof(cl_ulong), &required_local_mem, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Rates::setupOpenCL): Can't get sort kernel memory usage.\n");
 	    return true;
 	}
-	if(localMem < reqLocalMem){
+	if(local_mem < required_local_mem){
 		S->addMessage(3, "(Rates::setupOpenCL): Not enough local memory for sort execution.\n");
 	    sprintf(msg, "\tNeeds %lu bytes, but only %lu bytes are available.\n",
-	           reqLocalMem, localMem);
+	           required_local_mem, local_mem);
 	    S->addMessage(0, msg);
 	    return true;
 	}
 	err_code |= clGetKernelWorkGroupInfo(_kernel,device,CL_KERNEL_LOCAL_MEM_SIZE,
-	                                   sizeof(cl_ulong), &reqLocalMem, NULL);
+	                                   sizeof(cl_ulong), &required_local_mem, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Rates::setupOpenCL): Can't get rates kernel memory usage.\n");
 	    return true;
 	}
-	if(localMem < reqLocalMem){
+	if(local_mem < required_local_mem){
 		S->addMessage(3, "(Rates::setupOpenCL): Not enough local memory for rates execution.\n");
 	    sprintf(msg, "\tNeeds %lu bytes, but only %lu bytes are available.\n",
-	           reqLocalMem, localMem);
+	           required_local_mem, local_mem);
 	    S->addMessage(0, msg);
 	    return true;
 	}
 	// Test if local work group size must be modified
-	size_t localWorkGroupSize=0;
+	size_t local_work_size=0;
 	err_code |= clGetKernelWorkGroupInfo(clSortKernel,device,CL_KERNEL_WORK_GROUP_SIZE,
-	                                   sizeof(size_t), &localWorkGroupSize, NULL);
+	                                   sizeof(size_t), &local_work_size, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Rates::setupOpenCL): Can't get sort maximum local work group size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < _local_work_size)
-	    _local_work_size  = localWorkGroupSize;
+	if(local_work_size < _local_work_size)
+	    _local_work_size  = local_work_size;
 	err_code |= clGetKernelWorkGroupInfo(_kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
-	                                   sizeof(size_t), &localWorkGroupSize, NULL);
+	                                   sizeof(size_t), &local_work_size, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Rates::setupOpenCL): Can't get rates maximum local work group size.\n");
 	    return true;
 	}
-	if(localWorkGroupSize < _local_work_size)
-	    _local_work_size  = localWorkGroupSize;
+	if(local_work_size < _local_work_size)
+	    _local_work_size  = local_work_size;
 	// Look for a better local work group size
 	err_code |= clGetKernelWorkGroupInfo(_kernel,device,CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
-	                                   sizeof(size_t), &localWorkGroupSize, NULL);
+	                                   sizeof(size_t), &local_work_size, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Rates::setupOpenCL): Can't get rates preferred local work group size.\n");
 	    return true;
 	}
-	_local_work_size  = (_local_work_size/localWorkGroupSize) * localWorkGroupSize;
+	_local_work_size  = (_local_work_size/local_work_size) * local_work_size;
 	_global_work_size = globalWorkSize(_local_work_size);
 	// Test if the computation can be accelerated with local memory
-	reqLocalMem += _local_work_size*(  sizeof(cl_float)
+	required_local_mem += _local_work_size*(  sizeof(cl_float)
 	                                + sizeof(vec     )
 	                                + sizeof(cl_float)
 	                                + sizeof(cl_float)
 	                                + sizeof(cl_float)
 	                                + sizeof(vec     ));
-	if(localMem < reqLocalMem){
+	if(local_mem < required_local_mem){
 		S->addMessage(2, "(Rates::setupOpenCL): Not enough local memory for rates.\n");
 	    sprintf(msg, "\tNeeds %lu bytes, but only %lu bytes are available.\n",
-	           reqLocalMem, localMem);
+	           required_local_mem, local_mem);
 	    S->addMessage(0, msg);
 	    S->addMessage(0, "\tLocal memory usage will be avoided therefore.\n");
-	    isLocalMemory = false;
+	    _use_local_mem = false;
 	    char options[19]; strcpy(options,"-D__NO_LOCAL_MEM__");
 	    if(_kernel)clReleaseKernel(_kernel); _kernel=0;
 	    if(!loadKernelFromFile(&_kernel, &_program, C->context, C->device, _path, "Rates", options))

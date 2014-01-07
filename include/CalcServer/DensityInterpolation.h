@@ -19,18 +19,22 @@
 #ifndef DENSITYINTERPOLATION_H_INCLUDED
 #define DENSITYINTERPOLATION_H_INCLUDED
 
-// ----------------------------------------------------------------------------
-// Include Generic kernel
-// ----------------------------------------------------------------------------
 #include <CalcServer/Kernel.h>
 
 namespace Aqua{ namespace CalcServer{
 
-/** @class DensityInterpolation DensityInterpolation.h CalcServer/DensityInterpolation.h
- * @brief Density interpolation is a smoothing density field technique. SPH perform density
- * as evolution process, but in order to solve some instabilities a field interpolation
- * can be performed.
- * @warning Don't use Density interpolation if you don't know what are you doing.
+/** @class DensityInterpolation DensityInterpolation.h
+ * CalcServer/DensityInterpolation.h
+ * @brief Density interpolation is a smoothing density field technique. When
+ * the \f$\alpha\f$ and \f$\delta\f$ parameters are not large enough a
+ * characteristic noise may be appreciated in the pressure field. In order to
+ * partially fix it some author propose to reinterpolate the density field
+ * instead to compute it from the evolution problem: \n
+ * \f$ \rho_i = \sum_j W \left(
+        \mathbf{r}_j - \mathbf{r}_i
+   \right) m_j \f$.
+ * @warning It is strongly recommended to don't use this trick if you don't
+ * know what are you doing.
  */
 struct DensityInterpolation : public Aqua::CalcServer::Kernel
 {
@@ -42,14 +46,17 @@ struct DensityInterpolation : public Aqua::CalcServer::Kernel
 	 */
 	~DensityInterpolation();
 
-	/** Performs density interpolation.
-	 * @return false if all gone right. \n true otherwise.
+	/** Performs the density field geometric interpolation: \n
+     * \f$ \rho_i = \sum_j W \left(
+            \mathbf{r}_j - \mathbf{r}_i
+       \right) m_j \f$.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool execute();
 
 private:
-	/** Setup OpenCL kernel
-	 * @return false if all gone right. \n true otherwise.
+	/** Setup the OpenCL stuff
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool setupOpenCL();
 
@@ -63,8 +70,8 @@ private:
 	size_t _global_work_size;
 	/// Local work size
 	size_t _local_work_size;
-	/// true if local memory can be used on kernel.
-	bool isLocalMemory;
+	/// true if local memory can be used to perform the computation.
+	bool _use_local_mem;
 };
 
 }}  // namespace
