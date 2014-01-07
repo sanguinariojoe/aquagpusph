@@ -89,7 +89,7 @@ bool Energy::execute()
 	err_code |= sendArgument(_kernel, 13, sizeof(cl_float), (void*)&(C->cs));
 	err_code |= sendArgument(_kernel, 14, sizeof(vec     ), (void*)&(C->g));
 	if(err_code != CL_SUCCESS) {
-		S->addMessageF(3, "Fail senting the _kernel parameters.\n");
+		S->addMessageF(3, "I cannot send a variable to the kernel.\n");
 		S->printOpenCLError(err_code);
 	}
 	#ifdef HAVE_GPUPROFILE
