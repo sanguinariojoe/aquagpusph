@@ -19,9 +19,6 @@
 #ifndef PREDICTOR_H_INCLUDED
 #define PREDICTOR_H_INCLUDED
 
-// ----------------------------------------------------------------------------
-// Include Generic kernel
-// ----------------------------------------------------------------------------
 #include <CalcServer/Kernel.h>
 
 namespace Aqua{ namespace CalcServer{
@@ -63,14 +60,14 @@ public:
 	 */
 	~Predictor();
 
-	/** Executes time integration predictor stage.
-	 * @return false if all gone right. \n true otherwise.
+	/** Executes the time integration predictor stage.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool execute();
 
 private:
-	/** Setup OpenCL kernel
-	 * @return false if all gone right. \n true otherwise.
+	/** Setup the OpenCL stuff
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool setupOpenCL();
 
