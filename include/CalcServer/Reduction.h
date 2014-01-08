@@ -19,73 +19,76 @@
 #ifndef REDUCTION_H_INCLUDED
 #define REDUCTION_H_INCLUDED
 
-// ----------------------------------------------------------------------------
-// Include Generic kernel
-// ----------------------------------------------------------------------------
-#include <CalcServer/Kernel.h>
-
-// ----------------------------------------------------------------------------
-// Include standar libraries
-// ----------------------------------------------------------------------------
-#include <stdlib.h>
-#include <math.h>
-#include <vector>
 #include <deque>
+
+#include <CalcServer/Kernel.h>
 
 namespace Aqua{ namespace CalcServer{
 
 /** @class Reduction Reduction.h CalcServer/Reduction.h
- * @brief Variables array reduction. \n
- * The reduction is produced over other.
+ * @brief Array reduction tool. It could every prefix scan operation that you
+ * want.
  */
 class Reduction : public Aqua::CalcServer::Kernel
 {
 public:
 	/** Constructor.
 	 * @param input Input data memory object.
-	 * @param N Input data elements.
+	 * @param n Input data elements.
 	 * @param type The data type array.
-	 * @param identity The type considered the identity, i.e.
-	 * Infinity for min operation, (float2)(0.f,0.f) for 2D vec
-	 * sum reduction, etc.
-	 * @param operation The reduction operation. For instance
-	 * "a += b;" or
-	 * "a.x = (a.x < b.x) ? a.x : b.x; a.y = (a.y < b.y) ? a.y : b.y;".
+	 * @param null_val The value considered as the null one, i.e.
+	 * Infinity for min operation, (float2)(0.f,0.f) for 2D vec sum
+	 * reduction, etc.
+	 * @param operation The reduction operation. For instance:
+	 *   - "a += b;"
+	 *   - "a.x = (a.x < b.x) ? a.x : b.x; a.y = (a.y < b.y) ? a.y : b.y;"
 	 */
-	Reduction(cl_mem input, unsigned int N, const char* type, const char* identity, const char* operation);
+	Reduction(cl_mem input,
+              unsigned int n,
+              const char* type,
+              const char* null_val,
+              const char* operation);
 
 	/** Destructor.
 	 */
 	~Reduction();
 
-	/** Reduction boundary computation.
-	 * @return Output memory object, \n NULL if error is detected.
+	/** Compute the prefix scan.
+	 * @return Output memory object, NULL if error is detected.
 	 */
 	cl_mem execute();
 
     /** Number of steps needed
-     * @return Numkber of steps needed.
+     * @return Number of steps needed.
      */
-    unsigned int nSteps(){return mGSize.size();}
+    unsigned int nSteps(){return _global_work_sizes.size();}
 
-    /** Return the memory object that stores the result
+    /** Return the memory object which stores the final result
      * @return Memory object.
      */
-    cl_mem resultMem(){return mMems.at(mMems.size() - 1);}
+    cl_mem resultMem(){return _mems.at(_mems.size() - 1);}
 
     /** Change the data array input.
      * @param New input data array.
      * @return false if all gone right, true otherwise.
      * @warning The new data array must be of the same size and type of the
-     * used one in the construction. Otherwise, please destroy this object
-     * and call the constructor again.
+     * previously used one in the construction. Otherwise, please destroy this
+     * object and call the constructor again.
      */
     bool setInput(cl_mem input);
+
 private:
-	/** Setup OpenCL kernel
-	 * @return false if all gone right. \n true otherwise.
+	/** Setup the OpenCL stuff
+	 * @param type The data type array.
+	 * @param null_val The value considered as the null one, i.e.
+	 * Infinity for min operation, (float2)(0.f,0.f) for 2D vec sum
+	 * reduction, etc.
+	 * @param operation The reduction operation. For instance:
+	 *   - "a += b;"
+	 *   - "a.x = (a.x < b.x) ? a.x : b.x; a.y = (a.y < b.y) ? a.y : b.y;"
+	 * @return false if all gone right, true otherwise.
 	 */
-	bool setupOpenCL(const char* type, const char* identity, const char* operation);
+	bool setupOpenCL(const char* type, const char* null_val, const char* operation);
 
 	/// OpenCL script path
 	char* _path;
@@ -93,21 +96,21 @@ private:
 	/// OpenCL program
 	cl_program _program;
 	/// OpenCL kernel
-	std::deque<cl_kernel> kernels;
+	std::deque<cl_kernel> _kernels;
 
     /// Global work sizes in each step
-    std::deque<size_t> mGSize;
+    std::deque<size_t> _global_work_sizes;
     /// Local work sizes in each step
-    std::deque<size_t> mLSize;
+    std::deque<size_t> _local_work_sizes;
     /// Number of work groups in each step
-    std::deque<size_t> mNGroups;
+    std::deque<size_t> _number_groups;
     /// Number of input elements for each step
-    std::deque<size_t> mN;
+    std::deque<size_t> _n;
 
     /// Memory objects
-    std::deque<cl_mem> mMems;
+    std::deque<cl_mem> _mems;
     /// Input memory object
-    cl_mem mInput;
+    cl_mem _input;
 };
 
 }}  // namespace

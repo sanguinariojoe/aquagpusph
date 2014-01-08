@@ -16,72 +16,69 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// ----------------------------------------------------------------------------
-// Include the Problem setup manager header
-// ----------------------------------------------------------------------------
+#include <stdlib.h>
+#include <math.h>
+#include <vector>
+
 #include <ProblemSetup.h>
-
-// ----------------------------------------------------------------------------
-// Include the Problem setup manager header
-// ----------------------------------------------------------------------------
 #include <ScreenManager.h>
-
-// ----------------------------------------------------------------------------
-// Include the main header
-// ----------------------------------------------------------------------------
 #include <CalcServer/Reduction.h>
-
-// ----------------------------------------------------------------------------
-// Include the calculation server
-// ----------------------------------------------------------------------------
 #include <CalcServer.h>
 
 namespace Aqua{ namespace CalcServer{
 
-Reduction::Reduction(cl_mem input, unsigned int N, const char* type, const char* identity, const char* operation)
+Reduction::Reduction(cl_mem input,
+                     unsigned int n,
+                     const char* type,
+                     const char* null_val,
+                     const char* operation)
 	: Kernel("Reduction")
 	, _path(0)
 	, _program(0)
-	, kernels(0)
+	, _kernels(0)
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
 
 	int str_len = strlen(P->OpenCL_kernels.reduction);
 	if(str_len <= 0) {
-	    S->addMessage(3, "(Reduction::Reduction): _path of Reduction kernel is empty.\n");
+	    S->addMessageF(3, "The path of Reduction kernel is empty.\n");
 	    exit(EXIT_FAILURE);
 	}
 	_path = new char[str_len+4];
 	if(!_path) {
-	    S->addMessage(3, "(Reduction::Reduction): Memory cannot be allocated for the path.\n");
+	    S->addMessageF(3, "Memory cannot be allocated for the path.\n");
 	    exit(EXIT_FAILURE);
 	}
 	strcpy(_path, P->OpenCL_kernels.reduction);
 	strcat(_path, ".cl");
 
-    mInput  = input;
-    mMems.push_back(input);
-    mN.push_back(N);
-    if(setupOpenCL(type, identity, operation))
+    _input  = input;
+    _mems.push_back(input);
+    _n.push_back(n);
+    if(setupOpenCL(type, null_val, operation))
         exit(EXIT_FAILURE);
-	S->addMessage(1, "(Reduction::Reduction): Reduction ready to work!\n");
+	S->addMessageF(1, "Reduction ready to work!\n");
 }
 
 Reduction::~Reduction()
 {
     unsigned int i;
-    for(i=1;i<mMems.size();i++){ // Don't try to remove input memory object, strat with i=1
-        if(mMems.at(i))clReleaseMemObject(mMems.at(i)); mMems.at(i)=NULL;
+    for(i=1;i<_mems.size();i++){
+        if(_mems.at(i))
+            clReleaseMemObject(_mems.at(i));
+            _mems.at(i)=NULL;
     }
-    for(i=0;i<kernels.size();i++){
-        if(kernels.at(i))clReleaseKernel(kernels.at(i)); kernels.at(i)=NULL;
+    for(i=0;i<_kernels.size();i++){
+        if(_kernels.at(i))
+            clReleaseKernel(_kernels.at(i));
+        _kernels.at(i)=NULL;
     }
-    kernels.clear();
-	if(_program)clReleaseProgram(_program); _program=0;
+    _kernels.clear();
+	if(_program) clReleaseProgram(_program); _program=0;
 	if(_path) delete[] _path; _path=0;
-	mGSize.clear();
-	mLSize.clear();
+	_global_work_sizes.clear();
+	_local_work_sizes.clear();
 }
 
 cl_mem Reduction::execute()
@@ -89,69 +86,102 @@ cl_mem Reduction::execute()
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
 	CalcServer *C = CalcServer::singleton();
-    cl_int flag;
+    cl_int err_code;
     unsigned int i;
-	for(i=0;i<kernels.size();i++){
-        size_t _global_work_size = mGSize.at(i);
-        size_t _local_work_size  = mLSize.at(i);
+	for(i=0;i<_kernels.size();i++){
+        size_t _global_work_size = _global_work_sizes.at(i);
+        size_t _local_work_size  = _local_work_sizes.at(i);
 		#ifdef HAVE_GPUPROFILE
 			cl_event event;
 			cl_ulong end, start;
-			flag = clEnqueueNDRangeKernel(C->command_queue, kernels.at(i), 1, NULL, &_global_work_size, &_local_work_size, 0, NULL, &event);
+			err_code = clEnqueueNDRangeKernel(C->command_queue,
+                                              _kernels.at(i),
+                                              1,
+                                              NULL,
+                                              &_global_work_size,
+                                              &_local_work_size,
+                                              0,
+                                              NULL,
+                                              &event);
 		#else
-			flag = clEnqueueNDRangeKernel(C->command_queue, kernels.at(i), 1, NULL, &_global_work_size, &_local_work_size, 0, NULL, NULL);
+			err_code = clEnqueueNDRangeKernel(C->command_queue,
+                                              _kernels.at(i),
+                                              1,
+                                              NULL,
+                                              &_global_work_size,
+                                              &_local_work_size,
+                                              0,
+                                              NULL,
+                                              NULL);
 		#endif
-		if(flag != CL_SUCCESS) {
-			S->addMessage(3, "(Reduction::execute): I cannot execute the kernel.\n");
-			if(flag == CL_INVALID_WORK_GROUP_SIZE)
-				S->addMessage(0, "\tInvalid local work group size.\n");
-			else if(flag == CL_OUT_OF_RESOURCES)
-				S->addMessage(0, "\tDevice out of resources.\n");
-			else if(flag == CL_MEM_OBJECT_ALLOCATION_FAILURE)
-				S->addMessage(0, "\tAllocation error at device.\n");
-			else if(flag == CL_OUT_OF_HOST_MEMORY)
-				S->addMessage(0, "\tfailure to allocate resources required by the OpenCL implementation on the host.\n");
-			return NULL;
-		}
-		#ifdef HAVE_GPUPROFILE
-			flag = clWaitForEvents(1, &event);
-			if(flag != CL_SUCCESS) {
-				S->addMessage(3, "(Reduction::Execute): Impossible to wait for the kernels end.\n");
-				return NULL;
-			}
-			flag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
-			flag |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
-			if(flag != CL_SUCCESS) {
-				S->addMessage(3, "(Reduction::Execute): I cannot profile the kernel execution.\n");
-				return NULL;
-			}
+		if(err_code != CL_SUCCESS) {
+			S->addMessageF(3, "I cannot execute the kernel.\n");
+            S->printOpenCLError(err_code);
+            return NULL;
+        }
+        #ifdef HAVE_GPUPROFILE
+            err_code = clWaitForEvents(1, &event);
+            if(err_code != CL_SUCCESS) {
+                S->addMessage(3, "Impossible to wait for the kernels end.\n");
+                S->printOpenCLError(err_code);
+                return NULL;
+            }
+            err_code |= clGetEventProfilingInfo(event,
+                                                CL_PROFILING_COMMAND_END,
+                                                sizeof(cl_ulong),
+                                                &end,
+                                                0);
+            if(err_code != CL_SUCCESS) {
+                S->addMessage(3, "I cannot profile the kernel execution.\n");
+                S->printOpenCLError(err_code);
+                return NULL;
+            }
+            err_code |= clGetEventProfilingInfo(event,
+                                                CL_PROFILING_COMMAND_START,
+                                                sizeof(cl_ulong),
+                                                &start,
+                                                0);
+            if(err_code != CL_SUCCESS) {
+                S->addMessage(3, "I cannot profile the kernel execution.\n");
+                S->printOpenCLError(err_code);
+                return NULL;
+            }
 			profileTime(profileTime() + (end - start)/1000.f);  // 10^-3 ms
 		#endif
 	}
-	return mMems.at(mMems.size()-1);
+	return _mems.at(_mems.size()-1);
 }
 
 bool Reduction::setInput(cl_mem input)
 {
-    mMems.at(0) = input;
-    cl_int flag = sendArgument(kernels.at(0), 0, sizeof(cl_mem ), (void*)&(input));
-    if(flag != CL_SUCCESS)
+    _mems.at(0) = input;
+    cl_int err_code = sendArgument(_kernels.at(0),
+                               0,
+                               sizeof(cl_mem),
+                               (void*)&(input));
+    if(err_code != CL_SUCCESS)
         return true;
     return false;
 }
 
-bool Reduction::setupOpenCL(const char* type, const char* identity, const char* operation)
+bool Reduction::setupOpenCL(const char* type,
+                            const char* null_val,
+                            const char* operation)
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
-    size_t inputSize, dataSize;
-    cl_int flag;
+    size_t input_size, data_size;
+    cl_int err_code;
     char msg[1024]; strcpy(msg, "");
-    // Get elements data size to can allocate local memory later
-    flag = clGetMemObjectInfo(mInput, CL_MEM_SIZE, sizeof(size_t), &inputSize, NULL);
-    if(flag != CL_SUCCESS)
+    // Get the elements data size to can allocate local memory later
+    err_code = clGetMemObjectInfo(_input,
+                                  CL_MEM_SIZE,
+                                  sizeof(size_t),
+                                  &input_size,
+                                  NULL);
+    if(err_code != CL_SUCCESS)
         return true;
-    dataSize = inputSize / mN.at(0);
+    data_size = input_size / _n.at(0);
     // Create a header for the source code where the operation will be placed
     char header[512];
     strcpy(header, "T reduce(T a, T b) \n");
@@ -165,12 +195,26 @@ bool Reduction::setupOpenCL(const char* type, const char* identity, const char* 
     // Starts a dummy kernel in order to study the local size that can be used
     size_t lsize = __CL_MAX_LOCALSIZE__;
     char args[512];
-    sprintf(args, "-DT=%s -DIDENTITY=%s -DLOCAL_WORK_SIZE=%luu", type, identity, lsize);
+    sprintf(args,
+            "-DT=%s -DIDENTITY=%s -DLOCAL_WORK_SIZE=%luu",
+            type,
+            null_val,
+            lsize);
     cl_kernel kernel;
-    size_t maxlsize = loadKernelFromFile(&kernel, &_program, C->context, C->device, _path, "Reduction", args, header);
+    size_t maxlsize = loadKernelFromFile(&kernel,
+                                         &_program,
+                                         C->context,
+                                         C->device,
+                                         _path,
+                                         "Reduction",
+                                         args,
+                                         header);
     if(maxlsize < __CL_MIN_LOCALSIZE__){
-        S->addMessage(3, "(Reduction::Reduction): Reduction can't be performed due to insufficient local memory\n");
-        sprintf(msg, "\t%lu elements can be executed, but __CL_MIN_LOCALSIZE__=%lu\n", maxlsize, __CL_MIN_LOCALSIZE__);
+        S->addMessageF(3, "Reduction can't be performed due to insufficient local memory\n");
+        sprintf(msg,
+                "\t%lu elements can be executed, but __CL_MIN_LOCALSIZE__=%lu\n",
+                maxlsize,
+                __CL_MIN_LOCALSIZE__);
         S->addMessage(0, msg);
         return true;
     }
@@ -179,51 +223,84 @@ bool Reduction::setupOpenCL(const char* type, const char* identity, const char* 
         lsize = nextPowerOf2(lsize) / 2;
     }
     if(lsize < __CL_MIN_LOCALSIZE__){
-        S->addMessage(3, "(Reduction::Reduction): Reduction can't be performed due to insufficient local memory\n");
-        sprintf(msg, "\t%lu elements may be executed, but __CL_MIN_LOCALSIZE__=%lu\n", lsize, __CL_MIN_LOCALSIZE__);
+        S->addMessageF(3, "Reduction can't be performed due to insufficient local memory\n");
+        sprintf(msg,
+                "\t%lu elements may be executed, but __CL_MIN_LOCALSIZE__=%lu\n",
+                lsize,
+                __CL_MIN_LOCALSIZE__);
         S->addMessage(0, msg);
         return true;
     }
-    sprintf(args, "-DT=%s -DIDENTITY=%s -DLOCAL_WORK_SIZE=%luu", type, identity, lsize);
+    sprintf(args,
+            "-DT=%s -DIDENTITY=%s -DLOCAL_WORK_SIZE=%luu",
+            type,
+            null_val,
+            lsize);
 	if(kernel)clReleaseKernel(kernel); kernel=NULL;
 	if(_program)clReleaseProgram(_program); _program=NULL;
-    // Now we can start a loop while the amount of resulting data was upper than one
-    unsigned int N = mN.at(0);
-    mN.clear();
+    // Now we can start a loop while the amount of output data is greater than
+    // one
+    unsigned int n = _n.at(0);
+    _n.clear();
     unsigned int i=0;
-    while(N > 1){
+    while(n > 1){
         // Get work sizes
-        mN.push_back(N);                                 // Input data size
-        mLSize.push_back(lsize);                         // Feasible local size
-        mGSize.push_back(roundUp(N, lsize));             // Global size
-        mNGroups.push_back(mGSize.at(i) / mLSize.at(i)); // Number of work groups (and amount of output data)
+        _n.push_back(n);
+        _local_work_sizes.push_back(lsize);
+        _global_work_sizes.push_back(roundUp(n, lsize));
+        _number_groups.push_back(
+            _global_work_sizes.at(i) / _local_work_sizes.at(i)
+        );
         // Build the output memory object
         cl_mem output = NULL;
-        output = C->allocMemory(mNGroups.at(i) * dataSize);
+        output = C->allocMemory(_number_groups.at(i) * data_size);
         if(!output){
-            S->addMessage(3, "(Reduction::Reduction): Can't create output array.\n");
+            S->addMessageF(3, "Can't create an output array.\n");
             return true;
         }
-        mMems.push_back(output);
+        _mems.push_back(output);
         // Build the kernel
-        if(!loadKernelFromFile(&kernel, &_program, C->context, C->device, _path, "Reduction", args, header))
+        if(!loadKernelFromFile(&kernel,
+                               &_program,
+                               C->context,
+                               C->device,
+                               _path,
+                               "Reduction",
+                               args,
+                               header))
             return true;
-        kernels.push_back(kernel);
+        _kernels.push_back(kernel);
         if(_program)clReleaseProgram(_program); _program=NULL;
 
-        flag  = CL_SUCCESS;
-        flag |= sendArgument(kernel, 0, sizeof(cl_mem ), (void*)&(mMems.at(i)));
-        flag |= sendArgument(kernel, 1, sizeof(cl_mem ), (void*)&(mMems.at(i+1)));
-        flag |= sendArgument(kernel, 2, sizeof(cl_uint), (void*)&(N));
-        flag |= sendArgument(kernel, 3, lsize*dataSize , NULL);
-        if(flag != CL_SUCCESS){
-            S->addMessage(3, "(Reduction::Reduction): Arguments set failed\n");
+        err_code = CL_SUCCESS;
+        err_code |= sendArgument(kernel,
+                                 0,
+                                 sizeof(cl_mem),
+                                 (void*)&(_mems.at(i)));
+        err_code |= sendArgument(kernel,
+                                 1,
+                                 sizeof(cl_mem),
+                                 (void*)&(_mems.at(i+1)));
+        err_code |= sendArgument(kernel,
+                                 2,
+                                 sizeof(cl_uint),
+                                 (void*)&(n));
+        err_code |= sendArgument(kernel,
+                                 3,
+                                 lsize*data_size ,
+                                 NULL);
+        if(err_code != CL_SUCCESS){
+            S->addMessageF(3, "Arguments setting failed\n");
             return true;
         }
         // Setup next step
-        sprintf(msg, "\tStep %u, %u elements reduced to %u\n", i, N, mNGroups.at(i));
+        sprintf(msg,
+                "\tStep %u, %u elements reduced to %u\n",
+                i,
+                n,
+                _number_groups.at(i));
         S->addMessage(0, msg);
-        N = mNGroups.at(i);
+        n = _number_groups.at(i);
         i++;
     }
 	return false;
