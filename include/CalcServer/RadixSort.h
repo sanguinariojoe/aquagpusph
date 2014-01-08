@@ -19,28 +19,8 @@
 #ifndef RADIXSORT_H_INCLUDED
 #define RADIXSORT_H_INCLUDED
 
-// ----------------------------------------------------------------------------
-// Include Prerequisites
-// ----------------------------------------------------------------------------
 #include <sphPrerequisites.h>
-
-// ----------------------------------------------------------------------------
-// Include standar libraries
-// ----------------------------------------------------------------------------
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
-
-// ----------------------------------------------------------------------------
-// Include OpenCL libraries
-// ----------------------------------------------------------------------------
 #include <CL/cl.h>
-
-// ----------------------------------------------------------------------------
-// Include auxiliar methods
-// ----------------------------------------------------------------------------
-#include <AuxiliarMethods.h>
 
 /** @def _ITEMS Number of items in a group
  * @note Must be power of 2, and in some devices greather than 32.
@@ -98,14 +78,14 @@
 namespace Aqua{ namespace CalcServer{
 
 /** @class RadixSort RadixSort.h CalcServer/RadixSort.h
- * @brief Methods to perform a radix sort using the GPU (or any device supported by OpenCL).
+ * @brief Methods to perform a radix sort using the GPU (or any device
+ * supported by OpenCL).
  * The code has 3 steps:
- * <ol><li> Create the histogram.</li>
- * <li> Scan the histogram to create accumulated histograms.</li>
- * <li> Permut the variables.</li></ul>
- * In order to improve the data access, the info is transposed. \n
- * Radix sort requires also several pass (VarBits / Radix). \n
- * To learn more about this code, please see also http://code.google.com/p/ocl-radix-sort/updates/list
+ *   -# Create the histogram.
+ *   -# Scan the histogram to create the accumulated one.
+ *   -# Permut the variables.
+ * To learn more about this code, please see also
+ * http://code.google.com/p/ocl-radix-sort/updates/list
  */
 class RadixSort
 {
@@ -118,23 +98,19 @@ public:
 	 */
 	~RadixSort();
 
-	/** Sorts the icell components, returning permutations too.
-	 * @return false if all gone right. \n true otherwise.
-	 * @note This structure assumes number of particle as amount of
-	 * data to sort, if not correct change it before calling this method.
-	 * @warning After calling this method, CalcServer icell array, and permutation
-	 * array may change (as memory direction), don't forgive resend it to the
-	 * forwarded kernels.
+	/** Sorts the icell components, computing the permutations required too.
+	 * @return false if all gone right, true otherwise.
+	 * @warning After calling this method, CalcServer icell array, and
+	 * permutation array may change (including their memory direction), so
+	 ' don't forgive to resend it to the next kernels.
 	 */
 	bool sort();
 
-	/** Set the number of elements
-	 * @param nElements Number of elements to sort.
-	 * @return false if all gone right. \n true otherwise.
-	 * @remarks After calling this method, probably you want to call
-	 * SetupOpenCL too.
+	/** Set the number of elements to sort
+	 * @param n_elements Number of elements to sort.
+	 * @return false if all gone right, true otherwise.
 	 */
-	bool setN(unsigned int nElements);
+	bool setN(unsigned int n_elements);
 
 	#ifdef HAVE_GPUPROFILE
 	    /** Set the kernel time consumed.
@@ -149,85 +125,85 @@ public:
 
 private:
 	/** Setup OpenCL kernel
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool setupOpenCL();
 
 	/** Initialize permutations array.
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
-	bool _init();
+	bool init();
 
 	/** Transpose the permutations matrix to improve the data access.
 	 * @param nbrow Number of rows.
 	 * @param nbcol Number of columns.
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
-	bool _transpose(unsigned int nbrow, unsigned int nbcol);
+	bool transpose(unsigned int nbrow, unsigned int nbcol);
 
 	/** Perform histograms.
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
-	bool _histograms();
+	bool histograms();
 
 	/** Scan histograms.
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
-	bool _scan();
+	bool scan();
 
 	/** Scan histograms.
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
-	bool _reorder();
+	bool reorder();
 
 	/** Build the reversed permutations vector.
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
-	bool _reversePermutations();
+	bool reversePermutations();
 
 	/// Path of the kernels
-	char* Path;
+	char* _path;
 	/// Number of elements to sort (don't set manually)
-	unsigned int n;
+	unsigned int _n;
 	/// Local work size (default value = 128)
 	size_t _local_work_size;
 	/// Global work size
 	size_t _global_work_size;
 	/// Key bits (maximum)
-	unsigned int keyBits;
-	/// Needed radix pass (keyBits / _STEPBITS)
-	unsigned int nPass;
-	/// Active pass (keyBits / _STEPBITS)
-	unsigned int pass;
+	unsigned int _key_bits;
+	/// Needed radix pass (_key_bits / _STEPBITS)
+	unsigned int _n_pass;
+	/// Active pass (_key_bits / _STEPBITS)
+	unsigned int _pass;
 
 	/// Input keys (CalcServer icell array)
-	cl_mem clInKeys;
+	cl_mem _in_keys;
 	/// Output keys
-	cl_mem clOutKeys;
+	cl_mem _out_keys;
 	/// Input permutations
-	cl_mem clInPermut;
+	cl_mem _in_permut;
 	/// Output permutations (CalcServer permutations array)
-	cl_mem clOutPermut;
+	cl_mem _out_permut;
 	/// Histograms
-	cl_mem clHistograms;
+	cl_mem _histograms;
 	/// Sums
-	cl_mem clGlobalSums;
+	cl_mem _global_sums;
 	/// Temporal memory
-	cl_mem clTempMem;
+	cl_mem _temp_mem;
 	/// OpenCL initialization kernel
-	cl_kernel ckInit;
+	cl_kernel _init_kernel;
 	/// Transposition algorithm
-	cl_kernel ckTranspose;
+	cl_kernel _transpose_kernel;
 	/// OpenCL histogram kernel
-	cl_kernel ckHistogram;
+	cl_kernel _histograms_kernel;
 	/// OpenCL scan histogram kernel
-	cl_kernel ckScanHistogram;
+	cl_kernel _histograms_scan_kernel;
 	/// OpenCL paste histogram kernel
-	cl_kernel ckPasteHistogram;
+	cl_kernel _paste_histograms_kernel;
 	/// OpenCL permutations kernel
-	cl_kernel ckReorder;
+	cl_kernel _sort_kernel;
 	/// OpenCL reverse permutations kernel
-	cl_kernel ckReversePermutations;
+	cl_kernel _inv_permutations_kernel;
 	/// OpenCL program
 	cl_program _program;
 
@@ -237,18 +213,18 @@ private:
 	#endif
 
     /// Number of items in a group
-    unsigned int mItems;
+    unsigned int _items;
     /// Number of groups in a radix
-    unsigned int mGroups;
+    unsigned int _groups;
     /// Bits of the Radix
-    unsigned int mBits;
+    unsigned int _bits;
     /// Number of radices
-    unsigned int mRadix;
+    unsigned int _radix;
     /// Splits of the histogram
-    unsigned int mHistoSplit;
+    unsigned int _histo_split;
 
 	/// Tile size warning shown
-	bool tilesizeWarning;
+	bool _tilesize_warn;
 };
 
 }}  // namespace
