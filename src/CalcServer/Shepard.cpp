@@ -96,7 +96,7 @@ bool Shepard::execute()
 	err_code |= sendArgument(_kernel,  3, sizeof(cl_mem  ), (void*)&(C->shepard));
 	err_code |= sendArgument(_kernel,  4, sizeof(cl_uint ), (void*)&(C->n));
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Shepard::Shepard): Can't send arguments to Shepard computation kernel.\n");
+		S->addMessage(3, "(Shepard::Shepard): Failure sending variables to Shepard computation kernel.\n");
 	    return true;
 	}
 	//! Execute the kernel

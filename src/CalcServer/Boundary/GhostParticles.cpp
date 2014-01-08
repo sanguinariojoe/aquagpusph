@@ -43,7 +43,7 @@ GhostParticles::GhostParticles()
 	, _path(0)
 	, _program(0)
 	, _kernel(0)
-	, isDelta(false)
+	, _is_delta(false)
 	, _use_local_mem(true)
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
@@ -65,7 +65,7 @@ GhostParticles::GhostParticles()
 	strcat(_path, ".cl");
     for(i=0;i<P->n_fluids;i++){
         if(P->fluids[i].delta > 0.f){
-            isDelta = true;
+            _is_delta = true;
             break;
         }
     }
@@ -146,23 +146,23 @@ bool GhostParticles::execute()
 	    err_code |= sendArgument(_kernel, 25, sizeof(uivec   ), (void*)&(C->num_cells_vec));
 	    err_code |= sendArgument(_kernel, 26, sizeof(vec     ), (void*)&(C->g));
 	    err_code |= sendArgument(_kernel, 27, sizeof(cl_mem  ), (void*)&(mWalls.at(i)));
-        unsigned int nAddedArgs = 0;
-        if(isDelta) {
+        unsigned int added_args = 0;
+        if(_is_delta) {
             err_code |= sendArgument(_kernel, 28, sizeof(cl_mem), (void*)&(C->delta));
             err_code |= sendArgument(_kernel, 29, sizeof(cl_float), (void*)&(C->dt));
             err_code |= sendArgument(_kernel, 30, sizeof(cl_float), (void*)&(C->cs));
-            nAddedArgs = 3;
+            added_args = 3;
         }
 	    if(_use_local_mem){
-	        err_code |= sendArgument(_kernel, 28+nAddedArgs, _local_work_size*sizeof(cl_float), NULL);
-	        err_code |= sendArgument(_kernel, 29+nAddedArgs, _local_work_size*sizeof(vec     ), NULL);
-	        err_code |= sendArgument(_kernel, 30+nAddedArgs, _local_work_size*sizeof(cl_float), NULL);
-	        err_code |= sendArgument(_kernel, 31+nAddedArgs, _local_work_size*sizeof(cl_float), NULL);
-	        err_code |= sendArgument(_kernel, 32+nAddedArgs, _local_work_size*sizeof(cl_float), NULL);
-	        err_code |= sendArgument(_kernel, 33+nAddedArgs, _local_work_size*sizeof(vec     ), NULL);
+	        err_code |= sendArgument(_kernel, 28+added_args, _local_work_size*sizeof(cl_float), NULL);
+	        err_code |= sendArgument(_kernel, 29+added_args, _local_work_size*sizeof(vec     ), NULL);
+	        err_code |= sendArgument(_kernel, 30+added_args, _local_work_size*sizeof(cl_float), NULL);
+	        err_code |= sendArgument(_kernel, 31+added_args, _local_work_size*sizeof(cl_float), NULL);
+	        err_code |= sendArgument(_kernel, 32+added_args, _local_work_size*sizeof(cl_float), NULL);
+	        err_code |= sendArgument(_kernel, 33+added_args, _local_work_size*sizeof(vec     ), NULL);
 	    }
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(GhostParticles::execute): Can't send arguments to GhostParticles effect computation kernel.\n");
+	        S->addMessage(3, "(GhostParticles::execute): Failure sending variables to GhostParticles effect computation kernel.\n");
 	        return true;
 	    }
 	    // Execute the kernel
@@ -214,7 +214,7 @@ bool GhostParticles::setupOpenCL()
 	strcpy(args, "");
 	sprintf(args, "-D__PRESS_MODEL__=%u -D__NORMAL_U_MODEL__=%u -D__TANGENT_U_MODEL__=%u ",
 	        P->ghost_particles.p_extension, P->ghost_particles.vn_extension, P->ghost_particles.vt_extension);
-	if(isDelta)
+	if(_is_delta)
         strcat(args, "-D__DELTA_SPH__");
 	CalcServer *C = CalcServer::singleton();
 	char msg[1024];

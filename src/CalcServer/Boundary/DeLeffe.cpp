@@ -119,7 +119,7 @@ bool DeLeffe::vertices()
 	err_code |= sendArgument(clVerticesKernel, 14, sizeof(cl_uint ), (void*)&(C->n));
 	err_code |= sendArgument(clVerticesKernel, 15, sizeof(cl_float), (void*)&(C->cs));
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(DeLeffe::vertices): Can't send arguments to Vertex set kernel.\n");
+		S->addMessage(3, "(DeLeffe::vertices): Failure sending variables to Vertex set kernel.\n");
 	    return true;
 	}
 	//! Execute the kernel
@@ -197,7 +197,7 @@ bool DeLeffe::boundary()
 	    err_code |= sendArgument(clBoundaryKernel, 22, _local_work_size*sizeof(vec     ), NULL);
 	}
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(DeLeffe::boundary): Can't send arguments to boundary computation kernel.\n");
+		S->addMessage(3, "(DeLeffe::boundary): Failure sending variables to boundary computation kernel.\n");
 	    return true;
 	}
 	//! Execute the kernel

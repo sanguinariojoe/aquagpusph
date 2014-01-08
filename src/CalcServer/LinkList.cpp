@@ -105,7 +105,7 @@ bool LinkList::execute()
                              sizeof(cl_uint),
                              (void*)&(C->N));
 	if(err_code != CL_SUCCESS) {
-		S->addMessageF(3, "Can't send arguments to the ihoc clearer kernel.\n");
+		S->addMessageF(3, "Failure sending variables to the ihoc clearer kernel.\n");
 	    return true;
 	}
 	_local_work_size  = localWorkSize(C->num_cells);
@@ -215,7 +215,7 @@ bool LinkList::execute()
                              sizeof(uivec),
                              (void*)&C->num_cells_vec);
 	if(err_code != CL_SUCCESS) {
-		S->addMessageF(3, "Can't send arguments to the cells localization kernel.\n");
+		S->addMessageF(3, "Failure sending variables to the cells localization kernel.\n");
 	    return true;
 	}
 	_local_work_size  = localWorkSize(C->num_icell);
@@ -303,7 +303,7 @@ bool LinkList::execute()
                              sizeof(cl_uint),
                              (void*)&nMinOne);
 	if(err_code != CL_SUCCESS) {
-		S->addMessageF(3, "Can't send arguments to the Link-List kernel.\n");
+		S->addMessageF(3, "Failure sending variables to the Link-List kernel.\n");
 	    return true;
 	}
 	_local_work_size  = localWorkSize(nMinOne);

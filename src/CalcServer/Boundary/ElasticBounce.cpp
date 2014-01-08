@@ -114,7 +114,7 @@ bool ElasticBounce::execute()
 	err_code |= sendArgument(_kernel, 14, sizeof(uivec   ), (void*)&(C->num_cells_vec));
 	err_code |= sendArgument(_kernel, 15, sizeof(vec     ), (void*)&(C->g));
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(ElasticBounce::Boundary): Can't send arguments to boundary computation kernel.\n");
+		S->addMessage(3, "(ElasticBounce::Boundary): Failure sending variables to boundary computation kernel.\n");
 	    return true;
 	}
 	//! Execute the kernel

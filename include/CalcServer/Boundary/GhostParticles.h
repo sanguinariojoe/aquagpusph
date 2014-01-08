@@ -82,7 +82,7 @@ private:
 	/// Array of walls with all parameters
 	std::deque<cl_mem> mWalls;
 	/// true if \f$delta\f$-SPH (cont. eq. diffusive term) must be applied.
-	bool isDelta;
+	bool _is_delta;
 	/// true if local memory can be used on kernel.
 	bool _use_local_mem;
 };

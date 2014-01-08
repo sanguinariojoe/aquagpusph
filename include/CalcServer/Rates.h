@@ -19,17 +19,24 @@
 #ifndef RATES_H_INCLUDED
 #define RATES_H_INCLUDED
 
-// ----------------------------------------------------------------------------
-// Include Generic kernel
-// ----------------------------------------------------------------------------
 #include <CalcServer/Kernel.h>
 
 namespace Aqua{ namespace CalcServer{
 
 /** @class Rates Rates.h CalcServer/Rates.h
- * @brief With the Link-List data the interaction between
- * particles can be performed. As a result, density rate
- * variation, forces, and some time step data will computed.
+ * @brief Compute the particles interactions to get the following data:
+ *    -# \f$ \frac{\mathrm{d} \mathbf{u}}{\mathrm{d} t} \f$
+ *    -# \f$ \frac{\mathrm{d} \rho}{\mathrm{d} t} \f$
+ *    -# \f$ \gamma = \sum_i \frac{W \left(
+            \mathbf{r}_j - \mathbf{r}_i
+       \right)}{\rho_j} m_j \f$.
+ *    -# \f$ \nabla \gamma = \sum_i \frac{\nabla W \left(
+            \mathbf{r}_j - \mathbf{r}_i
+       \right)}{\rho_j} m_j \f$
+ * In this process the interaction between fluid particles, and the effect of
+ * the fixed particles over the fluid particles is included.
+ * Some data for the boundary elements and for the sensors is computed as
+ * well, like the interpolated pressure and density.
  */
 class Rates : public Aqua::CalcServer::Kernel
 {
@@ -42,37 +49,37 @@ public:
 	 */
 	~Rates();
 
-	/** Rates of variation calculation.
-	 * @return false if all gone right. \n true otherwise.
+	/** Compute the particles interaction.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool execute();
 
 private:
-	/** Setup OpenCL kernel
-	 * @return false if all gone right. \n true otherwise.
+	/** Setup the OpenCL stuff
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool setupOpenCL();
-	/** Auxiliar method to alloc memory for link-list (when needed).
-	 * @return false if all gone right. \n true otherwise.
-	 */
-	bool allocLinkList();
 
 	/// OpenCL script path
 	char *_path;
 
 	/// OpenCL program
 	cl_program _program;
-	/// OpenCL icell kernel
+	/// Particles interaction kernel
 	cl_kernel _kernel;
-	/// OpenCL ihoc init kernel
-	cl_kernel clSortKernel;
+	/** Fields sort kernel. Link-List will return a sorted icell array, with
+	 * the associated permutations array, but the rest of the fields are
+	 * unsorted yet, and therefore they must be sorted before the particles
+	 * interaction stage.
+	 */
+	cl_kernel _sort_kernel;
 	/// Global work size.
 	size_t _global_work_size;
 	/// Local work size
 	size_t _local_work_size;
 	/// true if \f$delta\f$-SPH (cont. eq. diffusive term) must be applied.
-	bool isDelta;
-	/// true if local memory can be used on kernel.
+	bool _is_delta;
+	/// true if local memory can be used for the kernel execution.
 	bool _use_local_mem;
 };
 

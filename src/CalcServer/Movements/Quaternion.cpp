@@ -141,7 +141,7 @@ bool Quaternion::execute()
 	err_code |= sendArgument(_kernel, 18, sizeof(vec     ), (void*)&(oldY));
 	err_code |= sendArgument(_kernel, 19, sizeof(vec     ), (void*)&(oldZ));
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Quaternion::execute): Can't send arguments to _kernel.\n");
+		S->addMessage(3, "(Quaternion::execute): Failure sending variables to _kernel.\n");
 	    return true;
 	}
 	//! Execute the kernel
