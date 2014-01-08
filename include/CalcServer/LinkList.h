@@ -19,21 +19,16 @@
 #ifndef LINKLIST_H_INCLUDED
 #define LINKLIST_H_INCLUDED
 
-// ----------------------------------------------------------------------------
-// Include Generic kernel
-// ----------------------------------------------------------------------------
 #include <CalcServer/Kernel.h>
-
-// ----------------------------------------------------------------------------
-// Include Radix sort tool
-// ----------------------------------------------------------------------------
 #include <CalcServer/RadixSort.h>
 
 namespace Aqua{ namespace CalcServer{
 
 /** @class LinkList LinkList.h CalcServer/LinkList.h
- * @brief In cell particles localization. When particle cells have been determined
- * a chain of them is set. To learn more see Grid.
+ * @brief PIC (Particle In Cell) based neighbours localization. This method
+ * will sort the particles in function of its cells, shuch that it can be
+ * granted that the next particle in each cell will be the next one. This
+ * process optimize the interactions stage with high performance increases.
  */
 class LinkList : public Aqua::CalcServer::Kernel
 {
@@ -46,18 +41,19 @@ public:
 	 */
 	~LinkList();
 
-	/** Performs link-list.
-	 * @return false if all gone right. \n true otherwise.
+	/** Performs the link-list.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool execute();
 
 private:
-	/** Setup OpenCL kernel
-	 * @return false if all gone right. \n true otherwise.
+	/** Setup the OpenCL stuff
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool setupOpenCL();
-	/** Auxiliar method to alloc memory for link-list (when needed).
-	 * @return false if all gone right. \n true otherwise.
+
+	/** Auxiliar method to alloc memory for the link-list (when needed).
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool allocLinkList();
 
@@ -67,18 +63,18 @@ private:
 	/// OpenCL program
 	cl_program _program;
 	/// OpenCL icell kernel
-	cl_kernel clLcellKernel;
+	cl_kernel _icell_kernel;
 	/// OpenCL ihoc init kernel
-	cl_kernel clIhocKernel;
+	cl_kernel _ihoc_kernel;
 	/// OpenCL link-list kernel
-	cl_kernel clLLKernel;
+	cl_kernel _ll_kernel;
 	/// Global work size.
 	size_t _global_work_size;
 	/// Local work size
 	size_t _local_work_size;
 
 	/// Radix sort module
-	RadixSort *mRadixSort;
+	RadixSort *_radix_sort;
 };
 
 }}  // namespace

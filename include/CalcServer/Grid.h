@@ -19,24 +19,18 @@
 #ifndef GRID_H_INCLUDED
 #define GRID_H_INCLUDED
 
-// ----------------------------------------------------------------------------
-// Include Generic kernel
-// ----------------------------------------------------------------------------
 #include <CalcServer/Kernel.h>
-
-// ----------------------------------------------------------------------------
-// Include Reduction tool
-// ----------------------------------------------------------------------------
 #include <CalcServer/Reduction.h>
 
 namespace Aqua{ namespace CalcServer{
 
 /** @class Grid Grid.h CalcServer/Grid.h
- * @brief Grid allocation stage. All particle interaction are limited
- * in distance with a know parameter, so the space can be discretized
- * in cells using this charasteristic length, and guarantee that a
- * particle only can interact with other particles included into neighbour
- * cells. Grid stage builds the discretized space grid.
+ * @brief Grid allocation stage. Since the particles maximum interaction
+ * distance is bounded, in SPH is a common optimization method to create a
+ * lattice mesh with the cell size equal to the interaction distance in order
+ * to locate each particle, unsuring therefore that all the particles which
+ * can interact should be in the same cell, or in a contiguous one.
+ * This tool will setup the lattice mesh (formerly grid).
  */
 class Grid : public Aqua::CalcServer::Kernel
 {
@@ -49,16 +43,16 @@ public:
 	 */
 	~Grid();
 
-	/** Performs space discretization.
-	 * @return false if all gone right. \n true otherwise.
+	/** Performs the space discretization.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool execute();
 
 private:
     /// Minimum position reduction tool
-    Reduction *maximum;
+    Reduction *_maximum;
     /// Maximum position reduction tool
-    Reduction *minimum;
+    Reduction *_minimum;
 };
 
 }}  // namespace

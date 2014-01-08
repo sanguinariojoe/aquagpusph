@@ -151,17 +151,17 @@ bool TimeStep::execute()
 	C->dt /= C->dt_divisor;
 	if(MainDt > 10.f*C->dt)
 	{
-		char Log[256];
-		sprintf(Log, "(TimeStep::Execute): timestep has dramaticaly decreased! [%g -> %g]\n",MainDt,C->dt);
-		S->addMessage(3, Log);
+		char msg[256];
+		sprintf(msg, "(TimeStep::Execute): timestep has dramaticaly decreased! [%g -> %g]\n",MainDt,C->dt);
+		S->addMessage(3, msg);
 		MainDt = C->dt;
 	}
 	if(C->dt < P->time_opts.dt_min){
 		if(!dtClamp){
-			char Log[256];
-			sprintf(Log, "(TimeStep::Execute): timestep lower than minimum value [%g < %g], will be clamped therefore\n",
+			char msg[256];
+			sprintf(msg, "(TimeStep::Execute): timestep lower than minimum value [%g < %g], will be clamped therefore\n",
 			        C->dt,P->time_opts.dt_min);
-			S->addMessage(3, Log);
+			S->addMessage(3, msg);
 		}
 		dtClamp = 1;
 		C->dt = P->time_opts.dt_min;

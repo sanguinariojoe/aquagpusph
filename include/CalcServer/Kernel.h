@@ -45,49 +45,47 @@
 namespace Aqua{ namespace CalcServer{
 
 /** @class Kernel Kernel.h CalcServer/Kernel.h
- * @brief All calculation subclasses of CalcServer are called Kernel,
- * as OpenCL nomenclature natural extension. See Inherited diagram.
+ * @brief All computational tools of CalcServer are inherited from this class,
+ * becoming an OpenCL nomenclature natural extension.
  */
 class Kernel
 {
 public:
 	/** Constructor.
-	 * @param kernelName Kernel name.
+	 * @param kernel_name Kernel name.
 	 */
-	Kernel(const char* kernelName);
+	Kernel(const char* kernel_name);
 
 	/** Destructor
 	 */
 	~Kernel();
 
-	/** Returns maximum local work size for selected device.
-	 * @param n Amount of data to solve. If 0 provided,
-	 * CalcServer number of particles will selected.
-	 * @param queue Command queue where device is allocated.
-	 * If NULL, first command queue on CalcServer will
-	 * selected.
-	 * @return Global work size.
-	 * @note Probably you don't need overload this method.
+	/** Returns the maximum allowed local work size for the selected device.
+	 * @param n Amount of data to solve. If 0 provided, CalcServer number of
+	 * particles will be selected.
+	 * @param queue Command queue where device is allocated. If it is NULL,
+	 * the first command queue present on the CalcServer will be selected.
+	 * @return The local work size.
 	 */
 	virtual size_t localWorkSize(unsigned int n=0,cl_command_queue queue=NULL);
 
-	/** Returns global work size from designed local size.
+	/** Returns the appropiated global work size depending on the local work
+	 * size.
 	 * @param size Local work size.
-	 * @param n Amount of data to solve. If 0 provided,
-	 * CalcServer number of particles will selected.
+	 * @param n Amount of data to solve. If 0 is provided, CalcServer number
+	 * of particles will be selected.
 	 * @return Global work size.
-	 * @note Probably you don't need overload this method.
 	 */
 	virtual size_t globalWorkSize(size_t size, unsigned int n=0);
 
 	/** Set the kernel name.
-	 * @param kernelName Kernel name.
+	 * @param kernel_name Kernel name.
 	 */
-	void name(const char* kernelName);
+	void name(const char* kernel_name);
 	/** Get the kernel name.
 	 * @return Kernel name.
 	 */
-	const char* name(){return (const char*)mName;}
+	const char* name(){return (const char*)_name;}
 
 	#ifdef HAVE_GPUPROFILE
 	    /** Set the kernel time consumed.
@@ -102,7 +100,7 @@ public:
 
 private:
 	/// Kernel name
-	char* mName;
+	char* _name;
 	#ifdef HAVE_GPUPROFILE
 	    /// Kernel real time consumed
 	    float _time;

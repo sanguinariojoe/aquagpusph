@@ -16,37 +16,30 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// ----------------------------------------------------------------------------
-// Include the main header
-// ----------------------------------------------------------------------------
 #include <CalcServer/Kernel.h>
-
-// ----------------------------------------------------------------------------
-// Include the calculation server
-// ----------------------------------------------------------------------------
 #include <CalcServer.h>
 
 namespace Aqua{ namespace CalcServer{
 
-Kernel::Kernel(const char* kernelName)
-	: mName(0)
+Kernel::Kernel(const char* kernel_name)
+	: _name(0)
 	#ifdef HAVE_GPUPROFILE
 	    , _time(0)
 	#endif
 {
-	name(kernelName);
+	name(kernel_name);
 }
 
 Kernel::~Kernel()
 {
-	if(mName) delete[] mName; mName=0;
+	if(_name) delete[] _name; _name=0;
 }
 
-void Kernel::name(const char* kernelName)
+void Kernel::name(const char* kernel_name)
 {
-	if(mName) delete[] mName; mName=0;
-	mName = new char[strlen(kernelName)+1];
-	strcpy(mName, kernelName);
+	if(_name) delete[] _name; _name=0;
+	_name = new char[strlen(kernel_name)+1];
+	strcpy(_name, kernel_name);
 }
 
 size_t Kernel::localWorkSize(unsigned int n, cl_command_queue queue)

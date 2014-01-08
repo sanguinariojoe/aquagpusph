@@ -16,32 +16,17 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// ----------------------------------------------------------------------------
-// Include the Problem setup manager header
-// ----------------------------------------------------------------------------
 #include <ProblemSetup.h>
-
-// ----------------------------------------------------------------------------
-// Include the Problem setup manager header
-// ----------------------------------------------------------------------------
 #include <ScreenManager.h>
-
-// ----------------------------------------------------------------------------
-// Include the main header
-// ----------------------------------------------------------------------------
 #include <CalcServer/Grid.h>
-
-// ----------------------------------------------------------------------------
-// Include the calculation server
-// ----------------------------------------------------------------------------
 #include <CalcServer.h>
 
 namespace Aqua{ namespace CalcServer{
 
 Grid::Grid()
     : Kernel("Grid")
-	, maximum(NULL)
-	, minimum(NULL)
+	, _maximum(NULL)
+	, _minimum(NULL)
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
@@ -52,9 +37,9 @@ Grid::Grid()
     #ifdef HAVE_3D
         strcat(operation, "\tc.z = (a.z > b.z) ? a.z : b.z;\n");
         strcat(operation, "\tc.w = 0.f;\n");
-        maximum = new Reduction(C->pos, C->N, "vec", "(vec)(-INFINITY,-INFINITY,-INFINITY,0.f)", operation);
+        _maximum = new Reduction(C->pos, C->N, "vec", "(vec)(-INFINITY,-INFINITY,-INFINITY,0.f)", operation);
     #else
-        maximum = new Reduction(C->pos, C->N, "vec", "(vec)(-INFINITY,-INFINITY)", operation);
+        _maximum = new Reduction(C->pos, C->N, "vec", "(vec)(-INFINITY,-INFINITY)", operation);
     #endif
     strcpy(operation, "");
     strcat(operation, "c.x = (a.x < b.x) ? a.x : b.x;\n");
@@ -62,20 +47,20 @@ Grid::Grid()
     #ifdef HAVE_3D
         strcat(operation, "\tc.z = (a.z < b.z) ? a.z : b.z;\n");
         strcat(operation, "\tc.w = 0.f;\n");
-        minimum = new Reduction(C->pos, C->N, "vec", "(vec)(INFINITY,INFINITY,INFINITY,0.f)", operation);
+        _minimum = new Reduction(C->pos, C->N, "vec", "(vec)(INFINITY,INFINITY,INFINITY,0.f)", operation);
     #else
-        minimum = new Reduction(C->pos, C->N, "vec", "(vec)(INFINITY,INFINITY)", operation);
+        _minimum = new Reduction(C->pos, C->N, "vec", "(vec)(INFINITY,INFINITY)", operation);
     #endif
-	S->addMessage(1, "(Grid::Grid): Grid ready to work!\n");
+	S->addMessageF(1, "Grid ready to work!\n");
 }
 
 Grid::~Grid()
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	S->addMessage(1, "(Grid::~Grid): Destroying grid maximum position reduction processor...\n");
-	if(maximum)delete maximum; maximum=NULL;
-	S->addMessage(1, "(Grid::~Grid): Destroying grid minimum position reduction processor...\n");
-	if(minimum)delete minimum; minimum=NULL;
+	S->addMessageF(1, "Destroying grid maximum position reduction processor...\n");
+	if(_maximum)delete _maximum; _maximum=NULL;
+	S->addMessageF(1, "Destroying grid minimum position reduction processor...\n");
+	if(_minimum)delete _minimum; _minimum=NULL;
 }
 
 bool Grid::execute()
@@ -88,12 +73,12 @@ bool Grid::execute()
 	#if defined(__GAUSS_KERNEL_TYPE__)
 		sep = 3.f;
 	#endif
-    cl_mem reduced = maximum->execute();
+    cl_mem reduced = _maximum->execute();
     if(!reduced)
         return true;
 	if(C->getData((void *)&C->pos_max, reduced, sizeof(vec)))
 		return true;
-    reduced = minimum->execute();
+    reduced = _minimum->execute();
     if(!reduced)
         return true;
 	if(C->getData((void *)&C->pos_min, reduced, sizeof(vec)))

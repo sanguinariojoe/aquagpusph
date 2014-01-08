@@ -361,9 +361,9 @@ void ScreenManager::update()
 	if(mOldFrame != T->frame()){
 	    if(mOldDt != c->dt)
 	    {
-	        char Log[256];
-	        sprintf(Log, "(ScreenManager::Update): timestep changed [%g -> %g]\n",mOldDt,c->dt);
-	        addMessage(2, Log);
+	        char msg[256];
+	        sprintf(msg, "(ScreenManager::Update): timestep changed [%g -> %g]\n",mOldDt,c->dt);
+	        addMessage(2, msg);
 	    }
 	    mOldFrame = T->frame();
 	    mOldDt = c->dt;
