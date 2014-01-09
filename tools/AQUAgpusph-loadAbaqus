@@ -1,0 +1,161 @@
+#! /usr/bin/env python
+#********************************************************************************
+#                                                                               *
+#               *    **   *  *   *                           *                  *
+#              * *  *  *  *  *  * *                          *                  *
+#             ***** *  *  *  * *****  **  ***  *  *  ** ***  ***                *
+#             *   * *  *  *  * *   * *  * *  * *  * *   *  * *  *               *
+#             *   * *  *  *  * *   * *  * *  * *  *   * *  * *  *               *
+#             *   *  ** *  **  *   *  *** ***   *** **  ***  *  *               *
+#                                       * *             *                       *
+#                                     **  *             *                       *
+#                                                                               *
+#********************************************************************************
+#                                                                               *
+#  This file is part of AQUAgpusph, a free CFD program based on SPH.            *
+#  Copyright (C) 2012  Jose Luis Cercos Pita <jl.cercos@upm.es>                 *
+#                                                                               *
+#  AQUAgpusph is free software: you can redistribute it and/or modify           *
+#  it under the terms of the GNU General Public License as published by         *
+#  the Free Software Foundation, either version 3 of the License, or            *
+#  (at your option) any later version.                                          *
+#                                                                               *
+#  AQUAgpusph is distributed in the hope that it will be useful,                *
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of               *
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                *
+#  GNU General Public License for more details.                                 *
+#                                                                               *
+#  You should have received a copy of the GNU General Public License            *
+#  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.          *
+#                                                                               *
+#********************************************************************************
+
+import sys
+import argparse
+from argparse import ArgumentParser
+import Abaqus
+from generator import solid, fluid
+
+header = """#############################################################
+#                                                           #
+#    #    ##   #  #   #                           #         #
+#   # #  #  #  #  #  # #                          #         #
+#  ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###       #
+#  #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #      #
+#  #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #      #
+#  #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #      #
+#                            # #             #              #
+#                          ##  #             #              #
+#                                                           #
+#############################################################
+#
+#    Fluid definition autoexported by AQUAgpusph.
+#    Particle needed data are:
+#        Position
+#        Normal      (Fluid particles can have null normal)
+#        Velocity
+#        Mass
+#    Particle optional data are (sorted):
+#        Imove       (1)
+#        Density     (refd)
+#        KernelH     (h)
+#        Ifluid      (ifluid)
+#        DensityRate (0.0)
+#        Force       ([0,0,0])
+#
+#    Normal direction is not relevant, but ensure that for
+#    solid vertexes are normalised.
+#
+#############################################################
+"""
+
+description = """Set boundary vertexes and fluid particles into the provided 3D GiD surface mesh.
+This tool will set the boundary, usable with Simple or Ferrand boundary
+conditions (and eventually with Ghost particles), placing vertexes over the
+elements of the provided mesh, and the fluid included into it.
+So the tool is designed for closed meshes with confined fluid therefore.
+GiD mesh must be composed by quadrangular elements, as many regular and plane as possible. The
+faces normals will be computed from the points data as the cross product of diagonal vectors."""
+version     = "%prog 1.0"
+
+def main():
+	parser = ArgumentParser(description=description,
+	                        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+	parser.add_argument('-v', '--version', action='version', version=version)
+	parser.add_argument('meshfile', metavar='FILE', type=str, nargs=1,
+                            help='GiD quadrangular elements mesh')
+	parser.add_argument('--level', metavar='VALUE', type=float,
+                            dest='level', required=True,
+                            help="""Level of fluid to set, in absolute coordinates, meaning that
+                            the solid will be filled with fluid till this z coordinate in meters,
+                            even though the minimum z coordinate is not the origin.""")
+	parser.add_argument('--deltar', metavar='VALUE', type=float,
+                            dest='dr', required=True,
+                            help="""Preferred distance between particles. The distance between
+                            particles can be modified in order to fit them as better as possible
+                            on the mesh, reflecting the new distance on the particle mass""")
+	parser.add_argument('--refd', metavar='VALUE', type=float,
+                            dest='refd', default=1000.0,
+                            help="""Fluid density.""")                            
+	parser.add_argument('--sound-speed', metavar='VALUE', type=float,
+                            dest='cs', default=15.0,
+                            help="""Sound speed. This value is needed for compressibility,
+                            and must match with the selected one on the SPH settings.
+                            Sound speed must be, at least, 10 times the
+                            maximum expected value, but be mindful that increasing
+                            this value the time step may decrease""")                            
+	parser.add_argument('--gamma', metavar='VALUE', type=float,
+                            dest='gamma', default=7.0,
+                            help="""Batchelor's 67 state equation gamma factor. In weakly
+                            compressible SPH branch the density and the pressure are related
+                            by a state equation, that in AQUAgpusph is the Batchelor's 67
+                            one. Increasing gamma factor compressibility high incompressible
+                            fluid will get. For water recommended value is 7.0""")
+	parser.add_argument('--gravity', metavar='VALUE', type=float,
+                            dest='g', default=9.81,
+                            help="""Gravity value. Gravity vector is assumed oriented 
+                            on negative Z axis. Gravity is used to compute the hydrostatic
+                            pressure, and set density according""")
+	parser.add_argument('-o', '--output', metavar='FILE', type=str,
+                            dest='output', default='Particles.dat',
+                            help='ASCII output particles file')
+	args     = parser.parse_args()
+	# ------------------------------------------------------------
+	print("Loading mesh...")
+	faces     = Abaqus.loadQuadMesh(args.meshfile[-1])
+	print("OK")
+	# ------------------------------------------------------------
+	print("Creating vertexes over the solid surface...")
+	vertexes  = solid.perform(faces, args.level, args.dr, args.refd, args.cs, args.gamma, args.g)
+	print("OK")
+	# ------------------------------------------------------------
+	print("Creating fluid particles inside the solid...")
+	particles = fluid.perform(faces, args.level, args.dr, args.refd, args.cs, args.gamma, args.g)
+	print("OK")
+	# ------------------------------------------------------------
+	print("Writing output...")
+	f        = open(args.output,"w")
+	f.write(header)
+	for p in particles:
+		string = """%g %g %g %g %g %g 0.0 0.0 0.0 %g %d %g\n""" % (p[0][0], p[0][1], p[0][2],
+		                                                           p[1][0], p[1][1], p[1][2],
+		                                                           p[2],
+		                                                           1,
+		                                                           p[3])
+		f.write(string)
+	for v in vertexes:
+		string = """%g %g %g %g %g %g 0.0 0.0 0.0 %g %d %g\n""" % (v[0][0], v[0][1], v[0][2],
+		                                                           v[1][0], v[1][1], v[1][2],
+		                                                           v[2],
+		                                                           -1,
+		                                                           v[3])
+		f.write(string)
+	print("OK")
+	print("\n%d particles have been generated, set it in your fluid configuration.\n" % (len(vertexes)+len(particles)))
+
+if __name__ == "__main__":
+	main()
+
+
+
+
