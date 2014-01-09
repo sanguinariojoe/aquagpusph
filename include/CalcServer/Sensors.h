@@ -19,16 +19,12 @@
 #ifndef SENSORS_H_INCLUDED
 #define SENSORS_H_INCLUDED
 
-// ----------------------------------------------------------------------------
-// Include Generic kernel
-// ----------------------------------------------------------------------------
 #include <CalcServer/Kernel.h>
 
 namespace Aqua{ namespace CalcServer{
 
 /** @class Sensors Sensors.h CalcServer/Sensors.h
- * @brief Perform sensors calculation.
- * @todo Fix sensors technique
+ * @brief Sensors fields computation.
  */
 class Sensors : public Aqua::CalcServer::Kernel
 {
@@ -42,48 +38,46 @@ public:
 	~Sensors();
 
 	/** Sensors calculation.
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool execute();
 
 protected:
-	/** Retrieve data form server, and print output.
-	 * @return false if all gone right. \n true otherwise.
+	/** Retrieve data form the device, printing it in the output file.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool printOutput();
 
 private:
-	/** Setup OpenCL kernel
-	 * @return false if all gone right. \n true otherwise.
+	/** Setup the OpenCL stuff
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool setupOpenCL();
 
-	/** Start output
-	 * @return false if all gone right. \n true otherwise.
+	/** Start the output file
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool initOutput();
 
 	/// Number of sensors
-	int n;
+	int _n;
 
 	/// OpenCL script path
 	char* _path;
 
 	/// Output file
-	FILE* Output;
+	FILE* _output;
 	/// Last time when a file was printed
-	float OutputTime;
+	float _output_time;
 
-	/// Host storage for positions
-	vec *hPos;
-	/// Host storage for pressures
-	cl_float *hPress;
-	/// Host storage for density
-	cl_float *hDens;
-	/// Host storage for Shepard term
-	cl_float *hSumW;
-	/// Host storage for Shepard term gradient
-	vec *hGradW;
+	/// Positions
+	vec *_pos;
+	/// Pressures
+	cl_float *_press;
+	/// Densities
+	cl_float *_dens;
+	/// Shepard terms
+	cl_float *_sum_W;
 
 	/// OpenCL program
 	cl_program _program;
