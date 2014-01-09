@@ -75,6 +75,7 @@
  * @param N Number of particles.
  * @param lvec Number of cells
  * @param grav Gravity vector
+ * @param r_element Tangential distance to the element in order to considerate that the particle is passing through him
  */
 __kernel void Boundary( _g int* iMove,
                         _g vec* pos, _g vec* v, _g vec* f, _g vec* fin, _g vec* normal,
@@ -82,7 +83,7 @@ __kernel void Boundary( _g int* iMove,
                         // Link-list data
                         _g uint *lcell, _g uint *ihoc, _g uint *dPermut, _g uint *iPermut,
                         // Simulation data
-                        uint N, float dt, uivec lvec, vec grav )
+                        uint N, float dt, uivec lvec, vec grav, float r_element )
 {
 	// find position in global arrays
 	uint i = get_global_id(0);			// Particle at sorted space
@@ -110,7 +111,7 @@ __kernel void Boundary( _g int* iMove,
 	float iHp, nV, nF, nFin, nG, dist;
 	// Neighbours data
 	uint cellCount, lcc;
-	vec n,p,pV,r;
+	vec n,p,pV,r,rt;
 	float r0;
 	//! 1nd.- Particle data (reads it now in order to avoid read it from constant memory several times)
 	j = i;							// Backup of the variable, in order to compare later

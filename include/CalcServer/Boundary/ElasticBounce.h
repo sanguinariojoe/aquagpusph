@@ -65,6 +65,8 @@ private:
 	cl_program _program;
 	/// OpenCL vertices set kernel
 	cl_kernel _kernel;
+	/// Wall element radius (it is guessed as a circular element)
+	cl_float _r;
 	/// Global work size (calculated with local_work_size).
 	size_t _global_work_size;
 	/// Local work size (default value = 256)

@@ -16,6 +16,8 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <math.h>
+
 // ----------------------------------------------------------------------------
 // Include the Problem setup manager header
 // ----------------------------------------------------------------------------
@@ -40,12 +42,16 @@ namespace Aqua{ namespace CalcServer{ namespace Boundary{
 
 ElasticBounce::ElasticBounce()
 	: Kernel("ElasticBounce")
-	, _path(0)
-	, _program(0)
-	, _kernel(0)
+	, _path(NULL)
+	, _program(NULL)
+	, _kernel(NULL)
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P  = InputOutput::ProblemSetup::singleton();
+	if(P->SPH_opts.elastic_dist <= 0.f){
+        // Elastic bounce is disabled
+        return;
+	}
 	if(   P->SPH_opts.boundary_type!=0  // ElasticBounce boundary
 	   && P->SPH_opts.boundary_type!=1  // Fixed particles boundary
 	   && P->SPH_opts.boundary_type!=2  // DeLeffe boundary
@@ -74,6 +80,13 @@ ElasticBounce::ElasticBounce()
 	if(setupOpenCL()) {
 	    exit(EXIT_FAILURE);
 	}
+
+    vec deltar = P->SPH_opts.deltar;
+    #ifdef HAVE_3D
+        _r = sqrt(2.f) * (deltar.x + deltar.y + deltar.z) / 3.f;
+    #else
+        _r = sqrt(2.f) * (deltar.x + deltar.y) / 2.f;
+    #endif
 	S->addMessage(1, "(ElasticBounce::ElasticBounce): ElasticBounce boundary condition ready to work!\n");
 }
 
@@ -88,10 +101,13 @@ bool ElasticBounce::execute()
 {
 	//! Test if boundary condition must be executed
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
+	if(P->SPH_opts.elastic_dist <= 0.f){
+        // Elastic bounce is disabled
+        return false;
+	}
 	if(   P->SPH_opts.boundary_type!=0  // ElasticBounce boundary
 	   && P->SPH_opts.boundary_type!=1  // Fixed particles boundary
-	   && P->SPH_opts.boundary_type!=2  // DeLeffe boundary
-	   )
+	   && P->SPH_opts.boundary_type!=2) // DeLeffe boundary
 	    return false;
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
@@ -113,6 +129,7 @@ bool ElasticBounce::execute()
 	err_code |= sendArgument(_kernel, 13, sizeof(cl_float), (void*)&(C->dt));
 	err_code |= sendArgument(_kernel, 14, sizeof(uivec   ), (void*)&(C->num_cells_vec));
 	err_code |= sendArgument(_kernel, 15, sizeof(vec     ), (void*)&(C->g));
+	err_code |= sendArgument(_kernel, 16, sizeof(cl_float), (void*)&_r);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(ElasticBounce::Boundary): Failure sending variables to boundary computation kernel.\n");
 	    return true;

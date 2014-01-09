@@ -27,6 +27,13 @@ pV = v[dPermut[i]];
 // ------------------------------------------------------------------
 r  = iPos - p;                                                                   // Vector from vertex to particle               [m]
 r0 = dot(r,n);                                                                   // Normal distance between particle and vertex  [m]
+rt = r - r0*n;  // Tangental projected distance
+if(dot(rt, rt) >= r_element * r_element){
+    // The particle is passing too far from the wall element
+	i++;
+	continue;
+}
+
 // Test for swap normal (that must be internal oriented)
 if(r0 < 0.f){
 	n  = -n;
