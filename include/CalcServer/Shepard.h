@@ -27,11 +27,12 @@
 namespace Aqua{ namespace CalcServer{
 
 /** @class Shepard Shepard.h CalcServer/Shepard.h
- * @brief Renormalization factor applied to forces and density variations.
- * @remarks 0th order correction (formerly Shepard correction) is mandatory when
- * free surface is being computed, or DeLeffe boundary condition imposed,
- * but since Shepard term can be a little bit unstable, will not executed if is
- * disabled from options (is active by default).
+ * @brief Renormalization factor applied to forces and density variation
+ * rates.
+ * @remarks 0th order correction (formerly Shepard correction) is mandatory
+ * when DeLeffe boundary condition (formerly boundary integrals) is imposed,
+ * but since Shepard term can be a little bit unstable, it is strongly
+ * recommended to don't apply it if it is not required.
  */
 class Shepard : public Aqua::CalcServer::Kernel
 {
@@ -45,13 +46,13 @@ public:
 	~Shepard();
 
 	/** Shepard boundary computation.
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool execute();
 
 private:
-	/** Setup OpenCL kernel
-	 * @return false if all gone right. \n true otherwise.
+	/** Setup the OpenCL stuff
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool setupOpenCL();
 
@@ -62,9 +63,9 @@ private:
 	cl_program _program;
 	/// OpenCL shepard term kernel
 	cl_kernel _kernel;
-	/// Global work size (calculated with local_work_size).
+	/// Global work size
 	size_t _global_work_size;
-	/// Local work size (default value = 256)
+	/// Local work size
 	size_t _local_work_size;
 };
 

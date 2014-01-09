@@ -16,24 +16,9 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// ----------------------------------------------------------------------------
-// Include the Problem setup manager header
-// ----------------------------------------------------------------------------
 #include <ProblemSetup.h>
-
-// ----------------------------------------------------------------------------
-// Include the Problem setup manager header
-// ----------------------------------------------------------------------------
 #include <ScreenManager.h>
-
-// ----------------------------------------------------------------------------
-// Include the main header
-// ----------------------------------------------------------------------------
 #include <CalcServer/Shepard.h>
-
-// ----------------------------------------------------------------------------
-// Include the calculation server
-// ----------------------------------------------------------------------------
 #include <CalcServer.h>
 
 namespace Aqua{ namespace CalcServer{
@@ -46,32 +31,32 @@ Shepard::Shepard()
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
-	if(!P->SPH_opts.has_shepard)  // Shepard correction has not been selected
+	if(!P->SPH_opts.has_shepard)
 	    return;
-	//! 1st.- Get data
+
 	int str_len = strlen(P->OpenCL_kernels.shepard);
 	if(str_len <= 0) {
-	    S->addMessage(3, "(Shepard::Shepard): _path of Shepard kernel is empty.\n");
+	    S->addMessageF(3, "The path of the kernel is empty.\n");
 	    exit(EXIT_FAILURE);
 	}
 	_path = new char[str_len+4];
 	if(!_path) {
-	    S->addMessage(3, "(Shepard::Shepard): Memory cannot be allocated for the path.\n");
+	    S->addMessageF(3, "Memory cannot be allocated for the path.\n");
 	    exit(EXIT_FAILURE);
 	}
 	strcpy(_path, P->OpenCL_kernels.shepard);
 	strcat(_path, ".cl");
-	//! 2nd.- Setup the kernel
+
 	_local_work_size  = localWorkSize();
 	if(!_local_work_size){
-	    S->addMessage(3, "(Shepard::Shepard): I cannot get a valid local work size for the required computation tool.\n");
+	    S->addMessageF(3, "I cannot get a valid local work size for the required computation tool.\n");
 	    exit(EXIT_FAILURE);
 	}
 	_global_work_size = globalWorkSize(_local_work_size);
 	if(setupOpenCL()) {
 	    exit(EXIT_FAILURE);
 	}
-	S->addMessage(1, "(Shepard::Shepard): Shepard ready to work!\n");
+	S->addMessageF(1, "Shepard ready to work!\n");
 }
 
 Shepard::~Shepard()
@@ -84,19 +69,34 @@ Shepard::~Shepard()
 bool Shepard::execute()
 {
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
-	if(!P->SPH_opts.has_shepard)  // Shepard condition has not been selected
+	if(!P->SPH_opts.has_shepard)
 	    return false;
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
 	cl_int err_code=0;
-	//! Send all variables to the server
-	err_code |= sendArgument(_kernel,  0, sizeof(cl_mem  ), (void*)&(C->imove));
-	err_code |= sendArgument(_kernel,  1, sizeof(cl_mem  ), (void*)&(C->f));
-	err_code |= sendArgument(_kernel,  2, sizeof(cl_mem  ), (void*)&(C->drdt));
-	err_code |= sendArgument(_kernel,  3, sizeof(cl_mem  ), (void*)&(C->shepard));
-	err_code |= sendArgument(_kernel,  4, sizeof(cl_uint ), (void*)&(C->n));
+
+	err_code |= sendArgument(_kernel,
+                             0,
+                             sizeof(cl_mem),
+                             (void*)&(C->imove));
+	err_code |= sendArgument(_kernel,
+                             1,
+                             sizeof(cl_mem),
+                             (void*)&(C->f));
+	err_code |= sendArgument(_kernel,
+                             2,
+                             sizeof(cl_mem),
+                             (void*)&(C->drdt));
+	err_code |= sendArgument(_kernel,
+                             3,
+                             sizeof(cl_mem),
+                             (void*)&(C->shepard));
+	err_code |= sendArgument(_kernel,
+                             4,
+                             sizeof(cl_uint),
+                             (void*)&(C->n));
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Shepard::Shepard): Failure sending variables to Shepard computation kernel.\n");
+		S->addMessageF(3, "Failure sending variables to Shepard computation kernel.\n");
 	    return true;
 	}
 	//! Execute the kernel
@@ -104,33 +104,56 @@ bool Shepard::execute()
 	#ifdef HAVE_GPUPROFILE
 	    cl_event event;
 	    cl_ulong end, start;
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, _kernel, 1, NULL, &globalWorkSize, NULL, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue,
+                                          _kernel,
+                                          1,
+                                          NULL,
+                                          &globalWorkSize
+                                          NULL,
+                                          0,
+                                          NULL,
+                                          &event);
 	#else
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, _kernel, 1, NULL, &globalWorkSize, NULL, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue,
+                                          _kernel,
+                                          1,
+                                          NULL,
+                                          &globalWorkSize,
+                                          NULL,
+                                          0,
+                                          NULL,
+                                          NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Shepard::Shepard): I cannot execute the kernel.\n");
-	    if(err_code == CL_INVALID_WORK_GROUP_SIZE)
-	        S->addMessage(0, "\tInvalid local work group size.\n");
-	    else if(err_code == CL_OUT_OF_RESOURCES)
-	        S->addMessage(0, "\tDevice out of resources.\n");
-	    else if(err_code == CL_MEM_OBJECT_ALLOCATION_FAILURE)
-	        S->addMessage(0, "\tAllocation error at device.\n");
-	    else if(err_code == CL_OUT_OF_HOST_MEMORY)
-	        S->addMessage(0, "\tfailure to allocate resources required by the OpenCL implementation on the host.\n");
+		S->addMessageF(3, "I cannot execute the kernel.\n");
+        S->printOpenCLError(err_code);
 	    return true;
 	}
-	//! Profile the kernel execution
 	#ifdef HAVE_GPUPROFILE
 	    err_code = clWaitForEvents(1, &event);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(Shepard::Shepard): Impossible to wait for the kernels end.\n");
+	        S->addMessage(3, "Impossible to wait for the kernels end.\n");
+            S->printOpenCLError(err_code);
 	        return true;
 	    }
-	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
-	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
+	    err_code |= clGetEventProfilingInfo(event,
+                                            CL_PROFILING_COMMAND_END,
+                                            sizeof(cl_ulong),
+                                            &end,
+                                            0);
 	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(Shepard::Shepard): I cannot profile the kernel execution.\n");
+	        S->addMessage(3, "I cannot profile the kernel execution.\n");
+            S->printOpenCLError(err_code);
+	        return true;
+	    }
+	    err_code |= clGetEventProfilingInfo(event,
+                                            CL_PROFILING_COMMAND_START,
+                                            sizeof(cl_ulong),
+                                            &start,
+                                            0);
+	    if(err_code != CL_SUCCESS) {
+	        S->addMessage(3, "I cannot profile the kernel execution.\n");
+            S->printOpenCLError(err_code);
 	        return true;
 	    }
 	    profileTime(profileTime() + (end - start)/1000.f);  // 10^-3 ms
@@ -144,7 +167,7 @@ bool Shepard::setupOpenCL()
 	InputOutput::ProblemSetup *P  = InputOutput::ProblemSetup::singleton();
 	CalcServer *C = CalcServer::singleton();
 	cl_int err_code;
-	// Create arguments
+
 	char args[256];
 	strcpy(args, "");
 	if(P->SPH_opts.has_shepard & 1){
@@ -153,22 +176,37 @@ bool Shepard::setupOpenCL()
 	if(P->SPH_opts.has_shepard & 2){
 	    strcat(args, "-D__DENS_CORRECTION__ ");
 	}
-	if(!loadKernelFromFile(&_kernel, &_program, C->context, C->device, _path, "Shepard", args))
+	if(!loadKernelFromFile(&_kernel,
+                           &_program,
+                           C->context,
+                           C->device,
+                           _path,
+                           "Shepard",
+                           args))
 	    return true;
 	if(_program)clReleaseProgram(_program); _program=0;
-	//! Test for right work group size
+
 	cl_device_id device;
 	size_t local_work_size=0;
-	err_code |= clGetCommandQueueInfo(C->command_queue,CL_QUEUE_DEVICE,
-	                                sizeof(cl_device_id),&device, NULL);
+	err_code |= clGetCommandQueueInfo(C->command_queue,
+                                      CL_QUEUE_DEVICE,
+	                                  sizeof(cl_device_id),
+                                      &device,
+                                      NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Predictor::setupOpenCL): I Cannot get the device from the command queue.\n");
+		S->addMessageF(3, "I Cannot get the device from the command queue.\n");
+        S->printOpenCLError(err_code);
 	    return true;
 	}
-	err_code |= clGetKernelWorkGroupInfo(_kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
-	                                   sizeof(size_t), &local_work_size, NULL);
+	err_code |= clGetKernelWorkGroupInfo(_kernel,
+                                         device,
+                                         CL_KERNEL_WORK_GROUP_SIZE,
+	                                     sizeof(size_t),
+                                         &local_work_size,
+                                         NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Predictor::setupOpenCL): Failure retrieving the maximum local work size.\n");
+		S->addMessageF(3, "Failure retrieving the maximum local work size.\n");
+        S->printOpenCLError(err_code);
 	    return true;
 	}
 	if(local_work_size < _local_work_size)

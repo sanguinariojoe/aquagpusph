@@ -87,7 +87,7 @@ protected:
 	size_t _local_work_size;
 
 private:
-	/** Setup OpenCL kernel
+	/** Setup the OpenCL stuff
 	 * @return false if all gone right. \n true otherwise.
 	 */
 	virtual bool setupOpenCL();

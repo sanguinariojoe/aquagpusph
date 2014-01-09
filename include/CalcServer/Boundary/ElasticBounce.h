@@ -53,7 +53,7 @@ public:
 	bool execute();
 
 private:
-	/** Setup OpenCL kernel
+	/** Setup the OpenCL stuff
 	 * @return false if all gone right. \n true otherwise.
 	 */
 	bool setupOpenCL();
