@@ -126,7 +126,7 @@ bool GhostParticles::execute()
                                  (void*)&(C->densin));
 	    err_code |= sendArgument(_kernel,
                                  5,
-                                 sizeof(cl_mem)
+                                 sizeof(cl_mem),
                                  (void*)&(C->hpin));
 	    err_code |= sendArgument(_kernel,
                                  6,
@@ -355,7 +355,7 @@ bool GhostParticles::setupOpenCL()
 	    return true;
 	}
 	err_code |= clGetDeviceInfo(device,
-                                CL_DEVICE_LOCAL_MEM_SIZE,ç
+                                CL_DEVICE_LOCAL_MEM_SIZE,
                                 sizeof(local_mem),
                                 &local_mem,
                                 NULL);
