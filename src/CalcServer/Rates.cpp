@@ -456,7 +456,7 @@ bool Rates::setupOpenCL()
                                &local_mem,
                                NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessageF(3, "Can't get local memory available on device.\n");
+		S->addMessageF(3, "Failure getting the local memory available on the device.\n");
         S->printOpenCLError(err_code);
 	    return true;
 	}

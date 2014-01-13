@@ -27,14 +27,14 @@
 namespace Aqua{ namespace CalcServer{ namespace Boundary{
 
 /** @class ElasticBounce ElasticBounce.h CalcServer/Boundary/ElasticBounce.h
- * @brief Simplest boundary condition.
- * This boundary condition only test if a particle
- * will pass trought a wall, and reflect it as elastic
- * bounce, affected by a factor that set the amount of
- * energy lost in the process. \n
- * This boundary condition is ussually used clompementary
- * to others boundary conditions because guarantee that
- * particles can't pass trought walls.
+ * @brief The simplest boundary condition, which look for the particles which
+ * will trespass a wall, performing an elastic bounce (with a configurable
+ * elastic factor, shuch that the particle trayectory can be mirrored with
+ * respect to the wall or the particle can be blocked just changing the
+ * elastic factor).
+ * @note This boundary condition is ussually used in a combination with one of
+ * the other boundary conditions just in order to grant that the particles
+ * cannot trespass the solid walls.
  */
 class ElasticBounce : public Aqua::CalcServer::Kernel
 {
@@ -47,14 +47,14 @@ public:
 	 */
 	~ElasticBounce();
 
-	/** Boundary effect computation.
-	 * @return false if all gone right. \n true otherwise.
+	/** Compute the boundary condition.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool execute();
 
 private:
 	/** Setup the OpenCL stuff
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool setupOpenCL();
 

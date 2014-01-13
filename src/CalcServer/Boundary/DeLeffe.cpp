@@ -394,6 +394,7 @@ bool DeLeffe::setupOpenCL()
 	                                sizeof(cl_device_id),&device, NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessageF(3, "I Cannot get the device from the command queue.\n");
+        S->printOpenCLError(err_code);
 	    return true;
 	}
 	err_code |= clGetDeviceInfo(device,
@@ -402,7 +403,8 @@ bool DeLeffe::setupOpenCL()
                                 &local_mem,
                                 NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessageF(3, "Can't get local memory available on device.\n");
+		S->addMessageF(3, "Failure getting the local memory available on the device.\n");
+        S->printOpenCLError(err_code);
 	    return true;
 	}
 	if(!loadKernelFromFile(&_setup_kernel,

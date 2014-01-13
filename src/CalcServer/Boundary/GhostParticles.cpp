@@ -229,7 +229,7 @@ bool GhostParticles::setupOpenCL()
 	}
 	err_code |= clGetDeviceInfo(device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(local_mem), &local_mem, NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(GhostParticles::setupOpenCL): Can't get local memory available on device.\n");
+		S->addMessage(3, "(GhostParticles::setupOpenCL): Failure getting the local memory available on the device.\n");
 	    return true;
 	}
 	if(!loadKernelFromFile(&_kernel, &_program, C->context, C->device, _path, "Boundary", args))
