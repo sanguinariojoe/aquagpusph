@@ -52,26 +52,26 @@ public:
 	~ScriptQuaternion();
 
 	/** Executes the movement.
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool execute();
 
 protected:
 	/** Parse input definition file.
 	 * @param root Input node of reader.
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool _parse(xercesc::DOMElement *root);
 
 private:
 	/** Init quaternion. init() script method will called
 	 * in order to get it.
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool initQuaternion();
 
 	/** Initialize perform() script method to future usage.
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool initPython();
 

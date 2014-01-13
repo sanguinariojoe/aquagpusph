@@ -32,7 +32,7 @@
 namespace Aqua{ namespace InputOutput{
 
 /** Prints the output, with the formats selected at input.
- * @return false if all gone right. \n true otherwise.
+ * @return false if all gone right, true otherwise.
  */
 bool output();
 

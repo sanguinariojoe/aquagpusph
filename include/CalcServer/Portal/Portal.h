@@ -55,13 +55,13 @@ public:
 	~Portal();
 
 	/** Teleport particles from outlet to inlet.
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool execute();
 
 private:
 	/** Setup the OpenCL stuff
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool setupOpenCL();
 

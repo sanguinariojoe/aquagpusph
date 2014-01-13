@@ -58,7 +58,7 @@ public:
 	 * @param initial true if initial set of quaternion
 	 * being performed. Relative positions will be
 	 * recomputed, and backup values asssigned.
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool set(vec cor, mat axis, bool initial=false);
 
@@ -73,25 +73,25 @@ public:
 	mat getAxis(){return mAxis;}
 
 	/** Executes the movement.
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	virtual bool execute();
 
 protected:
 	/** Parse input definition file.
 	 * @param root Input node of reader.
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	virtual bool _parse(xercesc::DOMElement *root);
 
 	/** Executes the movement over walls (ghost particles).
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	virtual bool executeWalls();
 
 	/** Executes the domain motion if requested. Domain
 	 * will follow solid translations but not rotations.
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	virtual bool executeDomain();
 
@@ -106,18 +106,18 @@ protected:
 	mat mOldAxis;
 private:
 	/** Computes particles positions relative to Quaternion.
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool computePos();
 
 	/** Computes wall vertexes (ghost particles) relative
 	 * to Quaternion.
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool computeWalls();
 
 	/** Computes domain boundsrelative to COR.
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool computeDomain();
 

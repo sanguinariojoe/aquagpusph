@@ -611,7 +611,7 @@ public:
 	         * @param p2 2nd corner of wall.
 	         * @param p3 3rd corner of wall.
 	         * @param p4 4th corner of wall.
-	         * @return false if all gone right. \n true otherwise.
+	         * @return false if all gone right, true otherwise.
 	         * @remarks Normal will be computed using corners data,
 	         * in order to get best results is strongly recommended
 	         * try to use planar faces.
@@ -624,7 +624,7 @@ public:
 	         * @param p1 1st corner of wall.
 	         * @param p2 2nd corner of wall.
 	         * @param p3 3rd corner of wall.
-	         * @return false if all gone right. \n true otherwise.
+	         * @return false if all gone right, true otherwise.
 	         */
 	        bool add(vec p1, vec p2, vec p3);
 	    #else
@@ -650,7 +650,7 @@ public:
 	        /** Add wall.
 	         * @param p1 1st corner of wall.
 	         * @param p2 2nd corner of wall.
-	         * @return false if all gone right. \n true otherwise.
+	         * @return false if all gone right, true otherwise.
 	         */
 	        bool add(vec p1, vec p2);
 	    #endif

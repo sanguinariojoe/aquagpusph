@@ -33,10 +33,11 @@
 namespace Aqua{ namespace CalcServer{ namespace Boundary{
 
 /** @class GhostParticles GhostParticles.h CalcServer/Boundary/GhostParticles.h
- * @brief Boundary condition based on extend the fluid mirroring the particles
- * and setting fields conveniently modified. In order to improve the consistency
- * the model used at extended fluid for pressure, normal velocity, and tangent
- * velocity can be modified, but purposed model is (Free slip):
+ * @brief Boundary condition based on extending the fluid with a mirroring
+ * process of the particles with respect to the wall, conveniently setting
+ * modified fields. In order to improve the consistency the model used for the
+ * pressure, normal velocity, and tangent velocity can be modified, but the
+ * following model is set by default (Free slip):
  *   - pressModel = "SSM"
  *   - normalUModel = "ASM"
  *   - tangentUModel = "SSM"
@@ -52,19 +53,19 @@ public:
 	 */
 	~GhostParticles();
 
-	/** GhostParticles boundary computation.
-	 * @return false if all gone right. \n true otherwise.
+	/** Compute the boundary condition.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool execute();
 
 private:
 	/** Setup the OpenCL stuff
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool setupOpenCL();
 
 	/** Create walls OpenCL instances.
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool createWalls();
 
@@ -80,7 +81,7 @@ private:
 	/// Local work size (default value = 256)
 	size_t _local_work_size;
 	/// Array of walls with all parameters
-	std::deque<cl_mem> mWalls;
+	std::deque<cl_mem> _walls;
 	/// true if \f$delta\f$-SPH (cont. eq. diffusive term) must be applied.
 	bool _is_delta;
 	/// true if local memory can be used on kernel.

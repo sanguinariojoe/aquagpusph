@@ -42,7 +42,7 @@ public:
 	~Fluid();
 
 	/** Retrieves all data from server.
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool retrieveData();
 

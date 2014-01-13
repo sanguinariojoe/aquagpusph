@@ -66,14 +66,14 @@ public:
 	bool parse(const char* def);
 
 	/** Executes the movement.
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	virtual bool execute()=0;
 
 protected:
 	/** Parse input definition file (movement type specific data).
 	 * @param root Input node of reader.
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	virtual bool _parse(xercesc::DOMElement *root)=0;
 
@@ -88,7 +88,7 @@ protected:
 
 private:
 	/** Setup the OpenCL stuff
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	virtual bool setupOpenCL();
 

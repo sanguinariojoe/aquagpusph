@@ -73,7 +73,7 @@ public:
 	vec minVel(){return _vel_min;}
 
 	/** Compute the bounds.
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool execute();
 

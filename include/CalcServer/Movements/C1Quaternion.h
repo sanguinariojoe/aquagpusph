@@ -47,20 +47,20 @@ public:
 	~C1Quaternion();
 
 	/** Executes the movement.
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool execute();
 
 protected:
 	/** Parse input definition file.
 	 * @param root Input node of reader.
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool _parse(xercesc::DOMElement *root);
 
 private:
 	/** Reads initial quaternion position.
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool setInitialPositions();
 
