@@ -52,7 +52,7 @@ namespace Aqua{ namespace CalcServer{ namespace Movement{
 ScriptQuaternion::ScriptQuaternion()
 	: Quaternion()
 	, mScript(0)
-	, mTorque(0)
+	, _torque(0)
 	, mModule(0)
 	, mFunc(0)
 {
@@ -62,13 +62,13 @@ ScriptQuaternion::ScriptQuaternion()
 	    S->addMessage(3, "(ScriptQuaternion::ScriptQuaternion) Can't allocate memory at host.\n");
 	    exit(EXIT_FAILURE);
 	}
-	mTorque = new Torque();
+	_torque = new Torque();
 }
 
 ScriptQuaternion::~ScriptQuaternion()
 {
 	if(mScript) delete[] mScript;   mScript=0;
-	if(mTorque) delete[] mTorque;   mTorque=0;
+	if(_torque) delete[] _torque;   _torque=0;
 	if(mModule) Py_DECREF(mModule); mModule=0;
 	if(mFunc)   Py_DECREF(mFunc);   mFunc=0;
 }
@@ -83,10 +83,10 @@ bool ScriptQuaternion::execute()
 	InputOutput::TimeManager *T = InputOutput::TimeManager::singleton();
 	CalcServer *C = CalcServer::singleton();
 	//! Calculate Torque
-	mTorque->cor(mCOR);
-	mTorque->execute();
-	torque = mTorque->torque();
-	force = mTorque->force();
+	_torque->cor(_cor);
+	_torque->execute();
+	torque = _torque->torque();
+	force = _torque->force();
 	//! Call to script
 	arg = args(torque, force);
 	quat = PyObject_CallObject(mFunc, arg);
@@ -348,9 +348,9 @@ PyObject* ScriptQuaternion::args(vec torque, vec force)
 	    // [[COR], [X], [Y], [Z], [oldCOR], [oldX], [oldY], [oldZ], torque, time, dt]
 	    arg = PyTuple_New(8);
 	    tuple = PyTuple_New(3);
-	    val = PyFloat_FromDouble((double)mCOR.x); PyTuple_SetItem(tuple, 0, val);
-	    val = PyFloat_FromDouble((double)mCOR.y); PyTuple_SetItem(tuple, 1, val);
-	    val = PyFloat_FromDouble((double)mCOR.z); PyTuple_SetItem(tuple, 2, val);
+	    val = PyFloat_FromDouble((double)_cor.x); PyTuple_SetItem(tuple, 0, val);
+	    val = PyFloat_FromDouble((double)_cor.y); PyTuple_SetItem(tuple, 1, val);
+	    val = PyFloat_FromDouble((double)_cor.z); PyTuple_SetItem(tuple, 2, val);
 	    PyTuple_SetItem(arg, 0, tuple);
 	    tuple = PyTuple_New(3);
 	    val = PyFloat_FromDouble((double)mAxis[0].x); PyTuple_SetItem(tuple, 0, val);
@@ -382,8 +382,8 @@ PyObject* ScriptQuaternion::args(vec torque, vec force)
 	    // [[COR], [X], [Y], [oldCOR], [oldX], [oldY], torque, time, dt]
 	    arg = PyTuple_New(7);
 	    tuple = PyTuple_New(2);
-	    val = PyFloat_FromDouble((double)mCOR.x); PyTuple_SetItem(tuple, 0, val);
-	    val = PyFloat_FromDouble((double)mCOR.y); PyTuple_SetItem(tuple, 1, val);
+	    val = PyFloat_FromDouble((double)_cor.x); PyTuple_SetItem(tuple, 0, val);
+	    val = PyFloat_FromDouble((double)_cor.y); PyTuple_SetItem(tuple, 1, val);
 	    PyTuple_SetItem(arg, 0, tuple);
 	    tuple = PyTuple_New(2);
 	    val = PyFloat_FromDouble((double)mAxis[0].x); PyTuple_SetItem(tuple, 0, val);

@@ -40,8 +40,8 @@ namespace Aqua{ namespace CalcServer{
 
 Torque::Torque()
 	: Kernel("Torque")
-	, mDevTorque(NULL)
-	, mDevForce(NULL)
+	, _device_torque(NULL)
+	, _device_force(NULL)
 	, _program(NULL)
 	, _path(NULL)
 	, _kernel(NULL)
@@ -77,12 +77,12 @@ Torque::Torque()
 	if(setupReduction()) {
 		exit(EXIT_FAILURE);
 	}
-	mTorque.x = 0.f;
-	mTorque.y = 0.f;
+	_torque.x = 0.f;
+	_torque.y = 0.f;
 	mForce.x  = 0.f;
 	mForce.y  = 0.f;
 	#ifdef HAVE_3D
-		mTorque.z = 0.f;
+		_torque.z = 0.f;
 		mForce.z  = 0.f;
 	#endif
 	S->addMessage(1, "(Torque::Torque): Torque ready to work!\n");
@@ -95,8 +95,8 @@ Torque::~Torque()
 	if(torqueReduction) delete torqueReduction;
 	S->addMessage(1, "(Torque::~Torque): Destroying force reduction processor...\n");
 	if(forceReduction)  delete forceReduction;
-	if(mDevTorque)clReleaseMemObject(mDevTorque); mDevTorque=0;
-	if(mDevForce)clReleaseMemObject(mDevForce); mDevForce=0;
+	if(_device_torque)clReleaseMemObject(_device_torque); _device_torque=0;
+	if(_device_force)clReleaseMemObject(_device_force); _device_force=0;
 	if(_kernel)clReleaseKernel(_kernel); _kernel=0;
 	if(_program)clReleaseProgram(_program); _program=0;
 	if(_path)delete[] _path; _path=0;
@@ -110,7 +110,7 @@ bool Torque::execute()
 	int err_code=0;
 
 	err_code |= sendArgument(_kernel, 10, sizeof(vec), (void*)&(C->g));
-	err_code |= sendArgument(_kernel, 11, sizeof(vec), (void*)&mCOR);
+	err_code |= sendArgument(_kernel, 11, sizeof(vec), (void*)&_cor);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Torque::Execute): I cannot send a variable to the kernel.\n");
 		return true;
@@ -157,7 +157,7 @@ bool Torque::execute()
     output = torqueReduction->execute();
     if(!output)
         return true;
-	if(C->getData((void *)&mTorque, output, sizeof(vec)))
+	if(C->getData((void *)&_torque, output, sizeof(vec)))
 		return true;
     output = forceReduction->execute();
     if(!output)
@@ -175,14 +175,14 @@ bool Torque::setupTorque()
 	cl_int err_code=0;
 	if(!loadKernelFromFile(&_kernel, &_program, C->context, C->device, _path, "Torque", ""))
 		return true;
-	mDevTorque = C->allocMemory(C->n * sizeof( vec ));
-	mDevForce = C->allocMemory(C->n * sizeof( vec ));
-	if(!mDevTorque || !mDevForce)
+	_device_torque = C->allocMemory(C->n * sizeof( vec ));
+	_device_force = C->allocMemory(C->n * sizeof( vec ));
+	if(!_device_torque || !_device_force)
 		return true;
 	sprintf(msg, "\tAllocated memory = %u bytes\n", (unsigned int)C->allocated_mem);
 	S->addMessage(0, msg);
-	err_code  = sendArgument(_kernel,  0, sizeof(cl_mem ), (void*)&mDevTorque);
-	err_code |= sendArgument(_kernel,  1, sizeof(cl_mem ), (void*)&mDevForce);
+	err_code  = sendArgument(_kernel,  0, sizeof(cl_mem ), (void*)&_device_torque);
+	err_code |= sendArgument(_kernel,  1, sizeof(cl_mem ), (void*)&_device_force);
 	err_code |= sendArgument(_kernel,  2, sizeof(cl_mem ), (void*)&(C->imove));
 	err_code |= sendArgument(_kernel,  3, sizeof(cl_mem ), (void*)&(C->ifluid));
 	err_code |= sendArgument(_kernel,  4, sizeof(cl_mem ), (void*)&(C->pos));
@@ -219,11 +219,11 @@ bool Torque::setupReduction()
 {
 	CalcServer *C = CalcServer::singleton();
 	#ifdef HAVE_3D
-        torqueReduction = new Reduction(mDevTorque, C->n, "vec", "(vec)(0.f,0.f,0.f,0.f)", "c = a + b;");
-        forceReduction = new Reduction(mDevForce, C->n, "vec", "(vec)(0.f,0.f,0.f,0.f)", "c = a + b;");
+        torqueReduction = new Reduction(_device_torque, C->n, "vec", "(vec)(0.f,0.f,0.f,0.f)", "c = a + b;");
+        forceReduction = new Reduction(_device_force, C->n, "vec", "(vec)(0.f,0.f,0.f,0.f)", "c = a + b;");
     #else
-        torqueReduction = new Reduction(mDevTorque, C->n, "vec", "(vec)(0.f,0.f)", "c = a + b;");
-        forceReduction = new Reduction(mDevForce, C->n, "vec", "(vec)(0.f,0.f)", "c = a + b;");
+        torqueReduction = new Reduction(_device_torque, C->n, "vec", "(vec)(0.f,0.f)", "c = a + b;");
+        forceReduction = new Reduction(_device_force, C->n, "vec", "(vec)(0.f,0.f)", "c = a + b;");
     #endif
 	return false;
 }

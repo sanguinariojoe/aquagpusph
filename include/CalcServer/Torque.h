@@ -32,8 +32,8 @@
 namespace Aqua{ namespace CalcServer{
 
 /** @class Torque Torque.h CalcServer/Torque.h
- * @brief Computes fluid torque relative to a
- * provided point called COR (Center of rotation).
+ * @brief Computes fluid torque relative to a provided point called COR
+ * (Center of rotation).
  */
 class Torque : public Aqua::CalcServer::Kernel
 {
@@ -46,53 +46,51 @@ public:
 	 */
 	~Torque();
 
-	/** Set Center of rotation.
+	/** Set the COR (Center of rotation).
 	 * @param COR Center of rotation.
 	 */
-	void cor(vec COR){mCOR = COR;}
+	void cor(vec COR){_cor = COR;}
 
-	/** Get Center of rotation.
+	/** Get the COR (Center of rotation).
 	 * @return Center of rotation.
 	 */
-	vec cor(){return mCOR;}
+	vec cor(){return _cor;}
 
-	/** Get resultant torque.
+	/** Get the resultant torque.
 	 * @return Fluid torque.
-	 * @warning Remember call execute before use this method.
 	 */
-	vec torque(){return mTorque;}
+	vec torque(){return _torque;}
 
-	/** Get resultant force.
+	/** Get the resultant force.
 	 * @return Fluid force.
-	 * @warning Remember call execute before use this method.
 	 */
 	vec force(){return mForce;}
 
-	/** Performs space discretization.
-	 * @return false if all gone right. \n true otherwise.
+	/** Compute the forces and moments.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool execute();
 
 private:
-	/** Setup Torque OpenCL stuff.
-	 * @return false if all gone right. \n true otherwise.
+	/** Setup the OpenCL stuff.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool setupTorque();
 
-	/** Setup Reduction
-	 * @return false if all gone right. \n true otherwise.
+	/** Setup the reduction tool
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool setupReduction();
 
 	/// Center of rotation
-	vec mCOR;
+	vec _cor;
 
 	/// Server allocated torque.
-	cl_mem mDevTorque;
+	cl_mem _device_torque;
 	/// Host allocated torque
-	vec mTorque;
+	vec _torque;
 	/// Server allocated torque.
-	cl_mem mDevForce;
+	cl_mem _device_force;
 	/// Host allocated torque
 	vec mForce;
 	/// Kernel path

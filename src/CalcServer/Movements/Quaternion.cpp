@@ -51,11 +51,11 @@ Quaternion::Quaternion()
 {
 	CalcServer *C = CalcServer::singleton();
 	//! Set inital values
-	mCOR.x = 0.f;
-	mCOR.y = 0.f;
+	_cor.x = 0.f;
+	_cor.y = 0.f;
 	#ifdef HAVE_3D
-	    mCOR.z = 0.f;
-	    mCOR.w = 0.f;
+	    _cor.z = 0.f;
+	    _cor.w = 0.f;
 	#endif
 	mAxis[0].x = 1.f;
 	mAxis[1].y = 1.f;
@@ -71,7 +71,7 @@ Quaternion::Quaternion()
 	if(!mRelNormal)
 	    exit(255);
 	//! Compute initial relative positions
-	if(set(mCOR,mAxis,true))
+	if(set(_cor,mAxis,true))
 	    exit(255);
 }
 
@@ -87,7 +87,7 @@ Quaternion::~Quaternion()
 }
 
 bool Quaternion::set(vec cor, mat axis, bool initial){
-	mCOR  = cor;
+	_cor  = cor;
 	mAxis = axis;
 	if(initial){
 	    mOldCOR  = cor;
@@ -132,7 +132,7 @@ bool Quaternion::execute()
 	err_code |= sendArgument(_kernel,  9, sizeof(cl_mem  ), (void*)&(mRelNormal));
 	err_code |= sendArgument(_kernel, 10, sizeof(cl_uint ), (void*)&(C->N));
 	err_code |= sendArgument(_kernel, 11, sizeof(cl_float), (void*)&(C->dt));
-	err_code |= sendArgument(_kernel, 12, sizeof(vec     ), (void*)&(mCOR));
+	err_code |= sendArgument(_kernel, 12, sizeof(vec     ), (void*)&(_cor));
 	err_code |= sendArgument(_kernel, 13, sizeof(vec     ), (void*)&(X));
 	err_code |= sendArgument(_kernel, 14, sizeof(vec     ), (void*)&(Y));
 	err_code |= sendArgument(_kernel, 15, sizeof(vec     ), (void*)&(Z));
@@ -186,7 +186,7 @@ bool Quaternion::execute()
 	if(executeDomain())
 	    return true;
 	//! Backup the quaternion.
-	mOldCOR  = mCOR;
+	mOldCOR  = _cor;
 	mOldAxis = mAxis;
 	return false;
 }
@@ -213,7 +213,7 @@ bool Quaternion::executeWalls()
 	#endif
 	for(i=0;i<N;i++){
 	    vec newPos, oldPos;
-	    newPos = mCOR;
+	    newPos = _cor;
 	    newPos = add(newPos, mult(walls.at(i)->p1.x,X));
 	    newPos = add(newPos, mult(walls.at(i)->p1.y,Y));
 	    #ifdef HAVE_3D
@@ -232,7 +232,7 @@ bool Quaternion::executeWalls()
 	    else{
 	        P->ghost_particles.walls.at(i)->v1 = mult(1.f/C->dt, sub(newPos, oldPos));
 	    }
-	    newPos = mCOR;
+	    newPos = _cor;
 	    newPos = add(newPos, mult(walls.at(i)->p2.x,X));
 	    newPos = add(newPos, mult(walls.at(i)->p2.y,Y));
 	    #ifdef HAVE_3D
@@ -252,7 +252,7 @@ bool Quaternion::executeWalls()
 	        P->ghost_particles.walls.at(i)->v2 = mult(1.f/C->dt, sub(newPos, oldPos));
 	    }
 	    #ifdef HAVE_3D
-	        newPos = mCOR;
+	        newPos = _cor;
 	        newPos = add(newPos, mult(walls.at(i)->p3.x,X));
 	        newPos = add(newPos, mult(walls.at(i)->p3.y,Y));
 	        newPos = add(newPos, mult(walls.at(i)->p3.z,Z));
@@ -269,7 +269,7 @@ bool Quaternion::executeWalls()
 	        }
 	    #endif
 	    #ifdef HAVE_3D
-	        newPos = mCOR;
+	        newPos = _cor;
 	        newPos = add(newPos, mult(walls.at(i)->p4.x,X));
 	        newPos = add(newPos, mult(walls.at(i)->p4.y,Y));
 	        newPos = add(newPos, mult(walls.at(i)->p4.z,Z));
@@ -300,8 +300,8 @@ bool Quaternion::executeDomain()
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
 	if(!P->SPH_opts.domain_motion)
         return false;
-	P->SPH_opts.domain_min = add(domain_min, mCOR);
-	P->SPH_opts.domain_max = add(domain_max, mCOR);
+	P->SPH_opts.domain_min = add(domain_min, _cor);
+	P->SPH_opts.domain_max = add(domain_max, _cor);
 	return false;
 }
 
@@ -343,11 +343,11 @@ bool Quaternion::computePos()
 	    vec normal = hRelNormal[i];
 	    vec x      = mAxis[0];
 	    vec y      = mAxis[1];
-	    point.x   -= mCOR.x;
-	    point.y   -= mCOR.y;
+	    point.x   -= _cor.x;
+	    point.y   -= _cor.y;
 	    #ifdef HAVE_3D
 	        vec z    = mAxis[2];
-	        point.z -= mCOR.z;
+	        point.z -= _cor.z;
 	        point.w  = 0.f;
 	    #endif
 	    hRelPos[i].x = dot(point,x);
@@ -404,31 +404,31 @@ bool Quaternion::computeWalls()
 	    #endif
 	    vec aux;
 	    aux        = wall->p1;
-	    wall->p1.x = dot(sub(aux, mCOR),x);
-	    wall->p1.y = dot(sub(aux, mCOR),y);
+	    wall->p1.x = dot(sub(aux, _cor),x);
+	    wall->p1.y = dot(sub(aux, _cor),y);
 	    #ifdef HAVE_3D
-	        wall->p1.z = dot(sub(aux, mCOR),z);
+	        wall->p1.z = dot(sub(aux, _cor),z);
 	        wall->p1.w = 0.f;
 	    #endif
 	    aux        = wall->p2;
-	    wall->p2.x = dot(sub(aux, mCOR),x);
-	    wall->p2.y = dot(sub(aux, mCOR),y);
+	    wall->p2.x = dot(sub(aux, _cor),x);
+	    wall->p2.y = dot(sub(aux, _cor),y);
 	    #ifdef HAVE_3D
-	        wall->p2.z = dot(sub(aux, mCOR),z);
+	        wall->p2.z = dot(sub(aux, _cor),z);
 	        wall->p2.w = 0.f;
 	    #endif
 	    #ifdef HAVE_3D
 	        aux        = wall->p3;
-	        wall->p3.x = dot(sub(aux, mCOR),x);
-	        wall->p3.y = dot(sub(aux, mCOR),y);
-	        wall->p3.z = dot(sub(aux, mCOR),z);
+	        wall->p3.x = dot(sub(aux, _cor),x);
+	        wall->p3.y = dot(sub(aux, _cor),y);
+	        wall->p3.z = dot(sub(aux, _cor),z);
 	        wall->p3.w = 0.f;
 	    #endif
 	    #ifdef HAVE_3D
 	        aux        = wall->p4;
-	        wall->p4.x = dot(sub(aux, mCOR),x);
-	        wall->p4.y = dot(sub(aux, mCOR),y);
-	        wall->p4.z = dot(sub(aux, mCOR),z);
+	        wall->p4.x = dot(sub(aux, _cor),x);
+	        wall->p4.y = dot(sub(aux, _cor),y);
+	        wall->p4.z = dot(sub(aux, _cor),z);
 	        wall->p4.w = 0.f;
 	    #endif
 	    aux        = wall->n;
@@ -447,8 +447,8 @@ bool Quaternion::computeDomain()
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
 	if(!P->SPH_opts.domain_motion)
         return false;
-	domain_min = sub(P->SPH_opts.domain_min, mCOR);
-	domain_max = sub(P->SPH_opts.domain_max, mCOR);
+	domain_min = sub(P->SPH_opts.domain_min, _cor);
+	domain_max = sub(P->SPH_opts.domain_max, _cor);
 	return false;
 }
 

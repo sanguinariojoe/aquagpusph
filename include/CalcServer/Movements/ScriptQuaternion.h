@@ -92,7 +92,7 @@ private:
 	/// Python script path
 	char* mScript;
 	/// Torque calculator
-	Torque *mTorque;
+	Torque *_torque;
 	/// Python module object
 	PyObject *mModule;
 	/// Python function

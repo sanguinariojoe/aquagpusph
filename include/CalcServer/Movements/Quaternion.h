@@ -65,7 +65,7 @@ public:
 	/** Get updated COR.
 	 * @return Center of rotation.
 	 */
-	vec getCOR(){return mCOR;}
+	vec getCOR(){return _cor;}
 
 	/** Get updated quaternion axis.
 	 * @return Quaternion axis matrix.
@@ -96,7 +96,7 @@ protected:
 	virtual bool executeDomain();
 
 	/// Quaternion center.
-	vec mCOR;
+	vec _cor;
 	/// Quaternion axis vectors.
 	mat mAxis;
 
