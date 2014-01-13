@@ -64,7 +64,7 @@ public:
 	/** Get the resultant force.
 	 * @return Fluid force.
 	 */
-	vec force(){return mForce;}
+	vec force(){return _force;}
 
 	/** Compute the forces and moments.
 	 * @return false if all gone right, true otherwise.
@@ -92,7 +92,7 @@ private:
 	/// Server allocated torque.
 	cl_mem _device_force;
 	/// Host allocated torque
-	vec mForce;
+	vec _force;
 	/// Kernel path
 	char *_path;
 	/// OpenCL program
@@ -104,9 +104,9 @@ private:
 	/// Local work size
 	size_t _local_work_size;
     /// Torque value reduction tool
-    Reduction *torqueReduction;
+    Reduction *_torque_reduction;
     /// Force value reduction tool
-    Reduction *forceReduction;
+    Reduction *_force_reduction;
 };
 
 }}  // namespace
