@@ -19,22 +19,21 @@
 #ifndef TIMESTEP_H_INCLUDED
 #define TIMESTEP_H_INCLUDED
 
-// ----------------------------------------------------------------------------
-// Include Generic kernel
-// ----------------------------------------------------------------------------
 #include <CalcServer/Kernel.h>
-
-// ----------------------------------------------------------------------------
-// Include Reduction tool
-// ----------------------------------------------------------------------------
 #include <CalcServer/Reduction.h>
 
 namespace Aqua{ namespace CalcServer{
 
 /** @class TimeStep TimeStep.h CalcServer/TimeStep.h
- * @brief Time step computation. Courant condition is
- * stablished forcing maximum distance that each particle
- * can be translated in a time step to 0.1 <i>h</i>.
+ * @brief Time step computation. The time step could be set in 3 different
+ * ways:
+ *   -# Provided fixed time step: The used set a fixed time step.
+ *   -# Computed fixed time step: The time step will be computed at \f$t=0\f$
+ *   -# Variable time step: The time step is recomputed each iteration.
+ * To compute a time step a courant condition is imposed such that a particle
+ * cannot move more than \f$ 0.1 h \f$ per time step, or a pressure wave
+ * cannot be transported more than \f$ h \f$ in a time step
+ * (\f$ t \leq \frac{h}{\mathrm{max}(c_s, 10 \vert\mathbf{u}\vert_{max})} \f$)
  */
 class TimeStep : public Aqua::CalcServer::Kernel
 {
@@ -48,14 +47,13 @@ public:
 	~TimeStep();
 
 	/** Time step computation.
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool execute();
 
 private:
 	/** Setup the OpenCL stuff
-	 * @return 0 if any error happens. \n
-	 * Error code otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool setupOpenCL();
 
@@ -72,13 +70,13 @@ private:
 	size_t _local_work_size;
 
 	/// Convective time step reduction tool
-	Reduction *reduction;
+	Reduction *_reduction;
 
 	/// Main time step
-	float MainDt;
+	float _dt;
 
-	/// Time step clamped flag (in order to avoid annoying clamping error)
-	int dtClamp;
+	/// Time step clamped flag (in order to avoid the annoying clamping error)
+	bool _is_dt_clamp;
 };
 
 }}  // namespace
