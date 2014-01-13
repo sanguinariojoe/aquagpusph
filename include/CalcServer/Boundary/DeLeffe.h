@@ -19,20 +19,12 @@
 #ifndef DELEFFE_H_INCLUDED
 #define DELEFFE_H_INCLUDED
 
-// ----------------------------------------------------------------------------
-// Include Generic kernel
-// ----------------------------------------------------------------------------
 #include <CalcServer/Kernel.h>
 
 namespace Aqua{ namespace CalcServer{ namespace Boundary{
 
 /** @class DeLeffe DeLeffe.h CalcServer/Boundary/DeLeffe.h
- * @brief Boundary condition that not consider particles
- * at the boundary. \n
- * Boundary condition requires several OpenCL kernels. \n
- * 1st the effect of walls over particles is computed. \n
- * 2nd the shepard term is applied. \n
- * 3rd the boundary vertices properties are set.
+ * @brief Boundary integrals based boundary condition.
  */
 class DeLeffe : public Aqua::CalcServer::Kernel
 {
@@ -45,24 +37,24 @@ public:
 	 */
 	~DeLeffe();
 
-	/** DeLeffe boundary computation.
-	 * @return false if all gone right. \n true otherwise.
+	/** Compute the boundary condition.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool execute();
 
 private:
 	/** Setup the OpenCL stuff
-	 * @return false if all gone right. \n true otherwise.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool setupOpenCL();
 
-	/** Set vertices.
-	 * @return false if all gone right. \n true otherwise.
+	/** Set the boundary elements properties.
+	 * @return false if all gone right, true otherwise.
 	 */
-	bool vertices();
+	bool elements();
 
-	/** Perform boundary effect.
-	 * @return false if all gone right. \n true otherwise.
+	/** Compute the boundary condition.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool boundary();
 
@@ -71,10 +63,10 @@ private:
 
 	/// OpenCL program
 	cl_program _program;
-	/// OpenCL vertices set kernel
-	cl_kernel clVerticesKernel;
-	/// OpenCL boundary effect kernel
-	cl_kernel clBoundaryKernel;
+	/// OpenCL boundary elements seter kernel
+	cl_kernel _setup_kernel;
+	/// OpenCL boundary condition kernel
+	cl_kernel _boundary_kernel;
 	/// Global work size (calculated with local_work_size).
 	size_t _global_work_size;
 	/// Local work size (default value = 256)
