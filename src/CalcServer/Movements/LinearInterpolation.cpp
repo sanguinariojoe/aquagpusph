@@ -28,23 +28,23 @@
 
 namespace Aqua{ namespace CalcServer{ namespace Movement{
 
-LinearInterpolation::LinearInterpolation(const char *dataFile)
-	: mDataFile(0)
+LinearInterpolation::LinearInterpolation(const char *data_file)
+	: _data_file(0)
 	, _time(0.f)
 {
 	// Ensure clean data
-	mData.clear();
+	_data.clear();
 	mPrevData.clear();
 	mNextData.clear();
 	// Open the file (if posible)
-	if(dataFile)
-	    open(dataFile);
+	if(data_file)
+	    open(data_file);
 }
 
 LinearInterpolation::~LinearInterpolation()
 {
-	if(mDataFile) fclose(mDataFile); mDataFile=0;
-	mData.clear();
+	if(_data_file) fclose(_data_file); _data_file=0;
+	_data.clear();
 	mPrevData.clear();
 	mNextData.clear();
 }
@@ -52,13 +52,13 @@ LinearInterpolation::~LinearInterpolation()
 std::deque<float> LinearInterpolation::update(float t)
 {
 	unsigned int i;
-	if(!mDataFile){
-	    mData.clear();
-	    return mData;
+	if(!_data_file){
+	    _data.clear();
+	    return _data;
 	}
 	// Rewind file if the time is lower than the last stored time
 	if(t < _time){
-	    rewind(mDataFile);
+	    rewind(_data_file);
 	    mPrevData.clear();
 	    mNextData.clear();
 	}
@@ -67,48 +67,48 @@ std::deque<float> LinearInterpolation::update(float t)
 	if(mNextData.size() > 0){
 	    if(mNextData.at(0) > _time){
 	        float factor = (_time - mPrevData.at(0)) / (mNextData.at(0) - mPrevData.at(0));
-	        mData.clear();
+	        _data.clear();
 	        for(i=0;i<mNextData.size();i++){
 	            float dData = mNextData.at(i) - mPrevData.at(i);
-	            mData.push_back( mPrevData.at(i) + factor*dData );
+	            _data.push_back( mPrevData.at(i) + factor*dData );
 	        }
-	        return mData;
+	        return _data;
 	    }
 	}
 	// Read lines while valid point is located
 	mPrevData = mNextData;
 	mNextData = readLine();
 	if(!mNextData.size()){      // Last point reached
-	    mData = mPrevData;
-	    return mData;
+	    _data = mPrevData;
+	    return _data;
 	}
 	if(mNextData.size() != mPrevData.size()){   // Change of amount of data
-	    mData.clear();
-	    return mData;
+	    _data.clear();
+	    return _data;
 	}
 	while(mNextData.at(0) <= _time){
 	    mPrevData = mNextData;
 	    mNextData = readLine();
 	    if(!mNextData.size()){      // Last point reached
-	        mData = mPrevData;
-	        return mData;
+	        _data = mPrevData;
+	        return _data;
 	    }
 	    if(mNextData.size() != mPrevData.size()){   // Change of amount of data
-	        mData.clear();
-	        return mData;
+	        _data.clear();
+	        return _data;
 	    }
 	}
 	// Linear interpolation of data fields
 	float factor = (_time - mPrevData.at(0)) / (mNextData.at(0) - mPrevData.at(0));
-	mData.clear();
+	_data.clear();
 	for(i=0;i<mNextData.size();i++){
 	    float dData = mNextData.at(i) - mPrevData.at(i);
-	    mData.push_back( mPrevData.at(i) + factor*dData );
+	    _data.push_back( mPrevData.at(i) + factor*dData );
 	}
-	return mData;
+	return _data;
 }
 
-bool LinearInterpolation::open(const char *dataFile)
+bool LinearInterpolation::open(const char *data_file)
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	char msg[1024];
@@ -116,18 +116,18 @@ bool LinearInterpolation::open(const char *dataFile)
 	mPrevData.clear();
 	mNextData.clear();
 	// Open the file
-	if(!dataFile){
+	if(!data_file){
 	    S->addMessage(3, "(LinearInterpolation::open): Invalid file string pointer.\n");
 	    return false;
 	}
-	if(!strlen(dataFile)){
+	if(!strlen(data_file)){
 	    S->addMessage(3, "(LinearInterpolation::open): Empty data file path.\n");
 	    return false;
 	}
-	if(mDataFile) fclose(mDataFile); mDataFile=0;
-	mDataFile = fopen(dataFile, "r");
-	if(!mDataFile){
-	    sprintf(msg, "(LinearInterpolation::open): Can't open \"%s\" data file.\n", dataFile);
+	if(_data_file) fclose(_data_file); _data_file=0;
+	_data_file = fopen(data_file, "r");
+	if(!_data_file){
+	    sprintf(msg, "(LinearInterpolation::open): Can't open \"%s\" data file.\n", data_file);
 	    S->addMessage(3, msg);
 	    return false;
 	}
@@ -145,7 +145,7 @@ std::deque<float> LinearInterpolation::readLine()
 	while(true){
 	    // Read a line
 	    char Line[256];
-	    fgets( Line, 256*sizeof(char), mDataFile);
+	    fgets( Line, 256*sizeof(char), _data_file);
 	    // Look for the start of line
 	    int LineStartChar=0;
 	    while( (Line[LineStartChar] == ' ') || (Line[LineStartChar] == '\t') )

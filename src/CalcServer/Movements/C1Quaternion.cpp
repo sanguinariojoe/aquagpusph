@@ -46,15 +46,15 @@ namespace Aqua{ namespace CalcServer{ namespace Movement{
 
 C1Quaternion::C1Quaternion()
 	: Quaternion()
-	, mData(0)
+	, _data(0)
 {
 	//! Build the linear interpolator
-	mData = new C1Interpolation();
+	_data = new C1Interpolation();
 }
 
 C1Quaternion::~C1Quaternion()
 {
-	if(mData)delete mData; mData=0;
+	if(_data)delete _data; _data=0;
 }
 
 bool C1Quaternion::execute()
@@ -67,7 +67,7 @@ bool C1Quaternion::execute()
 	mat axis;
 	//! Read data
 	float t = T->time();
-	std::deque<float> data = mData->update(t);
+	std::deque<float> data = _data->update(t);
 	#ifdef HAVE_3D
 	    if(data.size() != 10){
 	        S->addMessage(3, "(C1Quaternion::execute): Invalid data file line.\n");
@@ -133,7 +133,7 @@ bool C1Quaternion::_parse(xercesc::DOMElement *root)
 		// Open it
 	    sprintf(msg, "(C1Quaternion::_parse): Using \"%s\" data file.\n", XMLString::transcode( elem->getAttribute(XMLString::transcode("file")) ));
 	    S->addMessage(1, msg);
-	    if( !mData->open(XMLString::transcode( elem->getAttribute(XMLString::transcode("file")) )) )
+	    if( !_data->open(XMLString::transcode( elem->getAttribute(XMLString::transcode("file")) )) )
 	        return true;
 	}
 	//! Set initial positions relative to quaternion
@@ -144,7 +144,7 @@ bool C1Quaternion::_parse(xercesc::DOMElement *root)
 bool C1Quaternion::setInitialPositions()
 {
 	CalcServer *C = CalcServer::singleton();
-	std::deque<float> data = mData->update(0.f);
+	std::deque<float> data = _data->update(0.f);
 	vec cor;
 	mat axis;
 	#ifdef HAVE_3D

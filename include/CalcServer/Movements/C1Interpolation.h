@@ -19,23 +19,6 @@
 #ifndef C1Interpolation_H_INCLUDED
 #define C1Interpolation_H_INCLUDED
 
-// ----------------------------------------------------------------------------
-// Include standar libraries
-// ----------------------------------------------------------------------------
-#include <stdio.h>
-#include <stdlib.h>
-#include <iostream>
-#include <sstream>
-#include <stdexcept>
-#include <math.h>
-#include <string>
-#include <string.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <list>
-#include <unistd.h>
-#include <errno.h>
 #include <vector>
 #include <deque>
 
@@ -49,7 +32,7 @@ class Poly
 {
 public:
     /** Constructor.
-     * @param p Points which the curve must pass through.
+     * @param p Points imposed.
      * @param dp Derivatives imposed.
      */
     Poly(std::deque<vec2> p, std::deque<vec2> dp);
@@ -59,19 +42,19 @@ public:
     ~Poly();
 
     /** Get the imposed points.
-     * @return imposed points array.
+     * @return Imposed points array.
      */
-    std::deque<vec2> points(){return mP;}
+    std::deque<vec2> points(){return _p;}
 
     /** Get the imposed derivatives.
-     * @return imposed derivatives array.
+     * @return Imposed derivatives array.
      */
-    std::deque<vec2> derivatives(){return mD;}
+    std::deque<vec2> derivatives(){return _dp;}
 
     /** Get the resultant coefficients.
      * @return Coefficients.
      */
-    std::deque<float> coefficients(){return mK;}
+    std::deque<float> coefficients(){return _k;}
 
     /** Evaluates the curve in the desired x coordinate.
      * @return Curve y coordinate.
@@ -79,7 +62,7 @@ public:
     float evaluate(float x);
 
     /** Evaluates the curve derivative in the desired x coordinate.
-     * @return Curve derivative \f$\frac{dy}{dx}\f$.
+     * @return Curve derivative \f$ \frac{dy}{dx} \f$.
      */
     float derivate(float x);
 
@@ -89,79 +72,81 @@ private:
     void compute();
 
     /// Starting coordinate
-    float mX0;
+    float _x0;
     /// Points imposed
-    std::deque<vec2> mP;
+    std::deque<vec2> _p;
     /// Derivatives imposed
-    std::deque<vec2> mD;
+    std::deque<vec2> _dp;
     /// Resultant coefficients
-    std::deque<float> mK;
+    std::deque<float> _k;
 };
 
 /** @class C1Interpolation C1Interpolation.h CalcServer/Movements/C1Interpolation.h
- * @brief Data file linear interpolator. With a provided data file this class can perform data
- * interpolation using the time field (assuming that it is placed in the first column).
+ * @brief Data file fields linear interpolator. It will read the data file
+ * and perform data interpolation using the time field (assuming that it is
+ * placed in the first column).
  */
 class C1Interpolation
 {
 public:
 	/** Constructor.
-	 * @param dataFile Data file path.
-	 * @note Data file can be omissed at construction, but ensure yourself
+	 * @param data_file Data file path.
+	 * @note Data file can be omissed at the construction, but ensure yourself
 	 * to provide it later.
 	 */
-	C1Interpolation(const char *dataFile=NULL);
+	C1Interpolation(const char *data_file=NULL);
 
 	/** Destructor.
 	 */
 	~C1Interpolation();
 
-	/** Update data.
+	/** Update data for the new time instant.
 	 * @param t Desired time instant.
 	 * @return Data array. The first component is the time.
 	 */
 	std::deque<float> update(float t);
 
-	/** Get number of data fields.
+	/** Get the number of data fields.
 	 * @return Number of data fields.
 	 */
-	unsigned int nFields(){return mData.size();}
+	unsigned int nFields(){return _data.size();}
 
-	/** Get data fields.
+	/** Get the data fields.
 	 * @return Data array. The first component is the time.
 	 */
-	std::deque<float> data(){return mData;}
+	std::deque<float> data(){return _data;}
 
-	/** Get data fields derivative.
-	 * @return Data derivative. The first component is the time.
+	/** Get the data fields derivative with respect to the time.
+	 * @return Data fields derivative. The first component is the time (non
+     * derivated).
 	 */
 	std::deque<float> derivative();
 
 	/** Set the data file
-	 * @param dataFile Data file path.
-	 * @return true if file was opened ok. \n false otherwise.
-	 * @note Seek will move to last time selected with update,
-	 * if any t=0s will selected.
+	 * @param data_file Data file path.
+	 * @return true if file was opened ok, false otherwise.
+	 * @note Seek point will be moved to the last time selected in the last
+	 * update calling, or \f$ t = 0 \f$ s if update has not been called yet.
 	 */
-	bool open(const char *dataFile);
+	bool open(const char *data_file);
 
 private:
-	/** Reads a line of file.
-	 * @return Data array. If bad formated line or EOF reached,
-	 * clear array will sent.
+	/** Reads a line of the file.
+	 * @return Data array. If a bad formated line or EOF is reached, clear
+	 * data array will be sent.
 	 */
 	std::deque<float> readLine();
 
 	/// Data file
-	FILE *mDataFile;
+	FILE *_data_file;
 	/// Last requested time
 	float _time;
-	/// Last computed curves
-	std::deque<Poly*> mPoly;
-	/// Valid time for the computed curve
-	float mPolyTime;
+	/// Computed curves for each field
+	std::deque<Poly*> _poly;
+	/// Maximum time where the curve still becomes valid
+	float _poly_time;
 	/// Interpolated output data
-	std::deque<float> mData;
+	std::deque<float> _data;
 };
 
 }}} // namespace

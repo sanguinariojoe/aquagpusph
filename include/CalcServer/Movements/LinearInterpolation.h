@@ -49,11 +49,11 @@ class LinearInterpolation
 {
 public:
 	/** Constructor.
-	 * @param dataFile Data file path.
+	 * @param data_file Data file path.
 	 * @note Data file can be omissed at construction, but ensure yourself
 	 * to provide it later.
 	 */
-	LinearInterpolation(const char *dataFile=NULL);
+	LinearInterpolation(const char *data_file=NULL);
 
 	/** Destructor.
 	 */
@@ -68,20 +68,20 @@ public:
 	/** Get number of data fields.
 	 * @return Number of data fields.
 	 */
-	unsigned int nFields(){return mData.size();}
+	unsigned int nFields(){return _data.size();}
 
 	/** Get data fields.
 	 * @return Active data. First component may be t.
 	 */
-	std::deque<float> data(){return mData;}
+	std::deque<float> data(){return _data;}
 
 	/** Set the data file
-	 * @param dataFile Data file path.
+	 * @param data_file Data file path.
 	 * @return true if file was opened ok. \n false otherwise.
 	 * @note Seek will move to last time selected with update,
 	 * if any t=0s will selected.
 	 */
-	bool open(const char *dataFile);
+	bool open(const char *data_file);
 
 private:
 	/** Reads a line of file.
@@ -91,11 +91,11 @@ private:
 	std::deque<float> readLine();
 
 	/// Data file
-	FILE *mDataFile;
+	FILE *_data_file;
 	/// Active time
 	float _time;
 	/// Active data array
-	std::deque<float> mData;
+	std::deque<float> _data;
 	/// Previous time into the file.
 	std::deque<float> mPrevData;
 	/// Next time into the file.

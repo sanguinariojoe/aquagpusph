@@ -65,7 +65,7 @@ private:
 	bool setInitialPositions();
 
 	/// Data file linear interpolator
-	LinearInterpolation *mData;
+	LinearInterpolation *_data;
 };
 
 }}} // namespace

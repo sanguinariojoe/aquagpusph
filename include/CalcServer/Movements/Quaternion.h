@@ -41,7 +41,7 @@ class Quaternion : public Aqua::CalcServer::Movement::Movement
 {
 public:
 	/** Constructor.
-	 * @param dataFile Data file path.
+	 * @param data_file Data file path.
 	 * @note Data file can be omissed at construction, but be ensure
 	 * to provide it later.
 	 */

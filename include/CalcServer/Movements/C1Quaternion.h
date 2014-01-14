@@ -65,7 +65,7 @@ private:
 	bool setInitialPositions();
 
 	/// Data file linear interpolator
-	C1Interpolation *mData;
+	C1Interpolation *_data;
 };
 
 }}} // namespace
