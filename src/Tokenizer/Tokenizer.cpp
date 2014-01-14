@@ -16,9 +16,6 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// ----------------------------------------------------------------------------
-// Include the main header
-// ----------------------------------------------------------------------------
 #include <Tokenizer/Tokenizer.h>
 
 Tokenizer::Tokenizer()
@@ -165,10 +162,10 @@ bool Tokenizer::solve(const char* eq, float *value)
 	char sentence[256];
 	strcpy(sentence, format(eq));
 	// Solve
-	return _solve(sentence,value);
+	return solver(sentence,value);
 }
 
-bool Tokenizer::_solve(const char* eq, float *value)
+bool Tokenizer::solver(const char* eq, float *value)
 {
 	// Test if is a whole number
 	unsigned int readed=0;
@@ -447,7 +444,7 @@ bool Tokenizer::operate(float leftOp, const char* op, float *value)
 {
 	//! Solve right operator
 	float rightOp = 0.0;
-	if(!_solve(&op[1],&rightOp))
+	if(!solver(&op[1],&rightOp))
 	    return false;
 	//! Solve left vs. right operation
 	if(op[0] == '+'){    // Add
@@ -736,7 +733,7 @@ const char* Tokenizer::getArgument(const char* func, unsigned int id)
 
 bool Tokenizer::solveParentheses(const char* func, float *value, unsigned int *readed){
 	char arg[256]; strcpy(arg, getParenthesesArg(func, readed));
-	if(!_solve(arg,value)){
+	if(!solver(arg,value)){
 	    return false;
 	}
 	return true;
@@ -779,7 +776,7 @@ const char* Tokenizer::getParenthesesArg(const char* eq, unsigned int *readed)
 bool Tokenizer::solveNegative(const char* func, float *value, unsigned int *readed){
 	char arg[256]; strcpy(arg, getParenthesesArg(func, readed));
 
-	if(!_solve(arg,value))
+	if(!solver(arg,value))
 	    return false;
 	*value = -*value;
 	return true;
@@ -788,7 +785,7 @@ bool Tokenizer::solveNegative(const char* func, float *value, unsigned int *read
 bool Tokenizer::solveRad(const char* func, float *value, unsigned int *readed){
 	char arg[256]; strcpy(arg, getParenthesesArg(func, readed));
 
-	if(!_solve(arg,value))
+	if(!solver(arg,value))
 	    return false;
 	*value = *value * M_PI / 180.f;
 	return true;
@@ -797,7 +794,7 @@ bool Tokenizer::solveRad(const char* func, float *value, unsigned int *readed){
 bool Tokenizer::solveDeg(const char* func, float *value, unsigned int *readed){
 	char arg[256]; strcpy(arg, getParenthesesArg(func, readed));
 
-	if(!_solve(arg,value))
+	if(!solver(arg,value))
 	    return false;
 	*value = *value * 180.f / M_PI;
 	return true;
@@ -806,7 +803,7 @@ bool Tokenizer::solveDeg(const char* func, float *value, unsigned int *readed){
 bool Tokenizer::solveSin(const char* func, float *value, unsigned int *readed){
 	char arg[256]; strcpy(arg, getParenthesesArg(func, readed));
 
-	if(!_solve(arg,value))
+	if(!solver(arg,value))
 	    return false;
 	*value = sin(*value);
 	return true;
@@ -815,7 +812,7 @@ bool Tokenizer::solveSin(const char* func, float *value, unsigned int *readed){
 bool Tokenizer::solveCos(const char* func, float *value, unsigned int *readed){
 	char arg[256]; strcpy(arg, getParenthesesArg(func, readed));
 
-	if(!_solve(arg,value))
+	if(!solver(arg,value))
 	    return false;
 	*value = cos(*value);
 	return true;
@@ -824,7 +821,7 @@ bool Tokenizer::solveCos(const char* func, float *value, unsigned int *readed){
 bool Tokenizer::solveTan(const char* func, float *value, unsigned int *readed){
 	char arg[256]; strcpy(arg, getParenthesesArg(func, readed));
 
-	if(!_solve(arg,value))
+	if(!solver(arg,value))
 	    return false;
 	*value = tan(*value);
 	return true;
@@ -833,7 +830,7 @@ bool Tokenizer::solveTan(const char* func, float *value, unsigned int *readed){
 bool Tokenizer::solveAsin(const char* func, float *value, unsigned int *readed){
 	char arg[256]; strcpy(arg, getParenthesesArg(func, readed));
 
-	if(!_solve(arg,value))
+	if(!solver(arg,value))
 	    return false;
 	*value = asinf(*value);
 	return true;
@@ -842,7 +839,7 @@ bool Tokenizer::solveAsin(const char* func, float *value, unsigned int *readed){
 bool Tokenizer::solveAcos(const char* func, float *value, unsigned int *readed){
 	char arg[256]; strcpy(arg, getParenthesesArg(func, readed));
 
-	if(!_solve(arg,value))
+	if(!solver(arg,value))
 	    return false;
 	*value = acosf(*value);
 	return true;
@@ -851,7 +848,7 @@ bool Tokenizer::solveAcos(const char* func, float *value, unsigned int *readed){
 bool Tokenizer::solveAtan(const char* func, float *value, unsigned int *readed){
 	char arg[256]; strcpy(arg, getParenthesesArg(func, readed));
 
-	if(!_solve(arg,value))
+	if(!solver(arg,value))
 	    return false;
 	*value = atanf(*value);
 	return true;
@@ -863,13 +860,13 @@ bool Tokenizer::solveAtan2(const char* func, float *value, unsigned int *readed)
 	float arg1;
 	strcpy(arg, "");
 	strcpy(arg, getArgument(func, 0));
-	if(!_solve(arg,&arg1))
+	if(!solver(arg,&arg1))
 	    return false;
 	//! Get x argument
 	float arg2;
 	strcpy(arg, "");
 	strcpy(arg, getArgument(func, 1));
-	if(!_solve(arg,&arg2))
+	if(!solver(arg,&arg2))
 	    return false;
 	//! Calculate solution
 	*value = atan2(arg1,arg2);
@@ -879,7 +876,7 @@ bool Tokenizer::solveAtan2(const char* func, float *value, unsigned int *readed)
 bool Tokenizer::solveExp(const char* func, float *value, unsigned int *readed){
 	char arg[256]; strcpy(arg, getParenthesesArg(func, readed));
 
-	if(!_solve(arg,value))
+	if(!solver(arg,value))
 	    return false;
 	*value = exp(*value);
 	return true;
@@ -888,7 +885,7 @@ bool Tokenizer::solveExp(const char* func, float *value, unsigned int *readed){
 bool Tokenizer::solveLog(const char* func, float *value, unsigned int *readed){
 	char arg[256]; strcpy(arg, getParenthesesArg(func, readed));
 
-	if(!_solve(arg,value))
+	if(!solver(arg,value))
 	    return false;
 	*value = log(*value);
 	return true;
@@ -897,7 +894,7 @@ bool Tokenizer::solveLog(const char* func, float *value, unsigned int *readed){
 bool Tokenizer::solveLog10(const char* func, float *value, unsigned int *readed){
 	char arg[256]; strcpy(arg, getParenthesesArg(func, readed));
 
-	if(!_solve(arg,value))
+	if(!solver(arg,value))
 	    return false;
 	*value = log10(*value);
 	return true;
@@ -909,13 +906,13 @@ bool Tokenizer::solvePow(const char* func, float *value, unsigned int *readed){
 	float arg1;
 	strcpy(arg, "");
 	strcpy(arg, getArgument(func, 0));
-	if(!_solve(arg,&arg1))
+	if(!solver(arg,&arg1))
 	    return false;
 	//! Get argument 2
 	float arg2;
 	strcpy(arg, "");
 	strcpy(arg, getArgument(func, 1));
-	if(!_solve(arg,&arg2))
+	if(!solver(arg,&arg2))
 	    return false;
 	//! Calculate solution
 	*value = pow(arg1,arg2);
@@ -925,7 +922,7 @@ bool Tokenizer::solvePow(const char* func, float *value, unsigned int *readed){
 bool Tokenizer::solveSqrt(const char* func, float *value, unsigned int *readed){
 	char arg[256]; strcpy(arg, getParenthesesArg(func, readed));
 
-	if(!_solve(arg,value))
+	if(!solver(arg,value))
 	    return false;
 	*value = sqrt(*value);
 	return true;
@@ -936,17 +933,17 @@ bool Tokenizer::solveClamp(const char* func, float *value, unsigned int *readed)
 	//! Get argument 1 (value to adjust)
 	float arg1;
 	strcpy(arg, getArgument(func, 0));
-	if(!_solve(arg,&arg1))
+	if(!solver(arg,&arg1))
 	    return false;
 	//! Get argument 2 (minimum value)
 	float arg2;
 	strcpy(arg, getArgument(func, 1));
-	if(!_solve(arg,&arg2))
+	if(!solver(arg,&arg2))
 	    return false;
 	//! Get argument 3 (maximum value)
 	float arg3;
 	strcpy(arg, getArgument(func, 2));
-	if(!_solve(arg,&arg3))
+	if(!solver(arg,&arg3))
 	    return false;
 	//! Calculate solution
 	*value = clamp(arg1,arg2,arg3);
@@ -958,12 +955,12 @@ bool Tokenizer::solveMin(const char* func, float *value, unsigned int *readed){
 	//! Get argument 1
 	float arg1;
 	strcpy(arg, getArgument(func, 0));
-	if(!_solve(arg,&arg1))
+	if(!solver(arg,&arg1))
 	    return false;
 	//! Get argument 2
 	float arg2;
 	strcpy(arg, getArgument(func, 1));
-	if(!_solve(arg,&arg2))
+	if(!solver(arg,&arg2))
 	    return false;
 	//! Calculate solution
 	*value = min(arg1,arg2);
@@ -975,12 +972,12 @@ bool Tokenizer::solveMax(const char* func, float *value, unsigned int *readed){
 	//! Get argument 1
 	float arg1;
 	strcpy(arg, getArgument(func, 0));
-	if(!_solve(arg,&arg1))
+	if(!solver(arg,&arg1))
 	    return false;
 	//! Get argument 2
 	float arg2;
 	strcpy(arg, getArgument(func, 1));
-	if(!_solve(arg,&arg2))
+	if(!solver(arg,&arg2))
 	    return false;
 	//! Calculate solution
 	*value = max(arg1,arg2);
