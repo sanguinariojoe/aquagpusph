@@ -53,13 +53,13 @@ public:
 
 protected:
 	/** Parse input definition file.
-	 * @param root Input node of reader.
+	 * @param root Input node of the parser.
 	 * @return false if all gone right, true otherwise.
 	 */
 	bool _parse(xercesc::DOMElement *root);
 
 private:
-	/** Reads initial quaternion position.
+	/** Read the initial quaternion position.
 	 * @return false if all gone right, true otherwise.
 	 */
 	bool setInitialPositions();

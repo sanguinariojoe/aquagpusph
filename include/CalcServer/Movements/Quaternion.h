@@ -79,7 +79,7 @@ public:
 
 protected:
 	/** Parse input definition file.
-	 * @param root Input node of reader.
+	 * @param root Input node of the parser.
 	 * @return false if all gone right, true otherwise.
 	 */
 	virtual bool _parse(xercesc::DOMElement *root);

@@ -32,8 +32,7 @@
 namespace Aqua{ namespace CalcServer{ namespace Movement{
 
 /** @class C1Quaternion C1Quaternion.h CalcServer/Movements/C1Quaternion.h
- * @brief C1 interpolated solid quaternion movement. Quaternion defines
- * the solid position at any time.
+ * @brief C1 interpolated solid quaternion based motion.
  */
 class C1Quaternion : public Aqua::CalcServer::Movement::Quaternion
 {
@@ -46,25 +45,25 @@ public:
 	 */
 	~C1Quaternion();
 
-	/** Executes the movement.
+	/** Execute the movement.
 	 * @return false if all gone right, true otherwise.
 	 */
 	bool execute();
 
 protected:
-	/** Parse input definition file.
-	 * @param root Input node of reader.
+	/** Parse the input definition file.
+	 * @param root Input node of the parser.
 	 * @return false if all gone right, true otherwise.
 	 */
 	bool _parse(xercesc::DOMElement *root);
 
 private:
-	/** Reads initial quaternion position.
+	/** Read the initial quaternion position.
 	 * @return false if all gone right, true otherwise.
 	 */
 	bool setInitialPositions();
 
-	/// Data file linear interpolator
+	/// Data file Contiguous C1 interpolator
 	C1Interpolation *_data;
 };
 
