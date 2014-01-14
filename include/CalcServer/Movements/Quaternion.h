@@ -72,13 +72,13 @@ public:
 	 */
 	mat getAxis(){return mAxis;}
 
-	/** Executes the movement.
+	/** Execute the motion.
 	 * @return false if all gone right, true otherwise.
 	 */
 	virtual bool execute();
 
 protected:
-	/** Parse input definition file.
+	/** Parse the input definition file.
 	 * @param root Input node of the parser.
 	 * @return false if all gone right, true otherwise.
 	 */

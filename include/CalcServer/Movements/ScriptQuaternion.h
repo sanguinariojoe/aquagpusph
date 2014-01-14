@@ -51,13 +51,13 @@ public:
 	 */
 	~ScriptQuaternion();
 
-	/** Executes the movement.
+	/** Execute the motion.
 	 * @return false if all gone right, true otherwise.
 	 */
 	bool execute();
 
 protected:
-	/** Parse input definition file.
+	/** Parse the input definition file.
 	 * @param root Input node of the parser.
 	 * @return false if all gone right, true otherwise.
 	 */

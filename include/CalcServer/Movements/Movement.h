@@ -44,14 +44,13 @@ namespace Aqua{ namespace CalcServer{
 namespace Movement {
 
 /** @class Movement Movement.h CalcServer/Movements/Movement.h
- * @brief Abstraction class of movements. As base class, only
+ * @brief Abstraction class for all the motion models. As base class, only
  * store some usefull variables as the OpenCL kernel to use.
  */
 class Movement : public Aqua::CalcServer::Kernel
 {
 public:
 	/** Constructor.
-	 * @param def XML file with the movement definition.
 	 */
 	Movement();
 
@@ -60,18 +59,18 @@ public:
 	~Movement();
 
 	/** Parse definition file
-	 * @param def XML file with the movement definition.
-	 * @return true if all gone right. \n false otherwise.
+	 * @param def XML file with the motion definition.
+	 * @return false if all gone right, true otherwise.
 	 */
 	bool parse(const char* def);
 
-	/** Executes the movement.
+	/** Execute the motion.
 	 * @return false if all gone right, true otherwise.
 	 */
 	virtual bool execute()=0;
 
 protected:
-	/** Parse input definition file (movement type specific data).
+	/** Parse the input definition file (motion type specific data).
 	 * @param root Input node of the parser.
 	 * @return false if all gone right, true otherwise.
 	 */
@@ -94,7 +93,6 @@ private:
 
 	/// OpenCL script path
 	char* _path;
-
 
 };  // class Movement
 

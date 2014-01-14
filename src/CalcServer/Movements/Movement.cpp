@@ -16,19 +16,8 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// ----------------------------------------------------------------------------
-// Include the Screen manager
-// ----------------------------------------------------------------------------
 #include <ScreenManager.h>
-
-// ----------------------------------------------------------------------------
-// Include the main header
-// ----------------------------------------------------------------------------
 #include <CalcServer/Movements/Movement.h>
-
-// ----------------------------------------------------------------------------
-// Include the calculation server
-// ----------------------------------------------------------------------------
 #include <CalcServer.h>
 
 #ifdef xmlAttribute
@@ -60,17 +49,17 @@ bool Movement::parse(const char* def)
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	char msg[1024];
-	//! Open the definition file
+
 	if(!strlen(def)) {
-	    S->addMessage(3, "(Movement::parse): _path of movement definition file is empty.\n");
+	    S->addMessageF(3, "The path of the movement definition file is empty.\n");
 	    return true;
 	}
-	sprintf(msg, "(Movement::parse): Parsing XML file \"%s\"\n", def);
-	S->addMessage(1, msg);
+	sprintf(msg, "Parsing XML file \"%s\"\n", def);
+	S->addMessageF(1, msg);
 	// Try to open as ascii file in order to know if file exist
 	FILE *dummy=0; dummy = fopen(def, "r");
 	if(!dummy){
-	    S->addMessage(3, "(Movement::parse): Can't open file.\n");
+	    S->addMessageF(3, "The file cannot be accessed.\n");
 	    return true;
 	}
 	fclose(dummy);
@@ -80,14 +69,14 @@ bool Movement::parse(const char* def)
 	mparser->setDoSchema( false );
 	mparser->setLoadExternalDTD( false );
 	mparser->parse( def );
-	//! Handle document
+
 	DOMDocument* doc = mparser->getDocument();
 	DOMElement* root = doc->getDocumentElement();
 	if( !root ){
-	    S->addMessage(3, "(Movement::parse): Empty XML file\n");
+	    S->addMessageF(3, "Empty XML file\n");
 	    return true;
 	}
-	//! Look for included files to parse it previously
+
 	DOMNodeList* nodes = root->getElementsByTagName(XMLString::transcode("Include"));
 	for( XMLSize_t i=0; i<nodes->getLength();i++ ){
 	    DOMNode* node = nodes->item(i);
@@ -98,7 +87,7 @@ bool Movement::parse(const char* def)
 		if(parse( XMLString::transcode( elem->getAttribute(XMLString::transcode("file")) ) ))
 			return true;
 	}
-	//! Look for an OpenCL script file
+
 	nodes = root->getElementsByTagName(XMLString::transcode("Script"));
 	for( XMLSize_t i=0; i<nodes->getLength();i++ ){
 	    DOMNode* node = nodes->item(i);
@@ -108,7 +97,7 @@ bool Movement::parse(const char* def)
 	    const char* path = XMLString::transcode( elem->getAttribute(XMLString::transcode("file")) );
 	    unsigned int str_len = strlen(path);
 	    if(!str_len){
-	        S->addMessage(3, "(Movement::parse): Movement OpenCL script is empty.\n");
+	        S->addMessageF(3, "Movement OpenCL script is empty.\n");
 	        S->addMessage(0, "\tProgram will continue looking for a script.\n");
 	        continue;
 	    }
@@ -116,18 +105,18 @@ bool Movement::parse(const char* def)
 		if(_path) delete[] _path; _path=0;
 		_path = new char[str_len+1];
 		if(!_path){
-	        S->addMessage(3, "(Movement::parse): Can't allocate memory for OpenCL script path.\n");
+	        S->addMessageF(3, "I Cannot allocate memory for OpenCL script path.\n");
 	        return true;
 		}
 		strcpy(_path,path);
 	}
-	//! Parse movement type specific options
+
 	if(_parse(root))
 	    return true;
-	//! Calls to setupOpenCL
+
 	if(setupOpenCL())
 	    return true;
-	S->addMessage(1, "(Movement::parse): Ready to work!\n");
+	S->addMessageF(1, "Ready to work!\n");
 	return false;
 }
 
@@ -136,26 +125,42 @@ bool Movement::setupOpenCL()
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
 	cl_int err_code;
-	if(!loadKernelFromFile(&_kernel, &_program, C->context, C->device, _path, "Movement", ""))
+	if(!loadKernelFromFile(&_kernel,
+                           &_program,
+                           C->context,
+                           C->device,
+                           _path,
+                           "Movement",
+                           ""))
 	    return true;
-	//! Look for work group size
+
 	_local_work_size  = localWorkSize();
 	if(!_local_work_size){
-	    S->addMessage(3, "(Movement::setupOpenCL): I cannot get a valid local work size for the required computation tool.\n");
-	    exit(EXIT_FAILURE);
+	    S->addMessageF(3, "I cannot get a valid local work size for the required computation tool.\n");
+        S->printOpenCLError(err_code);
+	    return true;
 	}
 	cl_device_id device;
 	size_t local_work_size=0;
-	err_code |= clGetCommandQueueInfo(C->command_queue,CL_QUEUE_DEVICE,
-	                                sizeof(cl_device_id),&device, NULL);
+	err_code |= clGetCommandQueueInfo(C->command_queue,
+                                      CL_QUEUE_DEVICE,
+	                                  sizeof(cl_device_id),
+                                      &device,
+                                      NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Movement::setupOpenCL): I Cannot get the device from the command queue.\n");
+		S->addMessageF(3, "I Cannot get the device from the command queue.\n");
+        S->printOpenCLError(err_code);
 	    return true;
 	}
-	err_code |= clGetKernelWorkGroupInfo(_kernel,device,CL_KERNEL_WORK_GROUP_SIZE,
-	                                   sizeof(size_t), &local_work_size, NULL);
+	err_code |= clGetKernelWorkGroupInfo(_kernel,
+                                         device,
+                                         CL_KERNEL_WORK_GROUP_SIZE,
+	                                     sizeof(size_t),
+                                         &local_work_size,
+                                         NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Movement::setupOpenCL): Failure retrieving the maximum local work size.\n");
+		S->addMessageF(3, "Failure retrieving the maximum local work size.\n");
+        S->printOpenCLError(err_code);
 	    return true;
 	}
 	if(local_work_size < _local_work_size)
