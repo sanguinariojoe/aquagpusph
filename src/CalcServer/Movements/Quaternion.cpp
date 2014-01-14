@@ -16,24 +16,9 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// ----------------------------------------------------------------------------
-// Include the main header
-// ----------------------------------------------------------------------------
 #include <CalcServer/Movements/Quaternion.h>
-
-// ----------------------------------------------------------------------------
-// Include the calculation server
-// ----------------------------------------------------------------------------
 #include <CalcServer.h>
-
-// ----------------------------------------------------------------------------
-// Include the Time manager
-// ----------------------------------------------------------------------------
 #include <TimeManager.h>
-
-// ----------------------------------------------------------------------------
-// Include the Screen manager
-// ----------------------------------------------------------------------------
 #include <ScreenManager.h>
 
 #ifdef xmlAttribute
@@ -46,8 +31,8 @@ namespace Aqua{ namespace CalcServer{ namespace Movement{
 
 Quaternion::Quaternion()
 	: Movement()
-	, mRelPos(0)
-	, mRelNormal(0)
+	, _pos(0)
+	, _normal(0)
 {
 	CalcServer *C = CalcServer::singleton();
 	//! Set inital values
@@ -57,41 +42,41 @@ Quaternion::Quaternion()
 	    _cor.z = 0.f;
 	    _cor.w = 0.f;
 	#endif
-	mAxis[0].x = 1.f;
-	mAxis[1].y = 1.f;
+	_axis[0].x = 1.f;
+	_axis[1].y = 1.f;
 	#ifdef HAVE_3D
-	    mAxis[2].z = 1.f;
+	    _axis[2].z = 1.f;
 	#endif
-	//! Allocate memory at server
+
 	unsigned int N = C->N;
-	mRelPos = C->allocMemory(N*sizeof(vec));
-	if(!mRelPos)
+	_pos = C->allocMemory(N*sizeof(vec));
+	if(!_pos)
 	    exit(255);
-    mRelNormal = C->allocMemory(N*sizeof(vec));
-	if(!mRelNormal)
+    _normal = C->allocMemory(N*sizeof(vec));
+	if(!_normal)
 	    exit(255);
-	//! Compute initial relative positions
-	if(set(_cor,mAxis,true))
+
+	if(set(_cor,_axis,true))
 	    exit(255);
 }
 
 Quaternion::~Quaternion()
 {
 	unsigned int i;
-	if(mRelPos)clReleaseMemObject(mRelPos); mRelPos=0;
-	if(mRelNormal)clReleaseMemObject(mRelNormal); mRelNormal=0;
-	for(i=0;i<walls.size();i++){
-	    delete walls.at(i);
+	if(_pos)clReleaseMemObject(_pos); _pos=0;
+	if(_normal)clReleaseMemObject(_normal); _normal=0;
+	for(i=0;i<_walls.size();i++){
+	    delete _walls.at(i);
 	}
-	walls.clear();
+	_walls.clear();
 }
 
 bool Quaternion::set(vec cor, mat axis, bool initial){
 	_cor  = cor;
-	mAxis = axis;
+	_axis = axis;
 	if(initial){
-	    mOldCOR  = cor;
-	    mOldAxis = axis;
+	    _old_cor  = cor;
+	    _old_axis = axis;
 	    if(computePos())
 	        return true;
 	    if(computeWalls())
@@ -107,41 +92,101 @@ bool Quaternion::execute()
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
 	vec X, Y, Z, oldX, oldY, oldZ;
-	X    = mAxis[0];
-	Y    = mAxis[1];
-	oldX = mOldAxis[0];
-	oldY = mOldAxis[1];
+	X    = _axis[0];
+	Y    = _axis[1];
+	oldX = _old_axis[0];
+	oldY = _old_axis[1];
 	#ifdef HAVE_3D
-	    Z    = mAxis[2];
-	    oldZ = mOldAxis[2];
+	    Z    = _axis[2];
+	    oldZ = _old_axis[2];
 	#else
 	    Z.x = 0.f; Z.y = 0.f;
 	    oldZ.x = 0.f; oldZ.y = 0.f;
 	#endif
-	//! Send variables to kernel
+
 	cl_int err_code=0;
-	err_code |= sendArgument(_kernel,  0, sizeof(cl_mem  ), (void*)&(C->imove));
-	err_code |= sendArgument(_kernel,  1, sizeof(cl_mem  ), (void*)&(C->ifluid));
-	err_code |= sendArgument(_kernel,  2, sizeof(cl_mem  ), (void*)&(C->posin));
-	err_code |= sendArgument(_kernel,  3, sizeof(cl_mem  ), (void*)&(C->normal));
-	err_code |= sendArgument(_kernel,  4, sizeof(cl_mem  ), (void*)&(C->vin));
-	err_code |= sendArgument(_kernel,  5, sizeof(cl_mem  ), (void*)&(C->densin));
-	err_code |= sendArgument(_kernel,  6, sizeof(cl_mem  ), (void*)&(C->mass));
-	err_code |= sendArgument(_kernel,  7, sizeof(cl_mem  ), (void*)&(C->hpin));
-	err_code |= sendArgument(_kernel,  8, sizeof(cl_mem  ), (void*)&(mRelPos));
-	err_code |= sendArgument(_kernel,  9, sizeof(cl_mem  ), (void*)&(mRelNormal));
-	err_code |= sendArgument(_kernel, 10, sizeof(cl_uint ), (void*)&(C->N));
-	err_code |= sendArgument(_kernel, 11, sizeof(cl_float), (void*)&(C->dt));
-	err_code |= sendArgument(_kernel, 12, sizeof(vec     ), (void*)&(_cor));
-	err_code |= sendArgument(_kernel, 13, sizeof(vec     ), (void*)&(X));
-	err_code |= sendArgument(_kernel, 14, sizeof(vec     ), (void*)&(Y));
-	err_code |= sendArgument(_kernel, 15, sizeof(vec     ), (void*)&(Z));
-	err_code |= sendArgument(_kernel, 16, sizeof(vec     ), (void*)&(mOldCOR));
-	err_code |= sendArgument(_kernel, 17, sizeof(vec     ), (void*)&(oldX));
-	err_code |= sendArgument(_kernel, 18, sizeof(vec     ), (void*)&(oldY));
-	err_code |= sendArgument(_kernel, 19, sizeof(vec     ), (void*)&(oldZ));
+	err_code |= sendArgument(_kernel,
+                             0,
+                             sizeof(cl_mem),
+                             (void*)&(C->imove));
+	err_code |= sendArgument(_kernel,
+                             1,
+                             sizeof(cl_mem),
+                             (void*)&(C->ifluid));
+	err_code |= sendArgument(_kernel,
+                             2,
+                             sizeof(cl_mem),
+                             (void*)&(C->posin));
+	err_code |= sendArgument(_kernel,
+                             3,
+                             sizeof(cl_mem),
+                             (void*)&(C->normal));
+	err_code |= sendArgument(_kernel,
+                             4,
+                             sizeof(cl_mem),
+                             (void*)&(C->vin));
+	err_code |= sendArgument(_kernel,
+                             5,
+                             sizeof(cl_mem),
+                             (void*)&(C->densin));
+	err_code |= sendArgument(_kernel,
+                             6,
+                             sizeof(cl_mem),
+                             (void*)&(C->mass));
+	err_code |= sendArgument(_kernel,
+                             7,
+                             sizeof(cl_mem),
+                             (void*)&(C->hpin));
+	err_code |= sendArgument(_kernel,
+                             8,
+                             sizeof(cl_mem),
+                             (void*)&(_pos));
+	err_code |= sendArgument(_kernel,
+                             9,
+                             sizeof(cl_mem),
+                             (void*)&(_normal));
+	err_code |= sendArgument(_kernel,
+                             10,
+                             sizeof(cl_uint),
+                             (void*)&(C->N));
+	err_code |= sendArgument(_kernel,
+                             11,
+                             sizeof(cl_float),
+                             (void*)&(C->dt));
+	err_code |= sendArgument(_kernel,
+                             12,
+                             sizeof(vec),
+                             (void*)&(_cor));
+	err_code |= sendArgument(_kernel,
+                             13,
+                             sizeof(vec),
+                             (void*)&(X));
+	err_code |= sendArgument(_kernel,
+                             14,
+                             sizeof(vec),
+                             (void*)&(Y));
+	err_code |= sendArgument(_kernel,
+                             15,
+                             sizeof(vec),
+                             (void*)&(Z));
+	err_code |= sendArgument(_kernel,
+                             16,
+                             sizeof(vec),
+                             (void*)&(_old_cor));
+	err_code |= sendArgument(_kernel,
+                             17,
+                             sizeof(vec),
+                             (void*)&(oldX));
+	err_code |= sendArgument(_kernel,
+                             18,
+                             sizeof(vec),
+                             (void*)&(oldY));
+	err_code |= sendArgument(_kernel,
+                             19,
+                             sizeof(vec),
+                             (void*)&(oldZ));
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Quaternion::execute): Failure sending variables to _kernel.\n");
+		S->addMessageF(3, "Failure sending variables to the kernel.\n");
 	    return true;
 	}
 	//! Execute the kernel
@@ -149,64 +194,87 @@ bool Quaternion::execute()
 	    cl_event event;
 	    cl_ulong end, start;
 	    profileTime(0.f);
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, _kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, &event);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue,
+                                          _kernel,
+                                          1,
+                                          NULL,
+                                          &_global_work_size,
+                                          NULL,
+                                          0,
+                                          NULL,
+                                          &event);
 	#else
-	    err_code = clEnqueueNDRangeKernel(C->command_queue, _kernel, 1, NULL, &_global_work_size, NULL, 0, NULL, NULL);
+	    err_code = clEnqueueNDRangeKernel(C->command_queue,
+                                          _kernel,
+                                          1,
+                                          NULL,
+                                          &_global_work_size,
+                                          NULL,
+                                          0,
+                                          NULL,
+                                          NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
-		S->addMessage(3, "(Rates::Execute): I cannot execute the kernel.\n");
-	    if(err_code == CL_INVALID_WORK_GROUP_SIZE)
-	        S->addMessage(0, "\tInvalid local work group size.\n");
-	    else if(err_code == CL_OUT_OF_RESOURCES)
-	        S->addMessage(0, "\tDevice out of resources.\n");
-	    else if(err_code == CL_MEM_OBJECT_ALLOCATION_FAILURE)
-	        S->addMessage(0, "\tAllocation error at device.\n");
-	    else if(err_code == CL_OUT_OF_HOST_MEMORY)
-	        S->addMessage(0, "\tfailure to allocate resources required by the OpenCL implementation on the host.\n");
-	    return true;
-	}
-	// Profile the kernel execution
-	#ifdef HAVE_GPUPROFILE
-	    err_code = clWaitForEvents(1, &event);
-	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(Rates::Execute): Impossible to wait for the sorting kernel ends.\n");
-	        return true;
-	    }
-	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
-	    err_code |= clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
-	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "(Rates::Execute): I cannot profile the sorting kernel execution.\n");
-	        return true;
-	    }
+		S->addMessage(3, "I cannot execute the kernel.\n");
+        S->printOpenCLError(err_code);
+        return true;
+    }
+    #ifdef HAVE_GPUPROFILE
+        err_code = clWaitForEvents(1, &event);
+        if(err_code != CL_SUCCESS) {
+            S->addMessage(3, "Impossible to wait for the velocity clamping kernel end.\n");
+            S->printOpenCLError(err_code);
+            return true;
+        }
+        err_code = clGetEventProfilingInfo(event,
+                                           CL_PROFILING_COMMAND_END,
+                                           sizeof(cl_ulong),
+                                           &end,
+                                           0);
+        if(err_code != CL_SUCCESS) {
+            S->addMessage(3, "I cannot profile the velocity clamping kernel execution.\n");
+            S->printOpenCLError(err_code);
+            return true;
+        }
+        err_code = clGetEventProfilingInfo(event,
+                                           CL_PROFILING_COMMAND_START,
+                                           sizeof(cl_ulong),
+                                           &start,
+                                           0);
+        if(err_code != CL_SUCCESS) {
+            S->addMessage(3, "I cannot profile the velocity clamping kernel execution.\n");
+            S->printOpenCLError(err_code);
+            return true;
+        }
 	    profileTime(profileTime() + (end - start)/1000.f);  // 10^-3 ms
 	#endif
-	//! Call to move walls (ghost particles)
+
 	if(executeWalls())
 	    return true;
 	if(executeDomain())
 	    return true;
-	//! Backup the quaternion.
-	mOldCOR  = _cor;
-	mOldAxis = mAxis;
+
+	_old_cor  = _cor;
+	_old_axis = _axis;
 	return false;
 }
 
 bool Quaternion::executeWalls()
 {
 	unsigned int i;
-	unsigned int N = walls.size();
+	unsigned int N = _walls.size();
 	if(!N)
 	    return false;
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
 	CalcServer *C = CalcServer::singleton();
 	vec X, Y, Z, oldX, oldY, oldZ;
-	X    = mAxis[0];
-	Y    = mAxis[1];
-	oldX = mOldAxis[0];
-	oldY = mOldAxis[1];
+	X    = _axis[0];
+	Y    = _axis[1];
+	oldX = _old_axis[0];
+	oldY = _old_axis[1];
 	#ifdef HAVE_3D
-	    Z    = mAxis[2];
-	    oldZ = mOldAxis[2];
+	    Z    = _axis[2];
+	    oldZ = _old_axis[2];
 	#else
 	    Z.x = 0.f; Z.y = 0.f;
 	    oldZ.x = 0.f; oldZ.y = 0.f;
@@ -214,16 +282,16 @@ bool Quaternion::executeWalls()
 	for(i=0;i<N;i++){
 	    vec newPos, oldPos;
 	    newPos = _cor;
-	    newPos = add(newPos, mult(walls.at(i)->p1.x,X));
-	    newPos = add(newPos, mult(walls.at(i)->p1.y,Y));
+	    newPos = add(newPos, mult(_walls.at(i)->p1.x,X));
+	    newPos = add(newPos, mult(_walls.at(i)->p1.y,Y));
 	    #ifdef HAVE_3D
-	        newPos = add(newPos, mult(walls.at(i)->p1.z,Z));
+	        newPos = add(newPos, mult(_walls.at(i)->p1.z,Z));
 	    #endif
-	    oldPos = mOldCOR;
-	    oldPos = add(oldPos, mult(walls.at(i)->p1.x,oldX));
-	    oldPos = add(oldPos, mult(walls.at(i)->p1.y,oldY));
+	    oldPos = _old_cor;
+	    oldPos = add(oldPos, mult(_walls.at(i)->p1.x,oldX));
+	    oldPos = add(oldPos, mult(_walls.at(i)->p1.y,oldY));
 	    #ifdef HAVE_3D
-	        oldPos = add(oldPos, mult(walls.at(i)->p1.z,oldZ));
+	        oldPos = add(oldPos, mult(_walls.at(i)->p1.z,oldZ));
 	    #endif
 	    P->ghost_particles.walls.at(i)->p1 = newPos;
 	    if(C->dt <= 0.f){
@@ -233,16 +301,16 @@ bool Quaternion::executeWalls()
 	        P->ghost_particles.walls.at(i)->v1 = mult(1.f/C->dt, sub(newPos, oldPos));
 	    }
 	    newPos = _cor;
-	    newPos = add(newPos, mult(walls.at(i)->p2.x,X));
-	    newPos = add(newPos, mult(walls.at(i)->p2.y,Y));
+	    newPos = add(newPos, mult(_walls.at(i)->p2.x,X));
+	    newPos = add(newPos, mult(_walls.at(i)->p2.y,Y));
 	    #ifdef HAVE_3D
-	        newPos = add(newPos, mult(walls.at(i)->p2.z,Z));
+	        newPos = add(newPos, mult(_walls.at(i)->p2.z,Z));
 	    #endif
-	    oldPos = mOldCOR;
-	    oldPos = add(oldPos, mult(walls.at(i)->p2.x,oldX));
-	    oldPos = add(oldPos, mult(walls.at(i)->p2.y,oldY));
+	    oldPos = _old_cor;
+	    oldPos = add(oldPos, mult(_walls.at(i)->p2.x,oldX));
+	    oldPos = add(oldPos, mult(_walls.at(i)->p2.y,oldY));
 	    #ifdef HAVE_3D
-	        oldPos = add(oldPos, mult(walls.at(i)->p2.z,oldZ));
+	        oldPos = add(oldPos, mult(_walls.at(i)->p2.z,oldZ));
 	    #endif
 	    P->ghost_particles.walls.at(i)->p2 = newPos;
 	    if(C->dt <= 0.f){
@@ -253,13 +321,13 @@ bool Quaternion::executeWalls()
 	    }
 	    #ifdef HAVE_3D
 	        newPos = _cor;
-	        newPos = add(newPos, mult(walls.at(i)->p3.x,X));
-	        newPos = add(newPos, mult(walls.at(i)->p3.y,Y));
-	        newPos = add(newPos, mult(walls.at(i)->p3.z,Z));
-	        oldPos = mOldCOR;
-	        oldPos = add(oldPos, mult(walls.at(i)->p3.x,oldX));
-	        oldPos = add(oldPos, mult(walls.at(i)->p3.y,oldY));
-	        oldPos = add(oldPos, mult(walls.at(i)->p3.z,oldZ));
+	        newPos = add(newPos, mult(_walls.at(i)->p3.x,X));
+	        newPos = add(newPos, mult(_walls.at(i)->p3.y,Y));
+	        newPos = add(newPos, mult(_walls.at(i)->p3.z,Z));
+	        oldPos = _old_cor;
+	        oldPos = add(oldPos, mult(_walls.at(i)->p3.x,oldX));
+	        oldPos = add(oldPos, mult(_walls.at(i)->p3.y,oldY));
+	        oldPos = add(oldPos, mult(_walls.at(i)->p3.z,oldZ));
 	        P->ghost_particles.walls.at(i)->p3 = newPos;
 	        if(C->dt <= 0.f){
 	            P->ghost_particles.walls.at(i)->v3 = Vzero();
@@ -270,13 +338,13 @@ bool Quaternion::executeWalls()
 	    #endif
 	    #ifdef HAVE_3D
 	        newPos = _cor;
-	        newPos = add(newPos, mult(walls.at(i)->p4.x,X));
-	        newPos = add(newPos, mult(walls.at(i)->p4.y,Y));
-	        newPos = add(newPos, mult(walls.at(i)->p4.z,Z));
-	        oldPos = mOldCOR;
-	        oldPos = add(oldPos, mult(walls.at(i)->p4.x,oldX));
-	        oldPos = add(oldPos, mult(walls.at(i)->p4.y,oldY));
-	        oldPos = add(oldPos, mult(walls.at(i)->p4.z,oldZ));
+	        newPos = add(newPos, mult(_walls.at(i)->p4.x,X));
+	        newPos = add(newPos, mult(_walls.at(i)->p4.y,Y));
+	        newPos = add(newPos, mult(_walls.at(i)->p4.z,Z));
+	        oldPos = _old_cor;
+	        oldPos = add(oldPos, mult(_walls.at(i)->p4.x,oldX));
+	        oldPos = add(oldPos, mult(_walls.at(i)->p4.y,oldY));
+	        oldPos = add(oldPos, mult(_walls.at(i)->p4.z,oldZ));
 	        P->ghost_particles.walls.at(i)->p4 = newPos;
 	        if(C->dt <= 0.f){
 	            P->ghost_particles.walls.at(i)->v4 = Vzero();
@@ -285,10 +353,10 @@ bool Quaternion::executeWalls()
 	            P->ghost_particles.walls.at(i)->v4 = mult(1.f/C->dt, sub(newPos, oldPos));
 	        }
 	    #endif
-	    newPos = mult(walls.at(i)->n.x,X);
-	    newPos = add(newPos, mult(walls.at(i)->n.y,Y));
+	    newPos = mult(_walls.at(i)->n.x,X);
+	    newPos = add(newPos, mult(_walls.at(i)->n.y,Y));
 	    #ifdef HAVE_3D
-	        newPos = add(newPos, mult(walls.at(i)->n.z,Z));
+	        newPos = add(newPos, mult(_walls.at(i)->n.z,Z));
 	    #endif
 	    P->ghost_particles.walls.at(i)->n = newPos;
 	}
@@ -300,8 +368,8 @@ bool Quaternion::executeDomain()
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
 	if(!P->SPH_opts.domain_motion)
         return false;
-	P->SPH_opts.domain_min = add(domain_min, _cor);
-	P->SPH_opts.domain_max = add(domain_max, _cor);
+	P->SPH_opts.domain_min = add(_domain_min, _cor);
+	P->SPH_opts.domain_max = add(_domain_max, _cor);
 	return false;
 }
 
@@ -318,10 +386,10 @@ bool Quaternion::computePos()
 	char msg[1024];
 	unsigned int i;
 	unsigned int N = C->N;
-	//! Get original positions and normals
+
 	vec *hRelPos = new vec[N];
 	if(!hRelPos){
-	    S->addMessage(3, "(Quaternion::computePos): Can't allocate temporal memory at host.\n");
+	    S->addMessageF(3, "I Cannot allocate temporal memory at host.\n");
 	    sprintf(msg, "\t%lu bytes required.\n", N*sizeof(vec));
 	    S->addMessage(0, msg);
 	    return true;
@@ -330,23 +398,23 @@ bool Quaternion::computePos()
 	    return true;
 	vec *hRelNormal = new vec[N];
 	if(!hRelNormal){
-	    S->addMessage(3, "(Quaternion::computePos): Can't allocate temporal memory at host.\n");
+	    S->addMessageF(3, "I Cannot allocate temporal memory at host.\n");
 	    sprintf(msg, "\t%lu bytes required.\n", N*sizeof(vec));
 	    S->addMessage(0, msg);
 	    return true;
 	}
 	if(C->getData(hRelNormal, C->normal, N*sizeof(vec)))
 	    return true;
-	//! Project over original quaterrnion
+
 	for(i=0;i<N;i++){
 	    vec point  = hRelPos[i];
 	    vec normal = hRelNormal[i];
-	    vec x      = mAxis[0];
-	    vec y      = mAxis[1];
+	    vec x      = _axis[0];
+	    vec y      = _axis[1];
 	    point.x   -= _cor.x;
 	    point.y   -= _cor.y;
 	    #ifdef HAVE_3D
-	        vec z    = mAxis[2];
+	        vec z    = _axis[2];
 	        point.z -= _cor.z;
 	        point.w  = 0.f;
 	    #endif
@@ -361,10 +429,10 @@ bool Quaternion::computePos()
 	        hRelNormal[i].w = 0.f;
 	    #endif
 	}
-	//! Send data to server.
-	if(C->sendData(mRelPos, hRelPos, N*sizeof(vec)))
+
+	if(C->sendData(_pos, hRelPos, N*sizeof(vec)))
 	    return true;
-	if(C->sendData(mRelNormal, hRelNormal, N*sizeof(vec)))
+	if(C->sendData(_normal, hRelNormal, N*sizeof(vec)))
 	    return true;
 	delete[] hRelPos; hRelPos=0;
 	return false;
@@ -376,12 +444,12 @@ bool Quaternion::computeWalls()
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
 	unsigned int i;
 	unsigned int N = P->ghost_particles.walls.size();
-	for(i=0;i<walls.size();i++){
-	    delete walls.at(i);
+	for(i=0;i<_walls.size();i++){
+	    delete _walls.at(i);
 	}
-	walls.clear();
+	_walls.clear();
 	for(i=0;i<N;i++){
-	    //! Copy wall
+
 	    InputOutput::ProblemSetup::sphGhostParticles::Wall *wall =
 	                new InputOutput::ProblemSetup::sphGhostParticles::Wall();
 	    wall->p1 = P->ghost_particles.walls.at(i)->p1;
@@ -395,12 +463,12 @@ bool Quaternion::computeWalls()
 	        wall->v3 = P->ghost_particles.walls.at(i)->v3;
 	        wall->v4 = P->ghost_particles.walls.at(i)->v4;
 	    #endif
-	    walls.push_back(wall);
-	    //! Transform vertexes and normal to COR coordinates
-	    vec x      = mAxis[0];
-	    vec y      = mAxis[1];
+	    _walls.push_back(wall);
+
+	    vec x      = _axis[0];
+	    vec y      = _axis[1];
 	    #ifdef HAVE_3D
-	        vec z    = mAxis[2];
+	        vec z    = _axis[2];
 	    #endif
 	    vec aux;
 	    aux        = wall->p1;
@@ -447,8 +515,8 @@ bool Quaternion::computeDomain()
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
 	if(!P->SPH_opts.domain_motion)
         return false;
-	domain_min = sub(P->SPH_opts.domain_min, _cor);
-	domain_max = sub(P->SPH_opts.domain_max, _cor);
+	_domain_min = sub(P->SPH_opts.domain_min, _cor);
+	_domain_max = sub(P->SPH_opts.domain_max, _cor);
 	return false;
 }
 

@@ -19,23 +19,16 @@
 #ifndef QUATERNION_H_INCLUDED
 #define QUATERNION_H_INCLUDED
 
-// ----------------------------------------------------------------------------
-// Include Problem setup
-// ----------------------------------------------------------------------------
 #include <ProblemSetup.h>
-
-// ----------------------------------------------------------------------------
-// Include the Movement
-// ----------------------------------------------------------------------------
 #include <CalcServer/Movements/Movement.h>
 
 namespace Aqua{ namespace CalcServer{ namespace Movement{
 
 /** @class Quaternion Quaternion.h CalcServer/Movements/Quaternion.h
- * @brief Solid quaternion movement. Quaternion, that must be procided
- * manually defines the solid position at any time. This class can be
- * used if AQUAgpusph is used as library, or as base for other more
- * complex Quaternion based movements.
+ * @brief Solid quaternion based motion. Quaternion, that must be manually
+ * provided, defines the solid position for each time instant.
+ * This class is not designed to be used by the AQUAgpusph binary but as an
+ * utility for the overloaded quaternion classes.
  */
 class Quaternion : public Aqua::CalcServer::Movement::Movement
 {
@@ -51,26 +44,25 @@ public:
 	 */
 	~Quaternion();
 
-	/** Set quaternion (as point and axis vectors).
-	 * @param cor Center of rotation.
+	/** Set the quaternion (by the center point and the axis vectors).
+	 * @param cor Center of the quaternion.
 	 * @param axis Axis matrix. The axis matrix must
-	 * contains each axis at each row.
-	 * @param initial true if initial set of quaternion
-	 * being performed. Relative positions will be
-	 * recomputed, and backup values asssigned.
+	 * contains one axis per row.
+	 * @param initial true if it is the initial set of the quaternion.
+	 * Relative positions will be recomputed, and backup values asssigned.
 	 * @return false if all gone right, true otherwise.
 	 */
 	bool set(vec cor, mat axis, bool initial=false);
 
-	/** Get updated COR.
-	 * @return Center of rotation.
+	/** Get the updated COR.
+	 * @return Center of the quaternion.
 	 */
 	vec getCOR(){return _cor;}
 
-	/** Get updated quaternion axis.
-	 * @return Quaternion axis matrix.
+	/** Get the updated quaternion axis.
+	 * @return Quaternion axis matrix (distributed by rows).
 	 */
-	mat getAxis(){return mAxis;}
+	mat getAxis(){return _axis;}
 
 	/** Execute the motion.
 	 * @return false if all gone right, true otherwise.
@@ -98,41 +90,42 @@ protected:
 	/// Quaternion center.
 	vec _cor;
 	/// Quaternion axis vectors.
-	mat mAxis;
+	mat _axis;
 
 	/// Old quaternion center.
-	vec mOldCOR;
+	vec _old_cor;
 	/// Old quaternion axis vectors.
-	mat mOldAxis;
+	mat _old_axis;
 private:
-	/** Computes particles positions relative to Quaternion.
+	/** Compute the particles positions respect to the Quaternion.
 	 * @return false if all gone right, true otherwise.
 	 */
 	bool computePos();
 
-	/** Computes wall vertexes (ghost particles) relative
-	 * to Quaternion.
+	/** Compute the wall vertexes (for the ghost particles) respect to the
+	 * Quaternion.
 	 * @return false if all gone right, true otherwise.
 	 */
 	bool computeWalls();
 
-	/** Computes domain boundsrelative to COR.
+	/** Compute the domain bounds respect to the COR. (the domain bounds are
+     * not affected by the rotations)
 	 * @return false if all gone right, true otherwise.
 	 */
 	bool computeDomain();
 
 	/// Relative positions to the quaternion.
-	cl_mem mRelPos;
+	cl_mem _pos;
 	/// Relative normals to the quaternion.
-	cl_mem mRelNormal;
+	cl_mem _normal;
 
 	/// Stored walls (relative to axes)
-	std::deque<InputOutput::ProblemSetup::sphGhostParticles::Wall*> walls;
+	std::deque<InputOutput::ProblemSetup::sphGhostParticles::Wall*> _walls;
 
 	/// Minimum domain coordinates relative to COR
-	vec domain_min;
+	vec _domain_min;
 	/// Maximum domain coordinates relative to COR
-	vec domain_max;
+	vec _domain_max;
 };
 
 }}} // namespace
