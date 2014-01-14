@@ -16,24 +16,9 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// ----------------------------------------------------------------------------
-// Include the main header
-// ----------------------------------------------------------------------------
 #include <CalcServer/Movements/LIQuaternion.h>
-
-// ----------------------------------------------------------------------------
-// Include the calculation server
-// ----------------------------------------------------------------------------
 #include <CalcServer.h>
-
-// ----------------------------------------------------------------------------
-// Include the Time manager
-// ----------------------------------------------------------------------------
 #include <TimeManager.h>
-
-// ----------------------------------------------------------------------------
-// Include the Screen manager
-// ----------------------------------------------------------------------------
 #include <ScreenManager.h>
 
 #ifdef xmlAttribute
@@ -48,7 +33,6 @@ LIQuaternion::LIQuaternion()
 	: Quaternion()
 	, _data(0)
 {
-	//! Build the linear interpolator
 	_data = new LinearInterpolation();
 }
 
@@ -65,13 +49,15 @@ bool LIQuaternion::execute()
 	char msg[1025];
 	vec cor;
 	mat axis;
-	//! Read data
+
 	float t = T->time();
 	std::deque<float> data = _data->update(t);
 	#ifdef HAVE_3D
 	    if(data.size() != 10){
-	        S->addMessage(3, "(LIQuaternion::execute): Invalid data file line.\n");
-	        sprintf(msg, "\tLine with %lu varaibles reached, 10 variables are mandatory at 3D cases.\n", data.size());
+	        S->addMessageF(3, "Invalid data file line.\n");
+	        sprintf(msg,
+                    "\tLine with %lu varaibles reached, 10 variables are mandatory at 3D cases.\n",
+                    data.size());
 	        S->addMessage(0, msg);
 	        return true;
 	    }
@@ -89,8 +75,10 @@ bool LIQuaternion::execute()
 	    axis[1].w = 0.f;
 	#else
 	    if(data.size() != 5){
-	        S->addMessage(3, "(LIQuaternion::execute): Invalid data file line.\n");
-	        sprintf(msg, "\tLine with %lu varaibles reached, 5 variables are mandatory at 2D cases.\n", data.size());
+	        S->addMessageF(3, "Invalid data file line.\n");
+	        sprintf(msg,
+                    "\tLine with %lu varaibles reached, 5 variables are mandatory at 2D cases.\n",
+                    data.size());
 	        S->addMessage(0, msg);
 	        return true;
 	    }
@@ -121,7 +109,7 @@ bool LIQuaternion::_parse(xercesc::DOMElement *root)
 	//! Open data table file
 	DOMNodeList* nodes = root->getElementsByTagName(XMLString::transcode("DataFile"));
 	if(!nodes->getLength()){
-	    S->addMessage(3, "(LIQuaternion::_parse): Data file has not been specified.\n");
+	    S->addMessageF(3, "Data file has not been specified.\n");
 	    S->addMessage(0, "\tDataFile tag is mandatory.\n");
 	    return true;
 	}
@@ -131,12 +119,14 @@ bool LIQuaternion::_parse(xercesc::DOMElement *root)
 	        continue;
 	    DOMElement* elem = dynamic_cast< xercesc::DOMElement* >( node );
 		// Open it
-	    sprintf(msg, "(LIQuaternion::_parse): Using \"%s\" data file.\n", XMLString::transcode( elem->getAttribute(XMLString::transcode("file")) ));
-	    S->addMessage(1, msg);
+	    sprintf(msg,
+                "Using \"%s\" data file.\n",
+                XMLString::transcode( elem->getAttribute(XMLString::transcode("file")) ));
+	    S->addMessageF(1, msg);
 	    if( !_data->open(XMLString::transcode( elem->getAttribute(XMLString::transcode("file")) )) )
 	        return true;
 	}
-	//! Set initial positions relative to quaternion
+
 	setInitialPositions();
 	return false;
 }
@@ -164,6 +154,5 @@ bool LIQuaternion::setInitialPositions()
 	set(cor, axis, true);
 	return false;
 }
-
 
 }}} // namespaces

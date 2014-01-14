@@ -16,14 +16,22 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// ----------------------------------------------------------------------------
-// Include the Screen manager
-// ----------------------------------------------------------------------------
-#include <ScreenManager.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+#include <sstream>
+#include <stdexcept>
+#include <math.h>
+#include <string>
+#include <string.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <list>
+#include <unistd.h>
+#include <errno.h>
 
-// ----------------------------------------------------------------------------
-// Include the main header
-// ----------------------------------------------------------------------------
+#include <ScreenManager.h>
 #include <CalcServer/Movements/LinearInterpolation.h>
 
 namespace Aqua{ namespace CalcServer{ namespace Movement{
@@ -32,11 +40,10 @@ LinearInterpolation::LinearInterpolation(const char *data_file)
 	: _data_file(0)
 	, _time(0.f)
 {
-	// Ensure clean data
 	_data.clear();
-	mPrevData.clear();
-	mNextData.clear();
-	// Open the file (if posible)
+	_prev_data.clear();
+	_next_data.clear();
+
 	if(data_file)
 	    open(data_file);
 }
@@ -45,8 +52,8 @@ LinearInterpolation::~LinearInterpolation()
 {
 	if(_data_file) fclose(_data_file); _data_file=0;
 	_data.clear();
-	mPrevData.clear();
-	mNextData.clear();
+	_prev_data.clear();
+	_next_data.clear();
 }
 
 std::deque<float> LinearInterpolation::update(float t)
@@ -56,54 +63,54 @@ std::deque<float> LinearInterpolation::update(float t)
 	    _data.clear();
 	    return _data;
 	}
-	// Rewind file if the time is lower than the last stored time
+	// Rewind file if the time is lower than the last stored one
 	if(t < _time){
 	    rewind(_data_file);
-	    mPrevData.clear();
-	    mNextData.clear();
+	    _prev_data.clear();
+	    _next_data.clear();
 	}
-	// Ensure that the new time is not bounded by previous readed data times
+	// Ensure that the new time is not bounded by the previously readed ones
 	_time = t;
-	if(mNextData.size() > 0){
-	    if(mNextData.at(0) > _time){
-	        float factor = (_time - mPrevData.at(0)) / (mNextData.at(0) - mPrevData.at(0));
+	if(_next_data.size() > 0){
+	    if(_next_data.at(0) > _time){
+	        float factor = (_time - _prev_data.at(0)) / (_next_data.at(0) - _prev_data.at(0));
 	        _data.clear();
-	        for(i=0;i<mNextData.size();i++){
-	            float dData = mNextData.at(i) - mPrevData.at(i);
-	            _data.push_back( mPrevData.at(i) + factor*dData );
+	        for(i=0;i<_next_data.size();i++){
+	            float dData = _next_data.at(i) - _prev_data.at(i);
+	            _data.push_back( _prev_data.at(i) + factor*dData );
 	        }
 	        return _data;
 	    }
 	}
-	// Read lines while valid point is located
-	mPrevData = mNextData;
-	mNextData = readLine();
-	if(!mNextData.size()){      // Last point reached
-	    _data = mPrevData;
+	// Read lines while a valid point is located
+	_prev_data = _next_data;
+	_next_data = readLine();
+	if(!_next_data.size()){      // Last point reached
+	    _data = _prev_data;
 	    return _data;
 	}
-	if(mNextData.size() != mPrevData.size()){   // Change of amount of data
+	if(_next_data.size() != _prev_data.size()){   // Change the amount of data
 	    _data.clear();
 	    return _data;
 	}
-	while(mNextData.at(0) <= _time){
-	    mPrevData = mNextData;
-	    mNextData = readLine();
-	    if(!mNextData.size()){      // Last point reached
-	        _data = mPrevData;
+	while(_next_data.at(0) <= _time){
+	    _prev_data = _next_data;
+	    _next_data = readLine();
+	    if(!_next_data.size()){      // Last point reached
+	        _data = _prev_data;
 	        return _data;
 	    }
-	    if(mNextData.size() != mPrevData.size()){   // Change of amount of data
+	    if(_next_data.size() != _prev_data.size()){   // Change the amount of data
 	        _data.clear();
 	        return _data;
 	    }
 	}
-	// Linear interpolation of data fields
-	float factor = (_time - mPrevData.at(0)) / (mNextData.at(0) - mPrevData.at(0));
+	// Linear interpolation of the data fields
+	float factor = (_time - _prev_data.at(0)) / (_next_data.at(0) - _prev_data.at(0));
 	_data.clear();
-	for(i=0;i<mNextData.size();i++){
-	    float dData = mNextData.at(i) - mPrevData.at(i);
-	    _data.push_back( mPrevData.at(i) + factor*dData );
+	for(i=0;i<_next_data.size();i++){
+	    float dData = _next_data.at(i) - _prev_data.at(i);
+	    _data.push_back( _prev_data.at(i) + factor*dData );
 	}
 	return _data;
 }
@@ -113,25 +120,25 @@ bool LinearInterpolation::open(const char *data_file)
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	char msg[1024];
 	// Clear data
-	mPrevData.clear();
-	mNextData.clear();
+	_prev_data.clear();
+	_next_data.clear();
 	// Open the file
 	if(!data_file){
-	    S->addMessage(3, "(LinearInterpolation::open): Invalid file string pointer.\n");
+	    S->addMessageF(3, "Invalid file string pointer.\n");
 	    return false;
 	}
 	if(!strlen(data_file)){
-	    S->addMessage(3, "(LinearInterpolation::open): Empty data file path.\n");
+	    S->addMessageF(3, "Empty data file path.\n");
 	    return false;
 	}
 	if(_data_file) fclose(_data_file); _data_file=0;
 	_data_file = fopen(data_file, "r");
 	if(!_data_file){
-	    sprintf(msg, "(LinearInterpolation::open): Can't open \"%s\" data file.\n", data_file);
-	    S->addMessage(3, msg);
+	    sprintf(msg, "Failure while open \"%s\" data file.\n", data_file);
+	    S->addMessageF(3, msg);
 	    return false;
 	}
-	// Go to selected time
+
 	update(_time);
 	return true;
 }

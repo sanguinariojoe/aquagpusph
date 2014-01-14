@@ -83,8 +83,9 @@ private:
 
 /** @class C1Interpolation C1Interpolation.h CalcServer/Movements/C1Interpolation.h
  * @brief Data file fields linear interpolator. It will read the data file
- * and perform data interpolation using the time field (assuming that it is
- * placed in the first column).
+ * and perform data interpolation (C1 one, such that the function and its
+ * derivative is contiguous) using the time field (assuming that it is placed
+ * in the first column).
  */
 class C1Interpolation
 {

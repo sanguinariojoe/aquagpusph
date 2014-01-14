@@ -19,31 +19,17 @@
 #ifndef LINEARINTERPOLATION_H_INCLUDED
 #define LINEARINTERPOLATION_H_INCLUDED
 
-// ----------------------------------------------------------------------------
-// Include standar libraries
-// ----------------------------------------------------------------------------
-#include <stdio.h>
-#include <stdlib.h>
-#include <iostream>
-#include <sstream>
-#include <stdexcept>
-#include <math.h>
-#include <string>
-#include <string.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <list>
-#include <unistd.h>
-#include <errno.h>
 #include <vector>
 #include <deque>
 
 namespace Aqua{ namespace CalcServer{ namespace Movement{
 
 /** @class LinearInterpolation LinearInterpolation.h CalcServer/Movements/LinearInterpolation.h
- * @brief Data file linear interpolator. With a provided data file this class can perform data
- * interpolation using the time field (assuming that it is placed in the first column).
+ * @brief Data file fields linear interpolator. It will read the data file
+ * and perform data interpolation (C0 such that the function is contiguous)
+ * using the time field (assuming that it is placed in the first column).
+ * @warning It is strongly recommended to use C1Interpolation intead of this
+ * data interpolator.
  */
 class LinearInterpolation
 {
@@ -61,45 +47,45 @@ public:
 
 	/** Update data.
 	 * @param t Time.
-	 * @return Data array. First component may be t.
+	 * @return Data array. The first component is the time.
 	 */
 	std::deque<float> update(float t);
 
-	/** Get number of data fields.
+	/** Get the number of data fields.
 	 * @return Number of data fields.
 	 */
 	unsigned int nFields(){return _data.size();}
 
-	/** Get data fields.
-	 * @return Active data. First component may be t.
+	/** Get the data fields.
+	 * @return Data array. The first component is the time.
 	 */
 	std::deque<float> data(){return _data;}
 
 	/** Set the data file
 	 * @param data_file Data file path.
-	 * @return true if file was opened ok. \n false otherwise.
-	 * @note Seek will move to last time selected with update,
-	 * if any t=0s will selected.
+	 * @return true if file was opened ok, false otherwise.
+	 * @note Seek point will be moved to the last time selected in the last
+	 * update calling, or \f$ t = 0 \f$ s if update has not been called yet.
 	 */
 	bool open(const char *data_file);
 
 private:
-	/** Reads a line of file.
-	 * @return Data array. If bad formated line or EOF reached,
-	 * clear array will sent.
+	/** Reads a line of the file.
+	 * @return Data array. If a bad formated line or EOF is reached, clear
+	 * data array will be sent.
 	 */
 	std::deque<float> readLine();
 
 	/// Data file
 	FILE *_data_file;
-	/// Active time
+	/// Last requested time time
 	float _time;
-	/// Active data array
+	/// Data array for time _time
 	std::deque<float> _data;
 	/// Previous time into the file.
-	std::deque<float> mPrevData;
+	std::deque<float> _prev_data;
 	/// Next time into the file.
-	std::deque<float> mNextData;
+	std::deque<float> _next_data;
 };
 
 }}} // namespace

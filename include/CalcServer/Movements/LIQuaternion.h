@@ -32,8 +32,7 @@
 namespace Aqua{ namespace CalcServer{ namespace Movement{
 
 /** @class LIQuaternion LIQuaternion.h CalcServer/Movements/LIQuaternion.h
- * @brief Linear interpolated solid quaternion movement. Quaternion defines
- * the solid position at any time.
+ * @brief Linear interpolation solid quaternion based motion.
  */
 class LIQuaternion : public Aqua::CalcServer::Movement::Quaternion
 {
@@ -46,13 +45,13 @@ public:
 	 */
 	~LIQuaternion();
 
-	/** Executes the movement.
+	/** Execute the motion.
 	 * @return false if all gone right, true otherwise.
 	 */
 	bool execute();
 
 protected:
-	/** Parse input definition file.
+	/** Parse the input definition file.
 	 * @param root Input node of the parser.
 	 * @return false if all gone right, true otherwise.
 	 */
