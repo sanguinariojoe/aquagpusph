@@ -37,8 +37,9 @@
 namespace Aqua{ namespace CalcServer{ namespace Movement{
 
 /** @class ScriptQuaternion ScriptQuaternion.h CalcServer/Movements/ScriptQuaternion.h
- * @brief Scripted solid quaternion movement. Quaternion, that is specified using an
- * external Python script, defines the solid position at any time.
+ * @brief Scripted solid quaternion based motions. Quaternion, which is
+ * specified using an external Python script, defines the solid position at
+ * each time instant.
  */
 class ScriptQuaternion : public Aqua::CalcServer::Movement::Quaternion
 {
@@ -64,39 +65,36 @@ protected:
 	bool _parse(xercesc::DOMElement *root);
 
 private:
-	/** Init quaternion. init() script method will called
-	 * in order to get it.
+	/** Init quaternion. init() script method will called in order to get it.
 	 * @return false if all gone right, true otherwise.
 	 */
 	bool initQuaternion();
 
-	/** Initialize perform() script method to future usage.
+	/** Initialize the perform() script method for a future usage.
 	 * @return false if all gone right, true otherwise.
 	 */
 	bool initPython();
 
-	/** Check an result value in order to know if is a valid
-	 * returned value.
+	/** Check a result value in order to know if is a valid returned value.
 	 * @param quat Resultant quaternion.
-	 * @return true if valid script output provided, \n false
-	 * otherwise.
+	 * @return true if valid script output provided, false otherwise.
 	 */
 	bool isValidOutput(PyObject *quat);
 
-	/** Create arguments tuple.
+	/** Create the arguments tuple.
 	 * @param torque Fluid torque measured.
-	 * @return Arguments object.
+	 * @return The arguments object.
 	 */
 	PyObject* args(vec torque, vec force);
 
 	/// Python script path
-	char* mScript;
+	char* _script;
 	/// Torque calculator
 	Torque *_torque;
 	/// Python module object
-	PyObject *mModule;
+	PyObject *_module;
 	/// Python function
-	PyObject *mFunc;
+	PyObject *_func;
 };
 
 }}} // namespace

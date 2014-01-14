@@ -16,29 +16,10 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// ----------------------------------------------------------------------------
-// Include the main header
-// ----------------------------------------------------------------------------
 #include <CalcServer/Movements/ScriptQuaternion.h>
-
-// ----------------------------------------------------------------------------
-// Include the calculation server
-// ----------------------------------------------------------------------------
 #include <CalcServer.h>
-
-// ----------------------------------------------------------------------------
-// Include the Time manager
-// ----------------------------------------------------------------------------
 #include <TimeManager.h>
-
-// ----------------------------------------------------------------------------
-// Include the Screen manager
-// ----------------------------------------------------------------------------
 #include <ScreenManager.h>
-
-// ----------------------------------------------------------------------------
-// Include auxiliar methods
-// ----------------------------------------------------------------------------
 #include <AuxiliarMethods.h>
 
 #ifdef xmlAttribute
@@ -51,15 +32,15 @@ namespace Aqua{ namespace CalcServer{ namespace Movement{
 
 ScriptQuaternion::ScriptQuaternion()
 	: Quaternion()
-	, mScript(0)
+	, _script(0)
 	, _torque(0)
-	, mModule(0)
-	, mFunc(0)
+	, _module(0)
+	, _func(0)
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	mScript = new char[256];
-	if(!mScript){
-	    S->addMessage(3, "(ScriptQuaternion::ScriptQuaternion) Can't allocate memory at host.\n");
+	_script = new char[256];
+	if(!_script){
+	    S->addMessageF(3, "Failure while allocating memory at host.\n");
 	    exit(EXIT_FAILURE);
 	}
 	_torque = new Torque();
@@ -67,10 +48,10 @@ ScriptQuaternion::ScriptQuaternion()
 
 ScriptQuaternion::~ScriptQuaternion()
 {
-	if(mScript) delete[] mScript;   mScript=0;
+	if(_script) delete[] _script;   _script=0;
 	if(_torque) delete[] _torque;   _torque=0;
-	if(mModule) Py_DECREF(mModule); mModule=0;
-	if(mFunc)   Py_DECREF(mFunc);   mFunc=0;
+	if(_module) Py_DECREF(_module); _module=0;
+	if(_func)   Py_DECREF(_func);   _func=0;
 }
 
 bool ScriptQuaternion::execute()
@@ -82,24 +63,24 @@ bool ScriptQuaternion::execute()
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::TimeManager *T = InputOutput::TimeManager::singleton();
 	CalcServer *C = CalcServer::singleton();
-	//! Calculate Torque
+
 	_torque->cor(_cor);
 	_torque->execute();
 	torque = _torque->torque();
 	force = _torque->force();
-	//! Call to script
+
 	arg = args(torque, force);
-	quat = PyObject_CallObject(mFunc, arg);
+	quat = PyObject_CallObject(_func, arg);
 	if(PyErr_Occurred() || !quat){
-	    S->addMessage(3, "(ScriptQuaternion::execute): perform() execution fail.\n");
+	    S->addMessageF(3, "perform() execution fail.\n");
 	    printf("\n--- Python report --------------------------\n\n");
 	    PyErr_Print();
 	    printf("\n-------------------------- Python report ---\n");
 	    return true;
 	}
-	//! Retrieve result
+
 	if(!isValidOutput(quat)){
-	    S->addMessage(3, "(ScriptQuaternion::execute): perform() returned quaternion is not valid.\n");
+	    S->addMessageF(3, "perform() returned an invalid quaternion.\n");
 	    return true;
 	}
 	#ifdef HAVE_3D
@@ -139,7 +120,7 @@ bool ScriptQuaternion::execute()
 	    axis[0].x = array[1][0]; axis[0].y = array[1][1];
 	    axis[1].x = array[2][0]; axis[1].y = array[2][1];
 	#endif
-	//! Move quaternion
+
 	set(cor, axis);
 	Quaternion::execute();
 	return false;
@@ -149,10 +130,10 @@ bool ScriptQuaternion::_parse(xercesc::DOMElement *root)
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	char msg[1024];
-	//! Read Script section
+
 	DOMNodeList* nodes = root->getElementsByTagName(XMLString::transcode("PyScript"));
 	if(!nodes->getLength()){
-	    S->addMessage(3, "(ScriptQuaternion::_parse): Python script has not been specified.\n");
+	    S->addMessageF(3, "None Python script has not been specified.\n");
 	    S->addMessage(0, "\tPyScript tag is mandatory.\n");
 	    return true;
 	}
@@ -161,16 +142,16 @@ bool ScriptQuaternion::_parse(xercesc::DOMElement *root)
 	    if( node->getNodeType() != DOMNode::ELEMENT_NODE )
 	        continue;
 	    DOMElement* elem = dynamic_cast< xercesc::DOMElement* >( node );
-		//! Get script path
-		strcpy( mScript, XMLString::transcode( elem->getAttribute(XMLString::transcode("file")) ) );
-	    sprintf(msg, "(ScriptQuaternion::_parse): Using \"%s\" script file.\n", mScript);
-	    S->addMessage(1, msg);
+
+		strcpy( _script, XMLString::transcode( elem->getAttribute(XMLString::transcode("file")) ) );
+	    sprintf(msg, "Using \"%s\" script file.\n", _script);
+	    S->addMessageF(1, msg);
 	}
-	//! Get initial quaternion
+
 	if(initQuaternion()){
 	    return true;
 	}
-	//! Prepare python function
+
 	if(initPython()){
 	    return true;
 	}
@@ -185,46 +166,46 @@ bool ScriptQuaternion::initQuaternion()
 	PyObject *modName, *func, *quat;
 	vec cor;
 	mat axis;
-	//! Initialize Python
+
 	if(!Py_IsInitialized()){
 	    Py_Initialize();
 	}
 	if(!Py_IsInitialized()){
-	    S->addMessage(3, "(ScriptQuaternion::initQuaternion): Python can't be initializaed.\n");
+	    S->addMessageF(3, "Python cannot be initializaed.\n");
 	    return true;
 	}
-	//! Add script path to Python modules path
+
 	PyRun_SimpleString("import sys");
 	PyRun_SimpleString("import os");
 	PyRun_SimpleString("curdir = os.getcwd()");
 	char comm[512];
 	strcpy(comm, "");
-	const char *path = getFolderFromFilePath(mScript);
+	const char *path = getFolderFromFilePath(_script);
 	if(path[0]=='.')   // "./" has been append
 	    sprintf(comm, "modulePath = curdir + \"%s\"", &path[1]);
 	else
 	    sprintf(comm, "modulePath = \"%s\"", path);
 	PyRun_SimpleString(comm);
 	PyRun_SimpleString("sys.path.append(modulePath)");
-	//! Import module
+
 	unsigned int start = strlen(path);
-	if( (path[0]=='.') && (mScript[0]!='.') )   // "./" has been append
+	if( (path[0]=='.') && (_script[0]!='.') )   // "./" has been append
 	    start -= 2;
-	modName = PyUnicode_FromString(&mScript[start]); // Module name starts at dir ends
-	mModule = PyImport_Import(modName);
+	modName = PyUnicode_FromString(&_script[start]); // Module name starts at dir ends
+	_module = PyImport_Import(modName);
 	Py_DECREF(modName); modName=0;
-	if(!mModule){
-	    sprintf(msg, "(ScriptQuaternion::initQuaternion): Python module \"%s\" can't be imported.\n", &mScript[start]);
-	    S->addMessage(3, msg);
+	if(!_module){
+	    sprintf(msg, "Python module \"%s\" cannot be imported.\n", &_script[start]);
+	    S->addMessageF(3, msg);
 	    printf("\n--- Python report --------------------------\n\n");
 	    PyErr_Print();
 	    printf("\n-------------------------- Python report ---\n");
 	    return true;
 	}
-	//! Load function
-	func = PyObject_GetAttrString(mModule, "init");
+
+	func = PyObject_GetAttrString(_module, "init");
 	if(!func || !PyCallable_Check(func)) {
-	    S->addMessage(3, "(ScriptQuaternion::initQuaternion): Can't find init() function.\n");
+	    S->addMessageF(3, "init() function cannot be found.\n");
 	    printf("\n--- Python report --------------------------\n\n");
 	    PyErr_Print();
 	    printf("\n-------------------------- Python report ---\n");
@@ -233,15 +214,15 @@ bool ScriptQuaternion::initQuaternion()
 	//! Call function
 	quat = PyObject_CallObject(func, NULL);
 	if(!quat) {
-	    S->addMessage(3, "(ScriptQuaternion::initQuaternion): init() execution fail.\n");
+	    S->addMessageF(3, "init() function execution fail.\n");
 	    printf("\n--- Python report --------------------------\n\n");
 	    PyErr_Print();
 	    printf("\n-------------------------- Python report ---\n");
 	    return true;
 	}
-	//! Retrieve result
+
 	if(!isValidOutput(quat)){
-	    S->addMessage(3, "(ScriptQuaternion::initQuaternion): init() returned quaternion is not valid.\n");
+	    S->addMessage(3, "init() returned an invalid quaternion.\n");
 	    return true;
 	}
 	unsigned int i,j,nI,nJ;
@@ -281,7 +262,7 @@ bool ScriptQuaternion::initQuaternion()
 	    axis[1].x = array[2][0]; axis[1].y = array[2][1];
 	#endif
 	set(cor, axis, true);
-	//! Destroy all Python C object references.
+
 	Py_DECREF(quat); quat=0;
 	Py_DECREF(func); func=0;
 	return false;
@@ -290,10 +271,10 @@ bool ScriptQuaternion::initQuaternion()
 bool ScriptQuaternion::initPython()
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	//! Load function
-	mFunc = PyObject_GetAttrString(mModule, "perform");
-	if(!mFunc || !PyCallable_Check(mFunc)) {
-	    S->addMessage(3, "(ScriptQuaternion::initPython): Can't find perform() function.\n");
+
+	_func = PyObject_GetAttrString(_module, "perform");
+	if(!_func || !PyCallable_Check(_func)) {
+	    S->addMessageF(3, "perform() function cannot be found.\n");
 	    printf("\n--- Python report --------------------------\n\n");
 	    PyErr_Print();
 	    printf("\n-------------------------- Python report ---\n\n");
@@ -405,6 +386,5 @@ PyObject* ScriptQuaternion::args(vec torque, vec force)
 	val = PyFloat_FromDouble((double)T->dt()); PyTuple_SetItem(arg, start+1, val);
 	return arg;
 }
-
 
 }}} // namespaces
