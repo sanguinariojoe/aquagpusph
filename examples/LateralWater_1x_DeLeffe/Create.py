@@ -112,7 +112,7 @@ output.write(string)
 print(string)
 
 string = """
-    Writing fluid particles...
+    Writing the fluid particles...
 """
 print(string)
 
@@ -139,7 +139,7 @@ for i in range(n):
 print('    100%%')
 
 string = """
-    Writing nodes...
+    Writing the boundary elements...
 """
 print(string)
 
