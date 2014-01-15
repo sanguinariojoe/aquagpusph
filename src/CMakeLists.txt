@@ -41,6 +41,7 @@ SET(DEP_LIBS
 	${PYTHON_LIBRARIES}
 	${XERCESC_LIBRARIES}
 	${OPTIONAL_LIBS}
+    ${MATHEVAL_LIBRARIES}
 )
 
 # ===================================================== #
