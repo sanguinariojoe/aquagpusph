@@ -203,6 +203,13 @@ IF(NOT EIGEN3_FOUND)
 MESSAGE(FATAL_ERROR "Eigen3 not found, but ${PACKAGE_NAME} requires it. Please install Eigen3!")
 ENDIF(NOT EIGEN3_FOUND)
 
+# matheval
+FIND_PACKAGE(matheval REQUIRED)
+
+IF(NOT MATHEVAL_FOUND)
+MESSAGE(FATAL_ERROR "libmatheval not found, but ${PACKAGE_NAME} requires it. Please install libmatheval!")
+ENDIF(NOT MATHEVAL_FOUND)
+
 # GPU profile
 IF(CMAKE_BUILD_TYPE EQUAL Debug)
 	ADD_DEFINITIONS(-DHAVE_GPUPROFILE)
