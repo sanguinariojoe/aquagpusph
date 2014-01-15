@@ -141,48 +141,42 @@ bool readFields(const char* line, int ifluid, unsigned int i, float refd, float 
 	    pos = strstr(&pos[1], " ");
 	    n = strlen(sentence) - strlen(pos);
 	    strcpy(&sentence[n], "");
-	    if(!tok.solve(sentence, &F->pos[i].x))
-	        return true;
+	    F->pos[i].x = tok.solve(sentence);
 	    tok.registerVariable("x", F->pos[i].x);
 
 	    strcpy(sentence, pos);
 	    pos = strstr(&pos[1], " ");
 	    n = strlen(sentence) - strlen(pos);
 	    strcpy(&sentence[n], "");
-	    if(!tok.solve(sentence, &F->pos[i].y))
-	        return true;
+	    F->pos[i].y = tok.solve(sentence);
 	    tok.registerVariable("y", F->pos[i].y);
 
 	    strcpy(sentence, pos);
 	    pos = strstr(&pos[1], " ");
 	    n = strlen(sentence) - strlen(pos);
 	    strcpy(&sentence[n], "");
-	    if(!tok.solve(sentence, &F->normal[i].x))
-	        return true;
+	    F->normal[i].x = tok.solve(sentence);
 	    tok.registerVariable("nx", F->normal[i].x);
 
 	    strcpy(sentence, pos);
 	    pos = strstr(&pos[1], " ");
 	    n = strlen(sentence) - strlen(pos);
 	    strcpy(&sentence[n], "");
-	    if(!tok.solve(sentence, &F->normal[i].y))
-	        return true;
+	    F->normal[i].y = tok.solve(sentence);
 	    tok.registerVariable("ny", F->normal[i].y);
 
 	    strcpy(sentence, pos);
 	    pos = strstr(&pos[1], " ");
 	    n = strlen(sentence) - strlen(pos);
 	    strcpy(&sentence[n], "");
-	    if(!tok.solve(sentence, &F->v[i].x))
-	        return true;
+	    F->v[i].x = tok.solve(sentence);
 	    tok.registerVariable("vx", F->v[i].x);
 
 	    strcpy(sentence, pos);
 	    pos = strstr(&pos[1], " ");
 	    n = strlen(sentence) - strlen(pos);
 	    strcpy(&sentence[n], "");
-	    if(!tok.solve(sentence, &F->v[i].y))
-	        return true;
+	    F->v[i].y = tok.solve(sentence);
 	    tok.registerVariable("vy", F->v[i].y);
 
 	    strcpy(sentence, pos);
@@ -198,8 +192,7 @@ bool readFields(const char* line, int ifluid, unsigned int i, float refd, float 
 	        }
 	    }
 	    strcpy(&sentence[n], "");
-	    if(!tok.solve(sentence, &F->mass[i]))
-	        return true;
+	    F->mass[i] = tok.solve(sentence);
 	    tok.registerVariable("m", F->mass[i]);
 
         // Optional data
@@ -239,8 +232,7 @@ bool readFields(const char* line, int ifluid, unsigned int i, float refd, float 
 	            }
 	        }
 	        strcpy(&sentence[n], "");
-	        if(!tok.solve(sentence, &F->dens[i]))
-	            return true;
+            F->dens[i] = tok.solve(sentence);
 	        tok.registerVariable("rho", F->dens[i]);
 	    }
 	    else{
@@ -261,8 +253,7 @@ bool readFields(const char* line, int ifluid, unsigned int i, float refd, float 
 	            }
 	        }
 	        strcpy(&sentence[n], "");
-	        if(!tok.solve(sentence, &F->hp[i]))
-	            return true;
+            F->hp[i] = tok.solve(sentence);
 	        // Register variable
 	        tok.registerVariable("h", F->hp[i]);
 	    }
@@ -305,8 +296,7 @@ bool readFields(const char* line, int ifluid, unsigned int i, float refd, float 
 	            }
 	        }
 	        strcpy(&sentence[n], "");
-	        if(!tok.solve(sentence, &F->drdt[i]))
-	            return true;
+            F->drdt[i] = tok.solve(sentence);
 	        tok.registerVariable("drho", F->drdt[i]);
 	    }
 	    else{
@@ -327,8 +317,7 @@ bool readFields(const char* line, int ifluid, unsigned int i, float refd, float 
 	            }
 	        }
 	        strcpy(&sentence[n], "");
-	        if(!tok.solve(sentence, &F->f[i].x))
-	            return true;
+            F->f[i].x = tok.solve(sentence);
 	        tok.registerVariable("fx", F->f[i].x);
 	    }
 	    else{
@@ -349,8 +338,7 @@ bool readFields(const char* line, int ifluid, unsigned int i, float refd, float 
 	            }
 	        }
 	        strcpy(&sentence[n], "");
-	        if(!tok.solve(sentence, &F->f[i].y))
-	            return true;
+            F->f[i].y = tok.solve(sentence);
 	        tok.registerVariable("fy", F->f[i].y);
 	    }
 	    else{
@@ -385,96 +373,84 @@ bool readFields(const char* line, int ifluid, unsigned int i, float refd, float 
 	    pos = strstr(&pos[1], " ");
 	    n = strlen(sentence) - strlen(pos);
 	    strcpy(&sentence[n], "");
-	    if(!tok.solve(sentence, &F->pos[i].x))
-	        return true;
+	    F->pos[i].x = tok.solve(sentence);
 	    tok.registerVariable("x", F->pos[i].x);
 
 	    strcpy(sentence, pos);
 	    pos = strstr(&pos[1], " ");
 	    n = strlen(sentence) - strlen(pos);
 	    strcpy(&sentence[n], "");
-	    if(!tok.solve(sentence, &F->pos[i].y))
-	        return true;
+	    F->pos[i].y = tok.solve(sentence);
 	    tok.registerVariable("y", F->pos[i].y);
 
 	    strcpy(sentence, pos);
 	    pos = strstr(&pos[1], " ");
 	    n = strlen(sentence) - strlen(pos);
 	    strcpy(&sentence[n], "");
-	    if(!tok.solve(sentence, &F->pos[i].z))
-	        return true;
+	    F->pos[i].z = tok.solve(sentence);
 	    tok.registerVariable("z", F->pos[i].z);
 
 	    strcpy(sentence, pos);
 	    pos = strstr(&pos[1], " ");
 	    n = strlen(sentence) - strlen(pos);
 	    strcpy(&sentence[n], "");
-	    if(!tok.solve(sentence, &F->pos[i].w))
-	        return true;
+	    F->pos[i].w = tok.solve(sentence);
 	    tok.registerVariable("w", F->pos[i].w);
 
 	    strcpy(sentence, pos);
 	    pos = strstr(&pos[1], " ");
 	    n = strlen(sentence) - strlen(pos);
 	    strcpy(&sentence[n], "");
-	    if(!tok.solve(sentence, &F->normal[i].x))
-	        return true;
+	    F->normal[i].x = tok.solve(sentence);
 	    tok.registerVariable("nx", F->normal[i].x);
 
 	    strcpy(sentence, pos);
 	    pos = strstr(&pos[1], " ");
 	    n = strlen(sentence) - strlen(pos);
 	    strcpy(&sentence[n], "");
-	    if(!tok.solve(sentence, &F->normal[i].y))
-	        return true;
+	    F->normal[i].y = tok.solve(sentence);
 	    tok.registerVariable("ny", F->normal[i].y);
 
 	    strcpy(sentence, pos);
 	    pos = strstr(&pos[1], " ");
 	    n = strlen(sentence) - strlen(pos);
 	    strcpy(&sentence[n], "");
-	    if(!tok.solve(sentence, &F->normal[i].z))
-	        return true;
+	    F->normal[i].z = tok.solve(sentence);
 	    tok.registerVariable("nz", F->normal[i].z);
 
 	    strcpy(sentence, pos);
 	    pos = strstr(&pos[1], " ");
 	    n = strlen(sentence) - strlen(pos);
 	    strcpy(&sentence[n], "");
-	    if(!tok.solve(sentence, &F->normal[i].w))
-	        return true;
+	    F->normal[i].w = tok.solve(sentence);
 	    tok.registerVariable("nw", F->normal[i].w);
 
 	    strcpy(sentence, pos);
 	    pos = strstr(&pos[1], " ");
 	    n = strlen(sentence) - strlen(pos);
 	    strcpy(&sentence[n], "");
-	    if(!tok.solve(sentence, &F->v[i].x))
-	        return true;
+	    F->v[i].x = tok.solve(sentence);
 	    tok.registerVariable("vx", F->v[i].x);
 
 	    strcpy(sentence, pos);
 	    pos = strstr(&pos[1], " ");
 	    n = strlen(sentence) - strlen(pos);
 	    strcpy(&sentence[n], "");
-	    if(!tok.solve(sentence, &F->v[i].y))
-	        return true;
+	    F->v[i].y = tok.solve(sentence);
 	    tok.registerVariable("vy", F->v[i].y);
 
 	    strcpy(sentence, pos);
 	    pos = strstr(&pos[1], " ");
 	    n = strlen(sentence) - strlen(pos);
 	    strcpy(&sentence[n], "");
-	    if(!tok.solve(sentence, &F->v[i].z))
-	        return true;
+	    F->v[i].z = tok.solve(sentence);
 	    tok.registerVariable("vz", F->v[i].z);
 
 	    strcpy(sentence, pos);
 	    pos = strstr(&pos[1], " ");
 	    n = strlen(sentence) - strlen(pos);
 	    strcpy(&sentence[n], "");
-	    if(!tok.solve(sentence, &F->v[i].w))
-	        return true;
+	    F->v[i].w = tok.solve(sentence);
 	    tok.registerVariable("vw", F->v[i].w);
 
 	    strcpy(sentence, pos);
@@ -490,8 +466,7 @@ bool readFields(const char* line, int ifluid, unsigned int i, float refd, float 
 	        }
 	    }
 	    strcpy(&sentence[n], "");
-	    if(!tok.solve(sentence, &F->mass[i]))
-	        return true;
+	    F->mass[i] = tok.solve(sentence);
 	    tok.registerVariable("m", F->mass[i]);
 
         // Optional data
@@ -531,8 +506,7 @@ bool readFields(const char* line, int ifluid, unsigned int i, float refd, float 
 	            }
 	        }
 	        strcpy(&sentence[n], "");
-	        if(!tok.solve(sentence, &F->dens[i]))
-	            return true;
+            F->dens[i] = tok.solve(sentence);
 	        tok.registerVariable("rho", F->dens[i]);
 	    }
 	    else{
@@ -553,8 +527,7 @@ bool readFields(const char* line, int ifluid, unsigned int i, float refd, float 
 	            }
 	        }
 	        strcpy(&sentence[n], "");
-	        if(!tok.solve(sentence, &F->hp[i]))
-	            return true;
+            F->hp[i] = tok.solve(sentence);
 	        tok.registerVariable("h", F->hp[i]);
 	    }
 	    else{
@@ -596,8 +569,7 @@ bool readFields(const char* line, int ifluid, unsigned int i, float refd, float 
 	            }
 	        }
 	        strcpy(&sentence[n], "");
-	        if(!tok.solve(sentence, &F->drdt[i]))
-	            return true;
+            F->drdt[i] = tok.solve(sentence);
 	        tok.registerVariable("drho", F->drdt[i]);
 	    }
 	    else{
@@ -618,8 +590,7 @@ bool readFields(const char* line, int ifluid, unsigned int i, float refd, float 
 	            }
 	        }
 	        strcpy(&sentence[n], "");
-	        if(!tok.solve(sentence, &F->f[i].x))
-	            return true;
+            F->f[i].x = tok.solve(sentence);
 	        tok.registerVariable("fx", F->f[i].x);
 	    }
 	    else{
@@ -640,8 +611,7 @@ bool readFields(const char* line, int ifluid, unsigned int i, float refd, float 
 	            }
 	        }
 	        strcpy(&sentence[n], "");
-	        if(!tok.solve(sentence, &F->f[i].y))
-	            return true;
+            F->f[i].y = tok.solve(sentence);
 	        tok.registerVariable("fy", F->f[i].y);
 	    }
 	    else{
@@ -662,8 +632,7 @@ bool readFields(const char* line, int ifluid, unsigned int i, float refd, float 
 	            }
 	        }
 	        strcpy(&sentence[n], "");
-	        if(!tok.solve(sentence, &F->f[i].z))
-	            return true;
+            F->f[i].z = tok.solve(sentence);
 	        tok.registerVariable("fz", F->f[i].z);
 	    }
 	    else{
@@ -684,8 +653,7 @@ bool readFields(const char* line, int ifluid, unsigned int i, float refd, float 
 	            }
 	        }
 	        strcpy(&sentence[n], "");
-	        if(!tok.solve(sentence, &F->f[i].w))
-	            return true;
+            F->f[i].w = tok.solve(sentence);
 	        tok.registerVariable("fw", F->f[i].w);
 	    }
 	    else{
