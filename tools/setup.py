@@ -45,6 +45,5 @@ setup(
     license='LICENSE',
     description='free SPH solver developed by the CEHINAV group.',
     long_description=open('../README.md').read(),
-    install_requires=[],
 )
 

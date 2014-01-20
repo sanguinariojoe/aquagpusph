@@ -93,6 +93,7 @@ OPTION(AQUAGPUSPH_USE_NCURSES "Build AQUAgpusph with Ncurses terminal support." 
 OPTION(AQUAGPUSPH_USE_H5PART "Build AQUAgpusph with H5Part output format support." ON)
 OPTION(AQUAGPUSPH_USE_VTK "Build AQUAgpusph with VTK output format support (on development)." ON)
 OPTION(AQUAGPUSPH_USE_TECPLOT "Build AQUAgpusph with Tecplot output format support." ON)
+OPTION(AQUAGPUSPH_BUILD_TOOLS "Build AQUAgpusph tools" ON)
 OPTION(AQUAGPUSPH_BUILD_EXAMPLES "Build AQUAgpusph examples" ON)
 OPTION(AQUAGPUSPH_BUILD_DOC "Build AQUAgpusph documentation" OFF)
 
@@ -302,12 +303,15 @@ ENDIF(UNIX)
 ADD_SUBDIRECTORY(src)
 ADD_SUBDIRECTORY(include)
 ADD_SUBDIRECTORY(resources)
-IF(AQUAGPUSPH_BUILD_DOC)
-	ADD_SUBDIRECTORY(doc)
-ENDIF(AQUAGPUSPH_BUILD_DOC)
+IF(AQUAGPUSPH_BUILD_TOOLS)
+	ADD_SUBDIRECTORY(tools)
+ENDIF(AQUAGPUSPH_BUILD_TOOLS)
 IF(AQUAGPUSPH_BUILD_EXAMPLES)
 	ADD_SUBDIRECTORY(examples)
 ENDIF(AQUAGPUSPH_BUILD_EXAMPLES)
+IF(AQUAGPUSPH_BUILD_DOC)
+	ADD_SUBDIRECTORY(doc)
+ENDIF(AQUAGPUSPH_BUILD_DOC)
 
 # ===================================================== #
 # Show a brief                                          #
