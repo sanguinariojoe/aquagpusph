@@ -9,9 +9,13 @@ ADD_DEPENDENCIES( tools AQUAgpusph )
 # ===================================================== #
 # Install                                               #
 # ===================================================== #
+SET(PYTHON_INSTALL_PREFIX "")
+IF(NOT CMAKE_INSTALL_PREFIX STREQUAL /usr/local)
+	SET(PYTHON_INSTALL_PREFIX --prefix=${CMAKE_INSTALL_PREFIX})
+ENDIF(NOT CMAKE_INSTALL_PREFIX STREQUAL /usr/local)
 INSTALL(
     CODE "EXECUTE_PROCESS(
-        COMMAND ${PYTHON_EXECUTABLE} setup.py install --prefix=${CMAKE_INSTALL_PREFIX}
+        COMMAND ${PYTHON_EXECUTABLE} setup.py install ${PYTHON_INSTALL_PREFIX}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )"
 )
