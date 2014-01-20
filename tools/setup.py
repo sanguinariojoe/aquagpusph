@@ -29,68 +29,21 @@
 #                                                                               *
 #********************************************************************************
 
-from numpy import *
+from distutils.core import setup
 
-def loadQuadMesh(filename):
-	""" Loads a GiD mesh file with quadrangular panels.
-	@param filename Mesh file name.
-	@return Faces defined by their 4 vertexes and a normal.
-	"""
-	f       = open(filename, 'r')
-	lines   = f.readlines()
-	# Read the points
-	print("\tReading points...")
-	start = -1
-	end   = -1
-	for i in range(0,len(lines)):
-		if(lines[i].upper().find('COORDINATES') != -1):
-			start = i+1
-			break
-	for i in range(i,len(lines)):
-		if(lines[i].upper().find('END COORDINATES') != -1):
-			end = i
-	if (start < 0) or (end < start):
-		print("\tError: No points found")
-		return None
-	nPoints = end - start
-	points  = empty( (nPoints,3) )
-	print("\t\tFound {0} points".format(nPoints))
-	for i in range(0,nPoints):
-		line  = lines[i+start].split()
-		index = int(line[0])
-		if(index != i+1):
-			print("\t\tWarning: Point unsorted, {0} -> {1}".format(i+1, index))
-		for j in range(0,3):
-			points[index-1,j] = float(line[j+1])
-	# Read the elements
-	print("\tReading elements...")
-	start = -1
-	end   = -1
-	for i in range(0,len(lines)):
-		if(lines[i].upper().find('ELEMENTS') != -1):
-			start = i+1
-			break
-	for i in range(i,len(lines)):
-		if(lines[i].upper().find('END ELEMENTS') != -1):
-			end = i
-	if (start < 0) or (end < start):
-		print("\tError: No elements found")
-		return None
-	nFaces  = end - start
-	faces   = empty( (nFaces,5,3) )
-	print("\t\tFound {0} faces".format(nFaces))
-	for i in range(0,nFaces):
-		line = lines[i+start].split()
-		index = int(line[0])
-		if(index != i+1):
-			print("\t\tWarning: Elements unsorted, {0} -> {1}".format(i+1, index))
-		if len(line) != 5:
-			print("\t\tError: Element {0} is not quadrilateral".format(index))
-			return None
-		for j in range(0,4):
-			faces[index-1,j,:] = points[int(line[j+1])-1,:]
-		vec1 = faces[index-1,2] - faces[index-1,0]
-		vec2 = faces[index-1,3] - faces[index-1,1]
-		n    = cross(vec1, vec2)
-		faces[index-1,4] = n / sqrt( n[0]**2 + n[1]**2 + n[2]**2 )
-	return faces
+setup(
+    name='AQUAgpusph-preprocessing',
+    version='1.4.6',
+    author='J.L. Cercos Pita',
+    author_email='jl.cercos@upm.es',
+    packages=['preprocessing.AQUAgpusph-loadAbaqus',
+              'preprocessing.AQUAgpusph-loadGiD'],
+    scripts=['preprocessing/AQUAgpusph-loadAbaqus',
+             'preprocessing/AQUAgpusph-loadGiD'],
+    url='http://canal.etsin.upm.es/aquagpusph',
+    license='LICENSE',
+    description='free SPH solver developed by the CEHINAV group.',
+    long_description=open('../README.md').read(),
+    install_requires=[],
+)
+
