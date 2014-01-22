@@ -63,22 +63,21 @@ ProblemSetup::ProblemSetup()
 	time_opts.dt = 0.f;
 	time_opts.dt_min = 0.f;
 	time_opts.velocity_clamp = false;
-	time_opts.stabilization_time = 0.f;
+	time_opts.t0 = 0.f;
 	//! 4th.- SPH parameters (as Vortex problem)
-	SPH_opts.gamma = 7.f;
 	SPH_opts.g.x = 0.f;
 	SPH_opts.g.y = 0.f;
 	SPH_opts.hfac = 4.f/3.f;
 	SPH_opts.deltar.x = 0.05f;
 	SPH_opts.deltar.y = 0.05f;
 	SPH_opts.h = SPH_opts.hfac * (SPH_opts.deltar.x + SPH_opts.deltar.y)/2.f;
-	SPH_opts.cs = 5.f;
-	SPH_opts.dt_divisor = 8.f;
+	SPH_opts.cs = 15.f;
+	SPH_opts.courant = 0.25f;
 	SPH_opts.link_list_steps = 1;
 	SPH_opts.dens_int_steps = 0;
 	SPH_opts.rho_min = 0.f;
 	SPH_opts.rho_max = -1.f;
-	SPH_opts.boundary_type = 2;
+	SPH_opts.boundary_type = 0;
 	SPH_opts.slip_condition = 0;
 	SPH_opts.elastic_factor = 1.f;
 	SPH_opts.elastic_dist = 0.1f;
@@ -184,9 +183,6 @@ bool ProblemSetup::perform()
 void ProblemSetup::sphSettings::init()
 {
 	verbose_level = 1;
-	start_mode = 0;
-	fluid_file = new char[256];
-	strcpy(fluid_file, "zParticles.h5part");
 	platform_id = 0;
 	device_id = 0;
 	device_type = CL_DEVICE_TYPE_ALL;
@@ -194,7 +190,6 @@ void ProblemSetup::sphSettings::init()
 
 void ProblemSetup::sphSettings::destroy()
 {
-	delete[] fluid_file; fluid_file=0;
 }
 
 void ProblemSetup::sphOpenCLKernels::init()
@@ -263,21 +258,22 @@ void ProblemSetup::sphFluidParameters::init()
     ProblemSetup *P = ProblemSetup::singleton();
 
 	n       = 0;
-	gamma   = P->SPH_opts.gamma;
-	refd    = 1.f;
-	visc_dyn = 0.744f;
+	gamma   = 7.f;
+	refd    = 1000.f;
+	visc_dyn = 0.798e-3f;
 	visc_kin = visc_dyn/refd;
 	alpha   = 0.f;
 	delta   = 0.f;
 
-	path = new char[256];
-
+	in_path = new char[1024];
+	in_format = new char[1024];
 	strcpy(path, "");
+	strcpy(in_format, "ASCII"):
 
-	Script = new char[256];
-	Path = new char[256];
-	strcpy(Path, "");
-	strcpy(Script, "");
+	out_path = new char[1024];
+	out_format = new char[1024];
+	strcpy(path, "");
+	strcpy(out_format, "VTK"):
 }
 
 void ProblemSetup::sphFluidParameters::destroy()
@@ -343,7 +339,14 @@ void ProblemSetup::addFluid()
 }
 
 #ifdef HAVE_3D
-	bool ProblemSetup::sphGhostParticles::add(vec p1, vec p2, vec p3, vec p4)
+	bool ProblemSetup::sphGhostParticles::add(vec p1,
+                                              vec p2,
+                                              vec p3,
+                                              vec p4,
+                                              vec v1,
+                                              vec v2,
+                                              vec v3,
+                                              vec v4)
 	{
 	    vec d1 = sub(p2, p1);
 	    vec d2 = sub(p4, p1);
@@ -368,14 +371,19 @@ void ProblemSetup::addFluid()
 	    wall->p3   = p3;
 	    wall->p4   = p4;
 	    wall->n    = normalize(n);
-	    wall->v1   = Vzero();
-	    wall->v2   = Vzero();
-	    wall->v3   = Vzero();
-	    wall->v4   = Vzero();
+	    wall->v1   = v1;
+	    wall->v2   = v2;
+	    wall->v3   = v3;
+	    wall->v4   = v4;
 	    walls.push_back(wall);
 	    return false;
 	}
-	bool ProblemSetup::sphGhostParticles::add(vec p1, vec p2, vec p3)
+	bool ProblemSetup::sphGhostParticles::add(vec p1,
+                                              vec p2,
+                                              vec p3,
+                                              vec v1,
+                                              vec v2,
+                                              vec v3)
 	{
 	    vec d1 = sub(p2, p1);
 	    vec d2 = sub(p3, p1);
@@ -386,15 +394,18 @@ void ProblemSetup::addFluid()
 	    wall->p3   = p3;
 	    wall->p4   = p3;
 	    wall->n    = normalize(n);
-	    wall->v1   = Vzero();
-	    wall->v2   = Vzero();
-	    wall->v3   = Vzero();
-	    wall->v4   = Vzero();
+	    wall->v1   = v1;
+	    wall->v2   = v2;
+	    wall->v3   = v3;
+	    wall->v4   = v3;
 	    walls.push_back(wall);
 	    return false;
 	}
 #else
-	bool ProblemSetup::sphGhostParticles::add(vec p1, vec p2)
+	bool ProblemSetup::sphGhostParticles::add(vec p1,
+                                              vec p2,
+                                              vec v1,
+                                              vec v2)
 	{
 	    vec n;
 	    n.x = p1.y - p2.y;
@@ -403,8 +414,8 @@ void ProblemSetup::addFluid()
 	    wall->p1   = p1;
 	    wall->p2   = p2;
 	    wall->n    = normalize(n);
-	    wall->v1   = Vzero();
-	    wall->v2   = Vzero();
+	    wall->v1   = v1;
+	    wall->v2   = v2;
 	    walls.push_back(wall);
 	    return false;
 	}

@@ -42,6 +42,11 @@ public:
 	 */
 	bool execute();
 
+    /** Get the sensors positions.
+     * @return Sensors positions.
+     */
+    vec* positions();
+
 protected:
 	/** Retrieve data form the device, printing it in the output file.
 	 * @return false if all gone right, true otherwise.

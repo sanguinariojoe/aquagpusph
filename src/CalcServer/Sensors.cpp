@@ -225,6 +225,20 @@ bool Sensors::execute()
 	return false;
 }
 
+vec* Sensors::positions()
+{
+    if(!_n){
+        return NULL;
+    }
+	cl_int err_code;
+	unsigned int i0 = C->N - _n;
+	err_code = C->getData((void*)_pos,
+                          C->pos,
+                          _n*sizeof(vec),
+                          i0*sizeof(vec));
+    return _pos;
+}
+
 bool Sensors::printOutput()
 {
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();

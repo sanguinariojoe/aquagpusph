@@ -121,6 +121,8 @@
 		<Unit filename="../include/Input/ASCII.h" />
 		<Unit filename="../include/Input/GiD.h" />
 		<Unit filename="../include/Input/XML.h" />
+		<Unit filename="../include/InputOutput/InputOutput.h" />
+		<Unit filename="../include/InputOutput/State.h" />
 		<Unit filename="../include/Output.h" />
 		<Unit filename="../include/ProblemSetup.h" />
 		<Unit filename="../include/ScreenManager.h" />
@@ -164,6 +166,7 @@
 		<Unit filename="../src/Input/ASCII.cpp" />
 		<Unit filename="../src/Input/GiD.cpp" />
 		<Unit filename="../src/Input/XML.cpp" />
+		<Unit filename="../src/InputOutput/State.cpp" />
 		<Unit filename="../src/Output.cpp" />
 		<Unit filename="../src/ProblemSetup.cpp" />
 		<Unit filename="../src/ScreenManager.cpp" />

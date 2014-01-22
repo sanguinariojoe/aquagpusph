@@ -207,8 +207,6 @@ public:
 	vec g;
 	/// Kernel height factor \f$ \frac{h}{\Delta r} \f$.
 	float hfac;
-	/// Inverse of the Courant factor \f$ \frac{1}{Cf} \f$.
-	float dt_divisor;
 	/** LinkList time steps validity. If this value is grater than 1, the
 	 * link-list computation process will be avoided some time steps, but the
 	 * cells size should be increased to ensure that the neighbours list still
@@ -219,7 +217,7 @@ public:
 	/// LinkList main step, to control if a new link-list is required.
 	unsigned int link_list_step;
 	/** Cell size increasing factor (resulting from link_list_steps, deltar,
-     * hfac and dt_divisor).
+     * hfac and the courant factor).
      */
 	float cell_length_factor;
 	/** Density field interpolation steps. The density field is usually

@@ -755,7 +755,6 @@ bool CalcServer::setup()
 	// Variables
 	g          = P->SPH_opts.g;
 	hfac       = P->SPH_opts.hfac;
-	dt_divisor = P->SPH_opts.dt_divisor;
 	h          = P->SPH_opts.h;
 	cs         = P->SPH_opts.cs;
 	link_list_steps = P->SPH_opts.link_list_steps;
@@ -769,8 +768,8 @@ bool CalcServer::setup()
 	#else   // Wendland
 		sep = 2.0f;
 	#endif
-	float dist = sep*h;             // Minimum cell size.
-	float ddt  = 0.1f*h/dt_divisor; // Maximum distance that a particle can move in a step.
+	float dist = sep * h;             // Minimum cell size.
+	float ddt  = 0.1f * h * P->time_opts.courant; // Maximum distance that a particle can move in a step.
 	cell_length_factor = 1.f + (link_list_steps-1) * ddt / dist;
 	sprintf(msg, "Cells size increased with %g factor.\n", cell_length_factor);
     S->addMessageF(1, msg);

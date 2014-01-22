@@ -124,17 +124,16 @@ public:
 	 */
 	bool perform();
 
-
 	/** \struct sphSettings
 	 * Struct that stores general
 	 * settings of the program.
 	 */
 	struct sphSettings
 	{
-		/** Init the kernels path
+		/** Se5t the default values
 		 */
 		void init();
-		/** Destroy the paths
+		/** Clear the allocated memory
 		 */
 		void destroy();
 
@@ -144,15 +143,6 @@ public:
          *   - 0 = Fastest alternative, prints minimum data.
 	     */
 	    int verbose_level;
-
-	    /** Start mode:
-	     *   - 0 = Starts at t=0 s.
-	     *   - 1 = Starts at latest time (using H5Part file).
-	     */
-	    int start_mode;
-
-	    /// Path of the file to read fluid.
-	    char* fluid_file;
 
 	    /// Identifier of the OpenCL platform to use.
 	    unsigned int platform_id;
@@ -221,6 +211,28 @@ public:
 	 */
 	struct sphTimingParameters
 	{
+	    /** Starting time.
+	     * @note If a negative value is provided a stabilization period will
+	     * be performed.
+	     * @note During the stabilization stage motions will not be computed,
+	     * and particles velocity will be vanished (infinite viscosity model).
+	     */
+	    float t0;
+
+	    /// Provided by user time step \f$ \Delta t \f$.
+	    float dt;
+
+	    /// Minimum time step allowed.
+	    float dt_min;
+
+		/// Courant factor.
+		float courant;
+
+	    /** If a minimum time step is set, it can be additionally forced to
+	     * clamp the particles velocity to preserve the Courant factor.
+	     */
+	    bool velocity_clamp;
+
 		/** Type of criteria to know when the simulation has finished.
 		 * @remarks Must a combination of the following options:
 		 * - __TIME_MODE__ : Maximum simulated time.
@@ -230,10 +242,13 @@ public:
 		 * will not stop
 		 */
 		unsigned int sim_end_mode;
+
 		/// Maximum simulation time to be reached (in seconds).
 		float sim_end_time;
+
 		/// Maximum number of steps to be performed.
 		int sim_end_step;
+
 		/// Maximum number of frames to be performed.
 		int sim_end_frame;
 
@@ -244,8 +259,10 @@ public:
 		 * - __IPF_MODE__ : Time steps before to update.
 		 */
 		unsigned int log_mode;
+
 		/// Update rate (per second of simulation).
 		float log_fps;
+
 		/// Time steps to be done before to update the data.
 		int log_ipf;
 
@@ -257,8 +274,10 @@ public:
 		 * - __IPF_MODE__ : Time steps before to update.
 		 */
 		unsigned int energy_mode;
+
 		/// Update rate (per second of simulation).
 		float energy_fps;
+
 		/// Time steps to be done before to update the data.
 		int energy_ipf;
 
@@ -270,8 +289,10 @@ public:
 		 * - __IPF_MODE__ : Time steps before to update.
 		 */
 		unsigned int bounds_mode;
+
 		/// Update rate (per second of simulation).
 		float bounds_fps;
+
 		/// Time steps to be done before to update the data.
 		int bounds_ipf;
 
@@ -283,15 +304,10 @@ public:
 		 * - __IPF_MODE__ : Time steps before to update.
 		 */
 		unsigned int output_mode;
-		/** Format of the output.
-		 * @remarks Must be a combination of the following options:
-		 *  - __H5Part__ H5Parts format files to view into ParaView.
-		 *  - __VTK__ VTK format files to view into ParaView.
-		 *  - __TECPLOT__ Tecplot format (in ascii) files to view into Tecplot.
-		 */
-		unsigned int output_format;
+
 		/// Printing rate (per second of simulation).
 		float output_fps;
+
 		/// Time steps to be done before to print the data again.
 		int output_ipf;
 
@@ -302,19 +318,6 @@ public:
 		 * - __DT_FIX__ If the time step is provided by user.
 		 */
 	    unsigned int dt_mode;
-	    /// Provided by user time step \f$ \Delta t \f$.
-	    float dt;
-	    /// Minimum time step allowed.
-	    float dt_min;
-	    /** If a minimum time step is set, it can be additionally forced to
-	     * clamp the particles velocity to preserve the Courant factor.
-	     */
-	    bool velocity_clamp;
-	    /** Stabilization time.
-	     * @note During the stabilization stage motions will not be computed,
-	     * and particles velocity will be vanished.
-	     */
-	    float stabilization_time;
 	}time_opts;
 
 	/** \struct sphSPHParameters
@@ -322,14 +325,6 @@ public:
 	 */
 	struct sphSPHParameters
 	{
-		/** Default exponent for the EOS \f$ \gamma \f$.
-		 * \f$ p = \frac{c_s^2 \rho_0}{\gamma}
-		 \left(
-            \left( \frac{\rho}{\rho_0} \right)^\gamma - 1
-         \right) \f$.
-		 * @note The fluids which an undefined gamma value will use this one.
-		 */
-		float gamma;
 		/// Garivity aceleration \f$ \mathbf{g} \f$.
 		vec g;
 		/// Kernel height factor \f$ \frac{h}{\Delta r} \f$.
@@ -340,8 +335,6 @@ public:
 		float h;
 		/// Characteristic sound speed \f$ c_s \f$.
 		float cs;
-		/// Inverse of the Courant factor \f$ \frac{1}{Cf} \f$.
-		float dt_divisor;
 	    /// LinkList steps (steps before LinkList must be performed again).
 	    unsigned int link_list_steps;
 
@@ -424,20 +417,32 @@ public:
 		/** Init the fluid options structure
 		 */
 		void init();
+
 		/** Delete the allocated memory
 		 */
 		void destroy();
 
 	    /// Number of particles
 	    unsigned int n;
-		/// Gamma exponent for the EOS \f$ \gamma \f$.
+
+		/** Gamma exponent for the EOS \f$ \gamma \f$.
+		 * \f$ p = \frac{c_s^2 \rho_0}{\gamma}
+		 \left(
+            \left( \frac{\rho}{\rho_0} \right)^\gamma - 1
+         \right) \f$.
+		 * @note The fluids which an undefined gamma value will use this one.
+		 */
 		float gamma;
+
 		/// Density of reference
 		float refd;
+
 		/// Dynamic viscosity \f$ \mu \f$
 		float visc_dyn;
+
 		/// Kinematic viscosity \f$ \nu \f$
 		float visc_kin;
+
 	    /** Minimum artificial viscosity \f$\alpha\f$ value.
 	     * \f$\alpha\f$ define the artificial viscosity of the fluid, such that
          * the dynamic viscosity will be: \n
@@ -447,6 +452,7 @@ public:
 	     * @note \f$\alpha \geq 0.01\f$ is suggested if \f$\delta\f$ is null.
 	     */
 		float alpha;
+
 		/** Continuity equation diffusive term factor (formerly
          * \f$\delta\f$-SPH).
 		 * This term have some benefits in front of the artificial viscosity,
@@ -454,24 +460,25 @@ public:
 		 * \f$\delta = 1\f$.
 		 */
         float delta;
+
 		/** Dynamic viscosity (corrected by the articial viscosity parameter
          * \f$\alpha\f$)
          */
 		float visc_dyn_corrected;
-		/// Fluid particles data file to load
-		char *path;
 
-		/** Script folder path
-		 * @warning This method is outdated and it will be removed in future
-		 * releases.
-		 */
-		char *Path;
-		/** Script file name
-		 * @warning This method is outdated and it will be removed in future
-		 * releases.
-		 */
-		char *Script;
+		/// Fluid particles data file to load
+		char *in_path;
+
+		/// Fluid particles data file to load format
+		char *in_format;
+
+		/// Fluid particles data file to write
+		char *out_path;
+
+		/// Fluid particles data file to load format
+		char *out_format;
 	}*fluids;
+
 	/// Number of fluids
 	unsigned int n_fluids;
 	/** Add a fluid to the list
@@ -611,6 +618,10 @@ public:
 	         * @param p2 2nd corner of wall.
 	         * @param p3 3rd corner of wall.
 	         * @param p4 4th corner of wall.
+	         * @param v1 1st corner of wall velocity.
+	         * @param v2 2nd corner of wall velocity.
+	         * @param v3 3rd corner of wall velocity.
+	         * @param v4 4th corner of wall velocity.
 	         * @return false if all gone right, true otherwise.
 	         * @remarks Normal will be computed using corners data,
 	         * in order to get best results is strongly recommended
@@ -618,15 +629,30 @@ public:
 	         * @warning Program will assume corners connected as
 	         * \f$p_1 \rightarrow p_2 \rightarrow p_3 \rightarrow p_4 \rightarrow p_1\f$.
 	         */
-	        bool add(vec p1, vec p2, vec p3, vec p4);
+	        bool add(vec p1,
+                     vec p2,
+                     vec p3,
+                     vec p4,
+                     vec v1,
+                     vec v2,
+                     vec v3,
+                     vec v4);
 
 	        /** Add a triangular wall.
 	         * @param p1 1st corner of wall.
 	         * @param p2 2nd corner of wall.
 	         * @param p3 3rd corner of wall.
+	         * @param v1 1st corner of wall velocity.
+	         * @param v2 2nd corner of wall velocity.
+	         * @param v3 3rd corner of wall velocity.
 	         * @return false if all gone right, true otherwise.
 	         */
-	        bool add(vec p1, vec p2, vec p3);
+	        bool add(vec p1,
+                     vec p2,
+                     vec p3,
+                     vec v1,
+                     vec v2,
+                     vec v3);
 	    #else
 	        /** \struct Wall
 	         * Wall defined by 2 points.
@@ -650,9 +676,14 @@ public:
 	        /** Add wall.
 	         * @param p1 1st corner of wall.
 	         * @param p2 2nd corner of wall.
+	         * @param v1 1st corner of wall velocity.
+	         * @param v2 2nd corner of wall velocity.
 	         * @return false if all gone right, true otherwise.
 	         */
-	        bool add(vec p1, vec p2);
+	        bool add(vec p1,
+                     vec p2,
+                     vec v1,
+                     vec v2);
 	    #endif
 
 	    /** Pressure extension model. \n

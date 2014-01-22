@@ -36,7 +36,7 @@ TimeStep::TimeStep()
 	InputOutput::ProblemSetup *P  = InputOutput::ProblemSetup::singleton();
 	int str_len;
 	_dt = P->SPH_opts.h / P->SPH_opts.cs;
-	_dt /= P->SPH_opts.dt_divisor;
+	_dt *= P->time_opts.courant;
 	if(P->time_opts.dt_mode != __DT_VARIABLE__)
 		return;
 
@@ -141,7 +141,7 @@ bool TimeStep::execute()
         return true;
 	if(C->getData((void *)&C->dt, reduced, sizeof(cl_float)))
 		return true;
-	C->dt /= C->dt_divisor;
+	C->dt *= P->time_opts.courant;
 	if(_dt > 10.f*C->dt)
 	{
 		char msg[256];

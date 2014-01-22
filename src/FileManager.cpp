@@ -561,7 +561,7 @@ bool FileManager::parseSettings(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 	        P->settings.verbose_level = atoi(xmlAttribute(s_elem, "level"));
 	    }
 	    // Looking for starting mode
@@ -570,7 +570,7 @@ bool FileManager::parseSettings(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 	        P->settings.start_mode = atoi(xmlAttribute(s_elem, "mode"));
 	    }
 	    // Looking for OpenCL device
@@ -579,7 +579,7 @@ bool FileManager::parseSettings(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 	        P->settings.platform_id = atoi(xmlAttribute(s_elem, "platform"));
 	        P->settings.device_id   = atoi(xmlAttribute(s_elem, "device"));
 	        if(!strcmp("ALL", xmlAttribute(s_elem, "type")))
@@ -623,7 +623,7 @@ bool FileManager::parseOpenCL(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 	        strcpy(P->OpenCL_kernels.predictor, xmlAttribute(s_elem, "file"));
 	    }
 	    // Looking for link-list
@@ -632,7 +632,7 @@ bool FileManager::parseOpenCL(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 	        strcpy(P->OpenCL_kernels.link_list, xmlAttribute(s_elem, "file"));
 	    }
 	    // Looking for rates
@@ -641,7 +641,7 @@ bool FileManager::parseOpenCL(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 	        strcpy(P->OpenCL_kernels.rates, xmlAttribute(s_elem, "file"));
 	    }
 	    // Looking for corrector
@@ -650,7 +650,7 @@ bool FileManager::parseOpenCL(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 	        strcpy(P->OpenCL_kernels.corrector, xmlAttribute(s_elem, "file"));
 	    }
 	    // Looking for time step
@@ -659,7 +659,7 @@ bool FileManager::parseOpenCL(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 	        strcpy(P->OpenCL_kernels.time_step, xmlAttribute(s_elem, "file"));
 	    }
 	    // Looking for reduction
@@ -668,7 +668,7 @@ bool FileManager::parseOpenCL(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 	        strcpy(P->OpenCL_kernels.reduction, xmlAttribute(s_elem, "file"));
 	    }
 	    // Looking for radix sort
@@ -677,7 +677,7 @@ bool FileManager::parseOpenCL(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 	        strcpy(P->OpenCL_kernels.radix_sort, xmlAttribute(s_elem, "file"));
 	    }
 	    // Looking for ElasticBounce boundary condition
@@ -686,7 +686,7 @@ bool FileManager::parseOpenCL(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 	        strcpy(P->OpenCL_kernels.elastic_bounce, xmlAttribute(s_elem, "file"));
 	    }
 	    // Looking for DeLeffe
@@ -695,7 +695,7 @@ bool FileManager::parseOpenCL(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 	        strcpy(P->OpenCL_kernels.de_Leffe, xmlAttribute(s_elem, "file"));
 	    }
 	    // Looking for Ghost particles
@@ -704,7 +704,7 @@ bool FileManager::parseOpenCL(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 	        strcpy(P->OpenCL_kernels.ghost, xmlAttribute(s_elem, "file"));
 	    }
 	    // Looking for 0th order correction
@@ -713,7 +713,7 @@ bool FileManager::parseOpenCL(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 	        strcpy(P->OpenCL_kernels.shepard, xmlAttribute(s_elem, "file"));
 	    }
 	    // Looking for Density interpolation
@@ -722,7 +722,7 @@ bool FileManager::parseOpenCL(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 	        strcpy(P->OpenCL_kernels.dens_int, xmlAttribute(s_elem, "file"));
 	    }
 	    // Looking for Torque
@@ -731,7 +731,7 @@ bool FileManager::parseOpenCL(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 	        strcpy(P->OpenCL_kernels.torque, xmlAttribute(s_elem, "file"));
 	    }
 	    // Looking for Energy
@@ -740,7 +740,7 @@ bool FileManager::parseOpenCL(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 	        strcpy(P->OpenCL_kernels.energy, xmlAttribute(s_elem, "file"));
 	    }
 	    // Looking for Bounds
@@ -749,7 +749,7 @@ bool FileManager::parseOpenCL(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 	        strcpy(P->OpenCL_kernels.bounds, xmlAttribute(s_elem, "file"));
 	    }
 	    // Looking for Domain
@@ -758,7 +758,7 @@ bool FileManager::parseOpenCL(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 	        strcpy(P->OpenCL_kernels.domain, xmlAttribute(s_elem, "file"));
 	    }
 	    // Looking for Portals
@@ -767,7 +767,7 @@ bool FileManager::parseOpenCL(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 	        strcpy(P->OpenCL_kernels.portal, xmlAttribute(s_elem, "file"));
 	    }
 	}
@@ -779,19 +779,21 @@ bool FileManager::parseTiming(DOMElement *root)
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	ProblemSetup *P = ProblemSetup::singleton();
 	char msg[1024]; strcpy(msg, "");
-	DOMNodeList* nodes = root->getElementsByTagName(XMLString::transcode("Timing"));
+	DOMNodeList* nodes = root->getElementsByTagName(
+        XMLString::transcode("Timing"));
 	for( XMLSize_t i=0; i<nodes->getLength();i++ ){
 	    DOMNode* node = nodes->item(i);
 	    if( node->getNodeType() != DOMNode::ELEMENT_NODE )
 	        continue;
 	    DOMElement* elem = dynamic_cast< xercesc::DOMElement* >( node );
 	    // Get options
-	    DOMNodeList* s_nodes = elem->getElementsByTagName(XMLString::transcode("Option"));
+	    DOMNodeList* s_nodes = elem->getElementsByTagName(
+            XMLString::transcode("Option"));
 	    for( XMLSize_t j=0; j<s_nodes->getLength();j++ ){
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 			if(!strcmp(xmlAttribute(s_elem, "name"), "SimulationStop")) {
 				if(!strcmp(xmlAttribute(s_elem, "type"), "Time") || !strcmp(xmlAttribute(s_elem, "type"), "T")) {
 					P->time_opts.sim_end_mode = P->time_opts.sim_end_mode | __TIME_MODE__;
@@ -1032,7 +1034,7 @@ bool FileManager::parseSPH(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 			if(!strcmp(xmlAttribute(s_elem, "name"), "gamma")) {
 				P->SPH_opts.gamma = atof(xmlAttribute(s_elem, "value"));
 			}
@@ -1224,7 +1226,7 @@ bool FileManager::parseFluid(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 			if(!strcmp(xmlAttribute(s_elem, "name"), "gamma"))
 				P->fluids[P->n_fluids-1].gamma   = atof(xmlAttribute(s_elem, "value"));
 			else if(!strcmp(xmlAttribute(s_elem, "name"), "refd"))
@@ -1253,7 +1255,7 @@ bool FileManager::parseFluid(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 			strcpy(P->fluids[P->n_fluids-1].Path, xmlAttribute(s_elem, "path"));
 			strcpy(P->fluids[P->n_fluids-1].Script, xmlAttribute(s_elem, "script"));
 	    }
@@ -1262,7 +1264,7 @@ bool FileManager::parseFluid(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 			strcpy(P->fluids[P->n_fluids-1].path, xmlAttribute(s_elem, "file"));
 	    }
 	}
@@ -1287,7 +1289,7 @@ bool FileManager::parseSensors(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 	        haveFPS = true;
 	        P->SensorsParameters.fps = atof(xmlAttribute(s_elem, "value"));
 	    }
@@ -1302,7 +1304,7 @@ bool FileManager::parseSensors(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 	        haveScript = true;
 	        strcpy(P->SensorsParameters.script, xmlAttribute(s_elem, "file"));
 	    }
@@ -1316,7 +1318,7 @@ bool FileManager::parseSensors(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 		    vec pos;
 	        pos.x = atof(xmlAttribute(s_elem, "x"));
 	        pos.y = atof(xmlAttribute(s_elem, "y"));
@@ -1362,7 +1364,7 @@ bool FileManager::parseMotions(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 	        // Build new movement
 	        ProblemSetup::sphMoveParameters *Move = new ProblemSetup::sphMoveParameters();
 	        // Get movement type
@@ -1611,7 +1613,7 @@ bool FileManager::parseGhostParticles(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 	        if(!strcmp(xmlAttribute(s_elem, "value"), "ASM")){
 	            P->ghost_particles.p_extension = 0;
 	        }
@@ -1637,7 +1639,7 @@ bool FileManager::parseGhostParticles(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 	        if(!strcmp(xmlAttribute(s_elem, "value"), "ASM")){
 	            P->ghost_particles.vn_extension = 0;
 	        }
@@ -1667,7 +1669,7 @@ bool FileManager::parseGhostParticles(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 	        if(!strcmp(xmlAttribute(s_elem, "value"), "ASM")){
 	            P->ghost_particles.vt_extension = 0;
 	        }
@@ -1697,7 +1699,7 @@ bool FileManager::parseGhostParticles(DOMElement *root)
 	        DOMNode* s_node = s_nodes->item(j);
 	        if( s_node->getNodeType() != DOMNode::ELEMENT_NODE )
 	            continue;
-	        DOMElement* s_elem = dynamic_cast< xercesc::DOMElement* >( s_node );
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 	        DOMNodeList* ss_nodes = s_elem->getElementsByTagName(XMLString::transcode("Vertex"));
 	        #ifdef HAVE_3D
 	            if( (ss_nodes->getLength() != 3) && (ss_nodes->getLength() != 4) ){
