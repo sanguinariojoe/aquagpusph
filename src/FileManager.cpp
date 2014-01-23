@@ -30,6 +30,8 @@ namespace Aqua{ namespace InputOutput{
 FileManager::FileManager()
 	: _in_file(NULL)
 	, _log(NULL)
+	, _energy(NULL)
+	, _bounds(NULL)
 {
     inputFile("Input.xml");
     _state = new State();
@@ -38,6 +40,8 @@ FileManager::FileManager()
 
 FileManager::~FileManager()
 {
+    unsigned int i;
+
     if(_in_file)
         delete[] _in_file;
     _in_file = NULL;
@@ -47,6 +51,24 @@ FileManager::~FileManager()
     if(_log)
         delete _log;
     _log = NULL;
+    if(_energy)
+        delete _energy;
+    _energy = NULL;
+    if(_bounds)
+        delete _bounds;
+    _bounds = NULL;
+
+    for(i=0; i<_loaders.size(); i++){
+        delete _loaders.at(i);
+        _loaders.at(i) = NULL;
+    }
+    _loaders.clear();
+
+    for(i=0; i<_savers.size(); i++){
+        delete _savers.at(i);
+        _savers.at(i) = NULL;
+    }
+    _savers.clear();
 }
 
 void FileManager::inputFile(const char* path)
@@ -82,8 +104,16 @@ Fluid* FileManager::load()
 		return NULL;
 	}
 
+    // Build the additional reporters requested
+    if(P->time_opts.energy_mode != __NO_OUTPUT_MODE__){
+        _energy = new Energy();
+    }
+    if(P->time_opts.bounds_mode != __NO_OUTPUT_MODE__){
+        _bounds = new Bounds();
+    }
+
     // Now we can build the fluid manager and the particles loaders/savers
-    Fluid *F = new InputOutput::Fluid();
+    Fluid *F = new Fluid();
     if(!F)
         return NULL;
     for(i=0; i<P->n_fluids; i++){
@@ -92,7 +122,7 @@ Fluid* FileManager::load()
             if(!loader)
                 return NULL;
             n += P->fluids[i].n;
-            _loaders.push_back(loader);
+            _loaders.push_back((Particles*)loader);
         }
         else{
             sprintf(msg,
@@ -106,7 +136,7 @@ Fluid* FileManager::load()
             if(!saver)
                 return NULL;
             n += P->fluids[i].n;
-            _savers.push_back(saver);
+            _savers.push_back((Particles*)saver);
         }
         else{
             sprintf(msg,

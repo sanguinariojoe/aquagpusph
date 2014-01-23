@@ -78,8 +78,6 @@ public:
      */
     Fluid* load();
 
-protected:
-
 private:
 	/// Name of the input file
 	char* _in_file;
