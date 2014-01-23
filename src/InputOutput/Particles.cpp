@@ -59,7 +59,7 @@ void Particles::file(const char* filename)
 bool Particles::file(const char* basename, unsigned int startindex)
 {
     FILE *f;
-    char* newname = NULL, orig_pos, dest_pos;
+    char *newname = NULL, *orig_pos, *dest_pos;
     size_t len;
     unsigned int i = startindex;
 
