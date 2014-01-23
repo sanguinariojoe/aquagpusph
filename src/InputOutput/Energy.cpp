@@ -57,7 +57,7 @@ bool Energy::create()
         S->addMessageF(0, "\tHow do you received this message?.\n");
         return true;
     }
-    _file = fopen(file());
+    _file = fopen(file(), "w");
     if(!_file){
         sprintf(msg,
                 "Failure creating the log file \"%s\"\n",

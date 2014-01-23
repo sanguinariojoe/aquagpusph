@@ -407,7 +407,7 @@ FILE* ASCII::create(){
     }
     delete[] basename;
 
-    f = fopen(file());
+    f = fopen(file(), "w");
     if(!f){
         sprintf(msg,
                 "Failure creating the file \"%s\"\n",
