@@ -23,8 +23,10 @@
 
 #include <sphPrerequisites.h>
 #include <Singleton.h>
+#include <Fluid.h>
 #include <InputOutput/State.h>
 #include <InputOutput/Log.h>
+#include <InputOutput/Particles.h>
 
 namespace Aqua{
 /// @namespace InputOutput Input/Output interfaces.
@@ -59,6 +61,11 @@ public:
 	 */
 	FILE* logFile(){return _log->fileHandler();}
 
+    /** Load the input data files.
+     * @return The built Fluid manager, NULL if errors happened.
+     */
+    Fluid* load();
+
 protected:
 
 private:
@@ -70,6 +77,12 @@ private:
 
     /// The output log file
     Log *_log;
+
+    /// The fluid loaders
+    std::deque<Particles*> _loaders;
+
+    /// The fluid savers
+    std::deque<Particles*> _savers;
 
 };  // class FileManager
 

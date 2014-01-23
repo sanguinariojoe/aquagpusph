@@ -47,8 +47,6 @@
 #include <Fluid.h>
 #include <TimeManager.h>
 #include <ScreenManager.h>
-#include <Input.h>
-#include <Output.h>
 
 using namespace Aqua;
 
@@ -58,16 +56,16 @@ using namespace Aqua;
  */
 int main(int argc, char *argv[])
 {
-	// Declarations
-	InputOutput::FileManager 	  *F;
-	InputOutput::ArgumentsManager *A;
-	InputOutput::ProblemSetup 	  *P;
-	CalcServer::CalcServer 	      *C;
-	InputOutput::Fluid            *fluid;
-	InputOutput::TimeManager	  *T;
-	InputOutput::ScreenManager    *S;
+	InputOutput::ArgumentsManager *A = NULL;
+	InputOutput::FileManager *F = NULL;
+	InputOutput::ProblemSetup *P = NULL;
+	InputOutput::Fluid *fluid = NULL;
+	CalcServer::CalcServer *C = NULL;
+	InputOutput::TimeManager *T = NULL;
+	InputOutput::ScreenManager *S = NULL;
 	char msg[256];
 	strcpy(msg, "");
+
 	printf("\n");
 	printf("\t#########################################################\n");
 	printf("\t#                                                       #\n");
@@ -88,68 +86,42 @@ int main(int argc, char *argv[])
 	printf("\t\tMiguel Gonzalez, Leo\n");
 	printf("\t\tSouto Iglesias, Antonio\n");
 	printf("\tAQUAgpusph Copyright (C) 2012  Jose Luis Cercos Pita\n");
-	printf("\tThis program comes with ABSOLUTELY NO WARRANTY; for details see license.txt.\n");
+	printf("\tThis program comes with ABSOLUTELY NO WARRANTY; for details see LICENSE.\n");
 	printf("\tThis is free software, and you are welcome to redistribute it\n");
-	printf("\tunder certain conditions; see license.txt for details.\n");
+	printf("\tunder certain conditions; see LICENSE for details.\n");
 	printf("\n");
 
 	A = new InputOutput::ArgumentsManager(argc,argv);
 	F = new InputOutput::FileManager();
 	P = new InputOutput::ProblemSetup();
 
+    // We must start reading the runtime arguments
     if(A->parse()){
-        return 255;
+        delete A;
+        delete F;
+        delete P;
+        delete fluid;
+        delete C;
+        delete T;
+        delete S;
+        return EXIT_FAILURE;
     }
 
-	if(F->startLog())
-	{
-		delete F;
-		return 1;
-	}
-
-	if(F->parse())
-	{
-		delete P;
-		delete F;
-		return 1;
-	}
-
-	if(F->openFiles())
-	{
-		delete P;
-		delete F;
-		return 2;
-	}
-
-	if(P->perform())
-	{
-		delete P;
-		delete F;
-		return 3;
-	}
+    // Now we can load the data from the input files
+    fluid = F->load();
+    if(!fluid){
+        delete A;
+        delete F;
+        delete P;
+        delete fluid;
+        delete C;
+        delete T;
+        delete S;
+        return EXIT_FAILURE;
+    }
 
 	C = new CalcServer::CalcServer();
-	fluid = new InputOutput::Fluid();
 	T = new InputOutput::TimeManager();
-	if(C->fillFluid())
-	{
-	    delete T;
-	    delete fluid;
-		delete C;
-		delete P;
-		delete F;
-		return 4;
-	}
-
-	if(InputOutput::input())
-	{
-	    delete T;
-	    delete fluid;
-		delete C;
-		delete P;
-		delete F;
-		return 5;
-	}
 
 	if(C->setup())
 	{
@@ -190,7 +162,7 @@ int main(int argc, char *argv[])
 		    return -1;
 		}
 		fluid->retrieveData();
-		InputOutput::output();
+		// InputOutput::output();
 	}
 
 	delete S; S = NULL;
@@ -214,5 +186,5 @@ int main(int argc, char *argv[])
 	// Exiting
     sprintf(msg, "Simulation finished OK (Time = %f s)\n\n", Time);
     S->addMessageF(1, msg);
-	return 0;
+	return EXIT_SUCCESS;
 }

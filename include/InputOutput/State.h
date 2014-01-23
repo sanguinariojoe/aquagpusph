@@ -32,19 +32,19 @@ class State : public InputOutput
 public:
 	/** Constructor
 	 */
-	InputOutput();
+	State();
 
 	/** Destructor
 	 */
-	~InputOutput();
+	~State();
 
     /** Save the data
-     * return false if all gone right, true otherwise.
+     * @return false if all gone right, true otherwise.
      */
     bool save();
 
     /** Load the data
-     * return false if all gone right, true otherwise.
+     * @return false if all gone right, true otherwise.
      */
     bool load();
 

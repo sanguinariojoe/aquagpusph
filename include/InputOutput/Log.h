@@ -19,6 +19,8 @@
 #ifndef LOG_H_INCLUDED
 #define LOG_H_INCLUDED
 
+#include <stdio.h>
+
 #include <sphPrerequisites.h>
 #include <InputOutput/Report.h>
 

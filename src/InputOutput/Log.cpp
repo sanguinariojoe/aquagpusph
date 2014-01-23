@@ -38,7 +38,8 @@ Log::~Log()
     close();
 }
 
-bool Log::save(){
+bool Log::save()
+{
     if(!_file){
         return true;
     }
@@ -46,7 +47,8 @@ bool Log::save(){
     return false;
 }
 
-bool Log::create(){
+bool Log::create()
+{
     char msg[1024];
 	ScreenManager *S = ScreenManager::singleton();
 
@@ -78,7 +80,8 @@ bool Log::create(){
 	return false;
 }
 
-bool Log::close(){
+bool Log::close()
+{
     if(!_file)
         return true;
 

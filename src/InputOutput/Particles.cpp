@@ -18,30 +18,27 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
 
-#include <InputOutput/Report.h>
+#include <InputOutput/Particles.h>
 #include <ScreenManager.h>
-#include <AuxiliarMethods.h>
 
 namespace Aqua{ namespace InputOutput{
 
-Report::Report()
-    : _output_file(NULL)
+Particles::Particles(unsigned int first, unsigned int n, unsigned int ifluid)
+    : _bounds({first, first+n})
+    , _ifluid(ifluid)
+    , _output_file(NULL)
 {
 }
 
-Report::~Report()
+Particles::~Particles()
 {
     if(_output_file)
         delete[] _output_file;
     _output_file = NULL;
 }
 
-void Report::file(const char* filename)
+void Particles::file(const char* filename)
 {
     size_t len;
 
@@ -57,7 +54,7 @@ void Report::file(const char* filename)
     strcpy(_output_file, filename);
 }
 
-bool Report::file(const char* basename, unsigned int startindex)
+bool Particles::file(const char* basename, unsigned int startindex)
 {
     FILE *f;
     char* newname = NULL, orig_pos, dest_pos;

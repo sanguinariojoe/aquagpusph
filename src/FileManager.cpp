@@ -18,22 +18,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <iostream>
-#include <sstream>
-#include <stdexcept>
-#include <math.h>
-#include <string>
 #include <string.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <list>
-#include <unistd.h>
-#include <errno.h>
 
 #include <FileManager.h>
 #include <ScreenManager.h>
 #include <ProblemSetup.h>
+#include <InputOutput/ASCII.h>
 
 namespace Aqua{ namespace InputOutput{
 
@@ -73,6 +63,67 @@ void FileManager::inputFile(const char* path)
     len = strlen(path) + 1;
     _in_file = new char[len];
     strcpy(_in_file, path);
+}
+
+Fluid* FileManager::load()
+{
+    unsigned int i, n=0;
+    char msg[1024];
+    ProblemSetup *P = ProblemSetup::singleton();
+    ScreenManager *S = ScreenManager::singleton();
+
+    // Load the XML definition file
+    if(_state->load()){
+        return NULL;
+    }
+
+    // Setup the problem setup
+	if(P->perform()) {
+		return NULL;
+	}
+
+    // Now we can build the fluid manager and the particles loaders/savers
+    Fluid *F = new InputOutput::Fluid();
+    if(!F)
+        return NULL;
+    for(i=0; i<P->n_fluids; i++){
+        if(!strcmp(P->fluids[i].in_format, "ASCII")){
+            ASCII *loader = new ASCII(n, P->fluids[i].n, i);
+            if(!loader)
+                return NULL;
+            n += P->fluids[i].n;
+            _loaders.push_back(loader);
+        }
+        else{
+            sprintf(msg,
+                    "Unknow \"%s\" file format.\n",
+                    P->fluids[i].in_format);
+            S->addMessageF(3, msg);
+            return NULL;
+        }
+        if(!strcmp(P->fluids[i].out_format, "ASCII")){
+            ASCII *saver = new ASCII(n, P->fluids[i].n, i);
+            if(!saver)
+                return NULL;
+            n += P->fluids[i].n;
+            _savers.push_back(saver);
+        }
+        else{
+            sprintf(msg,
+                    "Unknow \"%s\" file format.\n",
+                    P->fluids[i].out_format);
+            S->addMessageF(3, msg);
+            return NULL;
+        }
+    }
+
+    // Execute the loaders
+    for(i=0; i<P->n_fluids; i++){
+        if(_loaders.at(i)->load())
+            return NULL;
+    }
+
+    return F;
 }
 
 }}  // namespace

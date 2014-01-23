@@ -37,12 +37,12 @@ public:
 	~InputOutput(){};
 
     /** Save the data
-     * return false if all gone right, true otherwise.
+     * @return false if all gone right, true otherwise.
      */
     virtual bool save() = 0;
 
     /** Load the data
-     * return false if all gone right, true otherwise.
+     * @return false if all gone right, true otherwise.
      */
     virtual bool load() = 0;
 
