@@ -52,14 +52,6 @@ SET(Client_CPP_SRCS
 	AuxiliarMethods.cpp
 	FileManager.cpp
 	Fluid.cpp
-	Input.cpp
-	Output.cpp
-	ProblemSetup.cpp
-	ScreenManager.cpp
-	TimeManager.cpp
-	Input/ASCII.cpp
-	Input/GiD.cpp
-	Input/XML.cpp
 	InputOutput/State.cpp
 	InputOutput/Report.cpp
 	InputOutput/Log.cpp
@@ -67,6 +59,10 @@ SET(Client_CPP_SRCS
 	InputOutput/Bounds.cpp
 	InputOutput/Particles.cpp
 	InputOutput/ASCII.cpp
+	Output.cpp
+	ProblemSetup.cpp
+	ScreenManager.cpp
+	TimeManager.cpp
 	Tokenizer/Tokenizer.cpp
 )
 
