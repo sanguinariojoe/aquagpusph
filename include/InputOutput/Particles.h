@@ -66,7 +66,7 @@ protected:
     /** Get the fluid index associated with this loader/saver
      * @return The fluid index.
      */
-    uivec2 fluidId(){return _ifluid;}
+    unsigned int fluidId(){return _ifluid;}
 
     /** Set a new file.
      * @param filename The new file to work. Optionally a null parameter can
