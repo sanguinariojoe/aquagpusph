@@ -56,7 +56,7 @@ bool ArgumentsManager::parse()
 	FileManager *F = FileManager::singleton();
 	int index;
 	char msg[256]; strcpy(msg, "");
-	int opt = getopt_long( argc, argv, opts, longOpts, &index );
+	int opt = getopt_long( _argc, _argv, opts, longOpts, &index );
 	while( opt != -1 ) {
 	    switch( opt ) {
 	        case 'i':
@@ -86,7 +86,7 @@ bool ArgumentsManager::parse()
 	            displayUsage();
 	            return true;
 	    }
-	    opt = getopt_long( argc, argv, opts, longOpts, &index );
+	    opt = getopt_long( _argc, _argv, opts, longOpts, &index );
 	}
 	return false;
 }
