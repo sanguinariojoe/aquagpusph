@@ -1882,7 +1882,7 @@ bool State::writeSensors(xercesc::DOMDocument* doc,
                          xercesc::DOMElement *root)
 {
     unsigned int i;
-    DOMElement* elem, s_elem, ss_elem;
+    DOMElement *elem, *s_elem, *ss_elem;
     char att[1024];
 	ProblemSetup *P = ProblemSetup::singleton();
 	CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
@@ -1967,7 +1967,7 @@ bool State::writePortals(xercesc::DOMDocument* doc,
                          xercesc::DOMElement *root)
 {
     unsigned int i;
-    DOMElement* elem, s_elem, ss_elem;
+    DOMElement *elem, *s_elem, *ss_elem;
     char att[1024];
 	ProblemSetup *P = ProblemSetup::singleton();
 
@@ -2085,7 +2085,7 @@ bool State::writeGhostParticles(xercesc::DOMDocument* doc,
                                 xercesc::DOMElement *root)
 {
     unsigned int i;
-    DOMElement* elem, s_elem, ss_elem;
+    DOMElement *elem, *s_elem, *ss_elem;
     char att[1024];
 	ProblemSetup *P = ProblemSetup::singleton();
 	CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
