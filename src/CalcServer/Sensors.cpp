@@ -227,6 +227,8 @@ bool Sensors::execute()
 
 vec* Sensors::positions()
 {
+	CalcServer *C = CalcServer::singleton();
+
     if(!_n){
         return NULL;
     }
@@ -346,10 +348,7 @@ bool Sensors::initOutput(){
 	InputOutput::FileManager *FileMgr = InputOutput::FileManager::singleton();
 	int i, new_file=0;
 	char file_name[256];
-	if(strcmp(FileMgr->outputPrefix(), ""))
-	    sprintf(file_name, "%sSensors.dat", FileMgr->outputPrefix());
-	else
-	    strcpy(file_name, "Sensors.dat");
+    strcpy(file_name, "Sensors.dat");
 	_output_time = -P->SensorsParameters.fps;  // 1st frame print
 
 	// We must read the last file looking for the _output_time
