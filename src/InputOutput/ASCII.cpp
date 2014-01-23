@@ -24,6 +24,7 @@
 #include <ProblemSetup.h>
 #include <Fluid.h>
 #include <AuxiliarMethods.h>
+#include <Tokenizer/Tokenizer.h>
 
 #ifndef MAX_LINE_LEN
     #define MAX_LINE_LEN 1024
