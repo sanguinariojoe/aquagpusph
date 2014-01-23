@@ -56,12 +56,12 @@ ProblemSetup::ProblemSetup()
 	time_opts.bounds_fps = 0.f;
 	time_opts.bounds_ipf = 0;
 	time_opts.output_mode = __NO_OUTPUT_MODE__;
-	time_opts.output_format = __NO_OUTPUT_MODE__;
 	time_opts.output_fps = 0.f;
 	time_opts.output_ipf = 0;
 	time_opts.dt_mode = __DT_VARIABLE__;
 	time_opts.dt = 0.f;
 	time_opts.dt_min = 0.f;
+	time_opts.courant = 0.25f;
 	time_opts.velocity_clamp = false;
 	time_opts.t0 = 0.f;
 	//! 4th.- SPH parameters (as Vortex problem)
@@ -72,7 +72,6 @@ ProblemSetup::ProblemSetup()
 	SPH_opts.deltar.y = 0.05f;
 	SPH_opts.h = SPH_opts.hfac * (SPH_opts.deltar.x + SPH_opts.deltar.y)/2.f;
 	SPH_opts.cs = 15.f;
-	SPH_opts.courant = 0.25f;
 	SPH_opts.link_list_steps = 1;
 	SPH_opts.dens_int_steps = 0;
 	SPH_opts.rho_min = 0.f;
