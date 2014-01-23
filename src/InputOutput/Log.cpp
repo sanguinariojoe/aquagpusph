@@ -112,15 +112,15 @@ bool Log::close()
 
 	}
 
-	fprintf(_log_file_id, "<br><hr>\n");
+	fprintf(_file, "<br><hr>\n");
 	struct timeval now_time;
 	gettimeofday(&now_time, NULL);
 	const time_t seconds = now_time.tv_sec;
-	fprintf(_log_file_id,
+	fprintf(_file,
             "<b><font color=\"#000000\">End of simulation</font></b><br>\n");
-	fprintf(_log_file_id, "<p align=\"left\">%s</p>\n", ctime(&seconds));
-	fprintf(_log_file_id, "</body>\n");
-	fprintf(_log_file_id, "</html>\n");
+	fprintf(_file, "<p align=\"left\">%s</p>\n", ctime(&seconds));
+	fprintf(_file, "</body>\n");
+	fprintf(_file, "</html>\n");
 
 	fflush(_file);
     fclose(_file);
