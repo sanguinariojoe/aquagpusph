@@ -99,13 +99,6 @@ public:
 	 */
 	cl_mem allocMemory(size_t size);
 
-	/** Fills the fluid using an OpenCL script
-	 * @return false if the fluid has been succesfully set, true otherwise
-	 * @warning This initialization way is deprecated and it will be removed in
-	 * future releases.
-	 */
-	bool fillFluid();
-
 	/** Setup the calculation server with the data recopilated by the host
 	 * during the initialization process.
 	 * @return false if the caluclation server has been succesfully setup,
