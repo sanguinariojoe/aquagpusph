@@ -1386,8 +1386,7 @@ bool State::parseGhostParticles(DOMElement *root)
 bool State::write(const char* filepath)
 {
     DOMImplementation* impl = DOMImplementationRegistry::getDOMImplementation(
-        xmlS("Range"),
-        0);
+        xmlS("Range"));
     DOMDocument* doc = impl->createDocument(
         NULL,
         xmlS("sphInput"),
