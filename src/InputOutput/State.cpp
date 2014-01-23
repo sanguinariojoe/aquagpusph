@@ -16,6 +16,7 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <map>
@@ -76,7 +77,7 @@ State::State()
     _output_file = new char[256];
     while(true){
         sprintf(_output_file, "AQUAgpusph.save.%u.xml", i);
-        File *f = fopen(_output_file, "r");
+        FILE *f = fopen(_output_file, "r");
         if(f){
             // The file already exist, look for another one
             i++;
