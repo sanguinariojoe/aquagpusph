@@ -93,16 +93,20 @@ int main(int argc, char *argv[])
 	printf("\tunder certain conditions; see license.txt for details.\n");
 	printf("\n");
 
-	F = new InputOutput::FileManager();
-
 	A = new InputOutput::ArgumentsManager(argc,argv);
+	F = new InputOutput::FileManager();
+	P = new InputOutput::ProblemSetup();
+
+    if(A->parse()){
+        return 255;
+    }
+
 	if(F->startLog())
 	{
 		delete F;
 		return 1;
 	}
 
-	P = new InputOutput::ProblemSetup();
 	if(F->parse())
 	{
 		delete P;

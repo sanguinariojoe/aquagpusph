@@ -36,40 +36,36 @@ public:
 	 */
 	ArgumentsManager(int argc, char **argv);
 
+	/** Destructor.
+	 */
+	~ArgumentsManager();
+
+    /** Parse the runtime arguments.
+     * @return false if the excution must continue, true otherwise.
+     */
+    bool parse();
+
 	/** Display the program usage.
 	 * The program usage must be shown if the user has requested help, or if
 	 * wrong/insufficient arguments have been passed.
 	 */
 	void displayUsage();
 
-	/** Returns if the user has requested the output files reassembly.
-	 * @return true if the output files must be reassembled, false otherwise.
-	 * @note In some cases the simulations can be started from a previous
-	 * saved state, in this case the output will be divided in several files,
-	 * which could be convinient to reassembly for the postprocess. The
-	 * reassembly process may take some time and memory.
-	 * @remarks Only applies to the H5Part formatted output.
-	 */
-	bool mustReassembly(){return mReassembly;}
-
 	/** Get the number of run arguments.
 	 * @return Number of run arguments.
 	 */
-	int argc(){return mArgc;}
+	int argc(){return _argc;}
 
 	/** Get the run arguments array.
 	 * @return Run arguments.
 	 */
-	char** argv(){return mArgv;}
+	char** argv(){return _argv;}
 
 private:
-	/// true if the output files must be reassembled, false otherwise
-	bool mReassembly;
-
 	/// Arguments number
-	int mArgc;
+	int _argc;
 	/// Arguments array
-	char** mArgv;
+	char** _argv;
 
 
 };  // class ArgumentsManager
