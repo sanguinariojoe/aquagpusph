@@ -52,7 +52,7 @@ bool Bounds::create()
     char msg[1024];
 	ScreenManager *S = ScreenManager::singleton();
 
-    if(file("bounds.%d.dat")){
+    if(file("bounds.%d.dat", 0)){
         S->addMessageF(3, "Failure getting a valid filename.\n");
         S->addMessageF(0, "\tHow do you received this message?.\n");
         return true;
