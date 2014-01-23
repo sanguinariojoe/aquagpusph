@@ -1373,7 +1373,6 @@ bool State::parseGhostParticles(DOMElement *root)
 	                p[k].y = atof(xmlAttribute(ss_elem, "y"));
                     v[k].x = atof(xmlAttribute(ss_elem, "vx"));
                     v[k].y = atof(xmlAttribute(ss_elem, "vy"));
-                    v[k].w = 0.f;
 	            }
 	            P->ghost_particles.add(p[0], p[1]);
 	        #endif
