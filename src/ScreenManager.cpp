@@ -407,7 +407,7 @@ void ScreenManager::addMessage(int Level, const char *log, const char *func)
         sprintf(fname, "(%s): ", func);
     }
 	// Compatibility mode when screen manager have been closed
-	if(!InputOutput::ScreenManager::singleton()){
+	if(!ScreenManager::singleton()){
 	    if(Level == 1)
 	        printf("INFO ");
 	    else if(Level == 2)
