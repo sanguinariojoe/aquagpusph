@@ -52,7 +52,7 @@ ASCII::~ASCII()
 bool ASCII::load()
 {
     FILE *f;
-    char msg[MAX_LINE_LEN + 64], line[MAX_LINE_LEN], sentence[MAX_LINE_LEN];
+    char msg[MAX_LINE_LEN + 64], sentence[MAX_LINE_LEN], *line;
     unsigned int i, iline, n, N, n_fields, progress;
 	Tokenizer tok;
 	ScreenManager *S = ScreenManager::singleton();
@@ -87,12 +87,15 @@ bool ASCII::load()
     i = bounds().x;
     iline = 0;
     progress = -1;
+    line = new char[MAX_LINE_LEN];
 	while( fgets( line, MAX_LINE_LEN*sizeof(char), f) )
 	{
 	    iline++;
 
         formatLine(line);
         if(!strlen(line)){
+            delete[] line;
+            line = new char[MAX_LINE_LEN];
             continue;
         }
 
@@ -228,6 +231,9 @@ bool ASCII::load()
                 S->addMessage(0, msg);
             }
         }
+
+        delete[] line;
+        line = new char[MAX_LINE_LEN];
 	}
 
     fclose(f);
