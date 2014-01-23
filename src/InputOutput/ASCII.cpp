@@ -72,7 +72,7 @@ bool ASCII::load()
 
     // Assert that the number of particles is right
     n = bounds().y - bounds().x;
-    N = readNParticles();
+    N = readNParticles(f);
     if(n != N){
         sprintf(msg,
                 "Expected %u particles, but the file contains %u ones.\n",
