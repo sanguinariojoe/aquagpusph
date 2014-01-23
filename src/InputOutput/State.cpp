@@ -1566,9 +1566,9 @@ bool State::writeTiming(xercesc::DOMDocument* doc,
 
     s_elem = doc->createElement(xmlS("Option"));
     s_elem->setAttribute(xmlS("name"), xmlS("ClampVel"));
-    strtcpy(att, "false");
+    strcpy(att, "false");
     if(P->time_opts.velocity_clamp)
-        strtcpy(att, "true");
+        strcpy(att, "true");
     s_elem->setAttribute(xmlS("value"), xmlS(att));
     elem->appendChild(s_elem);
 
