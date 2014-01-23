@@ -59,7 +59,6 @@ SET(Client_CPP_SRCS
 	InputOutput/Bounds.cpp
 	InputOutput/Particles.cpp
 	InputOutput/ASCII.cpp
-	Output.cpp
 	ProblemSetup.cpp
 	ScreenManager.cpp
 	TimeManager.cpp
