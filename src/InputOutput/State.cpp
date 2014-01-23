@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <map>
+#include <limits>
 
 #include <InputOutput/State.h>
 #include <ScreenManager.h>
@@ -1705,7 +1706,7 @@ bool State::writeSPH(xercesc::DOMDocument* doc,
     s_elem->setAttribute(xmlS("name"), xmlS("DensBounds"));
     sprintf(att, "%g", P->SPH_opts.rho_min);
     s_elem->setAttribute(xmlS("min"), xmlS(att));
-    if(SPH_opts.rho_max < std::numeric_limits<float>::max()){
+    if(P->SPH_opts.rho_max < std::numeric_limits<float>::max()){
         sprintf(att, "%g", P->SPH_opts.rho_max);
         s_elem->setAttribute(xmlS("max"), xmlS(att));
     }
