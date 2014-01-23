@@ -379,7 +379,7 @@ unsigned int ASCII::readNFields(char* l)
 
     unsigned int n = 1;
     char *pos = l;
-    while(pos = strchr(pos, '')){
+    while(pos = strchr(pos, ' ')){
         n++;
     }
 
