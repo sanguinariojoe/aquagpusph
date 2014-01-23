@@ -52,7 +52,7 @@ bool ASCII::load()
 {
     FILE *f;
     char msg[MAX_LINE_LEN + 64], line[MAX_LINE_LEN], sentence[MAX_LINE_LEN];
-    unsigned int i, iline, n, N, n_fields;
+    unsigned int i, iline, n, N, n_fields, progress;
 	Tokenizer tok;
 	ScreenManager *S = ScreenManager::singleton();
 	ProblemSetup *P = ProblemSetup::singleton();
@@ -85,6 +85,7 @@ bool ASCII::load()
     rewind(f);
     i = bounds().x;
     iline = 0;
+    progress = -1;
 	while( fgets( line, MAX_LINE_LEN*sizeof(char), f) )
 	{
 	    iline++;
@@ -218,6 +219,14 @@ bool ASCII::load()
         tok.registerVariable("imove", F->imove[i]);
 
         i++;
+
+        if(progress != (i - bounds().x) * 100 / n){
+            progress = (i - bounds().x) * 100 / n;
+            if(!(progress % 10)){
+                sprintf(msg, "\t\t%u%%\n", progress);
+                S->addMessage(0, msg);
+            }
+        }
 	}
 
     fclose(f);
