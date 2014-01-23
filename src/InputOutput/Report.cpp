@@ -95,7 +95,7 @@ bool Report::file(const char* basename, unsigned int startindex)
         sprintf(dest_pos, "%u", i);
         // Copy the rest of the original string after the inserted number
         dest_pos += numberOfDigits(i);
-        orig_pos = strstr(basename, "%d") + 2;
+        orig_pos = (char*)strstr(basename, "%d") + 2;
         strcpy(dest_pos, orig_pos);
 
         f = fopen(newname, "r");
