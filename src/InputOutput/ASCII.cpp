@@ -201,25 +201,25 @@ bool ASCII::load()
         line = strchr(line, ' ');
         strcpy(sentence, line);
         strcpy(strchr(sentence, ' '), "");
-        F->dens[i].x = tok.solve(sentence);
+        F->dens[i] = tok.solve(sentence);
         tok.registerVariable("rho", F->dens[i]);
 
         line = strchr(line, ' ');
         strcpy(sentence, line);
         strcpy(strchr(sentence, ' '), "");
-        F->drdt[i].x = tok.solve(sentence);
+        F->drdt[i] = tok.solve(sentence);
         tok.registerVariable("drhodt", F->drdt[i]);
 
         line = strchr(line, ' ');
         strcpy(sentence, line);
         strcpy(strchr(sentence, ' '), "");
-        F->mass[i].x = tok.solve(sentence);
+        F->mass[i] = tok.solve(sentence);
         tok.registerVariable("mass", F->mass[i]);
 
         line = strchr(line, ' ');
         strcpy(sentence, line);
         strcpy(strchr(sentence, ' '), "");
-        F->imove[i].x = (int)tok.solve(sentence);
+        F->imove[i] = (int)tok.solve(sentence);
         tok.registerVariable("imove", F->imove[i]);
 
         i++;
