@@ -51,7 +51,7 @@ State::State()
     : _output_file(NULL)
 {
     unsigned int i;
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+	ScreenManager *S = ScreenManager::singleton();
 	// Start the XML parser
 	try {
 	    XMLPlatformUtils::Initialize();
@@ -90,7 +90,7 @@ State::State()
 State::~State()
 {
 	unsigned int i;
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+	ScreenManager *S = ScreenManager::singleton();
 	// Terminate Xerces
 	try{
 	    XMLPlatformUtils::Terminate();
@@ -120,13 +120,13 @@ bool State::save()
 
 bool State::load()
 {
-	InputOutput::FileManager *F = InputOutput::FileManager::singleton();
+	FileManager *F = FileManager::singleton();
     return parse(F->inputFile());
 }
 
 bool State::parse(const char* filepath)
 {
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+	ScreenManager *S = ScreenManager::singleton();
 	ProblemSetup *P = ProblemSetup::singleton();
 	char msg[1024];
 	strcpy(msg, "");
@@ -190,7 +190,7 @@ bool State::parse(const char* filepath)
 
 bool State::parseSettings(DOMElement *root)
 {
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+	ScreenManager *S = ScreenManager::singleton();
 	ProblemSetup *P = ProblemSetup::singleton();
 	char msg[1024]; strcpy(msg, "");
 	DOMNodeList* nodes = root->getElementsByTagName(xmlS("Settings"));
@@ -292,7 +292,7 @@ bool State::parseOpenCL(DOMElement *root)
 
 bool State::parseTiming(DOMElement *root)
 {
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+	ScreenManager *S = ScreenManager::singleton();
 	ProblemSetup *P = ProblemSetup::singleton();
 	char msg[1024]; strcpy(msg, "");
 	DOMNodeList* nodes = root->getElementsByTagName(xmlS("Timing"));
@@ -547,7 +547,7 @@ bool State::parseTiming(DOMElement *root)
 
 bool State::parseSPH(DOMElement *root)
 {
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+	ScreenManager *S = ScreenManager::singleton();
 	ProblemSetup *P = ProblemSetup::singleton();
 	char msg[1024]; strcpy(msg, "");
 	DOMNodeList* nodes = root->getElementsByTagName(xmlS("SPH"));
@@ -760,7 +760,7 @@ bool State::parseSPH(DOMElement *root)
 
 bool State::parseFluid(DOMElement *root)
 {
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+	ScreenManager *S = ScreenManager::singleton();
 	ProblemSetup *P = ProblemSetup::singleton();
 	char msg[1024]; strcpy(msg, "");
 	DOMNodeList* nodes = root->getElementsByTagName(xmlS("Fluid"));
@@ -843,7 +843,7 @@ bool State::parseFluid(DOMElement *root)
 
 bool State::parseSensors(DOMElement *root)
 {
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+	ScreenManager *S = ScreenManager::singleton();
 	ProblemSetup *P = ProblemSetup::singleton();
 	char msg[1024]; strcpy(msg, "");
 	DOMNodeList* nodes = root->getElementsByTagName(xmlS("Sensors"));
@@ -921,7 +921,7 @@ bool State::parseSensors(DOMElement *root)
 
 bool State::parseMotions(DOMElement *root)
 {
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+	ScreenManager *S = ScreenManager::singleton();
 	ProblemSetup *P = ProblemSetup::singleton();
 	char msg[1024]; strcpy(msg, "");
 	DOMNodeList* nodes = root->getElementsByTagName(xmlS("Movements"));
@@ -974,7 +974,7 @@ bool State::parseMotions(DOMElement *root)
 
 bool State::parsePortals(DOMElement *root)
 {
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+	ScreenManager *S = ScreenManager::singleton();
 	ProblemSetup *P = ProblemSetup::singleton();
 	char msg[1024]; strcpy(msg, "");
 	bool hasNormal;
@@ -1192,7 +1192,7 @@ bool State::parsePortals(DOMElement *root)
 
 bool State::parseGhostParticles(DOMElement *root)
 {
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+	ScreenManager *S = ScreenManager::singleton();
 	ProblemSetup *P = ProblemSetup::singleton();
 	char msg[1024]; strcpy(msg, "");
 	DOMNodeList* nodes = root->getElementsByTagName(xmlS("GhostParticles"));
@@ -1383,7 +1383,6 @@ bool State::parseGhostParticles(DOMElement *root)
 
 bool State::write(const char* filepath)
 {
-    xmlS("Range", tempStr, 99);
     DOMImplementation* impl = DOMImplementationRegistry::getDOMImplementation(
         xmlS("Range"),
         0);
