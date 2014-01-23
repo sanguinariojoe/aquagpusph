@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
 	        delete S; S = NULL;
             S->printDate();
 	        S->addMessageF(1, "Closing Files...\n");
-	        F->closeFiles();
+	        // F->closeFiles();
 	        S->addMessageF(1, "Destroying time manager...\n");
 	        delete T; T = NULL;
 	        S->addMessageF(1, "Destroying fluid host layer...\n");
@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
 	delete S; S = NULL;
     S->printDate();
     S->addMessageF(1, "Closing Files...\n");
-	F->closeFiles();
+	// F->closeFiles();
 
 	float Time = T->time();
     S->addMessageF(1, "Destroying time manager...\n");
