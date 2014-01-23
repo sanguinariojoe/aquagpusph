@@ -160,8 +160,8 @@ bool State::parse(const char* filepath)
 	    if(node->getNodeType() != DOMNode::ELEMENT_NODE)
 	        continue;
 	    DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
-	    XMLCh* included_file = elem->getAttribute(xmlS("file"));
-	    if(parse(xmlS(included_file))){
+	    const char* included_file = xmlS(elem->getAttribute(xmlS("file")));
+	    if(parse(included_file)){
             return true;
         }
 	}
