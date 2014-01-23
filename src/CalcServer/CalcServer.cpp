@@ -768,14 +768,14 @@ void CalcServer::printEnergy()
 	InputOutput::FileManager *files = InputOutput::FileManager::singleton();
 	energy();
 
-	fprintf(files->enFile(),"%g\t",T->time() - T->dt());
-	fprintf(files->enFile(),"%g\t%g\t%g\t%g\t%g\t%g\n", energy_tool->potentialEnergy(),
+	fprintf(files->energyFile(),"%g\t",T->time() - T->dt());
+	fprintf(files->energyFile(),"%g\t%g\t%g\t%g\t%g\t%g\n", energy_tool->potentialEnergy(),
                                                         energy_tool->kineticEnergy(),
                                                         energy_tool->internalEnergy(),
                                                         energy_tool->enthalpy(),
                                                         energy_tool->entropy(),
                                                         energy_tool->energy());
-	fflush(files->enFile());
+	fflush(files->energyFile());
 }
 
 void CalcServer::printBounds()
