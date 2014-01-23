@@ -22,6 +22,7 @@
 #include <InputOutput/ASCII.h>
 #include <ScreenManager.h>
 #include <ProblemSetup.h>
+#include <TimeManager.h>
 #include <Fluid.h>
 #include <AuxiliarMethods.h>
 #include <Tokenizer/Tokenizer.h>
