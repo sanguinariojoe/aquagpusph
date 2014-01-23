@@ -60,6 +60,11 @@ SET(Client_CPP_SRCS
 	Input/ASCII.cpp
 	Input/GiD.cpp
 	Input/XML.cpp
+	InputOutput/ASCII.cpp
+	InputOutput/Log.cpp
+	InputOutput/Particles.cpp
+	InputOutput/Report.cpp
+	InputOutput/State.cpp
 	Tokenizer/Tokenizer.cpp
 )
 
