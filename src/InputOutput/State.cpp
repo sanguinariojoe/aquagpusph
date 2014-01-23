@@ -276,7 +276,7 @@ bool State::parseOpenCL(DOMElement *root)
         tags["Domain"] = P->OpenCL_kernels.domain;
         tags["Portal"] = P->OpenCL_kernels.portal;
 
-        for(it=mymap.begin(); it!=mymap.end(); it++){
+        for(it=tags.begin(); it!=tags.end(); it++){
             DOMNodeList* s_nodes = elem->getElementsByTagName(
                 xmlS(it->first));
             for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
@@ -1486,7 +1486,7 @@ bool State::writeOpenCL(xercesc::DOMDocument* doc,
     tags["Domain"] = P->OpenCL_kernels.domain;
     tags["Portal"] = P->OpenCL_kernels.portal;
 
-    for(it=mymap.begin(); it!=mymap.end(); it++){
+    for(it=tags.begin(); it!=tags.end(); it++){
         s_elem = doc->createElement(xmlS(it->first));
         s_elem->setAttribute(xmlS("file"), xmlS(it->second));
         elem->appendChild(s_elem);
