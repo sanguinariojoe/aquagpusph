@@ -22,7 +22,7 @@
 #include <stdio.h>
 
 #include <sphPrerequisites.h>
-#include <InputOutput/Report.h>
+#include <InputOutput/Particles.h>
 
 namespace Aqua{
 namespace InputOutput{
@@ -64,7 +64,7 @@ namespace InputOutput{
  *   -#
  * which must be sorted inthe shown way
  */
-class ASCII : public Report
+class ASCII : public Particles
 {
 public:
 	/** Constructor
