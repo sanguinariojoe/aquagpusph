@@ -212,6 +212,11 @@ vec normalize(vec v);
 	vec cross(vec a, vec b);
 #endif
 
+/** Get the number of digits of an integer
+ * @param number Number that the number of digits are desired.
+ */
+unsigned int numberOfDigits(unsigned int number);
+
 }   // namespace
 
 #endif // AUXILIARMETHODS_H_INCLUDED

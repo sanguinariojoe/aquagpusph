@@ -480,4 +480,9 @@ vec cross(vec a, vec b)
 }
 #endif
 
+unsigned int numberOfDigits(unsigned int number)
+{
+    return number > 0 ? (int)log10((double)number) + 1 : 1;
+}
+
 }   // namespace
