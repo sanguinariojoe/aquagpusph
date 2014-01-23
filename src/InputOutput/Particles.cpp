@@ -21,14 +21,16 @@
 
 #include <InputOutput/Particles.h>
 #include <ScreenManager.h>
+#include <AuxiliarMethods.h>
 
 namespace Aqua{ namespace InputOutput{
 
 Particles::Particles(unsigned int first, unsigned int n, unsigned int ifluid)
-    : _bounds({first, first+n})
-    , _ifluid(ifluid)
+    : _ifluid(ifluid)
     , _output_file(NULL)
 {
+    _bounds.x = first;
+    _bounds.y = first + n;
 }
 
 Particles::~Particles()
