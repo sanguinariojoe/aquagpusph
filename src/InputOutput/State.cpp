@@ -1419,7 +1419,7 @@ bool State::write(const char* filepath)
 bool State::writeSettings(xercesc::DOMDocument* doc,
                           xercesc::DOMElement *root)
 {
-    DOMElement* elem, s_elem;
+    DOMElement *elem, *s_elem;
     char att[1024];
 	ProblemSetup *P = ProblemSetup::singleton();
 
@@ -1460,7 +1460,7 @@ bool State::writeSettings(xercesc::DOMDocument* doc,
 bool State::writeOpenCL(xercesc::DOMDocument* doc,
                         xercesc::DOMElement *root)
 {
-    DOMElement* elem, s_elem;
+    DOMElement *elem, *s_elem;
 	ProblemSetup *P = ProblemSetup::singleton();
 
     elem = doc->createElement(xmlS("OpenCL"));
@@ -1497,7 +1497,7 @@ bool State::writeOpenCL(xercesc::DOMDocument* doc,
 bool State::writeTiming(xercesc::DOMDocument* doc,
                         xercesc::DOMElement *root)
 {
-    DOMElement* elem, s_elem;
+    DOMElement *elem, *s_elem;
     char att[1024];
 	ProblemSetup *P = ProblemSetup::singleton();
 	TimeManager *T = TimeManager::singleton();
@@ -1646,7 +1646,7 @@ bool State::writeTiming(xercesc::DOMDocument* doc,
 bool State::writeSPH(xercesc::DOMDocument* doc,
                      xercesc::DOMElement *root)
 {
-    DOMElement* elem, s_elem;
+    DOMElement *elem, *s_elem;
     char att[1024];
 	ProblemSetup *P = ProblemSetup::singleton();
 
@@ -1816,7 +1816,7 @@ bool State::writeFluid(xercesc::DOMDocument* doc,
                        xercesc::DOMElement *root)
 {
     unsigned int i;
-    DOMElement* elem, s_elem;
+    DOMElement *elem, *s_elem;
     char att[1024];
 	ProblemSetup *P = ProblemSetup::singleton();
 
@@ -1930,7 +1930,7 @@ bool State::writeMotions(xercesc::DOMDocument* doc,
                          xercesc::DOMElement *root)
 {
     unsigned int i;
-    DOMElement* elem, s_elem;
+    DOMElement *elem, *s_elem;
     char att[1024];
 	ProblemSetup *P = ProblemSetup::singleton();
 
