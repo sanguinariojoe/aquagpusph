@@ -74,7 +74,7 @@ State::State()
 	// Look ofr the first available file place
     i = 0;
     _output_file = new char[256];
-    while(!available){
+    while(true){
         sprintf(_output_file, "AQUAgpusph.save.%u.xml", i);
         File *f = fopen(_output_file, "r");
         if(f){
