@@ -265,22 +265,22 @@ void ProblemSetup::sphFluidParameters::init()
 	delta   = 0.f;
 
 	in_path = new char[1024];
-	in_format = new char[1024];
-	strcpy(path, "");
-	strcpy(in_format, "ASCII"):
+	in_format = new char[64];
+	strcpy(in_path, "");
+	strcpy(in_format, "ASCII");
 
 	out_path = new char[1024];
-	out_format = new char[1024];
-	strcpy(path, "");
-	strcpy(out_format, "VTK"):
+	out_format = new char[64];
+	strcpy(out_path, "");
+	strcpy(out_format, "VTK");
 }
 
 void ProblemSetup::sphFluidParameters::destroy()
 {
-	delete[] path; path=NULL;
-
-	delete[] Script; Script=NULL;
-	delete[] Path; Path=NULL;
+	delete[] in_path; in_path=NULL;
+	delete[] in_format; in_format=NULL;
+	delete[] out_path; out_path=NULL;
+	delete[] out_format; out_format=NULL;
 }
 
 ProblemSetup::sphMoveParameters::sphMoveParameters()
