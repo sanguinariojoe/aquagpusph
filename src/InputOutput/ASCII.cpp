@@ -331,7 +331,7 @@ void ASCII::formatLine(char* l)
     if(!strlen(l))
         return;
 
-    unsigned int i;
+    unsigned int i, len;
 
     // Look for a comment and discard it
     if(strchr(l, '#')){
@@ -339,8 +339,8 @@ void ASCII::formatLine(char* l)
     }
 
     // Remove the line break if exist
-    if(strchr(line, '\n')){
-        strcpy(strchr(line, '\n'), "");
+    if(strchr(l, '\n')){
+        strcpy(strchr(l, '\n'), "");
     }
 
     // Replace all the separators by spaces
@@ -352,26 +352,25 @@ void ASCII::formatLine(char* l)
     }
 
     // Remove all the concatenated spaces
-    replace_str = strstr(line,"  ");
-    while(strstr(line, "  ")){
-        strcpy(strstr(line, "  "), strstr(line, "  ") + 1);
+    while(strstr(l, "  ")){
+        strcpy(strstr(l, "  "), strstr(l, "  ") + 1);
     }
 
     // Remove the preceeding spaces
-    len = strlen(line);
+    len = strlen(l);
     while(len){
-        if(line[0] != ' '){
+        if(l[0] != ' '){
             break;
         }
-        strcpy(line, line + 1);
+        strcpy(l, l + 1);
         len--;
     }
     // And the trailing ones
     while(len){
-        if(line[len - 1] != ' '){
+        if(l[len - 1] != ' '){
             break;
         }
-        strcpy(line + len - 1, "");
+        strcpy(l + len - 1, "");
         len--;
     }
 }
