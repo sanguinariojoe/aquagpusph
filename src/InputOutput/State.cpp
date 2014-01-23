@@ -1332,7 +1332,8 @@ bool State::parseGhostParticles(DOMElement *root)
 	                    v[k].z = atof(xmlAttribute(ss_elem, "vz"));
 	                    v[k].w = 0.f;
 	                }
-	                P->ghost_particles.add(p[0], p[1], p[2]);
+	                P->ghost_particles.add(p[0], p[1], p[2]
+                                           v[0], v[1], v[2]);
 	            }
 	            if( ss_nodes->getLength() == 4 ){
 	                vec p[4], v[4];
@@ -1350,7 +1351,8 @@ bool State::parseGhostParticles(DOMElement *root)
 	                    v[k].z = atof(xmlAttribute(ss_elem, "vz"));
 	                    v[k].w = 0.f;
 	                }
-	                P->ghost_particles.add(p[0], p[1], p[2], p[3]);
+	                P->ghost_particles.add(p[0], p[1], p[2], p[3]
+                                           v[0], v[1], v[2], v[3]);
 	            }
 	        #else
 	            if(ss_nodes->getLength() != 2){
@@ -1374,7 +1376,7 @@ bool State::parseGhostParticles(DOMElement *root)
                     v[k].x = atof(xmlAttribute(ss_elem, "vx"));
                     v[k].y = atof(xmlAttribute(ss_elem, "vy"));
 	            }
-	            P->ghost_particles.add(p[0], p[1]);
+	            P->ghost_particles.add(p[0], p[1], v[0], v[1]);
 	        #endif
 	    }
 	}
