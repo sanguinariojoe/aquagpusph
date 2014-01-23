@@ -66,12 +66,12 @@ public:
 	/** Get the energy file handler.
 	 * @return Energy file handler.
 	 */
-	FILE* energyFile(){return _energy->fileHandler();}
+	FILE* energyFile();
 
 	/** Get the bounds file handler.
 	 * @return Bounds file handler.
 	 */
-	FILE* boundsFile(){return _bounds->fileHandler();}
+	FILE* boundsFile();
 
     /** Load the input data files.
      * @return The built Fluid manager, NULL if errors happened.

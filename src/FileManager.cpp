@@ -87,6 +87,18 @@ void FileManager::inputFile(const char* path)
     strcpy(_in_file, path);
 }
 
+FILE* FileManager::energyFile()
+{
+    if(_energy)
+        return _energy->fileHandler();
+}
+
+FILE* FileManager::boundsFile()
+{
+    if(_bounds)
+        return _bounds->fileHandler();
+}
+
 Fluid* FileManager::load()
 {
     unsigned int i, n=0;
@@ -107,9 +119,13 @@ Fluid* FileManager::load()
     // Build the additional reporters requested
     if(P->time_opts.energy_mode != __NO_OUTPUT_MODE__){
         _energy = new Energy();
+        if(!_energy)
+            return NULL;
     }
     if(P->time_opts.bounds_mode != __NO_OUTPUT_MODE__){
         _bounds = new Bounds();
+        if(!_bounds)
+            return NULL;
     }
 
     // Now we can build the fluid manager and the particles loaders/savers
