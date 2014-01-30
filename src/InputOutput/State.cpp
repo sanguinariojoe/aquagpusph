@@ -311,11 +311,11 @@ bool State::parseTiming(DOMElement *root)
 	            continue;
 	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 	        const char *name = xmlAttribute(s_elem, "name");
-			if(!strcmp(name, "Start") || strcmp(name, "SimulationStart")){
+			if(!strcmp(name, "Start") || !strcmp(name, "SimulationStart")){
 	            P->time_opts.t0 = atof(xmlAttribute(s_elem, "value"));
 			}
 
-			else if(!strcmp(name, "End") || strcmp(name, "SimulationStop")){
+			else if(!strcmp(name, "End") || !strcmp(name, "SimulationStop")){
 			    const char *type = xmlAttribute(s_elem, "type");
 				if(!strcmp(type, "Time") || !strcmp(type, "T")){
 					P->time_opts.sim_end_mode =

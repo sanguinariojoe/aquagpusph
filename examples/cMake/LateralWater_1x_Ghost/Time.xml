@@ -30,7 +30,7 @@ Authors:
             type="Time" Simulation ends after simulate some seconds
         You can conveniently combine several stop criterias.
         -->
-        <Option name="Stop" type="Time" value="5.0" />
+        <Option name="End" type="Time" value="5.0" />
         <!-- Time step alternatives. 
             value="Variable": Time step is calculated every iteration in order
             to preserve the Courant number.
@@ -60,20 +60,20 @@ Authors:
             type="IPF" It will be updated after this value of iterations.
         You can conveniently combine several printing criterias.
         -->
-        <Option name="LogFiles" type="FPS" value="120" />
+        <Option name="LogFile" type="FPS" value="120" />
         <!-- Set the energy report printing criteria. Energy report contains
         fluid energy data, like potential, kinetic and total energy.
             type="FPS" It will be updated this value of times per second.
             type="IPF" It will be updated after this value of iterations.
         You can conveniently combine several printing criterias.
         -->
-        <Option name="EnFiles" type="FPS" value="120" />
+        <Option name="EnFile" type="FPS" value="120" />
         <!-- Set the fluid bounds report printing criteria.
             type="FPS" It will be updated this value of times per second.
             type="IPF" It will be updated after this value of iterations.
         You can conveniently combine several printing criterias.
         -->
-        <Option name="BoundsFiles" type="No" />
+        <Option name="BoundsFile" type="No" />
         <!-- Set output files print criteria
             type="FPS" Frames per second
             type="IPF" Iterations per frame

@@ -325,8 +325,9 @@ bool CalcServer::update()
 	        return true;
 	    if(T->time() >= 0.f){
 	        for(i=0;i<motions.size();i++){
-	            if(motions.at(i)->execute())
+	            if(motions.at(i)->execute()){
 	                return true;
+	            }
 	        }
 	        if(sensors->execute())
 	            return true;
