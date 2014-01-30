@@ -402,7 +402,7 @@ FILE* ASCII::create(){
     len = strlen(P->fluids[fluidId()].out_path) + 8;
     basename = new char[len];
     strcpy(basename, P->fluids[fluidId()].out_path);
-    strcat(basename, "%d.dat");
+    strcat(basename, ".%d.dat");
 
     if(file(basename, 0)){
         delete[] basename;

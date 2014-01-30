@@ -209,7 +209,7 @@ vtkSmartPointer<vtkXMLUnstructuredGridWriter> VTK::create(){
     len = strlen(P->fluids[fluidId()].out_path) + 8;
     basename = new char[len];
     strcpy(basename, P->fluids[fluidId()].out_path);
-    strcat(basename, "%d.vtk");
+    strcat(basename, ".%d.vtk");
 
     if(file(basename, 0)){
         delete[] basename;
