@@ -79,11 +79,16 @@ protected:
      * substring will be replaced by the first integer such that the file
      * does not exist.
      * @param startindex First index that will be tested.
+     * @param digits Number of digits of the replaced integer number. If the
+     * number of digits of the integer value are greater than this value, then
+     * it will be ignored.
      * @return false if all gone right, true otherwise.
      * @note If more than one %d substrings are found, just the first one will
      * be replaced.
      */
-    bool file(const char* basename, unsigned int startindex);
+    bool file(const char* basename,
+              unsigned int startindex,
+              unsigned int digits=5);
 
 private:
     /// Particles managed bounds

@@ -56,12 +56,14 @@ void Particles::file(const char* filename)
     strcpy(_output_file, filename);
 }
 
-bool Particles::file(const char* basename, unsigned int startindex)
+bool Particles::file(const char* basename,
+                     unsigned int startindex,
+                     unsigned int digits)
 {
     FILE *f;
     char *newname = NULL, *orig_pos, *dest_pos;
     size_t len;
-    unsigned int i = startindex;
+    unsigned int i = startindex, j;
 
     if(!basename)
 
@@ -84,13 +86,17 @@ bool Particles::file(const char* basename, unsigned int startindex)
             delete[] newname;
         newname = NULL;
 
-        len = strlen(basename) - 1 + numberOfDigits(i);
+        len = strlen(basename) - 1 + max(numberOfDigits(i), digits);
         newname = new char[len];
 
         // Copy all the string
         strcpy(newname, basename);
         // Replace the number
         dest_pos = strstr(newname, "%d");
+        for(j = 0; j < digits - numberOfDigits(i); j++){
+            strcpy(dest_pos, "0");
+            dest_pos += 1;
+        }
         sprintf(dest_pos, "%u", i);
         // Copy the rest of the original string after the inserted number
         dest_pos += numberOfDigits(i);
