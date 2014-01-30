@@ -17,6 +17,7 @@
  */
 
 #include <matheval.h>
+#include <stdlib.h>
 
 #include <Tokenizer/Tokenizer.h>
 #include <ScreenManager.h>
@@ -82,13 +83,23 @@ float Tokenizer::variable(const char* name)
 float Tokenizer::solve(const char* eq)
 {
 	Aqua::InputOutput::ScreenManager *S;
-    char msg[1024];
+    char msg[1024], *test;
 	void *f;
     char **names;
     double *values;
     int n, i;
     float result;
 	S = Aqua::InputOutput::ScreenManager::singleton();
+
+    // First test if the equation is directly a number
+    result = strtof(eq, &test);
+    if(test != eq){
+        // We have been able to convert it, but we must test that there are
+        // no remaining data to compute
+        if(!strlen(test)){
+            return result;
+        }
+    }
 
     f = evaluator_create((char*)eq);
     if(!f){
