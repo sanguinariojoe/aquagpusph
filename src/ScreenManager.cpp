@@ -333,7 +333,7 @@ void ScreenManager::update()
 	    #else
 	        printf("\tU = %g (J), ", c->eint);
 	        printf("Ekin = %g (J), ", c->ekin);
-	        printf("E = %g (J), ", c->etot);
+	        printf("E = %g (J)\n", c->etot);
 	        printf("\txmin = %g (m), ",c->min_fluid_bound.x);
 	        printf("ymin = %g (m)",c->min_fluid_bound.y);
             #ifdef HAVE_3D
