@@ -10,14 +10,6 @@
 #                          ##  #             #          #
 #                                                       #
 #########################################################
-#
-# plotSensors.gnuplot
-#
-# GnuPlot script that reads sensors file and plot in real time
-# The pressure evolution at sensors.
-#
-#
-#########################################################
 
 # Set plot options
 set key

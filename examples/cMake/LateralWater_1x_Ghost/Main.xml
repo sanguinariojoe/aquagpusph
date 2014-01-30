@@ -18,20 +18,13 @@ Authors:
 -->
 
 <sphInput>
-	<!-- Include Commonly used OpenCL kernels -->
+	<!-- In this file we will just include other XML definition files -->
 	<Include file="@RESOURCES_DIR@/OpenCLMain.xml" />
-	<!-- Include general settings -->
 	<Include file="@EXAMPLE_DEST_DIR@/Settings.xml" />
-	<!-- Include timing settings -->
 	<Include file="@EXAMPLE_DEST_DIR@/Time.xml" />
-	<!-- Include SPH simulation variables -->
 	<Include file="@EXAMPLE_DEST_DIR@/SPH.xml" />
-	<!-- Include Fluids to simulate -->
 	<Include file="@EXAMPLE_DEST_DIR@/Fluids.xml" />
-	<!-- Add ghost particles to compute -->
 	<Include file="@EXAMPLE_DEST_DIR@/GhostParticles.xml" />
-	<!-- Include Movements to simulate -->
 	<Include file="@EXAMPLE_DEST_DIR@/Movements.xml" />
-	<!-- Add sensors -->
 	<Include file="@EXAMPLE_DEST_DIR@/Sensors.xml" />
 </sphInput>

@@ -6,9 +6,10 @@ if [[ $1 == "--run" ]]; then
 elif [[ $1 == "--plot" ]]; then
 	if [ ! -f Sensors.dat ]; then
 		echo ""
-		echo "Sensors.dat output file is not yet ready!"
+		echo "Failure while opening Sensors.dat output file"
 		echo ""
-		echo "    You must execute run.sh --plot on the same folder where run.sh --run has been launched"
+		echo " * You must execute run.sh --plot on the same folder where run.sh --run has been launched"
+		echo " * AQUAgpusph may take some time before generate this file"
 		echo ""
 		exit 255
 	fi
@@ -19,7 +20,7 @@ else
 	echo "Usage: run.sh [--run/--plot]"
 	echo ""
 	echo "run.sh --run"
-	echo "    Runs the simulation. You can stop simulation pressing 'c' key"
+	echo "    Runs the simulation. You can stop simulation pressing the 'c' key"
 	echo "run.sh --plot"
 	echo "    Plots in real time the output results"
 	echo ""
