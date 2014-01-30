@@ -201,17 +201,23 @@ bool FileManager::save()
     unsigned int i;
     ProblemSetup *P = ProblemSetup::singleton();
 
+    // Execute the savers
+    for(i=0; i<P->n_fluids; i++){
+        if(_savers.at(i)->save())
+            return true;
+    }
+
     // Save the XML definition file
     if(_state->save()){
         return true;
     }
 
-    // Execute the loaders
-    for(i=0; i<P->n_fluids; i++){
-        if(_savers.at(i)->save())
-            return true;
-    }
     return false;
 }
+
+const char* FileManager::file(unsigned int ifluid){
+    return _savers.at(ifluid)->file();
+}
+
 
 }}  // namespace

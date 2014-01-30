@@ -1871,6 +1871,7 @@ bool State::writeFluid(xercesc::DOMDocument* doc,
     DOMElement *elem, *s_elem;
     char att[1024];
 	ProblemSetup *P = ProblemSetup::singleton();
+	FileManager *F = FileManager::singleton();
 
     for(i=0; i<P->n_fluids; i++){
         elem = doc->createElement(xmlS("Fluid"));
@@ -1915,9 +1916,8 @@ bool State::writeFluid(xercesc::DOMDocument* doc,
         elem->appendChild(s_elem);
 
         s_elem = doc->createElement(xmlS("Load"));
-        /// @todo Get the loading file from the fluid saver
-        s_elem->setAttribute(xmlS("file"), xmlS(""));
-        s_elem->setAttribute(xmlS("format"), xmlS(""));
+        s_elem->setAttribute(xmlS("file"), xmlS(F->file(i)));
+        s_elem->setAttribute(xmlS("format"), xmlS(P->fluids[i].out_format));
         elem->appendChild(s_elem);
 
         s_elem = doc->createElement(xmlS("Save"));

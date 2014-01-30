@@ -83,6 +83,11 @@ public:
      */
     bool save();
 
+    /** Get the last printed file for a specific fluid.
+     * @return The last printed file, NULL if a file has not been printed yet.
+     */
+    const char* file(unsigned int ifluid);
+
 private:
 	/// Name of the input file
 	char* _in_file;
