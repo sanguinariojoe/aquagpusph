@@ -53,7 +53,8 @@ ASCII::~ASCII()
 bool ASCII::load()
 {
     FILE *f;
-    char msg[MAX_LINE_LEN + 64], sentence[MAX_LINE_LEN], *line;
+    char msg[MAX_LINE_LEN + 64], sentence[MAX_LINE_LEN], line[MAX_LINE_LEN];
+    char *pos = NULL;
     unsigned int i, iline, n, N, n_fields, progress;
 	Tokenizer tok;
 	ScreenManager *S = ScreenManager::singleton();
@@ -88,17 +89,13 @@ bool ASCII::load()
     i = bounds().x;
     iline = 0;
     progress = -1;
-    line = new char[MAX_LINE_LEN];
 	while( fgets( line, MAX_LINE_LEN*sizeof(char), f) )
 	{
 	    iline++;
 
         formatLine(line);
-        if(!strlen(line)){
-            delete[] line;
-            line = new char[MAX_LINE_LEN];
+        if(!strlen(line))
             continue;
-        }
 
         n_fields = readNFields(line);
         if(n_fields != REQUESTED_FIELDS){
@@ -114,112 +111,113 @@ bool ASCII::load()
             return true;
         }
 
+        pos = line;
+
         tok.registerVariable("id", i);
         F->ifluid[i] = fluidId();
         tok.registerVariable("ifluid", fluidId());
         F->hp[i] = P->SPH_opts.h;
         tok.registerVariable("h", P->SPH_opts.h);
 
-        strcpy(sentence, line);
+        strcpy(sentence, pos);
         strcpy(strchr(sentence, ' '), "");
         F->pos[i].x = tok.solve(sentence);
         tok.registerVariable("x", F->pos[i].x);
 
-        line = strchr(line, ' ');
-        strcpy(sentence, line);
+        pos = strchr(pos, ' ') + 1;
+        strcpy(sentence, pos);
         strcpy(strchr(sentence, ' '), "");
         F->pos[i].y = tok.solve(sentence);
         tok.registerVariable("y", F->pos[i].y);
 
         #ifdef HAVE_3D
-            line = strchr(line, ' ');
-            strcpy(sentence, line);
+            pos = strchr(pos, ' ') + 1;
+            strcpy(sentence, pos);
             strcpy(strchr(sentence, ' '), "");
             F->pos[i].z = tok.solve(sentence);
             tok.registerVariable("z", F->pos[i].z);
         #endif // HAVE_3D
 
-        line = strchr(line, ' ');
-        strcpy(sentence, line);
+        pos = strchr(pos, ' ') + 1;
+        strcpy(sentence, pos);
         strcpy(strchr(sentence, ' '), "");
         F->normal[i].x = tok.solve(sentence);
         tok.registerVariable("n.x", F->normal[i].x);
 
-        line = strchr(line, ' ');
-        strcpy(sentence, line);
+        pos = strchr(pos, ' ') + 1;
+        strcpy(sentence, pos);
         strcpy(strchr(sentence, ' '), "");
         F->normal[i].y = tok.solve(sentence);
         tok.registerVariable("n.y", F->normal[i].y);
 
         #ifdef HAVE_3D
-            line = strchr(line, ' ');
-            strcpy(sentence, line);
+            pos = strchr(pos, ' ') + 1;
+            strcpy(sentence, pos);
             strcpy(strchr(sentence, ' '), "");
             F->normal[i].z = tok.solve(sentence);
             tok.registerVariable("n.z", F->normal[i].z);
         #endif // HAVE_3D
 
-        line = strchr(line, ' ');
-        strcpy(sentence, line);
+        pos = strchr(pos, ' ') + 1;
+        strcpy(sentence, pos);
         strcpy(strchr(sentence, ' '), "");
         F->v[i].x = tok.solve(sentence);
         tok.registerVariable("v.x", F->v[i].x);
 
-        line = strchr(line, ' ');
-        strcpy(sentence, line);
+        pos = strchr(pos, ' ') + 1;
+        strcpy(sentence, pos);
         strcpy(strchr(sentence, ' '), "");
         F->v[i].y = tok.solve(sentence);
         tok.registerVariable("v.y", F->v[i].y);
 
         #ifdef HAVE_3D
-            line = strchr(line, ' ');
-            strcpy(sentence, line);
+            pos = strchr(pos, ' ') + 1;
+            strcpy(sentence, pos);
             strcpy(strchr(sentence, ' '), "");
             F->v[i].z = tok.solve(sentence);
             tok.registerVariable("v.z", F->v[i].z);
         #endif // HAVE_3D
 
-        line = strchr(line, ' ');
-        strcpy(sentence, line);
+        pos = strchr(pos, ' ') + 1;
+        strcpy(sentence, pos);
         strcpy(strchr(sentence, ' '), "");
         F->f[i].x = tok.solve(sentence);
         tok.registerVariable("dvdt.x", F->f[i].x);
 
-        line = strchr(line, ' ');
-        strcpy(sentence, line);
+        pos = strchr(pos, ' ') + 1;
+        strcpy(sentence, pos);
         strcpy(strchr(sentence, ' '), "");
         F->f[i].y = tok.solve(sentence);
         tok.registerVariable("dvdt.y", F->f[i].y);
 
         #ifdef HAVE_3D
-            line = strchr(line, ' ');
-            strcpy(sentence, line);
+            pos = strchr(pos, ' ') + 1;
+            strcpy(sentence, pos);
             strcpy(strchr(sentence, ' '), "");
             F->f[i].z = tok.solve(sentence);
             tok.registerVariable("dvdt.z", F->f[i].z);
         #endif // HAVE_3D
 
-        line = strchr(line, ' ');
-        strcpy(sentence, line);
+        pos = strchr(pos, ' ') + 1;
+        strcpy(sentence, pos);
         strcpy(strchr(sentence, ' '), "");
         F->dens[i] = tok.solve(sentence);
         tok.registerVariable("rho", F->dens[i]);
 
-        line = strchr(line, ' ');
-        strcpy(sentence, line);
+        pos = strchr(pos, ' ') + 1;
+        strcpy(sentence, pos);
         strcpy(strchr(sentence, ' '), "");
         F->drdt[i] = tok.solve(sentence);
         tok.registerVariable("drhodt", F->drdt[i]);
 
-        line = strchr(line, ' ');
-        strcpy(sentence, line);
+        pos = strchr(pos, ' ') + 1;
+        strcpy(sentence, pos);
         strcpy(strchr(sentence, ' '), "");
         F->mass[i] = tok.solve(sentence);
         tok.registerVariable("mass", F->mass[i]);
 
-        line = strchr(line, ' ');
-        strcpy(sentence, line);
-        strcpy(strchr(sentence, ' '), "");
+        pos = strchr(pos, ' ') + 1;
+        strcpy(sentence, pos);
         F->imove[i] = (int)tok.solve(sentence);
         tok.registerVariable("imove", F->imove[i]);
 
@@ -232,9 +230,6 @@ bool ASCII::load()
                 S->addMessage(0, msg);
             }
         }
-
-        delete[] line;
-        line = new char[MAX_LINE_LEN];
 	}
 
     fclose(f);
