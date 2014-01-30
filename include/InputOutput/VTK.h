@@ -16,10 +16,23 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ASCII_H_INCLUDED
-#define ASCII_H_INCLUDED
+#ifndef VTK_H_INCLUDED
+#define VTK_H_INCLUDED
 
-#include <stdio.h>
+#include <vtkVersion.h>
+#include <vtkSmartPointer.h>
+#include <vtkXMLUnstructuredGridWriter.h>
+#include <vtkUnstructuredGrid.h>
+#include <vtkDataSetMapper.h>
+#include <vtkFloatArray.h>
+#include <vtkIntArray.h>
+#include <vtkUnsignedIntArray.h>
+#include <vtkPointData.h>
+#include <vtkPoints.h>
+#include <vtkPixel.h>
+#include <vtkLine.h>
+#include <vtkCellArray.h>
+#include <vtkCellData.h>
 
 #include <sphPrerequisites.h>
 #include <InputOutput/Particles.h>
@@ -27,23 +40,9 @@
 namespace Aqua{
 namespace InputOutput{
 
-/** \class ASCII ASCII.h InputOutput/ASCII.h
- * ASCII particles data file loader/saver. These files are formatted as ASCCI
- * plain text where particles are stored by rows, where the fields are
- * separated by columns.
- * @note Comments are allowed using the symbol '#'. All the text after this
- * symbol, and in the same line, will be discarded.
- * @note The fields can be separated by the following symbols:
- *   - ' '
- *   - ','
- *   - ';'
- *   - '('
- *   - ')'
- *   - '['
- *   - ']'
- *   - '{'
- *   - '}'
- *   - '\t'
+/** \class VTK VTK.h InputOutput/VTK.h
+ * VTK particles data file loader/saver. These files are formatted as binary
+ * VTK files.
  * @note The expected fields are:
  *   -# \f$\mathbf{r}$\f.\f$x\f$
  *   -# \f$\mathbf{r}$\f.\f$y\f$
@@ -61,9 +60,8 @@ namespace InputOutput{
  *   -# \f$\frac{d \rho}{d t}$\f
  *   -# \f$m$\f
  *   -# moving flag
- * which must be sorted inthe shown way
  */
-class ASCII : public Particles
+class VTK : public Particles
 {
 public:
 	/** Constructor
@@ -71,11 +69,11 @@ public:
 	 * @param n Number of particles managed by this saver/loader.
 	 * @param ifluid Fluid index.
 	 */
-	ASCII(unsigned int first, unsigned int n, unsigned int ifluid);
+	VTK(unsigned int first, unsigned int n, unsigned int ifluid);
 
 	/** Destructor
 	 */
-	~ASCII();
+	~VTK();
 
     /** Save the data. The data
      * @return false if all gone right, true otherwise.
@@ -88,30 +86,13 @@ public:
     bool load();
 
 private:
-    /** Count the number of Particles.
-     * @param f File to be readed.
-     * @return The number of particles found in the file.
-     */
-    unsigned int readNParticles(FILE *f);
-
-    /** Format a line.
-     * @param l String line.
-     */
-    void formatLine(char* l);
-
-    /** Count the number of fields in a formated text line.
-     * @param l String line.
-     * @return The number of fields found in the line.
-     * @warning It is assumed that formatLine has been called before.
-     */
-    unsigned int readNFields(char* l);
-
     /** Create a new file to write
      * @return The file handler, NULL if errors happened.
      */
-    FILE* create();
+    vtkSmartPointer<vtkXMLUnstructuredGridWriter> create();
+
 };  // class InputOutput
 
 }}  // namespaces
 
-#endif // ASCII_H_INCLUDED
+#endif // VTK_H_INCLUDED

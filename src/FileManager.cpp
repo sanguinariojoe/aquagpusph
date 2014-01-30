@@ -24,6 +24,9 @@
 #include <ScreenManager.h>
 #include <ProblemSetup.h>
 #include <InputOutput/ASCII.h>
+#ifdef HAVE_VTK
+    #include <InputOutput/VTK.h>
+#endif // HAVE_VTK
 
 namespace Aqua{ namespace InputOutput{
 
@@ -140,6 +143,18 @@ Fluid* FileManager::load()
             n += P->fluids[i].n;
             _loaders.push_back((Particles*)loader);
         }
+        else if(!strcmp(P->fluids[i].in_format, "VTK")){
+            #ifdef HAVE_VTK
+                VTK *loader = new VTK(n, P->fluids[i].n, i);
+                if(!loader)
+                    return NULL;
+                n += P->fluids[i].n;
+                _loaders.push_back((Particles*)loader);
+            #else
+                S->addMessageF(3, "AQUAgpusph has been compiled without VTK format.\n");
+            return NULL;
+            #endif // HAVE_VTK
+        }
         else{
             sprintf(msg,
                     "Unknow \"%s\" input file format.\n",
@@ -153,6 +168,18 @@ Fluid* FileManager::load()
                 return NULL;
             n += P->fluids[i].n;
             _savers.push_back((Particles*)saver);
+        }
+        else if(!strcmp(P->fluids[i].out_format, "VTK")){
+            #ifdef HAVE_VTK
+                VTK *saver = new VTK(n, P->fluids[i].n, i);
+                if(!saver)
+                    return NULL;
+                n += P->fluids[i].n;
+                _savers.push_back((Particles*)saver);
+            #else
+                S->addMessageF(3, "AQUAgpusph has been compiled without VTK format.\n");
+            return NULL;
+            #endif // HAVE_VTK
         }
         else{
             sprintf(msg,
