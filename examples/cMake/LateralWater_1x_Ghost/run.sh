@@ -2,7 +2,7 @@
 
 if [[ $1 == "--run" ]]; then
 	rm -f Sensors.dat
-	@BINARY_DIR@/AQUAgpusph2D -i @EXAMPLE_DEST_DIR@/Main.xml --no-reassembly
+	@BINARY_DIR@/AQUAgpusph2D -i @EXAMPLE_DEST_DIR@/Main.xml
 elif [[ $1 == "--plot" ]]; then
 	if [ ! -f Sensors.dat ]; then
 		echo ""
