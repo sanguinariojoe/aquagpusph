@@ -125,12 +125,14 @@ int main(int argc, char *argv[])
 
 	if(C->setup())
 	{
-	    delete T;
-	    delete fluid;
-		delete C;
-		delete P;
-		delete F;
-		return 6;
+        delete A;
+        delete F;
+        delete P;
+        delete fluid;
+        delete C;
+        delete T;
+        delete S;
+		return EXIT_FAILURE;
 	}
 
 	S->addMessageF(1, "Start of simulation...\n\n");
@@ -143,8 +145,6 @@ int main(int argc, char *argv[])
 	        float Time = T->time();
 	        delete S; S = NULL;
             S->printDate();
-	        S->addMessageF(1, "Closing Files...\n");
-	        // F->closeFiles();
 	        S->addMessageF(1, "Destroying time manager...\n");
 	        delete T; T = NULL;
 	        S->addMessageF(1, "Destroying fluid host layer...\n");
@@ -159,16 +159,15 @@ int main(int argc, char *argv[])
 	        delete F; F = NULL;
 	        sprintf(msg, "Simulation finished abnormally (Time = %f s)\n\n", Time);
 	        S->addMessageF(1, msg);
-		    return -1;
+		    return EXIT_FAILURE;
 		}
 		fluid->retrieveData();
-		// InputOutput::output();
+		if(F->save())
+            return EXIT_FAILURE;
 	}
 
 	delete S; S = NULL;
     S->printDate();
-    S->addMessageF(1, "Closing Files...\n");
-	// F->closeFiles();
 
 	float Time = T->time();
     S->addMessageF(1, "Destroying time manager...\n");

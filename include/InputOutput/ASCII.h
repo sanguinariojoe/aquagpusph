@@ -83,8 +83,8 @@ public:
      */
     bool save();
 
-    /** Useless method
-     * @return false.
+    /** Load the particles data.
+     * @return false if all gone right, true otherwise.
      */
     bool load();
 

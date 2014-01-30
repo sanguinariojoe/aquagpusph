@@ -78,6 +78,11 @@ public:
      */
     Fluid* load();
 
+    /** Save the particles.
+     * @return false if all gone right, true otherwise.
+     */
+    bool save();
+
 private:
 	/// Name of the input file
 	char* _in_file;

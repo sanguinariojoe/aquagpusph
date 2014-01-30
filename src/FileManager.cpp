@@ -172,4 +172,22 @@ Fluid* FileManager::load()
     return F;
 }
 
+bool FileManager::save()
+{
+    unsigned int i;
+    ProblemSetup *P = ProblemSetup::singleton();
+
+    // Save the XML definition file
+    if(_state->save()){
+        return true;
+    }
+
+    // Execute the loaders
+    for(i=0; i<P->n_fluids; i++){
+        if(_loaders.at(i)->load())
+            return true;
+    }
+    return false;
+}
+
 }}  // namespace
