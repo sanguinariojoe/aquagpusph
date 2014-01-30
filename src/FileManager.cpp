@@ -142,7 +142,7 @@ Fluid* FileManager::load()
         }
         else{
             sprintf(msg,
-                    "Unknow \"%s\" file format.\n",
+                    "Unknow \"%s\" input file format.\n",
                     P->fluids[i].in_format);
             S->addMessageF(3, msg);
             return NULL;
@@ -156,7 +156,7 @@ Fluid* FileManager::load()
         }
         else{
             sprintf(msg,
-                    "Unknow \"%s\" file format.\n",
+                    "Unknow \"%s\" output file format.\n",
                     P->fluids[i].out_format);
             S->addMessageF(3, msg);
             return NULL;

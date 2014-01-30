@@ -53,7 +53,7 @@ private:
 	static T *_singletonPtr;
 };
 
-template <typename T> T* Singleton <T>::_singletonPtr = 0;
+template <typename T> T* Singleton <T>::_singletonPtr = NULL;
 
 }   // namespaces
 
