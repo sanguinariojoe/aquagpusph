@@ -140,7 +140,6 @@ Fluid* FileManager::load()
             ASCII *loader = new ASCII(n, P->fluids[i].n, i);
             if(!loader)
                 return NULL;
-            n += P->fluids[i].n;
             _loaders.push_back((Particles*)loader);
         }
         else if(!strcmp(P->fluids[i].in_format, "VTK")){
@@ -148,7 +147,6 @@ Fluid* FileManager::load()
                 VTK *loader = new VTK(n, P->fluids[i].n, i);
                 if(!loader)
                     return NULL;
-                n += P->fluids[i].n;
                 _loaders.push_back((Particles*)loader);
             #else
                 S->addMessageF(3, "AQUAgpusph has been compiled without VTK format.\n");
@@ -166,7 +164,6 @@ Fluid* FileManager::load()
             ASCII *saver = new ASCII(n, P->fluids[i].n, i);
             if(!saver)
                 return NULL;
-            n += P->fluids[i].n;
             _savers.push_back((Particles*)saver);
         }
         else if(!strcmp(P->fluids[i].out_format, "VTK")){
@@ -174,7 +171,6 @@ Fluid* FileManager::load()
                 VTK *saver = new VTK(n, P->fluids[i].n, i);
                 if(!saver)
                     return NULL;
-                n += P->fluids[i].n;
                 _savers.push_back((Particles*)saver);
             #else
                 S->addMessageF(3, "AQUAgpusph has been compiled without VTK format.\n");
@@ -188,6 +184,7 @@ Fluid* FileManager::load()
             S->addMessageF(3, msg);
             return NULL;
         }
+        n += P->fluids[i].n;
     }
 
     // Execute the loaders
