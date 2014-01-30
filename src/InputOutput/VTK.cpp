@@ -125,7 +125,7 @@ bool VTK::load()
         cell++;
     }
 
-    return true;
+    return false;
 }
 
 bool VTK::save()
