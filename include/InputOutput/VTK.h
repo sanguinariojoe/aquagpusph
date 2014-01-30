@@ -22,6 +22,7 @@
 #include <vtkVersion.h>
 #include <vtkSmartPointer.h>
 #include <vtkXMLUnstructuredGridWriter.h>
+#include <vtkXMLUnstructuredGridReader.h>
 #include <vtkUnstructuredGrid.h>
 #include <vtkDataSetMapper.h>
 #include <vtkFloatArray.h>

@@ -51,7 +51,8 @@ VTK::~VTK()
 
 bool VTK::load()
 {
-    FILE *f;
+    unsigned int i, n, N, cell=0;
+    int aux;
     char msg[1024];
 	ScreenManager *S = ScreenManager::singleton();
 	ProblemSetup *P = ProblemSetup::singleton();
@@ -61,6 +62,68 @@ bool VTK::load()
             "Loading fluid from VTK file \"%s\"\n",
             P->fluids[fluidId()].in_path);
 	S->addMessageF(1, msg);
+
+    vtkSmartPointer<vtkXMLUnstructuredGridReader> f =
+        vtkSmartPointer<vtkXMLUnstructuredGridReader>::New();
+    f->SetFileName(P->fluids[fluidId()].in_path);
+    f->Update();
+
+    vtkSmartPointer<vtkUnstructuredGrid> grid = f->GetOutput();
+
+    n = bounds().y - bounds().x;
+    N = (unsigned int)grid->GetNumberOfPoints();
+    if( n != N){
+        sprintf(msg,
+                "Expected %u particles, but the file contains %u ones.\n",
+                n,
+                N);
+        S->addMessage(3, msg);
+        return true;
+    }
+
+    vtkSmartPointer<vtkPoints> points = grid->GetPoints();
+    vtkSmartPointer<vtkCellData> data = grid->GetCellData();
+    vtkSmartPointer<vtkFloatArray> normal = (vtkFloatArray*)(data->GetArray("n", aux));
+    vtkSmartPointer<vtkFloatArray> v = (vtkFloatArray*)(data->GetArray("v", aux));
+    vtkSmartPointer<vtkFloatArray> dv = (vtkFloatArray*)(data->GetArray("dv/dt", aux));
+    vtkSmartPointer<vtkFloatArray> dens = (vtkFloatArray*)(data->GetArray("dens", aux));
+    vtkSmartPointer<vtkFloatArray> drdt = (vtkFloatArray*)(data->GetArray("ddens/dt", aux));
+    vtkSmartPointer<vtkFloatArray> m = (vtkFloatArray*)(data->GetArray("mass", aux));
+    vtkSmartPointer<vtkIntArray> imove = (vtkIntArray*)(data->GetArray("imove", aux));
+
+    for(i=bounds().x; i<bounds().y; i++){
+        double *vect;
+        vect = points->GetPoint(cell);
+        F->pos[i].x = vect[0];
+        F->pos[i].y = vect[1];
+        #ifdef HAVE_3D
+            F->pos[i].z = vect[2];
+        #endif
+        vect = normal->GetTuple(cell);
+        F->normal[i].x = vect[0];
+        F->normal[i].y = vect[1];
+        #ifdef HAVE_3D
+            F->normal[i].z = vect[2];
+        #endif
+        vect = v->GetTuple(cell);
+        F->v[i].x = vect[0];
+        F->v[i].y = vect[1];
+        #ifdef HAVE_3D
+            F->v[i].z = vect[2];
+        #endif
+        vect = dv->GetTuple(cell);
+        F->f[i].x = vect[0];
+        F->f[i].y = vect[1];
+        #ifdef HAVE_3D
+            F->f[i].z = vect[2];
+        #endif
+        F->dens[i] = dens->GetComponent(cell, 0);
+        F->drdt[i] = drdt->GetComponent(cell, 0);
+        F->mass[i] = m->GetComponent(cell, 0);
+        F->imove[i] = imove->GetComponent(cell, 0);
+
+        cell++;
+    }
 
     return true;
 }
@@ -167,27 +230,27 @@ bool VTK::save()
     }
 
     // Setup the unstructured grid
-    vtkSmartPointer<vtkUnstructuredGrid> unstructuredGrid = vtkSmartPointer<vtkUnstructuredGrid>::New();
-    unstructuredGrid->SetPoints(points);
-    unstructuredGrid->SetCells(pixel->GetCellType(), cells);
-    unstructuredGrid->GetCellData()->AddArray(normal);
-    unstructuredGrid->GetCellData()->AddArray(v);
-    unstructuredGrid->GetCellData()->AddArray(dv);
-    unstructuredGrid->GetCellData()->AddArray(p);
-    unstructuredGrid->GetCellData()->AddArray(dens);
-    unstructuredGrid->GetCellData()->AddArray(drdt);
-    unstructuredGrid->GetCellData()->AddArray(h);
-    unstructuredGrid->GetCellData()->AddArray(m);
-    unstructuredGrid->GetCellData()->AddArray(W);
-    unstructuredGrid->GetCellData()->AddArray(dW);
-    unstructuredGrid->GetCellData()->AddArray(imove);
-    unstructuredGrid->GetCellData()->AddArray(id);
+    vtkSmartPointer<vtkUnstructuredGrid> grid = vtkSmartPointer<vtkUnstructuredGrid>::New();
+    grid->SetPoints(points);
+    grid->SetCells(pixel->GetCellType(), cells);
+    grid->GetCellData()->AddArray(normal);
+    grid->GetCellData()->AddArray(v);
+    grid->GetCellData()->AddArray(dv);
+    grid->GetCellData()->AddArray(p);
+    grid->GetCellData()->AddArray(dens);
+    grid->GetCellData()->AddArray(drdt);
+    grid->GetCellData()->AddArray(h);
+    grid->GetCellData()->AddArray(m);
+    grid->GetCellData()->AddArray(W);
+    grid->GetCellData()->AddArray(dW);
+    grid->GetCellData()->AddArray(imove);
+    grid->GetCellData()->AddArray(id);
 
     // Write file
     #if VTK_MAJOR_VERSION <= 5
-        f->SetInput(unstructuredGrid);
+        f->SetInput(grid);
     #else // VTK_MAJOR_VERSION
-        f->SetInputData(unstructuredGrid);
+        f->SetInputData(grid);
     #endif // VTK_MAJOR_VERSION
 
     if(!f->Write()){
