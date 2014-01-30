@@ -211,7 +211,7 @@ bool FileManager::save()
 
     // Execute the loaders
     for(i=0; i<P->n_fluids; i++){
-        if(_loaders.at(i)->load())
+        if(_savers.at(i)->save())
             return true;
     }
     return false;
