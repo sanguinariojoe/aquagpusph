@@ -130,11 +130,18 @@ for i in range(n):
     press = refd * g * (hFluid - pos[1])
     dens = pow(press / prb + 1.0, 1.0 / gamma) * refd
     mass = dr * dr * dens
-    string = "{} {} 0.0 0.0 0.0 0.0 {} {} {}\n".format(pos[0],
-                                                       pos[1],
-                                                       mass,
-                                                       imove,
-                                                       dens)
+    string = "{} {} {} {} {} {} {} {} {} {} {} {}\n".format(pos[0],
+                                                            pos[1],
+                                                            0.0,
+                                                            0.0,
+                                                            0.0,
+                                                            0.0,
+                                                            0.0,
+                                                            0.0,
+                                                            dens,
+                                                            0.0,
+                                                            mass,
+                                                            imove)
     output.write(string)
 print('    100%%')
 
@@ -184,14 +191,18 @@ for i in range(N):
         press = prb * pow(dens / refd, gamma - 1.0)
     imove = -1
     mass = dr / DeLeffeDistFactor
-    string = """{} {} {} {} 0.0 0.0 {} {} {}\n""".format(pos[0],
-                                                         pos[1],
-                                                         normal[0],
-                                                         normal[1],
-                                                         mass,
-                                                         imove,
-                                                         dens,
-                                                         cs)
+    string = "{} {} {} {} {} {} {} {} {} {} {} {}\n".format(pos[0],
+                                                            pos[1],
+                                                            normal[0],
+                                                            normal[1],
+                                                            0.0,
+                                                            0.0,
+                                                            0.0,
+                                                            0.0,
+                                                            dens,
+                                                            0.0,
+                                                            mass,
+                                                            imove)
     output.write(string)
 print('    100%')
 string = """

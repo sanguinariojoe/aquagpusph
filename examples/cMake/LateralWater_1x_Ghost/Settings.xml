@@ -7,11 +7,6 @@
          0 Fastest alternative, prints the minimum data as possible.
         -->
         <Verbose level="1" />
-        <!-- Start mode:
-         0 Starts at 0s.
-         1 Uses last H5Part file printed as initial point.
-        -->
-        <Start mode="0" />
         <!-- OpenCL device used to compute.
         -->
         <Device platform="0" device="0" type="GPU" />

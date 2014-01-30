@@ -42,6 +42,8 @@ Authors:
 		-->
 		<Option name="delta" value="0.0" />
 		<!-- File where the particles will be loaded from. -->
-		<Load file="@EXAMPLE_DEST_DIR@/Fluid.dat" />
+		<Load format="ASCII" file="@EXAMPLE_DEST_DIR@/Fluid.dat" />
+		<!-- File where the particles will be saved in. -->
+		<Save format="VTK" file="@EXAMPLE_DEST_DIR@/output.%d.vtk" />
 	</Fluid>
 </sphInput>
