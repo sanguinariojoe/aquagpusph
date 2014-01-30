@@ -65,12 +65,12 @@ State::State()
         sprintf(msg, "\t%s\n", message);
         S->addMessage(0, msg);
 	    XMLString::release( &message );
-	    exit(255);
+	    exit(EXIT_FAILURE);
 	}
 	catch( ... ){
         S->addMessageF(3, "XML toolkit initialization error.\n");
         S->addMessage(0, "\tUnhandled exception\n");
-	    exit(255);
+	    exit(EXIT_FAILURE);
 	}
 
 	// Look ofr the first available file place
@@ -104,12 +104,12 @@ State::~State()
         sprintf(msg, "\t%s\n", message);
         S->addMessage(0, msg);
 	    XMLString::release( &message );
-	    exit(255);
+	    exit(EXIT_FAILURE);
 	}
 	catch( ... ){
         S->addMessageF(3, "XML toolkit exit error.\n");
         S->addMessage(0, "\tUnhandled exception\n");
-	    exit(255);
+	    exit(EXIT_FAILURE);
 	}
 
 	delete[] _output_file;
@@ -1386,8 +1386,10 @@ bool State::parseGhostParticles(DOMElement *root)
 
 bool State::write(const char* filepath)
 {
-    DOMImplementation* impl = DOMImplementationRegistry::getDOMImplementation(
-        xmlS("Range"));
+    DOMImplementation* impl;
+	ScreenManager *S = ScreenManager::singleton();
+
+    impl = DOMImplementationRegistry::getDOMImplementation(xmlS("Range"));
     DOMDocument* doc = impl->createDocument(
         NULL,
         xmlS("sphInput"),
@@ -1414,6 +1416,55 @@ bool State::write(const char* filepath)
 	    return true;
 	if(writeGhostParticles(doc, root))
 	    return true;
+
+    // Save the XML document to a file
+    impl = DOMImplementationRegistry::getDOMImplementation(xmlS("LS"));
+    DOMLSSerializer *saver = ((DOMImplementationLS*)impl)->createLSSerializer();
+
+    if(saver->getDomConfig()->canSetParameter(XMLUni::fgDOMWRTFormatPrettyPrint, true))
+        saver->getDomConfig()->setParameter(XMLUni::fgDOMWRTFormatPrettyPrint, true);
+    saver->setNewLine(xmlS("\r\n"));
+
+    XMLFormatTarget *target = new LocalFileFormatTarget(filepath);
+    // XMLFormatTarget *target = new StdOutFormatTarget();
+    DOMLSOutput *output = ((DOMImplementationLS*)impl)->createLSOutput();
+    output->setByteStream(target);
+    output->setEncoding(xmlS("UTF-8"));
+
+    try {
+            saver->write(doc, output);
+    }
+	catch( XMLException& e ){
+	    char* message = xmlS(e.getMessage());
+        S->addMessageF(3, "XML toolkit writing error.\n");
+	    char msg[strlen(message) + 3];
+        sprintf(msg, "\t%s\n", message);
+        S->addMessage(0, msg);
+	    XMLString::release( &message );
+	    exit(EXIT_FAILURE);
+	}
+	catch( DOMException& e ){
+	    char* message = xmlS(e.getMessage());
+        S->addMessageF(3, "XML DOM writing error.\n");
+	    char msg[strlen(message) + 3];
+        sprintf(msg, "\t%s\n", message);
+        S->addMessage(0, msg);
+	    XMLString::release( &message );
+	    exit(EXIT_FAILURE);
+	}
+	catch( ... ){
+        S->addMessageF(3, "Writing error.\n");
+        S->addMessage(0, "\tUnhandled exception\n");
+	    exit(EXIT_FAILURE);
+	}
+
+    target->flush();
+
+    delete target;
+    saver->release();
+    output->release();
+    doc->release();
+
     return false;
 }
 
