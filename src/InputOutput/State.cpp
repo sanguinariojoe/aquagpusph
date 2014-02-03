@@ -1504,7 +1504,7 @@ bool State::writeSettings(xercesc::DOMDocument* doc,
         strcpy(att, "DEFAULT");
         break;
     }
-    s_elem->setAttribute(xmlS("device"), xmlS(att));
+    s_elem->setAttribute(xmlS("type"), xmlS(att));
     elem->appendChild(s_elem);
     return false;
 }
@@ -1781,7 +1781,7 @@ bool State::writeSPH(xercesc::DOMDocument* doc,
 
     s_elem = doc->createElement(xmlS("Option"));
     s_elem->setAttribute(xmlS("name"), xmlS("SlipCondition"));
-    switch(P->SPH_opts.boundary_type){
+    switch(P->SPH_opts.slip_condition){
     case 0:
         strcpy(att, "NoSlip");
         break;
@@ -1970,7 +1970,7 @@ bool State::writeSensors(xercesc::DOMDocument* doc,
             strcpy(att, "Maximum");
             break;
         }
-        s_elem->setAttribute(xmlS("type"), xmlS(att));
+        ss_elem->setAttribute(xmlS("type"), xmlS(att));
 
         s_elem->appendChild(ss_elem);
     }
