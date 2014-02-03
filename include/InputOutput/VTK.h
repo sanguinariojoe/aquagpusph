@@ -24,16 +24,13 @@
 #include <vtkXMLUnstructuredGridWriter.h>
 #include <vtkXMLUnstructuredGridReader.h>
 #include <vtkUnstructuredGrid.h>
-#include <vtkDataSetMapper.h>
 #include <vtkFloatArray.h>
 #include <vtkIntArray.h>
 #include <vtkUnsignedIntArray.h>
 #include <vtkPointData.h>
 #include <vtkPoints.h>
-#include <vtkPixel.h>
-#include <vtkLine.h>
+#include <vtkVertex.h>
 #include <vtkCellArray.h>
-#include <vtkCellData.h>
 
 #include <sphPrerequisites.h>
 #include <InputOutput/Particles.h>

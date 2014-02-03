@@ -65,6 +65,12 @@ bool VTK::load()
 
     vtkSmartPointer<vtkXMLUnstructuredGridReader> f =
         vtkSmartPointer<vtkXMLUnstructuredGridReader>::New();
+
+    if(!f->CanReadFile(P->fluids[fluidId()].in_path)){
+        S->addMessageF(3, "Teh file cannot be readed.\n");
+        return true;
+    }
+
     f->SetFileName(P->fluids[fluidId()].in_path);
     f->Update();
 
@@ -82,7 +88,7 @@ bool VTK::load()
     }
 
     vtkSmartPointer<vtkPoints> points = grid->GetPoints();
-    vtkSmartPointer<vtkCellData> data = grid->GetCellData();
+    vtkSmartPointer<vtkPointData> data = grid->GetPointData();
     vtkSmartPointer<vtkFloatArray> normal = (vtkFloatArray*)(data->GetArray("n", aux));
     vtkSmartPointer<vtkFloatArray> v = (vtkFloatArray*)(data->GetArray("v", aux));
     vtkSmartPointer<vtkFloatArray> dv = (vtkFloatArray*)(data->GetArray("dv/dt", aux));
@@ -131,7 +137,7 @@ bool VTK::load()
 bool VTK::save()
 {
     unsigned int i;
-    vtkSmartPointer<vtkPixel> pixel;
+    vtkSmartPointer<vtkVertex> vertex;
     float vect[3] = {0.f, 0.f, 0.f};
 	ScreenManager *S = ScreenManager::singleton();
     TimeManager *T = TimeManager::singleton();
@@ -224,27 +230,27 @@ bool VTK::save()
         imove->InsertNextValue(F->imove[i]);
         id->InsertNextValue(i);
 
-        pixel = vtkSmartPointer<vtkPixel>::New();
-        pixel->GetPointIds()->SetId(0, i);
-        cells->InsertNextCell(pixel);
+        vertex = vtkSmartPointer<vtkVertex>::New();
+        vertex->GetPointIds()->SetId(0, i - bounds().x);
+        cells->InsertNextCell(vertex);
     }
 
     // Setup the unstructured grid
     vtkSmartPointer<vtkUnstructuredGrid> grid = vtkSmartPointer<vtkUnstructuredGrid>::New();
     grid->SetPoints(points);
-    grid->SetCells(pixel->GetCellType(), cells);
-    grid->GetCellData()->AddArray(normal);
-    grid->GetCellData()->AddArray(v);
-    grid->GetCellData()->AddArray(dv);
-    grid->GetCellData()->AddArray(p);
-    grid->GetCellData()->AddArray(dens);
-    grid->GetCellData()->AddArray(drdt);
-    grid->GetCellData()->AddArray(h);
-    grid->GetCellData()->AddArray(m);
-    grid->GetCellData()->AddArray(W);
-    grid->GetCellData()->AddArray(dW);
-    grid->GetCellData()->AddArray(imove);
-    grid->GetCellData()->AddArray(id);
+    grid->SetCells(vertex->GetCellType(), cells);
+    grid->GetPointData()->AddArray(normal);
+    grid->GetPointData()->AddArray(v);
+    grid->GetPointData()->AddArray(dv);
+    grid->GetPointData()->AddArray(p);
+    grid->GetPointData()->AddArray(dens);
+    grid->GetPointData()->AddArray(drdt);
+    grid->GetPointData()->AddArray(h);
+    grid->GetPointData()->AddArray(m);
+    grid->GetPointData()->AddArray(W);
+    grid->GetPointData()->AddArray(dW);
+    grid->GetPointData()->AddArray(imove);
+    grid->GetPointData()->AddArray(id);
 
     // Write file
     #if VTK_MAJOR_VERSION <= 5
@@ -272,7 +278,7 @@ vtkSmartPointer<vtkXMLUnstructuredGridWriter> VTK::create(){
     len = strlen(P->fluids[fluidId()].out_path) + 8;
     basename = new char[len];
     strcpy(basename, P->fluids[fluidId()].out_path);
-    strcat(basename, ".%d.vtk");
+    strcat(basename, ".%d.vtu");
 
     if(file(basename, 0)){
         delete[] basename;
