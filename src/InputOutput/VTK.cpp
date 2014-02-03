@@ -51,7 +51,7 @@ VTK::~VTK()
 
 bool VTK::load()
 {
-    unsigned int i, n, N, cell=0;
+    unsigned int i, n, N, cell=0, progress;
     int aux;
     char msg[1024];
 	ScreenManager *S = ScreenManager::singleton();
@@ -97,7 +97,11 @@ bool VTK::load()
     vtkSmartPointer<vtkFloatArray> m = (vtkFloatArray*)(data->GetArray("mass", aux));
     vtkSmartPointer<vtkIntArray> imove = (vtkIntArray*)(data->GetArray("imove", aux));
 
+    progress = -1;
     for(i=bounds().x; i<bounds().y; i++){
+        F->ifluid[i] = fluidId();
+        F->hp[i] = P->SPH_opts.h;
+
         double *vect;
         vect = points->GetPoint(cell);
         F->pos[i].x = vect[0];
@@ -128,6 +132,13 @@ bool VTK::load()
         F->mass[i] = m->GetComponent(cell, 0);
         F->imove[i] = imove->GetComponent(cell, 0);
 
+        if(progress != cell * 100 / n){
+            progress = cell * 100 / n;
+            if(!(progress % 10)){
+                sprintf(msg, "\t\t%u%%\n", progress);
+                S->addMessage(0, msg);
+            }
+        }
         cell++;
     }
 
