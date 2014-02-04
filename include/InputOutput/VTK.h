@@ -32,6 +32,20 @@
 #include <vtkVertex.h>
 #include <vtkCellArray.h>
 
+#include <xercesc/dom/DOM.hpp>
+#include <xercesc/dom/DOMDocument.hpp>
+#include <xercesc/dom/DOMDocumentType.hpp>
+#include <xercesc/dom/DOMElement.hpp>
+#include <xercesc/dom/DOMImplementation.hpp>
+#include <xercesc/dom/DOMImplementationLS.hpp>
+#include <xercesc/dom/DOMNodeIterator.hpp>
+#include <xercesc/dom/DOMNodeList.hpp>
+#include <xercesc/dom/DOMText.hpp>
+#include <xercesc/parsers/XercesDOMParser.hpp>
+#include <xercesc/framework/StdOutFormatTarget.hpp>
+#include <xercesc/framework/LocalFileFormatTarget.hpp>
+#include <xercesc/util/XMLUni.hpp>
+
 #include <sphPrerequisites.h>
 #include <InputOutput/Particles.h>
 
@@ -84,10 +98,25 @@ public:
     bool load();
 
 private:
-    /** Create a new file to write
+    /** Create a new file to write.
      * @return The file handler, NULL if errors happened.
      */
     vtkSmartPointer<vtkXMLUnstructuredGridWriter> create();
+
+    /** Create/Update the Paraview Data File.
+     * @return false if all gone right, true otherwise.
+     */
+    bool updatePVD();
+
+    /** Test if the Paraview Data File exist, or create it otherwise.
+     * @return The document object.
+     */
+    xercesc::DOMDocument* getPVD();
+
+    /** PVD file name
+     * @return the PVD file name
+     */
+    const char* filenamePVD();
 
 };  // class InputOutput
 

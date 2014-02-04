@@ -30,6 +30,21 @@
 #include <Fluid.h>
 #include <AuxiliarMethods.h>
 
+#ifdef xmlS
+    #undef xmlS
+#endif // xmlS
+#define xmlS(txt) XMLString::transcode(txt)
+
+#ifdef xmlAttribute
+	#undef xmlAttribute
+#endif
+#define xmlAttribute(elem, att) xmlS( elem->getAttribute(xmlS(att)) )
+
+#ifdef xmlHasAttribute
+	#undef xmlHasAttribute
+#endif
+#define xmlHasAttribute(elem, att) elem->hasAttribute(xmlS(att))
+
 #ifndef REQUESTED_FIELDS
     #ifdef HAVE_3D
         #define REQUESTED_FIELDS 17
@@ -37,6 +52,8 @@
         #define REQUESTED_FIELDS 13
     #endif
 #endif // REQUESTED_FIELDS
+
+using namespace xercesc;
 
 namespace Aqua{ namespace InputOutput{
 
@@ -275,6 +292,10 @@ bool VTK::save()
         return true;
     }
 
+    if(updatePVD()){
+        return true;
+    }
+
     return false;
 }
 
@@ -303,6 +324,144 @@ vtkSmartPointer<vtkXMLUnstructuredGridWriter> VTK::create(){
     f->SetFileName(file());
 
 	return f;
+}
+
+bool VTK::updatePVD(){
+    unsigned int n;
+    char msg[256];
+	ScreenManager *S = ScreenManager::singleton();
+    TimeManager *T = TimeManager::singleton();
+
+    DOMDocument* doc = getPVD();
+    DOMElement* root = doc->getDocumentElement();
+	if(!root){
+	    S->addMessageF(3, "Empty XML file found!\n");
+	    return true;
+	}
+    n = doc->getElementsByTagName(xmlS("VTKFile"))->getLength();
+	if(n != 1){
+        sprintf(msg,
+                "Expected 1 VTKFile root section, but %u has been found\n",
+                n);
+	    S->addMessageF(3, msg);
+	    return true;
+	}
+
+	DOMNodeList* nodes = root->getElementsByTagName(xmlS("Collection"));
+	if(nodes->getLength() != 1){
+        sprintf(msg,
+                "Expected 1 collection, but %u has been found\n",
+                nodes->getLength());
+	    S->addMessageF(3, msg);
+	}
+    DOMNode* node = nodes->item(0);
+    DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
+
+    DOMElement *s_elem;
+    s_elem = doc->createElement(xmlS("DataSet"));
+    sprintf(msg, "%g", T->time());
+    s_elem->setAttribute(xmlS("timestep"), xmlS(msg));
+    s_elem->setAttribute(xmlS("group"), xmlS(""));
+    s_elem->setAttribute(xmlS("part"), xmlS("0"));
+    s_elem->setAttribute(xmlS("file"), xmlS(file()));
+    elem->appendChild(s_elem);
+
+    // Save the XML document to a file
+    DOMImplementation* impl;
+    DOMLSSerializer* saver;
+    impl = DOMImplementationRegistry::getDOMImplementation(xmlS("LS"));
+    saver = ((DOMImplementationLS*)impl)->createLSSerializer();
+
+    if(saver->getDomConfig()->canSetParameter(XMLUni::fgDOMWRTFormatPrettyPrint, true))
+        saver->getDomConfig()->setParameter(XMLUni::fgDOMWRTFormatPrettyPrint, true);
+    saver->setNewLine(xmlS("\r\n"));
+
+    XMLFormatTarget *target = new LocalFileFormatTarget(filenamePVD());
+    // XMLFormatTarget *target = new StdOutFormatTarget();
+    DOMLSOutput *output = ((DOMImplementationLS*)impl)->createLSOutput();
+    output->setByteStream(target);
+    output->setEncoding(xmlS("UTF-8"));
+
+    try {
+            saver->write(doc, output);
+    }
+	catch( XMLException& e ){
+	    char* message = xmlS(e.getMessage());
+        S->addMessageF(3, "XML toolkit writing error.\n");
+        sprintf(msg, "\t%s\n", message);
+        S->addMessage(0, msg);
+	    XMLString::release( &message );
+	    return true;
+	}
+	catch( DOMException& e ){
+	    char* message = xmlS(e.getMessage());
+        S->addMessageF(3, "XML DOM writing error.\n");
+        sprintf(msg, "\t%s\n", message);
+        S->addMessage(0, msg);
+	    XMLString::release( &message );
+	    return true;
+	}
+	catch( ... ){
+        S->addMessageF(3, "Writing error.\n");
+        S->addMessage(0, "\tUnhandled exception\n");
+	    return true;
+	}
+
+    target->flush();
+
+    delete target;
+    saver->release();
+    output->release();
+    doc->release();
+
+    return false;
+}
+
+DOMDocument* VTK::getPVD()
+{
+    DOMDocument* doc = NULL;
+    FILE *dummy=NULL;
+
+	// Try to open as ascii file, just to know if the file already exist
+    dummy = fopen(filenamePVD(), "r");
+	if(!dummy){
+        DOMImplementation* impl;
+        impl = DOMImplementationRegistry::getDOMImplementation(xmlS("Range"));
+        DOMDocument* doc = impl->createDocument(
+            NULL,
+            xmlS("VTKFile"),
+            NULL);
+        DOMElement* root = doc->getDocumentElement();
+        root->setAttribute(xmlS("type"), xmlS("Collection"));
+        root->setAttribute(xmlS("version"), xmlS("0.1"));
+        DOMElement *elem;
+        elem = doc->createElement(xmlS("Collection"));
+        root->appendChild(elem);
+	    return doc;
+	}
+	fclose(dummy);
+	XercesDOMParser *parser = new XercesDOMParser;
+	parser->setValidationScheme(XercesDOMParser::Val_Never);
+	parser->setDoNamespaces(false);
+	parser->setDoSchema(false);
+	parser->setLoadExternalDTD(false);
+	parser->parse(filenamePVD());
+ 	doc = parser->getDocument();
+ 	return doc;
+}
+
+static char* namePVD = NULL;
+
+const char* VTK::filenamePVD()
+{
+    if(!namePVD){
+        ProblemSetup *P = ProblemSetup::singleton();
+        size_t len = strlen(P->fluids[fluidId()].out_path) + 5;
+        namePVD = new char[len];
+        strcpy(namePVD, P->fluids[fluidId()].out_path);
+        strcat(namePVD, ".pvd");
+    }
+    return (const char*)namePVD;
 }
 
 }}  // namespace
