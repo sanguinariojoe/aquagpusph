@@ -1733,8 +1733,8 @@ bool State::writeSPH(xercesc::DOMDocument* doc,
     #ifdef HAVE_3D
         sprintf(att, "%g", P->SPH_opts.deltar.z);
         s_elem->setAttribute(xmlS("z"), xmlS(att));
-        elem->appendChild(s_elem);
     #endif // HAVE_3D
+    elem->appendChild(s_elem);
 
     s_elem = doc->createElement(xmlS("Option"));
     s_elem->setAttribute(xmlS("name"), xmlS("cs"));
@@ -1801,7 +1801,7 @@ bool State::writeSPH(xercesc::DOMDocument* doc,
 
     s_elem = doc->createElement(xmlS("Option"));
     s_elem->setAttribute(xmlS("name"), xmlS("BoundDist"));
-    sprintf(att, "%g", P->SPH_opts.elastic_factor);
+    sprintf(att, "%g", P->SPH_opts.elastic_dist);
     s_elem->setAttribute(xmlS("value"), xmlS(att));
     elem->appendChild(s_elem);
 
