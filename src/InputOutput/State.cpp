@@ -1405,8 +1405,6 @@ bool State::write(const char* filepath)
 	    return true;
 	if(writeTiming(doc, root))
         return true;
-	if(writeTiming(doc, root))
-	    return true;
 	if(writeSPH(doc, root))
 	    return true;
 	if(writeFluid(doc, root))
