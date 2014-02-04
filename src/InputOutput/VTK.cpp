@@ -320,6 +320,9 @@ vtkSmartPointer<vtkXMLUnstructuredGridWriter> VTK::create(){
     }
     delete[] basename;
 
+	sprintf(msg, "Writing \"%s\" VTK output...\n", file());
+    S->addMessageF(1, msg);
+
     f = vtkSmartPointer<vtkXMLUnstructuredGridWriter>::New();
     f->SetFileName(file());
 
@@ -328,9 +331,12 @@ vtkSmartPointer<vtkXMLUnstructuredGridWriter> VTK::create(){
 
 bool VTK::updatePVD(){
     unsigned int n;
-    char msg[256];
+    char msg[1024];
 	ScreenManager *S = ScreenManager::singleton();
     TimeManager *T = TimeManager::singleton();
+
+	sprintf(msg, "Writing \"%s\" Paraview data file...\n", filenamePVD());
+    S->addMessageF(1, msg);
 
     DOMDocument* doc = getPVD();
     DOMElement* root = doc->getDocumentElement();

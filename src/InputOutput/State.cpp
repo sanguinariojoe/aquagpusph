@@ -1387,7 +1387,10 @@ bool State::parseGhostParticles(DOMElement *root)
 bool State::write(const char* filepath)
 {
     DOMImplementation* impl;
+	char msg[64 + strlen(filepath)];
 	ScreenManager *S = ScreenManager::singleton();
+	sprintf(msg, "Writing \"%s\" SPH state file...\n", filepath);
+    S->addMessageF(1, msg);
 
     impl = DOMImplementationRegistry::getDOMImplementation(xmlS("Range"));
     DOMDocument* doc = impl->createDocument(

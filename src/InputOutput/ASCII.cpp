@@ -412,6 +412,9 @@ FILE* ASCII::create(){
     }
     delete[] basename;
 
+	sprintf(msg, "Writing \"%s\" ASCII file...\n", file());
+    S->addMessageF(1, msg);
+
     f = fopen(file(), "w");
     if(!f){
         sprintf(msg,
