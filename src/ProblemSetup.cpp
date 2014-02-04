@@ -37,11 +37,13 @@ namespace Aqua{ namespace InputOutput{
 
 ProblemSetup::ProblemSetup()
 {
-	//! 1st.- General settings
 	settings.init();
-	//! 2nd.- OpenCL kernels
+
 	OpenCL_kernels.init();
-	//! 3rd.- Init timing values
+
+	time_opts.t0 = 0.f;
+	time_opts.step0 = 0;
+	time_opts.frame0 = 0;
 	time_opts.sim_end_mode = __NO_OUTPUT_MODE__;
 	time_opts.sim_end_time = 0.f;
 	time_opts.sim_end_step = 0;
@@ -63,8 +65,7 @@ ProblemSetup::ProblemSetup()
 	time_opts.dt_min = 0.f;
 	time_opts.courant = 0.25f;
 	time_opts.velocity_clamp = false;
-	time_opts.t0 = 0.f;
-	//! 4th.- SPH parameters (as Vortex problem)
+
 	SPH_opts.g.x = 0.f;
 	SPH_opts.g.y = 0.f;
 	SPH_opts.hfac = 4.f/3.f;
@@ -98,10 +99,10 @@ ProblemSetup::ProblemSetup()
 	    SPH_opts.domain_max.z = 0.f;
 	    SPH_opts.domain_max.w = 0.f;
 	#endif
-	//! 5th.- Fluid parameters
+
 	n_fluids = 0;
 	fluids = NULL;
-	//! 6th.- Ghost particles parameters.
+
 	ghost_particles.p_extension = 1;
 	ghost_particles.vn_extension = 0;
 	ghost_particles.vt_extension = 1;

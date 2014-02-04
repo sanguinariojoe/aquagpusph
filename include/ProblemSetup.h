@@ -219,6 +219,18 @@ public:
 	     */
 	    float t0;
 
+	    /** Starting step.
+	     * @remarks The starting step is designed just for the previous
+	     * simulations continuation.
+	     */
+	    unsigned int step0;
+
+	    /** Starting frame.
+	     * @remarks The starting frame is designed just for the previous
+	     * simulations continuation.
+	     */
+	    unsigned int frame0;
+
 	    /// Provided by user time step \f$ \Delta t \f$.
 	    float dt;
 

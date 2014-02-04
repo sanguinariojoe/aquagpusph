@@ -116,8 +116,25 @@ TimeManager::TimeManager()
 		_output_fps = P->time_opts.output_fps;
 	}
 
-	_time += P->time_opts.t0;
-	_start_time += P->time_opts.t0;
+	_time = P->time_opts.t0;
+	_start_time = P->time_opts.t0;
+	_step = P->time_opts.step0;
+	_frame = P->time_opts.frame0;
+
+    if(_time > 0.f){
+        _log_time = _time;
+        _log_step = _step;
+        _en_time = _time;
+        _en_step = _step;
+        _bounds_time = _time;
+        _bounds_step = _step;
+        _output_time = _time;
+        _output_step = _step;
+    }
+
+
+
+
 	S->addMessageF(1, "Time manager built OK.\n");
 }
 
