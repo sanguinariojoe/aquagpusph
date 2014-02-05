@@ -1,40 +1,45 @@
 #! /usr/bin/env python
-#********************************************************************************
-#                                                                               *
-#               *    **   *  *   *                           *                  *
-#              * *  *  *  *  *  * *                          *                  *
-#             ***** *  *  *  * *****  **  ***  *  *  ** ***  ***                *
-#             *   * *  *  *  * *   * *  * *  * *  * *   *  * *  *               *
-#             *   * *  *  *  * *   * *  * *  * *  *   * *  * *  *               *
-#             *   *  ** *  **  *   *  *** ***   *** **  ***  *  *               *
-#                                       * *             *                       *
-#                                     **  *             *                       *
-#                                                                               *
-#********************************************************************************
-#                                                                               *
-#  This file is part of AQUAgpusph, a free CFD program based on SPH.            *
-#  Copyright (C) 2012  Jose Luis Cercos Pita <jl.cercos@upm.es>                 *
-#                                                                               *
-#  AQUAgpusph is free software: you can redistribute it and/or modify           *
-#  it under the terms of the GNU General Public License as published by         *
-#  the Free Software Foundation, either version 3 of the License, or            *
-#  (at your option) any later version.                                          *
-#                                                                               *
-#  AQUAgpusph is distributed in the hope that it will be useful,                *
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of               *
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                *
-#  GNU General Public License for more details.                                 *
-#                                                                               *
-#  You should have received a copy of the GNU General Public License            *
-#  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.          *
-#                                                                               *
-#********************************************************************************
+#******************************************************************************
+#                                                                             *
+#               *    **   *  *   *                           *                *
+#              * *  *  *  *  *  * *                          *                *
+#             ***** *  *  *  * *****  **  ***  *  *  ** ***  ***              *
+#             *   * *  *  *  * *   * *  * *  * *  * *   *  * *  *             *
+#             *   * *  *  *  * *   * *  * *  * *  *   * *  * *  *             *
+#             *   *  ** *  **  *   *  *** ***   *** **  ***  *  *             *
+#                                       * *             *                     *
+#                                     **  *             *                     *
+#                                                                             *
+#******************************************************************************
+#                                                                             *
+#  This file is part of AQUAgpusph, a free CFD program based on SPH.          *
+#  Copyright (C) 2012  Jose Luis Cercos Pita <jl.cercos@upm.es>               *
+#                                                                             *
+#  AQUAgpusph is free software: you can redistribute it and/or modify         *
+#  it under the terms of the GNU General Public License as published by       *
+#  the Free Software Foundation, either version 3 of the License, or          *
+#  (at your option) any later version.                                        *
+#                                                                             *
+#  AQUAgpusph is distributed in the hope that it will be useful,              *
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+#  GNU General Public License for more details.                               *
+#                                                                             *
+#  You should have received a copy of the GNU General Public License          *
+#  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.        *
+#                                                                             *
+#******************************************************************************
 
 import sys
 import argparse
 from argparse import ArgumentParser
-import GiD
-from generator import solid, fluid
+try:
+    from mesh_loader import GiD
+    from generator import solid, fluid
+except:
+    from aquagpusph_preprocessing.mesh_loader import GiD
+    from aquagpusph_preprocessing.generator import solid, fluid
+
 
 header = """#############################################################
 #                                                           #
@@ -58,7 +63,6 @@ header = """#############################################################
 #    Particle optional data are (sorted):
 #        Imove       (1)
 #        Density     (refd)
-#        Sound speed (cs)
 #        KernelH     (h)
 #        Ifluid      (ifluid)
 #        DensityRate (0.0)
@@ -123,7 +127,7 @@ def main():
 	args     = parser.parse_args()
 	# ------------------------------------------------------------
 	print("Loading mesh...")
-	faces     = GiD.loadQuadMesh(args.meshfile[-1])
+	faces     = Abaqus.loadQuadMesh(args.meshfile[-1])
 	print("OK")
 	# ------------------------------------------------------------
 	print("Creating vertexes over the solid surface...")
