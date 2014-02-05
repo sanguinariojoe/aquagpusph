@@ -1,0 +1,113 @@
+#! /usr/bin/env python
+#******************************************************************************
+#                                                                             *
+#               *    **   *  *   *                           *                *
+#              * *  *  *  *  *  * *                          *                *
+#             ***** *  *  *  * *****  **  ***  *  *  ** ***  ***              *
+#             *   * *  *  *  * *   * *  * *  * *  * *   *  * *  *             *
+#             *   * *  *  *  * *   * *  * *  * *  *   * *  * *  *             *
+#             *   *  ** *  **  *   *  *** ***   *** **  ***  *  *             *
+#                                       * *             *                     *
+#                                     **  *             *                     *
+#                                                                             *
+#******************************************************************************
+#                                                                             *
+#  This file is part of AQUAgpusph, a free CFD program based on SPH.          *
+#  Copyright (C) 2012  Jose Luis Cercos Pita <jl.cercos@upm.es>               *
+#                                                                             *
+#  AQUAgpusph is free software: you can redistribute it and/or modify         *
+#  it under the terms of the GNU General Public License as published by       *
+#  the Free Software Foundation, either version 3 of the License, or          *
+#  (at your option) any later version.                                        *
+#                                                                             *
+#  AQUAgpusph is distributed in the hope that it will be useful,              *
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+#  GNU General Public License for more details.                               *
+#                                                                             *
+#  You should have received a copy of the GNU General Public License          *
+#  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.        *
+#                                                                             *
+#******************************************************************************
+
+import argparse
+from argparse import ArgumentParser
+from xml.dom import minidom
+
+
+description = (
+    "Swap the decimal separator for the time steps from a pvd file."
+    "Therefore if a point based decimal separator is detected it will be"
+    "repaced by a comma one, and viceversa")
+version = "%prog 1.0"
+
+
+def getSeparator(text):
+    """Get the decimal separator from a string, and the alternative
+
+    :param text Text to be analysed.
+    """
+    if text.find(",") != -1:
+        return (",", ".")
+    return (".", ",")
+
+
+def swapLocale(f):
+    """Read a file and swap the decimal separator
+
+    :param f File to be edited.
+    """
+    sep = None
+    try:
+        xmldoc = minidom.parse(f)
+    except:
+        print("File '{}' cannot be parsed".format(f))
+        return
+
+    sets = xmldoc.getElementsByTagName('DataSet')
+    for s in sets:
+        try:
+            t = s.attributes['timestep'].value
+        except:
+            continue
+        # If we don't know the used separator, try to get it
+        if sep is None:
+            sep = getSeparator(t)
+
+        if sep is not None:
+            t = t.replace(sep[0], sep[1])
+            s.attributes['timestep'].value = t
+
+    text = xmldoc.toxml()
+    try:
+        output = open(f, 'w')
+    except:
+        print("File '{}' cannot be written".format(f))
+        return
+    output.write(text)
+    output.close()
+
+
+def main():
+    """Program entry point"""
+    parser = ArgumentParser(
+        description=description,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('-v', '--version', action='version', version=version)
+    parser.add_argument('pvd',
+                        metavar='FILE',
+                        type=str,
+                        nargs=1,
+                        help='Paraview Data Files to be edited')
+    args = parser.parse_args()
+
+    for f in args.pvd:
+        swapLocale(f)
+
+
+if __name__ == "__main__":
+    main()
+
+
+
+

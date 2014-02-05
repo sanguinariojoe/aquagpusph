@@ -32,7 +32,7 @@
 from distutils.core import setup
 
 setup(
-    name='AQUAgpusph-preprocessing',
+    name='AQUAgpusph-tools',
     version='1.4.6',
     author='J.L. Cercos Pita',
     author_email='jl.cercos@upm.es',
@@ -41,6 +41,7 @@ setup(
               'aquagpusph_preprocessing.mesh_loader'],
     scripts=['aquagpusph_preprocessing/AQUAgpusph-loadAbaqus',
              'aquagpusph_preprocessing/AQUAgpusph-loadGiD'],
+             'aquagpusph_postprocessing/pvd-locale'],
     url='http://canal.etsin.upm.es/aquagpusph',
     license='LICENSE',
     description='free SPH solver developed by the CEHINAV group.',
