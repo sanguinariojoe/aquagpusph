@@ -313,6 +313,7 @@ bool State::parseTiming(DOMElement *root)
 	        const char *name = xmlAttribute(s_elem, "name");
 			if(!strcmp(name, "Start") || !strcmp(name, "SimulationStart")){
 	            P->time_opts.t0 = atof(xmlAttribute(s_elem, "value"));
+	            P->time_opts.dt0 = atof(xmlAttribute(s_elem, "dt"));
 	            P->time_opts.step0 = atoi(xmlAttribute(s_elem, "step"));
 	            P->time_opts.frame0 = atoi(xmlAttribute(s_elem, "frame"));
 			}
@@ -1564,6 +1565,8 @@ bool State::writeTiming(xercesc::DOMDocument* doc,
     s_elem->setAttribute(xmlS("name"), xmlS("Start"));
     sprintf(att, "%g", T->time());
     s_elem->setAttribute(xmlS("value"), xmlS(att));
+    sprintf(att, "%g", T->dt());
+    s_elem->setAttribute(xmlS("dt"), xmlS(att));
     sprintf(att, "%u", T->step());
     s_elem->setAttribute(xmlS("step"), xmlS(att));
     sprintf(att, "%u", T->frame());
@@ -1721,8 +1724,8 @@ bool State::writeSPH(xercesc::DOMDocument* doc,
     #ifdef HAVE_3D
         sprintf(att, "%g", P->SPH_opts.g.z);
         s_elem->setAttribute(xmlS("z"), xmlS(att));
-        elem->appendChild(s_elem);
     #endif
+    elem->appendChild(s_elem);
 
     s_elem = doc->createElement(xmlS("Option"));
     s_elem->setAttribute(xmlS("name"), xmlS("hfac"));

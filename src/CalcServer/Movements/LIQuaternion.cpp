@@ -134,7 +134,9 @@ bool LIQuaternion::_parse(xercesc::DOMElement *root)
 bool LIQuaternion::setInitialPositions()
 {
 	CalcServer *C = CalcServer::singleton();
-	std::deque<float> data = _data->update(0.f);
+    InputOutput::TimeManager *T = InputOutput::TimeManager::singleton();
+
+	std::deque<float> data = _data->update(T->time());
 	vec cor;
 	mat axis;
 	#ifdef HAVE_3D

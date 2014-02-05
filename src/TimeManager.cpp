@@ -116,6 +116,7 @@ TimeManager::TimeManager()
 		_output_fps = P->time_opts.output_fps;
 	}
 
+	_dt = P->time_opts.dt0;
 	_time = P->time_opts.t0;
 	_start_time = P->time_opts.t0;
 	_step = P->time_opts.step0;
@@ -131,9 +132,6 @@ TimeManager::TimeManager()
         _output_time = _time;
         _output_step = _step;
     }
-
-
-
 
 	S->addMessageF(1, "Time manager built OK.\n");
 }

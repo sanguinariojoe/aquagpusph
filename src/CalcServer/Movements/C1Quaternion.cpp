@@ -134,7 +134,22 @@ bool C1Quaternion::_parse(xercesc::DOMElement *root)
 bool C1Quaternion::setInitialPositions()
 {
 	CalcServer *C = CalcServer::singleton();
-	std::deque<float> data = _data->update(0.f);
+    InputOutput::TimeManager *T = InputOutput::TimeManager::singleton();
+    InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
+
+    // Perform the process of the motion guided by the time step
+    float t = 0.f;
+    float dt = P->time_opts.dt0;
+    while(t < T->time() - dt){
+        fflush(stdout);
+        _data->update(t);
+        if(!dt){
+            dt = P->SPH_opts.h / P->SPH_opts.cs * P->time_opts.courant;
+        }
+        t += dt;
+    }
+ 	std::deque<float> data = _data->update(T->time() - dt);
+
 	vec cor;
 	mat axis;
 	#ifdef HAVE_3D

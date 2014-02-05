@@ -120,8 +120,8 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-	C = new CalcServer::CalcServer();
 	T = new InputOutput::TimeManager();
+	C = new CalcServer::CalcServer();
 
 	if(C->setup())
 	{

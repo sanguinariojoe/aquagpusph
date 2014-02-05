@@ -219,6 +219,12 @@ public:
 	     */
 	    float t0;
 
+	    /** Starting time step.
+	     * @remarks The starting time step is designed just for the previous
+	     * simulations continuation.
+	     */
+	    float dt0;
+
 	    /** Starting step.
 	     * @remarks The starting step is designed just for the previous
 	     * simulations continuation.

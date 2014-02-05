@@ -44,6 +44,7 @@ ProblemSetup::ProblemSetup()
 	time_opts.t0 = 0.f;
 	time_opts.step0 = 0;
 	time_opts.frame0 = 0;
+	time_opts.dt0 = 0.f;
 	time_opts.sim_end_mode = __NO_OUTPUT_MODE__;
 	time_opts.sim_end_time = 0.f;
 	time_opts.sim_end_step = 0;

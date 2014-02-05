@@ -32,6 +32,7 @@
 #include <errno.h>
 
 #include <ScreenManager.h>
+#include <TimeManager.h>
 #include <CalcServer/Movements/LinearInterpolation.h>
 
 namespace Aqua{ namespace CalcServer{ namespace Movement{

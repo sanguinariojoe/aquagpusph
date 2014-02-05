@@ -36,6 +36,7 @@
 #include <Eigen/LU>
 
 #include <ScreenManager.h>
+#include <TimeManager.h>
 #include <CalcServer/Movements/C1Interpolation.h>
 
 namespace Aqua{ namespace CalcServer{ namespace Movement{
@@ -149,6 +150,7 @@ std::deque<float> C1Interpolation::update(float t)
 {
 	unsigned int i,j;
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+	InputOutput::TimeManager *T = InputOutput::TimeManager::singleton();
 	if(!_data_file){
         _data.clear();
 	    return _data;
@@ -173,7 +175,7 @@ std::deque<float> C1Interpolation::update(float t)
         return _data;
 	}
     // Read a new data block to interpolate
-    std::deque<float> *data = NULL, empty;
+    std::deque<float> *data = NULL;
     unsigned int dataDim = 0;
 	while(_poly_time <= _time){
 	    std::deque<float> line = readLine();
