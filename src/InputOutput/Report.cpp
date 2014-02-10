@@ -103,6 +103,7 @@ bool Report::file(const char* basename, unsigned int startindex)
             // We found an available slot
             break;
         }
+        fclose(f);
         i++;
     }
 
