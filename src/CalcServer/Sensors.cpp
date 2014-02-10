@@ -16,12 +16,18 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <deque>
+
 #include <ProblemSetup.h>
 #include <TimeManager.h>
 #include <FileManager.h>
 #include <ScreenManager.h>
 #include <CalcServer/Sensors.h>
 #include <CalcServer.h>
+
+#ifndef MAX_LINE_LEN
+    #define MAX_LINE_LEN 1024
+#endif // MAX_LINE_LEN
 
 namespace Aqua{ namespace CalcServer{
 
@@ -30,7 +36,7 @@ Sensors::Sensors()
 	, _n(0)
 	, _path(0)
 	, _output(0)
-	, _output_time(0)
+	, _output_time(0.f)
 	, _pos(0)
 	, _press(0)
 	, _dens(0)
@@ -57,7 +63,9 @@ Sensors::Sensors()
 	}
 	strcpy(_path, P->SensorsParameters.script);
 	strcat(_path, ".cl");
-	initOutput();
+	if(initOutput()){
+	    exit(EXIT_FAILURE);
+	}
 
 	_pos = new vec[_n];
 	_press = new float[_n];
@@ -67,7 +75,7 @@ Sensors::Sensors()
 	    S->addMessageF(3, "Failure allocating memory for the output variables.\n");
 	    exit(EXIT_FAILURE);
 	}
-	//! 2nd.- Setup the kernel
+
 	_local_work_size  = localWorkSize();
 	if(!_local_work_size){
 	    S->addMessageF(3, "I cannot get a valid local work size for the required computation tool.\n");
@@ -272,8 +280,8 @@ bool Sensors::printOutput()
 	if(err_code){
 	    return true;
 	}
-	//! 2nd.- Print data
-	fprintf(_output, "%f", _output_time);
+
+	fprintf(_output, "%g", _output_time);
 	for(i=0;i<_n;i++){
 	    #ifndef HAVE_3D
 	        fprintf(_output,
@@ -346,44 +354,63 @@ bool Sensors::initOutput(){
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P  = InputOutput::ProblemSetup::singleton();
 	InputOutput::FileManager *FileMgr = InputOutput::FileManager::singleton();
-	int i, new_file=0;
-	char file_name[256];
-    strcpy(file_name, "Sensors.dat");
-	_output_time = -P->SensorsParameters.fps;  // 1st frame print
+	unsigned int i;
+	const char *file_name = "Sensors.dat";
+	float t0 = P->time_opts.t0;
+	_output_time = -1.f / P->SensorsParameters.fps;
 
-	// We must read the last file looking for the _output_time
-	// =======================================================
+	// Read the already existing file up to the starting time
+    std::deque<char*> backup;
 	_output = fopen(file_name, "r");
 	if(_output){
-	    new_file=1;
-	    char Line[256];
-	    while( fgets( Line, 256*sizeof(char), _output) )
+	    char line[MAX_LINE_LEN];
+	    char *stored_line = NULL;
+	    while( fgets( line, MAX_LINE_LEN*sizeof(char), _output) )
 	    {
-	        int LineStartChar=0;
-	        while( (Line[LineStartChar] == ' ') || (Line[LineStartChar] == '\t') )
-	            LineStartChar++;
-	        if(Line[LineStartChar] != '#'){
-	            if(sscanf(Line, "%f",&_output_time) != 1) {
-	                S->addMessageF(2, "Sensor file is bad formatted, and will be overwritten.\n");
-	                S->addMessage(0, "\tConsider restart the simulation if you are starting from previous work.\n");
-	                return 1;
-	            }
+	        // Discard the prefix spaces
+	        unsigned int start=0;
+	        while( (line[start] == ' ') || (line[start] == '\t') )
+	            start++;
+            // Check if it is a comment line
+	        if(line[start] == '#'){
+                stored_line = new char[strlen(line) + 1];
+                strcpy(stored_line, line);
+	            backup.push_back(stored_line);
+                continue;
 	        }
+	        // Read the time and test if this line is not valid
+            if(sscanf(line, "%g", &_output_time) != 1) {
+                S->addMessageF(3, "Already existing sensor file is bad formatted!\n");
+                return true;
+            }
+            if(_output_time > t0){
+                _output_time = t0;
+                break;
+            }
+
+            stored_line = new char[strlen(line) + 1];
+            strcpy(stored_line, line);
+            backup.push_back(stored_line);
 	    }
 	    fclose(_output);
 	}
 
-	if(_output)
-	    _output = fopen(file_name, "wa");
-	else
-	    _output = fopen(file_name, "w");
+    _output = fopen(file_name, "w");
 	if(!_output){
 	    S->addMessage(3, "The output file cannot be opened.\n");
 	    S->addMessage(0, file_name);
 	}
 
-	if(new_file)
+	if(backup.size()){
+        for(i=0; i<backup.size(); i++){
+            fprintf(_output, "%s", backup.at(i));
+            fflush(_output);
+            delete[] backup.at(i);
+        }
+        backup.clear();
 	    return false;
+	}
+
 	fprintf(_output,"#########################################################\n");
 	fprintf(_output,"#                                                       #\n");
 	fprintf(_output,"#    #    ##   #  #   #                           #     #\n");
@@ -407,24 +434,26 @@ bool Sensors::initOutput(){
 	fprintf(_output,"#########################################################\n");
 	fprintf(_output,"#\n");
 	fprintf(_output,"# Sensors output file.\n");
-	fprintf(_output,"# Number of sensors: %d\n", _n);
+	fprintf(_output,"# Number of sensors: %u\n", _n);
 	fprintf(_output,"# Rows:\n");
 	fprintf(_output,"# Time");
-	for(i=0;i<_n;i++)
+	for(i=0;i<_n;i++){
 	    #ifndef HAVE_3D
-	        fprintf(_output,"\ts%d.X\ts%d.Y\ts%d.press\ts%d.dens\ts%d.sumW", i,i,i,i,i);
+	        fprintf(_output,"\ts%u.X\ts%u.Y\ts%u.press\ts%u.dens\ts%u.sumW", i,i,i,i,i);
 	    #else
-	        fprintf(_output,"\ts%d.X\ts%d.Y\ts%d.Z\ts%d.press\ts%d.dens\ts%d.sumW", i,i,i,i,i,i);
+	        fprintf(_output,"\ts%u.X\ts%u.Y\ts%u.Z\ts%u.press\ts%u.dens\ts%u.sumW", i,i,i,i,i,i);
 	    #endif
+	}
 
 	fprintf(_output,"\n#\n");
 	fprintf(_output,"#  [s]");
-	for(i=0;i<_n;i++)
+	for(i=0;i<_n;i++){
 	    #ifndef HAVE_3D
 	        fprintf(_output,"\t  [m]\t  [m]\t   [Pa/m]\t [kg/m3]\t      []");
 	    #else
 	        fprintf(_output,"\t  [m]\t  [m]\t  [m]\t   [Pa/m]\t [kg/m3]\t      []");
 	    #endif
+	}
 	fprintf(_output,"\n#\n");
 	fprintf(_output,"#########################################################\n");
 	fflush(_output);

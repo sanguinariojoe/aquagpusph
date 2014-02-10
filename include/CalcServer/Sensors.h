@@ -65,7 +65,7 @@ private:
 	bool initOutput();
 
 	/// Number of sensors
-	int _n;
+	unsigned int _n;
 
 	/// OpenCL script path
 	char* _path;
