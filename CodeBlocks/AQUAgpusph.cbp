@@ -126,7 +126,6 @@
 		<Unit filename="../include/InputOutput/Report.h" />
 		<Unit filename="../include/InputOutput/State.h" />
 		<Unit filename="../include/InputOutput/VTK.h" />
-		<Unit filename="../include/Output.h" />
 		<Unit filename="../include/ProblemSetup.h" />
 		<Unit filename="../include/ScreenManager.h" />
 		<Unit filename="../include/Singleton.h" />
@@ -173,7 +172,6 @@
 		<Unit filename="../src/InputOutput/Report.cpp" />
 		<Unit filename="../src/InputOutput/State.cpp" />
 		<Unit filename="../src/InputOutput/VTK.cpp" />
-		<Unit filename="../src/Output.cpp" />
 		<Unit filename="../src/ProblemSetup.cpp" />
 		<Unit filename="../src/ScreenManager.cpp" />
 		<Unit filename="../src/TimeManager.cpp" />
