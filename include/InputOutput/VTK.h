@@ -101,7 +101,7 @@ private:
     /** Create a new file to write.
      * @return The file handler, NULL if errors happened.
      */
-    vtkSmartPointer<vtkXMLUnstructuredGridWriter> create();
+    vtkXMLUnstructuredGridWriter* create();
 
     /** Create/Update the Paraview Data File.
      * @return false if all gone right, true otherwise.

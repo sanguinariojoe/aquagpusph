@@ -108,6 +108,8 @@ bool Particles::file(const char* basename,
             // We found an available slot
             break;
         }
+        fclose(f);
+
         i++;
     }
 

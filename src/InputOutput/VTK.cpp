@@ -171,7 +171,7 @@ bool VTK::save()
     TimeManager *T = TimeManager::singleton();
 	Fluid *F = Fluid::singleton();
 
-    vtkSmartPointer<vtkXMLUnstructuredGridWriter> f = create();
+    vtkXMLUnstructuredGridWriter *f = create();
     if(!f)
         return true;
 
@@ -291,6 +291,7 @@ bool VTK::save()
         S->addMessageF(3, "Failure writing the VTK file.\n");
         return true;
     }
+    f->Delete();
 
     if(updatePVD()){
         return true;
@@ -299,10 +300,10 @@ bool VTK::save()
     return false;
 }
 
-vtkSmartPointer<vtkXMLUnstructuredGridWriter> VTK::create(){
+vtkXMLUnstructuredGridWriter* VTK::create(){
     char *basename, msg[1024];
     size_t len;
-    vtkSmartPointer<vtkXMLUnstructuredGridWriter> f = NULL;
+    vtkXMLUnstructuredGridWriter *f = NULL;
 	ScreenManager *S = ScreenManager::singleton();
 	ProblemSetup *P = ProblemSetup::singleton();
 
@@ -323,7 +324,7 @@ vtkSmartPointer<vtkXMLUnstructuredGridWriter> VTK::create(){
 	sprintf(msg, "Writing \"%s\" VTK output...\n", file());
     S->addMessageF(1, msg);
 
-    f = vtkSmartPointer<vtkXMLUnstructuredGridWriter>::New();
+    f = vtkXMLUnstructuredGridWriter::New();
     f->SetFileName(file());
 
 	return f;
@@ -389,7 +390,7 @@ bool VTK::updatePVD(){
     output->setEncoding(xmlS("UTF-8"));
 
     try {
-            saver->write(doc, output);
+        saver->write(doc, output);
     }
 	catch( XMLException& e ){
 	    char* message = xmlS(e.getMessage());
