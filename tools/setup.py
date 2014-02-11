@@ -40,7 +40,7 @@ setup(
               'aquagpusph_preprocessing.generator',
               'aquagpusph_preprocessing.mesh_loader'],
     scripts=['aquagpusph_preprocessing/AQUAgpusph-loadAbaqus',
-             'aquagpusph_preprocessing/AQUAgpusph-loadGiD'],
+             'aquagpusph_preprocessing/AQUAgpusph-loadGiD',
              'aquagpusph_postprocessing/pvd-locale'],
     url='http://canal.etsin.upm.es/aquagpusph',
     license='LICENSE',
