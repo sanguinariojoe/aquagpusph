@@ -60,20 +60,14 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 			<Add option="-I../include" />
-			<Add option="-I/usr/include/mpi" />
-			<Add option="-I/usr/include/vtk-5.6" />
-			<Add option="-I/usr/include/python3.1" />
-			<Add option="-DHAVE_H5PART" />
+			<Add option="-I/usr/include/vtk-5.8" />
+			<Add option="-I/usr/include/python3.2" />
 			<Add option="-DHAVE_VTK" />
 			<Add option="-DHAVE_GPUPROFILE" />
 			<Add option="-D_sphVERBOSE" />
 			<Add option="-DPARALLEL_IO" />
-			<Add option="-DH5_HAVE_PARALLEL" />
-			<Add option="-DMPICH_IGNORE_CXX_SEEK" />
 		</Compiler>
 		<Linker>
-			<Add option="-lhdf5" />
-			<Add option="-lpH5Part" />
 			<Add option="-lvtkCommon" />
 			<Add option="-lvtkHybrid" />
 			<Add option="-lvtkIO" />
