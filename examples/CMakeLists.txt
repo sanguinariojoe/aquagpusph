@@ -190,7 +190,7 @@ INSTALL(
 )
 INSTALL(
     FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_DeLeffe/doc/plot.gnuplot
+        ${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_DeLeffe/doc/plot.py
         ${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_DeLeffe/doc/lateral_water_1x.txt
     DESTINATION
         ${EXAMPLE_DEST_DIR}/doc
@@ -261,7 +261,7 @@ ADD_CUSTOM_TARGET(LateralWater_1x_Ghost ALL
 )
 # Since generated particles file is the same, wait for previous
 # examples have been built before start working with this.
-ADD_DEPENDENCIES( LateralWater_1x_Ghost AQUAgpusph2D LateralWater_1x_DeLeffe )
+ADD_DEPENDENCIES( LateralWater_1x_Ghost AQUAgpusph2D LateralWater_1x_DeLeffe LateralWater_1x_Fix )
 
 # ===================================================== #
 # LateralWater_1x_Ghost (Install)                       #
@@ -306,7 +306,7 @@ INSTALL(
 )
 INSTALL(
     FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Ghost/doc/plot.gnuplot
+        ${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Ghost/doc/plot.py
         ${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Ghost/doc/lateral_water_1x.txt
     DESTINATION
         ${EXAMPLE_DEST_DIR}/doc
