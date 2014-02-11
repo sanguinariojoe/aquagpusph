@@ -51,7 +51,7 @@ H = 0.508
 # Fluid dimensions
 h = 0.093
 # Stimated required number of fluid particles
-n = 250000
+n = 50000
 
 # Dimensions and number of particles readjustment
 # ===============================================

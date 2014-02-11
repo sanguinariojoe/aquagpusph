@@ -28,7 +28,7 @@ Authors:
         <!-- Distance between particles. If it is variable (due to a several
         fluids for instance) it is strongly recommended to use the maximum
         value. -->
-        <Option name="deltar" x="0.000578778" y="0.000578778" />  
+        <Option name="deltar" x="0.0013" y="0.0013" />  
         <!-- Sound speed of the fluid. Higher values will imply less
         compressible fluids, but the time step will be dereased as well.
         -->
