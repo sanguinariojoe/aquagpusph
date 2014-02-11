@@ -31,7 +31,7 @@
 #########################################################################
 
 # Generate the fluid particles and the boundary elements for the example
-# LateralWater_1x_DeLeffe, Correponding to the lateral water impact SPHERIC
+# LateralWater_1x_Fix, Correponding to the lateral water impact SPHERIC
 # test case number 10. See
 # doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE_10.pdf
 # In this example boundary integrals are applied for the boundary conditions.
