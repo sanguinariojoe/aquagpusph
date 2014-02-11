@@ -27,8 +27,7 @@ elif [[ $1 == "--plot" ]]; then
 		echo ""
 		exit 255
 	fi
-	cp -f @EXAMPLE_DEST_DIR@/doc/lateral_water_1x.txt lateral_water_1x.txt
-	gnuplot @EXAMPLE_DEST_DIR@/doc/plot.gnuplot
+	python @EXAMPLE_DEST_DIR@/doc/plot.py
 else
 	echo ""
 	echo "Usage: run.sh [--run/--plot]"

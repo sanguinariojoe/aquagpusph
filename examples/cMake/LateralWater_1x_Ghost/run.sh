@@ -27,14 +27,15 @@ elif [[ $1 == "--plot" ]]; then
 		echo ""
 		exit 255
 	fi
-	cp -f @EXAMPLE_DEST_DIR@/doc/lateral_water_1x.txt lateral_water_1x.txt
-	gnuplot @EXAMPLE_DEST_DIR@/doc/plot.gnuplot
+	python @EXAMPLE_DEST_DIR@/doc/plot.py
 else
 	echo ""
 	echo "Usage: run.sh [--run/--plot]"
 	echo ""
 	echo "run.sh --run"
 	echo "    Runs the simulation. You can stop simulation pressing the 'c' key"
+	echo "run.sh --continue"
+	echo "    Continue the simulation form the last saved output from a previous execution."
 	echo "run.sh --plot"
 	echo "    Plots in real time the output results"
 	echo ""
