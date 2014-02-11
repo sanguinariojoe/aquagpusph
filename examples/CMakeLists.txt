@@ -453,116 +453,116 @@ INSTALL(
 )
 
 # ===================================================== #
-# lobovsky_etal_jfs_2013 (Local)                        #
+# lobovsky_etal_jfs_2014 (Local)                        #
 # ===================================================== #
 # Folders
-SET(EXAMPLE_DEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013)
+SET(EXAMPLE_DEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014)
 SET(BINARY_DIR ${CMAKE_BINARY_DIR}/bin)
 # XML definition files
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2013/Fluids.xml
-	${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/Fluids.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2013/Main.xml
-	${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/Main.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2013/Sensors.xml
-	${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/Sensors.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2013/Settings.xml
-	${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/Settings.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2013/SPH.xml
-	${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/SPH.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2013/Time.xml
-	${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/Time.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2014/Fluids.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/Fluids.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2014/Main.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/Main.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2014/Sensors.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/Sensors.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2014/Settings.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/Settings.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2014/SPH.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/SPH.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2014/Time.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/Time.xml @ONLY)
 # Execution script
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2013/run.sh
-	${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/run.sh @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2014/run.sh
+	${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/run.sh @ONLY)
 # Target
-ADD_CUSTOM_TARGET(lobovsky_etal_jfs_2013 ALL
-	COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/lobovsky_etal_jfs_2013/Create.py
-	COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/Fluid.dat ${CMAKE_CURRENT_BINARY_DIR}/lobovsky_etal_jfs_2013/Fluid.dat
+ADD_CUSTOM_TARGET(lobovsky_etal_jfs_2014 ALL
+	COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/lobovsky_etal_jfs_2014/Create.py
+	COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/Fluid.dat ${CMAKE_CURRENT_BINARY_DIR}/lobovsky_etal_jfs_2014/Fluid.dat
 	COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_SOURCE_DIR}/Fluid.dat
-	COMMAND chmod a+x ${CMAKE_CURRENT_BINARY_DIR}/lobovsky_etal_jfs_2013/run.sh
+	COMMAND chmod a+x ${CMAKE_CURRENT_BINARY_DIR}/lobovsky_etal_jfs_2014/run.sh
 	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
-ADD_DEPENDENCIES( lobovsky_etal_jfs_2013 AQUAgpusph2D LateralWater_1x_DeLeffe LateralWater_1x_Ghost )
+ADD_DEPENDENCIES( lobovsky_etal_jfs_2014 AQUAgpusph2D LateralWater_1x_DeLeffe LateralWater_1x_Ghost )
 
 # ===================================================== #
-# lobovsky_etal_jfs_2013 (Install)                      #
+# lobovsky_etal_jfs_2014 (Install)                      #
 # ===================================================== #
 # Folders
-SET(EXAMPLE_DEST_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/examples/lobovsky_etal_jfs_2013)
+SET(EXAMPLE_DEST_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/examples/lobovsky_etal_jfs_2014)
 SET(BINARY_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 # XML definition files
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2013/Fluids.xml
-	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2013/Fluids.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2013/Main.xml
-	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2013/Main.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2013/Sensors.xml
-	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2013/Sensors.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2013/Settings.xml
-	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2013/Settings.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2013/SPH.xml
-	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2013/SPH.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2013/Time.xml
-	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2013/Time.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2014/Fluids.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2014/Fluids.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2014/Main.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2014/Main.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2014/Sensors.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2014/Sensors.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2014/Settings.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2014/Settings.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2014/SPH.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2014/SPH.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2014/Time.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2014/Time.xml @ONLY)
 # Execution script
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2013/run.sh
-	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2013/run.sh @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2014/run.sh
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2014/run.sh @ONLY)
 # Install
 INSTALL(
     FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/Fluid.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/Fluid.dat
     DESTINATION
         ${EXAMPLE_DEST_DIR}
 )
 INSTALL(
     FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/sensor1.gnuplot
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/sensor2.gnuplot
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/sensor3.gnuplot
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/sensor4.gnuplot
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/sensors.gnuplot
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/x.gnuplot
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig12_01_ETSIN_Front_Dressler_Martin_2.dat
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig12_01_ETSIN_Front_Dressler_Martin_3.dat
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig12_01_ETSIN_Front_Dressler_Martin_4.dat
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig12_01_ETSIN_Front_Dressler_Martin_5.dat
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig12_01_ETSIN_Front_Dressler_Martin_6.dat
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig12_01_ETSIN_Front_Dressler_Martin_7.dat
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig12_02_ETSIN_Front_Hu_Koshizuka_3.dat
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig12_02_ETSIN_Front_Hu_Koshizuka_4.dat
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig12_02_ETSIN_Front_Hu_Koshizuka_5.dat
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig20_filtered_1.dat
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig20_filtered_2.dat
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig20_filtered_3.dat
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig29_filtered_1.dat
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig29_filtered_2.dat
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig29_filtered_3.dat
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig29_filtered_4.dat
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig30_filtered_1.dat
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig30_filtered_2.dat
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig30_filtered_3.dat
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig30_filtered_4.dat
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig30_filtered_5.dat
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig31_filtered_1.dat
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig31_filtered_2.dat
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig31_filtered_3.dat
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2013/doc/Fig31_filtered_4.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/sensor1.gnuplot
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/sensor2.gnuplot
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/sensor3.gnuplot
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/sensor4.gnuplot
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/sensors.gnuplot
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/x.gnuplot
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/Fig12_01_ETSIN_Front_Dressler_Martin_2.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/Fig12_01_ETSIN_Front_Dressler_Martin_3.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/Fig12_01_ETSIN_Front_Dressler_Martin_4.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/Fig12_01_ETSIN_Front_Dressler_Martin_5.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/Fig12_01_ETSIN_Front_Dressler_Martin_6.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/Fig12_01_ETSIN_Front_Dressler_Martin_7.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/Fig12_02_ETSIN_Front_Hu_Koshizuka_3.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/Fig12_02_ETSIN_Front_Hu_Koshizuka_4.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/Fig12_02_ETSIN_Front_Hu_Koshizuka_5.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/Fig20_filtered_1.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/Fig20_filtered_2.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/Fig20_filtered_3.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/Fig29_filtered_1.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/Fig29_filtered_2.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/Fig29_filtered_3.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/Fig29_filtered_4.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/Fig30_filtered_1.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/Fig30_filtered_2.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/Fig30_filtered_3.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/Fig30_filtered_4.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/Fig30_filtered_5.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/Fig31_filtered_1.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/Fig31_filtered_2.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/Fig31_filtered_3.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/Fig31_filtered_4.dat
     DESTINATION
         ${EXAMPLE_DEST_DIR}/doc
 )
 INSTALL(
     FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2013/Fluids.xml
-        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2013/Main.xml
-        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2013/Sensors.xml
-        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2013/Settings.xml
-        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2013/SPH.xml
-        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2013/Time.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2014/Fluids.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2014/Main.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2014/Sensors.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2014/Settings.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2014/SPH.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2014/Time.xml
     DESTINATION
         ${EXAMPLE_DEST_DIR}
 )
 INSTALL(
     FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2013/run.sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/lobovsky_etal_jfs_2014/run.sh
     DESTINATION
         ${EXAMPLE_DEST_DIR}
     PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
