@@ -1,0 +1,33 @@
+<?xml version="1.0" ?>
+<!--
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
+
+Another QUAlity GPU-SPH, by CEHINAV.
+	http://canal.etsin.upm.es/
+Authors:
+	Cercos Pita, Jose Luis
+	Miguel Gonzalez, Leo
+	Souto Iglesias, Antonio
+-->
+
+<sphInput>
+    <Settings>
+        <!-- Verbose level:
+         2 Slowest alternative, prints relevant data every timestep.
+         1 (Default value) Prints relevant data when a frame must be printed.
+         0 Fastest alternative, prints the minimum data as possible.
+        -->
+        <Verbose level="1" />
+        <!-- OpenCL device used to compute.
+        -->
+        <Device platform="0" device="0" type="GPU" />
+    </Settings>
+</sphInput>
+

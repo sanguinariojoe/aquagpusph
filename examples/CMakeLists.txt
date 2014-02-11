@@ -224,6 +224,118 @@ INSTALL(
 )
 
 # ===================================================== #
+# LateralWater_1x_Fix (Local)                       #
+# ===================================================== #
+# Folders
+SET(EXAMPLE_DEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Fix)
+SET(BINARY_DIR ${CMAKE_BINARY_DIR}/bin)
+# XML definition files
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Fix/Move/6DOF.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Fix/Move/6DOF.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Fix/Fluids.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Fix/Fluids.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Fix/Main.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Fix/Main.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Fix/Movements.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Fix/Movements.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Fix/Sensors.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Fix/Sensors.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Fix/Settings.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Fix/Settings.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Fix/SPH.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Fix/SPH.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Fix/Time.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Fix/Time.xml @ONLY)
+# Execution script
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Fix/run.sh
+	${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Fix/run.sh @ONLY)
+# Target
+ADD_CUSTOM_TARGET(LateralWater_1x_Fix ALL
+	COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/LateralWater_1x_Fix/Create.py
+	COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/Fluid.dat ${CMAKE_CURRENT_BINARY_DIR}/LateralWater_1x_Fix/Fluid.dat
+	COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_SOURCE_DIR}/Fluid.dat
+	COMMAND chmod a+x ${CMAKE_CURRENT_BINARY_DIR}/LateralWater_1x_Fix/run.sh
+	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
+# Since generated particles file is the same, wait for previous
+# examples have been built before start working with this.
+ADD_DEPENDENCIES( LateralWater_1x_Fix AQUAgpusph2D LateralWater_1x_DeLeffe )
+
+# ===================================================== #
+# LateralWater_1x_Fix (Install)                     #
+# ===================================================== #
+# Folders
+SET(EXAMPLE_DEST_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/examples/LateralWater_1x_Fix)
+SET(BINARY_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
+# XML definition files
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Fix/Move/6DOF.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Fix/Move/6DOF.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Fix/Fluids.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Fix/Fluids.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Fix/Main.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Fix/Main.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Fix/Movements.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Fix/Movements.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Fix/Sensors.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Fix/Sensors.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Fix/Settings.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Fix/Settings.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Fix/SPH.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Fix/SPH.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Fix/Time.xml
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Fix/Time.xml @ONLY)
+# Execution script
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/LateralWater_1x_Fix/run.sh
+	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Fix/run.sh @ONLY)
+# Install
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Fix/Fluid.dat
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}
+)
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Fix/Move/6DOF.dat
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}/Move
+)
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Fix/doc/plot.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/LateralWater_1x_Fix/doc/lateral_water_1x.txt
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}/doc
+)
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Fix/Fluids.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Fix/Main.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Fix/Movements.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Fix/Sensors.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Fix/Settings.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Fix/SPH.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Fix/Time.xml
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}
+)
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Fix/run.sh
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}
+    PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                GROUP_EXECUTE             GROUP_READ
+                WORLD_EXECUTE             WORLD_READ             
+)
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/LateralWater_1x_Fix/Move/6DOF.xml
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}/Move
+)
+
+# ===================================================== #
 # LateralWater_1x_Ghost (Local)                         #
 # ===================================================== #
 # Folders
