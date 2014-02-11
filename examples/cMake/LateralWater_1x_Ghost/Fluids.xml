@@ -1,13 +1,13 @@
 <?xml version="1.0" ?>
 <!--
-   %    %%   %  %   %
-  % %  %  %  %  %  % %                          %
- %%%%% %  %  %  % %%%%%  %%  %%%  %  %  %% %%%  %%%
- %   % %  %  %  % %   % %  % %  % %  % %   %  % %  %
- %   % %  %  %  % %   % %  % %  % %  %   % %  % %  %
- %   %  %% %  %%  %   %  %%% %%%   %%% %%  %%%  %  %
-                           % %             %
-                         %%  %             %
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
 
 Another QUAlity GPU-SPH, by CEHINAV.
 	http://canal.etsin.upm.es/
@@ -43,7 +43,7 @@ Authors:
 		<Option name="delta" value="0.0" />
 		<!-- File where the particles will be loaded from. -->
 		<Load format="ASCII" file="@EXAMPLE_DEST_DIR@/Fluid.dat" />
-		<!-- File where the particles will be saved in.  It is just a base name
+		<!-- File where the particles will be saved in. It is just a base name
         such that a number identifier and a extension may be appended -->
 		<Save format="VTK" file="@EXAMPLE_DEST_DIR@/output" />
 	</Fluid>
