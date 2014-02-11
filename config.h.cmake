@@ -149,12 +149,3 @@
 
 /* VTK */
 #cmakedefine HAVE_VTK
-
-/* H5Part */
-#cmakedefine HAVE_H5PART
-
-/* Tecplot */
-#cmakedefine HAVE_TECPLOT
-
-/* MPI */
-#cmakedefine HAVE_MPI
