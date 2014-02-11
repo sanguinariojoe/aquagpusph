@@ -116,8 +116,17 @@ class FigureController(FigureCanvas):
         self.p = []
         for i in range(len(data[0])):
             self.p.append(0.0)
+            count = 0
             for j in range(3, len(data), 5):
+                sumW = data[j+2][i]
+                # Apply a threshold to avoid the interpolation based just on
+                # free surface particles
+                if sumW < 0.3:
+                    continue
                 self.p[i] += data[j][i]
+                count += 1
+            if count:
+                self.p[i] /= count
         self.line.set_data(self.t, self.p)
         # Redraw
         self.fig.canvas.draw()
