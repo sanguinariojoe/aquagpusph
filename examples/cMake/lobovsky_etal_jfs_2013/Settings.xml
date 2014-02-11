@@ -1,25 +1,33 @@
 <?xml version="1.0" ?>
+<!--
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
+
+Another QUAlity GPU-SPH, by CEHINAV.
+	http://canal.etsin.upm.es/
+Authors:
+	Cercos Pita, Jose Luis
+	Miguel Gonzalez, Leo
+	Souto Iglesias, Antonio
+-->
+
 <sphInput>
-	<Settings>
-		<!-- Verbose level:
-		 2 Slowest alternative, prints relevant data every timestep.
-		 1 (Default value) Prints relevant data every frame.
-		 0 Fastest alternative, prints minimum data.
-		-->
-		<Verbose level="1" />
-		<!-- Start mode:
-		 0 Starts at 0s.
-	         1 Uses last H5Part file printed as initial point.
-		-->
-		<Start mode="0" />
-		<!-- OpenCL device used to compute. Each device is defined
-		 by the platform index and the device index, that will be
-		 shown at the start of the program execution, and saved
-		 into log file, but take care, if you apply a type filter
-		 different of "ALL", device identifiers may change due to
-		 the filtered ones.
-		-->
-		<Device platform="0" device="0" type="GPU" />
-	</Settings>
+    <Settings>
+        <!-- Verbose level:
+         2 Slowest alternative, prints relevant data every timestep.
+         1 (Default value) Prints relevant data when a frame must be printed.
+         0 Fastest alternative, prints the minimum data as possible.
+        -->
+        <Verbose level="1" />
+        <!-- OpenCL device used to compute.
+        -->
+        <Device platform="0" device="0" type="GPU" />
+    </Settings>
 </sphInput>
 
