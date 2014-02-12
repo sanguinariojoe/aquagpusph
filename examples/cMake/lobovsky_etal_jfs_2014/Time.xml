@@ -80,6 +80,5 @@ Authors:
         You can conveniently combine several printing criterias.
         -->
         <Option name="Output" type="FPS" value="30" />
-
     </Timing>
 </sphInput>

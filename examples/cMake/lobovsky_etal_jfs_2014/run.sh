@@ -20,9 +20,10 @@ elif [[ $1 == "--continue" ]]; then
 elif [[ $1 == "--plot" ]]; then
 	if [ ! -f Sensors.dat ]; then
 		echo ""
-		echo "Sensors.dat output file is not ready yet!"
+		echo "Failure while opening Sensors.dat output file"
 		echo ""
-		echo "    You must execute run.sh --plot on the same folder where run.sh --run has been launched"
+		echo " * You must execute run.sh --plot on the same folder where run.sh --run has been launched"
+		echo " * AQUAgpusph may take some time before generate this file"
 		echo ""
 		exit 255
 	fi
@@ -30,9 +31,10 @@ elif [[ $1 == "--plot" ]]; then
 elif [[ $1 == "--performance" ]]; then
 	if [ ! -f Log.html ]; then
 		echo ""
-		echo "Log.html file is not ready yet!"
+		echo "Failure while opening Log.html output file"
 		echo ""
-		echo "    You must execute run.sh --timestep on the same folder where run.sh --run has been launched"
+		echo " * You must execute run.sh --performance on the same folder where run.sh --run has been launched"
+		echo " * AQUAgpusph may take some time before generate this file"
 		echo ""
 		exit 255
 	fi
