@@ -74,6 +74,7 @@ class FigureController(FigureCanvas):
                                   linewidth=1.0)
         # Set some options
         self.ax.grid()
+        self.ax.legend(loc='best')
         self.ax.set_autoscale_on(False)
         self.ax.set_xlabel(r"$t \, [\mathrm{s}]$", fontsize=21)
         self.ax.set_ylabel(r"$p \, [\mathrm{Pa}]$", fontsize=21)
