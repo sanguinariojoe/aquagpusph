@@ -1,12 +1,22 @@
 #!/bin/bash
 
-function sedeasy {
-	sed -i "s/$(echo $1 | sed -e 's/\([[\/.*]\|\]\)/\\&/g')/$(echo $2 | sed -e 's/[\/&]/\\&/g')/g" $3
-}
-
 if [[ $1 == "--run" ]]; then
 	rm -f Sensors.dat
-	@BINARY_DIR@/AQUAgpusph2D -i @EXAMPLE_DEST_DIR@/Main.xml --no-reassembly
+    rm -f AQUAgpusph.save.*.xml
+    rm -f energy.*.dat
+    rm -f log.*.html
+    rm -f output.*.vtu
+    rm -f output.pvd
+	@BINARY_DIR@/AQUAgpusph2D -i @EXAMPLE_DEST_DIR@/Main.xml
+elif [[ $1 == "--continue" ]]; then
+    INPUT=`ls -1 @EXAMPLE_DEST_DIR@ | grep AQUAgpusph.save. | tail -n 1`
+    if [[ $INPUT == "" ]]; then
+		echo ""
+		echo "A backup file AQUAgpusph.save.*.xml cannot be found"
+		echo ""
+		exit 255
+	fi
+    @BINARY_DIR@/AQUAgpusph2D -i $INPUT
 elif [[ $1 == "--plot" ]]; then
 	if [ ! -f Sensors.dat ]; then
 		echo ""
@@ -16,10 +26,7 @@ elif [[ $1 == "--plot" ]]; then
 		echo ""
 		exit 255
 	fi
-	# Replace the path doc/ by the absolute files path
-	sedeasy "@EXAMPLE_DEST_DIR@/doc/" "doc/" @EXAMPLE_DEST_DIR@/doc/$2.gnuplot
-	sedeasy "doc/" "@EXAMPLE_DEST_DIR@/doc/" @EXAMPLE_DEST_DIR@/doc/$2.gnuplot
-	gnuplot @EXAMPLE_DEST_DIR@/doc/$2.gnuplot
+	python @EXAMPLE_DEST_DIR@/doc/$2.py
 elif [[ $1 == "--performance" ]]; then
 	if [ ! -f Log.html ]; then
 		echo ""
@@ -45,6 +52,5 @@ else
 	echo "    sensor3    3rd pessure sensor"
 	echo "    sensor4    4th pessure sensor"
 	echo "    sensors    All the pessure sensors simultaneously"
-	echo "    x          Propagation of the surge front"
 	echo ""
 fi
