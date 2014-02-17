@@ -42,16 +42,18 @@ Bphi = 0.326  # Linear damping coefficient
 
 data = []
 try:
-    f = open('@EXAMPLE_DEST_DIR@/Move/T_1-94_A100mm.txt', 'r')
+    f = open('@EXAMPLE_DEST_DIR@/Move/T_1-94_A100mm_water.txt', 'r')
 except IOError:
     print('ERROR: Cannot open input data file.')
 
-line = f.readline()    # Discard header line
+# Discard header lines
+line = f.readline()
+line = f.readline()
 n = 0
 line = f.readline()
 while(line):
     data.append([])
-    words = line.split('\t')
+    words = line.strip().split(' ')
     for i in range(0,len(words)):
         data[n].append(float(words[i]))
     n = n+1

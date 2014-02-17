@@ -73,13 +73,13 @@ INSTALL(
 )
 INSTALL(
     FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012/Move/T_1-94_A100mm.txt
+        ${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012/Move/T_1-94_A100mm_water.txt
     DESTINATION
         ${EXAMPLE_DEST_DIR}/Move
 )
 INSTALL(
     FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012/doc/plot.gnuplot
+        ${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012/doc/plot.py
     DESTINATION
         ${EXAMPLE_DEST_DIR}/doc
 )
