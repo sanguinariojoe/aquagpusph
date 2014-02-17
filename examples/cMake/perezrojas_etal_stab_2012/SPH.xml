@@ -98,6 +98,6 @@ Authors:
         The option move can be activated to follow the solids in translation
         motions (false by default)
         -->
-		<Option name="Domain" x="-0.60" y="-0.1" z="-0.15" l="1.2" d="0.2" h="0.85" />
+		<Option name="Domain" x="-0.1" y="-0.6" z="-0.15" l="0.2" d="1.2" h="0.85" />
 	</SPH>
 </sphInput>
