@@ -61,7 +61,7 @@ Authors:
             value="ElasticBounce": Elastic bounce will be considered on walls
             interaction, dominated by an elastic factor. This method is used
             internally by the FixParticles and DeLeffe boundary conditions.
-            value="FixParticles": A set of particles (several rows) must be
+            value="FixedParticles": A set of particles (several rows) must be
             placed at the boundary as an extension of the fluid (U0Model).
             value="DeLeffe": Boundary integrals based boundary condition.
         -->
