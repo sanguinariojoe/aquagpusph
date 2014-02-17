@@ -1,31 +1,35 @@
 <?xml version="1.0" ?>
 <!--
-   %    %%   %  %   %
-  % %  %  %  %  %  % %                          %
- %%%%% %  %  %  % %%%%%  %%  %%%  %  %  %% %%%  %%%
- %   % %  %  %  % %   % %  % %  % %  % %   %  % %  %
- %   % %  %  %  % %   % %  % %  % %  %   % %  % %  %
- %   %  %% %  %%  %   %  %%% %%%   %%% %%  %%%  %  %
-                           % %             %
-                         %%  %             %
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
 
 Another QUAlity GPU-SPH, by CEHINAV.
-	http://canal.etsin.upm.es/
+    http://canal.etsin.upm.es/
 Authors:
-	Cercos Pita, Jose Luis
-	Miguel Gonzalez, Leo
-	Souto Iglesias, Antonio
+    Cercos Pita, Jose Luis
+    Miguel Gonzalez, Leo
+    Souto Iglesias, Antonio
 -->
 
 <sphInput>
 	<Movements>
-		<!-- Add movements. Several movements can be added, and effects will be superposed
-		 type="LIQuaternion": Quaternion (described by axis) will be provided in a file
-		 for several time instants, and the value at each time step will be lineary
-		 interpolated
-		 type="ScriptQuaternion": Python script will control the position of the quaternion
-		 at each time step.
-		 -->
+        <!-- Add motions. Several motions can be added, and effects will be
+        superposed.
+        type="LIQuaternion": Quaternion (described by axis) will be provided
+        in a file for several time instants, and the value at each time step
+        will be lineary interpolated
+        type="C1Quaternion": Quaternion (described by axis) will be provided
+        in a file for several time instants, and the value at each time step
+        will be interpolated through C1 polynomial functions.
+        type="ScriptQuaternion": Python script will control the position of
+        the quaternion at each time step.
+        -->
 		<Movement type="ScriptQuaternion" file="@EXAMPLE_DEST_DIR@/Move/6DOF.xml" />
 	</Movements>
 </sphInput>
