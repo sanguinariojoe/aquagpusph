@@ -188,6 +188,7 @@ def perform(COR, X, Y, Z, Torque, Force, t, dt):
     global f
     global Theta
     f.write('{}\t{}\t{}\t{}\n'.format(t, Xi, math.degrees(Theta), output))
+    f.flush()
     # Convert angle into quaternion
     mCOR = [0.0, 0.0, 0.47]
     mX   = [1.0, 0.0, 0.0]
