@@ -427,9 +427,9 @@ bool Sensors::initOutput(){
 	fprintf(_output,"# Another QUAlity GPU-SPH, by CEHINAV.\n");
 	fprintf(_output,"#\thttp://canal.etsin.upm.es/\n");
 	fprintf(_output,"#Authors:\n");
-	fprintf(_output,"#\tCercós Pita, Jose Luis\n");
-	fprintf(_output,"#\tMiguel Gonzalez, Leo\n");
-	fprintf(_output,"#\tSouto Iglesias, Antonio\n");
+	fprintf(_output,"#\tJose Luis Cercos-Pita\n");
+	fprintf(_output,"#\tLeo Miguel Gonzalez\n");
+	fprintf(_output,"#\tAntonio Souto-Iglesias\n");
 	fprintf(_output,"#\n");
 	fprintf(_output,"#########################################################\n");
 	fprintf(_output,"#\n");

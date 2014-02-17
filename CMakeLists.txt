@@ -12,9 +12,9 @@
 # ===================================================== #
 #                                                       #
 #   Authors:                                            #
-#       - Cercos Pita, Jose Luis                        #
-#       - Miguel Gonzalez, Leo                          #
-#       - Souto Iglesias, Antonio                       #
+#       - Jose Luis Cercos-Pita                         #
+#       - Leo Miguel Gonzalez                           #
+#       - Antonio Souto-Iglesias                        #
 #                                                       #
 # ===================================================== #
 

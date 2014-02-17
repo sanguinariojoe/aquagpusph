@@ -32,9 +32,9 @@
  * For the moment several platforms usage simultaneously is not supported. \n
  * In order to learn how to use AQUAgpusph an user manual and some examples are provided. \n
  * AQUAgpusph has been developed by CEHINAV group: \n
- * <ul><li>Cercós Pita, Jose Luis</li>
- * <li>Souto Iglesias, Antonio</li>
- * <li>Miguel Gonzalez, Leo</li></ul>
+ * <ul><li>Jose Luis Cercos Pita</li>
+ * <li>Antonio Souto Iglesias</li>
+ * <li>Leo Miguel Gonzalez</li></ul>
  * First release of the code have been published at Wed. 2013-12-12. \n
  * For more information about this development, please visit Canal-ETSIN web page: \n
  * http://canal.etsin.upm.es/
@@ -82,10 +82,10 @@ int main(int argc, char *argv[])
 	printf("\tAnother QUAlity GPU-SPH, by CEHINAV.\n");
 	printf("\t\thttp://canal.etsin.upm.es/\n");
 	printf("\tAuthors:\n");
-	printf("\t\tCercós Pita, Jose Luis\n");
-	printf("\t\tMiguel Gonzalez, Leo\n");
-	printf("\t\tSouto Iglesias, Antonio\n");
-	printf("\tAQUAgpusph Copyright (C) 2012  Jose Luis Cercos Pita\n");
+	printf("\t\tJose Luis Cercos Pita\n");
+	printf("\t\tLeo Miguel Gonzalez\n");
+	printf("\t\tAntonio Souto-Iglesias\n");
+	printf("\tAQUAgpusph Copyright (C) 2012  Jose Luis Cercos-Pita\n");
 	printf("\tThis program comes with ABSOLUTELY NO WARRANTY; for details see LICENSE.\n");
 	printf("\tThis is free software, and you are welcome to redistribute it\n");
 	printf("\tunder certain conditions; see LICENSE for details.\n");
