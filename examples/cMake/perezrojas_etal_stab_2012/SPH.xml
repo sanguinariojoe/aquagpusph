@@ -32,7 +32,7 @@ Authors:
         <!-- Sound speed of the fluid. Higher values will imply less
         compressible fluids, but the time step will be dereased as well.
         -->
-		<Option name="cs" value="45.0" />
+		<Option name="cs" value="30.0" />
         <!-- Number of steps between LinkList perform.
         LinkList is a relative complex operation, so decreasing the times
         that this operation is performed, some speed-ups can be won. On the
@@ -71,7 +71,7 @@ Authors:
             value="FreeSlip": Only normal velocity is imposed at wall.
         No-slip condition may imply some unconsistencies, be careful.
         -->
-		<Option name="SlipCondition" value="NoSlip" />
+		<Option name="SlipCondition" value="FreeSlip" />
         <!-- Elastic factor at boundary. 0.0 for total energy dissipation (the
         particles will be stoped), 1.0 for fully conservative reaction on the
         wall (the velocity will be fliped).

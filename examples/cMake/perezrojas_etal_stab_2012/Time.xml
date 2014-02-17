@@ -46,7 +46,7 @@ Authors:
         <!-- The Courant factor. If the time step value is computed (i.e. the
         value has not been provided) it will be multiplied by this factor.
         -->
-        <Option name="Courant" value="0.25"/>
+        <Option name="Courant" value="0.5"/>
 
         <!-- Velocity clamping. If a particle velocity grater than the
         tolerated by the minimum time step is detected, it will be clamped.
