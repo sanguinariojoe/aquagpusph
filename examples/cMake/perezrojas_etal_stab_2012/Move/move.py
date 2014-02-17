@@ -41,10 +41,7 @@ Kdf = 0.540  # Dry friction damping coefficient
 Bphi = 0.326  # Linear damping coefficient
 
 data = []
-try:
-    f = open('@EXAMPLE_DEST_DIR@/Move/T_1-94_A100mm_water.txt', 'r')
-except IOError:
-    print('ERROR: Cannot open input data file.')
+f = open('@EXAMPLE_DEST_DIR@/Move/T_1-94_A100mm_water.dat', 'r')
 
 # Discard header lines
 line = f.readline()
