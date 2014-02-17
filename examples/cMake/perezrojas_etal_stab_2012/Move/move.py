@@ -118,8 +118,8 @@ def angularForce(Torque):
     global Theta
     global dTheta
     Mdamp = damping()
-    xi = Xi/1000.0
-    dxi = dXi/1000.0
+    xi = Xi
+    dxi = dXi
     K0 = I0 + m*xi*xi    # ddTheta term
     K1 = 2.0*m*xi*dxi    # dTheta term
     K2 = -g*Sg           # sin(Theta) term
@@ -176,10 +176,7 @@ def perform(COR, X, Y, Z, Torque, Force, t, dt):
     Xi = (1.0 - factor)*data[lineID][1] + factor * data[lineID-1][1]
     dXi = (1.0 - factor)*data[lineID][2] + factor * data[lineID-1][2]
     # Get output angle data
-    fluid = 6    # 5=empty, 6=water, 7=oil, 8=glycerin
-    output = (1.0 - factor) * data[lineID][fluid] + factor * data[lineID - 1][fluid]
-    if fluid == 5:
-        Torque = [0.0, 0.0, 0.0]
+    output = (1.0 - factor) * data[lineID][4] + factor * data[lineID - 1][4]
     # Calculate ddTheta
     global D
     global ddTheta
