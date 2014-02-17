@@ -162,7 +162,7 @@ for i in range(0, n):
 print('    100%')
 
 string = """
-    Writing nodes...
+    Writing the boundary elements...
 """
 print(string)
 Percentage = -1
