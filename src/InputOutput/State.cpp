@@ -1336,7 +1336,7 @@ bool State::parseGhostParticles(DOMElement *root)
 	                    v[k].z = atof(xmlAttribute(ss_elem, "vz"));
 	                    v[k].w = 0.f;
 	                }
-	                P->ghost_particles.add(p[0], p[1], p[2]
+	                P->ghost_particles.add(p[0], p[1], p[2],
                                            v[0], v[1], v[2]);
 	            }
 	            if( ss_nodes->getLength() == 4 ){
@@ -1355,7 +1355,7 @@ bool State::parseGhostParticles(DOMElement *root)
 	                    v[k].z = atof(xmlAttribute(ss_elem, "vz"));
 	                    v[k].w = 0.f;
 	                }
-	                P->ghost_particles.add(p[0], p[1], p[2], p[3]
+	                P->ghost_particles.add(p[0], p[1], p[2], p[3],
                                            v[0], v[1], v[2], v[3]);
 	            }
 	        #else
@@ -2260,7 +2260,9 @@ bool State::writeGhostParticles(xercesc::DOMDocument* doc,
             ss_elem->setAttribute(xmlS("vz"), xmlS(att));
             s_elem->appendChild(ss_elem);
 
-            if((p3.x == p4.x) && (p3.y == p4.y) && (p3.z == p4.z))
+            if(   (P->ghost_particles.walls.at(i)->p3.x == P->ghost_particles.walls.at(i)->p4.x)
+               && (P->ghost_particles.walls.at(i)->p3.y == P->ghost_particles.walls.at(i)->p4.y)
+               && (P->ghost_particles.walls.at(i)->p3.z == P->ghost_particles.walls.at(i)->p4.z))
                 continue;
 
             ss_elem = doc->createElement(xmlS("Vertex"));
