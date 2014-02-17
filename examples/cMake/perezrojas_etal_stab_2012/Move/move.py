@@ -1,15 +1,15 @@
-#########################################################
-#                                                       #
-#    #    ##   #  #   #                           #     #
-#   # #  #  #  #  #  # #                          #     #
-#  ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###   #
-#  #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #  #
-#  #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #  #
-#  #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #  #
-#                            # #             #          #
-#                          ##  #             #          #
-#                                                       #
-#########################################################
+#########################################################################
+#                                                                       #
+#            #    ##   #  #   #                           #             #
+#           # #  #  #  #  #  # #                          #             #
+#          ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###           #
+#          #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #          #
+#          #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #          #
+#          #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #          #
+#                                    # #             #                  #
+#                                  ##  #             #                  #
+#                                                                       #
+#########################################################################
 #
 #  This file is part of AQUA-gpusph, a free CFD program based on SPH.
 #  Copyright (C) 2012  Jose Luis Cercos Pita <jl.cercos@upm.es>
@@ -27,180 +27,174 @@
 #  You should have received a copy of the GNU General Public License
 #  along with AQUA-gpusph.  If not, see <http://www.gnu.org/licenses/>.
 #
-#########################################################
-#
-#    Python script to perform STAB 2012 3D coupling simulation.
-#    Two methods are mandatory:
-#        [COR,X,Y] = init()
-#        [COR,X,Y] = perform(COR,X,Y,Z,Torque,Force,t,dt)
-#    Note that:
-#        3D cases needs Z axis component.
-#        At 2D torque and force are float variables, at 3D are 3 components vectors.
-#        Axis components will not normalized at AQUAgpusph, take care about this.
-#    Take special care about:
-#        Input data are tuples, so you can't edit it.
-#        Output data must be list (including each component), tuple will return error.
-#
-#########################################################
+#########################################################################
 
 import math
 
-# Problem global data
-D    = 0.062  # Tank width
-g    = 9.81   # Gravity acceleration [m/s2]
-I0   = 26.9   # Polar moment of inertia [kg m2]
-m    = 4.978  # Moving mass weight [kg]
-Sg   = -29.2  # Satic moment of the rigid system [kg m]
-Kdf  = 0.540  # Dry friction damping coefficient 
+
+D = 0.062  # Tank width
+g = 9.81   # Gravity acceleration [m/s2]
+I0 = 26.9   # Polar moment of inertia [kg m2]
+m = 4.978  # Moving mass weight [kg]
+Sg = -29.2  # Satic moment of the rigid system [kg m]
+Kdf = 0.540  # Dry friction damping coefficient 
 Bphi = 0.326  # Linear damping coefficient
-# Read experimental register data
+
 data = []
 try:
-	f = open('@EXAMPLE_DEST_DIR@/Move/T_1-94_A100mm.txt', 'r')
+    f = open('@EXAMPLE_DEST_DIR@/Move/T_1-94_A100mm.txt', 'r')
 except IOError:
-	print('ERROR: Cannot open input data file.')
-line = f.readline()	# Discard header line
+    print('ERROR: Cannot open input data file.')
+
+line = f.readline()    # Discard header line
 n = 0
 line = f.readline()
 while(line):
-	data.append([])
-	words = line.split('\t')
-	for i in range(0,len(words)):
-		data[n].append(float(words[i]))
-	n = n+1
-	line = f.readline()
+    data.append([])
+    words = line.split('\t')
+    for i in range(0,len(words)):
+        data[n].append(float(words[i]))
+    n = n+1
+    line = f.readline()
 f.close()
 lineID = 0
+
 # Starting mass movement data
-Xi      = data[0][1]
-dXi     = data[0][2]
+Xi = data[0][1]
+dXi = data[0][2]
 # Starting Tank movement data
-Theta   = 0.0
-dTheta  = 0.0
+Theta = 0.0
+dTheta = 0.0
 ddTheta = 0.0
-DT      = 0.0
+DT = 0.0
 # Open output
 try:
-	f = open('zMovement.dat', 'w')
+    f = open('Motion.dat', 'w')
 except IOError:
-	print('ERROR: Cannot open output data file.')
-# File will still opened when simulation finalished
+    print('ERROR: Cannot open output data file.')
+# File may still be opened when the simulation has finished
 
 def init():
-	""" Returns initial quaternion.
-	@return [COR,X,Y], quaternion is defined by a center of rotation 
-	and X,Y axes.
-	"""
-	mCOR = [0.0,0.0,0.47]
-	mX   = [1.0,0.0,0.0]
-	mY   = [0.0,1.0,0.0]
-	mZ   = [0.0,0.0,1.0]
-	return [mCOR,mX,mY,mZ]
+    """ Returns initial quaternion.
+    @return [COR,X,Y], quaternion is defined by a center of rotation 
+    and X,Y axes.
+    """
+    mCOR = [0.0,0.0,0.47]
+    mX = [1.0,0.0,0.0]
+    mY = [0.0,1.0,0.0]
+    mZ = [0.0,0.0,1.0]
+    return [mCOR, mX, mY, mZ]
+
 
 def sign(value):
-	""" Returns variable sign.
-	@param value value to study
-	@return value sign, if value is equal to 0, 0 will returned
-	"""
-	if not value:
-		return 0.0
-	return math.copysign(1,value)
+    """ Returns variable sign.
+    @param value value to study
+    @return value sign, if value is equal to 0, 0 will returned
+    """
+    if not value:
+        return 0.0
+    return math.copysign(1, value)
+
 
 def damping():
-	""" Returns tank damping moment.
-	@return Tank damping moment.
-	"""
-	global Kdf
-	global dTheta
-	return -Kdf*sign(dTheta) - Bphi*dTheta
+    """ Returns tank damping moment.
+    @return Tank damping moment.
+    """
+    global Kdf
+    global dTheta
+    return -Kdf * sign(dTheta) - Bphi * dTheta
+
 
 def angularForce(Torque):
-	""" Returns tank angular acceleration.
-	@param Torque Measured fluid torque.
-	@return Tank angular force.
-	"""
-	global I0
-	global m
-	global g
-	global Sg
-	global Xi
-	global dXi
-	global Theta
-	global dTheta
-	Mdamp = damping()
-	xi    = Xi/1000.0
-	dxi   = dXi/1000.0
-	K0    = I0 + m*xi*xi	# ddTheta term
-	K1    = 2.0*m*xi*dxi	# dTheta term
-	K2    = -g*Sg		# sin(Theta) term
-	K3    = m*g*xi		# Independent term
-	return (Mdamp - Torque - K1*dTheta - K2*math.sin(Theta) - K3*math.cos(Theta)) / K0
+    """ Returns tank angular acceleration.
+    @param Torque Measured fluid torque.
+    @return Tank angular force.
+    """
+    global I0
+    global m
+    global g
+    global Sg
+    global Xi
+    global dXi
+    global Theta
+    global dTheta
+    Mdamp = damping()
+    xi = Xi/1000.0
+    dxi = dXi/1000.0
+    K0 = I0 + m*xi*xi    # ddTheta term
+    K1 = 2.0*m*xi*dxi    # dTheta term
+    K2 = -g*Sg           # sin(Theta) term
+    K3 = m*g*xi          # Independent term
+    return (Mdamp - Torque - K1 * dTheta - K2 * math.sin(Theta) - K3 * math.cos(Theta)) / K0
+
 
 def predictor():
-	""" Performs predictor Leap-Frog stage.
-	"""
-	global DT
-	global Theta
-	global dTheta
-	global ddTheta
-	dTheta = dTheta + DT*ddTheta;
-	Theta  = Theta  + DT*dTheta + 0.5*DT*DT*ddTheta;
+    """ Performs predictor Leap-Frog stage.
+    """
+    global DT
+    global Theta
+    global dTheta
+    global ddTheta
+    dTheta = dTheta + DT * ddTheta;
+    Theta = Theta  + DT * dTheta + 0.5 * DT * DT * ddTheta;
+
 
 def corrector(dt, old):
-	""" Performs predictor Leap-Frog stage.
-	@param dt Time step
-	@param old Previous ddTheta value
-	"""
-	global DT
-	global dTheta
-	global ddTheta
-	DT = dt
-	dTheta = dTheta + 0.5*DT*(ddTheta-old);
+    """ Performs predictor Leap-Frog stage.
+    @param dt Time step
+    @param old Previous ddTheta value
+    """
+    global DT
+    global dTheta
+    global ddTheta
+    DT = dt
+    dTheta = dTheta + 0.5 * DT * (ddTheta - old);
 
-def perform(COR,X,Y,Z,Torque,Force,t,dt):
-	""" Returns quaternion evolution.
-	@param COR Center of rotation at time t.
-	@param X X axis at time t.
-	@param Y Y axis at time t.
-	@param Z Z axis at time t.
-	@param Torque Measured fluid torque.
-	@param Force Measured fluid force.
-	@param t Time before integrate.
-	@param dt Time step.
-	@return [COR,X,Y], quaternion is defined by a center of rotation 
-	and X,Y axes.
-	"""
-	# Leap-frog Predictor
-	predictor()
-	# Get new mass position
-	global lineID
-	global data
-	global Xi
-	global dXi
-	while(t >= data[lineID][0]):
-		lineID = lineID+1
-	factor = (data[lineID][0] - t) / (data[lineID][0] - data[lineID-1][0])
-	Xi     = (1.0-factor)*data[lineID][1] + factor*data[lineID-1][1]
-	dXi    = (1.0-factor)*data[lineID][2] + factor*data[lineID-1][2]
-	# Get output angle data
-	fluid  = 6    # 5=empty, 6=water, 7=oil, 8=glycerin
-	output = (1.0-factor)*data[lineID][fluid] + factor*data[lineID-1][fluid]
-	if fluid == 5:
-		Torque = [0.0,0.0,0.0]
-	# Calculate ddTheta
-	global D
-	global ddTheta
-	old = ddTheta
-	ddTheta = angularForce(Torque[0])
-	# Leap-frog Corrector
-	corrector(dt,old)
-	# Write output
-	global f
-	global Theta
-	f.write('%f\t%f\t%f\t%f\n' % (t,Xi,math.degrees(Theta),output))
-	# Convert angle into quaternion
-	mCOR = [0.0,0.0,0.47]
-	mX   = [1.0,0.0,0.0]
-	mY   = [0.0,math.cos(Theta),math.sin(Theta)]
-	mZ   = [0.0,-math.sin(Theta),math.cos(Theta)]
-	return [mCOR,mX,mY,mZ]
+
+def perform(COR, X, Y, Z, Torque, Force, t, dt):
+    """ Returns quaternion evolution.
+    @param COR Center of rotation at time t.
+    @param X X axis at time t.
+    @param Y Y axis at time t.
+    @param Z Z axis at time t.
+    @param Torque Measured fluid torque.
+    @param Force Measured fluid force.
+    @param t Time before integrate.
+    @param dt Time step.
+    @return [COR,X,Y], quaternion is defined by a center of rotation 
+    and X,Y axes.
+    """
+    # Leap-frog Predictor
+    predictor()
+    # Get new mass position
+    global lineID
+    global data
+    global Xi
+    global dXi
+    while(t >= data[lineID][0]):
+        lineID = lineID + 1
+    factor = (data[lineID][0] - t) / (data[lineID][0] - data[lineID-1][0])
+    Xi = (1.0 - factor)*data[lineID][1] + factor * data[lineID-1][1]
+    dXi = (1.0 - factor)*data[lineID][2] + factor * data[lineID-1][2]
+    # Get output angle data
+    fluid = 6    # 5=empty, 6=water, 7=oil, 8=glycerin
+    output = (1.0 - factor) * data[lineID][fluid] + factor * data[lineID - 1][fluid]
+    if fluid == 5:
+        Torque = [0.0, 0.0, 0.0]
+    # Calculate ddTheta
+    global D
+    global ddTheta
+    old = ddTheta
+    ddTheta = angularForce(Torque[0])
+    # Leap-frog Corrector
+    corrector(dt, old)
+    # Write output
+    global f
+    global Theta
+    f.write('{}\t{}\t{}\t{}\n'.format(t, Xi, math.degrees(Theta), output))
+    # Convert angle into quaternion
+    mCOR = [0.0, 0.0, 0.47]
+    mX   = [1.0, 0.0, 0.0]
+    mY   = [0.0, math.cos(Theta), math.sin(Theta)]
+    mZ   = [0.0, -math.sin(Theta), math.cos(Theta)]
+    return [mCOR, mX, mY, mZ]
