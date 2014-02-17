@@ -57,10 +57,9 @@ class FigureController(FigureCanvas):
         self.ax = self.fig.add_subplot(111)
         FigureCanvas.__init__(self, self.fig)
         # generates first "empty" plot
-        data = self.readFile('lateral_water_1x.txt')
         self.t = [0.0]
         self.exp_a = [0.0]
-        self.exp_line, = self.ax.plot(self.exp_t,
+        self.exp_line, = self.ax.plot(self.t,
                                       self.exp_a,
                                       label='Experimental',
                                       color="red",
@@ -74,6 +73,8 @@ class FigureController(FigureCanvas):
         # Set some options
         self.ax.grid()
         self.ax.legend(loc='best')
+        self.ax.set_xlim(0, 0.1)
+        self.ax.set_ylim(-0.1, 0.1)
         self.ax.set_autoscale_on(False)
         self.ax.set_xlabel(r"$t \, [\mathrm{s}]$", fontsize=21)
         self.ax.set_ylabel(r"$\theta \, [\mathrm{deg}]$", fontsize=21)
@@ -115,6 +116,13 @@ class FigureController(FigureCanvas):
         self.a = data[2]
         self.exp_line.set_data(self.t, self.exp_a)
         self.line.set_data(self.t, self.a)
+
+        self.ax.set_xlim(0, self.t[-1])
+        ymax_exp = max(abs(max(self.exp_a)), abs(min(self.exp_a)))
+        ymax_sph = max(abs(max(self.a)), abs(min(self.a)))
+        ymax = max(ymax_exp, ymax_sph)
+        self.ax.set_ylim(-1.1 * ymax, 1.1 * ymax)
+
         # Redraw
         self.fig.canvas.draw()
 
