@@ -11,6 +11,10 @@ __v-1.4.06______________________________________________________________________
 	* Added __PRETTY_FUNCTION__ debuging data.
     * Modified the tangetial radius of the elastic bounce elements from
       sep*hfac*dr to sqrt(2)*dr.
+    * Implemented a new input/output interface.
+    * Removed the H5Part dependency.
+    * Removed the MPI dependency.
+    * Updated the examples.
 
 __v-1.4.05_________________________________________________________________________________
 
