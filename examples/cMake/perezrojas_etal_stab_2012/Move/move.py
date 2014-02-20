@@ -124,7 +124,7 @@ def angularForce(Torque):
     K1 = 2.0*m*xi*dxi    # dTheta term
     K2 = -g*Sg           # sin(Theta) term
     K3 = m*g*xi          # Independent term
-    return (Mdamp - Torque - K1 * dTheta - K2 * math.sin(Theta) - K3 * math.cos(Theta)) / K0
+    return (Mdamp + Torque - K1 * dTheta - K2 * math.sin(Theta) - K3 * math.cos(Theta)) / K0
 
 
 def predictor():
