@@ -93,7 +93,10 @@ OPTION(AQUAGPUSPH_USE_VTK "Build AQUAgpusph with VTK output format support (on d
 OPTION(AQUAGPUSPH_BUILD_TOOLS "Build AQUAgpusph tools" ON)
 OPTION(AQUAGPUSPH_BUILD_EXAMPLES "Build AQUAgpusph examples" ON)
 OPTION(AQUAGPUSPH_BUILD_DOC "Build AQUAgpusph documentation" OFF)
-
+OPTION(AQUAGPUSPH_GPU_PROFILE "Profile the GPU during the runtime (consuming additional resources)" OFF)
+MARK_AS_ADVANCED(
+  AQUAGPUSPH_GPU_PROFILE
+)
 
 # ===================================================== #
 # Search the packages                                   #
@@ -169,9 +172,9 @@ MESSAGE(FATAL_ERROR "libmatheval not found, but ${PACKAGE_NAME} requires it. Ple
 ENDIF(NOT MATHEVAL_FOUND)
 
 # GPU profile
-IF(CMAKE_BUILD_TYPE EQUAL Debug)
+IF(AQUAGPUSPH_GPU_PROFILE)
 	ADD_DEFINITIONS(-DHAVE_GPUPROFILE)
-ENDIF(CMAKE_BUILD_TYPE EQUAL Debug)
+ENDIF(AQUAGPUSPH_GPU_PROFILE)
 
 
 # ===================================================== #
