@@ -18,27 +18,11 @@
 
 #include <CL/cl.h>
 
-// ----------------------------------------------------------------------------
-// Include the main header
-// ----------------------------------------------------------------------------
 #include <ScreenManager.h>
-
-// ----------------------------------------------------------------------------
-// Include the calculation server headers
-// ----------------------------------------------------------------------------
 #include <FileManager.h>
-
-// ----------------------------------------------------------------------------
-// Include the calculation server headers
-// ----------------------------------------------------------------------------
 #include <CalcServer.h>
-
-// ----------------------------------------------------------------------------
-// Include the time manager
-// ----------------------------------------------------------------------------
 #include <TimeManager.h>
 
-/// Static ncurses window decriptor
 WINDOW *wnd;
 
 namespace Aqua{ namespace InputOutput{
@@ -48,23 +32,24 @@ ScreenManager::ScreenManager()
 	int i;
 	CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
 	TimeManager *T = TimeManager::singleton();
-	//! Start ncurses screen.
+
 	_n_log = 20;
 	#ifdef HAVE_NCURSES
 		wnd = initscr();
 		if(!wnd){
-			printf("WARNING (ScreenManager::Init): Can't init the screen manager\n");
+            S->addMessageF(1, "Failure initializating the screen manager\n");
 			return;
 		}
 		if(has_colors())
 			start_color();
         int rows, cols;
         getmaxyx(wnd,rows,cols);
-        _n_log = rows - 17; // 17 lines of fix text (including the log registry title)
+        // 17 lines for the fix text (including the log registry title)
+        _n_log = rows - 17;
 	#endif
-	//! Get system time
+
 	gettimeofday(&_start_time, NULL);
-	//! Start log registry
+
 	_c_log = new int[_n_log];
 	_m_log = new char*[_n_log];
 	for(i=0;i<_n_log;i++)
@@ -72,7 +57,7 @@ ScreenManager::ScreenManager()
 		_c_log[i] = 0;
 		_m_log[i] = new char[128];
 	}
-	//! 5th.- Initial values
+
 	_old_frame = T->frame();
 }
 
@@ -98,7 +83,7 @@ void ScreenManager::update()
 	int iPercentage = 0;
 	long seconds;
 	unsigned int i,line;
-	//! 1st.- Start color pairs
+
 	#ifdef HAVE_NCURSES
 		if(!wnd)
 			return;
@@ -109,7 +94,7 @@ void ScreenManager::update()
 		init_pair(4, COLOR_YELLOW, COLOR_BLACK);
 		init_pair(5, COLOR_RED, COLOR_BLACK);
 	#endif
-	//! 2nd.- Print simulation time info
+
 	#ifdef HAVE_NCURSES
 		attron(A_NORMAL | COLOR_PAIR(2));
 		move(1, 2);
@@ -117,7 +102,7 @@ void ScreenManager::update()
 	#else
 		printf("Time: %g s (dt = %g s).\n", T->time() - T->dt(), T->dt());
 	#endif
-	//! 3rd.- Print percentage of simulation completed.
+
 	float _time = T->time() - T->startTime();
 	float mMaxTime = T->maxTime() - T->startTime();
 	int mFrame = T->frame() - T->startFrame();
@@ -163,7 +148,7 @@ void ScreenManager::update()
 	#else
 	    printf("\t[%d]", iPercentage);
 	#endif
-	//! 4th.- Print Frame.
+
 	#ifdef HAVE_NCURSES
 		move(2, 2);
 		printw("Frame: %d.", T->frame());
@@ -173,7 +158,7 @@ void ScreenManager::update()
 		printf("\tFrame: %d.", T->frame());
 		printf("\tStep: %u.", T->step());
 	#endif
-	//! 5th.- Print ETA.
+
 	gettimeofday(&_actual_time, NULL);
 	seconds = _actual_time.tv_sec  - _start_time.tv_sec;
 	seconds = (long unsigned int)(seconds / Percentage) - seconds;
@@ -279,7 +264,7 @@ void ScreenManager::update()
 	    delete[] str; str=0;
 	    delete[] aux; aux=0;
 	#endif
-	//! 6th.- Print calc server data
+
 	#ifdef HAVE_NCURSES
 		attron(A_NORMAL | COLOR_PAIR(5));
 		move(5, 2);
@@ -292,7 +277,7 @@ void ScreenManager::update()
 		printf("\tNumber of particles: %d,", c->n);
 		printf("\tAllocated memory: %d bytes\n", (int)c->allocated_mem);
 	#endif
-	//! 7th.- Print simulation results data
+
 	#ifdef HAVE_NCURSES
 		attron(A_NORMAL | COLOR_PAIR(3));
 	#endif
@@ -359,7 +344,6 @@ void ScreenManager::update()
 	    #endif
 	}
 
-	//! 8th.- Log registry.
 	line=16;
 	i=0;
 	#ifdef HAVE_NCURSES
@@ -383,7 +367,7 @@ void ScreenManager::update()
 	        i++;
 	    }
 	#endif
-	//! 9th.- Refresh the screen
+
 	#ifdef HAVE_NCURSES
 		refresh();
 	#else
