@@ -49,7 +49,7 @@ ScreenManager::ScreenManager()
 	CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
 	TimeManager *T = TimeManager::singleton();
 	//! Start ncurses screen.
-	nLog = 20;
+	_n_log = 20;
 	#ifdef HAVE_NCURSES
 		wnd = initscr();
 		if(!wnd){
@@ -60,17 +60,17 @@ ScreenManager::ScreenManager()
 			start_color();
         int rows, cols;
         getmaxyx(wnd,rows,cols);
-        nLog = rows - 17; // 17 lines of fix text (including the log registry title)
+        _n_log = rows - 17; // 17 lines of fix text (including the log registry title)
 	#endif
 	//! Get system time
-	gettimeofday(&mStartTime, NULL);
+	gettimeofday(&_start_time, NULL);
 	//! Start log registry
-	cLog = new int[nLog];
-	mLog = new char*[nLog];
-	for(i=0;i<nLog;i++)
+	_c_log = new int[_n_log];
+	_m_log = new char*[_n_log];
+	for(i=0;i<_n_log;i++)
 	{
-		cLog[i] = 0;
-		mLog[i] = new char[128];
+		_c_log[i] = 0;
+		_m_log[i] = new char[128];
 	}
 	//! 5th.- Initial values
 	_old_frame = T->frame();
@@ -84,10 +84,10 @@ ScreenManager::~ScreenManager()
 	    endwin();
 	#endif
 	// Free allocated memory
-	delete[] cLog;
-	for(i=0;i<nLog;i++)
-		delete[] mLog[i];
-	delete[] mLog;
+	delete[] _c_log;
+	for(i=0;i<_n_log;i++)
+		delete[] _m_log[i];
+	delete[] _m_log;
 }
 
 void ScreenManager::update()
@@ -174,8 +174,8 @@ void ScreenManager::update()
 		printf("\tStep: %u.", T->step());
 	#endif
 	//! 5th.- Print ETA.
-	gettimeofday(&mActualTime, NULL);
-	seconds = mActualTime.tv_sec  - mStartTime.tv_sec;
+	gettimeofday(&_actual_time, NULL);
+	seconds = _actual_time.tv_sec  - _start_time.tv_sec;
 	seconds = (long unsigned int)(seconds / Percentage) - seconds;
 	#ifdef HAVE_NCURSES
 		move(2, 35);
@@ -367,18 +367,18 @@ void ScreenManager::update()
 		attron(A_NORMAL | COLOR_PAIR(1));
 		printw("--- Log registry ------------------------------");
 	    line++;
-	    while((i<nLog) && (cLog[i]>0))
+	    while((i<_n_log) && (_c_log[i]>0))
 	    {
 	        move(line, 2);
-	        if(cLog[i] == 1)        // Info
+	        if(_c_log[i] == 1)        // Info
 	            attron(A_BOLD   | COLOR_PAIR(1));
-	        else if(cLog[i] == 2)   // Warning
+	        else if(_c_log[i] == 2)   // Warning
 	            attron(A_BOLD   | COLOR_PAIR(4));
-	        else if(cLog[i] == 3)   // Error
+	        else if(_c_log[i] == 3)   // Error
 	            attron(A_BOLD   | COLOR_PAIR(5));
 	        else                    // Auxiliar messages
 	            attron(A_NORMAL | COLOR_PAIR(1));
-	        printw(mLog[i]);
+	        printw(_m_log[i]);
 	        line++;
 	        i++;
 	    }
@@ -429,36 +429,36 @@ void ScreenManager::addMessage(int Level, const char *log, const char *func)
 
 	int i=0;
 	TimeManager *T = TimeManager::singleton();
-	while((i<nLog) && (cLog[i]>0))
+	while((i<_n_log) && (_c_log[i]>0))
 	{
 		i++;
 	}
-	if(i >= nLog)
+	if(i >= _n_log)
 	{
-		for(i=0;i<nLog-1;i++)
+		for(i=0;i<_n_log-1;i++)
 		{
-			cLog[i] = cLog[i+1];
-			strcpy(mLog[i], mLog[i+1]);
+			_c_log[i] = _c_log[i+1];
+			strcpy(_m_log[i], _m_log[i+1]);
 		}
-		cLog[nLog-1] = Level;
-		strcpy(mLog[nLog-1], log);
+		_c_log[_n_log-1] = Level;
+		strcpy(_m_log[_n_log-1], log);
 	}
 	else
 	{
-		cLog[i] = Level;
-		strcpy(mLog[i], log);
+		_c_log[i] = Level;
+		strcpy(_m_log[i], log);
 	}
 	// Write the message into a file
 	FILE *LogFileID = FileManager::singleton()->logFile();
 	if(LogFileID)
 	{
-		if(cLog[i] == 1)	// Log
+		if(_c_log[i] == 1)	// Log
 			fprintf(LogFileID, "<b><font color=\"#000000\">[INFO (T=%gs, Step=%d)] %s%s</font></b><br>",
 	                T->time() - T->dt(), T->step(), fname, log);
-		else if(cLog[i] == 2)	// Warning
+		else if(_c_log[i] == 2)	// Warning
 			fprintf(LogFileID, "<b><font color=\"#ff9900\">[WARNING (T=%gs, Step=%d)] %s%s</font></b><br>",
 	                T->time() - T->dt(), T->step(), fname, log);
-		else if(cLog[i] == 3)	// Error
+		else if(_c_log[i] == 3)	// Error
 			fprintf(LogFileID, "<b><font color=\"#dd0000\">[ERROR (T=%gs, Step=%d)] %s%s</font></b><br>",
 	                T->time() - T->dt(), T->step(), fname, log);
 	    else{

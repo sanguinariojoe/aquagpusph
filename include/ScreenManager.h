@@ -104,20 +104,20 @@ public:
     void printOpenCLError(int error, int level=0);
 private:
 	/// Start time
-	struct timeval mStartTime;
+	struct timeval _start_time;
 	/// Actual time
-	struct timeval mActualTime;
+	struct timeval _actual_time;
 	/// Maximum number of log messages
-	long nLog;
+	long _n_log;
 	/** Califier of message: \n
 	 * 0 = Empty message. \n
 	 * 1 = Info message. \n
 	 * 2 = Warning message. \n
 	 * 3 = Error message.
 	 */
-	int *cLog;
+	int *_c_log;
 	/// Log messages.
-	char **mLog;
+	char **_m_log;
 
 	/// Previous Frame
 	int _old_frame;
