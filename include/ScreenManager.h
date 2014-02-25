@@ -119,11 +119,8 @@ private:
 	/// Log messages.
 	char **mLog;
 
-
-	/// Previous time step
-	float mOldDt;
 	/// Previous Frame
-	int mOldFrame;
+	int _old_frame;
 };
 
 }}  // namespace

@@ -73,8 +73,7 @@ ScreenManager::ScreenManager()
 		mLog[i] = new char[128];
 	}
 	//! 5th.- Initial values
-	mOldDt = C->dt;
-	mOldFrame = T->frame();
+	_old_frame = T->frame();
 }
 
 ScreenManager::~ScreenManager()
@@ -299,7 +298,8 @@ void ScreenManager::update()
 	#endif
 	if(c->verbose_level > 0) {
 	    if( (c->verbose_level >= 2) ||
-	       ((c->verbose_level == 1) && (mOldFrame != T->frame())) ) {
+	       ((c->verbose_level == 1) && (_old_frame != T->frame())) ) {
+            _old_frame = T->frame();
 	        c->energy();
 	        c->bounds();
 	    }
@@ -358,16 +358,7 @@ void ScreenManager::update()
 	        printw("Verbose level = 0, any data will be printed.");
 	    #endif
 	}
-	if(mOldFrame != T->frame()){
-	    if(mOldDt != c->dt)
-	    {
-	        char msg[256];
-	        sprintf(msg, "(ScreenManager::Update): timestep changed [%g -> %g]\n",mOldDt,c->dt);
-	        addMessage(2, msg);
-	    }
-	    mOldFrame = T->frame();
-	    mOldDt = c->dt;
-	}
+
 	//! 8th.- Log registry.
 	line=16;
 	i=0;
