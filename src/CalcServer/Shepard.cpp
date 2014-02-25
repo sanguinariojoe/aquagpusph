@@ -108,7 +108,7 @@ bool Shepard::execute()
                                           _kernel,
                                           1,
                                           NULL,
-                                          &globalWorkSize
+                                          &globalWorkSize,
                                           NULL,
                                           0,
                                           NULL,
