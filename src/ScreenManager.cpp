@@ -37,7 +37,7 @@ ScreenManager::ScreenManager()
 	#ifdef HAVE_NCURSES
 		wnd = initscr();
 		if(!wnd){
-            S->addMessageF(1, "Failure initializating the screen manager\n");
+            addMessageF(1, "Failure initializating the screen manager\n");
 			return;
 		}
 		if(has_colors())
@@ -58,7 +58,7 @@ ScreenManager::ScreenManager()
 		_m_log[i] = new char[128];
 	}
 
-	_old_frame = T->frame();
+	_old_frame = -1;
 }
 
 ScreenManager::~ScreenManager()
@@ -79,6 +79,22 @@ void ScreenManager::update()
 {
 	CalcServer::CalcServer *c = CalcServer::CalcServer::singleton();
 	TimeManager *T = TimeManager::singleton();
+	if(!c->verbose_level)
+    {
+	    #ifdef HAVE_NCURSES
+	        move(10, 2);
+	        printw("Verbose level = 0, no data will be printed.");
+            refresh();
+	    #endif
+	    return;
+	}
+
+	if((c->verbose_level == 1) && (_old_frame == T->frame()))
+    {
+        return;
+	}
+    _old_frame = T->frame();
+
 	float Percentage = 0;
 	int iPercentage = 0;
 	long seconds;
@@ -268,81 +284,70 @@ void ScreenManager::update()
 	#ifdef HAVE_NCURSES
 		attron(A_NORMAL | COLOR_PAIR(5));
 		move(5, 2);
-		printw("Number of particles: %d", c->n);
+		printw("Number of particles: %u", c->n);
 		move(6, 2);
-		printw("Number of cells (allocated in memory): %d", c->num_cells_allocated);
+		printw("Number of cells (allocated in memory): %u", c->num_cells_allocated);
 		move(7, 2);
-		printw("Allocated memory: %d bytes", (int)c->allocated_mem);
+		printw("Allocated memory: %lu bytes", (int)c->allocated_mem);
 	#else
-		printf("\tNumber of particles: %d,", c->n);
-		printf("\tAllocated memory: %d bytes\n", (int)c->allocated_mem);
+		printf("\tNumber of particles: %u,", c->n);
+		printf("\tAllocated memory: %lu bytes\n", (int)c->allocated_mem);
 	#endif
 
 	#ifdef HAVE_NCURSES
 		attron(A_NORMAL | COLOR_PAIR(3));
 	#endif
-	if(c->verbose_level > 0) {
-	    if( (c->verbose_level >= 2) ||
-	       ((c->verbose_level == 1) && (_old_frame != T->frame())) ) {
-            _old_frame = T->frame();
-	        c->energy();
-	        c->bounds();
-	    }
-	    #ifdef HAVE_NCURSES
-            move(10, 2);
-            printw("U = %g (J)",c->eint);
-            move(10, 32);
-            printw("Ekin = %g (J)",c->ekin);
-            move(10, 62);
-            printw("E = %g (J)",c->etot);
-            move(11, 2);
-            printw("xmin = %g (m)",c->min_fluid_bound.x);
-            move(11, 32);
-            printw("ymin = %g (m)",c->min_fluid_bound.y);
-            #ifdef HAVE_3D
-                move(11, 62);
-                printw("zmin = %g (m)",c->min_fluid_bound.z);
-            #endif
-            move(12, 2);
-            printw("xmax = %g (m)",c->max_fluid_bound.x);
-            move(12, 32);
-            printw("ymax = %g (m)",c->max_fluid_bound.y);
-            #ifdef HAVE_3D
-                move(12, 62);
-                printw("zmax = %g (m)",c->max_fluid_bound.z);
-            #endif
-            move(13, 2);
-            printw("Vmin = %g (m/s)",c->min_v);
-            move(13, 32);
-            printw("Vmax = %g (m/s)",c->max_v);
-	    #else
-	        printf("\tU = %g (J), ", c->eint);
-	        printf("Ekin = %g (J), ", c->ekin);
-	        printf("E = %g (J)\n", c->etot);
-	        printf("\txmin = %g (m), ",c->min_fluid_bound.x);
-	        printf("ymin = %g (m)",c->min_fluid_bound.y);
-            #ifdef HAVE_3D
-                printf(", zmin = %g (m)\n",c->min_fluid_bound.z);
-            #else
-                printf("\n");
-            #endif
-	        printf("\txmax = %g (m), ",c->max_fluid_bound.x);
-	        printf("ymax = %g (m)",c->max_fluid_bound.y);
-            #ifdef HAVE_3D
-                printf(", zmax = %g (m)\n",c->max_fluid_bound.z);
-            #else
-                printf("\n");
-            #endif
-	        printf("\tvmin = %g (m/s), ",c->min_v);
-	        printf("vmax = %g (m/s)\n",c->max_v);
-	    #endif
-	}
-	else {
-	    #ifdef HAVE_NCURSES
-	        move(10, 2);
-	        printw("Verbose level = 0, any data will be printed.");
-	    #endif
-	}
+
+    c->energy();
+    c->bounds();
+    #ifdef HAVE_NCURSES
+        move(10, 2);
+        printw("U = %g (J)",c->eint);
+        move(10, 32);
+        printw("Ekin = %g (J)",c->ekin);
+        move(10, 62);
+        printw("E = %g (J)",c->etot);
+        move(11, 2);
+        printw("xmin = %g (m)",c->min_fluid_bound.x);
+        move(11, 32);
+        printw("ymin = %g (m)",c->min_fluid_bound.y);
+        #ifdef HAVE_3D
+            move(11, 62);
+            printw("zmin = %g (m)",c->min_fluid_bound.z);
+        #endif
+        move(12, 2);
+        printw("xmax = %g (m)",c->max_fluid_bound.x);
+        move(12, 32);
+        printw("ymax = %g (m)",c->max_fluid_bound.y);
+        #ifdef HAVE_3D
+            move(12, 62);
+            printw("zmax = %g (m)",c->max_fluid_bound.z);
+        #endif
+        move(13, 2);
+        printw("Vmin = %g (m/s)",c->min_v);
+        move(13, 32);
+        printw("Vmax = %g (m/s)",c->max_v);
+    #else
+        printf("\tU = %g (J), ", c->eint);
+        printf("Ekin = %g (J), ", c->ekin);
+        printf("E = %g (J)\n", c->etot);
+        printf("\txmin = %g (m), ",c->min_fluid_bound.x);
+        printf("ymin = %g (m)",c->min_fluid_bound.y);
+        #ifdef HAVE_3D
+            printf(", zmin = %g (m)\n",c->min_fluid_bound.z);
+        #else
+            printf("\n");
+        #endif
+        printf("\txmax = %g (m), ",c->max_fluid_bound.x);
+        printf("ymax = %g (m)",c->max_fluid_bound.y);
+        #ifdef HAVE_3D
+            printf(", zmax = %g (m)\n",c->max_fluid_bound.z);
+        #else
+            printf("\n");
+        #endif
+        printf("\tvmin = %g (m/s), ",c->min_v);
+        printf("vmax = %g (m/s)\n",c->max_v);
+    #endif
 
 	line=16;
 	i=0;
