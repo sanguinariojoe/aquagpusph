@@ -53,7 +53,29 @@ State::State()
     : _output_file(NULL)
 {
     unsigned int i;
-	ScreenManager *S = ScreenManager::singleton();
+    struct lconv *lc;
+    char *s, msg[256];
+    ScreenManager *S = ScreenManager::singleton();
+
+    // Set the decimal-point character (which is depending on the locale)
+    sprintf(msg, "Locale is \"%s\"\n", setlocale(LC_ALL, NULL));
+    S->addMessageF(1, msg);
+    lc = localeconv();
+    s = lc->decimal_point;
+    if(strcmp(s, ".")){
+        sprintf(msg, "\"%s\" decimal point character found\n", s);
+        S->addMessageF(2, msg);
+        S->addMessageF(0, "\tIt is replaced by \".\"\n");
+        lc->decimal_point = ".";
+    }
+    s = lc->thousands_sep;
+    if(strcmp(s, "")){
+        sprintf(msg, "\"%s\" thousands separator character found\n", s);
+        S->addMessageF(2, msg);
+        S->addMessageF(0, "\tIt is removed\n");
+        lc->thousands_sep = "";
+    }
+
 	// Start the XML parser
 	try {
 	    XMLPlatformUtils::Initialize();
