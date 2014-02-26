@@ -37,8 +37,8 @@ FileManager::FileManager()
 	, _bounds(NULL)
 {
     inputFile("Input.xml");
-    _state = new State();
     _log = new Log();
+    _state = new State();
 }
 
 FileManager::~FileManager()
@@ -88,6 +88,12 @@ void FileManager::inputFile(const char* path)
     len = strlen(path) + 1;
     _in_file = new char[len];
     strcpy(_in_file, path);
+}
+
+FILE* FileManager::logFile()
+{
+    if(_log)
+        return _log->fileHandler();
 }
 
 FILE* FileManager::energyFile()

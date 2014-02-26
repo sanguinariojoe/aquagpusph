@@ -61,7 +61,7 @@ public:
 	/** Get the log file handler.
 	 * @return Log file handler.
 	 */
-	FILE* logFile(){return _log->fileHandler();}
+	FILE* logFile();
 
 	/** Get the energy file handler.
 	 * @return Energy file handler.
