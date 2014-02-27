@@ -4,3 +4,4 @@
 * Decouple the "grad(p)/rho" and "mu lap(u)" variables
 * Improve the neighbour cell computation (moving from "if" based to "module
 operator")
+* Set const varaibles

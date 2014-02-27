@@ -183,7 +183,6 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
 	vec iPos, iV;
 	float iDens, iPress, iVisckin, iViscdyn;
 	// Neighbours data
-	uint cellCount, lcc;
 	vec r,dv;
 	float r1, vdr, pDens, pMass, prfac, viscg;
 
@@ -262,45 +261,22 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
 			i++;
 		}
 		//! 3.b.- Neighbour cells
-		for(cellCount=1;cellCount<NEIGH_CELLS;cellCount++) {
-			// Loop over 8 neighbour cells, taking cell index (lcc)
-			switch(cellCount) {
-				// Cells at the same Z than main cell
-				case 0: lcc = lc + 0; break;
-				case 1: lcc = lc + 1; break;
-				case 2: lcc = lc - 1; break;
-				case 3: lcc = lc + lvec.x; break;
-				case 4: lcc = lc + lvec.x + 1; break;
-				case 5: lcc = lc + lvec.x - 1; break;
-				case 6: lcc = lc - lvec.x; break;
-				case 7: lcc = lc - lvec.x + 1; break;
-				case 8: lcc = lc - lvec.x - 1; break;
-				#ifdef HAVE_3D
-					// Cells bellow main cell
-					case 9 : lcc = lc + 0          - lvec.x*lvec.y; break;
-					case 10: lcc = lc + 1          - lvec.x*lvec.y; break;
-					case 11: lcc = lc - 1          - lvec.x*lvec.y; break;
-					case 12: lcc = lc + lvec.x     - lvec.x*lvec.y; break;
-					case 13: lcc = lc + lvec.x + 1 - lvec.x*lvec.y; break;
-					case 14: lcc = lc + lvec.x - 1 - lvec.x*lvec.y; break;
-					case 15: lcc = lc - lvec.x     - lvec.x*lvec.y; break;
-					case 16: lcc = lc - lvec.x + 1 - lvec.x*lvec.y; break;
-					case 17: lcc = lc - lvec.x - 1 - lvec.x*lvec.y; break;
-					// Cells over main cell
-					case 18: lcc = lc + 0          + lvec.x*lvec.y; break;
-					case 19: lcc = lc + 1          + lvec.x*lvec.y; break;
-					case 20: lcc = lc - 1          + lvec.x*lvec.y; break;
-					case 21: lcc = lc + lvec.x     + lvec.x*lvec.y; break;
-					case 22: lcc = lc + lvec.x + 1 + lvec.x*lvec.y; break;
-					case 23: lcc = lc + lvec.x - 1 + lvec.x*lvec.y; break;
-					case 24: lcc = lc - lvec.x     + lvec.x*lvec.y; break;
-					case 25: lcc = lc - lvec.x + 1 + lvec.x*lvec.y; break;
-					case 26: lcc = lc - lvec.x - 1 + lvec.x*lvec.y; break;
-				#endif
-			}
-			// Sub-loop over particles into neighbour cells
-			i = ihoc[lcc];
-			while( (i<N) && (lcell[i]==lcc) ) {
+		for(uint cell = 1; cell < NEIGH_CELLS; cell++) {
+			// Get the neighbour cell index
+            uint c_j;
+			#ifndef HAVE_3D
+                c_j = (cell / 3 - 1) * lvec.x
+                      + (cell % 3) - 1
+                      + lc;
+			#else
+                c_j = (cell / 9 - 1) * lvec.x * lvec.y
+                      + ((cell % 9) / 3 - 1) * lvec.x
+                      + ((cell % 9) % 3) - 1
+                      + lc;
+			#endif
+
+			i = ihoc[c_j];
+			while((i < N) && (lcell[i] == c_j)) {
 				if(!iIMove){
 					#include "RatesSensors.hcl"
 				}
