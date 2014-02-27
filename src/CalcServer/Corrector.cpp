@@ -156,9 +156,9 @@ bool Corrector::execute()
 	    #endif
 	}
 
-	err_code  = sendArgument(_kernel, 14, sizeof(cl_uint), (void*)&(C->N));
-	err_code |= sendArgument(_kernel, 15, sizeof(cl_float), (void*)&t);
-	err_code |= sendArgument(_kernel, 16, sizeof(cl_float), (void*)&(C->dt));
+	err_code  = sendArgument(_kernel, 13, sizeof(cl_uint), (void*)&(C->N));
+	err_code |= sendArgument(_kernel, 14, sizeof(cl_float), (void*)&t);
+	err_code |= sendArgument(_kernel, 15, sizeof(cl_float), (void*)&(C->dt));
 	if(err_code != CL_SUCCESS) {
 		S->addMessageF(3, "I cannot send a variable to the kernel.\n");
 	    return true;
@@ -251,7 +251,6 @@ bool Corrector::setupOpenCL()
 	err_code |= sendArgument(_kernel, 10, sizeof(cl_mem), (void*)&(C->densin));
 	err_code |= sendArgument(_kernel, 11, sizeof(cl_mem), (void*)&(C->massin));
 	err_code |= sendArgument(_kernel, 12, sizeof(cl_mem), (void*)&(C->drdtin));
-	err_code |= sendArgument(_kernel, 13, sizeof(cl_mem), (void*)&(C->sigma));
 	if(err_code)
 	    return true;
 	if( (P->time_opts.velocity_clamp) && (P->time_opts.dt_min > 0) ){

@@ -101,8 +101,6 @@ CalcServer::CalcServer()
 	if(!massin) exit(255);
 	pressin = allocMemory(N * sizeof( cl_float ));
 	if(!pressin) exit(255);
-	sigma = allocMemory(N * sizeof( cl_float ));
-	if(!sigma) exit(255);
 	dtconv = allocMemory(N * sizeof( cl_float ));
 	if(!dtconv) exit(255);
 	shepard = allocMemory(N * sizeof( cl_float ));
@@ -246,7 +244,6 @@ CalcServer::~CalcServer()
 	if(drdtin)clReleaseMemObject(drdtin); drdtin=NULL;
 	if(massin)clReleaseMemObject(massin); massin=NULL;
 	if(pressin)clReleaseMemObject(pressin); pressin=NULL;
-	if(sigma)clReleaseMemObject(sigma); sigma=NULL;
 	if(dtconv)clReleaseMemObject(dtconv); dtconv=NULL;
 	if(shepard)clReleaseMemObject(shepard); shepard=NULL;
 	if(permutation)clReleaseMemObject(permutation); permutation=NULL;
@@ -699,20 +696,15 @@ bool CalcServer::setup()
 	err_code |= sendData(f, F->f, sizeof(vec)*N);
 	err_code |= sendData(mass, F->mass, sizeof(cl_float)*N);
 	err_code |= sendData(press, F->press, sizeof(cl_float)*N);
-	cl_float *Sigma = new cl_float[N];
-	for(i=0;i<N;i++)
-	    Sigma[i] = 1000.f;
-	err_code |= sendData(sigma, Sigma, N*sizeof(cl_float));
-	delete[] Sigma; Sigma=0;
-	if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Can't send the particles data to the server.\n");
-	    return true;
-	}
 	cl_ushort *mode = new cl_ushort[num_sensors];
 	for(i=0;i<N-n;i++)
 	    mode[i] = P->SensorsParameters.mod.at(i);
 	err_code |= sendData(sensor_mode, mode, sizeof(cl_ushort)*(N-n));
 	delete[] mode; mode = 0;
+	if(err_code != CL_SUCCESS) {
+        S->addMessageF(3, "Can't send the particles data to the server.\n");
+	    return true;
+	}
 
 	num_cells = 0;
 	num_cells_allocated = 0;

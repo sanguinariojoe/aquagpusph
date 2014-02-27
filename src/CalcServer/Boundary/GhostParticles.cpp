@@ -159,90 +159,82 @@ bool GhostParticles::execute()
 	    err_code |= sendArgument(_kernel,
                                  13,
                                  sizeof(cl_mem),
-                                 (void*)&(C->sigma));
+                                 (void*)&(C->shepard));
 	    err_code |= sendArgument(_kernel,
                                  14,
                                  sizeof(cl_mem),
-                                 (void*)&(C->shepard));
+                                 (void*)&(C->icell));
 	    err_code |= sendArgument(_kernel,
                                  15,
                                  sizeof(cl_mem),
-                                 (void*)&(C->icell));
+                                 (void*)&(C->ihoc));
 	    err_code |= sendArgument(_kernel,
                                  16,
                                  sizeof(cl_mem),
-                                 (void*)&(C->ihoc));
+                                 (void*)&(C->cell_has_particles));
 	    err_code |= sendArgument(_kernel,
                                  17,
                                  sizeof(cl_mem),
-                                 (void*)&(C->cell_has_particles));
+                                 (void*)&(C->permutation));
 	    err_code |= sendArgument(_kernel,
                                  18,
                                  sizeof(cl_mem),
-                                 (void*)&(C->permutation));
-	    err_code |= sendArgument(_kernel,
-                                 19,
-                                 sizeof(cl_mem),
                                  (void*)&(C->permutation_inverse));
 	    err_code |= sendArgument(_kernel,
-                                 20,
+                                 19,
                                  sizeof(cl_uint),
                                  (void*)&(C->n));
 	    err_code |= sendArgument(_kernel,
-                                 21,
+                                 20,
                                  sizeof(cl_uint),
                                  (void*)&(C->N));
 	    err_code |= sendArgument(_kernel,
-                                 22,
+                                 21,
                                  sizeof(cl_float),
                                  (void*)&(C->hfac));
 	    err_code |= sendArgument(_kernel,
-                                 23,
+                                 22,
                                  sizeof(uivec),
                                  (void*)&(C->num_cells_vec));
 	    err_code |= sendArgument(_kernel,
-                                 24,
+                                 23,
                                  sizeof(vec),
                                  (void*)&(C->g));
 	    err_code |= sendArgument(_kernel,
-                                 25,
+                                 24,
                                  sizeof(cl_mem),
                                  (void*)&(_walls.at(i)));
         unsigned int added_args = 0;
         if(_is_delta) {
             err_code |= sendArgument(_kernel,
-                                     26,
+                                     25,
                                      sizeof(cl_mem),
                                      (void*)&(C->delta));
             err_code |= sendArgument(_kernel,
-                                     27,
+                                     26,
                                      sizeof(cl_float),
                                      (void*)&(C->dt));
             err_code |= sendArgument(_kernel,
-                                     28,
+                                     27,
                                      sizeof(cl_float),
                                      (void*)&(C->cs));
             added_args = 3;
         }
 	    if(_use_local_mem){
 	        err_code |= sendArgument(_kernel,
+                                     25+added_args,
+                                     _local_work_size*sizeof(vec),
+                                     NULL);
+	        err_code |= sendArgument(_kernel,
                                      26+added_args,
                                      _local_work_size*sizeof(cl_float),
                                      NULL);
 	        err_code |= sendArgument(_kernel,
                                      27+added_args,
-                                     _local_work_size*sizeof(vec),
+                                     _local_work_size*sizeof(cl_float),
                                      NULL);
 	        err_code |= sendArgument(_kernel,
                                      28+added_args,
-                                     _local_work_size*sizeof(cl_float),
-                                     NULL);
-	        err_code |= sendArgument(_kernel,
-                                     29+added_args,
-                                     _local_work_size*sizeof(cl_float),
-                                     NULL);
-	        err_code |= sendArgument(_kernel,
-                                     30+added_args,
                                      _local_work_size*sizeof(cl_float),
                                      NULL);
 	    }
@@ -410,8 +402,7 @@ bool GhostParticles::setupOpenCL()
 	_local_work_size  = (_local_work_size/local_work_size) * local_work_size;
 	_global_work_size = globalWorkSize(_local_work_size);
 
-	required_local_mem += _local_work_size*(  sizeof(cl_float)
-	                                + sizeof(vec     )
+	required_local_mem += _local_work_size*(sizeof(vec     )
 	                                + sizeof(cl_float)
 	                                + sizeof(cl_float)
 	                                + sizeof(cl_float));

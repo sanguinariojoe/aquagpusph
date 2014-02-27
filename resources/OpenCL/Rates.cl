@@ -38,13 +38,11 @@
 #endif
 
 #ifdef __NO_LOCAL_MEM__
-	#define _SIGMA_ sigma[labp]
 	#define _F_ f[labp]
 	#define _DRDT_ drdt[labp]
 	#define _DRDT_F_ drdt_F[labp]
 	#define _SHEPARD_ shepard[labp]
 #else
-	#define _SIGMA_ lSigma[it]
 	#define _F_ lF[it]
 	#define _DRDT_ lDrdt[it]
 	#define _DRDT_F_ lDrdt_F[it]
@@ -141,12 +139,9 @@ __kernel void SortData( _g int* iFluidin, _g int* iFluid,
  * @param Visckin Kinetic viscosity (one per fluid)
  * @param Viscdyn Dynamic viscosity (one per fluid)
  * @param shepard Shepard term (0th correction).
- * @param gradW Shepard term gradient.
  * @param f Acceleration.
  * @param drdt Rate of change of the density.
- * @param sigma Viscosity time step term.
  * @param shepard Shepard factor.
- * @param gradW Shepard factor gradient.
  * @param lcell Cell where the particle is situated.
  * @param ihoc Head particle of cell chain.
  * @param validCell Mark cells that have at least one fluid particle.
@@ -161,7 +156,7 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
                      _g vec* pos, _g vec* v, _g float* dens,
                      _g float* pmass, _g float* press, _c float* Visckin,
                      _c float* Viscdyn, _g vec* f, _g float* drdt,
-                     _g float* drdt_F, _g float* sigma, _g float* shepard,
+                     _g float* drdt_F, _g float* shepard,
                      // Link-list data
                      _g uint *lcell, _g uint *ihoc, _g short* validCell,
                      _g uint *dPermut, _g uint *iPermut,
@@ -178,7 +173,7 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
                          )
                      #else
                          // Local memory to accelerate writes
-                         , _l float* lSigma, _l vec* lF, _l float* lDrdt
+                         , _l vec* lF, _l float* lDrdt
                          , _l float* lDrdt_F, _l float* lShepard)
                      #endif
 {
@@ -222,7 +217,6 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
 		return;
 	}
 	// Output initialization
-	_SIGMA_   = 1000.f;
 	_F_       = VEC_ZERO;
 	_DRDT_    = 0.f;
 	_DRDT_F_  = 0.f;
@@ -406,7 +400,6 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
 	}
 	//! 5th.- Write output into global memory (at unsorted space)
 	#ifndef __NO_LOCAL_MEM__
-		sigma[labp]   =  _SIGMA_;
 		f[labp]       =  _F_;
 		drdt[labp]    =  _DRDT_ + _DRDT_F_;
 		drdt_F[labp]  =  _DRDT_F_;

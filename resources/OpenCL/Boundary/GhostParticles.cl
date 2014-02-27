@@ -39,13 +39,11 @@
 #endif
 
 #ifdef __NO_LOCAL_MEM__
-	#define _SIGMA_ sigma[labp]
 	#define _F_ f[labp]
 	#define _DRDT_ drdt[labp]
 	#define _DRDT_F_ drdt_F[labp]
 	#define _SHEPARD_ shepard[labp]
 #else
-	#define _SIGMA_ lSigma[it]
 	#define _F_ lF[it]
 	#define _DRDT_ lDrdt[it]
 	#define _DRDT_F_ lDrdt_F[it]
@@ -112,7 +110,7 @@ __kernel void Boundary(_g int* iFluid, _g int* iMove, _g vec* pos, _g vec* v,
                        _g float* dens, _g float* pmass,
                        _g float* press, _c float* Visckin, _c float* Viscdyn,
                        _c float* refd, _g vec* f, _g float* drdt,
-                       _g float* drdt_F, _g float* sigma, _g float* shepard,
+                       _g float* drdt_F, _g float* shepard,
                        // Link-list data
                        _g uint *lcell, _g uint *ihoc, _g short* validCell,
                        _g uint *dPermut, _g uint *iPermut,
@@ -129,7 +127,7 @@ __kernel void Boundary(_g int* iFluid, _g int* iMove, _g vec* pos, _g vec* v,
                            )
                        #else
                            // Local memory to accelerate writes
-                           , _l float* lSigma, _l vec* lF, _l float* lDrdt
+                           , _l vec* lF, _l float* lDrdt
                            , _l float* lDrdt_F, _l float* lShepard)
                        #endif
 {
@@ -184,7 +182,6 @@ __kernel void Boundary(_g int* iFluid, _g int* iMove, _g vec* pos, _g vec* v,
 	}
 	//! 1st.- Initialize output
 	#ifndef __NO_LOCAL_MEM__
-		_SIGMA_   = sigma[labp];
 		_F_       = f[labp];
 		_DRDT_    = drdt[labp];
 		_DRDT_F_  = drdt_F[labp];
@@ -264,7 +261,6 @@ __kernel void Boundary(_g int* iFluid, _g int* iMove, _g vec* pos, _g vec* v,
 	}
 	//! 5th.- Write output into global memory (at unsorted space)
 	#ifndef __NO_LOCAL_MEM__
-		sigma[labp]   =  _SIGMA_;
 		f[labp]       =  _F_;
 		drdt[labp]    =  _DRDT_ + _DRDT_F_;
 		drdt_F[labp]  =  _DRDT_F_;

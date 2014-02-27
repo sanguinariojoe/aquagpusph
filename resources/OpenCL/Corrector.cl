@@ -89,7 +89,6 @@ __kernel void ClampVel(_g int* imove, _g vec* v, _g vec* f, _g vec* fin,
  * @param massin Mass of particles.
  * @param drdtin Density evolution of particles.
  * @param press Pressure.
- * @param sigma Viscosity time step term.
  * @param N Number of particles.
  * @param t Simulation time.
  * @param dt Time step.
@@ -98,7 +97,6 @@ __kernel void Corrector(_g int* imove, _g vec* pos, _g vec* v, _g vec* f,
                         _g float* dens, _g float* mass, _g float* drdt,
                         _g vec* posin, _g vec* vin, _g vec* fin,
                         _g float* densin, _g float* massin, _g float* drdtin,
-                        _g float* sigma,
                         unsigned int N, float t, float dt)
 {
 	// find position in global arrays

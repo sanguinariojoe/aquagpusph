@@ -278,8 +278,6 @@ public:
 	cl_mem massin;
 	/// Pressure (predictor-corrector backup variable)
 	cl_mem pressin;
-	/// Viscous timestep term \f$ \Delta t_{visc} \f$.
-	cl_mem sigma;
 	/// Convective timestep term \f$ \Delta t_{conv} \f$.
 	cl_mem dtconv;
 	/** Shepard term (0th correction) \f$ \gamma(\mathbf{x}) = \int_{Omega}

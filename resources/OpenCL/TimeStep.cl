@@ -35,13 +35,12 @@
  * @param v Velocity of particles.
  * @param f Forces over particles.
  * @param hp Kernel height of particles.
- * @param sigma Viscosity time step term.
  * @param N Number of particles.
  * @param dt Time step.
  * @param cs Sound speed
  */
 __kernel void TimeStep(_g float* dtconv, _g vec* v, _g vec* f,
-                       _g float* sigma, unsigned int N, float dt, float cs)
+                      unsigned int N, float dt, float cs)
 {
 	// find position in global arrays
 	unsigned int i = get_global_id(0);
@@ -51,9 +50,8 @@ __kernel void TimeStep(_g float* dtconv, _g vec* v, _g vec* f,
 	// ---- | ------------------------ | ----
 	// ---- V ---- Your code here ---- V ----
 
-	float vv;
-	vv = fast_length(v[i] + f[i]*dt);
-	dtconv[i] = min(sigma[i], h/max(10.f*vv, cs));
+	const float vv = fast_length(v[i] + f[i] * dt);
+	dtconv[i] = h / max(10.f * vv, cs);
 
 	// ---- A ---- Your code here ---- A ----
 	// ---- | ------------------------ | ----
