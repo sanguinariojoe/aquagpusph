@@ -152,18 +152,14 @@ bool Sensors::execute()
                              (void*)&(C->shepard));
 	err_code |= sendArgument(_kernel,
                              10,
-                             sizeof(cl_mem),
-                             (void*)&(C->sensor_mode));
-	err_code |= sendArgument(_kernel,
-                             11,
                              sizeof(cl_float),
                              (void*)&(C->cs));
 	err_code |= sendArgument(_kernel,
-                             12,
+                             11,
                              sizeof(cl_uint),
                              (void*)&(i0));
 	err_code |= sendArgument(_kernel,
-                             13,
+                             12,
                              sizeof(cl_uint),
                              (void*)&(_n));
 	if(err_code)

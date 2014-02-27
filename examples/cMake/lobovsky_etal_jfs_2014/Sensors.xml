@@ -30,10 +30,10 @@ Authors:
 		type="Interpolated": Ussual SPH interpolation will be performed.
 		type="Maximum": Maximum value found at this position will be chosen
 		-->
-		<Sensor x="-1.01" y="0.003" type="Interpolated" />
-		<Sensor x="-1.01" y="0.015" type="Interpolated" />
-		<Sensor x="-1.01" y="0.030" type="Interpolated" />
-		<Sensor x="-1.01" y="0.080" type="Interpolated" />
+		<Sensor x="-1.01" y="0.003" />
+		<Sensor x="-1.01" y="0.015" />
+		<Sensor x="-1.01" y="0.030" />
+		<Sensor x="-1.01" y="0.080" />
 	</Sensors>
 </sphInput>
 

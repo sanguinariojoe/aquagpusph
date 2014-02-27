@@ -300,11 +300,9 @@ ProblemSetup::sphMoveParameters::~sphMoveParameters()
 
 ProblemSetup::sphSensorsParameters::sphSensorsParameters()
 {
-	//! 1st.- Default values.
 	fps = 60.f;
 	pos.clear();
-	mod.clear();
-	//! 2nd.- Alloc memory
+
 	script = new char[256];
 	strcpy(script, "");
 }
@@ -314,10 +312,9 @@ ProblemSetup::sphSensorsParameters::~sphSensorsParameters()
 	if(script) delete[] script; script=0;
 }
 
-bool ProblemSetup::sphSensorsParameters::add(vec position, cl_ushort mode)
+bool ProblemSetup::sphSensorsParameters::add(vec position)
 {
 	pos.push_back(position);
-	mod.push_back(mode);
 	return false;
 }
 

@@ -928,23 +928,7 @@ bool State::parseSensors(DOMElement *root)
 	            pos.z = atof(xmlAttribute(s_elem, "z"));
 	            pos.w = 0.f;
 	        #endif
-	        // Sensor type
-	        cl_ushort mode=0;
-	        if(!strcmp(xmlAttribute(s_elem, "type"), "Interpolated"))
-	            mode = 0;
-	        else if(!strcmp(xmlAttribute(s_elem, "type"), "Maximum"))
-	            mode = 1;
-	        else{
-	            sprintf(msg,
-                        "%s is not a valid type of sensor.\n",
-                        xmlAttribute(s_elem, "type"));
-	            S->addMessageF(3, msg);
-	            S->addMessage(0, "\tValid options are:\n");
-	            S->addMessage(0, "\t\tInterpolated\n");
-	            S->addMessage(0, "\t\tMaximum\n");
-	            return true;
-	        }
-	        if(P->SensorsParameters.add(pos, mode))
+	        if(P->SensorsParameters.add(pos))
 	            return true;
 	    }
 	}
@@ -1998,17 +1982,6 @@ bool State::writeSensors(xercesc::DOMDocument* doc,
             sprintf(att, "%g", pos[i].z);
             ss_elem->setAttribute(xmlS("z"), xmlS(att));
         #endif // HAVE_3D
-
-        switch(P->SensorsParameters.mod.at(i)){
-        case 0:
-            strcpy(att, "Interpolated");
-            break;
-        case 1:
-            strcpy(att, "Maximum");
-            break;
-        }
-        ss_elem->setAttribute(xmlS("type"), xmlS(att));
-
         s_elem->appendChild(ss_elem);
     }
 

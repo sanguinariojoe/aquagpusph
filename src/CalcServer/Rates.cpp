@@ -286,48 +286,48 @@ bool Rates::execute()
                              (void*)&(C->permutation_inverse));
 	err_code |= sendArgument(_kernel,
                              18,
-                             sizeof(cl_mem),
-                             (void*)&(C->sensor_mode));
-	err_code |= sendArgument(_kernel,
-                             19,
                              sizeof(cl_uint),
                              (void*)&(C->n));
 	err_code |= sendArgument(_kernel,
-                             20,
+                             19,
                              sizeof(cl_uint),
                              (void*)&(C->N));
 	err_code |= sendArgument(_kernel,
-                             21,
+                             20,
                              sizeof(uivec),
                              (void*)&(C->num_cells_vec));
 	err_code |= sendArgument(_kernel,
-                             22,
+                             21,
                              sizeof(vec),
                              (void*)&(C->g));
 	unsigned int added_args = 0;
 	if(_is_delta) {
 	    err_code |= sendArgument(_kernel,
-                                 23,
+                                 22,
                                  sizeof(cl_mem),
                                  (void*)&(C->refd));
 	    err_code |= sendArgument(_kernel,
-                                 24,
+                                 23,
                                  sizeof(cl_mem),
                                  (void*)&(C->delta));
 	    err_code |= sendArgument(_kernel,
-                                 25,
+                                 24,
                                  sizeof(cl_float),
                                  (void*)&(C->dt));
 	    err_code |= sendArgument(_kernel,
-                                 26,
+                                 25,
                                  sizeof(cl_float),
                                  (void*)&(C->cs));
         added_args = 4;
 	}
 	if(_use_local_mem) {
 	    err_code |= sendArgument(_kernel,
-                                 23+added_args,
+                                 22+added_args,
                                  _local_work_size*sizeof(vec),
+                                 NULL);
+	    err_code |= sendArgument(_kernel,
+                                 23+added_args,
+                                 _local_work_size*sizeof(cl_float),
                                  NULL);
 	    err_code |= sendArgument(_kernel,
                                  24+added_args,
@@ -335,10 +335,6 @@ bool Rates::execute()
                                  NULL);
 	    err_code |= sendArgument(_kernel,
                                  25+added_args,
-                                 _local_work_size*sizeof(cl_float),
-                                 NULL);
-	    err_code |= sendArgument(_kernel,
-                                 26+added_args,
                                  _local_work_size*sizeof(cl_float),
                                  NULL);
 	}

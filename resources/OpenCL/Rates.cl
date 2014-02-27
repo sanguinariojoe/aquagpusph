@@ -160,8 +160,6 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
                      // Link-list data
                      _g uint *lcell, _g uint *ihoc, _g short* validCell,
                      _g uint *dPermut, _g uint *iPermut,
-                     // Specific sensors data
-                     _g ushort *sensorMode,
                      // Simulation data
                      uint n, uint N, uivec lvec, vec grav
                      #ifdef __DELTA_SPH__

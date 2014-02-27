@@ -554,20 +554,11 @@ public:
 	    /// Array of positions
 	    std::deque<vec> pos;
 
-	    /** Array of sensors types:
-	     *   - 0 = Mean value sensor.
-	     *   - 1 = Maximum value sensor.
-	     */
-	    std::deque<cl_ushort> mod;
-
 	    /** Method to add a sensor.
 	     * @param position Position of sensor.
-	     * @param mode Sensor type:
-	     *   - 0 = Mean value sensor.
-	     *   - 1 = Maximum value sensor.
 	     * @return false if all gone right, true otherwise.
 	     */
-	    bool add(vec position, cl_ushort mode);
+	    bool add(vec position);
 	}SensorsParameters;
 
 	/** \struct sphPortal

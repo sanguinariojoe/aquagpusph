@@ -333,9 +333,6 @@ public:
 	/// Minimum value of the time step (it is a reduction process result)
 	cl_mem DT;
 
-	/// Sensors types
-	cl_mem sensor_mode;
-
 	/** Internal energy: \f$ U = \int_0^t \sum_i \frac{p_i}{\rho_i^2}
 	     \left(
             \frac{\mathrm{d} \rho_i}{\mathrm{d} t}

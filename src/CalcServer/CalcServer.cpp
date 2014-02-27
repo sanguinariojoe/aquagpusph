@@ -131,8 +131,6 @@ CalcServer::CalcServer()
 	if(!delta) exit(255);
 
 	DT = NULL;     // Reduction auxiliar time step must be allocated later
-	sensor_mode = allocMemory(max(num_sensors,(uint)1) * sizeof( cl_ushort ));
-	if(!sensor_mode) exit(255);
 
 	sprintf(msg, "Allocated memory = %u bytes\n", (unsigned int)allocated_mem);
 	S->addMessageF(1, msg);
@@ -258,7 +256,6 @@ CalcServer::~CalcServer()
 	if(visc_dyn_corrected)clReleaseMemObject(visc_dyn_corrected); visc_dyn_corrected=NULL;
 	if(delta)clReleaseMemObject(delta); delta=NULL;
 	if(DT)clReleaseMemObject(DT); DT=NULL;
-	if(sensor_mode)clReleaseMemObject(sensor_mode); sensor_mode=NULL;
     S->addMessageF(1, "Deallocating host memory...\n");
 	if(platforms) delete[] platforms; platforms=NULL;
 	if(devices) delete[] devices; devices=NULL;
@@ -696,11 +693,6 @@ bool CalcServer::setup()
 	err_code |= sendData(f, F->f, sizeof(vec)*N);
 	err_code |= sendData(mass, F->mass, sizeof(cl_float)*N);
 	err_code |= sendData(press, F->press, sizeof(cl_float)*N);
-	cl_ushort *mode = new cl_ushort[num_sensors];
-	for(i=0;i<N-n;i++)
-	    mode[i] = P->SensorsParameters.mod.at(i);
-	err_code |= sendData(sensor_mode, mode, sizeof(cl_ushort)*(N-n));
-	delete[] mode; mode = 0;
 	if(err_code != CL_SUCCESS) {
         S->addMessageF(3, "Can't send the particles data to the server.\n");
 	    return true;
