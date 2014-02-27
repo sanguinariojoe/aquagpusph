@@ -70,8 +70,6 @@ private:
 	size_t _global_work_size;
 	/// Local work size
 	size_t _local_work_size;
-	/// true if local memory can be used to perform the computation.
-	bool _use_local_mem;
 };
 
 }}  // namespace

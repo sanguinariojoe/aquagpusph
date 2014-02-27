@@ -38,14 +38,6 @@
 	#endif
 #endif
 
-#ifdef __NO_LOCAL_MEM__
-	#define _F_ f[labp]
-	#define _DRDT_ drdt[labp]
-#else
-	#define _F_ lF[it]
-	#define _DRDT_ lDrdt[it]
-#endif
-
 #ifndef M_PI
 	#define M_PI 3.14159265359f
 #endif
@@ -190,13 +182,7 @@ __kernel void Boundary(	_g int* iFluid, _g int* iMove,
                         // Link-list data
                         _g uint *lcell, _g uint *ihoc, _g uint *dPermut, _g uint *iPermut,
                         // Simulation data
-                        uint N, float hfac, uivec lvec
-                        #ifdef __NO_LOCAL_MEM__
-                        	)
-                        #else
-                        	// Local memory to accelerate writes
-                        	, _l vec* lF, _l float* lDrdt)
-                        #endif
+                        uint N, float hfac, uivec lvec)
 {
 	// find position in global arrays
 	uint i = get_global_id(0);			// Particle at sorted space
@@ -240,11 +226,20 @@ __kernel void Boundary(	_g int* iFluid, _g int* iMove,
 	iPress = press[i];                  // Pressure of the particle
 	iIFluid = iFluid[i];                // Fluid index of the particle
 	iViscdyn = Viscdyn[iIFluid];        // Dynamic viscosity (clamped with artificial viscosity)
+
 	//! 2nd.- Initialize output
-	#ifndef __NO_LOCAL_MEM__
-		_F_       = f[labp];
-		_DRDT_    = drdt[labp];
-	#endif
+    #ifndef LOCAL_MEM_SIZE
+        #define _F_ f[labp]
+        #define _DRDT_ drdt[labp]
+    #else
+	    #define _F_ f_l[it]
+	    #define _DRDT_ drdt_l[it]
+        _l vec f_l[LOCAL_MEM_SIZE];
+        _l float drdt_l[LOCAL_MEM_SIZE];
+        _F_ = f[labp];
+        _DRDT_ = drdt[labp];
+    #endif
+
 	//! 3th.- Loop over all neightbour particles
 	{
 		//! 3.a.- Home cell, starting by next particle
@@ -311,9 +306,9 @@ __kernel void Boundary(	_g int* iFluid, _g int* iMove,
 		}
 	}
 	//! 4th.- Write output into global memory (at unsorted space)
-	#ifndef __NO_LOCAL_MEM__
-		f[labp]       = _F_;
-		drdt[labp]    = _DRDT_;
+	#ifdef LOCAL_MEM_SIZE
+		f[labp] = _F_;
+		drdt[labp] = _DRDT_;
 	#endif
 
 	// ---- A ---- Your code here ---- A ----

@@ -29,7 +29,6 @@ DeLeffe::DeLeffe()
 	, _program(0)
 	, _setup_kernel(0)
 	, _boundary_kernel(0)
-	, _use_local_mem(true)
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
@@ -293,16 +292,6 @@ bool DeLeffe::boundary()
 	err_code |= sendArgument(_boundary_kernel,
                              17, sizeof(uivec),
                              (void*)&(C->num_cells_vec));
-	if(_use_local_mem){
-	    err_code |= sendArgument(_boundary_kernel,
-                                 18,
-                                 _local_work_size*sizeof(vec),
-                                 NULL);
-	    err_code |= sendArgument(_boundary_kernel,
-                                 19,
-                                 _local_work_size*sizeof(cl_float),
-                                 NULL);
-	}
 	if(err_code != CL_SUCCESS) {
 		S->addMessageF(3, "Failure sending variables to boundary computation kernel.\n");
 	    return true;
@@ -491,25 +480,27 @@ bool DeLeffe::setupOpenCL()
 	required_local_mem += _local_work_size*(
           sizeof(vec)
         + sizeof(cl_float));
+    char options[256]; strcpy(options, "");
 	if(local_mem < required_local_mem){
 		S->addMessageF(2, "Not enough local memory for boundary.\n");
 	    sprintf(msg, "\tNeeds %lu bytes, but only %lu bytes are available.\n",
 	           required_local_mem, local_mem);
 	    S->addMessage(0, msg);
 	    S->addMessage(0, "\tLocal memory usage will be avoided therefore.\n");
-	    _use_local_mem = false;
-	    char options[19]; strcpy(options,"-D__NO_LOCAL_MEM__");
-	    if(_boundary_kernel)clReleaseKernel(_boundary_kernel); _boundary_kernel=0;
-	    if(!loadKernelFromFile(&_boundary_kernel,
-                               &_program,
-                               C->context,
-                               C->device,
-                               _path,
-                               "Boundary",
-                               options))
-	        return true;
-	    if(_program)clReleaseProgram(_program); _program=0;
 	}
+	else{
+        sprintf(options, "-DLOCAL_MEM_SIZE=%lu", _local_work_size);
+	}
+    if(_boundary_kernel)clReleaseKernel(_boundary_kernel); _boundary_kernel=0;
+    if(!loadKernelFromFile(&_boundary_kernel,
+                           &_program,
+                           C->context,
+                           C->device,
+                           _path,
+                           "Boundary",
+                           options))
+        return true;
+    if(_program)clReleaseProgram(_program); _program=0;
 	return false;
 }
 

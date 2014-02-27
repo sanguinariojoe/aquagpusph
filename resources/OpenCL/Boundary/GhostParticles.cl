@@ -38,18 +38,6 @@
 	#endif
 #endif
 
-#ifdef __NO_LOCAL_MEM__
-	#define _F_ f[labp]
-	#define _DRDT_ drdt[labp]
-	#define _DRDT_F_ drdt_F[labp]
-	#define _SHEPARD_ shepard[labp]
-#else
-	#define _F_ lF[it]
-	#define _DRDT_ lDrdt[it]
-	#define _DRDT_F_ lDrdt_F[it]
-	#define _SHEPARD_ lShepard[it]
-#endif
-
 #ifndef M_PI
 	#define M_PI 3.14159265359f
 #endif
@@ -122,13 +110,7 @@ __kernel void Boundary(_g int* iFluid, _g int* iMove, _g vec* pos, _g vec* v,
                            , _c float* delta
                            , float dt, float cs
                        #endif
-                       #ifdef __NO_LOCAL_MEM__
-                           )
-                       #else
-                           // Local memory to accelerate writes
-                           , _l vec* lF, _l float* lDrdt
-                           , _l float* lDrdt_F, _l float* lShepard)
-                       #endif
+                       )
 {
 	// find position in global arrays
 	uint i = get_global_id(0);			// Particle at sorted space
@@ -177,12 +159,25 @@ __kernel void Boundary(_g int* iFluid, _g int* iMove, _g vec* pos, _g vec* v,
 	lc = lcell[i];						// Cell of the particle
 
 	//! 1st.- Initialize output
-	#ifndef __NO_LOCAL_MEM__
-		_F_       = f[labp];
-		_DRDT_    = drdt[labp];
-		_DRDT_F_  = drdt_F[labp];
-		_SHEPARD_ = shepard[labp];
-	#endif
+    #ifndef LOCAL_MEM_SIZE
+	    #define _F_ f[labp]
+	    #define _DRDT_ drdt[labp]
+    	#define _DRDT_F_ drdt_F[labp]
+    	#define _SHEPARD_ shepard[labp]
+    #else
+	    #define _F_ f_l[it]
+	    #define _DRDT_ drdt_l[it]
+	    #define _DRDT_F_ drdt_F_l[it]
+	    #define _SHEPARD_ shepard_l[it]
+        _l vec f_l[LOCAL_MEM_SIZE];
+        _l float drdt_l[LOCAL_MEM_SIZE];
+        _l float drdt_F_l[LOCAL_MEM_SIZE];
+        _l float shepard_l[LOCAL_MEM_SIZE];
+        f_l[it] = f[labp];
+        drdt_l[it] = drdt[labp];
+        drdt_F_l[it] = drdt_F[labp];
+        shepard_l[it] = shepard[labp];
+    #endif
 
 	//! 2nd.- Particle data (reads it now in order to avoid read it from constant memory several times)
 	iV       = v[i];                // Velocity of the particle
@@ -256,13 +251,13 @@ __kernel void Boundary(_g int* iFluid, _g int* iMove, _g vec* pos, _g vec* v,
 
 	}
 	//! 5th.- Write output into global memory (at unsorted space)
-	#ifndef __NO_LOCAL_MEM__
-		f[labp]       =  _F_;
-		drdt[labp]    =  _DRDT_ + _DRDT_F_;
-		drdt_F[labp]  =  _DRDT_F_;
-		shepard[labp] =  _SHEPARD_;
+	#ifdef LOCAL_MEM_SIZE
+		f[labp] = _F_;
+		drdt[labp] = _DRDT_ + _DRDT_F_;
+		drdt_F[labp] = _DRDT_F_;
+		shepard[labp] = _SHEPARD_;
 	#else
-		drdt[labp]   +=  _DRDT_F_;
+		drdt[labp] += _DRDT_F_;
 	#endif
 
 	// ---- A ---- Your code here ---- A ----

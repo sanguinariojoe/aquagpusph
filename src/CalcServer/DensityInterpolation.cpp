@@ -28,7 +28,6 @@ DensityInterpolation::DensityInterpolation()
 	, _path(0)
 	, _program(0)
 	, _kernel(0)
-	, _use_local_mem(true)
 {
 	//! 1st.- Get data
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
@@ -128,12 +127,6 @@ bool DensityInterpolation::execute()
                              11,
                              sizeof(uivec),
                              (void*)&(C->num_cells_vec));
-	if(_use_local_mem){
-	    err_code |= sendArgument(_kernel,
-                                 12,
-                                 _local_work_size*sizeof(cl_float),
-                                 NULL);
-	}
 	if(err_code != CL_SUCCESS) {
 		S->addMessageF(3, "Failure sending the arguments to the kernel.\n");
 	    return true;
@@ -276,25 +269,28 @@ bool DensityInterpolation::setupOpenCL()
 	_global_work_size = globalWorkSize(_local_work_size);
 
 	required_local_mem += _local_work_size*(sizeof(cl_float));
+
+    char options[256]; strcpy(options, "");
 	if(local_mem < required_local_mem){
-		S->addMessageF(2, "There are not enough local memory in the device.\n");
-	    sprintf(msg, "\t%lu bytes are needed, but just %lu bytes are available.\n",
+		S->addMessageF(2, "Not enough local memory for boundary.\n");
+	    sprintf(msg, "\tNeeds %lu bytes, but only %lu bytes are available.\n",
 	           required_local_mem, local_mem);
 	    S->addMessage(0, msg);
 	    S->addMessage(0, "\tLocal memory usage will be avoided therefore.\n");
-	    _use_local_mem = false;
-	    char options[19]; strcpy(options,"-D__NO_LOCAL_MEM__");
-	    if(_kernel)clReleaseKernel(_kernel); _kernel=0;
-	    if(!loadKernelFromFile(&_kernel,
-                               &_program,
-                               C->context,
-                               C->device,
-                               _path,
-                               "DensityInterpolation",
-                               options))
-	        return true;
-	    if(_program)clReleaseProgram(_program); _program=0;
 	}
+	else{
+        sprintf(options, "-DLOCAL_MEM_SIZE=%lu", _local_work_size);
+	}
+    if(_kernel)clReleaseKernel(_kernel); _kernel=0;
+    if(!loadKernelFromFile(&_kernel,
+                           &_program,
+                           C->context,
+                           C->device,
+                           _path,
+                           "DensityInterpolation",
+                           options))
+        return true;
+    if(_program)clReleaseProgram(_program); _program=0;
 	return false;
 }
 

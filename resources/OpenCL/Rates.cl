@@ -37,18 +37,6 @@
 	#endif
 #endif
 
-#ifdef __NO_LOCAL_MEM__
-	#define _F_ f[labp]
-	#define _DRDT_ drdt[labp]
-	#define _DRDT_F_ drdt_F[labp]
-	#define _SHEPARD_ shepard[labp]
-#else
-	#define _F_ lF[it]
-	#define _DRDT_ lDrdt[it]
-	#define _DRDT_F_ lDrdt_F[it]
-	#define _SHEPARD_ lShepard[it]
-#endif
-
 #ifndef M_PI
 	#define M_PI 3.14159265359f
 #endif
@@ -166,13 +154,7 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
                          , _c float* refd, _c float* delta
                          , float dt, float cs
                      #endif
-                     #ifdef __NO_LOCAL_MEM__
-                         )
-                     #else
-                         // Local memory to accelerate writes
-                         , _l vec* lF, _l float* lDrdt
-                         , _l float* lDrdt_F, _l float* lShepard)
-                     #endif
+                     )
 {
 	// find position in global arrays
 	uint i = get_global_id(0);			// Particle at sorted space
@@ -209,6 +191,21 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
 	labp = dPermut[i];  // Particle index at unsorted space
 	lc = lcell[i];      // Cell of the particle
 
+    #ifndef LOCAL_MEM_SIZE
+	    #define _F_ f[labp]
+	    #define _DRDT_ drdt[labp]
+    	#define _DRDT_F_ drdt_F[labp]
+    	#define _SHEPARD_ shepard[labp]
+    #else
+	    #define _F_ f_l[it]
+	    #define _DRDT_ drdt_l[it]
+	    #define _DRDT_F_ drdt_F_l[it]
+	    #define _SHEPARD_ shepard_l[it]
+        _l vec f_l[LOCAL_MEM_SIZE];
+        _l float drdt_l[LOCAL_MEM_SIZE];
+        _l float drdt_F_l[LOCAL_MEM_SIZE];
+        _l float shepard_l[LOCAL_MEM_SIZE];
+    #endif
 	// Output initialization
 	_F_       = VEC_ZERO;
 	_DRDT_    = 0.f;
@@ -392,13 +389,13 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
 		#endif
 	}
 	//! 5th.- Write output into global memory (at unsorted space)
-	#ifndef __NO_LOCAL_MEM__
-		f[labp]       =  _F_;
-		drdt[labp]    =  _DRDT_ + _DRDT_F_;
-		drdt_F[labp]  =  _DRDT_F_;
-		shepard[labp] =  _SHEPARD_;
+	#ifdef LOCAL_MEM_SIZE
+		f[labp] = _F_;
+		drdt[labp] = _DRDT_ + _DRDT_F_;
+		drdt_F[labp] = _DRDT_F_;
+		shepard[labp] = _SHEPARD_;
 	#else
-		drdt[labp]   +=  _DRDT_F_;
+		drdt[labp] += _DRDT_F_;
 	#endif
 
 	// ---- A ---- Your code here ---- A ----

@@ -36,12 +36,6 @@
 	#endif
 #endif
 
-#ifdef __NO_LOCAL_MEM__
-	#define _DENS_ dens[labp]
-#else
-	#define _DENS_ lDens[it]
-#endif
-
 #ifndef M_PI
 	#define M_PI 3.14159265359f
 #endif
@@ -89,12 +83,7 @@ __kernel void DensityInterpolation( _g float* dens, _g int* iMove, _g vec* pos,
                                     _g uint *lcell, _g uint *ihoc, _g uint *dPermut, _g uint *iPermut,
                                     // Simulation data
                                     uint N, float hfac, uivec lvec
-                                    #ifdef __NO_LOCAL_MEM__
-                                    	)
-                                    #else
-                                    	// Local memory to accelerate writes
-                                    	, _l float* lDens)
-                                    #endif
+                                	)
 {
 	// find position in global arrays
 	uint i = get_global_id(0);			// Particle at sorted space
@@ -136,6 +125,14 @@ __kernel void DensityInterpolation( _g float* dens, _g int* iMove, _g vec* pos,
 	iShepard = shepard[labp];				// Shepard value
 	iPos = pos[i];						// Position of the particle
 	//! 2nd.- Initialize output
+    #ifndef LOCAL_MEM_SIZE
+	    #define _DENS_ dens[labp]
+    #else
+	    #define _DENS_ dens_l[it]
+        _l float dens_l[LOCAL_MEM_SIZE];
+    #endif
+
+
 	_DENS_ = 0.f;
 	//! 3th.- Loop over all neightbour particles
 	{
@@ -207,6 +204,7 @@ __kernel void DensityInterpolation( _g float* dens, _g int* iMove, _g vec* pos,
 		wab = kernelW(0.f)*conw*pmass[j];
 		_DENS_ += wab;
 	}
+
 	//! 5th.- Write output into global memory (at unsorted space)
 	dens[labp] = _DENS_/iShepard;
 

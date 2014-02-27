@@ -32,7 +32,6 @@ Rates::Rates()
 	, _global_work_size(0)
 	, _local_work_size(0)
 	, _is_delta(false)
-	, _use_local_mem(true)
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
@@ -316,24 +315,6 @@ bool Rates::execute()
                                  (void*)&(C->cs));
         added_args = 4;
 	}
-	if(_use_local_mem) {
-	    err_code |= sendArgument(_kernel,
-                                 21+added_args,
-                                 _local_work_size*sizeof(vec),
-                                 NULL);
-	    err_code |= sendArgument(_kernel,
-                                 22+added_args,
-                                 _local_work_size*sizeof(cl_float),
-                                 NULL);
-	    err_code |= sendArgument(_kernel,
-                                 23+added_args,
-                                 _local_work_size*sizeof(cl_float),
-                                 NULL);
-	    err_code |= sendArgument(_kernel,
-                                 24+added_args,
-                                 _local_work_size*sizeof(cl_float),
-                                 NULL);
-	}
 	if(err_code != CL_SUCCESS) {
 		S->addMessageF(3, "Failure sending the arguments to the kernel.\n");
 	    return true;
@@ -530,27 +511,27 @@ bool Rates::setupOpenCL()
         + sizeof(cl_float)
         + sizeof(cl_float)
         + sizeof(cl_float));
+    char options[256]; strcpy(options, "");
 	if(local_mem < required_local_mem){
-		S->addMessageF(2, "Not enough local memory for rates.\n");
-	    sprintf(msg,
-                "\tNeeds %lu bytes, but only %lu bytes are available.\n",
-	            required_local_mem,
-	            local_mem);
+		S->addMessageF(2, "Not enough local memory for boundary.\n");
+	    sprintf(msg, "\tNeeds %lu bytes, but only %lu bytes are available.\n",
+	           required_local_mem, local_mem);
 	    S->addMessage(0, msg);
 	    S->addMessage(0, "\tLocal memory usage will be avoided therefore.\n");
-	    _use_local_mem = false;
-	    char options[19]; strcpy(options,"-D__NO_LOCAL_MEM__");
-	    if(_kernel)clReleaseKernel(_kernel); _kernel=0;
-	    if(!loadKernelFromFile(&_kernel,
-                               &_program,
-                               C->context,
-                               C->device,
-                               _path,
-                               "Rates",
-                               options))
-	        return true;
-	    if(_program)clReleaseProgram(_program); _program=0;
 	}
+	else{
+        sprintf(options, "-DLOCAL_MEM_SIZE=%lu", _local_work_size);
+	}
+    if(_kernel)clReleaseKernel(_kernel); _kernel=0;
+    if(!loadKernelFromFile(&_kernel,
+                           &_program,
+                           C->context,
+                           C->device,
+                           _path,
+                           "Rates",
+                           options))
+        return true;
+    if(_program)clReleaseProgram(_program); _program=0;
 	return false;
 }
 

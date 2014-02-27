@@ -29,7 +29,6 @@ GhostParticles::GhostParticles()
 	, _program(0)
 	, _kernel(0)
 	, _is_delta(false)
-	, _use_local_mem(true)
 {
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
@@ -216,24 +215,6 @@ bool GhostParticles::execute()
                                      (void*)&(C->cs));
             added_args = 3;
         }
-	    if(_use_local_mem){
-	        err_code |= sendArgument(_kernel,
-                                     24+added_args,
-                                     _local_work_size*sizeof(vec),
-                                     NULL);
-	        err_code |= sendArgument(_kernel,
-                                     25+added_args,
-                                     _local_work_size*sizeof(cl_float),
-                                     NULL);
-	        err_code |= sendArgument(_kernel,
-                                     26+added_args,
-                                     _local_work_size*sizeof(cl_float),
-                                     NULL);
-	        err_code |= sendArgument(_kernel,
-                                     27+added_args,
-                                     _local_work_size*sizeof(cl_float),
-                                     NULL);
-	    }
 	    if(err_code != CL_SUCCESS) {
 	        S->addMessageF(3, "Failure sending variables to GhostParticles effect computation kernel.\n");
 	        return true;
@@ -402,24 +383,28 @@ bool GhostParticles::setupOpenCL()
 	                                + sizeof(cl_float)
 	                                + sizeof(cl_float)
 	                                + sizeof(cl_float));
+
+    char options[256]; strcpy(options, "");
 	if(local_mem < required_local_mem){
-		S->addMessageF(2, "Not enough local memory.\n");
+		S->addMessageF(2, "Not enough local memory for boundary.\n");
 	    sprintf(msg, "\tNeeds %lu bytes, but only %lu bytes are available.\n",
 	           required_local_mem, local_mem);
 	    S->addMessage(0, msg);
 	    S->addMessage(0, "\tLocal memory usage will be avoided therefore.\n");
-	    _use_local_mem = false;
-	    strcat(args,"-D__NO_LOCAL_MEM__ ");
-	    if(!loadKernelFromFile(&_kernel,
-                               &_program,
-                               C->context,
-                               C->device,
-                               _path,
-                               "Boundary",
-                               args))
-	        return true;
-	    if(_program)clReleaseProgram(_program); _program=0;
 	}
+	else{
+        sprintf(options, "-DLOCAL_MEM_SIZE=%lu", _local_work_size);
+	}
+    if(_kernel)clReleaseKernel(_kernel); _kernel=0;
+    if(!loadKernelFromFile(&_kernel,
+                           &_program,
+                           C->context,
+                           C->device,
+                           _path,
+                           "Boundary",
+                           args))
+        return true;
+    if(_program)clReleaseProgram(_program); _program=0;
 	return false;
 }
 
