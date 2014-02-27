@@ -94,14 +94,10 @@ bool LinkList::execute()
                              (void*)&(C->ihoc));
 	err_code |= sendArgument(_ihoc_kernel,
                              1,
-                             sizeof(cl_mem),
-                             (void*)&(C->cell_has_particles));
-	err_code |= sendArgument(_ihoc_kernel,
-                             2,
                              sizeof(cl_uint),
                              (void*)&(C->num_cells_allocated));
 	err_code |= sendArgument(_ihoc_kernel,
-                             3,
+                             2,
                              sizeof(cl_uint),
                              (void*)&(C->N));
 	if(err_code != CL_SUCCESS) {
@@ -181,37 +177,29 @@ bool LinkList::execute()
 	err_code |= sendArgument(_icell_kernel,
                              1,
                              sizeof(cl_mem),
-                             (void*)&C->cell_has_particles);
-	err_code |= sendArgument(_icell_kernel,
-                             2,
-                             sizeof(cl_mem),
-                             (void*)&C->imove);
-	err_code |= sendArgument(_icell_kernel,
-                             3,
-                             sizeof(cl_mem),
                              (void*)&C->pos);
 	err_code |= sendArgument(_icell_kernel,
-                             4,
+                             2,
                              sizeof(cl_uint),
                              (void*)&C->N);
 	err_code |= sendArgument(_icell_kernel,
-                             5,
+                             3,
                              sizeof(cl_uint),
                              (void*)&C->num_icell);
 	err_code |= sendArgument(_icell_kernel,
-                             6,
+                             4,
                              sizeof(vec),
                              (void*)&C->pos_min);
 	err_code |= sendArgument(_icell_kernel,
-                             7,
+                             5,
                              sizeof(cl_float),
                              (void*)&C->cell_length);
 	err_code |= sendArgument(_icell_kernel,
-                             8,
+                             6,
                              sizeof(cl_uint),
                              (void*)&C->num_cells);
 	err_code |= sendArgument(_icell_kernel,
-                             9,
+                             7,
                              sizeof(uivec),
                              (void*)&C->num_cells_vec);
 	if(err_code != CL_SUCCESS) {
@@ -478,24 +466,13 @@ bool LinkList::allocLinkList()
 	        if(C->ihoc)
                 clReleaseMemObject(C->ihoc);
             C->ihoc=NULL;
-	        if(C->cell_has_particles)
-                clReleaseMemObject(C->cell_has_particles);
-            C->cell_has_particles=NULL;
 			C->allocated_mem -= C->num_cells_allocated * sizeof( cl_uint );
-			C->allocated_mem -= C->num_cells_allocated * sizeof( cl_short );
 	    }
 	    C->ihoc = C->allocMemory(C->num_cells * sizeof( cl_uint ));
 		if(!C->ihoc) {
 	        sprintf(msg,
                     "Fail allocating memory for ihoc (%u bytes).\n",
                     (unsigned int)(C->num_cells * sizeof( cl_uint )) );
-		    S->addMessageF(3, msg);
-		    return true;
-		}
-		C->cell_has_particles = C->allocMemory(C->num_cells * sizeof( cl_short ));
-		if(!C->cell_has_particles) {
-	        sprintf(msg, "Fail allocating memory for cell_has_particles (%u bytes).\n",
-                    (unsigned int)(C->num_cells * sizeof( cl_short )) );
 		    S->addMessageF(3, msg);
 		    return true;
 		}

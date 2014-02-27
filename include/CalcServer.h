@@ -297,9 +297,6 @@ public:
 	 * first particle in each cell.
 	 */
 	cl_mem ihoc;
-	/** Mark about cells which contains at least one fluid particle.
-	 */
-	cl_mem cell_has_particles;
 	/** Cell where each particle is placed, in the sorted space.
 	 * @note To improve the use of multicore platforms the particles are sorted
 	 * by their cell position at the linklist phase. Therefore two identifier

@@ -115,7 +115,6 @@ CalcServer::CalcServer()
 	icell = allocMemory(num_icell * sizeof( cl_uint ));
 	if(!icell) exit(255);
 	ihoc = NULL;               // ihoc must be allocated later
-	cell_has_particles = NULL; // cell_has_particles must be allocated later
 
 	gamma = allocMemory(num_fluids * sizeof( cl_float ));
 	if(!gamma) exit(255);
@@ -248,7 +247,6 @@ CalcServer::~CalcServer()
 	if(permutation_inverse)clReleaseMemObject(permutation_inverse); permutation_inverse=NULL;
 	if(icell)clReleaseMemObject(icell); icell=NULL;
 	if(ihoc)clReleaseMemObject(ihoc); ihoc=NULL;
-	if(cell_has_particles)clReleaseMemObject(cell_has_particles); cell_has_particles=NULL;
 	if(gamma)clReleaseMemObject(gamma); gamma=NULL;
 	if(refd)clReleaseMemObject(refd); refd=NULL;
 	if(visc_dyn)clReleaseMemObject(visc_dyn); visc_dyn=NULL;

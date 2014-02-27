@@ -144,7 +144,6 @@ __kernel void SortData( _g int* iFluidin, _g int* iFluid,
  * @param shepard Shepard factor.
  * @param lcell Cell where the particle is situated.
  * @param ihoc Head particle of cell chain.
- * @param validCell Mark cells that have at least one fluid particle.
  * @param dPermut Sorted space -> unsorted space permutations.
  * @param iPermut Unsorted space -> sorted space permutations.
  * @param n Number of particles.
@@ -158,7 +157,7 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
                      _c float* Viscdyn, _g vec* f, _g float* drdt,
                      _g float* drdt_F, _g float* shepard,
                      // Link-list data
-                     _g uint *lcell, _g uint *ihoc, _g short* validCell,
+                     _g uint *lcell, _g uint *ihoc,
                      _g uint *dPermut, _g uint *iPermut,
                      // Simulation data
                      uint n, uint N, uivec lvec, vec grav
@@ -209,11 +208,7 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
 	j = i;              // Backup of the variable, in order to compare later
 	labp = dPermut[i];  // Particle index at unsorted space
 	lc = lcell[i];      // Cell of the particle
-	if(!validCell[lc]){
-		// We should not waste time computing boundaries without fluid.
-		shepard[labp] = 0.f;
-		return;
-	}
+
 	// Output initialization
 	_F_       = VEC_ZERO;
 	_DRDT_    = 0.f;

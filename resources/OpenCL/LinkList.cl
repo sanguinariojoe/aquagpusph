@@ -37,7 +37,7 @@
  * @param n Number of cells
  * @param N Number of particles
  */
-__kernel void InitIhoc(_g unsigned int* ihoc, _g short* validCell, unsigned int n, unsigned int N)
+__kernel void InitIhoc(_g unsigned int* ihoc, unsigned int n, unsigned int N)
 {
 	// find position in global arrays
 	unsigned int i = get_global_id(0);
@@ -49,7 +49,6 @@ __kernel void InitIhoc(_g unsigned int* ihoc, _g short* validCell, unsigned int 
 
 	// Set as empty cell (send to a particle out of bounds)
 	ihoc[i] = N;
-	validCell[i] = 0;
 
 	// ---- A ---- Your code here ---- A ----
 	// ---- | ------------------------ | ----
@@ -58,7 +57,6 @@ __kernel void InitIhoc(_g unsigned int* ihoc, _g short* validCell, unsigned int 
 
 /** Method called outside to locate every particle in their cell.
  * @param lcell Cell where the particle is situated.
- * @param validCell Mark cells that have at least one fluid particle.
  * @param pos Particle position
  * @param n Number of particles
  * @param N Next power of two of n, that marks the dimension of lcell. All
@@ -66,10 +64,9 @@ __kernel void InitIhoc(_g unsigned int* ihoc, _g short* validCell, unsigned int 
  * @param l Number of cells in each direction
  * @param lxy Total number of cells (lx·ly)
  * @param posmin Minimum position of a particle
- * @param posmin Maximum position of a particle
  * @param rdist Cell dimension
  */
-__kernel void LCell(_g unsigned int* lcell, _g short* validCell, _g int* imove, _g vec* pos, unsigned int n, unsigned int N, vec posmin, float rdist, unsigned int lxy, uivec l)
+__kernel void LCell(_g unsigned int* lcell, _g vec* pos, unsigned int n, unsigned int N, vec posmin, float rdist, unsigned int lxy, uivec l)
 {
 	// find position in global arrays
 	unsigned int i = get_global_id(0);
@@ -89,35 +86,12 @@ __kernel void LCell(_g unsigned int* lcell, _g short* validCell, _g int* imove, 
 			cellID  =  cell.x-(unsigned int)1
 			        + (cell.y-(unsigned int)1) * l.x;
 			lcell[i] = cellID;
-			if(imove[i] > 0){	// Fluid particle
-				unsigned int x,y;
-				for(x=0;x<3;x++){
-					for(y=0;y<3;y++){
-						cellID  =  cell.x-(unsigned int)2 + x
-						        + (cell.y-(unsigned int)2 + y) * l.x;
-						validCell[cellID] = 1;  // Don't needs atomicity, if one particle is found is valid ever.
-					}
-				}
-			}
 		#else
 			cell.z   = (unsigned int)((pos[i].z - posmin.z) * rdist) + (unsigned int)3;
 			cellID   = cell.x-(unsigned int)1
 			        + (cell.y-(unsigned int)1) * l.x
 			        + (cell.z-(unsigned int)1) * l.x * l.y;
 			lcell[i] = cellID;
-			if(imove[i] > 0){	// Fluid particle
-				unsigned int x,y,z;
-				for(x=0;x<3;x++){
-					for(y=0;y<3;y++){
-						for(z=0;z<3;z++){
-							cellID  =  cell.x-(unsigned int)2 + x
-								+ (cell.y-(unsigned int)2 + y) * l.x
-								+ (cell.z-(unsigned int)2 + z) * l.x * l.y;
-							validCell[cellID] = 1;  // Don't needs atomicity, if one particle is found is valid ever.
-						}
-					}
-				}
-			}
 		#endif
 	}
 	// Particles out of bounds (extra particles)

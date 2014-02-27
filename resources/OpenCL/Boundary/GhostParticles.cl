@@ -97,7 +97,6 @@
  * @param refd Reference density (one per fluid)
  * @param lcell Cell where the particle is situated.
  * @param ihoc Head particle of cell chain.
- * @param validCell Mark cells that have at least one fluid particle.
  * @param dPermut Transform each sorted space index into their unsorted space index.
  * @param iPermut Transform each unsorted space index into their sorted space index.
  * @param n Number of particles.
@@ -112,7 +111,7 @@ __kernel void Boundary(_g int* iFluid, _g int* iMove, _g vec* pos, _g vec* v,
                        _c float* refd, _g vec* f, _g float* drdt,
                        _g float* drdt_F, _g float* shepard,
                        // Link-list data
-                       _g uint *lcell, _g uint *ihoc, _g short* validCell,
+                       _g uint *lcell, _g uint *ihoc,
                        _g uint *dPermut, _g uint *iPermut,
                        // Simulation data
                        uint n, uint N, float hfac, uivec lvec, vec grav,
@@ -176,10 +175,7 @@ __kernel void Boundary(_g int* iFluid, _g int* iMove, _g vec* pos, _g vec* v,
 	j = i;							// Backup of the variable, in order to compare later
 	labp = dPermut[i];					// Particle index at unsorted space
 	lc = lcell[i];						// Cell of the particle
-	if(!validCell[lc]){					// Don't waste time computing boundaries without fluid.
-			shepard[labp] = 0.f;
-			return;
-	}
+
 	//! 1st.- Initialize output
 	#ifndef __NO_LOCAL_MEM__
 		_F_       = f[labp];

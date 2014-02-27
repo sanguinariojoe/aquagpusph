@@ -171,59 +171,59 @@ bool GhostParticles::execute()
 	    err_code |= sendArgument(_kernel,
                                  16,
                                  sizeof(cl_mem),
-                                 (void*)&(C->cell_has_particles));
+                                 (void*)&(C->permutation));
 	    err_code |= sendArgument(_kernel,
                                  17,
                                  sizeof(cl_mem),
-                                 (void*)&(C->permutation));
-	    err_code |= sendArgument(_kernel,
-                                 18,
-                                 sizeof(cl_mem),
                                  (void*)&(C->permutation_inverse));
 	    err_code |= sendArgument(_kernel,
-                                 19,
+                                 18,
                                  sizeof(cl_uint),
                                  (void*)&(C->n));
 	    err_code |= sendArgument(_kernel,
-                                 20,
+                                 19,
                                  sizeof(cl_uint),
                                  (void*)&(C->N));
 	    err_code |= sendArgument(_kernel,
-                                 21,
+                                 20,
                                  sizeof(cl_float),
                                  (void*)&(C->hfac));
 	    err_code |= sendArgument(_kernel,
-                                 22,
+                                 21,
                                  sizeof(uivec),
                                  (void*)&(C->num_cells_vec));
 	    err_code |= sendArgument(_kernel,
-                                 23,
+                                 22,
                                  sizeof(vec),
                                  (void*)&(C->g));
 	    err_code |= sendArgument(_kernel,
-                                 24,
+                                 23,
                                  sizeof(cl_mem),
                                  (void*)&(_walls.at(i)));
         unsigned int added_args = 0;
         if(_is_delta) {
             err_code |= sendArgument(_kernel,
-                                     25,
+                                     24,
                                      sizeof(cl_mem),
                                      (void*)&(C->delta));
             err_code |= sendArgument(_kernel,
-                                     26,
+                                     25,
                                      sizeof(cl_float),
                                      (void*)&(C->dt));
             err_code |= sendArgument(_kernel,
-                                     27,
+                                     26,
                                      sizeof(cl_float),
                                      (void*)&(C->cs));
             added_args = 3;
         }
 	    if(_use_local_mem){
 	        err_code |= sendArgument(_kernel,
-                                     25+added_args,
+                                     24+added_args,
                                      _local_work_size*sizeof(vec),
+                                     NULL);
+	        err_code |= sendArgument(_kernel,
+                                     25+added_args,
+                                     _local_work_size*sizeof(cl_float),
                                      NULL);
 	        err_code |= sendArgument(_kernel,
                                      26+added_args,
@@ -231,10 +231,6 @@ bool GhostParticles::execute()
                                      NULL);
 	        err_code |= sendArgument(_kernel,
                                      27+added_args,
-                                     _local_work_size*sizeof(cl_float),
-                                     NULL);
-	        err_code |= sendArgument(_kernel,
-                                     28+added_args,
                                      _local_work_size*sizeof(cl_float),
                                      NULL);
 	    }
