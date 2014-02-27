@@ -249,77 +249,65 @@ bool DeLeffe::boundary()
 	err_code |= sendArgument(_boundary_kernel,
                              6,
                              sizeof(cl_mem),
-                             (void*)&(C->hpin));
+                             (void*)&(C->pressin));
 	err_code |= sendArgument(_boundary_kernel,
                              7,
                              sizeof(cl_mem),
-                             (void*)&(C->pressin));
+                             (void*)&(C->massin));
 	err_code |= sendArgument(_boundary_kernel,
                              8,
                              sizeof(cl_mem),
-                             (void*)&(C->massin));
+                             (void*)&(C->visc_dyn));
 	err_code |= sendArgument(_boundary_kernel,
                              9,
                              sizeof(cl_mem),
-                             (void*)&(C->visc_dyn));
+                             (void*)&(C->f));
 	err_code |= sendArgument(_boundary_kernel,
                              10,
                              sizeof(cl_mem),
-                             (void*)&(C->f));
+                             (void*)&(C->drdt));
 	err_code |= sendArgument(_boundary_kernel,
                              11,
                              sizeof(cl_mem),
-                             (void*)&(C->drdt));
+                             (void*)&(C->icell));
 	err_code |= sendArgument(_boundary_kernel,
                              12,
                              sizeof(cl_mem),
-                             (void*)&(C->shepard_gradient));
+                             (void*)&(C->ihoc));
 	err_code |= sendArgument(_boundary_kernel,
                              13,
                              sizeof(cl_mem),
-                             (void*)&(C->icell));
+                             (void*)&(C->permutation));
 	err_code |= sendArgument(_boundary_kernel,
                              14,
                              sizeof(cl_mem),
-                             (void*)&(C->ihoc));
-	err_code |= sendArgument(_boundary_kernel,
-                             15,
-                             sizeof(cl_mem),
-                             (void*)&(C->permutation));
-	err_code |= sendArgument(_boundary_kernel,
-                             16,
-                             sizeof(cl_mem),
                              (void*)&(C->permutation_inverse));
 	err_code |= sendArgument(_boundary_kernel,
-                             17,
+                             15,
                              sizeof(cl_uint),
                              (void*)&(C->N));
 	err_code |= sendArgument(_boundary_kernel,
-                             18,
+                             16,
                              sizeof(cl_float),
                              (void*)&(C->hfac));
 	err_code |= sendArgument(_boundary_kernel,
-                             19, sizeof(uivec),
+                             17, sizeof(uivec),
                              (void*)&(C->num_cells_vec));
 	if(_use_local_mem){
 	    err_code |= sendArgument(_boundary_kernel,
-                                 20,
+                                 18,
                                  _local_work_size*sizeof(vec),
                                  NULL);
 	    err_code |= sendArgument(_boundary_kernel,
-                                 21,
+                                 19,
                                  _local_work_size*sizeof(cl_float),
-                                 NULL);
-	    err_code |= sendArgument(_boundary_kernel,
-                                 22,
-                                 _local_work_size*sizeof(vec),
                                  NULL);
 	}
 	if(err_code != CL_SUCCESS) {
 		S->addMessageF(3, "Failure sending variables to boundary computation kernel.\n");
 	    return true;
 	}
-	//! Execute the kernel
+
 	#ifdef HAVE_GPUPROFILE
 	    cl_event event;
 	    cl_ulong end, start;
@@ -500,9 +488,9 @@ bool DeLeffe::setupOpenCL()
 	_local_work_size  = (_local_work_size/local_work_size) * local_work_size;
 	_global_work_size = globalWorkSize(_local_work_size);
 
-	required_local_mem += _local_work_size*(  sizeof(vec     )
-	                                + sizeof(cl_float)
-	                                + sizeof(vec     ));
+	required_local_mem += _local_work_size*(
+          sizeof(vec)
+        + sizeof(cl_float));
 	if(local_mem < required_local_mem){
 		S->addMessageF(2, "Not enough local memory for boundary.\n");
 	    sprintf(msg, "\tNeeds %lu bytes, but only %lu bytes are available.\n",

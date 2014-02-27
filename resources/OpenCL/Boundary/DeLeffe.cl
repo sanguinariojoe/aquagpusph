@@ -41,11 +41,9 @@
 #ifdef __NO_LOCAL_MEM__
 	#define _F_ f[labp]
 	#define _DRDT_ drdt[labp]
-	#define _GRADW_ gradW[labp]
 #else
 	#define _F_ lF[it]
 	#define _DRDT_ lDrdt[it]
-	#define _GRADW_ lGradW[it]
 #endif
 
 #ifndef M_PI
@@ -186,9 +184,9 @@ __kernel void Vertices( _g int* iMove,
  * @param lvec Number of cells
  */
 __kernel void Boundary(	_g int* iFluid, _g int* iMove,
-                        _g vec* pos, _g vec* normal, _g vec* v, _g float* dens, _g float* hp,
+                        _g vec* pos, _g vec* normal, _g vec* v, _g float* dens,
                         _g float* press, _g float* mass, _g float* Viscdyn,
-                        _g vec* f, _g float* drdt, _g vec* gradW,
+                        _g vec* f, _g float* drdt,
                         // Link-list data
                         _g uint *lcell, _g uint *ihoc, _g uint *dPermut, _g uint *iPermut,
                         // Simulation data
@@ -197,7 +195,7 @@ __kernel void Boundary(	_g int* iFluid, _g int* iMove,
                         	)
                         #else
                         	// Local memory to accelerate writes
-                        	, _l vec* lF, _l float* lDrdt, _l vec* lGradW)
+                        	, _l vec* lF, _l float* lDrdt)
                         #endif
 {
 	// find position in global arrays
@@ -227,7 +225,7 @@ __kernel void Boundary(	_g int* iFluid, _g int* iMove,
 	int iIFluid;
 	uint j,labp, lc;
 	vec iPos, iV;
-	float iHp, iDens, iPress, iViscdyn;
+	float iDens, iPress, iViscdyn;
 	// Neighbour particles data
 	uint cellCount, lcc;
 	vec r,n,dv, prfac, viscg;
@@ -236,7 +234,6 @@ __kernel void Boundary(	_g int* iFluid, _g int* iMove,
 	j = i;                              // Backup of the variable, in order to compare later
 	labp = dPermut[i];                  // Particle index at unsorted space
 	lc = lcell[i];                      // Cell of the particle
-	iHp = hp[i];                        // Kernel height of the particle [m]
 	iPos = pos[i];                      // Position of the particle
 	iV = v[i];                          // Velocity of the particle
 	iDens = dens[i];                    // Density of the particle
@@ -247,7 +244,6 @@ __kernel void Boundary(	_g int* iFluid, _g int* iMove,
 	#ifndef __NO_LOCAL_MEM__
 		_F_       = f[labp];
 		_DRDT_    = drdt[labp];
-		_GRADW_   = gradW[labp];
 	#endif
 	//! 3th.- Loop over all neightbour particles
 	{
@@ -318,7 +314,6 @@ __kernel void Boundary(	_g int* iFluid, _g int* iMove,
 	#ifndef __NO_LOCAL_MEM__
 		f[labp]       = _F_;
 		drdt[labp]    = _DRDT_;
-		gradW[labp]   = _GRADW_;
 	#endif
 
 	// ---- A ---- Your code here ---- A ----

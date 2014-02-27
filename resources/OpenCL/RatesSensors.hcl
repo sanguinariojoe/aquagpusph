@@ -41,25 +41,24 @@ if(!iMove[i]){
 		continue;
 	}
 #endif
-hav = 0.5f*(iHp + hp[i]);                      // Average kernel heights for interactions    [m]
-dist = sep*hav;                                // Maximum interaction distance               [m]
+dist = sep*h;                                // Maximum interaction distance               [m]
 r = iPos - pos[i];
 r1  = fast_length(r);                          // Distance between particles                 [m]
 if( r1 <= dist )
 {
 	#ifndef HAVE_3D
-		conw = 1.f/(hav*hav);                  // Different for 1d and 3d
-		conf = 1.f/(hav*hav*hav*hav);          // Different for 1d and 3d
+		conw = 1.f/(h*h);                  // Different for 1d and 3d
+		conf = 1.f/(h*h*h*h);          // Different for 1d and 3d
 	#else
-		conw = 1.f/(hav*hav*hav);              // Different for 1d and 3d
-		conf = 1.f/(hav*hav*hav*hav*hav);      // Different for 1d and 3d
+		conw = 1.f/(h*h*h);              // Different for 1d and 3d
+		conf = 1.f/(h*h*h*h*h);      // Different for 1d and 3d
 	#endif
 	//---------------------------------------------------------------
 	//       calculate the kernel wab and the function fab
 	//---------------------------------------------------------------
 	pDens = dens[i];                       // Density of neighbour particle              [kg/m3]
-	wab = kernelW(r1/hav)*conw*pMass;
-	fab = kernelF(r1/hav)*conf*pMass;
+	wab = kernelW(r1/h)*conw*pMass;
+	fab = kernelF(r1/h)*conf*pMass;
 	//---------------------------------------------------------------
 	//       pressure computation (stored on f)
 	//---------------------------------------------------------------
@@ -72,8 +71,4 @@ if( r1 <= dist )
 	// 	Shepard term
 	//---------------------------------------------------------------
 	_SHEPARD_ += wab/pDens;
-	//---------------------------------------------------------------
-	//       Shepard term gradient
-	//---------------------------------------------------------------
-	_GRADW_ -= r*fab/pDens;                                                                // [1/m]
 }

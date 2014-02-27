@@ -74,31 +74,31 @@ bool Predictor::execute()
 
 	float t = T->time();
 	err_code |= sendArgument(_kernel,
-                             19,
+                             17,
                              sizeof(cl_uint),
                              (void*)&(C->N));
 	err_code |= sendArgument(_kernel,
-                             20,
+                             18,
                              sizeof(cl_float),
                              (void*)&t);
 	err_code |= sendArgument(_kernel,
-                             21,
+                             19,
                              sizeof(cl_float),
                              (void*)&(C->dt));
 	err_code |= sendArgument(_kernel,
-                             22,
+                             20,
                              sizeof(cl_float),
                              (void*)&(C->cs));
 	err_code |= sendArgument(_kernel,
-                             23,
+                             21,
                              sizeof(vec),
                              (void*)&(C->g));
 	err_code |= sendArgument(_kernel,
-                             24,
+                             22,
                              sizeof(cl_float),
                              (void*)&(P->SPH_opts.rho_min));
 	err_code |= sendArgument(_kernel,
-                             25,
+                             23,
                              sizeof(cl_float),
                              (void*)&(P->SPH_opts.rho_max));
 	if(err_code != CL_SUCCESS) {
@@ -215,45 +215,37 @@ bool Predictor::setupOpenCL()
 	err_code |= sendArgument(_kernel,
                              8,
                              sizeof(cl_mem),
-                             (void*)&(C->hp));
+                             (void*)&(C->posin));
 	err_code |= sendArgument(_kernel,
                              9,
                              sizeof(cl_mem),
-                             (void*)&(C->posin));
+                             (void*)&(C->vin));
 	err_code |= sendArgument(_kernel,
                              10,
                              sizeof(cl_mem),
-                             (void*)&(C->vin));
+                             (void*)&(C->fin));
 	err_code |= sendArgument(_kernel,
                              11,
                              sizeof(cl_mem),
-                             (void*)&(C->fin));
+                             (void*)&(C->densin));
 	err_code |= sendArgument(_kernel,
                              12,
                              sizeof(cl_mem),
-                             (void*)&(C->densin));
+                             (void*)&(C->massin));
 	err_code |= sendArgument(_kernel,
                              13,
                              sizeof(cl_mem),
-                             (void*)&(C->massin));
+                             (void*)&(C->drdtin));
 	err_code |= sendArgument(_kernel,
                              14,
                              sizeof(cl_mem),
-                             (void*)&(C->drdtin));
+                             (void*)&(C->press));
 	err_code |= sendArgument(_kernel,
                              15,
                              sizeof(cl_mem),
-                             (void*)&(C->hpin));
-	err_code |= sendArgument(_kernel,
-                             16,
-                             sizeof(cl_mem),
-                             (void*)&(C->press));
-	err_code |= sendArgument(_kernel,
-                             17,
-                             sizeof(cl_mem),
                              (void*)&(C->refd));
 	err_code |= sendArgument(_kernel,
-                             18,
+                             16,
                              sizeof(cl_mem),
                              (void*)&(C->gamma));
 	if(err_code)

@@ -43,14 +43,12 @@
 	#define _DRDT_ drdt[labp]
 	#define _DRDT_F_ drdt_F[labp]
 	#define _SHEPARD_ shepard[labp]
-	#define _GRADW_ gradW[labp]
 #else
 	#define _SIGMA_ lSigma[it]
 	#define _F_ lF[it]
 	#define _DRDT_ lDrdt[it]
 	#define _DRDT_F_ lDrdt_F[it]
 	#define _SHEPARD_ lShepard[it]
-	#define _GRADW_ lGradW[it]
 #endif
 
 #ifndef M_PI
@@ -100,9 +98,9 @@
  */
 __kernel void SortData( _g int* iFluidin, _g int* iFluid,
                         _g int* iMovein, _g int* iMove,
-                        _g vec* posin, _g vec* vin, _g float* hpin,
+                        _g vec* posin, _g vec* vin,
                         _g float* densin, _g float* pressin, _g float* pmassin,
-                        _g vec* pos, _g vec* v, _g float* hp,
+                        _g vec* pos, _g vec* v,
                         _g float* dens, _g float* press, _g float* pmass,
                         _g uint *dPermut, _g uint *iPermut,
                         uint N)
@@ -120,7 +118,6 @@ __kernel void SortData( _g int* iFluidin, _g int* iFluid,
 	iFluid[labp] = iFluidin[i];
 	iMove[labp]  = iMovein[i];
 	v[labp]      = vin[i];
-	hp[labp]     = hpin[i];
 	dens[labp]   = densin[i];
 	press[labp]  = pressin[i];
 	pmass[labp]  = pmassin[i];
@@ -161,11 +158,10 @@ __kernel void SortData( _g int* iFluidin, _g int* iFluid,
  * @param grav Gravity acceleration.
  */
 __kernel void Rates( _g int* iFluid, _g int* iMove,
-                     _g vec* pos, _g vec* v, _g float* dens, _g float* hp,
+                     _g vec* pos, _g vec* v, _g float* dens,
                      _g float* pmass, _g float* press, _c float* Visckin,
                      _c float* Viscdyn, _g vec* f, _g float* drdt,
                      _g float* drdt_F, _g float* sigma, _g float* shepard,
-                     _g vec* gradW,
                      // Link-list data
                      _g uint *lcell, _g uint *ihoc, _g short* validCell,
                      _g uint *dPermut, _g uint *iPermut,
@@ -183,8 +179,7 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
                      #else
                          // Local memory to accelerate writes
                          , _l float* lSigma, _l vec* lF, _l float* lDrdt
-                         , _l float* lDrdt_F, _l float* lShepard
-                         , _l vec* lGradW)
+                         , _l float* lDrdt_F, _l float* lShepard)
                      #endif
 {
 	// find position in global arrays
@@ -207,12 +202,12 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
 	 */
 
 	// Kernel variables
-	float hav, dist, conw, conf, wab, fab;
+	float dist, conw, conf, wab, fab;
 	// Particle data
 	int iIFluid, iIMove;
 	uint j,labp, lc;
 	vec iPos, iV;
-	float iHp, iDens, iPress, iVisckin, iViscdyn;
+	float iDens, iPress, iVisckin, iViscdyn;
 	// Neighbours data
 	uint cellCount, lcc;
 	vec r,dv;
@@ -224,7 +219,6 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
 	if(!validCell[lc]){
 		// We should not waste time computing boundaries without fluid.
 		shepard[labp] = 0.f;
-		gradW[labp]   = VEC_ZERO;
 		return;
 	}
 	// Output initialization
@@ -233,10 +227,8 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
 	_DRDT_    = 0.f;
 	_DRDT_F_  = 0.f;
 	_SHEPARD_ = 0.f;
-	_GRADW_   = VEC_ZERO;
 
 	// Particle data
-	iHp = hp[i];
 	iPos = pos[i];
 	iV = v[i];
 	iDens = dens[i];
@@ -395,18 +387,18 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
 			// Contour not included
 			if(iIMove>0){
 				#ifndef HAVE_3D
-					conw = 1.f/(iHp*iHp);				// Different for 1d and 3d
+					conw = 1.f/(h*h);				// Different for 1d and 3d
 				#else
-					conw = 1.f/(iHp*iHp*iHp);			// Different for 1d and 3d
+					conw = 1.f/(h*h*h);			// Different for 1d and 3d
 				#endif
 				wab = kernelW(0.f)*conw*pmass[j];
 				_SHEPARD_ += wab/iDens;
 			}
 		#else
 			#ifndef HAVE_3D
-				conw = 1.f/(iHp*iHp);				// Different for 1d and 3d
+				conw = 1.f/(h*h);				// Different for 1d and 3d
 			#else
-				conw = 1.f/(iHp*iHp*iHp);			// Different for 1d and 3d
+				conw = 1.f/(h*h*h);			// Different for 1d and 3d
 			#endif
 			wab = kernelW(0.f)*conw*pmass[j];
 			_SHEPARD_ += wab/iDens;
@@ -419,7 +411,6 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
 		drdt[labp]    =  _DRDT_ + _DRDT_F_;
 		drdt_F[labp]  =  _DRDT_F_;
 		shepard[labp] =  _SHEPARD_;
-		gradW[labp]   =  _GRADW_;
 	#else
 		drdt[labp]   +=  _DRDT_F_;
 	#endif

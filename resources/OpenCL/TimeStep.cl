@@ -40,7 +40,7 @@
  * @param dt Time step.
  * @param cs Sound speed
  */
-__kernel void TimeStep(_g float* dtconv, _g vec* v, _g vec* f, _g float* hp,
+__kernel void TimeStep(_g float* dtconv, _g vec* v, _g vec* f,
                        _g float* sigma, unsigned int N, float dt, float cs)
 {
 	// find position in global arrays
@@ -53,7 +53,7 @@ __kernel void TimeStep(_g float* dtconv, _g vec* v, _g vec* f, _g float* hp,
 
 	float vv;
 	vv = fast_length(v[i] + f[i]*dt);
-	dtconv[i] = min(sigma[i], hp[i]/max(10.f*vv, cs));
+	dtconv[i] = min(sigma[i], h/max(10.f*vv, cs));
 
 	// ---- A ---- Your code here ---- A ----
 	// ---- | ------------------------ | ----

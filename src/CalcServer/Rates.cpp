@@ -108,53 +108,45 @@ bool Rates::execute()
 	err_code |= sendArgument(_sort_kernel,
                              6,
                              sizeof(cl_mem),
-                             (void*)&(C->hp));
+                             (void*)&(C->dens));
 	err_code |= sendArgument(_sort_kernel,
                              7,
                              sizeof(cl_mem),
-                             (void*)&(C->dens));
+                             (void*)&(C->press));
 	err_code |= sendArgument(_sort_kernel,
                              8,
                              sizeof(cl_mem),
-                             (void*)&(C->press));
+                             (void*)&(C->mass));
 	err_code |= sendArgument(_sort_kernel,
                              9,
                              sizeof(cl_mem),
-                             (void*)&(C->mass));
+                             (void*)&(C->posin));
 	err_code |= sendArgument(_sort_kernel,
                              10,
                              sizeof(cl_mem),
-                             (void*)&(C->posin));
+                             (void*)&(C->vin));
 	err_code |= sendArgument(_sort_kernel,
                              11,
                              sizeof(cl_mem),
-                             (void*)&(C->vin));
+                             (void*)&(C->densin));
 	err_code |= sendArgument(_sort_kernel,
                              12,
                              sizeof(cl_mem),
-                             (void*)&(C->hpin));
+                             (void*)&(C->pressin));
 	err_code |= sendArgument(_sort_kernel,
                              13,
                              sizeof(cl_mem),
-                             (void*)&(C->densin));
+                             (void*)&(C->massin));
 	err_code |= sendArgument(_sort_kernel,
                              14,
                              sizeof(cl_mem),
-                             (void*)&(C->pressin));
+                             (void*)&(C->permutation));
 	err_code |= sendArgument(_sort_kernel,
                              15,
                              sizeof(cl_mem),
-                             (void*)&(C->massin));
-	err_code |= sendArgument(_sort_kernel,
-                             16,
-                             sizeof(cl_mem),
-                             (void*)&(C->permutation));
-	err_code |= sendArgument(_sort_kernel,
-                             17,
-                             sizeof(cl_mem),
                              (void*)&(C->permutation_inverse));
 	err_code |= sendArgument(_sort_kernel,
-                             18,
+                             16,
                              sizeof(cl_uint),
                              (void*)&(C->N));
 	if(err_code != CL_SUCCESS) {
@@ -243,131 +235,119 @@ bool Rates::execute()
 	err_code |= sendArgument(_kernel,
                              5,
                              sizeof(cl_mem),
-                             (void*)&(C->hpin));
+                             (void*)&(C->massin));
 	err_code |= sendArgument(_kernel,
                              6,
                              sizeof(cl_mem),
-                             (void*)&(C->massin));
+                             (void*)&(C->pressin));
 	err_code |= sendArgument(_kernel,
                              7,
                              sizeof(cl_mem),
-                             (void*)&(C->pressin));
+                             (void*)&(C->visc_kin));
 	err_code |= sendArgument(_kernel,
                              8,
                              sizeof(cl_mem),
-                             (void*)&(C->visc_kin));
+                             (void*)&(C->visc_dyn_corrected));
 	err_code |= sendArgument(_kernel,
                              9,
                              sizeof(cl_mem),
-                             (void*)&(C->visc_dyn_corrected));
+                             (void*)&(C->f));
 	err_code |= sendArgument(_kernel,
                              10,
                              sizeof(cl_mem),
-                             (void*)&(C->f));
+                             (void*)&(C->drdt));
 	err_code |= sendArgument(_kernel,
                              11,
                              sizeof(cl_mem),
-                             (void*)&(C->drdt));
+                             (void*)&(C->drdt_F));
 	err_code |= sendArgument(_kernel,
                              12,
                              sizeof(cl_mem),
-                             (void*)&(C->drdt_F));
+                             (void*)&(C->sigma));
 	err_code |= sendArgument(_kernel,
                              13,
                              sizeof(cl_mem),
-                             (void*)&(C->sigma));
+                             (void*)&(C->shepard));
 	err_code |= sendArgument(_kernel,
                              14,
                              sizeof(cl_mem),
-                             (void*)&(C->shepard));
+                             (void*)&(C->icell));
 	err_code |= sendArgument(_kernel,
                              15,
                              sizeof(cl_mem),
-                             (void*)&(C->shepard_gradient));
+                             (void*)&(C->ihoc));
 	err_code |= sendArgument(_kernel,
                              16,
                              sizeof(cl_mem),
-                             (void*)&(C->icell));
+                             (void*)&(C->cell_has_particles));
 	err_code |= sendArgument(_kernel,
                              17,
                              sizeof(cl_mem),
-                             (void*)&(C->ihoc));
+                             (void*)&(C->permutation));
 	err_code |= sendArgument(_kernel,
                              18,
                              sizeof(cl_mem),
-                             (void*)&(C->cell_has_particles));
+                             (void*)&(C->permutation_inverse));
 	err_code |= sendArgument(_kernel,
                              19,
                              sizeof(cl_mem),
-                             (void*)&(C->permutation));
-	err_code |= sendArgument(_kernel,
-                             20,
-                             sizeof(cl_mem),
-                             (void*)&(C->permutation_inverse));
-	err_code |= sendArgument(_kernel,
-                             21,
-                             sizeof(cl_mem),
                              (void*)&(C->sensor_mode));
 	err_code |= sendArgument(_kernel,
-                             22,
+                             20,
                              sizeof(cl_uint),
                              (void*)&(C->n));
 	err_code |= sendArgument(_kernel,
-                             23,
+                             21,
                              sizeof(cl_uint),
                              (void*)&(C->N));
 	err_code |= sendArgument(_kernel,
-                             24,
+                             22,
                              sizeof(uivec),
                              (void*)&(C->num_cells_vec));
 	err_code |= sendArgument(_kernel,
-                             25,
+                             23,
                              sizeof(vec),
                              (void*)&(C->g));
 	unsigned int added_args = 0;
 	if(_is_delta) {
 	    err_code |= sendArgument(_kernel,
-                                 26,
+                                 24,
                                  sizeof(cl_mem),
                                  (void*)&(C->refd));
 	    err_code |= sendArgument(_kernel,
-                                 27,
+                                 25,
                                  sizeof(cl_mem),
                                  (void*)&(C->delta));
 	    err_code |= sendArgument(_kernel,
-                                 28,
+                                 26,
                                  sizeof(cl_float),
                                  (void*)&(C->dt));
 	    err_code |= sendArgument(_kernel,
-                                 29,
+                                 27,
                                  sizeof(cl_float),
                                  (void*)&(C->cs));
         added_args = 4;
 	}
 	if(_use_local_mem) {
 	    err_code |= sendArgument(_kernel,
+                                 24+added_args,
+                                 _local_work_size*sizeof(cl_float),
+                                 NULL);
+	    err_code |= sendArgument(_kernel,
+                                 25+added_args,
+                                 _local_work_size*sizeof(vec),
+                                 NULL);
+	    err_code |= sendArgument(_kernel,
                                  26+added_args,
                                  _local_work_size*sizeof(cl_float),
                                  NULL);
 	    err_code |= sendArgument(_kernel,
                                  27+added_args,
-                                 _local_work_size*sizeof(vec),
+                                 _local_work_size*sizeof(cl_float),
                                  NULL);
 	    err_code |= sendArgument(_kernel,
                                  28+added_args,
                                  _local_work_size*sizeof(cl_float),
-                                 NULL);
-	    err_code |= sendArgument(_kernel,
-                                 29+added_args,
-                                 _local_work_size*sizeof(cl_float),
-                                 NULL);
-	    err_code |= sendArgument(_kernel,
-                                 30+added_args,
-                                 _local_work_size*sizeof(cl_float),
-                                 NULL);
-	    err_code |= sendArgument(_kernel,
-                                 31+added_args,
-                                 _local_work_size*sizeof(vec),
                                  NULL);
 	}
 	if(err_code != CL_SUCCESS) {
@@ -566,8 +546,7 @@ bool Rates::setupOpenCL()
         + sizeof(vec     )
         + sizeof(cl_float)
         + sizeof(cl_float)
-        + sizeof(cl_float)
-        + sizeof(vec     ));
+        + sizeof(cl_float));
 	if(local_mem < required_local_mem){
 		S->addMessageF(2, "Not enough local memory for rates.\n");
 	    sprintf(msg,

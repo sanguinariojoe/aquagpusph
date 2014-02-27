@@ -116,7 +116,6 @@ bool ASCII::load()
         tok.registerVariable("id", i);
         F->ifluid[i] = fluidId();
         tok.registerVariable("ifluid", fluidId());
-        F->hp[i] = P->SPH_opts.h;
         tok.registerVariable("h", P->SPH_opts.h);
 
         strcpy(sentence, pos);

@@ -95,46 +95,42 @@ bool DensityInterpolation::execute()
 	err_code |= sendArgument(_kernel,
                              3,
                              sizeof(cl_mem),
-                             (void*)&(C->hpin));
+                             (void*)&(C->massin));
 	err_code |= sendArgument(_kernel,
                              4,
                              sizeof(cl_mem),
-                             (void*)&(C->massin));
+                             (void*)&(C->shepard));
 	err_code |= sendArgument(_kernel,
                              5,
                              sizeof(cl_mem),
-                             (void*)&(C->shepard));
+                             (void*)&(C->icell));
 	err_code |= sendArgument(_kernel,
                              6,
                              sizeof(cl_mem),
-                             (void*)&(C->icell));
+                             (void*)&(C->ihoc));
 	err_code |= sendArgument(_kernel,
                              7,
                              sizeof(cl_mem),
-                             (void*)&(C->ihoc));
+                             (void*)&(C->permutation));
 	err_code |= sendArgument(_kernel,
                              8,
                              sizeof(cl_mem),
-                             (void*)&(C->permutation));
-	err_code |= sendArgument(_kernel,
-                             9,
-                             sizeof(cl_mem),
                              (void*)&(C->permutation_inverse));
 	err_code |= sendArgument(_kernel,
-                             10,
+                             9,
                              sizeof(cl_uint),
                              (void*)&(C->N));
 	err_code |= sendArgument(_kernel,
-                             11,
+                             10,
                              sizeof(cl_float),
                              (void*)&(C->hfac));
 	err_code |= sendArgument(_kernel,
-                             12,
+                             11,
                              sizeof(uivec),
                              (void*)&(C->num_cells_vec));
 	if(_use_local_mem){
 	    err_code |= sendArgument(_kernel,
-                                 13,
+                                 12,
                                  _local_work_size*sizeof(cl_float),
                                  NULL);
 	}
@@ -142,7 +138,7 @@ bool DensityInterpolation::execute()
 		S->addMessageF(3, "Failure sending the arguments to the kernel.\n");
 	    return true;
 	}
-	//! Call to execute the kernel
+
 	#ifdef HAVE_GPUPROFILE
 	    cl_event event;
 	    cl_ulong end, start;

@@ -44,14 +44,12 @@
 	#define _DRDT_ drdt[labp]
 	#define _DRDT_F_ drdt_F[labp]
 	#define _SHEPARD_ shepard[labp]
-	#define _GRADW_ gradW[labp]
 #else
 	#define _SIGMA_ lSigma[it]
 	#define _F_ lF[it]
 	#define _DRDT_ lDrdt[it]
 	#define _DRDT_F_ lDrdt_F[it]
 	#define _SHEPARD_ lShepard[it]
-	#define _GRADW_ lGradW[it]
 #endif
 
 #ifndef M_PI
@@ -111,11 +109,10 @@
  * @param grav Gravity force.
  */
 __kernel void Boundary(_g int* iFluid, _g int* iMove, _g vec* pos, _g vec* v,
-                       _g float* dens, _g float* hp, _g float* pmass,
+                       _g float* dens, _g float* pmass,
                        _g float* press, _c float* Visckin, _c float* Viscdyn,
                        _c float* refd, _g vec* f, _g float* drdt,
                        _g float* drdt_F, _g float* sigma, _g float* shepard,
-                       _g vec* gradW,
                        // Link-list data
                        _g uint *lcell, _g uint *ihoc, _g short* validCell,
                        _g uint *dPermut, _g uint *iPermut,
@@ -133,8 +130,7 @@ __kernel void Boundary(_g int* iFluid, _g int* iMove, _g vec* pos, _g vec* v,
                        #else
                            // Local memory to accelerate writes
                            , _l float* lSigma, _l vec* lF, _l float* lDrdt
-                           , _l float* lDrdt_F, _l float* lShepard
-                           , _l vec* lGradW)
+                           , _l float* lDrdt_F, _l float* lShepard)
                        #endif
 {
 	// find position in global arrays
@@ -153,10 +149,9 @@ __kernel void Boundary(_g int* iFluid, _g int* iMove, _g vec* pos, _g vec* v,
 	}
 	// In order to compute ghost particles wall must be nearer than kernel total height
 	vec iPos   = pos[i];
-	float iHp  = hp[i];
 	vec wPos   = wallProjection(iPos, wall);
 	vec wDir   = wPos-iPos;
-	float dist = sep*iHp;
+	float dist = sep*h;
 	if(dot(wDir, wDir) >= dist*dist){
 		return;
 	}
@@ -170,7 +165,7 @@ __kernel void Boundary(_g int* iFluid, _g int* iMove, _g vec* pos, _g vec* v,
 	 * memory address, local memory is employed to the output.
 	 */
 	// Kernel variables
-	float hav, conw, conf, wab, fab;
+	float conw, conf, wab, fab;
 	// Particle data
 	int iIFluid;
 	uint j,labp, lc;
@@ -185,7 +180,6 @@ __kernel void Boundary(_g int* iFluid, _g int* iMove, _g vec* pos, _g vec* v,
 	lc = lcell[i];						// Cell of the particle
 	if(!validCell[lc]){					// Don't waste time computing boundaries without fluid.
 			shepard[labp] = 0.f;
-			gradW[labp]   = VEC_ZERO;
 			return;
 	}
 	//! 1st.- Initialize output
@@ -195,7 +189,6 @@ __kernel void Boundary(_g int* iFluid, _g int* iMove, _g vec* pos, _g vec* v,
 		_DRDT_    = drdt[labp];
 		_DRDT_F_  = drdt_F[labp];
 		_SHEPARD_ = shepard[labp];
-		_GRADW_   = gradW[labp];
 	#endif
 
 	//! 2nd.- Particle data (reads it now in order to avoid read it from constant memory several times)
@@ -276,7 +269,6 @@ __kernel void Boundary(_g int* iFluid, _g int* iMove, _g vec* pos, _g vec* v,
 		drdt[labp]    =  _DRDT_ + _DRDT_F_;
 		drdt_F[labp]  =  _DRDT_F_;
 		shepard[labp] =  _SHEPARD_;
-		gradW[labp]   =  _GRADW_;
 	#else
 		drdt[labp]   +=  _DRDT_F_;
 	#endif

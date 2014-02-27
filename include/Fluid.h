@@ -78,8 +78,6 @@ public:
 	float *dens;
 	/// Density variation rate \f$ \frac{\mathrm{d}\rho}{\mathrm{d}t} \f$.
 	float *drdt;
-	/// Kernel height \f$ h \f$.
-	float *hp;
 	/// Acceleration \f$ \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \f$.
 	vec *f;
 	/// Mass \f$ m \f$.
@@ -91,11 +89,6 @@ public:
            \mathrm{d}\mathbf{x} \f$.
      */
 	float *shepard;
-	/** Shepard term gradient (0th correction) \f$ \gamma(\mathbf{x}) = \int_{Omega}
-           \nabla W(\mathbf{y} - \mathbf{x})
-           \mathrm{d}\mathbf{x} \f$.
-     */
-	vec *shepard_gradient;
 private:
 	/// Number of particles
 	unsigned int num_particles;

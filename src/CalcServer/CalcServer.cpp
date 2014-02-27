@@ -83,8 +83,6 @@ CalcServer::CalcServer()
 	if(!drdt_F) exit(255);
 	mass = allocMemory(N * sizeof( cl_float ));
 	if(!mass) exit(255);
-	hp = allocMemory(N * sizeof( cl_float ));
-	if(!hp) exit(255);
 	press = allocMemory(N * sizeof( cl_float ));
 	if(!press) exit(255);
 	posin = allocMemory(N * sizeof( vec ));
@@ -101,8 +99,6 @@ CalcServer::CalcServer()
 	if(!drdtin) exit(255);
 	massin = allocMemory(N * sizeof( cl_float ));
 	if(!massin) exit(255);
-	hpin = allocMemory(N * sizeof( cl_float ));
-	if(!hpin) exit(255);
 	pressin = allocMemory(N * sizeof( cl_float ));
 	if(!pressin) exit(255);
 	sigma = allocMemory(N * sizeof( cl_float ));
@@ -111,8 +107,6 @@ CalcServer::CalcServer()
 	if(!dtconv) exit(255);
 	shepard = allocMemory(N * sizeof( cl_float ));
 	if(!shepard) exit(255);
-	shepard_gradient = allocMemory(N * sizeof( vec ));
-	if(!shepard_gradient) exit(255);
 
 	num_icell = nextPowerOf2(N);
 	num_icell = roundUp(num_icell, _ITEMS*_GROUPS);
@@ -243,7 +237,6 @@ CalcServer::~CalcServer()
 	if(drdt)clReleaseMemObject(drdt); drdt=NULL;
 	if(drdt_F)clReleaseMemObject(drdt_F); drdt_F=NULL;
 	if(mass)clReleaseMemObject(mass); mass=NULL;
-	if(hp)clReleaseMemObject(hp); hp=NULL;
 	if(press)clReleaseMemObject(press); press=NULL;
 	if(posin)clReleaseMemObject(posin); posin=NULL;
 	if(normalin)clReleaseMemObject(normalin); normalin=NULL;
@@ -252,12 +245,10 @@ CalcServer::~CalcServer()
 	if(densin)clReleaseMemObject(densin); densin=NULL;
 	if(drdtin)clReleaseMemObject(drdtin); drdtin=NULL;
 	if(massin)clReleaseMemObject(massin); massin=NULL;
-	if(hpin)clReleaseMemObject(hpin); hpin=NULL;
 	if(pressin)clReleaseMemObject(pressin); pressin=NULL;
 	if(sigma)clReleaseMemObject(sigma); sigma=NULL;
 	if(dtconv)clReleaseMemObject(dtconv); dtconv=NULL;
 	if(shepard)clReleaseMemObject(shepard); shepard=NULL;
-	if(shepard_gradient)clReleaseMemObject(shepard_gradient); shepard_gradient=NULL;
 	if(permutation)clReleaseMemObject(permutation); permutation=NULL;
 	if(permutation_inverse)clReleaseMemObject(permutation_inverse); permutation_inverse=NULL;
 	if(icell)clReleaseMemObject(icell); icell=NULL;
@@ -696,7 +687,6 @@ bool CalcServer::setup()
 	err_code |= sendData(normalin, F->normal, sizeof(vec)*N);
 	err_code |= sendData(vin, F->v, sizeof(vec)*N);
 	err_code |= sendData(densin, F->dens, sizeof(cl_float)*N);
-	err_code |= sendData(hpin, F->hp, sizeof(cl_float)*N);
 	err_code |= sendData(drdtin, F->drdt, sizeof(cl_float)*N);
 	err_code |= sendData(fin, F->f, sizeof(vec)*N);
 	err_code |= sendData(massin, F->mass, sizeof(cl_float)*N);
@@ -706,7 +696,6 @@ bool CalcServer::setup()
 	err_code |= sendData(v, F->v, sizeof(vec)*N);
 	err_code |= sendData(dens, F->dens, sizeof(cl_float)*N);
 	err_code |= sendData(drdt, F->drdt, sizeof(cl_float)*N);
-	err_code |= sendData(hp, F->hp, sizeof(cl_float)*N);
 	err_code |= sendData(f, F->f, sizeof(vec)*N);
 	err_code |= sendData(mass, F->mass, sizeof(cl_float)*N);
 	err_code |= sendData(press, F->press, sizeof(cl_float)*N);

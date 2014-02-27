@@ -79,7 +79,7 @@
  */
 __kernel void Boundary( _g int* iMove,
                         _g vec* pos, _g vec* v, _g vec* f, _g vec* fin, _g vec* normal,
-                        _g float* hp, _g vec* outPos,
+                        _g vec* outPos,
                         // Link-list data
                         _g uint *lcell, _g uint *ihoc, _g uint *dPermut, _g uint *iPermut,
                         // Simulation data
@@ -108,7 +108,7 @@ __kernel void Boundary( _g int* iMove,
 	// Particle data
 	uint j,labp, lc;
 	vec iPos, iV, iF, iFin;
-	float iHp, nV, nF, nFin, nG, dist;
+	float nV, nF, nFin, nG, dist;
 	// Neighbours data
 	uint cellCount, lcc;
 	vec n,p,pV,r,rt;
@@ -121,7 +121,6 @@ __kernel void Boundary( _g int* iMove,
 	iV   = v[labp];						// Velocity of the particle
 	iF   = f[labp];						// Acceleration of the particle
 	iFin = fin[labp];					// Acceleration of the particle (previous time step)
-	iHp  = hp[i];						// Kernel height of the particle
 	//! Loop over all neightbour particles
 	{
 		//! a.- Home cell, starting by next particle

@@ -38,7 +38,6 @@
  * @param v (output) Velocity of particles.
  * @param dens (output) dens[i] of particles.
  * @param mass (output) Mass of particles.
- * @param hp (output) Kernel height of particles.
  * @param relPos Relative position of particles to quaternion.
  * @param relNormal Particle normal at t=0 (used for boundary particles/vertexes).
  * @param N Number of particles.
@@ -54,7 +53,7 @@
  */
 __kernel void Movement( _g int* imove, _g int* ifluid, _g vec* pos,
                         _g vec* normal, _g vec* v, _g float* dens,
-                        _g float* mass, _g float* hp, _g vec* relPos,
+                        _g float* mass, _g vec* relPos,
                         _g vec* relNormal, unsigned int N, float dt, vec CoR,
                         vec X, vec Y, vec Z, vec cor, vec x, vec y, vec z)
 {

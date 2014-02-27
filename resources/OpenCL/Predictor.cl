@@ -39,14 +39,12 @@
  * @param dens Density of particles.
  * @param mass Mass of particles.
  * @param drdt Density evolution of particles.
- * @param hp Kernel height of particles.
  * @param posin Position of particles.
  * @param vin Velocity of particles.
  * @param fin Forces over particles.
  * @param densin Density of particles.
  * @param massin Mass of particles.
  * @param drdtin Density evolution of particles.
- * @param hpin Kernel height of particles.
  * @param press Pressure.
  * @param refd Reference density.
  * @param gamma Gamma.
@@ -60,9 +58,9 @@
  */
 __kernel void Predictor(_g int* imove, _g int* ifluid, _g vec* pos, _g vec* v,
                         _g vec* f, _g float* dens, _g float* mass,
-                        _g float* drdt, _g float* hp, _g vec* posin,
+                        _g float* drdt, _g vec* posin,
                         _g vec* vin, _g vec* fin, _g float* densin,
-                        _g float* massin, _g float* drdtin, _g float* hpin,
+                        _g float* massin, _g float* drdtin,
                         _g float* press, _c float* refd, _c float* gamma,
                         unsigned int N, float t, float dt, float cs, vec g,
                         float minDens, float maxDens)
@@ -100,7 +98,6 @@ __kernel void Predictor(_g int* imove, _g int* ifluid, _g vec* pos, _g vec* v,
 	#endif
 	if(dens[i] < minDens) dens[i] = minDens;
 	if(dens[i] > maxDens) dens[i] = maxDens;
-	hp[i]      = hpin[i]; // *sqrt(densin[i]/dens[i])
 	pos[i]     = posin[i] + DT*vin[i] + 0.5f*DT*DT*(fin[i] + g);
 	// Batchelor 1967
 	{

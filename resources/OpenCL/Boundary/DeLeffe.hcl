@@ -30,7 +30,7 @@ sArea  = mass[i];                                             // Face area.     
 // ------------------------------------------------------------------
 // other properties
 // ------------------------------------------------------------------
-dist = sep*iHp;                                                // Maximum interaction distance                   [m]
+dist = sep*h;                                                // Maximum interaction distance                   [m]
 // ------------------------------------------------------------------
 // Vertex-particle interaction parameters
 // ------------------------------------------------------------------
@@ -46,15 +46,15 @@ if(r0 < 0.f){
 	n  = -n;
 	r0 = -r0;
 }
-q = r1/iHp;
+q = r1/h;
 
 // ------------------------------------------------------------------
 // Vertex computation
 // ------------------------------------------------------------------
 #ifndef HAVE_3D
-	conw = 1.f/(iHp*iHp);
+	conw = 1.f/(h*h);
 #else
-	conw = 1.f/(iHp*iHp*iHp);
+	conw = 1.f/(h*h*h);
 #endif
 {
 	dv   = iV - v[i];                                       // Delta of velocity                                [m/s]
@@ -72,7 +72,7 @@ q = r1/iHp;
 	//---------------------------------------------------------------
 	viscg = VEC_ZERO;
 	#ifdef __NO_SLIP__
-	if(r0 > 0.01f*iHp){
+	if(r0 > 0.01f*h){
 		viscg = 2.f*iViscdyn/iDens * dv * r0/dot(r,r);
 	}
 	#endif
@@ -84,8 +84,4 @@ q = r1/iHp;
 	//       rate of change of density
 	//---------------------------------------------------------------
 	_DRDT_ -= wab*vdr;                                      // Density varaition rate                           [kg/m3/s]
-	//---------------------------------------------------------------
-	//       Shepard term gradient
-	//---------------------------------------------------------------
-	_GRADW_ += n*wab/sDens;                                 // Kernel gradient                                  [1/m]
 }

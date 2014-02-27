@@ -44,7 +44,7 @@
  * @param grav Gravity acceleration.
  * @param N Number of particles.
  */
-__kernel void ClampVel(_g int* imove, _g vec* v, _g vec* f, _g float* hp, _g vec* fin,
+__kernel void ClampVel(_g int* imove, _g vec* v, _g vec* f, _g vec* fin,
                         float mindt, vec grav, unsigned int N)
 {
 	// find position in global arrays
@@ -61,7 +61,7 @@ __kernel void ClampVel(_g int* imove, _g vec* v, _g vec* f, _g float* hp, _g vec
 	vec r = mindt*v[i] + mindt*mindt*(f[i] + 0.5f*(grav - fin[i]));
 	// Ensure that the particle is not moving too much
 	float dr2   = dot(r,r);
-	float maxdr = 0.1f*hp[i];
+	float maxdr = 0.1f*h;
 	if( dr2 > maxdr*maxdr){
 		// Correct the displacement vector in order to fit to 0.1h
 		r   *= maxdr / sqrt(dr2);
@@ -82,14 +82,12 @@ __kernel void ClampVel(_g int* imove, _g vec* v, _g vec* f, _g float* hp, _g vec
  * @param dens Density of particles.
  * @param mass Mass of particles.
  * @param drdt Density evolution of particles.
- * @param hp Kernel height of particles.
  * @param posin Position of particles.
  * @param vin Velocity of particles.
  * @param fin Forces over particles.
  * @param densin Density of particles.
  * @param massin Mass of particles.
  * @param drdtin Density evolution of particles.
- * @param hpin Kernel height of particles.
  * @param press Pressure.
  * @param sigma Viscosity time step term.
  * @param N Number of particles.
@@ -98,9 +96,9 @@ __kernel void ClampVel(_g int* imove, _g vec* v, _g vec* f, _g float* hp, _g vec
  */
 __kernel void Corrector(_g int* imove, _g vec* pos, _g vec* v, _g vec* f,
                         _g float* dens, _g float* mass, _g float* drdt,
-                        _g float* hp, _g vec* posin, _g vec* vin, _g vec* fin,
+                        _g vec* posin, _g vec* vin, _g vec* fin,
                         _g float* densin, _g float* massin, _g float* drdtin,
-                        _g float* hpin, _g float* sigma,
+                        _g float* sigma,
                         unsigned int N, float t, float dt)
 {
 	// find position in global arrays
@@ -129,7 +127,6 @@ __kernel void Corrector(_g int* imove, _g vec* pos, _g vec* v, _g vec* f,
 	#else
 		dens[i]   = dens[i] + HDT*(drdt[i] - drdtin[i]);
 	#endif
-	hp[i]     = hpin[i]; // *sqrt(densin[i]/dens[i])
 	/* Calculate initial positions, mass and thermal energy
 	 * for the next step.
 	 */
@@ -137,7 +134,6 @@ __kernel void Corrector(_g int* imove, _g vec* pos, _g vec* v, _g vec* f,
 	vin[i]    = v[i];
 	massin[i] = mass[i];
 	densin[i] = dens[i];
-	hpin[i]   = hp[i];
 	fin[i]    = f[i];
 	drdtin[i] = drdt[i];
 

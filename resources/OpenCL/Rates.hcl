@@ -39,18 +39,17 @@ if(!iMove[i]){
 		continue;
 	}
 #endif
-hav = 0.5f*(iHp + hp[i]);                                       // Average kernel heights for interactions              [m]
-dist = sep*hav;                                                 // Maximum interaction distance                         [m]
+dist = sep*h;                                                 // Maximum interaction distance                         [m]
 r = iPos - pos[i];
 r1  = fast_length(r);                                           // Distance between particles                           [m]
 if( r1 <= dist )
 {
 	#ifndef HAVE_3D
-		conw = 1.f/(hav*hav);
-		conf = 1.f/(hav*hav*hav*hav);
+		conw = 1.f/(h*h);
+		conf = 1.f/(h*h*h*h);
 	#else
-		conw = 1.f/(hav*hav*hav);
-		conf = 1.f/(hav*hav*hav*hav*hav);
+		conw = 1.f/(h*h*h);
+		conf = 1.f/(h*h*h*h*h);
 	#endif
 	dv   = iV - v[i];                                       // Delta of velocity                                    [m/s]
 	vdr  = dot(dv, r);
@@ -59,8 +58,8 @@ if( r1 <= dist )
 	//---------------------------------------------------------------
 	pDens = dens[i];                                        // Density of neighbour particle                        [kg/m3]
 	pMass = pmass[i];                                       // Mass of neighbour particle                           [kg]
-	wab = kernelW(r1/hav)*conw*pMass;
-	fab = kernelF(r1/hav)*conf*pMass;
+	wab = kernelW(r1/h)*conw*pMass;
+	fab = kernelF(r1/h)*conf*pMass;
 	//---------------------------------------------------------------
 	//       calculate the pressure factor
 	//---------------------------------------------------------------
@@ -72,13 +71,13 @@ if( r1 <= dist )
 	//       calculate viscosity terms (Cleary's viscosity)
 	//---------------------------------------------------------------
 	viscg = -__CLEARY__*iViscdyn*
-			vdr / (r1*r1 + 0.01f*hav*hav)
+			vdr / (r1*r1 + 0.01f*h*h)
 			/(pDens*iDens);
 	#ifdef __FREE_SLIP__
 		if(iMove[i]<0)
 			viscg = 0.f;
 	#endif
-	_SIGMA_ = max(_SIGMA_, hav*hav/iVisckin);
+	_SIGMA_ = max(_SIGMA_, h*h/iVisckin);
 	//---------------------------------------------------------------
 	//       force computation
 	//---------------------------------------------------------------
@@ -93,20 +92,20 @@ if( r1 <= dist )
 	#ifdef __DELTA_SPH__
 		// Ferrari
 		/*
-		rdr = dot( r, r ) / (r1 + 0.01f*hav);
+		rdr = dot( r, r ) / (r1 + 0.01f*h);
 		drfac = (iPress - press[i]) - rDens*dot(grav,r);
 		_DRDT_F_ += iDelta / (cs*pDens)
 		            * ( drfac * rdr ) * fab;
 		*/
 		// Molteni
 		/*
-		rdr = dot( r, r ) / (r1*r1 + 0.01f*hav*hav);
+		rdr = dot( r, r ) / (r1*r1 + 0.01f*h*h);
 		drfac = (iPress - press[i]) - rDens*dot(grav,r);
-		_DRDT_F_ += 2.f*iDelta*hav / (cs*pDens)
+		_DRDT_F_ += 2.f*iDelta*h / (cs*pDens)
 		            * ( drfac * rdr ) * fab;
 		*/
 		// Cercos
-		rdr = dot( r, r ) / (r1*r1 + 0.01f*hav*hav);
+		rdr = dot( r, r ) / (r1*r1 + 0.01f*h*h);
 		drfac = (iPress - press[i]) - rDens*dot(grav,r);
 		_DRDT_F_ += iDelta*dt * iDens/(rDens*pDens)
 		            * ( drfac * rdr ) * fab;
@@ -115,8 +114,4 @@ if( r1 <= dist )
 	// 	Shepard term
 	//---------------------------------------------------------------
 	_SHEPARD_ += wab/pDens;                                 // Kernel integral
-	//---------------------------------------------------------------
-	//       Shepard term gradient
-	//---------------------------------------------------------------
-	_GRADW_  -= r*fab/pDens;                                // Kernel integral gradient                             [1/m]
 }

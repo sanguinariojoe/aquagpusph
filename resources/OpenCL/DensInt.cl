@@ -83,8 +83,8 @@
  * @param hfac Kernel height factor
  * @param lvec Number of cells in each direction
  */
-__kernel void DensityInterpolation(  _g float* dens, _g int* iMove, _g vec* pos,
-                                    _g float* hp, _g float* pmass, _g float* shepard,
+__kernel void DensityInterpolation( _g float* dens, _g int* iMove, _g vec* pos,
+                                    _g float* pmass, _g float* shepard,
                                     // Link-list data
                                     _g uint *lcell, _g uint *ihoc, _g uint *dPermut, _g uint *iPermut,
                                     // Simulation data
@@ -119,10 +119,10 @@ __kernel void DensityInterpolation(  _g float* dens, _g int* iMove, _g vec* pos,
 	 */
 
 	// Kernel variables
-	float hav, dist, conw, wab;
+	float dist, conw, wab;
 	// Particle data
 	uint j,labp, lc;
-	float iHp,iShepard;
+	float iShepard;
 	vec iPos;
 	// Neighbours data
 	uint cellCount, lcc;
@@ -133,7 +133,6 @@ __kernel void DensityInterpolation(  _g float* dens, _g int* iMove, _g vec* pos,
 	j = i;							// Backup of the variable, in order to compare later
 	labp = dPermut[i];					// Particle index at unsorted space
 	lc = lcell[i];						// Cell of the particle
-	iHp = hp[i];						// Kernel height of the particle
 	iShepard = shepard[labp];				// Shepard value
 	iPos = pos[i];						// Position of the particle
 	//! 2nd.- Initialize output
@@ -201,9 +200,9 @@ __kernel void DensityInterpolation(  _g float* dens, _g int* iMove, _g vec* pos,
 	//! 4th.- Append the self particle density interpolation
 	if(iMove[j]){
 		#ifndef HAVE_3D
-			conw = 1.f/(iHp*iHp);
+			conw = 1.f/(h*h);
 		#else
-			conw = 1.f/(iHp*iHp*iHp);
+			conw = 1.f/(h*h*h);
 		#endif
 		wab = kernelW(0.f)*conw*pmass[j];
 		_DENS_ += wab;

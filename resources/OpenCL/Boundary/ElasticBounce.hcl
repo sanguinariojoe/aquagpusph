@@ -55,7 +55,7 @@ dist = dt*nV + 0.5f*dt*dt*(nF + nG);                                  // Distanc
 // * The partilce is placed outside the effect zone, but will enter
 //   inside it.
 // ------------------------------------------------------------------
-if( (dist < 0.f) && (r0 + dist <= __MIN_BOUND_DIST__*iHp) ){
+if( (dist < 0.f) && (r0 + dist <= __MIN_BOUND_DIST__*h) ){
 	// ------------------------------------------------------------------
 	// Reflect particle velocity (using elastic factor)
 	// ------------------------------------------------------------------
@@ -99,10 +99,10 @@ if( (dist < 0.f) && (r0 + dist <= __MIN_BOUND_DIST__*iHp) ){
 // far from the boundaries.
 // ------------------------------------------------------------------
 #ifdef __FORCE_MIN_BOUND_DIST__
-if(r0 < __MIN_BOUND_DIST__*iHp){
+if(r0 < __MIN_BOUND_DIST__*h){
 	// Move ever the same distance in order to avoid several particles
 	// placed in the same point near to the corners.
-	r             = __MIN_BOUND_DIST__*iHp*n;
+	r             = __MIN_BOUND_DIST__*h*n;
 	iPos         += r;
 	outPos[labp] += r;
 }

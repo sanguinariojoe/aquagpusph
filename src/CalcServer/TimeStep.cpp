@@ -87,8 +87,8 @@ bool TimeStep::execute()
 		C->dt = _dt;
 		return false;
 	}
-	err_code |= sendArgument(_kernel,  6, sizeof(cl_float), (void*)&(C->dt));
-	err_code |= sendArgument(_kernel,  7, sizeof(cl_float), (void*)&(C->cs));
+	err_code |= sendArgument(_kernel, 5, sizeof(cl_float), (void*)&(C->dt));
+	err_code |= sendArgument(_kernel, 6, sizeof(cl_float), (void*)&(C->cs));
 	if(err_code != CL_SUCCESS) {
 		S->addMessageF(3, "I cannot send a variable to the kernel.\n");
 		return true;
@@ -190,13 +190,9 @@ bool TimeStep::setupOpenCL()
 	err_code |= sendArgument(_kernel,
                              3,
                              sizeof(cl_mem),
-                             (void*)&(C->hp));
-	err_code |= sendArgument(_kernel,
-                             4,
-                             sizeof(cl_mem),
                              (void*)&(C->sigma));
     err_code |= sendArgument(_kernel,
-                             5,
+                             4,
                              sizeof(cl_uint),
                              (void*)&(C->n));
 

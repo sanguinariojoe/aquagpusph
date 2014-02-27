@@ -117,7 +117,6 @@ bool VTK::load()
     progress = -1;
     for(i=bounds().x; i<bounds().y; i++){
         F->ifluid[i] = fluidId();
-        F->hp[i] = P->SPH_opts.h;
 
         double *vect;
         vect = points->GetPoint(cell);
@@ -195,18 +194,12 @@ bool VTK::save()
     vtkSmartPointer<vtkFloatArray> drdt = vtkSmartPointer<vtkFloatArray>::New();
     drdt->SetNumberOfComponents(1);
     drdt->SetName("ddens/dt");
-    vtkSmartPointer<vtkFloatArray> h = vtkSmartPointer<vtkFloatArray>::New();
-    h->SetNumberOfComponents(1);
-    h->SetName("h");
     vtkSmartPointer<vtkFloatArray> m = vtkSmartPointer<vtkFloatArray>::New();
     m->SetNumberOfComponents(1);
     m->SetName("mass");
     vtkSmartPointer<vtkFloatArray> W = vtkSmartPointer<vtkFloatArray>::New();
     W->SetNumberOfComponents(1);
     W->SetName("sumW");
-    vtkSmartPointer<vtkFloatArray> dW = vtkSmartPointer<vtkFloatArray>::New();
-    dW->SetNumberOfComponents(3);
-    dW->SetName("gradW");
     vtkSmartPointer<vtkIntArray> imove = vtkSmartPointer<vtkIntArray>::New();
     imove->SetNumberOfComponents(1);
     imove->SetName("imove");
@@ -230,10 +223,6 @@ bool VTK::save()
             vect[1] = F->f[i].y;
             vect[2] = F->f[i].z;
             dv->InsertNextTupleValue(vect);
-            vect[0] = F->shepard_gradient[i].x;
-            vect[1] = F->shepard_gradient[i].y;
-            vect[2] = F->shepard_gradient[i].z;
-            dW->InsertNextTupleValue(vect);
         #else // HAVE_3D
             points->InsertNextPoint(F->pos[i].x, F->pos[i].y, 0.f);
             vect[0] = F->normal[i].x;
@@ -245,14 +234,10 @@ bool VTK::save()
             vect[0] = F->f[i].x;
             vect[1] = F->f[i].y;
             dv->InsertNextTupleValue(vect);
-            vect[0] = F->shepard_gradient[i].x;
-            vect[1] = F->shepard_gradient[i].y;
-            dW->InsertNextTupleValue(vect);
         #endif // HAVE_3D
         p->InsertNextValue(F->press[i]);
         dens->InsertNextValue(F->dens[i]);
         drdt->InsertNextValue(F->drdt[i]);
-        h->InsertNextValue(F->hp[i]);
         m->InsertNextValue(F->mass[i]);
         W->InsertNextValue(F->shepard[i]);
         imove->InsertNextValue(F->imove[i]);
@@ -273,10 +258,8 @@ bool VTK::save()
     grid->GetPointData()->AddArray(p);
     grid->GetPointData()->AddArray(dens);
     grid->GetPointData()->AddArray(drdt);
-    grid->GetPointData()->AddArray(h);
     grid->GetPointData()->AddArray(m);
     grid->GetPointData()->AddArray(W);
-    grid->GetPointData()->AddArray(dW);
     grid->GetPointData()->AddArray(imove);
     grid->GetPointData()->AddArray(id);
 

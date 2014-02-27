@@ -260,8 +260,6 @@ public:
 	cl_mem drdt_F;
 	/// Mass \f$ m \f$.
 	cl_mem mass;
-	/// Kernel height \f$ h \f$.
-	cl_mem hp;
 	/// Pressure \f$ p \f$.
 	cl_mem press;
 	/// Position (predictor-corrector backup variable)
@@ -278,8 +276,6 @@ public:
 	cl_mem drdtin;
 	/// Mass (predictor-corrector backup variable)
 	cl_mem massin;
-	/// Kernel height (predictor-corrector backup variable)
-	cl_mem hpin;
 	/// Pressure (predictor-corrector backup variable)
 	cl_mem pressin;
 	/// Viscous timestep term \f$ \Delta t_{visc} \f$.
@@ -291,11 +287,6 @@ public:
            \mathrm{d}\mathbf{x} \f$.
      */
 	cl_mem shepard;
-	/** Shepard term gradient (0th correction) \f$ \gamma(\mathbf{x}) = \int_{Omega}
-           \nabla W(\mathbf{y} - \mathbf{x})
-           \mathrm{d}\mathbf{x} \f$.
-     */
-	cl_mem shepard_gradient;
 	/** Permutations vector, that gives for each particle index in the sorted
 	 * space, their index in the unsorted space.
 	 */

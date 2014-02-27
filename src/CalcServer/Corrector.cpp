@@ -155,10 +155,10 @@ bool Corrector::execute()
 	        profileTime(profileTime() + (end - start)/1000.f);  // 10^-3 ms
 	    #endif
 	}
-	//! Execute the corrector
-	err_code  = sendArgument(_kernel, 16, sizeof(cl_uint), (void*)&(C->N));
-	err_code |= sendArgument(_kernel, 17, sizeof(cl_float), (void*)&t);
-	err_code |= sendArgument(_kernel, 18, sizeof(cl_float), (void*)&(C->dt));
+
+	err_code  = sendArgument(_kernel, 14, sizeof(cl_uint), (void*)&(C->N));
+	err_code |= sendArgument(_kernel, 15, sizeof(cl_float), (void*)&t);
+	err_code |= sendArgument(_kernel, 16, sizeof(cl_float), (void*)&(C->dt));
 	if(err_code != CL_SUCCESS) {
 		S->addMessageF(3, "I cannot send a variable to the kernel.\n");
 	    return true;
@@ -238,22 +238,20 @@ bool Corrector::setupOpenCL()
                            "Corrector",
                            ""))
 	    return true;
-	err_code  = sendArgument(_kernel,  0, sizeof(cl_mem), (void*)&(C->imove));
-	err_code |= sendArgument(_kernel,  1, sizeof(cl_mem), (void*)&(C->pos));
-	err_code |= sendArgument(_kernel,  2, sizeof(cl_mem), (void*)&(C->v));
-	err_code |= sendArgument(_kernel,  3, sizeof(cl_mem), (void*)&(C->f));
-	err_code |= sendArgument(_kernel,  4, sizeof(cl_mem), (void*)&(C->dens));
-	err_code |= sendArgument(_kernel,  5, sizeof(cl_mem), (void*)&(C->mass));
-	err_code |= sendArgument(_kernel,  6, sizeof(cl_mem), (void*)&(C->drdt));
-	err_code |= sendArgument(_kernel,  7, sizeof(cl_mem), (void*)&(C->hp));
-	err_code |= sendArgument(_kernel,  8, sizeof(cl_mem), (void*)&(C->posin));
-	err_code |= sendArgument(_kernel,  9, sizeof(cl_mem), (void*)&(C->vin));
-	err_code |= sendArgument(_kernel, 10, sizeof(cl_mem), (void*)&(C->fin));
-	err_code |= sendArgument(_kernel, 11, sizeof(cl_mem), (void*)&(C->densin));
-	err_code |= sendArgument(_kernel, 12, sizeof(cl_mem), (void*)&(C->massin));
-	err_code |= sendArgument(_kernel, 13, sizeof(cl_mem), (void*)&(C->drdtin));
-	err_code |= sendArgument(_kernel, 14, sizeof(cl_mem), (void*)&(C->hpin));
-	err_code |= sendArgument(_kernel, 15, sizeof(cl_mem), (void*)&(C->sigma));
+	err_code  = sendArgument(_kernel, 0, sizeof(cl_mem), (void*)&(C->imove));
+	err_code |= sendArgument(_kernel, 1, sizeof(cl_mem), (void*)&(C->pos));
+	err_code |= sendArgument(_kernel, 2, sizeof(cl_mem), (void*)&(C->v));
+	err_code |= sendArgument(_kernel, 3, sizeof(cl_mem), (void*)&(C->f));
+	err_code |= sendArgument(_kernel, 4, sizeof(cl_mem), (void*)&(C->dens));
+	err_code |= sendArgument(_kernel, 5, sizeof(cl_mem), (void*)&(C->mass));
+	err_code |= sendArgument(_kernel, 6, sizeof(cl_mem), (void*)&(C->drdt));
+	err_code |= sendArgument(_kernel, 7, sizeof(cl_mem), (void*)&(C->posin));
+	err_code |= sendArgument(_kernel, 8, sizeof(cl_mem), (void*)&(C->vin));
+	err_code |= sendArgument(_kernel, 9, sizeof(cl_mem), (void*)&(C->fin));
+	err_code |= sendArgument(_kernel, 10, sizeof(cl_mem), (void*)&(C->densin));
+	err_code |= sendArgument(_kernel, 11, sizeof(cl_mem), (void*)&(C->massin));
+	err_code |= sendArgument(_kernel, 12, sizeof(cl_mem), (void*)&(C->drdtin));
+	err_code |= sendArgument(_kernel, 13, sizeof(cl_mem), (void*)&(C->sigma));
 	if(err_code)
 	    return true;
 	if( (P->time_opts.velocity_clamp) && (P->time_opts.dt_min > 0) ){
@@ -274,10 +272,6 @@ bool Corrector::setupOpenCL()
                                  (void*)&(C->f));
 	    err_code |= sendArgument(_vel_clamp_kernel,
                                  3,
-                                 sizeof(cl_mem),
-                                 (void*)&(C->hp));
-	    err_code |= sendArgument(_vel_clamp_kernel,
-                                 4,
                                  sizeof(cl_mem),
                                  (void*)&(C->fin));
 	    if(err_code)

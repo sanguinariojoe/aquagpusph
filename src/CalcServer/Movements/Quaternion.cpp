@@ -136,60 +136,56 @@ bool Quaternion::execute()
 	err_code |= sendArgument(_kernel,
                              7,
                              sizeof(cl_mem),
-                             (void*)&(C->hpin));
+                             (void*)&(_pos));
 	err_code |= sendArgument(_kernel,
                              8,
                              sizeof(cl_mem),
-                             (void*)&(_pos));
-	err_code |= sendArgument(_kernel,
-                             9,
-                             sizeof(cl_mem),
                              (void*)&(_normal));
 	err_code |= sendArgument(_kernel,
-                             10,
+                             9,
                              sizeof(cl_uint),
                              (void*)&(C->N));
 	err_code |= sendArgument(_kernel,
-                             11,
+                             10,
                              sizeof(cl_float),
                              (void*)&(C->dt));
 	err_code |= sendArgument(_kernel,
-                             12,
+                             11,
                              sizeof(vec),
                              (void*)&(_cor));
 	err_code |= sendArgument(_kernel,
-                             13,
+                             12,
                              sizeof(vec),
                              (void*)&(X));
 	err_code |= sendArgument(_kernel,
-                             14,
+                             13,
                              sizeof(vec),
                              (void*)&(Y));
 	err_code |= sendArgument(_kernel,
-                             15,
+                             14,
                              sizeof(vec),
                              (void*)&(Z));
 	err_code |= sendArgument(_kernel,
-                             16,
+                             15,
                              sizeof(vec),
                              (void*)&(_old_cor));
 	err_code |= sendArgument(_kernel,
-                             17,
+                             16,
                              sizeof(vec),
                              (void*)&(oldX));
 	err_code |= sendArgument(_kernel,
-                             18,
+                             17,
                              sizeof(vec),
                              (void*)&(oldY));
 	err_code |= sendArgument(_kernel,
-                             19,
+                             18,
                              sizeof(vec),
                              (void*)&(oldZ));
 	if(err_code != CL_SUCCESS) {
 		S->addMessageF(3, "Failure sending variables to the kernel.\n");
 	    return true;
 	}
-	//! Execute the kernel
+
 	#ifdef HAVE_GPUPROFILE
 	    cl_event event;
 	    cl_ulong end, start;
