@@ -85,9 +85,6 @@
  * @param refd Reference density (one per fluid)
  * @param lcell Cell where the particle is situated.
  * @param ihoc Head particle of cell chain.
- * @param dPermut Transform each sorted space index into their unsorted space index.
- * @param iPermut Transform each unsorted space index into their sorted space index.
- * @param n Number of particles.
  * @param N Number of particles & sensors.
  * @param hfac Kernel height factor.
  * @param lvec Number of cells at each direction.
@@ -100,9 +97,8 @@ __kernel void Boundary(_g int* iFluid, _g int* iMove, _g vec* pos, _g vec* v,
                        _g float* drdt_F, _g float* shepard,
                        // Link-list data
                        _g uint *lcell, _g uint *ihoc,
-                       _g uint *dPermut, _g uint *iPermut,
                        // Simulation data
-                       uint n, uint N, float hfac, uivec lvec, vec grav,
+                       uint N, float hfac, uivec lvec, vec grav,
                        // Wall specific data
                        _c struct Wall* wall
                        #ifdef __DELTA_SPH__
@@ -147,7 +143,7 @@ __kernel void Boundary(_g int* iFluid, _g int* iMove, _g vec* pos, _g vec* v,
 	float conw, conf, wab, fab;
 	// Particle data
 	int iIFluid;
-	uint j,labp, lc;
+	uint j, lc;
 	vec iV;
 	float iDens, iPress, iVisckin, iViscdyn, rDens;
 	// Neighbours data
@@ -155,15 +151,14 @@ __kernel void Boundary(_g int* iFluid, _g int* iMove, _g vec* pos, _g vec* v,
 	vec pPos, pV,pVn,pVt, r,dv;
 	float r1, vdr, pDens, pPress, pMass, prfac, viscg;
 	j = i;							// Backup of the variable, in order to compare later
-	labp = dPermut[i];					// Particle index at unsorted space
 	lc = lcell[i];						// Cell of the particle
 
 	//! 1st.- Initialize output
     #ifndef LOCAL_MEM_SIZE
-	    #define _F_ f[labp]
-	    #define _DRDT_ drdt[labp]
-    	#define _DRDT_F_ drdt_F[labp]
-    	#define _SHEPARD_ shepard[labp]
+	    #define _F_ f[j]
+	    #define _DRDT_ drdt[j]
+    	#define _DRDT_F_ drdt_F[j]
+    	#define _SHEPARD_ shepard[j]
     #else
 	    #define _F_ f_l[it]
 	    #define _DRDT_ drdt_l[it]
@@ -173,10 +168,10 @@ __kernel void Boundary(_g int* iFluid, _g int* iMove, _g vec* pos, _g vec* v,
         _l float drdt_l[LOCAL_MEM_SIZE];
         _l float drdt_F_l[LOCAL_MEM_SIZE];
         _l float shepard_l[LOCAL_MEM_SIZE];
-        f_l[it] = f[labp];
-        drdt_l[it] = drdt[labp];
-        drdt_F_l[it] = drdt_F[labp];
-        shepard_l[it] = shepard[labp];
+        f_l[it] = f[j];
+        drdt_l[it] = drdt[j];
+        drdt_F_l[it] = drdt_F[j];
+        shepard_l[it] = shepard[j];
     #endif
 
 	//! 2nd.- Particle data (reads it now in order to avoid read it from constant memory several times)
@@ -252,12 +247,12 @@ __kernel void Boundary(_g int* iFluid, _g int* iMove, _g vec* pos, _g vec* v,
 	}
 	//! 5th.- Write output into global memory (at unsorted space)
 	#ifdef LOCAL_MEM_SIZE
-		f[labp] = _F_;
-		drdt[labp] = _DRDT_ + _DRDT_F_;
-		drdt_F[labp] = _DRDT_F_;
-		shepard[labp] = _SHEPARD_;
+		f[j] = _F_;
+		drdt[j] = _DRDT_ + _DRDT_F_;
+		drdt_F[j] = _DRDT_F_;
+		shepard[j] = _SHEPARD_;
 	#else
-		drdt[labp] += _DRDT_F_;
+		drdt[j] += _DRDT_F_;
 	#endif
 
 	// ---- A ---- Your code here ---- A ----

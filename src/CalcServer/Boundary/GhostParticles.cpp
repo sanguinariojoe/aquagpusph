@@ -169,51 +169,37 @@ bool GhostParticles::execute()
                                  (void*)&(C->ihoc));
 	    err_code |= sendArgument(_kernel,
                                  16,
-                                 sizeof(cl_mem),
-                                 (void*)&(C->permutation));
-	    err_code |= sendArgument(_kernel,
-                                 17,
-                                 sizeof(cl_mem),
-                                 (void*)&(C->permutation_inverse));
-	    err_code |= sendArgument(_kernel,
-                                 18,
-                                 sizeof(cl_uint),
-                                 (void*)&(C->n));
-	    err_code |= sendArgument(_kernel,
-                                 19,
                                  sizeof(cl_uint),
                                  (void*)&(C->N));
 	    err_code |= sendArgument(_kernel,
-                                 20,
+                                 17,
                                  sizeof(cl_float),
                                  (void*)&(C->hfac));
 	    err_code |= sendArgument(_kernel,
-                                 21,
+                                 18,
                                  sizeof(uivec),
                                  (void*)&(C->num_cells_vec));
 	    err_code |= sendArgument(_kernel,
-                                 22,
+                                 19,
                                  sizeof(vec),
                                  (void*)&(C->g));
 	    err_code |= sendArgument(_kernel,
-                                 23,
+                                 20,
                                  sizeof(cl_mem),
                                  (void*)&(_walls.at(i)));
-        unsigned int added_args = 0;
         if(_is_delta) {
             err_code |= sendArgument(_kernel,
-                                     24,
+                                     21,
                                      sizeof(cl_mem),
                                      (void*)&(C->delta));
             err_code |= sendArgument(_kernel,
-                                     25,
+                                     22,
                                      sizeof(cl_float),
                                      (void*)&(C->dt));
             err_code |= sendArgument(_kernel,
-                                     26,
+                                     23,
                                      sizeof(cl_float),
                                      (void*)&(C->cs));
-            added_args = 3;
         }
 	    if(err_code != CL_SUCCESS) {
 	        S->addMessageF(3, "Failure sending variables to GhostParticles effect computation kernel.\n");

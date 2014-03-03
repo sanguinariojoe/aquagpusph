@@ -150,7 +150,6 @@ bool Rates::execute()
                              17,
                              sizeof(vec),
                              (void*)&(C->g));
-	unsigned int added_args = 0;
 	if(_is_delta) {
 	    err_code |= sendArgument(_kernel,
                                  18,
@@ -168,7 +167,6 @@ bool Rates::execute()
                                  21,
                                  sizeof(cl_float),
                                  (void*)&(C->cs));
-        added_args = 4;
 	}
 	if(err_code != CL_SUCCESS) {
 		S->addMessageF(3, "Failure sending the arguments to the kernel.\n");
