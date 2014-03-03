@@ -522,6 +522,8 @@ bool Rates::setupOpenCL()
 	else{
         sprintf(options, "-DLOCAL_MEM_SIZE=%lu", _local_work_size);
 	}
+	if(_is_delta)
+        strcat(options, " -D__DELTA_SPH__");
     if(_kernel)clReleaseKernel(_kernel); _kernel=0;
     if(!loadKernelFromFile(&_kernel,
                            &_program,
