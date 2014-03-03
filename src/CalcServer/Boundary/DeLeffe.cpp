@@ -104,56 +104,36 @@ bool DeLeffe::elements()
 	err_code |= sendArgument(_setup_kernel,
                              4,
                              sizeof(cl_mem),
-                             (void*)&(C->pressin));
+                             (void*)&(C->dens));
 	err_code |= sendArgument(_setup_kernel,
                              5,
                              sizeof(cl_mem),
-                             (void*)&(C->dens));
+                             (void*)&(C->refd));
 	err_code |= sendArgument(_setup_kernel,
                              6,
                              sizeof(cl_mem),
-                             (void*)&(C->densin));
+                             (void*)&(C->ifluid));
 	err_code |= sendArgument(_setup_kernel,
                              7,
                              sizeof(cl_mem),
-                             (void*)&(C->refd));
+                             (void*)&(C->gamma));
 	err_code |= sendArgument(_setup_kernel,
                              8,
                              sizeof(cl_mem),
-                             (void*)&(C->ifluid));
-	err_code |= sendArgument(_setup_kernel,
-                             9,
-                             sizeof(cl_mem),
-                             (void*)&(C->gamma));
-	err_code |= sendArgument(_setup_kernel,
-                             10,
-                             sizeof(cl_mem),
-                             (void*)&(C->normal));
-	err_code |= sendArgument(_setup_kernel,
-                             11,
-                             sizeof(cl_mem),
-                             (void*)&(C->normalin));
-	err_code |= sendArgument(_setup_kernel,
-                             12,
-                             sizeof(cl_mem),
                              (void*)&(C->shepard));
 	err_code |= sendArgument(_setup_kernel,
-                             13,
-                             sizeof(cl_mem),
-                             (void*)&(C->permutation_inverse));
-	err_code |= sendArgument(_setup_kernel,
-                             14,
+                             9,
                              sizeof(cl_uint),
                              (void*)&(C->n));
 	err_code |= sendArgument(_setup_kernel,
-                             15,
+                             10,
                              sizeof(cl_float),
                              (void*)&(C->cs));
 	if(err_code != CL_SUCCESS) {
 		S->addMessageF(3, "Failure sending variables to Vertex set kernel.\n");
 	    return true;
 	}
-	//! Execute the kernel
+
 	#ifdef HAVE_GPUPROFILE
 	    cl_event event;
 	    cl_ulong end, start;
@@ -224,35 +204,35 @@ bool DeLeffe::boundary()
 	err_code |= sendArgument(_boundary_kernel,
                              0,
                              sizeof(cl_mem),
-                             (void*)&(C->ifluidin));
+                             (void*)&(C->ifluid));
 	err_code |= sendArgument(_boundary_kernel,
                              1,
                              sizeof(cl_mem),
-                             (void*)&(C->imovein));
+                             (void*)&(C->imove));
 	err_code |= sendArgument(_boundary_kernel,
                              2,
                              sizeof(cl_mem),
-                             (void*)&(C->posin));
+                             (void*)&(C->pos));
 	err_code |= sendArgument(_boundary_kernel,
                              3,
                              sizeof(cl_mem),
-                             (void*)&(C->normalin));
+                             (void*)&(C->normal));
 	err_code |= sendArgument(_boundary_kernel,
                              4,
                              sizeof(cl_mem),
-                             (void*)&(C->vin));
+                             (void*)&(C->v));
 	err_code |= sendArgument(_boundary_kernel,
                              5,
                              sizeof(cl_mem),
-                             (void*)&(C->densin));
+                             (void*)&(C->dens));
 	err_code |= sendArgument(_boundary_kernel,
                              6,
                              sizeof(cl_mem),
-                             (void*)&(C->pressin));
+                             (void*)&(C->press));
 	err_code |= sendArgument(_boundary_kernel,
                              7,
                              sizeof(cl_mem),
-                             (void*)&(C->massin));
+                             (void*)&(C->mass));
 	err_code |= sendArgument(_boundary_kernel,
                              8,
                              sizeof(cl_mem),
@@ -275,22 +255,14 @@ bool DeLeffe::boundary()
                              (void*)&(C->ihoc));
 	err_code |= sendArgument(_boundary_kernel,
                              13,
-                             sizeof(cl_mem),
-                             (void*)&(C->permutation));
-	err_code |= sendArgument(_boundary_kernel,
-                             14,
-                             sizeof(cl_mem),
-                             (void*)&(C->permutation_inverse));
-	err_code |= sendArgument(_boundary_kernel,
-                             15,
                              sizeof(cl_uint),
                              (void*)&(C->N));
 	err_code |= sendArgument(_boundary_kernel,
-                             16,
+                             14,
                              sizeof(cl_float),
                              (void*)&(C->hfac));
 	err_code |= sendArgument(_boundary_kernel,
-                             17, sizeof(uivec),
+                             15, sizeof(uivec),
                              (void*)&(C->num_cells_vec));
 	if(err_code != CL_SUCCESS) {
 		S->addMessageF(3, "Failure sending variables to boundary computation kernel.\n");

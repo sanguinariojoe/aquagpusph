@@ -216,6 +216,7 @@ bool Permutate::setupMems()
     }
     // 3 vectorials
     _mems.push_back(C->pos);
+    _mems.push_back(C->normal);
     _mems.push_back(C->v);
     _mems.push_back(C->f);
     for(i = i; i < _mems.size(); i++){

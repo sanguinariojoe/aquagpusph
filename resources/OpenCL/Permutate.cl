@@ -43,6 +43,8 @@
  * @param imove_in Unpermuted moving flag.
  * @param pos permuted output position.
  * @param pos_in Unpermuted position.
+ * @param normal permuted output position.
+ * @param normal_in Unpermuted position.
  * @param v permuted output velocity.
  * @param v_in Unpermuted velocity.
  * @param f permuted output acceleration.
@@ -65,6 +67,7 @@
 __kernel void Permutate(_g int* ifluid, _g int* ifluid_in,
                         _g int* imove, _g int* imove_in,
                         _g vec* pos, _g vec* pos_in,
+                        _g vec* normal, _g vec* normal_in,
                         _g vec* v, _g vec* v_in,
                         _g vec* f, _g vec* f_in,
                         _g float* dens, _g float* dens_in,
@@ -89,6 +92,7 @@ __kernel void Permutate(_g int* ifluid, _g int* ifluid_in,
 	ifluid[i_out] = ifluid_in[i];
 	imove[i_out] = imove_in[i];
 	pos[i_out] = pos_in[i];
+	normal[i_out] = normal_in[i];
 	v[i_out] = v_in[i];
 	f[i_out] = f_in[i];
 	dens[i_out] = dens_in[i];

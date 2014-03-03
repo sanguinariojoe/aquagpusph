@@ -84,10 +84,10 @@
  * @param cs Speed of sound.
  */
 __kernel void Vertices( _g int* iMove,
-                        _g vec* f, _g float* drdt, _g float* press, _g float* pressin, _g float* dens, _g float* densin,
+                        _g vec* f, _g float* drdt, _g float* press,
+                        _g float* dens,
                         _g float* refd, _g uint* ifluid, _g float* gamma, 
-                        _g vec* normal, _g vec* normalin, 
-                        _g float* shepard, _g uint *iPermut, uint N, float cs )
+                        _g float* shepard, uint N, float cs )
 {
 	uint i = get_global_id(0);
 	if(i >= N)
@@ -111,39 +111,33 @@ __kernel void Vertices( _g int* iMove,
 	// ---- | ------------------------ | ----
 	// ---- V ---- Your code here ---- V ----
 
-	// Sort normals and kernel gradient (for every particle)
-	normalin[iPermut[i]] = normal[i];
-
-	// Now compute only vertexes
 	if(iMove[i]>=0)
 		return;
-	float iShepard = shepard[i];
-	if(iShepard < 0.001f)		// Alone particle will consider
-		iShepard=1.f;
+
+	float shepard_i = shepard[i];
+	if(shepard_i < 0.001f)		// Alone particle will consider
+		shepard_i = 1.f;
 	#ifdef _ALL_INTERPOLATED_
-		dens[i]     = drdt[i]/iShepard;
-		press[i]    = (f[i].x + f[i].y)/iShepard;
+		dens[i]     = drdt[i]/shepard_i;
+		press[i]    = (f[i].x + f[i].y)/shepard_i;
 	#elif defined _DENSITY_BASED_
-		dens[i]  = drdt[i]/iShepard;
+		dens[i]  = drdt[i]/shepard_i;
 		// Batchelor 1967
-		float rdenf = refd[ifluid[i]];
-		float gammf = gamma[ifluid[i]];
-		float ddenf = dens[i]/rdenf;
-		float prb   = cs*cs*rdenf/gammf;
-		press[i]    = max(prb*(pow(ddenf,gammf)-1.f), f[i].x/iShepard) + f[i].y/iShepard;
+		const float rdenf = refd[ifluid[i]];
+		const float gammf = gamma[ifluid[i]];
+		const float ddenf = dens[i]/rdenf;
+		const float prb   = cs*cs*rdenf/gammf;
+		press[i] = max(prb*(pow(ddenf,gammf)-1.f), f[i].x/shepard_i) + f[i].y/shepard_i;
 	#elif defined _PRESSURE_BASED_
-		press[i]     = (f[i].x + f[i].y)/iShepard;
-		press[i]     = max(press[i], 0.f);
+		press[i] = max(0.f, (f[i].x + f[i].y)/shepard_i);
 		// Reversed Batchelor 1967
-		float rdenf  = refd[ifluid[i]];
-		float gammf  = gamma[ifluid[i]];
-		float iprb   = gammf/(cs*cs*rdenf);
+		const float rdenf  = refd[ifluid[i]];
+		const float gammf  = gamma[ifluid[i]];
+		const float iprb   = gammf/(cs*cs*rdenf);
 		dens[i]      = rdenf*pow( 1.f + iprb*press[i], 1.f/gammf );
 	#else
-		#error "Unknow vertexes field computation algorithm"
+		#error "Unknow boundary elements field computation algorithm"
 	#endif
-	densin[iPermut[i]]  = dens[i];
-	pressin[iPermut[i]] = press[i];
 	// Restore zero values
 	f[i]     = VEC_ZERO;
 	drdt[i]  = 0.f;
@@ -180,7 +174,7 @@ __kernel void Boundary(	_g int* iFluid, _g int* iMove,
                         _g float* press, _g float* mass, _g float* Viscdyn,
                         _g vec* f, _g float* drdt,
                         // Link-list data
-                        _g uint *lcell, _g uint *ihoc, _g uint *dPermut, _g uint *iPermut,
+                        _g uint *lcell, _g uint *ihoc,
                         // Simulation data
                         uint N, float hfac, uivec lvec)
 {
@@ -189,7 +183,6 @@ __kernel void Boundary(	_g int* iFluid, _g int* iMove,
 	uint it = get_local_id(0);			// Particle at local memory (temporal storage)
 	if(i >= N)
 		return;
-	// Don't compute vertexes or sensors
 	if(iMove[i]<=0)
 		return;
 
@@ -218,7 +211,6 @@ __kernel void Boundary(	_g int* iFluid, _g int* iMove,
 	float r1,r0, vdr, sDens, sPress, sArea, q;
 	//! 1nd.- Particle data (reads it now in order to avoid read it from constant memory several times)
 	j = i;                              // Backup of the variable, in order to compare later
-	labp = dPermut[i];                  // Particle index at unsorted space
 	lc = lcell[i];                      // Cell of the particle
 	iPos = pos[i];                      // Position of the particle
 	iV = v[i];                          // Velocity of the particle
@@ -229,15 +221,15 @@ __kernel void Boundary(	_g int* iFluid, _g int* iMove,
 
 	//! 2nd.- Initialize output
     #ifndef LOCAL_MEM_SIZE
-        #define _F_ f[labp]
-        #define _DRDT_ drdt[labp]
+        #define _F_ f[j]
+        #define _DRDT_ drdt[j]
     #else
 	    #define _F_ f_l[it]
 	    #define _DRDT_ drdt_l[it]
         _l vec f_l[LOCAL_MEM_SIZE];
         _l float drdt_l[LOCAL_MEM_SIZE];
-        _F_ = f[labp];
-        _DRDT_ = drdt[labp];
+        _F_ = f[j];
+        _DRDT_ = drdt[j];
     #endif
 
 	//! 3th.- Loop over all neightbour particles
@@ -307,8 +299,8 @@ __kernel void Boundary(	_g int* iFluid, _g int* iMove,
 	}
 	//! 4th.- Write output into global memory (at unsorted space)
 	#ifdef LOCAL_MEM_SIZE
-		f[labp] = _F_;
-		drdt[labp] = _DRDT_;
+		f[j] = _F_;
+		drdt[j] = _DRDT_;
 	#endif
 
 	// ---- A ---- Your code here ---- A ----

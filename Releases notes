@@ -7,6 +7,7 @@ __v-1.5.00_____________________________________________________________________
       interpolated).
 	* Removed the particles in cell flag, which imply a registers overhead with
       a really little computational effort reduction.
+    * Implemented an independent sort/unsort method.
 
 __v-1.4.06_____________________________________________________________________
 
