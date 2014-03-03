@@ -288,6 +288,7 @@ bool State::parseOpenCL(DOMElement *root)
         std::map<char*, char*>::iterator it;
         tags["Predictor"] = P->OpenCL_kernels.predictor;
         tags["LinkList"] = P->OpenCL_kernels.link_list;
+        tags["Permutate"] = P->OpenCL_kernels.permutate;
         tags["Rates"] = P->OpenCL_kernels.rates;
         tags["Corrector"] = P->OpenCL_kernels.corrector;
         tags["TimeStep"] = P->OpenCL_kernels.time_step;
@@ -1538,6 +1539,7 @@ bool State::writeOpenCL(xercesc::DOMDocument* doc,
     tags["Predictor"] = P->OpenCL_kernels.predictor;
     tags["LinkList"] = P->OpenCL_kernels.link_list;
     tags["Rates"] = P->OpenCL_kernels.rates;
+    tags["Permutate"] = P->OpenCL_kernels.permutate;
     tags["Corrector"] = P->OpenCL_kernels.corrector;
     tags["TimeStep"] = P->OpenCL_kernels.time_step;
     tags["Reduction"] = P->OpenCL_kernels.reduction;

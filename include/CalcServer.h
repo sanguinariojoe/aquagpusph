@@ -26,6 +26,7 @@
 #include <CalcServer/Grid.h>
 #include <CalcServer/LinkList.h>
 #include <CalcServer/RadixSort.h>
+#include <CalcServer/Permutate.h>
 #include <CalcServer/Rates.h>
 #include <CalcServer/Boundary/ElasticBounce.h>
 #include <CalcServer/Boundary/DeLeffe.h>
@@ -371,6 +372,8 @@ public:
 	Grid *grid;
 	/// Link-list that allocate each particle in a cell to know the neighbours list.
 	LinkList *link_list;
+	/// Sorting/unsorting the particles.
+	Permutate *permutate;
 	/// Rates stage, where the SPH interactions are performed.
 	Rates *rates;
 	/// ElasticBounce boundary condition, used only if it is selected.

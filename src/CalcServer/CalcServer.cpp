@@ -137,6 +137,7 @@ CalcServer::CalcServer()
 	predictor       = new Predictor();
 	grid            = new Grid();
 	link_list       = new LinkList();
+	permutate       = new Permutate();
 	rates           = new Rates();
 	elastic_bounce  = new Boundary::ElasticBounce();
 	de_Leffe        = new Boundary::DeLeffe();
@@ -185,6 +186,8 @@ CalcServer::~CalcServer()
 	delete grid; grid=NULL;
     S->addMessageF(1, "Destroying the link list manager...\n");
 	delete link_list; link_list=NULL;
+    S->addMessageF(1, "Destroying the permutations manager...\n");
+	delete permutate; permutate=NULL;
     S->addMessageF(1, "Destroying the rates manager...\n");
 	delete rates; rates=NULL;
     S->addMessageF(1, "Destroying the elasticBounce boundary condition manager...\n");
@@ -276,6 +279,8 @@ bool CalcServer::update()
 	            return true;
 	    }
 	    link_list_step++;
+	    if(permutate->sort())
+	        return true;
 	    if(rates->execute())
 	        return true;
         // Since the density interpolation will not take into account the
@@ -295,6 +300,8 @@ bool CalcServer::update()
 	    if(shepard_tool->execute())
 	        return true;
 	    if(elastic_bounce->execute())
+	        return true;
+	    if(permutate->unsort())
 	        return true;
 	    if(corrector->execute())
 	        return true;

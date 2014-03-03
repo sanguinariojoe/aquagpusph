@@ -44,6 +44,7 @@ SET(Server_CPP_SRCS
 	Grid.cpp
 	Kernel.cpp
 	LinkList.cpp
+	Permutate.cpp
 	Predictor.cpp
 	RadixSort.cpp
 	Rates.cpp

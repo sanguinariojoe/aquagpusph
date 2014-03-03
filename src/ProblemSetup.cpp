@@ -197,7 +197,8 @@ void ProblemSetup::sphOpenCLKernels::init()
 {
 	//! 1st.- Alloc memory for paths
 	predictor      = new char[256];
-	link_list       = new char[256];
+	link_list      = new char[256];
+	permutate      = new char[256];
 	rates          = new char[256];
 	corrector      = new char[256];
 	time_step      = new char[256];
@@ -207,15 +208,16 @@ void ProblemSetup::sphOpenCLKernels::init()
 	shepard        = new char[256];
 	elastic_bounce = new char[256];
 	de_Leffe       = new char[256];
-	ghost         = new char[256];
-	torque        = new char[256];
-	energy        = new char[256];
-	bounds        = new char[256];
-	domain        = new char[256];
-	portal        = new char[256];
+	ghost          = new char[256];
+	torque         = new char[256];
+	energy         = new char[256];
+	bounds         = new char[256];
+	domain         = new char[256];
+	portal         = new char[256];
 	//! 3rd.- Set default paths
 	strcpy(predictor,     "Input/Common/Kernels/Predictor");
 	strcpy(link_list,     "Input/Common/Kernels/LinkList");
+	strcpy(permutate,     "Input/Common/Kernels/Permutate");
 	strcpy(rates,         "Input/Common/Kernels/Rates");
 	strcpy(corrector,     "Input/Common/Kernels/Corrector");
 	strcpy(time_step,     "Input/Common/Kernels/TimeStep");
@@ -237,6 +239,7 @@ void ProblemSetup::sphOpenCLKernels::destroy()
 {
 	delete[] predictor; predictor=0;
 	delete[] link_list; link_list=0;
+	delete[] permutate; permutate=0;
 	delete[] rates; rates=0;
 	delete[] corrector; corrector=0;
 	delete[] time_step; time_step=0;

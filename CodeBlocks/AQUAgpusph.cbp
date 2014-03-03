@@ -100,6 +100,7 @@
 		<Unit filename="../include/CalcServer/Movements/Movement.h" />
 		<Unit filename="../include/CalcServer/Movements/Quaternion.h" />
 		<Unit filename="../include/CalcServer/Movements/ScriptQuaternion.h" />
+		<Unit filename="../include/CalcServer/Permutate.h" />
 		<Unit filename="../include/CalcServer/Portal/Portal.h" />
 		<Unit filename="../include/CalcServer/Predictor.h" />
 		<Unit filename="../include/CalcServer/RadixSort.h" />
@@ -147,6 +148,7 @@
 		<Unit filename="../src/CalcServer/Movements/Movement.cpp" />
 		<Unit filename="../src/CalcServer/Movements/Quaternion.cpp" />
 		<Unit filename="../src/CalcServer/Movements/ScriptQuaternion.cpp" />
+		<Unit filename="../src/CalcServer/Permutate.cpp" />
 		<Unit filename="../src/CalcServer/Portal/Portal.cpp" />
 		<Unit filename="../src/CalcServer/Predictor.cpp" />
 		<Unit filename="../src/CalcServer/RadixSort.cpp" />

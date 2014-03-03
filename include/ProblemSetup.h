@@ -170,6 +170,8 @@ public:
 		char *predictor;
 	    /// LinkList
 		char *link_list;
+	    /// Permutate
+		char *permutate;
 	    /// Rates
 		char *rates;
 	    /// Corrector

@@ -1,33 +1,29 @@
 <?xml version="1.0" ?>
 <sphInput>
-	<OpenCL>
-		<!-- Remarks: All path is relative to execute path, and .cl will be append -->
-		<!-- 1st.- Specific methods. You can use your own kernels to your specific
-		  simulation purposes.
-		  -->
-                <Predictor file="@RESOURCES_OUTPUT_DIR@/OpenCL/Predictor" />
-                <LinkList file="@RESOURCES_OUTPUT_DIR@/OpenCL/LinkList" />
-                <Rates file="@RESOURCES_OUTPUT_DIR@/OpenCL/Rates" />
-                <Corrector file="@RESOURCES_OUTPUT_DIR@/OpenCL/Corrector" />
-                <TimeStep file="@RESOURCES_OUTPUT_DIR@/OpenCL/TimeStep" />
-		<!-- 2nd.- Auxiliar tools needed by application. Probably you don't want
-		  to use your own version of this kernels.
-		  -->
-		<Reduction file="@RESOURCES_OUTPUT_DIR@/OpenCL/Reduction" />
-		<RadixSort file="@RESOURCES_OUTPUT_DIR@/OpenCL/RadixSort" />
-		<!-- 3rd.- Tools used depending the setup of the problem. Nevertheless this
-		  kernels can be added for all cases.
-		  -->
-		<Shepard file="@RESOURCES_OUTPUT_DIR@/OpenCL/Shepard" />
-		<Domain file="@RESOURCES_OUTPUT_DIR@/OpenCL/Domain" />
-		<ElasticBounce file="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/ElasticBounce" />
-		<DeLeffe file="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/DeLeffe" />
-		<GhostParticles file="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GhostParticles" />
-		<DensInterpolation file="@RESOURCES_OUTPUT_DIR@/OpenCL/DensInt" />
-		<Torque file="@RESOURCES_OUTPUT_DIR@/OpenCL/Torque" />
-		<Energy file="@RESOURCES_OUTPUT_DIR@/OpenCL/Energy" />
-		<Bounds file="@RESOURCES_OUTPUT_DIR@/OpenCL/Bounds" />
-		<Portal file="@RESOURCES_OUTPUT_DIR@/OpenCL/Portal/Portal" />
-	</OpenCL>
+    <OpenCL>
+        <!-- Remarks: All path is relative to the execution one, and ".cl"
+        extension will be automatically append -->
+
+        <Predictor file="@RESOURCES_OUTPUT_DIR@/OpenCL/Predictor" />
+        <LinkList file="@RESOURCES_OUTPUT_DIR@/OpenCL/LinkList" />
+        <Permutate file="@RESOURCES_OUTPUT_DIR@/OpenCL/Permutate" />
+        <Rates file="@RESOURCES_OUTPUT_DIR@/OpenCL/Rates" />
+        <Corrector file="@RESOURCES_OUTPUT_DIR@/OpenCL/Corrector" />
+        <TimeStep file="@RESOURCES_OUTPUT_DIR@/OpenCL/TimeStep" />
+
+        <Reduction file="@RESOURCES_OUTPUT_DIR@/OpenCL/Reduction" />
+        <RadixSort file="@RESOURCES_OUTPUT_DIR@/OpenCL/RadixSort" />
+
+        <Shepard file="@RESOURCES_OUTPUT_DIR@/OpenCL/Shepard" />
+        <Domain file="@RESOURCES_OUTPUT_DIR@/OpenCL/Domain" />
+        <ElasticBounce file="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/ElasticBounce" />
+        <DeLeffe file="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/DeLeffe" />
+        <GhostParticles file="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GhostParticles" />
+        <DensInterpolation file="@RESOURCES_OUTPUT_DIR@/OpenCL/DensInt" />
+        <Torque file="@RESOURCES_OUTPUT_DIR@/OpenCL/Torque" />
+        <Energy file="@RESOURCES_OUTPUT_DIR@/OpenCL/Energy" />
+        <Bounds file="@RESOURCES_OUTPUT_DIR@/OpenCL/Bounds" />
+        <Portal file="@RESOURCES_OUTPUT_DIR@/OpenCL/Portal/Portal" />
+    </OpenCL>
 </sphInput>
 
