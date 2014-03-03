@@ -1,4 +1,14 @@
-__v-1.4.06_________________________________________________________________________________
+__v-1.5.00_____________________________________________________________________
+
+	* Removed gradient of the shepard factor computation.
+	* Transformed the kernel heigh into a global constant.
+	* Removed the useless sigma time step factor.
+	* Revocated the sensors mode selection (which is forced to be
+      interpolated).
+	* Removed the particles in cell flag, which imply a registers overhead with
+      a really little computational effort reduction.
+
+__v-1.4.06_____________________________________________________________________
 
 	* Fixed density interpolation when ghost particles are used.
 	* Improved the energy components computation.
@@ -16,7 +26,7 @@ __v-1.4.06______________________________________________________________________
     * Removed the MPI dependency.
     * Updated the examples.
 
-__v-1.4.05_________________________________________________________________________________
+__v-1.4.05_____________________________________________________________________
 
 	* Added fully accelerated energy computation model.
 	* Cleaned momentums unsueful computations.
@@ -31,7 +41,7 @@ __v-1.4.05______________________________________________________________________
 	* Removed fake compilation warnings for NVidia devices.
 	* Added the date of file print events.
 
-__v-1.4.04_________________________________________________________________________________
+__v-1.4.04_____________________________________________________________________
 
 	* Added VTK output support.
 	* Added OpenCL platform and device selection capabilities.
@@ -51,19 +61,23 @@ __v-1.4.04______________________________________________________________________
 	* Removed the old reductions stuff.
 	* Moved alomst printf calls to the log interface.
 	* Added motion controlled domain option.
-	* Removed density reinitialization application from the stabilisation stage.
-	* Removed __MIN_BOUND_DIST__ as general flag for all the compiled kernels. No is specific of elastic bounce one.
+	* Removed density reinitialization application from the stabilisation
+      stage.
+	* Removed __MIN_BOUND_DIST__ as general flag for all the compiled kernels. 
+      No is specific of elastic bounce one.
 	* Fixed non considered walls in the elastic bounce boundary condition.
 	* Added distance grant method in elastic bounce boundary condition.
 	* Added options to control minimum and maximum density.
 	* Recovered mass based torque and force computation.
-	* Added time stamps at the start and end of the simulation time integration.
+	* Added time stamps at the start and end of the simulation time
+      integration.
 	* Added steps based simulation stop criteria.
 	* Fixed missing stop criteria when no output is selected.
 	* Fixed reduction process in the AMD CPU platforms.
-	* Fixed bad energy computation (including fluid boundaries), due to bad imove flag usage.
+	* Fixed bad energy computation (including fluid boundaries), due to bad
+      imove flag usage.
 
-__v-1.4.03_________________________________________________________________________________
+__v-1.4.03_____________________________________________________________________
 
 	* Created CMake stuff to smart compilation process.
 	* Fixed and automated Doxygen documentation generation.
@@ -91,34 +105,38 @@ __v-1.4.03______________________________________________________________________
 	* Removed some redundant messages from terminal.
 	* Updated README file.
 	* Fixed bug in radix sort when device don't have enough local memory.
-	* Fixed bug when screen manager is called before construction or after destruction.
+	* Fixed bug when screen manager is called before construction or after
+      destruction.
 	* Moved some initialization methods to Screen manager.
 	* Improved local memory managing.
 
-__v-1.4.02_________________________________________________________________________________
+__v-1.4.02_____________________________________________________________________
 
 	* Moved from Reynolds file to energy file.
 	* Added missing angular momentums.
 	* Added more vec auxiliar methods (C++).
 	* Fixed Ghost particles (2D tested).
 
-__v-1.4.01_________________________________________________________________________________
+__v-1.4.01_____________________________________________________________________
 
 	* Fixed Code::Blocks project adding Python-3.1.
 	* Developed simple portals draft (early development stage).
 	* Reversed moments criteria.
 	* Moved shepard term application to an independent kernel.
 	* Moved air virtualization from Ferrand to an independent kernel.
-	* Added options to select 0th order correction (formerly Shepard correction) application environment (disabled by default).
+	* Added options to select 0th order correction (formerly Shepard
+      correction) application environment (disabled by default).
 	* Added option to enable/disable air virtualization (disabled by default).
 	* Removed epsm and Zeta options.
 	* Implemented early stage development Ghost Particles Boundary condition.
 	* Implemented Laplacian at Ferrand Boundary condition.
 
-__v-1.4.00_________________________________________________________________________________
+__v-1.4.00_____________________________________________________________________
 
-	* Added simple boundary condition, that only reflects the particles that will pass throught walls.
-	* Changed Ferrand boundary condition from Segments computation to Particles computation.
+	* Added simple boundary condition, that only reflects the particles that
+      will pass throught walls.
+	* Changed Ferrand boundary condition from Segments computation to Particles
+      computation.
 	* Moved Ferrand minimum distances condition to Simple boundary condition.
 	* Fixed artificial viscosity factor (15.0 at 3D now).
 	* Fixed z axis computation at linear interpolated quaternion.
@@ -132,54 +150,67 @@ __v-1.4.00______________________________________________________________________
 	* Added smart air computation with Ferrand boundary condition.
 	* Vortex example updated.
 
-__v-1.3.04_________________________________________________________________________________
+__v-1.3.04_____________________________________________________________________
 
 	* Fixed Wendland kernel.
-	* Added maximum domain. Particles out of domain will converted into zero mass fixed particles.
+	* Added maximum domain. Particles out of domain will converted into zero
+      mass fixed particles.
 	* Removed dynamic sound speed.
-	* Added fixed time step capabilities. Now the user can select fix the time step, as provided value, or as automatic calculated.
-	* Filter computation efforts over particles that don't have neighbour fluid particles.
+	* Added fixed time step capabilities. Now the user can select fix the time
+      step, as provided value, or as automatic calculated.
+	* Filter computation efforts over particles that don't have neighbour fluid
+      particles.
 	* Fixed H5part output printing memory leak.
 	* Removed old motions interface input/output stuff.
-	* Changed from 3 components to 4 components vectors (NVIDIA don't runs with 3 components, and ATI has poor support)
-	* Added forces computation (not only torque). Also force has been included into script quaternion movement stuff.
-	* Fixed crash using devices that don't allows less than 64 threads (local size).
+	* Changed from 3 components to 4 components vectors (NVIDIA don't runs with
+      3 components, and ATI has poor support)
+	* Added forces computation (not only torque). Also force has been included
+      into script quaternion movement stuff.
+	* Fixed crash using devices that don't allows less than 64 threads (local
+      size).
 	* Changed name from Violeau to Ferrand.
 	* Added NoSlip/FreeSlip option.
 	* Added normal input (useful to boundary).
 	* Added some examples.
 	* Cleaned old examples.
 
-__v-1.3.03_________________________________________________________________________________
+__v-1.3.03_____________________________________________________________________
 
 	* Created fluid torque measurement tool.
-	* Created new basic Quaternion movement class, that allows move solids manually.
+	* Created new basic Quaternion movement class, that allows move solids
+      manually.
 	* Changed LIQuaternion from Movement based class to Quaternion based class.
 	* Imported Python embedding methods.
 	* Modified makefile to link Python.
 	* Changed g++ flag from -W to -w.
-	* Added new reduction GPU kernel that allows reduce n elements into their sum.
-	* Created ScriptQuaternion class, that allows move solids using python script.
+	* Added new reduction GPU kernel that allows reduce n elements into their
+      sum.
+	* Created ScriptQuaternion class, that allows move solids using python
+      script.
 
-__v-1.3.02_________________________________________________________________________________
+__v-1.3.02_____________________________________________________________________
 
-	* Added viscosity Ferrand-Violeau boundary condition (using Newton viscosity term).
-	* Added minimum distance to wall option. Particles will forced to don't still moving to wall when minimum distance is reached.
-	* Improved viscosity managment using artificial viscosity with alpha value clamping, and real fluid viscosity at walls.
+	* Added viscosity Ferrand-Violeau boundary condition (using Newton
+      viscosity term).
+	* Added minimum distance to wall option. Particles will forced to don't
+      still moving to wall when minimum distance is reached.
+	* Improved viscosity managment using artificial viscosity with alpha value
+      clamping, and real fluid viscosity at walls.
 
-__v-1.3.01_________________________________________________________________________________
+__v-1.3.01_____________________________________________________________________
 
 	* Added new movements developers layer.
-	* Added new movement type called LIQuaternion (Solid quaternion specified in a time table)
+	* Added new movement type called LIQuaternion (Solid quaternion specified
+      in a time table)
 
-__v-1.3.00_________________________________________________________________________________
+__v-1.3.00_____________________________________________________________________
 
 	* Translated code to C++.
 	* Implemented Ferrand-Violeau boundary condition (without viscous term)
 	* Added some examples.
 	* Moved CodeBlocks project to CodeBlocks subfolder.
 
-__v-1.2.02_________________________________________________________________________________
+__v-1.2.02_____________________________________________________________________
 
 	* Now the code runs 100% in the device using OpenCL.
 	* x70 Speedup reached.
@@ -192,28 +223,31 @@ __v-1.2.02______________________________________________________________________
 	* Added some examples.
 	* Added installable version.
 
-__v-1.0.03_________________________________________________________________________________
+__v-1.0.03_____________________________________________________________________
 
-	* Added backup/restore interface. Now the program can continue an interrupted simulation.
+	* Added backup/restore interface. Now the program can continue an
+      interrupted simulation.
 
-__v-1.0.02_________________________________________________________________________________
+__v-1.0.02_____________________________________________________________________
 
 	* Improved log output, now prints HTML report.
 	* Added scriptable movement interface.
 
-__v-1.0.01_________________________________________________________________________________
+__v-1.0.01_____________________________________________________________________
 
 	* Changed code from CUDA to OpenCL.
 	* Fixed some bugs in the input files.
 	* Deleted python support. Now the scripts must be coded as OpenCL program.
 
-__v-0.4.21_________________________________________________________________________________
+__v-0.4.21_____________________________________________________________________
 
-	* Added the capability of customize the fluid every frame with python scripts.
+	* Added the capability of customize the fluid every frame with python
+      scripts.
 		- Now the boundary particles could be managed.
-		- The script interface (and the information transfer) is too slowly, so is strongly recommended avoid it.
+		- The script interface (and the information transfer) is too slowly, so
+          is strongly recommended avoid it.
 
-__v-0.4.20_________________________________________________________________________________
+__v-0.4.20_____________________________________________________________________
 
 	* Added fluid movement script capability.
 	* Improved script manager source file comments.
@@ -223,34 +257,37 @@ __v-0.4.20______________________________________________________________________
 	* Deleted qlamb as input variable.
 	* Added dynamic viscosity as imput variable.
 
-__v-0.4.18_________________________________________________________________________________
+__v-0.4.18_____________________________________________________________________
 
 	* Updated CPU server.
 	* Changed output name from zH5Part.h5 to zParticles.h5part.
 	* Fixed help text.
 
-__v-0.4.17_________________________________________________________________________________
+__v-0.4.17_____________________________________________________________________
 
 	* Added interface to could parse log message by terminal output.
 	* Added messages about errors, warnings, and usefull information.
 	* Added dinamyc sound speed.
 
-__v-0.4.16_________________________________________________________________________________
+__v-0.4.16_____________________________________________________________________
 
-	* Fixed time control bug, that could accumulate time excess in the FPS mode.
+	* Fixed time control bug, that could accumulate time excess in the FPS
+      mode.
 	* Created a screen manager.
 	* Imported ncurses library.
-	* Created an real time output, that returns info about the simulation state.
+	* Created an real time output, that returns info about the simulation
+      state.
 	* Added methods to send/get data from the server.
 	* Updated CPU server.
 	* Updated verbose.
 
-__v-0.4.14_________________________________________________________________________________
+__v-0.4.14_____________________________________________________________________
 
 	* Added unusefull contour condition.
-	* Improved makefile to could detect and build 64 bits version automatically.
+	* Improved makefile to could detect and build 64 bits version
+      automatically.
 
-__v-0.4.09_________________________________________________________________________________
+__v-0.4.09_____________________________________________________________________
 
 	* Added Cubic spline kernel.
 	* Added kernel that must be used into define.
@@ -265,74 +302,81 @@ __v-0.4.09______________________________________________________________________
 	* Improved makefile to quiet version.
 	* Updated Verbose file.
 
-__v-0.4.06_________________________________________________________________________________
+__v-0.4.06_____________________________________________________________________
 
-	* Added example to the makefile help (that could be invoqued using make help).
+	* Added example to the makefile help (that could be invoqued using make
+      help).
 	* Updated makefile to accept the OpenCL server mode.
-	* Changed rates of first home particles from the end of home cell to the end of all cells. Now, the order is:
+	* Changed rates of first home particles from the end of home cell to the
+      end of all cells. Now, the order is:
 		- Particles next in the chain into the home cell.
 		- All particles of the neighbour cells.
-		- Particles from the head of chain to the marked particle, into the home cell.
+		- Particles from the head of chain to the marked particle, into the
+          home cell.
 	* Updated conventional CPU server.
 
-__v-0.4.05_________________________________________________________________________________
+__v-0.4.05_____________________________________________________________________
 
 	* Fixed several errors into link-list.
 	* Deleted simmetry that causes a lot of troubles.
 
-__v-0.4.03_________________________________________________________________________________
+__v-0.4.03_____________________________________________________________________
 
 	* Updated Verbose.xml.
 	* Recovered iFluid variable, that says what fliud is any particle.
 	* Fix error for that solids take index from fluids. 
 
-__v-0.4.02_________________________________________________________________________________
+__v-0.4.02_____________________________________________________________________
 
 	* Added new example, of a damn break.
 	* Updated makefile for sphSolid.
 	* Added sphSolid.
 	* Added solid to the setup phase.
-	* Fixed bug that causes the program try to print log file & reynolds report without select it. 
+	* Fixed bug that causes the program try to print log file & reynolds report
+      without select it. 
 	* Added dynamic sound speed. 
 
-__v-0.4.01_________________________________________________________________________________
+__v-0.4.01_____________________________________________________________________
 
 	* Suprised the tensile instability correction. 
 
-__v-0.4.00_________________________________________________________________________________
+__v-0.4.00_____________________________________________________________________
 
 	* Suprised the XSPH options. 
 	* Addapted python scripts to manages the XSPH supresion. 
 
-__v-0.3.15_________________________________________________________________________________
+__v-0.3.15_____________________________________________________________________
 
 	* Fixed FPS output method. 
 
-__v-0.3.14_________________________________________________________________________________
+__v-0.3.14_____________________________________________________________________
 
 	* Changed Vortex example aiming to copy 0.2.02 example. 
 	* Erased unuseful opertations into rates.
 	* Erased unuseful variables.
 
-__v-0.3.13_________________________________________________________________________________
+__v-0.3.13_____________________________________________________________________
 
 	* Do vv = sqrt(vv) in the corrector step, that reduces the sqrt operations.
 	* Fixed swaped dvv.x & dvv.y vars.
 
-__v-0.3.12_________________________________________________________________________________
+__v-0.3.12_____________________________________________________________________
 
 	* Added Ext folder for external dependencies
 	* Added Tinyxml as external dependency.
 	* Added doc folder to allocate the Doxygen documentation.
 	* Built an script to generate Doxygen documentation automatically.
 	* Added Input folder into the example folder.
-	* Built and input tree (xml files), to Vortex problem (See xml input to learn more).
+	* Built and input tree (xml files), to Vortex problem (See xml input to
+      learn more).
 	* Built the Verbose section (See xml input to learn more).
 	* Built the GTX295 device (See xml input to learn more).
-	* Added help option to BuildVideos.sh script, that could be invoqued with -help option.
+	* Added help option to BuildVideos.sh script, that could be invoqued with
+      -help option.
 	* Added VTK_VERSION & PYTHON_VERSION flags into makefile.
 	* Added help target into makefile.
-	* Fixed all target (now is the default target) to create all objects & binaries folders.
+	* Fixed all target (now is the default target) to create all objects &
+      binaries folders.
 	* Fixed clean target, that now don't need the server, clean all servers.
 	* Added GPL-v3 license.
 	* Updated README.
@@ -350,39 +394,58 @@ __v-0.3.12______________________________________________________________________
 		- xml input create as default a vortex problem parameters
 		- Input look for next sections (see the example to learn more):
 			· Include (<Include file="FILE_TO ADD"/>)
-				Includes this file. FILE_TO_ADD must have the directory relative to execute path (not from xml file path). Include files must be processed first, indepently of their position (includes order will be respected).
+				Includes this file. FILE_TO_ADD must have the directory
+                relative to execute path (not from xml file path). Include
+                files must be processed first, indepently of their position
+                (includes order will be respected).
 			· Device
-				Add a device to calculation server. Examples include some devices examples, normally you want to add you device, not create a new file.
+				Add a device to calculation server. Examples include some
+                devices examples, normally you want to add you device, not
+                create a new file.
 			· Verbose
-				Compiling output information, don't edit this file if you don't know what are you doing, simply include it.
+				Compiling output information, don't edit this file if you don't
+                know what are you doing, simply include it.
 			· Timing
-				Contains data about the lenght of simulation, the log & reynold print rate, an the output rate.
+				Contains data about the lenght of simulation, the log & reynold
+                print rate, an the output rate.
 			· SPH
 				Section to set all relevant parameters of SPH technique.
 			· Fluid
-				Section to set fluid parameters, and to set the script that will setup the fluid.
+				Section to set fluid parameters, and to set the script that
+                will setup the fluid.
 		- Input, if several parameters is repeated, takes the last of them.
-		- If several parameters is not seted, input try to get default values (for example, fluid script could not be omit).
+		- If several parameters is not seted, input try to get default values
+          (for example, fluid script could not be omit).
 	* Changed fluid setup from internal code to external script.
 		- External script is slower option, but more useful.
-		- External script could take several parameters of SPH, and of fluid, seted into the input phase. See sphScriptManager.c into Doxygen documentation to know what data could be taken.
-		- Scripts must provide certain fucntions, and formated output. See the examples to learn more.
-	* Deleted nCores and BlockDim input parameters. Now, this data is performed using the input data.
+		- External script could take several parameters of SPH, and of fluid,
+          set into the input phase. See sphScriptManager.c into Doxygen
+          documentation to know what data could be taken.
+		- Scripts must provide certain fucntions, and formated output. See the
+          examples to learn more.
+	* Deleted nCores and BlockDim input parameters. Now, this data is performed
+      using the input data.
 	* Added version option, that could be invoqued with -v flag.
 	* Added help option, that could be invoqued with -h flag.
 	* Added input option, that could be invoqued with -i [INPUT_FILE] flag.
-	* Created a sphVector2f, that contains two float point variables, that could be invoqued with .x & .y.
-	* Created a sphVector2i, that contains two integer variables, that could be invoqued with .x & .y.
+	* Created a sphVector2f, that contains two float point variables, that
+      could be invoqued with .x & .y.
+	* Created a sphVector2i, that contains two integer variables, that could be
+      invoqued with .x & .y.
 	* Created a vec2f abstraction layer of sphVector2f.
 	* Created a vec2i abstraction layer of sphVector2i.
-	* Created a vec2 abstraction layer of vec2f. (Compatible type with OpenCL, CUDA and CPU)
-	* All variables with x & y suffix has been merged into vec2 variables. Reduce shared memory consumptions.
+	* Created a vec2 abstraction layer of vec2f. (Compatible type with OpenCL,
+      CUDA and CPU)
+	* All variables with x & y suffix has been merged into vec2 variables.
+      Reduce shared memory consumptions.
 	* Deleted all boundary or ghost particles options.
-	* Deleted refd (now must be calculated, but free memory and reduce shared memory consumption).
+	* Deleted refd (now must be calculated, but free memory and reduce shared
+      memory consumption).
 	* Deleted pdr2 (IDEM).
 	* Deleted E12 & NEIGH output data.
 	* Deleted CellLink (now must be calculated, but free memory and reduce shared memory consumption).
-	* Deleted jn (Now uses a switch instance, that have similar time consumption, freeing memory and shared memory consumption).
+	* Deleted jn (Now uses a switch instance, that have similar time
+      consumption, freeing memory and shared memory consumption).
 	* Fixed minor errors.
 	* Performed better terminal output.
 	* Better efficient into calculation server.
