@@ -78,10 +78,10 @@
  * @param r_element Tangential distance to the element in order to considerate that the particle is passing through him
  */
 __kernel void Boundary( _g int* iMove,
-                        _g vec* pos, _g vec* v, _g vec* f, _g vec* fin, _g vec* normal,
-                        _g vec* outPos,
+                        _g vec* pos, _g vec* v, _g vec* f, _g vec* fin,
+                        _g vec* normal,
                         // Link-list data
-                        _g uint *lcell, _g uint *ihoc, _g uint *dPermut, _g uint *iPermut,
+                        _g uint *lcell, _g uint *ihoc,
                         // Simulation data
                         uint N, float dt, uivec lvec, vec grav, float r_element )
 {
@@ -106,7 +106,7 @@ __kernel void Boundary( _g int* iMove,
 	 */
 
 	// Particle data
-	uint j,labp, lc;
+	uint j, lc;
 	vec iPos, iV, iF, iFin;
 	float nV, nF, nFin, nG, dist;
 	// Neighbours data
@@ -115,12 +115,11 @@ __kernel void Boundary( _g int* iMove,
 	float r0;
 	//! 1nd.- Particle data (reads it now in order to avoid read it from constant memory several times)
 	j = i;							// Backup of the variable, in order to compare later
-	labp = dPermut[i];					// Particle index at unsorted space
 	lc   = lcell[i];					// Cell of the particle
 	iPos = pos[i];						// Position of the particle
-	iV   = v[labp];						// Velocity of the particle
-	iF   = f[labp];						// Acceleration of the particle
-	iFin = fin[labp];					// Acceleration of the particle (previous time step)
+	iV   = v[i];						// Velocity of the particle
+	iF   = f[i];						// Acceleration of the particle
+	iFin = fin[i];					// Acceleration of the particle (previous time step)
 	//! Loop over all neightbour particles
 	{
 		//! a.- Home cell, starting by next particle

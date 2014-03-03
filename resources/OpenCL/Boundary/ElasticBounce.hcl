@@ -20,8 +20,8 @@
 // face properties
 // ------------------------------------------------------------------
 p  = pos[i];
-n  = normal[dPermut[i]];
-pV = v[dPermut[i]];
+n  = normal[i];
+pV = v[i];
 // ------------------------------------------------------------------
 // Vertex relation
 // ------------------------------------------------------------------
@@ -62,49 +62,36 @@ if( (dist < 0.f) && (r0 + dist <= __MIN_BOUND_DIST__*h) ){
 	// As first approach, particle can be completely fliped, but in order to
 	// don't perturbate the moments and forces computation is better choice
 	// modify only the velocity.
-	v[labp]   = iV - (1.f+__ELASTIC_FACTOR__)*(
+	v[j]   = iV - (1.f+__ELASTIC_FACTOR__)*(
 	            nV
 	          + 0.5f*dt*(nF + nG)
                     )*n;
 	// Modify value to next wall tests.
-	iV = v[labp];
+	iV = v[j];
 	// As second approach, an acceleration can be imposed in order to ensure
 	// that the particle can't move against the wall.
 	/*
-	f[labp]   = iF - (1.f+__ELASTIC_FACTOR__)*(
+	f[j]   = iF - (1.f+__ELASTIC_FACTOR__)*(
 		    nV/(0.5f*dt)
 		  + nF
 		  + nG
 	            )*n;
 	// Modify value to next wall tests.
-	iF = f[labp];
+	iF = f[j];
 	*/
 	// As thord approach, the acceleration can be set as the gravity (no net
 	// effect over the forces), and the velocity corrected in oreder to avoid
 	// the particle's wall tresspasing.
 	/*
-	f[labp]   = iF - (nF + nG)*n;
-	v[labp]   = iV - (1.f+__ELASTIC_FACTOR__)*(
+	f[j]   = iF - (nF + nG)*n;
+	v[j]   = iV - (1.f+__ELASTIC_FACTOR__)*(
 	            nV
 		  + 0.5f*dt*(nF + nG)
 	            )*n
 	          + 0.5f*dt*(nF + nG)*n;
 	// Modify the values to next wall tests.
-	iF = f[labp];
-	iV = v[labp];
+	iF = f[j];
+	iV = v[j];
 	*/
 }
-// ------------------------------------------------------------------
-// In some cases user can want to grant that the particles are enough
-// far from the boundaries.
-// ------------------------------------------------------------------
-#ifdef __FORCE_MIN_BOUND_DIST__
-if(r0 < __MIN_BOUND_DIST__*h){
-	// Move ever the same distance in order to avoid several particles
-	// placed in the same point near to the corners.
-	r             = __MIN_BOUND_DIST__*h*n;
-	iPos         += r;
-	outPos[labp] += r;
-}
-#endif
 

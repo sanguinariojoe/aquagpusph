@@ -100,11 +100,11 @@ bool ElasticBounce::execute()
 	err_code  = sendArgument(_kernel,
                              0,
                              sizeof(cl_mem),
-                             (void*)&(C->imovein));
+                             (void*)&(C->imove));
 	err_code |= sendArgument(_kernel,
                              1,
                              sizeof(cl_mem),
-                             (void*)&(C->posin));
+                             (void*)&(C->pos));
 	err_code |= sendArgument(_kernel,
                              2,
                              sizeof(cl_mem),
@@ -124,41 +124,29 @@ bool ElasticBounce::execute()
 	err_code |= sendArgument(_kernel,
                              6,
                              sizeof(cl_mem),
-                             (void*)&(C->pos));
+                             (void*)&(C->icell));
 	err_code |= sendArgument(_kernel,
                              7,
                              sizeof(cl_mem),
-                             (void*)&(C->icell));
-	err_code |= sendArgument(_kernel,
-                             8,
-                             sizeof(cl_mem),
                              (void*)&(C->ihoc));
 	err_code |= sendArgument(_kernel,
-                             9,
-                             sizeof(cl_mem),
-                             (void*)&(C->permutation));
-	err_code |= sendArgument(_kernel,
-                             10,
-                             sizeof(cl_mem),
-                             (void*)&(C->permutation_inverse));
-	err_code |= sendArgument(_kernel,
-                             11,
+                             8,
                              sizeof(cl_uint),
                              (void*)&(C->N));
 	err_code |= sendArgument(_kernel,
-                             12,
+                             9,
                              sizeof(cl_float),
                              (void*)&(C->dt));
 	err_code |= sendArgument(_kernel,
-                             13,
+                             10,
                              sizeof(uivec),
                              (void*)&(C->num_cells_vec));
 	err_code |= sendArgument(_kernel,
-                             14,
+                             11,
                              sizeof(vec),
                              (void*)&(C->g));
 	err_code |= sendArgument(_kernel,
-                             15,
+                             12,
                              sizeof(cl_float),
                              (void*)&_r);
 	if(err_code != CL_SUCCESS) {
