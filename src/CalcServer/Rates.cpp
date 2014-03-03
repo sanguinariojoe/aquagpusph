@@ -28,7 +28,6 @@ Rates::Rates()
 	, _path(0)
 	, _program(0)
 	, _kernel(0)
-	, _sort_kernel(0)
 	, _global_work_size(0)
 	, _local_work_size(0)
 	, _is_delta(false)
@@ -69,7 +68,6 @@ Rates::Rates()
 Rates::~Rates()
 {
 	if(_kernel)clReleaseKernel(_kernel); _kernel=0;
-	if(_sort_kernel)clReleaseKernel(_sort_kernel); _sort_kernel=0;
 	if(_program)clReleaseProgram(_program); _program=0;
 	if(_path)delete[] _path; _path=0;
 }
@@ -79,166 +77,35 @@ bool Rates::execute()
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
 	cl_int err_code=0;
-	// Sort the rates kernel input data
-	err_code |= sendArgument(_sort_kernel,
+
+	err_code |= sendArgument(_kernel,
                              0,
                              sizeof(cl_mem),
                              (void*)&(C->ifluid));
-	err_code |= sendArgument(_sort_kernel,
+	err_code |= sendArgument(_kernel,
                              1,
-                             sizeof(cl_mem),
-                             (void*)&(C->ifluidin));
-	err_code |= sendArgument(_sort_kernel,
-                             2,
                              sizeof(cl_mem),
                              (void*)&(C->imove));
-	err_code |= sendArgument(_sort_kernel,
-                             3,
-                             sizeof(cl_mem),
-                             (void*)&(C->imovein));
-	err_code |= sendArgument(_sort_kernel,
-                             4,
-                             sizeof(cl_mem),
-                             (void*)&(C->pos));
-	err_code |= sendArgument(_sort_kernel,
-                             5,
-                             sizeof(cl_mem),
-                             (void*)&(C->v));
-	err_code |= sendArgument(_sort_kernel,
-                             6,
-                             sizeof(cl_mem),
-                             (void*)&(C->dens));
-	err_code |= sendArgument(_sort_kernel,
-                             7,
-                             sizeof(cl_mem),
-                             (void*)&(C->press));
-	err_code |= sendArgument(_sort_kernel,
-                             8,
-                             sizeof(cl_mem),
-                             (void*)&(C->mass));
-	err_code |= sendArgument(_sort_kernel,
-                             9,
-                             sizeof(cl_mem),
-                             (void*)&(C->posin));
-	err_code |= sendArgument(_sort_kernel,
-                             10,
-                             sizeof(cl_mem),
-                             (void*)&(C->vin));
-	err_code |= sendArgument(_sort_kernel,
-                             11,
-                             sizeof(cl_mem),
-                             (void*)&(C->densin));
-	err_code |= sendArgument(_sort_kernel,
-                             12,
-                             sizeof(cl_mem),
-                             (void*)&(C->pressin));
-	err_code |= sendArgument(_sort_kernel,
-                             13,
-                             sizeof(cl_mem),
-                             (void*)&(C->massin));
-	err_code |= sendArgument(_sort_kernel,
-                             14,
-                             sizeof(cl_mem),
-                             (void*)&(C->permutation));
-	err_code |= sendArgument(_sort_kernel,
-                             15,
-                             sizeof(cl_mem),
-                             (void*)&(C->permutation_inverse));
-	err_code |= sendArgument(_sort_kernel,
-                             16,
-                             sizeof(cl_uint),
-                             (void*)&(C->N));
-	if(err_code != CL_SUCCESS) {
-		S->addMessageF(3, "Failure sending variables to sort kernel.\n");
-	    return true;
-	}
-	#ifdef HAVE_GPUPROFILE
-	    cl_event event;
-	    cl_ulong end, start;
-	    profileTime(0.f);
-	    err_code = clEnqueueNDRangeKernel(C->command_queue,
-                                          _sort_kernel,
-                                          1,
-                                          NULL,
-                                          &_global_work_size,
-                                          NULL,
-                                          0,
-                                          NULL,
-                                          &event);
-	#else
-	    err_code = clEnqueueNDRangeKernel(C->command_queue,
-                                          _sort_kernel,
-                                          1,
-                                          NULL,
-                                          &_global_work_size,
-                                          NULL,
-                                          0,
-                                          NULL,
-                                          NULL);
-	#endif
-	if(err_code != CL_SUCCESS) {
-		S->addMessageF(3, "I cannot execute the sorting kernel.\n");
-        S->printOpenCLError(err_code);
-	    return true;
-	}
-	#ifdef HAVE_GPUPROFILE
-	    err_code = clWaitForEvents(1, &event);
-	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "Impossible to wait for the kernels end.\n");
-            S->printOpenCLError(err_code);
-	        return true;
-	    }
-	    err_code |= clGetEventProfilingInfo(event,
-                                            CL_PROFILING_COMMAND_END,
-                                            sizeof(cl_ulong),
-                                            &end,
-                                            0);
-	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "I cannot profile the kernel execution.\n");
-            S->printOpenCLError(err_code);
-	        return true;
-	    }
-	    err_code |= clGetEventProfilingInfo(event,
-                                            CL_PROFILING_COMMAND_START,
-                                            sizeof(cl_ulong),
-                                            &start,
-                                            0);
-	    if(err_code != CL_SUCCESS) {
-	        S->addMessage(3, "I cannot profile the kernel execution.\n");
-            S->printOpenCLError(err_code);
-	        return true;
-	    }
-	    profileTime(profileTime() + (end - start)/1000.f);  // 10^-3 ms
-	#endif
-	// Compute the variation rates
-	err_code |= sendArgument(_kernel,
-                             0,
-                             sizeof(cl_mem),
-                             (void*)&(C->ifluidin));
-	err_code |= sendArgument(_kernel,
-                             1,
-                             sizeof(cl_mem),
-                             (void*)&(C->imovein));
 	err_code |= sendArgument(_kernel,
                              2,
                              sizeof(cl_mem),
-                             (void*)&(C->posin));
+                             (void*)&(C->pos));
 	err_code |= sendArgument(_kernel,
                              3,
                              sizeof(cl_mem),
-                             (void*)&(C->vin));
+                             (void*)&(C->v));
 	err_code |= sendArgument(_kernel,
                              4,
                              sizeof(cl_mem),
-                             (void*)&(C->densin));
+                             (void*)&(C->dens));
 	err_code |= sendArgument(_kernel,
                              5,
                              sizeof(cl_mem),
-                             (void*)&(C->massin));
+                             (void*)&(C->mass));
 	err_code |= sendArgument(_kernel,
                              6,
                              sizeof(cl_mem),
-                             (void*)&(C->pressin));
+                             (void*)&(C->press));
 	err_code |= sendArgument(_kernel,
                              7,
                              sizeof(cl_mem),
@@ -273,44 +140,32 @@ bool Rates::execute()
                              (void*)&(C->ihoc));
 	err_code |= sendArgument(_kernel,
                              15,
-                             sizeof(cl_mem),
-                             (void*)&(C->permutation));
-	err_code |= sendArgument(_kernel,
-                             16,
-                             sizeof(cl_mem),
-                             (void*)&(C->permutation_inverse));
-	err_code |= sendArgument(_kernel,
-                             17,
-                             sizeof(cl_uint),
-                             (void*)&(C->n));
-	err_code |= sendArgument(_kernel,
-                             18,
                              sizeof(cl_uint),
                              (void*)&(C->N));
 	err_code |= sendArgument(_kernel,
-                             19,
+                             16,
                              sizeof(uivec),
                              (void*)&(C->num_cells_vec));
 	err_code |= sendArgument(_kernel,
-                             20,
+                             17,
                              sizeof(vec),
                              (void*)&(C->g));
 	unsigned int added_args = 0;
 	if(_is_delta) {
 	    err_code |= sendArgument(_kernel,
-                                 21,
+                                 18,
                                  sizeof(cl_mem),
                                  (void*)&(C->refd));
 	    err_code |= sendArgument(_kernel,
-                                 22,
+                                 19,
                                  sizeof(cl_mem),
                                  (void*)&(C->delta));
 	    err_code |= sendArgument(_kernel,
-                                 23,
+                                 20,
                                  sizeof(cl_float),
                                  (void*)&(C->dt));
 	    err_code |= sendArgument(_kernel,
-                                 24,
+                                 21,
                                  sizeof(cl_float),
                                  (void*)&(C->cs));
         added_args = 4;
@@ -374,6 +229,7 @@ bool Rates::execute()
 	    }
 	    profileTime(profileTime() + (end - start)/1000.f);  // 10^-3 ms
 	#endif
+
 	return false;
 }
 
@@ -405,15 +261,7 @@ bool Rates::setupOpenCL()
         S->printOpenCLError(err_code);
 	    return true;
 	}
-	if(!loadKernelFromFile(&_sort_kernel,
-                           &_program,
-                           C->context,
-                           C->device,
-                           _path,
-                           "SortData",
-                           ""))
-	    return true;
-	if(_program) clReleaseProgram(_program); _program=0;
+
 	char args[32]; strcpy(args, "");
 	if(_is_delta)
         strcat(args, "-D__DELTA_SPH__");
@@ -426,25 +274,8 @@ bool Rates::setupOpenCL()
                            args))
 	    return true;
 	if(_program)clReleaseProgram(_program); _program=0;
+
 	// Test if there are enough local memory
-	err_code = clGetKernelWorkGroupInfo(_sort_kernel,
-                                        device,
-                                        CL_KERNEL_LOCAL_MEM_SIZE,
-	                                    sizeof(cl_ulong),
-                                        &required_local_mem,
-                                        NULL);
-	if(err_code != CL_SUCCESS) {
-		S->addMessageF(3, "Can't get sort kernel memory usage.\n");
-        S->printOpenCLError(err_code);
-	    return true;
-	}
-	if(local_mem < required_local_mem){
-		S->addMessageF(3, "Not enough local memory for sort execution.\n");
-	    sprintf(msg, "\tNeeds %lu bytes, but only %lu bytes are available.\n",
-	           required_local_mem, local_mem);
-	    S->addMessage(0, msg);
-	    return true;
-	}
 	err_code = clGetKernelWorkGroupInfo(_kernel,
                                         device,
                                         CL_KERNEL_LOCAL_MEM_SIZE,
@@ -466,19 +297,6 @@ bool Rates::setupOpenCL()
 
 	// Test if the local work group size must be modified
 	size_t local_work_size=0;
-	err_code |= clGetKernelWorkGroupInfo(_sort_kernel,
-                                         device,
-                                         CL_KERNEL_WORK_GROUP_SIZE,
-	                                     sizeof(size_t),
-                                         &local_work_size,
-                                         NULL);
-	if(err_code != CL_SUCCESS) {
-		S->addMessageF(3, "A valid maximum local work group size cannot be found.\n");
-        S->printOpenCLError(err_code);
-	    return true;
-	}
-	if(local_work_size < _local_work_size)
-	    _local_work_size  = local_work_size;
 	err_code |= clGetKernelWorkGroupInfo(_kernel,
                                          device,
                                          CL_KERNEL_WORK_GROUP_SIZE,

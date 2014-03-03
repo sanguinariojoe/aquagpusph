@@ -67,12 +67,6 @@ private:
 	cl_program _program;
 	/// Particles interaction kernel
 	cl_kernel _kernel;
-	/** Fields sort kernel. Link-List will return a sorted icell array, with
-	 * the associated permutations array, but the rest of the fields are
-	 * unsorted yet, and therefore they must be sorted before the particles
-	 * interaction stage.
-	 */
-	cl_kernel _sort_kernel;
 	/// Global work size.
 	size_t _global_work_size;
 	/// Local work size

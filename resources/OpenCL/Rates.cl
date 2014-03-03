@@ -63,56 +63,6 @@
 #endif
 #define _l __local
 
-/** Sort all input data by cells (the output data will remain unsorted).
- * @param iFluidin Unsorted fluid identifier.
- * @param iFluid Sorted fluid identifier.
- * @param posin Unsorted positions.
- * @param vin Unsorted velocity.
- * @param hpin Unsorted kernels height.
- * @param densin Unsorted density.
- * @param pressin Unsorted pressure.
- * @param pmassin Unsorted mass.
- * @param pos Sorted positions.
- * @param v Sorted velocity.
- * @param hp Sorted kernels height.
- * @param dens Sorted density.
- * @param press Sorted pressure.
- * @param pmass Sorted mass.
- * @param dPermut Sorted space -> unsorted space permutations.
- * @param iPermut Unsorted space -> sorted space permutations.
- * @param N Number of particles.
- */
-__kernel void SortData( _g int* iFluidin, _g int* iFluid,
-                        _g int* iMovein, _g int* iMove,
-                        _g vec* posin, _g vec* vin,
-                        _g float* densin, _g float* pressin, _g float* pmassin,
-                        _g vec* pos, _g vec* v,
-                        _g float* dens, _g float* press, _g float* pmass,
-                        _g uint *dPermut, _g uint *iPermut,
-                        uint N)
-{
-	uint i = get_global_id(0);
-	if(i >= N)
-		return;
-
-	// ---- | ------------------------ | ----
-	// ---- V ---- Your code here ---- V ----
-
-	// We assume i in the unsorted space, and labp in the sorted one 
-	uint labp = iPermut[i];
-
-	iFluid[labp] = iFluidin[i];
-	iMove[labp]  = iMovein[i];
-	v[labp]      = vin[i];
-	dens[labp]   = densin[i];
-	press[labp]  = pressin[i];
-	pmass[labp]  = pmassin[i];
-	pos[labp]    = posin[i];
-
-	// ---- A ---- Your code here ---- A ----
-	// ---- | ------------------------ | ----
-}
-
 /** Compute the rates of variation due to the fluid (fixed particles will be
  * included here). During this stage some other operations are performed as
  * well, like the values interpolation in the boundaries (for DeLeffe boundary
@@ -132,9 +82,6 @@ __kernel void SortData( _g int* iFluidin, _g int* iFluid,
  * @param shepard Shepard factor.
  * @param lcell Cell where the particle is situated.
  * @param ihoc Head particle of cell chain.
- * @param dPermut Sorted space -> unsorted space permutations.
- * @param iPermut Unsorted space -> sorted space permutations.
- * @param n Number of particles.
  * @param N Number of particles & sensors.
  * @param lvec Number of cells at each direction.
  * @param grav Gravity acceleration.
@@ -146,9 +93,8 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
                      _g float* drdt_F, _g float* shepard,
                      // Link-list data
                      _g uint *lcell, _g uint *ihoc,
-                     _g uint *dPermut, _g uint *iPermut,
                      // Simulation data
-                     uint n, uint N, uivec lvec, vec grav
+                     uint N, uivec lvec, vec grav
                      #ifdef __DELTA_SPH__
                          // Continuity equation diffusive term data
                          , _c float* refd, _c float* delta
@@ -165,16 +111,6 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
 	// ---- | ------------------------ | ----
 	// ---- V ---- Your code here ---- V ----
 
-	/* All the data has previously been sorted, so two spaces must be
-	 * considereed:
-	 * # Sorted space, where i is the index of the particle.
-	 * # Unsorted space, where labp is the index of the particle.
-	 * In the sorted space are stored the input data in order to read
-	 * the variables in a convenient coalescing way, while in the unsorted
-	 * space are stored the output data to can easily manage the time
-	 * integration and output files writting.
-	 */
-
 	// Kernel variables
 	float dist, conw, conf, wab, fab;
 	// Particle data
@@ -187,14 +123,13 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
 	float r1, vdr, pDens, pMass, prfac, viscg;
 
 	j = i;              // Backup of the variable, in order to compare later
-	labp = dPermut[i];  // Particle index at unsorted space
 	lc = lcell[i];      // Cell of the particle
 
     #ifndef LOCAL_MEM_SIZE
-	    #define _F_ f[labp]
-	    #define _DRDT_ drdt[labp]
-    	#define _DRDT_F_ drdt_F[labp]
-    	#define _SHEPARD_ shepard[labp]
+	    #define _F_ f[j]
+	    #define _DRDT_ drdt[j]
+    	#define _DRDT_F_ drdt_F[j]
+    	#define _SHEPARD_ shepard[j]
     #else
 	    #define _F_ f_l[it]
 	    #define _DRDT_ drdt_l[it]
@@ -390,12 +325,12 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
 	}
 	//! 5th.- Write output into global memory (at unsorted space)
 	#ifdef LOCAL_MEM_SIZE
-		f[labp] = _F_;
-		drdt[labp] = _DRDT_ + _DRDT_F_;
-		drdt_F[labp] = _DRDT_F_;
-		shepard[labp] = _SHEPARD_;
+		f[j] = _F_;
+		drdt[j] = _DRDT_ + _DRDT_F_;
+		drdt_F[j] = _DRDT_F_;
+		shepard[j] = _SHEPARD_;
 	#else
-		drdt[labp] += _DRDT_F_;
+		drdt[j] += _DRDT_F_;
 	#endif
 
 	// ---- A ---- Your code here ---- A ----
