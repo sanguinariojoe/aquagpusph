@@ -264,16 +264,40 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
 		for(uint cell = 1; cell < NEIGH_CELLS; cell++) {
 			// Get the neighbour cell index
             uint c_j;
-			#ifndef HAVE_3D
-                c_j = (cell / 3 - 1) * lvec.x
-                      + (cell % 3) - 1
-                      + lc;
-			#else
-                c_j = (cell / 9 - 1) * lvec.x * lvec.y
-                      + ((cell % 9) / 3 - 1) * lvec.x
-                      + ((cell % 9) % 3) - 1
-                      + lc;
-			#endif
+			switch(cell) {
+				// Cells at the same Z than main cell
+				case 0: c_j = lc + 0; break;
+				case 1: c_j = lc + 1; break;
+				case 2: c_j = lc - 1; break;
+				case 3: c_j = lc + lvec.x; break;
+				case 4: c_j = lc + lvec.x + 1; break;
+				case 5: c_j = lc + lvec.x - 1; break;
+				case 6: c_j = lc - lvec.x; break;
+				case 7: c_j = lc - lvec.x + 1; break;
+				case 8: c_j = lc - lvec.x - 1; break;
+				#ifdef HAVE_3D
+					// Cells bellow main cell
+					case 9 : c_j = lc + 0          - lvec.x*lvec.y; break;
+					case 10: c_j = lc + 1          - lvec.x*lvec.y; break;
+					case 11: c_j = lc - 1          - lvec.x*lvec.y; break;
+					case 12: c_j = lc + lvec.x     - lvec.x*lvec.y; break;
+					case 13: c_j = lc + lvec.x + 1 - lvec.x*lvec.y; break;
+					case 14: c_j = lc + lvec.x - 1 - lvec.x*lvec.y; break;
+					case 15: c_j = lc - lvec.x     - lvec.x*lvec.y; break;
+					case 16: c_j = lc - lvec.x + 1 - lvec.x*lvec.y; break;
+					case 17: c_j = lc - lvec.x - 1 - lvec.x*lvec.y; break;
+					// Cells over main cell
+					case 18: c_j = lc + 0          + lvec.x*lvec.y; break;
+					case 19: c_j = lc + 1          + lvec.x*lvec.y; break;
+					case 20: c_j = lc - 1          + lvec.x*lvec.y; break;
+					case 21: c_j = lc + lvec.x     + lvec.x*lvec.y; break;
+					case 22: c_j = lc + lvec.x + 1 + lvec.x*lvec.y; break;
+					case 23: c_j = lc + lvec.x - 1 + lvec.x*lvec.y; break;
+					case 24: c_j = lc - lvec.x     + lvec.x*lvec.y; break;
+					case 25: c_j = lc - lvec.x + 1 + lvec.x*lvec.y; break;
+					case 26: c_j = lc - lvec.x - 1 + lvec.x*lvec.y; break;
+				#endif
+			}
 
 			i = ihoc[c_j];
 			while((i < N) && (lcell[i] == c_j)) {
