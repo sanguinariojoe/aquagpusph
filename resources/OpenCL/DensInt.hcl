@@ -16,37 +16,21 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// ------------------------------------------------------------------
-// Study if the particles can interact
-// ------------------------------------------------------------------
-#if __BOUNDARY__==0 || __BOUNDARY__==2
-	if(iMove[i] < 0){
-		i++;
-		continue;
-	}
-#endif
-if(!iMove[i]){
-	i++;
+if(imove[j] <= 0){
+	j++;
 	continue;
 }
-hav = 0.5f*(iHp + hp[i]);                      // Average kernel heights for interactions [m]
-dist = sep*hav;                                // Maximum interaction distance            [m]
-r = iPos - pos[i];
-r1  = fast_length(r);                          // Distance between particles              [m]
-if( r1 <= dist )
+
+const vec r = pos_i - pos[j];
+const float q = fast_length(r) / h;
+if(q <= sep)
 {
-	#ifndef HAVE_3D
-		conw = 1.f/(hav*hav);                  // Different for 1d and 3d
-	#else
-		conw = 1.f/(hav*hav*hav);              // Different for 1d and 3d
-	#endif
 	//---------------------------------------------------------------
 	//       calculate the kernel wab and the function fab
 	//---------------------------------------------------------------
-	pMass = pmass[i];                          // Mass of neighbour particle              [kg]
-	wab = kernelW(r1/hav)*conw*pMass;
+	const float wab = kernelW(q) * conw * mass[j];
 	//---------------------------------------------------------------
 	// 	density computation
 	//---------------------------------------------------------------
-	_DENS_ += wab;                             //                                         [kg/m3]
+	_DENS_ += wab;
 }

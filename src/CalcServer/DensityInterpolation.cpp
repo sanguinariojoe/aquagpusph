@@ -29,7 +29,6 @@ DensityInterpolation::DensityInterpolation()
 	, _program(0)
 	, _kernel(0)
 {
-	//! 1st.- Get data
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	InputOutput::ProblemSetup *P  = InputOutput::ProblemSetup::singleton();
 	if(!P->SPH_opts.dens_int_steps){
@@ -79,53 +78,23 @@ bool DensityInterpolation::execute()
 	CalcServer *C = CalcServer::singleton();
 	cl_int err_code=0;
 
-	err_code |= sendArgument(_kernel,
-                             0,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 0, sizeof(cl_mem),
                              (void*)&(C->dens));
-	err_code |= sendArgument(_kernel,
-                             1,
-                             sizeof(cl_mem),
-                             (void*)&(C->imovein));
-	err_code |= sendArgument(_kernel,
-                             2,
-                             sizeof(cl_mem),
-                             (void*)&(C->posin));
-	err_code |= sendArgument(_kernel,
-                             3,
-                             sizeof(cl_mem),
-                             (void*)&(C->massin));
-	err_code |= sendArgument(_kernel,
-                             4,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 1, sizeof(cl_mem),
+                             (void*)&(C->imove));
+	err_code |= sendArgument(_kernel, 2, sizeof(cl_mem),
+                             (void*)&(C->pos));
+	err_code |= sendArgument(_kernel, 3, sizeof(cl_mem),
+                             (void*)&(C->mass));
+	err_code |= sendArgument(_kernel, 4, sizeof(cl_mem),
                              (void*)&(C->shepard));
-	err_code |= sendArgument(_kernel,
-                             5,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 5, sizeof(cl_mem),
                              (void*)&(C->icell));
-	err_code |= sendArgument(_kernel,
-                             6,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 6, sizeof(cl_mem),
                              (void*)&(C->ihoc));
-	err_code |= sendArgument(_kernel,
-                             7,
-                             sizeof(cl_mem),
-                             (void*)&(C->permutation));
-	err_code |= sendArgument(_kernel,
-                             8,
-                             sizeof(cl_mem),
-                             (void*)&(C->permutation_inverse));
-	err_code |= sendArgument(_kernel,
-                             9,
-                             sizeof(cl_uint),
+	err_code |= sendArgument(_kernel, 7, sizeof(cl_uint),
                              (void*)&(C->N));
-	err_code |= sendArgument(_kernel,
-                             10,
-                             sizeof(cl_float),
-                             (void*)&(C->hfac));
-	err_code |= sendArgument(_kernel,
-                             11,
-                             sizeof(uivec),
+	err_code |= sendArgument(_kernel, 8, sizeof(uivec),
                              (void*)&(C->num_cells_vec));
 	if(err_code != CL_SUCCESS) {
 		S->addMessageF(3, "Failure sending the arguments to the kernel.\n");
@@ -169,13 +138,21 @@ bool DensityInterpolation::execute()
             S->printOpenCLError(err_code);
 	        return true;
 	    }
-	    err_code = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, 0);
+	    err_code = clGetEventProfilingInfo(event,
+                                           CL_PROFILING_COMMAND_END,
+                                           sizeof(cl_ulong),
+                                           &end,
+                                           0);
 	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "I cannot profile the kernel execution.\n");
             S->printOpenCLError(err_code);
 	        return true;
 	    }
-	    err_code = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, 0);
+	    err_code = clGetEventProfilingInfo(event,
+                                           CL_PROFILING_COMMAND_START,
+                                           sizeof(cl_ulong),
+                                           &start,
+                                           0);
 	    if(err_code != CL_SUCCESS) {
 	        S->addMessage(3, "I cannot profile the kernel execution.\n");
             S->printOpenCLError(err_code);
