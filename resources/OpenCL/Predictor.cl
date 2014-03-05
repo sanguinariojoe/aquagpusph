@@ -20,32 +20,22 @@
 	#define M_PI 3,14159265359
 #endif
 
-#ifdef _g
-	#error '_g' is already defined.
-#endif
-#define _g __global
-
-#ifdef _c
-	#error '_c' is already defined.
-#endif
-#define _c __constant
-
 /** Quasi-second order time integration predictor stage.
  * @param imove Fix particles flag.
- * @param ifluid Fluid identifier.
- * @param pos Position of particles.
- * @param v Velocity of particles.
- * @param f Forces over particles.
- * @param dens Density of particles.
- * @param mass Mass of particles.
- * @param drdt Density evolution of particles.
- * @param posin Position of particles.
- * @param vin Velocity of particles.
- * @param fin Forces over particles.
- * @param densin Density of particles.
- * @param massin Mass of particles.
- * @param drdtin Density evolution of particles.
- * @param press Pressure.
+ * @param ifluid Fluid identifiers.
+ * @param pos Positions.
+ * @param v Velocities.
+ * @param f Accelerations.
+ * @param dens Densities.
+ * @param mass Masses.
+ * @param drdt Density varaition rates.
+ * @param posin Positions from the corrector stage.
+ * @param vin Velocities from the corrector stage.
+ * @param fin Accelerations from the corrector stage.
+ * @param densin Densities from the corrector stage.
+ * @param massin Masses from the corrector stage.
+ * @param drdtin Density varaition rates from the corrector stage.
+ * @param press Pressure from the corrector stage.
  * @param refd Reference density.
  * @param gamma Gamma.
  * @param N Number of particles.
@@ -56,12 +46,14 @@
  * @param minDens Minimum tolerated density value.
  * @param maxDens Maximum tolerated density value.
  */
-__kernel void Predictor(_g int* imove, _g int* ifluid, _g vec* pos, _g vec* v,
-                        _g vec* f, _g float* dens, _g float* mass,
-                        _g float* drdt, _g vec* posin,
-                        _g vec* vin, _g vec* fin, _g float* densin,
-                        _g float* massin, _g float* drdtin,
-                        _g float* press, _c float* refd, _c float* gamma,
+__kernel void Predictor(__global int* imove, __global int* ifluid,
+                        __global vec* pos, __global vec* v, __global vec* f,
+                        __global float* dens, __global float* mass,
+                        __global float* drdt, __global vec* posin,
+                        __global vec* vin, __global vec* fin,
+                        __global float* densin, __global float* massin,
+                        __global float* drdtin, __global float* press, 
+                        __constant float* refd, __constant float* gamma,
                         unsigned int N, float t, float dt, float cs, vec g,
                         float minDens, float maxDens)
 {
@@ -73,11 +65,10 @@ __kernel void Predictor(_g int* imove, _g int* ifluid, _g vec* pos, _g vec* v,
 	// ---- | ------------------------ | ----
 	// ---- V ---- Your code here ---- V ----
 
-	float ddenf, prb;
 	// Stabilization time
 	if(t < 0.f){
 		if(imove[i] > 0){
-			vec dr    = 0.5f*dt*dt*(fin[i] + g);
+			vec dr = 0.5f * dt * dt * (fin[i] + g);
 			posin[i] += dr;
 		}
 		dt = 0.f;
@@ -88,27 +79,26 @@ __kernel void Predictor(_g int* imove, _g int* ifluid, _g vec* pos, _g vec* v,
 		DT = 0.f;
 
 	// Predictor step for the fluid and walls
-	v[i]       = vin[i] + DT*( fin[i] + g );
+	v[i] = vin[i] + DT * (fin[i] + g);
 	// mass[i]    = massin[i]*(1.f + dt*drdtin[i]/densin[i]);
 	#if __BOUNDARY__ == 1
-		// Continuity equation must be solved for fixed particles too
-		dens[i]    = densin[i] + dt*drdtin[i];
+		// Continuity equation must be solved for the fixed particles too
+		dens[i] = densin[i] + dt * drdtin[i];
 	#else
-		dens[i]    = densin[i] + DT*drdtin[i];
+		dens[i] = densin[i] + DT * drdtin[i];
 	#endif
 	if(dens[i] < minDens) dens[i] = minDens;
 	if(dens[i] > maxDens) dens[i] = maxDens;
-	pos[i]     = posin[i] + DT*vin[i] + 0.5f*DT*DT*(fin[i] + g);
+	pos[i] = posin[i] + DT * vin[i] + 0.5f * DT * DT * (fin[i] + g);
 	// Batchelor 1967
 	{
-		ddenf    = dens[i]/refd[ifluid[i]];
-		// Pressure term
-		prb      = cs*cs*refd[ifluid[i]]/gamma[ifluid[i]];
-		press[i] = prb*(pow(ddenf,gamma[ifluid[i]]) - 1.f);
+		const float ddenf = dens[i] / refd[ifluid[i]];
+		const float prb = cs * cs * refd[ifluid[i]] / gamma[ifluid[i]];
+		press[i] = prb * (pow(ddenf, gamma[ifluid[i]]) - 1.f);
 	}
-	// Reinitializating of output variables
-	f[i]     = VEC_ZERO;
-	drdt[i]  = 0.f;
+	// Output variables reinitialization
+	f[i] = VEC_ZERO;
+	drdt[i] = 0.f;
 
 	// ---- A ---- Your code here ---- A ----
 	// ---- | ------------------------ | ----
