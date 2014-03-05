@@ -73,33 +73,19 @@ bool Predictor::execute()
 	cl_int err_code=0;
 
 	float t = T->time();
-	err_code |= sendArgument(_kernel,
-                             17,
-                             sizeof(cl_uint),
+	err_code |= sendArgument(_kernel, 17, sizeof(cl_uint),
                              (void*)&(C->N));
-	err_code |= sendArgument(_kernel,
-                             18,
-                             sizeof(cl_float),
+	err_code |= sendArgument(_kernel, 18, sizeof(cl_float),
                              (void*)&t);
-	err_code |= sendArgument(_kernel,
-                             19,
-                             sizeof(cl_float),
+	err_code |= sendArgument(_kernel, 19, sizeof(cl_float),
                              (void*)&(C->dt));
-	err_code |= sendArgument(_kernel,
-                             20,
-                             sizeof(cl_float),
+	err_code |= sendArgument(_kernel, 20, sizeof(cl_float),
                              (void*)&(C->cs));
-	err_code |= sendArgument(_kernel,
-                             21,
-                             sizeof(vec),
+	err_code |= sendArgument(_kernel, 21, sizeof(vec),
                              (void*)&(C->g));
-	err_code |= sendArgument(_kernel,
-                             22,
-                             sizeof(cl_float),
+	err_code |= sendArgument(_kernel, 22, sizeof(cl_float),
                              (void*)&(P->SPH_opts.rho_min));
-	err_code |= sendArgument(_kernel,
-                             23,
-                             sizeof(cl_float),
+	err_code |= sendArgument(_kernel, 23, sizeof(cl_float),
                              (void*)&(P->SPH_opts.rho_max));
 	if(err_code != CL_SUCCESS) {
 		S->addMessageF(3, "I cannot send a variable to the kernel.\n");
@@ -172,81 +158,42 @@ bool Predictor::setupOpenCL()
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
 	cl_int err_code=0;
-	if(!loadKernelFromFile(&_kernel,
-                           &_program,
-                           C->context,
-                           C->device,
-                           _path,
-                           "Predictor",
-                           ""))
+	if(!loadKernelFromFile(&_kernel, &_program, C->context, C->device, _path,
+                           "Predictor", ""))
 	    return true;
-	err_code |= sendArgument(_kernel,
-                             0,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 0, sizeof(cl_mem),
                              (void*)&(C->imove));
-	err_code |= sendArgument(_kernel,
-                             1,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 1, sizeof(cl_mem),
                              (void*)&(C->ifluid));
-	err_code |= sendArgument(_kernel,
-                             2,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 2, sizeof(cl_mem),
                              (void*)&(C->pos));
-	err_code |= sendArgument(_kernel,
-                             3,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 3, sizeof(cl_mem),
                              (void*)&(C->v));
-	err_code |= sendArgument(_kernel,
-                             4,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 4, sizeof(cl_mem),
                              (void*)&(C->f));
-	err_code |= sendArgument(_kernel,
-                             5,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 5, sizeof(cl_mem),
                              (void*)&(C->dens));
-	err_code |= sendArgument(_kernel,
-                             6,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 6, sizeof(cl_mem),
                              (void*)&(C->mass));
-	err_code |= sendArgument(_kernel,
-                             7,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 7, sizeof(cl_mem),
                              (void*)&(C->drdt));
-	err_code |= sendArgument(_kernel,
-                             8,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 8, sizeof(cl_mem),
                              (void*)&(C->posin));
-	err_code |= sendArgument(_kernel,
-                             9,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 9, sizeof(cl_mem),
                              (void*)&(C->vin));
-	err_code |= sendArgument(_kernel,
-                             10,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 10, sizeof(cl_mem),
                              (void*)&(C->fin));
-	err_code |= sendArgument(_kernel,
-                             11,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 11, sizeof(cl_mem),
                              (void*)&(C->densin));
-	err_code |= sendArgument(_kernel,
-                             12,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 12, sizeof(cl_mem),
                              (void*)&(C->massin));
-	err_code |= sendArgument(_kernel,
-                             13,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 13, sizeof(cl_mem),
                              (void*)&(C->drdtin));
-	err_code |= sendArgument(_kernel,
-                             14,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 14, sizeof(cl_mem),
                              (void*)&(C->press));
-	err_code |= sendArgument(_kernel,
-                             15,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 15, sizeof(cl_mem),
                              (void*)&(C->refd));
-	err_code |= sendArgument(_kernel,
-                             16,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 16, sizeof(cl_mem),
                              (void*)&(C->gamma));
 	if(err_code)
 	    return true;
