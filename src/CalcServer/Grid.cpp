@@ -37,9 +37,13 @@ Grid::Grid()
     #ifdef HAVE_3D
         strcat(operation, "\tc.z = (a.z > b.z) ? a.z : b.z;\n");
         strcat(operation, "\tc.w = 0.f;\n");
-        _maximum = new Reduction(C->pos, C->N, "vec", "(vec)(-INFINITY,-INFINITY,-INFINITY,0.f)", operation);
+        _maximum = new Reduction(C->pos, C->N, "vec",
+                                 "(vec)(-INFINITY,-INFINITY,-INFINITY,0.f)",
+                                 operation);
     #else
-        _maximum = new Reduction(C->pos, C->N, "vec", "(vec)(-INFINITY,-INFINITY)", operation);
+        _maximum = new Reduction(C->pos, C->N, "vec",
+                                 "(vec)(-INFINITY,-INFINITY)",
+                                 operation);
     #endif
     strcpy(operation, "");
     strcat(operation, "c.x = (a.x < b.x) ? a.x : b.x;\n");
@@ -47,9 +51,13 @@ Grid::Grid()
     #ifdef HAVE_3D
         strcat(operation, "\tc.z = (a.z < b.z) ? a.z : b.z;\n");
         strcat(operation, "\tc.w = 0.f;\n");
-        _minimum = new Reduction(C->pos, C->N, "vec", "(vec)(INFINITY,INFINITY,INFINITY,0.f)", operation);
+        _minimum = new Reduction(C->pos, C->N, "vec",
+                                 "(vec)(INFINITY,INFINITY,INFINITY,0.f)",
+                                 operation);
     #else
-        _minimum = new Reduction(C->pos, C->N, "vec", "(vec)(INFINITY,INFINITY)", operation);
+        _minimum = new Reduction(C->pos, C->N, "vec",
+                                 "(vec)(INFINITY,INFINITY)",
+                                 operation);
     #endif
 	S->addMessageF(1, "Grid ready to work!\n");
 }
