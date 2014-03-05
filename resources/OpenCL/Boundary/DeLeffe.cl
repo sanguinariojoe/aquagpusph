@@ -164,14 +164,15 @@ __kernel void Boundary(__global int* ifluid, __global int* imove,
     // ---- | ------------------------ | ----
     // ---- V ---- Your code here ---- V ----
 
-
     const uint c_i = icell[i];
     const vec pos_i = pos[i];
     const vec v_i = v[i];
     const float press_i = press[i];
     const float dens_i = dens[i];
-    const float viscdyn_i = viscdyn[ifluid[i]];
     const float prfac_i = press_i / (dens_i * dens_i);
+    #ifdef __NO_SLIP__
+        const float viscdyn_i = viscdyn[ifluid[i]];
+    #endif
 
     #ifndef HAVE_3D
         const float conw = 1.f/(h*h);

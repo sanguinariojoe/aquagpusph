@@ -30,7 +30,6 @@ if(dens_j <= 0.0001f){
 	j++;
 	continue;
 }
-const float press_j = press[j];
 const float area_j = mass[j];
 // ------------------------------------------------------------------
 // Vertex-particle interaction parameters
