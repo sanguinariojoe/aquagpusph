@@ -23,7 +23,7 @@ if(imove[j] <= 0){
 
 const vec r = pos_i - pos[j];
 const float q = fast_length(r) / h;
-if(q <= sep)
+if(q < sep)
 {
 	//---------------------------------------------------------------
 	//       calculate the kernel wab and the function fab

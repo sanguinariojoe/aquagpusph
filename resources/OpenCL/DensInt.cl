@@ -68,8 +68,8 @@ __kernel void DensityInterpolation(__global float* dens, __global int* imove,
                                    uint N, uivec lvec
                                    )
 {
-	uint i = get_global_id(0);
-	uint it = get_local_id(0);
+	const uint i = get_global_id(0);
+	const uint it = get_local_id(0);
 	if(i >= N)
 		return;
 	#if __BOUNDARY__==0 || __BOUNDARY__==2
