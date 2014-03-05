@@ -59,8 +59,7 @@
  * @param hp Kernel height.
  * @param pmass Mass
  * @param press Pressure.
- * @param Visckin Kinetic viscosity (one per fluid)
- * @param Viscdyn Dynamic viscosity (one per fluid)
+ * @param viscdyn Dynamic viscosity (one per fluid)
  * @param shepard Shepard term (0th correction).
  * @param f Acceleration.
  * @param drdt Rate of change of the density.
@@ -74,7 +73,7 @@
 __kernel void Rates(__global int* ifluid, __global int* imove,
                     __global vec* pos, __global vec* v, __global float* dens,
                     __global float* mass, __global float* press,
-                    __constant float* Visckin, __constant float* viscdyn,
+                    __constant float* viscdyn,
                     __global vec* f, __global float* drdt,
                     __global float* drdt_F, __global float* shepard,
                     // Link-list data
@@ -88,9 +87,8 @@ __kernel void Rates(__global int* ifluid, __global int* imove,
                     #endif
                     )
 {
-	// find position in global arrays
-	uint i = get_global_id(0);			// Particle at sorted space
-	uint it = get_local_id(0);			// Particle at local memory (temporal storage)
+	const uint i = get_global_id(0);
+	const uint it = get_local_id(0);
 	if(i >= N)
 		return;
 
