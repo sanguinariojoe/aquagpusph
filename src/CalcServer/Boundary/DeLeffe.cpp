@@ -86,48 +86,27 @@ bool DeLeffe::elements()
 	CalcServer *C = CalcServer::singleton();
 	cl_int err_code=0;
 
-	err_code |= sendArgument(_setup_kernel,
-                             0, sizeof(cl_mem),
-                             (void*)&(C->imove));
-	err_code |= sendArgument(_setup_kernel,
-                             1,
-                             sizeof(cl_mem),
-                             (void*)&(C->f));
-	err_code |= sendArgument(_setup_kernel,
-                             2,
-                             sizeof(cl_mem),
-                             (void*)&(C->drdt));
-	err_code |= sendArgument(_setup_kernel,
-                             3,
-                             sizeof(cl_mem),
-                             (void*)&(C->press));
-	err_code |= sendArgument(_setup_kernel,
-                             4,
-                             sizeof(cl_mem),
-                             (void*)&(C->dens));
-	err_code |= sendArgument(_setup_kernel,
-                             5,
-                             sizeof(cl_mem),
-                             (void*)&(C->refd));
-	err_code |= sendArgument(_setup_kernel,
-                             6,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_setup_kernel, 0, sizeof(cl_mem),
                              (void*)&(C->ifluid));
-	err_code |= sendArgument(_setup_kernel,
-                             7,
-                             sizeof(cl_mem),
-                             (void*)&(C->gamma));
-	err_code |= sendArgument(_setup_kernel,
-                             8,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_setup_kernel, 1, sizeof(cl_mem),
+                             (void*)&(C->imove));
+	err_code |= sendArgument(_setup_kernel, 2, sizeof(cl_mem),
+                             (void*)&(C->f));
+	err_code |= sendArgument(_setup_kernel, 3, sizeof(cl_mem),
+                             (void*)&(C->drdt));
+	err_code |= sendArgument(_setup_kernel, 4, sizeof(cl_mem),
+                             (void*)&(C->press));
+	err_code |= sendArgument(_setup_kernel, 5, sizeof(cl_mem),
+                             (void*)&(C->dens));
+	err_code |= sendArgument(_setup_kernel, 6, sizeof(cl_mem),
                              (void*)&(C->shepard));
-	err_code |= sendArgument(_setup_kernel,
-                             9,
-                             sizeof(cl_uint),
+	err_code |= sendArgument(_setup_kernel, 7, sizeof(cl_mem),
+                             (void*)&(C->refd));
+	err_code |= sendArgument(_setup_kernel, 8, sizeof(cl_mem),
+                             (void*)&(C->gamma));
+	err_code |= sendArgument(_setup_kernel, 9, sizeof(cl_uint),
                              (void*)&(C->n));
-	err_code |= sendArgument(_setup_kernel,
-                             10,
-                             sizeof(cl_float),
+	err_code |= sendArgument(_setup_kernel, 10, sizeof(cl_float),
                              (void*)&(C->cs));
 	if(err_code != CL_SUCCESS) {
 		S->addMessageF(3, "Failure sending variables to Vertex set kernel.\n");
@@ -201,68 +180,35 @@ bool DeLeffe::boundary()
 	CalcServer *C = CalcServer::singleton();
 	cl_int err_code=0;
 
-	err_code |= sendArgument(_boundary_kernel,
-                             0,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_boundary_kernel, 0, sizeof(cl_mem),
                              (void*)&(C->ifluid));
-	err_code |= sendArgument(_boundary_kernel,
-                             1,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_boundary_kernel, 1, sizeof(cl_mem),
                              (void*)&(C->imove));
-	err_code |= sendArgument(_boundary_kernel,
-                             2,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_boundary_kernel, 2, sizeof(cl_mem),
                              (void*)&(C->pos));
-	err_code |= sendArgument(_boundary_kernel,
-                             3,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_boundary_kernel, 3, sizeof(cl_mem),
                              (void*)&(C->normal));
-	err_code |= sendArgument(_boundary_kernel,
-                             4,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_boundary_kernel, 4, sizeof(cl_mem),
                              (void*)&(C->v));
-	err_code |= sendArgument(_boundary_kernel,
-                             5,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_boundary_kernel, 5, sizeof(cl_mem),
                              (void*)&(C->dens));
-	err_code |= sendArgument(_boundary_kernel,
-                             6,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_boundary_kernel, 6, sizeof(cl_mem),
                              (void*)&(C->press));
-	err_code |= sendArgument(_boundary_kernel,
-                             7,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_boundary_kernel, 7, sizeof(cl_mem),
                              (void*)&(C->mass));
-	err_code |= sendArgument(_boundary_kernel,
-                             8,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_boundary_kernel, 8, sizeof(cl_mem),
                              (void*)&(C->visc_dyn));
-	err_code |= sendArgument(_boundary_kernel,
-                             9,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_boundary_kernel, 9, sizeof(cl_mem),
                              (void*)&(C->f));
-	err_code |= sendArgument(_boundary_kernel,
-                             10,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_boundary_kernel, 10, sizeof(cl_mem),
                              (void*)&(C->drdt));
-	err_code |= sendArgument(_boundary_kernel,
-                             11,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_boundary_kernel, 11, sizeof(cl_mem),
                              (void*)&(C->icell));
-	err_code |= sendArgument(_boundary_kernel,
-                             12,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_boundary_kernel, 12, sizeof(cl_mem),
                              (void*)&(C->ihoc));
-	err_code |= sendArgument(_boundary_kernel,
-                             13,
-                             sizeof(cl_uint),
+	err_code |= sendArgument(_boundary_kernel, 13, sizeof(cl_uint),
                              (void*)&(C->N));
-	err_code |= sendArgument(_boundary_kernel,
-                             14,
-                             sizeof(cl_float),
-                             (void*)&(C->hfac));
-	err_code |= sendArgument(_boundary_kernel,
-                             15, sizeof(uivec),
+	err_code |= sendArgument(_boundary_kernel, 14, sizeof(uivec),
                              (void*)&(C->num_cells_vec));
 	if(err_code != CL_SUCCESS) {
 		S->addMessageF(3, "Failure sending variables to boundary computation kernel.\n");
@@ -356,22 +302,12 @@ bool DeLeffe::setupOpenCL()
         S->printOpenCLError(err_code);
 	    return true;
 	}
-	if(!loadKernelFromFile(&_setup_kernel,
-                           &_program,
-                           C->context,
-                           C->device,
-                           _path,
-                           "Vertices",
-                           ""))
+	if(!loadKernelFromFile(&_setup_kernel, &_program, C->context, C->device,
+                           _path, "Elements", ""))
 	    return true;
 	if(_program)clReleaseProgram(_program); _program=0;
-	if(!loadKernelFromFile(&_boundary_kernel,
-                           &_program,
-                           C->context,
-                           C->device,
-                           _path,
-                           "Boundary",
-                           ""))
+	if(!loadKernelFromFile(&_boundary_kernel, &_program, C->context,
+                           C->device, _path, "Boundary", ""))
 	    return true;
 	if(_program)clReleaseProgram(_program); _program=0;
 

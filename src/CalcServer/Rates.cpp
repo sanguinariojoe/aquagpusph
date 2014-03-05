@@ -109,62 +109,58 @@ bool Rates::execute()
 	err_code |= sendArgument(_kernel,
                              7,
                              sizeof(cl_mem),
-                             (void*)&(C->visc_kin));
+                             (void*)&(C->visc_dyn_corrected));
 	err_code |= sendArgument(_kernel,
                              8,
                              sizeof(cl_mem),
-                             (void*)&(C->visc_dyn_corrected));
+                             (void*)&(C->f));
 	err_code |= sendArgument(_kernel,
                              9,
                              sizeof(cl_mem),
-                             (void*)&(C->f));
+                             (void*)&(C->drdt));
 	err_code |= sendArgument(_kernel,
                              10,
                              sizeof(cl_mem),
-                             (void*)&(C->drdt));
+                             (void*)&(C->drdt_F));
 	err_code |= sendArgument(_kernel,
                              11,
                              sizeof(cl_mem),
-                             (void*)&(C->drdt_F));
+                             (void*)&(C->shepard));
 	err_code |= sendArgument(_kernel,
                              12,
                              sizeof(cl_mem),
-                             (void*)&(C->shepard));
+                             (void*)&(C->icell));
 	err_code |= sendArgument(_kernel,
                              13,
                              sizeof(cl_mem),
-                             (void*)&(C->icell));
-	err_code |= sendArgument(_kernel,
-                             14,
-                             sizeof(cl_mem),
                              (void*)&(C->ihoc));
 	err_code |= sendArgument(_kernel,
-                             15,
+                             14,
                              sizeof(cl_uint),
                              (void*)&(C->N));
 	err_code |= sendArgument(_kernel,
-                             16,
+                             15,
                              sizeof(uivec),
                              (void*)&(C->num_cells_vec));
 	err_code |= sendArgument(_kernel,
-                             17,
+                             16,
                              sizeof(vec),
                              (void*)&(C->g));
 	if(_is_delta) {
 	    err_code |= sendArgument(_kernel,
-                                 18,
+                                 17,
                                  sizeof(cl_mem),
                                  (void*)&(C->refd));
 	    err_code |= sendArgument(_kernel,
-                                 19,
+                                 18,
                                  sizeof(cl_mem),
                                  (void*)&(C->delta));
 	    err_code |= sendArgument(_kernel,
-                                 20,
+                                 19,
                                  sizeof(cl_float),
                                  (void*)&(C->dt));
 	    err_code |= sendArgument(_kernel,
-                                 21,
+                                 20,
                                  sizeof(cl_float),
                                  (void*)&(C->cs));
 	}
