@@ -16,82 +16,56 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+if(imove[j] >= 0){
+	j++;
+	continue;
+}
+
 // ------------------------------------------------------------------
 // face properties
 // ------------------------------------------------------------------
-p  = pos[i];
-n  = normal[i];
-pV = v[i];
+vec n_j = normal[i];
+const vec v_j = v[i];
 // ------------------------------------------------------------------
 // Vertex relation
 // ------------------------------------------------------------------
-r  = iPos - p;                                                                   // Vector from vertex to particle               [m]
-r0 = dot(r,n);                                                                   // Normal distance between particle and vertex  [m]
-rt = r - r0*n;  // Tangental projected distance
+const vec r  = pos_i - pos[j];      // Vector from vertex to particle
+float r0 = dot(r, n_j);             // Normal component length
+const vec rt = r - r0 * n_j;        // Tangential component
 if(dot(rt, rt) >= r_element * r_element){
     // The particle is passing too far from the wall element
-	i++;
+	j++;
 	continue;
 }
 
 // Test for swap normal (that must be internal oriented)
 if(r0 < 0.f){
-	n  = -n;
-	r0 = -r0;                                                                // Positive at normal direction                 [m]
+	n_j = -n_j;
+	r0 = -r0;
 }
 // ------------------------------------------------------------------
 // Movement data
 // ------------------------------------------------------------------
-nV   = dot(iV-pV,n);
-nF   = dot(iF,n);
-nFin = dot(iFin,n);
-nG   = dot(grav,n);
-dist = dt*nV + 0.5f*dt*dt*(nF + nG);                                  // Distance moved, positive at normal direction [m]
+const float v_n = dot(v_i - v_j, n_j);
+const float f_n = dot(f_i, n_j);
+const float g_n = dot(grav, n_j);
+const float dist = dt * v_n + 0.5f * dt * dt * (f_n + g_n);
 // ------------------------------------------------------------------
 // Since normal has been internally oriented, if dist < 0, the
 // particle is running against the wall, and then two cases can be
 // discriminated:
-// * The particle is placed in the effect zone of the wall.
-// * The partilce is placed outside the effect zone, but will enter
-//   inside it.
+//   - The particle is placed in the effect zone of the wall.
+//   - The partilce is placed outside the effect zone, but will enter inside it.
 // ------------------------------------------------------------------
-if( (dist < 0.f) && (r0 + dist <= __MIN_BOUND_DIST__*h) ){
+if((dist < 0.f) && (r0 + dist <= __MIN_BOUND_DIST__ * h)){
 	// ------------------------------------------------------------------
 	// Reflect particle velocity (using elastic factor)
 	// ------------------------------------------------------------------
 	// As first approach, particle can be completely fliped, but in order to
 	// don't perturbate the moments and forces computation is better choice
 	// modify only the velocity.
-	v[j]   = iV - (1.f+__ELASTIC_FACTOR__)*(
-	            nV
-	          + 0.5f*dt*(nF + nG)
-                    )*n;
-	// Modify value to next wall tests.
-	iV = v[j];
-	// As second approach, an acceleration can be imposed in order to ensure
-	// that the particle can't move against the wall.
-	/*
-	f[j]   = iF - (1.f+__ELASTIC_FACTOR__)*(
-		    nV/(0.5f*dt)
-		  + nF
-		  + nG
-	            )*n;
-	// Modify value to next wall tests.
-	iF = f[j];
-	*/
-	// As thord approach, the acceleration can be set as the gravity (no net
-	// effect over the forces), and the velocity corrected in oreder to avoid
-	// the particle's wall tresspasing.
-	/*
-	f[j]   = iF - (nF + nG)*n;
-	v[j]   = iV - (1.f+__ELASTIC_FACTOR__)*(
-	            nV
-		  + 0.5f*dt*(nF + nG)
-	            )*n
-	          + 0.5f*dt*(nF + nG)*n;
-	// Modify the values to next wall tests.
-	iF = f[j];
-	iV = v[j];
-	*/
+	v[j] = v_i - (1.f + __ELASTIC_FACTOR__) * (
+        v_n + 0.5f * dt * (f_n + g_n)) * n_j;
+	// Modify the value for the next walls test.
+	v_i = v[j];
 }
-

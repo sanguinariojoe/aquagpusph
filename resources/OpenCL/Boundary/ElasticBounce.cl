@@ -39,152 +39,113 @@
 	#define iM_PI 0.318309886f
 #endif
 
-/* OpenCL related
- */
 #ifndef uint
 	#define uint unsigned int
 #endif
 
-#ifdef _g
-	#error '_g' is already defined.
-#endif
-#define _g __global
-
-#ifdef _c
-	#error '_c' is already defined.
-#endif
-#define _c __constant
-
-#ifdef _l
-	#error '_l' is already defined.
-#endif
-#define _l __local
-
-/** Performs the boundary effect over particles.
- * @param iMove Movement flags.
- * @param pos Position of particles.
- * @param v Velocity of particles.
- * @param f Forces over particles.
- * @param fin Previous time step forces over particles.
- * @param hp Kernel height of the particles.
- * @param outPos Position of the particles (at unsorted space, so can be used as output variable).
- * @param lcell Cell where the particle is situated.
- * @param ihoc Head particle of cell chain.
- * @param dPermut Transform each sorted space index into their unsorted space index.
- * @param iPermut Transform each unsorted space index into their sorted space index.
+/** Compute the boundary effect, based on an elastic bounce when the particles
+ * will tresspass the wall.
+ * @param imove Moving flags.
+ * @param pos Positions.
+ * @param normal Normals.
+ * @param v Velocities.
+ * @param f Accelerations.
+ * @param fin Accelerations (from the previous time step).
+ * @param icell Cell where each particle is located.
+ * @param ihoc Head particle of chain for each cell.
  * @param N Number of particles.
+ * @param dt Time step.
  * @param lvec Number of cells
- * @param grav Gravity vector
- * @param r_element Tangential distance to the element in order to considerate that the particle is passing through him
+ * @param grav Gravity acceleration.
+ * @param r_element The considered elements radius.
  */
-__kernel void Boundary( _g int* iMove,
-                        _g vec* pos, _g vec* v, _g vec* f, _g vec* fin,
-                        _g vec* normal,
-                        // Link-list data
-                        _g uint *lcell, _g uint *ihoc,
-                        // Simulation data
-                        uint N, float dt, uivec lvec, vec grav, float r_element )
+__kernel void Boundary(__global int* imove,
+                       __global vec* pos, __global vec* normal,
+                       __global vec* v, __global vec* f,
+                       // Link-list data
+                       __global uint *icell, __global uint *ihoc,
+                       // Simulation data
+                       uint N, float dt, uivec lvec, vec grav,
+                       float r_element )
 {
-	// find position in global arrays
-	uint i = get_global_id(0);			// Particle at sorted space
-	uint it = get_local_id(0);			// Particle at local memory (temporal storage)
+	const uint i = get_global_id(0);
+	const uint it = get_local_id(0);
 	if(i >= N)
 		return;
-	if(iMove[i]<=0)
+	if(imove[i] <= 0)
 		return;
 
 	// ---- | ------------------------ | ----
 	// ---- V ---- Your code here ---- V ----
 
-	/* All data has been sorted previously, so two spaces must be considereed:
-	 * Sorted space, where i is the index of the particle.
-	 * Unsorted space, where labp is the index of the particle.
-	 *
-	 * Sorted space is used usually, in order to read variables coalescing, and unsorted space is used
-	 * eventually to write data at the original arrays. Aiming to avoid write several times into the unsorted global
-	 * memory address, local memory is employed to the output.
-	 */
+    const uint c_i = icell[i];
+    const vec pos_i = pos[i];
+    vec v_i = v[i];
+    const vec f_i = f[i];
 
-	// Particle data
-	uint j, lc;
-	vec iPos, iV, iF, iFin;
-	float nV, nF, nFin, nG, dist;
-	// Neighbours data
-	uint cellCount, lcc;
-	vec n,p,pV,r,rt;
-	float r0;
-	//! 1nd.- Particle data (reads it now in order to avoid read it from constant memory several times)
-	j = i;							// Backup of the variable, in order to compare later
-	lc   = lcell[i];					// Cell of the particle
-	iPos = pos[i];						// Position of the particle
-	iV   = v[i];						// Velocity of the particle
-	iF   = f[i];						// Acceleration of the particle
-	iFin = fin[i];					// Acceleration of the particle (previous time step)
-	//! Loop over all neightbour particles
-	{
-		//! a.- Home cell, starting by next particle
-		i++;
-		while( (i<N) && (lcell[i]==lc) ) {
-			if(iMove[i] < 0){
-				#include "ElasticBounce.hcl"
-			}
-			i++;
-		}
-		//! b.- Neighbour cells
-		for(cellCount=1;cellCount<NEIGH_CELLS;cellCount++) {
-			// Loop over 8 neighbour cells, taking cell index (lcc)
-			switch(cellCount) {
-				// Cells at the same Z than main cell
-				case 0: lcc = lc + 0; break;
-				case 1: lcc = lc + 1; break;
-				case 2: lcc = lc - 1; break;
-				case 3: lcc = lc + lvec.x; break;
-				case 4: lcc = lc + lvec.x + 1; break;
-				case 5: lcc = lc + lvec.x - 1; break;
-				case 6: lcc = lc - lvec.x; break;
-				case 7: lcc = lc - lvec.x + 1; break;
-				case 8: lcc = lc - lvec.x - 1; break;
-				#ifdef HAVE_3D
-					// Cells bellow main cell
-					case 9 : lcc = lc + 0          - lvec.x*lvec.y; break;
-					case 10: lcc = lc + 1          - lvec.x*lvec.y; break;
-					case 11: lcc = lc - 1          - lvec.x*lvec.y; break;
-					case 12: lcc = lc + lvec.x     - lvec.x*lvec.y; break;
-					case 13: lcc = lc + lvec.x + 1 - lvec.x*lvec.y; break;
-					case 14: lcc = lc + lvec.x - 1 - lvec.x*lvec.y; break;
-					case 15: lcc = lc - lvec.x     - lvec.x*lvec.y; break;
-					case 16: lcc = lc - lvec.x + 1 - lvec.x*lvec.y; break;
-					case 17: lcc = lc - lvec.x - 1 - lvec.x*lvec.y; break;
-					// Cells over main cell
-					case 18: lcc = lc + 0          + lvec.x*lvec.y; break;
-					case 19: lcc = lc + 1          + lvec.x*lvec.y; break;
-					case 20: lcc = lc - 1          + lvec.x*lvec.y; break;
-					case 21: lcc = lc + lvec.x     + lvec.x*lvec.y; break;
-					case 22: lcc = lc + lvec.x + 1 + lvec.x*lvec.y; break;
-					case 23: lcc = lc + lvec.x - 1 + lvec.x*lvec.y; break;
-					case 24: lcc = lc - lvec.x     + lvec.x*lvec.y; break;
-					case 25: lcc = lc - lvec.x + 1 + lvec.x*lvec.y; break;
-					case 26: lcc = lc - lvec.x - 1 + lvec.x*lvec.y; break;
-				#endif
-			}
-			// Sub-loop over particles into neighbour cells
-			i = ihoc[lcc];
-			while( (i<N) && (lcell[i]==lcc) ) {
-				if(iMove[i] < 0){
-					#include "ElasticBounce.hcl"
-				}
-				i++;
-			}
-		}
-		//! c.- Home cell, starting from head of chain.
-		i = ihoc[lc];
-		while(i < j) {
-			if(iMove[i] < 0){
-				#include "ElasticBounce.hcl"
-			}
-			i++;
-		}
-	}
+    // Loop over neighbour particles
+    // =============================
+    {
+        uint j;
+        // Home cell, starting from the next particle
+        // ==========================================
+        j = i + 1;
+        while((j < N) && (icell[j] == c_i) ) {
+            #include "ElasticBounce.hcl"
+            j++;
+        }
+
+        // Neighbour cells
+        // ===============
+        for(uint cell = 1; cell < NEIGH_CELLS; cell++) {
+            uint c_j;
+            switch(cell) {
+                case 0: c_j = c_i + 0; break;
+                case 1: c_j = c_i + 1; break;
+                case 2: c_j = c_i - 1; break;
+                case 3: c_j = c_i + lvec.x; break;
+                case 4: c_j = c_i + lvec.x + 1; break;
+                case 5: c_j = c_i + lvec.x - 1; break;
+                case 6: c_j = c_i - lvec.x; break;
+                case 7: c_j = c_i - lvec.x + 1; break;
+                case 8: c_j = c_i - lvec.x - 1; break;
+                #ifdef HAVE_3D
+                    case 9 : c_j = c_i + 0          - lvec.x*lvec.y; break;
+                    case 10: c_j = c_i + 1          - lvec.x*lvec.y; break;
+                    case 11: c_j = c_i - 1          - lvec.x*lvec.y; break;
+                    case 12: c_j = c_i + lvec.x     - lvec.x*lvec.y; break;
+                    case 13: c_j = c_i + lvec.x + 1 - lvec.x*lvec.y; break;
+                    case 14: c_j = c_i + lvec.x - 1 - lvec.x*lvec.y; break;
+                    case 15: c_j = c_i - lvec.x     - lvec.x*lvec.y; break;
+                    case 16: c_j = c_i - lvec.x + 1 - lvec.x*lvec.y; break;
+                    case 17: c_j = c_i - lvec.x - 1 - lvec.x*lvec.y; break;
+
+                    case 18: c_j = c_i + 0          + lvec.x*lvec.y; break;
+                    case 19: c_j = c_i + 1          + lvec.x*lvec.y; break;
+                    case 20: c_j = c_i - 1          + lvec.x*lvec.y; break;
+                    case 21: c_j = c_i + lvec.x     + lvec.x*lvec.y; break;
+                    case 22: c_j = c_i + lvec.x + 1 + lvec.x*lvec.y; break;
+                    case 23: c_j = c_i + lvec.x - 1 + lvec.x*lvec.y; break;
+                    case 24: c_j = c_i - lvec.x     + lvec.x*lvec.y; break;
+                    case 25: c_j = c_i - lvec.x + 1 + lvec.x*lvec.y; break;
+                    case 26: c_j = c_i - lvec.x - 1 + lvec.x*lvec.y; break;
+                #endif
+            }
+
+            j = ihoc[c_j];
+            while((j < N) && (icell[j] == c_j)) {
+                #include "ElasticBounce.hcl"
+                j++;
+            }            
+        }
+        // Home cell, starting from the head of chain
+        // ==========================================
+        j = ihoc[c_i];
+        while(j < i) {
+            #include "ElasticBounce.hcl"
+            j++;
+        }
+    }
 
 	// ---- A ---- Your code here ---- A ----
 	// ---- | ------------------------ | ----

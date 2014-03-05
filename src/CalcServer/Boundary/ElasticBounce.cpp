@@ -97,57 +97,29 @@ bool ElasticBounce::execute()
 	CalcServer *C = CalcServer::singleton();
 	cl_int err_code=0;
 
-	err_code  = sendArgument(_kernel,
-                             0,
-                             sizeof(cl_mem),
+	err_code  = sendArgument(_kernel, 0, sizeof(cl_mem),
                              (void*)&(C->imove));
-	err_code |= sendArgument(_kernel,
-                             1,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 1, sizeof(cl_mem),
                              (void*)&(C->pos));
-	err_code |= sendArgument(_kernel,
-                             2,
-                             sizeof(cl_mem),
-                             (void*)&(C->v));
-	err_code |= sendArgument(_kernel,
-                             3,
-                             sizeof(cl_mem),
-                             (void*)&(C->f));
-	err_code |= sendArgument(_kernel,
-                             4,
-                             sizeof(cl_mem),
-                             (void*)&(C->fin));
-	err_code |= sendArgument(_kernel,
-                             5,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 2, sizeof(cl_mem),
                              (void*)&(C->normal));
-	err_code |= sendArgument(_kernel,
-                             6,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 3, sizeof(cl_mem),
+                             (void*)&(C->v));
+	err_code |= sendArgument(_kernel, 4, sizeof(cl_mem),
+                             (void*)&(C->f));
+	err_code |= sendArgument(_kernel, 5, sizeof(cl_mem),
                              (void*)&(C->icell));
-	err_code |= sendArgument(_kernel,
-                             7,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 6, sizeof(cl_mem),
                              (void*)&(C->ihoc));
-	err_code |= sendArgument(_kernel,
-                             8,
-                             sizeof(cl_uint),
+	err_code |= sendArgument(_kernel, 7, sizeof(cl_uint),
                              (void*)&(C->N));
-	err_code |= sendArgument(_kernel,
-                             9,
-                             sizeof(cl_float),
+	err_code |= sendArgument(_kernel, 8, sizeof(cl_float),
                              (void*)&(C->dt));
-	err_code |= sendArgument(_kernel,
-                             10,
-                             sizeof(uivec),
+	err_code |= sendArgument(_kernel, 9, sizeof(uivec),
                              (void*)&(C->num_cells_vec));
-	err_code |= sendArgument(_kernel,
-                             11,
-                             sizeof(vec),
+	err_code |= sendArgument(_kernel, 10, sizeof(vec),
                              (void*)&(C->g));
-	err_code |= sendArgument(_kernel,
-                             12,
-                             sizeof(cl_float),
+	err_code |= sendArgument(_kernel, 11, sizeof(cl_float),
                              (void*)&_r);
 	if(err_code != CL_SUCCESS) {
 		S->addMessageF(3, "Failure sending variables to boundary computation kernel.\n");
