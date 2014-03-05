@@ -80,19 +80,19 @@
  * @param f Acceleration.
  * @param drdt Rate of change of the density.
  * @param shepard Shepard factor.
- * @param lcell Cell where the particle is situated.
+ * @param icell Cell where the particle is situated.
  * @param ihoc Head particle of cell chain.
  * @param N Number of particles & sensors.
  * @param lvec Number of cells at each direction.
  * @param grav Gravity acceleration.
  */
-__kernel void Rates( _g int* iFluid, _g int* iMove,
+__kernel void Rates( _g int* ifluid, _g int* imove,
                      _g vec* pos, _g vec* v, _g float* dens,
-                     _g float* pmass, _g float* press, _c float* Visckin,
-                     _c float* Viscdyn, _g vec* f, _g float* drdt,
+                     _g float* mass, _g float* press, _c float* Visckin,
+                     _c float* viscdyn, _g vec* f, _g float* drdt,
                      _g float* drdt_F, _g float* shepard,
                      // Link-list data
-                     _g uint *lcell, _g uint *ihoc,
+                     _g uint *icell, _g uint *ihoc,
                      // Simulation data
                      uint N, uivec lvec, vec grav
                      #ifdef __DELTA_SPH__
@@ -111,25 +111,34 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
 	// ---- | ------------------------ | ----
 	// ---- V ---- Your code here ---- V ----
 
-	// Kernel variables
-	float dist, conw, conf, wab, fab;
-	// Particle data
-	int iIFluid, iIMove;
-	uint j,labp, lc;
-	vec iPos, iV;
-	float iDens, iPress, iVisckin, iViscdyn;
-	// Neighbours data
-	vec r,dv;
-	float r1, vdr, pDens, pMass, prfac, viscg;
+    const uint c_i = icell[i];
+    const int move_i = imove[i];
+    const vec pos_i = pos[i];
+    const vec v_i = v[i];
+    const float press_i = press[i];
+    const float dens_i = dens[i];
+    const float viscdyn_i = viscdyn[ifluid[i]];
+	#ifdef __DELTA_SPH__
+        const float delta_i = delta[ifluid[i]];
+        const float refd_i = refd[ifluid[i]];
+	#endif
 
-	j = i;              // Backup of the variable, in order to compare later
-	lc = lcell[i];      // Cell of the particle
+    const float prfac_i = press_i / (dens_i * dens_i);
 
+	#ifndef HAVE_3D
+		const float conw = 1.f/(h*h);
+		const float conf = 1.f/(h*h*h*h);
+	#else
+		const float conw = 1.f/(h*h*h);
+		const float conf = 1.f/(h*h*h*h*h);
+	#endif
+
+	// Initialize the output
     #ifndef LOCAL_MEM_SIZE
-	    #define _F_ f[j]
-	    #define _DRDT_ drdt[j]
-    	#define _DRDT_F_ drdt_F[j]
-    	#define _SHEPARD_ shepard[j]
+	    #define _F_ f[i]
+	    #define _DRDT_ drdt[i]
+    	#define _DRDT_F_ drdt_F[i]
+    	#define _SHEPARD_ shepard[i]
     #else
 	    #define _F_ f_l[it]
 	    #define _DRDT_ drdt_l[it]
@@ -140,39 +149,27 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
         _l float drdt_F_l[LOCAL_MEM_SIZE];
         _l float shepard_l[LOCAL_MEM_SIZE];
     #endif
-	// Output initialization
 	_F_       = VEC_ZERO;
 	_DRDT_    = 0.f;
 	_DRDT_F_  = 0.f;
 	_SHEPARD_ = 0.f;
 
-	// Particle data
-	iPos = pos[i];
-	iV = v[i];
-	iDens = dens[i];
-	iPress = press[i];
-	iIFluid = iFluid[i];
-	iVisckin = Visckin[iIFluid];
-	iViscdyn = Viscdyn[iIFluid];
-	iIMove = iMove[i];
-	#ifdef __DELTA_SPH__
-		float rDens, iDelta, drfac, rdr;
-		rDens  = refd[iIFluid];
-		iDelta = delta[iIFluid];
-	#endif
-	//! 3th.- Loop over all neightbour particles
+	// Loop over neighbour particles
+    // =============================
 	{
-		//! 3.a.- Home cell, starting by next particle
-		i++;
-		while( (i<N) && (lcell[i]==lc) ) {
+        uint j;
+        // Home cell, starting from the next particle
+        // ==========================================
+        j = i + 1;
+		while((j < N) && (icell[j] == c_i) ) {
 			// Sensor specific computation
-			if(!iIMove){
+			if(!move_i){
 				#include "RatesSensors.hcl"
 			}
 			else{
 				#if __BOUNDARY__==0
 					// ElasticBounce boundary condition
-					if(iIMove<0){
+					if(move_i<0){
 						#include "RatesBounds.hcl"
 					}
 					else{
@@ -183,7 +180,7 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
 					#include "Rates.hcl"
 				#elif __BOUNDARY__==2
 					// DeLeffe boundary condition
-					if(iIMove<0){
+					if(move_i<0){
 						#include "RatesBounds.hcl"
 					}
 					else{
@@ -193,56 +190,55 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
 					#error Unknow boundary condition
 				#endif
 			}
-			i++;
+			j++;
 		}
-		//! 3.b.- Neighbour cells
+
+		// Neighbour cells
+        // ===============
 		for(uint cell = 1; cell < NEIGH_CELLS; cell++) {
-			// Get the neighbour cell index
             uint c_j;
 			switch(cell) {
-				// Cells at the same Z than main cell
-				case 0: c_j = lc + 0; break;
-				case 1: c_j = lc + 1; break;
-				case 2: c_j = lc - 1; break;
-				case 3: c_j = lc + lvec.x; break;
-				case 4: c_j = lc + lvec.x + 1; break;
-				case 5: c_j = lc + lvec.x - 1; break;
-				case 6: c_j = lc - lvec.x; break;
-				case 7: c_j = lc - lvec.x + 1; break;
-				case 8: c_j = lc - lvec.x - 1; break;
+				case 0: c_j = c_i + 0; break;
+				case 1: c_j = c_i + 1; break;
+				case 2: c_j = c_i - 1; break;
+				case 3: c_j = c_i + lvec.x; break;
+				case 4: c_j = c_i + lvec.x + 1; break;
+				case 5: c_j = c_i + lvec.x - 1; break;
+				case 6: c_j = c_i - lvec.x; break;
+				case 7: c_j = c_i - lvec.x + 1; break;
+				case 8: c_j = c_i - lvec.x - 1; break;
 				#ifdef HAVE_3D
-					// Cells bellow main cell
-					case 9 : c_j = lc + 0          - lvec.x*lvec.y; break;
-					case 10: c_j = lc + 1          - lvec.x*lvec.y; break;
-					case 11: c_j = lc - 1          - lvec.x*lvec.y; break;
-					case 12: c_j = lc + lvec.x     - lvec.x*lvec.y; break;
-					case 13: c_j = lc + lvec.x + 1 - lvec.x*lvec.y; break;
-					case 14: c_j = lc + lvec.x - 1 - lvec.x*lvec.y; break;
-					case 15: c_j = lc - lvec.x     - lvec.x*lvec.y; break;
-					case 16: c_j = lc - lvec.x + 1 - lvec.x*lvec.y; break;
-					case 17: c_j = lc - lvec.x - 1 - lvec.x*lvec.y; break;
-					// Cells over main cell
-					case 18: c_j = lc + 0          + lvec.x*lvec.y; break;
-					case 19: c_j = lc + 1          + lvec.x*lvec.y; break;
-					case 20: c_j = lc - 1          + lvec.x*lvec.y; break;
-					case 21: c_j = lc + lvec.x     + lvec.x*lvec.y; break;
-					case 22: c_j = lc + lvec.x + 1 + lvec.x*lvec.y; break;
-					case 23: c_j = lc + lvec.x - 1 + lvec.x*lvec.y; break;
-					case 24: c_j = lc - lvec.x     + lvec.x*lvec.y; break;
-					case 25: c_j = lc - lvec.x + 1 + lvec.x*lvec.y; break;
-					case 26: c_j = lc - lvec.x - 1 + lvec.x*lvec.y; break;
+					case 9 : c_j = c_i + 0          - lvec.x*lvec.y; break;
+					case 10: c_j = c_i + 1          - lvec.x*lvec.y; break;
+					case 11: c_j = c_i - 1          - lvec.x*lvec.y; break;
+					case 12: c_j = c_i + lvec.x     - lvec.x*lvec.y; break;
+					case 13: c_j = c_i + lvec.x + 1 - lvec.x*lvec.y; break;
+					case 14: c_j = c_i + lvec.x - 1 - lvec.x*lvec.y; break;
+					case 15: c_j = c_i - lvec.x     - lvec.x*lvec.y; break;
+					case 16: c_j = c_i - lvec.x + 1 - lvec.x*lvec.y; break;
+					case 17: c_j = c_i - lvec.x - 1 - lvec.x*lvec.y; break;
+
+					case 18: c_j = c_i + 0          + lvec.x*lvec.y; break;
+					case 19: c_j = c_i + 1          + lvec.x*lvec.y; break;
+					case 20: c_j = c_i - 1          + lvec.x*lvec.y; break;
+					case 21: c_j = c_i + lvec.x     + lvec.x*lvec.y; break;
+					case 22: c_j = c_i + lvec.x + 1 + lvec.x*lvec.y; break;
+					case 23: c_j = c_i + lvec.x - 1 + lvec.x*lvec.y; break;
+					case 24: c_j = c_i - lvec.x     + lvec.x*lvec.y; break;
+					case 25: c_j = c_i - lvec.x + 1 + lvec.x*lvec.y; break;
+					case 26: c_j = c_i - lvec.x - 1 + lvec.x*lvec.y; break;
 				#endif
 			}
 
-			i = ihoc[c_j];
-			while((i < N) && (lcell[i] == c_j)) {
-				if(!iIMove){
+			j = ihoc[c_j];
+			while((j < N) && (icell[j] == c_j)) {
+				if(!move_i){
 					#include "RatesSensors.hcl"
 				}
 				else{
 					#if __BOUNDARY__==0
 						// ElasticBounce boundary condition
-						if(iIMove<0){
+						if(move_i < 0){
 							#include "RatesBounds.hcl"
 						}
 						else{
@@ -253,7 +249,7 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
 						#include "Rates.hcl"
 					#elif __BOUNDARY__==2
 						// DeLeffe boundary condition
-						if(iIMove<0){
+						if(move_i < 0){
 							#include "RatesBounds.hcl"
 						}
 						else{
@@ -262,20 +258,21 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
 					#else
 						#error Unknow boundary condition
 					#endif
-		                }
-				i++;
+		        }
+				j++;
 			}			
 		}
-		//! 3.c.- Home cell, starting from head of chain.
-		i = ihoc[lc];
-		while(i < j) {
-			if(!iIMove){
+		// Home cell, starting from the head of chain
+        // ==========================================
+		j = ihoc[c_i];
+		while(j < i) {
+			if(!move_i){
 				#include "RatesSensors.hcl"
 			}
 			else{
 				#if __BOUNDARY__==0
 					// ElasticBounce boundary condition
-					if(iIMove<0){
+					if(move_i < 0){
 						#include "RatesBounds.hcl"
 					}
 					else{
@@ -286,7 +283,7 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
 					#include "Rates.hcl"
 				#elif __BOUNDARY__==2
 					// DeLeffe boundary condition
-					if(iIMove<0){
+					if(move_i < 0){
 						#include "RatesBounds.hcl"
 					}
 					else{
@@ -296,41 +293,31 @@ __kernel void Rates( _g int* iFluid, _g int* iMove,
 					#error Unknow boundary condition
 				#endif
 			}
-			i++;
+			j++;
 		}
-	}
-	//! 4th.- Append own particle as part of shepard term
-	// Sensors not included
-	if(iIMove){
+    }
+	// Self particle effect
+	// ====================
+	if(move_i){
 		#if __BOUNDARY__==0 || __BOUNDARY__==2
 			// Contour not included
-			if(iIMove>0){
-				#ifndef HAVE_3D
-					conw = 1.f/(h*h);				// Different for 1d and 3d
-				#else
-					conw = 1.f/(h*h*h);			// Different for 1d and 3d
-				#endif
-				wab = kernelW(0.f)*conw*pmass[j];
-				_SHEPARD_ += wab/iDens;
+			if(move_i > 0){
+				const float wab = kernelW(0.f) * conw * mass[i];
+				_SHEPARD_ += wab / dens_i;
 			}
 		#else
-			#ifndef HAVE_3D
-				conw = 1.f/(h*h);				// Different for 1d and 3d
-			#else
-				conw = 1.f/(h*h*h);			// Different for 1d and 3d
-			#endif
-			wab = kernelW(0.f)*conw*pmass[j];
-			_SHEPARD_ += wab/iDens;
+			const float wab = kernelW(0.f) * conw * mass[i];
+			_SHEPARD_ += wab / dens_i;
 		#endif
 	}
-	//! 5th.- Write output into global memory (at unsorted space)
+
 	#ifdef LOCAL_MEM_SIZE
-		f[j] = _F_;
-		drdt[j] = _DRDT_ + _DRDT_F_;
-		drdt_F[j] = _DRDT_F_;
-		shepard[j] = _SHEPARD_;
+		f[i] = _F_;
+		drdt[i] = _DRDT_ + _DRDT_F_;
+		drdt_F[i] = _DRDT_F_;
+		shepard[i] = _SHEPARD_;
 	#else
-		drdt[j] += _DRDT_F_;
+		drdt[i] += _DRDT_F_;
 	#endif
 
 	// ---- A ---- Your code here ---- A ----

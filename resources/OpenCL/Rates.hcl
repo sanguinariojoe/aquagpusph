@@ -18,99 +18,81 @@
 
 // Artificial viscosity factor
 #ifndef __CLEARY__
-	#ifndef HAVE_3D
-		#define __CLEARY__ 8.f
-	#else
-		#define __CLEARY__ 15.f
-	#endif
+    #ifndef HAVE_3D
+        #define __CLEARY__ 8.f
+    #else
+        #define __CLEARY__ 15.f
+    #endif
 #endif
 
 // ------------------------------------------------------------------
 // Study if two particles can interact
 // ------------------------------------------------------------------
-if(!iMove[i]){
-	i++;
-	continue;
+if(!imove[j]){
+    j++;
+    continue;
 }
 #if __BOUNDARY__==0 || __BOUNDARY__==2
-	// ElasticBounce or DeLeffe boundary condition
-	if(iMove[i]<0){
-		i++;
-		continue;
-	}
+    // ElasticBounce or DeLeffe boundary condition
+    if(imove[j] < 0){
+        j++;
+        continue;
+    }
 #endif
-dist = sep*h;                                                 // Maximum interaction distance                         [m]
-r = iPos - pos[i];
-r1  = fast_length(r);                                           // Distance between particles                           [m]
-if( r1 <= dist )
+
+const vec r = pos_i - pos[j];
+const float q = fast_length(r) / h;
+if(q <= sep)
 {
-	#ifndef HAVE_3D
-		conw = 1.f/(h*h);
-		conf = 1.f/(h*h*h*h);
-	#else
-		conw = 1.f/(h*h*h);
-		conf = 1.f/(h*h*h*h*h);
-	#endif
-	dv   = iV - v[i];                                       // Delta of velocity                                    [m/s]
-	vdr  = dot(dv, r);
-	//---------------------------------------------------------------
-	//       calculate the kernel wab and the function fab
-	//---------------------------------------------------------------
-	pDens = dens[i];                                        // Density of neighbour particle                        [kg/m3]
-	pMass = pmass[i];                                       // Mass of neighbour particle                           [kg]
-	wab = kernelW(r1/h)*conw*pMass;
-	fab = kernelF(r1/h)*conf*pMass;
-	//---------------------------------------------------------------
-	//       calculate the pressure factor
-	//---------------------------------------------------------------
-	prfac = iPress/(iDens*iDens) + press[i]/(pDens*pDens);
-	if(iMove[i]<0){	// Fix particles can't substract fluid particles
-		prfac = max(prfac, 0.f);
-	}
-	//---------------------------------------------------------------
-	//       calculate viscosity terms (Cleary's viscosity)
-	//---------------------------------------------------------------
-	viscg = -__CLEARY__*iViscdyn*
-			vdr / (r1*r1 + 0.01f*h*h)
-			/(pDens*iDens);
-	#ifdef __FREE_SLIP__
-		if(iMove[i]<0)
-			viscg = 0.f;
-	#endif
-	//---------------------------------------------------------------
-	//       force computation
-	//---------------------------------------------------------------
-	_F_ -= r*fab*(prfac + viscg);                           // Particle force                                       [m/s2]
-	//---------------------------------------------------------------
-	// 	rate of change of density
-	//---------------------------------------------------------------
-	_DRDT_ += vdr*fab;                                      // Density rate                                         [kg/m3/s]
-	//---------------------------------------------------------------
-	//       Density diffusion term
-	//---------------------------------------------------------------
-	#ifdef __DELTA_SPH__
-		// Ferrari
-		/*
-		rdr = dot( r, r ) / (r1 + 0.01f*h);
-		drfac = (iPress - press[i]) - rDens*dot(grav,r);
-		_DRDT_F_ += iDelta / (cs*pDens)
-		            * ( drfac * rdr ) * fab;
-		*/
-		// Molteni
-		/*
-		rdr = dot( r, r ) / (r1*r1 + 0.01f*h*h);
-		drfac = (iPress - press[i]) - rDens*dot(grav,r);
-		_DRDT_F_ += 2.f*iDelta*h / (cs*pDens)
-		            * ( drfac * rdr ) * fab;
-		*/
-		// Cercos
-		rdr = dot( r, r ) / (r1*r1 + 0.01f*h*h);
-		drfac = (iPress - press[i]) - rDens*dot(grav,r);
-		_DRDT_F_ += iDelta*dt * iDens/(rDens*pDens)
-		            * ( drfac * rdr ) * fab;
-	#endif
-	//---------------------------------------------------------------
-	// 	Shepard term
-	//---------------------------------------------------------------
-	_SHEPARD_ += wab/pDens;                                 // Kernel integral
+    //---------------------------------------------------------------
+    //       calculate the kernel wab and the function fab
+    //---------------------------------------------------------------
+    const float dens_j = dens[j];
+    const float mass_j = mass[j];
+    const float press_j = press[j];
+    const float wab = kernelW(q) * conw * mass_j;
+    const float fab = kernelF(q) * conf * mass_j;
+    //---------------------------------------------------------------
+    //       calculate the pressure factor
+    //---------------------------------------------------------------
+    const float prfac = prfac_i + press_j / (dens_j * dens_j);
+    /*
+    if(imove[j] < 0){
+        prfac = max(prfac, 0.f);
+    }
+    */
+    //---------------------------------------------------------------
+    //       calculate viscosity terms (Cleary's viscosity)
+    //---------------------------------------------------------------
+    const float vdr = dot(v_i - v[j], r);
+    const float r2 = (q * q + 0.01f) * h * h;
+    float viscg = -__CLEARY__ * viscdyn_i * vdr / (r2 * dens_i * dens_j);
+    #ifdef __FREE_SLIP__
+        if(imove[j] < 0)
+            viscg = 0.f;
+    #endif
+    //---------------------------------------------------------------
+    //       force computation
+    //---------------------------------------------------------------
+    _F_ -= r * fab * (prfac + viscg);
+    //---------------------------------------------------------------
+    //     rate of change of density
+    //---------------------------------------------------------------
+    _DRDT_ += vdr * fab;
+    //---------------------------------------------------------------
+    //       Density diffusion term
+    //---------------------------------------------------------------
+    #ifdef __DELTA_SPH__
+        const float drfac = (press_i - press[j]) - refd_i * dot(grav, r);
+        // Ferrari
+        // _DRDT_F_ += delta_i * drfac * fab / (cs * dens_j);
+        // Molteni
+        // _DRDT_F_ += delta_i * h * drfac * fab / (cs * dens_j);
+        // Cercos
+        _DRDT_F_ += delta_i * dt * dens_i * drfac * fab / (refd_i * dens_j);
+    #endif
+    //---------------------------------------------------------------
+    //     Shepard term
+    //---------------------------------------------------------------
+    _SHEPARD_ += wab / dens_j;
 }

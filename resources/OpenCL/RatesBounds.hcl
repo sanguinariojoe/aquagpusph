@@ -19,47 +19,40 @@
 // ------------------------------------------------------------------
 // Study if two particles can interact
 // ------------------------------------------------------------------
-if(!iMove[i]){
-	i++;
+if(!imove[j]){
+	j++;
 	continue;
 }
 #if __BOUNDARY__==0 || __BOUNDARY__==2
 	// ElasticBounce or DeLeffe boundary condition
-	if(iMove[i]<0){
-		i++;
+	if(imove[j]<0){
+		j++;
 		continue;
 	}
 #endif
-dist = sep*h;                                // Maximum interaction distance               [m]
-r = iPos - pos[i];
-r1  = fast_length(r);                          // Distance between particles                 [m]
-if( r1 <= dist )
+
+const vec r = pos_i - pos[j];
+const float q = fast_length(r) / h;
+if(q <= sep)
 {
-	#ifndef HAVE_3D
-		conw = 1.f/(h*h);                  // Different for 1d and 3d
-		conf = 1.f/(h*h*h*h);          // Different for 1d and 3d
-	#else
-		conw = 1.f/(h*h*h);              // Different for 1d and 3d
-		conf = 1.f/(h*h*h*h*h);      // Different for 1d and 3d
-	#endif
 	//---------------------------------------------------------------
 	//       calculate the kernel wab and the function fab
 	//---------------------------------------------------------------
-	pDens = dens[i];                           // Density of neighbour particle              [kg/m3]
-	pMass = pmass[i];                          // Mass of neighbour particle                 [kg]
-	wab = kernelW(r1/h)*conw*pMass;
-	fab = kernelF(r1/h)*conf*pMass;
+	const float dens_j = dens[j];
+	const float mass_j = mass[j];
+    const float press_j = press[j];
+	const float wab = kernelW(q) * conw * mass_j;
 	//---------------------------------------------------------------
 	//       pressure computation (stored on f)
 	//---------------------------------------------------------------
-	_F_.x += press[i]/pDens*wab;                                              // [Pa]
-	_F_.y += dot(grav,r)*wab;                                                 // [Pa]
+	_F_.x += press_j / dens_j * wab;
+	_F_.y += dot(grav, r) * wab;
 	//---------------------------------------------------------------
 	// 	density computation (stored on drdt)
 	//---------------------------------------------------------------
-	_DRDT_ += wab;                                                                        // [kg/m3]
+	_DRDT_ += wab;
 	//---------------------------------------------------------------
 	// 	Shepard term
 	//---------------------------------------------------------------
-	_SHEPARD_ += wab/pDens;
+	_SHEPARD_ += wab / dens_j;
 }

@@ -83,14 +83,14 @@ bool Grid::execute()
         return true;
 	if(C->getData((void *)&C->pos_min, reduced, sizeof(vec)))
 		return true;
-	C->cell_length = 1.0f / (C->cell_length_factor * sep * C->h);
-	C->num_cells_vec.x   = (unsigned int)((C->pos_max.x - C->pos_min.x) * C->cell_length)+(unsigned int)6;
-	C->num_cells_vec.y   = (unsigned int)((C->pos_max.y - C->pos_min.y) * C->cell_length)+(unsigned int)6;
-	C->num_cells	  = C->num_cells_vec.x * C->num_cells_vec.y;
+	C->cell_length = 1.f / (C->cell_length_factor * sep * C->h);
+	C->num_cells_vec.x = (unsigned int)((C->pos_max.x - C->pos_min.x) * C->cell_length)+(unsigned int)6;
+	C->num_cells_vec.y = (unsigned int)((C->pos_max.y - C->pos_min.y) * C->cell_length)+(unsigned int)6;
+	C->num_cells = C->num_cells_vec.x * C->num_cells_vec.y;
 	#ifdef HAVE_3D
-		C->num_cells_vec.z  = (unsigned int)((C->pos_max.z - C->pos_min.z) * C->cell_length)+(unsigned int)6;
-		C->num_cells_vec.w  = 0;
-		C->num_cells	*= C->num_cells_vec.z;
+		C->num_cells_vec.z = (unsigned int)((C->pos_max.z - C->pos_min.z) * C->cell_length)+(unsigned int)6;
+		C->num_cells_vec.w = 0;
+		C->num_cells *= C->num_cells_vec.z;
 	#endif
 	return false;
 }
