@@ -25,15 +25,11 @@
     #endif
 #endif
 
-// ------------------------------------------------------------------
-// Study if two particles can interact
-// ------------------------------------------------------------------
 if(!imove[j]){
     j++;
     continue;
 }
 #if __BOUNDARY__==0 || __BOUNDARY__==2
-    // ElasticBounce or DeLeffe boundary condition
     if(imove[j] < 0){
         j++;
         continue;
