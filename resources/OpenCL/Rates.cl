@@ -48,21 +48,6 @@
 	#define uint unsigned int
 #endif
 
-#ifdef _g
-	#error '_g' is already defined.
-#endif
-#define _g __global
-
-#ifdef _c
-	#error '_c' is already defined.
-#endif
-#define _c __constant
-
-#ifdef _l
-	#error '_l' is already defined.
-#endif
-#define _l __local
-
 /** Compute the rates of variation due to the fluid (fixed particles will be
  * included here). During this stage some other operations are performed as
  * well, like the values interpolation in the boundaries (for DeLeffe boundary
@@ -86,21 +71,22 @@
  * @param lvec Number of cells at each direction.
  * @param grav Gravity acceleration.
  */
-__kernel void Rates( _g int* ifluid, _g int* imove,
-                     _g vec* pos, _g vec* v, _g float* dens,
-                     _g float* mass, _g float* press, _c float* Visckin,
-                     _c float* viscdyn, _g vec* f, _g float* drdt,
-                     _g float* drdt_F, _g float* shepard,
-                     // Link-list data
-                     _g uint *icell, _g uint *ihoc,
-                     // Simulation data
-                     uint N, uivec lvec, vec grav
-                     #ifdef __DELTA_SPH__
-                         // Continuity equation diffusive term data
-                         , _c float* refd, _c float* delta
-                         , float dt, float cs
-                     #endif
-                     )
+__kernel void Rates(__global int* ifluid, __global int* imove,
+                    __global vec* pos, __global vec* v, __global float* dens,
+                    __global float* mass, __global float* press,
+                    __constant float* Visckin, __constant float* viscdyn,
+                    __global vec* f, __global float* drdt,
+                    __global float* drdt_F, __global float* shepard,
+                    // Link-list data
+                    __global uint *icell, __global uint *ihoc,
+                    // Simulation data
+                    uint N, uivec lvec, vec grav
+                    #ifdef __DELTA_SPH__
+                        // Continuity equation diffusive term data
+                        , __constant float* refd, __constant float* delta
+                        , float dt, float cs
+                    #endif
+                    )
 {
 	// find position in global arrays
 	uint i = get_global_id(0);			// Particle at sorted space
@@ -144,10 +130,10 @@ __kernel void Rates( _g int* ifluid, _g int* imove,
 	    #define _DRDT_ drdt_l[it]
 	    #define _DRDT_F_ drdt_F_l[it]
 	    #define _SHEPARD_ shepard_l[it]
-        _l vec f_l[LOCAL_MEM_SIZE];
-        _l float drdt_l[LOCAL_MEM_SIZE];
-        _l float drdt_F_l[LOCAL_MEM_SIZE];
-        _l float shepard_l[LOCAL_MEM_SIZE];
+        __local vec f_l[LOCAL_MEM_SIZE];
+        __local float drdt_l[LOCAL_MEM_SIZE];
+        __local float drdt_F_l[LOCAL_MEM_SIZE];
+        __local float shepard_l[LOCAL_MEM_SIZE];
     #endif
 	_F_       = VEC_ZERO;
 	_DRDT_    = 0.f;
