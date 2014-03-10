@@ -19,243 +19,234 @@
 /* Kernel to use. Take care with support distance (sep), that may vary.
  */
 #ifndef HAVE_3D
-	#include "../KernelFunctions/Wendland2D.hcl"
+    #include "../KernelFunctions/Wendland2D.hcl"
 #else
-	#include "../KernelFunctions/Wendland3D.hcl"
+    #include "../KernelFunctions/Wendland3D.hcl"
 #endif
 
 #ifndef HAVE_3D
-	#ifndef NEIGH_CELLS
-		/** @def NEIGH_CELLS Number of neighbour cells. In 2D case 8,
-		 * and the main cells must be computed, but in 3D 27 cells,
-		 * must be computed.
-		 */ 
-		#define NEIGH_CELLS 9
-	#endif
+    #ifndef NEIGH_CELLS
+        /** @def NEIGH_CELLS Number of neighbour cells. In 2D case 8,
+         * and the main cells must be computed, but in 3D 27 cells,
+         * must be computed.
+         */ 
+        #define NEIGH_CELLS 9
+    #endif
 #else
-	#ifndef NEIGH_CELLS
-		#define NEIGH_CELLS 27
-	#endif
+    #ifndef NEIGH_CELLS
+        #define NEIGH_CELLS 27
+    #endif
 #endif
 
 #ifndef M_PI
-	#define M_PI 3.14159265359f
+    #define M_PI 3.14159265359f
 #endif
 #ifndef iM_PI
-	#define iM_PI 0.318309886f
+    #define iM_PI 0.318309886f
 #endif
 
 #ifndef uint
-	#define uint unsigned int
+    #define uint unsigned int
 #endif
 
 #ifdef _g
-	#error '_g' is already defined.
+    #error '_g' is already defined.
 #endif
 #define _g __global
 
 #ifdef _c
-	#error '_c' is already defined.
+    #error '_c' is already defined.
 #endif
 #define _c __constant
 
 #ifdef _l
-	#error '_l' is already defined.
+    #error '_l' is already defined.
 #endif
 #define _l __local
 
 #include "Wall.hcl"
 
-/** Method called outside to compute forces and density rate due to ghost particles.
- * @param iFluid Fluid identifier.
- * @param pos Position of particles.
- * @param v Velocity of particles.
- * @param f Forces over particles.
- * @param dens Density of particles.
- * @param drdt Density evolution of particles.
- * @param hp Kernel height of particles.
- * @param pmass mass of particles.
- * @param press pressure of particles.
- * @param spsound Speed of sound.
- * @param sigma Viscosity time step term.
+/** Compute the effect of the boundary based on the virtual ghost particles.
+ * In the virtual ghost particles model the particles are mirrored through the
+ * wall on the fly.
+ * @param ifluid Fluid identifiers.
+ * @param imove Moving flags.
+ * @param pos Positions.
+ * @param v Velocities.
+ * @param dens Densities.
+ * @param mass Masses.
+ * @param press Pressures.
+ * @param viscdyn Dynamic viscosities (one per fluid)
+ * @param viscdyn Density reference (one per fluid)
+ * @param f Acceleration.
+ * @param drdt Rates of change of the density.
+ * @param drdt_F Rates of change of the density due to the diffusive term.
  * @param shepard Shepard term (0th correction).
- * @param gradW Shepard term gradient.
- * @param Visckin Kinetic viscosity (one per fluid)
- * @param Viscdyn Dynamic viscosity (one per fluid)
- * @param refd Reference density (one per fluid)
- * @param lcell Cell where the particle is situated.
- * @param ihoc Head particle of cell chain.
+ * @param icell Cell where each particle is located.
+ * @param ihoc Head particle of chain of each cell.
  * @param N Number of particles & sensors.
- * @param hfac Kernel height factor.
  * @param lvec Number of cells at each direction.
- * @param grav Gravity force.
+ * @param grav Gravity acceleration.
+ * @param wall Wall to compute.
  */
-__kernel void Boundary(_g int* iFluid, _g int* iMove, _g vec* pos, _g vec* v,
-                       _g float* dens, _g float* pmass,
-                       _g float* press, _c float* Visckin, _c float* Viscdyn,
-                       _c float* refd, _g vec* f, _g float* drdt,
-                       _g float* drdt_F, _g float* shepard,
+__kernel void Boundary(__global int* ifluid, __global int* imove,
+                       __global vec* pos, __global vec* v,
+                       __global float* dens, __global float* mass,
+                       __global float* press, __constant float* viscdyn,
+                       __constant float* refd, __global vec* f,
+                       __global float* drdt, __global float* drdt_F,
+                       __global float* shepard,
                        // Link-list data
-                       _g uint *lcell, _g uint *ihoc,
+                       __global uint *icell, __global uint *ihoc,
                        // Simulation data
-                       uint N, float hfac, uivec lvec, vec grav,
+                       uint N, uivec lvec, vec grav,
                        // Wall specific data
-                       _c struct Wall* wall
+                       __constant struct Wall* wall
                        #ifdef __DELTA_SPH__
                            // Continuity equation diffusive term data
-                           , _c float* delta
+                           , __constant float* delta
                            , float dt, float cs
                        #endif
                        )
 {
-	// find position in global arrays
-	uint i = get_global_id(0);			// Particle at sorted space
-	uint it = get_local_id(0);			// Particle at local memory (temporal storage)
-	if(i >= N)
-		return;
+    const uint i = get_global_id(0);
+    const uint it = get_local_id(0);
+    if(i >= N)
+        return;
+    if(imove[i] <= 0){
+        return;
+    }
 
-	// ---- | ------------------------ | ----
-	// ---- V ---- Your code here ---- V ----
+    // ---- | ------------------------ | ----
+    // ---- V ---- Your code here ---- V ----
 
-	// Ghost particles must be computed only for moving particles
-	int iIMove = iMove[i];
-	if(iIMove <= 0){
-		return;
-	}
-	// In order to compute ghost particles wall must be nearer than kernel total height
-	vec iPos   = pos[i];
-	vec wPos   = wallProjection(iPos, wall);
-	vec wDir   = wPos-iPos;
-	float dist = sep*h;
-	if(dot(wDir, wDir) >= dist*dist){
-		return;
-	}
+    // Ghost particles must be computed only for moving particles
+    // In order to compute ghost particles wall must be nearer than kernel total height
+    const vec pos_i = pos[i];
+    vec pos_w = wallProjection(pos_i, wall);
+    vec dir = pos_w - pos_i;
+    if(dot(dir, dir) / (h * h) >= sep * sep){
+        return;
+    }
 
-	/* All data has been sorted previously, so two spaces must be considereed:
-	 * Sorted space, where i is the index of the particle.
-	 * Unsorted space, where labp is the index of the particle.
-	 *
-	 * Sorted space is used usually, in order to read variables coalescing, and unsorted space is used
-	 * eventually to write data at the original arrays. Aiming to avoid write several times into the unsorted global
-	 * memory address, local memory is employed to the output.
-	 */
-	// Kernel variables
-	float conw, conf, wab, fab;
-	// Particle data
-	int iIFluid;
-	uint j, lc;
-	vec iV;
-	float iDens, iPress, iVisckin, iViscdyn, rDens;
-	// Neighbours data
-	uint cellCount, lcc;
-	vec pPos, pV,pVn,pVt, r,dv;
-	float r1, vdr, pDens, pPress, pMass, prfac, viscg;
-	j = i;							// Backup of the variable, in order to compare later
-	lc = lcell[i];						// Cell of the particle
-
-	//! 1st.- Initialize output
-    #ifndef LOCAL_MEM_SIZE
-	    #define _F_ f[j]
-	    #define _DRDT_ drdt[j]
-    	#define _DRDT_F_ drdt_F[j]
-    	#define _SHEPARD_ shepard[j]
-    #else
-	    #define _F_ f_l[it]
-	    #define _DRDT_ drdt_l[it]
-	    #define _DRDT_F_ drdt_F_l[it]
-	    #define _SHEPARD_ shepard_l[it]
-        _l vec f_l[LOCAL_MEM_SIZE];
-        _l float drdt_l[LOCAL_MEM_SIZE];
-        _l float drdt_F_l[LOCAL_MEM_SIZE];
-        _l float shepard_l[LOCAL_MEM_SIZE];
-        f_l[it] = f[j];
-        drdt_l[it] = drdt[j];
-        drdt_F_l[it] = drdt_F[j];
-        shepard_l[it] = shepard[j];
+    const uint c_i = icell[i];
+    const vec v_i = v[i];
+    const float press_i = press[i];
+    const float dens_i = dens[i];
+    const float refd_i = refd[ifluid[i]];
+    #ifndef __FREE_SLIP__
+        const float viscdyn_i = viscdyn[ifluid[i]];
+    #endif
+    #ifdef __DELTA_SPH__
+        const float delta_i = delta[ifluid[i]];
     #endif
 
-	//! 2nd.- Particle data (reads it now in order to avoid read it from constant memory several times)
-	iV       = v[i];                // Velocity of the particle
-	iDens    = dens[i];             // Density of the particle
-	iPress   = press[i];            // Pressure of the particle
-	iIFluid  = iFluid[i];           // Fluid index of the particle
-	iVisckin = Visckin[iIFluid];    // Kinematic viscosity of the particle
-	iViscdyn = Viscdyn[iIFluid];    // Dynamic viscosity (clamped with artificial viscosity)
-	rDens    = refd[iIFluid];       // Density of reference
-	#ifdef __DELTA_SPH__
-		float iDelta, drfac, rdr;
-		iDelta = delta[iIFluid];
-	#endif
-	//! 3th.- Loop over all neightbour particles
-	{
-		//! 3.a.- Home cell, starting by own particle
-		while( (i<N) && (lcell[i]==lc) ) {
-			#include "GhostParticles.hcl"
-			i++;
-		}
-		//! 3.b.- Neighbour cells
-		for(cellCount=1;cellCount<NEIGH_CELLS;cellCount++) {
-			// Loop over 8 neighbour cells, taking cell index (lcc)
-			switch(cellCount) {
-				// Cells at the same Z than main cell
-				case 0: lcc = lc + 0; break;
-				case 1: lcc = lc + 1; break;
-				case 2: lcc = lc - 1; break;
-				case 3: lcc = lc + lvec.x; break;
-				case 4: lcc = lc + lvec.x + 1; break;
-				case 5: lcc = lc + lvec.x - 1; break;
-				case 6: lcc = lc - lvec.x; break;
-				case 7: lcc = lc - lvec.x + 1; break;
-				case 8: lcc = lc - lvec.x - 1; break;
-				#ifdef HAVE_3D
-					// Cells bellow main cell
-					case 9 : lcc = lc + 0          - lvec.x*lvec.y; break;
-					case 10: lcc = lc + 1          - lvec.x*lvec.y; break;
-					case 11: lcc = lc - 1          - lvec.x*lvec.y; break;
-					case 12: lcc = lc + lvec.x     - lvec.x*lvec.y; break;
-					case 13: lcc = lc + lvec.x + 1 - lvec.x*lvec.y; break;
-					case 14: lcc = lc + lvec.x - 1 - lvec.x*lvec.y; break;
-					case 15: lcc = lc - lvec.x     - lvec.x*lvec.y; break;
-					case 16: lcc = lc - lvec.x + 1 - lvec.x*lvec.y; break;
-					case 17: lcc = lc - lvec.x - 1 - lvec.x*lvec.y; break;
-					// Cells over main cell
-					case 18: lcc = lc + 0          + lvec.x*lvec.y; break;
-					case 19: lcc = lc + 1          + lvec.x*lvec.y; break;
-					case 20: lcc = lc - 1          + lvec.x*lvec.y; break;
-					case 21: lcc = lc + lvec.x     + lvec.x*lvec.y; break;
-					case 22: lcc = lc + lvec.x + 1 + lvec.x*lvec.y; break;
-					case 23: lcc = lc + lvec.x - 1 + lvec.x*lvec.y; break;
-					case 24: lcc = lc - lvec.x     + lvec.x*lvec.y; break;
-					case 25: lcc = lc - lvec.x + 1 + lvec.x*lvec.y; break;
-					case 26: lcc = lc - lvec.x - 1 + lvec.x*lvec.y; break;
-				#endif
-			}
-			// Sub-loop over particles into neighbour cells
-			i = ihoc[lcc];
-			while( (i<N) && (lcell[i]==lcc) ) {
-				#include "GhostParticles.hcl"
-				i++;
-			}			
-		}
-		//! 3.c.- Home cell, starting from head of chain.
-		i = ihoc[lc];
-		while(i < j) {
-			#include "GhostParticles.hcl"
-			i++;
-		}
+    const float prfac_i = press_i / (dens_i * dens_i);
 
-	}
-	//! 5th.- Write output into global memory (at unsorted space)
-	#ifdef LOCAL_MEM_SIZE
-		f[j] = _F_;
-		drdt[j] = _DRDT_ + _DRDT_F_;
-		drdt_F[j] = _DRDT_F_;
-		shepard[j] = _SHEPARD_;
-	#else
-		drdt[j] += _DRDT_F_;
-	#endif
+    #ifndef HAVE_3D
+        const float conw = 1.f/(h*h);
+        const float conf = 1.f/(h*h*h*h);
+    #else
+        const float conw = 1.f/(h*h*h);
+        const float conf = 1.f/(h*h*h*h*h);
+    #endif
 
-	// ---- A ---- Your code here ---- A ----
-	// ---- | ------------------------ | ----
+    // Initialize the output
+    #ifndef LOCAL_MEM_SIZE
+        #define _F_ f[i]
+        #define _DRDT_ drdt[i]
+        #define _DRDT_F_ drdt_F[i]
+        #define _SHEPARD_ shepard[i]
+    #else
+        #define _F_ f_l[it]
+        #define _DRDT_ drdt_l[it]
+        #define _DRDT_F_ drdt_F_l[it]
+        #define _SHEPARD_ shepard_l[it]
+        __local vec f_l[LOCAL_MEM_SIZE];
+        __local float drdt_l[LOCAL_MEM_SIZE];
+        __local float drdt_F_l[LOCAL_MEM_SIZE];
+        __local float shepard_l[LOCAL_MEM_SIZE];
+        f_l[it] = f[i];
+        drdt_l[it] = drdt[i];
+        drdt_F_l[it] = drdt_F[i];
+        shepard_l[it] = shepard[i];
+    #endif
+
+    // Loop over neighbour particles
+    // =============================
+    {
+        uint j;
+        // Home cell, starting from the next particle
+        // ==========================================
+        j = i + 1;
+        while((j < N) && (icell[j] == c_i) ) {
+            // Sensor specific computation
+            #include "GhostParticles.hcl"
+            j++;
+        }
+
+        // Neighbour cells
+        // ===============
+        for(uint cell = 1; cell < NEIGH_CELLS; cell++) {
+            uint c_j;
+            switch(cell) {
+                case 0: c_j = c_i + 0; break;
+                case 1: c_j = c_i + 1; break;
+                case 2: c_j = c_i - 1; break;
+                case 3: c_j = c_i + lvec.x; break;
+                case 4: c_j = c_i + lvec.x + 1; break;
+                case 5: c_j = c_i + lvec.x - 1; break;
+                case 6: c_j = c_i - lvec.x; break;
+                case 7: c_j = c_i - lvec.x + 1; break;
+                case 8: c_j = c_i - lvec.x - 1; break;
+                #ifdef HAVE_3D
+                    case 9 : c_j = c_i + 0          - lvec.x*lvec.y; break;
+                    case 10: c_j = c_i + 1          - lvec.x*lvec.y; break;
+                    case 11: c_j = c_i - 1          - lvec.x*lvec.y; break;
+                    case 12: c_j = c_i + lvec.x     - lvec.x*lvec.y; break;
+                    case 13: c_j = c_i + lvec.x + 1 - lvec.x*lvec.y; break;
+                    case 14: c_j = c_i + lvec.x - 1 - lvec.x*lvec.y; break;
+                    case 15: c_j = c_i - lvec.x     - lvec.x*lvec.y; break;
+                    case 16: c_j = c_i - lvec.x + 1 - lvec.x*lvec.y; break;
+                    case 17: c_j = c_i - lvec.x - 1 - lvec.x*lvec.y; break;
+
+                    case 18: c_j = c_i + 0          + lvec.x*lvec.y; break;
+                    case 19: c_j = c_i + 1          + lvec.x*lvec.y; break;
+                    case 20: c_j = c_i - 1          + lvec.x*lvec.y; break;
+                    case 21: c_j = c_i + lvec.x     + lvec.x*lvec.y; break;
+                    case 22: c_j = c_i + lvec.x + 1 + lvec.x*lvec.y; break;
+                    case 23: c_j = c_i + lvec.x - 1 + lvec.x*lvec.y; break;
+                    case 24: c_j = c_i - lvec.x     + lvec.x*lvec.y; break;
+                    case 25: c_j = c_i - lvec.x + 1 + lvec.x*lvec.y; break;
+                    case 26: c_j = c_i - lvec.x - 1 + lvec.x*lvec.y; break;
+                #endif
+            }
+
+            j = ihoc[c_j];
+            while((j < N) && (icell[j] == c_j)) {
+                #include "GhostParticles.hcl"
+                j++;
+            }            
+        }
+        // Home cell, starting from the head of chain
+        // ==========================================
+        j = ihoc[c_i];
+        while(j < i) {
+            #include "GhostParticles.hcl"
+            j++;
+        }
+    }
+
+    #ifdef LOCAL_MEM_SIZE
+        f[i] = _F_;
+        drdt[i] = _DRDT_ + _DRDT_F_;
+        drdt_F[i] = _DRDT_F_;
+        shepard[i] = _SHEPARD_;
+    #else
+        drdt[i] += _DRDT_F_;
+    #endif
+
+    // ---- A ---- Your code here ---- A ----
+    // ---- | ------------------------ | ----
 
 }

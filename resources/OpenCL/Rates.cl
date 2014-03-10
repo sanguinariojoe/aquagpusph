@@ -52,20 +52,20 @@
  * included here). During this stage some other operations are performed as
  * well, like the values interpolation in the boundaries (for DeLeffe boundary
  * conditions), the sensors meassurement, or the Shepard factor computation.
- * @param iFluid Fluid identifier.
- * @param pos Position.
- * @param v Velocity.
- * @param dens Density.
- * @param hp Kernel height.
- * @param pmass Mass
- * @param press Pressure.
- * @param viscdyn Dynamic viscosity (one per fluid)
- * @param shepard Shepard term (0th correction).
+ * @param ifluid Fluid identifiers.
+ * @param imove Moving flags.
+ * @param pos Positions.
+ * @param v Velocities.
+ * @param dens Densities.
+ * @param mass Masses.
+ * @param press Pressures.
+ * @param viscdyn Dynamic viscosities (one per fluid)
  * @param f Acceleration.
- * @param drdt Rate of change of the density.
- * @param shepard Shepard factor.
- * @param icell Cell where the particle is situated.
- * @param ihoc Head particle of cell chain.
+ * @param drdt Rates of change of the density.
+ * @param drdt_F Rates of change of the density due to the diffusive term.
+ * @param shepard Shepard term (0th correction).
+ * @param icell Cell where each particle is located.
+ * @param ihoc Head particle of chain of each cell.
  * @param N Number of particles & sensors.
  * @param lvec Number of cells at each direction.
  * @param grav Gravity acceleration.

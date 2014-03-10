@@ -78,89 +78,48 @@ bool Rates::execute()
 	CalcServer *C = CalcServer::singleton();
 	cl_int err_code=0;
 
-	err_code |= sendArgument(_kernel,
-                             0,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 0, sizeof(cl_mem),
                              (void*)&(C->ifluid));
-	err_code |= sendArgument(_kernel,
-                             1,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 1, sizeof(cl_mem),
                              (void*)&(C->imove));
-	err_code |= sendArgument(_kernel,
-                             2,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 2, sizeof(cl_mem),
                              (void*)&(C->pos));
-	err_code |= sendArgument(_kernel,
-                             3,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 3, sizeof(cl_mem),
                              (void*)&(C->v));
-	err_code |= sendArgument(_kernel,
-                             4,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 4, sizeof(cl_mem),
                              (void*)&(C->dens));
-	err_code |= sendArgument(_kernel,
-                             5,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 5, sizeof(cl_mem),
                              (void*)&(C->mass));
-	err_code |= sendArgument(_kernel,
-                             6,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 6, sizeof(cl_mem),
                              (void*)&(C->press));
-	err_code |= sendArgument(_kernel,
-                             7,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 7, sizeof(cl_mem),
                              (void*)&(C->visc_dyn_corrected));
-	err_code |= sendArgument(_kernel,
-                             8,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 8, sizeof(cl_mem),
                              (void*)&(C->f));
-	err_code |= sendArgument(_kernel,
-                             9,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 9, sizeof(cl_mem),
                              (void*)&(C->drdt));
-	err_code |= sendArgument(_kernel,
-                             10,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 10, sizeof(cl_mem),
                              (void*)&(C->drdt_F));
-	err_code |= sendArgument(_kernel,
-                             11,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 11, sizeof(cl_mem),
                              (void*)&(C->shepard));
-	err_code |= sendArgument(_kernel,
-                             12,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 12, sizeof(cl_mem),
                              (void*)&(C->icell));
-	err_code |= sendArgument(_kernel,
-                             13,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 13, sizeof(cl_mem),
                              (void*)&(C->ihoc));
-	err_code |= sendArgument(_kernel,
-                             14,
-                             sizeof(cl_uint),
+	err_code |= sendArgument(_kernel, 14, sizeof(cl_uint),
                              (void*)&(C->N));
-	err_code |= sendArgument(_kernel,
-                             15,
-                             sizeof(uivec),
+	err_code |= sendArgument(_kernel, 15, sizeof(uivec),
                              (void*)&(C->num_cells_vec));
-	err_code |= sendArgument(_kernel,
-                             16,
-                             sizeof(vec),
+	err_code |= sendArgument(_kernel, 16, sizeof(vec),
                              (void*)&(C->g));
 	if(_is_delta) {
-	    err_code |= sendArgument(_kernel,
-                                 17,
-                                 sizeof(cl_mem),
+	    err_code |= sendArgument(_kernel, 17, sizeof(cl_mem),
                                  (void*)&(C->refd));
-	    err_code |= sendArgument(_kernel,
-                                 18,
-                                 sizeof(cl_mem),
+	    err_code |= sendArgument(_kernel, 18, sizeof(cl_mem),
                                  (void*)&(C->delta));
-	    err_code |= sendArgument(_kernel,
-                                 19,
-                                 sizeof(cl_float),
+	    err_code |= sendArgument(_kernel, 19, sizeof(cl_float),
                                  (void*)&(C->dt));
-	    err_code |= sendArgument(_kernel,
-                                 20,
+	    err_code |= sendArgument(_kernel, 20,
                                  sizeof(cl_float),
                                  (void*)&(C->cs));
 	}

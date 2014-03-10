@@ -103,102 +103,50 @@ bool GhostParticles::execute()
 	        return true;
 	    }
 	    // Send constant variables to the server
-	    err_code |= sendArgument(_kernel,
-                                 0,
-                                 sizeof(cl_mem),
-                                 (void*)&(C->ifluidin));
-	    err_code |= sendArgument(_kernel,
-                                 1,
-                                 sizeof(cl_mem),
-                                 (void*)&(C->imovein));
-	    err_code |= sendArgument(_kernel,
-                                 2,
-                                 sizeof(cl_mem),
-                                 (void*)&(C->posin));
-	    err_code |= sendArgument(_kernel,
-                                 3,
-                                 sizeof(cl_mem),
-                                 (void*)&(C->vin));
-	    err_code |= sendArgument(_kernel,
-                                 4,
-                                 sizeof(cl_mem),
-                                 (void*)&(C->densin));
-	    err_code |= sendArgument(_kernel,
-                                 5,
-                                 sizeof(cl_mem),
-                                 (void*)&(C->massin));
-	    err_code |= sendArgument(_kernel,
-                                 6,
-                                 sizeof(cl_mem),
-                                 (void*)&(C->pressin));
-	    err_code |= sendArgument(_kernel,
-                                 7,
-                                 sizeof(cl_mem),
-                                 (void*)&(C->visc_kin));
-	    err_code |= sendArgument(_kernel,
-                                 8,
-                                 sizeof(cl_mem),
+	    err_code |= sendArgument(_kernel, 0, sizeof(cl_mem),
+                                 (void*)&(C->ifluid));
+	    err_code |= sendArgument(_kernel, 1, sizeof(cl_mem),
+                                 (void*)&(C->imove));
+	    err_code |= sendArgument(_kernel, 2, sizeof(cl_mem),
+                                 (void*)&(C->pos));
+	    err_code |= sendArgument(_kernel, 3, sizeof(cl_mem),
+                                 (void*)&(C->v));
+	    err_code |= sendArgument(_kernel, 4, sizeof(cl_mem),
+                                 (void*)&(C->dens));
+	    err_code |= sendArgument(_kernel, 5, sizeof(cl_mem),
+                                 (void*)&(C->mass));
+	    err_code |= sendArgument(_kernel, 6, sizeof(cl_mem),
+                                 (void*)&(C->press));
+	    err_code |= sendArgument(_kernel, 7, sizeof(cl_mem),
                                  (void*)&(C->visc_dyn_corrected));
-	    err_code |= sendArgument(_kernel,
-                                 9,
-                                 sizeof(cl_mem),
+	    err_code |= sendArgument(_kernel, 8, sizeof(cl_mem),
                                  (void*)&(C->refd));
-	    err_code |= sendArgument(_kernel,
-                                 10,
-                                 sizeof(cl_mem),
+	    err_code |= sendArgument(_kernel, 9, sizeof(cl_mem),
                                  (void*)&(C->f));
-	    err_code |= sendArgument(_kernel,
-                                 11,
-                                 sizeof(cl_mem),
+	    err_code |= sendArgument(_kernel, 10, sizeof(cl_mem),
                                  (void*)&(C->drdt));
-	    err_code |= sendArgument(_kernel,
-                                 12,
-                                 sizeof(cl_mem),
+	    err_code |= sendArgument(_kernel, 11, sizeof(cl_mem),
                                  (void*)&(C->drdt_F));
-	    err_code |= sendArgument(_kernel,
-                                 13,
-                                 sizeof(cl_mem),
+	    err_code |= sendArgument(_kernel, 12, sizeof(cl_mem),
                                  (void*)&(C->shepard));
-	    err_code |= sendArgument(_kernel,
-                                 14,
-                                 sizeof(cl_mem),
+	    err_code |= sendArgument(_kernel, 13, sizeof(cl_mem),
                                  (void*)&(C->icell));
-	    err_code |= sendArgument(_kernel,
-                                 15,
-                                 sizeof(cl_mem),
+	    err_code |= sendArgument(_kernel, 14, sizeof(cl_mem),
                                  (void*)&(C->ihoc));
-	    err_code |= sendArgument(_kernel,
-                                 16,
-                                 sizeof(cl_uint),
+	    err_code |= sendArgument(_kernel, 15, sizeof(cl_uint),
                                  (void*)&(C->N));
-	    err_code |= sendArgument(_kernel,
-                                 17,
-                                 sizeof(cl_float),
-                                 (void*)&(C->hfac));
-	    err_code |= sendArgument(_kernel,
-                                 18,
-                                 sizeof(uivec),
+	    err_code |= sendArgument(_kernel, 16, sizeof(uivec),
                                  (void*)&(C->num_cells_vec));
-	    err_code |= sendArgument(_kernel,
-                                 19,
-                                 sizeof(vec),
+	    err_code |= sendArgument(_kernel, 17, sizeof(vec),
                                  (void*)&(C->g));
-	    err_code |= sendArgument(_kernel,
-                                 20,
-                                 sizeof(cl_mem),
+	    err_code |= sendArgument(_kernel, 18, sizeof(cl_mem),
                                  (void*)&(_walls.at(i)));
         if(_is_delta) {
-            err_code |= sendArgument(_kernel,
-                                     21,
-                                     sizeof(cl_mem),
+            err_code |= sendArgument(_kernel, 19, sizeof(cl_mem),
                                      (void*)&(C->delta));
-            err_code |= sendArgument(_kernel,
-                                     22,
-                                     sizeof(cl_float),
+            err_code |= sendArgument(_kernel, 20, sizeof(cl_float),
                                      (void*)&(C->dt));
-            err_code |= sendArgument(_kernel,
-                                     23,
-                                     sizeof(cl_float),
+            err_code |= sendArgument(_kernel, 21, sizeof(cl_float),
                                      (void*)&(C->cs));
         }
 	    if(err_code != CL_SUCCESS) {
@@ -335,7 +283,7 @@ bool GhostParticles::setupOpenCL()
 	    S->addMessage(0, msg);
 	    return true;
 	}
-	//! Test if local work gorup size must be modified
+	// Test if the local work gorup size must be modified
 	size_t local_work_size=0;
 	err_code |= clGetKernelWorkGroupInfo(_kernel,
                                          device,
@@ -390,7 +338,7 @@ bool GhostParticles::setupOpenCL()
                            C->device,
                            _path,
                            "Boundary",
-                           args))
+                           options))
         return true;
     if(_program)clReleaseProgram(_program); _program=0;
 	return false;

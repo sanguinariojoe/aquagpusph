@@ -18,150 +18,122 @@
 
 // Artificial viscosity factor
 #ifndef __CLEARY__
-	#ifndef HAVE_3D
-		#define __CLEARY__ 8.f
-	#else
-		#define __CLEARY__ 15.f
-	#endif
+    #ifndef HAVE_3D
+        #define __CLEARY__ 8.f
+    #else
+        #define __CLEARY__ 15.f
+    #endif
 #endif
 
-// ------------------------------------------------------------------
-// Study if two particles can interact
-// ------------------------------------------------------------------
-if(iMove[i] <= 0){
-	i++;
-	continue;
+if(imove[j] <= 0){
+    j++;
+    continue;
 }
 
-dist = sep*h;                                             // Maximum interaction distance            [m]
-wPos = wallProjection(pos[i], wall);
-if(!isOnWallBounds(wPos, wall)){
-	i++;
-	continue;
+pos_w = wallProjection(pos[j], wall);
+if(!isOnWallBounds(pos_w, wall)){
+    j++;
+    continue;
 }
-pPos = 2.f*wPos - pos[i];
-r    = iPos - pPos;
-r1   = fast_length(r);                                      // Distance between particles              [m]
-if( r1 <= dist )
+const vec pos_j = 2.f * pos_w - pos[j];
+const vec r = pos_i - pos_j;
+const float q = fast_length(r) / h;
+if(q < sep)
 {
-	//---------------------------------------------------------------
-	//       calculate mirrored values of p,v
-	//---------------------------------------------------------------
-	#if __PRESS_MODEL__ == 0
-		// ASM (antisymmetric model)
-		pPress = -press[i];
-	#elif __PRESS_MODEL__ == 1
-		// SSM (symmetric model)
-		wDir   = pPos - pos[i];
-		pPress = press[i] + dot(wDir, grav)*rDens;
-	#elif __PRESS_MODEL__ == 2
-		// Takeda
-		#error Takeda not implemented yet!
-	#else
-		#error Unknow pressure extension model
-	#endif
+    //---------------------------------------------------------------
+    //       calculate mirrored values of p,v
+    //---------------------------------------------------------------
+    #if __PRESS_MODEL__ == 0
+        // ASM (antisymmetric model)
+        const float press_j = -press[j];
+    #elif __PRESS_MODEL__ == 1
+        // SSM (symmetric model)
+        dir = pos_j - pos[j];
+        const float press_j = press[j] + dot(dir, grav) * refd_i;
+    #elif __PRESS_MODEL__ == 2
+        // Takeda
+        #error Takeda not implemented yet!
+    #else
+        #error Unknow pressure extension model
+    #endif
 
-	pVn = dot(v[i], wall->n)*wall->n;
-	pVt = v[i] - pVn;
-	#if __NORMAL_U_MODEL__ == 0
-		// ASM (antisymmetric model)
-		pVn = 2.f*dot(wallVelocity(wPos, wall), wall->n)*wall->n - pVn;
-	#elif __NORMAL_U_MODEL__ == 1
-		// SSM (symmetric model)
-	#elif __NORMAL_U_MODEL__ == 2
-		// Takeda
-		#error Takeda not implemented yet!
-	#elif __NORMAL_U_MODEL__ == 3
-		// U0M (No velocity)
-		pVn = dot(wallVelocity(wPos, wall), wall->n)*wall->n;
-	#else
-		#error Unknow normal velocity extension model
-	#endif
-	#if __TANGENT_U_MODEL__ == 0
-		// ASM (antisymmetric model)
-		vec vW = wallVelocity(wPos, wall);
-		pVt  = 2.f*( vW - dot(vW, wall->n)*wall->n ) - pVt;
-	#elif __TANGENT_U_MODEL__ == 1
-		// SSM (symmetric model)
-	#elif __TANGENT_U_MODEL__ == 2
-		// Takeda
-		#error Takeda not implemented yet!
-	#elif __TANGENT_U_MODEL__ == 3
-		// U0M (No velocity)
-		vec vW = wallVelocity(wPos, wall);
-		pVt  = vW - dot(vW, wall->n)*wall->n;
-	#else
-		#error Unknow tangent velocity extension model
-	#endif
-	pV = pVn + pVt;
+    vec v_n = dot(v[j], wall->n) * wall->n;
+    vec v_t = v[j] - v_n;
+    #if __NORMAL_U_MODEL__ == 0
+        // ASM (antisymmetric model)
+        v_n = 2.f * dot(wallVelocity(pos_w, wall), wall->n) * wall->n - v_n;
+    #elif __NORMAL_U_MODEL__ == 1
+        // SSM (symmetric model)
+    #elif __NORMAL_U_MODEL__ == 2
+        // Takeda
+        #error Takeda not implemented yet!
+    #elif __NORMAL_U_MODEL__ == 3
+        // U0M (No velocity)
+        v_n = dot(wallVelocity(pos_w, wall), wall->n) * wall->n;
+    #else
+        #error Unknow normal velocity extension model
+    #endif
+    #if __TANGENT_U_MODEL__ == 0
+        // ASM (antisymmetric model)
+        const vec v_w = wallVelocity(pos_w, wall);
+        v_t = 2.f * (v_w - dot(v_w, wall->n) * wall->n) - v_t;
+    #elif __TANGENT_U_MODEL__ == 1
+        // SSM (symmetric model)
+    #elif __TANGENT_U_MODEL__ == 2
+        // Takeda
+        #error Takeda not implemented yet!
+    #elif __TANGENT_U_MODEL__ == 3
+        // U0M (No velocity)
+        const vec v_w = wallVelocity(pos_w, wall);
+        v_t = v_w - dot(v_w, wall->n) * wall->n;
+    #else
+        #error Unknow tangent velocity extension model
+    #endif
+    const vec v_j = v_n + v_t;
 
-	//---------------------------------------------------------------
-	//       calculate the kernel wab and the function fab
-	//---------------------------------------------------------------
-	#ifndef HAVE_3D
-		conw = 1.f/(h*h);
-		conf = 1.f/(h*h*h*h);
-	#else
-		conw = 1.f/(h*h*h);
-		conf = 1.f/(h*h*h*h*h);
-	#endif
-	pDens = dens[i];                                        // Density of neighbour particle           [kg/m3]
-	pMass = pmass[i];                                       // Mass of neighbour particle              [kg]
-	wab = kernelW(r1/h)*conw*pMass;
-	fab = kernelF(r1/h)*conf*pMass;
-	//---------------------------------------------------------------
-	//       calculate the pressure factor
-	//---------------------------------------------------------------
-	prfac = iPress/(iDens*iDens) + pPress/(pDens*pDens);
-	if(iMove[i]<0){	// Fix particles can't substract fluid particles
-		prfac = max(prfac, 0.f);
-	}
-	//---------------------------------------------------------------
-	//       calculate viscosity terms (Cleary's viscosity)
-	//---------------------------------------------------------------
-	dv   = iV - pV;                                         // Delta of velocity                       [m/s]
-	vdr  = dot(dv, r);
-	viscg = -__CLEARY__*iViscdyn*
-			vdr / (r1*r1 + 0.01f*h*h)
-			/(pDens*iDens);
-	#ifdef __FREE_SLIP__
-		if(iMove[i]<0)
-			viscg = 0.f;
-	#endif
-	//---------------------------------------------------------------
-	//       force computation
-	//---------------------------------------------------------------
-	_F_ -= r*fab*(prfac + viscg);                           // Particle force                          [m/s2]
-	//---------------------------------------------------------------
-	//       rate of change of density
-	//---------------------------------------------------------------
-	_DRDT_ += vdr*fab;                                      // Density rate                            [kg/m3/s]
-	//---------------------------------------------------------------
-	//       Density diffusion term (Cercos-Pita term)
-	//---------------------------------------------------------------
-	#ifdef __DELTA_SPH__
-		// Ferrari
-		/*
-		rdr = dot( r, r ) / (r1 + 0.01f*h);
-		drfac = (iPress - press[i]) - rDens*dot(grav,r);
-		_DRDT_F_ += iDelta / (cs*pDens)
-		            * ( drfac * rdr ) * fab;
-		*/
-		// Molteni
-		/*
-		rdr = dot( r, r ) / (r1*r1 + 0.01f*h*h);
-		drfac = (iPress - press[i]) - rDens*dot(grav,r);
-		_DRDT_F_ += 2.f*iDelta*h / (cs*pDens)
-		            * ( drfac * rdr ) * fab;
-		*/
-		// Cercos
-		rdr = dot( r, r ) / (r1*r1 + 0.01f*h*h);
-		drfac = (iPress - press[i]) - rDens*dot(grav,r);
-		_DRDT_F_ += iDelta*dt * iDens/(rDens*pDens)
-		            * ( drfac * rdr ) * fab;
-	#endif
-	//---------------------------------------------------------------
-	//       Shepard term
-	//---------------------------------------------------------------
-	_SHEPARD_ += wab/pDens;                                 // Kernel integral
+    //---------------------------------------------------------------
+    //       calculate the kernel wab and the function fab
+    //---------------------------------------------------------------
+    const float dens_j = dens[j];
+    const float mass_j = mass[j];
+    const float wab = kernelW(q) * conw * mass_j;
+    const float fab = kernelF(q) * conf * mass_j;
+    //---------------------------------------------------------------
+    //       calculate the pressure factor
+    //---------------------------------------------------------------
+    const float prfac = prfac_i + press_j / (dens_j * dens_j);
+    //---------------------------------------------------------------
+    //       calculate viscosity terms (Cleary's viscosity)
+    //---------------------------------------------------------------
+    const float vdr = dot(v_i - v_j, r);
+    #ifdef __FREE_SLIP__
+        const float viscg = 0.f;
+    #else
+        const float r2 = (q * q + 0.01f) * h * h;
+        const float viscg = -__CLEARY__ * viscdyn_i * vdr / (r2 * dens_i * dens_j);
+    #endif
+    //---------------------------------------------------------------
+    //       force computation
+    //---------------------------------------------------------------
+    _F_ -= r * fab * (prfac + viscg);
+    //---------------------------------------------------------------
+    //     rate of change of density
+    //---------------------------------------------------------------
+    _DRDT_ += vdr * fab;
+    //---------------------------------------------------------------
+    //       Density diffusion term
+    //---------------------------------------------------------------
+    #ifdef __DELTA_SPH__
+        const float drfac = (press_i - press_j) - refd_i * dot(grav, r);
+        // Ferrari
+        // _DRDT_F_ += delta_i * drfac * fab / (cs * dens_j);
+        // Molteni
+        // _DRDT_F_ += delta_i * h * drfac * fab / (cs * dens_j);
+        // Cercos
+        _DRDT_F_ += delta_i * dt * dens_i * drfac * fab / (refd_i * dens_j);
+    #endif
+    //---------------------------------------------------------------
+    //     Shepard term
+    //---------------------------------------------------------------
+    _SHEPARD_ += wab / dens_j;
 }
