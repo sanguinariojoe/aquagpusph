@@ -17,169 +17,197 @@
  */
 
 #ifdef HAVE_3D
-	typedef struct Wall
-	{
-		/// 1st Corner
-		vec p1;
-		/// 2nd Corner
-		vec p2;
-		/// 3rd Corner
-		vec p3;
-		/// 4th Corner
-		vec p4;
-		/// Normal to face
-		vec n;
-		/// 1st Corner velocity
-		vec v1;
-		/// 2nd Corner velocity
-		vec v2;
-		/// 3rd Corner velocity
-		vec v3;
-		/// 4th Corner velocity
-		vec v4;
-	} Wall;
+    // Define the required arguments
+    #define WALL_ARGS vec p1, vec p2, vec p3, vec p4, vec n, vec v1, vec v2, vec v3, vec v4
 
-	/** Compute point projected over wall
-	 * (useful to mirror the particle or
-	 * get if particle is in bounds).
-	 * @param pos Particle position.
-	 * @param wall Wall to reflect.
-	 * @return Reflection point.
-	 */
-	vec wallProjection(vec pos, __constant struct Wall* wall){
-		vec p = pos - wall->p1;
-		vec n = dot(p, wall->n)*wall->n;
-		return pos - n;
-	}
+    /** Compute the point projected over the wall (useful to mirror the
+     * particle or get if the particle is in the wall bounds).
+     * @param pos Particle position.
+     * @param p1 corner of the considered wall.
+     * @param n normal of the considered wall.
+     * @return Reflection point.
+     * @note Consider using the macro wallProjection() instead of this method
+     * directly.
+     */
+    vec _wallProjection(vec pos, vec p1, vec n){
+        vec p = pos - p1;
+        vec d = dot(p, n) * n;
+        return pos - d;
+    }
 
-	/** Get if point is into wall bounds.
-	 * @param pos Particle position.
-	 * @param wall Wall to reflect.
-	 * @return true if point is on wall bounds,
-	 * false otherwise.
-	 * @warning Point out of wall plane will
-	 * not analized.
-	 */
-	vec isOnWallBounds(vec pos, __constant struct Wall* wall){
-		// Test if point is in 1->2->3 triangle
-		float u = dot( (pos      - wall->p2), (wall->p1 - wall->p2) ) /
-		          dot( (wall->p1 - wall->p2), (wall->p1 - wall->p2) );
-		float v = dot( (pos      - wall->p2), (wall->p3 - wall->p2) ) /
-		          dot( (wall->p3 - wall->p2), (wall->p3 - wall->p2) );
-		if( (u+v >= 0.f) && (u+v <= 1.f) )
-			return true;
-		// Before test 1->3->4 triangle we
-		// must ensure that it is not a triangular
-		// wall.
-		float lv =  dot( (wall->p1 - wall->p4), (wall->p1 - wall->p4) );
-		if(!lv)
-			return false;
-		// Test if the point is in the 1->3->4 triangle
-		float u = dot( (pos      - wall->p4), (wall->p3 - wall->p4) ) /
-		          dot( (wall->p1 - wall->p4), (wall->p3 - wall->p4) );
-		float v = dot( (pos      - wall->p4), (wall->p1 - wall->p4) ) /
-		          lv;
-		if( (u+v >= 0.f) && (u+v <= 1.f) )
-			return true;
-		// Tes failed
-		return false;
-	}
+    /** @def wallProjection(pos)
+     * Compute the point projected over the wall (useful to mirror the particle
+     * or get if the particle is in the wall bounds).
+     */
+    #define wallProjection(pos) _wallProjection(pos, p1, n)
 
-	/** Compute wall point velocity
-	 * (useful to mirror the particle as ASM).
-	 * @param pos Wall point.
-	 * @param wall Wall to reflect.
-	 * @return Velocity at wall point.
-	 * @remarks Point into wall will not tested.
-	 * @note Phong approach will selected. To do it
-	 * we launch a ray from p1 to pos, getting the
-	 * point on opposite segment, interpolating value
-	 * into them. Then linear interpolation is
-	 * performed on initial ray launched.
-	 */
-	vec wallVelocity(vec pos, __constant struct Wall* wall){
-		// Find opposite segment point
-		vec d      = pos - wall->p1;
-		float ld1  = length(d);
-		vec d     /= ld;
-		float ld2  = dot(wall->p3 - pos, d);
-		vec p2     = pos + ld2*d;
-		// We may try to find the opposite point
-		// on segment 3->2, due to triangular
-		// face will accept it ever.
-		vec td     = wall->p2 - wall->p3;
-		vec vv     = wall->v2;
-		if(dot( td, d ) < 0.f)
-			// We fails, the point is in the
-			// segment 4->3.
-			td = wall->p4 - wall->p3;
-			vv = wall->v4;
-		// Compute distances over segment
-		float ltd  = length(td);
-		float lt   = dot( d, td )*(ld1 + ld2)/ltd;
-		// Interpolate value on segment
-		float f    = lt /ltd;
-		vv         = f*vv + (1.f - f)*wall->v3;
-		// Interpolate value on launched ray
-		f          = ld1 / (ld1+ld2);
-		return f*vv + (1.f - f)*wall->v1;
-	}
+    /** Get if a point is into the wall bounds.
+     * @param pos Particle position.
+     * @param p1 1st vertex of the wall.
+     * @param p2 2nd vertex of the wall.
+     * @param p3 3rd vertex of the wall.
+     * @param p4 4th vertex of the wall.
+     * @return true if point is on wall bounds, false otherwise.
+     * @warning The method is assuming that the point is already on the wall
+     * plane.
+     * @note Consider using the macro isOnWallBounds() instead of this method
+     * directly.
+     */
+    bool _isOnWallBounds(vec pos, vec p1, vec p2, vec p3, vec p4){
+        // Test if the point is in the 1->2->3 triangle
+        float u = dot((pos - p2), (p1 - p2)) / dot((p1 - p2), (p1 - p2));
+        float v = dot((pos - p2), (p3 - p2)) / dot((p3 - p2), (p3 - p2));
+        if((u + v >= 0.f) && (u + v <= 1.f))
+            return true;
+        // Before test the other triangle (1->3->4) we must assert that it is
+        // not a triangular wall.
+        const float lv =  dot((p1 - p4), (p1 - p4));
+        if(!lv)
+            return false;
+        // Test if the point is in the 1->3->4 triangle
+        u = dot((pos - p4), (p3 - p4)) / dot((p1 - p4), (p3 - p4));
+        v = dot((pos - p4), (p1 - p4)) / lv;
+        if((u + v >= 0.f) && (u + v <= 1.f))
+            return true;
+        // Tes failed
+        return false;
+    }
+
+    /** @def isOnWallBounds(pos)
+     * Get if a point is into the wall bounds.
+     */
+    #define isOnWallBounds(pos) _isOnWallBounds(pos, p1, p2, p3, p4)
+
+    /** Compute a wall point velocity.
+     * @param pos Wall point.
+     * @param p1 1st vertex of the wall.
+     * @param p2 2nd vertex of the wall.
+     * @param p3 3rd vertex of the wall.
+     * @param p4 4th vertex of the wall.
+     * @param v1 1st vertex velocity.
+     * @param v2 2nd vertex velocity.
+     * @param v3 3rd vertex velocity.
+     * @param v4 4th vertex velocity.
+     * @return Velocity at wall point.
+     * @remarks The method is assuming that the point is already on the wall
+     * plane.
+     * @note Phong approach will be applied. To do it we launch a ray from p1
+     * to pos, getting the point on the opposite edge and interpolating the
+     * value into it. Then a linear interpolation is performed aver the
+     * initially launched ray.
+     * @note Consider using the macro wallVelocity() instead of this method
+     * directly.
+     */
+    vec _wallVelocity(vec pos, vec p1, vec p2, vec p3, vec p4, vec n,
+                      vec v1, vec v2, vec v3, vec v4){
+        // Find the opposite edge where the point will be located
+        // ======================================================
+        vec d = pos - p1;
+        float ld1 = fast_length(d);
+        vec d /= ld1;
+        float ld2 = dot(p3 - pos, d);
+        vec p = pos + ld2 * d;
+        // We may try to find the opposite point on the edge 3->2, due to
+        // triangular faces will accept it ever.
+        vec td = p2 - p3;
+        vec vv = v2;
+        if(dot(td, p - p3) < 0.f)
+            // We failed because the point is on the edge 4->3.
+            td = p4 - p3;
+            vv = v4;
+        float ltd = length(td);
+        // Compute the point on the opposite edge
+        // ======================================
+        vec n_e = cross(td / ltd, n);
+        float ld = dot(n_e, p3 - pos) / dot(n_e, d);
+        p = pos + ld * d;
+        // Interpolate the value on the edge point
+        // =======================================
+        float lt = fast_length(p - p3);
+        float f = lt / ltd;
+        vv = f * vv + (1.f - f) * v3;
+        // Interpolate the value on the launched ray
+        // =========================================
+        f = ld1 / fast_length(p - p1);
+        return f * vv + (1.f - f) * v1;
+    }
+
+    /** @def wallVelocity(pos)
+     * Compute a wall point velocity..
+     */
+    #define wallVelocity(pos) _wallVelocity(pos, p1, p2, p3, p4, v1, v2, v3, v4)
+
 #else
-	typedef struct Wall
-	{
-		/// 1st Corner
-		vec p1;
-		/// 2nd Corner
-		vec p2;
-		/// Normal to face
-		vec n;
-		/// 1st Corner velocity
-		vec v1;
-		/// 2nd Corner velocity
-		vec v2;
-	} Wall;
+    // Define the required arguments
+    #define WALL_ARGS vec p1, vec p2, vec n, vec v1, vec v2
 
-	/** Compute point projected over wall
-	 * (useful to mirror the particle or
-	 * get if particle is in bounds).
-	 * @param pos Particle position.
-	 * @param wall Wall to reflect.
-	 * @return Reflection point.
-	 */
-	vec wallProjection(vec pos, __constant struct Wall* wall){
-		vec p = pos - wall->p1;
-		vec n = dot(p, wall->n)*wall->n;
-		return pos - n;
-	}
+    /** Compute the point projected over the wall (useful to mirror the
+     * particle or get if the particle is in the wall bounds).
+     * @param pos Particle position.
+     * @param p1 corner of the considered wall.
+     * @param n normal of the considered wall.
+     * @return Reflection point.
+     * @note Consider using the macro wallProjection() instead of this method
+     * directly.
+     */
+    vec _wallProjection(vec pos, vec p1, vec n){
+        vec p = pos - p1;
+        vec d = dot(p, n) * n;
+        return pos - d;
+    }
 
-	/** Get if point is into wall bounds.
-	 * @param pos Particle position.
-	 * @param wall Wall to reflect.
-	 * @return true if point is on wall bounds,
-	 * false otherwise.
-	 * @warning Point out of wall plane will
-	 * not analized.
-	 */
-	bool isOnWallBounds(vec pos, __constant struct Wall* wall){
-		vec p    = pos - wall->p1;
-		vec d    = wall->p2 - wall->p1;
-		float l2 = dot( p, d );
-		if( (l2 < 0.f) || (l2 > dot(d,d)) )
-			return false;
-		return true;
-	}
+    /** @def wallProjection(pos)
+     * Compute the point projected over the wall (useful to mirror the particle
+     * or get if the particle is in the wall bounds).
+     */
+    #define wallProjection(pos) _wallProjection(pos, p1, n)
 
-	/** Compute wall point velocity
-	 * (useful to mirror the particle as ASM).
-	 * @param pos Wall point.
-	 * @param wall Wall to reflect.
-	 * @return Velocity at wall point.
-	 * @warning Point into wall will not tested.
-	 */
-	vec wallVelocity(vec pos, __constant struct Wall* wall){
-		vec p   = pos - wall->p1;
-		vec d   = wall->p2 - wall->p1;
-		float f = length(p)/length(d);
-		return f*wall->v2 + (1.f - f)*wall->v1;
-	}
+    /** Get if a point is into the wall bounds.
+     * @param pos Particle position.
+     * @param p1 1st vertex of the wall.
+     * @param p2 2nd vertex of the wall.
+     * @return true if point is on wall bounds, false otherwise.
+     * @warning The method is assuming that the point is already on the wall
+     * plane.
+     * @note Consider using the macro isOnWallBounds() instead of this method
+     * directly.
+     */
+    bool _isOnWallBounds(vec pos, vec p1, vec p2){
+        vec p = pos - p1;
+        vec d = p2 - p1;
+        float l2 = dot(p, d);
+        if((l2 < 0.f) || (l2 > dot(d,d)))
+            return false;
+        return true;
+    }
+
+    /** @def isOnWallBounds(pos)
+     * Get if a point is into the wall bounds.
+     */
+    #define isOnWallBounds(pos) _isOnWallBounds(pos, p1, p2)
+
+    /** Compute a wall point velocity.
+     * @param pos Wall point.
+     * @param p1 1st vertex of the wall.
+     * @param p2 2nd vertex of the wall.
+     * @param v1 1st vertex velocity.
+     * @param v2 2nd vertex velocity.
+     * @return Velocity at wall point.
+     * @remarks The method is assuming that the point is already on the wall
+     * plane.
+     * @note Consider using the macro wallVelocity() instead of this method
+     * directly.
+     */
+    vec _wallVelocity(vec pos, vec p1, vec p2, vec v1, vec v2){
+        vec p = pos - p1;
+        vec d = p2 - p1;
+        float f = length(p) / length(d);
+        return f * v2 + (1.f - f) * v1;
+    }
+
+    /** @def wallVelocity(pos)
+     * Compute a wall point velocity..
+     */
+    #define wallVelocity(pos) _wallVelocity(pos, p1, p2, v1, v2)
+
 #endif

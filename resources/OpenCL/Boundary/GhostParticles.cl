@@ -87,7 +87,6 @@
  * @param N Number of particles & sensors.
  * @param lvec Number of cells at each direction.
  * @param grav Gravity acceleration.
- * @param wall Wall to compute.
  */
 __kernel void Boundary(__global int* ifluid, __global int* imove,
                        __global vec* pos, __global vec* v,
@@ -101,9 +100,9 @@ __kernel void Boundary(__global int* ifluid, __global int* imove,
                        // Simulation data
                        uint N, uivec lvec, vec grav,
                        // Wall specific data
-                       __constant struct Wall* wall
+                       WALL_ARGS
+                       // Continuity equation diffusive term data
                        #ifdef __DELTA_SPH__
-                           // Continuity equation diffusive term data
                            , __constant float* delta
                            , float dt, float cs
                        #endif
@@ -123,7 +122,7 @@ __kernel void Boundary(__global int* ifluid, __global int* imove,
     // Ghost particles must be computed only for moving particles
     // In order to compute ghost particles wall must be nearer than kernel total height
     const vec pos_i = pos[i];
-    vec pos_w = wallProjection(pos_i, wall);
+    vec pos_w = wallProjection(pos_i);
     vec dir = pos_w - pos_i;
     if(dot(dir, dir) / (h * h) >= sep * sep){
         return;
@@ -176,9 +175,9 @@ __kernel void Boundary(__global int* ifluid, __global int* imove,
     // =============================
     {
         uint j;
-        // Home cell, starting from the next particle
+        // Home cell, starting from the self particle
         // ==========================================
-        j = i + 1;
+        j = i;
         while((j < N) && (icell[j] == c_i) ) {
             // Sensor specific computation
             #include "GhostParticles.hcl"

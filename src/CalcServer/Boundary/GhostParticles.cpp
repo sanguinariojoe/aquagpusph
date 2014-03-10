@@ -63,21 +63,12 @@ GhostParticles::GhostParticles()
 	if(setupOpenCL()) {
 	    exit(EXIT_FAILURE);
 	}
-	if(createWalls()) {
-	    exit(EXIT_FAILURE);
-	}
 	S->addMessageF(1, "GhostParticles ready to work!\n");
 }
 
 GhostParticles::~GhostParticles()
 {
 	CalcServer *C = CalcServer::singleton();
-	unsigned int i;
-	for(i=0;i<_walls.size();i++){
-	    if(_walls.at(i))clReleaseMemObject(_walls.at(i)); _walls.at(i)=0;
-	    C->allocated_mem -= sizeof(InputOutput::ProblemSetup::sphGhostParticles::Wall);
-	}
-	_walls.clear();
 	if(_kernel)clReleaseKernel(_kernel); _kernel=0;
 	if(_program)clReleaseProgram(_program); _program=0;
 	if(_path) delete[] _path; _path=0;
@@ -94,14 +85,6 @@ bool GhostParticles::execute()
 	// Loop over walls
 	unsigned int i;
 	for(i=0;i<P->ghost_particles.walls.size();i++){
-	    // Transfer data
-	    err_code = C->sendData(_walls.at(i),
-                               P->ghost_particles.walls.at(i),
-	                           sizeof(InputOutput::ProblemSetup::sphGhostParticles::Wall));
-	    if(err_code != CL_SUCCESS) {
-	        S->addMessageF(3, "Failure sending the walls data to the server.\n");
-	        return true;
-	    }
 	    // Send constant variables to the server
 	    err_code |= sendArgument(_kernel, 0, sizeof(cl_mem),
                                  (void*)&(C->ifluid));
@@ -139,14 +122,45 @@ bool GhostParticles::execute()
                                  (void*)&(C->num_cells_vec));
 	    err_code |= sendArgument(_kernel, 17, sizeof(vec),
                                  (void*)&(C->g));
-	    err_code |= sendArgument(_kernel, 18, sizeof(cl_mem),
-                                 (void*)&(_walls.at(i)));
+        #ifdef HAVE_3D
+            #define WALL_ARGS 9
+            err_code |= sendArgument(_kernel, 18, sizeof(vec),
+                (void*)&(P->ghost_particles.walls.at(i)->p1));
+            err_code |= sendArgument(_kernel, 19, sizeof(vec),
+                (void*)&(P->ghost_particles.walls.at(i)->p2));
+            err_code |= sendArgument(_kernel, 20, sizeof(vec),
+                (void*)&(P->ghost_particles.walls.at(i)->p3));
+            err_code |= sendArgument(_kernel, 21, sizeof(vec),
+                (void*)&(P->ghost_particles.walls.at(i)->p4));
+            err_code |= sendArgument(_kernel, 22, sizeof(vec),
+                (void*)&(P->ghost_particles.walls.at(i)->n));
+            err_code |= sendArgument(_kernel, 23, sizeof(vec),
+                (void*)&(P->ghost_particles.walls.at(i)->v1));
+            err_code |= sendArgument(_kernel, 24, sizeof(vec),
+                (void*)&(P->ghost_particles.walls.at(i)->v2));
+            err_code |= sendArgument(_kernel, 25, sizeof(vec),
+                (void*)&(P->ghost_particles.walls.at(i)->v3));
+            err_code |= sendArgument(_kernel, 26, sizeof(vec),
+                (void*)&(P->ghost_particles.walls.at(i)->v4));
+        #else
+            #define WALL_ARGS 5
+            err_code |= sendArgument(_kernel, 18, sizeof(vec),
+                (void*)&(P->ghost_particles.walls.at(i)->p1));
+            err_code |= sendArgument(_kernel, 19, sizeof(vec),
+                (void*)&(P->ghost_particles.walls.at(i)->p2));
+            err_code |= sendArgument(_kernel, 20, sizeof(vec),
+                (void*)&(P->ghost_particles.walls.at(i)->n));
+            err_code |= sendArgument(_kernel, 21, sizeof(vec),
+                (void*)&(P->ghost_particles.walls.at(i)->v1));
+            err_code |= sendArgument(_kernel, 22, sizeof(vec),
+                (void*)&(P->ghost_particles.walls.at(i)->v2));
+        #endif // HAVE_3D
         if(_is_delta) {
-            err_code |= sendArgument(_kernel, 19, sizeof(cl_mem),
+            err_code |= sendArgument(_kernel, 18 + WALL_ARGS, sizeof(cl_mem),
                                      (void*)&(C->delta));
-            err_code |= sendArgument(_kernel, 20, sizeof(cl_float),
+            err_code |= sendArgument(_kernel, 19 + WALL_ARGS, sizeof(cl_float),
                                      (void*)&(C->dt));
-            err_code |= sendArgument(_kernel, 21, sizeof(cl_float),
+            err_code |= sendArgument(_kernel, 20 + WALL_ARGS, sizeof(cl_float),
                                      (void*)&(C->cs));
         }
 	    if(err_code != CL_SUCCESS) {
@@ -341,37 +355,6 @@ bool GhostParticles::setupOpenCL()
                            options))
         return true;
     if(_program)clReleaseProgram(_program); _program=0;
-	return false;
-}
-
-bool GhostParticles::createWalls()
-{
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
-	CalcServer *C = CalcServer::singleton();
-	int err_code;
-	unsigned int i;
-	for(i=0;i<P->ghost_particles.walls.size();i++){
-	    cl_mem wall = clCreateBuffer(C->context,
-                                     CL_MEM_READ_ONLY,
-	                                 sizeof(InputOutput::ProblemSetup::sphGhostParticles::Wall),
-	                                 NULL,
-	                                 &err_code);
-	    if(err_code != CL_SUCCESS) {
-	        S->addMessageF(3, "Allocation failure.\n");
-            S->printOpenCLError(err_code);
-	        return true;
-	    }
-	    C->allocated_mem += sizeof(InputOutput::ProblemSetup::sphGhostParticles::Wall);
-	    err_code = C->sendData(wall,
-                               P->ghost_particles.walls.at(i),
-	                           sizeof(InputOutput::ProblemSetup::sphGhostParticles::Wall));
-	    if(err_code != CL_SUCCESS) {
-	        S->addMessageF(3, "Can't send walls data to server.\n");
-	        return true;
-	    }
-	    _walls.push_back(wall);
-	}
 	return false;
 }
 

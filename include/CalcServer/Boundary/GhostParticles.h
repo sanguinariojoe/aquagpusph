@@ -64,11 +64,6 @@ private:
 	 */
 	bool setupOpenCL();
 
-	/** Create walls OpenCL instances.
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool createWalls();
-
 	/// OpenCL script path
 	char* _path;
 
@@ -80,8 +75,6 @@ private:
 	size_t _global_work_size;
 	/// Local work size (default value = 256)
 	size_t _local_work_size;
-	/// Array of walls with all parameters
-	std::deque<cl_mem> _walls;
 	/// true if \f$delta\f$-SPH (cont. eq. diffusive term) must be applied.
 	bool _is_delta;
 };
