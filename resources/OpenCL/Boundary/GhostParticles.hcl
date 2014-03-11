@@ -57,11 +57,11 @@ if(q < sep)
         #error Unknow pressure extension model
     #endif
 
-    vec v_n = dot(v[j], n) * n;
+    vec v_n = dot(v[j], n_w) * n_w;
     vec v_t = v[j] - v_n;
     #if __NORMAL_U_MODEL__ == 0
         // ASM (antisymmetric model)
-        v_n = 2.f * dot(wallVelocity(pos_w), n) * n - v_n;
+        v_n = 2.f * dot(wallVelocity(pos_w), n_w) * n_w - v_n;
     #elif __NORMAL_U_MODEL__ == 1
         // SSM (symmetric model)
     #elif __NORMAL_U_MODEL__ == 2
@@ -69,14 +69,14 @@ if(q < sep)
         #error Takeda not implemented yet!
     #elif __NORMAL_U_MODEL__ == 3
         // U0M (No velocity)
-        v_n = dot(wallVelocity(pos_w), n) * n;
+        v_n = dot(wallVelocity(pos_w), n_w) * n_w;
     #else
         #error Unknow normal velocity extension model
     #endif
     #if __TANGENT_U_MODEL__ == 0
         // ASM (antisymmetric model)
         const vec v_w = wallVelocity(pos_w);
-        v_t = 2.f * (v_w - dot(v_w, n) * n) - v_t;
+        v_t = 2.f * (v_w - dot(v_w, n_w) * n_w) - v_t;
     #elif __TANGENT_U_MODEL__ == 1
         // SSM (symmetric model)
     #elif __TANGENT_U_MODEL__ == 2
@@ -85,7 +85,7 @@ if(q < sep)
     #elif __TANGENT_U_MODEL__ == 3
         // U0M (No velocity)
         const vec v_w = wallVelocity(pos_w);
-        v_t = v_w - dot(v_w, n) * n;
+        v_t = v_w - dot(v_w, n_w) * n_w;
     #else
         #error Unknow tangent velocity extension model
     #endif

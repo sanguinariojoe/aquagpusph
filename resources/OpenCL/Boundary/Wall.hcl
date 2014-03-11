@@ -17,9 +17,6 @@
  */
 
 #ifdef HAVE_3D
-    // Define the required arguments
-    #define WALL_ARGS vec p1, vec p2, vec p3, vec p4, vec n, vec v1, vec v2, vec v3, vec v4
-
     /** Compute the point projected over the wall (useful to mirror the
      * particle or get if the particle is in the wall bounds).
      * @param pos Particle position.
@@ -39,7 +36,7 @@
      * Compute the point projected over the wall (useful to mirror the particle
      * or get if the particle is in the wall bounds).
      */
-    #define wallProjection(pos) _wallProjection(pos, p1, n)
+    #define wallProjection(pos) _wallProjection(pos, p1_w, n_w)
 
     /** Get if a point is into the wall bounds.
      * @param pos Particle position.
@@ -76,7 +73,7 @@
     /** @def isOnWallBounds(pos)
      * Get if a point is into the wall bounds.
      */
-    #define isOnWallBounds(pos) _isOnWallBounds(pos, p1, p2, p3, p4)
+    #define isOnWallBounds(pos) _isOnWallBounds(pos, p1_w, p2_w, p3_w, p4_w)
 
     /** Compute a wall point velocity.
      * @param pos Wall point.
@@ -135,12 +132,9 @@
     /** @def wallVelocity(pos)
      * Compute a wall point velocity..
      */
-    #define wallVelocity(pos) _wallVelocity(pos, p1, p2, p3, p4, v1, v2, v3, v4)
+    #define wallVelocity(pos) _wallVelocity(pos, p1_w, p2_w, p3_w, p4_w, v1_w, v2_w, v3_w, v4_w)
 
 #else
-    // Define the required arguments
-    #define WALL_ARGS vec p1, vec p2, vec n, vec v1, vec v2
-
     /** Compute the point projected over the wall (useful to mirror the
      * particle or get if the particle is in the wall bounds).
      * @param pos Particle position.
@@ -151,8 +145,8 @@
      * directly.
      */
     vec _wallProjection(vec pos, vec p1, vec n){
-        vec p = pos - p1;
-        vec d = dot(p, n) * n;
+        const vec p = pos - p1;
+        const vec d = dot(p, n) * n;
         return pos - d;
     }
 
@@ -160,7 +154,7 @@
      * Compute the point projected over the wall (useful to mirror the particle
      * or get if the particle is in the wall bounds).
      */
-    #define wallProjection(pos) _wallProjection(pos, p1, n)
+    #define wallProjection(pos) _wallProjection(pos, p1_w, n_w)
 
     /** Get if a point is into the wall bounds.
      * @param pos Particle position.
@@ -184,7 +178,7 @@
     /** @def isOnWallBounds(pos)
      * Get if a point is into the wall bounds.
      */
-    #define isOnWallBounds(pos) _isOnWallBounds(pos, p1, p2)
+    #define isOnWallBounds(pos) _isOnWallBounds(pos, p1_w, p2_w)
 
     /** Compute a wall point velocity.
      * @param pos Wall point.
@@ -208,6 +202,6 @@
     /** @def wallVelocity(pos)
      * Compute a wall point velocity..
      */
-    #define wallVelocity(pos) _wallVelocity(pos, p1, p2, v1, v2)
+    #define wallVelocity(pos) _wallVelocity(pos, p1_w, p2_w, v1_w, v2_w)
 
 #endif

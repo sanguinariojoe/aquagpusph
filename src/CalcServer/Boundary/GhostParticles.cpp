@@ -238,12 +238,12 @@ bool GhostParticles::setupOpenCL()
 	char args[256];
 	strcpy(args, "");
 	sprintf(args,
-            "-D__PRESS_MODEL__=%u -D__NORMAL_U_MODEL__=%u -D__TANGENT_U_MODEL__=%u ",
+            "-D__PRESS_MODEL__=%u -D__NORMAL_U_MODEL__=%u -D__TANGENT_U_MODEL__=%u",
 	        P->ghost_particles.p_extension,
 	        P->ghost_particles.vn_extension,
 	        P->ghost_particles.vt_extension);
 	if(_is_delta)
-        strcat(args, "-D__DELTA_SPH__");
+        strcat(args, " -D__DELTA_SPH__");
 	CalcServer *C = CalcServer::singleton();
 	char msg[1024];
 	cl_int err_code;
@@ -332,7 +332,6 @@ bool GhostParticles::setupOpenCL()
 	                                + sizeof(cl_float)
 	                                + sizeof(cl_float));
 
-    char options[256]; strcpy(options, "");
 	if(local_mem < required_local_mem){
 		S->addMessageF(2, "Not enough local memory for boundary.\n");
 	    sprintf(msg, "\tNeeds %lu bytes, but only %lu bytes are available.\n",
@@ -341,10 +340,8 @@ bool GhostParticles::setupOpenCL()
 	    S->addMessage(0, "\tLocal memory usage will be avoided therefore.\n");
 	}
 	else{
-        sprintf(options, "-DLOCAL_MEM_SIZE=%lu", _local_work_size);
+        sprintf(args, "%s -DLOCAL_MEM_SIZE=%lu", args, _local_work_size);
 	}
-	if(_is_delta)
-        strcat(options, " -D__DELTA_SPH__");
     if(_kernel)clReleaseKernel(_kernel); _kernel=0;
     if(!loadKernelFromFile(&_kernel,
                            &_program,
@@ -352,7 +349,7 @@ bool GhostParticles::setupOpenCL()
                            C->device,
                            _path,
                            "Boundary",
-                           options))
+                           args))
         return true;
     if(_program)clReleaseProgram(_program); _program=0;
 	return false;

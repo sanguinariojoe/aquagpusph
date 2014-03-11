@@ -100,7 +100,12 @@ __kernel void Boundary(__global int* ifluid, __global int* imove,
                        // Simulation data
                        uint N, uivec lvec, vec grav,
                        // Wall specific data
-                       WALL_ARGS
+                       #ifdef HAVE_3D
+                           vec p1_w, vec p2_w, vec p3_w, vec p4_w, vec n_w,
+                           vec v1_w, vec v2_w, vec v3_w, vec v4_w
+                       #else
+                           vec p1_w, vec p2_w, vec n_w, vec v1_w, vec v2_w
+                       #endif
                        // Continuity equation diffusive term data
                        #ifdef __DELTA_SPH__
                            , __constant float* delta
