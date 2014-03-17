@@ -91,7 +91,7 @@ Authors:
         Renormalization can result in some instabilities. On the other hand
         when DeLeffe boundary condition is applied the formulation requires it.
         -->
-        <Option name="Shepard" value="Force" />
+        <Option name="Shepard" value="None" />
         <!-- Domain bounds. Optionally you can add domain bounds in order to
         destroy the particles going out of it. If you don't add this option the
         particles can go far enough to crash the application.
