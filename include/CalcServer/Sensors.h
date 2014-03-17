@@ -75,13 +75,18 @@ private:
 	/// Last time when a file was printed
 	float _output_time;
 
+    /// Device stored pressure variance
+    cl_mem _dev_dens_var;
+
 	/// Positions
 	vec *_pos;
-	/// Pressures
+	/// Pressure
 	cl_float *_press;
-	/// Densities
+	/// Density
 	cl_float *_dens;
-	/// Shepard terms
+	/// Pressure variance
+	cl_float *_dens_var;
+	/// Shepard term
 	cl_float *_sum_W;
 
 	/// OpenCL program

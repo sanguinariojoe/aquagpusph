@@ -17,6 +17,7 @@
  */
 
 #include <deque>
+#include <math.h>
 
 #include <ProblemSetup.h>
 #include <TimeManager.h>
@@ -37,12 +38,14 @@ Sensors::Sensors()
 	, _path(0)
 	, _output(0)
 	, _output_time(0.f)
-	, _pos(0)
-	, _press(0)
-	, _dens(0)
-	, _sum_W(0)
-	, _program(0)
-	, _kernel(0)
+	, _dev_dens_var(NULL)
+	, _pos(NULL)
+	, _press(NULL)
+	, _dens(NULL)
+	, _dens_var(NULL)
+	, _sum_W(NULL)
+	, _program(NULL)
+	, _kernel(NULL)
 	, _global_work_size(0)
 	, _local_work_size(0)
 {
@@ -70,8 +73,9 @@ Sensors::Sensors()
 	_pos = new vec[_n];
 	_press = new float[_n];
 	_dens = new float[_n];
+	_dens_var = new float[_n];
 	_sum_W = new float[_n];
-	if((!_pos) || (!_press) || (!_dens) || (!_sum_W)){
+	if((!_pos) || (!_press) || (!_dens_var) || (!_dens) || (!_sum_W)){
 	    S->addMessageF(3, "Failure allocating memory for the output variables.\n");
 	    exit(EXIT_FAILURE);
 	}
@@ -94,8 +98,10 @@ Sensors::~Sensors()
 	    return;
 	if(_output)fclose(_output); _output=0;
 	if(_path)delete[] _path; _path=0;
-	if(_press)delete[] _press; _press=0;
+    if(_dev_dens_var) clReleaseMemObject(_dev_dens_var); _dev_dens_var=NULL;
+    if(_press)delete[] _press; _press=0;
 	if(_dens)delete[] _dens; _dens=0;
+	if(_dens_var)delete[] _dens_var; _dens_var=0;
 	if(_sum_W)delete[] _sum_W; _sum_W=0;
 	if(_kernel)clReleaseKernel(_kernel); _kernel=0;
 	if(_program)clReleaseProgram(_program); _program=0;
@@ -110,57 +116,35 @@ bool Sensors::execute()
 	    return false;
 
 	unsigned int i0 = C->N - _n;
-	err_code |= sendArgument(_kernel,
-                             0,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 0, sizeof(cl_mem),
                              (void*)&(C->f));
-	err_code |= sendArgument(_kernel,
-                             1,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 1, sizeof(cl_mem),
                              (void*)&(C->drdt));
-	err_code |= sendArgument(_kernel,
-                             2,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 2, sizeof(cl_mem),
+                             (void*)&(C->drdt_F));
+	err_code |= sendArgument(_kernel, 3, sizeof(cl_mem),
                              (void*)&(C->press));
-	err_code |= sendArgument(_kernel,
-                             3,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 4, sizeof(cl_mem),
                              (void*)&(C->pressin));
-	err_code |= sendArgument(_kernel,
-                             4,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 5, sizeof(cl_mem),
                              (void*)&(C->dens));
-	err_code |= sendArgument(_kernel,
-                             5,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 6, sizeof(cl_mem),
                              (void*)&(C->densin));
-	err_code |= sendArgument(_kernel,
-                             6,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 7, sizeof(cl_mem),
+                             (void*)&(_dev_dens_var));
+	err_code |= sendArgument(_kernel, 8, sizeof(cl_mem),
                              (void*)&(C->refd));
-	err_code |= sendArgument(_kernel,
-                             7,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 9, sizeof(cl_mem),
                              (void*)&(C->ifluid));
-	err_code |= sendArgument(_kernel,
-                             8,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 10, sizeof(cl_mem),
                              (void*)&(C->gamma));
-	err_code |= sendArgument(_kernel,
-                             9,
-                             sizeof(cl_mem),
+	err_code |= sendArgument(_kernel, 11, sizeof(cl_mem),
                              (void*)&(C->shepard));
-	err_code |= sendArgument(_kernel,
-                             10,
-                             sizeof(cl_float),
+	err_code |= sendArgument(_kernel, 12, sizeof(cl_float),
                              (void*)&(C->cs));
-	err_code |= sendArgument(_kernel,
-                             11,
-                             sizeof(cl_uint),
+	err_code |= sendArgument(_kernel, 13, sizeof(cl_uint),
                              (void*)&(i0));
-	err_code |= sendArgument(_kernel,
-                             12,
-                             sizeof(cl_uint),
+	err_code |= sendArgument(_kernel, 14, sizeof(cl_uint),
                              (void*)&(_n));
 	if(err_code)
 	    return true;
@@ -169,24 +153,12 @@ bool Sensors::execute()
 	    cl_event event;
 	    cl_ulong end, start;
 	    profileTime(0.f);
-	    err_code = clEnqueueNDRangeKernel(C->command_queue,
-                                          _kernel,
-                                          1,
-                                          NULL,
-                                          &_global_work_size,
-                                          NULL,
-                                          0,
-                                          NULL,
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, _kernel, 1, NULL,
+                                          &_global_work_size, NULL, 0, NULL,
                                           &event);
 	#else
-	    err_code = clEnqueueNDRangeKernel(C->command_queue,
-                                          _kernel,
-                                          1,
-                                          NULL,
-                                          &_global_work_size,
-                                          NULL,
-                                          0,
-                                          NULL,
+	    err_code = clEnqueueNDRangeKernel(C->command_queue, _kernel, 1, NULL,
+                                          &_global_work_size, NULL, 0, NULL,
                                           NULL);
 	#endif
 	if(err_code != CL_SUCCESS) {
@@ -269,6 +241,10 @@ bool Sensors::printOutput()
                            C->dens,
                            _n*sizeof(cl_float),
                            i0*sizeof(cl_float));
+	err_code |= C->getData((void*)_dens_var,
+                           _dev_dens_var,
+                           _n*sizeof(cl_float),
+                           0);
 	err_code |= C->getData((void*)_sum_W,
                            C->shepard,
                            _n*sizeof(cl_float),
@@ -281,20 +257,22 @@ bool Sensors::printOutput()
 	for(i=0;i<_n;i++){
 	    #ifndef HAVE_3D
 	        fprintf(_output,
-                    "\t%g\t%g\t%g\t%g\t%g",
+                    "\t%g\t%g\t%g\t%g\t%g\t%g",
                     _pos[i].x,
                     _pos[i].y,
                     _press[i],
                     _dens[i],
+                    sqrt(fabs(_dens_var[i])),
                     _sum_W[i]);
 	    #else
 	        fprintf(_output,
-                    "\t%g\t%g\t%g\t%g\t%g\t%g",
+                    "\t%g\t%g\t%g\t%g\t%g\t%g\t%g",
                     _pos[i].x,
                     _pos[i].y,
                     _pos[i].z,
                     _press[i],
                     _dens[i],
+                    sqrt(fabs(_dens_var[i])),
                     _sum_W[i]);
 	    #endif
 	}
@@ -305,9 +283,23 @@ bool Sensors::printOutput()
 
 bool Sensors::setupOpenCL()
 {
+    char msg[256];
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
 	int err_code = 0;
+
+    _dev_dens_var = C->allocMemory(_n * sizeof(cl_float));
+    if(!_dev_dens_var) {
+        sprintf(msg,
+                "Fail allocating memory for pressure variances (%u bytes).\n",
+                (unsigned int)(_n * sizeof(cl_float)));
+        S->addMessageF(3, msg);
+        return true;
+    }
+    sprintf(msg, "\tAllocated memory = %u bytes\n",
+            (unsigned int)C->allocated_mem);
+    S->addMessage(1, msg);
+
 	if(!loadKernelFromFile(&_kernel,
                            &_program,
                            C->context,
@@ -435,9 +427,13 @@ bool Sensors::initOutput(){
 	fprintf(_output,"# Time");
 	for(i=0;i<_n;i++){
 	    #ifndef HAVE_3D
-	        fprintf(_output,"\ts%u.X\ts%u.Y\ts%u.press\ts%u.dens\ts%u.sumW", i,i,i,i,i);
+	        fprintf(_output,
+                    "\ts%u.X\ts%u.Y\ts%u.press\ts%u.dens\ts%u.stdev\ts%u.sumW",
+                    i,i,i,i,i,i);
 	    #else
-	        fprintf(_output,"\ts%u.X\ts%u.Y\ts%u.Z\ts%u.press\ts%u.dens\ts%u.sumW", i,i,i,i,i,i);
+	        fprintf(_output,
+                    "\ts%u.X\ts%u.Y\ts%u.Z\ts%u.press\ts%u.dens\ts%u.stdev\ts%u.sumW",
+                    i,i,i,i,i,i,i);
 	    #endif
 	}
 
@@ -445,9 +441,9 @@ bool Sensors::initOutput(){
 	fprintf(_output,"#  [s]");
 	for(i=0;i<_n;i++){
 	    #ifndef HAVE_3D
-	        fprintf(_output,"\t  [m]\t  [m]\t   [Pa/m]\t [kg/m3]\t      []");
+	        fprintf(_output,"\t  [m]\t  [m]\t   [Pa/m]\t [kg/m3]\t [kg/m3]\t      []");
 	    #else
-	        fprintf(_output,"\t  [m]\t  [m]\t  [m]\t   [Pa/m]\t [kg/m3]\t      []");
+	        fprintf(_output,"\t  [m]\t  [m]\t  [m]\t   [Pa/m]\t [Pa/m]^2\t [kg/m3]\t      []");
 	    #endif
 	}
 	fprintf(_output,"\n#\n");
