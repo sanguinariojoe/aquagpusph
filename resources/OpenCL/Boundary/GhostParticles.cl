@@ -243,11 +243,9 @@ __kernel void Boundary(__global int* ifluid, __global int* imove,
 
     #ifdef LOCAL_MEM_SIZE
         f[i] = _F_;
-        drdt[i] = _DRDT_ + _DRDT_F_;
+        drdt[i] = _DRDT_;
         drdt_F[i] = _DRDT_F_;
         shepard[i] = _SHEPARD_;
-    #else
-        drdt[i] += _DRDT_F_;
     #endif
 
     // ---- A ---- Your code here ---- A ----

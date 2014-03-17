@@ -82,6 +82,8 @@ __kernel void ClampVel(_g int* imove, _g vec* v, _g vec* f, _g vec* fin,
  * @param dens Density of particles.
  * @param mass Mass of particles.
  * @param drdt Density evolution of particles.
+ * @param drdt_F Density evolution of the particles due to the numerical
+ * diffusive term.
  * @param posin Position of particles.
  * @param vin Velocity of particles.
  * @param fin Forces over particles.
@@ -95,9 +97,9 @@ __kernel void ClampVel(_g int* imove, _g vec* v, _g vec* f, _g vec* fin,
  */
 __kernel void Corrector(_g int* imove, _g vec* pos, _g vec* v, _g vec* f,
                         _g float* dens, _g float* mass, _g float* drdt,
-                        _g vec* posin, _g vec* vin, _g vec* fin,
-                        _g float* densin, _g float* massin, _g float* drdtin,
-                        unsigned int N, float t, float dt)
+                        _g float* drdt_F, _g vec* posin, _g vec* vin,
+                        _g vec* fin, _g float* densin, _g float* massin,
+                        _g float* drdtin, unsigned int N, float t, float dt)
 {
 	// find position in global arrays
 	unsigned int i = get_global_id(0);
@@ -117,23 +119,23 @@ __kernel void Corrector(_g int* imove, _g vec* pos, _g vec* v, _g vec* f,
 	HDT = 0.5f*DT;
 
 	// Corrector step for the fluid
-	v[i]      = v[i] + HDT*(f[i] - fin[i]);
+	v[i] = v[i] + HDT*(f[i] - fin[i]);
 	// mass[i]   = mass[i] * (1.f +  hdt*(drdt[i] - drdtin[i]) / dens[i]);
 	#if __BOUNDARY__ == 1
 		// Continuity equation must be solved for fixed particles
-		dens[i]   = dens[i] + 0.5f*dt*(drdt[i] - drdtin[i]);
+		dens[i] = dens[i] + 0.5f*dt*(drdt[i] + drdt_F[i] - drdtin[i]);
 	#else
-		dens[i]   = dens[i] + HDT*(drdt[i] - drdtin[i]);
+		dens[i] = dens[i] + HDT*(drdt[i] + drdt_F[i] - drdtin[i]);
 	#endif
 	/* Calculate initial positions, mass and thermal energy
 	 * for the next step.
 	 */
-	posin[i]  = pos[i];
-	vin[i]    = v[i];
+	posin[i] = pos[i];
+	vin[i] = v[i];
 	massin[i] = mass[i];
 	densin[i] = dens[i];
-	fin[i]    = f[i];
-	drdtin[i] = drdt[i];
+	fin[i] = f[i];
+	drdtin[i] = drdt[i] + drdt_F[i];
 
 	// ---- A ---- Your code here ---- A ----
 	// ---- | ------------------------ | ----
