@@ -31,14 +31,6 @@ Authors:
 		type="Maximum": Maximum value found at this position will be chosen
 		-->
 		<Sensor x="-0.45" y="0.09300" />
-		<Sensor x="-0.45" y="0.09275" />
-		<Sensor x="-0.45" y="0.09250" />
-		<Sensor x="-0.45" y="0.09225" />
-		<Sensor x="-0.45" y="0.09200" />
-		<Sensor x="-0.45" y="0.09325" />
-		<Sensor x="-0.45" y="0.09350" />
-		<Sensor x="-0.45" y="0.09375" />
-		<Sensor x="-0.45" y="0.09400" />
 	</Sensors>
 </sphInput>
 
