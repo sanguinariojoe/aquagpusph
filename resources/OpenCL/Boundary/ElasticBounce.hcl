@@ -31,14 +31,12 @@ const vec v_j = v[j];
 // ------------------------------------------------------------------
 const vec r  = pos_i - pos[j];
 float r0 = dot(r, n_j);
-/*
 const vec rt = r - r0 * n_j;
 if(dot(rt, rt) >= r_element * r_element){
     // The particle is passing too far from the wall element
 	j++;
 	continue;
 }
-*/
 
 // Test for swap normal (that must be internal oriented)
 if(r0 < 0.f){
