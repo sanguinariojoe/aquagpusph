@@ -181,7 +181,7 @@ class FigureController(FigureCanvas):
                                              label=r'$p_{SPH} \pm \sigma\left(p_{SPH}\right)$')
         fake_artist = plt.Rectangle((0, 0), 1, 1,
                                     facecolor=(0.75, 0.75, 0.75, 1.0),
-                                    edgecolor=(0.5, 0.5, 0.5, 0.0))
+                                    edgecolor=(1.0, 1.0, 1.0, 0.0))
         self.ax.legend([self.exp_line,
                         self.line,
                         fake_artist],
