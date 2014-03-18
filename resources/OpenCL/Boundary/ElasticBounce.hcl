@@ -24,19 +24,21 @@ if(imove[j] >= 0){
 // ------------------------------------------------------------------
 // face properties
 // ------------------------------------------------------------------
-vec n_j = normal[i];
-const vec v_j = v[i];
+vec n_j = normal[j];
+const vec v_j = v[j];
 // ------------------------------------------------------------------
 // Vertex relation
 // ------------------------------------------------------------------
-const vec r  = pos_i - pos[j];      // Vector from vertex to particle
-float r0 = dot(r, n_j);             // Normal component length
-const vec rt = r - r0 * n_j;        // Tangential component
+const vec r  = pos_i - pos[j];
+float r0 = dot(r, n_j);
+/*
+const vec rt = r - r0 * n_j;
 if(dot(rt, rt) >= r_element * r_element){
     // The particle is passing too far from the wall element
 	j++;
 	continue;
 }
+*/
 
 // Test for swap normal (that must be internal oriented)
 if(r0 < 0.f){
@@ -64,8 +66,8 @@ if((dist < 0.f) && (r0 + dist <= __MIN_BOUND_DIST__ * h)){
 	// As first approach, particle can be completely fliped, but in order to
 	// don't perturbate the moments and forces computation is better choice
 	// modify only the velocity.
-	v[j] = v_i - (1.f + __ELASTIC_FACTOR__) * (
+	v[i] = v_i - (1.f + __ELASTIC_FACTOR__) * (
         v_n + 0.5f * dt * (f_n + g_n)) * n_j;
 	// Modify the value for the next walls test.
-	v_i = v[j];
+	v_i = v[i];
 }
