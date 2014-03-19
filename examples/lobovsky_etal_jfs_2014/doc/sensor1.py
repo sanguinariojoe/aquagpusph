@@ -134,7 +134,7 @@ class FigureController(FigureCanvas):
         self.p = []
         for i in range(len(data[0])):
             self.p.append(data[3][i] / (rho * g * h))
-            sumW = data[5][i]
+            sumW = data[6][i]
             # Apply a threshold to avoid the interpolation based just on
             # free surface particles
             if sumW < 0.3:
