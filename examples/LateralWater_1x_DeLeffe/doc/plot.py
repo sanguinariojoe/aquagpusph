@@ -176,7 +176,7 @@ class FigureController(FigureCanvas):
                                              self.pmax,
                                              interpolate=True,
                                              facecolor=(0.75, 0.75, 0.75, 1.0),
-                                             edgecolor=(0.5, 0.5, 0.5, 0.0),
+                                             edgecolor=(0.75, 0.75, 0.75, 1.0),
                                              linestyle='--',
                                              label=r'$p_{SPH} \pm \sigma\left(p_{SPH}\right)$')
         fake_artist = plt.Rectangle((0, 0), 1, 1,
