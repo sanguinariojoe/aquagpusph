@@ -17,6 +17,12 @@
  */
 
 #ifndef HAVE_3D
+    #include "../types/2D.h"
+#else
+    #include "../types/3D.h"
+#endif
+
+#ifndef HAVE_3D
 	#ifndef NEIGH_CELLS
 		/** @def NEIGH_CELLS Number of neighbour cells. In 2D case 8,
 		 * and the main cells must be computed, but in 3D 27 cells,

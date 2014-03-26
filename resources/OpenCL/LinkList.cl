@@ -16,7 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma OPENCL EXTENSION cl_khr_byte_addressable_store : enable 
+#ifndef HAVE_3D
+    #include "types/2D.h"
+#else
+    #include "types/3D.h"
+#endif
 
 #ifndef M_PI
 	#define M_PI 3,14159265359

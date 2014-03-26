@@ -16,6 +16,12 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef HAVE_3D
+    #include "types/2D.h"
+#else
+    #include "types/3D.h"
+#endif
+
 #ifndef uint
 	#define uint unsigned int
 #endif

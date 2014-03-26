@@ -19,8 +19,10 @@
 /* Kernel to use. Take care with support distance (sep), that may vary.
  */
 #ifndef HAVE_3D
+    #include "../types/2D.h"
     #include "../KernelFunctions/Wendland2D.hcl"
 #else
+    #include "../types/3D.h"
     #include "../KernelFunctions/Wendland3D.hcl"
 #endif
 

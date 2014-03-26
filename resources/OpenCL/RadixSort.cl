@@ -26,6 +26,12 @@
  * To learn more about this code, please see also http://code.google.com/p/ocl-radix-sort/updates/list
  */
 
+#ifndef HAVE_3D
+    #include "types/2D.h"
+#else
+    #include "types/3D.h"
+#endif
+
 /// @def _BITS Bits of the Radix
 #ifndef _BITS
 	#define _BITS 8

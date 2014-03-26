@@ -149,9 +149,9 @@ size_t loadKernelFromFile(cl_kernel* kernel, cl_program* program,
 
 	strcat(default_flags, " -cl-mad-enable -cl-no-signed-zeros -cl-finite-math-only -cl-fast-relaxed-math ");
 	#ifdef HAVE_3D
-		strcat(default_flags, " -DHAVE_3D -Dvec=float4 -Divec=int4 -Duivec=uint4 -DVEC_ZERO=(float4)(0.f,0.f,0.f,0.f) ");
+		strcat(default_flags, " -DHAVE_3D ");
 	#else
-		strcat(default_flags, " -DHAVE_2D -Dvec=float2 -Divec=int2 -Duivec=uint2 -DVEC_ZERO=(float2)(0.f,0.f) ");
+		strcat(default_flags, " -DHAVE_2D ");
 	#endif
 	sprintf(default_flags, "%s -Dh=%ff ", default_flags,
             problemSetup->SPH_opts.h);

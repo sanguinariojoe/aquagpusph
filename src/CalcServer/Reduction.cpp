@@ -184,7 +184,13 @@ bool Reduction::setupOpenCL(const char* type,
     data_size = input_size / _n.at(0);
     // Create a header for the source code where the operation will be placed
     char header[512];
-    strcpy(header, "T reduce(T a, T b) \n");
+    #ifdef HAVE_3D
+        strcpy(header, "#include \"types/3D.h\"\n");
+    #else
+        strcpy(header, "#include \"types/2D.h\"\n");
+    #endif // HAVE_3D
+    sprintf(header, "%s #define IDENTITY %s\n", header, null_val);
+    strcat(header, "T reduce(T a, T b) \n");
     strcat(header, "{ \n");
     strcat(header, "\tT c; \n");
     strcat(header, "\t");
@@ -196,9 +202,8 @@ bool Reduction::setupOpenCL(const char* type,
     size_t lsize = __CL_MAX_LOCALSIZE__;
     char args[512];
     sprintf(args,
-            "-DT=%s -DIDENTITY=%s -DLOCAL_WORK_SIZE=%luu",
+            "-DT=%s -DLOCAL_WORK_SIZE=%luu",
             type,
-            null_val,
             lsize);
     cl_kernel kernel;
     size_t maxlsize = loadKernelFromFile(&kernel,
@@ -232,7 +237,7 @@ bool Reduction::setupOpenCL(const char* type,
         return true;
     }
     sprintf(args,
-            "-DT=%s -DIDENTITY=%s -DLOCAL_WORK_SIZE=%luu",
+            "-DT=%s -DIDENTITY=\"%s\" -DLOCAL_WORK_SIZE=%luu",
             type,
             null_val,
             lsize);

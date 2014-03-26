@@ -16,30 +16,28 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef M_PI
-	#define M_PI 3.14159265359
+#ifndef HAVE_3D
+    #include "types/2D.h"
+#else
+    #include "types/3D.h"
 #endif
 
-#ifdef _g
-	#error '_g' is already defined.
-#endif
-#define _g __global
-
-#ifdef _c
-	#error '_c' is already defined.
-#endif
-#define _c __constant
-
-/** This method discard the fixed particles for the maximum coordinates computation.
- * @param output Output filtered data.
- * @param imove Particle moving flag.
- * @param input Input data to filter.
+/** Filter the boundary particles/elements from the maximum position
+ * computation. Filtering a particle imply to change its position by the
+ * minimum known value such that any other position will be grater or equal
+ * than its one.
+ * @param output Output filtered positions.
+ * @param imove Moving flag.
+ * @param input Input positions to filter.
  * @param N Number of particles.
  */
-__kernel void MaximumCoordsFilter(_g vec* output, _g int* imove, _g vec* input, unsigned int N)
+__kernel void MaximumCoordsFilter(__global vec* output,
+                                  __global int* imove,
+                                  __global vec* input,
+                                  unsigned int N)
 {
 	// find position in global arrays
-	unsigned int i = get_global_id(0);
+	const unsigned int i = get_global_id(0);
 	if(i >= N)
 		return;
 
@@ -60,16 +58,22 @@ __kernel void MaximumCoordsFilter(_g vec* output, _g int* imove, _g vec* input, 
 	// ---- | ------------------------ | ----
 }
 
-/** This method discard the fixed particles for the minimum coordinates computation.
- * @param output Output filtered data.
- * @param imove Particle moving flag.
- * @param input Input data to filter.
+/** Filter the boundary particles/elements from the minimum position
+ * computation. Filtering a particle imply to change its position by the
+ * maximum known value such that any other position will be grater or equal
+ * than its one.
+ * @param output Output filtered positions.
+ * @param imove Moving flag.
+ * @param input Input positions to filter.
  * @param N Number of particles.
  */
-__kernel void MinimumCoordsFilter(_g vec* output, _g int* imove, _g vec* input, unsigned int N)
+__kernel void MinimumCoordsFilter(__global vec* output,
+                                  __global int* imove,
+                                  __global vec* input,
+                                  unsigned int N)
 {
 	// find position in global arrays
-	unsigned int i = get_global_id(0);
+	const unsigned int i = get_global_id(0);
 	if(i >= N)
 		return;
 
@@ -96,7 +100,7 @@ __kernel void MinimumCoordsFilter(_g vec* output, _g int* imove, _g vec* input, 
  * @param input Input data to filter.
  * @param N Number of particles.
  */
-__kernel void MaximumVelFilter(_g vec* output, _g int* imove, _g vec* input, unsigned int N)
+__kernel void MaximumVelFilter(__global vec* output, __global int* imove, __global vec* input, unsigned int N)
 {
 	// find position in global arrays
 	unsigned int i = get_global_id(0);
@@ -122,7 +126,7 @@ __kernel void MaximumVelFilter(_g vec* output, _g int* imove, _g vec* input, uns
  * @param input Input data to filter.
  * @param N Number of particles.
  */
-__kernel void MinimumVelFilter(_g vec* output, _g int* imove, _g vec* input, unsigned int N)
+__kernel void MinimumVelFilter(__global vec* output, __global int* imove, __global vec* input, unsigned int N)
 {
 	// find position in global arrays
 	unsigned int i = get_global_id(0);
