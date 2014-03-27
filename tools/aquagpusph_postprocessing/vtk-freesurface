@@ -1,0 +1,220 @@
+#! /usr/bin/env python
+#******************************************************************************
+#                                                                             *
+#               *    **   *  *   *                           *                *
+#              * *  *  *  *  *  * *                          *                *
+#             ***** *  *  *  * *****  **  ***  *  *  ** ***  ***              *
+#             *   * *  *  *  * *   * *  * *  * *  * *   *  * *  *             *
+#             *   * *  *  *  * *   * *  * *  * *  *   * *  * *  *             *
+#             *   *  ** *  **  *   *  *** ***   *** **  ***  *  *             *
+#                                       * *             *                     *
+#                                     **  *             *                     *
+#                                                                             *
+#******************************************************************************
+#                                                                             *
+#  This file is part of AQUAgpusph, a free CFD program based on SPH.          *
+#  Copyright (C) 2012  Jose Luis Cercos Pita <jl.cercos@upm.es>               *
+#                                                                             *
+#  AQUAgpusph is free software: you can redistribute it and/or modify         *
+#  it under the terms of the GNU General Public License as published by       *
+#  the Free Software Foundation, either version 3 of the License, or          *
+#  (at your option) any later version.                                        *
+#                                                                             *
+#  AQUAgpusph is distributed in the hope that it will be useful,              *
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+#  GNU General Public License for more details.                               *
+#                                                                             *
+#  You should have received a copy of the GNU General Public License          *
+#  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.        *
+#                                                                             *
+#******************************************************************************
+
+import argparse
+from argparse import ArgumentParser
+import vtk
+from math import *
+import sys
+import multiprocessing
+from multiprocessing import Process, Queue
+
+
+description = (
+    "Extract the free surface particles from the simualtion output particles"
+    " VTU file, and optionally compute a mesh over it.")
+version = "%prog 1.0"
+
+DIMS = 3
+
+
+def readVTU(filepath):
+    """Read a particles VTU file"""
+    reader = vtk.vtkXMLUnstructuredGridReader()
+    reader.SetFileName(filepath)
+    reader.Update()
+
+    grid = reader.GetOutput()
+    n = grid.GetNumberOfPoints()
+    if not n:
+        raise ValueError("No particles found in the file")
+    print("Readed {} particles...".format(n))
+    return grid
+
+
+def filterShepard(particles, min_val, max_val):
+    n = particles.GetNumberOfPoints()
+    points = particles.GetPoints()
+    data = particles.GetPointData()
+    sumW = data.GetArray('sumW')
+    imove = data.GetArray("imove")
+
+    fs_particles = vtk.vtkUnstructuredGrid()
+    fs_points = vtk.vtkPoints()
+    fs_cells = vtk.vtkCellArray()
+    fs_arrays = []
+
+    for i in range(data.GetNumberOfArrays()):
+        array = data.GetArray(i)
+        t = array.GetDataType()
+        if t == vtk.VTK_FLOAT:
+            fs_array = vtk.vtkFloatArray()
+        elif t == vtk.VTK_INT:
+            fs_array = vtk.vtkIntArray()
+        elif t == vtk.VTK_UNSIGNED_INT:
+            fs_array = vtk.vtkUnsignedIntArray()
+        else:
+            raise ValueError(
+                'Found an array of the type {}, which is unknow'.format(t))        
+        fs_array.SetNumberOfComponents(array.GetNumberOfComponents())
+        fs_array.SetName(array.GetName())
+        fs_arrays.append(fs_array)
+
+    pid = 0
+    for i in range(n):
+        if imove.GetComponent(i, 0) <= 0:
+            continue
+        s = sumW.GetComponent(i, 0)
+        if s < min_val or s > max_val:
+            continue
+        point = points.GetPoint(i)
+        fs_points.InsertNextPoint(*point)
+        for j in range(len(fs_arrays)):
+            fs_array = fs_arrays[j]
+            array = data.GetArray(j)
+            fs_array.InsertNextTuple(array.GetTuple(i))
+        vertex = vtk.vtkVertex()
+        vertex.GetPointIds().SetId(0, pid)
+        fs_cells.InsertNextCell(vertex)
+        pid += 1
+
+    fs_particles.SetPoints(fs_points)
+    fs_particles.SetCells(vertex.GetCellType(), fs_cells)
+    for array in fs_arrays:
+        fs_particles.GetPointData().AddArray(array);
+
+    print('Extracted {}/{} particles'.format(
+        fs_particles.GetNumberOfPoints(),
+        particles.GetNumberOfPoints()))
+
+    return fs_particles
+
+
+def main():
+    """Program entry point"""
+    parser = ArgumentParser(
+        description=description,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('-v', '--version', action='version', version=version)
+    parser.add_argument('input',
+                        metavar='INPUT',
+                        type=str,
+                        nargs=1,
+                        help='Input particles VTK file')
+    parser.add_argument('output',
+                        metavar='OUTPUT',
+                        type=str,
+                        nargs=1,
+                        help='Output free surface mesh file')
+    parser.add_argument('-d', '--deltar', metavar='VALUE', type=float,
+                        dest='dr', default=0.0,
+                        help=("If a value different from zero is provided,"
+                        " an offset will be applied to the resulting mesh"
+                        " points in the normal direction. Usually the"
+                        " distance between particles should be provided"))
+    parser.add_argument('-m', '--mesh', metavar='VALUE', type=int,
+                        dest='is_mesh', default=True,
+                        help=("If True (1) the mesh will be saved, otherwise"
+                        " (0) the free surface particles will be saved"))
+    parser.add_argument('-s', '--shepard_min', metavar='VALUE', type=float,
+                        dest='s_min', default=0.0,
+                        help=("Minimum shepard factor to consider a free"
+                        " surface point. All the particles with a shepard"
+                        " factor lower than this value will be discarded"))
+    parser.add_argument('-S', '--shepard_max', metavar='VALUE', type=float,
+                        dest='s_max', default=0.75,
+                        help=("Maximum shepard factor to consider a free"
+                        " surface point. All the particles with a shepard"
+                        " factor greeater than this value will be discarded"))
+    args = parser.parse_args()
+
+    print('Reading the input file...')
+    filepath = args.input[0]
+    particles = readVTU(filepath)
+
+    print('Extracting the free surface particles...')
+    data = particles.GetPointData()
+    if not data.HasArray('sumW'):
+        raise ValueError('sumW data not found in the input file')
+
+    fs_particles = filterShepard(particles, args.s_min, args.s_max)
+
+    print('Voxelizating data...')
+    n = fs_particles.GetNumberOfPoints()
+    points = fs_particles.GetPoints()
+    point_min = list(points.GetPoint(0))
+    point_max = list(points.GetPoint(0))
+    for i in range(1, n):
+        point = points.GetPoint(i)
+        for j in range(0, 3):
+            point_min[j] = min(point_min[j], point[j])
+            point_max[j] = max(point_max[j], point[j])
+    L = [point_max[i] - point_min[i] for i in range(3)]
+    N = [int(round(L[i] / args.dr)) + 1 for i in range(3)]
+
+    voxels = vtk.vtkGaussianSplatter()
+    voxels.SetInput(fs_particles)
+    voxels.SetSampleDimensions(*N)
+    voxels.SetRadius(2 * args.dr / max(L))
+    voxels.ScalarWarpingOff()
+
+    if not args.is_mesh:
+        print('Saving the free surface particles...')
+        filepath = args.output[0]
+        writer = vtk.vtkXMLUnstructuredGridWriter()
+        writer.SetFileName(filepath)
+        writer.SetInput(fs_particles)
+        writer.Write()
+        print('Done!')
+        return
+
+    print('Computing the mesh...')
+    mesh = vtk.vtkContourFilter()
+    # mesh = vtk.vtkMarchingCubes()
+    mesh.SetInputConnection(voxels.GetOutputPort())
+    mesh.SetValue(0, 0.01)
+    mesh.Update()
+
+
+    print('Saving the mesh...')
+    polyData = mesh.GetOutput()
+    filepath = args.output[0]
+    writer = vtk.vtkPolyDataWriter()
+    writer.SetFileName(filepath)
+    writer.SetInput(polyData)
+    writer.Write()
+    print('Done!')
+
+
+if __name__ == "__main__":
+    main()
+
