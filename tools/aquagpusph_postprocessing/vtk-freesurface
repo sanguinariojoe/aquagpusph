@@ -61,11 +61,10 @@ def readVTU(filepath):
     return grid
 
 
-def filterShepard(particles, min_val, max_val):
+def filterFluid(particles):
     n = particles.GetNumberOfPoints()
     points = particles.GetPoints()
     data = particles.GetPointData()
-    sumW = data.GetArray('sumW')
     imove = data.GetArray("imove")
 
     fs_particles = vtk.vtkUnstructuredGrid()
@@ -92,9 +91,6 @@ def filterShepard(particles, min_val, max_val):
     pid = 0
     for i in range(n):
         if imove.GetComponent(i, 0) <= 0:
-            continue
-        s = sumW.GetComponent(i, 0)
-        if s < min_val or s > max_val:
             continue
         point = points.GetPoint(i)
         fs_points.InsertNextPoint(*point)
@@ -141,20 +137,10 @@ def main():
                         " an offset will be applied to the resulting mesh"
                         " points in the normal direction. Usually the"
                         " distance between particles should be provided"))
-    parser.add_argument('-m', '--mesh', metavar='VALUE', type=int,
-                        dest='is_mesh', default=True,
-                        help=("If True (1) the mesh will be saved, otherwise"
-                        " (0) the free surface particles will be saved"))
-    parser.add_argument('-s', '--shepard_min', metavar='VALUE', type=float,
-                        dest='s_min', default=0.0,
-                        help=("Minimum shepard factor to consider a free"
-                        " surface point. All the particles with a shepard"
-                        " factor lower than this value will be discarded"))
-    parser.add_argument('-S', '--shepard_max', metavar='VALUE', type=float,
-                        dest='s_max', default=0.75,
-                        help=("Maximum shepard factor to consider a free"
-                        " surface point. All the particles with a shepard"
-                        " factor greeater than this value will be discarded"))
+    parser.add_argument('-s', '--smooth', metavar='VALUE', type=int,
+                        dest='smooth', default=200,
+                        help=("Number of smooth iterations applied to the"
+                        " resulting mesh (0 to don't smooth it)."))
     args = parser.parse_args()
 
     print('Reading the input file...')
@@ -163,10 +149,10 @@ def main():
 
     print('Extracting the free surface particles...')
     data = particles.GetPointData()
-    if not data.HasArray('sumW'):
-        raise ValueError('sumW data not found in the input file')
+    if not data.HasArray('imove'):
+        raise ValueError('imove flags not found in the input file')
 
-    fs_particles = filterShepard(particles, args.s_min, args.s_max)
+    fs_particles = filterFluid(particles)
 
     print('Voxelizating data...')
     n = fs_particles.GetNumberOfPoints()
@@ -184,18 +170,8 @@ def main():
     voxels = vtk.vtkGaussianSplatter()
     voxels.SetInput(fs_particles)
     voxels.SetSampleDimensions(*N)
-    voxels.SetRadius(2 * args.dr / max(L))
+    voxels.SetRadius(args.dr / max(L))
     voxels.ScalarWarpingOff()
-
-    if not args.is_mesh:
-        print('Saving the free surface particles...')
-        filepath = args.output[0]
-        writer = vtk.vtkXMLUnstructuredGridWriter()
-        writer.SetFileName(filepath)
-        writer.SetInput(fs_particles)
-        writer.Write()
-        print('Done!')
-        return
 
     print('Computing the mesh...')
     mesh = vtk.vtkContourFilter()
@@ -204,13 +180,25 @@ def main():
     mesh.SetValue(0, 0.01)
     mesh.Update()
 
+    polyData = mesh.GetOutput()
+    if args.smooth > 0:
+        print('Smoothing the mesh...')
+        smooth = vtk.vtkSmoothPolyDataFilter()
+        smooth.SetInput(polyData)
+        smooth.SetNumberOfIterations(args.smooth)
+        # smooth.SetRelaxationFactor(0.1)
+        # smooth.SetFeatureAngle(60.0)
+        # smooth.SetEdgeAngle(60.0)
+        smooth.BoundarySmoothingOn()
+        smooth.Update()
+    polyData = smooth.GetOutput()
 
     print('Saving the mesh...')
-    polyData = mesh.GetOutput()
     filepath = args.output[0]
     writer = vtk.vtkPolyDataWriter()
     writer.SetFileName(filepath)
     writer.SetInput(polyData)
+    writer.SetFileTypeToBinary()
     writer.Write()
     print('Done!')
 
