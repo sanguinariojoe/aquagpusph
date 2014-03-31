@@ -32,6 +32,7 @@
 
 import argparse
 from argparse import ArgumentParser
+import glob
 import vtk
 from math import *
 import sys
@@ -57,7 +58,6 @@ def readVTU(filepath):
     n = grid.GetNumberOfPoints()
     if not n:
         raise ValueError("No particles found in the file")
-    print("Readed {} particles...".format(n))
     return grid
 
 
@@ -108,53 +108,19 @@ def filterFluid(particles):
     for array in fs_arrays:
         fs_particles.GetPointData().AddArray(array);
 
-    print('Extracted {}/{} particles'.format(
-        fs_particles.GetNumberOfPoints(),
-        particles.GetNumberOfPoints()))
-
     return fs_particles
 
 
-def main():
-    """Program entry point"""
-    parser = ArgumentParser(
-        description=description,
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-v', '--version', action='version', version=version)
-    parser.add_argument('input',
-                        metavar='INPUT',
-                        type=str,
-                        nargs=1,
-                        help='Input particles VTK file')
-    parser.add_argument('output',
-                        metavar='OUTPUT',
-                        type=str,
-                        nargs=1,
-                        help='Output free surface mesh file')
-    parser.add_argument('-d', '--deltar', metavar='VALUE', type=float,
-                        dest='dr', default=0.0,
-                        help=("If a value different from zero is provided,"
-                        " an offset will be applied to the resulting mesh"
-                        " points in the normal direction. Usually the"
-                        " distance between particles should be provided"))
-    parser.add_argument('-s', '--smooth', metavar='VALUE', type=int,
-                        dest='smooth', default=200,
-                        help=("Number of smooth iterations applied to the"
-                        " resulting mesh (0 to don't smooth it)."))
-    args = parser.parse_args()
-
-    print('Reading the input file...')
-    filepath = args.input[0]
+def parse(filepath, args):
+    """Parse a VTU file"""
     particles = readVTU(filepath)
 
-    print('Extracting the free surface particles...')
     data = particles.GetPointData()
     if not data.HasArray('imove'):
         raise ValueError('imove flags not found in the input file')
 
     fs_particles = filterFluid(particles)
 
-    print('Voxelizating data...')
     n = fs_particles.GetNumberOfPoints()
     points = fs_particles.GetPoints()
     point_min = list(points.GetPoint(0))
@@ -173,7 +139,6 @@ def main():
     voxels.SetRadius(args.dr / max(L))
     voxels.ScalarWarpingOff()
 
-    print('Computing the mesh...')
     mesh = vtk.vtkContourFilter()
     # mesh = vtk.vtkMarchingCubes()
     mesh.SetInputConnection(voxels.GetOutputPort())
@@ -182,7 +147,6 @@ def main():
 
     polyData = mesh.GetOutput()
     if args.smooth > 0:
-        print('Smoothing the mesh...')
         smooth = vtk.vtkSmoothPolyDataFilter()
         smooth.SetInput(polyData)
         smooth.SetNumberOfIterations(args.smooth)
@@ -193,14 +157,46 @@ def main():
         smooth.Update()
     polyData = smooth.GetOutput()
 
-    print('Saving the mesh...')
-    filepath = args.output[0]
     writer = vtk.vtkPolyDataWriter()
-    writer.SetFileName(filepath)
+    writer.SetFileName('fs.' + filepath)
     writer.SetInput(polyData)
     writer.SetFileTypeToBinary()
     writer.Write()
-    print('Done!')
+    
+
+
+def main():
+    """Program entry point"""
+    parser = ArgumentParser(
+        description=description,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('-v', '--version', action='version', version=version)
+    parser.add_argument('input',
+                        metavar='FILES',
+                        type=str,
+                        nargs=1,
+                        help="Input particles VTU files. Wildcards are"
+                        " allowed to identify several files.")
+    parser.add_argument('-d', '--deltar', metavar='VALUE', type=float,
+                        dest='dr', required=True,
+                        help=("Distance between particles"))
+    parser.add_argument('-s', '--smooth', metavar='VALUE', type=int,
+                        dest='smooth', default=200,
+                        help=("Number of smooth iterations applied to the"
+                        " resulting mesh (0 to don't smooth it)."))
+    args = parser.parse_args()
+
+    files = []
+    for i in args.input:
+        files.extend(glob.glob(i))
+
+    files = sorted(files)
+
+    for i, f in enumerate(files):
+        sys.stdout.write("Parsing '{}' ({}/{})... ".format(f, i, len(files)))
+        sys.stdout.flush()
+        parse(f, args)
+        print("Done!")
 
 
 if __name__ == "__main__":
