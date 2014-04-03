@@ -86,9 +86,9 @@ __kernel void Energy(_g vec4* energy, _g int* imove, _g int* ifluid,
 	float p = press[i];
 	float mp_dd = m * p/(d*d);
 	// U = Internal energy (viscosity effect not implemented yet)
-	energy[i].x = mp_dd * (drdt[i] - drdt_F[i]);
+	energy[i].x = mp_dd * drdt[i];
 	// H = Enthalpy
-	energy[i].y = mp_dd * drdt[i];
+	energy[i].y = mp_dd * (drdt[i] + drdt_F[i]);
 	// Epot = Potential energy
 	energy[i].z = - m * dot(grav, pos[i]);
 	// Ekin = Kinetic energy
