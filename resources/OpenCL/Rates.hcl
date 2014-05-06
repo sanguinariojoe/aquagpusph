@@ -78,7 +78,7 @@ if(q < sep)
     //       Density diffusion term
     //---------------------------------------------------------------
     #ifdef __DELTA_SPH__
-        const float drfac = (press_i - press[j]) - refd_i * dot(grav, r);
+        const float drfac = (press_i - press_j) - refd_i * dot(grav, r);
         // Ferrari
         // _DRDT_F_ += delta_i * drfac * r1 * fab / (cs * dens_j);
         // Molteni
