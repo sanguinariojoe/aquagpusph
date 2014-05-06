@@ -61,12 +61,11 @@ if(q < sep)
     //       calculate viscosity terms (Cleary's viscosity)
     //---------------------------------------------------------------
     const float vdr = dot(v_i - v[j], r);
-    const float r2 = (q * q + 0.01f) * h * h;
-    float viscg = -__CLEARY__ * viscdyn_i * vdr / (r2 * dens_i * dens_j);
-    #ifdef __FREE_SLIP__
-        if(imove[j] < 0)
-            viscg = 0.f;
-    #endif
+    float viscg = 0.f;
+    if(imove[j] > 0){
+        const float r2 = (q * q + 0.01f) * h * h;
+        viscg = -__CLEARY__ * viscdyn_i * vdr / (r2 * dens_i * dens_j);
+    }
     //---------------------------------------------------------------
     //       force computation
     //---------------------------------------------------------------
@@ -81,7 +80,7 @@ if(q < sep)
     #ifdef __DELTA_SPH__
         const float drfac = (press_i - press[j]) - refd_i * dot(grav, r);
         // Ferrari
-        // _DRDT_F_ += delta_i * drfac * fab / (cs * dens_j);
+        // _DRDT_F_ += delta_i * drfac * r1 * fab / (cs * dens_j);
         // Molteni
         // _DRDT_F_ += delta_i * h * drfac * fab / (cs * dens_j);
         // Cercos

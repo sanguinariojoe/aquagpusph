@@ -126,7 +126,7 @@ if(q < sep)
     #ifdef __DELTA_SPH__
         const float drfac = (press_i - press_j) - refd_i * dot(grav, r);
         // Ferrari
-        // _DRDT_F_ += delta_i * drfac * fab / (cs * dens_j);
+        // _DRDT_F_ += delta_i * drfac * r1 * fab / (cs * dens_j);
         // Molteni
         // _DRDT_F_ += delta_i * h * drfac * fab / (cs * dens_j);
         // Cercos
