@@ -90,9 +90,13 @@ bool Shepard::execute()
 	err_code |= sendArgument(_kernel,
                              3,
                              sizeof(cl_mem),
-                             (void*)&(C->shepard));
+                             (void*)&(C->drdt_F));
 	err_code |= sendArgument(_kernel,
                              4,
+                             sizeof(cl_mem),
+                             (void*)&(C->shepard));
+	err_code |= sendArgument(_kernel,
+                             5,
                              sizeof(cl_uint),
                              (void*)&(C->n));
 	if(err_code != CL_SUCCESS) {

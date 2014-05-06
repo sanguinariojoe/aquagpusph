@@ -56,7 +56,8 @@
  * @param shepard Shepard term (0th correction).
  * @param N Number of particles.
  */
-__kernel void Shepard(_g int* iMove, _g vec* f, _g float* drdt, _g float* shepard, uint N )
+__kernel void Shepard(_g int* iMove, _g vec* f, _g float* drdt,
+                      _g float* drdt_F, _g float* shepard, uint N )
 {
 	uint i = get_global_id(0);
 	if(i >= N)
@@ -73,10 +74,11 @@ __kernel void Shepard(_g int* iMove, _g vec* f, _g float* drdt, _g float* shepar
 	if( (iShepard < 0.1f) || (iShepard > 1.f) )
 		return;
 	#ifdef __FORCE_CORRECTION__
-		f[i]    /= iShepard;
+		f[i] /= iShepard;
 	#endif
 	#ifdef __DENS_CORRECTION__
 		drdt[i] /= iShepard;
+		drdt_F[i] /= iShepard;
 	#endif
 
 	// ---- A ---- Your code here ---- A ----
