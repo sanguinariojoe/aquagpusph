@@ -35,7 +35,7 @@ Authors:
         and 10 for 3D.
         To assert the stability an \alpha >= 0.01 is recommended.
 		-->
-		<Option name="alpha" value="0.01" />
+		<Option name="alpha" value="0.0" />
 		<!-- The other alternative is to apply a diffusive term inside the
         continuity equation (formerly \delta-SPH).
         To assert the stability \delta = 1.0 is recommended.
