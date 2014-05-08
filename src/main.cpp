@@ -18,7 +18,7 @@
 
 /** \mainpage AQUAgpusph (Another QUAlity GPU-SPH).
  * Free CFD code based on SPH (Smoothed Particles Hydrodynamics), licensed
- * under GPLv3 terms, for details read provided license.txt file (SPH is a
+ * under GPLv3 terms, for details read provided LICENSE file (SPH is a
  * meshfree Lagrangian method to solve Navier-Stokes equations). \n
  * AQUAgpusph is based on the weakly compressible SPH branch (formerly W-SPH or
  * WCSPH), where the pressure field is linked with the density one by a
