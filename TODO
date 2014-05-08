@@ -1,7 +1,1 @@
-* Create a specific tool to permutate (sort/unsort) the data arrays
-* Write over the sorted space
-* Decouple the "drdt" and "drdt_F" variables
 * Decouple the "grad(p)/rho" and "mu lap(u)" variables
-* Improve the neighbour cell computation (moving from "if" based to "module
-operator")
-* Set const varaibles
