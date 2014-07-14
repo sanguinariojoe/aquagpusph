@@ -81,15 +81,15 @@ bool Corrector::execute()
 	 */
 	if( (P->time_opts.velocity_clamp) && (P->time_opts.dt_min > 0.f) && (t >= 0.f)){
 	    err_code  = sendArgument(_vel_clamp_kernel,
-                                 5,
+                                 4,
                                  sizeof(cl_float),
                                  (void*)&(P->time_opts.dt_min));
 	    err_code |= sendArgument(_vel_clamp_kernel,
-                                 6,
+                                 5,
                                  sizeof(vec),
                                  (void*)&(C->g));
 	    err_code |= sendArgument(_vel_clamp_kernel,
-                                 7,
+                                 6,
                                  sizeof(cl_uint),
                                  (void*)&(C->N));
 	    if(err_code != CL_SUCCESS) {
