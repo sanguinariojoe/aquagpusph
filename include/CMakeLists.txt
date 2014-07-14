@@ -8,8 +8,6 @@ INSTALL(
         ${CMAKE_CURRENT_SOURCE_DIR}/CalcServer.h
         ${CMAKE_CURRENT_SOURCE_DIR}/FileManager.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Fluid.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/Input.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/Output.h
         ${CMAKE_CURRENT_SOURCE_DIR}/ProblemSetup.h
         ${CMAKE_CURRENT_SOURCE_DIR}/ScreenManager.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Singleton.h
@@ -27,7 +25,7 @@ INSTALL(
 )
 INSTALL(
     DIRECTORY
-        ${CMAKE_CURRENT_SOURCE_DIR}/Input
+        ${CMAKE_CURRENT_SOURCE_DIR}/InputOutput
     DESTINATION
         ${CMAKE_INSTALL_INCLUDEDIR}
 )
