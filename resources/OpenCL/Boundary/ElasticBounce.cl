@@ -87,7 +87,7 @@ __kernel void Boundary(__global int* imove,
     const uint c_i = icell[i];
     const vec pos_i = pos[i];
     vec v_i = v[i];
-    const vec f_i = f[i];
+    vec f_i = f[i];
 
     // Loop over neighbour particles
     // =============================

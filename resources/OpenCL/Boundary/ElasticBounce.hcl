@@ -61,11 +61,17 @@ if((dist < 0.f) && (r0 + dist <= __MIN_BOUND_DIST__ * h)){
 	// ------------------------------------------------------------------
 	// Reflect particle velocity (using elastic factor)
 	// ------------------------------------------------------------------
-	// As first approach, particle can be completely fliped, but in order to
-	// don't perturbate the moments and forces computation is better choice
-	// modify only the velocity.
-	v[i] = v_i - (1.f + __ELASTIC_FACTOR__) * (
-        v_n + 0.5f * dt * (f_n + g_n)) * n_j;
+	// As first approach, particle can be just fliped
+	// v[i] = v_i - (1.f + __ELASTIC_FACTOR__) * (
+        // v_n + 0.5f * dt * (f_n + g_n)) * n_j;
+
+	// A second approach is setting an acceleration equal to the gravity
+	// Just trying to don't perturbate the moments meassurement, fliping
+	// later the velocity
+	f[i] = f_i - (f_n + g_n) * n_j;
+	v[i] = v_i - (1.f + __ELASTIC_FACTOR__) * v_n * n_j;
+
 	// Modify the value for the next walls test.
 	v_i = v[i];
+	f_i = f[i];
 }
