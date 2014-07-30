@@ -37,7 +37,7 @@ public:
 
 	/** Destructor
 	 */
-	~Report();
+	virtual ~Report();
 
     /** Save the data
      * @return false if all gone right, true otherwise.

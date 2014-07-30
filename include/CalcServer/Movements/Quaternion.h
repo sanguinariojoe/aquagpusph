@@ -42,7 +42,7 @@ public:
 
 	/** Destructor.
 	 */
-	~Quaternion();
+	virtual ~Quaternion();
 
 	/** Set the quaternion (by the center point and the axis vectors).
 	 * @param cor Center of the quaternion.

@@ -58,7 +58,7 @@ public:
 
 	/** Destructor
 	 */
-	~Kernel();
+	virtual ~Kernel();
 
 	/** Returns the maximum allowed local work size for the selected device.
 	 * @param n Amount of data to solve. If 0 provided, CalcServer number of

@@ -40,7 +40,7 @@ public:
 
 	/** Destructor
 	 */
-	~Particles();
+	virtual ~Particles();
 
     /** Save the data
      * @return false if all gone right, true otherwise.

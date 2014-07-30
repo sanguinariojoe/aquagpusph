@@ -56,7 +56,7 @@ public:
 
 	/** Destructor.
 	 */
-	~Movement();
+	virtual ~Movement();
 
 	/** Parse definition file
 	 * @param def XML file with the motion definition.
