@@ -250,12 +250,12 @@ bool Rates::setupOpenCL()
 
 	// Test if the local work group size must be modified
 	size_t local_work_size=0;
-	err_code |= clGetKernelWorkGroupInfo(_kernel,
-                                         device,
-                                         CL_KERNEL_WORK_GROUP_SIZE,
-	                                     sizeof(size_t),
-                                         &local_work_size,
-                                         NULL);
+	err_code = clGetKernelWorkGroupInfo(_kernel,
+                                        device,
+                                        CL_KERNEL_WORK_GROUP_SIZE,
+	                                    sizeof(size_t),
+                                        &local_work_size,
+                                        NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessageF(3, "A valid maximum local work group size cannot be found.\n");
         S->printOpenCLError(err_code);
@@ -264,12 +264,12 @@ bool Rates::setupOpenCL()
 	if(local_work_size < _local_work_size)
 	    _local_work_size  = local_work_size;
 	// Look for a better local work group size
-	err_code |= clGetKernelWorkGroupInfo(_kernel,
-                                         device,
-                                         CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
-	                                     sizeof(size_t),
-                                         &local_work_size,
-                                         NULL);
+	err_code = clGetKernelWorkGroupInfo(_kernel,
+                                        device,
+                                        CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
+	                                    sizeof(size_t),
+                                        &local_work_size,
+                                        NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessageF(3, "Preferred local work group size cannot be queried.\n");
         S->printOpenCLError(err_code);

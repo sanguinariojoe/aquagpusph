@@ -1181,12 +1181,12 @@ bool RadixSort::setupOpenCL()
 	    return true;
 	}
 	if(maxLocalSize < _items) _items = maxLocalSize;
-	err_code |= clGetKernelWorkGroupInfo(_histograms_kernel,
-                                         device,
-                                         CL_KERNEL_WORK_GROUP_SIZE,
-	                                     sizeof(size_t),
-                                         &maxLocalSize,
-                                         NULL);
+	err_code = clGetKernelWorkGroupInfo(_histograms_kernel,
+                                        device,
+                                        CL_KERNEL_WORK_GROUP_SIZE,
+	                                    sizeof(size_t),
+                                        &maxLocalSize,
+                                        NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessageF(3, "Can't get maximum local work group size for the histograms kernel.\n");
         S->printOpenCLError(err_code);
@@ -1196,12 +1196,12 @@ bool RadixSort::setupOpenCL()
 
     // With the scan process we can easily set a bound with the number of
     // histograms splits
-	err_code |= clGetKernelWorkGroupInfo(_histograms_scan_kernel,
-                                         device,
-                                         CL_KERNEL_WORK_GROUP_SIZE,
-	                                     sizeof(size_t),
-                                         &maxLocalSize,
-                                         NULL);
+	err_code = clGetKernelWorkGroupInfo(_histograms_scan_kernel,
+                                        device,
+                                        CL_KERNEL_WORK_GROUP_SIZE,
+	                                    sizeof(size_t),
+                                        &maxLocalSize,
+                                        NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessageF(3, "Can't get maximum local work group size for the histograms scan kernel.\n");
         S->printOpenCLError(err_code);
@@ -1211,12 +1211,12 @@ bool RadixSort::setupOpenCL()
     // With the scan histograms kernel and the paste one we must adjust it
     // with the GROUPS, ITEMS and RADIX
     size_t maxForScan = maxLocalSize;
-	err_code |= clGetKernelWorkGroupInfo(_sort_kernel,
-                                         device,
-                                         CL_KERNEL_WORK_GROUP_SIZE,
-	                                     sizeof(size_t),
-                                         &maxLocalSize,
-                                         NULL);
+	err_code = clGetKernelWorkGroupInfo(_sort_kernel,
+                                        device,
+                                        CL_KERNEL_WORK_GROUP_SIZE,
+	                                    sizeof(size_t),
+                                        &maxLocalSize,
+                                        NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessageF(3, "Can't get maximum local work group size from the sorting kernel.\n");
         S->printOpenCLError(err_code);
@@ -1279,12 +1279,12 @@ bool RadixSort::setupOpenCL()
         S->printOpenCLError(err_code);
 	    return true;
 	}
-	err_code |= clGetKernelWorkGroupInfo(_transpose_kernel,
-                                         device,
-                                         CL_KERNEL_LOCAL_MEM_SIZE,
-	                                     sizeof(size_t),
-                                         &usedMem,
-                                         NULL);
+	err_code = clGetKernelWorkGroupInfo(_transpose_kernel,
+                                        device,
+                                        CL_KERNEL_LOCAL_MEM_SIZE,
+	                                    sizeof(size_t),
+                                        &usedMem,
+                                        NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessageF(3, "Impossible to get the local memory used by the transpose kernel.\n");
         S->printOpenCLError(err_code);

@@ -249,21 +249,21 @@ bool GhostParticles::setupOpenCL()
 	cl_int err_code;
 	cl_device_id device;
 	cl_ulong local_mem, required_local_mem;
-	err_code |= clGetCommandQueueInfo(C->command_queue,
-                                      CL_QUEUE_DEVICE,
-	                                  sizeof(cl_device_id),
-                                      &device,
-                                      NULL);
+	err_code = clGetCommandQueueInfo(C->command_queue,
+                                     CL_QUEUE_DEVICE,
+	                                 sizeof(cl_device_id),
+                                     &device,
+                                     NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessageF(3, "I Cannot get the device from the command queue.\n");
         S->printOpenCLError(err_code);
 	    return true;
 	}
-	err_code |= clGetDeviceInfo(device,
-                                CL_DEVICE_LOCAL_MEM_SIZE,
-                                sizeof(local_mem),
-                                &local_mem,
-                                NULL);
+	err_code = clGetDeviceInfo(device,
+                               CL_DEVICE_LOCAL_MEM_SIZE,
+                               sizeof(local_mem),
+                               &local_mem,
+                               NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessageF(3, "Failure getting the local memory available on the device.\n");
         S->printOpenCLError(err_code);
@@ -279,12 +279,12 @@ bool GhostParticles::setupOpenCL()
 	    return true;
 	if(_program)clReleaseProgram(_program); _program=0;
 
-	err_code |= clGetKernelWorkGroupInfo(_kernel,
-                                         device,
-                                         CL_KERNEL_LOCAL_MEM_SIZE,
-	                                     sizeof(cl_ulong),
-                                         &required_local_mem,
-                                         NULL);
+	err_code = clGetKernelWorkGroupInfo(_kernel,
+                                        device,
+                                        CL_KERNEL_LOCAL_MEM_SIZE,
+	                                    sizeof(cl_ulong),
+                                        &required_local_mem,
+                                        NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessageF(3, "Error retrieving the used local memory.\n");
         S->printOpenCLError(err_code);
@@ -299,12 +299,12 @@ bool GhostParticles::setupOpenCL()
 	}
 	// Test if the local work gorup size must be modified
 	size_t local_work_size=0;
-	err_code |= clGetKernelWorkGroupInfo(_kernel,
-                                         device,
-                                         CL_KERNEL_WORK_GROUP_SIZE,
-	                                     sizeof(size_t),
-                                         &local_work_size,
-                                         NULL);
+	err_code = clGetKernelWorkGroupInfo(_kernel,
+                                        device,
+                                        CL_KERNEL_WORK_GROUP_SIZE,
+	                                    sizeof(size_t),
+                                        &local_work_size,
+                                        NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessageF(3, "Failure retrieving the maximum local work size.\n");
         S->printOpenCLError(err_code);
@@ -313,12 +313,12 @@ bool GhostParticles::setupOpenCL()
 	if(local_work_size < _local_work_size)
 	    _local_work_size  = local_work_size;
 
-	err_code |= clGetKernelWorkGroupInfo(_kernel,
-                                         device,
-                                         CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
-	                                     sizeof(size_t),
-                                         &local_work_size,
-                                         NULL);
+	err_code = clGetKernelWorkGroupInfo(_kernel,
+                                        device,
+                                        CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
+	                                    sizeof(size_t),
+                                        &local_work_size,
+                                        NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessageF(3, "I cannot query the preferred local work size");
         S->printOpenCLError(err_code);

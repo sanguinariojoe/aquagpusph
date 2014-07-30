@@ -197,21 +197,21 @@ bool Domain::setupOpenCL()
 
 	cl_device_id device;
 	size_t local_work_size=0;
-	err_code |= clGetCommandQueueInfo(C->command_queue,
-                                      CL_QUEUE_DEVICE,
-                                      sizeof(cl_device_id),
-                                      &device,
-                                      NULL);
+	err_code = clGetCommandQueueInfo(C->command_queue,
+                                     CL_QUEUE_DEVICE,
+                                     sizeof(cl_device_id),
+                                     &device,
+                                     NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Domain::setupOpenCL): I Cannot get the device from the command queue.\n");
 	    return true;
 	}
-	err_code |= clGetKernelWorkGroupInfo(_kernel,
-                                         device,
-                                         CL_KERNEL_WORK_GROUP_SIZE,
-	                                     sizeof(size_t),
-                                         &local_work_size,
-                                         NULL);
+	err_code = clGetKernelWorkGroupInfo(_kernel,
+                                        device,
+                                        CL_KERNEL_WORK_GROUP_SIZE,
+	                                    sizeof(size_t),
+                                        &local_work_size,
+                                        NULL);
 	if(err_code != CL_SUCCESS) {
 		S->addMessage(3, "(Domain::setupOpenCL): Failure retrieving the maximum local work size.\n");
 	    return true;
