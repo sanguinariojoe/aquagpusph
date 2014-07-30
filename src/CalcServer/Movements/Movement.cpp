@@ -20,10 +20,53 @@
 #include <CalcServer/Movements/Movement.h>
 #include <CalcServer.h>
 
+#include <vector>
+#include <deque>
+static std::deque<char*> cpp_str;
+static std::deque<XMLCh*> xml_str;
+
+static char *xmlTranscode(const XMLCh *txt)
+{
+    char *str = xercesc::XMLString::transcode(txt);
+    cpp_str.push_back(str);
+    return str;
+}
+
+static XMLCh *xmlTranscode(const char *txt)
+{
+    XMLCh *str = xercesc::XMLString::transcode(txt);
+    xml_str.push_back(str);
+    return str;
+}
+
+static void xmlClear()
+{
+    unsigned int i;
+    for(i = 0; i < cpp_str.size(); i++){
+        xercesc::XMLString::release(&cpp_str.at(i));
+    }
+    cpp_str.clear();
+    for(i = 0; i < xml_str.size(); i++){
+        xercesc::XMLString::release(&xml_str.at(i));
+    }
+    xml_str.clear();
+}
+
+#ifdef xmlS
+    #undef xmlS
+#endif // xmlS
+#define xmlS(txt) xmlTranscode(txt)
+
 #ifdef xmlAttribute
 	#undef xmlAttribute
 #endif
-#define xmlAttribute(elem, att) XMLString::transcode( elem->getAttribute(XMLString::transcode(att)) )
+#define xmlAttribute(elem, att) xmlS( elem->getAttribute(xmlS(att)) )
+
+#ifdef xmlHasAttribute
+	#undef xmlHasAttribute
+#endif
+#define xmlHasAttribute(elem, att) elem->hasAttribute(xmlS(att))
+
 using namespace xercesc;
 
 namespace Aqua{ namespace CalcServer{ namespace Movement{
@@ -63,17 +106,19 @@ bool Movement::parse(const char* def)
 	    return true;
 	}
 	fclose(dummy);
-	XercesDOMParser *mparser = new XercesDOMParser;
-	mparser->setValidationScheme( XercesDOMParser::Val_Never );
-	mparser->setDoNamespaces( false );
-	mparser->setDoSchema( false );
-	mparser->setLoadExternalDTD( false );
-	mparser->parse( def );
+	XercesDOMParser *parser = new XercesDOMParser;
+	parser->setValidationScheme( XercesDOMParser::Val_Never );
+	parser->setDoNamespaces( false );
+	parser->setDoSchema( false );
+	parser->setLoadExternalDTD( false );
+	parser->parse(def);
 
-	DOMDocument* doc = mparser->getDocument();
+	DOMDocument* doc = parser->getDocument();
 	DOMElement* root = doc->getDocumentElement();
 	if( !root ){
 	    S->addMessageF(3, "Empty XML file\n");
+        xmlClear();
+        delete parser;
 	    return true;
 	}
 
@@ -84,8 +129,11 @@ bool Movement::parse(const char* def)
 	        continue;
 	    DOMElement* elem = dynamic_cast< xercesc::DOMElement* >( node );
 		// Calls recursively to parse xml file
-		if(parse( XMLString::transcode( elem->getAttribute(XMLString::transcode("file")) ) ))
+		if(parse( XMLString::transcode( elem->getAttribute(XMLString::transcode("file")) ) )){
+            xmlClear();
+            delete parser;
 			return true;
+		}
 	}
 
 	nodes = root->getElementsByTagName(XMLString::transcode("Script"));
@@ -106,16 +154,25 @@ bool Movement::parse(const char* def)
 		_path = new char[str_len+1];
 		if(!_path){
 	        S->addMessageF(3, "I Cannot allocate memory for OpenCL script path.\n");
+            xmlClear();
+            delete parser;
 	        return true;
 		}
 		strcpy(_path,path);
 	}
 
-	if(_parse(root))
+	if(_parse(root)){
+        xmlClear();
+        delete parser;
 	    return true;
+	}
+
+    xmlClear();
+    delete parser;
 
 	if(setupOpenCL())
 	    return true;
+
 	S->addMessageF(1, "Ready to work!\n");
 	return false;
 }

@@ -30,10 +30,42 @@
 #include <Fluid.h>
 #include <AuxiliarMethods.h>
 
+#include <vector>
+#include <deque>
+static std::deque<char*> cpp_str;
+static std::deque<XMLCh*> xml_str;
+
+static char *xmlTranscode(const XMLCh *txt)
+{
+    char *str = xercesc::XMLString::transcode(txt);
+    cpp_str.push_back(str);
+    return str;
+}
+
+static XMLCh *xmlTranscode(const char *txt)
+{
+    XMLCh *str = xercesc::XMLString::transcode(txt);
+    xml_str.push_back(str);
+    return str;
+}
+
+static void xmlClear()
+{
+    unsigned int i;
+    for(i = 0; i < cpp_str.size(); i++){
+        xercesc::XMLString::release(&cpp_str.at(i));
+    }
+    cpp_str.clear();
+    for(i = 0; i < xml_str.size(); i++){
+        xercesc::XMLString::release(&xml_str.at(i));
+    }
+    xml_str.clear();
+}
+
 #ifdef xmlS
     #undef xmlS
 #endif // xmlS
-#define xmlS(txt) XMLString::transcode(txt)
+#define xmlS(txt) xmlTranscode(txt)
 
 #ifdef xmlAttribute
 	#undef xmlAttribute
@@ -380,7 +412,7 @@ bool VTK::updatePVD(){
         S->addMessageF(3, "XML toolkit writing error.\n");
         sprintf(msg, "\t%s\n", message);
         S->addMessage(0, msg);
-	    XMLString::release( &message );
+        xmlClear();
 	    return true;
 	}
 	catch( DOMException& e ){
@@ -388,12 +420,13 @@ bool VTK::updatePVD(){
         S->addMessageF(3, "XML DOM writing error.\n");
         sprintf(msg, "\t%s\n", message);
         S->addMessage(0, msg);
-	    XMLString::release( &message );
+        xmlClear();
 	    return true;
 	}
 	catch( ... ){
         S->addMessageF(3, "Writing error.\n");
         S->addMessage(0, "\tUnhandled exception\n");
+        xmlClear();
 	    return true;
 	}
 
@@ -403,6 +436,7 @@ bool VTK::updatePVD(){
     saver->release();
     output->release();
     doc->release();
+    xmlClear();
 
     return false;
 }
@@ -427,6 +461,7 @@ DOMDocument* VTK::getPVD()
         DOMElement *elem;
         elem = doc->createElement(xmlS("Collection"));
         root->appendChild(elem);
+        xmlClear();
 	    return doc;
 	}
 	fclose(dummy);
@@ -437,6 +472,8 @@ DOMDocument* VTK::getPVD()
 	parser->setLoadExternalDTD(false);
 	parser->parse(filenamePVD());
  	doc = parser->getDocument();
+    xmlClear();
+    delete parser;
  	return doc;
 }
 

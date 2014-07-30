@@ -29,10 +29,42 @@
 #include <TimeManager.h>
 #include <CalcServer.h>
 
+#include <vector>
+#include <deque>
+static std::deque<char*> cpp_str;
+static std::deque<XMLCh*> xml_str;
+
+static char *xmlTranscode(const XMLCh *txt)
+{
+    char *str = xercesc::XMLString::transcode(txt);
+    cpp_str.push_back(str);
+    return str;
+}
+
+static XMLCh *xmlTranscode(const char *txt)
+{
+    XMLCh *str = xercesc::XMLString::transcode(txt);
+    xml_str.push_back(str);
+    return str;
+}
+
+static void xmlClear()
+{
+    unsigned int i;
+    for(i = 0; i < cpp_str.size(); i++){
+        xercesc::XMLString::release(&cpp_str.at(i));
+    }
+    cpp_str.clear();
+    for(i = 0; i < xml_str.size(); i++){
+        xercesc::XMLString::release(&xml_str.at(i));
+    }
+    xml_str.clear();
+}
+
 #ifdef xmlS
     #undef xmlS
 #endif // xmlS
-#define xmlS(txt) XMLString::transcode(txt)
+#define xmlS(txt) xmlTranscode(txt)
 
 #ifdef xmlAttribute
 	#undef xmlAttribute
@@ -91,12 +123,13 @@ State::State()
 	    char msg[strlen(message) + 3];
         sprintf(msg, "\t%s\n", message);
         S->addMessage(0, msg);
-	    XMLString::release( &message );
+        xmlClear();
 	    exit(EXIT_FAILURE);
 	}
 	catch( ... ){
         S->addMessageF(3, "XML toolkit initialization error.\n");
         S->addMessage(0, "\tUnhandled exception\n");
+        xmlClear();
 	    exit(EXIT_FAILURE);
 	}
 
@@ -125,17 +158,18 @@ State::~State()
 	    XMLPlatformUtils::Terminate();
 	}
 	catch( xercesc::XMLException& e ){
-	    char* message = xercesc::xmlS( e.getMessage() );
+	    char* message = xmlS( e.getMessage() );
         S->addMessageF(3, "XML toolkit exit error.\n");
 	    char msg[strlen(message) + 3];
         sprintf(msg, "\t%s\n", message);
         S->addMessage(0, msg);
-	    XMLString::release( &message );
+        xmlClear();
 	    exit(EXIT_FAILURE);
 	}
 	catch( ... ){
         S->addMessageF(3, "XML toolkit exit error.\n");
         S->addMessage(0, "\tUnhandled exception\n");
+        xmlClear();
 	    exit(EXIT_FAILURE);
 	}
 
@@ -190,30 +224,54 @@ bool State::parse(const char* filepath)
 	    DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
 	    const char* included_file = xmlS(elem->getAttribute(xmlS("file")));
 	    if(parse(included_file)){
+            xmlClear();
             return true;
         }
 	}
 
-	if(parseSettings(root))
+	if(parseSettings(root)){
+        xmlClear();
 	    return true;
-	if(parseOpenCL(root))
+    }
+	if(parseOpenCL(root)){
+        xmlClear();
 	    return true;
-	if(parseTiming(root))
+    }
+	if(parseTiming(root)){
+        xmlClear();
         return true;
-	if(parseTiming(root))
+    }
+	if(parseTiming(root)){
+        xmlClear();
 	    return true;
-	if(parseSPH(root))
+    }
+	if(parseSPH(root)){
+        xmlClear();
 	    return true;
-	if(parseFluid(root))
+    }
+	if(parseFluid(root)){
+        xmlClear();
 	    return true;
-	if(parseSensors(root))
+    }
+	if(parseSensors(root)){
+        xmlClear();
 	    return true;
-	if(parseMotions(root))
+    }
+	if(parseMotions(root)){
+        xmlClear();
 	    return true;
-	if(parsePortals(root))
+    }
+	if(parsePortals(root)){
+        xmlClear();
 	    return true;
-	if(parseGhostParticles(root))
+    }
+	if(parseGhostParticles(root)){
+        xmlClear();
 	    return true;
+    }
+
+    xmlClear();
+    delete parser;
 	return false;
 }
 

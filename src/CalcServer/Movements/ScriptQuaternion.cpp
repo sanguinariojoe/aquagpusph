@@ -22,10 +22,53 @@
 #include <ScreenManager.h>
 #include <AuxiliarMethods.h>
 
+#include <vector>
+#include <deque>
+static std::deque<char*> cpp_str;
+static std::deque<XMLCh*> xml_str;
+
+static char *xmlTranscode(const XMLCh *txt)
+{
+    char *str = xercesc::XMLString::transcode(txt);
+    cpp_str.push_back(str);
+    return str;
+}
+
+static XMLCh *xmlTranscode(const char *txt)
+{
+    XMLCh *str = xercesc::XMLString::transcode(txt);
+    xml_str.push_back(str);
+    return str;
+}
+
+static void xmlClear()
+{
+    unsigned int i;
+    for(i = 0; i < cpp_str.size(); i++){
+        xercesc::XMLString::release(&cpp_str.at(i));
+    }
+    cpp_str.clear();
+    for(i = 0; i < xml_str.size(); i++){
+        xercesc::XMLString::release(&xml_str.at(i));
+    }
+    xml_str.clear();
+}
+
+#ifdef xmlS
+    #undef xmlS
+#endif // xmlS
+#define xmlS(txt) xmlTranscode(txt)
+
 #ifdef xmlAttribute
 	#undef xmlAttribute
 #endif
-#define xmlAttribute(elem, att) XMLString::transcode( elem->getAttribute(XMLString::transcode(att)) )
+#define xmlAttribute(elem, att) xmlS( elem->getAttribute(xmlS(att)) )
+
+#ifdef xmlHasAttribute
+	#undef xmlHasAttribute
+#endif
+#define xmlHasAttribute(elem, att) elem->hasAttribute(xmlS(att))
+
 using namespace xercesc;
 
 namespace Aqua{ namespace CalcServer{ namespace Movement{
@@ -135,6 +178,7 @@ bool ScriptQuaternion::_parse(xercesc::DOMElement *root)
 	if(!nodes->getLength()){
 	    S->addMessageF(3, "None Python script has not been specified.\n");
 	    S->addMessage(0, "\tPyScript tag is mandatory.\n");
+	    xmlClear();
 	    return true;
 	}
 	for( XMLSize_t i=0; i<nodes->getLength();i++ ){
@@ -149,12 +193,16 @@ bool ScriptQuaternion::_parse(xercesc::DOMElement *root)
 	}
 
 	if(initQuaternion()){
+	    xmlClear();
 	    return true;
 	}
 
 	if(initPython()){
+	    xmlClear();
 	    return true;
 	}
+
+    xmlClear();
 	return false;
 }
 
