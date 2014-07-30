@@ -112,7 +112,8 @@ inline const char* methodAndClassName(const std::string& pretty_function)
     begin = all_name.rfind("::");
     if (begin == std::string::npos){
         // There are no class name
-        return all_name.c_str();
+        strcpy(aux, all_name.c_str());
+        return aux;
     }
     method_name = all_name.substr(begin+2, std::string::npos);
     end = begin;
