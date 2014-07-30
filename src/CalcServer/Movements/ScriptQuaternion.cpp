@@ -95,6 +95,7 @@ ScriptQuaternion::~ScriptQuaternion()
 	if(_torque) delete _torque; _torque=0;
 	if(_module) Py_DECREF(_module); _module=0;
 	if(_func) Py_DECREF(_func); _func=0;
+	Py_Finalize();
 }
 
 bool ScriptQuaternion::execute()
