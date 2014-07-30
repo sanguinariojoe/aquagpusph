@@ -122,27 +122,27 @@ bool Movement::parse(const char* def)
 	    return true;
 	}
 
-	DOMNodeList* nodes = root->getElementsByTagName(XMLString::transcode("Include"));
+	DOMNodeList* nodes = root->getElementsByTagName(xmlS("Include"));
 	for( XMLSize_t i=0; i<nodes->getLength();i++ ){
 	    DOMNode* node = nodes->item(i);
 	    if( node->getNodeType() != DOMNode::ELEMENT_NODE )
 	        continue;
 	    DOMElement* elem = dynamic_cast< xercesc::DOMElement* >( node );
 		// Calls recursively to parse xml file
-		if(parse( XMLString::transcode( elem->getAttribute(XMLString::transcode("file")) ) )){
+		if(parse(xmlS(elem->getAttribute(xmlS("file"))))){
             xmlClear();
             delete parser;
 			return true;
 		}
 	}
 
-	nodes = root->getElementsByTagName(XMLString::transcode("Script"));
+	nodes = root->getElementsByTagName(xmlS("Script"));
 	for( XMLSize_t i=0; i<nodes->getLength();i++ ){
 	    DOMNode* node = nodes->item(i);
 	    if( node->getNodeType() != DOMNode::ELEMENT_NODE )
 	        continue;
 	    DOMElement* elem = dynamic_cast< xercesc::DOMElement* >( node );
-	    const char* path = XMLString::transcode( elem->getAttribute(XMLString::transcode("file")) );
+	    const char* path = xmlS(elem->getAttribute(xmlS("file")));
 	    unsigned int str_len = strlen(path);
 	    if(!str_len){
 	        S->addMessageF(3, "Movement OpenCL script is empty.\n");

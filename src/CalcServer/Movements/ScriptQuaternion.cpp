@@ -175,7 +175,7 @@ bool ScriptQuaternion::_parse(xercesc::DOMElement *root)
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	char msg[1024];
 
-	DOMNodeList* nodes = root->getElementsByTagName(XMLString::transcode("PyScript"));
+	DOMNodeList* nodes = root->getElementsByTagName(xmlS("PyScript"));
 	if(!nodes->getLength()){
 	    S->addMessageF(3, "None Python script has not been specified.\n");
 	    S->addMessage(0, "\tPyScript tag is mandatory.\n");
@@ -188,7 +188,7 @@ bool ScriptQuaternion::_parse(xercesc::DOMElement *root)
 	        continue;
 	    DOMElement* elem = dynamic_cast< xercesc::DOMElement* >( node );
 
-		strcpy( _script, XMLString::transcode( elem->getAttribute(XMLString::transcode("file")) ) );
+		strcpy( _script, xmlS( elem->getAttribute(xmlS("file")) ) );
 	    sprintf(msg, "Using \"%s\" script file.\n", _script);
 	    S->addMessageF(1, msg);
 	}
