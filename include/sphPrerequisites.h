@@ -22,7 +22,10 @@
 #define XSTR(x) STR(x)
 #define STR(x) #x
 
-#include<string>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <string>
 
 // ----------------------------------------------------------------------------
 // Autotools configuration file
@@ -93,10 +96,11 @@
 	#define __CL_MAX_LOCALSIZE__ 1024
 #endif
 
+static char aux[512];
 inline const char* methodAndClassName(const std::string& pretty_function)
 {
     std::string all_name, method_name, class_name;
-    size_t begin,end;
+    size_t begin, end;
 
     // Filter the name removing the preceding and trailing types data
     end    = pretty_function.find("(");
@@ -119,7 +123,8 @@ inline const char* methodAndClassName(const std::string& pretty_function)
         begin += 2;
     end -= begin;
     class_name = all_name.substr(begin, end);
-    return (class_name + "::" + method_name).c_str();
+    strcpy(aux, (class_name + "::" + method_name).c_str());
+    return aux;
 }
 
 #define __METHOD_CLASS_NAME__ methodAndClassName(__PRETTY_FUNCTION__)
