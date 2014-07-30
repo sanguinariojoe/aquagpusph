@@ -431,6 +431,7 @@ bool Quaternion::computePos()
 	if(C->sendData(_normal, hRelNormal, N*sizeof(vec)))
 	    return true;
 	delete[] hRelPos; hRelPos=0;
+	delete[] hRelNormal; hRelNormal=0;
 	return false;
 }
 
