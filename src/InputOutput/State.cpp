@@ -203,7 +203,7 @@ bool State::parse(const char* filepath)
 	    return true;
 	}
 	fclose(dummy);
-	XercesDOMParser *parser = new XercesDOMParser;
+	XercesDOMParser *parser = new XercesDOMParser();
 	parser->setValidationScheme(XercesDOMParser::Val_Never);
 	parser->setDoNamespaces(false);
 	parser->setDoSchema(false);

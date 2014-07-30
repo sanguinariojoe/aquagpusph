@@ -34,6 +34,7 @@
 #include <deque>
 static std::deque<char*> cpp_str;
 static std::deque<XMLCh*> xml_str;
+static std::deque<xercesc::XercesDOMParser*> parsers;
 
 static char *xmlTranscode(const XMLCh *txt)
 {
@@ -60,6 +61,10 @@ static void xmlClear()
         xercesc::XMLString::release(&xml_str.at(i));
     }
     xml_str.clear();
+    for(i = 0; i < parsers.size(); i++){
+        delete parsers.at(i);
+    }
+    parsers.clear();
 }
 
 #ifdef xmlS
@@ -435,7 +440,7 @@ bool VTK::updatePVD(){
     delete target;
     saver->release();
     output->release();
-    doc->release();
+    // doc->release();
     xmlClear();
 
     return false;
@@ -461,19 +466,17 @@ DOMDocument* VTK::getPVD()
         DOMElement *elem;
         elem = doc->createElement(xmlS("Collection"));
         root->appendChild(elem);
-        xmlClear();
 	    return doc;
 	}
 	fclose(dummy);
-	XercesDOMParser *parser = new XercesDOMParser;
+	XercesDOMParser *parser = new XercesDOMParser();
 	parser->setValidationScheme(XercesDOMParser::Val_Never);
 	parser->setDoNamespaces(false);
 	parser->setDoSchema(false);
 	parser->setLoadExternalDTD(false);
 	parser->parse(filenamePVD());
  	doc = parser->getDocument();
-    xmlClear();
-    delete parser;
+ 	parsers.push_back(parser);
  	return doc;
 }
 

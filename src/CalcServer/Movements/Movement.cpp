@@ -106,7 +106,7 @@ bool Movement::parse(const char* def)
 	    return true;
 	}
 	fclose(dummy);
-	XercesDOMParser *parser = new XercesDOMParser;
+	XercesDOMParser *parser = new XercesDOMParser();
 	parser->setValidationScheme( XercesDOMParser::Val_Never );
 	parser->setDoNamespaces( false );
 	parser->setDoSchema( false );
