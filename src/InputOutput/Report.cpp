@@ -85,7 +85,7 @@ bool Report::file(const char* basename, unsigned int startindex)
             delete[] newname;
         newname = NULL;
 
-        len = strlen(basename) - 1 + numberOfDigits(i);
+        len = strlen(basename) + 1 + numberOfDigits(i);
         newname = new char[len];
 
         // Copy all the string
