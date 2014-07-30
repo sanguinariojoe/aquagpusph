@@ -139,7 +139,7 @@ size_t loadKernelFromFile(cl_kernel* kernel, cl_program* program,
 	}
 	default_flags = new char[1024];
 	#ifdef AQUA_DEBUG
-	    strcpy(default_flags, "-g -DDEBUG ");
+	    strcpy(default_flags, "-DDEBUG ");
 	#else
 	    strcpy(default_flags, "-DNDEBUG ");
 	#endif
