@@ -21,12 +21,6 @@
 #include <TimeManager.h>
 #include <ScreenManager.h>
 
-#ifdef xmlAttribute
-	#undef xmlAttribute
-#endif
-#define xmlAttribute(elem, att) XMLString::transcode( elem->getAttribute(XMLString::transcode(att)) )
-using namespace xercesc;
-
 namespace Aqua{ namespace CalcServer{ namespace Movement{
 
 Quaternion::Quaternion()
