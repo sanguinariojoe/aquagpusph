@@ -162,6 +162,14 @@ bool Permutate::execute(cl_mem permutations)
         S->printOpenCLError(err_code);
 	    return true;
 	}
+    for(i = 0; i < _mems.size(); i++){
+        err_code = clReleaseEvent(events[i]);
+	    if(err_code != CL_SUCCESS) {
+		    S->addMessageF(3, "Failure releasing an event.\n");
+            S->printOpenCLError(err_code);
+	        return true;
+	    }
+    }
 	#ifdef HAVE_GPUPROFILE
 	    err_code = clWaitForEvents(1, &event);
 	    if(err_code != CL_SUCCESS) {
