@@ -1472,24 +1472,42 @@ bool State::write(const char* filepath)
         NULL);
     DOMElement* root = doc->getDocumentElement();
 
-	if(writeSettings(doc, root))
+	if(writeSettings(doc, root)){
+        xmlClear();
 	    return true;
-	if(writeOpenCL(doc, root))
+    }
+	if(writeOpenCL(doc, root)){
+        xmlClear();
 	    return true;
-	if(writeTiming(doc, root))
-        return true;
-	if(writeSPH(doc, root))
+    }
+	if(writeTiming(doc, root)){
+        xmlClear();
 	    return true;
-	if(writeFluid(doc, root))
+    }
+	if(writeSPH(doc, root)){
+        xmlClear();
 	    return true;
-	if(writeSensors(doc, root))
+    }
+	if(writeFluid(doc, root)){
+        xmlClear();
 	    return true;
-	if(writeMotions(doc, root))
+    }
+	if(writeSensors(doc, root)){
+        xmlClear();
 	    return true;
-	if(writePortals(doc, root))
+    }
+	if(writeMotions(doc, root)){
+        xmlClear();
 	    return true;
-	if(writeGhostParticles(doc, root))
+    }
+	if(writePortals(doc, root)){
+        xmlClear();
 	    return true;
+    }
+	if(writeGhostParticles(doc, root)){
+        xmlClear();
+	    return true;
+    }
 
     // Save the XML document to a file
     impl = DOMImplementationRegistry::getDOMImplementation(xmlS("LS"));
@@ -1506,7 +1524,7 @@ bool State::write(const char* filepath)
     output->setEncoding(xmlS("UTF-8"));
 
     try {
-            saver->write(doc, output);
+        saver->write(doc, output);
     }
 	catch( XMLException& e ){
 	    char* message = xmlS(e.getMessage());
@@ -1514,7 +1532,7 @@ bool State::write(const char* filepath)
 	    char msg[strlen(message) + 3];
         sprintf(msg, "\t%s\n", message);
         S->addMessage(0, msg);
-	    XMLString::release( &message );
+        xmlClear();
 	    exit(EXIT_FAILURE);
 	}
 	catch( DOMException& e ){
@@ -1523,7 +1541,7 @@ bool State::write(const char* filepath)
 	    char msg[strlen(message) + 3];
         sprintf(msg, "\t%s\n", message);
         S->addMessage(0, msg);
-	    XMLString::release( &message );
+        xmlClear();
 	    exit(EXIT_FAILURE);
 	}
 	catch( ... ){
@@ -1538,6 +1556,7 @@ bool State::write(const char* filepath)
     saver->release();
     output->release();
     doc->release();
+    xmlClear();
 
     return false;
 }
