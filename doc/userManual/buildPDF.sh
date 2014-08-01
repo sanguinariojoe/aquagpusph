@@ -15,4 +15,4 @@ pdflatex -interaction=nonstopmode main.tex
 pdflatex -interaction=nonstopmode main.tex
 
 # Rename output file
-mv main.tex aquagpusph-usermanual.pdf
+mv main.pdf aquagpusph-usermanual.pdf
