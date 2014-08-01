@@ -1,4 +1,4 @@
-\begin{thebibliography}{13}
+\begin{thebibliography}{16}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -15,8 +15,7 @@ Andrea Amicarelli, Jean-Christophe Marongiu, Francis Leboeuf, Julien Leduc, and
 \newblock ISSN 0045-7930.
 \newblock \doi{DOI: 10.1016/j.compfluid.2011.01.018}.
 \newblock URL
-  \url{http://www.sciencedirect.com/science/article/B6V26-52079TP-1/2/28aecd9e%
-fa85d26137ba55bcaa45daa4}.
+  \url{http://www.sciencedirect.com/science/article/B6V26-52079TP-1/2/28aecd9efa85d26137ba55bcaa45daa4}.
 
 \bibitem[Botia-Vera et~al.(2010)Botia-Vera, Souto-Iglesias, Bulian, and
   {Lobovsk\'{y}}]{botia_etal_spheric10}
@@ -24,6 +23,12 @@ E.~Botia-Vera, A.~Souto-Iglesias, G.~Bulian, and L.~{Lobovsk\'{y}}.
 \newblock Three {SPH} {N}ovel {B}enchmark {T}est {C}ases for free surface
   flows.
 \newblock In \emph{5th ERCOFTAC SPHERIC workshop on SPH applications}, 2010.
+
+\bibitem[Colagrossi and Landrini(2003)]{colagrossi2003}
+A.~Colagrossi and M.~Landrini.
+\newblock Numerical simulation of interfacial flows by smoothed particle
+  hydrodynamics.
+\newblock \emph{J. Comp. Phys.}, 191:\penalty0 448--475, 2003.
 
 \bibitem[Colagrossi et~al.(2009)Colagrossi, Antuono, and
   Touz\'{e}]{Colagrossi2009}
@@ -81,6 +86,15 @@ J.~J. Monaghan and R.~A. Gingold.
 \newblock \emph{Journal of Computational Physics}, 52\penalty0 (2):\penalty0
   374--389, 1983.
 
+\bibitem[Monaghan(2012)]{monaghan_arfm_2012}
+J.J. Monaghan.
+\newblock Smoothed particle hydrodynamics and its diverse applications.
+\newblock \emph{Annual Review of Fluid Mechanics}, 44\penalty0 (1):\penalty0
+  323--346, 2012.
+\newblock \doi{10.1146/annurev-fluid-120710-101220}.
+\newblock URL
+  \url{http://www.annualreviews.org/doi/abs/10.1146/annurev-fluid-120710-101220}.
+
 \bibitem[Morris et~al.(1997)Morris, Fox, and Zhu]{Morris+etal:1997}
 Joseph~P. Morris, Patrick~J. Fox, and Yi~Zhu.
 \newblock Modeling low {R}eynolds number incompressible flows using {SPH}.
@@ -100,6 +114,14 @@ Nathan~J. Quinlan, Martin Lastiwka, and Mihai Basa.
 \newblock \emph{International Journal for Numerical Methods in Engineering},
   66\penalty0 (13):\penalty0 2064--2085, 2006.
 \newblock URL \url{http://dx.doi.org/10.1002/nme.1617}.
+
+\bibitem[Souto-Iglesias et~al.(2006)Souto-Iglesias, Delorme, P\'erez-Rojas, and
+  Abril-P\'erez]{souto2006}
+A.~Souto-Iglesias, L.~Delorme, L.~P\'erez-Rojas, and S.~Abril-P\'erez.
+\newblock Liquid moment amplitude assessment in sloshing type problems with
+  smooth particle hydrodynamics.
+\newblock \emph{Ocean Engineering}, 33\penalty0 (11-12):\penalty0 1462--1484, 8
+  2006.
 
 \bibitem[Wendland(1995)]{wendland_1995}
 Holger Wendland.

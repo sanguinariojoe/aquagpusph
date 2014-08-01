@@ -98,9 +98,15 @@ shows all the valid options that can be set in this group.
 		        &       & 1 & Relevant data will be printed each frame. \\
 		        &       & 2 & Relevant data will be printed each time step. \\
 		\hline
-		Start   & mode  & 0 & Simulation will start at $t = 0 \mathrm{s}$. \\
-		        &       & 1 & Simulation will start at last H5Part file printed. \\
-		        &       &   & If not available $t = 0 \mathrm{s}$ will be selected. \\
+		Device  & platform & id  & The OpenCL platform to use.\\
+                & device   & id  & The device (inside the platform) to use. \\
+                & type     & ALL & All the types of variables can be chosen. \\
+                &          & CPU & Just CPU devices will be available. \\
+                &          & GPU & Just GPU devices will be available. \\
+                &          & ACCELERATOR & Just accelerators will be 
+                available. \\
+                &          & DEFAULT & Just the default OpenCL device will be 
+                available. \\
 		\hline
 	\end{tabular}
 	\caption{Valid settings option tags.}
@@ -141,12 +147,8 @@ original one).
 		TimeStep          & file & File path & Kernel file used to compute time step. \\
 		                  &      &           & File extension (.cl) will appended automatically. \\
 		\hline
-		Reductions1D      & file & File path & Kernel file used to perform reductions over scalar \\
-		                  &      &           & variables. \\
-		                  &      &           & File extension (.cl) will appended automatically. \\
-		\hline
-		Reductions        & file & File path & Kernel file used to perform reductions over \\
-		                  &      &           & vectorial variables. \\
+		Reduction         & file & File path & Kernel file used to perform 
+		reductions of variables \\
 		                  &      &           & File extension (.cl) will appended automatically. \\
 		\hline
 		RadixSort         & file & File path & Kernel file used to sort particles by cell location. \\
@@ -173,6 +175,16 @@ original one).
 		Torque            & file & File path & Kernel file used to compute force and torque. \\
 		                  &      &           & File extension (.cl) will appended automatically. \\
 		\hline
+		Bounds            & file & File path & Kernel file used to compute 
+		fluid bounds. \\
+		                  &      &           & File extension (.cl) will 
+		                  appended automatically. \\
+		\hline
+		Energy            & file & File path & Kernel file used to compute 
+		fluid energy. \\
+		                  &      &           & File extension (.cl) will 
+		                  appended automatically. \\
+		\hline
 		Portal            & file & File path & Kernel file used to perform particles teleporting. \\
 		                  &      &           & File extension (.cl) will appended automatically. \\
 		\hline
@@ -188,29 +200,8 @@ This group is used to set simulation time stepping controls. Table
 \ref{tables:caseSetup:Timing:Options} shows all the valid options
 that can be set in this section.\rc
 %
-All output format and time criteria combinations are allowed, and
-can be set at the same time.\rc
-%
-Stabilization time is a lapse of time where the fluid is let to
-evolve without solid boundary motions, aiming to get an initial
-particles packing as much stable as possible. In order to do it
-the fluid viscosity will be dramatically increased, and let it
-to evolve.\rc
-%
-Internally the infinite viscosity is achieved trough
-the velocity nullify in each time step, so the particles will be
-moved considering only the forces. See the equations
-\ref{eq:sph:discrete:timestep:predictor} and
-\ref{eq:sph:discrete:timestep:corrector} to learn more about
-this.\rc
-%
-This method to stabilize the particles packing is a natural
-extension of the method introduced by \citet{Colagrossi_CPC_2012},
-based in the gradient of a constant field computation, but now
-not constant pressure fields can be considered too.\rc
-%
-Don't try to use stabilization time with fluids with initial
-velocity fields if you don't know what are you doing.
+The minimum time step and the Courant factor are not affecting if the time 
+step is not selected as ``Variable''.
 %
 \begin{table}[h!b!p!]\small
 	\centering
@@ -218,33 +209,53 @@ velocity fields if you don't know what are you doing.
 		\hline
 		\cellcolor[rgb]{0.7,0.7,0.7}Tag & \cellcolor[rgb]{0.7,0.7,0.7}Attribute & \cellcolor[rgb]{0.7,0.7,0.7}Values & \cellcolor[rgb]{0.7,0.7,0.7}Attributes & \cellcolor[rgb]{0.7,0.7,0.7}Values & \cellcolor[rgb]{0.7,0.7,0.7}Attributes & \cellcolor[rgb]{0.7,0.7,0.7}Values \\
 		\hline
-		Option & name & SimulationStop & type   & Time    & value & Simulation time. \\
-		       &      &                &        & Frames  & value & Simulation number of frames. \\
-		       &      &                &        &         &       & (Can be added to time stop \\ 
+		Option & name & Start &        &         & value  & Starting time. \\
+		Option & name & Stop  & type   & Time    & value  & End time. \\
+		       &      &                &         & Frames & value & Number of 
+		       frames. \\
+		       &      &                &        &         &       & (Can be 
+		       mixed with time stop \\ 
 		       &      &                &        &         &       & criteria) \\ 
 		\hline
-		       &      & LogFiles       & type   & No      &       & \\
-		       &      &                &        & FPS     & value & Frames per second. \\
-		       &      &                &        & IPF     & value & Iterations per frame. \\
-		       &      &                &        &         &       & (Can be added to FPS) \\ 
-		\hline
-		       &      & ReFiles        & type   & No      &       & \\
-		       &      &                &        & FPS     & value & Frames per second. \\
-		       &      &                &        & IPF     & value & Iterations per frame. \\
-		       &      &                &        &         &       & (Can be added to FPS) \\ 
-		\hline
-		       &      & Output         & type   & No      &       & \\
-		       &      &                &        & FPS     & value & Frames per second. \\
-		       &      &                &        & IPF     & value & Iterations per frame. \\
-		       &      &                &        &         &       & (Can be added to FPS) \\ 
-		       &      &                & format & H5Part  &       & \\
-		       &      &                &        & Tecplot &       & (Can be added to H5Part)\\
-		\hline
-		       &      & Timestep       & value  & Courant &       & (Time step recomputed)\\
-		       &      &                &        & Fix     & value & (Time step computed at start) \\
+		       & name & Timestep       & value  & Variable &       & (Time 
+		       step recomputed)\\
+		       &      &                &        & Fix     & value & (Time step 
+		       computed at start) \\
 		       &      &                &        & time [s] & & \\
 		\hline
-		       &      & Stabilization  & value  & time [s] & & \\
+		       & name & MinTimeStep    &        &         & value & Minimum 
+		       allowed time step\\
+		\hline
+		       & name & Courant        &        &         & value & Courant 
+		       factor\\
+		\hline
+		       & name & LogFile        & type   & No      &       & \\
+		       &      &                &        & FPS     & value & Frames per second. \\
+		       &      &                &        & IPF     & value & Iterations per frame. \\
+		       &      &                &        &         &       & (Can be 
+		       mixed with FPS) \\ 
+		\hline
+		       & name & EnFile        & type   & No      &       & \\
+		       &      &                &        & FPS     & value & Frames per 
+		       second. \\
+		       &      &                &        & IPF     & value & Iterations 
+		       per frame. \\
+		       &      &                &        &         &       & (Can be 
+		       mixed with FPS) \\ 
+		\hline
+		       & name & BoundsFile     & type   & No      &       & \\
+		       &      &                &        & FPS     & value & Frames per 
+		       second. \\
+		       &      &                &        & IPF     & value & Iterations 
+		       per frame. \\
+		       &      &                &        &         &       & (Can be 
+		       mixed with FPS) \\ 
+		\hline
+		       & name & Output         & type   & No      &       & \\
+		       &      &                &        & FPS     & value & Frames per second. \\
+		       &      &                &        & IPF     & value & Iterations per frame. \\
+		       &      &                &        &         &       & (Can be 
+		       mixed with FPS) \\ 
 		\hline
 	\end{tabular}
 	\caption{Time control valid tags.}

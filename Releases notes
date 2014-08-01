@@ -1,3 +1,18 @@
+__v-1.5.02_____________________________________________________________________
+
+	* Fixed the examples installation.
+	* Fixed the documentation building script.
+	* Updated the documentation.
+
+__v-1.5.01_____________________________________________________________________
+
+	* Fixed bad arguments indexes.
+	* Added acceleration variations in the elastic bounces.
+	* Fixed memory leaks associated with xerces-c.
+	* Fixed illegal reading operations calling to log.
+	* Droped the OpenCL version as a mandatory variable in cmake.
+	* Fixed unreleased memory objects.
+
 __v-1.5.00_____________________________________________________________________
 
 	* Removed gradient of the shepard factor computation.

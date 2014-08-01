@@ -4,130 +4,130 @@
 \contentsline {section}{\numberline {1.3}Objectives of the present document}{8}{section.1.3}
 \contentsline {section}{\numberline {1.4}Required background}{8}{section.1.4}
 \contentsline {section}{\numberline {1.5}Organization of this document}{8}{section.1.5}
-\contentsline {chapter}{\numberline {2}Physical and numerical model}{9}{chapter.2}
-\contentsline {section}{\numberline {2.1}General}{9}{section.2.1}
-\contentsline {section}{\numberline {2.2}Governing equations}{9}{section.2.2}
-\contentsline {subsection}{\numberline {2.2.1}Field equations}{9}{subsection.2.2.1}
-\contentsline {subsection}{\numberline {2.2.2}Boundary conditions}{10}{subsection.2.2.2}
-\contentsline {subsubsection}{Solid boundary conditions}{10}{section*.2}
-\contentsline {subsubsection}{Free surface boundary conditions}{10}{section*.3}
-\contentsline {subsection}{\numberline {2.2.3}Initial conditions}{11}{subsection.2.2.3}
-\contentsline {section}{\numberline {2.3}SPH approximation}{11}{section.2.3}
-\contentsline {subsection}{\numberline {2.3.1}General}{11}{subsection.2.3.1}
-\contentsline {subsection}{\numberline {2.3.2}Continuous model}{12}{subsection.2.3.2}
-\contentsline {subsection}{\numberline {2.3.3}Discretized model}{13}{subsection.2.3.3}
-\contentsline {subsection}{\numberline {2.3.4}AQUAgpusph discretized operators used}{16}{subsection.2.3.4}
-\contentsline {subsection}{\numberline {2.3.5}Boundary conditions}{16}{subsection.2.3.5}
-\contentsline {subsubsection}{Free surface boundary conditions}{16}{section*.4}
-\contentsline {subsubsection}{Solid boundary conditions}{17}{section*.5}
-\contentsline {subsection}{\numberline {2.3.6}Initial condition}{17}{subsection.2.3.6}
-\contentsline {subsection}{\numberline {2.3.7}Time numerical integration}{18}{subsection.2.3.7}
-\contentsline {chapter}{\numberline {3}Install AQUAgpusph }{21}{chapter.3}
-\contentsline {section}{\numberline {3.1}General}{21}{section.3.1}
-\contentsline {section}{\numberline {3.2}Dependencies}{21}{section.3.2}
-\contentsline {section}{\numberline {3.3}Install}{22}{section.3.3}
-\contentsline {subsection}{\numberline {3.3.1}General}{22}{subsection.3.3.1}
-\contentsline {subsection}{\numberline {3.3.2}CMake configuration}{23}{subsection.3.3.2}
-\contentsline {subsection}{\numberline {3.3.3}CMake configuration with ccmake}{24}{subsection.3.3.3}
-\contentsline {subsection}{\numberline {3.3.4}Compilation}{24}{subsection.3.3.4}
-\contentsline {subsection}{\numberline {3.3.5}Install}{24}{subsection.3.3.5}
-\contentsline {chapter}{\numberline {4}Case setup options glossary}{25}{chapter.4}
-\contentsline {section}{\numberline {4.1}General}{25}{section.4.1}
-\contentsline {section}{\numberline {4.2}XML definition}{25}{section.4.2}
-\contentsline {subsection}{\numberline {4.2.1}General}{25}{subsection.4.2.1}
-\contentsline {subsection}{\numberline {4.2.2}Settings group}{25}{subsection.4.2.2}
-\contentsline {subsection}{\numberline {4.2.3}OpenCL}{26}{subsection.4.2.3}
-\contentsline {subsection}{\numberline {4.2.4}Timing group}{26}{subsection.4.2.4}
+\contentsline {chapter}{\numberline {2}Physical and numerical model}{11}{chapter.2}
+\contentsline {section}{\numberline {2.1}General}{11}{section.2.1}
+\contentsline {section}{\numberline {2.2}Governing equations}{11}{section.2.2}
+\contentsline {subsection}{\numberline {2.2.1}Field equations}{11}{subsection.2.2.1}
+\contentsline {subsection}{\numberline {2.2.2}Boundary conditions}{12}{subsection.2.2.2}
+\contentsline {subsubsection}{Solid boundary conditions}{12}{section*.2}
+\contentsline {subsubsection}{Free surface boundary conditions}{13}{section*.3}
+\contentsline {subsection}{\numberline {2.2.3}Initial conditions}{13}{subsection.2.2.3}
+\contentsline {section}{\numberline {2.3}SPH approximation}{13}{section.2.3}
+\contentsline {subsection}{\numberline {2.3.1}General}{13}{subsection.2.3.1}
+\contentsline {subsection}{\numberline {2.3.2}Continuous model}{14}{subsection.2.3.2}
+\contentsline {subsection}{\numberline {2.3.3}Discretized model}{15}{subsection.2.3.3}
+\contentsline {subsection}{\numberline {2.3.4}AQUAgpusph discretized operators used}{18}{subsection.2.3.4}
+\contentsline {subsection}{\numberline {2.3.5}Boundary conditions}{18}{subsection.2.3.5}
+\contentsline {subsubsection}{Free surface boundary conditions}{18}{section*.4}
+\contentsline {subsubsection}{Solid boundary conditions}{19}{section*.5}
+\contentsline {subsection}{\numberline {2.3.6}Initial condition}{19}{subsection.2.3.6}
+\contentsline {subsection}{\numberline {2.3.7}Time numerical integration}{20}{subsection.2.3.7}
+\contentsline {chapter}{\numberline {3}Install AQUAgpusph }{23}{chapter.3}
+\contentsline {section}{\numberline {3.1}General}{23}{section.3.1}
+\contentsline {section}{\numberline {3.2}Dependencies}{23}{section.3.2}
+\contentsline {section}{\numberline {3.3}Install}{24}{section.3.3}
+\contentsline {subsection}{\numberline {3.3.1}General}{24}{subsection.3.3.1}
+\contentsline {subsection}{\numberline {3.3.2}CMake configuration}{25}{subsection.3.3.2}
+\contentsline {subsection}{\numberline {3.3.3}CMake configuration with ccmake}{25}{subsection.3.3.3}
+\contentsline {subsection}{\numberline {3.3.4}Compilation}{26}{subsection.3.3.4}
+\contentsline {subsection}{\numberline {3.3.5}Install}{26}{subsection.3.3.5}
+\contentsline {chapter}{\numberline {4}Case setup options glossary}{27}{chapter.4}
+\contentsline {section}{\numberline {4.1}General}{27}{section.4.1}
+\contentsline {section}{\numberline {4.2}XML definition}{27}{section.4.2}
+\contentsline {subsection}{\numberline {4.2.1}General}{27}{subsection.4.2.1}
+\contentsline {subsection}{\numberline {4.2.2}Settings group}{27}{subsection.4.2.2}
+\contentsline {subsection}{\numberline {4.2.3}OpenCL}{28}{subsection.4.2.3}
+\contentsline {subsection}{\numberline {4.2.4}Timing group}{28}{subsection.4.2.4}
 \contentsline {subsection}{\numberline {4.2.5}SPH}{28}{subsection.4.2.5}
-\contentsline {subsection}{\numberline {4.2.6}Fluid}{30}{subsection.4.2.6}
-\contentsline {subsection}{\numberline {4.2.7}Sensors}{30}{subsection.4.2.7}
-\contentsline {subsection}{\numberline {4.2.8}Movements}{31}{subsection.4.2.8}
-\contentsline {subsection}{\numberline {4.2.9}GhostParticles}{31}{subsection.4.2.9}
-\contentsline {section}{\numberline {4.3}Particles distribution file}{32}{section.4.3}
-\contentsline {subsection}{\numberline {4.3.1}ASCII formatted file}{32}{subsection.4.3.1}
-\contentsline {subsection}{\numberline {4.3.2}GiD formatted file}{33}{subsection.4.3.2}
-\contentsline {subsection}{\numberline {4.3.3}XML formatted file}{34}{subsection.4.3.3}
-\contentsline {chapter}{\numberline {5}Running AQUAgpusph }{37}{chapter.5}
-\contentsline {section}{\numberline {5.1}Launching simulation}{37}{section.5.1}
-\contentsline {section}{\numberline {5.2}Tracking simulation}{37}{section.5.2}
-\contentsline {subsection}{\numberline {5.2.1}General}{37}{subsection.5.2.1}
-\contentsline {subsection}{\numberline {5.2.2}Screen log information}{38}{subsection.5.2.2}
-\contentsline {subsection}{\numberline {5.2.3}HTML log file}{39}{subsection.5.2.3}
-\contentsline {subsection}{\numberline {5.2.4}Messages glossary}{39}{subsection.5.2.4}
-\contentsline {subsubsection}{$[$ERROR$]$ VTK output called, but not supported:}{39}{section*.6}
-\contentsline {subsubsection}{$[$ERROR$]$ H5Part output called, but not supported:}{39}{section*.7}
-\contentsline {subsubsection}{$[$ERROR$]$ Can't send variable to kernel:}{39}{section*.8}
-\contentsline {subsubsection}{$[$ERROR$]$ Can't execute the kernel:}{40}{section*.9}
-\contentsline {subsubsection}{$[$ERROR$]$ Can't wait to kernels end:}{40}{section*.10}
-\contentsline {subsubsection}{$[$ERROR$]$ Can't profile kernel execution:}{40}{section*.11}
-\contentsline {subsubsection}{$[$ERROR$]$ Resultant keys overflows unsigned int type:}{40}{section*.12}
-\contentsline {subsubsection}{$[$ERROR$]$ perform() execution fail:}{40}{section*.13}
-\contentsline {subsubsection}{$[$ERROR$]$ perform() returned quaternion is not valid:}{40}{section*.14}
-\contentsline {subsubsection}{$[$ERROR$]$ Failure retrieving memory from server:}{41}{section*.15}
-\contentsline {subsubsection}{$[$ERROR$]$ Failure sending memory to server:}{41}{section*.16}
-\contentsline {subsubsection}{$[$ERROR$]$ Fail allocating memory for $array$ ($m$ bytes):}{41}{section*.17}
-\contentsline {subsubsection}{$[$ERROR$]$ timestep has dramaticaly decreased! [$dt_t$ -$>$ $dt_{t+dt}$]:}{41}{section*.18}
-\contentsline {subsubsection}{$[$WARNING$]$ timestep changed [$dt_t$ -$>$ $dt_{t+dt}$]:}{41}{section*.19}
-\contentsline {subsubsection}{$[$WARNING$]$ Number of cells increased [$n_t$ -$>$ $n_{t+dt}$]:}{41}{section*.20}
-\contentsline {subsubsection}{$[$INFO$]$ List too small, local memory usage will be avoided:}{42}{section*.21}
-\contentsline {subsubsection}{$[$INFO$]$ Interrumption detected:}{42}{section*.22}
-\contentsline {subsubsection}{$[$INFO$]$ Allocated memory = $m$ bytes:}{42}{section*.23}
-\contentsline {chapter}{\numberline {6}PostProcessing simulations}{43}{chapter.6}
-\contentsline {section}{\numberline {6.1}General}{43}{section.6.1}
-\contentsline {section}{\numberline {6.2}Energy data file}{43}{section.6.2}
-\contentsline {section}{\numberline {6.3}Bounds data file}{45}{section.6.3}
-\contentsline {section}{\numberline {6.4}Sensors data file}{46}{section.6.4}
-\contentsline {section}{\numberline {6.5}Visualization files}{46}{section.6.5}
-\contentsline {subsection}{\numberline {6.5.1}General}{46}{subsection.6.5.1}
-\contentsline {subsection}{\numberline {6.5.2}H5Part}{47}{subsection.6.5.2}
-\contentsline {chapter}{\numberline {7}AQUAgpusph in detail}{49}{chapter.7}
-\contentsline {section}{\numberline {7.1}General}{49}{section.7.1}
-\contentsline {section}{\numberline {7.2}Arguments manager}{49}{section.7.2}
-\contentsline {section}{\numberline {7.3}Problem setup}{50}{section.7.3}
-\contentsline {section}{\numberline {7.4}Leap-Frog integration scheme}{51}{section.7.4}
-\contentsline {section}{\numberline {7.5}Link-List}{51}{section.7.5}
-\contentsline {section}{\numberline {7.6}Particles interactions}{52}{section.7.6}
-\contentsline {subsection}{\numberline {7.6.1}Unsorted output arguments}{52}{subsection.7.6.1}
-\contentsline {subsection}{\numberline {7.6.2}Coalescence read}{53}{subsection.7.6.2}
-\contentsline {section}{\numberline {7.7}Boundary conditions}{53}{section.7.7}
-\contentsline {subsection}{\numberline {7.7.1}General}{53}{subsection.7.7.1}
-\contentsline {subsection}{\numberline {7.7.2}Elastic bounce}{54}{subsection.7.7.2}
-\contentsline {subsection}{\numberline {7.7.3}Fix particles}{55}{subsection.7.7.3}
-\contentsline {subsection}{\numberline {7.7.4}Boundary integrals, formerly `DeLeffe'}{56}{subsection.7.7.4}
-\contentsline {subsection}{\numberline {7.7.5}Ghost particles}{57}{subsection.7.7.5}
-\contentsline {section}{\numberline {7.8}Motions}{59}{section.7.8}
-\contentsline {subsection}{\numberline {7.8.1}General}{59}{subsection.7.8.1}
-\contentsline {subsection}{\numberline {7.8.2}Motion types}{59}{subsection.7.8.2}
-\contentsline {subsection}{\numberline {7.8.3}Computation methods}{60}{subsection.7.8.3}
-\contentsline {section}{\numberline {7.9}Sensors}{61}{section.7.9}
-\contentsline {chapter}{\numberline {8}Examples}{63}{chapter.8}
-\contentsline {section}{\numberline {8.1}General}{63}{section.8.1}
-\contentsline {section}{\numberline {8.2}Lateral water impact 1x, with De Leffe boundary condition}{63}{section.8.2}
-\contentsline {subsection}{\numberline {8.2.1}General}{63}{subsection.8.2.1}
-\contentsline {subsection}{\numberline {8.2.2}Case description}{64}{subsection.8.2.2}
-\contentsline {subsection}{\numberline {8.2.3}Creating folder and files}{64}{subsection.8.2.3}
-\contentsline {subsection}{\numberline {8.2.4}Setting physical model}{66}{subsection.8.2.4}
-\contentsline {subsubsection}{General}{66}{section*.24}
-\contentsline {subsubsection}{Equations to solve}{66}{section*.25}
-\contentsline {subsubsection}{Domain}{67}{section*.26}
-\contentsline {subsubsection}{Boundary conditions}{68}{section*.27}
-\contentsline {subsubsection}{Movements}{69}{section*.28}
-\contentsline {subsection}{\numberline {8.2.5}Spatial discretization}{70}{subsection.8.2.5}
-\contentsline {subsection}{\numberline {8.2.6}Time discretization}{73}{subsection.8.2.6}
-\contentsline {subsection}{\numberline {8.2.7}Output configuration}{74}{subsection.8.2.7}
-\contentsline {subsection}{\numberline {8.2.8}Other options}{75}{subsection.8.2.8}
-\contentsline {subsection}{\numberline {8.2.9}Main XML definition file}{75}{subsection.8.2.9}
-\contentsline {subsection}{\numberline {8.2.10}Run the simulation}{76}{subsection.8.2.10}
-\contentsline {subsection}{\numberline {8.2.11}Post-process the simulation}{76}{subsection.8.2.11}
-\contentsline {subsubsection}{General}{76}{section*.29}
-\contentsline {subsubsection}{Run rime post-process}{77}{section*.30}
-\contentsline {subsubsection}{Finished simulation post-process}{78}{section*.31}
-\contentsline {subsection}{\numberline {8.2.12}Conclusions}{79}{subsection.8.2.12}
-\contentsline {section}{\numberline {8.3}Lateral water impact 1x, with Ghost particles boundary condition}{83}{section.8.3}
-\contentsline {subsection}{\numberline {8.3.1}General}{83}{subsection.8.3.1}
-\contentsline {subsection}{\numberline {8.3.2}Case description}{83}{subsection.8.3.2}
-\contentsline {subsection}{\numberline {8.3.3}Settings changes required to modify the boundary condition}{83}{subsection.8.3.3}
-\contentsline {subsection}{\numberline {8.3.4}Running the example installed version}{84}{subsection.8.3.4}
-\contentsline {subsection}{\numberline {8.3.5}Post-process the simulation}{85}{subsection.8.3.5}
-\contentsline {subsection}{\numberline {8.3.6}Conclusions}{85}{subsection.8.3.6}
-\contentsline {chapter}{Bibliography}{90}{chapter*.32}
+\contentsline {subsection}{\numberline {4.2.6}Fluid}{32}{subsection.4.2.6}
+\contentsline {subsection}{\numberline {4.2.7}Sensors}{32}{subsection.4.2.7}
+\contentsline {subsection}{\numberline {4.2.8}Movements}{33}{subsection.4.2.8}
+\contentsline {subsection}{\numberline {4.2.9}GhostParticles}{33}{subsection.4.2.9}
+\contentsline {section}{\numberline {4.3}Particles distribution file}{34}{section.4.3}
+\contentsline {subsection}{\numberline {4.3.1}ASCII formatted file}{34}{subsection.4.3.1}
+\contentsline {subsection}{\numberline {4.3.2}GiD formatted file}{35}{subsection.4.3.2}
+\contentsline {subsection}{\numberline {4.3.3}XML formatted file}{36}{subsection.4.3.3}
+\contentsline {chapter}{\numberline {5}Running AQUAgpusph }{39}{chapter.5}
+\contentsline {section}{\numberline {5.1}Launching simulation}{39}{section.5.1}
+\contentsline {section}{\numberline {5.2}Tracking simulation}{39}{section.5.2}
+\contentsline {subsection}{\numberline {5.2.1}General}{39}{subsection.5.2.1}
+\contentsline {subsection}{\numberline {5.2.2}Screen log information}{40}{subsection.5.2.2}
+\contentsline {subsection}{\numberline {5.2.3}HTML log file}{41}{subsection.5.2.3}
+\contentsline {subsection}{\numberline {5.2.4}Messages glossary}{41}{subsection.5.2.4}
+\contentsline {subsubsection}{$[$ERROR$]$ VTK output called, but not supported:}{41}{section*.6}
+\contentsline {subsubsection}{$[$ERROR$]$ H5Part output called, but not supported:}{41}{section*.7}
+\contentsline {subsubsection}{$[$ERROR$]$ Can't send variable to kernel:}{41}{section*.8}
+\contentsline {subsubsection}{$[$ERROR$]$ Can't execute the kernel:}{42}{section*.9}
+\contentsline {subsubsection}{$[$ERROR$]$ Can't wait to kernels end:}{42}{section*.10}
+\contentsline {subsubsection}{$[$ERROR$]$ Can't profile kernel execution:}{42}{section*.11}
+\contentsline {subsubsection}{$[$ERROR$]$ Resultant keys overflows unsigned int type:}{42}{section*.12}
+\contentsline {subsubsection}{$[$ERROR$]$ perform() execution fail:}{42}{section*.13}
+\contentsline {subsubsection}{$[$ERROR$]$ perform() returned quaternion is not valid:}{42}{section*.14}
+\contentsline {subsubsection}{$[$ERROR$]$ Failure retrieving memory from server:}{43}{section*.15}
+\contentsline {subsubsection}{$[$ERROR$]$ Failure sending memory to server:}{43}{section*.16}
+\contentsline {subsubsection}{$[$ERROR$]$ Fail allocating memory for $array$ ($m$ bytes):}{43}{section*.17}
+\contentsline {subsubsection}{$[$ERROR$]$ timestep has dramaticaly decreased! [$dt_t$ -$>$ $dt_{t+dt}$]:}{43}{section*.18}
+\contentsline {subsubsection}{$[$WARNING$]$ timestep changed [$dt_t$ -$>$ $dt_{t+dt}$]:}{43}{section*.19}
+\contentsline {subsubsection}{$[$WARNING$]$ Number of cells increased [$n_t$ -$>$ $n_{t+dt}$]:}{43}{section*.20}
+\contentsline {subsubsection}{$[$INFO$]$ List too small, local memory usage will be avoided:}{44}{section*.21}
+\contentsline {subsubsection}{$[$INFO$]$ Interrumption detected:}{44}{section*.22}
+\contentsline {subsubsection}{$[$INFO$]$ Allocated memory = $m$ bytes:}{44}{section*.23}
+\contentsline {chapter}{\numberline {6}PostProcessing simulations}{45}{chapter.6}
+\contentsline {section}{\numberline {6.1}General}{45}{section.6.1}
+\contentsline {section}{\numberline {6.2}Energy data file}{45}{section.6.2}
+\contentsline {section}{\numberline {6.3}Bounds data file}{47}{section.6.3}
+\contentsline {section}{\numberline {6.4}Sensors data file}{48}{section.6.4}
+\contentsline {section}{\numberline {6.5}Visualization files}{48}{section.6.5}
+\contentsline {subsection}{\numberline {6.5.1}General}{48}{subsection.6.5.1}
+\contentsline {subsection}{\numberline {6.5.2}H5Part}{49}{subsection.6.5.2}
+\contentsline {chapter}{\numberline {7}AQUAgpusph in detail}{51}{chapter.7}
+\contentsline {section}{\numberline {7.1}General}{51}{section.7.1}
+\contentsline {section}{\numberline {7.2}Arguments manager}{51}{section.7.2}
+\contentsline {section}{\numberline {7.3}Problem setup}{52}{section.7.3}
+\contentsline {section}{\numberline {7.4}Leap-Frog integration scheme}{53}{section.7.4}
+\contentsline {section}{\numberline {7.5}Link-List}{53}{section.7.5}
+\contentsline {section}{\numberline {7.6}Particles interactions}{54}{section.7.6}
+\contentsline {subsection}{\numberline {7.6.1}Unsorted output arguments}{54}{subsection.7.6.1}
+\contentsline {subsection}{\numberline {7.6.2}Coalescence read}{55}{subsection.7.6.2}
+\contentsline {section}{\numberline {7.7}Boundary conditions}{55}{section.7.7}
+\contentsline {subsection}{\numberline {7.7.1}General}{55}{subsection.7.7.1}
+\contentsline {subsection}{\numberline {7.7.2}Elastic bounce}{56}{subsection.7.7.2}
+\contentsline {subsection}{\numberline {7.7.3}Fix particles}{57}{subsection.7.7.3}
+\contentsline {subsection}{\numberline {7.7.4}Boundary integrals, formerly `DeLeffe'}{58}{subsection.7.7.4}
+\contentsline {subsection}{\numberline {7.7.5}Ghost particles}{59}{subsection.7.7.5}
+\contentsline {section}{\numberline {7.8}Motions}{61}{section.7.8}
+\contentsline {subsection}{\numberline {7.8.1}General}{61}{subsection.7.8.1}
+\contentsline {subsection}{\numberline {7.8.2}Motion types}{61}{subsection.7.8.2}
+\contentsline {subsection}{\numberline {7.8.3}Computation methods}{62}{subsection.7.8.3}
+\contentsline {section}{\numberline {7.9}Sensors}{63}{section.7.9}
+\contentsline {chapter}{\numberline {8}Examples}{65}{chapter.8}
+\contentsline {section}{\numberline {8.1}General}{65}{section.8.1}
+\contentsline {section}{\numberline {8.2}Lateral water impact 1x, with De Leffe boundary condition}{65}{section.8.2}
+\contentsline {subsection}{\numberline {8.2.1}General}{65}{subsection.8.2.1}
+\contentsline {subsection}{\numberline {8.2.2}Case description}{66}{subsection.8.2.2}
+\contentsline {subsection}{\numberline {8.2.3}Creating folder and files}{66}{subsection.8.2.3}
+\contentsline {subsection}{\numberline {8.2.4}Setting physical model}{68}{subsection.8.2.4}
+\contentsline {subsubsection}{General}{68}{section*.24}
+\contentsline {subsubsection}{Equations to solve}{68}{section*.25}
+\contentsline {subsubsection}{Domain}{69}{section*.26}
+\contentsline {subsubsection}{Boundary conditions}{70}{section*.27}
+\contentsline {subsubsection}{Movements}{71}{section*.28}
+\contentsline {subsection}{\numberline {8.2.5}Spatial discretization}{72}{subsection.8.2.5}
+\contentsline {subsection}{\numberline {8.2.6}Time discretization}{75}{subsection.8.2.6}
+\contentsline {subsection}{\numberline {8.2.7}Output configuration}{76}{subsection.8.2.7}
+\contentsline {subsection}{\numberline {8.2.8}Other options}{77}{subsection.8.2.8}
+\contentsline {subsection}{\numberline {8.2.9}Main XML definition file}{77}{subsection.8.2.9}
+\contentsline {subsection}{\numberline {8.2.10}Run the simulation}{78}{subsection.8.2.10}
+\contentsline {subsection}{\numberline {8.2.11}Post-process the simulation}{78}{subsection.8.2.11}
+\contentsline {subsubsection}{General}{78}{section*.29}
+\contentsline {subsubsection}{Run rime post-process}{79}{section*.30}
+\contentsline {subsubsection}{Finished simulation post-process}{80}{section*.31}
+\contentsline {subsection}{\numberline {8.2.12}Conclusions}{81}{subsection.8.2.12}
+\contentsline {section}{\numberline {8.3}Lateral water impact 1x, with Ghost particles boundary condition}{85}{section.8.3}
+\contentsline {subsection}{\numberline {8.3.1}General}{85}{subsection.8.3.1}
+\contentsline {subsection}{\numberline {8.3.2}Case description}{85}{subsection.8.3.2}
+\contentsline {subsection}{\numberline {8.3.3}Settings changes required to modify the boundary condition}{85}{subsection.8.3.3}
+\contentsline {subsection}{\numberline {8.3.4}Running the example installed version}{86}{subsection.8.3.4}
+\contentsline {subsection}{\numberline {8.3.5}Post-process the simulation}{87}{subsection.8.3.5}
+\contentsline {subsection}{\numberline {8.3.6}Conclusions}{87}{subsection.8.3.6}
+\contentsline {chapter}{Bibliography}{92}{chapter*.32}
