@@ -73,7 +73,7 @@ INSTALL(
 )
 INSTALL(
     FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012/Move/T_1-94_A100mm_water.txt
+        ${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012/Move/T_1-94_A100mm_water.dat
     DESTINATION
         ${EXAMPLE_DEST_DIR}/Move
 )
@@ -515,12 +515,12 @@ INSTALL(
 )
 INSTALL(
     FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/sensor1.gnuplot
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/sensor2.gnuplot
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/sensor3.gnuplot
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/sensor4.gnuplot
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/sensors.gnuplot
-        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/x.gnuplot
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/sensor1.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/sensor2.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/sensor3.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/sensor4.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/sensors.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/performance.py
         ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/Fig12_01_ETSIN_Front_Dressler_Martin_2.dat
         ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/Fig12_01_ETSIN_Front_Dressler_Martin_3.dat
         ${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/doc/Fig12_01_ETSIN_Front_Dressler_Martin_4.dat
