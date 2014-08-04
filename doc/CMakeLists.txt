@@ -31,7 +31,7 @@ SET(DOXYGEN_IMAGE_PATH )
 SET(DOXYGEN_LAYOUT_FILE )
 
 # Configuration file
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in  
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/Doxyfile.in  
 	${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 
 # ===================================================== #
