@@ -3,6 +3,10 @@ __v-1.5.02_____________________________________________________________________
 	* Fixed the examples installation.
 	* Fixed the documentation building script.
 	* Updated the documentation.
+	* Added a files map genrator for the user manual.
+	* Hidden the cmake Doxygen file.
+    * Fixed the lobovsky_etal_jfs_2014 example (bounds files clearing and
+      performance plot)
 
 __v-1.5.01_____________________________________________________________________
 
