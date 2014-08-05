@@ -20,6 +20,7 @@
 #########################################################
 
 import sys
+import os
 try:
 	from PyQt4 import QtGui
 except:
@@ -34,7 +35,11 @@ except:
 	sys.exit(255)
 
 # Log file path
-log_path = "Log.html"
+log_id = 0
+log_path = 'log.{}.html'.format(log_id)
+while os.path.isfile('log.{}.html'.format(log_id + 1)):
+    log_id += 1
+    log_path = 'log.{}.html'.format(log_id)
 
 class FigureController(FigureCanvas):
 	"""Matplotlib figure widget controller"""

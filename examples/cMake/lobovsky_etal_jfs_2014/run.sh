@@ -4,6 +4,7 @@ if [[ $1 == "--run" ]]; then
 	rm -f Sensors.dat
     rm -f AQUAgpusph.save.*.xml
     rm -f energy.*.dat
+    rm -f bounds.*.dat
     rm -f log.*.html
     rm -f output.*.vtu
     rm -f output.pvd
@@ -29,9 +30,9 @@ elif [[ $1 == "--plot" ]]; then
 	fi
 	python @EXAMPLE_DEST_DIR@/doc/$2.py
 elif [[ $1 == "--performance" ]]; then
-	if [ ! -f Log.html ]; then
+	if [ ! -f log.0.html ]; then
 		echo ""
-		echo "Failure while opening Log.html output file"
+		echo "Failure while opening log.0.html output file"
 		echo ""
 		echo " * You must execute run.sh --performance on the same folder where run.sh --run has been launched"
 		echo " * AQUAgpusph may take some time before generate this file"
