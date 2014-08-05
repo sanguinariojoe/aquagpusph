@@ -15,6 +15,8 @@
 \graphicspath{{./images/}}
 \usepackage{txfonts}   %%does not work on Windows
 \usepackage{dsfont}
+\usepackage[toc,page]{appendix}
+\usepackage{dirtree}
 %
 \newcommand{\NAME}{AQUAgpusph }
 \newcommand{\VERSION}{1.5.02 }
@@ -32,9 +34,10 @@
 \newcommand{\sph}[1]{\langle {#1} \rangle}
 %
 \author{JL Cercos-Pita $<$jl.cercos@upm.es$>$}
-\title{\NAME- \VERSION.\rcc
+\title{\vspace{-2em}
+\NAME- \VERSION.\rcc
 \textbf{Users guide}}
-\date{\today\\[5.0 in]
+\date{\today\\[4.0 in]
 \begin{figure}[h!]
   \centering
   \includegraphics[width=0.2\textwidth]{CC_88x31}
@@ -43,8 +46,9 @@
 %
 \setlength{\parindent}{0em}
 %
-\usepackage{anysize}
-\marginsize{1.5cm}{1cm}{1cm}{1cm}
+% \usepackage{anysize}
+% \marginsize{1.5cm}{1cm}{1cm}{1cm}
+\usepackage[a4paper,inner=1.5cm,outer=1.5cm]{geometry}
 %
 \usepackage{fancyhdr}
 \pagestyle{fancyplain}
@@ -127,6 +131,13 @@ section. In this user manual, the visualization using paraview will be explained
 % Examples
 % -------------------------------
 \input{examples}
+
+% -------------------------------
+% Directory tree
+% -------------------------------
+\begin{appendices}
+\input{directory_tree}
+\end{appendices}
 
 % -------------------------------
 % Bibliography

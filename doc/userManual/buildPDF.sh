@@ -7,6 +7,7 @@
 # Plot some images
 gnuplot images/lateral_water_1x_deleffe/lateral_water_1x.gnuplot
 python images/wendland/wendland2D.py
+python images/tree/tree.py > tree_py.tex
 
 # Compile
 pdflatex -interaction=nonstopmode main.tex
