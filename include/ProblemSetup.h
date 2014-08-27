@@ -400,7 +400,7 @@ public:
 	    float elastic_dist;
 
 	    /** 0th order correction (formerly Shepard correction)
-	     * \f$ \gamma(\mathbf{x}) = \int_{Omega}
+	     * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
 	     *     W(\mathbf{y} - \mathbf{x})
 	     *     \mathrm{d}\mathbf{x} \f$.
 	     * Must be one of the following values:
