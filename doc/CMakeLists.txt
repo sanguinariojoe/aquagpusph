@@ -4,19 +4,7 @@
 # Included source directories
 SET(DOXYGEN_SOURCE_DIR 
 	${CMAKE_SOURCE_DIR}/src
-	${CMAKE_SOURCE_DIR}/src/CalcServer
-	${CMAKE_SOURCE_DIR}/src/CalcServer/Boundary
-	${CMAKE_SOURCE_DIR}/src/CalcServer/Movements
-	${CMAKE_SOURCE_DIR}/src/CalcServer/Portal
-	${CMAKE_SOURCE_DIR}/src/Input
-	${CMAKE_SOURCE_DIR}/src/Tokenizer
 	${CMAKE_SOURCE_DIR}/include
-	${CMAKE_SOURCE_DIR}/include/CalcServer
-	${CMAKE_SOURCE_DIR}/include/CalcServer/Boundary
-	${CMAKE_SOURCE_DIR}/include/CalcServer/Movements
-	${CMAKE_SOURCE_DIR}/include/CalcServer/Portal
-	${CMAKE_SOURCE_DIR}/include/Input
-	${CMAKE_SOURCE_DIR}/include/Tokenizer
 )
 STRING(REGEX REPLACE ";" " " DOXYGEN_INPUT_LIST "${DOXYGEN_SOURCE_DIR}")
 
