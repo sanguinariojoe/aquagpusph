@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Run time input options manager.
+ * (See Aqua::InputOutput::ArgumentsManager for details)
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
