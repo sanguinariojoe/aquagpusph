@@ -16,6 +16,10 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Set of auxiliar functions.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -99,11 +103,11 @@ size_t loadKernelFromFile(cl_kernel* kernel, cl_program* program,
 	InputOutput::ProblemSetup* problemSetup = InputOutput::ProblemSetup::singleton();
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 
-	// Allocate the required memory for the source code
+	// Allocate the required memory to read the source code
 	source_length = readFile(NULL, path);
 	if(!source_length)
 	    return 0;
-	source = new char[source_length+1];
+	source = new char[source_length + 1];
 	if(!source) {
 	    S->addMessageF(3, "Imposible to allocate memory on host for the source code.\n");
 	    return 0;
