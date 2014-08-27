@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Run time input options manager.
+ * (See Aqua::InputOutput::ArgumentsManager for details)
+ */
+
 #ifndef ARGUMENTSMANAGER_H_INCLUDED
 #define ARGUMENTSMANAGER_H_INCLUDED
 
@@ -24,8 +29,14 @@
 
 namespace Aqua{ namespace InputOutput{
 
-/** \class ArgumentsManager ArgumentsManager.h ArgumentsManager.h
- * Input terminal options and parameters manager.
+/** @class ArgumentsManager ArgumentsManager.h ArgumentsManager.h
+ * Input terminal options and parameters manager. The currently valid options
+ * are:
+ *   -# -i, --input=INPUT            XML definition input file (Input.xml as default value)
+ *   -# -v, --version                Show the AQUAgpusph version
+ *   -# -h, --help                   Show this help page
+ * You can call "AQUAgpusph --help" command to see the updated list of
+ * available options.
  */
 class ArgumentsManager : public Aqua::Singleton<Aqua::InputOutput::ArgumentsManager>
 {
@@ -40,31 +51,31 @@ public:
 	 */
 	~ArgumentsManager();
 
-    /** Parse the runtime arguments.
+    /** Parse the runtime options.
      * @return false if the excution must continue, true otherwise.
      */
     bool parse();
 
 	/** Display the program usage.
-	 * The program usage must be shown if the user has requested help, or if
-	 * wrong/insufficient arguments have been passed.
+	 * The program usage is shown weather the user has requested help, or
+     * wrong/insufficient options have been used.
 	 */
 	void displayUsage();
 
-	/** Get the number of run arguments.
-	 * @return Number of run arguments.
+	/** Get the number of runtime options.
+	 * @return Number of runtime options.
 	 */
 	int argc(){return _argc;}
 
-	/** Get the run arguments array.
-	 * @return Run arguments.
+	/** Get the runtime options list.
+	 * @return Runtime passed options.
 	 */
 	char** argv(){return _argv;}
 
 private:
-	/// Arguments number
+	/// Number of runtime options
 	int _argc;
-	/// Arguments array
+	/// List of runtime options
 	char** _argv;
 
 

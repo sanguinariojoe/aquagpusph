@@ -31,7 +31,7 @@
 #include <InputOutput/Particles.h>
 
 namespace Aqua{
-/// @namespace InputOutput Input/Output interfaces.
+/// @namespace Aqua::InputOutput Input/Output data interfaces.
 namespace InputOutput{
 
 /** \class FileManager FileManager.h FileManager.h
