@@ -46,17 +46,17 @@ namespace Aqua{ namespace InputOutput{
 class ArgumentsManager : public Aqua::Singleton<Aqua::InputOutput::ArgumentsManager>
 {
 public:
-    /** @brief Costructor.
+    /** Costructor.
      * @param argc Number of run arguments
      * @param argv Array of run arguments
      */
     ArgumentsManager(int argc, char **argv);
 
-    /** @brief Destructor.
+    /** Destructor.
      */
     ~ArgumentsManager();
 
-    /** @brief Parse the runtime options.
+    /** Parse the runtime options.
      * @return false if the excution must continue, true otherwise.
      */
     bool parse();
@@ -68,12 +68,12 @@ public:
      */
     void displayUsage();
 
-    /** @brief Get the number of runtime options.
+    /** Get the number of runtime options.
      * @return Number of runtime options.
      */
     int argc(){return _argc;}
 
-    /** @brief Get the runtime options list.
+    /** Get the runtime options list.
      * @return Runtime passed options.
      */
     char** argv(){return _argv;}
