@@ -71,6 +71,7 @@ public:
     /** Get the number of particles in this fluid.
      *
      * @return Number of particles.
+     * @see n()
      */
     unsigned int nParticles(){return n();}
 
