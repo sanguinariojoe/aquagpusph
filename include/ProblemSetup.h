@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Simulation configuration data structures.
+ * (See Aqua::InputOutput::ProblemSetup for details)
+ */
+
 #ifndef PROBLEMSETUP_H_INCLUDED
 #define PROBLEMSETUP_H_INCLUDED
 
@@ -78,14 +83,8 @@
  */
 #define __DT_FIX__ 2
 
-// ----------------------------------------------------------------------------
-// Include Prerequisites
-// ----------------------------------------------------------------------------
 #include <sphPrerequisites.h>
 
-// ----------------------------------------------------------------------------
-// Include standar libraries
-// ----------------------------------------------------------------------------
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -93,554 +92,734 @@
 #include <vector>
 #include <deque>
 
-// ----------------------------------------------------------------------------
-// Include OpenCL libraries
-// ----------------------------------------------------------------------------
 #include <CL/cl.h>
 
-// ----------------------------------------------------------------------------
-// Include Singleton abstract class
-// ----------------------------------------------------------------------------
 #include <Singleton.h>
 
 namespace Aqua{ namespace InputOutput{
 
-/** \class ProblemSetup ProblemSetup.h ProblemSetup.h
- *  Storing class filled with problem parameters (input, output, SPH, ...)
+/** @class ProblemSetup ProblemSetup.h ProblemSetup.h
+ * @brief Simulation configuration data.
+ *
+ * All the XML input configuration files should have the following form:
+ * @code{.xml}
+    <?xml version="1.0" ?>
+    <sphInput>
+        ...
+    </sphInput>
+ * @endcode
+ * Where `"..."` is the configuration data.
+ *
+ * See the user manual chapter 4.
+ *
+ * @see Aqua::InputOutput::State
  */
 class ProblemSetup : public Aqua::Singleton<Aqua::InputOutput::ProblemSetup>
 {
 public:
-	/** Constructor.
-	 */
-	ProblemSetup();
+    /** Constructor.
+     *
+     * In this method some initial values will be assigned, however it is
+     * expected that Aqua::InputOutput::FileManager is overwritting them.
+     *
+     * perform() method should be called after Aqua::InputOutput::FileManager
+     * was setup the simulation configuration data.
+     */
+    ProblemSetup();
 
-	/** Destructor.
-	 */
-	~ProblemSetup();
+    /** Destructor.
+     */
+    ~ProblemSetup();
 
-	/** Method to call when all input has been parsed
-	 * return false if all gone right.\n true otherwise.
-	 */
-	bool perform();
+    /** Compute the kernel length \f$ h \f$ and the corrected dynamic viscosity
+     * \f$ \mu \f$ (due to the artificial viscosity factor \f$ \alpha \f$).
+     *
+     * This method must be called after Aqua::InputOutput::FileManager was set
+     * the simulation cofiguration.
+     *
+     * @return false if all gone right, true otherwise.
+     */
+    bool perform();
 
-	/** \struct sphSettings
-	 * Struct that stores general
-	 * settings of the program.
-	 */
-	struct sphSettings
-	{
-		/** Se5t the default values
-		 */
-		void init();
-		/** Clear the allocated memory
-		 */
-		void destroy();
+    /** @struct sphSettings
+     * General program settings.
+     *
+     * These setting are set between the following XML tags:
+     * @code{.xml}
+        <Settings>
+        </Settings>
+     * @endcode
+     *
+     * @see Aqua::InputOutput::ProblemSetup
+     */
+    struct sphSettings
+    {
+        /** Constructor.
+         */
+        void init();
+        /** Destructor
+         */
+        void destroy();
 
-	    /** Verbose level:
+        /** Verbose level:
          *   - 2 = Slowest alternative, prints relevant data every timestep.
-         *   - 1 = Prints relevant data every frame (Default value).
+         *   - 1 = Prints relevant data every frame (i.e. when output data
+         *     files are updated).
          *   - 0 = Fastest alternative, prints minimum data.
-	     */
-	    int verbose_level;
+         *
+         * This field can be set with the tag `Verbose`, for instance:
+         * `<Verbose level="1" />`
+         */
+        int verbose_level;
 
-	    /// Identifier of the OpenCL platform to use.
-	    unsigned int platform_id;
+        /** Index of the OpenCL platform to use.
+         *
+         * AQUAgpusph is providing the available OpenCL platforms, and the
+         * devices into them.
+         *
+         * This field can be set with the tag `Device`, for instance:
+         * `<Device platform="0" device="0" type="GPU" />`
+         */
+        unsigned int platform_id;
 
-	    /// Identifier of the OpenCL device inside the platform.
-	    unsigned int device_id;
+        /** Index of the OpenCL device to use in the platform #platform_id.
+         *
+         * AQUAgpusph is providing the available OpenCL platforms, and the
+         * devices into them.
+         *
+         * This field can be set with the tag `Device`, for instance:
+         * `<Device platform="0" device="0" type="GPU" />`
+         *
+         * @remarks The index of the device is refered to the available ones
+         * compatibles with the selected type #device_type.
+         */
+        unsigned int device_id;
 
-	    /// Type of device allowed
-	    cl_device_type device_type;
-	}settings;
+        /** Type of devices that will be considered in the platform
+         * #platform_id.
+         *
+         * This field can be set with the tag `Device`, for instance:
+         * `<Device platform="0" device="0" type="GPU" />`
+         *
+         * @see #device_id.
+         */
+        cl_device_type device_type;
+    }settings;
 
-	/** \struct sphOpenCLKernels
-	 * Data structure used to store the kernel file paths.
-	 */
-	struct sphOpenCLKernels
-	{
-		/** Init the kernel paths.
-		 */
-		void init();
-		/** Delete the kernel paths.
-		 */
-		void destroy();
+    /** @struct sphOpenCLKernels
+     * OpenCL kernels source code files that should be loaded for each tool of
+     * Aqua::CalcServer::CalcServer.
+     *
+     * These setting are set between the following XML tags:
+     * @code{.xml}
+        <OpenCL>
+        </OpenCL>
+     * @endcode
+     *
+     * @note AQUAgpusph provide the file OpenCLMain.xml in the folder resources
+     * that will select a set of kernels that should be enough for the almost
+     * simulations.
+     * @see Aqua::InputOutput::ProblemSetup
+     */
+    struct sphOpenCLKernels
+    {
+        /** Constructor.
+         */
+        void init();
+        /** Destructor.
+         */
+        void destroy();
 
-	    /// Predictor
-		char *predictor;
-	    /// LinkList
-		char *link_list;
-	    /// Permutate
-		char *permutate;
-	    /// Rates
-		char *rates;
-	    /// Corrector
-		char *corrector;
-	    /// TimeStep
-		char *time_step;
+        /** Predictor time integration stage.
+         *
+         * This field can be set with the tag `Predictor`, for instance:
+         * `<Predictor file="OpenCL/Predictor" />`
+         *
+         * @note The `.cl` extension will be automatically added.
+         */
+        char *predictor;
+        /** Particles data permutation using the #radix_sort data.
+         *
+         * This field can be set with the tag `Permutate`, for instance:
+         * `<Permutate file="OpenCL/Permutate" />`
+         *
+         * @note The `.cl` extension will be automatically added.
+         */
+        char *link_list;
+        /** LinkList computation.
+         *
+         * This field can be set with the tag `LinkList`, for instance:
+         * `<LinkList file="OpenCL/LinkList" />`
+         *
+         * @note The `.cl` extension will be automatically added.
+         */
+        char *permutate;
+        /** Fluid particles interactions.
+         *
+         * This field can be set with the tag `Rates`, for instance:
+         * `<Rates file="OpenCL/Rates" />`
+         *
+         * @note The `.cl` extension will be automatically added.
+         */
+        char *rates;
+        /** Corrector time integration stage.
+         *
+         * This field can be set with the tag `Corrector`, for instance:
+         * `<Corrector file="OpenCL/Corrector" />`
+         *
+         * @note The `.cl` extension will be automatically added.
+         */
+        char *corrector;
+        /** Time step computation.
+         *
+         * This field can be set with the tag `TimeStep`, for instance:
+         * `<TimeStep file="OpenCL/TimeStep" />`
+         *
+         * @note The `.cl` extension will be automatically added.
+         */
+        char *time_step;
 
-	    // Non specific tools
-	    /// Reductions (It can be used for prefix sums, to compute the max, ...)
-		char *reduction;
-	    /// Radix sort
-		char *radix_sort;
+        /** Reduction, i.e. Prefix sums, maximum/minimum value, etc...
+         *
+         * This field can be set with the tag `Reduction`, for instance:
+         * `<Reduction file="OpenCL/Reduction" />`
+         *
+         * @note The `.cl` extension will be automatically added.
+         */
+        char *reduction;
+        /** RadixSort, i.e. Particles sort by the cell index.
+         *
+         * This field can be set with the tag `RadixSort`, for instance:
+         * `<RadixSort file="OpenCL/RadixSort" />`
+         *
+         * @note The `.cl` extension will be automatically added.
+         */
+        char *radix_sort;
 
-		// Optional tools
-	    /// Density interpolation (formerly density reinitialization)
-		char *dens_int;
-	    /// 0th order correction
-		char *shepard;
-	    /// Elastic Bounce boundary condition
-		char *elastic_bounce;
-	    /// DeLeffe boundary condition (formerly Boundary Integrals method)
-		char *de_Leffe;
-	    /// Ghost particles boundary condition
-		char *ghost;
-	    /// Torque calculation
-		char *torque;
-	    /// Energies calculation
-		char *energy;
-	    /// Bounds calculation
-		char *bounds;
-	    /// Domain test (to exclude particles out of it)
-		char *domain;
-	    /// Particles teleporting models
-		char *portal;
-	}OpenCL_kernels;
+        /** Density interpolation (formerly density reinitialization).
+         *
+         * The density reinitialization imply that the density resulting from
+         * the mass conservation equation is replaced by \f$ \rho(\mathbf{x}) =
+           \int_{\Omega} \rho(\mathbf{y}) W(\mathbf{y} - \mathbf{x})
+           \mathrm{d}\mathbf{x} \f$
+         *
+         * This field can be set with the tag `DensInterpolation`, for instance:
+         * `<DensInterpolation file="OpenCL/DensInterpolation" />`
+         *
+         * @note The `.cl` extension will be automatically added.
+         */
+        char *dens_int;
+        /** 0th order correction (formerly Shepard correction).
+         *
+         * The resulting variation rates will be renormalized dividing by the
+         * Shepard factor \f$ \gamma(\mathbf{x}) = \int_{\Omega} 
+           W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{x} \f$, such that 0th
+         * order fields will be consistently computed.
+         *
+         * This field can be set with the tag `Shepard`, for instance:
+         * `<Shepard file="OpenCL/Shepard" />`
+         *
+         * @note The `.cl` extension will be automatically added.
+         */
+        char *shepard;
+        /** Simplest boundary condition consisting in a elastic bounce.
+         *
+         * This field can be set with the tag `ElasticBounce`, for instance:
+         * `<ElasticBounce file="OpenCL/ElasticBounce" />`
+         *
+         * @note The `.cl` extension will be automatically added.
+         */
+        char *elastic_bounce;
+        /** Boundary integrals based boundary condition.
+         *
+         * This field can be set with the tag `DeLeffe`, for instance:
+         * `<DeLeffe file="OpenCL/DeLeffe" />`
+         *
+         * @note The `.cl` extension will be automatically added.
+         */
+        char *de_Leffe;
+        /** Ghost particles based boundary condition.
+         *
+         * This field can be set with the tag `GhostParticles`, for instance:
+         * `<GhostParticles file="OpenCL/GhostParticles" />`
+         *
+         * @note The `.cl` extension will be automatically added.
+         */
+        char *ghost;
+        /** Forces and moments of the fluid.
+         *
+         * This field can be set with the tag `Torque`, for instance:
+         * `<Torque file="OpenCL/Torque" />`
+         *
+         * @note The `.cl` extension will be automatically added.
+         */
+        char *torque;
+        /** Energy of the fluid.
+         *
+         * This field can be set with the tag `Energy`, for instance:
+         * `<Energy file="OpenCL/Energy" />`
+         *
+         * @note The `.cl` extension will be automatically added.
+         */
+        char *energy;
+        /** Fluid bound box, and minimum and maximum velocities.
+         *
+         * This field can be set with the tag `Bounds`, for instance:
+         * `<Bounds file="OpenCL/Bounds" />`
+         *
+         * @note The `.cl` extension will be automatically added.
+         */
+        char *bounds;
+        /** Domain check in order to exclude the particles far away.
+         *
+         * Particles running far away may break the simulations due to the
+         * increasing number of cells, so it is strongly recommended to set
+         * a domain to destroy the problematic particles.
+         *
+         * This field can be set with the tag `Domain`, for instance:
+         * `<Domain file="OpenCL/Domain" />`
+         *
+         * @note The `.cl` extension will be automatically added.
+         */
+        char *domain;
+        /** Deprecated field.
+         */
+        char *portal;
+    }OpenCL_kernels;
 
-	/** \struct sphTimingParameters
-	 * Data structure used to store the time control options.
-	 */
-	struct sphTimingParameters
-	{
-	    /** Starting time.
-	     * @note If a negative value is provided a stabilization period will
-	     * be performed.
-	     * @note During the stabilization stage motions will not be computed,
-	     * and particles velocity will be vanished (infinite viscosity model).
-	     */
-	    float t0;
+    /** \struct sphTimingParameters
+     * Data structure used to store the time control options.
+     */
+    struct sphTimingParameters
+    {
+        /** Starting time.
+         * @note If a negative value is provided a stabilization period will
+         * be performed.
+         * @note During the stabilization stage motions will not be computed,
+         * and particles velocity will be vanished (infinite viscosity model).
+         */
+        float t0;
 
-	    /** Starting time step.
-	     * @remarks The starting time step is designed just for the previous
-	     * simulations continuation.
-	     */
-	    float dt0;
+        /** Starting time step.
+         * @remarks The starting time step is designed just for the previous
+         * simulations continuation.
+         */
+        float dt0;
 
-	    /** Starting step.
-	     * @remarks The starting step is designed just for the previous
-	     * simulations continuation.
-	     */
-	    unsigned int step0;
+        /** Starting step.
+         * @remarks The starting step is designed just for the previous
+         * simulations continuation.
+         */
+        unsigned int step0;
 
-	    /** Starting frame.
-	     * @remarks The starting frame is designed just for the previous
-	     * simulations continuation.
-	     */
-	    unsigned int frame0;
+        /** Starting frame.
+         * @remarks The starting frame is designed just for the previous
+         * simulations continuation.
+         */
+        unsigned int frame0;
 
-	    /// Provided by user time step \f$ \Delta t \f$.
-	    float dt;
+        /// Provided by user time step \f$ \Delta t \f$.
+        float dt;
 
-	    /// Minimum time step allowed.
-	    float dt_min;
+        /// Minimum time step allowed.
+        float dt_min;
 
-		/// Courant factor.
-		float courant;
+        /// Courant factor.
+        float courant;
 
-	    /** If a minimum time step is set, it can be additionally forced to
-	     * clamp the particles velocity to preserve the Courant factor.
-	     */
-	    bool velocity_clamp;
+        /** If a minimum time step is set, it can be additionally forced to
+         * clamp the particles velocity to preserve the Courant factor.
+         */
+        bool velocity_clamp;
 
-		/** Type of criteria to know when the simulation has finished.
-		 * @remarks Must a combination of the following options:
-		 * - __TIME_MODE__ : Maximum simulated time.
-		 * - __ITER_MODE__ : Maximum number os time steps.
-		 * - __FRAME_MODE__ : Maximum number of output frames printed.
-		 * @warning If any simulation stop cirteria is selected, the simulation
-		 * will not stop
-		 */
-		unsigned int sim_end_mode;
+        /** Type of criteria to know when the simulation has finished.
+         * @remarks Must a combination of the following options:
+         * - __TIME_MODE__ : Maximum simulated time.
+         * - __ITER_MODE__ : Maximum number os time steps.
+         * - __FRAME_MODE__ : Maximum number of output frames printed.
+         * @warning If any simulation stop cirteria is selected, the simulation
+         * will not stop
+         */
+        unsigned int sim_end_mode;
 
-		/// Maximum simulation time to be reached (in seconds).
-		float sim_end_time;
+        /// Maximum simulation time to be reached (in seconds).
+        float sim_end_time;
 
-		/// Maximum number of steps to be performed.
-		int sim_end_step;
+        /// Maximum number of steps to be performed.
+        int sim_end_step;
 
-		/// Maximum number of frames to be performed.
-		int sim_end_frame;
+        /// Maximum number of frames to be performed.
+        int sim_end_frame;
 
-		/** Type of criteria to know when the log file must be printed/updated.
-		 * @remarks Must a combination of the following options:
-		 * - __NO_OUTPUT_MODE__ : The log file will not be never printed.
-		 * - __FPS_MODE__ : Updates per second.
-		 * - __IPF_MODE__ : Time steps before to update.
-		 */
-		unsigned int log_mode;
+        /** Type of criteria to know when the log file must be printed/updated.
+         * @remarks Must a combination of the following options:
+         * - __NO_OUTPUT_MODE__ : The log file will not be never printed.
+         * - __FPS_MODE__ : Updates per second.
+         * - __IPF_MODE__ : Time steps before to update.
+         */
+        unsigned int log_mode;
 
-		/// Update rate (per second of simulation).
-		float log_fps;
+        /// Update rate (per second of simulation).
+        float log_fps;
 
-		/// Time steps to be done before to update the data.
-		int log_ipf;
+        /// Time steps to be done before to update the data.
+        int log_ipf;
 
-		/** Type of criteria to know when the energy report file must be
-		 * printed/updated.
-		 * @remarks Must a combination of the following options:
-		 * - __NO_OUTPUT_MODE__ : The log file will not be never printed.
-		 * - __FPS_MODE__ : Updates per second.
-		 * - __IPF_MODE__ : Time steps before to update.
-		 */
-		unsigned int energy_mode;
+        /** Type of criteria to know when the energy report file must be
+         * printed/updated.
+         * @remarks Must a combination of the following options:
+         * - __NO_OUTPUT_MODE__ : The log file will not be never printed.
+         * - __FPS_MODE__ : Updates per second.
+         * - __IPF_MODE__ : Time steps before to update.
+         */
+        unsigned int energy_mode;
 
-		/// Update rate (per second of simulation).
-		float energy_fps;
+        /// Update rate (per second of simulation).
+        float energy_fps;
 
-		/// Time steps to be done before to update the data.
-		int energy_ipf;
+        /// Time steps to be done before to update the data.
+        int energy_ipf;
 
-		/** Type of criteria to know when the bounds of fluid file must be
-		 * printed/updated.
-		 * @remarks Must a combination of the following options:
-		 * - __NO_OUTPUT_MODE__ : The log file will not be never printed.
-		 * - __FPS_MODE__ : Updates per second.
-		 * - __IPF_MODE__ : Time steps before to update.
-		 */
-		unsigned int bounds_mode;
+        /** Type of criteria to know when the bounds of fluid file must be
+         * printed/updated.
+         * @remarks Must a combination of the following options:
+         * - __NO_OUTPUT_MODE__ : The log file will not be never printed.
+         * - __FPS_MODE__ : Updates per second.
+         * - __IPF_MODE__ : Time steps before to update.
+         */
+        unsigned int bounds_mode;
 
-		/// Update rate (per second of simulation).
-		float bounds_fps;
+        /// Update rate (per second of simulation).
+        float bounds_fps;
 
-		/// Time steps to be done before to update the data.
-		int bounds_ipf;
+        /// Time steps to be done before to update the data.
+        int bounds_ipf;
 
-		/** Type of criteria to know when a full fluid output must be
-		 * printed/updated.
-		 * @remarks Must a combination of the following options:
-		 * - __NO_OUTPUT_MODE__ : The log file will not be never printed.
-		 * - __FPS_MODE__ : Updates per second.
-		 * - __IPF_MODE__ : Time steps before to update.
-		 */
-		unsigned int output_mode;
+        /** Type of criteria to know when a full fluid output must be
+         * printed/updated.
+         * @remarks Must a combination of the following options:
+         * - __NO_OUTPUT_MODE__ : The log file will not be never printed.
+         * - __FPS_MODE__ : Updates per second.
+         * - __IPF_MODE__ : Time steps before to update.
+         */
+        unsigned int output_mode;
 
-		/// Printing rate (per second of simulation).
-		float output_fps;
+        /// Printing rate (per second of simulation).
+        float output_fps;
 
-		/// Time steps to be done before to print the data again.
-		int output_ipf;
+        /// Time steps to be done before to print the data again.
+        int output_ipf;
 
-		/** Time step mode.
-		 * @remarks Must be one of the following options:
-		 * - __DT_VARIABLE__ If time step must be calculated each step.
-		 * - __DT_FIXCALCULATED__ If time step must be calculated at the start of simulation.
-		 * - __DT_FIX__ If the time step is provided by user.
-		 */
-	    unsigned int dt_mode;
-	}time_opts;
+        /** Time step mode.
+         * @remarks Must be one of the following options:
+         * - __DT_VARIABLE__ If time step must be calculated each step.
+         * - __DT_FIXCALCULATED__ If time step must be calculated at the start of simulation.
+         * - __DT_FIX__ If the time step is provided by user.
+         */
+        unsigned int dt_mode;
+    }time_opts;
 
-	/** \struct sphSPHParameters
-	 * Data structure used to store the SPH options.
-	 */
-	struct sphSPHParameters
-	{
-		/// Garivity aceleration \f$ \mathbf{g} \f$.
-		vec g;
-		/// Kernel height factor \f$ \frac{h}{\Delta r} \f$.
-		float hfac;
-		/// Tipical particle distance \f$ \Delta r \f$.
-		vec deltar;
-		/// kernel height \f$ h \f$.
-		float h;
-		/// Characteristic sound speed \f$ c_s \f$.
-		float cs;
-	    /// LinkList steps (steps before LinkList must be performed again).
-	    unsigned int link_list_steps;
+    /** \struct sphSPHParameters
+     * Data structure used to store the SPH options.
+     */
+    struct sphSPHParameters
+    {
+        /// Garivity aceleration \f$ \mathbf{g} \f$.
+        vec g;
+        /// Kernel height factor \f$ \frac{h}{\Delta r} \f$.
+        float hfac;
+        /// Tipical particle distance \f$ \Delta r \f$.
+        vec deltar;
+        /// kernel height \f$ h \f$.
+        float h;
+        /// Characteristic sound speed \f$ c_s \f$.
+        float cs;
+        /// LinkList steps (steps before LinkList must be performed again).
+        unsigned int link_list_steps;
 
-	    /** Density interpolation steps (steps before density interpolation
+        /** Density interpolation steps (steps before density interpolation
          * must be performed again).
-	     * 0 if density interpolation will not be applied.
-	     */
-	    unsigned int dens_int_steps;
-	    /** Minimum tolerated value for the density, 0  by default. If the
-	     * density of a particle goes below this value it will be clamped.
-	     */
-	    float rho_min;
-	    /** Maximum tolerated value for the density, -1 by default.
-	     * If this value is lower or equal to the minimum value,
-	     * maximum density value clamping will not be applied.
-	     */
+         * 0 if density interpolation will not be applied.
+         */
+        unsigned int dens_int_steps;
+        /** Minimum tolerated value for the density, 0  by default. If the
+         * density of a particle goes below this value it will be clamped.
+         */
+        float rho_min;
+        /** Maximum tolerated value for the density, -1 by default.
+         * If this value is lower or equal to the minimum value,
+         * maximum density value clamping will not be applied.
+         */
         float rho_max;
 
-	    /** Boundary type:
-	     *   - 0 = Elastic bounce.
-	     *   - 1 = Fixed particles.
-	     *   - 2 = DeLeffe.
-	     * @note Ghost particles boundary condition are managed in a different
+        /** Boundary type:
+         *   - 0 = Elastic bounce.
+         *   - 1 = Fixed particles.
+         *   - 2 = DeLeffe.
+         * @note Ghost particles boundary condition are managed in a different
          * way.
-	     */
-	    unsigned int boundary_type;
-	    /** Slip condition:
-	     * 0 = No Slip condition.
-	     * 1 = Free Slip condition.
-	     */
-	    unsigned int slip_condition;
-	    /** Elastic factor for elastic bounce boundary condition. When a
-	     * particle velocity is mirrored to avoid the wall trespass, part of
-	     * the energy can be removed. Elastic factor indicates the amount of
-	     * energy preserved.
-	     */
-	    float elastic_factor;
-	    /** Minimum distance to the wall \f$ r_{min} \f$. If a particle is
-	     * nearer than this distance a elastic bounce will be performed.
-	     * @note Distance is provided as kernel height rate
-	     * \f$ \vert \mathbf{r}_{min} \vert = r_{min} h \f$.
-	     */
-	    float elastic_dist;
+         */
+        unsigned int boundary_type;
+        /** Slip condition:
+         * 0 = No Slip condition.
+         * 1 = Free Slip condition.
+         */
+        unsigned int slip_condition;
+        /** Elastic factor for elastic bounce boundary condition. When a
+         * particle velocity is mirrored to avoid the wall trespass, part of
+         * the energy can be removed. Elastic factor indicates the amount of
+         * energy preserved.
+         */
+        float elastic_factor;
+        /** Minimum distance to the wall \f$ r_{min} \f$. If a particle is
+         * nearer than this distance a elastic bounce will be performed.
+         * @note Distance is provided as kernel height rate
+         * \f$ \vert \mathbf{r}_{min} \vert = r_{min} h \f$.
+         */
+        float elastic_dist;
 
-	    /** 0th order correction (formerly Shepard correction)
-	     * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
-	     *     W(\mathbf{y} - \mathbf{x})
-	     *     \mathrm{d}\mathbf{x} \f$.
-	     * Must be one of the following values:
-	     *   - 0 = No 0th order correction.
-	     *   - 1 = It will be applied to the computed forces.
-	     *   - 2 = It will be applied to computed density rate.
-	     *   - 3 = It will be applied to both of them.
-	     * @remarks 0th order correction (formerly Shepard correction) is
+        /** 0th order correction (formerly Shepard correction)
+         * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
+         *     W(\mathbf{y} - \mathbf{x})
+         *     \mathrm{d}\mathbf{x} \f$.
+         * Must be one of the following values:
+         *   - 0 = No 0th order correction.
+         *   - 1 = It will be applied to the computed forces.
+         *   - 2 = It will be applied to computed density rate.
+         *   - 3 = It will be applied to both of them.
+         * @remarks 0th order correction (formerly Shepard correction) is
          * mandatory when Boundary Integrals based boundary condition is
          * imposed, but since Shepard term can carry some instabilities, it
          * is strongly recommended to do not apply it if it is not required by
          * the formulation.
-	     */
-	    unsigned int has_shepard;
+         */
+        unsigned int has_shepard;
 
-	    /** Domain bounds flag. If true, domain bounds will be established such
-	     * that the particles out of the domian will be replaced by zero mass
-	     * fixed particles. The particle will not be deleted.
-	     */
-	    bool has_domain;
-	    /// Minimum domain bounds coordinates.
-	    vec domain_min;
-	    /// Maximum domain bounds coordinates.
-	    vec domain_max;
-	    /// Must domain be translated following the motions.
-	    bool domain_motion;
-	}SPH_opts;
+        /** Domain bounds flag. If true, domain bounds will be established such
+         * that the particles out of the domian will be replaced by zero mass
+         * fixed particles. The particle will not be deleted.
+         */
+        bool has_domain;
+        /// Minimum domain bounds coordinates.
+        vec domain_min;
+        /// Maximum domain bounds coordinates.
+        vec domain_max;
+        /// Must domain be translated following the motions.
+        bool domain_motion;
+    }SPH_opts;
 
-	/** \struct sphFluidParameters
-	 * Data structure used to store the Fluids options.
-	 */
-	struct sphFluidParameters
-	{
-		/** Init the fluid options structure
-		 */
-		void init();
+    /** \struct sphFluidParameters
+     * Data structure used to store the Fluids options.
+     */
+    struct sphFluidParameters
+    {
+        /** Init the fluid options structure
+         */
+        void init();
 
-		/** Delete the allocated memory
-		 */
-		void destroy();
+        /** Delete the allocated memory
+         */
+        void destroy();
 
-	    /// Number of particles
-	    unsigned int n;
+        /// Number of particles
+        unsigned int n;
 
-		/** Gamma exponent for the EOS \f$ \gamma \f$.
-		 * \f$ p = \frac{c_s^2 \rho_0}{\gamma}
-		 \left(
+        /** Gamma exponent for the EOS \f$ \gamma \f$.
+         * \f$ p = \frac{c_s^2 \rho_0}{\gamma}
+         \left(
             \left( \frac{\rho}{\rho_0} \right)^\gamma - 1
          \right) \f$.
-		 * @note The fluids which an undefined gamma value will use this one.
-		 */
-		float gamma;
+         * @note The fluids which an undefined gamma value will use this one.
+         */
+        float gamma;
 
-		/// Density of reference
-		float refd;
+        /// Density of reference
+        float refd;
 
-		/// Dynamic viscosity \f$ \mu \f$
-		float visc_dyn;
+        /// Dynamic viscosity \f$ \mu \f$
+        float visc_dyn;
 
-		/// Kinematic viscosity \f$ \nu \f$
-		float visc_kin;
+        /// Kinematic viscosity \f$ \nu \f$
+        float visc_kin;
 
-	    /** Minimum artificial viscosity \f$\alpha\f$ value.
-	     * \f$\alpha\f$ define the artificial viscosity of the fluid, such that
+        /** Minimum artificial viscosity \f$\alpha\f$ value.
+         * \f$\alpha\f$ define the artificial viscosity of the fluid, such that
          * the dynamic viscosity will be: \n
-	     * \f$ \mu \geq \frac{\alpha}{8} \rho c_s h \f$. \n
-	     * Hence if the fluid viscosity is not larger enough to achieve the
-	     * requested \f$\alpha\f$ it will be conveniently modified.
-	     * @note \f$\alpha \geq 0.01\f$ is suggested if \f$\delta\f$ is null.
-	     */
-		float alpha;
+         * \f$ \mu \geq \frac{\alpha}{8} \rho c_s h \f$. \n
+         * Hence if the fluid viscosity is not larger enough to achieve the
+         * requested \f$\alpha\f$ it will be conveniently modified.
+         * @note \f$\alpha \geq 0.01\f$ is suggested if \f$\delta\f$ is null.
+         */
+        float alpha;
 
-		/** Continuity equation diffusive term factor (formerly
+        /** Continuity equation diffusive term factor (formerly
          * \f$\delta\f$-SPH).
-		 * This term have some benefits in front of the artificial viscosity,
-		 * and therefore you may consider setting \f$\alpha = 0\f$ and
-		 * \f$\delta = 1\f$.
-		 */
+         * This term have some benefits in front of the artificial viscosity,
+         * and therefore you may consider setting \f$\alpha = 0\f$ and
+         * \f$\delta = 1\f$.
+         */
         float delta;
 
-		/** Dynamic viscosity (corrected by the articial viscosity parameter
+        /** Dynamic viscosity (corrected by the articial viscosity parameter
          * \f$\alpha\f$)
          */
-		float visc_dyn_corrected;
+        float visc_dyn_corrected;
 
-		/// Fluid particles data file to load
-		char *in_path;
+        /// Fluid particles data file to load
+        char *in_path;
 
-		/// Fluid particles data file to load format
-		char *in_format;
+        /// Fluid particles data file to load format
+        char *in_format;
 
-		/// Fluid particles data file to write
-		char *out_path;
+        /// Fluid particles data file to write
+        char *out_path;
 
-		/// Fluid particles data file to load format
-		char *out_format;
-	}*fluids;
+        /// Fluid particles data file to load format
+        char *out_format;
+    }*fluids;
 
-	/// Number of fluids
-	unsigned int n_fluids;
-	/** Add a fluid to the list
-	 */
-	void addFluid();
+    /// Number of fluids
+    unsigned int n_fluids;
+    /** Add a fluid to the list
+     */
+    void addFluid();
 
-	/** \class sphMoveParameters ProblemSetup.h ProblemSetup.h
-	 * Data structure used to store the motions data.
-	 */
-	class sphMoveParameters
-	{
-	public:
-	    /** Constructor
-	     */
-	    sphMoveParameters();
-	    /** Destructor
-	     */
-	    ~sphMoveParameters();
+    /** \class sphMoveParameters ProblemSetup.h ProblemSetup.h
+     * Data structure used to store the motions data.
+     */
+    class sphMoveParameters
+    {
+    public:
+        /** Constructor
+         */
+        sphMoveParameters();
+        /** Destructor
+         */
+        ~sphMoveParameters();
 
-	    /** Type of movement: \n
-	     *   - -1 = No movement.
-	     *   - 0 = Quaternion (Fully controlled by the OpenCL script).
-	     *   - 1 = LIQuaternion (Lineary interpolation from a data file).
-	     *   - 2 = C1Quaternion (Continuous C1 interpolation from a data file).
-	     *   - 3 = ScriptQuaternion (Python controlled motion).
-	     */
-	    int type;
+        /** Type of movement: \n
+         *   - -1 = No movement.
+         *   - 0 = Quaternion (Fully controlled by the OpenCL script).
+         *   - 1 = LIQuaternion (Lineary interpolation from a data file).
+         *   - 2 = C1Quaternion (Continuous C1 interpolation from a data file).
+         *   - 3 = ScriptQuaternion (Python controlled motion).
+         */
+        int type;
 
-	    /// Motions definition XML file
-	    char* path;
-	};
+        /// Motions definition XML file
+        char* path;
+    };
 
-	/// Array of motions
-	std::deque<sphMoveParameters*> motions;
+    /// Array of motions
+    std::deque<sphMoveParameters*> motions;
 
-	/** \class sphSensorsParameters ProblemSetup.h ProblemSetup.h
-	 * Data structure used to store the sensors.
-	 */
-	class sphSensorsParameters
-	{
-	public:
-		/** Constructor
-		 */
-		sphSensorsParameters();
-		/** Destructor
-		 */
-		~sphSensorsParameters();
+    /** \class sphSensorsParameters ProblemSetup.h ProblemSetup.h
+     * Data structure used to store the sensors.
+     */
+    class sphSensorsParameters
+    {
+    public:
+        /** Constructor
+         */
+        sphSensorsParameters();
+        /** Destructor
+         */
+        ~sphSensorsParameters();
 
-	    /// Frecuency of output
-	    float fps;
+        /// Frecuency of output
+        float fps;
 
-		/// Script
-		char *script;
+        /// Script
+        char *script;
 
-	    /// Array of positions
-	    std::deque<vec> pos;
+        /// Array of positions
+        std::deque<vec> pos;
 
-	    /** Method to add a sensor.
-	     * @param position Position of sensor.
-	     * @return false if all gone right, true otherwise.
-	     */
-	    bool add(vec position);
-	}SensorsParameters;
+        /** Method to add a sensor.
+         * @param position Position of sensor.
+         * @return false if all gone right, true otherwise.
+         */
+        bool add(vec position);
+    }SensorsParameters;
 
-	/** \struct sphPortal
-	 * Data structure used to store the portals.
-	 * Portals are rectangular planes that transfer particles that pass troguth them
-	 * from one side to the other.
-	 */
-	struct sphPortal
-	{
-	    /** \struct Portal
-	     * Specific portal storage.
-	     * @note Interior normals are considered.
-	     */
-	    struct Portal
-	    {
-	        /// Start corner
-	        vec corner;
-	        /// Up vector
-	        vec up;
-	        /// Side vector
-	        vec side;
-	        /// Normal
-	        vec normal;
-	    }in,out;
-	};
-	/// Array of portal pairs
-	std::deque<sphPortal*> portals;
+    /** \struct sphPortal
+     * Data structure used to store the portals.
+     * Portals are rectangular planes that transfer particles that pass troguth them
+     * from one side to the other.
+     */
+    struct sphPortal
+    {
+        /** \struct Portal
+         * Specific portal storage.
+         * @note Interior normals are considered.
+         */
+        struct Portal
+        {
+            /// Start corner
+            vec corner;
+            /// Up vector
+            vec up;
+            /// Side vector
+            vec side;
+            /// Normal
+            vec normal;
+        }in,out;
+    };
+    /// Array of portal pairs
+    std::deque<sphPortal*> portals;
 
-	/** \class sphGhostParticles ProblemSetup.h ProblemSetup.h
-	 * Data structure used to store the Ghost particles data.
-	 * and walls.
-	 */
-	class sphGhostParticles
-	{
-	public:
-	    #ifdef HAVE_3D
-	        /** \struct Wall
-	         * Wall defined by 4 points.
-	         */
-	        struct Wall
-	        {
-	            /// 1st Corner
-	            vec p1;
-	            /// 2nd Corner
-	            vec p2;
-	            /// 3rd Corner
-	            vec p3;
-	            /// 4th Corner
-	            vec p4;
-	            /// Normal to face
-	            vec n;
-	            /// 1st Corner velocity
-	            vec v1;
-	            /// 2nd Corner velocity
-	            vec v2;
-	            /// 3rd Corner velocity
-	            vec v3;
-	            /// 4th Corner velocity
-	            vec v4;
-	        };
-	        /// Stored walls
-	        std::deque<Wall*> walls;
+    /** \class sphGhostParticles ProblemSetup.h ProblemSetup.h
+     * Data structure used to store the Ghost particles data.
+     * and walls.
+     */
+    class sphGhostParticles
+    {
+    public:
+        #ifdef HAVE_3D
+            /** \struct Wall
+             * Wall defined by 4 points.
+             */
+            struct Wall
+            {
+                /// 1st Corner
+                vec p1;
+                /// 2nd Corner
+                vec p2;
+                /// 3rd Corner
+                vec p3;
+                /// 4th Corner
+                vec p4;
+                /// Normal to face
+                vec n;
+                /// 1st Corner velocity
+                vec v1;
+                /// 2nd Corner velocity
+                vec v2;
+                /// 3rd Corner velocity
+                vec v3;
+                /// 4th Corner velocity
+                vec v4;
+            };
+            /// Stored walls
+            std::deque<Wall*> walls;
 
-	        /** Add a quadangular wall.
-	         * @param p1 1st corner of wall.
-	         * @param p2 2nd corner of wall.
-	         * @param p3 3rd corner of wall.
-	         * @param p4 4th corner of wall.
-	         * @param v1 1st corner of wall velocity.
-	         * @param v2 2nd corner of wall velocity.
-	         * @param v3 3rd corner of wall velocity.
-	         * @param v4 4th corner of wall velocity.
-	         * @return false if all gone right, true otherwise.
-	         * @remarks Normal will be computed using corners data,
-	         * in order to get best results is strongly recommended
-	         * try to use planar faces.
-	         * @warning Program will assume corners connected as
-	         * \f$p_1 \rightarrow p_2 \rightarrow p_3 \rightarrow p_4 \rightarrow p_1\f$.
-	         */
-	        bool add(vec p1,
+            /** Add a quadangular wall.
+             * @param p1 1st corner of wall.
+             * @param p2 2nd corner of wall.
+             * @param p3 3rd corner of wall.
+             * @param p4 4th corner of wall.
+             * @param v1 1st corner of wall velocity.
+             * @param v2 2nd corner of wall velocity.
+             * @param v3 3rd corner of wall velocity.
+             * @param v4 4th corner of wall velocity.
+             * @return false if all gone right, true otherwise.
+             * @remarks Normal will be computed using corners data,
+             * in order to get best results is strongly recommended
+             * try to use planar faces.
+             * @warning Program will assume corners connected as
+             * \f$p_1 \rightarrow p_2 \rightarrow p_3 \rightarrow p_4 \rightarrow p_1\f$.
+             */
+            bool add(vec p1,
                      vec p2,
                      vec p3,
                      vec p4,
@@ -649,81 +828,81 @@ public:
                      vec v3,
                      vec v4);
 
-	        /** Add a triangular wall.
-	         * @param p1 1st corner of wall.
-	         * @param p2 2nd corner of wall.
-	         * @param p3 3rd corner of wall.
-	         * @param v1 1st corner of wall velocity.
-	         * @param v2 2nd corner of wall velocity.
-	         * @param v3 3rd corner of wall velocity.
-	         * @return false if all gone right, true otherwise.
-	         */
-	        bool add(vec p1,
+            /** Add a triangular wall.
+             * @param p1 1st corner of wall.
+             * @param p2 2nd corner of wall.
+             * @param p3 3rd corner of wall.
+             * @param v1 1st corner of wall velocity.
+             * @param v2 2nd corner of wall velocity.
+             * @param v3 3rd corner of wall velocity.
+             * @return false if all gone right, true otherwise.
+             */
+            bool add(vec p1,
                      vec p2,
                      vec p3,
                      vec v1,
                      vec v2,
                      vec v3);
-	    #else
-	        /** \struct Wall
-	         * Wall defined by 2 points.
-	         */
-	        struct Wall
-	        {
-	            /// 1st Corner
-	            vec p1;
-	            /// 2nd Corner
-	            vec p2;
-	            /// Normal to face
-	            vec n;
-	            /// 1st Corner velocity
-	            vec v1;
-	            /// 2nd Corner velocity
-	            vec v2;
-	        };
-	        /// Stored walls
-	        std::deque<Wall*> walls;
+        #else
+            /** \struct Wall
+             * Wall defined by 2 points.
+             */
+            struct Wall
+            {
+                /// 1st Corner
+                vec p1;
+                /// 2nd Corner
+                vec p2;
+                /// Normal to face
+                vec n;
+                /// 1st Corner velocity
+                vec v1;
+                /// 2nd Corner velocity
+                vec v2;
+            };
+            /// Stored walls
+            std::deque<Wall*> walls;
 
-	        /** Add wall.
-	         * @param p1 1st corner of wall.
-	         * @param p2 2nd corner of wall.
-	         * @param v1 1st corner of wall velocity.
-	         * @param v2 2nd corner of wall velocity.
-	         * @return false if all gone right, true otherwise.
-	         */
-	        bool add(vec p1,
+            /** Add wall.
+             * @param p1 1st corner of wall.
+             * @param p2 2nd corner of wall.
+             * @param v1 1st corner of wall velocity.
+             * @param v2 2nd corner of wall velocity.
+             * @return false if all gone right, true otherwise.
+             */
+            bool add(vec p1,
                      vec p2,
                      vec v1,
                      vec v2);
-	    #endif
+        #endif
 
-	    /** Pressure extension model. \n
-	     * 0 = ASM (Antisymmetric) \n
-	     * 1 = SSM (Symmetric) \n
-	     * 2 = Takeda (Variation of ASM).
-	     * @note Hydrostatic pressure will be added.
-	     */
-	    uint p_extension;
+        /** Pressure extension model. \n
+         * 0 = ASM (Antisymmetric) \n
+         * 1 = SSM (Symmetric) \n
+         * 2 = Takeda (Variation of ASM).
+         * @note Hydrostatic pressure will be added.
+         */
+        uint p_extension;
 
-	    /** Normal velocity extension model. \n
-	     * 0 = ASM (Antisymmetric) \n
-	     * 1 = SSM (Symmetric) \n
-	     * 2 = Takeda (Variation of ASM). \n
-	     * 3 = U0M (No velocity will considered).
-	     * @note Velocity extension is composed to wall velocity.
-	     */
-	    uint vn_extension;
+        /** Normal velocity extension model. \n
+         * 0 = ASM (Antisymmetric) \n
+         * 1 = SSM (Symmetric) \n
+         * 2 = Takeda (Variation of ASM). \n
+         * 3 = U0M (No velocity will considered).
+         * @note Velocity extension is composed to wall velocity.
+         */
+        uint vn_extension;
 
-	    /** Tangent velocity extension model. \n
-	     * 0 = ASM (Antisymmetric) \n
-	     * 1 = SSM (Symmetric) \n
-	     * 2 = Takeda (Variation of ASM). \n
-	     * 3 = U0M (No velocity will considered).
-	     * @note Velocity extension is composed to wall velocity.
-	     */
-	    uint vt_extension;
+        /** Tangent velocity extension model. \n
+         * 0 = ASM (Antisymmetric) \n
+         * 1 = SSM (Symmetric) \n
+         * 2 = Takeda (Variation of ASM). \n
+         * 3 = U0M (No velocity will considered).
+         * @note Velocity extension is composed to wall velocity.
+         */
+        uint vt_extension;
 
-	}ghost_particles;
+    }ghost_particles;
 
 };
 
