@@ -31,10 +31,10 @@
 namespace Aqua{ namespace InputOutput{
 
 FileManager::FileManager()
-	: _in_file(NULL)
-	, _log(NULL)
-	, _energy(NULL)
-	, _bounds(NULL)
+    : _in_file(NULL)
+    , _log(NULL)
+    , _energy(NULL)
+    , _bounds(NULL)
 {
     inputFile("Input.xml");
     _log = new Log();
@@ -121,9 +121,9 @@ Fluid* FileManager::load()
     }
 
     // Setup the problem setup
-	if(P->perform()) {
-		return NULL;
-	}
+    if(P->perform()) {
+        return NULL;
+    }
 
     // Build the additional reporters requested
     if(P->time_opts.energy_mode != __NO_OUTPUT_MODE__){

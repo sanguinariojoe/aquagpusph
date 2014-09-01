@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Input and output files managing.
+ * (See Aqua::InputOutput::FileManager for details)
+ */
+
 #ifndef FILEMANAGER_H_INCLUDED
 #define FILEMANAGER_H_INCLUDED
 
@@ -34,65 +39,97 @@ namespace Aqua{
 /// @namespace Aqua::InputOutput Input/Output data interfaces.
 namespace InputOutput{
 
-/** \class FileManager FileManager.h FileManager.h
- *  Input/Output files manager.
+/** @class FileManager FileManager.h FileManager.h
+ * @brief Input/Output files manager.
+ * This class acts as a base class, controlling the subclasses which will
+ * load/save the files.
+ *
+ * @see Aqua::InputOutput::State
+ * @see Aqua::InputOutput::Log
+ * @see Aqua::InputOutput::Energy
+ * @see Aqua::InputOutput::Bounds
+ * @see Aqua::InputOutput::Particles
  */
 class FileManager : public Aqua::Singleton<Aqua::InputOutput::FileManager>
 {
 public:
-	/** Constructor
-	 */
-	FileManager();
+    /** Constructor
+     */
+    FileManager();
 
-	/** Destructor
-	 */
-	~FileManager();
+    /** Destructor
+     */
+    ~FileManager();
 
-	/** Set the input file.
-	 * @param path Path to input file.
-	 */
-	void inputFile(const char* path);
+    /** Set the input file.
+     *
+     * @param path Path to input file.
+     */
+    void inputFile(const char* path);
 
-	/** Get input file.
-	 * @return Path to input file.
-	 */
-	const char* inputFile(){return (const char*)_in_file;}
+    /** Get input file.
+     *
+     * @return Path to input file.
+     */
+    const char* inputFile(){return (const char*)_in_file;}
 
-	/** Get the log file handler.
-	 * @return Log file handler.
-	 */
-	FILE* logFile();
+    /** Get the log file handler.
+     *
+     * @return Log file handler.
+     * @see Aqua::InputOutput::Log
+     */
+    FILE* logFile();
 
-	/** Get the energy file handler.
-	 * @return Energy file handler.
-	 */
-	FILE* energyFile();
+    /** Get the energy file handler.
+     *
+     * @return Energy file handler.
+     * @see Aqua::InputOutput::Energy
+     */
+    FILE* energyFile();
 
-	/** Get the bounds file handler.
-	 * @return Bounds file handler.
-	 */
-	FILE* boundsFile();
+    /** Get the bounds file handler.
+     *
+     * @return Bounds file handler.
+     * @see Aqua::InputOutput::Bounds
+     */
+    FILE* boundsFile();
 
     /** Load the input data files.
+     *
+     * It require that:
+     *    -# Aqua::InputOutput::State should load the XML definition
+     *       files storing the data in Aqua::InputOutput::ProblemSetup.
+     *    -# Aqua::InputOutput::Particles should load the particles definition
+     *       files storing the data in Aqua::InputOutput::Fluid.
+     *
      * @return The built Fluid manager, NULL if errors happened.
      */
     Fluid* load();
 
-    /** Save the particles.
+    /** Save the output data files.
+     *
+     * It require that:
+     *    -# Aqua::InputOutput::State should save the XML definition
+     *       files taking the data from Aqua::InputOutput::ProblemSetup.
+     *    -# Aqua::InputOutput::Particles should save the particles definition
+     *       files stored in Aqua::InputOutput::Fluid.
+     *
      * @return false if all gone right, true otherwise.
      */
     bool save();
 
     /** Get the last printed file for a specific fluid.
+     *
+     * @param ifluid Fluid index.
      * @return The last printed file, NULL if a file has not been printed yet.
      */
     const char* file(unsigned int ifluid);
 
 private:
-	/// Name of the input file
-	char* _in_file;
+    /// Name of the main XML input file
+    char* _in_file;
 
-    /// The XML simulation definition loader
+    /// The XML simulation definition loader/saver
     State *_state;
 
     /// The output log file
