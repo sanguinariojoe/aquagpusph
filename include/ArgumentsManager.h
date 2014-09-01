@@ -39,6 +39,9 @@ namespace Aqua{ namespace InputOutput{
  *
  * You can call `"AQUAgpusph --help"` command to see the updated list of
  * available options (in case that this documentation is outdated).
+ *
+ * @note This method use Getopt, from GNU libc library. See
+ * http://www.gnu.org/software/libc/manual/html_node/Getopt.html#Getopt
  */
 class ArgumentsManager : public Aqua::Singleton<Aqua::InputOutput::ArgumentsManager>
 {
