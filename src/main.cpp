@@ -55,8 +55,8 @@
  * <hr>
  *
  * If you are a developer you should know that AQUAgpusph is divided in 2 main
- * pieces, the Host (see main(int argc, char *argv[])) and the calculation
- * server (see Aqua::CalcServer::CalcServer).
+ * pieces, the Host (see ::main) and the calculation server (see
+ * Aqua::CalcServer::CalcServer).
  *
  * The first one is the manager of the simulation, being responsible of the
  * input options and files parsing (see Aqua::InputOutput::ArgumentsManager and
