@@ -37,6 +37,11 @@
 // ----------------------------------------------------------------------------
 #include <CL/cl.h>
 
+// Assume the 3D version if 2D has not been set
+#ifndef HAVE_2D
+    #define HAVE_3D
+#endif
+
 #ifndef vec2
     #define vec2 cl_float2
 #endif
