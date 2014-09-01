@@ -32,52 +32,54 @@ namespace Aqua{ namespace InputOutput{
 /** @class ArgumentsManager ArgumentsManager.h ArgumentsManager.h
  * Input terminal options and parameters manager. The currently valid options
  * are:
- *   -# -i, --input=INPUT            XML definition input file (Input.xml as default value)
- *   -# -v, --version                Show the AQUAgpusph version
- *   -# -h, --help                   Show this help page
- * You can call "AQUAgpusph --help" command to see the updated list of
- * available options.
+ *   - -i, --input=INPUT            XML definition input file (Input.xml as
+ *     default value).
+ *   - -v, --version                Show the AQUAgpusph version.
+ *   - -h, --help                   Show this help page.
+ *
+ * You can call `"AQUAgpusph --help"` command to see the updated list of
+ * available options (in case that this documentation is outdated).
  */
 class ArgumentsManager : public Aqua::Singleton<Aqua::InputOutput::ArgumentsManager>
 {
 public:
-	/** Costructor.
-	 * @param argc Number of run arguments
-	 * @param argv Array of run arguments
-	 */
-	ArgumentsManager(int argc, char **argv);
+    /** @brief Costructor.
+     * @param argc Number of run arguments
+     * @param argv Array of run arguments
+     */
+    ArgumentsManager(int argc, char **argv);
 
-	/** Destructor.
-	 */
-	~ArgumentsManager();
+    /** @brief Destructor.
+     */
+    ~ArgumentsManager();
 
-    /** Parse the runtime options.
+    /** @brief Parse the runtime options.
      * @return false if the excution must continue, true otherwise.
      */
     bool parse();
 
-	/** Display the program usage.
-	 * The program usage is shown weather the user has requested help, or
-     * wrong/insufficient options have been used.
-	 */
-	void displayUsage();
+    /** Display the program usage.
+     *
+     *  The program usage is shown weather the user has requested help, or
+     *  wrong/insufficient options have been used.
+     */
+    void displayUsage();
 
-	/** Get the number of runtime options.
-	 * @return Number of runtime options.
-	 */
-	int argc(){return _argc;}
+    /** @brief Get the number of runtime options.
+     * @return Number of runtime options.
+     */
+    int argc(){return _argc;}
 
-	/** Get the runtime options list.
-	 * @return Runtime passed options.
-	 */
-	char** argv(){return _argv;}
+    /** @brief Get the runtime options list.
+     * @return Runtime passed options.
+     */
+    char** argv(){return _argv;}
 
 private:
-	/// Number of runtime options
-	int _argc;
-	/// List of runtime options
-	char** _argv;
-
+    /// Number of runtime options
+    int _argc;
+    /// List of runtime options
+    char** _argv;
 
 };  // class ArgumentsManager
 
