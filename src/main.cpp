@@ -16,28 +16,59 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** \mainpage AQUAgpusph (Another QUAlity GPU-SPH).
+/** @file
+ * @brief The AQUAgpusph starting point, also known as the host.
+ * (See main(int argc, char *argv[]) for details)
+ */
+
+/** @mainpage AQUAgpusph (Another QUAlity GPU-SPH).
  * Free CFD code based on SPH (Smoothed Particles Hydrodynamics), licensed
- * under GPLv3 terms, for details read provided LICENSE file (SPH is a
- * meshfree Lagrangian method to solve Navier-Stokes equations). \n
+ * under GPLv3 terms, for details read provided LICENSE file.
+ *
+ * SPH is a meshfree Lagrangian method to solve Navier-Stokes equations).
+ *
  * AQUAgpusph is based on the weakly compressible SPH branch (formerly W-SPH or
  * WCSPH), where the pressure field is linked with the density one by a
  * equation of state (EOS).
- * Ussually the EOS is applied: \n
- * \f$ p = \frac{c_S^2 \rho_0}{\gamma} \left( \left( \frac{\rho}{\rho_0} \right)^{\gamma} - 1 \right) , \f$ \n
- * where \f$ \gamma = 7 \f$ is usually set for water. \n
- * AQUAgpusph has been has been accelerated with OpenCL allowing you to execute
- * it over CPU or GPU based platforms, or eventually, using every platform
- * developed on future conveniently adapted to the OpenCL standard.
- * For the moment several platforms usage simultaneously is not supported. \n
- * In order to learn how to use AQUAgpusph an user manual and some examples are provided. \n
- * AQUAgpusph has been developed by CEHINAV group: \n
- * <ul><li>Jose Luis Cercos Pita</li>
- * <li>Antonio Souto Iglesias</li>
- * <li>Leo Miguel Gonzalez</li></ul>
- * First release of the code have been published at Wed. 2013-12-12. \n
- * For more information about this development, please visit Canal-ETSIN web page: \n
+ *
+ * AQUAgpusph has been accelerated with OpenCL allowing you to execute it over
+ * CPU, GPU, or eventually every platform developed on future conveniently
+ * adapted to the OpenCL standard.
+ *
+ * For the moment several platforms simultaneous usage is not supported.
+ *
+ * In order to learn how to use AQUAgpusph an user manual and some examples
+ * are provided.
+ *
+ * AQUAgpusph has been developed by CEHINAV group:
+ *   - Jose Luis Cercos Pita
+ *   - Antonio Souto Iglesias
+ *   - Leo Miguel Gonzalez
+ *
+ * First release of the code has been published at Wed. 2013-12-12.
+ *
+ * For more information about this development, please visit the following web
+ * page:
+ *
  * http://canal.etsin.upm.es/
+ *
+ * <hr>
+ *
+ * If you are a developer you should know that AQUAgpusph is divided in 2 main
+ * pieces, the Host (see main(int argc, char *argv[])) and the calculation
+ * server (see Aqua::CalcServer::CalcServer).
+ *
+ * The first one is the manager of the simulation, being responsible of the
+ * input options and files parsing (see Aqua::InputOutput::ArgumentsManager and
+ * Aqua::InputOutput::FileManager), the output files writing (see
+ * Aqua::InputOutput::FileManager), and the simulation running (see
+ * Aqua::InputOutput::TimeManager).
+ *
+ * The latter one is the main worker, where the simulation computation is done
+ * (see Aqua::CalcServer::CalcServer).
+ *
+ * You can learn more about this division in the user manual (cahpter 7) and in
+ * the developers guide.
  */
 
 #include <FileManager.h>
@@ -50,50 +81,64 @@
 
 using namespace Aqua;
 
-/** Starting point
+/** Aquagpusph starting point.
+ *
+ *  This method is associated with the host, i.e. The CPU process that controls
+ *  the simulation:
+ *    -# Parsing the runtime input options and the input files (see
+ *       Aqua::InputOutput::ArgumentsManager and
+ *       Aqua::InputOutput::FileManager).
+ *    -# Generating the simulation setup (see Aqua::InputOutput::ProblemSetup).
+ *    -# Controlling the simulation time events (see
+ *       Aqua::InputOutput::TimeManager), like the output files updating or the
+ *       Simulation end.
+ *
+ * The host is responsible to create the calculation server (see
+ * Aqua::CalcServer::CalcServer) and call it to work as well.
+ *
  * @param argc Number of arguments parsed by terminal.
  * @param argv Array of arguments parsed by terminal.
  */
 int main(int argc, char *argv[])
 {
-	InputOutput::ArgumentsManager *A = NULL;
-	InputOutput::FileManager *F = NULL;
-	InputOutput::ProblemSetup *P = NULL;
-	InputOutput::Fluid *fluid = NULL;
-	CalcServer::CalcServer *C = NULL;
-	InputOutput::TimeManager *T = NULL;
-	InputOutput::ScreenManager *S = NULL;
-	char msg[256];
-	strcpy(msg, "");
+    InputOutput::ArgumentsManager *A = NULL;
+    InputOutput::FileManager *F = NULL;
+    InputOutput::ProblemSetup *P = NULL;
+    InputOutput::Fluid *fluid = NULL;
+    CalcServer::CalcServer *C = NULL;
+    InputOutput::TimeManager *T = NULL;
+    InputOutput::ScreenManager *S = NULL;
+    char msg[256];
+    strcpy(msg, "");
 
-	printf("\n");
-	printf("\t#########################################################\n");
-	printf("\t#                                                       #\n");
-	printf("\t#    #    ##   #  #   #                           #     #\n");
-	printf("\t#   # #  #  #  #  #  # #                          #     #\n");
-	printf("\t#  ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###   #\n");
-	printf("\t#  #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #  #\n");
-	printf("\t#  #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #  #\n");
-	printf("\t#  #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #  #\n");
-	printf("\t#                            # #             #          #\n");
-	printf("\t#                          ##  #             #          #\n");
-	printf("\t#                                                       #\n");
-	printf("\t#########################################################\n");
-	printf("\tAnother QUAlity GPU-SPH, by CEHINAV.\n");
-	printf("\t\thttp://canal.etsin.upm.es/\n");
-	printf("\tAuthors:\n");
-	printf("\t\tJose Luis Cercos Pita\n");
-	printf("\t\tLeo Miguel Gonzalez\n");
-	printf("\t\tAntonio Souto-Iglesias\n");
-	printf("\tAQUAgpusph Copyright (C) 2012  Jose Luis Cercos-Pita\n");
-	printf("\tThis program comes with ABSOLUTELY NO WARRANTY; for details see LICENSE.\n");
-	printf("\tThis is free software, and you are welcome to redistribute it\n");
-	printf("\tunder certain conditions; see LICENSE for details.\n");
-	printf("\n");
+    printf("\n");
+    printf("\t#########################################################\n");
+    printf("\t#                                                       #\n");
+    printf("\t#    #    ##   #  #   #                           #     #\n");
+    printf("\t#   # #  #  #  #  #  # #                          #     #\n");
+    printf("\t#  ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###   #\n");
+    printf("\t#  #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #  #\n");
+    printf("\t#  #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #  #\n");
+    printf("\t#  #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #  #\n");
+    printf("\t#                            # #             #          #\n");
+    printf("\t#                          ##  #             #          #\n");
+    printf("\t#                                                       #\n");
+    printf("\t#########################################################\n");
+    printf("\tAnother QUAlity GPU-SPH, by CEHINAV.\n");
+    printf("\t\thttp://canal.etsin.upm.es/\n");
+    printf("\tAuthors:\n");
+    printf("\t\tJose Luis Cercos Pita\n");
+    printf("\t\tLeo Miguel Gonzalez\n");
+    printf("\t\tAntonio Souto-Iglesias\n");
+    printf("\tAQUAgpusph Copyright (C) 2012  Jose Luis Cercos-Pita\n");
+    printf("\tThis program comes with ABSOLUTELY NO WARRANTY; for details see LICENSE.\n");
+    printf("\tThis is free software, and you are welcome to redistribute it\n");
+    printf("\tunder certain conditions; see LICENSE for details.\n");
+    printf("\n");
 
-	A = new InputOutput::ArgumentsManager(argc,argv);
-	F = new InputOutput::FileManager();
-	P = new InputOutput::ProblemSetup();
+    A = new InputOutput::ArgumentsManager(argc,argv);
+    F = new InputOutput::FileManager();
+    P = new InputOutput::ProblemSetup();
 
     // We must start reading the runtime arguments
     if(A->parse()){
@@ -120,11 +165,11 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-	T = new InputOutput::TimeManager();
-	C = new CalcServer::CalcServer();
+    T = new InputOutput::TimeManager();
+    C = new CalcServer::CalcServer();
 
-	if(C->setup())
-	{
+    if(C->setup())
+    {
         delete A;
         delete F;
         delete P;
@@ -132,58 +177,58 @@ int main(int argc, char *argv[])
         delete C;
         delete T;
         delete S;
-		return EXIT_FAILURE;
-	}
+        return EXIT_FAILURE;
+    }
 
-	S->addMessageF(1, "Start of simulation...\n\n");
-	S->printDate();
-	S = new InputOutput::ScreenManager();
+    S->addMessageF(1, "Start of simulation...\n\n");
+    S->printDate();
+    S = new InputOutput::ScreenManager();
 
-	while(!T->mustStop())
-	{
-		if(C->update()){
-	        float Time = T->time();
-	        delete S; S = NULL;
+    while(!T->mustStop())
+    {
+        if(C->update()){
+            float Time = T->time();
+            delete S; S = NULL;
             S->printDate();
-	        S->addMessageF(1, "Destroying time manager...\n");
-	        delete T; T = NULL;
-	        S->addMessageF(1, "Destroying fluid host layer...\n");
-	        delete fluid; fluid = NULL;
-	        S->addMessageF(1, "Destroying calculation server...\n");
-	        delete C; C = NULL;
-	        S->addMessageF(1, "Destroying problem setup...\n");
-	        delete P; P = NULL;
-	        S->addMessageF(1, "Destroying arguments manager...\n");
+            S->addMessageF(1, "Destroying time manager...\n");
+            delete T; T = NULL;
+            S->addMessageF(1, "Destroying fluid host layer...\n");
+            delete fluid; fluid = NULL;
+            S->addMessageF(1, "Destroying calculation server...\n");
+            delete C; C = NULL;
+            S->addMessageF(1, "Destroying problem setup...\n");
+            delete P; P = NULL;
+            S->addMessageF(1, "Destroying arguments manager...\n");
             delete A; A = NULL;
-	        S->addMessageF(1, "Destroying files manager...\n");
-	        delete F; F = NULL;
-	        sprintf(msg, "Simulation finished abnormally (Time = %f s)\n\n", Time);
-	        S->addMessageF(1, msg);
-		    return EXIT_FAILURE;
-		}
-		fluid->retrieveData();
-		if(F->save())
+            S->addMessageF(1, "Destroying files manager...\n");
+            delete F; F = NULL;
+            sprintf(msg, "Simulation finished abnormally (Time = %f s)\n\n", Time);
+            S->addMessageF(1, msg);
             return EXIT_FAILURE;
-	}
+        }
+        fluid->retrieveData();
+        if(F->save())
+            return EXIT_FAILURE;
+    }
 
-	delete S; S = NULL;
+    delete S; S = NULL;
     S->printDate();
 
-	float Time = T->time();
+    float Time = T->time();
     S->addMessageF(1, "Destroying time manager...\n");
-	delete T; T = NULL;
+    delete T; T = NULL;
     S->addMessageF(1, "Destroying fluid host layer...\n");
-	delete fluid; fluid = NULL;
+    delete fluid; fluid = NULL;
     S->addMessageF(1, "Destroying calculation server...\n");
-	delete C; C = NULL;
+    delete C; C = NULL;
     S->addMessageF(1, "Destroying problem setup...\n");
-	delete P; P = NULL;
+    delete P; P = NULL;
     S->addMessageF(1, "Destroying arguments manager...\n");
-	delete A; A = NULL;
+    delete A; A = NULL;
     S->addMessageF(1, "Destroying files manager...\n");
-	delete F; F = NULL;
-	// Exiting
+    delete F; F = NULL;
+    // Exiting
     sprintf(msg, "Simulation finished OK (Time = %f s)\n\n", Time);
     S->addMessageF(1, msg);
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
