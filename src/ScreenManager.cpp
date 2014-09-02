@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Terminal output, with Log automatic copying.
+ * (See Aqua::InputOutput::ScreenManager for details)
+ */
+
 #include <CL/cl.h>
 
 #include <ScreenManager.h>

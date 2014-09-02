@@ -16,111 +16,109 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Terminal output, with Log automatic copying.
+ * (See Aqua::InputOutput::ScreenManager for details)
+ */
+
 #ifndef SCREENMANAGER_H_INCLUDED
 #define SCREENMANAGER_H_INCLUDED
 
-// ----------------------------------------------------------------------------
-// Include Prerequisites
-// ----------------------------------------------------------------------------
 #include <sphPrerequisites.h>
 
-// ----------------------------------------------------------------------------
-// Include standar libraries
-// ----------------------------------------------------------------------------
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
 #include <sys/time.h>
 #include <unistd.h>
-
-// ----------------------------------------------------------------------------
-// Include the ncurses library
-// ----------------------------------------------------------------------------
 #include <ncurses.h>
 
-// ----------------------------------------------------------------------------
-// Include Singleton abstract class
-// ----------------------------------------------------------------------------
 #include <Singleton.h>
 
-// ----------------------------------------------------------------------------
-// Include OpenCL libraries
-// ----------------------------------------------------------------------------
 #include <CL/cl.h>
 
 #ifndef addMessageF
+    /** @def addMessageF
+     * Overloaded version of Aqua::InputOutput::ScreenManager::addMessage()
+     * method, which is automatically setting the class and function names.
+     */
     #define addMessageF(level, log) addMessage(level, log, __METHOD_CLASS_NAME__)
 #endif
 
 namespace Aqua{ namespace InputOutput{
 
 /** @class ScreenManager ScreenManager.h ScreenManager.h
- *  On screen output manager.
+ * @brief On screen output manager.
+ *
+ * This class is able to conveniently redirect the data to the log file.
  */
 struct ScreenManager : public Aqua::Singleton<Aqua::InputOutput::ScreenManager>
 {
 public:
-	/** Constructor.
-	 */
-	ScreenManager();
+    /// Constructor.
+    ScreenManager();
 
-	/** Destructor.
-	 */
-	~ScreenManager();
+    /// Destructor.
+    ~ScreenManager();
 
-	/** Some relevant data show will printed at terminal.
-	 */
-	void update();
+    /** @brief Call to update the terminal output.
+     *
+     * It may compute some additional data to print by terminal, depending on
+     * the selected verbosity.
+     *
+     * @see Aqua::InputOutput::ProblemSetup::sphSettings::verbose_level
+     */
+    void update();
 
-	/** Add a message to the log registry, and erase old messages (only in terminal).
-	 * @param Level Califier of message:
-	 *   - 0 = Empty message.
-	 *   - 1 = Info message.
-	 *   - 2 = Warning message.
-	 *   - 3 = Error message.
-	 * @param log Log message.
-	 * @param print_func_name Set the function name printing:
-	 *   - 0 = Function name must not be printed.
-	 *   - 1 = Function name must be printed.
-	 *   - 2 = Function name will be printed if level > 0.
-	 * @note In order to append the class and the method name before the
-	 * messaage use addMessageF instead of this one.
-	 */
-	void addMessage(int Level, const char *log, const char *func=NULL);
+    /** @brief Add a new log record message.
+     *
+     * The old messages may be removed from the terminal if no more space left.
+     *
+     * @param Level Califier of message:
+     *   - 0 = Empty message.
+     *   - 1 = Info message.
+     *   - 2 = Warning message.
+     *   - 3 = Error message.
+     * @param log Log message.
+     * @param func Function name to print, NULL if it should not be printed.
+     * @note In order to append the class and the method name before the
+     * message use #addMessageF instead of this one.
+     */
+    void addMessage(int Level, const char *log, const char *func=NULL);
 
-	/** Print time stamp in the screen and log file.
-	 */
+    /// Print a time stamp in the screen and the log file.
     void printDate();
 
-	/** Print an OpenCL error.
-	 * @param error Error code returned by OpenCL
-	 * @param level Califier of message:
-	 *   - 0 = Empty message.
-	 *   - 1 = Info message.
-	 *   - 2 = Warning message.
-	 *   - 3 = Error message.
-	 */
+    /** @brief Print an OpenCL error.
+     * @param error Error code returned by OpenCL.
+     * @param level Qualifier of message:
+     *   - 0 = Empty message.
+     *   - 1 = Info message.
+     *   - 2 = Warning message.
+     *   - 3 = Error message.
+     */
     void printOpenCLError(int error, int level=0);
 private:
-	/// Start time
-	struct timeval _start_time;
-	/// Actual time
-	struct timeval _actual_time;
-	/// Maximum number of log messages
-	long _n_log;
-	/** Califier of message: \n
-	 * 0 = Empty message. \n
-	 * 1 = Info message. \n
-	 * 2 = Warning message. \n
-	 * 3 = Error message.
-	 */
-	int *_c_log;
-	/// Log messages.
-	char **_m_log;
+    /// Start time
+    struct timeval _start_time;
+    /// Actual time
+    struct timeval _actual_time;
+    /// Maximum number of log messages
+    long _n_log;
+    /** @brief Qualifier of the messages
+     *
+     *    - 0 = Empty message.
+     *    - 1 = Info message.
+     *    - 2 = Warning message.
+     *    - 3 = Error message.
+     */
+    int *_c_log;
+    /// Log messages.
+    char **_m_log;
 
-	/// Previous Frame
-	int _old_frame;
+    /// Previous Frame index.
+    int _old_frame;
 };
 
 }}  // namespace
