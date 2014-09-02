@@ -1146,25 +1146,37 @@ public:
     /// Add a new fluid to the list #fluids
     void addFluid();
 
-    /** \class sphMoveParameters ProblemSetup.h ProblemSetup.h
-     * Data structure used to store the motions data.
+    /** @struct sphMoveParameters
+     * @brief Motion definition parameters.
+     *
+     * Several motions can be simultaneously applied in AQUAgpusph, which can be
+     * used to impose different motions to each Fluid, or to create motions by
+     * composing several sub-motions.
+     *
+     * These setting are set between the following XML tags:
+     * @code{.xml}
+        <Movements>
+        </Movements>
+     * @endcode
+     *
+     * @see Aqua::CalcServer::Movement::Movement
      */
     class sphMoveParameters
     {
     public:
-        /** Constructor
-         */
+        /// Constructor
         sphMoveParameters();
-        /** Destructor
-         */
+        /// Destructor
         ~sphMoveParameters();
 
-        /** Type of movement: \n
-         *   - -1 = No movement.
-         *   - 0 = Quaternion (Fully controlled by the OpenCL script).
-         *   - 1 = LIQuaternion (Lineary interpolation from a data file).
-         *   - 2 = C1Quaternion (Continuous C1 interpolation from a data file).
-         *   - 3 = ScriptQuaternion (Python controlled motion).
+        /// Type of motion.
+        /**
+         *   - -1 = No motion.
+         *   - 0 = Quaternion. No external data is loaded, so it can be only
+         *     controlled by the OpenCL script.
+         *   - 1 = LIQuaternion. Linearly interpolated quaternion data.
+         *   - 2 = C1Quaternion. C1 continuous interpolated quaternion data.
+         *   - 3 = ScriptQuaternion. Python controlled quaternion data.
          */
         int type;
 
@@ -1172,7 +1184,7 @@ public:
         char* path;
     };
 
-    /// Array of motions
+    /// List of motions
     std::deque<sphMoveParameters*> motions;
 
     /** \class sphSensorsParameters ProblemSetup.h ProblemSetup.h
