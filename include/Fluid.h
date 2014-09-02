@@ -48,40 +48,39 @@ namespace Aqua{ namespace InputOutput{
 class Fluid : public Aqua::Singleton<Aqua::InputOutput::Fluid>
 {
 public:
-    /** Constructor.
-     */
+    /// Constructor.
     Fluid();
 
-    /** Destructor.
-     */
+    /// Destructor.
     ~Fluid();
 
-    /** Retrieves all data from the calculation server.
-     *
+    /// Retrieves all data from the calculation server.
+    /**
      * @return false if all gone right, true otherwise.
      */
     bool retrieveData();
 
-    /** Get the number of particles in this fluid.
-     *
+    /// Get the number of particles in this fluid.
+    /**
      * @return Number of particles.
      */
     unsigned int n(){return num_particles;}
 
-    /** Get the number of particles in this fluid.
-     *
+    /// Get the number of particles in this fluid.
+    /**
      * @return Number of particles.
      * @see n()
      */
     unsigned int nParticles(){return n();}
 
-    /** Get the number of fluids.
-     *
+    /// Get the number of fluids.
+    /**
      * @return Number of fuid species.
      */
     unsigned int nFluids(){return num_fluids;}
 
-    /** Fixed/sensor/regular part flag:
+    /// Fixed/sensor/fluid particle flag
+    /**
      *   - imove > 0 for regular fluid particles.
      *   - imove = 0 for sensors.
      *   - imove < 0 for boundary elements/particles.
@@ -105,7 +104,7 @@ public:
     float *mass;
     /// Pressure \f$ p \f$.
     float *press;
-    /** Shepard term \f$ \gamma(\mathbf{x}) = \int_{\Omega}
+    /** @brief Shepard term \f$ \gamma(\mathbf{x}) = \int_{\Omega}
            W(\mathbf{y} - \mathbf{x})
            \mathrm{d}\mathbf{x} \f$.
      */

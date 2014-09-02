@@ -53,50 +53,47 @@ namespace InputOutput{
 class FileManager : public Aqua::Singleton<Aqua::InputOutput::FileManager>
 {
 public:
-    /** Constructor
-     */
+    /// Constructor
     FileManager();
 
-    /** Destructor
-     */
+    /// Destructor
     ~FileManager();
 
-    /** Set the input file.
-     *
+    /// Set the input file path.
+    /**
      * @param path Path to input file.
      */
     void inputFile(const char* path);
 
-    /** Get input file.
-     *
+    /// Get input file path.
+    /**
      * @return Path to input file.
      */
     const char* inputFile(){return (const char*)_in_file;}
 
-    /** Get the log file handler.
-     *
+    /// Get the log file handler.
+    /**
      * @return Log file handler.
      * @see Aqua::InputOutput::Log
      */
     FILE* logFile();
 
-    /** Get the energy file handler.
-     *
+    /// Get the energy file handler.
+    /**
      * @return Energy file handler.
      * @see Aqua::InputOutput::Energy
      */
     FILE* energyFile();
 
-    /** Get the bounds file handler.
-     *
+    /// Get the bounds file handler.
+    /**
      * @return Bounds file handler.
      * @see Aqua::InputOutput::Bounds
      */
     FILE* boundsFile();
 
-    /** Load the input data files.
-     *
-     * It require that:
+    /// Load the input data files.
+    /** It require that:
      *    -# Aqua::InputOutput::State should load the XML definition
      *       files storing the data in Aqua::InputOutput::ProblemSetup.
      *    -# Aqua::InputOutput::Particles should load the particles definition
@@ -106,9 +103,8 @@ public:
      */
     Fluid* load();
 
-    /** Save the output data files.
-     *
-     * It require that:
+    /// Save the output data files.
+    /** It require that:
      *    -# Aqua::InputOutput::State should save the XML definition
      *       files taking the data from Aqua::InputOutput::ProblemSetup.
      *    -# Aqua::InputOutput::Particles should save the particles definition
@@ -118,8 +114,8 @@ public:
      */
     bool save();
 
-    /** Get the last printed file for a specific fluid.
-     *
+    /// Get the last printed file for a specific fluid.
+    /**
      * @param ifluid Fluid index.
      * @return The last printed file, NULL if a file has not been printed yet.
      */

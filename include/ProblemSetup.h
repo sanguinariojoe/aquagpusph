@@ -129,7 +129,7 @@ namespace Aqua{ namespace InputOutput{
 class ProblemSetup : public Aqua::Singleton<Aqua::InputOutput::ProblemSetup>
 {
 public:
-    /** Constructor.
+    /** @brief Constructor.
      *
      * In this method some initial values will be assigned, however it is
      * expected that Aqua::InputOutput::FileManager is overwritting them.
@@ -139,22 +139,23 @@ public:
      */
     ProblemSetup();
 
-    /** Destructor.
+    /** @brief Destructor.
      */
     ~ProblemSetup();
 
-    /** Compute the kernel length \f$ h \f$ and the corrected dynamic viscosity
-     * \f$ \mu \f$ (due to the artificial viscosity factor \f$ \alpha \f$).
+    /** @brief Compute the kernel length \f$ h \f$ and the corrected dynamic
+     * viscosity \f$ \mu \f$ (due to the artificial viscosity factor
+     * \f$ \alpha \f$).
      *
      * This method must be called after Aqua::InputOutput::FileManager was set
-     * the simulation cofiguration.
+     * the simulation configuration.
      *
      * @return false if all gone right, true otherwise.
      */
     bool perform();
 
     /** @struct sphSettings
-     * General program settings.
+     * @brief General program settings.
      *
      * These setting are set between the following XML tags:
      * @code{.xml}
@@ -166,14 +167,13 @@ public:
      */
     struct sphSettings
     {
-        /** Constructor.
-         */
+        /// Constructor.
         void init();
-        /** Destructor
-         */
+        /// Destructor
         void destroy();
 
-        /** Verbose level:
+        /** @brief Verbose level.
+         *
          *   - 2 = Slowest alternative, prints relevant data every timestep.
          *   - 1 = Prints relevant data every frame (i.e. when output data
          *     files are updated).
@@ -184,7 +184,7 @@ public:
          */
         int verbose_level;
 
-        /** Index of the OpenCL platform to use.
+        /** @brief Index of the OpenCL platform to use.
          *
          * AQUAgpusph is providing the available OpenCL platforms, and the
          * devices into them.
@@ -194,7 +194,8 @@ public:
          */
         unsigned int platform_id;
 
-        /** Index of the OpenCL device to use in the platform #platform_id.
+        /** @brief Index of the OpenCL device to use in the platform
+         * #platform_id.
          *
          * AQUAgpusph is providing the available OpenCL platforms, and the
          * devices into them.
@@ -207,7 +208,7 @@ public:
          */
         unsigned int device_id;
 
-        /** Type of devices that will be considered in the platform
+        /** @brief Type of devices that will be considered in the platform
          * #platform_id.
          *
          * This field can be set with the tag `Device`, for instance:
@@ -219,8 +220,8 @@ public:
     }settings;
 
     /** @struct sphOpenCLKernels
-     * OpenCL kernels source code files that should be loaded for each tool of
-     * Aqua::CalcServer::CalcServer.
+     * @brief OpenCL kernels source code files that should be loaded for each
+     * tool of Aqua::CalcServer::CalcServer.
      *
      * These setting are set between the following XML tags:
      * @code{.xml}
@@ -235,14 +236,12 @@ public:
      */
     struct sphOpenCLKernels
     {
-        /** Constructor.
-         */
+        /// Constructor.
         void init();
-        /** Destructor.
-         */
+        /// Destructor.
         void destroy();
 
-        /** Predictor time integration stage.
+        /** @brief Predictor time integration stage.
          *
          * This field can be set with the tag `Predictor`, for instance:
          * `<Predictor file="OpenCL/Predictor" />`
@@ -250,7 +249,7 @@ public:
          * @note The `.cl` extension will be automatically added.
          */
         char *predictor;
-        /** Particles data permutation using the #radix_sort data.
+        /** @brief Particles data permutation using the #radix_sort data.
          *
          * This field can be set with the tag `Permutate`, for instance:
          * `<Permutate file="OpenCL/Permutate" />`
@@ -258,7 +257,7 @@ public:
          * @note The `.cl` extension will be automatically added.
          */
         char *link_list;
-        /** LinkList computation.
+        /** @brief LinkList computation.
          *
          * This field can be set with the tag `LinkList`, for instance:
          * `<LinkList file="OpenCL/LinkList" />`
@@ -266,7 +265,7 @@ public:
          * @note The `.cl` extension will be automatically added.
          */
         char *permutate;
-        /** Fluid particles interactions.
+        /** @brief Fluid particles interactions.
          *
          * This field can be set with the tag `Rates`, for instance:
          * `<Rates file="OpenCL/Rates" />`
@@ -274,7 +273,7 @@ public:
          * @note The `.cl` extension will be automatically added.
          */
         char *rates;
-        /** Corrector time integration stage.
+        /** @brief Corrector time integration stage.
          *
          * This field can be set with the tag `Corrector`, for instance:
          * `<Corrector file="OpenCL/Corrector" />`
@@ -282,7 +281,7 @@ public:
          * @note The `.cl` extension will be automatically added.
          */
         char *corrector;
-        /** Time step computation.
+        /** @brief Time step computation.
          *
          * This field can be set with the tag `TimeStep`, for instance:
          * `<TimeStep file="OpenCL/TimeStep" />`
@@ -291,7 +290,7 @@ public:
          */
         char *time_step;
 
-        /** Reduction, i.e. Prefix sums, maximum/minimum value, etc...
+        /** @brief Reduction, i.e. Prefix sums, maximum/minimum value, etc...
          *
          * This field can be set with the tag `Reduction`, for instance:
          * `<Reduction file="OpenCL/Reduction" />`
@@ -299,7 +298,7 @@ public:
          * @note The `.cl` extension will be automatically added.
          */
         char *reduction;
-        /** RadixSort, i.e. Particles sort by the cell index.
+        /** @brief RadixSort, i.e. Particles sort by the cell index.
          *
          * This field can be set with the tag `RadixSort`, for instance:
          * `<RadixSort file="OpenCL/RadixSort" />`
@@ -308,7 +307,7 @@ public:
          */
         char *radix_sort;
 
-        /** Density interpolation (formerly density reinitialization).
+        /** @brief Density interpolation (formerly density reinitialization).
          *
          * The density reinitialization imply that the density resulting from
          * the mass conservation equation is replaced by \f$ \rho(\mathbf{x}) =
@@ -321,7 +320,7 @@ public:
          * @note The `.cl` extension will be automatically added.
          */
         char *dens_int;
-        /** 0th order correction (formerly Shepard correction).
+        /** @brief 0th order correction (formerly Shepard correction).
          *
          * The resulting variation rates will be renormalized dividing by the
          * Shepard factor \f$ \gamma(\mathbf{x}) = \int_{\Omega}
@@ -334,7 +333,7 @@ public:
          * @note The `.cl` extension will be automatically added.
          */
         char *shepard;
-        /** Simplest boundary condition consisting in a elastic bounce.
+        /** @brief Simplest boundary condition consisting in a elastic bounce.
          *
          * This field can be set with the tag `ElasticBounce`, for instance:
          * `<ElasticBounce file="OpenCL/ElasticBounce" />`
@@ -342,7 +341,7 @@ public:
          * @note The `.cl` extension will be automatically added.
          */
         char *elastic_bounce;
-        /** Boundary integrals based boundary condition.
+        /** @brief Boundary integrals based boundary condition.
          *
          * This field can be set with the tag `DeLeffe`, for instance:
          * `<DeLeffe file="OpenCL/DeLeffe" />`
@@ -350,7 +349,7 @@ public:
          * @note The `.cl` extension will be automatically added.
          */
         char *de_Leffe;
-        /** Ghost particles based boundary condition.
+        /** @brief Ghost particles based boundary condition.
          *
          * This field can be set with the tag `GhostParticles`, for instance:
          * `<GhostParticles file="OpenCL/GhostParticles" />`
@@ -358,7 +357,7 @@ public:
          * @note The `.cl` extension will be automatically added.
          */
         char *ghost;
-        /** Forces and moments of the fluid.
+        /** @brief Forces and moments of the fluid.
          *
          * This field can be set with the tag `Torque`, for instance:
          * `<Torque file="OpenCL/Torque" />`
@@ -366,7 +365,7 @@ public:
          * @note The `.cl` extension will be automatically added.
          */
         char *torque;
-        /** Energy of the fluid.
+        /** @brief Energy of the fluid.
          *
          * This field can be set with the tag `Energy`, for instance:
          * `<Energy file="OpenCL/Energy" />`
@@ -374,7 +373,7 @@ public:
          * @note The `.cl` extension will be automatically added.
          */
         char *energy;
-        /** Fluid bound box, and minimum and maximum velocities.
+        /** @brief Fluid bound box, and minimum and maximum velocities.
          *
          * This field can be set with the tag `Bounds`, for instance:
          * `<Bounds file="OpenCL/Bounds" />`
@@ -382,7 +381,7 @@ public:
          * @note The `.cl` extension will be automatically added.
          */
         char *bounds;
-        /** Domain check in order to exclude the particles far away.
+        /** @brief Domain check in order to exclude the particles far away.
          *
          * Particles running far away may break the simulations due to the
          * increasing number of cells, so it is strongly recommended to set
@@ -394,13 +393,12 @@ public:
          * @note The `.cl` extension will be automatically added.
          */
         char *domain;
-        /** Deprecated field.
-         */
+        /// Deprecated field.
         char *portal;
     }OpenCL_kernels;
 
     /** @struct sphTimingParameters
-     * Simulation time flow options.
+     * @brief Simulation time flow options.
      *
      * This options are used to control the simulation time step, the output
      * files frequency or the simulation finish criteria.
@@ -416,7 +414,7 @@ public:
      */
     struct sphTimingParameters
     {
-        /** Starting time instant.
+        /** @brief Starting time instant.
          *
          * If a negative value is provided a stabilization period will be
          * considered.
@@ -429,7 +427,7 @@ public:
          */
         float t0;
 
-        /** Time step at the start of the simulation.
+        /** @brief Time step at the start of the simulation.
          *
          * This option is designed for simulations continuation, for other
          * simulations this options should be equal to 0.
@@ -438,7 +436,7 @@ public:
          */
         float dt0;
 
-        /** Starting time step index.
+        /** @brief Starting time step index.
          *
          * This option is designed for simulations continuation, for other
          * simulations this options should be equal to 0.
@@ -447,7 +445,7 @@ public:
          */
         unsigned int step0;
 
-        /** Starting output frame index.
+        /** @brief Starting output frame index.
          *
          * This option is designed for simulations continuation, for other
          * simulations this options should be equal to 0.
@@ -456,7 +454,7 @@ public:
          */
         unsigned int frame0;
 
-        /** Time step \f$ \Delta t \f$ manually set by the user.
+        /** @brief Time step \f$ \Delta t \f$ manually set by the user.
          *
          * This field can be set with the tag `Option`, for instance to set
          * \f$ \Delta t = 0.1 \mathrm{s} \f$:
@@ -466,7 +464,7 @@ public:
          */
         float dt;
 
-        /** Minimum time step.
+        /** @brief Minimum time step.
          *
          * This option will be useful just if variable time step is set.
          * When the computed time step value below this options value is
@@ -479,7 +477,7 @@ public:
          */
         float dt_min;
 
-        /** Courant factor.
+        /** @brief Courant factor.
          *
          * This option will be useful just if variable time step is set.
          * The computed required time step will be multiplied by the Courant
@@ -494,7 +492,8 @@ public:
          */
         float courant;
 
-        /** Velocity clamping to match with the minimum time step #dt_min.
+        /** @brief Velocity clamping to match with the minimum time step
+         * #dt_min.
          *
          * The velocity of the particles will be conveniently clamped to ensure
          * that the computed time step will not be lower than #dt_min.
@@ -506,7 +505,7 @@ public:
          */
         bool velocity_clamp;
 
-        /** Simulation finish criteria to apply.
+        /** @brief Simulation finish criteria to apply.
          *
          * Must a combination of the following options:
          *   - #__TIME_MODE__ : Maximum simulated time.
@@ -523,7 +522,7 @@ public:
          */
         unsigned int sim_end_mode;
 
-        /** Simulation finish time instant.
+        /** @brief Simulation finish time instant.
          *
          * If #__TIME_MODE__ is set in #sim_end_mode, the simulation will be
          * stopped when this simulation time instant is reached.
@@ -535,7 +534,7 @@ public:
          */
         float sim_end_time;
 
-        /** Total number of time steps to compute.
+        /** @brief Total number of time steps to compute.
          *
          * If #__ITER_MODE__ is set in #sim_end_mode, the simulation will be
          * stopped when this simulation time steps are computed.
@@ -547,7 +546,7 @@ public:
          */
         int sim_end_step;
 
-        /** Total number of output frames to write.
+        /** @brief Total number of output frames to write.
          *
          * If #__FRAME_MODE__ is set in #sim_end_mode, the simulation will be
          * stopped when this output frames are written.
@@ -559,7 +558,7 @@ public:
          */
         int sim_end_frame;
 
-        /** Log file updating criteria to apply.
+        /** @brief Log file updating criteria to apply.
          *
          * Must a combination of the following options:
          *   - #__NO_OUTPUT_MODE__ : The log file will not be never updated
@@ -575,7 +574,7 @@ public:
          */
         unsigned int log_mode;
 
-        /** Log file updating rate.
+        /** @brief Log file updating rate.
          *
          * If #__FPS_MODE__ is set in #log_mode, the log file will be updated
          * this value times per second of simulations.
@@ -587,7 +586,7 @@ public:
          */
         float log_fps;
 
-        /** Log file updating rate.
+        /** @brief Log file updating rate.
          *
          * If #__IPF_MODE__ is set in #log_mode, the log file will be updated
          * every time that this value of time steps is computed.
@@ -599,7 +598,7 @@ public:
          */
         int log_ipf;
 
-        /** Energy report file updating criteria to apply.
+        /** @brief Energy report file updating criteria to apply.
          *
          * Must a combination of the following options:
          *   - #__NO_OUTPUT_MODE__ : The log file will not be never updated
@@ -615,7 +614,7 @@ public:
          */
         unsigned int energy_mode;
 
-        /** Energy report file updating rate.
+        /** @brief Energy report file updating rate.
          *
          * If #__FPS_MODE__ is set in #energy_mode, the energy file will be
          * updated this value times per second of simulations.
@@ -627,7 +626,7 @@ public:
          */
         float energy_fps;
 
-        /** Energy report file updating rate.
+        /** @brief Energy report file updating rate.
          *
          * If #__IPF_MODE__ is set in #energy_mode, the energy file will be
          * updated every time that this value of time steps is computed.
@@ -639,7 +638,7 @@ public:
          */
         int energy_ipf;
 
-        /** Fluid bounds file updating criteria to apply.
+        /** @brief Fluid bounds file updating criteria to apply.
          *
          * Must a combination of the following options:
          *   - #__NO_OUTPUT_MODE__ : The log file will not be never updated
@@ -655,7 +654,7 @@ public:
          */
         unsigned int bounds_mode;
 
-        /** Fluid bounds file updating rate.
+        /** @brief Fluid bounds file updating rate.
          *
          * If #__FPS_MODE__ is set in #bounds_mode, the bounds file will be
          * updated this value times per second of simulations.
@@ -667,7 +666,7 @@ public:
          */
         float bounds_fps;
 
-        /** Fluid bounds file updating rate.
+        /** @brief Fluid bounds file updating rate.
          *
          * If #__IPF_MODE__ is set in #bounds_mode, the bounds file will be
          * updated every time that this value of time steps is computed.
@@ -679,7 +678,7 @@ public:
          */
         int bounds_ipf;
 
-        /** Particles output updating criteria to apply.
+        /** @brief Particles output updating criteria to apply.
          *
          * The particles output may be hard disk heavily demanding, hardly
          * affecting the general program performance as well, therefore it is
@@ -699,7 +698,7 @@ public:
          */
         unsigned int output_mode;
 
-        /** Particles output updating rate.
+        /** @brief Particles output updating rate.
          *
          * If #__FPS_MODE__ is set in #output_mode, the particles output will be
          * updated this value times per second of simulations.
@@ -711,7 +710,7 @@ public:
          */
         float output_fps;
 
-        /** Particles output updating rate.
+        /** @brief Particles output updating rate.
          *
          * If #__IPF_MODE__ is set in #output_mode, the particles output will be
          * updated every time that this value of time steps is computed.
@@ -723,7 +722,7 @@ public:
          */
         int output_ipf;
 
-        /** Time step \f$ \Delta t \f$ computation method.
+        /** @brief Time step \f$ \Delta t \f$ computation method.
          *
          * The time step \f$ \Delta t \f$ can be computed in 3 ways (they
          * cannot be combined):
@@ -746,7 +745,7 @@ public:
     }time_opts;
 
     /** @struct sphSPHParameters
-     * Simulation SPH related parameters.
+     * @brief Simulation SPH related parameters.
      *
      * This options are used to control the physics simulation parameters.
      *
@@ -760,8 +759,8 @@ public:
      */
     struct sphSPHParameters
     {
-        /** Gravity acceleration \f$ \mathbf{g} \f$, present in the momentum
-         * equation.
+        /** @brief Gravity acceleration \f$ \mathbf{g} \f$, present in the
+         * momentum equation.
          *
          * This field can be set with the tag `Option`, for instance:
          * `<Option name="g" x="0.0" y="0.0" z="-9.81" />`
@@ -769,13 +768,13 @@ public:
          * @warning In 2D simulations the field \f$ z \f$ does not exist.
          */
         vec g;
-        /** Kernel height factor \f$ \frac{h}{\Delta \mathbf{r}} \f$.
+        /** @brief Kernel height factor \f$ \frac{h}{\Delta \mathbf{r}} \f$.
          *
          * This field can be set with the tag `Option`, for instance:
          * `<Option name="hfac" value="4.0" />`
          */
         float hfac;
-        /** Typical particle distance \f$ \Delta \mathbf{r} \f$.
+        /** @brief Typical particle distance \f$ \Delta \mathbf{r} \f$.
          *
          * The particles distance may (and probably will) be non constant.
          * Since this value controls the kernel height, if several particles
@@ -787,13 +786,13 @@ public:
          * @warning In 2D simulations the field \f$ z \f$ does not exist.
          */
         vec deltar;
-        /** Kernel height \f$ h \f$.
+        /** @brief Kernel height \f$ h \f$.
          *
          * This value cannot be manually set but it is computed as #hfac
          * \f$ \cdot \f$ #deltar.
          */
         float h;
-        /** Characteristic sound speed \f$ c_s \f$.
+        /** @brief Characteristic sound speed \f$ c_s \f$.
          *
          * The sound speed is controlling the fluid compressibility such that
          * higher values means lower fluid compressibility.
@@ -806,7 +805,7 @@ public:
          */
         float cs;
 
-        /** Frequency of Link-List computation (in time steps between
+        /** @brief Frequency of Link-List computation (in time steps between
          * computation events).
          *
          * The Link-List process imply a radix-sort computation which can be
@@ -823,7 +822,7 @@ public:
          */
         unsigned int link_list_steps;
 
-        /** Frequency of density interpolations (in time steps between
+        /** @brief Frequency of density interpolations (in time steps between
          * computation events).
          *
          * The density interpolation may smooth the density field, however
@@ -836,7 +835,7 @@ public:
          * @see Aqua::CalcServer::DensityInterpolation
          */
         unsigned int dens_int_steps;
-        /** Minimum value for the density.
+        /** @brief Minimum value for the density.
          *
          * If the density of a particle becomes lower than this one, it will be
          * conveniently clamped.
@@ -849,7 +848,7 @@ public:
          * @see #rho_max
          */
         float rho_min;
-        /** Maximum value for the density.
+        /** @brief Maximum value for the density.
          *
          * If the density of a particle becomes greater than this one, it will
          * be conveniently clamped.
@@ -863,7 +862,7 @@ public:
          */
         float rho_max;
 
-        /** Boundary condition technique to be applied.
+        /** @brief Boundary condition technique to be applied.
          *
          * It should be one of the following values:
          *    - #__BOUNDARY_ELASTIC__ : Elastic bounce.
@@ -882,7 +881,7 @@ public:
          * @see Aqua::CalcServer::Rates
          */
         unsigned int boundary_type;
-        /** Slip boundary condition.
+        /** @brief Slip boundary condition.
          *
          * Event though no-slip boundary conditions may be desirable, sometimes
          * the Reynolds number of the simulation is not large enough to
@@ -898,7 +897,7 @@ public:
          *     - `<Option name="SlipCondition" value="NoSlip" />`
          */
         unsigned int slip_condition;
-        /** Elastic factor for the elastic bounce boundary condition.
+        /** @brief Elastic factor for the elastic bounce boundary condition.
          *
          * If #boundary_type is #__BOUNDARY_ELASTIC__, this value will set the
          * amount of kinetic energy conserved in the interaction. A factor of 1
@@ -914,7 +913,8 @@ public:
          * @see #boundary_type
          */
         float elastic_factor;
-        /** Interaction distance for the elastic bounce boundary condition.
+        /** @brief Interaction distance for the elastic bounce boundary
+         * condition.
          *
          * If #boundary_type is #__BOUNDARY_ELASTIC__, this value will set the
          * distance where the interaction with the boundary will be computed.
@@ -927,7 +927,9 @@ public:
          */
         float elastic_dist;
 
-        /** 0th order correction (formerly Shepard correction).
+        /** @brief 0th order correction.
+         *
+         * Also known as Shepard correction.
          *
          * The computed rates of change will be renormalized such that constant
          * fields will be consistently interpolated.
@@ -956,7 +958,7 @@ public:
          */
         unsigned int has_shepard;
 
-        /** Existence of a computational domain.
+        /** @brief Existence of a computational domain.
          *
          * If true, domain bounds will be established such that the particles
          * out of the domain will be replaced by zero mass fixed particles.
@@ -976,17 +978,17 @@ public:
          * @see #domain_motion
          */
         bool has_domain;
-        /** Computational domain lower corner.
+        /** @brief Computational domain lower corner.
          *
          * @see #has_domain
          */
         vec domain_min;
-        /** Computational domain higher corner.
+        /** @brief Computational domain higher corner.
          *
          * @see #has_domain
          */
         vec domain_max;
-        /** Computational domain motion.
+        /** @brief Computational domain motion.
          *
          * If true, the domain will follow the motions. It is useful for closed
          * solids, like tanks, to assert that the domain follows the fluid.
@@ -997,7 +999,7 @@ public:
     }SPH_opts;
 
     /** @struct sphFluidParameters
-     * Fluid specie physic parameters.
+     * @brief Fluid specie physic parameters.
      *
      * In the simulations several fluid species may coexist (multiphase
      * simulations for instance).
@@ -1014,23 +1016,21 @@ public:
      */
     struct sphFluidParameters
     {
-        /** Constructor
-         */
+        /// Constructor
         void init();
 
-        /** Destructor
-         */
+        /// Destructor
         void destroy();
 
-        /** Number of particles
-         */
+        /// Number of particles
         unsigned int n;
 
-        /** Gamma exponent \f$ \gamma \f$ in the EOS
-         * \f$ p = \frac{c_s^2 \rho_0}{\gamma}
+        /** @brief Gamma exponent \f$ \gamma \f$
+         *
+         * The EOS \f$ p = \frac{c_s^2 \rho_0}{\gamma}
              \left(
                 \left( \frac{\rho}{\rho_0} \right)^\gamma - 1
-             \right) \f$.
+             \right) \f$ is considered.
          *
          * As it can be appreciated, higher \f$ \gamma \f$ values result in
          * lower incompressible flows.
@@ -1040,26 +1040,26 @@ public:
          */
         float gamma;
 
-        /** Density of reference \f$ \rho_0 \f$.
+        /** @brief Density of reference \f$ \rho_0 \f$.
          *
          * This field can be set with the tag `Option`, for instance:
          * `<Option name="refd" value="998.0" />`
          */
         float refd;
 
-        /** Dynamic viscosity \f$ \mu \f$.
+        /** @brief Dynamic viscosity \f$ \mu \f$.
          *
          * This field can be set with the tag `Option`, for instance:
          * `<Option name="Viscdyn" value="0.000894" />`
          */
         float visc_dyn;
 
-        /** Kinematic viscosity \f$ \nu \f$, resulting from
-         * \f$ \frac{\mu}{\rho_0} \f$
+        /** @brief Kinematic viscosity \f$ \nu \f$.
+         * Resulting from the division \f$ \frac{\mu}{\rho_0} \f$
          */
         float visc_kin;
 
-        /** Artificial viscosity \f$\alpha\f$ value.
+        /** @brief Artificial viscosity \f$\alpha\f$ value.
          *
          * \f$\alpha\f$ define the artificial viscosity of the fluid, such that
          * the dynamic viscosity will be corrected as
@@ -1073,8 +1073,9 @@ public:
          */
         float alpha;
 
-        /** Continuity equation diffusive term factor (formerly
-         * \f$\delta\f$-SPH).
+        /** @brief Continuity equation diffusive term factor \f$\delta\f$.
+         *
+         * Formulation known as \f$\delta\f$-SPH.
          *
          * This term may recover the simulation stability with lower entropy
          * effect than the artificial viscosity, and therefore you may consider
@@ -1090,13 +1091,13 @@ public:
          */
         float delta;
 
-        /** Corrected dynamic viscosity.
+        /** @brief Corrected dynamic viscosity.
          *
          * @see #alpha
          */
         float visc_dyn_corrected;
 
-        /** File path which should be read to load the particles
+        /** @brief File path which should be read to load the particles
          *
          * This field can be set with the tag `Option`, for instance:
          * `<Load format="ASCII" file="./Fluid.dat" />`
@@ -1106,7 +1107,7 @@ public:
          */
         char *in_path;
 
-        /** Format of the tile to be read to load the particles
+        /** @brief Format of the tile to be read to load the particles
          *
          * This field can be set with the tag `Option`, for instance:
          * `<Load format="ASCII" file="./Fluid.dat" />`
@@ -1116,7 +1117,7 @@ public:
          */
         char *in_format;
 
-        /** File path which should be written to save the particles
+        /** @brief File path which should be written to save the particles
          *
          * This field can be set with the tag `Option`, for instance:
          * `<Save format="VTK" file="./output" />`
@@ -1129,7 +1130,7 @@ public:
          */
         char *out_path;
 
-        /** Format of the tile to be read to load the particles
+        /** @brief Format of the tile to be read to load the particles
          *
          * This field can be set with the tag `Option`, for instance:
          * `<Save format="VTK" file="./output" />`
@@ -1142,8 +1143,7 @@ public:
 
     /// Number of fluids
     unsigned int n_fluids;
-    /** Add a new fluid to the list #fluids
-     */
+    /// Add a new fluid to the list #fluids
     void addFluid();
 
     /** \class sphMoveParameters ProblemSetup.h ProblemSetup.h

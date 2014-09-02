@@ -70,53 +70,50 @@ namespace CalcServer{
 class CalcServer : public Aqua::Singleton<Aqua::CalcServer::CalcServer>
 {
 public:
-    /** Constructor.
-     *
-     * You must call setup() after this constructor.
+    /// Constructor.
+    /** The constructor will just initialize default values, however setup()
+     * should be called after that.
      */
     CalcServer();
 
-    /** Destructor
-     */
+    /// Destructor
     ~CalcServer();
 
-    /** Internal time loop.
-     *
-     *  Calculation server will be iterating while no output files should be
-     *  updated (or the simulation is finished).
+    /// Internal time loop.
+    /** Calculation server will be iterating while no output files should be
+     * updated (or the simulation is finished).
      *
      * @return false if all gone right, true otherwise.
      */
     bool update();
 
-    /** Transfer the data from the computational device (managed by
-     *  Aqua::CalcServer::CalcServer) to the host (managed by ::main).
+    /// Transfer the data from the computational device to the host
+    /** Transferring data from/to the computational device (managed by
+     * Aqua::CalcServer::CalcServer) is a slow operation, so try to avoid
+     * calling this method too often.
      *
-     * @note Transfering data from/to the computational device is a slow
-     * operation, so try to avoid calling this method oftenly.
      * @param dest Array where the data should be copied.
      * @param orig Computational device allocated data to copy.
      * @param size Size of the data to copy.
      * @param offset Offset into the array to start reading.
-     * @return false if the data has been succesfully copied, true otherwise.
+     * @return false if the data has been successfully copied, true otherwise.
      */
     bool getData(void *dest, cl_mem orig, size_t size, size_t offset=0);
 
-    /** Transfer the data from the host (managed by ::main) to the
-     * computational device (managed by Aqua::CalcServer::CalcServer).
+    /// Transfer the data from the host device to the computational device.
+    /** Transferring data from/to the computational device (managed by
+     * Aqua::CalcServer::CalcServer) is a slow operation, so try to avoid
+     * calling this method too often.
      *
-     * @note Transfering data from/to the computational device is a slow
-     * operation, so try to avoid calling this method oftenly.
      * @param dest Identifier of the destination in the server.
      * @param orig Array of data to read.
      * @param size Size of the data to copy.
-     * @return false if the data has been succesfully copied, true otherwise.
+     * @return false if the data has been successfully copied, true otherwise.
      */
     bool sendData(cl_mem dest, void* orig, size_t size);
 
-    /** Allocate memory in the computational device.
-     *
-     * @note This method controls the amount of memory allocated in the
+    /// Allocate memory in the computational device.
+    /** This method controls the amount of memory allocated in the
      * computational device, so it is strongly recommended to use this method
      * instead of OpenCL provided clCreateBuffer directly.
      * @param size Amount of memory in bytes to allocate.
@@ -125,29 +122,24 @@ public:
      */
     cl_mem allocMemory(size_t size);
 
-    /** Setup all the simulation data required in the computational device
-     *  using the Aqua::InputOutput::ProblemSetup info.
-     *
-     * @note Even thought this work is associated with the constructor
-     * CalcServer(), when something may fail it is prefereable to let it to a
-     * separated method that could report errors, allowing the program to deal
-     * with them.
-     * @return false if the calculation server has been succesfully setup,
+    /// Setup some additional simulation data.
+    /** Even thought this work is associated with the constructor CalcServer(),
+     * when something may fail it is preferable to let it to a separated method
+     * that could report errors, allowing the program to deal with them.
+     * @return false if the calculation server has been successfully setup,
      * true otherwise
      */
     bool setup();
 
-    /** Updates the log file.
-     *
-     * The log file includes information about the output files printed (with
+    /// Updates the log file.
+    /** The log file includes information about the output files printed (with
      * the UTC date), the events recorded (INFO, WARNING and ERROR), and some
      * useful variables to track the simulation status.
      */
     void printLog();
 
-    /** Update the energy report.
-     *
-     * The energy components printed are:
+    /// Update the energy report.
+    /** The energy components printed are:
      *   - Potential energy: \f$ E_{pot} = - \sum_i m_i
          \mathbf{g} \cdot \mathbf{r}_i \f$.
      *   - Kinetic energy: \f$ E_{kin} = \sum_i \frac{1}{2} m_i
@@ -166,18 +158,16 @@ public:
      */
     void printEnergy();
 
-    /** Update the bounds report.
-     *
-     * The bounds report contains information about the fluid bounding box, and
+    /// Update the bounds report.
+    /** The bounds report contains information about the fluid bounding box, and
      * about the maximum and minimum velocities as well.
      *
      * @see bounds().
      */
     void printBounds();
 
-    /** Performs the energy calculation.
-     *
-     * This method is safely checking if the energy has been already computed
+    /// Performs the energy calculation.
+    /** This method is safely checking if the energy has been already computed
      * in the current time step, avoiding to waste time repeating the
      * operation.
      *
@@ -185,9 +175,8 @@ public:
      */
     void energy();
 
-    /** Perform the bounds calculation.
-     *
-     * This method is safely checking if the bounds have been already computed
+    /// Perform the bounds calculation.
+    /** This method is safely checking if the bounds have been already computed
      * in the current time step, avoiding to waste time repeating the
      * operation.
      *
@@ -195,8 +184,9 @@ public:
      */
     void bounds();
 
-    /** Verbose level (see
-     * Aqua::InputOutput::ProblemSetup::sphSettings::verbose_level)
+    /// Verbose level
+    /**
+     * @see Aqua::InputOutput::ProblemSetup::sphSettings::verbose_level
      */
     int verbose_level;
 
@@ -233,12 +223,12 @@ public:
     /// Total number of cells allocated
     unsigned int num_cells_allocated;
 
-    /** Minimum particle position (fluid and fixed particles are taken into
-     * account)
+    /** @brief Minimum particle position (fluid and fixed particles are taken
+     * into account)
      */
     vec pos_min;
-    /** Maximum particle position (fluid and fixed particles are taken into
-     * account)
+    /** @brief Maximum particle position (fluid and fixed particles are taken
+     * into account)
      */
     vec pos_max;
 
@@ -255,28 +245,31 @@ public:
     vec g;
     /// Kernel height factor \f$ \frac{h}{\Delta r} \f$.
     float hfac;
-    /** LinkList time steps validity. If this value is grater than 1, the
-     * link-list computation process will be avoided some time steps, but the
-     * cells size should be increased to ensure that the neighbours list still
-     * being valid, increasing the number of neighbours per particles.
-     * Sometimes some performance can be gained increasing this value.
+    /// LinkList time steps validity.
+    /** If this value is grater than 1, the link-list computation process will
+     * be avoided some time steps, but the cells size should be increased to
+     * ensure that the neighs list still being valid, increasing the number of
+     * neighs per particles.
+     * Sometimes some performance can be won increasing this value.
      */
     unsigned int link_list_steps;
     /// LinkList main step, to control if a new link-list is required.
     unsigned int link_list_step;
-    /** Cell size increasing factor (resulting from link_list_steps, deltar,
-     * hfac and the courant factor).
+    /// Cell size increasing factor
+    /** Resulting from #link_list_steps, #deltar, #hfac and the courant factor.
      */
     float cell_length_factor;
-    /** Density field interpolation steps. The density field is usually
-     * computed as an evolution process fulfilling the continuity equation, but
-     * in order to reduce the pressure noise sometimes it can be interpolated
-     * through the SPH model, being therefore a geometrical result.
-     * It is strongly not recommended to apply this technique.
+    /// Density field interpolation steps.
+    /** The density field is usually computed as an evolution process fulfilling
+     * the continuity equation, but in order to reduce the pressure noise
+     * sometimes it can be interpolated through the SPH model, being therefore a
+     * geometrical result.
+     * It is strongly recommended to NOT apply this technique.
      */
     unsigned int dens_int_steps;
-    /** Density interpolation main step, to control if the density field should
-     * be interpolated.
+    /// Density interpolation main step
+    /** When this value is greater than #dens_int_steps density field should be
+     * interpolated.
      */
     unsigned int dens_int_step;
 
@@ -285,7 +278,8 @@ public:
     /// Sound speed \f$ c_s \f$.
     float cs;
 
-    /** Fixed/fluid particles flag.
+    /// Fixed/fluid particles flag.
+    /**
      *   - imove > 0 for every fluid.
      *   - imove = 0 for sensors.
      *   - imove < 0 for fixed particles or boundary elements.
@@ -309,8 +303,8 @@ public:
     cl_mem dens;
     /// Density change rate \f$ \frac{\mathrm{d}\rho}{\mathrm{d}t} \f$.
     cl_mem drdt;
-    /** Density change rate (restricted to the numerical diffusive term of
-     * \f$\delta\f$-SPH technique)
+    /** @brief Density change rate (restricted to the numerical diffusive term
+     * of \f$\delta\f$-SPH technique)
      */
     cl_mem drdt_F;
     /// Mass \f$ m \f$.
@@ -335,41 +329,49 @@ public:
     cl_mem pressin;
     /// Convective timestep term \f$ \Delta t_{conv} \f$.
     cl_mem dtconv;
-    /** Shepard term (0th correction) \f$ \gamma(\mathbf{x}) = \int_{Omega}
+    /// 0th correction term
+    /** Also known as Shepard term, it is computed as
+     * \f$ \gamma(\mathbf{x}) = \int_{Omega}
            W(\mathbf{y} - \mathbf{x})
-           \mathrm{d}\mathbf{x} \f$.
+           \mathrm{d}\mathbf{x}
+        \f$.
      */
     cl_mem shepard;
-    /** Permutations vector, that gives for each particle index in the sorted
-     * space, their index in the unsorted space.
+    /// Permutations list
+    /** Gives for each particle index in the sorted space, their index in the
+     * unsorted space.
      */
     cl_mem permutation;
-    /** Inversed permutations vector, that gives for each particle index in the
-     * unsorted space, their index in the sorted space.
+    /// Inverse permutations vector
+    /** Gives for each particle index in the unsorted space, their index in the
+     * sorted space.
      */
     cl_mem permutation_inverse;
-    /** Head of chain for each cell in the sorted space, meaning the
-     * first particle in each cell.
+    /// Link-List head of chains
+    /** First particle of each cell in the sorted space.
      */
     cl_mem ihoc;
-    /** Cell where each particle is placed, in the sorted space.
+    /// Cell where each particle is placed.
+    /**
      * @note To improve the use of multicore platforms the particles are sorted
-     * by their cell position at the linklist phase. Therefore two identifier
+     * by their cell position at the Link-List phase. Therefore two identifier
      * spaces must be considered, the original one (formerly unsorted space),
      * and the sorted one.
      */
     cl_mem icell;
 
-    /** icell array dimension, that must be power of two in order to use the
-     * radix sort process. This dimension is applied to the permutation vectors
-     * as well.
+    /// #icell array dimension
+    /** This value must be power of two in order to use the radix-sort process.
+     * This dimension is applied to the permutation vectors as well.
      */
     unsigned int num_icell;
-    /** EOS gamma exponent \f$ \gamma \f$.
+    /// EOS gamma exponent \f$ \gamma \f$
+    /** The following equation of State is considered:
      * \f$ p = \frac{c_s^2 \rho_0}{\gamma}
          \left(
             \left( \frac{\rho}{\rho_0} \right)^\gamma - 1
-         \right) \f$.
+         \right)
+       \f$.
      */
     cl_mem gamma;
     /// Density of reference \f$ \rho_0 \f$.
@@ -385,7 +387,8 @@ public:
     /// Minimum value of the time step (it is a reduction process result)
     cl_mem DT;
 
-    /** Internal energy: \f$ U = \int_0^t \sum_i \frac{p_i}{\rho_i^2}
+    /// Internal energy
+    /** \f$ U = \int_0^t \sum_i \frac{p_i}{\rho_i^2}
          \left(
             \frac{\mathrm{d} \rho_i}{\mathrm{d} t}
             - \left. \frac{\mathrm{d} \rho_i}{\mathrm{d} t} \right\vert_F
@@ -393,12 +396,14 @@ public:
      * @warning The viscous dissipation is not implemented yet.
      */
     float eint;
-    /** Kinetic energy: \f$ E_{kin} = \sum_i \frac{1}{2} m_i
+    /// Kinetic energy
+    /** \f$ E_{kin} = \sum_i \frac{1}{2} m_i
         \vert \mathbf{u}_i \vert^2 \f$.
      * @warning The viscous dissipation is not implemented yet.
      */
     float ekin;
-    /** Total energy: \f$ E = U + E_{kin} \f$
+    /// Total energy
+    /** \f$ E = U + E_{kin} \f$
      * @warning The viscous dissipation is not implemented yet.
      */
     float etot;
@@ -458,21 +463,25 @@ public:
     std::deque<Portal::Portal*> portals;
 
 private:
-    /** Setup the OpenCL stuff.
+    /// Setup the OpenCL stuff.
+    /**
      * @return false if the OpenCL environment has been succesfully built,
      * true otherwise
      */
     bool setupOpenCL();
-    /** Prints all the available platforms and devices returned by OpenCL.
+    /// Prints all the available platforms and devices returned by OpenCL.
+    /**
      * @return false if the OpenCL environment can be succesfully built,
      * true otherwise
      */
     bool queryOpenCL();
-    /** Get a platform from the available ones.
+    /// Get a platform from the available ones.
+    /**
      * @return false if a platform could be obtained, true otherwise
      */
     bool getPlatform();
-    /** Get the available devices in the selected platform.
+    /// Get the available devices in the selected platform.
+    /**
      * @return false if the devices have been succesfully obtained, true
      * otherwise
      */
