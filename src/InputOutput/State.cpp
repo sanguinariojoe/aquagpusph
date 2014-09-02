@@ -703,13 +703,13 @@ bool State::parseSPH(DOMElement *root)
 
 			else if(!strcmp(name, "Boundary")){
 	            if(!strcmp(xmlAttribute(s_elem, "value"), "ElasticBounce")){
-	                P->SPH_opts.boundary_type = 0;
+	                P->SPH_opts.boundary_type = __BOUNDARY_ELASTIC__;
 	            }
 	            else if(!strcmp(xmlAttribute(s_elem, "value"), "FixedParticles")){
-	                P->SPH_opts.boundary_type = 1;
+	                P->SPH_opts.boundary_type = __BOUNDARY_FIXED__;
 	            }
 	            else if(!strcmp(xmlAttribute(s_elem, "value"), "DeLeffe")){
-	                P->SPH_opts.boundary_type = 2;
+	                P->SPH_opts.boundary_type = __BOUNDARY_DELEFFE__;
 	            }
 	            else{
 	                sprintf(msg,

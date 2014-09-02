@@ -23,8 +23,7 @@
 
 namespace Aqua{ namespace CalcServer{
 
-/** @class DensityInterpolation DensityInterpolation.h
- * CalcServer/DensityInterpolation.h
+/** @class DensityInterpolation DensityInterpolation.h CalcServer/DensityInterpolation.h
  * @brief Density interpolation is a smoothing density field technique. When
  * the \f$\alpha\f$ and \f$\delta\f$ parameters are not large enough a
  * characteristic noise may be appreciated in the pressure field. In order to

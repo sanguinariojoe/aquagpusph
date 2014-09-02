@@ -68,20 +68,32 @@
 #define __TECPLOT__ 1 << 2
 
 /** \def __DT_VARIABLE__
- * Time step will be calculated every
- * iteration. This method guarantee
+ * Time step will be calculated every iteration. This method guarantee the
  * Courant number conservation.
  */
 #define __DT_VARIABLE__ 0
 /** \def __DT_FIXCALCULATED__
- * Time step will calculated at the start
- * of simulation, and conserved along it.
+ * Time step will be calculated at the start of simulation, and conserved along
+ * it.
  */
 #define __DT_FIXCALCULATED__ 1
 /** \def __DT_FIX__
- * Time step will provided by user.
+ * Time step will be provided by user.
  */
 #define __DT_FIX__ 2
+
+/** \def __BOUNDARY_ELASTIC__
+ * Elastic bounce will be selected as the boundary condition.
+ */
+#define __BOUNDARY_ELASTIC__ 0
+/** \def __BOUNDARY_FIXED__
+ * Fixed particles will be selected as the boundary condition.
+ */
+#define __BOUNDARY_FIXED__ 1
+/** \def __BOUNDARY_DELEFFE__
+ * Boundary integrals will be selected as the boundary condition.
+ */
+#define __BOUNDARY_DELEFFE__ 2
 
 #include <sphPrerequisites.h>
 
@@ -733,74 +745,209 @@ public:
         unsigned int dt_mode;
     }time_opts;
 
-    /** \struct sphSPHParameters
-     * Data structure used to store the SPH options.
+    /** @struct sphSPHParameters
+     * Simulation SPH related parameters.
+     *
+     * This options are used to control the physics simulation parameters.
+     *
+     * These setting are set between the following XML tags:
+     * @code{.xml}
+        <SPH>
+        </SPH>
+     * @endcode
+     *
+     * @see Aqua::InputOutput::ProblemSetup
      */
     struct sphSPHParameters
     {
-        /// Garivity aceleration \f$ \mathbf{g} \f$.
+        /** Gravity acceleration \f$ \mathbf{g} \f$, present in the momentum
+         * equation.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="g" x="0.0" y="0.0" z="-9.81" />`
+         *
+         * @warning In 2D simulations the field \f$ z \f$ does not exist.
+         */
         vec g;
-        /// Kernel height factor \f$ \frac{h}{\Delta r} \f$.
+        /** Kernel height factor \f$ \frac{h}{\Delta \mathbf{r}} \f$.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="hfac" value="4.0" />`
+         */
         float hfac;
-        /// Tipical particle distance \f$ \Delta r \f$.
+        /** Typical particle distance \f$ \Delta \mathbf{r} \f$.
+         *
+         * The particles distance may (and probably will) be non constant.
+         * Since this value controls the kernel height, if several particles
+         * distances can be selected, the largest one will be the best option.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="deltar" x="0.001" y="0.001" z="0.001" />`
+         *
+         * @warning In 2D simulations the field \f$ z \f$ does not exist.
+         */
         vec deltar;
-        /// kernel height \f$ h \f$.
+        /** Kernel height \f$ h \f$.
+         *
+         * This value cannot be manually set but it is computed as #hfac
+         * \f$ \cdot \f$ #deltar.
+         */
         float h;
-        /// Characteristic sound speed \f$ c_s \f$.
+        /** Characteristic sound speed \f$ c_s \f$.
+         *
+         * The sound speed is controlling the fluid compressibility such that
+         * higher values means lower fluid compressibility.
+         * However, increasing the sound speed will result in lower time step,
+         * and therefore in higher computational costs.
+         * Usually 10 times the maximum expected velocity should be enough.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="cs" value="15.0" />`
+         */
         float cs;
-        /// LinkList steps (steps before LinkList must be performed again).
+
+        /** Frequency of Link-List computation (in time steps between
+         * computation events).
+         *
+         * The Link-List process imply a radix-sort computation which can be
+         * computationally demanding, so reducing the times that it will be
+         * computed may lead some performance improvements.
+         * On the other hand, increasing the Link-List validity period results
+         * in a cells length grow, and therefore an increment of neighs as well,
+         * which can cause a performance lost.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="LLSteps" value="1" />`
+         *
+         * @see Aqua::CalcServer::LinkList
+         */
         unsigned int link_list_steps;
 
-        /** Density interpolation steps (steps before density interpolation
-         * must be performed again).
-         * 0 if density interpolation will not be applied.
+        /** Frequency of density interpolations (in time steps between
+         * computation events).
+         *
+         * The density interpolation may smooth the density field, however
+         * its consistency has not been demonstrated, and it may result in some
+         * instabilities, so it is recommended to let it disabled (0 value).
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="DensSteps" value="0" />`
+         *
+         * @see Aqua::CalcServer::DensityInterpolation
          */
         unsigned int dens_int_steps;
-        /** Minimum tolerated value for the density, 0  by default. If the
-         * density of a particle goes below this value it will be clamped.
+        /** Minimum value for the density.
+         *
+         * If the density of a particle becomes lower than this one, it will be
+         * conveniently clamped.
+         * This trick may help to avoid that a punctual instability can
+         * critically affect the rest of the simulation.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="DensBounds" min="800.0" max="1200.0" />`
+         *
+         * @see #rho_max
          */
         float rho_min;
-        /** Maximum tolerated value for the density, -1 by default.
-         * If this value is lower or equal to the minimum value,
-         * maximum density value clamping will not be applied.
+        /** Maximum value for the density.
+         *
+         * If the density of a particle becomes greater than this one, it will
+         * be conveniently clamped.
+         * This trick may help to avoid that a punctual instability can
+         * critically affect the rest of the simulation.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="DensBounds" min="800.0" max="1200.0" />`
+         *
+         * @see #rho_min
          */
         float rho_max;
 
-        /** Boundary type:
-         *   - 0 = Elastic bounce.
-         *   - 1 = Fixed particles.
-         *   - 2 = DeLeffe.
+        /** Boundary condition technique to be applied.
+         *
+         * It should be one of the following values:
+         *    - #__BOUNDARY_ELASTIC__ : Elastic bounce.
+         *    - #__BOUNDARY_FIXED__ : Fixed particles.
+         *    - #__BOUNDARY_DELEFFE__ : Boundary integrals.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         *     - `<Option name="Boundary" value="ElasticBounce" />`
+         *     - `<Option name="Boundary" value="FixedParticles" />`
+         *     - `<Option name="Boundary" value="DeLeffe" />`
+         *
          * @note Ghost particles boundary condition are managed in a different
          * way.
+         * @see Aqua::CalcServer::Boundary::ElasticBounce
+         * @see Aqua::CalcServer::Boundary::DeLeffe
+         * @see Aqua::CalcServer::Rates
          */
         unsigned int boundary_type;
-        /** Slip condition:
-         * 0 = No Slip condition.
-         * 1 = Free Slip condition.
+        /** Slip boundary condition.
+         *
+         * Event though no-slip boundary conditions may be desirable, sometimes
+         * the Reynolds number of the simulation is not large enough to
+         * adequately solve the boundary layer, and in this case free-slip
+         * boundary condition should be applied.
+         *
+         * It should be one of the following values:
+         *     - 0 = No Slip condition.
+         *     - 1 = Free Slip condition.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         *     - `<Option name="SlipCondition" value="FreeSlip" />`
+         *     - `<Option name="SlipCondition" value="NoSlip" />`
          */
         unsigned int slip_condition;
-        /** Elastic factor for elastic bounce boundary condition. When a
-         * particle velocity is mirrored to avoid the wall trespass, part of
-         * the energy can be removed. Elastic factor indicates the amount of
-         * energy preserved.
+        /** Elastic factor for the elastic bounce boundary condition.
+         *
+         * If #boundary_type is #__BOUNDARY_ELASTIC__, this value will set the
+         * amount of kinetic energy conserved in the interaction. A factor of 1
+         * imply that the velocity of the particle will be preserved (except for
+         * the direction), while a factor of 0 imply that the particle will loss
+         * all its normal to the boundary velocity.
+         *
+         * The tangential velocity is not affected.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="BoundElasticFactor" value="0.0" />`
+         *
+         * @see #boundary_type
          */
         float elastic_factor;
-        /** Minimum distance to the wall \f$ r_{min} \f$. If a particle is
-         * nearer than this distance a elastic bounce will be performed.
-         * @note Distance is provided as kernel height rate
-         * \f$ \vert \mathbf{r}_{min} \vert = r_{min} h \f$.
+        /** Interaction distance for the elastic bounce boundary condition.
+         *
+         * If #boundary_type is #__BOUNDARY_ELASTIC__, this value will set the
+         * distance where the interaction with the boundary will be computed.
+         * This distance is set as a factor of the kernel height \f$ h \f$
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="BoundDist" value="0.1" />`
+         *
+         * @see #hfac
          */
         float elastic_dist;
 
-        /** 0th order correction (formerly Shepard correction)
+        /** 0th order correction (formerly Shepard correction).
+         *
+         * The computed rates of change will be renormalized such that constant
+         * fields will be consistently interpolated.
+         * The Shepard term is computed as
          * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
          *     W(\mathbf{y} - \mathbf{x})
          *     \mathrm{d}\mathbf{x} \f$.
+         *
          * Must be one of the following values:
          *   - 0 = No 0th order correction.
          *   - 1 = It will be applied to the computed forces.
          *   - 2 = It will be applied to computed density rate.
          *   - 3 = It will be applied to both of them.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         *   - `<Option name="Shepard" value="None" />`
+         *   - `<Option name="Shepard" value="Force" />`
+         *   - `<Option name="Shepard" value="Dens" />`
+         *   - `<Option name="Shepard" value="ForceDens" />`
+         *
          * @remarks 0th order correction (formerly Shepard correction) is
          * mandatory when Boundary Integrals based boundary condition is
          * imposed, but since Shepard term can carry some instabilities, it
@@ -809,16 +956,43 @@ public:
          */
         unsigned int has_shepard;
 
-        /** Domain bounds flag. If true, domain bounds will be established such
-         * that the particles out of the domian will be replaced by zero mass
-         * fixed particles. The particle will not be deleted.
+        /** Existence of a computational domain.
+         *
+         * If true, domain bounds will be established such that the particles
+         * out of the domain will be replaced by zero mass fixed particles.
+         *
+         * Doing this it can be avoided that a far particle, in a far Link-List
+         * cell, cause the program fail due to the large number of required
+         * cells.
+         * The particle will not be deleted.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="Domain" x="0.0" y="0.0" z="0.0" l="1.0" d="1.0" h="1.0" move="true" />`
+         *
+         * @warning In the 2D version just the fields \f$ x \f$, \f$ y \f$,
+         * \f$ l \f$ and \f$ h \f$ exists.
+         * @see #domain_min
+         * @see #domain_max
+         * @see #domain_motion
          */
         bool has_domain;
-        /// Minimum domain bounds coordinates.
+        /** Computational domain lower corner.
+         *
+         * @see #has_domain
+         */
         vec domain_min;
-        /// Maximum domain bounds coordinates.
+        /** Computational domain higher corner.
+         *
+         * @see #has_domain
+         */
         vec domain_max;
-        /// Must domain be translated following the motions.
+        /** Computational domain motion.
+         *
+         * If true, the domain will follow the motions. It is useful for closed
+         * solids, like tanks, to assert that the domain follows the fluid.
+         *
+         * @see #has_domain
+         */
         bool domain_motion;
     }SPH_opts;
 
