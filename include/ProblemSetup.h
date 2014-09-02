@@ -312,7 +312,7 @@ public:
         /** 0th order correction (formerly Shepard correction).
          *
          * The resulting variation rates will be renormalized dividing by the
-         * Shepard factor \f$ \gamma(\mathbf{x}) = \int_{\Omega} 
+         * Shepard factor \f$ \gamma(\mathbf{x}) = \int_{\Omega}
            W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{x} \f$, such that 0th
          * order fields will be consistently computed.
          *
@@ -387,134 +387,348 @@ public:
         char *portal;
     }OpenCL_kernels;
 
-    /** \struct sphTimingParameters
-     * Data structure used to store the time control options.
+    /** @struct sphTimingParameters
+     * Simulation time flow options.
+     *
+     * This options are used to control the simulation time step, the output
+     * files frequency or the simulation finish criteria.
+     *
+     * These setting are set between the following XML tags:
+     * @code{.xml}
+        <Timing>
+        </Timing>
+     * @endcode
+     *
+     * @see Aqua::InputOutput::ProblemSetup
+     * @see Aqua::InputOutput::TimeManager
      */
     struct sphTimingParameters
     {
-        /** Starting time.
-         * @note If a negative value is provided a stabilization period will
-         * be performed.
+        /** Starting time instant.
+         *
+         * If a negative value is provided a stabilization period will be
+         * considered.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="Start" value="0.0" />`
+         *
          * @note During the stabilization stage motions will not be computed,
          * and particles velocity will be vanished (infinite viscosity model).
          */
         float t0;
 
-        /** Starting time step.
-         * @remarks The starting time step is designed just for the previous
-         * simulations continuation.
+        /** Time step at the start of the simulation.
+         *
+         * This option is designed for simulations continuation, for other
+         * simulations this options should be equal to 0.
+         *
+         * This field should not be manually set.
          */
         float dt0;
 
-        /** Starting step.
-         * @remarks The starting step is designed just for the previous
-         * simulations continuation.
+        /** Starting time step index.
+         *
+         * This option is designed for simulations continuation, for other
+         * simulations this options should be equal to 0.
+         *
+         * This field should not be manually set.
          */
         unsigned int step0;
 
-        /** Starting frame.
-         * @remarks The starting frame is designed just for the previous
-         * simulations continuation.
+        /** Starting output frame index.
+         *
+         * This option is designed for simulations continuation, for other
+         * simulations this options should be equal to 0.
+         *
+         * This field should not be manually set.
          */
         unsigned int frame0;
 
-        /// Provided by user time step \f$ \Delta t \f$.
+        /** Time step \f$ \Delta t \f$ manually set by the user.
+         *
+         * This field can be set with the tag `Option`, for instance to set
+         * \f$ \Delta t = 0.1 \mathrm{s} \f$:
+         * `<Option name="TimeStep" value="0.1"/>`
+         *
+         * @see #dt_mode
+         */
         float dt;
 
-        /// Minimum time step allowed.
+        /** Minimum time step.
+         *
+         * This option will be useful just if variable time step is set.
+         * When the computed time step value below this options value is
+         * detected, it will be clamped.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="MinTimeStep" value="0.0"/>`
+         *
+         * @see #dt_mode
+         */
         float dt_min;
 
-        /// Courant factor.
+        /** Courant factor.
+         *
+         * This option will be useful just if variable time step is set.
+         * The computed required time step will be multiplied by the Courant
+         * factor.
+         * Low Courant factor values implies higher computational costs,
+         * however high values may lead instabilities.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="Courant" value="0.25"/>`
+         *
+         * @see #dt_mode
+         */
         float courant;
 
-        /** If a minimum time step is set, it can be additionally forced to
-         * clamp the particles velocity to preserve the Courant factor.
+        /** Velocity clamping to match with the minimum time step #dt_min.
+         *
+         * The velocity of the particles will be conveniently clamped to ensure
+         * that the computed time step will not be lower than #dt_min.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="ClampVel" value="False"/>`
+         *
+         * @see #dt_min
          */
         bool velocity_clamp;
 
-        /** Type of criteria to know when the simulation has finished.
-         * @remarks Must a combination of the following options:
-         * - __TIME_MODE__ : Maximum simulated time.
-         * - __ITER_MODE__ : Maximum number os time steps.
-         * - __FRAME_MODE__ : Maximum number of output frames printed.
-         * @warning If any simulation stop cirteria is selected, the simulation
-         * will not stop
+        /** Simulation finish criteria to apply.
+         *
+         * Must a combination of the following options:
+         *   - #__TIME_MODE__ : Maximum simulated time.
+         *   - #__ITER_MODE__ : Maximum number os time steps.
+         *   - #__FRAME_MODE__ : Maximum number of output frames printed.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         *   - `<Option name="End" type="Time" value="1.0" />`
+         *   - `<Option name="End" type="Steps" value="10000" />`
+         *   - `<Option name="End" type="Frames" value="10" />`
+         *
+         * @warning If no simulation stop criteria is selected, the simulation
+         * will not stop until an error is reached, or it is manually stopped.
          */
         unsigned int sim_end_mode;
 
-        /// Maximum simulation time to be reached (in seconds).
+        /** Simulation finish time instant.
+         *
+         * If #__TIME_MODE__ is set in #sim_end_mode, the simulation will be
+         * stopped when this simulation time instant is reached.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="End" type="Time" value="1.0" />`
+         *
+         * @see #sim_end_mode
+         */
         float sim_end_time;
 
-        /// Maximum number of steps to be performed.
+        /** Total number of time steps to compute.
+         *
+         * If #__ITER_MODE__ is set in #sim_end_mode, the simulation will be
+         * stopped when this simulation time steps are computed.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="End" type="Steps" value="10000" />`
+         *
+         * @see #sim_end_mode
+         */
         int sim_end_step;
 
-        /// Maximum number of frames to be performed.
+        /** Total number of output frames to write.
+         *
+         * If #__FRAME_MODE__ is set in #sim_end_mode, the simulation will be
+         * stopped when this output frames are written.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="End" type="Frames" value="10" />`
+         *
+         * @see #sim_end_mode
+         */
         int sim_end_frame;
 
-        /** Type of criteria to know when the log file must be printed/updated.
-         * @remarks Must a combination of the following options:
-         * - __NO_OUTPUT_MODE__ : The log file will not be never printed.
-         * - __FPS_MODE__ : Updates per second.
-         * - __IPF_MODE__ : Time steps before to update.
+        /** Log file updating criteria to apply.
+         *
+         * Must a combination of the following options:
+         *   - #__NO_OUTPUT_MODE__ : The log file will not be never updated
+         *     (default value).
+         *   - #__FPS_MODE__ : Frames per second.
+         *   - #__IPF_MODE__ : Iterations (time steps) per frame.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         *   - `<Option name="LogFile" type="FPS" value="120" />`
+         *   - `<Option name="LogFile" type="IPF" value="10" />`
+         *
+         * @see Aqua::InputOutput::Log
          */
         unsigned int log_mode;
 
-        /// Update rate (per second of simulation).
+        /** Log file updating rate.
+         *
+         * If #__FPS_MODE__ is set in #log_mode, the log file will be updated
+         * this value times per second of simulations.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="LogFile" type="FPS" value="120" />`
+         *
+         * @see #log_mode
+         */
         float log_fps;
 
-        /// Time steps to be done before to update the data.
+        /** Log file updating rate.
+         *
+         * If #__IPF_MODE__ is set in #log_mode, the log file will be updated
+         * every time that this value of time steps is computed.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="LogFile" type="IPF" value="10" />`
+         *
+         * @see #log_mode
+         */
         int log_ipf;
 
-        /** Type of criteria to know when the energy report file must be
-         * printed/updated.
-         * @remarks Must a combination of the following options:
-         * - __NO_OUTPUT_MODE__ : The log file will not be never printed.
-         * - __FPS_MODE__ : Updates per second.
-         * - __IPF_MODE__ : Time steps before to update.
+        /** Energy report file updating criteria to apply.
+         *
+         * Must a combination of the following options:
+         *   - #__NO_OUTPUT_MODE__ : The log file will not be never updated
+         *     (default value).
+         *   - #__FPS_MODE__ : Frames per second.
+         *   - #__IPF_MODE__ : Iterations (time steps) per frame.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         *   - `<Option name="EnFile" type="FPS" value="120" />`
+         *   - `<Option name="EnFile" type="IPF" value="10" />`
+         *
+         * @see Aqua::InputOutput::Energy
          */
         unsigned int energy_mode;
 
-        /// Update rate (per second of simulation).
+        /** Energy report file updating rate.
+         *
+         * If #__FPS_MODE__ is set in #energy_mode, the energy file will be
+         * updated this value times per second of simulations.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="EnFile" type="FPS" value="120" />`
+         *
+         * @see #energy_mode
+         */
         float energy_fps;
 
-        /// Time steps to be done before to update the data.
+        /** Energy report file updating rate.
+         *
+         * If #__IPF_MODE__ is set in #energy_mode, the energy file will be
+         * updated every time that this value of time steps is computed.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="EnFile" type="IPF" value="10" />`
+         *
+         * @see #energy_mode
+         */
         int energy_ipf;
 
-        /** Type of criteria to know when the bounds of fluid file must be
-         * printed/updated.
-         * @remarks Must a combination of the following options:
-         * - __NO_OUTPUT_MODE__ : The log file will not be never printed.
-         * - __FPS_MODE__ : Updates per second.
-         * - __IPF_MODE__ : Time steps before to update.
+        /** Fluid bounds file updating criteria to apply.
+         *
+         * Must a combination of the following options:
+         *   - #__NO_OUTPUT_MODE__ : The log file will not be never updated
+         *     (default value).
+         *   - #__FPS_MODE__ : Frames per second.
+         *   - #__IPF_MODE__ : Iterations (time steps) per frame.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         *   - `<Option name="BoundsFile" type="FPS" value="120" />`
+         *   - `<Option name="BoundsFile" type="IPF" value="10" />`
+         *
+         * @see Aqua::InputOutput::Bounds
          */
         unsigned int bounds_mode;
 
-        /// Update rate (per second of simulation).
+        /** Fluid bounds file updating rate.
+         *
+         * If #__FPS_MODE__ is set in #bounds_mode, the bounds file will be
+         * updated this value times per second of simulations.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="BoundsFile" type="FPS" value="120" />`
+         *
+         * @see #bounds_mode
+         */
         float bounds_fps;
 
-        /// Time steps to be done before to update the data.
+        /** Fluid bounds file updating rate.
+         *
+         * If #__IPF_MODE__ is set in #bounds_mode, the bounds file will be
+         * updated every time that this value of time steps is computed.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="BoundsFile" type="IPF" value="10" />`
+         *
+         * @see #bounds_mode
+         */
         int bounds_ipf;
 
-        /** Type of criteria to know when a full fluid output must be
-         * printed/updated.
-         * @remarks Must a combination of the following options:
-         * - __NO_OUTPUT_MODE__ : The log file will not be never printed.
-         * - __FPS_MODE__ : Updates per second.
-         * - __IPF_MODE__ : Time steps before to update.
+        /** Particles output updating criteria to apply.
+         *
+         * The particles output may be hard disk heavily demanding, hardly
+         * affecting the general program performance as well, therefore it is
+         * strongly recommended to try to write it as less often as possible
+         *
+         * Must a combination of the following options:
+         *   - #__NO_OUTPUT_MODE__ : The log file will not be never updated
+         *     (default value).
+         *   - #__FPS_MODE__ : Frames per second.
+         *   - #__IPF_MODE__ : Iterations (time steps) per frame.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         *   - `<Option name="Output" type="FPS" value="120" />`
+         *   - `<Option name="Output" type="IPF" value="10" />`
+         *
+         * @see Aqua::InputOutput::Particles
          */
         unsigned int output_mode;
 
-        /// Printing rate (per second of simulation).
+        /** Particles output updating rate.
+         *
+         * If #__FPS_MODE__ is set in #output_mode, the particles output will be
+         * updated this value times per second of simulations.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="Output" type="FPS" value="120" />`
+         *
+         * @see #output_mode
+         */
         float output_fps;
 
-        /// Time steps to be done before to print the data again.
+        /** Particles output updating rate.
+         *
+         * If #__IPF_MODE__ is set in #output_mode, the particles output will be
+         * updated every time that this value of time steps is computed.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="Output" type="IPF" value="10" />`
+         *
+         * @see #output_mode
+         */
         int output_ipf;
 
-        /** Time step mode.
-         * @remarks Must be one of the following options:
-         * - __DT_VARIABLE__ If time step must be calculated each step.
-         * - __DT_FIXCALCULATED__ If time step must be calculated at the start of simulation.
-         * - __DT_FIX__ If the time step is provided by user.
+        /** Time step \f$ \Delta t \f$ computation method.
+         *
+         * The time step \f$ \Delta t \f$ can be computed in 3 ways (they
+         * cannot be combined):
+         *   - #__DT_VARIABLE__ : Time step \f$ \Delta t \f$ is recomputed each
+         *     iteration.
+         *   - #__DT_FIXCALCULATED__ : Time step \f$ \Delta t \f$ is computed at
+         *     the start of the simulation, being constant after that.
+         *   - #__DT_FIX__ : Time step \f$ \Delta t \f$ is manually specified by
+         *     the user.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         *   - `<Option name="TimeStep" value="Variable" />`
+         *   - `<Option name="TimeStep" value="Fixed" />`
+         *   - `<Option name="TimeStep" value="0.1" />`
+         *
+         * @see Aqua::InputOutput::TimeManager
+         * @see Aqua::CalcServer::TimeStep
          */
         unsigned int dt_mode;
     }time_opts;
