@@ -996,79 +996,153 @@ public:
         bool domain_motion;
     }SPH_opts;
 
-    /** \struct sphFluidParameters
-     * Data structure used to store the Fluids options.
+    /** @struct sphFluidParameters
+     * Fluid specie physic parameters.
+     *
+     * In the simulations several fluid species may coexist (multiphase
+     * simulations for instance).
+     * In this structure the physic parameters of each fluid specie are stored.
+     *
+     * These setting are set between the following XML tags:
+     * @code{.xml}
+        <Fluid n="100000">
+        </Fluid>
+     * @endcode
+     * Where @paramname{n} is the number of particles for this fluid specie.
+     *
+     * @see Aqua::InputOutput::FluidManager
      */
     struct sphFluidParameters
     {
-        /** Init the fluid options structure
+        /** Constructor
          */
         void init();
 
-        /** Delete the allocated memory
+        /** Destructor
          */
         void destroy();
 
-        /// Number of particles
+        /** Number of particles
+         */
         unsigned int n;
 
-        /** Gamma exponent for the EOS \f$ \gamma \f$.
+        /** Gamma exponent \f$ \gamma \f$ in the EOS
          * \f$ p = \frac{c_s^2 \rho_0}{\gamma}
-         \left(
-            \left( \frac{\rho}{\rho_0} \right)^\gamma - 1
-         \right) \f$.
-         * @note The fluids which an undefined gamma value will use this one.
+             \left(
+                \left( \frac{\rho}{\rho_0} \right)^\gamma - 1
+             \right) \f$.
+         *
+         * As it can be appreciated, higher \f$ \gamma \f$ values result in
+         * lower incompressible flows.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="gamma" value="1.0" />`
          */
         float gamma;
 
-        /// Density of reference
+        /** Density of reference \f$ \rho_0 \f$.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="refd" value="998.0" />`
+         */
         float refd;
 
-        /// Dynamic viscosity \f$ \mu \f$
+        /** Dynamic viscosity \f$ \mu \f$.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="Viscdyn" value="0.000894" />`
+         */
         float visc_dyn;
 
-        /// Kinematic viscosity \f$ \nu \f$
+        /** Kinematic viscosity \f$ \nu \f$, resulting from
+         * \f$ \frac{\mu}{\rho_0} \f$
+         */
         float visc_kin;
 
-        /** Minimum artificial viscosity \f$\alpha\f$ value.
+        /** Artificial viscosity \f$\alpha\f$ value.
+         *
          * \f$\alpha\f$ define the artificial viscosity of the fluid, such that
-         * the dynamic viscosity will be: \n
-         * \f$ \mu \geq \frac{\alpha}{8} \rho c_s h \f$. \n
-         * Hence if the fluid viscosity is not larger enough to achieve the
-         * requested \f$\alpha\f$ it will be conveniently modified.
+         * the dynamic viscosity will be corrected as
+         * \f$ \mu \geq \frac{\alpha}{8} \rho c_s h \f$.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="alpha" value="0.01" />`
+         *
          * @note \f$\alpha \geq 0.01\f$ is suggested if \f$\delta\f$ is null.
+         * @see #delta
          */
         float alpha;
 
         /** Continuity equation diffusive term factor (formerly
          * \f$\delta\f$-SPH).
-         * This term have some benefits in front of the artificial viscosity,
-         * and therefore you may consider setting \f$\alpha = 0\f$ and
-         * \f$\delta = 1\f$.
+         *
+         * This term may recover the simulation stability with lower entropy
+         * effect than the artificial viscosity, and therefore you may consider
+         * setting \f$\alpha = 0\f$ and \f$\delta = 1\f$.
+         *
+         * However the positive sign of the generated entropy is not granted by
+         * \f$\delta\f$-SPH (Second Law of Thermodynamics is not fulfilled).
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Option name="delta" value="0.0" />`
+         *
+         * @see #alpha
          */
         float delta;
 
-        /** Dynamic viscosity (corrected by the articial viscosity parameter
-         * \f$\alpha\f$)
+        /** Corrected dynamic viscosity.
+         *
+         * @see #alpha
          */
         float visc_dyn_corrected;
 
-        /// Fluid particles data file to load
+        /** File path which should be read to load the particles
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Load format="ASCII" file="./Fluid.dat" />`
+         *
+         * @see Aqua::InputOutput::Particles
+         * @see #in_format
+         */
         char *in_path;
 
-        /// Fluid particles data file to load format
+        /** Format of the tile to be read to load the particles
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Load format="ASCII" file="./Fluid.dat" />`
+         *
+         * @see Aqua::InputOutput::Particles
+         * @see #in_path
+         */
         char *in_format;
 
-        /// Fluid particles data file to write
+        /** File path which should be written to save the particles
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Save format="VTK" file="./output" />`
+         *
+         * The extension will be automatically set depending on the selected
+         * output format.
+         *
+         * @see Aqua::InputOutput::Particles
+         * @see #out_format
+         */
         char *out_path;
 
-        /// Fluid particles data file to load format
+        /** Format of the tile to be read to load the particles
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Save format="VTK" file="./output" />`
+         *
+         * @see Aqua::InputOutput::Particles
+         * @see #out_path
+         */
         char *out_format;
     }*fluids;
 
     /// Number of fluids
     unsigned int n_fluids;
-    /** Add a fluid to the list
+    /** Add a new fluid to the list #fluids
      */
     void addFluid();
 
