@@ -1146,7 +1146,7 @@ public:
     /// Add a new fluid to the list #fluids
     void addFluid();
 
-    /** @struct sphMoveParameters
+    /** @class sphMoveParameters ProblemSetup.h ProblemSetup.h
      * @brief Motion definition parameters.
      *
      * Several motions can be simultaneously applied in AQUAgpusph, which can be
@@ -1187,29 +1187,39 @@ public:
     /// List of motions
     std::deque<sphMoveParameters*> motions;
 
-    /** \class sphSensorsParameters ProblemSetup.h ProblemSetup.h
-     * Data structure used to store the sensors.
+    /** @class sphSensorsParameters ProblemSetup.h ProblemSetup.h
+     * @brief Sensors definition.
+     *
+     * The sensors are a special type of particles with null mass, where some
+     * fields are interpolated.
+     *
+     * These setting are set between the following XML tags:
+     * @code{.xml}
+        <Sensors>
+        </Sensors>
+     * @endcode
+     *
+     * @see Aqua::CalcServer::Sensors
      */
     class sphSensorsParameters
     {
     public:
-        /** Constructor
-         */
+        /// Constructor
         sphSensorsParameters();
-        /** Destructor
-         */
+        /// Destructor
         ~sphSensorsParameters();
 
-        /// Frecuency of output
+        /// Output frequency
         float fps;
 
-        /// Script
+        /// OpenCL script
         char *script;
 
-        /// Array of positions
+        /// List of positions
         std::deque<vec> pos;
 
-        /** Method to add a sensor.
+        /** @brief Add a new sensor to the list.
+         *
          * @param position Position of sensor.
          * @return false if all gone right, true otherwise.
          */
@@ -1217,15 +1227,12 @@ public:
     }SensorsParameters;
 
     /** \struct sphPortal
-     * Data structure used to store the portals.
-     * Portals are rectangular planes that transfer particles that pass troguth them
-     * from one side to the other.
+     * @brief Outdated data, just ignore it.
      */
     struct sphPortal
     {
         /** \struct Portal
-         * Specific portal storage.
-         * @note Interior normals are considered.
+         * @brief Outdated data, just ignore it.
          */
         struct Portal
         {
@@ -1239,19 +1246,37 @@ public:
             vec normal;
         }in,out;
     };
-    /// Array of portal pairs
+    /// List of portal pairs
     std::deque<sphPortal*> portals;
 
-    /** \class sphGhostParticles ProblemSetup.h ProblemSetup.h
-     * Data structure used to store the Ghost particles data.
-     * and walls.
+    /** @class sphGhostParticles ProblemSetup.h ProblemSetup.h
+     * @brief Ghost particles mirroring boundaries definition.
+     *
+     * The Ghost particles based boundary condition is similar to the fixed
+     * particles one, except because the fluid extension particles are generated
+     * by a mirroring process with respect to the boundary.
+     *
+     * In AQUAgpusph a GPU oriented version called "Virtual Ghost Particles" is
+     * used, where the mirrored particles are not stored but are computed in the
+     * interactions computation stage.
+     *
+     * Therefore the boundaries should be defined here to can perform the
+     * mirroring later.
+     *
+     * These setting are set between the following XML tags:
+     * @code{.xml}
+        <GhostParticles>
+        </GhostParticles>
+     * @endcode
+     *
+     * @see Aqua::CalcServer::Boundary::GhostParticles
      */
     class sphGhostParticles
     {
     public:
         #ifdef HAVE_3D
             /** \struct Wall
-             * Wall defined by 4 points.
+             * @brief Wall defined by 4 points.
              */
             struct Wall
             {
@@ -1277,7 +1302,7 @@ public:
             /// Stored walls
             std::deque<Wall*> walls;
 
-            /** Add a quadangular wall.
+            /** @brief Add a quadrangular wall.
              * @param p1 1st corner of wall.
              * @param p2 2nd corner of wall.
              * @param p3 3rd corner of wall.
@@ -1291,7 +1316,8 @@ public:
              * in order to get best results is strongly recommended
              * try to use planar faces.
              * @warning Program will assume corners connected as
-             * \f$p_1 \rightarrow p_2 \rightarrow p_3 \rightarrow p_4 \rightarrow p_1\f$.
+             * \f$p_1 \rightarrow p_2 \rightarrow p_3 \rightarrow p_4
+             * \rightarrow p_1\f$.
              */
             bool add(vec p1,
                      vec p2,
@@ -1302,7 +1328,7 @@ public:
                      vec v3,
                      vec v4);
 
-            /** Add a triangular wall.
+            /** @brief Add a triangular wall.
              * @param p1 1st corner of wall.
              * @param p2 2nd corner of wall.
              * @param p3 3rd corner of wall.
@@ -1319,7 +1345,7 @@ public:
                      vec v3);
         #else
             /** \struct Wall
-             * Wall defined by 2 points.
+             * @brief Wall defined by 2 points.
              */
             struct Wall
             {
@@ -1337,7 +1363,7 @@ public:
             /// Stored walls
             std::deque<Wall*> walls;
 
-            /** Add wall.
+            /** @brief Add wall.
              * @param p1 1st corner of wall.
              * @param p2 2nd corner of wall.
              * @param v1 1st corner of wall velocity.
@@ -1350,29 +1376,29 @@ public:
                      vec v2);
         #endif
 
-        /** Pressure extension model. \n
-         * 0 = ASM (Antisymmetric) \n
-         * 1 = SSM (Symmetric) \n
-         * 2 = Takeda (Variation of ASM).
+        /** @brief Pressure extension model.
+         *     - 0 = ASM (Antisymmetric)
+         *     - 1 = SSM (Symmetric)
+         *     - 2 = Takeda (Variation of ASM).
          * @note Hydrostatic pressure will be added.
          */
         uint p_extension;
 
-        /** Normal velocity extension model. \n
-         * 0 = ASM (Antisymmetric) \n
-         * 1 = SSM (Symmetric) \n
-         * 2 = Takeda (Variation of ASM). \n
-         * 3 = U0M (No velocity will considered).
-         * @note Velocity extension is composed to wall velocity.
+        /** @brief Normal velocity extension model.
+         *     - 0 = ASM (Antisymmetric)
+         *     - 1 = SSM (Symmetric)
+         *     - 2 = Takeda (Variation of ASM).
+         *     - 3 = U0M (No velocity will considered).
+         * @note Velocity extension is composed with the wall velocity.
          */
         uint vn_extension;
 
-        /** Tangent velocity extension model. \n
-         * 0 = ASM (Antisymmetric) \n
-         * 1 = SSM (Symmetric) \n
-         * 2 = Takeda (Variation of ASM). \n
-         * 3 = U0M (No velocity will considered).
-         * @note Velocity extension is composed to wall velocity.
+        /** Tangent velocity extension model.
+         *     - 0 = ASM (Antisymmetric)
+         *     - 1 = SSM (Symmetric)
+         *     - 2 = Takeda (Variation of ASM).
+         *     - 3 = U0M (No velocity will considered).
+         * @note Velocity extension is composed with the wall velocity.
          */
         uint vt_extension;
 
