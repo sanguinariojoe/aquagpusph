@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Base class for all the input/output file managers.
+ * (See Aqua::InputOutput::InputOutput for details)
+ */
+
 #ifndef INPUTOUTPUT_H_INCLUDED
 #define INPUTOUTPUT_H_INCLUDED
 
@@ -23,25 +28,24 @@ namespace Aqua{
 namespace InputOutput{
 
 /** \class InputOutput InputOutput.h InputOutput/InputOutput.h
- *  Input/Output base class.
+ * @brief Base class for all the input/output file managers.
  */
 class InputOutput
 {
-public:
-    /** Constructor
-     */
+protected:
+    /// Constructor
     InputOutput(){};
 
-    /** Destructor
-     */
+    /// Destructor
     virtual ~InputOutput(){};
 
-    /** Save the data
+public:
+    /** @brief Save the data
      * @return false if all gone right, true otherwise.
      */
     virtual bool save() = 0;
 
-    /** Load the data
+    /** @brief Load the data
      * @return false if all gone right, true otherwise.
      */
     virtual bool load() = 0;
