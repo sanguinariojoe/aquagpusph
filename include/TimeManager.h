@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Simulation time flow events manager.
+ * (See Aqua::InputOutput::TimeManager for details)
+ */
+
 #ifndef TIMEMANAGER_H_INCLUDED
 #define TIMEMANAGER_H_INCLUDED
 
@@ -25,142 +30,153 @@
 namespace Aqua{ namespace InputOutput{
 
 /** @class TimeManager TimeManager.h TimeManager.h
- * @brief Control the simulation time, including the events triggering like the
- * ouput files updating.
+ * @brief Simulation time flow manager.
+ *
+ * This class controls the time variable \f$ t \f$, and more specifically the
+ * time events triggers, like the output updates, the number of output frames
+ * performed, etc...
+ *
+ * @see Aqua::InputOutput::ProblemSetup::sphTimingParameters
  */
 struct TimeManager : public Aqua::Singleton<Aqua::InputOutput::TimeManager>
 {
 public:
-	/** Constructor
-	 */
+	/// Constructor
 	TimeManager();
 
-	/** Destructor
-	 */
+	/// Destructor
 	~TimeManager();
 
-	/** Update method.
+	/** @brief Pass to the next time step.
 	 * @param dt Simulation time elapsed in this frame.
 	 */
 	void update(float dt);
 
-	/** Get if the simulation must be end.
-	 * @return true if simulation has finished, false otherwise.
+	/** @brief Check if the simulation must be finished.
+	 * @return true if simulation should finish, false otherwise.
 	 */
 	bool mustStop();
 
-	/** Get if the log file must be updated.
+	/** @brief Check if the log file must be updated.
 	 * @return true if the log should be updated, false otherwise.
-	 * @remarks This method is assuming that when it is asked, the file will be
-	 * updated, so asking it again will return false until the next file
-	 * updating event.
+	 * @warning This method is returning true just one time per time step (i.e.
+     * until update() is called again).
 	 */
 	bool mustPrintLog();
 
-	/** Get if the energy file must be updated.
+	/** @brief Check if the energy file must be updated.
 	 * @return true if the energy should be updated, false otherwise.
-	 * @remarks This method is assuming that when it is asked, the file will be
-	 * updated, so asking it again will return false until the next file
-	 * updating event.
+	 * @warning This method is returning true just one time per time step (i.e.
+     * until update() is called again).
 	 */
 	bool mustPrintEnergy();
 
-	/** Get if the fluid bounds file must be updated.
+	/** @brief Check if the fluid bounds file must be updated.
 	 * @return true if the bounds file should be updated, false otherwise.
-	 * @remarks This method is assuming that when it is asked, the file will be
-	 * updated, so asking it again will return false until the next file
-	 * updating event.
+	 * @warning This method is returning true just one time per time step (i.e.
+     * until update() is called again).
 	 */
 	bool mustPrintBounds();
 
-	/** Get if a general simulation output must be printed.
+	/** @brief Check if a general simulation output must be printed.
 	 * @return true if an output should be printed, false otherwise.
-	 * @remarks This method is assuming that when it is asked, the file will be
-	 * updated, so asking it again will return false until the next file
-	 * updating event.
+	 * @warning This method is returning true just one time per time step (i.e.
+     * until update() is called again).
 	 */
 	bool mustPrintOutput();
 
-	/** Set the simulation step.
-	 * @param s Simulation step.
+	/** @brief Set the simulation time step index.
+	 * @param s Simulation time step index.
 	 */
 	void step(unsigned int s){_step = s;}
-	/** Get the simulation step.
-	 * @return Simulation step.
+	/** @brief Get the simulation time step index.
+	 * @return Simulation time step index.
 	 */
 	unsigned int step(){return _step;}
-	/** Set the simulation time.
-	 * @param t Simulation time.
+	/** @brief Set the simulation time instant.
+	 * @param t Simulation time instant.
 	 */
 	void time(float t){_time = t;}
-	/** Get the simulation time.
-	 * @return Simulation time.
+	/** @brief Get the simulation time instant.
+	 * @return Simulation time instant.
 	 */
 	float time(){return _time;}
-	/** Set the simulation frame.
+	/** @brief Set the simulation frame.
+	 *
+	 * The frame is the index of the current particles output.
+	 *
 	 * @param frame Simulation frame.
 	 */
 	void frame(unsigned int frame){_frame = frame;}
-	/** Get the simulation frame.
+	/** @brief Get the simulation frame.
+	 *
+	 * The frame is the index of the current particles output.
+	 *
 	 * @return Simulation frame.
 	 */
 	unsigned int frame(){return _frame;}
-	/** Set the simulation time step.
-	 * @param dt Simulation time step.
+	/** @brief Set the simulation time step \f$ \Delta t \f$.
+	 * @param dt Simulation time step \f$ \Delta t \f$.
 	 */
 	void dt(float dt){_dt = dt;}
-	/** Get the simulation time step.
-	 * @return Simulation time step.
+	/** @brief Get the simulation time step \f$ \Delta t \f$.
+	 * @return Simulation time step \f$ \Delta t \f$.
 	 */
 	float dt(){return _dt;}
-	/** Set the simulation starting frame.
+	/** @brief Set the simulation starting frame.
+	 *
+	 * The frame is the index of the current particles output.
+	 *
 	 * @param start starting frame.
 	 */
 	void startFrame(int start){_start_frame=start;}
-	/** Get the simulation starting frame.
+	/** @brief Get the simulation starting frame.
+	 *
+	 * The frame is the index of the current particles output.
+	 *
 	 * @return Simulation starting frame.
 	 */
 	int startFrame(){return _start_frame;}
-	/** Set the simulation starting time.
-	 * @param start Simulation starting time.
+	/** @brief Set the simulation starting time \f$ t_0 \f$.
+	 * @param start Simulation starting time \f$ t_0 \f$.
 	 */
 	void startTime(float start){_start_time=start;}
-	/** Get the simulation inital time.
-	 * @return Simulation intial time.
+	/** @brief Get the simulation starting time \f$ t_0 \f$.
+	 * @return Simulation starting time \f$ t_0 \f$.
 	 */
 	float startTime(){return _start_time;}
 
-	/** Set the last output event step.
-	 * @param s last output event step.
+	/** @brief Set the last output event time step index.
+	 * @param s last output event time step index.
 	 */
 	void outputStep(int s){_output_step = s;}
-	/** Get the last output event step.
-	 * @return Last output event step.
+	/** @brief Get the last output event time step index.
+	 * @return Last output event time step index.
 	 */
 	int outputStep(){return _output_step;}
-	/** Get the iterations per output frame.
-	 * @return Iterations per output frame.
+	/** @brief Get the iterations per output frame.
+	 * @return Iterations per frame.
 	 */
 	int outputIPF(){return _output_ipf;}
-	/** Set the last output event time instant.
+	/** @brief Set the last output event time instant.
 	 * @param t Last output event time instant.
 	 */
 	void outputTime(float t){_output_time = t;}
-	/** Get the output time.
-	 * @return Last output time.
+	/** @brief Get the last output event time instant.
+	 * @return Last output event time instant.
 	 */
 	float outputTime(){return _output_time;}
-	/** Get the output frames per second.
+	/** @brief Get the output frames per second.
 	 * @return Frames per second.
 	 */
 	float outputFPS(){return _output_fps;}
 
-	/** Get maximum simulation time.
-	 * @return maximum simulation time.
+	/** @brief Get the total simulation time to compute.
+	 * @return Total simulation time to compute.
 	 */
 	float maxTime(){return _time_max;}
-	/** Get maximum simulation frame.
-	 * @return maximum simulation frame.
+	/** @brief Get the number of frames to compute.
+	 * @return Number of frames to compute.
 	 */
 	int maxFrame(){return _frames_max;}
 

@@ -16,10 +16,26 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Set of definitions and macros related with the implementation.
+ */
+
 #ifndef SPHPREREQUISITES_H_INCLUDED
 #define SPHPREREQUISITES_H_INCLUDED
 
+/** @def XSTR
+ * @brief Just an alias for #STR
+ */
 #define XSTR(x) STR(x)
+/** @def STR
+ * @brief An auxiliary macro to can print defined variables in compilation time.
+ *
+ * For instance:
+ * @code{.c}
+    #define _VAR 1
+    #pragma message "_VAR = " STR(_VAR)
+   @endcode
+ */
 #define STR(x) #x
 
 #include <stdio.h>
@@ -27,59 +43,111 @@
 #include <string.h>
 #include <string>
 
-// ----------------------------------------------------------------------------
-// Autotools configuration file
-// ----------------------------------------------------------------------------
+// CMake configuration file
 #include <config.h>
 
-// ----------------------------------------------------------------------------
-// OpenCL stuff
-// ----------------------------------------------------------------------------
 #include <CL/cl.h>
 
 // Assume the 3D version if 2D has not been set
 #ifndef HAVE_2D
+    /** @def HAVE_3D
+     * @brief AQUAgpusph 3D version.
+     *
+     * If it is defined the AQUAgpusph 3D version will be built, otherwise the
+     * 2D version will be selected.
+     */
     #define HAVE_3D
 #endif
 
 #ifndef vec2
+    /** @def vec2
+     * @brief Vector of 2 real components.
+     */
     #define vec2 cl_float2
 #endif
 #ifndef vec3
+    /** @def vec3
+     * @brief Vector of 3 real components.
+     */
     #define vec3 cl_float3
 #endif
 #ifndef vec4
+    /** @def vec4
+     * @brief Vector of 4 real components.
+     */
     #define vec4 cl_float4
 #endif
 
 #ifndef ivec2
+    /** @def ivec2
+     * @brief Vector of 2 integer components.
+     */
     #define ivec2 cl_int2
 #endif
 #ifndef ivec3
+    /** @def ivec3
+     * @brief Vector of 3 integer components.
+     */
     #define ivec3 cl_int3
 #endif
 #ifndef ivec4
+    /** @def ivec4
+     * @brief Vector of 4 integer components.
+     */
     #define ivec4 cl_int4
 #endif
 
 #ifndef uivec2
+    /** @def uivec2
+     * @brief Vector of 2 unsigned integer components.
+     */
     #define uivec2 cl_uint2
 #endif
 #ifndef uivec3
+    /** @def uivec3
+     * @brief Vector of 3 unsigned integer components.
+     */
     #define uivec3 cl_uint3
 #endif
 #ifndef uivec4
+    /** @def uivec4
+     * @brief Vector of 4 unsigned integer components.
+     */
     #define uivec4 cl_uint4
 #endif
 
 #ifdef HAVE_3D
 	#ifndef vec
+        /** @def vec
+         * @brief Vector of real components.
+         *
+         * The number of components depends on weather the 2D version or 3D
+         * version is compiled:
+         *   - 2D = 2 components
+         *   - 3D = 4 components
+         */
 	    #define vec vec4
 	#endif
 	#ifndef ivec
+        /** @def ivec
+         * @brief Vector of integer components.
+         *
+         * The number of components depends on weather the 2D version or 3D
+         * version is compiled:
+         *   - 2D = 2 components
+         *   - 3D = 4 components
+         */
 	    #define ivec ivec4
 	#endif
 	#ifndef uivec
+        /** @def uivec
+         * @brief Vector of unsigned integer components.
+         *
+         * The number of components depends on weather the 2D version or 3D
+         * version is compiled:
+         *   - 2D = 2 components
+         *   - 3D = 4 components
+         */
 	    #define uivec uivec4
 	#endif
 #else
@@ -95,13 +163,45 @@
 #endif
 
 #ifndef __CL_MIN_LOCALSIZE__
+    /** @def __CL_MIN_LOCALSIZE__
+     * @brief Minimum local work size to execute kernels.
+     *
+     * The selected value have been tested in the following platforms:
+     *   - AMD CPU
+     *   - Intel CPU
+     *   - AMD GPU
+     *   - NVidia GPU
+     */
 	#define __CL_MIN_LOCALSIZE__ 64
 #endif
 #ifndef __CL_MAX_LOCALSIZE__
+    /** @def __CL_MAX_LOCALSIZE__
+     * @brief Maximum local work size to execute kernels.
+     *
+     * The selected value have been tested in the following platforms:
+     *   - AMD CPU
+     *   - Intel CPU
+     *   - AMD GPU
+     *   - NVidia GPU
+     */
 	#define __CL_MAX_LOCALSIZE__ 1024
 #endif
 
+/// Helper string for #methodAndClassName function.
 static char aux[512];
+
+/** @brief Function to extract the class and function from
+ * @paramname{__PRETTY_FUNCTION__} macro.
+ *
+ * The GNU compiler (GCC) macro @paramname{__PRETTY_FUNCTION__} contains a lot
+ * of information about the name space, the returning value, and the parameters.
+ *
+ * In order to print log information this data should be simplified.
+ *
+ * @param pretty_function GCC @paramname{__PRETTY_FUNCTION__} macro
+ * @return Class and function name ("Class::function")
+ * @see #__METHOD_CLASS_NAME__
+ */
 inline const char* methodAndClassName(const std::string& pretty_function)
 {
     std::string all_name, method_name, class_name;
@@ -133,20 +233,29 @@ inline const char* methodAndClassName(const std::string& pretty_function)
     return aux;
 }
 
+/** @def __METHOD_CLASS_NAME__
+ * @brief Returns automatically the current class and function names.
+ * @see methodAndClassName()
+ * @see #addMessageF
+ */
 #define __METHOD_CLASS_NAME__ methodAndClassName(__PRETTY_FUNCTION__)
 
 /** \class mat sphPrerequisites.h sphPrerequisites.h
- * Dimensions depending matrix.
- *   - 4x4 in 3D.
- *   - 2x2 in 2D.
- * @warning This matrix class have not errors control, so
- * a bad item request may result in a segmentation fault.
+ * @brief Matrix of real components.
+ *
+ * The number of components depends on weather the 2D version or 3D version is
+ * compiled:
+ *   - 2D = 2 \f$ \times \f$ 2 matrix
+ *   - 3D = 4 \f$ \times \f$ 4 matrix
+ * @note This matrix class have not errors control, so a bad item request may
+ * result in a segmentation fault.
  */
 class mat
 {
 public:
-	/** Constructor. The matrix will be initialized as
-	 * a zeroes matrix.
+	/** @brief Constructor.
+	 *
+	 * The matrix will be initialized as a zeroes one.
 	 */
 	mat(){
 	    #ifdef HAVE_3D
@@ -160,7 +269,7 @@ public:
 	    #endif
 	}
 
-	/** Subscript operator to return a matrix row.
+	/** @brief Subscript operator to return a matrix row.
 	 * @param index Row index.
 	 * @return Row vector.
 	 */
@@ -175,8 +284,8 @@ public:
 	    return row[index];
 	}
 
-	/** Matrix-Vector multiply operator.
-	 * @param V Vector to multiply.
+	/** Matrix-Vector Inner product operator.
+	 * @param V Vector to operate.
 	 * @return Resulting vector.
 	 */
 	vec operator* (const vec &V){
@@ -194,7 +303,7 @@ public:
 	    return R;
 	}
 
-	/** Assigment operator.
+	/** Assignment operator.
 	 * @param M Matrix to copy.
 	 * @return Copied matrix.
 	 */

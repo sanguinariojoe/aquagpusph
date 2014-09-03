@@ -79,6 +79,9 @@
 #include <TimeManager.h>
 #include <ScreenManager.h>
 
+/** @namespace Aqua
+ * @brief Main AQUAgpusph namespace.
+ */
 using namespace Aqua;
 
 /** Aquagpusph starting point.
