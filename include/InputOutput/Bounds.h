@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Fluid bounds report.
+ * (See Aqua::InputOutput::Bounds for details)
+ */
+
 #ifndef REPORT_BOUNDS_H_INCLUDED
 #define REPORT_BOUNDS_H_INCLUDED
 
@@ -27,51 +32,56 @@
 namespace Aqua{
 namespace InputOutput{
 
-/** \class Bounds Bounds.h InputOutput/Bounds.h
- * Bounds file loader/saver. The energy file is just a tabulated ASCII file
- * where the energy components are printed by rows (a time instant per line).
- * The energy components printed are:
- *   -# Potential energy: \f$ E_{pot} = - \sum_i m_i
-     \mathbf{g} \cdot \mathbf{r}_i \f$.
- *   -# Kinetic energy: \f$ E_{kin} = \sum_i \frac{1}{2} m_i
-     \vert \mathbf{u}_i \vert^2 \f$.
- *   -# Internal energy: \f$ U = \int_0^t \sum_i \frac{p_i}{\rho_i^2}
-     \left(
-        \frac{\mathrm{d} \rho_i}{\mathrm{d} t}
-        - \left. \frac{\mathrm{d} \rho_i}{\mathrm{d} t} \right\vert_F
-     \right) m_i \mathrm{d}t \f$.
- *   -# Enthalpy: \f$ H = \int_0^t \sum_i \frac{p_i}{\rho_i^2}
-     \frac{\mathrm{d} \rho_i}{\mathrm{d} t} m_i \mathrm{d}t \f$.
- *   -# Entropy: \f$ TS = U - H \f$.
- *   -# Total energy: \f$ E = U + E_{kin} \f$.
+/** @class Bounds Bounds.h InputOutput/Bounds.h
+ * @brief Fluid bounds report saver.
+ *
+ * In this report the fluid bounds box, as well as the minimum and maximum
+ * velocities is saved.
+ *
+ * The bounds box is defined as the smallest box where all the fluid particles
+ * are included inside.
+ *
+ * This report is a plain text file.
+ * Each line corresponds to a different time instant.
+ * At each line the following fields are saved, separated by tabulators:
+ *   -# Time instant \f$ t \f$.
+ *   -# Minimum x coordinate \f$ x_{min} \f$.
+ *   -# Minimum y coordinate \f$ y_{min} \f$.
+ *   -# Minimum z coordinate \f$ z_{min} \f$ (just in 3D simulations).
+ *   -# Maximum x coordinate \f$ x_{max} \f$.
+ *   -# Maximum y coordinate \f$ y_{max} \f$.
+ *   -# Maximum z coordinate \f$ z_{max} \f$ (just in 3D simulations).
+ *   -# Minimum velocity \f$ \vert \mathbf{u}_{min} \vert \f$.
+ *   -# Maximum velocity \f$ \vert \mathbf{u}_{max} \vert \f$.
+ *
+ * The output file will be the first non existent file called `"bounds.%d.dat"`,
+ * where `"%d"` is replaced by a unsigned integer.
  */
 class Bounds : public Report
 {
 public:
-    /** Constructor
-     */
+    /// Constructor
     Bounds();
 
-    /** Destructor
-     */
+    /// Destructor
     ~Bounds();
 
-    /** Save the data.
+    /** @brief Save the data.
      * @return false if all gone right, true otherwise.
      */
     bool save();
 
-    /** Get the file handler
+    /** @brief Get the bounds report file handler.
      * @return The output file handler.
      */
     FILE* fileHandler(){return _file;}
 private:
-    /** Create the output file
+    /** @brief Create the output file.
      * @return false if all gone right, true otherwise.
      */
     bool create();
 
-    /** Close the output file
+    /** @brief Close the output file.
      * @return false if all gone right, true otherwise.
      */
     bool close();
