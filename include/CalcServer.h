@@ -256,7 +256,8 @@ public:
     /// LinkList main step, to control if a new link-list is required.
     unsigned int link_list_step;
     /// Cell size increasing factor
-    /** Resulting from #link_list_steps, #deltar, #hfac and the courant factor.
+    /** Resulting from #link_list_steps, #hfac, the distance between particles
+     * and the courant factor.
      */
     float cell_length_factor;
     /// Density field interpolation steps.
