@@ -78,14 +78,14 @@ public:
      */
     bool isVariable(const char* name);
 
-    /** Returns a variable value.
+    /** @brief Returns a variable value.
      * @param name Name of the variable
      * @return The Value of the variable, or 0.0 if the variable cannot be
      * found.
      */
     float variable(const char* name);
 
-    /** Solve the math expression.
+    /** @brief Solve a math expression.
      * @param eq Math expression to solve.
      * @return Expression value, 0.0 if the evaluation failed (it will be
      * reported by terminal).
