@@ -33,7 +33,7 @@ namespace Aqua{
 namespace InputOutput{
 
 /** @class ASCII ASCII.h InputOutput/ASCII.h
- * @brief Plain text particles data file loader/saver.
+ * @brief Plain text particles data files loader/saver.
  *
  * These files are formatted as ASCCI plain text where the particles data are
  * stored by rows, and where the fields are separated by columns.

@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Particles VTK data files loader/saver.
+ * (See Aqua::InputOutput::VTK for details)
+ */
+
 #include <sphPrerequisites.h>
 
 #ifdef HAVE_VTK

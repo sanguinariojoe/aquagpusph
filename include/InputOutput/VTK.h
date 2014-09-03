@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Particles VTK data files loader/saver.
+ * (See Aqua::InputOutput::VTK for details)
+ */
+
 #ifndef VTK_H_INCLUDED
 #define VTK_H_INCLUDED
 
@@ -53,67 +58,84 @@ namespace Aqua{
 namespace InputOutput{
 
 /** \class VTK VTK.h InputOutput/VTK.h
- * VTK particles data file loader/saver. These files are formatted as binary
- * VTK files.
- * @note The expected fields are:
- *   -# \f$\mathbf{r}$\f.\f$x\f$
- *   -# \f$\mathbf{r}$\f.\f$y\f$
- *   -# \f$\mathbf{r}$\f.\f$z\f$ (For 3d cases only)
- *   -# \f$\mathbf{n}$\f.\f$x\f$
- *   -# \f$\mathbf{n}$\f.\f$y\f$
- *   -# \f$\mathbf{n}$\f.\f$z\f$ (For 3d cases only)
- *   -# \f$\mathbf{v}$\f.\f$x\f$
- *   -# \f$\mathbf{v}$\f.\f$y\f$
- *   -# \f$\mathbf{v}$\f.\f$z\f$ (For 3d cases only)
- *   -# \f$\frac{d \mathbf{v}}{d t}$\f.\f$x\f$
- *   -# \f$\frac{d \mathbf{v}}{d t}$\f.\f$y\f$
- *   -# \f$\frac{d \mathbf{v}}{d t}$\f.\f$z\f$ (For 3d cases only)
- *   -# \f$\rho$\f
- *   -# \f$\frac{d \rho}{d t}$\f
- *   -# \f$m$\f
- *   -# moving flag
+ * @brief VTK particles data files loader/saver.
+ *
+ * VTK is a visualization format, to learn more about it please visit the
+ * following web page:
+ *
+ * http://www.vtk.org
+ *
+ * This type of files can be easily post-processed with Paraview:
+ *
+ * http://www.paraview.org
+ *
+ * The fields to be saved/loaded are:
+ *   -# \f$ \mathbf{r} \f$ . \f$ x \f$
+ *   -# \f$ \mathbf{r} \f$ . \f$ y \f$
+ *   -# \f$ \mathbf{r} \f$ . \f$ z \f$ (For 3D cases only)
+ *   -# \f$ \mathbf{n} \f$ . \f$ x \f$
+ *   -# \f$ \mathbf{n} \f$ . \f$ y \f$
+ *   -# \f$ \mathbf{n} \f$ . \f$ z \f$ (For 3D cases only)
+ *   -# \f$ \mathbf{u} \f$ . \f$ x \f$
+ *   -# \f$ \mathbf{u} \f$ . \f$ y \f$
+ *   -# \f$ \mathbf{u} \f$ . \f$ z \f$ (For 3D cases only)
+ *   -# \f$ \frac{d \mathbf{u}}{dt} \f$ . \f$ x \f$
+ *   -# \f$ \frac{d \mathbf{u}}{dt} \f$ . \f$ y \f$
+ *   -# \f$ \frac{d \mathbf{u}}{dt} \f$ . \f$ z \f$ (For 3D cases only)
+ *   -# \f$ \rho \f$
+ *   -# \f$ \frac{d \rho}{dt} \f$
+ *   -# \f$ m \f$
+ *   -# moving flag (see Aqua::InputOutput::Fluid::imove)
  */
 class VTK : public Particles
 {
 public:
-    /** Constructor
+    /** @brief Constructor
      * @param first First particle managed by this saver/loader.
      * @param n Number of particles managed by this saver/loader.
      * @param ifluid Fluid index.
      */
     VTK(unsigned int first, unsigned int n, unsigned int ifluid);
 
-    /** Destructor
-     */
+    /// Destructor
     ~VTK();
 
-    /** Save the data. The data
+    /** @brief Save the data.
      * @return false if all gone right, true otherwise.
      */
     bool save();
 
-    /** Load the particles data.
+    /** @brief Load the data.
      * @return false if all gone right, true otherwise.
      */
     bool load();
 
 private:
-    /** Create a new file to write.
+    /** @brief Create a new file to write.
      * @return The file handler, NULL if errors happened.
+     * @see Aqua::InputOutput::Particles::file(const char* basename,
+     *                                         unsigned int start_index,
+     *                                         unsigned int digits=5)
      */
     vtkXMLUnstructuredGridWriter* create();
 
-    /** Create/Update the Paraview Data File.
+    /** @brief Create/Update the Paraview Data File.
+     *
+     * Such file is used to indicates Paraview the list of files which compose
+     * an animation, and the time instant of each one.
      * @return false if all gone right, true otherwise.
      */
     bool updatePVD();
 
-    /** Test if the Paraview Data File exist, or create it otherwise.
+    /** @brief Check if the Paraview Data File exist, creating it otherwise.
+     *
+     * Such file is used to indicates Paraview the list of files which compose
+     * an animation, and the time instant of each one.
      * @return The document object.
      */
     xercesc::DOMDocument* getPVD();
 
-    /** PVD file name
+    /** @brief PVD file name
      * @return the PVD file name
      */
     const char* filenamePVD();
