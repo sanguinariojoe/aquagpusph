@@ -29,7 +29,11 @@
 // ----------------------------------------------------------------------------
 #include <CalcServer/Kernel.h>
 
-namespace Aqua{ namespace CalcServer{ namespace Portal{
+namespace Aqua{ namespace CalcServer{
+/** @namespace Aqua::CalcServer::Portal
+ * @brief Outdated data, just ignore it.
+ */
+namespace Portal{
 
 /** @class Portal Portal.h CalcServer/Portal/Portal.h
  * @brief Base portal class, that only teleport particles that
