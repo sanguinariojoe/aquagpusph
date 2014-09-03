@@ -1,2 +1,3 @@
 # Code::Blocks auxiliar files
 CodeBlocks/*.layout
+*.cbTemp

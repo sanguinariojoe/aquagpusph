@@ -31,27 +31,35 @@ namespace Aqua{
 
 /** \class Tokenizer Tokenizer.h Tokenizer/Tokenizer.h
  * @brief Tool to evaluate math expressions.
+ *
+ * This tool is based in libmatheval, to learn more please visit the following
+ * web page:
+ *
+ * http://www.gnu.org/software/libmatheval
  */
 class Tokenizer
 {
 public:
-	/** Constructor
-	 */
+	/// Constructor
 	Tokenizer();
 
-	/** Destructor
-	 */
+	/// Destructor
 	~Tokenizer();
 
-	/** Register a variable to be used later, or modify its value if it has
-	 * been already generated.
+	/** @brief Register a variable.
+	 *
+	 * In case that the variable already exist, it will be modified.
+	 *
+	 * The registered variables can be used later in the expression to be
+	 * evaluated.
+	 *
 	 * @param name Name of the variable.
 	 * @param value Value of the variable.
 	 * @return true if the variable already exists, false otherwise.
 	 */
 	bool registerVariable(const char* name, float value);
 
-	/** Unregister a variable.
+	/** @brief Unregister a variable.
 	 * @param name Name of the variable.
 	 * @return true if the variable has been unregistered, false if the
 	 * variable cannot be unregistered (for instance because it does not
@@ -59,30 +67,37 @@ public:
 	 */
 	bool unregisterVariable(const char* name);
 
-    /** Clear all the registered variables.
+    /** @brief Clear/unregister all the registered variables.
      */
     void clearVariables();
 
-	/** Returns if a variable has been registered.
-	 * @param name Name of the desired variable
-	 * @return true if exist a variable with the given name, false otherwise.
+	/** @brief Checks if a variable has been registered.
+	 * @param name Name of the variable
+	 * @return true if already exist a variable with the given name, false
+	 * otherwise.
 	 */
 	bool isVariable(const char* name);
 
 	/** Returns a variable value.
-	 * @param name Name of the desired variable
-	 * @return The Value of the variable, or 0.f if the variable cannot be found.
+	 * @param name Name of the variable
+	 * @return The Value of the variable, or 0.0 if the variable cannot be
+	 * found.
 	 */
 	float variable(const char* name);
 
-	/** Solve the math expresion.
+	/** Solve the math expression.
 	 * @param eq Math expression to solve.
-	 * @return Expression value, 0.f if failed (it will be reported).
+	 * @return Expression value, 0.0 if the evaluation failed (it will be
+     * reported by terminal).
 	 */
 	float solve(const char* eq);
 
 protected:
-    /** Register the default variables
+    /** @brief Register the default variables.
+     *
+     * After the libmatheval implementation, variables like \f$ e \f$ or
+     * \f$ \pi \f$ are defined out of the box, but the function is retained just
+     * in case.
      */
     virtual void defaultVariables();
 
