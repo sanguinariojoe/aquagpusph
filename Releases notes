@@ -1,3 +1,11 @@
+__v-1.5.03_____________________________________________________________________
+
+	* Purged obsolete doxygen options.
+	* Addded a doxygen alias to reference to method arguments.
+	* Improved the Doxygen documentation, including the file definitions.
+    * Set the 3D version as the default documented version by Doxygen.
+    * Fixed bad tabulators.
+
 __v-1.5.02_____________________________________________________________________
 
 	* Fixed the examples installation.

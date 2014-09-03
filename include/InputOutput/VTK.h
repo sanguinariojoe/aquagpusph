@@ -76,16 +76,16 @@ namespace InputOutput{
 class VTK : public Particles
 {
 public:
-	/** Constructor
-	 * @param first First particle managed by this saver/loader.
-	 * @param n Number of particles managed by this saver/loader.
-	 * @param ifluid Fluid index.
-	 */
-	VTK(unsigned int first, unsigned int n, unsigned int ifluid);
+    /** Constructor
+     * @param first First particle managed by this saver/loader.
+     * @param n Number of particles managed by this saver/loader.
+     * @param ifluid Fluid index.
+     */
+    VTK(unsigned int first, unsigned int n, unsigned int ifluid);
 
-	/** Destructor
-	 */
-	~VTK();
+    /** Destructor
+     */
+    ~VTK();
 
     /** Save the data. The data
      * @return false if all gone right, true otherwise.

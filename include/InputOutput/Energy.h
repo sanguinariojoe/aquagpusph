@@ -48,13 +48,13 @@ namespace InputOutput{
 class Energy : public Report
 {
 public:
-	/** Constructor
-	 */
-	Energy();
+    /** Constructor
+     */
+    Energy();
 
-	/** Destructor
-	 */
-	~Energy();
+    /** Destructor
+     */
+    ~Energy();
 
     /** Save the data. The data
      * @return false if all gone right, true otherwise.

@@ -33,48 +33,48 @@ namespace Aqua{ namespace CalcServer{
 class LinkList : public Aqua::CalcServer::Kernel
 {
 public:
-	/** Constructor.
-	 */
-	LinkList();
+    /** Constructor.
+     */
+    LinkList();
 
-	/** Destructor.
-	 */
-	~LinkList();
+    /** Destructor.
+     */
+    ~LinkList();
 
-	/** Performs the link-list.
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool execute();
+    /** Performs the link-list.
+     * @return false if all gone right, true otherwise.
+     */
+    bool execute();
 
 private:
-	/** Setup the OpenCL stuff
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool setupOpenCL();
+    /** Setup the OpenCL stuff
+     * @return false if all gone right, true otherwise.
+     */
+    bool setupOpenCL();
 
-	/** Auxiliar method to alloc memory for the link-list (when needed).
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool allocLinkList();
+    /** Auxiliar method to alloc memory for the link-list (when needed).
+     * @return false if all gone right, true otherwise.
+     */
+    bool allocLinkList();
 
-	/// OpenCL script path
-	char *_path;
+    /// OpenCL script path
+    char *_path;
 
-	/// OpenCL program
-	cl_program _program;
-	/// OpenCL icell kernel
-	cl_kernel _icell_kernel;
-	/// OpenCL ihoc init kernel
-	cl_kernel _ihoc_kernel;
-	/// OpenCL link-list kernel
-	cl_kernel _ll_kernel;
-	/// Global work size.
-	size_t _global_work_size;
-	/// Local work size
-	size_t _local_work_size;
+    /// OpenCL program
+    cl_program _program;
+    /// OpenCL icell kernel
+    cl_kernel _icell_kernel;
+    /// OpenCL ihoc init kernel
+    cl_kernel _ihoc_kernel;
+    /// OpenCL link-list kernel
+    cl_kernel _ll_kernel;
+    /// Global work size.
+    size_t _global_work_size;
+    /// Local work size
+    size_t _local_work_size;
 
-	/// Radix sort module
-	RadixSort *_radix_sort;
+    /// Radix sort module
+    RadixSort *_radix_sort;
 };
 
 }}  // namespace

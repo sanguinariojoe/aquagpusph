@@ -32,31 +32,31 @@ namespace Aqua{ namespace CalcServer{
 class Reduction : public Aqua::CalcServer::Kernel
 {
 public:
-	/** Constructor.
-	 * @param input Input data memory object.
-	 * @param n Input data elements.
-	 * @param type The data type array.
-	 * @param null_val The value considered as the null one, i.e.
-	 * Infinity for min operation, (float2)(0.f,0.f) for 2D vec sum
-	 * reduction, etc.
-	 * @param operation The reduction operation. For instance:
-	 *   - "a += b;"
-	 *   - "a.x = (a.x < b.x) ? a.x : b.x; a.y = (a.y < b.y) ? a.y : b.y;"
-	 */
-	Reduction(cl_mem input,
+    /** Constructor.
+     * @param input Input data memory object.
+     * @param n Input data elements.
+     * @param type The data type array.
+     * @param null_val The value considered as the null one, i.e.
+     * Infinity for min operation, (float2)(0.f,0.f) for 2D vec sum
+     * reduction, etc.
+     * @param operation The reduction operation. For instance:
+     *   - "a += b;"
+     *   - "a.x = (a.x < b.x) ? a.x : b.x; a.y = (a.y < b.y) ? a.y : b.y;"
+     */
+    Reduction(cl_mem input,
               unsigned int n,
               const char* type,
               const char* null_val,
               const char* operation);
 
-	/** Destructor.
-	 */
-	~Reduction();
+    /** Destructor.
+     */
+    ~Reduction();
 
-	/** Compute the prefix scan.
-	 * @return Output memory object, NULL if error is detected.
-	 */
-	cl_mem execute();
+    /** Compute the prefix scan.
+     * @return Output memory object, NULL if error is detected.
+     */
+    cl_mem execute();
 
     /** Number of steps needed
      * @return Number of steps needed.
@@ -78,25 +78,25 @@ public:
     bool setInput(cl_mem input);
 
 private:
-	/** Setup the OpenCL stuff
-	 * @param type The data type array.
-	 * @param null_val The value considered as the null one, i.e.
-	 * Infinity for min operation, (float2)(0.f,0.f) for 2D vec sum
-	 * reduction, etc.
-	 * @param operation The reduction operation. For instance:
-	 *   - "a += b;"
-	 *   - "a.x = (a.x < b.x) ? a.x : b.x; a.y = (a.y < b.y) ? a.y : b.y;"
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool setupOpenCL(const char* type, const char* null_val, const char* operation);
+    /** Setup the OpenCL stuff
+     * @param type The data type array.
+     * @param null_val The value considered as the null one, i.e.
+     * Infinity for min operation, (float2)(0.f,0.f) for 2D vec sum
+     * reduction, etc.
+     * @param operation The reduction operation. For instance:
+     *   - "a += b;"
+     *   - "a.x = (a.x < b.x) ? a.x : b.x; a.y = (a.y < b.y) ? a.y : b.y;"
+     * @return false if all gone right, true otherwise.
+     */
+    bool setupOpenCL(const char* type, const char* null_val, const char* operation);
 
-	/// OpenCL script path
-	char* _path;
+    /// OpenCL script path
+    char* _path;
 
-	/// OpenCL program
-	cl_program _program;
-	/// OpenCL kernel
-	std::deque<cl_kernel> _kernels;
+    /// OpenCL program
+    cl_program _program;
+    /// OpenCL kernel
+    std::deque<cl_kernel> _kernels;
 
     /// Global work sizes in each step
     std::deque<size_t> _global_work_sizes;

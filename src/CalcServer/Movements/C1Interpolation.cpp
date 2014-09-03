@@ -43,8 +43,8 @@ namespace Aqua{ namespace CalcServer{ namespace Movement{
 
 Poly::Poly(std::deque<vec2> p, std::deque<vec2> dp)
     : _x0(0.f)
-	, _p(p)
-	, _dp(dp)
+    , _p(p)
+    , _dp(dp)
 {
     compute();
 }
@@ -79,18 +79,18 @@ float Poly::derivate(float x)
 void Poly::compute()
 {
     unsigned int i,j;
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     _k.clear();
     // Get the problem dimensions
     unsigned int N = _p.size() + _dp.size();
     if(!N){
-	    S->addMessageF(3, "No conditions imposed, so the curve cannot be computed.\n");
-	    return;
+        S->addMessageF(3, "No conditions imposed, so the curve cannot be computed.\n");
+        return;
     }
     // If no point are imposed one DoF will remain ever, so it is an error
     if(!_p.size()){
-	    S->addMessageF(3, "No points has been imposed, and therefore the problem is not closed.\n");
-	    return;
+        S->addMessageF(3, "No points has been imposed, and therefore the problem is not closed.\n");
+        return;
     }
     _x0 = _p.at(0).x;
     for(i=1;i<_p.size();i++){
@@ -126,71 +126,71 @@ void Poly::compute()
 }
 
 C1Interpolation::C1Interpolation(const char *data_file)
-	: _data_file(NULL)
-	, _time(0.f)
-	, _poly_time(0.f)
+    : _data_file(NULL)
+    , _time(0.f)
+    , _poly_time(0.f)
 {
-	// Open the file (if possible)
-	if(data_file)
-	    open(data_file);
+    // Open the file (if possible)
+    if(data_file)
+        open(data_file);
 }
 
 C1Interpolation::~C1Interpolation()
 {
     unsigned int i;
-	if(_data_file) fclose(_data_file); _data_file=0;
-	for(i=0;i<_poly.size();i++){
+    if(_data_file) fclose(_data_file); _data_file=0;
+    for(i=0;i<_poly.size();i++){
         delete _poly.at(i); _poly.at(i) = NULL;
-	}
+    }
     _poly.clear();
-	_data.clear();
+    _data.clear();
 }
 
 std::deque<float> C1Interpolation::update(float t)
 {
-	unsigned int i,j;
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	InputOutput::TimeManager *T = InputOutput::TimeManager::singleton();
-	if(!_data_file){
+    unsigned int i,j;
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    InputOutput::TimeManager *T = InputOutput::TimeManager::singleton();
+    if(!_data_file){
         _data.clear();
-	    return _data;
-	}
-	// Rewind the file if the time is lower than the last time
-	if(t < _time){
-	    rewind(_data_file);
+        return _data;
+    }
+    // Rewind the file if the time is lower than the last time
+    if(t < _time){
+        rewind(_data_file);
         for(i=0;i<_poly.size();i++){
             delete _poly.at(i); _poly.at(i) = NULL;
         }
         _poly.clear();
-	    _poly_time = 0.f;
-	}
-	_time = t;
-	// Test if the computed curve still becomes valid
-	if(_poly.size() && t <= _poly_time){
+        _poly_time = 0.f;
+    }
+    _time = t;
+    // Test if the computed curve still becomes valid
+    if(_poly.size() && t <= _poly_time){
         _data.clear();
-	    _data.push_back(t);
+        _data.push_back(t);
         for(i=0;i<_poly.size();i++){
             _data.push_back(_poly.at(i)->evaluate(t));
         }
         return _data;
-	}
+    }
     // Read a new data block to interpolate
     std::deque<float> *data = NULL;
     unsigned int dataDim = 0;
-	while(_poly_time <= _time){
-	    std::deque<float> line = readLine();
-	    // Test if the last point has been reached
-	    if(!line.size()){
-	        S->addMessageF(2, "Final time step reached.\n");
-	        return _data;
-	    }
-	    // Test if the file has suddently changed the number of fields
-	    if(!data){
+    while(_poly_time <= _time){
+        std::deque<float> line = readLine();
+        // Test if the last point has been reached
+        if(!line.size()){
+            S->addMessageF(2, "Final time step reached.\n");
+            return _data;
+        }
+        // Test if the file has suddently changed the number of fields
+        if(!data){
             dataDim = line.size();
-	        data = new std::deque<float>[dataDim];
-	    }
+            data = new std::deque<float>[dataDim];
+        }
         if(dataDim != line.size()){
-	        S->addMessageF(3, "The number of data fields has suddently changed.\n");
+            S->addMessageF(3, "The number of data fields has suddently changed.\n");
             return _data;
         }
         // All seems gone right, so we can append the new data
@@ -198,11 +198,11 @@ std::deque<float> C1Interpolation::update(float t)
             data[i].push_back(line.at(i));
         }
         _poly_time = line.at(0);
-	}
+    }
 
-	// -----------------------------
-	// Create the new curves
-	// -----------------------------
+    // -----------------------------
+    // Create the new curves
+    // -----------------------------
     std::deque<Poly*> poly = _poly;
     _poly.clear();
     std::deque<vec2> p;
@@ -257,9 +257,9 @@ std::deque<float> C1Interpolation::derivative()
 {
     unsigned int i;
     std::deque<float> data;
-	if(!_poly.size()){
-	    return data;
-	}
+    if(!_poly.size()){
+        return data;
+    }
     data.push_back(_time);
     for(i=0;i<_poly.size();i++){
         data.push_back(_poly.at(i)->derivate(_time));
@@ -269,117 +269,117 @@ std::deque<float> C1Interpolation::derivative()
 
 bool C1Interpolation::open(const char *data_file)
 {
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	char msg[1024];
-	// Clear previous data
-	_poly_time = 0.f;
-	// Open the file
-	if(!data_file){
-	    S->addMessageF(3, "Null string pointer received.\n");
-	    return false;
-	}
-	if(!strlen(data_file)){
-	    S->addMessageF(3, "Empty data file path.\n");
-	    return false;
-	}
-	if(_data_file) fclose(_data_file); _data_file=0;
-	_data_file = fopen(data_file, "r");
-	if(!_data_file){
-	    sprintf(msg, "Failure opening \"%s\" data file.\n", data_file);
-	    S->addMessageF(3, msg);
-	    return false;
-	}
-	// Go to selected time
-	update(_time);
-	return true;
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    char msg[1024];
+    // Clear previous data
+    _poly_time = 0.f;
+    // Open the file
+    if(!data_file){
+        S->addMessageF(3, "Null string pointer received.\n");
+        return false;
+    }
+    if(!strlen(data_file)){
+        S->addMessageF(3, "Empty data file path.\n");
+        return false;
+    }
+    if(_data_file) fclose(_data_file); _data_file=0;
+    _data_file = fopen(data_file, "r");
+    if(!_data_file){
+        sprintf(msg, "Failure opening \"%s\" data file.\n", data_file);
+        S->addMessageF(3, msg);
+        return false;
+    }
+    // Go to selected time
+    update(_time);
+    return true;
 }
 
 std::deque<float> C1Interpolation::readLine()
 {
-	std::deque<float> data;
-	data.clear();
-	float var;
-	// Read lines unless we reach a valid one
-	while(true){
-	    // Read a line
-	    char Line[256];
-	    fgets( Line, 256*sizeof(char), _data_file);
-	    // Look for the start of it
-	    int LineStartChar=0;
-	    while( (Line[LineStartChar] == ' ') || (Line[LineStartChar] == '\t') )
-	        LineStartChar++;
-	    // Ensure that is not a commented or empty line
-	    if( (Line[LineStartChar] == '#') || (Line[LineStartChar] == '\n') )
-	        continue;
-	    // Ensure that end of file has not been reached
-	    if(Line[LineStartChar] == EOF)
-	        return data;
-	    // Erase initial spaces
-	    strcpy(Line, &Line[LineStartChar]);
-	    // Edit the line to get a conveniently formatted string.
-	    // Replace , ; ( ) - \t by spaces
-	    char *ReplacePoint=0;
-	    ReplacePoint = strstr(Line,",");
-	    while(ReplacePoint) {
-	        strncpy(ReplacePoint," ",1);
-	        ReplacePoint = strstr(Line,",");
-	    }
-	    ReplacePoint = strstr(Line,";");
-	    while(ReplacePoint){
-	        strncpy(ReplacePoint," ",1);
-	        ReplacePoint = strstr(Line,";");
-	    }
-	    ReplacePoint = strstr(Line,"(");
-	    while(ReplacePoint){
-	        strncpy(ReplacePoint," ",1);
-	        ReplacePoint = strstr(Line,"(");
-	    }
-	    ReplacePoint = strstr(Line,")");
-	    while(ReplacePoint){
-	        strncpy(ReplacePoint," ",1);
-	        ReplacePoint = strstr(Line,")");
-	    }
-	    ReplacePoint = strstr(Line,"\t");
-	    while(ReplacePoint){
-	        strncpy(ReplacePoint," ",1);
-	        ReplacePoint = strstr(Line,"\t");
-	    }
-	    // Erase concatenated spaces
-	    ReplacePoint = strstr(Line,"  ");
-	    while(ReplacePoint){
-	        char StrBackup[256];
-	        strcpy(StrBackup, &(ReplacePoint[2]));
-	        strcpy(&(ReplacePoint[1]),StrBackup);
-	        ReplacePoint = strstr(Line,"  ");
-	    }
-	    // Erase initial spaces
-	    LineStartChar=0;
-	    while( (Line[LineStartChar] == ' ') || (Line[LineStartChar] == '\t') )
-	        LineStartChar++;
-	    strcpy(Line, &Line[LineStartChar]);
-	    // Erase final newline char
-	    int LineEndChar=strlen(Line)-1;
-	    if(Line[LineEndChar] == '\n')
-	        strcpy(&Line[LineEndChar], "\0");
-	    // Erase trailing spaces
-	    LineEndChar=strlen(Line)-1;
-	    if(Line[LineEndChar] == ' ')
-	        strcpy(&Line[LineEndChar], "\0");
-	    // Add the data
-	    char *ReadPoint=Line-1;
-	    while(ReadPoint){
-	        ReadPoint++;
-	        // Read the variable
-	        if( !sscanf(ReadPoint, "%g", &var) )
-	            break;
-	        // Add to the array
-	        data.push_back(var);
-	        // Look for next variable
-	        ReadPoint = strstr(ReadPoint," ");
-	    }
-	    break;
-	}
-	return data;
+    std::deque<float> data;
+    data.clear();
+    float var;
+    // Read lines unless we reach a valid one
+    while(true){
+        // Read a line
+        char Line[256];
+        fgets( Line, 256*sizeof(char), _data_file);
+        // Look for the start of it
+        int LineStartChar=0;
+        while( (Line[LineStartChar] == ' ') || (Line[LineStartChar] == '\t') )
+            LineStartChar++;
+        // Ensure that is not a commented or empty line
+        if( (Line[LineStartChar] == '#') || (Line[LineStartChar] == '\n') )
+            continue;
+        // Ensure that end of file has not been reached
+        if(Line[LineStartChar] == EOF)
+            return data;
+        // Erase initial spaces
+        strcpy(Line, &Line[LineStartChar]);
+        // Edit the line to get a conveniently formatted string.
+        // Replace , ; ( ) - \t by spaces
+        char *ReplacePoint=0;
+        ReplacePoint = strstr(Line,",");
+        while(ReplacePoint) {
+            strncpy(ReplacePoint," ",1);
+            ReplacePoint = strstr(Line,",");
+        }
+        ReplacePoint = strstr(Line,";");
+        while(ReplacePoint){
+            strncpy(ReplacePoint," ",1);
+            ReplacePoint = strstr(Line,";");
+        }
+        ReplacePoint = strstr(Line,"(");
+        while(ReplacePoint){
+            strncpy(ReplacePoint," ",1);
+            ReplacePoint = strstr(Line,"(");
+        }
+        ReplacePoint = strstr(Line,")");
+        while(ReplacePoint){
+            strncpy(ReplacePoint," ",1);
+            ReplacePoint = strstr(Line,")");
+        }
+        ReplacePoint = strstr(Line,"\t");
+        while(ReplacePoint){
+            strncpy(ReplacePoint," ",1);
+            ReplacePoint = strstr(Line,"\t");
+        }
+        // Erase concatenated spaces
+        ReplacePoint = strstr(Line,"  ");
+        while(ReplacePoint){
+            char StrBackup[256];
+            strcpy(StrBackup, &(ReplacePoint[2]));
+            strcpy(&(ReplacePoint[1]),StrBackup);
+            ReplacePoint = strstr(Line,"  ");
+        }
+        // Erase initial spaces
+        LineStartChar=0;
+        while( (Line[LineStartChar] == ' ') || (Line[LineStartChar] == '\t') )
+            LineStartChar++;
+        strcpy(Line, &Line[LineStartChar]);
+        // Erase final newline char
+        int LineEndChar=strlen(Line)-1;
+        if(Line[LineEndChar] == '\n')
+            strcpy(&Line[LineEndChar], "\0");
+        // Erase trailing spaces
+        LineEndChar=strlen(Line)-1;
+        if(Line[LineEndChar] == ' ')
+            strcpy(&Line[LineEndChar], "\0");
+        // Add the data
+        char *ReadPoint=Line-1;
+        while(ReadPoint){
+            ReadPoint++;
+            // Read the variable
+            if( !sscanf(ReadPoint, "%g", &var) )
+                break;
+            // Add to the array
+            data.push_back(var);
+            // Look for next variable
+            ReadPoint = strstr(ReadPoint," ");
+        }
+        break;
+    }
+    return data;
 }
 
 }}} // namespaces

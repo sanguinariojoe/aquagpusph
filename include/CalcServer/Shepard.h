@@ -37,36 +37,36 @@ namespace Aqua{ namespace CalcServer{
 class Shepard : public Aqua::CalcServer::Kernel
 {
 public:
-	/** Constructor.
-	 */
-	Shepard();
+    /** Constructor.
+     */
+    Shepard();
 
-	/** Destructor.
-	 */
-	~Shepard();
+    /** Destructor.
+     */
+    ~Shepard();
 
-	/** Shepard boundary computation.
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool execute();
+    /** Shepard boundary computation.
+     * @return false if all gone right, true otherwise.
+     */
+    bool execute();
 
 private:
-	/** Setup the OpenCL stuff
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool setupOpenCL();
+    /** Setup the OpenCL stuff
+     * @return false if all gone right, true otherwise.
+     */
+    bool setupOpenCL();
 
-	/// OpenCL script path
-	char* _path;
+    /// OpenCL script path
+    char* _path;
 
-	/// OpenCL program
-	cl_program _program;
-	/// OpenCL shepard term kernel
-	cl_kernel _kernel;
-	/// Global work size
-	size_t _global_work_size;
-	/// Local work size
-	size_t _local_work_size;
+    /// OpenCL program
+    cl_program _program;
+    /// OpenCL shepard term kernel
+    cl_kernel _kernel;
+    /// Global work size
+    size_t _global_work_size;
+    /// Local work size
+    size_t _local_work_size;
 };
 
 }}  // namespace

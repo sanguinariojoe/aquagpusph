@@ -67,12 +67,12 @@ static void xmlClear()
 #define xmlS(txt) xmlTranscode(txt)
 
 #ifdef xmlAttribute
-	#undef xmlAttribute
+    #undef xmlAttribute
 #endif
 #define xmlAttribute(elem, att) xmlS( elem->getAttribute(xmlS(att)) )
 
 #ifdef xmlHasAttribute
-	#undef xmlHasAttribute
+    #undef xmlHasAttribute
 #endif
 #define xmlHasAttribute(elem, att) elem->hasAttribute(xmlS(att))
 
@@ -113,27 +113,27 @@ State::State()
         lc->thousands_sep = "";
     }
 
-	// Start the XML parser
-	try {
-	    XMLPlatformUtils::Initialize();
-	}
-	catch( XMLException& e ){
-	    char* message = xmlS(e.getMessage());
+    // Start the XML parser
+    try {
+        XMLPlatformUtils::Initialize();
+    }
+    catch( XMLException& e ){
+        char* message = xmlS(e.getMessage());
         S->addMessageF(3, "XML toolkit initialization error.\n");
-	    char msg[strlen(message) + 3];
+        char msg[strlen(message) + 3];
         sprintf(msg, "\t%s\n", message);
         S->addMessage(0, msg);
         xmlClear();
-	    exit(EXIT_FAILURE);
-	}
-	catch( ... ){
+        exit(EXIT_FAILURE);
+    }
+    catch( ... ){
         S->addMessageF(3, "XML toolkit initialization error.\n");
         S->addMessage(0, "\tUnhandled exception\n");
         xmlClear();
-	    exit(EXIT_FAILURE);
-	}
+        exit(EXIT_FAILURE);
+    }
 
-	// Look ofr the first available file place
+    // Look ofr the first available file place
     i = 0;
     _output_file = new char[256];
     while(true){
@@ -151,29 +151,29 @@ State::State()
 
 State::~State()
 {
-	unsigned int i;
-	ScreenManager *S = ScreenManager::singleton();
-	// Terminate Xerces
-	try{
-	    XMLPlatformUtils::Terminate();
-	}
-	catch( xercesc::XMLException& e ){
-	    char* message = xmlS( e.getMessage() );
+    unsigned int i;
+    ScreenManager *S = ScreenManager::singleton();
+    // Terminate Xerces
+    try{
+        XMLPlatformUtils::Terminate();
+    }
+    catch( xercesc::XMLException& e ){
+        char* message = xmlS( e.getMessage() );
         S->addMessageF(3, "XML toolkit exit error.\n");
-	    char msg[strlen(message) + 3];
+        char msg[strlen(message) + 3];
         sprintf(msg, "\t%s\n", message);
         S->addMessage(0, msg);
         xmlClear();
-	    exit(EXIT_FAILURE);
-	}
-	catch( ... ){
+        exit(EXIT_FAILURE);
+    }
+    catch( ... ){
         S->addMessageF(3, "XML toolkit exit error.\n");
         S->addMessage(0, "\tUnhandled exception\n");
         xmlClear();
-	    exit(EXIT_FAILURE);
-	}
+        exit(EXIT_FAILURE);
+    }
 
-	delete[] _output_file;
+    delete[] _output_file;
 }
 
 bool State::save()
@@ -183,164 +183,164 @@ bool State::save()
 
 bool State::load()
 {
-	FileManager *F = FileManager::singleton();
+    FileManager *F = FileManager::singleton();
     return parse(F->inputFile());
 }
 
 bool State::parse(const char* filepath)
 {
-	ScreenManager *S = ScreenManager::singleton();
-	ProblemSetup *P = ProblemSetup::singleton();
-	char msg[1024];
-	strcpy(msg, "");
+    ScreenManager *S = ScreenManager::singleton();
+    ProblemSetup *P = ProblemSetup::singleton();
+    char msg[1024];
+    strcpy(msg, "");
 
-	sprintf(msg, "Parsing the XML file \"%s\"\n", filepath);
-	S->addMessageF(1, msg);
-	// Try to open as ascii file, just to know if the file already exist
-	FILE *dummy=0; dummy = fopen(filepath, "r");
-	if(!dummy){
-	    S->addMessageF(3, "File inaccessible!\n");
-	    return true;
-	}
-	fclose(dummy);
-	XercesDOMParser *parser = new XercesDOMParser();
-	parser->setValidationScheme(XercesDOMParser::Val_Never);
-	parser->setDoNamespaces(false);
-	parser->setDoSchema(false);
-	parser->setLoadExternalDTD(false);
-	parser->parse(filepath);
- 	DOMDocument* doc = parser->getDocument();
-	DOMElement* root = doc->getDocumentElement();
-	if( !root ){
-	    S->addMessageF(3, "Empty XML file\n");
-	    return true;
-	}
-	// Look for XML files included to parse them before
-	DOMNodeList* nodes = root->getElementsByTagName(xmlS("Include"));
-	for(XMLSize_t i=0; i<nodes->getLength(); i++){
-	    DOMNode* node = nodes->item(i);
-	    if(node->getNodeType() != DOMNode::ELEMENT_NODE)
-	        continue;
-	    DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
-	    const char* included_file = xmlS(elem->getAttribute(xmlS("file")));
-	    if(parse(included_file)){
+    sprintf(msg, "Parsing the XML file \"%s\"\n", filepath);
+    S->addMessageF(1, msg);
+    // Try to open as ascii file, just to know if the file already exist
+    FILE *dummy=0; dummy = fopen(filepath, "r");
+    if(!dummy){
+        S->addMessageF(3, "File inaccessible!\n");
+        return true;
+    }
+    fclose(dummy);
+    XercesDOMParser *parser = new XercesDOMParser();
+    parser->setValidationScheme(XercesDOMParser::Val_Never);
+    parser->setDoNamespaces(false);
+    parser->setDoSchema(false);
+    parser->setLoadExternalDTD(false);
+    parser->parse(filepath);
+     DOMDocument* doc = parser->getDocument();
+    DOMElement* root = doc->getDocumentElement();
+    if( !root ){
+        S->addMessageF(3, "Empty XML file\n");
+        return true;
+    }
+    // Look for XML files included to parse them before
+    DOMNodeList* nodes = root->getElementsByTagName(xmlS("Include"));
+    for(XMLSize_t i=0; i<nodes->getLength(); i++){
+        DOMNode* node = nodes->item(i);
+        if(node->getNodeType() != DOMNode::ELEMENT_NODE)
+            continue;
+        DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
+        const char* included_file = xmlS(elem->getAttribute(xmlS("file")));
+        if(parse(included_file)){
             xmlClear();
             return true;
         }
-	}
+    }
 
-	if(parseSettings(root)){
-        xmlClear();
-	    return true;
-    }
-	if(parseOpenCL(root)){
-        xmlClear();
-	    return true;
-    }
-	if(parseTiming(root)){
+    if(parseSettings(root)){
         xmlClear();
         return true;
     }
-	if(parseTiming(root)){
+    if(parseOpenCL(root)){
         xmlClear();
-	    return true;
+        return true;
     }
-	if(parseSPH(root)){
+    if(parseTiming(root)){
         xmlClear();
-	    return true;
+        return true;
     }
-	if(parseFluid(root)){
+    if(parseTiming(root)){
         xmlClear();
-	    return true;
+        return true;
     }
-	if(parseSensors(root)){
+    if(parseSPH(root)){
         xmlClear();
-	    return true;
+        return true;
     }
-	if(parseMotions(root)){
+    if(parseFluid(root)){
         xmlClear();
-	    return true;
+        return true;
     }
-	if(parsePortals(root)){
+    if(parseSensors(root)){
         xmlClear();
-	    return true;
+        return true;
     }
-	if(parseGhostParticles(root)){
+    if(parseMotions(root)){
         xmlClear();
-	    return true;
+        return true;
+    }
+    if(parsePortals(root)){
+        xmlClear();
+        return true;
+    }
+    if(parseGhostParticles(root)){
+        xmlClear();
+        return true;
     }
 
     xmlClear();
     delete parser;
-	return false;
+    return false;
 }
 
 bool State::parseSettings(DOMElement *root)
 {
-	ScreenManager *S = ScreenManager::singleton();
-	ProblemSetup *P = ProblemSetup::singleton();
-	char msg[1024]; strcpy(msg, "");
-	DOMNodeList* nodes = root->getElementsByTagName(xmlS("Settings"));
-	for(XMLSize_t i=0; i<nodes->getLength();i++){
-	    DOMNode* node = nodes->item(i);
-	    if(node->getNodeType() != DOMNode::ELEMENT_NODE)
-	        continue;
-	    DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
+    ScreenManager *S = ScreenManager::singleton();
+    ProblemSetup *P = ProblemSetup::singleton();
+    char msg[1024]; strcpy(msg, "");
+    DOMNodeList* nodes = root->getElementsByTagName(xmlS("Settings"));
+    for(XMLSize_t i=0; i<nodes->getLength();i++){
+        DOMNode* node = nodes->item(i);
+        if(node->getNodeType() != DOMNode::ELEMENT_NODE)
+            continue;
+        DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
 
-	    DOMNodeList* s_nodes = elem->getElementsByTagName(xmlS("Verbose"));
-	    for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
-	        DOMNode* s_node = s_nodes->item(j);
-	        if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
-	            continue;
-	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
-	        P->settings.verbose_level = atoi(xmlAttribute(s_elem, "level"));
-	    }
+        DOMNodeList* s_nodes = elem->getElementsByTagName(xmlS("Verbose"));
+        for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
+            DOMNode* s_node = s_nodes->item(j);
+            if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
+                continue;
+            DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+            P->settings.verbose_level = atoi(xmlAttribute(s_elem, "level"));
+        }
 
-	    s_nodes = elem->getElementsByTagName(xmlS("Device"));
-	    for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
-	        DOMNode* s_node = s_nodes->item(j);
-	        if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
-	            continue;
-	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
-	        P->settings.platform_id = atoi(xmlAttribute(s_elem, "platform"));
-	        P->settings.device_id   = atoi(xmlAttribute(s_elem, "device"));
-	        if(!strcmp("ALL", xmlAttribute(s_elem, "type")))
-	            P->settings.device_type = CL_DEVICE_TYPE_ALL;
-	        else if(!strcmp("CPU", xmlAttribute(s_elem, "type")))
-	            P->settings.device_type = CL_DEVICE_TYPE_CPU;
-	        else if(!strcmp("GPU", xmlAttribute(s_elem, "type")))
-	            P->settings.device_type = CL_DEVICE_TYPE_GPU;
-	        else if(!strcmp("ACCELERATOR", xmlAttribute(s_elem, "type")))
-	            P->settings.device_type = CL_DEVICE_TYPE_ACCELERATOR;
-	        else if(!strcmp("DEFAULT", xmlAttribute(s_elem, "type")))
-	            P->settings.device_type = CL_DEVICE_TYPE_DEFAULT;
-	        else{
-	            sprintf(msg,
+        s_nodes = elem->getElementsByTagName(xmlS("Device"));
+        for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
+            DOMNode* s_node = s_nodes->item(j);
+            if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
+                continue;
+            DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+            P->settings.platform_id = atoi(xmlAttribute(s_elem, "platform"));
+            P->settings.device_id   = atoi(xmlAttribute(s_elem, "device"));
+            if(!strcmp("ALL", xmlAttribute(s_elem, "type")))
+                P->settings.device_type = CL_DEVICE_TYPE_ALL;
+            else if(!strcmp("CPU", xmlAttribute(s_elem, "type")))
+                P->settings.device_type = CL_DEVICE_TYPE_CPU;
+            else if(!strcmp("GPU", xmlAttribute(s_elem, "type")))
+                P->settings.device_type = CL_DEVICE_TYPE_GPU;
+            else if(!strcmp("ACCELERATOR", xmlAttribute(s_elem, "type")))
+                P->settings.device_type = CL_DEVICE_TYPE_ACCELERATOR;
+            else if(!strcmp("DEFAULT", xmlAttribute(s_elem, "type")))
+                P->settings.device_type = CL_DEVICE_TYPE_DEFAULT;
+            else{
+                sprintf(msg,
                         "Unknow \"%s\" type of device\n",
                         xmlAttribute(s_elem, "type"));
-	            S->addMessageF(3, msg);
-	            S->addMessage(0, "\tThe valid options are:\n");
-	            S->addMessage(0, "\t\tALL\n");
-	            S->addMessage(0, "\t\tCPU\n");
-	            S->addMessage(0, "\t\tGPU\n");
-	            S->addMessage(0, "\t\tACCELERATOR\n");
-	            S->addMessage(0, "\t\tDEFAULT\n");
-	            return true;
-	        }
-	    }
-	}
-	return false;
+                S->addMessageF(3, msg);
+                S->addMessage(0, "\tThe valid options are:\n");
+                S->addMessage(0, "\t\tALL\n");
+                S->addMessage(0, "\t\tCPU\n");
+                S->addMessage(0, "\t\tGPU\n");
+                S->addMessage(0, "\t\tACCELERATOR\n");
+                S->addMessage(0, "\t\tDEFAULT\n");
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 bool State::parseOpenCL(DOMElement *root)
 {
-	ProblemSetup *P = ProblemSetup::singleton();
-	DOMNodeList* nodes = root->getElementsByTagName(xmlS("OpenCL"));
-	for(XMLSize_t i=0; i<nodes->getLength(); i++){
-	    DOMNode* node = nodes->item(i);
-	    if(node->getNodeType() != DOMNode::ELEMENT_NODE)
-	        continue;
-	    DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
+    ProblemSetup *P = ProblemSetup::singleton();
+    DOMNodeList* nodes = root->getElementsByTagName(xmlS("OpenCL"));
+    for(XMLSize_t i=0; i<nodes->getLength(); i++){
+        DOMNode* node = nodes->item(i);
+        if(node->getNodeType() != DOMNode::ELEMENT_NODE)
+            continue;
+        DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
 
         std::map<char*, char*> tags;
         std::map<char*, char*>::iterator it;
@@ -374,861 +374,861 @@ bool State::parseOpenCL(DOMElement *root)
                 strcpy(it->second, xmlAttribute(s_elem, "file"));
             }
         }
-	}
-	return false;
+    }
+    return false;
 }
 
 bool State::parseTiming(DOMElement *root)
 {
-	ScreenManager *S = ScreenManager::singleton();
-	ProblemSetup *P = ProblemSetup::singleton();
-	char msg[1024]; strcpy(msg, "");
-	DOMNodeList* nodes = root->getElementsByTagName(xmlS("Timing"));
-	for(XMLSize_t i=0; i<nodes->getLength(); i++){
-	    DOMNode* node = nodes->item(i);
-	    if(node->getNodeType() != DOMNode::ELEMENT_NODE)
-	        continue;
-	    DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
-	    // Get options
-	    DOMNodeList* s_nodes = elem->getElementsByTagName(xmlS("Option"));
-	    for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
-	        DOMNode* s_node = s_nodes->item(j);
-	        if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
-	            continue;
-	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
-	        const char *name = xmlAttribute(s_elem, "name");
-			if(!strcmp(name, "Start") || !strcmp(name, "SimulationStart")){
-	            P->time_opts.t0 = atof(xmlAttribute(s_elem, "value"));
-	            P->time_opts.dt0 = atof(xmlAttribute(s_elem, "dt"));
-	            P->time_opts.step0 = atoi(xmlAttribute(s_elem, "step"));
-	            P->time_opts.frame0 = atoi(xmlAttribute(s_elem, "frame"));
-			}
+    ScreenManager *S = ScreenManager::singleton();
+    ProblemSetup *P = ProblemSetup::singleton();
+    char msg[1024]; strcpy(msg, "");
+    DOMNodeList* nodes = root->getElementsByTagName(xmlS("Timing"));
+    for(XMLSize_t i=0; i<nodes->getLength(); i++){
+        DOMNode* node = nodes->item(i);
+        if(node->getNodeType() != DOMNode::ELEMENT_NODE)
+            continue;
+        DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
+        // Get options
+        DOMNodeList* s_nodes = elem->getElementsByTagName(xmlS("Option"));
+        for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
+            DOMNode* s_node = s_nodes->item(j);
+            if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
+                continue;
+            DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+            const char *name = xmlAttribute(s_elem, "name");
+            if(!strcmp(name, "Start") || !strcmp(name, "SimulationStart")){
+                P->time_opts.t0 = atof(xmlAttribute(s_elem, "value"));
+                P->time_opts.dt0 = atof(xmlAttribute(s_elem, "dt"));
+                P->time_opts.step0 = atoi(xmlAttribute(s_elem, "step"));
+                P->time_opts.frame0 = atoi(xmlAttribute(s_elem, "frame"));
+            }
 
-			else if(!strcmp(name, "End") || !strcmp(name, "SimulationStop")){
-			    const char *type = xmlAttribute(s_elem, "type");
-				if(!strcmp(type, "Time") || !strcmp(type, "T")){
-					P->time_opts.sim_end_mode =
+            else if(!strcmp(name, "End") || !strcmp(name, "SimulationStop")){
+                const char *type = xmlAttribute(s_elem, "type");
+                if(!strcmp(type, "Time") || !strcmp(type, "T")){
+                    P->time_opts.sim_end_mode =
                         P->time_opts.sim_end_mode | __TIME_MODE__;
-					P->time_opts.sim_end_time =
+                    P->time_opts.sim_end_time =
                         atof(xmlAttribute(s_elem, "value"));
-				}
-				else if(!strcmp(type, "Steps") || !strcmp(type, "S")){
-					P->time_opts.sim_end_mode =
+                }
+                else if(!strcmp(type, "Steps") || !strcmp(type, "S")){
+                    P->time_opts.sim_end_mode =
                         P->time_opts.sim_end_mode | __ITER_MODE__;
-					P->time_opts.sim_end_step =
+                    P->time_opts.sim_end_step =
                         atoi(xmlAttribute(s_elem, "value"));
-				}
-				else if(!strcmp(type, "Frames") || !strcmp(type, "F")){
-					P->time_opts.sim_end_mode =
+                }
+                else if(!strcmp(type, "Frames") || !strcmp(type, "F")){
+                    P->time_opts.sim_end_mode =
                         P->time_opts.sim_end_mode | __FRAME_MODE__;
-					P->time_opts.sim_end_frame =
+                    P->time_opts.sim_end_frame =
                         atoi(xmlAttribute(s_elem, "value"));
-				}
-				else {
-	                sprintf(msg,
+                }
+                else {
+                    sprintf(msg,
                             "Unknow simulation stop criteria \"%s\"\n",
                             type);
-	                S->addMessageF(3, msg);
-	                S->addMessage(0, "\tThe valid options are:\n");
-	                S->addMessage(0, "\t\tTime\n");
-	                S->addMessage(0, "\t\tSteps\n");
-	                S->addMessage(0, "\t\tFrames\n");
-	                return true;
-				}
-			}
+                    S->addMessageF(3, msg);
+                    S->addMessage(0, "\tThe valid options are:\n");
+                    S->addMessage(0, "\t\tTime\n");
+                    S->addMessage(0, "\t\tSteps\n");
+                    S->addMessage(0, "\t\tFrames\n");
+                    return true;
+                }
+            }
 
-			else if(!strcmp(name, "TimeStep")){
-				if(   !strcmp(xmlAttribute(s_elem, "value"), "Courant")
-	               || !strcmp(xmlAttribute(s_elem, "value"), "Variable") ){
-					P->time_opts.dt_mode = __DT_VARIABLE__;
-				}
-				else if(   !strcmp(xmlAttribute(s_elem, "value"), "Fix")
-	                    || !strcmp(xmlAttribute(s_elem, "value"), "Fixed") ){
-					P->time_opts.dt_mode = __DT_FIXCALCULATED__;
-				}
-				else {
-					P->time_opts.dt_mode = __DT_FIX__;
-					P->time_opts.dt = atof(xmlAttribute(s_elem, "value"));
-					if(P->time_opts.dt <= 0.f){
-	                    sprintf(msg,
+            else if(!strcmp(name, "TimeStep")){
+                if(   !strcmp(xmlAttribute(s_elem, "value"), "Courant")
+                   || !strcmp(xmlAttribute(s_elem, "value"), "Variable") ){
+                    P->time_opts.dt_mode = __DT_VARIABLE__;
+                }
+                else if(   !strcmp(xmlAttribute(s_elem, "value"), "Fix")
+                        || !strcmp(xmlAttribute(s_elem, "value"), "Fixed") ){
+                    P->time_opts.dt_mode = __DT_FIXCALCULATED__;
+                }
+                else {
+                    P->time_opts.dt_mode = __DT_FIX__;
+                    P->time_opts.dt = atof(xmlAttribute(s_elem, "value"));
+                    if(P->time_opts.dt <= 0.f){
+                        sprintf(msg,
                                 "%g s is not a valid time step\n",
                                 P->time_opts.dt);
-	                    S->addMessageF(2, msg);
-	                    S->addMessage(
+                        S->addMessageF(2, msg);
+                        S->addMessage(
                             0,
                             "\tAutomatic calculated time step will be used\n");
-	                    P->time_opts.dt_mode = __DT_FIXCALCULATED__;
-					}
-				}
-			}
-			else if(!strcmp(name, "MinTimeStep")){
-	            P->time_opts.dt_min = atof(xmlAttribute(s_elem, "value"));
-	            if(P->time_opts.dt_min < 0.f){
-	                sprintf(msg,
+                        P->time_opts.dt_mode = __DT_FIXCALCULATED__;
+                    }
+                }
+            }
+            else if(!strcmp(name, "MinTimeStep")){
+                P->time_opts.dt_min = atof(xmlAttribute(s_elem, "value"));
+                if(P->time_opts.dt_min < 0.f){
+                    sprintf(msg,
                             "The minimum time step is lower than 0 s\n");
-	                S->addMessageF(2, msg);
-	            }
-			}
-			else if(!strcmp(name, "Courant")){
-	            P->time_opts.courant = atof(xmlAttribute(s_elem, "value"));
-	            if(P->time_opts.courant <= 0.f){
-	                sprintf(msg,
+                    S->addMessageF(2, msg);
+                }
+            }
+            else if(!strcmp(name, "Courant")){
+                P->time_opts.courant = atof(xmlAttribute(s_elem, "value"));
+                if(P->time_opts.courant <= 0.f){
+                    sprintf(msg,
                             "The courant factor cannot be <= 0\n");
-	                S->addMessageF(3, msg);
-	                return true;
-	            }
-			}
-			else if(!strcmp(name, "ClampVel")){
-	            if(!strcmp(xmlAttribute(s_elem, "value"), "True") ||
-	               !strcmp(xmlAttribute(s_elem, "value"), "true"))
-	            {
-	                P->time_opts.velocity_clamp = true;
-	                if(P->time_opts.dt_min <= 0.f){
-	                    sprintf(msg,
+                    S->addMessageF(3, msg);
+                    return true;
+                }
+            }
+            else if(!strcmp(name, "ClampVel")){
+                if(!strcmp(xmlAttribute(s_elem, "value"), "True") ||
+                   !strcmp(xmlAttribute(s_elem, "value"), "true"))
+                {
+                    P->time_opts.velocity_clamp = true;
+                    if(P->time_opts.dt_min <= 0.f){
+                        sprintf(msg,
                                 "Velocity clamping has been activated, but the minimum time step is %g s\n",
                                 P->time_opts.dt_min);
-	                    S->addMessageF(2, msg);
-	                    S->addMessage(0,
+                        S->addMessageF(2, msg);
+                        S->addMessage(0,
                                       "\tVelocity clamping will not take effect\n");
-	                }
-	            }
-	            else if(!strcmp(xmlAttribute(s_elem, "value"), "False") ||
-	                    !strcmp(xmlAttribute(s_elem, "value"), "false"))
-	            {
-	                P->time_opts.velocity_clamp = false;
-	            }
-	            else{
-	                sprintf(msg,
+                    }
+                }
+                else if(!strcmp(xmlAttribute(s_elem, "value"), "False") ||
+                        !strcmp(xmlAttribute(s_elem, "value"), "false"))
+                {
+                    P->time_opts.velocity_clamp = false;
+                }
+                else{
+                    sprintf(msg,
                             "%s is not a valid velocity clamping option\n",
                             xmlAttribute(s_elem, "value"));
-	                S->addMessageF(3, msg);
-	                S->addMessage(0, "\tValid options are:\n");
-	                S->addMessage(0, "\t\ttrue\n");
-	                S->addMessage(0, "\t\tfalse\n");
-	                return true;
-	            }
-			}
+                    S->addMessageF(3, msg);
+                    S->addMessage(0, "\tValid options are:\n");
+                    S->addMessage(0, "\t\ttrue\n");
+                    S->addMessage(0, "\t\tfalse\n");
+                    return true;
+                }
+            }
 
-			else if(!strcmp(name, "LogFile")){
-			    const char *type = xmlAttribute(s_elem, "type");
-				if(!strcmp(type, "No")){
-					P->time_opts.log_mode = __NO_OUTPUT_MODE__;
-				}
-				else if(!strcmp(type, "FPS")){
-					P->time_opts.log_mode =
+            else if(!strcmp(name, "LogFile")){
+                const char *type = xmlAttribute(s_elem, "type");
+                if(!strcmp(type, "No")){
+                    P->time_opts.log_mode = __NO_OUTPUT_MODE__;
+                }
+                else if(!strcmp(type, "FPS")){
+                    P->time_opts.log_mode =
                         P->time_opts.log_mode | __FPS_MODE__;
-					P->time_opts.log_fps =
+                    P->time_opts.log_fps =
                         atof(xmlAttribute(s_elem, "value"));
-				}
-				else if(!strcmp(type, "IPF")){
-					P->time_opts.log_mode =
+                }
+                else if(!strcmp(type, "IPF")){
+                    P->time_opts.log_mode =
                         P->time_opts.log_mode | __IPF_MODE__;
-					P->time_opts.log_ipf =
+                    P->time_opts.log_ipf =
                         atoi(xmlAttribute(s_elem, "value"));
-				}
-				else {
-	                sprintf(msg,
+                }
+                else {
+                    sprintf(msg,
                             "Unknow log file print criteria \"%s\"\n",
                             xmlAttribute(s_elem, "type"));
-	                S->addMessageF(3, msg);
-	                S->addMessage(0, "\tThe valid options are:\n");
-	                S->addMessage(0, "\t\tNo\n");
-	                S->addMessage(0, "\t\tFPS\n");
-	                S->addMessage(0, "\t\tIPF\n");
-	                return true;
-				}
-			}
-			else if(!strcmp(name, "EnFile")){
-			    const char *type = xmlAttribute(s_elem, "type");
-				if(!strcmp(type, "No")){
-					P->time_opts.energy_mode = __NO_OUTPUT_MODE__;
-				}
-				else if(!strcmp(type, "FPS")){
-					P->time_opts.energy_mode =
+                    S->addMessageF(3, msg);
+                    S->addMessage(0, "\tThe valid options are:\n");
+                    S->addMessage(0, "\t\tNo\n");
+                    S->addMessage(0, "\t\tFPS\n");
+                    S->addMessage(0, "\t\tIPF\n");
+                    return true;
+                }
+            }
+            else if(!strcmp(name, "EnFile")){
+                const char *type = xmlAttribute(s_elem, "type");
+                if(!strcmp(type, "No")){
+                    P->time_opts.energy_mode = __NO_OUTPUT_MODE__;
+                }
+                else if(!strcmp(type, "FPS")){
+                    P->time_opts.energy_mode =
                         P->time_opts.energy_mode | __FPS_MODE__;
-					P->time_opts.energy_fps =
+                    P->time_opts.energy_fps =
                         atof(xmlAttribute(s_elem, "value"));
-				}
-				else if(!strcmp(type, "IPF")){
-					P->time_opts.energy_mode =
+                }
+                else if(!strcmp(type, "IPF")){
+                    P->time_opts.energy_mode =
                         P->time_opts.energy_mode | __IPF_MODE__;
-					P->time_opts.energy_ipf =
+                    P->time_opts.energy_ipf =
                         atoi(xmlAttribute(s_elem, "value"));
-				}
-				else {
-	                sprintf(msg,
+                }
+                else {
+                    sprintf(msg,
                             "Unknow energy report print criteria \"%s\"\n",
                             xmlAttribute(s_elem, "type"));
-	                S->addMessageF(3, msg);
-	                S->addMessage(0, "\tThe valid options are:\n");
-	                S->addMessage(0, "\t\tNo\n");
-	                S->addMessage(0, "\t\tFPS\n");
-	                S->addMessage(0, "\t\tIPF\n");
-	                return true;
-				}
-			}
-			else if(!strcmp(name, "BoundsFile")){
-			    const char *type = xmlAttribute(s_elem, "type");
-				if(!strcmp(type, "No")){
-					P->time_opts.bounds_mode = __NO_OUTPUT_MODE__;
-				}
-				else if(!strcmp(type, "FPS")){
-					P->time_opts.bounds_mode =
+                    S->addMessageF(3, msg);
+                    S->addMessage(0, "\tThe valid options are:\n");
+                    S->addMessage(0, "\t\tNo\n");
+                    S->addMessage(0, "\t\tFPS\n");
+                    S->addMessage(0, "\t\tIPF\n");
+                    return true;
+                }
+            }
+            else if(!strcmp(name, "BoundsFile")){
+                const char *type = xmlAttribute(s_elem, "type");
+                if(!strcmp(type, "No")){
+                    P->time_opts.bounds_mode = __NO_OUTPUT_MODE__;
+                }
+                else if(!strcmp(type, "FPS")){
+                    P->time_opts.bounds_mode =
                         P->time_opts.bounds_mode | __FPS_MODE__;
-					P->time_opts.bounds_fps =
+                    P->time_opts.bounds_fps =
                         atof(xmlAttribute(s_elem, "value"));
-				}
-				else if(!strcmp(type, "IPF")){
-					P->time_opts.bounds_mode =
+                }
+                else if(!strcmp(type, "IPF")){
+                    P->time_opts.bounds_mode =
                         P->time_opts.bounds_mode | __IPF_MODE__;
-					P->time_opts.bounds_ipf =
+                    P->time_opts.bounds_ipf =
                         atoi(xmlAttribute(s_elem, "value"));
-				}
-				else {
-	                sprintf(msg,
+                }
+                else {
+                    sprintf(msg,
                             "Unknow bounds file print criteria \"%s\"\n",
                             type);
-	                S->addMessageF(3, msg);
-	                S->addMessage(0, "\tThe valid options are:\n");
-	                S->addMessage(0, "\t\tNo\n");
-	                S->addMessage(0, "\t\tFPS\n");
-	                S->addMessage(0, "\t\tIPF\n");
-	                return true;
-				}
-			}
-			else if(!strcmp(name, "Output")){
-			    const char *type = xmlAttribute(s_elem, "type");
-				if(!strcmp(type, "No")){
-					P->time_opts.output_mode = __NO_OUTPUT_MODE__;
-				}
-				else if(!strcmp(type, "FPS")){
-					P->time_opts.output_mode =
+                    S->addMessageF(3, msg);
+                    S->addMessage(0, "\tThe valid options are:\n");
+                    S->addMessage(0, "\t\tNo\n");
+                    S->addMessage(0, "\t\tFPS\n");
+                    S->addMessage(0, "\t\tIPF\n");
+                    return true;
+                }
+            }
+            else if(!strcmp(name, "Output")){
+                const char *type = xmlAttribute(s_elem, "type");
+                if(!strcmp(type, "No")){
+                    P->time_opts.output_mode = __NO_OUTPUT_MODE__;
+                }
+                else if(!strcmp(type, "FPS")){
+                    P->time_opts.output_mode =
                         P->time_opts.output_mode | __FPS_MODE__;
-					P->time_opts.output_fps =
+                    P->time_opts.output_fps =
                         atof(xmlAttribute(s_elem, "value"));
-				}
-				else if(!strcmp(type, "IPF")){
-					P->time_opts.output_mode =
+                }
+                else if(!strcmp(type, "IPF")){
+                    P->time_opts.output_mode =
                         P->time_opts.output_mode | __IPF_MODE__;
-					P->time_opts.output_ipf =
+                    P->time_opts.output_ipf =
                         atoi(xmlAttribute(s_elem, "value"));
-				}
-				else {
-	                sprintf(msg,
+                }
+                else {
+                    sprintf(msg,
                             "Unknow output file print criteria \"%s\"\n",
                             type);
-	                S->addMessageF(3, msg);
-	                S->addMessage(0, "\tThe valid options are:\n");
-	                S->addMessage(0, "\t\tNo\n");
-	                S->addMessage(0, "\t\tFPS\n");
-	                S->addMessage(0, "\t\tIPF\n");
-	                return true;
-				}
-			}
+                    S->addMessageF(3, msg);
+                    S->addMessage(0, "\tThe valid options are:\n");
+                    S->addMessage(0, "\t\tNo\n");
+                    S->addMessage(0, "\t\tFPS\n");
+                    S->addMessage(0, "\t\tIPF\n");
+                    return true;
+                }
+            }
 
-			else {
-	            sprintf(msg, "Unknow timing option \"%s\"\n", xmlAttribute(s_elem, "name"));
-	            S->addMessageF(3, msg);
-	            return true;
-			}
-	    }
-	}
-	return false;
+            else {
+                sprintf(msg, "Unknow timing option \"%s\"\n", xmlAttribute(s_elem, "name"));
+                S->addMessageF(3, msg);
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 bool State::parseSPH(DOMElement *root)
 {
-	ScreenManager *S = ScreenManager::singleton();
-	ProblemSetup *P = ProblemSetup::singleton();
-	char msg[1024]; strcpy(msg, "");
-	DOMNodeList* nodes = root->getElementsByTagName(xmlS("SPH"));
-	for(XMLSize_t i=0; i<nodes->getLength(); i++){
-	    DOMNode* node = nodes->item(i);
-	    if(node->getNodeType() != DOMNode::ELEMENT_NODE)
-	        continue;
-	    DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
-	    // Get options
-	    DOMNodeList* s_nodes = elem->getElementsByTagName(xmlS("Option"));
-	    for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
-	        DOMNode* s_node = s_nodes->item(j);
-	        if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
-	            continue;
-	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
-	        const char *name = xmlAttribute(s_elem, "name");
+    ScreenManager *S = ScreenManager::singleton();
+    ProblemSetup *P = ProblemSetup::singleton();
+    char msg[1024]; strcpy(msg, "");
+    DOMNodeList* nodes = root->getElementsByTagName(xmlS("SPH"));
+    for(XMLSize_t i=0; i<nodes->getLength(); i++){
+        DOMNode* node = nodes->item(i);
+        if(node->getNodeType() != DOMNode::ELEMENT_NODE)
+            continue;
+        DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
+        // Get options
+        DOMNodeList* s_nodes = elem->getElementsByTagName(xmlS("Option"));
+        for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
+            DOMNode* s_node = s_nodes->item(j);
+            if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
+                continue;
+            DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+            const char *name = xmlAttribute(s_elem, "name");
 
-			if(!strcmp(name, "g")){
-				P->SPH_opts.g.x = atof(xmlAttribute(s_elem, "x"));
-				P->SPH_opts.g.y = atof(xmlAttribute(s_elem, "y"));
-	            #ifdef HAVE_3D
-	                P->SPH_opts.g.z = atof(xmlAttribute(s_elem, "z"));
-	            #endif
-			}
+            if(!strcmp(name, "g")){
+                P->SPH_opts.g.x = atof(xmlAttribute(s_elem, "x"));
+                P->SPH_opts.g.y = atof(xmlAttribute(s_elem, "y"));
+                #ifdef HAVE_3D
+                    P->SPH_opts.g.z = atof(xmlAttribute(s_elem, "z"));
+                #endif
+            }
 
-			else if(!strcmp(name, "hfac")){
-				P->SPH_opts.hfac = atof(xmlAttribute(s_elem, "value"));
-			}
+            else if(!strcmp(name, "hfac")){
+                P->SPH_opts.hfac = atof(xmlAttribute(s_elem, "value"));
+            }
 
-			else if(!strcmp(name, "deltar")){
-				P->SPH_opts.deltar.x = atof(xmlAttribute(s_elem, "x"));
-	            P->SPH_opts.deltar.y = atof(xmlAttribute(s_elem, "y"));
-	            #ifdef HAVE_3D
-	                P->SPH_opts.deltar.z = atof(xmlAttribute(s_elem, "z"));
-	            #endif
-			}
+            else if(!strcmp(name, "deltar")){
+                P->SPH_opts.deltar.x = atof(xmlAttribute(s_elem, "x"));
+                P->SPH_opts.deltar.y = atof(xmlAttribute(s_elem, "y"));
+                #ifdef HAVE_3D
+                    P->SPH_opts.deltar.z = atof(xmlAttribute(s_elem, "z"));
+                #endif
+            }
 
-			else if(!strcmp(name, "cs")){
-				P->SPH_opts.cs = atof(xmlAttribute(s_elem, "value"));
-			}
+            else if(!strcmp(name, "cs")){
+                P->SPH_opts.cs = atof(xmlAttribute(s_elem, "value"));
+            }
 
-			else if(!strcmp(name, "LLSteps")){
-				P->SPH_opts.link_list_steps =
+            else if(!strcmp(name, "LLSteps")){
+                P->SPH_opts.link_list_steps =
                     atoi(xmlAttribute(s_elem, "value"));
-				if(P->SPH_opts.link_list_steps < 1){
-	                S->addMessageF(2, "LLSteps minor than 1 (it will be ignored).\n");
-	                P->SPH_opts.link_list_steps = 1;
-				}
-			}
+                if(P->SPH_opts.link_list_steps < 1){
+                    S->addMessageF(2, "LLSteps minor than 1 (it will be ignored).\n");
+                    P->SPH_opts.link_list_steps = 1;
+                }
+            }
 
-			else if(!strcmp(name, "DensSteps")){
-				P->SPH_opts.dens_int_steps =
+            else if(!strcmp(name, "DensSteps")){
+                P->SPH_opts.dens_int_steps =
                     atoi(xmlAttribute(s_elem, "value"));
-			}
+            }
 
-			else if(!strcmp(name, "DensBounds")){
-			    if(xmlHasAttribute(s_elem,"min"))
+            else if(!strcmp(name, "DensBounds")){
+                if(xmlHasAttribute(s_elem,"min"))
                     P->SPH_opts.rho_min = atof(xmlAttribute(s_elem, "min"));
-			    if(xmlHasAttribute(s_elem,"max"))
+                if(xmlHasAttribute(s_elem,"max"))
                     P->SPH_opts.rho_max = atof(xmlAttribute(s_elem, "max"));
-			}
+            }
 
-			else if(!strcmp(name, "Boundary")){
-	            if(!strcmp(xmlAttribute(s_elem, "value"), "ElasticBounce")){
-	                P->SPH_opts.boundary_type = __BOUNDARY_ELASTIC__;
-	            }
-	            else if(!strcmp(xmlAttribute(s_elem, "value"), "FixedParticles")){
-	                P->SPH_opts.boundary_type = __BOUNDARY_FIXED__;
-	            }
-	            else if(!strcmp(xmlAttribute(s_elem, "value"), "DeLeffe")){
-	                P->SPH_opts.boundary_type = __BOUNDARY_DELEFFE__;
-	            }
-	            else{
-	                sprintf(msg,
+            else if(!strcmp(name, "Boundary")){
+                if(!strcmp(xmlAttribute(s_elem, "value"), "ElasticBounce")){
+                    P->SPH_opts.boundary_type = __BOUNDARY_ELASTIC__;
+                }
+                else if(!strcmp(xmlAttribute(s_elem, "value"), "FixedParticles")){
+                    P->SPH_opts.boundary_type = __BOUNDARY_FIXED__;
+                }
+                else if(!strcmp(xmlAttribute(s_elem, "value"), "DeLeffe")){
+                    P->SPH_opts.boundary_type = __BOUNDARY_DELEFFE__;
+                }
+                else{
+                    sprintf(msg,
                             "Unknow boundary condition \"%s\"\n",
                             xmlAttribute(s_elem, "value"));
-	                S->addMessageF(3, msg);
-	                S->addMessage(0, "\tValid options are:\n");
-	                S->addMessage(0, "\t\tElasticBounce\n");
-	                S->addMessage(0, "\t\tFixedParticles\n");
-	                S->addMessage(0, "\t\tDeLeffe\n");
-	                return true;
-	            }
-			}
+                    S->addMessageF(3, msg);
+                    S->addMessage(0, "\tValid options are:\n");
+                    S->addMessage(0, "\t\tElasticBounce\n");
+                    S->addMessage(0, "\t\tFixedParticles\n");
+                    S->addMessage(0, "\t\tDeLeffe\n");
+                    return true;
+                }
+            }
 
-			else if(!strcmp(name, "SlipCondition")){
-	            if(!strcmp(xmlAttribute(s_elem, "value"), "NoSlip")){
-	                P->SPH_opts.slip_condition = 0;
-	            }
-	            else if(!strcmp(xmlAttribute(s_elem, "value"), "FreeSlip")){
-	                P->SPH_opts.slip_condition = 1;
-	            }
-	            else{
-	                sprintf(msg,
+            else if(!strcmp(name, "SlipCondition")){
+                if(!strcmp(xmlAttribute(s_elem, "value"), "NoSlip")){
+                    P->SPH_opts.slip_condition = 0;
+                }
+                else if(!strcmp(xmlAttribute(s_elem, "value"), "FreeSlip")){
+                    P->SPH_opts.slip_condition = 1;
+                }
+                else{
+                    sprintf(msg,
                             "Unknow slip condition \"%s\".\n",
                             xmlAttribute(s_elem, "value"));
-	                S->addMessageF(3, msg);
-	                S->addMessage(0, "\tValid options are:\n");
-	                S->addMessage(0, "\t\tNoSlip\n");
-	                S->addMessage(0, "\t\tFreeSlip\n");
-	                return true;
-	            }
-			}
+                    S->addMessageF(3, msg);
+                    S->addMessage(0, "\tValid options are:\n");
+                    S->addMessage(0, "\t\tNoSlip\n");
+                    S->addMessage(0, "\t\tFreeSlip\n");
+                    return true;
+                }
+            }
 
-			else if(!strcmp(name, "BoundElasticFactor")){
-			    P->SPH_opts.elastic_factor =
+            else if(!strcmp(name, "BoundElasticFactor")){
+                P->SPH_opts.elastic_factor =
                     atof(xmlAttribute(s_elem, "value"));
-			}
+            }
 
-			else if(!strcmp(name, "BoundDist")){
-			    P->SPH_opts.elastic_dist =
+            else if(!strcmp(name, "BoundDist")){
+                P->SPH_opts.elastic_dist =
                     fabs(atof(xmlAttribute(s_elem, "value")));
-			}
+            }
 
-			else if(!strcmp(name, "Shepard")){
-			    if(!strcmp(xmlAttribute(s_elem, "value"), "None")){
-	                P->SPH_opts.has_shepard = 0;
-			    }
-			    else if (!strcmp(xmlAttribute(s_elem, "value"), "Force")){
-	                P->SPH_opts.has_shepard = 1;
-			    }
-			    else if (!strcmp(xmlAttribute(s_elem, "value"), "Dens")){
-	                P->SPH_opts.has_shepard = 2;
-			    }
-			    else if (!strcmp(xmlAttribute(s_elem, "value"), "ForceDens")){
-	                P->SPH_opts.has_shepard = 3;
-			    }
-			    else {
-	                sprintf(msg,
+            else if(!strcmp(name, "Shepard")){
+                if(!strcmp(xmlAttribute(s_elem, "value"), "None")){
+                    P->SPH_opts.has_shepard = 0;
+                }
+                else if (!strcmp(xmlAttribute(s_elem, "value"), "Force")){
+                    P->SPH_opts.has_shepard = 1;
+                }
+                else if (!strcmp(xmlAttribute(s_elem, "value"), "Dens")){
+                    P->SPH_opts.has_shepard = 2;
+                }
+                else if (!strcmp(xmlAttribute(s_elem, "value"), "ForceDens")){
+                    P->SPH_opts.has_shepard = 3;
+                }
+                else {
+                    sprintf(msg,
                             "Unknow shepard application \"%s\".\n",
                             xmlAttribute(s_elem, "value"));
-	                S->addMessageF(3, msg);
-	                S->addMessage(0, "\tValid options are:\n");
-	                S->addMessage(0, "\t\tNone\n");
-	                S->addMessage(0, "\t\tForce\n");
-	                S->addMessage(0, "\t\tDens\n");
-	                S->addMessage(0, "\t\tForceDens\n");
-	                return true;
-			    }
-			}
+                    S->addMessageF(3, msg);
+                    S->addMessage(0, "\tValid options are:\n");
+                    S->addMessage(0, "\t\tNone\n");
+                    S->addMessage(0, "\t\tForce\n");
+                    S->addMessage(0, "\t\tDens\n");
+                    S->addMessage(0, "\t\tForceDens\n");
+                    return true;
+                }
+            }
 
-			else if(!strcmp(name, "Domain")){
-			    P->SPH_opts.has_domain = true;
-			    P->SPH_opts.domain_min.x = atof(xmlAttribute(s_elem, "x"));
-			    P->SPH_opts.domain_min.y = atof(xmlAttribute(s_elem, "y"));
-			    P->SPH_opts.domain_max.x = atof(xmlAttribute(s_elem, "l")) +
+            else if(!strcmp(name, "Domain")){
+                P->SPH_opts.has_domain = true;
+                P->SPH_opts.domain_min.x = atof(xmlAttribute(s_elem, "x"));
+                P->SPH_opts.domain_min.y = atof(xmlAttribute(s_elem, "y"));
+                P->SPH_opts.domain_max.x = atof(xmlAttribute(s_elem, "l")) +
                     P->SPH_opts.domain_min.x;
-	            #ifdef HAVE_3D
-	                P->SPH_opts.domain_min.z =
+                #ifdef HAVE_3D
+                    P->SPH_opts.domain_min.z =
                         atof(xmlAttribute(s_elem, "z"));
-	                P->SPH_opts.domain_max.y =
+                    P->SPH_opts.domain_max.y =
                         atof(xmlAttribute(s_elem, "d")) +
                         P->SPH_opts.domain_min.y;
-	                P->SPH_opts.domain_max.z =
+                    P->SPH_opts.domain_max.z =
                         atof(xmlAttribute(s_elem, "h")) +
                         P->SPH_opts.domain_min.z;
-	            #else
-	                P->SPH_opts.domain_max.y =
+                #else
+                    P->SPH_opts.domain_max.y =
                         atof(xmlAttribute(s_elem, "h")) +
                         P->SPH_opts.domain_min.y;
-	            #endif
-	            if(!strcmp(xmlAttribute(s_elem, "move"), "true") ||
+                #endif
+                if(!strcmp(xmlAttribute(s_elem, "move"), "true") ||
                    !strcmp(xmlAttribute(s_elem, "move"), "True")){
                     P->SPH_opts.domain_motion = true;
-	            }
-	            else if(!strcmp(xmlAttribute(s_elem, "move"), "false") ||
+                }
+                else if(!strcmp(xmlAttribute(s_elem, "move"), "false") ||
                         !strcmp(xmlAttribute(s_elem, "move"), "False")){
                     P->SPH_opts.domain_motion = false;
-	            }
-	            // Fix negative lengths
-	            if(P->SPH_opts.domain_min.x > P->SPH_opts.domain_max.x){
-	                float aux = P->SPH_opts.domain_min.x;
-	                P->SPH_opts.domain_min.x = P->SPH_opts.domain_max.x;
-	                P->SPH_opts.domain_max.x = aux;
-	            }
-	            if(P->SPH_opts.domain_min.y > P->SPH_opts.domain_max.y){
-	                float aux = P->SPH_opts.domain_min.y;
-	                P->SPH_opts.domain_min.y = P->SPH_opts.domain_max.y;
-	                P->SPH_opts.domain_max.y = aux;
-	            }
-	            #ifdef HAVE_3D
-	                if(P->SPH_opts.domain_min.z > P->SPH_opts.domain_max.z){
-	                    float aux = P->SPH_opts.domain_min.z;
-	                    P->SPH_opts.domain_min.z = P->SPH_opts.domain_max.z;
-	                    P->SPH_opts.domain_max.z = aux;
-	                }
-	            #endif
-	            // Look for errors
-	            if(    (P->SPH_opts.domain_min.x == P->SPH_opts.domain_max.x)
-	                || (P->SPH_opts.domain_min.y == P->SPH_opts.domain_max.y)
-	                #ifdef HAVE_3D
-	                    || (P->SPH_opts.domain_min.z == P->SPH_opts.domain_max.z)
-	                #endif
-	              )
-	            {
-	                sprintf(msg, "Null domain volume.\n");
-	                S->addMessageF(3, msg);
-	                return true;
-	            }
-			}
-			else {
-	            sprintf(msg, "Unknow SPH option\n\t\t%s\n", name);
-	            S->addMessageF(3, msg);
-	            return true;
-			}
-	    }
-	}
-	return false;
+                }
+                // Fix negative lengths
+                if(P->SPH_opts.domain_min.x > P->SPH_opts.domain_max.x){
+                    float aux = P->SPH_opts.domain_min.x;
+                    P->SPH_opts.domain_min.x = P->SPH_opts.domain_max.x;
+                    P->SPH_opts.domain_max.x = aux;
+                }
+                if(P->SPH_opts.domain_min.y > P->SPH_opts.domain_max.y){
+                    float aux = P->SPH_opts.domain_min.y;
+                    P->SPH_opts.domain_min.y = P->SPH_opts.domain_max.y;
+                    P->SPH_opts.domain_max.y = aux;
+                }
+                #ifdef HAVE_3D
+                    if(P->SPH_opts.domain_min.z > P->SPH_opts.domain_max.z){
+                        float aux = P->SPH_opts.domain_min.z;
+                        P->SPH_opts.domain_min.z = P->SPH_opts.domain_max.z;
+                        P->SPH_opts.domain_max.z = aux;
+                    }
+                #endif
+                // Look for errors
+                if(    (P->SPH_opts.domain_min.x == P->SPH_opts.domain_max.x)
+                    || (P->SPH_opts.domain_min.y == P->SPH_opts.domain_max.y)
+                    #ifdef HAVE_3D
+                        || (P->SPH_opts.domain_min.z == P->SPH_opts.domain_max.z)
+                    #endif
+                  )
+                {
+                    sprintf(msg, "Null domain volume.\n");
+                    S->addMessageF(3, msg);
+                    return true;
+                }
+            }
+            else {
+                sprintf(msg, "Unknow SPH option\n\t\t%s\n", name);
+                S->addMessageF(3, msg);
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 bool State::parseFluid(DOMElement *root)
 {
-	ScreenManager *S = ScreenManager::singleton();
-	ProblemSetup *P = ProblemSetup::singleton();
-	char msg[1024]; strcpy(msg, "");
-	DOMNodeList* nodes = root->getElementsByTagName(xmlS("Fluid"));
-	for(XMLSize_t i=0; i<nodes->getLength(); i++){
-	    DOMNode* node = nodes->item(i);
-	    if(node->getNodeType() != DOMNode::ELEMENT_NODE)
-	        continue;
-	    DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
+    ScreenManager *S = ScreenManager::singleton();
+    ProblemSetup *P = ProblemSetup::singleton();
+    char msg[1024]; strcpy(msg, "");
+    DOMNodeList* nodes = root->getElementsByTagName(xmlS("Fluid"));
+    for(XMLSize_t i=0; i<nodes->getLength(); i++){
+        DOMNode* node = nodes->item(i);
+        if(node->getNodeType() != DOMNode::ELEMENT_NODE)
+            continue;
+        DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
         if(!xmlHasAttribute(elem, "n")){
             S->addMessageF(3, "Found a fluid without the \"n\" attribute.\n");
             return true;
         }
 
-	    P->addFluid();
-	    P->fluids[P->n_fluids-1].n = atoi(xmlAttribute(elem, "n"));
+        P->addFluid();
+        P->fluids[P->n_fluids-1].n = atoi(xmlAttribute(elem, "n"));
 
-	    DOMNodeList* s_nodes = elem->getElementsByTagName(xmlS("Option"));
-	    for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
-	        DOMNode* s_node = s_nodes->item(j);
-	        if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
-	            continue;
-	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+        DOMNodeList* s_nodes = elem->getElementsByTagName(xmlS("Option"));
+        for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
+            DOMNode* s_node = s_nodes->item(j);
+            if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
+                continue;
+            DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 
-	        const char *name = xmlAttribute(s_elem, "name");
-	        const char *value = xmlAttribute(s_elem, "value");
+            const char *name = xmlAttribute(s_elem, "name");
+            const char *value = xmlAttribute(s_elem, "value");
 
-			if(!strcmp(name, "gamma"))
-				P->fluids[P->n_fluids-1].gamma = atof(value);
-			else if(!strcmp(name, "refd"))
-				P->fluids[P->n_fluids-1].refd = atof(value);
-			else if(!strcmp(name, "Viscdyn"))
-				P->fluids[P->n_fluids-1].visc_dyn = atof(value);
-			else if(!strcmp(name, "alpha"))
-				P->fluids[P->n_fluids-1].alpha = atof(value);
-			else if(!strcmp(name, "delta"))
-				P->fluids[P->n_fluids-1].delta = atof(value);
-			else{
-	            sprintf(msg, "Unknow Fluid option \"%s\"\n", name);
-	            S->addMessageF(3, msg);
-	            S->addMessage(0, "\tValid options are:\n");
-	            S->addMessage(0, "\t\tgamma\n");
-	            S->addMessage(0, "\t\trefd\n");
-	            S->addMessage(0, "\t\tViscdyn\n");
-	            S->addMessage(0, "\t\talpha\n");
-	            S->addMessage(0, "\t\tdelta\n");
-	            return true;
-			}
-	    }
+            if(!strcmp(name, "gamma"))
+                P->fluids[P->n_fluids-1].gamma = atof(value);
+            else if(!strcmp(name, "refd"))
+                P->fluids[P->n_fluids-1].refd = atof(value);
+            else if(!strcmp(name, "Viscdyn"))
+                P->fluids[P->n_fluids-1].visc_dyn = atof(value);
+            else if(!strcmp(name, "alpha"))
+                P->fluids[P->n_fluids-1].alpha = atof(value);
+            else if(!strcmp(name, "delta"))
+                P->fluids[P->n_fluids-1].delta = atof(value);
+            else{
+                sprintf(msg, "Unknow Fluid option \"%s\"\n", name);
+                S->addMessageF(3, msg);
+                S->addMessage(0, "\tValid options are:\n");
+                S->addMessage(0, "\t\tgamma\n");
+                S->addMessage(0, "\t\trefd\n");
+                S->addMessage(0, "\t\tViscdyn\n");
+                S->addMessage(0, "\t\talpha\n");
+                S->addMessage(0, "\t\tdelta\n");
+                return true;
+            }
+        }
 
-	    s_nodes = elem->getElementsByTagName(xmlS("Load"));
-	    for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
-	        DOMNode* s_node = s_nodes->item(j);
-	        if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
-	            continue;
-	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
-			strcpy(P->fluids[P->n_fluids-1].in_path,
+        s_nodes = elem->getElementsByTagName(xmlS("Load"));
+        for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
+            DOMNode* s_node = s_nodes->item(j);
+            if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
+                continue;
+            DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+            strcpy(P->fluids[P->n_fluids-1].in_path,
                    xmlAttribute(s_elem, "file"));
             if(xmlHasAttribute(s_elem, "format")){
                 strcpy(P->fluids[P->n_fluids-1].in_format,
                        xmlAttribute(s_elem, "format"));
             }
-	    }
+        }
 
-	    s_nodes = elem->getElementsByTagName(xmlS("Save"));
-	    for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
-	        DOMNode* s_node = s_nodes->item(j);
-	        if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
-	            continue;
-	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
-			strcpy(P->fluids[P->n_fluids-1].out_path,
+        s_nodes = elem->getElementsByTagName(xmlS("Save"));
+        for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
+            DOMNode* s_node = s_nodes->item(j);
+            if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
+                continue;
+            DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+            strcpy(P->fluids[P->n_fluids-1].out_path,
                    xmlAttribute(s_elem, "file"));
             if(xmlHasAttribute(s_elem, "format")){
                 strcpy(P->fluids[P->n_fluids-1].out_format,
                        xmlAttribute(s_elem, "format"));
             }
-	    }
-	}
-	return false;
+        }
+    }
+    return false;
 }
 
 bool State::parseSensors(DOMElement *root)
 {
-	ScreenManager *S = ScreenManager::singleton();
-	ProblemSetup *P = ProblemSetup::singleton();
-	char msg[1024]; strcpy(msg, "");
-	DOMNodeList* nodes = root->getElementsByTagName(xmlS("Sensors"));
-	for(XMLSize_t i=0; i<nodes->getLength(); i++){
-	    DOMNode* node = nodes->item(i);
-	    if(node->getNodeType() != DOMNode::ELEMENT_NODE)
-	        continue;
-	    DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
+    ScreenManager *S = ScreenManager::singleton();
+    ProblemSetup *P = ProblemSetup::singleton();
+    char msg[1024]; strcpy(msg, "");
+    DOMNodeList* nodes = root->getElementsByTagName(xmlS("Sensors"));
+    for(XMLSize_t i=0; i<nodes->getLength(); i++){
+        DOMNode* node = nodes->item(i);
+        if(node->getNodeType() != DOMNode::ELEMENT_NODE)
+            continue;
+        DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
 
-	    DOMNodeList* s_nodes = elem->getElementsByTagName(xmlS("FPS"));
-	    bool haveFPS = false;
-	    for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
-	        DOMNode* s_node = s_nodes->item(j);
-	        if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
-	            continue;
-	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
-	        haveFPS = true;
-	        P->SensorsParameters.fps = atof(xmlAttribute(s_elem, "value"));
-	    }
-		if(!haveFPS){
-	        sprintf(msg, "Sensors section without FPS output frecuency.\n");
-	        S->addMessageF(2, msg);
-		}
+        DOMNodeList* s_nodes = elem->getElementsByTagName(xmlS("FPS"));
+        bool haveFPS = false;
+        for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
+            DOMNode* s_node = s_nodes->item(j);
+            if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
+                continue;
+            DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+            haveFPS = true;
+            P->SensorsParameters.fps = atof(xmlAttribute(s_elem, "value"));
+        }
+        if(!haveFPS){
+            sprintf(msg, "Sensors section without FPS output frecuency.\n");
+            S->addMessageF(2, msg);
+        }
 
-	    s_nodes = elem->getElementsByTagName(xmlS("Script"));
-	    bool haveScript = false;
-	    for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
-	        DOMNode* s_node = s_nodes->item(j);
-	        if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
-	            continue;
-	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
-	        haveScript = true;
-	        strcpy(P->SensorsParameters.script, xmlAttribute(s_elem, "file"));
-	    }
-		if(!haveScript){
-	        sprintf(msg, "Sensors section without script.\n");
-	        S->addMessageF(2, msg);
-		}
+        s_nodes = elem->getElementsByTagName(xmlS("Script"));
+        bool haveScript = false;
+        for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
+            DOMNode* s_node = s_nodes->item(j);
+            if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
+                continue;
+            DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+            haveScript = true;
+            strcpy(P->SensorsParameters.script, xmlAttribute(s_elem, "file"));
+        }
+        if(!haveScript){
+            sprintf(msg, "Sensors section without script.\n");
+            S->addMessageF(2, msg);
+        }
 
-	    s_nodes = elem->getElementsByTagName(xmlS("Sensor"));
-	    for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
-	        DOMNode* s_node = s_nodes->item(j);
-	        if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
-	            continue;
-	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
-		    vec pos;
-	        pos.x = atof(xmlAttribute(s_elem, "x"));
-	        pos.y = atof(xmlAttribute(s_elem, "y"));
-	        #ifdef HAVE_3D
-	            pos.z = atof(xmlAttribute(s_elem, "z"));
-	            pos.w = 0.f;
-	        #endif
-	        if(P->SensorsParameters.add(pos))
-	            return true;
-	    }
-	}
-	return false;
+        s_nodes = elem->getElementsByTagName(xmlS("Sensor"));
+        for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
+            DOMNode* s_node = s_nodes->item(j);
+            if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
+                continue;
+            DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+            vec pos;
+            pos.x = atof(xmlAttribute(s_elem, "x"));
+            pos.y = atof(xmlAttribute(s_elem, "y"));
+            #ifdef HAVE_3D
+                pos.z = atof(xmlAttribute(s_elem, "z"));
+                pos.w = 0.f;
+            #endif
+            if(P->SensorsParameters.add(pos))
+                return true;
+        }
+    }
+    return false;
 }
 
 bool State::parseMotions(DOMElement *root)
 {
-	ScreenManager *S = ScreenManager::singleton();
-	ProblemSetup *P = ProblemSetup::singleton();
-	char msg[1024]; strcpy(msg, "");
-	DOMNodeList* nodes = root->getElementsByTagName(xmlS("Movements"));
-	for(XMLSize_t i=0; i<nodes->getLength(); i++){
-	    DOMNode* node = nodes->item(i);
-	    if(node->getNodeType() != DOMNode::ELEMENT_NODE)
-	        continue;
-	    DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
-	    // Look for movements
-	    DOMNodeList* s_nodes = elem->getElementsByTagName(xmlS("Movement"));
-	    for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
-	        DOMNode* s_node = s_nodes->item(j);
-	        if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
-	            continue;
-	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
-	        // Build new movement
-	        ProblemSetup::sphMoveParameters *Move =
+    ScreenManager *S = ScreenManager::singleton();
+    ProblemSetup *P = ProblemSetup::singleton();
+    char msg[1024]; strcpy(msg, "");
+    DOMNodeList* nodes = root->getElementsByTagName(xmlS("Movements"));
+    for(XMLSize_t i=0; i<nodes->getLength(); i++){
+        DOMNode* node = nodes->item(i);
+        if(node->getNodeType() != DOMNode::ELEMENT_NODE)
+            continue;
+        DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
+        // Look for movements
+        DOMNodeList* s_nodes = elem->getElementsByTagName(xmlS("Movement"));
+        for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
+            DOMNode* s_node = s_nodes->item(j);
+            if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
+                continue;
+            DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+            // Build new movement
+            ProblemSetup::sphMoveParameters *Move =
                 new ProblemSetup::sphMoveParameters();
-	        // Get movement type
-	        if(!strcmp(xmlAttribute(s_elem, "type"),"Quaternion")){
-	            Move->type = 0;
-	        }
-	        else if(!strcmp(xmlAttribute(s_elem, "type"),"LIQuaternion")){
-	            Move->type = 1;
-	        }
-	        else if(!strcmp(xmlAttribute(s_elem, "type"),"C1Quaternion")){
-	            Move->type = 2;
-	        }
-	        else if(!strcmp(xmlAttribute(s_elem, "type"),"ScriptQuaternion")){
-	            Move->type = 3;
-	        }
-	        else{
-	            sprintf(msg,
+            // Get movement type
+            if(!strcmp(xmlAttribute(s_elem, "type"),"Quaternion")){
+                Move->type = 0;
+            }
+            else if(!strcmp(xmlAttribute(s_elem, "type"),"LIQuaternion")){
+                Move->type = 1;
+            }
+            else if(!strcmp(xmlAttribute(s_elem, "type"),"C1Quaternion")){
+                Move->type = 2;
+            }
+            else if(!strcmp(xmlAttribute(s_elem, "type"),"ScriptQuaternion")){
+                Move->type = 3;
+            }
+            else{
+                sprintf(msg,
                         "Unknow type of movement \"%s\"\n",
                         xmlAttribute(s_elem, "type"));
-	            S->addMessageF(3, msg);
-	            S->addMessage(0, "\tValid options are:\n");
-	            S->addMessage(0, "\t\tLIQuaternion\n");
-	            S->addMessage(0, "\t\tScriptQuaternion\n");
-	            return true;
-	        }
+                S->addMessageF(3, msg);
+                S->addMessage(0, "\tValid options are:\n");
+                S->addMessage(0, "\t\tLIQuaternion\n");
+                S->addMessage(0, "\t\tScriptQuaternion\n");
+                return true;
+            }
 
-	        strcpy(Move->path, xmlAttribute(s_elem, "file"));
+            strcpy(Move->path, xmlAttribute(s_elem, "file"));
 
-	        P->motions.push_back(Move);
-	    }
-	}
-	return false;
+            P->motions.push_back(Move);
+        }
+    }
+    return false;
 }
 
 bool State::parsePortals(DOMElement *root)
 {
-	ScreenManager *S = ScreenManager::singleton();
-	ProblemSetup *P = ProblemSetup::singleton();
-	char msg[1024]; strcpy(msg, "");
-	bool hasNormal;
-	ProblemSetup::sphPortal::Portal in, out;
-	#ifdef HAVE_3D
-	    in.corner.w = 0.f;
-	    in.up.w     = 0.f;
-	    in.side.w   = 0.f;
-	    in.normal.w = 0.f;
-	#endif
-	DOMNode *ss_node;
-	DOMNodeList *s_nodes;
-	DOMElement *ss_elem, *s_elem;
-	DOMNodeList* nodes = root->getElementsByTagName(xmlS("Portal"));
-	for(XMLSize_t i=0; i<nodes->getLength(); i++){
-	    DOMNode* node = nodes->item(i);
-	    if(node->getNodeType() != DOMNode::ELEMENT_NODE)
-	        continue;
-	    DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
-	    // Look for in/out planes
-	    DOMNodeList* ss_nodes = elem->getElementsByTagName(xmlS("Plane"));
-	    if(!ss_nodes->getLength()){
-	        continue;
-	    }
-	    if(ss_nodes->getLength() != 2){
-	        sprintf(msg, "Invalid planes data.\n");
-	        S->addMessageF(3, msg);
-	        sprintf(
+    ScreenManager *S = ScreenManager::singleton();
+    ProblemSetup *P = ProblemSetup::singleton();
+    char msg[1024]; strcpy(msg, "");
+    bool hasNormal;
+    ProblemSetup::sphPortal::Portal in, out;
+    #ifdef HAVE_3D
+        in.corner.w = 0.f;
+        in.up.w     = 0.f;
+        in.side.w   = 0.f;
+        in.normal.w = 0.f;
+    #endif
+    DOMNode *ss_node;
+    DOMNodeList *s_nodes;
+    DOMElement *ss_elem, *s_elem;
+    DOMNodeList* nodes = root->getElementsByTagName(xmlS("Portal"));
+    for(XMLSize_t i=0; i<nodes->getLength(); i++){
+        DOMNode* node = nodes->item(i);
+        if(node->getNodeType() != DOMNode::ELEMENT_NODE)
+            continue;
+        DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
+        // Look for in/out planes
+        DOMNodeList* ss_nodes = elem->getElementsByTagName(xmlS("Plane"));
+        if(!ss_nodes->getLength()){
+            continue;
+        }
+        if(ss_nodes->getLength() != 2){
+            sprintf(msg, "Invalid planes data.\n");
+            S->addMessageF(3, msg);
+            sprintf(
                 msg,
                 "\t2 planes by portal must be stablished, but %u found.\n",
                 ss_nodes->getLength());
-	        S->addMessage(0, msg);
-	        continue;
-	    }
+            S->addMessage(0, msg);
+            continue;
+        }
 
-	    // -----------------------------------------------------
-	    // In portal
-	    // -----------------------------------------------------
-	    hasNormal = false;
-	    ss_node = ss_nodes->item(0);
-	    ss_elem = dynamic_cast< xercesc::DOMElement* >( ss_node );
-	    s_nodes = ss_elem->getElementsByTagName(xmlS("Corner"));
-	    if(s_nodes->getLength() != 1){
-	        sprintf(msg, "Invalid first plane data.\n");
-	        S->addMessageF(3, msg);
-	        sprintf(msg,
+        // -----------------------------------------------------
+        // In portal
+        // -----------------------------------------------------
+        hasNormal = false;
+        ss_node = ss_nodes->item(0);
+        ss_elem = dynamic_cast< xercesc::DOMElement* >( ss_node );
+        s_nodes = ss_elem->getElementsByTagName(xmlS("Corner"));
+        if(s_nodes->getLength() != 1){
+            sprintf(msg, "Invalid first plane data.\n");
+            S->addMessageF(3, msg);
+            sprintf(msg,
                     "\t1 corner must be provided, but %u found.\n",
                     s_nodes->getLength());
-	        S->addMessage(0, msg);
-	        continue;
-	    }
-	    s_elem = dynamic_cast< xercesc::DOMElement* >( s_nodes->item(0) );
-	    in.corner.x = atof(xmlAttribute(s_elem, "x"));
-	    in.corner.y = atof(xmlAttribute(s_elem, "y"));
-	    #ifdef HAVE_3D
-	        in.corner.z = atof(xmlAttribute(s_elem, "z"));
-	    #endif
-	    s_nodes = ss_elem->getElementsByTagName(xmlS("Up"));
-	    if(s_nodes->getLength() != 1){
-	        sprintf(msg, "Invalid first plane data.\n");
-	        S->addMessageF(3, msg);
-	        sprintf(msg,
+            S->addMessage(0, msg);
+            continue;
+        }
+        s_elem = dynamic_cast< xercesc::DOMElement* >( s_nodes->item(0) );
+        in.corner.x = atof(xmlAttribute(s_elem, "x"));
+        in.corner.y = atof(xmlAttribute(s_elem, "y"));
+        #ifdef HAVE_3D
+            in.corner.z = atof(xmlAttribute(s_elem, "z"));
+        #endif
+        s_nodes = ss_elem->getElementsByTagName(xmlS("Up"));
+        if(s_nodes->getLength() != 1){
+            sprintf(msg, "Invalid first plane data.\n");
+            S->addMessageF(3, msg);
+            sprintf(msg,
                     "\t1 up vector must be provided, but %u found.\n",
                     s_nodes->getLength());
-	        S->addMessage(0, msg);
-	        continue;
-	    }
-	    s_elem = dynamic_cast< xercesc::DOMElement* >( s_nodes->item(0) );
-	    in.up.x = atof(xmlAttribute(s_elem, "x"));
-	    in.up.y = atof(xmlAttribute(s_elem, "y"));
-	    #ifdef HAVE_3D
-	        in.up.z = atof(xmlAttribute(s_elem, "z"));
-	    #endif
-	    #ifdef HAVE_3D
-	        s_nodes = ss_elem->getElementsByTagName(xmlS("Side"));
-	        if(s_nodes->getLength() != 1){
-	            sprintf(msg, "Invalid first plane data.\n");
-	            S->addMessageF(3, msg);
-	            sprintf(msg,
+            S->addMessage(0, msg);
+            continue;
+        }
+        s_elem = dynamic_cast< xercesc::DOMElement* >( s_nodes->item(0) );
+        in.up.x = atof(xmlAttribute(s_elem, "x"));
+        in.up.y = atof(xmlAttribute(s_elem, "y"));
+        #ifdef HAVE_3D
+            in.up.z = atof(xmlAttribute(s_elem, "z"));
+        #endif
+        #ifdef HAVE_3D
+            s_nodes = ss_elem->getElementsByTagName(xmlS("Side"));
+            if(s_nodes->getLength() != 1){
+                sprintf(msg, "Invalid first plane data.\n");
+                S->addMessageF(3, msg);
+                sprintf(msg,
                         "\t1 side vector must be provided, but %u found.\n",
                         s_nodes->getLength());
-	            S->addMessage(0, msg);
-	            continue;
-	        }
-	        s_elem = dynamic_cast<xercesc::DOMElement*>(s_nodes->item(0));
-	        in.side.x = atof(xmlAttribute(s_elem, "x"));
-	        in.side.y = atof(xmlAttribute(s_elem, "y"));
-	        in.side.z = atof(xmlAttribute(s_elem, "z"));
-	    #else
-	        in.side.x = 0.f;
-	        in.side.y = 0.f;
-	    #endif
-	    s_nodes = ss_elem->getElementsByTagName(xmlS("Normal"));
-	    if(s_nodes->getLength() > 1){
-	        sprintf(msg, "Invalid first plane data.\n");
-	        S->addMessageF(3, msg);
-	        sprintf(msg,
+                S->addMessage(0, msg);
+                continue;
+            }
+            s_elem = dynamic_cast<xercesc::DOMElement*>(s_nodes->item(0));
+            in.side.x = atof(xmlAttribute(s_elem, "x"));
+            in.side.y = atof(xmlAttribute(s_elem, "y"));
+            in.side.z = atof(xmlAttribute(s_elem, "z"));
+        #else
+            in.side.x = 0.f;
+            in.side.y = 0.f;
+        #endif
+        s_nodes = ss_elem->getElementsByTagName(xmlS("Normal"));
+        if(s_nodes->getLength() > 1){
+            sprintf(msg, "Invalid first plane data.\n");
+            S->addMessageF(3, msg);
+            sprintf(msg,
                     "\tJust 1 normal vector can be provided, but %u found.\n",
                     s_nodes->getLength());
-	        S->addMessage(0, msg);
-	        continue;
-	    }
-	    else if (s_nodes->getLength() == 1){
-	        s_elem = dynamic_cast< xercesc::DOMElement* >( s_nodes->item(0) );
-	        in.normal.x = atof(xmlAttribute(s_elem, "x"));
-	        in.normal.y = atof(xmlAttribute(s_elem, "y"));
-	        #ifdef HAVE_3D
-	            in.normal.z = atof(xmlAttribute(s_elem, "z"));
-	        #endif
-	        hasNormal = true;
-	    }
-	    if(!hasNormal){
-	        #ifdef HAVE_3D
-	            in.normal = normalize(cross(in.up, in.side));
-	        #else
-	            in.normal.x = -in.side.y;
-	            in.normal.y =  in.side.x;
-	            in.normal   =  normalize(in.normal);
-	        #endif
-	    }
-	    // -----------------------------------------------------
-	    // Out portal
-	    // -----------------------------------------------------
-	    hasNormal = false;
-	    ss_node = ss_nodes->item(1);
-	    ss_elem = dynamic_cast< xercesc::DOMElement* >( ss_node );
-	    s_nodes = ss_elem->getElementsByTagName(xmlS("Corner"));
-	    if(s_nodes->getLength() != 1){
-	        sprintf(msg, "Invalid second plane data.\n");
-	        S->addMessageF(3, msg);
-	        sprintf(msg,
+            S->addMessage(0, msg);
+            continue;
+        }
+        else if (s_nodes->getLength() == 1){
+            s_elem = dynamic_cast< xercesc::DOMElement* >( s_nodes->item(0) );
+            in.normal.x = atof(xmlAttribute(s_elem, "x"));
+            in.normal.y = atof(xmlAttribute(s_elem, "y"));
+            #ifdef HAVE_3D
+                in.normal.z = atof(xmlAttribute(s_elem, "z"));
+            #endif
+            hasNormal = true;
+        }
+        if(!hasNormal){
+            #ifdef HAVE_3D
+                in.normal = normalize(cross(in.up, in.side));
+            #else
+                in.normal.x = -in.side.y;
+                in.normal.y =  in.side.x;
+                in.normal   =  normalize(in.normal);
+            #endif
+        }
+        // -----------------------------------------------------
+        // Out portal
+        // -----------------------------------------------------
+        hasNormal = false;
+        ss_node = ss_nodes->item(1);
+        ss_elem = dynamic_cast< xercesc::DOMElement* >( ss_node );
+        s_nodes = ss_elem->getElementsByTagName(xmlS("Corner"));
+        if(s_nodes->getLength() != 1){
+            sprintf(msg, "Invalid second plane data.\n");
+            S->addMessageF(3, msg);
+            sprintf(msg,
                     "\t1 corner must be provided, but %u found.\n",
                     s_nodes->getLength());
-	        S->addMessage(0, msg);
-	        continue;
-	    }
-	    s_elem = dynamic_cast< xercesc::DOMElement* >( s_nodes->item(0) );
-	    out.corner.x = atof(xmlAttribute(s_elem, "x"));
-	    out.corner.y = atof(xmlAttribute(s_elem, "y"));
-	    #ifdef HAVE_3D
-	        out.corner.z = atof(xmlAttribute(s_elem, "z"));
-	    #endif
-	    s_nodes = ss_elem->getElementsByTagName(xmlS("Up"));
-	    if(s_nodes->getLength() != 1){
-	        sprintf(msg, "Invalid second plane data.\n");
-	        S->addMessageF(3, msg);
-	        sprintf(msg,
+            S->addMessage(0, msg);
+            continue;
+        }
+        s_elem = dynamic_cast< xercesc::DOMElement* >( s_nodes->item(0) );
+        out.corner.x = atof(xmlAttribute(s_elem, "x"));
+        out.corner.y = atof(xmlAttribute(s_elem, "y"));
+        #ifdef HAVE_3D
+            out.corner.z = atof(xmlAttribute(s_elem, "z"));
+        #endif
+        s_nodes = ss_elem->getElementsByTagName(xmlS("Up"));
+        if(s_nodes->getLength() != 1){
+            sprintf(msg, "Invalid second plane data.\n");
+            S->addMessageF(3, msg);
+            sprintf(msg,
                     "\t1 up vector must be provided, but %u found.\n",
                     s_nodes->getLength());
-	        S->addMessage(0, msg);
-	        continue;
-	    }
-	    s_elem = dynamic_cast< xercesc::DOMElement* >( s_nodes->item(0) );
-	    out.up.x = atof(xmlAttribute(s_elem, "x"));
-	    out.up.y = atof(xmlAttribute(s_elem, "y"));
-	    #ifdef HAVE_3D
-	        out.up.z = atof(xmlAttribute(s_elem, "z"));
-	    #endif
-	    #ifdef HAVE_3D
-	        s_nodes = ss_elem->getElementsByTagName(xmlS("Side"));
-	        if(s_nodes->getLength() != 1){
+            S->addMessage(0, msg);
+            continue;
+        }
+        s_elem = dynamic_cast< xercesc::DOMElement* >( s_nodes->item(0) );
+        out.up.x = atof(xmlAttribute(s_elem, "x"));
+        out.up.y = atof(xmlAttribute(s_elem, "y"));
+        #ifdef HAVE_3D
+            out.up.z = atof(xmlAttribute(s_elem, "z"));
+        #endif
+        #ifdef HAVE_3D
+            s_nodes = ss_elem->getElementsByTagName(xmlS("Side"));
+            if(s_nodes->getLength() != 1){
                 sprintf(msg, "Invalid second plane data.\n");
                 S->addMessageF(3, msg);
                 sprintf(msg,
                         "\t1 side vector must be provided, but %u found.\n",
                         s_nodes->getLength());
                 S->addMessage(0, msg);
-	            continue;
-	        }
-	        s_elem = dynamic_cast< xercesc::DOMElement* >( s_nodes->item(0) );
-	        out.side.x = atof(xmlAttribute(s_elem, "x"));
-	        out.side.y = atof(xmlAttribute(s_elem, "y"));
-	        out.side.z = atof(xmlAttribute(s_elem, "z"));
-	    #else
-	        out.side.x = 0.f;
-	        out.side.y = 0.f;
-	    #endif
-	    s_nodes = ss_elem->getElementsByTagName(xmlS("Normal"));
-	    if(s_nodes->getLength() > 1){
+                continue;
+            }
+            s_elem = dynamic_cast< xercesc::DOMElement* >( s_nodes->item(0) );
+            out.side.x = atof(xmlAttribute(s_elem, "x"));
+            out.side.y = atof(xmlAttribute(s_elem, "y"));
+            out.side.z = atof(xmlAttribute(s_elem, "z"));
+        #else
+            out.side.x = 0.f;
+            out.side.y = 0.f;
+        #endif
+        s_nodes = ss_elem->getElementsByTagName(xmlS("Normal"));
+        if(s_nodes->getLength() > 1){
             sprintf(msg,
                     "Invalid second plane data.\n");
             S->addMessageF(3, msg);
@@ -1236,233 +1236,233 @@ bool State::parsePortals(DOMElement *root)
                     "\tJust 1 normal vector can be provided, but %u found.\n",
                     s_nodes->getLength());
             S->addMessage(0, msg);
-	        continue;
-	    }
-	    else if (s_nodes->getLength() == 1){
-	        s_elem = dynamic_cast< xercesc::DOMElement* >( s_nodes->item(0) );
-	        out.normal.x = atof(xmlAttribute(s_elem, "x"));
-	        out.normal.y = atof(xmlAttribute(s_elem, "y"));
-	        #ifdef HAVE_3D
-	            out.normal.z = atof(xmlAttribute(s_elem, "z"));
-	        #endif
-	        hasNormal = true;
-	    }
-	    if(!hasNormal){
-	        #ifdef HAVE_3D
-	            out.normal = normalize(cross(out.up, out.side));
-	        #else
-	            out.normal.x = -out.side.y;
-	            out.normal.y =  out.side.x;
-	            out.normal   =  normalize(out.normal);
-	        #endif
-	    }
+            continue;
+        }
+        else if (s_nodes->getLength() == 1){
+            s_elem = dynamic_cast< xercesc::DOMElement* >( s_nodes->item(0) );
+            out.normal.x = atof(xmlAttribute(s_elem, "x"));
+            out.normal.y = atof(xmlAttribute(s_elem, "y"));
+            #ifdef HAVE_3D
+                out.normal.z = atof(xmlAttribute(s_elem, "z"));
+            #endif
+            hasNormal = true;
+        }
+        if(!hasNormal){
+            #ifdef HAVE_3D
+                out.normal = normalize(cross(out.up, out.side));
+            #else
+                out.normal.x = -out.side.y;
+                out.normal.y =  out.side.x;
+                out.normal   =  normalize(out.normal);
+            #endif
+        }
 
-	    ProblemSetup::sphPortal *Portal = new ProblemSetup::sphPortal();
-	    Portal->in  = in;
-	    Portal->out = out;
-	    P->portals.push_back(Portal);
-	}
-	return false;
+        ProblemSetup::sphPortal *Portal = new ProblemSetup::sphPortal();
+        Portal->in  = in;
+        Portal->out = out;
+        P->portals.push_back(Portal);
+    }
+    return false;
 }
 
 bool State::parseGhostParticles(DOMElement *root)
 {
-	ScreenManager *S = ScreenManager::singleton();
-	ProblemSetup *P = ProblemSetup::singleton();
-	char msg[1024]; strcpy(msg, "");
-	DOMNodeList* nodes = root->getElementsByTagName(xmlS("GhostParticles"));
-	for(XMLSize_t i=0; i<nodes->getLength(); i++){
-	    DOMNode* node = nodes->item(i);
-	    if(node->getNodeType() != DOMNode::ELEMENT_NODE)
-	        continue;
-	    DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
+    ScreenManager *S = ScreenManager::singleton();
+    ProblemSetup *P = ProblemSetup::singleton();
+    char msg[1024]; strcpy(msg, "");
+    DOMNodeList* nodes = root->getElementsByTagName(xmlS("GhostParticles"));
+    for(XMLSize_t i=0; i<nodes->getLength(); i++){
+        DOMNode* node = nodes->item(i);
+        if(node->getNodeType() != DOMNode::ELEMENT_NODE)
+            continue;
+        DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
 
-	    DOMNodeList* s_nodes = elem->getElementsByTagName(xmlS("PressModel"));
-	    for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
-	        DOMNode* s_node = s_nodes->item(j);
-	        if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
-	            continue;
-	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
-	        if(!strcmp(xmlAttribute(s_elem, "value"), "ASM")){
-	            P->ghost_particles.p_extension = 0;
-	        }
-	        else if(!strcmp(xmlAttribute(s_elem, "value"), "SSM")){
-	            P->ghost_particles.p_extension = 1;
-	        }
-	        else if(!strcmp(xmlAttribute(s_elem, "value"), "Takeda")){
-	            P->ghost_particles.p_extension = 2;
-	        }
-	        else{
-	            sprintf(msg,
+        DOMNodeList* s_nodes = elem->getElementsByTagName(xmlS("PressModel"));
+        for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
+            DOMNode* s_node = s_nodes->item(j);
+            if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
+                continue;
+            DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+            if(!strcmp(xmlAttribute(s_elem, "value"), "ASM")){
+                P->ghost_particles.p_extension = 0;
+            }
+            else if(!strcmp(xmlAttribute(s_elem, "value"), "SSM")){
+                P->ghost_particles.p_extension = 1;
+            }
+            else if(!strcmp(xmlAttribute(s_elem, "value"), "Takeda")){
+                P->ghost_particles.p_extension = 2;
+            }
+            else{
+                sprintf(msg,
                         "Invalid %s pressure extension model.\n",
                         xmlAttribute(s_elem, "value"));
-	            S->addMessageF(3, msg);
-	            S->addMessage(0, "\tValid options are:\n");
-	            S->addMessage(0, "\t\tASM\n");
-	            S->addMessage(0, "\t\tSSM\n");
-	            S->addMessage(0, "\t\tTakeda\n");
-	            return true;
-	        }
-	    }
-	    // Get normal velocity model
-	    s_nodes = elem->getElementsByTagName(xmlS("NormalUModel"));
-	    for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
-	        DOMNode* s_node = s_nodes->item(j);
-	        if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
-	            continue;
-	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
-	        if(!strcmp(xmlAttribute(s_elem, "value"), "ASM")){
-	            P->ghost_particles.vn_extension = 0;
-	        }
-	        else if(!strcmp(xmlAttribute(s_elem, "value"), "SSM")){
-	            P->ghost_particles.vn_extension = 1;
-	        }
-	        else if(!strcmp(xmlAttribute(s_elem, "value"), "Takeda")){
-	            P->ghost_particles.vn_extension = 2;
-	        }
-	        else if(!strcmp(xmlAttribute(s_elem, "value"), "U0M")){
-	            P->ghost_particles.vn_extension = 3;
-	        }
-	        else{
-	            sprintf(msg,
+                S->addMessageF(3, msg);
+                S->addMessage(0, "\tValid options are:\n");
+                S->addMessage(0, "\t\tASM\n");
+                S->addMessage(0, "\t\tSSM\n");
+                S->addMessage(0, "\t\tTakeda\n");
+                return true;
+            }
+        }
+        // Get normal velocity model
+        s_nodes = elem->getElementsByTagName(xmlS("NormalUModel"));
+        for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
+            DOMNode* s_node = s_nodes->item(j);
+            if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
+                continue;
+            DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+            if(!strcmp(xmlAttribute(s_elem, "value"), "ASM")){
+                P->ghost_particles.vn_extension = 0;
+            }
+            else if(!strcmp(xmlAttribute(s_elem, "value"), "SSM")){
+                P->ghost_particles.vn_extension = 1;
+            }
+            else if(!strcmp(xmlAttribute(s_elem, "value"), "Takeda")){
+                P->ghost_particles.vn_extension = 2;
+            }
+            else if(!strcmp(xmlAttribute(s_elem, "value"), "U0M")){
+                P->ghost_particles.vn_extension = 3;
+            }
+            else{
+                sprintf(msg,
                         "Invalid %s normal velocity extension model.\n",
                         xmlAttribute(s_elem, "value"));
-	            S->addMessageF(3, msg);
-	            S->addMessage(0, "\tValid options are:\n");
-	            S->addMessage(0, "\t\tASM\n");
-	            S->addMessage(0, "\t\tSSM\n");
-	            S->addMessage(0, "\t\tTakeda\n");
-	            S->addMessage(0, "\t\tU0M\n");
-	            return true;
-	        }
-	    }
-	    // Get normal velocity model
-	    s_nodes = elem->getElementsByTagName(xmlS("TangentUModel"));
-	    for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
-	        DOMNode* s_node = s_nodes->item(j);
-	        if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
-	            continue;
-	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
-	        if(!strcmp(xmlAttribute(s_elem, "value"), "ASM")){
-	            P->ghost_particles.vt_extension = 0;
-	        }
-	        else if(!strcmp(xmlAttribute(s_elem, "value"), "SSM")){
-	            P->ghost_particles.vt_extension = 1;
-	        }
-	        else if(!strcmp(xmlAttribute(s_elem, "value"), "Takeda")){
-	            P->ghost_particles.vt_extension = 2;
-	        }
-	        else if(!strcmp(xmlAttribute(s_elem, "value"), "U0M")){
-	            P->ghost_particles.vt_extension = 3;
-	        }
-	        else{
-	            sprintf(msg,
+                S->addMessageF(3, msg);
+                S->addMessage(0, "\tValid options are:\n");
+                S->addMessage(0, "\t\tASM\n");
+                S->addMessage(0, "\t\tSSM\n");
+                S->addMessage(0, "\t\tTakeda\n");
+                S->addMessage(0, "\t\tU0M\n");
+                return true;
+            }
+        }
+        // Get normal velocity model
+        s_nodes = elem->getElementsByTagName(xmlS("TangentUModel"));
+        for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
+            DOMNode* s_node = s_nodes->item(j);
+            if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
+                continue;
+            DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+            if(!strcmp(xmlAttribute(s_elem, "value"), "ASM")){
+                P->ghost_particles.vt_extension = 0;
+            }
+            else if(!strcmp(xmlAttribute(s_elem, "value"), "SSM")){
+                P->ghost_particles.vt_extension = 1;
+            }
+            else if(!strcmp(xmlAttribute(s_elem, "value"), "Takeda")){
+                P->ghost_particles.vt_extension = 2;
+            }
+            else if(!strcmp(xmlAttribute(s_elem, "value"), "U0M")){
+                P->ghost_particles.vt_extension = 3;
+            }
+            else{
+                sprintf(msg,
                         "Invalid %s tangent velocity extension model.\n",
                         xmlAttribute(s_elem, "value"));
-	            S->addMessageF(3, msg);
-	            S->addMessage(0, "\tValid options are:\n");
-	            S->addMessage(0, "\t\tASM\n");
-	            S->addMessage(0, "\t\tSSM\n");
-	            S->addMessage(0, "\t\tTakeda\n");
-	            S->addMessage(0, "\t\tU0M\n");
-	            return true;
-	        }
-	    }
+                S->addMessageF(3, msg);
+                S->addMessage(0, "\tValid options are:\n");
+                S->addMessage(0, "\t\tASM\n");
+                S->addMessage(0, "\t\tSSM\n");
+                S->addMessage(0, "\t\tTakeda\n");
+                S->addMessage(0, "\t\tU0M\n");
+                return true;
+            }
+        }
 
-	    s_nodes = elem->getElementsByTagName(xmlS("Wall"));
-	    for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
-	        DOMNode* s_node = s_nodes->item(j);
-	        if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
-	            continue;
-	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
-	        DOMNodeList* ss_nodes = s_elem->getElementsByTagName(
+        s_nodes = elem->getElementsByTagName(xmlS("Wall"));
+        for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
+            DOMNode* s_node = s_nodes->item(j);
+            if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
+                continue;
+            DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+            DOMNodeList* ss_nodes = s_elem->getElementsByTagName(
                 xmlS("Vertex"));
-	        #ifdef HAVE_3D
-	            if((ss_nodes->getLength() != 3) &&
+            #ifdef HAVE_3D
+                if((ss_nodes->getLength() != 3) &&
                    (ss_nodes->getLength() != 4)){
-	                sprintf(msg,
+                    sprintf(msg,
                             "Found a wall with %u vertexes.\n",
                             ss_nodes->getLength());
-	                S->addMessageF(3, msg);
-	                S->addMessage(
+                    S->addMessageF(3, msg);
+                    S->addMessage(
                         0,
                         "\t3D simulations accepts walls of 3 or 4 vertexes\n"
                     );
-	                return true;
-	            }
-	            if( ss_nodes->getLength() == 3 ){
-	                vec p[3], v[3];
-	                for(XMLSize_t k=0; k<ss_nodes->getLength(); k++){
-	                    DOMNode* ss_node = ss_nodes->item(k);
-	                    if( ss_node->getNodeType() != DOMNode::ELEMENT_NODE )
-	                        continue;
-	                    DOMElement* ss_elem = dynamic_cast<xercesc::DOMElement*>(ss_node);
-	                    p[k].x = atof(xmlAttribute(ss_elem, "x"));
-	                    p[k].y = atof(xmlAttribute(ss_elem, "y"));
-	                    p[k].z = atof(xmlAttribute(ss_elem, "z"));
-	                    p[k].w = 0.f;
-	                    v[k].x = atof(xmlAttribute(ss_elem, "vx"));
-	                    v[k].y = atof(xmlAttribute(ss_elem, "vy"));
-	                    v[k].z = atof(xmlAttribute(ss_elem, "vz"));
-	                    v[k].w = 0.f;
-	                }
-	                P->ghost_particles.add(p[0], p[1], p[2],
+                    return true;
+                }
+                if( ss_nodes->getLength() == 3 ){
+                    vec p[3], v[3];
+                    for(XMLSize_t k=0; k<ss_nodes->getLength(); k++){
+                        DOMNode* ss_node = ss_nodes->item(k);
+                        if( ss_node->getNodeType() != DOMNode::ELEMENT_NODE )
+                            continue;
+                        DOMElement* ss_elem = dynamic_cast<xercesc::DOMElement*>(ss_node);
+                        p[k].x = atof(xmlAttribute(ss_elem, "x"));
+                        p[k].y = atof(xmlAttribute(ss_elem, "y"));
+                        p[k].z = atof(xmlAttribute(ss_elem, "z"));
+                        p[k].w = 0.f;
+                        v[k].x = atof(xmlAttribute(ss_elem, "vx"));
+                        v[k].y = atof(xmlAttribute(ss_elem, "vy"));
+                        v[k].z = atof(xmlAttribute(ss_elem, "vz"));
+                        v[k].w = 0.f;
+                    }
+                    P->ghost_particles.add(p[0], p[1], p[2],
                                            v[0], v[1], v[2]);
-	            }
-	            if( ss_nodes->getLength() == 4 ){
-	                vec p[4], v[4];
-	                for(XMLSize_t k=0; k<ss_nodes->getLength(); k++){
-	                    DOMNode* ss_node = ss_nodes->item(k);
-	                    if( ss_node->getNodeType() != DOMNode::ELEMENT_NODE )
-	                        continue;
-	                    DOMElement* ss_elem = dynamic_cast<xercesc::DOMElement*>(ss_node);
-	                    p[k].x = atof(xmlAttribute(ss_elem, "x"));
-	                    p[k].y = atof(xmlAttribute(ss_elem, "y"));
-	                    p[k].z = atof(xmlAttribute(ss_elem, "z"));
-	                    p[k].w = 0.f;
-	                    v[k].x = atof(xmlAttribute(ss_elem, "vx"));
-	                    v[k].y = atof(xmlAttribute(ss_elem, "vy"));
-	                    v[k].z = atof(xmlAttribute(ss_elem, "vz"));
-	                    v[k].w = 0.f;
-	                }
-	                P->ghost_particles.add(p[0], p[1], p[2], p[3],
+                }
+                if( ss_nodes->getLength() == 4 ){
+                    vec p[4], v[4];
+                    for(XMLSize_t k=0; k<ss_nodes->getLength(); k++){
+                        DOMNode* ss_node = ss_nodes->item(k);
+                        if( ss_node->getNodeType() != DOMNode::ELEMENT_NODE )
+                            continue;
+                        DOMElement* ss_elem = dynamic_cast<xercesc::DOMElement*>(ss_node);
+                        p[k].x = atof(xmlAttribute(ss_elem, "x"));
+                        p[k].y = atof(xmlAttribute(ss_elem, "y"));
+                        p[k].z = atof(xmlAttribute(ss_elem, "z"));
+                        p[k].w = 0.f;
+                        v[k].x = atof(xmlAttribute(ss_elem, "vx"));
+                        v[k].y = atof(xmlAttribute(ss_elem, "vy"));
+                        v[k].z = atof(xmlAttribute(ss_elem, "vz"));
+                        v[k].w = 0.f;
+                    }
+                    P->ghost_particles.add(p[0], p[1], p[2], p[3],
                                            v[0], v[1], v[2], v[3]);
-	            }
-	        #else
-	            if(ss_nodes->getLength() != 2){
-	                sprintf(msg,
+                }
+            #else
+                if(ss_nodes->getLength() != 2){
+                    sprintf(msg,
                             "Found wall with %u vertexes.\n",
                             ss_nodes->getLength());
-	                S->addMessageF(3, msg);
-	                S->addMessage(
+                    S->addMessageF(3, msg);
+                    S->addMessage(
                         0,
                         "\t2D simulations accepts walls of 2 vertexes\n");
-	                return true;
-	            }
-	            vec p[2], v[2];
-	            for(XMLSize_t k=0; k<ss_nodes->getLength(); k++){
-	                DOMNode* ss_node = ss_nodes->item(k);
-	                if( ss_node->getNodeType() != DOMNode::ELEMENT_NODE )
-	                    continue;
-	                DOMElement* ss_elem = dynamic_cast< xercesc::DOMElement* >( ss_node );
-	                p[k].x = atof(xmlAttribute(ss_elem, "x"));
-	                p[k].y = atof(xmlAttribute(ss_elem, "y"));
+                    return true;
+                }
+                vec p[2], v[2];
+                for(XMLSize_t k=0; k<ss_nodes->getLength(); k++){
+                    DOMNode* ss_node = ss_nodes->item(k);
+                    if( ss_node->getNodeType() != DOMNode::ELEMENT_NODE )
+                        continue;
+                    DOMElement* ss_elem = dynamic_cast< xercesc::DOMElement* >( ss_node );
+                    p[k].x = atof(xmlAttribute(ss_elem, "x"));
+                    p[k].y = atof(xmlAttribute(ss_elem, "y"));
                     v[k].x = atof(xmlAttribute(ss_elem, "vx"));
                     v[k].y = atof(xmlAttribute(ss_elem, "vy"));
-	            }
-	            P->ghost_particles.add(p[0], p[1], v[0], v[1]);
-	        #endif
-	    }
-	}
-	return false;
+                }
+                P->ghost_particles.add(p[0], p[1], v[0], v[1]);
+            #endif
+        }
+    }
+    return false;
 }
 
 bool State::write(const char* filepath)
 {
     DOMImplementation* impl;
-	char msg[64 + strlen(filepath)];
-	ScreenManager *S = ScreenManager::singleton();
-	sprintf(msg, "Writing \"%s\" SPH state file...\n", filepath);
+    char msg[64 + strlen(filepath)];
+    ScreenManager *S = ScreenManager::singleton();
+    sprintf(msg, "Writing \"%s\" SPH state file...\n", filepath);
     S->addMessageF(1, msg);
 
     impl = DOMImplementationRegistry::getDOMImplementation(xmlS("Range"));
@@ -1472,41 +1472,41 @@ bool State::write(const char* filepath)
         NULL);
     DOMElement* root = doc->getDocumentElement();
 
-	if(writeSettings(doc, root)){
+    if(writeSettings(doc, root)){
         xmlClear();
-	    return true;
+        return true;
     }
-	if(writeOpenCL(doc, root)){
+    if(writeOpenCL(doc, root)){
         xmlClear();
-	    return true;
+        return true;
     }
-	if(writeTiming(doc, root)){
+    if(writeTiming(doc, root)){
         xmlClear();
-	    return true;
+        return true;
     }
-	if(writeSPH(doc, root)){
+    if(writeSPH(doc, root)){
         xmlClear();
-	    return true;
+        return true;
     }
-	if(writeFluid(doc, root)){
+    if(writeFluid(doc, root)){
         xmlClear();
-	    return true;
+        return true;
     }
-	if(writeSensors(doc, root)){
+    if(writeSensors(doc, root)){
         xmlClear();
-	    return true;
+        return true;
     }
-	if(writeMotions(doc, root)){
+    if(writeMotions(doc, root)){
         xmlClear();
-	    return true;
+        return true;
     }
-	if(writePortals(doc, root)){
+    if(writePortals(doc, root)){
         xmlClear();
-	    return true;
+        return true;
     }
-	if(writeGhostParticles(doc, root)){
+    if(writeGhostParticles(doc, root)){
         xmlClear();
-	    return true;
+        return true;
     }
 
     // Save the XML document to a file
@@ -1526,29 +1526,29 @@ bool State::write(const char* filepath)
     try {
         saver->write(doc, output);
     }
-	catch( XMLException& e ){
-	    char* message = xmlS(e.getMessage());
+    catch( XMLException& e ){
+        char* message = xmlS(e.getMessage());
         S->addMessageF(3, "XML toolkit writing error.\n");
-	    char msg[strlen(message) + 3];
+        char msg[strlen(message) + 3];
         sprintf(msg, "\t%s\n", message);
         S->addMessage(0, msg);
         xmlClear();
-	    exit(EXIT_FAILURE);
-	}
-	catch( DOMException& e ){
-	    char* message = xmlS(e.getMessage());
+        exit(EXIT_FAILURE);
+    }
+    catch( DOMException& e ){
+        char* message = xmlS(e.getMessage());
         S->addMessageF(3, "XML DOM writing error.\n");
-	    char msg[strlen(message) + 3];
+        char msg[strlen(message) + 3];
         sprintf(msg, "\t%s\n", message);
         S->addMessage(0, msg);
         xmlClear();
-	    exit(EXIT_FAILURE);
-	}
-	catch( ... ){
+        exit(EXIT_FAILURE);
+    }
+    catch( ... ){
         S->addMessageF(3, "Writing error.\n");
         S->addMessage(0, "\tUnhandled exception\n");
-	    exit(EXIT_FAILURE);
-	}
+        exit(EXIT_FAILURE);
+    }
 
     target->flush();
 
@@ -1566,7 +1566,7 @@ bool State::writeSettings(xercesc::DOMDocument* doc,
 {
     DOMElement *elem, *s_elem;
     char att[1024];
-	ProblemSetup *P = ProblemSetup::singleton();
+    ProblemSetup *P = ProblemSetup::singleton();
 
     elem = doc->createElement(xmlS("Settings"));
     root->appendChild(elem);
@@ -1606,7 +1606,7 @@ bool State::writeOpenCL(xercesc::DOMDocument* doc,
                         xercesc::DOMElement *root)
 {
     DOMElement *elem, *s_elem;
-	ProblemSetup *P = ProblemSetup::singleton();
+    ProblemSetup *P = ProblemSetup::singleton();
 
     elem = doc->createElement(xmlS("OpenCL"));
     root->appendChild(elem);
@@ -1645,8 +1645,8 @@ bool State::writeTiming(xercesc::DOMDocument* doc,
 {
     DOMElement *elem, *s_elem;
     char att[1024];
-	ProblemSetup *P = ProblemSetup::singleton();
-	TimeManager *T = TimeManager::singleton();
+    ProblemSetup *P = ProblemSetup::singleton();
+    TimeManager *T = TimeManager::singleton();
 
     elem = doc->createElement(xmlS("Timing"));
     root->appendChild(elem);
@@ -1800,7 +1800,7 @@ bool State::writeSPH(xercesc::DOMDocument* doc,
 {
     DOMElement *elem, *s_elem;
     char att[1024];
-	ProblemSetup *P = ProblemSetup::singleton();
+    ProblemSetup *P = ProblemSetup::singleton();
 
     elem = doc->createElement(xmlS("SPH"));
     root->appendChild(elem);
@@ -1970,8 +1970,8 @@ bool State::writeFluid(xercesc::DOMDocument* doc,
     unsigned int i;
     DOMElement *elem, *s_elem;
     char att[1024];
-	ProblemSetup *P = ProblemSetup::singleton();
-	FileManager *F = FileManager::singleton();
+    ProblemSetup *P = ProblemSetup::singleton();
+    FileManager *F = FileManager::singleton();
 
     for(i=0; i<P->n_fluids; i++){
         elem = doc->createElement(xmlS("Fluid"));
@@ -2035,8 +2035,8 @@ bool State::writeSensors(xercesc::DOMDocument* doc,
     unsigned int i;
     DOMElement *elem, *s_elem, *ss_elem;
     char att[1024];
-	ProblemSetup *P = ProblemSetup::singleton();
-	CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
+    ProblemSetup *P = ProblemSetup::singleton();
+    CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
 
     elem = doc->createElement(xmlS("Sensors"));
     root->appendChild(elem);
@@ -2073,7 +2073,7 @@ bool State::writeMotions(xercesc::DOMDocument* doc,
     unsigned int i;
     DOMElement *elem, *s_elem;
     char att[1024];
-	ProblemSetup *P = ProblemSetup::singleton();
+    ProblemSetup *P = ProblemSetup::singleton();
 
     elem = doc->createElement(xmlS("Movements"));
     root->appendChild(elem);
@@ -2109,7 +2109,7 @@ bool State::writePortals(xercesc::DOMDocument* doc,
     unsigned int i;
     DOMElement *elem, *s_elem, *ss_elem;
     char att[1024];
-	ProblemSetup *P = ProblemSetup::singleton();
+    ProblemSetup *P = ProblemSetup::singleton();
 
     elem = doc->createElement(xmlS("Portal"));
     root->appendChild(elem);
@@ -2227,8 +2227,8 @@ bool State::writeGhostParticles(xercesc::DOMDocument* doc,
     unsigned int i;
     DOMElement *elem, *s_elem, *ss_elem;
     char att[1024];
-	ProblemSetup *P = ProblemSetup::singleton();
-	CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
+    ProblemSetup *P = ProblemSetup::singleton();
+    CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
 
     elem = doc->createElement(xmlS("GhostParticles"));
     root->appendChild(elem);

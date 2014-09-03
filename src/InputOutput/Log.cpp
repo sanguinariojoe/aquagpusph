@@ -50,7 +50,7 @@ bool Log::save()
 bool Log::create()
 {
     char msg[1024];
-	ScreenManager *S = ScreenManager::singleton();
+    ScreenManager *S = ScreenManager::singleton();
 
     if(file("log.%d.html", 0)){
         S->addMessageF(3, "Failure getting a valid filename.\n");
@@ -65,19 +65,19 @@ bool Log::create()
         return true;
     }
 
-	fprintf(_file, "<html>\n");
-	fprintf(_file, "<head><title>AQUAgpusph log file.</title></head>\n");
-	fprintf(_file, "<body bgcolor=\"#f0ffff\">\n");
-	fprintf(_file, "<h1 align=\"center\">AQUAgpusph log file.</h1>\n");
-	// Starting data
-	struct timeval now_time;
-	gettimeofday(&now_time, NULL);
-	const time_t seconds = now_time.tv_sec;
-	fprintf(_file, "<p align=\"left\">%s</p>\n", ctime(&seconds));
-	fprintf(_file, "<hr><br>\n");
-	fflush(_file);
+    fprintf(_file, "<html>\n");
+    fprintf(_file, "<head><title>AQUAgpusph log file.</title></head>\n");
+    fprintf(_file, "<body bgcolor=\"#f0ffff\">\n");
+    fprintf(_file, "<h1 align=\"center\">AQUAgpusph log file.</h1>\n");
+    // Starting data
+    struct timeval now_time;
+    gettimeofday(&now_time, NULL);
+    const time_t seconds = now_time.tv_sec;
+    fprintf(_file, "<p align=\"left\">%s</p>\n", ctime(&seconds));
+    fprintf(_file, "<hr><br>\n");
+    fflush(_file);
 
-	return false;
+    return false;
 }
 
 bool Log::close()
@@ -85,15 +85,15 @@ bool Log::close()
     if(!_file)
         return true;
 
-	unsigned int i;
-	char msg[512];
-	ScreenManager *S = ScreenManager::singleton();
-	CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
-	float fluid_mass = 0.f;
-	int err_code = CL_SUCCESS;
-	strcpy(msg, "");
-	// Compute fluid mass if possible
-	if(C){
+    unsigned int i;
+    char msg[512];
+    ScreenManager *S = ScreenManager::singleton();
+    CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
+    float fluid_mass = 0.f;
+    int err_code = CL_SUCCESS;
+    strcpy(msg, "");
+    // Compute fluid mass if possible
+    if(C){
         int *imove = new int[C->N];
         float *mass = new float[C->N];
         err_code |= C->getData(imove, C->imove, C->N * sizeof( int ));
@@ -111,23 +111,23 @@ bool Log::close()
                     C->fluid_mass);
             S->addMessageF(1, msg);
         }
-	}
+    }
 
-	fprintf(_file, "<br><hr>\n");
-	struct timeval now_time;
-	gettimeofday(&now_time, NULL);
-	const time_t seconds = now_time.tv_sec;
-	fprintf(_file,
+    fprintf(_file, "<br><hr>\n");
+    struct timeval now_time;
+    gettimeofday(&now_time, NULL);
+    const time_t seconds = now_time.tv_sec;
+    fprintf(_file,
             "<b><font color=\"#000000\">End of simulation</font></b><br>\n");
-	fprintf(_file, "<p align=\"left\">%s</p>\n", ctime(&seconds));
-	fprintf(_file, "</body>\n");
-	fprintf(_file, "</html>\n");
+    fprintf(_file, "<p align=\"left\">%s</p>\n", ctime(&seconds));
+    fprintf(_file, "</body>\n");
+    fprintf(_file, "</html>\n");
 
-	fflush(_file);
+    fflush(_file);
     fclose(_file);
     _file = NULL;
 
-	return false;
+    return false;
 }
 
 }}  // namespace

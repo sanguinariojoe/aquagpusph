@@ -48,13 +48,13 @@ namespace InputOutput{
 class Bounds : public Report
 {
 public:
-	/** Constructor
-	 */
-	Bounds();
+    /** Constructor
+     */
+    Bounds();
 
-	/** Destructor
-	 */
-	~Bounds();
+    /** Destructor
+     */
+    ~Bounds();
 
     /** Save the data. The data
      * @return false if all gone right, true otherwise.

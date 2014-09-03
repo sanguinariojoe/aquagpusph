@@ -38,71 +38,71 @@ namespace Aqua{ namespace CalcServer{
 class Torque : public Aqua::CalcServer::Kernel
 {
 public:
-	/** Constructor.
-	 */
-	Torque();
+    /** Constructor.
+     */
+    Torque();
 
-	/** Destructor.
-	 */
-	~Torque();
+    /** Destructor.
+     */
+    ~Torque();
 
-	/** Set the COR (Center of rotation).
-	 * @param COR Center of rotation.
-	 */
-	void cor(vec COR){_cor = COR;}
+    /** Set the COR (Center of rotation).
+     * @param COR Center of rotation.
+     */
+    void cor(vec COR){_cor = COR;}
 
-	/** Get the COR (Center of rotation).
-	 * @return Center of rotation.
-	 */
-	vec cor(){return _cor;}
+    /** Get the COR (Center of rotation).
+     * @return Center of rotation.
+     */
+    vec cor(){return _cor;}
 
-	/** Get the resultant torque.
-	 * @return Fluid torque.
-	 */
-	vec torque(){return _torque;}
+    /** Get the resultant torque.
+     * @return Fluid torque.
+     */
+    vec torque(){return _torque;}
 
-	/** Get the resultant force.
-	 * @return Fluid force.
-	 */
-	vec force(){return _force;}
+    /** Get the resultant force.
+     * @return Fluid force.
+     */
+    vec force(){return _force;}
 
-	/** Compute the forces and moments.
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool execute();
+    /** Compute the forces and moments.
+     * @return false if all gone right, true otherwise.
+     */
+    bool execute();
 
 private:
-	/** Setup the OpenCL stuff.
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool setupTorque();
+    /** Setup the OpenCL stuff.
+     * @return false if all gone right, true otherwise.
+     */
+    bool setupTorque();
 
-	/** Setup the reduction tool
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool setupReduction();
+    /** Setup the reduction tool
+     * @return false if all gone right, true otherwise.
+     */
+    bool setupReduction();
 
-	/// Center of rotation
-	vec _cor;
+    /// Center of rotation
+    vec _cor;
 
-	/// Server allocated torque.
-	cl_mem _device_torque;
-	/// Host allocated torque
-	vec _torque;
-	/// Server allocated torque.
-	cl_mem _device_force;
-	/// Host allocated torque
-	vec _force;
-	/// Kernel path
-	char *_path;
-	/// OpenCL program
-	cl_program _program;
-	/// OpenCL kernel
-	cl_kernel _kernel;
-	/// Global work size
-	size_t _global_work_size;
-	/// Local work size
-	size_t _local_work_size;
+    /// Server allocated torque.
+    cl_mem _device_torque;
+    /// Host allocated torque
+    vec _torque;
+    /// Server allocated torque.
+    cl_mem _device_force;
+    /// Host allocated torque
+    vec _force;
+    /// Kernel path
+    char *_path;
+    /// OpenCL program
+    cl_program _program;
+    /// OpenCL kernel
+    cl_kernel _kernel;
+    /// Global work size
+    size_t _global_work_size;
+    /// Local work size
+    size_t _local_work_size;
     /// Torque value reduction tool
     Reduction *_torque_reduction;
     /// Force value reduction tool

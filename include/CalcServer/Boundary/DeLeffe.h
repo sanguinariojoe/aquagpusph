@@ -29,48 +29,48 @@ namespace Aqua{ namespace CalcServer{ namespace Boundary{
 class DeLeffe : public Aqua::CalcServer::Kernel
 {
 public:
-	/** Constructor.
-	 */
-	DeLeffe();
+    /** Constructor.
+     */
+    DeLeffe();
 
-	/** Destructor.
-	 */
-	~DeLeffe();
+    /** Destructor.
+     */
+    ~DeLeffe();
 
-	/** Compute the boundary condition.
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool execute();
+    /** Compute the boundary condition.
+     * @return false if all gone right, true otherwise.
+     */
+    bool execute();
 
 private:
-	/** Setup the OpenCL stuff
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool setupOpenCL();
+    /** Setup the OpenCL stuff
+     * @return false if all gone right, true otherwise.
+     */
+    bool setupOpenCL();
 
-	/** Set the boundary elements properties.
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool elements();
+    /** Set the boundary elements properties.
+     * @return false if all gone right, true otherwise.
+     */
+    bool elements();
 
-	/** Compute the boundary condition.
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool boundary();
+    /** Compute the boundary condition.
+     * @return false if all gone right, true otherwise.
+     */
+    bool boundary();
 
-	/// OpenCL script path
-	char* _path;
+    /// OpenCL script path
+    char* _path;
 
-	/// OpenCL program
-	cl_program _program;
-	/// OpenCL boundary elements seter kernel
-	cl_kernel _setup_kernel;
-	/// OpenCL boundary condition kernel
-	cl_kernel _boundary_kernel;
-	/// Global work size (calculated with local_work_size).
-	size_t _global_work_size;
-	/// Local work size (default value = 256)
-	size_t _local_work_size;
+    /// OpenCL program
+    cl_program _program;
+    /// OpenCL boundary elements seter kernel
+    cl_kernel _setup_kernel;
+    /// OpenCL boundary condition kernel
+    cl_kernel _boundary_kernel;
+    /// Global work size (calculated with local_work_size).
+    size_t _global_work_size;
+    /// Local work size (default value = 256)
+    size_t _local_work_size;
 };
 
 }}}  // namespace

@@ -37,38 +37,38 @@ namespace Aqua{ namespace CalcServer{
  */
 struct DensityInterpolation : public Aqua::CalcServer::Kernel
 {
-	/** Constructor.
-	 */
-	DensityInterpolation();
+    /** Constructor.
+     */
+    DensityInterpolation();
 
-	/** Destructor.
-	 */
-	~DensityInterpolation();
+    /** Destructor.
+     */
+    ~DensityInterpolation();
 
-	/** Performs the density field geometric interpolation: \n
+    /** Performs the density field geometric interpolation: \n
      * \f$ \rho_i = \sum_j W \left(
             \mathbf{r}_j - \mathbf{r}_i
        \right) m_j \f$.
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool execute();
+     * @return false if all gone right, true otherwise.
+     */
+    bool execute();
 
 private:
-	/** Setup the OpenCL stuff
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool setupOpenCL();
+    /** Setup the OpenCL stuff
+     * @return false if all gone right, true otherwise.
+     */
+    bool setupOpenCL();
 
-	/// OpenCL script path
-	char* _path;
-	/// OpenCL program
-	cl_program _program;
-	/// OpenCL kernel
-	cl_kernel _kernel;
-	/// Global work size
-	size_t _global_work_size;
-	/// Local work size
-	size_t _local_work_size;
+    /// OpenCL script path
+    char* _path;
+    /// OpenCL program
+    cl_program _program;
+    /// OpenCL kernel
+    cl_kernel _kernel;
+    /// Global work size
+    size_t _global_work_size;
+    /// Local work size
+    size_t _local_work_size;
 };
 
 }}  // namespace

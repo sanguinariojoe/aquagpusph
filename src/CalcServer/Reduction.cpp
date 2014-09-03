@@ -32,33 +32,33 @@ Reduction::Reduction(cl_mem input,
                      const char* type,
                      const char* null_val,
                      const char* operation)
-	: Kernel("Reduction")
-	, _path(0)
-	, _program(0)
-	, _kernels(0)
+    : Kernel("Reduction")
+    , _path(0)
+    , _program(0)
+    , _kernels(0)
 {
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
 
-	int str_len = strlen(P->OpenCL_kernels.reduction);
-	if(str_len <= 0) {
-	    S->addMessageF(3, "The path of Reduction kernel is empty.\n");
-	    exit(EXIT_FAILURE);
-	}
-	_path = new char[str_len+4];
-	if(!_path) {
-	    S->addMessageF(3, "Memory cannot be allocated for the path.\n");
-	    exit(EXIT_FAILURE);
-	}
-	strcpy(_path, P->OpenCL_kernels.reduction);
-	strcat(_path, ".cl");
+    int str_len = strlen(P->OpenCL_kernels.reduction);
+    if(str_len <= 0) {
+        S->addMessageF(3, "The path of Reduction kernel is empty.\n");
+        exit(EXIT_FAILURE);
+    }
+    _path = new char[str_len+4];
+    if(!_path) {
+        S->addMessageF(3, "Memory cannot be allocated for the path.\n");
+        exit(EXIT_FAILURE);
+    }
+    strcpy(_path, P->OpenCL_kernels.reduction);
+    strcat(_path, ".cl");
 
     _input  = input;
     _mems.push_back(input);
     _n.push_back(n);
     if(setupOpenCL(type, null_val, operation))
         exit(EXIT_FAILURE);
-	S->addMessageF(1, "Reduction ready to work!\n");
+    S->addMessageF(1, "Reduction ready to work!\n");
 }
 
 Reduction::~Reduction()
@@ -75,26 +75,26 @@ Reduction::~Reduction()
         _kernels.at(i)=NULL;
     }
     _kernels.clear();
-	if(_program) clReleaseProgram(_program); _program=0;
-	if(_path) delete[] _path; _path=0;
-	_global_work_sizes.clear();
-	_local_work_sizes.clear();
+    if(_program) clReleaseProgram(_program); _program=0;
+    if(_path) delete[] _path; _path=0;
+    _global_work_sizes.clear();
+    _local_work_sizes.clear();
 }
 
 cl_mem Reduction::execute()
 {
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
-	CalcServer *C = CalcServer::singleton();
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
+    CalcServer *C = CalcServer::singleton();
     cl_int err_code;
     unsigned int i;
-	for(i=0;i<_kernels.size();i++){
+    for(i=0;i<_kernels.size();i++){
         size_t _global_work_size = _global_work_sizes.at(i);
         size_t _local_work_size  = _local_work_sizes.at(i);
-		#ifdef HAVE_GPUPROFILE
-			cl_event event;
-			cl_ulong end, start;
-			err_code = clEnqueueNDRangeKernel(C->command_queue,
+        #ifdef HAVE_GPUPROFILE
+            cl_event event;
+            cl_ulong end, start;
+            err_code = clEnqueueNDRangeKernel(C->command_queue,
                                               _kernels.at(i),
                                               1,
                                               NULL,
@@ -103,8 +103,8 @@ cl_mem Reduction::execute()
                                               0,
                                               NULL,
                                               &event);
-		#else
-			err_code = clEnqueueNDRangeKernel(C->command_queue,
+        #else
+            err_code = clEnqueueNDRangeKernel(C->command_queue,
                                               _kernels.at(i),
                                               1,
                                               NULL,
@@ -113,9 +113,9 @@ cl_mem Reduction::execute()
                                               0,
                                               NULL,
                                               NULL);
-		#endif
-		if(err_code != CL_SUCCESS) {
-			S->addMessageF(3, "I cannot execute the kernel.\n");
+        #endif
+        if(err_code != CL_SUCCESS) {
+            S->addMessageF(3, "I cannot execute the kernel.\n");
             S->printOpenCLError(err_code);
             return NULL;
         }
@@ -146,10 +146,10 @@ cl_mem Reduction::execute()
                 S->printOpenCLError(err_code);
                 return NULL;
             }
-			profileTime(profileTime() + (end - start)/1000.f);  // 10^-3 ms
-		#endif
-	}
-	return _mems.at(_mems.size()-1);
+            profileTime(profileTime() + (end - start)/1000.f);  // 10^-3 ms
+        #endif
+    }
+    return _mems.at(_mems.size()-1);
 }
 
 bool Reduction::setInput(cl_mem input)
@@ -168,8 +168,8 @@ bool Reduction::setupOpenCL(const char* type,
                             const char* null_val,
                             const char* operation)
 {
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    CalcServer *C = CalcServer::singleton();
     size_t input_size, data_size;
     cl_int err_code;
     char msg[1024]; strcpy(msg, "");
@@ -241,8 +241,8 @@ bool Reduction::setupOpenCL(const char* type,
             type,
             null_val,
             lsize);
-	if(kernel)clReleaseKernel(kernel); kernel=NULL;
-	if(_program)clReleaseProgram(_program); _program=NULL;
+    if(kernel)clReleaseKernel(kernel); kernel=NULL;
+    if(_program)clReleaseProgram(_program); _program=NULL;
     // Now we can start a loop while the amount of output data is greater than
     // one
     unsigned int n = _n.at(0);
@@ -308,7 +308,7 @@ bool Reduction::setupOpenCL(const char* type,
         n = _number_groups.at(i);
         i++;
     }
-	return false;
+    return false;
 }
 
 }}  // namespaces

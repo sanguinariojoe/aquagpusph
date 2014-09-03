@@ -29,18 +29,18 @@ namespace Aqua{ namespace CalcServer{
 class Sensors : public Aqua::CalcServer::Kernel
 {
 public:
-	/** Constructor.
-	 */
-	Sensors();
+    /** Constructor.
+     */
+    Sensors();
 
-	/** Destructor.
-	 */
-	~Sensors();
+    /** Destructor.
+     */
+    ~Sensors();
 
-	/** Sensors calculation.
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool execute();
+    /** Sensors calculation.
+     * @return false if all gone right, true otherwise.
+     */
+    bool execute();
 
     /** Get the sensors positions.
      * @return Sensors positions.
@@ -48,55 +48,55 @@ public:
     vec* positions();
 
 protected:
-	/** Retrieve data form the device, printing it in the output file.
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool printOutput();
+    /** Retrieve data form the device, printing it in the output file.
+     * @return false if all gone right, true otherwise.
+     */
+    bool printOutput();
 
 private:
-	/** Setup the OpenCL stuff
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool setupOpenCL();
+    /** Setup the OpenCL stuff
+     * @return false if all gone right, true otherwise.
+     */
+    bool setupOpenCL();
 
-	/** Start the output file
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool initOutput();
+    /** Start the output file
+     * @return false if all gone right, true otherwise.
+     */
+    bool initOutput();
 
-	/// Number of sensors
-	unsigned int _n;
+    /// Number of sensors
+    unsigned int _n;
 
-	/// OpenCL script path
-	char* _path;
+    /// OpenCL script path
+    char* _path;
 
-	/// Output file
-	FILE* _output;
-	/// Last time when a file was printed
-	float _output_time;
+    /// Output file
+    FILE* _output;
+    /// Last time when a file was printed
+    float _output_time;
 
     /// Device stored pressure variance
     cl_mem _dev_dens_var;
 
-	/// Positions
-	vec *_pos;
-	/// Pressure
-	cl_float *_press;
-	/// Density
-	cl_float *_dens;
-	/// Pressure variance
-	cl_float *_dens_var;
-	/// Shepard term
-	cl_float *_sum_W;
+    /// Positions
+    vec *_pos;
+    /// Pressure
+    cl_float *_press;
+    /// Density
+    cl_float *_dens;
+    /// Pressure variance
+    cl_float *_dens_var;
+    /// Shepard term
+    cl_float *_sum_W;
 
-	/// OpenCL program
-	cl_program _program;
-	/// OpenCL kernel
-	cl_kernel _kernel;
-	/// Global work size
-	size_t _global_work_size;
-	/// Local work size
-	size_t _local_work_size;
+    /// OpenCL program
+    cl_program _program;
+    /// OpenCL kernel
+    cl_kernel _kernel;
+    /// Global work size
+    size_t _global_work_size;
+    /// Local work size
+    size_t _local_work_size;
 };
 
 }}  // namespace

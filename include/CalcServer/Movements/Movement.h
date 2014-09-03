@@ -50,49 +50,49 @@ namespace Movement {
 class Movement : public Aqua::CalcServer::Kernel
 {
 public:
-	/** Constructor.
-	 */
-	Movement();
+    /** Constructor.
+     */
+    Movement();
 
-	/** Destructor.
-	 */
-	virtual ~Movement();
+    /** Destructor.
+     */
+    virtual ~Movement();
 
-	/** Parse definition file
-	 * @param def XML file with the motion definition.
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool parse(const char* def);
+    /** Parse definition file
+     * @param def XML file with the motion definition.
+     * @return false if all gone right, true otherwise.
+     */
+    bool parse(const char* def);
 
-	/** Execute the motion.
-	 * @return false if all gone right, true otherwise.
-	 */
-	virtual bool execute()=0;
+    /** Execute the motion.
+     * @return false if all gone right, true otherwise.
+     */
+    virtual bool execute()=0;
 
 protected:
-	/** Parse the input definition file (motion type specific data).
-	 * @param root Input node of the parser.
-	 * @return false if all gone right, true otherwise.
-	 */
-	virtual bool _parse(xercesc::DOMElement *root)=0;
+    /** Parse the input definition file (motion type specific data).
+     * @param root Input node of the parser.
+     * @return false if all gone right, true otherwise.
+     */
+    virtual bool _parse(xercesc::DOMElement *root)=0;
 
-	/// OpenCL program
-	cl_program _program;
-	/// OpenCL kernel
-	cl_kernel _kernel;
-	/// Global work size
-	size_t _global_work_size;
-	/// Local work size
-	size_t _local_work_size;
+    /// OpenCL program
+    cl_program _program;
+    /// OpenCL kernel
+    cl_kernel _kernel;
+    /// Global work size
+    size_t _global_work_size;
+    /// Local work size
+    size_t _local_work_size;
 
 private:
-	/** Setup the OpenCL stuff
-	 * @return false if all gone right, true otherwise.
-	 */
-	virtual bool setupOpenCL();
+    /** Setup the OpenCL stuff
+     * @return false if all gone right, true otherwise.
+     */
+    virtual bool setupOpenCL();
 
-	/// OpenCL script path
-	char* _path;
+    /// OpenCL script path
+    char* _path;
 
 };  // class Movement
 

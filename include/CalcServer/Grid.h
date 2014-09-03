@@ -35,18 +35,18 @@ namespace Aqua{ namespace CalcServer{
 class Grid : public Aqua::CalcServer::Kernel
 {
 public:
-	/** Constructor.
-	 */
-	Grid();
+    /** Constructor.
+     */
+    Grid();
 
-	/** Destructor.
-	 */
-	~Grid();
+    /** Destructor.
+     */
+    ~Grid();
 
-	/** Performs the space discretization.
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool execute();
+    /** Performs the space discretization.
+     * @return false if all gone right, true otherwise.
+     */
+    bool execute();
 
 private:
     /// Minimum position reduction tool

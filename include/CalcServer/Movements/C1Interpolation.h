@@ -90,64 +90,64 @@ private:
 class C1Interpolation
 {
 public:
-	/** Constructor.
-	 * @param data_file Data file path.
-	 * @note Data file can be omissed at the construction, but ensure yourself
-	 * to provide it later.
-	 */
-	C1Interpolation(const char *data_file=NULL);
+    /** Constructor.
+     * @param data_file Data file path.
+     * @note Data file can be omissed at the construction, but ensure yourself
+     * to provide it later.
+     */
+    C1Interpolation(const char *data_file=NULL);
 
-	/** Destructor.
-	 */
-	~C1Interpolation();
+    /** Destructor.
+     */
+    ~C1Interpolation();
 
-	/** Update data for the new time instant.
-	 * @param t Desired time instant.
-	 * @return Data array. The first component is the time.
-	 */
-	std::deque<float> update(float t);
+    /** Update data for the new time instant.
+     * @param t Desired time instant.
+     * @return Data array. The first component is the time.
+     */
+    std::deque<float> update(float t);
 
-	/** Get the number of data fields.
-	 * @return Number of data fields.
-	 */
-	unsigned int nFields(){return _data.size();}
+    /** Get the number of data fields.
+     * @return Number of data fields.
+     */
+    unsigned int nFields(){return _data.size();}
 
-	/** Get the data fields.
-	 * @return Data array. The first component is the time.
-	 */
-	std::deque<float> data(){return _data;}
+    /** Get the data fields.
+     * @return Data array. The first component is the time.
+     */
+    std::deque<float> data(){return _data;}
 
-	/** Get the data fields derivative with respect to the time.
-	 * @return Data fields derivative. The first component is the time (non
+    /** Get the data fields derivative with respect to the time.
+     * @return Data fields derivative. The first component is the time (non
      * derivated).
-	 */
-	std::deque<float> derivative();
+     */
+    std::deque<float> derivative();
 
-	/** Set the data file
-	 * @param data_file Data file path.
-	 * @return true if file was opened ok, false otherwise.
-	 * @note Seek point will be moved to the last time selected in the last
-	 * update calling, or \f$ t = 0 \f$ s if update has not been called yet.
-	 */
-	bool open(const char *data_file);
+    /** Set the data file
+     * @param data_file Data file path.
+     * @return true if file was opened ok, false otherwise.
+     * @note Seek point will be moved to the last time selected in the last
+     * update calling, or \f$ t = 0 \f$ s if update has not been called yet.
+     */
+    bool open(const char *data_file);
 
 private:
-	/** Reads a line of the file.
-	 * @return Data array. If a bad formated line or EOF is reached, clear
-	 * data array will be sent.
-	 */
-	std::deque<float> readLine();
+    /** Reads a line of the file.
+     * @return Data array. If a bad formated line or EOF is reached, clear
+     * data array will be sent.
+     */
+    std::deque<float> readLine();
 
-	/// Data file
-	FILE *_data_file;
-	/// Last requested time
-	float _time;
-	/// Computed curves for each field
-	std::deque<Poly*> _poly;
-	/// Maximum time where the curve still becomes valid
-	float _poly_time;
-	/// Interpolated output data
-	std::deque<float> _data;
+    /// Data file
+    FILE *_data_file;
+    /// Last requested time
+    float _time;
+    /// Computed curves for each field
+    std::deque<Poly*> _poly;
+    /// Maximum time where the curve still becomes valid
+    float _poly_time;
+    /// Interpolated output data
+    std::deque<float> _data;
 };
 
 }}} // namespace

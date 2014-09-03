@@ -38,38 +38,38 @@ namespace Aqua{ namespace CalcServer{ namespace Portal{
 class Portal : public Aqua::CalcServer::Kernel
 {
 public:
-	/** Constructor.
-	 */
-	Portal(InputOutput::ProblemSetup::sphPortal *portal);
+    /** Constructor.
+     */
+    Portal(InputOutput::ProblemSetup::sphPortal *portal);
 
-	/** Destructor.
-	 */
-	~Portal();
+    /** Destructor.
+     */
+    ~Portal();
 
-	/** Teleport particles from outlet to inlet.
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool execute();
+    /** Teleport particles from outlet to inlet.
+     * @return false if all gone right, true otherwise.
+     */
+    bool execute();
 
 private:
-	/** Setup the OpenCL stuff
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool setupOpenCL();
+    /** Setup the OpenCL stuff
+     * @return false if all gone right, true otherwise.
+     */
+    bool setupOpenCL();
 
-	/// OpenCL script path
-	char* _path;
-	/// Main portal
-	InputOutput::ProblemSetup::sphPortal *mPortal;
+    /// OpenCL script path
+    char* _path;
+    /// Main portal
+    InputOutput::ProblemSetup::sphPortal *mPortal;
 
-	/// OpenCL program
-	cl_program _program;
-	/// OpenCL vertices set kernel
-	cl_kernel _kernel;
-	/// Global work size (calculated with local_work_size).
-	size_t _global_work_size;
-	/// Local work size (default value = 256)
-	size_t _local_work_size;
+    /// OpenCL program
+    cl_program _program;
+    /// OpenCL vertices set kernel
+    cl_kernel _kernel;
+    /// Global work size (calculated with local_work_size).
+    size_t _global_work_size;
+    /// Local work size (default value = 256)
+    size_t _local_work_size;
 };
 
 }}}  // namespace

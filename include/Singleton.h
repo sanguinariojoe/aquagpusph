@@ -57,22 +57,22 @@ namespace Aqua{
 template<typename T> class Singleton
 {
 public:
-	/** @brief Returns the instance of the class.
-	 * @return singleton instance.
-	 */
-	static T* singleton(){return _singletonPtr;}
+    /** @brief Returns the instance of the class.
+     * @return singleton instance.
+     */
+    static T* singleton(){return _singletonPtr;}
 
 protected:
-	/// Constructor
-	Singleton(){
-	    _singletonPtr = (T*)this;
-	}
-	/// Destructor
-	~Singleton(){_singletonPtr = NULL;}
+    /// Constructor
+    Singleton(){
+        _singletonPtr = (T*)this;
+    }
+    /// Destructor
+    ~Singleton(){_singletonPtr = NULL;}
 
 private:
-	/// Static singleton pointer store
-	static T *_singletonPtr;
+    /// Static singleton pointer store
+    static T *_singletonPtr;
 };
 
 /// Initialization of the singleton as a NULL pointer

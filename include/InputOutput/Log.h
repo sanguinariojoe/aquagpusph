@@ -35,13 +35,13 @@ namespace InputOutput{
 class Log : public Report
 {
 public:
-	/** Constructor
-	 */
-	Log();
+    /** Constructor
+     */
+    Log();
 
-	/** Destructor
-	 */
-	~Log();
+    /** Destructor
+     */
+    ~Log();
 
     /** Save the data. The data
      * @return false if all gone right, true otherwise.

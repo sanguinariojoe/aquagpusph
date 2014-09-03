@@ -51,60 +51,60 @@ namespace Aqua{ namespace CalcServer{
 class Kernel
 {
 public:
-	/** Constructor.
-	 * @param kernel_name Kernel name.
-	 */
-	Kernel(const char* kernel_name);
+    /** Constructor.
+     * @param kernel_name Kernel name.
+     */
+    Kernel(const char* kernel_name);
 
-	/** Destructor
-	 */
-	virtual ~Kernel();
+    /** Destructor
+     */
+    virtual ~Kernel();
 
-	/** Returns the maximum allowed local work size for the selected device.
-	 * @param n Amount of data to solve. If 0 provided, CalcServer number of
-	 * particles will be selected.
-	 * @param queue Command queue where device is allocated. If it is NULL,
-	 * the first command queue present on the CalcServer will be selected.
-	 * @return The local work size.
-	 */
-	virtual size_t localWorkSize(unsigned int n=0,cl_command_queue queue=NULL);
+    /** Returns the maximum allowed local work size for the selected device.
+     * @param n Amount of data to solve. If 0 provided, CalcServer number of
+     * particles will be selected.
+     * @param queue Command queue where device is allocated. If it is NULL,
+     * the first command queue present on the CalcServer will be selected.
+     * @return The local work size.
+     */
+    virtual size_t localWorkSize(unsigned int n=0,cl_command_queue queue=NULL);
 
-	/** Returns the appropiated global work size depending on the local work
-	 * size.
-	 * @param size Local work size.
-	 * @param n Amount of data to solve. If 0 is provided, CalcServer number
-	 * of particles will be selected.
-	 * @return Global work size.
-	 */
-	virtual size_t globalWorkSize(size_t size, unsigned int n=0);
+    /** Returns the appropiated global work size depending on the local work
+     * size.
+     * @param size Local work size.
+     * @param n Amount of data to solve. If 0 is provided, CalcServer number
+     * of particles will be selected.
+     * @return Global work size.
+     */
+    virtual size_t globalWorkSize(size_t size, unsigned int n=0);
 
-	/** Set the kernel name.
-	 * @param kernel_name Kernel name.
-	 */
-	void name(const char* kernel_name);
-	/** Get the kernel name.
-	 * @return Kernel name.
-	 */
-	const char* name(){return (const char*)_name;}
+    /** Set the kernel name.
+     * @param kernel_name Kernel name.
+     */
+    void name(const char* kernel_name);
+    /** Get the kernel name.
+     * @return Kernel name.
+     */
+    const char* name(){return (const char*)_name;}
 
-	#ifdef HAVE_GPUPROFILE
-	    /** Set the kernel time consumed.
-	     * @param t Kernel time consumed.
-	     */
-	    void profileTime(float t){_time = t;}
-	    /** Get the kernel time consumed.
-	     * @return Kernel time consumed.
-	     */
-	    float profileTime(){return _time;}
-	#endif
+    #ifdef HAVE_GPUPROFILE
+        /** Set the kernel time consumed.
+         * @param t Kernel time consumed.
+         */
+        void profileTime(float t){_time = t;}
+        /** Get the kernel time consumed.
+         * @return Kernel time consumed.
+         */
+        float profileTime(){return _time;}
+    #endif
 
 private:
-	/// Kernel name
-	char* _name;
-	#ifdef HAVE_GPUPROFILE
-	    /// Kernel real time consumed
-	    float _time;
-	#endif
+    /// Kernel name
+    char* _name;
+    #ifdef HAVE_GPUPROFILE
+        /// Kernel real time consumed
+        float _time;
+    #endif
 };
 
 }}  // namespace

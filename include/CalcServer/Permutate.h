@@ -31,60 +31,60 @@ namespace Aqua{ namespace CalcServer{
 class Permutate : public Aqua::CalcServer::Kernel
 {
 public:
-	/** Constructor.
-	 */
-	Permutate();
+    /** Constructor.
+     */
+    Permutate();
 
-	/** Destructor.
-	 */
-	~Permutate();
+    /** Destructor.
+     */
+    ~Permutate();
 
-	/** Sort the particles data.
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool sort();
+    /** Sort the particles data.
+     * @return false if all gone right, true otherwise.
+     */
+    bool sort();
 
-	/** Unsort the particles data.
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool unsort();
+    /** Unsort the particles data.
+     * @return false if all gone right, true otherwise.
+     */
+    bool unsort();
 
 private:
-	/** Run the permutations.
-	 * @param permutations Permutations memory object
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool execute(cl_mem permutations);
+    /** Run the permutations.
+     * @param permutations Permutations memory object
+     * @return false if all gone right, true otherwise.
+     */
+    bool execute(cl_mem permutations);
 
-	/** Set the origin and duplicated OpenCL memory objects
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool setupMems();
+    /** Set the origin and duplicated OpenCL memory objects
+     * @return false if all gone right, true otherwise.
+     */
+    bool setupMems();
 
-	/** Setup the OpenCL stuff
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool setupOpenCL();
+    /** Setup the OpenCL stuff
+     * @return false if all gone right, true otherwise.
+     */
+    bool setupOpenCL();
 
-	/// OpenCL script path
-	char *_path;
+    /// OpenCL script path
+    char *_path;
 
-	/// OpenCL program
-	cl_program _program;
-	/// Data sorting kernel
-	cl_kernel _kernel;
+    /// OpenCL program
+    cl_program _program;
+    /// Data sorting kernel
+    cl_kernel _kernel;
 
-	/// Origin buffers
+    /// Origin buffers
     std::deque<cl_mem> _mems;
-	/// Origin buffers sizes
+    /// Origin buffers sizes
     std::deque<size_t> _mems_size;
-	/// Duplicated buffers
+    /// Duplicated buffers
     std::deque<cl_mem> _backup;
 
-	/// Global work size.
-	size_t _global_work_size;
-	/// Local work size
-	size_t _local_work_size;
+    /// Global work size.
+    size_t _global_work_size;
+    /// Local work size
+    size_t _local_work_size;
 
 };
 

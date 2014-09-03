@@ -37,34 +37,34 @@ namespace Aqua{ namespace CalcServer{ namespace Movement{
 class C1Quaternion : public Aqua::CalcServer::Movement::Quaternion
 {
 public:
-	/** Constructor.
-	 */
-	C1Quaternion();
+    /** Constructor.
+     */
+    C1Quaternion();
 
-	/** Destructor.
-	 */
-	~C1Quaternion();
+    /** Destructor.
+     */
+    ~C1Quaternion();
 
-	/** Execute the movement.
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool execute();
+    /** Execute the movement.
+     * @return false if all gone right, true otherwise.
+     */
+    bool execute();
 
 protected:
-	/** Parse the input definition file.
-	 * @param root Input node of the parser.
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool _parse(xercesc::DOMElement *root);
+    /** Parse the input definition file.
+     * @param root Input node of the parser.
+     * @return false if all gone right, true otherwise.
+     */
+    bool _parse(xercesc::DOMElement *root);
 
 private:
-	/** Read the initial quaternion position.
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool setInitialPositions();
+    /** Read the initial quaternion position.
+     * @return false if all gone right, true otherwise.
+     */
+    bool setInitialPositions();
 
-	/// Data file Contiguous C1 interpolator
-	C1Interpolation *_data;
+    /// Data file Contiguous C1 interpolator
+    C1Interpolation *_data;
 };
 
 }}} // namespace

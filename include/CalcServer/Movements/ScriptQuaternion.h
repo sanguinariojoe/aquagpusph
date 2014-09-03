@@ -44,57 +44,57 @@ namespace Aqua{ namespace CalcServer{ namespace Movement{
 class ScriptQuaternion : public Aqua::CalcServer::Movement::Quaternion
 {
 public:
-	/** Constructor.
-	 */
-	ScriptQuaternion();
+    /** Constructor.
+     */
+    ScriptQuaternion();
 
-	/** Destructor.
-	 */
-	~ScriptQuaternion();
+    /** Destructor.
+     */
+    ~ScriptQuaternion();
 
-	/** Execute the motion.
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool execute();
+    /** Execute the motion.
+     * @return false if all gone right, true otherwise.
+     */
+    bool execute();
 
 protected:
-	/** Parse the input definition file.
-	 * @param root Input node of the parser.
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool _parse(xercesc::DOMElement *root);
+    /** Parse the input definition file.
+     * @param root Input node of the parser.
+     * @return false if all gone right, true otherwise.
+     */
+    bool _parse(xercesc::DOMElement *root);
 
 private:
-	/** Init quaternion. init() script method will called in order to get it.
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool initQuaternion();
+    /** Init quaternion. init() script method will called in order to get it.
+     * @return false if all gone right, true otherwise.
+     */
+    bool initQuaternion();
 
-	/** Initialize the perform() script method for a future usage.
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool initPython();
+    /** Initialize the perform() script method for a future usage.
+     * @return false if all gone right, true otherwise.
+     */
+    bool initPython();
 
-	/** Check a result value in order to know if is a valid returned value.
-	 * @param quat Resultant quaternion.
-	 * @return true if valid script output provided, false otherwise.
-	 */
-	bool isValidOutput(PyObject *quat);
+    /** Check a result value in order to know if is a valid returned value.
+     * @param quat Resultant quaternion.
+     * @return true if valid script output provided, false otherwise.
+     */
+    bool isValidOutput(PyObject *quat);
 
-	/** Create the arguments tuple.
-	 * @param torque Fluid torque measured.
-	 * @return The arguments object.
-	 */
-	PyObject* args(vec torque, vec force);
+    /** Create the arguments tuple.
+     * @param torque Fluid torque measured.
+     * @return The arguments object.
+     */
+    PyObject* args(vec torque, vec force);
 
-	/// Python script path
-	char* _script;
-	/// Torque calculator
-	Torque *_torque;
-	/// Python module object
-	PyObject *_module;
-	/// Python function
-	PyObject *_func;
+    /// Python script path
+    char* _script;
+    /// Torque calculator
+    Torque *_torque;
+    /// Python module object
+    PyObject *_module;
+    /// Python function
+    PyObject *_func;
 };
 
 }}} // namespace

@@ -38,45 +38,45 @@ namespace Aqua{ namespace CalcServer{
 class TimeStep : public Aqua::CalcServer::Kernel
 {
 public:
-	/** Constructor.
-	 */
-	TimeStep();
+    /** Constructor.
+     */
+    TimeStep();
 
-	/** Destructor.
-	 */
-	~TimeStep();
+    /** Destructor.
+     */
+    ~TimeStep();
 
-	/** Time step computation.
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool execute();
+    /** Time step computation.
+     * @return false if all gone right, true otherwise.
+     */
+    bool execute();
 
 private:
-	/** Setup the OpenCL stuff
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool setupOpenCL();
+    /** Setup the OpenCL stuff
+     * @return false if all gone right, true otherwise.
+     */
+    bool setupOpenCL();
 
-	/// OpenCL script path
-	char* _path;
+    /// OpenCL script path
+    char* _path;
 
-	/// OpenCL program
-	cl_program _program;
-	/// OpenCL kernel
-	cl_kernel _kernel;
-	/// Global work size (calculated with local_work_size).
-	size_t _global_work_size;
-	/// Local work size (default value = 256)
-	size_t _local_work_size;
+    /// OpenCL program
+    cl_program _program;
+    /// OpenCL kernel
+    cl_kernel _kernel;
+    /// Global work size (calculated with local_work_size).
+    size_t _global_work_size;
+    /// Local work size (default value = 256)
+    size_t _local_work_size;
 
-	/// Convective time step reduction tool
-	Reduction *_reduction;
+    /// Convective time step reduction tool
+    Reduction *_reduction;
 
-	/// Main time step
-	float _dt;
+    /// Main time step
+    float _dt;
 
-	/// Time step clamped flag (in order to avoid the annoying clamping error)
-	bool _is_dt_clamp;
+    /// Time step clamped flag (in order to avoid the annoying clamping error)
+    bool _is_dt_clamp;
 };
 
 }}  // namespace

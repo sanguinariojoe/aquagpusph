@@ -48,89 +48,89 @@ namespace Aqua{ namespace CalcServer{
 class Energy : public Aqua::CalcServer::Kernel
 {
 public:
-	/** Constructor.
-	 */
-	Energy();
+    /** Constructor.
+     */
+    Energy();
 
-	/** Destructor.
-	 */
-	~Energy();
+    /** Destructor.
+     */
+    ~Energy();
 
-	/** Get the resultant total energy.
-	 * @return Total energy: \f$ E = U + E_{kin} \f$.
-	 * @warning The viscous dissipation is not implemented yet.
-	 */
-	float energy(){return _E.x + _E.w;}
+    /** Get the resultant total energy.
+     * @return Total energy: \f$ E = U + E_{kin} \f$.
+     * @warning The viscous dissipation is not implemented yet.
+     */
+    float energy(){return _E.x + _E.w;}
 
-	/** Get the internal energy.
-	 * @return Internal energy: \f$ U = \int_0^t \sum_i \frac{p_i}{\rho_i^2}
-	     \left(
+    /** Get the internal energy.
+     * @return Internal energy: \f$ U = \int_0^t \sum_i \frac{p_i}{\rho_i^2}
+         \left(
             \frac{\mathrm{d} \rho_i}{\mathrm{d} t}
             - \left. \frac{\mathrm{d} \rho_i}{\mathrm{d} t} \right\vert_F
-	     \right) m_i \mathrm{d}t \f$.
-	 * @warning The viscous dissipation is not implemented yet.
-	 */
-	float internalEnergy(){return _E.x;}
+         \right) m_i \mathrm{d}t \f$.
+     * @warning The viscous dissipation is not implemented yet.
+     */
+    float internalEnergy(){return _E.x;}
 
-	/** Get the enthalpy.
-	 * @return Enthalpy: \f$ H = \int_0^t \sum_i \frac{p_i}{\rho_i^2}
+    /** Get the enthalpy.
+     * @return Enthalpy: \f$ H = \int_0^t \sum_i \frac{p_i}{\rho_i^2}
          \frac{\mathrm{d} \rho_i}{\mathrm{d} t} m_i \mathrm{d}t \f$.
-	 * @warning The viscous dissipation is not implemented yet.
-	 */
-	float enthalpy(){return _E.y;}
+     * @warning The viscous dissipation is not implemented yet.
+     */
+    float enthalpy(){return _E.y;}
 
-	/** Get the entropy.
-	 * @return Entropy: \f$ TS = U - H \f$.
-	 * @warning The viscous dissipation is not implemented yet.
-	 */
-	float entropy(){return _E.x - _E.y;}
+    /** Get the entropy.
+     * @return Entropy: \f$ TS = U - H \f$.
+     * @warning The viscous dissipation is not implemented yet.
+     */
+    float entropy(){return _E.x - _E.y;}
 
-	/** Get the potential energy.
-	 * @return Potential energy: \f$ E_{pot} = - \sum_i m_i
-	     \mathbf{g} \cdot \mathbf{r}_i \f$.
-	 */
-	float potentialEnergy(){return _E.z;}
+    /** Get the potential energy.
+     * @return Potential energy: \f$ E_{pot} = - \sum_i m_i
+         \mathbf{g} \cdot \mathbf{r}_i \f$.
+     */
+    float potentialEnergy(){return _E.z;}
 
-	/** Get the total kinetic energy.
-	 * @return Kinetic energy: \f$ E_{kin} = \sum_i \frac{1}{2} m_i
-	     \vert \mathbf{u}_i \vert^2 \f$.
-	 */
-	float kineticEnergy(){return _E.w;}
+    /** Get the total kinetic energy.
+     * @return Kinetic energy: \f$ E_{kin} = \sum_i \frac{1}{2} m_i
+         \vert \mathbf{u}_i \vert^2 \f$.
+     */
+    float kineticEnergy(){return _E.w;}
 
-	/** Compute the energy.
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool execute();
+    /** Compute the energy.
+     * @return false if all gone right, true otherwise.
+     */
+    bool execute();
 
 private:
-	/** Setup the energy OpenCL stuff.
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool setupEnergy();
+    /** Setup the energy OpenCL stuff.
+     * @return false if all gone right, true otherwise.
+     */
+    bool setupEnergy();
 
-	/** Setup the reduction tool
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool setupReduction();
+    /** Setup the reduction tool
+     * @return false if all gone right, true otherwise.
+     */
+    bool setupReduction();
 
-	/// Server allocated energy array.
-	cl_mem _device_energy;
-	/// Host allocated energy rate of change.
-	vec4 _dEdt;
-	/// Host allocated energy.
-	vec4 _E;
-	/// Last time when the energy was computed
-	float _time;
-	/// Kernel path
-	char *_path;
-	/// OpenCL program
-	cl_program _program;
-	/// OpenCL kernel
-	cl_kernel _kernel;
-	/// Global work size
-	size_t _global_work_size;
-	/// Local work size
-	size_t _local_work_size;
+    /// Server allocated energy array.
+    cl_mem _device_energy;
+    /// Host allocated energy rate of change.
+    vec4 _dEdt;
+    /// Host allocated energy.
+    vec4 _E;
+    /// Last time when the energy was computed
+    float _time;
+    /// Kernel path
+    char *_path;
+    /// OpenCL program
+    cl_program _program;
+    /// OpenCL kernel
+    cl_kernel _kernel;
+    /// Global work size
+    size_t _global_work_size;
+    /// Local work size
+    size_t _local_work_size;
     /// Energy values reduction tool
     Reduction *_reduction;
 };

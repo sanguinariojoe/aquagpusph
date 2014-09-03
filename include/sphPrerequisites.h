@@ -117,7 +117,7 @@
 #endif
 
 #ifdef HAVE_3D
-	#ifndef vec
+    #ifndef vec
         /** @def vec
          * @brief Vector of real components.
          *
@@ -126,9 +126,9 @@
          *   - 2D = 2 components
          *   - 3D = 4 components
          */
-	    #define vec vec4
-	#endif
-	#ifndef ivec
+        #define vec vec4
+    #endif
+    #ifndef ivec
         /** @def ivec
          * @brief Vector of integer components.
          *
@@ -137,9 +137,9 @@
          *   - 2D = 2 components
          *   - 3D = 4 components
          */
-	    #define ivec ivec4
-	#endif
-	#ifndef uivec
+        #define ivec ivec4
+    #endif
+    #ifndef uivec
         /** @def uivec
          * @brief Vector of unsigned integer components.
          *
@@ -148,18 +148,18 @@
          *   - 2D = 2 components
          *   - 3D = 4 components
          */
-	    #define uivec uivec4
-	#endif
+        #define uivec uivec4
+    #endif
 #else
-	#ifndef vec
-	    #define vec vec2
-	#endif
-	#ifndef ivec
-	    #define ivec ivec2
-	#endif
-	#ifndef uivec
-	    #define uivec uivec2
-	#endif
+    #ifndef vec
+        #define vec vec2
+    #endif
+    #ifndef ivec
+        #define ivec ivec2
+    #endif
+    #ifndef uivec
+        #define uivec uivec2
+    #endif
 #endif
 
 #ifndef __CL_MIN_LOCALSIZE__
@@ -172,7 +172,7 @@
      *   - AMD GPU
      *   - NVidia GPU
      */
-	#define __CL_MIN_LOCALSIZE__ 64
+    #define __CL_MIN_LOCALSIZE__ 64
 #endif
 #ifndef __CL_MAX_LOCALSIZE__
     /** @def __CL_MAX_LOCALSIZE__
@@ -184,7 +184,7 @@
      *   - AMD GPU
      *   - NVidia GPU
      */
-	#define __CL_MAX_LOCALSIZE__ 1024
+    #define __CL_MAX_LOCALSIZE__ 1024
 #endif
 
 /// Helper string for #methodAndClassName function.
@@ -253,82 +253,82 @@ inline const char* methodAndClassName(const std::string& pretty_function)
 class mat
 {
 public:
-	/** @brief Constructor.
-	 *
-	 * The matrix will be initialized as a zeroes one.
-	 */
-	mat(){
-	    #ifdef HAVE_3D
-	        row[0].x=0.f; row[0].y=0.f; row[0].z=0.f; row[0].w=0.f;
-	        row[1].x=0.f; row[1].y=0.f; row[1].z=0.f; row[1].w=0.f;
-	        row[2].x=0.f; row[2].y=0.f; row[2].z=0.f; row[2].w=0.f;
-	        row[3].x=0.f; row[3].y=0.f; row[3].z=0.f; row[3].w=0.f;
-	    #else
-	        row[0].x=0.f; row[0].y=0.f;
-	        row[1].x=0.f; row[1].y=0.f;
-	    #endif
-	}
+    /** @brief Constructor.
+     *
+     * The matrix will be initialized as a zeroes one.
+     */
+    mat(){
+        #ifdef HAVE_3D
+            row[0].x=0.f; row[0].y=0.f; row[0].z=0.f; row[0].w=0.f;
+            row[1].x=0.f; row[1].y=0.f; row[1].z=0.f; row[1].w=0.f;
+            row[2].x=0.f; row[2].y=0.f; row[2].z=0.f; row[2].w=0.f;
+            row[3].x=0.f; row[3].y=0.f; row[3].z=0.f; row[3].w=0.f;
+        #else
+            row[0].x=0.f; row[0].y=0.f;
+            row[1].x=0.f; row[1].y=0.f;
+        #endif
+    }
 
-	/** @brief Subscript operator to return a matrix row.
-	 * @param index Row index.
-	 * @return Row vector.
-	 */
-	vec const& operator[] (unsigned index) const{
-	    return row[index];
-	}
-	/** Subscript operator to return a matrix row.
-	 * @param index Row index.
-	 * @return Row vector.
-	 */
-	vec& operator[] (unsigned index){
-	    return row[index];
-	}
+    /** @brief Subscript operator to return a matrix row.
+     * @param index Row index.
+     * @return Row vector.
+     */
+    vec const& operator[] (unsigned index) const{
+        return row[index];
+    }
+    /** Subscript operator to return a matrix row.
+     * @param index Row index.
+     * @return Row vector.
+     */
+    vec& operator[] (unsigned index){
+        return row[index];
+    }
 
-	/** Matrix-Vector Inner product operator.
-	 * @param V Vector to operate.
-	 * @return Resulting vector.
-	 */
-	vec operator* (const vec &V){
-	    unsigned int i,j;
-	    vec R;
-	    #ifdef HAVE_3D
-	        R.x = row[0].x*V.x + row[0].y*V.y + row[0].z*V.z + row[0].w*V.w;
-	        R.y = row[1].x*V.x + row[1].y*V.y + row[1].z*V.z + row[1].w*V.w;
-	        R.z = row[2].x*V.x + row[2].y*V.y + row[2].z*V.z + row[2].w*V.w;
-	        R.w = row[3].x*V.x + row[3].y*V.y + row[3].z*V.z + row[3].w*V.w;
-	    #else
-	        R.x = row[0].x*V.x + row[0].y*V.y;
-	        R.y = row[1].x*V.x + row[1].y*V.y;
-	    #endif
-	    return R;
-	}
+    /** Matrix-Vector Inner product operator.
+     * @param V Vector to operate.
+     * @return Resulting vector.
+     */
+    vec operator* (const vec &V){
+        unsigned int i,j;
+        vec R;
+        #ifdef HAVE_3D
+            R.x = row[0].x*V.x + row[0].y*V.y + row[0].z*V.z + row[0].w*V.w;
+            R.y = row[1].x*V.x + row[1].y*V.y + row[1].z*V.z + row[1].w*V.w;
+            R.z = row[2].x*V.x + row[2].y*V.y + row[2].z*V.z + row[2].w*V.w;
+            R.w = row[3].x*V.x + row[3].y*V.y + row[3].z*V.z + row[3].w*V.w;
+        #else
+            R.x = row[0].x*V.x + row[0].y*V.y;
+            R.y = row[1].x*V.x + row[1].y*V.y;
+        #endif
+        return R;
+    }
 
-	/** Assignment operator.
-	 * @param M Matrix to copy.
-	 * @return Copied matrix.
-	 */
-	mat& operator= (const mat &M) {
-	    if (this == &M) {   // Same object, simply return it
-	        return *this;
-	    }
-	    #ifdef HAVE_3D
-	        row[0].x=M[0].x; row[0].y=M[0].y; row[0].z=M[0].z; row[0].w=M[0].w;
-	        row[1].x=M[1].x; row[1].y=M[1].y; row[1].z=M[1].z; row[1].w=M[1].w;
-	        row[2].x=M[2].x; row[2].y=M[2].y; row[2].z=M[2].z; row[2].w=M[2].w;
-	        row[3].x=M[3].x; row[3].y=M[3].y; row[3].z=M[3].z; row[3].w=M[3].w;
-	    #else
-	        row[0].x=M[0].x; row[0].y=M[0].y;
-	        row[1].x=M[1].x; row[1].y=M[1].y;
-	    #endif
-	    return *this;
-	}
+    /** Assignment operator.
+     * @param M Matrix to copy.
+     * @return Copied matrix.
+     */
+    mat& operator= (const mat &M) {
+        if (this == &M) {   // Same object, simply return it
+            return *this;
+        }
+        #ifdef HAVE_3D
+            row[0].x=M[0].x; row[0].y=M[0].y; row[0].z=M[0].z; row[0].w=M[0].w;
+            row[1].x=M[1].x; row[1].y=M[1].y; row[1].z=M[1].z; row[1].w=M[1].w;
+            row[2].x=M[2].x; row[2].y=M[2].y; row[2].z=M[2].z; row[2].w=M[2].w;
+            row[3].x=M[3].x; row[3].y=M[3].y; row[3].z=M[3].z; row[3].w=M[3].w;
+        #else
+            row[0].x=M[0].x; row[0].y=M[0].y;
+            row[1].x=M[1].x; row[1].y=M[1].y;
+        #endif
+        return *this;
+    }
 private:
-	/// Matrix rows
-	#ifdef HAVE_3D
-	    vec row[4];
-	#else
-	    vec row[2];
-	#endif
+    /// Matrix rows
+    #ifdef HAVE_3D
+        vec row[4];
+    #else
+        vec row[2];
+    #endif
 };
 
 #endif // SPHPREREQUISITES_H_INCLUDED

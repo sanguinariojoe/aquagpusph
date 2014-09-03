@@ -31,13 +31,13 @@ namespace InputOutput{
 class Report : public InputOutput
 {
 public:
-	/** Constructor
-	 */
-	Report();
+    /** Constructor
+     */
+    Report();
 
-	/** Destructor
-	 */
-	virtual ~Report();
+    /** Destructor
+     */
+    virtual ~Report();
 
     /** Save the data
      * @return false if all gone right, true otherwise.

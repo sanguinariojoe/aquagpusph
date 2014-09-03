@@ -73,12 +73,12 @@ static void xmlClear()
 #define xmlS(txt) xmlTranscode(txt)
 
 #ifdef xmlAttribute
-	#undef xmlAttribute
+    #undef xmlAttribute
 #endif
 #define xmlAttribute(elem, att) xmlS( elem->getAttribute(xmlS(att)) )
 
 #ifdef xmlHasAttribute
-	#undef xmlHasAttribute
+    #undef xmlHasAttribute
 #endif
 #define xmlHasAttribute(elem, att) elem->hasAttribute(xmlS(att))
 
@@ -108,14 +108,14 @@ bool VTK::load()
     unsigned int i, n, N, cell=0, progress;
     int aux;
     char msg[1024];
-	ScreenManager *S = ScreenManager::singleton();
-	ProblemSetup *P = ProblemSetup::singleton();
-	Fluid *F = Fluid::singleton();
+    ScreenManager *S = ScreenManager::singleton();
+    ProblemSetup *P = ProblemSetup::singleton();
+    Fluid *F = Fluid::singleton();
 
-	sprintf(msg,
+    sprintf(msg,
             "Loading fluid from VTK file \"%s\"\n",
             P->fluids[fluidId()].in_path);
-	S->addMessageF(1, msg);
+    S->addMessageF(1, msg);
 
     vtkSmartPointer<vtkXMLUnstructuredGridReader> f =
         vtkSmartPointer<vtkXMLUnstructuredGridReader>::New();
@@ -203,9 +203,9 @@ bool VTK::save()
     unsigned int i;
     vtkSmartPointer<vtkVertex> vertex;
     float vect[3] = {0.f, 0.f, 0.f};
-	ScreenManager *S = ScreenManager::singleton();
+    ScreenManager *S = ScreenManager::singleton();
     TimeManager *T = TimeManager::singleton();
-	Fluid *F = Fluid::singleton();
+    Fluid *F = Fluid::singleton();
 
     vtkXMLUnstructuredGridWriter *f = create();
     if(!f)
@@ -324,8 +324,8 @@ vtkXMLUnstructuredGridWriter* VTK::create(){
     char *basename, msg[1024];
     size_t len;
     vtkXMLUnstructuredGridWriter *f = NULL;
-	ScreenManager *S = ScreenManager::singleton();
-	ProblemSetup *P = ProblemSetup::singleton();
+    ScreenManager *S = ScreenManager::singleton();
+    ProblemSetup *P = ProblemSetup::singleton();
 
     // Create the file base name
     len = strlen(P->fluids[fluidId()].out_path) + 8;
@@ -341,46 +341,46 @@ vtkXMLUnstructuredGridWriter* VTK::create(){
     }
     delete[] basename;
 
-	sprintf(msg, "Writing \"%s\" VTK output...\n", file());
+    sprintf(msg, "Writing \"%s\" VTK output...\n", file());
     S->addMessageF(1, msg);
 
     f = vtkXMLUnstructuredGridWriter::New();
     f->SetFileName(file());
 
-	return f;
+    return f;
 }
 
 bool VTK::updatePVD(){
     unsigned int n;
     char msg[1024];
-	ScreenManager *S = ScreenManager::singleton();
+    ScreenManager *S = ScreenManager::singleton();
     TimeManager *T = TimeManager::singleton();
 
-	sprintf(msg, "Writing \"%s\" Paraview data file...\n", filenamePVD());
+    sprintf(msg, "Writing \"%s\" Paraview data file...\n", filenamePVD());
     S->addMessageF(1, msg);
 
     DOMDocument* doc = getPVD();
     DOMElement* root = doc->getDocumentElement();
-	if(!root){
-	    S->addMessageF(3, "Empty XML file found!\n");
-	    return true;
-	}
+    if(!root){
+        S->addMessageF(3, "Empty XML file found!\n");
+        return true;
+    }
     n = doc->getElementsByTagName(xmlS("VTKFile"))->getLength();
-	if(n != 1){
+    if(n != 1){
         sprintf(msg,
                 "Expected 1 VTKFile root section, but %u has been found\n",
                 n);
-	    S->addMessageF(3, msg);
-	    return true;
-	}
+        S->addMessageF(3, msg);
+        return true;
+    }
 
-	DOMNodeList* nodes = root->getElementsByTagName(xmlS("Collection"));
-	if(nodes->getLength() != 1){
+    DOMNodeList* nodes = root->getElementsByTagName(xmlS("Collection"));
+    if(nodes->getLength() != 1){
         sprintf(msg,
                 "Expected 1 collection, but %u has been found\n",
                 nodes->getLength());
-	    S->addMessageF(3, msg);
-	}
+        S->addMessageF(3, msg);
+    }
     DOMNode* node = nodes->item(0);
     DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
 
@@ -412,28 +412,28 @@ bool VTK::updatePVD(){
     try {
         saver->write(doc, output);
     }
-	catch( XMLException& e ){
-	    char* message = xmlS(e.getMessage());
+    catch( XMLException& e ){
+        char* message = xmlS(e.getMessage());
         S->addMessageF(3, "XML toolkit writing error.\n");
         sprintf(msg, "\t%s\n", message);
         S->addMessage(0, msg);
         xmlClear();
-	    return true;
-	}
-	catch( DOMException& e ){
-	    char* message = xmlS(e.getMessage());
+        return true;
+    }
+    catch( DOMException& e ){
+        char* message = xmlS(e.getMessage());
         S->addMessageF(3, "XML DOM writing error.\n");
         sprintf(msg, "\t%s\n", message);
         S->addMessage(0, msg);
         xmlClear();
-	    return true;
-	}
-	catch( ... ){
+        return true;
+    }
+    catch( ... ){
         S->addMessageF(3, "Writing error.\n");
         S->addMessage(0, "\tUnhandled exception\n");
         xmlClear();
-	    return true;
-	}
+        return true;
+    }
 
     target->flush();
 
@@ -451,9 +451,9 @@ DOMDocument* VTK::getPVD()
     DOMDocument* doc = NULL;
     FILE *dummy=NULL;
 
-	// Try to open as ascii file, just to know if the file already exist
+    // Try to open as ascii file, just to know if the file already exist
     dummy = fopen(filenamePVD(), "r");
-	if(!dummy){
+    if(!dummy){
         DOMImplementation* impl;
         impl = DOMImplementationRegistry::getDOMImplementation(xmlS("Range"));
         DOMDocument* doc = impl->createDocument(
@@ -466,18 +466,18 @@ DOMDocument* VTK::getPVD()
         DOMElement *elem;
         elem = doc->createElement(xmlS("Collection"));
         root->appendChild(elem);
-	    return doc;
-	}
-	fclose(dummy);
-	XercesDOMParser *parser = new XercesDOMParser();
-	parser->setValidationScheme(XercesDOMParser::Val_Never);
-	parser->setDoNamespaces(false);
-	parser->setDoSchema(false);
-	parser->setLoadExternalDTD(false);
-	parser->parse(filenamePVD());
- 	doc = parser->getDocument();
- 	parsers.push_back(parser);
- 	return doc;
+        return doc;
+    }
+    fclose(dummy);
+    XercesDOMParser *parser = new XercesDOMParser();
+    parser->setValidationScheme(XercesDOMParser::Val_Never);
+    parser->setDoNamespaces(false);
+    parser->setDoSchema(false);
+    parser->setLoadExternalDTD(false);
+    parser->parse(filenamePVD());
+     doc = parser->getDocument();
+     parsers.push_back(parser);
+     return doc;
 }
 
 static char* namePVD = NULL;

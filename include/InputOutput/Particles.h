@@ -31,16 +31,16 @@ namespace InputOutput{
 class Particles : public InputOutput
 {
 public:
-	/** Constructor
-	 * @param first First particle managed by this saver/loader.
-	 * @param n Number of particles managed by this saver/loader.
-	 * @param ifluid Fluid index.
-	 */
-	Particles(unsigned int first, unsigned int n, unsigned int ifluid);
+    /** Constructor
+     * @param first First particle managed by this saver/loader.
+     * @param n Number of particles managed by this saver/loader.
+     * @param ifluid Fluid index.
+     */
+    Particles(unsigned int first, unsigned int n, unsigned int ifluid);
 
-	/** Destructor
-	 */
-	virtual ~Particles();
+    /** Destructor
+     */
+    virtual ~Particles();
 
     /** Save the data
      * @return false if all gone right, true otherwise.

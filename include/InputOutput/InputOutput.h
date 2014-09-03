@@ -28,13 +28,13 @@ namespace InputOutput{
 class InputOutput
 {
 public:
-	/** Constructor
-	 */
-	InputOutput(){};
+    /** Constructor
+     */
+    InputOutput(){};
 
-	/** Destructor
-	 */
-	virtual ~InputOutput(){};
+    /** Destructor
+     */
+    virtual ~InputOutput(){};
 
     /** Save the data
      * @return false if all gone right, true otherwise.

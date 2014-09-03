@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Math expression evaluator.
+ * (See Aqua::Tokenizer for details)
+ */
+
 #include <matheval.h>
 #include <stdlib.h>
 
@@ -28,9 +33,9 @@ namespace Aqua{
 
 Tokenizer::Tokenizer()
 {
-	// Register default variables
-	registerVariable("pi", M_PI);
-	registerVariable("e", M_E);
+    // Register default variables
+    registerVariable("pi", M_PI);
+    registerVariable("e", M_E);
 }
 
 Tokenizer::~Tokenizer()
@@ -71,7 +76,7 @@ bool Tokenizer::isVariable(const char* name)
     map<string, float>::iterator var = _variables.find(name);
     if(var != _variables.end())
         return true;
-	return false;
+    return false;
 }
 
 float Tokenizer::variable(const char* name)
@@ -84,14 +89,14 @@ float Tokenizer::variable(const char* name)
 
 float Tokenizer::solve(const char* eq)
 {
-	Aqua::InputOutput::ScreenManager *S;
+    Aqua::InputOutput::ScreenManager *S;
     char msg[1024], *test;
-	void *f;
+    void *f;
     char **names;
     double *values;
     int n, i;
     float result;
-	S = Aqua::InputOutput::ScreenManager::singleton();
+    S = Aqua::InputOutput::ScreenManager::singleton();
 
     // First test if the equation is directly a number
     result = strtof(eq, &test);

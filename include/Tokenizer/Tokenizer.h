@@ -40,57 +40,57 @@ namespace Aqua{
 class Tokenizer
 {
 public:
-	/// Constructor
-	Tokenizer();
+    /// Constructor
+    Tokenizer();
 
-	/// Destructor
-	~Tokenizer();
+    /// Destructor
+    ~Tokenizer();
 
-	/** @brief Register a variable.
-	 *
-	 * In case that the variable already exist, it will be modified.
-	 *
-	 * The registered variables can be used later in the expression to be
-	 * evaluated.
-	 *
-	 * @param name Name of the variable.
-	 * @param value Value of the variable.
-	 * @return true if the variable already exists, false otherwise.
-	 */
-	bool registerVariable(const char* name, float value);
+    /** @brief Register a variable.
+     *
+     * In case that the variable already exist, it will be modified.
+     *
+     * The registered variables can be used later in the expression to be
+     * evaluated.
+     *
+     * @param name Name of the variable.
+     * @param value Value of the variable.
+     * @return true if the variable already exists, false otherwise.
+     */
+    bool registerVariable(const char* name, float value);
 
-	/** @brief Unregister a variable.
-	 * @param name Name of the variable.
-	 * @return true if the variable has been unregistered, false if the
-	 * variable cannot be unregistered (for instance because it does not
+    /** @brief Unregister a variable.
+     * @param name Name of the variable.
+     * @return true if the variable has been unregistered, false if the
+     * variable cannot be unregistered (for instance because it does not
      * exist)
-	 */
-	bool unregisterVariable(const char* name);
+     */
+    bool unregisterVariable(const char* name);
 
     /** @brief Clear/unregister all the registered variables.
      */
     void clearVariables();
 
-	/** @brief Checks if a variable has been registered.
-	 * @param name Name of the variable
-	 * @return true if already exist a variable with the given name, false
-	 * otherwise.
-	 */
-	bool isVariable(const char* name);
+    /** @brief Checks if a variable has been registered.
+     * @param name Name of the variable
+     * @return true if already exist a variable with the given name, false
+     * otherwise.
+     */
+    bool isVariable(const char* name);
 
-	/** Returns a variable value.
-	 * @param name Name of the variable
-	 * @return The Value of the variable, or 0.0 if the variable cannot be
-	 * found.
-	 */
-	float variable(const char* name);
+    /** Returns a variable value.
+     * @param name Name of the variable
+     * @return The Value of the variable, or 0.0 if the variable cannot be
+     * found.
+     */
+    float variable(const char* name);
 
-	/** Solve the math expression.
-	 * @param eq Math expression to solve.
-	 * @return Expression value, 0.0 if the evaluation failed (it will be
+    /** Solve the math expression.
+     * @param eq Math expression to solve.
+     * @return Expression value, 0.0 if the evaluation failed (it will be
      * reported by terminal).
-	 */
-	float solve(const char* eq);
+     */
+    float solve(const char* eq);
 
 protected:
     /** @brief Register the default variables.
@@ -102,8 +102,8 @@ protected:
     virtual void defaultVariables();
 
 private:
-	/// Registered variables
-	std::map<std::string, float> _variables;
+    /// Registered variables
+    std::map<std::string, float> _variables;
 };   // class Tokenizer
 
 }   // namespaces
