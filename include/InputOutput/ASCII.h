@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Particles plain text data files loader/saver.
+ * (See Aqua::InputOutput::ASCII for details)
+ */
+
 #ifndef ASCII_H_INCLUDED
 #define ASCII_H_INCLUDED
 
@@ -27,87 +32,95 @@
 namespace Aqua{
 namespace InputOutput{
 
-/** \class ASCII ASCII.h InputOutput/ASCII.h
- * ASCII particles data file loader/saver. These files are formatted as ASCCI
- * plain text where particles are stored by rows, where the fields are
- * separated by columns.
- * @note Comments are allowed using the symbol '#'. All the text after this
- * symbol, and in the same line, will be discarded.
- * @note The fields can be separated by the following symbols:
- *   - ' '
- *   - ','
- *   - ';'
- *   - '('
- *   - ')'
- *   - '['
- *   - ']'
- *   - '{'
- *   - '}'
- *   - '\t'
- * @note The expected fields are:
- *   -# \f$\mathbf{r}$\f.\f$x\f$
- *   -# \f$\mathbf{r}$\f.\f$y\f$
- *   -# \f$\mathbf{r}$\f.\f$z\f$ (For 3d cases only)
- *   -# \f$\mathbf{n}$\f.\f$x\f$
- *   -# \f$\mathbf{n}$\f.\f$y\f$
- *   -# \f$\mathbf{n}$\f.\f$z\f$ (For 3d cases only)
- *   -# \f$\mathbf{v}$\f.\f$x\f$
- *   -# \f$\mathbf{v}$\f.\f$y\f$
- *   -# \f$\mathbf{v}$\f.\f$z\f$ (For 3d cases only)
- *   -# \f$\frac{d \mathbf{v}}{d t}$\f.\f$x\f$
- *   -# \f$\frac{d \mathbf{v}}{d t}$\f.\f$y\f$
- *   -# \f$\frac{d \mathbf{v}}{d t}$\f.\f$z\f$ (For 3d cases only)
- *   -# \f$\rho$\f
- *   -# \f$\frac{d \rho}{d t}$\f
- *   -# \f$m$\f
- *   -# moving flag
- * which must be sorted inthe shown way
+/** @class ASCII ASCII.h InputOutput/ASCII.h
+ * @brief Plain text particles data file loader/saver.
+ *
+ * These files are formatted as ASCCI plain text where the particles data are
+ * stored by rows, and where the fields are separated by columns.
+ *
+ * The fields to be saved/loaded are:
+ *   -# \f$ \mathbf{r} \f$ . \f$ x \f$
+ *   -# \f$ \mathbf{r} \f$ . \f$ y \f$
+ *   -# \f$ \mathbf{r} \f$ . \f$ z \f$ (For 3D cases only)
+ *   -# \f$ \mathbf{n} \f$ . \f$ x \f$
+ *   -# \f$ \mathbf{n} \f$ . \f$ y \f$
+ *   -# \f$ \mathbf{n} \f$ . \f$ z \f$ (For 3D cases only)
+ *   -# \f$ \mathbf{u} \f$ . \f$ x \f$
+ *   -# \f$ \mathbf{u} \f$ . \f$ y \f$
+ *   -# \f$ \mathbf{u} \f$ . \f$ z \f$ (For 3D cases only)
+ *   -# \f$ \frac{d \mathbf{u}}{dt} \f$ . \f$ x \f$
+ *   -# \f$ \frac{d \mathbf{u}}{dt} \f$ . \f$ y \f$
+ *   -# \f$ \frac{d \mathbf{u}}{dt} \f$ . \f$ z \f$ (For 3D cases only)
+ *   -# \f$ \rho \f$
+ *   -# \f$ \frac{d \rho}{dt} \f$
+ *   -# \f$ m \f$
+ *   -# moving flag (see Aqua::InputOutput::Fluid::imove)
+ *
+ * @note Comments are allowed using the symbol `"#"`, such that all the text
+ * after this symbol, and in the same line, will be discarded.
+ * The fields can be separated by the following symbols:
+ *   - `" "`
+ *   - `","`
+ *   - `";"`
+ *   - `"("`
+ *   - `")"`
+ *   - `"["`
+ *   - `"]"`
+ *   - `"{"`
+ *   - `"}"`
+ *   - tabulator
+ * @warning Saving the particles data in plain text format may be heavily hard
+ * disk demanding, and therefore it is strongly recommended to consider binary
+ * formats like Aqua::InputOutput::VTK.
  */
 class ASCII : public Particles
 {
 public:
-    /** Constructor
+    /** @brief Constructor
      * @param first First particle managed by this saver/loader.
      * @param n Number of particles managed by this saver/loader.
      * @param ifluid Fluid index.
      */
     ASCII(unsigned int first, unsigned int n, unsigned int ifluid);
 
-    /** Destructor
-     */
+    /// Destructor
     ~ASCII();
 
-    /** Save the data. The data
+    /** @brief Save the data.
      * @return false if all gone right, true otherwise.
      */
     bool save();
 
-    /** Load the particles data.
+    /** @brief Load the data.
      * @return false if all gone right, true otherwise.
      */
     bool load();
 
 private:
-    /** Count the number of Particles.
-     * @param f File to be readed.
+    /** @brief Count the number of particles present in the input file.
+     * @param f File to be read.
      * @return The number of particles found in the file.
      */
     unsigned int readNParticles(FILE *f);
 
-    /** Format a line.
-     * @param l String line.
+    /** @brief Conveniently format a read line.
+     * @param l Line text.
      */
     void formatLine(char* l);
 
-    /** Count the number of fields in a formated text line.
-     * @param l String line.
+    /** @brief Count the number of fields in a text line.
+     * @param l Line text.
      * @return The number of fields found in the line.
-     * @warning It is assumed that formatLine has been called before.
+     * @warning It is assumed that the line text has been formatted calling
+     * formatLine().
      */
     unsigned int readNFields(char* l);
 
-    /** Create a new file to write
+    /** @brief Create a new file to write.
      * @return The file handler, NULL if errors happened.
+     * @see Aqua::InputOutput::Particles::file(const char* basename,
+     *                                         unsigned int start_index,
+     *                                         unsigned int digits=5)
      */
     FILE* create();
 };  // class InputOutput
