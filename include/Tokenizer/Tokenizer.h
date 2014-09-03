@@ -16,11 +16,18 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Math expression evaluator.
+ * (See Aqua::Tokenizer for details)
+ */
+
 #ifndef TOKENIZER_H_INCLUDED
 #define TOKENIZER_H_INCLUDED
 
 #include <map>
 #include <string>
+
+namespace Aqua{
 
 /** \class Tokenizer Tokenizer.h Tokenizer/Tokenizer.h
  * @brief Tool to evaluate math expressions.
@@ -83,5 +90,7 @@ private:
 	/// Registered variables
 	std::map<std::string, float> _variables;
 };   // class Tokenizer
+
+}   // namespaces
 
 #endif // TOKENIZER_H_INCLUDED

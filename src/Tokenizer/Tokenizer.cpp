@@ -24,6 +24,8 @@
 
 using namespace std;
 
+namespace Aqua{
+
 Tokenizer::Tokenizer()
 {
 	// Register default variables
@@ -141,3 +143,5 @@ void Tokenizer::defaultVariables()
 {
     // Pi and e are registered variables out of the box
 }
+
+}  // namespace
