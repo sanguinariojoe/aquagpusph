@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Simulation configuration files manager.
+ * (See Aqua::InputOutput::State for details)
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

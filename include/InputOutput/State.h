@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Simulation configuration files manager.
+ * (See Aqua::InputOutput::State for details)
+ */
+
 #ifndef STATE_H_INCLUDED
 #define STATE_H_INCLUDED
 
@@ -39,159 +44,206 @@ namespace Aqua{
 namespace InputOutput{
 
 /** \class State State.h InputOutput/State.h
- *  Load/Save the XML simulation definition.
+ * @brief Load/Save the XML simulation definition files.
+ *
+ * In AQUAgpusph the input/output managers are divided in 3 different types:
+ *   -# The simulation configuration files manager
+ *   -# The report file managers
+ *   -# The particles output file managers
+ *
+ * This class is based in the xerces-c library, to learn more please visit the
+ * following web page:
+ *
+ * http://xerces.apache.org/xerces-c
+ *
+ * You can find more information about how to create simulation configuration
+ * files in the examples provided with the package, in the user manual (chapter
+ * 4), and in the Aqua::InputOutput::ProblemSetup class documentation.
+ *
+ * @see Aqua::InputOutput::InputOutput
+ * @see Aqua::InputOutput::Report
+ * @see Aqua::InputOutput::Particles
  */
 class State : public InputOutput
 {
 public:
-    /** Constructor
-     */
+    /// Constructor
     State();
 
-    /** Destructor
-     */
+    /// Destructor
     ~State();
 
-    /** Save the data
+    /** @brief Save the configuration file.
+     *
+     * The saved XML file can be used to continue the simulation from the last
+     * saved time instant.
+     *
+     * The output XML file will be the first non existing file named
+     * `"AQUAgpusph.save.%d.xml"`, where `"%d"` is an unsigned integer.
+     *
+     * Of course, to can load a saved simulation, the output particles file
+     * should be saved as well.
+     * @see Aqua::InputOutput::Particles::save()
      * @return false if all gone right, true otherwise.
      */
     bool save();
 
-    /** Load the data
+    /** @brief Load the simulation configuration data.
      * @return false if all gone right, true otherwise.
      */
     bool load();
 
-private:
-    /** Parse the XML file
+protected:
+    /** @brief Parse the XML file
      * @param filepath file to be parsed.
      * @return false if all gone right, true otherwise
+     * @note This function is calling himself for each `<Include>` tag found,
+     * conveniently changing the input file name @paramname{filepath}.
      */
     bool parse(const char* filepath);
 
-    /** Look for general settings sections.
+    /** @brief Parse the general settings sections.
      * @param root root XML node.
      * @return false if all gone right, true otherwise
+     * @see Aqua::InputOutput::ProblemSetup::sphSettings
      */
     bool parseSettings(xercesc::DOMElement *root);
 
-    /** Look for OpenCL settings sections.
+    /** @brief Parse the OpenCL settings sections.
      * @param root Root XML node.
      * @return false if all gone right, true otherwise
+     * @see Aqua::InputOutput::ProblemSetup::sphOpenCLKernels
      */
     bool parseOpenCL(xercesc::DOMElement *root);
 
-    /** Look for time control sections.
+    /** @brief Parse the time control sections.
      * @param root Root XML node.
      * @return false if all gone right, true otherwise
+     * @see Aqua::InputOutput::ProblemSetup::sphTimingParameters
      */
     bool parseTiming(xercesc::DOMElement *root);
 
-    /** Look for SPH settings sections.
+    /** @brief Parse the SPH settings sections.
      * @param root Root XML node.
      * @return false if all gone right, true otherwise
+     * @see Aqua::InputOutput::ProblemSetup::sphSPHParameters
      */
     bool parseSPH(xercesc::DOMElement *root);
 
-    /** Look for fluids sections.
+    /** @brief Parse the fluids sections.
      * @param root Root XML node.
      * @return false if all gone right, true otherwise
+     * @see Aqua::InputOutput::ProblemSetup::sphFluidParameters
      */
     bool parseFluid(xercesc::DOMElement *root);
 
-    /** Look for sensors sections.
+    /** @brief Parse the sensors sections.
      * @param root Root XML node.
      * @return false if all gone right, true otherwise
+     * @see Aqua::InputOutput::ProblemSetup::sphSensorsParameters
      */
     bool parseSensors(xercesc::DOMElement *root);
 
-    /** Look for movements sections.
+    /** @brief Parse the movements sections.
      * @param root Root XML node.
      * @return false if all gone right, true otherwise
+     * @see Aqua::InputOutput::ProblemSetup::sphMoveParameters
      */
     bool parseMotions(xercesc::DOMElement *root);
 
-    /** Look for portals sections.
+    /** @brief Outdated data, just ignore it.
      * @param root Root XML node.
      * @return false if all gone right, true otherwise
+     * @see Aqua::InputOutput::ProblemSetup::sphPortal
      */
     bool parsePortals(xercesc::DOMElement *root);
 
-    /** Look for ghost particles sections.
+    /** @brief Parse the ghost particles sections.
      * @param root Root XML node.
      * @return false if all gone right, true otherwise
+     * @see Aqua::InputOutput::ProblemSetup::sphGhostParticles
      */
     bool parseGhostParticles(xercesc::DOMElement *root);
 
-    /** Write the XML file
+    /** @brief Write the XML file
      * @param filepath file to be written.
      * @return false if all gone right, true otherwise
      */
     bool write(const char* filepath);
 
-    /** Write the settings section.
+    /** @brief Write the settings section.
      * @param doc XML generated document.
      * @param root root XML node.
      * @return false if all gone right, true otherwise
+     * @see Aqua::InputOutput::ProblemSetup::sphSettings
      */
     bool writeSettings(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
 
-    /** Wrute the OpenCL section.
+    /** @brief Write the OpenCL section.
      * @param doc XML generated document.
      * @param root Root XML node.
      * @return false if all gone right, true otherwise
+     * @see Aqua::InputOutput::ProblemSetup::sphOpenCLKernels
      */
     bool writeOpenCL(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
 
-    /** Write the time control section.
+    /** @brief Write the time control section.
      * @param doc XML generated document.
      * @param root Root XML node.
      * @return false if all gone right, true otherwise
+     * @see Aqua::InputOutput::ProblemSetup::sphTimingParameters
      */
     bool writeTiming(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
 
-    /** Write the SPH settings section.
+    /** @brief Write the SPH settings section.
      * @param doc XML generated document.
      * @param root Root XML node.
      * @return false if all gone right, true otherwise
+     * @see Aqua::InputOutput::ProblemSetup::sphSPHParameters
      */
     bool writeSPH(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
 
-    /** Write the fluids sections.
+    /** @brief Write the fluids sections.
      * @param doc XML generated document.
      * @param root Root XML node.
      * @return false if all gone right, true otherwise
+     * @see Aqua::InputOutput::ProblemSetup::sphFluidParameters
      */
     bool writeFluid(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
 
-    /** Write the sensors section.
+    /** @brief Write the sensors section.
      * @param doc XML generated document.
      * @param root Root XML node.
      * @return false if all gone right, true otherwise
+     * @see Aqua::InputOutput::ProblemSetup::sphSensorsParameters
      */
     bool writeSensors(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
 
-    /** Write the movements section.
+    /** @brief Write the movements section.
      * @param doc XML generated document.
      * @param root Root XML node.
      * @return false if all gone right, true otherwise
+     * @see Aqua::InputOutput::ProblemSetup::sphMoveParameters
      */
     bool writeMotions(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
 
-    /** write the portals section.
+    /** @brief Outdated data, just ignore it.
      * @param doc XML generated document.
      * @param root Root XML node.
      * @return false if all gone right, true otherwise
+     * @see Aqua::InputOutput::ProblemSetup::sphPortal
      */
     bool writePortals(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
 
-    /** Write the ghost particles section.
+    /** @brief Write the ghost particles section.
      * @param doc XML generated document.
      * @param root Root XML node.
      * @return false if all gone right, true otherwise
+     * @see Aqua::InputOutput::ProblemSetup::sphGhostParticles
      */
     bool writeGhostParticles(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
 
+private:
     /// Output file
     char* _output_file;
 };  // class InputOutput
