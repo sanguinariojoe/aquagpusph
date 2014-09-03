@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Fluid energy report.
+ * (See Aqua::InputOutput::Energy for details)
+ */
+
 #ifndef REPORT_ENERGY_H_INCLUDED
 #define REPORT_ENERGY_H_INCLUDED
 
@@ -27,10 +32,14 @@
 namespace Aqua{
 namespace InputOutput{
 
-/** \class Energy Energy.h InputOutput/Energy.h
- * Energy file loader/saver. The energy file is just a tabulated ASCII file
- * where the energy components are printed by rows (a time instant per line).
- * The energy components printed are:
+/** @class Energy Energy.h InputOutput/Energy.h
+ * @brief Fluid energy report saver.
+ *
+ * In this report the fluid energy components are saved.
+ *
+ * This report is a plain text file.
+ * Each line corresponds to a different time instant.
+ * At each line the following fields are saved, separated by tabulators:
  *   -# Potential energy: \f$ E_{pot} = - \sum_i m_i
      \mathbf{g} \cdot \mathbf{r}_i \f$.
  *   -# Kinetic energy: \f$ E_{kin} = \sum_i \frac{1}{2} m_i
@@ -44,34 +53,35 @@ namespace InputOutput{
      \frac{\mathrm{d} \rho_i}{\mathrm{d} t} m_i \mathrm{d}t \f$.
  *   -# Entropy: \f$ TS = U - H \f$.
  *   -# Total energy: \f$ E = U + E_{kin} \f$.
+ *
+ * The output file will be the first non existent file called `"energy.%d.dat"`,
+ * where `"%d"` is replaced by a unsigned integer.
  */
 class Energy : public Report
 {
 public:
-    /** Constructor
-     */
+    /// Constructor
     Energy();
 
-    /** Destructor
-     */
+    /// Destructor
     ~Energy();
 
-    /** Save the data. The data
+    /** @brief Save the data.
      * @return false if all gone right, true otherwise.
      */
     bool save();
 
-    /** Get the file handler
+    /** @brief Get the energy report file handler.
      * @return The output file handler.
      */
     FILE* fileHandler(){return _file;}
 private:
-    /** Create the output file
+    /** @brief Create the output file
      * @return false if all gone right, true otherwise.
      */
     bool create();
 
-    /** Close the output file
+    /** @brief Close the output file
      * @return false if all gone right, true otherwise.
      */
     bool close();

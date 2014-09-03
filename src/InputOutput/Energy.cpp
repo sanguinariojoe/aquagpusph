@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Fluid energy report.
+ * (See Aqua::InputOutput::Energy for details)
+ */
+
 #include <stdlib.h>
 #include <string.h>
 
