@@ -29,6 +29,15 @@ namespace InputOutput{
 
 /** \class InputOutput InputOutput.h InputOutput/InputOutput.h
  * @brief Base class for all the input/output file managers.
+ *
+ * In AQUAgpusph the input/output managers are divided in 3 different types:
+ *   -# The simulation configuration files manager
+ *   -# The report file managers
+ *   -# The particles output file managers
+ *
+ * @see Aqua::InputOutput::State
+ * @see Aqua::InputOutput::Report
+ * @see Aqua::InputOutput::Particles
  */
 class InputOutput
 {
