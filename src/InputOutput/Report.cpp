@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Base class for all the report file managers.
+ * (See Aqua::InputOutput::Report for details)
+ */
+
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
