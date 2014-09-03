@@ -91,7 +91,7 @@ protected:
      * exist in the system.
      * @param start_index First index that will be checked.
      * @return false if all gone right, true otherwise.
-     * @note If more than one `%d` strings are found in @paramname{basename},
+     * @note If more than one `"%d"` strings are found in @paramname{basename},
      * just the first one will be replaced.
      */
     bool file(const char* basename, unsigned int start_index);

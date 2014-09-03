@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Particles files manager.
+ * (See Aqua::InputOutput::Particles for details)
+ */
+
 #ifndef PARTICLES_H_INCLUDED
 #define PARTICLES_H_INCLUDED
 
@@ -26,68 +31,81 @@ namespace Aqua{
 namespace InputOutput{
 
 /** \class Particles Particles.h InputOutput/Particles.h
- *  Particles file loader/saver base class.
+ * @brief Particles file loader/saver base class.
+ *
+ * In AQUAgpusph the input/output managers are divided in 3 different types:
+ *   -# The simulation configuration files manager
+ *   -# The report file managers
+ *   -# The particles output file managers
+ *
+ * The particles files have 2 main objectives:
+ *   -# Particles data loading at the start of simulations.
+ *   -# Visualization of the simulation results.
+ *
+ * @see Aqua::InputOutput::InputOutput
+ * @see Aqua::InputOutput::Report
+ * @see Aqua::InputOutput::State
  */
 class Particles : public InputOutput
 {
 public:
-    /** Constructor
+    /** @brief Constructor
      * @param first First particle managed by this saver/loader.
      * @param n Number of particles managed by this saver/loader.
      * @param ifluid Fluid index.
      */
     Particles(unsigned int first, unsigned int n, unsigned int ifluid);
 
-    /** Destructor
-     */
+    /// Destructor
     virtual ~Particles();
 
-    /** Save the data
+    /** @brief Save the data.
      * @return false if all gone right, true otherwise.
      */
     virtual bool save(){return false;}
 
-    /** Load the data
+    /** @brief Load the data.
      * @return false if all gone right, true otherwise.
      */
     virtual bool load(){return false;}
 
-    /** Get the last printed file.
+    /** @brief Get the last printed file path.
      * @return The last printed file, NULL if a file has not been printed yet.
      */
     const char* file(){return (const char*)_output_file;}
 
 protected:
-    /** Get the bounds of the fluid managed by this class
-     * @return The bounds (first and last particle indexes).
+    /** @brief Get the particle index bounds of the fluid managed by this class.
+     * @return The index bounds (first and last particle).
      */
     uivec2 bounds(){return _bounds;}
 
-    /** Get the fluid index associated with this loader/saver
+    /** @brief Get the fluid index associated with this class
      * @return The fluid index.
      */
     unsigned int fluidId(){return _ifluid;}
 
-    /** Set a new file.
-     * @param filename The new file to work. Optionally a null parameter can
-     * be passed in order to clear the stored file.
+    /** @brief Set the file name.
+     * @param filename The new file to save/load. Optionally a null parameter
+     * can be passed in order to clear the stored file name.
      */
     void file(const char* filename);
 
-    /** Set the file name as the first ungenerate file.
-     * @param basename The base name of the file. In this base name the %d
-     * substring will be replaced by the first integer such that the file
-     * does not exist.
-     * @param startindex First index that will be tested.
+    /** Look for the first non existing file name.
+     * @param basename The base name of the file. In this base name the `%d`
+     * string will be replaced by the first integer such that the file does not
+     * exist in the system.
+     * @param start_index First index that will be checked.
      * @param digits Number of digits of the replaced integer number. If the
-     * number of digits of the integer value are greater than this value, then
-     * it will be ignored.
+     * number of digits of the integer value are greater than this value this
+     * parameter will be ignored, otherwise zeroes will be appended at the left
+     * of the decimal representation of the integer.
      * @return false if all gone right, true otherwise.
-     * @note If more than one %d substrings are found, just the first one will
-     * be replaced.
+     * @note If more than one `"%d"` strings are found in @paramname{basename},
+     * just the first one will be replaced.
      */
     bool file(const char* basename,
-              unsigned int startindex,
+              unsigned int start_index,
               unsigned int digits=5);
 
 private:
