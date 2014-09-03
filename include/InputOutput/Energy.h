@@ -61,11 +61,6 @@ public:
      */
     bool save();
 
-    /** Useless method
-     * @return false.
-     */
-    bool load(){return false;}
-
     /** Get the file handler
      * @return The output file handler.
      */

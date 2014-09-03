@@ -52,19 +52,17 @@ namespace InputOutput{
 class Report : public InputOutput
 {
 public:
-    /// Constructor
-    Report();
-
-    /// Destructor
-    virtual ~Report();
-
-    /** @brief Save the data
+    /** @brief Save the data.
      * @return false if all gone right, true otherwise.
      */
-    virtual bool save(){return false;}
+    virtual bool save() = 0;
 
-    /** @brief Load the data
-     * @return false if all gone right, true otherwise.
+    /** @brief Load the data.
+     *
+     * Since the reports are mainly output files, the load method should be
+     * useless, and therefore this class provide a way to can omit it in the
+     * inherited ones.
+     * @return false.
      */
     virtual bool load(){return false;}
 
@@ -74,6 +72,12 @@ public:
     const char* file(){return (const char*)_output_file;}
 
 protected:
+    /// Constructor
+    Report();
+
+    /// Destructor
+    virtual ~Report();
+
     /** @brief Set the report file name.
      * @param filename The file name. Optionally @paramname{filename} = null can
      * be set in order to clear the stored file name.

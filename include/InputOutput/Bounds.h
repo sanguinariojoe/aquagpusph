@@ -56,15 +56,10 @@ public:
      */
     ~Bounds();
 
-    /** Save the data. The data
+    /** Save the data.
      * @return false if all gone right, true otherwise.
      */
     bool save();
-
-    /** Useless method
-     * @return false.
-     */
-    bool load(){return false;}
 
     /** Get the file handler
      * @return The output file handler.
