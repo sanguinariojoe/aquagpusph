@@ -30,8 +30,9 @@
 namespace Aqua{ namespace InputOutput{
 
 /** @class ArgumentsManager ArgumentsManager.h ArgumentsManager.h
- * Input terminal options and parameters manager. The currently valid options
- * are:
+ * @brief Input terminal options and parameters manager.
+ *
+ * The currently valid options are:
  *   - -i, --input=INPUT            XML definition input file (Input.xml as
  *     default value).
  *   - -v, --version                Show the AQUAgpusph version.
