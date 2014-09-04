@@ -16,76 +16,74 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Particles sorting/unsorting tool.
+ * (See Aqua::CalcServer::Permutate for details)
+ */
+
 #ifndef HAVE_3D
     #include "types/2D.h"
 #else
     #include "types/3D.h"
 #endif
 
-#ifndef uint
-	#define uint unsigned int
-#endif
-
-#ifdef _g
-	#error '_g' is already defined.
-#endif
-#define _g __global
-
-#ifdef _c
-	#error '_c' is already defined.
-#endif
-#define _c __constant
-
-#ifdef _l
-	#error '_l' is already defined.
-#endif
-#define _l __local
-
 /** Permutate the data arrays from the unsorted space to the sorted one, and
  * viceversa.
- * @param ifluid permuted output fluid identifier.
- * @param ifluid_in Unpermuted fluid identifier.
- * @param imove permuted output moving flag.
- * @param imove_in Unpermuted moving flag.
- * @param pos permuted output position.
- * @param pos_in Unpermuted position.
- * @param normal permuted output position.
- * @param normal_in Unpermuted position.
- * @param v permuted output velocity.
- * @param v_in Unpermuted velocity.
- * @param f permuted output acceleration.
- * @param f_in Unpermuted acceleration.
- * @param dens permuted output density.
- * @param dens_in Unpermuted density.
- * @param press permuted output pressure.
- * @param press_in Unpermuted pressure.
- * @param mass permuted output mass.
- * @param mass_in Unpermuted mass.
- * @param drdt permuted output density variation rate.
- * @param drdt_in Unpermuted density variation rate.
- * @param drdt_F permuted output density variation rate (due to Delta-SPH).
- * @param drdt_F_in Unpermuted density variation rate (due to Delta-SPH).
- * @param shepard permuted output Shepard factor.
- * @param shepard_in Unpermuted Shepard factor.
+ * @param ifluid permuted fluid index.
+ * @param ifluid_in Fluid index.
+ * @param imove Permuted moving flags.
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param imove_in Moving flags.
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param pos Permuted position \f$ \mathbf{r} \f$.
+ * @param pos_in Position \f$ \mathbf{r} \f$.
+ * @param normal Permuted normal \f$ \mathbf{n} \f$.
+ * @param normal_in Normal \f$ \mathbf{n} \f$.
+ * @param v Permuted velocity \f$ \mathbf{u} \f$.
+ * @param v_in Velocity \f$ \mathbf{u} \f$.
+ * @param dvdt Permuted velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
+ * @param dvdt_in Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
+ * @param dens Permuted density \f$ \rho \f$.
+ * @param dens_in Density \f$ \rho \f$.
+ * @param press Permuted pressure \f$ p \f$.
+ * @param press_in Pressure \f$ p \f$.
+ * @param mass Permuted mass \f$ m \f$.
+ * @param mass_in Mass \f$ m \f$.
+ * @param drdt Permuted density rate of change \f$ \frac{d \rho}{d t} \f$.
+ * @param drdt_in Density rate of change \f$ \frac{d \rho}{d t} \f$.
+ * @param drdt_F Permuted density rate of change restricted to the diffusive
+ * term \f$ \left. \frac{d \rho}{d t} \right\vert_F \f$.
+ * @param drdt_F_in Density rate of change restricted to the diffusive term
+ * \f$ \left. \frac{d \rho}{d t} \right\vert_F \f$.
+ * @param shepard Permutated shepard term
+ * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
+ *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{x} \f$.
+ * @param shepard_in Shepard term
+ * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
+ *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{x} \f$.
  * @param permut Permutations array.
  * @param N Number of particles.
  */
-__kernel void Permutate(_g int* ifluid, _g int* ifluid_in,
-                        _g int* imove, _g int* imove_in,
-                        _g vec* pos, _g vec* pos_in,
-                        _g vec* normal, _g vec* normal_in,
-                        _g vec* v, _g vec* v_in,
-                        _g vec* f, _g vec* f_in,
-                        _g float* dens, _g float* dens_in,
-                        _g float* press, _g float* press_in,
-                        _g float* mass, _g float* mass_in,
-                        _g float* drdt, _g float* drdt_in,
-                        _g float* drdt_F, _g float* drdt_F_in,
-                        _g float* shepard, _g float* shepard_in,
-                        _g uint *permut,
-                        uint N)
+__kernel void Permutate(__global int* ifluid, __global int* ifluid_in,
+                        __global int* imove, __global int* imove_in,
+                        __global vec* pos, __global vec* pos_in,
+                        __global vec* normal, __global vec* normal_in,
+                        __global vec* v, __global vec* v_in,
+                        __global vec* dvdt, __global vec* dvdt_in,
+                        __global float* dens, __global float* dens_in,
+                        __global float* press, __global float* press_in,
+                        __global float* mass, __global float* mass_in,
+                        __global float* drdt, __global float* drdt_in,
+                        __global float* drdt_F, __global float* drdt_F_in,
+                        __global float* shepard, __global float* shepard_in,
+                        __global unsigned int *permut,
+                        unsigned int N)
 {
-	uint i = get_global_id(0);
+	unsigned int i = get_global_id(0);
 	if(i >= N)
 		return;
 
@@ -93,14 +91,14 @@ __kernel void Permutate(_g int* ifluid, _g int* ifluid_in,
 	// ---- V ---- Your code here ---- V ----
 
 	// We assume i in the unsorted space, and i_out in the sorted one 
-	const uint i_out = permut[i];
+	const unsigned int i_out = permut[i];
 
 	ifluid[i_out] = ifluid_in[i];
 	imove[i_out] = imove_in[i];
 	pos[i_out] = pos_in[i];
 	normal[i_out] = normal_in[i];
 	v[i_out] = v_in[i];
-	f[i_out] = f_in[i];
+	dvdt[i_out] = dvdt_in[i];
 	dens[i_out] = dens_in[i];
 	press[i_out] = press_in[i];
 	mass[i_out] = mass_in[i];

@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Particles sorting/unsorting tool.
+ * (See Aqua::CalcServer::Permutate for details)
+ */
+
 #ifndef PERMUTATE_H_INCLUDED
 #define PERMUTATE_H_INCLUDED
 
@@ -25,43 +30,43 @@
 namespace Aqua{ namespace CalcServer{
 
 /** @class Permutate Permutate.h CalcServer/Permutate.h
- * @brief Permutate the data to sort it before the interactions stage, and
- * restore it later.
+ * @brief Particles sorting/unsorting tool.
+ *
+ * Permutate the data to sort it before the interactions stage, restoring it
+ * later.
  */
 class Permutate : public Aqua::CalcServer::Kernel
 {
 public:
-    /** Constructor.
-     */
+    /// Constructor.
     Permutate();
 
-    /** Destructor.
-     */
+    /// Destructor.
     ~Permutate();
 
-    /** Sort the particles data.
+    /** @brief Sort the particles.
      * @return false if all gone right, true otherwise.
      */
     bool sort();
 
-    /** Unsort the particles data.
+    /** @brief Unsort the particles.
      * @return false if all gone right, true otherwise.
      */
     bool unsort();
 
 private:
-    /** Run the permutations.
+    /** @brief Run the permutations.
      * @param permutations Permutations memory object
      * @return false if all gone right, true otherwise.
      */
     bool execute(cl_mem permutations);
 
-    /** Set the origin and duplicated OpenCL memory objects
+    /** @brief Set the origin and duplicated OpenCL memory objects
      * @return false if all gone right, true otherwise.
      */
     bool setupMems();
 
-    /** Setup the OpenCL stuff
+    /** @brief Setup the OpenCL stuff
      * @return false if all gone right, true otherwise.
      */
     bool setupOpenCL();
