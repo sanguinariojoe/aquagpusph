@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Reductions, like scans, prefix sums, maximum or minimum, etc...
+ * (See Aqua::CalcServer::Reduction for details)
+ */
+
 #include <stdlib.h>
 #include <math.h>
 #include <vector>

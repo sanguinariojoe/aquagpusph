@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Fluid interactions computation.
+ * (See Aqua::CalcServer::Rates for details)
+ */
+
 #include <ProblemSetup.h>
 #include <ScreenManager.h>
 #include <CalcServer/Rates.h>

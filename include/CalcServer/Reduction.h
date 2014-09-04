@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Reductions, like scans, prefix sums, maximum or minimum, etc...
+ * (See Aqua::CalcServer::Reduction for details)
+ */
+
 #ifndef REDUCTION_H_INCLUDED
 #define REDUCTION_H_INCLUDED
 
@@ -26,20 +31,20 @@
 namespace Aqua{ namespace CalcServer{
 
 /** @class Reduction Reduction.h CalcServer/Reduction.h
- * @brief Array reduction tool. It could every prefix scan operation that you
- * want.
+ * @brief Reductions, like scans, prefix sums, maximum or minimum, etc...
+ * @see Reduction.cl
  */
 class Reduction : public Aqua::CalcServer::Kernel
 {
 public:
-    /** Constructor.
+    /** @brief Reduction definition.
      * @param input Input data memory object.
      * @param n Input data elements.
      * @param type The data type array.
      * @param null_val The value considered as the null one, i.e.
-     * Infinity for min operation, (float2)(0.f,0.f) for 2D vec sum
-     * reduction, etc.
-     * @param operation The reduction operation. For instance:
+     * Infinity for min operation, (float2)(0.f,0.f) for 2D vec prefix sum, etc.
+     * @param operation The reduction operation.
+     * For instance:
      *   - "a += b;"
      *   - "a.x = (a.x < b.x) ? a.x : b.x; a.y = (a.y < b.y) ? a.y : b.y;"
      */
@@ -49,36 +54,40 @@ public:
               const char* null_val,
               const char* operation);
 
-    /** Destructor.
-     */
+    /// Destructor.
     ~Reduction();
 
-    /** Compute the prefix scan.
+    /** @brief Perform the work.
      * @return Output memory object, NULL if error is detected.
      */
     cl_mem execute();
 
-    /** Number of steps needed
+    /** @brief Number of steps needed.
+     *
+     * To reduce the array to just one variable several steps may be needed,
+     * depending on the number of work groups that should be launched at each
+     * pass.
+     *
      * @return Number of steps needed.
      */
     unsigned int nSteps(){return _global_work_sizes.size();}
 
-    /** Return the memory object which stores the final result
+    /** @brief Memory object where the final result is stored.
      * @return Memory object.
      */
     cl_mem resultMem(){return _mems.at(_mems.size() - 1);}
 
-    /** Change the data array input.
-     * @param New input data array.
+    /** @brief Memory buffer to be reduced.
+     * @param input New input data array.
      * @return false if all gone right, true otherwise.
      * @warning The new data array must be of the same size and type of the
-     * previously used one in the construction. Otherwise, please destroy this
-     * object and call the constructor again.
+     * previously used one in the construction.
+     * Otherwise, please destroy this object and call the constructor again.
      */
     bool setInput(cl_mem input);
 
 private:
-    /** Setup the OpenCL stuff
+    /** @brief Setup the OpenCL stuff
      * @param type The data type array.
      * @param null_val The value considered as the null one, i.e.
      * Infinity for min operation, (float2)(0.f,0.f) for 2D vec sum
