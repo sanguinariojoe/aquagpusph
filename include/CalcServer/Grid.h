@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Link-list grid configuration.
+ * (See Aqua::CalcServer::Grid for details)
+ */
+
 #ifndef GRID_H_INCLUDED
 #define GRID_H_INCLUDED
 
@@ -25,25 +30,27 @@
 namespace Aqua{ namespace CalcServer{
 
 /** @class Grid Grid.h CalcServer/Grid.h
- * @brief Grid allocation stage. Since the particles maximum interaction
- * distance is bounded, in SPH is a common optimization method to create a
- * lattice mesh with the cell size equal to the interaction distance in order
- * to locate each particle, unsuring therefore that all the particles which
- * can interact should be in the same cell, or in a contiguous one.
- * This tool will setup the lattice mesh (formerly grid).
+ * @brief Link-list grid configuration tool.
+ *
+ * This tool will compute the global bounds box (including boundary elements
+ * and sensors), setting up the lattice mesh where the particles will be
+ * allocated.
+ *
+ * In fact this tool is consisting in a pair of reductions to compute the bounds
+ * box.
+ * @see Aqua::CalcSercer::Reduction
+ * @see Aqua::CalcServer::LinkList
  */
 class Grid : public Aqua::CalcServer::Kernel
 {
 public:
-    /** Constructor.
-     */
+    /// Constructor.
     Grid();
 
-    /** Destructor.
-     */
+    /// Destructor.
     ~Grid();
 
-    /** Performs the space discretization.
+    /** @brief Perform the work.
      * @return false if all gone right, true otherwise.
      */
     bool execute();
