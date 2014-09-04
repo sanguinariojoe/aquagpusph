@@ -16,39 +16,62 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Wendland kernel definition (3D version).
+ */
+
 #ifndef _KERNEL_H_INCLUDED_
 #define _KERNEL_H_INCLUDED_
 
 #ifndef M_PI
+    /** @def M_PI
+     * \f$ \pi \f$ value.
+     */
 	#define M_PI 3.14159265359f
 #endif
 #ifndef iM_PI
+    /** @def iM_PI
+     * \f$ \frac{1}{\pi} \f$ value.
+     */
 	#define iM_PI 0.318309886f
 #endif
 
-/// @def sep Amount of kernel heights h into the maximum effect distance. 
 #ifndef sep
+    /** @def sep
+     * @brief Support of the kernel.
+     *
+     * Hence, At a distance \f$ sep \cdot h \f$ the kernel should vanish. 
+     */
 	#define sep 2.f
 #endif
 
-/** Method that returns kernel amount with given distance / kernel height rate.
- * @param q distance over kernel height
- * @return Kernel amount
+/** @brief The kernel value
+ * \f$ W \left(\mathbf{r_j} - \mathbf{r_i}; h\right) \f$.
+ * @param q Normalized distance \f$ \frac{\mathbf{r_j} - \mathbf{r_i}}{h} \f$.
+ * @return Kernel value.
  */
 float kernelW(float q)
 {
-	float wcon = 0.08203125f*iM_PI;                                             // 0.08203125f = 21/256
+	float wcon = 0.08203125f*iM_PI;  // 0.08203125f = 21/256
 	return wcon*(1.f+2.f*q) * (2.f-q)*(2.f-q)*(2.f-q)*(2.f-q);
 }
 
-/** Method that returns kernel derivative with given distance / kernel height rate.
- * @param q distance over kernel height
+/** @brief The kernel gradient factor
+ * \f$ F \left(\mathbf{r_j} - \mathbf{r_i}; h\right) \f$
+ *
+ * The factor \f$ F \f$ is defined such that
+ * \f$ \nabla W \left(\mathbf{r_j} - \mathbf{r_i}; h\right) =
+       \frac{\mathbf{r_j} - \mathbf{r_i}}{h} \cdot
+       F \left(\mathbf{r_j} - \mathbf{r_i}; h\right)
+   \f$.
+ *
+ * @param q Normalized distance \f$ \frac{\mathbf{r_j} - \mathbf{r_i}}{h} \f$.
  * @return Kernel amount
  */
 float kernelF(float q)
 {
-	float wcon = 0.8203125f*iM_PI;                                              // 0.8203125f = 10*21/256
-	return -wcon*(2.f-q)*(2.f-q)*(2.f-q);                                        // Take care, one q will be added later as r/h
+	float wcon = 0.8203125f*iM_PI;  // 0.8203125f = 10*21/256
+	return -wcon*(2.f-q)*(2.f-q)*(2.f-q);
 }
 
 #endif	// _KERNEL_H_INCLUDED_

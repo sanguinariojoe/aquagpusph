@@ -16,29 +16,44 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Cubic spline kernel definition (3D version).
+ */
+
 #ifndef _KERNEL_H_INCLUDED_
 #define _KERNEL_H_INCLUDED_
 
 #ifndef M_PI
+    /** @def M_PI
+     * \f$ \pi \f$ value.
+     */
 	#define M_PI 3.14159265359f
 #endif
 #ifndef iM_PI
+    /** @def iM_PI
+     * \f$ \frac{1}{\pi} \f$ value.
+     */
 	#define iM_PI 0.318309886f
 #endif
 
-/// @def sep Amount of kernel heights h into the maximum effect distance. 
 #ifndef sep
+    /** @def sep
+     * @brief Support of the kernel.
+     *
+     * Hence, At a distance \f$ sep \cdot h \f$ the kernel should vanish. 
+     */
 	#define sep 2.f
 #endif
 
-/** Method that returns kernel amount with given distance / kernel height rate.
- * @param q distance over kernel height
- * @return Kernel amount
+/** @brief The kernel value
+ * \f$ W \left(\mathbf{r_j} - \mathbf{r_i}; h\right) \f$.
+ * @param q Normalized distance \f$ \frac{\mathbf{r_j} - \mathbf{r_i}}{h} \f$.
+ * @return Kernel value.
  */
 float kernelW(float q)
 {
-	float wcona = 1.25f*iM_PI;							// 1.25 = 6/4
-	float wconb = 0.25f*iM_PI;							// 0.25 = 1/4
+	float wcona = 1.25f*iM_PI;  // 1.25 = 6/4
+	float wconb = 0.25f*iM_PI;  // 0.25 = 1/4
 	if(q <= 1.f)
 		return wcona*(2.f/3.f - q*q + 0.5f*q*q*q);
 	else if (q < 2.f)
@@ -46,14 +61,22 @@ float kernelW(float q)
 	return 0.f;
 }
 
-/** Method that returns kernel derivative with given distance / kernel height rate.
- * @param q distance over kernel height
+/** @brief The kernel gradient factor
+ * \f$ F \left(\mathbf{r_j} - \mathbf{r_i}; h\right) \f$
+ *
+ * The factor \f$ F \f$ is defined such that
+ * \f$ \nabla W \left(\mathbf{r_j} - \mathbf{r_i}; h\right) =
+       \frac{\mathbf{r_j} - \mathbf{r_i}}{h} \cdot
+       F \left(\mathbf{r_j} - \mathbf{r_i}; h\right)
+   \f$.
+ *
+ * @param q Normalized distance \f$ \frac{\mathbf{r_j} - \mathbf{r_i}}{h} \f$.
  * @return Kernel amount
  */
 float kernelF(float q)
 {
-	float wcona = 1.25f*iM_PI;							// 1.25 = 6/4
-	float wconb = 0.25f*iM_PI;							// 0.25 = 1/4
+	float wcona = 1.25f*iM_PI;  // 1.25 = 6/4
+	float wconb = 0.25f*iM_PI;  // 0.25 = 1/4
 	if(q <= 1.f)
 		return wcona*(-2.f + 1.5f*q);
 	else if (q < 2.f)
