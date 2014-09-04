@@ -16,42 +16,45 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Leap-frog time integration scheme corrector stage.
+ * (See Aqua::CalcServer::Corrector for details)
+ */
+
 #ifndef HAVE_3D
     #include "types/2D.h"
 #else
     #include "types/3D.h"
 #endif
 
-#ifndef M_PI
-	#define M_PI 3.14159265359
-#endif
-
-#ifdef _g
-	#error '_g' is already defined.
-#endif
-#define _g __global
-
-#ifdef _c
-	#error '_c' is already defined.
-#endif
-#define _c __constant
-
-/** Convinient velocity clamping correction, that ensures that
- * a particle never can move more than 0.1h in one time step.
- * Requires that minimum time step was set greather than 0
- * seconds, and of course, velocity clamping was set true.
- * @param imove Fix particles flag. Fixed particles must move
- * as required by solid motions, so their velocity can't be clamped.
- * @param v Velocity of particles.
- * @param f Forces over particles.
- * @param hp Kernel height of particles.
- * @param fin Forces over particles.
- * @param mindt Minimum time step.
- * @param grav Gravity acceleration.
+/** @brief Velocity clamping correction.
+ *
+ * This tool asserts that a particle never can move more than a distance
+ * \f$ 0.1 h \f$ in one time step.
+ * Requires that a minimum time step was set greater than 0 seconds, and the
+ * velocity clamping has been activated.
+ * @see Aqua::InputOutput::ProblemSetup::sphTimingParameters::dt_min
+ * @see Aqua::InputOutput::ProblemSetup::sphTimingParameters::velocity_clamp
+ * @param imove Moving flags.
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param v Velocity \f$ \mathbf{u}_{n} \f$.
+ * @param dvdt Velocity rate of change
+ * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n+1/2} \f$.
+ * @param dvdtin Velocity rate of change
+ * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n-1/2} \f$.
+ * @param mindt Minimum time step \f$ \Delta t \f$.
+ * @param grav Gravity acceleration \f$ \mathbf{g} \f$.
  * @param N Number of particles.
  */
-__kernel void ClampVel(_g int* imove, _g vec* v, _g vec* f, _g vec* fin,
-                        float mindt, vec grav, unsigned int N)
+__kernel void ClampVel(__global int* imove,
+                       __global vec* v,
+                       __global vec* dvdt,
+                       __global vec* fin,
+                       float mindt,
+                       vec grav,
+                       unsigned int N)
 {
 	// find position in global arrays
 	unsigned int i = get_global_id(0);
@@ -64,48 +67,95 @@ __kernel void ClampVel(_g int* imove, _g vec* v, _g vec* f, _g vec* fin,
 	// ---- V ---- Your code here ---- V ----
 
 	// Compute the distance moved if dt is equal to mindt
-	vec r = mindt*v[i] + mindt*mindt*(f[i] + 0.5f*(grav - fin[i]));
-	// Ensure that the particle is not moving too much
-	float dr2   = dot(r,r);
-	float maxdr = 0.1f*h;
-	if( dr2 > maxdr*maxdr){
+    const float dt = mindt;
+	vec r = dt * v[i] + dt * dt * (dvdt[i] + 0.5f * (grav - fin[i]));
+	// Ensure that the particle is not moving too far
+	const float dr2 = dot(r, r);
+	const float maxdr = 0.1f * h;
+	if( dr2 > maxdr * maxdr){
 		// Correct the displacement vector in order to fit to 0.1h
-		r   *= maxdr / sqrt(dr2);
+		r *= maxdr / sqrt(dr2);
 		// Get the acceleration that achieves this displacement
-		f[i] = (r - mindt*v[i])/(mindt*mindt) + 0.5f*(fin[i] - grav);
+		dvdt[i] = (r - dt * v[i]) / (dt * dt) + 0.5f * (fin[i] - grav);
 	}
 
 	// ---- A ---- Your code here ---- A ----
 	// ---- | ------------------------ | ----
 }
 
-/** Quasi-second order time integration predictor stage.
- * @param imove Fix particles flag.
- * @param ifluid Fluid identifier.
- * @param pos Position of particles.
- * @param v Velocity of particles.
- * @param f Forces over particles.
- * @param dens Density of particles.
- * @param mass Mass of particles.
- * @param drdt Density evolution of particles.
- * @param drdt_F Density evolution of the particles due to the numerical
- * diffusive term.
- * @param posin Position of particles.
- * @param vin Velocity of particles.
- * @param fin Forces over particles.
- * @param densin Density of particles.
- * @param massin Mass of particles.
- * @param drdtin Density evolution of particles.
- * @param press Pressure.
+/** @brief Leap-frog time integration scheme corrector stage.
+ *
+ * Time integration is based in the following quasi-second order
+ * Predictor-Corrector integration scheme:
+ *   - \f$ \mathbf{u}_{n+1} = \mathbf{u}_{n} + \Delta t \left(
+        \mathbf{g} +
+        \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n+1/2}
+     \right)
+     + \frac{\Delta t}{2} \left(
+        \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n + 1/2} -
+        \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n - 1/2}
+     \right)
+     \f$
+ *   - \f$ \mathbf{r}_{n+1} = \mathbf{r}_{n} + \Delta t \, \mathbf{u}_{n}
+     + \frac{\Delta t^2}{2} \left(
+        \mathbf{g} +
+        \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n+1/2}
+     \right)
+     \f$
+ *   - \f$ \rho_{n+1} = \rho_{n} + \Delta t
+        \left. \frac{\mathrm{d}\rho}{\mathrm{d}t} \right\vert_{n+1/2}
+     + \frac{\Delta t}{2} \left(
+        \left. \frac{\mathrm{d}\rho}{\mathrm{d}t} \right\vert_{n + 1/2} -
+        \left. \frac{\mathrm{d}\rho}{\mathrm{d}t} \right\vert_{n - 1/2}
+     \right)
+     \f$
+ *
+ * @param imove Moving flags.
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param pos Position \f$ \mathbf{r}_{n+1/2} \f$.
+ * @param v Velocity \f$ \mathbf{u}_{n+1/2} \f$.
+ * @param dvdt Velocity rate of change
+ * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n+1/2} \f$.
+ * @param dens Density \f$ \rho_{n+1/2} \f$.
+ * @param mass Mass \f$ m_{n+1/2} \f$.
+ * @param drdt Density rate of change
+ * \f$ \left. \frac{d \rho}{d t} \right\vert_{n+1/2} \f$.
+ * @param drdt_F Density rate of change restricted to the diffusive term
+ * \f$ \left. \frac{d \rho}{d t} \right\vert_{n+1/2, F} \f$.
+ * @param posin Position \f$ \mathbf{r}_{n} \f$.
+ * @param vin Velocity \f$ \mathbf{u}_{n} \f$.
+ * @param dvdtin Velocity rate of change
+ * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n-1/2} \f$.
+ * @param densin Density \f$ \rho_{n} \f$.
+ * @param massin Mass \f$ m_{n} \f$.
+ * @param drdtin Density rate of change
+ * \f$ \left. \frac{d \rho}{d t} \right\vert_{n-1/2} \f$.
  * @param N Number of particles.
- * @param t Simulation time.
- * @param dt Time step.
+ * @param t Simulation time \f$ t \f$.
+ * @param dt Time step \f$ \Delta t \f$.
+ * @see Predictor.cl
+ * @see Aqua::CalcServer::Predictor
+ * @see Aqua::CalcServer::Corrector
  */
-__kernel void Corrector(_g int* imove, _g vec* pos, _g vec* v, _g vec* f,
-                        _g float* dens, _g float* mass, _g float* drdt,
-                        _g float* drdt_F, _g vec* posin, _g vec* vin,
-                        _g vec* fin, _g float* densin, _g float* massin,
-                        _g float* drdtin, unsigned int N, float t, float dt)
+__kernel void Corrector(__global int* imove,
+                        __global vec* pos,
+                        __global vec* v,
+                        __global vec* dvdt,
+                        __global float* dens,
+                        __global float* mass,
+                        __global float* drdt,
+                        __global float* drdt_F,
+                        __global vec* posin,
+                        __global vec* vin,
+                        __global vec* dvdtin,
+                        __global float* densin,
+                        __global float* massin,
+                        __global float* drdtin,
+                        unsigned int N,
+                        float t,
+                        float dt)
 {
 	// find position in global arrays
 	unsigned int i = get_global_id(0);
@@ -125,13 +175,13 @@ __kernel void Corrector(_g int* imove, _g vec* pos, _g vec* v, _g vec* f,
 	HDT = 0.5f*DT;
 
 	// Corrector step for the fluid
-	v[i] = v[i] + HDT*(f[i] - fin[i]);
+	v[i] = v[i] + HDT * (dvdt[i] - dvdtin[i]);
 	// mass[i]   = mass[i] * (1.f +  hdt*(drdt[i] - drdtin[i]) / dens[i]);
 	#if __BOUNDARY__ == 1
 		// Continuity equation must be solved for fixed particles
-		dens[i] = dens[i] + 0.5f*dt*(drdt[i] + drdt_F[i] - drdtin[i]);
+		dens[i] = dens[i] + 0.5f * dt * (drdt[i] + drdt_F[i] - drdtin[i]);
 	#else
-		dens[i] = dens[i] + HDT*(drdt[i] + drdt_F[i] - drdtin[i]);
+		dens[i] = dens[i] + HDT * (drdt[i] + drdt_F[i] - drdtin[i]);
 	#endif
 	/* Calculate initial positions, mass and thermal energy
 	 * for the next step.
@@ -140,7 +190,7 @@ __kernel void Corrector(_g int* imove, _g vec* pos, _g vec* v, _g vec* f,
 	vin[i] = v[i];
 	massin[i] = mass[i];
 	densin[i] = dens[i];
-	fin[i] = f[i];
+	dvdtin[i] = dvdt[i];
 	drdtin[i] = drdt[i] + drdt_F[i];
 
 	// ---- A ---- Your code here ---- A ----

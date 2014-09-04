@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Leap-frog time integration scheme corrector stage.
+ * (See Aqua::CalcServer::Corrector for details)
+ */
+
 #ifndef CORRECTOR_H_INCLUDED
 #define CORRECTOR_H_INCLUDED
 
@@ -24,7 +29,9 @@
 namespace Aqua{ namespace CalcServer{
 
 /** @class Corrector Corrector.h CalcServer/Corrector.h
- * @brief Corrector stage. Time integration uses a quasi-second order
+ * @brief Leap-frog time integration scheme corrector stage.
+ *
+ * Time integration is based in the following quasi-second order
  * Predictor-Corrector integration scheme:
  *   - \f$ \mathbf{u}_{n+1} = \mathbf{u}_{n} + \Delta t \left(
         \mathbf{g} +
@@ -48,24 +55,26 @@ namespace Aqua{ namespace CalcServer{
         \left. \frac{\mathrm{d}\rho}{\mathrm{d}t} \right\vert_{n - 1/2}
      \right)
      \f$
+ *
+ * @see Predictor.cl
+ * @see Corrector.cl
+ * @see Aqua::CalcServer::Predictor
  */
 struct Corrector : public Aqua::CalcServer::Kernel
 {
-    /** Constructor.
-     */
+    /// Constructor.
     Corrector();
 
-    /** Destructor
-     */
+    /// Destructor
     ~Corrector();
 
-    /** Executes the time integration corrector stage.
+    /** @brief Perform the work.
      * @return false if all gone right, true otherwise.
      */
     bool execute();
 
 private:
-    /** Setup the OpenCL stuff
+    /** @brief Setup the OpenCL stuff
      * @return false if all gone right, true otherwise.
      */
     bool setupOpenCL();

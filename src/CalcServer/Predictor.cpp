@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Leap-frog time integration scheme predictor stage.
+ * (See Aqua::CalcServer::Predictor for details)
+ */
+
 #include <ProblemSetup.h>
 #include <TimeManager.h>
 #include <ScreenManager.h>
