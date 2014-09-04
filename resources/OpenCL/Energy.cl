@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief OpenCL kernels to compute the fluid energy components.
+ * (See Aqua::CalcServer::Energy for details)
+ */
+
 #ifndef HAVE_3D
     #include "types/2D.h"
 #else
