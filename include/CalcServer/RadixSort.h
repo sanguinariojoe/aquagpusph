@@ -16,40 +16,54 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Sorting permutations processor.
+ * (See Aqua::CalcServer::RadixSort for details)
+ */
+
 #ifndef RADIXSORT_H_INCLUDED
 #define RADIXSORT_H_INCLUDED
 
 #include <sphPrerequisites.h>
 #include <CL/cl.h>
 
-/** @def _ITEMS Number of items in a group
- * @note Must be power of 2, and in some devices greather than 32.
- */
 #ifndef _ITEMS
+    /** @def _ITEMS
+     * @brief Number of items in a group
+     * @note Must be power of 2, and in some devices greather than 32.
+     */
     #define _ITEMS  128
 #endif
-/** @def _GROUPS Number of groups (data must be divisible of _ITEMS*_GROUPS)
- * @note Must be power of 2
- */
 #ifndef _GROUPS
+    /** @def _GROUPS
+     * @brief Number of groups (data must be divisible of _ITEMS*_GROUPS)
+     * @note Must be power of 2
+     */
     #define _GROUPS 32
 #endif
-/// @def __UINTBITS__ Bits of an unsigned integer variable
 #ifndef __UINTBITS__
+    /** @def __UINTBITS__
+     * @brief Bits of an unsigned integer variable
+     */
     #define __UINTBITS__ 32
 #endif
-/// @def _STEPBITS Bits that be sorted in each pass
 #ifndef _STEPBITS
+    /** @def _STEPBITS
+     * @brief Bits that be sorted in each pass
+     */
     #define _STEPBITS 4
 #endif
-/// @def _RADIX Bits that be sorted in each pass
-#define _RADIX (1 << _STEPBITS)
-/** @def _HISTOSPLIT Number of splits of the histogram
- * @remarks (_GROUPS * _ITEMS * _RADIX) % _HISTOSPLIT must be equal to zero
- * @remarks (2 * _HISTOSPLIT) % _RADIX must be equal to zero
- * @remarks Must be power of 2, and in some devices greather than 64.
+/** @def _RADIX
+ * @brief Bits that be sorted in each pass
  */
+#define _RADIX (1 << _STEPBITS)
 #ifndef _HISTOSPLIT
+    /** @def _HISTOSPLIT
+     * @brief Number of splits of the histogram
+     * @remarks (_GROUPS * _ITEMS * _RADIX) % _HISTOSPLIT must be equal to zero
+     * @remarks (2 * _HISTOSPLIT) % _RADIX must be equal to zero
+     * @remarks Must be power of 2, and in some devices greather than 64.
+     */
     #define _HISTOSPLIT 512
 #endif
 
@@ -78,27 +92,38 @@
 namespace Aqua{ namespace CalcServer{
 
 /** @class RadixSort RadixSort.h CalcServer/RadixSort.h
- * @brief Methods to perform a radix sort using the GPU (or any device
- * supported by OpenCL).
+ * @brief Sorting permutations processor.
+ *
+ * Methods to perform a radix sort using the GPU (or any device supported by
+ * OpenCL).
+ *
+ * It is widely based on the implementation of Philippe Helluy:
+ *
+ * http://code.google.com/p/ocl-radix-sort
+ *
+ * Which has been incorporated to clpp library:
+ *
+ * http://code.google.com/p/clpp
+ *
  * The code has 3 steps:
  *   -# Create the histogram.
  *   -# Scan the histogram to create the accumulated one.
- *   -# Permut the variables.
- * To learn more about this code, please see also
- * http://code.google.com/p/ocl-radix-sort/updates/list
+ *   -# Permute the variables.
+ *
+ * @see RadixSort.cl
+ * @see Aqua::CalcServer::LinkList
  */
 class RadixSort
 {
 public:
-    /** Constructor
-     */
+    /// Constructor
     RadixSort();
 
-    /** Destructor
-     */
+    /// Destructor
     ~RadixSort();
 
-    /** Sorts the icell components, computing the permutations required too.
+    /** @brief Sorts the icell components, computing the permutations required
+     * too.
      * @return false if all gone right, true otherwise.
      * @warning After calling this method, CalcServer icell array, and
      * permutation array may change (including their memory direction), so
@@ -106,57 +131,57 @@ public:
      */
     bool sort();
 
-    /** Set the number of elements to sort
+    /** @brief Set the number of elements to sort
      * @param n_elements Number of elements to sort.
      * @return false if all gone right, true otherwise.
      */
     bool setN(unsigned int n_elements);
 
     #ifdef HAVE_GPUPROFILE
-        /** Set the kernel time consumed.
+        /** @brief Set the kernel time consumed.
          * @param t Kernel time consumed.
          */
         void profileTime(float t){_time = t;}
-        /** Get the kernel time consumed.
+        /** @brief Get the kernel time consumed.
          * @return Kernel time consumed.
          */
         float profileTime(){return _time;}
     #endif
 
 private:
-    /** Setup the OpenCL stuff
+    /** @brief Setup the OpenCL stuff
      * @return false if all gone right, true otherwise.
      */
     bool setupOpenCL();
 
-    /** Initialize permutations array.
+    /** @brief Initialize permutations array.
      * @return false if all gone right, true otherwise.
      */
     bool init();
 
-    /** Transpose the permutations matrix to improve the data access.
+    /** @brief Transpose the permutations matrix to improve the data access.
      * @param nbrow Number of rows.
      * @param nbcol Number of columns.
      * @return false if all gone right, true otherwise.
      */
     bool transpose(unsigned int nbrow, unsigned int nbcol);
 
-    /** Perform histograms.
+    /** @brief Perform histograms.
      * @return false if all gone right, true otherwise.
      */
     bool histograms();
 
-    /** Scan histograms.
+    /** @brief Scan histograms.
      * @return false if all gone right, true otherwise.
      */
     bool scan();
 
-    /** Scan histograms.
+    /** @brief Sort.
      * @return false if all gone right, true otherwise.
      */
     bool reorder();
 
-    /** Build the reversed permutations vector.
+    /** @brief Build the reversed permutations vector.
      * @return false if all gone right, true otherwise.
      */
     bool reversePermutations();

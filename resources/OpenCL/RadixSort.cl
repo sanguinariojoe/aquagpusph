@@ -16,14 +16,9 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @brief Methods to perform a radix sort using the GPU (or any device supported by OpenCL).
- * The code has 3 steps:
- * <ol><li> Create the histogram.</li>
- * <li> Scan the histogram to create accumulated histograms.</li>
- * <li> Permut the variables.</li></ul>
- * In order to improve the data access, the info is transposed. \n
- * Radix sort requires also several pass (VarBits / Radix). \n
- * To learn more about this code, please see also http://code.google.com/p/ocl-radix-sort/updates/list
+/** @file
+ * @brief Sorting permutations processor.
+ * (See Aqua::CalcServer::Permutate for details)
  */
 
 #ifndef HAVE_3D
@@ -32,33 +27,27 @@
     #include "types/3D.h"
 #endif
 
-/// @def _BITS Bits of the Radix
 #ifndef _BITS
+    /** @def _BITS
+     * @brief Bits of the Radix
+     */
 	#define _BITS 8
 #endif
-/// @def _RADIX Resultant Radix
 #ifndef _RADIX
+    /** @def _RADIX
+     * @brief Radix
+     */
 	#define _RADIX (1 << _BITS)
 #endif
 
-#ifdef _g
-	#error '_g' is already defined.
-#endif
-#define _g __global
-
-#ifdef _l
-	#error '_l' is already defined.
-#endif
-#define _l __local
-
-#ifdef _c
-	#error '_c' is already defined.
-#endif
-#define _c __constant
-
 #pragma OPENCL EXTENSION cl_khr_byte_addressable_store : enable 
 
-/** Initializes the permutations.
+
+/** @brief Initializes the permutations.
+ *
+ * Of course the initial permutations are the ones which redirects to the same
+ * original position.
+ *
  * @param d_inPermut Initial permutations (null)
  * @param n Number of keys.
  */
@@ -72,14 +61,18 @@ __kernel void init(__global unsigned int* d_inPermut,
 	d_inPermut[i] = i;
 }
 
-/** Transpose the input data to improve the data memory access in the next
+
+/** @brief Transpose the data. 
+ *
+ * Transpose the input data to improve the data memory access in the next
  * steps. An array sorted such that the indexes are \n
  * [0, 1, ..., nbrow, 1+nbrow, ..., 2*nbrow, ..., n-1] \n
  * will be transposed as: \n
  * [0, nbrow, 2*nbrow, ..., 1, 1+nbrow, ..., n-1]
+ *
  * @param invect Input vector of keys
  * @param outvect Transposed vector of keys
- * @param nbcol nbrow / n
+ * @param nbcol @paramname{nbrow} / @paramname{n}
  * @param nbrow Number of rows
  * @param inperm Input permutations array
  * @param outperm Transposed permutations array
@@ -88,9 +81,9 @@ __kernel void init(__global unsigned int* d_inPermut,
  * @param tilesize Dimensions of the shared memory matrices
  * @remarks If the local size is not big enough, it will be artificially
  * increased due to some implementations will not support it otherwise
- * @note In the initialization nbrow = _ITEMS*_GROUPS, which of course will be
- * untransposed at the end of the radix sort process with
- * nbcol = _ITEMS*_GROUPS
+ * @note In the initialization @paramname{nbrow} = #_ITEMS * #_GROUPS which, of
+ * course, will be untransposed at the end of the radix sort process with
+ * @paramname{nbcol} = #_ITEMS * #_GROUPS
  */
 __kernel void transpose(const __global unsigned int* invect,
                         __global unsigned int* outvect,
@@ -139,19 +132,23 @@ __kernel void transpose(const __global unsigned int* invect,
 	}
 }
 
-/** Perform the local histograms. The histograms are the number of occurrences
- * of each radix. Since we are working in parallel, the number of ocurrences
- * of each radix will be splited in blocks of dimension _ITEMS*_GROUPS:
- *   | it(0)gr(0)ra(0) | it(1)gr(0)ra(0) | ... | it(items)gr(0)ra(0) |
- *   | it(0)gr(1)ra(0) | it(1)gr(1)ra(0) | ... | it(items)gr(1)ra(0) |
- *   | ... | | | |
- *   | it(0)gr(groups)ra(0) | it(1)gr(groups)ra(0) | ... | it(items)gr(groups)ra(0) |
- *   | it(0)gr(0)ra(1) | it(1)gr(0)ra(1) | ... | it(items)gr(0)ra(1) |
- *   | ... | | | |
- *   | it(0)gr(groups)ra(1) | it(1)gr(groups)ra(1) | ... | it(items)gr(groups)ra(1) |
- *   | ... | | | |
- *   | it(0)gr(groups)ra(radix) | it(1)gr(groups)ra(radix) | ... | it(items)gr(groups)ra(radix) |
+
+/** @brief Perform the local histograms.
+ * The histograms are the number of occurrences of each radix. Since we are
+ * working in parallel, the number of ocurrences of each radix will be splited
+ * in blocks of dimension #_ITEMS * #_GROUPS:
+ *   - | it(0)gr(0)ra(0)          | it(1)gr(0)ra(0)          | ... | it(items)gr(0)ra(0)          |
+ *   - | it(0)gr(1)ra(0)          | it(1)gr(1)ra(0)          | ... | it(items)gr(1)ra(0)          |
+ *   - | ...                      |                          |     |                              |
+ *   - | it(0)gr(groups)ra(0)     | it(1)gr(groups)ra(0)     | ... | it(items)gr(groups)ra(0)     |
+ *   - | it(0)gr(0)ra(1)          | it(1)gr(0)ra(1)          | ... | it(items)gr(0)ra(1)          |
+ *   - | ...                      |                          |     |                              |
+ *   - | it(0)gr(groups)ra(1)     | it(1)gr(groups)ra(1)     | ... | it(items)gr(groups)ra(1)     |
+ *   - | ...                      |                          |     |                              |
+ *   - | it(0)gr(groups)ra(radix) | it(1)gr(groups)ra(radix) | ... | it(items)gr(groups)ra(radix) |
+ *
  * where it is the thread, gr is the group, and ra is the radix.
+ *
  * @param d_Keys Input unsorted keys allocated into the device.
  * @param d_Histograms Input histograms.
  * @param pass Pass of the radix decomposition.
@@ -217,24 +214,31 @@ __kernel void histogram(const __global unsigned int* d_Keys,
 	barrier(CLK_GLOBAL_MEM_FENCE);  
 }
 
-/** perform a parallel prefix sum (a scan) on the local histograms (see
- * Blelloch 1990), retrieving the accumulated histogram. Each workitem
- * worries about two memories.
- * See also http://http.developer.nvidia.com/GPUGems3/gpugems3_ch39.html
+
+/** @brief Perform a parallel prefix sum (a scan) on the local histograms.
+ *
+ *
+ * With this process the accumulated histogram is computed.
+ *
+ * @see Blelloch 1990.
+ * @see http://http.developer.nvidia.com/GPUGems3/gpugems3_ch39.html
+ *
  * @param histo Local histograms, or number of ocurrences of each radix,
  * divided by blocks, as shown in histogram() method.
  * @param temp Local memory used to speed up the process.
  * @param globsum Total number of keys at each group (output).
  * @note In the first time that this kernel is called blocks of
- * _RADIX*_GROUPS*_ITEMS/_HISTOSPLIT accumulated histograms are generated
- * (_HISTOSPLIT number of them). Therefore _HISTOSPLIT global sums are
- * computed.
- * The second time that this kernel is called the accumulated histogram of
- * the _HISTOSPLIT global sums are computed, computing as well the total
+ * #_RADIX * #_GROUPS * #_ITEMS / #_HISTOSPLIT accumulated histograms are
+ * generated (#_HISTOSPLIT number of them). Therefore #_HISTOSPLIT global sums
+ * are computed.
+ * The second time when this kernel is called the accumulated histogram of
+ * the #_HISTOSPLIT global sums is computed, computing as well the total
  * sum of all the histograms (which is the number of keys), that will be
  * discarded.
  */
-__kernel void scanhistograms( __global unsigned int* histo,__local unsigned int* temp,__global unsigned int* globsum)
+__kernel void scanhistograms(__global unsigned int* histo,
+                             __local unsigned int* temp,
+                             __global unsigned int* globsum)
 {
 	unsigned int it = get_local_id(0);
 	unsigned int ig = get_global_id(0);
@@ -297,11 +301,14 @@ __kernel void scanhistograms( __global unsigned int* histo,__local unsigned int*
 	barrier(CLK_GLOBAL_MEM_FENCE);
 }  
 
-/** Use the _HISTOSPLIT accumulated global sums for updating the splited
- * accumulated histogram
- * @param histo Accumulated histogram. At the start the histogram is
- * reinitializated _HISTOSPLIT times.
- * @param globsum Accumulated global sums (with _HISTOSPLIT components).
+
+/** @brief Paste togheter the splited hisotgrams.
+ *
+ * Use the #_HISTOSPLIT accumulated global sums for updating the splited
+ * accumulated histogram.
+ *
+ * @param histo Accumulated histogram.
+ * @param globsum Accumulated global sums (with #_HISTOSPLIT components).
  */
 __kernel void pastehistograms( __global unsigned int* histo,__global unsigned int* globsum)
 {
@@ -318,8 +325,7 @@ __kernel void pastehistograms( __global unsigned int* histo,__global unsigned in
 }
 
 
-
-/** Perform permutations using the accumulated histogram.
+/** @brief Permutations list computation.
  * @param d_inKeys Input unsorted keys.
  * @param d_outKeys Output sorted keys.
  * @param d_Histograms Scanned histograms.
@@ -329,8 +335,8 @@ __kernel void pastehistograms( __global unsigned int* histo,__global unsigned in
  * @param loc_histo Histogram local memory to speed up the process.
  * @param n Number of keys.
  * @warning Radix sort needs several pass, so the output sorted keys of this
- * pass must be the input unsorted keys of the next pass. Don't forgive to swap
- * the OpenCL identifiers (for keys and permutations).
+ * pass must be the input unsorted keys of the next pass.
+ * Don't forgive to swap the OpenCL identifiers (for keys and permutations).
  * @note The output data from this kernel (keys and permutations) may need a
  * transposition.
  */
@@ -411,8 +417,10 @@ __kernel void reorder(const __global unsigned int* d_inKeys,
 	}
 }
 
-/** Compute the reversed permutations, which allows to know the original
- * position of a key from the sorted one.
+/** @brief Inversed permutations list computation.
+ *
+ * It allows to know the original position of a key from the sorted one.
+ *
  * @param d_directPermut Direct permutations (from the unsorted position to the
  * sorted one)
  * @param d_reversePermut Reverse permutations (from the sorted position to the
