@@ -38,7 +38,7 @@ namespace Aqua{ namespace CalcServer{
  *
  * In fact this tool is consisting in a pair of reductions to compute the bounds
  * box.
- * @see Aqua::CalcSercer::Reduction
+ * @see Aqua::CalcServer::Reduction
  * @see Aqua::CalcServer::LinkList
  */
 class Grid : public Aqua::CalcServer::Kernel
