@@ -16,6 +16,10 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Type definitions for the OpenCL kernels (3D version).
+ */
+
 #ifndef vec
     /** @def vec
      * @brief Vector of real components.
