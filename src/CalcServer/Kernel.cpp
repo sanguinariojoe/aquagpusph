@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Aqua::CalcServer tools base class.
+ * (See Aqua::CalcServer::Kernel for details)
+ */
+
 #include <CalcServer/Kernel.h>
 #include <CalcServer.h>
 
