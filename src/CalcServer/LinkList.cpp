@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Link-list computation tool.
+ * (See Aqua::CalcServer::LinkList for details)
+ */
+
 #include <ProblemSetup.h>
 #include <ScreenManager.h>
 #include <CalcServer/LinkList.h>
@@ -50,7 +55,7 @@ LinkList::LinkList()
     }
     strcpy(_path, P->OpenCL_kernels.link_list);
     strcat(_path, ".cl");
-    //! 2nd.- Setup the kernels
+    // Setup the kernels
     _local_work_size  = localWorkSize();
     if(!_local_work_size){
         S->addMessageF(3, "I cannot get a valid local work size for the required computation tool.\n");
@@ -60,7 +65,7 @@ LinkList::LinkList()
     if(setupOpenCL()) {
         exit(EXIT_FAILURE);
     }
-    //! 3rd.- Built radix sort
+    // Built radix sort
     _radix_sort = new RadixSort();
     S->addMessageF(1, "LinkList ready to work!\n");
 }
