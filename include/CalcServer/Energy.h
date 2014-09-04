@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Tool to compute the fluid energy components.
+ * (See Aqua::CalcServer::Energy for details)
+ */
+
 #ifndef ENERGY_H_INCLUDED
 #define ENERGY_H_INCLUDED
 
@@ -24,8 +29,31 @@
 
 namespace Aqua{ namespace CalcServer{
 
+/** @class Bounds Bounds.h CalcServer/Bounds.h
+ * @brief Computes the fluid particles bounds box, and the maximum and minimum
+ * velocities.
+ *
+ * The bounds box is defined as the smallest box where all the fluid particles
+ * are included inside.
+ *
+ * To do it this tool is working as follows:
+ *   -# The velocity and position fields in the shorted space are copied in a
+ *      helper memory buffer.
+ *   -# The values of the non fluid particles (boundary or sensor ones) are
+ *      filtered, i.e. For the minimum value computation INFINITY values are set
+ *      while for the maximum components -INFINITY is used.
+ *   -# The corresponding reduction is processed to get the minimum/maximum
+ *      value.
+ *
+ * @see Bounds.cl
+ * @see Aqua::InputOutput::Bounds
+ * @see Aqua::CalcServer::Reduction
+ */
+
 /** @class Energy Energy.h CalcServer/Energy.h
- * @brief Computes the fluid energy components:
+ * @brief Computes the fluid energy components.
+ *
+ * The following energy components are considered:
  *   -# Potential energy: \f$ E_{pot} = - \sum_i m_i
      \mathbf{g} \cdot \mathbf{r}_i \f$.
  *   -# Kinetic energy: \f$ E_{kin} = \sum_i \frac{1}{2} m_i
@@ -39,30 +67,32 @@ namespace Aqua{ namespace CalcServer{
      \frac{\mathrm{d} \rho_i}{\mathrm{d} t} m_i \mathrm{d}t \f$.
  *   -# Entropy: \f$ TS = U - H \f$.
  *   -# Total energy: \f$ E = U + E_{kin} \f$.
+ *
+ * This tool is computing each of the aforementioned energy components for each
+ * particle, reducing it later with a prefix sum.
+ *
  * @remarks Since some energy components must be integrated in time, a low
- * energy file output/update frequency may imply too big time steps for the
- * numerical integration process whith poor results.
- * @note The energy computation is accelerated with OpenCL, so its computation
- * should not significantly affect to the preformance.
+ * energy file output/update frequency may imply poor results.
+ * @see Energy.cl
+ * @see Aqua::InputOutput::Energy
+ * @see Aqua::CalcServer::Reduction
  */
 class Energy : public Aqua::CalcServer::Kernel
 {
 public:
-    /** Constructor.
-     */
+    /// Constructor.
     Energy();
 
-    /** Destructor.
-     */
+    /// Destructor.
     ~Energy();
 
-    /** Get the resultant total energy.
+    /** @brief Get the total energy.
      * @return Total energy: \f$ E = U + E_{kin} \f$.
      * @warning The viscous dissipation is not implemented yet.
      */
     float energy(){return _E.x + _E.w;}
 
-    /** Get the internal energy.
+    /** @brief Get the internal energy.
      * @return Internal energy: \f$ U = \int_0^t \sum_i \frac{p_i}{\rho_i^2}
          \left(
             \frac{\mathrm{d} \rho_i}{\mathrm{d} t}
@@ -72,43 +102,43 @@ public:
      */
     float internalEnergy(){return _E.x;}
 
-    /** Get the enthalpy.
+    /** @brief Get the enthalpy.
      * @return Enthalpy: \f$ H = \int_0^t \sum_i \frac{p_i}{\rho_i^2}
          \frac{\mathrm{d} \rho_i}{\mathrm{d} t} m_i \mathrm{d}t \f$.
      * @warning The viscous dissipation is not implemented yet.
      */
     float enthalpy(){return _E.y;}
 
-    /** Get the entropy.
+    /** @brief Get the entropy.
      * @return Entropy: \f$ TS = U - H \f$.
      * @warning The viscous dissipation is not implemented yet.
      */
     float entropy(){return _E.x - _E.y;}
 
-    /** Get the potential energy.
+    /** @brief Get the potential energy.
      * @return Potential energy: \f$ E_{pot} = - \sum_i m_i
          \mathbf{g} \cdot \mathbf{r}_i \f$.
      */
     float potentialEnergy(){return _E.z;}
 
-    /** Get the total kinetic energy.
+    /** @brief Get the total kinetic energy.
      * @return Kinetic energy: \f$ E_{kin} = \sum_i \frac{1}{2} m_i
          \vert \mathbf{u}_i \vert^2 \f$.
      */
     float kineticEnergy(){return _E.w;}
 
-    /** Compute the energy.
+    /** @brief Perform the work.
      * @return false if all gone right, true otherwise.
      */
     bool execute();
 
 private:
-    /** Setup the energy OpenCL stuff.
+    /** @brief Setup the OpenCL stuff.
      * @return false if all gone right, true otherwise.
      */
     bool setupEnergy();
 
-    /** Setup the reduction tool
+    /** @brief Setup the reduction tools.
      * @return false if all gone right, true otherwise.
      */
     bool setupReduction();

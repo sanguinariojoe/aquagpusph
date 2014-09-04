@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Tool to compute the fluid energy components.
+ * (See Aqua::CalcServer::Energy for details)
+ */
+
 #include <TimeManager.h>
 #include <ProblemSetup.h>
 #include <ScreenManager.h>

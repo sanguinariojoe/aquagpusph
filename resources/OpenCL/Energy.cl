@@ -22,52 +22,56 @@
     #include "types/3D.h"
 #endif
 
-#ifndef M_PI
-	#define M_PI 3.14159265359
-#endif
-
-#ifdef _g
-	#error '_g' is already defined.
-#endif
-#define _g __global
-
-#ifdef _c
-	#error '_c' is already defined.
-#endif
-#define _c __constant
-
-/** Method called outside to do the predictor phase.
+/** @brief Tool to compute the fluid energy components.
+ *
  * @param energy Particle resultant energy components:
- *     -# Mechanical energy: \f$ E = E_{pot} + E_{elas} + E_{kin} \f$
- *     -# Potential energy: \f$ E_{pot} = - m \mathbf{g} \cdot \mathbf{r} \f$
- *     -# Elastic energy: \f$ \frac{\mathrm{d} E_{elas}}{\mathrm{d} t} = 
- *                        m \frac{p - \rho \mathbf{g} \cdot \mathbf{r}}{\rho^2}
- *                        \frac{\mathrm{d} \rho}{\mathrm{d} t}\f$
- *     -# Kinetic energy: \f$ E_{kin} = \frac{1}{2} m \vert v \vert^2 \f$
- * @param imove Particle moving flag.
- * @param ifluid Particle fluid.
- * @param pos Position of particles.
- * @param v Particle velocity.
- * @param mass Particle mass.
- * @param dens Particle density.
- * @param press Particle pressure.
- * @param press Speed of sound.
- * @param drdt Density rate of change.
- * @param drdt_F Density rate of change (restricted to the diffusive term).
- * @param f Velocity rate of change.
- * @param refd Density of reference of the fluid.
- * @param gamma Eq. of state exponent.
- * @param cs Speed of sound.
- * @param grav Gravity acceleration.
+ *   -# Internal energy: \f$ U = \int_0^t \sum_i \frac{p_i}{\rho_i^2}
+     \left(
+        \frac{\mathrm{d} \rho_i}{\mathrm{d} t}
+        - \left. \frac{\mathrm{d} \rho_i}{\mathrm{d} t} \right\vert_F
+     \right) m_i \mathrm{d}t \f$.
+ *   -# Enthalpy: \f$ H = \int_0^t \sum_i \frac{p_i}{\rho_i^2}
+     \frac{\mathrm{d} \rho_i}{\mathrm{d} t} m_i \mathrm{d}t \f$.
+ *   -# Potential energy: \f$ E_{pot} = - \sum_i m_i
+     \mathbf{g} \cdot \mathbf{r}_i \f$.
+ *   -# Kinetic energy: \f$ E_{kin} = \sum_i \frac{1}{2} m_i
+     \vert \mathbf{u}_i \vert^2 \f$.
+ * @param imove Moving flags.
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param ifluid Fluid index.
+ * @param pos Position \f$ \mathbf{r} \f$.
+ * @param v Velocity \f$ \mathbf{u} \f$.
+ * @param mass Mass \f$ m \f$.
+ * @param dens Density \f$ \rho \f$.
+ * @param press Pressure \f$ p \f$.
+ * @param drdt Density rate of change \f$ \frac{d \rho}{d t} \f$.
+ * @param drdt_F Density rate of change restricted to the diffusive term
+ * \f$ \left. \frac{d \rho}{d t} \right\vert_F \f$.
+ * @param dvdt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
+ * @param refd Density of reference of the fluid \f$ \rho_0 \f$.
+ * @param gamma Eq. of state exponent \f$ \gamma \f$.
+ * @param cs Speed of sound \f$ c_s \f$.
+ * @param grav Gravity acceleration \f$ \mathbf{g} \f$.
  * @param N Number of particles.
- * @remarks Since the elastic energy should be integrated in time, it will
- * be excluded from the total energy computation for each particle.
  */
-__kernel void Energy(_g vec4* energy, _g int* imove, _g int* ifluid,
-                     _g vec* pos, _g vec* v, _g float* mass, _g float* dens,
-                     _g float* press, _g float* drdt, _g float* drdt_F,
-                     _g vec* f, _c float* refd, _c float* gamma,
-                     float cs, vec grav, unsigned int N)
+__kernel void Energy(__global vec4* energy,
+                     __global int* imove,
+                     __global int* ifluid,
+                     __global vec* pos,
+                     __global vec* v,
+                     __global float* mass,
+                     __global float* dens,
+                     __global float* press,
+                     __global float* drdt,
+                     __global float* drdt_F,
+                     __global vec* dvdt,
+                     __constant float* refd,
+                     __constant float* gamma,
+                     float cs,
+                     vec grav,
+                     unsigned int N)
 {
 	// find position in global arrays
 	unsigned int i = get_global_id(0);
