@@ -29,27 +29,6 @@
 
 namespace Aqua{ namespace CalcServer{
 
-/** @class Bounds Bounds.h CalcServer/Bounds.h
- * @brief Computes the fluid particles bounds box, and the maximum and minimum
- * velocities.
- *
- * The bounds box is defined as the smallest box where all the fluid particles
- * are included inside.
- *
- * To do it this tool is working as follows:
- *   -# The velocity and position fields in the shorted space are copied in a
- *      helper memory buffer.
- *   -# The values of the non fluid particles (boundary or sensor ones) are
- *      filtered, i.e. For the minimum value computation INFINITY values are set
- *      while for the maximum components -INFINITY is used.
- *   -# The corresponding reduction is processed to get the minimum/maximum
- *      value.
- *
- * @see Bounds.cl
- * @see Aqua::InputOutput::Bounds
- * @see Aqua::CalcServer::Reduction
- */
-
 /** @class Energy Energy.h CalcServer/Energy.h
  * @brief Computes the fluid energy components.
  *
