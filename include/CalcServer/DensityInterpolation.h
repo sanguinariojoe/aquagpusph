@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Density field geometrical interpolation.
+ * (See Aqua::CalcServer::DensityInterpolation for details)
+ */
+
 #ifndef DENSITYINTERPOLATION_H_INCLUDED
 #define DENSITYINTERPOLATION_H_INCLUDED
 
@@ -24,37 +29,40 @@
 namespace Aqua{ namespace CalcServer{
 
 /** @class DensityInterpolation DensityInterpolation.h CalcServer/DensityInterpolation.h
- * @brief Density interpolation is a smoothing density field technique. When
- * the \f$\alpha\f$ and \f$\delta\f$ parameters are not large enough a
- * characteristic noise may be appreciated in the pressure field. In order to
- * partially fix it some author propose to reinterpolate the density field
- * instead to compute it from the evolution problem: \n
- * \f$ \rho_i = \sum_j W \left(
+ * @brief Density interpolation is a smoothing density field technique.
+ *
+ * When the \f$\alpha\f$ and \f$\delta\f$ parameters are not large enough a
+ * characteristic noise may be appreciated in the pressure field.
+ *
+ * In order to partially fix it some authors proposed to interpolate the density
+ * field, replacing the value resulting from the continuity equation.
+ *
+ * The density field is interpolated with the usual SPH expression:
+ * \f$ \rho_i = \frac{1}{\gamma_i} \sum_j W \left(
         \mathbf{r}_j - \mathbf{r}_i
-   \right) m_j \f$.
- * @warning It is strongly recommended to don't use this trick if you don't
+   \right) m_j \f$,
+ * where \f$ \gamma_i \f$ is the Shepard factor.
+ * @see DensInt.cl
+ * @see Aqua::InputOutput::ProblemSetup::sphSPHParameters::dens_int_steps
+ * @warning This model may cause some instabilities, and its consistency is not
+ * formalized, hence it is strongly recommended to don't apply it if you don't
  * know what are you doing.
  */
 struct DensityInterpolation : public Aqua::CalcServer::Kernel
 {
-    /** Constructor.
-     */
+    /// Constructor.
     DensityInterpolation();
 
-    /** Destructor.
-     */
+    /// Destructor.
     ~DensityInterpolation();
 
-    /** Performs the density field geometric interpolation: \n
-     * \f$ \rho_i = \sum_j W \left(
-            \mathbf{r}_j - \mathbf{r}_i
-       \right) m_j \f$.
+    /** @brief Perform the work
      * @return false if all gone right, true otherwise.
      */
     bool execute();
 
 private:
-    /** Setup the OpenCL stuff
+    /** @brief Setup the OpenCL stuff
      * @return false if all gone right, true otherwise.
      */
     bool setupOpenCL();

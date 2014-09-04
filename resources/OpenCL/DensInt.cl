@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Density field geometrical interpolation.
+ * (See Aqua::CalcServer::DensityInterpolation for details)
+ */
+
 #ifndef HAVE_3D
     #include "types/2D.h"
 	#include "KernelFunctions/Wendland2D.hcl"
@@ -26,49 +31,62 @@
 
 #ifndef HAVE_3D
 	#ifndef NEIGH_CELLS
-		/** @def NEIGH_CELLS Number of neighbour cells. In 2D case 8,
-		 * and the main cells must be computed, but in 3D 27 cells,
-		 * must be computed.
+		/** @def NEIGH_CELLS
+         * @brief Number of neigh cells.
+         *
+         * In 2D cases 9 cells must be computed, while in 3D simulations 27
+         * cells must be computed.
 		 */ 
 		#define NEIGH_CELLS 9
 	#endif
 #else
 	#ifndef NEIGH_CELLS
+		/** @def NEIGH_CELLS
+         * @brief Number of neigh cells.
+         *
+         * In 2D cases 9 cells must be computed, while in 3D simulations 27
+         * cells must be computed.
+		 */ 
 		#define NEIGH_CELLS 27
 	#endif
 #endif
 
-#ifndef M_PI
-	#define M_PI 3.14159265359f
-#endif
-#ifndef iM_PI
-	#define iM_PI 0.318309886f
-#endif
-
 #ifndef uint
+	/** @def uint
+     * @brief Unsigned integer short alias.
+	 */ 
 	#define uint unsigned int
 #endif
 
-/** Interpolate the density of each particle from the neighbours (including
- * himself).
- * @param dens Densities (output).
- * @param iMove Moving flags.
- * @param pos Positions.
- * @param mass Masses
- * @param shepard Shepard term (0th correction).
+/** @brief Interpolate the density as
+ * \f$ \rho_i = \frac{1}{\gamma_i} \sum_j W \left(
+        \mathbf{r}_j - \mathbf{r}_i
+   \right) m_j \f$.
+ * @param dens Density \f$ \rho \f$ to be computed.
+ * @param imove Moving flags.
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param pos Position \f$ \mathbf{r} \f$.
+ * @param mass Mass \f$ m \f$.
+ * @param shepard Shepard term
+ * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
+ *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{x} \f$.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
  * @param lvec Number of cells in each direction
+ * @see Aqua::CalcServer::DensityInterpolation
  */
-__kernel void DensityInterpolation(__global float* dens, __global int* imove,
-                                   __global vec* pos, __global float* mass,
+__kernel void DensityInterpolation(__global float* dens,
+                                   __global int* imove,
+                                   __global vec* pos,
+                                   __global float* mass,
                                    __global float* shepard,
-                                   // Link-list data
-                                   __global uint *icell, __global uint *ihoc,
-                                   // Simulation data
-                                   uint N, uivec lvec
-                                   )
+                                   __global uint *icell,
+                                   __global uint *ihoc,
+                                   uint N,
+                                   uivec lvec)
 {
 	const uint i = get_global_id(0);
 	const uint it = get_local_id(0);

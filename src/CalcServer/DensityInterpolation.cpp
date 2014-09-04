@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Density field geometrical interpolation.
+ * (See Aqua::CalcServer::DensityInterpolation for details)
+ */
+
 #include <ProblemSetup.h>
 #include <ScreenManager.h>
 #include <CalcServer/DensityInterpolation.h>
