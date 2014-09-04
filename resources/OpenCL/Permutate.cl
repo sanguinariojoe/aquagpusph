@@ -27,7 +27,7 @@
     #include "types/3D.h"
 #endif
 
-/** Permutate the data arrays from the unsorted space to the sorted one, and
+/** Permute the data arrays from the unsorted space to the sorted one, and
  * viceversa.
  * @param ifluid permuted fluid index.
  * @param ifluid_in Fluid index.

@@ -32,8 +32,10 @@ namespace Aqua{ namespace CalcServer{
 /** @class Permutate Permutate.h CalcServer/Permutate.h
  * @brief Particles sorting/unsorting tool.
  *
- * Permutate the data to sort it before the interactions stage, restoring it
+ * Permute the data to sort it before the interactions stage, restoring it
  * later.
+ *
+ * @see Permutate.cl
  */
 class Permutate : public Aqua::CalcServer::Kernel
 {
