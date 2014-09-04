@@ -16,68 +16,73 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Tool to compute the fluid global force and moment.
+ * (See Aqua::CalcServer::Torque for details)
+ */
+
 #ifndef TORQUE_H_INCLUDED
 #define TORQUE_H_INCLUDED
 
-// ----------------------------------------------------------------------------
-// Include Generic kernel
-// ----------------------------------------------------------------------------
 #include <CalcServer/Kernel.h>
-
-// ----------------------------------------------------------------------------
-// Include Reduction tool
-// ----------------------------------------------------------------------------
 #include <CalcServer/Reduction.h>
 
 namespace Aqua{ namespace CalcServer{
 
 /** @class Torque Torque.h CalcServer/Torque.h
- * @brief Computes fluid torque relative to a provided point called COR
- * (Center of rotation).
+ * @brief Computes fluid global force and moment.
+ *
+ * The moment is computed respect to a provided point called Center Of Rotation
+ * @paramname{COR}.
+ *
+ * This tool is computing the force and the moment for each particle,
+ * conveniently reducing it later with a prefix sum.
+ *
+ * @see Torque.cl
+ * @see Aqua::CalcServer::Reduction
  */
 class Torque : public Aqua::CalcServer::Kernel
 {
 public:
-    /** Constructor.
-     */
+    /// Constructor.
     Torque();
 
-    /** Destructor.
-     */
+    /// Destructor.
     ~Torque();
 
-    /** Set the COR (Center of rotation).
+    /** @brief Set the Center of rotation.
      * @param COR Center of rotation.
      */
     void cor(vec COR){_cor = COR;}
 
-    /** Get the COR (Center of rotation).
+    /** @brief Get the Center of rotation.
      * @return Center of rotation.
      */
     vec cor(){return _cor;}
 
-    /** Get the resultant torque.
+    /** @brief Get the moment respect to the center of rotation.
      * @return Fluid torque.
+     * @see cor().
      */
     vec torque(){return _torque;}
 
-    /** Get the resultant force.
+    /** @brief Get the force.
      * @return Fluid force.
      */
     vec force(){return _force;}
 
-    /** Compute the forces and moments.
+    /** @brief Perform the work.
      * @return false if all gone right, true otherwise.
      */
     bool execute();
 
 private:
-    /** Setup the OpenCL stuff.
+    /** @brief Setup the OpenCL stuff.
      * @return false if all gone right, true otherwise.
      */
     bool setupTorque();
 
-    /** Setup the reduction tool
+    /** @brief Setup the reduction tool
      * @return false if all gone right, true otherwise.
      */
     bool setupReduction();
