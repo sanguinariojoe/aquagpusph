@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Particles out of domain filter.
+ * (See Aqua::CalcServer::Domain for details)
+ */
+
 #ifndef DOMAIN_H_INCLUDED
 #define DOMAIN_H_INCLUDED
 
@@ -24,30 +29,37 @@
 namespace Aqua{ namespace CalcServer{
 
 /** @class Domain Domain.h CalcServer/Domain.h
- * @brief Tool designed to test for particles out of the computational
- * domain. When a particle out of bounds is detected it is converted in a
- * fixed zero mass particle.
+ * @brief Check for particles out of the domain.
+ *
+ * When a particle out of bounds is detected it is converted in a fixed zero
+ * mass particle such that it is not taken into account in the Link-List process
+ * anymore.
+ *
+ * If this filter is not applied exist a risk about singular particles that may
+ * scape from the domain, forcing the generation of a huge list of cells, and
+ * eventually causing the simulation fail.
+ *
  * The total mass lost due to the particles out of the domain will be computed
  * along the simulation.
+ * @see Domain.cl
+ * @see Aqua::InputOutput::ProblemSetup::sphSPHParameters::has_domain
  */
 class Domain : public Aqua::CalcServer::Kernel
 {
 public:
-    /** Constructor.
-     */
+    /// Constructor.
     Domain();
 
-    /** Destructor.
-     */
+    /// Destructor.
     ~Domain();
 
-    /** Executes the particles in domain test.
+    /** @brief Perform the work.
      * @return false if all gone right, true otherwise.
      */
     bool execute();
 
 private:
-    /** Setup the OpenCL stuff
+    /** @brief Setup the OpenCL stuff
      * @return false if all gone right, true otherwise.
      */
     bool setupOpenCL();

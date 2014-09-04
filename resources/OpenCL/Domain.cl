@@ -16,38 +16,38 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Particles out of domain filter.
+ * (See Aqua::CalcServer::Domain for details)
+ */
+
 #ifndef HAVE_3D
     #include "types/2D.h"
 #else
     #include "types/3D.h"
 #endif
 
-#ifndef M_PI
-	#define M_PI 3,14159265359
-#endif
-
-#ifdef _g
-	#error '_g' is already defined.
-#endif
-#define _g __global
-
-#ifdef _c
-	#error '_c' is already defined.
-#endif
-#define _c __constant
-
-/** Method called outside to do the predictor phase.
- * @param imove Fix particles flag.
- * @param pos Particle position.
- * @param v Particle velocity.
- * @param f Particle force.
- * @param mass Particle mass
+/** @brief Check and destroy the particles out of the domain.
+ * @param imove Moving flags.
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param pos Position \f$ \mathbf{r} \f$.
+ * @param v Velocity \f$ \mathbf{u} \f$.
+ * @param dvdt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
+ * @param mass Mass \f$ m \f$.
  * @param N Number of particles.
- * @param minBound Minimum position that a particle can take.
- * @param maxBound Maximum position that a particle can take.
+ * @param min_bound Minimum position where a particle can be placed.
+ * @param max_bound Maximum position where a particle can be placed.
  */
-__kernel void Domain(_g int* imove, _g vec* pos, _g vec* v, _g vec* f, _g float* mass,
-                        unsigned int N, vec minBound, vec maxBound)
+__kernel void Domain(__global int* imove,
+                     __global vec* pos,
+                     __global vec* v,
+                     __global vec* dvdt,
+                     __global float* mass,
+                     unsigned int N,
+                     vec min_bound,
+                     vec max_bound)
 {
 	// find position in global arrays
 	unsigned int i = get_global_id(0);
@@ -58,13 +58,13 @@ __kernel void Domain(_g int* imove, _g vec* pos, _g vec* v, _g vec* f, _g float*
 	// ---- V ---- Your code here ---- V ----
 
 	vec coords = pos[i];
-	if(    (coords.x < minBound.x)
-	    || (coords.y < minBound.y)
-	    || (coords.x > maxBound.x)
-	    || (coords.y > maxBound.y)
+	if(    (coords.x < min_bound.x)
+	    || (coords.y < min_bound.y)
+	    || (coords.x > max_bound.x)
+	    || (coords.y > max_bound.y)
 	    #ifdef HAVE_3D
-	    || (coords.z < minBound.z)
-	    || (coords.z > maxBound.z)
+	    || (coords.z < min_bound.z)
+	    || (coords.z > max_bound.z)
 	    #endif
 	  )
 	{
@@ -73,15 +73,15 @@ __kernel void Domain(_g int* imove, _g vec* pos, _g vec* v, _g vec* f, _g float*
 		mass[i]  = 0.f;
 		// Stop the particle
 		v[i] = VEC_ZERO;
-		f[i] = VEC_ZERO;
+		dvdt[i] = VEC_ZERO;
 		// Clamp the position
-		pos[i].x = max(pos[i].x, minBound.x);
-		pos[i].x = min(pos[i].x, maxBound.x);
-		pos[i].y = max(pos[i].y, minBound.y);
-		pos[i].y = min(pos[i].y, maxBound.y);
+		pos[i].x = max(pos[i].x, min_bound.x);
+		pos[i].x = min(pos[i].x, max_bound.x);
+		pos[i].y = max(pos[i].y, min_bound.y);
+		pos[i].y = min(pos[i].y, max_bound.y);
 		#ifdef HAVE_3D
-			pos[i].z = max(pos[i].z, minBound.z);
-			pos[i].z = min(pos[i].z, maxBound.z);
+			pos[i].z = max(pos[i].z, min_bound.z);
+			pos[i].z = min(pos[i].z, max_bound.z);
 		#endif
 	}
 
