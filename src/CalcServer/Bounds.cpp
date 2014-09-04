@@ -16,6 +16,12 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Tool to compute the fluid bounds box, as well as the minimum and
+ * maximum velocities.
+ * (See Aqua::CalcServer::Bounds for details)
+ */
+
 #include <ProblemSetup.h>
 #include <ScreenManager.h>
 #include <CalcServer/Bounds.h>

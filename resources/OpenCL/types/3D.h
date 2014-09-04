@@ -17,18 +17,45 @@
  */
 
 #ifndef vec
+    /** @def vec
+     * @brief Vector of real components.
+     *
+     * The number of components depends on weather the 2D version or 3D
+     * version is compiled:
+     *   - 2D = 2 components
+     *   - 3D = 4 components
+     */
     #define vec float4
 #endif
 
 #ifndef ivec
+    /** @def ivec
+     * @brief Vector of integer components.
+     *
+     * The number of components depends on weather the 2D version or 3D
+     * version is compiled:
+     *   - 2D = 2 components
+     *   - 3D = 4 components
+     */
     #define ivec int4
 #endif
 
 #ifndef uivec
+    /** @def ivec
+     * @brief Vector of unsigned integer components.
+     *
+     * The number of components depends on weather the 2D version or 3D
+     * version is compiled:
+     *   - 2D = 2 components
+     *   - 3D = 4 components
+     */
     #define uivec uint4
 #endif
 
 #ifndef VEC_ZERO
+    /** @def VEC_ZERO
+     * @brief Null #vec, i.e. filled with zero components.
+     */
     #define VEC_ZERO (float4)(0.f,0.f,0.f,0.f)
 #endif
 

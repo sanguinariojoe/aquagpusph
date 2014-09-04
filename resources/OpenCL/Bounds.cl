@@ -16,27 +16,37 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief OpenCL kernels to compute the fluid bounds box, as well as the
+ * minimum and maximum velocities.
+ * (See Aqua::CalcServer::Bounds for details)
+ */
+
 #ifndef HAVE_3D
     #include "types/2D.h"
 #else
     #include "types/3D.h"
 #endif
 
-/** Filter the boundary particles/elements from the maximum position
- * computation. Filtering a particle imply to change its position by the
- * minimum known value such that any other position will be grater or equal
- * than its one.
+/** @brief Filter out the non fluid particles (boundaries or sensors) from the
+ * maximum position computation.
+ *
+ * Filtering out a particle imply to change its position by the minimum known
+ * value such that any other position will be grater or equal than its one.
+ *
  * @param output Output filtered positions.
- * @param imove Moving flag.
- * @param input Input positions to filter.
- * @param N Number of particles.
+ * @param imove Moving flags.
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param input Input positions to be filtered.
+ * @param N Total number of particles.
  */
 __kernel void MaximumCoordsFilter(__global vec* output,
                                   __global int* imove,
                                   __global vec* input,
                                   unsigned int N)
 {
-	// find position in global arrays
 	const unsigned int i = get_global_id(0);
 	if(i >= N)
 		return;
@@ -58,21 +68,25 @@ __kernel void MaximumCoordsFilter(__global vec* output,
 	// ---- | ------------------------ | ----
 }
 
-/** Filter the boundary particles/elements from the minimum position
- * computation. Filtering a particle imply to change its position by the
- * maximum known value such that any other position will be grater or equal
- * than its one.
+/** @brief Filter out the non fluid particles (boundaries or sensors) from the
+ * minimum position computation.
+ *
+ * Filtering out a particle imply to change its position by the maximum known
+ * value such that any other position will be lower or equal than its one.
+ *
  * @param output Output filtered positions.
- * @param imove Moving flag.
- * @param input Input positions to filter.
- * @param N Number of particles.
+ * @param imove Moving flags.
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param input Input positions to be filtered.
+ * @param N Total number of particles.
  */
 __kernel void MinimumCoordsFilter(__global vec* output,
                                   __global int* imove,
                                   __global vec* input,
                                   unsigned int N)
 {
-	// find position in global arrays
 	const unsigned int i = get_global_id(0);
 	if(i >= N)
 		return;
@@ -94,15 +108,25 @@ __kernel void MinimumCoordsFilter(__global vec* output,
 	// ---- | ------------------------ | ----
 }
 
-/** This method discard the fixed particles for the maximum velocity computation.
- * @param output Output filtered data.
- * @param imove Particle moving flag.
- * @param input Input data to filter.
- * @param N Number of particles.
+/** @brief Filter out the non fluid particles (boundaries or sensors) from the
+ * maximum velocity computation.
+ *
+ * Filtering out a particle imply to change its velocity by the maximum known
+ * value such that any other velocity will be lower or equal than its one.
+ *
+ * @param output Output filtered velocities.
+ * @param imove Moving flags.
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param input Input velocities to be filtered.
+ * @param N Total number of particles.
  */
-__kernel void MaximumVelFilter(__global vec* output, __global int* imove, __global vec* input, unsigned int N)
+__kernel void MaximumVelFilter(__global vec* output,
+                               __global int* imove,
+                               __global vec* input,
+                               unsigned int N)
 {
-	// find position in global arrays
 	unsigned int i = get_global_id(0);
 	if(i >= N)
 		return;
@@ -120,15 +144,25 @@ __kernel void MaximumVelFilter(__global vec* output, __global int* imove, __glob
 	// ---- | ------------------------ | ----
 }
 
-/** This method discard the fixed particles for the minimum velocity computation.
- * @param output Output filtered data.
- * @param imove Particle moving flag.
- * @param input Input data to filter.
- * @param N Number of particles.
+/** @brief Filter out the non fluid particles (boundaries or sensors) from the
+ * minimum velocity computation.
+ *
+ * Filtering out a particle imply to change its velocity by the minimum known
+ * value such that any other velocity will be lower or equal than its one.
+ *
+ * @param output Output filtered velocities.
+ * @param imove Moving flags.
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param input Input velocities to be filtered.
+ * @param N Total number of particles.
  */
-__kernel void MinimumVelFilter(__global vec* output, __global int* imove, __global vec* input, unsigned int N)
+__kernel void MinimumVelFilter(__global vec* output,
+                               __global int* imove,
+                               __global vec* input,
+                               unsigned int N)
 {
-	// find position in global arrays
 	unsigned int i = get_global_id(0);
 	if(i >= N)
 		return;
