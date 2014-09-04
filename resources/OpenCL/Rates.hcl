@@ -16,6 +16,15 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Fluid particles interaction computation.
+ * (See Rates.cl)
+ *
+ * It is prefearable to use a header to be included instead of generating a
+ * function for thye particles interaction, which imply more registries
+ * consumption.
+ */
+
 // Artificial viscosity factor
 #ifndef __CLEARY__
     #ifndef HAVE_3D

@@ -16,6 +16,16 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Boundary element data interpolation.
+ * (See Rates.cl)
+ *
+ * It is prefearable to use a header to be included instead of generating a
+ * function for thye particles interaction, which imply more registries
+ * consumption.
+ */
+
+
 // ------------------------------------------------------------------
 // Study if two particles can interact
 // ------------------------------------------------------------------

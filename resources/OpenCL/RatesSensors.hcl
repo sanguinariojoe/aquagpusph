@@ -16,4 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Sensor data interpolation.
+ * (See Rates.cl)
+ *
+ * It is just redirecting to RatesBounds.hcl.
+ */
+
 #include "RatesBounds.hcl"

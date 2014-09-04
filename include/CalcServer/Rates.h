@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Fluid interactions computation.
+ * (See Aqua::CalcServer::Rates for details)
+ */
+
 #ifndef RATES_H_INCLUDED
 #define RATES_H_INCLUDED
 
@@ -23,8 +28,31 @@
 
 namespace Aqua{ namespace CalcServer{
 
+/** @class DensityInterpolation DensityInterpolation.h CalcServer/DensityInterpolation.h
+ * @brief Density interpolation is a smoothing density field technique.
+ *
+ * When the \f$\alpha\f$ and \f$\delta\f$ parameters are not large enough a
+ * characteristic noise may be appreciated in the pressure field.
+ *
+ * In order to partially fix it some authors proposed to interpolate the density
+ * field, replacing the value resulting from the continuity equation.
+ *
+ * The density field is interpolated with the usual SPH expression:
+ * \f$ \rho_i = \frac{1}{\gamma_i} \sum_j W \left(
+        \mathbf{r}_j - \mathbf{r}_i
+   \right) m_j \f$,
+ * where \f$ \gamma_i \f$ is the Shepard factor.
+ * @see DensInt.cl
+ * @see Aqua::InputOutput::ProblemSetup::sphSPHParameters::dens_int_steps
+ * @warning This model may cause some instabilities, and its consistency is not
+ * formalized, hence it is strongly recommended to don't apply it if you don't
+ * know what are you doing.
+ */
+
 /** @class Rates Rates.h CalcServer/Rates.h
- * @brief Compute the particles interactions to get the following data:
+ * @brief Fluid interactions computation.
+ *
+ * The following data is computed:
  *    -# \f$ \frac{\mathrm{d} \mathbf{u}}{\mathrm{d} t} \f$
  *    -# \f$ \frac{\mathrm{d} \rho}{\mathrm{d} t} \f$
  *    -# \f$ \gamma = \sum_i \frac{W \left(
@@ -33,29 +61,31 @@ namespace Aqua{ namespace CalcServer{
  *    -# \f$ \nabla \gamma = \sum_i \frac{\nabla W \left(
             \mathbf{r}_j - \mathbf{r}_i
        \right)}{\rho_j} m_j \f$
- * In this process the interaction between fluid particles, and the effect of
- * the fixed particles over the fluid particles is included.
- * Some data for the boundary elements and for the sensors is computed as
- * well, like the interpolated pressure and density.
+ *
+ * In this process the fluid particles interactions are computed, as well as
+ * the interactions with the fixed particles.
+ *
+ * For optimization purposes, during the same process, some data is interpolated
+ * at the boundary elements and sensors.
+ *
+ * @see Rates.cl
  */
 class Rates : public Aqua::CalcServer::Kernel
 {
 public:
-    /** Constructor.
-     */
+    /// Constructor.
     Rates();
 
-    /** Destructor.
-     */
+    /// Destructor.
     ~Rates();
 
-    /** Compute the particles interaction.
+    /** @brief Perform the work.
      * @return false if all gone right, true otherwise.
      */
     bool execute();
 
 private:
-    /** Setup the OpenCL stuff
+    /** @brief Setup the OpenCL stuff
      * @return false if all gone right, true otherwise.
      */
     bool setupOpenCL();

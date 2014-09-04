@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Particles interactions computation.
+ * (See Aqua::CalcServer::Rates for details)
+ */
+
 // To use Gaussian kernel please compile AQUAgpusph with Gauss kernel option
 #ifndef HAVE_3D
     #include "types/2D.h"
@@ -27,65 +32,95 @@
 
 #ifndef HAVE_3D
 	#ifndef NEIGH_CELLS
-		/** @def NEIGH_CELLS Number of neighbour cells. In 2D case 8,
-		 * and the main cells must be computed, but in 3D 27 cells,
-		 * must be computed.
+		/** @def NEIGH_CELLS
+         * @brief Number of neigh cells.
+         *
+         * In 2D cases 9 cells must be computed, while in 3D simulations 27
+         * cells must be computed.
 		 */ 
 		#define NEIGH_CELLS 9
 	#endif
 #else
 	#ifndef NEIGH_CELLS
+		/** @def NEIGH_CELLS
+         * @brief Number of neigh cells.
+         *
+         * In 2D cases 9 cells must be computed, while in 3D simulations 27
+         * cells must be computed.
+		 */ 
 		#define NEIGH_CELLS 27
 	#endif
 #endif
 
-#ifndef M_PI
-	#define M_PI 3.14159265359f
-#endif
-#ifndef iM_PI
-	#define iM_PI 0.318309886f
-#endif
-
 #ifndef uint
+	/** @def uint
+     * @brief Short alias for unsigned integer type.
+	 */ 
 	#define uint unsigned int
 #endif
 
-/** Compute the rates of variation due to the fluid (fixed particles will be
- * included here). During this stage some other operations are performed as
- * well, like the values interpolation in the boundaries (for DeLeffe boundary
- * conditions), the sensors meassurement, or the Shepard factor computation.
- * @param ifluid Fluid identifiers.
+/** @brief Particles interactions computation.
+ *
+ * Compute the rates of variation due to the fluid (fixed particles will be
+ * included here).
+ *
+ * During this stage some other operations are performed as well, like the
+ * values interpolation in the boundaries (for DeLeffe boundary conditions),
+ * the sensors meassurement, or the Shepard factor computation.
+ * @param ifluid Fluid index.
  * @param imove Moving flags.
- * @param pos Positions.
- * @param v Velocities.
- * @param dens Densities.
- * @param mass Masses.
- * @param press Pressures.
- * @param viscdyn Dynamic viscosities (one per fluid)
- * @param f Acceleration.
- * @param drdt Rates of change of the density.
- * @param drdt_F Rates of change of the density due to the diffusive term.
- * @param shepard Shepard term (0th correction).
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param pos Position \f$ \mathbf{r} \f$.
+ * @param v Velocity \f$ \mathbf{u} \f$.
+ * @param dens Density \f$ \rho \f$.
+ * @param mass Mass \f$ m \f$.
+ * @param press Pressure \f$ p \f$.
+ * @param viscdyn Dynamic viscosity \f$ \nu \f$ (one per fluid)
+ * @param dvdt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
+ * @param drdt Density rate of change \f$ \frac{d \rho}{d t} \f$.
+ * @param drdt_F Density rate of change restricted to the diffusive term
+ * \f$ \left. \frac{d \rho}{d t} \right\vert_F \f$.
+ * @param shepard Shepard term
+ * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
+ *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{x} \f$.
  * @param icell Cell where each particle is located.
- * @param ihoc Head particle of chain of each cell.
- * @param N Number of particles & sensors.
- * @param lvec Number of cells at each direction.
- * @param grav Gravity acceleration.
+ * @param ihoc Head of chain for each cell (first particle found).
+ * @param N Number of particles.
+ * @param lvec Number of cells in each direction
+ * @param grav Gravity acceleration \f$ \mathbf{g} \f$.
+ * @param refd Density of reference of the fluid \f$ \rho_0 \f$.
+ * @param delta Delta factor \f$ \delta \f$.
+ * @param dt Time step \f$ \Delta t \f$.
+ * @param cs Speed of sound \f$ c_s \f$.
+ * @see Aqua::CalcServer::Rates
  */
-__kernel void Rates(__global int* ifluid, __global int* imove,
-                    __global vec* pos, __global vec* v, __global float* dens,
-                    __global float* mass, __global float* press,
+__kernel void Rates(__global int* ifluid,
+                    __global int* imove,
+                    __global vec* pos,
+                    __global vec* v,
+                    __global float* dens,
+                    __global float* mass,
+                    __global float* press,
                     __constant float* viscdyn,
-                    __global vec* f, __global float* drdt,
-                    __global float* drdt_F, __global float* shepard,
+                    __global vec* dvdt,
+                    __global float* drdt,
+                    __global float* drdt_F,
+                    __global float* shepard,
                     // Link-list data
-                    __global uint *icell, __global uint *ihoc,
+                    __global uint *icell,
+                    __global uint *ihoc,
                     // Simulation data
-                    uint N, uivec lvec, vec grav
+                    uint N,
+                    uivec lvec,
+                    vec grav
                     #ifdef __DELTA_SPH__
                         // Continuity equation diffusive term data
-                        , __constant float* refd, __constant float* delta
-                        , float dt, float cs
+                        , __constant float* refd
+                        , __constant float* delta
+                        , float dt
+                        , float cs
                     #endif
                     )
 {
@@ -121,7 +156,7 @@ __kernel void Rates(__global int* ifluid, __global int* imove,
 
 	// Initialize the output
     #ifndef LOCAL_MEM_SIZE
-	    #define _F_ f[i]
+	    #define _F_ dvdt[i]
 	    #define _DRDT_ drdt[i]
     	#define _DRDT_F_ drdt_F[i]
     	#define _SHEPARD_ shepard[i]
@@ -130,7 +165,7 @@ __kernel void Rates(__global int* ifluid, __global int* imove,
 	    #define _DRDT_ drdt_l[it]
 	    #define _DRDT_F_ drdt_F_l[it]
 	    #define _SHEPARD_ shepard_l[it]
-        __local vec f_l[LOCAL_MEM_SIZE];
+        __local vec dvdt_l[LOCAL_MEM_SIZE];
         __local float drdt_l[LOCAL_MEM_SIZE];
         __local float drdt_F_l[LOCAL_MEM_SIZE];
         __local float shepard_l[LOCAL_MEM_SIZE];
@@ -298,7 +333,7 @@ __kernel void Rates(__global int* ifluid, __global int* imove,
 	}
 
 	#ifdef LOCAL_MEM_SIZE
-		f[i] = _F_;
+		dvdt[i] = _F_;
 		drdt[i] = _DRDT_;
 		drdt_F[i] = _DRDT_F_;
 		shepard[i] = _SHEPARD_;
