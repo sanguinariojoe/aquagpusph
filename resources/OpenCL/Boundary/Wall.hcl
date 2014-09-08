@@ -90,6 +90,7 @@
      * @param p2 2nd vertex of the wall.
      * @param p3 3rd vertex of the wall.
      * @param p4 4th vertex of the wall.
+     * @param n normal of the considered wall.
      * @param v1 1st vertex velocity.
      * @param v2 2nd vertex velocity.
      * @param v3 3rd vertex velocity.

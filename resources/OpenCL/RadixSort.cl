@@ -77,7 +77,7 @@ __kernel void init(__global unsigned int* d_inPermut,
  * @param inperm Input permutations array
  * @param outperm Transposed permutations array
  * @param blockmat Shared memory keys matrix to accelerate the process
- * @param blockprem Shared memory permutations matrix to accelerate the process
+ * @param blockperm Shared memory permutations matrix to accelerate the process
  * @param tilesize Dimensions of the shared memory matrices
  * @remarks If the local size is not big enough, it will be artificially
  * increased due to some implementations will not support it otherwise

@@ -51,7 +51,7 @@
 __kernel void ClampVel(__global int* imove,
                        __global vec* v,
                        __global vec* dvdt,
-                       __global vec* fin,
+                       __global vec* dvdtin,
                        float mindt,
                        vec grav,
                        unsigned int N)
@@ -68,7 +68,7 @@ __kernel void ClampVel(__global int* imove,
 
 	// Compute the distance moved if dt is equal to mindt
     const float dt = mindt;
-	vec r = dt * v[i] + dt * dt * (dvdt[i] + 0.5f * (grav - fin[i]));
+	vec r = dt * v[i] + dt * dt * (dvdt[i] + 0.5f * (grav - dvdtin[i]));
 	// Ensure that the particle is not moving too far
 	const float dr2 = dot(r, r);
 	const float maxdr = 0.1f * h;
@@ -76,7 +76,7 @@ __kernel void ClampVel(__global int* imove,
 		// Correct the displacement vector in order to fit to 0.1h
 		r *= maxdr / sqrt(dr2);
 		// Get the acceleration that achieves this displacement
-		dvdt[i] = (r - dt * v[i]) / (dt * dt) + 0.5f * (fin[i] - grav);
+		dvdt[i] = (r - dt * v[i]) / (dt * dt) + 0.5f * (dvdtin[i] - grav);
 	}
 
 	// ---- A ---- Your code here ---- A ----

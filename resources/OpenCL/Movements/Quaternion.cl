@@ -40,6 +40,7 @@
  * @param dens Density \f$ \rho \f$.
  * @param mass Mass \f$ m \f$.
  * @param relPos Local position of each particle \f$ \mathbf{r}_{local} \f$.
+ * @param relNormal Local normal of each particle \f$ \mathbf{n}_{local} \f$.
  * @param N Number of particles.
  * @param dt Time step \f$ \Delta t \f$.
  * @param CoR Current time step quaternion center.
@@ -51,11 +52,25 @@
  * @param y Previous time step quaternion y axis vector.
  * @param z Previous time step quaternion z axis vector.
  */
-__kernel void Movement( __global int* imove, __global int* ifluid, __global vec* pos,
-                        __global vec* normal, __global vec* v, __global float* dens,
-                        __global float* mass, __global vec* relPos,
-                        __global vec* relNormal, unsigned int N, float dt, vec CoR,
-                        vec X, vec Y, vec Z, vec cor, vec x, vec y, vec z)
+__kernel void Movement(__global int* imove,
+                       __global int* ifluid,
+                       __global vec* pos,
+                       __global vec* normal,
+                       __global vec* v,
+                       __global float* dens,
+                       __global float* mass,
+                       __global vec* relPos,
+                       __global vec* relNormal,
+                       unsigned int N,
+                       float dt,
+                       vec CoR,
+                       vec X,
+                       vec Y,
+                       vec Z,
+                       vec cor,
+                       vec x,
+                       vec y,
+                       vec z)
 {
 	// find position in global arrays
 	int i = get_global_id(0);
