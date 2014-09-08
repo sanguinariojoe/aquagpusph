@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Simplest boundary condition technique.
+ * (See Aqua::CalcServer::Boundary::ElasticBounce for details)
+ */
+
 #ifndef HAVE_3D
     #include "../types/2D.h"
 #else
@@ -24,55 +29,64 @@
 
 #ifndef HAVE_3D
 	#ifndef NEIGH_CELLS
-		/** @def NEIGH_CELLS Number of neighbour cells. In 2D case 8,
-		 * and the main cells must be computed, but in 3D 27 cells,
-		 * must be computed.
+		/** @def NEIGH_CELLS
+         * @brief Number of neigh cells.
+         *
+         * In 2D cases 9 cells must be computed, while in 3D simulations 27
+         * cells must be computed.
 		 */ 
 		#define NEIGH_CELLS 9
 	#endif
 #else
 	#ifndef NEIGH_CELLS
+		/** @def NEIGH_CELLS
+         * @brief Number of neigh cells.
+         *
+         * In 2D cases 9 cells must be computed, while in 3D simulations 27
+         * cells must be computed.
+		 */ 
 		#define NEIGH_CELLS 27
 	#endif
 #endif
 
-/* Mathematica
- */
-#ifndef M_PI
-	#define M_PI 3.14159265359f
-#endif
-#ifndef iM_PI
-	#define iM_PI 0.318309886f
-#endif
-
 #ifndef uint
+	/** @def uint
+     * @brief Short alias for unsigned integer type.
+	 */ 
 	#define uint unsigned int
 #endif
 
-/** Compute the boundary effect, based on an elastic bounce when the particles
- * will tresspass the wall.
+/** @brief Compute the elastic bounce interactions.
  * @param imove Moving flags.
- * @param pos Positions.
- * @param normal Normals.
- * @param v Velocities.
- * @param f Accelerations.
- * @param fin Accelerations (from the previous time step).
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param pos Position \f$ \mathbf{r} \f$.
+ * @param normal Normal \f$ \mathbf{n} \f$.
+ * @param v Velocity \f$ \mathbf{u} \f$.
+ * @param dvdt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
  * @param icell Cell where each particle is located.
- * @param ihoc Head particle of chain for each cell.
+ * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
- * @param dt Time step.
- * @param lvec Number of cells
- * @param grav Gravity acceleration.
- * @param r_element The considered elements radius.
+ * @param dt Time step \f$ \Delta t \f$.
+ * @param lvec Number of cells in each direction
+ * @param grav Gravity acceleration \f$ \mathbf{g} \f$.
+ * @param r_element The considered elements radius \f$ \Delta r \f$.
  */
 __kernel void Boundary(__global int* imove,
-                       __global vec* pos, __global vec* normal,
-                       __global vec* v, __global vec* f,
+                       __global vec* pos,
+                       __global vec* normal,
+                       __global vec* v,
+                       __global vec* dvdt,
                        // Link-list data
-                       __global uint *icell, __global uint *ihoc,
+                       __global uint *icell,
+                       __global uint *ihoc,
                        // Simulation data
-                       uint N, float dt, uivec lvec, vec grav,
-                       float r_element )
+                       uint N,
+                       float dt,
+                       uivec lvec,
+                       vec grav,
+                       float r_element)
 {
 	const uint i = get_global_id(0);
 	const uint it = get_local_id(0);
@@ -87,7 +101,7 @@ __kernel void Boundary(__global int* imove,
     const uint c_i = icell[i];
     const vec pos_i = pos[i];
     vec v_i = v[i];
-    vec f_i = f[i];
+    vec dvdt_i = dvdt[i];
 
     // Loop over neighbour particles
     // =============================

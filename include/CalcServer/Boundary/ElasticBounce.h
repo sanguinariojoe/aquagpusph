@@ -16,44 +16,52 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Simplest boundary condition technique.
+ * (See Aqua::CalcServer::Boundary::ElasticBounce for details)
+ */
+
 #ifndef ELASTICBOUNCE_H_INCLUDED
 #define ELASTICBOUNCE_H_INCLUDED
 
-// ----------------------------------------------------------------------------
-// Include Generic kernel
-// ----------------------------------------------------------------------------
 #include <CalcServer/Kernel.h>
 
 namespace Aqua{ namespace CalcServer{ namespace Boundary{
 
 /** @class ElasticBounce ElasticBounce.h CalcServer/Boundary/ElasticBounce.h
- * @brief The simplest boundary condition, which look for the particles which
- * will trespass a wall, performing an elastic bounce (with a configurable
- * elastic factor, shuch that the particle trayectory can be mirrored with
- * respect to the wall or the particle can be blocked just changing the
- * elastic factor).
- * @note This boundary condition is ussually used in a combination with one of
- * the other boundary conditions just in order to grant that the particles
+ * @brief Elastic bounce based boundary condition.
+ *
+ * It is the simplest boundary condition, which look for the particles which
+ * will trespass a wall, performing an elastic bounce.
+ *
+ * The elastic factor (amount of kinetic energy conserved in the interaction)
+ * can be controlled.
+ *
+ * This boundary condition only affects to the normal to boundary component of
+ * the velocity.
+ *
+ * @note This boundary condition is usually used in a combination with one of
+ * the other boundary conditions just in order to assert that the particles
  * cannot trespass the solid walls.
+ * @see Aqua::InputOutput::ProblemSetup::sphSPHParameters::elastic_factor
+
  */
 class ElasticBounce : public Aqua::CalcServer::Kernel
 {
 public:
-    /** Constructor.
-     */
+    /// Constructor.
     ElasticBounce();
 
-    /** Destructor.
-     */
+    /// Destructor.
     ~ElasticBounce();
 
-    /** Compute the boundary condition.
+    /** @brief Perform the work.
      * @return false if all gone right, true otherwise.
      */
     bool execute();
 
 private:
-    /** Setup the OpenCL stuff
+    /** @brief Setup the OpenCL stuff
      * @return false if all gone right, true otherwise.
      */
     bool setupOpenCL();

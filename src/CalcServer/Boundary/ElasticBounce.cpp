@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Simplest boundary condition technique.
+ * (See Aqua::CalcServer::Boundary::ElasticBounce for details)
+ */
+
 #include <math.h>
 
 #include <ProblemSetup.h>

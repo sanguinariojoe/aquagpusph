@@ -16,6 +16,15 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Boundary element - Fluid particle interaction.
+ * (See ElasticBounce.cl for details)
+ *
+ * It is prefearable to use a header to be included instead of generating a
+ * function for thye particles interaction, which imply more registries
+ * consumption.
+ */
+
 if(imove[j] >= 0){
 	j++;
 	continue;
@@ -47,9 +56,9 @@ if(r0 < 0.f){
 // Movement data
 // ------------------------------------------------------------------
 const float v_n = dot(v_i - v_j, n_j);
-const float f_n = dot(f_i, n_j);
+const float dvdt_n = dot(dvdt_i, n_j);
 const float g_n = dot(grav, n_j);
-const float dist = dt * v_n + 0.5f * dt * dt * (f_n + g_n);
+const float dist = dt * v_n + 0.5f * dt * dt * (dvdt_n + g_n);
 // ------------------------------------------------------------------
 // Since normal has been internally oriented, if dist < 0, the
 // particle is running against the wall, and then two cases can be
@@ -63,15 +72,15 @@ if((dist < 0.f) && (r0 + dist <= __MIN_BOUND_DIST__ * h)){
 	// ------------------------------------------------------------------
 	// As first approach, particle can be just fliped
 	// v[i] = v_i - (1.f + __ELASTIC_FACTOR__) * (
-        // v_n + 0.5f * dt * (f_n + g_n)) * n_j;
+        // v_n + 0.5f * dt * (dvdt_n + g_n)) * n_j;
 
 	// A second approach is setting an acceleration equal to the gravity
 	// Just trying to don't perturbate the moments meassurement, fliping
 	// later the velocity
-	f[i] = f_i - (f_n + g_n) * n_j;
+	dvdt[i] = dvdt_i - (dvdt_n + g_n) * n_j;
 	v[i] = v_i - (1.f + __ELASTIC_FACTOR__) * v_n * n_j;
 
 	// Modify the value for the next walls test.
 	v_i = v[i];
-	f_i = f[i];
+	dvdt_i = dvdt[i];
 }
