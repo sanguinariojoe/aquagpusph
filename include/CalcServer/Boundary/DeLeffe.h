@@ -16,44 +16,67 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Boundary integral term computation.
+ * (See Aqua::CalcServer::Boundary::DeLeffe for details)
+ */
+
 #ifndef DELEFFE_H_INCLUDED
 #define DELEFFE_H_INCLUDED
 
 #include <CalcServer/Kernel.h>
 
-namespace Aqua{ namespace CalcServer{ namespace Boundary{
+namespace Aqua{ namespace CalcServer{
+/** @namespace Aqua::CalcServer::Boundary
+ * @brief Boundary effects computation.
+ */
+namespace Boundary{
 
 /** @class DeLeffe DeLeffe.h CalcServer/Boundary/DeLeffe.h
- * @brief Boundary integrals based boundary condition.
+ * @brief Boundary integral term computation.
+ *
+ * This boundary condition is based in the boundary integral term numerical
+ * resolution.
+ * To do that, the boundary is meshed, replacing the area elements by boundary
+ * particles with a mass equal to the area.
+ *
+ * This boundary condition requires the Shepard renormalization
+ * (Aqua::CalcServer::Shepard).
+ *
+ * To learn more about the boundary integrals please visit the user manual,
+ * section 7.7
+ *
+ * @see DeLeffe.cl
+ * @see Aqua::CalcServer::Boundary::ElasticBounce
+ * @see Aqua::CalcServer::Shepard
+ * @see User manual, section 7.7
  */
 class DeLeffe : public Aqua::CalcServer::Kernel
 {
 public:
-    /** Constructor.
-     */
+    /// Constructor.
     DeLeffe();
 
-    /** Destructor.
-     */
+    /// Destructor.
     ~DeLeffe();
 
-    /** Compute the boundary condition.
+    /** @brief Perform the work.
      * @return false if all gone right, true otherwise.
      */
     bool execute();
 
 private:
-    /** Setup the OpenCL stuff
+    /** @brief Setup the OpenCL stuff
      * @return false if all gone right, true otherwise.
      */
     bool setupOpenCL();
 
-    /** Set the boundary elements properties.
+    /** @brief Set the boundary elements properties.
      * @return false if all gone right, true otherwise.
      */
     bool elements();
 
-    /** Compute the boundary condition.
+    /** @brief Compute the boundary condition.
      * @return false if all gone right, true otherwise.
      */
     bool boundary();

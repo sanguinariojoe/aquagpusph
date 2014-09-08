@@ -16,8 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* Kernel to use. Take care with support distance (sep), that may vary.
+/** @file
+ * @brief Boundary integral term computation.
+ * (See Aqua::CalcServer::Boundary::DeLeffe for details)
  */
+
 #ifndef HAVE_3D
     #include "../types/2D.h"
     #include "../KernelFunctions/Wendland2D.hcl"
@@ -28,47 +31,65 @@
 
 #ifndef HAVE_3D
     #ifndef NEIGH_CELLS
-        /** @def NEIGH_CELLS Number of neighbour cells. In 2D case 8,
-         * and the main cells must be computed, but in 3D 27 cells,
-         * must be computed.
-         */ 
+		/** @def NEIGH_CELLS
+         * @brief Number of neigh cells.
+         *
+         * In 2D cases 9 cells must be computed, while in 3D simulations 27
+         * cells must be computed.
+		 */ 
         #define NEIGH_CELLS 9
     #endif
 #else
     #ifndef NEIGH_CELLS
+		/** @def NEIGH_CELLS
+         * @brief Number of neigh cells.
+         *
+         * In 2D cases 9 cells must be computed, while in 3D simulations 27
+         * cells must be computed.
+		 */ 
         #define NEIGH_CELLS 27
     #endif
 #endif
 
-#ifndef M_PI
-    #define M_PI 3.14159265359f
-#endif
-#ifndef iM_PI
-    #define iM_PI 0.318309886f
-#endif
-
 #ifndef uint
+	/** @def uint
+     * @brief Short alias for unsigned integer type.
+	 */ 
     #define uint unsigned int
 #endif
 
-/** Set new values for the boundary elements.
- * @param ifluid Fluid identifiers.
+/** @brief Set the fields for the boundary elements using the data interpolated
+ * by Aqua::CalcServer::Rates.
+ * @param ifluid Fluid index.
  * @param imove Moving flags.
- * @param f Accelerations.
- * @param drdt Densities variation rate.
- * @param press Pressures.
- * @param dens Densities.
- * @param shepard Shepard terms (0th correction).
- * @param refd Reference density.
- * @param gamma EOS gamma exponent.
- * @param N Total number of vertices.
- * @param cs Speed of sound.
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param dvdt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
+ * @param drdt Density rate of change \f$ \frac{d \rho}{d t} \f$.
+ * @param press Pressure \f$ p \f$.
+ * @param dens Density \f$ \rho \f$.
+ * @param shepard Shepard term
+ * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
+ *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{x} \f$.
+ * @param refd Density of reference of the fluid \f$ \rho_0 \f$.
+ * @param gamma Gamma EOS exponent \f$ \gamma \f$.
+ * @param N Total number of particles and boundary elements.
+ * @param cs Speed of sound \f$ c_s \f$.
+ * @see Aqua::CalcServer::Boundary::DeLeffe
+ * @see Aqua::CalcServer::Rates
  */
-__kernel void Elements(__global int* ifluid, __global int* imove,
-                       __global vec* f, __global float* drdt,
-                       __global float* press, __global float* dens,
-                       __global float* shepard, __constant float* refd,
-                       __constant float* gamma,  uint N, float cs)
+__kernel void Elements(__global int* ifluid,
+                       __global int* imove,
+                       __global vec* dvdt,
+                       __global float* drdt,
+                       __global float* press,
+                       __global float* dens,
+                       __global float* shepard,
+                       __constant float* refd,
+                       __constant float* gamma,
+                       uint N,
+                       float cs)
 {
     uint i = get_global_id(0);
     if(i >= N)
@@ -76,9 +97,13 @@ __kernel void Elements(__global int* ifluid, __global int* imove,
 
     /** To set the boundary elements pressure and density values two approaches
      * may be considred (just one of them must be activated):
-     *   - _ALL_INTERPOLATED_: Proposed by Ferrand, the density and pressure are interpolated from the neighbour particles.
-     *   - _DENSITY_BASED_: Just the density is interpolated, computing the pressure using the EOS.
-     *   - _PRESSURE_BASED_: The pressure value is interpolated, and the density is computed the EOS.
+     *   - _ALL_INTERPOLATED_: Proposed by Ferrand, the density and pressure
+     *     are interpolated from the neighbour particles.
+     *   - _DENSITY_BASED_: Just the density is interpolated, computing the
+     *     pressure using the EOS.
+     *   - _PRESSURE_BASED_: The pressure value is interpolated, and the
+     *     density is computed the EOS.
+     *
      * Pressure field is corrected (in all the cases) by the hydrostatic field.
      * Since density is not corrected, if you are using weakly compressible
      * (where the fluid pressure and density are related) consideer using
@@ -97,7 +122,7 @@ __kernel void Elements(__global int* ifluid, __global int* imove,
         shepard_i = 1.f;
     #ifdef _ALL_INTERPOLATED_
         dens[i] = drdt[i] / shepard_i;
-        press[i] = (f[i].x + f[i].y) / shepard_i;
+        press[i] = (dvdt[i].x + dvdt[i].y) / shepard_i;
     #elif defined _DENSITY_BASED_
         dens[i] = drdt[i] / shepard_i;
         // Batchelor 1967
@@ -106,10 +131,10 @@ __kernel void Elements(__global int* ifluid, __global int* imove,
         const float ddenf = dens[i] / rdenf;
         const float prb = cs * cs * rdenf / gammf;
         press[i] = max(prb * (pow(ddenf, gammf) - 1.f),
-                       f[i].x / shepard_i)
-                   + f[i].y/shepard_i;
+                       dvdt[i].x / shepard_i)
+                   + dvdt[i].y/shepard_i;
     #elif defined _PRESSURE_BASED_
-        press[i] = max(0.f, (f[i].x + f[i].y) / shepard_i);
+        press[i] = max(0.f, (dvdt[i].x + dvdt[i].y) / shepard_i);
         // Reversed Batchelor 1967
         const float rdenf = refd[ifluid[i]];
         const float gammf = gamma[ifluid[i]];
@@ -119,7 +144,7 @@ __kernel void Elements(__global int* ifluid, __global int* imove,
         #error "Unknow boundary elements field computation algorithm"
     #endif
     // Rinitializate output variables
-    f[i] = VEC_ZERO;
+    dvdt[i] = VEC_ZERO;
     drdt[i] = 0.f;
 
     // ---- A ---- Your code here ---- A ----
@@ -127,30 +152,32 @@ __kernel void Elements(__global int* ifluid, __global int* imove,
 
 }
 
-/** Performs the boundary effect over particles based on the boundary
- * integrals.
- * @param ifluid Fluid identifiers.
+/** @brief Performs the boundary effect on the fluid particles.
+ * @param ifluid Fluid index.
  * @param imove Moving flags.
- * @param pos Positions.
- * @param normal Normals.
- * @param v Velocities.
- * @param dens Densities.
- * @param press Pressures.
- * @param mass Masses.
- * @param viscdyn Dynamic viscosity (one per fluid)
- * @param f Accelerations.
- * @param drdt Density variation rates.
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param pos Position \f$ \mathbf{r} \f$.
+ * @param normal Normal \f$ \mathbf{n} \f$.
+ * @param v Velocity \f$ \mathbf{u} \f$.
+ * @param dens Density \f$ \rho \f$.
+ * @param press Pressure \f$ p \f$.
+ * @param mass Mass \f$ m \f$.
+ * @param viscdyn Dynamic viscosity \f$ \nu \f$ (one per fluid)
+ * @param dvdt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
+ * @param drdt Density rate of change \f$ \frac{d \rho}{d t} \f$.
  * @param icell Cell where each particle is located.
- * @param ihoc Head particle of chain for each cell.
+ * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
- * @param lvec Number of cells
+ * @param lvec Number of cells in each direction
  */
 __kernel void Boundary(__global int* ifluid, __global int* imove,
                        __global vec* pos, __global vec* normal,
                        __global vec* v, __global float* dens,
                        __global float* press, __global float* mass,
                        __constant float* viscdyn,
-                       __global vec* f, __global float* drdt,
+                       __global vec* dvdt, __global float* drdt,
                         // Link-list data
                         __global uint *icell, __global uint *ihoc,
                         // Simulation data
@@ -184,14 +211,14 @@ __kernel void Boundary(__global int* ifluid, __global int* imove,
 
     // Initialize the output
     #ifndef LOCAL_MEM_SIZE
-        #define _F_ f[j]
+        #define _F_ dvdt[j]
         #define _DRDT_ drdt[j]
     #else
-        #define _F_ f_l[it]
+        #define _F_ dvdt_l[it]
         #define _DRDT_ drdt_l[it]
-        __local vec f_l[LOCAL_MEM_SIZE];
+        __local vec dvdt_l[LOCAL_MEM_SIZE];
         __local float drdt_l[LOCAL_MEM_SIZE];
-        _F_ = f[i];
+        _F_ = dvdt[i];
         _DRDT_ = drdt[i];
     #endif
 
@@ -260,7 +287,7 @@ __kernel void Boundary(__global int* ifluid, __global int* imove,
     }
 
     #ifdef LOCAL_MEM_SIZE
-        f[i] = _F_;
+        dvdt[i] = _F_;
         drdt[i] = _DRDT_;
     #endif
 

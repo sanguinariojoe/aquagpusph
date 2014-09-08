@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Boundary integral term computation.
+ * (See Aqua::CalcServer::Boundary::DeLeffe for details)
+ */
+
 #include <ProblemSetup.h>
 #include <ScreenManager.h>
 #include <CalcServer/Boundary/DeLeffe.h>

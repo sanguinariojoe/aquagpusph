@@ -16,6 +16,15 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Boundary element - Fluid particle interaction.
+ * (See DeLeffe.cl for details)
+ *
+ * It is prefearable to use a header to be included instead of generating a
+ * function for thye particles interaction, which imply more registries
+ * consumption.
+ */
+
 if(imove[j] >= 0){
 	j++;
 	continue;
