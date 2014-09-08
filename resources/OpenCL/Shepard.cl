@@ -16,50 +16,41 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Acceleration and density rate of change renormalization.
+ * (See Aqua::CalcServer::Shepard for details)
+ */
+
 #ifndef HAVE_3D
     #include "types/2D.h"
 #else
     #include "types/3D.h"
 #endif
 
-#ifndef M_PI
-	#define M_PI 3.14159265359f
-#endif
-#ifndef iM_PI
-	#define iM_PI 0.318309886f
-#endif
-
-#ifndef uint
-	#define uint unsigned int
-#endif
-
-#ifdef _g
-	#error '_g' is already defined.
-#endif
-#define _g __global
-
-#ifdef _c
-	#error '_c' is already defined.
-#endif
-#define _c __constant
-
-#ifdef _l
-	#error '_l' is already defined.
-#endif
-#define _l __local
-
-/** Apply the shepard term.
- * @param iMove Movement flags.
- * @param f Forces over particles.
- * @param drdt Density evolution of particles.
- * @param normal Particle normal (represents ferrand effect direction).
- * @param shepard Shepard term (0th correction).
+/** @brief Apply the Shepard renormalization term.
+ * @param imove Moving flags.
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param dvdt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
+ * @param drdt Density rate of change \f$ \frac{d \rho}{d t} \f$.
+ * @param drdt_F Density rate of change restricted to the diffusive term
+ * \f$ \left. \frac{d \rho}{d t} \right\vert_F \f$.
+ * @param shepard Shepard term
+ * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
+ *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{x} \f$.
  * @param N Number of particles.
+ * @see Aqua::CalcServer::Shepard
+ * @see Aqua::CalcServer::Rates
  */
-__kernel void Shepard(_g int* iMove, _g vec* f, _g float* drdt,
-                      _g float* drdt_F, _g float* shepard, uint N )
+__kernel void Shepard(__global int* imove,
+                      __global vec* dvdt,
+                      __global float* drdt,
+                      __global float* drdt_F,
+                      __global float* shepard,
+                      unsigned int N)
 {
-	uint i = get_global_id(0);
+	unsigned int i = get_global_id(0);
 	if(i >= N)
 		return;
 	// Don't compute vertexes or sensors
@@ -74,7 +65,7 @@ __kernel void Shepard(_g int* iMove, _g vec* f, _g float* drdt,
 	if( (iShepard < 0.1f) || (iShepard > 1.f) )
 		return;
 	#ifdef __FORCE_CORRECTION__
-		f[i] /= iShepard;
+		dvdt[i] /= iShepard;
 	#endif
 	#ifdef __DENS_CORRECTION__
 		drdt[i] /= iShepard;

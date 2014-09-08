@@ -16,42 +16,45 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Acceleration and density rate of change renormalization.
+ * (See Aqua::CalcServer::Shepard for details)
+ */
+
 #ifndef SHEPARD_H_INCLUDED
 #define SHEPARD_H_INCLUDED
 
-// ----------------------------------------------------------------------------
-// Include Generic kernel
-// ----------------------------------------------------------------------------
 #include <CalcServer/Kernel.h>
 
 namespace Aqua{ namespace CalcServer{
 
 /** @class Shepard Shepard.h CalcServer/Shepard.h
- * @brief Renormalization factor applied to forces and density variation
- * rates.
- * @remarks 0th order correction (formerly Shepard correction) is mandatory
- * when DeLeffe boundary condition (formerly boundary integrals) is imposed,
- * but since Shepard term can be a little bit unstable, it is strongly
- * recommended to don't apply it if it is not required.
+ * @brief Acceleration and density rate of change renormalization.
+ *
+ * The Shepard factor is computed during the fluid particles interactions
+ * computation (Aqua::CalcServer::Rates).
+ *
+ * @note 0th order correction (formerly Shepard correction) is mandatory
+ * when DeLeffe boundary condition (formerly boundary integrals) is imposed.
+ * @see Shepard.cl
+ * @see Aqua::CalcServer::Rates
  */
 class Shepard : public Aqua::CalcServer::Kernel
 {
 public:
-    /** Constructor.
-     */
+    /// Constructor.
     Shepard();
 
-    /** Destructor.
-     */
+    /// Destructor.
     ~Shepard();
 
-    /** Shepard boundary computation.
+    /** @brief Perform the work.
      * @return false if all gone right, true otherwise.
      */
     bool execute();
 
 private:
-    /** Setup the OpenCL stuff
+    /** @brief Setup the OpenCL stuff
      * @return false if all gone right, true otherwise.
      */
     bool setupOpenCL();
