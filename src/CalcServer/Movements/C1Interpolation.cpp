@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Continuous C1 data interpolation.
+ * (See Aqua::CalcServer::Movement::C1Interpolation for details)
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>

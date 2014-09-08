@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Continuous C1 data interpolation.
+ * (See Aqua::CalcServer::Movement::C1Interpolation for details)
+ */
+
 #ifndef C1Interpolation_H_INCLUDED
 #define C1Interpolation_H_INCLUDED
 
@@ -25,50 +30,50 @@
 namespace Aqua{ namespace CalcServer{ namespace Movement{
 
 /** @class Poly C1Interpolation.h CalcServer/Movements/C1Interpolation.h
- * @brief Polynomial description of a curve such that points and derivatives
- * can be imposed.
+ * @brief Polynomial description of a curve.
  */
 class Poly
 {
 public:
-    /** Constructor.
-     * @param p Points imposed.
-     * @param dp Derivatives imposed.
+    /** @brief Constructor.
+     * @param p List of points \f$ y(x) \f$ that the curve must cross.
+     * @param dp List of derivatives \f$ \frac{d y}{d x}(x) \f$ imposed to the
+     * polynomial function.
      */
     Poly(std::deque<vec2> p, std::deque<vec2> dp);
 
-    /** Destructor.
-     */
+    /// Destructor.
     ~Poly();
 
-    /** Get the imposed points.
-     * @return Imposed points array.
+    /** @brief Get the imposed points \f$ y(x) \f$.
+     * @return Imposed points list.
      */
     std::deque<vec2> points(){return _p;}
 
-    /** Get the imposed derivatives.
-     * @return Imposed derivatives array.
+    /** @brief Get the imposed derivatives \f$ \frac{d y}{d x}(x) \f$.
+     * @return Imposed derivatives list.
      */
     std::deque<vec2> derivatives(){return _dp;}
 
-    /** Get the resultant coefficients.
+    /** @brief Get the polynomial function coefficients.
      * @return Coefficients.
      */
     std::deque<float> coefficients(){return _k;}
 
-    /** Evaluates the curve in the desired x coordinate.
+    /** @brief Evaluates the curve in the desired \f$ x \f$ coordinate.
+     * @param x X coordinate to evaluate the function.
      * @return Curve y coordinate.
      */
     float evaluate(float x);
 
-    /** Evaluates the curve derivative in the desired x coordinate.
-     * @return Curve derivative \f$ \frac{dy}{dx} \f$.
+    /** Evaluates the curve derivative in the desired \f$ x \f$ coordinate.
+     * @param x X coordinate to evaluate the function derivative.
+     * @return Curve derivative \f$ \frac{d y}{d x}(x) \f$.
      */
     float derivate(float x);
 
 private:
-    /** Compute the coefficients
-     */
+    /// Compute the coefficients
     void compute();
 
     /// Starting coordinate
@@ -82,58 +87,63 @@ private:
 };
 
 /** @class C1Interpolation C1Interpolation.h CalcServer/Movements/C1Interpolation.h
- * @brief Data file fields linear interpolator. It will read the data file
- * and perform data interpolation (C1 one, such that the function and its
- * derivative is contiguous) using the time field (assuming that it is placed
- * in the first column).
+ * @brief Data file fields continuous C1 interpolation.
+ *
+ * The data read from the file will be interpolated with a polynomial function
+ * such that:
+ *    - The curve will cross the points at \f$ t_{n-1} \f$ and \f$ t_{n} \f$
+ *    - The curve will share the derivative value at \f$ t_{n-1} \f$ with the
+ *      polynomial function of the time interval \f$ t_{n-2}, t_{n-1} \f$
+ *
+ * where \f$ t_{n-1} < t < t_{n} \f$
+ *
+ * @see Aqua::CalcServer::Movement::Poly
+ * @see Aqua::CalcServer::Movement::LinearInterpolation
  */
 class C1Interpolation
 {
 public:
-    /** Constructor.
+    /** @brief Constructor.
      * @param data_file Data file path.
-     * @note Data file can be omissed at the construction, but ensure yourself
-     * to provide it later.
+     * @note Data file can be omitted at the construction, providing it later.
      */
     C1Interpolation(const char *data_file=NULL);
 
-    /** Destructor.
-     */
+    /// Destructor.
     ~C1Interpolation();
 
-    /** Update data for the new time instant.
+    /** @brief Update data for a new time instant.
      * @param t Desired time instant.
      * @return Data array. The first component is the time.
      */
     std::deque<float> update(float t);
 
-    /** Get the number of data fields.
+    /** @brief Get the number of data fields.
      * @return Number of data fields.
      */
     unsigned int nFields(){return _data.size();}
 
-    /** Get the data fields.
+    /** @brief Get the data fields.
      * @return Data array. The first component is the time.
      */
     std::deque<float> data(){return _data;}
 
-    /** Get the data fields derivative with respect to the time.
-     * @return Data fields derivative. The first component is the time (non
-     * derivated).
+    /** @brief Get the data fields derivative with respect to the time.
+     * @return Data fields derivative. The first component is the time.
      */
     std::deque<float> derivative();
 
-    /** Set the data file
+    /** @brief Set the data file
      * @param data_file Data file path.
-     * @return true if file was opened ok, false otherwise.
+     * @return true if file was successfully opened, false otherwise.
      * @note Seek point will be moved to the last time selected in the last
      * update calling, or \f$ t = 0 \f$ s if update has not been called yet.
      */
     bool open(const char *data_file);
 
 private:
-    /** Reads a line of the file.
-     * @return Data array. If a bad formated line or EOF is reached, clear
+    /** @brief Reads a line of the file.
+     * @return Data array. If a bad formatted line or EOF is reached, empty
      * data array will be sent.
      */
     std::deque<float> readLine();
