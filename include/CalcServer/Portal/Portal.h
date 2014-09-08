@@ -16,17 +16,14 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Outdated data, just ignore it.
+ */
+
 #ifndef PORTAL_H_INCLUDED
 #define PORTAL_H_INCLUDED
 
-// ----------------------------------------------------------------------------
-// Include the Problem setup manager header
-// ----------------------------------------------------------------------------
 #include <ProblemSetup.h>
-
-// ----------------------------------------------------------------------------
-// Include Generic kernel
-// ----------------------------------------------------------------------------
 #include <CalcServer/Kernel.h>
 
 namespace Aqua{ namespace CalcServer{
@@ -36,27 +33,24 @@ namespace Aqua{ namespace CalcServer{
 namespace Portal{
 
 /** @class Portal Portal.h CalcServer/Portal/Portal.h
- * @brief Base portal class, that only teleport particles that
- * pass throught outlet portal to the inlet portal.
+ * @brief Outdated data, just ignore it.
  */
 class Portal : public Aqua::CalcServer::Kernel
 {
 public:
-    /** Constructor.
-     */
+    /// Constructor.
     Portal(InputOutput::ProblemSetup::sphPortal *portal);
 
-    /** Destructor.
-     */
+    /// Destructor.
     ~Portal();
 
-    /** Teleport particles from outlet to inlet.
+    /** @brief Outdated data, just ignore it.
      * @return false if all gone right, true otherwise.
      */
     bool execute();
 
 private:
-    /** Setup the OpenCL stuff
+    /** @brief Setup the OpenCL stuff
      * @return false if all gone right, true otherwise.
      */
     bool setupOpenCL();

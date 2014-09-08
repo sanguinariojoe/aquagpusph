@@ -16,19 +16,12 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// ----------------------------------------------------------------------------
-// Include the Problem setup manager header
-// ----------------------------------------------------------------------------
+/** @file
+ * @brief Outdated data, just ignore it.
+ */
+
 #include <ScreenManager.h>
-
-// ----------------------------------------------------------------------------
-// Include the main header
-// ----------------------------------------------------------------------------
 #include <CalcServer/Portal/Portal.h>
-
-// ----------------------------------------------------------------------------
-// Include the calculation server
-// ----------------------------------------------------------------------------
 #include <CalcServer.h>
 
 namespace Aqua{ namespace CalcServer{ namespace Portal{
@@ -45,7 +38,7 @@ Portal::Portal(InputOutput::ProblemSetup::sphPortal *portal)
         printf("ERROR (Portal::Portal): Empty portal reference pointer, can't continue!\n");
         exit(1);
     }
-    //! 1st.- Get data
+    // Get data
     int str_len = strlen(P->OpenCL_kernels.portal);
     if(str_len <= 0) {
         printf("ERROR (Portal::Portal): _path of Portal kernel is empty.\n");
@@ -58,7 +51,7 @@ Portal::Portal(InputOutput::ProblemSetup::sphPortal *portal)
     }
     strcpy(_path, P->OpenCL_kernels.portal);
     strcat(_path, ".cl");
-    //! 2nd.- Setup the kernel
+    // Setup the kernel
     _local_work_size = 256;
     _global_work_size = globalWorkSize(_local_work_size);
     if(setupOpenCL()) {
@@ -86,7 +79,7 @@ bool Portal::execute()
         return true;
     }
     // printf("%f,%f\n", mPortal->out.normal.x, mPortal->out.normal.y);
-    //! Send all variables to the server
+    // Send all variables to the server
     flag |= sendArgument(_kernel, 0, sizeof(cl_mem ), (void*)&(C->imove));
     flag |= sendArgument(_kernel, 1, sizeof(cl_mem ), (void*)&(C->posin));
     flag |= sendArgument(_kernel, 2, sizeof(cl_uint), (void*)&(C->n));
@@ -95,7 +88,7 @@ bool Portal::execute()
         S->addMessage(3, (char*)"(Portal::execute): Imposible to send arguments to portal _kernel.\n");
         return true;
     }
-    //! Execute the kernel
+    // Execute the kernel
     #ifdef HAVE_GPUPROFILE
         cl_event event;
         cl_ulong end, start;
@@ -120,7 +113,7 @@ bool Portal::execute()
             S->addMessage(3, (char*)"\tfailure to allocate resources required by the OpenCL implementation on the host.\n");
         return true;
     }
-    //! Profile the kernel execution
+    // Profile the kernel execution
     #ifdef HAVE_GPUPROFILE
         flag = clWaitForEvents(1, &event);
         if(flag != CL_SUCCESS) {
@@ -142,7 +135,7 @@ bool Portal::setupOpenCL()
 {
     CalcServer *C = CalcServer::singleton();
     printf("\tINFO (Portal::SetupOpenCL): Using OpenCL script \"%s\"\n", _path);
-    //! Load the kernels
+    // Load the kernels
     if(!loadKernelFromFile(&_kernel, &_program, C->context, C->device, _path, "Portal", ""))
         return true;
     return false;

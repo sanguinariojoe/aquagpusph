@@ -16,40 +16,18 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Outdated data, just ignore it.
+ */
+
 #ifndef HAVE_3D
     #include "../types/2D.h"
 #else
     #include "../types/3D.h"
 #endif
 
-#ifndef M_PI
-	#define M_PI 3.14159265359f
-#endif
-#ifndef iM_PI
-	#define iM_PI 0.318309886f
-#endif
-
-#ifndef uint
-	#define uint unsigned int
-#endif
-
-#ifdef _g
-	#error '_g' is already defined.
-#endif
-#define _g __global
-
-#ifdef _c
-	#error '_c' is already defined.
-#endif
-#define _c __constant
-
-#ifdef _l
-	#error '_l' is already defined.
-#endif
-#define _l __local
-
-/** \struct Portal
-* Specific portal storage, that get inlet or outlet.
+/** @struct Portal
+* @brief Specific portal storage, that get inlet or outlet.
 * @note Interior normals.
 */
 struct Portal
@@ -64,22 +42,23 @@ struct Portal
 	vec normal;
 };
 
-/** \struct PortalPair
- * Full portal data structure, that contains a pair of portals as inlet/outlet.
+/** @struct PortalPair
+ * @brief Full portal data structure, that contains a pair of portals as
+ * inlet/outlet.
  */
 struct PortalPair
 {
 	struct Portal in,out;
 };
 
-/** Teleport particles that pass trought a portal.
+/** @brief Teleport particles that pass trought a portal.
  * @param iMove Movement flags. Fixed particles will not considered.
  * @param pos Position of particles.
  * @param N Number of particles.
  * @param in First portal plane.
  * @param out Second portal plane.
  */
-__kernel void Portal( _g int* iMove, _g vec* pos, uint N,
+__kernel void Portal( __global int* iMove, __global vec* pos, uint N,
                       struct PortalPair portal)
 {
 	// find position in global arrays
