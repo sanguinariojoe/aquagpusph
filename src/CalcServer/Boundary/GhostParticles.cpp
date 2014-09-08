@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Ghost particles fluid extension based boundary condition.
+ * (See Aqua::CalcServer::Boundary::GhostParticles for details)
+ */
+
 #include <ProblemSetup.h>
 #include <ScreenManager.h>
 #include <CalcServer/Boundary/GhostParticles.h>

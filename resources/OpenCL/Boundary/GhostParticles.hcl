@@ -16,7 +16,15 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// Artificial viscosity factor
+/** @file
+ * @brief Boundary element - Fluid particle interaction.
+ * (See GhostParticles.cl for details)
+ *
+ * It is prefearable to use a header to be included instead of generating a
+ * function for thye particles interaction, which imply more registries
+ * consumption.
+ */
+
 #ifndef __CLEARY__
     #ifndef HAVE_3D
         #define __CLEARY__ 8.f

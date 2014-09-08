@@ -16,14 +16,21 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Ghost particles boundary element helper functions.
+ * (See GhostParticles.cl for details)
+ */
+
 #ifdef HAVE_3D
-    /** Compute the point projected over the wall (useful to mirror the
-     * particle or get if the particle is in the wall bounds).
+    /** @brief Compute the point projected over the wall.
+     * 
+     * It is useful to mirror the particle or to check if the particle is in
+     * the wall bounds
      * @param pos Particle position.
      * @param p1 corner of the considered wall.
      * @param n normal of the considered wall.
      * @return Reflection point.
-     * @note Consider using the macro wallProjection() instead of this method
+     * @note Consider using the macro #wallProjection instead of this method
      * directly.
      */
     vec _wallProjection(vec pos, vec p1, vec n){
@@ -32,13 +39,15 @@
         return pos - d;
     }
 
-    /** @def wallProjection(pos)
-     * Compute the point projected over the wall (useful to mirror the particle
-     * or get if the particle is in the wall bounds).
+    /** @def wallProjection
+     * @brief Compute the point projected over the wall.
+     * 
+     * It is useful to mirror the particle or to check if the particle is in
+     * the wall bounds.
      */
     #define wallProjection(pos) _wallProjection(pos, p1_w, n_w)
 
-    /** Get if a point is into the wall bounds.
+    /** @brief Check if a point is into the wall bounds.
      * @param pos Particle position.
      * @param p1 1st vertex of the wall.
      * @param p2 2nd vertex of the wall.
@@ -47,7 +56,7 @@
      * @return true if point is on wall bounds, false otherwise.
      * @warning The method is assuming that the point is already on the wall
      * plane.
-     * @note Consider using the macro isOnWallBounds() instead of this method
+     * @note Consider using the macro #isOnWallBounds instead of this method
      * directly.
      */
     bool _isOnWallBounds(vec pos, vec p1, vec p2, vec p3, vec p4){
@@ -70,12 +79,12 @@
         return false;
     }
 
-    /** @def isOnWallBounds(pos)
-     * Get if a point is into the wall bounds.
+    /** @def isOnWallBounds
+     * @brief Check if a point is into the wall bounds.
      */
     #define isOnWallBounds(pos) _isOnWallBounds(pos, p1_w, p2_w, p3_w, p4_w)
 
-    /** Compute a wall point velocity.
+    /** @brief Compute a wall point velocity.
      * @param pos Wall point.
      * @param p1 1st vertex of the wall.
      * @param p2 2nd vertex of the wall.
@@ -92,7 +101,7 @@
      * to pos, getting the point on the opposite edge and interpolating the
      * value into it. Then a linear interpolation is performed aver the
      * initially launched ray.
-     * @note Consider using the macro wallVelocity() instead of this method
+     * @note Consider using the macro #wallVelocity instead of this method
      * directly.
      */
     vec _wallVelocity(vec pos, vec p1, vec p2, vec p3, vec p4, vec n,
@@ -130,18 +139,20 @@
     }
 
     /** @def wallVelocity(pos)
-     * Compute a wall point velocity..
+     * @brief Compute a wall point velocity.
      */
     #define wallVelocity(pos) _wallVelocity(pos, p1_w, p2_w, p3_w, p4_w, v1_w, v2_w, v3_w, v4_w)
 
 #else
-    /** Compute the point projected over the wall (useful to mirror the
-     * particle or get if the particle is in the wall bounds).
+    /** @brief Compute the point projected over the wall.
+     * 
+     * It is useful to mirror the particle or to check if the particle is in
+     * the wall bounds
      * @param pos Particle position.
      * @param p1 corner of the considered wall.
      * @param n normal of the considered wall.
      * @return Reflection point.
-     * @note Consider using the macro wallProjection() instead of this method
+     * @note Consider using the macro #wallProjection instead of this method
      * directly.
      */
     vec _wallProjection(vec pos, vec p1, vec n){
@@ -150,20 +161,22 @@
         return pos - d;
     }
 
-    /** @def wallProjection(pos)
-     * Compute the point projected over the wall (useful to mirror the particle
-     * or get if the particle is in the wall bounds).
+    /** @def wallProjection
+     * @brief Compute the point projected over the wall.
+     * 
+     * It is useful to mirror the particle or to check if the particle is in
+     * the wall bounds.
      */
     #define wallProjection(pos) _wallProjection(pos, p1_w, n_w)
 
-    /** Get if a point is into the wall bounds.
+    /** @brief Check if a point is into the wall bounds.
      * @param pos Particle position.
      * @param p1 1st vertex of the wall.
      * @param p2 2nd vertex of the wall.
      * @return true if point is on wall bounds, false otherwise.
      * @warning The method is assuming that the point is already on the wall
      * plane.
-     * @note Consider using the macro isOnWallBounds() instead of this method
+     * @note Consider using the macro #isOnWallBounds instead of this method
      * directly.
      */
     bool _isOnWallBounds(vec pos, vec p1, vec p2){
@@ -175,12 +188,12 @@
         return true;
     }
 
-    /** @def isOnWallBounds(pos)
-     * Get if a point is into the wall bounds.
+    /** @def isOnWallBounds
+     * @brief Check if a point is into the wall bounds.
      */
     #define isOnWallBounds(pos) _isOnWallBounds(pos, p1_w, p2_w)
 
-    /** Compute a wall point velocity.
+    /** @brief Compute a wall point velocity.
      * @param pos Wall point.
      * @param p1 1st vertex of the wall.
      * @param p2 2nd vertex of the wall.
@@ -189,7 +202,7 @@
      * @return Velocity at wall point.
      * @remarks The method is assuming that the point is already on the wall
      * plane.
-     * @note Consider using the macro wallVelocity() instead of this method
+     * @note Consider using the macro #wallVelocity instead of this method
      * directly.
      */
     vec _wallVelocity(vec pos, vec p1, vec p2, vec v1, vec v2){
@@ -200,7 +213,7 @@
     }
 
     /** @def wallVelocity(pos)
-     * Compute a wall point velocity..
+     * @brief Compute a wall point velocity.
      */
     #define wallVelocity(pos) _wallVelocity(pos, p1_w, p2_w, v1_w, v2_w)
 

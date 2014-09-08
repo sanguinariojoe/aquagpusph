@@ -16,17 +16,16 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Ghost particles fluid extension based boundary condition.
+ * (See Aqua::CalcServer::Boundary::GhostParticles for details)
+ */
+
 #ifndef GHOSTPARTICLES_H_INCLUDED
 #define GHOSTPARTICLES_H_INCLUDED
 
-// ----------------------------------------------------------------------------
-// Include Generic kernel
-// ----------------------------------------------------------------------------
 #include <CalcServer/Kernel.h>
 
-// ----------------------------------------------------------------------------
-// Include standar libraries
-// ----------------------------------------------------------------------------
 #include <vector>
 #include <deque>
 
@@ -34,32 +33,35 @@ namespace Aqua{ namespace CalcServer{ namespace Boundary{
 
 /** @class GhostParticles GhostParticles.h CalcServer/Boundary/GhostParticles.h
  * @brief Boundary condition based on extending the fluid with a mirroring
- * process of the particles with respect to the wall, conveniently setting
- * modified fields. In order to improve the consistency the model used for the
- * pressure, normal velocity, and tangent velocity can be modified, but the
- * following model is set by default (Free slip):
+ * process of the particles with respect to the wall.
+ *
+ * The fields on the extended fluid are conveniently set.
+ *
+ * In order to improve the consistency the model used for the pressure, normal
+ * velocity, and tangent velocity can be modified, but the following model is
+ * set by default (Free slip):
  *   - pressModel = "SSM"
  *   - normalUModel = "ASM"
  *   - tangentUModel = "SSM"
+ *
+ * @see GhostParticles.cl
  */
 class GhostParticles : public Aqua::CalcServer::Kernel
 {
 public:
-    /** Constructor.
-     */
+    /// Constructor.
     GhostParticles();
 
-    /** Destructor.
-     */
+    /// Destructor.
     ~GhostParticles();
 
-    /** Compute the boundary condition.
+    /** @brief Perform the work.
      * @return false if all gone right, true otherwise.
      */
     bool execute();
 
 private:
-    /** Setup the OpenCL stuff
+    /** @brief Setup the OpenCL stuff
      * @return false if all gone right, true otherwise.
      */
     bool setupOpenCL();
