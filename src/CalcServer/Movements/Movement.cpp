@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Motions base class.
+ * (See Aqua::CalcServer::Movement::Movement for details)
+ */
+
 #include <ScreenManager.h>
 #include <CalcServer/Movements/Movement.h>
 #include <CalcServer.h>

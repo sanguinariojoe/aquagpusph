@@ -16,12 +16,14 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Motions base class.
+ * (See Aqua::CalcServer::Movement::Movement for details)
+ */
+
 #ifndef MOVEMENT_H_INCLUDED
 #define MOVEMENT_H_INCLUDED
 
-// ----------------------------------------------------------------------------
-// Include xerces XML parser library
-// ----------------------------------------------------------------------------
 #include <xercesc/dom/DOM.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
 #include <xercesc/dom/DOMDocumentType.hpp>
@@ -34,45 +36,58 @@
 #include <xercesc/parsers/XercesDOMParser.hpp>
 #include <xercesc/util/XMLUni.hpp>
 
-// ----------------------------------------------------------------------------
-// Include Generic kernel
-// ----------------------------------------------------------------------------
 #include <CalcServer/Kernel.h>
 
 namespace Aqua{ namespace CalcServer{
-/// @namespace Move Movements space.
+/** @namespace Movement
+ * @brief Motions.
+ */
 namespace Movement {
 
 /** @class Movement Movement.h CalcServer/Movements/Movement.h
- * @brief Abstraction class for all the motion models. As base class, only
- * store some usefull variables as the OpenCL kernel to use.
+ * @brief Base class for all the motion models.
+ *
+ * This class is parsing the input XML file to find the used OpenCL script, but
+ * the inherited motion classes may parse more fields with the method _parse().
  */
 class Movement : public Aqua::CalcServer::Kernel
 {
 public:
-    /** Constructor.
-     */
+    /// Constructor.
     Movement();
 
-    /** Destructor.
-     */
+    /// Destructor.
     virtual ~Movement();
 
-    /** Parse definition file
+    /** @brief Parse the XML definition file.
+     *
+     * This method will parse the XML file, looking for errors, and extracting
+     * the OpenCL kernel to be used.
+     *
+     * After that the control is passed to _parse() function.
+     *
      * @param def XML file with the motion definition.
      * @return false if all gone right, true otherwise.
+     * @remarks This method is not virtual, consider overloading _parse()
+     * function.
+     * @see _parse()
      */
     bool parse(const char* def);
 
-    /** Execute the motion.
+    /** @brief Perform the work.
      * @return false if all gone right, true otherwise.
      */
     virtual bool execute()=0;
 
 protected:
-    /** Parse the input definition file (motion type specific data).
+    /** @brief Parse the additional data in the input definition file.
+     *
+     * Since parse() function is just looking for the OpenCL script to be used,
+     * this method should be overloaded to get additional data.
+     *
      * @param root Input node of the parser.
      * @return false if all gone right, true otherwise.
+     * @see parse()
      */
     virtual bool _parse(xercesc::DOMElement *root)=0;
 
@@ -86,7 +101,7 @@ protected:
     size_t _local_work_size;
 
 private:
-    /** Setup the OpenCL stuff
+    /** @brief Setup the OpenCL stuff
      * @return false if all gone right, true otherwise.
      */
     virtual bool setupOpenCL();
