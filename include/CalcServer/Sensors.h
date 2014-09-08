@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Sensors fields computation.
+ * (See Aqua::CalcServer::Sensors for details)
+ */
+
 #ifndef SENSORS_H_INCLUDED
 #define SENSORS_H_INCLUDED
 
@@ -25,41 +30,60 @@ namespace Aqua{ namespace CalcServer{
 
 /** @class Sensors Sensors.h CalcServer/Sensors.h
  * @brief Sensors fields computation.
+ *
+ * Actually the sensors values interpolation is done during the fluid
+ * interactions computation (Aqua::CalcServer::Rates), where the following data
+ * is stored:
+ *   - The pressure \f$ p \f$.
+ *   - The hydrostatic pressure correction
+ *     \f$ \rho_0 \, \mathbf{g} \cdot \mathbf{r}_{ab} \f$.
+ *   - The density \f$ \rho \f$.
+ *   - The Shepard factor \f$ \gamma_a \f$.
+ *   - Squared density \f$ \rho^2 \f$ (used to compute the variance).
+ *
+ * To store the previous data the acceleration and rate of change of
+ * density fields has been used (useless for the sensors).
+ *
+ * In this tool these interpolated values are recompiled to get the final
+ * resulting output values.
+ *
+ * This tool is also controlling the output file.
+ *
+ * @see Sensors.cl
+ * @see Aqua::CalcServer::Rates
  */
 class Sensors : public Aqua::CalcServer::Kernel
 {
 public:
-    /** Constructor.
-     */
+    /// Constructor.
     Sensors();
 
-    /** Destructor.
-     */
+    /// Destructor.
     ~Sensors();
 
-    /** Sensors calculation.
+    /** @brief Perform the work.
      * @return false if all gone right, true otherwise.
      */
     bool execute();
 
-    /** Get the sensors positions.
+    /** @brief Get the sensors positions.
      * @return Sensors positions.
      */
     vec* positions();
 
 protected:
-    /** Retrieve data form the device, printing it in the output file.
+    /** @brief Retrieve data form the device, printing it in the output file.
      * @return false if all gone right, true otherwise.
      */
     bool printOutput();
 
 private:
-    /** Setup the OpenCL stuff
+    /** @brief Setup the OpenCL stuff
      * @return false if all gone right, true otherwise.
      */
     bool setupOpenCL();
 
-    /** Start the output file
+    /** @brief Start the output file
      * @return false if all gone right, true otherwise.
      */
     bool initOutput();

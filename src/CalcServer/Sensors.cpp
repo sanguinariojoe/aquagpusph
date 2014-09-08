@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Sensors fields computation.
+ * (See Aqua::CalcServer::Sensors for details)
+ */
+
 #include <deque>
 #include <math.h>
 
