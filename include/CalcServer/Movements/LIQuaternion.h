@@ -18,7 +18,7 @@
 
 /** @file
  * @brief Linearly interpolated quaternion based motion.
- * (See Aqua::CalcServer::Movement::C1Quaternion for details)
+ * (See Aqua::CalcServer::Movement::LIQuaternion for details)
  */
 
 #ifndef LIQUATERNION_H_INCLUDED
