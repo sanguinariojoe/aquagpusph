@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Scripted quaternion based motion.
+ * (See Aqua::CalcServer::Movement::ScriptQuaternion for details)
+ */
+
 #include <CalcServer/Movements/ScriptQuaternion.h>
 #include <CalcServer.h>
 #include <TimeManager.h>
