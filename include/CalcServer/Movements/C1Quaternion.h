@@ -16,54 +16,56 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Continuous C1 quaternion based motion.
+ * (See Aqua::CalcServer::Movement::C1Quaternion for details)
+ */
+
 #ifndef C1Quaternion_H_INCLUDED
 #define C1Quaternion_H_INCLUDED
 
-// ----------------------------------------------------------------------------
-// Include the Movement
-// ----------------------------------------------------------------------------
 #include <CalcServer/Movements/Quaternion.h>
-
-// ----------------------------------------------------------------------------
-// Include the C1 interpolator
-// ----------------------------------------------------------------------------
 #include <CalcServer/Movements/C1Interpolation.h>
 
 namespace Aqua{ namespace CalcServer{ namespace Movement{
 
 /** @class C1Quaternion C1Quaternion.h CalcServer/Movements/C1Quaternion.h
- * @brief C1 interpolated solid quaternion based motion.
+ * @brief C1 interpolated quaternion based motion.
+ *
+ * A prescribed motion will be imposed by a data file usage, which its data will
+ * be interpolated with Aqua::CalcServer::Movement::C1Interpolation tool.
+ *
+ * @see Aqua::CalcServer::Movement::C1Interpolation
+ * @see Aqua::CalcServer::Movement::Quaternion
  */
 class C1Quaternion : public Aqua::CalcServer::Movement::Quaternion
 {
 public:
-    /** Constructor.
-     */
+    /// Constructor.
     C1Quaternion();
 
-    /** Destructor.
-     */
+    /// Destructor.
     ~C1Quaternion();
 
-    /** Execute the movement.
+    /** @brief Execute the movement.
      * @return false if all gone right, true otherwise.
      */
     bool execute();
 
 protected:
-    /** Parse the input definition file.
+    /** @brief Get the prescribed motion data file from the XML definition file.
      * @param root Input node of the parser.
      * @return false if all gone right, true otherwise.
      */
     bool _parse(xercesc::DOMElement *root);
 
 private:
-    /** Read the initial quaternion position.
+    /** @brief Read and set the initial quaternion position.
      * @return false if all gone right, true otherwise.
      */
     bool setInitialPositions();
 
-    /// Data file Contiguous C1 interpolator
+    /// Data file Contiguous C1 interpolation tool
     C1Interpolation *_data;
 };
 

@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Continuous C1 quaternion based motion.
+ * (See Aqua::CalcServer::Movement::C1Quaternion for details)
+ */
+
 #include <CalcServer/Movements/C1Quaternion.h>
 #include <CalcServer.h>
 #include <TimeManager.h>
