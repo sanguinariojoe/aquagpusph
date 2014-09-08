@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Linearly interpolated quaternion based motion.
+ * (See Aqua::CalcServer::Movement::C1Quaternion for details)
+ */
+
 #include <CalcServer/Movements/LIQuaternion.h>
 #include <CalcServer.h>
 #include <TimeManager.h>
