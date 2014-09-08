@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Time step computation.
+ * (See Aqua::CalcServer::TimeStep for details)
+ */
+
 #ifndef TIMESTEP_H_INCLUDED
 #define TIMESTEP_H_INCLUDED
 
@@ -25,34 +30,39 @@
 namespace Aqua{ namespace CalcServer{
 
 /** @class TimeStep TimeStep.h CalcServer/TimeStep.h
- * @brief Time step computation. The time step could be set in 3 different
- * ways:
+ * @brief Time step computation.
+ *
+ * The time step could be set in 3 different ways:
  *   -# Provided fixed time step: The used set a fixed time step.
  *   -# Computed fixed time step: The time step will be computed at \f$t=0\f$
  *   -# Variable time step: The time step is recomputed each iteration.
- * To compute a time step a courant condition is imposed such that a particle
- * cannot move more than \f$ 0.1 h \f$ per time step, or a pressure wave
- * cannot be transported more than \f$ h \f$ in a time step
- * (\f$ t \leq \frac{h}{\mathrm{max}(c_s, 10 \vert\mathbf{u}\vert_{max})} \f$)
+ *
+ * To compute the time step a Courant condition is imposed such that a particle
+ * cannot move more than \f$ 0.1 h \f$ per time step, as well as a pressure wave
+ * cannot be transported more than \f$ h \f$ in a time step:
+ *
+ * \f$ t \leq \frac{h}{\mathrm{max}(c_s, 10 \vert\mathbf{u}\vert_{max})} \f$
+ *
+ * @see TimeStep.cl
+ * @see Aqua::InputOutput::ProblemSetup::sphTimingParameters::dt_mode
+ * @see Aqua::CalcServer::Reduction
  */
 class TimeStep : public Aqua::CalcServer::Kernel
 {
 public:
-    /** Constructor.
-     */
+    /// Constructor.
     TimeStep();
 
-    /** Destructor.
-     */
+    /// Destructor.
     ~TimeStep();
 
-    /** Time step computation.
+    /** @brief Perform the work.
      * @return false if all gone right, true otherwise.
      */
     bool execute();
 
 private:
-    /** Setup the OpenCL stuff
+    /** @brief Setup the OpenCL stuff
      * @return false if all gone right, true otherwise.
      */
     bool setupOpenCL();
