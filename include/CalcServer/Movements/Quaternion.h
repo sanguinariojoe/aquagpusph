@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Quaternion based motions base class.
+ * (See Aqua::CalcServer::Movement::Quaternion for details)
+ */
+
 #ifndef QUATERNION_H_INCLUDED
 #define QUATERNION_H_INCLUDED
 
@@ -25,64 +30,67 @@
 namespace Aqua{ namespace CalcServer{ namespace Movement{
 
 /** @class Quaternion Quaternion.h CalcServer/Movements/Quaternion.h
- * @brief Solid quaternion based motion. Quaternion, that must be manually
- * provided, defines the solid position for each time instant.
- * This class is not designed to be used by the AQUAgpusph binary but as an
- * utility for the overloaded quaternion classes.
+ * @brief Solid quaternion based motion.
+ *
+ * The quaternion is defined by the center COR, and the axis, referenced to an
+ * earth fixed reference system.
+ *
+ * This class is not designed to be used directly by the AQUAgpusph binary but
+ * as an utility for the overloaded quaternion classes.
+ *
+ * @see Quaternion.cl
  */
 class Quaternion : public Aqua::CalcServer::Movement::Movement
 {
 public:
-    /** Constructor.
-     * @param data_file Data file path.
-     * @note Data file can be omissed at construction, but be ensure
-     * to provide it later.
-     */
+    /// Constructor.
     Quaternion();
 
-    /** Destructor.
-     */
+    /// Destructor.
     virtual ~Quaternion();
 
-    /** Set the quaternion (by the center point and the axis vectors).
+    /** @brief Set the quaternion (by the center point and the axis vectors).
      * @param cor Center of the quaternion.
-     * @param axis Axis matrix. The axis matrix must
-     * contains one axis per row.
-     * @param initial true if it is the initial set of the quaternion.
-     * Relative positions will be recomputed, and backup values asssigned.
+     * @param axis Axis matrix. The axis matrix must contains one axis per row.
+     * @param initial true if it is the quaternion at \f$ t = 0 \f$ seconds,
+     * false otherwise.
+     * For the initial quaternion the relative positions of the particles to the
+     * local reference system (controlled by the quaternion) will be computed.
      * @return false if all gone right, true otherwise.
      */
     bool set(vec cor, mat axis, bool initial=false);
 
-    /** Get the updated COR.
+    /** @brief Get the updated COR.
      * @return Center of the quaternion.
      */
     vec getCOR(){return _cor;}
 
-    /** Get the updated quaternion axis.
+    /** @brief Get the updated quaternion axis.
      * @return Quaternion axis matrix (distributed by rows).
      */
     mat getAxis(){return _axis;}
 
-    /** Execute the motion.
+    /** @brief Perform the work.
      * @return false if all gone right, true otherwise.
      */
     virtual bool execute();
 
 protected:
-    /** Parse the input definition file.
+    /** @brief Parse the input definition file.
      * @param root Input node of the parser.
      * @return false if all gone right, true otherwise.
      */
     virtual bool _parse(xercesc::DOMElement *root);
 
-    /** Executes the movement over walls (ghost particles).
+    /** @brief Executes the motion of ghost particles walls.
      * @return false if all gone right, true otherwise.
      */
     virtual bool executeWalls();
 
-    /** Executes the domain motion if requested. Domain
-     * will follow solid translations but not rotations.
+    /** @brief Executes the motion of the computational domain.
+     *
+     * Domain will follow solid translations but no rotations.
+     *
      * @return false if all gone right, true otherwise.
      */
     virtual bool executeDomain();
@@ -97,19 +105,18 @@ protected:
     /// Old quaternion axis vectors.
     mat _old_axis;
 private:
-    /** Compute the particles positions respect to the Quaternion.
+    /** @brief Compute the particles positions respect to the Quaternion.
      * @return false if all gone right, true otherwise.
      */
     bool computePos();
 
-    /** Compute the wall vertexes (for the ghost particles) respect to the
-     * Quaternion.
+    /** @brief Compute the wall vertexes (for the ghost particles) respect to
+     * the Quaternion.
      * @return false if all gone right, true otherwise.
      */
     bool computeWalls();
 
-    /** Compute the domain bounds respect to the COR. (the domain bounds are
-     * not affected by the rotations)
+    /** @brief Compute the domain bounds respect to the COR.
      * @return false if all gone right, true otherwise.
      */
     bool computeDomain();

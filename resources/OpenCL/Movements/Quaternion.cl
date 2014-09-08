@@ -16,51 +16,45 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Quaternion based motions.
+ * (See Aqua::CalcServer::Movement::Quaternion for details)
+ */
+
 #ifndef HAVE_3D
     #include "../types/2D.h"
 #else
     #include "../types/3D.h"
 #endif
 
-#ifndef M_PI
-	#define M_PI 3,14159265359
-#endif
-
-#ifdef _g
-	#error '_g' is already defined.
-#endif
-#define _g __global
-
-#ifdef _c
-	#error '_c' is already defined.
-#endif
-#define _c __constant
-
-/** Method called outside to fill with particles the fluid.
- * @param imove (output) Fix particles flag.
- * @param ifluid (output) Fluid identifier.
- * @param pos (output) Position of particles.
- * @param normal (output) Normal of particles (used for boundary particles/vertexes).
- * @param v (output) Velocity of particles.
- * @param dens (output) dens[i] of particles.
- * @param mass (output) Mass of particles.
- * @param relPos Relative position of particles to quaternion.
- * @param relNormal Particle normal at t=0 (used for boundary particles/vertexes).
+/** @brief Move the boundary particles/elements according to the local
+ * reference system (Quaternion).
+ * @param imove Moving flags.
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param ifluid Fluid index.
+ * @param pos Position \f$ \mathbf{r} \f$.
+ * @param normal Normal \f$ \mathbf{n} \f$.
+ * @param v Velocity \f$ \mathbf{u} \f$.
+ * @param dens Density \f$ \rho \f$.
+ * @param mass Mass \f$ m \f$.
+ * @param relPos Local position of each particle \f$ \mathbf{r}_{local} \f$.
  * @param N Number of particles.
- * @param dt Time step.
- * @param CoR Center of rotation of quaternion.
- * @param X x axis vector of quaternion.
- * @param Y y axis vector of quaternion.
- * @param Z z axis vector of quaternion.
- * @param cor Center of rotation of quaternion at previous time step.
- * @param x x axis vector of quaternion at previous time step.
- * @param y y axis vector of quaternion at previous time step.
- * @param z z axis vector of quaternion at previous time step.
+ * @param dt Time step \f$ \Delta t \f$.
+ * @param CoR Current time step quaternion center.
+ * @param X Current time step quaternion x axis vector.
+ * @param Y Current time step quaternion y axis vector.
+ * @param Z Current time step quaternion z axis vector.
+ * @param cor Previous time step quaternion center.
+ * @param x Previous time step quaternion x axis vector.
+ * @param y Previous time step quaternion y axis vector.
+ * @param z Previous time step quaternion z axis vector.
  */
-__kernel void Movement( _g int* imove, _g int* ifluid, _g vec* pos,
-                        _g vec* normal, _g vec* v, _g float* dens,
-                        _g float* mass, _g vec* relPos,
-                        _g vec* relNormal, unsigned int N, float dt, vec CoR,
+__kernel void Movement( __global int* imove, __global int* ifluid, __global vec* pos,
+                        __global vec* normal, __global vec* v, __global float* dens,
+                        __global float* mass, __global vec* relPos,
+                        __global vec* relNormal, unsigned int N, float dt, vec CoR,
                         vec X, vec Y, vec Z, vec cor, vec x, vec y, vec z)
 {
 	// find position in global arrays

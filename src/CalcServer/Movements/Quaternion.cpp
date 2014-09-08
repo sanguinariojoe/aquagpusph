@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Quaternion based motions base class.
+ * (See Aqua::CalcServer::Movement::Quaternion for details)
+ */
+
 #include <CalcServer/Movements/Quaternion.h>
 #include <CalcServer.h>
 #include <TimeManager.h>
@@ -29,7 +34,7 @@ Quaternion::Quaternion()
     , _normal(0)
 {
     CalcServer *C = CalcServer::singleton();
-    //! Set inital values
+    // Set inital values
     _cor.x = 0.f;
     _cor.y = 0.f;
     #ifdef HAVE_3D
