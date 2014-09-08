@@ -43,8 +43,8 @@ namespace Aqua{ namespace CalcServer{ namespace Boundary{
  * @note This boundary condition is usually used in a combination with one of
  * the other boundary conditions just in order to assert that the particles
  * cannot trespass the solid walls.
+ * @see ElasticBounce.cl
  * @see Aqua::InputOutput::ProblemSetup::sphSPHParameters::elastic_factor
-
  */
 class ElasticBounce : public Aqua::CalcServer::Kernel
 {
