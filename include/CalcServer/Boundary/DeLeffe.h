@@ -43,6 +43,9 @@ namespace Boundary{
  * This boundary condition requires the Shepard renormalization
  * (Aqua::CalcServer::Shepard).
  *
+ * This boundary condition is activating
+ * Aqua::CalcServer::Boundary::ElasticBounce as well.
+ *
  * To learn more about the boundary integrals please visit the user manual,
  * section 7.7
  *
