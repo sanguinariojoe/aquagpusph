@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Linear data interpolation.
+ * (See Aqua::CalcServer::Movement::LinearInterpolation for details)
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>

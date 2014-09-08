@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Linear data interpolation.
+ * (See Aqua::CalcServer::Movement::LinearInterpolation for details)
+ */
+
 #ifndef LINEARINTERPOLATION_H_INCLUDED
 #define LINEARINTERPOLATION_H_INCLUDED
 
@@ -25,53 +30,64 @@
 namespace Aqua{ namespace CalcServer{ namespace Movement{
 
 /** @class LinearInterpolation LinearInterpolation.h CalcServer/Movements/LinearInterpolation.h
- * @brief Data file fields linear interpolator. It will read the data file
- * and perform data interpolation (C0 such that the function is contiguous)
- * using the time field (assuming that it is placed in the first column).
- * @warning It is strongly recommended to use C1Interpolation intead of this
- * data interpolator.
+ * @brief Data file fields linear interpolation.
+ *
+ * The data read from the file will be interpolated with a polynomial function
+ * such that \f$ f \left( t \right) =
+ *   \left(
+ *     f \left( t_{n} \right) - f \left( t_{n-1} \right)
+ *   \right)
+ *   \frac{
+ *     t - t_{n-1}
+ *   }{
+ *     t_{n} - t_{n-1}
+ *   } \f$ ,
+ * where \f$ t_{n-1} < t < t_{n} \f$
+ *
+ * @warning It is strongly recommended to use
+ * Aqua::CalcServer::Movement::C1Interpolation instead of this data
+ * interpolation tool.
+ * @see Aqua::CalcServer::Movement::C1Interpolation
  */
 class LinearInterpolation
 {
 public:
-    /** Constructor.
+    /** @brief Constructor.
      * @param data_file Data file path.
-     * @note Data file can be omissed at construction, but ensure yourself
-     * to provide it later.
+     * @note Data file can be omitted at the construction, providing it later.
      */
     LinearInterpolation(const char *data_file=NULL);
 
-    /** Destructor.
-     */
+    /// Destructor.
     ~LinearInterpolation();
 
-    /** Update data.
-     * @param t Time.
+    /** @brief Update data for a new time instant.
+     * @param t Desired time instant.
      * @return Data array. The first component is the time.
      */
     std::deque<float> update(float t);
 
-    /** Get the number of data fields.
+    /** @brief Get the number of data fields.
      * @return Number of data fields.
      */
     unsigned int nFields(){return _data.size();}
 
-    /** Get the data fields.
+    /** @brief Get the data fields.
      * @return Data array. The first component is the time.
      */
     std::deque<float> data(){return _data;}
 
-    /** Set the data file
+    /** @brief Set the data file
      * @param data_file Data file path.
-     * @return true if file was opened ok, false otherwise.
+     * @return true if file was successfully opened, false otherwise.
      * @note Seek point will be moved to the last time selected in the last
      * update calling, or \f$ t = 0 \f$ s if update has not been called yet.
      */
     bool open(const char *data_file);
 
 private:
-    /** Reads a line of the file.
-     * @return Data array. If a bad formated line or EOF is reached, clear
+    /** @brief Reads a line of the file.
+     * @return Data array. If a bad formatted line or EOF is reached, empty
      * data array will be sent.
      */
     std::deque<float> readLine();
