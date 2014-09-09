@@ -1,0 +1,135 @@
+\begin{thebibliography}{16}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Amicarelli et~al.(2011)Amicarelli, Marongiu, Leboeuf, Leduc, and
+  Caro]{Amicarelli2011279}
+Andrea Amicarelli, Jean-Christophe Marongiu, Francis Leboeuf, Julien Leduc, and
+  Jo\"{e}lle Caro.
+\newblock {SPH} truncation error in estimating a {3D} function.
+\newblock \emph{Computers \& Fluids}, 44\penalty0 (1):\penalty0 279 -- 296,
+  2011.
+\newblock ISSN 0045-7930.
+\newblock \doi{DOI: 10.1016/j.compfluid.2011.01.018}.
+\newblock URL
+  \url{http://www.sciencedirect.com/science/article/B6V26-52079TP-1/2/28aecd9efa85d26137ba55bcaa45daa4}.
+
+\bibitem[Botia-Vera et~al.(2010)Botia-Vera, Souto-Iglesias, Bulian, and
+  {Lobovsk\'{y}}]{botia_etal_spheric10}
+E.~Botia-Vera, A.~Souto-Iglesias, G.~Bulian, and L.~{Lobovsk\'{y}}.
+\newblock Three {SPH} {N}ovel {B}enchmark {T}est {C}ases for free surface
+  flows.
+\newblock In \emph{5th ERCOFTAC SPHERIC workshop on SPH applications}, 2010.
+
+\bibitem[Colagrossi and Landrini(2003)]{colagrossi2003}
+A.~Colagrossi and M.~Landrini.
+\newblock Numerical simulation of interfacial flows by smoothed particle
+  hydrodynamics.
+\newblock \emph{J. Comp. Phys.}, 191:\penalty0 448--475, 2003.
+
+\bibitem[Colagrossi et~al.(2009)Colagrossi, Antuono, and
+  Touz\'{e}]{Colagrossi2009}
+Andrea Colagrossi, Matteo Antuono, and David~Le Touz\'{e}.
+\newblock Theoretical considerations on the free-surface role in the
+  {S}moothed-particle-hydrodynamics model.
+\newblock \emph{Physical Review E (Statistical, Nonlinear, and Soft Matter
+  Physics)}, 79\penalty0 (5):\penalty0 056701, 2009.
+\newblock \doi{10.1103/PhysRevE.79.056701}.
+
+\bibitem[De~Leffe et~al.(2009)De~Leffe, Le~Touz\'{e}, and
+  Alessandrini]{deleffe_etal_spheric09}
+M.~De~Leffe, D.~Le~Touz\'{e}, and B.~Alessandrini.
+\newblock Normal flux method at the boundary for {SPH}.
+\newblock In \emph{$4^{th}$ SPHERIC}, pages 149--156, May 2009.
+
+\bibitem[Ferrand et~al.(2013)Ferrand, Laurence, Rogers, Violeau, and
+  Kassiotis]{ferrand_etal_2012}
+M.~Ferrand, D.~R. Laurence, B.~D. Rogers, D.~Violeau, and C.~Kassiotis.
+\newblock Unified semi-analytical wall boundary conditions for inviscid,
+  laminar or turbulent flows in the meshless sph method.
+\newblock \emph{International Journal for Numerical Methods in Fluids},
+  71\penalty0 (4):\penalty0 446--472, 2013.
+\newblock ISSN 1097-0363.
+\newblock \doi{10.1002/fld.3666}.
+\newblock URL \url{http://dx.doi.org/10.1002/fld.3666}.
+
+\bibitem[Maci\`{a} et~al.(2011)Maci\`{a}, Antuono, Gonz\'{a}lez, and
+  Colagrossi]{MaciaetalPTP}
+Fabricio Maci\`{a}, Matteo Antuono, Leo~M. Gonz\'{a}lez, and Andrea Colagrossi.
+\newblock Theoretical analysis of the no-slip boundary condition enforcement in
+  {SPH} methods.
+\newblock \emph{Progress of Theoretical Physics}, 125\penalty0 (6):\penalty0
+  1091--1121, 2011.
+\newblock \doi{10.1143/PTP.125.1091}.
+\newblock URL \url{http://ptp.ipap.jp/link?PTP/125/1091/}.
+
+\bibitem[Maci\`{a} et~al.(2012)Maci\`{a}, Gonz\'{a}lez, Cercos-Pita, and
+  Souto-Iglesias]{Maciaetal_PTP_2012}
+Fabricio Maci\`{a}, Leo~M. Gonz\'{a}lez, J.~L. Cercos-Pita, and
+  A.~Souto-Iglesias.
+\newblock A boundary integral {SPH} formulation. {C}onsistency and applications
+  to {ISPH} and {WCSPH}.
+\newblock \emph{Progress of Theoretical Physics}, 128\penalty0 (3), September
+  2012.
+
+\bibitem[Monaghan(2005)]{mon2005}
+J.~J. Monaghan.
+\newblock Smoothed particle hydrodynamics.
+\newblock \emph{Reports on Progress in Physics}, 68:\penalty0 1703--1759, 2005.
+
+\bibitem[Monaghan and Gingold(1983)]{Monaghan+Gingold:83}
+J.~J. Monaghan and R.~A. Gingold.
+\newblock Shock simulation by the particle method {SPH}.
+\newblock \emph{Journal of Computational Physics}, 52\penalty0 (2):\penalty0
+  374--389, 1983.
+
+\bibitem[Monaghan(2012)]{monaghan_arfm_2012}
+J.J. Monaghan.
+\newblock Smoothed particle hydrodynamics and its diverse applications.
+\newblock \emph{Annual Review of Fluid Mechanics}, 44\penalty0 (1):\penalty0
+  323--346, 2012.
+\newblock \doi{10.1146/annurev-fluid-120710-101220}.
+\newblock URL
+  \url{http://www.annualreviews.org/doi/abs/10.1146/annurev-fluid-120710-101220}.
+
+\bibitem[Morris et~al.(1997)Morris, Fox, and Zhu]{Morris+etal:1997}
+Joseph~P. Morris, Patrick~J. Fox, and Yi~Zhu.
+\newblock Modeling low {R}eynolds number incompressible flows using {SPH}.
+\newblock \emph{Journal of Computational Physics}, 136:\penalty0 214--226,
+  1997.
+\newblock \doi{http://dx.doi.org/10.1006/jcph.1997.5776}.
+
+\bibitem[P\'{e}rez-Rojas and Cercos-Pita(2012)]{perezrojas_cercos_stab12}
+L.~P\'{e}rez-Rojas and J.L. Cercos-Pita.
+\newblock {3D GPU SPH} analysis of coupled sloshing and roll motion.
+\newblock In \emph{11th International Conference on Stability of Ships and
+  Ocean Vehicles (STAB 2012)}, September 2012.
+
+\bibitem[Quinlan et~al.(2006)Quinlan, Lastiwka, and Basa]{Quinlan_06}
+Nathan~J. Quinlan, Martin Lastiwka, and Mihai Basa.
+\newblock Truncation error in mesh-free particle methods.
+\newblock \emph{International Journal for Numerical Methods in Engineering},
+  66\penalty0 (13):\penalty0 2064--2085, 2006.
+\newblock URL \url{http://dx.doi.org/10.1002/nme.1617}.
+
+\bibitem[Souto-Iglesias et~al.(2006)Souto-Iglesias, Delorme, P\'erez-Rojas, and
+  Abril-P\'erez]{souto2006}
+A.~Souto-Iglesias, L.~Delorme, L.~P\'erez-Rojas, and S.~Abril-P\'erez.
+\newblock Liquid moment amplitude assessment in sloshing type problems with
+  smooth particle hydrodynamics.
+\newblock \emph{Ocean Engineering}, 33\penalty0 (11-12):\penalty0 1462--1484, 8
+  2006.
+
+\bibitem[Wendland(1995)]{wendland_1995}
+Holger Wendland.
+\newblock Piecewise polynomial, positive definite and compactly supported
+  radial functions of minimal degree.
+\newblock \emph{Adv. Comput. Math.}, 4\penalty0 (4):\penalty0 389--396, 1995.
+\newblock ISSN 1019-7168.
+\newblock \doi{10.1007/BF02123482}.
+\newblock URL \url{http://dx.doi.org/10.1007/BF02123482}.
+
+\end{thebibliography}
