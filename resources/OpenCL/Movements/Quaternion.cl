@@ -109,20 +109,20 @@ __kernel void Movement(__global int* imove,
 		oldPos = cor + oldX + oldY + oldZ;
 	#endif
 	// Set output (Sensor must preserve velocity field as output value)
-	pos[i]    = newPos;
+	pos[i] = newPos;
 	if(dt <= 0.f){
-		v[i]   = VEC_ZERO;
+		v[i] = VEC_ZERO;
 	}
 	else if(imove[i]){
-		v[i]   = (newPos - oldPos)/dt;
+		v[i] = (newPos - oldPos) / dt;
 	}
 	// Normal computation
-	nx = relNormal[i].x * x;
-	ny = relNormal[i].y * y;
+	nx = relNormal[i].x * X;
+	ny = relNormal[i].y * Y;
 	#ifndef HAVE_3D
 		normal[i] = nx + ny;
 	#else
-		nz = relNormal[i].z * z;
+		nz = relNormal[i].z * Z;
 		normal[i] = nx + ny + nz;
 	#endif
 
