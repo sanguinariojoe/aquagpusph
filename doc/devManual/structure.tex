@@ -129,3 +129,14 @@ The documentation files, which include the user manual, the developers guide and
 In \NAME it is expected that the Doxygen documentation is built using cMake, so please do not try to build it manually.\rc
 %
 Regarding the user manual and the developers guide, \NAME is providing already compiled version of them, however they can be edited and recompiled using the \textbf{buildPDF.sh} script provided with each one.
+%
+\section{CMake}
+\label{ss:structure::cmake}
+%
+All the files called ``\texttt{CMakeLists.txt}'', ``\texttt{*.cmake}'', or 
+included in a ``cMake'' folder are designed to let CMake to configure the 
+package for the build and installation process.
+%
+More specifically, the files called ``\texttt{CMakeLists.txt}'' are the ones 
+where the instructions for CMake are written, while the other ones are 
+templates that CMake is conveniently reading and editing.
