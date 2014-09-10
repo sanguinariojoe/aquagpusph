@@ -54,7 +54,7 @@ __kernel void Shepard(__global int* imove,
 	if(i >= N)
 		return;
 	// Don't compute vertexes or sensors
-	if(iMove[i]<=0)
+	if(imove[i]<=0)
 		return;
 
 	// ---- | ------------------------ | ----

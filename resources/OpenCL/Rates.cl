@@ -161,7 +161,7 @@ __kernel void Rates(__global int* ifluid,
     	#define _DRDT_F_ drdt_F[i]
     	#define _SHEPARD_ shepard[i]
     #else
-	    #define _F_ f_l[it]
+	    #define _F_ dvdt_l[it]
 	    #define _DRDT_ drdt_l[it]
 	    #define _DRDT_F_ drdt_F_l[it]
 	    #define _SHEPARD_ shepard_l[it]
