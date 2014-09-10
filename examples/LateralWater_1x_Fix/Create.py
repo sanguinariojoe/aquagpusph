@@ -66,7 +66,7 @@ dr = L / nx
 hFluid = (ny - 0.5) * dr
 
 # Solid boundary elements
-Nrows  = int(round(sep*hfac))
+Nrows  = 2 * int(round(sep * hfac))
 Nx = nx
 Ny = int(round(H / dr)) + 1
 

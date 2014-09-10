@@ -51,7 +51,7 @@ Authors:
         smooth fields.
         Let it disabled if you dont know what are you doing.
           -->
-        <Option name="DensSteps" value="0" />
+        <Option name="DensSteps" value="30" />
         <!-- Density bounds. If a particles density value is detected out of
         these bounds its value will be clamped.
         You can add just one bound (minimum or maximum)
@@ -81,7 +81,7 @@ Authors:
         The distance is provided as a kernel height rate. 0.0 can be applied
         to disable it.
         -->
-        <Option name="BoundDist" value="0.1" />
+        <Option name="BoundDist" value="0.0" />
         <!-- Environment where the 0th order correction (formerly Shepard
         correction) must be applied.
             value="None": Shepard correction will not be applied.

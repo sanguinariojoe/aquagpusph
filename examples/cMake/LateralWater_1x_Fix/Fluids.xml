@@ -19,7 +19,7 @@ Authors:
 
 <sphInput>
 	<!-- Include a new fluid, specifing the number of particles. -->
-	<Fluid n="67808">
+	<Fluid n="86016">
         <!-- Gamma of the fluid. Gamma is the exponent of the state equation.
         -->
 		<Option name="gamma" value="1.0" />
