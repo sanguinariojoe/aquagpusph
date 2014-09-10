@@ -25,10 +25,16 @@
  * consumption.
  */
 
-if(imove[j] <= 0){
-	j++;
-	continue;
+if(!imove[j]){
+    j++;
+    continue;
 }
+#if __BOUNDARY__==0 || __BOUNDARY__==2
+    if(imove[j] < 0){
+        j++;
+        continue;
+    }
+#endif
 
 const vec r = pos_i - pos[j];
 const float q = fast_length(r) / h;

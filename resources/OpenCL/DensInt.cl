@@ -112,7 +112,7 @@ __kernel void DensityInterpolation(__global float* dens,
 
 	// Initialize the output
     #ifndef LOCAL_MEM_SIZE
-	    #define _DENS_ dens[labp]
+	    #define _DENS_ dens[i]
     #else
 	    #define _DENS_ dens_l[it]
         __local float dens_l[LOCAL_MEM_SIZE];
