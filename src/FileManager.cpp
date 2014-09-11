@@ -38,8 +38,6 @@ namespace Aqua{ namespace InputOutput{
 FileManager::FileManager()
     : _in_file(NULL)
     , _log(NULL)
-    , _energy(NULL)
-    , _bounds(NULL)
 {
     inputFile("Input.xml");
     _log = new Log();
@@ -59,12 +57,6 @@ FileManager::~FileManager()
     if(_log)
         delete _log;
     _log = NULL;
-    if(_energy)
-        delete _energy;
-    _energy = NULL;
-    if(_bounds)
-        delete _bounds;
-    _bounds = NULL;
 
     for(i=0; i<_loaders.size(); i++){
         delete _loaders.at(i);
@@ -101,18 +93,6 @@ FILE* FileManager::logFile()
         return _log->fileHandler();
 }
 
-FILE* FileManager::energyFile()
-{
-    if(_energy)
-        return _energy->fileHandler();
-}
-
-FILE* FileManager::boundsFile()
-{
-    if(_bounds)
-        return _bounds->fileHandler();
-}
-
 CalcServer::CalcServer* FileManager::load()
 {
     unsigned int i, n=0;
@@ -130,19 +110,7 @@ CalcServer::CalcServer* FileManager::load()
         return NULL;
     }
 
-    // Build the additional reporters requested
-    if(P->time_opts.energy_mode != __NO_OUTPUT_MODE__){
-        _energy = new Energy();
-        if(!_energy)
-            return NULL;
-    }
-    if(P->time_opts.bounds_mode != __NO_OUTPUT_MODE__){
-        _bounds = new Bounds();
-        if(!_bounds)
-            return NULL;
-    }
-
-    // // Build the calculation server
+    // Build the calculation server
     CalcServer::CalcServer *C = new CalcServer::CalcServer();
     if(!C)
         return NULL;

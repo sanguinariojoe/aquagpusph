@@ -31,8 +31,6 @@
 #include <CalcServer.h>
 #include <InputOutput/State.h>
 #include <InputOutput/Log.h>
-#include <InputOutput/Energy.h>
-#include <InputOutput/Bounds.h>
 #include <InputOutput/Particles.h>
 
 namespace Aqua{
@@ -78,20 +76,6 @@ public:
      */
     FILE* logFile();
 
-    /// Get the energy file handler.
-    /**
-     * @return Energy file handler.
-     * @see Aqua::InputOutput::Energy
-     */
-    FILE* energyFile();
-
-    /// Get the bounds file handler.
-    /**
-     * @return Bounds file handler.
-     * @see Aqua::InputOutput::Bounds
-     */
-    FILE* boundsFile();
-
     /// Load the input data files.
     /** It require that:
      *    -# Aqua::InputOutput::State should load the XML definition
@@ -130,12 +114,6 @@ private:
 
     /// The output log file
     Log *_log;
-
-    /// The energy report file
-    Energy *_energy;
-
-    /// The bounds report file
-    Bounds *_bounds;
 
     /// The fluid loaders
     std::deque<Particles*> _loaders;
