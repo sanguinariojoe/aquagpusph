@@ -4,7 +4,7 @@
         <Variable name="n" type="int" value="0" />
         <Variable name="n_sensors" type="float" value="0" />
         <Variable name="N" type="unsigned int" value="0" save="true" />
-        <Variable name="kk" type="vec" value="1.1,2.2,3.3,4.4" save="true" />
+        <Variable name="kk" type="uivec" value="1.1,2.2,3.3,4.4" save="true" />
         <Variable name="imove" type="int*" length="N" save="true" />
         <Variable name="ifluid" type="int*" length="N" save="true" />
     </Variables>

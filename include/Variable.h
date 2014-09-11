@@ -27,6 +27,16 @@
 #include <sphPrerequisites.h>
 #include <Tokenizer/Tokenizer.h>
 
+#ifdef HAVE_3D
+    #define VecVariable Vec4Variable
+    #define IVecVariable IVec4Variable
+    #define UIVecVariable UIVec4Variable
+#else
+    #define VecVariable Vec2Variable
+    #define IVecVariable IVec2Variable
+    #define UIVecVariable UIVec2Variable
+#endif
+
 namespace Aqua{ namespace InputOutput{
 
 /** @class Variable Variable.h Variable.h
@@ -219,47 +229,6 @@ public:
 private:
     /// Variable value
     float _value;
-};
-
-/** @class VecVariable Variable.h Variable.h
- * @brief A vec variable.
- */
-class VecVariable : public Variable
-{
-public:
-	/** Constructor.
-	 * @param varname Name of the variable.
-	 * @param varsave true if the variable should be printed in output files,
-	 * false otherwise.
-	 */
-	VecVariable(const char *varname, bool varsave=false);
-
-	/** Destructor.
-	 */
-	~VecVariable();
-
-	/** Type of the variable
-     * @return The type of the variable
-	 */
-    const char* type() const {return typeid(vec).name();}
-
-    /** Get the variable type size.
-     * @return Variable type size (in bytes)
-     */
-    size_t typesize() const {return sizeof(vec);}
-
-    /** Get variable pointer basis pointer
-     * @return Implementation pointer.
-     */
-    vec* get(){return &_value;}
-
-    /** Set variable from memory
-     * @param ptr Memory to copy.
-     */
-    void set(void* ptr){memcpy(&_value, ptr, sizeof(vec));}
-private:
-    /// Variable value
-    vec _value;
 };
 
 /** @class Vec2Variable Variable.h Variable.h
@@ -754,6 +723,20 @@ private:
                        const char* type,
                        const char* length,
                        const bool save);
+
+    /** Read a set of components from a value array.
+     * @param name Name of the variable. It is used to register variables in
+     * the tokenizer and to report errors.
+     * @param value Value string where the components are extracted from.
+     * @param n Number of components to read.
+     * @param v Allocated array where the components should be stored
+     * @return false if all gone right, true otherwise.
+     */
+    bool readComponents(const char* name,
+                        const char* value,
+                        unsigned int n,
+                        float* v);
+
 
     /// Set of available variables
     std::deque<Variable*> _vars;

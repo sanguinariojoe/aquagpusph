@@ -72,24 +72,6 @@ FloatVariable::~FloatVariable()
 {
 }
 
-VecVariable::VecVariable(const char *varname, bool varsave)
-    : Variable(varname, varsave)
-{
-    #ifdef HAVE_3D
-        _value.x = 0.f;
-        _value.y = 0.f;
-        _value.z = 0.f;
-        _value.w = 0.f;
-    #else
-        _value.x = 0.f;
-        _value.y = 0.f;
-    #endif // HAVE_3D
-}
-
-VecVariable::~VecVariable()
-{
-}
-
 Vec2Variable::Vec2Variable(const char *varname, bool varsave)
     : Variable(varname, varsave)
 {
@@ -328,101 +310,195 @@ bool Variables::registerScalar(const char* name,
     else if(!strcmp(type, "vec")){
         VecVariable *var = new VecVariable(name, save);
         if(strcmp(value, "")){
-            float val;
-            vec auxval;
-            char msg[256];
-            char remain[strlen(value) + 1];
-            char aux[strlen(value) + 1];
-            char nameaux[strlen(name) + 3];
-            strcpy(remain, value);
+            vec val;
             #ifdef HAVE_3D
-                strcpy(aux, remain);
-                if(!strchr(aux, ',')){
-                    ScreenManager *S = ScreenManager::singleton();
-                    sprintf(msg,
-                            "4 fields expected for variable \"%s\", 1 received.\n",
-                            name);
-                    S->addMessageF(3, msg);
+                float auxval[4];
+                if(readComponents(name, value, 4, auxval))
                     return true;
-                }
-                strcpy(strchr(aux, ','), "");
-                strcpy(remain, strchr(remain, ',') + 1);
-                val = tok.solve(aux);
-                strcpy(nameaux, name);
-                strcat(nameaux, ".x");
-                tok.registerVariable(nameaux, val);
-                auxval.x = val;
-
-                strcpy(aux, remain);
-                if(!strchr(aux, ',')){
-                    ScreenManager *S = ScreenManager::singleton();
-                    sprintf(msg,
-                            "4 fields expected for variable \"%s\", 2 received.\n",
-                            name);
-                    S->addMessageF(3, msg);
-                    return true;
-                }
-                strcpy(strchr(aux, ','), "");
-                strcpy(remain, strchr(remain, ',') + 1);
-                val = tok.solve(aux);
-                strcpy(nameaux, name);
-                strcat(nameaux, ".y");
-                tok.registerVariable(nameaux, val);
-                auxval.y = val;
-
-                strcpy(aux, remain);
-                if(!strchr(aux, ',')){
-                    ScreenManager *S = ScreenManager::singleton();
-                    sprintf(msg,
-                            "4 fields expected for variable \"%s\", 3 received.\n",
-                            name);
-                    S->addMessageF(3, msg);
-                    return true;
-                }
-                strcpy(strchr(aux, ','), "");
-                strcpy(remain, strchr(remain, ',') + 1);
-                val = tok.solve(aux);
-                strcpy(nameaux, name);
-                strcat(nameaux, ".z");
-                tok.registerVariable(nameaux, val);
-                auxval.z = val;
-
-                strcpy(aux, remain);
-                if(strchr(aux, ','))
-                    strcpy(strchr(aux, ','), "");
-                val = tok.solve(aux);
-                strcpy(nameaux, name);
-                strcat(nameaux, ".w");
-                tok.registerVariable(nameaux, val);
-                auxval.w = val;
+                val.x = auxval[0];
+                val.y = auxval[1];
+                val.z = auxval[2];
+                val.w = auxval[3];
             #else
-                strcpy(aux, remain);
-                if(!strchr(aux, ',')){
-                    ScreenManager *S = ScreenManager::singleton();
-                    sprintf(msg,
-                            "2 fields expected for variable \"%s\", 1 received.\n",
-                            name);
-                    S->addMessageF(3, msg);
+                float auxval[2];
+                if(readComponents(name, value, 2, auxval))
                     return true;
-                }
-                strcpy(strchr(aux, ','), "");
-                strcpy(remain, strchr(remain, ',') + 1);
-                val = tok.solve(aux);
-                strcpy(nameaux, name);
-                strcat(nameaux, ".x");
-                tok.registerVariable(nameaux, val);
-                auxval.x = val;
-
-                strcpy(aux, remain);
-                if(strchr(aux, ','))
-                    strcpy(strchr(aux, ','), "");
-                val = tok.solve(aux);
-                strcpy(nameaux, name);
-                strcat(nameaux, ".y");
-                tok.registerVariable(nameaux, val);
-                auxval.y = val;
+                val.x = auxval[0];
+                val.y = auxval[1];
             #endif // HAVE_3D
-            var->set(&auxval);
+            var->set(&val);
+        }
+        _vars.push_back(var);
+    }
+    else if(!strcmp(type, "vec2")){
+        Vec2Variable *var = new Vec2Variable(name, save);
+        if(strcmp(value, "")){
+            vec2 val;
+            float auxval[2];
+            if(readComponents(name, value, 2, auxval))
+                return true;
+            val.x = auxval[0];
+            val.y = auxval[1];
+            var->set(&val);
+        }
+        _vars.push_back(var);
+    }
+    else if(!strcmp(type, "vec3")){
+        Vec3Variable *var = new Vec3Variable(name, save);
+        if(strcmp(value, "")){
+            vec3 val;
+            float auxval[3];
+            if(readComponents(name, value, 3, auxval))
+                return true;
+            val.x = auxval[0];
+            val.y = auxval[1];
+            val.z = auxval[2];
+            var->set(&val);
+        }
+        _vars.push_back(var);
+    }
+    else if(!strcmp(type, "vec4")){
+        Vec4Variable *var = new Vec4Variable(name, save);
+        if(strcmp(value, "")){
+            vec4 val;
+            float auxval[4];
+            if(readComponents(name, value, 4, auxval))
+                return true;
+            val.x = auxval[0];
+            val.y = auxval[1];
+            val.z = auxval[2];
+            val.w = auxval[3];
+            var->set(&val);
+        }
+        _vars.push_back(var);
+    }
+    else if(!strcmp(type, "ivec")){
+        IVecVariable *var = new IVecVariable(name, save);
+        if(strcmp(value, "")){
+            ivec val;
+            #ifdef HAVE_3D
+                float auxval[4];
+                if(readComponents(name, value, 4, auxval))
+                    return true;
+                val.x = (int)auxval[0];
+                val.y = (int)auxval[1];
+                val.z = (int)auxval[2];
+                val.w = (int)auxval[3];
+            #else
+                float auxval[2];
+                if(readComponents(name, value, 2, auxval))
+                    return true;
+                val.x = (int)auxval[0];
+                val.y = (int)auxval[1];
+            #endif // HAVE_3D
+            var->set(&val);
+        }
+        _vars.push_back(var);
+    }
+    else if(!strcmp(type, "ivec2")){
+        IVec2Variable *var = new IVec2Variable(name, save);
+        if(strcmp(value, "")){
+            ivec2 val;
+            float auxval[2];
+            if(readComponents(name, value, 2, auxval))
+                return true;
+            val.x = (int)auxval[0];
+            val.y = (int)auxval[1];
+            var->set(&val);
+        }
+        _vars.push_back(var);
+    }
+    else if(!strcmp(type, "ivec3")){
+        IVec3Variable *var = new IVec3Variable(name, save);
+        if(strcmp(value, "")){
+            ivec3 val;
+            float auxval[3];
+            if(readComponents(name, value, 3, auxval))
+                return true;
+            val.x = (int)auxval[0];
+            val.y = (int)auxval[1];
+            val.z = (int)auxval[2];
+            var->set(&val);
+        }
+        _vars.push_back(var);
+    }
+    else if(!strcmp(type, "ivec4")){
+        IVec4Variable *var = new IVec4Variable(name, save);
+        if(strcmp(value, "")){
+            ivec4 val;
+            float auxval[4];
+            if(readComponents(name, value, 4, auxval))
+                return true;
+            val.x = (int)auxval[0];
+            val.y = (int)auxval[1];
+            val.z = (int)auxval[2];
+            val.w = (int)auxval[3];
+            var->set(&val);
+        }
+        _vars.push_back(var);
+    }
+    else if(!strcmp(type, "uivec")){
+        UIVecVariable *var = new UIVecVariable(name, save);
+        if(strcmp(value, "")){
+            uivec val;
+            #ifdef HAVE_3D
+                float auxval[4];
+                if(readComponents(name, value, 4, auxval))
+                    return true;
+                val.x = (unsigned int)auxval[0];
+                val.y = (unsigned int)auxval[1];
+                val.z = (unsigned int)auxval[2];
+                val.w = (unsigned int)auxval[3];
+            #else
+                float auxval[2];
+                if(readComponents(name, value, 2, auxval))
+                    return true;
+                val.x = (unsigned int)auxval[0];
+                val.y = (unsigned int)auxval[1];
+            #endif // HAVE_3D
+            var->set(&val);
+        }
+        _vars.push_back(var);
+    }
+    else if(!strcmp(type, "uivec2")){
+        UIVec2Variable *var = new UIVec2Variable(name, save);
+        if(strcmp(value, "")){
+            uivec2 val;
+            float auxval[2];
+            if(readComponents(name, value, 2, auxval))
+                return true;
+            val.x = (unsigned int)auxval[0];
+            val.y = (unsigned int)auxval[1];
+            var->set(&val);
+        }
+        _vars.push_back(var);
+    }
+    else if(!strcmp(type, "uivec3")){
+        UIVec3Variable *var = new UIVec3Variable(name, save);
+        if(strcmp(value, "")){
+            uivec3 val;
+            float auxval[3];
+            if(readComponents(name, value, 3, auxval))
+                return true;
+            val.x = (unsigned int)auxval[0];
+            val.y = (unsigned int)auxval[1];
+            val.z = (unsigned int)auxval[2];
+            var->set(&val);
+        }
+        _vars.push_back(var);
+    }
+    else if(!strcmp(type, "uivec4")){
+        UIVec4Variable *var = new UIVec4Variable(name, save);
+        if(strcmp(value, "")){
+            uivec4 val;
+            float auxval[4];
+            if(readComponents(name, value, 4, auxval))
+                return true;
+            val.x = (unsigned int)auxval[0];
+            val.y = (unsigned int)auxval[1];
+            val.z = (unsigned int)auxval[2];
+            val.w = (unsigned int)auxval[3];
+            var->set(&val);
         }
         _vars.push_back(var);
     }
@@ -442,9 +518,11 @@ bool Variables::registerScalar(const char* name,
         S->addMessageF(0, "\tvec2\n");
         S->addMessageF(0, "\tvec3\n");
         S->addMessageF(0, "\tvec4\n");
+        S->addMessageF(0, "\tivec\n");
         S->addMessageF(0, "\tivec2\n");
         S->addMessageF(0, "\tivec3\n");
         S->addMessageF(0, "\tivec4\n");
+        S->addMessageF(0, "\tuivec\n");
         S->addMessageF(0, "\tuivec2\n");
         S->addMessageF(0, "\tuivec3\n");
         S->addMessageF(0, "\tuivec4\n");
@@ -458,6 +536,65 @@ bool Variables::registerClMem(const char* name,
                               const char* length,
                               const bool save)
 {
+    return false;
+}
+
+bool Variables::readComponents(const char* name,
+                               const char* value,
+                               unsigned int n,
+                               float* v)
+{
+    float val;
+    unsigned int i;
+    char msg[256];
+    ScreenManager *S = ScreenManager::singleton();
+    if(n == 0){
+        sprintf(msg,
+                "%u components required for the variable \"%s\".\n",
+                n,
+                name);
+        S->addMessageF(3, msg);
+    }
+    if(n > 4){
+        S->addMessageF(3, "No more than 4 components can be required\n");
+        sprintf(msg,
+                "%u components required for the variable \"%s\".\n",
+                n,
+                name);
+        S->addMessageF(0, msg);
+    }
+    char remain[strlen(value) + 1];
+    char aux[strlen(value) + 1];
+    char nameaux[strlen(name) + 3];
+    const char* extensions[4] = {".x", ".y", ".z", ".w"};
+    strcpy(remain, value);
+    for(i = 0; i < n - 1; i++){
+        strcpy(aux, remain);
+        if(!strchr(aux, ',')){
+            sprintf(msg, "Failure reading the variable \"%s\" value", name);
+            S->addMessageF(3, msg);
+            sprintf(msg, "%u fields expected, %u received.\n", n, i);
+            S->addMessageF(0, msg);
+            return true;
+        }
+        strcpy(strchr(aux, ','), "");
+        strcpy(remain, strchr(remain, ',') + 1);
+        val = tok.solve(aux);
+        strcpy(nameaux, name);
+        strcat(nameaux, extensions[i]);
+        tok.registerVariable(nameaux, val);
+        v[i] = val;
+    }
+
+    strcpy(aux, remain);
+    if(strchr(aux, ','))
+        strcpy(strchr(aux, ','), "");
+    val = tok.solve(aux);
+    strcpy(nameaux, name);
+    if(n != 1)
+        strcat(nameaux, extensions[n - 1]);
+    tok.registerVariable(nameaux, val);
+    v[n - 1] = val;
     return false;
 }
 
