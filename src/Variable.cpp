@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include <Variable.h>
+#include <AuxiliarMethods.h>
 #include <ScreenManager.h>
 #include <CalcServer.h>
 
@@ -302,7 +303,7 @@ bool Variables::registerScalar(const char* name,
     if(!strcmp(type, "int")){
         IntVariable *var = new IntVariable(name, save);
         if(strcmp(value, "")){
-            int val = (int)tok.solve(value);
+            int val = round(tok.solve(value));
             tok.registerVariable(name, (float)val);
             var->set(&val);
         }
@@ -311,7 +312,7 @@ bool Variables::registerScalar(const char* name,
     else if(!strcmp(type, "unsigned int")){
         UIntVariable *var = new UIntVariable(name, save);
         if(strcmp(value, "")){
-            unsigned int val = (unsigned int)tok.solve(value);
+            unsigned int val = (unsigned int)round(tok.solve(value));
             tok.registerVariable(name, (float)val);
             var->set(&val);
         }
@@ -399,16 +400,16 @@ bool Variables::registerScalar(const char* name,
                 float auxval[4];
                 if(readComponents(name, value, 4, auxval))
                     return true;
-                val.x = (int)auxval[0];
-                val.y = (int)auxval[1];
-                val.z = (int)auxval[2];
-                val.w = (int)auxval[3];
+                val.x = round(auxval[0]);
+                val.y = round(auxval[1]);
+                val.z = round(auxval[2]);
+                val.w = round(auxval[3]);
             #else
                 float auxval[2];
                 if(readComponents(name, value, 2, auxval))
                     return true;
-                val.x = (int)auxval[0];
-                val.y = (int)auxval[1];
+                val.x = round(auxval[0]);
+                val.y = round(auxval[1]);
             #endif // HAVE_3D
             var->set(&val);
         }
@@ -421,8 +422,8 @@ bool Variables::registerScalar(const char* name,
             float auxval[2];
             if(readComponents(name, value, 2, auxval))
                 return true;
-            val.x = (int)auxval[0];
-            val.y = (int)auxval[1];
+            val.x = round(auxval[0]);
+            val.y = round(auxval[1]);
             var->set(&val);
         }
         _vars.push_back(var);
@@ -434,9 +435,9 @@ bool Variables::registerScalar(const char* name,
             float auxval[3];
             if(readComponents(name, value, 3, auxval))
                 return true;
-            val.x = (int)auxval[0];
-            val.y = (int)auxval[1];
-            val.z = (int)auxval[2];
+            val.x = round(auxval[0]);
+            val.y = round(auxval[1]);
+            val.z = round(auxval[2]);
             var->set(&val);
         }
         _vars.push_back(var);
@@ -448,10 +449,10 @@ bool Variables::registerScalar(const char* name,
             float auxval[4];
             if(readComponents(name, value, 4, auxval))
                 return true;
-            val.x = (int)auxval[0];
-            val.y = (int)auxval[1];
-            val.z = (int)auxval[2];
-            val.w = (int)auxval[3];
+            val.x = round(auxval[0]);
+            val.y = round(auxval[1]);
+            val.z = round(auxval[2]);
+            val.w = round(auxval[3]);
             var->set(&val);
         }
         _vars.push_back(var);
@@ -464,16 +465,16 @@ bool Variables::registerScalar(const char* name,
                 float auxval[4];
                 if(readComponents(name, value, 4, auxval))
                     return true;
-                val.x = (unsigned int)auxval[0];
-                val.y = (unsigned int)auxval[1];
-                val.z = (unsigned int)auxval[2];
-                val.w = (unsigned int)auxval[3];
+                val.x = (unsigned int)round(auxval[0]);
+                val.y = (unsigned int)round(auxval[1]);
+                val.z = (unsigned int)round(auxval[2]);
+                val.w = (unsigned int)round(auxval[3]);
             #else
                 float auxval[2];
                 if(readComponents(name, value, 2, auxval))
                     return true;
-                val.x = (unsigned int)auxval[0];
-                val.y = (unsigned int)auxval[1];
+                val.x = (unsigned int)round(auxval[0]);
+                val.y = (unsigned int)round(auxval[1]);
             #endif // HAVE_3D
             var->set(&val);
         }
@@ -486,8 +487,8 @@ bool Variables::registerScalar(const char* name,
             float auxval[2];
             if(readComponents(name, value, 2, auxval))
                 return true;
-            val.x = (unsigned int)auxval[0];
-            val.y = (unsigned int)auxval[1];
+            val.x = (unsigned int)round(auxval[0]);
+            val.y = (unsigned int)round(auxval[1]);
             var->set(&val);
         }
         _vars.push_back(var);
@@ -499,9 +500,9 @@ bool Variables::registerScalar(const char* name,
             float auxval[3];
             if(readComponents(name, value, 3, auxval))
                 return true;
-            val.x = (unsigned int)auxval[0];
-            val.y = (unsigned int)auxval[1];
-            val.z = (unsigned int)auxval[2];
+            val.x = (unsigned int)round(auxval[0]);
+            val.y = (unsigned int)round(auxval[1]);
+            val.z = (unsigned int)round(auxval[2]);
             var->set(&val);
         }
         _vars.push_back(var);
@@ -513,10 +514,10 @@ bool Variables::registerScalar(const char* name,
             float auxval[4];
             if(readComponents(name, value, 4, auxval))
                 return true;
-            val.x = (unsigned int)auxval[0];
-            val.y = (unsigned int)auxval[1];
-            val.z = (unsigned int)auxval[2];
-            val.w = (unsigned int)auxval[3];
+            val.x = (unsigned int)round(auxval[0]);
+            val.y = (unsigned int)round(auxval[1]);
+            val.z = (unsigned int)round(auxval[2]);
+            val.w = (unsigned int)round(auxval[3]);
             var->set(&val);
         }
         _vars.push_back(var);
@@ -635,7 +636,7 @@ bool Variables::registerClMem(const char* name,
     }
 
     // Get the length
-    n = (unsigned int)tok.solve(length);
+    n = (unsigned int)round(tok.solve(length));
 
     // Generate the variable
     ArrayVariable *var = new ArrayVariable(name, type, save);

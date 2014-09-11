@@ -88,6 +88,11 @@ unsigned int roundUp(unsigned int n, unsigned int divisor)
     return n;
 }
 
+int round(float n)
+{
+    return (int)(n + 0.5f);
+}
+
 size_t loadKernelFromFile(cl_kernel* kernel, cl_program* program,
                           cl_context context, cl_device_id device,
                           const char* path, const char* entry_point,

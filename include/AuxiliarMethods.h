@@ -61,6 +61,12 @@ unsigned int isPowerOf2(unsigned int x);
  */
 unsigned int roundUp(unsigned int x, unsigned int divisor);
 
+/** @brief Round an float value to an integer one.
+ * @param n Number to round.
+ * @return The closest integer to @paramname{n}.
+ */
+int round(float n);
+
 /// Load an OpenCL kernel from a file.
 /**
  * @param kernel The output kernel identifier.
