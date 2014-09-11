@@ -21,7 +21,7 @@
         <Variable name="refd" type="float*" length="n_sets" save="false" />
         <Variable name="visc_dyn" type="float*" length="n_sets" save="false" />
         <Variable name="delta" type="float*" length="n_sets" save="false" />
-        <Variable name="n" type="vec*" length="N" save="true" />
+        <Variable name="normal" type="vec*" length="N" save="true" />
         <Variable name="v" type="vec*" length="N" save="true" />
         <Variable name="dvdt" type="vec*" length="N" save="true" />
         <Variable name="rho" type="float*" length="N" save="true" />
