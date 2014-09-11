@@ -290,6 +290,253 @@ size_t Variables::allocatedMemory(){
     return allocated_mem;
 }
 
+size_t Variables::typeToBytes(const char* type) const
+{
+    if(!strcmp(type, "int") || !strcmp(type, "int*")){
+        return sizeof(int);
+    }
+    else if(!strcmp(type, "unsigned int") || !strcmp(type, "unsigned int*")){
+        return sizeof(unsigned int);
+    }
+    else if(!strcmp(type, "float") || !strcmp(type, "float*")){
+        return sizeof(float);
+    }
+    else if(!strcmp(type, "vec") || !strcmp(type, "vec*")){
+        return sizeof(vec);
+    }
+    else if(!strcmp(type, "vec2") || !strcmp(type, "vec2*")){
+        return sizeof(vec2);
+    }
+    else if(!strcmp(type, "vec3") || !strcmp(type, "vec3*")){
+        return sizeof(vec3);
+    }
+    else if(!strcmp(type, "vec4") || !strcmp(type, "vec4*")){
+        return sizeof(vec4);
+    }
+    else if(!strcmp(type, "ivec") || !strcmp(type, "ivec*")){
+        return sizeof(ivec);
+    }
+    else if(!strcmp(type, "ivec2") || !strcmp(type, "ivec2*")){
+        return sizeof(ivec2);
+    }
+    else if(!strcmp(type, "ivec3") || !strcmp(type, "ivec3*")){
+        return sizeof(ivec3);
+    }
+    else if(!strcmp(type, "ivec4") || !strcmp(type, "ivec4*")){
+        return sizeof(ivec4);
+    }
+    else if(!strcmp(type, "uivec") || !strcmp(type, "uivec*")){
+        return sizeof(uivec);
+    }
+    else if(!strcmp(type, "uivec2") || !strcmp(type, "uivec2*")){
+        return sizeof(uivec2);
+    }
+    else if(!strcmp(type, "uivec3") || !strcmp(type, "uivec3*")){
+        return sizeof(uivec3);
+    }
+    else if(!strcmp(type, "uivec4") || !strcmp(type, "uivec4*")){
+        return sizeof(uivec4);
+    }
+    else{
+        char msg[256];
+        ScreenManager *S = ScreenManager::singleton();
+        sprintf(msg,
+                "Unvalid type \"%s\"\n",
+                type);
+        S->addMessageF(3, msg);
+        return 0;
+    }
+}
+
+bool Variables::solve(const char *type_name, const char *value, void *data)
+{
+    char msg[256];
+    ScreenManager *S = ScreenManager::singleton();
+    size_t typesize = typeToBytes(type_name);
+    if(!typesize){
+        return true;
+    }
+    if(!strcmp(value, "")){
+        S->addMessageF(3, "Empty value received\n");
+        return 0;
+    }
+
+    const char* name = "NULL";
+    char *type = new char[strlen(type_name) + 1];
+    strcpy(type, type_name);
+    if(strchr(type, '*'))
+        strcpy(strchr(type, '*'), "");
+
+    if(!strcmp(type, "int")){
+        int val = round(tok.solve(value));
+        memcpy(data, &val, typesize);
+    }
+    else if(!strcmp(type, "unsigned int")){
+        unsigned int val = (unsigned int)round(tok.solve(value));
+        memcpy(data, &val, typesize);
+    }
+    else if(!strcmp(type, "float")){
+        float val = round(tok.solve(value));
+        memcpy(data, &val, typesize);
+    }
+    else if(!strcmp(type, "vec")){
+        vec val;
+        #ifdef HAVE_3D
+            float auxval[4];
+            if(readComponents(name, value, 4, auxval))
+                return true;
+            val.x = auxval[0];
+            val.y = auxval[1];
+            val.z = auxval[2];
+            val.w = auxval[3];
+            memcpy(data, &val, typesize);
+        #else
+            float auxval[2];
+            if(readComponents(name, value, 2, auxval))
+                return true;
+            val.x = auxval[0];
+            val.y = auxval[1];
+        #endif
+        memcpy(data, &val, typesize);
+    }
+    else if(!strcmp(type, "vec2")){
+        vec2 val;
+        float auxval[2];
+        if(readComponents(name, value, 2, auxval))
+            return true;
+        val.x = auxval[0];
+        val.y = auxval[1];
+        memcpy(data, &val, typesize);
+    }
+    else if(!strcmp(type, "vec3")){
+        vec3 val;
+        float auxval[3];
+        if(readComponents(name, value, 3, auxval))
+            return true;
+        val.x = auxval[0];
+        val.y = auxval[1];
+        val.z = auxval[2];
+        memcpy(data, &val, typesize);
+    }
+    else if(!strcmp(type, "vec4")){
+        vec4 val;
+        float auxval[4];
+        if(readComponents(name, value, 4, auxval))
+            return true;
+        val.x = auxval[0];
+        val.y = auxval[1];
+        val.z = auxval[2];
+        val.w = auxval[3];
+        memcpy(data, &val, typesize);
+    }
+    else if(!strcmp(type, "ivec")){
+        ivec val;
+        #ifdef HAVE_3D
+            float auxval[4];
+            if(readComponents(name, value, 4, auxval))
+                return true;
+            val.x = round(auxval[0]);
+            val.y = round(auxval[1]);
+            val.z = round(auxval[2]);
+            val.w = round(auxval[3]);
+            memcpy(data, &val, typesize);
+        #else
+            float auxval[2];
+            if(readComponents(name, value, 2, auxval))
+                return true;
+            val.x = round(auxval[0]);
+            val.y = round(auxval[1]);
+        #endif
+        memcpy(data, &val, typesize);
+    }
+    else if(!strcmp(type, "ivec2")){
+        ivec2 val;
+        float auxval[2];
+        if(readComponents(name, value, 2, auxval))
+            return true;
+        val.x = round(auxval[0]);
+        val.y = round(auxval[1]);
+        memcpy(data, &val, typesize);
+    }
+    else if(!strcmp(type, "ivec3")){
+        ivec3 val;
+        float auxval[3];
+        if(readComponents(name, value, 3, auxval))
+            return true;
+        val.x = round(auxval[0]);
+        val.y = round(auxval[1]);
+        val.z = round(auxval[2]);
+        memcpy(data, &val, typesize);
+    }
+    else if(!strcmp(type, "ivec4")){
+        ivec4 val;
+        float auxval[4];
+        if(readComponents(name, value, 4, auxval))
+            return true;
+        val.x = round(auxval[0]);
+        val.y = round(auxval[1]);
+        val.z = round(auxval[2]);
+        val.w = round(auxval[3]);
+        memcpy(data, &val, typesize);
+    }
+    else if(!strcmp(type, "uivec")){
+        uivec val;
+        #ifdef HAVE_3D
+            float auxval[4];
+            if(readComponents(name, value, 4, auxval))
+                return true;
+            val.x = (unsigned int)round(auxval[0]);
+            val.y = (unsigned int)round(auxval[1]);
+            val.z = (unsigned int)round(auxval[2]);
+            val.w = (unsigned int)round(auxval[3]);
+            memcpy(data, &val, typesize);
+        #else
+            float auxval[2];
+            if(readComponents(name, value, 2, auxval))
+                return true;
+            val.x = (unsigned int)round(auxval[0]);
+            val.y = (unsigned int)round(auxval[1]);
+        #endif
+        memcpy(data, &val, typesize);
+    }
+    else if(!strcmp(type, "uivec2")){
+        uivec2 val;
+        float auxval[2];
+        if(readComponents(name, value, 2, auxval))
+            return true;
+        val.x = (unsigned int)round(auxval[0]);
+        val.y = (unsigned int)round(auxval[1]);
+        memcpy(data, &val, typesize);
+    }
+    else if(!strcmp(type, "uivec3")){
+        uivec3 val;
+        float auxval[3];
+        if(readComponents(name, value, 3, auxval))
+            return true;
+        val.x = (unsigned int)round(auxval[0]);
+        val.y = (unsigned int)round(auxval[1]);
+        val.z = (unsigned int)round(auxval[2]);
+        memcpy(data, &val, typesize);
+    }
+    else if(!strcmp(type, "uivec4")){
+        uivec4 val;
+        float auxval[4];
+        if(readComponents(name, value, 4, auxval))
+            return true;
+        val.x = (unsigned int)round(auxval[0]);
+        val.y = (unsigned int)round(auxval[1]);
+        val.z = (unsigned int)round(auxval[2]);
+        val.w = (unsigned int)round(auxval[3]);
+        memcpy(data, &val, typesize);
+    }
+    else{
+        return true;
+    }
+
+    delete[] type; type = NULL;
+    return false;
+}
+
 bool Variables::registerScalar(const char* name,
                                const char* type,
                                const char* value,
@@ -316,8 +563,8 @@ bool Variables::registerScalar(const char* name,
     else if(!strcmp(type, "float")){
         FloatVariable *var = new FloatVariable(name, save);
         if(strcmp(value, "")){
-            unsigned int val = (unsigned int)tok.solve(value);
-            tok.registerVariable(name, (float)val);
+            float val = tok.solve(value);
+            tok.registerVariable(name, val);
             var->set(&val);
         }
         _vars.push_back(var);
@@ -678,11 +925,10 @@ bool Variables::readComponents(const char* name,
                 name);
         S->addMessageF(0, msg);
     }
-    char remain[strlen(value) + 1];
+    char* remain = (char *)value;
     char aux[strlen(value) + 1];
     char nameaux[strlen(name) + 3];
-    const char* extensions[4] = {".x", ".y", ".z", ".w"};
-    strcpy(remain, value);
+    const char* extensions[4] = {"_x", "_y", "_z", "_w"};
     for(i = 0; i < n - 1; i++){
         strcpy(aux, remain);
         if(!strchr(aux, ',')){
@@ -693,7 +939,7 @@ bool Variables::readComponents(const char* name,
             return true;
         }
         strcpy(strchr(aux, ','), "");
-        strcpy(remain, strchr(remain, ',') + 1);
+        remain = strchr(remain, ',') + 1;
         val = tok.solve(aux);
         strcpy(nameaux, name);
         strcat(nameaux, extensions[i]);

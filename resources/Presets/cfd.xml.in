@@ -1,6 +1,10 @@
 <?xml version="1.0" ?>
 <sphInput>
     <Variables>
+        <Variable name="gamma" type="float*" length="n_fluids" save="false" />
+        <Variable name="refd" type="float*" length="n_fluids" save="false" />
+        <Variable name="visc_dyn" type="float*" length="n_fluids" save="false" />
+        <Variable name="delta" type="float*" length="n_fluids" save="false" />
         <Variable name="imove" type="int*" length="N" save="true" />
         <Variable name="ifluid" type="int*" length="N" save="true" />
     </Variables>

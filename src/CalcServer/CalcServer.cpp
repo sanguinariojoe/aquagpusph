@@ -44,6 +44,7 @@ CalcServer::CalcServer()
     , energy_computed(false)
     , bounds_computed(false)
     , fluid_mass(0.f)
+    , _vars(NULL)
 {
     unsigned int i;
     char msg[1024];
@@ -65,55 +66,63 @@ CalcServer::CalcServer()
     }
     N = n + num_sensors;
 
-	num_icell = nextPowerOf2(N);
-	num_icell = roundUp(num_icell, _ITEMS*_GROUPS);
+    num_icell = nextPowerOf2(N);
+    num_icell = roundUp(num_icell, _ITEMS*_GROUPS);
+
+    _vars = new InputOutput::Variables();
 
     // Register default scalars
     char val[16];
     char len[16];
     strcpy(len, "");
+    sprintf(val, "%g", 0.f);
+    if(_vars->registerVariable("t", "float", len, val, false))
+        exit(EXIT_FAILURE);
+    sprintf(val, "%g", 0.f);
+    if(_vars->registerVariable("dt", "float", len, val, false))
+        exit(EXIT_FAILURE);
     sprintf(val, "%u", n);
-    if(_vars.registerVariable("n", "unsigned int", len, val, false))
+    if(_vars->registerVariable("n", "unsigned int", len, val, false))
         exit(EXIT_FAILURE);
     sprintf(val, "%u", num_sensors);
-    if(_vars.registerVariable("n_sensors", "unsigned int", len, val, false))
+    if(_vars->registerVariable("n_sensors", "unsigned int", len, val, false))
         exit(EXIT_FAILURE);
     sprintf(val, "%u", N);
-    if(_vars.registerVariable("N", "unsigned int", len, val, true))
+    if(_vars->registerVariable("N", "unsigned int", len, val, true))
         exit(EXIT_FAILURE);
     sprintf(val, "%u", num_fluids);
-    if(_vars.registerVariable("n_fluids", "unsigned int", len, val, false))
+    if(_vars->registerVariable("n_fluids", "unsigned int", len, val, false))
         exit(EXIT_FAILURE);
     sprintf(val, "%u", num_icell);
-    if(_vars.registerVariable("n_radix", "unsigned int", len, val, false))
+    if(_vars->registerVariable("n_radix", "unsigned int", len, val, false))
         exit(EXIT_FAILURE);
     // Number of cells in x, y, z directions, and the total (n_x * n_y * n_z)
     strcpy(val, "0, 0, 0, 0");
-    if(_vars.registerVariable("n_cells", "uivec4", len, val, false))
+    if(_vars->registerVariable("n_cells", "uivec4", len, val, false))
         exit(EXIT_FAILURE);
     // Register default arrays
     strcpy(val, "");
     sprintf(len, "%u", N);
-    if(_vars.registerVariable("pos", "vec*", len, val, true))
+    if(_vars->registerVariable("pos", "vec*", len, val, true))
         exit(EXIT_FAILURE);
     sprintf(len, "%u", num_icell);
-    if(_vars.registerVariable("id_sorted", "unsigned int*", len, val, true))
+    if(_vars->registerVariable("id_sorted", "unsigned int*", len, val, true))
         exit(EXIT_FAILURE);
-    if(_vars.registerVariable("id_unsorted", "unsigned int*", len, val, true))
+    if(_vars->registerVariable("id_unsorted", "unsigned int*", len, val, true))
         exit(EXIT_FAILURE);
-    if(_vars.registerVariable("icell", "unsigned int*", len, val, true))
+    if(_vars->registerVariable("icell", "unsigned int*", len, val, true))
         exit(EXIT_FAILURE);
-    sprintf(len, "n_cells.w");
-    if(_vars.registerVariable("ihoc", "unsigned int*", len, val, true))
+    sprintf(len, "n_cells_w");
+    if(_vars->registerVariable("ihoc", "unsigned int*", len, val, true))
         exit(EXIT_FAILURE);
 
     // Register the user variables and arrays
     for(i = 0; i < P->variables.names.size(); i++){
-        bool flag = _vars.registerVariable(P->variables.names.at(i),
-                                           P->variables.types.at(i),
-                                           P->variables.lengths.at(i),
-                                           P->variables.values.at(i),
-                                           P->variables.saves.at(i));
+        bool flag = _vars->registerVariable(P->variables.names.at(i),
+                                            P->variables.types.at(i),
+                                            P->variables.lengths.at(i),
+                                            P->variables.values.at(i),
+                                            P->variables.saves.at(i));
         if(flag){
             exit(EXIT_FAILURE);
         }
@@ -321,6 +330,9 @@ CalcServer::~CalcServer()
     if(platforms) delete[] platforms; platforms=NULL;
     if(devices) delete[] devices; devices=NULL;
     if(command_queues) delete[] command_queues; command_queues=NULL;
+
+    S->addMessageF(1, "Destroying variables manager...\n");
+    if(_vars) delete _vars; _vars=NULL;
 }
 
 bool CalcServer::update()
@@ -674,7 +686,7 @@ cl_mem CalcServer::allocMemory(size_t size)
 
 bool CalcServer::setup()
 {
-    unsigned int i;
+    unsigned int i, j;
     cl_uint err_code=0;
     char msg[512];
     InputOutput::Fluid *F = InputOutput::Fluid::singleton();
@@ -683,25 +695,92 @@ bool CalcServer::setup()
     strcpy(msg, "");
 
     // Check for the required variables that must be defined by the user
-    if(!_vars.get("h")){
+    if(!_vars->get("h")){
         S->addMessageF(3, "Missed kernel length \"h\".\n");
-	    return true;
+        return true;
     }
-    if(strcmp(_vars.get("h")->type(), "float")){
+    if(strcmp(_vars->get("h")->type(), "float")){
         sprintf(msg,
                 "Kernel length \"h\" must be of type \"float\", but \"%s\" has been specified\n",
-                _vars.get("h")->type());
+                _vars->get("h")->type());
         S->addMessageF(3, msg);
-	    return true;
+        return true;
     }
-    h = *(float *)_vars.get("h")->get();
+    h = *(float *)_vars->get("h")->get();
     if(h <= 0.f){
         sprintf(msg,
                 "Kernel length \"h\" must be greater than 0, but \"%g\" has been set\n",
                 h);
         S->addMessageF(3, msg);
-	    return true;
+        return true;
     }
+
+    sprintf(msg, "Found kernel height: h = %g [m]\n", h);
+    S->addMessageF(1, msg);
+
+    // Setup the scalar data per particles sets
+    for(i = 0; i < P->sets.size(); i++){
+        InputOutput::ProblemSetup::sphParticlesSet* set = P->sets.at(i);
+        for(j = 0; j < set->scalarNames().size(); j++){
+            const char *name = set->scalarNames().at(j);
+            const char *val = set->scalarValues().at(j);
+            if(!_vars->get(name)){
+                sprintf(msg,
+                        "Variable \"%s\" has not been registered\n",
+                        name);
+                S->addMessageF(3, msg);
+                sprintf(msg, "Particles set: %u\n", i);
+                S->addMessageF(0, msg);
+                return true;
+            }
+            if(!strchr(_vars->get(name)->type(), '*')){
+                sprintf(msg,
+                        "Variable \"%s\" has been registered as a scalar, however it is established per particles set\n",
+                        name);
+                S->addMessageF(3, msg);
+                sprintf(msg, "Particles set: %u\n", i);
+                S->addMessageF(0, msg);
+                return true;
+            }
+            InputOutput::ArrayVariable *var = (InputOutput::ArrayVariable *)_vars->get(name);
+            size_t typesize = _vars->typeToBytes(_vars->get(name)->type());
+            size_t len = _vars->get(name)->size() / typesize;
+            if(len != num_fluids){
+                sprintf(msg,
+                        "Variable \"%s\" is an array of %u components, but %u particles set has been declared\n",
+                        name,
+                        len,
+                        num_fluids);
+                S->addMessageF(3, msg);
+                return true;
+            }
+            void *data = malloc(typesize);
+            if(_vars->solve(_vars->get(name)->type(), val, data)){
+                sprintf(msg, "Particles set: %u\n", i);
+                S->addMessageF(0, msg);
+                return true;
+            }
+            cl_mem mem = *(cl_mem*)_vars->get(name)->get();
+            cl_int status;
+            printf("%lu, %lu, %p\n", i * typesize, typesize, data);
+            status  = clEnqueueWriteBuffer(command_queue, mem, CL_TRUE,
+                                           i * typesize, typesize, data,
+                                           0, NULL, NULL);
+            free(data); data = NULL;
+            if(status != CL_SUCCESS) {
+                sprintf(msg,
+                        "Failure sending variable \"%s\" to particles set %u\n",
+                        name,
+                        i);
+                S->addMessageF(3, msg);
+                S->printOpenCLError(status);
+                return true;
+            }
+        }
+    }
+
+    return true;
+
 
     // Fluids data
     S->addMessageF(1, "Sending fluids data to the server...\n");

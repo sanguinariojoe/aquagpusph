@@ -466,7 +466,7 @@ public:
 
 private:
     /// User registered variables
-    InputOutput::Variables _vars;
+    InputOutput::Variables *_vars;
 
  	/** Setup the OpenCL stuff.
     /// Setup the OpenCL stuff.

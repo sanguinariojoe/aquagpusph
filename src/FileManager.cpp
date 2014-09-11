@@ -142,10 +142,16 @@ CalcServer::CalcServer* FileManager::load()
             return NULL;
     }
 
-    // Now we can build the fluid manager and the particles loaders/savers
+    // // Build the calculation server
     CalcServer::CalcServer *C = new CalcServer::CalcServer();
     if(!C)
         return NULL;
+    if(C->setup()){
+        delete C; C = NULL;
+        return NULL;
+    }
+
+    // Now we can build the loaders/savers
     for(i=0; i<P->n_fluids; i++){
         if(!strcmp(P->fluids[i].in_format, "ASCII")){
             ASCII *loader = new ASCII(n, P->fluids[i].n, i);

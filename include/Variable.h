@@ -643,6 +643,21 @@ public:
      * @return Allocated memory on device. Just the arrays can contribute to this value.
      */
     size_t allocatedMemory();
+
+    /** Convert a type name to bytes.
+     * @param type Type name.
+     * @return Type size in bytes, 0 if the type is not recognized.
+     */
+    size_t typeToBytes(const char* type) const;
+
+    /** Convert a type name to bytes.
+     * @param type_name Type of the output desired value.
+     * @param value Value text to evaluate.
+     * @param data Allocated memory where the result should be stored.
+     * @return false if all gone right, true otherwise.
+     * @note typeToBytes(type) bytes should be allocated in data.
+     */
+    bool solve(const char *type_name, const char *value, void *data);
 private:
     /** Register a scalar variable
      * @param name Name of the variable.

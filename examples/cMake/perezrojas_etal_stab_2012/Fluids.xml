@@ -10,41 +10,51 @@
                          ##  #             #
 
 Another QUAlity GPU-SPH, by CEHINAV.
-	http://canal.etsin.upm.es/
+    http://canal.etsin.upm.es/
 Authors:
-	Jose Luis Cercos-Pita
-	Leo Miguel Gonzalez
-	Antonio Souto-Iglesias
+    Jose Luis Cercos-Pita
+    Leo Miguel Gonzalez
+    Antonio Souto-Iglesias
 -->
 
 <sphInput>
-	<!-- Include a new fluid, specifing the number of particles. -->
-	<Fluid n="176376">
+    <!-- Include a new fluid, specifing the number of particles. -->
+    <Fluid n="176376">
         <!-- Gamma of the fluid. Gamma is the exponent of the state equation.
         -->
-		<Option name="gamma" value="7.0" />
-		<!-- Reference density of the fluid. -->
-		<Option name="refd" value="998.0" />
-		<!-- Fluid dynamic viscosity. -->
-		<Option name="Viscdyn" value="0.000894" />
-		<!-- In order to assert an stable time integration two techniques can
+        <Option name="gamma" value="7.0" />
+        <!-- Reference density of the fluid. -->
+        <Option name="refd" value="998.0" />
+        <!-- Fluid dynamic viscosity. -->
+        <Option name="Viscdyn" value="0.000894" />
+        <!-- In order to assert an stable time integration two techniques can
         be applied, the artificial viscosity, or the continuity equation
         diffusive term. The artificial viscosity consist in increasing the
         fluid viscosity.
         Let $\alpha = C Viscdyn / (\rho cs h)$, where C is equal to 8 for 2D,
         and 10 for 3D.
         To assert the stability an \alpha >= 0.01 is recommended.
-		-->
-		<Option name="alpha" value="0.0" />
-		<!-- The other alternative is to apply a diffusive term inside the
+        -->
+        <Option name="alpha" value="0.0" />
+        <!-- The other alternative is to apply a diffusive term inside the
         continuity equation (formerly \delta-SPH).
         To assert the stability \delta = 1.0 is recommended.
-		-->
-		<Option name="delta" value="1.0" />
-		<!-- File where the particles will be loaded from. -->
-		<Load format="ASCII" file="@EXAMPLE_DEST_DIR@/Fluid.dat" />
-		<!-- File where the particles will be saved in. It is just a base name
+        -->
+        <Option name="delta" value="1.0" />
+        <!-- File where the particles will be loaded from. -->
+        <Load format="ASCII" file="@EXAMPLE_DEST_DIR@/Fluid.dat" />
+        <!-- File where the particles will be saved in. It is just a base name
         such that a number identifier and a extension may be appended -->
-		<Save format="VTK" file="@EXAMPLE_DEST_DIR@/output" />
-	</Fluid>
+        <Save format="VTK" file="@EXAMPLE_DEST_DIR@/output" />
+    </Fluid>
+
+    <ParticlesSet n="176376">
+        <Scalar name="gamma" value="7.0" />
+        <Scalar name="refd" value="998.0" />
+        <Scalar name="visc_dyn" value="0.000894" />
+        <Scalar name="delta" value="1.0" />
+
+        <Load format="ASCII" file="@EXAMPLE_DEST_DIR@/Fluid.dat" />
+        <Save format="VTK" file="@EXAMPLE_DEST_DIR@/output" />
+    </ParticlesSet>
 </sphInput>
