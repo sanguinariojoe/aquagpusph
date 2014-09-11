@@ -1,7 +1,9 @@
 <?xml version="1.0" ?>
 <sphInput>
+    <Include file="@RESOURCES_OUTPUT_DIR@/Presets/cfd.xml" />
+
     <OpenCL>
-        <!-- Remarks: All path is relative to the execution one, and ".cl"
+        <!-- Remarks: Paths are relative to the execution one, and ".cl"
         extension will be automatically append -->
 
         <Predictor file="@RESOURCES_OUTPUT_DIR@/OpenCL/Predictor" />

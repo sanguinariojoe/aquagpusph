@@ -3,19 +3,19 @@
 # ===================================================== #
 # Create local version of the file
 SET(RESOURCES_OUTPUT_DIR ${CMAKE_BINARY_DIR}/resources)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/OpenCLMain.xml.in  
-	${CMAKE_CURRENT_BINARY_DIR}/OpenCLMain.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cfd.xml.in  
+	${CMAKE_CURRENT_BINARY_DIR}/cfd.xml @ONLY)
 
 # Create installable version of the file
 SET(RESOURCES_OUTPUT_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/resources)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/OpenCLMain.xml.in  
-        ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/OpenCLMain.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cfd.xml.in  
+        ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/cfd.xml @ONLY)
 
 # ===================================================== #
 # Install                                               #
 # ===================================================== #
 SET(RESOURCES_SRCS 
-	${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/OpenCLMain.xml
+	${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/cfd.xml
 )
 SOURCE_GROUP("ResourcesGroup" FILES ${RESOURCES_SRCS})
 INSTALL(
@@ -32,4 +32,3 @@ INSTALL(
         ${CMAKE_INSTALL_DATADIR}/resources
 )
 
-ADD_SUBDIRECTORY(Presets)

@@ -23,19 +23,8 @@
 
 #include <limits>
 
-// ----------------------------------------------------------------------------
-// Include the main header
-// ----------------------------------------------------------------------------
 #include <ProblemSetup.h>
-
-// ----------------------------------------------------------------------------
-// Include the screen manager
-// ----------------------------------------------------------------------------
 #include <ScreenManager.h>
-
-// ----------------------------------------------------------------------------
-// Include auxiliar methods
-// ----------------------------------------------------------------------------
 #include <AuxiliarMethods.h>
 
 namespace Aqua{ namespace InputOutput{
@@ -118,6 +107,7 @@ ProblemSetup::~ProblemSetup()
 {
     unsigned int i;
     settings.destroy();
+    variables.destroy();
     OpenCL_kernels.destroy();
     for(i=0;i<n_fluids;i++)
     {
@@ -197,6 +187,48 @@ void ProblemSetup::sphSettings::init()
 
 void ProblemSetup::sphSettings::destroy()
 {
+}
+
+void ProblemSetup::sphVariables::registerVariable(const char* name,
+                                                  const char* type,
+                                                  const char* length,
+                                                  const char* value,
+                                                  const bool save)
+{
+    size_t len;
+
+    char *aux=NULL;
+    len = strlen(name) + 1;
+    aux = new char[len];
+    strcpy(aux, name);
+    names.push_back(aux);
+    len = strlen(type) + 1;
+    aux = new char[len];
+    strcpy(aux, type);
+    types.push_back(aux);
+    len = strlen(length) + 1;
+    aux = new char[len];
+    strcpy(aux, length);
+    lengths.push_back(aux);
+    len = strlen(value) + 1;
+    aux = new char[len];
+    strcpy(aux, value);
+    values.push_back(aux);
+    saves.push_back(save);
+}
+
+void ProblemSetup::sphVariables::destroy()
+{
+    unsigned int i;
+    for(i=0;i<names.size();i++){
+        delete[] names.at(i);
+        delete[] types.at(i);
+        delete[] lengths.at(i);
+    }
+    names.clear();
+    types.clear();
+    lengths.clear();
+    saves.clear();
 }
 
 void ProblemSetup::sphOpenCLKernels::init()

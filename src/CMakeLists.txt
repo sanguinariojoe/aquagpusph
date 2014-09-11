@@ -55,6 +55,7 @@ SET(Client_CPP_SRCS
 	ProblemSetup.cpp
 	ScreenManager.cpp
 	TimeManager.cpp
+	Variable.cpp
 	Tokenizer/Tokenizer.cpp
 )
 

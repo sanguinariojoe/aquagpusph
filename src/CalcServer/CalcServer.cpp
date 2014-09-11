@@ -52,7 +52,19 @@ CalcServer::CalcServer()
     verbose_level = P->settings.verbose_level;
 
     if(setupOpenCL()) {
-        exit(255);
+        exit(EXIT_FAILURE);
+    }
+
+    // Register all the user variables
+    for(i = 0; i < P->variables.names.size(); i++){
+        bool flag = _vars.registerVariable(P->variables.names.at(i),
+                                           P->variables.types.at(i),
+                                           P->variables.lengths.at(i),
+                                           P->variables.values.at(i),
+                                           P->variables.saves.at(i));
+        if(flag){
+            exit(EXIT_FAILURE);
+        }
     }
 
     num_fluids  = P->n_fluids;
@@ -62,6 +74,21 @@ CalcServer::CalcServer()
         n += P->fluids[i].n;
     }
     N = n + num_sensors;
+
+    // Register default variables
+    char val[64];
+    sprintf(val, "%u", n);
+    if(_vars.registerVariable("n", "unsigned int", "", val, false)){
+        exit(EXIT_FAILURE);
+    }
+    sprintf(val, "%u", num_sensors);
+    if(_vars.registerVariable("n_sensors", "unsigned int", "", val, false)){
+        exit(EXIT_FAILURE);
+    }
+    sprintf(val, "%u", N);
+    if(_vars.registerVariable("N", "unsigned int", "", val, true)){
+        exit(EXIT_FAILURE);
+    }
 
     allocated_mem = 0;
     imove = allocMemory(N * sizeof( cl_int ));

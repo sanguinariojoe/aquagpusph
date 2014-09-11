@@ -126,6 +126,7 @@
 		<Unit filename="../include/Singleton.h" />
 		<Unit filename="../include/TimeManager.h" />
 		<Unit filename="../include/Tokenizer/Tokenizer.h" />
+		<Unit filename="../include/Variable.h" />
 		<Unit filename="../include/sphPrerequisites.h" />
 		<Unit filename="../src/ArgumentsManager.cpp" />
 		<Unit filename="../src/AuxiliarMethods.cpp" />
@@ -172,6 +173,7 @@
 		<Unit filename="../src/ScreenManager.cpp" />
 		<Unit filename="../src/TimeManager.cpp" />
 		<Unit filename="../src/Tokenizer/Tokenizer.cpp" />
+		<Unit filename="../src/Variable.cpp" />
 		<Unit filename="../src/main.cpp" />
 		<Extensions>
 			<envvars />

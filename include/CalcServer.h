@@ -27,6 +27,7 @@
 #include <CL/cl.h>
 
 #include <sphPrerequisites.h>
+#include <Variable.h>
 #include <CalcServer/Predictor.h>
 #include <CalcServer/Grid.h>
 #include <CalcServer/LinkList.h>
@@ -464,6 +465,10 @@ public:
     std::deque<Portal::Portal*> portals;
 
 private:
+    /// User registered variables
+    InputOutput::Variables _vars;
+
+ 	/** Setup the OpenCL stuff.
     /// Setup the OpenCL stuff.
     /**
      * @return false if the OpenCL environment has been succesfully built,

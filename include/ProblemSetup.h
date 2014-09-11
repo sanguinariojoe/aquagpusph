@@ -219,6 +219,70 @@ public:
         cl_device_type device_type;
     }settings;
 
+    /** @struct sphVariables
+     * @brief Simulation variable registered.
+     *
+     * In order to make AQUAgpusph more extensible, variables can be registered
+     * in runtime, specifing them in the input XML files.
+     *
+     * The variables can be either scalars or arrays:
+     *    - int, unsigned int, float.
+     *    - ivec2, ivec3, ivec4.
+     *    - uivec2, uivec3, uivec4.
+     *    - vec2, vec3, vec4.
+     *    - ivec, uivec, vec.
+     *    - int*, unsigned int*, float*.
+     *    - ivec2*, ivec3*, ivec4*.
+     *    - uivec2*, uivec3*, uivec4*.
+     *    - vec2*, vec3*, vec4*.
+     *    - ivec*, uivec*, vec*.
+     *
+     * These setting are set between the following XML tags:
+     * @code{.xml}
+        <Variables>
+        </Variables>
+     * @endcode
+     *
+     * @see Aqua::InputOutput::Variables
+     * @see Aqua::InputOutput::ProblemSetup
+     */
+	struct sphVariables
+	{
+        /// Name of the variables
+        std::deque<char*> names;
+        /// Type of variables
+        std::deque<char*> types;
+        /// Lengths
+        std::deque<char*> lengths;
+        /// Values
+        std::deque<char*> values;
+        /// Save flags
+        std::deque<bool> saves;
+
+        /** @brief Add a new variable.
+         *
+         * It can be repeated, such that the variable will be overwritten later
+         * by the last instance found.
+         *
+         * @param name Name of the variable.
+         * @param type Type of the varaible.
+         * @param length Array length, 1 for scalars, 0 for arrays that will
+         * not be allocated at the start (for instance the heads of chains,
+         * which requires the number of cells).
+         * @param value Variable value, NULL for arrays. It is optional for
+         * scalar variables.
+         * @param save true if the variable should be saved, false otherwise.
+         */
+        void registerVariable(const char* name,
+                              const char* type,
+                              const char* length,
+                              const char* value,
+                              const bool save);
+
+        /// Remove all the stored variables.
+        void destroy();
+	}variables;
+
     /** @struct sphOpenCLKernels
      * @brief OpenCL kernels source code files that should be loaded for each
      * tool of Aqua::CalcServer::CalcServer.
