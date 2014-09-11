@@ -21,6 +21,8 @@
 
 #include <CL/cl.h>
 
+#include <stdlib.h>
+#include <string.h>
 #include <vector>
 #include <deque>
 #include <sphPrerequisites.h>

@@ -16,11 +16,6 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
-
 #include <Variable.h>
 #include <AuxiliarMethods.h>
 #include <ScreenManager.h>
@@ -636,7 +631,9 @@ bool Variables::registerClMem(const char* name,
     }
 
     // Get the length
-    n = (unsigned int)round(tok.solve(length));
+    n = 0;
+    if(strcmp(length, ""))
+        n = (unsigned int)round(tok.solve(length));
 
     // Generate the variable
     ArrayVariable *var = new ArrayVariable(name, type, save);

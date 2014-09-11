@@ -27,6 +27,7 @@
 #include <sphPrerequisites.h>
 
 #include <Singleton.h>
+#include <deque>
 
 namespace Aqua{ namespace InputOutput{
 

@@ -28,7 +28,7 @@
 
 #include <sphPrerequisites.h>
 #include <Singleton.h>
-#include <Fluid.h>
+#include <CalcServer.h>
 #include <InputOutput/State.h>
 #include <InputOutput/Log.h>
 #include <InputOutput/Energy.h>
@@ -97,11 +97,11 @@ public:
      *    -# Aqua::InputOutput::State should load the XML definition
      *       files storing the data in Aqua::InputOutput::ProblemSetup.
      *    -# Aqua::InputOutput::Particles should load the particles definition
-     *       files storing the data in Aqua::InputOutput::Fluid.
+     *       files storing the data in Aqua::CalcServer::CalcServer.
      *
      * @return The built Fluid manager, NULL if errors happened.
      */
-    Fluid* load();
+    CalcServer::CalcServer* load();
 
     /// Save the output data files.
     /** It require that:

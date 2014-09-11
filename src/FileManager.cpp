@@ -113,7 +113,7 @@ FILE* FileManager::boundsFile()
         return _bounds->fileHandler();
 }
 
-Fluid* FileManager::load()
+CalcServer::CalcServer* FileManager::load()
 {
     unsigned int i, n=0;
     char msg[1024];
@@ -143,8 +143,8 @@ Fluid* FileManager::load()
     }
 
     // Now we can build the fluid manager and the particles loaders/savers
-    Fluid *F = new Fluid();
-    if(!F)
+    CalcServer::CalcServer *C = new CalcServer::CalcServer();
+    if(!C)
         return NULL;
     for(i=0; i<P->n_fluids; i++){
         if(!strcmp(P->fluids[i].in_format, "ASCII")){
@@ -204,7 +204,7 @@ Fluid* FileManager::load()
             return NULL;
     }
 
-    return F;
+    return C;
 }
 
 bool FileManager::save()

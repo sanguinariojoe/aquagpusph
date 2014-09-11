@@ -57,29 +57,57 @@ CalcServer::CalcServer()
 
     allocated_mem = 0;
 
-    num_fluids  = P->n_fluids;
+    num_fluids = P->n_fluids;
     num_sensors = P->SensorsParameters.pos.size();
     n = 0;
-    for(i=0;i<P->n_fluids;i++) {
+    for(i = 0; i < P->n_fluids; i++) {
         n += P->fluids[i].n;
     }
     N = n + num_sensors;
 
-    // Register default variables
-    char val[64];
+	num_icell = nextPowerOf2(N);
+	num_icell = roundUp(num_icell, _ITEMS*_GROUPS);
+
+    // Register default scalars
+    char val[16];
+    char len[16];
+    strcpy(len, "");
     sprintf(val, "%u", n);
-    if(_vars.registerVariable("n", "unsigned int", "", val, false)){
+    if(_vars.registerVariable("n", "unsigned int", len, val, false))
         exit(EXIT_FAILURE);
-    }
     sprintf(val, "%u", num_sensors);
-    if(_vars.registerVariable("n_sensors", "unsigned int", "", val, false)){
+    if(_vars.registerVariable("n_sensors", "unsigned int", len, val, false))
         exit(EXIT_FAILURE);
-    }
     sprintf(val, "%u", N);
-    if(_vars.registerVariable("N", "unsigned int", "", val, true)){
+    if(_vars.registerVariable("N", "unsigned int", len, val, true))
         exit(EXIT_FAILURE);
-    }
-    // Register the user variables
+    sprintf(val, "%u", num_fluids);
+    if(_vars.registerVariable("n_fluids", "unsigned int", len, val, false))
+        exit(EXIT_FAILURE);
+    sprintf(val, "%u", num_icell);
+    if(_vars.registerVariable("n_radix", "unsigned int", len, val, false))
+        exit(EXIT_FAILURE);
+    // Number of cells in x, y, z directions, and the total (n_x * n_y * n_z)
+    strcpy(val, "0, 0, 0, 0");
+    if(_vars.registerVariable("n_cells", "uivec4", len, val, false))
+        exit(EXIT_FAILURE);
+    // Register default arrays
+    strcpy(val, "");
+    sprintf(len, "%u", N);
+    if(_vars.registerVariable("pos", "vec*", len, val, true))
+        exit(EXIT_FAILURE);
+    sprintf(len, "%u", num_icell);
+    if(_vars.registerVariable("id_sorted", "unsigned int*", len, val, true))
+        exit(EXIT_FAILURE);
+    if(_vars.registerVariable("id_unsorted", "unsigned int*", len, val, true))
+        exit(EXIT_FAILURE);
+    if(_vars.registerVariable("icell", "unsigned int*", len, val, true))
+        exit(EXIT_FAILURE);
+    sprintf(len, "n_cells.w");
+    if(_vars.registerVariable("ihoc", "unsigned int*", len, val, true))
+        exit(EXIT_FAILURE);
+
+    // Register the user variables and arrays
     for(i = 0; i < P->variables.names.size(); i++){
         bool flag = _vars.registerVariable(P->variables.names.at(i),
                                            P->variables.types.at(i),
@@ -653,6 +681,28 @@ bool CalcServer::setup()
     InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     strcpy(msg, "");
+
+    // Check for the required variables that must be defined by the user
+    if(!_vars.get("h")){
+        S->addMessageF(3, "Missed kernel length \"h\".\n");
+	    return true;
+    }
+    if(strcmp(_vars.get("h")->type(), "float")){
+        sprintf(msg,
+                "Kernel length \"h\" must be of type \"float\", but \"%s\" has been specified\n",
+                _vars.get("h")->type());
+        S->addMessageF(3, msg);
+	    return true;
+    }
+    h = *(float *)_vars.get("h")->get();
+    if(h <= 0.f){
+        sprintf(msg,
+                "Kernel length \"h\" must be greater than 0, but \"%g\" has been set\n",
+                h);
+        S->addMessageF(3, msg);
+	    return true;
+    }
+
     // Fluids data
     S->addMessageF(1, "Sending fluids data to the server...\n");
     cl_float *Gamma   = new cl_float[num_fluids];
