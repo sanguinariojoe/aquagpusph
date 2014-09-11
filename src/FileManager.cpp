@@ -123,15 +123,19 @@ CalcServer::CalcServer* FileManager::load()
     for(i = 0; i < P->sets.size(); i++){
         if(!strcmp(P->sets.at(i)->inputFormat(), "ASCII")){
             ASCII *loader = new ASCII(n, P->sets.at(i)->n(), i);
-            if(!loader)
+            if(!loader){
+                delete C; C = NULL;
                 return NULL;
+            }
             _loaders.push_back((Particles*)loader);
         }
         else if(!strcmp(P->sets.at(i)->inputFormat(), "VTK")){
             #ifdef HAVE_VTK
                 VTK *loader = new VTK(n, P->sets.at(i)->n(), i);
-                if(!loader)
+                if(!loader){
+                    delete C; C = NULL;
                     return NULL;
+                }
                 _loaders.push_back((Particles*)loader);
             #else
                 S->addMessageF(3, "AQUAgpusph has been compiled without VTK format.\n");
@@ -143,19 +147,24 @@ CalcServer::CalcServer* FileManager::load()
                     "Unknow \"%s\" input file format.\n",
                     P->sets.at(i)->inputFormat());
             S->addMessageF(3, msg);
+            delete C; C = NULL;
             return NULL;
         }
         if(!strcmp(P->sets.at(i)->outputFormat(), "ASCII")){
             ASCII *saver = new ASCII(n, P->sets.at(i)->n(), i);
-            if(!saver)
+            if(!saver){
+                delete C; C = NULL;
                 return NULL;
+            }
             _savers.push_back((Particles*)saver);
         }
         else if(!strcmp(P->sets.at(i)->outputFormat(), "VTK")){
             #ifdef HAVE_VTK
                 VTK *saver = new VTK(n, P->sets.at(i)->n(), i);
-                if(!saver)
+                if(!saver){
+                    delete C; C = NULL;
                     return NULL;
+                }
                 _savers.push_back((Particles*)saver);
             #else
                 S->addMessageF(3, "AQUAgpusph has been compiled without VTK format.\n");
@@ -167,6 +176,7 @@ CalcServer::CalcServer* FileManager::load()
                     "Unknow \"%s\" output file format.\n",
                     P->sets.at(i)->outputFormat());
             S->addMessageF(3, msg);
+            delete C; C = NULL;
             return NULL;
         }
         n += P->sets.at(i)->n();
@@ -177,8 +187,6 @@ CalcServer::CalcServer* FileManager::load()
         if(_loaders.at(i)->load())
             return NULL;
     }
-
-    return NULL;
 
     return C;
 }
