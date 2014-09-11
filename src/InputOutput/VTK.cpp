@@ -32,7 +32,7 @@
 #include <ScreenManager.h>
 #include <ProblemSetup.h>
 #include <TimeManager.h>
-#include <Fluid.h>
+#include <CalcServer.h>
 #include <AuxiliarMethods.h>
 
 #include <vector>
@@ -110,12 +110,15 @@ VTK::~VTK()
 
 bool VTK::load()
 {
-    unsigned int i, n, N, cell=0, progress;
+    unsigned int i, j, k, n, N, progress;
     int aux;
+    cl_int err_code;
     char msg[1024];
     ScreenManager *S = ScreenManager::singleton();
     ProblemSetup *P = ProblemSetup::singleton();
-    Fluid *F = Fluid::singleton();
+    CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
+
+    loadDefault();
 
     sprintf(msg,
             "Loading fluid from VTK file \"%s\"\n",
@@ -126,7 +129,7 @@ bool VTK::load()
         vtkSmartPointer<vtkXMLUnstructuredGridReader>::New();
 
     if(!f->CanReadFile(P->sets.at(setId())->inputPath())){
-        S->addMessageF(3, "Teh file cannot be readed.\n");
+        S->addMessageF(3, "The file cannot be read.\n");
         return true;
     }
 
@@ -135,6 +138,7 @@ bool VTK::load()
 
     vtkSmartPointer<vtkUnstructuredGrid> grid = f->GetOutput();
 
+    // Assert that the number of particles is right
     n = bounds().y - bounds().x;
     N = (unsigned int)grid->GetNumberOfPoints();
     if( n != N){
@@ -146,164 +150,364 @@ bool VTK::load()
         return true;
     }
 
-    vtkSmartPointer<vtkPoints> points = grid->GetPoints();
-    vtkSmartPointer<vtkPointData> data = grid->GetPointData();
-    vtkSmartPointer<vtkFloatArray> normal = (vtkFloatArray*)(data->GetArray("n", aux));
-    vtkSmartPointer<vtkFloatArray> v = (vtkFloatArray*)(data->GetArray("v", aux));
-    vtkSmartPointer<vtkFloatArray> dv = (vtkFloatArray*)(data->GetArray("dv/dt", aux));
-    vtkSmartPointer<vtkFloatArray> dens = (vtkFloatArray*)(data->GetArray("dens", aux));
-    vtkSmartPointer<vtkFloatArray> drdt = (vtkFloatArray*)(data->GetArray("ddens/dt", aux));
-    vtkSmartPointer<vtkFloatArray> m = (vtkFloatArray*)(data->GetArray("mass", aux));
-    vtkSmartPointer<vtkIntArray> imove = (vtkIntArray*)(data->GetArray("imove", aux));
+    // Check the fields to read
+    std::deque<char*> fields = P->sets.at(setId())->inputFields();
+    if(!fields.size()){
+        S->addMessage(3, "0 fields were set to read from the file.\n");
+        return true;
+    }
+    bool have_pos = false;
+    for(i = 0; i < fields.size(); i++){
+        if(!strcmp(fields.at(i), "pos")){
+            have_pos = true;
+            break;
+        }
+    }
+    if(!have_pos){
+        S->addMessage(3, "\"pos\" field was not set to read from the file.\n");
+        return true;
+    }
+
+    // Setup an storage
+    std::deque<void*> data;
+    Variables* vars = C->variables();
+    for(i = 0; i < fields.size(); i++){
+        if(!vars->get(fields.at(i))){
+            sprintf(msg,
+                    "\"%s\" field has been set to read, but it was not declared.\n",
+                    fields.at(i));
+            S->addMessage(3, msg);
+            return true;
+        }
+        if(!strchr(vars->get(fields.at(i))->type(), '*')){
+            sprintf(msg,
+                    "\"%s\" field has been set to read, but it was declared as a scalar.\n",
+                    fields.at(i));
+            S->addMessage(3, msg);
+            return true;
+        }
+        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i));
+        size_t typesize = vars->typeToBytes(var->type());
+        size_t len = var->size() / typesize;
+        if(len < bounds().y){
+            sprintf(msg,
+                    "Failure reading \"%s\" field, which has not length enough.\n",
+                    fields.at(i));
+            S->addMessage(3, msg);
+            return true;
+        }
+        void *store = malloc(typesize * n);
+        if(!store){
+            sprintf(msg,
+                    "Failure allocating memory for \"%s\" field.\n",
+                    fields.at(i));
+            S->addMessage(3, msg);
+            return true;
+        }
+        data.push_back(store);
+    }
 
     progress = -1;
-    for(i=bounds().x; i<bounds().y; i++){
-        F->ifluid[i] = setId();
-
-        double *vect;
-        vect = points->GetPoint(cell);
-        F->pos[i].x = vect[0];
-        F->pos[i].y = vect[1];
-        #ifdef HAVE_3D
-            F->pos[i].z = vect[2];
-        #endif
-        vect = normal->GetTuple(cell);
-        F->normal[i].x = vect[0];
-        F->normal[i].y = vect[1];
-        #ifdef HAVE_3D
-            F->normal[i].z = vect[2];
-        #endif
-        vect = v->GetTuple(cell);
-        F->v[i].x = vect[0];
-        F->v[i].y = vect[1];
-        #ifdef HAVE_3D
-            F->v[i].z = vect[2];
-        #endif
-        vect = dv->GetTuple(cell);
-        F->f[i].x = vect[0];
-        F->f[i].y = vect[1];
-        #ifdef HAVE_3D
-            F->f[i].z = vect[2];
-        #endif
-        F->dens[i] = dens->GetComponent(cell, 0);
-        F->drdt[i] = drdt->GetComponent(cell, 0);
-        F->mass[i] = m->GetComponent(cell, 0);
-        F->imove[i] = imove->GetComponent(cell, 0);
-
-        if(progress != cell * 100 / n){
-            progress = cell * 100 / n;
+    vtkSmartPointer<vtkPoints> vtk_points = grid->GetPoints();
+    vtkSmartPointer<vtkPointData> vtk_data = grid->GetPointData();
+    for(i = 0; i < n; i++){
+        for(j = 0; j < fields.size(); j++){
+            if(!strcmp(fields.at(j), "pos")){
+                double *vect = vtk_points->GetPoint(i);
+                vec *ptr = (vec*)data.at(j);
+                ptr[i].x = vect[0];
+                ptr[i].y = vect[1];
+                #ifdef HAVE_3D
+                    ptr[i].z = vect[2];
+                    ptr[i].w = 0.f;
+                #endif
+                continue;
+            }
+            ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(j));
+            size_t type_size = vars->typeToBytes(var->type());
+            unsigned int n_components = vars->typeToN(var->type());
+            if(strstr(var->type(), "unsigned int") ||
+               strstr(var->type(), "uivec")){
+                vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
+                    (vtkUnsignedIntArray*)(vtk_data->GetArray(fields.at(j), aux));
+                for(k = 0; k < n_components; k++){
+                    unsigned int component = vtk_array->GetComponent(i, k);
+                    size_t offset = type_size * i + sizeof(unsigned int) * k;
+                    memcpy((char*)data.at(j) + offset,
+                           &component,
+                           sizeof(unsigned int));
+                }
+            }
+            else if(strstr(var->type(), "int") ||
+                    strstr(var->type(), "ivec")){
+                vtkSmartPointer<vtkIntArray> vtk_array =
+                    (vtkIntArray*)(vtk_data->GetArray(fields.at(j), aux));
+                for(k = 0; k < n_components; k++){
+                    int component = vtk_array->GetComponent(i, k);
+                    size_t offset = type_size * i + sizeof(int) * k;
+                    memcpy((char*)data.at(j) + offset,
+                           &component,
+                           sizeof(int));
+                }
+            }
+            else if(strstr(var->type(), "float") ||
+                    strstr(var->type(), "vec")){
+                vtkSmartPointer<vtkFloatArray> vtk_array =
+                    (vtkFloatArray*)(vtk_data->GetArray(fields.at(j), aux));
+                for(k = 0; k < n_components; k++){
+                    float component = vtk_array->GetComponent(i, k);
+                    size_t offset = type_size * i + sizeof(float) * k;
+                    memcpy((char*)data.at(j) + offset,
+                           &component,
+                           sizeof(float));
+                }
+            }
+        }
+        if(progress != i * 100 / n){
+            progress = i * 100 / n;
             if(!(progress % 10)){
                 sprintf(msg, "\t\t%u%%\n", progress);
                 S->addMessage(0, msg);
             }
         }
-        cell++;
     }
+
+    // Send the data to the server and release it
+    for(i = 0; i < fields.size(); i++){
+        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i));
+        size_t typesize = vars->typeToBytes(var->type());
+        cl_mem mem = *(cl_mem*)var->get();
+        err_code = clEnqueueWriteBuffer(C->command_queue(),
+                                        mem,
+                                        CL_TRUE,
+                                        typesize * bounds().x,
+                                        typesize * n,
+                                        data.at(i),
+                                        0,
+                                        NULL,
+                                        NULL);
+        free(data.at(i)); data.at(i) = NULL;
+        if(err_code != CL_SUCCESS){
+            sprintf(msg,
+                    "Failure sending variable \"%s\" to the server.\n",
+                    fields.at(i));
+            S->addMessageF(3, msg);
+            S->printOpenCLError(err_code);
+        }
+    }
+    data.clear();
 
     return false;
 }
 
 bool VTK::save()
 {
-    unsigned int i;
-    vtkSmartPointer<vtkVertex> vertex;
-    float vect[3] = {0.f, 0.f, 0.f};
+    unsigned int i, j;
+    cl_int err_code;
+    char msg[1024];
+    vtkSmartPointer<vtkVertex> vtk_vertex;
     ScreenManager *S = ScreenManager::singleton();
     TimeManager *T = TimeManager::singleton();
-    Fluid *F = Fluid::singleton();
+    ProblemSetup *P = ProblemSetup::singleton();
+    CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
 
+    // Check the fields to write
+    std::deque<char*> fields = P->sets.at(setId())->outputFields();
+    if(!fields.size()){
+        S->addMessage(3, "0 fields were set to read from the file.\n");
+        return true;
+    }
+    bool have_pos = false;
+    for(i = 0; i < fields.size(); i++){
+        if(!strcmp(fields.at(i), "pos")){
+            have_pos = true;
+            break;
+        }
+    }
+    if(!have_pos){
+        S->addMessage(3, "\"pos\" field was not set to read from the file.\n");
+        return true;
+    }
+
+    // Create storage arrays
+    std::deque<void*> data;
+    std::deque< vtkSmartPointer<vtkDataArray> > vtk_arrays;
+    Variables* vars = C->variables();
+    for(i = 0; i < fields.size(); i++){
+        if(!vars->get(fields.at(i))){
+            sprintf(msg,
+                    "\"%s\" field has been set to save, but it was not declared.\n",
+                    fields.at(i));
+            S->addMessage(3, msg);
+            return true;
+        }
+        if(!strchr(vars->get(fields.at(i))->type(), '*')){
+            sprintf(msg,
+                    "\"%s\" field has been set to save, but it was declared as a scalar.\n",
+                    fields.at(i));
+            S->addMessage(3, msg);
+            return true;
+        }
+        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i));
+        size_t typesize = vars->typeToBytes(var->type());
+        size_t len = var->size() / typesize;
+        if(len < bounds().y){
+            sprintf(msg,
+                    "Failure saving \"%s\" field, which has not length enough.\n",
+                    fields.at(i));
+            S->addMessage(3, msg);
+            return true;
+        }
+        void *store = malloc(typesize * (bounds().y - bounds().x));
+        if(!store){
+            sprintf(msg,
+                    "Failure allocating memory for \"%s\" field.\n",
+                    fields.at(i));
+            S->addMessage(3, msg);
+            return true;
+        }
+        data.push_back(store);
+
+        cl_mem mem = *(cl_mem*)var->get();
+        err_code = clEnqueueReadBuffer(C->command_queue(),
+                                       mem,
+                                       CL_TRUE,
+                                       typesize * bounds().x,
+                                       typesize * (bounds().y - bounds().x),
+                                       store,
+                                       0,
+                                       NULL,
+                                       NULL);
+        if(err_code != CL_SUCCESS){
+            sprintf(msg,
+                    "Failure receiving variable \"%s\" from server.\n",
+                    fields.at(i));
+            S->addMessageF(3, msg);
+            S->printOpenCLError(err_code);
+        }
+
+        unsigned int n_components = vars->typeToN(var->type());
+        if(strstr(var->type(), "unsigned int") ||
+           strstr(var->type(), "uivec")){
+            vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
+                vtkSmartPointer<vtkUnsignedIntArray>::New();
+            vtk_array->SetNumberOfComponents(n_components);
+            vtk_array->SetName(fields.at(i));
+            vtk_arrays.push_back(vtk_array);
+        }
+        else if(strstr(var->type(), "int") ||
+                strstr(var->type(), "ivec")){
+            vtkSmartPointer<vtkIntArray> vtk_array =
+                vtkSmartPointer<vtkIntArray>::New();
+            vtk_array->SetNumberOfComponents(n_components);
+            vtk_array->SetName(fields.at(i));
+            vtk_arrays.push_back(vtk_array);
+        }
+        else if(strstr(var->type(), "float") ||
+                strstr(var->type(), "vec")){
+            vtkSmartPointer<vtkFloatArray> vtk_array =
+                vtkSmartPointer<vtkFloatArray>::New();
+            vtk_array->SetNumberOfComponents(n_components);
+            vtk_array->SetName(fields.at(i));
+            vtk_arrays.push_back(vtk_array);
+        }
+    }
+
+    // Fill the VTK data arrays
     vtkXMLUnstructuredGridWriter *f = create();
     if(!f)
         return true;
+    vtkSmartPointer<vtkPoints> vtk_points = vtkSmartPointer<vtkPoints>::New();
+    vtkSmartPointer<vtkCellArray> vtk_cells = vtkSmartPointer<vtkCellArray>::New();
 
-    // Setup the arrays to write
-    vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-    vtkSmartPointer<vtkFloatArray> normal = vtkSmartPointer<vtkFloatArray>::New();
-    normal->SetNumberOfComponents(3);
-    normal->SetName("n");
-    vtkSmartPointer<vtkFloatArray> v = vtkSmartPointer<vtkFloatArray>::New();
-    v->SetNumberOfComponents(3);
-    v->SetName("v");
-    vtkSmartPointer<vtkFloatArray> dv = vtkSmartPointer<vtkFloatArray>::New();
-    dv->SetNumberOfComponents(3);
-    dv->SetName("dv/dt");
-    vtkSmartPointer<vtkFloatArray> p = vtkSmartPointer<vtkFloatArray>::New();
-    p->SetNumberOfComponents(1);
-    p->SetName("press");
-    vtkSmartPointer<vtkFloatArray> dens = vtkSmartPointer<vtkFloatArray>::New();
-    dens->SetNumberOfComponents(1);
-    dens->SetName("dens");
-    vtkSmartPointer<vtkFloatArray> drdt = vtkSmartPointer<vtkFloatArray>::New();
-    drdt->SetNumberOfComponents(1);
-    drdt->SetName("ddens/dt");
-    vtkSmartPointer<vtkFloatArray> m = vtkSmartPointer<vtkFloatArray>::New();
-    m->SetNumberOfComponents(1);
-    m->SetName("mass");
-    vtkSmartPointer<vtkFloatArray> W = vtkSmartPointer<vtkFloatArray>::New();
-    W->SetNumberOfComponents(1);
-    W->SetName("sumW");
-    vtkSmartPointer<vtkIntArray> imove = vtkSmartPointer<vtkIntArray>::New();
-    imove->SetNumberOfComponents(1);
-    imove->SetName("imove");
-    vtkSmartPointer<vtkUnsignedIntArray> id = vtkSmartPointer<vtkUnsignedIntArray>::New();
-    id->SetNumberOfComponents(1);
-    id->SetName("id");
-    vtkSmartPointer<vtkCellArray> cells = vtkSmartPointer<vtkCellArray>::New();
-    // Fill them with the data
-    for(i=bounds().x; i<bounds().y; i++){
-        #ifdef HAVE_3D
-            points->InsertNextPoint(F->pos[i].x, F->pos[i].y, F->pos[i].z);
-            vect[0] = F->normal[i].x;
-            vect[1] = F->normal[i].y;
-            vect[2] = F->normal[i].z;
-            normal->InsertNextTupleValue(vect);
-            vect[0] = F->v[i].x;
-            vect[1] = F->v[i].y;
-            vect[2] = F->v[i].z;
-            v->InsertNextTupleValue(vect);
-            vect[0] = F->f[i].x;
-            vect[1] = F->f[i].y;
-            vect[2] = F->f[i].z;
-            dv->InsertNextTupleValue(vect);
-        #else // HAVE_3D
-            points->InsertNextPoint(F->pos[i].x, F->pos[i].y, 0.f);
-            vect[0] = F->normal[i].x;
-            vect[1] = F->normal[i].y;
-            normal->InsertNextTupleValue(vect);
-            vect[0] = F->v[i].x;
-            vect[1] = F->v[i].y;
-            v->InsertNextTupleValue(vect);
-            vect[0] = F->f[i].x;
-            vect[1] = F->f[i].y;
-            dv->InsertNextTupleValue(vect);
-        #endif // HAVE_3D
-        p->InsertNextValue(F->press[i]);
-        dens->InsertNextValue(F->dens[i]);
-        drdt->InsertNextValue(F->drdt[i]);
-        m->InsertNextValue(F->mass[i]);
-        W->InsertNextValue(F->shepard[i]);
-        imove->InsertNextValue(F->imove[i]);
-        id->InsertNextValue(i);
-
-        vertex = vtkSmartPointer<vtkVertex>::New();
-        vertex->GetPointIds()->SetId(0, i - bounds().x);
-        cells->InsertNextCell(vertex);
+    for(i = 0; i < bounds().y - bounds().x; i++){
+        for(j = 0; j < fields.size(); j++){
+            if(!strcmp(fields.at(j), "pos")){
+                vec *ptr = (vec*)data.at(j);
+                #ifdef HAVE_3D
+                    vtk_points->InsertNextPoint(ptr[i].x, ptr[i].y, ptr[i].z);
+                #else
+                    vtk_points->InsertNextPoint(ptr[i].x, ptr[i].y, 0.f);
+                #endif
+                continue;
+           }
+            ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(j));
+            size_t typesize = vars->typeToBytes(var->type());
+            unsigned int n_components = vars->typeToN(var->type());
+            if(strstr(var->type(), "unsigned int") ||
+               strstr(var->type(), "uivec")){
+                unsigned int vect[n_components];
+                size_t offset = typesize * i;
+                memcpy(vect,
+                       (char*)data.at(j) + offset,
+                       n_components * sizeof(unsigned int));
+                vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
+                    (vtkUnsignedIntArray*)(vtk_arrays.at(j).GetPointer());
+                vtk_array->InsertNextTupleValue(vect);
+            }
+            else if(strstr(var->type(), "int") ||
+                    strstr(var->type(), "ivec")){
+                int vect[n_components];
+                size_t offset = typesize * i;
+                memcpy(vect,
+                       (char*)data.at(j) + offset,
+                       n_components * sizeof(int));
+                vtkSmartPointer<vtkIntArray> vtk_array =
+                    (vtkIntArray*)(vtk_arrays.at(j).GetPointer());
+                vtk_array->InsertNextTupleValue(vect);
+            }
+            else if(strstr(var->type(), "float") ||
+                    strstr(var->type(), "vec")){
+                float vect[n_components];
+                size_t offset = typesize * i;
+                memcpy(vect,
+                       (char*)data.at(j) + offset,
+                       n_components * sizeof(float));
+                vtkSmartPointer<vtkFloatArray> vtk_array =
+                    (vtkFloatArray*)(vtk_arrays.at(j).GetPointer());
+                vtk_array->InsertNextTupleValue(vect);
+            }
+        }
+        vtk_vertex = vtkSmartPointer<vtkVertex>::New();
+        vtk_vertex->GetPointIds()->SetId(0, i);
+        vtk_cells->InsertNextCell(vtk_vertex);
     }
 
+    for(i = 0; i < fields.size(); i++){
+        free(data.at(i)); data.at(i) = NULL;
+    }
+    data.clear();
+
     // Setup the unstructured grid
-    vtkSmartPointer<vtkUnstructuredGrid> grid = vtkSmartPointer<vtkUnstructuredGrid>::New();
-    grid->SetPoints(points);
-    grid->SetCells(vertex->GetCellType(), cells);
-    grid->GetPointData()->AddArray(normal);
-    grid->GetPointData()->AddArray(v);
-    grid->GetPointData()->AddArray(dv);
-    grid->GetPointData()->AddArray(p);
-    grid->GetPointData()->AddArray(dens);
-    grid->GetPointData()->AddArray(drdt);
-    grid->GetPointData()->AddArray(m);
-    grid->GetPointData()->AddArray(W);
-    grid->GetPointData()->AddArray(imove);
-    grid->GetPointData()->AddArray(id);
+    vtkSmartPointer<vtkUnstructuredGrid> grid =
+        vtkSmartPointer<vtkUnstructuredGrid>::New();
+    grid->SetPoints(vtk_points);
+    grid->SetCells(vtk_vertex->GetCellType(), vtk_cells);
+    for(i = 0; i < fields.size(); i++){
+        if(!strcmp(fields.at(i), "pos")){
+            continue;
+        }
+
+        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i));
+        if(strstr(var->type(), "unsigned int") ||
+           strstr(var->type(), "uivec")){
+            vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
+                (vtkUnsignedIntArray*)(vtk_arrays.at(i).GetPointer());
+            grid->GetPointData()->AddArray(vtk_array);
+        }
+        else if(strstr(var->type(), "int") ||
+                strstr(var->type(), "ivec")){
+            vtkSmartPointer<vtkIntArray> vtk_array =
+                (vtkIntArray*)(vtk_arrays.at(i).GetPointer());
+            grid->GetPointData()->AddArray(vtk_array);
+        }
+        else if(strstr(var->type(), "float") ||
+                strstr(var->type(), "vec")){
+            vtkSmartPointer<vtkFloatArray> vtk_array =
+                (vtkFloatArray*)(vtk_arrays.at(i).GetPointer());
+            grid->GetPointData()->AddArray(vtk_array);
+        }
+    }
 
     // Write file
     #if VTK_MAJOR_VERSION <= 5

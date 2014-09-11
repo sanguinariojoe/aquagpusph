@@ -396,14 +396,11 @@ bool ASCII::save()
         fprintf(f, "\n");
         fflush(f);
     }
-    printf("HERE\n");
 
     for(i = 0; i < fields.size(); i++){
         free(data.at(i)); data.at(i) = NULL;
     }
     data.clear();
-    printf("HERE\n");
-
 
     fclose(f);
     return false;
