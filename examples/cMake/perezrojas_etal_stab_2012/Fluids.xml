@@ -55,6 +55,6 @@ Authors:
         <Scalar name="delta" value="1.0" />
 
         <Load format="ASCII" file="@EXAMPLE_DEST_DIR@/Fluid.dat" fields="pos, n, v, dvdt, rho, drhodt, mass, imove" />
-        <Save format="VTK" file="@EXAMPLE_DEST_DIR@/output" fields="pos" />
+        <Save format="VTK" file="@EXAMPLE_DEST_DIR@/output" fields="pos, n, v, dvdt, rho, drhodt, mass, imove" />
     </ParticlesSet>
 </sphInput>

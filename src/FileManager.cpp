@@ -120,16 +120,16 @@ CalcServer::CalcServer* FileManager::load()
     }
 
     // Now we can build the loaders/savers
-    for(i=0; i<P->n_fluids; i++){
-        if(!strcmp(P->fluids[i].in_format, "ASCII")){
-            ASCII *loader = new ASCII(n, P->fluids[i].n, i);
+    for(i = 0; i < P->sets.size(); i++){
+        if(!strcmp(P->sets.at(i)->inputFormat(), "ASCII")){
+            ASCII *loader = new ASCII(n, P->sets.at(i)->n(), i);
             if(!loader)
                 return NULL;
             _loaders.push_back((Particles*)loader);
         }
-        else if(!strcmp(P->fluids[i].in_format, "VTK")){
+        else if(!strcmp(P->sets.at(i)->inputFormat(), "VTK")){
             #ifdef HAVE_VTK
-                VTK *loader = new VTK(n, P->fluids[i].n, i);
+                VTK *loader = new VTK(n, P->sets.at(i)->n(), i);
                 if(!loader)
                     return NULL;
                 _loaders.push_back((Particles*)loader);
@@ -141,19 +141,19 @@ CalcServer::CalcServer* FileManager::load()
         else{
             sprintf(msg,
                     "Unknow \"%s\" input file format.\n",
-                    P->fluids[i].in_format);
+                    P->sets.at(i)->inputFormat());
             S->addMessageF(3, msg);
             return NULL;
         }
-        if(!strcmp(P->fluids[i].out_format, "ASCII")){
-            ASCII *saver = new ASCII(n, P->fluids[i].n, i);
+        if(!strcmp(P->sets.at(i)->outputFormat(), "ASCII")){
+            ASCII *saver = new ASCII(n, P->sets.at(i)->n(), i);
             if(!saver)
                 return NULL;
             _savers.push_back((Particles*)saver);
         }
-        else if(!strcmp(P->fluids[i].out_format, "VTK")){
+        else if(!strcmp(P->sets.at(i)->outputFormat(), "VTK")){
             #ifdef HAVE_VTK
-                VTK *saver = new VTK(n, P->fluids[i].n, i);
+                VTK *saver = new VTK(n, P->sets.at(i)->n(), i);
                 if(!saver)
                     return NULL;
                 _savers.push_back((Particles*)saver);
@@ -165,11 +165,11 @@ CalcServer::CalcServer* FileManager::load()
         else{
             sprintf(msg,
                     "Unknow \"%s\" output file format.\n",
-                    P->fluids[i].out_format);
+                    P->sets.at(i)->outputFormat());
             S->addMessageF(3, msg);
             return NULL;
         }
-        n += P->fluids[i].n;
+        n += P->sets.at(i)->n();
     }
 
     // Execute the loaders
