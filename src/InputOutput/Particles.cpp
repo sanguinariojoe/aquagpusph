@@ -26,6 +26,7 @@
 
 #include <InputOutput/Particles.h>
 #include <ScreenManager.h>
+#include <CalcServer.h>
 #include <AuxiliarMethods.h>
 
 namespace Aqua{ namespace InputOutput{
@@ -43,6 +44,82 @@ Particles::~Particles()
     if(_output_file)
         delete[] _output_file;
     _output_file = NULL;
+}
+
+bool Particles::loadDefault()
+{
+    unsigned int i;
+    cl_int err_code;
+    ArrayVariable * var;
+    cl_mem mem;
+    ScreenManager *S = ScreenManager::singleton();
+    CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
+
+    unsigned int n = bounds().y - bounds().x;
+    unsigned int *iset = new unsigned int[n];
+    unsigned int *id_sorted = new unsigned int[n];
+    unsigned int *id_unsorted = new unsigned int[n];
+
+    if(!iset || !id_sorted || !id_unsorted){
+        S->addMessageF(3, "Failure allocating memory.\n");
+    }
+
+    for(i = 0; i < n; i++){
+        iset[i] = setId();
+        id_sorted[i] = bounds().x + i;
+        id_unsorted[i] = bounds().x + i;
+    }
+
+    Variables *vars = C->variables();
+    var = (ArrayVariable*)vars->get("iset");
+    mem = *(cl_mem*)var->get();
+    err_code = clEnqueueWriteBuffer(C->command_queue(),
+                                    mem,
+                                    CL_TRUE,
+                                    sizeof(unsigned int) * bounds().x,
+                                    sizeof(unsigned int) * n,
+                                    iset,
+                                    0,
+                                    NULL,
+                                    NULL);
+    if(err_code != CL_SUCCESS){
+        S->addMessageF(3, "Failure sending variable \"iset\" to the server.\n");
+        S->printOpenCLError(err_code);
+    }
+    var = (ArrayVariable*)vars->get("id_sorted");
+    mem = *(cl_mem*)var->get();
+    err_code = clEnqueueWriteBuffer(C->command_queue(),
+                                    mem,
+                                    CL_TRUE,
+                                    sizeof(unsigned int) * bounds().x,
+                                    sizeof(unsigned int) * n,
+                                    id_sorted,
+                                    0,
+                                    NULL,
+                                    NULL);
+    if(err_code != CL_SUCCESS){
+        S->addMessageF(3, "Failure sending variable \"iset\" to the server.\n");
+        S->printOpenCLError(err_code);
+    }
+    var = (ArrayVariable*)vars->get("id_unsorted");
+    mem = *(cl_mem*)var->get();
+    err_code = clEnqueueWriteBuffer(C->command_queue(),
+                                    mem,
+                                    CL_TRUE,
+                                    sizeof(unsigned int) * bounds().x,
+                                    sizeof(unsigned int) * n,
+                                    id_unsorted,
+                                    0,
+                                    NULL,
+                                    NULL);
+    if(err_code != CL_SUCCESS){
+        S->addMessageF(3, "Failure sending variable \"iset\" to the server.\n");
+        S->printOpenCLError(err_code);
+    }
+
+    delete[] iset; iset = NULL;
+    delete[] id_sorted; id_sorted = NULL;
+    delete[] id_unsorted; id_unsorted = NULL;
 }
 
 void Particles::file(const char* filename)

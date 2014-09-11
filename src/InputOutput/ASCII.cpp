@@ -57,6 +57,8 @@ bool ASCII::load()
     ProblemSetup *P = ProblemSetup::singleton();
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
 
+    loadDefault();
+
     sprintf(msg,
             "Loading fluid from ASCII file \"%s\"\n",
             P->sets.at(setId())->inputPath());

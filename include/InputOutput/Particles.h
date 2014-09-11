@@ -86,6 +86,13 @@ protected:
      */
     unsigned int setId(){return _iset;}
 
+    /** @brief Register some default arrays:
+     *   -# iset
+     *   -# id_sorted
+     *   -# id_unsorted
+     */
+    bool loadDefault();
+
     /** @brief Set the file name.
      * @param filename The new file to save/load. Optionally a null parameter
      * can be passed in order to clear the stored file name.
@@ -108,7 +115,6 @@ protected:
     bool file(const char* basename,
               unsigned int start_index,
               unsigned int digits=5);
-
 private:
     /// Particles managed bounds
     uivec2 _bounds;
