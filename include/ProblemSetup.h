@@ -246,8 +246,8 @@ public:
      * @see Aqua::InputOutput::Variables
      * @see Aqua::InputOutput::ProblemSetup
      */
-	struct sphVariables
-	{
+    struct sphVariables
+    {
         /// Name of the variables
         std::deque<char*> names;
         /// Type of variables
@@ -281,7 +281,7 @@ public:
 
         /// Remove all the stored variables.
         void destroy();
-	}variables;
+    }variables;
 
     /** @struct sphOpenCLKernels
      * @brief OpenCL kernels source code files that should be loaded for each
@@ -1209,6 +1209,153 @@ public:
     unsigned int n_fluids;
     /// Add a new fluid to the list #fluids
     void addFluid();
+
+    /** @class sphParticlesSet ProblemSetup.h ProblemSetup.h
+     * @brief Particles set data.
+     *
+     * In AQUAgpusph the particles can be deivided in sets.
+     * Each set may have different physic properties, or it can be used just to
+     * separate the particles by type (i.e.
+     * Fluid particles/Boundaries/Sensors).
+     *
+     * Each particles set should be loaded from a different files, as well as
+     * saved in different files.
+     *
+     * These setting are set between the following XML tags:
+     * @code{.xml}
+        <ParticlesSet n="100000">
+        </ParticlesSet>
+     * @endcode
+     * Where @paramname{n} is the number of particles for this set of
+     * particles.
+     *
+     * @see Aqua::InputOutput::Particles
+     */
+    class sphParticlesSet
+    {
+    public:
+        /// Constructor
+        sphParticlesSet();
+
+        /// Destructor
+        ~sphParticlesSet();
+
+        /** @brief Set the number of particles
+         * @param N Number of particles.
+         */
+        void n(unsigned int N){_n = N;}
+
+        /** @brief Get the number of particles
+         * @return Number of particles.
+         */
+        unsigned int n() const {return _n;}
+
+        /** @brief Add a scalar property for this particles set.
+         *
+         * This field can be set with the tag `Scalar`, for instance:
+         * `<Scalar name="gamma" value="1.0" />`
+         */
+        void addScalar(const char* name, const char* value);
+
+        /** @brief Get the scalar names list
+         * @return scalar names.
+         */
+        std::deque<char*> scalarNames() const {return _snames;}
+
+        /** @brief Get the scalar values list
+         * @return scalar values.
+         */
+        std::deque<char*> scalarValues() const {return _svalues;}
+
+        /** @brief Set the file path from which the particles should be read.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Load format="ASCII" file="./Fluid.dat" fields="pos,normal" />`
+         *
+         * @param path File path.
+         * @param format File format.
+         * @param fields Fields to be loaded from the file
+         * @see Aqua::InputOutput::Particles
+         */
+        void input(const char* path, const char* format, const char* fields);
+
+        /** @brief Get the file path from the particles would be read.
+         * @return File path.
+         * @see input()
+         */
+        const char* inputPath() const {return _in_path;}
+
+        /** @brief Get the input file format
+         * @return File format.
+         * @see input()
+         */
+        const char* inputFormat() const {return _in_format;}
+
+        /** @brief Get the input file fields
+         * @return Fields to be loaded list.
+         * @see input()
+         */
+        std::deque<char*> inputFields() const {return _in_fields;}
+
+        /** @brief Set the file path where the particles should be written.
+         *
+         * This field can be set with the tag `Option`, for instance:
+         * `<Save format="VTK" file="output" fields="pos,normal" />`
+         *
+         * @param path File path.
+         * @param format File format.
+         * @param fields Fields to be loaded from the file
+         * @see Aqua::InputOutput::Particles
+         */
+        void output(const char* path, const char* format, const char* fields);
+
+        /** @brief Get the output file path
+         * @return File path.
+         * @see output()
+         */
+        const char* outputPath() const {return _out_path;}
+
+        /** @brief Get the output file format
+         * @return File format.
+         * @see output()
+         */
+        const char* outputFormat() const {return _out_format;}
+
+        /** @brief Get the output file fields
+         * @return Fields to be written list.
+         * @see output()
+         */
+        std::deque<char*> outputFields() const {return _out_fields;}
+    private:
+        /// Number of particles
+        unsigned int _n;
+
+        /// Scalars names
+        std::deque<char*> _snames;
+        /// Scalar values
+        std::deque<char*> _svalues;
+
+        /// Particles data file to load
+        char *_in_path;
+
+        /// Format of the particles data file to load
+        char *_in_format;
+
+        /// Fields to load from the file
+        std::deque<char*> _in_fields;
+
+        /// Fluid particles data file to write
+        char *_out_path;
+
+        /// Fluid particles data file to write format
+        char *_out_format;
+
+        /// Fields to write in the file
+        std::deque<char*> _out_fields;
+    };
+
+    /// Array of particles sets
+    std::deque<sphParticlesSet*> sets;
 
     /** @class sphMoveParameters ProblemSetup.h ProblemSetup.h
      * @brief Motion definition parameters.

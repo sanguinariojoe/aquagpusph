@@ -326,6 +326,105 @@ void ProblemSetup::sphFluidParameters::destroy()
     delete[] out_format; out_format=NULL;
 }
 
+ProblemSetup::sphParticlesSet::sphParticlesSet()
+    : _n(0)
+    , _in_path(NULL)
+    , _in_format(NULL)
+    , _out_path(NULL)
+    , _out_format(NULL)
+{
+}
+
+ProblemSetup::sphParticlesSet::~sphParticlesSet()
+{
+    unsigned int i;
+    for(i = 0; i < _snames.size(); i++){
+        delete[] _snames.at(i); _snames.at(i) = NULL;
+        delete[] _svalues.at(i); _svalues.at(i) = NULL;
+    }
+    _snames.clear();
+    _svalues.clear();
+    delete[] _in_path; _in_path=NULL;
+    delete[] _in_format; _in_format=NULL;
+    delete[] _out_path; _out_path=NULL;
+    delete[] _out_format; _out_format=NULL;
+    for(i = 0; i < _in_fields.size(); i++){
+        delete[] _in_fields.at(i); _in_fields.at(i) = NULL;
+    }
+    _in_fields.clear();
+    for(i = 0; i < _out_fields.size(); i++){
+        delete[] _out_fields.at(i); _out_fields.at(i) = NULL;
+    }
+    _out_fields.clear();
+}
+
+void ProblemSetup::sphParticlesSet::addScalar(const char* name,
+                                              const char* value)
+{
+    char* sname = new char[strlen(name) + 1];
+    strcpy(sname, name);
+    char* svalue = new char[strlen(value) + 1];
+    strcpy(svalue, value);
+    _snames.push_back(sname);
+    _svalues.push_back(svalue);
+}
+
+void ProblemSetup::sphParticlesSet::input(const char* path,
+                                          const char* format,
+                                          const char* fields)
+{
+    unsigned int i;
+    if(_in_path) delete[] _in_path;
+    if(_in_format) delete[] _in_format;
+    for(i = 0; i < _in_fields.size(); i++){
+        delete[] _in_fields.at(i); _in_fields.at(i) = NULL;
+    }
+    _in_fields.clear();
+
+    _in_path = new char[strlen(path) + 1];
+    strcpy(_in_path, path);
+    _in_format = new char[strlen(format) + 1];
+    strcpy(_in_format, format);
+
+    char auxfields[strlen(fields) + 1];
+    strcpy(auxfields, fields);
+    char *field = strtok(auxfields, " ,");
+    while(field){
+        char *aux = new char[strlen(field) + 1];
+        strcpy(aux, field);
+        _in_fields.push_back(aux);
+        field = strtok (NULL, " ,");
+    }
+}
+
+void ProblemSetup::sphParticlesSet::output(const char* path,
+                                           const char* format,
+                                           const char* fields)
+{
+    unsigned int i;
+    if(_out_path) delete[] _out_path;
+    if(_out_format) delete[] _out_format;
+    for(i = 0; i < _out_fields.size(); i++){
+        delete[] _out_fields.at(i); _out_fields.at(i) = NULL;
+    }
+    _out_fields.clear();
+
+    _out_path = new char[strlen(path) + 1];
+    strcpy(_out_path, path);
+    _out_format = new char[strlen(format) + 1];
+    strcpy(_out_format, format);
+
+    char auxfields[strlen(fields) + 1];
+    strcpy(auxfields, fields);
+    char *field = strtok(auxfields, " ,");
+    while(field){
+        char *aux = new char[strlen(field) + 1];
+        strcpy(aux, field);
+        _out_fields.push_back(aux);
+        field = strtok (NULL, " ,");
+    }
+}
+
 ProblemSetup::sphMoveParameters::sphMoveParameters()
     : type(0)
     , path(0)
