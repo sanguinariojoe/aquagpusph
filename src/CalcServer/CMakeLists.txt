@@ -35,35 +35,7 @@ SET(DEP_LIBS
 # Sources to compile                                    #
 # ===================================================== #
 SET(Server_CPP_SRCS
-	Bounds.cpp
 	CalcServer.cpp
-	Corrector.cpp
-	DensityInterpolation.cpp
-	Domain.cpp
-	Energy.cpp
-	Grid.cpp
-	Kernel.cpp
-	LinkList.cpp
-	Permutate.cpp
-	Predictor.cpp
-	RadixSort.cpp
-	Rates.cpp
-	Reduction.cpp
-	Sensors.cpp
-	Shepard.cpp
-	TimeStep.cpp
-	Torque.cpp
-	Boundary/DeLeffe.cpp
-	Boundary/GhostParticles.cpp
-	Boundary/ElasticBounce.cpp
-	Movements/C1Interpolation.cpp
-	Movements/C1Quaternion.cpp
-	Movements/LinearInterpolation.cpp
-	Movements/LIQuaternion.cpp
-	Movements/Movement.cpp
-	Movements/Quaternion.cpp
-	Movements/ScriptQuaternion.cpp
-	Portal/Portal.cpp
 )
 
 # ===================================================== #

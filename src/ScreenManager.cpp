@@ -25,7 +25,7 @@
 
 #include <ScreenManager.h>
 #include <FileManager.h>
-#include <CalcServer.h>
+#include <ProblemSetup.h>
 #include <TimeManager.h>
 
 WINDOW *wnd;
@@ -35,7 +35,6 @@ namespace Aqua{ namespace InputOutput{
 ScreenManager::ScreenManager()
 {
     int i;
-    CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
     TimeManager *T = TimeManager::singleton();
 
     _n_log = 20;
@@ -82,9 +81,10 @@ ScreenManager::~ScreenManager()
 
 void ScreenManager::update()
 {
-    CalcServer::CalcServer *c = CalcServer::CalcServer::singleton();
+    ProblemSetup *P = ProblemSetup::singleton();
     TimeManager *T = TimeManager::singleton();
-    if(!c->verbose_level)
+
+    if(!P->settings.verbose_level)
     {
         #ifdef HAVE_NCURSES
             move(10, 2);
@@ -94,7 +94,7 @@ void ScreenManager::update()
         return;
     }
 
-    if((c->verbose_level == 1) && (_old_frame == T->frame()))
+    if((P->settings.verbose_level == 1) && (_old_frame == T->frame()))
     {
         return;
     }
@@ -189,103 +189,8 @@ void ScreenManager::update()
     #else
         printf("\t[ETA: %lu s]\n", seconds);
     #endif
-    // Print profiling info if needed
-    #ifdef HAVE_GPUPROFILE
-        float Sum = c->predictor->profileTime() +
-                    c->grid->profileTime() +
-                    c->link_list->profileTime() +
-                    c->rates->profileTime() +
-                    c->elastic_bounce->profileTime() +
-                    c->de_Leffe->profileTime() +
-                    c->corrector->profileTime() +
-                    c->domain->profileTime() +
-                    c->time_step->profileTime() +
-                    c->dens_int->profileTime() +
-                    c->sensors->profileTime();
-        for(i=0;i<c->motions.size();i++){
-            Sum += c->motions.at(i)->profileTime();
-        }
-        char *str = new char[512]; strcpy(str, "");
-        char *aux = new char[512]; strcpy(str, "");
-        #ifndef HAVE_NCURSES
-            strcat(str, "\t");
-        #endif
-        unsigned int relTime;
-        relTime = 100*c->predictor->profileTime()/Sum;
-        if(relTime){
-            sprintf(aux, "%s=%u ", c->predictor->name(), relTime);
-            strcat(str, aux);
-        }
-        relTime = 100*c->grid->profileTime()/Sum;
-        if(relTime){
-            sprintf(aux, "%s=%u ", c->grid->name(), relTime);
-            strcat(str, aux);
-        }
-        relTime = 100*c->link_list->profileTime()/Sum;
-        if(relTime){
-            sprintf(aux, "%s=%u ", c->link_list->name(), relTime);
-            strcat(str, aux);
-        }
-        relTime = 100*c->rates->profileTime()/Sum;
-        if(relTime){
-            sprintf(aux, "%s=%u (%g) ", c->rates->name(), relTime, c->rates->profileTime());
-            strcat(str, aux);
-        }
-        relTime = 100*c->elastic_bounce->profileTime()/Sum;
-        if(relTime){
-            sprintf(aux, "%s=%u ", c->elastic_bounce->name(), relTime);
-            strcat(str, aux);
-        }
-        relTime = 100*c->de_Leffe->profileTime()/Sum;
-        if(relTime){
-            sprintf(aux, "%s=%u ", c->de_Leffe->name(), relTime);
-            strcat(str, aux);
-        }
-        relTime = 100*c->dens_int->profileTime()/Sum;
-        if(relTime){
-            sprintf(aux, "%s=%u ", c->dens_int->name(), relTime);
-            strcat(str, aux);
-        }
-        relTime = 100*c->corrector->profileTime()/Sum;
-        if(relTime){
-            sprintf(aux, "%s=%u ", c->corrector->name(), relTime);
-            strcat(str, aux);
-        }
-        relTime = 100*c->domain->profileTime()/Sum;
-        if(relTime){
-            sprintf(aux, "%s=%u ", c->domain->name(), relTime);
-            strcat(str, aux);
-        }
-        relTime = 100*c->time_step->profileTime()/Sum;
-        if(relTime){
-            sprintf(aux, "%s=%u ", c->time_step->name(), relTime);
-            strcat(str, aux);
-        }
-        relTime = 0;
-        for(i=0;i<c->motions.size();i++){
-            relTime += c->motions.at(i)->profileTime();
-        }
-        relTime = 100*relTime/Sum;
-        if(relTime){
-            sprintf(aux, "Motions=%u ", relTime);
-            strcat(str, aux);
-        }
-        relTime = 100.f*c->sensors->profileTime()/Sum;
-        if(relTime){
-            sprintf(aux, "%s=%u ", c->sensors->name(), relTime);
-            strcat(str, aux);
-        }
-        #ifdef HAVE_NCURSES
-            move(3, 2);
-            printw(str);
-        #else
-            strcat(str, "\n");
-            printf(str);
-        #endif
-        delete[] str; str=0;
-        delete[] aux; aux=0;
-    #endif
 
+    /*
     #ifdef HAVE_NCURSES
         attron(A_NORMAL | COLOR_PAIR(5));
         move(5, 2);
@@ -298,60 +203,10 @@ void ScreenManager::update()
         printf("\tNumber of particles: %u,", c->n);
         printf("\tAllocated memory: %lu bytes\n", (int)c->allocated_mem);
     #endif
+    */
 
     #ifdef HAVE_NCURSES
         attron(A_NORMAL | COLOR_PAIR(3));
-    #endif
-
-    c->energy();
-    c->bounds();
-    #ifdef HAVE_NCURSES
-        move(10, 2);
-        printw("U = %g (J)",c->eint);
-        move(10, 32);
-        printw("Ekin = %g (J)",c->ekin);
-        move(10, 62);
-        printw("E = %g (J)",c->etot);
-        move(11, 2);
-        printw("xmin = %g (m)",c->min_fluid_bound.x);
-        move(11, 32);
-        printw("ymin = %g (m)",c->min_fluid_bound.y);
-        #ifdef HAVE_3D
-            move(11, 62);
-            printw("zmin = %g (m)",c->min_fluid_bound.z);
-        #endif
-        move(12, 2);
-        printw("xmax = %g (m)",c->max_fluid_bound.x);
-        move(12, 32);
-        printw("ymax = %g (m)",c->max_fluid_bound.y);
-        #ifdef HAVE_3D
-            move(12, 62);
-            printw("zmax = %g (m)",c->max_fluid_bound.z);
-        #endif
-        move(13, 2);
-        printw("Vmin = %g (m/s)",c->min_v);
-        move(13, 32);
-        printw("Vmax = %g (m/s)",c->max_v);
-    #else
-        printf("\tU = %g (J), ", c->eint);
-        printf("Ekin = %g (J), ", c->ekin);
-        printf("E = %g (J)\n", c->etot);
-        printf("\txmin = %g (m), ",c->min_fluid_bound.x);
-        printf("ymin = %g (m)",c->min_fluid_bound.y);
-        #ifdef HAVE_3D
-            printf(", zmin = %g (m)\n",c->min_fluid_bound.z);
-        #else
-            printf("\n");
-        #endif
-        printf("\txmax = %g (m), ",c->max_fluid_bound.x);
-        printf("ymax = %g (m)",c->max_fluid_bound.y);
-        #ifdef HAVE_3D
-            printf(", zmax = %g (m)\n",c->max_fluid_bound.z);
-        #else
-            printf("\n");
-        #endif
-        printf("\tvmin = %g (m/s), ",c->min_v);
-        printf("vmax = %g (m/s)\n",c->max_v);
     #endif
 
     line=16;

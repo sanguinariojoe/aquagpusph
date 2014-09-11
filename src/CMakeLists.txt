@@ -43,12 +43,9 @@ SET(Client_CPP_SRCS
 	ArgumentsManager.cpp
 	AuxiliarMethods.cpp
 	FileManager.cpp
-	Fluid.cpp
 	InputOutput/State.cpp
 	InputOutput/Report.cpp
 	InputOutput/Log.cpp
-	InputOutput/Energy.cpp
-	InputOutput/Bounds.cpp
 	InputOutput/Particles.cpp
 	InputOutput/ASCII.cpp
 	InputOutput/VTK.cpp

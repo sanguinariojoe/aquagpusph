@@ -97,26 +97,6 @@ bool Log::close()
     float fluid_mass = 0.f;
     int err_code = CL_SUCCESS;
     strcpy(msg, "");
-    // Compute fluid mass if possible
-    if(C){
-        int *imove = new int[C->N];
-        float *mass = new float[C->N];
-        err_code |= C->getData(imove, C->imove, C->N * sizeof( int ));
-        err_code |= C->getData(mass, C->mass, C->N * sizeof( float ));
-        if(err_code == CL_SUCCESS){
-            for(i=0;i<C->N;i++) {
-                if(imove[i] > 0)
-                    fluid_mass += mass[i];
-            }
-            delete[] imove; imove=0;
-            delete[] mass; mass=0;
-            sprintf(msg,
-                    "Lost mass = %g [kg] (from %g [kg])\n",
-                    C->fluid_mass - fluid_mass,
-                    C->fluid_mass);
-            S->addMessageF(1, msg);
-        }
-    }
 
     fprintf(_file, "<br><hr>\n");
     struct timeval now_time;

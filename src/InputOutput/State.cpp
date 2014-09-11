@@ -33,6 +33,7 @@
 #include <FileManager.h>
 #include <TimeManager.h>
 #include <CalcServer.h>
+#include <AuxiliarMethods.h>
 
 #include <vector>
 #include <deque>
@@ -2178,15 +2179,15 @@ bool State::writeSensors(xercesc::DOMDocument* doc,
     s_elem->setAttribute(xmlS("file"), xmlS(P->SensorsParameters.script));
     elem->appendChild(s_elem);
 
-    vec *pos = C->sensors->positions();
+    // vec *pos = C->sensors->positions();
     for(i=0; i<P->SensorsParameters.pos.size(); i++){
         ss_elem = doc->createElement(xmlS("Sensor"));
-        sprintf(att, "%g", pos[i].x);
+        sprintf(att, "%g", P->SensorsParameters.pos.at(i).x);
         ss_elem->setAttribute(xmlS("x"), xmlS(att));
-        sprintf(att, "%g", pos[i].y);
+        sprintf(att, "%g", P->SensorsParameters.pos.at(i).y);
         ss_elem->setAttribute(xmlS("y"), xmlS(att));
         #ifdef HAVE_3D
-            sprintf(att, "%g", pos[i].z);
+            sprintf(att, "%g", P->SensorsParameters.pos.at(i).z);
             ss_elem->setAttribute(xmlS("z"), xmlS(att));
         #endif // HAVE_3D
         s_elem->appendChild(ss_elem);

@@ -888,7 +888,11 @@ bool Variables::registerClMem(const char* name,
         // Allocate memory on device
         cl_int status;
         cl_mem mem;
-        mem = clCreateBuffer(C->context, CL_MEM_READ_WRITE, n * typesize, NULL, &status);
+        mem = clCreateBuffer(C->context(),
+                             CL_MEM_READ_WRITE,
+                             n * typesize,
+                             NULL,
+                             &status);
         if(status != CL_SUCCESS) {
             S->addMessageF(3, "Allocation failure.\n");
             S->printOpenCLError(status);
