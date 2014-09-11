@@ -109,11 +109,11 @@ protected:
      */
     bool parseSettings(xercesc::DOMElement *root);
 
-	/** Look for variables sections.
-	 * @param root root XML node.
-	 * @return false if all gone right, true otherwise
-	 */
-	bool parseVariables(xercesc::DOMElement *root);
+    /** Look for variables sections.
+     * @param root root XML node.
+     * @return false if all gone right, true otherwise
+     */
+    bool parseVariables(xercesc::DOMElement *root);
 
     /** @brief Parse the OpenCL settings sections.
      * @param root Root XML node.
@@ -142,6 +142,13 @@ protected:
      * @see Aqua::InputOutput::ProblemSetup::sphFluidParameters
      */
     bool parseFluid(xercesc::DOMElement *root);
+
+    /** Look for particles set sections.
+     * @param root Root XML node.
+     * @return false if all gone right, true otherwise
+     * @see Aqua::InputOutput::ProblemSetup::sphParticlesSet
+     */
+    bool parseSet(xercesc::DOMElement *root);
 
     /** @brief Parse the sensors sections.
      * @param root Root XML node.
@@ -185,12 +192,12 @@ protected:
      */
     bool writeSettings(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
 
-	/** Write the varqaibles section.
-	 * @param doc XML generated document.
-	 * @param root root XML node.
-	 * @return false if all gone right, true otherwise
-	 */
-	bool writeVariables(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
+    /** Write the varqaibles section.
+     * @param doc XML generated document.
+     * @param root root XML node.
+     * @return false if all gone right, true otherwise
+     */
+    bool writeVariables(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
 
     /** @brief Write the OpenCL section.
      * @param doc XML generated document.
@@ -223,6 +230,14 @@ protected:
      * @see Aqua::InputOutput::ProblemSetup::sphFluidParameters
      */
     bool writeFluid(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
+
+    /** @brief Write the particles set sections.
+     * @param doc XML generated document.
+     * @param root Root XML node.
+     * @return false if all gone right, true otherwise
+     * @see Aqua::InputOutput::ProblemSetup::sphParticlesSet
+     */
+    bool writeSet(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
 
     /** @brief Write the sensors section.
      * @param doc XML generated document.

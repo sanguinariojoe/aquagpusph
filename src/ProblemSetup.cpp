@@ -114,6 +114,10 @@ ProblemSetup::~ProblemSetup()
         fluids[i].destroy();
     }
     delete[] fluids; fluids=0;
+    for(i=0;i<sets.size();i++){
+        delete sets.at(i);
+    }
+    sets.clear();
     for(i=0;i<motions.size();i++){
         delete motions.at(i);
     }

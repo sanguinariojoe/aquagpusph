@@ -258,6 +258,10 @@ bool State::parse(const char* filepath)
         xmlClear();
         return true;
     }
+	if(parseSet(root)){
+        xmlClear();
+	    return true;
+    }
     if(parseSensors(root)){
         xmlClear();
         return true;
@@ -937,6 +941,65 @@ bool State::parseFluid(DOMElement *root)
     return false;
 }
 
+bool State::parseSet(DOMElement *root)
+{
+	ScreenManager *S = ScreenManager::singleton();
+	ProblemSetup *P = ProblemSetup::singleton();
+	char msg[1024]; strcpy(msg, "");
+	DOMNodeList* nodes = root->getElementsByTagName(xmlS("ParticlesSet"));
+	for(XMLSize_t i=0; i<nodes->getLength(); i++){
+	    DOMNode* node = nodes->item(i);
+	    if(node->getNodeType() != DOMNode::ELEMENT_NODE)
+	        continue;
+	    DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
+        if(!xmlHasAttribute(elem, "n")){
+            S->addMessageF(3, "Found a particles set without \"n\" attribute.\n");
+            return true;
+        }
+
+        ProblemSetup::sphParticlesSet *Set = new ProblemSetup::sphParticlesSet();
+	    Set->n(atoi(xmlAttribute(elem, "n")));
+
+	    DOMNodeList* s_nodes = elem->getElementsByTagName(xmlS("Scalar"));
+	    for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
+	        DOMNode* s_node = s_nodes->item(j);
+	        if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
+	            continue;
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+
+	        const char *name = xmlAttribute(s_elem, "name");
+	        const char *value = xmlAttribute(s_elem, "value");
+            Set->addScalar(name, value);
+	    }
+
+	    s_nodes = elem->getElementsByTagName(xmlS("Load"));
+	    for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
+	        DOMNode* s_node = s_nodes->item(j);
+	        if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
+	            continue;
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+	        const char *path = xmlAttribute(s_elem, "file");
+	        const char *format = xmlAttribute(s_elem, "format");
+	        const char *fields = xmlAttribute(s_elem, "fields");
+            Set->input(path, format, fields);
+	    }
+
+	    s_nodes = elem->getElementsByTagName(xmlS("Save"));
+	    for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
+	        DOMNode* s_node = s_nodes->item(j);
+	        if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
+	            continue;
+	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+	        const char *path = xmlAttribute(s_elem, "file");
+	        const char *format = xmlAttribute(s_elem, "format");
+	        const char *fields = xmlAttribute(s_elem, "fields");
+            Set->output(path, format, fields);
+	    }
+        P->sets.push_back(Set);
+	}
+	return false;
+}
+
 bool State::parseSensors(DOMElement *root)
 {
     ScreenManager *S = ScreenManager::singleton();
@@ -1497,6 +1560,10 @@ bool State::write(const char* filepath)
         xmlClear();
         return true;
     }
+	if(writeSet(doc, root)){
+        xmlClear();
+	    return true;
+    }
     if(writeSensors(doc, root)){
         xmlClear();
         return true;
@@ -2028,6 +2095,62 @@ bool State::writeFluid(xercesc::DOMDocument* doc,
         s_elem = doc->createElement(xmlS("Save"));
         s_elem->setAttribute(xmlS("file"), xmlS(P->fluids[i].out_path));
         s_elem->setAttribute(xmlS("format"), xmlS(P->fluids[i].out_format));
+        elem->appendChild(s_elem);
+    }
+
+    return false;
+}
+
+bool State::writeSet(xercesc::DOMDocument* doc,
+                     xercesc::DOMElement *root)
+{
+    unsigned int i, j;
+    char att[16];
+    DOMElement *elem, *s_elem;
+	ProblemSetup *P = ProblemSetup::singleton();
+	FileManager *F = FileManager::singleton();
+
+    std::deque<ProblemSetup::sphParticlesSet*> sets = P->sets;
+
+    for(i = 0; i < sets.size(); i++){
+        elem = doc->createElement(xmlS("ParticlesSet"));
+        sprintf(att, "%u", P->sets.at(i)->n());
+        elem->setAttribute(xmlS("n"), xmlS(att));
+        root->appendChild(elem);
+
+        for(j = 0; j < sets.at(i)->scalarNames().size(); j++){
+            const char* name = sets.at(i)->scalarNames().at(j);
+            const char* value = sets.at(i)->scalarValues().at(j);
+            s_elem = doc->createElement(xmlS("Scalar"));
+            s_elem->setAttribute(xmlS("name"), xmlS(name));
+            s_elem->setAttribute(xmlS("value"), xmlS(value));
+            elem->appendChild(s_elem);
+        }
+
+        unsigned int n = 1;
+        char *fields = new char[n];
+        strcpy(fields, "");
+        for(j = 0; j < sets.at(i)->outputFields().size(); j++){
+            const char* field = sets.at(i)->outputFields().at(j);
+            n += strlen(field) + 1;
+            char *backup = fields;
+            fields = new char[n];
+            strcpy(fields, backup);
+            delete[] backup; backup = NULL;
+            strcat(fields, field);
+            if(j < sets.at(i)->outputFields().size() - 1)
+                strcat(fields, ",");
+        }
+        s_elem = doc->createElement(xmlS("Load"));
+        s_elem->setAttribute(xmlS("file"), xmlS(F->file(i)));
+        s_elem->setAttribute(xmlS("format"), xmlS(sets.at(i)->outputFormat()));
+        s_elem->setAttribute(xmlS("fields"), xmlS(fields));
+        elem->appendChild(s_elem);
+
+        s_elem = doc->createElement(xmlS("Save"));
+        s_elem->setAttribute(xmlS("file"), xmlS(sets.at(i)->outputPath()));
+        s_elem->setAttribute(xmlS("format"), xmlS(sets.at(i)->outputFormat()));
+        s_elem->setAttribute(xmlS("fields"), xmlS(fields));
         elem->appendChild(s_elem);
     }
 
