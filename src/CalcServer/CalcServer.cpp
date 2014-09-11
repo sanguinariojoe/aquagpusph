@@ -218,10 +218,10 @@ bool CalcServer::setupOpenCL()
     if(queryOpenCL()){
         return true;
     }
-    if(getPlatform()){
+    if(setupPlatform()){
         return true;
     }
-    if(getDevices()){
+    if(setupDevices()){
         return true;
     }
     S->addMessageF(1, "OpenCL is ready to work!\n");
@@ -263,28 +263,28 @@ bool CalcServer::queryOpenCL()
                                   CL_DEVICE_TYPE_ALL,
                                   0,
                                   NULL,
-                                  &_num_devices);
+                                  &num_devices);
         if(err_code != CL_SUCCESS) {
             S->addMessageF(3, "Failure getting the number of devices.\n");
             S->printOpenCLError(err_code);
             return true;
         }
         // Gets the devices array
-        _devices = new cl_device_id[_num_devices];
-        if(!_devices) {
+        devices = new cl_device_id[num_devices];
+        if(!devices) {
             S->addMessageF(3, "Allocation memory error.\n");
             S->addMessage(0, "\tDevices array cannot be allocated\n");
             return true;
         }
         err_code = clGetDeviceIDs(_platforms[i], CL_DEVICE_TYPE_ALL,
-                                  _num_devices, _devices, &_num_devices);
+                                  num_devices, devices, NULL);
         if(err_code != CL_SUCCESS) {
             S->addMessageF(3, "Failure getting the devices list.\n");
             S->printOpenCLError(err_code);
             return true;
         }
         // Shows device arrays
-        for(j = 0; j < _num_devices; j++){
+        for(j = 0; j < num_devices; j++){
             // Identifier
             strcpy(msg, "");
             sprintf(msg, "\tDevice %u, Platform %u...\n", j, i);
@@ -304,7 +304,7 @@ bool CalcServer::queryOpenCL()
             sprintf(msg, "\t\tDEVICE: %s\n", aux);
             S->addMessage(0, msg);
             // Platform vendor
-            err_code = clGetDeviceInfo(_devices[j],
+            err_code = clGetDeviceInfo(devices[j],
                                        CL_DEVICE_VENDOR,
                                        1024 * sizeof(char),
                                        &aux,
@@ -338,12 +338,12 @@ bool CalcServer::queryOpenCL()
             else if(dType == CL_DEVICE_TYPE_DEFAULT)
                 S->addMessage(0, "\t\tTYPE: CL_DEVICE_TYPE_DEFAULT\n");
         }
-        delete[] _devices; _devices = NULL;
+        delete[] devices; devices = NULL;
     }
     return false;
 }
 
-bool CalcServer::getPlatform()
+bool CalcServer::setupPlatform()
 {
     char msg[1024];
     InputOutput::ProblemSetup  *P = InputOutput::ProblemSetup::singleton();
@@ -360,7 +360,7 @@ bool CalcServer::getPlatform()
     return false;
 }
 
-bool CalcServer::getDevices()
+bool CalcServer::setupDevices()
 {
     cl_int err_code;
     cl_uint i;
@@ -516,7 +516,7 @@ bool CalcServer::setup()
             size_t len = _vars->get(name)->size() / typesize;
             if(len != P->sets.size()){
                 sprintf(msg,
-                        "Variable \"%s\" is an array of %u components, but %u particles set has been declared\n",
+                        "Variable \"%s\" is an array of %u components, which does not match with the number of particles sets (n_sets = %u)\n",
                         name,
                         len,
                         P->sets.size());

@@ -182,13 +182,13 @@ private:
     /**
      * @return false if a platform could be obtained, true otherwise
      */
-    bool getPlatform();
+    bool setupPlatform();
     /// Get the available devices in the selected platform.
     /**
      * @return false if the devices have been succesfully obtained, true
      * otherwise
      */
-    bool getDevices();
+    bool setupDevices();
 };
 
 }}  // namespace
