@@ -4,6 +4,7 @@
         <!-- Some variables are automatically defined:
         t = Simulation time.
         dt = time step.
+        step = Number of the time step.
         n = Number of particles.
         n_sensors = Number of sensors
         N = Total number of particles (n + n_sensors)

@@ -64,20 +64,6 @@ public:
      */
     bool mustPrintLog();
 
-    /** @brief Check if the energy file must be updated.
-     * @return true if the energy should be updated, false otherwise.
-     * @warning This method is returning true just one time per time step (i.e.
-     * until update() is called again).
-     */
-    bool mustPrintEnergy();
-
-    /** @brief Check if the fluid bounds file must be updated.
-     * @return true if the bounds file should be updated, false otherwise.
-     * @warning This method is returning true just one time per time step (i.e.
-     * until update() is called again).
-     */
-    bool mustPrintBounds();
-
     /** @brief Check if a general simulation output must be printed.
      * @return true if an output should be printed, false otherwise.
      * @warning This method is returning true just one time per time step (i.e.
@@ -88,19 +74,19 @@ public:
     /** @brief Set the simulation time step index.
      * @param s Simulation time step index.
      */
-    void step(unsigned int s){_step = s;}
+    void step(unsigned int s){*_step = s;}
     /** @brief Get the simulation time step index.
      * @return Simulation time step index.
      */
-    unsigned int step(){return _step;}
+    unsigned int step(){return *_step;}
     /** @brief Set the simulation time instant.
      * @param t Simulation time instant.
      */
-    void time(float t){_time = t;}
+    void time(float t){*_time = t;}
     /** @brief Get the simulation time instant.
      * @return Simulation time instant.
      */
-    float time(){return _time;}
+    float time(){return *_time;}
     /** @brief Set the simulation frame.
      *
      * The frame is the index of the current particles output.
@@ -118,11 +104,11 @@ public:
     /** @brief Set the simulation time step \f$ \Delta t \f$.
      * @param dt Simulation time step \f$ \Delta t \f$.
      */
-    void dt(float dt){_dt = dt;}
+    void dt(float dt){*_dt = dt;}
     /** @brief Get the simulation time step \f$ \Delta t \f$.
      * @return Simulation time step \f$ \Delta t \f$.
      */
-    float dt(){return _dt;}
+    float dt(){return *_dt;}
     /** @brief Set the simulation starting frame.
      *
      * The frame is the index of the current particles output.
@@ -182,9 +168,11 @@ public:
 
 private:
     /// Actual step
-    unsigned int _step;
+    unsigned int *_step;
     /// Actual time
-    float _time;
+    float *_time;
+    /// Time step
+    float *_dt;
     /// Actual frame
     unsigned int _frame;
     /// Start frame
@@ -197,8 +185,6 @@ private:
     int _steps_max;
     /// Maximum number of frames into simulation (-1 if simulation don't stop by frames criteria)
     int _frames_max;
-    /// Time step
-    float _dt;
 
     /// Time when last log file printed
     float _log_time;
@@ -208,24 +194,6 @@ private:
     int _log_step;
     /// IPF for Log files (-1 if Log file must not be printed)
     int _log_ipf;
-
-    /// Time when last Energy file printed
-    float _en_time;
-    /// FPS for Energy files (-1 if Energy file must not be printed)
-    float _en_fps;
-    /// Step when last Energy file printed
-    int _en_step;
-    /// IPF for Energy files (-1 if Energy file must not be printed)
-    int _en_ipf;
-
-    /// Time when last Bounds file printed
-    float _bounds_time;
-    /// FPS for Bounds files (-1 if Bounds file must not be printed)
-    float _bounds_fps;
-    /// Step when last Bounds file printed
-    int _bounds_step;
-    /// IPF for Bounds files (-1 if Bounds file must not be printed)
-    int _bounds_ipf;
 
     /// Time when last Output file printed
     float _output_time;
