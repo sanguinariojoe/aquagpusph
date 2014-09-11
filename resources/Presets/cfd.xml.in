@@ -10,7 +10,8 @@
         n_sets = Number of different sets of particles (each set may have different properties)
         n_radix = Rounded up value from N which is a power of 2
         n_cells = Number of cells (initialized as [0,0,0,0])
-        pos = Vector of particles positions
+        pos = Vector of particles positions (it should be read from an input file)
+        iset = Particles set of each particle
         id_sorted = Permutations from unsorted space to sorted space
         id_unsorted = Permutations from sorted space to unsorted space
         icell = Cell where each particle is placed
@@ -20,7 +21,12 @@
         <Variable name="refd" type="float*" length="n_sets" save="false" />
         <Variable name="visc_dyn" type="float*" length="n_sets" save="false" />
         <Variable name="delta" type="float*" length="n_sets" save="false" />
+        <Variable name="n" type="vec*" length="N" save="true" />
+        <Variable name="v" type="vec*" length="N" save="true" />
+        <Variable name="dvdt" type="vec*" length="N" save="true" />
+        <Variable name="rho" type="float*" length="N" save="true" />
+        <Variable name="drhodt" type="float*" length="N" save="true" />
+        <Variable name="mass" type="float*" length="N" save="true" />
         <Variable name="imove" type="int*" length="N" save="true" />
-        <Variable name="ifluid" type="int*" length="N" save="true" />
     </Variables>
 </sphInput>

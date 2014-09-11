@@ -99,8 +99,8 @@ using namespace xercesc;
 
 namespace Aqua{ namespace InputOutput{
 
-VTK::VTK(unsigned int first, unsigned int n, unsigned int ifluid)
-    : Particles(first, n, ifluid)
+VTK::VTK(unsigned int first, unsigned int n, unsigned int iset)
+    : Particles(first, n, iset)
 {
 }
 
@@ -119,18 +119,18 @@ bool VTK::load()
 
     sprintf(msg,
             "Loading fluid from VTK file \"%s\"\n",
-            P->fluids[fluidId()].in_path);
+            P->sets.at(setId())->inputPath());
     S->addMessageF(1, msg);
 
     vtkSmartPointer<vtkXMLUnstructuredGridReader> f =
         vtkSmartPointer<vtkXMLUnstructuredGridReader>::New();
 
-    if(!f->CanReadFile(P->fluids[fluidId()].in_path)){
+    if(!f->CanReadFile(P->sets.at(setId())->inputPath())){
         S->addMessageF(3, "Teh file cannot be readed.\n");
         return true;
     }
 
-    f->SetFileName(P->fluids[fluidId()].in_path);
+    f->SetFileName(P->sets.at(setId())->inputPath());
     f->Update();
 
     vtkSmartPointer<vtkUnstructuredGrid> grid = f->GetOutput();
@@ -158,7 +158,7 @@ bool VTK::load()
 
     progress = -1;
     for(i=bounds().x; i<bounds().y; i++){
-        F->ifluid[i] = fluidId();
+        F->ifluid[i] = setId();
 
         double *vect;
         vect = points->GetPoint(cell);
@@ -333,9 +333,9 @@ vtkXMLUnstructuredGridWriter* VTK::create(){
     ProblemSetup *P = ProblemSetup::singleton();
 
     // Create the file base name
-    len = strlen(P->fluids[fluidId()].out_path) + 8;
+    len = strlen(P->sets.at(setId())->outputPath()) + 8;
     basename = new char[len];
-    strcpy(basename, P->fluids[fluidId()].out_path);
+    strcpy(basename, P->sets.at(setId())->outputPath());
     strcat(basename, ".%d.vtu");
 
     if(file(basename, 0)){
@@ -491,9 +491,9 @@ const char* VTK::filenamePVD()
 {
     if(!namePVD){
         ProblemSetup *P = ProblemSetup::singleton();
-        size_t len = strlen(P->fluids[fluidId()].out_path) + 5;
+        size_t len = strlen(P->sets.at(setId())->outputPath()) + 5;
         namePVD = new char[len];
-        strcpy(namePVD, P->fluids[fluidId()].out_path);
+        strcpy(namePVD, P->sets.at(setId())->outputPath());
         strcat(namePVD, ".pvd");
     }
     return (const char*)namePVD;

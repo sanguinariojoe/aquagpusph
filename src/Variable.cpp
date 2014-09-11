@@ -292,50 +292,20 @@ size_t Variables::allocatedMemory(){
 
 size_t Variables::typeToBytes(const char* type) const
 {
-    if(!strcmp(type, "int") || !strcmp(type, "int*")){
-        return sizeof(int);
+    unsigned int n = typeToN(type);
+    size_t type_size = 0;
+
+    if(strstr(type, "unsigned int") ||
+       strstr(type, "uivec")){
+        type_size = sizeof(unsigned int);
     }
-    else if(!strcmp(type, "unsigned int") || !strcmp(type, "unsigned int*")){
-        return sizeof(unsigned int);
+    else if(strstr(type, "int") ||
+            strstr(type, "ivec")){
+        type_size = sizeof(int);
     }
-    else if(!strcmp(type, "float") || !strcmp(type, "float*")){
-        return sizeof(float);
-    }
-    else if(!strcmp(type, "vec") || !strcmp(type, "vec*")){
-        return sizeof(vec);
-    }
-    else if(!strcmp(type, "vec2") || !strcmp(type, "vec2*")){
-        return sizeof(vec2);
-    }
-    else if(!strcmp(type, "vec3") || !strcmp(type, "vec3*")){
-        return sizeof(vec3);
-    }
-    else if(!strcmp(type, "vec4") || !strcmp(type, "vec4*")){
-        return sizeof(vec4);
-    }
-    else if(!strcmp(type, "ivec") || !strcmp(type, "ivec*")){
-        return sizeof(ivec);
-    }
-    else if(!strcmp(type, "ivec2") || !strcmp(type, "ivec2*")){
-        return sizeof(ivec2);
-    }
-    else if(!strcmp(type, "ivec3") || !strcmp(type, "ivec3*")){
-        return sizeof(ivec3);
-    }
-    else if(!strcmp(type, "ivec4") || !strcmp(type, "ivec4*")){
-        return sizeof(ivec4);
-    }
-    else if(!strcmp(type, "uivec") || !strcmp(type, "uivec*")){
-        return sizeof(uivec);
-    }
-    else if(!strcmp(type, "uivec2") || !strcmp(type, "uivec2*")){
-        return sizeof(uivec2);
-    }
-    else if(!strcmp(type, "uivec3") || !strcmp(type, "uivec3*")){
-        return sizeof(uivec3);
-    }
-    else if(!strcmp(type, "uivec4") || !strcmp(type, "uivec4*")){
-        return sizeof(uivec4);
+    else if(strstr(type, "float") ||
+            strstr(type, "vec")){
+        type_size = sizeof(float);
     }
     else{
         char msg[256];
@@ -346,6 +316,29 @@ size_t Variables::typeToBytes(const char* type) const
         S->addMessageF(3, msg);
         return 0;
     }
+    return n * type_size;
+}
+
+unsigned int Variables::typeToN(const char* type) const
+{
+    unsigned int n = 1;
+    if(strstr(type, "vec2")) {
+        n = 2;
+    }
+    else if(strstr(type, "vec3")) {
+        n = 3;
+    }
+    else if(strstr(type, "vec4")) {
+        n = 4;
+    }
+    else if(strstr(type, "vec")) {
+        #ifdef HAVE_3D
+            n = 4;
+        #else
+            n = 2;
+        #endif // HAVE_3D
+    }
+    return n;
 }
 
 bool Variables::solve(const char *type_name, const char *value, void *data)
@@ -368,15 +361,25 @@ bool Variables::solve(const char *type_name, const char *value, void *data)
         strcpy(strchr(type, '*'), "");
 
     if(!strcmp(type, "int")){
-        int val = round(tok.solve(value));
+        int val;
+        float auxval;
+        if(readComponents(name, value, 1, &auxval))
+            return true;
+        val = round(auxval);
         memcpy(data, &val, typesize);
     }
     else if(!strcmp(type, "unsigned int")){
-        unsigned int val = (unsigned int)round(tok.solve(value));
+        unsigned int val;
+        float auxval;
+        if(readComponents(name, value, 1, &auxval))
+            return true;
+        val = (unsigned int)round(auxval);
         memcpy(data, &val, typesize);
     }
     else if(!strcmp(type, "float")){
-        float val = round(tok.solve(value));
+        float val;
+        if(readComponents(name, value, 1, &val))
+            return true;
         memcpy(data, &val, typesize);
     }
     else if(!strcmp(type, "vec")){

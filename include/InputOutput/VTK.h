@@ -93,9 +93,9 @@ public:
     /** @brief Constructor
      * @param first First particle managed by this saver/loader.
      * @param n Number of particles managed by this saver/loader.
-     * @param ifluid Fluid index.
+     * @param iset Particles set index.
      */
-    VTK(unsigned int first, unsigned int n, unsigned int ifluid);
+    VTK(unsigned int first, unsigned int n, unsigned int iset);
 
     /// Destructor
     ~VTK();

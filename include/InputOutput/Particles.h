@@ -52,9 +52,9 @@ public:
     /** @brief Constructor
      * @param first First particle managed by this saver/loader.
      * @param n Number of particles managed by this saver/loader.
-     * @param ifluid Fluid index.
+     * @param iset Particles set index.
      */
-    Particles(unsigned int first, unsigned int n, unsigned int ifluid);
+    Particles(unsigned int first, unsigned int n, unsigned int iset);
 
     /// Destructor
     virtual ~Particles();
@@ -62,12 +62,12 @@ public:
     /** @brief Save the data.
      * @return false if all gone right, true otherwise.
      */
-    virtual bool save(){return false;}
+    virtual bool save()=0;
 
     /** @brief Load the data.
      * @return false if all gone right, true otherwise.
      */
-    virtual bool load(){return false;}
+    virtual bool save()=0;
 
     /** @brief Get the last printed file path.
      * @return The last printed file, NULL if a file has not been printed yet.
@@ -75,15 +75,16 @@ public:
     const char* file(){return (const char*)_output_file;}
 
 protected:
-    /** @brief Get the particle index bounds of the fluid managed by this class.
+    /** @brief Get the particle index bounds of the "set of particles" managed
+     * by this class.
      * @return The index bounds (first and last particle).
      */
     uivec2 bounds(){return _bounds;}
 
-    /** @brief Get the fluid index associated with this class
-     * @return The fluid index.
+    /** @brief Get the "particles set" index associated with this class
+     * @return The "particles index" index.
      */
-    unsigned int fluidId(){return _ifluid;}
+    unsigned int setId(){return _iset;}
 
     /** @brief Set the file name.
      * @param filename The new file to save/load. Optionally a null parameter
@@ -113,7 +114,7 @@ private:
     uivec2 _bounds;
 
     /// Fluid index
-    unsigned int _ifluid;
+    unsigned int _iset;
 
     /// Last file printed
     char* _output_file;

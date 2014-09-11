@@ -105,6 +105,8 @@ CalcServer::CalcServer()
     sprintf(len, "%u", N);
     if(_vars->registerVariable("pos", "vec*", len, val, true))
         exit(EXIT_FAILURE);
+    if(_vars->registerVariable("iset", "unsigned int*", len, val, true))
+        exit(EXIT_FAILURE);
     sprintf(len, "%u", num_icell);
     if(_vars->registerVariable("id_sorted", "unsigned int*", len, val, true))
         exit(EXIT_FAILURE);

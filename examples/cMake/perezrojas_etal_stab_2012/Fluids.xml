@@ -54,7 +54,7 @@ Authors:
         <Scalar name="visc_dyn" value="0.000894" />
         <Scalar name="delta" value="1.0" />
 
-        <Load format="ASCII" file="@EXAMPLE_DEST_DIR@/Fluid.dat" />
-        <Save format="VTK" file="@EXAMPLE_DEST_DIR@/output" />
+        <Load format="ASCII" file="@EXAMPLE_DEST_DIR@/Fluid.dat" fields="pos, n, v, dvdt, rho, drhodt, mass, imove" />
+        <Save format="VTK" file="@EXAMPLE_DEST_DIR@/output" fields="pos" />
     </ParticlesSet>
 </sphInput>

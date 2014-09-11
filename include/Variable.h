@@ -650,7 +650,13 @@ public:
      */
     size_t typeToBytes(const char* type) const;
 
-    /** Convert a type name to bytes.
+    /** Get the number of components of a type name.
+     * @param type Type name.
+     * @return Number of components (1 for not recognized types).
+     */
+    unsigned int typeToN(const char* type) const;
+
+    /** Solve a string, interpreting the variables.
      * @param type_name Type of the output desired value.
      * @param value Value text to evaluate.
      * @param data Allocated memory where the result should be stored.

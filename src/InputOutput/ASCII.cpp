@@ -28,26 +28,17 @@
 #include <ScreenManager.h>
 #include <ProblemSetup.h>
 #include <TimeManager.h>
-#include <Fluid.h>
+#include <CalcServer.h>
 #include <AuxiliarMethods.h>
-#include <Tokenizer/Tokenizer.h>
 
 #ifndef MAX_LINE_LEN
     #define MAX_LINE_LEN 1024
 #endif // MAX_LINE_LEN
 
-#ifndef REQUESTED_FIELDS
-    #ifdef HAVE_3D
-        #define REQUESTED_FIELDS 17
-    #else
-        #define REQUESTED_FIELDS 13
-    #endif
-#endif // REQUESTED_FIELDS
-
 namespace Aqua{ namespace InputOutput{
 
-ASCII::ASCII(unsigned int first, unsigned int n, unsigned int ifluid)
-    : Particles(first, n, ifluid)
+ASCII::ASCII(unsigned int first, unsigned int n, unsigned int iset)
+    : Particles(first, n, iset)
 {
 }
 
@@ -58,22 +49,22 @@ ASCII::~ASCII()
 bool ASCII::load()
 {
     FILE *f;
+    cl_int err_code;
     char msg[MAX_LINE_LEN + 64], sentence[MAX_LINE_LEN], line[MAX_LINE_LEN];
     char *pos = NULL;
-    unsigned int i, iline, n, N, n_fields, progress;
-    Tokenizer tok;
+    unsigned int i, j, iline, n, N, n_fields, progress;
     ScreenManager *S = ScreenManager::singleton();
     ProblemSetup *P = ProblemSetup::singleton();
-    Fluid *F = Fluid::singleton();
+    CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
 
     sprintf(msg,
             "Loading fluid from ASCII file \"%s\"\n",
-            P->fluids[fluidId()].in_path);
+            P->sets.at(setId())->inputPath());
     S->addMessageF(1, msg);
 
-    f = fopen(P->fluids[fluidId()].in_path, "r");
+    f = fopen(P->sets.at(setId())->inputPath(), "r");
     if(!f){
-        S->addMessage(3, "The file is inaccesible.\n");
+        S->addMessage(3, "The file is inaccessible.\n");
         return true;
     }
 
@@ -89,9 +80,67 @@ bool ASCII::load()
         return true;
     }
 
+    // Check the fields to read
+    std::deque<char*> fields = P->sets.at(setId())->inputFields();
+    if(!fields.size()){
+        S->addMessage(3, "0 fields were set to read from the file.\n");
+        return true;
+    }
+    bool have_pos = false;
+    for(i = 0; i < fields.size(); i++){
+        if(!strcmp(fields.at(i), "pos")){
+            have_pos = true;
+            break;
+        }
+    }
+    if(!have_pos){
+        S->addMessage(3, "\"pos\" field was not set to read from the file.\n");
+        return true;
+    }
+    // Setup an storage
+    std::deque<void*> data;
+    Variables* vars = C->variables();
+    n_fields = 0;
+    for(i = 0; i < fields.size(); i++){
+        if(!vars->get(fields.at(i))){
+            sprintf(msg,
+                    "\"%s\" field has been set to read, but it was not declared.\n",
+                    fields.at(i));
+            S->addMessage(3, msg);
+            return true;
+        }
+        if(!strchr(vars->get(fields.at(i))->type(), '*')){
+            sprintf(msg,
+                    "\"%s\" field has been set to read, but it was declared as a scalar.\n",
+                    fields.at(i));
+            S->addMessage(3, msg);
+            return true;
+        }
+        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i));
+        n_fields += vars->typeToN(var->type());
+        size_t typesize = vars->typeToBytes(var->type());
+        size_t len = var->size() / typesize;
+        if(len < bounds().y){
+            sprintf(msg,
+                    "Failure reading \"%s\" field, which has not length enough.\n",
+                    fields.at(i));
+            S->addMessage(3, msg);
+            return true;
+        }
+        void *store = malloc(typesize * n);
+        if(!store){
+            sprintf(msg,
+                    "Failure allocating memory for \"%s\" field.\n",
+                    fields.at(i));
+            S->addMessage(3, msg);
+            return true;
+        }
+        data.push_back(store);
+    }
+
     // Read the particles
     rewind(f);
-    i = bounds().x;
+    i = 0;
     iline = 0;
     progress = -1;
     while( fgets( line, MAX_LINE_LEN*sizeof(char), f) )
@@ -102,12 +151,12 @@ bool ASCII::load()
         if(!strlen(line))
             continue;
 
-        n_fields = readNFields(line);
-        if(n_fields != REQUESTED_FIELDS){
+        unsigned int n_available_fields = readNFields(line);
+        if(n_available_fields != n_fields){
             sprintf(msg,
                     "Expected %u fields, but a line contains %u ones.\n",
-                    REQUESTED_FIELDS,
-                    n_fields);
+                    n_fields,
+                    n_available_fields);
             S->addMessageF(3, msg);
             sprintf(msg, "\terror found in the line %u.\n", iline);
             S->addMessage(0, msg);
@@ -118,112 +167,11 @@ bool ASCII::load()
 
         pos = line;
 
-        tok.registerVariable("id", i);
-        F->ifluid[i] = fluidId();
-        tok.registerVariable("ifluid", fluidId());
-        tok.registerVariable("h", P->SPH_opts.h);
-
-        strcpy(sentence, pos);
-        strcpy(strchr(sentence, ' '), "");
-        F->pos[i].x = tok.solve(sentence);
-        tok.registerVariable("x", F->pos[i].x);
-
-        pos = strchr(pos, ' ') + 1;
-        strcpy(sentence, pos);
-        strcpy(strchr(sentence, ' '), "");
-        F->pos[i].y = tok.solve(sentence);
-        tok.registerVariable("y", F->pos[i].y);
-
-        #ifdef HAVE_3D
-            pos = strchr(pos, ' ') + 1;
-            strcpy(sentence, pos);
-            strcpy(strchr(sentence, ' '), "");
-            F->pos[i].z = tok.solve(sentence);
-            tok.registerVariable("z", F->pos[i].z);
-        #endif // HAVE_3D
-
-        pos = strchr(pos, ' ') + 1;
-        strcpy(sentence, pos);
-        strcpy(strchr(sentence, ' '), "");
-        F->normal[i].x = tok.solve(sentence);
-        tok.registerVariable("n.x", F->normal[i].x);
-
-        pos = strchr(pos, ' ') + 1;
-        strcpy(sentence, pos);
-        strcpy(strchr(sentence, ' '), "");
-        F->normal[i].y = tok.solve(sentence);
-        tok.registerVariable("n.y", F->normal[i].y);
-
-        #ifdef HAVE_3D
-            pos = strchr(pos, ' ') + 1;
-            strcpy(sentence, pos);
-            strcpy(strchr(sentence, ' '), "");
-            F->normal[i].z = tok.solve(sentence);
-            tok.registerVariable("n.z", F->normal[i].z);
-        #endif // HAVE_3D
-
-        pos = strchr(pos, ' ') + 1;
-        strcpy(sentence, pos);
-        strcpy(strchr(sentence, ' '), "");
-        F->v[i].x = tok.solve(sentence);
-        tok.registerVariable("v.x", F->v[i].x);
-
-        pos = strchr(pos, ' ') + 1;
-        strcpy(sentence, pos);
-        strcpy(strchr(sentence, ' '), "");
-        F->v[i].y = tok.solve(sentence);
-        tok.registerVariable("v.y", F->v[i].y);
-
-        #ifdef HAVE_3D
-            pos = strchr(pos, ' ') + 1;
-            strcpy(sentence, pos);
-            strcpy(strchr(sentence, ' '), "");
-            F->v[i].z = tok.solve(sentence);
-            tok.registerVariable("v.z", F->v[i].z);
-        #endif // HAVE_3D
-
-        pos = strchr(pos, ' ') + 1;
-        strcpy(sentence, pos);
-        strcpy(strchr(sentence, ' '), "");
-        F->f[i].x = tok.solve(sentence);
-        tok.registerVariable("dvdt.x", F->f[i].x);
-
-        pos = strchr(pos, ' ') + 1;
-        strcpy(sentence, pos);
-        strcpy(strchr(sentence, ' '), "");
-        F->f[i].y = tok.solve(sentence);
-        tok.registerVariable("dvdt.y", F->f[i].y);
-
-        #ifdef HAVE_3D
-            pos = strchr(pos, ' ') + 1;
-            strcpy(sentence, pos);
-            strcpy(strchr(sentence, ' '), "");
-            F->f[i].z = tok.solve(sentence);
-            tok.registerVariable("dvdt.z", F->f[i].z);
-        #endif // HAVE_3D
-
-        pos = strchr(pos, ' ') + 1;
-        strcpy(sentence, pos);
-        strcpy(strchr(sentence, ' '), "");
-        F->dens[i] = tok.solve(sentence);
-        tok.registerVariable("rho", F->dens[i]);
-
-        pos = strchr(pos, ' ') + 1;
-        strcpy(sentence, pos);
-        strcpy(strchr(sentence, ' '), "");
-        F->drdt[i] = tok.solve(sentence);
-        tok.registerVariable("drhodt", F->drdt[i]);
-
-        pos = strchr(pos, ' ') + 1;
-        strcpy(sentence, pos);
-        strcpy(strchr(sentence, ' '), "");
-        F->mass[i] = tok.solve(sentence);
-        tok.registerVariable("mass", F->mass[i]);
-
-        pos = strchr(pos, ' ') + 1;
-        strcpy(sentence, pos);
-        F->imove[i] = (int)tok.solve(sentence);
-        tok.registerVariable("imove", F->imove[i]);
+        for(j = 0; j < fields.size(); j++){
+            pos = readField((const char*)fields.at(j), pos, i, data.at(j));
+            if(!pos && (j != fields.size() - 1))
+                return true;
+        }
 
         i++;
 
@@ -236,6 +184,31 @@ bool ASCII::load()
         }
     }
 
+    // Send the data to the server and release it
+    for(i = 0; i < fields.size(); i++){
+        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i));
+        size_t typesize = vars->typeToBytes(var->type());
+        cl_mem mem = *(cl_mem*)var->get();
+        err_code = clEnqueueWriteBuffer(C->command_queue(),
+                                        mem,
+                                        CL_TRUE,
+                                        typesize * bounds().x,
+                                        typesize * n,
+                                        data.at(i),
+                                        0,
+                                        NULL,
+                                        NULL);
+        free(data.at(i)); data.at(i) = NULL;
+        if(err_code != CL_SUCCESS){
+            sprintf(msg,
+                    "Failure sending variable \"%s\" to the server.\n",
+                    fields.at(i));
+            S->addMessageF(3, msg);
+            S->printOpenCLError(err_code);
+        }
+    }
+    data.clear();
+
     fclose(f);
     return false;
 }
@@ -245,7 +218,6 @@ bool ASCII::save()
     unsigned int i;
 
     TimeManager *T = TimeManager::singleton();
-    Fluid *F = Fluid::singleton();
 
     FILE *f = create();
     if(!f)
@@ -269,33 +241,6 @@ bool ASCII::save()
     fprintf(f, "\t# t = %g s\n", T->time());
     fprintf(f, "\n");
 
-    for(i=bounds().x; i<bounds().y; i++){
-        fprintf(f, "%g ", F->pos[i].x);
-        fprintf(f, "%g ", F->pos[i].y);
-        #ifdef HAVE_3D
-            fprintf(f, "%g ", F->pos[i].z);
-        #endif
-        fprintf(f, "%g ", F->normal[i].x);
-        fprintf(f, "%g ", F->normal[i].y);
-        #ifdef HAVE_3D
-            fprintf(f, "%g ", F->normal[i].z);
-        #endif
-        fprintf(f, "%g ", F->v[i].x);
-        fprintf(f, "%g ", F->v[i].y);
-        #ifdef HAVE_3D
-            fprintf(f, "%g ", F->v[i].z);
-        #endif
-        fprintf(f, "%g ", F->f[i].x);
-        fprintf(f, "%g ", F->f[i].y);
-        #ifdef HAVE_3D
-            fprintf(f, "%g ", F->f[i].z);
-        #endif
-        fprintf(f, "%g ", F->dens[i]);
-        fprintf(f, "%g ", F->mass[i]);
-        fprintf(f, "%d", F->imove[i]);
-
-        fprintf(f, "\n");
-    }
 
     fclose(f);
     return false;
@@ -342,23 +287,22 @@ void ASCII::formatLine(char* l)
         strcpy(strchr(l, '\n'), "");
     }
 
-    // Replace all the separators by spaces
-    const char *separators = ",;()[]{}\t";
+    // Replace all the separators by commas
+    const char *separators = " ;()[]{}\t";
     for(i=0; i<strlen(separators); i++){
         while(strchr(l, separators[i])){
-            strncpy(strchr(l, separators[i]), " ", 1);
+            strncpy(strchr(l, separators[i]), ",", 1);
         }
     }
 
     // Remove all the concatenated spaces
-    while(strstr(l, "  ")){
-        strcpy(strstr(l, "  "), strstr(l, "  ") + 1);
-    }
+    while(strstr(l, ",,")){
+        strcpy(strstr(l, ",,"), strstr(l, ",,") + 1);
 
-    // Remove the preceeding spaces
+    // Remove the preceeding commas
     len = strlen(l);
     while(len){
-        if(l[0] != ' '){
+        if(l[0] != ','){
             break;
         }
         strcpy(l, l + 1);
@@ -366,7 +310,7 @@ void ASCII::formatLine(char* l)
     }
     // And the trailing ones
     while(len){
-        if(l[len - 1] != ' '){
+        if(l[len - 1] != ','){
             break;
         }
         strcpy(l + len - 1, "");
@@ -383,17 +327,46 @@ unsigned int ASCII::readNFields(char* l)
         return 0;
     }
 
-    unsigned int n = 1;
+    unsigned int n = 0;
     char *pos = l;
     while(pos){
         n++;
-        pos = strchr(pos, ' ');
+        pos = strchr(pos, ',');
         if(pos)
             pos++;
     }
 
     return n;
 }
+
+char* ASCII::readField(const char* field,
+                       const char* line,
+                       unsigned int index,
+                       void* data)
+{
+    unsigned int i;
+    ScreenManager *S = ScreenManager::singleton();
+    CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
+    Variables* vars = C->variables();
+    ArrayVariable *var = (ArrayVariable*)vars->get(field);
+
+    unsigned int n = vars->typeToN(var->type());
+    size_t type_size = vars->typeToBytes(var->type());
+
+    void* ptr = (void*)((char*)data + type_size * index);
+    if(vars->solve(var->type(), line, ptr)){
+        return NULL;
+    }
+
+    char* pos = (char*)line;
+    for(i = 0; i < n; i++){
+        pos = strchr(pos, ',');
+        if(pos)
+            pos++;
+    }
+    return pos;
+}
+
 
 FILE* ASCII::create(){
     char *basename, msg[1024];
@@ -403,9 +376,9 @@ FILE* ASCII::create(){
     ProblemSetup *P = ProblemSetup::singleton();
 
     // Create the file base name
-    len = strlen(P->fluids[fluidId()].out_path) + 8;
+    len = strlen(P->sets.at(setId())->outputPath()) + 8;
     basename = new char[len];
-    strcpy(basename, P->fluids[fluidId()].out_path);
+    strcpy(basename, P->sets.at(setId())->outputPath());
     strcat(basename, ".%d.dat");
 
     if(file(basename, 0)){

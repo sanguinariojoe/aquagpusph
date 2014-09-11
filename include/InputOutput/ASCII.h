@@ -79,9 +79,9 @@ public:
     /** @brief Constructor
      * @param first First particle managed by this saver/loader.
      * @param n Number of particles managed by this saver/loader.
-     * @param ifluid Fluid index.
+     * @param iset Particles set index.
      */
-    ASCII(unsigned int first, unsigned int n, unsigned int ifluid);
+    ASCII(unsigned int first, unsigned int n, unsigned int iset);
 
     /// Destructor
     ~ASCII();
@@ -115,6 +115,19 @@ private:
      * formatLine().
      */
     unsigned int readNFields(char* l);
+
+    /** @brief Extract the field value from a line.
+     * @param field Field name.
+     * @param line Text line,
+     * @param index Index of the particle to read.
+     * @param data Data array.
+     * @return Remaining text after extracting the field values, NULL if no
+     * remaining text lefts to be read, or if the operation has failed.
+     */
+    char* readField(const char* field,
+                    const char* line,
+                    unsigned int index,
+                    void* data);
 
     /** @brief Create a new file to write.
      * @return The file handler, NULL if errors happened.
