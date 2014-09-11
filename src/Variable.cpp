@@ -23,11 +23,13 @@
 
 #include <Variable.h>
 #include <ScreenManager.h>
+#include <CalcServer.h>
 
 namespace Aqua{ namespace InputOutput{
 
-Variable::Variable(const char *varname, bool varsave)
+Variable::Variable(const char *varname, const char *vartype, bool varsave)
     : _name(NULL)
+    , _typename(NULL)
     , _save(varsave)
 {
     unsigned int len;
@@ -35,15 +37,19 @@ Variable::Variable(const char *varname, bool varsave)
     len = strlen(varname) + 1;
     _name = new char[len];
     strcpy(_name, varname);
+    len = strlen(vartype) + 1;
+    _typename = new char[len];
+    strcpy(_typename, vartype);
 }
 
 Variable::~Variable()
 {
 	delete[] _name; _name = NULL;
+	delete[] _typename; _typename = NULL;
 }
 
 IntVariable::IntVariable(const char *varname, bool varsave)
-    : Variable(varname, varsave)
+    : Variable(varname, "int", varsave)
     , _value(0)
 {
 }
@@ -53,7 +59,7 @@ IntVariable::~IntVariable()
 }
 
 UIntVariable::UIntVariable(const char *varname, bool varsave)
-    : Variable(varname, varsave)
+    : Variable(varname, "unsigned int", varsave)
     , _value(0)
 {
 }
@@ -63,7 +69,7 @@ UIntVariable::~UIntVariable()
 }
 
 FloatVariable::FloatVariable(const char *varname, bool varsave)
-    : Variable(varname, varsave)
+    : Variable(varname, "float", varsave)
     , _value(0.f)
 {
 }
@@ -73,7 +79,7 @@ FloatVariable::~FloatVariable()
 }
 
 Vec2Variable::Vec2Variable(const char *varname, bool varsave)
-    : Variable(varname, varsave)
+    : Variable(varname, "vec2", varsave)
 {
     _value.x = 0.f;
     _value.y = 0.f;
@@ -84,7 +90,7 @@ Vec2Variable::~Vec2Variable()
 }
 
 Vec3Variable::Vec3Variable(const char *varname, bool varsave)
-    : Variable(varname, varsave)
+    : Variable(varname, "vec3", varsave)
 {
     _value.x = 0.f;
     _value.y = 0.f;
@@ -96,7 +102,7 @@ Vec3Variable::~Vec3Variable()
 }
 
 Vec4Variable::Vec4Variable(const char *varname, bool varsave)
-    : Variable(varname, varsave)
+    : Variable(varname, "vec4", varsave)
 {
     _value.x = 0.f;
     _value.y = 0.f;
@@ -109,7 +115,7 @@ Vec4Variable::~Vec4Variable()
 }
 
 IVec2Variable::IVec2Variable(const char *varname, bool varsave)
-    : Variable(varname, varsave)
+    : Variable(varname, "ivec2", varsave)
 {
     _value.x = 0;
     _value.y = 0;
@@ -120,7 +126,7 @@ IVec2Variable::~IVec2Variable()
 }
 
 IVec3Variable::IVec3Variable(const char *varname, bool varsave)
-    : Variable(varname, varsave)
+    : Variable(varname, "ivec3", varsave)
 {
     _value.x = 0;
     _value.y = 0;
@@ -132,7 +138,7 @@ IVec3Variable::~IVec3Variable()
 }
 
 IVec4Variable::IVec4Variable(const char *varname, bool varsave)
-    : Variable(varname, varsave)
+    : Variable(varname, "ivec4", varsave)
 {
     _value.x = 0;
     _value.y = 0;
@@ -145,7 +151,7 @@ IVec4Variable::~IVec4Variable()
 }
 
 UIVec2Variable::UIVec2Variable(const char *varname, bool varsave)
-    : Variable(varname, varsave)
+    : Variable(varname, "uivec2", varsave)
 {
     _value.x = 0;
     _value.y = 0;
@@ -156,7 +162,7 @@ UIVec2Variable::~UIVec2Variable()
 }
 
 UIVec3Variable::UIVec3Variable(const char *varname, bool varsave)
-    : Variable(varname, varsave)
+    : Variable(varname, "uivec3", varsave)
 {
     _value.x = 0;
     _value.y = 0;
@@ -168,7 +174,7 @@ UIVec3Variable::~UIVec3Variable()
 }
 
 UIVec4Variable::UIVec4Variable(const char *varname, bool varsave)
-    : Variable(varname, varsave)
+    : Variable(varname, "uivec4", varsave)
 {
     _value.x = 0;
     _value.y = 0;
@@ -180,8 +186,8 @@ UIVec4Variable::~UIVec4Variable()
 {
 }
 
-ArrayVariable::ArrayVariable(const char *varname, bool varsave)
-    : Variable(varname, varsave)
+ArrayVariable::ArrayVariable(const char *varname, const char *vartype, bool varsave)
+    : Variable(varname, vartype, varsave)
     , _value(NULL)
 {
 }
@@ -273,6 +279,19 @@ Variable* Variables::get(const char* name)
         }
     }
     return NULL;
+}
+
+size_t Variables::allocatedMemory(){
+    unsigned int i;
+    size_t allocated_mem = 0;
+    for(i = 0; i < size(); i++){
+        if(!strchr(_vars.at(i)->type(), '*')){
+            continue;
+        }
+        ArrayVariable *var = (ArrayVariable *)_vars.at(i);
+        allocated_mem += var->size();
+    }
+    return allocated_mem;
 }
 
 bool Variables::registerScalar(const char* name,
@@ -506,7 +525,7 @@ bool Variables::registerScalar(const char* name,
         char msg[256];
         ScreenManager *S = ScreenManager::singleton();
         sprintf(msg,
-                "\"%s\" declared as \"%s\", wich is not a valid scalar type.\n",
+                "\"%s\" declared as \"%s\", which is not a valid scalar type.\n",
                 name,
                 type);
         S->addMessageF(3, msg);
@@ -536,6 +555,104 @@ bool Variables::registerClMem(const char* name,
                               const char* length,
                               const bool save)
 {
+    size_t typesize;
+    unsigned int n;
+    char msg[256];
+	CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
+    ScreenManager *S = ScreenManager::singleton();
+    // Get the type size
+    char auxtype[strlen(type) + 1];
+    strcpy(auxtype, type);
+    strcpy(strchr(auxtype, '*'), "");
+    if(!strcmp(auxtype, "int")){
+        typesize = sizeof(int);
+    }
+    else if(!strcmp(auxtype, "unsigned int")){
+        typesize = sizeof(unsigned int);
+    }
+    else if(!strcmp(auxtype, "float")){
+        typesize = sizeof(float);
+    }
+    else if(!strcmp(auxtype, "vec")){
+        typesize = sizeof(vec);
+    }
+    else if(!strcmp(auxtype, "vec2")){
+        typesize = sizeof(vec2);
+    }
+    else if(!strcmp(auxtype, "vec3")){
+        typesize = sizeof(vec3);
+    }
+    else if(!strcmp(auxtype, "vec4")){
+        typesize = sizeof(vec4);
+    }
+    else if(!strcmp(auxtype, "ivec")){
+        typesize = sizeof(ivec);
+    }
+    else if(!strcmp(auxtype, "ivec2")){
+        typesize = sizeof(ivec2);
+    }
+    else if(!strcmp(auxtype, "ivec3")){
+        typesize = sizeof(ivec3);
+    }
+    else if(!strcmp(auxtype, "ivec4")){
+        typesize = sizeof(ivec4);
+    }
+    else if(!strcmp(auxtype, "uivec")){
+        typesize = sizeof(uivec);
+    }
+    else if(!strcmp(auxtype, "uivec2")){
+        typesize = sizeof(uivec2);
+    }
+    else if(!strcmp(auxtype, "uivec3")){
+        typesize = sizeof(uivec3);
+    }
+    else if(!strcmp(auxtype, "uivec4")){
+        typesize = sizeof(uivec4);
+    }
+    else{
+        sprintf(msg,
+                "\"%s\" declared as \"%s\", which is not a valid array type.\n",
+                name,
+                type);
+        S->addMessageF(3, msg);
+        S->addMessageF(0, "Valid types are:\n");
+        S->addMessageF(0, "\tint*\n");
+        S->addMessageF(0, "\tunsigned int*\n");
+        S->addMessageF(0, "\tfloat*\n");
+        S->addMessageF(0, "\tvec*\n");
+        S->addMessageF(0, "\tvec2*\n");
+        S->addMessageF(0, "\tvec3*\n");
+        S->addMessageF(0, "\tvec4*\n");
+        S->addMessageF(0, "\tivec*\n");
+        S->addMessageF(0, "\tivec2*\n");
+        S->addMessageF(0, "\tivec3*\n");
+        S->addMessageF(0, "\tivec4*\n");
+        S->addMessageF(0, "\tuivec*\n");
+        S->addMessageF(0, "\tuivec2*\n");
+        S->addMessageF(0, "\tuivec3*\n");
+        S->addMessageF(0, "\tuivec4*\n");
+        return true;
+    }
+
+    // Get the length
+    n = (unsigned int)tok.solve(length);
+
+    // Generate the variable
+    ArrayVariable *var = new ArrayVariable(name, type, save);
+    if(n){
+        // Allocate memory on device
+        cl_int status;
+        cl_mem mem;
+        mem = clCreateBuffer(C->context, CL_MEM_READ_WRITE, n * typesize, NULL, &status);
+        if(status != CL_SUCCESS) {
+            S->addMessageF(3, "Allocation failure.\n");
+            S->printOpenCLError(status);
+            return true;
+        }
+        var->set(&mem);
+    }
+    _vars.push_back(var);
+
     return false;
 }
 
@@ -599,4 +716,3 @@ bool Variables::readComponents(const char* name,
 }
 
 }}  // namespace
-

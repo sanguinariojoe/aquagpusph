@@ -23,7 +23,6 @@
 
 #include <vector>
 #include <deque>
-#include <typeinfo>
 #include <sphPrerequisites.h>
 #include <Tokenizer/Tokenizer.h>
 
@@ -48,10 +47,11 @@ class Variable
 public:
 	/** Constructor.
 	 * @param varname Name of the variable.
+	 * @param vartype Type of the variable.
 	 * @param varsave true if the variable should be printed in output files,
 	 * false otherwise.
 	 */
-	Variable(const char *varname, bool varsave=false);
+	Variable(const char *varname, const char *vartype, bool varsave=false);
 
 	/** Destructor.
 	 */
@@ -77,7 +77,7 @@ public:
 	/** Type of the variable
      * @return The type of the variable
 	 */
-    virtual const char* type() const {return typeid(void).name();}
+    virtual const char* type() const {return _typename;}
 
     /** Get the variable type size.
      * @return Variable type size (in bytes)
@@ -102,6 +102,9 @@ private:
 	/// Name of the variable
 	char* _name;
 
+    /// Type of the variable
+    char* _typename;
+
     /** true if the variable should be printed in output files, false
      * otherwise.
      */
@@ -124,11 +127,6 @@ public:
 	/** Destructor.
 	 */
 	~IntVariable();
-
-	/** Type of the variable
-     * @return The type of the variable
-	 */
-    const char* type() const {return typeid(int).name();}
 
     /** Get the variable type size.
      * @return Variable type size (in bytes)
@@ -166,11 +164,6 @@ public:
 	 */
 	~UIntVariable();
 
-	/** Type of the variable
-     * @return The type of the variable
-	 */
-    const char* type() const {return typeid(unsigned int).name();}
-
     /** Get the variable type size.
      * @return Variable type size (in bytes)
      */
@@ -206,11 +199,6 @@ public:
 	/** Destructor.
 	 */
 	~FloatVariable();
-
-	/** Type of the variable
-     * @return The type of the variable
-	 */
-    const char* type() const {return typeid(float).name();}
 
     /** Get the variable type size.
      * @return Variable type size (in bytes)
@@ -248,11 +236,6 @@ public:
 	 */
 	~Vec2Variable();
 
-	/** Type of the variable
-     * @return The type of the variable
-	 */
-    const char* type() const {return typeid(vec2).name();}
-
     /** Get the variable type size.
      * @return Variable type size (in bytes)
      */
@@ -288,11 +271,6 @@ public:
 	/** Destructor.
 	 */
 	~Vec3Variable();
-
-	/** Type of the variable
-     * @return The type of the variable
-	 */
-    const char* type() const {return typeid(vec3).name();}
 
     /** Get the variable type size.
      * @return Variable type size (in bytes)
@@ -330,11 +308,6 @@ public:
 	 */
 	~Vec4Variable();
 
-	/** Type of the variable
-     * @return The type of the variable
-	 */
-    const char* type() const {return typeid(vec4).name();}
-
     /** Get the variable type size.
      * @return Variable type size (in bytes)
      */
@@ -370,11 +343,6 @@ public:
 	/** Destructor.
 	 */
 	~IVec2Variable();
-
-	/** Type of the variable
-     * @return The type of the variable
-	 */
-    const char* type() const {return typeid(ivec2).name();}
 
     /** Get the variable type size.
      * @return Variable type size (in bytes)
@@ -412,11 +380,6 @@ public:
 	 */
 	~IVec3Variable();
 
-	/** Type of the variable
-     * @return The type of the variable
-	 */
-    const char* type() const {return typeid(ivec3).name();}
-
     /** Get the variable type size.
      * @return Variable type size (in bytes)
      */
@@ -452,11 +415,6 @@ public:
 	/** Destructor.
 	 */
 	~IVec4Variable();
-
-	/** Type of the variable
-     * @return The type of the variable
-	 */
-    const char* type() const {return typeid(ivec4).name();}
 
     /** Get the variable type size.
      * @return Variable type size (in bytes)
@@ -494,11 +452,6 @@ public:
 	 */
 	~UIVec2Variable();
 
-	/** Type of the variable
-     * @return The type of the variable
-	 */
-    const char* type() const {return typeid(uivec2).name();}
-
     /** Get the variable type size.
      * @return Variable type size (in bytes)
      */
@@ -534,11 +487,6 @@ public:
 	/** Destructor.
 	 */
 	~UIVec3Variable();
-
-	/** Type of the variable
-     * @return The type of the variable
-	 */
-    const char* type() const {return typeid(uivec3).name();}
 
     /** Get the variable type size.
      * @return Variable type size (in bytes)
@@ -576,11 +524,6 @@ public:
 	 */
 	~UIVec4Variable();
 
-	/** Type of the variable
-     * @return The type of the variable
-	 */
-    const char* type() const {return typeid(uivec4).name();}
-
     /** Get the variable type size.
      * @return Variable type size (in bytes)
      */
@@ -608,22 +551,18 @@ class ArrayVariable : public Variable
 public:
 	/** Constructor.
 	 * @param varname Name of the variable.
+	 * @param vartype Type of the variable.
 	 * @param varsave true if the variable should be printed in output files,
 	 * false otherwise.
 	 */
-	ArrayVariable(const char *varname, bool varsave=false);
+	ArrayVariable(const char *varname, const char *vartype, bool varsave=false);
 
 	/** Destructor.
 	 */
 	~ArrayVariable();
 
-	/** Type of the variable
-     * @return The type of the variable
-	 */
-    const char* type() const {return typeid(cl_mem).name();}
-
     /** Get the variable type size.
-     * @return Variiable type size (in bytes)
+     * @return Variable type size (in bytes)
      */
     size_t typesize() const {return sizeof(cl_mem);}
 
@@ -666,7 +605,7 @@ public:
 
 	/** Register a new variable.
      * @param name Name of the variable.
-     * @param type Type of the varaible.
+     * @param type Type of the variable.
      * @param length Array length, 1 for scalars, 0 for arrays that will
      * not be allocated at the start (for instance the heads of chains,
      * which requires the number of cells).
@@ -697,10 +636,15 @@ public:
      * @return Number of registered variables.
      */
     unsigned int size() const {return _vars.size();}
+
+    /** Get the allocated memory.
+     * @return Allocated memory on device. Just the arrays can contribute to this value.
+     */
+    size_t allocatedMemory();
 private:
     /** Register a scalar variable
      * @param name Name of the variable.
-     * @param type Type of the varaible.
+     * @param type Type of the variable.
      * @param value Variable value, NULL for arrays. It is optional for
      * scalar variables.
      * @param save true if the variable should be saved, false otherwise.
@@ -712,7 +656,7 @@ private:
                         const bool save);
     /** Register a cl_mem variable
      * @param name Name of the variable.
-     * @param type Type of the varaible.
+     * @param type Type of the variable.
      * @param length Array length, 1 for scalars, 0 for arrays that will
      * not be allocated at the start (for instance the heads of chains,
      * which requires the number of cells).
@@ -747,4 +691,3 @@ private:
 }}  // namespace
 
 #endif // VARIABLE_H_INCLUDED
-

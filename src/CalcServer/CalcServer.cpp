@@ -55,17 +55,7 @@ CalcServer::CalcServer()
         exit(EXIT_FAILURE);
     }
 
-    // Register all the user variables
-    for(i = 0; i < P->variables.names.size(); i++){
-        bool flag = _vars.registerVariable(P->variables.names.at(i),
-                                           P->variables.types.at(i),
-                                           P->variables.lengths.at(i),
-                                           P->variables.values.at(i),
-                                           P->variables.saves.at(i));
-        if(flag){
-            exit(EXIT_FAILURE);
-        }
-    }
+    allocated_mem = 0;
 
     num_fluids  = P->n_fluids;
     num_sensors = P->SensorsParameters.pos.size();
@@ -89,8 +79,18 @@ CalcServer::CalcServer()
     if(_vars.registerVariable("N", "unsigned int", "", val, true)){
         exit(EXIT_FAILURE);
     }
+    // Register the user variables
+    for(i = 0; i < P->variables.names.size(); i++){
+        bool flag = _vars.registerVariable(P->variables.names.at(i),
+                                           P->variables.types.at(i),
+                                           P->variables.lengths.at(i),
+                                           P->variables.values.at(i),
+                                           P->variables.saves.at(i));
+        if(flag){
+            exit(EXIT_FAILURE);
+        }
+    }
 
-    allocated_mem = 0;
     imove = allocMemory(N * sizeof( cl_int ));
     if(!imove) exit(255);
     imovein = allocMemory(N * sizeof( cl_int ));
