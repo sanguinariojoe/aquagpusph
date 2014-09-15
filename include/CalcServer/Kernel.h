@@ -26,7 +26,10 @@
 
 #include <sphPrerequisites.h>
 
+#include <deque>
 #include <CL/cl.h>
+#include <clang-c/Index.h>
+#include <clang-c/Platform.h>
 
 #include <CalcServer/Tool.h>
 #include <AuxiliarMethods.h>
@@ -65,7 +68,7 @@ public:
      */
     void path(const char* kernel_path);
 
-    /** Get the kernel file path.
+    /** @brief Get the kernel file path.
      * @return Tool kernel file path.
      */
     const char* path(){return (const char*)_path;}
@@ -86,6 +89,20 @@ protected:
                  const char* flags="",
                  const char* header="");
 
+    /** @brief Compute the variables required by the program
+     * @param entry_point Program entry point method.
+     * @return false if all gone right, true otherwise.
+     */
+    bool variables(const char* entry_point="main");
+
+    /** @brief Set the variables to the OpenCL kernel.
+     *
+     * The method detects if a variable should be updated or if it already set
+     * either.
+     * @return false if all gone right, true otherwise.
+     */
+    bool setVariables();
+
 private:
     /// Kernel path
     char* _path;
@@ -95,6 +112,13 @@ private:
 
     /// work group size
     size_t _work_group_size;
+
+    /// List of required variables
+    std::deque<char*> _var_names;
+    /// List of variable sizes
+    std::deque<size_t> _var_sizes;
+    /// List of variable values
+    std::deque<void*> _var_values;
 };
 
 }}  // namespace

@@ -31,14 +31,20 @@ Kernel::Kernel(const char* tool_name, const char* kernel_path)
     : Tool(tool_name)
     , _path(NULL)
     , _kernel(NULL)
+    , _work_group_size(0)
 {
     path(kernel_path);
 }
 
 Kernel::~Kernel()
 {
+    unsigned int i;
     if(_path) delete[] _path; _path=NULL;
     if(_kernel) clReleaseKernel(_kernel); _kernel=NULL;
+    for(i = 0; i < _var_names.size(); i++){
+        delete[] _var_names.at(i);
+    }
+    _var_names.clear();
 }
 
 bool Kernel::setup()
@@ -53,6 +59,14 @@ bool Kernel::setup()
     S->addMessageF(1, msg);
 
     if(compile()){
+        return true;
+    }
+
+    if(variables()){
+        return true;
+    }
+
+    if(setVariables()){
         return true;
     }
 
@@ -304,6 +318,183 @@ bool Kernel::compile(const char* entry_point,
     _kernel = kernel;
 
     return false;
+}
+
+/** @brief Main traverse method, which will parse all tokens except functions
+ * declarations.
+ * @param the cursor whose child may be visited. All kinds of cursors can be
+ * visited, including invalid cursors (which, by definition, have no
+ * children).
+ * @param the visitor function that will be invoked for each child of
+ * parent.
+ * @param pointer data supplied by the client, which will be passed to the
+ * visitor each time it is invoked.
+ * @return CXChildVisit_Continue if a function declaration is found,
+ * CXChildVisit_Recurse otherwise.
+ */
+CXChildVisitResult cursorVisitor(CXCursor cursor,
+                                 CXCursor parent,
+                                 CXClientData client_data);
+
+/** @brief Method traverse method, which will parse the input arguments.
+ * @param the cursor whose child may be visited. All kinds of cursors can be
+ * visited, including invalid cursors (which, by definition, have no
+ * children).
+ * @param the visitor function that will be invoked for each child of
+ * parent.
+ * @param pointer data supplied by the client, which will be passed to the
+ * visitor each time it is invoked.
+ * @return CXChildVisit_Continue.
+ */
+CXChildVisitResult functionDeclVisitor(CXCursor cursor,
+                                       CXCursor parent,
+                                       CXClientData client_data);
+
+/** @struct Data structure to store the variables requested and a flag
+ * to know if the entry point has been found.
+ */
+struct clientData{
+    /// Entry point
+    const char* entry_point;
+    /// Number of instances of the entry point found.
+    unsigned int entry_points;
+    /// List of required variables
+    std::deque<char*> *var_names;
+};
+
+bool Kernel::variables(const char* entry_point)
+{
+	char msg[1024];
+	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+
+    CXIndex index = clang_createIndex(0, 0);
+    if(index == 0){
+        S->addMessageF(3, "Failure creating parser index.\n");
+        return true;
+    }
+
+    int argc = 2;
+    const char* argv[2] = {"Kernel", path()};
+    CXTranslationUnit translation_unit = clang_parseTranslationUnit(
+        index,
+        0,
+        argv,
+        argc,
+        0,
+        0,
+        CXTranslationUnit_None);
+    if(translation_unit == 0){
+        S->addMessageF(3, "Failure parsing the source code.\n");
+        return true;
+    }
+
+    CXCursor root_cursor = clang_getTranslationUnitCursor(translation_unit);
+    struct clientData client_data;
+    client_data.entry_point = entry_point;
+    client_data.entry_points = 0;
+    client_data.var_names = &_var_names;
+    clang_visitChildren(root_cursor, *cursorVisitor, &client_data);
+    if(client_data.entry_points == 0){
+        sprintf(msg, "The entry point \"%s\" cannot be found.\n", entry_point);
+        S->addMessageF(3, msg);
+        return true;
+    }
+    if(client_data.entry_points != 1){
+        sprintf(msg,
+                "Entry point \"%s\" found %u times.\n",
+                entry_point,
+                client_data.entry_points);
+        S->addMessageF(3, msg);
+        return true;
+    }
+
+    unsigned int i;
+	for(i = 0; i < _var_names.size(); i++){
+        _var_sizes.push_back(0);
+        _var_values.push_back(NULL);
+	}
+
+    clang_disposeTranslationUnit(translation_unit);
+    clang_disposeIndex(index);
+    return false;
+}
+
+CXChildVisitResult cursorVisitor(CXCursor cursor,
+                                 CXCursor parent,
+                                 CXClientData client_data)
+{
+    struct clientData *data = (struct clientData *)client_data;
+    CXCursorKind kind = clang_getCursorKind(cursor);
+    CXString name = clang_getCursorSpelling(cursor);
+    if (kind == CXCursor_FunctionDecl ||
+        kind == CXCursor_ObjCInstanceMethodDecl)
+    {
+        if(!strcmp(clang_getCString(name), data->entry_point)){
+            data->entry_points++;
+            clang_visitChildren(cursor, *functionDeclVisitor, client_data);
+        }
+        return CXChildVisit_Continue;
+    }
+    return CXChildVisit_Recurse;
+}
+
+CXChildVisitResult functionDeclVisitor(CXCursor cursor,
+                                       CXCursor parent,
+                                       CXClientData client_data)
+{
+    struct clientData *data = (struct clientData *)client_data;
+    CXCursorKind kind = clang_getCursorKind(cursor);
+    if (kind == CXCursor_ParmDecl){
+        CXString name = clang_getCursorSpelling(cursor);
+        std::deque<char*> *var_names = data->var_names;
+        char *var_name = new char[strlen(clang_getCString(name)) + 1];
+        strcpy(var_name, clang_getCString(name));
+        var_names->push_back(var_name);
+    }
+    return CXChildVisit_Continue;
+}
+
+bool Kernel::setVariables()
+{
+    unsigned int i;
+    char msg[1024];
+    cl_int err_code;
+	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+	CalcServer *C = CalcServer::singleton();
+    InputOutput::Variables *vars = C->variables();
+
+	for(i = 0; i < _var_names.size(); i++){
+        if(!vars->get(_var_names.at(i))){
+            sprintf(msg,
+                    "The tool \"%s\" requires the undeclared variable \"%s\".\n",
+                    name(),
+                    _var_names.at(i));
+            S->addMessageF(3, msg);
+            return true;
+        }
+        InputOutput::Variable *var = vars->get(_var_names.at(i));
+        if((_var_sizes.at(i) == var->typesize()) &&
+           (_var_values.at(i) == var->get())){
+            // The variable still being valid
+            continue;
+        }
+        // Update the variable
+        InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+        err_code = clSetKernelArg(_kernel, i, var->typesize(), var->get());
+        if(err_code != CL_SUCCESS) {
+            sprintf(msg,
+                    "Failure setting the variable \"%s\" (id=%u) to the tool \"%s\".\n",
+                    name(),
+                    i,
+                    _var_names.at(i));
+            S->addMessageF(3, msg);
+            S->printOpenCLError(err_code);
+            return true;
+        }
+        _var_sizes.at(i) = var->typesize();
+        _var_values.at(i) = var->get();
+	}
+	return false;
 }
 
 }}  // namespace
