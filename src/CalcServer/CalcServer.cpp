@@ -81,6 +81,9 @@ CalcServer::CalcServer()
     sprintf(val, "%g", 0.f);
     if(_vars->registerVariable("dt", "float", len, val, false))
         exit(EXIT_FAILURE);
+    sprintf(val, "%u", 0);
+    if(_vars->registerVariable("step", "unsigned int", len, val, false))
+        exit(EXIT_FAILURE);
     sprintf(val, "%u", n);
     if(_vars->registerVariable("n", "unsigned int", len, val, false))
         exit(EXIT_FAILURE);

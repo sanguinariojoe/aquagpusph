@@ -30,4 +30,8 @@
         <Variable name="mass" type="float*" length="N" save="true" />
         <Variable name="imove" type="int*" length="N" save="true" />
     </Variables>
+
+    <Tools>
+        <Tool action="add" type="kernel" name="Predictor" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Predictor.cl">
+    </Tools>
 </sphInput>

@@ -103,6 +103,8 @@
 #include <string.h>
 #include <vector>
 #include <deque>
+#include <map>
+#include <string>
 
 #include <CL/cl.h>
 
@@ -282,6 +284,63 @@ public:
         /// Remove all the stored variables.
         void destroy();
     }variables;
+
+    /** @class sphTool ProblemSetup.h ProblemSetup.h
+     * @brief Tool to be executed.
+     */
+    class sphTool
+    {
+    public:
+        /** Constructor
+         */
+        sphTool();
+
+        /** Destructor
+         */
+        ~sphTool();
+
+        /** Add new data value
+         * @param name Name of the data value
+         * @param value Value
+         */
+        void set(const char* name, const char* value);
+
+        /** Get a data value
+         * @param name Name of the data value
+         * @return Value, NULL if the variable does not exist
+         */
+        const char* get(const char* name);
+
+        /** Get a data value
+         * @param index Index of the data value
+         * @return Value, NULL if the variable does not exist
+         */
+        const char* get(unsigned int index);
+
+        /** Get a data value name
+         * @param index Index of the data value
+         * @return Name, NULL if the variable does not exist
+         */
+        const char* getName(unsigned int index);
+
+        /** Get the number of data values
+         * @return Number of data values
+         */
+        unsigned int n() const {return _data.size();}
+
+    private:
+        /** Check if exist a data value
+         * @param name Name of the data value
+         * @return true if the data value has been found, false otherwise
+         */
+        bool has(const char* name);
+
+        /// Registered data
+        std::map<std::string, std::string> _data;
+    };
+
+    /// Array of tools
+    std::deque<sphTool*> tools;
 
     /** @struct sphOpenCLKernels
      * @brief OpenCL kernels source code files that should be loaded for each

@@ -166,16 +166,14 @@ int main(int argc, char *argv[])
 
     T = new InputOutput::TimeManager();
 
-    if(C->setup())
-    {
-        delete A;
-        delete F;
-        delete P;
-        delete C;
-        delete T;
-        delete S;
-        return EXIT_FAILURE;
-    }
+    /// @todo Erase this barrier to the program execution
+    delete A;
+    delete F;
+    delete P;
+    delete C;
+    delete T;
+    delete S;
+    return EXIT_FAILURE;
 
     S->addMessageF(1, "Start of simulation...\n\n");
     S->printDate();
@@ -197,7 +195,7 @@ int main(int argc, char *argv[])
             delete A; A = NULL;
             S->addMessageF(1, "Destroying files manager...\n");
             delete F; F = NULL;
-            sprintf(msg, "Simulation finished abnormally (Time = %f s)\n\n", Time);
+            sprintf(msg, "Simulation finished abnormally (Time = %g s)\n\n", Time);
             S->addMessageF(1, msg);
             return EXIT_FAILURE;
         }
@@ -221,7 +219,7 @@ int main(int argc, char *argv[])
     S->addMessageF(1, "Destroying files manager...\n");
     delete F; F = NULL;
     // Exiting
-    sprintf(msg, "Simulation finished OK (Time = %f s)\n\n", Time);
+    sprintf(msg, "Simulation finished OK (Time = %g s)\n\n", Time);
     S->addMessageF(1, msg);
     return EXIT_SUCCESS;
 }

@@ -109,6 +109,7 @@
 		<Unit filename="../include/CalcServer/Sensors.h" />
 		<Unit filename="../include/CalcServer/Shepard.h" />
 		<Unit filename="../include/CalcServer/TimeStep.h" />
+		<Unit filename="../include/CalcServer/Tool.h" />
 		<Unit filename="../include/CalcServer/Torque.h" />
 		<Unit filename="../include/FileManager.h" />
 		<Unit filename="../include/Fluid.h" />
@@ -159,6 +160,7 @@
 		<Unit filename="../src/CalcServer/Shepard.cpp" />
 		<Unit filename="../src/CalcServer/TimeStep.cpp" />
 		<Unit filename="../src/CalcServer/Torque.cpp" />
+		<Unit filename="../src/CalcServer/Tool.cpp" />
 		<Unit filename="../src/FileManager.cpp" />
 		<Unit filename="../src/Fluid.cpp" />
 		<Unit filename="../src/InputOutput/ASCII.cpp" />

@@ -109,11 +109,19 @@ protected:
      */
     bool parseSettings(xercesc::DOMElement *root);
 
-    /** Look for variables sections.
+    /** @brief Parse the variables sections.
      * @param root root XML node.
      * @return false if all gone right, true otherwise
+     * @see Aqua::InputOutput::ProblemSetup::sphVariables
      */
     bool parseVariables(xercesc::DOMElement *root);
+
+    /** @brief Parse the tools sections.
+     * @param root root XML node.
+     * @return false if all gone right, true otherwise
+     * @see Aqua::InputOutput::ProblemSetup::sphTool
+     */
+    bool parseTools(xercesc::DOMElement *root);
 
     /** @brief Parse the OpenCL settings sections.
      * @param root Root XML node.
@@ -192,12 +200,21 @@ protected:
      */
     bool writeSettings(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
 
-    /** Write the varqaibles section.
+    /** @brief Write the variables section.
      * @param doc XML generated document.
-     * @param root root XML node.
+     * @param root Root XML node.
      * @return false if all gone right, true otherwise
+     * @see Aqua::InputOutput::ProblemSetup::sphVariables
      */
     bool writeVariables(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
+
+    /** @brief Write the tools section.
+     * @param doc XML generated document.
+     * @param root Root XML node.
+     * @return false if all gone right, true otherwise
+     * @see Aqua::InputOutput::ProblemSetup::sphTool
+     */
+    bool writeTools(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
 
     /** @brief Write the OpenCL section.
      * @param doc XML generated document.

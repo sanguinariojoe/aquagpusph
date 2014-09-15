@@ -108,6 +108,10 @@ ProblemSetup::~ProblemSetup()
     unsigned int i;
     settings.destroy();
     variables.destroy();
+    for(i = 0; i < tools.size(); i++){
+        delete tools.at(i);
+    }
+    tools.clear();
     OpenCL_kernels.destroy();
     for(i=0;i<n_fluids;i++)
     {
@@ -233,6 +237,69 @@ void ProblemSetup::sphVariables::destroy()
     types.clear();
     lengths.clear();
     saves.clear();
+}
+
+ProblemSetup::sphTool::sphTool()
+{
+}
+
+ProblemSetup::sphTool::~sphTool()
+{
+    _data.clear();
+}
+
+void ProblemSetup::sphTool::set(const char* name,
+                                const char* value)
+{
+    if(has(name)){
+        _data[name] = value;
+        return;
+    }
+    _data.insert(std::make_pair(name, value));
+}
+
+const char* ProblemSetup::sphTool::get(const char* name)
+{
+    if(!has(name)){
+        return NULL;
+    }
+    return _data[name].c_str();
+}
+
+const char* ProblemSetup::sphTool::get(unsigned int index)
+{
+    unsigned int i = 0;
+    for(std::map<std::string,std::string>::iterator it=_data.begin();
+        it != _data.end();
+        ++it){
+        if(i == index){
+            return it->second.c_str();
+        }
+        i++;
+    }
+    return NULL;
+}
+
+const char* ProblemSetup::sphTool::getName(unsigned int index)
+{
+    unsigned int i = 0;
+    for(std::map<std::string,std::string>::iterator it=_data.begin();
+        it != _data.end();
+        ++it){
+        if(i == index){
+            return it->first.c_str();
+        }
+        i++;
+    }
+    return NULL;
+}
+
+bool ProblemSetup::sphTool::has(const char* name)
+{
+    std::map<std::string, std::string>::iterator var = _data.find(name);
+    if(var != _data.end())
+        return true;
+    return false;
 }
 
 void ProblemSetup::sphOpenCLKernels::init()
