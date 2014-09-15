@@ -34,6 +34,7 @@
 #include <Fluid.h>
 #include <TimeManager.h>
 #include <ScreenManager.h>
+#include <CalcServer/Kernel.h>
 
 namespace Aqua{ namespace CalcServer{
 
@@ -133,6 +134,22 @@ CalcServer::CalcServer()
         }
     }
 
+    // Register the tools
+    for(i = 0; i < P->tools.size(); i++){
+        if(!strcmp(P->tools.at(i)->get("type"), "kernel")){
+            Kernel *tool = new Kernel(P->tools.at(i)->get("name"),
+                                      P->tools.at(i)->get("path"));
+            _tools.push_back(tool);
+        }
+        else{
+            sprintf(msg,
+                    "Unrecognized tool type \"%s\" when parsing the tool \"%s\".\n",
+                    P->tools.at(i)->get("type"),
+                    P->tools.at(i)->get("name"));
+            S->addMessageF(3, msg);
+        }
+    }
+
     sprintf(msg, "Allocated memory = %lu bytes\n", _vars->allocatedMemory());
     S->addMessageF(1, msg);
 }
@@ -154,6 +171,13 @@ CalcServer::~CalcServer()
     if(_devices) delete[] _devices; _devices=NULL;
     if(_command_queues) delete[] _command_queues; _command_queues=NULL;
 
+    S->addMessageF(1, "Destroying tools...\n");
+    for(i = 0; i < _tools.size(); i++){
+        delete _tools.at(i);
+        _tools.at(i) = NULL;
+    }
+    _tools.clear();
+
     S->addMessageF(1, "Destroying variables manager...\n");
     if(_vars) delete _vars; _vars=NULL;
 }
@@ -171,47 +195,6 @@ bool CalcServer::update()
                 return true;
             }
         }
-    }
-    return false;
-}
-
-bool CalcServer::getData(void *dest, cl_mem orig, size_t size, size_t offset)
-{
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-    cl_int err_code = clEnqueueReadBuffer(_command_queue,
-                                          orig,
-                                          CL_TRUE,
-                                          offset,
-                                          size,
-                                          dest,
-                                          0,
-                                          NULL,
-                                          NULL);
-    if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure retrieving memory from the server.\n");
-        S->printOpenCLError(err_code);
-        return true;
-    }
-    return false;
-}
-
-bool CalcServer::sendData(cl_mem dest, void* orig, size_t size)
-{
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-    cl_int err_code;
-    err_code = clEnqueueWriteBuffer(_command_queue,
-                                    dest,
-                                    CL_TRUE,
-                                    0,
-                                    size,
-                                    orig,
-                                    0,
-                                    NULL,
-                                    NULL);
-    if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure sending memory to the server.\n");
-        S->printOpenCLError(err_code);
-        return true;
     }
     return false;
 }
@@ -549,6 +532,13 @@ bool CalcServer::setup()
                 S->printOpenCLError(status);
                 return true;
             }
+        }
+    }
+
+    // Setup the tools
+    for(i = 0; i < _tools.size(); i++){
+        if(_tools.at(i)->setup()){
+            return true;
         }
     }
 

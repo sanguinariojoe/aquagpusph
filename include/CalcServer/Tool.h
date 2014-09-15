@@ -35,33 +35,39 @@ namespace Aqua{ namespace CalcServer{
 class Tool
 {
 public:
-	/** Constructor.
-	 * @param tool_name Name of the tool. Useful to identify errors.
-	 */
-	Tool(const char* tool_name);
+    /** Destructor
+     */
+    virtual ~Tool();
 
-	/** Destructor
-	 */
-	~Tool();
+    /** Set the tool name.
+     * @param tool_name Tool name.
+     */
+    void name(const char* tool_name);
 
-	/** Set the tool name.
-	 * @param tool_name Tool name.
-	 */
-	void name(const char* tool_name);
+    /** Get the tool name.
+     * @return Tool name.
+     */
+    const char* name(){return (const char*)_name;}
 
-	/** Get the tool name.
-	 * @return Tool name.
-	 */
-	const char* name(){return (const char*)_name;}
+    /** Initialize the tool.
+     * @return false if all gone right, true otherwise.
+     */
+    virtual bool setup(){return false;}
 
     /** Execute the tool.
      * @return false if all gone right, true otherwise.
      */
-    virtual bool execute()=0;
+    virtual bool execute(){return false;}
+
+protected:
+    /** Constructor.
+     * @param tool_name Name of the tool. Useful to identify errors.
+     */
+    Tool(const char* tool_name);
 
 private:
-	/// Kernel name
-	char* _name;
+    /// Kernel name
+    char* _name;
 };
 
 }}  // namespace

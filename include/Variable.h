@@ -57,7 +57,7 @@ public:
 
 	/** Destructor.
 	 */
-	~Variable();
+	virtual ~Variable();
 
 	/** Name of the variable
      * @return The name of the variable

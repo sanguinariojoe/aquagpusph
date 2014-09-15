@@ -292,7 +292,7 @@ size_t readFile(char* source_code, const char* file_name)
 
     file = fopen(file_name, "rb");
     if(file == NULL) {
-        sprintf(msg, "Imposible to open \"%s\".\n", file_name);
+        sprintf(msg, "Impossible to open \"%s\".\n", file_name);
         S->addMessageF(3, msg);
         return 0;
     }

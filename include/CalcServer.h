@@ -26,9 +26,12 @@
 
 #include <CL/cl.h>
 
+#include <deque>
+
 #include <sphPrerequisites.h>
 #include <Variable.h>
 #include <Singleton.h>
+#include <CalcServer/Tool.h>
 
 #ifndef _ITEMS
     /** @def _ITEMS
@@ -85,31 +88,6 @@ public:
      */
     bool update();
 
-    /// Transfer the data from the computational device to the host
-    /** Transferring data from/to the computational device (managed by
-     * Aqua::CalcServer::CalcServer) is a slow operation, so try to avoid
-     * calling this method too often.
-     *
-     * @param dest Array where the data should be copied.
-     * @param orig Computational device allocated data to copy.
-     * @param size Size of the data to copy.
-     * @param offset Offset into the array to start reading.
-     * @return false if the data has been successfully copied, true otherwise.
-     */
-    bool getData(void *dest, cl_mem orig, size_t size, size_t offset=0);
-
-    /// Transfer the data from the host device to the computational device.
-    /** Transferring data from/to the computational device (managed by
-     * Aqua::CalcServer::CalcServer) is a slow operation, so try to avoid
-     * calling this method too often.
-     *
-     * @param dest Identifier of the destination in the server.
-     * @param orig Array of data to read.
-     * @param size Size of the data to copy.
-     * @return false if the data has been successfully copied, true otherwise.
-     */
-    bool sendData(cl_mem dest, void* orig, size_t size);
-
     /// Setup some additional simulation data.
     /** Even thought this work is associated with the constructor CalcServer(),
      * when something may fail it is preferable to let it to a separated method
@@ -144,28 +122,6 @@ public:
      */
     cl_command_queue command_queue() const{return _command_queue;}
 private:
-    /// Number of available OpenCL platforms
-    cl_uint _num_platforms;
-    /// List of OpenCL platforms
-    cl_platform_id *_platforms;
-    /// Number of devices
-    cl_uint _num_devices;
-    /// List of devices
-    cl_device_id *_devices;
-    /// OpenCL context
-    cl_context _context;
-    /// OpenCL command queue
-    cl_command_queue *_command_queues;
-    /// Selected platform
-    cl_platform_id _platform;
-    /// Selected device
-    cl_device_id _device;
-    /// Selected command queue
-    cl_command_queue _command_queue;
-
-    /// User registered variables
-    InputOutput::Variables *_vars;
-
     /// Setup the OpenCL stuff.
     /**
      * @return false if the OpenCL environment has been succesfully built,
@@ -189,6 +145,31 @@ private:
      * otherwise
      */
     bool setupDevices();
+
+    /// Number of available OpenCL platforms
+    cl_uint _num_platforms;
+    /// List of OpenCL platforms
+    cl_platform_id *_platforms;
+    /// Number of devices
+    cl_uint _num_devices;
+    /// List of devices
+    cl_device_id *_devices;
+    /// OpenCL context
+    cl_context _context;
+    /// OpenCL command queue
+    cl_command_queue *_command_queues;
+    /// Selected platform
+    cl_platform_id _platform;
+    /// Selected device
+    cl_device_id _device;
+    /// Selected command queue
+    cl_command_queue _command_queue;
+
+    /// User registered variables
+    InputOutput::Variables *_vars;
+
+    /// User registered tools
+    std::deque<Tool*> _tools;
 };
 
 }}  // namespace

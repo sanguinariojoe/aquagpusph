@@ -68,7 +68,7 @@ protected:
         _singletonPtr = (T*)this;
     }
     /// Destructor
-    ~Singleton(){_singletonPtr = NULL;}
+    virtual ~Singleton(){_singletonPtr = NULL;}
 
 private:
     /// Static singleton pointer store

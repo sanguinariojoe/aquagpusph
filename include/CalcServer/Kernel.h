@@ -26,12 +26,9 @@
 
 #include <sphPrerequisites.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
 #include <CL/cl.h>
 
+#include <CalcServer/Tool.h>
 #include <AuxiliarMethods.h>
 
 namespace Aqua{ namespace CalcServer{
@@ -40,65 +37,64 @@ namespace Aqua{ namespace CalcServer{
  * @brief Base class for all the tools of the calculation server
  * Aqua::CalcServer.
  */
-class Kernel
+class Kernel : public Aqua::CalcServer::Tool
 {
 public:
     /** @brief Constructor.
-     * @param kernel_name Kernel name.
-     * The kernel name will be used later to refer to the results of the tool.
+     * @param tool_name Tool name.
+     * @param kernel_path Kernel path.
+     * The tool name will be used later to refer to the results of the tool.
      */
-    Kernel(const char* kernel_name);
+    Kernel(const char* tool_name, const char* kernel_path);
 
     /// Destructor
     virtual ~Kernel();
 
-    /** @brief Maximum allowed local work size for the selected device.
-     * @param n Amount of data to solve.
-     * If 0 provided, Aqua::CalcServer::N will be used.
-     * @param queue Command queue of the computational device. If it is NULL,
-     * the first command queue present in Aqua::CalcServer will be selected.
-     * @return The maximum local work size.
+    /** @brief Initialize the tool.
+     * @return false if all gone right, true otherwise.
      */
-    virtual size_t localWorkSize(unsigned int n=0,cl_command_queue queue=NULL);
+    bool setup();
 
-    /** @brief Get the global work size.
-     *
-     * The global work size is associated with the applied local work size.
-     * @param size Local work size.
-     * @param n Amount of data to solve. If 0 is provided, CalcServer number
-     * of particles will be selected.
-     * @return Global work size.
-     * @see Aqua::getGlobalWorkSize
+    /** @brief Execute the tool.
+     * @return false if all gone right, true otherwise.
      */
-    virtual size_t globalWorkSize(size_t size, unsigned int n=0);
+    bool execute();
 
-    /** @brief Set the kernel name.
-     * @param kernel_name Kernel name.
+    /** @brief Set the kernel file path.
+     * @param kernel_path kernel file path.
      */
-    void name(const char* kernel_name);
-    /** @brief Get the kernel name.
-     * @return Kernel name.
-     */
-    const char* name(){return (const char*)_name;}
+    void path(const char* kernel_path);
 
-    #ifdef HAVE_GPUPROFILE
-        /** @brief Set the kernel time consumed.
-         * @param t Kernel time consumed.
-         */
-        void profileTime(float t){_time = t;}
-        /** @brief Get the kernel time consumed.
-         * @return Kernel time consumed.
-         */
-        float profileTime(){return _time;}
-    #endif
+    /** Get the kernel file path.
+     * @return Tool kernel file path.
+     */
+    const char* path(){return (const char*)_path;}
+
+    /** @brief Local work size for the selected device and tool.
+     * @return Local work size.
+     */
+    size_t workGroupSize() const {return _work_group_size;}
+
+protected:
+    /** @brief Compile the OpenCL program.
+     * @param entry_point Program entry point function.
+     * @param flags Compiler additional flags.
+     * @param header Header to be append at the start of the source code.
+     * @return false if all gone right, true otherwise.
+     */
+    bool compile(const char* entry_point="main",
+                 const char* flags="",
+                 const char* header="");
 
 private:
-    /// Kernel name
-    char* _name;
-    #ifdef HAVE_GPUPROFILE
-        /// Kernel real time consumed
-        float _time;
-    #endif
+    /// Kernel path
+    char* _path;
+
+    /// OpenCL kernel
+    cl_kernel _kernel;
+
+    /// work group size
+    size_t _work_group_size;
 };
 
 }}  // namespace
