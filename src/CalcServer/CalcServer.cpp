@@ -190,7 +190,9 @@ bool CalcServer::update()
     while(!T->mustPrintOutput() && !T->mustStop()){
         // Execute the tools
         for(i = 0; i < _tools.size(); i++){
-            _tools.at(i)->execute();
+            if(_tools.at(i)->execute()){
+                return true;
+            }
         }
         // Key events
         while(isKeyPressed()){
@@ -199,6 +201,9 @@ bool CalcServer::update()
                 return true;
             }
         }
+
+        /// @todo let the tool to continue computing
+        return true;
     }
     return false;
 }

@@ -166,15 +166,6 @@ int main(int argc, char *argv[])
 
     T = new InputOutput::TimeManager();
 
-    /// @todo Erase this barrier to the program execution
-    delete A;
-    delete F;
-    delete P;
-    delete C;
-    delete T;
-    delete S;
-    return EXIT_FAILURE;
-
     S->addMessageF(1, "Start of simulation...\n\n");
     S->printDate();
     S = new InputOutput::ScreenManager();
