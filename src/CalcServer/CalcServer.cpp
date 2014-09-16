@@ -188,6 +188,10 @@ bool CalcServer::update()
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     unsigned int i;
     while(!T->mustPrintOutput() && !T->mustStop()){
+        // Execute the tools
+        for(i = 0; i < _tools.size(); i++){
+            _tools.at(i)->execute();
+        }
         // Key events
         while(isKeyPressed()){
             if(getchar() == 'c'){

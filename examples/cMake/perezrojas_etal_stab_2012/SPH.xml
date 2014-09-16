@@ -23,6 +23,7 @@ Authors:
         <Variable name="dr" type="float" value="0.0038" save="false" />
         <Variable name="hfac" type="float" value="3.0" save="false" />
         <Variable name="h" type="float" value="hfac * dr" save="false" />
+        <Variable name="cs" type="float" value="30.0" save="false" />
     </Variables>
 
     <SPH>

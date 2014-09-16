@@ -18,17 +18,29 @@
         icell = Cell where each particle is placed
         ihoc = First particle in each cell
          -->
+        <Variable name="g" type="vec" value="0.0, 0.0, -9.81, 0.0" save="false" />
+        <Variable name="cs" type="float" value="15.0" save="false" />
+        <Variable name="rho_min" type="float" value="0.0" save="false" />
+        <Variable name="rho_max" type="float" value="2.25*10^10" save="false" />
+
         <Variable name="gamma" type="float*" length="n_sets" save="false" />
         <Variable name="refd" type="float*" length="n_sets" save="false" />
         <Variable name="visc_dyn" type="float*" length="n_sets" save="false" />
         <Variable name="delta" type="float*" length="n_sets" save="false" />
+        <Variable name="imove" type="int*" length="N" save="true" />
         <Variable name="normal" type="vec*" length="N" save="true" />
         <Variable name="v" type="vec*" length="N" save="true" />
         <Variable name="dvdt" type="vec*" length="N" save="true" />
         <Variable name="rho" type="float*" length="N" save="true" />
         <Variable name="drhodt" type="float*" length="N" save="true" />
         <Variable name="mass" type="float*" length="N" save="true" />
-        <Variable name="imove" type="int*" length="N" save="true" />
+        <Variable name="press" type="float*" length="N" save="true" />
+
+        <Variable name="pos_in" type="vec*" length="N" save="true" />
+        <Variable name="v_in" type="vec*" length="N" save="true" />
+        <Variable name="dvdt_in" type="vec*" length="N" save="true" />
+        <Variable name="rho_in" type="float*" length="N" save="true" />
+        <Variable name="drhodt_in" type="float*" length="N" save="true" />
     </Variables>
 
     <Tools>

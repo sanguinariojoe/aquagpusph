@@ -78,6 +78,16 @@ public:
      */
     size_t workGroupSize() const {return _work_group_size;}
 
+    /** @brief Global work size.
+     *
+     * The global work size is the total number of threads needed to perform
+     * the work.
+     *
+     * @return Global Work size.
+     * @see workGroupSize()
+     */
+    size_t globalWorkSize() const {return _global_work_size;}
+
 protected:
     /** @brief Compile the OpenCL program.
      * @param entry_point Program entry point function.
@@ -102,6 +112,12 @@ protected:
      * @return false if all gone right, true otherwise.
      */
     bool setVariables();
+
+    /** @brief Compute the global work size.
+     * @return false if all gone right, true otherwise.
+     * @see globalWorkSize()
+     */
+    bool computeGlobalWorkSize();
 
 private:
     /// Kernel path

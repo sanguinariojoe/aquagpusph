@@ -58,105 +58,85 @@
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param ifluid Fluid index.
+ * @param iset Set of particles index.
  * @param pos Position \f$ \mathbf{r}_{n+1} \f$.
  * @param v Velocity \f$ \mathbf{u}_{n+1} \f$.
  * @param dvdt Velocity rate of change
  * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n+1} \f$.
- * @param dens Density \f$ \rho_{n+1} \f$.
- * @param mass Mass \f$ m_{n+1} \f$.
- * @param drdt Density rate of change
+ * @param rho Density \f$ \rho_{n+1} \f$.
+ * @param drhodt Density rate of change
  * \f$ \left. \frac{d \rho}{d t} \right\vert_{n+1} \f$.
- * @param posin Position \f$ \mathbf{r}_{n+1/2} \f$.
- * @param vin Velocity \f$ \mathbf{u}_{n+1/2} \f$.
- * @param dvdtin Velocity rate of change
+ * @param pos_in Position \f$ \mathbf{r}_{n+1/2} \f$.
+ * @param v_in Velocity \f$ \mathbf{u}_{n+1/2} \f$.
+ * @param dvdt_in Velocity rate of change
  * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n+1/2} \f$.
- * @param densin Density \f$ \rho_{n+1/2} \f$.
- * @param massin Mass \f$ m_{n+1/2} \f$.
- * @param drdtin Density rate of change
+ * @param rho_in Density \f$ \rho_{n+1/2} \f$.
+ * @param drhodt_in Density rate of change
  * \f$ \left. \frac{d \rho}{d t} \right\vert_{n+1/2} \f$.
+ * @param mass Mass \f$ m_{n+1} \f$.
  * @param press Pressure \f$ p \f$.
- * @param refd Density of reference of the fluid \f$ \rho_0 \f$.
  * @param gamma Eq. of state exponent \f$ \gamma \f$.
+ * @param refd Density of reference of the fluid \f$ \rho_0 \f$.
  * @param N Number of particles.
- * @param t Simulation time \f$ t \f$.
  * @param dt Time step \f$ \Delta t \f$.
  * @param cs Speed of sound \f$ c_s \f$.
- * @param grav Gravity acceleration \f$ \mathbf{g} \f$.
- * @param minDens Minimum tolerated density value \f$ \rho_{min} \f$.
- * @param maxDens Maximum tolerated density value \f$ \rho_{max} \f$.
+ * @param g Gravity acceleration \f$ \mathbf{g} \f$.
+ * @param rho_min Minimum tolerated density value \f$ \rho_{min} \f$.
+ * @param rho_max Maximum tolerated density value \f$ \rho_{max} \f$.
  * @see Corrector.cl
- * @see Aqua::CalcServer::Predictor
- * @see Aqua::CalcServer::Corrector
  */
-__kernel void Predictor(__global int* imove,
-                        __global int* ifluid,
-                        __global vec* pos,
-                        __global vec* v,
-                        __global vec* dvdt,
-                        __global float* dens,
-                        __global float* mass,
-                        __global float* drdt,
-                        __global vec* posin,
-                        __global vec* vin,
-                        __global vec* dvdtin,
-                        __global float* densin,
-                        __global float* massin,
-                        __global float* drdtin,
-                        __global float* press, 
-                        __constant float* refd,
-                        __constant float* gamma,
-                        unsigned int N,
-                        float t,
-                        float dt,
-                        float cs,
-                        vec grav,
-                        float minDens,
-                        float maxDens)
+__kernel void main(__global int* imove,
+                   __global unsigned int* iset,
+                   __global vec* pos,
+                   __global vec* v,
+                   __global vec* dvdt,
+                   __global float* rho,
+                   __global float* drhodt,
+                   __global vec* pos_in,
+                   __global vec* v_in,
+                   __global vec* dvdt_in,
+                   __global float* rho_in,
+                   __global float* drhodt_in,
+                   __global float* mass, 
+                   __global float* press,
+                   __constant float* gamma,
+                   __constant float* refd,
+                   unsigned int N,
+                   float dt,
+                   float cs,
+                   vec g,
+                   float rho_min,
+                   float rho_max)
 {
-	// find position in global arrays
-	unsigned int i = get_global_id(0);
-	if(i >= N)
-		return;
+    // find position in global arrays
+    unsigned int i = get_global_id(0);
+    if(i >= N)
+        return;
 
-	// ---- | ------------------------ | ----
-	// ---- V ---- Your code here ---- V ----
+    // Time step modified by imove flag
+    float DT = dt;
+    if(imove[i] <= 0)
+        DT = 0.f;
 
-	// Stabilization time
-	if(t < 0.f){
-		if(imove[i] > 0){
-			vec dr = 0.5f * dt * dt * (dvdtin[i] + grav);
-			posin[i] += dr;
-		}
-		dt = 0.f;
-	}
-	// Time step modified by imove flag
-	float DT = dt;
-	if(imove[i] <= 0)
-		DT = 0.f;
+    // Predictor step for the fluid and walls
+    v[i] = v_in[i] + DT * (dvdt_in[i] + g);
+    pos[i] = pos_in[i] + DT * v_in[i] + 0.5f * DT * DT * (dvdt_in[i] + g);
 
-	// Predictor step for the fluid and walls
-	v[i] = vin[i] + DT * (dvdtin[i] + grav);
-	// mass[i]    = massin[i]*(1.f + dt*drdtin[i]/densin[i]);
-	#if __BOUNDARY__ == 1
-		// Continuity equation must be solved for the fixed particles too
-		dens[i] = densin[i] + dt * drdtin[i];
-	#else
-		dens[i] = densin[i] + DT * drdtin[i];
-	#endif
-	if(dens[i] < minDens) dens[i] = minDens;
-	if(dens[i] > maxDens) dens[i] = maxDens;
-	pos[i] = posin[i] + DT * vin[i] + 0.5f * DT * DT * (dvdtin[i] + grav);
-	// Batchelor 1967
-	{
-		const float ddenf = dens[i] / refd[ifluid[i]];
-		const float prb = cs * cs * refd[ifluid[i]] / gamma[ifluid[i]];
-		press[i] = prb * (pow(ddenf, gamma[ifluid[i]]) - 1.f);
-	}
-	// Output variables reinitialization
-	dvdt[i] = VEC_ZERO;
-	drdt[i] = 0.f;
+    if(imove[i] != -1){
+        // Continuity equation must be solved for the fixed particles too
+        DT = dt;
+    }
+    rho[i] = rho_in[i] + DT * drhodt_in[i];
+    if(rho[i] < rho_min) rho[i] = rho_min;
+    if(rho[i] > rho_max) rho[i] = rho_max;
 
-	// ---- A ---- Your code here ---- A ----
-	// ---- | ------------------------ | ----
+    // Batchelor 1967
+    {
+        const float ddenf = rho[i] / refd[iset[i]];
+        const float prb = cs * cs * refd[iset[i]] / gamma[iset[i]];
+        press[i] = prb * (pow(ddenf, gamma[iset[i]]) - 1.f);
+    }
+    // Output variables reinitialization
+    dvdt[i] = VEC_ZERO;
+    drhodt[i] = 0.f;
 }
