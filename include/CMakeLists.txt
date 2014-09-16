@@ -1,4 +1,13 @@
 # ===================================================== #
+# Embed OpenCL codes                                    #
+# ===================================================== #
+ADD_CUSTOM_TARGET(opencl_embed ALL
+	COMMAND xxd -i Reduction.hcl.in > Reduction.hcl
+	COMMAND xxd -i Reduction.cl.in > Reduction.cl
+	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/CalcServer/
+)
+
++# ===================================================== #
 # Install                                               #
 # ===================================================== #
 INSTALL(
@@ -7,7 +16,6 @@ INSTALL(
         ${CMAKE_CURRENT_SOURCE_DIR}/AuxiliarMethods.h
         ${CMAKE_CURRENT_SOURCE_DIR}/CalcServer.h
         ${CMAKE_CURRENT_SOURCE_DIR}/FileManager.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/Fluid.h
         ${CMAKE_CURRENT_SOURCE_DIR}/ProblemSetup.h
         ${CMAKE_CURRENT_SOURCE_DIR}/ScreenManager.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Singleton.h

@@ -275,8 +275,8 @@ ENDIF(UNIX)
 # ===================================================== #
 # Compilation parts                                     #
 # ===================================================== #
-ADD_SUBDIRECTORY(src)
 ADD_SUBDIRECTORY(include)
+ADD_SUBDIRECTORY(src)
 ADD_SUBDIRECTORY(resources)
 IF(AQUAGPUSPH_BUILD_TOOLS)
 	ADD_SUBDIRECTORY(tools)

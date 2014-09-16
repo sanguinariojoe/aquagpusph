@@ -16,28 +16,32 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <CalcServer/Tool.h>
-#include <CalcServer.h>
+#define vec2 float2
+#define vec3 float3
+#define vec4 float4
+#define ivec2 int2
+#define ivec3 int3
+#define ivec4 int4
+#define uivec2 uint2
+#define uivec3 uint3
+#define uivec4 uint4
 
-namespace Aqua{ namespace CalcServer{
+#ifndef HAVE_3D
+    #define vec float2
+    #define ivec int2
+    #define uivec uint2
+    #define VEC_ZERO (float2)(0.f, 0.f)
+    #define VEC_INFINITY (float2)(INFINITY, INFINITY)
+    #define VEC_ALL_INFINITY VEC_INFINITY
+#else
+    #define vec float4
+    #define ivec int4
+    #define uivec uint4
+    #define VEC_ZERO (float4)(0.f, 0.f, 0.f, 0.f)
+    #define VEC_INFINITY (float4)(INFINITY, INFINITY, INFINITY, 0.f)
+    #define VEC_ALL_INFINITY (float4)(INFINITY, INFINITY, INFINITY, INFINITY)
+#endif
 
-Tool::Tool(const char* tool_name)
-    : _name(NULL)
-    , _allocated_memory(0)
-{
-    name(tool_name);
-}
+#define VEC_NEG_INFINITY (-VEC_INFINITY)
+#define VEC_ALL_NEG_INFINITY (-VEC_ALL_INFINITY)
 
-Tool::~Tool()
-{
-    if(_name) delete[] _name; _name=NULL;
-}
-
-void Tool::name(const char* tool_name)
-{
-    if(_name) delete[] _name; _name=NULL;
-    _name = new char[strlen(tool_name) + 1];
-    strcpy(_name, tool_name);
-}
-
-}}  // namespace

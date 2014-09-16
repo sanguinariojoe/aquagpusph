@@ -39,6 +39,7 @@ SET(DEP_LIBS
 SET(Server_CPP_SRCS
 	CalcServer.cpp
 	Kernel.cpp
+	Reduction.cpp
 	Tool.cpp
 )
 
@@ -49,13 +50,16 @@ SOURCE_GROUP("AQUAgpusphServer" FILES ${Server_CPP_SRCS})
 
 IF(AQUAGPUSPH_3D)
 	SET(ServerTagetName AQUAgpusphServer)
+	SET(OpenCLEmbedTargetName opencl_embed)
 ELSE(AQUAGPUSPH_3D)
 	SET(ServerTagetName AQUAgpusphServer2D)
+	SET(OpenCLEmbedTargetName opencl_embed)
 ENDIF(AQUAGPUSPH_3D)
 
 add_library(${ServerTagetName} SHARED ${Server_CPP_SRCS})
 
 target_link_libraries(${ServerTagetName} ${DEP_LIBS})
+ADD_DEPENDENCIES(${ServerTagetName} ${OpenCLEmbedTargetName})
 
 # ===================================================== #
 # Install                                               #

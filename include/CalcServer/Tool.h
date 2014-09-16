@@ -59,15 +59,28 @@ public:
      */
     virtual bool execute(){return false;}
 
+    /** Get the allocated memory for this tool.
+     * @return allocated memory by this tool.
+     */
+    size_t allocatedMemory() const {return _allocated_memory;}
+
 protected:
     /** Constructor.
      * @param tool_name Name of the tool. Useful to identify errors.
      */
     Tool(const char* tool_name);
 
+    /** Set the allocated memory for this tool.
+     * @param mem_size allocated memory by this tool.
+     */
+    void allocatedMemory(size_t mem_size){_allocated_memory = mem_size;}
+
 private:
     /// Kernel name
     char* _name;
+
+    /// Total auxiliar memory allocated in the device
+    size_t _allocated_memory;
 };
 
 }}  // namespace

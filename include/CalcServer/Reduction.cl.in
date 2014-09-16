@@ -1,0 +1,58 @@
+/*
+ *  This file is part of AQUAgpusph, a free CFD program based on SPH.
+ *  Copyright (C) 2012  Jose Luis Cercos Pita <jl.cercos@upm.es>
+ *
+ *  AQUAgpusph is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  AQUAgpusph is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** Reduction step. The objective of each step is obtain only one reduced
+ * value from each work group.
+ * You can call this kernel recursively until only one work group will be
+ * computed, and therefore just one output value will result.
+ * @param input Input array to be reduced.
+ * @param output Output array to store the reduced value.
+ * @param N Number of input elements.
+ * @param lmem local memory address array to store the output data while working.
+ */
+__kernel void main(_g T *input,
+                   _g T *output,
+                   unsigned int N,
+                   _l T* lmem )
+{
+	unsigned int i;
+	// Get the global index (to ensure not out of bounds reading operations)
+	unsigned int gid = get_global_id(0);
+	// Get id into the work group
+	unsigned int tid = get_local_id(0);
+
+	if(gid >= N)
+		lmem[tid] = IDENTITY;	
+	else
+		lmem[tid] = input[gid];
+	barrier(CLK_LOCAL_MEM_FENCE);
+
+	// Reduce the variables. The first half of the remaining threads will
+    // reduce its values with the correspoding to the second half.
+	for(i = get_local_size(0) / 2; i > 0; i >>= 1){
+		// Ensure that we are not reading out of bounds
+		if(tid < i)
+			lmem[tid] = reduce(lmem[tid],lmem[tid+i]);
+		barrier(CLK_LOCAL_MEM_FENCE);
+	}
+
+    // Just the first thread of each work group knows the reduced value
+	if(tid == 0){
+		output[get_group_id(0)] = lmem[0];
+	}
+}
