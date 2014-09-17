@@ -30,7 +30,10 @@ namespace Aqua{ namespace CalcServer{
 #include "CalcServer/Reduction.hcl"
 #include "CalcServer/Reduction.cl"
 const char* INC = (const char*)Reduction_hcl_in;
+unsigned int INC_LEN = Reduction_hcl_in_len;
 const char* SRC = (const char*)Reduction_cl_in;
+unsigned int SRC_LEN = Reduction_cl_in_len;
+
 
 Reduction::Reduction(const char *name,
                      const char *input_name,
@@ -184,22 +187,20 @@ bool Reduction::variables()
         sprintf(msg,
                 "The tool \"%s\" has received the undeclared variable \"%s\" as output.\n",
                 name(),
-                _input_name);
+                _output_name);
         S->addMessageF(3, msg);
         return true;
     }
-    if(strchr(vars->get(_input_name)->type(), '*')){
+    if(strchr(vars->get(_output_name)->type(), '*')){
         sprintf(msg,
                 "The tool \"%s\" has received the array variable \"%s\" as output.\n",
                 name(),
-                _input_name);
+                _output_name);
         S->addMessageF(3, msg);
         return true;
     }
     _output_var = vars->get(_output_name);
-    if(strncmp(_input_var->type(),
-               _output_var->type(),
-               strlen(_output_var->type()))){
+    if(!vars->isSameType(_input_var->type(), _output_var->type())){
         sprintf(msg,
                 "The input and output types mismatch for the tool \"%s\".\n",
                 name());
@@ -233,8 +234,9 @@ bool Reduction::setupOpenCL()
     data_size = vars->typeToBytes(_input_var->type());
 
     // Create a header for the source code where the operation will be placed
-    char header[strlen(INC) + strlen(_operation) + strlen(_null_val) + 128];
-    strcpy(header, INC);
+    char header[INC_LEN + strlen(_operation) + strlen(_null_val) + 128];
+    strcpy(header, "");
+    strncat(header, INC, INC_LEN);
     sprintf(header, "%s #define IDENTITY %s\n", header, _null_val);
     strcat(header, "T reduce(T a, T b) \n");
     strcat(header, "{ \n");
@@ -247,7 +249,8 @@ bool Reduction::setupOpenCL()
     // Setup the complete source code
     char source[strlen(header) + strlen(SRC) + 1];
     strcpy(source, header);
-    strcat(source, SRC);
+    strncat(source, SRC, SRC_LEN);
+    strcat(source, "");
 
     // Starts a dummy kernel in order to study the local size that can be used
     local_size = __CL_MAX_LOCALSIZE__;
@@ -384,7 +387,7 @@ cl_kernel Reduction::compile(const char* source, size_t local_work_size)
 	#ifdef AQUA_DEBUG
 	    strcat(flags, " -g -DDEBUG ");
 	#else
-	    strcpy(flags, " -DNDEBUG ");
+	    strcat(flags, " -DNDEBUG ");
 	#endif
 	strcat(flags, " -cl-mad-enable -cl-no-signed-zeros -cl-finite-math-only -cl-fast-relaxed-math");
 	#ifdef HAVE_3D

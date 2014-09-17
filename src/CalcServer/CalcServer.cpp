@@ -35,6 +35,7 @@
 #include <TimeManager.h>
 #include <ScreenManager.h>
 #include <CalcServer/Kernel.h>
+#include <CalcServer/Reduction.h>
 
 namespace Aqua{ namespace CalcServer{
 
@@ -139,6 +140,14 @@ CalcServer::CalcServer()
         if(!strcmp(P->tools.at(i)->get("type"), "kernel")){
             Kernel *tool = new Kernel(P->tools.at(i)->get("name"),
                                       P->tools.at(i)->get("path"));
+            _tools.push_back(tool);
+        }
+        else if(!strcmp(P->tools.at(i)->get("type"), "reduction")){
+            Reduction *tool = new Reduction(P->tools.at(i)->get("name"),
+                                            P->tools.at(i)->get("in"),
+                                            P->tools.at(i)->get("out"),
+                                            P->tools.at(i)->get("operation"),
+                                            P->tools.at(i)->get("null"));
             _tools.push_back(tool);
         }
         else{

@@ -47,7 +47,7 @@
 
     <Tools>
         <Tool action="add" type="kernel" name="Predictor" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Predictor.cl"/>
-        <Tool action="add" type="reduction" name="Minimum position" null="VEC_INFINITY">
+        <Tool action="add" type="reduction" name="Minimum position" in="pos" out="pos_min" null="VEC_INFINITY">
             c.x = (a.x &lt; b.x) ? a.x : b.x;
             c.y = (a.y &lt; b.y) ? a.y : b.y;
             #ifdef HAVE_3D
@@ -55,7 +55,7 @@
                 c.w = 0.f;
             #endif
         </Tool>
-        <Tool action="add" type="reduction" name="Maximum position" null="VEC_NEG_INFINITY">
+        <Tool action="add" type="reduction" name="Maximum position" in="pos" out="pos_max" null="VEC_NEG_INFINITY">
             c.x = (a.x &gt; b.x) ? a.x : b.x;
             c.y = (a.y &gt; b.y) ? a.y : b.y;
             #ifdef HAVE_3D

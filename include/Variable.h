@@ -656,6 +656,16 @@ public:
      */
     unsigned int typeToN(const char* type) const;
 
+    /** Get if two types strings are the same one.
+     * @param type_a First type name.
+     * @param type_b Second type name.
+     * @param ignore_asterisk true to ignore the asterisk of arrays.
+     * @return true if it is the same type, false otherwise.
+     */
+    bool isSameType(const char* type_a,
+                    const char* type_b,
+                    bool ignore_asterisk=true);
+
     /** Solve a string, interpreting the variables.
      * @param type_name Type of the output desired value.
      * @param value Value text to evaluate.

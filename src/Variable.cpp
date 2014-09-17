@@ -341,6 +341,53 @@ unsigned int Variables::typeToN(const char* type) const
     return n;
 }
 
+bool Variables::isSameType(const char* type_a,
+                           const char* type_b,
+                           bool ignore_asterisk)
+{
+    if(typeToN(type_a) != typeToN(type_b)){
+        return false;
+    }
+
+    if(!ignore_asterisk){
+        if(strchr(type_a, '*') && !strchr(type_b, '*')){
+            return false;
+        }
+        else if(!strchr(type_a, '*') && strchr(type_b, '*')){
+            return false;
+        }
+    }
+
+    size_t len_a = strlen(type_a);
+    if((type_a[len_a - 1] == '*')){
+        len_a--;
+    }
+    if((type_a[len_a - 1] == '2') ||
+       (type_a[len_a - 1] == '3') ||
+       (type_a[len_a - 1] == '4')){
+        len_a--;
+    }
+    size_t len_b = strlen(type_b);
+    if((type_b[len_b - 1] == '*')){
+        len_b--;
+    }
+    if((type_b[len_b - 1] == '2') ||
+       (type_b[len_b - 1] == '3') ||
+       (type_b[len_b - 1] == '4')){
+        len_b--;
+    }
+
+    if(len_a != len_b){
+        return false;
+    }
+
+    if(strncmp(type_a, type_b, len_a)){
+        return false;
+    }
+
+    return true;
+}
+
 bool Variables::solve(const char *type_name, const char *value, void *data)
 {
     char msg[256];
