@@ -20,9 +20,10 @@
 #define LINKLIST_H_INCLUDED
 
 #include <sphPrerequisites.h>
-
+#include <deque>
 #include <CalcServer/Tool.h>
 #include <CalcServer/Reduction.h>
+#include <CalcServer/RadixSort.h>
 
 namespace Aqua{ namespace CalcServer{
 
@@ -40,8 +41,6 @@ class LinkList : public Aqua::CalcServer::Tool
 public:
     /** Constructor.
      * @param tool_name Tool name.
-     * @param kernel_path LinkList path.
-     * @param Number of threads to launch.
      */
     LinkList(const char* tool_name);
 
@@ -81,6 +80,11 @@ private:
      */
     bool allocate();
 
+    /** Update the input and output looking for changed values.
+     * @return false if all gone right, true otherwise.
+     */
+    bool setVariables();
+
     /// Cells length
     float _cell_length;
 
@@ -93,12 +97,17 @@ private:
     /// Maximum position computation tool
     Reduction *_max_pos;
 
+    /// Sorting by cells computation tool
+    RadixSort *_sort;
+
     /// "ihoc" array initialization
     cl_kernel _ihoc;
     /// "ihoc" array initialization local work size
     size_t _ihoc_lws;
     /// "ihoc" array initialization global work size
     size_t _ihoc_gws;
+    /// "ihoc" array initialization sent arguments
+    std::deque<void*> _ihoc_args;
 
     /// "icell" array computation
     cl_kernel _icell;
@@ -106,6 +115,8 @@ private:
     size_t _icell_lws;
     /// "icell" array computation global work size
     size_t _icell_gws;
+    /// "icell" array computation sent arguments
+    std::deque<void*> _icell_args;
 
     /// "ihoc" array computation
     cl_kernel _ll;
@@ -113,6 +124,8 @@ private:
     size_t _ll_lws;
     /// "ihoc" array computation global work size
     size_t _ll_gws;
+    /// "ihoc" array computation sent arguments
+    std::deque<void*> _ll_args;
 };
 
 }}  // namespace
