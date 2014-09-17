@@ -189,7 +189,7 @@ bool VTK::load()
         ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i));
         size_t typesize = vars->typeToBytes(var->type());
         size_t len = var->size() / typesize;
-        if(len < bounds().y){
+        if(len < bounds().y - bounds().x){
             sprintf(msg,
                     "Failure reading \"%s\" field, which has not length enough.\n",
                     fields.at(i));
@@ -351,7 +351,7 @@ bool VTK::save()
         ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i));
         size_t typesize = vars->typeToBytes(var->type());
         size_t len = var->size() / typesize;
-        if(len < bounds().y){
+        if(len < bounds().y - bounds().x){
             sprintf(msg,
                     "Failure saving \"%s\" field, which has not length enough.\n",
                     fields.at(i));
