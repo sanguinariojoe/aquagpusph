@@ -125,8 +125,6 @@ private:
 
     /// List of required variables
     std::deque<char*> _var_names;
-    /// List of variable sizes
-    std::deque<size_t> _var_sizes;
     /// List of variable values
     std::deque<void*> _var_values;
 };

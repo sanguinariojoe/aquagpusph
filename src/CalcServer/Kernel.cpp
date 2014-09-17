@@ -23,14 +23,14 @@
 namespace Aqua{ namespace CalcServer{
 
 Kernel::Kernel(const char* tool_name, const char* kernel_path, const char* n)
-	: Tool(tool_name)
+    : Tool(tool_name)
     , _path(NULL)
     , _kernel(NULL)
     , _work_group_size(0)
     , _global_work_size(0)
     , _n(NULL)
 {
-	path(kernel_path);
+    path(kernel_path);
     _n = new char[strlen(n) + 1];
     strcpy(_n, n);
 }
@@ -38,12 +38,12 @@ Kernel::Kernel(const char* tool_name, const char* kernel_path, const char* n)
 Kernel::~Kernel()
 {
     unsigned int i;
-	if(_path) delete[] _path; _path=NULL;
-	if(_kernel) clReleaseKernel(_kernel); _kernel=NULL;
-	for(i = 0; i < _var_names.size(); i++){
+    if(_path) delete[] _path; _path=NULL;
+    if(_kernel) clReleaseKernel(_kernel); _kernel=NULL;
+    for(i = 0; i < _var_names.size(); i++){
         delete[] _var_names.at(i);
-	}
-	_var_names.clear();
+    }
+    _var_names.clear();
 }
 
 bool Kernel::setup()
@@ -79,9 +79,9 @@ bool Kernel::setup()
 bool Kernel::execute()
 {
     cl_int err_code;
-	char msg[1024];
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
+    char msg[1024];
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    CalcServer *C = CalcServer::singleton();
     err_code = clEnqueueNDRangeKernel(C->command_queue(),
                                       _kernel,
                                       1,
@@ -91,20 +91,20 @@ bool Kernel::execute()
                                       0,
                                       NULL,
                                       NULL);
-	if(err_code != CL_SUCCESS){
+    if(err_code != CL_SUCCESS){
         sprintf(msg, "Failure launching the tool \"%s\".\n", name());
-		S->addMessageF(3, msg);
+        S->addMessageF(3, msg);
         S->printOpenCLError(err_code);
-	    return true;
-	}
+        return true;
+    }
     return false;
 }
 
 void Kernel::path(const char* kernel_path)
 {
-	if(_path) delete[] _path; _path=NULL;
-	_path = new char[strlen(kernel_path) + 1];
-	strcpy(_path, kernel_path);
+    if(_path) delete[] _path; _path=NULL;
+    _path = new char[strlen(kernel_path) + 1];
+    strcpy(_path, kernel_path);
 }
 
 bool Kernel::compile(const char* entry_point,
@@ -113,33 +113,33 @@ bool Kernel::compile(const char* entry_point,
 {
     cl_program program;
     cl_kernel kernel;
-	char* source = NULL;
-	char* flags = NULL;
-	size_t source_length = 0;
-	cl_int err_code = CL_SUCCESS;
-	size_t work_group_size = 0;
-	char msg[1024];
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
+    char* source = NULL;
+    char* flags = NULL;
+    size_t source_length = 0;
+    cl_int err_code = CL_SUCCESS;
+    size_t work_group_size = 0;
+    char msg[1024];
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    CalcServer *C = CalcServer::singleton();
 
-	// Allocate the required memory for the source code
-	source_length = readFile(NULL, path());
-	if(!source_length){
-	    return true;
-	}
-	source = new char[source_length + 1];
-	if(!source){
-	    S->addMessageF(3, "Failure allocating memory for the source code.\n");
-	    return true;
-	}
+    // Allocate the required memory for the source code
+    source_length = readFile(NULL, path());
+    if(!source_length){
+        return true;
+    }
+    source = new char[source_length + 1];
+    if(!source){
+        S->addMessageF(3, "Failure allocating memory for the source code.\n");
+        return true;
+    }
     // Read the file
-	source_length = readFile(source, path());
-	if(!source_length){
-	    delete[] source; source=NULL;
-	    return true;
-	}
-	// Append the header on top of the source code
-	if(header){
+    source_length = readFile(source, path());
+    if(!source_length){
+        delete[] source; source=NULL;
+        return true;
+    }
+    // Append the header on top of the source code
+    if(header){
         char *backup = source;
         source_length += strlen(header) * sizeof(char);
         source = new char[source_length + 1];
@@ -150,97 +150,97 @@ bool Kernel::compile(const char* entry_point,
         strcpy(source, header);
         strcat(source, backup);
         delete[] backup; backup=NULL;
-	}
+    }
 
-	// Setup the default flags
-	flags = new char[1024];
-	#ifdef AQUA_DEBUG
-	    strcpy(flags, "-g -DDEBUG ");
-	#else
-	    strcpy(flags, "-DNDEBUG ");
-	#endif
-	strcat(flags, "-I");
-	const char *folder = getFolderFromFilePath(path());
-	strcat(flags, folder);
+    // Setup the default flags
+    flags = new char[1024];
+    #ifdef AQUA_DEBUG
+        strcpy(flags, "-g -DDEBUG ");
+    #else
+        strcpy(flags, "-DNDEBUG ");
+    #endif
+    strcat(flags, "-I");
+    const char *folder = getFolderFromFilePath(path());
+    strcat(flags, folder);
 
-	strcat(flags, " -cl-mad-enable -cl-no-signed-zeros -cl-finite-math-only -cl-fast-relaxed-math ");
-	#ifdef HAVE_3D
-		strcat(flags, " -DHAVE_3D ");
-	#else
-		strcat(flags, " -DHAVE_2D ");
-	#endif
+    strcat(flags, " -cl-mad-enable -cl-no-signed-zeros -cl-finite-math-only -cl-fast-relaxed-math ");
+    #ifdef HAVE_3D
+        strcat(flags, " -DHAVE_3D ");
+    #else
+        strcat(flags, " -DHAVE_2D ");
+    #endif
     // Add the additionally specified flags
     if(add_flags)
         strcat(flags, add_flags);
 
     // Try to compile without using local memory
     S->addMessageF(1, "Compiling without local memory... ");
-	program = clCreateProgramWithSource(C->context(),
+    program = clCreateProgramWithSource(C->context(),
                                         1,
                                         (const char **)&source,
                                         &source_length,
                                         &err_code);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessage(0, "FAIL\n");
-	    S->addMessageF(3, "Failure creating the OpenCL program.\n");
-	    S->printOpenCLError(err_code);
-	    delete[] flags; flags=NULL;
-        delete[] source; source=NULL;
-	    return true;
-	}
-	err_code = clBuildProgram(program, 0, NULL, flags, NULL, NULL);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessage(0, "FAIL\n");
+    if(err_code != CL_SUCCESS) {
+        S->addMessage(0, "FAIL\n");
+        S->addMessageF(3, "Failure creating the OpenCL program.\n");
         S->printOpenCLError(err_code);
-	    S->addMessage(3, "--- Build log ---------------------------------\n");
-	    size_t log_size;
-	    clGetProgramBuildInfo(program,
+        delete[] flags; flags=NULL;
+        delete[] source; source=NULL;
+        return true;
+    }
+    err_code = clBuildProgram(program, 0, NULL, flags, NULL, NULL);
+    if(err_code != CL_SUCCESS) {
+        S->addMessage(0, "FAIL\n");
+        S->printOpenCLError(err_code);
+        S->addMessage(3, "--- Build log ---------------------------------\n");
+        size_t log_size;
+        clGetProgramBuildInfo(program,
                               C->device(),
                               CL_PROGRAM_BUILD_LOG,
                               0,
                               NULL,
                               &log_size);
-	    char *log = (char*)malloc(log_size + sizeof(char));
-	    clGetProgramBuildInfo(program,
+        char *log = (char*)malloc(log_size + sizeof(char));
+        clGetProgramBuildInfo(program,
                               C->device(),
                               CL_PROGRAM_BUILD_LOG,
                               log_size,
                               log,
                               NULL);
-	    strcat(log, "\n");
-	    S->addMessage(0, log);
-	    S->addMessage(3, "--------------------------------- Build log ---\n");
-	    free(log); log=NULL;
-	    delete[] flags; flags=NULL;
+        strcat(log, "\n");
+        S->addMessage(0, log);
+        S->addMessage(3, "--------------------------------- Build log ---\n");
+        free(log); log=NULL;
+        delete[] flags; flags=NULL;
         delete[] source; source=NULL;
         clReleaseProgram(program);
-	    return true;
-	}
-	kernel = clCreateKernel(program, entry_point, &err_code);
+        return true;
+    }
+    kernel = clCreateKernel(program, entry_point, &err_code);
     clReleaseProgram(program);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessage(0, "FAIL\n");
-	    S->addMessageF(3, "Failure creating the kernel.\n");
-	    S->printOpenCLError(err_code);
-	    delete[] flags; flags=NULL;
-	    return true;
-	}
+    if(err_code != CL_SUCCESS) {
+        S->addMessage(0, "FAIL\n");
+        S->addMessageF(3, "Failure creating the kernel.\n");
+        S->printOpenCLError(err_code);
+        delete[] flags; flags=NULL;
+        return true;
+    }
 
     // Get the work group size
-	err_code = clGetKernelWorkGroupInfo(kernel,
+    err_code = clGetKernelWorkGroupInfo(kernel,
                                         C->device(),
                                         CL_KERNEL_WORK_GROUP_SIZE,
                                         sizeof(size_t),
                                         &work_group_size,
                                         NULL);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessage(0, "FAIL\n");
-	    S->addMessageF(3, "Failure querying the work group size.\n");
+    if(err_code != CL_SUCCESS) {
+        S->addMessage(0, "FAIL\n");
+        S->addMessageF(3, "Failure querying the work group size.\n");
         S->printOpenCLError(err_code);
         clReleaseKernel(kernel);
-	    delete[] flags; flags=NULL;
-	    return true;
-	}
+        delete[] flags; flags=NULL;
+        return true;
+    }
     S->addMessage(0, "OK\n");
 
     _kernel = kernel;
@@ -248,92 +248,92 @@ bool Kernel::compile(const char* entry_point,
 
     // Try to compile with local memory
     S->addMessageF(1, "Compiling with local memory... ");
-	program = clCreateProgramWithSource(C->context(),
+    program = clCreateProgramWithSource(C->context(),
                                         1,
                                         (const char **)&source,
                                         &source_length,
                                         &err_code);
     delete[] source; source=NULL;
-	if(err_code != CL_SUCCESS) {
-	    S->addMessage(0, "FAIL\n");
-	    S->addMessageF(3, "Failure creating the OpenCL program.\n");
-	    S->printOpenCLError(err_code);
-	    delete[] flags; flags=NULL;
-        S->addMessageF(1, "Falling back to no local memory usage.\n");
-	    return false;
-	}
-    sprintf(flags, "%s -DLOCAL_MEM_SIZE=%lu", flags, work_group_size);
-	err_code = clBuildProgram(program, 0, NULL, flags, NULL, NULL);
-	delete[] flags; flags=NULL;
-	if(err_code != CL_SUCCESS) {
-	    S->addMessage(0, "FAIL\n");
+    if(err_code != CL_SUCCESS) {
+        S->addMessage(0, "FAIL\n");
+        S->addMessageF(3, "Failure creating the OpenCL program.\n");
         S->printOpenCLError(err_code);
-	    S->addMessage(3, "--- Build log ---------------------------------\n");
-	    size_t log_size;
-	    clGetProgramBuildInfo(program,
+        delete[] flags; flags=NULL;
+        S->addMessageF(1, "Falling back to no local memory usage.\n");
+        return false;
+    }
+    sprintf(flags, "%s -DLOCAL_MEM_SIZE=%lu", flags, work_group_size);
+    err_code = clBuildProgram(program, 0, NULL, flags, NULL, NULL);
+    delete[] flags; flags=NULL;
+    if(err_code != CL_SUCCESS) {
+        S->addMessage(0, "FAIL\n");
+        S->printOpenCLError(err_code);
+        S->addMessage(3, "--- Build log ---------------------------------\n");
+        size_t log_size;
+        clGetProgramBuildInfo(program,
                               C->device(),
                               CL_PROGRAM_BUILD_LOG,
                               0,
                               NULL,
                               &log_size);
-	    char *log = (char*)malloc(log_size + sizeof(char));
-	    clGetProgramBuildInfo(program,
+        char *log = (char*)malloc(log_size + sizeof(char));
+        clGetProgramBuildInfo(program,
                               C->device(),
                               CL_PROGRAM_BUILD_LOG,
                               log_size,
                               log,
                               NULL);
-	    strcat(log, "\n");
-	    S->addMessage(0, log);
-	    S->addMessage(3, "--------------------------------- Build log ---\n");
-	    free(log); log=NULL;
-	    clReleaseProgram(program);
+        strcat(log, "\n");
+        S->addMessage(0, log);
+        S->addMessage(3, "--------------------------------- Build log ---\n");
+        free(log); log=NULL;
+        clReleaseProgram(program);
         S->addMessageF(1, "Falling back to no local memory usage.\n");
-	    return false;
-	}
-	kernel = clCreateKernel(program, entry_point, &err_code);
+        return false;
+    }
+    kernel = clCreateKernel(program, entry_point, &err_code);
     clReleaseProgram(program);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessage(0, "FAIL\n");
-	    S->addMessageF(3, "Failure creating the kernel.\n");
-	    S->printOpenCLError(err_code);
+    if(err_code != CL_SUCCESS) {
+        S->addMessage(0, "FAIL\n");
+        S->addMessageF(3, "Failure creating the kernel.\n");
+        S->printOpenCLError(err_code);
         S->addMessageF(1, "Falling back to no local memory usage.\n");
-	    return false;
-	}
+        return false;
+    }
     cl_ulong used_local_mem;
-	err_code = clGetKernelWorkGroupInfo(kernel,
+    err_code = clGetKernelWorkGroupInfo(kernel,
                                         C->device(),
                                         CL_KERNEL_LOCAL_MEM_SIZE,
                                         sizeof(cl_ulong),
                                         &used_local_mem,
                                         NULL);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessage(0, "FAIL\n");
-	    S->addMessageF(3, "Failure querying the used local memory.\n");
+    if(err_code != CL_SUCCESS) {
+        S->addMessage(0, "FAIL\n");
+        S->addMessageF(3, "Failure querying the used local memory.\n");
         S->printOpenCLError(err_code);
         S->addMessageF(1, "Falling back to no local memory usage.\n");
-	    return false;
-	}
-	cl_ulong available_local_mem;
-	err_code = clGetDeviceInfo(C->device(),
+        return false;
+    }
+    cl_ulong available_local_mem;
+    err_code = clGetDeviceInfo(C->device(),
                                CL_DEVICE_LOCAL_MEM_SIZE,
                                sizeof(cl_ulong),
                                &available_local_mem,
                                NULL);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessage(0, "FAIL\n");
-	    S->addMessageF(3, "Failure querying the available local memory.\n");
+    if(err_code != CL_SUCCESS) {
+        S->addMessage(0, "FAIL\n");
+        S->addMessageF(3, "Failure querying the available local memory.\n");
         S->printOpenCLError(err_code);
         S->addMessageF(1, "Falling back to no local memory usage.\n");
-	    return false;
-	}
+        return false;
+    }
 
     if(available_local_mem < used_local_mem){
-	    S->addMessage(0, "FAIL\n");
-	    S->addMessageF(3, "Not enough available local memory.\n");
+        S->addMessage(0, "FAIL\n");
+        S->addMessageF(3, "Not enough available local memory.\n");
         S->printOpenCLError(err_code);
         S->addMessageF(1, "Falling back to no local memory usage.\n");
-	    return false;
+        return false;
     }
     S->addMessage(0, "OK\n");
     clReleaseKernel(_kernel);
@@ -386,8 +386,8 @@ struct clientData{
 
 bool Kernel::variables(const char* entry_point)
 {
-	char msg[1024];
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    char msg[1024];
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 
     CXIndex index = clang_createIndex(0, 0);
     if(index == 0){
@@ -431,10 +431,9 @@ bool Kernel::variables(const char* entry_point)
     }
 
     unsigned int i;
-	for(i = 0; i < _var_names.size(); i++){
-        _var_sizes.push_back(0);
+    for(i = 0; i < _var_names.size(); i++){
         _var_values.push_back(NULL);
-	}
+    }
 
     clang_disposeTranslationUnit(translation_unit);
     clang_disposeIndex(index);
@@ -481,11 +480,11 @@ bool Kernel::setVariables()
     unsigned int i;
     char msg[1024];
     cl_int err_code;
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    CalcServer *C = CalcServer::singleton();
     InputOutput::Variables *vars = C->variables();
 
-	for(i = 0; i < _var_names.size(); i++){
+    for(i = 0; i < _var_names.size(); i++){
         if(!vars->get(_var_names.at(i))){
             sprintf(msg,
                     "The tool \"%s\" requires the undeclared variable \"%s\".\n",
@@ -495,8 +494,8 @@ bool Kernel::setVariables()
             return true;
         }
         InputOutput::Variable *var = vars->get(_var_names.at(i));
-        if((_var_sizes.at(i) == var->typesize()) &&
-           (_var_values.at(i) == var->get())){
+        if((_var_values.at(i) == var->get()) &&
+           strchr(var->type(), '*')){
             // The variable still being valid
             continue;
         }
@@ -513,18 +512,17 @@ bool Kernel::setVariables()
             S->printOpenCLError(err_code);
             return true;
         }
-        _var_sizes.at(i) = var->typesize();
         _var_values.at(i) = var->get();
-	}
-	return false;
+    }
+    return false;
 }
 
 bool Kernel::computeGlobalWorkSize()
 {
     unsigned int N;
     char msg[1024];
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    CalcServer *C = CalcServer::singleton();
     if(!_work_group_size){
         S->addMessageF(3, "Work group size must be greater than 0.\n");
         return true;
