@@ -239,7 +239,6 @@ bool Reduction::setupOpenCL()
     strcat(header, "T reduce(T a, T b) \n");
     strcat(header, "{ \n");
     strcat(header, "\tT c; \n");
-    strcat(header, "\t");
     strcat(header, _operation);
     strcat(header, "\n");
     strcat(header, "\treturn c;\n");

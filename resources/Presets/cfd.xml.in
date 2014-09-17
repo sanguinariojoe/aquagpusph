@@ -22,6 +22,8 @@
         <Variable name="cs" type="float" value="15.0" save="false" />
         <Variable name="rho_min" type="float" value="0.0" save="false" />
         <Variable name="rho_max" type="float" value="2.25*10^10" save="false" />
+        <Variable name="pos_min" type="vec" save="false" />
+        <Variable name="pos_max" type="vec" save="false" />
 
         <Variable name="gamma" type="float*" length="n_sets" save="false" />
         <Variable name="refd" type="float*" length="n_sets" save="false" />
@@ -44,6 +46,22 @@
     </Variables>
 
     <Tools>
-        <Tool action="add" type="kernel" name="Predictor" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Predictor.cl">
+        <Tool action="add" type="kernel" name="Predictor" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Predictor.cl"/>
+        <Tool action="add" type="reduction" name="Minimum position" null="VEC_INFINITY">
+            c.x = (a.x &lt; b.x) ? a.x : b.x;
+            c.y = (a.y &lt; b.y) ? a.y : b.y;
+            #ifdef HAVE_3D
+                c.z = (a.z &lt; b.z) ? a.z : b.z;
+                c.w = 0.f;
+            #endif
+        </Tool>
+        <Tool action="add" type="reduction" name="Maximum position" null="VEC_NEG_INFINITY">
+            c.x = (a.x &gt; b.x) ? a.x : b.x;
+            c.y = (a.y &gt; b.y) ? a.y : b.y;
+            #ifdef HAVE_3D
+                c.z = (a.z &gt; b.z) ? a.z : b.z;
+                c.w = 0.f;
+            #endif
+        </Tool>
     </Tools>
 </sphInput>

@@ -50,6 +50,8 @@ public:
      * float min value reduction, or (vec2)(0.f,0.f) for a 2D vec sum reduction.
      * @note Some helpers are available for null_val:
      *   - VEC_ZERO: Zeroes vector.
+     *   - VEC_ONE: Ones vector, in 3D cases the last component will be zero.
+     *   - VEC_ALL_ONE: Equal to VEC_ONE, but in 3D cases the last component will be one as well.
      *   - VEC_INFINITY: INFINITY components vector, in 3D cases the last component will be zero.
      *   - VEC_ALL_INFINITY: Equal to VEC_INFINITY, but in 3D cases the last component will be INFINITY as well.
      *   - VEC_NEG_INFINITY: -VEC_INFINITY
