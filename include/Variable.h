@@ -50,10 +50,8 @@ public:
     /** Constructor.
      * @param varname Name of the variable.
      * @param vartype Type of the variable.
-     * @param varsave true if the variable should be printed in output files,
-     * false otherwise.
      */
-    Variable(const char *varname, const char *vartype, bool varsave=false);
+    Variable(const char *varname, const char *vartype);
 
     /** Destructor.
      */
@@ -63,18 +61,6 @@ public:
      * @return The name of the variable
      */
     const char* name() const {return (const char*)_name;}
-
-    /** Get if the variable should be printed in output files.
-     * @return true if the variable should be printed in output files, false
-     * otherwise.
-     */
-    const bool save() const {return _save;}
-
-    /** Set if the variable should be printed in output files.
-     * @param varsave true if the variable should be printed in output files,
-     * false otherwise.
-     */
-    void save(bool varsave) {_save = varsave;}
 
     /** Type of the variable
      * @return The type of the variable
@@ -106,11 +92,6 @@ private:
 
     /// Type of the variable
     char* _typename;
-
-    /** true if the variable should be printed in output files, false
-     * otherwise.
-     */
-    bool _save;
 };
 
 /** @class IntVariable Variable.h Variable.h
@@ -121,10 +102,8 @@ class IntVariable : public Variable
 public:
     /** Constructor.
      * @param varname Name of the variable.
-     * @param varsave true if the variable should be printed in output files,
-     * false otherwise.
      */
-    IntVariable(const char *varname, bool varsave=false);
+    IntVariable(const char *varname);
 
     /** Destructor.
      */
@@ -157,10 +136,8 @@ class UIntVariable : public Variable
 public:
     /** Constructor.
      * @param varname Name of the variable.
-     * @param varsave true if the variable should be printed in output files,
-     * false otherwise.
      */
-    UIntVariable(const char *varname, bool varsave=false);
+    UIntVariable(const char *varname);
 
     /** Destructor.
      */
@@ -193,10 +170,8 @@ class FloatVariable : public Variable
 public:
     /** Constructor.
      * @param varname Name of the variable.
-     * @param varsave true if the variable should be printed in output files,
-     * false otherwise.
      */
-    FloatVariable(const char *varname, bool varsave=false);
+    FloatVariable(const char *varname);
 
     /** Destructor.
      */
@@ -229,10 +204,8 @@ class Vec2Variable : public Variable
 public:
     /** Constructor.
      * @param varname Name of the variable.
-     * @param varsave true if the variable should be printed in output files,
-     * false otherwise.
      */
-    Vec2Variable(const char *varname, bool varsave=false);
+    Vec2Variable(const char *varname);
 
     /** Destructor.
      */
@@ -265,10 +238,8 @@ class Vec3Variable : public Variable
 public:
     /** Constructor.
      * @param varname Name of the variable.
-     * @param varsave true if the variable should be printed in output files,
-     * false otherwise.
      */
-    Vec3Variable(const char *varname, bool varsave=false);
+    Vec3Variable(const char *varname);
 
     /** Destructor.
      */
@@ -301,10 +272,8 @@ class Vec4Variable : public Variable
 public:
     /** Constructor.
      * @param varname Name of the variable.
-     * @param varsave true if the variable should be printed in output files,
-     * false otherwise.
      */
-    Vec4Variable(const char *varname, bool varsave=false);
+    Vec4Variable(const char *varname);
 
     /** Destructor.
      */
@@ -337,10 +306,8 @@ class IVec2Variable : public Variable
 public:
     /** Constructor.
      * @param varname Name of the variable.
-     * @param varsave true if the variable should be printed in output files,
-     * false otherwise.
      */
-    IVec2Variable(const char *varname, bool varsave=false);
+    IVec2Variable(const char *varname);
 
     /** Destructor.
      */
@@ -373,10 +340,8 @@ class IVec3Variable : public Variable
 public:
     /** Constructor.
      * @param varname Name of the variable.
-     * @param varsave true if the variable should be printed in output files,
-     * false otherwise.
      */
-    IVec3Variable(const char *varname, bool varsave=false);
+    IVec3Variable(const char *varname);
 
     /** Destructor.
      */
@@ -409,10 +374,8 @@ class IVec4Variable : public Variable
 public:
     /** Constructor.
      * @param varname Name of the variable.
-     * @param varsave true if the variable should be printed in output files,
-     * false otherwise.
      */
-    IVec4Variable(const char *varname, bool varsave=false);
+    IVec4Variable(const char *varname);
 
     /** Destructor.
      */
@@ -445,10 +408,8 @@ class UIVec2Variable : public Variable
 public:
     /** Constructor.
      * @param varname Name of the variable.
-     * @param varsave true if the variable should be printed in output files,
-     * false otherwise.
      */
-    UIVec2Variable(const char *varname, bool varsave=false);
+    UIVec2Variable(const char *varname);
 
     /** Destructor.
      */
@@ -481,10 +442,8 @@ class UIVec3Variable : public Variable
 public:
     /** Constructor.
      * @param varname Name of the variable.
-     * @param varsave true if the variable should be printed in output files,
-     * false otherwise.
      */
-    UIVec3Variable(const char *varname, bool varsave=false);
+    UIVec3Variable(const char *varname);
 
     /** Destructor.
      */
@@ -517,10 +476,8 @@ class UIVec4Variable : public Variable
 public:
     /** Constructor.
      * @param varname Name of the variable.
-     * @param varsave true if the variable should be printed in output files,
-     * false otherwise.
      */
-    UIVec4Variable(const char *varname, bool varsave=false);
+    UIVec4Variable(const char *varname);
 
     /** Destructor.
      */
@@ -554,10 +511,8 @@ public:
     /** Constructor.
      * @param varname Name of the variable.
      * @param vartype Type of the variable.
-     * @param varsave true if the variable should be printed in output files,
-     * false otherwise.
      */
-    ArrayVariable(const char *varname, const char *vartype, bool varsave=false);
+    ArrayVariable(const char *varname, const char *vartype);
 
     /** Destructor.
      */
@@ -613,14 +568,12 @@ public:
      * which requires the number of cells).
      * @param value Variable value, NULL for arrays. It is optional for
      * scalar variables.
-     * @param save true if the variable should be saved, false otherwise.
      * @return false if all gone right, true otherwise
      */
     bool registerVariable(const char* name,
                           const char* type,
                           const char* length,
-                          const char* value,
-                          const bool save);
+                          const char* value);
 
     /** Get a variable.
      * @param index Index of the variable.
@@ -680,26 +633,22 @@ private:
      * @param type Type of the variable.
      * @param value Variable value, NULL for arrays. It is optional for
      * scalar variables.
-     * @param save true if the variable should be saved, false otherwise.
      * @return false if all gone right, true otherwise
      */
     bool registerScalar(const char* name,
                         const char* type,
-                        const char* value,
-                        const bool save);
+                        const char* value);
     /** Register a cl_mem variable
      * @param name Name of the variable.
      * @param type Type of the variable.
      * @param length Array length, 1 for scalars, 0 for arrays that will
      * not be allocated at the start (for instance the heads of chains,
      * which requires the number of cells).
-     * @param save true if the variable should be saved, false otherwise.
      * @return false if all gone right, true otherwise
      */
     bool registerClMem(const char* name,
                        const char* type,
-                       const char* length,
-                       const bool save);
+                       const char* length);
 
     /** Read a set of components from a value array.
      * @param name Name of the variable. It is used to register variables in

@@ -258,8 +258,6 @@ public:
         std::deque<char*> lengths;
         /// Values
         std::deque<char*> values;
-        /// Save flags
-        std::deque<bool> saves;
 
         /** @brief Add a new variable.
          *
@@ -278,8 +276,7 @@ public:
         void registerVariable(const char* name,
                               const char* type,
                               const char* length,
-                              const char* value,
-                              const bool save);
+                              const char* value);
 
         /// Remove all the stored variables.
         void destroy();
@@ -1605,6 +1602,7 @@ public:
              * @param v1 1st corner of wall velocity.
              * @param v2 2nd corner of wall velocity.
              * @param v3 3rd corner of wall velocity.
+
              * @return false if all gone right, true otherwise.
              */
             bool add(vec p1,

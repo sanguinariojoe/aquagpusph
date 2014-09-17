@@ -200,8 +200,7 @@ void ProblemSetup::sphSettings::destroy()
 void ProblemSetup::sphVariables::registerVariable(const char* name,
                                                   const char* type,
                                                   const char* length,
-                                                  const char* value,
-                                                  const bool save)
+                                                  const char* value)
 {
     size_t len;
 
@@ -222,7 +221,6 @@ void ProblemSetup::sphVariables::registerVariable(const char* name,
     aux = new char[len];
     strcpy(aux, value);
     values.push_back(aux);
-    saves.push_back(save);
 }
 
 void ProblemSetup::sphVariables::destroy()
@@ -236,7 +234,6 @@ void ProblemSetup::sphVariables::destroy()
     names.clear();
     types.clear();
     lengths.clear();
-    saves.clear();
 }
 
 ProblemSetup::sphTool::sphTool()

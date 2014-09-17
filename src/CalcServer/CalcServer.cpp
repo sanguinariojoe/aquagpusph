@@ -80,49 +80,49 @@ CalcServer::CalcServer()
     char len[16];
     strcpy(len, "");
     sprintf(val, "%g", 0.f);
-    if(_vars->registerVariable("t", "float", len, val, false))
+    if(_vars->registerVariable("t", "float", len, val))
         exit(EXIT_FAILURE);
     sprintf(val, "%g", 0.f);
-    if(_vars->registerVariable("dt", "float", len, val, false))
+    if(_vars->registerVariable("dt", "float", len, val))
         exit(EXIT_FAILURE);
     sprintf(val, "%u", 0);
-    if(_vars->registerVariable("step", "unsigned int", len, val, false))
+    if(_vars->registerVariable("step", "unsigned int", len, val))
         exit(EXIT_FAILURE);
     sprintf(val, "%u", n);
-    if(_vars->registerVariable("n", "unsigned int", len, val, false))
+    if(_vars->registerVariable("n", "unsigned int", len, val))
         exit(EXIT_FAILURE);
     sprintf(val, "%u", num_sensors);
-    if(_vars->registerVariable("n_sensors", "unsigned int", len, val, false))
+    if(_vars->registerVariable("n_sensors", "unsigned int", len, val))
         exit(EXIT_FAILURE);
     sprintf(val, "%u", N);
-    if(_vars->registerVariable("N", "unsigned int", len, val, true))
+    if(_vars->registerVariable("N", "unsigned int", len, val))
         exit(EXIT_FAILURE);
     sprintf(val, "%u", P->sets.size());
-    if(_vars->registerVariable("n_sets", "unsigned int", len, val, false))
+    if(_vars->registerVariable("n_sets", "unsigned int", len, val))
         exit(EXIT_FAILURE);
     sprintf(val, "%u", num_icell);
-    if(_vars->registerVariable("n_radix", "unsigned int", len, val, false))
+    if(_vars->registerVariable("n_radix", "unsigned int", len, val))
         exit(EXIT_FAILURE);
     // Number of cells in x, y, z directions, and the total (n_x * n_y * n_z)
     strcpy(val, "0, 0, 0, 0");
-    if(_vars->registerVariable("n_cells", "uivec4", len, val, false))
+    if(_vars->registerVariable("n_cells", "uivec4", len, val))
         exit(EXIT_FAILURE);
     // Register default arrays
     strcpy(val, "");
     sprintf(len, "%u", N);
-    if(_vars->registerVariable("pos", "vec*", len, val, true))
+    if(_vars->registerVariable("pos", "vec*", len, val))
         exit(EXIT_FAILURE);
-    if(_vars->registerVariable("iset", "unsigned int*", len, val, true))
+    if(_vars->registerVariable("iset", "unsigned int*", len, val))
         exit(EXIT_FAILURE);
     sprintf(len, "%u", num_icell);
-    if(_vars->registerVariable("id_sorted", "unsigned int*", len, val, true))
+    if(_vars->registerVariable("id_sorted", "unsigned int*", len, val))
         exit(EXIT_FAILURE);
-    if(_vars->registerVariable("id_unsorted", "unsigned int*", len, val, true))
+    if(_vars->registerVariable("id_unsorted", "unsigned int*", len, val))
         exit(EXIT_FAILURE);
-    if(_vars->registerVariable("icell", "unsigned int*", len, val, true))
+    if(_vars->registerVariable("icell", "unsigned int*", len, val))
         exit(EXIT_FAILURE);
     sprintf(len, "n_cells_w");
-    if(_vars->registerVariable("ihoc", "unsigned int*", len, val, true))
+    if(_vars->registerVariable("ihoc", "unsigned int*", len, val))
         exit(EXIT_FAILURE);
 
     // Register the user variables and arrays
@@ -130,8 +130,7 @@ CalcServer::CalcServer()
         bool flag = _vars->registerVariable(P->variables.names.at(i),
                                             P->variables.types.at(i),
                                             P->variables.lengths.at(i),
-                                            P->variables.values.at(i),
-                                            P->variables.saves.at(i));
+                                            P->variables.values.at(i));
         if(flag){
             exit(EXIT_FAILURE);
         }

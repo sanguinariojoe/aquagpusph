@@ -23,10 +23,9 @@
 
 namespace Aqua{ namespace InputOutput{
 
-Variable::Variable(const char *varname, const char *vartype, bool varsave)
+Variable::Variable(const char *varname, const char *vartype)
     : _name(NULL)
     , _typename(NULL)
-    , _save(varsave)
 {
     unsigned int len;
 
@@ -44,8 +43,8 @@ Variable::~Variable()
     delete[] _typename; _typename = NULL;
 }
 
-IntVariable::IntVariable(const char *varname, bool varsave)
-    : Variable(varname, "int", varsave)
+IntVariable::IntVariable(const char *varname)
+    : Variable(varname, "int")
     , _value(0)
 {
 }
@@ -54,8 +53,8 @@ IntVariable::~IntVariable()
 {
 }
 
-UIntVariable::UIntVariable(const char *varname, bool varsave)
-    : Variable(varname, "unsigned int", varsave)
+UIntVariable::UIntVariable(const char *varname)
+    : Variable(varname, "unsigned int")
     , _value(0)
 {
 }
@@ -64,8 +63,8 @@ UIntVariable::~UIntVariable()
 {
 }
 
-FloatVariable::FloatVariable(const char *varname, bool varsave)
-    : Variable(varname, "float", varsave)
+FloatVariable::FloatVariable(const char *varname)
+    : Variable(varname, "float")
     , _value(0.f)
 {
 }
@@ -74,8 +73,8 @@ FloatVariable::~FloatVariable()
 {
 }
 
-Vec2Variable::Vec2Variable(const char *varname, bool varsave)
-    : Variable(varname, "vec2", varsave)
+Vec2Variable::Vec2Variable(const char *varname)
+    : Variable(varname, "vec2")
 {
     _value.x = 0.f;
     _value.y = 0.f;
@@ -85,8 +84,8 @@ Vec2Variable::~Vec2Variable()
 {
 }
 
-Vec3Variable::Vec3Variable(const char *varname, bool varsave)
-    : Variable(varname, "vec3", varsave)
+Vec3Variable::Vec3Variable(const char *varname)
+    : Variable(varname, "vec3")
 {
     _value.x = 0.f;
     _value.y = 0.f;
@@ -97,8 +96,8 @@ Vec3Variable::~Vec3Variable()
 {
 }
 
-Vec4Variable::Vec4Variable(const char *varname, bool varsave)
-    : Variable(varname, "vec4", varsave)
+Vec4Variable::Vec4Variable(const char *varname)
+    : Variable(varname, "vec4")
 {
     _value.x = 0.f;
     _value.y = 0.f;
@@ -110,8 +109,8 @@ Vec4Variable::~Vec4Variable()
 {
 }
 
-IVec2Variable::IVec2Variable(const char *varname, bool varsave)
-    : Variable(varname, "ivec2", varsave)
+IVec2Variable::IVec2Variable(const char *varname)
+    : Variable(varname, "ivec2")
 {
     _value.x = 0;
     _value.y = 0;
@@ -121,8 +120,8 @@ IVec2Variable::~IVec2Variable()
 {
 }
 
-IVec3Variable::IVec3Variable(const char *varname, bool varsave)
-    : Variable(varname, "ivec3", varsave)
+IVec3Variable::IVec3Variable(const char *varname)
+    : Variable(varname, "ivec3")
 {
     _value.x = 0;
     _value.y = 0;
@@ -133,8 +132,8 @@ IVec3Variable::~IVec3Variable()
 {
 }
 
-IVec4Variable::IVec4Variable(const char *varname, bool varsave)
-    : Variable(varname, "ivec4", varsave)
+IVec4Variable::IVec4Variable(const char *varname)
+    : Variable(varname, "ivec4")
 {
     _value.x = 0;
     _value.y = 0;
@@ -146,8 +145,8 @@ IVec4Variable::~IVec4Variable()
 {
 }
 
-UIVec2Variable::UIVec2Variable(const char *varname, bool varsave)
-    : Variable(varname, "uivec2", varsave)
+UIVec2Variable::UIVec2Variable(const char *varname)
+    : Variable(varname, "uivec2")
 {
     _value.x = 0;
     _value.y = 0;
@@ -157,8 +156,8 @@ UIVec2Variable::~UIVec2Variable()
 {
 }
 
-UIVec3Variable::UIVec3Variable(const char *varname, bool varsave)
-    : Variable(varname, "uivec3", varsave)
+UIVec3Variable::UIVec3Variable(const char *varname)
+    : Variable(varname, "uivec3")
 {
     _value.x = 0;
     _value.y = 0;
@@ -169,8 +168,8 @@ UIVec3Variable::~UIVec3Variable()
 {
 }
 
-UIVec4Variable::UIVec4Variable(const char *varname, bool varsave)
-    : Variable(varname, "uivec4", varsave)
+UIVec4Variable::UIVec4Variable(const char *varname)
+    : Variable(varname, "uivec4")
 {
     _value.x = 0;
     _value.y = 0;
@@ -182,8 +181,8 @@ UIVec4Variable::~UIVec4Variable()
 {
 }
 
-ArrayVariable::ArrayVariable(const char *varname, const char *vartype, bool varsave)
-    : Variable(varname, vartype, varsave)
+ArrayVariable::ArrayVariable(const char *varname, const char *vartype)
+    : Variable(varname, vartype)
     , _value(NULL)
 {
 }
@@ -236,8 +235,7 @@ Variables::~Variables()
 bool Variables::registerVariable(const char* name,
                                  const char* type,
                                  const char* length,
-                                 const char* value,
-                                 const bool save)
+                                 const char* value)
 {
     // Look for an already existing variable with the same name
     unsigned int i;
@@ -250,10 +248,10 @@ bool Variables::registerVariable(const char* name,
 
     // Discriminate scalar vs. array
     if(strstr(type, "*")){
-        return registerClMem(name, type, length, save);
+        return registerClMem(name, type, length);
     }
     else{
-        return registerScalar(name, type, value, save);
+        return registerScalar(name, type, value);
     }
     return false;
 }
@@ -589,11 +587,10 @@ bool Variables::solve(const char *type_name, const char *value, void *data)
 
 bool Variables::registerScalar(const char* name,
                                const char* type,
-                               const char* value,
-                               const bool save)
+                               const char* value)
 {
     if(!strcmp(type, "int")){
-        IntVariable *var = new IntVariable(name, save);
+        IntVariable *var = new IntVariable(name);
         if(strcmp(value, "")){
             int val = round(tok.solve(value));
             tok.registerVariable(name, (float)val);
@@ -602,7 +599,7 @@ bool Variables::registerScalar(const char* name,
         _vars.push_back(var);
     }
     else if(!strcmp(type, "unsigned int")){
-        UIntVariable *var = new UIntVariable(name, save);
+        UIntVariable *var = new UIntVariable(name);
         if(strcmp(value, "")){
             unsigned int val = (unsigned int)round(tok.solve(value));
             tok.registerVariable(name, (float)val);
@@ -611,7 +608,7 @@ bool Variables::registerScalar(const char* name,
         _vars.push_back(var);
     }
     else if(!strcmp(type, "float")){
-        FloatVariable *var = new FloatVariable(name, save);
+        FloatVariable *var = new FloatVariable(name);
         if(strcmp(value, "")){
             float val = tok.solve(value);
             tok.registerVariable(name, val);
@@ -620,7 +617,7 @@ bool Variables::registerScalar(const char* name,
         _vars.push_back(var);
     }
     else if(!strcmp(type, "vec")){
-        VecVariable *var = new VecVariable(name, save);
+        VecVariable *var = new VecVariable(name);
         if(strcmp(value, "")){
             vec val;
             #ifdef HAVE_3D
@@ -643,7 +640,7 @@ bool Variables::registerScalar(const char* name,
         _vars.push_back(var);
     }
     else if(!strcmp(type, "vec2")){
-        Vec2Variable *var = new Vec2Variable(name, save);
+        Vec2Variable *var = new Vec2Variable(name);
         if(strcmp(value, "")){
             vec2 val;
             float auxval[2];
@@ -656,7 +653,7 @@ bool Variables::registerScalar(const char* name,
         _vars.push_back(var);
     }
     else if(!strcmp(type, "vec3")){
-        Vec3Variable *var = new Vec3Variable(name, save);
+        Vec3Variable *var = new Vec3Variable(name);
         if(strcmp(value, "")){
             vec3 val;
             float auxval[3];
@@ -670,7 +667,7 @@ bool Variables::registerScalar(const char* name,
         _vars.push_back(var);
     }
     else if(!strcmp(type, "vec4")){
-        Vec4Variable *var = new Vec4Variable(name, save);
+        Vec4Variable *var = new Vec4Variable(name);
         if(strcmp(value, "")){
             vec4 val;
             float auxval[4];
@@ -685,7 +682,7 @@ bool Variables::registerScalar(const char* name,
         _vars.push_back(var);
     }
     else if(!strcmp(type, "ivec")){
-        IVecVariable *var = new IVecVariable(name, save);
+        IVecVariable *var = new IVecVariable(name);
         if(strcmp(value, "")){
             ivec val;
             #ifdef HAVE_3D
@@ -708,7 +705,7 @@ bool Variables::registerScalar(const char* name,
         _vars.push_back(var);
     }
     else if(!strcmp(type, "ivec2")){
-        IVec2Variable *var = new IVec2Variable(name, save);
+        IVec2Variable *var = new IVec2Variable(name);
         if(strcmp(value, "")){
             ivec2 val;
             float auxval[2];
@@ -721,7 +718,7 @@ bool Variables::registerScalar(const char* name,
         _vars.push_back(var);
     }
     else if(!strcmp(type, "ivec3")){
-        IVec3Variable *var = new IVec3Variable(name, save);
+        IVec3Variable *var = new IVec3Variable(name);
         if(strcmp(value, "")){
             ivec3 val;
             float auxval[3];
@@ -735,7 +732,7 @@ bool Variables::registerScalar(const char* name,
         _vars.push_back(var);
     }
     else if(!strcmp(type, "ivec4")){
-        IVec4Variable *var = new IVec4Variable(name, save);
+        IVec4Variable *var = new IVec4Variable(name);
         if(strcmp(value, "")){
             ivec4 val;
             float auxval[4];
@@ -750,7 +747,7 @@ bool Variables::registerScalar(const char* name,
         _vars.push_back(var);
     }
     else if(!strcmp(type, "uivec")){
-        UIVecVariable *var = new UIVecVariable(name, save);
+        UIVecVariable *var = new UIVecVariable(name);
         if(strcmp(value, "")){
             uivec val;
             #ifdef HAVE_3D
@@ -773,7 +770,7 @@ bool Variables::registerScalar(const char* name,
         _vars.push_back(var);
     }
     else if(!strcmp(type, "uivec2")){
-        UIVec2Variable *var = new UIVec2Variable(name, save);
+        UIVec2Variable *var = new UIVec2Variable(name);
         if(strcmp(value, "")){
             uivec2 val;
             float auxval[2];
@@ -786,7 +783,7 @@ bool Variables::registerScalar(const char* name,
         _vars.push_back(var);
     }
     else if(!strcmp(type, "uivec3")){
-        UIVec3Variable *var = new UIVec3Variable(name, save);
+        UIVec3Variable *var = new UIVec3Variable(name);
         if(strcmp(value, "")){
             uivec3 val;
             float auxval[3];
@@ -800,7 +797,7 @@ bool Variables::registerScalar(const char* name,
         _vars.push_back(var);
     }
     else if(!strcmp(type, "uivec4")){
-        UIVec4Variable *var = new UIVec4Variable(name, save);
+        UIVec4Variable *var = new UIVec4Variable(name);
         if(strcmp(value, "")){
             uivec4 val;
             float auxval[4];
@@ -845,8 +842,7 @@ bool Variables::registerScalar(const char* name,
 
 bool Variables::registerClMem(const char* name,
                               const char* type,
-                              const char* length,
-                              const bool save)
+                              const char* length)
 {
     size_t typesize;
     unsigned int n;
@@ -933,7 +929,7 @@ bool Variables::registerClMem(const char* name,
         n = (unsigned int)round(tok.solve(length));
 
     // Generate the variable
-    ArrayVariable *var = new ArrayVariable(name, type, save);
+    ArrayVariable *var = new ArrayVariable(name, type);
     if(n){
         // Allocate memory on device
         cl_int status;
