@@ -40,8 +40,8 @@ Variable::Variable(const char *varname, const char *vartype, bool varsave)
 
 Variable::~Variable()
 {
-	delete[] _name; _name = NULL;
-	delete[] _typename; _typename = NULL;
+    delete[] _name; _name = NULL;
+    delete[] _typename; _typename = NULL;
 }
 
 IntVariable::IntVariable(const char *varname, bool varsave)
@@ -211,7 +211,7 @@ size_t ArrayVariable::size() const
                 "Failure getting allocated memory from variable \"%s\"\n",
                 name());
         S->addMessageF(3, msg);
-	    S->printOpenCLError(status);
+        S->printOpenCLError(status);
     }
     return memsize;
 }
@@ -851,7 +851,7 @@ bool Variables::registerClMem(const char* name,
     size_t typesize;
     unsigned int n;
     char msg[256];
-	CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
+    CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
     ScreenManager *S = ScreenManager::singleton();
     // Get the type size
     char auxtype[strlen(type) + 1];
@@ -963,6 +963,7 @@ bool Variables::readComponents(const char* name,
     float val;
     unsigned int i;
     char msg[256];
+    bool error;
     ScreenManager *S = ScreenManager::singleton();
     if(n == 0){
         sprintf(msg,
@@ -994,7 +995,9 @@ bool Variables::readComponents(const char* name,
         }
         strcpy(strchr(aux, ','), "");
         remain = strchr(remain, ',') + 1;
-        val = tok.solve(aux);
+        val = tok.solve(aux, &error);
+        if(error)
+            return true;
         strcpy(nameaux, name);
         strcat(nameaux, extensions[i]);
         tok.registerVariable(nameaux, val);
@@ -1004,7 +1007,9 @@ bool Variables::readComponents(const char* name,
     strcpy(aux, remain);
     if(strchr(aux, ','))
         strcpy(strchr(aux, ','), "");
-    val = tok.solve(aux);
+    val = tok.solve(aux, &error);
+    if(error)
+        return true;
     strcpy(nameaux, name);
     if(n != 1)
         strcat(nameaux, extensions[n - 1]);

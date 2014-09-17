@@ -87,7 +87,7 @@ float Tokenizer::variable(const char* name)
     return _variables["name"];
 }
 
-float Tokenizer::solve(const char* eq)
+float Tokenizer::solve(const char* eq, bool *error)
 {
     Aqua::InputOutput::ScreenManager *S;
     char msg[1024], *test;
@@ -97,6 +97,9 @@ float Tokenizer::solve(const char* eq)
     int n, i;
     float result;
     S = Aqua::InputOutput::ScreenManager::singleton();
+
+    if(error)
+        *error = false;
 
     // First test if the equation is directly a number
     result = strtof(eq, &test);
@@ -113,6 +116,8 @@ float Tokenizer::solve(const char* eq)
         S->addMessageF(3, "Invalid math expression to evaluate:\n");
         sprintf(msg, "\t%s\n", eq);
         S->addMessage(0, msg);
+        if(error)
+            *error = true;
         return 0.f;
     }
 
@@ -121,6 +126,8 @@ float Tokenizer::solve(const char* eq)
     if(!values){
         S->addMessageF(3, "Failure allocating memory for the variables.\n");
         evaluator_destroy(f);
+        if(error)
+            *error = true;
         return 0.f;
     }
     for(i=0;i<n;i++){
@@ -132,6 +139,8 @@ float Tokenizer::solve(const char* eq)
             S->addMessage(0, msg);
             evaluator_destroy(f);
             delete[] values;
+            if(error)
+                *error = true;
             return 0.f;
         }
         values[i] = variable(names[i]);

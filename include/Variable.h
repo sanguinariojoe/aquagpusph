@@ -47,21 +47,21 @@ namespace Aqua{ namespace InputOutput{
 class Variable
 {
 public:
-	/** Constructor.
-	 * @param varname Name of the variable.
-	 * @param vartype Type of the variable.
-	 * @param varsave true if the variable should be printed in output files,
-	 * false otherwise.
-	 */
-	Variable(const char *varname, const char *vartype, bool varsave=false);
+    /** Constructor.
+     * @param varname Name of the variable.
+     * @param vartype Type of the variable.
+     * @param varsave true if the variable should be printed in output files,
+     * false otherwise.
+     */
+    Variable(const char *varname, const char *vartype, bool varsave=false);
 
-	/** Destructor.
-	 */
-	virtual ~Variable();
+    /** Destructor.
+     */
+    virtual ~Variable();
 
-	/** Name of the variable
+    /** Name of the variable
      * @return The name of the variable
-	 */
+     */
     const char* name() const {return (const char*)_name;}
 
     /** Get if the variable should be printed in output files.
@@ -76,9 +76,9 @@ public:
      */
     void save(bool varsave) {_save = varsave;}
 
-	/** Type of the variable
+    /** Type of the variable
      * @return The type of the variable
-	 */
+     */
     virtual const char* type() const {return _typename;}
 
     /** Get the variable type size.
@@ -101,8 +101,8 @@ public:
      */
     virtual void set(void* ptr)=0;
 private:
-	/// Name of the variable
-	char* _name;
+    /// Name of the variable
+    char* _name;
 
     /// Type of the variable
     char* _typename;
@@ -119,16 +119,16 @@ private:
 class IntVariable : public Variable
 {
 public:
-	/** Constructor.
-	 * @param varname Name of the variable.
-	 * @param varsave true if the variable should be printed in output files,
-	 * false otherwise.
-	 */
-	IntVariable(const char *varname, bool varsave=false);
+    /** Constructor.
+     * @param varname Name of the variable.
+     * @param varsave true if the variable should be printed in output files,
+     * false otherwise.
+     */
+    IntVariable(const char *varname, bool varsave=false);
 
-	/** Destructor.
-	 */
-	~IntVariable();
+    /** Destructor.
+     */
+    ~IntVariable();
 
     /** Get the variable type size.
      * @return Variable type size (in bytes)
@@ -155,16 +155,16 @@ private:
 class UIntVariable : public Variable
 {
 public:
-	/** Constructor.
-	 * @param varname Name of the variable.
-	 * @param varsave true if the variable should be printed in output files,
-	 * false otherwise.
-	 */
-	UIntVariable(const char *varname, bool varsave=false);
+    /** Constructor.
+     * @param varname Name of the variable.
+     * @param varsave true if the variable should be printed in output files,
+     * false otherwise.
+     */
+    UIntVariable(const char *varname, bool varsave=false);
 
-	/** Destructor.
-	 */
-	~UIntVariable();
+    /** Destructor.
+     */
+    ~UIntVariable();
 
     /** Get the variable type size.
      * @return Variable type size (in bytes)
@@ -191,16 +191,16 @@ private:
 class FloatVariable : public Variable
 {
 public:
-	/** Constructor.
-	 * @param varname Name of the variable.
-	 * @param varsave true if the variable should be printed in output files,
-	 * false otherwise.
-	 */
-	FloatVariable(const char *varname, bool varsave=false);
+    /** Constructor.
+     * @param varname Name of the variable.
+     * @param varsave true if the variable should be printed in output files,
+     * false otherwise.
+     */
+    FloatVariable(const char *varname, bool varsave=false);
 
-	/** Destructor.
-	 */
-	~FloatVariable();
+    /** Destructor.
+     */
+    ~FloatVariable();
 
     /** Get the variable type size.
      * @return Variable type size (in bytes)
@@ -227,16 +227,16 @@ private:
 class Vec2Variable : public Variable
 {
 public:
-	/** Constructor.
-	 * @param varname Name of the variable.
-	 * @param varsave true if the variable should be printed in output files,
-	 * false otherwise.
-	 */
-	Vec2Variable(const char *varname, bool varsave=false);
+    /** Constructor.
+     * @param varname Name of the variable.
+     * @param varsave true if the variable should be printed in output files,
+     * false otherwise.
+     */
+    Vec2Variable(const char *varname, bool varsave=false);
 
-	/** Destructor.
-	 */
-	~Vec2Variable();
+    /** Destructor.
+     */
+    ~Vec2Variable();
 
     /** Get the variable type size.
      * @return Variable type size (in bytes)
@@ -263,16 +263,16 @@ private:
 class Vec3Variable : public Variable
 {
 public:
-	/** Constructor.
-	 * @param varname Name of the variable.
-	 * @param varsave true if the variable should be printed in output files,
-	 * false otherwise.
-	 */
-	Vec3Variable(const char *varname, bool varsave=false);
+    /** Constructor.
+     * @param varname Name of the variable.
+     * @param varsave true if the variable should be printed in output files,
+     * false otherwise.
+     */
+    Vec3Variable(const char *varname, bool varsave=false);
 
-	/** Destructor.
-	 */
-	~Vec3Variable();
+    /** Destructor.
+     */
+    ~Vec3Variable();
 
     /** Get the variable type size.
      * @return Variable type size (in bytes)
@@ -299,16 +299,16 @@ private:
 class Vec4Variable : public Variable
 {
 public:
-	/** Constructor.
-	 * @param varname Name of the variable.
-	 * @param varsave true if the variable should be printed in output files,
-	 * false otherwise.
-	 */
-	Vec4Variable(const char *varname, bool varsave=false);
+    /** Constructor.
+     * @param varname Name of the variable.
+     * @param varsave true if the variable should be printed in output files,
+     * false otherwise.
+     */
+    Vec4Variable(const char *varname, bool varsave=false);
 
-	/** Destructor.
-	 */
-	~Vec4Variable();
+    /** Destructor.
+     */
+    ~Vec4Variable();
 
     /** Get the variable type size.
      * @return Variable type size (in bytes)
@@ -335,16 +335,16 @@ private:
 class IVec2Variable : public Variable
 {
 public:
-	/** Constructor.
-	 * @param varname Name of the variable.
-	 * @param varsave true if the variable should be printed in output files,
-	 * false otherwise.
-	 */
-	IVec2Variable(const char *varname, bool varsave=false);
+    /** Constructor.
+     * @param varname Name of the variable.
+     * @param varsave true if the variable should be printed in output files,
+     * false otherwise.
+     */
+    IVec2Variable(const char *varname, bool varsave=false);
 
-	/** Destructor.
-	 */
-	~IVec2Variable();
+    /** Destructor.
+     */
+    ~IVec2Variable();
 
     /** Get the variable type size.
      * @return Variable type size (in bytes)
@@ -371,16 +371,16 @@ private:
 class IVec3Variable : public Variable
 {
 public:
-	/** Constructor.
-	 * @param varname Name of the variable.
-	 * @param varsave true if the variable should be printed in output files,
-	 * false otherwise.
-	 */
-	IVec3Variable(const char *varname, bool varsave=false);
+    /** Constructor.
+     * @param varname Name of the variable.
+     * @param varsave true if the variable should be printed in output files,
+     * false otherwise.
+     */
+    IVec3Variable(const char *varname, bool varsave=false);
 
-	/** Destructor.
-	 */
-	~IVec3Variable();
+    /** Destructor.
+     */
+    ~IVec3Variable();
 
     /** Get the variable type size.
      * @return Variable type size (in bytes)
@@ -407,16 +407,16 @@ private:
 class IVec4Variable : public Variable
 {
 public:
-	/** Constructor.
-	 * @param varname Name of the variable.
-	 * @param varsave true if the variable should be printed in output files,
-	 * false otherwise.
-	 */
-	IVec4Variable(const char *varname, bool varsave=false);
+    /** Constructor.
+     * @param varname Name of the variable.
+     * @param varsave true if the variable should be printed in output files,
+     * false otherwise.
+     */
+    IVec4Variable(const char *varname, bool varsave=false);
 
-	/** Destructor.
-	 */
-	~IVec4Variable();
+    /** Destructor.
+     */
+    ~IVec4Variable();
 
     /** Get the variable type size.
      * @return Variable type size (in bytes)
@@ -443,16 +443,16 @@ private:
 class UIVec2Variable : public Variable
 {
 public:
-	/** Constructor.
-	 * @param varname Name of the variable.
-	 * @param varsave true if the variable should be printed in output files,
-	 * false otherwise.
-	 */
-	UIVec2Variable(const char *varname, bool varsave=false);
+    /** Constructor.
+     * @param varname Name of the variable.
+     * @param varsave true if the variable should be printed in output files,
+     * false otherwise.
+     */
+    UIVec2Variable(const char *varname, bool varsave=false);
 
-	/** Destructor.
-	 */
-	~UIVec2Variable();
+    /** Destructor.
+     */
+    ~UIVec2Variable();
 
     /** Get the variable type size.
      * @return Variable type size (in bytes)
@@ -479,16 +479,16 @@ private:
 class UIVec3Variable : public Variable
 {
 public:
-	/** Constructor.
-	 * @param varname Name of the variable.
-	 * @param varsave true if the variable should be printed in output files,
-	 * false otherwise.
-	 */
-	UIVec3Variable(const char *varname, bool varsave=false);
+    /** Constructor.
+     * @param varname Name of the variable.
+     * @param varsave true if the variable should be printed in output files,
+     * false otherwise.
+     */
+    UIVec3Variable(const char *varname, bool varsave=false);
 
-	/** Destructor.
-	 */
-	~UIVec3Variable();
+    /** Destructor.
+     */
+    ~UIVec3Variable();
 
     /** Get the variable type size.
      * @return Variable type size (in bytes)
@@ -515,16 +515,16 @@ private:
 class UIVec4Variable : public Variable
 {
 public:
-	/** Constructor.
-	 * @param varname Name of the variable.
-	 * @param varsave true if the variable should be printed in output files,
-	 * false otherwise.
-	 */
-	UIVec4Variable(const char *varname, bool varsave=false);
+    /** Constructor.
+     * @param varname Name of the variable.
+     * @param varsave true if the variable should be printed in output files,
+     * false otherwise.
+     */
+    UIVec4Variable(const char *varname, bool varsave=false);
 
-	/** Destructor.
-	 */
-	~UIVec4Variable();
+    /** Destructor.
+     */
+    ~UIVec4Variable();
 
     /** Get the variable type size.
      * @return Variable type size (in bytes)
@@ -551,17 +551,17 @@ private:
 class ArrayVariable : public Variable
 {
 public:
-	/** Constructor.
-	 * @param varname Name of the variable.
-	 * @param vartype Type of the variable.
-	 * @param varsave true if the variable should be printed in output files,
-	 * false otherwise.
-	 */
-	ArrayVariable(const char *varname, const char *vartype, bool varsave=false);
+    /** Constructor.
+     * @param varname Name of the variable.
+     * @param vartype Type of the variable.
+     * @param varsave true if the variable should be printed in output files,
+     * false otherwise.
+     */
+    ArrayVariable(const char *varname, const char *vartype, bool varsave=false);
 
-	/** Destructor.
-	 */
-	~ArrayVariable();
+    /** Destructor.
+     */
+    ~ArrayVariable();
 
     /** Get the variable type size.
      * @return Variable type size (in bytes)
@@ -597,15 +597,15 @@ private:
 class Variables
 {
 public:
-	/** Constructor.
-	 */
-	Variables();
+    /** Constructor.
+     */
+    Variables();
 
-	/** Destructor.
-	 */
-	~Variables();
+    /** Destructor.
+     */
+    ~Variables();
 
-	/** Register a new variable.
+    /** Register a new variable.
      * @param name Name of the variable.
      * @param type Type of the variable.
      * @param length Array length, 1 for scalars, 0 for arrays that will
@@ -668,7 +668,7 @@ public:
 
     /** Solve a string, interpreting the variables.
      * @param type_name Type of the output desired value.
-     * @param value Value text to evaluate.
+     * @param value Expression to evaluate.
      * @param data Allocated memory where the result should be stored.
      * @return false if all gone right, true otherwise.
      * @note typeToBytes(type) bytes should be allocated in data.
