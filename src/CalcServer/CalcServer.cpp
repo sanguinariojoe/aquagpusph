@@ -107,6 +107,11 @@ CalcServer::CalcServer()
     strcpy(val, "0, 0, 0, 0");
     if(_vars->registerVariable("n_cells", "uivec4", len, val))
         exit(EXIT_FAILURE);
+    // Kernel support
+    sprintf(val, "%g", 2.f);
+    if(_vars->registerVariable("support", "float", len, val))
+        exit(EXIT_FAILURE);
+
     // Register default arrays
     strcpy(val, "");
     sprintf(len, "%u", N);

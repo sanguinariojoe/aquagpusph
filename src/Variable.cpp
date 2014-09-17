@@ -189,7 +189,7 @@ ArrayVariable::ArrayVariable(const char *varname, const char *vartype)
 
 ArrayVariable::~ArrayVariable()
 {
-    if(_value != NULL) clReleaseMemObject(_value); _value=NULL;
+    if(_value) clReleaseMemObject(_value); _value=NULL;
 }
 
 size_t ArrayVariable::size() const

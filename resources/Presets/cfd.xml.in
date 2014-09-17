@@ -11,6 +11,7 @@
         n_sets = Number of different sets of particles (each set may have different properties)
         n_radix = Rounded up value from N which is a power of 2
         n_cells = Number of cells (initialized as [0,0,0,0])
+        support = Kernel support (as a factor of the kernel length "h")
         pos = Vector of particles positions (it should be read from an input file)
         iset = Particles set of each particle
         id_sorted = Permutations from unsorted space to sorted space

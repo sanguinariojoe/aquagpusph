@@ -84,6 +84,7 @@
 		<Unit filename="../include/CalcServer.h" />
 		<Unit filename="../include/CalcServer/Copy.h" />
 		<Unit filename="../include/CalcServer/Kernel.h" />
+		<Unit filename="../include/CalcServer/LinkList.h" />
 		<Unit filename="../include/CalcServer/Reduction.h" />
 		<Unit filename="../include/CalcServer/Set.h" />
 		<Unit filename="../include/CalcServer/Tool.h" />
@@ -107,6 +108,7 @@
 		<Unit filename="../src/CalcServer/CalcServer.cpp" />
 		<Unit filename="../src/CalcServer/Copy.cpp" />
 		<Unit filename="../src/CalcServer/Kernel.cpp" />
+		<Unit filename="../src/CalcServer/LinkList.cpp" />
 		<Unit filename="../src/CalcServer/Reduction.cpp" />
 		<Unit filename="../src/CalcServer/Set.cpp" />
 		<Unit filename="../src/CalcServer/Tool.cpp" />

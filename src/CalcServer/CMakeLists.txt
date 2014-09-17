@@ -40,6 +40,7 @@ SET(Server_CPP_SRCS
 	CalcServer.cpp
 	Copy.cpp
 	Kernel.cpp
+	LinkList.cpp
 	Reduction.cpp
 	Set.cpp
 	Tool.cpp

@@ -1,0 +1,116 @@
+/*
+ *  This file is part of AQUAgpusph, a free CFD program based on SPH.
+ *  Copyright (C) 2012  Jose Luis Cercos Pita <jl.cercos@upm.es>
+ *
+ *  AQUAgpusph is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  AQUAgpusph is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** Set all the cells as empty (i.e. the head of chain of the cell is a
+ * particle that does not exist).
+ * @param ihoc Head of chain of each cell.
+ * @param N Number of particles.
+ * @param n_cells Number of cells at each direction, and the total number of
+ * allocated cells.
+ */
+__kernel void iHoc(__global unsigned int *ihoc,
+                   unsigned int N,
+                   uivec4 n_cells)
+{
+    // find position in global arrays
+    unsigned int i = get_global_id(0);
+    if(i >= n_cells)
+        return;
+
+    ihoc[i] = N;
+}
+
+/** Compute the cell where each particle is allocated.
+ * @param icell Cell where each particle is allocated.
+ * @param pos Positions of the particles.
+ * @param N Number of particles.
+ * @param n_radix N if it is a power of 2, the next power of 2 otherwise.
+ * @param pos_min Minimum of pos.
+ * @param support Kernel support as a factor of h.
+ * @param h Kernel characteristic length.
+ * @param n_cells Number of cells at each direction, and the total number of
+ * allocated cells.
+ */
+__kernel void iCell(__global unsigned int *icell,
+                    __global vec *pos,
+                    unsigned int N,
+                    unsigned int n_radix,
+                    vec pos_min,
+                    float support,
+                    float h,
+                    uivec4 n_cells)
+{
+    // find position in global arrays
+    unsigned int i = get_global_id(0);
+    if(i >= n_radix)
+        return;
+
+    uivec cell;
+    float idist;
+    unsigned int cell_id;
+
+    if(i < N) {
+        // Normal particles
+        idist = 1.f / (support * h);
+        cell.x = (unsigned int)((pos[i].x - pos_min.x) * idist) + 3u;
+        cell.y = (unsigned int)((pos[i].y - pos_min.y) * idist) + 3u;
+        #ifdef HAVE_3D
+            cell.z = (unsigned int)((pos[i].z - posmin.z) * rdist) + 3u;
+            cell_id = cell.x - 1u +
+                      (cell.y - 1u) * n_cells.x +
+                      (cell.z - 1u) * n_cells.x * n_cells.y;
+            icell[i] = cell_id;
+        #else
+            cell_id = cell.x - 1u +
+                      (cell.y - 1u) * n_cells.x;
+            icell[i] = cell_id;
+        #endif
+        return;
+    }
+
+    // Particles out of bounds (n_radix - N)
+    icell[i] = n_cells.w;
+}
+
+/** Compute the linklist after the sort of the icell array.
+ * @param icell Cell where each particle is allocated.
+ * @param ihoc Head of chain of each cell.
+ * @param N Number of particles.
+ */
+__kernel void linkList(__global unsigned int *icell,
+                       __global unsigned int *ihoc,
+                       unsigned int N)
+{
+    // find position in global arrays
+    unsigned int i = get_global_id(0);
+    if(i >= N - 1)
+        return;
+
+    // We are looking the first particle on each cell, which can be detected
+    // just checking if the previous particle is in the same cell.
+    unsigned int c, c2;
+    c = icell[i];
+    c2 = icell[i + 1];
+    if(i==0){
+        // As a particular case, the first particle is ever the head of chain.
+        ihoc[c] = 0;
+    }
+    if(c2 != c){
+        ihoc[c2] = i + 1;
+    }
+}
