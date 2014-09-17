@@ -36,6 +36,7 @@
 #include <ScreenManager.h>
 #include <CalcServer/Copy.h>
 #include <CalcServer/Kernel.h>
+#include <CalcServer/LinkList.h>
 #include <CalcServer/Reduction.h>
 #include <CalcServer/Set.h>
 
@@ -167,6 +168,10 @@ CalcServer::CalcServer()
                                             P->tools.at(i)->get("out"),
                                             P->tools.at(i)->get("operation"),
                                             P->tools.at(i)->get("null"));
+            _tools.push_back(tool);
+        }
+        else if(!strcmp(P->tools.at(i)->get("type"), "link-list")){
+            LinkList *tool = new LinkList(P->tools.at(i)->get("name"));
             _tools.push_back(tool);
         }
         else{

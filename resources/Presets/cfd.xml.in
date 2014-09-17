@@ -53,21 +53,6 @@
         <Tool action="add" type="copy" name="Init rho" in="rho" out="rho_in"/>
         <Tool action="add" type="set" name="Init drhodt" in="drhodt_in" value="0.f"/>
         <Tool action="add" type="kernel" name="Predictor" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Predictor.cl"/>
-        <Tool action="add" type="reduction" name="Minimum position" in="pos" out="pos_min" null="VEC_INFINITY">
-            c.x = (a.x &lt; b.x) ? a.x : b.x;
-            c.y = (a.y &lt; b.y) ? a.y : b.y;
-            #ifdef HAVE_3D
-                c.z = (a.z &lt; b.z) ? a.z : b.z;
-                c.w = 0.f;
-            #endif
-        </Tool>
-        <Tool action="add" type="reduction" name="Maximum position" in="pos" out="pos_max" null="VEC_NEG_INFINITY">
-            c.x = (a.x &gt; b.x) ? a.x : b.x;
-            c.y = (a.y &gt; b.y) ? a.y : b.y;
-            #ifdef HAVE_3D
-                c.z = (a.z &gt; b.z) ? a.z : b.z;
-                c.w = 0.f;
-            #endif
-        </Tool>
+        <Tool action="add" type="link-list" name="Link-List"/>
     </Tools>
 </sphInput>
