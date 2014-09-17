@@ -118,6 +118,31 @@ public:
     bool execute();
 
 private:
+    /** Initialize permutations array.
+     * @return false if all gone right, true otherwise.
+     */
+    bool init();
+
+    /** Perform histograms.
+     * @return false if all gone right, true otherwise.
+     */
+    bool histograms();
+
+    /** Scan histograms.
+     * @return false if all gone right, true otherwise.
+     */
+    bool scan();
+
+    /** Scan histograms.
+     * @return false if all gone right, true otherwise.
+     */
+    bool reorder();
+
+    /** Build the reversed permutations vector.
+     * @return false if all gone right, true otherwise.
+     */
+    bool inversePermutations();
+
     /** Get the variables to compute.
      * @return false if all gone right, true otherwise.
      */
@@ -139,6 +164,16 @@ private:
      * @return false if all gone right, true otherwise.
      */
     bool setupDims();
+
+    /** Setup the memory objects.
+     * @return false if all gone right, true otherwise.
+     */
+    bool setupMems();
+
+    /** Send the fixed arguments to the kernels.
+     * @return false if all gone right, true otherwise.
+     */
+    bool setupArgs();
 
     /// Variable to sort name
     char *_var_name;
@@ -174,6 +209,21 @@ private:
     /// OpenCL reverse permutations kernel
     cl_kernel _inv_perms_kernel;
 
+    /// Input keys
+    cl_mem _in_keys;
+    /// Output keys
+    cl_mem _out_keys;
+    /// Input permutations
+    cl_mem _in_permut;
+    /// Output permutations
+    cl_mem _out_permut;
+    /// Histograms
+    cl_mem _histograms;
+    /// Sums for each histogram split
+    cl_mem _global_sums;
+    /// Temporal memory
+    cl_mem _temp_mem;
+
     /// Number of items in a group
     unsigned int _items;
     /// Number of groups in a radix
@@ -184,6 +234,18 @@ private:
     unsigned int _radix;
     /// Splits of the histogram
     unsigned int _histo_split;
+
+    /// Key bits (maximum)
+    unsigned int _key_bits;
+    /// Needed radix pass (_key_bits / _STEPBITS)
+    unsigned int _n_pass;
+    /// Pass of the radix decomposition
+    unsigned int _pass;
+
+    /// Maximum local work size allowed by the device
+    size_t _local_work_size;
+    /// Global work size (assuming the maximum local work size) to compute _n threads.
+    size_t _global_work_size;
 };
 
 }}  // namespace
