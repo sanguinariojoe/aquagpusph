@@ -57,22 +57,6 @@ private:
      */
     bool variables();
 
-    /** Setup the OpenCL stuff
-     * @return false if all gone right, true otherwise.
-     */
-    bool setupOpenCL();
-
-    /** Compile the source code and generate the corresponding kernel
-     * @param source Source code to be compiled.
-     * @return Kernel instance, NULL if error happened.
-     */
-    cl_kernel compile(const char* source);
-
-    /** Update the input and output looking for changed values.
-     * @return false if all gone right, true otherwise.
-     */
-    bool setVariables();
-
     /// Input variable name
     char* _input_name;
     /// Output variable name
@@ -82,21 +66,6 @@ private:
     InputOutput::ArrayVariable *_input_var;
     /// Output variable
     InputOutput::ArrayVariable *_output_var;
-
-    /// Input memory object sent
-    cl_mem *_input;
-    /// Output memory object sent
-    cl_mem *_output;
-
-    /// OpenCL kernel
-    cl_kernel _kernel;
-
-    /// Global work sizes in each step
-    size_t _global_work_size;
-    /// Local work sizes in each step
-    size_t _local_work_size;
-    /// Number of elements
-    unsigned int _n;
 };
 
 }}  // namespace
