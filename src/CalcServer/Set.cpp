@@ -54,7 +54,6 @@ Set::Set(const char *name, const char *var_name, const char *value)
 
 Set::~Set()
 {
-    _var=NULL;
     if(_var_name) delete[] _var_name; _var_name=NULL;
     if(_value) delete[] _value; _value=NULL;
     if(_kernel) clReleaseKernel(_kernel); _kernel=NULL;
@@ -79,7 +78,7 @@ bool Set::setup()
     _input = (cl_mem*)_var->get();
     _n = _var->size() / vars->typeToBytes(_var->type());
     if(setupOpenCL())
-        exit(EXIT_FAILURE);
+        return true;
     return false;
 }
 
@@ -316,6 +315,5 @@ bool Set::setVariables()
 
 	return false;
 }
-
 
 }}  // namespaces

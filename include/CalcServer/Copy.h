@@ -16,38 +16,30 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SET_H_INCLUDED
-#define SET_H_INCLUDED
+#ifndef COPY_H_INCLUDED
+#define COPY_H_INCLUDED
 
 #include <CalcServer.h>
 #include <CalcServer/Kernel.h>
 
 namespace Aqua{ namespace CalcServer{
 
-/** @class Set Set.h CalcServer/Set.h
- * @brief Set all the components of an array with the desired value.
+/** @class Copy Copy.h CalcServer/Copy.h
+ * @brief Copy an array component by component.
  */
-class Set : public Aqua::CalcServer::Tool
+class Copy : public Aqua::CalcServer::Tool
 {
 public:
     /** Constructor.
      * @param name Tool name.
-     * @param var_name Variable to set.
-     * @param value Value to set.
-     * @note Some helpers are available for value:
-     *   - VEC_ZERO: Zeroes vector.
-     *   - VEC_ONE: Ones vector, in 3D cases the last component will be zero.
-     *   - VEC_ALL_ONE: Equal to VEC_ONE, but in 3D cases the last component will be one as well.
-     *   - VEC_INFINITY: INFINITY components vector, in 3D cases the last component will be zero.
-     *   - VEC_ALL_INFINITY: Equal to VEC_INFINITY, but in 3D cases the last component will be INFINITY as well.
-     *   - VEC_NEG_INFINITY: -VEC_INFINITY
-     *   - VEC_ALL_NEG_INFINITY: -VEC_ALL_INFINITY.
+     * @param input_name Variable to copy.
+     * @param output_name Variable to set.
      */
-    Set(const char *name, const char *var_name, const char *value);
+    Copy(const char *name, const char *input_name, const char *output_name);
 
     /** Destructor.
      */
-    ~Set();
+    ~Copy();
 
     /** Initialize the tool.
      * @return false if all gone right, true otherwise.
@@ -60,10 +52,10 @@ public:
     bool execute();
 
 private:
-    /** Get the input variable
+    /** Get the input and output variables
      * @return false if all gone right, true otherwise
      */
-    bool variable();
+    bool variables();
 
     /** Setup the OpenCL stuff
      * @return false if all gone right, true otherwise.
@@ -76,21 +68,25 @@ private:
      */
     cl_kernel compile(const char* source);
 
-    /** Update the input looking for changed value.
+    /** Update the input and output looking for changed values.
      * @return false if all gone right, true otherwise.
      */
     bool setVariables();
 
     /// Input variable name
-    char* _var_name;
-    /// Value to set
-    char* _value;
+    char* _input_name;
+    /// Output variable name
+    char* _output_name;
 
     /// Input variable
-    InputOutput::ArrayVariable *_var;
+    InputOutput::ArrayVariable *_input_var;
+    /// Output variable
+    InputOutput::ArrayVariable *_output_var;
 
-    /// Memory object sent
+    /// Input memory object sent
     cl_mem *_input;
+    /// Output memory object sent
+    cl_mem *_output;
 
     /// OpenCL kernel
     cl_kernel _kernel;
@@ -105,4 +101,4 @@ private:
 
 }}  // namespace
 
-#endif // SET_H_INCLUDED
+#endif // COPY_H_INCLUDED

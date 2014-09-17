@@ -2,6 +2,8 @@
 # Embed OpenCL codes                                    #
 # ===================================================== #
 ADD_CUSTOM_TARGET(opencl_embed ALL
+	COMMAND xxd -i Copy.hcl.in > Copy.hcl
+	COMMAND xxd -i Copy.cl.in > Copy.cl
 	COMMAND xxd -i Reduction.hcl.in > Reduction.hcl
 	COMMAND xxd -i Reduction.cl.in > Reduction.cl
 	COMMAND xxd -i Set.hcl.in > Set.hcl

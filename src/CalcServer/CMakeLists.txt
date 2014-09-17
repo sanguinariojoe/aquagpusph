@@ -38,6 +38,7 @@ SET(DEP_LIBS
 # ===================================================== #
 SET(Server_CPP_SRCS
 	CalcServer.cpp
+	Copy.cpp
 	Kernel.cpp
 	Reduction.cpp
 	Set.cpp

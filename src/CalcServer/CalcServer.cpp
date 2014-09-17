@@ -34,6 +34,7 @@
 #include <Fluid.h>
 #include <TimeManager.h>
 #include <ScreenManager.h>
+#include <CalcServer/Copy.h>
 #include <CalcServer/Kernel.h>
 #include <CalcServer/Reduction.h>
 #include <CalcServer/Set.h>
@@ -141,6 +142,12 @@ CalcServer::CalcServer()
         if(!strcmp(P->tools.at(i)->get("type"), "kernel")){
             Kernel *tool = new Kernel(P->tools.at(i)->get("name"),
                                       P->tools.at(i)->get("path"));
+            _tools.push_back(tool);
+        }
+        else if(!strcmp(P->tools.at(i)->get("type"), "copy")){
+            Copy *tool = new Copy(P->tools.at(i)->get("name"),
+                                  P->tools.at(i)->get("in"),
+                                  P->tools.at(i)->get("out"));
             _tools.push_back(tool);
         }
         else if(!strcmp(P->tools.at(i)->get("type"), "set")){

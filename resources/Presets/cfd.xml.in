@@ -46,7 +46,10 @@
     </Variables>
 
     <Tools>
+        <Tool action="add" type="copy" name="Init pos" in="pos" out="pos_in"/>
+        <Tool action="add" type="copy" name="Init v" in="v" out="v_in"/>
         <Tool action="add" type="set" name="Init dvdt" in="dvdt_in" value="VEC_ZERO"/>
+        <Tool action="add" type="copy" name="Init rho" in="rho" out="rho_in"/>
         <Tool action="add" type="set" name="Init drhodt" in="drhodt_in" value="0.f"/>
         <Tool action="add" type="kernel" name="Predictor" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Predictor.cl"/>
         <Tool action="add" type="reduction" name="Minimum position" in="pos" out="pos_min" null="VEC_INFINITY">

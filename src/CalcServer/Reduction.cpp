@@ -40,14 +40,14 @@ Reduction::Reduction(const char *name,
                      const char *output_name,
                      const char* operation,
                      const char* null_val)
-	: Tool(name)
-	, _input_name(NULL)
-	, _output_name(NULL)
-	, _operation(NULL)
-	, _null_val(NULL)
-	, _input_var(NULL)
-	, _output_var(NULL)
-	, _input(NULL)
+    : Tool(name)
+    , _input_name(NULL)
+    , _output_name(NULL)
+    , _operation(NULL)
+    , _null_val(NULL)
+    , _input_var(NULL)
+    , _output_var(NULL)
+    , _input(NULL)
 {
     _input_name = new char[strlen(input_name) + 1];
     strcpy(_input_name, input_name);
@@ -78,8 +78,8 @@ Reduction::~Reduction()
         _kernels.at(i)=NULL;
     }
     _kernels.clear();
-	_global_work_sizes.clear();
-	_local_work_sizes.clear();
+    _global_work_sizes.clear();
+    _local_work_sizes.clear();
 }
 
 bool Reduction::setup()
@@ -103,7 +103,7 @@ bool Reduction::setup()
     size_t n = _input_var->size() / vars->typeToBytes(_input_var->type());
     _n.push_back(n);
     if(setupOpenCL())
-        exit(EXIT_FAILURE);
+        return true;
     return false;
 }
 
@@ -113,8 +113,8 @@ bool Reduction::execute()
     unsigned int i;
     cl_int err_code;
     char msg[1024];
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    CalcServer *C = CalcServer::singleton();
     InputOutput::Variables *vars = C->variables();
 
     if(setVariables()){
@@ -122,7 +122,7 @@ bool Reduction::execute()
     }
 
     // Execute the kernels
-	for(i=0;i<_kernels.size();i++){
+    for(i=0;i<_kernels.size();i++){
         size_t _global_work_size = _global_work_sizes.at(i);
         size_t _local_work_size  = _local_work_sizes.at(i);
         err_code = clEnqueueNDRangeKernel(C->command_queue(),
@@ -134,19 +134,19 @@ bool Reduction::execute()
                                           0,
                                           NULL,
                                           NULL);
-		if(err_code != CL_SUCCESS) {
+        if(err_code != CL_SUCCESS) {
             sprintf(msg,
                     "Failure executing the tool \"%s\" step %u.\n",
                     name(),
                     i);
-			S->addMessageF(3, msg);
+            S->addMessageF(3, msg);
             S->printOpenCLError(err_code);
             return true;
         }
-	}
+    }
 
     // Get back the result
-	err_code = clEnqueueReadBuffer(C->command_queue(),
+    err_code = clEnqueueReadBuffer(C->command_queue(),
                                    _mems.at(_mems.size()-1),
                                    CL_TRUE,
                                    0,
@@ -155,12 +155,12 @@ bool Reduction::execute()
                                    0,
                                    NULL,
                                    NULL);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessageF(3, "Failure reading back the reduced result.\n");
-	    S->printOpenCLError(err_code);
-	    return true;
-	}
-	return false;
+    if(err_code != CL_SUCCESS) {
+        S->addMessageF(3, "Failure reading back the reduced result.\n");
+        S->printOpenCLError(err_code);
+        return true;
+    }
+    return false;
 }
 
 bool Reduction::variables()
@@ -229,8 +229,8 @@ bool Reduction::setupOpenCL()
     cl_int err_code;
     cl_kernel kernel;
     char msg[1024];
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    CalcServer *C = CalcServer::singleton();
     InputOutput::Variables *vars = C->variables();
 
     // Get the elements data size to can allocate local memory later
@@ -261,18 +261,18 @@ bool Reduction::setupOpenCL()
     if(!kernel){
         return true;
     }
-	err_code = clGetKernelWorkGroupInfo(kernel,
+    err_code = clGetKernelWorkGroupInfo(kernel,
                                         C->device(),
                                         CL_KERNEL_WORK_GROUP_SIZE,
                                         sizeof(size_t),
                                         &max_local_size,
                                         NULL);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessageF(3, "Failure querying the work group size.\n");
+    if(err_code != CL_SUCCESS) {
+        S->addMessageF(3, "Failure querying the work group size.\n");
         S->printOpenCLError(err_code);
         clReleaseKernel(kernel);
-	    return true;
-	}
+        return true;
+    }
     if(max_local_size < __CL_MIN_LOCALSIZE__){
         S->addMessageF(3, "Reduction cannot be performed (insufficient local memory)\n");
         sprintf(msg,
@@ -287,7 +287,7 @@ bool Reduction::setupOpenCL()
         local_size = nextPowerOf2(local_size) / 2;
     }
 
-	if(kernel)clReleaseKernel(kernel); kernel=NULL;
+    if(kernel)clReleaseKernel(kernel); kernel=NULL;
 
     // Now we can start a loop while the amount of reduced data is greater than
     // one
@@ -369,7 +369,7 @@ bool Reduction::setupOpenCL()
         n = _number_groups.at(i);
         i++;
     }
-	return false;
+    return false;
 }
 
 cl_kernel Reduction::compile(const char* source, size_t local_work_size)
@@ -378,8 +378,8 @@ cl_kernel Reduction::compile(const char* source, size_t local_work_size)
     cl_program program;
     cl_kernel kernel;
     char msg[1024];
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    CalcServer *C = CalcServer::singleton();
 
     char flags[512];
     sprintf(flags,
@@ -387,70 +387,70 @@ cl_kernel Reduction::compile(const char* source, size_t local_work_size)
             _output_var->type(),
             _null_val,
             local_work_size);
-	#ifdef AQUA_DEBUG
-	    strcat(flags, " -g -DDEBUG ");
-	#else
-	    strcat(flags, " -DNDEBUG ");
-	#endif
-	strcat(flags, " -cl-mad-enable -cl-no-signed-zeros -cl-finite-math-only -cl-fast-relaxed-math");
-	#ifdef HAVE_3D
-		strcat(flags, " -DHAVE_3D");
-	#else
-		strcat(flags, " -DHAVE_2D");
-	#endif
-	size_t source_length = strlen(source) + 1;
-	program = clCreateProgramWithSource(C->context(),
+    #ifdef AQUA_DEBUG
+        strcat(flags, " -g -DDEBUG ");
+    #else
+        strcat(flags, " -DNDEBUG ");
+    #endif
+    strcat(flags, " -cl-mad-enable -cl-no-signed-zeros -cl-finite-math-only -cl-fast-relaxed-math");
+    #ifdef HAVE_3D
+        strcat(flags, " -DHAVE_3D");
+    #else
+        strcat(flags, " -DHAVE_2D");
+    #endif
+    size_t source_length = strlen(source) + 1;
+    program = clCreateProgramWithSource(C->context(),
                                         1,
                                         (const char **)&source,
                                         &source_length,
                                         &err_code);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessageF(3, "Failure creating the OpenCL program.\n");
-	    S->printOpenCLError(err_code);
-	    return NULL;
-	}
-	err_code = clBuildProgram(program, 0, NULL, flags, NULL, NULL);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessage(3, "Error compiling the source code\n");
+    if(err_code != CL_SUCCESS) {
+        S->addMessageF(3, "Failure creating the OpenCL program.\n");
         S->printOpenCLError(err_code);
-	    S->addMessage(3, "--- Build log ---------------------------------\n");
-	    size_t log_size;
-	    clGetProgramBuildInfo(program,
+        return NULL;
+    }
+    err_code = clBuildProgram(program, 0, NULL, flags, NULL, NULL);
+    if(err_code != CL_SUCCESS) {
+        S->addMessage(3, "Error compiling the source code\n");
+        S->printOpenCLError(err_code);
+        S->addMessage(3, "--- Build log ---------------------------------\n");
+        size_t log_size;
+        clGetProgramBuildInfo(program,
                               C->device(),
                               CL_PROGRAM_BUILD_LOG,
                               0,
                               NULL,
                               &log_size);
-	    char *log = (char*)malloc(log_size + sizeof(char));
-	    clGetProgramBuildInfo(program,
+        char *log = (char*)malloc(log_size + sizeof(char));
+        clGetProgramBuildInfo(program,
                               C->device(),
                               CL_PROGRAM_BUILD_LOG,
                               log_size,
                               log,
                               NULL);
-	    strcat(log, "\n");
-	    S->addMessage(0, log);
-	    S->addMessage(3, "--------------------------------- Build log ---\n");
-	    free(log); log=NULL;
+        strcat(log, "\n");
+        S->addMessage(0, log);
+        S->addMessage(3, "--------------------------------- Build log ---\n");
+        free(log); log=NULL;
         clReleaseProgram(program);
-	    return NULL;
-	}
-	kernel = clCreateKernel(program, "main", &err_code);
+        return NULL;
+    }
+    kernel = clCreateKernel(program, "main", &err_code);
     clReleaseProgram(program);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessageF(3, "Failure creating the kernel.\n");
-	    S->printOpenCLError(err_code);
-	    return NULL;
-	}
+    if(err_code != CL_SUCCESS) {
+        S->addMessageF(3, "Failure creating the kernel.\n");
+        S->printOpenCLError(err_code);
+        return NULL;
+    }
 
-	return kernel;
+    return kernel;
 }
 
 bool Reduction::setVariables()
 {
     char msg[1024];
     cl_int err_code;
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 
     if((void*)_input == _input_var->get()){
         return false;
@@ -473,7 +473,7 @@ bool Reduction::setVariables()
     _input = (cl_mem *)_input_var->get();
     _mems.at(0) = *_input;
 
-	return false;
+    return false;
 }
 
 
