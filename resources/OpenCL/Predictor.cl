@@ -97,8 +97,7 @@ __kernel void main(__global int* imove,
                    __global vec* dvdt_in,
                    __global float* rho_in,
                    __global float* drhodt_in,
-                   __global float* mass, 
-                   __global float* press,
+                   __global float* p_in,
                    __constant float* gamma,
                    __constant float* refd,
                    unsigned int N,
@@ -113,12 +112,34 @@ __kernel void main(__global int* imove,
     if(i >= N)
         return;
 
-    // Time step modified by imove flag
+    // Momentum equation is solved just for the fluid particles
     float DT = dt;
     if(imove[i] <= 0)
         DT = 0.f;
 
-    // Predictor step for the fluid and walls
+    v_in[i] = v[i] + DT * (dvdt[i] + g);
+    pos_in[i] = pos[i] + DT * v[i] + 0.5f * DT * DT * (dvdt[i] + g);
+    
+    // Continuity equation must be solved for the fixed particles too
+    if(imove[i] != -1){
+        DT = dt;
+    }
+    rho_in[i] = rho[i] + DT * drhodt[i];
+    if(rho_in[i] < rho_min) rho_in[i] = rho_min;
+    if(rho_in[i] > rho_max) rho_in[i] = rho_max;
+
+    // Batchelor 1967
+    {
+        const float ddenf = rho_in[i] / refd[iset[i]];
+        const float prb = cs * cs * refd[iset[i]] / gamma[iset[i]];
+        p_in[i] = prb * (pow(ddenf, gamma[iset[i]]) - 1.f);
+    }
+
+    dvdt_in[i] = VEC_ZERO;
+    drhodt_in[i] = 0.f;
+    
+    /*
+     // Predictor step for the fluid and walls
     v[i] = v_in[i] + DT * (dvdt_in[i] + g);
     pos[i] = pos_in[i] + DT * v_in[i] + 0.5f * DT * DT * (dvdt_in[i] + g);
 
@@ -139,4 +160,5 @@ __kernel void main(__global int* imove,
     // Output variables reinitialization
     dvdt[i] = VEC_ZERO;
     drhodt[i] = 0.f;
+    */
 }

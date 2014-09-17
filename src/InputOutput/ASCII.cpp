@@ -66,7 +66,7 @@ bool ASCII::load()
 
     f = fopen(P->sets.at(setId())->inputPath(), "r");
     if(!f){
-        S->addMessage(3, "The file is inaccessible.\n");
+        S->addMessageF(3, "The file is inaccessible.\n");
         return true;
     }
 
@@ -78,14 +78,14 @@ bool ASCII::load()
                 "Expected %u particles, but the file contains %u ones.\n",
                 n,
                 N);
-        S->addMessage(3, msg);
+        S->addMessageF(3, msg);
         return true;
     }
 
     // Check the fields to read
     std::deque<char*> fields = P->sets.at(setId())->inputFields();
     if(!fields.size()){
-        S->addMessage(3, "0 fields were set to read from the file.\n");
+        S->addMessageF(3, "0 fields were set to read from the file.\n");
         return true;
     }
     bool have_pos = false;
@@ -96,7 +96,7 @@ bool ASCII::load()
         }
     }
     if(!have_pos){
-        S->addMessage(3, "\"pos\" field was not set to read from the file.\n");
+        S->addMessageF(3, "\"pos\" field was not set to read from the file.\n");
         return true;
     }
     // Setup an storage
@@ -108,14 +108,14 @@ bool ASCII::load()
             sprintf(msg,
                     "\"%s\" field has been set to read, but it was not declared.\n",
                     fields.at(i));
-            S->addMessage(3, msg);
+            S->addMessageF(3, msg);
             return true;
         }
         if(!strchr(vars->get(fields.at(i))->type(), '*')){
             sprintf(msg,
                     "\"%s\" field has been set to read, but it was declared as a scalar.\n",
                     fields.at(i));
-            S->addMessage(3, msg);
+            S->addMessageF(3, msg);
             return true;
         }
         ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i));
@@ -126,7 +126,7 @@ bool ASCII::load()
             sprintf(msg,
                     "Failure reading \"%s\" field, which has not length enough.\n",
                     fields.at(i));
-            S->addMessage(3, msg);
+            S->addMessageF(3, msg);
             return true;
         }
         void *store = malloc(typesize * n);
@@ -134,7 +134,7 @@ bool ASCII::load()
             sprintf(msg,
                     "Failure allocating memory for \"%s\" field.\n",
                     fields.at(i));
-            S->addMessage(3, msg);
+            S->addMessageF(3, msg);
             return true;
         }
         data.push_back(store);
@@ -228,7 +228,7 @@ bool ASCII::save()
 
     std::deque<char*> fields = P->sets.at(setId())->outputFields();
     if(!fields.size()){
-        S->addMessage(3, "0 fields were set to save into the file.\n");
+        S->addMessageF(3, "0 fields were set to save into the file.\n");
         return true;
     }
 
@@ -264,14 +264,14 @@ bool ASCII::save()
             sprintf(msg,
                     "\"%s\" field has been set to save, but it was not declared.\n",
                     fields.at(i));
-            S->addMessage(3, msg);
+            S->addMessageF(3, msg);
             return true;
         }
         if(!strchr(vars->get(fields.at(i))->type(), '*')){
             sprintf(msg,
                     "\"%s\" field has been set to save, but it was declared as a scalar.\n",
                     fields.at(i));
-            S->addMessage(3, msg);
+            S->addMessageF(3, msg);
             return true;
         }
         ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i));
@@ -281,7 +281,7 @@ bool ASCII::save()
             sprintf(msg,
                     "Failure saving \"%s\" field, which has not length enough.\n",
                     fields.at(i));
-            S->addMessage(3, msg);
+            S->addMessageF(3, msg);
             return true;
         }
         void *store = malloc(typesize * (bounds().y - bounds().x));
@@ -289,7 +289,7 @@ bool ASCII::save()
             sprintf(msg,
                     "Failure allocating memory for \"%s\" field.\n",
                     fields.at(i));
-            S->addMessage(3, msg);
+            S->addMessageF(3, msg);
             return true;
         }
         data.push_back(store);

@@ -2,22 +2,24 @@
 <sphInput>
     <Variables>
         <!-- Some variables are automatically defined:
-        t = Simulation time.
-        dt = time step.
-        step = Number of the time step.
-        n = Number of particles.
-        n_sensors = Number of sensors
-        N = Total number of particles (n + n_sensors)
-        n_sets = Number of different sets of particles (each set may have different properties)
-        n_radix = Rounded up value from N which is a power of 2
-        n_cells = Number of cells (initialized as [0,0,0,0])
-        support = Kernel support (as a factor of the kernel length "h")
-        pos = Vector of particles positions (it should be read from an input file)
-        iset = Particles set of each particle
-        id_sorted = Permutations from unsorted space to sorted space
-        id_unsorted = Permutations from sorted space to unsorted space
-        icell = Cell where each particle is placed
-        ihoc = First particle in each cell
+        | NAME        | TYPE          | LEN     | DESCRIPTION
+        | t           | float         | 1       | Simulation time
+        | dt          | float         | 1       | Time step
+        | step        | unsigned int  | 1       | Step
+        | n           | unsigned int  | 1       | Number of particles
+        | n_sensors   | unsigned int  | 1       | Number of sensors
+        | N           | unsigned int  | 1       | n + n_sensors
+        | n_sets      | unsigned int  | 1       | Number of particles sets
+        | n_radix     | unsigned int  | 1       | Rounded up value from N which is a power of 2
+        | n_cells     | uivec4        | 1       | Number of cells at each direction, and the total one
+        | support     | float         | 1       | Kernel support (as a factor of the kernel length h)
+        | id          | unsigned int* | N       | ID of each particle
+        | pos         | vec*          | N       | Positions
+        | iset        | unsigned int* | N       | Particle set of each particle
+        | id_sorted   | unsigned int* | n_radix | Permutations from unsorted space to sorted space
+        | id_unsorted | unsigned int* | n_radix | Permutations from sorted space to unsorted space
+        | icell       | unsigned int* | n_radix | Cell where each particle is located
+        | ihoc        | unsigned int* | n_cells | First particle in each cell
          -->
         <Variable name="g" type="vec" value="0.0, 0.0, -9.81, 0.0" save="false" />
         <Variable name="cs" type="float" value="15.0" save="false" />
@@ -30,29 +32,45 @@
         <Variable name="refd" type="float*" length="n_sets" save="false" />
         <Variable name="visc_dyn" type="float*" length="n_sets" save="false" />
         <Variable name="delta" type="float*" length="n_sets" save="false" />
+
+        <!-- imove > 0 for fluid particles
+             imove = 0 for sensors
+             imove = -1 for fixed particles
+             imove = -2 for boundary elements
+         -->
         <Variable name="imove" type="int*" length="N" save="true" />
         <Variable name="normal" type="vec*" length="N" save="true" />
         <Variable name="v" type="vec*" length="N" save="true" />
         <Variable name="dvdt" type="vec*" length="N" save="true" />
         <Variable name="rho" type="float*" length="N" save="true" />
         <Variable name="drhodt" type="float*" length="N" save="true" />
-        <Variable name="mass" type="float*" length="N" save="true" />
-        <Variable name="press" type="float*" length="N" save="true" />
+        <Variable name="m" type="float*" length="N" save="true" />
+        <Variable name="p" type="float*" length="N" save="true" />
 
+        <Variable name="id_in" type="unsigned int*" length="N" save="true" />
+        <Variable name="iset_in" type="unsigned int*" length="N" save="true" />
+        <Variable name="imove_in" type="int*" length="N" save="true" />
         <Variable name="pos_in" type="vec*" length="N" save="true" />
+        <Variable name="normal_in" type="vec*" length="N" save="true" />
         <Variable name="v_in" type="vec*" length="N" save="true" />
         <Variable name="dvdt_in" type="vec*" length="N" save="true" />
         <Variable name="rho_in" type="float*" length="N" save="true" />
         <Variable name="drhodt_in" type="float*" length="N" save="true" />
+        <Variable name="m_in" type="float*" length="N" save="true" />
+        <Variable name="p_in" type="float*" length="N" save="true" />
     </Variables>
 
     <Tools>
-        <Tool action="add" type="copy" name="Init pos" in="pos" out="pos_in"/>
-        <Tool action="add" type="copy" name="Init v" in="v" out="v_in"/>
-        <Tool action="add" type="set" name="Init dvdt" in="dvdt_in" value="VEC_ZERO"/>
-        <Tool action="add" type="copy" name="Init rho" in="rho" out="rho_in"/>
-        <Tool action="add" type="set" name="Init drhodt" in="drhodt_in" value="0.f"/>
         <Tool action="add" type="kernel" name="Predictor" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Predictor.cl"/>
+
         <Tool action="add" type="link-list" name="Link-List"/>
+
+        <Tool action="add" type="copy" name="Backup id" in="id" out="id_in"/>
+        <Tool action="add" type="copy" name="Backup imove" in="imove" out="imove_in"/>
+        <Tool action="add" type="copy" name="Backup iset" in="iset" out="iset_in"/>
+        <Tool action="add" type="copy" name="Backup normal" in="normal" out="normal_in"/>
+        <Tool action="add" type="kernel" name="Sort" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Sort.cl"/>
+        <Tool action="add" type="copy" name="Backup dvdt" in="dvdt_in" out="dvdt"/>
+        <Tool action="add" type="copy" name="Backup drhodt" in="drhodt_in" out="drhodt"/>
     </Tools>
 </sphInput>

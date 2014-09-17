@@ -20,46 +20,56 @@
  * @brief Type definitions for the OpenCL kernels (2D version).
  */
 
-#ifndef vec
-    /** @def vec
-     * @brief Vector of real components.
-     *
-     * The number of components depends on weather the 2D version or 3D
-     * version is compiled:
-     *   - 2D = 2 components
-     *   - 3D = 4 components
-     */
-    #define vec float2
-#endif
+#define unit unsigned int
+#define vec2 float2
+#define vec3 float3
+#define vec4 float4
+#define ivec2 int2
+#define ivec3 int3
+#define ivec4 int4
+#define uivec2 uint2
+#define uivec3 uint3
+#define uivec4 uint4
 
-#ifndef ivec
-    /** @def ivec
-     * @brief Vector of integer components.
-     *
-     * The number of components depends on weather the 2D version or 3D
-     * version is compiled:
-     *   - 2D = 2 components
-     *   - 3D = 4 components
-     */
-    #define ivec int2
-#endif
+/** @def vec
+ * @brief Vector of real components.
+ *
+ * The number of components depends on weather the 2D version or 3D
+ * version is compiled:
+ *   - 2D = 2 components
+ *   - 3D = 4 components
+ */
+#define vec float2
 
-#ifndef uivec
-    /** @def ivec
-     * @brief Vector of unsigned integer components.
-     *
-     * The number of components depends on weather the 2D version or 3D
-     * version is compiled:
-     *   - 2D = 2 components
-     *   - 3D = 4 components
-     */
-    #define uivec uint2
-#endif
+/** @def ivec
+ * @brief Vector of integer components.
+ *
+ * The number of components depends on weather the 2D version or 3D
+ * version is compiled:
+ *   - 2D = 2 components
+ *   - 3D = 4 components
+ */
+#define ivec int2
 
-#ifndef VEC_ZERO
-    /** @def VEC_ZERO
-     * @brief Null #vec, i.e. filled with zero components.
-     */
-    #define VEC_ZERO (float2)(0.f,0.f)
-#endif
+/** @def ivec
+ * @brief Vector of unsigned integer components.
+ *
+ * The number of components depends on weather the 2D version or 3D
+ * version is compiled:
+ *   - 2D = 2 components
+ *   - 3D = 4 components
+ */
+#define uivec uint2
+
+/** @def VEC_ZERO
+ * @brief Null #vec, i.e. filled with zero components.
+ */
+#define VEC_ZERO (float2)(0.f,0.f)
+
+#define VEC_ONE (float2)(1.f, 1.f)
+#define VEC_ALL_ONE VEC_ONE
+#define VEC_INFINITY (float2)(INFINITY, INFINITY)
+#define VEC_ALL_INFINITY VEC_INFINITY
+#define VEC_NEG_INFINITY (-VEC_INFINITY)
+#define VEC_ALL_NEG_INFINITY (-VEC_ALL_INFINITY)
 
