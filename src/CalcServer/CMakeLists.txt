@@ -40,6 +40,7 @@ SET(Server_CPP_SRCS
 	CalcServer.cpp
 	Kernel.cpp
 	Reduction.cpp
+	Set.cpp
 	Tool.cpp
 )
 

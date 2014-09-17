@@ -1,0 +1,51 @@
+/*
+ *  This file is part of AQUAgpusph, a free CFD program based on SPH.
+ *  Copyright (C) 2012  Jose Luis Cercos Pita <jl.cercos@upm.es>
+ *
+ *  AQUAgpusph is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  AQUAgpusph is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#define vec2 float2
+#define vec3 float3
+#define vec4 float4
+#define ivec2 int2
+#define ivec3 int3
+#define ivec4 int4
+#define uivec2 uint2
+#define uivec3 uint3
+#define uivec4 uint4
+
+#ifndef HAVE_3D
+    #define vec float2
+    #define ivec int2
+    #define uivec uint2
+    #define VEC_ZERO (float2)(0.f, 0.f)
+    #define VEC_ONE (float2)(1.f, 1.f)
+    #define VEC_ALL_ONE VEC_ONE
+    #define VEC_INFINITY (float2)(INFINITY, INFINITY)
+    #define VEC_ALL_INFINITY VEC_INFINITY
+#else
+    #define vec float4
+    #define ivec int4
+    #define uivec uint4
+    #define VEC_ZERO (float4)(0.f, 0.f, 0.f, 0.f)
+    #define VEC_ONE (float4)(1.f, 1.f, 1.f, 0.f)
+    #define VEC_ALL_ONE (float4)(1.f, 1.f, 1.f, 1.f)
+    #define VEC_INFINITY (float4)(INFINITY, INFINITY, INFINITY, 0.f)
+    #define VEC_ALL_INFINITY (float4)(INFINITY, INFINITY, INFINITY, INFINITY)
+#endif
+
+#define VEC_NEG_INFINITY (-VEC_INFINITY)
+#define VEC_ALL_NEG_INFINITY (-VEC_ALL_INFINITY)
+

@@ -29,10 +29,10 @@ namespace Aqua{ namespace CalcServer{
 
 #include "CalcServer/Reduction.hcl"
 #include "CalcServer/Reduction.cl"
-const char* INC = (const char*)Reduction_hcl_in;
-unsigned int INC_LEN = Reduction_hcl_in_len;
-const char* SRC = (const char*)Reduction_cl_in;
-unsigned int SRC_LEN = Reduction_cl_in_len;
+const char* REDUCTION_INC = (const char*)Reduction_hcl_in;
+unsigned int REDUCTION_INC_LEN = Reduction_hcl_in_len;
+const char* REDUCTION_SRC = (const char*)Reduction_cl_in;
+unsigned int REDUCTION_SRC_LEN = Reduction_cl_in_len;
 
 
 Reduction::Reduction(const char *name,
@@ -135,7 +135,10 @@ bool Reduction::execute()
                                           NULL,
                                           NULL);
 		if(err_code != CL_SUCCESS) {
-            sprintf(msg, "Failure executing the step %u.\n", i);
+            sprintf(msg,
+                    "Failure executing the tool \"%s\" step %u.\n",
+                    name(),
+                    i);
 			S->addMessageF(3, msg);
             S->printOpenCLError(err_code);
             return true;
@@ -234,9 +237,9 @@ bool Reduction::setupOpenCL()
     data_size = vars->typeToBytes(_input_var->type());
 
     // Create a header for the source code where the operation will be placed
-    char header[INC_LEN + strlen(_operation) + strlen(_null_val) + 128];
+    char header[REDUCTION_INC_LEN + strlen(_operation) + strlen(_null_val) + 128];
     strcpy(header, "");
-    strncat(header, INC, INC_LEN);
+    strncat(header, REDUCTION_INC, REDUCTION_INC_LEN);
     sprintf(header, "%s #define IDENTITY %s\n", header, _null_val);
     strcat(header, "T reduce(T a, T b) \n");
     strcat(header, "{ \n");
@@ -247,9 +250,9 @@ bool Reduction::setupOpenCL()
     strcat(header, "} \n");
 
     // Setup the complete source code
-    char source[strlen(header) + strlen(SRC) + 1];
+    char source[strlen(header) + strlen(REDUCTION_SRC) + 1];
     strcpy(source, header);
-    strncat(source, SRC, SRC_LEN);
+    strncat(source, REDUCTION_SRC, REDUCTION_SRC_LEN);
     strcat(source, "");
 
     // Starts a dummy kernel in order to study the local size that can be used
@@ -320,37 +323,37 @@ bool Reduction::setupOpenCL()
         }
         _kernels.push_back(kernel);
 
-        err_code = sendArgument(kernel,
-                                 0,
-                                 sizeof(cl_mem),
-                                 (void*)&(_mems.at(i)));
+        err_code = clSetKernelArg(kernel,
+                                  0,
+                                  sizeof(cl_mem),
+                                  (void*)&(_mems.at(i)));
         if(err_code != CL_SUCCESS){
             S->addMessageF(3, "Failure sending input argument\n");
             S->printOpenCLError(err_code);
             return true;
         }
-        err_code = sendArgument(kernel,
-                                 1,
-                                 sizeof(cl_mem),
-                                 (void*)&(_mems.at(i+1)));
+        err_code = clSetKernelArg(kernel,
+                                  1,
+                                  sizeof(cl_mem),
+                                  (void*)&(_mems.at(i+1)));
         if(err_code != CL_SUCCESS){
             S->addMessageF(3, "Failure sending output argument\n");
             S->printOpenCLError(err_code);
             return true;
         }
-        err_code |= sendArgument(kernel,
-                                 2,
-                                 sizeof(cl_uint),
-                                 (void*)&(n));
+        err_code = clSetKernelArg(kernel,
+                                  2,
+                                  sizeof(cl_uint),
+                                  (void*)&(n));
         if(err_code != CL_SUCCESS){
             S->addMessageF(3, "Failure sending number of threads argument\n");
             S->printOpenCLError(err_code);
             return true;
         }
-        err_code |= sendArgument(kernel,
-                                 3,
-                                 local_size*data_size ,
-                                 NULL);
+        err_code = clSetKernelArg(kernel,
+                                  3,
+                                  local_size*data_size ,
+                                  NULL);
         if(err_code != CL_SUCCESS){
             S->addMessageF(3, "Failure setting local memory\n");
             S->printOpenCLError(err_code);

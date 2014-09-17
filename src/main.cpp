@@ -191,8 +191,43 @@ int main(int argc, char *argv[])
             return EXIT_FAILURE;
         }
         // fluid->retrieveData();
-        if(F->save())
+        if(F->save()){
+            float Time = T->time();
+            delete S; S = NULL;
+            S->printDate();
+            S->addMessageF(1, "Destroying time manager...\n");
+            delete T; T = NULL;
+            S->addMessageF(1, "Destroying calculation server...\n");
+            delete C; C = NULL;
+            S->addMessageF(1, "Destroying problem setup...\n");
+            delete P; P = NULL;
+            S->addMessageF(1, "Destroying arguments manager...\n");
+            delete A; A = NULL;
+            S->addMessageF(1, "Destroying files manager...\n");
+            delete F; F = NULL;
+            sprintf(msg, "Simulation finished abnormally (Time = %g s)\n\n", Time);
+            S->addMessageF(1, msg);
             return EXIT_FAILURE;
+        }
+
+        delete S; S = NULL;
+
+        /// @todo let the tool to continue computing
+        float Time = T->time();
+        S->printDate();
+        S->addMessageF(1, "Destroying time manager...\n");
+        delete T; T = NULL;
+        S->addMessageF(1, "Destroying calculation server...\n");
+        delete C; C = NULL;
+        S->addMessageF(1, "Destroying problem setup...\n");
+        delete P; P = NULL;
+        S->addMessageF(1, "Destroying arguments manager...\n");
+        delete A; A = NULL;
+        S->addMessageF(1, "Destroying files manager...\n");
+        delete F; F = NULL;
+        sprintf(msg, "Simulation finished abnormally (Time = %g s)\n\n", Time);
+        S->addMessageF(1, msg);
+        return EXIT_FAILURE;
     }
 
     delete S; S = NULL;

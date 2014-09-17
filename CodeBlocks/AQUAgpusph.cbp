@@ -84,6 +84,7 @@
 		<Unit filename="../include/CalcServer.h" />
 		<Unit filename="../include/CalcServer/Kernel.h" />
 		<Unit filename="../include/CalcServer/Reduction.h" />
+		<Unit filename="../include/CalcServer/Set.h" />
 		<Unit filename="../include/CalcServer/Tool.h" />
 		<Unit filename="../include/FileManager.h" />
 		<Unit filename="../include/InputOutput/ASCII.h" />
