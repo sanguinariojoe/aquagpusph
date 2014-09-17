@@ -141,7 +141,8 @@ CalcServer::CalcServer()
     for(i = 0; i < P->tools.size(); i++){
         if(!strcmp(P->tools.at(i)->get("type"), "kernel")){
             Kernel *tool = new Kernel(P->tools.at(i)->get("name"),
-                                      P->tools.at(i)->get("path"));
+                                      P->tools.at(i)->get("path"),
+                                      P->tools.at(i)->get("n"));
             _tools.push_back(tool);
         }
         else if(!strcmp(P->tools.at(i)->get("type"), "copy")){

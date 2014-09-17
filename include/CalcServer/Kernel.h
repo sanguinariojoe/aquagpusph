@@ -16,11 +16,6 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file
- * @brief Aqua::CalcServer tools base class.
- * (See Aqua::CalcServer::Kernel for details)
- */
-
 #ifndef KERNEL_H_INCLUDED
 #define KERNEL_H_INCLUDED
 
@@ -37,61 +32,57 @@
 namespace Aqua{ namespace CalcServer{
 
 /** @class Kernel Kernel.h CalcServer/Kernel.h
- * @brief Base class for all the tools of the calculation server
- * Aqua::CalcServer.
+ * @brief A tool consisting in an OpenCL kernel execution. The variables used
+ * in the OpenCL kernel are automatically detected.
  */
 class Kernel : public Aqua::CalcServer::Tool
 {
 public:
-    /** @brief Constructor.
+    /** Constructor.
      * @param tool_name Tool name.
      * @param kernel_path Kernel path.
-     * The tool name will be used later to refer to the results of the tool.
+     * @param Number of threads to launch.
      */
-    Kernel(const char* tool_name, const char* kernel_path);
+    Kernel(const char* tool_name, const char* kernel_path, const char* n="N");
 
-    /// Destructor
+    /** Destructor
+     */
     virtual ~Kernel();
 
-    /** @brief Initialize the tool.
+    /** Initialize the tool.
      * @return false if all gone right, true otherwise.
      */
     bool setup();
 
-    /** @brief Execute the tool.
+    /** Execute the tool.
      * @return false if all gone right, true otherwise.
      */
     bool execute();
 
-    /** @brief Set the kernel file path.
+    /** Set the kernel file path.
      * @param kernel_path kernel file path.
      */
     void path(const char* kernel_path);
 
-    /** @brief Get the kernel file path.
+    /** Get the kernel file path.
      * @return Tool kernel file path.
      */
     const char* path(){return (const char*)_path;}
 
-    /** @brief Local work size for the selected device and tool.
-     * @return Local work size.
+    /** Get the work group size
+     * @return Work group size
      */
     size_t workGroupSize() const {return _work_group_size;}
 
-    /** @brief Global work size.
-     *
-     * The global work size is the total number of threads needed to perform
-     * the work.
-     *
-     * @return Global Work size.
-     * @see workGroupSize()
+    /** Get the work group size
+     * @return Work group size
      */
     size_t globalWorkSize() const {return _global_work_size;}
 
 protected:
-    /** @brief Compile the OpenCL program.
-     * @param entry_point Program entry point function.
-     * @param flags Compiler additional flags.
+    /** Compile the OpenCL program
+     * @param entry_point Program entry point method.
+     * @param flags Compiling additional flags.
      * @param header Header to be append at the start of the source code.
      * @return false if all gone right, true otherwise.
      */
@@ -99,23 +90,20 @@ protected:
                  const char* flags="",
                  const char* header="");
 
-    /** @brief Compute the variables required by the program
+    /** Compute the variables required by the program
      * @param entry_point Program entry point method.
      * @return false if all gone right, true otherwise.
      */
     bool variables(const char* entry_point="main");
 
-    /** @brief Set the variables to the OpenCL kernel.
-     *
-     * The method detects if a variable should be updated or if it already set
-     * either.
+    /** Set the variables to the OpenCL kernel. The method detects if a variable
+     * should be updated or if it already set either.
      * @return false if all gone right, true otherwise.
      */
     bool setVariables();
 
-    /** @brief Compute the global work size.
+    /** Compute the global work size
      * @return false if all gone right, true otherwise.
-     * @see globalWorkSize()
      */
     bool computeGlobalWorkSize();
 
@@ -128,6 +116,12 @@ private:
 
     /// work group size
     size_t _work_group_size;
+
+    /// global work size
+    size_t _global_work_size;
+
+    /// Number of threads expression
+    char* _n;
 
     /// List of required variables
     std::deque<char*> _var_names;

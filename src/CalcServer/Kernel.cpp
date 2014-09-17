@@ -22,13 +22,17 @@
 
 namespace Aqua{ namespace CalcServer{
 
-Kernel::Kernel(const char* tool_name, const char* kernel_path)
+Kernel::Kernel(const char* tool_name, const char* kernel_path, const char* n)
 	: Tool(tool_name)
     , _path(NULL)
     , _kernel(NULL)
     , _work_group_size(0)
+    , _global_work_size(0)
+    , _n(NULL)
 {
 	path(kernel_path);
+    _n = new char[strlen(n) + 1];
+    strcpy(_n, n);
 }
 
 Kernel::~Kernel()
@@ -517,6 +521,7 @@ bool Kernel::setVariables()
 
 bool Kernel::computeGlobalWorkSize()
 {
+    unsigned int N;
     char msg[1024];
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
@@ -525,19 +530,10 @@ bool Kernel::computeGlobalWorkSize()
         return true;
     }
     InputOutput::Variables *vars = C->variables();
-    if(!vars->get("N")){
-        S->addMessageF(3, "The variable \"N\" is undefined.\n");
+    if(vars->solve("unsigned int", _n, &N)){
+        S->addMessageF(3, "Failure evaluating the number of threads.\n");
         return true;
     }
-    if(strcmp(vars->get("N")->type(), "unsigned int")){
-        sprintf(msg,
-                "It was expected a variable \"N\" of type \"%s\", but \"%s\" has been found.\n",
-                "unsigned int",
-                vars->get("N")->type());
-        S->addMessageF(3, msg);
-        return true;
-    }
-    unsigned int N = *(unsigned int *)vars->get("N")->get();
 
     _global_work_size = (size_t)roundUp(N, (unsigned int)_work_group_size);
 
