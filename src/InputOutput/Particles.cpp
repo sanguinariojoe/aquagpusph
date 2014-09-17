@@ -57,17 +57,15 @@ bool Particles::loadDefault()
 
     unsigned int n = bounds().y - bounds().x;
     unsigned int *iset = new unsigned int[n];
-    unsigned int *id_sorted = new unsigned int[n];
-    unsigned int *id_unsorted = new unsigned int[n];
+    unsigned int *id = new unsigned int[n];
 
-    if(!iset || !id_sorted || !id_unsorted){
-        S->addMessageF(3, "Failure allocating memory.\n");
+    if(!iset || !id){
+         S->addMessageF(3, "Failure allocating memory.\n");
     }
 
     for(i = 0; i < n; i++){
         iset[i] = setId();
-        id_sorted[i] = bounds().x + i;
-        id_unsorted[i] = bounds().x + i;
+        id[i] = bounds().x + i;
     }
 
     Variables *vars = C->variables();
@@ -86,6 +84,21 @@ bool Particles::loadDefault()
         S->addMessageF(3, "Failure sending variable \"iset\" to the server.\n");
         S->printOpenCLError(err_code);
     }
+    var = (ArrayVariable*)vars->get("id");
+    mem = *(cl_mem*)var->get();
+    err_code = clEnqueueWriteBuffer(C->command_queue(),
+                                    mem,
+                                    CL_TRUE,
+                                    sizeof(unsigned int) * bounds().x,
+                                    sizeof(unsigned int) * n,
+                                    id,
+                                    0,
+                                    NULL,
+                                    NULL);
+    if(err_code != CL_SUCCESS){
+        S->addMessageF(3, "Failure sending variable \"id\" to the server.\n");
+        S->printOpenCLError(err_code);
+    }
     var = (ArrayVariable*)vars->get("id_sorted");
     mem = *(cl_mem*)var->get();
     err_code = clEnqueueWriteBuffer(C->command_queue(),
@@ -93,12 +106,12 @@ bool Particles::loadDefault()
                                     CL_TRUE,
                                     sizeof(unsigned int) * bounds().x,
                                     sizeof(unsigned int) * n,
-                                    id_sorted,
+                                    id,
                                     0,
                                     NULL,
                                     NULL);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending variable \"iset\" to the server.\n");
+        S->addMessageF(3, "Failure sending variable \"id_sorted\" to the server.\n");
         S->printOpenCLError(err_code);
     }
     var = (ArrayVariable*)vars->get("id_unsorted");
@@ -108,18 +121,17 @@ bool Particles::loadDefault()
                                     CL_TRUE,
                                     sizeof(unsigned int) * bounds().x,
                                     sizeof(unsigned int) * n,
-                                    id_unsorted,
+                                    id,
                                     0,
                                     NULL,
                                     NULL);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending variable \"iset\" to the server.\n");
+        S->addMessageF(3, "Failure sending variable \"id_unsorted\" to the server.\n");
         S->printOpenCLError(err_code);
     }
 
     delete[] iset; iset = NULL;
-    delete[] id_sorted; id_sorted = NULL;
-    delete[] id_unsorted; id_unsorted = NULL;
+    delete[] id; id = NULL;
 }
 
 void Particles::file(const char* filename)

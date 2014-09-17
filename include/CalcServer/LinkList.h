@@ -34,15 +34,16 @@ namespace Aqua{ namespace CalcServer{
  *   -# Number of cells calculation
  *   -# "ihoc" array allocation
  *   -# "ihoc" and "icell" calculations
- *   -# Radix sort of "icell", computing permutation arrays "id_sorted" and "id_unsorted" as well.
+ *   -# Radix sort of "icell", computing permutation array "id_sorted" and "id_unsorted" as well.
  */
 class LinkList : public Aqua::CalcServer::Tool
 {
 public:
     /** Constructor.
      * @param tool_name Tool name.
+     * @param input Input array to be used as the particles positions.
      */
-    LinkList(const char* tool_name);
+    LinkList(const char* tool_name, const char* input="pos");
 
     /** Destructor
      */
@@ -84,6 +85,9 @@ private:
      * @return false if all gone right, true otherwise.
      */
     bool setVariables();
+
+    /// Input variable name
+    char *_input_name;
 
     /// Cells length
     float _cell_length;
