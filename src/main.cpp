@@ -209,10 +209,9 @@ int main(int argc, char *argv[])
             return EXIT_FAILURE;
         }
 
-        delete S; S = NULL;
-
         /// @todo let the tool to continue computing
         float Time = T->time();
+        delete S; S = NULL;
         S->printDate();
         S->addMessageF(1, "Destroying time manager...\n");
         delete T; T = NULL;
