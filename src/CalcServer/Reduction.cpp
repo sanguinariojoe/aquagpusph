@@ -122,7 +122,7 @@ bool Reduction::execute()
     }
 
     // Execute the kernels
-    for(i=0;i<_kernels.size();i++){
+    for(i = 0;i < _kernels.size(); i++){
         size_t _global_work_size = _global_work_sizes.at(i);
         size_t _local_work_size  = _local_work_sizes.at(i);
         err_code = clEnqueueNDRangeKernel(C->command_queue(),
