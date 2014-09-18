@@ -70,8 +70,8 @@ bool UnSort::setup()
         return true;
     }
 
-    _id_input = (cl_mem*)_id_var->get();
-    _input = (cl_mem*)_var->get();
+    _id_input = *(cl_mem*)_id_var->get();
+    _input = *(cl_mem*)_var->get();
     _n = _id_var->size() / vars->typeToBytes(_id_var->type());
     if(setupOpenCL())
         return true;
@@ -380,7 +380,7 @@ bool UnSort::setVariables()
     cl_int err_code;
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 
-    if((void*)_id_input != _id_var->get()){
+    if(_id_input != *(cl_mem*)_id_var->get()){
         err_code = clSetKernelArg(_kernel,
                                   0,
                                   _id_var->typesize(),
@@ -394,9 +394,9 @@ bool UnSort::setVariables()
             S->printOpenCLError(err_code);
             return true;
         }
-        _id_input = (cl_mem *)_id_var->get();
+        _id_input = *(cl_mem *)_id_var->get();
     }
-    if((void*)_input != _var->get()){
+    if(_input != *(cl_mem*)_var->get()){
         err_code = clSetKernelArg(_kernel,
                                   1,
                                   _var->typesize(),
@@ -410,7 +410,7 @@ bool UnSort::setVariables()
             S->printOpenCLError(err_code);
             return true;
         }
-        _input = (cl_mem *)_var->get();
+        _input = *(cl_mem *)_var->get();
     }
 
     return false;

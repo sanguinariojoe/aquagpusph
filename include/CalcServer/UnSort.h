@@ -94,10 +94,10 @@ private:
     InputOutput::ArrayVariable *_var;
 
     /// ID Memory object sent
-    cl_mem *_id_input;
+    cl_mem _id_input;
 
     /// Memory object sent
-    cl_mem *_input;
+    cl_mem _input;
 
     /// Output memory object
     cl_mem _output;
