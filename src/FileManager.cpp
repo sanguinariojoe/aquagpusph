@@ -183,7 +183,7 @@ CalcServer::CalcServer* FileManager::load()
     }
 
     // Execute the loaders
-    for(i=0; i<P->n_fluids; i++){
+    for(i = 0; i < _loaders.size(); i++){
         if(_loaders.at(i)->load())
             return NULL;
     }
@@ -194,10 +194,9 @@ CalcServer::CalcServer* FileManager::load()
 bool FileManager::save()
 {
     unsigned int i;
-    ProblemSetup *P = ProblemSetup::singleton();
 
     // Execute the savers
-    for(i=0; i<P->n_fluids; i++){
+    for(i = 0; i < _savers.size(); i++){
         if(_savers.at(i)->save())
             return true;
     }
@@ -210,8 +209,8 @@ bool FileManager::save()
     return false;
 }
 
-const char* FileManager::file(unsigned int ifluid){
-    return _savers.at(ifluid)->file();
+const char* FileManager::file(unsigned int i    ){
+    return _savers.at(i    )->file();
 }
 
 
