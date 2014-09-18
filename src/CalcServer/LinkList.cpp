@@ -16,473 +16,621 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ProblemSetup.h>
-#include <ScreenManager.h>
 #include <CalcServer/LinkList.h>
 #include <CalcServer.h>
+#include <ScreenManager.h>
 
 namespace Aqua{ namespace CalcServer{
 
-LinkList::LinkList()
-	: Kernel("LinkList")
-	, _path(0)
-	, _program(0)
-	, _icell_kernel(0)
-	, _ihoc_kernel(0)
-	, _ll_kernel(0)
-	, _radix_sort(0)
+#include "CalcServer/LinkList.hcl"
+#include "CalcServer/LinkList.cl"
+const char* LINKLIST_INC = (const char*)LinkList_hcl_in;
+unsigned int LINKLIST_INC_LEN = LinkList_hcl_in_len;
+const char* LINKLIST_SRC = (const char*)LinkList_cl_in;
+unsigned int LINKLIST_SRC_LEN = LinkList_cl_in_len;
 
+LinkList::LinkList(const char* tool_name, const char* input)
+	: Tool(tool_name)
+	, _input_name(NULL)
+    , _cell_length(0.f)
+    , _min_pos(NULL)
+    , _max_pos(NULL)
+    , _ihoc(NULL)
+    , _ihoc_lws(0)
+    , _ihoc_gws(0)
+    , _icell(NULL)
+    , _icell_lws(0)
+    , _icell_gws(0)
+    , _ll(NULL)
+    , _ll_lws(0)
+    , _ll_gws(0)
 {
-	InputOutput::ProblemSetup *P  = InputOutput::ProblemSetup::singleton();
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
-	int str_len;
+    _input_name = new char[strlen(input) + 1];
+    strcpy(_input_name, input);
 
-	str_len = strlen(P->OpenCL_kernels.link_list);
-	if(str_len <= 0) {
-		S->addMessageF(3, "Path of Link-List kernel is empty.\n");
-		exit(EXIT_FAILURE);
-	}
-	_path = new char[str_len+4];
-	if(!_path) {
-		S->addMessageF(3, "Memory cannot be allocated for the path.\n");
-		exit(EXIT_FAILURE);
-	}
-	strcpy(_path, P->OpenCL_kernels.link_list);
-	strcat(_path, ".cl");
-	//! 2nd.- Setup the kernels
-	_local_work_size  = localWorkSize();
-	if(!_local_work_size){
-	    S->addMessageF(3, "I cannot get a valid local work size for the required computation tool.\n");
-	    exit(EXIT_FAILURE);
-	}
-	_global_work_size = globalWorkSize(_local_work_size);
-	if(setupOpenCL()) {
-	    exit(EXIT_FAILURE);
-	}
-	//! 3rd.- Built radix sort
-	_radix_sort = new RadixSort();
-	S->addMessageF(1, "LinkList ready to work!\n");
+    char min_pos_name[strlen(tool_name) + strlen("->Min. Pos.") + 1];
+    strcpy(min_pos_name, tool_name);
+    strcat(min_pos_name, "->Min. Pos.");
+    const char *min_pos_op = "c.x = (a.x < b.x) ? a.x : b.x;\nc.y = (a.y < b.y) ? a.y : b.y;\n#ifdef HAVE_3D\nc.z = (a.z < b.z) ? a.z : b.z;\nc.w = 0.f;\n#endif\n";
+    _min_pos = new Reduction(min_pos_name,
+                             input,
+                             "pos_min",
+                             min_pos_op,
+                             "VEC_INFINITY");
+    char max_pos_name[strlen(tool_name) + strlen("->Max. Pos.") + 1];
+    strcpy(max_pos_name, tool_name);
+    strcat(max_pos_name, "->Max. Pos.");
+    const char *max_pos_op = "c.x = (a.x > b.x) ? a.x : b.x;\nc.y = (a.y > b.y) ? a.y : b.y;\n#ifdef HAVE_3D\nc.z = (a.z > b.z) ? a.z : b.z;\nc.w = 0.f;\n#endif\n";
+    _max_pos = new Reduction(max_pos_name,
+                             input,
+                             "pos_max",
+                             max_pos_op,
+                             "-VEC_INFINITY");
+    char sort_name[strlen(tool_name) + strlen("->Radix-Sort") + 1];
+    strcpy(sort_name, tool_name);
+    strcat(sort_name, "->Radix-Sort");
+    _sort = new RadixSort(sort_name);
 }
 
 LinkList::~LinkList()
 {
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	if(_icell_kernel)clReleaseKernel(_icell_kernel); _icell_kernel=0;
-	if(_ihoc_kernel)clReleaseKernel(_ihoc_kernel); _ihoc_kernel=0;
-	if(_ll_kernel)clReleaseKernel(_ll_kernel); _ll_kernel=0;
-	if(_program)clReleaseProgram(_program); _program=0;
-	if(_path)delete[] _path; _path=0;
-	S->addMessageF(1, "Destroying radix sort processor...\n");
-	if(_radix_sort)delete _radix_sort; _radix_sort=0;
+    unsigned int i;
+    if(_input_name) delete[] _input_name; _input_name=NULL;
+	if(_min_pos) delete _min_pos; _min_pos=NULL;
+	if(_max_pos) delete _max_pos; _max_pos=NULL;
+	if(_sort) delete _sort; _sort=NULL;
+	if(_ihoc) clReleaseKernel(_ihoc); _ihoc=NULL;
+	if(_icell) clReleaseKernel(_icell); _icell=NULL;
+	if(_ll) clReleaseKernel(_ll); _ll=NULL;
+	for(i = 0; i < _ihoc_args.size(); i++){
+        free(_ihoc_args.at(i));
+	}
+	_ihoc_args.clear();
+	for(i = 0; i < _icell_args.size(); i++){
+        free(_icell_args.at(i));
+	}
+	_icell_args.clear();
+	for(i = 0; i < _ll_args.size(); i++){
+        free(_ll_args.at(i));
+	}
+	_ll_args.clear();
+}
+
+bool LinkList::setup()
+{
+    char msg[1024];
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+	CalcServer *C = CalcServer::singleton();
+    InputOutput::Variables *vars = C->variables();
+
+    sprintf(msg,
+            "Loading the tool \"%s\"...\n",
+            name());
+    S->addMessageF(1, msg);
+
+    // Setup the reduction tools
+    if(_min_pos->setup()){
+        return true;
+    }
+    if(_max_pos->setup()){
+        return true;
+    }
+
+    // Compute the cells length
+    InputOutput::Variable *s = vars->get("support");
+    InputOutput::Variable *h = vars->get("h");
+    _cell_length = *(float*)s->get() * *(float*)h->get();
+
+    // Setup the kernels
+    if(setupOpenCL()){
+        return true;
+    }
+
+    // Setup the radix-sort
+    if(_sort->setup()){
+        return true;
+    }
+
+    return false;
 }
 
 bool LinkList::execute()
 {
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    cl_int err_code;
+    char msg[1024];
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
-	cl_int err_code=0;
 
-	if(allocLinkList())
-	     return true;
+    if(_min_pos->execute()){
+        return true;
+    }
+    if(_max_pos->execute()){
+        return true;
+    }
 
-    // Clear the previous ihoc
-    // =======================
-	err_code |= sendArgument(_ihoc_kernel,
-                             0,
-                             sizeof(cl_mem),
-                             (void*)&(C->ihoc));
-	err_code |= sendArgument(_ihoc_kernel,
-                             1,
-                             sizeof(cl_uint),
-                             (void*)&(C->num_cells_allocated));
-	err_code |= sendArgument(_ihoc_kernel,
-                             2,
-                             sizeof(cl_uint),
-                             (void*)&(C->N));
-	if(err_code != CL_SUCCESS) {
-		S->addMessageF(3, "Failure sending variables to the ihoc clearer kernel.\n");
-	    return true;
-	}
-	_local_work_size  = localWorkSize(C->num_cells);
-	if(!_local_work_size){
-	    S->addMessageF(3, "No valid local work size has been found for the ihoc clearer.\n");
-	    return true;
-	}
-	_global_work_size = globalWorkSize(_local_work_size, C->num_cells);
-	#ifdef HAVE_GPUPROFILE
-	    cl_event event;
-	    cl_ulong end, start;
-	    profileTime(0.f);
-	    err_code = clEnqueueNDRangeKernel(C->command_queue,
-                                          _ihoc_kernel,
-                                          1,
-                                          NULL,
-                                          &_global_work_size,
-                                          NULL,
-                                          0,
-                                          NULL,
-                                          &event);
-	#else
-	    err_code = clEnqueueNDRangeKernel(C->command_queue,
-                                          _ihoc_kernel,
-                                          1,
-                                          NULL,
-                                          &_global_work_size,
-                                          NULL,
-                                          0,
-                                          NULL,
-                                          NULL);
-	#endif
-	if(err_code != CL_SUCCESS) {
-		S->addMessageF(3, "I cannot execute the kernel \"InitIhoc\".\n");
+    // Compute the number of cells, and allocate memory for ihoc
+    if(nCells()){
+        return true;
+    }
+    if(allocate()){
+        return true;
+    }
+
+    // Check the validity of the variables
+    if(setVariables()){
+        return true;
+    }
+
+    // Compute the cell of each particle
+    err_code = clEnqueueNDRangeKernel(C->command_queue(),
+                                      _icell,
+                                      1,
+                                      NULL,
+                                      &_icell_gws,
+                                      &_icell_lws,
+                                      0,
+                                      NULL,
+                                      NULL);
+    if(err_code != CL_SUCCESS) {
+        sprintf(msg,
+                "Failure executing \"iCell\" from tool \"%s\".\n",
+                name());
+        S->addMessageF(3, msg);
         S->printOpenCLError(err_code);
-	    return true;
-	}
-	#ifdef HAVE_GPUPROFILE
-	    err_code = clWaitForEvents(1, &event);
-		if(err_code != CL_SUCCESS) {
-			S->addMessageF(3, "Impossible to wait for the ihoc clearer kernel end.\n");
-            S->printOpenCLError(err_code);
-			return true;
-		}
-	    err_code = clGetEventProfilingInfo(event,
-                                           CL_PROFILING_COMMAND_END,
-                                           sizeof(cl_ulong),
-                                           &end,
-                                           0);
-		if(err_code != CL_SUCCESS) {
-			S->addMessageF(3, "I cannot profile the ihoc clearer kernel execution.\n");
-            S->printOpenCLError(err_code);
-			return true;
-		}
-	    err_code = clGetEventProfilingInfo(event,
-                                           CL_PROFILING_COMMAND_START,
-                                           sizeof(cl_ulong),
-                                           &start, 0);
-		if(err_code != CL_SUCCESS) {
-			S->addMessageF(3, "I cannot profile the ihoc clearer kernel execution.\n");
-            S->printOpenCLError(err_code);
-			return true;
-		}
-	    profileTime(profileTime() + (end - start)/1000.f);  // 10^-3 ms
-	#endif
+        return true;
+    }
 
-    // Compute the particles cells
-    // ===========================
-	err_code |= sendArgument(_icell_kernel,
-                             0,
-                             sizeof(cl_mem),
-                             (void*)&C->icell);
-	err_code |= sendArgument(_icell_kernel,
-                             1,
-                             sizeof(cl_mem),
-                             (void*)&C->pos);
-	err_code |= sendArgument(_icell_kernel,
-                             2,
-                             sizeof(cl_uint),
-                             (void*)&C->N);
-	err_code |= sendArgument(_icell_kernel,
-                             3,
-                             sizeof(cl_uint),
-                             (void*)&C->num_icell);
-	err_code |= sendArgument(_icell_kernel,
-                             4,
-                             sizeof(vec),
-                             (void*)&C->pos_min);
-	err_code |= sendArgument(_icell_kernel,
-                             5,
-                             sizeof(cl_float),
-                             (void*)&C->cell_length);
-	err_code |= sendArgument(_icell_kernel,
-                             6,
-                             sizeof(cl_uint),
-                             (void*)&C->num_cells);
-	err_code |= sendArgument(_icell_kernel,
-                             7,
-                             sizeof(uivec),
-                             (void*)&C->num_cells_vec);
-	if(err_code != CL_SUCCESS) {
-		S->addMessageF(3, "Failure sending variables to the cells localization kernel.\n");
-	    return true;
-	}
-	_local_work_size  = localWorkSize(C->num_icell);
-	if(!_local_work_size){
-	    S->addMessageF(3, "No valid local work size has been found for the cells localization.\n");
-	    return true;
-	}
-	_global_work_size = globalWorkSize(_local_work_size, C->num_icell);
-	#ifdef HAVE_GPUPROFILE
-	    err_code = clEnqueueNDRangeKernel(C->command_queue,
-                                          _icell_kernel,
-                                          1,
-                                          NULL,
-                                          &_global_work_size,
-                                          &_local_work_size,
-                                          0,
-                                          NULL,
-                                          &event);
-	#else
-	    err_code = clEnqueueNDRangeKernel(C->command_queue,
-                                          _icell_kernel,
-                                          1,
-                                          NULL,
-                                          &_global_work_size,
-                                          &_local_work_size,
-                                          0,
-                                          NULL,
-                                          NULL);
-	#endif
-	if(err_code != CL_SUCCESS) {
-		S->addMessageF(3, "I cannot execute the kernel \"LCell\".\n");
+    // Sort the particles from the cells
+    if(_sort->execute()){
+        return true;
+    }
+
+    // Compute the head of cells
+    err_code = clEnqueueNDRangeKernel(C->command_queue(),
+                                      _ihoc,
+                                      1,
+                                      NULL,
+                                      &_ihoc_gws,
+                                      &_ihoc_lws,
+                                      0,
+                                      NULL,
+                                      NULL);
+    if(err_code != CL_SUCCESS) {
+        sprintf(msg,
+                "Failure executing \"iHoc\" from tool \"%s\".\n",
+                name());
+        S->addMessageF(3, msg);
         S->printOpenCLError(err_code);
-	    return true;
-	}
-	#ifdef HAVE_GPUPROFILE
-	    err_code = clWaitForEvents(1, &event);
-		if(err_code != CL_SUCCESS) {
-			S->addMessageF(3, "Impossible to wait for the cells localization kernel end.\n");
-            S->printOpenCLError(err_code);
-			return true;
-		}
-	    err_code = clGetEventProfilingInfo(event,
-                                           CL_PROFILING_COMMAND_END,
-                                           sizeof(cl_ulong),
-                                           &end,
-                                           0);
-		if(err_code != CL_SUCCESS) {
-			S->addMessageF(3, "I cannot profile the cells localization kernel execution.\n");
-            S->printOpenCLError(err_code);
-			return true;
-		}
-	    err_code = clGetEventProfilingInfo(event,
-                                           CL_PROFILING_COMMAND_START,
-                                           sizeof(cl_ulong),
-                                           &start, 0);
-		if(err_code != CL_SUCCESS) {
-			S->addMessageF(3, "I cannot profile the cells localization kernel execution.\n");
-            S->printOpenCLError(err_code);
-			return true;
-		}
-	    profileTime(profileTime() + (end - start)/1000.f);  // 10^-3 ms
-	#endif
+        return true;
+    }
 
-    // Sort the particles by their cells
-    // =================================
-	if(_radix_sort->sort())
-	    return true;
-	#ifdef HAVE_GPUPROFILE
-	    profileTime(profileTime() + _radix_sort->profileTime());  // 10^-3 ms
-	#endif
-
-    // Compute the heads of chain for the sorted particles
-    // ===================================================
-	unsigned int nMinOne = C->N-1;
-	err_code |= sendArgument(_ll_kernel,
-                             0,
-                             sizeof(cl_mem),
-                             (void*)&(C->icell));
-	err_code |= sendArgument(_ll_kernel,
-                             1,
-                             sizeof(cl_mem),
-                             (void*)&(C->ihoc));
-	err_code |= sendArgument(_ll_kernel,
-                             2,
-                             sizeof(cl_uint),
-                             (void*)&nMinOne);
-	if(err_code != CL_SUCCESS) {
-		S->addMessageF(3, "Failure sending variables to the Link-List kernel.\n");
-	    return true;
-	}
-	_local_work_size  = localWorkSize(nMinOne);
-	if(!_local_work_size){
-	    S->addMessageF(3, "No valid local work size has been found for the Link-List.\n");
-	    return true;
-	}
-	_global_work_size = globalWorkSize(_local_work_size, nMinOne);
-	#ifdef HAVE_GPUPROFILE
-	    err_code = clEnqueueNDRangeKernel(C->command_queue,
-                                          _ll_kernel,
-                                          1,
-                                          NULL,
-                                          &_global_work_size,
-                                          NULL,
-                                          0,
-                                          NULL,
-                                          &event);
-	#else
-	    err_code = clEnqueueNDRangeKernel(C->command_queue,
-                                          _ll_kernel,
-                                          1,
-                                          NULL,
-                                          &_global_work_size,
-                                          NULL,
-                                          0,
-                                          NULL,
-                                          NULL);
-	#endif
-	if(err_code != CL_SUCCESS) {
-		S->addMessageF(3, "I cannot execute the kernel \"LinkList\".\n");
+    err_code = clEnqueueNDRangeKernel(C->command_queue(),
+                                      _ll,
+                                      1,
+                                      NULL,
+                                      &_ll_gws,
+                                      &_ll_lws,
+                                      0,
+                                      NULL,
+                                      NULL);
+    if(err_code != CL_SUCCESS) {
+        sprintf(msg,
+                "Failure executing \"linkList\" from tool \"%s\".\n",
+                name());
+        S->addMessageF(3, msg);
         S->printOpenCLError(err_code);
-	    return true;
-	}
-	#ifdef HAVE_GPUPROFILE
-	    err_code = clWaitForEvents(1, &event);
-		if(err_code != CL_SUCCESS) {
-			S->addMessageF(3, "Impossible to wait for the Link-List kernel end.\n");
-            S->printOpenCLError(err_code);
-			return true;
-		}
-	    err_code = clGetEventProfilingInfo(event,
-                                           CL_PROFILING_COMMAND_END,
-                                           sizeof(cl_ulong),
-                                           &end,
-                                           0);
-		if(err_code != CL_SUCCESS) {
-			S->addMessageF(3, "I cannot profile the Link-List kernel execution.\n");
-            S->printOpenCLError(err_code);
-			return true;
-		}
-	    err_code = clGetEventProfilingInfo(event,
-                                           CL_PROFILING_COMMAND_START,
-                                           sizeof(cl_ulong),
-                                           &start, 0);
-		if(err_code != CL_SUCCESS) {
-			S->addMessageF(3, "I cannot profile the Link-List kernel execution.\n");
-            S->printOpenCLError(err_code);
-			return true;
-		}
-	    profileTime(profileTime() + (end - start)/1000.f);  // 10^-3 ms
-	#endif
-	return false;
+        return true;
+    }
+
+    return false;
 }
 
 bool LinkList::setupOpenCL()
 {
+    unsigned int i;
+    uivec4 n_cells;
+    unsigned int n_radix, N;
+    cl_int err_code;
+    char msg[1024];
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
-	int err_code=0;
-	if(!loadKernelFromFile(&_icell_kernel,
-                           &_program,
-                           C->context,
-                           C->device,
-                           _path,
-                           "LCell",
-                           ""))
-	    return true;
-	if(_program)clReleaseProgram(_program); _program=0;
-	if(!loadKernelFromFile(&_ihoc_kernel,
-                           &_program,
-                           C->context,
-                           C->device,
-                           _path,
-                           "InitIhoc",
-                           ""))
-	    return true;
-	if(_program)clReleaseProgram(_program); _program=0;
-	if(!loadKernelFromFile(&_ll_kernel,
-                           &_program,
-                           C->context,
-                           C->device,
-                           _path,
-                           "LinkList",
-                           ""))
-	    return true;
-	if(_program)clReleaseProgram(_program); _program=0;
-	err_code = sendArgument(_icell_kernel,
-                            0,
-                            sizeof(cl_mem),
-                            (void*)&(C->pos));
-	if(err_code)
-	    return true;
+    InputOutput::Variables *vars = C->variables();
 
-	cl_device_id device;
-	size_t local_work_size=0;
-	err_code = clGetCommandQueueInfo(C->command_queue,
-                                     CL_QUEUE_DEVICE,
-	                                 sizeof(cl_device_id),
-                                     &device,
-                                     NULL);
-	if(err_code != CL_SUCCESS) {
-		S->addMessageF(3, "I Cannot get the device from the command queue.\n");
-        S->printOpenCLError(err_code);
-	    return true;
-	}
-	err_code = clGetKernelWorkGroupInfo(_icell_kernel,
-                                        device,
+    // Create a header for the source code where the operation will be placed
+    char header[LINKLIST_INC_LEN + 1];
+    strcpy(header, "");
+    strncat(header, LINKLIST_INC, LINKLIST_INC_LEN);
+    strcat(header, "");
+
+    // Setup the complete source code
+    char source[strlen(header) + strlen(LINKLIST_SRC) + 1];
+    strcpy(source, header);
+    strncat(source, LINKLIST_SRC, LINKLIST_SRC_LEN);
+    strcat(source, "");
+
+    if(compile(source)){
+        return true;
+    }
+
+	err_code = clGetKernelWorkGroupInfo(_ihoc,
+                                        C->device(),
                                         CL_KERNEL_WORK_GROUP_SIZE,
-	                                    sizeof(size_t),
-                                        &local_work_size,
+                                        sizeof(size_t),
+                                        &_ihoc_lws,
                                         NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessageF(3, "Failure computing the maximum local work size for Lcell.\n");
+	    S->addMessageF(3, "Failure querying the work group size (\"iHoc\").\n");
         S->printOpenCLError(err_code);
 	    return true;
 	}
-	if(local_work_size < _local_work_size)
-	    _local_work_size  = local_work_size;
-	err_code = clGetKernelWorkGroupInfo(_ihoc_kernel,
-                                        device,
+    if(_ihoc_lws < __CL_MIN_LOCALSIZE__){
+        S->addMessageF(3, "iHoc cannot be performed.\n");
+        sprintf(msg,
+                "\t%lu elements can be executed, but __CL_MIN_LOCALSIZE__=%lu\n",
+                _ihoc_lws,
+                __CL_MIN_LOCALSIZE__);
+        S->addMessage(0, msg);
+        return true;
+    }
+    n_cells = *(uivec4*)vars->get("n_cells")->get();
+    _ihoc_gws = roundUp(n_cells.w, _ihoc_lws);
+    const char *_ihoc_vars[3] = {"ihoc", "N", "n_cells"};
+    for(i = 0; i < 3; i++){
+        err_code = clSetKernelArg(_ihoc,
+                                  i,
+                                  vars->get(_ihoc_vars[i])->typesize(),
+                                  vars->get(_ihoc_vars[i])->get());
+        if(err_code != CL_SUCCESS){
+            sprintf(msg,
+                    "Failure sending \"%s\" argument to \"iHoc\".\n",
+                    _ihoc_vars[i]);
+            S->addMessageF(3, msg);
+            S->printOpenCLError(err_code);
+            return true;
+        }
+        _ihoc_args.push_back(malloc(vars->get(_ihoc_vars[i])->typesize()));
+        memcpy(_ihoc_args.at(i),
+               vars->get(_ihoc_vars[i])->get(),
+               vars->get(_ihoc_vars[i])->typesize());
+    }
+
+	err_code = clGetKernelWorkGroupInfo(_icell,
+                                        C->device(),
                                         CL_KERNEL_WORK_GROUP_SIZE,
-	                                    sizeof(size_t),
-                                        &local_work_size,
+                                        sizeof(size_t),
+                                        &_icell_lws,
                                         NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessageF(3, "Failure computing the maximum local work size for ihoc clearer.\n");
+	    S->addMessageF(3, "Failure querying the work group size (\"iCell\").\n");
         S->printOpenCLError(err_code);
 	    return true;
 	}
-	if(local_work_size < _local_work_size)
-	    _local_work_size  = local_work_size;
-	err_code = clGetKernelWorkGroupInfo(_ll_kernel,
-                                        device,
+    if(_icell_lws < __CL_MIN_LOCALSIZE__){
+        S->addMessageF(3, "iCell cannot be performed.\n");
+        sprintf(msg,
+                "\t%lu elements can be executed, but __CL_MIN_LOCALSIZE__=%lu\n",
+                _icell_lws,
+                __CL_MIN_LOCALSIZE__);
+        S->addMessage(0, msg);
+        return true;
+    }
+    n_radix = *(unsigned int*)vars->get("n_radix")->get();
+    _icell_gws = roundUp(n_radix, _icell_lws);
+    const char *_icell_vars[8] = {"icell", _input_name, "N", "n_radix",
+                                  "pos_min", "support", "h", "n_cells"};
+    for(i = 0; i < 8; i++){
+        err_code = clSetKernelArg(_icell,
+                                  i,
+                                  vars->get(_icell_vars[i])->typesize(),
+                                  vars->get(_icell_vars[i])->get());
+        if(err_code != CL_SUCCESS){
+            sprintf(msg,
+                    "Failure sending \"%s\" argument to \"iCell\".\n",
+                    _icell_vars[i]);
+            S->addMessageF(3, msg);
+            S->printOpenCLError(err_code);
+            return true;
+        }
+        _icell_args.push_back(malloc(vars->get(_icell_vars[i])->typesize()));
+        memcpy(_icell_args.at(i),
+               vars->get(_icell_vars[i])->get(),
+               vars->get(_icell_vars[i])->typesize());
+    }
+
+	err_code = clGetKernelWorkGroupInfo(_ll,
+                                        C->device(),
                                         CL_KERNEL_WORK_GROUP_SIZE,
-	                                    sizeof(size_t),
-                                        &local_work_size, NULL);
+                                        sizeof(size_t),
+                                        &_ll_lws,
+                                        NULL);
 	if(err_code != CL_SUCCESS) {
-		S->addMessageF(3, "Failure computing the maximum local work size for Link-List.\n");
+	    S->addMessageF(3, "Failure querying the work group size (\"linkList\").\n");
         S->printOpenCLError(err_code);
 	    return true;
 	}
-	if(local_work_size < _local_work_size)
-	    _local_work_size  = local_work_size;
-	_global_work_size = globalWorkSize(_local_work_size);
+    if(_ll_lws < __CL_MIN_LOCALSIZE__){
+        S->addMessageF(3, "linkList cannot be performed.\n");
+        sprintf(msg,
+                "\t%lu elements can be executed, but __CL_MIN_LOCALSIZE__=%lu\n",
+                _ll_lws,
+                __CL_MIN_LOCALSIZE__);
+        S->addMessage(0, msg);
+        return true;
+    }
+    N = *(unsigned int*)vars->get("N")->get();
+    _ll_gws = roundUp(N, _ll_lws);
+    const char *_ll_vars[3] = {"icell", "ihoc", "N"};
+    for(i = 0; i < 3; i++){
+        err_code = clSetKernelArg(_ll,
+                                  i,
+                                  vars->get(_ll_vars[i])->typesize(),
+                                  vars->get(_ll_vars[i])->get());
+        if(err_code != CL_SUCCESS){
+            sprintf(msg,
+                    "Failure sending \"%s\" argument to \"iCell\".\n",
+                    _ll_vars[i]);
+            S->addMessageF(3, msg);
+            S->printOpenCLError(err_code);
+            return true;
+        }
+        _ll_args.push_back(malloc(vars->get(_ll_vars[i])->typesize()));
+        memcpy(_ll_args.at(i),
+               vars->get(_ll_vars[i])->get(),
+               vars->get(_ll_vars[i])->typesize());
+    }
+
 	return false;
 }
 
-bool LinkList::allocLinkList()
+bool LinkList::compile(const char* source)
 {
+    cl_int err_code;
+    cl_program program;
+    char msg[1024];
 	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 	CalcServer *C = CalcServer::singleton();
-	char msg[256];
-	if(C->num_cells > C->num_cells_allocated)
-	{
-	    sprintf(msg,
-                "Number of cells increased [%d -> %d]\n",
-                C->num_cells_allocated,
-                C->num_cells);
-		S->addMessageF(2, msg);
-	    if(C->num_cells_allocated > 0) {
-	        if(C->ihoc)
-                clReleaseMemObject(C->ihoc);
-            C->ihoc=NULL;
-			C->allocated_mem -= C->num_cells_allocated * sizeof( cl_uint );
-	    }
-	    C->ihoc = C->allocMemory(C->num_cells * sizeof( cl_uint ));
-		if(!C->ihoc) {
-	        sprintf(msg,
-                    "Fail allocating memory for ihoc (%u bytes).\n",
-                    (unsigned int)(C->num_cells * sizeof( cl_uint )) );
-		    S->addMessageF(3, msg);
-		    return true;
-		}
-		sprintf(msg, "\tAllocated memory = %u bytes\n",
-                (unsigned int)C->allocated_mem);
-		S->addMessage(1, msg);
-	    C->num_cells_allocated = C->num_cells;
-	    _local_work_size = 256;
-	    _global_work_size = globalWorkSize(_local_work_size);
+
+    char flags[512];
+    strcpy(flags, "");
+	#ifdef AQUA_DEBUG
+	    strcat(flags, " -g -DDEBUG ");
+	#else
+	    strcat(flags, " -DNDEBUG ");
+	#endif
+	strcat(flags, " -cl-mad-enable -cl-no-signed-zeros -cl-finite-math-only -cl-fast-relaxed-math");
+	#ifdef HAVE_3D
+		strcat(flags, " -DHAVE_3D");
+	#else
+		strcat(flags, " -DHAVE_2D");
+	#endif
+	size_t source_length = strlen(source) + 1;
+	program = clCreateProgramWithSource(C->context(),
+                                        1,
+                                        (const char **)&source,
+                                        &source_length,
+                                        &err_code);
+	if(err_code != CL_SUCCESS) {
+	    S->addMessageF(3, "Failure creating the OpenCL program.\n");
+	    S->printOpenCLError(err_code);
+	    return true;
 	}
+	err_code = clBuildProgram(program, 0, NULL, flags, NULL, NULL);
+	if(err_code != CL_SUCCESS) {
+	    S->addMessage(3, "Error compiling the source code\n");
+        S->printOpenCLError(err_code);
+	    S->addMessage(3, "--- Build log ---------------------------------\n");
+	    size_t log_size;
+	    clGetProgramBuildInfo(program,
+                              C->device(),
+                              CL_PROGRAM_BUILD_LOG,
+                              0,
+                              NULL,
+                              &log_size);
+	    char *log = (char*)malloc(log_size + sizeof(char));
+	    clGetProgramBuildInfo(program,
+                              C->device(),
+                              CL_PROGRAM_BUILD_LOG,
+                              log_size,
+                              log,
+                              NULL);
+	    strcat(log, "\n");
+	    S->addMessage(0, log);
+	    S->addMessage(3, "--------------------------------- Build log ---\n");
+	    free(log); log=NULL;
+        clReleaseProgram(program);
+	    return true;
+	}
+	_ihoc = clCreateKernel(program, "iHoc", &err_code);
+	if(err_code != CL_SUCCESS) {
+	    S->addMessageF(3, "Failure creating the \"iHoc\" kernel.\n");
+	    S->printOpenCLError(err_code);
+        clReleaseProgram(program);
+	    return true;
+	}
+	_icell = clCreateKernel(program, "iCell", &err_code);
+	if(err_code != CL_SUCCESS) {
+	    S->addMessageF(3, "Failure creating the \"iCell\" kernel.\n");
+	    S->printOpenCLError(err_code);
+        clReleaseProgram(program);
+	    return true;
+	}
+	_ll = clCreateKernel(program, "linkList", &err_code);
+	if(err_code != CL_SUCCESS) {
+	    S->addMessageF(3, "Failure creating the \"linkList\" kernel.\n");
+	    S->printOpenCLError(err_code);
+        clReleaseProgram(program);
+	    return true;
+	}
+
+    clReleaseProgram(program);
+	return false;
+}
+
+bool LinkList::nCells()
+{
+    vec pos_min, pos_max;
+    char msg[1024];
+	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+	CalcServer *C = CalcServer::singleton();
+    InputOutput::Variables *vars = C->variables();
+
+    if(!_cell_length){
+        sprintf(msg,
+                "Zero cell length detected in the tool \"%s\".\n",
+                name());
+        S->addMessageF(3, msg);
+        return true;
+    }
+
+    pos_min = *(vec*)vars->get("pos_min")->get();
+    pos_max = *(vec*)vars->get("pos_max")->get();
+
+	_n_cells.x = (unsigned int)((pos_max.x - pos_min.x) / _cell_length) + 6;
+	_n_cells.y = (unsigned int)((pos_max.y - pos_min.y) / _cell_length) + 6;
+	#ifdef HAVE_3D
+        _n_cells.z = (unsigned int)((pos_max.z - pos_min.z) / _cell_length) + 6;
+    #else
+        _n_cells.z = 1;
+	#endif
+    _n_cells.w = _n_cells.x * _n_cells.y * _n_cells.z;
+
+    return false;
+}
+
+bool LinkList::allocate()
+{
+    uivec4 n_cells;
+    cl_int err_code;
+    char msg[1024];
+	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+	CalcServer *C = CalcServer::singleton();
+    InputOutput::Variables *vars = C->variables();
+
+    if(strcmp(vars->get("n_cells")->type(), "uivec4")){
+        sprintf(msg,
+                "Wrong type found during the execution of the tool \"%s\".\n",
+                name());
+        S->addMessageF(3, msg);
+        sprintf(msg,
+                "\tVariable \"%s\" type is \"%s\" (\"%s\" expected).\n",
+                "n_cells",
+                vars->get("n_cells")->type(),
+                "uivec4");
+        S->addMessage(0, msg);
+        return true;
+    }
+
+    n_cells = *(uivec4*)vars->get("n_cells")->get();
+
+    if(_n_cells.w <= n_cells.w){
+        n_cells.x = _n_cells.x;
+        n_cells.y = _n_cells.y;
+        n_cells.z = _n_cells.z;
+        vars->get("n_cells")->set(&n_cells);
+        return false;
+    }
+
+    cl_mem mem = *(cl_mem*)vars->get("ihoc")->get();
+    if(mem) clReleaseMemObject(mem); mem = NULL;
+
+    mem = clCreateBuffer(C->context(),
+                         CL_MEM_READ_WRITE,
+                         _n_cells.w * sizeof(unsigned int),
+                         NULL,
+                         &err_code);
+    if(err_code != CL_SUCCESS){
+        sprintf(msg,
+                "Buffer memory allocation failure during tool \"%s\" execution.\n",
+                name());
+        S->addMessageF(3, msg);
+        S->printOpenCLError(err_code);
+        return true;
+    }
+
+    n_cells = _n_cells;
+    vars->get("n_cells")->set(&n_cells);
+    vars->get("ihoc")->set(&mem);
+    _ihoc_gws = roundUp(n_cells.w, _ihoc_lws);
+
+    return false;
+}
+
+bool LinkList::setVariables()
+{
+    unsigned int i;
+    char msg[1024];
+    cl_int err_code;
+	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+	CalcServer *C = CalcServer::singleton();
+    InputOutput::Variables *vars = C->variables();
+
+    const char *_ihoc_vars[3] = {"ihoc", "N", "n_cells"};
+    for(i = 0; i < 3; i++){
+        InputOutput::Variable *var = vars->get(_ihoc_vars[i]);
+        if(!memcmp(var->get(), _ihoc_args.at(i), var->typesize())){
+            continue;
+        }
+        err_code = clSetKernelArg(_ihoc,
+                                  i,
+                                  var->typesize(),
+                                  var->get());
+        if(err_code != CL_SUCCESS){
+            sprintf(msg,
+                    "Failure sending \"%s\" argument to \"iHoc\" in tool \"%s\".\n",
+                    _ihoc_vars[i],
+                    name());
+            S->addMessageF(3, msg);
+            S->printOpenCLError(err_code);
+            return true;
+        }
+        memcpy(_ihoc_args.at(i), var->get(), var->typesize());
+    }
+
+    const char *_icell_vars[8] = {"icell", _input_name, "N", "n_radix",
+                                  "pos_min", "support", "h", "n_cells"};
+    for(i = 0; i < 8; i++){
+        InputOutput::Variable *var = vars->get(_icell_vars[i]);
+        if(!memcmp(var->get(), _icell_args.at(i), var->typesize())){
+            continue;
+        }
+        err_code = clSetKernelArg(_icell,
+                                  i,
+                                  var->typesize(),
+                                  var->get());
+        if(err_code != CL_SUCCESS){
+            sprintf(msg,
+                    "Failure sending \"%s\" argument to \"iCell\" in tool \"%s\".\n",
+                    _icell_vars[i],
+                    name());
+            S->addMessageF(3, msg);
+            S->printOpenCLError(err_code);
+            return true;
+        }
+        memcpy(_icell_args.at(i), var->get(), var->typesize());
+    }
+
+    const char *_ll_vars[3] = {"icell", "ihoc", "N"};
+    for(i = 0; i < 3; i++){
+        InputOutput::Variable *var = vars->get(_ll_vars[i]);
+        if(!memcmp(var->get(), _ll_args.at(i), var->typesize())){
+            continue;
+        }
+        err_code = clSetKernelArg(_ll,
+                                  i,
+                                  var->typesize(),
+                                  var->get());
+        if(err_code != CL_SUCCESS){
+            sprintf(msg,
+                    "Failure sending \"%s\" argument to \"iCell\" in tool \"%s\".\n",
+                    _ll_vars[i],
+                    name());
+            S->addMessageF(3, msg);
+            S->printOpenCLError(err_code);
+            return true;
+        }
+        memcpy(_ll_args.at(i), var->get(), var->typesize());
+    }
+
 	return false;
 }
 

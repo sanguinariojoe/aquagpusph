@@ -16,11 +16,6 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file
- * @brief Simulation configuration files manager.
- * (See Aqua::InputOutput::State for details)
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -239,6 +234,14 @@ bool State::parse(const char* filepath)
         xmlClear();
         return true;
     }
+    if(parseVariables(root)){
+        xmlClear();
+        return true;
+    }
+    if(parseTools(root)){
+        xmlClear();
+        return true;
+    }
     if(parseOpenCL(root)){
         xmlClear();
         return true;
@@ -259,9 +262,9 @@ bool State::parse(const char* filepath)
         xmlClear();
         return true;
     }
-	if(parseSet(root)){
+    if(parseSet(root)){
         xmlClear();
-	    return true;
+        return true;
     }
     if(parseSensors(root)){
         xmlClear();
@@ -335,6 +338,212 @@ bool State::parseSettings(DOMElement *root)
                 S->addMessage(0, "\t\tGPU\n");
                 S->addMessage(0, "\t\tACCELERATOR\n");
                 S->addMessage(0, "\t\tDEFAULT\n");
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool State::parseVariables(DOMElement *root)
+{
+    ProblemSetup *P = ProblemSetup::singleton();
+    DOMNodeList* nodes = root->getElementsByTagName(xmlS("Variables"));
+    for(XMLSize_t i=0; i<nodes->getLength(); i++){
+        DOMNode* node = nodes->item(i);
+        if(node->getNodeType() != DOMNode::ELEMENT_NODE)
+            continue;
+        DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
+        DOMNodeList* s_nodes = elem->getElementsByTagName(xmlS("Variable"));
+        for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
+            DOMNode* s_node = s_nodes->item(j);
+            if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
+                continue;
+            DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+            if(!strstr(xmlAttribute(s_elem, "type"), "*")){
+                P->variables.registerVariable(xmlAttribute(s_elem, "name"),
+                                              xmlAttribute(s_elem, "type"),
+                                              "1",
+                                              xmlAttribute(s_elem, "value"));
+            }
+            else{
+                P->variables.registerVariable(xmlAttribute(s_elem, "name"),
+                                              xmlAttribute(s_elem, "type"),
+                                              xmlAttribute(s_elem, "length"),
+                                              "NULL");
+            }
+        }
+    }
+    return false;
+}
+
+bool State::parseTools(DOMElement *root)
+{
+    ScreenManager *S = ScreenManager::singleton();
+    ProblemSetup *P = ProblemSetup::singleton();
+    char msg[1024]; strcpy(msg, "");
+    DOMNodeList* nodes = root->getElementsByTagName(xmlS("Tools"));
+    for(XMLSize_t i=0; i<nodes->getLength(); i++){
+        DOMNode* node = nodes->item(i);
+        if(node->getNodeType() != DOMNode::ELEMENT_NODE)
+            continue;
+        DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
+        DOMNodeList* s_nodes = elem->getElementsByTagName(xmlS("Tool"));
+        for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
+            DOMNode* s_node = s_nodes->item(j);
+            if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
+                continue;
+            DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+            if(!xmlHasAttribute(s_elem, "name")){
+                S->addMessageF(3, "Found a tool without name\n");
+                return true;
+            }
+            if(!xmlHasAttribute(s_elem, "type")){
+                S->addMessageF(3, "Found a tool without type\n");
+                return true;
+            }
+
+            // Create the tool
+            ProblemSetup::sphTool *tool = new ProblemSetup::sphTool();
+            tool->set("name", xmlAttribute(s_elem, "name"));
+            tool->set("type", xmlAttribute(s_elem, "type"));
+
+            // Place the tool
+            if(!xmlHasAttribute(s_elem, "action") ||
+               !strcmp(xmlAttribute(s_elem, "action"), "add")){
+                P->tools.push_back(tool);
+            }
+            else if(!strcmp(xmlAttribute(s_elem, "action"), "insert")){
+                if(!xmlHasAttribute(s_elem, "place")){
+                    sprintf(msg,
+                            "Missed the place where to insert the tool \"%s\".\n",
+                            tool->get("name"));
+                    S->addMessageF(3, msg);
+                    return true;
+                }
+                unsigned int place = atoi(xmlAttribute(s_elem, "place"));
+                if(place > P->tools.size()){
+                    sprintf(msg,
+                            "Failure inserting the tool \"%s\" in the place %u (max=%lu).\n",
+                            tool->get("name"),
+                            place,
+                            P->tools.size());
+                    S->addMessageF(3, msg);
+                    return true;
+                }
+                P->tools.insert(P->tools.begin() + place, tool);
+            }
+            else if(!strcmp(xmlAttribute(s_elem, "action"), "remove")){
+                unsigned int place;
+                for(place = 0; place < P->tools.size(); place++){
+                    if(!strcmp(P->tools.at(place)->get("name"),
+                               tool->get("name"))){
+                        break;
+                    }
+                }
+                if(place == P->tools.size()){
+                    sprintf(msg,
+                            "Failure removing the tool \"%s\" (tool not found).\n",
+                            tool->get("name"));
+                    S->addMessageF(3, msg);
+                    return true;
+                }
+                P->tools.erase(P->tools.begin() + place);
+                continue;
+            }
+            else{
+                sprintf(msg,
+                        "Unknown \"action\" for the tool \"%s\".\n",
+                        tool->get("name"));
+                S->addMessageF(3, msg);
+                S->addMessage(0, "\tThe valid actions are:\n");
+                S->addMessage(0, "\t\tadd\n");
+                S->addMessage(0, "\t\tinsert\n");
+                S->addMessage(0, "\t\tremove\n");
+                return true;
+            }
+
+            // Configure the tool
+            if(!strcmp(xmlAttribute(s_elem, "type"), "kernel")){
+                if(!xmlHasAttribute(s_elem, "path")){
+                    sprintf(msg,
+                            "Tool \"%s\" is of type \"kernel\", but \"path\" is not defined.\n",
+                            tool->get("name"));
+                    S->addMessageF(3, msg);
+                    return true;
+                }
+                tool->set("path", xmlAttribute(s_elem, "path"));
+                if(!xmlHasAttribute(s_elem, "n")){
+                    tool->set("n", "N");
+                }
+                else{
+                    tool->set("path", xmlAttribute(s_elem, "n"));
+                }
+            }
+            else if(!strcmp(xmlAttribute(s_elem, "type"), "copy")){
+                const char *atts[2] = {"in", "out"};
+                for(unsigned int k = 0; k < 2; k++){
+                    if(!xmlHasAttribute(s_elem, atts[k])){
+                        sprintf(msg,
+                                "Tool \"%s\" is of type \"set\", but \"%s\" is not defined.\n",
+                                tool->get("name"),
+                                atts[k]);
+                        S->addMessageF(3, msg);
+                        return true;
+                    }
+                    tool->set(atts[k], xmlAttribute(s_elem, atts[k]));
+                }
+            }
+            else if(!strcmp(xmlAttribute(s_elem, "type"), "set")){
+                const char *atts[2] = {"in", "value"};
+                for(unsigned int k = 0; k < 2; k++){
+                    if(!xmlHasAttribute(s_elem, atts[k])){
+                        sprintf(msg,
+                                "Tool \"%s\" is of type \"set\", but \"%s\" is not defined.\n",
+                                tool->get("name"),
+                                atts[k]);
+                        S->addMessageF(3, msg);
+                        return true;
+                    }
+                    tool->set(atts[k], xmlAttribute(s_elem, atts[k]));
+                }
+            }
+            else if(!strcmp(xmlAttribute(s_elem, "type"), "reduction")){
+                const char *atts[3] = {"in", "out", "null"};
+                for(unsigned int k = 0; k < 3; k++){
+                    if(!xmlHasAttribute(s_elem, atts[k])){
+                        sprintf(msg,
+                                "Tool \"%s\" is of type \"reduction\", but \"%s\" is not defined.\n",
+                                tool->get("name"),
+                                atts[k]);
+                        S->addMessageF(3, msg);
+                        return true;
+                    }
+                    tool->set(atts[k], xmlAttribute(s_elem, atts[k]));
+                }
+                if(!strcmp(xmlS(s_elem->getTextContent()), "")){
+                    sprintf(msg,
+                            "No operation specified for the reduction \"%s\".\n",
+                            tool->get("name"));
+                    S->addMessageF(3, msg);
+                    return true;
+                }
+                tool->set("operation", xmlS(s_elem->getTextContent()));
+            }
+            else if(!strcmp(xmlAttribute(s_elem, "type"), "link-list")){
+                if(!xmlHasAttribute(s_elem, "in")){
+                    tool->set("in", "pos");
+                    continue;
+                }
+                tool->set("in", xmlAttribute(s_elem, "in"));
+            }
+            else{
+                sprintf(msg,
+                        "Unknown \"type\" for the tool \"%s\".\n",
+                        tool->get("name"));
+                S->addMessageF(3, msg);
+                S->addMessage(0, "\tThe valid types are:\n");
+                S->addMessage(0, "\t\tkernel\n");
                 return true;
             }
         }
@@ -713,13 +922,13 @@ bool State::parseSPH(DOMElement *root)
 
             else if(!strcmp(name, "Boundary")){
                 if(!strcmp(xmlAttribute(s_elem, "value"), "ElasticBounce")){
-                    P->SPH_opts.boundary_type = __BOUNDARY_ELASTIC__;
+                    P->SPH_opts.boundary_type = 0;
                 }
                 else if(!strcmp(xmlAttribute(s_elem, "value"), "FixedParticles")){
-                    P->SPH_opts.boundary_type = __BOUNDARY_FIXED__;
+                    P->SPH_opts.boundary_type = 1;
                 }
                 else if(!strcmp(xmlAttribute(s_elem, "value"), "DeLeffe")){
-                    P->SPH_opts.boundary_type = __BOUNDARY_DELEFFE__;
+                    P->SPH_opts.boundary_type = 2;
                 }
                 else{
                     sprintf(msg,
@@ -944,61 +1153,61 @@ bool State::parseFluid(DOMElement *root)
 
 bool State::parseSet(DOMElement *root)
 {
-	ScreenManager *S = ScreenManager::singleton();
-	ProblemSetup *P = ProblemSetup::singleton();
-	char msg[1024]; strcpy(msg, "");
-	DOMNodeList* nodes = root->getElementsByTagName(xmlS("ParticlesSet"));
-	for(XMLSize_t i=0; i<nodes->getLength(); i++){
-	    DOMNode* node = nodes->item(i);
-	    if(node->getNodeType() != DOMNode::ELEMENT_NODE)
-	        continue;
-	    DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
+    ScreenManager *S = ScreenManager::singleton();
+    ProblemSetup *P = ProblemSetup::singleton();
+    char msg[1024]; strcpy(msg, "");
+    DOMNodeList* nodes = root->getElementsByTagName(xmlS("ParticlesSet"));
+    for(XMLSize_t i=0; i<nodes->getLength(); i++){
+        DOMNode* node = nodes->item(i);
+        if(node->getNodeType() != DOMNode::ELEMENT_NODE)
+            continue;
+        DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
         if(!xmlHasAttribute(elem, "n")){
             S->addMessageF(3, "Found a particles set without \"n\" attribute.\n");
             return true;
         }
 
         ProblemSetup::sphParticlesSet *Set = new ProblemSetup::sphParticlesSet();
-	    Set->n(atoi(xmlAttribute(elem, "n")));
+        Set->n(atoi(xmlAttribute(elem, "n")));
 
-	    DOMNodeList* s_nodes = elem->getElementsByTagName(xmlS("Scalar"));
-	    for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
-	        DOMNode* s_node = s_nodes->item(j);
-	        if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
-	            continue;
-	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+        DOMNodeList* s_nodes = elem->getElementsByTagName(xmlS("Scalar"));
+        for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
+            DOMNode* s_node = s_nodes->item(j);
+            if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
+                continue;
+            DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 
-	        const char *name = xmlAttribute(s_elem, "name");
-	        const char *value = xmlAttribute(s_elem, "value");
+            const char *name = xmlAttribute(s_elem, "name");
+            const char *value = xmlAttribute(s_elem, "value");
             Set->addScalar(name, value);
-	    }
+        }
 
-	    s_nodes = elem->getElementsByTagName(xmlS("Load"));
-	    for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
-	        DOMNode* s_node = s_nodes->item(j);
-	        if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
-	            continue;
-	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
-	        const char *path = xmlAttribute(s_elem, "file");
-	        const char *format = xmlAttribute(s_elem, "format");
-	        const char *fields = xmlAttribute(s_elem, "fields");
+        s_nodes = elem->getElementsByTagName(xmlS("Load"));
+        for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
+            DOMNode* s_node = s_nodes->item(j);
+            if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
+                continue;
+            DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+            const char *path = xmlAttribute(s_elem, "file");
+            const char *format = xmlAttribute(s_elem, "format");
+            const char *fields = xmlAttribute(s_elem, "fields");
             Set->input(path, format, fields);
-	    }
+        }
 
-	    s_nodes = elem->getElementsByTagName(xmlS("Save"));
-	    for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
-	        DOMNode* s_node = s_nodes->item(j);
-	        if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
-	            continue;
-	        DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
-	        const char *path = xmlAttribute(s_elem, "file");
-	        const char *format = xmlAttribute(s_elem, "format");
-	        const char *fields = xmlAttribute(s_elem, "fields");
+        s_nodes = elem->getElementsByTagName(xmlS("Save"));
+        for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
+            DOMNode* s_node = s_nodes->item(j);
+            if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
+                continue;
+            DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+            const char *path = xmlAttribute(s_elem, "file");
+            const char *format = xmlAttribute(s_elem, "format");
+            const char *fields = xmlAttribute(s_elem, "fields");
             Set->output(path, format, fields);
-	    }
+        }
         P->sets.push_back(Set);
-	}
-	return false;
+    }
+    return false;
 }
 
 bool State::parseSensors(DOMElement *root)
@@ -1545,6 +1754,14 @@ bool State::write(const char* filepath)
         xmlClear();
         return true;
     }
+    if(writeVariables(doc, root)){
+        xmlClear();
+        return true;
+    }
+    if(writeTools(doc, root)){
+        xmlClear();
+        return true;
+    }
     if(writeOpenCL(doc, root)){
         xmlClear();
         return true;
@@ -1561,9 +1778,9 @@ bool State::write(const char* filepath)
         xmlClear();
         return true;
     }
-	if(writeSet(doc, root)){
+    if(writeSet(doc, root)){
         xmlClear();
-	    return true;
+        return true;
     }
     if(writeSensors(doc, root)){
         xmlClear();
@@ -1672,6 +1889,52 @@ bool State::writeSettings(xercesc::DOMDocument* doc,
     }
     s_elem->setAttribute(xmlS("type"), xmlS(att));
     elem->appendChild(s_elem);
+    return false;
+}
+
+bool State::writeVariables(xercesc::DOMDocument* doc,
+                           xercesc::DOMElement *root)
+{
+    DOMElement *elem, *s_elem;
+    ProblemSetup *P = ProblemSetup::singleton();
+
+    elem = doc->createElement(xmlS("Variables"));
+    root->appendChild(elem);
+
+    /*
+    for(it=tags.begin(); it!=tags.end(); it++){
+        s_elem = doc->createElement(xmlS(it->first));
+        s_elem->setAttribute(xmlS("file"), xmlS(it->second));
+        elem->appendChild(s_elem);
+    }
+    */
+    return false;
+}
+
+bool State::writeTools(xercesc::DOMDocument* doc,
+                           xercesc::DOMElement *root)
+{
+    unsigned int i, j;
+    DOMElement *elem;
+    ProblemSetup *P = ProblemSetup::singleton();
+
+    elem = doc->createElement(xmlS("Tools"));
+    root->appendChild(elem);
+
+    std::deque<ProblemSetup::sphTool*> tools = P->tools;
+
+    for(i = 0; i < tools.size(); i++){
+        elem = doc->createElement(xmlS("Tool"));
+        root->appendChild(elem);
+        ProblemSetup::sphTool* tool = tools.at(i);
+
+        for(j = 0; j < tool->n(); j++){
+            const char* name = tool->getName(j);
+            const char* value = tool->get(j);
+            elem->setAttribute(xmlS(name), xmlS(value));
+        }
+    }
+
     return false;
 }
 
@@ -2108,8 +2371,8 @@ bool State::writeSet(xercesc::DOMDocument* doc,
     unsigned int i, j;
     char att[16];
     DOMElement *elem, *s_elem;
-	ProblemSetup *P = ProblemSetup::singleton();
-	FileManager *F = FileManager::singleton();
+    ProblemSetup *P = ProblemSetup::singleton();
+    FileManager *F = FileManager::singleton();
 
     std::deque<ProblemSetup::sphParticlesSet*> sets = P->sets;
 
