@@ -25,7 +25,16 @@
  * consumption.
  */
 
-if(imove[j] >= 0){
+// Artificial viscosity factor
+#ifndef __CLEARY__
+    #ifndef HAVE_3D
+        #define __CLEARY__ 8.f
+    #else
+        #define __CLEARY__ 15.f
+    #endif
+#endif
+
+if(imove[j] != -3){
 	j++;
 	continue;
 }
@@ -34,25 +43,23 @@ if(imove[j] >= 0){
 // face properties
 // ------------------------------------------------------------------
 vec n_j = normal[j];
-const float dens_j = dens[j];
-if(dens_j <= 0.0001f){
+const float rho_j = rho[j];
+if(rho_j <= 0.01f * refd_i){
 	j++;
 	continue;
 }
-const float area_j = mass[j];
-// ------------------------------------------------------------------
-// Vertex-particle interaction parameters
-// ------------------------------------------------------------------
-const vec r = pos_i - pos[j];
+const float area_j = m[j];
+
+const vec r = pos[j] - pos_i;
 const float q = fast_length(r) / h;
-if(q >= sep){
+if(q >= support){
     j++;
     continue;
 }
 // Test for swap normal (which must be internally oriented)
-float r0 = dot(r, n_j);
+float r0 = -dot(r, n_j);
 if(r0 < 0.f){
-	n_j  = -n_j;
+	n_j = -n_j;
 	r0 = -r0;
 }
 
@@ -60,8 +67,9 @@ if(r0 < 0.f){
 // Boundary element computation
 // ------------------------------------------------------------------
 {
-	const vec dv = v_i - v[j];
-	const float vdr = dens_j * dot(dv, n_j);
+    const float p_j = p[j];
+	const vec dv = v[j] - v_i;
+	const float vdr = rho_j * dot(dv, n_j);
 	//---------------------------------------------------------------
 	//       calculate the kernel wab
 	//---------------------------------------------------------------
@@ -69,22 +77,25 @@ if(r0 < 0.f){
 	//---------------------------------------------------------------
 	//       calculate the pressure factor
 	//---------------------------------------------------------------
-	const vec prfac = dens_j * (prfac_i + press[j] / (dens_j * dens_j)) * n_j;
+	const vec prfac = rho_j * (prfac_i + p_j / (rho_j * rho_j)) * n_j;
 	//---------------------------------------------------------------
-	//       calculate viscosity terms (Macia etal PTP-2012)
+    //       calculate viscosity terms
 	//---------------------------------------------------------------
-	#ifdef __NO_SLIP__
-        const float r2 = (q * q + 0.01f) * h * h;
-	    const vec viscg = 2.f * viscdyn_i * dv * r0 / (dens_i * r2);
-    #else
-    	const vec viscg = VEC_ZERO;
-	#endif
-	//---------------------------------------------------------------
-	//       force computation
-	//---------------------------------------------------------------
-	_F_ += wab * (prfac - viscg);
-	//---------------------------------------------------------------
-	//       rate of change of density
-	//---------------------------------------------------------------
-	_DRDT_ -= wab * vdr;
+    const float r2 = (q * q + 0.01f) * h * h;
+    const vec lapufac = __CLEARY__ * vdr / (r2 * rho_i * rho_j) * n_j;
+    //---------------------------------------------------------------
+    //     Momentum equation
+    //---------------------------------------------------------------
+    _GRADP_ += prfac * wab;
+    _LAPU_ -= lapufac * wab;
+    //---------------------------------------------------------------
+    //     Continuity equation
+    //---------------------------------------------------------------
+    _DIVU_ += vdr * wab;
+    //---------------------------------------------------------------
+    //     Density diffusion term
+    //---------------------------------------------------------------
+    const float ndr = - rho_j * dot(r, n_j) / r2;
+    const float drfac = (p_j - p_i) - refd_i * dot(g, r);
+    _LAPP_ += drfac * ndr * wab;
 }

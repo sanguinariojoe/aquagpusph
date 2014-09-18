@@ -21,7 +21,7 @@
         | icell       | unsigned int* | n_radix | Cell where each particle is located
         | ihoc        | unsigned int* | n_cells | First particle in each cell
          -->
-        <Variable name="g" type="vec" value="0.0, 0.0, -9.81, 0.0" save="false" />
+        <Variable name="g" type="vec" value="0.0, 0.0, 0.0, 0.0" save="false" />
         <Variable name="cs" type="float" value="15.0" save="false" />
         <Variable name="rho_min" type="float" value="0.0" save="false" />
         <Variable name="rho_max" type="float" value="2.25*10^10" save="false" />
@@ -87,6 +87,8 @@
         <Tool action="add" type="set" name="Reinit shepard" in="shepard" value="0.f"/>
 
         <Tool action="add" type="kernel" name="Rates" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Interactions.cl"/>
+        <Tool action="add" type="kernel" name="Rates" path="@RESOURCES_OUTPUT_DIR@/OpenCL/NonFluidSet.cl"/>
+        <Tool action="add" type="kernel" name="Rates" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/BoundaryIntegrals.cl"/>
 
     </Tools>
 </sphInput>
