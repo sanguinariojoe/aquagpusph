@@ -99,7 +99,7 @@ bool Reduction::setup()
     }
 
     _mems.push_back(*(cl_mem*)_input_var->get());
-    _input = (cl_mem*)_input_var->get();
+    _input = *(cl_mem*)_input_var->get();
     size_t n = _input_var->size() / vars->typeToBytes(_input_var->type());
     _n.push_back(n);
     if(setupOpenCL())
@@ -461,7 +461,7 @@ bool Reduction::setVariables()
     cl_int err_code;
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 
-    if((void*)_input == _input_var->get()){
+    if(_input == *(cl_mem*)_input_var->get()){
         return false;
     }
 
@@ -479,8 +479,8 @@ bool Reduction::setVariables()
         return true;
     }
 
-    _input = (cl_mem *)_input_var->get();
-    _mems.at(0) = *_input;
+    _input = *(cl_mem *)_input_var->get();
+    _mems.at(0) = _input;
 
     return false;
 }

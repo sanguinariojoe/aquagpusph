@@ -133,7 +133,7 @@ private:
     InputOutput::Variable *_output_var;
 
     /// Input array
-    cl_mem *_input;
+    cl_mem _input;
 
     /// OpenCL kernels
     std::deque<cl_kernel> _kernels;
