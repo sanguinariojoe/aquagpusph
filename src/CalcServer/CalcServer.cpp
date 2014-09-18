@@ -36,6 +36,7 @@
 #include <CalcServer/Copy.h>
 #include <CalcServer/Kernel.h>
 #include <CalcServer/LinkList.h>
+#include <CalcServer/Python.h>
 #include <CalcServer/Reduction.h>
 #include <CalcServer/Set.h>
 #include <CalcServer/UnSort.h>
@@ -156,6 +157,11 @@ CalcServer::CalcServer()
             Copy *tool = new Copy(P->tools.at(i)->get("name"),
                                   P->tools.at(i)->get("in"),
                                   P->tools.at(i)->get("out"));
+            _tools.push_back(tool);
+        }
+        else if(!strcmp(P->tools.at(i)->get("type"), "python")){
+            Python *tool = new Python(P->tools.at(i)->get("name"),
+                                      P->tools.at(i)->get("path"));
             _tools.push_back(tool);
         }
         else if(!strcmp(P->tools.at(i)->get("type"), "set")){

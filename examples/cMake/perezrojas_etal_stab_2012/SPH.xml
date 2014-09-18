@@ -26,6 +26,10 @@ Authors:
         <Variable name="cs" type="float" value="30.0" save="false" />
     </Variables>
 
+    <Tools>
+        <Tool action="add" type="python" name="PythonTest" path="@EXAMPLE_DEST_DIR@/Test.py"/>
+    </Tools>
+
     <SPH>
         <!-- Gravity force vector [m/s2] -->
         <Option name="g" x="0.0" y="0.0" z="-9.81" />

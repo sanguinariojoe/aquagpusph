@@ -20,7 +20,7 @@
 #define SET_H_INCLUDED
 
 #include <CalcServer.h>
-#include <CalcServer/Kernel.h>
+#include <CalcServer/Tool.h>
 
 namespace Aqua{ namespace CalcServer{
 

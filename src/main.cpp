@@ -71,6 +71,7 @@
  * the developers guide.
  */
 
+#include <Python.h>
 #include <FileManager.h>
 #include <ArgumentsManager.h>
 #include <ProblemSetup.h>
@@ -161,6 +162,8 @@ int main(int argc, char *argv[])
         delete C;
         delete T;
         delete S;
+        if(Py_IsInitialized())
+            Py_Finalize();
         return EXIT_FAILURE;
     }
 
@@ -186,6 +189,9 @@ int main(int argc, char *argv[])
             delete A; A = NULL;
             S->addMessageF(1, "Destroying files manager...\n");
             delete F; F = NULL;
+            S->addMessageF(1, "Finishing Python...\n");
+            if(Py_IsInitialized())
+                Py_Finalize();
             sprintf(msg, "Simulation finished abnormally (Time = %g s)\n\n", Time);
             S->addMessageF(1, msg);
             return EXIT_FAILURE;
@@ -205,6 +211,9 @@ int main(int argc, char *argv[])
             delete A; A = NULL;
             S->addMessageF(1, "Destroying files manager...\n");
             delete F; F = NULL;
+            S->addMessageF(1, "Finishing Python...\n");
+            if(Py_IsInitialized())
+                Py_Finalize();
             sprintf(msg, "Simulation finished abnormally (Time = %g s)\n\n", Time);
             S->addMessageF(1, msg);
             return EXIT_FAILURE;
@@ -224,6 +233,9 @@ int main(int argc, char *argv[])
         delete A; A = NULL;
         S->addMessageF(1, "Destroying files manager...\n");
         delete F; F = NULL;
+        S->addMessageF(1, "Finishing Python...\n");
+        if(Py_IsInitialized())
+            Py_Finalize();
         sprintf(msg, "Simulation finished abnormally (Time = %g s)\n\n", Time);
         S->addMessageF(1, msg);
         return EXIT_FAILURE;
@@ -243,7 +255,9 @@ int main(int argc, char *argv[])
     delete A; A = NULL;
     S->addMessageF(1, "Destroying files manager...\n");
     delete F; F = NULL;
-    // Exiting
+    S->addMessageF(1, "Finishing Python...\n");
+    if(Py_IsInitialized())
+        Py_Finalize();
     sprintf(msg, "Simulation finished OK (Time = %g s)\n\n", Time);
     S->addMessageF(1, msg);
     return EXIT_SUCCESS;

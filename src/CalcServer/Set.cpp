@@ -20,6 +20,7 @@
 #include <math.h>
 #include <vector>
 
+#include <AuxiliarMethods.h>
 #include <ProblemSetup.h>
 #include <ScreenManager.h>
 #include <CalcServer/Set.h>

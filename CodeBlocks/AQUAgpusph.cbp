@@ -85,6 +85,7 @@
 		<Unit filename="../include/CalcServer/Copy.h" />
 		<Unit filename="../include/CalcServer/Kernel.h" />
 		<Unit filename="../include/CalcServer/LinkList.h" />
+		<Unit filename="../include/CalcServer/Python.h" />
 		<Unit filename="../include/CalcServer/RadixSort.h" />
 		<Unit filename="../include/CalcServer/Reduction.h" />
 		<Unit filename="../include/CalcServer/Set.h" />
@@ -111,6 +112,7 @@
 		<Unit filename="../src/CalcServer/Copy.cpp" />
 		<Unit filename="../src/CalcServer/Kernel.cpp" />
 		<Unit filename="../src/CalcServer/LinkList.cpp" />
+		<Unit filename="../src/CalcServer/Python.cpp" />
 		<Unit filename="../src/CalcServer/RadixSort.cpp" />
 		<Unit filename="../src/CalcServer/Reduction.cpp" />
 		<Unit filename="../src/CalcServer/Set.cpp" />

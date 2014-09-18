@@ -41,6 +41,7 @@ SET(Server_CPP_SRCS
 	Copy.cpp
 	Kernel.cpp
 	LinkList.cpp
+	Python.cpp
 	RadixSort.cpp
 	Reduction.cpp
 	Set.cpp

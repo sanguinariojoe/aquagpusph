@@ -494,6 +494,16 @@ bool State::parseTools(DOMElement *root)
                     tool->set(atts[k], xmlAttribute(s_elem, atts[k]));
                 }
             }
+            else if(!strcmp(xmlAttribute(s_elem, "type"), "python")){
+                if(!xmlHasAttribute(s_elem, "path")){
+                    sprintf(msg,
+                            "Tool \"%s\" is of type \"python\", but \"path\" is not defined.\n",
+                            tool->get("name"));
+                    S->addMessageF(3, msg);
+                    return true;
+                }
+                tool->set("path", xmlAttribute(s_elem, "path"));
+            }
             else if(!strcmp(xmlAttribute(s_elem, "type"), "set")){
                 const char *atts[2] = {"in", "value"};
                 for(unsigned int k = 0; k < 2; k++){
@@ -544,6 +554,11 @@ bool State::parseTools(DOMElement *root)
                 S->addMessageF(3, msg);
                 S->addMessage(0, "\tThe valid types are:\n");
                 S->addMessage(0, "\t\tkernel\n");
+                S->addMessage(0, "\t\tcopy\n");
+                S->addMessage(0, "\t\tpython\n");
+                S->addMessage(0, "\t\tset\n");
+                S->addMessage(0, "\t\treduction\n");
+                S->addMessage(0, "\t\tlink-list\n");
                 return true;
             }
         }
