@@ -116,14 +116,15 @@ __kernel void main(__global int* imove,
     float DT = dt;
     if(imove[i] <= 0)
         DT = 0.f;
-
+    dvdt_in[i] = dvdt[i];
     v_in[i] = v[i] + DT * (dvdt[i] + g);
     pos_in[i] = pos[i] + DT * v[i] + 0.5f * DT * DT * (dvdt[i] + g);
     
     // Continuity equation must be solved for the fixed particles too
-    if(imove[i] != -1){
+    if(imove[i] == -1){
         DT = dt;
     }
+    drhodt_in[i] = drhodt[i];
     rho_in[i] = rho[i] + DT * drhodt[i];
     if(rho_in[i] < rho_min) rho_in[i] = rho_min;
     if(rho_in[i] > rho_max) rho_in[i] = rho_max;
@@ -134,9 +135,6 @@ __kernel void main(__global int* imove,
         const float prb = cs * cs * refd[iset[i]] / gamma[iset[i]];
         p_in[i] = prb * (pow(ddenf, gamma[iset[i]]) - 1.f);
     }
-
-    dvdt_in[i] = VEC_ZERO;
-    drhodt_in[i] = 0.f;
     
     /*
      // Predictor step for the fluid and walls

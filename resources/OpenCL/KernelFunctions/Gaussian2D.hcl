@@ -36,15 +36,6 @@
 	#define iM_PI 0.318309886f
 #endif
 
-#ifndef sep
-    /** @def sep
-     * @brief Support of the kernel.
-     *
-     * Hence, At a distance \f$ sep \cdot h \f$ the kernel should vanish. 
-     */
-	#define sep 3.f
-#endif
-
 /** @brief The kernel value
  * \f$ W \left(\mathbf{r_j} - \mathbf{r_i}; h\right) \f$.
  * @param q Normalized distance \f$ \frac{\mathbf{r_j} - \mathbf{r_i}}{h} \f$.
