@@ -89,6 +89,7 @@
 		<Unit filename="../include/CalcServer/Reduction.h" />
 		<Unit filename="../include/CalcServer/Set.h" />
 		<Unit filename="../include/CalcServer/Tool.h" />
+		<Unit filename="../include/CalcServer/UnSort.h" />
 		<Unit filename="../include/FileManager.h" />
 		<Unit filename="../include/InputOutput/ASCII.h" />
 		<Unit filename="../include/InputOutput/InputOutput.h" />
@@ -114,6 +115,7 @@
 		<Unit filename="../src/CalcServer/Reduction.cpp" />
 		<Unit filename="../src/CalcServer/Set.cpp" />
 		<Unit filename="../src/CalcServer/Tool.cpp" />
+		<Unit filename="../src/CalcServer/UnSort.cpp" />
 		<Unit filename="../src/FileManager.cpp" />
 		<Unit filename="../src/InputOutput/ASCII.cpp" />
 		<Unit filename="../src/InputOutput/Log.cpp" />

@@ -45,6 +45,7 @@ SET(Server_CPP_SRCS
 	Reduction.cpp
 	Set.cpp
 	Tool.cpp
+	UnSort.cpp
 )
 
 # ===================================================== #

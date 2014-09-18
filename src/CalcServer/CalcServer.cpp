@@ -39,6 +39,7 @@
 #include <CalcServer/LinkList.h>
 #include <CalcServer/Reduction.h>
 #include <CalcServer/Set.h>
+#include <CalcServer/UnSort.h>
 
 namespace Aqua{ namespace CalcServer{
 
@@ -240,6 +241,43 @@ bool CalcServer::update()
         }
 
         /// @todo let the tool to continue computing
+        return true;
+    }
+    return false;
+}
+
+bool CalcServer::getUnsortedMem(const char* var_name,
+                                size_t offset,
+                                size_t cb,
+                                void *ptr)
+{
+    cl_int err_code;
+    char msg[256];
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+
+    UnSort unsorter(var_name, var_name);
+    if(unsorter.setup()){
+        return true;
+    }
+    if(unsorter.execute()){
+        return true;
+    }
+    cl_mem mem = unsorter.output();
+    err_code = clEnqueueReadBuffer(command_queue(),
+                                   mem,
+                                   CL_TRUE,
+                                   offset,
+                                   cb,
+                                   ptr,
+                                   0,
+                                   NULL,
+                                   NULL);
+    if(err_code != CL_SUCCESS){
+        sprintf(msg,
+                "Failure receiving the variable \"%s\" from server.\n",
+                var_name);
+        S->addMessageF(3, msg);
+        S->printOpenCLError(err_code);
         return true;
     }
     return false;

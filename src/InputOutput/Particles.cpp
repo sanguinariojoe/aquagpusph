@@ -212,4 +212,80 @@ bool Particles::file(const char* basename,
     return false;
 }
 
+std::deque<void*> Particles::download(std::deque<char*> fields)
+{
+    std::deque<void*> data;
+    size_t typesize, len;
+    unsigned int i, j;
+    char msg[256];
+	ScreenManager *S = ScreenManager::singleton();
+	CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
+    Variables* vars = C->variables();
+
+    for(i = 0; i < fields.size(); i++){
+        if(!vars->get(fields.at(i))){
+            sprintf(msg,
+                    "Undeclared \"%s\" field cannot be downloaded.\n",
+                    fields.at(i));
+            S->addMessageF(3, msg);
+            clearList(&data);
+            return data;
+        }
+        if(!strchr(vars->get(fields.at(i))->type(), '*')){
+            sprintf(msg,
+                    "\"%s\" field is a scalar.\n",
+                    fields.at(i));
+            S->addMessageF(3, msg);
+            clearList(&data);
+            return data;
+        }
+        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i));
+        typesize = vars->typeToBytes(var->type());
+        len = var->size() / typesize;
+        if(len < bounds().y){
+            sprintf(msg,
+                    "Failure saving \"%s\" field, which has not length enough.\n",
+                    fields.at(i));
+            S->addMessageF(3, msg);
+            sprintf(msg,
+                    "length = %u was required, but just %lu was found.\n",
+                    bounds().y,
+                    len);
+            S->addMessage(0, msg);
+            clearList(&data);
+            return data;
+        }
+        void *store = malloc(typesize * (bounds().y - bounds().x));
+        if(!store){
+            sprintf(msg,
+                    "Failure allocating memory for \"%s\" field.\n",
+                    fields.at(i));
+            S->addMessageF(3, msg);
+            clearList(&data);
+            return data;
+        }
+        data.push_back(store);
+
+        if(C->getUnsortedMem(var->name(),
+                             typesize * bounds().x,
+                             typesize * (bounds().y - bounds().x),
+                             store))
+        {
+            clearList(&data);
+            return data;
+        }
+    }
+
+    return data;
+}
+
+void Particles::clearList(std::deque<void*> *data)
+{
+    unsigned int i;
+    for(i = 0; i < data->size(); i++){
+        if(data->at(i)) free(data->at(i)); data->at(i)=NULL;
+    }
+    data->clear();
+}
+
 }}  // namespace

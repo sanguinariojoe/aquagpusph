@@ -10,6 +10,8 @@ ADD_CUSTOM_TARGET(opencl_embed ALL
 	COMMAND xxd -i Reduction.cl.in > Reduction.cl
 	COMMAND xxd -i Set.hcl.in > Set.hcl
 	COMMAND xxd -i Set.cl.in > Set.cl
+	COMMAND xxd -i UnSort.hcl.in > UnSort.hcl
+	COMMAND xxd -i UnSort.cl.in > UnSort.cl
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/CalcServer/
 )
 

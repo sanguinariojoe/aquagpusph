@@ -122,7 +122,7 @@ bool ASCII::load()
         n_fields += vars->typeToN(var->type());
         size_t typesize = vars->typeToBytes(var->type());
         size_t len = var->size() / typesize;
-        if(len < bounds().y - bounds().x){
+        if(len < bounds().y){
             sprintf(msg,
                     "Failure reading \"%s\" field, which has not length enough.\n",
                     fields.at(i));
@@ -220,7 +220,6 @@ bool ASCII::save()
     unsigned int i, j;
     cl_int err_code;
     char msg[256];
-
     ScreenManager *S = ScreenManager::singleton();
     ProblemSetup *P = ProblemSetup::singleton();
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
@@ -257,7 +256,6 @@ bool ASCII::save()
     fprintf(f, "\n");
     fflush(f);
 
-    std::deque<void*> data;
     Variables* vars = C->variables();
     for(i = 0; i < fields.size(); i++){
         if(!vars->get(fields.at(i))){
@@ -277,40 +275,17 @@ bool ASCII::save()
         ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i));
         size_t typesize = vars->typeToBytes(var->type());
         size_t len = var->size() / typesize;
-        if(len < bounds().y - bounds().x){
+        if(len < bounds().y){
             sprintf(msg,
                     "Failure saving \"%s\" field, which has not length enough.\n",
                     fields.at(i));
             S->addMessageF(3, msg);
             return true;
         }
-        void *store = malloc(typesize * (bounds().y - bounds().x));
-        if(!store){
-            sprintf(msg,
-                    "Failure allocating memory for \"%s\" field.\n",
-                    fields.at(i));
-            S->addMessageF(3, msg);
-            return true;
-        }
-        data.push_back(store);
-
-        cl_mem mem = *(cl_mem*)var->get();
-        err_code = clEnqueueReadBuffer(C->command_queue(),
-                                       mem,
-                                       CL_TRUE,
-                                       typesize * bounds().x,
-                                       typesize * (bounds().y - bounds().x),
-                                       store,
-                                       0,
-                                       NULL,
-                                       NULL);
-        if(err_code != CL_SUCCESS){
-            sprintf(msg,
-                    "Failure receiving variable \"%s\" from server.\n",
-                    fields.at(i));
-            S->addMessageF(3, msg);
-            S->printOpenCLError(err_code);
-        }
+    }
+    std::deque<void*> data = download(fields);
+    if(!data.size()){
+        return true;
     }
 
     for(i = 0; i < bounds().y - bounds().x; i++){

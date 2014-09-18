@@ -121,6 +121,18 @@ public:
      * @return OpenCL command queue
      */
     cl_command_queue command_queue() const{return _command_queue;}
+
+    /** Download a unsorted variable from the device.
+     * @param var_name Variable to unsort and download.
+     * @param offset The offset in bytes in the memory object to read from.
+     * @param cb The size in bytes of data being downloaded.
+     * @param ptr The host memory where the data should be copied
+     * @return false if all gone right, true otherwise.
+     */
+    bool getUnsortedMem(const char* var_name,
+                        size_t offset,
+                        size_t cb,
+                        void *ptr);
 private:
     /// Setup the OpenCL stuff.
     /**

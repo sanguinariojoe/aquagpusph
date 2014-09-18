@@ -24,6 +24,7 @@
 #ifndef PARTICLES_H_INCLUDED
 #define PARTICLES_H_INCLUDED
 
+#include <deque>
 #include <sphPrerequisites.h>
 #include <InputOutput/InputOutput.h>
 
@@ -90,6 +91,7 @@ protected:
      *   -# iset
      *   -# id_sorted
      *   -# id_unsorted
+     * @return false if all gone right, true otherwise.
      */
     bool loadDefault();
 
@@ -115,7 +117,19 @@ protected:
     bool file(const char* basename,
               unsigned int start_index,
               unsigned int digits=5);
+
+    /** Download the data from the device, and store it.
+     * @param fields Fields to download.
+     * @return host allocated memory. A clear list if errors happened.
+     * @note The returned data must be manually cleared.
+     */
+    std::deque<void*> download(std::deque<char*> fields);
 private:
+    /** Remove the content of the data list.
+     * @param data List of memory allocated arrays to be cleared.
+     */
+    void clearList(std::deque<void*> *data);
+
     /// Particles managed bounds
     uivec2 _bounds;
 
