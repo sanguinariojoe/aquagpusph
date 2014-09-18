@@ -337,7 +337,6 @@ cl_kernel UnSort::compile(const char* source)
         S->printOpenCLError(err_code);
         return NULL;
     }
-    printf("\"%s\"\n", flags);
     err_code = clBuildProgram(program, 0, NULL, flags, NULL, NULL);
     if(err_code != CL_SUCCESS) {
         S->addMessageF(3, "Error compiling the source code\n");
