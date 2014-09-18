@@ -16,9 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** Variable constant value set.
- * @param var Input array to be set.
- * @param N Number of elements into var.
+/** Unsort a desired variable.
+ * @param id Original id of each particle.
+ * @param input Input unsorted array
+ * @param output Output sorted array
+ * @param N Number of elements into the variable.
  */
 __kernel void main(const __global unsigned int *id,
                    const __global T *input,
