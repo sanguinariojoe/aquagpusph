@@ -21,7 +21,6 @@
  * (See Aqua::CalcServer::Rates for details)
  */
 
-// To use Gaussian kernel please compile AQUAgpusph with Gauss kernel option
 #ifndef HAVE_3D
     #include "types/2D.h"
     #include "KernelFunctions/Wendland2D.hcl"
@@ -122,9 +121,6 @@ __kernel void main(const __global uint* iset,
     if(i >= N)
         return;
 
-    // ---- | ------------------------ | ----
-    // ---- V ---- Your code here ---- V ----
-
     const uint c_i = icell[i];
     const int move_i = imove[i];
     const vec pos_i = pos[i];
@@ -177,13 +173,13 @@ __kernel void main(const __global uint* iset,
         j = i + 1;
         while((j < N) && (icell[j] == c_i) ) {
             if(move_i == 0){
-                #include "RatesSensors.hcl"
+                #include "InteractionsSensors.hcl"
             }
             else if((move_i == 1) || (move_i == -1)){
-                #include "Rates.hcl"
+                #include "Interactions.hcl"
             }
             else{
-                #include "RatesBounds.hcl"
+                #include "InteractionsBounds.hcl"
             }
             j++;
         }
@@ -228,16 +224,16 @@ __kernel void main(const __global uint* iset,
             j = ihoc[c_j];
             while((j < N) && (icell[j] == c_j)) {
                 if(move_i == 0){
-                    #include "RatesSensors.hcl"
+                    #include "InteractionsSensors.hcl"
                 }
                 else if((move_i == 1) || (move_i == -1)){
-                    #include "Rates.hcl"
+                    #include "Interactions.hcl"
                 }
                 else{
-                    #include "RatesBounds.hcl"
+                    #include "InteractionsBounds.hcl"
                 }
                 j++;
-            }            
+            }
         }
 
         // Home cell, starting from the head of chain
@@ -245,13 +241,13 @@ __kernel void main(const __global uint* iset,
         j = ihoc[c_i];
         while(j < i) {
             if(move_i == 0){
-                #include "RatesSensors.hcl"
+                #include "InteractionsSensors.hcl"
             }
             else if((move_i == 1) || (move_i == -1)){
-                #include "Rates.hcl"
+                #include "Interactions.hcl"
             }
             else{
-                #include "RatesBounds.hcl"
+                #include "InteractionsBounds.hcl"
             }
             j++;
         }
@@ -271,8 +267,4 @@ __kernel void main(const __global uint* iset,
         lap_p[i] = _LAPP_;
         shepard[i] = _SHEPARD_;
     #endif
-
-    // ---- A ---- Your code here ---- A ----
-    // ---- | ------------------------ | ----
-
 }
