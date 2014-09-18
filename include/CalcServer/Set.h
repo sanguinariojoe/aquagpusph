@@ -90,7 +90,7 @@ private:
     InputOutput::ArrayVariable *_var;
 
     /// Memory object sent
-    cl_mem *_input;
+    cl_mem _input;
 
     /// OpenCL kernel
     cl_kernel _kernel;

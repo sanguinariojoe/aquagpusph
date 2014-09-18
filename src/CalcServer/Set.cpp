@@ -75,7 +75,7 @@ bool Set::setup()
         return true;
     }
 
-    _input = (cl_mem*)_var->get();
+    _input = *(cl_mem*)_var->get();
     _n = _var->size() / vars->typeToBytes(_var->type());
     if(setupOpenCL())
         return true;
@@ -300,7 +300,7 @@ bool Set::setVariables()
     cl_int err_code;
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 
-    if((void*)_input == _var->get()){
+    if(_input == *(cl_mem*)_var->get()){
         return false;
     }
 
@@ -318,7 +318,7 @@ bool Set::setVariables()
         return true;
     }
 
-    _input = (cl_mem *)_var->get();
+    _input = *(cl_mem *)_var->get();
 
     return false;
 }
