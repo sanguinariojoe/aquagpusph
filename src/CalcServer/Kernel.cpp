@@ -44,6 +44,10 @@ Kernel::~Kernel()
         delete[] _var_names.at(i);
     }
     _var_names.clear();
+	for(i = 0; i < _var_values.size(); i++){
+        free(_var_values.at(i));
+	}
+	_var_values.clear();
 }
 
 bool Kernel::setup()
@@ -499,8 +503,10 @@ bool Kernel::setVariables()
             return true;
         }
         InputOutput::Variable *var = vars->get(_var_names.at(i));
-        if((_var_values.at(i) == var->get()) &&
-           strchr(var->type(), '*')){
+        if(_var_values.at(i) == NULL){
+            _var_values.at(i) = malloc(var->typesize());
+        }
+        else if(!memcmp(_var_values.at(i), var->get(), var->typesize())){
             // The variable still being valid
             continue;
         }
@@ -518,7 +524,7 @@ bool Kernel::setVariables()
             S->printOpenCLError(err_code);
             return true;
         }
-        _var_values.at(i) = var->get();
+        memcpy(_var_values.at(i), var->get(), var->typesize());
     }
     return false;
 }
