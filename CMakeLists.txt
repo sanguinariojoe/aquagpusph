@@ -118,6 +118,12 @@ IF(NOT PYTHONLIBS_FOUND)
 MESSAGE(FATAL_ERROR "Python not found, but ${PACKAGE_NAME} requires it. Please install Python!")
 ENDIF(NOT PYTHONLIBS_FOUND)
 
+# Numpy
+FIND_PACKAGE(Numpy REQUIRED)
+IF(NOT NUMPY_FOUND)
+MESSAGE(FATAL_ERROR "numpy not found, but ${PACKAGE_NAME} requires it. Please install numpy!")
+ENDIF(NOT NUMPY_FOUND)
+
 # Xerces-C
 FIND_PACKAGE(Xerces REQUIRED)
 
