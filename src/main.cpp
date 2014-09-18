@@ -106,7 +106,6 @@ int main(int argc, char *argv[])
     InputOutput::ArgumentsManager *A = NULL;
     InputOutput::FileManager *F = NULL;
     InputOutput::ProblemSetup *P = NULL;
-    InputOutput::Fluid *fluid = NULL;
     CalcServer::CalcServer *C = NULL;
     InputOutput::TimeManager *T = NULL;
     InputOutput::ScreenManager *S = NULL;
