@@ -27,12 +27,12 @@ __kernel void iHoc(__global unsigned int *ihoc,
                    unsigned int N,
                    uivec4 n_cells)
 {
-	// find position in global arrays
-	unsigned int i = get_global_id(0);
-	if(i >= n_cells.w)
-		return;
+    // find position in global arrays
+    unsigned int i = get_global_id(0);
+    if(i >= n_cells.w)
+        return;
 
-	ihoc[i] = N;
+    ihoc[i] = N;
 }
 
 /** Compute the cell where each particle is allocated.
@@ -55,36 +55,36 @@ __kernel void iCell(__global unsigned int *icell,
                     float h,
                     uivec4 n_cells)
 {
-	// find position in global arrays
-	unsigned int i = get_global_id(0);
-	if(i >= n_radix)
-		return;
+    // find position in global arrays
+    unsigned int i = get_global_id(0);
+    if(i >= n_radix)
+        return;
 
-	uivec cell;
+    uivec cell;
     float idist;
-	unsigned int cell_id;
+    unsigned int cell_id;
 
-	if(i < N) {
-    	// Normal particles
+    if(i < N) {
+        // Normal particles
         idist = 1.f / (support * h);
-		cell.x = (unsigned int)((pos[i].x - pos_min.x) * idist) + 3u;
-		cell.y = (unsigned int)((pos[i].y - pos_min.y) * idist) + 3u;
-		#ifdef HAVE_3D
-			cell.z = (unsigned int)((pos[i].z - pos_min.z) * idist) + 3u;
-			cell_id = cell.x - 1u +
+        cell.x = (unsigned int)((pos[i].x - pos_min.x) * idist) + 3u;
+        cell.y = (unsigned int)((pos[i].y - pos_min.y) * idist) + 3u;
+        #ifdef HAVE_3D
+            cell.z = (unsigned int)((pos[i].z - pos_min.z) * idist) + 3u;
+            cell_id = cell.x - 1u +
                       (cell.y - 1u) * n_cells.x +
                       (cell.z - 1u) * n_cells.x * n_cells.y;
-			icell[i] = cell_id;
-		#else
-			cell_id = cell.x - 1u +
+            icell[i] = cell_id;
+        #else
+            cell_id = cell.x - 1u +
                       (cell.y - 1u) * n_cells.x;
-			icell[i] = cell_id;
-		#endif
+            icell[i] = cell_id;
+        #endif
         return;
-	}
+    }
 
-	// Particles out of bounds (n_radix - N)
-	icell[i] = n_cells.w;
+    // Particles out of bounds (n_radix - N)
+    icell[i] = n_cells.w;
 }
 
 /** Compute the linklist after the sort of the icell array.
@@ -98,19 +98,19 @@ __kernel void linkList(__global unsigned int *icell,
 {
     // find position in global arrays
     unsigned int i = get_global_id(0);
-	if(i >= N - 1)
-		return;
+    if(i >= N - 1)
+        return;
 
-	// We are looking the first particle on each cell, which can be detected
+    // We are looking the first particle on each cell, which can be detected
     // just checking if the previous particle is in the same cell.
-	unsigned int c, c2;
-	c = icell[i];
-	c2 = icell[i + 1];
-	if(i==0){
-	    // As a particular case, the first particle is ever the head of chain.
-		ihoc[c] = 0;
-	}
-	if(c2 != c){
-		ihoc[c2] = i + 1;
-	}
+    unsigned int c, c2;
+    c = icell[i];
+    c2 = icell[i + 1];
+    if(i==0){
+        // As a particular case, the first particle is ever the head of chain.
+        ihoc[c] = 0;
+    }
+    if(c2 != c){
+        ihoc[c2] = i + 1;
+    }
 }
