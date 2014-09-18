@@ -82,6 +82,11 @@ bool Kernel::execute()
     char msg[1024];
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
+
+    if(setVariables()){
+        return true;
+    }
+
     err_code = clEnqueueNDRangeKernel(C->command_queue(),
                                       _kernel,
                                       1,
@@ -499,6 +504,7 @@ bool Kernel::setVariables()
             // The variable still being valid
             continue;
         }
+
         // Update the variable
         InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
         err_code = clSetKernelArg(_kernel, i, var->typesize(), var->get());
