@@ -231,6 +231,7 @@ bool CalcServer::update()
                 return true;
             }
         }
+
         // Key events
         while(isKeyPressed()){
             if(getchar() == 'c'){
@@ -239,10 +240,10 @@ bool CalcServer::update()
             }
         }
 
-        /// @todo let the tool to continue computing
-        return true;
-    }
-    return false;
+		/// @todo let the tool to continue computing
+		return false;
+	}
+	return false;
 }
 
 bool CalcServer::getUnsortedMem(const char* var_name,
@@ -624,7 +625,6 @@ bool CalcServer::setup()
         }
     }
 
-    S->addMessageF(1, "Calculation server is ready! ;-) \n");
     return false;
 }
 

@@ -141,11 +141,11 @@ __kernel void main(const __global uint* iset,
 
     // Initialize the output
     #ifndef LOCAL_MEM_SIZE
-        #define _DVDT_ dvdt[i]
         #define _GRADP_ grad_p[i]
         #define _LAPU_ lap_u[it]
         #define _DIVU_ div_u[i]
         #define _LAPP_ lap_p[i]
+        #define _SHEPARD_ shepard[i]
     #else
         #define _GRADP_ grad_p_l[it]
         #define _LAPU_ lap_u_l[it]

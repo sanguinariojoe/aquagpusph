@@ -37,7 +37,7 @@ __kernel void main(__global T *input,
     unsigned int tid = get_local_id(0);
 
     if(gid >= N)
-        lmem[tid] = IDENTITY;    
+        lmem[tid] = IDENTITY;
     else
         lmem[tid] = input[gid];
     barrier(CLK_LOCAL_MEM_FENCE);

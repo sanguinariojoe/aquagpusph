@@ -209,8 +209,8 @@ bool FileManager::save()
     return false;
 }
 
-const char* FileManager::file(unsigned int i    ){
-    return _savers.at(i    )->file();
+const char* FileManager::file(unsigned int i){
+    return _savers.at(i)->file();
 }
 
 

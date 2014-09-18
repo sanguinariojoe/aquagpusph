@@ -78,7 +78,7 @@ public:
     /** @brief Perform the work.
      * @return Output memory object, NULL if error is detected.
      */
-    cl_mem execute();
+    bool execute();
 
     /** @brief Number of steps needed.
      *

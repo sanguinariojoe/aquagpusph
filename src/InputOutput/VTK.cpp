@@ -407,7 +407,7 @@ bool VTK::save()
                     vtk_points->InsertNextPoint(ptr[i].x, ptr[i].y, 0.f);
                 #endif
                 continue;
-           }
+            }
             ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(j));
             size_t typesize = vars->typeToBytes(var->type());
             unsigned int n_components = vars->typeToN(var->type());
@@ -661,9 +661,9 @@ DOMDocument* VTK::getPVD()
     parser->setDoSchema(false);
     parser->setLoadExternalDTD(false);
     parser->parse(filenamePVD());
-     doc = parser->getDocument();
-     parsers.push_back(parser);
-     return doc;
+    doc = parser->getDocument();
+    parsers.push_back(parser);
+    return doc;
 }
 
 static char* namePVD = NULL;

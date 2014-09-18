@@ -60,7 +60,7 @@ bool Particles::loadDefault()
     unsigned int *id = new unsigned int[n];
 
     if(!iset || !id){
-         S->addMessageF(3, "Failure allocating memory.\n");
+        S->addMessageF(3, "Failure allocating memory.\n");
     }
 
     for(i = 0; i < n; i++){

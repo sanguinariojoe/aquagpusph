@@ -35,4 +35,3 @@
     #define ivec int4
     #define uivec uint4
 #endif
-

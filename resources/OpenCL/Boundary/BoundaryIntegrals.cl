@@ -98,10 +98,10 @@ __kernel void main(const __global uint* iset,
                    __global float* div_u,
                    __global float* lap_p,
                    __global float* shepard,
-                    // Link-list data
-                    __global uint *icell,
+                   // Link-list data
+                   __global uint *icell,
                    __global uint *ihoc,
-                    // Simulation data
+                   // Simulation data
                     uint N,
                    uivec4 n_cells,
                    float h,
@@ -114,9 +114,6 @@ __kernel void main(const __global uint* iset,
         return;
     if(imove[i] <= 0)
         return;
-
-    // ---- | ------------------------ | ----
-    // ---- V ---- Your code here ---- V ----
 
     const uint c_i = icell[i];
     const vec pos_i = pos[i];

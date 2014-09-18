@@ -29,6 +29,7 @@ __kernel void iHoc(__global unsigned int *ihoc,
 {
     // find position in global arrays
     unsigned int i = get_global_id(0);
+
     if(i >= n_cells.w)
         return;
 

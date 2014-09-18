@@ -153,7 +153,8 @@ int main(int argc, char *argv[])
     }
 
     // Now we can load the simulation definition
-    if(F->load()){
+    C = F->load();
+    if(!C){
         delete A;
         delete F;
         delete P;
@@ -189,7 +190,7 @@ int main(int argc, char *argv[])
             S->addMessageF(1, msg);
             return EXIT_FAILURE;
         }
-        // fluid->retrieveData();
+
         if(F->save()){
             float Time = T->time();
             delete S; S = NULL;

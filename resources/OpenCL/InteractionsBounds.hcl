@@ -48,11 +48,11 @@ if(q < support)
     _GRADP_.x += p_j / rho_j * wab;
     _GRADP_.y += dot(g, r) * wab;
     //---------------------------------------------------------------
-    //     density computation (stored on rho*div(u))
+    //       density computation (stored on rho*div(u))
     //---------------------------------------------------------------
     _DIVU_ += wab;
     //---------------------------------------------------------------
-    //     Shepard term
+    //       Shepard term
     //---------------------------------------------------------------
     _SHEPARD_ += wab / rho_j;
 }

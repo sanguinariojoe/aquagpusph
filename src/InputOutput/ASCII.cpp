@@ -168,7 +168,6 @@ bool ASCII::load()
         }
 
         pos = line;
-
         for(j = 0; j < fields.size(); j++){
             pos = readField((const char*)fields.at(j), pos, i, data.at(j));
             if(!pos && (j != fields.size() - 1))
@@ -433,6 +432,7 @@ void ASCII::formatLine(char* l)
     // Remove all the concatenated spaces
     while(strstr(l, ",,")){
         strcpy(strstr(l, ",,"), strstr(l, ",,") + 1);
+    }
 
     // Remove the preceeding commas
     len = strlen(l);

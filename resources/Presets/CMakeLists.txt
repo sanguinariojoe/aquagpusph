@@ -31,4 +31,3 @@ INSTALL(
     DESTINATION
         ${CMAKE_INSTALL_DATADIR}/resources
 )
-

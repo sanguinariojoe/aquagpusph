@@ -65,11 +65,6 @@ public:
      */
     virtual bool save()=0;
 
-    /** @brief Load the data.
-     * @return false if all gone right, true otherwise.
-     */
-    virtual bool save()=0;
-
     /** @brief Get the last printed file path.
      * @return The last printed file, NULL if a file has not been printed yet.
      */

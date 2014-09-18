@@ -15,7 +15,7 @@ ADD_CUSTOM_TARGET(opencl_embed ALL
 	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/CalcServer/
 )
 
-+# ===================================================== #
+# ===================================================== #
 # Install                                               #
 # ===================================================== #
 INSTALL(
