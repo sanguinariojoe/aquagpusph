@@ -36,15 +36,15 @@ unsigned int SET_SRC_LEN = Set_cl_in_len;
 
 
 Set::Set(const char *name, const char *var_name, const char *value)
-	: Tool(name)
-	, _var_name(NULL)
-	, _value(NULL)
-	, _var(NULL)
-	, _input(NULL)
-	, _kernel(NULL)
-	, _global_work_size(0)
-	, _local_work_size(0)
-	, _n(0)
+    : Tool(name)
+    , _var_name(NULL)
+    , _value(NULL)
+    , _var(NULL)
+    , _input(NULL)
+    , _kernel(NULL)
+    , _global_work_size(0)
+    , _local_work_size(0)
+    , _n(0)
 {
     _var_name = new char[strlen(var_name) + 1];
     strcpy(_var_name, var_name);
@@ -88,8 +88,8 @@ bool Set::execute()
     unsigned int i;
     cl_int err_code;
     char msg[1024];
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    CalcServer *C = CalcServer::singleton();
 
     if(setVariables()){
         return true;
@@ -112,7 +112,7 @@ bool Set::execute()
         return true;
     }
 
-	return false;
+    return false;
 }
 
 bool Set::variable()
@@ -146,8 +146,8 @@ bool Set::setupOpenCL()
     cl_int err_code;
     cl_kernel kernel;
     char msg[1024];
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    CalcServer *C = CalcServer::singleton();
     InputOutput::Variables *vars = C->variables();
 
     // Create a header for the source code where the operation will be placed
@@ -168,18 +168,18 @@ bool Set::setupOpenCL()
     if(!kernel){
         return true;
     }
-	err_code = clGetKernelWorkGroupInfo(kernel,
+    err_code = clGetKernelWorkGroupInfo(kernel,
                                         C->device(),
                                         CL_KERNEL_WORK_GROUP_SIZE,
                                         sizeof(size_t),
                                         &_local_work_size,
                                         NULL);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessageF(3, "Failure querying the work group size.\n");
+    if(err_code != CL_SUCCESS) {
+        S->addMessageF(3, "Failure querying the work group size.\n");
         S->printOpenCLError(err_code);
         clReleaseKernel(kernel);
-	    return true;
-	}
+        return true;
+    }
     if(_local_work_size < __CL_MIN_LOCALSIZE__){
         S->addMessageF(3, "Set cannot be performed.\n");
         sprintf(msg,
@@ -211,7 +211,7 @@ bool Set::setupOpenCL()
         return true;
     }
 
-	return false;
+    return false;
 }
 
 cl_kernel Set::compile(const char* source)
@@ -220,78 +220,85 @@ cl_kernel Set::compile(const char* source)
     cl_program program;
     cl_kernel kernel;
     char msg[1024];
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    CalcServer *C = CalcServer::singleton();
 
     char flags[512];
-    sprintf(flags,
-            "-DT=%s",
-            _var->type());
+    if(!strcmp(_var->type(), "unsigned int*")){
+        sprintf(flags,
+                "-DT=%s",
+                "uint*");
+    }
+    else{
+        sprintf(flags,
+                "-DT=%s",
+                _var->type());
+    }
     strcpy(strchr(flags, '*'), "");
-	#ifdef AQUA_DEBUG
-	    strcat(flags, " -g -DDEBUG ");
-	#else
-	    strcat(flags, " -DNDEBUG ");
-	#endif
-	strcat(flags, " -cl-mad-enable -cl-no-signed-zeros -cl-finite-math-only -cl-fast-relaxed-math");
-	#ifdef HAVE_3D
-		strcat(flags, " -DHAVE_3D");
-	#else
-		strcat(flags, " -DHAVE_2D");
-	#endif
-	size_t source_length = strlen(source) + 1;
-	program = clCreateProgramWithSource(C->context(),
+    #ifdef AQUA_DEBUG
+        strcat(flags, " -g -DDEBUG ");
+    #else
+        strcat(flags, " -DNDEBUG ");
+    #endif
+    strcat(flags, " -cl-mad-enable -cl-no-signed-zeros -cl-finite-math-only -cl-fast-relaxed-math");
+    #ifdef HAVE_3D
+        strcat(flags, " -DHAVE_3D");
+    #else
+        strcat(flags, " -DHAVE_2D");
+    #endif
+    size_t source_length = strlen(source) + 1;
+    program = clCreateProgramWithSource(C->context(),
                                         1,
                                         (const char **)&source,
                                         &source_length,
                                         &err_code);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessageF(3, "Failure creating the OpenCL program.\n");
-	    S->printOpenCLError(err_code);
-	    return NULL;
-	}
-	err_code = clBuildProgram(program, 0, NULL, flags, NULL, NULL);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessage(3, "Error compiling the source code\n");
+    if(err_code != CL_SUCCESS) {
+        S->addMessageF(3, "Failure creating the OpenCL program.\n");
         S->printOpenCLError(err_code);
-	    S->addMessage(3, "--- Build log ---------------------------------\n");
-	    size_t log_size;
-	    clGetProgramBuildInfo(program,
+        return NULL;
+    }
+    err_code = clBuildProgram(program, 0, NULL, flags, NULL, NULL);
+    if(err_code != CL_SUCCESS) {
+        S->addMessage(3, "Error compiling the source code\n");
+        S->printOpenCLError(err_code);
+        S->addMessage(3, "--- Build log ---------------------------------\n");
+        size_t log_size;
+        clGetProgramBuildInfo(program,
                               C->device(),
                               CL_PROGRAM_BUILD_LOG,
                               0,
                               NULL,
                               &log_size);
-	    char *log = (char*)malloc(log_size + sizeof(char));
-	    clGetProgramBuildInfo(program,
+        char *log = (char*)malloc(log_size + sizeof(char));
+        clGetProgramBuildInfo(program,
                               C->device(),
                               CL_PROGRAM_BUILD_LOG,
                               log_size,
                               log,
                               NULL);
-	    strcat(log, "\n");
-	    S->addMessage(0, log);
-	    S->addMessage(3, "--------------------------------- Build log ---\n");
-	    free(log); log=NULL;
+        strcat(log, "\n");
+        S->addMessage(0, log);
+        S->addMessage(3, "--------------------------------- Build log ---\n");
+        free(log); log=NULL;
         clReleaseProgram(program);
-	    return NULL;
-	}
-	kernel = clCreateKernel(program, "main", &err_code);
+        return NULL;
+    }
+    kernel = clCreateKernel(program, "main", &err_code);
     clReleaseProgram(program);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessageF(3, "Failure creating the kernel.\n");
-	    S->printOpenCLError(err_code);
-	    return NULL;
-	}
+    if(err_code != CL_SUCCESS) {
+        S->addMessageF(3, "Failure creating the kernel.\n");
+        S->printOpenCLError(err_code);
+        return NULL;
+    }
 
-	return kernel;
+    return kernel;
 }
 
 bool Set::setVariables()
 {
     char msg[1024];
     cl_int err_code;
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 
     if((void*)_input == _var->get()){
         return false;
@@ -313,7 +320,7 @@ bool Set::setVariables()
 
     _input = (cl_mem *)_var->get();
 
-	return false;
+    return false;
 }
 
 }}  // namespaces

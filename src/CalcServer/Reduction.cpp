@@ -382,11 +382,20 @@ cl_kernel Reduction::compile(const char* source, size_t local_work_size)
     CalcServer *C = CalcServer::singleton();
 
     char flags[512];
-    sprintf(flags,
-            "-DT=%s -DIDENTITY=\"%s\" -DLOCAL_WORK_SIZE=%luu",
-            _output_var->type(),
-            _null_val,
-            local_work_size);
+    if(!strcmp(_output_var->type(), "unsigned int")){
+        sprintf(flags,
+                "-DT=%s -DIDENTITY=\"%s\" -DLOCAL_WORK_SIZE=%luu",
+                "uint",
+                _null_val,
+                local_work_size);
+    }
+    else{
+        sprintf(flags,
+                "-DT=%s -DIDENTITY=\"%s\" -DLOCAL_WORK_SIZE=%luu",
+                _output_var->type(),
+                _null_val,
+                local_work_size);
+    }
     #ifdef AQUA_DEBUG
         strcat(flags, " -g -DDEBUG ");
     #else

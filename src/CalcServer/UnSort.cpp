@@ -72,7 +72,7 @@ bool UnSort::setup()
 
     _id_input = (cl_mem*)_id_var->get();
     _input = (cl_mem*)_var->get();
-    _n = _var->size() / vars->typeToBytes(_var->type());
+    _n = _id_var->size() / vars->typeToBytes(_id_var->type());
     if(setupOpenCL())
         return true;
     return false;
@@ -172,9 +172,9 @@ bool UnSort::setupMem()
 
     len_id = _id_var->size() / vars->typeToBytes(_id_var->type());
     len_var = _var->size() / vars->typeToBytes(_var->type());
-    if(len_id != len_var){
+    if(len_id > len_var){
         sprintf(msg,
-                "Variables length mismatch in the tool \"%s\".\n",
+                "Wrong variable length in the tool \"%s\".\n",
                 name());
         S->addMessageF(3, msg);
         sprintf(msg,
@@ -192,7 +192,7 @@ bool UnSort::setupMem()
 
     _output = clCreateBuffer(C->context(),
                              CL_MEM_WRITE_ONLY,
-                             _var->size(),
+                             len_id * vars->typeToBytes(_var->type()),
                              NULL,
                                &err_code);
     if(err_code != CL_SUCCESS){
@@ -202,7 +202,7 @@ bool UnSort::setupMem()
         S->addMessageF(3, msg);
         S->printOpenCLError(err_code);
     }
-    allocatedMemory(_var->size());
+    allocatedMemory(len_id * vars->typeToBytes(_var->type()));
 
     return false;
 }
@@ -304,9 +304,16 @@ cl_kernel UnSort::compile(const char* source)
     CalcServer *C = CalcServer::singleton();
 
     char flags[512];
-    sprintf(flags,
-            "-DT=%s",
-            _var->type());
+    if(!strcmp(_var->type(), "unsigned int*")){
+        sprintf(flags,
+                "-DT=%s",
+                "uint*");
+    }
+    else{
+        sprintf(flags,
+                "-DT=%s",
+                _var->type());
+    }
     strcpy(strchr(flags, '*'), "");
     #ifdef AQUA_DEBUG
         strcat(flags, " -g -DDEBUG ");
@@ -330,6 +337,7 @@ cl_kernel UnSort::compile(const char* source)
         S->printOpenCLError(err_code);
         return NULL;
     }
+    printf("\"%s\"\n", flags);
     err_code = clBuildProgram(program, 0, NULL, flags, NULL, NULL);
     if(err_code != CL_SUCCESS) {
         S->addMessageF(3, "Error compiling the source code\n");
