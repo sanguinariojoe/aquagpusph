@@ -47,7 +47,6 @@
         <Variable name="drhodt" type="float*" length="N" save="true" />
         <Variable name="m" type="float*" length="N" save="true" />
         <Variable name="p" type="float*" length="N" save="true" />
-        <Variable name="shepard" type="float*" length="N" save="true" />
 
         <Variable name="id_in" type="unsigned int*" length="N" save="true" />
         <Variable name="iset_in" type="unsigned int*" length="N" save="true" />
@@ -60,6 +59,12 @@
         <Variable name="drhodt_in" type="float*" length="N" save="true" />
         <Variable name="m_in" type="float*" length="N" save="true" />
         <Variable name="p_in" type="float*" length="N" save="true" />
+
+        <Variable name="grad_p" type="vec*" length="N" save="true" />
+        <Variable name="lap_u" type="vec*" length="N" save="true" />
+        <Variable name="div_u" type="float*" length="N" save="true" />
+        <Variable name="lap_p" type="float*" length="N" save="true" />
+        <Variable name="shepard" type="float*" length="N" save="true" />
     </Variables>
 
     <Tools>
@@ -75,9 +80,11 @@
         <Tool action="add" type="kernel" name="Sort" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Sort.cl"/>
         <Tool action="add" type="copy" name="Backup dvdt" in="dvdt" out="dvdt_in"/>
         <Tool action="add" type="copy" name="Backup drhodt" in="drhodt" out="drhodt_in"/>
-        <!-- Tool action="add" type="set" name="Reinit dvdt" in="dvdt" value="VEC_ZERO"/>
+
+
+        <Tool action="add" type="set" name="Reinit dvdt" in="dvdt" value="VEC_ZERO"/>
         <Tool action="add" type="set" name="Reinit drhodt" in="drhodt" value="0.f"/>
-        <Tool action="add" type="set" name="Reinit shepard" in="shepard" value="0.f"/ -->
+        <Tool action="add" type="set" name="Reinit shepard" in="shepard" value="0.f"/>
 
         <Tool action="add" type="kernel" name="Rates" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Rates.cl"/>
 

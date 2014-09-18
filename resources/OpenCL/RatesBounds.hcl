@@ -43,14 +43,14 @@ if(q < support)
     const float p_j = p[j];
     const float wab = kernelW(q) * conw * m_j;
     //---------------------------------------------------------------
-    //       pressure computation (stored on f)
+    //       pressure computation (stored on grad(p)/rho)
     //---------------------------------------------------------------
-    _DVDT_.x += p_j / rho_j * wab;
-    _DVDT_.y += dot(g, r) * wab;
+    _GRADP_.x += p_j / rho_j * wab;
+    _GRADP_.y += dot(g, r) * wab;
     //---------------------------------------------------------------
-    //     density computation (stored on drdt)
+    //     density computation (stored on rho*div(u))
     //---------------------------------------------------------------
-    _DRDT_ += wab;
+    _DIVU_ += wab;
     //---------------------------------------------------------------
     //     Shepard term
     //---------------------------------------------------------------

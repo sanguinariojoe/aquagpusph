@@ -40,7 +40,7 @@ if((imove[j] != -1) &&
     continue;
 }
 
-const vec r = pos_i - pos[j];
+const vec r = pos[j] - pos_i;
 const float q = fast_length(r) / h;
 if(q < support)
 {
@@ -57,22 +57,28 @@ if(q < support)
     //---------------------------------------------------------------
     const float prfac = prfac_i + p_j / (rho_j * rho_j);
     //---------------------------------------------------------------
-    //       calculate viscosity terms (Cleary's viscosity)
+    //       calculate viscosity terms
     //---------------------------------------------------------------
-    const float vdr = dot(v_i - v[j], r);
-    float viscg = 0.f;
+    const float vdr = dot(v[j] - v_i, r);
+    float lapufac = 0.f;
     if(imove[j] > 0){
         const float r2 = (q * q + 0.01f) * h * h;
-        viscg = -__CLEARY__ * visc_dyn_i * vdr / (r2 * rho_i * rho_j);
+        lapufac = __CLEARY__ * vdr / (r2 * rho_i * rho_j);
     }
     //---------------------------------------------------------------
-    //       force computation
+    //     Momentum equation
     //---------------------------------------------------------------
-    _DVDT_ -= r * fab * (prfac + viscg);
+    _GRADP_ += r * fab * prfac;
+    _LAPU_ += r * lapufac * lapufac;
     //---------------------------------------------------------------
-    //     rate of change of density
+    //     Conserving mass equation
     //---------------------------------------------------------------
-    _DRDT_ += vdr * fab;
+    _DIVU_ += vdr * fab;
+    //---------------------------------------------------------------
+    //     Density diffusion term
+    //---------------------------------------------------------------
+    const float drfac = (p_j - p_i) - refd_i * dot(g, r);
+    _LAPP_ += drfac * fab / rho_j;
     //---------------------------------------------------------------
     //     Shepard term
     //---------------------------------------------------------------

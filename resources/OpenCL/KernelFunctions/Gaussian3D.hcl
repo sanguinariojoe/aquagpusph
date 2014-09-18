@@ -27,13 +27,13 @@
     /** @def M_PI
      * \f$ \pi \f$ value.
      */
-	#define M_PI 3.14159265359f
+    #define M_PI 3.14159265359f
 #endif
 #ifndef iM_PI
     /** @def iM_PI
      * \f$ \frac{1}{\pi} \f$ value.
      */
-	#define iM_PI 0.318309886f
+    #define iM_PI 0.318309886f
 #endif
 
 /** @brief The kernel value
@@ -43,7 +43,7 @@
  */
 float kernelW(float q)
 {
-	return 0.179587122f*exp(-q*q);  // 0.179587122f = 1/(pi^(3/2))
+    return 0.179587122f*exp(-q*q);  // 0.179587122f = 1/(pi^(3/2))
 }
 
 /** @brief The kernel gradient factor
@@ -60,7 +60,7 @@ float kernelW(float q)
  */
 float kernelF(float q)
 {
-	return -0.359174244f*exp(-q*q);  // 0.179587122f = 1/(pi^(3/2))
+    return 0.359174244f*exp(-q*q);        // 0.179587122f = 1/(pi^(3/2))
 }
 
-#endif	// _KERNEL_H_INCLUDED_
+#endif    // _KERNEL_H_INCLUDED_

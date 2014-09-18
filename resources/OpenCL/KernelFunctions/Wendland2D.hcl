@@ -62,7 +62,7 @@ float kernelW(float q)
 float kernelF(float q)
 {
 	float wcon = 1.09375f*iM_PI;  // 1.09375f = 2*5*7/64
-	return -wcon*(2.f-q)*(2.f-q)*(2.f-q);
+	return wcon*(2.f-q)*(2.f-q)*(2.f-q);
 }
 
 #endif	// _KERNEL_H_INCLUDED_

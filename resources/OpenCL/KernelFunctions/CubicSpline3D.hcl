@@ -27,13 +27,13 @@
     /** @def M_PI
      * \f$ \pi \f$ value.
      */
-	#define M_PI 3.14159265359f
+    #define M_PI 3.14159265359f
 #endif
 #ifndef iM_PI
     /** @def iM_PI
      * \f$ \frac{1}{\pi} \f$ value.
      */
-	#define iM_PI 0.318309886f
+    #define iM_PI 0.318309886f
 #endif
 
 /** @brief The kernel value
@@ -43,13 +43,13 @@
  */
 float kernelW(float q)
 {
-	float wcona = 1.25f*iM_PI;  // 1.25 = 6/4
-	float wconb = 0.25f*iM_PI;  // 0.25 = 1/4
-	if(q <= 1.f)
-		return wcona*(2.f/3.f - q*q + 0.5f*q*q*q);
-	else if (q < 2.f)
-		return wconb*(2.f-q)*(2.f-q)*(2.f-q);
-	return 0.f;
+    float wcona = 1.25f*iM_PI;  // 1.25 = 6/4
+    float wconb = 0.25f*iM_PI;  // 0.25 = 1/4
+    if(q <= 1.f)
+        return wcona*(2.f/3.f - q*q + 0.5f*q*q*q);
+    else if (q < 2.f)
+        return wconb*(2.f-q)*(2.f-q)*(2.f-q);
+    return 0.f;
 }
 
 /** @brief The kernel gradient factor
@@ -66,13 +66,13 @@ float kernelW(float q)
  */
 float kernelF(float q)
 {
-	float wcona = 1.25f*iM_PI;  // 1.25 = 6/4
-	float wconb = 0.25f*iM_PI;  // 0.25 = 1/4
-	if(q <= 1.f)
-		return wcona*(-2.f + 1.5f*q);
-	else if (q < 2.f)
-		return -3.f*wconb*(2.f-q)*(2.f-q)/q;
-	return 0.f;
+    float wcona = 1.25f*iM_PI;  // 1.25 = 6/4
+    float wconb = 0.25f*iM_PI;  // 0.25 = 1/4
+    if(q <= 1.f)
+        return wcona*(2.f - 1.5f * q);
+    else if (q < 2.f)
+        return 3.f * wconb * (2.f - q) * (2.f - q) / q;
+    return 0.f;
 }
 
-#endif	// _KERNEL_H_INCLUDED_
+#endif    // _KERNEL_H_INCLUDED_
