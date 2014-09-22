@@ -26,31 +26,58 @@
 #include <ScreenManager.h>
 #include <CalcServer/Python.h>
 
-/** @brief method to test.
+/** @brief Get a variable by its name.
  * @param self Module.
  * @param args Positional arguments.
  * @return Computed value, NULL if errors have been detected.
  */
-static PyObject* logit(PyObject *self, PyObject *args)
+static PyObject* get(PyObject *self, PyObject *args)
 {
-    double p;
+    Aqua::CalcServer::CalcServer *C = Aqua::CalcServer::CalcServer::singleton();
+    Aqua::InputOutput::Variables *V = C->variables();
+    const char* varname;
 
-    /* This parses the Python argument into a double */
-    if(!PyArg_ParseTuple(args, "d", &p)) {
+    if(!PyArg_ParseTuple(args, "s", &varname)) {
         return NULL;
     }
 
-    /* THE ACTUAL LOGIT FUNCTION */
-    p = p/(1-p);
-    p = log(p);
+    Aqua::InputOutput::Variable *var = V->get(varname);
+    if(!var){
+        char errstr[64 + strlen(varname)];
+        sprintf(errstr, "Variable \"%s\" has not been declared", varname);
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
+
+    PyObject *result = NULL;
+    if(!strcmp(var->type(), "int")){
+        long val = *(int*)var->get();
+        result = PyLong_FromLong(val);
+    }
+    else if(!strcmp(var->type(), "unsigned int")){
+        unsigned long val = *(unsigned int*)var->get();
+        result = PyLong_FromUnsignedLong(val);
+    }
+    else if(!strcmp(var->type(), "float")){
+        double val = *(float*)var->get();
+        result = PyFloat_FromDouble(val);
+    }
+    else{
+        char errstr[128 + strlen(varname) + strlen(var->type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", which is not handled by Python",
+                varname,
+                var->type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+    }
 
     /*This builds the answer back into a python object */
-    return Py_BuildValue("d", p);
+    return result;
 }
 
 /// List of methods declared in the module
 static PyMethodDef methods[] = {
-    {"logit", logit, METH_VARARGS, "compute logit"},
+    {"get", get, METH_VARARGS, "Get a variable"},
     {NULL, NULL, 0, NULL}
 };
 

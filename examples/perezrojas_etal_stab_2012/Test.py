@@ -1,5 +1,6 @@
 import aquagpusph as aqua
 
 def main():
-    result = aqua.logit(0.5)
+    result = aqua.get("n")
     print('Test.py: {}'.format(result))
+    return True
