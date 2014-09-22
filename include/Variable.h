@@ -246,6 +246,11 @@ public:
      * @param ptr Memory to copy.
      */
     void set(void* ptr){memcpy(&_value, ptr, sizeof(vec2));}
+
+    /** Get a PyArrayObject interpretation of the variable
+     * @return PyArrayObject Python object (PyArray_FLOAT subtype).
+     */
+    PyObject* getPythonObject();
 private:
     /// Variable value
     vec2 _value;
@@ -280,6 +285,11 @@ public:
      * @param ptr Memory to copy.
      */
     void set(void* ptr){memcpy(&_value, ptr, sizeof(vec3));}
+
+    /** Get a PyArrayObject interpretation of the variable
+     * @return PyArrayObject Python object (PyArray_FLOAT subtype).
+     */
+    PyObject* getPythonObject();
 private:
     /// Variable value
     vec3 _value;
@@ -314,6 +324,11 @@ public:
      * @param ptr Memory to copy.
      */
     void set(void* ptr){memcpy(&_value, ptr, sizeof(vec4));}
+
+    /** Get a PyArrayObject interpretation of the variable
+     * @return PyArrayObject Python object (PyArray_FLOAT subtype).
+     */
+    PyObject* getPythonObject();
 private:
     /// Variable value
     vec4 _value;
@@ -348,6 +363,11 @@ public:
      * @param ptr Memory to copy.
      */
     void set(void* ptr){memcpy(&_value, ptr, sizeof(ivec2));}
+
+    /** Get a PyArrayObject interpretation of the variable
+     * @return PyArrayObject Python object (PyArray_INT subtype).
+     */
+    PyObject* getPythonObject();
 private:
     /// Variable value
     ivec2 _value;
@@ -382,6 +402,11 @@ public:
      * @param ptr Memory to copy.
      */
     void set(void* ptr){memcpy(&_value, ptr, sizeof(ivec3));}
+
+    /** Get a PyArrayObject interpretation of the variable
+     * @return PyArrayObject Python object (PyArray_INT subtype).
+     */
+    PyObject* getPythonObject();
 private:
     /// Variable value
     ivec3 _value;
@@ -416,6 +441,11 @@ public:
      * @param ptr Memory to copy.
      */
     void set(void* ptr){memcpy(&_value, ptr, sizeof(ivec4));}
+
+    /** Get a PyArrayObject interpretation of the variable
+     * @return PyArrayObject Python object (PyArray_INT subtype).
+     */
+    PyObject* getPythonObject();
 private:
     /// Variable value
     ivec4 _value;
@@ -450,6 +480,11 @@ public:
      * @param ptr Memory to copy.
      */
     void set(void* ptr){memcpy(&_value, ptr, sizeof(uivec2));}
+
+    /** Get a PyArrayObject interpretation of the variable
+     * @return PyArrayObject Python object (PyArray_UINT subtype).
+     */
+    PyObject* getPythonObject();
 private:
     /// Variable value
     uivec2 _value;
@@ -484,6 +519,11 @@ public:
      * @param ptr Memory to copy.
      */
     void set(void* ptr){memcpy(&_value, ptr, sizeof(uivec3));}
+
+    /** Get a PyArrayObject interpretation of the variable
+     * @return PyArrayObject Python object (PyArray_UINT subtype).
+     */
+    PyObject* getPythonObject();
 private:
     /// Variable value
     uivec3 _value;
@@ -518,6 +558,11 @@ public:
      * @param ptr Memory to copy.
      */
     void set(void* ptr){memcpy(&_value, ptr, sizeof(uivec4));}
+
+    /** Get a PyArrayObject interpretation of the variable
+     * @return PyArrayObject Python object (PyArray_UINT subtype).
+     */
+    PyObject* getPythonObject();
 private:
     /// Variable value
     uivec4 _value;

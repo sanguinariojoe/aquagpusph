@@ -26,6 +26,10 @@
 #include <ScreenManager.h>
 #include <CalcServer/Python.h>
 
+#include <numpy/ndarraytypes.h>
+#include <numpy/ufuncobject.h>
+#include <numpy/npy_3kcompat.h>
+
 /** @brief Get a variable by its name.
  * @param self Module.
  * @param args Positional arguments.
@@ -93,6 +97,10 @@ PyMODINIT_FUNC PyInit_aquagpusph(void)
     if (!m) {
         return NULL;
     }
+
+    import_array();
+    import_umath();
+
     return m;
 }
 
@@ -109,6 +117,9 @@ PyMODINIT_FUNC PyInit_aquagpusph(void)
     if (m == NULL) {
         return;
     }
+
+    import_array();
+    import_umath();
 }
 #endif
 
