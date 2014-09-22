@@ -26,6 +26,78 @@
 #include <ScreenManager.h>
 #include <CalcServer/Python.h>
 
+/** @brief method to test.
+ * @param self Module.
+ * @param args Positional arguments.
+ * @return Computed value, NULL if errors have been detected.
+ */
+static PyObject* logit(PyObject *self, PyObject *args)
+{
+    double p;
+
+    /* This parses the Python argument into a double */
+    if(!PyArg_ParseTuple(args, "d", &p)) {
+        return NULL;
+    }
+
+    /* THE ACTUAL LOGIT FUNCTION */
+    p = p/(1-p);
+    p = log(p);
+
+    /*This builds the answer back into a python object */
+    return Py_BuildValue("d", p);
+}
+
+/// List of methods declared in the module
+static PyMethodDef methods[] = {
+    {"logit", logit, METH_VARARGS, "compute logit"},
+    {NULL, NULL, 0, NULL}
+};
+
+// Python 3.0 or above
+#if PY_VERSION_HEX >= 0x03000000
+
+/// Module definition
+static struct PyModuleDef moduledef = {
+    PyModuleDef_HEAD_INIT,
+    "aquagpusph",
+    NULL,
+    -1,
+    methods,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
+
+/** @brief Module initialization.
+ */
+PyMODINIT_FUNC PyInit_aquagpusph(void)
+{
+    PyObject *m;
+    m = PyModule_Create(&moduledef);
+    if (!m) {
+        return NULL;
+    }
+    return m;
+}
+
+// Python 2.7 or below
+#else
+
+/** @brief Module initialization.
+ */
+PyMODINIT_FUNC PyInit_aquagpusph(void)
+{
+    PyObject *m;
+
+    m = Py_InitModule("aquagpusph", methods);
+    if (m == NULL) {
+        return;
+    }
+}
+#endif
+
 namespace Aqua{ namespace CalcServer{
 
 Python::Python(const char *tool_name, const char *script)
@@ -105,6 +177,8 @@ bool Python::initPython()
         return false;
     }
 
+    PyImport_AppendInittab("aquagpusph", PyInit_aquagpusph);
+
     Py_Initialize();
     if(!Py_IsInitialized()){
         S->addMessageF(3, "Failure calling Py_Initialize().\n");
@@ -115,6 +189,9 @@ bool Python::initPython()
     PyRun_SimpleString("import os");
     PyRun_SimpleString("curdir = os.getcwd()");
     PyRun_SimpleString("sys.path.append(curdir)");
+
+    PyImport_ImportModule("aquagpusph");
+
     return false;
 }
 

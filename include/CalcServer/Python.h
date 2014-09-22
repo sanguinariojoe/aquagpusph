@@ -36,7 +36,7 @@ namespace Aqua{ namespace CalcServer{
  * The Python script should has a function main which will be called each time
  * step, when execute is called.
  *
- * AQUAgpusph is providing a module called AQUAruntime which allows the Python
+ * AQUAgpusph is providing a module called aquagpusph which allows the Python
  * script to get and set variable values.
  */
 class Python : public Aqua::CalcServer::Tool
