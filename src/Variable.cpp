@@ -108,13 +108,10 @@ Vec2Variable::~Vec2Variable()
 
 PyObject* Vec2Variable::getPythonObject()
 {
-    vec2 vv = *(vec2*)get();
+    vec2 *vv = (vec2*)get();
     npy_intp dims[] = {2};
-    float *v = (float*)malloc(2 * sizeof(float));
-    v[0] = vv.x;
-    v[1] = vv.y;
     import_array();
-    return PyArray_SimpleNewFromData(1, dims, PyArray_FLOAT, v);
+    return PyArray_SimpleNewFromData(1, dims, PyArray_FLOAT, vv->s);
 }
 
 Vec3Variable::Vec3Variable(const char *varname)
@@ -131,14 +128,10 @@ Vec3Variable::~Vec3Variable()
 
 PyObject* Vec3Variable::getPythonObject()
 {
-    vec3 vv = *(vec3*)get();
+    vec3 *vv = (vec3*)get();
     npy_intp dims[] = {3};
-    float *v = (float*)malloc(3 * sizeof(float));
-    v[0] = vv.x;
-    v[1] = vv.y;
-    v[2] = vv.z;
     import_array();
-    return PyArray_SimpleNewFromData(1, dims, PyArray_FLOAT, v);
+    return PyArray_SimpleNewFromData(1, dims, PyArray_FLOAT, vv->s);
 }
 
 Vec4Variable::Vec4Variable(const char *varname)
@@ -156,15 +149,10 @@ Vec4Variable::~Vec4Variable()
 
 PyObject* Vec4Variable::getPythonObject()
 {
-    vec4 vv = *(vec4*)get();
+    vec4 *vv = (vec4*)get();
     npy_intp dims[] = {4};
-    float *v = (float*)malloc(4 * sizeof(float));
-    v[0] = vv.x;
-    v[1] = vv.y;
-    v[2] = vv.z;
-    v[3] = vv.w;
     import_array();
-    return PyArray_SimpleNewFromData(1, dims, PyArray_FLOAT, v);
+    return PyArray_SimpleNewFromData(1, dims, PyArray_FLOAT, vv->s);
 }
 
 IVec2Variable::IVec2Variable(const char *varname)
@@ -180,13 +168,10 @@ IVec2Variable::~IVec2Variable()
 
 PyObject* IVec2Variable::getPythonObject()
 {
-    ivec2 vv = *(ivec2*)get();
+    ivec2 *vv = (ivec2*)get();
     npy_intp dims[] = {2};
-    int *v = (int*)malloc(2 * sizeof(int));
-    v[0] = vv.x;
-    v[1] = vv.y;
     import_array();
-    return PyArray_SimpleNewFromData(1, dims, PyArray_INT, v);
+    return PyArray_SimpleNewFromData(1, dims, PyArray_INT, vv->s);
 }
 
 IVec3Variable::IVec3Variable(const char *varname)
@@ -203,14 +188,10 @@ IVec3Variable::~IVec3Variable()
 
 PyObject* IVec3Variable::getPythonObject()
 {
-    ivec3 vv = *(ivec3*)get();
+    ivec3 *vv = (ivec3*)get();
     npy_intp dims[] = {3};
-    int *v = (int*)malloc(3 * sizeof(int));
-    v[0] = vv.x;
-    v[1] = vv.y;
-    v[2] = vv.z;
     import_array();
-    return PyArray_SimpleNewFromData(1, dims, PyArray_INT, v);
+    return PyArray_SimpleNewFromData(1, dims, PyArray_INT, vv->s);
 }
 
 IVec4Variable::IVec4Variable(const char *varname)
@@ -224,15 +205,10 @@ IVec4Variable::IVec4Variable(const char *varname)
 
 PyObject* IVec4Variable::getPythonObject()
 {
-    ivec4 vv = *(ivec4*)get();
+    ivec4 *vv = (ivec4*)get();
     npy_intp dims[] = {4};
-    int *v = (int*)malloc(4 * sizeof(int));
-    v[0] = vv.x;
-    v[1] = vv.y;
-    v[2] = vv.z;
-    v[3] = vv.w;
     import_array();
-    return PyArray_SimpleNewFromData(1, dims, PyArray_INT, v);
+    return PyArray_SimpleNewFromData(1, dims, PyArray_INT, vv->s);
 }
 
 IVec4Variable::~IVec4Variable()
@@ -252,13 +228,10 @@ UIVec2Variable::~UIVec2Variable()
 
 PyObject* UIVec2Variable::getPythonObject()
 {
-    uivec2 vv = *(uivec2*)get();
+    uivec2 *vv = (uivec2*)get();
     npy_intp dims[] = {2};
-    unsigned int *v = (unsigned int*)malloc(2 * sizeof(unsigned int));
-    v[0] = vv.x;
-    v[1] = vv.y;
     import_array();
-    return PyArray_SimpleNewFromData(1, dims, PyArray_UINT, v);
+    return PyArray_SimpleNewFromData(1, dims, PyArray_UINT, vv->s);
 }
 
 UIVec3Variable::UIVec3Variable(const char *varname)
@@ -275,14 +248,10 @@ UIVec3Variable::~UIVec3Variable()
 
 PyObject* UIVec3Variable::getPythonObject()
 {
-    uivec3 vv = *(uivec3*)get();
+    uivec3 *vv = (uivec3*)get();
     npy_intp dims[] = {3};
-    unsigned int *v = (unsigned int*)malloc(3 * sizeof(unsigned int));
-    v[0] = vv.x;
-    v[1] = vv.y;
-    v[2] = vv.z;
     import_array();
-    return PyArray_SimpleNewFromData(1, dims, PyArray_UINT, v);
+    return PyArray_SimpleNewFromData(1, dims, PyArray_UINT, vv->s);
 }
 
 UIVec4Variable::UIVec4Variable(const char *varname)
@@ -300,15 +269,10 @@ UIVec4Variable::~UIVec4Variable()
 
 PyObject* UIVec4Variable::getPythonObject()
 {
-    uivec4 vv = *(uivec4*)get();
+    uivec4 *vv = (uivec4*)get();
     npy_intp dims[] = {4};
-    unsigned int *v = (unsigned int*)malloc(4 * sizeof(unsigned int));
-    v[0] = vv.x;
-    v[1] = vv.y;
-    v[2] = vv.z;
-    v[3] = vv.w;
     import_array();
-    return PyArray_SimpleNewFromData(1, dims, PyArray_UINT, v);
+    return PyArray_SimpleNewFromData(1, dims, PyArray_UINT, vv->s);
 }
 
 ArrayVariable::ArrayVariable(const char *varname, const char *vartype)
