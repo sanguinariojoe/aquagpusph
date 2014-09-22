@@ -19,6 +19,7 @@
 #ifndef VARIABLE_H_INCLUDED
 #define VARIABLE_H_INCLUDED
 
+#include <Python.h>
 #include <CL/cl.h>
 
 #include <stdlib.h>
@@ -86,6 +87,11 @@ public:
      * @param ptr Memory to copy.
      */
     virtual void set(void* ptr)=0;
+
+    /** Get a Python interpretation of the variable
+     * @return Python object, NULL for this class.
+     */
+    virtual PyObject* getPythonObject(){return NULL;}
 private:
     /// Name of the variable
     char* _name;
@@ -123,6 +129,11 @@ public:
      * @param ptr Memory to copy.
      */
     void set(void* ptr){_value = *(int*)ptr;}
+
+    /** Get a PyLongObject interpretation of the variable
+     * @return PyLongObject Python object.
+     */
+    PyObject* getPythonObject();
 private:
     /// Variable value
     int _value;
@@ -157,6 +168,11 @@ public:
      * @param ptr Memory to copy.
      */
     void set(void* ptr){_value = *(unsigned int*)ptr;}
+
+    /** Get a PyLongObject interpretation of the variable
+     * @return PyLongObject Python object.
+     */
+    PyObject* getPythonObject();
 private:
     /// Variable value
     unsigned int _value;
@@ -191,6 +207,11 @@ public:
      * @param ptr Memory to copy.
      */
     void set(void* ptr){_value = *(float*)ptr;}
+
+    /** Get a PyFloatObject interpretation of the variable
+     * @return PyFloatObject Python object.
+     */
+    PyObject* getPythonObject();
 private:
     /// Variable value
     float _value;

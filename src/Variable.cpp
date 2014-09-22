@@ -53,6 +53,12 @@ IntVariable::~IntVariable()
 {
 }
 
+PyObject* IntVariable::getPythonObject()
+{
+    long val = *(int*)get();
+    return PyLong_FromLong(val);
+}
+
 UIntVariable::UIntVariable(const char *varname)
     : Variable(varname, "unsigned int")
     , _value(0)
@@ -63,6 +69,12 @@ UIntVariable::~UIntVariable()
 {
 }
 
+PyObject* UIntVariable::getPythonObject()
+{
+    unsigned long val = *(unsigned int*)get();
+    return PyLong_FromUnsignedLong(val);
+}
+
 FloatVariable::FloatVariable(const char *varname)
     : Variable(varname, "float")
     , _value(0.f)
@@ -71,6 +83,12 @@ FloatVariable::FloatVariable(const char *varname)
 
 FloatVariable::~FloatVariable()
 {
+}
+
+PyObject* FloatVariable::getPythonObject()
+{
+    double val = *(float*)get();
+    return PyFloat_FromDouble(val);
 }
 
 Vec2Variable::Vec2Variable(const char *varname)

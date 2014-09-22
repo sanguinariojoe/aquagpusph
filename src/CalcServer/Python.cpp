@@ -49,20 +49,8 @@ static PyObject* get(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    PyObject *result = NULL;
-    if(!strcmp(var->type(), "int")){
-        long val = *(int*)var->get();
-        result = PyLong_FromLong(val);
-    }
-    else if(!strcmp(var->type(), "unsigned int")){
-        unsigned long val = *(unsigned int*)var->get();
-        result = PyLong_FromUnsignedLong(val);
-    }
-    else if(!strcmp(var->type(), "float")){
-        double val = *(float*)var->get();
-        result = PyFloat_FromDouble(val);
-    }
-    else{
+    PyObject *result = var->getPythonObject();
+    if(!result){
         char errstr[128 + strlen(varname) + strlen(var->type())];
         sprintf(errstr,
                 "Variable \"%s\" is of type \"%s\", which is not handled by Python",
@@ -71,7 +59,6 @@ static PyObject* get(PyObject *self, PyObject *args)
         PyErr_SetString(PyExc_ValueError, errstr);
     }
 
-    /*This builds the answer back into a python object */
     return result;
 }
 
