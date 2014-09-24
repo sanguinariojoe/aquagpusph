@@ -21,6 +21,19 @@
 #include <ScreenManager.h>
 #include <CalcServer.h>
 
+/** @def PY_ARRAY_UNIQUE_SYMBOL
+ * @brief Define the extension module which this Python stuff should be linked
+ * to.
+ *
+ * In AQUAgpusph all the Python stuff is linked in the same group AQUA_ARRAY_API
+ * @see http://docs.scipy.org/doc/numpy/reference/c-api.array.html#importing-the-api
+ */
+#define PY_ARRAY_UNIQUE_SYMBOL AQUA_ARRAY_API
+/** @def NO_IMPORT_ARRAY
+ * @brief Set this file as a helper of the group AQUA_ARRAY_API.
+ * @see http://docs.scipy.org/doc/numpy/reference/c-api.array.html#importing-the-api
+ */
+#define NO_IMPORT_ARRAY
 #include <numpy/ndarraytypes.h>
 #include <numpy/ufuncobject.h>
 #include <numpy/npy_3kcompat.h>
@@ -110,7 +123,6 @@ PyObject* Vec2Variable::getPythonObject()
 {
     vec2 *vv = (vec2*)get();
     npy_intp dims[] = {2};
-    import_array();
     return PyArray_SimpleNewFromData(1, dims, PyArray_FLOAT, vv->s);
 }
 
@@ -130,7 +142,6 @@ PyObject* Vec3Variable::getPythonObject()
 {
     vec3 *vv = (vec3*)get();
     npy_intp dims[] = {3};
-    import_array();
     return PyArray_SimpleNewFromData(1, dims, PyArray_FLOAT, vv->s);
 }
 
@@ -151,7 +162,6 @@ PyObject* Vec4Variable::getPythonObject()
 {
     vec4 *vv = (vec4*)get();
     npy_intp dims[] = {4};
-    import_array();
     return PyArray_SimpleNewFromData(1, dims, PyArray_FLOAT, vv->s);
 }
 
@@ -170,7 +180,6 @@ PyObject* IVec2Variable::getPythonObject()
 {
     ivec2 *vv = (ivec2*)get();
     npy_intp dims[] = {2};
-    import_array();
     return PyArray_SimpleNewFromData(1, dims, PyArray_INT, vv->s);
 }
 
@@ -190,7 +199,6 @@ PyObject* IVec3Variable::getPythonObject()
 {
     ivec3 *vv = (ivec3*)get();
     npy_intp dims[] = {3};
-    import_array();
     return PyArray_SimpleNewFromData(1, dims, PyArray_INT, vv->s);
 }
 
@@ -207,7 +215,6 @@ PyObject* IVec4Variable::getPythonObject()
 {
     ivec4 *vv = (ivec4*)get();
     npy_intp dims[] = {4};
-    import_array();
     return PyArray_SimpleNewFromData(1, dims, PyArray_INT, vv->s);
 }
 
@@ -230,7 +237,6 @@ PyObject* UIVec2Variable::getPythonObject()
 {
     uivec2 *vv = (uivec2*)get();
     npy_intp dims[] = {2};
-    import_array();
     return PyArray_SimpleNewFromData(1, dims, PyArray_UINT, vv->s);
 }
 
@@ -250,7 +256,6 @@ PyObject* UIVec3Variable::getPythonObject()
 {
     uivec3 *vv = (uivec3*)get();
     npy_intp dims[] = {3};
-    import_array();
     return PyArray_SimpleNewFromData(1, dims, PyArray_UINT, vv->s);
 }
 
@@ -271,7 +276,6 @@ PyObject* UIVec4Variable::getPythonObject()
 {
     uivec4 *vv = (uivec4*)get();
     npy_intp dims[] = {4};
-    import_array();
     return PyArray_SimpleNewFromData(1, dims, PyArray_UINT, vv->s);
 }
 
