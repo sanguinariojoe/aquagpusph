@@ -603,9 +603,18 @@ public:
      * @param ptr Memory to copy.
      */
     void set(void* ptr){_value = *(cl_mem*)ptr;}
+
+    /** Get a PyArrayObject interpretation of the variable
+     * @return PyArrayObject Python object.
+     */
+    PyObject* getPythonObject();
 private:
     /// Variable value
     cl_mem _value;
+    /** @brief Helper data array storage for the Python object
+     * @see getPythonObject()
+     */
+    void *_data;
 };
 
 // ---------------------------------------------------------------------------

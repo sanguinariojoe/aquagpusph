@@ -282,6 +282,7 @@ PyObject* UIVec4Variable::getPythonObject()
 ArrayVariable::ArrayVariable(const char *varname, const char *vartype)
     : Variable(varname, vartype)
     , _value(NULL)
+    , _data(NULL)
 {
 }
 
@@ -311,6 +312,77 @@ size_t ArrayVariable::size() const
         S->printOpenCLError(status);
     }
     return memsize;
+}
+
+PyObject* ArrayVariable::getPythonObject()
+{
+	CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
+	Variables *vars = C->variables();
+	cl_int err_code;
+    // Get the dimensions
+    unsigned components = vars->typeToN(type());
+    size_t typesize = vars->typeToBytes(type());
+    size_t memsize = size();
+    size_t len = memsize / typesize;
+    npy_intp dims[] = {len, components};
+    // Get the appropiate type
+    int pytype = PyArray_FLOAT;
+    if(strstr(type(), "unsigned int") ||
+       strstr(type(), "uivec")){
+       pytype = PyArray_UINT;
+    }
+    else if(strstr(type(), "int") ||
+       strstr(type(), "ivec")){
+       pytype = PyArray_INT;
+    }
+    else if(strstr(type(), "float") ||
+       strstr(type(), "vec")){
+       pytype = PyArray_FLOAT;
+    }
+    else{
+        char errstr[128 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", which is not handled by Python",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
+    // Reallocate memory
+    if(_data){
+        free(_data);
+        _data = NULL;
+    }
+    _data = malloc(memsize);
+    if(!_data){
+        char errstr[128 + strlen(name())];
+        sprintf(errstr,
+                "Failure allocating %lu bytes for variable \"%s\"",
+                memsize,
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
+    // Download the data
+    err_code = clEnqueueReadBuffer(C->command_queue(),
+                                   _value,
+                                   CL_TRUE,
+                                   0,
+                                   memsize,
+                                   _data,
+                                   0,
+                                   NULL,
+                                   NULL);
+    if(err_code != CL_SUCCESS){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "Failure downloading variable \"%s\"",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
+    // Build and return the Python object
+    return PyArray_SimpleNewFromData(2, dims, pytype, _data);
 }
 
 // ---------------------------------------------------------------------------
