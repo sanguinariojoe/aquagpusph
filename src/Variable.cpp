@@ -282,12 +282,24 @@ PyObject* UIVec4Variable::getPythonObject()
 ArrayVariable::ArrayVariable(const char *varname, const char *vartype)
     : Variable(varname, vartype)
     , _value(NULL)
-    , _data(NULL)
 {
 }
 
 ArrayVariable::~ArrayVariable()
 {
+    unsigned int i;
+    for(i = 0; i < _objects.size(); i++){
+        if(_objects.at(i))
+            Py_DECREF(_objects.at(i));
+        _objects.at(i) = NULL;
+    }
+    _objects.clear();
+    for(i = 0; i < _data.size(); i++){
+        if(_data.at(i))
+            free(_data.at(i));
+        _data.at(i) = NULL;
+    }
+    _data.clear();
     if(_value) clReleaseMemObject(_value); _value=NULL;
 }
 
@@ -319,6 +331,8 @@ PyObject* ArrayVariable::getPythonObject()
 	CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
 	Variables *vars = C->variables();
 	cl_int err_code;
+    // Clear outdated references
+    cleanMem();
     // Get the dimensions
     unsigned components = vars->typeToN(type());
     size_t typesize = vars->typeToBytes(type());
@@ -349,12 +363,8 @@ PyObject* ArrayVariable::getPythonObject()
         return NULL;
     }
     // Reallocate memory
-    if(_data){
-        free(_data);
-        _data = NULL;
-    }
-    _data = malloc(memsize);
-    if(!_data){
+    void *data = malloc(memsize);
+    if(!data){
         char errstr[128 + strlen(name())];
         sprintf(errstr,
                 "Failure allocating %lu bytes for variable \"%s\"",
@@ -363,13 +373,14 @@ PyObject* ArrayVariable::getPythonObject()
         PyErr_SetString(PyExc_ValueError, errstr);
         return NULL;
     }
+    _data.push_back(data);
     // Download the data
     err_code = clEnqueueReadBuffer(C->command_queue(),
                                    _value,
                                    CL_TRUE,
                                    0,
                                    memsize,
-                                   _data,
+                                   data,
                                    0,
                                    NULL,
                                    NULL);
@@ -382,7 +393,32 @@ PyObject* ArrayVariable::getPythonObject()
         return NULL;
     }
     // Build and return the Python object
-    return PyArray_SimpleNewFromData(2, dims, pytype, _data);
+    PyObject *obj = PyArray_SimpleNewFromData(2, dims, pytype, data);
+    if(!obj){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "Failure creating a Python object for variable \"%s\"",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
+    _objects.push_back(obj);
+    Py_INCREF(obj);
+    return obj;
+}
+
+void ArrayVariable::cleanMem()
+{
+    int i;  // unsigned cannot be used here
+    for(i = _objects.size() - 1; i >= 0; i--){
+        if(_objects.at(i)->ob_refcnt == 1){
+            Py_DECREF(_objects.at(i));
+            free(_data.at(i));
+            _data.at(i) = NULL;
+            _data.erase(_data.begin() + i);
+            _objects.erase(_objects.begin() + i);
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------

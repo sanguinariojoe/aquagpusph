@@ -609,12 +609,30 @@ public:
      */
     PyObject* getPythonObject();
 private:
+    /// Check for abandoned python objects to destroy them.
+    void cleanMem();
+
     /// Variable value
     cl_mem _value;
-    /** @brief Helper data array storage for the Python object
+    /** @brief List of helpers data array storages for the Python objects
+     *
+     * The memory array inside numpy objects must be dynamically allocated and
+     * preserved, otherwise wrong values will be received in the Python script.
+     *
+     * On the other hand, this memory is not automatically freed by Python when
+     * the object is destroyed, and therefore we need to call Py_INCREF after
+     * the object generation to assert that Python is not automatically
+     * detroying it, such that we can control the reference count, deleting the
+     * memory array and the Python object when 0 is reached.
      * @see getPythonObject()
+     * @see _objects
      */
-    void *_data;
+    std::deque<void*> _data;
+    /** @brief List of helpers data array storages for the Python objects
+     * @see getPythonObject()
+     * @see _data
+     */
+    std::deque<PyObject*> _objects;
 };
 
 // ---------------------------------------------------------------------------
