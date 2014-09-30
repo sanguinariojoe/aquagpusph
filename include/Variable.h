@@ -94,6 +94,17 @@ public:
      * @return Python object, NULL for this class.
      */
     virtual PyObject* getPythonObject(int i0=0, int n=0){return NULL;}
+
+    /** Set the variable from a Python object
+     * @param obj Python object.
+     * @param i0 First component to be set, just for array variables.
+     * @param n Number of component to be set, just for array variables.
+     * @return true, i.e. an error.
+     */
+    virtual bool setFromPythonObject(PyObject* obj, int i0=0, int n=0)
+    {
+        return true;
+    }
 private:
     /// Name of the variable
     char* _name;
@@ -138,6 +149,14 @@ public:
      * @return PyLongObject Python object.
      */
     PyObject* getPythonObject(int i0=0, int n=0);
+
+    /** Set the variable from a Python object
+     * @param obj PyLongObject object.
+     * @param i0 0, otherwise an error will be returned.
+     * @param n 0, otherwise an error will be returned.
+     * @return false if all gone right, true otherwise.
+     */
+    bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
 private:
     /// Variable value
     int _value;
@@ -179,6 +198,14 @@ public:
      * @return PyLongObject Python object.
      */
     PyObject* getPythonObject(int i0=0, int n=0);
+
+    /** Set the variable from a Python object
+     * @param obj PyLongObject object.
+     * @param i0 0, otherwise an error will be returned.
+     * @param n 0, otherwise an error will be returned.
+     * @return false if all gone right, true otherwise.
+     */
+    bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
 private:
     /// Variable value
     unsigned int _value;
@@ -220,6 +247,14 @@ public:
      * @return PyFloatObject Python object.
      */
     PyObject* getPythonObject(int i0=0, int n=0);
+
+    /** Set the variable from a Python object
+     * @param obj PyFloatObject object.
+     * @param i0 0, otherwise an error will be returned.
+     * @param n 0, otherwise an error will be returned.
+     * @return false if all gone right, true otherwise.
+     */
+    bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
 private:
     /// Variable value
     float _value;

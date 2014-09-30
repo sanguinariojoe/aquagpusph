@@ -41,6 +41,7 @@
 /** @brief Get a variable by its name.
  * @param self Module.
  * @param args Positional arguments.
+ * @param keywds Keyword arguments.
  * @return Computed value, NULL if errors have been detected.
  */
 static PyObject* get(PyObject *self, PyObject *args, PyObject *keywds)
@@ -49,7 +50,6 @@ static PyObject* get(PyObject *self, PyObject *args, PyObject *keywds)
     Aqua::InputOutput::Variables *V = C->variables();
     const char* varname;
 
-    int voltage;
     int i0 = 0;
     int n = 0;
 
@@ -72,9 +72,48 @@ static PyObject* get(PyObject *self, PyObject *args, PyObject *keywds)
     return result;
 }
 
+/** @brief Set a variable by its name.
+ * @param self Module.
+ * @param args Positional arguments.
+ * @param keywds Keyword arguments.
+ * @return Computed value, NULL if errors have been detected.
+ */
+static PyObject* set(PyObject *self, PyObject *args, PyObject *keywds)
+{
+    Aqua::CalcServer::CalcServer *C = Aqua::CalcServer::CalcServer::singleton();
+    Aqua::InputOutput::Variables *V = C->variables();
+    const char* varname;
+    PyObject *value;
+
+    int i0 = 0;
+    int n = 0;
+
+    static char *kwlist[] = {"varname", "value", "offset", "n", NULL};
+
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "sO|ii", kwlist,
+                                     &varname, &value, &i0, &n)){
+        return NULL;
+    }
+
+    Aqua::InputOutput::Variable *var = V->get(varname);
+    if(!var){
+        char errstr[64 + strlen(varname)];
+        sprintf(errstr, "Variable \"%s\" has not been declared", varname);
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
+
+    if(var->setFromPythonObject(value, i0, n)){
+        return NULL;
+    }
+
+    Py_RETURN_NONE;
+}
+
 /// List of methods declared in the module
 static PyMethodDef methods[] = {
     {"get", (PyCFunction)get, METH_VARARGS | METH_KEYWORDS, "Get a variable"},
+    {"set", (PyCFunction)set, METH_VARARGS | METH_KEYWORDS, "Set a variable"},
     {NULL, NULL, 0, NULL}
 };
 

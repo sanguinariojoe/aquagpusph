@@ -73,7 +73,7 @@ IntVariable::~IntVariable()
 PyObject* IntVariable::getPythonObject(int i0, int n)
 {
     if(i0 != 0){
-        char errstr[64 + strlen(name()) + strlen(type())];
+        char errstr[128 + strlen(name()) + strlen(type())];
         sprintf(errstr,
                 "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
                 name(),
@@ -82,7 +82,7 @@ PyObject* IntVariable::getPythonObject(int i0, int n)
         return NULL;
     }
     if(n != 0){
-        char errstr[64 + strlen(name()) + strlen(type())];
+        char errstr[128 + strlen(name()) + strlen(type())];
         sprintf(errstr,
                 "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
                 name(),
@@ -93,6 +93,43 @@ PyObject* IntVariable::getPythonObject(int i0, int n)
 
     long val = *(int*)get();
     return PyLong_FromLong(val);
+}
+
+bool IntVariable::setFromPythonObject(PyObject* obj, int i0, int n)
+{
+    if(i0 != 0){
+        char errstr[128 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+    if(n != 0){
+        char errstr[128 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    if(!PyLong_Check(obj)){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" expected a PyLongObject",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    int overflow = 0;
+    int value = (int) PyLong_AsLong(obj);
+    set(&value);
+
+    return false;
 }
 
 UIntVariable::UIntVariable(const char *varname)
@@ -111,6 +148,43 @@ PyObject* UIntVariable::getPythonObject(int i0, int n)
     return PyLong_FromUnsignedLong(val);
 }
 
+bool UIntVariable::setFromPythonObject(PyObject* obj, int i0, int n)
+{
+    if(i0 != 0){
+        char errstr[128 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+    if(n != 0){
+        char errstr[128 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    if(!PyLong_Check(obj)){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" expected a PyLongObject",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    int overflow = 0;
+    unsigned int value = (unsigned int) PyLong_AsLong(obj);
+    set(&value);
+
+    return false;
+}
+
 FloatVariable::FloatVariable(const char *varname)
     : Variable(varname, "float")
     , _value(0.f)
@@ -124,7 +198,7 @@ FloatVariable::~FloatVariable()
 PyObject* FloatVariable::getPythonObject(int i0, int n)
 {
     if(i0 != 0){
-        char errstr[64 + strlen(name()) + strlen(type())];
+        char errstr[128 + strlen(name()) + strlen(type())];
         sprintf(errstr,
                 "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
                 name(),
@@ -133,7 +207,7 @@ PyObject* FloatVariable::getPythonObject(int i0, int n)
         return NULL;
     }
     if(n != 0){
-        char errstr[64 + strlen(name()) + strlen(type())];
+        char errstr[128 + strlen(name()) + strlen(type())];
         sprintf(errstr,
                 "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
                 name(),
@@ -143,6 +217,43 @@ PyObject* FloatVariable::getPythonObject(int i0, int n)
     }
     double val = *(float*)get();
     return PyFloat_FromDouble(val);
+}
+
+bool FloatVariable::setFromPythonObject(PyObject* obj, int i0, int n)
+{
+    if(i0 != 0){
+        char errstr[128 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+    if(n != 0){
+        char errstr[128 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    if(!PyFloat_Check(obj)){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" expected a PyFloatObject",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    int overflow = 0;
+    float value = (float) PyFloat_AsDouble(obj);
+    set(&value);
+
+    return false;
 }
 
 Vec2Variable::Vec2Variable(const char *varname)
@@ -159,7 +270,7 @@ Vec2Variable::~Vec2Variable()
 PyObject* Vec2Variable::getPythonObject(int i0, int n)
 {
     if(i0 != 0){
-        char errstr[64 + strlen(name()) + strlen(type())];
+        char errstr[128 + strlen(name()) + strlen(type())];
         sprintf(errstr,
                 "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
                 name(),
@@ -168,7 +279,7 @@ PyObject* Vec2Variable::getPythonObject(int i0, int n)
         return NULL;
     }
     if(n != 0){
-        char errstr[64 + strlen(name()) + strlen(type())];
+        char errstr[128 + strlen(name()) + strlen(type())];
         sprintf(errstr,
                 "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
                 name(),
@@ -196,7 +307,7 @@ Vec3Variable::~Vec3Variable()
 PyObject* Vec3Variable::getPythonObject(int i0, int n)
 {
     if(i0 != 0){
-        char errstr[64 + strlen(name()) + strlen(type())];
+        char errstr[128 + strlen(name()) + strlen(type())];
         sprintf(errstr,
                 "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
                 name(),
@@ -205,7 +316,7 @@ PyObject* Vec3Variable::getPythonObject(int i0, int n)
         return NULL;
     }
     if(n != 0){
-        char errstr[64 + strlen(name()) + strlen(type())];
+        char errstr[128 + strlen(name()) + strlen(type())];
         sprintf(errstr,
                 "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
                 name(),
@@ -234,7 +345,7 @@ Vec4Variable::~Vec4Variable()
 PyObject* Vec4Variable::getPythonObject(int i0, int n)
 {
     if(i0 != 0){
-        char errstr[64 + strlen(name()) + strlen(type())];
+        char errstr[128 + strlen(name()) + strlen(type())];
         sprintf(errstr,
                 "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
                 name(),
@@ -243,7 +354,7 @@ PyObject* Vec4Variable::getPythonObject(int i0, int n)
         return NULL;
     }
     if(n != 0){
-        char errstr[64 + strlen(name()) + strlen(type())];
+        char errstr[128 + strlen(name()) + strlen(type())];
         sprintf(errstr,
                 "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
                 name(),
@@ -270,7 +381,7 @@ IVec2Variable::~IVec2Variable()
 PyObject* IVec2Variable::getPythonObject(int i0, int n)
 {
     if(i0 != 0){
-        char errstr[64 + strlen(name()) + strlen(type())];
+        char errstr[128 + strlen(name()) + strlen(type())];
         sprintf(errstr,
                 "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
                 name(),
@@ -279,7 +390,7 @@ PyObject* IVec2Variable::getPythonObject(int i0, int n)
         return NULL;
     }
     if(n != 0){
-        char errstr[64 + strlen(name()) + strlen(type())];
+        char errstr[128 + strlen(name()) + strlen(type())];
         sprintf(errstr,
                 "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
                 name(),
@@ -307,7 +418,7 @@ IVec3Variable::~IVec3Variable()
 PyObject* IVec3Variable::getPythonObject(int i0, int n)
 {
     if(i0 != 0){
-        char errstr[64 + strlen(name()) + strlen(type())];
+        char errstr[128 + strlen(name()) + strlen(type())];
         sprintf(errstr,
                 "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
                 name(),
@@ -316,7 +427,7 @@ PyObject* IVec3Variable::getPythonObject(int i0, int n)
         return NULL;
     }
     if(n != 0){
-        char errstr[64 + strlen(name()) + strlen(type())];
+        char errstr[128 + strlen(name()) + strlen(type())];
         sprintf(errstr,
                 "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
                 name(),
@@ -341,7 +452,7 @@ IVec4Variable::IVec4Variable(const char *varname)
 PyObject* IVec4Variable::getPythonObject(int i0, int n)
 {
     if(i0 != 0){
-        char errstr[64 + strlen(name()) + strlen(type())];
+        char errstr[128 + strlen(name()) + strlen(type())];
         sprintf(errstr,
                 "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
                 name(),
@@ -350,7 +461,7 @@ PyObject* IVec4Variable::getPythonObject(int i0, int n)
         return NULL;
     }
     if(n != 0){
-        char errstr[64 + strlen(name()) + strlen(type())];
+        char errstr[128 + strlen(name()) + strlen(type())];
         sprintf(errstr,
                 "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
                 name(),
@@ -381,7 +492,7 @@ UIVec2Variable::~UIVec2Variable()
 PyObject* UIVec2Variable::getPythonObject(int i0, int n)
 {
     if(i0 != 0){
-        char errstr[64 + strlen(name()) + strlen(type())];
+        char errstr[128 + strlen(name()) + strlen(type())];
         sprintf(errstr,
                 "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
                 name(),
@@ -390,7 +501,7 @@ PyObject* UIVec2Variable::getPythonObject(int i0, int n)
         return NULL;
     }
     if(n != 0){
-        char errstr[64 + strlen(name()) + strlen(type())];
+        char errstr[128 + strlen(name()) + strlen(type())];
         sprintf(errstr,
                 "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
                 name(),
@@ -418,7 +529,7 @@ UIVec3Variable::~UIVec3Variable()
 PyObject* UIVec3Variable::getPythonObject(int i0, int n)
 {
     if(i0 != 0){
-        char errstr[64 + strlen(name()) + strlen(type())];
+        char errstr[128 + strlen(name()) + strlen(type())];
         sprintf(errstr,
                 "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
                 name(),
@@ -427,7 +538,7 @@ PyObject* UIVec3Variable::getPythonObject(int i0, int n)
         return NULL;
     }
     if(n != 0){
-        char errstr[64 + strlen(name()) + strlen(type())];
+        char errstr[128 + strlen(name()) + strlen(type())];
         sprintf(errstr,
                 "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
                 name(),
@@ -456,7 +567,7 @@ UIVec4Variable::~UIVec4Variable()
 PyObject* UIVec4Variable::getPythonObject(int i0, int n)
 {
     if(i0 != 0){
-        char errstr[64 + strlen(name()) + strlen(type())];
+        char errstr[128 + strlen(name()) + strlen(type())];
         sprintf(errstr,
                 "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
                 name(),
@@ -465,7 +576,7 @@ PyObject* UIVec4Variable::getPythonObject(int i0, int n)
         return NULL;
     }
     if(n != 0){
-        char errstr[64 + strlen(name()) + strlen(type())];
+        char errstr[128 + strlen(name()) + strlen(type())];
         sprintf(errstr,
                 "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
                 name(),
