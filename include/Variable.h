@@ -296,6 +296,14 @@ public:
      * @return PyArrayObject Python object (PyArray_FLOAT subtype).
      */
     PyObject* getPythonObject(int i0=0, int n=0);
+
+    /** Set the variable from a Python object
+     * @param obj PyArrayObject object (PyArray_FLOAT subtype).
+     * @param i0 0, otherwise an error will be returned.
+     * @param n 0, otherwise an error will be returned.
+     * @return false if all gone right, true otherwise.
+     */
+    bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
 private:
     /// Variable value
     vec2 _value;
@@ -337,6 +345,14 @@ public:
      * @return PyArrayObject Python object (PyArray_FLOAT subtype).
      */
     PyObject* getPythonObject(int i0=0, int n=0);
+
+    /** Set the variable from a Python object
+     * @param obj PyArrayObject object (PyArray_FLOAT subtype).
+     * @param i0 0, otherwise an error will be returned.
+     * @param n 0, otherwise an error will be returned.
+     * @return false if all gone right, true otherwise.
+     */
+    bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
 private:
     /// Variable value
     vec3 _value;
@@ -378,6 +394,14 @@ public:
      * @return PyArrayObject Python object (PyArray_FLOAT subtype).
      */
     PyObject* getPythonObject(int i0=0, int n=0);
+
+    /** Set the variable from a Python object
+     * @param obj PyArrayObject object (PyArray_FLOAT subtype).
+     * @param i0 0, otherwise an error will be returned.
+     * @param n 0, otherwise an error will be returned.
+     * @return false if all gone right, true otherwise.
+     */
+    bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
 private:
     /// Variable value
     vec4 _value;
@@ -419,6 +443,14 @@ public:
      * @return PyArrayObject Python object (PyArray_INT subtype).
      */
     PyObject* getPythonObject(int i0=0, int n=0);
+
+    /** Set the variable from a Python object
+     * @param obj PyArrayObject object (PyArray_INT subtype).
+     * @param i0 0, otherwise an error will be returned.
+     * @param n 0, otherwise an error will be returned.
+     * @return false if all gone right, true otherwise.
+     */
+    bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
 private:
     /// Variable value
     ivec2 _value;
@@ -460,6 +492,14 @@ public:
      * @return PyArrayObject Python object (PyArray_INT subtype).
      */
     PyObject* getPythonObject(int i0=0, int n=0);
+
+    /** Set the variable from a Python object
+     * @param obj PyArrayObject object (PyArray_INT subtype).
+     * @param i0 0, otherwise an error will be returned.
+     * @param n 0, otherwise an error will be returned.
+     * @return false if all gone right, true otherwise.
+     */
+    bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
 private:
     /// Variable value
     ivec3 _value;
@@ -501,6 +541,14 @@ public:
      * @return PyArrayObject Python object (PyArray_INT subtype).
      */
     PyObject* getPythonObject(int i0=0, int n=0);
+
+    /** Set the variable from a Python object
+     * @param obj PyArrayObject object (PyArray_INT subtype).
+     * @param i0 0, otherwise an error will be returned.
+     * @param n 0, otherwise an error will be returned.
+     * @return false if all gone right, true otherwise.
+     */
+    bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
 private:
     /// Variable value
     ivec4 _value;
@@ -542,6 +590,14 @@ public:
      * @return PyArrayObject Python object (PyArray_UINT subtype).
      */
     PyObject* getPythonObject(int i0=0, int n=0);
+
+    /** Set the variable from a Python object
+     * @param obj PyArrayObject object (PyArray_UINT subtype).
+     * @param i0 0, otherwise an error will be returned.
+     * @param n 0, otherwise an error will be returned.
+     * @return false if all gone right, true otherwise.
+     */
+    bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
 private:
     /// Variable value
     uivec2 _value;
@@ -583,6 +639,14 @@ public:
      * @return PyArrayObject Python object (PyArray_UINT subtype).
      */
     PyObject* getPythonObject(int i0=0, int n=0);
+
+    /** Set the variable from a Python object
+     * @param obj PyArrayObject object (PyArray_UINT subtype).
+     * @param i0 0, otherwise an error will be returned.
+     * @param n 0, otherwise an error will be returned.
+     * @return false if all gone right, true otherwise.
+     */
+    bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
 private:
     /// Variable value
     uivec3 _value;
@@ -624,6 +688,14 @@ public:
      * @return PyArrayObject Python object (PyArray_UINT subtype).
      */
     PyObject* getPythonObject(int i0=0, int n=0);
+
+    /** Set the variable from a Python object
+     * @param obj PyArrayObject object (PyArray_UINT subtype).
+     * @param i0 0, otherwise an error will be returned.
+     * @param n 0, otherwise an error will be returned.
+     * @return false if all gone right, true otherwise.
+     */
+    bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
 private:
     /// Variable value
     uivec4 _value;

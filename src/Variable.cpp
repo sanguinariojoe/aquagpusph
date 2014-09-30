@@ -125,7 +125,6 @@ bool IntVariable::setFromPythonObject(PyObject* obj, int i0, int n)
         return true;
     }
 
-    int overflow = 0;
     int value = (int) PyLong_AsLong(obj);
     set(&value);
 
@@ -178,7 +177,6 @@ bool UIntVariable::setFromPythonObject(PyObject* obj, int i0, int n)
         return true;
     }
 
-    int overflow = 0;
     unsigned int value = (unsigned int) PyLong_AsLong(obj);
     set(&value);
 
@@ -249,7 +247,6 @@ bool FloatVariable::setFromPythonObject(PyObject* obj, int i0, int n)
         return true;
     }
 
-    int overflow = 0;
     float value = (float) PyFloat_AsDouble(obj);
     set(&value);
 
@@ -292,6 +289,62 @@ PyObject* Vec2Variable::getPythonObject(int i0, int n)
     return PyArray_SimpleNewFromData(1, dims, PyArray_FLOAT, vv->s);
 }
 
+bool Vec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
+{
+    if(i0 != 0){
+        char errstr[128 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+    if(n != 0){
+        char errstr[128 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    if(!PyObject_TypeCheck(obj, &PyArray_Type)){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" expected a PyArrayObject",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    PyArrayObject* array_obj = (PyArrayObject*) obj;
+    if(array_obj->nd != 1){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "Variable \"%s\" expected an one dimensional array",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+    npy_intp dim = array_obj->dimensions[0];
+    if(dim != 2){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "Variable \"%s\" expected a 2 components array",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    vec2 *vv = (vec2*)get();
+    void *data = array_obj->data;
+    memcpy(vv->s, data, sizeof(vec2));
+
+    return false;
+}
+
 Vec3Variable::Vec3Variable(const char *varname)
     : Variable(varname, "vec3")
 {
@@ -327,6 +380,62 @@ PyObject* Vec3Variable::getPythonObject(int i0, int n)
     vec3 *vv = (vec3*)get();
     npy_intp dims[] = {3};
     return PyArray_SimpleNewFromData(1, dims, PyArray_FLOAT, vv->s);
+}
+
+bool Vec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
+{
+    if(i0 != 0){
+        char errstr[128 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+    if(n != 0){
+        char errstr[128 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    if(!PyObject_TypeCheck(obj, &PyArray_Type)){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" expected a PyArrayObject",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    PyArrayObject* array_obj = (PyArrayObject*) obj;
+    if(array_obj->nd != 1){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "Variable \"%s\" expected an one dimensional array",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+    npy_intp dim = array_obj->dimensions[0];
+    if(dim != 3){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "Variable \"%s\" expected a 3 components array",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    vec3 *vv = (vec3*)get();
+    void *data = array_obj->data;
+    memcpy(vv->s, data, sizeof(vec3));
+
+    return false;
 }
 
 Vec4Variable::Vec4Variable(const char *varname)
@@ -367,6 +476,62 @@ PyObject* Vec4Variable::getPythonObject(int i0, int n)
     return PyArray_SimpleNewFromData(1, dims, PyArray_FLOAT, vv->s);
 }
 
+bool Vec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
+{
+    if(i0 != 0){
+        char errstr[128 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+    if(n != 0){
+        char errstr[128 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    if(!PyObject_TypeCheck(obj, &PyArray_Type)){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" expected a PyArrayObject",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    PyArrayObject* array_obj = (PyArrayObject*) obj;
+    if(array_obj->nd != 1){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "Variable \"%s\" expected an one dimensional array",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+    npy_intp dim = array_obj->dimensions[0];
+    if(dim != 4){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "Variable \"%s\" expected a 4 components array",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    vec4 *vv = (vec4*)get();
+    void *data = array_obj->data;
+    memcpy(vv->s, data, sizeof(vec4));
+
+    return false;
+}
+
 IVec2Variable::IVec2Variable(const char *varname)
     : Variable(varname, "ivec2")
 {
@@ -401,6 +566,62 @@ PyObject* IVec2Variable::getPythonObject(int i0, int n)
     ivec2 *vv = (ivec2*)get();
     npy_intp dims[] = {2};
     return PyArray_SimpleNewFromData(1, dims, PyArray_INT, vv->s);
+}
+
+bool IVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
+{
+    if(i0 != 0){
+        char errstr[128 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+    if(n != 0){
+        char errstr[128 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    if(!PyObject_TypeCheck(obj, &PyArray_Type)){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" expected a PyArrayObject",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    PyArrayObject* array_obj = (PyArrayObject*) obj;
+    if(array_obj->nd != 1){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "Variable \"%s\" expected an one dimensional array",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+    npy_intp dim = array_obj->dimensions[0];
+    if(dim != 2){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "Variable \"%s\" expected a 2 components array",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    ivec2 *vv = (ivec2*)get();
+    void *data = array_obj->data;
+    memcpy(vv->s, data, sizeof(ivec2));
+
+    return false;
 }
 
 IVec3Variable::IVec3Variable(const char *varname)
@@ -440,6 +661,62 @@ PyObject* IVec3Variable::getPythonObject(int i0, int n)
     return PyArray_SimpleNewFromData(1, dims, PyArray_INT, vv->s);
 }
 
+bool IVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
+{
+    if(i0 != 0){
+        char errstr[128 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+    if(n != 0){
+        char errstr[128 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    if(!PyObject_TypeCheck(obj, &PyArray_Type)){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" expected a PyArrayObject",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    PyArrayObject* array_obj = (PyArrayObject*) obj;
+    if(array_obj->nd != 1){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "Variable \"%s\" expected an one dimensional array",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+    npy_intp dim = array_obj->dimensions[0];
+    if(dim != 3){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "Variable \"%s\" expected a 3 components array",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    ivec3 *vv = (ivec3*)get();
+    void *data = array_obj->data;
+    memcpy(vv->s, data, sizeof(ivec3));
+
+    return false;
+}
+
 IVec4Variable::IVec4Variable(const char *varname)
     : Variable(varname, "ivec4")
 {
@@ -447,6 +724,10 @@ IVec4Variable::IVec4Variable(const char *varname)
     _value.y = 0;
     _value.z = 0;
     _value.w = 0;
+}
+
+IVec4Variable::~IVec4Variable()
+{
 }
 
 PyObject* IVec4Variable::getPythonObject(int i0, int n)
@@ -474,8 +755,60 @@ PyObject* IVec4Variable::getPythonObject(int i0, int n)
     return PyArray_SimpleNewFromData(1, dims, PyArray_INT, vv->s);
 }
 
-IVec4Variable::~IVec4Variable()
+bool IVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 {
+    if(i0 != 0){
+        char errstr[128 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+    if(n != 0){
+        char errstr[128 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    if(!PyObject_TypeCheck(obj, &PyArray_Type)){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" expected a PyArrayObject",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    PyArrayObject* array_obj = (PyArrayObject*) obj;
+    if(array_obj->nd != 1){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "Variable \"%s\" expected an one dimensional array",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+    npy_intp dim = array_obj->dimensions[0];
+    if(dim != 4){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "Variable \"%s\" expected a 4 components array",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    ivec4 *vv = (ivec4*)get();
+    void *data = array_obj->data;
+    memcpy(vv->s, data, sizeof(ivec4));
+
+    return false;
 }
 
 UIVec2Variable::UIVec2Variable(const char *varname)
@@ -512,6 +845,62 @@ PyObject* UIVec2Variable::getPythonObject(int i0, int n)
     uivec2 *vv = (uivec2*)get();
     npy_intp dims[] = {2};
     return PyArray_SimpleNewFromData(1, dims, PyArray_UINT, vv->s);
+}
+
+bool UIVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
+{
+    if(i0 != 0){
+        char errstr[128 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+    if(n != 0){
+        char errstr[128 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    if(!PyObject_TypeCheck(obj, &PyArray_Type)){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" expected a PyArrayObject",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    PyArrayObject* array_obj = (PyArrayObject*) obj;
+    if(array_obj->nd != 1){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "Variable \"%s\" expected an one dimensional array",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+    npy_intp dim = array_obj->dimensions[0];
+    if(dim != 2){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "Variable \"%s\" expected a 2 components array",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    uivec2 *vv = (uivec2*)get();
+    void *data = array_obj->data;
+    memcpy(vv->s, data, sizeof(uivec2));
+
+    return false;
 }
 
 UIVec3Variable::UIVec3Variable(const char *varname)
@@ -551,6 +940,62 @@ PyObject* UIVec3Variable::getPythonObject(int i0, int n)
     return PyArray_SimpleNewFromData(1, dims, PyArray_UINT, vv->s);
 }
 
+bool UIVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
+{
+    if(i0 != 0){
+        char errstr[128 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+    if(n != 0){
+        char errstr[128 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    if(!PyObject_TypeCheck(obj, &PyArray_Type)){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" expected a PyArrayObject",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    PyArrayObject* array_obj = (PyArrayObject*) obj;
+    if(array_obj->nd != 1){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "Variable \"%s\" expected an one dimensional array",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+    npy_intp dim = array_obj->dimensions[0];
+    if(dim != 3){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "Variable \"%s\" expected a 3 components array",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    uivec3 *vv = (uivec3*)get();
+    void *data = array_obj->data;
+    memcpy(vv->s, data, sizeof(uivec3));
+
+    return false;
+}
+
 UIVec4Variable::UIVec4Variable(const char *varname)
     : Variable(varname, "uivec4")
 {
@@ -587,6 +1032,62 @@ PyObject* UIVec4Variable::getPythonObject(int i0, int n)
     uivec4 *vv = (uivec4*)get();
     npy_intp dims[] = {4};
     return PyArray_SimpleNewFromData(1, dims, PyArray_UINT, vv->s);
+}
+
+bool UIVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
+{
+    if(i0 != 0){
+        char errstr[128 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+    if(n != 0){
+        char errstr[128 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    if(!PyObject_TypeCheck(obj, &PyArray_Type)){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" expected a PyArrayObject",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    PyArrayObject* array_obj = (PyArrayObject*) obj;
+    if(array_obj->nd != 1){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "Variable \"%s\" expected an one dimensional array",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+    npy_intp dim = array_obj->dimensions[0];
+    if(dim != 4){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "Variable \"%s\" expected a 4 components array",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    uivec4 *vv = (uivec4*)get();
+    void *data = array_obj->data;
+    memcpy(vv->s, data, sizeof(uivec4));
+
+    return false;
 }
 
 ArrayVariable::ArrayVariable(const char *varname, const char *vartype)
