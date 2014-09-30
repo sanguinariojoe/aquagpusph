@@ -70,8 +70,27 @@ IntVariable::~IntVariable()
 {
 }
 
-PyObject* IntVariable::getPythonObject()
+PyObject* IntVariable::getPythonObject(int i0, int n)
 {
+    if(i0 != 0){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
+    if(n != 0){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
+
     long val = *(int*)get();
     return PyLong_FromLong(val);
 }
@@ -86,7 +105,7 @@ UIntVariable::~UIntVariable()
 {
 }
 
-PyObject* UIntVariable::getPythonObject()
+PyObject* UIntVariable::getPythonObject(int i0, int n)
 {
     unsigned long val = *(unsigned int*)get();
     return PyLong_FromUnsignedLong(val);
@@ -102,8 +121,26 @@ FloatVariable::~FloatVariable()
 {
 }
 
-PyObject* FloatVariable::getPythonObject()
+PyObject* FloatVariable::getPythonObject(int i0, int n)
 {
+    if(i0 != 0){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
+    if(n != 0){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
     double val = *(float*)get();
     return PyFloat_FromDouble(val);
 }
@@ -119,8 +156,26 @@ Vec2Variable::~Vec2Variable()
 {
 }
 
-PyObject* Vec2Variable::getPythonObject()
+PyObject* Vec2Variable::getPythonObject(int i0, int n)
 {
+    if(i0 != 0){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
+    if(n != 0){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
     vec2 *vv = (vec2*)get();
     npy_intp dims[] = {2};
     return PyArray_SimpleNewFromData(1, dims, PyArray_FLOAT, vv->s);
@@ -138,8 +193,26 @@ Vec3Variable::~Vec3Variable()
 {
 }
 
-PyObject* Vec3Variable::getPythonObject()
+PyObject* Vec3Variable::getPythonObject(int i0, int n)
 {
+    if(i0 != 0){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
+    if(n != 0){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
     vec3 *vv = (vec3*)get();
     npy_intp dims[] = {3};
     return PyArray_SimpleNewFromData(1, dims, PyArray_FLOAT, vv->s);
@@ -158,8 +231,26 @@ Vec4Variable::~Vec4Variable()
 {
 }
 
-PyObject* Vec4Variable::getPythonObject()
+PyObject* Vec4Variable::getPythonObject(int i0, int n)
 {
+    if(i0 != 0){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
+    if(n != 0){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
     vec4 *vv = (vec4*)get();
     npy_intp dims[] = {4};
     return PyArray_SimpleNewFromData(1, dims, PyArray_FLOAT, vv->s);
@@ -176,8 +267,26 @@ IVec2Variable::~IVec2Variable()
 {
 }
 
-PyObject* IVec2Variable::getPythonObject()
+PyObject* IVec2Variable::getPythonObject(int i0, int n)
 {
+    if(i0 != 0){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
+    if(n != 0){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
     ivec2 *vv = (ivec2*)get();
     npy_intp dims[] = {2};
     return PyArray_SimpleNewFromData(1, dims, PyArray_INT, vv->s);
@@ -195,8 +304,26 @@ IVec3Variable::~IVec3Variable()
 {
 }
 
-PyObject* IVec3Variable::getPythonObject()
+PyObject* IVec3Variable::getPythonObject(int i0, int n)
 {
+    if(i0 != 0){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
+    if(n != 0){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
     ivec3 *vv = (ivec3*)get();
     npy_intp dims[] = {3};
     return PyArray_SimpleNewFromData(1, dims, PyArray_INT, vv->s);
@@ -211,8 +338,26 @@ IVec4Variable::IVec4Variable(const char *varname)
     _value.w = 0;
 }
 
-PyObject* IVec4Variable::getPythonObject()
+PyObject* IVec4Variable::getPythonObject(int i0, int n)
 {
+    if(i0 != 0){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
+    if(n != 0){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
     ivec4 *vv = (ivec4*)get();
     npy_intp dims[] = {4};
     return PyArray_SimpleNewFromData(1, dims, PyArray_INT, vv->s);
@@ -233,8 +378,26 @@ UIVec2Variable::~UIVec2Variable()
 {
 }
 
-PyObject* UIVec2Variable::getPythonObject()
+PyObject* UIVec2Variable::getPythonObject(int i0, int n)
 {
+    if(i0 != 0){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
+    if(n != 0){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
     uivec2 *vv = (uivec2*)get();
     npy_intp dims[] = {2};
     return PyArray_SimpleNewFromData(1, dims, PyArray_UINT, vv->s);
@@ -252,8 +415,26 @@ UIVec3Variable::~UIVec3Variable()
 {
 }
 
-PyObject* UIVec3Variable::getPythonObject()
+PyObject* UIVec3Variable::getPythonObject(int i0, int n)
 {
+    if(i0 != 0){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
+    if(n != 0){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
     uivec3 *vv = (uivec3*)get();
     npy_intp dims[] = {3};
     return PyArray_SimpleNewFromData(1, dims, PyArray_UINT, vv->s);
@@ -272,8 +453,26 @@ UIVec4Variable::~UIVec4Variable()
 {
 }
 
-PyObject* UIVec4Variable::getPythonObject()
+PyObject* UIVec4Variable::getPythonObject(int i0, int n)
 {
+    if(i0 != 0){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
+    if(n != 0){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
+                name(),
+                type());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
     uivec4 *vv = (uivec4*)get();
     npy_intp dims[] = {4};
     return PyArray_SimpleNewFromData(1, dims, PyArray_UINT, vv->s);
@@ -326,8 +525,24 @@ size_t ArrayVariable::size() const
     return memsize;
 }
 
-PyObject* ArrayVariable::getPythonObject()
+PyObject* ArrayVariable::getPythonObject(int i0, int n)
 {
+    if(i0 < 0){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "Variable \"%s\" cannot handle \"offset\" lower than 0",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
+    if(n < 0){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "Variable \"%s\" cannot handle \"n\" lower than 0",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
 	CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
 	Variables *vars = C->variables();
 	cl_int err_code;
@@ -337,7 +552,35 @@ PyObject* ArrayVariable::getPythonObject()
     unsigned components = vars->typeToN(type());
     size_t typesize = vars->typeToBytes(type());
     size_t memsize = size();
-    size_t len = memsize / typesize;
+    size_t offset = i0;
+    if(offset * typesize > memsize){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "Failure reading variable \"%s\" out of bounds",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
+    size_t len = memsize / typesize - offset;
+    if(n != 0){
+        len = n;
+    }
+    if(len == 0){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "0 bytes asked to be read from variable \"%s\"",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
+    if((offset + len) * typesize > memsize){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "Failure reading variable \"%s\" out of bounds",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return NULL;
+    }
     npy_intp dims[] = {len, components};
     // Get the appropiate type
     int pytype = PyArray_FLOAT;
@@ -363,12 +606,12 @@ PyObject* ArrayVariable::getPythonObject()
         return NULL;
     }
     // Reallocate memory
-    void *data = malloc(memsize);
+    void *data = malloc(len * typesize);
     if(!data){
         char errstr[128 + strlen(name())];
         sprintf(errstr,
                 "Failure allocating %lu bytes for variable \"%s\"",
-                memsize,
+                len * typesize,
                 name());
         PyErr_SetString(PyExc_ValueError, errstr);
         return NULL;
@@ -378,8 +621,8 @@ PyObject* ArrayVariable::getPythonObject()
     err_code = clEnqueueReadBuffer(C->command_queue(),
                                    _value,
                                    CL_TRUE,
-                                   0,
-                                   memsize,
+                                   offset * typesize,
+                                   len * typesize,
                                    data,
                                    0,
                                    NULL,

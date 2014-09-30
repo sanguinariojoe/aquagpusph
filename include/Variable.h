@@ -89,9 +89,11 @@ public:
     virtual void set(void* ptr)=0;
 
     /** Get a Python interpretation of the variable
+     * @param i0 First component to be read, just for array variables.
+     * @param n Number of component to be read, just for array variables.
      * @return Python object, NULL for this class.
      */
-    virtual PyObject* getPythonObject(){return NULL;}
+    virtual PyObject* getPythonObject(int i0=0, int n=0){return NULL;}
 private:
     /// Name of the variable
     char* _name;
@@ -131,9 +133,11 @@ public:
     void set(void* ptr){_value = *(int*)ptr;}
 
     /** Get a PyLongObject interpretation of the variable
+     * @param i0 0, otherwise an error will be returned.
+     * @param n 0, otherwise an error will be returned.
      * @return PyLongObject Python object.
      */
-    PyObject* getPythonObject();
+    PyObject* getPythonObject(int i0=0, int n=0);
 private:
     /// Variable value
     int _value;
@@ -170,9 +174,11 @@ public:
     void set(void* ptr){_value = *(unsigned int*)ptr;}
 
     /** Get a PyLongObject interpretation of the variable
+     * @param i0 0, otherwise an error will be returned.
+     * @param n 0, otherwise an error will be returned.
      * @return PyLongObject Python object.
      */
-    PyObject* getPythonObject();
+    PyObject* getPythonObject(int i0=0, int n=0);
 private:
     /// Variable value
     unsigned int _value;
@@ -209,9 +215,11 @@ public:
     void set(void* ptr){_value = *(float*)ptr;}
 
     /** Get a PyFloatObject interpretation of the variable
+     * @param i0 0, otherwise an error will be returned.
+     * @param n 0, otherwise an error will be returned.
      * @return PyFloatObject Python object.
      */
-    PyObject* getPythonObject();
+    PyObject* getPythonObject(int i0=0, int n=0);
 private:
     /// Variable value
     float _value;
@@ -248,9 +256,11 @@ public:
     void set(void* ptr){memcpy(&_value, ptr, sizeof(vec2));}
 
     /** Get a PyArrayObject interpretation of the variable
+     * @param i0 0, otherwise an error will be returned.
+     * @param n 0, otherwise an error will be returned.
      * @return PyArrayObject Python object (PyArray_FLOAT subtype).
      */
-    PyObject* getPythonObject();
+    PyObject* getPythonObject(int i0=0, int n=0);
 private:
     /// Variable value
     vec2 _value;
@@ -287,9 +297,11 @@ public:
     void set(void* ptr){memcpy(&_value, ptr, sizeof(vec3));}
 
     /** Get a PyArrayObject interpretation of the variable
+     * @param i0 0, otherwise an error will be returned.
+     * @param n 0, otherwise an error will be returned.
      * @return PyArrayObject Python object (PyArray_FLOAT subtype).
      */
-    PyObject* getPythonObject();
+    PyObject* getPythonObject(int i0=0, int n=0);
 private:
     /// Variable value
     vec3 _value;
@@ -326,9 +338,11 @@ public:
     void set(void* ptr){memcpy(&_value, ptr, sizeof(vec4));}
 
     /** Get a PyArrayObject interpretation of the variable
+     * @param i0 0, otherwise an error will be returned.
+     * @param n 0, otherwise an error will be returned.
      * @return PyArrayObject Python object (PyArray_FLOAT subtype).
      */
-    PyObject* getPythonObject();
+    PyObject* getPythonObject(int i0=0, int n=0);
 private:
     /// Variable value
     vec4 _value;
@@ -365,9 +379,11 @@ public:
     void set(void* ptr){memcpy(&_value, ptr, sizeof(ivec2));}
 
     /** Get a PyArrayObject interpretation of the variable
+     * @param i0 0, otherwise an error will be returned.
+     * @param n 0, otherwise an error will be returned.
      * @return PyArrayObject Python object (PyArray_INT subtype).
      */
-    PyObject* getPythonObject();
+    PyObject* getPythonObject(int i0=0, int n=0);
 private:
     /// Variable value
     ivec2 _value;
@@ -404,9 +420,11 @@ public:
     void set(void* ptr){memcpy(&_value, ptr, sizeof(ivec3));}
 
     /** Get a PyArrayObject interpretation of the variable
+     * @param i0 0, otherwise an error will be returned.
+     * @param n 0, otherwise an error will be returned.
      * @return PyArrayObject Python object (PyArray_INT subtype).
      */
-    PyObject* getPythonObject();
+    PyObject* getPythonObject(int i0=0, int n=0);
 private:
     /// Variable value
     ivec3 _value;
@@ -443,9 +461,11 @@ public:
     void set(void* ptr){memcpy(&_value, ptr, sizeof(ivec4));}
 
     /** Get a PyArrayObject interpretation of the variable
+     * @param i0 0, otherwise an error will be returned.
+     * @param n 0, otherwise an error will be returned.
      * @return PyArrayObject Python object (PyArray_INT subtype).
      */
-    PyObject* getPythonObject();
+    PyObject* getPythonObject(int i0=0, int n=0);
 private:
     /// Variable value
     ivec4 _value;
@@ -482,9 +502,11 @@ public:
     void set(void* ptr){memcpy(&_value, ptr, sizeof(uivec2));}
 
     /** Get a PyArrayObject interpretation of the variable
+     * @param i0 0, otherwise an error will be returned.
+     * @param n 0, otherwise an error will be returned.
      * @return PyArrayObject Python object (PyArray_UINT subtype).
      */
-    PyObject* getPythonObject();
+    PyObject* getPythonObject(int i0=0, int n=0);
 private:
     /// Variable value
     uivec2 _value;
@@ -521,9 +543,11 @@ public:
     void set(void* ptr){memcpy(&_value, ptr, sizeof(uivec3));}
 
     /** Get a PyArrayObject interpretation of the variable
+     * @param i0 0, otherwise an error will be returned.
+     * @param n 0, otherwise an error will be returned.
      * @return PyArrayObject Python object (PyArray_UINT subtype).
      */
-    PyObject* getPythonObject();
+    PyObject* getPythonObject(int i0=0, int n=0);
 private:
     /// Variable value
     uivec3 _value;
@@ -560,9 +584,11 @@ public:
     void set(void* ptr){memcpy(&_value, ptr, sizeof(uivec4));}
 
     /** Get a PyArrayObject interpretation of the variable
+     * @param i0 0, otherwise an error will be returned.
+     * @param n 0, otherwise an error will be returned.
      * @return PyArrayObject Python object (PyArray_UINT subtype).
      */
-    PyObject* getPythonObject();
+    PyObject* getPythonObject(int i0=0, int n=0);
 private:
     /// Variable value
     uivec4 _value;
@@ -605,9 +631,12 @@ public:
     void set(void* ptr){_value = *(cl_mem*)ptr;}
 
     /** Get a PyArrayObject interpretation of the variable
-     * @return PyArrayObject Python object.
+     * @param i0 First component to be read.
+     * @param n Number of component to be read, 0 to read all available memory,
+     * i.e. All the array after i0.
+     * @return PyArrayObject Python object. NULL if the memory cannot be read.
      */
-    PyObject* getPythonObject();
+    PyObject* getPythonObject(int i0=0, int n=0);
 private:
     /// Check for abandoned python objects to destroy them.
     void cleanMem();

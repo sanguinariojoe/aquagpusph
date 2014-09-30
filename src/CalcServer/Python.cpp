@@ -43,13 +43,20 @@
  * @param args Positional arguments.
  * @return Computed value, NULL if errors have been detected.
  */
-static PyObject* get(PyObject *self, PyObject *args)
+static PyObject* get(PyObject *self, PyObject *args, PyObject *keywds)
 {
     Aqua::CalcServer::CalcServer *C = Aqua::CalcServer::CalcServer::singleton();
     Aqua::InputOutput::Variables *V = C->variables();
     const char* varname;
 
-    if(!PyArg_ParseTuple(args, "s", &varname)) {
+    int voltage;
+    int i0 = 0;
+    int n = 0;
+
+    static char *kwlist[] = {"varname", "offset", "n", NULL};
+
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "s|ii", kwlist,
+                                     &varname, &i0, &n)){
         return NULL;
     }
 
@@ -61,22 +68,13 @@ static PyObject* get(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    PyObject *result = var->getPythonObject();
-    if(!result){
-        char errstr[128 + strlen(varname) + strlen(var->type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", which is not handled by Python",
-                varname,
-                var->type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-    }
-
+    PyObject *result = var->getPythonObject(i0, n);
     return result;
 }
 
 /// List of methods declared in the module
 static PyMethodDef methods[] = {
-    {"get", get, METH_VARARGS, "Get a variable"},
+    {"get", (PyCFunction)get, METH_VARARGS | METH_KEYWORDS, "Get a variable"},
     {NULL, NULL, 0, NULL}
 };
 
