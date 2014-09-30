@@ -744,6 +744,14 @@ public:
      * @return PyArrayObject Python object. NULL if the memory cannot be read.
      */
     PyObject* getPythonObject(int i0=0, int n=0);
+
+    /** Set the variable from a Python object
+     * @param obj PyArrayObject object.
+     * @param i0 0, otherwise an error will be returned.
+     * @param n 0, otherwise an error will be returned.
+     * @return false if all gone right, true otherwise.
+     */
+    bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
 private:
     /// Check for abandoned python objects to destroy them.
     void cleanMem();

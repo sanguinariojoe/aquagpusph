@@ -1262,6 +1262,126 @@ PyObject* ArrayVariable::getPythonObject(int i0, int n)
     return obj;
 }
 
+bool ArrayVariable::setFromPythonObject(PyObject* obj, int i0, int n)
+{
+    if(i0 < 0){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "Variable \"%s\" cannot handle \"offset\" lower than 0",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+    if(n < 0){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "Variable \"%s\" cannot handle \"n\" lower than 0",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+	CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
+	Variables *vars = C->variables();
+	cl_int err_code;
+    // Clear outdated references
+    cleanMem();
+    // Get the dimensions
+    unsigned components = vars->typeToN(type());
+    size_t typesize = vars->typeToBytes(type());
+    size_t memsize = size();
+    size_t offset = i0;
+    if(offset * typesize > memsize){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "Failure writing variable \"%s\" out of bounds",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+    size_t len = memsize / typesize - offset;
+    if(n != 0){
+        len = n;
+    }
+    if(len == 0){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "0 bytes asked to be written to variable \"%s\"",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+    if((offset + len) * typesize > memsize){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "Failure writing variable \"%s\" out of bounds",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    if(!PyObject_TypeCheck(obj, &PyArray_Type)){
+        char errstr[64 + strlen(name()) + strlen(type())];
+        sprintf(errstr,
+                "Variable \"%s\" expected a PyArrayObject",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    PyArrayObject* array_obj = (PyArrayObject*) obj;
+    if(array_obj->nd != 2){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "Variable \"%s\" expected an one dimensional array",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+    npy_intp *dims = array_obj->dimensions;
+    if((size_t)dims[0] != len){
+        char errstr[128 + strlen(name())];
+        sprintf(errstr,
+                "%lu elements have been asked to be written in variable \"%s\" but %lu have been provided",
+                len,
+                name(),
+                (size_t)dims[0]);
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+    if((size_t)dims[1] != components){
+        char errstr[128 + strlen(name())];
+        sprintf(errstr,
+                "%lu components per elements are expected by variable \"%s\" but %lu have been provided",
+                components,
+                name(),
+                (size_t)dims[1]);
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    void *data = array_obj->data;
+
+    err_code =  clEnqueueWriteBuffer(C->command_queue(),
+                                     _value,
+                                     CL_TRUE,
+                                     offset * typesize,
+                                     len * typesize,
+                                     data,
+                                     0,
+                                     NULL,
+                                     NULL);
+    if(err_code != CL_SUCCESS){
+        char errstr[64 + strlen(name())];
+        sprintf(errstr,
+                "Failure uploading variable \"%s\"",
+                name());
+        PyErr_SetString(PyExc_ValueError, errstr);
+        return true;
+    }
+
+    return false;
+}
+
 void ArrayVariable::cleanMem()
 {
     int i;  // unsigned cannot be used here
