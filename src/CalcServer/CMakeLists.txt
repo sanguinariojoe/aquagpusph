@@ -46,6 +46,7 @@ SET(Server_CPP_SRCS
 	RadixSort.cpp
 	Reduction.cpp
 	Set.cpp
+	SetScalar.cpp
 	Tool.cpp
 	UnSort.cpp
 )

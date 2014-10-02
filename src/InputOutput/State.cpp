@@ -518,6 +518,20 @@ bool State::parseTools(DOMElement *root)
                     tool->set(atts[k], xmlAttribute(s_elem, atts[k]));
                 }
             }
+            else if(!strcmp(xmlAttribute(s_elem, "type"), "set_scalar")){
+                const char *atts[2] = {"in", "value"};
+                for(unsigned int k = 0; k < 2; k++){
+                    if(!xmlHasAttribute(s_elem, atts[k])){
+                        sprintf(msg,
+                                "Tool \"%s\" is of type \"set\", but \"%s\" is not defined.\n",
+                                tool->get("name"),
+                                atts[k]);
+                        S->addMessageF(3, msg);
+                        return true;
+                    }
+                    tool->set(atts[k], xmlAttribute(s_elem, atts[k]));
+                }
+            }
             else if(!strcmp(xmlAttribute(s_elem, "type"), "reduction")){
                 const char *atts[3] = {"in", "out", "null"};
                 for(unsigned int k = 0; k < 3; k++){
@@ -557,6 +571,7 @@ bool State::parseTools(DOMElement *root)
                 S->addMessage(0, "\t\tcopy\n");
                 S->addMessage(0, "\t\tpython\n");
                 S->addMessage(0, "\t\tset\n");
+                S->addMessage(0, "\t\tset_scalar\n");
                 S->addMessage(0, "\t\treduction\n");
                 S->addMessage(0, "\t\tlink-list\n");
                 return true;

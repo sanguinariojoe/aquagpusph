@@ -1567,7 +1567,10 @@ bool Variables::isSameType(const char* type_a,
     return true;
 }
 
-bool Variables::solve(const char *type_name, const char *value, void *data)
+bool Variables::solve(const char *type_name,
+                      const char *value,
+                      void *data,
+                      const char* name)
 {
     char msg[256];
     ScreenManager *S = ScreenManager::singleton();
@@ -1580,7 +1583,6 @@ bool Variables::solve(const char *type_name, const char *value, void *data)
         return 0;
     }
 
-    const char* name = "NULL";
     char *type = new char[strlen(type_name) + 1];
     strcpy(type, type_name);
     if(strchr(type, '*'))

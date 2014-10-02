@@ -24,6 +24,7 @@ Authors:
         <Variable name="hfac" type="float" value="3.0" save="false" />
         <Variable name="h" type="float" value="hfac * dr" save="false" />
         <Variable name="cs" type="float" value="30.0" save="false" />
+        <Variable name="courant" type="float" value="0.25" save="false" />
     </Variables>
 
     <SPH>

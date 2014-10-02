@@ -23,6 +23,7 @@
          -->
         <Variable name="g" type="vec" value="0.0, 0.0, 0.0, 0.0" save="false" />
         <Variable name="cs" type="float" value="15.0" save="false" />
+        <Variable name="courant" type="float" value="0.25" save="false" />
         <Variable name="rho_min" type="float" value="0.0" save="false" />
         <Variable name="rho_max" type="float" value="2.25*10^10" save="false" />
         <Variable name="pos_min" type="vec" save="false" />
@@ -97,5 +98,10 @@
 
         <!-- Leap-Frog time integration corrector stage -->
         <Tool action="add" type="kernel" name="Corrector" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Corrector.cl"/>
+
+        <!-- Time step computation -->
+        <Tool action="add" type="set_scalar" name="Fixed time step" in="dt" value="courant * h / cs"/>
+
+        <Tool action="add" type="set_scalar" name="next time step" in="t" value="t + dt"/>
     </Tools>
 </sphInput>

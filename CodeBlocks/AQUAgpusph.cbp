@@ -89,6 +89,7 @@
 		<Unit filename="../include/CalcServer/RadixSort.h" />
 		<Unit filename="../include/CalcServer/Reduction.h" />
 		<Unit filename="../include/CalcServer/Set.h" />
+		<Unit filename="../include/CalcServer/SetScalar.h" />
 		<Unit filename="../include/CalcServer/Tool.h" />
 		<Unit filename="../include/CalcServer/UnSort.h" />
 		<Unit filename="../include/FileManager.h" />
@@ -116,6 +117,7 @@
 		<Unit filename="../src/CalcServer/RadixSort.cpp" />
 		<Unit filename="../src/CalcServer/Reduction.cpp" />
 		<Unit filename="../src/CalcServer/Set.cpp" />
+		<Unit filename="../src/CalcServer/SetScalar.cpp" />
 		<Unit filename="../src/CalcServer/Tool.cpp" />
 		<Unit filename="../src/CalcServer/UnSort.cpp" />
 		<Unit filename="../src/FileManager.cpp" />

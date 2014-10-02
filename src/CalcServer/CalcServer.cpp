@@ -39,6 +39,7 @@
 #include <CalcServer/Python.h>
 #include <CalcServer/Reduction.h>
 #include <CalcServer/Set.h>
+#include <CalcServer/SetScalar.h>
 #include <CalcServer/UnSort.h>
 
 namespace Aqua{ namespace CalcServer{
@@ -168,6 +169,12 @@ CalcServer::CalcServer()
             Set *tool = new Set(P->tools.at(i)->get("name"),
                                 P->tools.at(i)->get("in"),
                                 P->tools.at(i)->get("value"));
+            _tools.push_back(tool);
+        }
+        else if(!strcmp(P->tools.at(i)->get("type"), "set_scalar")){
+            SetScalar *tool = new SetScalar(P->tools.at(i)->get("name"),
+                                            P->tools.at(i)->get("in"),
+                                            P->tools.at(i)->get("value"));
             _tools.push_back(tool);
         }
         else if(!strcmp(P->tools.at(i)->get("type"), "reduction")){

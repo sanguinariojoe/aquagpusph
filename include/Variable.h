@@ -860,10 +860,14 @@ public:
      * @param type_name Type of the output desired value.
      * @param value Expression to evaluate.
      * @param data Allocated memory where the result should be stored.
+     * @param name Variable name to register in the tokenizer.
      * @return false if all gone right, true otherwise.
      * @note typeToBytes(type) bytes should be allocated in data.
      */
-    bool solve(const char *type_name, const char *value, void *data);
+    bool solve(const char *type_name,
+               const char *value,
+               void *data,
+               const char* name="NULL");
 private:
     /** Register a scalar variable
      * @param name Name of the variable.
