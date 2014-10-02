@@ -114,7 +114,7 @@ float Tokenizer::solve(const char* eq, bool *error)
     f = evaluator_create((char*)eq);
     if(!f){
         S->addMessageF(3, "Invalid math expression to evaluate:\n");
-        sprintf(msg, "\t%s\n", eq);
+        sprintf(msg, "\t\"%s\"\n", eq);
         S->addMessage(0, msg);
         if(error)
             *error = true;

@@ -5,7 +5,7 @@
         | NAME        | TYPE          | LEN     | DESCRIPTION
         | t           | float         | 1       | Simulation time
         | dt          | float         | 1       | Time step
-        | step        | unsigned int  | 1       | Step
+        | iter        | unsigned int  | 1       | Step
         | n           | unsigned int  | 1       | Number of particles
         | n_sensors   | unsigned int  | 1       | Number of sensors
         | N           | unsigned int  | 1       | n + n_sensors
@@ -107,6 +107,9 @@
         <Tool action="add" type="reduction" name="Minimum time step" in="dt_var" out="dt" null="INFINITY">
             a = (a &lt; b) ? a : b;
         </Tool>
-        <Tool action="add" type="set_scalar" name="next time step" in="t" value="t + dt"/>
+
+        <!-- Next time step -->
+        <Tool action="add" type="set_scalar" name="t = t + dt" in="t" value="t + dt"/>
+        <Tool action="add" type="set_scalar" name="iter += 1" in="iter" value="iter + 1"/>
     </Tools>
 </sphInput>

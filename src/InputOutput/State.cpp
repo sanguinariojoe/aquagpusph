@@ -649,7 +649,7 @@ bool State::parseTiming(DOMElement *root)
             if(!strcmp(name, "Start") || !strcmp(name, "SimulationStart")){
                 P->time_opts.t0 = atof(xmlAttribute(s_elem, "value"));
                 P->time_opts.dt0 = atof(xmlAttribute(s_elem, "dt"));
-                P->time_opts.step0 = atoi(xmlAttribute(s_elem, "step"));
+                P->time_opts.step0 = atoi(xmlAttribute(s_elem, "iter"));
                 P->time_opts.frame0 = atoi(xmlAttribute(s_elem, "frame"));
             }
 
@@ -2024,7 +2024,7 @@ bool State::writeTiming(xercesc::DOMDocument* doc,
     sprintf(att, "%g", T->dt());
     s_elem->setAttribute(xmlS("dt"), xmlS(att));
     sprintf(att, "%u", T->step());
-    s_elem->setAttribute(xmlS("step"), xmlS(att));
+    s_elem->setAttribute(xmlS("iter"), xmlS(att));
     sprintf(att, "%u", T->frame());
     s_elem->setAttribute(xmlS("frame"), xmlS(att));
     elem->appendChild(s_elem);

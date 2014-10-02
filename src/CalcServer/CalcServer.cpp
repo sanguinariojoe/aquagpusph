@@ -89,7 +89,7 @@ CalcServer::CalcServer()
     if(_vars->registerVariable("dt", "float", len, val))
         exit(EXIT_FAILURE);
     sprintf(val, "%u", 0);
-    if(_vars->registerVariable("step", "unsigned int", len, val))
+    if(_vars->registerVariable("iter", "unsigned int", len, val))
         exit(EXIT_FAILURE);
     sprintf(val, "%u", n);
     if(_vars->registerVariable("n", "unsigned int", len, val))
@@ -252,9 +252,6 @@ bool CalcServer::update()
                 return true;
             }
         }
-
-		/// @todo let the tool to continue computing
-		return false;
 	}
 	return false;
 }

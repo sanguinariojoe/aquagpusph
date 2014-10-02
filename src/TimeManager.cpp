@@ -58,16 +58,16 @@ TimeManager::TimeManager()
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
 
     Variables* vars = C->variables();
-    if(strcmp(vars->get("step")->type(), "unsigned int")){
+    if(strcmp(vars->get("iter")->type(), "unsigned int")){
         sprintf(msg,
                 "Expected a variable \"%s\" of type \"%s\", but \"%s\" one was found\n",
-                "step",
+                "iter",
                 "unsigned int",
-                vars->get("step")->type());
+                vars->get("iter")->type());
         S->addMessageF(3, msg);
         exit(EXIT_FAILURE);
     }
-    _step = (unsigned int *)vars->get("step")->get();
+    _step = (unsigned int *)vars->get("iter")->get();
 
     if(strcmp(vars->get("t")->type(), "float")){
         sprintf(msg,
