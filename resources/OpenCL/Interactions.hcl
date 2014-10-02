@@ -66,16 +66,16 @@ if(q < support)
         lapufac = __CLEARY__ * vdr / (r2 * rho_i * rho_j);
     }
     //---------------------------------------------------------------
-    //     Momentum equation
+    //     Momentum equation (grad(p)/rho and lap(u)/rho)
     //---------------------------------------------------------------
     _GRADP_ += r * fab * prfac;
-    _LAPU_ += r * lapufac * lapufac;
+    _LAPU_ += r * fab * lapufac;
     //---------------------------------------------------------------
-    //     Conserving mass equation
+    //     Conserving mass equation (rho*div(u))
     //---------------------------------------------------------------
     _DIVU_ += vdr * fab;
     //---------------------------------------------------------------
-    //     Density diffusion term
+    //     Density diffusion term (lap(p))
     //---------------------------------------------------------------
     const float drfac = (p_j - p_i) - refd_i * dot(g, r);
     _LAPP_ += drfac * fab / rho_j;

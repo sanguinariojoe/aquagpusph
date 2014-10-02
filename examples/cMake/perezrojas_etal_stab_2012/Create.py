@@ -229,7 +229,7 @@ for i in range(0, N):
     else:
         dens  = refd;
         press = prb*pow(dens / refd, gamma - 1.0 );
-    imove = -1
+    imove = -3
     mass  = (dr / DeLeffeDistFactor)**2.0
     string = "{} {} {} 0.0,{} {} {} 0.0,{} {} {} 0.0,{} {} {} 0.0,{},{},{},{}\n".format(
         pos[0], pos[1], pos[2],

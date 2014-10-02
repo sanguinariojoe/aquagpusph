@@ -42,7 +42,7 @@ if(imove[j] != -3){
 // ------------------------------------------------------------------
 // face properties
 // ------------------------------------------------------------------
-vec n_j = normal[j];
+const vec n_j = normal[j];  // Assumed outwarding oriented
 const float rho_j = rho[j];
 if(rho_j <= 0.01f * refd_i){
 	j++;
@@ -55,12 +55,6 @@ const float q = fast_length(r) / h;
 if(q >= support){
     j++;
     continue;
-}
-// Test for swap normal (which must be internally oriented)
-float r0 = -dot(r, n_j);
-if(r0 < 0.f){
-	n_j = -n_j;
-	r0 = -r0;
 }
 
 // ------------------------------------------------------------------
@@ -84,18 +78,18 @@ if(r0 < 0.f){
     const float r2 = (q * q + 0.01f) * h * h;
     const vec lapufac = __CLEARY__ * vdr / (r2 * rho_i * rho_j) * n_j;
     //---------------------------------------------------------------
-    //     Momentum equation
+    //     Momentum equation (grad(p)/rho and lap(u)/rho)
     //---------------------------------------------------------------
     _GRADP_ += prfac * wab;
-    _LAPU_ -= lapufac * wab;
+    _LAPU_ += lapufac * wab;
     //---------------------------------------------------------------
-    //     Continuity equation
+    //     Continuity equation (rho*div(u))
     //---------------------------------------------------------------
     _DIVU_ += vdr * wab;
     //---------------------------------------------------------------
-    //     Density diffusion term
+    //     Density diffusion term (lap(p))
     //---------------------------------------------------------------
     const float ndr = - rho_j * dot(r, n_j) / r2;
     const float drfac = (p_j - p_i) - refd_i * dot(g, r);
-    _LAPP_ += drfac * ndr * wab;
+    _LAPP_ -= drfac * ndr * wab;
 }
