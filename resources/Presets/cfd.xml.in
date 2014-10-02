@@ -95,5 +95,7 @@
         <!-- Velocity and density variation rates computation -->
         <Tool action="add" type="kernel" name="Rates" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Rates.cl"/>
 
+        <!-- Leap-Frog time integration corrector stage -->
+        <Tool action="add" type="kernel" name="Corrector" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Corrector.cl"/>
     </Tools>
 </sphInput>
