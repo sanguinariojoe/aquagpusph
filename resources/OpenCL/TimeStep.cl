@@ -17,8 +17,7 @@
  */
 
 /** @file
- * @brief Time step computation.
- * (See Aqua::CalcServer::TimeStep for details)
+ * @brief Variable time step computation.
  */
 
 #ifndef HAVE_3D
@@ -27,33 +26,28 @@
     #include "types/3D.h"
 #endif
 
-/** @brief Compute the maximum valid time step for each particle.
- * @param dtconv Convective time step term.
- * @param v Velocity \f$ \mathbf{u} \f$.
+/** @brief Compute the maximum time step for each particle.
+ * @param dt_var Variable time step \f$ \mathrm{min} \left(
+ * C_f \frac{h}{c_s}, C_f \frac{h}{10 \vert \mathbf{u} \vert}\right)\f$.
+ * @param v Velocity \f$ \mathbf{u}_{n+1/2} \f$.
  * @param dvdt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
  * @param N Number of particles.
- * @param dt Time step \f$ \Delta t \f$.
- * @param cs Speed of sound \f$ c_s \f$.
+ * @param dt Fixed time step \f$ \Delta t = C_f \frac{h}{c_s} \f$.
+ * @param courant Courant factor \f$ C_f \f$.
+ * @param h Kernel characteristic length \f$ h \f$.
  */
-__kernel void TimeStep(__global float* dtconv,
-                       __global vec* v,
-                       __global vec* dvdt,
-                       unsigned int N,
-                       float dt,
-                       float cs)
+__kernel void main(__global float* dt_var,
+                   __global vec* v,
+                   __global vec* dvdt,
+                   unsigned int N,
+                   float dt,
+                   float courant,
+                   float h)
 {
-	// find position in global arrays
 	unsigned int i = get_global_id(0);
 	if(i >= N)
 		return;
 
-	// ---- | ------------------------ | ----
-	// ---- V ---- Your code here ---- V ----
-
-	const float vv = fast_length(v[i] + dvdt[i] * dt);
-	dtconv[i] = h / max(10.f * vv, cs);
-
-	// ---- A ---- Your code here ---- A ----
-	// ---- | ------------------------ | ----
-
+	const float vv = 10.f * fast_length(v[i] + dvdt[i] * dt);
+	dt_var[i] = min(dt, h / vv);
 }

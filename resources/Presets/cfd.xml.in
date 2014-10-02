@@ -66,6 +66,8 @@
         <Variable name="div_u" type="float*" length="N" save="true" />
         <Variable name="lap_p" type="float*" length="N" save="true" />
         <Variable name="shepard" type="float*" length="N" save="true" />
+
+        <Variable name="dt_var" type="float*" length="N" save="true" />
     </Variables>
 
     <Tools>
@@ -101,7 +103,10 @@
 
         <!-- Time step computation -->
         <Tool action="add" type="set_scalar" name="Fixed time step" in="dt" value="courant * h / cs"/>
-
+        <Tool action="add" type="kernel" name="Variable time step" path="@RESOURCES_OUTPUT_DIR@/OpenCL/TimeStep.cl"/>
+        <Tool action="add" type="reduction" name="Minimum time step" in="dt_var" out="dt" null="INFINITY">
+            a = (a &lt; b) ? a : b;
+        </Tool>
         <Tool action="add" type="set_scalar" name="next time step" in="t" value="t + dt"/>
     </Tools>
 </sphInput>
