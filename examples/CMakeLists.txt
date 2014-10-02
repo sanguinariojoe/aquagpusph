@@ -6,35 +6,45 @@ IF(AQUAGPUSPH_3D)
 # perezrojas_etal_stab_2012 (Local)                     #
 # ===================================================== #
 # Folders
+SET(EXAMPLE_ORIG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012)
 SET(EXAMPLE_DEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012)
 SET(BINARY_DIR ${CMAKE_BINARY_DIR}/bin)
+FILE(MAKE_DIRECTORY ${EXAMPLE_DEST_DIR})
 # XML definition files
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/Move/6DOF.xml
-	${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012/Move/6DOF.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/Move/move.py
-	${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012/Move/move.py @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/Fluids.xml
-	${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012/Fluids.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/Main.xml
-	${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012/Main.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/Movements.xml
-	${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012/Movements.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/Settings.xml
-	${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012/Settings.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/SPH.xml
-	${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012/SPH.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/Time.xml
-	${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012/Time.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/Move/6DOF.xml
+	${EXAMPLE_DEST_DIR}/Move/6DOF.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/Fluids.xml
+	${EXAMPLE_DEST_DIR}/Fluids.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/Main.xml
+	${EXAMPLE_DEST_DIR}/Main.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/Movements.xml
+	${EXAMPLE_DEST_DIR}/Movements.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/Settings.xml
+	${EXAMPLE_DEST_DIR}/Settings.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/SPH.xml
+	${EXAMPLE_DEST_DIR}/SPH.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/Time.xml
+	${EXAMPLE_DEST_DIR}/Time.xml @ONLY)
+# Other simulation data
+configure_file(${EXAMPLE_ORIG_DIR}/doc/plot.py
+	${EXAMPLE_DEST_DIR}/doc/plot.py @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE9_TLD.pdf
+	${EXAMPLE_DEST_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE9_TLD.pdf @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/Move/T_1-94_A100mm_water.dat
+	${EXAMPLE_DEST_DIR}/Move/T_1-94_A100mm_water.dat @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/Move/move.py
+	${EXAMPLE_DEST_DIR}/Move/move.py @ONLY)
+# Particles generation script
+configure_file(${EXAMPLE_ORIG_DIR}/Create.py
+	${EXAMPLE_DEST_DIR}/Create.py @ONLY)
 # Execution script
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/run.sh
-	${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012/run.sh @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/run.sh
+	${EXAMPLE_DEST_DIR}/run.sh @ONLY)
 # Target
 ADD_CUSTOM_TARGET(perezrojas_etal_stab_2012 ALL
-	COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/perezrojas_etal_stab_2012/Create.py
-	COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/Fluid.dat ${CMAKE_CURRENT_BINARY_DIR}/perezrojas_etal_stab_2012/Fluid.dat
-	COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_SOURCE_DIR}/Fluid.dat
-	COMMAND chmod a+x ${CMAKE_CURRENT_BINARY_DIR}/perezrojas_etal_stab_2012/run.sh
-	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+	COMMAND ${PYTHON_EXECUTABLE} ./Create.py
+	COMMAND chmod a+x ./run.sh
+	WORKING_DIRECTORY ${EXAMPLE_DEST_DIR}
 )
 ADD_DEPENDENCIES( perezrojas_etal_stab_2012 AQUAgpusph )
 
@@ -42,28 +52,40 @@ ADD_DEPENDENCIES( perezrojas_etal_stab_2012 AQUAgpusph )
 # perezrojas_etal_stab_2012 (Install)                   #
 # ===================================================== #
 # Folders
+SET(EXAMPLE_ORIG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012)
+SET(EXAMPLE_AUX_DIR ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012)
 SET(EXAMPLE_DEST_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/examples/perezrojas_etal_stab_2012)
 SET(BINARY_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 # XML definition files
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/Move/6DOF.xml
-	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/Move/6DOF.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/Move/move.py
-	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/Move/move.py @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/Fluids.xml
-	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/Fluids.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/Main.xml
-	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/Main.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/Movements.xml
-	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/Movements.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/Settings.xml
-	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/Settings.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/SPH.xml
-	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/SPH.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/Time.xml
-	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/Time.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/Move/6DOF.xml
+	${EXAMPLE_AUX_DIR}/Move/6DOF.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/Fluids.xml
+	${EXAMPLE_AUX_DIR}/Fluids.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/Main.xml
+	${EXAMPLE_AUX_DIR}/Main.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/Movements.xml
+	${EXAMPLE_AUX_DIR}/Movements.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/Settings.xml
+	${EXAMPLE_AUX_DIR}/Settings.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/SPH.xml
+	${EXAMPLE_AUX_DIR}/SPH.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/Time.xml
+	${EXAMPLE_AUX_DIR}/Time.xml @ONLY)
+# Other simulation data
+configure_file(${EXAMPLE_ORIG_DIR}/doc/plot.py
+	${EXAMPLE_AUX_DIR}/doc/plot.py @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE9_TLD.pdf
+	${EXAMPLE_AUX_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE9_TLD.pdf @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/Move/T_1-94_A100mm_water.dat
+	${EXAMPLE_AUX_DIR}/Move/T_1-94_A100mm_water.dat @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/Move/move.py
+	${EXAMPLE_AUX_DIR}/Move/move.py @ONLY)
+# Particles generation script
+configure_file(${EXAMPLE_ORIG_DIR}/Create.py
+	${EXAMPLE_AUX_DIR}/Create.py @ONLY)
 # Execution script
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012/run.sh
-	${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/run.sh @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/run.sh
+	${EXAMPLE_AUX_DIR}/run.sh @ONLY)
 # Install
 INSTALL(
     FILES
@@ -73,30 +95,19 @@ INSTALL(
 )
 INSTALL(
     FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012/Move/T_1-94_A100mm_water.dat
-    DESTINATION
-        ${EXAMPLE_DEST_DIR}/Move
-)
-INSTALL(
-    FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012/doc/plot.py
-    DESTINATION
-        ${EXAMPLE_DEST_DIR}/doc
-)
-INSTALL(
-    FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/Fluids.xml
-        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/Main.xml
-        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/Movements.xml
-        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/Settings.xml
-        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/SPH.xml
-        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/Time.xml
+        ${EXAMPLE_AUX_DIR}/Fluids.xml
+        ${EXAMPLE_AUX_DIR}/Main.xml
+        ${EXAMPLE_AUX_DIR}/Movements.xml
+        ${EXAMPLE_AUX_DIR}/Settings.xml
+        ${EXAMPLE_AUX_DIR}/SPH.xml
+        ${EXAMPLE_AUX_DIR}/Time.xml
     DESTINATION
         ${EXAMPLE_DEST_DIR}
 )
 INSTALL(
     FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/run.sh
+        ${EXAMPLE_AUX_DIR}/Create.py
+        ${EXAMPLE_AUX_DIR}/run.sh
     DESTINATION
         ${EXAMPLE_DEST_DIR}
     PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
@@ -105,10 +116,18 @@ INSTALL(
 )
 INSTALL(
     FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/Move/6DOF.xml
-        ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012/Move/move.py
+        ${EXAMPLE_AUX_DIR}/Move/T_1-94_A100mm_water.dat
+        ${EXAMPLE_AUX_DIR}/Move/6DOF.xml
+        ${EXAMPLE_AUX_DIR}/Move/move.py
     DESTINATION
         ${EXAMPLE_DEST_DIR}/Move
+)
+INSTALL(
+    FILES
+        ${EXAMPLE_AUX_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE9_TLD.pdf
+        ${EXAMPLE_AUX_DIR}/doc/plot.py
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}/doc
 )
 
 ELSE(AQUAGPUSPH_3D)
