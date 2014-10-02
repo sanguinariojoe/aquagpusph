@@ -24,7 +24,7 @@ Authors:
          1 (Default value) Prints relevant data when a frame must be printed.
          0 Fastest alternative, prints the minimum data as possible.
         -->
-        <Verbose level="1" />
+        <Verbose level="2" />
         <!-- OpenCL device used to compute.
         -->
         <Device platform="0" device="0" type="GPU" />
