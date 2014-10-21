@@ -1,3 +1,9 @@
+__v-1.5.04_____________________________________________________________________
+
+	* Removed the simbolyc links from the developers manual folder.
+    * Fixed the compilation errors when ncurses is not installed and
+      AQUAGPUSPH_USE_NCURSES=OFF has been set.
+
 __v-1.5.03_____________________________________________________________________
 
 	* Purged obsolete doxygen options.
