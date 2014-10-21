@@ -32,7 +32,9 @@
 #include <string.h>
 #include <sys/time.h>
 #include <unistd.h>
-#include <ncurses.h>
+#ifdef HAVE_NCURSES
+    #include <ncurses.h>
+#endif
 
 #include <Singleton.h>
 

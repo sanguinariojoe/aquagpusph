@@ -28,7 +28,9 @@
 #include <CalcServer.h>
 #include <TimeManager.h>
 
-WINDOW *wnd;
+#ifdef HAVE_NCURSES
+    WINDOW *wnd;
+#endif
 
 namespace Aqua{ namespace InputOutput{
 
