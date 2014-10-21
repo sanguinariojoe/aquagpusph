@@ -10,6 +10,7 @@ cd ../userManual
 python images/tree/tree.py > tree_py.tex
 
 cd $CURRENT_DIR
+cp ../userManual/tree_py.tex ./
 
 # Compile
 pdflatex -interaction=nonstopmode main.tex
