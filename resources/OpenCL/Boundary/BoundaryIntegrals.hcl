@@ -89,7 +89,7 @@ if(q >= support){
     //---------------------------------------------------------------
     //     Density diffusion term (lap(p))
     //---------------------------------------------------------------
-    const float ndr = - rho_j * dot(r, n_j) / r2;
-    const float drfac = (p_j - p_i) - refd_i * dot(g, r);
-    _LAPP_ -= drfac * ndr * wab;
+    // const float ndr = - rho_j * dot(r, n_j) / r2;
+    // const float drfac = (p_j - p_i) - refd_i * dot(g, r);
+    // _LAPP_ -= drfac * ndr * wab;
 }
