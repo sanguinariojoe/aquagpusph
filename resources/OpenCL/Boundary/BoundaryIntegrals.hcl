@@ -81,7 +81,7 @@ if(q >= support){
     //     Momentum equation (grad(p)/rho and lap(u)/rho)
     //---------------------------------------------------------------
     _GRADP_ += prfac * wab;
-    _LAPU_ += lapufac * wab;
+    // _LAPU_ += lapufac * wab;
     //---------------------------------------------------------------
     //     Continuity equation (rho*div(u))
     //---------------------------------------------------------------
