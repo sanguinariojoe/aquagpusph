@@ -18,7 +18,6 @@
 
 /** @file
  * @brief Particles out of domain filter.
- * (See Aqua::CalcServer::Domain for details)
  */
 
 #ifndef HAVE_3D
@@ -35,56 +34,50 @@
  * @param pos Position \f$ \mathbf{r} \f$.
  * @param v Velocity \f$ \mathbf{u} \f$.
  * @param dvdt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
- * @param mass Mass \f$ m \f$.
+ * @param m Mass \f$ m \f$.
  * @param N Number of particles.
- * @param min_bound Minimum position where a particle can be placed.
- * @param max_bound Maximum position where a particle can be placed.
+ * @param domain_min Minimum point of the domain.
+ * @param domain_max Maximum point of the domain.
  */
-__kernel void Domain(__global int* imove,
-                     __global vec* pos,
-                     __global vec* v,
-                     __global vec* dvdt,
-                     __global float* mass,
-                     unsigned int N,
-                     vec min_bound,
-                     vec max_bound)
+__kernel void main(__global int* imove,
+                   __global vec* pos,
+                   __global vec* v,
+                   __global vec* dvdt,
+                   __global float* m,
+                   uint N,
+                   vec domain_min,
+                   vec domain_max)
 {
 	// find position in global arrays
 	unsigned int i = get_global_id(0);
 	if(i >= N)
 		return;
 
-	// ---- | ------------------------ | ----
-	// ---- V ---- Your code here ---- V ----
-
-	vec coords = pos[i];
-	if(    (coords.x < min_bound.x)
-	    || (coords.y < min_bound.y)
-	    || (coords.x > max_bound.x)
-	    || (coords.y > max_bound.y)
+	const vec coords = pos[i];
+	if(    (coords.x < domain_min.x)
+	    || (coords.y < domain_min.y)
+	    || (coords.x > domain_max.x)
+	    || (coords.y > domain_max.y)
 	    #ifdef HAVE_3D
-	    || (coords.z < min_bound.z)
-	    || (coords.z > max_bound.z)
+	    || (coords.z < domain_min.z)
+	    || (coords.z > domain_max.z)
 	    #endif
 	  )
 	{
 		// Set as fixed zero mass particle (sensor equivalent)
 		imove[i] = 0;
-		mass[i]  = 0.f;
+		m[i] = 0.f;
 		// Stop the particle
 		v[i] = VEC_ZERO;
 		dvdt[i] = VEC_ZERO;
 		// Clamp the position
-		pos[i].x = max(pos[i].x, min_bound.x);
-		pos[i].x = min(pos[i].x, max_bound.x);
-		pos[i].y = max(pos[i].y, min_bound.y);
-		pos[i].y = min(pos[i].y, max_bound.y);
+		pos[i].x = max(pos[i].x, domain_min.x);
+		pos[i].x = min(pos[i].x, domain_max.x);
+		pos[i].y = max(pos[i].y, domain_min.y);
+		pos[i].y = min(pos[i].y, domain_max.y);
 		#ifdef HAVE_3D
-			pos[i].z = max(pos[i].z, min_bound.z);
-			pos[i].z = min(pos[i].z, max_bound.z);
+			pos[i].z = max(pos[i].z, domain_min.z);
+			pos[i].z = min(pos[i].z, domain_max.z);
 		#endif
 	}
-
-	// ---- A ---- Your code here ---- A ----
-	// ---- | ------------------------ | ----
 }

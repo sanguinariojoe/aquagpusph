@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<sphInput>
+    <Variables>
+        <Variable name="domain_min" type="vec" save="false" />
+        <Variable name="domain_max" type="vec" save="false" />
+    </Variables>
+
+    <Tools>
+        <Tool action="insert" before="FixedTimeStep" type="kernel" name="Domain" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Domain.cl"/>
+    </Tools>
+</sphInput>
