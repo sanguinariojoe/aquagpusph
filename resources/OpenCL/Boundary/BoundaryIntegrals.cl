@@ -18,7 +18,6 @@
 
 /** @file
  * @brief Boundary integral term computation.
- * (See Aqua::CalcServer::Boundary::DeLeffe for details)
  */
 
 #ifndef HAVE_3D
@@ -102,7 +101,7 @@ __kernel void main(const __global uint* iset,
                    __global uint *icell,
                    __global uint *ihoc,
                    // Simulation data
-                    uint N,
+                   uint N,
                    uivec4 n_cells,
                    float h,
                    float support,
