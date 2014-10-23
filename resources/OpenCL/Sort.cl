@@ -22,8 +22,43 @@
     #include "types/3D.h"
 #endif
 
-/** Sort all the variables in order to be sorted by the cell index of each
- * particle.
+/** 
+
+@brief Sort all the particle variables by the cell indexes.
+ *
+ * @param id_in Unsorted particle indexes
+ * @param id Sorted particle indexes
+ * @param iset_in Unsorted set of particles indexes.
+ * @param iset Sorted set of particles indexes.
+ * @param imove_in Unsorted moving flags.
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param imove Sorted moving flags.
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param pos_in Unsorted position \f$ \mathbf{r} \f$.
+ * @param pos Sorted position \f$ \mathbf{r} \f$.
+ * @param normal_in Unsorted normal \f$ \mathbf{n} \f$.
+ * @param normal Sorted normal \f$ \mathbf{n} \f$.
+ * @param v_in Unsorted velocity \f$ \mathbf{u} \f$.
+ * @param v Sorted velocity \f$ \mathbf{u} \f$.
+ * @param dvdt_in Unsorted velocity rate of change
+ * \f$ \frac{d \mathbf{u}}{d t} \f$.
+ * @param dvdt Sorted velocity rate of change
+ * \f$ \frac{d \mathbf{u}}{d t} \f$.
+ * @param rho_in Unsorted density \f$ \rho \f$.
+ * @param rho Sorted density \f$ \rho \f$.
+ * @param drhodt_in Unsorted density rate of change \f$ \frac{d \rho}{d t} \f$.
+ * @param drhodt Sorted density rate of change \f$ \frac{d \rho}{d t} \f$.
+ * @param p_in Unsorted pressure \f$ p \f$.
+ * @param p Sorted pressure \f$ p \f$.
+ * @param m_in Unsorted mass \f$ m \f$.
+ * @param m Sorted mass \f$ m \f$.
+ * @param id_sorted Permutations list from the unsorted space to the sorted
+ * one.
+ * @param N Number of particles.
  */
 __kernel void main(__global uint *id_in, __global uint *id,
                    __global uint *iset_in, __global uint *iset,
