@@ -31,42 +31,41 @@ if(imove[j] >= 0){
 }
 
 // ------------------------------------------------------------------
-// face properties
+// face related properties
 // ------------------------------------------------------------------
-vec n_j = normal[j];
-const vec v_j = v[j];
-// ------------------------------------------------------------------
-// Vertex relation
-// ------------------------------------------------------------------
-const vec r  = pos_i - pos[j];
-float r0 = dot(r, n_j);
+const vec n_j = normal[j];
+const vec r = pos[j] - pos_i;
+const float r0 = dot(r, n_j);
+if(r0 < 0.f){
+    // The boundary element is not well oriented
+	j++;
+	continue;
+}
 const vec rt = r - r0 * n_j;
-if(dot(rt, rt) >= r_element * r_element){
-    // The particle is passing too far from the wall element
+if(dot(rt, rt) >= R * R){
+    // The particle is passing too far from the boundary element
 	j++;
 	continue;
 }
 
-// Test for swap normal (that must be internal oriented)
-if(r0 < 0.f){
-	n_j = -n_j;
-	r0 = -r0;
-}
 // ------------------------------------------------------------------
 // Movement data
 // ------------------------------------------------------------------
-const float v_n = dot(v_i - v_j, n_j);
+const float v_n = dot(v_i - v[j], n_j);
 const float dvdt_n = dot(dvdt_i, n_j);
-const float g_n = dot(grav, n_j);
-const float dist = dt * v_n + 0.5f * dt * dt * (dvdt_n + g_n);
+const float dist = dt * v_n + 0.5f * dt * dt * dvdt_n;
+if(dist < 0.f){
+    // The particle is already running away from the boundary
+	j++;
+	continue;
+}
+
 // ------------------------------------------------------------------
-// Since normal has been internally oriented, if dist < 0, the
-// particle is running against the wall, and then two cases can be
-// discriminated:
-//   - The particle is placed in the effect zone of the wall.
-//   - The partilce is placed outside the effect zone, but will enter inside it.
+// The particle should be corrected if:
+//   - It is already placed in the effect zone.
+//   - It is entering inside the effect zone.
 // ------------------------------------------------------------------
-if((dist < 0.f) && (r0 + dist <= __MIN_BOUND_DIST__ * h)){
+if(r0 - dist <= __MIN_BOUND_DIST__ * dr){
 	// ------------------------------------------------------------------
 	// Reflect particle velocity (using elastic factor)
 	// ------------------------------------------------------------------
@@ -77,7 +76,7 @@ if((dist < 0.f) && (r0 + dist <= __MIN_BOUND_DIST__ * h)){
 	// A second approach is setting an acceleration equal to the gravity
 	// Just trying to don't perturbate the moments meassurement, fliping
 	// later the velocity
-	dvdt[i] = dvdt_i - (dvdt_n + g_n) * n_j;
+	dvdt[i] = dvdt_i - dvdt_n * n_j;
 	v[i] = v_i - (1.f + __ELASTIC_FACTOR__) * v_n * n_j;
 
 	// Modify the value for the next walls test.

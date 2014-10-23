@@ -78,8 +78,8 @@
         <Tool action="add" type="link-list" name="Link-List"/>
 
         <Tool action="add" type="copy" name="Backup id" in="id" out="id_in"/>
-        <Tool action="add" type="copy" name="Backup imove" in="imove" out="imove_in"/>
         <Tool action="add" type="copy" name="Backup iset" in="iset" out="iset_in"/>
+        <Tool action="add" type="copy" name="Backup imove" in="imove" out="imove_in"/>
         <Tool action="add" type="copy" name="Backup normal" in="normal" out="normal_in"/>
         <Tool action="add" type="copy" name="Backup m" in="m" out="m_in"/>
         <Tool action="add" type="kernel" name="Sort" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Sort.cl"/>
@@ -97,6 +97,9 @@
 
         <!-- Velocity and density variation rates computation -->
         <Tool action="add" type="kernel" name="Rates" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Rates.cl"/>
+
+        <!-- Correction close to the boundaries -->
+        <Tool action="add" type="kernel" name="ElasticBounce" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/ElasticBounce.cl"/>
 
         <!-- Leap-Frog time integration corrector stage -->
         <Tool action="add" type="kernel" name="Corrector" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Corrector.cl"/>
