@@ -117,8 +117,8 @@ __kernel void main(__global int* imove,
     if(imove[i] <= 0)
         DT = 0.f;
     dvdt_in[i] = dvdt[i];
-    v_in[i] = v[i] + DT * (dvdt[i] + g);
-    pos_in[i] = pos[i] + DT * v[i] + 0.5f * DT * DT * (dvdt[i] + g);
+    v_in[i] = v[i] + DT * dvdt[i];
+    pos_in[i] = pos[i] + DT * v[i] + 0.5f * DT * DT * dvdt[i];
     
     // Continuity equation must be solved for the fixed particles too
     if(imove[i] == -1){
@@ -135,28 +135,4 @@ __kernel void main(__global int* imove,
         const float prb = cs * cs * refd[iset[i]] / gamma[iset[i]];
         p_in[i] = prb * (pow(ddenf, gamma[iset[i]]) - 1.f);
     }
-    
-    /*
-     // Predictor step for the fluid and walls
-    v[i] = v_in[i] + DT * (dvdt_in[i] + g);
-    pos[i] = pos_in[i] + DT * v_in[i] + 0.5f * DT * DT * (dvdt_in[i] + g);
-
-    if(imove[i] != -1){
-        // Continuity equation must be solved for the fixed particles too
-        DT = dt;
-    }
-    rho[i] = rho_in[i] + DT * drhodt_in[i];
-    if(rho[i] < rho_min) rho[i] = rho_min;
-    if(rho[i] > rho_max) rho[i] = rho_max;
-
-    // Batchelor 1967
-    {
-        const float ddenf = rho[i] / refd[iset[i]];
-        const float prb = cs * cs * refd[iset[i]] / gamma[iset[i]];
-        press[i] = prb * (pow(ddenf, gamma[iset[i]]) - 1.f);
-    }
-    // Output variables reinitialization
-    dvdt[i] = VEC_ZERO;
-    drhodt[i] = 0.f;
-    */
 }

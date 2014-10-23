@@ -105,7 +105,7 @@ __kernel void main(__global int* imove,
 	HDT = 0.5f * DT;
 
 	// Corrector step for the fluid
-	v[i] = v[i] + HDT * (dvdt[i] - dvdt_in[i]);
+	v[i] += HDT * (dvdt[i] - dvdt_in[i]);
     if(imove[i] == -1){
 		// Continuity equation must be solved for fixed particles too
         HDT = 0.5f * dt;
