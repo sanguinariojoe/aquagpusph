@@ -18,7 +18,6 @@
 
 /** @file
  * @brief Particles interactions computation.
- * (See Aqua::CalcServer::Rates for details)
  */
 
 #ifndef HAVE_3D
