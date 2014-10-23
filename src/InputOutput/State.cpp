@@ -414,14 +414,36 @@ bool State::parseTools(DOMElement *root)
                 P->tools.push_back(tool);
             }
             else if(!strcmp(xmlAttribute(s_elem, "action"), "insert")){
-                if(!xmlHasAttribute(s_elem, "place")){
+                unsigned int place = 0;
+                if(xmlHasAttribute(s_elem, "in")){
+                    place = atoi(xmlAttribute(s_elem, "in"));
+                }
+                else if(xmlHasAttribute(s_elem, "before")){
+                    const char *att_str = xmlAttribute(s_elem, "before");
+                    for(place = 0; place < P->tools.size(); place++){
+                        if(!strcmp(P->tools.at(place)->get("name"),
+                                   att_str))
+                        {
+                            break;
+                        }
+                    }
+                    if(place == P->tools.size()){
+                        sprintf(msg,
+                                "The tool \"%s\" must be inserted before \"%s\", but such tool cannot be found.\n",
+                                tool->get("name"),
+                                att_str);
+                        S->addMessageF(3, msg);
+                        return true;
+                    }
+                }
+                else{
                     sprintf(msg,
-                            "Missed the place where to insert the tool \"%s\".\n",
+                            "Missed the place where the tool \"%s\" should be inserted.\n",
                             tool->get("name"));
+                    S->addMessageF(0, "Please set either \"in\" or \"before\" option.\n");
                     S->addMessageF(3, msg);
                     return true;
                 }
-                unsigned int place = atoi(xmlAttribute(s_elem, "place"));
                 if(place > P->tools.size()){
                     sprintf(msg,
                             "Failure inserting the tool \"%s\" in the place %u (max=%lu).\n",
