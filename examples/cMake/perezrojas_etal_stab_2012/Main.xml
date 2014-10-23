@@ -20,6 +20,7 @@ Authors:
 <sphInput>
 	<!-- In this file we will just include other XML definition files -->
 	<Include file="@RESOURCES_DIR@/OpenCLMain.xml" />
+	<Include file="@RESOURCES_DIR@/Presets/domain.xml" />
 	<Include file="@EXAMPLE_DEST_DIR@/Settings.xml" />
 	<Include file="@EXAMPLE_DEST_DIR@/Time.xml" />
 	<Include file="@EXAMPLE_DEST_DIR@/SPH.xml" />

@@ -25,6 +25,8 @@ Authors:
         <Variable name="h" type="float" value="hfac * dr" save="false" />
         <Variable name="cs" type="float" value="30.0" save="false" />
         <Variable name="courant" type="float" value="0.25" save="false" />
+        <Variable name="domain_min" type="vec" value="-0.1, -0.6, -0.15, 0.0" save="false" />
+        <Variable name="domain_max" type="vec" value="0.1, 0.6, 0.6, 0.0" save="false" />
     </Variables>
 
     <SPH>
