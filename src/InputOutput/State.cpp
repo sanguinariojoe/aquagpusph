@@ -436,11 +436,33 @@ bool State::parseTools(DOMElement *root)
                         return true;
                     }
                 }
+                else if(xmlHasAttribute(s_elem, "after")){
+                    const char *att_str = xmlAttribute(s_elem, "after");
+                    for(place = 0; place < P->tools.size(); place++){
+                        if(!strcmp(P->tools.at(place)->get("name"),
+                                   att_str))
+                        {
+                            break;
+                        }
+                    }
+                    if(place == P->tools.size()){
+                        sprintf(msg,
+                                "The tool \"%s\" must be inserted after \"%s\", but such tool cannot be found.\n",
+                                tool->get("name"),
+                                att_str);
+                        S->addMessageF(3, msg);
+                        return true;
+                    }
+                    place++;
+                }
                 else{
                     sprintf(msg,
                             "Missed the place where the tool \"%s\" should be inserted.\n",
                             tool->get("name"));
-                    S->addMessageF(0, "Please set either \"in\" or \"before\" option.\n");
+                    S->addMessageF(0, "Please set one of the following attributes:\n");
+                    S->addMessageF(0, "\t\"in\"\n");
+                    S->addMessageF(0, "\t\"before\"\n");
+                    S->addMessageF(0, "\t\"after\"\n");
                     S->addMessageF(3, msg);
                     return true;
                 }
