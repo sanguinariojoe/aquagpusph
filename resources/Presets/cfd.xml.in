@@ -21,18 +21,18 @@
         | icell       | unsigned int* | n_radix | Cell where each particle is located
         | ihoc        | unsigned int* | n_cells | First particle in each cell
          -->
-        <Variable name="g" type="vec" value="0.0, 0.0, 0.0, 0.0" save="false" />
-        <Variable name="cs" type="float" value="15.0" save="false" />
-        <Variable name="courant" type="float" value="0.25" save="false" />
-        <Variable name="rho_min" type="float" value="0.0" save="false" />
-        <Variable name="rho_max" type="float" value="2.25*10^10" save="false" />
-        <Variable name="pos_min" type="vec" save="false" />
-        <Variable name="pos_max" type="vec" save="false" />
+        <Variable name="g" type="vec" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="cs" type="float" value="15.0" />
+        <Variable name="courant" type="float" value="0.25" />
+        <Variable name="rho_min" type="float" value="0.0" />
+        <Variable name="rho_max" type="float" value="2.25*10^10" />
+        <Variable name="pos_min" type="vec" />
+        <Variable name="pos_max" type="vec" />
 
-        <Variable name="gamma" type="float*" length="n_sets" save="false" />
-        <Variable name="refd" type="float*" length="n_sets" save="false" />
-        <Variable name="visc_dyn" type="float*" length="n_sets" save="false" />
-        <Variable name="delta" type="float*" length="n_sets" save="false" />
+        <Variable name="gamma" type="float*" length="n_sets" />
+        <Variable name="refd" type="float*" length="n_sets" />
+        <Variable name="visc_dyn" type="float*" length="n_sets" />
+        <Variable name="delta" type="float*" length="n_sets" />
 
         <!-- imove = 1 for fluid particles
              imove = 0 for sensors
@@ -40,34 +40,34 @@
              imove = -2 for elastic bounce boundary elements
              imove = -3 for boundary integrals boundary elements
          -->
-        <Variable name="imove" type="int*" length="N" save="true" />
-        <Variable name="normal" type="vec*" length="N" save="true" />
-        <Variable name="v" type="vec*" length="N" save="true" />
-        <Variable name="dvdt" type="vec*" length="N" save="true" />
-        <Variable name="rho" type="float*" length="N" save="true" />
-        <Variable name="drhodt" type="float*" length="N" save="true" />
-        <Variable name="m" type="float*" length="N" save="true" />
-        <Variable name="p" type="float*" length="N" save="true" />
+        <Variable name="imove" type="int*" length="N" />
+        <Variable name="normal" type="vec*" length="N" />
+        <Variable name="v" type="vec*" length="N" />
+        <Variable name="dvdt" type="vec*" length="N" />
+        <Variable name="rho" type="float*" length="N" />
+        <Variable name="drhodt" type="float*" length="N" />
+        <Variable name="m" type="float*" length="N" />
+        <Variable name="p" type="float*" length="N" />
 
-        <Variable name="id_in" type="unsigned int*" length="N" save="true" />
-        <Variable name="iset_in" type="unsigned int*" length="N" save="true" />
-        <Variable name="imove_in" type="int*" length="N" save="true" />
-        <Variable name="pos_in" type="vec*" length="N" save="true" />
-        <Variable name="normal_in" type="vec*" length="N" save="true" />
-        <Variable name="v_in" type="vec*" length="N" save="true" />
-        <Variable name="dvdt_in" type="vec*" length="N" save="true" />
-        <Variable name="rho_in" type="float*" length="N" save="true" />
-        <Variable name="drhodt_in" type="float*" length="N" save="true" />
-        <Variable name="m_in" type="float*" length="N" save="true" />
-        <Variable name="p_in" type="float*" length="N" save="true" />
+        <Variable name="id_in" type="unsigned int*" length="N" />
+        <Variable name="iset_in" type="unsigned int*" length="N" />
+        <Variable name="imove_in" type="int*" length="N" />
+        <Variable name="pos_in" type="vec*" length="N" />
+        <Variable name="normal_in" type="vec*" length="N" />
+        <Variable name="v_in" type="vec*" length="N" />
+        <Variable name="dvdt_in" type="vec*" length="N" />
+        <Variable name="rho_in" type="float*" length="N" />
+        <Variable name="drhodt_in" type="float*" length="N" />
+        <Variable name="m_in" type="float*" length="N" />
+        <Variable name="p_in" type="float*" length="N" />
 
-        <Variable name="grad_p" type="vec*" length="N" save="true" />
-        <Variable name="lap_u" type="vec*" length="N" save="true" />
-        <Variable name="div_u" type="float*" length="N" save="true" />
-        <Variable name="lap_p" type="float*" length="N" save="true" />
-        <Variable name="shepard" type="float*" length="N" save="true" />
+        <Variable name="grad_p" type="vec*" length="N" />
+        <Variable name="lap_u" type="vec*" length="N" />
+        <Variable name="div_u" type="float*" length="N" />
+        <Variable name="lap_p" type="float*" length="N" />
+        <Variable name="shepard" type="float*" length="N" />
 
-        <Variable name="dt_var" type="float*" length="N" save="true" />
+        <Variable name="dt_var" type="float*" length="N" />
     </Variables>
 
     <Tools>

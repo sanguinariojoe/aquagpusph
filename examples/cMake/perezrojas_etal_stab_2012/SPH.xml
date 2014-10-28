@@ -19,14 +19,14 @@ Authors:
 
 <sphInput>
     <Variables>
-        <Variable name="g" type="vec" value="0.0, 0.0, -9.81, 0.0" save="false" />
-        <Variable name="dr" type="float" value="0.0038" save="false" />
-        <Variable name="hfac" type="float" value="3.0" save="false" />
-        <Variable name="h" type="float" value="hfac * dr" save="false" />
-        <Variable name="cs" type="float" value="30.0" save="false" />
-        <Variable name="courant" type="float" value="0.25" save="false" />
-        <Variable name="domain_min" type="vec" value="-0.1, -0.6, -0.15, 0.0" save="false" />
-        <Variable name="domain_max" type="vec" value="0.1, 0.6, 0.6, 0.0" save="false" />
+        <Variable name="g" type="vec" value="0.0, 0.0, -9.81, 0.0" />
+        <Variable name="dr" type="float" value="0.0038" />
+        <Variable name="hfac" type="float" value="3.0" />
+        <Variable name="h" type="float" value="hfac * dr" />
+        <Variable name="cs" type="float" value="30.0" />
+        <Variable name="courant" type="float" value="0.25" />
+        <Variable name="domain_min" type="vec" value="-0.1, -0.6, -0.15, 0.0" />
+        <Variable name="domain_max" type="vec" value="0.1, 0.6, 0.6, 0.0" />
     </Variables>
 
     <SPH>
