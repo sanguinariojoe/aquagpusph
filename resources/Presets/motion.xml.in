@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+<sphInput>
+    <Variables>
+        <!-- position and velocity -->
+        <Variable name="motion_r" type="vec" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="motion_drdt" type="vec" value="0.0, 0.0, 0.0, 0.0" />
+        <!-- rotation and angular velocity (Euler XYZ assumed) -->
+        <Variable name="motion_a" type="vec4" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="motion_dadt" type="vec4" value="0.0, 0.0, 0.0, 0.0" />
+    </Variables>
+
+    <Tools>
+        <!-- Call a generic motion.py script which should set the motion variables -->
+        <Tool action="insert" before="t = t + dt" type="kernel" name="MotionUnTransform" path="@RESOURCES_OUTPUT_DIR@/OpenCL/MotionUnTransform.cl"/>
+        <Tool action="insert" after="MotionUnTransform" type="python" name="MotionData" path="Motion.py"/>
+        <Tool action="insert" after="MotionData" type="kernel" name="MotionVelocity" path="@RESOURCES_OUTPUT_DIR@/OpenCL/MotionVelocity.cl"/>
+        <Tool action="insert" after="MotionVelocity" type="kernel" name="MotionTransform" path="@RESOURCES_OUTPUT_DIR@/OpenCL/MotionTransform.cl"/>
+    </Tools>
+</sphInput>
