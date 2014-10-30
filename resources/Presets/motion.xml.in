@@ -10,9 +10,14 @@
     </Variables>
 
     <Tools>
-        <!-- Call a generic motion.py script which should set the motion variables -->
+        <!-- We must start recovering the initial position of the particles
+        undoing the previous time step transformation. -->
         <Tool action="insert" before="t = t + dt" type="kernel" name="MotionUnTransform" path="@RESOURCES_OUTPUT_DIR@/OpenCL/MotionUnTransform.cl"/>
+        <!-- Now we can call a generic Python script, which should be
+        defined, in order to set the motion parameters for the current time
+        step -->
         <Tool action="insert" after="MotionUnTransform" type="python" name="MotionData" path="Motion.py"/>
+        <!-- Such that we can apply the new transformation -->
         <Tool action="insert" after="MotionData" type="kernel" name="MotionVelocity" path="@RESOURCES_OUTPUT_DIR@/OpenCL/MotionVelocity.cl"/>
         <Tool action="insert" after="MotionVelocity" type="kernel" name="MotionTransform" path="@RESOURCES_OUTPUT_DIR@/OpenCL/MotionTransform.cl"/>
     </Tools>

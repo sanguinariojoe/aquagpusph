@@ -1,0 +1,79 @@
+/* [wxMaxima batch file version 1] [ DO NOT EDIT BY HAND! ]*/
+/* [ Created with wxMaxima version 13.04.2 ] */
+
+/* [wxMaxima: input   start ] */
+debugmode(true);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+Generation of the rotation matrix
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+Rx : matrix([1, 0,        0        ],
+            [0, cos(phi(t)), -sin(phi(t))],
+            [0, sin(phi(t)), cos(phi(t)) ]);
+Ry : matrix([cos(theta(t)),  0, sin(theta(t))],
+            [0,           1, 0         ],
+            [-sin(theta(t)), 0, cos(theta(t))]);
+Rz : matrix([cos(Omega(t)), -sin(Omega(t)), 0],
+            [sin(Omega(t)), cos(Omega(t)),  0],
+            [0,        0,         1]);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+R : Rz.Ry.Rx;
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+Generation of the inverse rotation matrix
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+iRx : matrix([1, 0,         0        ],
+             [0, cos(-phi(t)), -sin(-phi(t))],
+             [0, sin(-phi(t)), cos(-phi(t)) ]);
+iRy : matrix([cos(-theta(t)),  0, sin(-theta(t))],
+             [0,            1, 0         ],
+             [-sin(-theta(t)), 0, cos(-theta(t))]);
+iRz : matrix([cos(-Omega(t)), -sin(-Omega(t)), 0],
+             [sin(-Omega(t)), cos(-Omega(t)),  0],
+             [0,         0,          1]);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+iR : iRx.iRy.iRz;
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+Check the inverse
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+trigsimp(iR.R);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+Get the velocity
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+v : [x(t), y(t), z(t)];
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+dvdt : diff(v,t);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+dRdt : factor(trigsimp(diff(R,t)));
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+diff(Rx, t);
+diff(Ry, t);
+diff(Rz, t);
+/* [wxMaxima: input   end   ] */
+
+/* Maxima can't load/batch files which end with a comment! */
+"Created with wxMaxima"$
