@@ -21,9 +21,9 @@
  */
 
 #ifndef HAVE_3D
-    #include "../types/2D.h"
+    #include "types/2D.h"
 #else
-    #include "../types/3D.h"
+    #include "types/3D.h"
 #endif
 
 /** @brief Untransform the previously applied EulerXYZ motion.
@@ -70,7 +70,7 @@
  * @see MotionTransform.cl
  * @see MotionVelocity.cl
  */
-__kernel void main(const __global int* iset,
+__kernel void main(const __global int* imove,
                    __global vec* pos,
                    __global vec* normal,
                    unsigned int N,

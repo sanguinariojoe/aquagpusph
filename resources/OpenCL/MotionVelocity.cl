@@ -21,9 +21,9 @@
  */
 
 #ifndef HAVE_3D
-    #include "../types/2D.h"
+    #include "types/2D.h"
 #else
-    #include "../types/3D.h"
+    #include "types/3D.h"
 #endif
 
 /** @brief Compute the boundary points velocity applying EulerXYZ motion.
@@ -71,7 +71,7 @@
  * @see MotionUnTransform.cl
  * @see MotionVelocity.cl
  */
-__kernel void main(const __global int* iset,
+__kernel void main(const __global int* imove,
                    __global vec* pos,
                    __global vec* v,
                    unsigned int N,
