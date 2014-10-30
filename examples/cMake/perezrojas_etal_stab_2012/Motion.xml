@@ -32,4 +32,8 @@ Authors:
         -->
 		<Movement type="ScriptQuaternion" file="@EXAMPLE_DEST_DIR@/Move/6DOF.xml" />
 	</Movements>
+
+    <Variables>
+        <Variable name="motion_r" type="vec" value="0.0, 0.0, 0.47, 0.0" />
+    </Variables>
 </sphInput>

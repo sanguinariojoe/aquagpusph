@@ -61,15 +61,22 @@ class FigureController(FigureCanvas):
         self.exp_a = [0.0]
         self.exp_line, = self.ax.plot(self.t,
                                       self.exp_a,
-                                      label='Experimental',
+                                      label=r'$\theta_{Exp}$',
                                       color="red",
                                       linewidth=1.0)
         self.a = [0.0]
         self.line, = self.ax.plot(self.t,
                                   self.a,
-                                  label='SPH',
+                                  label=r'$\theta_{SPH}$',
                                   color="black",
                                   linewidth=1.0)
+        self.dadt = [0.0]
+        self.dline, = self.ax.plot(self.t,
+                                   self.dadt,
+                                   label=r'$\dot{\theta}_{SPH}$',
+                                   color="black",
+                                   linewidth=1.0,
+                                   linestyle='--')
         # Set some options
         self.ax.grid()
         self.ax.legend(loc='best')
@@ -112,15 +119,18 @@ class FigureController(FigureCanvas):
         # Read and plot the new data
         data = self.readFile('../Motion.dat')
         self.t = data[0]
-        self.exp_a = data[3]
-        self.a = data[2]
+        self.exp_a = data[2]
+        self.a = data[3]
+        self.dadt = data[4]
         self.exp_line.set_data(self.t, self.exp_a)
         self.line.set_data(self.t, self.a)
+        self.dline.set_data(self.t, self.dadt)
 
         self.ax.set_xlim(0, self.t[-1])
         ymax_exp = max(abs(max(self.exp_a)), abs(min(self.exp_a)))
         ymax_sph = max(abs(max(self.a)), abs(min(self.a)))
-        ymax = max(ymax_exp, ymax_sph)
+        ymax_dsph = max(abs(max(self.dadt)), abs(min(self.dadt)))
+        ymax = max((ymax_exp, ymax_sph, ymax_dsph))
         self.ax.set_ylim(-1.1 * ymax, 1.1 * ymax)
 
         # Redraw

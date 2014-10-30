@@ -17,8 +17,8 @@ configure_file(${EXAMPLE_ORIG_DIR}/Fluids.xml
 	${EXAMPLE_DEST_DIR}/Fluids.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/Main.xml
 	${EXAMPLE_DEST_DIR}/Main.xml @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/Movements.xml
-	${EXAMPLE_DEST_DIR}/Movements.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/Motion.xml
+	${EXAMPLE_DEST_DIR}/Motion.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/Settings.xml
 	${EXAMPLE_DEST_DIR}/Settings.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/SPH.xml
@@ -34,6 +34,8 @@ configure_file(${EXAMPLE_ORIG_DIR}/Move/T_1-94_A100mm_water.dat
 	${EXAMPLE_DEST_DIR}/Move/T_1-94_A100mm_water.dat @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/Move/move.py
 	${EXAMPLE_DEST_DIR}/Move/move.py @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/Motion.py
+	${EXAMPLE_DEST_DIR}/Motion.py @ONLY)
 # Particles generation script
 configure_file(${EXAMPLE_ORIG_DIR}/Create.py
 	${EXAMPLE_DEST_DIR}/Create.py @ONLY)
@@ -63,8 +65,8 @@ configure_file(${EXAMPLE_ORIG_DIR}/Fluids.xml
 	${EXAMPLE_AUX_DIR}/Fluids.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/Main.xml
 	${EXAMPLE_AUX_DIR}/Main.xml @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/Movements.xml
-	${EXAMPLE_AUX_DIR}/Movements.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/Motion.xml
+	${EXAMPLE_AUX_DIR}/Motion.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/Settings.xml
 	${EXAMPLE_AUX_DIR}/Settings.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/SPH.xml
@@ -80,6 +82,8 @@ configure_file(${EXAMPLE_ORIG_DIR}/Move/T_1-94_A100mm_water.dat
 	${EXAMPLE_AUX_DIR}/Move/T_1-94_A100mm_water.dat @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/Move/move.py
 	${EXAMPLE_AUX_DIR}/Move/move.py @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/Motion.py
+	${EXAMPLE_AUX_DIR}/Motion.py @ONLY)
 # Particles generation script
 configure_file(${EXAMPLE_ORIG_DIR}/Create.py
 	${EXAMPLE_AUX_DIR}/Create.py @ONLY)
@@ -97,10 +101,11 @@ INSTALL(
     FILES
         ${EXAMPLE_AUX_DIR}/Fluids.xml
         ${EXAMPLE_AUX_DIR}/Main.xml
-        ${EXAMPLE_AUX_DIR}/Movements.xml
+        ${EXAMPLE_AUX_DIR}/Motion.xml
         ${EXAMPLE_AUX_DIR}/Settings.xml
         ${EXAMPLE_AUX_DIR}/SPH.xml
         ${EXAMPLE_AUX_DIR}/Time.xml
+        ${EXAMPLE_AUX_DIR}/Motion.py
     DESTINATION
         ${EXAMPLE_DEST_DIR}
 )
