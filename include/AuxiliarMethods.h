@@ -106,6 +106,13 @@ size_t loadKernelFromFile(cl_kernel* kernel, cl_program* program,
  */
 const char* getFolderFromFilePath(const char* file_path);
 
+/// Gets the file name of the path @paramname{file_path}.
+/**
+ * @param file_path The file path.
+ * @return The file name.
+ */
+const char* getFileNameFromFilePath(const char* file_path);
+
 /// Gets the file extension.
 /** Get the file extension from the full file path @paramname{file_path}.
  *

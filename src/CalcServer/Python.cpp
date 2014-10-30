@@ -275,6 +275,7 @@ bool Python::load()
     strcpy(comm, "");
     PyRun_SimpleString("curdir = os.getcwd()");
     const char *path = getFolderFromFilePath((const char*)_script);
+    const char *filename = getFileNameFromFilePath((const char*)_script);
     if(path[0]=='.')   // "./" prefix has been set
         sprintf(comm, "modulePath = curdir + \"%s\"", &path[1]);
     else
@@ -282,16 +283,13 @@ bool Python::load()
     PyRun_SimpleString(comm);
     PyRun_SimpleString("sys.path.append(modulePath)");
 
-    unsigned int start = strlen(path);
-    if( (path[0]=='.') && (_script[0]!='.') )   // "./" prefix has been set
-        start += 2;
-    modName = PyUnicode_FromString(&_script[start]);
+    modName = PyUnicode_FromString(filename);
     _module = PyImport_Import(modName);
     Py_DECREF(modName); modName=0;
     if(!_module){
         sprintf(msg,
                 "Python module \"%s\" cannot be imported.\n",
-                &_script[start]);
+                filename);
         S->addMessageF(3, msg);
         printf("\n--- Python report --------------------------\n\n");
         PyErr_Print();

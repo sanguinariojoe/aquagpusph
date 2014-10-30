@@ -255,13 +255,28 @@ const char* getFolderFromFilePath(const char* file_path)
     strcpy(folder, "");
     if(file_path[0] != '/')
         strcat(folder, "./");
-    for(i=strlen(file_path);i>0;i--) {
-        if(file_path[i-1] == '/') {
+    for(i = strlen(file_path); i > 0; i--) {
+        if(file_path[i - 1] == '/') {
             break;
         }
     }
     strncat(folder, file_path, i);
     return folder;
+}
+
+static char filename[1024];
+
+const char* getFileNameFromFilePath(const char* file_path)
+{
+    int i;
+    strcpy(filename, "");
+    for(i = strlen(file_path) - 1; i >= 0; i--) {
+        if(file_path[i] == '/') {
+            break;
+        }
+    }
+    strcpy(filename, &(file_path[i + 1]));
+    return filename;
 }
 
 const char* getExtensionFromFilePath(const char* file_path)
