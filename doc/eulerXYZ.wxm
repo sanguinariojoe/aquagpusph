@@ -70,9 +70,13 @@ dRdt : factor(trigsimp(diff(R,t)));
 /* [wxMaxima: input   end   ] */
 
 /* [wxMaxima: input   start ] */
-diff(Rx, t);
-diff(Ry, t);
-diff(Rz, t);
+dRxdt : diff(Rx, t);
+dRydt : diff(Ry, t);
+dRzdt : diff(Rz, t);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+factor(trigsimp(dRzdt.Ry.Rx + Rz.dRydt.Rx + Rz.Ry.dRxdt - dRdt));
 /* [wxMaxima: input   end   ] */
 
 /* Maxima can't load/batch files which end with a comment! */

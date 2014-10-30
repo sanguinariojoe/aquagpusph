@@ -96,23 +96,22 @@ __kernel void main(const __global int* imove,
     const float stheta = sin(motion_a.y);
     const float cpsi = cos(motion_a.z);
     const float spsi = sin(motion_a.z);
-    const float dphidt = motion_dadt[0];
-    const float dthetadt = motion_dadt[1];
-    const float dpsidt = motion_dadt[2];
+    const float dphidt = motion_dadt.x;
+    const float dthetadt = motion_dadt.y;
+    const float dpsidt = motion_dadt.z;
 
     //---------------------------------------------
     // Compute v1 (acceleration along z)
     //---------------------------------------------
     v1 = r;
     #ifdef HAVE_3D
+        v1.z = 0.f;
         vv = v1;
         // Rotate along x
         v1.y = cphi * vv.y - sphi * vv.z;
-        v1.z = sphi * vv.y + cphi * vv.z;
         // Rotate along y
         vv = v1;
         v1.x = ctheta * vv.x + stheta * vv.z;
-        v1.z = -stheta * vv.x + ctheta * vv.z;
     #endif
     // Rotate along z
     vv = v1;
@@ -124,9 +123,9 @@ __kernel void main(const __global int* imove,
     //---------------------------------------------
     #ifdef HAVE_3D
         v2 = r;
+        v2.y = 0.f;
         vv = v2;
         // Rotate along x
-        v2.y = cphi * vv.y - sphi * vv.z;
         v2.z = sphi * vv.y + cphi * vv.z;
         // Rotate along y
         vv = v2;
@@ -135,27 +134,25 @@ __kernel void main(const __global int* imove,
         // Rotate along z
         vv = v2;
         v2.x = cpsi * vv.x - spsi * vv.y;
-        v2.y = spsi * vv.x + cpsi * vv.y;
     #else
         v2 = VEC_ZERO;
     #endif
 
     //---------------------------------------------
-    // Compute v3 (acceleration along y)
+    // Compute v3 (acceleration along x)
     //---------------------------------------------
     #ifdef HAVE_3D
         v3 = r;
+        v3.x = 0.f;
         vv = v3;
         // Rotate along x
         v3.y = dphidt * (-sphi * vv.y - cphi * vv.z);
         v3.z = dphidt * (cphi * vv.y - sphi * vv.z);
         // Rotate along y
         vv = v3;
-        v3.x = ctheta * vv.x + stheta * vv.z;
         v3.z = -stheta * vv.x + ctheta * vv.z;
         // Rotate along z
         vv = v3;
-        v3.x = cpsi * vv.x - spsi * vv.y;
         v3.y = spsi * vv.x + cpsi * vv.y;
     #else
         v3 = VEC_ZERO;

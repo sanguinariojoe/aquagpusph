@@ -4,7 +4,7 @@
         <!-- position and velocity -->
         <Variable name="motion_r" type="vec" value="0.0, 0.0, 0.0, 0.0" />
         <Variable name="motion_drdt" type="vec" value="0.0, 0.0, 0.0, 0.0" />
-        <!-- rotation and angular velocity (Euler XYZ assumed) -->
+        <!-- rotation and angular velocity (vec4 is faster than vec3) -->
         <Variable name="motion_a" type="vec4" value="0.0, 0.0, 0.0, 0.0" />
         <Variable name="motion_dadt" type="vec4" value="0.0, 0.0, 0.0, 0.0" />
     </Variables>
