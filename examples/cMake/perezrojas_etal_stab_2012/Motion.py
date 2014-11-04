@@ -218,7 +218,7 @@ def main():
     # Set the rotation angle. The angle is coming from a double integration
     # process, so it may be considered smooth enough.
     global Theta
-    a = np.zeros(4)
+    a = np.zeros(4, dtype=np.float32)
     a[0] = Theta
     aqua.set("motion_a", a)
     # Set the rotation velocity. The rotation velocity should be filtered due
@@ -226,7 +226,7 @@ def main():
     global dTheta
     global dThetaList
     dThetaList.append(dTheta)
-    dadt = np.zeros(4)
+    dadt = np.zeros(4, dtype=np.float32)
     if len(dThetaList) < SMOOTH_WINDOW:
         dadt[0] = dTheta
     else:
