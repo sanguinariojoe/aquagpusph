@@ -143,44 +143,10 @@ bool ProblemSetup::perform()
     char msg[512];
     strcpy(msg, "");
     // Check for errors
-    if(n_fluids <= 0)
-    {
-        sprintf(msg, "There are not any fluid.\n");
+    if(sets.size() == 0) {
+        sprintf(msg, "No sets of particles have been added.\n");
         S->addMessageF(3, msg);
-        sprintf(msg, "\tDo you include any Fluid section at input?.\n");
-        S->addMessage(0, msg);
         return true;
-    }
-    // Compute the kernel length
-    float K = 8.f;
-    #ifndef HAVE_3D
-        K = 15.f;
-        SPH_opts.h = SPH_opts.hfac * (SPH_opts.deltar.x
-                                   + SPH_opts.deltar.y) / 2.f;
-    #else
-        SPH_opts.h = SPH_opts.hfac * (SPH_opts.deltar.x
-                                   + SPH_opts.deltar.y
-                                   + SPH_opts.deltar.z) / 3.f;
-    #endif
-    // Compute the corrected dynamic viscosities for each fluid
-    for(i=0;i<n_fluids;i++) {
-        fluids[i].visc_dyn_corrected = fluids[i].visc_dyn;
-        if(fluids[i].alpha > K * fluids[i].visc_dyn_corrected / fluids[i].refd / SPH_opts.h / SPH_opts.cs){
-            fluids[i].visc_dyn_corrected = fluids[i].alpha / K * fluids[i].refd * SPH_opts.h * SPH_opts.cs;
-            sprintf(msg, "fluid %u dynamic viscosity corrected\n", i);
-            S->addMessageF(2, msg);
-            sprintf(msg, "\tValue changed from %g [Pa/s] to %g [Pa/s] (alpha = %g)\n",
-                    fluids[i].visc_dyn,
-                    fluids[i].visc_dyn_corrected,
-                    fluids[i].alpha);
-            S->addMessage(0, msg);
-        }
-        fluids[i].visc_kin = fluids[i].visc_dyn_corrected / fluids[i].refd;
-        fluids[i].alpha = K * fluids[i].visc_dyn_corrected / fluids[i].refd / SPH_opts.h / SPH_opts.cs;
-    }
-
-    if(SPH_opts.rho_max <= SPH_opts.rho_min){
-        SPH_opts.rho_max = std::numeric_limits<float>::max();
     }
     return false;
 }

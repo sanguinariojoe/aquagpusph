@@ -11,8 +11,6 @@ SET(EXAMPLE_DEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012)
 SET(BINARY_DIR ${CMAKE_BINARY_DIR}/bin)
 FILE(MAKE_DIRECTORY ${EXAMPLE_DEST_DIR})
 # XML definition files
-configure_file(${EXAMPLE_ORIG_DIR}/Move/6DOF.xml
-	${EXAMPLE_DEST_DIR}/Move/6DOF.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/Fluids.xml
 	${EXAMPLE_DEST_DIR}/Fluids.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/Main.xml
@@ -32,8 +30,6 @@ configure_file(${EXAMPLE_ORIG_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE9_TLD
 	${EXAMPLE_DEST_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE9_TLD.pdf @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/Move/T_1-94_A100mm_water.dat
 	${EXAMPLE_DEST_DIR}/Move/T_1-94_A100mm_water.dat @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/Move/move.py
-	${EXAMPLE_DEST_DIR}/Move/move.py @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/Motion.py
 	${EXAMPLE_DEST_DIR}/Motion.py @ONLY)
 # Particles generation script
@@ -488,6 +484,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2014/Fluids.x
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2014/Main.xml
 	${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/Main.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2014/Sensors.xml
+
 	${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/Sensors.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lobovsky_etal_jfs_2014/Settings.xml
 	${CMAKE_CURRENT_SOURCE_DIR}/lobovsky_etal_jfs_2014/Settings.xml @ONLY)

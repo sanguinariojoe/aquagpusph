@@ -31,27 +31,6 @@ Authors:
         You can conveniently combine several stop criterias.
         -->
         <Option name="End" type="Time" value="30.0" />
-        <!-- Time step alternatives. 
-            value="Variable": Time step is calculated every iteration in order
-            to preserve the Courant number.
-            value="Fix": Time step is calculated at the simulation starting,
-            becoming preserved along it. 
-            value="*FloatValue*": Time step is the float value provided
-        -->
-        <Option name="TimeStep" value="Fix"/>
-        <!-- The minimum time step allowed. When this value is reached the time
-        step is clamped.
-        -->
-        <Option name="MinTimeStep" value="0.0"/>
-        <!-- The Courant factor. If the time step value is computed (i.e. the
-        value has not been provided) it will be multiplied by this factor.
-        -->
-        <Option name="Courant" value="0.2"/>
-
-        <!-- Velocity clamping. If a particle velocity grater than the
-        tolerated by the minimum time step is detected, it will be clamped.
-        -->
-        <Option name="ClampVel" value="False"/>
 
         <!-- Set the log file printing criteria. Log file contains relevant
         data about the AQUAgpusph execution, i.e.- Warnings, errors, or
@@ -61,19 +40,6 @@ Authors:
         You can conveniently combine several printing criterias.
         -->
         <Option name="LogFile" type="FPS" value="120" />
-        <!-- Set the energy report printing criteria. Energy report contains
-        fluid energy data, like potential, kinetic and total energy.
-            type="FPS" It will be updated this value of times per second.
-            type="IPF" It will be updated after this value of iterations.
-        You can conveniently combine several printing criterias.
-        -->
-        <Option name="EnFile" type="FPS" value="120" />
-        <!-- Set the fluid bounds report printing criteria.
-            type="FPS" It will be updated this value of times per second.
-            type="IPF" It will be updated after this value of iterations.
-        You can conveniently combine several printing criterias.
-        -->
-        <Option name="BoundsFile" type="No" />
         <!-- Set output files print criteria
             type="FPS" Frames per second
             type="IPF" Iterations per frame
