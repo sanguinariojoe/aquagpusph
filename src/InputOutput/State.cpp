@@ -415,7 +415,7 @@ bool State::parseTools(DOMElement *root)
             }
             else if(!strcmp(xmlAttribute(s_elem, "action"), "insert")){
                 unsigned int place = 0;
-                if(xmlHasAttribute(s_elem, "in")){
+                if(xmlHasAttribute(s_elem, "at")){
                     place = atoi(xmlAttribute(s_elem, "at"));
                 }
                 else if(xmlHasAttribute(s_elem, "before")){
