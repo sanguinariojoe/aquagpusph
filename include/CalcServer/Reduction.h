@@ -44,8 +44,8 @@ public:
      * @param output_name Variable where the reduced value will be stored.
      * @param operation The reduction operation.
      * For instance:
-     *   - "a += b;"
-     *   - "a.x = (a.x < b.x) ? a.x : b.x; a.y = (a.y < b.y) ? a.y : b.y;"
+     *   - "c += b;"
+     *   - "c.x = (a.x < b.x) ? a.x : b.x; a.y = (a.y < b.y) ? a.y : b.y;"
      * @param null_val The value considered as the null one, i.e. INFINITY for
      * float min value reduction, or (vec2)(0.f,0.f) for a 2D vec sum reduction.
      * @note Some helpers are available for null_val:

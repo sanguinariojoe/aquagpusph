@@ -29,10 +29,10 @@ forces_M = Fluid moments
     <Tools>
         <Tool action="insert" before="t = t + dt" type="kernel" name="Forces" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Forces.cl"/>
         <Tool action="insert" after="Forces" type="reduction" name="TotalForce" in="forces_f" out="forces_F" null="VEC_ZERO">
-            a = a + b;
+            c = a + b;
         </Tool>
         <Tool action="insert" after="TotalForce" type="reduction" name="TotalMoment" in="forces_m" out="forces_M" null="VEC_ZERO">
-            a = a + b;
+            c = a + b;
         </Tool>
     </Tools>
 </sphInput>
