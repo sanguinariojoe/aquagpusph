@@ -1,4 +1,20 @@
 <?xml version="1.0" ?>
+
+<!-- motion.xml
+Generic motion controlled by a Python script.
+This preset is designed to be loaded after cfd.xml.
+
+To use it, just include this file, and later set the initial values for the
+variables:
+motion_r = Position of the center of rotation
+motion_drdt = Linear velocity towards x, y, z
+motion_a = Rotation angles phi, theta, psi
+motion_dadt = angular velocities dphidt, dthetadt, dpsidt
+
+You should provide a Motion.py script in your execution path, where such
+variables should be set each time step
+-->
+
 <sphInput>
     <Variables>
         <!-- position and velocity -->
