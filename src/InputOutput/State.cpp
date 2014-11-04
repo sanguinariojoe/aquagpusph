@@ -612,14 +612,7 @@ bool State::parseTiming(DOMElement *root)
                 continue;
             DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
             const char *name = xmlAttribute(s_elem, "name");
-            if(!strcmp(name, "Start") || !strcmp(name, "SimulationStart")){
-                P->time_opts.t0 = atof(xmlAttribute(s_elem, "value"));
-                P->time_opts.dt0 = atof(xmlAttribute(s_elem, "dt"));
-                P->time_opts.step0 = atoi(xmlAttribute(s_elem, "iter"));
-                P->time_opts.frame0 = atoi(xmlAttribute(s_elem, "frame"));
-            }
-
-            else if(!strcmp(name, "End") || !strcmp(name, "SimulationStop")){
+            if(!strcmp(name, "End") || !strcmp(name, "SimulationStop")){
                 const char *type = xmlAttribute(s_elem, "type");
                 if(!strcmp(type, "Time") || !strcmp(type, "T")){
                     P->time_opts.sim_end_mode =
@@ -651,7 +644,6 @@ bool State::parseTiming(DOMElement *root)
                     return true;
                 }
             }
-
             else if(!strcmp(name, "LogFile")){
                 const char *type = xmlAttribute(s_elem, "type");
                 if(!strcmp(type, "No")){

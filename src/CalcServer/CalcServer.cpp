@@ -66,12 +66,10 @@ CalcServer::CalcServer()
     }
 
     unsigned int num_sets = P->sets.size();
-    unsigned int num_sensors = P->SensorsParameters.pos.size();
-    unsigned int n = 0;
+    unsigned int N = 0;
     for(i = 0; i < P->sets.size(); i++) {
-        n += P->sets.at(i)->n();
+        N += P->sets.at(i)->n();
     }
-    unsigned int N = n + num_sensors;
 
     unsigned int num_icell = nextPowerOf2(N);
     num_icell = roundUp(num_icell, _ITEMS*_GROUPS);
@@ -90,12 +88,6 @@ CalcServer::CalcServer()
         exit(EXIT_FAILURE);
     sprintf(val, "%u", 0);
     if(_vars->registerVariable("iter", "unsigned int", len, val))
-        exit(EXIT_FAILURE);
-    sprintf(val, "%u", n);
-    if(_vars->registerVariable("n", "unsigned int", len, val))
-        exit(EXIT_FAILURE);
-    sprintf(val, "%u", num_sensors);
-    if(_vars->registerVariable("n_sensors", "unsigned int", len, val))
         exit(EXIT_FAILURE);
     sprintf(val, "%u", N);
     if(_vars->registerVariable("N", "unsigned int", len, val))

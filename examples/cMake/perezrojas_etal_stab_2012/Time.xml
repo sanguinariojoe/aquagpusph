@@ -19,11 +19,6 @@ Authors:
 
 <sphInput>
 	<Timing>
-        <!-- Set the simulation start instant.
-        Usually you would use 0.0, but a negative value could be used to set an
-        stabilization period before the simulation.
-        -->
-        <Option name="Start" value="0.0" />
         <!-- Set the simulation end citeria             
             type="Frames" Simulation ends after print a number of frames
             type="Steps" Simulation ends after perform a number of time steps

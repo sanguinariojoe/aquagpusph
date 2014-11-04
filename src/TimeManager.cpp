@@ -126,11 +126,11 @@ TimeManager::TimeManager()
         _output_fps = P->time_opts.output_fps;
     }
 
-    *_step = P->time_opts.step0;
-    *_dt = P->time_opts.dt0;
-    *_time = P->time_opts.t0;
-    _start_time = P->time_opts.t0;
-    _frame = P->time_opts.frame0;
+    *_step = 0;
+    *_dt = 0.f;
+    *_time = 0.f;
+    _start_time = 0.f;
+    _frame = 0;
 
     if(*_time > 0.f){
         _log_time = *_time;

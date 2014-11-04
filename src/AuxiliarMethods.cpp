@@ -165,17 +165,6 @@ size_t loadKernelFromFile(cl_kernel* kernel, cl_program* program,
     #else
         strcat(default_flags, " -DHAVE_2D ");
     #endif
-    sprintf(default_flags, "%s -Dh=%ff ", default_flags,
-            problemSetup->SPH_opts.h);
-    sprintf(default_flags, "%s -D__BOUNDARY__=%u ", default_flags,
-            problemSetup->SPH_opts.boundary_type);
-    switch(problemSetup->SPH_opts.slip_condition){
-        case 1:
-            strcat(default_flags, "-D__FREE_SLIP__ ");
-            break;
-        default:
-            strcat(default_flags, "-D__NO_SLIP__ ");
-    }
 
     strcat(default_flags, flags);
     char msg[1024];
