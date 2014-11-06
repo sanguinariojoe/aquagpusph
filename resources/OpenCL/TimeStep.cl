@@ -44,10 +44,10 @@ __kernel void main(__global float* dt_var,
                    float courant,
                    float h)
 {
-	unsigned int i = get_global_id(0);
-	if(i >= N)
-		return;
+    unsigned int i = get_global_id(0);
+    if(i >= N)
+        return;
 
-	const float vv = 10.f * fast_length(v[i] + dvdt[i] * dt);
-	dt_var[i] = min(dt, h / vv);
+    const float vv = 10.f * fast_length(v[i] + dvdt[i] * dt);
+    dt_var[i] = min(dt, h / vv);
 }
