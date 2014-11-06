@@ -55,8 +55,6 @@ SET(EXAMPLE_AUX_DIR ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_e
 SET(EXAMPLE_DEST_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/examples/perezrojas_etal_stab_2012)
 SET(BINARY_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 # XML definition files
-configure_file(${EXAMPLE_ORIG_DIR}/Move/6DOF.xml
-	${EXAMPLE_AUX_DIR}/Move/6DOF.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/Fluids.xml
 	${EXAMPLE_AUX_DIR}/Fluids.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/Main.xml
@@ -76,8 +74,6 @@ configure_file(${EXAMPLE_ORIG_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE9_TLD
 	${EXAMPLE_AUX_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE9_TLD.pdf @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/Move/T_1-94_A100mm_water.dat
 	${EXAMPLE_AUX_DIR}/Move/T_1-94_A100mm_water.dat @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/Move/move.py
-	${EXAMPLE_AUX_DIR}/Move/move.py @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/Motion.py
 	${EXAMPLE_AUX_DIR}/Motion.py @ONLY)
 # Particles generation script
@@ -118,8 +114,6 @@ INSTALL(
 INSTALL(
     FILES
         ${EXAMPLE_AUX_DIR}/Move/T_1-94_A100mm_water.dat
-        ${EXAMPLE_AUX_DIR}/Move/6DOF.xml
-        ${EXAMPLE_AUX_DIR}/Move/move.py
     DESTINATION
         ${EXAMPLE_DEST_DIR}/Move
 )
