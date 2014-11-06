@@ -768,22 +768,31 @@ bool RadixSort::compile(const char* source)
 	    S->addMessage(3, "Error compiling the source code\n");
         S->printOpenCLError(err_code);
 	    S->addMessage(3, "--- Build log ---------------------------------\n");
-	    size_t log_size;
-	    clGetProgramBuildInfo(program,
+        size_t log_size = 0;
+        clGetProgramBuildInfo(program,
                               C->device(),
                               CL_PROGRAM_BUILD_LOG,
                               0,
                               NULL,
                               &log_size);
-	    char *log = (char*)malloc(log_size + sizeof(char));
-	    clGetProgramBuildInfo(program,
+        char *log = (char*)malloc(log_size + sizeof(char));
+        if(!log){
+            sprintf(msg,
+                    "Failure allocating %lu bytes for the building log\n",
+                    log_size);
+            S->addMessage(3, msg);
+            S->addMessage(3, "--------------------------------- Build log ---\n");
+            return NULL;
+        }
+        strcpy(log, "");
+        clGetProgramBuildInfo(program,
                               C->device(),
                               CL_PROGRAM_BUILD_LOG,
                               log_size,
                               log,
                               NULL);
-	    strcat(log, "\n");
-	    S->addMessage(0, log);
+        strcat(log, "\n");
+        S->addMessage(0, log);
 	    S->addMessage(3, "--------------------------------- Build log ---\n");
 	    free(log); log=NULL;
         clReleaseProgram(program);

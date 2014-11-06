@@ -263,7 +263,7 @@ cl_kernel Set::compile(const char* source)
         S->addMessage(3, "Error compiling the source code\n");
         S->printOpenCLError(err_code);
         S->addMessage(3, "--- Build log ---------------------------------\n");
-        size_t log_size;
+        size_t log_size = 0;
         clGetProgramBuildInfo(program,
                               C->device(),
                               CL_PROGRAM_BUILD_LOG,
@@ -271,6 +271,15 @@ cl_kernel Set::compile(const char* source)
                               NULL,
                               &log_size);
         char *log = (char*)malloc(log_size + sizeof(char));
+        if(!log){
+            sprintf(msg,
+                    "Failure allocating %lu bytes for the building log\n",
+                    log_size);
+            S->addMessage(3, msg);
+            S->addMessage(3, "--------------------------------- Build log ---\n");
+            return NULL;
+        }
+        strcpy(log, "");
         clGetProgramBuildInfo(program,
                               C->device(),
                               CL_PROGRAM_BUILD_LOG,

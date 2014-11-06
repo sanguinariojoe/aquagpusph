@@ -187,9 +187,29 @@ size_t loadKernelFromFile(cl_kernel* kernel, cl_program* program,
         S->addMessageF(3, "Can't compile OpenCl source code.\n");
         S->printOpenCLError(err_code);
         S->addMessage(3, "--- Build log ---------------------------------\n");
-        char log[10240];
-        clGetProgramBuildInfo(*program, device, CL_PROGRAM_BUILD_LOG,
-                              10240*sizeof(char), log, NULL );
+        size_t log_size = 0;
+        clGetProgramBuildInfo(*program,
+                              device,
+                              CL_PROGRAM_BUILD_LOG,
+                              0,
+                              NULL,
+                              &log_size);
+        char *log = (char*)malloc(log_size + sizeof(char));
+        if(!log){
+            sprintf(msg,
+                    "Failure allocating %lu bytes for the building log\n",
+                    log_size);
+            S->addMessage(3, msg);
+            S->addMessage(3, "--------------------------------- Build log ---\n");
+            return NULL;
+        }
+        strcpy(log, "");
+        clGetProgramBuildInfo(*program,
+                              device,
+                              CL_PROGRAM_BUILD_LOG,
+                              log_size,
+                              log,
+                              NULL);
         strcat(log, "\n");
         S->addMessage(0, log);
         S->addMessage(3, "--------------------------------- Build log ---\n");
