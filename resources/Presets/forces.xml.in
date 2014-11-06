@@ -31,7 +31,7 @@ forces_M = Fluid moments
         <Tool action="insert" after="Forces" type="reduction" name="TotalForce" in="forces_f" out="forces_F" null="VEC_ZERO">
             c = a + b;
         </Tool>
-        <Tool action="insert" after="TotalForce" type="reduction" name="TotalMoment" in="forces_m" out="forces_M" null="VEC_ZERO">
+        <Tool action="insert" after="TotalForce" type="reduction" name="TotalMoment" in="forces_m" out="forces_M" null="(vec4)(0.f, 0.f, 0.f, 0.f)">
             c = a + b;
         </Tool>
     </Tools>
