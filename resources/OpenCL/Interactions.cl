@@ -141,14 +141,14 @@ __kernel void main(const __global uint* iset,
     // Initialize the output
     #ifndef LOCAL_MEM_SIZE
         #define _GRADP_ grad_p[i]
-        #define _LAPU_ lap_u[it]
+        #define _LAPU_ lap_u[i]
         #define _DIVU_ div_u[i]
         #define _LAPP_ lap_p[i]
         #define _SHEPARD_ shepard[i]
     #else
         #define _GRADP_ grad_p_l[it]
         #define _LAPU_ lap_u_l[it]
-        #define _DIVU_ div_u_l[i]
+        #define _DIVU_ div_u_l[it]
         #define _LAPP_ lap_p_l[it]
         #define _SHEPARD_ shepard_l[it]
         __local vec grad_p_l[LOCAL_MEM_SIZE];
