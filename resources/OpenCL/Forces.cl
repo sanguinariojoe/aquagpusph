@@ -62,24 +62,24 @@ __kernel void main(__global vec* forces_f,
                    vec g,
                    vec forces_r)
 {
-	// find position in global arrays
-	unsigned int i = get_global_id(0);
-	if(i >= N)
-		return;
-	if(imove[i] <= 0){
-		forces_f[i] = VEC_ZERO;
-		forces_m[i] = VEC_ZERO;
-		return;
-	}
+    // find position in global arrays
+    unsigned int i = get_global_id(0);
+    if(i >= N)
+        return;
+    if(imove[i] <= 0){
+        forces_f[i] = VEC_ZERO;
+        forces_m[i] = VEC_ZERO;
+        return;
+    }
 
-	const vec arm = pos[i] - forces_r;
-	const vec acc = g - dvdt[i];
-	const float mass = m[i];
-	forces_f[i] = mass * acc;
-	forces_m[i].z = mass * (arm.x * acc.y - arm.y * acc.x);
-	forces_m[i].w = 0.f;
-	#ifdef HAVE_3D
-		forces_m[i].x = mass * (arm.y * acc.z - arm.z * acc.y);
-		forces_m[i].y = mass * (arm.z * acc.x - arm.x * acc.z);
-	#endif
+    const vec arm = pos[i] - forces_r;
+    const vec acc = g - dvdt[i];
+    const float mass = m[i];
+    forces_f[i] = mass * acc;
+    forces_m[i].z = mass * (arm.x * acc.y - arm.y * acc.x);
+    forces_m[i].w = 0.f;
+    #ifdef HAVE_3D
+        forces_m[i].x = mass * (arm.y * acc.z - arm.z * acc.y);
+        forces_m[i].y = mass * (arm.z * acc.x - arm.x * acc.z);
+    #endif
 }

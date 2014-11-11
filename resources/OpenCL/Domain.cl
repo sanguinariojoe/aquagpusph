@@ -48,36 +48,36 @@ __kernel void main(__global int* imove,
                    vec domain_min,
                    vec domain_max)
 {
-	// find position in global arrays
-	unsigned int i = get_global_id(0);
-	if(i >= N)
-		return;
+    // find position in global arrays
+    unsigned int i = get_global_id(0);
+    if(i >= N)
+        return;
 
-	const vec coords = pos[i];
-	if(    (coords.x < domain_min.x)
-	    || (coords.y < domain_min.y)
-	    || (coords.x > domain_max.x)
-	    || (coords.y > domain_max.y)
-	    #ifdef HAVE_3D
-	    || (coords.z < domain_min.z)
-	    || (coords.z > domain_max.z)
-	    #endif
-	  )
-	{
-		// Set as fixed zero mass particle (sensor equivalent)
-		imove[i] = 0;
-		m[i] = 0.f;
-		// Stop the particle
-		v[i] = VEC_ZERO;
-		dvdt[i] = VEC_ZERO;
-		// Clamp the position
-		pos[i].x = max(pos[i].x, domain_min.x);
-		pos[i].x = min(pos[i].x, domain_max.x);
-		pos[i].y = max(pos[i].y, domain_min.y);
-		pos[i].y = min(pos[i].y, domain_max.y);
-		#ifdef HAVE_3D
-			pos[i].z = max(pos[i].z, domain_min.z);
-			pos[i].z = min(pos[i].z, domain_max.z);
-		#endif
-	}
+    const vec coords = pos[i];
+    if(    (coords.x < domain_min.x)
+        || (coords.y < domain_min.y)
+        || (coords.x > domain_max.x)
+        || (coords.y > domain_max.y)
+        #ifdef HAVE_3D
+        || (coords.z < domain_min.z)
+        || (coords.z > domain_max.z)
+        #endif
+      )
+    {
+        // Set as fixed zero mass particle (sensor equivalent)
+        imove[i] = 0;
+        m[i] = 0.f;
+        // Stop the particle
+        v[i] = VEC_ZERO;
+        dvdt[i] = VEC_ZERO;
+        // Clamp the position
+        pos[i].x = max(pos[i].x, domain_min.x);
+        pos[i].x = min(pos[i].x, domain_max.x);
+        pos[i].y = max(pos[i].y, domain_min.y);
+        pos[i].y = min(pos[i].y, domain_max.y);
+        #ifdef HAVE_3D
+            pos[i].z = max(pos[i].z, domain_min.z);
+            pos[i].z = min(pos[i].z, domain_max.z);
+        #endif
+    }
 }

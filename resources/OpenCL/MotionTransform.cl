@@ -70,12 +70,12 @@ __kernel void main(const __global int* imove,
                    vec motion_r,
                    vec4 motion_a)
 {
-	// find position in global arrays
-	int i = get_global_id(0);
-	if(i >= N)
-		return;
-	if(imove[i]>0)
-		return;
+    // find position in global arrays
+    int i = get_global_id(0);
+    if(i >= N)
+        return;
+    if(imove[i]>0)
+        return;
 
     vec r, rr, n, nn;
 

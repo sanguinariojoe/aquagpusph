@@ -90,34 +90,28 @@ __kernel void main(__global int* imove,
                    unsigned int N,
                    float dt)
 {
-	// find position in global arrays
-	unsigned int i = get_global_id(0);
-	if(i >= N)
-		return;
+    // find position in global arrays
+    unsigned int i = get_global_id(0);
+    if(i >= N)
+        return;
 
-	// ---- | ------------------------ | ----
-	// ---- V ---- Your code here ---- V ----
+    float DT, HDT;
+    DT = dt;
+    if(imove[i] <= 0)
+            DT = 0.f;
+    HDT = 0.5f * DT;
 
-	float DT, HDT;
-	DT = dt;
-	if(imove[i] <= 0)
-	        DT = 0.f;
-	HDT = 0.5f * DT;
-
-	// Corrector step for the fluid
-	v[i] += HDT * (dvdt[i] - dvdt_in[i]);
+    // Corrector step for the fluid
+    v[i] += HDT * (dvdt[i] - dvdt_in[i]);
     if(imove[i] == -1){
-		// Continuity equation must be solved for fixed particles too
+        // Continuity equation must be solved for fixed particles too
         HDT = 0.5f * dt;
     }
-	rho[i] += HDT * (drhodt[i] - drhodt_in[i]);
+    rho[i] += HDT * (drhodt[i] - drhodt_in[i]);
 
-	pos_in[i] = pos[i];
-	v_in[i] = v[i];
-	rho_in[i] = rho[i];
-	dvdt_in[i] = dvdt[i];
-	drhodt_in[i] = drhodt[i];
-
-	// ---- A ---- Your code here ---- A ----
-	// ---- | ------------------------ | ----
+    pos_in[i] = pos[i];
+    v_in[i] = v[i];
+    rho_in[i] = rho[i];
+    dvdt_in[i] = dvdt[i];
+    drhodt_in[i] = drhodt[i];
 }

@@ -35,8 +35,8 @@
 #endif
 
 if(imove[j] != -3){
-	j++;
-	continue;
+    j++;
+    continue;
 }
 
 // ------------------------------------------------------------------
@@ -45,8 +45,8 @@ if(imove[j] != -3){
 const vec n_j = normal[j];  // Assumed outwarding oriented
 const float rho_j = rho[j];
 if(rho_j <= 0.01f * refd_i){
-	j++;
-	continue;
+    j++;
+    continue;
 }
 const float area_j = m[j];
 
@@ -62,19 +62,19 @@ if(q >= support){
 // ------------------------------------------------------------------
 {
     const float p_j = p[j];
-	const vec dv = v[j] - v_i;
-	const float vdr = rho_j * dot(dv, n_j);
-	//---------------------------------------------------------------
-	//       calculate the kernel wab
-	//---------------------------------------------------------------
-	const float wab = kernelW(q) * conw * area_j;
-	//---------------------------------------------------------------
-	//       calculate the pressure factor
-	//---------------------------------------------------------------
-	const vec prfac = rho_j * (prfac_i + p_j / (rho_j * rho_j)) * n_j;
-	//---------------------------------------------------------------
+    const vec dv = v[j] - v_i;
+    const float vdr = rho_j * dot(dv, n_j);
+    //---------------------------------------------------------------
+    //       calculate the kernel wab
+    //---------------------------------------------------------------
+    const float wab = kernelW(q) * conw * area_j;
+    //---------------------------------------------------------------
+    //       calculate the pressure factor
+    //---------------------------------------------------------------
+    const vec prfac = rho_j * (prfac_i + p_j / (rho_j * rho_j)) * n_j;
+    //---------------------------------------------------------------
     //       calculate viscosity terms
-	//---------------------------------------------------------------
+    //---------------------------------------------------------------
     const float r2 = (q * q + 0.01f) * h * h;
     const vec lapufac = __CLEARY__ * vdr / (r2 * rho_i * rho_j) * n_j;
     //---------------------------------------------------------------
