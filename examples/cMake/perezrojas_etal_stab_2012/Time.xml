@@ -12,13 +12,13 @@
 Another QUAlity GPU-SPH, by CEHINAV.
     http://canal.etsin.upm.es/
 Authors:
-	Jose Luis Cercos-Pita
-	Leo Miguel Gonzalez
-	Antonio Souto-Iglesias
+    Jose Luis Cercos-Pita
+    Leo Miguel Gonzalez
+    Antonio Souto-Iglesias
 -->
 
 <sphInput>
-	<Timing>
+    <Timing>
         <!-- Set the simulation end citeria             
             type="Frames" Simulation ends after print a number of frames
             type="Steps" Simulation ends after perform a number of time steps
@@ -41,5 +41,5 @@ Authors:
         You can conveniently combine several printing criterias.
         -->
         <Option name="Output" type="FPS" value="30" />
-	</Timing>
+    </Timing>
 </sphInput>
