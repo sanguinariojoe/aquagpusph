@@ -40,18 +40,18 @@
 # Input data
 # ==========
 
-cs    = 30.0
-refd  = 998.0
+cs = 30.0
+refd = 998.0
 gamma = 7.0
-g     = 9.81
+g = 9.81
 # Tank dimensions
-H  = 0.508
-L  = 0.9
-D  = 0.062
+H = 0.508
+L = 0.9
+D = 0.062
 # Fluid
-h  = 0.092
+h = 0.092
 # Stimated required number of fluid particles
-n  = 100000
+n = 100000
 
 # Dimensions and number of particles readjustment
 # ===============================================
@@ -88,7 +88,7 @@ N = 2 * Nx * Ny + 2 * Nx * Nz + 2 * Ny * Nz
 prb = cs * cs * refd / gamma
 
 print("Opening output file...")
-output = open("Fluid.dat","w")
+output = open("Fluid.dat", "w")
 string = """#############################################################
 #                                                           #
 #    #    ##   #  #   #                           #         #
@@ -146,10 +146,10 @@ for i in range(0, n):
     pos = (idx * dr - 0.5 * (D - dr),
            idy * dr - 0.5 * (L - dr),
            idz * dr + 0.5 * dr)
-    press = refd * g * (hFluid - pos[2]);
-    dens = pow(press / prb + 1.0, 1.0 / gamma) * refd;
+    press = refd * g * (hFluid - pos[2])
+    dens = pow(press / prb + 1.0, 1.0 / gamma) * refd
     mass = dens * dr**3.0
-    string = "{} {} {} 0.0,{} {} {} 0.0,{} {} {} 0.0,{} {} {} 0.0,{},{},{},{}\n".format(
+    string = "{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n".format(
         pos[0], pos[1], pos[2],
         0.0, 0.0, 0.0,
         0.0, 0.0, 0.0,
@@ -220,18 +220,18 @@ for i in range(0, N):
         idy = idd / Nz + 0.5
         idz = idd % Nz + 0.5
         normal = [1.0, 0.0, 0.0]
-    pos = (idx * dr / DeLeffeDistFactor - 0.5 * D, 
-           idy * dr / DeLeffeDistFactor - 0.5 * L, 
+    pos = (idx * dr / DeLeffeDistFactor - 0.5 * D,
+           idy * dr / DeLeffeDistFactor - 0.5 * L,
            idz * dr / DeLeffeDistFactor)
     if pos[2] <= hFluid:
-        press = refd * g * (hFluid - pos[2]);
-        dens  = pow(press / prb + 1.0, 1.0 / gamma) * refd;
+        press = refd * g * (hFluid - pos[2])
+        dens = pow(press / prb + 1.0, 1.0 / gamma) * refd
     else:
-        dens  = refd;
-        press = prb*pow(dens / refd, gamma - 1.0 );
+        dens = refd
+        press = prb*pow(dens / refd, gamma - 1.0)
     imove = -3
-    mass  = (dr / DeLeffeDistFactor)**2.0
-    string = "{} {} {} 0.0,{} {} {} 0.0,{} {} {} 0.0,{} {} {} 0.0,{},{},{},{}\n".format(
+    mass = (dr / DeLeffeDistFactor)**2.0
+    string = "{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n".format(
         pos[0], pos[1], pos[2],
         normal[0], normal[1], normal[2],
         0.0, 0.0, 0.0,
