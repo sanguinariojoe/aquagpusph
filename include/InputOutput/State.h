@@ -137,6 +137,13 @@ protected:
      */
     bool parseSet(xercesc::DOMElement *root);
 
+    /** @brief Parse the reports sections.
+     * @param root root XML node.
+     * @return false if all gone right, true otherwise
+     * @see Aqua::InputOutput::ProblemSetup::sphTool
+     */
+    bool parseReports(xercesc::DOMElement *root);
+
     /** @brief Write the XML file
      * @param filepath file to be written.
      * @return false if all gone right, true otherwise
@@ -182,6 +189,14 @@ protected:
      * @see Aqua::InputOutput::ProblemSetup::sphParticlesSet
      */
     bool writeSet(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
+
+    /** @brief Write the reports section.
+     * @param doc XML generated document.
+     * @param root Root XML node.
+     * @return false if all gone right, true otherwise
+     * @see Aqua::InputOutput::ProblemSetup::sphTool
+     */
+    bool writeReports(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
 
 private:
     /// Output file

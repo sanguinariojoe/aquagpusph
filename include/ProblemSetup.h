@@ -339,6 +339,13 @@ public:
     /// Array of tools
     std::deque<sphTool*> tools;
 
+    /** @brief Array of reports.
+     *
+     * Reports are a some kind of special tools dedicated to generate summary
+     * outputs.
+     */
+    std::deque<sphTool*> reports;
+
     /** @struct sphTimingParameters
      * @brief Simulation time flow options.
      *

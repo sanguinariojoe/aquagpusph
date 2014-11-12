@@ -772,6 +772,91 @@ bool State::parseSet(DOMElement *root)
     return false;
 }
 
+bool State::parseReports(DOMElement *root)
+{
+    ScreenManager *S = ScreenManager::singleton();
+    ProblemSetup *P = ProblemSetup::singleton();
+    char msg[1024]; strcpy(msg, "");
+    DOMNodeList* nodes = root->getElementsByTagName(xmlS("Reports"));
+    for(XMLSize_t i=0; i<nodes->getLength(); i++){
+        DOMNode* node = nodes->item(i);
+        if(node->getNodeType() != DOMNode::ELEMENT_NODE)
+            continue;
+        DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
+        DOMNodeList* s_nodes = elem->getElementsByTagName(xmlS("Report"));
+        for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
+            DOMNode* s_node = s_nodes->item(j);
+            if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
+                continue;
+            DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+            if(!xmlHasAttribute(s_elem, "name")){
+                S->addMessageF(3, "Found a report without name\n");
+                return true;
+            }
+            if(!xmlHasAttribute(s_elem, "type")){
+                S->addMessageF(3, "Found a report without type\n");
+                return true;
+            }
+            if(!xmlHasAttribute(s_elem, "fields")){
+                S->addMessageF(3, "Found a report without fields\n");
+                return true;
+            }
+
+            // Create the report
+            ProblemSetup::sphTool *report = new ProblemSetup::sphTool();
+            report->set("name", xmlAttribute(s_elem, "name"));
+            report->set("type", xmlAttribute(s_elem, "type"));
+            report->set("fields", xmlAttribute(s_elem, "fields"));
+            if(xmlHasAttribute(s_elem, "ipf")){
+                report->set("ipf", xmlAttribute(s_elem, "ipf"));
+            }
+            else{
+                report->set("ipf", "1");
+            }
+            P->reports.push_back(report);
+
+            // Configure the report
+            if(!strcmp(xmlAttribute(s_elem, "type"), "screen")){
+                if(xmlHasAttribute(s_elem, "bold")){
+                    report->set("bold", xmlAttribute(s_elem, "bold"));
+                }
+                else{
+                    report->set("bold", "false");
+                }
+                if(xmlHasAttribute(s_elem, "color")){
+                    report->set("color", xmlAttribute(s_elem, "color"));
+                }
+                else{
+                    report->set("color", xmlAttribute(s_elem, "white"));
+                }
+            }
+            else if(!strcmp(xmlAttribute(s_elem, "type"), "file")){
+                if(!xmlHasAttribute(s_elem, "path")){
+                    sprintf(msg,
+                            "Report \"%s\" is of type \"file\", but the output \"path\" is not defined.\n",
+                            report->get("name"));
+                    S->addMessageF(3, msg);
+                    return true;
+                }
+                report->set("path", xmlAttribute(s_elem, "path"));
+            }
+            else if(!strcmp(xmlAttribute(s_elem, "type"), "log")){
+            }
+            else{
+                sprintf(msg,
+                        "Unknown \"type\" for the report \"%s\".\n",
+                        report->get("name"));
+                S->addMessageF(3, msg);
+                S->addMessage(0, "\tThe valid types are:\n");
+                S->addMessage(0, "\t\tscreen\n");
+                S->addMessage(0, "\t\tfile\n");
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 bool State::write(const char* filepath)
 {
     DOMImplementation* impl;
@@ -940,6 +1025,33 @@ bool State::writeTools(xercesc::DOMDocument* doc,
         for(j = 0; j < tool->n(); j++){
             const char* name = tool->getName(j);
             const char* value = tool->get(j);
+            elem->setAttribute(xmlS(name), xmlS(value));
+        }
+    }
+
+    return false;
+}
+
+bool State::writeReports(xercesc::DOMDocument* doc,
+                         xercesc::DOMElement *root)
+{
+    unsigned int i, j;
+    DOMElement *elem;
+    ProblemSetup *P = ProblemSetup::singleton();
+
+    elem = doc->createElement(xmlS("Reports"));
+    root->appendChild(elem);
+
+    std::deque<ProblemSetup::sphTool*> reports = P->reports;
+
+    for(i = 0; i < reports.size(); i++){
+        elem = doc->createElement(xmlS("Tool"));
+        root->appendChild(elem);
+        ProblemSetup::sphTool* report = reports.at(i);
+
+        for(j = 0; j < report->n(); j++){
+            const char* name = report->getName(j);
+            const char* value = report->get(j);
             elem->setAttribute(xmlS(name), xmlS(value));
         }
     }

@@ -54,6 +54,10 @@ ProblemSetup::~ProblemSetup()
         delete tools.at(i);
     }
     tools.clear();
+    for(i = 0; i < reports.size(); i++){
+        delete reports.at(i);
+    }
+    reports.clear();
     for(i=0;i<sets.size();i++){
         delete sets.at(i);
     }
