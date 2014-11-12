@@ -26,6 +26,7 @@
 #include <string.h>
 #include <limits>
 #include <sys/time.h>
+#include <unistd.h>
 
 #include <CalcServer.h>
 #include <AuxiliarMethods.h>
@@ -235,6 +236,7 @@ bool CalcServer::update()
         // Execute the tools
         for(i = 0; i < _tools.size(); i++){
             if(_tools.at(i)->execute()){
+                sleep(2);  // Let 2 seconds to see the message
                 return true;
             }
         }
@@ -242,7 +244,8 @@ bool CalcServer::update()
         // Key events
         while(isKeyPressed()){
             if(getchar() == 'c'){
-                S->addMessageF(1, "Interrumption request detected.\n");
+                S->addMessageF(2, "Interrumption request detected.\n");
+                sleep(2);  // Let 2 seconds to see the message
                 return true;
             }
         }

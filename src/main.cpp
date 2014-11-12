@@ -78,6 +78,7 @@
 #include <CalcServer.h>
 #include <TimeManager.h>
 #include <ScreenManager.h>
+#include <unistd.h>
 
 /** @namespace Aqua
  * @brief Main AQUAgpusph namespace.
@@ -198,6 +199,7 @@ int main(int argc, char *argv[])
         }
 
         if(F->save()){
+            sleep(2);  // Let 2 seconds to see the message
             float Time = T->time();
             delete S; S = NULL;
             S->printDate();
