@@ -28,16 +28,17 @@
 #include <ProblemSetup.h>
 #include <TimeManager.h>
 
-WINDOW *wnd;
+#ifdef HAVE_NCURSES
+    WINDOW *wnd, *log_wnd;
+#endif
 
 namespace Aqua{ namespace InputOutput{
 
 ScreenManager::ScreenManager()
+    : _last_row(0)
 {
     int i;
-    TimeManager *T = TimeManager::singleton();
 
-    _n_log = 20;
     #ifdef HAVE_NCURSES
         wnd = initscr();
         if(!wnd){
@@ -46,298 +47,126 @@ ScreenManager::ScreenManager()
         }
         if(has_colors())
             start_color();
-        int rows, cols;
-        getmaxyx(wnd,rows,cols);
-        // 17 lines for the fix text (including the log registry title)
-        _n_log = rows - 17;
+        log_wnd = NULL;
     #endif
 
     gettimeofday(&_start_time, NULL);
-
-    _c_log = new int[_n_log];
-    _m_log = new char*[_n_log];
-    for(i=0;i<_n_log;i++)
-    {
-        _c_log[i] = 0;
-        _m_log[i] = new char[128];
-    }
-
-    _old_frame = -1;
 }
 
 ScreenManager::~ScreenManager()
 {
-    int i;
-    // Stop ncurses
+    unsigned int i;
     #ifdef HAVE_NCURSES
+        // Stop ncurses
         endwin();
     #endif
     // Free allocated memory
-    delete[] _c_log;
-    for(i=0;i<_n_log;i++)
-        delete[] _m_log[i];
-    delete[] _m_log;
+    for(i = 0; i < _log.size(); i++){
+        delete[] _log.at(i);
+    }
+    _log_level.clear();
+    _log.clear();
 }
 
-void ScreenManager::update()
+void ScreenManager::initFrame()
 {
-    ProblemSetup *P = ProblemSetup::singleton();
-    TimeManager *T = TimeManager::singleton();
-
-    if(!P->settings.verbose_level)
-    {
-        #ifdef HAVE_NCURSES
-            move(10, 2);
-            printw("Verbose level = 0, no data will be printed.");
-            refresh();
-        #endif
-        return;
-    }
-
-    if((P->settings.verbose_level == 1) && (_old_frame == T->frame()))
-    {
-        return;
-    }
-    _old_frame = T->frame();
-
-    float Percentage = 0;
-    int iPercentage = 0;
-    long seconds;
-    unsigned int i,line;
-
     #ifdef HAVE_NCURSES
+        // Clear the entire frame
         if(!wnd)
             return;
         clear();
+
+        // Init the colour pairs
         init_pair(1, COLOR_WHITE, COLOR_BLACK);
         init_pair(2, COLOR_GREEN, COLOR_BLACK);
         init_pair(3, COLOR_BLUE, COLOR_BLACK);
         init_pair(4, COLOR_YELLOW, COLOR_BLACK);
         init_pair(5, COLOR_RED, COLOR_BLACK);
-    #endif
 
-    #ifdef HAVE_NCURSES
-        attron(A_NORMAL | COLOR_PAIR(2));
-        move(1, 2);
-        printw("Time: %g s (dt = %g s).", T->time() - T->dt(), T->dt());
-    #else
-        printf("Time: %g s (dt = %g s).\n", T->time() - T->dt(), T->dt());
+        // Setup the default font
+        attron(A_NORMAL);
+        attron(COLOR_PAIR(1));
     #endif
+}
 
-    float _time = T->time() - T->startTime();
-    float mMaxTime = T->maxTime() - T->startTime();
-    int mFrame = T->frame() - T->startFrame();
-    int mMaxFrame = T->maxFrame() - T->startFrame();
-    float mDivisor = 1.f;
-    Percentage = 0.f;
-    int TimeRules = 0;
-    if(T->maxTime() >= 0.f) {
-        Percentage = _time / mMaxTime;
-        mDivisor = mMaxTime;
-        TimeRules = 1;
-    }
-    if(T->maxFrame() >= 0) {
-        if(!TimeRules)
-            mDivisor = mMaxFrame-1;
-        float fPercentage = (float)(mFrame-1) / (mMaxFrame-1);
-        if(fPercentage > Percentage) {
-            Percentage = fPercentage;
-            mDivisor = mMaxFrame-1;
-            TimeRules = 0;
-        }
-    }
-    float subPercentage = 0.f;
-    if(!TimeRules) {
-        if((T->outputFPS() >= 0) && (T->time() > 0.f)){
-            subPercentage = (T->time() - T->outputTime()) / (1.f/T->outputFPS());
-        }
-        if(T->outputIPF() >= 0) {
-            float subfPercentage = (float)(T->step() - T->outputStep()) / T->outputIPF();
-            if(subfPercentage > subPercentage)
-                subPercentage = subfPercentage;
-        }
-    }
-    Percentage += subPercentage / mDivisor;
-    iPercentage = (int)(Percentage * 100.0);
-    if(iPercentage < 0)
-        iPercentage = 0;
+void ScreenManager::endFrame()
+{
     #ifdef HAVE_NCURSES
-        move(1, 45);
-        printw("[%d", iPercentage);
-        move(1, 50);
-        printw("]");
-    #else
-        printf("\t[%d]", iPercentage);
-    #endif
-
-    #ifdef HAVE_NCURSES
-        move(2, 2);
-        printw("Frame: %d.", T->frame());
-        move(2, 18);
-        printw("Step: %u.", T->step());
-    #else
-        printf("\tFrame: %d.", T->frame());
-        printf("\tStep: %u.", T->step());
-    #endif
-
-    gettimeofday(&_actual_time, NULL);
-    seconds = _actual_time.tv_sec  - _start_time.tv_sec;
-    seconds = (long unsigned int)(seconds / Percentage) - seconds;
-    #ifdef HAVE_NCURSES
-        move(2, 35);
-        printw("[ETA: %lu s]", seconds);
-    #else
-        printf("\t[ETA: %lu s]\n", seconds);
-    #endif
-
-    /*
-    #ifdef HAVE_NCURSES
-        attron(A_NORMAL | COLOR_PAIR(5));
-        move(5, 2);
-        printw("Number of particles: %u", c->n);
-        move(6, 2);
-        printw("Number of cells (allocated in memory): %u", c->num_cells_allocated);
-        move(7, 2);
-        printw("Allocated memory: %lu bytes", (int)c->allocated_mem);
-    #else
-        printf("\tNumber of particles: %u,", c->n);
-        printf("\tAllocated memory: %lu bytes\n", (int)c->allocated_mem);
-    #endif
-    */
-
-    #ifdef HAVE_NCURSES
-        attron(A_NORMAL | COLOR_PAIR(3));
-    #endif
-
-    line=16;
-    i=0;
-    #ifdef HAVE_NCURSES
-        move(line, 2);
-        attron(A_NORMAL | COLOR_PAIR(1));
-        printw("--- Log registry ------------------------------");
-        line++;
-        while((i<_n_log) && (_c_log[i]>0))
-        {
-            move(line, 2);
-            if(_c_log[i] == 1)        // Info
-                attron(A_BOLD   | COLOR_PAIR(1));
-            else if(_c_log[i] == 2)   // Warning
-                attron(A_BOLD   | COLOR_PAIR(4));
-            else if(_c_log[i] == 3)   // Error
-                attron(A_BOLD   | COLOR_PAIR(5));
-            else                    // Auxiliar messages
-                attron(A_NORMAL | COLOR_PAIR(1));
-            printw(_m_log[i]);
-            line++;
-            i++;
-        }
-    #endif
-
-    #ifdef HAVE_NCURSES
+        printLog();
         refresh();
     #else
         fflush(stdout);
     #endif
 }
 
-void ScreenManager::addMessage(int Level, const char *log, const char *func)
+void ScreenManager::addMessage(int level, const char *log, const char *func)
 {
     char fname[256]; strcpy(fname, "");
     if(func){
         sprintf(fname, "(%s): ", func);
     }
-    // Compatibility mode when screen manager have been closed
+    // Send the info to the log file (if possible)
+    if(FileManager::singleton()){
+        FILE *LogFileID = FileManager::singleton()->logFile();
+        if(LogFileID){
+            if(level == 1)        // Log
+                fprintf(LogFileID, "<b><font color=\"#000000\">[INFO] %s%s</font></b><br>", fname, log);
+            else if(level == 2)        // Warning
+                fprintf(LogFileID, "<b><font color=\"#ff9900\">[WARNING] %s%s</font></b><br>", fname, log);
+            else if(level == 3)        // Error
+                fprintf(LogFileID, "<b><font color=\"#dd0000\">[ERROR] %s%s</font></b><br>", fname, log);
+            else{
+                fprintf(LogFileID, "<font color=\"#000000\">%s%s</font>", fname, log);
+                if(log[strlen(log)-1] == '\n')
+                fprintf(LogFileID, "<br>");
+            }
+            fflush(LogFileID);
+        }
+    }
+    // Compatibility mode for destroyed ScreenManager situations
     if(!ScreenManager::singleton()){
-        if(Level == 1)
+        if(level == 1)
             printf("INFO ");
-        else if(Level == 2)
+        else if(level == 2)
             printf("WARNING ");
-        else if(Level == 3)
+        else if(level == 3)
             printf("ERROR ");
         printf("%s%s", fname, log);
         fflush(stdout);
-        if(FileManager::singleton()){
-            FILE *LogFileID = FileManager::singleton()->logFile();
-            if(LogFileID){
-                if(Level == 1)        // Log
-                    fprintf(LogFileID, "<b><font color=\"#000000\">[INFO] %s%s</font></b><br>", fname, log);
-                else if(Level == 2)        // Warning
-                    fprintf(LogFileID, "<b><font color=\"#ff9900\">[WARNING] %s%s</font></b><br>", fname, log);
-                else if(Level == 3)        // Error
-                    fprintf(LogFileID, "<b><font color=\"#dd0000\">[ERROR] %s%s</font></b><br>", fname, log);
-                else{
-                    fprintf(LogFileID, "<font color=\"#000000\">%s%s</font>", fname, log);
-                    if(log[strlen(log)-1] == '\n')
-                    fprintf(LogFileID, "<br>");
-                }
-                fflush(LogFileID);
-            }
-        }
         return;
     }
 
-    int i=0;
-    TimeManager *T = TimeManager::singleton();
-    while((i<_n_log) && (_c_log[i]>0))
-    {
-        i++;
-    }
-    if(i >= _n_log)
-    {
-        for(i=0;i<_n_log-1;i++)
-        {
-            _c_log[i] = _c_log[i+1];
-            strcpy(_m_log[i], _m_log[i+1]);
-        }
-        _c_log[_n_log-1] = Level;
-        strcpy(_m_log[_n_log-1], log);
-    }
-    else
-    {
-        _c_log[i] = Level;
-        strcpy(_m_log[i], log);
-    }
-    // Write the message into a file
-    FILE *LogFileID = FileManager::singleton()->logFile();
-    if(LogFileID)
-    {
-        if(_c_log[i] == 1)    // Log
-            fprintf(LogFileID, "<b><font color=\"#000000\">[INFO (T=%gs, Step=%d)] %s%s</font></b><br>",
-                    T->time() - T->dt(), T->step(), fname, log);
-        else if(_c_log[i] == 2)    // Warning
-            fprintf(LogFileID, "<b><font color=\"#ff9900\">[WARNING (T=%gs, Step=%d)] %s%s</font></b><br>",
-                    T->time() - T->dt(), T->step(), fname, log);
-        else if(_c_log[i] == 3)    // Error
-            fprintf(LogFileID, "<b><font color=\"#dd0000\">[ERROR (T=%gs, Step=%d)] %s%s</font></b><br>",
-                    T->time() - T->dt(), T->step(), fname, log);
-        else{
-            fprintf(LogFileID, "<font color=\"#000000\">%s</font>", fname, log);
-            if(log[strlen(log)-1] == '\n')
-            fprintf(LogFileID, "<br>");
-        }
-        fflush(LogFileID);
-    }
-    #ifndef HAVE_NCURSES
-        if(Level == 1)
-            printf("\t\tINFO %s%s", fname, log);
-        else if(Level == 2)
-            printf("\t\tWARNING %s%s", fname, log);
-        else if(Level == 3)
-            printf("\t\tERROR %s%s", fname, log);
-        else
-            printf("\t\t%s%s", fname, log);
-        fflush(stdout);
+    // Add the new message to the log register
+    char *msg = new char[strlen(fname) + strlen(log) + 1];
+    strcpy(msg, fname);
+    strcat(msg, log);
+    _log_level.insert(_log_level.begin(), level);
+    _log.insert(_log.begin(), msg);
+
+    // Filter out the messages that never would be printed because the window
+    // has not space enough (1 if ncurses is not activated)
+    int rows=1, cols;
+    #ifdef HAVE_NCURSES
+        getmaxyx(wnd, rows, cols);
     #endif
+    while(_log_level.size() > (unsigned int)rows){
+        _log_level.pop_back();
+    }
+    while(_log.size() > (unsigned int)rows){
+        _log.pop_back();
+    }
+
+    printLog();
 }
 
-void ScreenManager::printDate()
+void ScreenManager::printDate(int level)
 {
     char msg[512];
     struct timeval now_time;
     gettimeofday(&now_time, NULL);
     const time_t seconds = now_time.tv_sec;
     sprintf(msg, "%s\n", ctime(&seconds));
-    addMessage(0, msg);
+    addMessage(level, msg);
 }
 
 void ScreenManager::printOpenCLError(int error, int level)
@@ -461,6 +290,64 @@ void ScreenManager::printOpenCLError(int error, int level)
     else if(error == CL_INVALID_DEVICE_PARTITION_COUNT)
         strcpy(msg, "\tCL_INVALID_DEVICE_PARTITION_COUNT\n");
     addMessage(level, msg);
+}
+
+void ScreenManager::printLog()
+{
+    unsigned int i;
+    #ifndef HAVE_NCURSES
+    for(i = 0; i < _log_level.size(); i++){
+        if(_log_level.at(i) == 1)
+            printf("INFO %s", _log.at(i));
+        else if(_log_level.at(i) == 2)
+            printf("WARNING %s", _log.at(i));
+        else if(_log_level.at(i) == 3)
+            printf("ERROR %s", _log.at(i));
+        else
+            printf("%s", _log.at(i));
+        fflush(stdout);
+    }
+    #else
+        // Get a good position candidate
+        int row = _last_row + 2, rows, cols;
+        getmaxyx(wnd, rows, cols);
+        if(row > rows - 2){
+            row = rows - 2;
+        }
+
+        // Setup the subwindow
+        if(log_wnd){
+            delwin(log_wnd);
+            log_wnd = NULL;
+        }
+        log_wnd = subwin(wnd, rows - row, cols, row, 0);
+        wclear(log_wnd);
+
+        // Print the info
+        wattron(log_wnd, A_NORMAL);
+        wattron(log_wnd, COLOR_PAIR(1));
+        wmove(log_wnd, 0, 2);
+        wprintw(log_wnd, "--- Log registry ------------------------------");
+        for(i = 0; i < _log_level.size(); i++){
+            if(_log_level.at(i) == 1){
+                wattron(log_wnd, A_BOLD);
+                wattron(log_wnd, COLOR_PAIR(1));
+            }
+            else if(_log_level.at(i) == 2){
+                wattron(log_wnd, A_BOLD);
+                wattron(log_wnd, COLOR_PAIR(4));
+            }
+            else if(_log_level.at(i) == 3){
+                wattron(log_wnd, A_BOLD);
+                wattron(log_wnd, COLOR_PAIR(5));
+            }
+            else{
+            }
+            wmove(log_wnd, i + 1, 2);
+            wprintw(log_wnd, _log.at(i));
+        }
+        wrefresh(log_wnd);
+    #endif
 }
 
 }}  // namespace

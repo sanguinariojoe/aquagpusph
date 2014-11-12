@@ -226,10 +226,12 @@ CalcServer::~CalcServer()
 
 bool CalcServer::update()
 {
-    InputOutput::TimeManager *T   = InputOutput::TimeManager::singleton();
+    InputOutput::TimeManager *T = InputOutput::TimeManager::singleton();
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     unsigned int i;
     while(!T->mustPrintOutput() && !T->mustStop()){
+        S->initFrame();
+
         // Execute the tools
         for(i = 0; i < _tools.size(); i++){
             if(_tools.at(i)->execute()){
@@ -244,6 +246,8 @@ bool CalcServer::update()
                 return true;
             }
         }
+
+        S->endFrame();
 	}
 	return false;
 }

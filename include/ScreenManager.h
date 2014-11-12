@@ -32,11 +32,13 @@
 #include <string.h>
 #include <sys/time.h>
 #include <unistd.h>
-#include <ncurses.h>
+#include <deque>
+
+#ifdef HAVE_NCURSES
+    #include <ncurses.h>
+#endif
 
 #include <Singleton.h>
-
-#include <CL/cl.h>
 
 #ifndef addMessageF
     /** @def addMessageF
@@ -62,20 +64,23 @@ public:
     /// Destructor.
     ~ScreenManager();
 
-    /** @brief Call to update the terminal output.
+    /** @brief Call to setup a new terminal frame.
      *
-     * It may compute some additional data to print by terminal, depending on
-     * the selected verbosity.
-     *
-     * @see Aqua::InputOutput::ProblemSetup::sphSettings::verbose_level
+     * This method should be called at the start of every time step.
      */
-    void update();
+    void initFrame();
+
+    /** @brief Call to refresh the terminal frame.
+     *
+     * This method should be called at the end of every time step.
+     */
+    void endFrame();
 
     /** @brief Add a new log record message.
      *
      * The old messages may be removed from the terminal if no more space left.
      *
-     * @param Level Califier of message:
+     * @param level Califier of message:
      *   - 0 = Empty message.
      *   - 1 = Info message.
      *   - 2 = Warning message.
@@ -85,10 +90,16 @@ public:
      * @note In order to append the class and the method name before the
      * message use #addMessageF instead of this one.
      */
-    void addMessage(int Level, const char *log, const char *func=NULL);
+    void addMessage(int level, const char *log, const char *func=NULL);
 
-    /// Print a time stamp in the screen and the log file.
-    void printDate();
+    /** @brief Print a time stamp in the screen and the log file.
+     * @param level Qualifier of message:
+     *   - 0 = Empty message.
+     *   - 1 = Info message.
+     *   - 2 = Warning message.
+     *   - 3 = Error message.
+     */
+    void printDate(int level=0);
 
     /** @brief Print an OpenCL error.
      * @param error Error code returned by OpenCL.
@@ -99,26 +110,27 @@ public:
      *   - 3 = Error message.
      */
     void printOpenCLError(int error, int level=0);
+protected:
+    /** @brief Print the log record
+     *
+     * This function will compute automatically where the log record should be
+     * placed
+     */
+    void printLog();
 private:
+
+    /// Last row where datas was printed (used to locate the registry position)
+    int _last_row;
+
     /// Start time
     struct timeval _start_time;
     /// Actual time
     struct timeval _actual_time;
-    /// Maximum number of log messages
-    long _n_log;
-    /** @brief Qualifier of the messages
-     *
-     *    - 0 = Empty message.
-     *    - 1 = Info message.
-     *    - 2 = Warning message.
-     *    - 3 = Error message.
-     */
-    int *_c_log;
-    /// Log messages.
-    char **_m_log;
 
-    /// Previous Frame index.
-    int _old_frame;
+    /// List of log messages level
+    std::deque<int> _log_level;
+    /// List of log messages
+    std::deque<char*> _log;
 };
 
 }}  // namespace
