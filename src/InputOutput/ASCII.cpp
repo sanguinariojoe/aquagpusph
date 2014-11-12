@@ -145,7 +145,7 @@ bool ASCII::load()
     i = 0;
     iline = 0;
     progress = -1;
-    while( fgets( line, MAX_LINE_LEN*sizeof(char), f) )
+    while(fgets(line, MAX_LINE_LEN * sizeof(char), f))
     {
         iline++;
 
@@ -429,18 +429,18 @@ void ASCII::formatLine(char* l)
         }
     }
 
-    // Remove all the concatenated spaces
-    while(strstr(l, ",,")){
-        strcpy(strstr(l, ",,"), strstr(l, ",,") + 1);
+    // Remove all the concatenated separators
+    while(char* mempos = strstr(l, ",,")){
+        memmove(mempos, mempos + 1, strlen(mempos));
     }
 
-    // Remove the preceeding commas
+    // Remove the preceding separators
     len = strlen(l);
     while(len){
         if(l[0] != ','){
             break;
         }
-        strcpy(l, l + 1);
+        memmove(l, l + 1, len);
         len--;
     }
     // And the trailing ones
