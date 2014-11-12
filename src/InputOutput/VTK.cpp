@@ -153,7 +153,7 @@ bool VTK::load()
     // Check the fields to read
     std::deque<char*> fields = P->sets.at(setId())->inputFields();
     if(!fields.size()){
-        S->addMessage(3, "0 fields were set to read from the file.\n");
+        S->addMessage(3, "0 fields were set to be read from the file.\n");
         return true;
     }
     bool have_pos = false;
@@ -164,7 +164,7 @@ bool VTK::load()
         }
     }
     if(!have_pos){
-        S->addMessage(3, "\"pos\" field was not set to read from the file.\n");
+        S->addMessage(3, "\"pos\" field was not set to be read from the file.\n");
         return true;
     }
 
@@ -174,14 +174,14 @@ bool VTK::load()
     for(i = 0; i < fields.size(); i++){
         if(!vars->get(fields.at(i))){
             sprintf(msg,
-                    "\"%s\" field has been set to read, but it was not declared.\n",
+                    "\"%s\" field has been set to be read, but it was not declared.\n",
                     fields.at(i));
             S->addMessage(3, msg);
             return true;
         }
         if(!strchr(vars->get(fields.at(i))->type(), '*')){
             sprintf(msg,
-                    "\"%s\" field has been set to read, but it was declared as a scalar.\n",
+                    "\"%s\" field has been set to be read, but it was declared as a scalar.\n",
                     fields.at(i));
             S->addMessage(3, msg);
             return true;
@@ -314,7 +314,7 @@ bool VTK::save()
     // Check the fields to write
     std::deque<char*> fields = P->sets.at(setId())->outputFields();
     if(!fields.size()){
-        S->addMessage(3, "0 fields were set to read from the file.\n");
+        S->addMessage(3, "0 fields were set to be saved into the file.\n");
         return true;
     }
     bool have_pos = false;
@@ -325,7 +325,7 @@ bool VTK::save()
         }
     }
     if(!have_pos){
-        S->addMessage(3, "\"pos\" field was not set to read from the file.\n");
+        S->addMessage(3, "\"pos\" field was not set to be saved into the file.\n");
         return true;
     }
 
@@ -335,14 +335,14 @@ bool VTK::save()
     for(i = 0; i < fields.size(); i++){
         if(!vars->get(fields.at(i))){
             sprintf(msg,
-                    "\"%s\" field has been set to save, but it was not declared.\n",
+                    "\"%s\" field has been set to be saved, but it was not declared.\n",
                     fields.at(i));
             S->addMessage(3, msg);
             return true;
         }
         if(!strchr(vars->get(fields.at(i))->type(), '*')){
             sprintf(msg,
-                    "\"%s\" field has been set to save, but it was declared as a scalar.\n",
+                    "\"%s\" field has been set to be saved, but it was declared as a scalar.\n",
                     fields.at(i));
             S->addMessage(3, msg);
             return true;
