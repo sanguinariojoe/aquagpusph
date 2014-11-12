@@ -71,6 +71,7 @@
  * the developers guide.
  */
 
+#include <sphPrerequisites.h>
 #include <Python.h>
 #include <FileManager.h>
 #include <ArgumentsManager.h>
@@ -199,7 +200,7 @@ int main(int argc, char *argv[])
         }
 
         if(F->save()){
-            sleep(2);  // Let 2 seconds to see the message
+            sleep(__ERROR_SHOW_TIME__);
             float Time = T->time();
             delete S; S = NULL;
             S->printDate();

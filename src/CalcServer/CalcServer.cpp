@@ -236,7 +236,7 @@ bool CalcServer::update()
         // Execute the tools
         for(i = 0; i < _tools.size(); i++){
             if(_tools.at(i)->execute()){
-                sleep(2);  // Let 2 seconds to see the message
+                sleep(__ERROR_SHOW_TIME__);
                 return true;
             }
         }
@@ -245,7 +245,7 @@ bool CalcServer::update()
         while(isKeyPressed()){
             if(getchar() == 'c'){
                 S->addMessageF(2, "Interrumption request detected.\n");
-                sleep(2);  // Let 2 seconds to see the message
+                sleep(__ERROR_SHOW_TIME__);
                 return true;
             }
         }
