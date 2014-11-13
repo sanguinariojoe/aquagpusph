@@ -58,6 +58,7 @@ const char* Report::data(bool with_title)
 
     if(_data) delete[] _data; _data = NULL;
     _data = new char[dataLength(with_title)];
+    strcpy(_data, "");
 
     // Create the title
     if(with_title){
@@ -86,7 +87,7 @@ bool Report::processFields(const char* input)
     strcpy(fields, input);
 
     // Check if line breaks have been requested
-    if(strchr(fields, '\n')){
+    if(strchr(fields, ';')){
         char *tok = strtok(fields, ";");
         while(tok){
             if(processFields(tok)){

@@ -17,33 +17,33 @@
  */
 
 /** @file
- * @brief On screen runtime output.
- * (See Aqua::CalcServer::Reports::Screen for details)
+ * @brief Runtime output file.
+ * (See Aqua::CalcServer::Reports::TabFile for details)
  */
 
-#include <CalcServer/Reports/Screen.h>
+#include <CalcServer/Reports/TabFile.h>
 #include <ScreenManager.h>
 
 namespace Aqua{ namespace CalcServer{ namespace Reports{
 
-Screen::Screen(const char* tool_name,
-               const char* fields,
-               const char* color,
-               bool bold)
+TabFile::TabFile(const char* tool_name,
+                 const char* fields,
+                 const char* output_file)
     : Report(tool_name, fields)
-    , _color(NULL)
-    , _bold(bold)
+    , _output_file(NULL)
+    , _f(NULL)
 {
-    _color = new char[strlen(color) + 1];
-    strcpy(_color, color);
+    _output_file = new char[strlen(output_file) + 1];
+    strcpy(_output_file, output_file);
 }
 
-Screen::~Screen()
+TabFile::~TabFile()
 {
-    if(_color) delete[] _color; _color=NULL;
+    if(_output_file) delete[] _output_file; _output_file=NULL;
+    if(_f) fclose(_f); _f = NULL;
 }
 
-bool Screen::setup()
+bool TabFile::setup()
 {
     unsigned int i;
     char msg[1024];
@@ -54,9 +54,14 @@ bool Screen::setup()
             name());
     S->addMessageF(1, msg);
 
-    // Set the color in lowercase
-    for(i = 0; i < strlen(_color); i++){
-        _color[i] = tolower(_color[i]);
+    // Open the output file
+    _f = fopen(_output_file, "w");
+    if(!_f){
+        sprintf(msg,
+                "The file \"%s\" cannot be written\n",
+                _output_file);
+        S->addMessageF(3, msg);
+        return true;
     }
 
     if(Report::setup()){
@@ -66,10 +71,14 @@ bool Screen::setup()
     return false;
 }
 
-bool Screen::execute()
+bool TabFile::execute()
 {
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-    S->writeReport(data(), _color, _bold);
+    const char* out = data(false);
+    fprintf(_f, "%s", out);
+    if(out[strlen(out) - 1] != '\n'){
+        fprintf(_f, "\n");
+    }
+    fflush(_f);
     return false;
 }
 

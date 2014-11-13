@@ -43,6 +43,7 @@
 #include <CalcServer/SetScalar.h>
 #include <CalcServer/UnSort.h>
 #include <CalcServer/Reports/Screen.h>
+#include <CalcServer/Reports/TabFile.h>
 
 namespace Aqua{ namespace CalcServer{
 
@@ -206,6 +207,13 @@ CalcServer::CalcServer()
                 P->reports.at(i)->get("fields"),
                 P->reports.at(i)->get("color"),
                 bold);
+            _tools.push_back(tool);
+        }
+        else if(!strcmp(P->reports.at(i)->get("type"), "file")){
+            Reports::TabFile *tool = new Reports::TabFile(
+                P->reports.at(i)->get("name"),
+                P->reports.at(i)->get("fields"),
+                P->reports.at(i)->get("path"));
             _tools.push_back(tool);
         }
         else{
