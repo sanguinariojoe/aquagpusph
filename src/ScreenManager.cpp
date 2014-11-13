@@ -82,10 +82,15 @@ void ScreenManager::initFrame()
         init_pair(3, COLOR_BLUE, COLOR_BLACK);
         init_pair(4, COLOR_YELLOW, COLOR_BLACK);
         init_pair(5, COLOR_RED, COLOR_BLACK);
+        init_pair(6, COLOR_MAGENTA, COLOR_BLACK);
+        init_pair(7, COLOR_CYAN, COLOR_BLACK);
 
         // Setup the default font
         attron(A_NORMAL);
         attron(COLOR_PAIR(1));
+
+        // Set the cursor at the start of the window
+        _last_row = 0;
     #endif
 }
 
@@ -97,6 +102,127 @@ void ScreenManager::endFrame()
     #else
         fflush(stdout);
     #endif
+}
+
+void ScreenManager::writeReport(const char *input, const char *color, bool bold)
+{
+    if(!input){
+        return;
+    }
+    if(!strlen(input)){
+        return;
+    }
+    char msg[strlen(input) + 1];
+    strcpy(msg, input);
+    #ifndef HAVE_NCURSES
+        printf("%s", msg);
+        if(msg[strlen(msg) - 1] != '\n'){
+            printf("\n");
+        }
+    #else
+    #endif
+        // Right strip of the message
+        size_t len = strlen(msg);
+        while(len){
+            if((msg[len - 1] == '\n') ||
+               (msg[len - 1] == '\t') ||
+               (msg[len - 1] == ' '))
+            {
+                strcpy(msg + len - 1, "");
+                len--;
+            }
+            else{
+                break;
+            }
+        }
+
+        // Check if the message has been specifically splited with break lines
+        // Printing it by pieces
+        if(strchr(msg, '\n')){
+            char *tok;
+            tok = strtok(msg, "\n");
+            while(tok){
+                writeReport(tok, color, bold);
+                tok = strtok(NULL, "\n");
+            }
+            return;
+        }
+
+        // Replace the tabulators by spaces
+        while(strchr(msg, '\t')){
+            strchr(msg, '\t')[0] = ' ';
+        }
+
+        // Check if the message is larger than the terminal output
+        int rows, cols;
+        getmaxyx(wnd, rows, cols);
+        if(strlen(msg) > cols){
+            // We can try to split it by a blank space, and if it fails just let
+            // ncurses select how to divide the string
+            size_t last = 0;
+            size_t test = strcspn(msg, " ") + 1;
+            while(test <= cols){
+                last = test;
+                test += strcspn(msg + test, " ") + 1;
+            }
+            if(last){
+                // Parse the 2 pieces
+                char *msg1, *msg2;
+                msg1 = new char[last + 1];
+                msg2 = new char[strlen(msg) - last + 1];
+                strncpy(msg1, msg, last);
+                msg1[last] = '\0';
+                strcpy(msg2, msg + last);
+                writeReport(msg1, color, bold);
+                writeReport(msg2, color, bold);
+                delete[] msg1;
+                delete[] msg2;
+                return;
+            }
+        }
+
+        // Select the font
+        unsigned int pair_id = 1;
+        if(!strcmp(color, "white")){
+            pair_id = 1;
+        }
+        else if(!strcmp(color, "green")){
+            pair_id = 2;
+        }
+        else if(!strcmp(color, "yellow")){
+            pair_id = 3;
+        }
+        else if(!strcmp(color, "red")){
+            pair_id = 4;
+        }
+        else if(!strcmp(color, "magenta")){
+            pair_id = 5;
+        }
+        else if(!strcmp(color, "cyan")){
+            pair_id = 6;
+        }
+        else{
+            char err_msg[strlen(color) + 32];
+            sprintf(err_msg, "Invalid message color \"%s\"\n", color);
+            addMessageF(2, err_msg);
+        }
+        attron(COLOR_PAIR(pair_id));
+        if(bold){
+            attron(A_BOLD);
+        }
+        else{
+            attron(A_NORMAL);
+        }
+
+        // Print the message
+        int row = _last_row;
+        move(row, 0);
+        printw(msg);
+        _last_row += strlen(msg) / cols + 1;  // The message may require 2 lines
+
+        // Refresh
+        printLog();
+        refresh();
 }
 
 void ScreenManager::addMessage(int level, const char *log, const char *func)
@@ -317,6 +443,7 @@ void ScreenManager::printLog()
 
         // Setup the subwindow
         if(log_wnd){
+            wclear(log_wnd);
             delwin(log_wnd);
             log_wnd = NULL;
         }
@@ -326,8 +453,9 @@ void ScreenManager::printLog()
         // Print the info
         wattron(log_wnd, A_NORMAL);
         wattron(log_wnd, COLOR_PAIR(1));
-        wmove(log_wnd, 0, 2);
+        wmove(log_wnd, 0, 0);
         wprintw(log_wnd, "--- Log registry ------------------------------");
+        unsigned int lines = 1;
         for(i = 0; i < _log_level.size(); i++){
             if(_log_level.at(i) == 1){
                 wattron(log_wnd, A_BOLD);
@@ -343,8 +471,9 @@ void ScreenManager::printLog()
             }
             else{
             }
-            wmove(log_wnd, i + 1, 2);
+            wmove(log_wnd, lines, 0);
             wprintw(log_wnd, _log.at(i));
+            lines += strlen(_log.at(i)) / cols + 1;
         }
         wrefresh(log_wnd);
     #endif

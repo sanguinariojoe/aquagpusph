@@ -76,6 +76,32 @@ public:
      */
     void endFrame();
 
+    /** @brief Write a new message in the terminal output.
+     *
+     * This method is not redirecting the data to the log file.
+     * In case that ncurses is active:
+     *    - Tabulators '\t' are interpreted as 1 blank space
+     *    - Line breaks '\n' are intepreted
+     *    - It is fitting the message replacing spaces by lines break
+     * Otherwise:
+     *    - stdout will be used
+     *    - A line break '\n' is appended if it is not detected at the end
+     *
+     * @param msg Message to print in the screen.
+     * @param color Color name. Valid colors are:
+     *    -# white
+     *    -# green
+     *    -# blue
+     *    -# yellow
+     *    -# red
+     *    -# magenta
+     *    -# cyan
+     * @param bold true if bold font should be used, false otherwise
+     */
+    void writeReport(const char *msg,
+                     const char *color="white",
+                     bool bold=false);
+
     /** @brief Add a new log record message.
      *
      * The old messages may be removed from the terminal if no more space left.
