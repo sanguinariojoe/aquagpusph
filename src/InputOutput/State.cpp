@@ -242,6 +242,10 @@ bool State::parse(const char* filepath)
         xmlClear();
         return true;
     }
+    if(parseReports(root)){
+        xmlClear();
+        return true;
+    }
     if(parseTiming(root)){
         xmlClear();
         return true;
@@ -807,12 +811,6 @@ bool State::parseReports(DOMElement *root)
             report->set("name", xmlAttribute(s_elem, "name"));
             report->set("type", xmlAttribute(s_elem, "type"));
             report->set("fields", xmlAttribute(s_elem, "fields"));
-            if(xmlHasAttribute(s_elem, "ipf")){
-                report->set("ipf", xmlAttribute(s_elem, "ipf"));
-            }
-            else{
-                report->set("ipf", "1");
-            }
             P->reports.push_back(report);
 
             // Configure the report
@@ -827,7 +825,7 @@ bool State::parseReports(DOMElement *root)
                     report->set("color", xmlAttribute(s_elem, "color"));
                 }
                 else{
-                    report->set("color", xmlAttribute(s_elem, "white"));
+                    report->set("color", "white");
                 }
             }
             else if(!strcmp(xmlAttribute(s_elem, "type"), "file")){
@@ -881,6 +879,10 @@ bool State::write(const char* filepath)
         return true;
     }
     if(writeTools(doc, root)){
+        xmlClear();
+        return true;
+    }
+    if(writeReports(doc, root)){
         xmlClear();
         return true;
     }

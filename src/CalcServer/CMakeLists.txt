@@ -49,6 +49,8 @@ SET(Server_CPP_SRCS
     SetScalar.cpp
     Tool.cpp
     UnSort.cpp
+    Reports/Report.cpp
+    Reports/Screen.cpp
 )
 
 # ===================================================== #

@@ -105,6 +105,11 @@ public:
     {
         return true;
     }
+
+    /** Get the variable text representation
+     * @return The variable represented as a string, NULL in case of errors.
+     */
+    virtual const char* asString(){return NULL;}
 private:
     /// Name of the variable
     char* _name;
@@ -157,6 +162,11 @@ public:
      * @return false if all gone right, true otherwise.
      */
     bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
+
+    /** Get the variable text representation
+     * @return The variable represented as a string, NULL in case of errors.
+     */
+    const char* asString();
 private:
     /// Variable value
     int _value;
@@ -206,6 +216,11 @@ public:
      * @return false if all gone right, true otherwise.
      */
     bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
+
+    /** Get the variable text representation
+     * @return The variable represented as a string, NULL in case of errors.
+     */
+    const char* asString();
 private:
     /// Variable value
     unsigned int _value;
@@ -255,6 +270,11 @@ public:
      * @return false if all gone right, true otherwise.
      */
     bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
+
+    /** Get the variable text representation
+     * @return The variable represented as a string, NULL in case of errors.
+     */
+    const char* asString();
 private:
     /// Variable value
     float _value;
@@ -304,6 +324,11 @@ public:
      * @return false if all gone right, true otherwise.
      */
     bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
+
+    /** Get the variable text representation
+     * @return The variable represented as a string, NULL in case of errors.
+     */
+    const char* asString();
 private:
     /// Variable value
     vec2 _value;
@@ -353,6 +378,11 @@ public:
      * @return false if all gone right, true otherwise.
      */
     bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
+
+    /** Get the variable text representation
+     * @return The variable represented as a string, NULL in case of errors.
+     */
+    const char* asString();
 private:
     /// Variable value
     vec3 _value;
@@ -402,6 +432,11 @@ public:
      * @return false if all gone right, true otherwise.
      */
     bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
+
+    /** Get the variable text representation
+     * @return The variable represented as a string, NULL in case of errors.
+     */
+    const char* asString();
 private:
     /// Variable value
     vec4 _value;
@@ -451,6 +486,11 @@ public:
      * @return false if all gone right, true otherwise.
      */
     bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
+
+    /** Get the variable text representation
+     * @return The variable represented as a string, NULL in case of errors.
+     */
+    const char* asString();
 private:
     /// Variable value
     ivec2 _value;
@@ -500,6 +540,11 @@ public:
      * @return false if all gone right, true otherwise.
      */
     bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
+
+    /** Get the variable text representation
+     * @return The variable represented as a string, NULL in case of errors.
+     */
+    const char* asString();
 private:
     /// Variable value
     ivec3 _value;
@@ -549,6 +594,11 @@ public:
      * @return false if all gone right, true otherwise.
      */
     bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
+
+    /** Get the variable text representation
+     * @return The variable represented as a string, NULL in case of errors.
+     */
+    const char* asString();
 private:
     /// Variable value
     ivec4 _value;
@@ -598,6 +648,11 @@ public:
      * @return false if all gone right, true otherwise.
      */
     bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
+
+    /** Get the variable text representation
+     * @return The variable represented as a string, NULL in case of errors.
+     */
+    const char* asString();
 private:
     /// Variable value
     uivec2 _value;
@@ -647,6 +702,11 @@ public:
      * @return false if all gone right, true otherwise.
      */
     bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
+
+    /** Get the variable text representation
+     * @return The variable represented as a string, NULL in case of errors.
+     */
+    const char* asString();
 private:
     /// Variable value
     uivec3 _value;
@@ -696,6 +756,11 @@ public:
      * @return false if all gone right, true otherwise.
      */
     bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
+
+    /** Get the variable text representation
+     * @return The variable represented as a string, NULL in case of errors.
+     */
+    const char* asString();
 private:
     /// Variable value
     uivec4 _value;
@@ -752,6 +817,11 @@ public:
      * @return false if all gone right, true otherwise.
      */
     bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
+
+    /** Get the variable text representation
+     * @return The variable represented as a string, NULL in case of errors.
+     */
+    const char* asString();
 private:
     /// Check for abandoned python objects to destroy them.
     void cleanMem();

@@ -42,6 +42,7 @@
 #include <CalcServer/Set.h>
 #include <CalcServer/SetScalar.h>
 #include <CalcServer/UnSort.h>
+#include <CalcServer/Reports/Screen.h>
 
 namespace Aqua{ namespace CalcServer{
 
@@ -188,6 +189,30 @@ CalcServer::CalcServer()
                     "Unrecognized tool type \"%s\" when parsing the tool \"%s\".\n",
                     P->tools.at(i)->get("type"),
                     P->tools.at(i)->get("name"));
+            S->addMessageF(3, msg);
+            exit(EXIT_FAILURE);
+        }
+    }
+    // Register the reporters
+    for(i = 0; i < P->reports.size(); i++){
+        if(!strcmp(P->reports.at(i)->get("type"), "screen")){
+            bool bold = false;
+            if(strcmp(P->reports.at(i)->get("bold"), "true") ||
+               strcmp(P->reports.at(i)->get("bold"), "True")){
+               bold = true;
+            }
+            Reports::Screen *tool = new Reports::Screen(
+                P->reports.at(i)->get("name"),
+                P->reports.at(i)->get("fields"),
+                P->reports.at(i)->get("color"),
+                bold);
+            _tools.push_back(tool);
+        }
+        else{
+            sprintf(msg,
+                    "Unrecognized report type \"%s\" when parsing the \"%s\".\n",
+                    P->reports.at(i)->get("type"),
+                    P->reports.at(i)->get("name"));
             S->addMessageF(3, msg);
             exit(EXIT_FAILURE);
         }

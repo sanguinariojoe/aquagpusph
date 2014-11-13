@@ -40,6 +40,8 @@
 
 namespace Aqua{ namespace InputOutput{
 
+static char str_val[256];
+
 Variable::Variable(const char *varname, const char *vartype)
     : _name(NULL)
     , _typename(NULL)
@@ -131,6 +133,11 @@ bool IntVariable::setFromPythonObject(PyObject* obj, int i0, int n)
     return false;
 }
 
+const char* IntVariable::asString(){
+    sprintf(str_val, "%d", *(get()));
+    return (const char*)str_val;
+}
+
 UIntVariable::UIntVariable(const char *varname)
     : Variable(varname, "unsigned int")
     , _value(0)
@@ -181,6 +188,11 @@ bool UIntVariable::setFromPythonObject(PyObject* obj, int i0, int n)
     set(&value);
 
     return false;
+}
+
+const char* UIntVariable::asString(){
+    sprintf(str_val, "%u", *(get()));
+    return (const char*)str_val;
 }
 
 FloatVariable::FloatVariable(const char *varname)
@@ -251,6 +263,11 @@ bool FloatVariable::setFromPythonObject(PyObject* obj, int i0, int n)
     set(&value);
 
     return false;
+}
+
+const char* FloatVariable::asString(){
+    sprintf(str_val, "%g", *(get()));
+    return (const char*)str_val;
 }
 
 Vec2Variable::Vec2Variable(const char *varname)
@@ -345,6 +362,12 @@ bool Vec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
     return false;
 }
 
+const char* Vec2Variable::asString(){
+    vec2 *val = get();
+    sprintf(str_val, "(%g,%g)", val->x, val->y);
+    return (const char*)str_val;
+}
+
 Vec3Variable::Vec3Variable(const char *varname)
     : Variable(varname, "vec3")
 {
@@ -436,6 +459,12 @@ bool Vec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
     memcpy(vv->s, data, sizeof(vec3));
 
     return false;
+}
+
+const char* Vec3Variable::asString(){
+    vec3 *val = get();
+    sprintf(str_val, "(%g,%g,%g)", val->x, val->y, val->z);
+    return (const char*)str_val;
 }
 
 Vec4Variable::Vec4Variable(const char *varname)
@@ -532,6 +561,12 @@ bool Vec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
     return false;
 }
 
+const char* Vec4Variable::asString(){
+    vec4 *val = get();
+    sprintf(str_val, "(%g,%g,%g,%g)", val->x, val->y, val->z, val->w);
+    return (const char*)str_val;
+}
+
 IVec2Variable::IVec2Variable(const char *varname)
     : Variable(varname, "ivec2")
 {
@@ -622,6 +657,12 @@ bool IVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
     memcpy(vv->s, data, sizeof(ivec2));
 
     return false;
+}
+
+const char* IVec2Variable::asString(){
+    ivec2 *val = get();
+    sprintf(str_val, "(%d,%d)", val->x, val->y);
+    return (const char*)str_val;
 }
 
 IVec3Variable::IVec3Variable(const char *varname)
@@ -715,6 +756,12 @@ bool IVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
     memcpy(vv->s, data, sizeof(ivec3));
 
     return false;
+}
+
+const char* IVec3Variable::asString(){
+    ivec3 *val = get();
+    sprintf(str_val, "(%d,%d,%d)", val->x, val->y, val->z);
+    return (const char*)str_val;
 }
 
 IVec4Variable::IVec4Variable(const char *varname)
@@ -811,6 +858,12 @@ bool IVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
     return false;
 }
 
+const char* IVec4Variable::asString(){
+    ivec4 *val = get();
+    sprintf(str_val, "(%d,%d,%d,%d)", val->x, val->y, val->z, val->w);
+    return (const char*)str_val;
+}
+
 UIVec2Variable::UIVec2Variable(const char *varname)
     : Variable(varname, "uivec2")
 {
@@ -901,6 +954,12 @@ bool UIVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
     memcpy(vv->s, data, sizeof(uivec2));
 
     return false;
+}
+
+const char* UIVec2Variable::asString(){
+    uivec2 *val = get();
+    sprintf(str_val, "(%u,%u)", val->x, val->y);
+    return (const char*)str_val;
 }
 
 UIVec3Variable::UIVec3Variable(const char *varname)
@@ -996,6 +1055,12 @@ bool UIVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
     return false;
 }
 
+const char* UIVec3Variable::asString(){
+    uivec3 *val = get();
+    sprintf(str_val, "(%u,%u,%u)", val->x, val->y, val->z);
+    return (const char*)str_val;
+}
+
 UIVec4Variable::UIVec4Variable(const char *varname)
     : Variable(varname, "uivec4")
 {
@@ -1088,6 +1153,12 @@ bool UIVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
     memcpy(vv->s, data, sizeof(uivec4));
 
     return false;
+}
+
+const char* UIVec4Variable::asString(){
+    uivec4 *val = get();
+    sprintf(str_val, "(%u,%u,%u,%u)", val->x, val->y, val->z, val->w);
+    return (const char*)str_val;
 }
 
 ArrayVariable::ArrayVariable(const char *varname, const char *vartype)
@@ -1380,6 +1451,12 @@ bool ArrayVariable::setFromPythonObject(PyObject* obj, int i0, int n)
     }
 
     return false;
+}
+
+const char* ArrayVariable::asString(){
+    void *val = get();
+    sprintf(str_val, "%p", val);
+    return (const char*)str_val;
 }
 
 void ArrayVariable::cleanMem()

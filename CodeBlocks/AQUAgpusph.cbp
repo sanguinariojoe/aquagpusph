@@ -88,6 +88,8 @@
 		<Unit filename="../include/CalcServer/Python.h" />
 		<Unit filename="../include/CalcServer/RadixSort.h" />
 		<Unit filename="../include/CalcServer/Reduction.h" />
+		<Unit filename="../include/CalcServer/Reports/Report.h" />
+		<Unit filename="../include/CalcServer/Reports/Screen.h" />
 		<Unit filename="../include/CalcServer/Set.h" />
 		<Unit filename="../include/CalcServer/SetScalar.h" />
 		<Unit filename="../include/CalcServer/Tool.h" />
@@ -116,6 +118,8 @@
 		<Unit filename="../src/CalcServer/Python.cpp" />
 		<Unit filename="../src/CalcServer/RadixSort.cpp" />
 		<Unit filename="../src/CalcServer/Reduction.cpp" />
+		<Unit filename="../src/CalcServer/Reports/Report.cpp" />
+		<Unit filename="../src/CalcServer/Reports/Screen.cpp" />
 		<Unit filename="../src/CalcServer/Set.cpp" />
 		<Unit filename="../src/CalcServer/SetScalar.cpp" />
 		<Unit filename="../src/CalcServer/Tool.cpp" />
