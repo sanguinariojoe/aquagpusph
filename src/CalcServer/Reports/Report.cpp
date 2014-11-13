@@ -81,6 +81,7 @@ const char* Report::data(bool with_title)
 
 bool Report::processFields(const char* input)
 {
+    unsigned int i;
     CalcServer *C = CalcServer::singleton();
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     char fields[strlen(input) + 1];
@@ -88,13 +89,25 @@ bool Report::processFields(const char* input)
 
     // Check if line breaks have been requested
     if(strchr(fields, ';')){
+        // Now we need to store all the tokens before recursively calling this
+        // function, otherwise the strtok(fields, " ,") will broke this one
         char *tok = strtok(fields, ";");
+        std::deque<char *> tokens;
         while(tok){
+            char *line = new char[strlen(tok) + 1];
+            strcpy(line, tok);
+            tokens.push_back(line);
+            tok = strtok(NULL, ";");
+        }
+        // And now we can parse each line
+        for(i = 0; i < tokens.size(); i++){
+            tok = tokens.at(i);
             if(processFields(tok)){
                 return true;
             }
-            tok = strtok(NULL, ";");
+            delete[] tok;
         }
+        tokens.clear();
         return false;
     }
 
