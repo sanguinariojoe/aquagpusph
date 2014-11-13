@@ -68,16 +68,26 @@ bool TabFile::setup()
         return true;
     }
 
+    // Write the header
+    fprintf(_f, "# ");
+    std::deque<InputOutput::Variable*> vars = variables();
+    for(i = 0; i < vars.size(); i++){
+        fprintf(_f, "%s ", vars.at(i)->name());
+    }
+    fprintf(_f, "\n");
+
     return false;
 }
 
 bool TabFile::execute()
 {
-    const char* out = data(false);
-    fprintf(_f, "%s", out);
-    if(out[strlen(out) - 1] != '\n'){
-        fprintf(_f, "\n");
+    char* out = (char*)data(false, false);
+    // Change break lines by spaces
+    while(strchr(out, '\n')){
+        strchr(out, '\n')[0] = ' ';
     }
+
+    fprintf(_f, "%s\n", out);
     fflush(_f);
     return false;
 }

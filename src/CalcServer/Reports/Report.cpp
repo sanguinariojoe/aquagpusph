@@ -52,7 +52,7 @@ bool Report::setup()
     return false;
 }
 
-const char* Report::data(bool with_title)
+const char* Report::data(bool with_title, bool with_names)
 {
     unsigned int i, j, var_id=0;
 
@@ -69,7 +69,12 @@ const char* Report::data(bool with_title)
     for(i = 0; i < _vars_per_line.size(); i++){
         for(j = 0; j < _vars_per_line.at(i); j++){
             InputOutput::Variable* var = _vars.at(var_id);
-            sprintf(_data, "%s%s=%s ", _data, var->name(), var->asString());
+            if(with_names){
+                strcat(_data, var->name());
+                strcat(_data, "=");
+            }
+            strcat(_data, var->asString());
+            strcat(_data, " ");
             var_id++;
         }
         // Replace the trailing space by a line break
@@ -134,7 +139,7 @@ bool Report::processFields(const char* input)
     return false;
 }
 
-size_t Report::dataLength(bool with_title)
+size_t Report::dataLength(bool with_title, bool with_names)
 {
     unsigned int i;
 
@@ -146,7 +151,10 @@ size_t Report::dataLength(bool with_title)
     // Variables
     for(i = 0; i < _vars.size(); i++){
         InputOutput::Variable *var = _vars.at(i);
-        len += strlen(var->name()) + strlen(var->asString()) + 2;
+        if(with_names){
+            len += strlen(var->name()) + 1;
+        }
+        len += strlen(var->asString()) + 1;
     }
 
     return len;

@@ -54,7 +54,6 @@ public:
      * @param fields Fields to be printed.
      * The fields are separated by commas or semicolons, and the spaces are just
      * ignored.
-     * The semicolons will also force a line break in the report.
      */
     Report(const char* tool_name, const char* fields);
 
@@ -75,21 +74,30 @@ public:
     /** @brief Return the text string of the data to be printed.
      * @param with_title true if the report title should be inserted, false
      * otherwise.
+     * @param with_names true if the variable names should be printed, false
+     * otherwise.
      * @return Text string to be printed either in a file or in the screen.
      */
-    const char* data(bool with_title=true);
+    const char* data(bool with_title=true, bool with_names=true);
 protected:
-    /** Compute the fields by lines
+    /** @brief Compute the fields by lines
      * @return false if all gone right, true otherwise.
      */
     bool processFields(const char* fields);
 
-    /** Get data string length
+    /** @brief Get data string length
      * @param with_title true if the report title should be inserted, false
+     * otherwise.
+     * @param with_names true if the variable names should be printed, false
      * otherwise.
      * @return Length of the output string.
      */
-    size_t dataLength(bool with_title=true);
+    size_t dataLength(bool with_title=true, bool with_names=true);
+
+    /** @brief Get the variables list
+     * @return The variables list resulting from _fields
+     */
+    std::deque<InputOutput::Variable*> variables(){return _vars;}
 private:
     /// Input fields string
     char *_fields;
