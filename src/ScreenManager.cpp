@@ -189,17 +189,20 @@ void ScreenManager::writeReport(const char *input, const char *color, bool bold)
         else if(!strcmp(color, "green")){
             pair_id = 2;
         }
-        else if(!strcmp(color, "yellow")){
+        else if(!strcmp(color, "blue")){
             pair_id = 3;
         }
-        else if(!strcmp(color, "red")){
+        else if(!strcmp(color, "yellow")){
             pair_id = 4;
         }
-        else if(!strcmp(color, "magenta")){
+        else if(!strcmp(color, "red")){
             pair_id = 5;
         }
-        else if(!strcmp(color, "cyan")){
+        else if(!strcmp(color, "magenta")){
             pair_id = 6;
+        }
+        else if(!strcmp(color, "cyan")){
+            pair_id = 7;
         }
         else{
             char err_msg[strlen(color) + 32];
