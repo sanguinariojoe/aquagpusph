@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<sphInput>
+    <Reports>
+        <Report type="screen" name="Forces" fields="forces_F;forces_M" color="red" bold="false"/>
+        <Report type="file" name="Forces file" fields="t, forces_F, forces_M" path="Forces.dat"/>
+    </Reports>
+</sphInput>
+ 

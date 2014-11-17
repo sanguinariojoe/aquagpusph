@@ -11,6 +11,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/forces.xml.in
     ${CMAKE_CURRENT_BINARY_DIR}/forces.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/motion.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/motion.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/forces.report.xml.in  
+    ${CMAKE_CURRENT_BINARY_DIR}/forces.report.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/timing.report.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/timing.report.xml @ONLY)
 
@@ -24,6 +26,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/forces.xml.in
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/forces.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/motion.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/motion.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/forces.report.xml.in  
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/forces.report.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/timing.report.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/timing.report.xml @ONLY)
 
@@ -35,6 +39,7 @@ SET(RESOURCES_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/domain.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/forces.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/motion.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/forces.report.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/timing.report.xml
 )
 SOURCE_GROUP("ResourcesGroup" FILES ${RESOURCES_SRCS})
