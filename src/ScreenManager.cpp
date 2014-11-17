@@ -120,7 +120,6 @@ void ScreenManager::writeReport(const char *input, const char *color, bool bold)
             printf("\n");
         }
     #else
-    #endif
         // Right strip of the message
         size_t len = strlen(msg);
         while(len){
@@ -226,6 +225,7 @@ void ScreenManager::writeReport(const char *input, const char *color, bool bold)
         // Refresh
         printLog();
         refresh();
+    #endif
 }
 
 void ScreenManager::addMessage(int level, const char *log, const char *func)
