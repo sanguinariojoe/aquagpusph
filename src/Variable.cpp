@@ -134,7 +134,7 @@ bool IntVariable::setFromPythonObject(PyObject* obj, int i0, int n)
 }
 
 const char* IntVariable::asString(){
-    sprintf(str_val, "%d", *(get()));
+    sprintf(str_val, "%16d", *(get()));
     return (const char*)str_val;
 }
 
@@ -191,7 +191,7 @@ bool UIntVariable::setFromPythonObject(PyObject* obj, int i0, int n)
 }
 
 const char* UIntVariable::asString(){
-    sprintf(str_val, "%u", *(get()));
+    sprintf(str_val, "%16u", *(get()));
     return (const char*)str_val;
 }
 
@@ -266,7 +266,7 @@ bool FloatVariable::setFromPythonObject(PyObject* obj, int i0, int n)
 }
 
 const char* FloatVariable::asString(){
-    sprintf(str_val, "%g", *(get()));
+    sprintf(str_val, "%16g", *(get()));
     return (const char*)str_val;
 }
 
@@ -364,7 +364,7 @@ bool Vec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 
 const char* Vec2Variable::asString(){
     vec2 *val = get();
-    sprintf(str_val, "(%g,%g)", val->x, val->y);
+    sprintf(str_val, "(%16g,%16g)", val->x, val->y);
     return (const char*)str_val;
 }
 
@@ -463,7 +463,7 @@ bool Vec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 
 const char* Vec3Variable::asString(){
     vec3 *val = get();
-    sprintf(str_val, "(%g,%g,%g)", val->x, val->y, val->z);
+    sprintf(str_val, "(%16g,%16g,%16g)", val->x, val->y, val->z);
     return (const char*)str_val;
 }
 
@@ -563,7 +563,7 @@ bool Vec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 
 const char* Vec4Variable::asString(){
     vec4 *val = get();
-    sprintf(str_val, "(%g,%g,%g,%g)", val->x, val->y, val->z, val->w);
+    sprintf(str_val, "(%16g,%16g,%16g,%16g)", val->x, val->y, val->z, val->w);
     return (const char*)str_val;
 }
 
@@ -661,7 +661,7 @@ bool IVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 
 const char* IVec2Variable::asString(){
     ivec2 *val = get();
-    sprintf(str_val, "(%d,%d)", val->x, val->y);
+    sprintf(str_val, "(%16d,%16d)", val->x, val->y);
     return (const char*)str_val;
 }
 
@@ -760,7 +760,7 @@ bool IVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 
 const char* IVec3Variable::asString(){
     ivec3 *val = get();
-    sprintf(str_val, "(%d,%d,%d)", val->x, val->y, val->z);
+    sprintf(str_val, "(%16d,%16d,%16d)", val->x, val->y, val->z);
     return (const char*)str_val;
 }
 
@@ -860,7 +860,7 @@ bool IVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 
 const char* IVec4Variable::asString(){
     ivec4 *val = get();
-    sprintf(str_val, "(%d,%d,%d,%d)", val->x, val->y, val->z, val->w);
+    sprintf(str_val, "(%16d,%16d,%16d,%16d)", val->x, val->y, val->z, val->w);
     return (const char*)str_val;
 }
 
@@ -958,7 +958,7 @@ bool UIVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 
 const char* UIVec2Variable::asString(){
     uivec2 *val = get();
-    sprintf(str_val, "(%u,%u)", val->x, val->y);
+    sprintf(str_val, "(%16u,%16u)", val->x, val->y);
     return (const char*)str_val;
 }
 
@@ -1057,7 +1057,7 @@ bool UIVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 
 const char* UIVec3Variable::asString(){
     uivec3 *val = get();
-    sprintf(str_val, "(%u,%u,%u)", val->x, val->y, val->z);
+    sprintf(str_val, "(%16u,%16u,%16u)", val->x, val->y, val->z);
     return (const char*)str_val;
 }
 
@@ -1157,7 +1157,7 @@ bool UIVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 
 const char* UIVec4Variable::asString(){
     uivec4 *val = get();
-    sprintf(str_val, "(%u,%u,%u,%u)", val->x, val->y, val->z, val->w);
+    sprintf(str_val, "(%16u,%16u,%16u,%16u)", val->x, val->y, val->z, val->w);
     return (const char*)str_val;
 }
 

@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
 <sphInput>
     <Reports>
-        <Report type="screen" name="Time control" fields="dt, t" color="green" bold="false"/>
-        <Report type="file" name="Time control file" fields="t, dt" path="Timing.dat"/>
+        <Report type="screen" name="Time control" fields="iter, dt, t" color="green" bold="false"/>
+        <Report type="file" name="Time control file" fields="iter, t, dt" path="Timing.dat"/>
     </Reports>
 </sphInput>
  
