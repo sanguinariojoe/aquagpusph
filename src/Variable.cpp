@@ -1657,7 +1657,7 @@ bool Variables::solve(const char *type_name,
     }
     if(!strcmp(value, "")){
         S->addMessageF(3, "Empty value received\n");
-        return 0;
+        return true;
     }
 
     char *type = new char[strlen(type_name) + 1];
