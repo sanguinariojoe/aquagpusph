@@ -47,7 +47,7 @@ bool Tokenizer::registerVariable(const char* name, float value)
 {
     // Look for the variable in order to know if it already exist
     if(isVariable(name)){
-        // The variable already exist, let we take it and modify
+        // The variable already exist, lets modify it
         _variables[name] = value;
         return true;
     }
