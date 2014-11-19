@@ -938,7 +938,23 @@ public:
                const char *value,
                void *data,
                const char* name="NULL");
+
+    /** @brief Populate variables in order that the tokenizer may get the
+     * updated value.
+     * @param name Name of the variable to be populated, NULL if all the
+     * variables should be populated.
+     * @return false if all gone right, true otherwise
+     */
+    bool populate(const char* name=NULL);
+
+    /** @brief Populate a variable in order that the tokenizer may know the
+     * updated value.
+     * @param var Variable to be populated.
+     * @return false if all gone right, true otherwise
+     */
+    bool populate(Variable* var);
 private:
+
     /** Register a scalar variable
      * @param name Name of the variable.
      * @param type Type of the variable.

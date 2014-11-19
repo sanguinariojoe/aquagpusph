@@ -160,6 +160,11 @@ bool Reduction::execute()
         S->printOpenCLError(err_code);
         return true;
     }
+
+    // Ensure that the variable is populated
+    if(vars->populate(_output_var)){
+        return true;
+    }
     return false;
 }
 

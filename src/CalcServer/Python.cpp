@@ -107,6 +107,13 @@ static PyObject* set(PyObject *self, PyObject *args, PyObject *keywds)
         return NULL;
     }
 
+    // Populate the variable if it is a scalar one
+    if(!strchr(var->type(), '*')){
+        if(V->populate(var)){
+            return NULL;
+        }
+    }
+
     Py_RETURN_NONE;
 }
 

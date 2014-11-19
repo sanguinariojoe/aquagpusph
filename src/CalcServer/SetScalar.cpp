@@ -86,6 +86,10 @@ bool SetScalar::execute()
     }
 
     _var->set(data);
+    // Ensure that the variable is populated
+    if(vars->populate(_var)){
+        return true;
+    }
 
     return false;
 }

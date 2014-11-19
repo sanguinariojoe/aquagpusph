@@ -1845,6 +1845,225 @@ bool Variables::solve(const char *type_name,
     return false;
 }
 
+bool Variables::populate(const char* name)
+{
+    unsigned int i;
+    Variable *var = NULL;
+    if(name){
+        var = get(name);
+        if(!var){
+            char msg[strlen(name) + 64];
+            ScreenManager *S = ScreenManager::singleton();
+            sprintf(msg,
+                    "Variable \"%s\" cannot be found\n",
+                    name);
+            S->addMessageF(3, msg);
+            return true;
+        }
+        return populate(var);
+    }
+
+    for(i = 0; i < _vars.size(); i++){
+        var = _vars.at(i);
+        if(populate(var)){
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Variables::populate(Variable* var)
+{
+    const char* type = var->type();
+    if(!strcmp(type, "int")){
+        int val = *(int*)var->get();
+        tok.registerVariable(var->name(), (float)val);
+    }
+    else if(!strcmp(type, "unsigned int")){
+        unsigned int val = *(unsigned int*)var->get();
+        tok.registerVariable(var->name(), (float)val);
+    }
+    else if(!strcmp(type, "float")){
+        float val = *(float*)var->get();
+        tok.registerVariable(var->name(), (float)val);
+    }
+    else if(!strcmp(type, "vec")){
+        vec val = *(vec*)var->get();
+        char name[strlen(var->name()) + 3];
+        #ifdef HAVE_3D
+            sprintf(name, "%s_x", var->name());
+            tok.registerVariable(name, (float)(val.x));
+            sprintf(name, "%s_y", var->name());
+            tok.registerVariable(name, (float)(val.y));
+            sprintf(name, "%s_z", var->name());
+            tok.registerVariable(name, (float)(val.z));
+            sprintf(name, "%s_w", var->name());
+            tok.registerVariable(name, (float)(val.w));
+        #else
+            sprintf(name, "%s_x", var->name());
+            tok.registerVariable(name, (float)(val.x));
+            sprintf(name, "%s_y", var->name());
+            tok.registerVariable(name, (float)(val.y));
+        #endif // HAVE_3D
+    }
+    else if(!strcmp(type, "vec2")){
+        vec2 val = *(vec2*)var->get();
+        char name[strlen(var->name()) + 3];
+        sprintf(name, "%s_x", var->name());
+        tok.registerVariable(name, (float)(val.x));
+        sprintf(name, "%s_y", var->name());
+        tok.registerVariable(name, (float)(val.y));
+    }
+    else if(!strcmp(type, "vec3")){
+        vec3 val = *(vec3*)var->get();
+        char name[strlen(var->name()) + 3];
+        sprintf(name, "%s_x", var->name());
+        tok.registerVariable(name, (float)(val.x));
+        sprintf(name, "%s_y", var->name());
+        tok.registerVariable(name, (float)(val.y));
+        sprintf(name, "%s_z", var->name());
+        tok.registerVariable(name, (float)(val.z));
+    }
+    else if(!strcmp(type, "vec4")){
+        vec4 val = *(vec4*)var->get();
+        char name[strlen(var->name()) + 3];
+        sprintf(name, "%s_x", var->name());
+        tok.registerVariable(name, (float)(val.x));
+        sprintf(name, "%s_y", var->name());
+        tok.registerVariable(name, (float)(val.y));
+        sprintf(name, "%s_z", var->name());
+        tok.registerVariable(name, (float)(val.z));
+        sprintf(name, "%s_w", var->name());
+        tok.registerVariable(name, (float)(val.w));
+    }
+    else if(!strcmp(type, "ivec")){
+        ivec val = *(ivec*)var->get();
+        char name[strlen(var->name()) + 3];
+        #ifdef HAVE_3D
+            sprintf(name, "%s_x", var->name());
+            tok.registerVariable(name, (float)(val.x));
+            sprintf(name, "%s_y", var->name());
+            tok.registerVariable(name, (float)(val.y));
+            sprintf(name, "%s_z", var->name());
+            tok.registerVariable(name, (float)(val.z));
+            sprintf(name, "%s_w", var->name());
+            tok.registerVariable(name, (float)(val.w));
+        #else
+            sprintf(name, "%s_x", var->name());
+            tok.registerVariable(name, (float)(val.x));
+            sprintf(name, "%s_y", var->name());
+            tok.registerVariable(name, (float)(val.y));
+        #endif // HAVE_3D
+    }
+    else if(!strcmp(type, "ivec2")){
+        ivec2 val = *(ivec2*)var->get();
+        char name[strlen(var->name()) + 3];
+        sprintf(name, "%s_x", var->name());
+        tok.registerVariable(name, (float)(val.x));
+        sprintf(name, "%s_y", var->name());
+        tok.registerVariable(name, (float)(val.y));
+    }
+    else if(!strcmp(type, "ivec3")){
+        ivec3 val = *(ivec3*)var->get();
+        char name[strlen(var->name()) + 3];
+        sprintf(name, "%s_x", var->name());
+        tok.registerVariable(name, (float)(val.x));
+        sprintf(name, "%s_y", var->name());
+        tok.registerVariable(name, (float)(val.y));
+        sprintf(name, "%s_z", var->name());
+        tok.registerVariable(name, (float)(val.z));
+    }
+    else if(!strcmp(type, "ivec4")){
+        ivec4 val = *(ivec4*)var->get();
+        char name[strlen(var->name()) + 3];
+        sprintf(name, "%s_x", var->name());
+        tok.registerVariable(name, (float)(val.x));
+        sprintf(name, "%s_y", var->name());
+        tok.registerVariable(name, (float)(val.y));
+        sprintf(name, "%s_z", var->name());
+        tok.registerVariable(name, (float)(val.z));
+        sprintf(name, "%s_w", var->name());
+        tok.registerVariable(name, (float)(val.w));
+    }
+    else if(!strcmp(type, "uivec")){
+        uivec val = *(uivec*)var->get();
+        char name[strlen(var->name()) + 3];
+        #ifdef HAVE_3D
+            sprintf(name, "%s_x", var->name());
+            tok.registerVariable(name, (float)(val.x));
+            sprintf(name, "%s_y", var->name());
+            tok.registerVariable(name, (float)(val.y));
+            sprintf(name, "%s_z", var->name());
+            tok.registerVariable(name, (float)(val.z));
+            sprintf(name, "%s_w", var->name());
+            tok.registerVariable(name, (float)(val.w));
+        #else
+            sprintf(name, "%s_x", var->name());
+            tok.registerVariable(name, (float)(val.x));
+            sprintf(name, "%s_y", var->name());
+            tok.registerVariable(name, (float)(val.y));
+        #endif // HAVE_3D
+    }
+    else if(!strcmp(type, "uivec2")){
+        uivec2 val = *(uivec2*)var->get();
+        char name[strlen(var->name()) + 3];
+        sprintf(name, "%s_x", var->name());
+        tok.registerVariable(name, (float)(val.x));
+        sprintf(name, "%s_y", var->name());
+        tok.registerVariable(name, (float)(val.y));
+    }
+    else if(!strcmp(type, "uivec3")){
+        uivec3 val = *(uivec3*)var->get();
+        char name[strlen(var->name()) + 3];
+        sprintf(name, "%s_x", var->name());
+        tok.registerVariable(name, (float)(val.x));
+        sprintf(name, "%s_y", var->name());
+        tok.registerVariable(name, (float)(val.y));
+        sprintf(name, "%s_z", var->name());
+        tok.registerVariable(name, (float)(val.z));
+    }
+    else if(!strcmp(type, "uivec4")){
+        uivec4 val = *(uivec4*)var->get();
+        char name[strlen(var->name()) + 3];
+        sprintf(name, "%s_x", var->name());
+        tok.registerVariable(name, (float)(val.x));
+        sprintf(name, "%s_y", var->name());
+        tok.registerVariable(name, (float)(val.y));
+        sprintf(name, "%s_z", var->name());
+        tok.registerVariable(name, (float)(val.z));
+        sprintf(name, "%s_w", var->name());
+        tok.registerVariable(name, (float)(val.w));
+    }
+    else{
+        char msg[256];
+        ScreenManager *S = ScreenManager::singleton();
+        sprintf(msg,
+                "\"%s\" declared as \"%s\", which is not a scalar type.\n",
+                var->name(),
+                type);
+        S->addMessageF(3, msg);
+        S->addMessageF(0, "Valid types are:\n");
+        S->addMessageF(0, "\tint\n");
+        S->addMessageF(0, "\tunsigned int\n");
+        S->addMessageF(0, "\tfloat\n");
+        S->addMessageF(0, "\tvec\n");
+        S->addMessageF(0, "\tvec2\n");
+        S->addMessageF(0, "\tvec3\n");
+        S->addMessageF(0, "\tvec4\n");
+        S->addMessageF(0, "\tivec\n");
+        S->addMessageF(0, "\tivec2\n");
+        S->addMessageF(0, "\tivec3\n");
+        S->addMessageF(0, "\tivec4\n");
+        S->addMessageF(0, "\tuivec\n");
+        S->addMessageF(0, "\tuivec2\n");
+        S->addMessageF(0, "\tuivec3\n");
+        S->addMessageF(0, "\tuivec4\n");
+        return true;
+    }
+
+    return false;
+}
+
 bool Variables::registerScalar(const char* name,
                                const char* type,
                                const char* value)
