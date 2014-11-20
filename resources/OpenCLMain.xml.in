@@ -1,31 +1,5 @@
 <?xml version="1.0" ?>
 <sphInput>
     <Include file="@RESOURCES_OUTPUT_DIR@/Presets/cfd.xml" />
-
-    <OpenCL>
-        <!-- Remarks: Paths are relative to the execution one, and ".cl"
-        extension will be automatically append -->
-
-        <Predictor file="@RESOURCES_OUTPUT_DIR@/OpenCL/Predictor" />
-        <LinkList file="@RESOURCES_OUTPUT_DIR@/OpenCL/LinkList" />
-        <Permutate file="@RESOURCES_OUTPUT_DIR@/OpenCL/Permutate" />
-        <Rates file="@RESOURCES_OUTPUT_DIR@/OpenCL/Rates" />
-        <Corrector file="@RESOURCES_OUTPUT_DIR@/OpenCL/Corrector" />
-        <TimeStep file="@RESOURCES_OUTPUT_DIR@/OpenCL/TimeStep" />
-
-        <Reduction file="@RESOURCES_OUTPUT_DIR@/OpenCL/Reduction" />
-        <RadixSort file="@RESOURCES_OUTPUT_DIR@/OpenCL/RadixSort" />
-
-        <Shepard file="@RESOURCES_OUTPUT_DIR@/OpenCL/Shepard" />
-        <Domain file="@RESOURCES_OUTPUT_DIR@/OpenCL/Domain" />
-        <ElasticBounce file="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/ElasticBounce" />
-        <DeLeffe file="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/DeLeffe" />
-        <GhostParticles file="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GhostParticles" />
-        <DensInterpolation file="@RESOURCES_OUTPUT_DIR@/OpenCL/DensInt" />
-        <Torque file="@RESOURCES_OUTPUT_DIR@/OpenCL/Torque" />
-        <Energy file="@RESOURCES_OUTPUT_DIR@/OpenCL/Energy" />
-        <Bounds file="@RESOURCES_OUTPUT_DIR@/OpenCL/Bounds" />
-        <Portal file="@RESOURCES_OUTPUT_DIR@/OpenCL/Portal/Portal" />
-    </OpenCL>
 </sphInput>
 
