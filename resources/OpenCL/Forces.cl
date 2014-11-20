@@ -17,8 +17,7 @@
  */
 
 /** @file
- * @brief OpenCL kernels to compute the fluid global force and moment.
- * (See Aqua::CalcServer::Torque for details)
+ * @brief OpenCL tool to compute the fluid global force and moment.
  */
 
 #ifndef HAVE_3D
