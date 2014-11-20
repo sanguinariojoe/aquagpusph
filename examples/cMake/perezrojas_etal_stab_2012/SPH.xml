@@ -23,8 +23,8 @@ Authors:
         <Variable name="dr" type="float" value="0.0038" />
         <Variable name="hfac" type="float" value="3.0" />
         <Variable name="h" type="float" value="hfac * dr" />
-        <Variable name="cs" type="float" value="30.0" />
-        <Variable name="courant" type="float" value="0.25" />
+        <Variable name="cs" type="float" value="45.0" />
+        <Variable name="courant" type="float" value="0.2" />
         <Variable name="domain_min" type="vec" value="-0.1, -0.6, -0.15, 0.0" />
         <Variable name="domain_max" type="vec" value="0.1, 0.6, 0.6, 0.0" />
     </Variables>
