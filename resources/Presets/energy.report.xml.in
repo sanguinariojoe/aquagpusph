@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<sphInput>
+    <Reports>
+        <Report type="screen" name="Energy" fields="energy_Eint,energy_S; energy_Ekin,energy_Epot,energy_W" color="blue" bold="false"/>
+        <Report type="file" name="Energy file" fields="t,dt, energy_Eint,energy_S;energy_Ekin,energy_Epot,energy_W, energy_dEintdt,energy_dSdt,energy_dEkindt,energy_dEpotdt,energy_dWdt" path="Energy.dat"/>
+    </Reports>
+</sphInput>
+ 
