@@ -18,7 +18,7 @@ Authors:
 -->
 
 <sphInput>
-    <ParticlesSet n="176376">
+    <ParticlesSet n="26528">
         <Scalar name="gamma" value="7.0" />
         <Scalar name="refd" value="998.0" />
         <!-- Using delta-SPH -->
