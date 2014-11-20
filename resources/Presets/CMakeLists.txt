@@ -5,6 +5,8 @@
 SET(RESOURCES_OUTPUT_DIR ${CMAKE_BINARY_DIR}/resources)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cfd.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/cfd.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/variableTimeStep.xml.in  
+    ${CMAKE_CURRENT_BINARY_DIR}/variableTimeStep.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/domain.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/domain.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/energy.xml.in  
@@ -24,6 +26,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/timing.report.xml.in
 SET(RESOURCES_OUTPUT_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/resources)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cfd.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/cfd.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/variableTimeStep.xml.in  
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/variableTimeStep.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/domain.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/domain.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/energy.xml.in  
@@ -44,6 +48,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/timing.report.xml.in
 # ===================================================== #
 SET(RESOURCES_SRCS 
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/cfd.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/variableTimeStep.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/domain.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/forces.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/energy.xml

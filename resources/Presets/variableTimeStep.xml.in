@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<sphInput>
+    <Variables>
+        <Variable name="dt_var" type="float*" length="N" />
+    </Variables>
+
+    <Tools>
+        <Tool action="insert" after="FixedTimeStep" type="kernel" name="VariableTimeStep" path="@RESOURCES_OUTPUT_DIR@/OpenCL/TimeStep.cl"/>
+        <Tool action="insert" after="VariableTimeStep" type="reduction" name="MinimumTimeStep" in="dt_var" out="dt" null="INFINITY">
+            c = (a &lt; b) ? a : b;
+        </Tool>
+    </Tools>
+</sphInput>
