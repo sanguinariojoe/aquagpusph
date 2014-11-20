@@ -17,8 +17,7 @@
  */
 
 /** @file
- * @brief OpenCL kernels to compute the fluid energy components.
- * (See Aqua::CalcServer::Energy for details)
+ * @brief Tool to compute the fluid global energy components.
  */
 
 #ifndef HAVE_3D
@@ -29,80 +28,99 @@
 
 /** @brief Tool to compute the fluid energy components.
  *
- * @param energy Particle resultant energy components:
- *   -# Internal energy: \f$ U = \int_0^t \sum_i \frac{p_i}{\rho_i^2}
-     \left(
-        \frac{\mathrm{d} \rho_i}{\mathrm{d} t}
-        - \left. \frac{\mathrm{d} \rho_i}{\mathrm{d} t} \right\vert_F
-     \right) m_i \mathrm{d}t \f$.
- *   -# Enthalpy: \f$ H = \int_0^t \sum_i \frac{p_i}{\rho_i^2}
-     \frac{\mathrm{d} \rho_i}{\mathrm{d} t} m_i \mathrm{d}t \f$.
- *   -# Potential energy: \f$ E_{pot} = - \sum_i m_i
-     \mathbf{g} \cdot \mathbf{r}_i \f$.
- *   -# Kinetic energy: \f$ E_{kin} = \sum_i \frac{1}{2} m_i
-     \vert \mathbf{u}_i \vert^2 \f$.
+ * Actually, in this kernel the energy componets variation are computed per each
+ * particle.
+ * 
+ * The internal energy variation is computed later as \f$ \frac{dU}{dt} =
+ * \frac{dW}{dt} - \frac{dE_pot}{dt} - \frac{dE_kin}{dt} \f$
+ *
+ * @param energy_dsdt Variation of the entropy:
+ * \f$ T \frac{d S_a}{d t} =
+ * - \frac{\mu m_a}{\rho_a} \mathbf{u}_a \cdot \Delta \mathbf{u}_a
+ * - \delta \frac{p_a m_a \Delta t}{\rho_0 \rho_a} \Delta p_a \f$
+ * @param energy_dekindt Variation of the kinetic energy:
+ * \f$ \frac{dE^kin_a}{dt} =
+ * m_a \mathbf{u}_a \cdot \frac{d \mathbf{u}_a}{dt}\f$
+ * @param energy_depotdt Variation of the potential energy:
+ * \f$ \frac{dE^pot_a}{dt} =
+ * - m_a \mathbf{g} \cdot \mathbf{u}_a\f$
+ * @param energy_dwdt Variation of the potential energy:
+ * \f$ m \frac{dW_a}{dt} =
+ * - \frac{m_a}{\rho_a} \nabla p_a \cdot \mathbf{u}_a
+ * - \frac{m_a}{\rho_a} p_a \nabla \cdot \mathbf{u}_a \f$
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param ifluid Fluid index.
- * @param pos Position \f$ \mathbf{r} \f$.
+ * @param iset Set of particles index.
  * @param v Velocity \f$ \mathbf{u} \f$.
- * @param mass Mass \f$ m \f$.
- * @param dens Density \f$ \rho \f$.
- * @param press Pressure \f$ p \f$.
- * @param drdt Density rate of change \f$ \frac{d \rho}{d t} \f$.
- * @param drdt_F Density rate of change restricted to the diffusive term
- * \f$ \left. \frac{d \rho}{d t} \right\vert_F \f$.
- * @param dvdt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
+ * @param rho Density \f$ \rho \f$.
+ * @param m Mass \f$ m \f$.
+ * @param p Pressure \f$ p \f$.
+ * @param grad_p Pressure gradient \f$ \frac{\nabla p}{rho} \f$.
+ * @param lap_u Velocity laplacian \f$ \frac{\Delta \mathbf{u}}{rho} \f$.
+ * @param div_u Velocity divergence \f$ \rho \nabla \cdot \mathbf{u} \f$.
+ * @param lap_p Pressure laplacian \f$ \Delta p \f$.
+ * @param shepard Shepard term
+ * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
+ *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{x} \f$.
+ * @param dvdt Velocity rate of change
+ * \f$ \frac{d \mathbf{u}}{d t} \f$.
+ * @param drhodt Density rate of change
+ * \f$ \frac{d \rho}{d t} \f$.
+ * @param visc_dyn Dynamic viscosity \f$ \mu \f$.
+ * @param delta Diffusive term \f$ \delta \f$ multiplier.
  * @param refd Density of reference of the fluid \f$ \rho_0 \f$.
- * @param gamma Eq. of state exponent \f$ \gamma \f$.
- * @param cs Speed of sound \f$ c_s \f$.
- * @param grav Gravity acceleration \f$ \mathbf{g} \f$.
  * @param N Number of particles.
+ * @param dt Time step \f$ \Delta t \f$.
+ * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  */
-__kernel void Energy(__global vec4* energy,
-                     __global int* imove,
-                     __global int* ifluid,
-                     __global vec* pos,
-                     __global vec* v,
-                     __global float* mass,
-                     __global float* dens,
-                     __global float* press,
-                     __global float* drdt,
-                     __global float* drdt_F,
-                     __global vec* dvdt,
-                     __constant float* refd,
-                     __constant float* gamma,
-                     float cs,
-                     vec grav,
-                     unsigned int N)
+__kernel void main(__global float* energy_dsdt,
+                   __global float* energy_dekindt,
+                   __global float* energy_depotdt,
+                   __global float* energy_dwdt,
+                   const __global int* imove,
+                   const __global int* iset,
+                   const __global vec* v,
+                   const __global float* rho,
+                   const __global float* m,
+                   const __global float* p,
+                   const __global vec* grad_p,
+                   const __global vec* lap_u,
+                   const __global float* div_u,
+                   const __global float* lap_p,
+                   const __global float* shepard,
+                   const __global vec* dvdt,
+                   const __global float* drhodt,
+                   __constant float* visc_dyn,
+                   __constant float* delta,
+                   __constant float* refd,
+                   unsigned int N,
+                   float dt,
+                   vec g)
 {
-	// find position in global arrays
-	unsigned int i = get_global_id(0);
-	if(i >= N)
-		return;
-	if(imove[i] <= 0){
-		energy[i] = (vec4)(0.f,0.f,0.f,0.f);
-		return;
-	}
+    // find position in global arrays
+    unsigned int i = get_global_id(0);
+    if(i >= N)
+        return;
+    if(imove[i] <= 0){
+        energy_dsdt = 0.f;
+        energy_dekindt = 0.f;
+        energy_depotdt = 0.f;
+        energy_dwdt = 0.f;
+        return;
+    }
 
-	// ---- | ------------------------ | ----
-	// ---- V ---- Your code here ---- V ----
+    const float mass = m[i];
+    const float dens = rho[i];
+    const float press = p[i];
+    const float vol = mass / dens;
+    const float set = iset[i];
 
-	float m = mass[i];
-	float d = dens[i];
-	float p = press[i];
-	float mp_dd = m * p/(d*d);
-	// U = Internal energy (viscosity effect not implemented yet)
-	energy[i].x = mp_dd * drdt[i];
-	// H = Enthalpy
-	energy[i].y = mp_dd * (drdt[i] + drdt_F[i]);
-	// Epot = Potential energy
-	energy[i].z = - m * dot(grav, pos[i]);
-	// Ekin = Kinetic energy
-	energy[i].w = 0.5f * m * dot(v[i], v[i]);
-
-	// ---- A ---- Your code here ---- A ----
-	// ---- | ------------------------ | ----
+    energy_dsdt[i] = -vol * (visc_dyn[set] * dot(v[i], lap_u[i])
+                     + delta[set] * refd[set] * dt * press * lap_p);
+    energy_dekindt[i] = mass * dot(v[i], dvdt[i]);
+    energy_depotdt[i] = -mass * dot(g[i], v[i]);
+    energy_dwdt[i] = -vol * (dot(grad_p[i], v[i])
+                     + press * div_u[i]);
 }
