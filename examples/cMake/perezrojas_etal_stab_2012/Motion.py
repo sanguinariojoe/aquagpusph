@@ -72,7 +72,7 @@ DT = 0.0
 
 # Filter data
 dThetaList = []
-SMOOTH_WINDOW = 51
+SMOOTH_WINDOW = 11
 
 # Open the output file
 f = open('Motion.dat', 'w')
