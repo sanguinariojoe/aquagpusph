@@ -20,7 +20,7 @@ Authors:
 <sphInput>
     <Variables>
         <Variable name="g" type="vec" value="0.0, 0.0, -9.81, 0.0" />
-        <Variable name="dr" type="float" value="0.0038" />
+        <Variable name="dr" type="float" value="0.00836" />
         <Variable name="hfac" type="float" value="3.0" />
         <Variable name="h" type="float" value="hfac * dr" />
         <Variable name="cs" type="float" value="45.0" />
