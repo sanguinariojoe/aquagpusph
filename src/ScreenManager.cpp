@@ -104,7 +104,9 @@ void ScreenManager::endFrame()
     #endif
 }
 
-void ScreenManager::writeReport(const char *input, const char *color, bool bold)
+void ScreenManager::writeReport(const char *input,
+                                const char *color,
+                                bool bold)
 {
     if(!input){
         return;
