@@ -33,6 +33,7 @@
  * @param dvdt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
  * @param N Number of particles.
  * @param dt Fixed time step \f$ \Delta t = C_f \frac{h}{c_s} \f$.
+ * @param dt_min Minimum time step \f$ \Delta t_{\mathrm{min}} \f$.
  * @param courant Courant factor \f$ C_f \f$.
  * @param h Kernel characteristic length \f$ h \f$.
  */
@@ -41,6 +42,7 @@ __kernel void main(__global float* dt_var,
                    __global vec* dvdt,
                    unsigned int N,
                    float dt,
+                   float dt_min,
                    float courant,
                    float h)
 {
@@ -49,5 +51,5 @@ __kernel void main(__global float* dt_var,
         return;
 
     const float vv = 10.f * fast_length(v[i] + dvdt[i] * dt);
-    dt_var[i] = min(dt, h / vv);
+    dt_var[i] = max(min(dt, h / vv), dt_min);
 }

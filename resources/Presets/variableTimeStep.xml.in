@@ -2,6 +2,7 @@
 <sphInput>
     <Variables>
         <Variable name="dt_var" type="float*" length="N" />
+        <Variable name="dt_min" type="float" value="0.0" />
     </Variables>
 
     <Tools>
