@@ -127,12 +127,16 @@ public:
      * @param offset The offset in bytes in the memory object to read from.
      * @param cb The size in bytes of data being downloaded.
      * @param ptr The host memory where the data should be copied
-     * @return false if all gone right, true otherwise.
+     * @return The data download event, NULL if errors are detected.
+     * @note The caller must wait for the events (clWaitForEvents) before
+     * accessing the downloaded data.
+     * @remarks The caller must call clReleaseEvent to destroy the event.
+     * Otherwise a memory leak can be expected.
      */
-    bool getUnsortedMem(const char* var_name,
-                        size_t offset,
-                        size_t cb,
-                        void *ptr);
+    cl_event getUnsortedMem(const char* var_name,
+                            size_t offset,
+                            size_t cb,
+                            void *ptr);
 private:
     /// Setup the OpenCL stuff.
     /**

@@ -288,10 +288,10 @@ bool CalcServer::update()
 	return false;
 }
 
-bool CalcServer::getUnsortedMem(const char* var_name,
-                                size_t offset,
-                                size_t cb,
-                                void *ptr)
+cl_event CalcServer::getUnsortedMem(const char* var_name,
+                                    size_t offset,
+                                    size_t cb,
+                                    void *ptr)
 {
     cl_int err_code;
     char msg[256];
@@ -299,30 +299,31 @@ bool CalcServer::getUnsortedMem(const char* var_name,
 
     UnSort unsorter(var_name, var_name);
     if(unsorter.setup()){
-        return true;
+        return NULL;
     }
     if(unsorter.execute()){
-        return true;
+        return NULL;
     }
     cl_mem mem = unsorter.output();
+    cl_event event = NULL;
     err_code = clEnqueueReadBuffer(command_queue(),
                                    mem,
-                                   CL_TRUE,
+                                   CL_FALSE,
                                    offset,
                                    cb,
                                    ptr,
                                    0,
                                    NULL,
-                                   NULL);
+                                   &event);
     if(err_code != CL_SUCCESS){
         sprintf(msg,
                 "Failure receiving the variable \"%s\" from server.\n",
                 var_name);
         S->addMessageF(3, msg);
         S->printOpenCLError(err_code);
-        return true;
+        return NULL;
     }
-    return false;
+    return event;
 }
 
 bool CalcServer::setupOpenCL()

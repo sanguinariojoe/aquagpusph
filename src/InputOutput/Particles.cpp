@@ -23,6 +23,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <vector>
 
 #include <InputOutput/Particles.h>
 #include <ScreenManager.h>
@@ -215,8 +216,10 @@ bool Particles::file(const char* basename,
 std::deque<void*> Particles::download(std::deque<char*> fields)
 {
     std::deque<void*> data;
+    std::vector<cl_event> events;  // vector storage is continuous memory
     size_t typesize, len;
     unsigned int i, j;
+    cl_int err_code;
     char msg[256];
 	ScreenManager *S = ScreenManager::singleton();
 	CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
@@ -266,11 +269,34 @@ std::deque<void*> Particles::download(std::deque<char*> fields)
         }
         data.push_back(store);
 
-        if(C->getUnsortedMem(var->name(),
-                             typesize * bounds().x,
-                             typesize * (bounds().y - bounds().x),
-                             store))
-        {
+        cl_event event = C->getUnsortedMem(var->name(),
+                                           typesize * bounds().x,
+                                           typesize * (bounds().y - bounds().x),
+                                           store);
+        if(!event){
+            clearList(&data);
+            return data;
+        }
+
+        events.push_back(event);
+    }
+
+    // Wait until all the data has been downloaded
+    err_code = clWaitForEvents(events.size(),
+                               events.data());
+    if(err_code != CL_SUCCESS){
+        S->addMessageF(3, "Failure waiting for the variables download.\n");
+        S->printOpenCLError(err_code);
+        clearList(&data);
+        return data;
+    }
+
+    // Destroy the events
+    for(i = 0; i < events.size(); i++){
+        err_code = clReleaseEvent(events.at(i));
+        if(err_code != CL_SUCCESS){
+            S->addMessageF(3, "Failure releasing the events.\n");
+            S->printOpenCLError(err_code);
             clearList(&data);
             return data;
         }
