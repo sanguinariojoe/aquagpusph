@@ -83,7 +83,7 @@ __kernel void main(const __global uint* iset,
     if(i >= N)
         return;
 
-    if((imove == -1) || (imove > 0)){
+    if((imove[i] == -1) || (imove[i] > 0)){
         return;
     }
 
