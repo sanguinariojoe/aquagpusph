@@ -98,7 +98,7 @@ __kernel void main(__global int* imove,
     float DT, HDT;
     DT = dt;
     if(imove[i] <= 0)
-            DT = 0.f;
+        DT = 0.f;
     HDT = 0.5f * DT;
 
     // Corrector step for the fluid
