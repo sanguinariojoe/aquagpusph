@@ -32,14 +32,12 @@
 namespace Aqua{ namespace CalcServer{ namespace Reports{
 
 /** @class TabFile TabFile.h CalcServer/TabFile.h
- * @brief On screen runtime output.
+ * @brief Runtime output file.
  *
  * A runtime output is an output value that:
  *    -# Is composed by a relatively low amount of memory
  *    -# Its computation is not taking too much time
  * Therefore it could be computed and printed oftenly.
- *
- * @see Aqua::InputOutput::TabFileManager
  */
 class TabFile : public Aqua::CalcServer::Reports::Report
 {
