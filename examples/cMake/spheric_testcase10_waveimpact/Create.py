@@ -57,9 +57,13 @@ n = 100000
 # Dimensions and number of particles readjustment
 # ===============================================
 
-nx = int(round((n * D * D / h / L)**(1.0 / 3.0)))
-ny = int(round((n * L * L / h / D)**(1.0 / 3.0)))
-nz = n // (nx * ny)
+Vol = L * D * h
+dv = Vol / n
+dr = dv**(1.0 / 3.0)
+
+nx = int(round(D / dr))
+ny = int(round(L / dr))
+nz = int(round(h / dr))
 n = nx * ny * nz
 
 drx = D/nx
@@ -72,7 +76,7 @@ visc_dyn = max(alpha / 10.0 * refd * hfac * dr * cs, visc_dyn)
 # Solid boundary elements
 Nx = nx
 Ny = ny
-Nz = int(round(H / drz)) + 1
+Nz = int(round(H / dr)) + 1
 
 # Correct tank dimensions
 L = Ny * dr
@@ -251,7 +255,7 @@ output.close()
 # ==================
 
 output = open("Sensors.dat", "w")
-pos = (0.0, -0.45, 0.093)
+pos = (0.0, -0.5 * L, 0.093)
 normal = (0.0, -1.0, 0.0)
 dens = refd
 mass = 0.0

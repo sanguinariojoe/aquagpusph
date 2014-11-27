@@ -56,9 +56,13 @@ n = 10000
 # Dimensions and number of particles readjustment
 # ===============================================
 
-nx = int(round((n * D * D / h / L)**(1.0 / 3.0)))
-ny = int(round((n * L * L / h / D)**(1.0 / 3.0)))
-nz = n // (nx * ny)
+Vol = L * D * h
+dv = Vol / n
+dr = dv**(1.0 / 3.0)
+
+nx = int(round(D / dr))
+ny = int(round(L / dr))
+nz = int(round(h / dr))
 n = nx * ny * nz
 
 drx = D/nx
