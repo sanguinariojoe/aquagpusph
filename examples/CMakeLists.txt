@@ -3,11 +3,11 @@ SET(RESOURCES_DIR ${CMAKE_SOURCE_DIR}/resources)
 IF(AQUAGPUSPH_3D)
 
 # ===================================================== #
-# perezrojas_etal_stab_2012 (Local)                     #
+# spheric_testcase9_tld (Local)                     #
 # ===================================================== #
 # Folders
-SET(EXAMPLE_ORIG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012)
-SET(EXAMPLE_DEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012)
+SET(EXAMPLE_ORIG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cMake/spheric_testcase9_tld)
+SET(EXAMPLE_DEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/spheric_testcase9_tld)
 SET(BINARY_DIR ${CMAKE_BINARY_DIR}/bin)
 FILE(MAKE_DIRECTORY ${EXAMPLE_DEST_DIR})
 # XML definition files
@@ -39,20 +39,20 @@ configure_file(${EXAMPLE_ORIG_DIR}/Create.py
 configure_file(${EXAMPLE_ORIG_DIR}/run.sh
 	${EXAMPLE_DEST_DIR}/run.sh @ONLY)
 # Target
-ADD_CUSTOM_TARGET(perezrojas_etal_stab_2012 ALL
+ADD_CUSTOM_TARGET(spheric_testcase9_tld ALL
 	COMMAND ${PYTHON_EXECUTABLE} ./Create.py
 	COMMAND chmod a+x ./run.sh
 	WORKING_DIRECTORY ${EXAMPLE_DEST_DIR}
 )
-ADD_DEPENDENCIES( perezrojas_etal_stab_2012 AQUAgpusph )
+ADD_DEPENDENCIES( spheric_testcase9_tld AQUAgpusph )
 
 # ===================================================== #
-# perezrojas_etal_stab_2012 (Install)                   #
+# spheric_testcase9_tld (Install)                   #
 # ===================================================== #
 # Folders
-SET(EXAMPLE_ORIG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cMake/perezrojas_etal_stab_2012)
-SET(EXAMPLE_AUX_DIR ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/perezrojas_etal_stab_2012)
-SET(EXAMPLE_DEST_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/examples/perezrojas_etal_stab_2012)
+SET(EXAMPLE_ORIG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cMake/spheric_testcase9_tld)
+SET(EXAMPLE_AUX_DIR ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/spheric_testcase9_tld)
+SET(EXAMPLE_DEST_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/examples/spheric_testcase9_tld)
 SET(BINARY_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 # XML definition files
 configure_file(${EXAMPLE_ORIG_DIR}/Fluids.xml
@@ -85,7 +85,7 @@ configure_file(${EXAMPLE_ORIG_DIR}/run.sh
 # Install
 INSTALL(
     FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/perezrojas_etal_stab_2012/Fluid.dat
+        ${CMAKE_CURRENT_SOURCE_DIR}/spheric_testcase9_tld/Fluid.dat
     DESTINATION
         ${EXAMPLE_DEST_DIR}
 )
@@ -121,6 +121,123 @@ INSTALL(
     FILES
         ${EXAMPLE_AUX_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE9_TLD.pdf
         ${EXAMPLE_AUX_DIR}/doc/plot.py
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}/doc
+)
+
+# ===================================================== #
+# spheric_testcase10_waveimpact                         #
+# ===================================================== #
+# Folders
+SET(EXAMPLE_ORIG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cMake/spheric_testcase10_waveimpact)
+SET(EXAMPLE_DEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/spheric_testcase10_waveimpact)
+SET(BINARY_DIR ${CMAKE_BINARY_DIR}/bin)
+FILE(MAKE_DIRECTORY ${EXAMPLE_DEST_DIR})
+# XML definition files
+configure_file(${EXAMPLE_ORIG_DIR}/templates/Fluids.xml
+    ${EXAMPLE_DEST_DIR}/templates/Fluids.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/templates/Main.xml
+    ${EXAMPLE_DEST_DIR}/templates/Main.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/templates/Motion.xml
+    ${EXAMPLE_DEST_DIR}/templates/Motion.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/templates/Sensors.xml
+    ${EXAMPLE_DEST_DIR}/templates/Sensors.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/templates/Settings.xml
+    ${EXAMPLE_DEST_DIR}/templates/Settings.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/templates/SPH.xml
+    ${EXAMPLE_DEST_DIR}/templates/SPH.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/templates/Time.xml
+    ${EXAMPLE_DEST_DIR}/templates/Time.xml @ONLY)
+# Other simulation data
+configure_file(${EXAMPLE_ORIG_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE10_IMPACT_PRESSURE.pdf
+    ${EXAMPLE_DEST_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE10_IMPACT_PRESSURE.pdf @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/lateral_water_1x.txt
+    ${EXAMPLE_DEST_DIR}/lateral_water_1x.txt @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/Motion.py
+    ${EXAMPLE_DEST_DIR}/Motion.py @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/plot.py
+    ${EXAMPLE_DEST_DIR}/plot.py @ONLY)
+# Particles generation script
+configure_file(${EXAMPLE_ORIG_DIR}/Create.py
+    ${EXAMPLE_DEST_DIR}/Create.py @ONLY)
+# Execution script
+configure_file(${EXAMPLE_ORIG_DIR}/run.sh
+    ${EXAMPLE_DEST_DIR}/run.sh @ONLY)
+
+# ===================================================== #
+# spheric_testcase10_waveimpact (Install)               #
+# ===================================================== #
+# Folders
+SET(EXAMPLE_ORIG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cMake/spheric_testcase10_waveimpact)
+SET(EXAMPLE_AUX_DIR ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/spheric_testcase10_waveimpact)
+SET(EXAMPLE_DEST_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/examples/spheric_testcase10_waveimpact)
+SET(BINARY_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
+# XML definition files
+configure_file(${EXAMPLE_ORIG_DIR}/templates/Fluids.xml
+    ${EXAMPLE_AUX_DIR}/templates/Fluids.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/templates/Main.xml
+    ${EXAMPLE_AUX_DIR}/templates/Main.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/templates/Motion.xml
+    ${EXAMPLE_AUX_DIR}/templates/Motion.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/templates/Sensors.xml
+    ${EXAMPLE_AUX_DIR}/templates/Sensors.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/templates/Settings.xml
+    ${EXAMPLE_AUX_DIR}/templates/Settings.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/templates/SPH.xml
+    ${EXAMPLE_AUX_DIR}/templates/SPH.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/templates/Time.xml
+    ${EXAMPLE_AUX_DIR}/templates/Time.xml @ONLY)
+# Other simulation data
+configure_file(${EXAMPLE_ORIG_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE10_IMPACT_PRESSURE.pdf
+    ${EXAMPLE_AUX_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE10_IMPACT_PRESSURE.pdf @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/lateral_water_1x.txt
+    ${EXAMPLE_AUX_DIR}/lateral_water_1x.txt @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/Motion.py
+    ${EXAMPLE_AUX_DIR}/Motion.py @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/plot.py
+    ${EXAMPLE_AUX_DIR}/plot.py @ONLY)
+# Particles generation script
+configure_file(${EXAMPLE_ORIG_DIR}/Create.py
+    ${EXAMPLE_AUX_DIR}/Create.py @ONLY)
+# Execution script
+configure_file(${EXAMPLE_ORIG_DIR}/run.sh
+    ${EXAMPLE_AUX_DIR}/run.sh @ONLY)
+# Install
+INSTALL(
+    FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/spheric_testcase9_tld/Fluid.dat
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}
+)
+INSTALL(
+    FILES
+        ${EXAMPLE_AUX_DIR}/Fluids.xml
+        ${EXAMPLE_AUX_DIR}/Main.xml
+        ${EXAMPLE_AUX_DIR}/Motion.xml
+        ${EXAMPLE_AUX_DIR}/Sensors.xml
+        ${EXAMPLE_AUX_DIR}/Settings.xml
+        ${EXAMPLE_AUX_DIR}/SPH.xml
+        ${EXAMPLE_AUX_DIR}/Time.xml
+        ${EXAMPLE_AUX_DIR}/Motion.py
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}
+)
+INSTALL(
+    FILES
+        ${EXAMPLE_AUX_DIR}/Create.py
+        ${EXAMPLE_AUX_DIR}/lateral_water_1x.txt
+        ${EXAMPLE_AUX_DIR}/Motion.py
+        ${EXAMPLE_AUX_DIR}/plot.py
+        ${EXAMPLE_AUX_DIR}/run.sh
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}
+    PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                GROUP_EXECUTE             GROUP_READ
+                WORLD_EXECUTE             WORLD_READ             
+)
+INSTALL(
+    FILES
+        ${EXAMPLE_AUX_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE10_IMPACT_PRESSURE.pdf
     DESTINATION
         ${EXAMPLE_DEST_DIR}/doc
 )
