@@ -121,7 +121,7 @@ bool VTK::load()
     loadDefault();
 
     sprintf(msg,
-            "Loading fluid from VTK file \"%s\"\n",
+            "Loading particles from VTK file \"%s\"\n",
             P->sets.at(setId())->inputPath());
     S->addMessageF(1, msg);
 

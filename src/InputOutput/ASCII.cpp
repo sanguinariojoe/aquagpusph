@@ -60,7 +60,7 @@ bool ASCII::load()
     loadDefault();
 
     sprintf(msg,
-            "Loading fluid from ASCII file \"%s\"\n",
+            "Loading particles from ASCII file \"%s\"\n",
             P->sets.at(setId())->inputPath());
     S->addMessageF(1, msg);
 
