@@ -278,7 +278,7 @@ XML = ('Fluids.xml', 'Main.xml', 'Motion.xml', 'Sensors.xml', 'Settings.xml',
 radius = math.sqrt((0.5 * L)**2 + H**2)
 domain_min = (-D, -1.1 * radius, -0.5 * L * math.sin(0.5 * math.pi), 0.0)
 domain_min = str(domain_min).replace('(', '').replace(')', '')
-domain_max = (-D, 1.1 * radius, 1.1 * radius, 0.0)
+domain_max = (D, 1.1 * radius, 1.1 * radius, 0.0)
 domain_max = str(domain_max).replace('(', '').replace(')', '')
 
 data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
