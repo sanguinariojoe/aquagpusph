@@ -139,7 +139,7 @@ CalcServer::CalcServer* FileManager::load()
                 _loaders.push_back((Particles*)loader);
             #else
                 S->addMessageF(3, "AQUAgpusph has been compiled without VTK format.\n");
-            return NULL;
+                return NULL;
             #endif // HAVE_VTK
         }
         else{
@@ -168,7 +168,7 @@ CalcServer::CalcServer* FileManager::load()
                 _savers.push_back((Particles*)saver);
             #else
                 S->addMessageF(3, "AQUAgpusph has been compiled without VTK format.\n");
-            return NULL;
+                return NULL;
             #endif // HAVE_VTK
         }
         else{
