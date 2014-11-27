@@ -80,7 +80,7 @@ CalcServer::CalcServer()
     _vars = new InputOutput::Variables();
 
     // Register default scalars
-    char val[16];
+    char val[64];
     char len[16];
     strcpy(len, "");
     sprintf(val, "%g", 0.f);
