@@ -869,6 +869,7 @@ bool State::parseReports(DOMElement *root)
                     return true;
                 }
                 report->set("path", xmlAttribute(s_elem, "path"));
+
                 if(!xmlHasAttribute(s_elem, "set")){
                     sprintf(msg,
                             "Report \"%s\" is of type \"particles\", but the \"set\" is not defined.\n",
@@ -877,6 +878,19 @@ bool State::parseReports(DOMElement *root)
                     return true;
                 }
                 report->set("set", xmlAttribute(s_elem, "set"));
+
+                if(!xmlHasAttribute(s_elem, "ipf")){
+                    report->set("ipf", "1");
+                }
+                else{
+                    report->set("ipf", xmlAttribute(s_elem, "ipf"));
+                }
+                if(!xmlHasAttribute(s_elem, "fps")){
+                    report->set("fps", "0.0");
+                }
+                else{
+                    report->set("fps", xmlAttribute(s_elem, "fps"));
+                }
             }
             else if(!strcmp(xmlAttribute(s_elem, "type"), "log")){
             }

@@ -32,8 +32,10 @@ SetTabFile::SetTabFile(const char* tool_name,
                        const char* fields,
                        unsigned int first,
                        unsigned int n,
-                       const char* output_file)
-    : Report(tool_name, fields)
+                       const char* output_file,
+                       unsigned int ipf,
+                       float fps)
+    : Report(tool_name, fields, ipf, fps)
     , _output_file(NULL)
     , _f(NULL)
 {
@@ -91,6 +93,10 @@ bool SetTabFile::setup()
 
 bool SetTabFile::execute()
 {
+    if(!mustUpdate()){
+        return false;
+    }
+
     unsigned int i, j;
     cl_int err_code;
     char msg[256];

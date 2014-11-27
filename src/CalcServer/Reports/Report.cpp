@@ -27,9 +27,16 @@
 
 namespace Aqua{ namespace CalcServer{ namespace Reports{
 
-Report::Report(const char* tool_name, const char* fields)
+Report::Report(const char* tool_name,
+               const char* fields,
+               unsigned int ipf,
+               float fps)
     : Tool(tool_name)
     , _fields(NULL)
+    , _ipf(ipf)
+    , _fps(fps)
+    , _iter(0)
+    , _t(0.f)
     , _data(NULL)
 {
     _fields = new char[strlen(fields) + 1];
@@ -158,6 +165,35 @@ size_t Report::dataLength(bool with_title, bool with_names)
     }
 
     return len;
+}
+
+bool Report::mustUpdate()
+{
+    CalcServer *C = CalcServer::singleton();
+    InputOutput::Variables* vars = C->variables();
+
+    InputOutput::UIntVariable *iter_var =
+        (InputOutput::UIntVariable*)vars->get("iter");
+    unsigned int iter = *(unsigned int*)iter_var->get();
+    InputOutput::FloatVariable *time_var =
+        (InputOutput::FloatVariable*)vars->get("t");
+    float t = *(float*)time_var->get();
+
+    if(_ipf > 0){
+        if(iter - _iter >= _ipf){
+            _iter = iter;
+            _t = t;
+            return true;
+        }
+    }
+    if(_fps > 0.f){
+        if(t - _t >= 1.f / _fps){
+            _iter = iter;
+            _t = t;
+            return true;
+        }
+    }
+    return false;
 }
 
 }}} // namespace

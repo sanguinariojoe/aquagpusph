@@ -54,8 +54,13 @@ public:
      * @param fields Fields to be printed.
      * The fields are separated by commas or semicolons, and the spaces are just
      * ignored.
+     * @param ipf Iterations per frame, 0 to just ignore this printing criteria.
+     * @param fps Frames per second, 0 to just ignore this printing criteria.
      */
-    Report(const char* tool_name, const char* fields);
+    Report(const char* tool_name,
+           const char* fields,
+           unsigned int ipf=1,
+           float fps=0.f);
 
     /** @brief Destructor
      */
@@ -98,9 +103,25 @@ protected:
      * @return The variables list resulting from _fields
      */
     std::deque<InputOutput::Variable*> variables(){return _vars;}
+
+    /** @brief Check if an output must be performed.
+     *
+     * If the answer is true, the tool will set the time instant as the last
+     * printing event
+     * @return true if a report should be printed, false otherwise.
+     */
+    bool mustUpdate();
 private:
     /// Input fields string
     char *_fields;
+    /// Iterations per frame
+    unsigned int _ipf;
+    /// Frames per second
+    float _fps;
+    /// Last printing event time step
+    unsigned int _iter;
+    /// Last printing event time instant
+    float _t;
     /// Output data string
     char *_data;
     /// Number of variables per line

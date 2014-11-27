@@ -70,13 +70,17 @@ public:
      * @param first First particle managed by this report (unsorted indexes).
      * @param n Number of particles managed by this report (unsorted indexes).
      * @param output_file File to be written.
+     * @param ipf Iterations per frame, 0 to just ignore this printing criteria.
+     * @param fps Frames per second, 0 to just ignore this printing criteria.
      * @remarks The output file will be cleared.
      */
     SetTabFile(const char* tool_name,
                const char* fields,
                unsigned int first,
                unsigned int n,
-               const char* output_file);
+               const char* output_file,
+               unsigned int ipf=1,
+               float fps=0.f);
 
     /** @brief Destructor
      */

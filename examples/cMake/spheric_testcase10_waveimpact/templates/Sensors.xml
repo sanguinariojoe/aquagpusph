@@ -28,6 +28,6 @@ Authors:
         <Save format="VTK" file="sensors" fields="pos, normal, v, dvdt, rho, drhodt, m, p, imove" />
     </ParticlesSet>
     <Reports>
-        <Report type="particles" name="Sensors" fields="p" path="sensors.out" set="1"/>
+        <Report type="particles" name="Sensors" fields="p" path="sensors.out" set="1" ipf="0" fps="300"/>
     </Reports>
 </sphInput>

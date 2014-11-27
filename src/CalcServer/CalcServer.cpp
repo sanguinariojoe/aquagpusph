@@ -234,12 +234,18 @@ CalcServer::CalcServer()
                 first += P->sets.at(j)->n();
             }
 
+            // And the ipf and fps
+            unsigned int ipf = atoi(P->reports.at(i)->get("ipf"));
+            float fps = atof(P->reports.at(i)->get("fps"));
+
             Reports::SetTabFile *tool = new Reports::SetTabFile(
                 P->reports.at(i)->get("name"),
                 P->reports.at(i)->get("fields"),
                 first,
                 P->sets.at(set_id)->n(),
-                P->reports.at(i)->get("path"));
+                P->reports.at(i)->get("path"),
+                ipf,
+                fps);
             _tools.push_back(tool);
         }
         else{
