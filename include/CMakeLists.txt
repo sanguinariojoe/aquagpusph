@@ -29,6 +29,7 @@ INSTALL(
         ${CMAKE_CURRENT_SOURCE_DIR}/Singleton.h
         ${CMAKE_CURRENT_SOURCE_DIR}/sphPrerequisites.h
         ${CMAKE_CURRENT_SOURCE_DIR}/TimeManager.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Variable.h
     DESTINATION
         ${CMAKE_INSTALL_INCLUDEDIR}
 )
