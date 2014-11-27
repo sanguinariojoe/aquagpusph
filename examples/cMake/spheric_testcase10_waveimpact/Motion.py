@@ -42,9 +42,9 @@ def main():
     t = aqua.get("t")
     # Interpolate the data
     a = np.zeros(4, dtype=np.float32)
-    a[0] = np.interp(t, T, A)
+    a[0] = np.radians(np.interp(t, T, A))
     dadt = np.zeros(4, dtype=np.float32)
-    dadt[0] = np.interp(t, T, DADT)
+    dadt[0] = np.radians(np.interp(t, T, DADT))
     # Send it to AQUAgpusph
     aqua.set("motion_a", a)
     aqua.set("motion_dadt", dadt)
