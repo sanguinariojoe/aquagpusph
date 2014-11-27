@@ -6,7 +6,7 @@ if [[ $1 == "--run" ]]; then
     rm -f output.*.vtu
     rm -f output.pvd
     rm -f sensors.out
-    rm -f sensors.*.out
+    rm -f sensors.*.vtu
     @EXAMPLE_DEST_DIR@/Create.py
     @BINARY_DIR@/AQUAgpusph -i Main.xml
 elif [[ $1 == "--plot" ]]; then
