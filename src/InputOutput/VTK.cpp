@@ -181,7 +181,7 @@ bool VTK::load()
         }
         if(!strchr(vars->get(fields.at(i))->type(), '*')){
             sprintf(msg,
-                    "\"%s\" field has been set to be read, but it was declared as a scalar.\n",
+                    "\"%s\" field has been set to be read, but it was declared as an scalar.\n",
                     fields.at(i));
             S->addMessage(3, msg);
             return true;

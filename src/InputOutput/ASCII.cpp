@@ -266,7 +266,7 @@ bool ASCII::save()
         }
         if(!strchr(vars->get(fields.at(i))->type(), '*')){
             sprintf(msg,
-                    "\"%s\" field has been set to be saved, but it was declared as a scalar.\n",
+                    "\"%s\" field has been set to be saved, but it was declared as an scalar.\n",
                     fields.at(i));
             S->addMessageF(3, msg);
             return true;
