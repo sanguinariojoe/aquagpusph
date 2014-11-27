@@ -218,7 +218,7 @@ CalcServer::CalcServer()
             _tools.push_back(tool);
         }
         else if(!strcmp(P->reports.at(i)->get("type"), "particles")){
-            // Get the first and last particles associated to this set
+            // Get the first particle associated to this set
             unsigned int set_id = atoi(P->reports.at(i)->get("set"));
             if(set_id >= P->sets.size()){
                 sprintf(msg,
@@ -233,13 +233,12 @@ CalcServer::CalcServer()
             for(j = 0; j < set_id; j++){
                 first += P->sets.at(j)->n();
             }
-            unsigned int last = first + P->sets.at(set_id)->n();
 
             Reports::SetTabFile *tool = new Reports::SetTabFile(
                 P->reports.at(i)->get("name"),
                 P->reports.at(i)->get("fields"),
                 first,
-                last,
+                P->sets.at(set_id)->n(),
                 P->reports.at(i)->get("path"));
             _tools.push_back(tool);
         }
