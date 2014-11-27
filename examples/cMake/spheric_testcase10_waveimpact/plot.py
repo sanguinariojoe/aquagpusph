@@ -64,7 +64,7 @@ class FigureController(FigureCanvas):
                                     skiprows=1,
                                     unpack=True)
         self.exp_t = T
-        self.exp_p = P
+        self.exp_p = 100.0 * P
         self.exp_line, = self.ax.plot(self.exp_t,
                                       self.exp_p,
                                       label=r'$p_{Exp}$',
@@ -106,6 +106,8 @@ class FigureController(FigureCanvas):
         data = []
         for l in lines[1:]:
             l = l.strip()
+            while l.find('  ') != -1:
+                l = l.replace('  ', ' ')
             fields = l.split(' ')
             try:
                 data.append(map(float, fields))
