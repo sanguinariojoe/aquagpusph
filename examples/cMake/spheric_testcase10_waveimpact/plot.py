@@ -131,6 +131,6 @@ class FigureController(FigureCanvas):
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     widget = FigureController()
-    widget.setWindowTitle("Roll angle")
+    widget.setWindowTitle("Pressure")
     widget.show()
     sys.exit(app.exec_())
