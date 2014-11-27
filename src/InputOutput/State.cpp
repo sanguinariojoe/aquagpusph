@@ -464,8 +464,29 @@ bool State::parseTools(DOMElement *root)
                     S->addMessageF(3, msg);
                     return true;
                 }
+                delete P->tools.at(place);
                 P->tools.erase(P->tools.begin() + place);
+                // Delete also the new tool (useless)
+                delete tool;
                 continue;
+            }
+            else if(!strcmp(xmlAttribute(s_elem, "action"), "replace")){
+                unsigned int place;
+                for(place = 0; place < P->tools.size(); place++){
+                    if(!strcmp(P->tools.at(place)->get("name"),
+                               tool->get("name"))){
+                        break;
+                    }
+                }
+                if(place == P->tools.size()){
+                    sprintf(msg,
+                            "Failure replacing the tool \"%s\" (tool not found).\n",
+                            tool->get("name"));
+                    S->addMessageF(3, msg);
+                    return true;
+                }
+                delete P->tools.at(place);
+                P->tools.at(place) = tool;
             }
             else{
                 sprintf(msg,
@@ -475,6 +496,7 @@ bool State::parseTools(DOMElement *root)
                 S->addMessage(0, "\tThe valid actions are:\n");
                 S->addMessage(0, "\t\tadd\n");
                 S->addMessage(0, "\t\tinsert\n");
+                S->addMessage(0, "\t\treplace\n");
                 S->addMessage(0, "\t\tremove\n");
                 return true;
             }
