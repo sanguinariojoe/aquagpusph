@@ -838,6 +838,24 @@ bool State::parseReports(DOMElement *root)
                 }
                 report->set("path", xmlAttribute(s_elem, "path"));
             }
+            else if(!strcmp(xmlAttribute(s_elem, "type"), "particles")){
+                if(!xmlHasAttribute(s_elem, "path")){
+                    sprintf(msg,
+                            "Report \"%s\" is of type \"particles\", but the output \"path\" is not defined.\n",
+                            report->get("name"));
+                    S->addMessageF(3, msg);
+                    return true;
+                }
+                report->set("path", xmlAttribute(s_elem, "path"));
+                if(!xmlHasAttribute(s_elem, "set")){
+                    sprintf(msg,
+                            "Report \"%s\" is of type \"particles\", but the \"set\" is not defined.\n",
+                            report->get("name"));
+                    S->addMessageF(3, msg);
+                    return true;
+                }
+                report->set("set", xmlAttribute(s_elem, "set"));
+            }
             else if(!strcmp(xmlAttribute(s_elem, "type"), "log")){
             }
             else{

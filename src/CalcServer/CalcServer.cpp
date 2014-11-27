@@ -44,6 +44,7 @@
 #include <CalcServer/UnSort.h>
 #include <CalcServer/Reports/Screen.h>
 #include <CalcServer/Reports/TabFile.h>
+#include <CalcServer/Reports/SetTabFile.h>
 
 namespace Aqua{ namespace CalcServer{
 
@@ -59,7 +60,7 @@ CalcServer::CalcServer()
     , _command_queue(NULL)
     , _vars(NULL)
 {
-    unsigned int i;
+    unsigned int i, j;
     char msg[1024];
     InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
@@ -213,6 +214,32 @@ CalcServer::CalcServer()
             Reports::TabFile *tool = new Reports::TabFile(
                 P->reports.at(i)->get("name"),
                 P->reports.at(i)->get("fields"),
+                P->reports.at(i)->get("path"));
+            _tools.push_back(tool);
+        }
+        else if(!strcmp(P->reports.at(i)->get("type"), "particles")){
+            // Get the first and last particles associated to this set
+            unsigned int set_id = atoi(P->reports.at(i)->get("set"));
+            if(set_id >= P->sets.size()){
+                sprintf(msg,
+                        "Report \"%s\" requested the particles set %u but just %lu can be found.\n",
+                        P->reports.at(i)->get("name"),
+                        set_id,
+                        P->sets.size());
+                S->addMessageF(3, msg);
+                exit(EXIT_FAILURE);
+            }
+            unsigned int first = 0;
+            for(j = 0; j < set_id; j++){
+                first += P->sets.at(j)->n();
+            }
+            unsigned int last = first + P->sets.at(set_id)->n();
+
+            Reports::SetTabFile *tool = new Reports::SetTabFile(
+                P->reports.at(i)->get("name"),
+                P->reports.at(i)->get("fields"),
+                first,
+                last,
                 P->reports.at(i)->get("path"));
             _tools.push_back(tool);
         }

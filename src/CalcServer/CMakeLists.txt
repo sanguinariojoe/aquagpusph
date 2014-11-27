@@ -49,9 +49,10 @@ SET(Server_CPP_SRCS
     SetScalar.cpp
     Tool.cpp
     UnSort.cpp
-    Reports/TabFile.cpp
     Reports/Report.cpp
     Reports/Screen.cpp
+    Reports/SetTabFile.cpp
+    Reports/TabFile.cpp
 )
 
 # ===================================================== #
