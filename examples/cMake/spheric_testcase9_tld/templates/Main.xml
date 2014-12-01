@@ -25,9 +25,9 @@ Authors:
     <Include file="@RESOURCES_DIR@/Presets/motion.xml" />
     <Include file="@RESOURCES_DIR@/Presets/timing.report.xml" />
     <Include file="@RESOURCES_DIR@/Presets/forces.report.xml" />
-    <Include file="@EXAMPLE_DEST_DIR@/Settings.xml" />
-    <Include file="@EXAMPLE_DEST_DIR@/Time.xml" />
-    <Include file="@EXAMPLE_DEST_DIR@/SPH.xml" />
-    <Include file="@EXAMPLE_DEST_DIR@/Fluids.xml" />
-    <Include file="@EXAMPLE_DEST_DIR@/Motion.xml" />
+    <Include file="Settings.xml" />
+    <Include file="Time.xml" />
+    <Include file="SPH.xml" />
+    <Include file="Fluids.xml" />
+    <Include file="Motion.xml" />
 </sphInput>

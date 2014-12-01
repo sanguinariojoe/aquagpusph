@@ -44,7 +44,7 @@ Bphi = 0.326  # Linear damping coefficient
 
 # Read the experimental data
 data = []
-f = open('@EXAMPLE_DEST_DIR@/Move/T_1-94_A100mm_water.dat', 'r')
+f = open('@EXAMPLE_DEST_DIR@/T_1-94_A100mm_water.dat', 'r')
 
 # Discard header lines
 line = f.readline()

@@ -30,20 +30,21 @@
 #
 #########################################################################
 
-# Generate the fluid particles and the boundary elements for the example
-# perezrojas_etal_stab_2012, Correponding to the tuned liquid damper SPHERIC
-# test case number 9. See
-# doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE9_TLD.pdf
-# In this example the water case is considered.
-
+import os.path as path
+import math
 
 # Input data
 # ==========
 
-cs = 45.0
-refd = 998.0
-gamma = 7.0
 g = 9.81
+hfac = 3.0
+cs = 45.0
+courant = 0.2
+gamma = 7.0
+refd = 998.0
+alpha = 0.0
+delta = 1.0
+visc_dyn = 0.000894
 # Tank dimensions
 H = 0.508
 L = 0.9
@@ -65,16 +66,13 @@ ny = int(round(L / dr))
 nz = int(round(h / dr))
 n = nx * ny * nz
 
-drx = D/nx
-dry = L/ny
-drz = h/nz
-dr = max(drx, dry, drz)
-hFluid = nz*drz
+hFluid = nz * dr
+visc_dyn = max(alpha / 10.0 * refd * hfac * dr * cs, visc_dyn)
 
 # Solid boundary elements
 Nx = nx
 Ny = ny
-Nz = int(round(H / drz)) + 1
+Nz = int(round(H / dr)) + 1
 
 # Correct tank dimensions
 L = Ny * dr
@@ -87,8 +85,9 @@ Ny = DeLeffeDistFactor * Ny
 Nz = DeLeffeDistFactor * Nz
 N = 2 * Nx * Ny + 2 * Nx * Nz + 2 * Ny * Nz
 
-# Fluid generation
-# ================
+# Particles generation
+# ====================
+
 prb = cs * cs * refd / gamma
 
 print("Opening output file...")
@@ -245,15 +244,34 @@ for i in range(0, N):
         mass,
         imove)
     output.write(string)
-print('    100%')
-string = """
-{} particles has been written into file ({} of fluid).
-PLEASE, CHANGE THIS VALUE IN THE FLUID XML DEFINITION.
-""".format(n + N, n)
-print(string)
-# Print some useful data
-print('Particle distance:  {}'.format(dr))
-print('PLEASE, CHANGE THIS VALUE IN THE SPH XML DEFINITION.')
-print('Fluid height error: {}'.format(abs(h - hFluid)))
-# Clean up
 output.close()
+
+# XML definition generation
+# =========================
+
+templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
+XML = ('Fluids.xml', 'Main.xml', 'Motion.xml', 'Settings.xml', 'SPH.xml',
+       'Time.xml')
+
+radius = math.sqrt((0.5 * L)**2 + H**2)
+domain_min = (-D, -1.1 * radius, -0.5 * L * math.sin(0.5 * math.pi), 0.0)
+domain_min = str(domain_min).replace('(', '').replace(')', '')
+domain_max = (D, 1.1 * radius, 1.1 * radius, 0.0)
+domain_max = str(domain_max).replace('(', '').replace(')', '')
+
+data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
+        'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max, 'GAMMA':str(gamma),
+        'REFD':str(refd), 'VISC_DYN':str(visc_dyn), 'DELTA':str(delta),
+        'G':str(g), 'N':str(n + N)}
+for fname in XML:
+    # Read the template
+    f = open(path.join(templates_path, fname), 'r')
+    txt = f.read()
+    f.close()
+    # Replace the data
+    for k in data.keys():
+        txt = txt.replace('{{' + k + '}}', data[k])
+    # Write the file
+    f = open(fname, 'w')
+    f.write(txt)
+    f.close()

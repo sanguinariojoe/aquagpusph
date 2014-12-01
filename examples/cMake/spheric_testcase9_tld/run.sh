@@ -1,13 +1,15 @@
 #!/bin/bash
 
 if [[ $1 == "--run" ]]; then
-    rm -f Sensors.dat
+    rm -f Fluid.dat
     rm -f AQUAgpusph.save.*.xml
-    rm -f energy.*.dat
     rm -f log.*.html
     rm -f output.*.vtu
     rm -f output.pvd
-    @BINARY_DIR@/AQUAgpusph -i @EXAMPLE_DEST_DIR@/Main.xml
+    rm -f Timing.dat
+    rm -f Forces.dat
+    @EXAMPLE_DEST_DIR@/Create.py
+    @BINARY_DIR@/AQUAgpusph -i Main.xml
 elif [[ $1 == "--plot" ]]; then
     if [ ! -f Motion.dat ]; then
         echo ""
@@ -18,7 +20,7 @@ elif [[ $1 == "--plot" ]]; then
         echo ""
         exit 255
     fi
-    python @EXAMPLE_DEST_DIR@/doc/plot.py
+    python @EXAMPLE_DEST_DIR@/plot.py
 else
     echo ""
     echo "Usage: run.sh [--run/--plot]"

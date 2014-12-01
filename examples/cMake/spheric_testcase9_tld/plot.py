@@ -110,7 +110,7 @@ class FigureController(FigureCanvas):
     def timerEvent(self, evt):
         """Custom timerEvent code, called at timer event receive"""
         # Read and plot the new data
-        data = self.readFile('../Motion.dat')
+        data = self.readFile('Motion.dat')
         self.t = data[0]
         self.exp_a = data[2]
         self.a = data[3]
