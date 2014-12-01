@@ -1,12 +1,16 @@
 #!/bin/bash
 
 if [[ $1 == "--run" ]]; then
+    rm -f Sensors.dat
+    rm -f Fluid.dat
     rm -f AQUAgpusph.save.*.xml
     rm -f log.*.html
     rm -f output.*.vtu
     rm -f output.pvd
-    rm -f sensors.out
     rm -f sensors.*.vtu
+    rm -f sensors.pvd
+    rm -f sensors.out
+    rm -f Timing.dat
     @EXAMPLE_DEST_DIR@/Create.py
     @BINARY_DIR@/AQUAgpusph -i Main.xml
 elif [[ $1 == "--plot" ]]; then
