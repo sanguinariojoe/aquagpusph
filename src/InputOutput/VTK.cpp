@@ -101,6 +101,7 @@ namespace Aqua{ namespace InputOutput{
 
 VTK::VTK(unsigned int first, unsigned int n, unsigned int iset)
     : Particles(first, n, iset)
+    , _namePVD(NULL)
 {
 }
 
@@ -666,18 +667,16 @@ DOMDocument* VTK::getPVD()
     return doc;
 }
 
-static char* namePVD = NULL;
-
 const char* VTK::filenamePVD()
 {
-    if(!namePVD){
+    if(!_namePVD){
         ProblemSetup *P = ProblemSetup::singleton();
         size_t len = strlen(P->sets.at(setId())->outputPath()) + 5;
-        namePVD = new char[len];
-        strcpy(namePVD, P->sets.at(setId())->outputPath());
-        strcat(namePVD, ".pvd");
+        _namePVD = new char[len];
+        strcpy(_namePVD, P->sets.at(setId())->outputPath());
+        strcat(_namePVD, ".pvd");
     }
-    return (const char*)namePVD;
+    return (const char*)_namePVD;
 }
 
 }}  // namespace

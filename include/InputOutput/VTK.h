@@ -140,6 +140,9 @@ private:
      */
     const char* filenamePVD();
 
+    /// PVD file name
+    char* _namePVD;
+
 };  // class InputOutput
 
 }}  // namespaces
