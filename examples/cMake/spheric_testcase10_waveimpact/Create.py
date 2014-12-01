@@ -66,11 +66,7 @@ ny = int(round(L / dr))
 nz = int(round(h / dr))
 n = nx * ny * nz
 
-drx = D/nx
-dry = L/ny
-drz = h/nz
-dr = max(drx, dry, drz)
-hFluid = nz*drz
+hFluid = nz * dr
 visc_dyn = max(alpha / 10.0 * refd * hfac * dr * cs, visc_dyn)
 
 # Solid boundary elements
