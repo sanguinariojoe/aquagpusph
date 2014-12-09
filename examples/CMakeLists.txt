@@ -3,7 +3,107 @@ SET(RESOURCES_DIR ${CMAKE_SOURCE_DIR}/resources)
 IF(AQUAGPUSPH_3D)
 
 # ===================================================== #
-# spheric_testcase9_tld (Local)                     #
+# spheric_testcase2_dambreak                            #
+# ===================================================== #
+# Folders
+SET(EXAMPLE_ORIG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cMake/spheric_testcase2_dambreak)
+SET(EXAMPLE_DEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/spheric_testcase2_dambreak)
+SET(BINARY_DIR ${CMAKE_BINARY_DIR}/bin)
+FILE(MAKE_DIRECTORY ${EXAMPLE_DEST_DIR})
+# XML definition files
+configure_file(${EXAMPLE_ORIG_DIR}/templates/Fluids.xml
+    ${EXAMPLE_DEST_DIR}/templates/Fluids.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/templates/Main.xml
+    ${EXAMPLE_DEST_DIR}/templates/Main.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/templates/Sensors.xml
+    ${EXAMPLE_DEST_DIR}/templates/Sensors.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/templates/Settings.xml
+    ${EXAMPLE_DEST_DIR}/templates/Settings.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/templates/SPH.xml
+    ${EXAMPLE_DEST_DIR}/templates/SPH.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/templates/Time.xml
+    ${EXAMPLE_DEST_DIR}/templates/Time.xml @ONLY)
+# Other simulation data
+configure_file(${EXAMPLE_ORIG_DIR}/plot_p.py
+    ${EXAMPLE_DEST_DIR}/plot_p.py @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/doc/test_case_2_v1p1.pdf
+    ${EXAMPLE_DEST_DIR}/doc/test_case_2_v1p1.pdf @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/test_case_2_exp_data.dat
+    ${EXAMPLE_DEST_DIR}/test_case_2_exp_data.dat @ONLY)
+# Particles generation script
+configure_file(${EXAMPLE_ORIG_DIR}/Create.py
+    ${EXAMPLE_DEST_DIR}/Create.py @ONLY)
+# Execution script
+configure_file(${EXAMPLE_ORIG_DIR}/run.sh
+    ${EXAMPLE_DEST_DIR}/run.sh @ONLY)
+
+# ===================================================== #
+# spheric_testcase2_dambreak (Install)                  #
+# ===================================================== #
+# Folders
+SET(EXAMPLE_ORIG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cMake/spheric_testcase2_dambreak)
+SET(EXAMPLE_AUX_DIR ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp/spheric_testcase2_dambreak)
+SET(EXAMPLE_DEST_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/examples/spheric_testcase2_dambreak)
+SET(BINARY_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
+# XML definition files
+configure_file(${EXAMPLE_ORIG_DIR}/templates/Fluids.xml
+    ${EXAMPLE_AUX_DIR}/templates/Fluids.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/templates/Main.xml
+    ${EXAMPLE_AUX_DIR}/templates/Main.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/templates/Sensors.xml
+    ${EXAMPLE_AUX_DIR}/templates/Sensors.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/templates/Settings.xml
+    ${EXAMPLE_AUX_DIR}/templates/Settings.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/templates/SPH.xml
+    ${EXAMPLE_AUX_DIR}/templates/SPH.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/templates/Time.xml
+    ${EXAMPLE_AUX_DIR}/templates/Time.xml @ONLY)
+# Other simulation data
+configure_file(${EXAMPLE_ORIG_DIR}/plot_p.py
+    ${EXAMPLE_AUX_DIR}/plot_p.py @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/doc/test_case_2_v1p1.pdf
+    ${EXAMPLE_AUX_DIR}/doc/test_case_2_v1p1.pdf @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/test_case_2_exp_data.dat
+    ${EXAMPLE_AUX_DIR}/test_case_2_exp_data.dat @ONLY)
+# Particles generation script
+configure_file(${EXAMPLE_ORIG_DIR}/Create.py
+    ${EXAMPLE_AUX_DIR}/Create.py @ONLY)
+# Execution script
+configure_file(${EXAMPLE_ORIG_DIR}/run.sh
+    ${EXAMPLE_AUX_DIR}/run.sh @ONLY)
+# Install
+INSTALL(
+    FILES
+        ${EXAMPLE_AUX_DIR}/templates/Fluids.xml
+        ${EXAMPLE_AUX_DIR}/templates/Main.xml
+        ${EXAMPLE_AUX_DIR}/templates/Sensors.xml
+        ${EXAMPLE_AUX_DIR}/templates/Settings.xml
+        ${EXAMPLE_AUX_DIR}/templates/SPH.xml
+        ${EXAMPLE_AUX_DIR}/templates/Time.xml
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}/templates/
+)
+INSTALL(
+    FILES
+        ${EXAMPLE_AUX_DIR}/Create.py
+        ${EXAMPLE_AUX_DIR}/test_case_2_exp_data.dat
+        ${EXAMPLE_AUX_DIR}/plot_p.py
+        ${EXAMPLE_AUX_DIR}/run.sh
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}
+    PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                GROUP_EXECUTE             GROUP_READ
+                WORLD_EXECUTE             WORLD_READ             
+)
+INSTALL(
+    FILES
+        ${EXAMPLE_AUX_DIR}/doc/test_case_2_v1p1.pdf
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}/doc
+)
+
+# ===================================================== #
+# spheric_testcase9_tld                                 #
 # ===================================================== #
 # Folders
 SET(EXAMPLE_ORIG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cMake/spheric_testcase9_tld)
@@ -40,7 +140,7 @@ configure_file(${EXAMPLE_ORIG_DIR}/run.sh
 	${EXAMPLE_DEST_DIR}/run.sh @ONLY)
 
 # ===================================================== #
-# spheric_testcase9_tld (Install)                   #
+# spheric_testcase9_tld (Install)                       #
 # ===================================================== #
 # Folders
 SET(EXAMPLE_ORIG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cMake/spheric_testcase9_tld)
@@ -103,7 +203,6 @@ INSTALL(
 INSTALL(
     FILES
         ${EXAMPLE_AUX_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE9_TLD.pdf
-        ${EXAMPLE_AUX_DIR}/doc/plot.py
     DESTINATION
         ${EXAMPLE_DEST_DIR}/doc
 )
