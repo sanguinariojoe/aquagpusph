@@ -219,9 +219,9 @@ bool SetTabFile::execute()
                         v[i].x, v[i].y, v[i].z, v[i].w);
             }
         }
-        fprintf(_f, "\n");
-        fflush(_f);
     }
+    fprintf(_f, "\n");
+    fflush(_f);
 
     for(i = 0; i < vars.size(); i++){
         free(data.at(i)); data.at(i) = NULL;
