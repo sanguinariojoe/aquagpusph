@@ -38,12 +38,12 @@ import math
 
 g = 9.81
 hfac = 4.0
-cs = 45.0
+cs = 60.0
 courant = 0.2
 gamma = 7.0
 refd = 998.0
-alpha = 0.03
-delta = 0.0
+alpha = 0.001
+delta = 1.0
 visc_dyn = 0.000894
 # Initial fluid dimensions
 h = 0.55
