@@ -42,8 +42,8 @@ cs = 45.0
 courant = 0.2
 gamma = 7.0
 refd = 998.0
-alpha = 0.0
-delta = 1.0
+alpha = 0.03
+delta = 0.0
 visc_dyn = 0.000894
 # Initial fluid dimensions
 h = 0.55
@@ -443,7 +443,7 @@ output.close()
 
 templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
 XML = ('Fluids.xml', 'Main.xml', 'Sensors.xml', 'Settings.xml', 'SPH.xml',
-       'Time.xml')
+       'Time.xml', 'h_sensor.cl')
 
 domain_min = (-(L - l + 0.1), -(0.5 * D + 0.1), -0.1, 0.0)
 domain_min = str(domain_min).replace('(', '').replace(')', '')
