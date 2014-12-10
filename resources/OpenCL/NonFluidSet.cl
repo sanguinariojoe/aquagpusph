@@ -88,7 +88,7 @@ __kernel void main(const __global uint* iset,
     }
 
     float shepard_i = shepard[i];
-    if(shepard_i < 0.01f){
+    if(shepard_i < 1.0E-6f){
         // It will be considered that there are not enough
         // particles to interpolate
         shepard_i = 1.f;
