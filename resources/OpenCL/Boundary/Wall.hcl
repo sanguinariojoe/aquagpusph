@@ -142,7 +142,7 @@
     /** @def wallVelocity(pos)
      * @brief Compute a wall point velocity.
      */
-    #define wallVelocity(pos) _wallVelocity(pos, p1_w, p2_w, p3_w, p4_w, v1_w, v2_w, v3_w, v4_w)
+    #define wallVelocity(pos) _wallVelocity(pos, p1_w, p2_w, p3_w, p4_w, n_w, v1_w, v2_w, v3_w, v4_w)
 
 #else
     /** @brief Compute the point projected over the wall.
