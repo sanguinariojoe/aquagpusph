@@ -91,11 +91,12 @@ public:
      */
     bool setup();
 
+protected:
     /** @brief Execute the tool.
      * @return false if all gone right, true otherwise.
      */
-    bool execute();
-protected:
+    bool _execute();
+
     /** @brief Get the particle index bounds of the "set of particles" managed
      * by this class.
      * @return The index bounds (first and last particle).
@@ -108,6 +109,7 @@ protected:
      * @note The returned data must be manually cleared.
      */
     std::deque<void*> download(std::deque<InputOutput::Variable*> vars);
+
 private:
     /** Remove the content of the data list.
      * @param data List of memory allocated arrays to be cleared.

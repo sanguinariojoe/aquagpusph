@@ -114,7 +114,7 @@ bool RadixSort::setup()
     return false;
 }
 
-bool RadixSort::execute()
+bool RadixSort::_execute()
 {
     cl_int err_code;
 	unsigned int i, max_val;

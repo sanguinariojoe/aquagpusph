@@ -112,10 +112,11 @@ public:
      */
     bool setup();
 
+protected:
     /** Execute the tool.
      * @return false if all gone right, true otherwise.
      */
-    bool execute();
+    bool _execute();
 
 private:
     /** Initialize permutations array.

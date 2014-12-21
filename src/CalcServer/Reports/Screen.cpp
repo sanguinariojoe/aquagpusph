@@ -66,7 +66,7 @@ bool Screen::setup()
     return false;
 }
 
-bool Screen::execute()
+bool Screen::_execute()
 {
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     S->writeReport(data(), _color, _bold);

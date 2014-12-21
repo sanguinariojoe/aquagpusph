@@ -79,7 +79,7 @@ bool UnSort::setup()
 }
 
 
-bool UnSort::execute()
+bool UnSort::_execute()
 {
     unsigned int i;
     cl_int err_code;

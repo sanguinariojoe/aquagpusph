@@ -91,7 +91,7 @@ bool SetTabFile::setup()
     return false;
 }
 
-bool SetTabFile::execute()
+bool SetTabFile::_execute()
 {
     if(!mustUpdate()){
         return false;

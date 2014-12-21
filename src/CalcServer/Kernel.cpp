@@ -80,7 +80,7 @@ bool Kernel::setup()
     return false;
 }
 
-bool Kernel::execute()
+bool Kernel::_execute()
 {
     cl_int err_code;
     char msg[1024];

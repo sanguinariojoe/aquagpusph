@@ -56,12 +56,12 @@ public:
      */
     bool setup();
 
+protected:
     /** @brief Perform the work.
      * @return false if all gone right, true otherwise.
      */
-    bool execute();
+    bool _execute();
 
-protected:
     /** @brief Initialize the Python interpreter.
      *
      * This method is safely creating the Python environment just one time,

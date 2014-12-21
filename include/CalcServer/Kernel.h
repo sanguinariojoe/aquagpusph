@@ -54,11 +54,6 @@ public:
      */
     bool setup();
 
-    /** Execute the tool.
-     * @return false if all gone right, true otherwise.
-     */
-    bool execute();
-
     /** Set the kernel file path.
      * @param kernel_path kernel file path.
      */
@@ -78,6 +73,12 @@ public:
      * @return Work group size
      */
     size_t globalWorkSize() const {return _global_work_size;}
+
+protected:
+    /** Execute the tool.
+     * @return false if all gone right, true otherwise.
+     */
+    bool _execute();
 
 protected:
     /** Compile the OpenCL program

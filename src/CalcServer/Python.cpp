@@ -218,7 +218,7 @@ bool Python::setup()
     return false;
 }
 
-bool Python::execute()
+bool Python::_execute()
 {
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     PyObject *result;

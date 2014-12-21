@@ -71,11 +71,6 @@ public:
      */
     virtual bool setup();
 
-    /** @brief Execute the tool.
-     * @return false if all gone right, true otherwise.
-     */
-    virtual bool execute(){return false;}
-
     /** @brief Return the text string of the data to be printed.
      * @param with_title true if the report title should be inserted, false
      * otherwise.
@@ -84,7 +79,13 @@ public:
      * @return Text string to be printed either in a file or in the screen.
      */
     const char* data(bool with_title=true, bool with_names=true);
+
 protected:
+    /** @brief Execute the tool.
+     * @return false if all gone right, true otherwise.
+     */
+    virtual bool _execute(){return false;}
+
     /** @brief Compute the fields by lines
      * @return false if all gone right, true otherwise.
      */

@@ -134,7 +134,7 @@ bool LinkList::setup()
     return false;
 }
 
-bool LinkList::execute()
+bool LinkList::_execute()
 {
     cl_int err_code;
     char msg[1024];

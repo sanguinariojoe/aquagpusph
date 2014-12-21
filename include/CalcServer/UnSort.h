@@ -47,15 +47,16 @@ public:
      */
     bool setup();
 
-    /** Compute the reduction.
-     * @return false if all gone right, true otherwise.
-     */
-    bool execute();
-
     /** Get the memory object where the unsorted data is stored.
      * @return The memory object where the unsorted data is stored.
      */
     cl_mem output(){return _output;}
+
+protected:
+    /** Compute the reduction.
+     * @return false if all gone right, true otherwise.
+     */
+    bool _execute();
 
 private:
     /** Get the input variable

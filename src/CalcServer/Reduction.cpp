@@ -108,7 +108,7 @@ bool Reduction::setup()
 }
 
 
-bool Reduction::execute()
+bool Reduction::_execute()
 {
     unsigned int i;
     cl_int err_code;

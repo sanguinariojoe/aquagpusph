@@ -84,7 +84,7 @@ bool Set::setup()
 }
 
 
-bool Set::execute()
+bool Set::_execute()
 {
     unsigned int i;
     cl_int err_code;

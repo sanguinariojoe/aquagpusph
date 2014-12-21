@@ -79,7 +79,7 @@ bool TabFile::setup()
     return false;
 }
 
-bool TabFile::execute()
+bool TabFile::_execute()
 {
     char* out = (char*)data(false, false);
     // Change break lines by spaces

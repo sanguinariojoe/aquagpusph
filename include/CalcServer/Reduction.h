@@ -75,11 +75,6 @@ public:
      */
     bool setup();
 
-    /** @brief Perform the work.
-     * @return Output memory object, NULL if error is detected.
-     */
-    bool execute();
-
     /** @brief Number of steps needed.
      *
      * To reduce the array to just one variable several steps may be needed,
@@ -89,6 +84,12 @@ public:
      * @return Number of steps needed.
      */
     unsigned int nSteps(){return _global_work_sizes.size();}
+
+protected:
+    /** @brief Perform the work.
+     * @return Output memory object, NULL if error is detected.
+     */
+    bool _execute();
 
 private:
     /** @brief Extract the input and output variables from the provided data in

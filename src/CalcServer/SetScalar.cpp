@@ -64,7 +64,7 @@ bool SetScalar::setup()
 }
 
 
-bool SetScalar::execute()
+bool SetScalar::_execute()
 {
     char msg[1024];
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();

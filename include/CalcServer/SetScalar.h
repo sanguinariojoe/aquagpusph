@@ -45,10 +45,11 @@ public:
      */
     bool setup();
 
+protected:
     /** @brief Perform the work.
      * @return false if all gone right, true otherwise.
      */
-    bool execute();
+    bool _execute();
 
 private:
     /** @brief Get the input variable

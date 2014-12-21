@@ -18,12 +18,16 @@
 
 #include <CalcServer/Tool.h>
 #include <CalcServer.h>
+#include <sys/time.h>
 
 namespace Aqua{ namespace CalcServer{
 
 Tool::Tool(const char* tool_name)
     : _name(NULL)
     , _allocated_memory(0)
+    , _n_iters(0)
+    , _average_elapsed_time(0.f)
+    , _squared_elapsed_time(0.f)
 {
     name(tool_name);
 }
@@ -38,6 +42,38 @@ void Tool::name(const char* tool_name)
     if(_name) delete[] _name; _name=NULL;
     _name = new char[strlen(tool_name) + 1];
     strcpy(_name, tool_name);
+}
+
+bool Tool::execute()
+{
+    timeval tic, tac;
+    gettimeofday(&tic, NULL);
+
+    bool err = _execute();
+
+    gettimeofday(&tac, NULL);
+
+    float elapsed_seconds;
+    elapsed_seconds = (float)(tac.tv_sec - tic.tv_sec);
+    elapsed_seconds += (float)(tac.tv_usec - tic.tv_usec) / 1E-6f;
+
+    addElapsedTime(elapsed_seconds);
+
+    return err;
+}
+
+void Tool::addElapsedTime(float elapsed_time)
+{
+    // Invert the average computation
+    _average_elapsed_time *= _n_iters;
+    _squared_elapsed_time *= _n_iters;
+    // Add the new data
+    _average_elapsed_time += elapsed_time;
+    _squared_elapsed_time += elapsed_time * elapsed_time;
+    // And average it again
+    _n_iters++;
+    _average_elapsed_time /= _n_iters;
+    _squared_elapsed_time /= _n_iters;
 }
 
 }}  // namespace

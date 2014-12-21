@@ -54,10 +54,11 @@ public:
      */
     bool setup();
 
+protected:
     /** Compute the reduction.
      * @return false if all gone right, true otherwise.
      */
-    bool execute();
+    bool _execute();
 
 private:
     /** Get the input variable

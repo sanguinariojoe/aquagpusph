@@ -20,6 +20,7 @@
 #define TOOL_H_INCLUDED
 
 #include <sphPrerequisites.h>
+#include <math.h>
 
 namespace Aqua{ namespace CalcServer{
 
@@ -54,15 +55,37 @@ public:
      */
     virtual bool setup(){return false;}
 
-    /** Execute the tool.
+    /** Execute the tool measuring the elapsed time.
      * @return false if all gone right, true otherwise.
      */
-    virtual bool execute(){return false;}
+    bool execute();
 
     /** Get the allocated memory for this tool.
      * @return allocated memory by this tool.
      */
     size_t allocatedMemory() const {return _allocated_memory;}
+
+    /** Get the number of times that this tool has been called.
+     * @return Number of times this tool has been called.
+     */
+    unsigned int used_times() const {return _n_iters;}
+
+    /** Get the average time consumed by the tool.
+     * @return Average time consumed.
+     */
+    float elapsedTime() const {return _average_elapsed_time;}
+
+    /** Get the time consumed variance.
+     * @return Time consumed variance.
+     */
+    float elapsedTimeVariance() const {
+        return _squared_elapsed_time - pow(_average_elapsed_time, 2);
+    }
+
+    /** Get the time consumed standard deviation.
+     * @return Time consumed standard deviation.
+     */
+    float elapsedTimeDeviation() const {return sqrt(elapsedTimeVariance());}
 
 protected:
     /** Constructor.
@@ -75,12 +98,31 @@ protected:
      */
     void allocatedMemory(size_t mem_size){_allocated_memory = mem_size;}
 
+    /** Execute the tool.
+     * @return false if all gone right, true otherwise.
+     */
+    virtual bool _execute(){return false;}
+
 private:
+    /** @brief Add new data to the average and squared elapsed times computation.
+     * @param elapsed_time Elapsed time of the last time that this tool has been called.
+     */
+    void addElapsedTime(float elapsed_time);
+
     /// Kernel name
     char* _name;
 
     /// Total auxiliar memory allocated in the device
     size_t _allocated_memory;
+
+    /// Times that this tool has been called
+    unsigned int _n_iters;
+
+    /// Average elapsed time
+    float _average_elapsed_time;
+
+    /// Average squared elapsed time
+    float _squared_elapsed_time;
 };
 
 }}  // namespace

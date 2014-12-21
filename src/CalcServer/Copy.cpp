@@ -66,7 +66,7 @@ bool Copy::setup()
 }
 
 
-bool Copy::execute()
+bool Copy::_execute()
 {
     unsigned int i;
     cl_int err_code;

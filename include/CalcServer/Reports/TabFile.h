@@ -64,10 +64,12 @@ public:
      */
     bool setup();
 
+protected:
     /** @brief Execute the tool.
      * @return false if all gone right, true otherwise.
      */
-    bool execute();
+    bool _execute();
+
 private:
     /// Output file name
     char *_output_file;
