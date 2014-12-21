@@ -823,20 +823,20 @@ bool State::parseReports(DOMElement *root)
                 S->addMessageF(3, "Found a report without type\n");
                 return true;
             }
-            if(!xmlHasAttribute(s_elem, "fields")){
-                S->addMessageF(3, "Found a report without fields\n");
-                return true;
-            }
 
             // Create the report
             ProblemSetup::sphTool *report = new ProblemSetup::sphTool();
             report->set("name", xmlAttribute(s_elem, "name"));
             report->set("type", xmlAttribute(s_elem, "type"));
-            report->set("fields", xmlAttribute(s_elem, "fields"));
             P->reports.push_back(report);
 
             // Configure the report
             if(!strcmp(xmlAttribute(s_elem, "type"), "screen")){
+                if(!xmlHasAttribute(s_elem, "fields")){
+                    S->addMessageF(3, "Found a \"screen\" report without fields\n");
+                    return true;
+                }
+                report->set("fields", xmlAttribute(s_elem, "fields"));
                 if(xmlHasAttribute(s_elem, "bold")){
                     report->set("bold", xmlAttribute(s_elem, "bold"));
                 }
@@ -851,6 +851,11 @@ bool State::parseReports(DOMElement *root)
                 }
             }
             else if(!strcmp(xmlAttribute(s_elem, "type"), "file")){
+                if(!xmlHasAttribute(s_elem, "fields")){
+                    S->addMessageF(3, "Found a \"file\" report without fields\n");
+                    return true;
+                }
+                report->set("fields", xmlAttribute(s_elem, "fields"));
                 if(!xmlHasAttribute(s_elem, "path")){
                     sprintf(msg,
                             "Report \"%s\" is of type \"file\", but the output \"path\" is not defined.\n",
@@ -861,6 +866,11 @@ bool State::parseReports(DOMElement *root)
                 report->set("path", xmlAttribute(s_elem, "path"));
             }
             else if(!strcmp(xmlAttribute(s_elem, "type"), "particles")){
+                if(!xmlHasAttribute(s_elem, "fields")){
+                    S->addMessageF(3, "Found a \"particles\" report without fields\n");
+                    return true;
+                }
+                report->set("fields", xmlAttribute(s_elem, "fields"));
                 if(!xmlHasAttribute(s_elem, "path")){
                     sprintf(msg,
                             "Report \"%s\" is of type \"particles\", but the output \"path\" is not defined.\n",
@@ -892,7 +902,19 @@ bool State::parseReports(DOMElement *root)
                     report->set("fps", xmlAttribute(s_elem, "fps"));
                 }
             }
-            else if(!strcmp(xmlAttribute(s_elem, "type"), "log")){
+            else if(!strcmp(xmlAttribute(s_elem, "type"), "performance")){
+                if(xmlHasAttribute(s_elem, "bold")){
+                    report->set("bold", xmlAttribute(s_elem, "bold"));
+                }
+                else{
+                    report->set("bold", "false");
+                }
+                if(xmlHasAttribute(s_elem, "color")){
+                    report->set("color", xmlAttribute(s_elem, "color"));
+                }
+                else{
+                    report->set("color", "white");
+                }
             }
             else{
                 sprintf(msg,
@@ -902,6 +924,8 @@ bool State::parseReports(DOMElement *root)
                 S->addMessage(0, "\tThe valid types are:\n");
                 S->addMessage(0, "\t\tscreen\n");
                 S->addMessage(0, "\t\tfile\n");
+                S->addMessage(0, "\t\tparticles\n");
+                S->addMessage(0, "\t\tperformance\n");
                 return true;
             }
         }

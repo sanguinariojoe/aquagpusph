@@ -102,6 +102,11 @@ public:
      */
     InputOutput::Variables* variables() const {return _vars;}
 
+    /** Get the tools registered.
+     * @return List of tools.
+     */
+    std::deque<Tool*> tools() const {return _tools;}
+
     /** Get the active context
      * @return OpenCL context
      */

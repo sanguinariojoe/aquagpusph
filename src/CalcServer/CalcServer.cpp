@@ -42,6 +42,7 @@
 #include <CalcServer/Set.h>
 #include <CalcServer/SetScalar.h>
 #include <CalcServer/UnSort.h>
+#include <CalcServer/Reports/Performance.h>
 #include <CalcServer/Reports/Screen.h>
 #include <CalcServer/Reports/TabFile.h>
 #include <CalcServer/Reports/SetTabFile.h>
@@ -246,6 +247,18 @@ CalcServer::CalcServer()
                 P->reports.at(i)->get("path"),
                 ipf,
                 fps);
+            _tools.push_back(tool);
+        }
+        else if(!strcmp(P->reports.at(i)->get("type"), "performance")){
+            bool bold = false;
+            if(strcmp(P->reports.at(i)->get("bold"), "true") ||
+               strcmp(P->reports.at(i)->get("bold"), "True")){
+               bold = true;
+            }
+            Reports::Performance *tool = new Reports::Performance(
+                P->reports.at(i)->get("name"),
+                P->reports.at(i)->get("color"),
+                bold);
             _tools.push_back(tool);
         }
         else{

@@ -55,7 +55,7 @@ bool Tool::execute()
 
     float elapsed_seconds;
     elapsed_seconds = (float)(tac.tv_sec - tic.tv_sec);
-    elapsed_seconds += (float)(tac.tv_usec - tic.tv_usec) / 1E-6f;
+    elapsed_seconds += (float)(tac.tv_usec - tic.tv_usec) * 1E-6f;
 
     addElapsedTime(elapsed_seconds);
 
