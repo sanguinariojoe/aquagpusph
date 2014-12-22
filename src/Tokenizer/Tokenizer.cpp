@@ -33,6 +33,34 @@ namespace Aqua{
 
 Tokenizer::Tokenizer()
 {
+    struct lconv *lc;
+    char *s, msg[256];
+    Aqua::InputOutput::ScreenManager *S = Aqua::InputOutput::ScreenManager::singleton();
+
+    // Set the decimal-point character (which is depending on the locale)
+    s = setlocale(LC_NUMERIC, NULL);
+    if(strcmp(s, "C")){
+        sprintf(msg, "\"%s\" numeric locale found\n", s);
+        S->addMessageF(1, msg);
+        S->addMessage(0, "\tIt is replaced by \"C\"\n");
+        setlocale(LC_NUMERIC, "C");
+    }
+    lc = localeconv();
+    s = lc->decimal_point;
+    if(strcmp(s, ".")){
+        sprintf(msg, "\"%s\" decimal point character found\n", s);
+        S->addMessageF(2, msg);
+        S->addMessage(0, "\tIt is replaced by \".\"\n");
+        lc->decimal_point = ".";
+    }
+    s = lc->thousands_sep;
+    if(strcmp(s, "")){
+        sprintf(msg, "\"%s\" thousands separator character found\n", s);
+        S->addMessageF(2, msg);
+        S->addMessage(0, "\tIt is removed\n");
+        lc->thousands_sep = "";
+    }
+
     // Register default variables
     registerVariable("pi", M_PI);
     registerVariable("e", M_E);
