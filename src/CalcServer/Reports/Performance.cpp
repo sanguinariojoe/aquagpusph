@@ -89,15 +89,19 @@ bool Performance::_execute()
     char data[4096];
 
     size_t allocated_MB = computeAllocatedMemory() / (1024 * 1024);
-    sprintf(data, "Performance:\nMemory = %lu MB\n", allocated_MB);
+    sprintf(data, "Performance:\nMemory=%16luMB\n", allocated_MB);
 
     // Add the tools time elapsed
     std::deque<Tool*> tools = C->tools();
+    float elapsed = 0.f;
+    float elapsed_var = 0.f;
     for(i = 0; i < tools.size(); i++){
-        sprintf(data, "%s%s=%16gms ", data,
-                                      tools.at(i)->name(),
-                                      tools.at(i)->elapsedTime() / 1000.f);
+        elapsed += tools.at(i)->elapsedTime();
+        elapsed_var += tools.at(i)->elapsedTimeVariance();
     }
+    sprintf(data, "%sElapsed=%16gs (+-%16gs)\n", data, elapsed, elapsed_var);
+
+
     // Replace the trailing space by a line break
     if(data[strlen(data) - 1] == ' ')
         data[strlen(data) - 1] = '\n';
