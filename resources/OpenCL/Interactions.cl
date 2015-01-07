@@ -122,8 +122,8 @@ __kernel void main(const __global uint* iset,
 
     const uint c_i = icell[i];
     const int move_i = imove[i];
-    const vec pos_i = pos[i];
-    const vec v_i = v[i];
+    const vec_xyz pos_i = pos[i].XYZ;
+    const vec_xyz v_i = v[i].XYZ;
     const float p_i = p[i];
     const float rho_i = rho[i];
     const float refd_i = refd[iset[i]];
@@ -140,8 +140,8 @@ __kernel void main(const __global uint* iset,
 
     // Initialize the output
     #ifndef LOCAL_MEM_SIZE
-        #define _GRADP_ grad_p[i]
-        #define _LAPU_ lap_u[i]
+        #define _GRADP_ grad_p[i].XYZ
+        #define _LAPU_ lap_u[i].XYZ
         #define _DIVU_ div_u[i]
         #define _LAPP_ lap_p[i]
         #define _SHEPARD_ shepard[i]
@@ -151,17 +151,17 @@ __kernel void main(const __global uint* iset,
         #define _DIVU_ div_u_l[it]
         #define _LAPP_ lap_p_l[it]
         #define _SHEPARD_ shepard_l[it]
-        __local vec grad_p_l[LOCAL_MEM_SIZE];
-        __local vec lap_u_l[LOCAL_MEM_SIZE];
+        __local vec_xyz grad_p_l[LOCAL_MEM_SIZE];
+        __local vec_xyz lap_u_l[LOCAL_MEM_SIZE];
         __local float div_u_l[LOCAL_MEM_SIZE];
         __local float lap_p_l[LOCAL_MEM_SIZE];
         __local float shepard_l[LOCAL_MEM_SIZE];
+        _GRADP_ = VEC_ZERO.XYZ;
+        _LAPU_ = VEC_ZERO.XYZ;
+        _DIVU_ = 0.f;
+        _LAPP_ = 0.f;
+        _SHEPARD_ = 0.f;
     #endif
-    _GRADP_ = VEC_ZERO;
-    _LAPU_ = VEC_ZERO;
-    _DIVU_ = 0.f;
-    _LAPP_ = 0.f;
-    _SHEPARD_ = 0.f;
 
     // Loop over neighbour particles
     // =============================
@@ -260,8 +260,8 @@ __kernel void main(const __global uint* iset,
     }
 
     #ifdef LOCAL_MEM_SIZE
-        grad_p[i] = _GRADP_;
-        lap_u[i] = _LAPU_;
+        grad_p[i].XYZ = _GRADP_;
+        lap_u[i].XYZ = _LAPU_;
         div_u[i] = _DIVU_;
         lap_p[i] = _LAPP_;
         shepard[i] = _SHEPARD_;

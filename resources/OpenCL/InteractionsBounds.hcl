@@ -31,7 +31,7 @@ if((imove[j] != -1) &&
     continue;
 }
 
-const vec r = pos_i - pos[j];
+const vec_xyz r = pos_i - pos[j].XYZ;
 const float q = fast_length(r) / h;
 if(q < support)
 {
@@ -46,7 +46,7 @@ if(q < support)
     //       pressure computation (stored on grad(p)/rho)
     //---------------------------------------------------------------
     _GRADP_.x += p_j / rho_j * wab;
-    _GRADP_.y += dot(g, r) * wab;
+    _GRADP_.y += dot(g.XYZ, r) * wab;
     //---------------------------------------------------------------
     //       density computation (stored on rho*div(u))
     //---------------------------------------------------------------

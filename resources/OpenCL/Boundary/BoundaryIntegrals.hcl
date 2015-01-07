@@ -42,7 +42,7 @@ if(imove[j] != -3){
 // ------------------------------------------------------------------
 // face properties
 // ------------------------------------------------------------------
-const vec n_j = normal[j];  // Assumed outwarding oriented
+const vec_xyz n_j = normal[j].XYZ;  // Assumed outwarding oriented
 const float rho_j = rho[j];
 if(rho_j <= 0.01f * refd_i){
     j++;
@@ -50,7 +50,7 @@ if(rho_j <= 0.01f * refd_i){
 }
 const float area_j = m[j];
 
-const vec r = pos[j] - pos_i;
+const vec_xyz r = pos[j].XYZ - pos_i;
 const float q = fast_length(r) / h;
 if(q >= support){
     j++;
@@ -62,7 +62,7 @@ if(q >= support){
 // ------------------------------------------------------------------
 {
     const float p_j = p[j];
-    const vec dv = v[j] - v_i;
+    const vec_xyz dv = v[j].XYZ - v_i;
     const float vdr = rho_j * dot(dv, n_j);
     //---------------------------------------------------------------
     //       calculate the kernel wab
@@ -71,12 +71,12 @@ if(q >= support){
     //---------------------------------------------------------------
     //       calculate the pressure factor
     //---------------------------------------------------------------
-    const vec prfac = rho_j * (prfac_i + p_j / (rho_j * rho_j)) * n_j;
+    const vec_xyz prfac = rho_j * (prfac_i + p_j / (rho_j * rho_j)) * n_j;
     //---------------------------------------------------------------
     //       calculate viscosity terms
     //---------------------------------------------------------------
     const float r2 = (q * q + 0.01f) * h * h;
-    const vec lapufac = __CLEARY__ * vdr / (r2 * rho_i * rho_j) * n_j;
+    const vec_xyz lapufac = __CLEARY__ * vdr / (r2 * rho_i * rho_j) * n_j;
     //---------------------------------------------------------------
     //     Momentum equation (grad(p)/rho and lap(u)/rho)
     //---------------------------------------------------------------

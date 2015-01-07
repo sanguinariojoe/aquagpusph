@@ -38,6 +38,9 @@
  * version is compiled:
  *   - 2D = 2 components
  *   - 3D = 4 components
+ * 
+ * This type should be used for input arguments, but for the local variables
+ * maybe you can consider using vec_xyz (which has just 3 components in 3D)
  */
 #define vec float4
 
@@ -48,6 +51,9 @@
  * version is compiled:
  *   - 2D = 2 components
  *   - 3D = 4 components
+ * 
+ * This type should be used for input arguments, but for the local variables
+ * maybe you can consider using ivec_xyz (which has just 3 components in 3D)
  */
 #define ivec int4
 
@@ -58,6 +64,9 @@
  * version is compiled:
  *   - 2D = 2 components
  *   - 3D = 4 components
+ * 
+ * This type should be used for input arguments, but for the local variables
+ * maybe you can consider using uivec_xyz (which has just 3 components in 3D)
  */
 #define uivec uint4
 
@@ -92,3 +101,47 @@
  */
 #define VEC_ALL_NEG_INFINITY (-VEC_ALL_INFINITY)
 
+/** @def vec_xyz
+ * @brief Vector of real components with the minimum number of components.
+ *
+ * The number of components depends on weather the 2D version or 3D
+ * version is compiled:
+ *   - 2D = 2 components
+ *   - 3D = 3 components
+ *
+ * This type can be used for the local variables to reduce the VGPRs.
+ */
+#define vec_xyz vec3
+
+/** @def ivec_xyz
+ * @brief Vector of integer components.
+ *
+ * The number of components depends on weather the 2D version or 3D
+ * version is compiled:
+ *   - 2D = 2 components
+ *   - 3D = 3 components
+ *
+ * This type can be used for the local variables to reduce the VGPRs.
+ */
+#define ivec_xyz ivec3
+
+/** @def uivec_xyz
+ * @brief Vector of unsigned integer components.
+ *
+ * The number of components depends on weather the 2D version or 3D
+ * version is compiled:
+ *   - 2D = 2 components
+ *   - 3D = 3 components
+ *
+ * This type can be used for the local variables to reduce the VGPRs.
+ */
+#define uivec_xyz uivec3
+
+/** @def XYZ
+ * @brief Convenient access to the vector components.
+ * 
+ * It is useful to be used with #vec_xyz, #ivec_xyz and #uivec_xyz type:
+ *   - 2D = .xy
+ *   - 3D = .xyz
+ */
+#define XYZ xyz

@@ -40,7 +40,7 @@ if((imove[j] != -1) &&
     continue;
 }
 
-const vec r = pos[j] - pos_i;
+const vec_xyz r = pos[j].XYZ - pos_i;
 const float q = fast_length(r) / h;
 if(q < support)
 {
@@ -59,7 +59,7 @@ if(q < support)
     //---------------------------------------------------------------
     //       calculate viscosity terms
     //---------------------------------------------------------------
-    const float vdr = dot(v[j] - v_i, r);
+    const float vdr = dot(v[j].XYZ - v_i, r);
     float lapufac = 0.f;
     if(imove[j] > 0){
         const float r2 = (q * q + 0.01f) * h * h;
@@ -77,7 +77,7 @@ if(q < support)
     //---------------------------------------------------------------
     //     Density diffusion term (lap(p))
     //---------------------------------------------------------------
-    const float drfac = (p_j - p_i) - refd_i * dot(g, r);
+    const float drfac = (p_j - p_i) - refd_i * dot(g.XYZ, r);
     _LAPP_ += drfac * fab / rho_j;
     //---------------------------------------------------------------
     //     Shepard term
