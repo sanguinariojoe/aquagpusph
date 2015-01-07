@@ -50,13 +50,6 @@
     #endif
 #endif
 
-#ifndef uint
-    /** @def uint
-     * @brief Short alias for unsigned integer type.
-     */ 
-    #define uint unsigned int
-#endif
-
 /** @brief Performs the boundary effect on the fluid particles.
  * @param iset Set of particles index.
  * @param imove Moving flags.

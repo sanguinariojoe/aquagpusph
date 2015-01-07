@@ -51,13 +51,6 @@
     #endif
 #endif
 
-#ifndef uint
-    /** @def uint
-     * @brief Short alias for unsigned integer type.
-     */ 
-    #define uint unsigned int
-#endif
-
 #ifndef __DR_FACTOR__
     /** @def __DR_FACTOR__
      * @brief The boundary elements effect is restricted to a quadrangular area

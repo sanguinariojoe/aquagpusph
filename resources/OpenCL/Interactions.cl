@@ -50,13 +50,6 @@
     #endif
 #endif
 
-#ifndef uint
-    /** @def uint
-     * @brief Short alias for unsigned integer type.
-     */ 
-    #define uint unsigned int
-#endif
-
 /** @brief Particles interactions computation.
  *
  * Compute the rates of variation due to the fluid (fixed particles will be
