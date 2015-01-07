@@ -65,11 +65,28 @@
  * @brief Null #vec, i.e. filled with zero components.
  */
 #define VEC_ZERO (float2)(0.f,0.f)
-
+/** @def VEC_ONE
+ * @brief Ones #vec, i.e. filled with one components.
+ */
 #define VEC_ONE (float2)(1.f, 1.f)
+/** @def VEC_ALL_ONE
+ * @brief VEC_ONE.
+ */
 #define VEC_ALL_ONE VEC_ONE
+/** @def VEC_INFINITY
+ * @brief Infinity #vec, i.e. filled with infinity components.
+ */
 #define VEC_INFINITY (float2)(INFINITY, INFINITY)
+/** @def VEC_ALL_INFINITY
+ * @brief VEC_INFINITY.
+ */
 #define VEC_ALL_INFINITY VEC_INFINITY
+/** @def VEC_NEG_INFINITY
+ * @brief -Infinity #vec, i.e. filled with -infinity components.
+ */
 #define VEC_NEG_INFINITY (-VEC_INFINITY)
+/** @def VEC_ALL_NEG_INFINITY
+ * @brief VEC_NEG_INFINITY.
+ */
 #define VEC_ALL_NEG_INFINITY (-VEC_ALL_INFINITY)
 
