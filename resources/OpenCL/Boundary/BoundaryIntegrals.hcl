@@ -30,7 +30,7 @@
     #ifndef HAVE_3D
         #define __CLEARY__ 8.f
     #else
-        #define __CLEARY__ 15.f
+        #define __CLEARY__ 10.f
     #endif
 #endif
 
