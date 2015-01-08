@@ -70,10 +70,16 @@ public:
      */
     unsigned int used_times() const {return _n_iters;}
 
-    /** Get the average time consumed by the tool.
-     * @return Average time consumed.
+    /** Get the time consumed by the tool.
+     * @param averaged true if the avergaed time step is required, false
+     * otherwise.
+     * @return time consumed.
      */
-    float elapsedTime() const {return _average_elapsed_time;}
+    float elapsedTime(bool averaged=true) const {
+        if(!averaged)
+            return _elapsed_time;
+        return _average_elapsed_time;
+    }
 
     /** Get the time consumed variance.
      * @return Time consumed variance.
@@ -117,6 +123,9 @@ private:
 
     /// Times that this tool has been called
     unsigned int _n_iters;
+
+    /// Average elapsed time
+    float _elapsed_time;
 
     /// Average elapsed time
     float _average_elapsed_time;

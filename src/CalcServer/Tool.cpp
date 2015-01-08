@@ -26,6 +26,7 @@ Tool::Tool(const char* tool_name)
     : _name(NULL)
     , _allocated_memory(0)
     , _n_iters(0)
+    , _elapsed_time(0.f)
     , _average_elapsed_time(0.f)
     , _squared_elapsed_time(0.f)
 {
@@ -64,6 +65,7 @@ bool Tool::execute()
 
 void Tool::addElapsedTime(float elapsed_time)
 {
+    _elapsed_time = elapsed_time;
     // Invert the average computation
     _average_elapsed_time *= _n_iters;
     _squared_elapsed_time *= _n_iters;
