@@ -222,7 +222,7 @@ public:
     }settings;
 
     /** @struct sphVariables
-     * @brief Simulation variable registered.
+     * @brief Simulation variables registered.
      *
      * In order to make AQUAgpusph more extensible, variables can be registered
      * in runtime, specifing them in the input XML files.
@@ -281,6 +281,58 @@ public:
         /// Remove all the stored variables.
         void destroy();
     }variables;
+
+    /** @struct sphDefinitions
+     * @brief OpenCL kernels compilation definitions.
+     *
+     * In order to make AQUAgpusph more extensible, preprocessor definitions
+     * can be set, such that they will be defined for all the compiled kernels.
+     *
+     * 3 types of definitions can be practised:
+     *    - Named definitions, like -DHAVE_3D
+     *    - Value definitions, like -DNEIGH_CELLS=9
+     *    - Float evaluated definitions, like -DH=h, where h will be replaced by
+     *      the variable value
+     *
+     * The definitions are set between the following XML tags:
+     * @code{.xml}
+        <Definitions>
+        </Definitions>
+     * @endcode
+     *
+     * @see Aqua::InputOutput::ProblemSetup
+     * @warning The definitions are made right after the variables setup, and
+     * they are set just one time, so you cannot use them to pass changing
+     * variables to the OpenCL kernels.
+     */
+    struct sphDefinitions
+    {
+        /// Name of the definition
+        std::deque<char*> names;
+        /// Value of the definition, empty for named definitions.
+        std::deque<char*> values;
+        /** True if the value should be evaluated as a math expression, false
+         * otherwise
+         */
+        std::deque<bool> evaluations;
+
+        /** @brief Add a new definition.
+         *
+         * It can be repeated, such that the definition will be overwritten
+         * later by the last instance found.
+         *
+         * @param name Name of the definition.
+         * @param value Value of the definition, empty for named definitions.
+         * @param evaluate True if the value should be evaluated as a math
+         * expression, false otherwise.
+         */
+        void registerDefinition(const char* name,
+                                const char* value,
+                                const bool evaluate);
+
+        /// Remove all the stored definitions.
+        void destroy();
+    }definitions;
 
     /** @class sphTool ProblemSetup.h ProblemSetup.h
      * @brief Tool to be executed.

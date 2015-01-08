@@ -120,6 +120,7 @@ bool Kernel::compile(const char* entry_point,
                      const char* add_flags,
                      const char* header)
 {
+    unsigned int i;
     cl_program program;
     cl_kernel kernel;
     char* source = NULL;
@@ -178,9 +179,16 @@ bool Kernel::compile(const char* entry_point,
     #else
         strcat(flags, " -DHAVE_2D ");
     #endif
+    // Setup the user registered flags
+    for(i = 0; i < C->definitions().size(); i++){
+        strcat(flags, C->definitions().at(i));
+        strcat(flags, " ");
+    }
     // Add the additionally specified flags
     if(add_flags)
         strcat(flags, add_flags);
+
+    printf("%s\n", flags);
 
     // Try to compile without using local memory
     S->addMessageF(1, "Compiling without local memory... ");

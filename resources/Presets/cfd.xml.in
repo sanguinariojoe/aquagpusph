@@ -68,6 +68,10 @@
         <Variable name="shepard" type="float*" length="N" />
     </Variables>
 
+    <Definitions>
+        <Define name="H" value="h" evaluate="true"/>
+    </Definitions>
+    
     <Tools>
         <!-- Leap-Frog time integration predictor stage -->
         <Tool action="add" type="kernel" name="Predictor" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Predictor.cl"/>

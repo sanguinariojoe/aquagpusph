@@ -116,6 +116,13 @@ protected:
      */
     bool parseVariables(xercesc::DOMElement *root);
 
+    /** @brief Parse the definitions sections.
+     * @param root root XML node.
+     * @return false if all gone right, true otherwise
+     * @see Aqua::InputOutput::ProblemSetup::sphDefinitions
+     */
+    bool parseDefinitions(xercesc::DOMElement *root);
+
     /** @brief Parse the tools sections.
      * @param root root XML node.
      * @return false if all gone right, true otherwise
@@ -165,6 +172,14 @@ protected:
      * @see Aqua::InputOutput::ProblemSetup::sphVariables
      */
     bool writeVariables(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
+
+    /** @brief Write the definitions section.
+     * @param doc XML generated document.
+     * @param root Root XML node.
+     * @return false if all gone right, true otherwise
+     * @see Aqua::InputOutput::ProblemSetup::sphDefinitions
+     */
+    bool writeDefinitions(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
 
     /** @brief Write the tools section.
      * @param doc XML generated document.

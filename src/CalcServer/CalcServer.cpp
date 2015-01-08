@@ -143,6 +143,66 @@ CalcServer::CalcServer()
         }
     }
 
+    // Register the user definitions
+    for(i = 0; i < P->definitions.names.size(); i++){
+        size_t deflen=0;
+        char *defstr = NULL;
+        if(!strcmp(P->definitions.values.at(i), "")){
+            // First case, named definitions
+            deflen = strlen(P->definitions.names.at(i));
+            defstr = new char[deflen + 3];
+            if(!defstr){
+                S->addMessageF(
+                    3, "Failure allocating memory for the definition\n");
+                sprintf(msg, "\t\"%s\"\n", P->definitions.names.at(i));
+                S->addMessageF(0, msg);
+                exit(EXIT_FAILURE);
+            }
+            strcpy(defstr, "-D");
+            strcat(defstr, P->definitions.names.at(i));
+        }
+        else if(!P->definitions.evaluations.at(i)){
+            // Second case, valued definitions
+            deflen = strlen(P->definitions.names.at(i)) +
+                     strlen(P->definitions.values.at(i));
+            defstr = new char[deflen + 4];
+            if(!defstr){
+                S->addMessageF(
+                    3, "Failure allocating memory for the definition\n");
+                sprintf(msg, "\t\"%s\"\n", P->definitions.names.at(i));
+                S->addMessageF(0, msg);
+                exit(EXIT_FAILURE);
+            }
+            strcpy(defstr, "-D");
+            strcat(defstr, P->definitions.names.at(i));
+            strcat(defstr, "=");
+            strcat(defstr, P->definitions.values.at(i));
+        }
+        else{
+            // Third case, evaluated definitions
+            deflen = strlen(P->definitions.names.at(i));
+            defstr = new char[deflen + 4 + 32];
+            if(!defstr){
+                S->addMessageF(
+                    3, "Failure allocating memory for the definition\n");
+                sprintf(msg, "\t\"%s\"\n", P->definitions.names.at(i));
+                S->addMessageF(0, msg);
+                exit(EXIT_FAILURE);
+            }
+            float defval = 0.f;
+            if(_vars->solve("float",
+                            P->definitions.values.at(i),
+                            &defval))
+            {
+                exit(EXIT_FAILURE);
+            }
+            strcpy(defstr, "-D");
+            strcat(defstr, P->definitions.names.at(i));
+            sprintf(defstr, "%s=%ff", defstr, defval);
+        }
+        _definitions.push_back(defstr);
+    }
+
     // Register the tools
     for(i = 0; i < P->tools.size(); i++){
         if(!strcmp(P->tools.at(i)->get("type"), "kernel")){
@@ -298,6 +358,13 @@ CalcServer::~CalcServer()
         _tools.at(i) = NULL;
     }
     _tools.clear();
+
+    S->addMessageF(1, "Destroying definitions...\n");
+    for(i = 0; i < _definitions.size(); i++){
+        delete[] _definitions.at(i);
+        _definitions.at(i) = NULL;
+    }
+    _definitions.clear();
 
     S->addMessageF(1, "Destroying variables manager...\n");
     if(_vars) delete _vars; _vars=NULL;

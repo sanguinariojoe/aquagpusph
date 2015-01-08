@@ -102,6 +102,11 @@ public:
      */
     InputOutput::Variables* variables() const {return _vars;}
 
+    /** Get the definitions registered.
+     * @return List of definitions.
+     */
+    std::deque<char*> definitions() const {return _definitions;}
+
     /** Get the tools registered.
      * @return List of tools.
      */
@@ -188,6 +193,9 @@ private:
 
     /// User registered variables
     InputOutput::Variables *_vars;
+
+    /// User registered definitions
+    std::deque<char*> _definitions;
 
     /// User registered tools
     std::deque<Tool*> _tools;

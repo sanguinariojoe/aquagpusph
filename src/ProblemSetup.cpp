@@ -50,6 +50,7 @@ ProblemSetup::~ProblemSetup()
     unsigned int i;
     settings.destroy();
     variables.destroy();
+    definitions.destroy();
     for(i = 0; i < tools.size(); i++){
         delete tools.at(i);
     }
@@ -128,6 +129,36 @@ void ProblemSetup::sphVariables::destroy()
     names.clear();
     types.clear();
     lengths.clear();
+}
+
+void ProblemSetup::sphDefinitions::registerDefinition(const char* name,
+                                                      const char* value,
+                                                      const bool evaluate)
+{
+    size_t len;
+
+    char *aux=NULL;
+    len = strlen(name) + 1;
+    aux = new char[len];
+    strcpy(aux, name);
+    names.push_back(aux);
+    len = strlen(value) + 1;
+    aux = new char[len];
+    strcpy(aux, value);
+    values.push_back(aux);
+    evaluations.push_back(evaluate);
+}
+
+void ProblemSetup::sphDefinitions::destroy()
+{
+    unsigned int i;
+    for(i=0;i<names.size();i++){
+        delete[] names.at(i);
+        delete[] values.at(i);
+    }
+    names.clear();
+    values.clear();
+    evaluations.clear();
 }
 
 ProblemSetup::sphTool::sphTool()

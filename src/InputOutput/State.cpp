@@ -238,6 +238,10 @@ bool State::parse(const char* filepath)
         xmlClear();
         return true;
     }
+    if(parseDefinitions(root)){
+        xmlClear();
+        return true;
+    }
     if(parseTools(root)){
         xmlClear();
         return true;
@@ -344,6 +348,53 @@ bool State::parseVariables(DOMElement *root)
                                               xmlAttribute(s_elem, "length"),
                                               "NULL");
             }
+        }
+    }
+    return false;
+}
+
+bool State::parseDefinitions(DOMElement *root)
+{
+    ScreenManager *S = ScreenManager::singleton();
+    ProblemSetup *P = ProblemSetup::singleton();
+    DOMNodeList* nodes = root->getElementsByTagName(xmlS("Definitions"));
+    for(XMLSize_t i=0; i<nodes->getLength(); i++){
+        DOMNode* node = nodes->item(i);
+        if(node->getNodeType() != DOMNode::ELEMENT_NODE)
+            continue;
+        DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
+        DOMNodeList* s_nodes = elem->getElementsByTagName(xmlS("Define"));
+        for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
+            DOMNode* s_node = s_nodes->item(j);
+            if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
+                continue;
+            DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+            if(!xmlHasAttribute(s_elem, "name")){
+                S->addMessageF(3, "Found a definition without name\n");
+                return true;
+            }
+            if(!xmlHasAttribute(s_elem, "value")){
+                P->definitions.registerDefinition(xmlAttribute(s_elem, "name"),
+                                                  "",
+                                                  false);
+                continue;
+            }
+
+            bool evaluate = false;
+            if(!strcmp(xmlAttribute(s_elem, "evaluate"), "true") ||
+               !strcmp(xmlAttribute(s_elem, "evaluate"), "True") ||
+               !strcmp(xmlAttribute(s_elem, "evaluate"), "TRUE")){
+                evaluate = true;
+            }
+            if(!strcmp(xmlAttribute(s_elem, "evaluate"), "yes") ||
+               !strcmp(xmlAttribute(s_elem, "evaluate"), "Yes") ||
+               !strcmp(xmlAttribute(s_elem, "evaluate"), "YES")){
+                evaluate = true;
+            }
+
+            P->definitions.registerDefinition(xmlAttribute(s_elem, "name"),
+                                              xmlAttribute(s_elem, "value"),
+                                              evaluate);
         }
     }
     return false;
@@ -956,6 +1007,10 @@ bool State::write(const char* filepath)
         xmlClear();
         return true;
     }
+    if(writeDefinitions(doc, root)){
+        xmlClear();
+        return true;
+    }
     if(writeTools(doc, root)){
         xmlClear();
         return true;
@@ -1067,6 +1122,25 @@ bool State::writeSettings(xercesc::DOMDocument* doc,
 }
 
 bool State::writeVariables(xercesc::DOMDocument* doc,
+                           xercesc::DOMElement *root)
+{
+    DOMElement *elem, *s_elem;
+    ProblemSetup *P = ProblemSetup::singleton();
+
+    elem = doc->createElement(xmlS("Variables"));
+    root->appendChild(elem);
+
+    /*
+    for(it=tags.begin(); it!=tags.end(); it++){
+        s_elem = doc->createElement(xmlS(it->first));
+        s_elem->setAttribute(xmlS("file"), xmlS(it->second));
+        elem->appendChild(s_elem);
+    }
+    */
+    return false;
+}
+
+bool State::writeDefinitions(xercesc::DOMDocument* doc,
                            xercesc::DOMElement *root)
 {
     DOMElement *elem, *s_elem;
