@@ -158,90 +158,48 @@ __kernel void main(const __global uint* iset,
 
     // Loop over neighbour particles
     // =============================
-    {
-        uint j;
-        // Home cell, starting from the next particle
-        // ==========================================
-        j = i + 1;
-        while((j < N) && (icell[j] == c_i) ) {
-            if(move_i == 0){
-                #include "InteractionsSensors.hcl"
-            }
-            else if((move_i == 1) || (move_i == -1)){
-                #include "Interactions.hcl"
-            }
-            else{
-                #include "InteractionsBounds.hcl"
-            }
-            j++;
-        }
-
-        // Neighbour cells
-        // ===============
-        for(uint cell = 1; cell < NEIGH_CELLS; cell++) {
-            uint c_j;
-            switch(cell) {
-                case 0: c_j = c_i + 0; break;
-                case 1: c_j = c_i + 1; break;
-                case 2: c_j = c_i - 1; break;
-                case 3: c_j = c_i + n_cells.x; break;
-                case 4: c_j = c_i + n_cells.x + 1; break;
-                case 5: c_j = c_i + n_cells.x - 1; break;
-                case 6: c_j = c_i - n_cells.x; break;
-                case 7: c_j = c_i - n_cells.x + 1; break;
-                case 8: c_j = c_i - n_cells.x - 1; break;
-                #ifdef HAVE_3D
-                    case 9 : c_j = c_i + 0             - n_cells.x*n_cells.y; break;
-                    case 10: c_j = c_i + 1             - n_cells.x*n_cells.y; break;
-                    case 11: c_j = c_i - 1             - n_cells.x*n_cells.y; break;
-                    case 12: c_j = c_i + n_cells.x     - n_cells.x*n_cells.y; break;
-                    case 13: c_j = c_i + n_cells.x + 1 - n_cells.x*n_cells.y; break;
-                    case 14: c_j = c_i + n_cells.x - 1 - n_cells.x*n_cells.y; break;
-                    case 15: c_j = c_i - n_cells.x     - n_cells.x*n_cells.y; break;
-                    case 16: c_j = c_i - n_cells.x + 1 - n_cells.x*n_cells.y; break;
-                    case 17: c_j = c_i - n_cells.x - 1 - n_cells.x*n_cells.y; break;
-
-                    case 18: c_j = c_i + 0             + n_cells.x*n_cells.y; break;
-                    case 19: c_j = c_i + 1             + n_cells.x*n_cells.y; break;
-                    case 20: c_j = c_i - 1             + n_cells.x*n_cells.y; break;
-                    case 21: c_j = c_i + n_cells.x     + n_cells.x*n_cells.y; break;
-                    case 22: c_j = c_i + n_cells.x + 1 + n_cells.x*n_cells.y; break;
-                    case 23: c_j = c_i + n_cells.x - 1 + n_cells.x*n_cells.y; break;
-                    case 24: c_j = c_i - n_cells.x     + n_cells.x*n_cells.y; break;
-                    case 25: c_j = c_i - n_cells.x + 1 + n_cells.x*n_cells.y; break;
-                    case 26: c_j = c_i - n_cells.x - 1 + n_cells.x*n_cells.y; break;
-                #endif
-            }
-
-            j = ihoc[c_j];
-            while((j < N) && (icell[j] == c_j)) {
-                if(move_i == 0){
-                    #include "InteractionsSensors.hcl"
+    for(int ci = -1; ci <= 1; ci++) {
+        for(int cj = -1; cj <= 1; cj++) {
+            #ifdef HAVE_3D
+            for(int ck = -1; ck <= 1; ck++) {
+            #else
+            const int ck = 0; {
+            #endif
+                const uint c_j = c_i +
+                                ci +
+                                cj * n_cells.x +
+                                ck * n_cells.x * n_cells.y;
+                uint j = ihoc[c_j];
+                while((j < N) && (icell[j] == c_j)) {
+                    if(i == j){
+                        j++;
+                        continue;
+                    }
+                    const int move_j = imove[j];
+                    if((move_j != -1) &&
+                       (move_j != 1)){
+                        j++;
+                        continue;
+                    }
+                    const vec_xyz r = pos[j].XYZ - pos_i;
+                    const float q = fast_length(r) / h;
+                    if(q >= support)
+                    {
+                        j++;
+                        continue;
+                    }
+                    if(move_i == 0){
+                        #include "InteractionsSensors.hcl"
+                    }
+                    else if((move_i == 1) || (move_i == -1)){
+                        #include "Interactions.hcl"
+                    }
+                    else{
+                        #include "InteractionsBounds.hcl"
+                    }
+                    j++;
                 }
-                else if((move_i == 1) || (move_i == -1)){
-                    #include "Interactions.hcl"
-                }
-                else{
-                    #include "InteractionsBounds.hcl"
-                }
-                j++;
             }
-        }
-
-        // Home cell, starting from the head of chain
-        // ==========================================
-        j = ihoc[c_i];
-        while(j < i) {
-            if(move_i == 0){
-                #include "InteractionsSensors.hcl"
-            }
-            else if((move_i == 1) || (move_i == -1)){
-                #include "Interactions.hcl"
-            }
-            else{
-                #include "InteractionsBounds.hcl"
-            }
-            j++;
         }
     }
 

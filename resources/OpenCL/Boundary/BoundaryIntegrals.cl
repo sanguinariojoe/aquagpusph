@@ -145,13 +145,63 @@ __kernel void main(const __global uint* iset,
 
     // Loop over neighbour particles
     // =============================
+    for(int ci = -1; ci <= 1; ci++) {
+        for(int cj = -1; cj <= 1; cj++) {
+            #ifdef HAVE_3D
+            for(int ck = -1; ck <= 1; ck++) {
+            #else
+            const int ck = 0; {
+            #endif
+                const uint c_j = c_i +
+                                ci +
+                                cj * n_cells.x +
+                                ck * n_cells.x * n_cells.y;
+                uint j = ihoc[c_j];
+                while((j < N) && (icell[j] == c_j)) {
+                    if(imove[j] != -3){
+                        j++;
+                        continue;
+                    }
+                    const vec_xyz r = pos[j].XYZ - pos_i;
+                    const float q = fast_length(r) / h;
+                    if(q >= support)
+                    {
+                        j++;
+                        continue;
+                    }
+
+                    {
+                        #include "BoundaryIntegrals.hcl"
+                    }
+                    j++;
+                }
+            }
+        }
+    }
+
+        
+    /*
     {
         uint j;
         // Home cell, starting from the next particle
         // ==========================================
         j = i + 1;
         while((j < N) && (icell[j] == c_i) ) {
-            #include "BoundaryIntegrals.hcl"
+            const int move_j = imove[j];
+            if(imove[j] != -3){
+                j++;
+                continue;
+            }
+            const vec_xyz r = pos[j].XYZ - pos_i;
+            const float q = fast_length(r) / h;
+            if(q >= support){
+                j++;
+                continue;
+            }
+            
+            {
+                #include "BoundaryIntegrals.hcl"
+            }
             j++;
         }
 
@@ -194,7 +244,21 @@ __kernel void main(const __global uint* iset,
 
             j = ihoc[c_j];
             while((j < N) && (icell[j] == c_j)) {
-                #include "BoundaryIntegrals.hcl"
+                const int move_j = imove[j];
+                if(imove[j] != -3){
+                    j++;
+                    continue;
+                }
+                const vec_xyz r = pos[j].XYZ - pos_i;
+                const float q = fast_length(r) / h;
+                if(q >= support){
+                    j++;
+                    continue;
+                }
+                
+                {
+                    #include "BoundaryIntegrals.hcl"
+                }
                 j++;
             }            
         }
@@ -202,10 +266,25 @@ __kernel void main(const __global uint* iset,
         // ==========================================
         j = ihoc[c_i];
         while(j < i) {
-            #include "BoundaryIntegrals.hcl"
+            const int move_j = imove[j];
+            if(imove[j] != -3){
+                j++;
+                continue;
+            }
+            const vec_xyz r = pos[j].XYZ - pos_i;
+            const float q = fast_length(r) / h;
+            if(q >= support){
+                j++;
+                continue;
+            }
+
+            {
+                #include "BoundaryIntegrals.hcl"
+            }
             j++;
         }
     }
+    */
 
     #ifdef LOCAL_MEM_SIZE
         grad_p[i].XYZ = _GRADP_;

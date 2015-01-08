@@ -25,33 +25,10 @@
  * consumption.
  */
 
-if(imove[j] >= 0){
-    j++;
-    continue;
-}
-
-// ------------------------------------------------------------------
-// face related properties
-// ------------------------------------------------------------------
-const vec n_j = normal[j];
-const vec r = pos[j] - pos_i;
-const float r0 = dot(r, n_j);
-if(r0 < 0.f){
-    // The boundary element is not well oriented
-    j++;
-    continue;
-}
-const vec rt = r - r0 * n_j;
-if(dot(rt, rt) >= R * R){
-    // The particle is passing too far from the boundary element
-    j++;
-    continue;
-}
-
 // ------------------------------------------------------------------
 // Movement data
 // ------------------------------------------------------------------
-const float v_n = dot(v_i - v[j], n_j);
+const float v_n = dot(v_i - v[j].XYZ, n_j);
 const float dvdt_n = dot(dvdt_i, n_j);
 const float dist = dt * v_n + 0.5f * dt * dt * dvdt_n;
 if(dist < 0.f){
@@ -76,10 +53,10 @@ if(r0 - dist <= __MIN_BOUND_DIST__ * dr){
     // A second approach is setting an acceleration equal to the gravity
     // Just trying to don't perturbate the moments meassurement, fliping
     // later the velocity
-    dvdt[i] = dvdt_i - dvdt_n * n_j;
-    v[i] = v_i - (1.f + __ELASTIC_FACTOR__) * v_n * n_j;
+    dvdt[i].XYZ = dvdt_i - dvdt_n * n_j;
+    v[i].XYZ = v_i - (1.f + __ELASTIC_FACTOR__) * v_n * n_j;
 
     // Modify the value for the next walls test.
-    v_i = v[i];
-    dvdt_i = dvdt[i];
+    v_i = v[i].XYZ;
+    dvdt_i = dvdt[i].XYZ;
 }

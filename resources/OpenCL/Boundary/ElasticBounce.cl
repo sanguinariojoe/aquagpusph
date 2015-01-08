@@ -120,71 +120,50 @@ __kernel void main(const __global int* imove,
 
     const float R = __DR_FACTOR__ * dr;
     const uint c_i = icell[i];
-    const vec pos_i = pos[i];
-    vec v_i = v[i];
-    vec dvdt_i = dvdt[i];
+    const vec_xyz pos_i = pos[i].XYZ;
+    vec_xyz v_i = v[i].XYZ;
+    vec_xyz dvdt_i = dvdt[i].XYZ;
 
     // Loop over neighbour particles
     // =============================
-    {
-        uint j;
-        // Home cell, starting from the next particle
-        // ==========================================
-        j = i + 1;
-        while((j < N) && (icell[j] == c_i) ) {
-            #include "ElasticBounce.hcl"
-            j++;
-        }
+    for(int ci = -1; ci <= 1; ci++) {
+        for(int cj = -1; cj <= 1; cj++) {
+            #ifdef HAVE_3D
+            for(int ck = -1; ck <= 1; ck++) {
+            #else
+            const int ck = 0; {
+            #endif
+                const uint c_j = c_i +
+                                ci +
+                                cj * n_cells.x +
+                                ck * n_cells.x * n_cells.y;
+                uint j = ihoc[c_j];
+                while((j < N) && (icell[j] == c_j)) {
+                    if(imove[j] >= 0){
+                        j++;
+                        continue;
+                    }
+                    const vec_xyz r = pos[j].XYZ - pos_i;
+                    const vec_xyz n_j = normal[j].XYZ;
+                    const float r0 = dot(r, n_j);
+                    if(r0 < 0.f){
+                        // The boundary element is not well oriented
+                        j++;
+                        continue;
+                    }
+                    const vec_xyz rt = r - r0 * n_j;
+                    if(dot(rt, rt) >= R * R){
+                        // The particle is passing too far from the boundary element
+                        j++;
+                        continue;
+                    }
 
-        // Neighbour cells
-        // ===============
-        for(uint cell = 1; cell < NEIGH_CELLS; cell++) {
-            uint c_j;
-            switch(cell) {
-                case 0: c_j = c_i + 0; break;
-                case 1: c_j = c_i + 1; break;
-                case 2: c_j = c_i - 1; break;
-                case 3: c_j = c_i + n_cells.x; break;
-                case 4: c_j = c_i + n_cells.x + 1; break;
-                case 5: c_j = c_i + n_cells.x - 1; break;
-                case 6: c_j = c_i - n_cells.x; break;
-                case 7: c_j = c_i - n_cells.x + 1; break;
-                case 8: c_j = c_i - n_cells.x - 1; break;
-                #ifdef HAVE_3D
-                    case 9 : c_j = c_i + 0             - n_cells.x*n_cells.y; break;
-                    case 10: c_j = c_i + 1             - n_cells.x*n_cells.y; break;
-                    case 11: c_j = c_i - 1             - n_cells.x*n_cells.y; break;
-                    case 12: c_j = c_i + n_cells.x     - n_cells.x*n_cells.y; break;
-                    case 13: c_j = c_i + n_cells.x + 1 - n_cells.x*n_cells.y; break;
-                    case 14: c_j = c_i + n_cells.x - 1 - n_cells.x*n_cells.y; break;
-                    case 15: c_j = c_i - n_cells.x     - n_cells.x*n_cells.y; break;
-                    case 16: c_j = c_i - n_cells.x + 1 - n_cells.x*n_cells.y; break;
-                    case 17: c_j = c_i - n_cells.x - 1 - n_cells.x*n_cells.y; break;
-
-                    case 18: c_j = c_i + 0             + n_cells.x*n_cells.y; break;
-                    case 19: c_j = c_i + 1             + n_cells.x*n_cells.y; break;
-                    case 20: c_j = c_i - 1             + n_cells.x*n_cells.y; break;
-                    case 21: c_j = c_i + n_cells.x     + n_cells.x*n_cells.y; break;
-                    case 22: c_j = c_i + n_cells.x + 1 + n_cells.x*n_cells.y; break;
-                    case 23: c_j = c_i + n_cells.x - 1 + n_cells.x*n_cells.y; break;
-                    case 24: c_j = c_i - n_cells.x     + n_cells.x*n_cells.y; break;
-                    case 25: c_j = c_i - n_cells.x + 1 + n_cells.x*n_cells.y; break;
-                    case 26: c_j = c_i - n_cells.x - 1 + n_cells.x*n_cells.y; break;
-                #endif
+                    {
+                        #include "ElasticBounce.hcl"
+                    }
+                    j++;
+                }
             }
-
-            j = ihoc[c_j];
-            while((j < N) && (icell[j] == c_j)) {
-                #include "ElasticBounce.hcl"
-                j++;
-            }            
-        }
-        // Home cell, starting from the head of chain
-        // ==========================================
-        j = ihoc[c_i];
-        while(j < i) {
-            #include "ElasticBounce.hcl"
-            j++;
         }
     }
 }

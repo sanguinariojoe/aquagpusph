@@ -25,34 +25,23 @@
  * consumption.
  */
 
-if((imove[j] != -1) &&
-   (imove[j] != 1)){
-    j++;
-    continue;
-}
-
-const vec_xyz r = pos_i - pos[j].XYZ;
-const float q = fast_length(r) / h;
-if(q < support)
-{
-    //---------------------------------------------------------------
-    //       calculate the kernel wab and the function fab
-    //---------------------------------------------------------------
-    const float rho_j = rho[j];
-    const float m_j = m[j];
-    const float p_j = p[j];
-    const float wab = kernelW(q) * conw * m_j;
-    //---------------------------------------------------------------
-    //       pressure computation (stored on grad(p)/rho)
-    //---------------------------------------------------------------
-    _GRADP_.x += p_j / rho_j * wab;
-    _GRADP_.y += dot(g.XYZ, r) * wab;
-    //---------------------------------------------------------------
-    //       density computation (stored on rho*div(u))
-    //---------------------------------------------------------------
-    _DIVU_ += wab;
-    //---------------------------------------------------------------
-    //       Shepard term
-    //---------------------------------------------------------------
-    _SHEPARD_ += wab / rho_j;
-}
+//---------------------------------------------------------------
+//       calculate the kernel wab and the function fab
+//---------------------------------------------------------------
+const float rho_j = rho[j];
+const float m_j = m[j];
+const float p_j = p[j];
+const float wab = kernelW(q) * conw * m_j;
+//---------------------------------------------------------------
+//       pressure computation (stored on grad(p)/rho)
+//---------------------------------------------------------------
+_GRADP_.x += p_j / rho_j * wab;
+_GRADP_.y -= dot(g.XYZ, r) * wab;
+//---------------------------------------------------------------
+//       density computation (stored on rho*div(u))
+//---------------------------------------------------------------
+_DIVU_ += wab;
+//---------------------------------------------------------------
+//       Shepard term
+//---------------------------------------------------------------
+_SHEPARD_ += wab / rho_j;

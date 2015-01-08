@@ -34,53 +34,42 @@
     #endif
 #endif
 
-if((imove[j] != -1) &&
-   (imove[j] != 1)){
-    j++;
-    continue;
+//---------------------------------------------------------------
+//       calculate the kernel wab and the function fab
+//---------------------------------------------------------------
+const float rho_j = rho[j];
+const float m_j = m[j];
+const float p_j = p[j];
+const float wab = kernelW(q) * conw * m_j;
+const float fab = kernelF(q) * conf * m_j;
+//---------------------------------------------------------------
+//       calculate the pressure factor
+//---------------------------------------------------------------
+const float prfac = prfac_i + p_j / (rho_j * rho_j);
+//---------------------------------------------------------------
+//       calculate viscosity terms
+//---------------------------------------------------------------
+const float vdr = dot(v[j].XYZ - v_i, r);
+float lapufac = 0.f;
+if(move_j > 0){
+    const float r2 = (q * q + 0.01f) * h * h;
+    lapufac = __CLEARY__ * vdr / (r2 * rho_i * rho_j);
 }
-
-const vec_xyz r = pos[j].XYZ - pos_i;
-const float q = fast_length(r) / h;
-if(q < support)
-{
-    //---------------------------------------------------------------
-    //       calculate the kernel wab and the function fab
-    //---------------------------------------------------------------
-    const float rho_j = rho[j];
-    const float m_j = m[j];
-    const float p_j = p[j];
-    const float wab = kernelW(q) * conw * m_j;
-    const float fab = kernelF(q) * conf * m_j;
-    //---------------------------------------------------------------
-    //       calculate the pressure factor
-    //---------------------------------------------------------------
-    const float prfac = prfac_i + p_j / (rho_j * rho_j);
-    //---------------------------------------------------------------
-    //       calculate viscosity terms
-    //---------------------------------------------------------------
-    const float vdr = dot(v[j].XYZ - v_i, r);
-    float lapufac = 0.f;
-    if(imove[j] > 0){
-        const float r2 = (q * q + 0.01f) * h * h;
-        lapufac = __CLEARY__ * vdr / (r2 * rho_i * rho_j);
-    }
-    //---------------------------------------------------------------
-    //     Momentum equation (grad(p)/rho and lap(u)/rho)
-    //---------------------------------------------------------------
-    _GRADP_ += r * fab * prfac;
-    _LAPU_ += r * fab * lapufac;
-    //---------------------------------------------------------------
-    //     Conserving mass equation (rho*div(u))
-    //---------------------------------------------------------------
-    _DIVU_ += vdr * fab;
-    //---------------------------------------------------------------
-    //     Density diffusion term (lap(p))
-    //---------------------------------------------------------------
-    const float drfac = (p_j - p_i) - refd_i * dot(g.XYZ, r);
-    _LAPP_ += drfac * fab / rho_j;
-    //---------------------------------------------------------------
-    //     Shepard term
-    //---------------------------------------------------------------
-    _SHEPARD_ += wab / rho_j;
-}
+//---------------------------------------------------------------
+//     Momentum equation (grad(p)/rho and lap(u)/rho)
+//---------------------------------------------------------------
+_GRADP_ += r * fab * prfac;
+_LAPU_ += r * fab * lapufac;
+//---------------------------------------------------------------
+//     Conserving mass equation (rho*div(u))
+//---------------------------------------------------------------
+_DIVU_ += vdr * fab;
+//---------------------------------------------------------------
+//     Density diffusion term (lap(p))
+//---------------------------------------------------------------
+const float drfac = (p_j - p_i) - refd_i * dot(g.XYZ, r);
+_LAPP_ += drfac * fab / rho_j;
+//---------------------------------------------------------------
+//     Shepard term
+//---------------------------------------------------------------
+_SHEPARD_ += wab / rho_j;

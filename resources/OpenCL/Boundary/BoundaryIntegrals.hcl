@@ -34,11 +34,6 @@
     #endif
 #endif
 
-if(imove[j] != -3){
-    j++;
-    continue;
-}
-
 // ------------------------------------------------------------------
 // face properties
 // ------------------------------------------------------------------
@@ -49,13 +44,6 @@ if(rho_j <= 0.01f * refd_i){
     continue;
 }
 const float area_j = m[j];
-
-const vec_xyz r = pos[j].XYZ - pos_i;
-const float q = fast_length(r) / h;
-if(q >= support){
-    j++;
-    continue;
-}
 
 // ------------------------------------------------------------------
 // Boundary element computation
@@ -75,8 +63,8 @@ if(q >= support){
     //---------------------------------------------------------------
     //       calculate viscosity terms
     //---------------------------------------------------------------
-    const float r2 = (q * q + 0.01f) * h * h;
-    const vec_xyz lapufac = __CLEARY__ * vdr / (r2 * rho_i * rho_j) * n_j;
+    // const float r2 = (q * q + 0.01f) * h * h;
+    // const vec_xyz lapufac = __CLEARY__ * vdr / (r2 * rho_i * rho_j) * n_j;
     //---------------------------------------------------------------
     //     Momentum equation (grad(p)/rho and lap(u)/rho)
     //---------------------------------------------------------------
