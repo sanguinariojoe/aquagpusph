@@ -3,6 +3,7 @@
     <Variables>
         <!-- Some variables are automatically defined:
         | NAME        | TYPE          | LEN     | DESCRIPTION
+        | dims        | unsigned int  | 1       | 2 for 2D, 3 for 3D
         | t           | float         | 1       | Simulation time
         | dt          | float         | 1       | Time step
         | iter        | unsigned int  | 1       | Step
@@ -69,6 +70,7 @@
     </Variables>
 
     <Definitions>
+        <Define name="DIMS" value="dims" evaluate="true"/>
         <Define name="H" value="h" evaluate="true"/>
     </Definitions>
     

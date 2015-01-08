@@ -85,6 +85,13 @@ CalcServer::CalcServer()
     char val[64];
     char len[16];
     strcpy(len, "");
+    unsigned int dims = 2;
+    #ifdef HAVE_3D
+        dims = 3;
+    #endif
+    sprintf(val, "%u", dims);
+    if(_vars->registerVariable("dims", "unsigned int", len, val))
+        exit(EXIT_FAILURE);
     sprintf(val, "%g", 0.f);
     if(_vars->registerVariable("t", "float", len, val))
         exit(EXIT_FAILURE);
