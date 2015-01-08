@@ -28,28 +28,6 @@
     #include "KernelFunctions/Wendland3D.hcl"
 #endif
 
-#ifndef HAVE_3D
-    #ifndef NEIGH_CELLS
-        /** @def NEIGH_CELLS
-         * @brief Number of neigh cells.
-         *
-         * In 2D cases 9 cells must be computed, while in 3D simulations 27
-         * cells must be computed.
-         */ 
-        #define NEIGH_CELLS 9
-    #endif
-#else
-    #ifndef NEIGH_CELLS
-        /** @def NEIGH_CELLS
-         * @brief Number of neigh cells.
-         *
-         * In 2D cases 9 cells must be computed, while in 3D simulations 27
-         * cells must be computed.
-         */ 
-        #define NEIGH_CELLS 27
-    #endif
-#endif
-
 /** @brief Particles interactions computation.
  *
  * Compute the rates of variation due to the fluid (fixed particles will be
@@ -156,8 +134,8 @@ __kernel void main(const __global uint* iset,
         _SHEPARD_ = 0.f;
     #endif
 
-    // Loop over neighbour particles
-    // =============================
+    // Loop over neighs
+    // ================
     for(int ci = -1; ci <= 1; ci++) {
         for(int cj = -1; cj <= 1; cj++) {
             #ifdef HAVE_3D

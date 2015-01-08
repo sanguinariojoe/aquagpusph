@@ -29,28 +29,6 @@
     #include "../KernelFunctions/Wendland3D.hcl"
 #endif
 
-#ifndef HAVE_3D
-    #ifndef NEIGH_CELLS
-        /** @def NEIGH_CELLS
-         * @brief Number of neigh cells.
-         *
-         * In 2D cases 9 cells must be computed, while in 3D simulations 27
-         * cells must be computed.
-         */
-        #define NEIGH_CELLS 9
-    #endif
-#else
-    #ifndef NEIGH_CELLS
-        /** @def NEIGH_CELLS
-         * @brief Number of neigh cells.
-         *
-         * In 2D cases 9 cells must be computed, while in 3D simulations 27
-         * cells must be computed.
-         */
-        #define NEIGH_CELLS 27
-    #endif
-#endif
-
 #ifndef __DR_FACTOR__
     /** @def __DR_FACTOR__
      * @brief The boundary elements effect is restricted to a quadrangular area
@@ -124,8 +102,8 @@ __kernel void main(const __global int* imove,
     vec_xyz v_i = v[i].XYZ;
     vec_xyz dvdt_i = dvdt[i].XYZ;
 
-    // Loop over neighbour particles
-    // =============================
+    // Loop over neighs
+    // ================
     for(int ci = -1; ci <= 1; ci++) {
         for(int cj = -1; cj <= 1; cj++) {
             #ifdef HAVE_3D

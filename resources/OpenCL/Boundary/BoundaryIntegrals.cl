@@ -28,28 +28,6 @@
     #include "../KernelFunctions/Wendland3D.hcl"
 #endif
 
-#ifndef HAVE_3D
-    #ifndef NEIGH_CELLS
-        /** @def NEIGH_CELLS
-         * @brief Number of neigh cells.
-         *
-         * In 2D cases 9 cells must be computed, while in 3D simulations 27
-         * cells must be computed.
-         */
-        #define NEIGH_CELLS 9
-    #endif
-#else
-    #ifndef NEIGH_CELLS
-        /** @def NEIGH_CELLS
-         * @brief Number of neigh cells.
-         *
-         * In 2D cases 9 cells must be computed, while in 3D simulations 27
-         * cells must be computed.
-         */
-        #define NEIGH_CELLS 27
-    #endif
-#endif
-
 /** @brief Performs the boundary effect on the fluid particles.
  * @param iset Set of particles index.
  * @param imove Moving flags.
@@ -143,8 +121,8 @@ __kernel void main(const __global uint* iset,
         _LAPP_ = lap_p[i];
     #endif
 
-    // Loop over neighbour particles
-    // =============================
+    // Loop over neighs
+    // ================
     for(int ci = -1; ci <= 1; ci++) {
         for(int cj = -1; cj <= 1; cj++) {
             #ifdef HAVE_3D
@@ -178,113 +156,6 @@ __kernel void main(const __global uint* iset,
             }
         }
     }
-
-        
-    /*
-    {
-        uint j;
-        // Home cell, starting from the next particle
-        // ==========================================
-        j = i + 1;
-        while((j < N) && (icell[j] == c_i) ) {
-            const int move_j = imove[j];
-            if(imove[j] != -3){
-                j++;
-                continue;
-            }
-            const vec_xyz r = pos[j].XYZ - pos_i;
-            const float q = fast_length(r) / h;
-            if(q >= support){
-                j++;
-                continue;
-            }
-            
-            {
-                #include "BoundaryIntegrals.hcl"
-            }
-            j++;
-        }
-
-        // Neighbour cells
-        // ===============
-        for(uint cell = 1; cell < NEIGH_CELLS; cell++) {
-            uint c_j;
-            switch(cell) {
-                case 0: c_j = c_i + 0; break;
-                case 1: c_j = c_i + 1; break;
-                case 2: c_j = c_i - 1; break;
-                case 3: c_j = c_i + n_cells.x; break;
-                case 4: c_j = c_i + n_cells.x + 1; break;
-                case 5: c_j = c_i + n_cells.x - 1; break;
-                case 6: c_j = c_i - n_cells.x; break;
-                case 7: c_j = c_i - n_cells.x + 1; break;
-                case 8: c_j = c_i - n_cells.x - 1; break;
-                #ifdef HAVE_3D
-                    case 9 : c_j = c_i + 0             - n_cells.x*n_cells.y; break;
-                    case 10: c_j = c_i + 1             - n_cells.x*n_cells.y; break;
-                    case 11: c_j = c_i - 1             - n_cells.x*n_cells.y; break;
-                    case 12: c_j = c_i + n_cells.x     - n_cells.x*n_cells.y; break;
-                    case 13: c_j = c_i + n_cells.x + 1 - n_cells.x*n_cells.y; break;
-                    case 14: c_j = c_i + n_cells.x - 1 - n_cells.x*n_cells.y; break;
-                    case 15: c_j = c_i - n_cells.x     - n_cells.x*n_cells.y; break;
-                    case 16: c_j = c_i - n_cells.x + 1 - n_cells.x*n_cells.y; break;
-                    case 17: c_j = c_i - n_cells.x - 1 - n_cells.x*n_cells.y; break;
-
-                    case 18: c_j = c_i + 0             + n_cells.x*n_cells.y; break;
-                    case 19: c_j = c_i + 1             + n_cells.x*n_cells.y; break;
-                    case 20: c_j = c_i - 1             + n_cells.x*n_cells.y; break;
-                    case 21: c_j = c_i + n_cells.x     + n_cells.x*n_cells.y; break;
-                    case 22: c_j = c_i + n_cells.x + 1 + n_cells.x*n_cells.y; break;
-                    case 23: c_j = c_i + n_cells.x - 1 + n_cells.x*n_cells.y; break;
-                    case 24: c_j = c_i - n_cells.x     + n_cells.x*n_cells.y; break;
-                    case 25: c_j = c_i - n_cells.x + 1 + n_cells.x*n_cells.y; break;
-                    case 26: c_j = c_i - n_cells.x - 1 + n_cells.x*n_cells.y; break;
-                #endif
-            }
-
-            j = ihoc[c_j];
-            while((j < N) && (icell[j] == c_j)) {
-                const int move_j = imove[j];
-                if(imove[j] != -3){
-                    j++;
-                    continue;
-                }
-                const vec_xyz r = pos[j].XYZ - pos_i;
-                const float q = fast_length(r) / h;
-                if(q >= support){
-                    j++;
-                    continue;
-                }
-                
-                {
-                    #include "BoundaryIntegrals.hcl"
-                }
-                j++;
-            }            
-        }
-        // Home cell, starting from the head of chain
-        // ==========================================
-        j = ihoc[c_i];
-        while(j < i) {
-            const int move_j = imove[j];
-            if(imove[j] != -3){
-                j++;
-                continue;
-            }
-            const vec_xyz r = pos[j].XYZ - pos_i;
-            const float q = fast_length(r) / h;
-            if(q >= support){
-                j++;
-                continue;
-            }
-
-            {
-                #include "BoundaryIntegrals.hcl"
-            }
-            j++;
-        }
-    }
-    */
 
     #ifdef LOCAL_MEM_SIZE
         grad_p[i].XYZ = _GRADP_;
