@@ -188,8 +188,6 @@ bool Kernel::compile(const char* entry_point,
     if(add_flags)
         strcat(flags, add_flags);
 
-    printf("%s\n", flags);
-
     // Try to compile without using local memory
     S->addMessageF(1, "Compiling without local memory... ");
     program = clCreateProgramWithSource(C->context(),

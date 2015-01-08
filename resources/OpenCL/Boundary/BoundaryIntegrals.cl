@@ -49,9 +49,6 @@
  * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
  * @param n_cells Number of cells in each direction
- * @param h Kernel characteristic length \f$ h \f$.
- * @param support Kernel support \f$ s \f$, such that
- * \f$ W \left( s \cdot h \right) = 0 \f$.
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  */
 __kernel void main(const __global uint* iset,
@@ -74,8 +71,6 @@ __kernel void main(const __global uint* iset,
                    // Simulation data
                    uint N,
                    uivec4 n_cells,
-                   float h,
-                   float support,
                    vec g)
 {
     const uint i = get_global_id(0);
@@ -93,12 +88,6 @@ __kernel void main(const __global uint* iset,
     const float refd_i = refd[iset[i]];
 
     const float prfac_i = p_i / (rho_i * rho_i);
-
-    #ifndef HAVE_3D
-        const float conw = 1.f/(h*h);
-    #else
-        const float conw = 1.f/(h*h*h);
-    #endif
 
     // Initialize the output
     #ifndef LOCAL_MEM_SIZE
@@ -141,8 +130,8 @@ __kernel void main(const __global uint* iset,
                         continue;
                     }
                     const vec_xyz r = pos[j].XYZ - pos_i;
-                    const float q = fast_length(r) / h;
-                    if(q >= support)
+                    const float q = fast_length(r) / H;
+                    if(q >= SUPPORT)
                     {
                         j++;
                         continue;

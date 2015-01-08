@@ -40,8 +40,8 @@
 const float rho_j = rho[j];
 const float m_j = m[j];
 const float p_j = p[j];
-const float wab = kernelW(q) * conw * m_j;
-const float fab = kernelF(q) * conf * m_j;
+const float wab = kernelW(q) * CONW * m_j;
+const float fab = kernelF(q) * CONF * m_j;
 //---------------------------------------------------------------
 //       calculate the pressure factor
 //---------------------------------------------------------------
@@ -52,7 +52,7 @@ const float prfac = prfac_i + p_j / (rho_j * rho_j);
 const float vdr = dot(v[j].XYZ - v_i, r);
 float lapufac = 0.f;
 if(move_j > 0){
-    const float r2 = (q * q + 0.01f) * h * h;
+    const float r2 = (q * q + 0.01f) * H * H;
     lapufac = __CLEARY__ * vdr / (r2 * rho_i * rho_j);
 }
 //---------------------------------------------------------------

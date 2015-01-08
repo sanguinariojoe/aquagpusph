@@ -55,7 +55,7 @@ const float area_j = m[j];
     //---------------------------------------------------------------
     //       calculate the kernel wab
     //---------------------------------------------------------------
-    const float wab = kernelW(q) * conw * area_j;
+    const float wab = kernelW(q) * CONW * area_j;
     //---------------------------------------------------------------
     //       calculate the pressure factor
     //---------------------------------------------------------------
@@ -63,7 +63,7 @@ const float area_j = m[j];
     //---------------------------------------------------------------
     //       calculate viscosity terms
     //---------------------------------------------------------------
-    // const float r2 = (q * q + 0.01f) * h * h;
+    // const float r2 = (q * q + 0.01f) * H * H;
     // const vec_xyz lapufac = __CLEARY__ * vdr / (r2 * rho_i * rho_j) * n_j;
     //---------------------------------------------------------------
     //     Momentum equation (grad(p)/rho and lap(u)/rho)

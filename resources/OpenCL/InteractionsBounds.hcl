@@ -31,7 +31,7 @@
 const float rho_j = rho[j];
 const float m_j = m[j];
 const float p_j = p[j];
-const float wab = kernelW(q) * conw * m_j;
+const float wab = kernelW(q) * CONW * m_j;
 //---------------------------------------------------------------
 //       pressure computation (stored on grad(p)/rho)
 //---------------------------------------------------------------
