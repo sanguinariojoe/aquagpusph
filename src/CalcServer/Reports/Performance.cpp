@@ -97,7 +97,7 @@ bool Performance::_execute()
     float elapsed_var = 0.f;
     for(i = 0; i < tools.size(); i++){
         elapsed += tools.at(i)->elapsedTime();
-        elapsed_var += tools.at(i)->elapsedTimeVariance();
+        elapsed_var += tools.at(i)->elapsedTimeDeviation();
     }
     sprintf(data, "%sElapsed=%16gs (+-%16gs)\n", data, elapsed, elapsed_var);
 
