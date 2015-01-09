@@ -67,12 +67,5 @@ INSTALL(
     FILES
         ${RESOURCES_SRCS}
     DESTINATION
-        ${CMAKE_INSTALL_DATADIR}/resources
-)
-
-INSTALL(
-    DIRECTORY
-        ${CMAKE_CURRENT_BINARY_DIR}/OpenCL
-    DESTINATION
-        ${CMAKE_INSTALL_DATADIR}/resources
+        ${CMAKE_INSTALL_DATADIR}/resources/Presets
 )
