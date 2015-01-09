@@ -304,7 +304,6 @@ INSTALL(
         ${EXAMPLE_AUX_DIR}/templates/Settings.xml
         ${EXAMPLE_AUX_DIR}/templates/SPH.xml
         ${EXAMPLE_AUX_DIR}/templates/Time.xml
-        ${EXAMPLE_AUX_DIR}/templates/Motion.py
     DESTINATION
         ${EXAMPLE_DEST_DIR}/templates/
 )
