@@ -77,12 +77,6 @@ class FigureController(FigureCanvas):
         self.lines = []
         for i in range(len(self.ax)):
             ax = self.ax[i]
-            p = exp_p[i]
-            ax.plot(exp_t,
-                    p,
-                    label=r'$p_{Exp}$',
-                    color="red",
-                    linewidth=1.0)
             t = [0.0]
             p = [0.0]
             line, = ax.plot(t,
@@ -91,6 +85,11 @@ class FigureController(FigureCanvas):
                             color="black",
                             linewidth=1.0)
             self.lines.append(line)
+            ax.plot(exp_t,
+                    exp_p[i],
+                    label=r'$p_{Exp}$',
+                    color="red",
+                    linewidth=1.0)
             # Set some options
             ax.grid()
             ax.legend(loc='best')

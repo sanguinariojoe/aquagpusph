@@ -71,12 +71,6 @@ class FigureController(FigureCanvas):
         self.lines = []
         for i in range(len(self.ax)):
             ax = self.ax[i]
-            h = exp_h[i]
-            ax.plot(exp_t,
-                    h,
-                    label=r'$H_{Exp}$',
-                    color="red",
-                    linewidth=1.0)
             t = [0.0]
             h = [0.0]
             line, = ax.plot(t,
@@ -85,6 +79,11 @@ class FigureController(FigureCanvas):
                             color="black",
                             linewidth=1.0)
             self.lines.append(line)
+            ax.plot(exp_t,
+                    exp_h[i],
+                    label=r'$H_{Exp}$',
+                    color="red",
+                    linewidth=1.0)
             # Set some options
             ax.grid()
             ax.legend(loc='best')
@@ -142,6 +141,6 @@ class FigureController(FigureCanvas):
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     widget = FigureController()
-    widget.setWindowTitle("Pressure")
+    widget.setWindowTitle("Wave height")
     widget.show()
     sys.exit(app.exec_())
