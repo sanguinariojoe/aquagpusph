@@ -332,16 +332,6 @@ void ScreenManager::printOpenCLError(int error, int level)
         strcpy(msg, "\tCL_MISALIGNED_SUB_BUFFER_OFFSET\n");
     else if(error == CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST)
         strcpy(msg, "\tCL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST\n");
-    else if(error == CL_COMPILE_PROGRAM_FAILURE)
-        strcpy(msg, "\tCL_COMPILE_PROGRAM_FAILURE\n");
-    else if(error == CL_LINKER_NOT_AVAILABLE)
-        strcpy(msg, "\tCL_LINKER_NOT_AVAILABLE\n");
-    else if(error == CL_LINK_PROGRAM_FAILURE)
-        strcpy(msg, "\tCL_LINK_PROGRAM_FAILURE\n");
-    else if(error == CL_DEVICE_PARTITION_FAILED)
-        strcpy(msg, "\tCL_DEVICE_PARTITION_FAILED\n");
-    else if(error == CL_KERNEL_ARG_INFO_NOT_AVAILABLE)
-        strcpy(msg, "\tCL_KERNEL_ARG_INFO_NOT_AVAILABLE\n");
     else if(error == CL_INVALID_VALUE)
         strcpy(msg, "\tCL_INVALID_VALUE\n");
     else if(error == CL_INVALID_DEVICE_TYPE)
@@ -412,14 +402,6 @@ void ScreenManager::printOpenCLError(int error, int level)
         strcpy(msg, "\tCL_INVALID_GLOBAL_WORK_SIZE\n");
     else if(error == CL_INVALID_PROPERTY)
         strcpy(msg, "\tCL_INVALID_PROPERTY\n");
-    else if(error == CL_INVALID_IMAGE_DESCRIPTOR)
-        strcpy(msg, "\tCL_INVALID_IMAGE_DESCRIPTOR\n");
-    else if(error == CL_INVALID_COMPILER_OPTIONS)
-        strcpy(msg, "\tCL_INVALID_COMPILER_OPTIONS\n");
-    else if(error == CL_INVALID_LINKER_OPTIONS)
-        strcpy(msg, "\tCL_INVALID_LINKER_OPTIONS\n");
-    else if(error == CL_INVALID_DEVICE_PARTITION_COUNT)
-        strcpy(msg, "\tCL_INVALID_DEVICE_PARTITION_COUNT\n");
     addMessage(level, msg);
 }
 
