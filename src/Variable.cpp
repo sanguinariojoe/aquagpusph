@@ -2042,22 +2042,22 @@ bool Variables::populate(Variable* var)
                 var->name(),
                 type);
         S->addMessageF(3, msg);
-        S->addMessageF(0, "Valid types are:\n");
-        S->addMessageF(0, "\tint\n");
-        S->addMessageF(0, "\tunsigned int\n");
-        S->addMessageF(0, "\tfloat\n");
-        S->addMessageF(0, "\tvec\n");
-        S->addMessageF(0, "\tvec2\n");
-        S->addMessageF(0, "\tvec3\n");
-        S->addMessageF(0, "\tvec4\n");
-        S->addMessageF(0, "\tivec\n");
-        S->addMessageF(0, "\tivec2\n");
-        S->addMessageF(0, "\tivec3\n");
-        S->addMessageF(0, "\tivec4\n");
-        S->addMessageF(0, "\tuivec\n");
-        S->addMessageF(0, "\tuivec2\n");
-        S->addMessageF(0, "\tuivec3\n");
-        S->addMessageF(0, "\tuivec4\n");
+        S->addMessage(0, "Valid types are:\n");
+        S->addMessage(0, "\tint\n");
+        S->addMessage(0, "\tunsigned int\n");
+        S->addMessage(0, "\tfloat\n");
+        S->addMessage(0, "\tvec\n");
+        S->addMessage(0, "\tvec2\n");
+        S->addMessage(0, "\tvec3\n");
+        S->addMessage(0, "\tvec4\n");
+        S->addMessage(0, "\tivec\n");
+        S->addMessage(0, "\tivec2\n");
+        S->addMessage(0, "\tivec3\n");
+        S->addMessage(0, "\tivec4\n");
+        S->addMessage(0, "\tuivec\n");
+        S->addMessage(0, "\tuivec2\n");
+        S->addMessage(0, "\tuivec3\n");
+        S->addMessage(0, "\tuivec4\n");
         return true;
     }
 
@@ -2298,22 +2298,22 @@ bool Variables::registerScalar(const char* name,
                 name,
                 type);
         S->addMessageF(3, msg);
-        S->addMessageF(0, "Valid types are:\n");
-        S->addMessageF(0, "\tint\n");
-        S->addMessageF(0, "\tunsigned int\n");
-        S->addMessageF(0, "\tfloat\n");
-        S->addMessageF(0, "\tvec\n");
-        S->addMessageF(0, "\tvec2\n");
-        S->addMessageF(0, "\tvec3\n");
-        S->addMessageF(0, "\tvec4\n");
-        S->addMessageF(0, "\tivec\n");
-        S->addMessageF(0, "\tivec2\n");
-        S->addMessageF(0, "\tivec3\n");
-        S->addMessageF(0, "\tivec4\n");
-        S->addMessageF(0, "\tuivec\n");
-        S->addMessageF(0, "\tuivec2\n");
-        S->addMessageF(0, "\tuivec3\n");
-        S->addMessageF(0, "\tuivec4\n");
+        S->addMessage(0, "Valid types are:\n");
+        S->addMessage(0, "\tint\n");
+        S->addMessage(0, "\tunsigned int\n");
+        S->addMessage(0, "\tfloat\n");
+        S->addMessage(0, "\tvec\n");
+        S->addMessage(0, "\tvec2\n");
+        S->addMessage(0, "\tvec3\n");
+        S->addMessage(0, "\tvec4\n");
+        S->addMessage(0, "\tivec\n");
+        S->addMessage(0, "\tivec2\n");
+        S->addMessage(0, "\tivec3\n");
+        S->addMessage(0, "\tivec4\n");
+        S->addMessage(0, "\tuivec\n");
+        S->addMessage(0, "\tuivec2\n");
+        S->addMessage(0, "\tuivec3\n");
+        S->addMessage(0, "\tuivec4\n");
         return true;
     }
     return false;
@@ -2383,22 +2383,22 @@ bool Variables::registerClMem(const char* name,
                 name,
                 type);
         S->addMessageF(3, msg);
-        S->addMessageF(0, "Valid types are:\n");
-        S->addMessageF(0, "\tint*\n");
-        S->addMessageF(0, "\tunsigned int*\n");
-        S->addMessageF(0, "\tfloat*\n");
-        S->addMessageF(0, "\tvec*\n");
-        S->addMessageF(0, "\tvec2*\n");
-        S->addMessageF(0, "\tvec3*\n");
-        S->addMessageF(0, "\tvec4*\n");
-        S->addMessageF(0, "\tivec*\n");
-        S->addMessageF(0, "\tivec2*\n");
-        S->addMessageF(0, "\tivec3*\n");
-        S->addMessageF(0, "\tivec4*\n");
-        S->addMessageF(0, "\tuivec*\n");
-        S->addMessageF(0, "\tuivec2*\n");
-        S->addMessageF(0, "\tuivec3*\n");
-        S->addMessageF(0, "\tuivec4*\n");
+        S->addMessage(0, "Valid types are:\n");
+        S->addMessage(0, "\tint*\n");
+        S->addMessage(0, "\tunsigned int*\n");
+        S->addMessage(0, "\tfloat*\n");
+        S->addMessage(0, "\tvec*\n");
+        S->addMessage(0, "\tvec2*\n");
+        S->addMessage(0, "\tvec3*\n");
+        S->addMessage(0, "\tvec4*\n");
+        S->addMessage(0, "\tivec*\n");
+        S->addMessage(0, "\tivec2*\n");
+        S->addMessage(0, "\tivec3*\n");
+        S->addMessage(0, "\tivec4*\n");
+        S->addMessage(0, "\tuivec*\n");
+        S->addMessage(0, "\tuivec2*\n");
+        S->addMessage(0, "\tuivec3*\n");
+        S->addMessage(0, "\tuivec4*\n");
         return true;
     }
 
@@ -2453,7 +2453,7 @@ bool Variables::readComponents(const char* name,
                 "%u components required for the variable \"%s\".\n",
                 n,
                 name);
-        S->addMessageF(0, msg);
+        S->addMessage(0, msg);
     }
     char* remain = (char *)value;
     char aux[strlen(value) + 1];
@@ -2462,10 +2462,14 @@ bool Variables::readComponents(const char* name,
     for(i = 0; i < n - 1; i++){
         strcpy(aux, remain);
         if(!strchr(aux, ',')){
-            sprintf(msg, "Failure reading the variable \"%s\" value", name);
+            unsigned int n_fields = i;
+            if(strcmp(aux, "")){
+                n_fields++;
+            }
+            sprintf(msg, "Failure reading the variable \"%s\" value\n", name);
             S->addMessageF(3, msg);
-            sprintf(msg, "%u fields expected, %u received.\n", n, i);
-            S->addMessageF(0, msg);
+            sprintf(msg, "%u fields expected, %u received.\n", n, n_fields);
+            S->addMessage(0, msg);
             return true;
         }
         strcpy(strchr(aux, ','), "");

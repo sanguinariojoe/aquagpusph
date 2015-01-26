@@ -482,11 +482,11 @@ bool State::parseTools(DOMElement *root)
                     sprintf(msg,
                             "Missed the place where the tool \"%s\" should be inserted.\n",
                             tool->get("name"));
-                    S->addMessageF(0, "Please set one of the following attributes:\n");
-                    S->addMessageF(0, "\t\"in\"\n");
-                    S->addMessageF(0, "\t\"before\"\n");
-                    S->addMessageF(0, "\t\"after\"\n");
                     S->addMessageF(3, msg);
+                    S->addMessage(0, "Please set one of the following attributes:\n");
+                    S->addMessage(0, "\t\"in\"\n");
+                    S->addMessage(0, "\t\"before\"\n");
+                    S->addMessage(0, "\t\"after\"\n");
                     return true;
                 }
                 if(place > P->tools.size()){

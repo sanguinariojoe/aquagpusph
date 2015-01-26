@@ -146,12 +146,12 @@ bool Copy::variables()
                 "\tInput variable \"%s\" is of type \"%s\".\n",
                 _input_var->name(),
                 _input_var->type());
-        S->addMessageF(0, msg);
+        S->addMessage(0, msg);
         sprintf(msg,
                 "\tOutput variable \"%s\" is of type \"%s\".\n",
                 _output_var->name(),
                 _output_var->type());
-        S->addMessageF(0, msg);
+        S->addMessage(0, msg);
         return true;
     }
     if(n_in != n_out){
@@ -163,12 +163,12 @@ bool Copy::variables()
                 "\tInput variable \"%s\" has a length n=%lu.\n",
                 _input_var->name(),
                 n_in);
-        S->addMessageF(0, msg);
+        S->addMessage(0, msg);
         sprintf(msg,
                 "\tOutput variable \"%s\" has a length n=%lu.\n",
                 _output_var->name(),
                 n_out);
-        S->addMessageF(0, msg);
+        S->addMessage(0, msg);
         return true;
     }
 

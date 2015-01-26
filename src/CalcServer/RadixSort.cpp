@@ -575,7 +575,7 @@ bool RadixSort::variables()
                 "\t\"%s\" was expected, but \"%s\" has been found.\n",
                 "unsigned int*",
                 vars->get(_var_name)->type());
-        S->addMessageF(0, msg);
+        S->addMessage(0, msg);
         return true;
     }
     _var = (InputOutput::ArrayVariable *)vars->get(_var_name);
@@ -598,7 +598,7 @@ bool RadixSort::variables()
                 "\t\"%s\" was expected, but \"%s\" has been found.\n",
                 "unsigned int*",
                 vars->get(_perms_name)->type());
-        S->addMessageF(0, msg);
+        S->addMessage(0, msg);
         return true;
     }
     _perms = (InputOutput::ArrayVariable *)vars->get(_perms_name);
@@ -621,7 +621,7 @@ bool RadixSort::variables()
                 "\t\"%s\" was expected, but \"%s\" has been found.\n",
                 "unsigned int*",
                 vars->get(_inv_perms_name)->type());
-        S->addMessageF(0, msg);
+        S->addMessage(0, msg);
         return true;
     }
     _inv_perms = (InputOutput::ArrayVariable *)vars->get(_inv_perms_name);
@@ -637,7 +637,7 @@ bool RadixSort::variables()
         sprintf(msg,
                 "\tIt has a length %u, which is not power of 2.\n",
                 n);
-        S->addMessageF(0, msg);
+        S->addMessage(0, msg);
         return true;
     }
     _n = n;
@@ -651,12 +651,12 @@ bool RadixSort::variables()
                 "\tVariable \"%s\" has a length n=%u.\n",
                 _var->name(),
                 _n);
-        S->addMessageF(0, msg);
+        S->addMessage(0, msg);
         sprintf(msg,
                 "\tVariable \"%s\" has a length n=%u.\n",
                 _perms->name(),
                 n);
-        S->addMessageF(0, msg);
+        S->addMessage(0, msg);
         return true;
     }
     n = _inv_perms->size() / vars->typeToBytes(_inv_perms->type());
@@ -669,12 +669,12 @@ bool RadixSort::variables()
                 "\tVariable \"%s\" has a length n=%u.\n",
                 _var->name(),
                 _n);
-        S->addMessageF(0, msg);
+        S->addMessage(0, msg);
         sprintf(msg,
                 "\tVariable \"%s\" has a length n=%u.\n",
                 _inv_perms->name(),
                 n);
-        S->addMessageF(0, msg);
+        S->addMessage(0, msg);
         return true;
     }
 

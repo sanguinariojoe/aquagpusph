@@ -59,7 +59,7 @@ bool Log::create()
 
     if(file("log.%d.html", 0)){
         S->addMessageF(3, "Failure getting a valid filename.\n");
-        S->addMessageF(0, "\tHow do you received this message?.\n");
+        S->addMessage(0, "\tHow do you received this message?.\n");
         return true;
     }
     _file = fopen(file(), "w");

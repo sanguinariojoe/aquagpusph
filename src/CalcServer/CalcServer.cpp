@@ -162,7 +162,7 @@ CalcServer::CalcServer()
                 S->addMessageF(
                     3, "Failure allocating memory for the definition\n");
                 sprintf(msg, "\t\"%s\"\n", P->definitions.names.at(i));
-                S->addMessageF(0, msg);
+                S->addMessage(0, msg);
                 exit(EXIT_FAILURE);
             }
             strcpy(defstr, "-D");
@@ -177,7 +177,7 @@ CalcServer::CalcServer()
                 S->addMessageF(
                     3, "Failure allocating memory for the definition\n");
                 sprintf(msg, "\t\"%s\"\n", P->definitions.names.at(i));
-                S->addMessageF(0, msg);
+                S->addMessage(0, msg);
                 exit(EXIT_FAILURE);
             }
             strcpy(defstr, "-D");
@@ -193,7 +193,7 @@ CalcServer::CalcServer()
                 S->addMessageF(
                     3, "Failure allocating memory for the definition\n");
                 sprintf(msg, "\t\"%s\"\n", P->definitions.names.at(i));
-                S->addMessageF(0, msg);
+                S->addMessage(0, msg);
                 exit(EXIT_FAILURE);
             }
             float defval = 0.f;
@@ -732,7 +732,7 @@ bool CalcServer::setup()
                         name);
                 S->addMessageF(3, msg);
                 sprintf(msg, "Particles set: %u\n", i);
-                S->addMessageF(0, msg);
+                S->addMessage(0, msg);
                 return true;
             }
             if(!strchr(_vars->get(name)->type(), '*')){
@@ -741,7 +741,7 @@ bool CalcServer::setup()
                         name);
                 S->addMessageF(3, msg);
                 sprintf(msg, "Particles set: %u\n", i);
-                S->addMessageF(0, msg);
+                S->addMessage(0, msg);
                 return true;
             }
             InputOutput::ArrayVariable *var = (InputOutput::ArrayVariable *)_vars->get(name);
@@ -759,7 +759,7 @@ bool CalcServer::setup()
             void *data = malloc(typesize);
             if(_vars->solve(_vars->get(name)->type(), val, data)){
                 sprintf(msg, "Particles set: %u\n", i);
-                S->addMessageF(0, msg);
+                S->addMessage(0, msg);
                 return true;
             }
             cl_mem mem = *(cl_mem*)_vars->get(name)->get();
