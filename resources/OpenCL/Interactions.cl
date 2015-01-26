@@ -20,6 +20,10 @@
  * @brief Particles interactions computation.
  */
 
+#if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
+    #error NO_LOCAL_MEM has been set.
+#endif
+
 #ifndef HAVE_3D
     #include "types/2D.h"
     #include "KernelFunctions/Wendland2D.hcl"
