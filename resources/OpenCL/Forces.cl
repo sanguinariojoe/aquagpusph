@@ -67,7 +67,7 @@ __kernel void main(__global vec* forces_f,
         return;
     if(imove[i] <= 0){
         forces_f[i] = VEC_ZERO;
-        forces_m[i] = VEC_ZERO;
+        forces_m[i] = (vec4)(0.f, 0.f, 0.f, 0.f);
         return;
     }
 
@@ -80,5 +80,8 @@ __kernel void main(__global vec* forces_f,
     #ifdef HAVE_3D
         forces_m[i].x = mass * (arm.y * acc.z - arm.z * acc.y);
         forces_m[i].y = mass * (arm.z * acc.x - arm.x * acc.z);
+    #else
+        forces_m[i].x = 0.f;
+        forces_m[i].y = 0.f;
     #endif
 }
