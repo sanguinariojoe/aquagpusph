@@ -211,7 +211,7 @@ def main():
     # Calculate ddTheta
     global ddTheta
     old = ddTheta
-    M = aqua.get("forces_M")[2]
+    M = aqua.get("forces_M")[2] * D
     ddTheta = angularForce(M)
     # Leap-frog Corrector
     corrector(dt, old)
