@@ -1,0 +1,2 @@
+ADD_SUBDIRECTORY(spheric_testcase9_tld)
+ADD_SUBDIRECTORY(spheric_testcase10_waveimpact)
