@@ -143,7 +143,7 @@ for i in range(0, n):
            idy * dr + 0.5 * dr)
     press = refd * g * (hFluid - pos[1])
     dens = pow(press / prb + 1.0, 1.0 / gamma) * refd
-    mass = dens * dr**3.0
+    mass = dens * dr**2.0
     string = ("{} {}, " * 4 + "{}, {}, {}, {}\n").format(
         pos[0], pos[1],
         0.0, 0.0,
@@ -200,7 +200,7 @@ for i in range(0, N):
         dens = refd
         press = prb*pow(dens / refd, gamma - 1.0)
     imove = -3
-    mass = (dr / DeLeffeDistFactor)**2.0
+    mass = dr / DeLeffeDistFactor
     string = ("{} {}, " * 4 + "{}, {}, {}, {}\n").format(
         pos[0], pos[1],
         normal[0], normal[1],
