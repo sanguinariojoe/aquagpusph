@@ -24,6 +24,7 @@ Authors:
     <Include file="@RESOURCES_DIR@/Presets/variableTimeStep.xml" />
     <Include file="@RESOURCES_DIR@/Presets/motion.xml" />
     <Include file="@RESOURCES_DIR@/Presets/timing.report.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/performance.report.xml" />
     <Include file="Settings.xml" />
     <Include file="SPH.xml" />
     <Include file="Time.xml" />

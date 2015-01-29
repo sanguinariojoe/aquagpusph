@@ -24,6 +24,7 @@ Authors:
     <Include file="@RESOURCES_DIR@/Presets/forces.xml" />
     <Include file="@RESOURCES_DIR@/Presets/motion.xml" />
     <Include file="@RESOURCES_DIR@/Presets/timing.report.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/performance.report.xml" />
     <Include file="@RESOURCES_DIR@/Presets/forces.report.xml" />
     <Include file="Settings.xml" />
     <Include file="Time.xml" />
