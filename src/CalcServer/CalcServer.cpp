@@ -318,8 +318,8 @@ CalcServer::CalcServer()
         }
         else if(!strcmp(P->reports.at(i)->get("type"), "performance")){
             bool bold = false;
-            if(strcmp(P->reports.at(i)->get("bold"), "true") ||
-               strcmp(P->reports.at(i)->get("bold"), "True")){
+            if(!strcmp(P->reports.at(i)->get("bold"), "true") ||
+               !strcmp(P->reports.at(i)->get("bold"), "True")){
                bold = true;
             }
             Reports::Performance *tool = new Reports::Performance(
