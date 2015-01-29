@@ -57,18 +57,21 @@ class FigureController(FigureCanvas):
         self.ax = self.fig.add_subplot(111)
         FigureCanvas.__init__(self, self.fig)
         # generates first "empty" plot
-        self.t = [0.0]
-        self.exp_a = [0.0]
-        self.exp_line, = self.ax.plot(self.t,
-                                      self.exp_a,
+        t = [0.0]
+        exp_a = [0.0]
+        a = [0.0]
+        m = [0.0]
+        self.exp_line, = self.ax.plot(t,
+                                      exp_a,
                                       label=r'$\theta_{Exp}$',
-                                      color="red",
+                                      color="black",
+                                      linestyle="--",
                                       linewidth=1.0)
-        self.a = [0.0]
-        self.line, = self.ax.plot(self.t,
-                                  self.a,
+        self.line, = self.ax.plot(t,
+                                  a,
                                   label=r'$\theta_{SPH}$',
                                   color="black",
+                                  linestyle="-",
                                   linewidth=1.0)
         # Set some options
         self.ax.grid()
@@ -78,6 +81,22 @@ class FigureController(FigureCanvas):
         self.ax.set_autoscale_on(False)
         self.ax.set_xlabel(r"$t \, [\mathrm{s}]$", fontsize=21)
         self.ax.set_ylabel(r"$\theta \, [\mathrm{deg}]$", fontsize=21)
+        # Create a second moment plot
+        self.ax2 = self.ax.twinx()
+        self.mline, = self.ax2.plot(t,
+                                    m,
+                                    label=r'$M_{SPH}$',
+                                    color="blue",
+                                    linewidth=1.0)
+        # Set some options
+        self.ax2.set_xlim(0, 0.1)
+        self.ax2.set_ylim(-0.1, 0.1)
+        self.ax2.set_autoscale_on(False)
+        self.ax2.set_ylabel(r"$M_{fluid} \, [\mathrm{N} \cdot \mathrm{m}]$",
+                            fontsize=21,
+                            color="blue")
+        for tl in self.ax2.get_yticklabels():
+            tl.set_color("blue")
         # force the figure redraw
         self.fig.canvas.draw()
         # call the update method (to speed-up visualization)
@@ -111,17 +130,25 @@ class FigureController(FigureCanvas):
         """Custom timerEvent code, called at timer event receive"""
         # Read and plot the new data
         data = self.readFile('Motion.dat')
-        self.t = data[0]
-        self.exp_a = data[2]
-        self.a = data[3]
-        self.exp_line.set_data(self.t, self.exp_a)
-        self.line.set_data(self.t, self.a)
+        t = data[0]
+        exp_a = data[2]
+        a = data[3]
+        m = data[5]
+        self.exp_line.set_data(t, exp_a)
+        self.line.set_data(t, a)
+        self.mline.set_data(t, m)
 
-        self.ax.set_xlim(0, self.t[-1])
-        ymax_exp = max(abs(max(self.exp_a)), abs(min(self.exp_a)))
-        ymax_sph = max(abs(max(self.a)), abs(min(self.a)))
+        self.ax.set_xlim(0, t[-1])
+        ymax_exp = max(abs(max(exp_a)), abs(min(exp_a)))
+        ymax_sph = max(abs(max(a)), abs(min(a)))
         ymax = max((ymax_exp, ymax_sph))
         self.ax.set_ylim(-1.1 * ymax, 1.1 * ymax)
+
+        self.ax2.set_xlim(0, t[-1])
+        ymax = max(abs(max(m)), abs(min(m)))
+        self.ax2.set_ylim(-1.1 * ymax, 1.1 * ymax)
+        for tl in self.ax2.get_yticklabels():
+            tl.set_color("blue")
 
         # Redraw
         self.fig.canvas.draw()

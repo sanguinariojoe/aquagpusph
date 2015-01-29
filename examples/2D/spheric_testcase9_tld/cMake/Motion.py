@@ -211,7 +211,7 @@ def main():
     # Calculate ddTheta
     global ddTheta
     old = ddTheta
-    M = -aqua.get("forces_M")[2] * D
+    M = aqua.get("forces_M")[2] * D
     ddTheta = angularForce(M)
     # Leap-frog Corrector
     corrector(dt, old)
@@ -235,8 +235,9 @@ def main():
     aqua.set("motion_dadt", dadt)
     # Write output
     global f
-    f.write('{}\t{}\t{}\t{}\t{}\n'.format(
+    f.write('{}\t{}\t{}\t{}\t{}\t{}\n'.format(
         t, Xi, exp_angle,
-        math.degrees(a[2]), math.degrees(dadt[2])))
+        math.degrees(a[2]), math.degrees(dadt[2]),
+        M))
     f.flush()
     return True
