@@ -67,7 +67,7 @@
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param pos Position \f$ \mathbf{r} \f$.
+ * @param r Position \f$ \mathbf{r} \f$.
  * @param normal Normal \f$ \mathbf{n} \f$.
  * @param v Velocity \f$ \mathbf{u} \f$.
  * @param dvdt Velocity rate of change
@@ -80,7 +80,7 @@
  * @param dt Time step \f$ \Delta t \f$.
  */
 __kernel void main(const __global int* imove,
-                   const __global vec* pos,
+                   const __global vec* r,
                    const __global vec* normal,
                    __global vec* v,
                    __global vec* dvdt,
@@ -102,7 +102,7 @@ __kernel void main(const __global int* imove,
 
     const float R = __DR_FACTOR__ * dr;
     const uint c_i = icell[i];
-    const vec_xyz pos_i = pos[i].XYZ;
+    const vec_xyz r_i = r[i].XYZ;
     vec_xyz v_i = v[i].XYZ;
     vec_xyz dvdt_i = dvdt[i].XYZ;
 
@@ -125,15 +125,15 @@ __kernel void main(const __global int* imove,
                         j++;
                         continue;
                     }
-                    const vec_xyz r = pos[j].XYZ - pos_i;
+                    const vec_xyz r_ij = r[j].XYZ - r_i;
                     const vec_xyz n_j = normal[j].XYZ;
-                    const float r0 = dot(r, n_j);
+                    const float r0 = dot(r_ij, n_j);
                     if(r0 < 0.f){
                         // The boundary element is not well oriented
                         j++;
                         continue;
                     }
-                    const vec_xyz rt = r - r0 * n_j;
+                    const vec_xyz rt = r_ij - r0 * n_j;
                     if(dot(rt, rt) >= R * R){
                         // The particle is passing too far from the boundary element
                         j++;

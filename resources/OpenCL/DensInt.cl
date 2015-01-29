@@ -67,7 +67,7 @@
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param pos Position \f$ \mathbf{r} \f$.
+ * @param r Position \f$ \mathbf{r} \f$.
  * @param mass Mass \f$ m \f$.
  * @param shepard Shepard term
  * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
@@ -80,7 +80,7 @@
  */
 __kernel void DensityInterpolation(__global float* dens,
                                    __global int* imove,
-                                   __global vec* pos,
+                                   __global vec* r,
                                    __global float* mass,
                                    __global float* shepard,
                                    __global uint *icell,
@@ -101,7 +101,7 @@ __kernel void DensityInterpolation(__global float* dens,
 	// ---- V ---- Your code here ---- V ----
 
     const uint c_i = icell[i];
-    const vec pos_i = pos[i];
+    const vec r_i = r[i];
     const float shepard_i = shepard[i];
 
 	#ifndef HAVE_3D

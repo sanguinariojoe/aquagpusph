@@ -35,13 +35,13 @@
 #endif
 
 //---------------------------------------------------------------
-//       calculate the kernel wab and the function fab
+//       calculate the kernel w_ij and the gradient function f_ij
 //---------------------------------------------------------------
 const float rho_j = rho[j];
 const float m_j = m[j];
 const float p_j = p[j];
-const float wab = kernelW(q) * CONW * m_j;
-const float fab = kernelF(q) * CONF * m_j;
+const float w_ij = kernelW(q) * CONW * m_j;
+const float f_ij = kernelF(q) * CONF * m_j;
 //---------------------------------------------------------------
 //       calculate the pressure factor
 //---------------------------------------------------------------
@@ -49,7 +49,7 @@ const float prfac = prfac_i + p_j / (rho_j * rho_j);
 //---------------------------------------------------------------
 //       calculate viscosity terms
 //---------------------------------------------------------------
-const float vdr = dot(v[j].XYZ - v_i, r);
+const float vdr = dot(v[j].XYZ - v_i, r_ij);
 float lapufac = 0.f;
 if(move_j > 0){
     const float r2 = (q * q + 0.01f) * H * H;
@@ -58,18 +58,18 @@ if(move_j > 0){
 //---------------------------------------------------------------
 //     Momentum equation (grad(p)/rho and lap(u)/rho)
 //---------------------------------------------------------------
-_GRADP_ += r * fab * prfac;
-_LAPU_ += r * fab * lapufac;
+_GRADP_ += r_ij * f_ij * prfac;
+_LAPU_ += r_ij * f_ij * lapufac;
 //---------------------------------------------------------------
 //     Conserving mass equation (rho*div(u))
 //---------------------------------------------------------------
-_DIVU_ += vdr * fab;
+_DIVU_ += vdr * f_ij;
 //---------------------------------------------------------------
 //     Density diffusion term (lap(p))
 //---------------------------------------------------------------
-const float drfac = (p_j - p_i) - refd_i * dot(g.XYZ, r);
-_LAPP_ += drfac * fab / rho_j;
+const float drfac = (p_j - p_i) - refd_i * dot(g.XYZ, r_ij);
+_LAPP_ += drfac * f_ij / rho_j;
 //---------------------------------------------------------------
 //     Shepard term
 //---------------------------------------------------------------
-_SHEPARD_ += wab / rho_j;
+_SHEPARD_ += w_ij / rho_j;

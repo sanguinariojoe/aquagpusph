@@ -59,14 +59,14 @@
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
  * @param iset Set of particles index.
- * @param pos Position \f$ \mathbf{r}_{n+1} \f$.
+ * @param r Position \f$ \mathbf{r}_{n+1} \f$.
  * @param v Velocity \f$ \mathbf{u}_{n+1} \f$.
  * @param dvdt Velocity rate of change
  * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n+1} \f$.
  * @param rho Density \f$ \rho_{n+1} \f$.
  * @param drhodt Density rate of change
  * \f$ \left. \frac{d \rho}{d t} \right\vert_{n+1} \f$.
- * @param pos_in Position \f$ \mathbf{r}_{n+1/2} \f$.
+ * @param r_in Position \f$ \mathbf{r}_{n+1/2} \f$.
  * @param v_in Velocity \f$ \mathbf{u}_{n+1/2} \f$.
  * @param dvdt_in Velocity rate of change
  * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n+1/2} \f$.
@@ -87,12 +87,12 @@
  */
 __kernel void main(__global int* imove,
                    __global unsigned int* iset,
-                   __global vec* pos,
+                   __global vec* r,
                    __global vec* v,
                    __global vec* dvdt,
                    __global float* rho,
                    __global float* drhodt,
-                   __global vec* pos_in,
+                   __global vec* r_in,
                    __global vec* v_in,
                    __global vec* dvdt_in,
                    __global float* rho_in,
@@ -118,7 +118,7 @@ __kernel void main(__global int* imove,
         DT = 0.f;
     dvdt_in[i] = dvdt[i];
     v_in[i] = v[i] + DT * dvdt[i];
-    pos_in[i] = pos[i] + DT * v[i] + 0.5f * DT * DT * dvdt[i];
+    r_in[i] = r[i] + DT * v[i] + 0.5f * DT * DT * dvdt[i];
     
     // Continuity equation must be solved for the fixed particles too
     if(imove[i] == -1){

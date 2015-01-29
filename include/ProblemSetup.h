@@ -634,7 +634,7 @@ public:
         /** @brief Set the file path from which the particles should be read.
          *
          * This field can be set with the tag `Option`, for instance:
-         * `<Load format="ASCII" file="./Fluid.dat" fields="pos,normal" />`
+         * `<Load format="ASCII" file="./Fluid.dat" fields="r,normal" />`
          *
          * @param path File path.
          * @param format File format.
@@ -664,7 +664,7 @@ public:
         /** @brief Set the file path where the particles should be written.
          *
          * This field can be set with the tag `Option`, for instance:
-         * `<Save format="VTK" file="output" fields="pos,normal" />`
+         * `<Save format="VTK" file="output" fields="r,normal" />`
          *
          * @param path File path.
          * @param format File format.

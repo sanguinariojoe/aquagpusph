@@ -15,7 +15,7 @@
         | n_cells     | uivec4        | 1       | Number of cells at each direction, and the total one
         | support     | float         | 1       | Kernel support (as a factor of the kernel length h)
         | id          | unsigned int* | N       | ID of each particle
-        | pos         | vec*          | N       | Positions
+        | r           | vec*          | N       | Positions
         | iset        | unsigned int* | N       | Particle set of each particle
         | id_sorted   | unsigned int* | n_radix | Permutations from unsorted space to sorted space
         | id_unsorted | unsigned int* | n_radix | Permutations from sorted space to unsorted space
@@ -27,8 +27,8 @@
         <Variable name="courant" type="float" value="0.25" />
         <Variable name="rho_min" type="float" value="0.0" />
         <Variable name="rho_max" type="float" value="2.25*10^10" />
-        <Variable name="pos_min" type="vec" />
-        <Variable name="pos_max" type="vec" />
+        <Variable name="r_min" type="vec" />
+        <Variable name="r_max" type="vec" />
 
         <Variable name="gamma" type="float*" length="n_sets" />
         <Variable name="refd" type="float*" length="n_sets" />
@@ -53,7 +53,7 @@
         <Variable name="id_in" type="unsigned int*" length="N" />
         <Variable name="iset_in" type="unsigned int*" length="N" />
         <Variable name="imove_in" type="int*" length="N" />
-        <Variable name="pos_in" type="vec*" length="N" />
+        <Variable name="r_in" type="vec*" length="N" />
         <Variable name="normal_in" type="vec*" length="N" />
         <Variable name="v_in" type="vec*" length="N" />
         <Variable name="dvdt_in" type="vec*" length="N" />

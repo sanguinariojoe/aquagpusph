@@ -31,7 +31,7 @@
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param pos Position \f$ \mathbf{r} \f$.
+ * @param r Position \f$ \mathbf{r} \f$.
  * @param v Velocity \f$ \mathbf{u} \f$.
  * @param dvdt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
  * @param m Mass \f$ m \f$.
@@ -40,7 +40,7 @@
  * @param domain_max Maximum point of the domain.
  */
 __kernel void main(__global int* imove,
-                   __global vec* pos,
+                   __global vec* r,
                    __global vec* v,
                    __global vec* dvdt,
                    __global float* m,
@@ -53,7 +53,7 @@ __kernel void main(__global int* imove,
     if(i >= N)
         return;
 
-    const vec coords = pos[i];
+    const vec coords = r[i];
     if(    (coords.x < domain_min.x)
         || (coords.y < domain_min.y)
         || (coords.x > domain_max.x)
@@ -71,13 +71,13 @@ __kernel void main(__global int* imove,
         v[i] = VEC_ZERO;
         dvdt[i] = VEC_ZERO;
         // Clamp the position
-        pos[i].x = max(pos[i].x, domain_min.x);
-        pos[i].x = min(pos[i].x, domain_max.x);
-        pos[i].y = max(pos[i].y, domain_min.y);
-        pos[i].y = min(pos[i].y, domain_max.y);
+        r[i].x = max(r[i].x, domain_min.x);
+        r[i].x = min(r[i].x, domain_max.x);
+        r[i].y = max(r[i].y, domain_min.y);
+        r[i].y = min(r[i].y, domain_max.y);
         #ifdef HAVE_3D
-            pos[i].z = max(pos[i].z, domain_min.z);
-            pos[i].z = min(pos[i].z, domain_max.z);
+            r[i].z = max(r[i].z, domain_min.z);
+            r[i].z = min(r[i].z, domain_max.z);
         #endif
     }
 }

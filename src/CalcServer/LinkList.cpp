@@ -54,7 +54,7 @@ LinkList::LinkList(const char* tool_name, const char* input)
     const char *min_pos_op = "c.x = (a.x < b.x) ? a.x : b.x;\nc.y = (a.y < b.y) ? a.y : b.y;\n#ifdef HAVE_3D\nc.z = (a.z < b.z) ? a.z : b.z;\nc.w = 0.f;\n#endif\n";
     _min_pos = new Reduction(min_pos_name,
                              input,
-                             "pos_min",
+                             "r_min",
                              min_pos_op,
                              "VEC_INFINITY");
     char max_pos_name[strlen(tool_name) + strlen("->Max. Pos.") + 1];
@@ -63,7 +63,7 @@ LinkList::LinkList(const char* tool_name, const char* input)
     const char *max_pos_op = "c.x = (a.x > b.x) ? a.x : b.x;\nc.y = (a.y > b.y) ? a.y : b.y;\n#ifdef HAVE_3D\nc.z = (a.z > b.z) ? a.z : b.z;\nc.w = 0.f;\n#endif\n";
     _max_pos = new Reduction(max_pos_name,
                              input,
-                             "pos_max",
+                             "r_max",
                              max_pos_op,
                              "-VEC_INFINITY");
     char sort_name[strlen(tool_name) + strlen("->Radix-Sort") + 1];
@@ -317,7 +317,7 @@ bool LinkList::setupOpenCL()
     n_radix = *(unsigned int*)vars->get("n_radix")->get();
     _icell_gws = roundUp(n_radix, _icell_lws);
     const char *_icell_vars[8] = {"icell", _input_name, "N", "n_radix",
-                                  "pos_min", "support", "h", "n_cells"};
+                                  "r_min", "support", "h", "n_cells"};
     for(i = 0; i < 8; i++){
         err_code = clSetKernelArg(_icell,
                                   i,
@@ -491,8 +491,8 @@ bool LinkList::nCells()
         return true;
     }
 
-    pos_min = *(vec*)vars->get("pos_min")->get();
-    pos_max = *(vec*)vars->get("pos_max")->get();
+    pos_min = *(vec*)vars->get("r_min")->get();
+    pos_max = *(vec*)vars->get("r_max")->get();
 
 	_n_cells.x = (unsigned int)((pos_max.x - pos_min.x) / _cell_length) + 6;
 	_n_cells.y = (unsigned int)((pos_max.y - pos_min.y) / _cell_length) + 6;
@@ -596,7 +596,7 @@ bool LinkList::setVariables()
     }
 
     const char *_icell_vars[8] = {"icell", _input_name, "N", "n_radix",
-                                  "pos_min", "support", "h", "n_cells"};
+                                  "r_min", "support", "h", "n_cells"};
     for(i = 0; i < 8; i++){
         InputOutput::Variable *var = vars->get(_icell_vars[i]);
         if(!memcmp(var->get(), _icell_args.at(i), var->typesize())){

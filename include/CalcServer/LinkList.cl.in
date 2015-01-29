@@ -38,20 +38,20 @@ __kernel void iHoc(__global unsigned int *ihoc,
 
 /** Compute the cell where each particle is allocated.
  * @param icell Cell where each particle is allocated.
- * @param pos Positions of the particles.
+ * @param r Position \f$ \mathbf{r} \f$.
  * @param N Number of particles.
  * @param n_radix N if it is a power of 2, the next power of 2 otherwise.
- * @param pos_min Minimum of pos.
+ * @param r_min Minimum of r.
  * @param support Kernel support as a factor of h.
  * @param h Kernel characteristic length.
  * @param n_cells Number of cells at each direction, and the total number of
  * allocated cells.
  */
 __kernel void iCell(__global unsigned int *icell,
-                    __global vec *pos,
+                    __global vec *r,
                     unsigned int N,
                     unsigned int n_radix,
-                    vec pos_min,
+                    vec r_min,
                     float support,
                     float h,
                     uivec4 n_cells)
@@ -68,10 +68,10 @@ __kernel void iCell(__global unsigned int *icell,
     if(i < N) {
         // Normal particles
         idist = 1.f / (support * h);
-        cell.x = (unsigned int)((pos[i].x - pos_min.x) * idist) + 3u;
-        cell.y = (unsigned int)((pos[i].y - pos_min.y) * idist) + 3u;
+        cell.x = (unsigned int)((r[i].x - r_min.x) * idist) + 3u;
+        cell.y = (unsigned int)((r[i].y - r_min.y) * idist) + 3u;
         #ifdef HAVE_3D
-            cell.z = (unsigned int)((pos[i].z - pos_min.z) * idist) + 3u;
+            cell.z = (unsigned int)((r[i].z - r_min.z) * idist) + 3u;
             cell_id = cell.x - 1u +
                       (cell.y - 1u) * n_cells.x +
                       (cell.z - 1u) * n_cells.x * n_cells.y;

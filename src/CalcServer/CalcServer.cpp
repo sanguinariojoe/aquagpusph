@@ -124,7 +124,7 @@ CalcServer::CalcServer()
     sprintf(len, "%u", N);
     if(_vars->registerVariable("id", "unsigned int*", len, val))
         exit(EXIT_FAILURE);
-    if(_vars->registerVariable("pos", "vec*", len, val))
+    if(_vars->registerVariable("r", "vec*", len, val))
         exit(EXIT_FAILURE);
     if(_vars->registerVariable("iset", "unsigned int*", len, val))
         exit(EXIT_FAILURE);

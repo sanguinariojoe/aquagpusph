@@ -43,7 +43,7 @@
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param pos Position \f$ \mathbf{r} \f$.
+ * @param r Position \f$ \mathbf{r} \f$.
  * @param dvdt Velocity rate of change
  * \f$ \frac{d \mathbf{u}}{d t} \f$.
  * @param m Mass \f$ m \f$.
@@ -54,7 +54,7 @@
 __kernel void main(__global vec* forces_f,
                    __global vec4* forces_m,
                    __global int* imove,
-                   __global vec* pos,
+                   __global vec* r,
                    __global vec* dvdt,
                    __global float* m,
                    unsigned int N,
@@ -71,7 +71,7 @@ __kernel void main(__global vec* forces_f,
         return;
     }
 
-    const vec arm = pos[i] - forces_r;
+    const vec arm = r[i] - forces_r;
     const vec acc = g - dvdt[i];
     const float mass = m[i];
     forces_f[i] = mass * acc;

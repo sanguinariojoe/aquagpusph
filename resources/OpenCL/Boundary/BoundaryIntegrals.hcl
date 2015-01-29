@@ -51,11 +51,11 @@ const float area_j = m[j];
 {
     const float p_j = p[j];
     const vec_xyz dv = v[j].XYZ - v_i;
-    const float vdr = rho_j * dot(dv, n_j);
+    const float vdn = rho_j * dot(dv, n_j);
     //---------------------------------------------------------------
-    //       calculate the kernel wab
+    //       calculate the kernel w_ij
     //---------------------------------------------------------------
-    const float wab = kernelW(q) * CONW * area_j;
+    const float w_ij = kernelW(q) * CONW * area_j;
     //---------------------------------------------------------------
     //       calculate the pressure factor
     //---------------------------------------------------------------
@@ -64,20 +64,20 @@ const float area_j = m[j];
     //       calculate viscosity terms
     //---------------------------------------------------------------
     // const float r2 = (q * q + 0.01f) * H * H;
-    // const vec_xyz lapufac = __CLEARY__ * vdr / (r2 * rho_i * rho_j) * n_j;
+    // const vec_xyz lapufac = __CLEARY__ * vdn / (r2 * rho_i * rho_j) * n_j;
     //---------------------------------------------------------------
     //     Momentum equation (grad(p)/rho and lap(u)/rho)
     //---------------------------------------------------------------
-    _GRADP_ += prfac * wab;
-    // _LAPU_ += lapufac * wab;
+    _GRADP_ += prfac * w_ij;
+    // _LAPU_ += lapufac * w_ij;
     //---------------------------------------------------------------
     //     Continuity equation (rho*div(u))
     //---------------------------------------------------------------
-    _DIVU_ += vdr * wab;
+    _DIVU_ += vdn * w_ij;
     //---------------------------------------------------------------
     //     Density diffusion term (lap(p))
     //---------------------------------------------------------------
-    // const float ndr = - rho_j * dot(r, n_j) / r2;
-    // const float drfac = (p_j - p_i) - refd_i * dot(g, r);
-    // _LAPP_ -= drfac * ndr * wab;
+    // const float ndr = - rho_j * dot(r_ij, n_j) / r2;
+    // const float drfac = (p_j - p_i) - refd_i * dot(g, r_ij);
+    // _LAPP_ -= drfac * ndr * w_ij;
 }

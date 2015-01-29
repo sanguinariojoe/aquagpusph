@@ -88,15 +88,15 @@ bool ASCII::load()
         S->addMessageF(3, "0 fields were set to be read from the file.\n");
         return true;
     }
-    bool have_pos = false;
+    bool have_r = false;
     for(i = 0; i < fields.size(); i++){
-        if(!strcmp(fields.at(i), "pos")){
-            have_pos = true;
+        if(!strcmp(fields.at(i), "r")){
+            have_r = true;
             break;
         }
     }
-    if(!have_pos){
-        S->addMessageF(3, "\"pos\" field was not set to be read from the file.\n");
+    if(!have_r){
+        S->addMessageF(3, "\"r\" field was not set to be read from the file.\n");
         return true;
     }
     // Setup an storage
@@ -519,7 +519,7 @@ FILE* ASCII::create(){
     if(file(basename, 0)){
         delete[] basename;
         S->addMessageF(3, "Failure getting a valid filename.\n");
-        S->addMessage(0, "\tHow do you received this message?.\n");
+        S->addMessageF(0, "\tHow do you received this message?.\n");
         return NULL;
     }
     delete[] basename;

@@ -62,7 +62,7 @@
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param pos Position \f$ \mathbf{r} \f$.
+ * @param r Position \f$ \mathbf{r} \f$.
  * @param normal Normal \f$ \mathbf{n} \f$.
  * @param N Number of particles.
  * @param motion_r Center of rotation.
@@ -71,7 +71,7 @@
  * @see MotionVelocity.cl
  */
 __kernel void main(const __global int* imove,
-                   __global vec* pos,
+                   __global vec* r,
                    __global vec* normal,
                    unsigned int N,
                    vec motion_r,
@@ -84,7 +84,7 @@ __kernel void main(const __global int* imove,
     if(imove[i]>0)
         return;
 
-    vec r, rr, n, nn;
+    vec r_i, rr, n_i, nn;
 
     const float cphi = cos(motion_a.x);
     const float sphi = -sin(motion_a.x);
@@ -96,34 +96,34 @@ __kernel void main(const __global int* imove,
     //---------------------------------------------
     // Untransform the point
     //---------------------------------------------
-    n = normal[i];
+    n_i = normal[i];
     // Undisplace the point
-    r = pos[i] - motion_r;
+    r_i = r[i] - motion_r;
     // Unrotate along z
-    rr = r;
-    nn = n;
-    r.x = cpsi * rr.x - spsi * rr.y;
-    r.y = spsi * rr.x + cpsi * rr.y;
-    n.x = cpsi * nn.x - spsi * nn.y;
-    n.y = spsi * nn.x + cpsi * nn.y;
+    rr = r_i;
+    nn = n_i;
+    r_i.x = cpsi * rr.x - spsi * rr.y;
+    r_i.y = spsi * rr.x + cpsi * rr.y;
+    n_i.x = cpsi * nn.x - spsi * nn.y;
+    n_i.y = spsi * nn.x + cpsi * nn.y;
     #ifdef HAVE_3D
         // Unrotate along y
-        rr = r;
-        nn = n;
-        r.x = ctheta * rr.x + stheta * rr.z;
-        r.z = -stheta * rr.x + ctheta * rr.z;
-        n.x = ctheta * nn.x + stheta * nn.z;
-        n.z = -stheta * nn.x + ctheta * nn.z;
+        rr = r_i;
+        nn = n_i;
+        r_i.x = ctheta * rr.x + stheta * rr.z;
+        r_i.z = -stheta * rr.x + ctheta * rr.z;
+        n_i.x = ctheta * nn.x + stheta * nn.z;
+        n_i.z = -stheta * nn.x + ctheta * nn.z;
         // Unrotate along x
-        rr = r;
-        nn = n;
-        r.y = cphi * rr.y - sphi * rr.z;
-        r.z = sphi * rr.y + cphi * rr.z;
-        n.y = cphi * nn.y - sphi * nn.z;
-        n.z = sphi * nn.y + cphi * nn.z;
+        rr = r_i;
+        nn = n_i;
+        r_i.y = cphi * rr.y - sphi * rr.z;
+        r_i.z = sphi * rr.y + cphi * rr.z;
+        n_i.y = cphi * nn.y - sphi * nn.z;
+        n_i.z = sphi * nn.y + cphi * nn.z;
     #endif
 
-    normal[i] = n;
-    pos[i] = r;
+    normal[i] = n_i;
+    r[i] = r_i;
 }
 

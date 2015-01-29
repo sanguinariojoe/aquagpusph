@@ -28,7 +28,7 @@
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param pos Position \f$ \mathbf{r} \f$.
+ * @param r Position \f$ \mathbf{r} \f$.
  * @param h_sensor_z Helper array of z coordinates, where just the particles
  * close enough to the sensor are preserved.
  * @param N Number of particles.
@@ -36,7 +36,7 @@
  * @param dr Distance between particle \f$ \Delta r \f$.
  */
 __kernel void main(const __global int* imove,
-                   const __global vec* pos,
+                   const __global vec* r,
                    __global float *h_sensor_z,
                    // Simulation data
                    uint N,
@@ -52,14 +52,14 @@ __kernel void main(const __global int* imove,
         return;
     }
 
-    const float x = pos[i].x - h_sensor_x;
-    const float y = pos[i].y;
+    const float x = r[i].x - h_sensor_x;
+    const float y = r[i].y;
 
     if((fabs(x) > 2.f * dr) || (fabs(y) > 2.f * dr)){
         h_sensor_z[i] = 0.f;
         return;        
     }
 
-    h_sensor_z[i] = pos[i].z + 0.5f * dr;
+    h_sensor_z[i] = r[i].z + 0.5f * dr;
 }
  

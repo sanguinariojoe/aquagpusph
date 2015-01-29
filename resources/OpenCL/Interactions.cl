@@ -45,7 +45,7 @@
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param pos Position \f$ \mathbf{r} \f$.
+ * @param r Position \f$ \mathbf{r} \f$.
  * @param v Velocity \f$ \mathbf{u} \f$.
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
@@ -66,7 +66,7 @@
  */
 __kernel void main(const __global uint* iset,
                    const __global int* imove,
-                   const __global vec* pos,
+                   const __global vec* r,
                    const __global vec* v,
                    const __global float* rho,
                    const __global float* m,
@@ -92,7 +92,7 @@ __kernel void main(const __global uint* iset,
 
     const uint c_i = icell[i];
     const int move_i = imove[i];
-    const vec_xyz pos_i = pos[i].XYZ;
+    const vec_xyz r_i = r[i].XYZ;
     const vec_xyz v_i = v[i].XYZ;
     const float p_i = p[i];
     const float rho_i = rho[i];
@@ -150,8 +150,8 @@ __kernel void main(const __global uint* iset,
                         j++;
                         continue;
                     }
-                    const vec_xyz r = pos[j].XYZ - pos_i;
-                    const float q = fast_length(r) / H;
+                    const vec_xyz r_ij = r[j].XYZ - r_i;
+                    const float q = fast_length(r_ij) / H;
                     if(q >= SUPPORT)
                     {
                         j++;

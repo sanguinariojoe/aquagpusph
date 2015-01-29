@@ -36,16 +36,16 @@ if(!imove[j]){
     }
 #endif
 
-const vec r = pos_i - pos[j];
-const float q = fast_length(r) / h;
+const vec r_ij = r[j] - r_i;
+const float q = fast_length(r_ij) / h;
 if(q < sep)
 {
 	//---------------------------------------------------------------
-	//       calculate the kernel wab and the function fab
+	//       calculate the kernel w_ij
 	//---------------------------------------------------------------
-	const float wab = kernelW(q) * conw * mass[j];
+	const float w_ij = kernelW(q) * conw * mass[j];
 	//---------------------------------------------------------------
 	// 	density computation
 	//---------------------------------------------------------------
-	_DENS_ += wab;
+	_DENS_ += w_ij;
 }

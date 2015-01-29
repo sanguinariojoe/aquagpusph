@@ -36,7 +36,7 @@ const float wab = kernelW(q) * CONW * m_j;
 //       pressure computation (stored on grad(p)/rho)
 //---------------------------------------------------------------
 _GRADP_.x += p_j / rho_j * wab;
-_GRADP_.y -= dot(g.XYZ, r) * wab;
+_GRADP_.y -= dot(g.XYZ, r_ij) * wab;
 //---------------------------------------------------------------
 //       density computation (stored on rho*div(u))
 //---------------------------------------------------------------

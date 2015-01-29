@@ -57,14 +57,14 @@
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param pos Position \f$ \mathbf{r}_{n+1/2} \f$.
+ * @param r Position \f$ \mathbf{r}_{n+1/2} \f$.
  * @param v Velocity \f$ \mathbf{u}_{n+1/2} \f$.
  * @param dvdt Velocity rate of change
  * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n+1/2} \f$.
  * @param rho Density \f$ \rho_{n+1/2} \f$.
  * @param drhodt Density rate of change
  * \f$ \left. \frac{d \rho}{d t} \right\vert_{n+1/2} \f$.
- * @param pos_in Position \f$ \mathbf{r}_{n} \f$.
+ * @param r_in Position \f$ \mathbf{r}_{n} \f$.
  * @param v_in Velocity \f$ \mathbf{u}_{n} \f$.
  * @param dvdt_in Velocity rate of change
  * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n-1/2} \f$.
@@ -77,12 +77,12 @@
  */
 __kernel void main(__global int* imove,
                    __global unsigned int* iset,
-                   __global vec* pos,
+                   __global vec* r,
                    __global vec* v,
                    __global vec* dvdt,
                    __global float* rho,
                    __global float* drhodt,
-                   __global vec* pos_in,
+                   __global vec* r_in,
                    __global vec* v_in,
                    __global vec* dvdt_in,
                    __global float* rho_in,
@@ -109,7 +109,7 @@ __kernel void main(__global int* imove,
     }
     rho[i] += HDT * (drhodt[i] - drhodt_in[i]);
 
-    pos_in[i] = pos[i];
+    r_in[i] = r[i];
     v_in[i] = v[i];
     rho_in[i] = rho[i];
     dvdt_in[i] = dvdt[i];

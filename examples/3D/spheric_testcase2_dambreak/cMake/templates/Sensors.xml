@@ -26,8 +26,8 @@ Authors:
         <Scalar name="visc_dyn" value="{{VISC_DYN}}" />
         <Scalar name="delta" value="{{DELTA}}" />
 
-        <Load format="ASCII" file="Sensors.dat" fields="pos, normal, v, dvdt, rho, drhodt, m, imove" />
-        <Save format="VTK" file="sensors" fields="pos, normal, v, dvdt, rho, drhodt, m, p, imove" />
+        <Load format="ASCII" file="Sensors.dat" fields="r, normal, v, dvdt, rho, drhodt, m, imove" />
+        <Save format="VTK" file="sensors" fields="r, normal, v, dvdt, rho, drhodt, m, p, imove" />
     </ParticlesSet>
     <Reports>
         <Report type="particles" name="Sensors" fields="p" path="sensors.out" set="1" ipf="0" fps="1000"/>

@@ -61,7 +61,7 @@
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param pos Position \f$ \mathbf{r} \f$.
+ * @param r Position \f$ \mathbf{r} \f$.
  * @param v Velocity \f$ \mathbf{u} \f$.
  * @param N Number of particles.
  * @param motion_r Center of rotation.
@@ -72,7 +72,7 @@
  * @see MotionVelocity.cl
  */
 __kernel void main(const __global int* imove,
-                   __global vec* pos,
+                   __global vec* r,
                    __global vec* v,
                    unsigned int N,
                    vec motion_r,
@@ -87,7 +87,7 @@ __kernel void main(const __global int* imove,
     if(imove[i]>0)
         return;
 
-    const vec r = pos[i];
+    const vec r_i = r[i];
     vec v1, v2, v3, vv;
 
     const float cphi = cos(motion_a.x);
@@ -103,7 +103,7 @@ __kernel void main(const __global int* imove,
     //---------------------------------------------
     // Compute v1 (acceleration along z)
     //---------------------------------------------
-    v1 = r;
+    v1 = r_i;
     #ifdef HAVE_3D
         v1.z = 0.f;
         vv = v1;
@@ -122,7 +122,7 @@ __kernel void main(const __global int* imove,
     // Compute v2 (acceleration along y)
     //---------------------------------------------
     #ifdef HAVE_3D
-        v2 = r;
+        v2 = r_i;
         v2.y = 0.f;
         vv = v2;
         // Rotate along x
@@ -142,7 +142,7 @@ __kernel void main(const __global int* imove,
     // Compute v3 (acceleration along x)
     //---------------------------------------------
     #ifdef HAVE_3D
-        v3 = r;
+        v3 = r_i;
         v3.x = 0.f;
         vv = v3;
         // Rotate along x

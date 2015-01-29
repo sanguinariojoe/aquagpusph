@@ -645,7 +645,7 @@ bool State::parseTools(DOMElement *root)
             }
             else if(!strcmp(xmlAttribute(s_elem, "type"), "link-list")){
                 if(!xmlHasAttribute(s_elem, "in")){
-                    tool->set("in", "pos");
+                    tool->set("in", "r");
                     continue;
                 }
                 tool->set("in", xmlAttribute(s_elem, "in"));

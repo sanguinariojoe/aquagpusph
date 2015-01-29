@@ -38,8 +38,8 @@
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param pos_in Unsorted position \f$ \mathbf{r} \f$.
- * @param pos Sorted position \f$ \mathbf{r} \f$.
+ * @param r_in Unsorted position \f$ \mathbf{r} \f$.
+ * @param r Sorted position \f$ \mathbf{r} \f$.
  * @param normal_in Unsorted normal \f$ \mathbf{n} \f$.
  * @param normal Sorted normal \f$ \mathbf{n} \f$.
  * @param v_in Unsorted velocity \f$ \mathbf{u} \f$.
@@ -63,7 +63,7 @@
 __kernel void main(__global uint *id_in, __global uint *id,
                    __global uint *iset_in, __global uint *iset,
                    __global int *imove_in, __global int *imove,
-                   __global vec *pos_in, __global vec *pos,
+                   __global vec *r_in, __global vec *r,
                    __global vec *normal_in, __global vec *normal,
                    __global vec *v_in, __global vec *v,
                    __global vec *dvdt_in, __global vec *dvdt,
@@ -83,7 +83,7 @@ __kernel void main(__global uint *id_in, __global uint *id,
     id[i_out] = id_in[i];
     iset[i_out] = iset_in[i];
     imove[i_out] = imove_in[i];
-    pos[i_out] = pos_in[i];
+    r[i_out] = r_in[i];
     normal[i_out] = normal_in[i];
     v[i_out] = v_in[i];
     dvdt[i_out] = dvdt_in[i];

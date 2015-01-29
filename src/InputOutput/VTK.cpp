@@ -157,15 +157,15 @@ bool VTK::load()
         S->addMessage(3, "0 fields were set to be read from the file.\n");
         return true;
     }
-    bool have_pos = false;
+    bool have_r = false;
     for(i = 0; i < fields.size(); i++){
-        if(!strcmp(fields.at(i), "pos")){
-            have_pos = true;
+        if(!strcmp(fields.at(i), "r")){
+            have_r = true;
             break;
         }
     }
-    if(!have_pos){
-        S->addMessage(3, "\"pos\" field was not set to be read from the file.\n");
+    if(!have_r){
+        S->addMessage(3, "\"r\" field was not set to be read from the file.\n");
         return true;
     }
 
@@ -213,7 +213,7 @@ bool VTK::load()
     vtkSmartPointer<vtkPointData> vtk_data = grid->GetPointData();
     for(i = 0; i < n; i++){
         for(j = 0; j < fields.size(); j++){
-            if(!strcmp(fields.at(j), "pos")){
+            if(!strcmp(fields.at(j), "r")){
                 double *vect = vtk_points->GetPoint(i);
                 vec *ptr = (vec*)data.at(j);
                 ptr[i].x = vect[0];
@@ -318,15 +318,15 @@ bool VTK::save()
         S->addMessage(3, "0 fields were set to be saved into the file.\n");
         return true;
     }
-    bool have_pos = false;
+    bool have_r = false;
     for(i = 0; i < fields.size(); i++){
-        if(!strcmp(fields.at(i), "pos")){
-            have_pos = true;
+        if(!strcmp(fields.at(i), "r")){
+            have_r = true;
             break;
         }
     }
-    if(!have_pos){
-        S->addMessage(3, "\"pos\" field was not set to be saved into the file.\n");
+    if(!have_r){
+        S->addMessage(3, "\"r\" field was not set to be saved into the file.\n");
         return true;
     }
 
@@ -400,7 +400,7 @@ bool VTK::save()
 
     for(i = 0; i < bounds().y - bounds().x; i++){
         for(j = 0; j < fields.size(); j++){
-            if(!strcmp(fields.at(j), "pos")){
+            if(!strcmp(fields.at(j), "r")){
                 vec *ptr = (vec*)data.at(j);
                 #ifdef HAVE_3D
                     vtk_points->InsertNextPoint(ptr[i].x, ptr[i].y, ptr[i].z);
@@ -462,7 +462,7 @@ bool VTK::save()
     grid->SetPoints(vtk_points);
     grid->SetCells(vtk_vertex->GetCellType(), vtk_cells);
     for(i = 0; i < fields.size(); i++){
-        if(!strcmp(fields.at(i), "pos")){
+        if(!strcmp(fields.at(i), "r")){
             continue;
         }
 
