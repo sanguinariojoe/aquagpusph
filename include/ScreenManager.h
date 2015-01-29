@@ -81,7 +81,7 @@ public:
      * This method is not redirecting the data to the log file.
      * In case that ncurses is active:
      *    - Tabulators '\t' are interpreted as 1 blank space
-     *    - Line breaks '\n' are intepreted
+     *    - Line breaks '\n' are intepreted as line breaks
      *    - It is fitting the message replacing spaces by lines break
      * Otherwise:
      *    - stdout will be used

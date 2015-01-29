@@ -86,7 +86,7 @@ void ScreenManager::initFrame()
         init_pair(7, COLOR_CYAN, COLOR_BLACK);
 
         // Setup the default font
-        attron(A_NORMAL);
+        attrset(A_NORMAL);
         attron(COLOR_PAIR(1));
 
         // Set the cursor at the start of the window
@@ -183,6 +183,7 @@ void ScreenManager::writeReport(const char *input,
         }
 
         // Select the font
+        attrset(A_NORMAL);
         unsigned int pair_id = 1;
         if(!strcmp(color, "white")){
             pair_id = 1;
@@ -213,9 +214,6 @@ void ScreenManager::writeReport(const char *input,
         attron(COLOR_PAIR(pair_id));
         if(bold){
             attron(A_BOLD);
-        }
-        else{
-            attron(A_NORMAL);
         }
 
         // Print the message
@@ -438,14 +436,17 @@ void ScreenManager::printLog()
         wclear(log_wnd);
 
         // Print the info
-        wattron(log_wnd, A_NORMAL);
+        wattrset(log_wnd, A_NORMAL);
+        wattron(log_wnd, A_BOLD);
         wattron(log_wnd, COLOR_PAIR(1));
         wmove(log_wnd, 0, 0);
         wprintw(log_wnd, "--- Log registry ------------------------------");
         unsigned int lines = 1;
         for(i = 0; i < _log_level.size(); i++){
+            wattrset(log_wnd, A_NORMAL);
+            wattron(log_wnd, COLOR_PAIR(1));
             if(_log_level.at(i) == 1){
-                wattron(log_wnd, A_BOLD);
+                wattron(log_wnd, A_NORMAL);
                 wattron(log_wnd, COLOR_PAIR(1));
             }
             else if(_log_level.at(i) == 2){

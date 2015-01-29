@@ -63,9 +63,7 @@
 			<Add option="-I/usr/include/vtk-5.8" />
 			<Add option="-I/usr/include/python3.2" />
 			<Add option="-DHAVE_VTK" />
-			<Add option="-DHAVE_GPUPROFILE" />
-			<Add option="-D_sphVERBOSE" />
-			<Add option="-DPARALLEL_IO" />
+			<Add option="-DHAVE_NCURSES" />
 		</Compiler>
 		<Linker>
 			<Add option="-lvtkCommon" />

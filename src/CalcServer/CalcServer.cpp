@@ -267,8 +267,8 @@ CalcServer::CalcServer()
     for(i = 0; i < P->reports.size(); i++){
         if(!strcmp(P->reports.at(i)->get("type"), "screen")){
             bool bold = false;
-            if(strcmp(P->reports.at(i)->get("bold"), "true") ||
-               strcmp(P->reports.at(i)->get("bold"), "True")){
+            if(!strcmp(P->reports.at(i)->get("bold"), "true") ||
+               !strcmp(P->reports.at(i)->get("bold"), "True")){
                bold = true;
             }
             Reports::Screen *tool = new Reports::Screen(
