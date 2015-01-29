@@ -101,6 +101,29 @@ bool Performance::_execute()
     }
     sprintf(data, "%sElapsed=%16gs (+-%16gs)\n", data, elapsed, elapsed_var);
 
+    // Compute the progress
+    InputOutput::Variables* vars = C->variables();
+    float progress = 0.f;
+    float t = *(float *)vars->get("t")->get();
+    float end_t = *(float *)vars->get("end_t")->get();
+    progress = max(progress, t / end_t);
+    unsigned int iter = *(unsigned int *)vars->get("iter")->get();
+    unsigned int end_iter = *(unsigned int *)vars->get("end_iter")->get();
+    progress = max(progress, (float)iter / end_iter);
+    unsigned int frame = *(unsigned int *)vars->get("frame")->get();
+    unsigned int end_frame = *(unsigned int *)vars->get("end_frame")->get();
+    progress = max(progress, (float)frame / end_frame);
+
+    // And the estimated time to arrive
+    float total_elapsed = elapsed * iter;
+    float ETA = total_elapsed * (1.f / progress - 1.f);
+
+    sprintf(data,
+            "%sPercentage=%16.2f\tETA=%16gs\n",
+            data,
+            progress * 100.f,
+            ETA);
+
 
     // Replace the trailing space by a line break
     if(data[strlen(data) - 1] == ' ')
