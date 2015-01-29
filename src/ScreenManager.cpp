@@ -98,7 +98,7 @@ void ScreenManager::endFrame()
 {
     #ifdef HAVE_NCURSES
         printLog();
-        refresh();
+        refreshAll();
     #else
         fflush(stdout);
     #endif
@@ -223,8 +223,8 @@ void ScreenManager::writeReport(const char *input,
         _last_row += strlen(msg) / cols + 1;  // The message may require 2 lines
 
         // Refresh
-        printLog();
-        refresh();
+        // printLog();
+        // refresh();
     #endif
 }
 
@@ -286,6 +286,7 @@ void ScreenManager::addMessage(int level, const char *log, const char *func)
     }
 
     printLog();
+    refreshAll();
 }
 
 void ScreenManager::printDate(int level)
@@ -463,6 +464,14 @@ void ScreenManager::printLog()
             wprintw(log_wnd, _log.at(i));
             lines += strlen(_log.at(i)) / cols + 1;
         }
+        // wrefresh(log_wnd);
+    #endif
+}
+
+void ScreenManager::refreshAll()
+{
+    #ifdef HAVE_NCURSES
+        refresh();
         wrefresh(log_wnd);
     #endif
 }

@@ -143,6 +143,10 @@ protected:
      * placed
      */
     void printLog();
+
+    /** Call to refresh the output screen, useless if ncurses is not active.
+     */
+    void refreshAll();
 private:
 
     /// Last row where datas was printed (used to locate the registry position)
