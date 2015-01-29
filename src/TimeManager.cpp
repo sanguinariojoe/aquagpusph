@@ -37,12 +37,12 @@ TimeManager::TimeManager()
     : _step(NULL)
     , _time(NULL)
     , _dt(NULL)
-    , _frame(0)
+    , _frame(NULL)
     , _start_time(0.f)
     , _start_frame(0)
-    , _time_max(-1.f)
-    , _steps_max(-1)
-    , _frames_max(-1)
+    , _time_max(NULL)
+    , _steps_max(NULL)
+    , _frames_max(NULL)
     , _log_time(0.f)
     , _log_fps(-1.f)
     , _log_step(0)
@@ -52,54 +52,58 @@ TimeManager::TimeManager()
     , _output_step(0)
     , _output_ipf(-1)
 {
+    unsigned int i;
     char msg[1024];
     ProblemSetup *P = ProblemSetup::singleton();
     ScreenManager *S = ScreenManager::singleton();
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
 
     Variables* vars = C->variables();
-    if(strcmp(vars->get("iter")->type(), "unsigned int")){
-        sprintf(msg,
-                "Expected a variable \"%s\" of type \"%s\", but \"%s\" one was found\n",
-                "iter",
-                "unsigned int",
-                vars->get("iter")->type());
-        S->addMessageF(3, msg);
-        exit(EXIT_FAILURE);
+    // Check the variables validity
+    const unsigned int var_num = 7;
+    const char* var_names[var_num] = {"t",
+                                      "dt",
+                                      "iter",
+                                      "frame",
+                                      "end_t",
+                                      "end_iter",
+                                      "end_frame"};
+    const char* var_types[var_num] = {"float",
+                                      "float",
+                                      "unsigned int",
+                                      "unsigned int",
+                                      "float",
+                                      "unsigned int",
+                                      "unsigned int"};
+    for(i = 0; i < var_num; i++){
+        if(strcmp(vars->get(var_names[i])->type(), var_types[i])){
+            sprintf(msg,
+                    "Expected a variable \"%s\" of type \"%s\", but \"%s\" one was found\n",
+                    var_names[i],
+                    var_types[i],
+                    vars->get(var_names[i])->type());
+            S->addMessageF(3, msg);
+            exit(EXIT_FAILURE);
+        }
     }
-    _step = (unsigned int *)vars->get("iter")->get();
 
-    if(strcmp(vars->get("t")->type(), "float")){
-        sprintf(msg,
-                "Expected a variable \"%s\" of type \"%s\", but \"%s\" one was found\n",
-                "t",
-                "float",
-                vars->get("t")->type());
-        S->addMessageF(3, msg);
-        exit(EXIT_FAILURE);
-    }
     _time = (float *)vars->get("t")->get();
-
-    if(strcmp(vars->get("dt")->type(), "float")){
-        sprintf(msg,
-                "Expected a variable \"%s\" of type \"%s\", but \"%s\" one was found\n",
-                "dt",
-                "float",
-                vars->get("dt")->type());
-        S->addMessageF(3, msg);
-        exit(EXIT_FAILURE);
-    }
     _dt = (float *)vars->get("dt")->get();
+    _step = (unsigned int *)vars->get("iter")->get();
+    _frame = (unsigned int *)vars->get("frame")->get();
+    _time_max = (float *)vars->get("end_t")->get();
+    _steps_max = (unsigned int *)vars->get("end_iter")->get();
+    _frames_max = (unsigned int *)vars->get("end_frame")->get();
 
     unsigned int mode = P->time_opts.sim_end_mode;
     if(mode & __FRAME_MODE__) {
-        _frames_max = P->time_opts.sim_end_frame;
+        *_frames_max = P->time_opts.sim_end_frame;
     }
     if(mode & __ITER_MODE__) {
-        _steps_max = P->time_opts.sim_end_step;
+        *_steps_max = P->time_opts.sim_end_step;
     }
     if(mode & __TIME_MODE__) {
-        _time_max = P->time_opts.sim_end_time;
+        *_time_max = P->time_opts.sim_end_time;
     }
 
     mode = P->time_opts.log_mode;
@@ -130,7 +134,7 @@ TimeManager::TimeManager()
     *_dt = 0.f;
     *_time = 0.f;
     _start_time = 0.f;
-    _frame = 0;
+    *_frame = 0;
 
     if(*_time > 0.f){
         _log_time = *_time;
@@ -155,18 +159,18 @@ void TimeManager::update(float sim_dt)
 
 bool TimeManager::mustStop()
 {
-    if( (_time_max >= 0.f) && (time() >= _time_max) )
+    if(time() >= maxTime())
         return true;
-    if( (_steps_max >= 0) && (step() >= _steps_max) )
+    if(step() >= maxStep())
         return true;
-    if( (_frames_max >= 0) && (_frame >= _frames_max) )
+    if(frame() >= maxFrame())
         return true;
     return false;
 }
 
 bool TimeManager::mustPrintLog()
 {
-    if( ( (_log_fps >= 0.f) || (_log_ipf >= 0.f) ) && (_frame==1) && (step()==1) ) {
+    if( ( (_log_fps >= 0.f) || (_log_ipf >= 0.f) ) && (frame()==1) && (step()==1) ) {
         _log_time = time();
         _log_step = step();
         return true;
@@ -190,22 +194,22 @@ bool TimeManager::mustPrintOutput()
         step(0);
         return false;
     }
-    if( ( (_output_fps >= 0.f) || (_output_ipf >= 0.f) ) && (_frame==0) && (step()==1) ) {
+    if( ( (_output_fps >= 0.f) || (_output_ipf >= 0.f) ) && (frame()==0) && (step()==1) ) {
         _output_time = time();
         _output_step = step();
-        _frame++;
+        frame(frame() + 1);
         return true;
     }
     if( (_output_fps > 0.f) && (time() - _output_time >= 1.f/_output_fps) ) {
         _output_time += 1.f/_output_fps;
         _output_step = step();
-        _frame++;
+        frame(frame() + 1);
         return true;
     }
     if( (_output_ipf > 0) && (step() - _output_step >= _output_ipf) ) {
         _output_time = time();
         _output_step = step();
-        _frame++;
+        frame(frame() + 1);
         return true;
     }
     // We are interested into print an output in the simulation end state

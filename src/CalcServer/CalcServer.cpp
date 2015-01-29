@@ -101,6 +101,18 @@ CalcServer::CalcServer()
     sprintf(val, "%u", 0);
     if(_vars->registerVariable("iter", "unsigned int", len, val))
         exit(EXIT_FAILURE);
+    sprintf(val, "%u", 0);
+    if(_vars->registerVariable("frame", "unsigned int", len, val))
+        exit(EXIT_FAILURE);
+    sprintf(val, "%g", std::numeric_limits<float>::max());
+    if(_vars->registerVariable("end_t", "float", len, val))
+        exit(EXIT_FAILURE);
+    sprintf(val, "%u", std::numeric_limits<unsigned int>::max());
+    if(_vars->registerVariable("end_iter", "unsigned int", len, val))
+        exit(EXIT_FAILURE);
+    sprintf(val, "%u", std::numeric_limits<unsigned int>::max());
+    if(_vars->registerVariable("end_frame", "unsigned int", len, val))
+        exit(EXIT_FAILURE);
     sprintf(val, "%u", N);
     if(_vars->registerVariable("N", "unsigned int", len, val))
         exit(EXIT_FAILURE);

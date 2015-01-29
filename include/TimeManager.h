@@ -93,14 +93,14 @@ public:
      *
      * @param frame Simulation frame.
      */
-    void frame(unsigned int frame){_frame = frame;}
+    void frame(unsigned int frame){*_frame = frame;}
     /** @brief Get the simulation frame.
      *
      * The frame is the index of the current particles output.
      *
      * @return Simulation frame.
      */
-    unsigned int frame(){return _frame;}
+    unsigned int frame(){return *_frame;}
     /** @brief Set the simulation time step \f$ \Delta t \f$.
      * @param dt Simulation time step \f$ \Delta t \f$.
      */
@@ -160,11 +160,15 @@ public:
     /** @brief Get the total simulation time to compute.
      * @return Total simulation time to compute.
      */
-    float maxTime(){return _time_max;}
+    float maxTime(){return *_time_max;}
     /** @brief Get the number of frames to compute.
      * @return Number of frames to compute.
      */
-    int maxFrame(){return _frames_max;}
+    unsigned int maxStep(){return *_steps_max;}
+    /** @brief Get the number of frames to compute.
+     * @return Number of frames to compute.
+     */
+    unsigned int maxFrame(){return *_frames_max;}
 
 private:
     /// Actual step
@@ -174,17 +178,17 @@ private:
     /// Time step
     float *_dt;
     /// Actual frame
-    unsigned int _frame;
+    unsigned int *_frame;
     /// Start frame
     float _start_time;
     /// Start frame
     int _start_frame;
     /// Maximum time into simulation (-1 if simulation don't stop by time criteria)
-    float _time_max;
+    float *_time_max;
     /// Maximum number of steps into simulation (-1 if simulation don't stop by steps criteria)
-    int _steps_max;
+    unsigned int *_steps_max;
     /// Maximum number of frames into simulation (-1 if simulation don't stop by frames criteria)
-    int _frames_max;
+    unsigned int *_frames_max;
 
     /// Time when last log file printed
     float _log_time;
