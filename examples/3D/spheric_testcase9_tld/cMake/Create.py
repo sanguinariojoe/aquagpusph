@@ -38,7 +38,7 @@ import math
 
 g = 9.81
 hfac = 3.0
-cs = 45.0
+cs = 30.0
 courant = 0.2
 gamma = 7.0
 refd = 998.0
