@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <sphInput>
     <Reports>
-        <Report type="performance" name="Performance" color="green" bold="false"/>
+        <Report type="performance" name="Performance" color="green" bold="false" path="Performance.dat"/>
     </Reports>
 </sphInput>
  

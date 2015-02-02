@@ -59,7 +59,8 @@ public:
      */
     Performance(const char* tool_name,
                 const char* color="white",
-                bool bold=false);
+                bool bold=false,
+                const char* output_file="");
 
     /** @brief Destructor
      */
@@ -86,6 +87,10 @@ private:
     char *_color;
     /// Output bold or normal flag
     bool _bold;
+    /// Output file name
+    char *_output_file;
+    /// Output file handler
+    FILE *_f;
 };
 
 }}} // namespace

@@ -966,6 +966,12 @@ bool State::parseReports(DOMElement *root)
                 else{
                     report->set("color", "white");
                 }
+                if(xmlHasAttribute(s_elem, "path")){
+                    report->set("path", xmlAttribute(s_elem, "path"));
+                }
+                else{
+                    report->set("path", "");
+                }
             }
             else{
                 sprintf(msg,

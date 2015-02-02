@@ -337,7 +337,8 @@ CalcServer::CalcServer()
             Reports::Performance *tool = new Reports::Performance(
                 P->reports.at(i)->get("name"),
                 P->reports.at(i)->get("color"),
-                bold);
+                bold,
+                P->reports.at(i)->get("path"));
             _tools.push_back(tool);
         }
         else{

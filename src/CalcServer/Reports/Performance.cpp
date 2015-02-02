@@ -29,18 +29,25 @@ namespace Aqua{ namespace CalcServer{ namespace Reports{
 
 Performance::Performance(const char* tool_name,
                          const char* color,
-                         bool bold)
+                         bool bold,
+                         const char* output_file)
     : Report(tool_name, "dummy_fields_string")
     , _color(NULL)
     , _bold(bold)
+    , _output_file(NULL)
+    , _f(NULL)
 {
     _color = new char[strlen(color) + 1];
     strcpy(_color, color);
+    _output_file = new char[strlen(output_file) + 1];
+    strcpy(_output_file, output_file);
 }
 
 Performance::~Performance()
 {
     if(_color) delete[] _color; _color=NULL;
+    if(_output_file) delete[] _output_file; _output_file=NULL;
+    if(_f) fclose(_f); _f = NULL;
 }
 
 bool Performance::setup()
@@ -57,6 +64,21 @@ bool Performance::setup()
     // Set the color in lowercase
     for(i = 0; i < strlen(_color); i++){
         _color[i] = tolower(_color[i]);
+    }
+
+    // Open the output file
+    if(strcmp(_output_file, "")){
+        _f = fopen(_output_file, "w");
+        if(!_f){
+            sprintf(msg,
+                    "The file \"%s\" cannot be written\n",
+                    _output_file);
+            S->addMessageF(3, msg);
+            return true;
+        }
+        // Write the header
+        fprintf(_f,
+                "# t elapsed average(elapsed) variance(elapsed) progress ETA\n");
     }
 
     return false;
@@ -94,12 +116,14 @@ bool Performance::_execute()
     // Add the tools time elapsed
     std::deque<Tool*> tools = C->tools();
     float elapsed = 0.f;
+    float elapsed_ave = 0.f;
     float elapsed_var = 0.f;
     for(i = 0; i < tools.size(); i++){
-        elapsed += tools.at(i)->elapsedTime();
+        elapsed += tools.at(i)->elapsedTime(false);
+        elapsed_ave += tools.at(i)->elapsedTime();
         elapsed_var += tools.at(i)->elapsedTimeDeviation();
     }
-    sprintf(data, "%sElapsed=%16gs (+-%16gs)\n", data, elapsed, elapsed_var);
+    sprintf(data, "%sElapsed=%16gs (+-%16gs)\n", data, elapsed_ave, elapsed_var);
 
     // Compute the progress
     InputOutput::Variables* vars = C->variables();
@@ -115,7 +139,7 @@ bool Performance::_execute()
     progress = max(progress, (float)frame / end_frame);
 
     // And the estimated time to arrive
-    float total_elapsed = elapsed * iter;
+    float total_elapsed = elapsed_ave * iter;
     float ETA = total_elapsed * (1.f / progress - 1.f);
 
     sprintf(data,
@@ -124,12 +148,22 @@ bool Performance::_execute()
             progress * 100.f,
             ETA);
 
-
     // Replace the trailing space by a line break
     if(data[strlen(data) - 1] == ' ')
         data[strlen(data) - 1] = '\n';
 
     S->writeReport(data, _color, _bold);
+
+    // Write the output file
+    if(_f){
+        fprintf(_f, "%16g %16g %16g %16g %16.2f %16g\n", t,
+                                                         elapsed,
+                                                         elapsed_ave,
+                                                         elapsed_var,
+                                                         progress * 100.f,
+                                                         ETA);
+    }
+
     return false;
 }
 
