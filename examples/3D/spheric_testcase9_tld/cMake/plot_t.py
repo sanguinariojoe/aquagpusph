@@ -61,6 +61,11 @@ class FigureController(FigureCanvas):
         e = [0.0]
         self.line, = self.ax.plot(t,
                                   e,
+                                  color="0.7",
+                                  linestyle="-",
+                                  linewidth=1.0)
+        self.lave, = self.ax.plot(t,
+                                  e,
                                   color="black",
                                   linestyle="-",
                                   linewidth=1.0)
@@ -123,6 +128,7 @@ class FigureController(FigureCanvas):
         e_max = [e_ave[i] + e_var[i] for i in range(len(e_ave))]
         e_min = [e_ave[i] - e_var[i] for i in range(len(e_ave))]
         self.line.set_data(t, e)
+        self.lave.set_data(t, e_ave)
         self.lmin.set_data(t, e_min)
         self.lmax.set_data(t, e_max)
 
