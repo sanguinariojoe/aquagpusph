@@ -29,215 +29,118 @@
 #
 #########################################################################
 
-import math
 import numpy as np
+import os.path as path
 import aquagpusph as aqua
 
 
-D = 0.062  # Tank width
-g = 9.81   # Gravity acceleration [m/s2]
-I0 = 26.9   # Polar moment of inertia [kg m2]
-m = 4.978  # Moving mass weight [kg]
-Sg = -29.2  # Satic moment of the rigid system [kg m]
-Kdf = 0.540  # Dry friction damping coefficient 
-Bphi = 0.326  # Linear damping coefficient
+D = np.float32(0.062)  # Tank width
+g = np.float32(9.81)   # Gravity acceleration [m/s2]
+I0 = np.float32(26.9)   # Polar moment of inertia [kg m2]
+m = np.float32(4.978)  # Moving mass weight [kg]
+Sg = np.float32(-29.2)  # Satic moment of the rigid system [kg m]
+Kdf = np.float32(0.540)  # Dry friction damping coefficient 
+Bphi = np.float32(0.326)  # Linear damping coefficient
 
-# Read the experimental data
-data = []
-f = open('@EXAMPLE_DEST_DIR@/T_1-94_A100mm_water.dat', 'r')
+FNAME = path.join('@EXAMPLE_DEST_DIR@', 'T_1-94_A100mm_water.dat')
+# We must skip the column zero, which is empty due to the heading space of each
+# file line
+T,XI,DXI,DDXI,THETA,DTHETA,DDTHETA = np.loadtxt(
+    FNAME, delimiter=' ', skiprows=2, usecols=list(range(1, 8)), unpack=True)
 
-# Discard header lines
-line = f.readline()
-line = f.readline()
-n = 0
-line = f.readline()
-while(line):
-    data.append([])
-    words = line.strip().split(' ')
-    for i in range(0,len(words)):
-        data[n].append(float(words[i]))
-    n = n+1
-    line = f.readline()
-f.close()
-lineID = 0
-
-# Starting mass motion data
-Xi = data[0][1]
-dXi = data[0][2]
 # Starting Tank motion data
-Theta = 0.0
-dTheta = 0.0
-ddTheta = 0.0
-DT = 0.0
-
-# Filter data
-dThetaList = []
-SMOOTH_WINDOW = 11
+Theta = np.float32(0.0)
+dTheta = np.float32(0.0)
+ddTheta = np.float32(0.0)
+DT = np.float32(0.0)
 
 # Open the output file
-f = open('Motion.dat', 'w')
+F = open('Motion.dat', 'w')
 
 
-def quit():
-    """ Close the output file.
-    """
-    global f
-    f.close()
-
-
-def damping():
+def damping(dTheta):
     """ Compute the tank structural damping moment.
-    @return Tank structural damping moment.
+    Params:
+        dTheta: Angle time derivative dTheta/dt
+    Returns:
+        Tank structural damping moment.
     """
-    global dTheta
     return -Kdf * np.sign(dTheta) - Bphi * dTheta
 
 
-def angularForce(M):
+def angularForce(M, xi, dXi, theta, dTheta):
     """ Compute the tank angular acceleration.
-    @param M Measured fluid moment.
-    @return Tank angular acceleration.
+    Params:
+        xi: Mass position
+        dXi: Mass position time derivative dXi/dt
+        theta: Tank angle
+        dTheta: Tank angle time derivative dTheta/dt
+    Returns:
+        Tank angular acceleration ddTheta/dt.
     """
-    global Xi
-    global dXi
-    global Theta
-    global dTheta
-    Mdamp = damping()
-    xi = Xi
-    dxi = dXi
-    K0 = I0 + m*xi*xi  # ddTheta term
-    K1 = 2.0*m*xi*dxi  # dTheta term
-    K2 = -g*Sg         # sin(Theta) term
-    K3 = m*g*xi        # Independent term
-    return (Mdamp + M - K1 * dTheta - K2 * math.sin(Theta) - K3 * math.cos(Theta)) / K0
+    Mdamp = damping(dTheta)
+    k0 = I0 + m*xi*xi  # ddTheta term
+    k1 = 2.0*m*xi*dXi  # dTheta term
+    k2 = -g*Sg         # sin(theta) term
+    k3 = m*g*xi        # Independent term
+    return (Mdamp + M - k1 * dTheta - k2 * np.sin(theta) - k3 * np.cos(theta)) / k0
 
 
-def predictor():
+def predictor(dx, y, dy, ddy):
     """ Performs predictor Leap-Frog stage.
+    Params:
+        dx: Integration step
+        y: Current function value
+        dy: Current function derivative dy/dx
+        ddy: Current function second derivative ddy/ddx
     """
-    global DT
-    global Theta
-    global dTheta
-    global ddTheta
-    dTheta = dTheta + DT * ddTheta;
-    Theta = Theta  + DT * dTheta + 0.5 * DT * DT * ddTheta;
+    dy += dx * ddy
+    y += dx * dy + 0.5 * dx * dx * ddy
+    return y, dy
 
 
-def corrector(dt, old):
-    """ Performs predictor Leap-Frog stage.
-    @param dt Time step
-    @param old Previous ddTheta value
+def corrector(dx, dy, ddy, ddy_in):
+    """ Performs corrector Leap-Frog stage.
+    Params:
+        dx: Integration step
+        y: Current function value
+        dy: Current function derivative dy/dx
+        ddy: Current function second derivative ddy/ddx
+        ddy_in: Second derivative from the previous step
     """
-    global DT
-    global dTheta
-    global ddTheta
-    DT = dt
-    dTheta = dTheta + 0.5 * DT * (ddTheta - old);
-
-
-def smooth(x, window_len=11, window='hanning'):
-    """smooth the data using a window with requested size.
-    
-    This method is based on the convolution of a scaled window with the signal.
-    The signal is prepared by introducing reflected copies of the signal 
-    (with the window size) in both ends so that transient parts are minimized
-    in the begining and end part of the output signal.
-    
-    input:
-        x: the input signal 
-        window_len: the dimension of the smoothing window; should be an odd integer
-        window: the type of window from 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'
-            flat window will produce a moving average smoothing.
-
-    output:
-        the smoothed signal
-        
-    example:
-
-    t=linspace(-2,2,0.1)
-    x=sin(t)+randn(len(t))*0.1
-    y=smooth(x)
-    
-    see also: 
-    
-    numpy.hanning, numpy.hamming, numpy.bartlett, numpy.blackman, numpy.convolve
-    scipy.signal.lfilter
- 
-    TODO: the window parameter could be the window itself if an array instead of a string
-    NOTE: length(output) != length(input), to correct this: return y[(window_len/2-1):-(window_len/2)] instead of just y.
-    """
-
-    xx = np.asarray(x)
-
-    if xx.ndim != 1:
-        raise ValueError("smooth only accepts 1 dimension arrays.")
-    if xx.size < window_len:
-        raise ValueError("Input vector needs to be bigger than window size.")
-    if window_len < 3:
-        return xx
-
-    if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
-        raise ValueError("Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
-
-    s=np.r_[xx[window_len-1:0:-1], xx, xx[-1:-window_len:-1]]
-    #print(len(s))
-    if window == 'flat': #moving average
-        w = np.ones(window_len, 'd')
-    else:
-        w = eval('np.' + window + '(window_len)')
-
-    y = np.convolve(w / w.sum(), s, mode='valid')
-    return y
+    dy += 0.5 * DT * (ddy - ddy_in);
+    return dy
 
 
 def main():
-    # Leap-frog Predictor
-    predictor()
+    global DT, Theta, dTheta, ddTheta, F
+    ddTheta_in = ddTheta  # Backup for the predictor-corrector
+    # Predictor
+    Theta, dTheta = predictor(DT, Theta, dTheta, ddTheta)
     # Get the new time and time step
     t = aqua.get("t")
     dt = aqua.get("dt")
-    # Get new mass position
-    global lineID
-    global data
-    global Xi
-    global dXi
-    while(t >= data[lineID][0]):
-        lineID = lineID + 1
-    factor = (data[lineID][0] - t) / (data[lineID][0] - data[lineID-1][0])
-    Xi = (1.0 - factor)*data[lineID][1] + factor * data[lineID-1][1]
-    dXi = (1.0 - factor)*data[lineID][2] + factor * data[lineID-1][2]
-    # Get the experimentally obtained angle data
-    exp_angle = (1.0 - factor) * data[lineID][4] + factor * data[lineID - 1][4]
-    # Calculate ddTheta
-    global ddTheta
-    old = ddTheta
+    # Get new mass position (and experimental resulting angle)
+    xi = np.interp(t, T, XI)
+    dXi = np.interp(t, T, DXI)
+    exp_theta = np.interp(t, T, THETA)
+    # Compute ddTheta
     M = aqua.get("forces_M")[2] * D
-    ddTheta = angularForce(M)
-    # Leap-frog Corrector
-    corrector(dt, old)
-    # Set the rotation angle. The angle is coming from a double integration
-    # process, so it may be considered smooth enough.
-    global Theta
+    ddTheta = angularForce(M, xi, dXi, Theta, dTheta)
+    # Corrector
+    dTheta = corrector(dt, dTheta, ddTheta, ddTheta_in)
+    DT = dt  # Store it for the predictor in the following time step
+    # Send the data to SPH
     a = np.zeros(4, dtype=np.float32)
     a[2] = Theta
     aqua.set("motion_a", a)
-    # Set the rotation velocity. The rotation velocity should be filtered due
-    # to the large noise, which may ruin the simulation.
-    global dTheta
-    global dThetaList
-    dThetaList.append(dTheta)
     dadt = np.zeros(4, dtype=np.float32)
-    if len(dThetaList) < SMOOTH_WINDOW:
-        dadt[2] = dTheta
-    else:
-        dadt[2] = smooth(dThetaList, SMOOTH_WINDOW)[-1]
-        dThetaList[-SMOOTH_WINDOW:]
+    dadt[2] = dTheta
     aqua.set("motion_dadt", dadt)
     # Write output
-    global f
-    f.write('{}\t{}\t{}\t{}\t{}\t{}\n'.format(
-        t, Xi, exp_angle,
-        math.degrees(a[2]), math.degrees(dadt[2]),
+    F.write('{}\t{}\t{}\t{}\t{}\t{}\n'.format(
+        t, xi, exp_theta,
+        np.degrees(a[2]), np.degrees(dadt[2]),
         M))
-    f.flush()
+    F.flush()
     return True
