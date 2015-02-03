@@ -62,7 +62,7 @@
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r} \f$.
- * @param v Velocity \f$ \mathbf{u} \f$.
+ * @param u Velocity \f$ \mathbf{u} \f$.
  * @param N Number of particles.
  * @param motion_r Center of rotation.
  * @param motion_drdt Center of rotation velocity.
@@ -73,7 +73,7 @@
  */
 __kernel void main(const __global int* imove,
                    __global vec* r,
-                   __global vec* v,
+                   __global vec* u,
                    unsigned int N,
                    vec motion_r,
                    vec motion_drdt,
@@ -88,7 +88,7 @@ __kernel void main(const __global int* imove,
         return;
 
     const vec r_i = r[i];
-    vec v1, v2, v3, vv;
+    vec u1, u2, u3, uu;
 
     const float cphi = cos(motion_a.x);
     const float sphi = sin(motion_a.x);
@@ -101,64 +101,64 @@ __kernel void main(const __global int* imove,
     const float dpsidt = motion_dadt.z;
 
     //---------------------------------------------
-    // Compute v1 (acceleration along z)
+    // Compute u1 (acceleration along z)
     //---------------------------------------------
-    v1 = r_i;
+    u1 = r_i;
     #ifdef HAVE_3D
-        v1.z = 0.f;
-        vv = v1;
+        u1.z = 0.f;
+        uu = u1;
         // Rotate along x
-        v1.y = cphi * vv.y - sphi * vv.z;
+        u1.y = cphi * uu.y - sphi * uu.z;
         // Rotate along y
-        vv = v1;
-        v1.x = ctheta * vv.x + stheta * vv.z;
+        uu = u1;
+        u1.x = ctheta * uu.x + stheta * uu.z;
     #endif
     // Rotate along z
-    vv = v1;
-    v1.x = dpsidt * (-spsi * vv.x - cpsi * vv.y);
-    v1.y = dpsidt * (cpsi * vv.x - spsi * vv.y);
+    uu = u1;
+    u1.x = dpsidt * (-spsi * uu.x - cpsi * uu.y);
+    u1.y = dpsidt * (cpsi * uu.x - spsi * uu.y);
 
     //---------------------------------------------
-    // Compute v2 (acceleration along y)
+    // Compute u2 (acceleration along y)
     //---------------------------------------------
     #ifdef HAVE_3D
-        v2 = r_i;
-        v2.y = 0.f;
-        vv = v2;
+        u2 = r_i;
+        u2.y = 0.f;
+        uu = u2;
         // Rotate along x
-        v2.z = sphi * vv.y + cphi * vv.z;
+        u2.z = sphi * uu.y + cphi * uu.z;
         // Rotate along y
-        vv = v2;
-        v2.x = dthetadt * (-stheta * vv.x + ctheta * vv.z);
-        v2.z = dthetadt * (-ctheta * vv.x - stheta * vv.z);
+        uu = u2;
+        u2.x = dthetadt * (-stheta * uu.x + ctheta * uu.z);
+        u2.z = dthetadt * (-ctheta * uu.x - stheta * uu.z);
         // Rotate along z
-        vv = v2;
-        v2.x = cpsi * vv.x - spsi * vv.y;
+        uu = u2;
+        u2.x = cpsi * uu.x - spsi * uu.y;
     #else
-        v2 = VEC_ZERO;
+        u2 = VEC_ZERO;
     #endif
 
     //---------------------------------------------
-    // Compute v3 (acceleration along x)
+    // Compute u3 (acceleration along x)
     //---------------------------------------------
     #ifdef HAVE_3D
-        v3 = r_i;
-        v3.x = 0.f;
-        vv = v3;
+        u3 = r_i;
+        u3.x = 0.f;
+        uu = u3;
         // Rotate along x
-        v3.y = dphidt * (-sphi * vv.y - cphi * vv.z);
-        v3.z = dphidt * (cphi * vv.y - sphi * vv.z);
+        u3.y = dphidt * (-sphi * uu.y - cphi * uu.z);
+        u3.z = dphidt * (cphi * uu.y - sphi * uu.z);
         // Rotate along y
-        vv = v3;
-        v3.z = -stheta * vv.x + ctheta * vv.z;
+        uu = u3;
+        u3.z = -stheta * uu.x + ctheta * uu.z;
         // Rotate along z
-        vv = v3;
-        v3.y = spsi * vv.x + cpsi * vv.y;
+        uu = u3;
+        u3.y = spsi * uu.x + cpsi * uu.y;
     #else
-        v3 = VEC_ZERO;
+        u3 = VEC_ZERO;
     #endif
 
     // COR velocity
-    v[i] = v1 + v2 + v3 + motion_drdt;
+    u[i] = u1 + u2 + u3 + motion_drdt;
 }
 

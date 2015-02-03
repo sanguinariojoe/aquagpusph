@@ -69,8 +69,8 @@
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r} \f$.
  * @param normal Normal \f$ \mathbf{n} \f$.
- * @param v Velocity \f$ \mathbf{u} \f$.
- * @param dvdt Velocity rate of change
+ * @param u Velocity \f$ \mathbf{u} \f$.
+ * @param dudt Velocity rate of change
  * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n+1} \f$.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
@@ -82,8 +82,8 @@
 __kernel void main(const __global int* imove,
                    const __global vec* r,
                    const __global vec* normal,
-                   __global vec* v,
-                   __global vec* dvdt,
+                   __global vec* u,
+                   __global vec* dudt,
                    // Link-list data
                    __global uint *icell,
                    __global uint *ihoc,
@@ -103,8 +103,8 @@ __kernel void main(const __global int* imove,
     const float R = __DR_FACTOR__ * dr;
     const uint c_i = icell[i];
     const vec_xyz r_i = r[i].XYZ;
-    vec_xyz v_i = v[i].XYZ;
-    vec_xyz dvdt_i = dvdt[i].XYZ;
+    vec_xyz u_i = u[i].XYZ;
+    vec_xyz dudt_i = dudt[i].XYZ;
 
     // Loop over neighs
     // ================

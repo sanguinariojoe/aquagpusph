@@ -58,15 +58,15 @@
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r}_{n+1/2} \f$.
- * @param v Velocity \f$ \mathbf{u}_{n+1/2} \f$.
- * @param dvdt Velocity rate of change
+ * @param u Velocity \f$ \mathbf{u}_{n+1/2} \f$.
+ * @param dudt Velocity rate of change
  * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n+1/2} \f$.
  * @param rho Density \f$ \rho_{n+1/2} \f$.
  * @param drhodt Density rate of change
  * \f$ \left. \frac{d \rho}{d t} \right\vert_{n+1/2} \f$.
  * @param r_in Position \f$ \mathbf{r}_{n} \f$.
- * @param v_in Velocity \f$ \mathbf{u}_{n} \f$.
- * @param dvdt_in Velocity rate of change
+ * @param u_in Velocity \f$ \mathbf{u}_{n} \f$.
+ * @param dudt_in Velocity rate of change
  * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n-1/2} \f$.
  * @param rho_in Density \f$ \rho_{n} \f$.
  * @param drhodt_in Density rate of change
@@ -78,13 +78,13 @@
 __kernel void main(__global int* imove,
                    __global unsigned int* iset,
                    __global vec* r,
-                   __global vec* v,
-                   __global vec* dvdt,
+                   __global vec* u,
+                   __global vec* dudt,
                    __global float* rho,
                    __global float* drhodt,
                    __global vec* r_in,
-                   __global vec* v_in,
-                   __global vec* dvdt_in,
+                   __global vec* u_in,
+                   __global vec* dudt_in,
                    __global float* rho_in,
                    __global float* drhodt_in,
                    unsigned int N,
@@ -102,7 +102,7 @@ __kernel void main(__global int* imove,
     HDT = 0.5f * DT;
 
     // Corrector step for the fluid
-    v[i] += HDT * (dvdt[i] - dvdt_in[i]);
+    u[i] += HDT * (dudt[i] - dudt_in[i]);
     if(imove[i] == -1){
         // Continuity equation must be solved for fixed particles too
         HDT = 0.5f * dt;
@@ -110,8 +110,8 @@ __kernel void main(__global int* imove,
     rho[i] += HDT * (drhodt[i] - drhodt_in[i]);
 
     r_in[i] = r[i];
-    v_in[i] = v[i];
+    u_in[i] = u[i];
     rho_in[i] = rho[i];
-    dvdt_in[i] = dvdt[i];
+    dudt_in[i] = dudt[i];
     drhodt_in[i] = drhodt[i];
 }

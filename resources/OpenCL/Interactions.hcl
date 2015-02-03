@@ -49,11 +49,11 @@ const float prfac = prfac_i + p_j / (rho_j * rho_j);
 //---------------------------------------------------------------
 //       calculate viscosity terms
 //---------------------------------------------------------------
-const float vdr = dot(v[j].XYZ - v_i, r_ij);
+const float udr = dot(u[j].XYZ - u_i, r_ij);
 float lapufac = 0.f;
 if(move_j > 0){
     const float r2 = (q * q + 0.01f) * H * H;
-    lapufac = __CLEARY__ * vdr / (r2 * rho_i * rho_j);
+    lapufac = __CLEARY__ * udr / (r2 * rho_i * rho_j);
 }
 //---------------------------------------------------------------
 //     Momentum equation (grad(p)/rho and lap(u)/rho)
@@ -63,7 +63,7 @@ _LAPU_ += r_ij * f_ij * lapufac;
 //---------------------------------------------------------------
 //     Conserving mass equation (rho*div(u))
 //---------------------------------------------------------------
-_DIVU_ += vdr * f_ij;
+_DIVU_ += udr * f_ij;
 //---------------------------------------------------------------
 //     Density diffusion term (lap(p))
 //---------------------------------------------------------------

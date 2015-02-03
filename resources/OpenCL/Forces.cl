@@ -44,7 +44,7 @@
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r} \f$.
- * @param dvdt Velocity rate of change
+ * @param dudt Velocity rate of change
  * \f$ \frac{d \mathbf{u}}{d t} \f$.
  * @param m Mass \f$ m \f$.
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
@@ -55,7 +55,7 @@ __kernel void main(__global vec* forces_f,
                    __global vec4* forces_m,
                    __global int* imove,
                    __global vec* r,
-                   __global vec* dvdt,
+                   __global vec* dudt,
                    __global float* m,
                    unsigned int N,
                    vec g,
@@ -72,7 +72,7 @@ __kernel void main(__global vec* forces_f,
     }
 
     const vec arm = r[i] - forces_r;
-    const vec acc = g - dvdt[i];
+    const vec acc = g - dudt[i];
     const float mass = m[i];
     forces_f[i] = mass * acc;
     forces_m[i].z = mass * (arm.x * acc.y - arm.y * acc.x);

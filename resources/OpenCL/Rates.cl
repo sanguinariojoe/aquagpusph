@@ -52,7 +52,7 @@
  * @param shepard Shepard term
  * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
  *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{x} \f$.
- * @param dvdt Velocity rate of change
+ * @param dudt Velocity rate of change
  * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n+1} \f$.
  * @param drhodt Density rate of change
  * \f$ \left. \frac{d \rho}{d t} \right\vert_{n+1} \f$.
@@ -71,7 +71,7 @@ __kernel void main(const __global uint* iset,
                    const __global float* div_u,
                    const __global float* lap_p,
                    const __global float* shepard,
-                   __global vec* dvdt,
+                   __global vec* dudt,
                    __global float* drhodt,
                    __constant float* visc_dyn,
                    __constant float* delta,
@@ -90,7 +90,7 @@ __kernel void main(const __global uint* iset,
     const float delta_f = delta[set_i] * dt * rho[i] / refd[set_i];
 
     // Momentum equation
-    dvdt[i] = (-grad_p[i] + visc_dyn[set_i] * lap_u[i]) / shepard[i] + g;
+    dudt[i] = (-grad_p[i] + visc_dyn[set_i] * lap_u[i]) / shepard[i] + g;
     // Conservation of mass equation
     drhodt[i] = -div_u[i] + delta_f * lap_p[i];
 }

@@ -53,7 +53,7 @@
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
  * @param iset Set of particles index.
- * @param v Velocity \f$ \mathbf{u} \f$.
+ * @param u Velocity \f$ \mathbf{u} \f$.
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
  * @param p Pressure \f$ p \f$.
@@ -64,7 +64,7 @@
  * @param shepard Shepard term
  * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
  *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{x} \f$.
- * @param dvdt Velocity rate of change
+ * @param dudt Velocity rate of change
  * \f$ \frac{d \mathbf{u}}{d t} \f$.
  * @param drhodt Density rate of change
  * \f$ \frac{d \rho}{d t} \f$.
@@ -81,7 +81,7 @@ __kernel void main(__global float* energy_dsdt,
                    __global float* energy_dwdt,
                    const __global int* imove,
                    const __global int* iset,
-                   const __global vec* v,
+                   const __global vec* u,
                    const __global float* rho,
                    const __global float* m,
                    const __global float* p,
@@ -90,7 +90,7 @@ __kernel void main(__global float* energy_dsdt,
                    const __global float* div_u,
                    const __global float* lap_p,
                    const __global float* shepard,
-                   const __global vec* dvdt,
+                   const __global vec* dudt,
                    const __global float* drhodt,
                    __constant float* visc_dyn,
                    __constant float* delta,
@@ -117,10 +117,10 @@ __kernel void main(__global float* energy_dsdt,
     const float vol = mass / dens;
     const float set = iset[i];
 
-    energy_dsdt[i] = -vol * (visc_dyn[set] * dot(v[i], lap_u[i])
+    energy_dsdt[i] = -vol * (visc_dyn[set] * dot(u[i], lap_u[i])
                      + delta[set] * refd[set] * dt * press * lap_p);
-    energy_dekindt[i] = mass * dot(v[i], dvdt[i]);
-    energy_depotdt[i] = -mass * dot(g[i], v[i]);
-    energy_dwdt[i] = -vol * (dot(grad_p[i], v[i])
+    energy_dekindt[i] = mass * dot(u[i], dudt[i]);
+    energy_depotdt[i] = -mass * dot(g[i], u[i]);
+    energy_dwdt[i] = -vol * (dot(grad_p[i], u[i])
                      + press * div_u[i]);
 }

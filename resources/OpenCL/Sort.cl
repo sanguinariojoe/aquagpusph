@@ -42,11 +42,11 @@
  * @param r Sorted position \f$ \mathbf{r} \f$.
  * @param normal_in Unsorted normal \f$ \mathbf{n} \f$.
  * @param normal Sorted normal \f$ \mathbf{n} \f$.
- * @param v_in Unsorted velocity \f$ \mathbf{u} \f$.
- * @param v Sorted velocity \f$ \mathbf{u} \f$.
- * @param dvdt_in Unsorted velocity rate of change
+ * @param u_in Unsorted velocity \f$ \mathbf{u} \f$.
+ * @param u Sorted velocity \f$ \mathbf{u} \f$.
+ * @param dudt_in Unsorted velocity rate of change
  * \f$ \frac{d \mathbf{u}}{d t} \f$.
- * @param dvdt Sorted velocity rate of change
+ * @param dudt Sorted velocity rate of change
  * \f$ \frac{d \mathbf{u}}{d t} \f$.
  * @param rho_in Unsorted density \f$ \rho \f$.
  * @param rho Sorted density \f$ \rho \f$.
@@ -65,8 +65,8 @@ __kernel void main(__global uint *id_in, __global uint *id,
                    __global int *imove_in, __global int *imove,
                    __global vec *r_in, __global vec *r,
                    __global vec *normal_in, __global vec *normal,
-                   __global vec *v_in, __global vec *v,
-                   __global vec *dvdt_in, __global vec *dvdt,
+                   __global vec *u_in, __global vec *u,
+                   __global vec *dudt_in, __global vec *dudt,
                    __global float *rho_in, __global float *rho,
                    __global float *drhodt_in, __global float *drhodt,
                    __global float *p_in, __global float *p,
@@ -85,8 +85,8 @@ __kernel void main(__global uint *id_in, __global uint *id,
     imove[i_out] = imove_in[i];
     r[i_out] = r_in[i];
     normal[i_out] = normal_in[i];
-    v[i_out] = v_in[i];
-    dvdt[i_out] = dvdt_in[i];
+    u[i_out] = u_in[i];
+    dudt[i_out] = dudt_in[i];
     rho[i_out] = rho_in[i];
     drhodt[i_out] = drhodt_in[i];
     p[i_out] = p_in[i];

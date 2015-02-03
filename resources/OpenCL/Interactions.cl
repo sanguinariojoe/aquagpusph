@@ -46,7 +46,7 @@
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r} \f$.
- * @param v Velocity \f$ \mathbf{u} \f$.
+ * @param u Velocity \f$ \mathbf{u} \f$.
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
  * @param p Pressure \f$ p \f$.
@@ -67,7 +67,7 @@
 __kernel void main(const __global uint* iset,
                    const __global int* imove,
                    const __global vec* r,
-                   const __global vec* v,
+                   const __global vec* u,
                    const __global float* rho,
                    const __global float* m,
                    const __global float* p,
@@ -93,7 +93,7 @@ __kernel void main(const __global uint* iset,
     const uint c_i = icell[i];
     const int move_i = imove[i];
     const vec_xyz r_i = r[i].XYZ;
-    const vec_xyz v_i = v[i].XYZ;
+    const vec_xyz u_i = u[i].XYZ;
     const float p_i = p[i];
     const float rho_i = rho[i];
     const float refd_i = refd[iset[i]];

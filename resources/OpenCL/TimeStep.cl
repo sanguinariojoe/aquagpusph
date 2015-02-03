@@ -29,8 +29,8 @@
 /** @brief Compute the maximum time step for each particle.
  * @param dt_var Variable time step \f$ \mathrm{min} \left(
  * C_f \frac{h}{c_s}, C_f \frac{h}{10 \vert \mathbf{u} \vert}\right)\f$.
- * @param v Velocity \f$ \mathbf{u}_{n+1/2} \f$.
- * @param dvdt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
+ * @param u Velocity \f$ \mathbf{u}_{n+1/2} \f$.
+ * @param dudt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
  * @param N Number of particles.
  * @param dt Fixed time step \f$ \Delta t = C_f \frac{h}{c_s} \f$.
  * @param dt_min Minimum time step \f$ \Delta t_{\mathrm{min}} \f$.
@@ -38,8 +38,8 @@
  * @param h Kernel characteristic length \f$ h \f$.
  */
 __kernel void main(__global float* dt_var,
-                   __global vec* v,
-                   __global vec* dvdt,
+                   __global vec* u,
+                   __global vec* dudt,
                    unsigned int N,
                    float dt,
                    float dt_min,
@@ -50,6 +50,6 @@ __kernel void main(__global float* dt_var,
     if(i >= N)
         return;
 
-    const float vv = 10.f * fast_length(v[i] + dvdt[i] * dt);
-    dt_var[i] = max(min(dt, h / vv), dt_min);
+    const float uu = 10.f * fast_length(u[i] + dudt[i] * dt);
+    dt_var[i] = max(min(dt, h / uu), dt_min);
 }

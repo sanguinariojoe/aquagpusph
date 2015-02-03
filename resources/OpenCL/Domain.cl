@@ -32,8 +32,8 @@
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r} \f$.
- * @param v Velocity \f$ \mathbf{u} \f$.
- * @param dvdt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
+ * @param u Velocity \f$ \mathbf{u} \f$.
+ * @param dudt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
  * @param m Mass \f$ m \f$.
  * @param N Number of particles.
  * @param domain_min Minimum point of the domain.
@@ -41,8 +41,8 @@
  */
 __kernel void main(__global int* imove,
                    __global vec* r,
-                   __global vec* v,
-                   __global vec* dvdt,
+                   __global vec* u,
+                   __global vec* dudt,
                    __global float* m,
                    uint N,
                    vec domain_min,
@@ -68,8 +68,8 @@ __kernel void main(__global int* imove,
         imove[i] = 0;
         m[i] = 0.f;
         // Stop the particle
-        v[i] = VEC_ZERO;
-        dvdt[i] = VEC_ZERO;
+        u[i] = VEC_ZERO;
+        dudt[i] = VEC_ZERO;
         // Clamp the position
         r[i].x = max(r[i].x, domain_min.x);
         r[i].x = min(r[i].x, domain_max.x);

@@ -60,15 +60,15 @@
  *   - imove < 0 for boundary elements/particles.
  * @param iset Set of particles index.
  * @param r Position \f$ \mathbf{r}_{n+1} \f$.
- * @param v Velocity \f$ \mathbf{u}_{n+1} \f$.
- * @param dvdt Velocity rate of change
+ * @param u Velocity \f$ \mathbf{u}_{n+1} \f$.
+ * @param dudt Velocity rate of change
  * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n+1} \f$.
  * @param rho Density \f$ \rho_{n+1} \f$.
  * @param drhodt Density rate of change
  * \f$ \left. \frac{d \rho}{d t} \right\vert_{n+1} \f$.
  * @param r_in Position \f$ \mathbf{r}_{n+1/2} \f$.
- * @param v_in Velocity \f$ \mathbf{u}_{n+1/2} \f$.
- * @param dvdt_in Velocity rate of change
+ * @param u_in Velocity \f$ \mathbf{u}_{n+1/2} \f$.
+ * @param dudt_in Velocity rate of change
  * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n+1/2} \f$.
  * @param rho_in Density \f$ \rho_{n+1/2} \f$.
  * @param drhodt_in Density rate of change
@@ -88,13 +88,13 @@
 __kernel void main(__global int* imove,
                    __global unsigned int* iset,
                    __global vec* r,
-                   __global vec* v,
-                   __global vec* dvdt,
+                   __global vec* u,
+                   __global vec* dudt,
                    __global float* rho,
                    __global float* drhodt,
                    __global vec* r_in,
-                   __global vec* v_in,
-                   __global vec* dvdt_in,
+                   __global vec* u_in,
+                   __global vec* dudt_in,
                    __global float* rho_in,
                    __global float* drhodt_in,
                    __global float* p_in,
@@ -116,9 +116,9 @@ __kernel void main(__global int* imove,
     float DT = dt;
     if(imove[i] <= 0)
         DT = 0.f;
-    dvdt_in[i] = dvdt[i];
-    v_in[i] = v[i] + DT * dvdt[i];
-    r_in[i] = r[i] + DT * v[i] + 0.5f * DT * DT * dvdt[i];
+    dudt_in[i] = dudt[i];
+    u_in[i] = u[i] + DT * dudt[i];
+    r_in[i] = r[i] + DT * u[i] + 0.5f * DT * DT * dudt[i];
     
     // Continuity equation must be solved for the fixed particles too
     if(imove[i] == -1){

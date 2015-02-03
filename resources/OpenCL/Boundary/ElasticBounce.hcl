@@ -28,9 +28,9 @@
 // ------------------------------------------------------------------
 // Movement data
 // ------------------------------------------------------------------
-const float v_n = dot(v_i - v[j].XYZ, n_j);
-const float dvdt_n = dot(dvdt_i, n_j);
-const float dist = dt * v_n + 0.5f * dt * dt * dvdt_n;
+const float u_n = dot(u_i - u[j].XYZ, n_j);
+const float dudt_n = dot(dudt_i, n_j);
+const float dist = dt * u_n + 0.5f * dt * dt * dudt_n;
 if(dist < 0.f){
     // The particle is already running away from the boundary
     j++;
@@ -47,16 +47,16 @@ if(r0 - dist <= __MIN_BOUND_DIST__ * dr){
     // Reflect particle velocity (using elastic factor)
     // ------------------------------------------------------------------
     // As first approach, particle can be just fliped
-    // v[i] = v_i - (1.f + __ELASTIC_FACTOR__) * (
-        // v_n + 0.5f * dt * (dvdt_n + g_n)) * n_j;
+    // u[i] = u_i - (1.f + __ELASTIC_FACTOR__) * (
+        // u_n + 0.5f * dt * (dudt_n + g_n)) * n_j;
 
     // A second approach is setting an acceleration equal to the gravity
     // Just trying to don't perturbate the moments meassurement, fliping
     // later the velocity
-    dvdt[i].XYZ = dvdt_i - dvdt_n * n_j;
-    v[i].XYZ = v_i - (1.f + __ELASTIC_FACTOR__) * v_n * n_j;
+    dudt[i].XYZ = dudt_i - dudt_n * n_j;
+    u[i].XYZ = u_i - (1.f + __ELASTIC_FACTOR__) * u_n * n_j;
 
     // Modify the value for the next walls test.
-    v_i = v[i].XYZ;
-    dvdt_i = dvdt[i].XYZ;
+    u_i = u[i].XYZ;
+    dudt_i = dudt[i].XYZ;
 }
