@@ -24,8 +24,10 @@ else
     echo "run.sh --run"
     echo "    Runs the simulation. You can stop simulation pressing the 'c' key"
     echo "run.sh --plot p"
-    echo "    Plots the pressure in real time"
+    echo "    Plot the pressure"
     echo "run.sh --plot h"
-    echo "    Plots the wave height in real time"
+    echo "    Plot the wave height"
+    echo "run.sh --plot t"
+    echo "    Plot the performance"
     echo ""
 fi

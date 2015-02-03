@@ -20,8 +20,10 @@ configure_file(${EXAMPLE_ORIG_DIR}/templates/SPH.xml
 configure_file(${EXAMPLE_ORIG_DIR}/templates/Time.xml
     ${EXAMPLE_DEST_DIR}/templates/Time.xml @ONLY)
 
-configure_file(${EXAMPLE_ORIG_DIR}/plot.py
-    ${EXAMPLE_DEST_DIR}/plot.py @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/plot_m.py
+    ${EXAMPLE_DEST_DIR}/plot_m.py @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/plot_t.py
+    ${EXAMPLE_DEST_DIR}/plot_t.py @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE9_TLD.pdf
     ${EXAMPLE_DEST_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE9_TLD.pdf @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/T_1-94_A100mm_water.dat
@@ -56,8 +58,10 @@ configure_file(${EXAMPLE_ORIG_DIR}/templates/SPH.xml
 configure_file(${EXAMPLE_ORIG_DIR}/templates/Time.xml
     ${EXAMPLE_AUX_DIR}/templates/Time.xml @ONLY)
 
-configure_file(${EXAMPLE_ORIG_DIR}/plot.py
-    ${EXAMPLE_AUX_DIR}/plot.py @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/plot_m.py
+    ${EXAMPLE_AUX_DIR}/plot_m.py @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/plot_t.py
+    ${EXAMPLE_AUX_DIR}/plot_t.py @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE9_TLD.pdf
     ${EXAMPLE_AUX_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE9_TLD.pdf @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/T_1-94_A100mm_water.dat
@@ -87,7 +91,8 @@ INSTALL(
         ${EXAMPLE_AUX_DIR}/Create.py
         ${EXAMPLE_AUX_DIR}/T_1-94_A100mm_water.dat
         ${EXAMPLE_AUX_DIR}/Motion.py
-        ${EXAMPLE_AUX_DIR}/plot.py
+        ${EXAMPLE_AUX_DIR}/plot_m.py
+        ${EXAMPLE_AUX_DIR}/plot_t.py
         ${EXAMPLE_AUX_DIR}/run.sh
     DESTINATION
         ${EXAMPLE_DEST_DIR}

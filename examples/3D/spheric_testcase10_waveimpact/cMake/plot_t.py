@@ -32,7 +32,6 @@
 import sys
 import os
 from os import path
-import numpy as np
 try:
     from PyQt4 import QtGui
 except:
@@ -58,33 +57,30 @@ class FigureController(FigureCanvas):
         self.ax = self.fig.add_subplot(111)
         FigureCanvas.__init__(self, self.fig)
         # generates first "empty" plot
-        FNAME = path.join('@EXAMPLE_DEST_DIR@', 'lateral_water_1x.txt')
-        T,P,A,DADT,_,_ = np.loadtxt(FNAME,
-                                    delimiter='\t',
-                                    skiprows=1,
-                                    unpack=True)
-        self.exp_t = T
-        self.exp_p = 100.0 * P
-        self.exp_line, = self.ax.plot(self.exp_t,
-                                      self.exp_p,
-                                      label=r'$p_{Exp}$',
-                                      color="red",
-                                      linewidth=1.0)
-        self.t = [0.0]
-        self.p = [0.0]
-        self.line, = self.ax.plot(self.t,
-                                  self.p,
-                                  label=r'$p_{SPH}$',
+        t = [0.0]
+        e = [0.0]
+        self.line, = self.ax.plot(t,
+                                  e,
                                   color="black",
+                                  linestyle="-",
                                   linewidth=1.0)
+        self.lmin, = self.ax.plot(t,
+                                  e,
+                                  color="black",
+                                  linestyle="--",
+                                  linewidth=2.0)
+        self.lmax, = self.ax.plot(t,
+                                  e,
+                                  color="black",
+                                  linestyle="--",
+                                  linewidth=2.0)
         # Set some options
         self.ax.grid()
-        self.ax.legend(loc='best')
-        self.ax.set_xlim(0, 5)
-        self.ax.set_ylim(-1000, 5000)
+        self.ax.set_xlim(0, 0.1)
+        self.ax.set_ylim(-0.1, 0.1)
         self.ax.set_autoscale_on(False)
         self.ax.set_xlabel(r"$t \, [\mathrm{s}]$", fontsize=21)
-        self.ax.set_ylabel(r"$p \, [\mathrm{Pa}]$", fontsize=21)
+        self.ax.set_ylabel(r"$t_{CPU} \, [\mathrm{s}]$", fontsize=21)
         # force the figure redraw
         self.fig.canvas.draw()
         # call the update method (to speed-up visualization)
@@ -104,7 +100,7 @@ class FigureController(FigureCanvas):
         lines = f.readlines()
         f.close()
         data = []
-        for l in lines[1:]:
+        for l in lines:
             l = l.strip()
             while l.find('  ') != -1:
                 l = l.replace('  ', ' ')
@@ -119,10 +115,22 @@ class FigureController(FigureCanvas):
     def timerEvent(self, evt):
         """Custom timerEvent code, called at timer event receive"""
         # Read and plot the new data
-        data = self.readFile('sensors.out')
-        self.t = data[0]
-        self.p = data[1]
-        self.line.set_data(self.t, self.p)
+        data = self.readFile('Performance.dat')
+        t = data[0]
+        e = data[1]
+        e_ave = data[2]
+        e_var = data[3]
+        e_max = [e_ave[i] + e_var[i] for i in range(len(e_ave))]
+        e_min = [e_ave[i] - e_var[i] for i in range(len(e_ave))]
+        self.line.set_data(t, e)
+        self.lmin.set_data(t, e_min)
+        self.lmax.set_data(t, e_max)
+
+        self.ax.set_xlim(0, t[-1])
+        ymax = max(e_max[2:])
+        ymin = min(e_min[2:])
+        dy = ymax - ymin
+        self.ax.set_ylim(ymin - 0.1 * dy, ymax + 0.1 * dy)
 
         # Redraw
         self.fig.canvas.draw()
@@ -131,6 +139,6 @@ class FigureController(FigureCanvas):
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     widget = FigureController()
-    widget.setWindowTitle("Pressure")
+    widget.setWindowTitle("Roll angle")
     widget.show()
     sys.exit(app.exec_())

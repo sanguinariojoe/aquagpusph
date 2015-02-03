@@ -57,27 +57,30 @@ class FigureController(FigureCanvas):
         self.ax = self.fig.add_subplot(111)
         FigureCanvas.__init__(self, self.fig)
         # generates first "empty" plot
-        self.t = [0.0]
-        self.exp_a = [0.0]
-        self.exp_line, = self.ax.plot(self.t,
-                                      self.exp_a,
-                                      label=r'$\theta_{Exp}$',
-                                      color="red",
-                                      linewidth=1.0)
-        self.a = [0.0]
-        self.line, = self.ax.plot(self.t,
-                                  self.a,
-                                  label=r'$\theta_{SPH}$',
+        t = [0.0]
+        e = [0.0]
+        self.line, = self.ax.plot(t,
+                                  e,
                                   color="black",
+                                  linestyle="-",
                                   linewidth=1.0)
+        self.lmin, = self.ax.plot(t,
+                                  e,
+                                  color="black",
+                                  linestyle="--",
+                                  linewidth=2.0)
+        self.lmax, = self.ax.plot(t,
+                                  e,
+                                  color="black",
+                                  linestyle="--",
+                                  linewidth=2.0)
         # Set some options
         self.ax.grid()
-        self.ax.legend(loc='best')
         self.ax.set_xlim(0, 0.1)
         self.ax.set_ylim(-0.1, 0.1)
         self.ax.set_autoscale_on(False)
         self.ax.set_xlabel(r"$t \, [\mathrm{s}]$", fontsize=21)
-        self.ax.set_ylabel(r"$\theta \, [\mathrm{deg}]$", fontsize=21)
+        self.ax.set_ylabel(r"$t_{CPU} \, [\mathrm{s}]$", fontsize=21)
         # force the figure redraw
         self.fig.canvas.draw()
         # call the update method (to speed-up visualization)
@@ -99,7 +102,9 @@ class FigureController(FigureCanvas):
         data = []
         for l in lines:
             l = l.strip()
-            fields = l.split('\t')
+            while l.find('  ') != -1:
+                l = l.replace('  ', ' ')
+            fields = l.split(' ')
             try:
                 data.append(map(float, fields))
             except:
@@ -110,18 +115,22 @@ class FigureController(FigureCanvas):
     def timerEvent(self, evt):
         """Custom timerEvent code, called at timer event receive"""
         # Read and plot the new data
-        data = self.readFile('Motion.dat')
-        self.t = data[0]
-        self.exp_a = data[2]
-        self.a = data[3]
-        self.exp_line.set_data(self.t, self.exp_a)
-        self.line.set_data(self.t, self.a)
+        data = self.readFile('Performance.dat')
+        t = data[0]
+        e = data[1]
+        e_ave = data[2]
+        e_var = data[3]
+        e_max = [e_ave[i] + e_var[i] for i in range(len(e_ave))]
+        e_min = [e_ave[i] - e_var[i] for i in range(len(e_ave))]
+        self.line.set_data(t, e)
+        self.lmin.set_data(t, e_min)
+        self.lmax.set_data(t, e_max)
 
-        self.ax.set_xlim(0, self.t[-1])
-        ymax_exp = max(abs(max(self.exp_a)), abs(min(self.exp_a)))
-        ymax_sph = max(abs(max(self.a)), abs(min(self.a)))
-        ymax = max((ymax_exp, ymax_sph))
-        self.ax.set_ylim(-1.1 * ymax, 1.1 * ymax)
+        self.ax.set_xlim(0, t[-1])
+        ymax = max(e_max[2:])
+        ymin = min(e_min[2:])
+        dy = ymax - ymin
+        self.ax.set_ylim(ymin - 0.1 * dy, ymax + 0.1 * dy)
 
         # Redraw
         self.fig.canvas.draw()

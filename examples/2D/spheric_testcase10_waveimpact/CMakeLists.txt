@@ -28,8 +28,10 @@ configure_file(${EXAMPLE_ORIG_DIR}/lateral_water_1x.txt
     ${EXAMPLE_DEST_DIR}/lateral_water_1x.txt @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/Motion.py
     ${EXAMPLE_DEST_DIR}/Motion.py @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/plot.py
-    ${EXAMPLE_DEST_DIR}/plot.py @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/plot_p.py
+    ${EXAMPLE_DEST_DIR}/plot_p.py @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/plot_t.py
+    ${EXAMPLE_DEST_DIR}/plot_t.py @ONLY)
 
 configure_file(${EXAMPLE_ORIG_DIR}/Create.py
     ${EXAMPLE_DEST_DIR}/Create.py @ONLY)
@@ -66,8 +68,10 @@ configure_file(${EXAMPLE_ORIG_DIR}/lateral_water_1x.txt
     ${EXAMPLE_AUX_DIR}/lateral_water_1x.txt @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/Motion.py
     ${EXAMPLE_AUX_DIR}/Motion.py @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/plot.py
-    ${EXAMPLE_AUX_DIR}/plot.py @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/plot_p.py
+    ${EXAMPLE_AUX_DIR}/plot_p.py @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/plot_t.py
+    ${EXAMPLE_AUX_DIR}/plot_t.py @ONLY)
 
 configure_file(${EXAMPLE_ORIG_DIR}/Create.py
     ${EXAMPLE_AUX_DIR}/Create.py @ONLY)
@@ -92,7 +96,8 @@ INSTALL(
         ${EXAMPLE_AUX_DIR}/Create.py
         ${EXAMPLE_AUX_DIR}/lateral_water_1x.txt
         ${EXAMPLE_AUX_DIR}/Motion.py
-        ${EXAMPLE_AUX_DIR}/plot.py
+        ${EXAMPLE_AUX_DIR}/plot_p.py
+        ${EXAMPLE_AUX_DIR}/plot_t.py
         ${EXAMPLE_AUX_DIR}/run.sh
     DESTINATION
         ${EXAMPLE_DEST_DIR}

@@ -26,6 +26,8 @@ configure_file(${EXAMPLE_ORIG_DIR}/plot_p.py
     ${EXAMPLE_DEST_DIR}/plot_p.py @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/plot_h.py
     ${EXAMPLE_DEST_DIR}/plot_h.py @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/plot_t.py
+    ${EXAMPLE_DEST_DIR}/plot_t.py @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/doc/test_case_2_v1p1.pdf
     ${EXAMPLE_DEST_DIR}/doc/test_case_2_v1p1.pdf @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/test_case_2_exp_data.dat
@@ -64,6 +66,8 @@ configure_file(${EXAMPLE_ORIG_DIR}/plot_p.py
     ${EXAMPLE_AUX_DIR}/plot_p.py @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/plot_h.py
     ${EXAMPLE_AUX_DIR}/plot_h.py @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/plot_t.py
+    ${EXAMPLE_AUX_DIR}/plot_t.py @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/doc/test_case_2_v1p1.pdf
     ${EXAMPLE_AUX_DIR}/doc/test_case_2_v1p1.pdf @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/test_case_2_exp_data.dat
@@ -93,6 +97,7 @@ INSTALL(
         ${EXAMPLE_AUX_DIR}/test_case_2_exp_data.dat
         ${EXAMPLE_AUX_DIR}/plot_p.py
         ${EXAMPLE_AUX_DIR}/plot_h.py
+        ${EXAMPLE_AUX_DIR}/plot_t.py
         ${EXAMPLE_AUX_DIR}/run.sh
     DESTINATION
         ${EXAMPLE_DEST_DIR}

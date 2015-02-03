@@ -15,22 +15,14 @@ if [[ $1 == "--run" ]]; then
     @EXAMPLE_DEST_DIR@/Create.py
     @BINARY_DIR@/AQUAgpusph -i Main.xml
 elif [[ $1 == "--plot" ]]; then
-    if [ ! -f sensors.out ]; then
-        echo ""
-        echo "Failure while opening sensors.out output file"
-        echo ""
-        echo "run.sh --plot should be executed on the same folder of run.sh --run"
-        echo ""
-        exit 255
-    fi
-    python @EXAMPLE_DEST_DIR@/plot.py
+    python @EXAMPLE_DEST_DIR@/plot_$2.py
 else
     echo ""
     echo "Usage: run.sh [--run/--plot]"
     echo ""
-    echo "run.sh --run"
-    echo "    Runs the simulation. You can stop simulation pressing the 'c' key"
-    echo "run.sh --plot"
-    echo "    Plots in real time the output results"
+    echo "run.sh --plot p"
+    echo "    Plot the pressure in the sensor"
+    echo "run.sh --plot t"
+    echo "    Plot the performance"
     echo ""
 fi
