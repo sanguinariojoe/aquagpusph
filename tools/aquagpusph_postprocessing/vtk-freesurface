@@ -136,11 +136,14 @@ def parse(filepath, args):
     voxels = vtk.vtkGaussianSplatter()
     voxels.SetInput(fs_particles)
     voxels.SetSampleDimensions(*N)
-    voxels.SetRadius(args.dr / max(L))
+    # voxels.SetRadius(args.dr / max(L))
+    voxels.SetRadius(args.dr)
     voxels.ScalarWarpingOff()
 
     mesh = vtk.vtkContourFilter()
     # mesh = vtk.vtkMarchingCubes()
+    mesh.ComputeNormalsOn()
+    mesh.ComputeGradientsOff()
     mesh.SetInputConnection(voxels.GetOutputPort())
     mesh.SetValue(0, 0.01)
     mesh.Update()
@@ -155,14 +158,13 @@ def parse(filepath, args):
         # smooth.SetEdgeAngle(60.0)
         smooth.BoundarySmoothingOn()
         smooth.Update()
-    polyData = smooth.GetOutput()
+        polyData = smooth.GetOutput()
 
-    writer = vtk.vtkPolyDataWriter()
-    writer.SetFileName('fs.' + filepath)
+    writer = vtk.vtkXMLPolyDataWriter()
     writer.SetInput(polyData)
-    writer.SetFileTypeToBinary()
+    writer.SetDataModeToBinary()
+    writer.SetFileName('fs.' + filepath + '.vtp')
     writer.Write()
-    
 
 
 def main():
@@ -201,4 +203,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
