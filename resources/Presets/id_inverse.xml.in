@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+
+<!-- id_inverse.xml
+Tool to compute a unsorter array, which can be used to locate the sorted data
+of a particle from the unsorted id.
+-->
+
+<sphInput>
+    <Variables>
+        <!-- Get the sorted position form the unsorted one -->
+        <Variable name="id_inverse" type="unsigned int*" length="N" />
+    </Variables>
+
+    <Tools>
+        <Tool action="insert" after="Sort" type="kernel" name="IdInverse" path="@RESOURCES_OUTPUT_DIR@/OpenCL/IdInverse.cl"/>
+    </Tools>
+</sphInput>

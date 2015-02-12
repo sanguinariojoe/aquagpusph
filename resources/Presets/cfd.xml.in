@@ -14,7 +14,7 @@
         | n_radix     | unsigned int  | 1       | Rounded up value from N which is a power of 2
         | n_cells     | uivec4        | 1       | Number of cells at each direction, and the total one
         | support     | float         | 1       | Kernel support (as a factor of the kernel length h)
-        | id          | unsigned int* | N       | ID of each particle
+        | id          | unsigned int* | N       | Original ID of each particle
         | r           | vec*          | N       | Positions
         | iset        | unsigned int* | N       | Particle set of each particle
         | id_sorted   | unsigned int* | n_radix | Permutations from unsorted space to sorted space
