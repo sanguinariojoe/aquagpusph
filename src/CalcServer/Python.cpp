@@ -38,6 +38,24 @@
 #include <numpy/ufuncobject.h>
 #include <numpy/npy_3kcompat.h>
 
+/** @brief stdout Python redirector.
+ * @see logMsg
+ */
+const char* _stdout_redirect = "         \n\
+class stdoutWriter(object):              \n\
+    def write(self, data):               \n\
+        aquagpusph.log(0, data.rstrip()) \n\
+\n";
+
+/** @brief stderr Python redirector.
+ * @see logMsg
+ */
+const char* _stderr_redirect = "         \n\
+class stderrWriter(object):              \n\
+    def write(self, data):               \n\
+        aquagpusph.log(3, data.rstrip()) \n\
+\n";
+
 /** @brief Get a variable by its name.
  * @param self Module.
  * @param args Positional arguments.
@@ -117,10 +135,41 @@ static PyObject* set(PyObject *self, PyObject *args, PyObject *keywds)
     Py_RETURN_NONE;
 }
 
+/** @brief Log a message from the Python.
+ *
+ * In AQUAgpusph the Python stdout and stderr are redirected to this function,
+ * such that:
+ *     - stdout messages will be logged with level 0
+ *     - stderr messages will be logged with level 3
+ * @param self Module.
+ * @param args Positional arguments.
+ * @param keywds Keyword arguments.
+ * @return Computed value, NULL if errors have been detected.
+ */
+static PyObject* logMsg(PyObject *self, PyObject *args, PyObject *keywds)
+{
+    Aqua::InputOutput::ScreenManager *S =
+        Aqua::InputOutput::ScreenManager::singleton();
+    int level;
+    const char* msg;
+
+    static char *kwlist[] = {"log_level", "message", NULL};
+
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "is", kwlist,
+                                     &level, &msg)){
+        return NULL;
+    }
+
+    S->addMessage(level, msg);
+
+    Py_RETURN_NONE;
+}
+
 /// List of methods declared in the module
 static PyMethodDef methods[] = {
     {"get", (PyCFunction)get, METH_VARARGS | METH_KEYWORDS, "Get a variable"},
     {"set", (PyCFunction)set, METH_VARARGS | METH_KEYWORDS, "Set a variable"},
+    {"log", (PyCFunction)logMsg, METH_VARARGS | METH_KEYWORDS, "Log a message"},
     {NULL, NULL, 0, NULL}
 };
 
@@ -268,6 +317,14 @@ bool Python::initPython()
     PyRun_SimpleString("sys.path.append(curdir)");
 
     PyImport_ImportModule("aquagpusph");
+
+    PyRun_SimpleString("import aquagpusph");
+    PyRun_SimpleString(_stdout_redirect);
+    PyRun_SimpleString("logger = stdoutWriter()");
+    PyRun_SimpleString("sys.stdout = logger");
+    PyRun_SimpleString(_stderr_redirect);
+    PyRun_SimpleString("logger = stderrWriter()");
+    PyRun_SimpleString("sys.stderr = logger");
 
     return false;
 }
