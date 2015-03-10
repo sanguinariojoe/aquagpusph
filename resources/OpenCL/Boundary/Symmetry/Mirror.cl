@@ -74,7 +74,7 @@ __kernel void main(const __global vec* r,
     // Compute the mirrored particle
     const float du_n = dot(-u[i], symmetry_n);
     const float dn_n = dot(-normal[i], symmetry_n);
-    imirrored[i] = 0;        
+    imirrored[i] = 1;        
     rmirrored[i] = r[i] + 2.f * dr_n * symmetry_n;
     umirrored[i] = u[i] + 2.f * du_n * symmetry_n;
     nmirrored[i] = normal[i] + 2.f * dn_n * symmetry_n;
