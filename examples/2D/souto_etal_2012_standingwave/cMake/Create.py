@@ -41,7 +41,7 @@ hfac = 4.0
 cs = 45.0
 courant = 0.2
 gamma = 1.0
-refd = 1000.0
+refd = 1.0
 alpha = 0.0
 delta = 1.0
 # Fluid dimensions
@@ -63,7 +63,7 @@ nx = 2 * ny
 dr = H / ny
 n = nx * ny
 
-visc_dyn = H * math.sqrt(g * H) / Re
+visc_dyn = refd * H * math.sqrt(g * H) / Re
 visc_dyn = max(alpha / 8.0 * refd * hfac * dr * cs, visc_dyn)
 
 # Solid boundary elements
