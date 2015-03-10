@@ -498,6 +498,63 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                     }
                     place++;
                 }
+                else if(xmlHasAttribute(s_elem, "before_with_prefix")){
+                    const char *att_str = xmlAttribute(s_elem, "before_with_prefix");
+                    char *toolname = (char*)malloc(
+                        (strlen(prefix) + strlen(att_str) + 1) * sizeof(char));
+                    if(!toolname){
+                        S->addMessageF(3, "Failure allocating memory (before_with_prefix).\n");
+                        return true;
+                    }
+                    strcpy(toolname, prefix);
+                    strcat(toolname, att_str);
+                    for(place = 0; place < P->tools.size(); place++){
+                        if(!strcmp(P->tools.at(place)->get("name"),
+                                   toolname))
+                        {
+                            break;
+                        }
+                    }
+                    free(toolname);
+                    toolname = NULL;
+                    if(place == P->tools.size()){
+                        sprintf(msg,
+                                "The tool \"%s\" must be inserted before \"%s\", but such tool cannot be found.\n",
+                                tool->get("name"),
+                                toolname);
+                        S->addMessageF(3, msg);
+                        return true;
+                    }
+                }
+                else if(xmlHasAttribute(s_elem, "after_with_prefix")){
+                    const char *att_str = xmlAttribute(s_elem, "after_with_prefix");
+                    char *toolname = (char*)malloc(
+                        (strlen(prefix) + strlen(att_str) + 1) * sizeof(char));
+                    if(!toolname){
+                        S->addMessageF(3, "Failure allocating memory (after_with_prefix).\n");
+                        return true;
+                    }
+                    strcpy(toolname, prefix);
+                    strcat(toolname, att_str);
+                    for(place = 0; place < P->tools.size(); place++){
+                        if(!strcmp(P->tools.at(place)->get("name"),
+                                   att_str))
+                        {
+                            break;
+                        }
+                    }
+                    free(toolname);
+                    toolname = NULL;
+                    if(place == P->tools.size()){
+                        sprintf(msg,
+                                "The tool \"%s\" must be inserted after \"%s\", but such tool cannot be found.\n",
+                                tool->get("name"),
+                                att_str);
+                        S->addMessageF(3, msg);
+                        return true;
+                    }
+                    place++;
+                }
                 else{
                     sprintf(msg,
                             "Missed the place where the tool \"%s\" should be inserted.\n",
