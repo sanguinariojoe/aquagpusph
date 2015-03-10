@@ -96,7 +96,7 @@ public:
 protected:
     /** @brief Parse the XML file
      * @param filepath file to be parsed.
-     * @param prefix String to be inserted before the variable and tool names
+     * @param prefix String to be inserted before the variable names
      * defined in the file.
      * @return false if all gone right, true otherwise
      * @note This function is calling himself for each `<Include>` tag found,
@@ -108,7 +108,7 @@ protected:
 
     /** @brief Parse the general settings sections.
      * @param root root XML node.
-     * @param prefix String to be inserted before the variable and tool names.
+     * @param prefix String to be inserted before the variable names.
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphSettings
      */
@@ -116,7 +116,7 @@ protected:
 
     /** @brief Parse the variables sections.
      * @param root root XML node.
-     * @param prefix String to be inserted before the variable and tool names.
+     * @param prefix String to be inserted before the variable names.
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphVariables
      */
@@ -124,7 +124,7 @@ protected:
 
     /** @brief Parse the definitions sections.
      * @param root root XML node.
-     * @param prefix String to be inserted before the variable and tool names.
+     * @param prefix String to be inserted before the variable names.
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphDefinitions
      */
@@ -132,7 +132,7 @@ protected:
 
     /** @brief Parse the tools sections.
      * @param root root XML node.
-     * @param prefix String to be inserted before the variable and tool names.
+     * @param prefix String to be inserted before the variable names.
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphTool
      */
@@ -140,7 +140,7 @@ protected:
 
     /** @brief Parse the time control sections.
      * @param root Root XML node.
-     * @param prefix String to be inserted before the variable and tool names.
+     * @param prefix String to be inserted before the variable names.
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphTimingParameters
      */
@@ -148,7 +148,7 @@ protected:
 
     /** Look for particles set sections.
      * @param root Root XML node.
-     * @param prefix String to be inserted before the variable and tool names.
+     * @param prefix String to be inserted before the variable names.
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphParticlesSet
      */
@@ -156,7 +156,7 @@ protected:
 
     /** @brief Parse the reports sections.
      * @param root root XML node.
-     * @param prefix String to be inserted before the variable and tool names.
+     * @param prefix String to be inserted before the variable names.
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphTool
      */
