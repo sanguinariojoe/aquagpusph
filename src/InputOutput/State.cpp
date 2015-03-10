@@ -498,12 +498,12 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                     }
                     place++;
                 }
-                else if(xmlHasAttribute(s_elem, "before_with_prefix")){
-                    const char *att_str = xmlAttribute(s_elem, "before_with_prefix");
+                else if(xmlHasAttribute(s_elem, "before_prefix")){
+                    const char *att_str = xmlAttribute(s_elem, "before_prefix");
                     char *toolname = (char*)malloc(
                         (strlen(prefix) + strlen(att_str) + 1) * sizeof(char));
                     if(!toolname){
-                        S->addMessageF(3, "Failure allocating memory (before_with_prefix).\n");
+                        S->addMessageF(3, "Failure allocating memory (before_prefix).\n");
                         return true;
                     }
                     strcpy(toolname, prefix);
@@ -526,12 +526,12 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                         return true;
                     }
                 }
-                else if(xmlHasAttribute(s_elem, "after_with_prefix")){
-                    const char *att_str = xmlAttribute(s_elem, "after_with_prefix");
+                else if(xmlHasAttribute(s_elem, "after_prefix")){
+                    const char *att_str = xmlAttribute(s_elem, "after_prefix");
                     char *toolname = (char*)malloc(
                         (strlen(prefix) + strlen(att_str) + 1) * sizeof(char));
                     if(!toolname){
-                        S->addMessageF(3, "Failure allocating memory (after_with_prefix).\n");
+                        S->addMessageF(3, "Failure allocating memory (after_prefix).\n");
                         return true;
                     }
                     strcpy(toolname, prefix);
@@ -564,6 +564,8 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                     S->addMessage(0, "\t\"in\"\n");
                     S->addMessage(0, "\t\"before\"\n");
                     S->addMessage(0, "\t\"after\"\n");
+                    S->addMessage(0, "\t\"before_prefix\"\n");
+                    S->addMessage(0, "\t\"after_prefix\"\n");
                     return true;
                 }
                 if(place > P->tools.size()){
