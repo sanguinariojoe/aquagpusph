@@ -68,7 +68,6 @@ __kernel void main(const __global uint* iset,
                    __global vec* lap_u,
                    __global float* div_u,
                    __global float* lap_p,
-                   __global float* shepard,
                    // Link-list data
                    __global uint *icell,
                    __global uint *ihoc,
