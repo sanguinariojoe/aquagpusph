@@ -96,60 +96,71 @@ public:
 protected:
     /** @brief Parse the XML file
      * @param filepath file to be parsed.
+     * @param prefix String to be inserted before the variable and tool names
+     * defined in the file.
      * @return false if all gone right, true otherwise
      * @note This function is calling himself for each `<Include>` tag found,
-     * conveniently changing the input file name @paramname{filepath}.
+     * conveniently changing \a filepath and \a prefix. If no prefix is
+     * specified in the `<Include>` tag, the same received \a prefix will be
+     * used.
      */
-    bool parse(const char* filepath);
+    bool parse(const char* filepath, const char* prefix="");
 
     /** @brief Parse the general settings sections.
      * @param root root XML node.
+     * @param prefix String to be inserted before the variable and tool names.
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphSettings
      */
-    bool parseSettings(xercesc::DOMElement *root);
+    bool parseSettings(xercesc::DOMElement *root, const char* prefix="");
 
     /** @brief Parse the variables sections.
      * @param root root XML node.
+     * @param prefix String to be inserted before the variable and tool names.
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphVariables
      */
-    bool parseVariables(xercesc::DOMElement *root);
+    bool parseVariables(xercesc::DOMElement *root, const char* prefix="");
 
     /** @brief Parse the definitions sections.
      * @param root root XML node.
+     * @param prefix String to be inserted before the variable and tool names.
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphDefinitions
      */
-    bool parseDefinitions(xercesc::DOMElement *root);
+    bool parseDefinitions(xercesc::DOMElement *root, const char* prefix="");
 
     /** @brief Parse the tools sections.
      * @param root root XML node.
+     * @param prefix String to be inserted before the variable and tool names.
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphTool
      */
-    bool parseTools(xercesc::DOMElement *root);
+    bool parseTools(xercesc::DOMElement *root, const char* prefix="");
 
     /** @brief Parse the time control sections.
      * @param root Root XML node.
+     * @param prefix String to be inserted before the variable and tool names.
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphTimingParameters
      */
-    bool parseTiming(xercesc::DOMElement *root);
+    bool parseTiming(xercesc::DOMElement *root, const char* prefix="");
 
     /** Look for particles set sections.
      * @param root Root XML node.
+     * @param prefix String to be inserted before the variable and tool names.
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphParticlesSet
      */
-    bool parseSet(xercesc::DOMElement *root);
+    bool parseSet(xercesc::DOMElement *root, const char* prefix="");
 
     /** @brief Parse the reports sections.
      * @param root root XML node.
+     * @param prefix String to be inserted before the variable and tool names.
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphTool
      */
-    bool parseReports(xercesc::DOMElement *root);
+    bool parseReports(xercesc::DOMElement *root, const char* prefix="");
 
     /** @brief Write the XML file
      * @param filepath file to be written.

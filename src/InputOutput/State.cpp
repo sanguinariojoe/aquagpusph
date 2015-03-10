@@ -188,7 +188,7 @@ bool State::load()
     return parse(F->inputFile());
 }
 
-bool State::parse(const char* filepath)
+bool State::parse(const char* filepath, const char* prefix)
 {
     ScreenManager *S = ScreenManager::singleton();
     ProblemSetup *P = ProblemSetup::singleton();
@@ -223,38 +223,42 @@ bool State::parse(const char* filepath)
         if(node->getNodeType() != DOMNode::ELEMENT_NODE)
             continue;
         DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
-        const char* included_file = xmlS(elem->getAttribute(xmlS("file")));
-        if(parse(included_file)){
+        const char* included_file = xmlAttribute(elem, "file");
+        char* included_prefix = (char*)prefix;
+        if(xmlHasAttribute(elem, "prefix")){
+            included_prefix = xmlAttribute(elem, "prefix");
+        }
+        if(parse(included_file, (const char*)included_prefix)){
             xmlClear();
             return true;
         }
     }
 
-    if(parseSettings(root)){
+    if(parseSettings(root, prefix)){
         xmlClear();
         return true;
     }
-    if(parseVariables(root)){
+    if(parseVariables(root, prefix)){
         xmlClear();
         return true;
     }
-    if(parseDefinitions(root)){
+    if(parseDefinitions(root, prefix)){
         xmlClear();
         return true;
     }
-    if(parseTools(root)){
+    if(parseTools(root, prefix)){
         xmlClear();
         return true;
     }
-    if(parseReports(root)){
+    if(parseReports(root, prefix)){
         xmlClear();
         return true;
     }
-    if(parseTiming(root)){
+    if(parseTiming(root, prefix)){
         xmlClear();
         return true;
     }
-    if(parseSet(root)){
+    if(parseSet(root, prefix)){
         xmlClear();
         return true;
     }
@@ -264,7 +268,7 @@ bool State::parse(const char* filepath)
     return false;
 }
 
-bool State::parseSettings(DOMElement *root)
+bool State::parseSettings(DOMElement *root, const char* prefix)
 {
     ScreenManager *S = ScreenManager::singleton();
     ProblemSetup *P = ProblemSetup::singleton();
@@ -321,8 +325,9 @@ bool State::parseSettings(DOMElement *root)
     return false;
 }
 
-bool State::parseVariables(DOMElement *root)
+bool State::parseVariables(DOMElement *root, const char* prefix)
 {
+    ScreenManager *S = ScreenManager::singleton();
     ProblemSetup *P = ProblemSetup::singleton();
     DOMNodeList* nodes = root->getElementsByTagName(xmlS("Variables"));
     for(XMLSize_t i=0; i<nodes->getLength(); i++){
@@ -336,24 +341,39 @@ bool State::parseVariables(DOMElement *root)
             if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
                 continue;
             DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+
+            // Set the name (with prefix)
+            size_t name_len = strlen(prefix) +
+                              strlen(xmlAttribute(s_elem, "name")) + 1;
+            char *name = (char*)malloc(name_len * sizeof(char));
+            if(!name){
+                S->addMessageF(3, "Failure allocating memory for the name\n");
+                return true;
+            }
+            strcpy(name, prefix);
+            strcat(name, xmlAttribute(s_elem, "name"));
+
             if(!strstr(xmlAttribute(s_elem, "type"), "*")){
-                P->variables.registerVariable(xmlAttribute(s_elem, "name"),
+                P->variables.registerVariable(name,
                                               xmlAttribute(s_elem, "type"),
                                               "1",
                                               xmlAttribute(s_elem, "value"));
             }
             else{
-                P->variables.registerVariable(xmlAttribute(s_elem, "name"),
+                P->variables.registerVariable(name,
                                               xmlAttribute(s_elem, "type"),
                                               xmlAttribute(s_elem, "length"),
                                               "NULL");
             }
+
+            free(name);
+            name = NULL;
         }
     }
     return false;
 }
 
-bool State::parseDefinitions(DOMElement *root)
+bool State::parseDefinitions(DOMElement *root, const char* prefix)
 {
     ScreenManager *S = ScreenManager::singleton();
     ProblemSetup *P = ProblemSetup::singleton();
@@ -400,7 +420,7 @@ bool State::parseDefinitions(DOMElement *root)
     return false;
 }
 
-bool State::parseTools(DOMElement *root)
+bool State::parseTools(DOMElement *root, const char* prefix)
 {
     ScreenManager *S = ScreenManager::singleton();
     ProblemSetup *P = ProblemSetup::singleton();
@@ -428,7 +448,21 @@ bool State::parseTools(DOMElement *root)
 
             // Create the tool
             ProblemSetup::sphTool *tool = new ProblemSetup::sphTool();
-            tool->set("name", xmlAttribute(s_elem, "name"));
+
+            // Set the name (with prefix)
+            size_t name_len = strlen(prefix) +
+                              strlen(xmlAttribute(s_elem, "name")) + 1;
+            char *name = (char*)malloc(name_len * sizeof(char));
+            if(!name){
+                S->addMessageF(3, "Failure allocating memory for the name\n");
+                return true;
+            }
+            strcpy(name, prefix);
+            strcat(name, xmlAttribute(s_elem, "name"));
+            tool->set("name", name);
+            free(name);
+            name = NULL;
+
             tool->set("type", xmlAttribute(s_elem, "type"));
 
             // Place the tool
@@ -670,7 +704,7 @@ bool State::parseTools(DOMElement *root)
     return false;
 }
 
-bool State::parseTiming(DOMElement *root)
+bool State::parseTiming(DOMElement *root, const char* prefix)
 {
     ScreenManager *S = ScreenManager::singleton();
     ProblemSetup *P = ProblemSetup::singleton();
@@ -790,7 +824,7 @@ bool State::parseTiming(DOMElement *root)
     return false;
 }
 
-bool State::parseSet(DOMElement *root)
+bool State::parseSet(DOMElement *root, const char* prefix)
 {
     ScreenManager *S = ScreenManager::singleton();
     ProblemSetup *P = ProblemSetup::singleton();
@@ -849,7 +883,7 @@ bool State::parseSet(DOMElement *root)
     return false;
 }
 
-bool State::parseReports(DOMElement *root)
+bool State::parseReports(DOMElement *root, const char* prefix)
 {
     ScreenManager *S = ScreenManager::singleton();
     ProblemSetup *P = ProblemSetup::singleton();
@@ -877,7 +911,21 @@ bool State::parseReports(DOMElement *root)
 
             // Create the report
             ProblemSetup::sphTool *report = new ProblemSetup::sphTool();
-            report->set("name", xmlAttribute(s_elem, "name"));
+
+            // Set the name (with prefix)
+            size_t name_len = strlen(prefix) +
+                              strlen(xmlAttribute(s_elem, "name")) + 1;
+            char *name = (char*)malloc(name_len * sizeof(char));
+            if(!name){
+                S->addMessageF(3, "Failure allocating memory for the name\n");
+                return true;
+            }
+            strcpy(name, prefix);
+            strcat(name, xmlAttribute(s_elem, "name"));
+            report->set("name", name);
+            free(name);
+            name = NULL;
+
             report->set("type", xmlAttribute(s_elem, "type"));
             P->reports.push_back(report);
 
