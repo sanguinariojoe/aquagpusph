@@ -1,2 +1,3 @@
+ADD_SUBDIRECTORY(souto_etal_2012_standingwave)
 ADD_SUBDIRECTORY(spheric_testcase9_tld)
 ADD_SUBDIRECTORY(spheric_testcase10_waveimpact)

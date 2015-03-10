@@ -1,0 +1,31 @@
+<?xml version="1.0" ?>
+<!--
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
+
+Another QUAlity GPU-SPH, by CEHINAV.
+    http://canal.etsin.upm.es/
+Authors:
+    Jose Luis Cercos-Pita
+    Leo Miguel Gonzalez
+    Antonio Souto-Iglesias
+-->
+
+<sphInput>
+    <!-- In this file we will just include other XML definition files -->
+    <Include file="@RESOURCES_DIR@/OpenCLMain.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/domain.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/timing.report.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/performance.report.xml" />
+    <Include file="Settings.xml" />
+    <Include file="Time.xml" />
+    <Include file="Symmetries.xml" />
+    <Include file="SPH.xml" />
+    <Include file="Fluids.xml" />
+</sphInput>
