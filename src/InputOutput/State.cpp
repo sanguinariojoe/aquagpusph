@@ -195,7 +195,10 @@ bool State::parse(const char* filepath, const char* prefix)
     char msg[1024];
     strcpy(msg, "");
 
-    sprintf(msg, "Parsing the XML file \"%s\"\n", filepath);
+    sprintf(msg,
+            "Parsing the XML file \"%s\" with prefix \"%s\"\n",
+            filepath,
+            prefix);
     S->addMessageF(1, msg);
     // Try to open as ascii file, just to know if the file already exist
     FILE *dummy=0; dummy = fopen(filepath, "r");
@@ -538,7 +541,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                     strcat(toolname, att_str);
                     for(place = 0; place < P->tools.size(); place++){
                         if(!strcmp(P->tools.at(place)->get("name"),
-                                   att_str))
+                                   toolname))
                         {
                             break;
                         }
@@ -549,7 +552,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                         sprintf(msg,
                                 "The tool \"%s\" must be inserted after \"%s\", but such tool cannot be found.\n",
                                 tool->get("name"),
-                                att_str);
+                                toolname);
                         S->addMessageF(3, msg);
                         return true;
                     }
