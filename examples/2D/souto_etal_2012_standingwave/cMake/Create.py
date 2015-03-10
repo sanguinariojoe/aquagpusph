@@ -134,13 +134,16 @@ for i in range(0, n):
     imove = 1
     pos = (idx * dr - 0.5 * (L - dr),
            idy * dr + 0.5 * dr)
+    k_u = Epsilon * g * H * k / (2.0 * omega * math.cosh(k * H))
+    vel = (k_u * math.sin(k * pos[0]) * math.cosh(k * (H + pos[1])),
+          -k_u * math.cos(k * pos[0]) * math.sinh(k * (H + pos[1])))
     press = refd * g * (H - pos[1])
     dens = pow(press / prb + 1.0, 1.0 / gamma) * refd
     mass = dens * dr**2.0
     string = ("{} {}, " * 4 + "{}, {}, {}, {}\n").format(
         pos[0], pos[1],
         0.0, 0.0,
-        0.0, 0.0,
+        vel[0], vel[1],
         0.0, 0.0,
         dens,
         0.0,
