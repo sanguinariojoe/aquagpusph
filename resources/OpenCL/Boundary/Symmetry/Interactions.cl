@@ -127,11 +127,11 @@ __kernel void main(const __global uint* iset,
         __local float div_u_l[LOCAL_MEM_SIZE];
         __local float lap_p_l[LOCAL_MEM_SIZE];
         __local float shepard_l[LOCAL_MEM_SIZE];
-        _GRADP_ = VEC_ZERO.XYZ;
-        _LAPU_ = VEC_ZERO.XYZ;
-        _DIVU_ = 0.f;
-        _LAPP_ = 0.f;
-        _SHEPARD_ = 0.f;
+        _GRADP_ = grad_p[i].XYZ;
+        _LAPU_ = lap_u[i].XYZ;
+        _DIVU_ = div_u[i];
+        _LAPP_ = lap_p[i];
+        _SHEPARD_ = shepard[i];
     #endif
 
     // Loop over neighs
