@@ -61,15 +61,6 @@ __kernel void main(const __global vec* r,
     if(i >= N)
         return;
 
-    // Discard non fluid particles
-    if(imove[i] <= 0){
-        imirrored[i] = 0;
-        rmirrored[i] = r[i];
-        umirrored[i] = u[i];
-        nmirrored[i] = normal[i];
-        return;
-    }
-
     // Get the minimum distance to the plane
     const float dr_n = dot(symmetry_r - r[i], symmetry_n);
     // Discard the particles outside the plane, or far away
