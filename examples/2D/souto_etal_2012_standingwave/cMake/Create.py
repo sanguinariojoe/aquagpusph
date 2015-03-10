@@ -55,7 +55,7 @@ Epsilon = 0.1
 A = 0.5 * Epsilon * H
 Re = 250
 # Number of fluid particles in y direction
-ny = 50
+ny = 100
 nx = 2 * ny
 
 # Dimensions and number of particles readjustment
