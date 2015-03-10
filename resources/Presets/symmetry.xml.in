@@ -38,5 +38,6 @@ prefix, for instance:
         <Tool action="insert" after="BoundaryIntegrals" type="kernel" name="SymmetryMirror" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/Symmetry/Mirror.cl"/>
         <!-- Now we can compute the interactions -->
         <Tool action="insert" after_prefix="SymmetryMirror" type="kernel" name="SymmetryInteractions" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/Symmetry/Interactions.cl"/>
+        <Tool action="insert" after_prefix="SymmetryInteractions" type="kernel" name="SymmetryBoundaryIntegrals" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/Symmetry/BoundaryIntegrals.cl"/>
     </Tools>
 </sphInput>
