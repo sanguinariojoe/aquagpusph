@@ -342,32 +342,18 @@ bool State::parseVariables(DOMElement *root, const char* prefix)
                 continue;
             DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 
-            // Set the name (with prefix)
-            size_t name_len = strlen(prefix) +
-                              strlen(xmlAttribute(s_elem, "name")) + 1;
-            char *name = (char*)malloc(name_len * sizeof(char));
-            if(!name){
-                S->addMessageF(3, "Failure allocating memory for the name\n");
-                return true;
-            }
-            strcpy(name, prefix);
-            strcat(name, xmlAttribute(s_elem, "name"));
-
             if(!strstr(xmlAttribute(s_elem, "type"), "*")){
-                P->variables.registerVariable(name,
+                P->variables.registerVariable(xmlAttribute(s_elem, "name"),
                                               xmlAttribute(s_elem, "type"),
                                               "1",
                                               xmlAttribute(s_elem, "value"));
             }
             else{
-                P->variables.registerVariable(name,
+                P->variables.registerVariable(xmlAttribute(s_elem, "name"),
                                               xmlAttribute(s_elem, "type"),
                                               xmlAttribute(s_elem, "length"),
                                               "NULL");
             }
-
-            free(name);
-            name = NULL;
         }
     }
     return false;
