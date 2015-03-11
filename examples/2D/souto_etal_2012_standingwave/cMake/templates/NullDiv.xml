@@ -18,15 +18,8 @@ Authors:
 -->
 
 <sphInput>
-    <!-- In this file we will just include other XML definition files -->
-    <Include file="@RESOURCES_DIR@/OpenCLMain.xml" />
-    <Include file="@RESOURCES_DIR@/Presets/domain.xml" />
-    <Include file="@RESOURCES_DIR@/Presets/timing.report.xml" />
-    <Include file="@RESOURCES_DIR@/Presets/performance.report.xml" />
-    <Include file="Settings.xml" />
-    <Include file="Time.xml" />
-    <Include file="Symmetries.xml" />
-    <Include file="NullDiv.xml" />
-    <Include file="SPH.xml" />
-    <Include file="Fluids.xml" />
+    <!-- Explicitely div(u) vanishing -->
+    <Tools>
+        <Tool action="insert" before="Rates" type="kernel" name="Null div(u)" path="null_div.cl"/>
+    </Tools>
 </sphInput>
