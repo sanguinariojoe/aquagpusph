@@ -38,12 +38,12 @@ import math
 
 g = 1
 hfac = 4.0
-cs = 45.0
-courant = 0.2
+cs = 50.0
+courant = 0.05
 gamma = 1.0
 refd = 1.0
 alpha = 0.0
-delta = 1.0
+delta = 0.0
 # Fluid dimensions
 L = 2.0
 H = 0.5 * L
@@ -132,7 +132,7 @@ for i in range(0, n):
     idx = j % nx
     idy = j / nx
     imove = 1
-    pos = (idx * dr - 0.5 * (L - dr),
+    pos = (idx * dr + 0.5 * dr,
            idy * dr + 0.5 * dr)
     k_u = Epsilon * g * H * k / (2.0 * omega * math.cosh(k * H))
     vel = (k_u * math.sin(k * pos[0]) * math.cosh(k * (H + pos[1])),
@@ -167,7 +167,7 @@ for i in range(0, N):
     j = i
     idx = j + 0.5
     normal = [0.0, -1.0]
-    pos = (idx * dr / DeLeffeDistFactor - 0.5 * L, 0.0)
+    pos = (idx * dr / DeLeffeDistFactor, 0.0)
     press = refd * g * (H - pos[1])
     dens = pow(press / prb + 1.0, 1.0 / gamma) * refd
     imove = -3
@@ -192,9 +192,9 @@ templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
 XML = ('Fluids.xml', 'Main.xml', 'Settings.xml', 'SPH.xml', 'Symmetries.xml',
        'Time.xml', 'h_sensor.cl')
 
-domain_min = (-0.6 * L, -0.1 * (H + A))
+domain_min = (-0.1 * L, -0.1 * (H + A))
 domain_min = str(domain_min).replace('(', '').replace(')', '')
-domain_max = (0.6 * L, 1.1 * (H + A))
+domain_max = (1.1 * L, 2.0 * (H + A))
 domain_max = str(domain_max).replace('(', '').replace(')', '')
 
 data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
