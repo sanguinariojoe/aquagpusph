@@ -21,8 +21,10 @@ Authors:
     <!-- In this file we will just include other XML definition files -->
     <Include file="@RESOURCES_DIR@/OpenCLMain.xml" />
     <Include file="@RESOURCES_DIR@/Presets/domain.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/energy.xml" />
     <Include file="@RESOURCES_DIR@/Presets/timing.report.xml" />
     <Include file="@RESOURCES_DIR@/Presets/performance.report.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/energy.report.xml" />
     <Include file="Settings.xml" />
     <Include file="Time.xml" />
     <Include file="Symmetries.xml" />
