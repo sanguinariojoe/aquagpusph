@@ -103,6 +103,8 @@ for i in range(len(t_list)):
                                         E_list[i],
                                         E_adim_list[i]))
 output.close()
+Ekin0 = E_list[0]
+Epot0 = 0.5 * g * H * (L * H * refd)
 
 # Particles generation
 # ====================
@@ -233,7 +235,8 @@ domain_max = str(domain_max).replace('(', '').replace(')', '')
 data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
         'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max, 'GAMMA':str(gamma),
         'REFD':str(refd), 'VISC_DYN':str(visc_dyn), 'DELTA':str(delta),
-        'G':str(g), 'N':str(n + N), 'L':str(L), 'END_TIME':str(end_time)}
+        'G':str(g), 'N':str(n + N), 'L':str(L), 'END_TIME':str(end_time),
+        'E_KIN':str(Ekin0), 'E_POT':str(Epot0)}
 for fname in XML:
     # Read the template
     f = open(path.join(templates_path, fname), 'r')
