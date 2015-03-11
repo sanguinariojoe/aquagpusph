@@ -189,8 +189,8 @@ output.close()
 # =========================
 
 templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
-XML = ('Fluids.xml', 'Main.xml', 'Settings.xml', 'SPH.xml', 'Symmetries.xml',
-       'Time.xml', 'h_sensor.cl')
+XML = ('Fluids.xml', 'Main.xml', 'NullDiv.xml', 'Settings.xml', 'SPH.xml',
+       'Symmetries.xml', 'Time.xml', 'null_div.cl')
 
 domain_min = (-0.1 * L, -0.1 * (H + A))
 domain_min = str(domain_min).replace('(', '').replace(')', '')
