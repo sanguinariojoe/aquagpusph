@@ -104,10 +104,10 @@ __kernel void main(__global float* energy_dsdt,
     if(i >= N)
         return;
     if(imove[i] <= 0){
-        energy_dsdt = 0.f;
-        energy_dekindt = 0.f;
-        energy_depotdt = 0.f;
-        energy_dwdt = 0.f;
+        energy_dsdt[i] = 0.f;
+        energy_dekindt[i] = 0.f;
+        energy_depotdt[i] = 0.f;
+        energy_dwdt[i] = 0.f;
         return;
     }
 
@@ -115,7 +115,7 @@ __kernel void main(__global float* energy_dsdt,
     const float dens = rho[i];
     const float press = p[i];
     const float vol = mass / dens;
-    const float set = iset[i];
+    const int set = iset[i];
 
     energy_dsdt[i] = -vol * (visc_dyn[set] * dot(u[i], lap_u[i])
                      + delta[set] * refd[set] * dt * press * lap_p);
