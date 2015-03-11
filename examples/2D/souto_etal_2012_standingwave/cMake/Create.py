@@ -138,9 +138,11 @@ for i in range(0, n):
     imove = 1
     pos = (idx * dr + 0.5 * dr,
            idy * dr + 0.5 * dr)
-    k_u = Epsilon * g * H * k / (2.0 * omega * math.cosh(2.0 * k * H))
-    vel = (k_u * math.sin(k * pos[0]) * math.cosh(k * (H + pos[1])),
-          -k_u * math.cos(k * pos[0]) * math.sinh(k * (H + pos[1])))
+    x = pos[0]
+    y = pos[1] - H
+    k_u = Epsilon * g * H * k / (2.0 * omega * math.cosh(k * H))
+    vel = (k_u * math.sin(k * x) * math.cosh(k * (H + y)),
+          -k_u * math.cos(k * x) * math.sinh(k * (H + y)))
     press = refd * g * (H - pos[1])
     dens = pow(press / prb + 1.0, 1.0 / gamma) * refd
     mass = dens * dr**2.0
@@ -196,9 +198,9 @@ templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
 XML = ('Fluids.xml', 'Main.xml', 'NullDiv.xml', 'Settings.xml', 'SPH.xml',
        'Symmetries.xml', 'Time.xml', 'null_div.cl')
 
-domain_min = (-0.1 * L, -0.1 * (H + A))
+domain_min = (-0.2 * L, -0.2 * (H + A))
 domain_min = str(domain_min).replace('(', '').replace(')', '')
-domain_max = (1.1 * L, 2.0 * (H + A))
+domain_max = (1.2 * L, 1.2 * (H + A))
 domain_max = str(domain_max).replace('(', '').replace(')', '')
 
 data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
