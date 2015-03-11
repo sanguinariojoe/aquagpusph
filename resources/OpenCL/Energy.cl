@@ -118,9 +118,9 @@ __kernel void main(__global float* energy_dsdt,
     const int set = iset[i];
 
     energy_dsdt[i] = -vol * (visc_dyn[set] * dot(u[i], lap_u[i])
-                     + delta[set] * refd[set] * dt * press * lap_p);
+                     + delta[set] * refd[set] * dt * press * lap_p[i]);
     energy_dekindt[i] = mass * dot(u[i], dudt[i]);
-    energy_depotdt[i] = -mass * dot(g[i], u[i]);
+    energy_depotdt[i] = -mass * dot(g, u[i]);
     energy_dwdt[i] = -vol * (dot(grad_p[i], u[i])
                      + press * div_u[i]);
 }
