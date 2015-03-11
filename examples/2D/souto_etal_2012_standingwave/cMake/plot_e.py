@@ -105,7 +105,10 @@ class FigureController(FigureCanvas):
         data = []
         for l in lines:
             l = l.strip()
-            fields = l.split('\t')
+            l = l.replace('\t', ' ')
+            while l.find('  ') != -1:
+                l = l.replace('  ', ' ')
+            fields = l.split(' ')
             try:
                 data.append(map(float, fields))
             except:
