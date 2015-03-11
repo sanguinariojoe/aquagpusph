@@ -134,7 +134,7 @@ for i in range(0, n):
     imove = 1
     pos = (idx * dr + 0.5 * dr,
            idy * dr + 0.5 * dr)
-    k_u = Epsilon * g * H * k / (2.0 * omega * math.cosh(k * H))
+    k_u = Epsilon * g * H * k / (2.0 * omega * math.cosh(2.0 * k * H))
     vel = (k_u * math.sin(k * pos[0]) * math.cosh(k * (H + pos[1])),
           -k_u * math.cos(k * pos[0]) * math.sinh(k * (H + pos[1])))
     press = refd * g * (H - pos[1])
