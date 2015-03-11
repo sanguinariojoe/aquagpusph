@@ -39,7 +39,7 @@ import math
 g = 1
 hfac = 4.0
 cs = 50.0
-courant = 0.05
+courant = 0.2
 gamma = 1.0
 refd = 1.0
 alpha = 0.0
