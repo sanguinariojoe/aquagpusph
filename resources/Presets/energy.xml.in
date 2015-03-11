@@ -56,7 +56,7 @@ forces_M = Fluid moments
         <Tool action="insert" after="dWdt" type="set_scalar" name="dEintdt" in="energy_dEintdt" value="energy_dWdt - energy_dEpotdt - energy_dEkindt"/>
         <!-- Integrate in time -->
         <Tool action="insert" after="dEintdt" type="set_scalar" name="Eint" in="energy_Eint" value="energy_Eint + energy_dEintdt * dt"/>
-        <Tool action="insert" after="Eint" type="set_scalar" name="ES" in="energy_S" value="energy_S + energy_dSintdt * dt"/>
+        <Tool action="insert" after="Eint" type="set_scalar" name="ES" in="energy_S" value="energy_S + energy_dSdt * dt"/>
         <Tool action="insert" after="ES" type="set_scalar" name="Ekin" in="energy_Ekin" value="energy_Ekin + energy_dEkindt * dt"/>
         <Tool action="insert" after="Ekin" type="set_scalar" name="Epot" in="energy_Epot" value="energy_Epot + energy_dEpotdt * dt"/>
         <Tool action="insert" after="Epot" type="set_scalar" name="EW" in="energy_W" value="energy_W + energy_dWdt * dt"/>
