@@ -26,7 +26,6 @@ Authors:
     <Include file="Settings.xml" />
     <Include file="Time.xml" />
     <Include file="Symmetries.xml" />
-    <Include file="NullDiv.xml" />
     <Include file="SPH.xml" />
     <Include file="Fluids.xml" />
 </sphInput>

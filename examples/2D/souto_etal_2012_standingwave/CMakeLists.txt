@@ -11,8 +11,6 @@ configure_file(${EXAMPLE_ORIG_DIR}/templates/Fluids.xml
     ${EXAMPLE_DEST_DIR}/templates/Fluids.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/templates/Main.xml
     ${EXAMPLE_DEST_DIR}/templates/Main.xml @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/templates/NullDiv.xml
-    ${EXAMPLE_DEST_DIR}/templates/NullDiv.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/templates/Settings.xml
     ${EXAMPLE_DEST_DIR}/templates/Settings.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/templates/SPH.xml
@@ -21,8 +19,6 @@ configure_file(${EXAMPLE_ORIG_DIR}/templates/Symmetries.xml
     ${EXAMPLE_DEST_DIR}/templates/Symmetries.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/templates/Time.xml
     ${EXAMPLE_DEST_DIR}/templates/Time.xml @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/templates/null_div.cl
-    ${EXAMPLE_DEST_DIR}/templates/null_div.cl @ONLY)
 
 configure_file(${EXAMPLE_ORIG_DIR}/plot_t.py
     ${EXAMPLE_DEST_DIR}/plot_t.py @ONLY)
@@ -45,8 +41,6 @@ configure_file(${EXAMPLE_ORIG_DIR}/templates/Fluids.xml
     ${EXAMPLE_AUX_DIR}/templates/Fluids.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/templates/Main.xml
     ${EXAMPLE_AUX_DIR}/templates/Main.xml @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/templates/NullDiv.xml
-    ${EXAMPLE_AUX_DIR}/templates/NullDiv.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/templates/Settings.xml
     ${EXAMPLE_AUX_DIR}/templates/Settings.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/templates/SPH.xml
@@ -55,8 +49,6 @@ configure_file(${EXAMPLE_ORIG_DIR}/templates/Symmetries.xml
     ${EXAMPLE_AUX_DIR}/templates/Symmetries.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/templates/Time.xml
     ${EXAMPLE_AUX_DIR}/templates/Time.xml @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/templates/null_div.cl
-    ${EXAMPLE_AUX_DIR}/templates/null_div.cl @ONLY)
 
 configure_file(${EXAMPLE_ORIG_DIR}/plot_t.py
     ${EXAMPLE_AUX_DIR}/plot_t.py @ONLY)
@@ -71,12 +63,10 @@ INSTALL(
     FILES
         ${EXAMPLE_AUX_DIR}/templates/Fluids.xml
         ${EXAMPLE_AUX_DIR}/templates/Main.xml
-        ${EXAMPLE_AUX_DIR}/templates/NullDiv.xml
         ${EXAMPLE_AUX_DIR}/templates/Settings.xml
         ${EXAMPLE_AUX_DIR}/templates/SPH.xml
         ${EXAMPLE_AUX_DIR}/templates/Symmetries.xml
         ${EXAMPLE_AUX_DIR}/templates/Time.xml
-        ${EXAMPLE_AUX_DIR}/templates/null_div.cl
     DESTINATION
         ${EXAMPLE_DEST_DIR}/templates/
 )
