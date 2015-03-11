@@ -22,6 +22,8 @@ configure_file(${EXAMPLE_ORIG_DIR}/templates/Time.xml
 
 configure_file(${EXAMPLE_ORIG_DIR}/plot_t.py
     ${EXAMPLE_DEST_DIR}/plot_t.py @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/doc/standing_wave.wxmx
+    ${EXAMPLE_DEST_DIR}/doc/standing_wave.wxmx @ONLY)
 
 configure_file(${EXAMPLE_ORIG_DIR}/Create.py
     ${EXAMPLE_DEST_DIR}/Create.py @ONLY)
@@ -52,6 +54,8 @@ configure_file(${EXAMPLE_ORIG_DIR}/templates/Time.xml
 
 configure_file(${EXAMPLE_ORIG_DIR}/plot_t.py
     ${EXAMPLE_AUX_DIR}/plot_t.py @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/doc/standing_wave.wxmx
+    ${EXAMPLE_AUX_DIR}/doc/standing_wave.wxmx @ONLY)
 
 configure_file(${EXAMPLE_ORIG_DIR}/Create.py
     ${EXAMPLE_AUX_DIR}/Create.py @ONLY)
@@ -80,4 +84,10 @@ INSTALL(
     PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
                 GROUP_EXECUTE             GROUP_READ
                 WORLD_EXECUTE             WORLD_READ             
+)
+INSTALL(
+    FILES
+        ${EXAMPLE_AUX_DIR}/doc/standing_wave.wxmx
+    DESTINATION
+        ${EXAMPLE_DEST_DIR}/doc
 )
