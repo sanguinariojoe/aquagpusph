@@ -25,7 +25,7 @@ Authors:
             type="Time" Simulation ends after simulate some seconds
         You can conveniently combine several stop criterias.
         -->
-        <Option name="End" type="Time" value="8.0" />
+        <Option name="End" type="Time" value="{{END_TIME}}" />
 
         <!-- Set the log file printing criteria. Log file contains relevant
         data about the AQUAgpusph execution, i.e.- Warnings, errors, or
