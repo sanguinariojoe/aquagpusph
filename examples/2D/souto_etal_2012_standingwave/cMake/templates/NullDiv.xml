@@ -18,7 +18,8 @@ Authors:
 -->
 
 <sphInput>
-    <!-- Explicitely div(u) vanishing -->
+    <!-- Explicitely div(u) vanishing. Actually the errors in the computation
+    of div(u) close to the boundaries cannot be corrected in this case -->
     <Tools>
         <Tool action="insert" before="Rates" type="kernel" name="Null div(u)" path="null_div.cl"/>
     </Tools>
