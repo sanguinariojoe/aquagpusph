@@ -96,12 +96,12 @@ while t <= end_time:
     E_adim_list.append(E_list[-1] / E_list[0])
     t += dt
 output = open("Ekin.dat", "w")
-output.write("# t, t/T, Ekin(t), Ekin(t)/Ekin(0)")
+output.write("# t\tt/T\tEkin(t)\tEkin(t)/Ekin(0)")
 for i in range(len(t_list)):
-    output.write("{} {} {} {}\n".format(t_list[i],
-                                        t_adim_list[i],
-                                        E_list[i],
-                                        E_adim_list[i]))
+    output.write("{}\t{}\t{}\t{}\n".format(t_list[i],
+                                           t_adim_list[i],
+                                           E_list[i],
+                                           E_adim_list[i]))
 output.close()
 Ekin0 = E_list[0]
 Epot0 = 0.5 * g * H * (L * H * refd)
