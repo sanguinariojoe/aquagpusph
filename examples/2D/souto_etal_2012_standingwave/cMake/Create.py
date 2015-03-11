@@ -77,6 +77,33 @@ N = Nx
 T = 2.0 * math.pi / omega
 end_time = periods_to_run * T
 
+# Output kinetic energy prediction
+# ================================
+t = 0.0
+dt = T / 16
+t_list = []
+t_adim_list = []
+nu = H * math.sqrt(g * H) / Re
+E_list = []
+E_adim_list = []
+while t <= end_time:
+    t_list.append(t)
+    t_adim_list.append(t / T)
+    E_list.append(Epsilon**2 * g * H**2 * Lambda / 32 *
+                  # (1 + math.cos(2 * omega * t)) *
+                  2 *
+                  math.exp(-4 * nu * k**2 * t))
+    E_adim_list.append(E_list[-1] / E_list[0])
+    t += dt
+output = open("Ekin.dat", "w")
+output.write("# t, t/T, Ekin(t), Ekin(t)/Ekin(0)")
+for i in range(len(t_list)):
+    output.write("{} {} {} {}\n".format(t_list[i],
+                                        t_adim_list[i],
+                                        E_list[i],
+                                        E_adim_list[i]))
+output.close()
+
 # Particles generation
 # ====================
 
