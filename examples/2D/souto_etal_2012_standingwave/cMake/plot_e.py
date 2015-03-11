@@ -122,10 +122,11 @@ class FigureController(FigureCanvas):
         data = self.readFile('Energy.dat')
         t = data[0]
         e = data[4]
+        e0 = e[0]
         for i in range(len(t)):
             t[i] /= self.T
-            e[i] /= e[0]
-        self.line.set_data(t, a)
+            e[i] /= e0
+        self.line.set_data(t, e)
 
         # Redraw
         self.fig.canvas.draw()
