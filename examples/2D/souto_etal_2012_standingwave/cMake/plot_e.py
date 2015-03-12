@@ -60,7 +60,7 @@ class FigureController(FigureCanvas):
         data = self.readFile('Ekin.dat')
         self.aiml, = self.ax.plot(data[1],
                                   data[3],
-                                  label=r'$\theta_{Theoric}$',
+                                  label=r'$\mathrm{Theoric}$',
                                   color="black",
                                   linestyle="--",
                                   linewidth=1.0)
@@ -68,7 +68,7 @@ class FigureController(FigureCanvas):
         e = [0.0]
         self.line, = self.ax.plot(t,
                                   e,
-                                  label=r'$\theta_{SPH}$',
+                                  label=r'$\mathrm{SPH}$',
                                   color="black",
                                   linestyle="-",
                                   linewidth=1.0)
@@ -83,7 +83,7 @@ class FigureController(FigureCanvas):
         self.ax.set_ylim(0.0, 1.0)
         self.ax.set_autoscale_on(False)
         self.ax.set_xlabel(r"$t / T$", fontsize=21)
-        self.ax.set_ylabel(r"$E_{kin}(t) / E_{kin}(0)$", fontsize=21)
+        self.ax.set_ylabel(r"$\mathcal{E}_{k}(t) / \mathcal{E}_{k}(0)$", fontsize=21)
         # force the figure redraw
         self.fig.canvas.draw()
         # call the update method (to speed-up visualization)
