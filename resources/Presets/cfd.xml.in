@@ -7,8 +7,6 @@
         | t           | float         | 1       | Simulation time
         | dt          | float         | 1       | Time step
         | iter        | unsigned int  | 1       | Step
-        | n           | unsigned int  | 1       | Number of particles
-        | n_sensors   | unsigned int  | 1       | Number of sensors
         | N           | unsigned int  | 1       | n + n_sensors
         | n_sets      | unsigned int  | 1       | Number of particles sets
         | n_radix     | unsigned int  | 1       | Rounded up value from N which is a power of 2
