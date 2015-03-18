@@ -24,7 +24,6 @@
          -->
         <Variable name="g" type="vec" value="0.0, 0.0, 0.0, 0.0" />
         <Variable name="cs" type="float" value="15.0" />
-        <Variable name="courant" type="float" value="0.25" />
         <Variable name="rho_min" type="float" value="0.0" />
         <Variable name="rho_max" type="float" value="2.25*10^10" />
         <Variable name="r_min" type="vec" />
