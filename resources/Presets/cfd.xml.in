@@ -98,7 +98,7 @@
         <Tool action="add" type="set" name="Reinit shepard" in="shepard" value="0.f"/>
 
         <Tool action="add" type="kernel" name="Interactions" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Interactions.cl"/>
-        <Tool action="add" type="kernel" name="NonFluisSet" path="@RESOURCES_OUTPUT_DIR@/OpenCL/NonFluidSet.cl"/>
+        <Tool action="add" type="kernel" name="NonFluidSet" path="@RESOURCES_OUTPUT_DIR@/OpenCL/NonFluidSet.cl"/>
         <Tool action="add" type="kernel" name="BoundaryIntegrals" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/BoundaryIntegrals.cl"/>
 
         <!-- Velocity and density variation rates computation -->
