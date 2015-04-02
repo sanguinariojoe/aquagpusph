@@ -32,20 +32,20 @@
  * particle.
  * 
  * The internal energy variation is computed later as \f$ \frac{dU}{dt} =
- * \frac{dW}{dt} - \frac{dE_pot}{dt} - \frac{dE_kin}{dt} \f$
+ * \frac{dW}{dt} - \frac{dE^{pot}}{dt} - \frac{dE^{kin}}{dt} \f$
  *
  * @param energy_dsdt Variation of the entropy:
  * \f$ T \frac{d S_a}{d t} =
  * - \frac{\mu m_a}{\rho_a} \mathbf{u}_a \cdot \Delta \mathbf{u}_a
  * - \delta \frac{p_a m_a \Delta t}{\rho_0 \rho_a} \Delta p_a \f$
  * @param energy_dekindt Variation of the kinetic energy:
- * \f$ \frac{dE^kin_a}{dt} =
+ * \f$ \frac{dE^{kin}_a}{dt} =
  * m_a \mathbf{u}_a \cdot \frac{d \mathbf{u}_a}{dt}\f$
  * @param energy_depotdt Variation of the potential energy:
- * \f$ \frac{dE^pot_a}{dt} =
+ * \f$ \frac{dE^{pot}_a}{dt} =
  * - m_a \mathbf{g} \cdot \mathbf{u}_a\f$
  * @param energy_dwdt Variation of the potential energy:
- * \f$ m \frac{dW_a}{dt} =
+ * \f$ \frac{dW_a}{dt} =
  * - \frac{m_a}{\rho_a} \nabla p_a \cdot \mathbf{u}_a
  * - \frac{m_a}{\rho_a} p_a \nabla \cdot \mathbf{u}_a \f$
  * @param imove Moving flags.
