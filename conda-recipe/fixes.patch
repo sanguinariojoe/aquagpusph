@@ -1,0 +1,26 @@
+diff --git a/cMake/FindNumpy.cmake b/cMake/FindNumpy.cmake
+index c2a7ce0..af046d8 100644
+--- cMake/FindNumpy.cmake
++++ cMake/FindNumpy.cmake
+@@ -28,6 +28,8 @@ FIND_PATH(NUMPY_INCLUDE_DIRS
+     ${NUMPY_INCLUDE_DIR}
+ )
+ 
++INCLUDE_DIRECTORIES(${NUMPY_INCLUDE_DIR} ${NUMPY_INCLUDE_DIRS})
++
+ # Lets find the numpy module
+ EXECUTE_PROCESS(
+     COMMAND ${PYTHON_EXECUTABLE} -c "import numpy, os; print os.path.dirname(numpy.__file__)"
+diff --git a/cMake/FindOpenCL.cmake b/cMake/FindOpenCL.cmake
+index 5367495..6fba41c 100755
+--- cMake/FindOpenCL.cmake
++++ cMake/FindOpenCL.cmake
+@@ -47,7 +47,7 @@
+ INCLUDE (FindPackageHandleStandardArgs)
+ 
+ IF (CMAKE_SIZEOF_VOID_P EQUAL 8)
+-	SET (_OPENCL_POSSIBLE_LIB_SUFFIXES lib/Win64 lib/x86_64 lib/x64)
++	SET (_OPENCL_POSSIBLE_LIB_SUFFIXES lib/Win64 lib/x86_64 lib/x64 lib64/)
+ ELSE (CMAKE_SIZEOF_VOID_P EQUAL 8)
+ 	SET (_OPENCL_POSSIBLE_LIB_SUFFIXES lib/Win32 lib/x86)
+ ENDIF (CMAKE_SIZEOF_VOID_P EQUAL 8)

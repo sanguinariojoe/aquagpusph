@@ -1,0 +1,37 @@
+package:
+  name: aquagpusph
+  version: "2.0"
+
+source:
+  git_url: https://github.com/sanguinariojoe/aquagpusph.git
+  git_tag: "2.0"
+
+  patches:
+    - fixes.patch
+
+build:
+  number: 1
+
+requirements:
+  build:
+    - python
+    - cmake
+    - numpy
+    #- xerces-c
+    - eigen3
+    #- libmatheval
+    - llvm
+    - vtk
+
+  run:
+    - python
+    - numpy
+    #- xerces-c
+    - eigen3
+    #- libmatheval
+    - llvm
+    - vtk
+
+about:
+  home: http://canal.etsin.upm.es/aquagpusph/
+  license: The GNU General Public License, version 3.0

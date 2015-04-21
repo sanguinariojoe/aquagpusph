@@ -1,0 +1,5 @@
+Removing old build directory
+Removing old work directory
+BUILD START: aquagpusph-2.0-np19py27_8
+Fetching package metadata: ..There was an error importing jinja2.
+Please run `conda install jinja2` to enable jinja template support
