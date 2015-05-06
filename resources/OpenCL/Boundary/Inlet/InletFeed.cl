@@ -48,6 +48,7 @@
  * @param dt Time step \f$ \Delta t \f$.
  * @param cs Speed of sound \f$ c_s \f$.
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
+ * @param dr Distance between particles \f$ \Delta r \f$.
  * @param inlet_r Lower corner of the inlet square.
  * @param inlet_ru Square U vector.
  * @param inlet_rv Square V vector.
@@ -73,6 +74,7 @@ __kernel void main(__global int* imove,
                    float dt,
                    float cs,
                    vec g,
+                   float dr,
                    vec inlet_r,
                    vec inlet_ru,
                    vec inlet_rv,
@@ -105,7 +107,7 @@ __kernel void main(__global int* imove,
         const float v_fac = ((float)v_id + 0.5f) / inlet_N.y;
     #endif
     r[i] = inlet_r + u_fac * inlet_ru + v_fac * inlet_rv
-           + (inlet_R - SUPPORT * H) * inlet_n;
+           + (inlet_R - SUPPORT * H + 0.5f * dr) * inlet_n;
     
     // Set the particle data
     imove[i] = 1;
