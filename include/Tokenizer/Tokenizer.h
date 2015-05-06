@@ -26,6 +26,7 @@
 
 #include <map>
 #include <string>
+#include <muParser.h>
 
 namespace Aqua{
 
@@ -58,14 +59,6 @@ public:
      * @return true if the variable already exists, false otherwise.
      */
     bool registerVariable(const char* name, float value);
-
-    /** @brief Unregister a variable.
-     * @param name Name of the variable.
-     * @return true if the variable has been unregistered, false if the
-     * variable cannot be unregistered (for instance because it does not
-     * exist)
-     */
-    bool unregisterVariable(const char* name);
 
     /** @brief Clear/unregister all the registered variables.
      */
@@ -104,8 +97,8 @@ protected:
     virtual void defaultVariables();
 
 private:
-    /// Registered variables
-    std::map<std::string, float> _variables;
+    /// Mathematical expressions parser
+    mu::Parser p;
 };   // class Tokenizer
 
 }   // namespaces

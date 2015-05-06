@@ -21,7 +21,7 @@
  * (See Aqua::Tokenizer for details)
  */
 
-#include <matheval.h>
+// #include <matheval.h>
 #include <stdlib.h>
 
 #include <Tokenizer/Tokenizer.h>
@@ -60,50 +60,43 @@ Tokenizer::Tokenizer()
         S->addMessage(0, "\tIt is removed\n");
         lc->thousands_sep = "";
     }
-
-    // Register default variables
-    registerVariable("pi", M_PI);
-    registerVariable("e", M_E);
 }
 
 Tokenizer::~Tokenizer()
 {
-    _variables.clear();
+    p.ClearConst();
 }
 
 bool Tokenizer::registerVariable(const char* name, float value)
 {
+    bool overwritten = false;
     // Look for the variable in order to know if it already exist
     if(isVariable(name)){
-        // The variable already exist, lets modify it
-        _variables[name] = value;
-        return true;
+        // The variable already exist
+        overwritten = true;
     }
-    _variables.insert(make_pair(name, value));
-    return false;
-}
-
-bool Tokenizer::unregisterVariable(const char* name)
-{
-    if(!isVariable(name)){
-        return false;
-    }
-    map<string, float>::iterator var = _variables.find(name);
-    _variables.erase(var);
-    return true;
+    p.DefineConst(name, (mu::value_type)value);
+    return  overwritten;
 }
 
 void Tokenizer::clearVariables()
 {
-    _variables.clear();
+    p.ClearVar();
     defaultVariables();
 }
 
 bool Tokenizer::isVariable(const char* name)
 {
-    map<string, float>::iterator var = _variables.find(name);
-    if(var != _variables.end())
-        return true;
+    mu::valmap_type cmap = p.GetConst();
+    if (cmap.size())
+    {
+        mu::valmap_type::const_iterator item = cmap.begin();
+        for (; item!=cmap.end(); ++item){
+            if(!strcmp(name, item->first.c_str())){
+                return true;
+            }
+        }
+    }
     return false;
 }
 
@@ -112,17 +105,15 @@ float Tokenizer::variable(const char* name)
     if(!isVariable(name)){
         return 0.f;
     }
-    return _variables[name];
+    mu::valmap_type cmap = p.GetConst();
+    return (float)cmap[name];
 }
+
 
 float Tokenizer::solve(const char* eq, bool *error)
 {
     Aqua::InputOutput::ScreenManager *S;
     char msg[1024], *test;
-    void *f;
-    char **names;
-    double *values;
-    int n, i;
     float result;
     S = Aqua::InputOutput::ScreenManager::singleton();
 
@@ -139,45 +130,23 @@ float Tokenizer::solve(const char* eq, bool *error)
         }
     }
 
-    f = evaluator_create((char*)eq);
-    if(!f){
-        S->addMessageF(3, "Invalid math expression to evaluate:\n");
-        sprintf(msg, "\t\"%s\"\n", eq);
+    // No way, let's evaluate the new expression
+    p.SetExpr(eq);
+    try
+    {
+        result = (float)p.Eval();
+    }
+    catch(mu::Parser::exception_type &e)
+    {
+        sprintf(msg, "Error evaluating \"%s\"\n", e.GetExpr().c_str());
+        S->addMessageF(3, msg);
+        sprintf(msg, "\t%s\n", e.GetMsg().c_str());
         S->addMessage(0, msg);
-        if(error)
-            *error = true;
-        return 0.f;
+        sprintf(msg, "\tToken %s in position %d\n", e.GetToken().c_str(),
+                                                    e.GetPos());
+        S->addMessage(0, msg);
     }
 
-    evaluator_get_variables(f, &names, &n);
-    values = new double[n];
-    if(!values){
-        S->addMessageF(3, "Failure allocating memory for the variables.\n");
-        evaluator_destroy(f);
-        if(error)
-            *error = true;
-        return 0.f;
-    }
-    for(i=0;i<n;i++){
-        if(!isVariable(names[i])){
-            S->addMessageF(3, "Impossible to evaluate a variable\n");
-            sprintf(msg,
-                    "\t\"%s\" variable has not been registered\n",
-                    names[i]);
-            S->addMessage(0, msg);
-            evaluator_destroy(f);
-            delete[] values;
-            if(error)
-                *error = true;
-            return 0.f;
-        }
-        values[i] = variable(names[i]);
-    }
-
-    result = evaluator_evaluate(f, n, names, values);
-
-    evaluator_destroy(f);
-    delete[] values;
     return result;
 }
 

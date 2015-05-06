@@ -24,12 +24,12 @@
 # ===================================================== #
 cmake_minimum_required(VERSION 2.8.0 FATAL_ERROR)
 project(AQUAgpusph)
-set(AQUAGPUSPH_VERSION "1.5.03")
+set(AQUAGPUSPH_VERSION "2.1.0")
 
 set(PACKAGE_NAME "AQUAgpusph")
-set(PACKAGE_VERSION_MAJOR "1")
-set(PACKAGE_VERSION_MINOR "5")
-set(PACKAGE_VERSION_PATCH "03")
+set(PACKAGE_VERSION_MAJOR "2")
+set(PACKAGE_VERSION_MINOR "1")
+set(PACKAGE_VERSION_PATCH "0")
 set(PACKAGE_VERSION "${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR}.${PACKAGE_VERSION_PATCH}")
 set(PACKAGE_STRING "${PACKAGE_NAME} ${PACKAGE_VERSION}")
 
@@ -185,12 +185,12 @@ IF(NOT EIGEN3_FOUND)
 MESSAGE(FATAL_ERROR "Eigen3 not found, but ${PACKAGE_NAME} requires it. Please install Eigen3!")
 ENDIF(NOT EIGEN3_FOUND)
 
-# matheval
-FIND_PACKAGE(matheval REQUIRED)
+# muparser
+FIND_PACKAGE(MuParser REQUIRED)
 
-IF(NOT MATHEVAL_FOUND)
-MESSAGE(FATAL_ERROR "libmatheval not found, but ${PACKAGE_NAME} requires it. Please install libmatheval!")
-ENDIF(NOT MATHEVAL_FOUND)
+IF(NOT MUPARSER_FOUND)
+MESSAGE(FATAL_ERROR "MuParser not found, but ${PACKAGE_NAME} requires it. Please install MuParser!")
+ENDIF(NOT MUPARSER_FOUND)
 
 # GPU profile
 IF(AQUAGPUSPH_GPU_PROFILE)
