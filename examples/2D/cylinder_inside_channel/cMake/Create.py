@@ -212,7 +212,8 @@ domain_max = str(domain_max).replace('(', '').replace(')', '')
 data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
         'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max, 'GAMMA':str(gamma),
         'REFD':str(refd), 'VISC_DYN':str(visc_dyn), 'DELTA':str(delta),
-        'G':str(g), 'N':str(n), 'L':str(L)}
+        'G':str(g), 'N':str(n), 'NY':str(ny), 'L':str(L), 'H':str(H),
+        'U':str(U)}
 for fname in XML:
     # Read the template
     f = open(path.join(templates_path, fname), 'r')

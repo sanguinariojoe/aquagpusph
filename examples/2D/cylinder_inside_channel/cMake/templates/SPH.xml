@@ -27,5 +27,11 @@ Authors:
         <Variable name="courant" type="float" value="{{COURANT}}" />
         <Variable name="domain_min" type="vec" value="{{DOMAIN_MIN}}" />
         <Variable name="domain_max" type="vec" value="{{DOMAIN_MAX}}" />
+        <!-- Inlet boundary condition -->
+        <Variable name="inlet_r" type="vec" value="0.0, -0.5*{{H}}" />
+        <Variable name="inlet_ru" type="vec" value="0.0, {{H}}" />
+        <Variable name="inlet_N" type="uivec2" value="{{NY}}, 1" />
+        <Variable name="inlet_n" type="vec" value="1.0, 0.0" />
+        <Variable name="inlet_U" type="float" value="{{U}}" />
     </Variables>
 </sphInput>
