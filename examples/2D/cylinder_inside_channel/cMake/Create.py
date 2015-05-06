@@ -126,8 +126,8 @@ while x < L + sep * h:
             mass,
             imove)
         output.write(string)
-        y += 0.5 * dr
-    x += 0.5 * dr
+        y += dr
+    x += dr
 
 string = """
     Writing the boundary elements...
@@ -136,7 +136,7 @@ print(string)
 
 Percentage = -1
 x = 0.5 * dr - sep * h
-while x < L - 0.5 * dr + sep * h:
+while x < L + sep * h:
     percentage = int(round((x + sep * h) / (L + 2.0 * sep * h) * 100))
     if Percentage != percentage:
         Percentage = percentage
@@ -163,7 +163,7 @@ while x < L - 0.5 * dr + sep * h:
             mass,
             imove)
         output.write(string)
-    x += 0.5 * dr
+    x += dr
 
 string = """
     Writing buffer particles...
