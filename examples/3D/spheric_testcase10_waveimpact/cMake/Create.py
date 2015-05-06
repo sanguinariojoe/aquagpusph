@@ -104,26 +104,6 @@ string = """#############################################################
 #                          ##  #             #              #
 #                                                           #
 #############################################################
-#
-#    Fluid definition autoexported by AQUAgpusph.
-#    Particle needed data are:
-#        Position
-#        Normal      (Fluid particles can have null normal)
-#        Velocity
-#        Mass
-#    Particle optional data are (sorted):
-#        Imove       (1)
-#        Density     (refd)
-#        Sound speed (cs)
-#        KernelH     (h)
-#        Ifluid      (ifluid)
-#        DensityRate (0.0)
-#        Force       ([0,0,0])
-#
-#    Normal direction is not relevant, but ensure that for
-#    solid vertexes are normalised.
-#
-#############################################################
 """
 output.write(string)
 print(string)
