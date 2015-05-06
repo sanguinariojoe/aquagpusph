@@ -148,14 +148,14 @@ while x < L + sep * h:
         imove = -3
         vx = U
         vy = 0.0
-        nx = 0
-        ny = 1 if i else -1
+        normal_x = 0
+        normal_y = 1 if i else -1
         press = refd * g * (H - y)
         dens = pow(press / prb + 1.0, 1.0 / gamma) * refd
         mass = dr
         string = ("{} {}, " * 4 + "{}, {}, {}, {}\n").format(
             x, y,
-            nx, ny,
+            normal_x, normal_y,
             vx, vy,
             0.0, 0.0,
             dens,
