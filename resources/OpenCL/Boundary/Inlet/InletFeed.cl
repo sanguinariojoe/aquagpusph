@@ -21,9 +21,9 @@
  */
 
 #ifndef HAVE_3D
-    #include "types/2D.h"
+    #include "../../types/2D.h"
 #else
-    #include "types/3D.h"
+    #include "../../types/3D.h"
 #endif
 
 /** @brief Particles generation at the inlet.
@@ -96,13 +96,13 @@ __kernel void main(__global int* imove,
     // Compute the generation point
     const unsigned int j = i - i0;
     #ifndef HAVE_3D
-        const float u_fac = (float)j / inlet_N.x;
+        const float u_fac = ((float)j + 0.5f) / inlet_N.x;
         const float v_fac = 0.f;
     #else
         const unsigned int u_id = j % inlet_N.x;
         const unsigned int v_id = j / inlet_N.x;
-        const float u_fac = (float)u_id / inlet_N.x;
-        const float v_fac = (float)v_id / inlet_N.y;
+        const float u_fac = ((float)u_id + 0.5f) / inlet_N.x;
+        const float v_fac = ((float)v_id + 0.5f) / inlet_N.y;
     #endif
     r[i] = inlet_r + u_fac * inlet_ru + v_fac * inlet_rv
            + (inlet_R - SUPPORT * H) * inlet_n;

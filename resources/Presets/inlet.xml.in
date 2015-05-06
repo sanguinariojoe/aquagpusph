@@ -43,9 +43,9 @@ first component. Also the inlet_rv variable will be useless
         <Tool action="insert" before="Predictor" type="set_scalar" name="Increment inlet_R" in="inlet_R" value="inlet_R + inlet_U * dt"/>
         <Tool action="insert" after="Increment inlet_R" type="set_scalar" name="Inlet starvation" in="inlet_starving" value="inlet_R > dr ? 1 : 0"/>
         <Tool action="insert" after="Inlet starvation" type="set_scalar" name="Inlet R correction" in="inlet_R" value="inlet_R > dr ? inlet_R - dr : inlet_R"/>
-        <Tool action="insert" after="Inlet R correction" type="kernel" name="Inlet feed" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/Symmetry/InletFeed.cl"/>
+        <Tool action="insert" after="Inlet R correction" type="kernel" name="Inlet feed" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/Inlet/InletFeed.cl"/>
         <Tool action="insert" after="Inlet feed" type="set_scalar" name="Inlet R vanishment" in="inlet_R" value="inlet_starving > 0 ? 0.0 : inlet_R"/>
         <!-- Now ensure that particles in the inlet are not affected by the interactions -->
-        <Tool action="insert" after="Rates" type="kernel" name="Inlet" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/Symmetry/Inlet.cl"/>
+        <Tool action="insert" after="Rates" type="kernel" name="Inlet" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/Inlet/Inlet.cl"/>
     </Tools>
 </sphInput>
