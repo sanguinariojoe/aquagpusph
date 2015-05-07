@@ -46,14 +46,14 @@ gamma = 1.0
 refd = 1.0
 alpha = 0.0
 delta = 1.0
-U = 1.0
-Re = 500.0
+U = 0.1
+Re = 100.0
 # Cylinder and Channel dimensions
 D = 1.0
 L = 30.0 * D
 H = 10.0 * D
 # Position of the cylinder
-x_cyl = 1.0 / 3.0 * L
+x_cyl = 1.0 / 2.0 * L
 y_cyl = 0.0
 # Number of fluid particles in y direction
 ny = 100

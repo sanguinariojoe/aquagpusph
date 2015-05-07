@@ -109,7 +109,8 @@ __kernel void main(const __global uint* iset,
         p[i] = max(prb * (pow(ddenf, gammf) - 1.f),
                    grad_p[i].x / shepard_i) + grad_p[i].y / shepard_i;
     #elif defined _PRESSURE_BASED_
-        p[i] = max(0.f, (grad_p[i].x + grad_p[i].y) / shepard_i);
+        // p[i] = max(0.f, (grad_p[i].x + grad_p[i].y) / shepard_i);
+        p[i] = (grad_p[i].x + grad_p[i].y) / shepard_i;
         // Reversed Batchelor 1967
         const float rdenf = refd[iset[i]];
         const float gammf = gamma[iset[i]];
