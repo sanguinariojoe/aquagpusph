@@ -42,4 +42,8 @@ Authors:
         -->
         <Option name="Output" type="FPS" value="30" />
     </Timing>
+
+    <Tools>
+        <Tool action="insert" before="FixedTimeStep" type="set_scalar" name="courant ramp" in="courant" value="{{COURANT}} * min(1.0, iter / {{COURANT_RAMP_ITERS}}) + {{COURANT}} * {{COURANT_RAMP_FACTOR}} * (1.0 - min(1.0, iter / {{COURANT_RAMP_ITERS}}))"/>    
+    </Tools>
 </sphInput>
