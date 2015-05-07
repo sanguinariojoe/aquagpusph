@@ -44,11 +44,15 @@ gamma = 1.0
 refd = 1.0
 alpha = 0.0
 delta = 1.0
-visc_dyn = 0.001
 U = 1.0
-# Channel dimensions
-L = 1.0
-H = 0.5 * L
+Re = 500.0
+# Cylinder and Channel dimensions
+D = 1.0
+L = 30.0 * D
+H = 10.0 * D
+# Position of the cylinder
+x_cyl = 1.0 / 6.0 * L
+y_cyl = 0.0
 # Number of fluid particles in y direction
 ny = 100
 
@@ -68,6 +72,7 @@ n_buffer = n_buffer_x * n_buffer_y
 
 # Artificial viscosity
 # ====================
+visc_dyn = 0.001
 visc_dyn = max(alpha / 8.0 * refd * hfac * dr * cs, visc_dyn)
 
 # Particles generation
@@ -109,6 +114,12 @@ while x < L + sep * h:
             print(string)
     y = -0.5 * H + 0.5 * dr
     while y < 0.5 * H:
+        # Avoid the particles inside the cylinder
+        dist = math.sqrt((x - x_cyl)**2 + (y - y_cyl)**2)
+        if dist < 0.5 * (D + dr):
+            y += dr
+            continue
+
         n += 1
         imove = 1
         vx = U
@@ -200,6 +211,66 @@ for i in range(n_buffer):
 output.close()
 print('{} particles written'.format(n))
 
+print("Opening cylinder boundary elements output file...")
+output = open("Cylinder.dat", "w")
+string = """#############################################################
+#                                                           #
+#    #    ##   #  #   #                           #         #
+#   # #  #  #  #  #  # #                          #         #
+#  ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###       #
+#  #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #      #
+#  #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #      #
+#  #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #      #
+#                            # #             #              #
+#                          ##  #             #              #
+#                                                           #
+#############################################################
+"""
+output.write(string)
+
+string = """
+    Writing the boundary elements...
+"""
+print(string)
+n_cyl = 0
+Percentage = -1
+theta = 0.0
+dtheta = 2.0 * dr / D
+while theta < 2.0 * math.pi:
+    percentage = int(round(theta / (2.0 * math.pi) * 100))
+    if Percentage != percentage:
+        Percentage = percentage
+        if not Percentage % 10:
+            string = '    {}%'.format(Percentage)
+            print(string)
+
+    n_cyl += 1
+    imove = -3
+    x = x_cyl + 0.5 * D * math.cos(theta)
+    y = y_cyl + 0.5 * D * math.sin(theta)
+    vx = 0.0
+    vy = 0.0
+    normal_x = math.cos(theta)
+    normal_y = math.sin(theta)
+    press = refd * g * (H - y)
+    dens = pow(press / prb + 1.0, 1.0 / gamma) * refd
+    mass = dr
+    string = ("{} {}, " * 4 + "{}, {}, {}, {}\n").format(
+        x, y,
+        normal_x, normal_y,
+        vx, vy,
+        0.0, 0.0,
+        dens,
+        0.0,
+        mass,
+        imove)
+    output.write(string)
+
+    theta += dtheta
+output.close()
+print('{} boundary elements written'.format(n_cyl))
+
+
 # XML definition generation
 # =========================
 
@@ -213,7 +284,7 @@ data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
         'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max, 'GAMMA':str(gamma),
         'REFD':str(refd), 'VISC_DYN':str(visc_dyn), 'DELTA':str(delta),
         'G':str(g), 'N':str(n), 'NY':str(ny), 'L':str(L), 'H':str(H),
-        'U':str(U)}
+        'U':str(U), 'NCYL':str(n_cyl)}
 for fname in XML:
     # Read the template
     f = open(path.join(templates_path, fname), 'r')

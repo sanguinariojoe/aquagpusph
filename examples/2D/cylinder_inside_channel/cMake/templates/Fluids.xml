@@ -27,4 +27,13 @@ Authors:
         <Load format="ASCII" file="Fluid.dat" fields="r, normal, u, dudt, rho, drhodt, m, imove" />
         <Save format="VTK" file="output" fields="r, normal, u, dudt, rho, drhodt, m, p, imove" />
     </ParticlesSet>
+    <ParticlesSet n="{{NCYL}}">
+        <Scalar name="gamma" value="{{GAMMA}}" />
+        <Scalar name="refd" value="{{REFD}}" />
+        <Scalar name="visc_dyn" value="{{VISC_DYN}}" />
+        <Scalar name="delta" value="{{DELTA}}" />
+
+        <Load format="ASCII" file="Cylinder.dat" fields="r, normal, u, dudt, rho, drhodt, m, imove" />
+        <Save format="VTK" file="cylinder" fields="r, normal, u, dudt, rho, drhodt, m, p, imove" />
+    </ParticlesSet>
 </sphInput>
