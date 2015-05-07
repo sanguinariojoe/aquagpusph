@@ -232,10 +232,11 @@ string = """
     Writing the boundary elements...
 """
 print(string)
-n_cyl = 0
 Percentage = -1
 theta = 0.0
 dtheta = 2.0 * dr / D
+n_cyl = int(round(2.0 * math.pi / dtheta))
+dtheta = 2.0 * math.pi / n_cyl
 while theta < 2.0 * math.pi:
     percentage = int(round(theta / (2.0 * math.pi) * 100))
     if Percentage != percentage:
@@ -244,7 +245,6 @@ while theta < 2.0 * math.pi:
             string = '    {}%'.format(Percentage)
             print(string)
 
-    n_cyl += 1
     imove = -3
     x = x_cyl + 0.5 * D * math.cos(theta)
     y = y_cyl + 0.5 * D * math.sin(theta)
@@ -254,7 +254,7 @@ while theta < 2.0 * math.pi:
     normal_y = math.sin(theta)
     press = refd * g * (H - y)
     dens = pow(press / prb + 1.0, 1.0 / gamma) * refd
-    mass = dr
+    mass = 0.5 * D * dtheta
     string = ("{} {}, " * 4 + "{}, {}, {}, {}\n").format(
         x, y,
         normal_x, normal_y,
