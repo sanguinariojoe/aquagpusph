@@ -250,8 +250,8 @@ while theta < 2.0 * math.pi:
     y = y_cyl + 0.5 * D * math.sin(theta)
     vx = 0.0
     vy = 0.0
-    normal_x = math.cos(theta)
-    normal_y = math.sin(theta)
+    normal_x = -math.cos(theta)
+    normal_y = -math.sin(theta)
     press = refd * g * (H - y)
     dens = pow(press / prb + 1.0, 1.0 / gamma) * refd
     mass = 0.5 * D * dtheta
