@@ -52,6 +52,8 @@ __kernel void main(__global int* imove,
     unsigned int i = get_global_id(0);
     if(i >= N)
         return;
+    if(imove[i] <= 0)
+        return;
 
     // Discard the particles already passed through the inlet
     if(dot(r[i] - inlet_r, inlet_n) > 0.f)
