@@ -81,6 +81,7 @@
  * @param dt Time step \f$ \Delta t \f$.
  * @param cs Speed of sound \f$ c_s \f$.
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
+ * @param p0 Background pressure \f$ p_0 \f$.
  * @param rho_min Minimum tolerated density value \f$ \rho_{min} \f$.
  * @param rho_max Maximum tolerated density value \f$ \rho_{max} \f$.
  * @see Corrector.cl
@@ -104,6 +105,7 @@ __kernel void main(__global int* imove,
                    float dt,
                    float cs,
                    vec g,
+                   float p0,
                    float rho_min,
                    float rho_max)
 {
@@ -133,6 +135,6 @@ __kernel void main(__global int* imove,
     {
         const float ddenf = rho_in[i] / refd[iset[i]];
         const float prb = cs * cs * refd[iset[i]] / gamma[iset[i]];
-        p_in[i] = prb * (pow(ddenf, gamma[iset[i]]) - 1.f);
+        p_in[i] = p0 + prb * (pow(ddenf, gamma[iset[i]]) - 1.f);
     }
 }

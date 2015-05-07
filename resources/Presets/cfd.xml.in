@@ -26,6 +26,7 @@
         <Variable name="rho_max" type="float" value="2.25*10^10" />
         <Variable name="r_min" type="vec" />
         <Variable name="r_max" type="vec" />
+        <Variable name="p0" type="float" length="0.0" />
 
         <Variable name="gamma" type="float*" length="n_sets" />
         <Variable name="refd" type="float*" length="n_sets" />
