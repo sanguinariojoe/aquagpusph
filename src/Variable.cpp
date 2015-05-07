@@ -2436,7 +2436,7 @@ bool Variables::readComponents(const char* name,
                                float* v)
 {
     float val;
-    unsigned int i;
+    unsigned int i, j;
     char msg[256];
     bool error;
     ScreenManager *S = ScreenManager::singleton();
@@ -2455,13 +2455,39 @@ bool Variables::readComponents(const char* name,
                 name);
         S->addMessage(0, msg);
     }
-    char* remain = (char *)value;
-    char aux[strlen(value) + 1];
+
+    // Replace all the commas outside function by semicolons to be taken into
+    // account as separators
+    char* remain = new char[strlen(value) + 1];
+    char* aux = new char[strlen(value) + 1];
+    if((!remain) || (!aux)){
+        sprintf(msg,
+                "Failure allocating %lu bytes to evaluate the variable \"%s\".\n",
+                2 * sizeof(char) * (strlen(value) + 1),
+                name);
+        S->addMessageF(3, msg);
+    }
+    strcpy(remain, value);
+    int parenthesis_counter = 0;
+    for(i = 0; i < strlen(remain); i++){
+        // We does not care about unbalanced parenthesis, muparser will do it
+        if(remain[i] == '(')
+            parenthesis_counter++;
+        else if(remain[i] == ')')
+            parenthesis_counter++;
+        else if(remain[i] == ','){
+            if(parenthesis_counter > 0){
+                // It is inside a function, skip it
+                continue;
+            }
+            remain[i] = ';';
+        }
+    }
     char nameaux[strlen(name) + 3];
     const char* extensions[4] = {"_x", "_y", "_z", "_w"};
     for(i = 0; i < n - 1; i++){
         strcpy(aux, remain);
-        if(!strchr(aux, ',')){
+        if(!strchr(aux, ';')){
             unsigned int n_fields = i;
             if(strcmp(aux, "")){
                 n_fields++;
@@ -2472,8 +2498,8 @@ bool Variables::readComponents(const char* name,
             S->addMessage(0, msg);
             return true;
         }
-        strcpy(strchr(aux, ','), "");
-        remain = strchr(remain, ',') + 1;
+        strcpy(strchr(aux, ';'), "");
+        remain = strchr(remain, ';') + 1;
         val = tok.solve(aux, &error);
         if(error)
             return true;
@@ -2484,8 +2510,8 @@ bool Variables::readComponents(const char* name,
     }
 
     strcpy(aux, remain);
-    if(strchr(aux, ','))
-        strcpy(strchr(aux, ','), "");
+    if(strchr(aux, ';'))
+        strcpy(strchr(aux, ';'), "");
     val = tok.solve(aux, &error);
     if(error)
         return true;
