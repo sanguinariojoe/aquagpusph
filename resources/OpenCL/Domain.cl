@@ -70,14 +70,8 @@ __kernel void main(__global int* imove,
         // Stop the particle
         u[i] = VEC_ZERO;
         dudt[i] = VEC_ZERO;
-        // Clamp the position
-        r[i].x = max(r[i].x, domain_min.x);
-        r[i].x = min(r[i].x, domain_max.x);
-        r[i].y = max(r[i].y, domain_min.y);
-        r[i].y = min(r[i].y, domain_max.y);
-        #ifdef HAVE_3D
-            r[i].z = max(r[i].z, domain_min.z);
-            r[i].z = min(r[i].z, domain_max.z);
-        #endif
+        // Move the particle to a more convenient position (in order to can use
+        // it as buffer)
+        r[i] = domain_max;
     }
 }
