@@ -29,7 +29,9 @@
 /** @brief Particles generation at the inlet.
  *
  * Particles are generated just when the inlet is starving, i.e. the previously
- * generated layer of particles have moved more than dr.
+ * generated layer of particles have moved more than dr. To do that inlet is
+ * extracting the particles from the "buffer", which are the last particles in
+ * the sorted list.
  *
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
