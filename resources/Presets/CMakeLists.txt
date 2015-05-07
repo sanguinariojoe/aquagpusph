@@ -9,6 +9,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/noLocalMem.xml.in
     ${CMAKE_CURRENT_BINARY_DIR}/noLocalMem.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/inlet.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/inlet.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/outlet.xml.in  
+    ${CMAKE_CURRENT_BINARY_DIR}/outlet.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/symmetry.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/symmetry.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/variableTimeStep.xml.in  
@@ -40,6 +42,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/noLocalMem.xml.in
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/noLocalMem.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/inlet.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/inlet.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/outlet.xml.in  
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/outlet.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/symmetry.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/symmetry.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/variableTimeStep.xml.in  
@@ -70,6 +74,7 @@ SET(RESOURCES_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/cfd.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/noLocalMem.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/inlet.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/outlet.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/symmetry.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/variableTimeStep.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/domain.xml
