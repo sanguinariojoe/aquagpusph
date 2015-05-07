@@ -176,8 +176,8 @@ bool ASCII::load()
 
         i++;
 
-        if(progress != (i - bounds().x) * 100 / n){
-            progress = (i - bounds().x) * 100 / n;
+        if(progress != i * 100 / n){
+            progress = i * 100 / n;
             if(!(progress % 10)){
                 sprintf(msg, "\t\t%u%%\n", progress);
                 S->addMessage(0, msg);
