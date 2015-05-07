@@ -37,6 +37,7 @@
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r} \f$.
+ * @param dudt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
  * @param drhodt Density rate of change \f$ \frac{d \rho}{d t} \f$.
  * @param N Number of particles.
  * @param domain_max Maximum point of the computational domain.
@@ -45,6 +46,7 @@
  */
 __kernel void main(__global int* imove,
                    __global vec* r,
+                   __global vec* dudt,
                    __global float* drhodt,
                    unsigned int N,
                    vec domain_max,
@@ -64,6 +66,7 @@ __kernel void main(__global int* imove,
         return;
 
     drhodt[i] = 0.f;
+    dudt[i] = VEC_ZERO;
     // Destroy the particles far away from the outlet plane
     if(dist > SUPPORT * H)
         r[i] = domain_max + VEC_ONE;
