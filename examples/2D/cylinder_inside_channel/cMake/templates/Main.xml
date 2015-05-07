@@ -22,6 +22,7 @@ Authors:
     <Include file="@RESOURCES_DIR@/OpenCLMain.xml" />
     <Include file="@RESOURCES_DIR@/Presets/domain.xml" />
     <Include file="@RESOURCES_DIR@/Presets/inlet.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/outlet.xml" />
     <Include file="@RESOURCES_DIR@/Presets/timing.report.xml" />
     <Include file="@RESOURCES_DIR@/Presets/performance.report.xml" />
     <Include file="Settings.xml" />

@@ -33,5 +33,8 @@ Authors:
         <Variable name="inlet_N" type="uivec2" value="{{NY}}, 1" />
         <Variable name="inlet_n" type="vec" value="1.0, 0.0" />
         <Variable name="inlet_U" type="float" value="{{U}}" />
+        <!-- Outlet boundary condition -->
+        <Variable name="outlet_r" type="vec" value="{{L}}, 0.0" />
+        <Variable name="outlet_n" type="vec" value="1.0, 0.0" />
     </Variables>
 </sphInput>
