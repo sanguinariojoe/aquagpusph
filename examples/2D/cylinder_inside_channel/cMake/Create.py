@@ -37,10 +37,10 @@ import math
 # ==========
 
 g = 0.0
-hfac = 4.0
+hfac = 8.0
 cs = 20.0
-courant = 0.1
-courant_ramp_iters = 10000
+courant = 0.05
+courant_ramp_iters = 1000
 courant_ramp_factor = 0.001
 gamma = 1.0
 refd = 1.0
@@ -48,15 +48,17 @@ alpha = 0.0
 delta = 1.0
 U = 0.1
 Re = 100.0
+# p0 = 3.0 * refd * U**2
+p0 = 0.3
 # Cylinder and Channel dimensions
-D = 1.0
+D = 0.1
 L = 30.0 * D
 H = 10.0 * D
 # Position of the cylinder
 x_cyl = 1.0 / 2.0 * L
 y_cyl = 0.0
 # Number of fluid particles in y direction
-ny = 100
+ny = 400
 
 # Distance between particles
 # ==========================
@@ -286,7 +288,7 @@ data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
         'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max, 'GAMMA':str(gamma),
         'REFD':str(refd), 'VISC_DYN':str(visc_dyn), 'DELTA':str(delta),
         'G':str(g), 'N':str(n), 'NY':str(ny), 'L':str(L), 'H':str(H),
-        'U':str(U), 'NCYL':str(n_cyl),
+        'U':str(U), 'P0':str(p0), 'NCYL':str(n_cyl),
         'COURANT_RAMP_ITERS':str(courant_ramp_iters),
         'COURANT_RAMP_FACTOR':str(courant_ramp_factor),}
 for fname in XML:
