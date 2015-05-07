@@ -59,7 +59,7 @@ __kernel void main(__global int* imove,
         return;
 
     // Compute the distance to the outlet plane
-    const float dist = dot(r[i] - outlet_r, outlet_n)
+    const float dist = dot(r[i] - outlet_r, outlet_n);
     if(dist < 0.f)
         return;
 
