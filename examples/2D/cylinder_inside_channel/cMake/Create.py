@@ -58,7 +58,7 @@ H = 10.0 * D
 x_cyl = 1.0 / 2.0 * L
 y_cyl = 0.0
 # Number of fluid particles in y direction
-ny = 400
+ny = 100
 
 # Distance between particles
 # ==========================
