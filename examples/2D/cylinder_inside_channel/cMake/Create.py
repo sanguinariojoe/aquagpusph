@@ -126,9 +126,16 @@ while x < L + sep * h:
 
         n += 1
         imove = 1
-        vx = U
-        vy = 0.0
-        press = p0
+        # vx = U
+        # vy = 0.0
+        # press = p0
+        cost = (x - x_cyl) / dist
+        sint = (y - y_cyl) / dist
+        vr = U * (1.0 - ((0.5 * D) / dist)**2) * cost
+        vt = -U * (1.0 + ((0.5 * D) / dist)**2) * sint
+        vx = vr * cost - vt * sint
+        vy = vr * sint + vt * cost
+        press = 0.5 * refd * (vx**2 + vy**2 - U**2)
         dens = refd
         mass = refd * dr**2.0
         string = ("{} {}, " * 4 + "{}, {}, {}, {}, N\n").format(
