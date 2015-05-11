@@ -39,8 +39,8 @@
  *
  * Density = SSM
  * Pressure = SSM + Hydrostatic contribution
- * Normal velocity component = Takeda
- * Tabgential velocity component = Symmetry model
+ * Normal velocity component = SSM
+ * Tangential velocity component = SSM
  *
  * Mirroring particle id is denominated iref.
  *
@@ -169,10 +169,6 @@ __kernel void main(const __global uint* iset,
         _U_ /= shepard;
 
         _P_ -= refd_i * 2.f * dot(g, dr_i);
-        const vec_xyz un_i = dot(_U_, n_iref) * n_iref;
-        const vec_xyz ut_i = _U_ - un_i;
-        const vec_xyz un_iref = dot(u[iref].XYZ, n_iref) * n_iref;
-        _U_ = ut_i + 2.f * un_iref - un_i;
     }
 
     #ifdef LOCAL_MEM_SIZE
