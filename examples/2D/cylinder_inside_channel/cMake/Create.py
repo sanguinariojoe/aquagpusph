@@ -48,8 +48,7 @@ delta = 1.0
 U = 1.0
 cs = 10.0 * U
 Re = 100.0
-# p0 = 3.0 * refd * U**2
-p0 = 0.3
+p0 = 3.0 * refd * U**2
 # Cylinder and Channel dimensions
 D = 1.0
 L = 10.0 * D
@@ -136,7 +135,7 @@ while x < L + sep * h:
         vx = vr * cost - vt * sint
         vy = vr * sint + vt * cost
         press = 0.5 * refd * (vx**2 + vy**2 - U**2)
-        dens = refd
+        dens = pow(press / prb + 1.0, 1.0 / gamma) * refd
         mass = refd * dr**2.0
         string = ("{} {}, " * 4 + "{}, {}, {}, {}, N\n").format(
             x, y,
