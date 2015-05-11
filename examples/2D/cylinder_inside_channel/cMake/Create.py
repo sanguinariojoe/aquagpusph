@@ -128,10 +128,10 @@ while x < L + sep * h:
         imove = 1
         vx = U
         vy = 0.0
-        press = refd * g * (H - y)
-        dens = pow(press / prb + 1.0, 1.0 / gamma) * refd
+        press = p0
+        dens = refd
         mass = refd * dr**2.0
-        string = ("{} {}, " * 4 + "{}, {}, {}, {}\n").format(
+        string = ("{} {}, " * 4 + "{}, {}, {}, {}, N\n").format(
             x, y,
             0.0, 0.0,
             vx, vy,
@@ -145,7 +145,7 @@ while x < L + sep * h:
     x += dr
 
 string = """
-    Writing the boundary elements...
+    Writing the symmetry elements and dummy particles...
 """
 print(string)
 
@@ -159,16 +159,17 @@ while x < L + sep * h:
             string = '    {}%'.format(Percentage)
             print(string)
     for i, y in enumerate([-0.5 * H, 0.5 * H]):
+        # Write the symmetry element
         n += 1
-        imove = -3
+        imove = 0
         vx = U
         vy = 0.0
         normal_x = 0
         normal_y = 1 if i else -1
-        press = refd * g * (H - y)
-        dens = pow(press / prb + 1.0, 1.0 / gamma) * refd
+        press = 0.0
+        dens = refd
         mass = dr
-        string = ("{} {}, " * 4 + "{}, {}, {}, {}\n").format(
+        string = ("{} {}, " * 4 + "{}, {}, {}, {}, N\n").format(
             x, y,
             normal_x, normal_y,
             vx, vy,
@@ -178,6 +179,32 @@ while x < L + sep * h:
             mass,
             imove)
         output.write(string)
+        # Write the dummy particles
+        associated = n - 1
+        dy = 0.5 * dr if i else -0.5 * dr
+        while abs(dy) < sep * h:
+            n += 1
+            imove = -1
+            yy = y + dy
+            vx = U
+            vy = 0.0
+            normal_x = 0
+            normal_y = 1 if i else -1
+            press = 0.0
+            dens = refd
+            mass = refd * dr**2.0
+            string = ("{} {}, " * 4 + "{}, {}, {}, {}, {}\n").format(
+                x, yy,
+                normal_x, normal_y,
+                vx, vy,
+                0.0, 0.0,
+                dens,
+                0.0,
+                mass,
+                imove,
+                associated)
+            output.write(string)
+            dy += dr if i else -dr
     x += dr
 
 string = """
@@ -202,7 +229,7 @@ for i in range(n_buffer):
     press = 0.0
     dens = refd
     mass = refd * dr**2.0
-    string = ("{} {}, " * 4 + "{}, {}, {}, {}\n").format(
+    string = ("{} {}, " * 4 + "{}, {}, {}, {}, N\n").format(
         x, y,
         0.0, 0.0,
         vx, vy,
@@ -256,10 +283,10 @@ while theta < 2.0 * math.pi:
     vy = 0.0
     normal_x = -math.cos(theta)
     normal_y = -math.sin(theta)
-    press = refd * g * (H - y)
-    dens = pow(press / prb + 1.0, 1.0 / gamma) * refd
-    mass = 0.5 * D * dtheta
-    string = ("{} {}, " * 4 + "{}, {}, {}, {}\n").format(
+    press = 0.0
+    dens = refd
+    mass = dr
+    string = ("{} {}, " * 4 + "{}, {}, {}, {}, N\n").format(
         x, y,
         normal_x, normal_y,
         vx, vy,
