@@ -37,8 +37,7 @@ import math
 # ==========
 
 g = 0.0
-hfac = 4.0
-cs = 20.0
+hfac = 2.0
 courant = 0.05
 courant_ramp_iters = 1000
 courant_ramp_factor = 0.001
@@ -46,19 +45,20 @@ gamma = 1.0
 refd = 1.0
 alpha = 0.0
 delta = 1.0
-U = 0.1
+U = 1.0
+cs = 10.0 * U
 Re = 100.0
 # p0 = 3.0 * refd * U**2
 p0 = 0.3
 # Cylinder and Channel dimensions
-D = 0.1
-L = 30.0 * D
-H = 10.0 * D
+D = 1.0
+L = 10.0 * D
+H = 5.0 * D
 # Position of the cylinder
-x_cyl = 1.0 / 2.0 * L
+x_cyl = 0.15 * L
 y_cyl = 0.0
 # Number of fluid particles in y direction
-ny = 100
+ny = 400
 
 # Distance between particles
 # ==========================
