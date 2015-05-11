@@ -92,7 +92,7 @@ __kernel void main(const __global uint* iset,
     if(imove[i] != -1)
         return;
     const uint iref = associations[i];
-    if(iref == N)
+    if(iref >= N)
         return;
     
     const vec_xyz r_iref = r[iref].XYZ;
@@ -137,7 +137,7 @@ __kernel void main(const __global uint* iset,
                                 ck * n_cells.x * n_cells.y;
                 uint j = ihoc[c_j];
                 while((j < N) && (icell[j] == c_j)) {
-                    if(imove[j] < 1){
+                    if(imove[j] <= 0){
                         j++;
                         continue;
                     }

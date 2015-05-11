@@ -29,5 +29,7 @@ which should not be mirrored at all).
         <!-- Compute the fields -->
         <Tool action="insert" before="Interactions" type="kernel" name="Fixed Ghost icell" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/FixedGhost/iCell.cl"/>
         <Tool action="insert" after="Fixed Ghost icell" type="kernel" name="Fixed Ghost Interpolation" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/FixedGhost/Interpolation.cl"/>
+        <!-- Discards the acceleration and the variation of the density. -->
+        <Tool action="insert" after="Rates" type="kernel" name="Fixed Ghost rates" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/FixedGhost/Rates.cl"/>
     </Tools>
 </sphInput>

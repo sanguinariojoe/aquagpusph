@@ -64,7 +64,7 @@ __kernel void main(__global unsigned int *mirrored_cell,
     if(imove[i] != -1)
         return;
     const uint iref = associations[i];
-    if(iref == N)
+    if(iref >= N)
         return;
 
     // Get the mirrored position
