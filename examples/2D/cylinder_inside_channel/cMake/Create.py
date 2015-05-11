@@ -42,7 +42,7 @@ courant = 0.05
 courant_ramp_iters = 1000
 courant_ramp_factor = 0.001
 gamma = 1.0
-refd = 1.0
+refd = 1000.0
 alpha = 0.0
 delta = 1.0
 U = 1.0
@@ -75,7 +75,7 @@ n_buffer = n_buffer_x * n_buffer_y
 
 # Artificial viscosity
 # ====================
-visc_dyn = 0.001
+visc_dyn = refd * U * D / Re
 visc_dyn = max(alpha / 8.0 * refd * hfac * dr * cs, visc_dyn)
 
 # Particles generation
