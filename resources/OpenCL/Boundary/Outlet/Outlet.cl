@@ -48,6 +48,7 @@
  * @param N Number of particles.
  * @param cs Speed of sound \f$ c_s \f$.
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
+ * @param p0 Background pressure \f$ p_0 \f$.
  * @param domain_max Maximum point of the computational domain.
  * @param outlet_r Lower corner of the inlet square.
  * @param outlet_n = Velocity direction of the generated particles.
@@ -67,6 +68,7 @@ __kernel void main(__global int* imove,
                    unsigned int N,
                    float cs,
                    vec g,
+                   float p0,
                    vec domain_max,
                    vec outlet_r,
                    vec outlet_n,
@@ -92,7 +94,8 @@ __kernel void main(__global int* imove,
     // Batchelor 1967
     const float prb = cs * cs * refd[iset[i]] / gamma[iset[i]];
     rho[i] = refd[iset[i]] * pow(p[i] / prb + 1.f, 1.f / gamma[iset[i]]);
-    
+    p[i] += p0;
+
     // Destroy the particles far away from the outlet plane
     if(dist > SUPPORT * H)
         r[i] = domain_max + VEC_ONE;
