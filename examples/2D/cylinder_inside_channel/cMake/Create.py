@@ -125,16 +125,9 @@ while x < L + sep * h:
 
         n += 1
         imove = 1
-        # vx = U
-        # vy = 0.0
-        # press = p0
-        cost = (x - x_cyl) / dist
-        sint = (y - y_cyl) / dist
-        vr = U * (1.0 - ((0.5 * D) / dist)**2) * cost
-        vt = -U * (1.0 + ((0.5 * D) / dist)**2) * sint
-        vx = vr * cost - vt * sint
-        vy = vr * sint + vt * cost
-        press = 0.5 * refd * (vx**2 + vy**2 - U**2)
+        vx = 0.0
+        vy = 0.0
+        press = 0.0
         dens = pow(press / prb + 1.0, 1.0 / gamma) * refd
         mass = refd * dr**2.0
         string = ("{} {}, " * 4 + "{}, {}, {}, {}, N\n").format(
@@ -168,12 +161,12 @@ while x < L + sep * h:
         # Write the symmetry element
         n += 1
         imove = 0
-        vx = U
+        vx = 0.0
         vy = 0.0
         normal_x = 0
         normal_y = 1 if i else -1
         press = 0.0
-        dens = refd
+        dens = pow(press / prb + 1.0, 1.0 / gamma) * refd
         mass = dr
         string = ("{} {}, " * 4 + "{}, {}, {}, {}, N\n").format(
             x, y,
@@ -192,12 +185,12 @@ while x < L + sep * h:
             n += 1
             imove = -1
             yy = y + dy
-            vx = U
+            vx = 0.0
             vy = 0.0
             normal_x = 0
             normal_y = 1 if i else -1
             press = 0.0
-            dens = refd
+            dens = pow(press / prb + 1.0, 1.0 / gamma) * refd
             mass = refd * dr**2.0
             string = ("{} {}, " * 4 + "{}, {}, {}, {}, {}\n").format(
                 x, yy,
@@ -290,7 +283,7 @@ while theta < 2.0 * math.pi:
     normal_x = -math.cos(theta)
     normal_y = -math.sin(theta)
     press = 0.0
-    dens = refd
+    dens = pow(press / prb + 1.0, 1.0 / gamma) * refd
     mass = dr
     string = ("{} {}, " * 4 + "{}, {}, {}, {}, N\n").format(
         x, y,

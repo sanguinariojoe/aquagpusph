@@ -33,11 +33,18 @@ Authors:
         <Variable name="inlet_ru" type="vec" value="0.0, {{H}}" />
         <Variable name="inlet_N" type="uivec2" value="{{NY}}, 1" />
         <Variable name="inlet_n" type="vec" value="1.0, 0.0" />
-        <Variable name="inlet_U" type="float" value="{{U}}" />
+        <Variable name="inlet_T" type="float" value="2.0 * t * {{U}} / {{L}} - 1.0" />
+        <Variable name="inlet_U" type="float" value="0.0" />
         <!-- Outlet boundary condition -->
         <Variable name="outlet_r" type="vec" value="{{L}}, 0.0" />
         <Variable name="outlet_n" type="vec" value="1.0, 0.0" />
         <Variable name="outlet_n" type="vec" value="1.0, 0.0" />
-        <Variable name="outlet_U" type="float" value="{{U}}" />
+        <Variable name="outlet_U" type="float" value="0.0" />
     </Variables>
+
+    <Tools>
+        <Tool action="insert" after="t = t + dt" type="set_scalar" name="inlet_T" in="inlet_T" value="max(1.0, 2.0 * t * {{U}} / {{L}} - 1.0)"/>
+        <Tool action="insert" after="inlet_T" type="set_scalar" name="inlet_U" in="inlet_U" value="0.5 * (1 + inlet_T*(2*abs(inlet_T)^5 - 9*abs(inlet_T)^4 + 15*abs(inlet_T)^3 - 10*abs(inlet_T)^2 + 3))"/>
+        <Tool action="insert" after="inlet_U" type="set_scalar" name="outlet_U" in="outlet_U" value="inlet_U"/>
+    </Tools>
 </sphInput>

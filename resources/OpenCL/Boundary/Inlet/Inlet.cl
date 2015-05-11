@@ -38,6 +38,7 @@
  * @param drhodt Density rate of change \f$ \frac{d \rho}{d t} \f$.
  * @param N Number of particles.
  * @param inlet_r Lower corner of the inlet square.
+ * @param inlet_U = Constant inlet velocity magnitude
  * @param inlet_n = Velocity direction of the generated particles.
  */
 __kernel void main(__global int* imove,
@@ -46,6 +47,7 @@ __kernel void main(__global int* imove,
                    __global float* drhodt,
                    unsigned int N,
                    vec inlet_r,
+                   float inlet_U,
                    vec inlet_n)
 {
     // find position in global arrays
