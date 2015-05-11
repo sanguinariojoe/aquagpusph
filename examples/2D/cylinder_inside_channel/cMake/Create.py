@@ -37,7 +37,7 @@ import math
 # ==========
 
 g = 0.0
-hfac = 8.0
+hfac = 4.0
 cs = 20.0
 courant = 0.05
 courant_ramp_iters = 1000
