@@ -1,0 +1,33 @@
+<?xml version="1.0" ?>
+
+<!-- inlet.xml
+Fixed ghost particles boundary condition. Actually, this boundary condition is
+an extension of the dummy particles boundary condition, where the physical
+fields are interpolated from the fluid.
+To do that, the dummy particles (imove=-1) are associated with a sensor
+(imove=0), such that the position of the dummies is mirrored with respect the
+sensor, then the fields are interpolated, and finally the dummy particles are
+moved back to its original position.
+
+To use this boundary condition you should include this preset, and properly set
+the associations array with the input file (set it to N for the particles
+which should not be mirrored at all).
+-->
+
+<sphInput>
+    <Variables>
+        <!-- position and size of the inlet -->
+        <Variable name="associations" type="unsigned int*" length="N" />
+        <Variable name="associations_in" type="unsigned int*" length="N" />
+        <Variable name="mirrored_cell" type="unsigned int*" length="N" />
+    </Variables>
+
+    <Tools>
+        <!-- Regenerate the particles associations in the sort space. -->
+        <Tool action="insert" before="Sort" type="copy" name="Backup associations" in="associations" out="associations_in"/>
+        <Tool action="insert" after="Sort" type="kernel" name="Sort associations" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/FixedGhost/Sort.cl"/>
+        <!-- Compute the fields -->
+        <Tool action="insert" before="Interactions" type="kernel" name="Fixed Ghost icell" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/FixedGhost/iCell.cl"/>
+        <Tool action="insert" after="Fixed Ghost icell" type="kernel" name="Fixed Ghost Interpolation" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/FixedGhost/Interpolation.cl"/>
+    </Tools>
+</sphInput>
