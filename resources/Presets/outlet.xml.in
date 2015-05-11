@@ -21,9 +21,11 @@ period drhodt will be enforced to be 0.
     <Variables>
         <Variable name="outlet_r" type="vec" value="0.0, 0.0, 0.0, 0.0" />
         <Variable name="outlet_n" type="vec" value="1.0, 0.0, 0.0, 0.0" />
+        <Variable name="outlet_U" type="float" value="0.0" />
+        <Variable name="outlet_rFS" type="vec" value="0.0, 0.0, 0.0, 0.0" />
     </Variables>
 
     <Tools>
-        <Tool action="insert" after="Rates" type="kernel" name="Inlet" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/Outlet/Outlet.cl"/>
+        <Tool action="insert" after="Rates" type="kernel" name="Outlet" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/Outlet/Outlet.cl"/>
     </Tools>
 </sphInput>

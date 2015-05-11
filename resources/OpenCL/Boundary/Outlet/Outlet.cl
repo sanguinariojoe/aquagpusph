@@ -36,22 +36,42 @@
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
+ * @param iset Set of particles index.
  * @param r Position \f$ \mathbf{r} \f$.
+ * @param u Velocity \f$ \mathbf{u} \f$.
+ * @param rho Density \f$ \rho \f$.
+ * @param p Pressure \f$ p \f$.
  * @param dudt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
  * @param drhodt Density rate of change \f$ \frac{d \rho}{d t} \f$.
+ * @param gamma Eq. of state exponent \f$ \gamma \f$.
+ * @param refd Density of reference of the fluid \f$ \rho_0 \f$.
  * @param N Number of particles.
+ * @param cs Speed of sound \f$ c_s \f$.
+ * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  * @param domain_max Maximum point of the computational domain.
- * @param inlet_r Lower corner of the inlet square.
- * @param inlet_n = Velocity direction of the generated particles.
+ * @param outlet_r Lower corner of the inlet square.
+ * @param outlet_n = Velocity direction of the generated particles.
+ * @param outlet_U = Constant outlet velocity magnitude
+ * @param outlet_rFS The point where the pressure is the reference one (0 Pa).
  */
 __kernel void main(__global int* imove,
+                   __global unsigned int* iset,
                    __global vec* r,
+                   __global vec* u,
+                   __global float* rho,
+                   __global float* p,
                    __global vec* dudt,
                    __global float* drhodt,
+                   __constant float* gamma,
+                   __constant float* refd,
                    unsigned int N,
+                   float cs,
+                   vec g,
                    vec domain_max,
                    vec outlet_r,
-                   vec outlet_n)
+                   vec outlet_n,
+                   float outlet_U,
+                   vec outlet_rFS)
 {
     // find position in global arrays
     unsigned int i = get_global_id(0);
@@ -67,6 +87,12 @@ __kernel void main(__global int* imove,
 
     drhodt[i] = 0.f;
     dudt[i] = VEC_ZERO;
+    u[i] = outlet_U * outlet_n;
+    p[i] = refd[iset[i]] * dot(g, outlet_rFS - r[i]);
+    // Batchelor 1967
+    const float prb = cs * cs * refd[iset[i]] / gamma[iset[i]];
+    rho[i] = refd[iset[i]] * pow(p[i] / prb + 1.f, 1.f / gamma[iset[i]]);
+    
     // Destroy the particles far away from the outlet plane
     if(dist > SUPPORT * H)
         r[i] = domain_max + VEC_ONE;

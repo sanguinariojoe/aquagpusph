@@ -37,6 +37,7 @@
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
+ * @param iset Set of particles index.
  * @param r Position \f$ \mathbf{r} \f$.
  * @param u Velocity \f$ \mathbf{u} \f$.
  * @param dudt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
