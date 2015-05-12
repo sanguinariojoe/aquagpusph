@@ -59,7 +59,8 @@ def expandTime(t):
 def evalDUdt(t):
     """ Compute the acceleration """
     T = expandTime(t)
-    return np.interp(T, Q, W)
+    # It should be multiplied by 2 due to the variable change
+    return 2.0 * np.interp(T, Q, W)
 
 
 def evalU(t):
