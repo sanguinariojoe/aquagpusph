@@ -35,7 +35,7 @@ import aquagpusph as aqua
 
 # Outside set constants
 U = {{U}}
-L = {{L}}
+L = {{D}}
 
 # We are using a Wendland 1D kernel for the acceleration profile, such that
 # its integral (velocity profile) is a smooth function starting from 0 (for

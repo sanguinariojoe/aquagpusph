@@ -69,7 +69,7 @@ domain_max = (L + 6.0 * sep * h, 0.5 * H + 3.0 * sep * h)
 
 # Ammount of required buffer particles
 # ====================================
-n_buffer_x = int(2.0 * sep * hfac) + 1
+n_buffer_x = int(4.0 * sep * hfac) + 1
 n_buffer_y = ny
 n_buffer = n_buffer_x * n_buffer_y
 
