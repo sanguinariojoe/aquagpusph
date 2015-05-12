@@ -118,6 +118,11 @@ __kernel void main(__global int* imove,
     drhodt[i] = 0.f;
     u[i] = inlet_U * inlet_n;
     p[i] = refd[iset[i]] * dot(g, inlet_rFS - r[i]);
+    #ifdef HAVE_3D
+        m[i] = refd[iset[i]] * dr * dr * dr;
+    #else
+        m[i] = refd[iset[i]] * dr * dr;
+    #endif
     // Batchelor 1967
     const float prb = cs * cs * refd[iset[i]] / gamma[iset[i]];
     rho[i] = refd[iset[i]] * pow(p[i] / prb + 1.f, 1.f / gamma[iset[i]]);
