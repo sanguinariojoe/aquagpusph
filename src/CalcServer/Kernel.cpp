@@ -532,9 +532,9 @@ bool Kernel::setVariables()
         if(err_code != CL_SUCCESS) {
             sprintf(msg,
                     "Failure setting the variable \"%s\" (id=%u) to the tool \"%s\".\n",
-                    name(),
+                    _var_names.at(i),
                     i,
-                    _var_names.at(i));
+                    name());
             S->addMessageF(3, msg);
             S->printOpenCLError(err_code);
             return true;
