@@ -65,7 +65,7 @@ __kernel void main(__global int* imove,
       )
     {
         // Set as fixed zero mass particle (sensor equivalent)
-        imove[i] = 0;
+        imove[i] = -4;
         m[i] = 0.f;
         // Stop the particle
         u[i] = VEC_ZERO;

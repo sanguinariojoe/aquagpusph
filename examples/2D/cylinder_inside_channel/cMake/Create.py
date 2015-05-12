@@ -222,7 +222,7 @@ for i in range(n_buffer):
             string = '    {}%'.format(Percentage)
             print(string)
     n += 1
-    imove = 0
+    imove = -4
     vx = 0.0
     vy = 0.0
     press = 0.0

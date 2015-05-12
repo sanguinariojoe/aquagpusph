@@ -121,7 +121,7 @@ __kernel void main(const __global int* imove,
                                 ck * n_cells.x * n_cells.y;
                 uint j = ihoc[c_j];
                 while((j < N) && (icell[j] == c_j)) {
-                    if(imove[j] >= 0){
+                    if((imove[j] >= 0) || (imove[j] == -4)){
                         j++;
                         continue;
                     }

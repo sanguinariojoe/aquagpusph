@@ -89,9 +89,13 @@ __kernel void main(const __global uint* iset,
     const uint it = get_local_id(0);
     if(i >= N)
         return;
+    const int move_i = imove[i];
+    if(move_i == -4){
+        // Particles outside the domain
+        return;
+    }
 
     const uint c_i = icell[i];
-    const int move_i = imove[i];
     const vec_xyz r_i = r[i].XYZ;
     const vec_xyz u_i = u[i].XYZ;
     const float p_i = p[i];
@@ -163,7 +167,7 @@ __kernel void main(const __global uint* iset,
                     else if((move_i == 1) || (move_i == -1)){
                         #include "Interactions.hcl"
                     }
-                    else{
+                    else if((move_i == -2) || (move_i == -3)){
                         #include "InteractionsBounds.hcl"
                     }
                     j++;
