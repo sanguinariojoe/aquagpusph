@@ -64,8 +64,8 @@ ny = 400
 sep = 2.0
 dr = H / ny
 h = hfac * dr
-domain_min = (-2.0 * sep * h, -(0.5 * H + sep * h))
-domain_max = (L + 3.0 * sep * h, 0.5 * H + 2.0 * sep * h)
+domain_min = (-3.0 * sep * h, -(0.5 * H + 2.0 * sep * h))
+domain_max = (L + 6.0 * sep * h, 0.5 * H + 3.0 * sep * h)
 
 # Ammount of required buffer particles
 # ====================================
@@ -107,9 +107,9 @@ print(string)
 
 n = 0
 Percentage = -1
-x = 0.5 * dr - sep * h
-while x < L + sep * h:
-    percentage = int(round((x + sep * h) / (L + 2.0 * sep * h) * 100))
+x = -0.5 * dr - sep * h
+while x <= L + sep * h + 0.5 * dr:
+    percentage = int(round((x + sep * h) / (L + 2.0 * sep * h + dr) * 100))
     if Percentage != percentage:
         Percentage = percentage
         if not Percentage % 10:
@@ -149,9 +149,9 @@ string = """
 print(string)
 
 Percentage = -1
-x = 0.5 * dr - sep * h
-while x < L + sep * h:
-    percentage = int(round((x + sep * h) / (L + 2.0 * sep * h) * 100))
+x = -0.5 * dr - sep * h
+while x <= L + sep * h + 0.5 * dr:
+    percentage = int(round((x + sep * h) / (L + 2.0 * sep * h + dr) * 100))
     if Percentage != percentage:
         Percentage = percentage
         if not Percentage % 10:
