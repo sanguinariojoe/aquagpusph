@@ -38,11 +38,11 @@
  * @param drhodt Density rate of change \f$ \frac{d \rho}{d t} \f$.
  * @param N Number of particles.
  * @param inlet_r Lower corner of the inlet square.
- * @param inlet_U = Constant inlet velocity magnitude
  * @param inlet_n = Velocity direction of the generated particles.
  */
 __kernel void main(__global int* imove,
                    __global vec* r,
+                   __global vec* u,
                    __global vec* dudt,
                    __global float* drhodt,
                    unsigned int N,
@@ -61,6 +61,7 @@ __kernel void main(__global int* imove,
     if(dot(r[i] - inlet_r, inlet_n) > 0.f)
         return;
 
+    u[i] = inlet_U * inlet_n;
     dudt[i] = VEC_ZERO;
     drhodt[i] = 0.f;
 }
