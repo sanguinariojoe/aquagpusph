@@ -26,6 +26,8 @@ Authors:
         Since we want that the non-inertial term is affecting also to the inlet
         and outlet area particles, we must do it right after both methods. -->
         <Tool action="insert" before="ElasticBounce" type="python" name="Initialization" path="Initialization.py"/>
-        <Report type="screen" name="U" fields="inlet_U, g" color="blue" bold="false"/>
     </Tools>
+    <Reports>
+        <Report type="screen" name="U" fields="inlet_U, g" color="blue" bold="false"/>
+    </Reports>
 </sphInput>
