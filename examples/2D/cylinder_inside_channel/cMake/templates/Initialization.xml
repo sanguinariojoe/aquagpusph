@@ -1,0 +1,31 @@
+<?xml version="1.0" ?>
+<!--
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
+
+Another QUAlity GPU-SPH, by CEHINAV.
+    http://canal.etsin.upm.es/
+Authors:
+    Jose Luis Cercos-Pita
+    Leo Miguel Gonzalez
+    Antonio Souto-Iglesias
+-->
+
+<sphInput>
+    <Tools>
+        <!-- We are starting the simulation in rest state, slowly increasing
+        the velocity until the final steady {{U}} velocity (set in Create.py)
+        is reached. It imply changing the inlet & outlet velocities, as well
+        as introducing a non-inertial term.
+        Since we want that the non-inertial term is affecting also to the inlet
+        and outlet area particles, we must do it right after both methods. -->
+        <Tool action="insert" before="ElasticBounce" type="python" name="Initialization" path="Initialization.py"/>
+        <Report type="screen" name="U" fields="inlet_U, g" color="blue" bold="false"/>
+    </Tools>
+</sphInput>

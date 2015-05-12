@@ -42,7 +42,7 @@ courant = 0.05
 courant_ramp_iters = 1000
 courant_ramp_factor = 0.001
 gamma = 1.0
-refd = 1000.0
+refd = 1.0
 alpha = 0.0
 delta = 1.0
 U = 1.0
@@ -305,7 +305,8 @@ print('{} boundary elements written'.format(n_cyl))
 # =========================
 
 templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
-XML = ('Fluids.xml', 'Main.xml', 'Settings.xml', 'SPH.xml', 'Time.xml')
+XML = ('Fluids.xml', 'Main.xml', 'Settings.xml', 'SPH.xml', 'Time.xml',
+       'Initialization.xml', 'Initialization.py')
 
 domain_min = str(domain_min).replace('(', '').replace(')', '')
 domain_max = str(domain_max).replace('(', '').replace(')', '')
