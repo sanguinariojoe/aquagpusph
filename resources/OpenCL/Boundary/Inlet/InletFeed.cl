@@ -110,7 +110,7 @@ __kernel void main(__global int* imove,
         const float v_fac = ((float)v_id + 0.5f) / inlet_N.y;
     #endif
     r[i] = inlet_r + u_fac * inlet_ru + v_fac * inlet_rv
-           + (inlet_R - SUPPORT * H + 0.5f * dr) * inlet_n;
+           + (inlet_R - SUPPORT * H - 0.5f * dr) * inlet_n;
     
     // Set the particle data
     imove[i] = 1;
