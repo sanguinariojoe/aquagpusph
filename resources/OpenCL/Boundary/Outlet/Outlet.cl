@@ -42,7 +42,9 @@
  * @param rho Density \f$ \rho \f$.
  * @param p Pressure \f$ p \f$.
  * @param dudt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
+ * @param dudt_in Prev velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
  * @param drhodt Density rate of change \f$ \frac{d \rho}{d t} \f$.
+ * @param drhodt_in Prev density rate of change \f$ \frac{d \rho}{d t} \f$.
  * @param gamma Eq. of state exponent \f$ \gamma \f$.
  * @param refd Density of reference of the fluid \f$ \rho_0 \f$.
  * @param N Number of particles.
@@ -62,7 +64,9 @@ __kernel void main(__global int* imove,
                    __global float* rho,
                    __global float* p,
                    __global vec* dudt,
+                   __global vec* dudt_in,
                    __global float* drhodt,
+                   __global float* drhodt_in,
                    __constant float* gamma,
                    __constant float* refd,
                    unsigned int N,
@@ -88,7 +92,9 @@ __kernel void main(__global int* imove,
         return;
 
     drhodt[i] = 0.f;
+    drhodt_in[i] = 0.f;
     dudt[i] = VEC_ZERO;
+    dudt_in[i] = VEC_ZERO;
     u[i] = outlet_U * outlet_n;
     p[i] = refd[iset[i]] * dot(g, outlet_rFS - r[i]);
     // Batchelor 1967
