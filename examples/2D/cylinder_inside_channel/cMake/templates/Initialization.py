@@ -77,9 +77,8 @@ def main():
     dUdt = evalDUdt(t + 0.5 * dt)
     U = evalU(t + dt)
     # Set the modified variables
+    aqua.set("U", float(U))
+    aqua.set("dUdt", float(dUdt))
     aqua.set("inlet_U", float(U))
     aqua.set("outlet_U", float(U))
-    g = np.zeros(2, dtype=np.float32)
-    g[0] = dUdt
-    aqua.set("g", g)
     return True

@@ -18,6 +18,10 @@ Authors:
 -->
 
 <sphInput>
+    <Variables>
+        <Variable name="U" type="float" value="0.0" />
+        <Variable name="dUdt" type="float" value="0.0" />
+    </Variables>
     <Tools>
         <!-- We are starting the simulation in rest state, slowly increasing
         the velocity until the final steady {{U}} velocity (set in Create.py)
@@ -25,9 +29,10 @@ Authors:
         as introducing a non-inertial term.
         Since we want that the non-inertial term is affecting also to the inlet
         and outlet area particles, we must do it right after both methods. -->
-        <Tool action="insert" before="ElasticBounce" type="python" name="Initialization" path="Initialization.py"/>
+        <Tool action="insert" after="Rates" type="python" name="Initialization" path="Initialization.py"/>
+        <Tool action="insert" after="Initialization" type="kernel" name="Init vel" path="Initialization.cl"/>
     </Tools>
     <Reports>
-        <Report type="screen" name="U" fields="inlet_U, g" color="blue" bold="false"/>
+        <Report type="screen" name="U" fields="U, dUdt" color="blue" bold="false"/>
     </Reports>
 </sphInput>

@@ -130,7 +130,7 @@ while x <= L + sep * h + 0.5 * dr:
         press = 0.0
         dens = pow(press / prb + 1.0, 1.0 / gamma) * refd
         mass = refd * dr**2.0
-        string = ("{} {}, " * 4 + "{}, {}, {}, {}, N\n").format(
+        string = ("{} {}, " * 4 + "{}, {}, {}, {}\n").format(
             x, y,
             0.0, 0.0,
             vx, vy,
@@ -158,9 +158,8 @@ while x <= L + sep * h + 0.5 * dr:
             string = '    {}%'.format(Percentage)
             print(string)
     for i, y in enumerate([-0.5 * H, 0.5 * H]):
-        # Write the symmetry element
         n += 1
-        imove = 0
+        imove = -3
         vx = 0.0
         vy = 0.0
         normal_x = 0
@@ -168,7 +167,7 @@ while x <= L + sep * h + 0.5 * dr:
         press = 0.0
         dens = pow(press / prb + 1.0, 1.0 / gamma) * refd
         mass = dr
-        string = ("{} {}, " * 4 + "{}, {}, {}, {}, N\n").format(
+        string = ("{} {}, " * 4 + "{}, {}, {}, {}\n").format(
             x, y,
             normal_x, normal_y,
             vx, vy,
@@ -178,32 +177,6 @@ while x <= L + sep * h + 0.5 * dr:
             mass,
             imove)
         output.write(string)
-        # Write the dummy particles
-        associated = n - 1
-        dy = 0.5 * dr if i else -0.5 * dr
-        while abs(dy) < sep * h:
-            n += 1
-            imove = -1
-            yy = y + dy
-            vx = 0.0
-            vy = 0.0
-            normal_x = 0
-            normal_y = 1 if i else -1
-            press = 0.0
-            dens = pow(press / prb + 1.0, 1.0 / gamma) * refd
-            mass = refd * dr**2.0
-            string = ("{} {}, " * 4 + "{}, {}, {}, {}, {}\n").format(
-                x, yy,
-                normal_x, normal_y,
-                vx, vy,
-                0.0, 0.0,
-                dens,
-                0.0,
-                mass,
-                imove,
-                associated)
-            output.write(string)
-            dy += dr if i else -dr
     x += dr
 
 string = """
@@ -228,7 +201,7 @@ for i in range(n_buffer):
     press = 0.0
     dens = refd
     mass = refd * dr**2.0
-    string = ("{} {}, " * 4 + "{}, {}, {}, {}, N\n").format(
+    string = ("{} {}, " * 4 + "{}, {}, {}, {}\n").format(
         x, y,
         0.0, 0.0,
         vx, vy,
@@ -285,7 +258,7 @@ while theta < 2.0 * math.pi:
     press = 0.0
     dens = pow(press / prb + 1.0, 1.0 / gamma) * refd
     mass = dr
-    string = ("{} {}, " * 4 + "{}, {}, {}, {}, N\n").format(
+    string = ("{} {}, " * 4 + "{}, {}, {}, {}\n").format(
         x, y,
         normal_x, normal_y,
         vx, vy,
@@ -306,7 +279,7 @@ print('{} boundary elements written'.format(n_cyl))
 
 templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
 XML = ('Fluids.xml', 'Main.xml', 'Settings.xml', 'SPH.xml', 'Time.xml',
-       'Initialization.xml', 'Initialization.py')
+       'Initialization.xml', 'Initialization.py', 'Initialization.cl')
 
 domain_min = str(domain_min).replace('(', '').replace(')', '')
 domain_max = str(domain_max).replace('(', '').replace(')', '')
