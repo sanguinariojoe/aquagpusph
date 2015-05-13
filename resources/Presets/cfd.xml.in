@@ -73,6 +73,9 @@
         <Define name="CONW" value="1/(h^dims)" evaluate="true"/>
         <Define name="CONF" value="1/(h^(dims+2))" evaluate="true"/>
         <Define name="SUPPORT" value="2.f" evaluate="false"/>
+        <Define name="__LAP_MONAGHAN__" value="1" evaluate="false"/>
+        <Define name="__LAP_MORRIS__" value="2" evaluate="false"/>
+        <Define name="__LAP_FORMULATION__" value="__LAP_MONAGHAN__" evaluate="false"/>
     </Definitions>
     
     <Tools>

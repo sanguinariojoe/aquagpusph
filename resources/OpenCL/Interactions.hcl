@@ -26,7 +26,7 @@
  */
 
 // Artificial viscosity factor
-#ifndef __CLEARY__
+#if __LAP_FORMULATION__ == __LAP_MONAGHAN__
     #ifndef HAVE_3D
         #define __CLEARY__ 8.f
     #else
@@ -42,24 +42,26 @@ const float m_j = m[j];
 const float p_j = p[j];
 const float w_ij = kernelW(q) * CONW * m_j;
 const float f_ij = kernelF(q) * CONF * m_j;
-//---------------------------------------------------------------
-//       calculate the pressure factor
-//---------------------------------------------------------------
-const float prfac = prfac_i + p_j / (rho_j * rho_j);
-//---------------------------------------------------------------
-//       calculate viscosity terms
-//---------------------------------------------------------------
 const float udr = dot(u[j].XYZ - u_i, r_ij);
-float lapufac = 0.f;
-if(move_j > 0){
-    const float r2 = (q * q + 0.01f) * H * H;
-    lapufac = __CLEARY__ * udr / (r2 * rho_i * rho_j);
-}
 //---------------------------------------------------------------
 //     Momentum equation (grad(p)/rho and lap(u)/rho)
 //---------------------------------------------------------------
+const float prfac = prfac_i + p_j / (rho_j * rho_j);
 _GRADP_ += r_ij * f_ij * prfac;
-_LAPU_ += r_ij * f_ij * lapufac;
+vec_xyz lapufac = VEC_ZERO.XYZ;
+#if __LAP_FORMULATION__ == __LAP_MONAGHAN__
+    if(move_j > 0){
+        const float r2 = (q * q + 0.01f) * H * H;
+        lapufac = __CLEARY__ * udr / (r2 * rho_i * rho_j) * r_ij;
+    }
+#elif __LAP_FORMULATION__ == __LAP_MORRIS__
+    if(move_j > 0){
+        lapufac = 2.f / (rho_i * rho_j) * (u[j].XYZ - u_i);
+    }
+#else
+    #error Unknown Laplacian formulation: __LAP_FORMULATION__
+#endif
+_LAPU_ += f_ij * lapufac;
 //---------------------------------------------------------------
 //     Conserving mass equation (rho*div(u))
 //---------------------------------------------------------------

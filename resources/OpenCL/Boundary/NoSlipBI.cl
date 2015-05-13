@@ -17,7 +17,7 @@
  */
 
 /** @file
- * @brief Boundary integral term computation.
+ * @brief Boundary integral friction term.
  */
 
 #if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
@@ -32,7 +32,7 @@
     #include "../KernelFunctions/Wendland3D.hcl"
 #endif
 
-/** @brief Performs the boundary effect on the fluid particles.
+/** @brief Performs the boundary friction effect on the fluid particles.
  * @param iset Set of particles index.
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
@@ -42,18 +42,15 @@
  * @param normal Normal \f$ \mathbf{n} \f$.
  * @param u Velocity \f$ \mathbf{u} \f$.
  * @param rho Density \f$ \rho \f$.
- * @param p Pressure \f$ p \f$.
  * @param m Mass \f$ m \f$.
- * @param refd Density of reference \f$ \rho_0 \f$ (one per set of particles)
- * @param grad_p Pressure gradient \f$ \nabla p \f$.
  * @param lap_u Velocity laplacian \f$ \Delta \mathbf{u} \f$.
- * @param div_u Velocity divergence \f$ \nabla \cdot \mathbf{u} \f$.
- * @param lap_p Pressure laplacian \f$ \Delta p \f$.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
  * @param n_cells Number of cells in each direction
- * @param g Gravity acceleration \f$ \mathbf{g} \f$.
+ * @param noslip_iset Particles set of the boundary terms which friction should
+ * be taken into account.
+ * @param dr Distance between particles \f$ \Delta r \f$.
  */
 __kernel void main(const __global uint* iset,
                    const __global int* imove,
@@ -62,17 +59,15 @@ __kernel void main(const __global uint* iset,
                    const __global vec* u,
                    const __global float* rho,
                    const __global float* m,
-                   const __global float* p,
-                   __constant float* refd,
-                   __global vec* grad_p,
-                   __global float* div_u,
+                   __global vec* lap_u,
                    // Link-list data
                    __global uint *icell,
                    __global uint *ihoc,
                    // Simulation data
                    uint N,
                    uivec4 n_cells,
-                   vec g)
+                   uint noslip_iset,
+                   float dr)
 {
     const uint i = get_global_id(0);
     const uint it = get_local_id(0);
@@ -84,23 +79,15 @@ __kernel void main(const __global uint* iset,
     const uint c_i = icell[i];
     const vec_xyz r_i = r[i].XYZ;
     const vec_xyz u_i = u[i].XYZ;
-    const float p_i = p[i];
     const float rho_i = rho[i];
-    const float refd_i = refd[iset[i]];
-
-    const float prfac_i = p_i / (rho_i * rho_i);
 
     // Initialize the output
     #ifndef LOCAL_MEM_SIZE
-        #define _GRADP_ grad_p[i].XYZ
-        #define _DIVU_ div_u[i]
+        #define _LAPU_ lap_u[i].XYZ
     #else
-        #define _GRADP_ grad_p_l[it]
-        #define _DIVU_ div_u_l[it]
-        __local vec_xyz grad_p_l[LOCAL_MEM_SIZE];
-        __local float div_u_l[LOCAL_MEM_SIZE];
-        _GRADP_ = grad_p[i].XYZ;
-        _DIVU_ = div_u[i];
+        #define _LAPU_ lap_u_l[it]
+        __local vec_xyz lap_u_l[LOCAL_MEM_SIZE];
+        _LAPU_ = lap_u[i].XYZ;
     #endif
 
     // Loop over neighs
@@ -113,12 +100,12 @@ __kernel void main(const __global uint* iset,
             const int ck = 0; {
             #endif
                 const uint c_j = c_i +
-                                ci +
-                                cj * n_cells.x +
-                                ck * n_cells.x * n_cells.y;
+                                 ci +
+                                 cj * n_cells.x +
+                                 ck * n_cells.x * n_cells.y;
                 uint j = ihoc[c_j];
                 while((j < N) && (icell[j] == c_j)) {
-                    if(imove[j] != -3){
+                    if((imove[j] != -3) || (iset[j] != noslip_iset)){
                         j++;
                         continue;
                     }
@@ -131,7 +118,7 @@ __kernel void main(const __global uint* iset,
                     }
 
                     {
-                        #include "BoundaryIntegrals.hcl"
+                        #include "NoSlipBI.hcl"
                     }
                     j++;
                 }
@@ -140,7 +127,6 @@ __kernel void main(const __global uint* iset,
     }
 
     #ifdef LOCAL_MEM_SIZE
-        grad_p[i].XYZ = _GRADP_;
-        div_u[i] = _DIVU_;
+        lap_u[i].XYZ = _LAPU_;
     #endif
 }

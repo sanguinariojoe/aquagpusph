@@ -28,10 +28,7 @@ Authors:
         <Variable name="courant" type="float" value="{{COURANT}}" />
         <Variable name="domain_min" type="vec" value="{{DOMAIN_MIN}}" />
         <Variable name="domain_max" type="vec" value="{{DOMAIN_MAX}}" />
-        <!-- Inlet boundary condition.
-        inlet_rFS should be set as well, because, even though we have not
-        gravity field, we are changing the value of g to simulate the system
-        acceleration -->
+        <!-- Inlet boundary condition -->
         <Variable name="inlet_r" type="vec" value="0.0, -0.5*{{H}}" />
         <Variable name="inlet_ru" type="vec" value="0.0, {{H}}" />
         <Variable name="inlet_rFS" type="vec" value="0.0, {{H}}" />
@@ -44,5 +41,7 @@ Authors:
         <Variable name="outlet_n" type="vec" value="1.0, 0.0" />
         <Variable name="outlet_n" type="vec" value="1.0, 0.0" />
         <Variable name="outlet_U" type="float" value="0.0" />
+        <!-- Cylinder no-slip enforcement -->
+        <Variable name="noslip_iset" type="unsigned int" value="1" />
     </Variables>
 </sphInput>

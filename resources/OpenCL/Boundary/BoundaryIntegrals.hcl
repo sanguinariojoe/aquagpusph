@@ -18,7 +18,6 @@
 
 /** @file
  * @brief Boundary element - Fluid particle interaction.
- * (See DeLeffe.cl for details)
  *
  * It is prefearable to use a header to be included instead of generating a
  * function for thye particles interaction, which imply more registries
@@ -61,23 +60,11 @@ const float area_j = m[j];
     //---------------------------------------------------------------
     const vec_xyz prfac = rho_j * (prfac_i + p_j / (rho_j * rho_j)) * n_j;
     //---------------------------------------------------------------
-    //       calculate viscosity terms
-    //---------------------------------------------------------------
-    // const float r2 = (q * q + 0.01f) * H * H;
-    // const vec_xyz lapufac = __CLEARY__ * vdn / (r2 * rho_i * rho_j) * n_j;
-    //---------------------------------------------------------------
     //     Momentum equation (grad(p)/rho and lap(u)/rho)
     //---------------------------------------------------------------
     _GRADP_ += prfac * w_ij;
-    // _LAPU_ += lapufac * w_ij;
     //---------------------------------------------------------------
     //     Continuity equation (rho*div(u))
     //---------------------------------------------------------------
     _DIVU_ += udn * w_ij;
-    //---------------------------------------------------------------
-    //     Density diffusion term (lap(p))
-    //---------------------------------------------------------------
-    // const float ndr = - rho_j * dot(r_ij, n_j) / r2;
-    // const float drfac = (p_j - p_i) - refd_i * dot(g, r_ij);
-    // _LAPP_ -= drfac * ndr * w_ij;
 }
