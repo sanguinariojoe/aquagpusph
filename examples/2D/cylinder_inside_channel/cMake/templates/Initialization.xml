@@ -33,6 +33,6 @@ Authors:
         <Tool action="insert" after="Initialization" type="kernel" name="Init vel" path="Initialization.cl"/>
     </Tools>
     <Reports>
-        <Report type="screen" name="U" fields="U, dUdt" color="blue" bold="false"/>
+        <Report type="screen" name="Cylinder velocity" fields="U, dUdt" color="blue" bold="false"/>
     </Reports>
 </sphInput>
