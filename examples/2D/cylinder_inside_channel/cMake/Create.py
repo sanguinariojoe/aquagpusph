@@ -55,7 +55,7 @@ L = 10.0 * D
 H = 5.0 * D
 # Position of the cylinder
 x_cyl = 0.15 * L
-y_cyl = 0.0
+y_cyl = 0.1 * D
 # Number of fluid particles in y direction
 ny = 400
 
@@ -69,7 +69,7 @@ domain_max = (L + 6.0 * sep * h, 0.5 * H + 3.0 * sep * h)
 
 # Ammount of required buffer particles
 # ====================================
-n_buffer_x = int(4.0 * sep * hfac) + 1
+n_buffer_x = max(int(8.0 * sep * hfac), int(D / dr))
 n_buffer_y = ny
 n_buffer = n_buffer_x * n_buffer_y
 
