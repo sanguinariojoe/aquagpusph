@@ -9,9 +9,13 @@ variables:
 forces_r = Position of the center of rotation
 
 This preset is generating the following variables which are the global forces
-and moments with respect to motion_r:
+and moments with respect to forces_r:
 forces_F = Fluid forces
 forces_M = Fluid moments
+
+With this method the forces are computed by the summation of the fluid particles
+acceleration, in order to integrate the forces around an object use
+pressureForces.xml and viscousForces.xml.
 -->
 
 <sphInput>

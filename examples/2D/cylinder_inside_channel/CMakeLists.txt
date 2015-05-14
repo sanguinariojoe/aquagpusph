@@ -23,6 +23,8 @@ configure_file(${EXAMPLE_ORIG_DIR}/templates/Initialization.py
     ${EXAMPLE_DEST_DIR}/templates/Initialization.py @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/templates/Initialization.cl
     ${EXAMPLE_DEST_DIR}/templates/Initialization.cl @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/templates/plot_f.py
+    ${EXAMPLE_DEST_DIR}/templates/plot_f.py @ONLY)
 
 configure_file(${EXAMPLE_ORIG_DIR}/plot_t.py
     ${EXAMPLE_DEST_DIR}/plot_t.py @ONLY)
@@ -57,6 +59,8 @@ configure_file(${EXAMPLE_ORIG_DIR}/templates/Initialization.py
     ${EXAMPLE_AUX_DIR}/templates/Initialization.py @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/templates/Initialization.cl
     ${EXAMPLE_AUX_DIR}/templates/Initialization.cl @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/templates/plot_f.py
+    ${EXAMPLE_AUX_DIR}/templates/plot_f.py @ONLY)
 
 configure_file(${EXAMPLE_ORIG_DIR}/plot_t.py
     ${EXAMPLE_AUX_DIR}/plot_t.py @ONLY)
@@ -77,6 +81,7 @@ INSTALL(
         ${EXAMPLE_AUX_DIR}/templates/Initialization.xml
         ${EXAMPLE_AUX_DIR}/templates/Initialization.py
         ${EXAMPLE_AUX_DIR}/templates/Initialization.cl
+        ${EXAMPLE_AUX_DIR}/templates/plot_f.py
     DESTINATION
         ${EXAMPLE_DEST_DIR}/templates/
 )

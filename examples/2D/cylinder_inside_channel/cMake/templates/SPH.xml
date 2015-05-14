@@ -43,5 +43,8 @@ Authors:
         <Variable name="outlet_U" type="float" value="0.0" />
         <!-- Cylinder no-slip enforcement -->
         <Variable name="noslip_iset" type="unsigned int" value="1" />
+        <!-- Forces computation -->
+        <Variable name="pressureForces_iset" type="unsigned int" value="1" />
+        <Variable name="pressureForces_r" type="vec" value="{{XCYL}}, {{YCYL}}" />
     </Variables>
 </sphInput>

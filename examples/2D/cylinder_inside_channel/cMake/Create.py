@@ -279,7 +279,8 @@ print('{} boundary elements written'.format(n_cyl))
 
 templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
 XML = ('Fluids.xml', 'Main.xml', 'Settings.xml', 'SPH.xml', 'Time.xml',
-       'Initialization.xml', 'Initialization.py', 'Initialization.cl')
+       'Initialization.xml', 'Initialization.py', 'Initialization.cl',
+       'plot_f.py')
 
 domain_min = str(domain_min).replace('(', '').replace(')', '')
 domain_max = str(domain_max).replace('(', '').replace(')', '')
@@ -288,7 +289,8 @@ data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
         'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max, 'GAMMA':str(gamma),
         'REFD':str(refd), 'VISC_DYN':str(visc_dyn), 'DELTA':str(delta),
         'G':str(g), 'N':str(n), 'NY':str(ny), 'L':str(L), 'H':str(H),
-        'U':str(U), 'P0':str(p0), 'NCYL':str(n_cyl),
+        'D':str(D), 'U':str(U), 'P0':str(p0),
+        'NCYL':str(n_cyl), 'XCYL':str(x_cyl), 'YCYL':str(y_cyl),
         'COURANT_RAMP_ITERS':str(courant_ramp_iters),
         'COURANT_RAMP_FACTOR':str(courant_ramp_factor),}
 for fname in XML:
