@@ -55,7 +55,7 @@ use forces.xml
     </Variables>
 
     <Tools>
-        <Tool action="insert" before="Rates" type="kernel" name="PressureForces" path="@RESOURCES_OUTPUT_DIR@/OpenCL/PressureForces.cl"/>
+        <Tool action="insert" before="Rates" type="kernel" name="PressureForces" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Forces/PressureForces.cl"/>
         <Tool action="insert" after_prefix="PressureForces" type="reduction" name="TotalPressureForce" in="pressureForces_f" out="pressureForces_F" null="VEC_ZERO">
             c = a + b;
         </Tool>
