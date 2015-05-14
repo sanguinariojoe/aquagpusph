@@ -53,8 +53,7 @@ rho = {{REFD}}
 D = {{D}}
 U = {{U}}
 # Coefficients adimensionalization factor
-S = 0.25 * math.pi * D**2
-COEFF_FAC = 1.0 / (0.5 * rho * S * U**2)
+COEFF_FAC = 1.0 / (0.5 * rho * D * U**2)
 TIME_FAC = {{U}} / {{D}}
 
 
