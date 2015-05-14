@@ -133,11 +133,11 @@ class FigureController(FigureCanvas):
         """Custom timerEvent code, called at timer event receive"""
         # Read and plot the new data
         data = self.readFile('PressureForces.dat')
-        t = data[0]
+        tp = data[0]
         fpx = data[1]
         fpy = data[2]
         data = self.readFile('ViscousForces.dat')
-        t = data[0]
+        tv = data[0]
         fvx = data[1]
         fvy = data[2]
         if(len(tv) < len(tp)):
