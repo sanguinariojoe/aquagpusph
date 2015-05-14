@@ -27,6 +27,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/forces.xml.in
     ${CMAKE_CURRENT_BINARY_DIR}/forces.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/pressureForces.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/pressureForces.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/viscousForces.xml.in  
+    ${CMAKE_CURRENT_BINARY_DIR}/viscousForces.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/id_inverse.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/id_inverse.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/motion.xml.in  
@@ -37,6 +39,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/forces.report.xml.in
     ${CMAKE_CURRENT_BINARY_DIR}/forces.report.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/pressureForces.report.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/pressureForces.report.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/viscousForces.report.xml.in  
+    ${CMAKE_CURRENT_BINARY_DIR}/viscousForces.report.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/performance.report.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/performance.report.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/timing.report.xml.in  
@@ -68,6 +72,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/forces.xml.in
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/forces.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/pressureForces.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/pressureForces.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/viscousForces.xml.in  
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/viscousForces.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/id_inverse.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/id_inverse.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/motion.xml.in  
@@ -78,6 +84,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/forces.report.xml.in
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/forces.report.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/pressureForces.report.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/pressureForces.report.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/viscousForces.report.xml.in  
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/viscousForces.report.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/performance.report.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/performance.report.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/timing.report.xml.in  
@@ -98,12 +106,14 @@ SET(RESOURCES_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/domain.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/forces.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/pressureForces.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/viscousForces.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/id_inverse.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/energy.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/motion.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/energy.report.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/forces.report.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/pressureForces.report.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/viscousForces.report.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/performance.report.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/timing.report.xml
 )

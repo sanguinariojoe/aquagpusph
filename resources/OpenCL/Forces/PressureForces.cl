@@ -17,16 +17,16 @@
  */
 
 /** @file
- * @brief OpenCL tool to compute the fluid global force and moment.
+ * @brief Tool to compute the fluid pressure force and moment.
  */
 
 #ifndef HAVE_3D
-    #include "types/2D.h"
+    #include "../types/2D.h"
 #else
-    #include "types/3D.h"
+    #include "../types/3D.h"
 #endif
 
-/** @brief Tool to compute the force and moment for an especific body.
+/** @brief Tool to compute the pressure force and moment for an especific body.
  *
  * In this approach the following operation is performed for the boundary
  * elements:
@@ -50,7 +50,6 @@
  * @param normal Normal \f$ \mathbf{n} \f$.
  * @param p Pressure \f$ p \f$.
  * @param m Mass \f$ m \f$.
- * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  * @param pressureForces_iset Particles set to be computed.
  * @param pressureForces_r Point with respect the moments are computed
  * \f$ \mathbf{r}_0 \f$.
@@ -64,7 +63,6 @@ __kernel void main(__global vec* pressureForces_f,
                    const __global float* p,
                    const __global float* m,
                    unsigned int N,
-                   vec g,
                    unsigned int pressureForces_iset,
                    vec pressureForces_r)
 {

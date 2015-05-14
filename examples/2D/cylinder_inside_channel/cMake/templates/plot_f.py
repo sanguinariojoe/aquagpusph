@@ -120,6 +120,9 @@ class FigureController(FigureCanvas):
             while l.find('  ') != -1:
                 l = l.replace('  ', ' ')
             fields = l.strip().split(' ')
+            if len(data) and len(fields) != len(data[-1]):
+                # Probably the system is writing it
+                continue
             try:
                 data.append(map(float, fields))
             except:
@@ -134,15 +137,30 @@ class FigureController(FigureCanvas):
         t = data[0]
         fpx = data[1]
         fpy = data[2]
-        for i in range(len(t)):
-            t[i] *= TIME_FAC
-            fpx[i] *= COEFF_FAC
-            fpy[i] *= COEFF_FAC
-        self.cl.set_data(t, fpy)
-        self.cd.set_data(t, fpx)
+        data = self.readFile('ViscousForces.dat')
+        t = data[0]
+        fvx = data[1]
+        fvy = data[2]
+        if(len(tv) < len(tp)):
+            tp = tp[0:len(tv)]
+            fpx = fpx[0:len(tv)]
+            fpy = fpy[0:len(tv)]
+        elif(len(tv) > len(tp)):
+            tv = tv[0:len(tp)]
+            fvx = fvx[0:len(tp)]
+            fvy = fvy[0:len(tp)]
+        t = []
+        fx = []
+        fy = []
+        for i in range(len(tp)):
+            t.append(tp[i] * TIME_FAC)
+            fx.append((fpx[i] + fvx[i]) * COEFF_FAC)
+            fy.append((fpy[i] + fvy[i]) * COEFF_FAC)
+        self.cl.set_data(t, fy)
+        self.cd.set_data(t, fx)
 
-        clmax = max(max(fpy), abs(min(fpy)))
-        cdmax = max(max(fpx), abs(min(fpx)))
+        clmax = max(max(fy), abs(min(fy)))
+        cdmax = max(max(fx), abs(min(fx)))
         self.ax_cl.set_xlim(0, 1.05 * max(t))
         self.ax_cd.set_xlim(0, 1.05 * max(t))
         self.ax_cl.set_ylim(-1.05 * clmax, 1.05 * clmax)

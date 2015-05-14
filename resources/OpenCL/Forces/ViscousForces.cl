@@ -1,0 +1,183 @@
+/*
+ *  This file is part of AQUAgpusph, a free CFD program based on SPH.
+ *  Copyright (C) 2012  Jose Luis Cercos Pita <jl.cercos@upm.es>
+ *
+ *  AQUAgpusph is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  AQUAgpusph is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ * @brief Tool to compute the fluid viscous force and moment.
+ */
+
+#if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
+    #error NO_LOCAL_MEM has been set.
+#endif
+
+#ifndef HAVE_3D
+    #include "../types/2D.h"
+    #include "../KernelFunctions/Wendland2D.hcl"
+#else
+    #include "../types/3D.h"
+    #include "../KernelFunctions/Wendland3D.hcl"
+#endif
+
+/** @brief Tool to compute the viscous force and moment for an especific body.
+ *
+ * In this approach the following operation is performed for the boundary
+ * elements:
+ * \f$$ \mathbf{f}_a = \mu \, \sum_b -\frac{
+\left(\mathbf{u}_b - \mathbf{u}_a\right) - 
+\left(\left(\mathbf{u}_b - \mathbf{u}_a\right) \cdot \mathbf{n}_a \right)
+\mathbf{n}_a}{\left(\mathbf{r}_b - \mathbf{r}_a\right) \cdot \mathbf{n}_a}
+s_a \, W\left(\mathbf{u}_b - \mathbf{u}_a\right) \frac{m_b}{\rho_b}\f$$
+ * where \f$ s_a \f$ is the area of the element, stored in the masses array.
+ * The moment is computed therefore as:
+ * \f$$ \mathbf{m}_a  = \mathbf{f}_a \times
+ * \left(\mathbf{r}_a - \mathbf{r}_0 \right) \f$$
+ * becoming \f$ \mathbf{r}_0 \f$ the reference point where the moment should be
+ * computed.
+ *
+ * @param iset Set of particles index.
+ * @param imove Moving flags.
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param viscousForces_f Force of each boundary element to be computed [N].
+ * @param viscousForces_m Moment of each boundary element to be computed
+ * @param r Position \f$ \mathbf{r} \f$.
+ * @param normal Normal \f$ \mathbf{n} \f$.
+ * @param u Velocity \f$ \mathbf{u} \f$.
+ * @param rho Density \f$ \rho \f$.
+ * @param m Mass \f$ m \f$.
+ * @param shepard Shepard term
+ * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
+ *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{x} \f$.
+ * @param visc_dyn Dynamic viscosity \f$ \mu \f$.
+ * @param icell Cell where each particle is located.
+ * @param ihoc Head of chain for each cell (first particle found).
+ * @param N Number of particles.
+ * @param n_cells Number of cells in each direction
+ * @param dr Distance between particles \f$ \Delta r \f$.
+ * @param viscousForces_iset Particles set to be computed.
+ * @param viscousForces_r Point with respect the moments are computed
+ * \f$ \mathbf{r}_0 \f$.
+ */
+__kernel void main(const __global uint* iset,
+                   const __global int* imove,
+                   __global vec* viscousForces_f,
+                   __global vec4* viscousForces_m,
+                   const __global vec* r,
+                   const __global vec* normal,
+                   const __global vec* u,
+                   const __global float* rho,
+                   const __global float* m,
+                   const __global float* shepard,
+                   __constant float* visc_dyn,
+                   // Link-list data
+                   const __global uint *icell,
+                   const __global uint *ihoc,
+                   // Simulation data
+                   uint N,
+                   uivec4 n_cells,
+                   float dr,
+                   unsigned int viscousForces_iset,
+                   vec viscousForces_r)
+{
+    const uint i = get_global_id(0);
+    const uint it = get_local_id(0);
+    if(i >= N)
+        return;
+    if((iset[i] != viscousForces_iset) ||
+       ((imove[i] != -3) && (imove[i] != -2))){
+        viscousForces_f[i] = VEC_ZERO;
+        viscousForces_m[i] = (vec4)(0.f, 0.f, 0.f, 0.f);
+        return;
+    }
+    
+    const vec_xyz r_i = r[i].XYZ;
+    const vec_xyz n_i = normal[i].XYZ;
+    const vec_xyz u_i = u[i].XYZ;
+    const float area_i = m[i];
+    const float shepard_i = shepard[i];
+    const uint c_i = icell[i];
+    const float visc_dyn_i = visc_dyn[iset[i]];
+
+    if(shepard_i < 1.0E-6f){
+        viscousForces_f[i] = VEC_ZERO;
+        viscousForces_m[i] = (vec4)(0.f, 0.f, 0.f, 0.f);
+    }
+
+    // Initialize the output
+    #ifndef LOCAL_MEM_SIZE
+        #define _F_ viscousForces_f[i].XYZ
+    #else
+        #define _F_ f_l[it]
+        __local vec_xyz f_l[LOCAL_MEM_SIZE];
+    #endif
+    _F_ = VEC_ZERO.XYZ;
+
+    // Loop over neighs
+    // ================
+    for(int ci = -1; ci <= 1; ci++) {
+        for(int cj = -1; cj <= 1; cj++) {
+            #ifdef HAVE_3D
+            for(int ck = -1; ck <= 1; ck++) {
+            #else
+            const int ck = 0; {
+            #endif
+                const uint c_j = c_i +
+                                ci +
+                                cj * n_cells.x +
+                                ck * n_cells.x * n_cells.y;
+                uint j = ihoc[c_j];
+                while((j < N) && (icell[j] == c_j)) {
+                    if(imove[j] <= 0){
+                        j++;
+                        continue;
+                    }
+                    const vec_xyz r_ij = r[j].XYZ - r_i;
+                    const float q = fast_length(r_ij) / H;
+                    if(q >= SUPPORT)
+                    {
+                        j++;
+                        continue;
+                    }
+
+                    {
+                        #include "ViscousForces.hcl"
+                    }
+                    j++;
+                }
+            }
+        }
+    }
+
+    _F_ *= visc_dyn_i / shepard_i;
+
+    #ifdef LOCAL_MEM_SIZE
+        viscousForces_f[i].XYZ = _F_;
+    #endif
+
+    const vec_xyz arm = r_i - viscousForces_r;
+    viscousForces_m[i].z = arm.x * _F_.y - arm.y * _F_.x;
+    viscousForces_m[i].w = 0.f;
+    #ifdef HAVE_3D
+        viscousForces_f[i].w = 0.f;
+        viscousForces_m[i].x = arm.y * _F_.z - arm.z * _F_.y;
+        viscousForces_m[i].y = arm.z * _F_.x - arm.x * _F_.z;
+    #else
+        viscousForces_m[i].x = 0.f;
+        viscousForces_m[i].y = 0.f;
+    #endif
+}

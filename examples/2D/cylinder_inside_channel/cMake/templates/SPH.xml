@@ -46,5 +46,7 @@ Authors:
         <!-- Forces computation -->
         <Variable name="pressureForces_iset" type="unsigned int" value="1" />
         <Variable name="pressureForces_r" type="vec" value="{{XCYL}}, {{YCYL}}" />
+        <Variable name="viscousForces_iset" type="unsigned int" value="1" />
+        <Variable name="viscousForces_r" type="vec" value="{{XCYL}}, {{YCYL}}" />
     </Variables>
 </sphInput>

@@ -119,7 +119,7 @@ __kernel void main(const __global uint* iset,
     #endif
     _RHO_ = 0.f;
     _P_ = 0.f;
-    _U_ = VEC_ZERO;
+    _U_ = VEC_ZERO.XYZ;
     float shepard = 0.f;
 
     // Loop over neighs
