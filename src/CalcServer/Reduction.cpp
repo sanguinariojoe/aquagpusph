@@ -156,7 +156,10 @@ bool Reduction::_execute()
                                    NULL,
                                    NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure reading back the reduced result.\n");
+        sprintf(msg,
+                "Failure in tool \"%s\" when reading back the reduced result.\n",
+                name());
+        S->addMessageF(3, msg);
         S->printOpenCLError(err_code);
         return true;
     }
