@@ -60,13 +60,13 @@ def evalDUdt(t):
     """ Compute the acceleration """
     T = expandTime(t)
     # 4 * U / L due to the variable change
-    return 4.0 * U / L * np.interp(T, Q, W)
+    return 4.0 * U / L * np.interp(T, Q, W) * U
 
 
 def evalU(t):
     """ Compute the velocity """
     T = expandTime(t)
-    return np.interp(T, Q, F)
+    return np.interp(T, Q, F) * U
 
 
 def main():
