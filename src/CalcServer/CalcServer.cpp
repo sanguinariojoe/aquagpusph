@@ -200,7 +200,7 @@ CalcServer::CalcServer()
         else{
             // Third case, evaluated definitions
             deflen = strlen(P->definitions.names.at(i));
-            defstr = new char[deflen + 4 + 32];
+            defstr = new char[deflen + 1 + 4 + 128];
             if(!defstr){
                 S->addMessageF(
                     3, "Failure allocating memory for the definition\n");
@@ -217,7 +217,7 @@ CalcServer::CalcServer()
             }
             strcpy(defstr, "-D");
             strcat(defstr, P->definitions.names.at(i));
-            sprintf(defstr, "%s=%.16ff", defstr, defval);
+            sprintf(defstr, "%s=%#Gf", defstr, defval);
         }
         _definitions.push_back(defstr);
     }
