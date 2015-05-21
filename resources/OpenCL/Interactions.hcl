@@ -25,7 +25,6 @@
  * consumption.
  */
 
-// Artificial viscosity factor
 #if __LAP_FORMULATION__ == __LAP_MONAGHAN__
     #ifndef HAVE_3D
         #define __CLEARY__ 8.f

@@ -30,15 +30,27 @@
  * Numerical Methods in Fluids, Wiley-Blackwell, 2013, 71 (476-472).
  */
 
+#if __LAP_FORMULATION__ != __LAP_MORRIS__ && \
+    __LAP_FORMULATION__ != __LAP_MONAGHAN__
+    #error Unknown Laplacian formulation: __LAP_FORMULATION__
+#endif
+
 const vec_xyz n_j = normal[j].XYZ;  // Assumed outwarding oriented
 const float area_j = m[j];
 
 {
-    const float dr_n = max(fabs(dot(r_ij, n_j)), dr);
+    const float w_ij = 2.f * kernelW(q) * CONW * area_j;
+
     const vec_xyz du = u[j].XYZ - u_i;
     const vec_xyz du_t = du - dot(du, n_j) * n_j;
 
-    const float w_ij = kernelW(q) * CONW * area_j;
-
-    _LAPU_ += 2.f * w_ij / (rho_i * dr_n) * du_t;
+    #if __LAP_FORMULATION__ == __LAP_MONAGHAN__
+        const float r2 = (q * q + 0.01f) * H * H;
+        _LAPU_ += w_ij * dot(du, r_ij) / (r2 * rho_i) * n_j;
+    #endif
+    #if __LAP_FORMULATION__ == __LAP_MORRIS__ || \
+          __LAP_FORMULATION__ == __LAP_MONAGHAN__
+        const float dr_n = max(fabs(dot(r_ij, n_j)), dr);
+        _LAPU_ += w_ij / (rho_i * dr_n) * du_t;
+    #endif
 }
