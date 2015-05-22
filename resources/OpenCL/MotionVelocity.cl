@@ -64,6 +64,7 @@
  * @param r Position \f$ \mathbf{r} \f$.
  * @param u Velocity \f$ \mathbf{u} \f$.
  * @param N Number of particles.
+ * @param motion_iset Set of particles affected.
  * @param motion_r Center of rotation.
  * @param motion_drdt Center of rotation velocity.
  * @param motion_a Rotation angles \f$ \phi, \theta, \psi \f$.
@@ -71,10 +72,12 @@
  * @see MotionUnTransform.cl
  * @see MotionVelocity.cl
  */
-__kernel void main(const __global int* imove,
+__kernel void main(const __global uint* iset,
+                   const __global int* imove,
                    __global vec* r,
                    __global vec* u,
                    unsigned int N,
+                   unsigned int motion_iset,
                    vec motion_r,
                    vec motion_drdt,
                    vec4 motion_a,
@@ -84,8 +87,9 @@ __kernel void main(const __global int* imove,
     int i = get_global_id(0);
     if(i >= N)
         return;
-    if(imove[i]>0)
+    if((iset[i] != motion_iset) || (imove[i] > 0)){
         return;
+    }
 
     const vec r_i = r[i];
     vec u1, u2, u3, uu;
