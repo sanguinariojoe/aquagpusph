@@ -34,6 +34,9 @@
  * The internal energy variation is computed later as \f$ \frac{dU}{dt} =
  * \frac{dW}{dt} - \frac{dE^{pot}}{dt} - \frac{dE^{kin}}{dt} \f$
  *
+ * @param energy_deintdt Variation of the internal energy:
+ * \f$ \frac{dU_a}{dt} =
+ * \frac{dW_a}{dt} - \frac{dE^{pot}_a}{dt} - \frac{dE^{kin}_a}{dt} \f$
  * @param energy_dsdt Variation of the entropy:
  * \f$ T \frac{d S_a}{d t} =
  * - \frac{\mu m_a}{\rho_a} \mathbf{u}_a \cdot \Delta \mathbf{u}_a
@@ -75,7 +78,8 @@
  * @param dt Time step \f$ \Delta t \f$.
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  */
-__kernel void main(__global float* energy_dsdt,
+__kernel void main(__global float* energy_deintdt,
+                   __global float* energy_dsdt,
                    __global float* energy_dekindt,
                    __global float* energy_depotdt,
                    __global float* energy_dwdt,
@@ -123,4 +127,5 @@ __kernel void main(__global float* energy_dsdt,
     energy_depotdt[i] = -mass * dot(g, u[i]);
     energy_dwdt[i] = -vol * (dot(grad_p[i], u[i])
                      + press * div_u[i]);
+    energy_deintdt[i] = energy_dwdt[i] - energy_dekindt[i] - energy_depotdt[i];
 }

@@ -17,6 +17,7 @@ forces_M = Fluid moments
 <sphInput>
     <Variables>
         <!-- Internal energy -->
+        <Variable name="energy_deintdt" type="float*" length="N" />
         <Variable name="energy_dEintdt" type="float" value="0.0" />
         <Variable name="energy_Eint" type="float" value="0.0" />
         <!-- Entropy -->
