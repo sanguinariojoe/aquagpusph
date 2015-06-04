@@ -31,9 +31,6 @@
  * Actually, in this kernel the energy componets variation are computed per each
  * particle.
  * 
- * The internal energy variation is computed later as \f$ \frac{dU}{dt} =
- * \frac{dW}{dt} - \frac{dE^{pot}}{dt} - \frac{dE^{kin}}{dt} \f$
- *
  * @param energy_deintdt Variation of the internal energy:
  * \f$ \frac{dU_a}{dt} =
  * \frac{dW_a}{dt} - \frac{dE^{pot}_a}{dt} - \frac{dE^{kin}_a}{dt} \f$
@@ -108,6 +105,7 @@ __kernel void main(__global float* energy_deintdt,
     if(i >= N)
         return;
     if(imove[i] <= 0){
+        energy_deintdt[i] = 0.f;
         energy_dsdt[i] = 0.f;
         energy_dekindt[i] = 0.f;
         energy_depotdt[i] = 0.f;
