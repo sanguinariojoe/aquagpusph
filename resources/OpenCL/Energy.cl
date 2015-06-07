@@ -118,14 +118,14 @@ __kernel void main(__global float* energy_deintdt,
     const float mass = m[i];
     const float dens = rho[i];
     const float press = p[i];
-    const float vol = mass / dens;
     const int set = iset[i];
+    const float delta_f = delta[set] * dt * dens / refd[set];
 
-    energy_dsdt[i] = -vol * (visc_dyn[set] * dot(u[i], lap_u[i])
-                     + delta[set] * refd[set] * dt * press * lap_p[i]);
+    energy_dsdt[i] = mass * (press / (dens * dens) * delta_f * lap_p[i]
+                             - visc_dyn[set] * dot(u[i], lap_u[i]));
     energy_dekindt[i] = mass * dot(u[i], dudt[i]);
     energy_depotdt[i] = -mass * dot(g, u[i]);
-    energy_dwdt[i] = -vol * (dot(grad_p[i], u[i])
-                     + press * div_u[i]);
+    energy_dwdt[i] = -mass * (dot(grad_p[i], u[i])
+                              press / (dens * dens) * div_u[i]);
     energy_deintdt[i] = energy_dwdt[i] - energy_dekindt[i] - energy_depotdt[i];
 }
