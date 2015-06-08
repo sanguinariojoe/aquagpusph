@@ -124,6 +124,6 @@ __kernel void main(__global float* energy_deintdt,
     energy_dekindt[i] = mass * dot(u[i], dudt[i]);
     energy_depotdt[i] = -mass * dot(g, u[i]);
     energy_dwdt[i] = -mass * (dot(grad_p[i], u[i])
-                              press / (dens * dens) * div_u[i]);
+                              + press / (dens * dens) * div_u[i]);
     energy_deintdt[i] = energy_dwdt[i] - energy_dekindt[i] - energy_depotdt[i];
 }
