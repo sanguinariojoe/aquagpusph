@@ -59,6 +59,6 @@ const float w_ij = kernelW(q) * CONW * area_j;
     #if __LAP_FORMULATION__ == __LAP_MORRIS__ || \
         __LAP_FORMULATION__ == __LAP_MONAGHAN__
         const float dr_n = max(fabs(dot(r_ij, n_j)), dr);
-        _DWDT_ -= 4.f * w_ij / (rho_i * dr_n) * dot(du, du_t);
+        _DWDT_ -= 2.f * w_ij / (rho_i * dr_n) * dot(du, du_t);
     #endif
 }
