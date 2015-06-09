@@ -38,14 +38,10 @@
 
 #if __LAP_FORMULATION__ == __LAP_MONAGHAN__
     #ifndef HAVE_3D
-        #define __CLEARY__ 4.f
+        #define __CLEARY__ 8.f
     #else
-        #define __CLEARY__ 5.f
+        #define __CLEARY__ 10.f
     #endif
-#elif
-    #define __CLEARY__ 1.f
-#else
-    #error Unknown Laplacian formulation: __LAP_FORMULATION__
 #endif
 
 const vec_xyz n_j = normal[j].XYZ;  // Assumed outwarding oriented
@@ -63,6 +59,6 @@ const float w_ij = kernelW(q) * CONW * area_j;
     #if __LAP_FORMULATION__ == __LAP_MORRIS__ || \
         __LAP_FORMULATION__ == __LAP_MONAGHAN__
         const float dr_n = max(fabs(dot(r_ij, n_j)), dr);
-        _DWDT_ -= __CLEARY__ * w_ij / (rho_i * dr_n) * dot(du, du_t);
+        _DWDT_ -= 4.f * w_ij / (rho_i * dr_n) * dot(du, du_t);
     #endif
 }
