@@ -47,6 +47,7 @@
  * @param u Velocity \f$ \mathbf{u} \f$.
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
+ * @param lap_u Velocity laplacian \f$ \frac{\Delta \mathbf{u}}{rho} \f$.
  * @param energy_dwdt External work (due to the viscous term).
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
@@ -59,6 +60,7 @@ __kernel void main(const __global int* imove,
                    const __global vec* u,
                    const __global float* rho,
                    const __global float* m,
+                   const __global vec* lap_u,
                    __global float* energy_dwdt,
                    // Link-list data
                    __global uint *icell,
@@ -90,8 +92,8 @@ __kernel void main(const __global int* imove,
     #else
         #define _DWDT_ energy_dwdt_l[it]
         __local float energy_dwdt_l[LOCAL_MEM_SIZE];
-        _DWDT_ = 0.f;
     #endif
+    _DWDT_ = dot(u_i, lap_u[i].XYZ);
 
     // Loop over neighs
     // ================

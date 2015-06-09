@@ -120,7 +120,7 @@ __kernel void main(__global float* energy_deintdt,
 
     // External work
     energy_depotdt[i] = -mass * dot(g, u[i]);
-    energy_dwdt[i] = mass / shepard[i] * (mu / dens * energy_dwdt[i]
+    energy_dwdt[i] = mass / shepard[i] * (mu * energy_dwdt[i]
                                           - dot(grad_p[i], u[i])
                                           - prfac * div_u[i]);
 
