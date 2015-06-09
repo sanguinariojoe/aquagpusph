@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+
+<!-- energyNoSlipBI.xml
+Boundary integrals are set as free slip by default, but noslip can be activated
+with the preset noSlipBI.xml. In such case, the energy exchanged with the
+boundary should be computed as well, which can be done with this preset.
+
+You just need to include it, and define which particles set will be affected
+setting the variable noslip_iset (0 by default).
+
+If several boundaries, belonging to different particles sets, should be no-slip
+enforced, then include this preset several times, and reevaluate the affected
+noslip_iset variable each time, for instance:
+<Include file="energyNoSlipBI.xml" prefix="iset0_"/>
+<Include file="energyNoSlipBI.xml" prefix="iset2_"/>
+<Tools>
+    <Tool action="insert" before="iset0_EnergyViscNoSlipBI" type="set_scalar" name="noslip_iset0" in="noslip_iset" value="0"/>
+    <Tool action="insert" before="iset2_EnergyViscNoSlipBI" type="set_scalar" name="noslip_iset2" in="noslip_iset" value="2"/>
+</Tools>
+
+This preset should be included after noSlipBI.xml and energy.xml
+-->
+
+<sphInput>
+    <Tools>
+        <!-- Compute the external work viscous term due to the noslip wall. -->
+        <Tool action="insert" after="EnergyVisc" type="kernel" name="EnergyViscNoSlipBI" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Energy/EnergyViscNoSlipBI.cl"/>
+    </Tools>
+</sphInput>

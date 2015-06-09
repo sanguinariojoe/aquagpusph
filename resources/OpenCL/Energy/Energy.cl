@@ -21,33 +21,37 @@
  */
 
 #ifndef HAVE_3D
-    #include "types/2D.h"
+    #include "../types/2D.h"
 #else
-    #include "types/3D.h"
+    #include "../types/3D.h"
 #endif
 
 /** @brief Tool to compute the fluid energy components.
  *
  * Actually, in this kernel the energy componets variation are computed per each
  * particle.
+ *
+ * @see EnergyVisc.cl
  * 
  * @param energy_deintdt Variation of the internal energy:
  * \f$ \frac{dU_a}{dt} =
- * \frac{dW_a}{dt} - \frac{dE^{pot}_a}{dt} - \frac{dE^{kin}_a}{dt} \f$
+ *   \frac{dW_a}{dt} - \frac{dE^{pot}_a}{dt} - \frac{dE^{kin}_a}{dt} \f$
  * @param energy_dsdt Variation of the entropy:
  * \f$ T \frac{d S_a}{d t} =
- * - \frac{\mu m_a}{\rho_a} \mathbf{u}_a \cdot \Delta \mathbf{u}_a
- * - \delta \frac{p_a m_a \Delta t}{\rho_0 \rho_a} \Delta p_a \f$
+ *   \frac{dU_a}{dt}
+ *   - m_a \frac{p_a}{\rho_a^2} \frac{d \rho_a}{d t} \f$
  * @param energy_dekindt Variation of the kinetic energy:
  * \f$ \frac{dE^{kin}_a}{dt} =
- * m_a \mathbf{u}_a \cdot \frac{d \mathbf{u}_a}{dt}\f$
+ *   m_a \mathbf{u}_a \cdot \frac{d \mathbf{u}_a}{dt}\f$
  * @param energy_depotdt Variation of the potential energy:
  * \f$ \frac{dE^{pot}_a}{dt} =
- * - m_a \mathbf{g} \cdot \mathbf{u}_a\f$
+ *   - m_a \mathbf{g} \cdot \mathbf{u}_a\f$
  * @param energy_dwdt Variation of the potential energy:
  * \f$ \frac{dW_a}{dt} =
- * - \frac{m_a}{\rho_a} \nabla p_a \cdot \mathbf{u}_a
- * - \frac{m_a}{\rho_a} p_a \nabla \cdot \mathbf{u}_a \f$
+ *   - \frac{m_a}{\rho_a} \nabla p_a \cdot \mathbf{u}_a
+ *   - \frac{m_a}{\rho_a} p_a \nabla \cdot \mathbf{u}_a 
+ *   + \mu \frac{m_a}{\rho_a} \left. \frac{dw_a}{dt} \right\vert_\mu \f$
+ * The last term was previously computed in EnergyVisc.cl.
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
@@ -69,8 +73,6 @@
  * @param drhodt Density rate of change
  * \f$ \frac{d \rho}{d t} \f$.
  * @param visc_dyn Dynamic viscosity \f$ \mu \f$.
- * @param delta Diffusive term \f$ \delta \f$ multiplier.
- * @param refd Density of reference of the fluid \f$ \rho_0 \f$.
  * @param N Number of particles.
  * @param dt Time step \f$ \Delta t \f$.
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
@@ -94,8 +96,6 @@ __kernel void main(__global float* energy_deintdt,
                    const __global vec* dudt,
                    const __global float* drhodt,
                    __constant float* visc_dyn,
-                   __constant float* delta,
-                   __constant float* refd,
                    unsigned int N,
                    float dt,
                    vec g)
@@ -115,15 +115,19 @@ __kernel void main(__global float* energy_deintdt,
 
     const float mass = m[i];
     const float dens = rho[i];
-    const float press = p[i];
-    const int set = iset[i];
-    const float delta_f = delta[set] * dt * dens / refd[set];
+    const float prfac = p[i] / (dens * dens);
+    const float mu = visc_dyn[iset[i]];
 
-    energy_dsdt[i] = mass * (press / (dens * dens) * delta_f * lap_p[i]
-                             - visc_dyn[set] * dot(u[i], lap_u[i]));
-    energy_dekindt[i] = mass * dot(u[i], dudt[i]);
+    // External work
     energy_depotdt[i] = -mass * dot(g, u[i]);
-    energy_dwdt[i] = -mass * (dot(grad_p[i], u[i])
-                              + press / (dens * dens) * div_u[i]);
+    energy_dwdt[i] = mass / shepard[i] * (mu / dens * energy_dwdt[i]
+                                          - dot(grad_p[i], u[i])
+                                          - prfac * div_u[i]);
+
+    // Fluid particle energy
+    energy_dekindt[i] = mass * dot(u[i], dudt[i]);
     energy_deintdt[i] = energy_dwdt[i] - energy_dekindt[i] - energy_depotdt[i];
+
+    // Entropy part of the energy
+    energy_dsdt[i] = energy_deintdt[i] - mass * prfac * drhodt[i];
 }

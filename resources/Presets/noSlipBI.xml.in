@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 
-<!-- inlet.xml
+<!-- noSlipBI.xml
 Boundary integrals are set as free slip by default, but noslip can be activated
 with this preset.
 
@@ -10,8 +10,8 @@ setting the variable noslip_iset (0 by default).
 If several boundaries, belonging to different particles sets, should be no-slip
 enforced, then include this preset several times, and reevaluate the affected
 noslip_iset variable each time, for instance:
-<Include file="noslip.xml" prefix="iset0_"/>
-<Include file="noslip.xml" prefix="iset2_"/>
+<Include file="noSlipBI.xml" prefix="iset0_"/>
+<Include file="noSlipBI.xml" prefix="iset2_"/>
 <Tools>
     <Tool action="insert" before="iset0_NoSlipBI" type="set_scalar" name="noslip_iset0" in="noslip_iset" value="0"/>
     <Tool action="insert" before="iset2_NoSlipBI" type="set_scalar" name="noslip_iset2" in="noslip_iset" value="2"/>
