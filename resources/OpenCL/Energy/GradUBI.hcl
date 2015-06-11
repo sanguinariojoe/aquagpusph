@@ -31,34 +31,15 @@
  * Numerical Methods in Fluids, Wiley-Blackwell, 2013, 71 (476-472).
  */
 
-#if __LAP_FORMULATION__ != __LAP_MORRIS__ && \
-    __LAP_FORMULATION__ != __LAP_MONAGHAN__
-    #error Unknown Laplacian formulation: __LAP_FORMULATION__
-#endif
-
-#if __LAP_FORMULATION__ == __LAP_MONAGHAN__
-    #ifndef HAVE_3D
-        #define __CLEARY__ 8.f
-    #else
-        #define __CLEARY__ 10.f
-    #endif
-#endif
-
 const vec_xyz n_j = normal[j].XYZ;  // Assumed outwarding oriented
 const float area_j = m[j];
-const float w_ij = kernelW(q) * CONW * area_j;
+const vec_xyz du = u[j].XYZ - u_i;
+const vec_xyz w_ij = kernelW(q) * CONW * area_j * n_j;
 
 {
-    const vec_xyz du = u[j].XYZ - u_i;
-    const vec_xyz du_t = du - dot(du, n_j) * n_j;
-
-    #if __LAP_FORMULATION__ == __LAP_MONAGHAN__
-        const float r2 = (q * q + 0.01f) * H * H;
-        _DWDT_ -= __CLEARY__ * w_ij * dot(du, r_ij) / (r2 * rho_i) * dot(du, n_j);
-    #endif
-    #if __LAP_FORMULATION__ == __LAP_MORRIS__ || \
-        __LAP_FORMULATION__ == __LAP_MONAGHAN__
-        const float dr_n = max(fabs(dot(r_ij, n_j)), dr);
-        _DWDT_ -= 2.f * w_ij / (rho_i * dr_n) * dot(du, du_t);
+    _GRADUX_ +=  du.x * w_ij;
+    _GRADUX_ +=  du.x * w_ij;
+    #ifdef HAVE_3D
+        _GRADUz_ +=  du.z * w_ij;
     #endif
 }

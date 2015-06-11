@@ -117,10 +117,18 @@ __kernel void main(__global float* energy_deintdt,
     const float dens = rho[i];
     const float prfac = p[i] / (dens * dens);
     const float mu = visc_dyn[iset[i]];
+    const float gradu_visc_term = 2.f * (grad_ux[i].x * grad_ux[i].x +
+                                         grad_uy[i].y * grad_uy[i].y +
+                                         grad_uz[i].z * grad_uz[i].z)
+        + (grad_uy[i].x + grad_ux[i].y) * (grad_uy[i].x + grad_ux[i].y)
+        + (grad_uz[i].x + grad_ux[i].z) * (grad_uz[i].x + grad_uz[i].y)
+        + (grad_uz[i].y + grad_uy[i].z) * (grad_uz[i].y + grad_uy[i].z);
+
 
     // External work
     energy_depotdt[i] = -mass * dot(g, u[i]);
-    energy_dwdt[i] = mass / shepard[i] * (mu * energy_dwdt[i]
+    energy_dwdt[i] = mass / shepard[i] * (mu * dot(lap_u[i], u[i])
+                                          + mu * gradu_visc_term
                                           - dot(grad_p[i], u[i])
                                           - prfac * div_u[i]);
 

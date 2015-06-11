@@ -1,21 +1,19 @@
 <?xml version="1.0" ?>
 
 <!-- energy.xml
-Forces and moments runtime processor.
-This preset is designed to be loaded after cfd.xml.
+Energy components computation.
 
-To use it, just include this file, and later set the initial values for the
-variables:
-forces_r = Position of the center of rotation
-
-This preset is generating the following variables which are the global forces
-and moments with respect to motion_r:
-forces_F = Fluid forces
-forces_M = Fluid moments
+To use this preset just include this file. In case of no-slip boundary integrals
+you should use energyNoSlipBI preset as well.
 -->
 
 <sphInput>
     <Variables>
+        <!-- Velocity components spatial derivatives (Required to compute the
+        viscous energy terms) -->
+        <Variable name="grad_ux" type="vec4*" length="N" />
+        <Variable name="grad_uy" type="vec4*" length="N" />
+        <Variable name="grad_uz" type="vec4*" length="N" />
         <!-- Internal energy -->
         <Variable name="energy_deintdt" type="float*" length="N" />
         <Variable name="energy_dEintdt" type="float" value="0.0" />
@@ -40,8 +38,9 @@ forces_M = Fluid moments
 
     <Tools>
         <!-- Compute the energy variations per particle -->
-        <Tool action="insert" before="t = t + dt" type="kernel" name="EnergyVisc" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Energy/EnergyVisc.cl"/>
-        <Tool action="insert" after="EnergyVisc" type="kernel" name="Energy" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Energy/Energy.cl"/>
+        <Tool action="insert" before="Corrector" type="kernel" name="GradU" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Energy/GradU.cl"/>
+        <Tool action="insert" after="GradU" type="kernel" name="GradUBI" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Energy/GradU.cl"/>
+        <Tool action="insert" after="GradUBI" type="kernel" name="Energy" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Energy/Energy.cl"/>
         <!-- Integrate them to the global energy components variation -->
         <Tool action="insert" after="Energy" type="reduction" name="dEpotdt" in="energy_depotdt" out="energy_dEpotdt" null="0.f">
             c = a + b;

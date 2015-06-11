@@ -17,7 +17,8 @@
  */
 
 /** @file
- * @brief Compute the viscous term of the energy conservation equation.
+ * @brief Compute all the spatial derivatives of the velocity (Boundary
+ * integrals).
  */
 
 #if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
@@ -32,54 +33,54 @@
     #include "../KernelFunctions/Wendland3D.hcl"
 #endif
 
-/** @brief Compute the viscous term of the energy conservation equation
- * (inserting it in the external work components):
+/** @brief Compute all the spatial derivatives of the velocity (Boundary
+ * integrals).
  *
- * \f$ \left. \frac{dw_a}{dt} \right\vert_\mu =
- * + \frac{1}{\rho_a} \mathbf{u}_a \cdot \Delta \mathbf{u}
- * + \frac{1}{\rho_a} \nabla \mathbf{u}_a \cdot T \f$
+ * @see GradU.cl
  *
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r} \f$.
+ * @param normal Normal \f$ \mathbf{n} \f$.
  * @param u Velocity \f$ \mathbf{u} \f$.
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
- * @param lap_u Velocity laplacian \f$ \frac{\Delta \mathbf{u}}{rho} \f$.
- * @param energy_dwdt External work (due to the viscous term).
+ * @param grad_ux Gradient of the first component of the velocity:
+ *   \f$ \nabla \left(\mathbf{u} \cdot \mathbf{e_1}\right) \f$
+ * @param grad_uy Gradient of the second component of the velocity:
+ *   \f$ \nabla \left(\mathbf{u} \cdot \mathbf{e_2}\right) \f$
+ * @param grad_uz Gradient of the third component of the velocity:
+ *   \f$ \nabla \left(\mathbf{u} \cdot \mathbf{e_3}\right) \f$
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
  * @param n_cells Number of cells in each direction
- * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  */
-__kernel void main(const __global int* imove,
+__kernel void main(const __global uint* iset,
+                   const __global int* imove,
                    const __global vec* r,
+                   const __global vec* normal,
                    const __global vec* u,
                    const __global float* rho,
                    const __global float* m,
-                   const __global vec* lap_u,
-                   __global float* energy_dwdt,
+                   __global vec4* grad_ux,
+                   __global vec4* grad_uy,
+                   __global vec4* grad_uz,
                    // Link-list data
-                   __global uint *icell,
-                   __global uint *ihoc,
+                   const __global uint *icell,
+                   const __global uint *ihoc,
                    // Simulation data
                    uint N,
-                   uivec4 n_cells,
-                   vec g)
+                   uivec4 n_cells)
 {
     const uint i = get_global_id(0);
     const uint it = get_local_id(0);
     if(i >= N)
         return;
-    const int move_i = imove[i];
-    if(move_i <= 0){
-        // Not a fluid particle
-        energy_dwdt[i] = 0.f;
+    if(imove[i] <= 0)
         return;
-    }
 
     const uint c_i = icell[i];
     const vec_xyz r_i = r[i].XYZ;
@@ -88,12 +89,20 @@ __kernel void main(const __global int* imove,
 
     // Initialize the output
     #ifndef LOCAL_MEM_SIZE
-        #define _DWDT_ energy_dwdt[i]
+        #define _GRADUX_ grad_ux[i].XYZ
+        #define _GRADUY_ grad_uy[i].XYZ
+        #define _GRADUZ_ grad_uz[i].XYZ
     #else
-        #define _DWDT_ energy_dwdt_l[it]
-        __local float energy_dwdt_l[LOCAL_MEM_SIZE];
+        #define _GRADUX_ grad_ux_l[i]
+        #define _GRADUY_ grad_uy_l[i]
+        #define _GRADUZ_ grad_uz_l[i]
+        __local vec_xyz grad_ux_l[LOCAL_MEM_SIZE];
+        __local vec_xyz grad_uy_l[LOCAL_MEM_SIZE];
+        __local vec_xyz grad_uz_l[LOCAL_MEM_SIZE];
+        _GRADUX_ = grad_ux[i].XYZ;
+        _GRADUY_ = grad_uy[i].XYZ;
+        _GRADUZ_ = grad_uz[i].XYZ;
     #endif
-    _DWDT_ = dot(u_i, lap_u[i].XYZ);
 
     // Loop over neighs
     // ================
@@ -105,17 +114,12 @@ __kernel void main(const __global int* imove,
             const int ck = 0; {
             #endif
                 const uint c_j = c_i +
-                                ci +
-                                cj * n_cells.x +
-                                ck * n_cells.x * n_cells.y;
+                                 ci +
+                                 cj * n_cells.x +
+                                 ck * n_cells.x * n_cells.y;
                 uint j = ihoc[c_j];
                 while((j < N) && (icell[j] == c_j)) {
-                    if(i == j){
-                        j++;
-                        continue;
-                    }
-                    const int move_j = imove[j];
-                    if(move_j <= 0){
+                    if(imove[j] != -3){
                         j++;
                         continue;
                     }
@@ -126,8 +130,9 @@ __kernel void main(const __global int* imove,
                         j++;
                         continue;
                     }
+
                     {
-                        #include "EnergyVisc.hcl"
+                        #include "GradUBI.hcl"
                     }
                     j++;
                 }
@@ -136,6 +141,8 @@ __kernel void main(const __global int* imove,
     }
 
     #ifdef LOCAL_MEM_SIZE
-        energy_dwdt[i] = _DWDT_;
+        grad_ux[i].XYZ = _GRADUX_;
+        grad_uy[i].XYZ = _GRADUY_;
+        grad_uz[i].XYZ = _GRADUZ_;
     #endif
 }

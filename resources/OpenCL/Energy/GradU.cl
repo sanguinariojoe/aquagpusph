@@ -17,7 +17,7 @@
  */
 
 /** @file
- * @brief Boundary integral friction term.
+ * @brief Compute all the spatial derivatives of the velocity.
  */
 
 #if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
@@ -32,60 +32,58 @@
     #include "../KernelFunctions/Wendland3D.hcl"
 #endif
 
-/** @brief Compute the viscous term of the energy conservation equation
- * (inserting it in the external work components):
+/** @brief Compute all the spatial derivatives of the velocity.
  *
- * \f$ \left. \frac{dw_a}{dt} \right\vert_\mu =
- * + \frac{1}{\rho_a} \mathbf{u}_a \cdot \Delta \mathbf{u}
- * + \frac{1}{\rho_a} \nabla \mathbf{u}_a \cdot T \f$
- *
- * This tool is computing just the part associated to a no-slip boundary
- * condition.
- *
- * @see EnergyVisc.cl
- *
- * @param iset Set of particles index.
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r} \f$.
- * @param normal Normal \f$ \mathbf{n} \f$.
  * @param u Velocity \f$ \mathbf{u} \f$.
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
- * @param energy_dwdt External work (due to the viscous term).
+ * @param grad_ux Gradient of the first component of the velocity:
+ *   \f$ \nabla \left(\mathbf{u} \cdot \mathbf{e_1}\right) \f$
+ * @param grad_uy Gradient of the second component of the velocity:
+ *   \f$ \nabla \left(\mathbf{u} \cdot \mathbf{e_2}\right) \f$
+ * @param grad_uz Gradient of the third component of the velocity:
+ *   \f$ \nabla \left(\mathbf{u} \cdot \mathbf{e_3}\right) \f$
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
  * @param n_cells Number of cells in each direction
- * @param noslip_iset Particles set of the boundary terms which friction should
- * be taken into account.
- * @param dr Distance between particles \f$ \Delta r \f$.
+ * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  */
-__kernel void main(const __global uint* iset,
-                   const __global int* imove,
+__kernel void main(const __global int* imove,
                    const __global vec* r,
-                   const __global vec* normal,
                    const __global vec* u,
                    const __global float* rho,
                    const __global float* m,
-                   __global float* energy_dwdt,
+                   __global vec4* grad_ux,
+                   __global vec4* grad_uy,
+                   __global vec4* grad_uz,
                    // Link-list data
-                   __global uint *icell,
-                   __global uint *ihoc,
+                   const __global uint *icell,
+                   const __global uint *ihoc,
                    // Simulation data
                    uint N,
                    uivec4 n_cells,
-                   uint noslip_iset,
-                   float dr)
+                   vec g)
 {
     const uint i = get_global_id(0);
     const uint it = get_local_id(0);
     if(i >= N)
         return;
-    if(imove[i] <= 0)
+
+    grad_ux[i] = (vec4)(0.f, 0.f, 0.f, 0.f);
+    grad_uy[i] = (vec4)(0.f, 0.f, 0.f, 0.f);
+    grad_uz[i] = (vec4)(0.f, 0.f, 0.f, 0.f);
+
+    const int move_i = imove[i];
+    if(move_i <= 0){
+        // Not a fluid particle
         return;
+    }
 
     const uint c_i = icell[i];
     const vec_xyz r_i = r[i].XYZ;
@@ -94,11 +92,19 @@ __kernel void main(const __global uint* iset,
 
     // Initialize the output
     #ifndef LOCAL_MEM_SIZE
-        #define _DWDT_ energy_dwdt[i]
+        #define _GRADUX_ grad_ux[i].XYZ
+        #define _GRADUY_ grad_uy[i].XYZ
+        #define _GRADUZ_ grad_uz[i].XYZ
     #else
-        #define _DWDT_ energy_dwdt_l[it]
-        __local float energy_dwdt_l[LOCAL_MEM_SIZE];
-        _DWDT_ = energy_dwdt[i];
+        #define _GRADUX_ grad_ux_l[i]
+        #define _GRADUY_ grad_uy_l[i]
+        #define _GRADUZ_ grad_uz_l[i]
+        __local vec_xyz grad_ux_l[LOCAL_MEM_SIZE];
+        __local vec_xyz grad_uy_l[LOCAL_MEM_SIZE];
+        __local vec_xyz grad_uz_l[LOCAL_MEM_SIZE];
+        _GRADUX_ = VEC_ZERO;
+        _GRADUY_ = VEC_ZERO;
+        _GRADUZ_ = VEC_ZERO;
     #endif
 
     // Loop over neighs
@@ -111,12 +117,17 @@ __kernel void main(const __global uint* iset,
             const int ck = 0; {
             #endif
                 const uint c_j = c_i +
-                                 ci +
-                                 cj * n_cells.x +
-                                 ck * n_cells.x * n_cells.y;
+                                ci +
+                                cj * n_cells.x +
+                                ck * n_cells.x * n_cells.y;
                 uint j = ihoc[c_j];
                 while((j < N) && (icell[j] == c_j)) {
-                    if((imove[j] != -3) || (iset[j] != noslip_iset)){
+                    if(i == j){
+                        j++;
+                        continue;
+                    }
+                    const int move_j = imove[j];
+                    if((move_j != 1) && (move_j != -1)){
                         j++;
                         continue;
                     }
@@ -127,9 +138,8 @@ __kernel void main(const __global uint* iset,
                         j++;
                         continue;
                     }
-
                     {
-                        #include "EnergyViscNoSlipBI.hcl"
+                        #include "GradU.hcl"
                     }
                     j++;
                 }
@@ -138,6 +148,8 @@ __kernel void main(const __global uint* iset,
     }
 
     #ifdef LOCAL_MEM_SIZE
-        energy_dwdt[i] = _DWDT_;
+        grad_ux[i].XYZ = _GRADUX_;
+        grad_uy[i].XYZ = _GRADUY_;
+        grad_uz[i].XYZ = _GRADUZ_;
     #endif
 }
