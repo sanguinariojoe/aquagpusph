@@ -72,6 +72,12 @@
  * \f$ \frac{d \mathbf{u}}{d t} \f$.
  * @param drhodt Density rate of change
  * \f$ \frac{d \rho}{d t} \f$.
+ * @param grad_ux Gradient of the first component of the velocity:
+ *   \f$ \nabla \left(\mathbf{u} \cdot \mathbf{e_1}\right) \f$
+ * @param grad_uy Gradient of the second component of the velocity:
+ *   \f$ \nabla \left(\mathbf{u} \cdot \mathbf{e_2}\right) \f$
+ * @param grad_uz Gradient of the third component of the velocity:
+ *   \f$ \nabla \left(\mathbf{u} \cdot \mathbf{e_3}\right) \f$
  * @param visc_dyn Dynamic viscosity \f$ \mu \f$.
  * @param N Number of particles.
  * @param dt Time step \f$ \Delta t \f$.
@@ -95,6 +101,9 @@ __kernel void main(__global float* energy_deintdt,
                    const __global float* shepard,
                    const __global vec* dudt,
                    const __global float* drhodt,
+                   const __global vec4* grad_ux,
+                   const __global vec4* grad_uy,
+                   const __global vec4* grad_uz,
                    __constant float* visc_dyn,
                    unsigned int N,
                    float dt,
