@@ -29,6 +29,7 @@
 #include <ScreenManager.h>
 #include <ProblemSetup.h>
 #include <InputOutput/ASCII.h>
+#include <InputOutput/FastASCII.h>
 #ifdef HAVE_VTK
     #include <InputOutput/VTK.h>
 #endif // HAVE_VTK
@@ -123,6 +124,14 @@ CalcServer::CalcServer* FileManager::load()
     for(i = 0; i < P->sets.size(); i++){
         if(!strcmp(P->sets.at(i)->inputFormat(), "ASCII")){
             ASCII *loader = new ASCII(n, P->sets.at(i)->n(), i);
+            if(!loader){
+                delete C; C = NULL;
+                return NULL;
+            }
+            _loaders.push_back((Particles*)loader);
+        }
+        if(!strcmp(P->sets.at(i)->inputFormat(), "FastASCII")){
+            FastASCII *loader = new FastASCII(n, P->sets.at(i)->n(), i);
             if(!loader){
                 delete C; C = NULL;
                 return NULL;

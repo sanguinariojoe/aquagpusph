@@ -17,28 +17,26 @@
  */
 
 /** @file
- * @brief Particles plain text data files loader/saver (with math expressions
- * evaluator).
- * (See Aqua::InputOutput::ASCII for details)
+ * @brief Particles plain text data files loader/saver.
+ * (See Aqua::InputOutput::FastASCII for details)
  */
 
-#ifndef ASCII_H_INCLUDED
-#define ASCII_H_INCLUDED
+#ifndef FastASCII_H_INCLUDED
+#define FastASCII_H_INCLUDED
 
 #include <stdio.h>
 
 #include <sphPrerequisites.h>
-#include <InputOutput/Particles.h>
+#include <InputOutput/ASCII.h>
 
 namespace Aqua{
 namespace InputOutput{
 
-/** @class ASCII ASCII.h InputOutput/ASCII.h
+/** @class FastASCII FastASCII.h InputOutput/FastASCII.h
  * @brief Plain text particles data files loader/saver.
  *
  * These files are formatted as ASCCI plain text where the particles data are
  * stored by rows, and where the fields are separated by columns.
- * This class accepts math expressions to be evaluated during the file parsing.
  *
  * @note Comments are allowed using the symbol `"#"`, such that all the text
  * after this symbol, and in the same line, will be discarded.
@@ -53,11 +51,14 @@ namespace InputOutput{
  *   - `"{"`
  *   - `"}"`
  *   - tabulator
+ * @remarks In the case of integer numbers (signed or unsigned) this class does
+ * not care about decimal points, just truncating the value, i.e. 1.5 will be
+ * interpreted as 1, and -1.5 will be interpreted as -1.
  * @warning Saving the particles data in plain text format may be heavily hard
  * disk demanding, and therefore it is strongly recommended to consider binary
  * formats like Aqua::InputOutput::VTK.
  */
-class ASCII : public Particles
+class FastASCII : public ASCII
 {
 public:
     /** @brief Constructor
@@ -65,41 +66,12 @@ public:
      * @param n Number of particles managed by this saver/loader.
      * @param iset Particles set index.
      */
-    ASCII(unsigned int first, unsigned int n, unsigned int iset);
+    FastASCII(unsigned int first, unsigned int n, unsigned int iset);
 
     /// Destructor
-    virtual ~ASCII();
-
-    /** @brief Save the data.
-     * @return false if all gone right, true otherwise.
-     */
-    bool save();
-
-    /** @brief Load the data.
-     * @return false if all gone right, true otherwise.
-     */
-    bool load();
+    ~FastASCII();
 
 private:
-    /** @brief Count the number of particles present in the input file.
-     * @param f File to be read.
-     * @return The number of particles found in the file.
-     */
-    unsigned int readNParticles(FILE *f);
-
-    /** @brief Conveniently format a read line.
-     * @param l Line text.
-     */
-    void formatLine(char* l);
-
-    /** @brief Count the number of fields in a text line.
-     * @param l Line text.
-     * @return The number of fields found in the line.
-     * @warning It is assumed that the line text has been formatted calling
-     * formatLine().
-     */
-    unsigned int readNFields(char* l);
-
     /** @brief Extract the field value from a line.
      * @param field Field name.
      * @param line Text line,
@@ -108,20 +80,12 @@ private:
      * @return Remaining text after extracting the field values, NULL if no
      * remaining text lefts to be read, or if the operation has failed.
      */
-    virtual char* readField(const char* field,
-                            const char* line,
-                            unsigned int index,
-                            void* data);
-
-    /** @brief Create a new file to write.
-     * @return The file handler, NULL if errors happened.
-     * @see Aqua::InputOutput::Particles::file(const char* basename,
-     *                                         unsigned int start_index,
-     *                                         unsigned int digits=5)
-     */
-    FILE* create();
+    char* readField(const char* field,
+                    const char* line,
+                    unsigned int index,
+                    void* data);
 };  // class InputOutput
 
 }}  // namespaces
 
-#endif // ASCII_H_INCLUDED
+#endif // FastASCII_H_INCLUDED

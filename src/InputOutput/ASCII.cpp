@@ -17,7 +17,8 @@
  */
 
 /** @file
- * @brief Particles plain text data files loader/saver.
+ * @brief Particles plain text data files loader/saver (with math expressions
+ * evaluator).
  * (See Aqua::InputOutput::ASCII for details)
  */
 

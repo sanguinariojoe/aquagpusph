@@ -50,6 +50,7 @@ SET(Client_CPP_SRCS
     InputOutput/Log.cpp
     InputOutput/Particles.cpp
     InputOutput/ASCII.cpp
+    InputOutput/FastASCII.cpp
     InputOutput/VTK.cpp
     ProblemSetup.cpp
     ScreenManager.cpp
