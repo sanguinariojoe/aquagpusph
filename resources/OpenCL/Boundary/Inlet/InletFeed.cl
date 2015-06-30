@@ -117,7 +117,7 @@ __kernel void main(__global int* imove,
     dudt[i] = VEC_ZERO;
     drhodt[i] = 0.f;
     u[i] = inlet_U * inlet_n;
-    p[i] = refd[iset[i]] * dot(g, inlet_rFS - r[i]);
+    p[i] = refd[iset[i]] * dot(g, r[i] - inlet_rFS);
     #ifdef HAVE_3D
         m[i] = refd[iset[i]] * dr * dr * dr;
     #else

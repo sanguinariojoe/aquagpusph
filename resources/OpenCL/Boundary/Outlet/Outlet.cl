@@ -96,7 +96,7 @@ __kernel void main(__global int* imove,
     dudt[i] = VEC_ZERO;
     dudt_in[i] = VEC_ZERO;
     u[i] = outlet_U * outlet_n;
-    p[i] = refd[iset[i]] * dot(g, outlet_rFS - r[i]);
+    p[i] = refd[iset[i]] * dot(g, r[i] - outlet_rFS);
     // Batchelor 1967
     const float prb = cs * cs * refd[iset[i]] / gamma[iset[i]];
     rho[i] = refd[iset[i]] * pow(p[i] / prb + 1.f, 1.f / gamma[iset[i]]);
