@@ -3,17 +3,11 @@
 <!-- energy.xml
 Energy components computation.
 
-To use this preset just include this file. In case of no-slip boundary integrals
-you should use energyNoSlipBI preset as well.
+To use this preset just include this file.
 -->
 
 <sphInput>
     <Variables>
-        <!-- Velocity components spatial derivatives (Required to compute the
-        viscous energy terms) -->
-        <Variable name="grad_ux" type="vec4*" length="N" />
-        <Variable name="grad_uy" type="vec4*" length="N" />
-        <Variable name="grad_uz" type="vec4*" length="N" />
         <!-- Internal energy -->
         <Variable name="energy_deintdt" type="float*" length="N" />
         <Variable name="energy_dEintdt" type="float" value="0.0" />
@@ -38,9 +32,7 @@ you should use energyNoSlipBI preset as well.
 
     <Tools>
         <!-- Compute the energy variations per particle -->
-        <Tool action="insert" before="Corrector" type="kernel" name="GradU" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Energy/GradU.cl"/>
-        <Tool action="insert" after="GradU" type="kernel" name="GradUBI" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Energy/GradU.cl"/>
-        <Tool action="insert" after="GradUBI" type="kernel" name="Energy" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Energy/Energy.cl"/>
+        <Tool action="insert" after="Rates" type="kernel" name="Energy" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Energy/Energy.cl"/>
         <!-- Integrate them to the global energy components variation -->
         <Tool action="insert" after="Energy" type="reduction" name="dEpotdt" in="energy_depotdt" out="energy_dEpotdt" null="0.f">
             c = a + b;
