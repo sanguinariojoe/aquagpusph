@@ -26,12 +26,14 @@
     #include "types/3D.h"
 #endif
 
-/** @brief Compute the boundary points velocity applying EulerXYZ motion.
+/** @brief Compute the boundary elements velocity applying EulerXYZ motion.
  *
  * In EulerXYZ the following transformation is applied to a particle \f$ a \f$:
  * \f[ R_z \cdot R_y \cdot R_x \cdot \mathbf{x_a} + \mathbf{cor}, \f]
  * where \f$ \mathbf{cor} \f$ is the position of the center of rotation (global
- * translations), and \f$ R_x, R_y, R_z \f$ are the rotation matrices:
+ * translations), and \f$ \mathbf{x_a} \f$ is the constant position of the
+ * boundary element with respect to \f$ \mathbf{cor} \f$, and
+ * \f$ R_x, R_y, R_z \f$ are the rotation matrices:
  * \f[ R_x = \left[ \begin{matrix}
        1 &  0                  &  0                  \\
        0 &  \mathrm{cos}(\phi) & -\mathrm{sin}(\phi) \\
@@ -105,7 +107,7 @@ __kernel void main(const __global uint* iset,
     const float dpsidt = motion_dadt.z;
 
     //---------------------------------------------
-    // Compute u1 (acceleration along z)
+    // Compute u1 (angular velocity along z)
     //---------------------------------------------
     u1 = r_i;
     #ifdef HAVE_3D
@@ -123,7 +125,7 @@ __kernel void main(const __global uint* iset,
     u1.y = dpsidt * (cpsi * uu.x - spsi * uu.y);
 
     //---------------------------------------------
-    // Compute u2 (acceleration along y)
+    // Compute u2 (angular velocity along y)
     //---------------------------------------------
     #ifdef HAVE_3D
         u2 = r_i;
@@ -143,7 +145,7 @@ __kernel void main(const __global uint* iset,
     #endif
 
     //---------------------------------------------
-    // Compute u3 (acceleration along x)
+    // Compute u3 (angular velocity along x)
     //---------------------------------------------
     #ifdef HAVE_3D
         u3 = r_i;

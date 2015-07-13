@@ -1,7 +1,8 @@
 <?xml version="1.0" ?>
 
 <!-- motion.xml
-Generic motion controlled by a Python script.
+Generic motion controlled by a Python script. The rotation is defined by the
+Euler-XYZ angles
 This preset is designed to be loaded after cfd.xml.
 
 To use it, just include this file, and later set the initial values for the
@@ -9,7 +10,9 @@ variables:
 motion_iset = The particles set affected (0 by default)
 motion_r = Position of the center of rotation
 motion_drdt = Linear velocity towards x, y, z
+motion_ddrddt = Linear acceleration towards x, y, z
 motion_a = Rotation angles phi, theta, psi
+motion_dadt = angular velocities dphidt, dthetadt, dpsidt
 motion_dadt = angular velocities dphidt, dthetadt, dpsidt
 
 You should provide a Motion.py script in your execution path, where such
@@ -32,12 +35,14 @@ bodies (with the same script Motion.py, or with different ones). For instance:
     <Variables>
         <!-- Particles set affected -->
         <Variable name="motion_iset" type="unsigned int" value="0" />
-        <!-- position and velocity -->
+        <!-- position, velocity and acceleration -->
         <Variable name="motion_r" type="vec" value="0.0, 0.0, 0.0, 0.0" />
         <Variable name="motion_drdt" type="vec" value="0.0, 0.0, 0.0, 0.0" />
-        <!-- rotation and angular velocity (vec4 is faster than vec3) -->
+        <Variable name="motion_ddrddt" type="vec" value="0.0, 0.0, 0.0, 0.0" />
+        <!-- rotation, angular velocity and angular acceleration -->
         <Variable name="motion_a" type="vec4" value="0.0, 0.0, 0.0, 0.0" />
         <Variable name="motion_dadt" type="vec4" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="motion_ddaddt" type="vec4" value="0.0, 0.0, 0.0, 0.0" />
     </Variables>
 
     <Tools>

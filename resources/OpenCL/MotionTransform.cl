@@ -31,7 +31,7 @@
  * Just the position and the normal of the particle are modified, but not the
  * velocity which is changed by MotionVelocity.cl.
  *
- * In EulerXYZ the following transformation is applied to a particle \f$ a \f$:
+ * In Euler-XYZ the following transformation is applied to a particle \f$ a \f$:
  * \f[ R_z \cdot R_y \cdot R_x \cdot \mathbf{x_a} + \mathbf{cor}, \f]
  * where \f$ \mathbf{cor} \f$ is the position of the center of rotation (global
  * translations), and \f$ R_x, R_y, R_z \f$ are the rotation matrices:
