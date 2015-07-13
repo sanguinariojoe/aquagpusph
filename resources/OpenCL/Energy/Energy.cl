@@ -72,12 +72,6 @@
  * \f$ \frac{d \mathbf{u}}{d t} \f$.
  * @param drhodt Density rate of change
  * \f$ \frac{d \rho}{d t} \f$.
- * @param grad_ux Gradient of the first component of the velocity:
- *   \f$ \nabla \left(\mathbf{u} \cdot \mathbf{e_1}\right) \f$
- * @param grad_uy Gradient of the second component of the velocity:
- *   \f$ \nabla \left(\mathbf{u} \cdot \mathbf{e_2}\right) \f$
- * @param grad_uz Gradient of the third component of the velocity:
- *   \f$ \nabla \left(\mathbf{u} \cdot \mathbf{e_3}\right) \f$
  * @param visc_dyn Dynamic viscosity \f$ \mu \f$.
  * @param N Number of particles.
  * @param dt Time step \f$ \Delta t \f$.
@@ -101,9 +95,6 @@ __kernel void main(__global float* energy_deintdt,
                    const __global float* shepard,
                    const __global vec* dudt,
                    const __global float* drhodt,
-                   const __global vec4* grad_ux,
-                   const __global vec4* grad_uy,
-                   const __global vec4* grad_uz,
                    __constant float* visc_dyn,
                    unsigned int N,
                    float dt,
@@ -124,27 +115,21 @@ __kernel void main(__global float* energy_deintdt,
 
     const float mass = m[i];
     const float dens = rho[i];
+    const float vol = mass / dens;
     const float prfac = p[i] / (dens * dens);
     const float mu = visc_dyn[iset[i]];
-    const float gradu_visc_term = 2.f * (grad_ux[i].x * grad_ux[i].x +
-                                         grad_uy[i].y * grad_uy[i].y +
-                                         grad_uz[i].z * grad_uz[i].z)
-        + (grad_uy[i].x + grad_ux[i].y) * (grad_uy[i].x + grad_ux[i].y)
-        + (grad_uz[i].x + grad_ux[i].z) * (grad_uz[i].x + grad_uz[i].y)
-        + (grad_uz[i].y + grad_uy[i].z) * (grad_uz[i].y + grad_uy[i].z);
-
+    const float gamma = shepard[i];
 
     // External work
-    energy_depotdt[i] = -mass * dot(g, u[i]);
-    energy_dwdt[i] = mass / shepard[i] * (mu * dot(lap_u[i], u[i])
-                                          + mu * gradu_visc_term
-                                          - dot(grad_p[i], u[i])
+    energy_depotdt[i] = -vol * dot(g, u[i]);
+    energy_dwdt[i] = mass / shepard[i] * (- dot(grad_p[i], u[i])
                                           - prfac * div_u[i]);
+                                          // Add here viscous terms
 
     // Fluid particle energy
-    energy_dekindt[i] = mass * dot(u[i], dudt[i]);
+    energy_dekindt[i] = vol * dot(u[i], dudt[i]);
     energy_deintdt[i] = energy_dwdt[i] - energy_dekindt[i] - energy_depotdt[i];
 
     // Entropy part of the energy
-    energy_dsdt[i] = energy_deintdt[i] - mass * prfac * drhodt[i];
+    energy_dsdt[i] = energy_deintdt[i] - vol * prfac * drhodt[i];
 }
