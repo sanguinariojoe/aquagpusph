@@ -17,7 +17,7 @@
  */
 
 /** @file
- * @brief Euler XYZ based untransformation script.
+ * @brief Euler-XYZ based transformation script.
  */
 
 #ifndef HAVE_3D
@@ -26,7 +26,7 @@
     #include "types/3D.h"
 #endif
 
-/** @brief Transform the boundaries applying EulerXYZ motion.
+/** @brief Transform the boundaries applying Euler-XYZ motion.
  *
  * Just the position and the normal of the particle are modified, but not the
  * velocity which is changed by MotionVelocity.cl.
@@ -63,6 +63,7 @@
  * @param motion_a Rotation angles \f$ \phi, \theta, \psi \f$.
  * @see MotionUnTransform.cl
  * @see MotionVelocity.cl
+ * @see MotionAcceleration.cl
  */
 __kernel void main(const __global uint* iset,
                    const __global int* imove,

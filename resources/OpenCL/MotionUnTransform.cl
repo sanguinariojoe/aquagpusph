@@ -17,7 +17,7 @@
  */
 
 /** @file
- * @brief Euler XYZ based untransformation script.
+ * @brief Euler-XYZ based untransformation script.
  */
 
 #ifndef HAVE_3D
@@ -69,7 +69,6 @@
  * @param motion_r Center of rotation.
  * @param motion_a Rotation angles \f$ \phi, \theta, \psi \f$.
  * @see MotionTransform.cl
- * @see MotionVelocity.cl
  */
 __kernel void main(const __global uint* iset,
                    const __global int* imove,

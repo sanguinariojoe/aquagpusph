@@ -17,7 +17,7 @@
  */
 
 /** @file
- * @brief Euler XYZ based untransformation script.
+ * @brief Euler-XYZ based velocity computation.
  */
 
 #ifndef HAVE_3D
@@ -26,9 +26,9 @@
     #include "types/3D.h"
 #endif
 
-/** @brief Compute the boundary elements velocity applying EulerXYZ motion.
+/** @brief Compute the boundary elements velocity applying Euler-XYZ motion.
  *
- * In EulerXYZ the following transformation is applied to a particle \f$ a \f$:
+ * In Euler-XYZ the following transformation is applied to a particle \f$ a \f$:
  * \f[ R_z \cdot R_y \cdot R_x \cdot \mathbf{x_a} + \mathbf{cor}, \f]
  * where \f$ \mathbf{cor} \f$ is the position of the center of rotation (global
  * translations), and \f$ \mathbf{x_a} \f$ is the constant position of the
@@ -50,14 +50,12 @@
         0                  &  0                  & 1 \\
    \end{matrix} \right]. \f]
  *
- * Therefore the velocity could be computed as the combination of four terms:
- * \f[ \mathbf[u] =
-       \mathbf[u]_1 + \mathbf[u]_2 + \mathbf[u]_3 + \mathbf[u]_4, \f]
- * with:
- * \f[ \mathbf[u]_1 = \dot{R_z} \cdot R_y \cdot R_x \cdot \mathbf{x_a}, \f]
- * \f[ \mathbf[u]_2 = R_z \cdot \dot{R_y} \cdot R_x \cdot \mathbf{x_a}, \f]
- * \f[ \mathbf[u]_3 = R_z \cdot R_y \cdot \dot{R_x} \cdot \mathbf{x_a}, \f]
- * \f[ \mathbf[u]_4 = \dot{\mathbf{cor}}. \f]
+ * To compute the velocity the following process can be followed:
+ *   -# The velocity due to the rotations is computed in the local coordinates:
+ *      \f$ \omega \times \mathbf{x_a} \f$, with \f$ \omega =
+ *      \left[ \dot \phi, \dot \theta, \dot \psi \rigth] \f$
+ *   -# Then the vector is rotated using the rotation matrix.
+ *   -# Finally the linear velocity, \f$ \dot \mathbf{cor} \f$ is added.
  *
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
@@ -71,8 +69,7 @@
  * @param motion_drdt Center of rotation velocity.
  * @param motion_a Rotation angles \f$ \phi, \theta, \psi \f$.
  * @param motion_dadt Angular velocities.
- * @see MotionUnTransform.cl
- * @see MotionVelocity.cl
+ * @see MotionTransform.cl
  */
 __kernel void main(const __global uint* iset,
                    const __global int* imove,
@@ -93,78 +90,38 @@ __kernel void main(const __global uint* iset,
         return;
     }
 
-    const vec r_i = r[i];
-    vec u1, u2, u3, uu;
+    // Compute the velocity due to the rotation in the local frame of reference
+    #ifndef HAVE_3D
+        vec u_i = (vec)(-motion_dadt.z * r[i].y, motion_dadt.z * r[i].x);
+    #else
+        vec u_i = cross(motion_dadt, r[i]);
+    #endif
+    vec uu;
 
+    // Transform it to the global coordinates
     const float cphi = cos(motion_a.x);
     const float sphi = sin(motion_a.x);
     const float ctheta = cos(motion_a.y);
     const float stheta = sin(motion_a.y);
     const float cpsi = cos(motion_a.z);
     const float spsi = sin(motion_a.z);
-    const float dphidt = motion_dadt.x;
-    const float dthetadt = motion_dadt.y;
-    const float dpsidt = motion_dadt.z;
 
-    //---------------------------------------------
-    // Compute u1 (angular velocity along z)
-    //---------------------------------------------
-    u1 = r_i;
     #ifdef HAVE_3D
-        u1.z = 0.f;
-        uu = u1;
         // Rotate along x
-        u1.y = cphi * uu.y - sphi * uu.z;
+        uu = u_i;
+        u_i.y = cphi * uu.y - sphi * uu.z;
+        u_i.z = sphi * uu.y + cphi * uu.z;
         // Rotate along y
-        uu = u1;
-        u1.x = ctheta * uu.x + stheta * uu.z;
+        uu = u_i;
+        u_i.x = ctheta * uu.x + stheta * uu.z;
+        u_i.z = -stheta * uu.x + ctheta * uu.z;
     #endif
     // Rotate along z
-    uu = u1;
-    u1.x = dpsidt * (-spsi * uu.x - cpsi * uu.y);
-    u1.y = dpsidt * (cpsi * uu.x - spsi * uu.y);
+    uu = u_i;
+    u_i.x = cpsi * uu.x - spsi * uu.y;
+    u_i.y = spsi * uu.x + cpsi * uu.y;
 
-    //---------------------------------------------
-    // Compute u2 (angular velocity along y)
-    //---------------------------------------------
-    #ifdef HAVE_3D
-        u2 = r_i;
-        u2.y = 0.f;
-        uu = u2;
-        // Rotate along x
-        u2.z = sphi * uu.y + cphi * uu.z;
-        // Rotate along y
-        uu = u2;
-        u2.x = dthetadt * (-stheta * uu.x + ctheta * uu.z);
-        u2.z = dthetadt * (-ctheta * uu.x - stheta * uu.z);
-        // Rotate along z
-        uu = u2;
-        u2.x = cpsi * uu.x - spsi * uu.y;
-    #else
-        u2 = VEC_ZERO;
-    #endif
-
-    //---------------------------------------------
-    // Compute u3 (angular velocity along x)
-    //---------------------------------------------
-    #ifdef HAVE_3D
-        u3 = r_i;
-        u3.x = 0.f;
-        uu = u3;
-        // Rotate along x
-        u3.y = dphidt * (-sphi * uu.y - cphi * uu.z);
-        u3.z = dphidt * (cphi * uu.y - sphi * uu.z);
-        // Rotate along y
-        uu = u3;
-        u3.z = -stheta * uu.x + ctheta * uu.z;
-        // Rotate along z
-        uu = u3;
-        u3.y = spsi * uu.x + cpsi * uu.y;
-    #else
-        u3 = VEC_ZERO;
-    #endif
-
-    // COR velocity
-    u[i] = u1 + u2 + u3 + motion_drdt;
+    // Add the linear velocity
+    u[i] = u_i + motion_drdt;
 }
 
