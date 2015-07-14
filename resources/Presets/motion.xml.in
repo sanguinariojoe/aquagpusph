@@ -55,6 +55,7 @@ bodies (with the same script Motion.py, or with different ones). For instance:
         <Tool action="insert" after_prefix="MotionUnTransform" type="python" name="MotionData" path="Motion.py"/>
         <!-- Such that we can apply the new transformation -->
         <Tool action="insert" after_prefix="MotionData" type="kernel" name="MotionVelocity" path="@RESOURCES_OUTPUT_DIR@/OpenCL/MotionVelocity.cl"/>
+        <Tool action="insert" after_prefix="MotionVelocity" type="kernel" name="MotionAcceleration" path="@RESOURCES_OUTPUT_DIR@/OpenCL/MotionAcceleration.cl"/>
         <Tool action="insert" after_prefix="MotionVelocity" type="kernel" name="MotionTransform" path="@RESOURCES_OUTPUT_DIR@/OpenCL/MotionTransform.cl"/>
     </Tools>
 </sphInput>
