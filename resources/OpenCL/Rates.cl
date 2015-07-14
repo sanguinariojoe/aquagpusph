@@ -92,5 +92,5 @@ __kernel void main(const __global uint* iset,
     // Momentum equation
     dudt[i] = (-grad_p[i] + visc_dyn[set_i] * lap_u[i]) / shepard[i] + g;
     // Conservation of mass equation
-    drhodt[i] = -div_u[i] / shepard[i] + delta_f * lap_p[i];
+    drhodt[i] = -div_u[i] + delta_f * lap_p[i];
 }
