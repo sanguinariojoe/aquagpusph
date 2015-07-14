@@ -16,7 +16,8 @@ motion_dadt = angular velocities dphidt, dthetadt, dpsidt
 motion_dadt = angular velocities dphidt, dthetadt, dpsidt
 
 You should provide a Motion.py script in your execution path, where such
-variables should be set each time step.
+variables should be set each time step (If boundary integrals are used,
+the accelerations can be ignored).
 
 You can also include this preset several times to impose motions to several
 bodies (with the same script Motion.py, or with different ones). For instance:
