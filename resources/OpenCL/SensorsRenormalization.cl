@@ -58,7 +58,12 @@ __kernel void main(const __global int* imove,
     if(imove[i] != 0)
         return;
 
-    const float shepard_i;
+    float shepard_i;
+    if(shepard_i < 1.0E-6f){
+        // It will be considered that there are not enough
+        // particles to interpolate
+        shepard_i = 1.f;
+    }
 
     u[i] /= shepard_i;
     rho[i] /= shepard_i;
