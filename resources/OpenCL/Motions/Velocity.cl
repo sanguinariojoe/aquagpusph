@@ -17,16 +17,16 @@
  */
 
 /** @file
- * @brief Euler XYZ based acceleration computation.
+ * @brief Euler-XYZ based velocity computation.
  */
 
 #ifndef HAVE_3D
-    #include "types/2D.h"
+    #include "../types/2D.h"
 #else
-    #include "types/3D.h"
+    #include "../types/3D.h"
 #endif
 
-/** @brief Compute the boundary elements acceleration applying Euler-XYZ motion.
+/** @brief Compute the boundary elements velocity applying Euler-XYZ motion.
  *
  * In Euler-XYZ the following transformation is applied to a particle \f$ a \f$:
  * \f[ R_z \cdot R_y \cdot R_x \cdot \mathbf{x_a} + \mathbf{cor}, \f]
@@ -50,37 +50,37 @@
         0                  &  0                  & 1 \\
    \end{matrix} \right]. \f]
  *
- * To compute the acceleration the following process can be followed:
- *   -# The acceleration due to the rotations is computed in the local
- *      coordinates: \f$ \dot \omega \times \mathbf{x_a} \f$, with
- *      \f$ \dot \omega = \left[ \ddot \phi, \ddot \theta, \ddot \psi \rigth]\f$
+ * To compute the velocity the following process can be followed:
+ *   -# The velocity due to the rotations is computed in the local coordinates:
+ *      \f$ \omega \times \mathbf{x_a} \f$, with \f$ \omega =
+ *      \left[ \dot \phi, \dot \theta, \dot \psi \rigth] \f$
  *   -# Then the vector is rotated using the rotation matrix.
- *   -# Finally the linear acceleration, \f$ \ddot \mathbf{cor} \f$ is added.
+ *   -# Finally the linear velocity, \f$ \dot \mathbf{cor} \f$ is added.
  *
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r} \f$.
- * @param u Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
+ * @param u Velocity \f$ \mathbf{u} \f$.
  * @param N Number of particles.
  * @param motion_iset Set of particles affected.
  * @param motion_r Center of rotation.
- * @param motion_ddrddt Center of rotation aceleration.
+ * @param motion_drdt Center of rotation velocity.
  * @param motion_a Rotation angles \f$ \phi, \theta, \psi \f$.
- * @param motion_ddaddt Angular accelerations.
- * @see MotionVelocity.cl
+ * @param motion_dadt Angular velocities.
+ * @see MotionTransform.cl
  */
 __kernel void main(const __global uint* iset,
                    const __global int* imove,
                    __global vec* r,
-                   __global vec* dudt,
+                   __global vec* u,
                    unsigned int N,
                    unsigned int motion_iset,
                    vec motion_r,
-                   vec motion_ddrddt,
+                   vec motion_drdt,
                    vec4 motion_a,
-                   vec4 motion_ddaddt)
+                   vec4 motion_dadt)
 {
     // find position in global arrays
     int i = get_global_id(0);
@@ -92,11 +92,11 @@ __kernel void main(const __global uint* iset,
 
     // Compute the velocity due to the rotation in the local frame of reference
     #ifndef HAVE_3D
-        vec dudt_i = (vec)(-motion_ddaddt.z * r[i].y, motion_ddaddt.z * r[i].x);
+        vec u_i = (vec)(-motion_dadt.z * r[i].y, motion_dadt.z * r[i].x);
     #else
-        vec dudt_i = cross(motion_ddaddt, r[i]);
+        vec u_i = cross(motion_dadt, r[i]);
     #endif
-    vec duudt;
+    vec uu;
 
     // Transform it to the global coordinates
     const float cphi = cos(motion_a.x);
@@ -108,20 +108,20 @@ __kernel void main(const __global uint* iset,
 
     #ifdef HAVE_3D
         // Rotate along x
-        duudt = dudt_i;
-        dudt_i.y = cphi * duudt.y - sphi * duudt.z;
-        dudt_i.z = sphi * duudt.y + cphi * duudt.z;
+        uu = u_i;
+        u_i.y = cphi * uu.y - sphi * uu.z;
+        u_i.z = sphi * uu.y + cphi * uu.z;
         // Rotate along y
-        duudt = dudt_i;
-        dudt_i.x = ctheta * duudt.x + stheta * duudt.z;
-        dudt_i.z = -stheta * duudt.x + ctheta * duudt.z;
+        uu = u_i;
+        u_i.x = ctheta * uu.x + stheta * uu.z;
+        u_i.z = -stheta * uu.x + ctheta * uu.z;
     #endif
     // Rotate along z
-    duudt = dudt_i;
-    dudt_i.x = cpsi * duudt.x - spsi * duudt.y;
-    dudt_i.y = spsi * duudt.x + cpsi * duudt.y;
+    uu = u_i;
+    u_i.x = cpsi * uu.x - spsi * uu.y;
+    u_i.y = spsi * uu.x + cpsi * uu.y;
 
     // Add the linear velocity
-    dudt[i] = dudt_i + motion_ddrddt;
+    u[i] = u_i + motion_drdt;
 }
 

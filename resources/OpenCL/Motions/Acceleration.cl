@@ -17,24 +17,23 @@
  */
 
 /** @file
- * @brief Euler-XYZ based untransformation script.
+ * @brief Euler XYZ based acceleration computation.
  */
 
 #ifndef HAVE_3D
-    #include "types/2D.h"
+    #include "../types/2D.h"
 #else
-    #include "types/3D.h"
+    #include "../types/3D.h"
 #endif
 
-/** @brief Untransform the previously applied EulerXYZ motion.
+/** @brief Compute the boundary elements acceleration applying Euler-XYZ motion.
  *
- * Just the position and the normal of the particle are modified, but not the
- * velocity which is changed by MotionVelocity.cl.
- *
- * In EulerXYZ the following transformation is applied to a particle \f$ a \f$:
+ * In Euler-XYZ the following transformation is applied to a particle \f$ a \f$:
  * \f[ R_z \cdot R_y \cdot R_x \cdot \mathbf{x_a} + \mathbf{cor}, \f]
  * where \f$ \mathbf{cor} \f$ is the position of the center of rotation (global
- * translations), and \f$ R_x, R_y, R_z \f$ are the rotation matrices:
+ * translations), and \f$ \mathbf{x_a} \f$ is the constant position of the
+ * boundary element with respect to \f$ \mathbf{cor} \f$, and
+ * \f$ R_x, R_y, R_z \f$ are the rotation matrices:
  * \f[ R_x = \left[ \begin{matrix}
        1 &  0                  &  0                  \\
        0 &  \mathrm{cos}(\phi) & -\mathrm{sin}(\phi) \\
@@ -51,33 +50,37 @@
         0                  &  0                  & 1 \\
    \end{matrix} \right]. \f]
  *
- * Therefore to invert the transformation the following expression can be
- * applied:
- * \f[ R_x^{-1} \cdot R_y^{-1} \cdot R_z^{-1} \cdot
-   \left(\mathbf{x_a} - \mathbf{cor}\right), \f]
- * where the inverse rotation matrices are obtained just using
- * \f$ -\phi, -\theta, -\psi \f$ angles.
+ * To compute the acceleration the following process can be followed:
+ *   -# The acceleration due to the rotations is computed in the local
+ *      coordinates: \f$ \dot \omega \times \mathbf{x_a} \f$, with
+ *      \f$ \dot \omega = \left[ \ddot \phi, \ddot \theta, \ddot \psi \rigth]\f$
+ *   -# Then the vector is rotated using the rotation matrix.
+ *   -# Finally the linear acceleration, \f$ \ddot \mathbf{cor} \f$ is added.
  *
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r} \f$.
- * @param normal Normal \f$ \mathbf{n} \f$.
+ * @param u Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
  * @param N Number of particles.
  * @param motion_iset Set of particles affected.
  * @param motion_r Center of rotation.
+ * @param motion_ddrddt Center of rotation aceleration.
  * @param motion_a Rotation angles \f$ \phi, \theta, \psi \f$.
- * @see MotionTransform.cl
+ * @param motion_ddaddt Angular accelerations.
+ * @see MotionVelocity.cl
  */
 __kernel void main(const __global uint* iset,
                    const __global int* imove,
                    __global vec* r,
-                   __global vec* normal,
+                   __global vec* dudt,
                    unsigned int N,
                    unsigned int motion_iset,
                    vec motion_r,
-                   vec4 motion_a)
+                   vec motion_ddrddt,
+                   vec4 motion_a,
+                   vec4 motion_ddaddt)
 {
     // find position in global arrays
     int i = get_global_id(0);
@@ -87,46 +90,38 @@ __kernel void main(const __global uint* iset,
         return;
     }
 
-    vec r_i, rr, n_i, nn;
-
-    const float cphi = cos(motion_a.x);
-    const float sphi = -sin(motion_a.x);
-    const float ctheta = cos(motion_a.y);
-    const float stheta = -sin(motion_a.y);
-    const float cpsi = cos(motion_a.z);
-    const float spsi = -sin(motion_a.z);
-
-    //---------------------------------------------
-    // Untransform the point
-    //---------------------------------------------
-    n_i = normal[i];
-    // Undisplace the point
-    r_i = r[i] - motion_r;
-    // Unrotate along z
-    rr = r_i;
-    nn = n_i;
-    r_i.x = cpsi * rr.x - spsi * rr.y;
-    r_i.y = spsi * rr.x + cpsi * rr.y;
-    n_i.x = cpsi * nn.x - spsi * nn.y;
-    n_i.y = spsi * nn.x + cpsi * nn.y;
-    #ifdef HAVE_3D
-        // Unrotate along y
-        rr = r_i;
-        nn = n_i;
-        r_i.x = ctheta * rr.x + stheta * rr.z;
-        r_i.z = -stheta * rr.x + ctheta * rr.z;
-        n_i.x = ctheta * nn.x + stheta * nn.z;
-        n_i.z = -stheta * nn.x + ctheta * nn.z;
-        // Unrotate along x
-        rr = r_i;
-        nn = n_i;
-        r_i.y = cphi * rr.y - sphi * rr.z;
-        r_i.z = sphi * rr.y + cphi * rr.z;
-        n_i.y = cphi * nn.y - sphi * nn.z;
-        n_i.z = sphi * nn.y + cphi * nn.z;
+    // Compute the velocity due to the rotation in the local frame of reference
+    #ifndef HAVE_3D
+        vec dudt_i = (vec)(-motion_ddaddt.z * r[i].y, motion_ddaddt.z * r[i].x);
+    #else
+        vec dudt_i = cross(motion_ddaddt, r[i]);
     #endif
+    vec duudt;
 
-    normal[i] = n_i;
-    r[i] = r_i;
+    // Transform it to the global coordinates
+    const float cphi = cos(motion_a.x);
+    const float sphi = sin(motion_a.x);
+    const float ctheta = cos(motion_a.y);
+    const float stheta = sin(motion_a.y);
+    const float cpsi = cos(motion_a.z);
+    const float spsi = sin(motion_a.z);
+
+    #ifdef HAVE_3D
+        // Rotate along x
+        duudt = dudt_i;
+        dudt_i.y = cphi * duudt.y - sphi * duudt.z;
+        dudt_i.z = sphi * duudt.y + cphi * duudt.z;
+        // Rotate along y
+        duudt = dudt_i;
+        dudt_i.x = ctheta * duudt.x + stheta * duudt.z;
+        dudt_i.z = -stheta * duudt.x + ctheta * duudt.z;
+    #endif
+    // Rotate along z
+    duudt = dudt_i;
+    dudt_i.x = cpsi * duudt.x - spsi * duudt.y;
+    dudt_i.y = spsi * duudt.x + cpsi * duudt.y;
+
+    // Add the linear velocity
+    dudt[i] = dudt_i + motion_ddrddt;
 }
 
