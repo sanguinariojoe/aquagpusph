@@ -17,10 +17,20 @@
  */
 
 /** @file
- * @brief Sensor data interpolation.
+ * @brief Boundary element data interpolation.
  * (See Rates.cl)
  *
- * It is just redirecting to RatesBounds.hcl.
+ * It is prefearable to use a header to be included instead of generating a
+ * function for thye particles interaction, which imply more registries
+ * consumption.
  */
 
-#include "InteractionsBounds.hcl"
+const float rho_j = rho[j];
+const float m_j = m[j];
+const float p_j = p[j];
+const vec_xyz u_j = u[j].XYZ;
+const float w_ij = kernelW(q) * CONW * m_j / rho_j;
+
+_U_ += u_j * w_ij;
+_RHO_ += rho_j * w_ij;
+_P_ += p_j * w_ij;

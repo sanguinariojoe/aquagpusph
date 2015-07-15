@@ -17,7 +17,7 @@
  */
 
 /** @file
- * @brief Boundary integral term computation.
+ * @brief Fluid particles interactions computation.
  */
 
 #if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
@@ -25,48 +25,43 @@
 #endif
 
 #ifndef HAVE_3D
-    #include "../types/2D.h"
-    #include "../KernelFunctions/Wendland2D.hcl"
+    #include "../../types/2D.h"
+    #include "../../KernelFunctions/Wendland2D.hcl"
 #else
-    #include "../types/3D.h"
-    #include "../KernelFunctions/Wendland3D.hcl"
+    #include "../../types/3D.h"
+    #include "../../KernelFunctions/Wendland3D.hcl"
 #endif
 
-/** @brief Performs the boundary effect on the fluid particles.
- * @param iset Set of particles index.
+/** @brief Pressure interpolation at the boundary elements.
+ *
+ * The values are computed using just the fluid information. The resulting
+ * interpolated values are not renormalized yet.
+ *
+ * Just the elements with the flag imove = -3 are considered boundary elements.
+ *
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r} \f$.
- * @param normal Normal \f$ \mathbf{n} \f$.
- * @param u Velocity \f$ \mathbf{u} \f$.
+ * @param m Mass \f$ m \f$.
  * @param rho Density \f$ \rho \f$.
  * @param p Pressure \f$ p \f$.
- * @param m Mass \f$ m \f$.
- * @param refd Density of reference \f$ \rho_0 \f$ (one per set of particles)
- * @param grad_p Pressure gradient \f$ \nabla p \f$.
- * @param div_u Velocity divergence \f$ \nabla \cdot \mathbf{u} \f$.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
  * @param n_cells Number of cells in each direction
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
+ * @see SensorsRenormalization.cl
  */
-__kernel void main(const __global uint* iset,
-                   const __global int* imove,
+__kernel void main(const __global int* imove,
                    const __global vec* r,
-                   const __global vec* normal,
-                   const __global vec* u,
-                   const __global float* rho,
                    const __global float* m,
-                   const __global float* p,
-                   __constant float* refd,
-                   __global vec* grad_p,
-                   __global float* div_u,
+                   const __global float* rho,
+                   __global float* p,
                    // Link-list data
-                   __global uint *icell,
-                   __global uint *ihoc,
+                   const __global uint *icell,
+                   const __global uint *ihoc,
                    // Simulation data
                    uint N,
                    uivec4 n_cells,
@@ -76,30 +71,21 @@ __kernel void main(const __global uint* iset,
     const uint it = get_local_id(0);
     if(i >= N)
         return;
-    if(imove[i] <= 0)
+    if(imove[i] != -3){
         return;
+    }
 
     const uint c_i = icell[i];
     const vec_xyz r_i = r[i].XYZ;
-    const vec_xyz u_i = u[i].XYZ;
-    const float p_i = p[i];
-    const float rho_i = rho[i];
-    const float refd_i = refd[iset[i]];
-
-    const float prfac_i = p_i / (rho_i * rho_i);
 
     // Initialize the output
     #ifndef LOCAL_MEM_SIZE
-        #define _GRADP_ grad_p[i].XYZ
-        #define _DIVU_ div_u[i]
+        #define _P_ p[i]
     #else
-        #define _GRADP_ grad_p_l[it]
-        #define _DIVU_ div_u_l[it]
-        __local vec_xyz grad_p_l[LOCAL_MEM_SIZE];
-        __local float div_u_l[LOCAL_MEM_SIZE];
-        _GRADP_ = grad_p[i].XYZ;
-        _DIVU_ = div_u[i];
+        #define _P_ p_l[it]
+        __local float p_l[LOCAL_MEM_SIZE];
     #endif
+    _P_ = 0.f;
 
     // Loop over neighs
     // ================
@@ -116,7 +102,11 @@ __kernel void main(const __global uint* iset,
                                 ck * n_cells.x * n_cells.y;
                 uint j = ihoc[c_j];
                 while((j < N) && (icell[j] == c_j)) {
-                    if(imove[j] != -3){
+                    if(i == j){
+                        j++;
+                        continue;
+                    }
+                    if(imove[j] != 1){
                         j++;
                         continue;
                     }
@@ -127,9 +117,9 @@ __kernel void main(const __global uint* iset,
                         j++;
                         continue;
                     }
-
                     {
-                        #include "BoundaryIntegrals.hcl"
+                        const float w_ij = kernelW(q) * CONW * m[j] / rho[j];
+                        _P_ += (p[j] - dot(g.XYZ, r_ij)) * w_ij;
                     }
                     j++;
                 }
@@ -138,7 +128,6 @@ __kernel void main(const __global uint* iset,
     }
 
     #ifdef LOCAL_MEM_SIZE
-        grad_p[i].XYZ = _GRADP_;
-        div_u[i] = _DIVU_;
+        p[i] = _P_;
     #endif
 }

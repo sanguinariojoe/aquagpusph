@@ -17,7 +17,7 @@
  */
 
 /** @file
- * @brief Boundary integral friction term.
+ * @brief Shepard renormalization factor computation.
  */
 
 #if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
@@ -25,69 +25,73 @@
 #endif
 
 #ifndef HAVE_3D
-    #include "../types/2D.h"
-    #include "../KernelFunctions/Wendland2D.hcl"
+    #include "types/2D.h"
+    #include "KernelFunctions/Wendland2D.hcl"
 #else
-    #include "../types/3D.h"
-    #include "../KernelFunctions/Wendland3D.hcl"
+    #include "types/3D.h"
+    #include "KernelFunctions/Wendland3D.hcl"
 #endif
 
-/** @brief Performs the boundary friction effect on the fluid particles.
- * @param iset Set of particles index.
+/** @brief Shepard factor computation.
+ *
+ * \f[ \gamma(\mathbf{x}) = \int_{\Omega}
+ *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{x} \f]
+ *
+ * The shepard renormalization factor is applied for several purposes:
+ *   - To interpolate values
+ *   - To recover the consistency with the Boundary Integrals formulation
+ *   - Debugging
+ *
+ * In the shepard factor computation the fluid extension particles are not taken
+ * into account.
+ *
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r} \f$.
- * @param normal Normal \f$ \mathbf{n} \f$.
- * @param u Velocity \f$ \mathbf{u} \f$.
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
- * @param lap_u Velocity laplacian \f$ \frac{\Delta \mathbf{u}}{rho} \f$.
+ * @param shepard Shepard term
+ * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
+ *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{x} \f$.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
  * @param n_cells Number of cells in each direction
- * @param noslip_iset Particles set of the boundary terms which friction should
- * be taken into account.
- * @param dr Distance between particles \f$ \Delta r \f$.
  */
-__kernel void main(const __global uint* iset,
-                   const __global int* imove,
+__kernel void main(const __global int* imove,
                    const __global vec* r,
-                   const __global vec* normal,
-                   const __global vec* u,
                    const __global float* rho,
                    const __global float* m,
-                   __global vec* lap_u,
+                   __global float* shepard,
                    // Link-list data
-                   __global uint *icell,
-                   __global uint *ihoc,
+                   const __global uint *icell,
+                   const __global uint *ihoc,
                    // Simulation data
                    uint N,
-                   uivec4 n_cells,
-                   uint noslip_iset,
-                   float dr)
+                   uivec4 n_cells)
 {
     const uint i = get_global_id(0);
     const uint it = get_local_id(0);
     if(i >= N)
         return;
-    if(imove[i] <= 0)
+    const int move_i = imove[i];
+    if(move_i == -4){
+        // Particles outside the domain
         return;
+    }
 
     const uint c_i = icell[i];
     const vec_xyz r_i = r[i].XYZ;
-    const vec_xyz u_i = u[i].XYZ;
-    const float rho_i = rho[i];
 
     // Initialize the output
     #ifndef LOCAL_MEM_SIZE
-        #define _LAPU_ lap_u[i].XYZ
+        #define _SHEPARD_ shepard[i]
     #else
-        #define _LAPU_ lap_u_l[it]
-        __local vec_xyz lap_u_l[LOCAL_MEM_SIZE];
-        _LAPU_ = lap_u[i].XYZ;
+        #define _SHEPARD_ shepard_l[it]
+        __local float shepard_l[LOCAL_MEM_SIZE];
+        _SHEPARD_ = 0.f;
     #endif
 
     // Loop over neighs
@@ -100,15 +104,16 @@ __kernel void main(const __global uint* iset,
             const int ck = 0; {
             #endif
                 const uint c_j = c_i +
-                                 ci +
-                                 cj * n_cells.x +
-                                 ck * n_cells.x * n_cells.y;
+                                ci +
+                                cj * n_cells.x +
+                                ck * n_cells.x * n_cells.y;
                 uint j = ihoc[c_j];
                 while((j < N) && (icell[j] == c_j)) {
-                    if((imove[j] != -3) || (iset[j] != noslip_iset)){
+                    if(imove[j] != 1){
                         j++;
                         continue;
                     }
+
                     const vec_xyz r_ij = r[j].XYZ - r_i;
                     const float q = fast_length(r_ij) / H;
                     if(q >= SUPPORT)
@@ -118,7 +123,7 @@ __kernel void main(const __global uint* iset,
                     }
 
                     {
-                        #include "NoSlipBI.hcl"
+                        _SHEPARD_ += kernelW(q) * CONW * m[j] / rho[j];
                     }
                     j++;
                 }
@@ -127,6 +132,6 @@ __kernel void main(const __global uint* iset,
     }
 
     #ifdef LOCAL_MEM_SIZE
-        lap_u[i].XYZ = _LAPU_;
+        shepard[i] = _SHEPARD_;
     #endif
 }

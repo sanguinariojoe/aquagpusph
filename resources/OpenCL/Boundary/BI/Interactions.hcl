@@ -16,29 +16,19 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file
- * @brief Boundary element - Fluid particle interaction.
- *
- * It is prefearable to use a header to be included instead of generating a
- * function for thye particles interaction, which imply more registries
- * consumption.
- */
-
 const vec_xyz n_j = normal[j].XYZ;  // Assumed outwarding oriented
 const float rho_j = rho[j];
 if(rho_j <= 0.01f * refd_i){
     j++;
     continue;
 }
-const float area_j = m[j];
 
 {
+    const float area_j = m[j];
     const float p_j = p[j];
     const vec_xyz du = u[j].XYZ - u_i;
-    const float udn = rho_j * dot(du, n_j);
     const float w_ij = kernelW(q) * CONW * area_j;
 
-    const vec_xyz prfac = rho_j * (prfac_i + p_j / (rho_j * rho_j)) * n_j;
-    _GRADP_ += prfac * w_ij;
-    _DIVU_ += udn * w_ij;
+    _GRADP_ += (p_i + p_j) / rho_i * w_ij * n_j;
+    _DIVU_ += rho_i * dot(du, n_j) * w_ij;
 }

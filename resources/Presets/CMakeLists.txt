@@ -7,10 +7,14 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cfd.xml.in
     ${CMAKE_CURRENT_BINARY_DIR}/cfd.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/noLocalMem.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/noLocalMem.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/noSlipBI.xml.in  
-    ${CMAKE_CURRENT_BINARY_DIR}/noSlipBI.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/BI.xml.in  
+    ${CMAKE_CURRENT_BINARY_DIR}/BI.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/BINoSlip.xml.in  
+    ${CMAKE_CURRENT_BINARY_DIR}/BINoSlip.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/fixedGhostParticles.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/fixedGhostParticles.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/elasticBounce.xml.in  
+    ${CMAKE_CURRENT_BINARY_DIR}/elasticBounce.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/inlet.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/inlet.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/outlet.xml.in  
@@ -56,10 +60,14 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cfd.xml.in
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/cfd.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/noLocalMem.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/noLocalMem.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/noSlipBI.xml.in  
-    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/noSlipBI.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/BI.xml.in  
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/BI.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/BINoSlip.xml.in  
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/BINoSlip.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/fixedGhostParticles.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/fixedGhostParticles.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/elasticBounce.xml.in  
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/elasticBounce.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/inlet.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/inlet.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/outlet.xml.in  
@@ -105,8 +113,10 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/timing.report.xml.in
 SET(RESOURCES_SRCS 
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/cfd.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/noLocalMem.xml
-    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/noSlipBI.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/BI.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/BINoSlip.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/fixedGhostParticles.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/elasticBounce.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/inlet.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/outlet.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/symmetry.xml

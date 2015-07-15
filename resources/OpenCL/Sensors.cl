@@ -32,10 +32,15 @@
     #include "KernelFunctions/Wendland3D.hcl"
 #endif
 
-/** @brief Fluid particles interactions computation.
+/** @brief Fields interpolation at the sensors.
  *
- * Compute the differential operators involved in the numerical scheme, taking
- * into account just the fluid-fluid interactions.
+ * The fields to be interpolated are:
+ *    - Velocity \f$ \mathbf{u} \f$
+ *    - Density \f$ \rho \f$
+ *    - Pressure \f$ p \f$
+ *
+ * The values are computed using just the fluid information. The resulting
+ * interpolated values are not renormalized yet.
  *
  * @param iset Set of particles index.
  * @param imove Moving flags.
@@ -43,33 +48,24 @@
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r} \f$.
+ * @param m Mass \f$ m \f$.
  * @param u Velocity \f$ \mathbf{u} \f$.
  * @param rho Density \f$ \rho \f$.
- * @param m Mass \f$ m \f$.
  * @param p Pressure \f$ p \f$.
- * @param refd Density of reference \f$ \rho_0 \f$ (one per set of particles)
- * @param grad_p Pressure gradient \f$ \frac{\nabla p}{rho} \f$.
- * @param lap_u Velocity laplacian \f$ \frac{\Delta \mathbf{u}}{rho} \f$.
- * @param div_u Velocity divergence \f$ \rho \nabla \cdot \mathbf{u} \f$.
- * @param lap_p Pressure laplacian \f$ \Delta p \f$.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
  * @param n_cells Number of cells in each direction
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
+ * @see SensorsRenormalization.cl
  */
 __kernel void main(const __global uint* iset,
                    const __global int* imove,
                    const __global vec* r,
-                   const __global vec* u,
-                   const __global float* rho,
                    const __global float* m,
-                   const __global float* p,
-                   __constant float* refd,
-                   __global vec* grad_p,
-                   __global vec* lap_u,
-                   __global float* div_u,
-                   __global float* lap_p,
+                   __global vec* u,
+                   __global float* rho,
+                   __global float* p,
                    // Link-list data
                    const __global uint *icell,
                    const __global uint *ihoc,
@@ -82,37 +78,29 @@ __kernel void main(const __global uint* iset,
     const uint it = get_local_id(0);
     if(i >= N)
         return;
-    if(imove[i] != 1){
+    if(imove[i] != 0){
         return;
     }
 
     const uint c_i = icell[i];
     const vec_xyz r_i = r[i].XYZ;
-    const vec_xyz u_i = u[i].XYZ;
-    const float p_i = p[i];
-    const float rho_i = rho[i];
-    const float refd_i = refd[iset[i]];
 
     // Initialize the output
     #ifndef LOCAL_MEM_SIZE
-        #define _GRADP_ grad_p[i].XYZ
-        #define _LAPU_ lap_u[i].XYZ
-        #define _DIVU_ div_u[i]
-        #define _LAPP_ lap_p[i]
+        #define _U_ u[i].XYZ
+        #define _RHO_ rho[i]
+        #define _P_ p[i]
     #else
-        #define _GRADP_ grad_p_l[it]
-        #define _LAPU_ lap_u_l[it]
-        #define _DIVU_ div_u_l[it]
-        #define _LAPP_ lap_p_l[it]
-        __local vec_xyz grad_p_l[LOCAL_MEM_SIZE];
-        __local vec_xyz lap_u_l[LOCAL_MEM_SIZE];
-        __local float div_u_l[LOCAL_MEM_SIZE];
-        __local float lap_p_l[LOCAL_MEM_SIZE];
-        _GRADP_ = VEC_ZERO.XYZ;
-        _LAPU_ = VEC_ZERO.XYZ;
-        _DIVU_ = 0.f;
-        _LAPP_ = 0.f;
+        #define _U_ u_l[it]
+        #define _RHO_ rho_l[it]
+        #define _P_ p_l[it]
+        __local vec_xyz u_l[LOCAL_MEM_SIZE];
+        __local float rho_l[LOCAL_MEM_SIZE];
+        __local float p_l[LOCAL_MEM_SIZE];
     #endif
+    _U_ = VEC_ZERO.XYZ;
+    _RHO_ = 0.f;
+    _P_ = 0.f;
 
     // Loop over neighs
     // ================
@@ -145,7 +133,7 @@ __kernel void main(const __global uint* iset,
                         continue;
                     }
                     {
-                        #include "Interactions.hcl"
+                        #include "Sensors.hcl"
                     }
                     j++;
                 }
@@ -154,9 +142,8 @@ __kernel void main(const __global uint* iset,
     }
 
     #ifdef LOCAL_MEM_SIZE
-        grad_p[i].XYZ = _GRADP_;
-        lap_u[i].XYZ = _LAPU_;
-        div_u[i] = _DIVU_;
-        lap_p[i] = _LAPP_;
+        u[i].XYZ = _U_;
+        rho[i] = _RHO_;
+        p[i] = _P_;
     #endif
 }

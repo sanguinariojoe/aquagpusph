@@ -1,0 +1,34 @@
+<?xml version="1.0" ?>
+
+<!-- BI.xml
+Allows the usage of boundary integrals to enforce a solid boundary condition.
+
+To do that, include this preset, and set the set of particles which will be
+treated with boundary integrals.
+<Variables>
+    <Variable name="pressureForces_F_0" type="vec" value="0.0, 0.0, 0.0, 0.0" />
+</Variables>
+
+Remarks:
+  - For the boundary integrals, it is intended that the boundary elements have
+    the flag imove = -3, and a unit normal.
+  - Boundary integrals have significant advantages when complex geometries
+    are considered in the problem.
+  - The boundary integrals require renormalizaing the differential operators
+    computed, having undesired effects in the energy conservation.
+  - By default, free-slip boundary condition is considered. To enforce the
+    no-slip boundary condition include the preset boundaryIntegralsNoSlip.xml
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="normal" type="vec*" length="N" />
+    </Variables>
+
+    <Tools>
+        <Tool action="insert" after="Interactions" type="kernel" name="BIInterpolation" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/BI/Interpolation.cl"/>
+        <Tool action="insert" after_prefix="BIInterpolation" type="kernel" name="BIInterpolationShepard" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/BI/InterpolationShepard.cl"/>
+        <Tool action="insert" after_prefix="BIInterpolationShepard" type="kernel" name="BIInteractions" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/BI/Interactions.cl"/>
+        <Tool action="insert" after_prefix="BIInteractions" type="kernel" name="BIShepard" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/BI/Shepard.cl"/>
+    </Tools>
+</sphInput>

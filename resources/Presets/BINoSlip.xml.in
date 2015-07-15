@@ -26,6 +26,6 @@ noslip_iset variable each time, for instance:
 
     <Tools>
         <!-- Regenerate the particles associations in the sort space. -->
-        <Tool action="insert" after="BoundaryIntegrals" type="kernel" name="NoSlipBI" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/NoSlipBI.cl"/>
+        <Tool action="insert" after="BIInteractions" type="kernel" name="BINoSlip" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/BINoSlip.cl"/>
     </Tools>
 </sphInput>

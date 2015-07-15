@@ -1,4 +1,23 @@
 <?xml version="1.0" ?>
+
+<!-- cfd.xml
+This is the main preset to create CFD simulations using SPH.
+
+Within this preset, no boundary conditions are loaded, or in other words, purely
+dummy particles are considered.
+
+In case that solid boundaries should be enforced, consider loading Boundary
+Integrals (BI.xml) or Mirror particles(GhostParticles.xml). Also you can add the
+elastic bounce condition to enforce the unpenetrability.
+
+In case or symmetric planes use symmetry.xml.
+
+In case of inflow/outflow use inlet.xml and outlet.xml.
+
+However, sensor values are already computed within this preset, out of the box.
+In the sensors the values of density, pressure and velocity are interpolated.
+-->
+
 <sphInput>
     <Variables>
         <!-- Some variables are automatically defined:
@@ -38,6 +57,7 @@
              imove = -1 for fixed particles
              imove = -2 for elastic bounce boundary elements
              imove = -3 for boundary integrals boundary elements
+             imove = -4 for particles out of the computational domain
          -->
         <Variable name="imove" type="int*" length="N" />
         <Variable name="normal" type="vec*" length="N" />
@@ -79,7 +99,7 @@
     </Definitions>
     
     <Tools>
-        <!-- Leap-Frog time integration predictor stage -->
+        <!-- Improved Euler time integration predictor stage -->
         <Tool action="add" type="kernel" name="Predictor" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Predictor.cl"/>
 
         <!-- Link-list and particles sorting -->
@@ -101,17 +121,16 @@
         <Tool action="add" type="set" name="Reinit lap_u" in="lap_u" value="VEC_ZERO"/>
         <Tool action="add" type="set" name="Reinit shepard" in="shepard" value="0.f"/>
 
+        <Tool action="add" type="kernel" name="Shepard" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Shepard.cl"/>
         <Tool action="add" type="kernel" name="Interactions" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Interactions.cl"/>
-        <Tool action="add" type="kernel" name="NonFluidSet" path="@RESOURCES_OUTPUT_DIR@/OpenCL/NonFluidSet.cl"/>
-        <Tool action="add" type="kernel" name="BoundaryIntegrals" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/BoundaryIntegrals.cl"/>
+
+        <Tool action="add" type="kernel" name="Sensors" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Sensors.cl"/>
+        <Tool action="add" type="kernel" name="SensorsRenormalization" path="@RESOURCES_OUTPUT_DIR@/OpenCL/SensorsRenormalization.cl"/>
 
         <!-- Velocity and density variation rates computation -->
         <Tool action="add" type="kernel" name="Rates" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Rates.cl"/>
 
-        <!-- Correction close to the boundaries -->
-        <Tool action="add" type="kernel" name="ElasticBounce" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/ElasticBounce.cl"/>
-
-        <!-- Leap-Frog time integration corrector stage -->
+        <!-- Improved Euler time integration corrector stage -->
         <Tool action="add" type="kernel" name="Corrector" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Corrector.cl"/>
 
         <!-- Time step computation -->

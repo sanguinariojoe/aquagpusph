@@ -49,9 +49,6 @@
  * @param lap_u Velocity laplacian \f$ \frac{\Delta \mathbf{u}}{rho} \f$.
  * @param div_u Velocity divergence \f$ \rho \nabla \cdot \mathbf{u} \f$.
  * @param lap_p Pressure laplacian \f$ \Delta p \f$.
- * @param shepard Shepard term
- * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
- *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{x} \f$.
  * @param dudt Velocity rate of change
  * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n+1} \f$.
  * @param drhodt Density rate of change
@@ -70,7 +67,6 @@ __kernel void main(const __global uint* iset,
                    const __global vec* lap_u,
                    const __global float* div_u,
                    const __global float* lap_p,
-                   const __global float* shepard,
                    __global vec* dudt,
                    __global float* drhodt,
                    __constant float* visc_dyn,
@@ -90,7 +86,7 @@ __kernel void main(const __global uint* iset,
     const float delta_f = delta[set_i] * dt * rho[i] / refd[set_i];
 
     // Momentum equation
-    dudt[i] = (-grad_p[i] + visc_dyn[set_i] * lap_u[i]) / shepard[i] + g;
+    dudt[i] = -grad_p[i] + visc_dyn[set_i] * lap_u[i] + g;
     // Conservation of mass equation
     drhodt[i] = -div_u[i] + delta_f * lap_p[i];
 }
