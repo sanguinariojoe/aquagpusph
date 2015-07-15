@@ -518,16 +518,18 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                             break;
                         }
                     }
-                    free(toolname);
-                    toolname = NULL;
                     if(place == P->tools.size()){
                         sprintf(msg,
                                 "The tool \"%s\" must be inserted before \"%s\", but such tool cannot be found.\n",
                                 tool->get("name"),
                                 toolname);
                         S->addMessageF(3, msg);
+                        free(toolname);
+                        toolname = NULL;
                         return true;
                     }
+                    free(toolname);
+                    toolname = NULL;
                 }
                 else if(xmlHasAttribute(s_elem, "after_prefix")){
                     const char *att_str = xmlAttribute(s_elem, "after_prefix");
@@ -546,16 +548,18 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                             break;
                         }
                     }
-                    free(toolname);
-                    toolname = NULL;
                     if(place == P->tools.size()){
                         sprintf(msg,
                                 "The tool \"%s\" must be inserted after \"%s\", but such tool cannot be found.\n",
                                 tool->get("name"),
                                 toolname);
                         S->addMessageF(3, msg);
+                        free(toolname);
+                        toolname = NULL;
                         return true;
                     }
+                    free(toolname);
+                    toolname = NULL;
                     place++;
                 }
                 else{
