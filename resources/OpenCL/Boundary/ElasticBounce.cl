@@ -97,7 +97,7 @@ __kernel void main(const __global int* imove,
     const uint it = get_local_id(0);
     if(i >= N)
         return;
-    if(imove[i] <= 0)
+    if(imove[i] != 1)
         return;
 
     const float R = __DR_FACTOR__ * dr;
@@ -114,7 +114,7 @@ __kernel void main(const __global int* imove,
         const vec_xyz n_j = normal[j].XYZ;
         const float r0 = dot(r_ij, n_j);
         if(r0 < 0.f){
-            // The boundary element is not well oriented
+            // The particle is in the "wrong" side of the wall.
             j++;
             continue;
         }
