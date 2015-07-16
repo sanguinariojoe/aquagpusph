@@ -1,0 +1,56 @@
+<?xml version="1.0" ?>
+
+<!-- inlet.xml
+Fixed ghost particles boundary condition. Actually, this boundary condition is
+an extension of the dummy particles boundary condition, where the physical
+fields are interpolated from the fluid.
+To do that, the dummy particles (imove=-1) are associated with a boundary
+element (imove=-2), such that the position of the ghost particles can be
+mirrored with respect such element in order to interpolate the fields.
+
+The main benefit of the ghost particles are the great conservation properties.
+However treating with complex geometries may become hard due to the requirement
+of the generation of the extended fluid.
+
+To use this boundary condition you should include this preset, and properly set
+the associations array within the input file (set it to N for the particles
+which should not be mirrored at all).
+
+This file should be included once.
+-->
+
+<sphInput>
+    <Variables>
+        <!-- Ghost particles - Mirroring boundary elements associations -->
+        <Variable name="associations" type="unsigned int*" length="N" />
+        <Variable name="associations_in" type="unsigned int*" length="N" />
+        <!-- Interpolated field values in the mirrored position -->
+        <Variable name="gp_rho" type="float*" length="N" />
+        <Variable name="gp_p" type="float*" length="N" />
+        <Variable name="gp_u" type="vec*" length="N" />
+    </Variables>
+
+    <Tools>
+        <!-- Regenerate the particles associations in the sort space. -->
+        <Tool action="insert" before="Sort" type="copy" name="Backup associations" in="associations" out="associations_in"/>
+        <Tool action="insert" after="Sort" type="kernel" name="Sort associations" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GP/Sort.cl"/>
+        <!-- Mirror the particles and interpolate the field values -->
+        <Tool action="insert" before="Shepard" type="kernel" name="GP Mirror" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GP/Mirror.cl"/>
+        <Tool action="insert" after="GP Mirror" type="set" name="Reinit gp_rho" in="gp_rho" value="0.f"/>
+        <Tool action="insert" after="Reinit gp_rho" type="set" name="Reinit gp_p" in="gp_p" value="0.f"/>
+        <Tool action="insert" after="Reinit gp_p" type="set" name="Reinit gp_u" in="gp_u" value="VEC_ZERO"/>
+        <Tool action="insert" after="Reinit gp_u" type="kernel" name="GP Interpolation" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GP/Interpolation.cl"/>
+        <Tool action="insert" after="Shepard" type="kernel" name="GP Renormalization" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GP/Shepard.cl"/>
+        <!-- Unmirror the particles to compute the interactions -->
+        <Tool action="insert" after="GP Renormalization" type="kernel" name="GP Unmirror" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GP/Mirror.cl"/>
+        <!-- We must compute first the Laplacian of the velocity because:
+             1.- It requires a special fluid extension
+             2.- The resulting value is required for the pressure extension. -->
+        <Tool action="insert" after="Interactions" type="kernel" name="GP PreLapU" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GP/PreLapU.cl"/>
+        <Tool action="insert" after="GP PreLapU" type="kernel" name="GP LapU" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GP/LapU.cl"/>
+        <!-- Now we can extend the pressure and velocity to compute grad_p,
+        div_u, lap_p. -->
+        <Tool action="insert" after="GP LapU" type="kernel" name="GP PreInteractions" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GP/PreInteractions.cl"/>
+        <Tool action="insert" after="GP PreInteractions" type="kernel" name="GP Interactions" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GP/Interactions.cl"/>
+    </Tools>
+</sphInput>
