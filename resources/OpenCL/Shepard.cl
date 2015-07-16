@@ -82,7 +82,6 @@ __kernel void main(const __global int* imove,
         return;
     }
 
-    const uint c_i = icell[i];
     const vec_xyz r_i = r[i].XYZ;
 
     // Initialize the output
@@ -94,42 +93,24 @@ __kernel void main(const __global int* imove,
         _SHEPARD_ = 0.f;
     #endif
 
-    // Loop over neighs
-    // ================
-    for(int ci = -1; ci <= 1; ci++) {
-        for(int cj = -1; cj <= 1; cj++) {
-            #ifdef HAVE_3D
-            for(int ck = -1; ck <= 1; ck++) {
-            #else
-            const int ck = 0; {
-            #endif
-                const uint c_j = c_i +
-                                ci +
-                                cj * n_cells.x +
-                                ck * n_cells.x * n_cells.y;
-                uint j = ihoc[c_j];
-                while((j < N) && (icell[j] == c_j)) {
-                    if(imove[j] != 1){
-                        j++;
-                        continue;
-                    }
-
-                    const vec_xyz r_ij = r[j].XYZ - r_i;
-                    const float q = fast_length(r_ij) / H;
-                    if(q >= SUPPORT)
-                    {
-                        j++;
-                        continue;
-                    }
-
-                    {
-                        _SHEPARD_ += kernelW(q) * CONW * m[j] / rho[j];
-                    }
-                    j++;
-                }
-            }
+    BEGIN_LOOP_OVER_NEIGHS(){
+        if(imove[j] != 1){
+            j++;
+            continue;
         }
-    }
+
+        const vec_xyz r_ij = r[j].XYZ - r_i;
+        const float q = fast_length(r_ij) / H;
+        if(q >= SUPPORT)
+        {
+            j++;
+            continue;
+        }
+
+        {
+            _SHEPARD_ += kernelW(q) * CONW * m[j] / rho[j];
+        }
+    }END_LOOP_OVER_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         shepard[i] = _SHEPARD_;

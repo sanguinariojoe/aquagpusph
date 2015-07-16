@@ -32,6 +32,19 @@
     #include "../../KernelFunctions/Wendland3D.hcl"
 #endif
 
+#if __LAP_FORMULATION__ != __LAP_MORRIS__ && \
+    __LAP_FORMULATION__ != __LAP_MONAGHAN__
+    #error Unknown Laplacian formulation: __LAP_FORMULATION__
+#endif
+
+#if __LAP_FORMULATION__ == __LAP_MONAGHAN__
+    #ifndef HAVE_3D
+        #define __CLEARY__ 8.f
+    #else
+        #define __CLEARY__ 10.f
+    #endif
+#endif
+
 /** @brief Performs the boundary friction effect on the fluid particles.
  * @param iset Set of particles index.
  * @param imove Moving flags.
@@ -76,7 +89,6 @@ __kernel void main(const __global uint* iset,
     if(imove[i] <= 0)
         return;
 
-    const uint c_i = icell[i];
     const vec_xyz r_i = r[i].XYZ;
     const vec_xyz u_i = u[i].XYZ;
     const float rho_i = rho[i];
@@ -90,41 +102,38 @@ __kernel void main(const __global uint* iset,
         _LAPU_ = lap_u[i].XYZ;
     #endif
 
-    // Loop over neighs
-    // ================
-    for(int ci = -1; ci <= 1; ci++) {
-        for(int cj = -1; cj <= 1; cj++) {
-            #ifdef HAVE_3D
-            for(int ck = -1; ck <= 1; ck++) {
-            #else
-            const int ck = 0; {
-            #endif
-                const uint c_j = c_i +
-                                 ci +
-                                 cj * n_cells.x +
-                                 ck * n_cells.x * n_cells.y;
-                uint j = ihoc[c_j];
-                while((j < N) && (icell[j] == c_j)) {
-                    if((imove[j] != -3) || (iset[j] != noslip_iset)){
-                        j++;
-                        continue;
-                    }
-                    const vec_xyz r_ij = r[j].XYZ - r_i;
-                    const float q = fast_length(r_ij) / H;
-                    if(q >= SUPPORT)
-                    {
-                        j++;
-                        continue;
-                    }
-
-                    {
-                        #include "NoSlipBI.hcl"
-                    }
-                    j++;
-                }
-            }
+    BEGIN_LOOP_OVER_NEIGHS(){
+        if((imove[j] != -3) || (iset[j] != noslip_iset)){
+            j++;
+            continue;
         }
-    }
+        const vec_xyz r_ij = r[j].XYZ - r_i;
+        const float q = fast_length(r_ij) / H;
+        if(q >= SUPPORT)
+        {
+            j++;
+            continue;
+        }
+
+        {
+            const vec_xyz n_j = normal[j].XYZ;  // Assumed outwarding oriented
+            const float area_j = m[j];
+
+            const float w_ij = kernelW(q) * CONW * area_j;
+            const vec_xyz du = u[j].XYZ - u_i;
+
+            #if __LAP_FORMULATION__ == __LAP_MONAGHAN__
+                const float r2 = (q * q + 0.01f) * H * H;
+                _LAPU_ += __CLEARY__ * w_ij * dot(du, r_ij) / (r2 * rho_i) * n_j;
+            #endif
+            #if __LAP_FORMULATION__ == __LAP_MORRIS__ || \
+                __LAP_FORMULATION__ == __LAP_MONAGHAN__
+                const float dr_n = max(fabs(dot(r_ij, n_j)), dr);
+                const vec_xyz du_t = du - dot(du, n_j) * n_j;
+                _LAPU_ += 2.f * w_ij / (rho_i * dr_n) * du_t;
+            #endif
+        }
+    }END_LOOP_OVER_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         lap_u[i].XYZ = _LAPU_;

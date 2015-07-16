@@ -101,51 +101,56 @@ __kernel void main(const __global int* imove,
         return;
 
     const float R = __DR_FACTOR__ * dr;
-    const uint c_i = icell[i];
     const vec_xyz r_i = r[i].XYZ;
     vec_xyz u_i = u[i].XYZ;
     vec_xyz dudt_i = dudt[i].XYZ;
 
-    // Loop over neighs
-    // ================
-    for(int ci = -1; ci <= 1; ci++) {
-        for(int cj = -1; cj <= 1; cj++) {
-            #ifdef HAVE_3D
-            for(int ck = -1; ck <= 1; ck++) {
-            #else
-            const int ck = 0; {
-            #endif
-                const uint c_j = c_i +
-                                ci +
-                                cj * n_cells.x +
-                                ck * n_cells.x * n_cells.y;
-                uint j = ihoc[c_j];
-                while((j < N) && (icell[j] == c_j)) {
-                    if((imove[j] >= 0) || (imove[j] == -4)){
-                        j++;
-                        continue;
-                    }
-                    const vec_xyz r_ij = r[j].XYZ - r_i;
-                    const vec_xyz n_j = normal[j].XYZ;
-                    const float r0 = dot(r_ij, n_j);
-                    if(r0 < 0.f){
-                        // The boundary element is not well oriented
-                        j++;
-                        continue;
-                    }
-                    const vec_xyz rt = r_ij - r0 * n_j;
-                    if(dot(rt, rt) >= R * R){
-                        // The particle is passing too far from the boundary element
-                        j++;
-                        continue;
-                    }
+    BEGIN_LOOP_OVER_NEIGHS(){
+        if((imove[j] != -2) && (imove[j] != -3)){
+            j++;
+            continue;
+        }
+        const vec_xyz r_ij = r[j].XYZ - r_i;
+        const vec_xyz n_j = normal[j].XYZ;
+        const float r0 = dot(r_ij, n_j);
+        if(r0 < 0.f){
+            // The boundary element is not well oriented
+            j++;
+            continue;
+        }
+        const vec_xyz rt = r_ij - r0 * n_j;
+        if(dot(rt, rt) >= R * R){
+            // The particle is passing too far from the boundary element
+            j++;
+            continue;
+        }
 
-                    {
-                        #include "ElasticBounce.hcl"
-                    }
-                    j++;
-                }
+        {
+            const float u_n = dot(u_i - u[j].XYZ, n_j);
+            const float dudt_n = dot(dudt_i - dudt[j].XYZ, n_j);
+            const float dist = dt * u_n + 0.5f * dt * dt * dudt_n;
+            if(dist < 0.f){
+                // The particle is already running away from the boundary
+                j++;
+                continue;
+            }
+
+            // ------------------------------------------------------------------
+            // The particle should be corrected if:
+            //   - It is already placed in the effect zone.
+            //   - It is entering inside the effect zone.
+            // ------------------------------------------------------------------
+            if(r0 - dist <= __MIN_BOUND_DIST__ * dr){
+                // ------------------------------------------------------------------
+                // Reflect particle velocity (using elastic factor)
+                // ------------------------------------------------------------------
+                dudt[i].XYZ = dudt_i - dudt_n * n_j;
+                u[i].XYZ = u_i - (1.f + __ELASTIC_FACTOR__) * u_n * n_j;
+
+                // Modify the value for the next walls test.
+                u_i = u[i].XYZ;
+                dudt_i = dudt[i].XYZ;
             }
         }
-    }
+    }END_LOOP_OVER_NEIGHS()
 }

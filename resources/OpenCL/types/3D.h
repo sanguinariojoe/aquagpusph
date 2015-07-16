@@ -145,3 +145,50 @@
  *   - 3D = .xyz
  */
 #define XYZ xyz
+
+/** @def BEGIN_LOOP_OVER_NEIGHS
+ * @brief Loop over the neighs to compute the interactions.
+ * 
+ * All the code between this macro and END_LOOP_OVER_NEIGHS will be executed for
+ * all the neighbours.
+ *
+ * To use this macro, the main particle (the one which the interactions are
+ * intended to be computed) should be identified by an unsigned integer variable
+ * i, while the resulting neighs will be automatically identified by the
+ * unsigned integer variable j. To discard a neighbour particle, remember
+ * calling \code{.c}j++\endcode before \code{.c}continue\endcode
+ *
+ * The following variables will be declared, and therefore cannot be used
+ * elsewhere:
+ *   - c_i: The cell where the particle i is placed
+ *   - ci: Index of the cell of the neighbour particle j, in the x direction
+ *   - cj: Index of the cell of the neighbour particle j, in the x direction
+ *   - ck: Index of the cell of the neighbour particle j, in the x direction
+ *   - c_j: Index of the cell of the neighbour particle j
+ *   - j: Index of the neighbour particle.
+ *
+ * @see END_LOOP_OVER_NEIGHS
+ */
+#define BEGIN_LOOP_OVER_NEIGHS()                                               \
+    const uint c_i = icell[i];                                                 \
+    for(int ci = -1; ci <= 1; ci++) {                                          \
+        for(int cj = -1; cj <= 1; cj++) {                                      \
+            for(int ck = -1; ck <= 1; ck++) {                                  \
+                const uint c_j = c_i +                                         \
+                                 ci +                                          \
+                                 cj * n_cells.x +                              \
+                                 ck * n_cells.x * n_cells.y;                   \
+                uint j = ihoc[c_j];                                            \
+                while((j < N) && (icell[j] == c_j)) {
+
+/** @def END_LOOP_OVER_NEIGHS
+ * @brief End of the loop over the neighs to compute the interactions.
+ * 
+ * @see BEGIN_LOOP_OVER_NEIGHS
+ */
+#define END_LOOP_OVER_NEIGHS()                                                 \
+                    j++;                                                       \
+                }                                                              \
+            }                                                                  \
+        }                                                                      \
+    }

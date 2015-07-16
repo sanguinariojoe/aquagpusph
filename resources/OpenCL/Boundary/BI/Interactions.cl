@@ -79,7 +79,6 @@ __kernel void main(const __global uint* iset,
     if(imove[i] != 1)
         return;
 
-    const uint c_i = icell[i];
     const vec_xyz r_i = r[i].XYZ;
     const vec_xyz u_i = u[i].XYZ;
     const float p_i = p[i];
@@ -99,41 +98,36 @@ __kernel void main(const __global uint* iset,
         _DIVU_ = div_u[i];
     #endif
 
-    // Loop over neighs
-    // ================
-    for(int ci = -1; ci <= 1; ci++) {
-        for(int cj = -1; cj <= 1; cj++) {
-            #ifdef HAVE_3D
-            for(int ck = -1; ck <= 1; ck++) {
-            #else
-            const int ck = 0; {
-            #endif
-                const uint c_j = c_i +
-                                 ci +
-                                 cj * n_cells.x +
-                                 ck * n_cells.x * n_cells.y;
-                uint j = ihoc[c_j];
-                while((j < N) && (icell[j] == c_j)) {
-                    if(imove[j] != -3){
-                        j++;
-                        continue;
-                    }
-                    const vec_xyz r_ij = r[j].XYZ - r_i;
-                    const float q = fast_length(r_ij) / H;
-                    if(q >= SUPPORT)
-                    {
-                        j++;
-                        continue;
-                    }
-
-                    {
-                        #include "Interactions.hcl"
-                    }
-                    j++;
-                }
-            }
+    BEGIN_LOOP_OVER_NEIGHS(){
+        if(imove[j] != -3){
+            j++;
+            continue;
         }
-    }
+        const vec_xyz r_ij = r[j].XYZ - r_i;
+        const float q = fast_length(r_ij) / H;
+        if(q >= SUPPORT)
+        {
+            j++;
+            continue;
+        }
+
+        // const float rho_j = rho[j];
+        // if(rho_j <= 0.01f * refd_i){
+        //     j++;
+        //     continue;
+        // }
+
+        {
+            const vec_xyz n_j = normal[j].XYZ;  // Assumed outwarding oriented
+            const float area_j = m[j];
+            const float p_j = p[j];
+            const vec_xyz du = u[j].XYZ - u_i;
+            const float w_ij = kernelW(q) * CONW * area_j;
+
+            _GRADP_ += (p_i + p_j) / rho_i * w_ij * n_j;
+            _DIVU_ += rho_i * dot(du, n_j) * w_ij;
+        }
+    }END_LOOP_OVER_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         grad_p[i].XYZ = _GRADP_;
