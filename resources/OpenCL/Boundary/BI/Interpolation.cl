@@ -87,10 +87,6 @@ __kernel void main(const __global int* imove,
     _P_ = 0.f;
 
     BEGIN_LOOP_OVER_NEIGHS(){
-        if(i == j){
-            j++;
-            continue;
-        }
         if(imove[j] != 1){
             j++;
             continue;
