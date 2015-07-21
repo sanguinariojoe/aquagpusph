@@ -30,8 +30,9 @@ This file should be included once.
         <Variable name="gp_rho" type="float*" length="N" />
         <Variable name="gp_p" type="float*" length="N" />
         <Variable name="gp_u" type="vec*" length="N" />
-        <!-- Velocity field backup to can restore it after the extensions -->
-        <Variable name="gp_u_in" type="vec*" length="N" />        
+        <!-- Fields backup to can restore them after the mirroring/extensions -->
+        <Variable name="gp_r_in" type="vec*" length="N" />
+        <Variable name="gp_u_in" type="vec*" length="N" />
     </Variables>
 
     <Tools>
@@ -39,14 +40,15 @@ This file should be included once.
         <Tool action="insert" before="Sort" type="copy" name="Backup associations" in="associations" out="associations_in"/>
         <Tool action="insert" after="Sort" type="kernel" name="Sort associations" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GP/Sort.cl"/>
         <!-- Mirror the particles and interpolate the field values -->
-        <Tool action="insert" after="Shepard" type="kernel" name="GP Mirror" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GP/Mirror.cl"/>
+        <Tool action="insert" after="Shepard" type="copy" name="GP backup r" in="r" out="gp_r_in"/>        
+        <Tool action="insert" after="GP backup r" type="kernel" name="GP Mirror" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GP/Mirror.cl"/>
         <Tool action="insert" after="GP Mirror" type="set" name="Reinit gp_rho" in="gp_rho" value="0.f"/>
         <Tool action="insert" after="Reinit gp_rho" type="set" name="Reinit gp_p" in="gp_p" value="0.f"/>
         <Tool action="insert" after="Reinit gp_p" type="set" name="Reinit gp_u" in="gp_u" value="VEC_ZERO"/>
         <Tool action="insert" after="Reinit gp_u" type="kernel" name="GP Interpolation" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GP/Interpolation.cl"/>
         <Tool action="insert" after="GP Interpolation" type="kernel" name="GP Renormalization" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GP/Renormalization.cl"/>
         <!-- Unmirror the particles to compute the interactions -->
-        <Tool action="insert" after="GP Renormalization" type="kernel" name="GP Unmirror" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GP/Mirror.cl"/>
+        <Tool action="insert" after="GP Renormalization" type="copy" name="GP Unmirror" in="gp_r_in" out="r"/>        
         <!-- Backup the velocity before start overwriting its value -->
         <Tool action="insert" after="GP Unmirror" type="copy" name="GP backup u" in="u" out="gp_u_in"/>        
         <!-- We must compute first the Laplacian of the velocity because:
