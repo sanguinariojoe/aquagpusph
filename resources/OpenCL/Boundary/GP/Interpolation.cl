@@ -103,6 +103,9 @@ __kernel void main(const __global int* imove,
         __local float p_l[LOCAL_MEM_SIZE];
         __local vec_xyz u_l[LOCAL_MEM_SIZE];
         __local float shepard_l[LOCAL_MEM_SIZE];
+        _RHO_ = 0.f;
+        _P_ = 0.f;
+        _U_ = VEC_ZERO.XYZ;
     #endif
     _SHEPARD_ = 0.f;
 
