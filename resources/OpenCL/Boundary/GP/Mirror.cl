@@ -53,7 +53,7 @@ __kernel void main(const __global int* imove,
                    const __global uint* associations,
                    const __global vec* normal,
                    __global vec* r,
-                   __global uint *icell,
+                   __global uint *gp_icell,
                    uint N,
                    vec r_min,
                    uivec4 n_cells)
@@ -86,10 +86,10 @@ __kernel void main(const __global int* imove,
         cell_id = cell.x - 1u +
                   (cell.y - 1u) * n_cells.x +
                   (cell.z - 1u) * n_cells.x * n_cells.y;
-        icell[i] = cell_id;
+        gp_icell[i] = cell_id;
     #else
         cell_id = cell.x - 1u +
                   (cell.y - 1u) * n_cells.x;
-        icell[i] = cell_id;
+        gp_icell[i] = cell_id;
     #endif
 }

@@ -67,7 +67,7 @@ __kernel void main(const __global int* imove,
         shepard_i = 1.f;
     }
 
-    p[i] /= shepard_i;
-    rho[i] /= shepard_i;
-    u[i] /= shepard_i;
+    gp_p[i] /= shepard_i;
+    gp_rho[i] /= shepard_i;
+    gp_u[i] /= shepard_i;
 }

@@ -60,6 +60,7 @@
  * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n+1} \f$.
  * @param gp_p Interpolated pressure in the mirrored position \f$ p \f$.
  * @param gp_u Interpolated velocity in the mirrored position \f$ \mathbf{u} \f$.
+ * @param rho Density \f$ \rho \f$.
  * @param p Pressure \f$ p \f$.
  * @param u Velocity \f$ \mathbf{u} \f$.
  * @param visc_dyn Dynamic viscosity \f$ \mu \f$.
@@ -75,6 +76,7 @@ __kernel void main(const __global uint* iset,
                    const __global vec* lap_u,
                    const __global float* gp_p,
                    const __global vec* gp_u,
+                   __global float* rho,
                    __global float* p,
                    __global vec* u,
                    __constant float* visc_dyn,
@@ -101,6 +103,6 @@ __kernel void main(const __global uint* iset,
 
     // Extend the pressure through the gradient
     const float dpdn = rho[iref] * dot((g.XYZ
-        - dudt[iref].XYZ + visc_dyn[iset[iref]] * lapu[iref].XYZ), n_i);
+        - dudt[iref].XYZ + visc_dyn[iset[iref]] * lap_u[iref].XYZ), n_i);
     p[i] = gp_p[i] + 2.f * dpdn * dot(r[i].XYZ - r[iref].XYZ, n_i);
 }

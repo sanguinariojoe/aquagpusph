@@ -144,6 +144,16 @@
  */
 #define XYZ xy
 
+/** @def C_I
+ * @brief Utility to can redefine the cell of the particle to be  computed.
+ * 
+ * It can be used for mirrrored particles, which are temporary associated to a
+ * different cell.
+ *
+ * @see BEGIN_LOOP_OVER_NEIGHS
+ */
+#define C_I() const uint c_i = icell[i]
+
 /** @def BEGIN_LOOP_OVER_NEIGHS
  * @brief Loop over the neighs to compute the interactions.
  * 
@@ -168,7 +178,7 @@
  * @see END_LOOP_OVER_NEIGHS
  */
 #define BEGIN_LOOP_OVER_NEIGHS()                                               \
-    const uint c_i = icell[i];                                                 \
+    C_I();                                                                     \
     for(int ci = -1; ci <= 1; ci++) {                                          \
         for(int cj = -1; cj <= 1; cj++) {                                      \
             const uint c_j = c_i +                                             \

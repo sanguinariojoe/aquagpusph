@@ -35,7 +35,8 @@
 /** @brief Fixed ghost particles fields interpolation.
  *
  * In order to conveniently extend the flow fields we need to know the mirrored
- * values.
+ * values. Also the Shepard values should be recomputed taking into account the
+ * mirrored position.
  *
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
@@ -50,7 +51,11 @@
  * @param gp_rho Interpolated density in the mirrored position \f$ \rho \f$.
  * @param gp_p Interpolated pressure in the mirrored position \f$ p \f$.
  * @param gp_u Interpolated velocity in the mirrored position \f$ \mathbf{u} \f$.
+ * @param shepard Shepard term
+ * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
+ *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{x} \f$.
  * @param icell Cell where each particle is located.
+ * @param gp_icell Cell where each mirrored ghost particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
  * @param n_cells Number of cells in each direction
@@ -65,8 +70,10 @@ __kernel void main(const __global int* imove,
                    __global float* gp_rho,
                    __global float* gp_p,
                    __global vec* gp_u,
+                   __global float* shepard,
                    // Link-list data
                    const __global uint *icell,
+                   const __global uint *gp_icell,
                    const __global uint *ihoc,
                    // Simulation data
                    uint N,
@@ -86,15 +93,21 @@ __kernel void main(const __global int* imove,
         #define _RHO_ gp_rho[i]
         #define _P_ gp_p[i]
         #define _U_ gp_u[i].XYZ
+        #define _SHEPARD_ shepard[i]
     #else
         #define _RHO_ rho_l[it]
         #define _P_ p_l[it]
         #define _U_ u_l[it]
+        #define _SHEPARD_ shepard_l[it]
         __local float rho_l[LOCAL_MEM_SIZE];
         __local float p_l[LOCAL_MEM_SIZE];
         __local vec_xyz u_l[LOCAL_MEM_SIZE];
+        __local float shepard_l[LOCAL_MEM_SIZE];
     #endif
+    _SHEPARD_ = 0.f;
 
+    #undef C_I()
+    #define C_I() const uint c_i = gp_icell[i]
     BEGIN_LOOP_OVER_NEIGHS(){
         if(imove[j] != 1){
             j++;
@@ -118,7 +131,8 @@ __kernel void main(const __global int* imove,
                 const float w_ij = kernelW(q) * CONW * m_j / rho_j;
                 _RHO_ += w_ij * rho_j;
                 _P_ += w_ij * p_j; 
-                _U_ += w_ij * u_j; 
+                _U_ += w_ij * u_j;
+                _SHEPARD_ += w_ij;
             }
         }
     }END_LOOP_OVER_NEIGHS()
@@ -127,5 +141,6 @@ __kernel void main(const __global int* imove,
         gp_rho[i] = _RHO_;
         gp_p[i] = _P_;
         gp_u[i].XYZ = _U_;
+        shepard[i] = _SHEPARD_;
     #endif
 }
