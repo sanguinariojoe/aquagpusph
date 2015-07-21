@@ -116,16 +116,12 @@ __kernel void main(__global int* imove,
 
     // Momentum equation is solved just for the fluid particles
     float DT = dt;
-    if(imove[i] <= 0)
+    if(imove[i] != 1)
         DT = 0.f;
     dudt_in[i] = dudt[i];
     u_in[i] = u[i] + DT * dudt[i];
     r_in[i] = r[i] + DT * u[i] + 0.5f * DT * DT * dudt[i];
     
-    // Continuity equation must be solved for the fixed particles too
-    if(imove[i] == -1){
-        DT = dt;
-    }
     drhodt_in[i] = drhodt[i];
     rho_in[i] = rho[i] + DT * drhodt[i];
     if(rho_in[i] < rho_min) rho_in[i] = rho_min;

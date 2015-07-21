@@ -95,18 +95,13 @@ __kernel void main(__global int* imove,
     if(i >= N)
         return;
 
-    float DT, HDT;
-    DT = dt;
-    if(imove[i] <= 0)
+    float DT = dt;
+    if(imove[i] != 1)
         DT = 0.f;
-    HDT = 0.5f * DT;
+    const float HDT = 0.5f * DT;
 
     // Corrector step for the fluid
     u[i] += HDT * (dudt[i] - dudt_in[i]);
-    if(imove[i] == -1){
-        // Continuity equation must be solved for fixed particles too
-        HDT = 0.5f * dt;
-    }
     rho[i] += HDT * (drhodt[i] - drhodt_in[i]);
 
     r_in[i] = r[i];
