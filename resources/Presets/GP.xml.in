@@ -30,6 +30,8 @@ This file should be included once.
         <Variable name="gp_rho" type="float*" length="N" />
         <Variable name="gp_p" type="float*" length="N" />
         <Variable name="gp_u" type="vec*" length="N" />
+        <!-- Velocity field backup to can restore it after the extensions -->
+        <Variable name="gp_u_in" type="vec*" length="N" />        
     </Variables>
 
     <Tools>
@@ -45,6 +47,8 @@ This file should be included once.
         <Tool action="insert" after="GP Interpolation" type="kernel" name="GP Renormalization" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GP/Renormalization.cl"/>
         <!-- Unmirror the particles to compute the interactions -->
         <Tool action="insert" after="GP Renormalization" type="kernel" name="GP Unmirror" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GP/Mirror.cl"/>
+        <!-- Backup the velocity before start overwriting its value -->
+        <Tool action="insert" after="GP Unmirror" type="copy" name="GP backup u" in="u" out="gp_u_in"/>        
         <!-- We must compute first the Laplacian of the velocity because:
              1.- It requires a special fluid extension
              2.- The resulting value is required for the pressure extension. -->
@@ -54,5 +58,7 @@ This file should be included once.
         div_u, lap_p. -->
         <Tool action="insert" after="GP LapU" type="kernel" name="GP PreInteractions" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GP/PreInteractions.cl"/>
         <Tool action="insert" after="GP PreInteractions" type="kernel" name="GP Interactions" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GP/Interactions.cl"/>
+        <!-- Restore the velocity -->
+        <Tool action="insert" after="GP Interactions" type="copy" name="GP restore u" in="gp_u_in" out="u"/>        
     </Tools>
 </sphInput>
