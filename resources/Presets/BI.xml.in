@@ -26,9 +26,9 @@ Remarks:
     </Variables>
 
     <Tools>
-        <Tool action="insert" after="Interactions" type="kernel" name="BIInterpolation" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/BI/Interpolation.cl"/>
-        <Tool action="insert" after_prefix="BIInterpolation" type="kernel" name="BIInterpolationShepard" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/BI/InterpolationShepard.cl"/>
-        <Tool action="insert" after_prefix="BIInterpolationShepard" type="kernel" name="BIInteractions" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/BI/Interactions.cl"/>
-        <Tool action="insert" after_prefix="BIInteractions" type="kernel" name="BIShepard" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/BI/Shepard.cl"/>
+        <Tool action="insert" after="Interactions" type="kernel" name="BI interpolation" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/BI/Interpolation.cl"/>
+        <Tool action="insert" after_prefix="BI interpolation" type="kernel" name="BI interpolation Shepard" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/BI/InterpolationShepard.cl"/>
+        <Tool action="insert" after_prefix="BI interpolation Shepard" type="kernel" name="BI interactions" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/BI/Interactions.cl"/>
+        <Tool action="insert" after_prefix="BI interactions" type="kernel" name="BI Shepard" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/BI/Shepard.cl"/>
     </Tools>
 </sphInput>
