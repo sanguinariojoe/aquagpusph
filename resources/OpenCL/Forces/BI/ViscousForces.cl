@@ -25,26 +25,27 @@
 #endif
 
 #ifndef HAVE_3D
-    #include "../types/2D.h"
-    #include "../KernelFunctions/Wendland2D.hcl"
+    #include "../../types/2D.h"
+    #include "../../KernelFunctions/Wendland2D.hcl"
 #else
-    #include "../types/3D.h"
-    #include "../KernelFunctions/Wendland3D.hcl"
+    #include "../../types/3D.h"
+    #include "../../KernelFunctions/Wendland3D.hcl"
 #endif
 
 /** @brief Tool to compute the viscous force and moment for an especific body.
  *
  * In this approach the following operation is performed for the boundary
  * elements:
- * \f$$ \mathbf{f}_a = \mu \, \sum_b -\frac{
-\left(\mathbf{u}_b - \mathbf{u}_a\right) - 
-\left(\left(\mathbf{u}_b - \mathbf{u}_a\right) \cdot \mathbf{n}_a \right)
-\mathbf{n}_a}{\left(\mathbf{r}_b - \mathbf{r}_a\right) \cdot \mathbf{n}_a}
-s_a \, W\left(\mathbf{u}_b - \mathbf{u}_a\right) \frac{m_b}{\rho_b}\f$$
+ * \f$ \mathbf{f}_a = \mu \, \sum_b -\frac{
+ *     \left(\mathbf{u}_b - \mathbf{u}_a\right) - 
+ *     \left(\left(\mathbf{u}_b - \mathbf{u}_a\right) \cdot \mathbf{n}_a \right)
+ *     \mathbf{n}_a}{
+ *     \left(\mathbf{r}_b - \mathbf{r}_a\right) \cdot \mathbf{n}_a}s_a
+ *     \, W\left(\mathbf{u}_b - \mathbf{u}_a\right) \frac{m_b}{\rho_b}\f$
  * where \f$ s_a \f$ is the area of the element, stored in the masses array.
  * The moment is computed therefore as:
- * \f$$ \mathbf{m}_a  = \mathbf{f}_a \times
- * \left(\mathbf{r}_a - \mathbf{r}_0 \right) \f$$
+ * \f$ \mathbf{m}_a  = \mathbf{f}_a \times
+ * \left(\mathbf{r}_a - \mathbf{r}_0 \right) \f$
  * becoming \f$ \mathbf{r}_0 \f$ the reference point where the moment should be
  * computed.
  *
@@ -98,8 +99,7 @@ __kernel void main(const __global uint* iset,
     const uint it = get_local_id(0);
     if(i >= N)
         return;
-    if((iset[i] != viscousForces_iset) ||
-       ((imove[i] != -3) && (imove[i] != -2))){
+    if((iset[i] != viscousForces_iset) || (imove[i] != -3)){
         viscousForces_f[i] = VEC_ZERO;
         viscousForces_m[i] = (vec4)(0.f, 0.f, 0.f, 0.f);
         return;
@@ -110,7 +110,6 @@ __kernel void main(const __global uint* iset,
     const vec_xyz u_i = u[i].XYZ;
     const float area_i = m[i];
     const float shepard_i = shepard[i];
-    const uint c_i = icell[i];
     const float visc_dyn_i = visc_dyn[iset[i]];
 
     if(shepard_i < 1.0E-6f){
@@ -127,41 +126,32 @@ __kernel void main(const __global uint* iset,
     #endif
     _F_ = VEC_ZERO.XYZ;
 
-    // Loop over neighs
-    // ================
-    for(int ci = -1; ci <= 1; ci++) {
-        for(int cj = -1; cj <= 1; cj++) {
-            #ifdef HAVE_3D
-            for(int ck = -1; ck <= 1; ck++) {
-            #else
-            const int ck = 0; {
-            #endif
-                const uint c_j = c_i +
-                                ci +
-                                cj * n_cells.x +
-                                ck * n_cells.x * n_cells.y;
-                uint j = ihoc[c_j];
-                while((j < N) && (icell[j] == c_j)) {
-                    if(imove[j] <= 0){
-                        j++;
-                        continue;
-                    }
-                    const vec_xyz r_ij = r[j].XYZ - r_i;
-                    const float q = fast_length(r_ij) / H;
-                    if(q >= SUPPORT)
-                    {
-                        j++;
-                        continue;
-                    }
-
-                    {
-                        #include "ViscousForces.hcl"
-                    }
-                    j++;
-                }
-            }
+    BEGIN_LOOP_OVER_NEIGHS(){
+        if(imove[j] != 1){
+            j++;
+            continue;
         }
-    }
+        const vec_xyz r_ij = r[j].XYZ - r_i;
+        const float q = fast_length(r_ij) / H;
+        if(q >= SUPPORT)
+        {
+            j++;
+            continue;
+        }
+
+        {
+            const float rho_j = rho[j];
+            const float m_j = m[j];
+
+            const float dr_n = max(fabs(dot(r_ij, n_i)), dr);
+            const vec_xyz du = u[j].XYZ - u_i;
+            const vec_xyz du_t = du - dot(du, n_i) * n_i;
+
+            const float w_ij = kernelW(q) * CONW * area_i;
+
+            _F_ += 2.f * m_j * w_ij / (rho_j * dr_n) * du_t;
+        }
+    }END_LOOP_OVER_NEIGHS()
 
     _F_ *= visc_dyn_i / shepard_i;
 

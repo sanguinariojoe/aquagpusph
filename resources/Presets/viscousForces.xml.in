@@ -58,11 +58,12 @@ use forces.xml
     </Variables>
 
     <Tools>
-        <Tool action="insert" before="Rates" type="kernel" name="ViscousForces" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Forces/ViscousForces.cl"/>
-        <Tool action="insert" after_prefix="ViscousForces" type="reduction" name="TotalViscousForce" in="viscousForces_f" out="viscousForces_F" null="VEC_ZERO">
+        <Tool action="try_insert" after="BI Shepard" type="kernel" name="BI viscous forces" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Forces/BI/ViscousForces.cl"/>
+        <Tool action="try_insert" after="GP LapU" type="kernel" name="GP viscous forces" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Forces/GP/ViscousForces.cl"/>
+        <Tool action="insert" after="Rates" type="reduction" name="Total viscous force" in="viscousForces_f" out="viscousForces_F" null="VEC_ZERO">
             c = a + b;
         </Tool>
-        <Tool action="insert" after_prefix="TotalViscousForce" type="reduction" name="TotalViscousMoment" in="viscousForces_m" out="viscousForces_M" null="(vec4)(0.f, 0.f, 0.f, 0.f)">
+        <Tool action="insert" after_prefix="Total viscous force" type="reduction" name="Total viscous moment" in="viscousForces_m" out="viscousForces_M" null="(vec4)(0.f, 0.f, 0.f, 0.f)">
             c = a + b;
         </Tool>
     </Tools>

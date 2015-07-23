@@ -1,15 +1,16 @@
 <?xml version="1.0" ?>
 
 <!-- pressureForces.report.xml
-This report is working just with the last compute pressure forces, therefore, if
-pressure forces over several bodies are required, you'll need to create your own
-reporter.
+Since the forces and moments depends on the Boundary Condition used, and on the
+number of bodies, it is strongly recommended to crete your own reports instead
+of using this preset.
 -->
 
 <sphInput>
     <Reports>
-        <Report type="screen" name="Pressure forces" fields="pressureForces_F;pressureForces_M" color="red" bold="false"/>
-        <Report type="file" name="Pressure forces file" fields="t, pressureForces_F, pressureForces_M" path="PressureForces.dat"/>
+        <Report type="screen" name="Pressure forces (GP)" fields="pressureForces_F_GP;pressureForces_M_GP;" color="red" bold="false"/>
+        <Report type="screen" name="Pressure forces (BI)" fields="pressureForces_F_BI;pressureForces_M_BI;" color="red" bold="false"/>
+        <Report type="file" name="Pressure forces file" fields="t, pressureForces_F_GP, pressureForces_M_GP, pressureForces_F_BI, pressureForces_M_BI" path="PressureForces.dat"/>
     </Reports>
 </sphInput>
  

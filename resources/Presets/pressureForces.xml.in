@@ -1,7 +1,9 @@
 <?xml version="1.0" ?>
 
 <!-- forces.xml
-Pressure forces and moments runtime processor.
+Pressure forces and moments, over solid boundaries, runtime postprocessor. With
+this preset the forces caused by the Boundary Integrals (BI.xml) and by the
+Ghost Particles (GP.xml) are computed and stored in separate variables.
 
 To use it, just include this file, and later set the initial values for the
 variables:
@@ -9,32 +11,20 @@ pressureForces_iset = Particles set index affected where the forces should be
                       computed.
 pressureForces_r    = Position of the center of rotation.
 
+This preset can compute the forces for the Boundary integrals
+
+
 This preset is generating the following variables which are the global forces
 and moments with respect to pressureForces_r:
-pressureForces_F = Fluid forces
-pressureForces_M = Fluid moments
+pressureForces_F_GP = Force due to the Ghost Particles 
+pressureForces_M_GP = Moment due to the Ghost Particles
+pressureForces_F_BI = Force due to the Boundary Integrals
+pressureForces_M_BI = Moment due to the Boundary Integrals
 
-This preset works just with boundary integrals boundary conditions. If you want
-to get the forces on several bodies this preset can be included several times
-using different prefixes, for instance in 3D (for 2D pressureForces_F
-duplication must be conveniently modified):
-
-<Include file="pressureForces.xml" prefix="iset0_"/>
-<Include file="pressureForces.xml" prefix="iset2_"/>
-<Variables>
-    <Variable name="pressureForces_F_0" type="vec" value="0.0, 0.0, 0.0, 0.0" />
-    <Variable name="pressureForces_M_0" type="vec4" value="0.0, 0.0, 0.0, 0.0" />
-    <Variable name="pressureForces_F_2" type="vec" value="0.0, 0.0, 0.0, 0.0" />
-    <Variable name="pressureForces_M_2" type="vec4" value="0.0, 0.0, 0.0, 0.0" />
-</Variables>
-<Tools>
-    <Tool action="insert" before="iset0_PressureForces" type="set_scalar" name="pressureForces_iset0" in="pressureForces_iset" value="0"/>
-    <Tool action="insert" after="iset0_TotalPressureMoment" type="set_scalar" name="pressureForces_F_0" in="pressureForces_F_0" value="pressureForces_F_x, pressureForces_F_y, pressureForces_F_z, pressureForces_F_w"/>
-    <Tool action="insert" after="iset0_TotalPressureForce" type="set_scalar" name="pressureForces_M_0" in="pressureForces_M_0" value="pressureForces_M_x, pressureForces_M_y, pressureForces_M_z, pressureForces_M_w"/>
-    <Tool action="insert" before="iset2_PressureForces" type="set_scalar" name="pressureForces_iset2" in="pressureForces_iset" value="2"/>
-    <Tool action="insert" after="iset2_TotalPressureForce" type="set_scalar" name="pressureForces_F_2" in="pressureForces_F_2" value="pressureForces_F_x, pressureForces_F_y, pressureForces_F_z, pressureForces_F_w"/>
-    <Tool action="insert" after="iset2_TotalPressureMoment" type="set_scalar" name="pressureForces_M_2" in="pressureForces_M_2" value="pressureForces_M_x, pressureForces_M_y, pressureForces_M_z, pressureForces_M_w"/>
-</Tools>
+If you want to get the forces on several bodies this preset can be included
+several times using different prefixes. How to do it depends on whether BI or
+GP are used to enforce the boundary conditions. It is strongly recommended not
+mixing boundary conditions.
 
 If you wish to compute the global force for confined flows maybe you prefer to
 use forces.xml
@@ -50,17 +40,28 @@ use forces.xml
         <Variable name="pressureForces_f" type="vec*" length="N" />
         <Variable name="pressureForces_m" type="vec4*" length="N" />
         <!-- Computed global forces and moments for the fluid -->
-        <Variable name="pressureForces_F" type="vec" value="0.0, 0.0, 0.0, 0.0" />
-        <Variable name="pressureForces_M" type="vec4" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="pressureForces_F_GP" type="vec" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="pressureForces_M_GP" type="vec4" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="pressureForces_F_BI" type="vec" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="pressureForces_M_BI" type="vec4" value="0.0, 0.0, 0.0, 0.0" />
     </Variables>
 
     <Tools>
-        <Tool action="insert" before="Rates" type="kernel" name="PressureForces" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Forces/PressureForces.cl"/>
-        <Tool action="insert" after_prefix="PressureForces" type="reduction" name="TotalPressureForce" in="pressureForces_f" out="pressureForces_F" null="VEC_ZERO">
+        <!-- Try to compute the forces for the ghost particles -->
+        <Tool action="try_insert" after="GP Interactions" type="kernel" name="GP pressure forces" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Forces/GP/PressureForces.cl"/>
+        <Tool action="try_insert" after_prefix="GP pressure forces" type="reduction" name="GP total pressure force" in="pressureForces_f" out="pressureForces_F_GP" null="VEC_ZERO">
             c = a + b;
         </Tool>
-        <Tool action="insert" after_prefix="TotalPressureForce" type="reduction" name="TotalPressureMoment" in="pressureForces_m" out="pressureForces_M" null="(vec4)(0.f, 0.f, 0.f, 0.f)">
+        <Tool action="try_insert" after_prefix="GP total pressure force" type="reduction" name="GP total pressure moment" in="pressureForces_m" out="pressureForces_M_GP" null="(vec4)(0.f, 0.f, 0.f, 0.f)">
             c = a + b;
         </Tool>
+        <!-- Try to compute the forces for the boundary integrals -->
+        <Tool action="try_insert" after="BI Shepard" type="kernel" name="BI pressure forces" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Forces/BI/PressureForces.cl"/>
+        <Tool action="try_insert" after_prefix="BI pressure forces" type="reduction" name="BI total pressure force" in="pressureForces_f" out="pressureForces_F_BI" null="VEC_ZERO">
+            c = a + b;
+        </Tool>
+        <Tool action="try_insert" after_prefix="BI total pressure force" type="reduction" name="BI total pressure moment" in="pressureForces_m" out="pressureForces_M_BI" null="(vec4)(0.f, 0.f, 0.f, 0.f)">
+            c = a + b;
+        </Tool>        
     </Tools>
 </sphInput>
