@@ -459,7 +459,10 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                !strcmp(xmlAttribute(s_elem, "action"), "add")){
                 P->tools.push_back(tool);
             }
-            else if(!strcmp(xmlAttribute(s_elem, "action"), "insert")){
+            else if(!strcmp(xmlAttribute(s_elem, "action"), "insert") ||
+                    !strcmp(xmlAttribute(s_elem, "action"), "try_insert")){
+                bool try_insert = !strcmp(xmlAttribute(s_elem, "action"),
+                                          "try_insert");
                 unsigned int place = 0;
                 if(xmlHasAttribute(s_elem, "at")){
                     place = atoi(xmlAttribute(s_elem, "at"));
@@ -478,8 +481,14 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                                 "The tool \"%s\" must be inserted before \"%s\", but such tool cannot be found.\n",
                                 tool->get("name"),
                                 att_str);
-                        S->addMessageF(3, msg);
-                        return true;
+                        if(try_insert){
+                            S->addMessageF(2, msg);
+                            continue;
+                        }
+                        else{
+                            S->addMessageF(3, msg);
+                            return true;
+                        }
                     }
                 }
                 else if(xmlHasAttribute(s_elem, "after")){
@@ -496,8 +505,14 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                                 "The tool \"%s\" must be inserted after \"%s\", but such tool cannot be found.\n",
                                 tool->get("name"),
                                 att_str);
-                        S->addMessageF(3, msg);
-                        return true;
+                        if(try_insert){
+                            S->addMessageF(2, msg);
+                            continue;
+                        }
+                        else{
+                            S->addMessageF(3, msg);
+                            return true;
+                        }
                     }
                     place++;
                 }
@@ -523,10 +538,16 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                                 "The tool \"%s\" must be inserted before \"%s\", but such tool cannot be found.\n",
                                 tool->get("name"),
                                 toolname);
-                        S->addMessageF(3, msg);
                         free(toolname);
                         toolname = NULL;
-                        return true;
+                        if(try_insert){
+                            S->addMessageF(2, msg);
+                            continue;
+                        }
+                        else{
+                            S->addMessageF(3, msg);
+                            return true;
+                        }
                     }
                     free(toolname);
                     toolname = NULL;
@@ -553,10 +574,16 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                                 "The tool \"%s\" must be inserted after \"%s\", but such tool cannot be found.\n",
                                 tool->get("name"),
                                 toolname);
-                        S->addMessageF(3, msg);
                         free(toolname);
                         toolname = NULL;
-                        return true;
+                        if(try_insert){
+                            S->addMessageF(2, msg);
+                            continue;
+                        }
+                        else{
+                            S->addMessageF(3, msg);
+                            return true;
+                        }
                     }
                     free(toolname);
                     toolname = NULL;
@@ -581,8 +608,14 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                             tool->get("name"),
                             place,
                             P->tools.size());
-                    S->addMessageF(3, msg);
-                    return true;
+                    if(try_insert){
+                        S->addMessageF(2, msg);
+                        continue;
+                    }
+                    else{
+                        S->addMessageF(3, msg);
+                        return true;
+                    }
                 }
                 P->tools.insert(P->tools.begin() + place, tool);
             }
