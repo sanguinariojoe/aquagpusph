@@ -11,9 +11,6 @@ pressureForces_iset = Particles set index affected where the forces should be
                       computed.
 pressureForces_r    = Position of the center of rotation.
 
-This preset can compute the forces for the Boundary integrals
-
-
 This preset is generating the following variables which are the global forces
 and moments with respect to pressureForces_r:
 pressureForces_F_GP = Force due to the Ghost Particles 

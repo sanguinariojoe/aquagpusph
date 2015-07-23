@@ -32,6 +32,14 @@
     #include "../../KernelFunctions/Wendland3D.hcl"
 #endif
 
+#if __LAP_FORMULATION__ == __LAP_MONAGHAN__
+    #ifndef HAVE_3D
+        #define __CLEARY__ 8.f
+    #else
+        #define __CLEARY__ 10.f
+    #endif
+#endif
+
 /** @brief Tool to compute the viscous force and moment for an especific body.
  *
  * In this approach the following operation is performed for the boundary
@@ -49,21 +57,17 @@
  * becoming \f$ \mathbf{r}_0 \f$ the reference point where the moment should be
  * computed.
  *
+ * @param viscousForces_f Force of each boundary element to be computed [N].
+ * @param viscousForces_m Moment of each boundary element to be computed
  * @param iset Set of particles index.
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param viscousForces_f Force of each boundary element to be computed [N].
- * @param viscousForces_m Moment of each boundary element to be computed
  * @param r Position \f$ \mathbf{r} \f$.
- * @param normal Normal \f$ \mathbf{n} \f$.
  * @param u Velocity \f$ \mathbf{u} \f$.
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
- * @param shepard Shepard term
- * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
- *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{x} \f$.
  * @param visc_dyn Dynamic viscosity \f$ \mu \f$.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
@@ -74,16 +78,14 @@
  * @param viscousForces_r Point with respect the moments are computed
  * \f$ \mathbf{r}_0 \f$.
  */
-__kernel void main(const __global uint* iset,
-                   const __global int* imove,
-                   __global vec* viscousForces_f,
+__kernel void main(__global vec* viscousForces_f,
                    __global vec4* viscousForces_m,
+                   const __global uint* iset,
+                   const __global int* imove,
                    const __global vec* r,
-                   const __global vec* normal,
                    const __global vec* u,
                    const __global float* rho,
                    const __global float* m,
-                   const __global float* shepard,
                    __constant float* visc_dyn,
                    // Link-list data
                    const __global uint *icell,
@@ -91,7 +93,6 @@ __kernel void main(const __global uint* iset,
                    // Simulation data
                    uint N,
                    uivec4 n_cells,
-                   float dr,
                    unsigned int viscousForces_iset,
                    vec viscousForces_r)
 {
@@ -106,16 +107,8 @@ __kernel void main(const __global uint* iset,
     }
     
     const vec_xyz r_i = r[i].XYZ;
-    const vec_xyz n_i = normal[i].XYZ;
     const vec_xyz u_i = u[i].XYZ;
-    const float area_i = m[i];
-    const float shepard_i = shepard[i];
     const float visc_dyn_i = visc_dyn[iset[i]];
-
-    if(shepard_i < 1.0E-6f){
-        viscousForces_f[i] = VEC_ZERO;
-        viscousForces_m[i] = (vec4)(0.f, 0.f, 0.f, 0.f);
-    }
 
     // Initialize the output
     #ifndef LOCAL_MEM_SIZE
@@ -140,20 +133,20 @@ __kernel void main(const __global uint* iset,
         }
 
         {
-            const float rho_j = rho[j];
-            const float m_j = m[j];
-
-            const float dr_n = max(fabs(dot(r_ij, n_i)), dr);
-            const vec_xyz du = u[j].XYZ - u_i;
-            const vec_xyz du_t = du - dot(du, n_i) * n_i;
-
-            const float w_ij = kernelW(q) * CONW * area_i;
-
-            _F_ += 2.f * m_j * w_ij / (rho_j * dr_n) * du_t;
+            const float f_ij = kernelF(q) * CONF * m[j] / rho[j];
+            #if __LAP_FORMULATION__ == __LAP_MONAGHAN__
+                const float r2 = (q * q + 0.01f) * H * H;
+                const float udr = dot(u[j].XYZ - u_i, r_ij);
+                _F_ += f_ij * __CLEARY__ * udr / r2 * r_ij;
+            #elif __LAP_FORMULATION__ == __LAP_MORRIS__
+                _F_ += f_ij * 2.f * (u[j].XYZ - u_i);
+            #else
+                #error Unknown Laplacian formulation: __LAP_FORMULATION__
+            #endif
         }
     }END_LOOP_OVER_NEIGHS()
 
-    _F_ *= visc_dyn_i / shepard_i;
+    _F_ *= visc_dyn_i * m[i] / rho[i];
 
     #ifdef LOCAL_MEM_SIZE
         viscousForces_f[i].XYZ = _F_;
