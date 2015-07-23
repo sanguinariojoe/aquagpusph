@@ -75,7 +75,6 @@ __kernel void main(const __global uint* iset,
                    __constant float* refd,
                    __global vec* grad_p,
                    __global float* div_u,
-                   __global float* lap_p,
                    // Link-list data
                    const __global uint *icell,
                    const __global uint *ihoc,
@@ -102,17 +101,13 @@ __kernel void main(const __global uint* iset,
     #ifndef LOCAL_MEM_SIZE
         #define _GRADP_ grad_p[i].XYZ
         #define _DIVU_ div_u[i]
-        #define _LAPP_ lap_p[i]
     #else
         #define _GRADP_ grad_p_l[it]
         #define _DIVU_ div_u_l[it]
-        #define _LAPP_ lap_p_l[it]
         __local vec_xyz grad_p_l[LOCAL_MEM_SIZE];
         __local float div_u_l[LOCAL_MEM_SIZE];
-        __local float lap_p_l[LOCAL_MEM_SIZE];
         _GRADP_ = grad_p[i].XYZ;
         _DIVU_ = div_u[i];
-        _LAPP_ = lap_p[i];
     #endif
 
     BEGIN_LOOP_OVER_NEIGHS(){
@@ -136,14 +131,11 @@ __kernel void main(const __global uint* iset,
             _GRADP_ += (p_i + p_j) / (rho_i * rho_j) * f_ij * r_ij;
 
             _DIVU_ += udr * f_ij * rho_i / rho_j;
-
-            _LAPP_ += ((p_j - p_i) - refd_i * dot(g.XYZ, r_ij)) * f_ij / rho_j;
         }
     }END_LOOP_OVER_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         grad_p[i].XYZ = _GRADP_;
         div_u[i] = _DIVU_;
-        lap_p[i] = _LAPP_;
     #endif
 }
