@@ -75,7 +75,7 @@ __kernel void main(__global float* energy_dekindt,
     if(imove[i] <= 0){
         energy_dekindt[i] = 0.f;
         energy_depotdt[i] = 0.f;
-        energy_dcomdt[i] = 0.f;
+        energy_decomdt[i] = 0.f;
         return;
     }
 
