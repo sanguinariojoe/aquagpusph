@@ -10,6 +10,7 @@ setting the variable noslip_iset (0 by default).
 If several boundaries, belonging to different particles sets, should be no-slip
 enforced, then include this preset several times, and reevaluate the affected
 noslip_iset variable each time, for instance:
+
 <Include file="noSlipBI.xml" prefix="iset0_"/>
 <Include file="noSlipBI.xml" prefix="iset2_"/>
 <Tools>

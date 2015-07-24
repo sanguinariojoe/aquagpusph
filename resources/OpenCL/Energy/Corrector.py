@@ -29,35 +29,23 @@
 #
 #########################################################################
 
-import numpy as np
+
 import aquagpusph as aqua
 
-motion_r = None
-motion_a = None
+
+E_NAMES = ('W', 'Ekin', 'Epot', 'Ecom', 'Eint', 'S')
+
 
 def main():
-    global motion_r, motion_a
+    dt = aqua.get("dt")
 
-    # Get the affected set of particles (it is also an identifier on the motion)
-    motion_iset = aqua.get("motion_iset")
-
-    # Check if they were not already set, eventually copying them from the
-    # current motion state.
-    if motion_r is None or motion_a is None:
-        n_sets = aqua.get("n_sets")
-        motion_r = [None] * n_sets
-        motion_a = [None] * n_sets
-    if motion_r[motion_iset] is None:
-        motion_r[motion_iset] = aqua.get("motion_r")
-    if motion_a[motion_iset] is None:
-        motion_a[motion_iset] = aqua.get("motion_a")
-
-    # Set the backuped state
-    aqua.set("motion_r_in", motion_r[motion_iset])
-    aqua.set("motion_a_in", motion_a[motion_iset])
-
-    # Backuo the new state variables
-    motion_r[motion_iset] = np.copy(aqua.get("motion_r"))
-    motion_a[motion_iset] = np.copy(aqua.get("motion_a"))
+    for e_name in E_NAMES:
+        # Get the data
+        e = aqua.get('energy_' + e_name)
+        dedt = aqua.get('energy_d' + e_name + 'dt')
+        dedt_in = aqua.get('energy_d' + e_name + 'dt_in')
+        # Perform the corrector
+        e += 0.5 * dt * (dedt - dedt_in)
+        aqua.set('energy_' + e_name, e)
 
     return True

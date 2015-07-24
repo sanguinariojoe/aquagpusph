@@ -3,57 +3,83 @@
 <!-- energy.xml
 Energy components computation.
 
-To use this preset just include this file.
+To use this preset you must include this file, and provide the power of the
+external boudnary forces (positive if it is increasing the fluid energy).
+Usually to compute such power you can use pressureForces.xml and
+viscousForces.xml to compute the force of the fluid over the boundary, and then
+multiply it by the velocity of the body.
+
+For instance, in a 2D case, if you have only a no-slip solid boundary in the
+particles set 1, computed using Boundary integrals, and moving with an uniform
+linear velocity U, you can use the following code snipet:
+
+<Include file="noSlipBI.xml" prefix="iset1_"/>
+<Include file="pressureForces.xml" prefix="iset1_"/>
+<Include file="viscousForces.xml" prefix="iset1_"/>
+<Variables>
+    <Variable name="Force" type="vec" value="0.0, 0.0" />
+    <Variable name="U" type="vec" value="1.0, 0.0" />
+</Variables>
+<Tools>
+    <Tool action="insert" before="iset0_NoSlipBI" type="set_scalar" name="noslip_iset1" in="noslip_iset" value="1"/>
+    <Tool action="insert" before="BI pressure forces" type="set_scalar" name="pressureForces_iset1" in="pressureForces_iset" value="1"/>
+    <Tool action="insert" before="BI viscous forces" type="set_scalar" name="viscousForces_iset1" in="viscousForces_iset" value="1"/>
+    <Tool action="insert" before="Energy" type="set_scalar" name="Force" in="Force" value="-(pressureForces_F_BI_x + pressureForces_F_BI_x), -(pressureForces_F_BI_y + pressureForces_F_BI_y)"/>
+    <Tool action="insert" after="Force" type="set_scalar" name="dWdt" in="dWdt" value="Force_x * U_x + Forces_y * U_y"/>    
+</Tools>
+
 -->
 
 <sphInput>
     <Variables>
-        <!-- Internal energy -->
-        <Variable name="energy_deintdt" type="float*" length="N" />
-        <Variable name="energy_dEintdt" type="float" value="0.0" />
-        <Variable name="energy_Eint" type="float" value="0.0" />
-        <!-- Entropy -->
-        <Variable name="energy_dsdt" type="float*" length="N" />
-        <Variable name="energy_dSdt" type="float" value="0.0" />
-        <Variable name="energy_S" type="float" value="0.0" />
+        <!-- External boundary forces work. It should be manually provided byç
+        the user -->
+        <Variable name="energy_dWdt" type="float" value="0.0" />
+        <Variable name="energy_dWdt_in" type="float" value="0.0" />
+        <Variable name="energy_W" type="float" value="0.0" />        
         <!-- Kinetic energy -->
         <Variable name="energy_dekindt" type="float*" length="N" />
         <Variable name="energy_dEkindt" type="float" value="0.0" />
+        <Variable name="energy_dEkindt_in" type="float" value="0.0" />
         <Variable name="energy_Ekin" type="float" value="0.0" />
-        <!-- External gravity work (-variation fo the potential energy) -->
+        <!-- Potential energy -->
         <Variable name="energy_depotdt" type="float*" length="N" />
         <Variable name="energy_dEpotdt" type="float" value="0.0" />
+        <Variable name="energy_dEpotdt_in" type="float" value="0.0" />
         <Variable name="energy_Epot" type="float" value="0.0" />
-        <!-- External pressure work -->        
-        <Variable name="energy_dwdt" type="float*" length="N" />
-        <Variable name="energy_dWdt" type="float" value="0.0" />
-        <Variable name="energy_W" type="float" value="0.0" />
+        <!-- Compressibility energy -->
+        <Variable name="energy_decomdt" type="float*" length="N" />
+        <Variable name="energy_dEcomdt" type="float" value="0.0" />
+        <Variable name="energy_dEcomdt_in" type="float" value="0.0" />
+        <Variable name="energy_Ecom" type="float" value="0.0" />
+        <!-- Internal energy -->
+        <Variable name="energy_dEintdt" type="float" value="0.0" />
+        <Variable name="energy_dEintdt_in" type="float" value="0.0" />
+        <Variable name="energy_Eint" type="float" value="0.0" />
+        <!-- Entropy -->
+        <Variable name="energy_dSdt" type="float" value="0.0" />
+        <Variable name="energy_dSdt_in" type="float" value="0.0" />
+        <Variable name="energy_S" type="float" value="0.0" />
     </Variables>
 
     <Tools>
         <!-- Compute the energy variations per particle -->
         <Tool action="insert" after="Rates" type="kernel" name="Energy" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Energy/Energy.cl"/>
         <!-- Integrate them to the global energy components variation -->
-        <Tool action="insert" after="Energy" type="reduction" name="dEpotdt" in="energy_depotdt" out="energy_dEpotdt" null="0.f">
+        <Tool action="insert" after="Energy" type="reduction" name="dEkindt" in="energy_dekindt" out="energy_dEkindt" null="0.f">
             c = a + b;
         </Tool>
-        <Tool action="insert" after="dEpotdt" type="reduction" name="dWdt" in="energy_dwdt" out="energy_dWdt" null="0.f">
+        <Tool action="insert" after="dEkindt" type="reduction" name="dEpotdt" in="energy_depotdt" out="energy_dEpotdt" null="0.f">
             c = a + b;
         </Tool>
-        <Tool action="insert" after="dWdt" type="reduction" name="dEkindt" in="energy_dekindt" out="energy_dEkindt" null="0.f">
+        <Tool action="insert" after="dEpotdt" type="reduction" name="dEcomdt" in="energy_decomdt" out="energy_dEcomdt" null="0.f">
             c = a + b;
         </Tool>
-        <Tool action="insert" after="dEkindt" type="reduction" name="dEintdt" in="energy_deintdt" out="energy_dEintdt" null="0.f">
-            c = a + b;
-        </Tool>
-        <Tool action="insert" after="dEintdt" type="reduction" name="dSdt" in="energy_dsdt" out="energy_dSdt" null="0.f">
-            c = a + b;
-        </Tool>
+        <!-- Deduce the internal energy and entropy -->
+        <Tool action="insert" after="dEcomdt" type="set_scalar" name="dEintdt" in="energy_dEintdt" value="energy_dWdt - energy_dEkindt - energy_dEpotdt"/>
+        <Tool action="insert" after="dEintdt" type="set_scalar" name="dSdt" in="energy_dSdt" value="energy_dEintdt - energy_dEcomdt"/>
         <!-- Integrate in time -->
-        <Tool action="insert" after="dSdt" type="set_scalar" name="Epot" in="energy_Epot" value="energy_Epot + energy_dEpotdt * dt"/>
-        <Tool action="insert" after="Epot" type="set_scalar" name="EW" in="energy_W" value="energy_W + energy_dWdt * dt"/>
-        <Tool action="insert" after="EW" type="set_scalar" name="Ekin" in="energy_Ekin" value="energy_Ekin + energy_dEkindt * dt"/>
-        <Tool action="insert" after="Ekin" type="set_scalar" name="Eint" in="energy_Eint" value="energy_Eint + energy_dEintdt * dt"/>
-        <Tool action="insert" after="Eint" type="set_scalar" name="ES" in="energy_S" value="energy_S + energy_dSdt * dt"/>
+        <Tool action="insert" after="Predictor" type="python" name="Energy_Predictor" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Energy/Predictor.py"/>
+        <Tool action="insert" after="Corrector" type="python" name="Energy_Corrector" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Energy/Corrector.py"/>
     </Tools>
 </sphInput>
