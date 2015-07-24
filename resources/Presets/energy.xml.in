@@ -34,7 +34,7 @@ time step, i.e energy_dWdt = 0.f, right before executing the Energy tool.
 
 <sphInput>
     <Variables>
-        <!-- External boundary forces work. It should be manually provided byç
+        <!-- External boundary forces work. It should be manually provided by
         the user -->
         <Variable name="energy_dWdt" type="float" value="0.0" />
         <Variable name="energy_dWdt_in" type="float" value="0.0" />
