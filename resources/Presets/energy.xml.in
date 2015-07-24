@@ -24,10 +24,12 @@ linear velocity U, you can use the following code snipet:
     <Tool action="insert" before="iset0_NoSlipBI" type="set_scalar" name="noslip_iset1" in="noslip_iset" value="1"/>
     <Tool action="insert" before="BI pressure forces" type="set_scalar" name="pressureForces_iset1" in="pressureForces_iset" value="1"/>
     <Tool action="insert" before="BI viscous forces" type="set_scalar" name="viscousForces_iset1" in="viscousForces_iset" value="1"/>
-    <Tool action="insert" before="Energy" type="set_scalar" name="Force" in="Force" value="-(pressureForces_F_BI_x + pressureForces_F_BI_x), -(pressureForces_F_BI_y + pressureForces_F_BI_y)"/>
-    <Tool action="insert" after="Force" type="set_scalar" name="dWdt" in="dWdt" value="Force_x * U_x + Forces_y * U_y"/>    
+    <Tool action="insert" before="Energy" type="set_scalar" name="Force" in="Force" value="-(pressureForces_F_BI_x + viscousForces_F_BI_x), -(pressureForces_F_BI_y + viscousForces_F_BI_y)"/>
+    <Tool action="insert" after="Force" type="set_scalar" name="dWdt" in="energy_dWdt" value="Force_x * U_x + Forces_y * U_y"/>    
 </Tools>
 
+It should be remarked that the variable energy_dWdt will be reinitializated each
+time step, i.e energy_dWdt = 0.f, right before executing the Energy tool.
 -->
 
 <sphInput>
@@ -64,7 +66,8 @@ linear velocity U, you can use the following code snipet:
 
     <Tools>
         <!-- Compute the energy variations per particle -->
-        <Tool action="insert" after="Rates" type="kernel" name="Energy" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Energy/Energy.cl"/>
+        <Tool action="insert" after="Rates" type="set" name="Reinit dWdt"  in="energy_dWdt" value="0.f"/>
+        <Tool action="insert" after="Reinit dWdt" type="kernel" name="Energy" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Energy/Energy.cl"/>
         <!-- Integrate them to the global energy components variation -->
         <Tool action="insert" after="Energy" type="reduction" name="dEkindt" in="energy_dekindt" out="energy_dEkindt" null="0.f">
             c = a + b;
