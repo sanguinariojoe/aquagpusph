@@ -57,7 +57,7 @@
  */
 __kernel void main(__global float* energy_dekindt,
                    __global float* energy_depotdt,
-                   __global float* energy_dcomdt,
+                   __global float* energy_decomdt,
                    const __global int* imove,
                    const __global vec* u,
                    const __global float* rho,
@@ -78,10 +78,6 @@ __kernel void main(__global float* energy_dekindt,
         energy_dcomdt[i] = 0.f;
         return;
     }
-
-    const float mass = m[i];
-    const float dens = rho[i];
-    const float prfac = p[i] / (dens * dens);
 
     energy_depotdt[i] = -m[i] * dot(g, u[i]);
     energy_dekindt[i] = m[i] * dot(u[i], dudt[i]);
