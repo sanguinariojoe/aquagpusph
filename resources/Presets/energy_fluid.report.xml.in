@@ -1,8 +1,0 @@
-<?xml version="1.0" ?>
-<sphInput>
-    <Reports>
-        <Report type="screen" name="energy_fluid_fluid" fields="energy_fluid_Eint,energy_fluid_S; energy_fluid_Ekin,energy_fluid_Epot,energy_fluid_W" color="blue" bold="false"/>
-        <Report type="file" name="Energy_fluid file" fields="t,dt, energy_fluid_Eint,energy_fluid_S,energy_fluid_Ekin,energy_fluid_Epot,energy_fluid_W, energy_fluid_dEintdt,energy_fluid_dSdt,energy_fluid_dEkindt,energy_fluid_dEpotdt,energy_fluid_dWdt" path="Energy_fluid.dat"/>
-    </Reports>
-</sphInput>
- 
