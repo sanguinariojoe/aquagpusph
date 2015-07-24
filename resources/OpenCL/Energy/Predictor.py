@@ -47,6 +47,6 @@ def main():
         e += dt * dedt
         aqua.set('energy_' + e_name, e)
         # Store the energy variation for the Corrector
-        dedt = aqua.get('energy_d' + e_name + 'dt_in', dedt)
+        aqua.set('energy_d' + e_name + 'dt_in', dedt)
 
     return True
