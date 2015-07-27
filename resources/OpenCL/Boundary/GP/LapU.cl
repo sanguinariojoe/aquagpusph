@@ -78,7 +78,7 @@ __kernel void main(const __global int* imove,
     if(i >= N)
         return;
     const int imove_i = imove[i];
-    if((imove_i != 1) || (imove_i != -2)){
+    if((imove_i != 1) && (imove_i != -2)){
         return;
     }
 
@@ -97,7 +97,7 @@ __kernel void main(const __global int* imove,
 
     BEGIN_LOOP_OVER_NEIGHS(){
         const int imove_j = imove[j];
-        if((imove_j != 1) || (imove_j != -1)){
+        if((imove_j != 1) && (imove_j != -1)){
             j++;
             continue;
         }
