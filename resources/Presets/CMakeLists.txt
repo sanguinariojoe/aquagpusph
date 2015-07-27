@@ -13,8 +13,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/BINoSlip.xml.in
     ${CMAKE_CURRENT_BINARY_DIR}/BINoSlip.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/GP.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/GP.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/fixedGhostParticles.xml.in  
-    ${CMAKE_CURRENT_BINARY_DIR}/fixedGhostParticles.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/GPFreeSlip.xml.in  
+    ${CMAKE_CURRENT_BINARY_DIR}/GPFreeSlip.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/elasticBounce.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/elasticBounce.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/inlet.xml.in  
@@ -64,8 +64,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/BINoSlip.xml.in
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/BINoSlip.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/GP.xml.in
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/GP.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/fixedGhostParticles.xml.in  
-    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/fixedGhostParticles.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/GPFreeSlip.xml.in
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/GPFreeSlip.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/elasticBounce.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/elasticBounce.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/inlet.xml.in  
@@ -112,6 +112,7 @@ SET(RESOURCES_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/BI.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/BINoSlip.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/GP.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/GPFreeSlip.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/fixedGhostParticles.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/elasticBounce.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/inlet.xml

@@ -10,14 +10,17 @@ treated with boundary integrals.
 </Variables>
 
 Remarks:
+  - This file should be included once.
   - For the boundary integrals, it is intended that the boundary elements have
-    the flag imove = -3, and a unit normal.
+    the flag imove = -3, and a unit normal. Also the area of the elements should
+    be stored in the mass array "m".
   - Boundary integrals have significant advantages when complex geometries
     are considered in the problem.
-  - The boundary integrals require renormalizaing the differential operators
-    computed, having undesired effects in the energy conservation.
+  - The boundary integrals require renormalizing the differential operators
+    computed, having undesired effects in the momentum, mass and energy
+    conservation.
   - By default, free-slip boundary condition is considered. To enforce the
-    no-slip boundary condition include the preset boundaryIntegralsNoSlip.xml
+    no-slip boundary condition include the preset BINoSlip.xml
 -->
 
 <sphInput>

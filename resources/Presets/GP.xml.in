@@ -16,7 +16,17 @@ To use this boundary condition you should include this preset, and properly set
 the associations array within the input file (set it to N for the particles
 which should not be mirrored at all).
 
-This file should be included once.
+Remarks:
+  - This file should be included once.
+  - It is intended that the ghost particles have the flag imove = -1.
+  - Regarding the mirroring boundary elements, it is intended that they have
+    the flag imove = -2, and a unit normal. Also the area of the elements should
+    be stored in the mass array "m".
+  - Ghost particles have a very good momentum, mass and energy conservation
+    properties.
+  - Unfortunately, leading with complex geometries is not so easy.
+  - By default, no-slip boundary condition is considered. To enforce the
+    free-slip boundary condition include the preset GPFreeSlip.xml
 -->
 
 <sphInput>
