@@ -76,10 +76,20 @@ __kernel void main(const __global int* imove,
     // Use the interpolated density (SSM)
     rho[i] = gp_rho[i];
 
-    // Use the normal velocity interpolated (SSM), and keep the tangential
-    // velocity corresponding to the body motion (SSM)
-    // In the thesis of Benjamin Bouscasse the tangential velocity is extended
-    // by an ASM. However it is producing an excesive shear stress.
-    const vec_xyz n_i = normal[iref].XYZ;
-    u[i].XYZ += dot(gp_u[i].XYZ - u[i].XYZ, n_i) * n_i;
+    #if __GP_LAPU_MODEL__ == __GP_LAPU_TAKEDA__
+        // Benjamin Bouscasse approach: Normal velocity extended by an SSM
+        // model, and tangential velocity extended by an ASM model
+        const vec_xyz n_iref = normal[iref].XYZ;
+        const vec_xyz u_iref = u[iref].XYZ - dot(u[iref].XYZ, n_iref) * n_iref;
+
+        const vec_xyz u_n = dot(gp_u[i].XYZ, n_iref) * n_iref;
+        const vec_xyz u_t = 2.f * u_iref - (gp_u[i].XYZ - u_n);
+
+        u[i].XYZ = u_n + u_t;
+    #elif __GP_LAPU_MODEL__ == __GP_LAPU_U0M__
+        // Forzen velocity approach: The body velocity is kept
+        return;
+    #else
+        #error Unknown extension model: __GP_LAPU_MODEL__
+    #endif
 }

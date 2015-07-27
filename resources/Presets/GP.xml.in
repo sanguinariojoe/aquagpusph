@@ -45,6 +45,12 @@ Remarks:
         <Variable name="gp_u_in" type="vec*" length="N" />
     </Variables>
 
+    <Definitions>
+        <Define name="__GP_LAPU_TAKEDA__" value="1" evaluate="false"/>
+        <Define name="__GP_LAPU_U0M__" value="2" evaluate="false"/>
+        <Define name="__GP_LAPU_MODEL__" value="__GP_LAPU_U0M__" evaluate="false"/>
+    </Definitions>
+
     <Tools>
         <!-- Regenerate the particles associations in the sort space. -->
         <Tool action="insert" before="Sort" type="copy" name="Backup associations" in="associations" out="associations_in"/>
