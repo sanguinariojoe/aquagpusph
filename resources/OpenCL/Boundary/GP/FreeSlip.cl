@@ -54,7 +54,7 @@ __kernel void main(const __global uint* iset,
                    const __global vec* gp_u,
                    __global vec* u,
                    uint N,
-                   float freeslip_iset)
+                   uint freeslip_iset)
 {
     const uint i = get_global_id(0);
     if(i >= N)
