@@ -126,7 +126,7 @@ __kernel void main(__global float* GP_energy_degradpdt,
             const float f_ij = kernelF(q) * CONF * m[j] / rho[j];
 
             _E_GRADP_ -= dot(u_i, (p_i + p[j]) * f_ij * r_ij);
-            _E_DIVU_ -= dot(u[j].XYZ - u_i, r_ij) * f_ij;
+            _E_DIVU_ += dot(u[j].XYZ - u_i, r_ij) * f_ij;
         }
     }END_LOOP_OVER_NEIGHS()
 
