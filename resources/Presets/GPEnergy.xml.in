@@ -1,0 +1,84 @@
+<?xml version="1.0" ?>
+
+<!-- GPEnergy.xml
+Power components computation, due to the effect of a ghost particles boundary.
+It is based on the paper:
+
+M. Antuono, S. Marrone, A. Colagrossi, B. Bouscasse, "Power balance in the
+delta-SPH scheme". Computer methods in applied mechanincs and engineering,
+vol 289, pp 209-226, 2015.
+
+With this preset the energy components received by the fluid due to the
+interactions with the ghost particles is computed, which is:
+
+GP_energy_dEgradpdt: Mechanical energy due to the pressure force
+GP_energy_dElapudt: Mechanical energy due to the viscous force
+GP_energy_dEdivudt: Internal energy due to the divergence. More specifically
+                    this is the compressibility energy generated in the
+                    interaction with the boundary.
+
+These components can be used to compute the entropy generated due to the
+interaction with an specific body. These contributions can be divided in 2
+terms, one due to the pressure forces, and one due to the viscous forces.
+
+T * dS_press/dt = F_press^{solid->fluid} * u_solid
+                  - GP_energy_dEgradpdt - GP_energy_dEdivudt
+T * dS_visc/dt = F_visc^{solid->fluid} * u_solid - GP_energy_dElapupdt
+
+If the U0M is used for the laplacian computation (defining __GP_LAPU_MODEL__ as
+__GP_LAPU_U0M__) it can be demonstrated that T * dS_visc/dt is strictly
+positive.
+
+Unfortunately even U0M is used for the divergence computation, the sign of the
+pressure term is undefined, becoming an spourious generated energy.
+
+To use this preset you just need to include it, and define which particles set
+will be affected setting the variable GP_energy_iset (0 by default).
+
+If several boundaries, belonging to different particles sets, should be
+considered, then include this preset several times, and reevaluate the
+affected GP_energy_iset variable each time, for instance:
+
+<Include file="GPEnergy.xml" prefix="iset0_"/>
+<Include file="GPEnergy.xml" prefix="iset2_"/>
+<Tools>
+    <Tool action="insert" before="iset0_GP viscous energy" type="set_scalar" name="GP_energy_iset0" in="GP_energy_iset" value="0"/>
+    <Tool action="insert" before="iset0_GP pressure energy" type="set_scalar" name="GP_energy_iset0" in="GP_energy_iset" value="0"/>
+    <Tool action="insert" before="iset2_GP viscous energy" type="set_scalar" name="GP_energy_iset2" in="GP_energy_iset" value="2"/>
+    <Tool action="insert" before="iset2_GP pressure energy" type="set_scalar" name="GP_energy_iset2" in="GP_energy_iset" value="2"/>
+</Tools>
+
+In that case, rememeber saving the computed energy components right after
+computing that. Otherwise they will be overwritten.
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="GP_energy_iset" type="unsigned int" value="0" />
+
+        <Variable name="GP_energy_degradpdt" type="float*" length="N" />
+        <Variable name="GP_energy_dEgradpdt" type="float" value="0.0" />
+
+        <Variable name="GP_energy_delapudt" type="float*" length="N" />
+        <Variable name="GP_energy_dElapudt" type="float" value="0.0" />
+
+        <Variable name="GP_energy_dedivudt" type="float*" length="N" />
+        <Variable name="GP_energy_dEdivudt" type="float" value="0.0" />
+    </Variables>
+
+    <Tools>
+        <!-- Compute the energy variations per particle -->
+        <Tool action="insert" after="GP LapU" type="kernel" name="GP viscous energy" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Energy/GP/Viscous.cl"/>
+        <Tool action="insert" after="GP Interactions" type="kernel" name="GP pressure energy" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Energy/GP/Pressure.cl"/>
+        <!-- Integrate them to the global energy components variation -->
+        <Tool action="insert" after_prefix="GP pressure energy" type="reduction" name="dElapudt" in="GP_energy_delapudt" out="GP_energy_dElapudt" null="0.f">
+            c = a + b;
+        </Tool>
+        <Tool action="insert" after_prefix="dElapudt" type="reduction" name="dEgradpdt" in="GP_energy_degradpdt" out="GP_energy_dEgradpdt" null="0.f">
+            c = a + b;
+        </Tool>
+        <Tool action="insert" after_prefix="dEgradpdt" type="reduction" name="dEdivudt" in="GP_energy_dedivudt" out="GP_energy_dEdivudt" null="0.f">
+            c = a + b;
+        </Tool>
+    </Tools>
+</sphInput>

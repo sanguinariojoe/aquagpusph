@@ -21,12 +21,10 @@ affected freeslip_iset variable each time, for instance:
 
 <sphInput>
     <Variables>
-        <!-- position and size of the inlet -->
         <Variable name="freeslip_iset" type="unsigned int" value="0" />
     </Variables>
 
     <Tools>
-        <!-- Regenerate the particles associations in the sort space. -->
         <Tool action="insert" after="GP PreLapU" type="kernel" name="GP FreeSlip" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GP/FreeSlip.cl"/>
     </Tools>
 </sphInput>
