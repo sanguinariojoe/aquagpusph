@@ -71,13 +71,13 @@ computing that. Otherwise they will be overwritten.
         <Tool action="insert" after="GP LapU" type="kernel" name="GP viscous energy" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Energy/GP/Viscous.cl"/>
         <Tool action="insert" after="GP Interactions" type="kernel" name="GP pressure energy" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Energy/GP/Pressure.cl"/>
         <!-- Integrate them to the global energy components variation -->
-        <Tool action="insert" after_prefix="GP pressure energy" type="reduction" name="dElapudt" in="GP_energy_delapudt" out="GP_energy_dElapudt" null="0.f">
+        <Tool action="insert" after_prefix="GP pressure energy" type="reduction" name="GP dElapudt" in="GP_energy_delapudt" out="GP_energy_dElapudt" null="0.f">
             c = a + b;
         </Tool>
-        <Tool action="insert" after_prefix="dElapudt" type="reduction" name="dEgradpdt" in="GP_energy_degradpdt" out="GP_energy_dEgradpdt" null="0.f">
+        <Tool action="insert" after_prefix="GP dElapudt" type="reduction" name="GP dEgradpdt" in="GP_energy_degradpdt" out="GP_energy_dEgradpdt" null="0.f">
             c = a + b;
         </Tool>
-        <Tool action="insert" after_prefix="dEgradpdt" type="reduction" name="dEdivudt" in="GP_energy_dedivudt" out="GP_energy_dEdivudt" null="0.f">
+        <Tool action="insert" after_prefix="GP dEgradpdt" type="reduction" name="GP dEdivudt" in="GP_energy_dedivudt" out="GP_energy_dEdivudt" null="0.f">
             c = a + b;
         </Tool>
     </Tools>
