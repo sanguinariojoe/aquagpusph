@@ -144,7 +144,7 @@ __kernel void main(const __global int* imove,
                 // ------------------------------------------------------------------
                 // Reflect particle velocity (using elastic factor)
                 // ------------------------------------------------------------------
-                dudt[i].XYZ = dudt_i - dudt_n * n_j;
+                dudt[i].XYZ = dudt_i - (1.f + __ELASTIC_FACTOR__) * dudt_n * n_j;
                 u[i].XYZ = u_i - (1.f + __ELASTIC_FACTOR__) * u_n * n_j;
 
                 // Modify the value for the next walls test.
