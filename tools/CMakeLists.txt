@@ -2,10 +2,16 @@
 # Build                                                 #
 # ===================================================== #
 ADD_CUSTOM_TARGET(tools ALL
-	COMMAND ${PYTHON_EXECUTABLE} setup.py build
+    COMMAND ${PYTHON_EXECUTABLE} setup.py build
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
-ADD_DEPENDENCIES( tools AQUAgpusph )
+IF(AQUAGPUSPH_3D)
+    ADD_DEPENDENCIES(tools AQUAgpusph)
+ELSE(AQUAGPUSPH_3D)
+    ADD_DEPENDENCIES(tools AQUAgpusph2D)
+ENDIF(AQUAGPUSPH_3D)
+
+
 
 # ===================================================== #
 # Install                                               #
