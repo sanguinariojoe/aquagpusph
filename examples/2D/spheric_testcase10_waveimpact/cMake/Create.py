@@ -42,7 +42,7 @@ cs = 45.0
 courant = 0.25
 gamma = 7.0
 refd = 998.0
-alpha = 0.03
+alpha = 0.1
 delta = 0.0
 visc_dyn = 0.000894
 # Tank dimensions
