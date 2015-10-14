@@ -70,14 +70,9 @@ __kernel void main(__global float* outlet_energy_dekindt,
     // find position in global arrays
     unsigned int i = get_global_id(0);
 
-    // Discard the particles already passed through the outlet
-    if(dot(r[i] - outlet_r, outlet_n) < 0.f)
-        return;
-
-
     if(i >= N)
         return;
-    if((imove[i] != 1) || (dot(r[i] - outlet_r, outlet_n) > 0.f)){
+    if((imove[i] != 1) || (dot(r[i] - outlet_r, outlet_n) < 0.f)){
         outlet_energy_dekindt[i] = 0.f;
         outlet_energy_depotdt[i] = 0.f;
         outlet_energy_decomdt[i] = 0.f;

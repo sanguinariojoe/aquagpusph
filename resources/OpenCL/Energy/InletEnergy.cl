@@ -70,11 +70,6 @@ __kernel void main(__global float* inlet_energy_dekindt,
     // find position in global arrays
     unsigned int i = get_global_id(0);
 
-    // Discard the particles already passed through the inlet
-    if(dot(r[i] - inlet_r, inlet_n) > 0.f)
-        return;
-
-
     if(i >= N)
         return;
     if((imove[i] != 1) || (dot(r[i] - inlet_r, inlet_n) > 0.f)){
