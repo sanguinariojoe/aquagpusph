@@ -21,6 +21,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/elasticBounce.xml.in
     ${CMAKE_CURRENT_BINARY_DIR}/elasticBounce.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/inlet.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/inlet.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/inletEnergy.xml.in  
+    ${CMAKE_CURRENT_BINARY_DIR}/inletEnergy.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/outlet.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/outlet.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/symmetry.xml.in  
@@ -76,6 +78,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/elasticBounce.xml.in
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/elasticBounce.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/inlet.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/inlet.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/inletEnergy.xml.in  
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/inletEnergy.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/outlet.xml.in  
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/outlet.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/symmetry.xml.in  
@@ -125,6 +129,7 @@ SET(RESOURCES_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/fixedGhostParticles.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/elasticBounce.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/inlet.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/inletEnergy.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/outlet.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/symmetry.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/variableTimeStep.xml
