@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 
 <!-- inletEnergy.xml
-Computation oif the energy injected by the inflow inside the system.
+Computation of the energy injected by the inflow inside the system.
 
 This preset depends on inlet.xml and fluidEnergy.xml.
 

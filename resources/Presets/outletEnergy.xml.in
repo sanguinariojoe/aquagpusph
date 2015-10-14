@@ -1,0 +1,47 @@
+<?xml version="1.0" ?>
+
+<!-- outletEnergy.xml
+Computation of the energy injected by the outflow inside the system.
+
+This preset depends on outlet.xml and fluidEnergy.xml.
+
+Actually this preset only provide the power terms, without integrating them on
+time.
+-->
+
+<sphInput>
+    <Variables>
+        <!-- Kinetic energy -->
+        <Variable name="outlet_energy_dekindt" type="float*" length="N" />
+        <Variable name="outlet_energy_dEkindt" type="float" value="0.0" />
+        <!-- Potential energy -->
+        <Variable name="outlet_energy_depotdt" type="float*" length="N" />
+        <Variable name="outlet_energy_dEpotdt" type="float" value="0.0" />
+        <!-- Compressibility energy -->
+        <Variable name="outlet_energy_decomdt" type="float*" length="N" />
+        <Variable name="outlet_energy_dEcomdt" type="float" value="0.0" />
+        <!-- Internal energy -->
+        <Variable name="outlet_energy_dEintdt" type="float" value="0.0" />
+        <!-- Entropy -->
+        <Variable name="outlet_energy_dSdt" type="float" value="0.0" />
+    </Variables>
+
+    <Tools>
+        <!-- Extract the particles at the outflow from the fluid energy -->
+        <Tool action="insert" after="Fluid Energy" type="kernel" name="Outlet Energy" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Energy/OutletEnergy.cl"/>
+        
+        <!-- Integrate them to the global energy components variation -->
+        <Tool action="insert" after="Outlet Energy" type="reduction" name="Outlet dEkindt" in="outlet_energy_dekindt" out="outlet_energy_dEkindt" null="0.f">
+            c = a + b;
+        </Tool>
+        <Tool action="insert" after="Outlet dEkindt" type="reduction" name="Outlet dEpotdt" in="outlet_energy_depotdt" out="outlet_energy_dEpotdt" null="0.f">
+            c = a + b;
+        </Tool>
+        <Tool action="insert" after="Outlet dEpotdt" type="reduction" name="Outlet dEcomdt" in="outlet_energy_decomdt" out="outlet_energy_dEcomdt" null="0.f">
+            c = a + b;
+        </Tool>
+        <!-- Deduce the internal energy and entropy -->
+        <Tool action="insert" after="Outlet dEcomdt" type="set_scalar" name="Outlet dEintdt" in="energy_dEintdt" value="-outlet_energy_dEkindt - outlet_energy_dEpotdt"/>
+        <Tool action="insert" after="Outlet dEintdt" type="set_scalar" name="Outlet dSdt" in="energy_dSdt" value="outlet_energy_dEintdt - outlet_energy_dEcomdt"/>
+    </Tools>
+</sphInput>

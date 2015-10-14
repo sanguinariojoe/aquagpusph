@@ -52,7 +52,7 @@
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  * @param p0 Background pressure \f$ p_0 \f$.
  * @param domain_max Maximum point of the computational domain.
- * @param outlet_r Lower corner of the inlet square.
+ * @param outlet_r Lower corner of the outlet square.
  * @param outlet_n = Velocity direction of the generated particles.
  * @param outlet_U = Constant outlet velocity magnitude
  * @param outlet_rFS The point where the pressure is the reference one (0 Pa).
