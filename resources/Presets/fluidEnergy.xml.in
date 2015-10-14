@@ -42,7 +42,7 @@ time.
             c = a + b;
         </Tool>
         <!-- Deduce the internal energy and entropy -->
-        <Tool action="insert" after="Fluid dEcomdt" type="set_scalar" name="Fluid dEintdt" in="energy_dEintdt" value="-fluid_energy_dEkindt - fluid_energy_dEpotdt"/>
-        <Tool action="insert" after="Fluid dEintdt" type="set_scalar" name="Fluid dSdt" in="energy_dSdt" value="fluid_energy_dEintdt - fluid_energy_dEcomdt"/>
+        <Tool action="insert" after="Fluid dEcomdt" type="set_scalar" name="Fluid dEintdt" in="fluid_energy_dEintdt" value="-fluid_energy_dEkindt - fluid_energy_dEpotdt"/>
+        <Tool action="insert" after="Fluid dEintdt" type="set_scalar" name="Fluid dSdt" in="fluid_energy_dSdt" value="fluid_energy_dEintdt - fluid_energy_dEcomdt"/>
     </Tools>
 </sphInput>

@@ -41,7 +41,7 @@ time.
             c = a + b;
         </Tool>
         <!-- Deduce the internal energy and entropy -->
-        <Tool action="insert" after="Inlet dEcomdt" type="set_scalar" name="Inlet dEintdt" in="energy_dEintdt" value="-inlet_energy_dEkindt - inlet_energy_dEpotdt"/>
-        <Tool action="insert" after="Inlet dEintdt" type="set_scalar" name="Inlet dSdt" in="energy_dSdt" value="inlet_energy_dEintdt - inlet_energy_dEcomdt"/>
+        <Tool action="insert" after="Inlet dEcomdt" type="set_scalar" name="Inlet dEintdt" in="inlet_energy_dEintdt" value="-inlet_energy_dEkindt - inlet_energy_dEpotdt"/>
+        <Tool action="insert" after="Inlet dEintdt" type="set_scalar" name="Inlet dSdt" in="inlet_energy_dSdt" value="inlet_energy_dEintdt - inlet_energy_dEcomdt"/>
     </Tools>
 </sphInput>
