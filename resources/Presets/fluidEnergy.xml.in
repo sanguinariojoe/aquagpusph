@@ -32,17 +32,17 @@ time.
         <Tool action="insert" after="Interactions" type="kernel" name="Fluid Energy Rates" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Rates.cl"/>
         <Tool action="insert" after="Fluid Energy Rates" type="kernel" name="Fluid Energy" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Energy/FluidEnergy.cl"/>
         <!-- Integrate them to the global energy components variation -->
-        <Tool action="insert" after="Energy" type="reduction" name="dEkindt" in="fluid_energy_dekindt" out="fluid_energy_dEkindt" null="0.f">
+        <Tool action="insert" after="Energy" type="reduction" name="Fluid dEkindt" in="fluid_energy_dekindt" out="fluid_energy_dEkindt" null="0.f">
             c = a + b;
         </Tool>
-        <Tool action="insert" after="dEkindt" type="reduction" name="dEpotdt" in="fluid_energy_depotdt" out="fluid_energy_dEpotdt" null="0.f">
+        <Tool action="insert" after="Fluid dEkindt" type="reduction" name="Fluid dEpotdt" in="fluid_energy_depotdt" out="fluid_energy_dEpotdt" null="0.f">
             c = a + b;
         </Tool>
-        <Tool action="insert" after="dEpotdt" type="reduction" name="dEcomdt" in="fluid_energy_decomdt" out="fluid_energy_dEcomdt" null="0.f">
+        <Tool action="insert" after="Fluid dEpotdt" type="reduction" name="Fluid dEcomdt" in="fluid_energy_decomdt" out="fluid_energy_dEcomdt" null="0.f">
             c = a + b;
         </Tool>
         <!-- Deduce the internal energy and entropy -->
-        <Tool action="insert" after="dEcomdt" type="set_scalar" name="dEintdt" in="energy_dEintdt" value="-fluid_energy_dEkindt - fluid_energy_dEpotdt"/>
-        <Tool action="insert" after="dEintdt" type="set_scalar" name="dSdt" in="energy_dSdt" value="fluid_energy_dEintdt - fluid_energy_dEcomdt"/>
+        <Tool action="insert" after="Fluid dEcomdt" type="set_scalar" name="Fluid dEintdt" in="energy_dEintdt" value="-fluid_energy_dEkindt - fluid_energy_dEpotdt"/>
+        <Tool action="insert" after="Fluid dEintdt" type="set_scalar" name="Fluid dSdt" in="energy_dSdt" value="fluid_energy_dEintdt - fluid_energy_dEcomdt"/>
     </Tools>
 </sphInput>
