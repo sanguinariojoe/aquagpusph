@@ -134,12 +134,12 @@ class FigureController(FigureCanvas):
         # Read and plot the new data
         data = self.readFile('PressureForces.dat')
         tp = data[0]
-        fpx = data[1]
-        fpy = data[2]
+        fpx = data[7]
+        fpy = data[8]
         data = self.readFile('ViscousForces.dat')
         tv = data[0]
-        fvx = data[1]
-        fvy = data[2]
+        fvx = data[7]
+        fvy = data[8]
         if(len(tv) < len(tp)):
             tp = tp[0:len(tv)]
             fpx = fpx[0:len(tv)]
