@@ -35,7 +35,7 @@ prefix, for instance:
 
     <Tools>
         <!-- We must start mirroring particles (and marking them). -->
-        <Tool action="insert" after="BoundaryIntegrals" type="kernel" name="SymmetryMirror" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/Symmetry/Mirror.cl"/>
+        <Tool action="insert" after="BI interactions,BI NoSlip,GP Interactions,Interactions" type="kernel" name="SymmetryMirror" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/Symmetry/Mirror.cl"/>
         <!-- Now we can compute the interactions -->
         <Tool action="insert" after_prefix="SymmetryMirror" type="kernel" name="SymmetryInteractions" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/Symmetry/Interactions.cl"/>
         <Tool action="insert" after_prefix="SymmetryInteractions" type="kernel" name="SymmetryBoundaryIntegrals" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/Symmetry/BoundaryIntegrals.cl"/>
