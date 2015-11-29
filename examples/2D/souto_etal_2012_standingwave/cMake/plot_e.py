@@ -121,7 +121,7 @@ class FigureController(FigureCanvas):
         # Read and plot the new data
         data = self.readFile('Energy.dat')
         t = data[0]
-        e = data[4]
+        e = data[2]
         e0 = e[0]
         for i in range(len(t)):
             t[i] /= self.T
