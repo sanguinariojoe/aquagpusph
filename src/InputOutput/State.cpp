@@ -1317,38 +1317,77 @@ bool State::writeSettings(xercesc::DOMDocument* doc,
 bool State::writeVariables(xercesc::DOMDocument* doc,
                            xercesc::DOMElement *root)
 {
+    unsigned int i;
     DOMElement *elem, *s_elem;
-    ProblemSetup *P = ProblemSetup::singleton();
+    CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
 
     elem = doc->createElement(xmlS("Variables"));
     root->appendChild(elem);
 
-    /*
-    for(it=tags.begin(); it!=tags.end(); it++){
-        s_elem = doc->createElement(xmlS(it->first));
-        s_elem->setAttribute(xmlS("file"), xmlS(it->second));
+    std::deque<Variable*> vars = C->variables()->getAll();
+
+    for(i = 0; i < vars.size(); i++){
+        s_elem = doc->createElement(xmlS("Variable"));
         elem->appendChild(s_elem);
+        Variable* var = vars.at(i);
+
+        s_elem->setAttribute(xmlS("name"), xmlS(var->name()));
+        const char* type = var->type();
+        s_elem->setAttribute(xmlS("type"), xmlS(type));
+
+        // Array variable
+        if(strstr(type, "*")){
+            size_t length =
+                ((ArrayVariable*)var)->size() / ((ArrayVariable*)var)->typesize();
+            char length_txt[16];
+            sprintf(length_txt, "%lu", length);
+            s_elem->setAttribute(xmlS("length"), xmlS(length_txt));
+            continue;
+        }
+        // Scalar variable
+        char* value_txt = (char*)var->asString();
+        if(value_txt[0] == '('){
+            value_txt[0] = ' ';
+        }
+        if(value_txt[strlen(value_txt) - 1] == ')'){
+            value_txt[strlen(value_txt) - 1] = ' ';
+        }
+        s_elem->setAttribute(xmlS("value"), xmlS(value_txt));
     }
-    */
+
     return false;
 }
 
 bool State::writeDefinitions(xercesc::DOMDocument* doc,
                            xercesc::DOMElement *root)
 {
+    unsigned int i;
     DOMElement *elem, *s_elem;
     ProblemSetup *P = ProblemSetup::singleton();
 
-    elem = doc->createElement(xmlS("Variables"));
+    elem = doc->createElement(xmlS("Definitions"));
     root->appendChild(elem);
 
-    /*
-    for(it=tags.begin(); it!=tags.end(); it++){
-        s_elem = doc->createElement(xmlS(it->first));
-        s_elem->setAttribute(xmlS("file"), xmlS(it->second));
+    ProblemSetup::sphDefinitions defs = P->definitions;
+
+    for(i = 0; i < defs.names.size(); i++){
+        s_elem = doc->createElement(xmlS("Define"));
         elem->appendChild(s_elem);
+
+        s_elem->setAttribute(xmlS("name"),
+                           xmlS(defs.names.at(i)));
+        s_elem->setAttribute(xmlS("value"),
+                           xmlS(defs.values.at(i)));
+        if(defs.evaluations.at(i)){
+            s_elem->setAttribute(xmlS("evaluate"),
+                               xmlS("true"));
+        }
+        else{
+            s_elem->setAttribute(xmlS("evaluate"),
+                               xmlS("false"));
+        }
     }
-    */
+
     return false;
 }
 
@@ -1356,7 +1395,7 @@ bool State::writeTools(xercesc::DOMDocument* doc,
                            xercesc::DOMElement *root)
 {
     unsigned int i, j;
-    DOMElement *elem;
+    DOMElement *elem, *s_elem;
     ProblemSetup *P = ProblemSetup::singleton();
 
     elem = doc->createElement(xmlS("Tools"));
@@ -1365,14 +1404,19 @@ bool State::writeTools(xercesc::DOMDocument* doc,
     std::deque<ProblemSetup::sphTool*> tools = P->tools;
 
     for(i = 0; i < tools.size(); i++){
-        elem = doc->createElement(xmlS("Tool"));
-        root->appendChild(elem);
-        ProblemSetup::sphTool* tool = tools.at(i);
+        s_elem = doc->createElement(xmlS("Tool"));
+        elem->appendChild(s_elem);
 
+        ProblemSetup::sphTool* tool = tools.at(i);
         for(j = 0; j < tool->n(); j++){
             const char* name = tool->getName(j);
             const char* value = tool->get(j);
-            elem->setAttribute(xmlS(name), xmlS(value));
+            if(!strcmp(name, "operation")){
+                // The reduction operation is not an attribute, but a text
+                s_elem->setTextContent(xmlS(value));
+                continue;
+            }
+            s_elem->setAttribute(xmlS(name), xmlS(value));
         }
     }
 
@@ -1383,7 +1427,7 @@ bool State::writeReports(xercesc::DOMDocument* doc,
                          xercesc::DOMElement *root)
 {
     unsigned int i, j;
-    DOMElement *elem;
+    DOMElement *elem, *s_elem;
     ProblemSetup *P = ProblemSetup::singleton();
 
     elem = doc->createElement(xmlS("Reports"));
@@ -1392,14 +1436,14 @@ bool State::writeReports(xercesc::DOMDocument* doc,
     std::deque<ProblemSetup::sphTool*> reports = P->reports;
 
     for(i = 0; i < reports.size(); i++){
-        elem = doc->createElement(xmlS("Tool"));
-        root->appendChild(elem);
-        ProblemSetup::sphTool* report = reports.at(i);
+        s_elem = doc->createElement(xmlS("Report"));
+        elem->appendChild(s_elem);
 
+        ProblemSetup::sphTool* report = reports.at(i);
         for(j = 0; j < report->n(); j++){
             const char* name = report->getName(j);
             const char* value = report->get(j);
-            elem->setAttribute(xmlS(name), xmlS(value));
+            s_elem->setAttribute(xmlS(name), xmlS(value));
         }
     }
 
@@ -1416,18 +1460,6 @@ bool State::writeTiming(xercesc::DOMDocument* doc,
 
     elem = doc->createElement(xmlS("Timing"));
     root->appendChild(elem);
-
-    s_elem = doc->createElement(xmlS("Option"));
-    s_elem->setAttribute(xmlS("name"), xmlS("Start"));
-    sprintf(att, "%g", T->time());
-    s_elem->setAttribute(xmlS("value"), xmlS(att));
-    sprintf(att, "%g", T->dt());
-    s_elem->setAttribute(xmlS("dt"), xmlS(att));
-    sprintf(att, "%u", T->step());
-    s_elem->setAttribute(xmlS("iter"), xmlS(att));
-    sprintf(att, "%u", T->frame());
-    s_elem->setAttribute(xmlS("frame"), xmlS(att));
-    elem->appendChild(s_elem);
 
     if(P->time_opts.sim_end_mode & __TIME_MODE__){
         s_elem = doc->createElement(xmlS("Option"));
@@ -1500,6 +1532,8 @@ bool State::writeSet(xercesc::DOMDocument* doc,
     ProblemSetup *P = ProblemSetup::singleton();
     FileManager *F = FileManager::singleton();
 
+    CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
+    Variables* vars = C->variables();
     std::deque<ProblemSetup::sphParticlesSet*> sets = P->sets;
 
     for(i = 0; i < sets.size(); i++){
@@ -1510,10 +1544,21 @@ bool State::writeSet(xercesc::DOMDocument* doc,
 
         for(j = 0; j < sets.at(i)->scalarNames().size(); j++){
             const char* name = sets.at(i)->scalarNames().at(j);
-            const char* value = sets.at(i)->scalarValues().at(j);
             s_elem = doc->createElement(xmlS("Scalar"));
             s_elem->setAttribute(xmlS("name"), xmlS(name));
-            s_elem->setAttribute(xmlS("value"), xmlS(value));
+
+            ArrayVariable* var = (ArrayVariable*)vars->get(name);
+            char* value_txt = (char*)var->asString(i);
+            if(!value_txt){
+                return true;
+            }
+            if(value_txt[0] == '('){
+                value_txt[0] = ' ';
+            }
+            if(value_txt[strlen(value_txt) - 1] == ')'){
+                value_txt[strlen(value_txt) - 1] = ' ';
+            }
+            s_elem->setAttribute(xmlS("value"), xmlS(value_txt));
             elem->appendChild(s_elem);
         }
 

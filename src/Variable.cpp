@@ -1453,9 +1453,178 @@ bool ArrayVariable::setFromPythonObject(PyObject* obj, int i0, int n)
     return false;
 }
 
-const char* ArrayVariable::asString(){
+const char* ArrayVariable::asString()
+{
     void *val = get();
     sprintf(str_val, "%p", val);
+    return (const char*)str_val;
+}
+
+const char* ArrayVariable::asString(size_t i)
+{
+    CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
+    Variables *vars = C->variables();
+    size_t length = size() / typesize();
+    if(i > length){
+        char msg[256];
+        ScreenManager *S = ScreenManager::singleton();
+        sprintf(msg,
+                "Failure extracting the component %lu from the variable \"%s\"\n",
+                i,
+                name());
+        S->addMessageF(3, msg);
+        sprintf(msg,
+                "Out of bounds (length = %lu)\n",
+                length);
+        S->addMessage(0, msg);
+        return NULL;
+    }
+    void *ptr = malloc(typesize());
+    if(!ptr){
+        char msg[256];
+        ScreenManager *S = ScreenManager::singleton();
+        sprintf(msg,
+                "Failure allocating memory to download the variable \"%s\"\n",
+                name());
+        S->addMessageF(3, msg);
+        sprintf(msg,
+                "%lu bytes requested\n",
+                typesize());
+        S->addMessage(0, msg);
+        return NULL;
+    }
+    cl_int err_code = clEnqueueReadBuffer(C->command_queue(),
+                                          _value,
+                                          CL_TRUE,
+                                          i * vars->typeToBytes(type()),
+                                          vars->typeToBytes(type()),
+                                          ptr,
+                                          0,
+                                          NULL,
+                                          NULL);
+    if(err_code != CL_SUCCESS){
+        char msg[256];
+        ScreenManager *S = ScreenManager::singleton();
+        sprintf(msg,
+                "Failure downloading the variable \"%s\"\n",
+                name());
+        S->addMessageF(3, msg);
+        S->printOpenCLError(err_code);
+        return NULL;
+    }
+
+    if(strstr(type(), "unsigned int")){
+        sprintf(str_val, "%16u", ((unsigned int*)ptr)[0]);
+    }
+    else if(strstr(type(), "uivec2")){
+        sprintf(str_val, "(%16u,%16u)",
+                         ((unsigned int*)ptr)[0],
+                         ((unsigned int*)ptr)[1]);
+    }
+    else if(strstr(type(), "uivec3")){
+        sprintf(str_val, "(%16u,%16u,%16u)",
+                         ((unsigned int*)ptr)[0],
+                         ((unsigned int*)ptr)[1],
+                         ((unsigned int*)ptr)[2]);
+    }
+    else if(strstr(type(), "uivec4")){
+        sprintf(str_val, "(%16u,%16u,%16u,%16u)",
+                         ((unsigned int*)ptr)[0],
+                         ((unsigned int*)ptr)[1],
+                         ((unsigned int*)ptr)[2],
+                         ((unsigned int*)ptr)[3]);
+    }
+    else if(strstr(type(), "uivec")){
+        #ifdef HAVE_3D
+            sprintf(str_val, "(%16u,%16u,%16u,%16u)",
+                             ((unsigned int*)ptr)[0],
+                             ((unsigned int*)ptr)[1],
+                             ((unsigned int*)ptr)[2],
+                             ((unsigned int*)ptr)[3]);
+        #else
+            sprintf(str_val, "(%16u,%16u)",
+                             ((unsigned int*)ptr)[0],
+                             ((unsigned int*)ptr)[1]);
+        #endif
+    }
+    else if(strstr(type(), "int")){
+        sprintf(str_val, "%16d", ((int*)ptr)[0]);
+    }
+    else if(strstr(type(), "ivec2")){
+        sprintf(str_val, "(%16d,%16d)",
+                         ((int*)ptr)[0],
+                         ((int*)ptr)[1]);
+    }
+    else if(strstr(type(), "ivec3")){
+        sprintf(str_val, "(%16d,%16d,%16d)",
+                         ((int*)ptr)[0],
+                         ((int*)ptr)[1],
+                         ((int*)ptr)[2]);
+    }
+    else if(strstr(type(), "ivec4")){
+        sprintf(str_val, "(%16d,%16d,%16d,%16d)",
+                         ((int*)ptr)[0],
+                         ((int*)ptr)[1],
+                         ((int*)ptr)[2],
+                         ((int*)ptr)[3]);
+    }
+    else if(strstr(type(), "ivec")){
+        #ifdef HAVE_3D
+            sprintf(str_val, "(%16d,%16d,%16d,%16d)",
+                             ((int*)ptr)[0],
+                             ((int*)ptr)[1],
+                             ((int*)ptr)[2],
+                             ((int*)ptr)[3]);
+        #else
+            sprintf(str_val, "(%16d,%16d)",
+                             ((int*)ptr)[0],
+                             ((int*)ptr)[1]);
+        #endif
+    }
+    else if(strstr(type(), "float")){
+        sprintf(str_val, "%16g", ((float*)ptr)[0]);
+    }
+    else if(strstr(type(), "vec2")){
+        sprintf(str_val, "(%16g,%16g)",
+                         ((float*)ptr)[0],
+                         ((float*)ptr)[1]);
+    }
+    else if(strstr(type(), "vec3")){
+        sprintf(str_val, "(%16g,%16g,%16g)",
+                         ((float*)ptr)[0],
+                         ((float*)ptr)[1],
+                         ((float*)ptr)[2]);
+    }
+    else if(strstr(type(), "vec4")){
+        sprintf(str_val, "(%16g,%16g,%16g,%16g)",
+                         ((float*)ptr)[0],
+                         ((float*)ptr)[1],
+                         ((float*)ptr)[2],
+                         ((float*)ptr)[3]);
+    }
+    else if(strstr(type(), "vec")){
+        #ifdef HAVE_3D
+            sprintf(str_val, "(%16d,%16d,%16d,%16d)",
+                             ((float*)ptr)[0],
+                             ((float*)ptr)[1],
+                             ((float*)ptr)[2],
+                             ((float*)ptr)[3]);
+        #else
+            sprintf(str_val, "(%16g,%16g)",
+                             ((float*)ptr)[0],
+                             ((float*)ptr)[1]);
+        #endif
+    }
+    else{
+        char msg[128 + strlen(name()) + strlen(type())];
+        ScreenManager *S = ScreenManager::singleton();
+        sprintf(msg,
+                "Variable \"%s\" is of unknown type \"%s\"",
+                name(),
+                type());
+        S->addMessageF(3, msg);
+        return NULL;
+    }
     return (const char*)str_val;
 }
 

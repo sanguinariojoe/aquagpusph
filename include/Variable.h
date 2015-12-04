@@ -782,13 +782,17 @@ public:
      */
     ~ArrayVariable();
 
-    /** Get the variable type size.
-     * @return Variable type size (in bytes)
+    /** Get the cl_mem type size.
+     * @return cl_mem type size (in bytes)
+     * @note In order to know the typesize of the components into the array you
+     * may use Variables::typeToBytes()
      */
     size_t typesize() const {return sizeof(cl_mem);}
 
-    /** Get the variable type size.
-     * @return Variable type size (in bytes)
+    /** Get the array size.
+     * @return Array allocated memory (in bytes)
+     * @note In order to get the length of the array the command
+     * size() / typesize() can be used
      */
     size_t size() const;
 
@@ -822,6 +826,12 @@ public:
      * @return The variable represented as a string, NULL in case of errors.
      */
     const char* asString();
+
+    /** Get a component text representation
+     * @param i Index of the component to be extracted.
+     * @return The component represented as a string, NULL in case of errors.
+     */
+    const char* asString(size_t i);
 private:
     /// Check for abandoned python objects to destroy them.
     void cleanMem();
@@ -893,6 +903,11 @@ public:
      * @return Variable, NULL if the variable cannot be found.
      */
     Variable* get(const char* name);
+
+    /** Get all the registered variables.
+     * @return Variable, NULL if the variable cannot be found.
+     */
+    std::deque<Variable*> getAll(){return _vars;}
 
     /** Get the number of variables.
      * @return Number of registered variables.
