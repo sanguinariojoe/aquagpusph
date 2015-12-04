@@ -739,7 +739,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                     tool->set("n", "N");
                 }
                 else{
-                    tool->set("path", xmlAttribute(s_elem, "n"));
+                    tool->set("n", xmlAttribute(s_elem, "n"));
                 }
             }
             else if(!strcmp(xmlAttribute(s_elem, "type"), "copy")){
