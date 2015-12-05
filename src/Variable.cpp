@@ -1463,8 +1463,7 @@ const char* ArrayVariable::asString()
 const char* ArrayVariable::asString(size_t i)
 {
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
-    Variables *vars = C->variables();
-    size_t length = size() / typesize();
+    size_t length = size() / Variables::typeToBytes(type());
     if(i > length){
         char msg[256];
         ScreenManager *S = ScreenManager::singleton();
@@ -1496,8 +1495,8 @@ const char* ArrayVariable::asString(size_t i)
     cl_int err_code = clEnqueueReadBuffer(C->command_queue(),
                                           _value,
                                           CL_TRUE,
-                                          i * vars->typeToBytes(type()),
-                                          vars->typeToBytes(type()),
+                                          i * Variables::typeToBytes(type()),
+                                          Variables::typeToBytes(type()),
                                           ptr,
                                           0,
                                           NULL,
@@ -1715,7 +1714,7 @@ size_t Variables::allocatedMemory(){
     return allocated_mem;
 }
 
-size_t Variables::typeToBytes(const char* type) const
+size_t Variables::typeToBytes(const char* type)
 {
     unsigned int n = typeToN(type);
     size_t type_size = 0;
@@ -1744,7 +1743,7 @@ size_t Variables::typeToBytes(const char* type) const
     return n * type_size;
 }
 
-unsigned int Variables::typeToN(const char* type) const
+unsigned int Variables::typeToN(const char* type)
 {
     unsigned int n = 1;
     if(strstr(type, "vec2")) {

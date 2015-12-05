@@ -60,9 +60,6 @@ UnSort::~UnSort()
 
 bool UnSort::setup()
 {
-    CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables *vars = C->variables();
-
     if(variables()){
         return true;
     }
@@ -72,7 +69,7 @@ bool UnSort::setup()
 
     _id_input = *(cl_mem*)_id_var->get();
     _input = *(cl_mem*)_var->get();
-    _n = _id_var->size() / vars->typeToBytes(_id_var->type());
+    _n = _id_var->size() / InputOutput::Variables::typeToBytes(_id_var->type());
     if(setupOpenCL())
         return true;
     return false;
@@ -168,10 +165,9 @@ bool UnSort::setupMem()
     size_t len_id, len_var;
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables *vars = C->variables();
 
-    len_id = _id_var->size() / vars->typeToBytes(_id_var->type());
-    len_var = _var->size() / vars->typeToBytes(_var->type());
+    len_id = _id_var->size() / InputOutput::Variables::typeToBytes(_id_var->type());
+    len_var = _var->size() / InputOutput::Variables::typeToBytes(_var->type());
     if(len_id > len_var){
         sprintf(msg,
                 "Wrong variable length in the tool \"%s\".\n",
@@ -192,7 +188,7 @@ bool UnSort::setupMem()
 
     _output = clCreateBuffer(C->context(),
                              CL_MEM_WRITE_ONLY,
-                             len_id * vars->typeToBytes(_var->type()),
+                             len_id * InputOutput::Variables::typeToBytes(_var->type()),
                              NULL,
                                &err_code);
     if(err_code != CL_SUCCESS){
@@ -202,7 +198,7 @@ bool UnSort::setupMem()
         S->addMessageF(3, msg);
         S->printOpenCLError(err_code);
     }
-    allocatedMemory(len_id * vars->typeToBytes(_var->type()));
+    allocatedMemory(len_id * InputOutput::Variables::typeToBytes(_var->type()));
 
     return false;
 }

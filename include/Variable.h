@@ -792,7 +792,7 @@ public:
     /** Get the array size.
      * @return Array allocated memory (in bytes)
      * @note In order to get the length of the array the command
-     * size() / typesize() can be used
+     * size() / Variables::typeToBytes(type()) can be used
      */
     size_t size() const;
 
@@ -923,13 +923,13 @@ public:
      * @param type Type name.
      * @return Type size in bytes, 0 if the type is not recognized.
      */
-    size_t typeToBytes(const char* type) const;
+    static size_t typeToBytes(const char* type);
 
     /** Get the number of components of a type name.
      * @param type Type name.
      * @return Number of components (1 for not recognized types).
      */
-    unsigned int typeToN(const char* type) const;
+    static unsigned int typeToN(const char* type);
 
     /** Get if two types strings are the same one.
      * @param type_a First type name.

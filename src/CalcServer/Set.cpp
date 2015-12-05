@@ -64,8 +64,6 @@ bool Set::setup()
 {
     char msg[1024];
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-    CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables *vars = C->variables();
 
     sprintf(msg,
             "Loading the tool \"%s\"...\n",
@@ -77,7 +75,7 @@ bool Set::setup()
     }
 
     _input = *(cl_mem*)_var->get();
-    _n = _var->size() / vars->typeToBytes(_var->type());
+    _n = _var->size() / InputOutput::Variables::typeToBytes(_var->type());
     if(setupOpenCL())
         return true;
     return false;

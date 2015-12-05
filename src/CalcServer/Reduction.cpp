@@ -86,8 +86,6 @@ bool Reduction::setup()
 {
     char msg[1024];
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-    CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables *vars = C->variables();
 
     sprintf(msg,
             "Loading the tool \"%s\"...\n",
@@ -100,7 +98,8 @@ bool Reduction::setup()
 
     _mems.push_back(*(cl_mem*)_input_var->get());
     _input = *(cl_mem*)_input_var->get();
-    size_t n = _input_var->size() / vars->typeToBytes(_input_var->type());
+    size_t n = _input_var->size() / InputOutput::Variables::typeToBytes(
+        _input_var->type());
     _n.push_back(n);
     if(setupOpenCL())
         return true;
