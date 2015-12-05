@@ -1338,7 +1338,7 @@ bool State::writeVariables(xercesc::DOMDocument* doc,
         // Array variable
         if(strstr(type, "*")){
             size_t length =
-                ((ArrayVariable*)var)->size() / ((ArrayVariable*)var)->typesize();
+                ((ArrayVariable*)var)->size() / Variables::typeToBytes(var->type());
             char length_txt[16];
             sprintf(length_txt, "%lu", length);
             s_elem->setAttribute(xmlS("length"), xmlS(length_txt));
