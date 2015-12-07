@@ -29,6 +29,7 @@
 #                                                                             *
 #******************************************************************************
 
+import math
 import sys
 import os
 from os import path
@@ -125,6 +126,12 @@ class FigureController(FigureCanvas):
         e = data[1]
         e_ave = data[2]
         e_var = data[3]
+        # Clear nan values
+        for i in range(len(e_var)):
+            if math.isnan(e_ave[i]):
+                e_ave[i] = 0.0
+            if math.isnan(e_var[i]):
+                e_var[i] = 0.0
         e_max = [e_ave[i] + e_var[i] for i in range(len(e_ave))]
         e_min = [max(e_ave[i] - e_var[i], 0.0) for i in range(len(e_ave))]
         self.line.set_data(t, e)
@@ -133,8 +140,8 @@ class FigureController(FigureCanvas):
         self.lmax.set_data(t, e_max)
 
         self.ax.set_xlim(0, t[-1])
-        ymax = max(e_max[2:])
-        ymin = min(e_min[2:])
+        ymax = max(e_max)
+        ymin = min(e_min)
         dy = ymax - ymin
         self.ax.set_ylim(ymin - 0.1 * dy, ymax + 0.1 * dy)
 
