@@ -69,6 +69,6 @@ __kernel void main(const __global int* imove,
 
     grad_p[i] /= shepard_i;
     lap_u[i] /= shepard_i;
-    // Following line is a problem for the free surface
+    // Following line is causing problems at the free surface
     // div_u[i] /= shepard_i;
 }

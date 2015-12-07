@@ -100,7 +100,7 @@ __kernel void main(const __global int* imove,
         }
         {
             const float w_ij = kernelW(q) * CONW * m[j] / rho[j];
-            _P_ += (p[j] - dot(g.XYZ, r_ij)) * w_ij;
+            _P_ += (p[j] - rho[i] * dot(g.XYZ, r_ij)) * w_ij;
         }
     }END_LOOP_OVER_NEIGHS()
 

@@ -115,11 +115,11 @@ In the sensors the values of density, pressure and velocity are interpolated.
         <Tool action="add" type="copy" name="Backup drhodt" in="drhodt" out="drhodt_in"/>
 
         <!-- Particles interactions -->
+        <Tool action="add" type="set" name="Reinit shepard" in="shepard" value="0.f"/>
         <Tool action="add" type="set" name="Reinit grad_p" in="grad_p" value="VEC_ZERO"/>
         <Tool action="add" type="set" name="Reinit lap_p" in="lap_p" value="0.f"/>
         <Tool action="add" type="set" name="Reinit div_u" in="div_u" value="0.f"/>
         <Tool action="add" type="set" name="Reinit lap_u" in="lap_u" value="VEC_ZERO"/>
-        <Tool action="add" type="set" name="Reinit shepard" in="shepard" value="0.f"/>
 
         <Tool action="add" type="kernel" name="Shepard" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Shepard.cl"/>
         <Tool action="add" type="kernel" name="Interactions" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Interactions.cl"/>
