@@ -16,6 +16,13 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Set all the components of an array with the desired value.
+ * (See Aqua::CalcServer::Set for details)
+ * @note Hardcoded versions of the files CalcServer/Set.cl.in and
+ * CalcServer/Set.hcl.in are internally included as a text array.
+ */
+
 #include <stdlib.h>
 #include <math.h>
 #include <vector>
@@ -28,8 +35,10 @@
 
 namespace Aqua{ namespace CalcServer{
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #include "CalcServer/Set.hcl"
 #include "CalcServer/Set.cl"
+#endif
 const char* SET_INC = (const char*)Set_hcl_in;
 unsigned int SET_INC_LEN = Set_hcl_in_len;
 const char* SET_SRC = (const char*)Set_cl_in;

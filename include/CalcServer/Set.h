@@ -16,6 +16,13 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Set all the components of an array with the desired value.
+ * (See Aqua::CalcServer::Set for details)
+ * @note Hardcoded versions of the files CalcServer/Set.cl.in and
+ * CalcServer/Set.hcl.in are internally included as a text array.
+ */
+
 #ifndef SET_H_INCLUDED
 #define SET_H_INCLUDED
 

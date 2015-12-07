@@ -16,6 +16,14 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Methods to perform a radix sort using the GPU (or any device
+ * supported by OpenCL).
+ * (See Aqua::CalcServer::RadixSort for details)
+ * @note Hardcoded versions of the files CalcServer/RadixSort.cl.in and
+ * CalcServer/RadixSort.hcl.in are internally included as a text array.
+ */
+
 #include <limits.h>
 #include <CalcServer/RadixSort.h>
 #include <ScreenManager.h>
@@ -23,8 +31,10 @@
 
 namespace Aqua{ namespace CalcServer{
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #include "CalcServer/RadixSort.hcl"
 #include "CalcServer/RadixSort.cl"
+#endif
 const char* RADIXSORT_INC = (const char*)RadixSort_hcl_in;
 unsigned int RADIXSORT_INC_LEN = RadixSort_hcl_in_len;
 const char* RADIXSORT_SRC = (const char*)RadixSort_cl_in;

@@ -16,6 +16,10 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Header to be inserted into CalcServer/LinkList.cl.in file.
+ */
+
 #define vec2 float2
 #define vec3 float3
 #define vec4 float4

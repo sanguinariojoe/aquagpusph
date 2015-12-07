@@ -16,6 +16,12 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Array constant value set OpenCL methods.
+ * (See Aqua::CalcServer::Set for details)
+ * @note The header CalcServer/Set.hcl.in is automatically appended.
+ */
+
 /** Variable constant value set.
  * @param var Input array to be set.
  * @param N Number of elements into var.

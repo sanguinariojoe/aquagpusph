@@ -16,6 +16,12 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Unsorting arrays OpenCL methods.
+ * (See Aqua::CalcServer::UnSort for details)
+ * @note The header CalcServer/UnSort.hcl.in is automatically appended.
+ */
+
 /** Unsort a desired variable.
  * @param id Original id of each particle.
  * @param input Input unsorted array

@@ -16,14 +16,23 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief link-list based neighbours location algorithm.
+ * (See Aqua::CalcServer::LinkList for details)
+ * @note Hardcoded versions of the files CalcServer/LinkList.cl.in and
+ * CalcServer/LinkList.hcl.in are internally included as a text array.
+ */
+
 #include <CalcServer/LinkList.h>
 #include <CalcServer.h>
 #include <ScreenManager.h>
 
 namespace Aqua{ namespace CalcServer{
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #include "CalcServer/LinkList.hcl"
 #include "CalcServer/LinkList.cl"
+#endif
 const char* LINKLIST_INC = (const char*)LinkList_hcl_in;
 unsigned int LINKLIST_INC_LEN = LinkList_hcl_in_len;
 const char* LINKLIST_SRC = (const char*)LinkList_cl_in;

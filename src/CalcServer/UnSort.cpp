@@ -16,6 +16,13 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief UnSort Recover the original id of each particle.
+ * (See Aqua::CalcServer::UnSort for details)
+ * @note Hardcoded versions of the files CalcServer/UnSort.cl.in and
+ * CalcServer/UnSort.hcl.in are internally included as a text array.
+ */
+
 #include <stdlib.h>
 #include <math.h>
 #include <vector>
@@ -27,8 +34,10 @@
 
 namespace Aqua{ namespace CalcServer{
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #include "CalcServer/UnSort.hcl"
 #include "CalcServer/UnSort.cl"
+#endif
 const char* UNSORT_INC = (const char*)UnSort_hcl_in;
 unsigned int UNSORT_INC_LEN = UnSort_hcl_in_len;
 const char* UNSORT_SRC = (const char*)UnSort_cl_in;

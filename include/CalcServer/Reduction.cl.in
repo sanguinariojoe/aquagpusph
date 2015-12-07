@@ -16,6 +16,12 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Reduction OpenCL methods.
+ * (See Aqua::CalcServer::Reduction for details)
+ * @note The header CalcServer/Reduction.hcl.in is automatically appended.
+ */
+
 /** Reduction step. The objective of each step is obtain only one reduced
  * value from each work group.
  * You can call this kernel recursively until only one work group will be

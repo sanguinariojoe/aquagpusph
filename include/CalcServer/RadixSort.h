@@ -16,6 +16,14 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Methods to perform a radix sort using the GPU (or any device
+ * supported by OpenCL).
+ * (See Aqua::CalcServer::RadixSort for details)
+ * @note Hardcoded versions of the files CalcServer/RadixSort.cl.in and
+ * CalcServer/RadixSort.hcl.in are internally included as a text array.
+ */
+
 #ifndef RADIXSORT_H_INCLUDED
 #define RADIXSORT_H_INCLUDED
 
@@ -87,6 +95,8 @@ namespace Aqua{ namespace CalcServer{
  *   -# Permut the variables.
  * To learn more about this code, please see also
  * http://code.google.com/p/ocl-radix-sort/updates/list.
+ * @note Hardcoded versions of the files CalcServer/RadixSort.cl.in and
+ * CalcServer/RadixSort.hcl.in are internally included as a text array.
  */
 class RadixSort : public Aqua::CalcServer::Tool
 {

@@ -16,6 +16,12 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Radix sort OpenCL methods.
+ * (See Aqua::CalcServer::RadixSort for details)
+ * @note The header CalcServer/RadixSort.hcl.in is automatically appended.
+ */
+
 /** Initializes the permutations assuming that the keys are sorted.
  * @param perms Initial permutations (null)
  * @param n Number of keys.

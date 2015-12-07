@@ -16,6 +16,13 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief UnSort Recover the original id of each particle.
+ * (See Aqua::CalcServer::UnSort for details)
+ * @note Hardcoded versions of the files CalcServer/UnSort.cl.in and
+ * CalcServer/UnSort.hcl.in are internally included as a text array.
+ */
+
 #ifndef UNSORT_H_INCLUDED
 #define UNSORT_H_INCLUDED
 

@@ -16,6 +16,12 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief LinkList OpenCL methods.
+ * (See Aqua::CalcServer::LinkList for details)
+ * @note The header CalcServer/LinkList.hcl.in is automatically appended.
+ */
+
 /** Set all the cells as empty (i.e. the head of chain of the cell is a
  * particle that does not exist).
  * @param ihoc Head of chain of each cell.

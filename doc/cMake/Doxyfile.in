@@ -567,11 +567,13 @@ FILE_PATTERNS          = *.h \
                          *.hpp \
                          *.hxx \
                          *.hcl \
+                         *.hcl.in \
                          *.inl \
                          *.c \
                          *.cpp \
                          *.cxx \
                          *.cl \
+                         *.cl.in \
                          *.py \
                          *.dox
 
@@ -1241,7 +1243,8 @@ INCLUDE_FILE_PATTERNS  =
 # instead of the = operator.
 
 PREDEFINED             = HAVE_3D \
-                         __DELTA_SPH__
+                         __DELTA_SPH__ \
+                         DOXYGEN_SHOULD_SKIP_THIS
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then
 # this tag can be used to specify a list of macro names that should be expanded.

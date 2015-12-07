@@ -16,6 +16,13 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Reductions, like scans, prefix sums, maximum or minimum, etc...
+ * (See Aqua::CalcServer::Reduction for details)
+ * @note Hardcoded versions of the files CalcServer/Reduction.cl.in and
+ * CalcServer/Reduction.hcl.in are internally included as a text array.
+ */
+
 #include <stdlib.h>
 #include <math.h>
 #include <vector>
@@ -27,8 +34,10 @@
 
 namespace Aqua{ namespace CalcServer{
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #include "CalcServer/Reduction.hcl"
 #include "CalcServer/Reduction.cl"
+#endif
 const char* REDUCTION_INC = (const char*)Reduction_hcl_in;
 unsigned int REDUCTION_INC_LEN = Reduction_hcl_in_len;
 const char* REDUCTION_SRC = (const char*)Reduction_cl_in;

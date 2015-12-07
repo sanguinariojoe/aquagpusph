@@ -19,6 +19,8 @@
 /** @file
  * @brief Reductions, like scans, prefix sums, maximum or minimum, etc...
  * (See Aqua::CalcServer::Reduction for details)
+ * @note Hardcoded versions of the files CalcServer/Reduction.cl.in and
+ * CalcServer/Reduction.hcl.in are internally included as a text array.
  */
 
 #ifndef REDUCTION_H_INCLUDED
@@ -34,6 +36,8 @@ namespace Aqua{ namespace CalcServer{
 /** @class Reduction Reduction.h CalcServer/Reduction.h
  * @brief Reductions, like scans, prefix sums, maximum or minimum, etc...
  * @see Reduction.cl
+ * @note Hardcoded versions of the files CalcServer/Reduction.cl.in and
+ * CalcServer/Reduction.hcl.in are internally included as a text array.
  */
 class Reduction : public Aqua::CalcServer::Tool
 {

@@ -16,6 +16,13 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Complex tool to perform the link-list based on the "pos" array.
+ * (See Aqua::CalcServer::LinkList for details)
+ * @note Hardcoded versions of the files CalcServer/LinkList.cl.in and
+ * CalcServer/LinkList.hcl.in are internally included as a text array.
+ */
+
 #ifndef LINKLIST_H_INCLUDED
 #define LINKLIST_H_INCLUDED
 
@@ -35,6 +42,8 @@ namespace Aqua{ namespace CalcServer{
  *   -# "ihoc" array allocation
  *   -# "ihoc" and "icell" calculations
  *   -# Radix sort of "icell", computing permutation array "id_sorted" and "id_unsorted" as well.
+ * @note Hardcoded versions of the files CalcServer/LinkList.cl.in and
+ * CalcServer/LinkList.hcl.in are internally included as a text array.
  */
 class LinkList : public Aqua::CalcServer::Tool
 {
