@@ -32,32 +32,6 @@
 namespace Aqua{
 namespace InputOutput{
 
-/** @class Energy Energy.h InputOutput/Energy.h
- * @brief Fluid energy report saver.
- *
- * In this report the fluid energy components are saved.
- *
- * This report is a plain text file.
- * Each line corresponds to a different time instant.
- * At each line the following fields are saved, separated by tabulators:
- *   -# Potential energy: \f$ E_{pot} = - \sum_i m_i
-     \mathbf{g} \cdot \mathbf{r}_i \f$.
- *   -# Kinetic energy: \f$ E_{kin} = \sum_i \frac{1}{2} m_i
-     \vert \mathbf{u}_i \vert^2 \f$.
- *   -# Internal energy: \f$ U = \int_0^t \sum_i \frac{p_i}{\rho_i^2}
-     \left(
-        \frac{\mathrm{d} \rho_i}{\mathrm{d} t}
-        - \left. \frac{\mathrm{d} \rho_i}{\mathrm{d} t} \right\vert_F
-     \right) m_i \mathrm{d}t \f$.
- *   -# Enthalpy: \f$ H = \int_0^t \sum_i \frac{p_i}{\rho_i^2}
-     \frac{\mathrm{d} \rho_i}{\mathrm{d} t} m_i \mathrm{d}t \f$.
- *   -# Entropy: \f$ TS = U - H \f$.
- *   -# Total energy: \f$ E = U + E_{kin} \f$.
- *
- * The output file will be the first non existent file called `"energy.%d.dat"`,
- * where `"%d"` is replaced by a unsigned integer.
- */
-
 /** @class Log Log.h InputOutput/Log.h
  * @brief Log file saver.
  *

@@ -869,7 +869,7 @@ private:
 // Variables manager
 // ---------------------------------------------------------------------------
 
-/** @class VariableManager VariableManager.h VariableManager.h
+/** @class Variables Variables.h Variables.h
  * @brief Variables manager, which can interpret the types on the fly.
  */
 class Variables
