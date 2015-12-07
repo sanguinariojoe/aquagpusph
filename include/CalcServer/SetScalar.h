@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Set a scalar variable.
+ * (See Aqua::CalcServer::SetScalar for details)
+ */
+
 #ifndef SETSCALAR_H_INCLUDED
 #define SETSCALAR_H_INCLUDED
 

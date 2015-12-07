@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Array copy tool.
+ * (see Aqua::CalcServer::Copy for details)
+ */
+
 #ifndef COPY_H_INCLUDED
 #define COPY_H_INCLUDED
 

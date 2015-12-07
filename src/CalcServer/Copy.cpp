@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Array copy tool.
+ * (see Aqua::CalcServer::Copy for details)
+ */
+
 #include <stdlib.h>
 #include <math.h>
 #include <vector>

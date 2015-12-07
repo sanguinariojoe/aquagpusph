@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief OpenCL kernel kernel based tool.
+ * (see Aqua::CalcServer::Kernel for details)
+ */
+
 #ifndef KERNEL_H_INCLUDED
 #define KERNEL_H_INCLUDED
 

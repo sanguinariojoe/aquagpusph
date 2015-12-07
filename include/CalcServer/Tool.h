@@ -16,6 +16,12 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Tools virtual environment to allow the user to define/manipulate the
+ * tools used to carry out the simulation.
+ * (see Aqua::CalcServer::Tool)
+ */
+
 #ifndef TOOL_H_INCLUDED
 #define TOOL_H_INCLUDED
 

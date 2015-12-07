@@ -16,6 +16,12 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief Virtual variables environment to allow the user define/manipulate
+ * the variables used in the simulation externally.
+ * (see Aqua::InpuOutput::Variable and Aqua::InpuOutput::Variables)
+ */
+
 #include <Variable.h>
 #include <AuxiliarMethods.h>
 #include <ScreenManager.h>

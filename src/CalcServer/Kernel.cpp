@@ -16,6 +16,11 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @file
+ * @brief OpenCL kernel kernel based tool.
+ * (see Aqua::CalcServer::Kernel for details)
+ */
+
 #include <CalcServer/Kernel.h>
 #include <CalcServer.h>
 #include <ScreenManager.h>
@@ -396,7 +401,8 @@ CXChildVisitResult functionDeclVisitor(CXCursor cursor,
                                        CXCursor parent,
                                        CXClientData client_data);
 
-/** @struct Data structure to store the variables requested and a flag
+/** @struct clientData
+ * @brief Data structure to store the variables requested and a flag
  * to know if the entry point has been found.
  */
 struct clientData{
