@@ -54,7 +54,8 @@
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  * @see SensorsRenormalization.cl
  */
-__kernel void main(const __global int* imove,
+__kernel void main(const __global uint* iset,
+                   const __global int* imove,
                    const __global vec* r,
                    const __global float* m,
                    const __global float* rho,
@@ -63,6 +64,7 @@ __kernel void main(const __global int* imove,
                    const __global uint *icell,
                    const __global uint *ihoc,
                    // Simulation data
+                   __constant float* refd,
                    uint N,
                    uivec4 n_cells,
                    vec g)
@@ -76,6 +78,7 @@ __kernel void main(const __global int* imove,
     }
 
     const vec_xyz r_i = r[i].XYZ;
+    const float rdenf = refd[iset[i]];
 
     // Initialize the output
     #ifndef LOCAL_MEM_SIZE
@@ -100,7 +103,7 @@ __kernel void main(const __global int* imove,
         }
         {
             const float w_ij = kernelW(q) * CONW * m[j] / rho[j];
-            _P_ += (p[j] - rho[i] * dot(g.XYZ, r_ij)) * w_ij;
+            _P_ += (p[j] - rdenf * dot(g.XYZ, r_ij)) * w_ij;
         }
     }END_LOOP_OVER_NEIGHS()
 
