@@ -126,7 +126,7 @@ class FigureController(FigureCanvas):
         e_ave = data[2]
         e_var = data[3]
         e_max = [e_ave[i] + e_var[i] for i in range(len(e_ave))]
-        e_min = [e_ave[i] - e_var[i] for i in range(len(e_ave))]
+        e_min = [max(e_ave[i] - e_var[i], 0.0) for i in range(len(e_ave))]
         self.line.set_data(t, e)
         self.lave.set_data(t, e_ave)
         self.lmin.set_data(t, e_min)
