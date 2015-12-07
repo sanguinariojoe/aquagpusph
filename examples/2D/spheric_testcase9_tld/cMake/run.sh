@@ -15,7 +15,7 @@ elif [[ $1 == "--plot" ]]; then
     python @EXAMPLE_DEST_DIR@/plot_$2.py
 else
     echo ""
-    echo "Usage: run.sh [--run/--plot p/--plot h]"
+    echo "Usage: run.sh [--run/--plot m/--plot t]"
     echo ""
     echo "run.sh --run"
     echo "    Runs the simulation. You can stop simulation pressing the 'c' key"
