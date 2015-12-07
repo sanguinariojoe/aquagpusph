@@ -371,15 +371,15 @@ bool Kernel::compile(const char* entry_point,
     return false;
 }
 
-/** Main traverse method, which will parse all tokens except functions
+/** @brief Main traverse method, which will parse all tokens except functions
  * declarations.
- * @param the cursor whose child may be visited. All kinds of cursors can be
- * visited, including invalid cursors (which, by definition, have no
+ * @param cursor the cursor whose child may be visited. All kinds of cursors can
+ * be visited, including invalid cursors (which, by definition, have no
  * children).
- * @param the visitor function that will be invoked for each child of
+ * @param parent the visitor function that will be invoked for each child of
  * parent.
- * @param pointer data supplied by the client, which will be passed to the
- * visitor each time it is invoked.
+ * @param client_data pointer data supplied by the client, which will be passed
+ * to the visitor each time it is invoked.
  * @return CXChildVisit_Continue if a function declaration is found,
  * CXChildVisit_Recurse otherwise.
  */
@@ -388,13 +388,13 @@ CXChildVisitResult cursorVisitor(CXCursor cursor,
                                  CXClientData client_data);
 
 /** Method traverse method, which will parse the input arguments.
- * @param the cursor whose child may be visited. All kinds of cursors can be
- * visited, including invalid cursors (which, by definition, have no
+ * @param cursor the cursor whose child may be visited. All kinds of cursors can
+ * be visited, including invalid cursors (which, by definition, have no
  * children).
- * @param the visitor function that will be invoked for each child of
+ * @param parent the visitor function that will be invoked for each child of
  * parent.
- * @param pointer data supplied by the client, which will be passed to the
- * visitor each time it is invoked.
+ * @param client_data pointer data supplied by the client, which will be passed
+ * to the visitor each time it is invoked.
  * @return CXChildVisit_Continue.
  */
 CXChildVisitResult functionDeclVisitor(CXCursor cursor,

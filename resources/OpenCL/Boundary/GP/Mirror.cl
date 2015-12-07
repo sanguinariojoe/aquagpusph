@@ -44,7 +44,7 @@
  * @param associations Mirroring particles.
  * @param normal Normal \f$ \mathbf{n} \f$.
  * @param r Position \f$ \mathbf{r} \f$.
- * @param icell Cell where each particle is located.
+ * @param gp_icell Cell where each particle is located.
  * @param N Number of particles.
  * @param r_min Minimum position of a particle
  * @param n_cells Number of cells in each direction

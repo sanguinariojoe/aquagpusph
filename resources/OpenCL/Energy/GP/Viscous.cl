@@ -66,7 +66,6 @@
  * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
  * @param n_cells Number of cells in each direction
- * @param dr Distance between particles \f$ \Delta r \f$.
  * @param GP_energy_iset Ghost particles set to be considered.
  */
 __kernel void main(__global float* GP_energy_delapudt,

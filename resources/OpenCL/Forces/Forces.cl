@@ -47,6 +47,7 @@
  * @param dudt Velocity rate of change
  * \f$ \frac{d \mathbf{u}}{d t} \f$.
  * @param m Mass \f$ m \f$.
+ * @param N Number of particles.
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  * @param forces_r Point with respect the moments are computed
  * \f$ \mathbf{r}_0 \f$.

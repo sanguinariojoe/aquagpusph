@@ -58,7 +58,6 @@
  * @param refd Density of reference \f$ \rho_0 \f$ (one per set of particles)
  * @param grad_p Pressure gradient \f$ \frac{\nabla p}{rho} \f$.
  * @param div_u Velocity divergence \f$ \rho \nabla \cdot \mathbf{u} \f$.
- * @param lap_p Pressure laplacian \f$ \Delta p \f$.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.

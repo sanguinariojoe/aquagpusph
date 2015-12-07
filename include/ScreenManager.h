@@ -80,12 +80,12 @@ public:
      *
      * This method is not redirecting the data to the log file.
      * In case that ncurses is active:
-     *    - Tabulators '\t' are interpreted as 1 blank space
-     *    - Line breaks '\n' are intepreted as line breaks
+     *    - Tabulators '\\t' are interpreted as 1 blank space
+     *    - Line breaks '\\n' are intepreted as line breaks
      *    - It is fitting the message replacing spaces by lines break
      * Otherwise:
      *    - stdout will be used
-     *    - A line break '\n' is appended if it is not detected at the end
+     *    - A line break '\\n' is appended if it is not detected at the end
      *
      * @param msg Message to print in the screen.
      * @param color Color name. Valid colors are:

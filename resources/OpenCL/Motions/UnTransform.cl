@@ -58,6 +58,7 @@
  * where the inverse rotation matrices are obtained just using
  * \f$ -\phi, -\theta, -\psi \f$ angles.
  *
+ * @param iset Set of particles index.
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.

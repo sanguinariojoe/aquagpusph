@@ -30,11 +30,11 @@
  *
  * In this approach the following operation is performed for the boundary
  * elements:
- * \f$$ f_a = p_a \, \mathbf{n}_a \, s_a \f$$
+ * \f[ f_a = p_a \, \mathbf{n}_a \, s_a \f]
  * where \f$ s_a \f$ is the area of the element, stored in the masses array.
  * The moment is computed therefore as:
- * \f$$ m_a = p_a \, \mathbf{n}_a \, s_a \times \left(
- *   \mathbf{r}_a - \mathbf{r}_0 \right) \f$$
+ * \f[ m_a = p_a \, \mathbf{n}_a \, s_a \times \left(
+ *   \mathbf{r}_a - \mathbf{r}_0 \right) \f]
  * becoming \f$ \mathbf{r}_0 \f$ the reference point where the moment should be
  * computed.
  *
@@ -50,6 +50,7 @@
  * @param normal Normal \f$ \mathbf{n} \f$.
  * @param p Pressure \f$ p \f$.
  * @param m Mass \f$ m \f$.
+ * @param N Number of particles.
  * @param pressureForces_iset Particles set to be computed.
  * @param pressureForces_r Point with respect the moments are computed
  * \f$ \mathbf{r}_0 \f$.

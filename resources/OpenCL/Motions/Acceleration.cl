@@ -57,12 +57,13 @@
  *   -# Then the vector is rotated using the rotation matrix.
  *   -# Finally the linear acceleration, \f$ \ddot \mathbf{cor} \f$ is added.
  *
+ * @param iset Set of particles index.
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r} \f$.
- * @param u Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
+ * @param dudt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
  * @param N Number of particles.
  * @param motion_iset Set of particles affected.
  * @param motion_r Center of rotation.

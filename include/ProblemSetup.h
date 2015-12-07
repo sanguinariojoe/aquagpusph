@@ -271,7 +271,6 @@ public:
          * which requires the number of cells).
          * @param value Variable value, NULL for arrays. It is optional for
          * scalar variables.
-         * @param save true if the variable should be saved, false otherwise.
          */
         void registerVariable(const char* name,
                               const char* type,

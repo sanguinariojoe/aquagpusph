@@ -50,7 +50,9 @@ public:
      * The fields are separated by commas or semicolons, and the spaces are just
      * ignored.
      * The semicolons will also force a line break in the report.
-     * @param ipf Time steps per report computation.
+     * @param color Output color.
+     * @param bold true if the text should be highlighted as bold text, false
+     * otherwise.
      */
     Screen(const char* tool_name,
            const char* fields,

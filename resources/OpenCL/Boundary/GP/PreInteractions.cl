@@ -58,6 +58,7 @@
  * @param normal Normal \f$ \mathbf{n} \f$.
  * @param dudt Velocity rate of change
  * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n+1} \f$.
+ * @param lap_u Velocity laplacian \f$ \frac{\Delta \mathbf{u}}{rho} \f$.
  * @param gp_p Interpolated pressure in the mirrored position \f$ p \f$.
  * @param gp_u Interpolated velocity in the mirrored position \f$ \mathbf{u} \f$.
  * @param rho Density \f$ \rho \f$.

@@ -73,8 +73,7 @@
  * @param rho_in Density \f$ \rho_{n+1/2} \f$.
  * @param drhodt_in Density rate of change
  * \f$ \left. \frac{d \rho}{d t} \right\vert_{n+1/2} \f$.
- * @param mass Mass \f$ m_{n+1} \f$.
- * @param press Pressure \f$ p \f$.
+ * @param p_in Pressure \f$ \left. p \right\vert_{n+1/2} \f$.
  * @param gamma Eq. of state exponent \f$ \gamma \f$.
  * @param refd Density of reference of the fluid \f$ \rho_0 \f$.
  * @param N Number of particles.

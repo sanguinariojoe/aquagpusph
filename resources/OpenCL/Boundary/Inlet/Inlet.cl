@@ -34,6 +34,7 @@
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r} \f$.
+ * @param u Velocity \f$ \mathbf{u} \f$.
  * @param dudt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
  * @param drhodt Density rate of change \f$ \frac{d \rho}{d t} \f$.
  * @param N Number of particles.

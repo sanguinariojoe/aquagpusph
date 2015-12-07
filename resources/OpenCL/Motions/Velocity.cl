@@ -57,6 +57,7 @@
  *   -# Then the vector is rotated using the rotation matrix.
  *   -# Finally the linear velocity, \f$ \dot \mathbf{cor} \f$ is added.
  *
+ * @param iset Set of particles index.
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.

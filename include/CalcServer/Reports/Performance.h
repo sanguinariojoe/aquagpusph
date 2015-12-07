@@ -56,6 +56,7 @@ public:
      *    - "cyan"
      * @param bold false if the report should not be highlighted with bolded
      * font, true otherwise.
+     * @param output_file Path of the output file.
      */
     Performance(const char* tool_name,
                 const char* color="white",
