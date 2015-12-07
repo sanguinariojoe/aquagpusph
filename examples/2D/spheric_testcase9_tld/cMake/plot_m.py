@@ -75,7 +75,7 @@ class FigureController(FigureCanvas):
                                   linewidth=1.0)
         # Set some options
         self.ax.grid()
-        self.ax.legend(loc='best')
+        self.ax.legend(loc='upper left')
         self.ax.set_xlim(0, 0.1)
         self.ax.set_ylim(-0.1, 0.1)
         self.ax.set_autoscale_on(False)
@@ -116,7 +116,7 @@ class FigureController(FigureCanvas):
         lines = f.readlines()
         f.close()
         data = []
-        for l in lines:
+        for l in lines[:-1]:  # Skip the last line, which may be unready
             l = l.strip()
             fields = l.split('\t')
             try:

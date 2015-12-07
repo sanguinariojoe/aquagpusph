@@ -103,7 +103,7 @@ class FigureController(FigureCanvas):
         lines = f.readlines()
         f.close()
         data = []
-        for l in lines:
+        for l in lines[:-1]:  # Skip the last line, which may be unready
             l = l.strip()
             l = l.replace('\t', ' ')
             while l.find('  ') != -1:
