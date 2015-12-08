@@ -79,9 +79,9 @@ __kernel void main(__global float* inlet_energy_dekindt,
         return;
     }
 
-    inlet_energy_depotdt[i] = -fluid_energy_depotdt[i];
+    inlet_energy_depotdt[i] = 0.f;
     inlet_energy_dekindt[i] = -fluid_energy_dekindt[i];
-    inlet_energy_decomdt[i] = -fluid_energy_decomdt[i];
+    inlet_energy_decomdt[i] = fluid_energy_decomdt[i];
     fluid_energy_depotdt[i] = 0.f;
     fluid_energy_dekindt[i] = 0.f;
     fluid_energy_decomdt[i] = 0.f;

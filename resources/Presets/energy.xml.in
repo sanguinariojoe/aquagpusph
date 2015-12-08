@@ -30,6 +30,11 @@ linear velocity U, you can use the following code snipet:
 
 It should be remarked that the variable energy_dWdt will be reinitializated each
 time step, i.e energy_dWdt = 0.f, right before executing the Energy tool.
+
+Note: energy.xml should be included before inlet.xml and outlet.xml in order to
+exclude the "buffer" particles becoming injected/removing from the system. Doing
+that the energy computed will rightly take into account the effect of the
+inflow/outflow.
 -->
 
 <sphInput>

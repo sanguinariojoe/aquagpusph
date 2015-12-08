@@ -79,9 +79,9 @@ __kernel void main(__global float* outlet_energy_dekindt,
         return;
     }
 
-    outlet_energy_depotdt[i] = -fluid_energy_depotdt[i];
+    outlet_energy_depotdt[i] = 0.f;
     outlet_energy_dekindt[i] = -fluid_energy_dekindt[i];
-    outlet_energy_decomdt[i] = -fluid_energy_decomdt[i];
+    outlet_energy_decomdt[i] = fluid_energy_decomdt[i];
     fluid_energy_depotdt[i] = 0.f;
     fluid_energy_dekindt[i] = 0.f;
     fluid_energy_decomdt[i] = 0.f;
