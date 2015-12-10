@@ -110,7 +110,8 @@ In the sensors the values of density, pressure and velocity are interpolated.
         <Tool action="add" type="copy" name="Backup imove" in="imove" out="imove_in"/>
         <Tool action="add" type="copy" name="Backup normal" in="normal" out="normal_in"/>
         <Tool action="add" type="copy" name="Backup m" in="m" out="m_in"/>
-        <Tool action="add" type="kernel" name="Sort" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Sort.cl"/>
+        <Tool action="add" type="kernel" name="Sort" entry_point="stage1" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Sort.cl"/>
+        <Tool action="add" type="kernel" name="Sort" entry_point="stage2" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Sort.cl"/>
         <Tool action="add" type="copy" name="Backup dudt" in="dudt" out="dudt_in"/>
         <Tool action="add" type="copy" name="Backup drhodt" in="drhodt" out="drhodt_in"/>
 
