@@ -740,6 +740,12 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                     return true;
                 }
                 tool->set("path", xmlAttribute(s_elem, "path"));
+                if(!xmlHasAttribute(s_elem, "entry_point")){
+                    tool->set("entry_point", "entry");
+                }
+                else{
+                    tool->set("entry_point", xmlAttribute(s_elem, "entry_point"));
+                }
                 if(!xmlHasAttribute(s_elem, "n")){
                     tool->set("n", "N");
                 }
