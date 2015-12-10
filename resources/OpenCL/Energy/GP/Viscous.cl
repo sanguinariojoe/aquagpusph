@@ -113,7 +113,7 @@ __kernel void main(__global float* GP_energy_delapudt,
             continue;
         }
         const vec_xyz r_ij = r[j].XYZ - r_i;
-        const float q = fast_length(r_ij) / H;
+        const float q = length(r_ij) / H;
         if(q >= SUPPORT)
         {
             j++;

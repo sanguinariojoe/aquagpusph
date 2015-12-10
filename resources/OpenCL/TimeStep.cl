@@ -50,6 +50,6 @@ __kernel void entry(__global float* dt_var,
     if(i >= N)
         return;
 
-    const float uu = 10.f * fast_length(u[i] + dudt[i] * dt);
+    const float uu = 10.f * length(u[i] + dudt[i] * dt);
     dt_var[i] = max(min(dt, h / uu), dt_min);
 }
