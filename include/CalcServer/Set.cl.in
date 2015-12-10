@@ -26,8 +26,8 @@
  * @param var Input array to be set.
  * @param N Number of elements into var.
  */
-__kernel void main(__global T *var,
-                   unsigned int N)
+__kernel void set(__global T *var,
+                  unsigned int N)
 {
 	unsigned int i = get_global_id(0);
     if(i >= N)

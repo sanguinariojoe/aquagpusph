@@ -28,10 +28,10 @@
  * @param output Output sorted array
  * @param N Number of elements into the variable.
  */
-__kernel void main(const __global unsigned int *id,
-                   const __global T *input,
-                   __global T *output,
-                   unsigned int N)
+__kernel void unsort(const __global unsigned int *id,
+                    const __global T *input,
+                    __global T *output,
+                    unsigned int N)
 {
     unsigned int i = get_global_id(0);
     if(i >= N)

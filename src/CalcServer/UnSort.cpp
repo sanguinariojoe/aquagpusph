@@ -377,7 +377,7 @@ cl_kernel UnSort::compile(const char* source)
         clReleaseProgram(program);
         return NULL;
     }
-    kernel = clCreateKernel(program, "main", &err_code);
+    kernel = clCreateKernel(program, "unsort", &err_code);
     clReleaseProgram(program);
     if(err_code != CL_SUCCESS) {
         S->addMessageF(3, "Failure creating the kernel.\n");

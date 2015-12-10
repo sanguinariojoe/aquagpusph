@@ -467,7 +467,7 @@ cl_kernel Reduction::compile(const char* source, size_t local_work_size)
         clReleaseProgram(program);
         return NULL;
     }
-    kernel = clCreateKernel(program, "main", &err_code);
+    kernel = clCreateKernel(program, "reduction", &err_code);
     clReleaseProgram(program);
     if(err_code != CL_SUCCESS) {
         S->addMessageF(3, "Failure creating the kernel.\n");

@@ -31,10 +31,10 @@
  * @param N Number of input elements.
  * @param lmem local memory address array to store the output data while working.
  */
-__kernel void main(__global T *input,
-                   __global T *output,
-                   unsigned int N,
-                   __local T* lmem )
+__kernel void reduction(__global T *input,
+                        __global T *output,
+                        unsigned int N,
+                        __local T* lmem )
 {
     unsigned int i;
     // Get the global index (to ensure not out of bounds reading operations)
