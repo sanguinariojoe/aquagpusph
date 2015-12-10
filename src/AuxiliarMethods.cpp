@@ -159,7 +159,7 @@ size_t loadKernelFromFile(cl_kernel* kernel, cl_program* program,
     const char *folder = getFolderFromFilePath(path);
     strcat(default_flags, folder);
 
-    strcat(default_flags, " -cl-mad-enable -cl-no-signed-zeros -cl-finite-math-only -cl-fast-relaxed-math ");
+    strcat(default_flags, " -cl-mad-enable -cl-fast-relaxed-math ");
     #ifdef HAVE_3D
         strcat(default_flags, " -DHAVE_3D ");
     #else

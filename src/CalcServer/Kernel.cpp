@@ -177,7 +177,7 @@ bool Kernel::compile(const char* entry_point,
     // Setup the default flags
     flags = new char[1024];
     #ifdef AQUA_DEBUG
-        strcpy(flags, "-g -DDEBUG ");
+        strcpy(flags, "-DDEBUG ");
     #else
         strcpy(flags, "-DNDEBUG ");
     #endif
@@ -185,7 +185,7 @@ bool Kernel::compile(const char* entry_point,
     const char *folder = getFolderFromFilePath(path());
     strcat(flags, folder);
 
-    strcat(flags, " -cl-mad-enable -cl-no-signed-zeros -cl-finite-math-only -cl-fast-relaxed-math ");
+    strcat(flags, " -cl-mad-enable -cl-fast-relaxed-math ");
     #ifdef HAVE_3D
         strcat(flags, " -DHAVE_3D ");
     #else

@@ -411,11 +411,11 @@ cl_kernel Reduction::compile(const char* source, size_t local_work_size)
                 local_work_size);
     }
     #ifdef AQUA_DEBUG
-        strcat(flags, " -g -DDEBUG ");
+        strcat(flags, " -DDEBUG ");
     #else
         strcat(flags, " -DNDEBUG ");
     #endif
-    strcat(flags, " -cl-mad-enable -cl-no-signed-zeros -cl-finite-math-only -cl-fast-relaxed-math");
+    strcat(flags, " -cl-mad-enable -cl-fast-relaxed-math");
     #ifdef HAVE_3D
         strcat(flags, " -DHAVE_3D");
     #else

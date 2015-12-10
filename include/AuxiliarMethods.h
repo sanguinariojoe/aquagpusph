@@ -82,8 +82,6 @@ int round(float n);
  * @note Several compilation flags will be automatically added:
  *  -# -IKERNEL_SRC_PATH (KERNEL_SRC_PATH will be replaced by the path patern @paramname{path})
  *  -# -cl-mad-enable
- *  -# -cl-no-signed-zeros
- *  -# -cl-finite-math-only
  *  -# -cl-fast-relaxed-math
  *  -# -DDEBUG (if AQUA_DEBUG has been defined)
  *  -# -DNDEBUG (if AQUA_DEBUG has not been defined)
