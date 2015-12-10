@@ -31,6 +31,10 @@
 #define uivec3 uint3
 #define uivec4 uint4
 
+#ifndef INFINITY
+    #define INFINITY FLT_MAX
+#endif
+
 /** @def vec
  * @brief Vector of real components.
  *
@@ -73,11 +77,11 @@
 /** @def VEC_ZERO
  * @brief Null #vec, i.e. filled with zero components.
  */
-#define VEC_ZERO (float2)(0.f,0.f)
+#define VEC_ZERO ((float2)(0.f,0.f))
 /** @def VEC_ONE
  * @brief Ones #vec, i.e. filled with one components.
  */
-#define VEC_ONE (float2)(1.f, 1.f)
+#define VEC_ONE ((float2)(1.f, 1.f))
 /** @def VEC_ALL_ONE
  * @brief VEC_ONE.
  */
@@ -85,7 +89,7 @@
 /** @def VEC_INFINITY
  * @brief Infinity #vec, i.e. filled with infinity components.
  */
-#define VEC_INFINITY (float2)(INFINITY, INFINITY)
+#define VEC_INFINITY ((float2)(INFINITY, INFINITY))
 /** @def VEC_ALL_INFINITY
  * @brief VEC_INFINITY.
  */

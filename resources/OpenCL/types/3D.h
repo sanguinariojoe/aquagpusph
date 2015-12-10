@@ -73,24 +73,24 @@
 /** @def VEC_ZERO
  * @brief Null #vec, i.e. filled with zero components.
  */
-#define VEC_ZERO (float4)(0.f,0.f,0.f,0.f)
+#define VEC_ZERO ((float4)(0.f,0.f,0.f,0.f))
 /** @def VEC_ONE
  * @brief Ones #vec, i.e. filled with one components (except the w component).
  */
-#define VEC_ONE (float4)(1.f, 1.f, 1.f, 0.f)
+#define VEC_ONE ((float4)(1.f, 1.f, 1.f, 0.f))
 /** @def VEC_ALL_ONE
  * @brief Ones #vec, i.e. filled with one components.
  */
-#define VEC_ALL_ONE (float4)(1.f, 1.f, 1.f, 1.f)
+#define VEC_ALL_ONE ((float4)(1.f, 1.f, 1.f, 1.f))
 /** @def VEC_INFINITY
  * @brief Infinity #vec, i.e. filled with infinity components (except the w
  * component).
  */
-#define VEC_INFINITY (float4)(INFINITY, INFINITY, INFINITY, 0.f)
+#define VEC_INFINITY ((float4)(INFINITY, INFINITY, INFINITY, 0.f))
 /** @def VEC_ALL_INFINITY
  * @brief Infinity #vec, i.e. filled with infinity components.
  */
-#define VEC_ALL_INFINITY (float4)(INFINITY, INFINITY, INFINITY, INFINITY)
+#define VEC_ALL_INFINITY ((float4)(INFINITY, INFINITY, INFINITY, INFINITY))
 /** @def VEC_NEG_INFINITY
  * @brief -Infinity #vec, i.e. filled with -infinity components (except the w
  * component).

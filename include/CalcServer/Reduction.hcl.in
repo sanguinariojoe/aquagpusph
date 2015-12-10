@@ -38,20 +38,20 @@
     #define vec float2
     #define ivec int2
     #define uivec uint2
-    #define VEC_ZERO (float2)(0.f, 0.f)
-    #define VEC_ONE (float2)(1.f, 1.f)
+    #define VEC_ZERO ((float2)(0.f, 0.f))
+    #define VEC_ONE ((float2)(1.f, 1.f))
     #define VEC_ALL_ONE VEC_ONE
-    #define VEC_INFINITY (float2)(INFINITY, INFINITY)
+    #define VEC_INFINITY ((float2)(INFINITY, INFINITY))
     #define VEC_ALL_INFINITY VEC_INFINITY
 #else
     #define vec float4
     #define ivec int4
     #define uivec uint4
-    #define VEC_ZERO (float4)(0.f, 0.f, 0.f, 0.f)
-    #define VEC_ONE (float4)(1.f, 1.f, 1.f, 0.f)
-    #define VEC_ALL_ONE (float4)(1.f, 1.f, 1.f, 1.f)
-    #define VEC_INFINITY (float4)(INFINITY, INFINITY, INFINITY, 0.f)
-    #define VEC_ALL_INFINITY (float4)(INFINITY, INFINITY, INFINITY, INFINITY)
+    #define VEC_ZERO ((float4)(0.f, 0.f, 0.f, 0.f))
+    #define VEC_ONE ((float4)(1.f, 1.f, 1.f, 0.f))
+    #define VEC_ALL_ONE ((float4)(1.f, 1.f, 1.f, 1.f))
+    #define VEC_INFINITY ((float4)(INFINITY, INFINITY, INFINITY, 0.f))
+    #define VEC_ALL_INFINITY ((float4)(INFINITY, INFINITY, INFINITY, INFINITY))
 #endif
 
 #define VEC_NEG_INFINITY (-VEC_INFINITY)
