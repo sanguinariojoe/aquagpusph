@@ -35,13 +35,13 @@
  * @param h_sensor_x Position of the sensor (h_sensor_y = 0.0).
  * @param dr Distance between particle \f$ \Delta r \f$.
  */
-__kernel void main(const __global int* imove,
-                   const __global vec* r,
-                   __global float *h_sensor_z,
-                   // Simulation data
-                   uint N,
-                   float h_sensor_x,
-                   float dr)
+__kernel void entry(const __global int* imove,
+                    const __global vec* r,
+                    __global float *h_sensor_z,
+                    // Simulation data
+                    uint N,
+                    float h_sensor_x,
+                    float dr)
 {
     const uint i = get_global_id(0);
     if(i >= N)

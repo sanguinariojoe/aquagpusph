@@ -55,18 +55,18 @@
  * @param N Number of particles.
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  */
-__kernel void main(__global float* energy_dekindt,
-                   __global float* energy_depotdt,
-                   __global float* energy_decomdt,
-                   const __global int* imove,
-                   const __global vec* u,
-                   const __global float* rho,
-                   const __global float* m,
-                   const __global float* p,
-                   const __global vec* dudt,
-                   const __global float* drhodt,
-                   unsigned int N,
-                   vec g)
+__kernel void entry(__global float* energy_dekindt,
+                    __global float* energy_depotdt,
+                    __global float* energy_decomdt,
+                    const __global int* imove,
+                    const __global vec* u,
+                    const __global float* rho,
+                    const __global float* m,
+                    const __global float* p,
+                    const __global vec* dudt,
+                    const __global float* drhodt,
+                    unsigned int N,
+                    vec g)
 {
     // find position in global arrays
     unsigned int i = get_global_id(0);

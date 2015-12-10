@@ -55,17 +55,17 @@
  * @param pressureForces_r Point with respect the moments are computed
  * \f$ \mathbf{r}_0 \f$.
  */
-__kernel void main(__global vec* pressureForces_f,
-                   __global vec4* pressureForces_m,
-                   const __global uint* iset,
-                   const __global int* imove,
-                   const __global vec* r,
-                   const __global vec* normal,
-                   const __global float* p,
-                   const __global float* m,
-                   unsigned int N,
-                   unsigned int pressureForces_iset,
-                   vec pressureForces_r)
+__kernel void entry(__global vec* pressureForces_f,
+                    __global vec4* pressureForces_m,
+                    const __global uint* iset,
+                    const __global int* imove,
+                    const __global vec* r,
+                    const __global vec* normal,
+                    const __global float* p,
+                    const __global float* m,
+                    unsigned int N,
+                    unsigned int pressureForces_iset,
+                    vec pressureForces_r)
 {
     // find position in global arrays
     unsigned int i = get_global_id(0);

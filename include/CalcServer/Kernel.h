@@ -48,7 +48,10 @@ public:
      * @param kernel_path Kernel path.
      * @param n Number of threads to launch.
      */
-    Kernel(const char* tool_name, const char* kernel_path, const char* n="N");
+    Kernel(const char* tool_name,
+           const char* kernel_path,
+           const char* entry_point="entry",
+           const char* n="N");
 
     /** Destructor
      */
@@ -92,7 +95,7 @@ protected:
      * @param header Header to be append at the start of the source code.
      * @return false if all gone right, true otherwise.
      */
-    bool compile(const char* entry_point="main",
+    bool compile(const char* entry_point="entry",
                  const char* flags="",
                  const char* header="");
 
@@ -116,6 +119,9 @@ protected:
 private:
     /// Kernel path
     char* _path;
+
+    /// Kernel entry point
+    char* _entry_point;
 
     /// OpenCL kernel
     cl_kernel _kernel;

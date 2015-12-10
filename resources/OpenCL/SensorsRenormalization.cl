@@ -43,14 +43,14 @@
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  * @see Sensors.cl
  */
-__kernel void main(const __global int* imove,
-                   const __global float* shepard,
-                   __global vec* u,
-                   __global float* rho,
-                   __global float* p,
-                   unsigned int N,
-                   float dt,
-                   vec g)
+__kernel void entry(const __global int* imove,
+                    const __global float* shepard,
+                    __global vec* u,
+                    __global float* rho,
+                    __global float* p,
+                    unsigned int N,
+                    float dt,
+                    vec g)
 {
     unsigned int i = get_global_id(0);
     if(i >= N)

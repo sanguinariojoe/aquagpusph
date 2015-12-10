@@ -77,23 +77,23 @@
  * @param viscousForces_r Point with respect the moments are computed
  * \f$ \mathbf{r}_0 \f$.
  */
-__kernel void main(__global vec* viscousForces_f,
-                   __global vec4* viscousForces_m,
-                   const __global uint* iset,
-                   const __global int* imove,
-                   const __global vec* r,
-                   const __global vec* u,
-                   const __global float* rho,
-                   const __global float* m,
-                   __constant float* visc_dyn,
-                   // Link-list data
-                   const __global uint *icell,
-                   const __global uint *ihoc,
-                   // Simulation data
-                   uint N,
-                   uivec4 n_cells,
-                   unsigned int viscousForces_iset,
-                   vec viscousForces_r)
+__kernel void entry(__global vec* viscousForces_f,
+                    __global vec4* viscousForces_m,
+                    const __global uint* iset,
+                    const __global int* imove,
+                    const __global vec* r,
+                    const __global vec* u,
+                    const __global float* rho,
+                    const __global float* m,
+                    __constant float* visc_dyn,
+                    // Link-list data
+                    const __global uint *icell,
+                    const __global uint *ihoc,
+                    // Simulation data
+                    uint N,
+                    uivec4 n_cells,
+                    unsigned int viscousForces_iset,
+                    vec viscousForces_r)
 {
     const uint i = get_global_id(0);
     const uint it = get_local_id(0);

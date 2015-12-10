@@ -76,20 +76,20 @@
  * @param dt Time step \f$ \Delta t \f$.
  * @see Predictor.cl
  */
-__kernel void main(__global int* imove,
-                   __global unsigned int* iset,
-                   __global vec* r,
-                   __global vec* u,
-                   __global vec* dudt,
-                   __global float* rho,
-                   __global float* drhodt,
-                   __global vec* r_in,
-                   __global vec* u_in,
-                   __global vec* dudt_in,
-                   __global float* rho_in,
-                   __global float* drhodt_in,
-                   unsigned int N,
-                   float dt)
+__kernel void entry(__global int* imove,
+                    __global unsigned int* iset,
+                    __global vec* r,
+                    __global vec* u,
+                    __global vec* dudt,
+                    __global float* rho,
+                    __global float* drhodt,
+                    __global vec* r_in,
+                    __global vec* u_in,
+                    __global vec* dudt_in,
+                    __global float* rho_in,
+                    __global float* drhodt_in,
+                    unsigned int N,
+                    float dt)
 {
     // find position in global arrays
     unsigned int i = get_global_id(0);

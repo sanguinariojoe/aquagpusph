@@ -52,15 +52,15 @@
  * @param forces_r Point with respect the moments are computed
  * \f$ \mathbf{r}_0 \f$.
  */
-__kernel void main(__global vec* forces_f,
-                   __global vec4* forces_m,
-                   __global int* imove,
-                   __global vec* r,
-                   __global vec* dudt,
-                   __global float* m,
-                   unsigned int N,
-                   vec g,
-                   vec forces_r)
+__kernel void entry(__global vec* forces_f,
+                    __global vec4* forces_m,
+                    __global int* imove,
+                    __global vec* r,
+                    __global vec* dudt,
+                    __global float* m,
+                    unsigned int N,
+                    vec g,
+                    vec forces_r)
 {
     // find position in global arrays
     unsigned int i = get_global_id(0);

@@ -65,22 +65,22 @@
  * be taken into account.
  * @param dr Distance between particles \f$ \Delta r \f$.
  */
-__kernel void main(const __global uint* iset,
-                   const __global int* imove,
-                   const __global vec* r,
-                   const __global vec* normal,
-                   const __global vec* u,
-                   const __global float* rho,
-                   const __global float* m,
-                   __global vec* lap_u,
-                   // Link-list data
-                   __global uint *icell,
-                   __global uint *ihoc,
-                   // Simulation data
-                   uint N,
-                   uivec4 n_cells,
-                   uint noslip_iset,
-                   float dr)
+__kernel void entry(const __global uint* iset,
+                    const __global int* imove,
+                    const __global vec* r,
+                    const __global vec* normal,
+                    const __global vec* u,
+                    const __global float* rho,
+                    const __global float* m,
+                    __global vec* lap_u,
+                    // Link-list data
+                    __global uint *icell,
+                    __global uint *ihoc,
+                    // Simulation data
+                    uint N,
+                    uivec4 n_cells,
+                    uint noslip_iset,
+                    float dr)
 {
     const uint i = get_global_id(0);
     const uint it = get_local_id(0);

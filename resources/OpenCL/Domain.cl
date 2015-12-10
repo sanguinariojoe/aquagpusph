@@ -39,14 +39,14 @@
  * @param domain_min Minimum point of the domain.
  * @param domain_max Maximum point of the domain.
  */
-__kernel void main(__global int* imove,
-                   __global vec* r,
-                   __global vec* u,
-                   __global vec* dudt,
-                   __global float* m,
-                   uint N,
-                   vec domain_min,
-                   vec domain_max)
+__kernel void entry(__global int* imove,
+                    __global vec* r,
+                    __global vec* u,
+                    __global vec* dudt,
+                    __global float* m,
+                    uint N,
+                    vec domain_min,
+                    vec domain_max)
 {
     // find position in global arrays
     unsigned int i = get_global_id(0);

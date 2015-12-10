@@ -62,30 +62,30 @@
  * @param n_cells Number of cells in each direction
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  */
-__kernel void main(const __global uint* iset,
-                   const __global int* imove,
-                   const __global int* imirrored,
-                   const __global vec* r,
-                   const __global vec* rmirrored,
-                   const __global vec* normal,
-                   const __global vec* nmirrored,
-                   const __global vec* u,
-                   const __global vec* umirrored,
-                   const __global float* rho,
-                   const __global float* m,
-                   const __global float* p,
-                   __constant float* refd,
-                   __global vec* grad_p,
-                   __global vec* lap_u,
-                   __global float* div_u,
-                   __global float* lap_p,
-                   // Link-list data
-                   __global uint *icell,
-                   __global uint *ihoc,
-                   // Simulation data
-                   uint N,
-                   uivec4 n_cells,
-                   vec g)
+__kernel void entry(const __global uint* iset,
+                    const __global int* imove,
+                    const __global int* imirrored,
+                    const __global vec* r,
+                    const __global vec* rmirrored,
+                    const __global vec* normal,
+                    const __global vec* nmirrored,
+                    const __global vec* u,
+                    const __global vec* umirrored,
+                    const __global float* rho,
+                    const __global float* m,
+                    const __global float* p,
+                    __constant float* refd,
+                    __global vec* grad_p,
+                    __global vec* lap_u,
+                    __global float* div_u,
+                    __global float* lap_p,
+                    // Link-list data
+                    __global uint *icell,
+                    __global uint *ihoc,
+                    // Simulation data
+                    uint N,
+                    uivec4 n_cells,
+                    vec g)
 {
     const uint i = get_global_id(0);
     const uint it = get_local_id(0);

@@ -57,27 +57,27 @@
  * @param outlet_U = Constant outlet velocity magnitude
  * @param outlet_rFS The point where the pressure is the reference one (0 Pa).
  */
-__kernel void main(__global int* imove,
-                   __global unsigned int* iset,
-                   __global vec* r,
-                   __global vec* u,
-                   __global float* rho,
-                   __global float* p,
-                   __global vec* dudt,
-                   __global vec* dudt_in,
-                   __global float* drhodt,
-                   __global float* drhodt_in,
-                   __constant float* gamma,
-                   __constant float* refd,
-                   unsigned int N,
-                   float cs,
-                   vec g,
-                   float p0,
-                   vec domain_max,
-                   vec outlet_r,
-                   vec outlet_n,
-                   float outlet_U,
-                   vec outlet_rFS)
+__kernel void entry(__global int* imove,
+                    __global unsigned int* iset,
+                    __global vec* r,
+                    __global vec* u,
+                    __global float* rho,
+                    __global float* p,
+                    __global vec* dudt,
+                    __global vec* dudt_in,
+                    __global float* drhodt,
+                    __global float* drhodt_in,
+                    __constant float* gamma,
+                    __constant float* refd,
+                    unsigned int N,
+                    float cs,
+                    vec g,
+                    float p0,
+                    vec domain_max,
+                    vec outlet_r,
+                    vec outlet_n,
+                    float outlet_U,
+                    vec outlet_rFS)
 {
     // find position in global arrays
     unsigned int i = get_global_id(0);

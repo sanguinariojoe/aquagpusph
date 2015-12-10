@@ -45,16 +45,16 @@
  * @param symmetry_r Position of the symmetry plane.
  * @param symmetry_n Normal of the symmetry plane. It is assumed as normalized.
  */
-__kernel void main(const __global vec* r,
-                   const __global vec* u,
-                   const __global vec* normal,
-                   __global int* imirrored,
-                   __global vec* rmirrored,
-                   __global vec* umirrored,
-                   __global vec* nmirrored,
-                   unsigned int N,
-                   vec symmetry_r,
-                   vec symmetry_n)
+__kernel void entry(const __global vec* r,
+                    const __global vec* u,
+                    const __global vec* normal,
+                    __global int* imirrored,
+                    __global vec* rmirrored,
+                    __global vec* umirrored,
+                    __global vec* nmirrored,
+                    unsigned int N,
+                    vec symmetry_r,
+                    vec symmetry_n)
 {
     // find position in global arrays
     unsigned int i = get_global_id(0);

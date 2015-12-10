@@ -45,12 +45,12 @@
  * @param gp_u Interpolated velocity in the mirrored position \f$ \mathbf{u} \f$.
  * @param N Total number of particles and boundary elements.
  */
-__kernel void main(const __global int* imove,
-                   const __global float* shepard,
-                   __global float* gp_rho,
-                   __global float* gp_p,
-                   __global vec* gp_u,
-                   uint N)
+__kernel void entry(const __global int* imove,
+                    const __global float* shepard,
+                    __global float* gp_rho,
+                    __global float* gp_p,
+                    __global vec* gp_u,
+                    uint N)
 {
     uint i = get_global_id(0);
     if(i >= N)

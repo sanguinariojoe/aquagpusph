@@ -48,13 +48,13 @@
  * @param N Number of particles.
  * @param freeslip_iset Particles set which should be considered free-slip.
  */
-__kernel void main(const __global uint* iset,
-                   const __global int* imove,
-                   const __global uint* associations,
-                   const __global vec* gp_u,
-                   __global vec* u,
-                   uint N,
-                   uint freeslip_iset)
+__kernel void entry(const __global uint* iset,
+                    const __global int* imove,
+                    const __global uint* associations,
+                    const __global vec* gp_u,
+                    __global vec* u,
+                    uint N,
+                    uint freeslip_iset)
 {
     const uint i = get_global_id(0);
     if(i >= N)

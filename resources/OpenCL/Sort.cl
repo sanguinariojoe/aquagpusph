@@ -60,19 +60,19 @@
  * one.
  * @param N Number of particles.
  */
-__kernel void main(__global uint *id_in, __global uint *id,
-                   __global uint *iset_in, __global uint *iset,
-                   __global int *imove_in, __global int *imove,
-                   __global vec *r_in, __global vec *r,
-                   __global vec *normal_in, __global vec *normal,
-                   __global vec *u_in, __global vec *u,
-                   __global vec *dudt_in, __global vec *dudt,
-                   __global float *rho_in, __global float *rho,
-                   __global float *drhodt_in, __global float *drhodt,
-                   __global float *p_in, __global float *p,
-                   __global float *m_in, __global float *m,
-                   __global unit *id_sorted,
-                   unsigned int N)
+__kernel void entry(__global uint *id_in, __global uint *id,
+                    __global uint *iset_in, __global uint *iset,
+                    __global int *imove_in, __global int *imove,
+                    __global vec *r_in, __global vec *r,
+                    __global vec *normal_in, __global vec *normal,
+                    __global vec *u_in, __global vec *u,
+                    __global vec *dudt_in, __global vec *dudt,
+                    __global float *rho_in, __global float *rho,
+                    __global float *drhodt_in, __global float *drhodt,
+                    __global float *p_in, __global float *p,
+                    __global float *m_in, __global float *m,
+                    __global unit *id_sorted,
+                    unsigned int N)
 {
     uint i = get_global_id(0);
     if(i >= N)

@@ -49,14 +49,14 @@
  * @param r_min Minimum position of a particle
  * @param n_cells Number of cells in each direction
  */
-__kernel void main(const __global int* imove,
-                   const __global uint* associations,
-                   const __global vec* normal,
-                   __global vec* r,
-                   __global uint *gp_icell,
-                   uint N,
-                   vec r_min,
-                   uivec4 n_cells)
+__kernel void entry(const __global int* imove,
+                    const __global uint* associations,
+                    const __global vec* normal,
+                    __global vec* r,
+                    __global uint *gp_icell,
+                    uint N,
+                    vec r_min,
+                    uivec4 n_cells)
 {
     const uint i = get_global_id(0);
     if(i >= N)

@@ -37,14 +37,14 @@
  * @param courant Courant factor \f$ C_f \f$.
  * @param h Kernel characteristic length \f$ h \f$.
  */
-__kernel void main(__global float* dt_var,
-                   __global vec* u,
-                   __global vec* dudt,
-                   unsigned int N,
-                   float dt,
-                   float dt_min,
-                   float courant,
-                   float h)
+__kernel void entry(__global float* dt_var,
+                    __global vec* u,
+                    __global vec* dudt,
+                    unsigned int N,
+                    float dt,
+                    float dt_min,
+                    float courant,
+                    float h)
 {
     unsigned int i = get_global_id(0);
     if(i >= N)

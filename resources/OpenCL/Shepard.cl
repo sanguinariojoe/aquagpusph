@@ -60,17 +60,17 @@
  * @param N Number of particles.
  * @param n_cells Number of cells in each direction
  */
-__kernel void main(const __global int* imove,
-                   const __global vec* r,
-                   const __global float* rho,
-                   const __global float* m,
-                   __global float* shepard,
-                   // Link-list data
-                   const __global uint *icell,
-                   const __global uint *ihoc,
-                   // Simulation data
-                   uint N,
-                   uivec4 n_cells)
+__kernel void entry(const __global int* imove,
+                    const __global vec* r,
+                    const __global float* rho,
+                    const __global float* m,
+                    __global float* shepard,
+                    // Link-list data
+                    const __global uint *icell,
+                    const __global uint *ihoc,
+                    // Simulation data
+                    uint N,
+                    uivec4 n_cells)
 {
     const uint i = get_global_id(0);
     const uint it = get_local_id(0);

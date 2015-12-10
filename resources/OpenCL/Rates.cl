@@ -60,21 +60,21 @@
  * @param dt Time step \f$ \Delta t \f$.
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  */
-__kernel void main(const __global uint* iset,
-                   const __global int* imove,
-                   const __global float* rho,
-                   const __global vec* grad_p,
-                   const __global vec* lap_u,
-                   const __global float* div_u,
-                   const __global float* lap_p,
-                   __global vec* dudt,
-                   __global float* drhodt,
-                   __constant float* visc_dyn,
-                   __constant float* delta,
-                   __constant float* refd,
-                   unsigned int N,
-                   float dt,
-                   vec g)
+__kernel void entry(const __global uint* iset,
+                    const __global int* imove,
+                    const __global float* rho,
+                    const __global vec* grad_p,
+                    const __global vec* lap_u,
+                    const __global float* div_u,
+                    const __global float* lap_p,
+                    __global vec* dudt,
+                    __global float* drhodt,
+                    __constant float* visc_dyn,
+                    __constant float* delta,
+                    __constant float* refd,
+                    unsigned int N,
+                    float dt,
+                    vec g)
 {
     unsigned int i = get_global_id(0);
     if(i >= N)

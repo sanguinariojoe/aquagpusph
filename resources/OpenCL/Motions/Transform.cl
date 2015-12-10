@@ -66,14 +66,14 @@
  * @see MotionVelocity.cl
  * @see MotionAcceleration.cl
  */
-__kernel void main(const __global uint* iset,
-                   const __global int* imove,
-                   __global vec* r,
-                   __global vec* normal,
-                   unsigned int N,
-                   unsigned int motion_iset,
-                   vec motion_r,
-                   vec4 motion_a)
+__kernel void entry(const __global uint* iset,
+                    const __global int* imove,
+                    __global vec* r,
+                    __global vec* normal,
+                    unsigned int N,
+                    unsigned int motion_iset,
+                    vec motion_r,
+                    vec4 motion_a)
 {
     // find position in global arrays
     int i = get_global_id(0);

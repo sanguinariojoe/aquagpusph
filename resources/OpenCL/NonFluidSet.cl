@@ -67,17 +67,17 @@
  * @param cs Speed of sound \f$ c_s \f$.
  * @see BoundaryIntegrals.cl
  */
-__kernel void main(const __global uint* iset,
-                   const __global int* imove,
-                   __global vec* grad_p,
-                   __global float* div_u,
-                   __global float* rho,
-                   __global float* p,
-                   const __global float* shepard,
-                   __constant float* refd,
-                   __constant float* gamma,
-                   uint N,
-                   float cs)
+__kernel void entry(const __global uint* iset,
+                    const __global int* imove,
+                    __global vec* grad_p,
+                    __global float* div_u,
+                    __global float* rho,
+                    __global float* p,
+                    const __global float* shepard,
+                    __constant float* refd,
+                    __constant float* gamma,
+                    uint N,
+                    float cs)
 {
     uint i = get_global_id(0);
     if(i >= N)

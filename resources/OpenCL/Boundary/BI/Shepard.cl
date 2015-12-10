@@ -48,14 +48,14 @@
  * @param cs Speed of sound \f$ c_s \f$.
  * @see Boundary/BI/Interactions.cl
  */
-__kernel void main(const __global int* imove,
-                   const __global float* shepard,
-                   __global vec* grad_p,
-                   __global vec* lap_u,
-                   __global float* div_u,
-                   __global float* lap_p,
-                   uint N,
-                   float cs)
+__kernel void entry(const __global int* imove,
+                    const __global float* shepard,
+                    __global vec* grad_p,
+                    __global vec* lap_u,
+                    __global float* div_u,
+                    __global float* lap_p,
+                    uint N,
+                    float cs)
 {
     uint i = get_global_id(0);
     if(i >= N)

@@ -36,10 +36,10 @@
  * one.
  * @param N Number of particles.
  */
-__kernel void main(const __global uint *associations_in,
-                   __global uint *associations,
-                   const __global unit *id_sorted,
-                   unsigned int N)
+__kernel void entry(const __global uint *associations_in,
+                    __global uint *associations,
+                    const __global unit *id_sorted,
+                    unsigned int N)
 {
     uint i = get_global_id(0);
     if(i >= N)

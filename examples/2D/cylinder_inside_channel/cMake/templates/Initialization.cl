@@ -40,13 +40,13 @@
  * @param dUdt Cylinder acceleration \f$ \frac{d \mathbf{U}}{d t} \f$.
  * @param N Number of particles.
  */
-__kernel void main(const __global uint* iset,
-                   const __global int* imove,
-                   __global vec* u,
-                   __global vec* dudt,
-                   float U,
-                   float dUdt,
-                   unsigned int N)
+__kernel void entry(const __global uint* iset,
+                    const __global int* imove,
+                    __global vec* u,
+                    __global vec* dudt,
+                    float U,
+                    float dUdt,
+                    unsigned int N)
 {
     unsigned int i = get_global_id(0);
     if(i >= N)

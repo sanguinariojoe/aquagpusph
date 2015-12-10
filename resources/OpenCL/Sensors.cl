@@ -59,20 +59,20 @@
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  * @see SensorsRenormalization.cl
  */
-__kernel void main(const __global uint* iset,
-                   const __global int* imove,
-                   const __global vec* r,
-                   const __global float* m,
-                   __global vec* u,
-                   __global float* rho,
-                   __global float* p,
-                   // Link-list data
-                   const __global uint *icell,
-                   const __global uint *ihoc,
-                   // Simulation data
-                   uint N,
-                   uivec4 n_cells,
-                   vec g)
+__kernel void entry(const __global uint* iset,
+                    const __global int* imove,
+                    const __global vec* r,
+                    const __global float* m,
+                    __global vec* u,
+                    __global float* rho,
+                    __global float* p,
+                    // Link-list data
+                    const __global uint *icell,
+                    const __global uint *ihoc,
+                    // Simulation data
+                    uint N,
+                    uivec4 n_cells,
+                    vec g)
 {
     const uint i = get_global_id(0);
     const uint it = get_local_id(0);

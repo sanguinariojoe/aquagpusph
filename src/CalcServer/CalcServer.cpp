@@ -227,6 +227,7 @@ CalcServer::CalcServer()
         if(!strcmp(P->tools.at(i)->get("type"), "kernel")){
             Kernel *tool = new Kernel(P->tools.at(i)->get("name"),
                                       P->tools.at(i)->get("path"),
+                                      "entry",
                                       P->tools.at(i)->get("n"));
             _tools.push_back(tool);
         }

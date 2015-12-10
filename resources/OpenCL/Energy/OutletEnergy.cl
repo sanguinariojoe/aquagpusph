@@ -55,17 +55,17 @@
  * @param outlet_n Velocity direction of the generated particles.
  * @param N Number of particles.
  */
-__kernel void main(__global float* outlet_energy_dekindt,
-                   __global float* outlet_energy_depotdt,
-                   __global float* outlet_energy_decomdt,
-                   __global float* fluid_energy_dekindt,
-                   __global float* fluid_energy_depotdt,
-                   __global float* fluid_energy_decomdt,
-                   const __global int* imove,
-                   const __global vec* r,
-                   vec outlet_r,
-                   vec outlet_n,
-                   unsigned int N)
+__kernel void entry(__global float* outlet_energy_dekindt,
+                    __global float* outlet_energy_depotdt,
+                    __global float* outlet_energy_decomdt,
+                    __global float* fluid_energy_dekindt,
+                    __global float* fluid_energy_depotdt,
+                    __global float* fluid_energy_decomdt,
+                    const __global int* imove,
+                    const __global vec* r,
+                    vec outlet_r,
+                    vec outlet_n,
+                    unsigned int N)
 {
     // find position in global arrays
     unsigned int i = get_global_id(0);

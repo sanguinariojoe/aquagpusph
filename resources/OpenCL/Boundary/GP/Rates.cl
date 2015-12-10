@@ -37,12 +37,12 @@
  * @param drhodt Density rate of change \f$ \frac{d \rho}{d t} \f$.
  * @param N Number of particles.
  */
-__kernel void main(const __global uint* iset,
-                   const __global int* imove,
-                   const __global uint *associations,
-                   __global vec* dudt,
-                   __global float* drhodt,
-                   uint N)
+__kernel void entry(const __global uint* iset,
+                    const __global int* imove,
+                    const __global uint *associations,
+                    __global vec* dudt,
+                    __global float* drhodt,
+                    uint N)
 {
     const uint i = get_global_id(0);
     if(i >= N)

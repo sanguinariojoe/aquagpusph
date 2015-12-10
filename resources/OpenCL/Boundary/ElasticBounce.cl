@@ -79,19 +79,19 @@
  * @param dr Distance between particle \f$ \Delta r \f$.
  * @param dt Time step \f$ \Delta t \f$.
  */
-__kernel void main(const __global int* imove,
-                   const __global vec* r,
-                   const __global vec* normal,
-                   __global vec* u,
-                   __global vec* dudt,
-                   // Link-list data
-                   __global uint *icell,
-                   __global uint *ihoc,
-                   // Simulation data
-                   uint N,
-                   uivec4 n_cells,
-                   float dr,
-                   float dt)
+__kernel void entry(const __global int* imove,
+                    const __global vec* r,
+                    const __global vec* normal,
+                    __global vec* u,
+                    __global vec* dudt,
+                    // Link-list data
+                    __global uint *icell,
+                    __global uint *ihoc,
+                    // Simulation data
+                    uint N,
+                    uivec4 n_cells,
+                    float dr,
+                    float dt)
 {
     const uint i = get_global_id(0);
     const uint it = get_local_id(0);

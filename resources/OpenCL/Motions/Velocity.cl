@@ -72,16 +72,16 @@
  * @param motion_dadt Angular velocities.
  * @see MotionTransform.cl
  */
-__kernel void main(const __global uint* iset,
-                   const __global int* imove,
-                   __global vec* r,
-                   __global vec* u,
-                   unsigned int N,
-                   unsigned int motion_iset,
-                   vec motion_r,
-                   vec motion_drdt,
-                   vec4 motion_a,
-                   vec4 motion_dadt)
+__kernel void entry(const __global uint* iset,
+                    const __global int* imove,
+                    __global vec* r,
+                    __global vec* u,
+                    unsigned int N,
+                    unsigned int motion_iset,
+                    vec motion_r,
+                    vec motion_drdt,
+                    vec4 motion_a,
+                    vec4 motion_dadt)
 {
     // find position in global arrays
     int i = get_global_id(0);

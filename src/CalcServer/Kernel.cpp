@@ -27,7 +27,10 @@
 
 namespace Aqua{ namespace CalcServer{
 
-Kernel::Kernel(const char* tool_name, const char* kernel_path, const char* n)
+Kernel::Kernel(const char* tool_name,
+               const char* kernel_path,
+               const char* entry_point,
+               const char* n)
     : Tool(tool_name)
     , _path(NULL)
     , _kernel(NULL)
@@ -36,6 +39,8 @@ Kernel::Kernel(const char* tool_name, const char* kernel_path, const char* n)
     , _n(NULL)
 {
     path(kernel_path);
+    _entry_point = new char[strlen(entry_point) + 1];
+    strcpy(_entry_point, entry_point);
     _n = new char[strlen(n) + 1];
     strcpy(_n, n);
 }
@@ -44,6 +49,8 @@ Kernel::~Kernel()
 {
     unsigned int i;
     if(_path) delete[] _path; _path=NULL;
+    if(_entry_point) delete[] _entry_point; _entry_point=NULL;
+    if(_n) delete[] _n; _n=NULL;
     if(_kernel) clReleaseKernel(_kernel); _kernel=NULL;
     for(i = 0; i < _var_names.size(); i++){
         delete[] _var_names.at(i);
@@ -66,11 +73,11 @@ bool Kernel::setup()
             path());
     S->addMessageF(1, msg);
 
-    if(compile()){
+    if(compile(_entry_point)){
         return true;
     }
 
-    if(variables()){
+    if(variables(_entry_point)){
         return true;
     }
 

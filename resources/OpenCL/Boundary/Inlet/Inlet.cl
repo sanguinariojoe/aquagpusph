@@ -42,15 +42,15 @@
  * @param inlet_U Velocity magnitude of the generated particles.
  * @param inlet_n Velocity direction of the generated particles.
  */
-__kernel void main(__global int* imove,
-                   __global vec* r,
-                   __global vec* u,
-                   __global vec* dudt,
-                   __global float* drhodt,
-                   unsigned int N,
-                   vec inlet_r,
-                   float inlet_U,
-                   vec inlet_n)
+__kernel void entry(__global int* imove,
+                    __global vec* r,
+                    __global vec* u,
+                    __global vec* dudt,
+                    __global float* drhodt,
+                    unsigned int N,
+                    vec inlet_r,
+                    float inlet_U,
+                    vec inlet_n)
 {
     // find position in global arrays
     unsigned int i = get_global_id(0);
