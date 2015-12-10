@@ -30,6 +30,10 @@
 #define uivec3 uint3
 #define uivec4 uint4
 
+#ifndef INFINITY
+    #define INFINITY FLT_MAX
+#endif
+
 #ifndef HAVE_3D
     #define vec float2
     #define ivec int2
