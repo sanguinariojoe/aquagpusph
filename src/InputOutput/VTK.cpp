@@ -323,10 +323,8 @@ typedef struct{
     uivec2 bounds;
     /// Screen manager
     ScreenManager *S;
-    /// Variables manager
-    Variables* vars;
     /// VTK arrays
-    std::deque< vtkSmartPointer<vtkDataArray> > vtk_arrays;
+    CalcServer::CalcServer *C;
     /// The data associated to each field
     std::deque<void*> data;
     /// The VTK file decriptor
@@ -340,9 +338,66 @@ typedef struct{
 void* save_pthread(void *data_void)
 {
     unsigned int i, j;
+    char msg[1024];
     data_pthread *data = (data_pthread*)data_void;
-    vtkSmartPointer<vtkVertex> vtk_vertex;
 
+    // Create storage arrays
+    std::deque< vtkSmartPointer<vtkDataArray> > vtk_arrays;
+    Variables* vars = data->C->variables();
+    for(i = 0; i < data->fields.size(); i++){
+        if(!vars->get(data->fields.at(i))){
+            sprintf(msg,
+                    "\"%s\" field has been set to be saved, but it was not declared.\n",
+                    data->fields.at(i));
+            data->S->addMessage(3, msg);
+            return NULL;
+        }
+        if(!strchr(vars->get(data->fields.at(i))->type(), '*')){
+            sprintf(msg,
+                    "\"%s\" field has been set to be saved, but it was declared as a scalar.\n",
+                    data->fields.at(i));
+            data->S->addMessage(3, msg);
+            return NULL;
+        }
+        ArrayVariable *var = (ArrayVariable*)vars->get(data->fields.at(i));
+        size_t typesize = vars->typeToBytes(var->type());
+        size_t len = var->size() / typesize;
+        if(len < data->bounds.y){
+            sprintf(msg,
+                    "Failure saving \"%s\" field, which has not length enough.\n",
+                    data->fields.at(i));
+            data->S->addMessage(3, msg);
+            return NULL;
+        }
+
+        unsigned int n_components = vars->typeToN(var->type());
+        if(strstr(var->type(), "unsigned int") ||
+           strstr(var->type(), "uivec")){
+            vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
+                vtkSmartPointer<vtkUnsignedIntArray>::New();
+            vtk_array->SetNumberOfComponents(n_components);
+            vtk_array->SetName(data->fields.at(i));
+            vtk_arrays.push_back(vtk_array);
+        }
+        else if(strstr(var->type(), "int") ||
+                strstr(var->type(), "ivec")){
+            vtkSmartPointer<vtkIntArray> vtk_array =
+                vtkSmartPointer<vtkIntArray>::New();
+            vtk_array->SetNumberOfComponents(n_components);
+            vtk_array->SetName(data->fields.at(i));
+            vtk_arrays.push_back(vtk_array);
+        }
+        else if(strstr(var->type(), "float") ||
+                strstr(var->type(), "vec")){
+            vtkSmartPointer<vtkFloatArray> vtk_array =
+                vtkSmartPointer<vtkFloatArray>::New();
+            vtk_array->SetNumberOfComponents(n_components);
+            vtk_array->SetName(data->fields.at(i));
+            vtk_arrays.push_back(vtk_array);
+        }
+    }
+
+    vtkSmartPointer<vtkVertex> vtk_vertex;
     vtkSmartPointer<vtkPoints> vtk_points = vtkSmartPointer<vtkPoints>::New();
     vtkSmartPointer<vtkCellArray> vtk_cells = vtkSmartPointer<vtkCellArray>::New();
 
@@ -358,9 +413,9 @@ void* save_pthread(void *data_void)
                 continue;
             }
             ArrayVariable *var = (ArrayVariable*)(
-                data->vars->get(data->fields.at(j)));
-            size_t typesize = data->vars->typeToBytes(var->type());
-            unsigned int n_components = data->vars->typeToN(var->type());
+                vars->get(data->fields.at(j)));
+            size_t typesize = vars->typeToBytes(var->type());
+            unsigned int n_components = vars->typeToN(var->type());
             if(strstr(var->type(), "unsigned int") ||
                strstr(var->type(), "uivec")){
                 unsigned int vect[n_components];
@@ -369,7 +424,7 @@ void* save_pthread(void *data_void)
                        (char*)(data->data.at(j)) + offset,
                        n_components * sizeof(unsigned int));
                 vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
-                    (vtkUnsignedIntArray*)(data->vtk_arrays.at(j).GetPointer());
+                    (vtkUnsignedIntArray*)(vtk_arrays.at(j).GetPointer());
                 vtk_array->InsertNextTupleValue(vect);
             }
             else if(strstr(var->type(), "int") ||
@@ -380,7 +435,7 @@ void* save_pthread(void *data_void)
                        (char*)(data->data.at(j)) + offset,
                        n_components * sizeof(int));
                 vtkSmartPointer<vtkIntArray> vtk_array =
-                    (vtkIntArray*)(data->vtk_arrays.at(j).GetPointer());
+                    (vtkIntArray*)(vtk_arrays.at(j).GetPointer());
                 vtk_array->InsertNextTupleValue(vect);
             }
             else if(strstr(var->type(), "float") ||
@@ -391,7 +446,7 @@ void* save_pthread(void *data_void)
                        (char*)(data->data.at(j)) + offset,
                        n_components * sizeof(float));
                 vtkSmartPointer<vtkFloatArray> vtk_array =
-                    (vtkFloatArray*)(data->vtk_arrays.at(j).GetPointer());
+                    (vtkFloatArray*)(vtk_arrays.at(j).GetPointer());
                 vtk_array->InsertNextTupleValue(vect);
             }
         }
@@ -411,23 +466,23 @@ void* save_pthread(void *data_void)
         }
 
         ArrayVariable *var = (ArrayVariable*)(
-            data->vars->get(data->fields.at(i)));
+            vars->get(data->fields.at(i)));
         if(strstr(var->type(), "unsigned int") ||
            strstr(var->type(), "uivec")){
             vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
-                (vtkUnsignedIntArray*)(data->vtk_arrays.at(i).GetPointer());
+                (vtkUnsignedIntArray*)(vtk_arrays.at(i).GetPointer());
             grid->GetPointData()->AddArray(vtk_array);
         }
         else if(strstr(var->type(), "int") ||
                 strstr(var->type(), "ivec")){
             vtkSmartPointer<vtkIntArray> vtk_array =
-                (vtkIntArray*)(data->vtk_arrays.at(i).GetPointer());
+                (vtkIntArray*)(vtk_arrays.at(i).GetPointer());
             grid->GetPointData()->AddArray(vtk_array);
         }
         else if(strstr(var->type(), "float") ||
                 strstr(var->type(), "vec")){
             vtkSmartPointer<vtkFloatArray> vtk_array =
-                (vtkFloatArray*)(data->vtk_arrays.at(i).GetPointer());
+                (vtkFloatArray*)(vtk_arrays.at(i).GetPointer());
             grid->GetPointData()->AddArray(vtk_array);
         }
     }
@@ -457,7 +512,6 @@ void* save_pthread(void *data_void)
 bool VTK::save()
 {
     unsigned int i;
-    char msg[1024];
     ScreenManager *S = ScreenManager::singleton();
     ProblemSetup *P = ProblemSetup::singleton();
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
@@ -480,68 +534,11 @@ bool VTK::save()
         return true;
     }
 
-    // Create storage arrays
-    std::deque< vtkSmartPointer<vtkDataArray> > vtk_arrays;
-    Variables* vars = C->variables();
-    for(i = 0; i < fields.size(); i++){
-        if(!vars->get(fields.at(i))){
-            sprintf(msg,
-                    "\"%s\" field has been set to be saved, but it was not declared.\n",
-                    fields.at(i));
-            S->addMessage(3, msg);
-            return true;
-        }
-        if(!strchr(vars->get(fields.at(i))->type(), '*')){
-            sprintf(msg,
-                    "\"%s\" field has been set to be saved, but it was declared as a scalar.\n",
-                    fields.at(i));
-            S->addMessage(3, msg);
-            return true;
-        }
-        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i));
-        size_t typesize = vars->typeToBytes(var->type());
-        size_t len = var->size() / typesize;
-        if(len < bounds().y){
-            sprintf(msg,
-                    "Failure saving \"%s\" field, which has not length enough.\n",
-                    fields.at(i));
-            S->addMessage(3, msg);
-            return true;
-        }
-
-        unsigned int n_components = vars->typeToN(var->type());
-        if(strstr(var->type(), "unsigned int") ||
-           strstr(var->type(), "uivec")){
-            vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
-                vtkSmartPointer<vtkUnsignedIntArray>::New();
-            vtk_array->SetNumberOfComponents(n_components);
-            vtk_array->SetName(fields.at(i));
-            vtk_arrays.push_back(vtk_array);
-        }
-        else if(strstr(var->type(), "int") ||
-                strstr(var->type(), "ivec")){
-            vtkSmartPointer<vtkIntArray> vtk_array =
-                vtkSmartPointer<vtkIntArray>::New();
-            vtk_array->SetNumberOfComponents(n_components);
-            vtk_array->SetName(fields.at(i));
-            vtk_arrays.push_back(vtk_array);
-        }
-        else if(strstr(var->type(), "float") ||
-                strstr(var->type(), "vec")){
-            vtkSmartPointer<vtkFloatArray> vtk_array =
-                vtkSmartPointer<vtkFloatArray>::New();
-            vtk_array->SetNumberOfComponents(n_components);
-            vtk_array->SetName(fields.at(i));
-            vtk_arrays.push_back(vtk_array);
-        }
-    }
-
     // Setup the data struct for the parallel thread
     data_pthread *data = new data_pthread;
     data->fields = fields;
     data->bounds = bounds();
-    data->vars = vars;
-    data->vtk_arrays = vtk_arrays;
+    data->C = C;
     data->S = S;
     data->data = download(fields);
     if(!data->data.size()){
