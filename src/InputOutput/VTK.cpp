@@ -570,6 +570,20 @@ bool VTK::save()
         }
     }
 
+    // Check and limit the number of active writing processes
+    if(_tids.size() > 2){
+        S->addMessageF(2, "More than 2 active writing tasks\n");
+        S->addMessageF(0, "This may result in heavy performance penalties, and hard disk failures\n");
+        S->addMessageF(0, "Please, consider a reduction of the output printing rate\n");
+        while(_tids.size() > 2){
+            if(!pthread_kill(_tids.at(0), 0))
+            {
+                pthread_join(_tids.at(0), NULL);
+            }
+            _tids.erase(_tids.begin());
+        }
+    }
+
     // Update the PVD file
     if(updatePVD()){
         return true;
