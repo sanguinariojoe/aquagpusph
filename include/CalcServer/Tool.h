@@ -61,10 +61,15 @@ public:
      */
     virtual bool setup(){return false;}
 
-    /** Execute the tool measuring the elapsed time.
+    /** @brief Execute the tool measuring the elapsed time.
+     *
+     * Actually this method is just measuring the time required to carry out the
+     * _execute() method, which is internally called by this function.
      * @return false if all gone right, true otherwise.
+     * @note Usually you don't want to overload this method, but the _execute()
+     * one.
      */
-    bool execute();
+    virtual bool execute();
 
     /** Get the allocated memory for this tool.
      * @return allocated memory by this tool.
@@ -115,12 +120,12 @@ protected:
      */
     virtual bool _execute(){return false;}
 
-private:
-    /** @brief Add new data to the average and squared elapsed times computation.
-     * @param elapsed_time Elapsed time of the last time that this tool has been called.
+    /** @brief Add new data to the average and squared elapsed times
+     * @param elapsed_time Elapsed time
      */
     void addElapsedTime(float elapsed_time);
 
+private:
     /// Kernel name
     char* _name;
 

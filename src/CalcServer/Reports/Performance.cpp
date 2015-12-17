@@ -41,6 +41,8 @@ Performance::Performance(const char* tool_name,
     strcpy(_color, color);
     _output_file = new char[strlen(output_file) + 1];
     strcpy(_output_file, output_file);
+
+    gettimeofday(&_tic, NULL);
 }
 
 Performance::~Performance()
@@ -78,7 +80,7 @@ bool Performance::setup()
         }
         // Write the header
         fprintf(_f,
-                "# t elapsed average(elapsed) variance(elapsed) progress ETA\n");
+                "# t elapsed average(elapsed) variance(elapsed) overhead average(overhead) variance(overhead) progress ETA\n");
     }
 
     return false;
@@ -119,11 +121,33 @@ bool Performance::_execute()
     float elapsed_ave = 0.f;
     float elapsed_var = 0.f;
     for(i = 0; i < tools.size(); i++){
+        // Exclude the tool itself
+        if(this == tools.at(i)){
+            printf("I found myself!\n");
+            continue;
+        }
         elapsed += tools.at(i)->elapsedTime(false);
         elapsed_ave += tools.at(i)->elapsedTime();
         elapsed_var += tools.at(i)->elapsedTimeDeviation();
     }
-    sprintf(data, "%sElapsed=%16gs (+-%16gs)\n", data, elapsed_ave, elapsed_var);
+
+    timeval tac;
+    gettimeofday(&tac, NULL);
+    float elapsed_seconds;
+    elapsed_seconds = (float)(tac.tv_sec - _tic.tv_sec);
+    elapsed_seconds += (float)(tac.tv_usec - _tic.tv_usec) * 1E-6f;
+    gettimeofday(&_tic, NULL);
+    addElapsedTime(elapsed_seconds);
+
+    sprintf(data, "%sElapsed=%16gs (+-%16gs)\n",
+            data,
+            elapsedTime(),
+            elapsedTimeVariance());
+
+    sprintf(data, "%sOverhead=%16gs (+-%16gs)\n",
+            data,
+            elapsedTime() - elapsed_ave,
+            elapsedTimeVariance() - elapsed_var);
 
     // Compute the progress
     InputOutput::Variables* vars = C->variables();
@@ -139,7 +163,7 @@ bool Performance::_execute()
     progress = max(progress, (float)frame / end_frame);
 
     // And the estimated time to arrive
-    float total_elapsed = elapsed_ave * iter;
+    float total_elapsed = elapsedTime() * used_times();
     float ETA = total_elapsed * (1.f / progress - 1.f);
 
     sprintf(data,
@@ -156,12 +180,17 @@ bool Performance::_execute()
 
     // Write the output file
     if(_f){
-        fprintf(_f, "%16g %16g %16g %16g %16.2f %16g\n", t,
-                                                         elapsed,
-                                                         elapsed_ave,
-                                                         elapsed_var,
-                                                         progress * 100.f,
-                                                         ETA);
+        fprintf(_f,
+                "%16g %16g %16g %16g %16g %16g %16g %16.2f %16g\n",
+                t,
+                elapsedTime(false),
+                elapsedTime(),
+                elapsedTimeVariance(),
+                elapsedTime(false) - elapsed,
+                elapsedTime() - elapsed_ave,
+                elapsedTimeVariance() - elapsed_var,
+                progress * 100.f,
+                ETA);
     }
 
     return false;

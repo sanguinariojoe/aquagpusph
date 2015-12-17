@@ -24,8 +24,8 @@
 #ifndef PERFORMANCE_H_INCLUDED
 #define PERFORMANCE_H_INCLUDED
 
+#include <sys/time.h>
 #include <sphPrerequisites.h>
-
 #include <CalcServer/Reports/Report.h>
 #include <AuxiliarMethods.h>
 
@@ -72,6 +72,16 @@ public:
      */
     bool setup();
 
+    /** @brief Launch _execute() without measuring the elapsed time
+     *
+     * This tool is measuring the total time elapsed during a single time step
+     * computation, and comparing it with the time consumed by the other tools.
+     * Hence we should override the overloaded time measuring capabilities
+     * @return false if all gone right, true otherwise.
+     * @see Aqua::CalcServer::Tool
+     */
+    bool execute(){return _execute();}
+
 protected:
     /** @brief Get the allocated memory.
      * @return Allocated memory in the computational device.
@@ -92,6 +102,10 @@ private:
     char *_output_file;
     /// Output file handler
     FILE *_f;
+    /** Time mark at the end of the previous time step (to measure the total
+     * elapsed time per time step)
+     */
+    timeval _tic;
 };
 
 }}} // namespace
