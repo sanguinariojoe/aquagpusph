@@ -113,9 +113,9 @@ protected:
               unsigned int start_index,
               unsigned int digits=5);
 
-    /** Download the data from the device, and store it.
-     * @param fields Fields to download.
-     * @return host allocated memory. A clear list if errors happened.
+    /** Download the data from the device, and store it
+     * @param fields Fields to download
+     * @return host allocated memory, a clear list if errors are detected
      * @note The returned data must be manually cleared.
      */
     std::deque<void*> download(std::deque<char*> fields);

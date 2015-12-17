@@ -123,7 +123,6 @@ bool Performance::_execute()
     for(i = 0; i < tools.size(); i++){
         // Exclude the tool itself
         if(this == tools.at(i)){
-            printf("I found myself!\n");
             continue;
         }
         elapsed += tools.at(i)->elapsedTime(false);

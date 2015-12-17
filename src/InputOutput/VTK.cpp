@@ -27,6 +27,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <InputOutput/VTK.h>
 #include <ScreenManager.h>
@@ -107,6 +108,18 @@ VTK::VTK(unsigned int first, unsigned int n, unsigned int iset)
 
 VTK::~VTK()
 {
+    unsigned int i;
+    ScreenManager *S = ScreenManager::singleton();
+
+    // Wait for the writers working
+    S->addMessageF(1, "Waiting for the writers...\n");
+    for(i = 0; i < _tids.size(); i++){
+        if(!pthread_kill(_tids.at(i), 0))
+        {
+            pthread_join(_tids.at(i), NULL);
+        }
+    }
+    _tids.clear();
 }
 
 bool VTK::load()
@@ -301,14 +314,151 @@ bool VTK::load()
     return false;
 }
 
-bool VTK::save()
+/** @brief Data structure to send the data to a parallel writer thread
+ */
+typedef struct{
+    /// The field names
+    std::deque<char*> fields;
+    /// Bounds of the particles index managed by this writer
+    uivec2 bounds;
+    /// Screen manager
+    ScreenManager *S;
+    /// Variables manager
+    Variables* vars;
+    /// VTK arrays
+    std::deque< vtkSmartPointer<vtkDataArray> > vtk_arrays;
+    /// The data associated to each field
+    std::deque<void*> data;
+    /// The VTK file decriptor
+    vtkXMLUnstructuredGridWriter *f;
+}data_pthread;
+
+/** @brief Parallel thread to write the data
+ * @param data_void Input data of type data_pthread* (dynamically casted as
+ * void*)
+ */
+void* save_pthread(void *data_void)
 {
     unsigned int i, j;
-    cl_int err_code;
-    char msg[1024];
+    data_pthread *data = (data_pthread*)data_void;
     vtkSmartPointer<vtkVertex> vtk_vertex;
+
+    vtkSmartPointer<vtkPoints> vtk_points = vtkSmartPointer<vtkPoints>::New();
+    vtkSmartPointer<vtkCellArray> vtk_cells = vtkSmartPointer<vtkCellArray>::New();
+
+    for(i = 0; i < data->bounds.y - data->bounds.x; i++){
+        for(j = 0; j < data->fields.size(); j++){
+            if(!strcmp(data->fields.at(j), "r")){
+                vec *ptr = (vec*)(data->data.at(j));
+                #ifdef HAVE_3D
+                    vtk_points->InsertNextPoint(ptr[i].x, ptr[i].y, ptr[i].z);
+                #else
+                    vtk_points->InsertNextPoint(ptr[i].x, ptr[i].y, 0.f);
+                #endif
+                continue;
+            }
+            ArrayVariable *var = (ArrayVariable*)(
+                data->vars->get(data->fields.at(j)));
+            size_t typesize = data->vars->typeToBytes(var->type());
+            unsigned int n_components = data->vars->typeToN(var->type());
+            if(strstr(var->type(), "unsigned int") ||
+               strstr(var->type(), "uivec")){
+                unsigned int vect[n_components];
+                size_t offset = typesize * i;
+                memcpy(vect,
+                       (char*)(data->data.at(j)) + offset,
+                       n_components * sizeof(unsigned int));
+                vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
+                    (vtkUnsignedIntArray*)(data->vtk_arrays.at(j).GetPointer());
+                vtk_array->InsertNextTupleValue(vect);
+            }
+            else if(strstr(var->type(), "int") ||
+                    strstr(var->type(), "ivec")){
+                int vect[n_components];
+                size_t offset = typesize * i;
+                memcpy(vect,
+                       (char*)(data->data.at(j)) + offset,
+                       n_components * sizeof(int));
+                vtkSmartPointer<vtkIntArray> vtk_array =
+                    (vtkIntArray*)(data->vtk_arrays.at(j).GetPointer());
+                vtk_array->InsertNextTupleValue(vect);
+            }
+            else if(strstr(var->type(), "float") ||
+                    strstr(var->type(), "vec")){
+                float vect[n_components];
+                size_t offset = typesize * i;
+                memcpy(vect,
+                       (char*)(data->data.at(j)) + offset,
+                       n_components * sizeof(float));
+                vtkSmartPointer<vtkFloatArray> vtk_array =
+                    (vtkFloatArray*)(data->vtk_arrays.at(j).GetPointer());
+                vtk_array->InsertNextTupleValue(vect);
+            }
+        }
+        vtk_vertex = vtkSmartPointer<vtkVertex>::New();
+        vtk_vertex->GetPointIds()->SetId(0, i);
+        vtk_cells->InsertNextCell(vtk_vertex);
+    }
+
+    // Setup the unstructured grid
+    vtkSmartPointer<vtkUnstructuredGrid> grid =
+        vtkSmartPointer<vtkUnstructuredGrid>::New();
+    grid->SetPoints(vtk_points);
+    grid->SetCells(vtk_vertex->GetCellType(), vtk_cells);
+    for(i = 0; i < data->fields.size(); i++){
+        if(!strcmp(data->fields.at(i), "r")){
+            continue;
+        }
+
+        ArrayVariable *var = (ArrayVariable*)(
+            data->vars->get(data->fields.at(i)));
+        if(strstr(var->type(), "unsigned int") ||
+           strstr(var->type(), "uivec")){
+            vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
+                (vtkUnsignedIntArray*)(data->vtk_arrays.at(i).GetPointer());
+            grid->GetPointData()->AddArray(vtk_array);
+        }
+        else if(strstr(var->type(), "int") ||
+                strstr(var->type(), "ivec")){
+            vtkSmartPointer<vtkIntArray> vtk_array =
+                (vtkIntArray*)(data->vtk_arrays.at(i).GetPointer());
+            grid->GetPointData()->AddArray(vtk_array);
+        }
+        else if(strstr(var->type(), "float") ||
+                strstr(var->type(), "vec")){
+            vtkSmartPointer<vtkFloatArray> vtk_array =
+                (vtkFloatArray*)(data->vtk_arrays.at(i).GetPointer());
+            grid->GetPointData()->AddArray(vtk_array);
+        }
+    }
+
+    // Write file
+    #if VTK_MAJOR_VERSION <= 5
+        data->f->SetInput(grid);
+    #else // VTK_MAJOR_VERSION
+        f->SetInputData(grid);
+    #endif // VTK_MAJOR_VERSION
+
+    if(!data->f->Write()){
+        data->S->addMessageF(3, "Failure writing the VTK file.\n");
+        return NULL;
+    }
+
+    // Clean up
+    for(i = 0; i < data->fields.size(); i++){
+        free(data->data.at(i)); data->data.at(i) = NULL;
+    }
+    data->data.clear();
+    data->f->Delete();
+    delete data; data=NULL;
+    return NULL;
+}
+
+bool VTK::save()
+{
+    unsigned int i;
+    char msg[1024];
     ScreenManager *S = ScreenManager::singleton();
-    TimeManager *T = TimeManager::singleton();
     ProblemSetup *P = ProblemSetup::singleton();
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
 
@@ -386,120 +536,44 @@ bool VTK::save()
         }
     }
 
-    std::deque<void*> data = download(fields);
-    if(!data.size()){
+    // Setup the data struct for the parallel thread
+    data_pthread *data = new data_pthread;
+    data->fields = fields;
+    data->bounds = bounds();
+    data->vars = vars;
+    data->vtk_arrays = vtk_arrays;
+    data->S = S;
+    data->data = download(fields);
+    if(!data->data.size()){
+        return true;
+    }
+    data->f = create();
+    if(!data->f){
         return true;
     }
 
-    // Fill the VTK data arrays
-    vtkXMLUnstructuredGridWriter *f = create();
-    if(!f)
-        return true;
-    vtkSmartPointer<vtkPoints> vtk_points = vtkSmartPointer<vtkPoints>::New();
-    vtkSmartPointer<vtkCellArray> vtk_cells = vtkSmartPointer<vtkCellArray>::New();
-
-    for(i = 0; i < bounds().y - bounds().x; i++){
-        for(j = 0; j < fields.size(); j++){
-            if(!strcmp(fields.at(j), "r")){
-                vec *ptr = (vec*)data.at(j);
-                #ifdef HAVE_3D
-                    vtk_points->InsertNextPoint(ptr[i].x, ptr[i].y, ptr[i].z);
-                #else
-                    vtk_points->InsertNextPoint(ptr[i].x, ptr[i].y, 0.f);
-                #endif
-                continue;
-            }
-            ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(j));
-            size_t typesize = vars->typeToBytes(var->type());
-            unsigned int n_components = vars->typeToN(var->type());
-            if(strstr(var->type(), "unsigned int") ||
-               strstr(var->type(), "uivec")){
-                unsigned int vect[n_components];
-                size_t offset = typesize * i;
-                memcpy(vect,
-                       (char*)data.at(j) + offset,
-                       n_components * sizeof(unsigned int));
-                vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
-                    (vtkUnsignedIntArray*)(vtk_arrays.at(j).GetPointer());
-                vtk_array->InsertNextTupleValue(vect);
-            }
-            else if(strstr(var->type(), "int") ||
-                    strstr(var->type(), "ivec")){
-                int vect[n_components];
-                size_t offset = typesize * i;
-                memcpy(vect,
-                       (char*)data.at(j) + offset,
-                       n_components * sizeof(int));
-                vtkSmartPointer<vtkIntArray> vtk_array =
-                    (vtkIntArray*)(vtk_arrays.at(j).GetPointer());
-                vtk_array->InsertNextTupleValue(vect);
-            }
-            else if(strstr(var->type(), "float") ||
-                    strstr(var->type(), "vec")){
-                float vect[n_components];
-                size_t offset = typesize * i;
-                memcpy(vect,
-                       (char*)data.at(j) + offset,
-                       n_components * sizeof(float));
-                vtkSmartPointer<vtkFloatArray> vtk_array =
-                    (vtkFloatArray*)(vtk_arrays.at(j).GetPointer());
-                vtk_array->InsertNextTupleValue(vect);
-            }
-        }
-        vtk_vertex = vtkSmartPointer<vtkVertex>::New();
-        vtk_vertex->GetPointIds()->SetId(0, i);
-        vtk_cells->InsertNextCell(vtk_vertex);
-    }
-
-    for(i = 0; i < fields.size(); i++){
-        free(data.at(i)); data.at(i) = NULL;
-    }
-    data.clear();
-
-    // Setup the unstructured grid
-    vtkSmartPointer<vtkUnstructuredGrid> grid =
-        vtkSmartPointer<vtkUnstructuredGrid>::New();
-    grid->SetPoints(vtk_points);
-    grid->SetCells(vtk_vertex->GetCellType(), vtk_cells);
-    for(i = 0; i < fields.size(); i++){
-        if(!strcmp(fields.at(i), "r")){
-            continue;
-        }
-
-        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i));
-        if(strstr(var->type(), "unsigned int") ||
-           strstr(var->type(), "uivec")){
-            vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
-                (vtkUnsignedIntArray*)(vtk_arrays.at(i).GetPointer());
-            grid->GetPointData()->AddArray(vtk_array);
-        }
-        else if(strstr(var->type(), "int") ||
-                strstr(var->type(), "ivec")){
-            vtkSmartPointer<vtkIntArray> vtk_array =
-                (vtkIntArray*)(vtk_arrays.at(i).GetPointer());
-            grid->GetPointData()->AddArray(vtk_array);
-        }
-        else if(strstr(var->type(), "float") ||
-                strstr(var->type(), "vec")){
-            vtkSmartPointer<vtkFloatArray> vtk_array =
-                (vtkFloatArray*)(vtk_arrays.at(i).GetPointer());
-            grid->GetPointData()->AddArray(vtk_array);
-        }
-    }
-
-    // Write file
-    #if VTK_MAJOR_VERSION <= 5
-        f->SetInput(grid);
-    #else // VTK_MAJOR_VERSION
-        f->SetInputData(grid);
-    #endif // VTK_MAJOR_VERSION
-
-    if(!f->Write()){
-        S->addMessageF(3, "Failure writing the VTK file.\n");
+    // Launch the thread
+    pthread_t tid;
+    int err;
+    err = pthread_create(&tid, NULL, &save_pthread, (void*)data);
+    if(err){
+        S->addMessageF(3, "Failure launching the parallel thread.\n");
+        char err_str[strlen(strerror(err)) + 2];
+        strcpy(err_str, strerror(err));
+        strcat(err_str, "\n");
+        S->addMessage(0, err_str);
         return true;
     }
-    f->Delete();
+    _tids.push_back(tid);
 
+    // Clear the already finished threads
+    for(i = 0; i < _tids.size(); i++){
+        if(pthread_kill(_tids.at(i), 0)){
+            _tids.erase(_tids.begin() + i);
+        }
+    }
+
+    // Update the PVD file
     if(updatePVD()){
         return true;
     }

@@ -24,6 +24,8 @@
 #ifndef VTK_H_INCLUDED
 #define VTK_H_INCLUDED
 
+#include <pthread.h>
+
 #include <vtkVersion.h>
 #include <vtkSmartPointer.h>
 #include <vtkXMLUnstructuredGridWriter.h>
@@ -142,6 +144,9 @@ private:
 
     /// PVD file name
     char* _namePVD;
+
+    /// Launched threads ids
+    std::deque<pthread_t> _tids;
 
 };  // class InputOutput
 
