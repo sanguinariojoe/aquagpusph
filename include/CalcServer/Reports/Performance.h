@@ -102,10 +102,17 @@ private:
     char *_output_file;
     /// Output file handler
     FILE *_f;
-    /** Time mark at the end of the previous time step (to measure the total
-     * elapsed time per time step)
+    /** @brief Time mark at the end of the previous time step (to measure the
+     * total elapsed time per time step)
      */
     timeval _tic;
+    /** @brief First execution flag
+     *
+     * The first time step is including all the time required to build the tool,
+     * which may invalidate the average and variance values. In that case is
+     * therefore better using the elapsed time by the tools
+     */
+    bool _first_execution;
 };
 
 }}} // namespace

@@ -36,6 +36,7 @@ Performance::Performance(const char* tool_name,
     , _bold(bold)
     , _output_file(NULL)
     , _f(NULL)
+    , _first_execution(true)
 {
     _color = new char[strlen(color) + 1];
     strcpy(_color, color);
@@ -136,6 +137,11 @@ bool Performance::_execute()
     elapsed_seconds = (float)(tac.tv_sec - _tic.tv_sec);
     elapsed_seconds += (float)(tac.tv_usec - _tic.tv_usec) * 1E-6f;
     gettimeofday(&_tic, NULL);
+    if(_first_execution){
+        _first_execution = false;
+        // Purge out all the tool building required time
+        elapsed_seconds = elapsed;
+    }
     addElapsedTime(elapsed_seconds);
 
     sprintf(data, "%sElapsed=%16gs (+-%16gs)\n",
