@@ -34,10 +34,10 @@ import sys
 import os
 from os import path
 try:
-    from PyQt4 import QtGui
+    from PyQt4 import QtGui, QtCore
 except:
     try:
-        from PySide import QtGui
+        from PySide import QtGui, QtCore
     except:
         raise ImportError("PyQt4 or PySide is required to use this tool")
 
@@ -51,35 +51,46 @@ except:
 class FigureController(FigureCanvas):
     """Matplotlib figure widget controller"""
 
-    def __init__(self):
+    def __init__(self, parent=None):
         """Constructor"""
         # Create the figure in the canvas
         self.fig = Figure()
         self.ax = self.fig.add_subplot(111)
         FigureCanvas.__init__(self, self.fig)
+        self.setParent(parent)
         # generates first "empty" plot
         t = [0.0]
         e = [0.0]
-        self.line, = self.ax.plot(t,
+        self.fove = self.ax.fill_between(t,
+                                         0,
+                                         e,
+                                         facecolor='red',
+                                         linewidth=0.0)
+        self.fave = self.ax.fill_between(t,
+                                         0,
+                                         e,
+                                         facecolor='blue',
+                                         linestyle="-",
+                                         linewidth=0.0)
+        self.love, = self.ax.plot(t,
                                   e,
-                                  color="0.7",
+                                  color='#990000',
                                   linestyle="-",
-                                  linewidth=1.0)
+                                  linewidth=2.0,
+                                  label='Average overhead')
         self.lave, = self.ax.plot(t,
                                   e,
+                                  color='#000099',
+                                  linestyle="-",
+                                  linewidth=2.0,
+                                  label='Average elapsed')
+        self.line, = self.ax.plot(t,
+                                  e,
                                   color="black",
                                   linestyle="-",
-                                  linewidth=1.0)
-        self.lmin, = self.ax.plot(t,
-                                  e,
-                                  color="black",
-                                  linestyle="--",
-                                  linewidth=2.0)
-        self.lmax, = self.ax.plot(t,
-                                  e,
-                                  color="black",
-                                  linestyle="--",
-                                  linewidth=2.0)
+                                  linewidth=1.0,
+                                  alpha=0.5,
+                                  label='Elapsed')
         # Set some options
         self.ax.grid()
         self.ax.set_xlim(0, 0.1)
@@ -87,11 +98,13 @@ class FigureController(FigureCanvas):
         self.ax.set_autoscale_on(False)
         self.ax.set_xlabel(r"$t \, [\mathrm{s}]$", fontsize=21)
         self.ax.set_ylabel(r"$t_{CPU} \, [\mathrm{s}]$", fontsize=21)
+        self.ax.legend(handles=[self.lave, self.love, self.line],
+                       loc='upper right')
         # force the figure redraw
         self.fig.canvas.draw()
         # call the update method (to speed-up visualization)
         self.timerEvent(None)
-        # start timer, trigger event every 1000 millisecs (=1sec)
+        # start timer, trigger event every 10000 millisecs (=10sec)
         self.timer = self.startTimer(1000)
 
     def readFile(self, filepath):
@@ -124,34 +137,89 @@ class FigureController(FigureCanvas):
         data = self.readFile('Performance.dat')
         t = data[0]
         e = data[1]
-        e_ave = data[2]
-        e_var = data[3]
+        e_ela = data[2]
+        e_ove = data[5]
         # Clear nan values
-        for i in range(len(e_var)):
-            if math.isnan(e_ave[i]):
-                e_ave[i] = 0.0
-            if math.isnan(e_var[i]):
-                e_var[i] = 0.0
-        e_max = [e_ave[i] + e_var[i] for i in range(len(e_ave))]
-        e_min = [max(e_ave[i] - e_var[i], 0.0) for i in range(len(e_ave))]
-        self.line.set_data(t, e)
+        for i in range(len(e_ela)):
+            if math.isnan(e_ela[i]):
+                e_ela[i] = 0.0
+            if math.isnan(e_ove[i]):
+                e_ove[i] = 0.0
+        e_ave = [e_ela[i] - e_ove[i] for i in range(len(e_ela))]
+        # clear the fills
+        for coll in (self.ax.collections):
+            self.ax.collections.remove(coll)
+        self.fove = self.ax.fill_between(t,
+                                         0,
+                                         e_ela,
+                                         facecolor='red',
+                                         linestyle="-",
+                                         linewidth=2.0)
+        self.fave = self.ax.fill_between(t,
+                                         0,
+                                         e_ave,
+                                         facecolor='blue',
+                                         linestyle="-",
+                                         linewidth=2.0)
+        self.love.set_data(t, e_ela)
         self.lave.set_data(t, e_ave)
-        self.lmin.set_data(t, e_min)
-        self.lmax.set_data(t, e_max)
+        self.line.set_data(t, e)
 
         self.ax.set_xlim(0, t[-1])
-        ymax = max(e_max)
-        ymin = min(e_min)
-        dy = ymax - ymin
-        self.ax.set_ylim(ymin - 0.1 * dy, ymax + 0.1 * dy)
+        self.ax.set_ylim(0, 1.5 * e_ela[-1])
 
         # Redraw
         self.fig.canvas.draw()
 
 
+class ApplicationWindow(QtGui.QMainWindow):
+    def __init__(self):
+        QtGui.QMainWindow.__init__(self)
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+
+        self.main_widget = QtGui.QWidget(self)
+
+        lv = QtGui.QVBoxLayout(self.main_widget)
+        plot_widget = FigureController(self.main_widget)
+        show_inst_ela = QtGui.QCheckBox('Show instantaneous elapsed time')
+        show_inst_ela.setCheckState(True)
+        show_inst_ela.setTristate(False)
+        lv.addWidget(plot_widget)
+        lv.addWidget(show_inst_ela)
+
+        show_inst_ela.stateChanged.connect(self.showInstEla)
+
+        self.show_inst_ela = show_inst_ela
+        self.plot_widget = plot_widget
+
+        self.main_widget.setFocus()
+        self.setCentralWidget(self.main_widget)
+
+    def showInstEla(self, state):
+        if not state:
+            self.plot_widget.line.set_alpha(0.0)
+            self.plot_widget.ax.legend(handles=[self.plot_widget.lave,
+                                                self.plot_widget.love],
+                                       loc='upper right')
+
+            return
+        self.plot_widget.ax.legend(handles=[self.plot_widget.lave,
+                                            self.plot_widget.love,
+                                            self.plot_widget.line],
+                                   loc='upper right')
+        self.plot_widget.line.set_alpha(0.5)
+        return
+
+    def fileQuit(self):
+        self.close()
+
+    def closeEvent(self, ce):
+        self.fileQuit()
+
+
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
-    widget = FigureController()
-    widget.setWindowTitle("Roll angle")
-    widget.show()
+    aw = ApplicationWindow()
+    aw.setWindowTitle("Performance")
+    aw.show()
     sys.exit(app.exec_())
