@@ -416,6 +416,8 @@ bool CalcServer::update()
             }
         }
 
+        clFinish(command_queue());
+
         S->endFrame();
 	}
 	return false;
