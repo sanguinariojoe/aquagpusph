@@ -130,7 +130,7 @@ CalcServer::CalcServer* FileManager::load()
             }
             _loaders.push_back((Particles*)loader);
         }
-        if(!strcmp(P->sets.at(i)->inputFormat(), "FastASCII")){
+        else if(!strcmp(P->sets.at(i)->inputFormat(), "FastASCII")){
             FastASCII *loader = new FastASCII(n, P->sets.at(i)->n(), i);
             if(!loader){
                 delete C; C = NULL;
