@@ -92,6 +92,7 @@ FILE* FileManager::logFile()
 {
     if(_log)
         return _log->fileHandler();
+    return NULL;
 }
 
 CalcServer::CalcServer* FileManager::load()
