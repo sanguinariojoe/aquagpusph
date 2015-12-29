@@ -40,7 +40,6 @@ static const struct option longOpts[] = {
     { "help", no_argument, NULL, 'h' },
     { NULL, no_argument, NULL, 0 }
 };
-extern int optopt;
 extern char *optarg;
 
 namespace Aqua{ namespace InputOutput{
