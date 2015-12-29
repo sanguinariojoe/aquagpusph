@@ -29,8 +29,8 @@ time.
 
     <Tools>
         <!-- Compute the energy variations per particle -->
-        <Tool action="insert" after="Interactions" type="kernel" name="Fluid Energy Rates" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Rates.cl"/>
-        <Tool action="insert" after="Fluid Energy Rates" type="kernel" name="Fluid Energy" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Energy/FluidEnergy.cl"/>
+        <Tool action="insert" after="Interactions" type="kernel" name="Fluid Energy Rates" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Rates.cl"/>
+        <Tool action="insert" after="Fluid Energy Rates" type="kernel" name="Fluid Energy" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Energy/FluidEnergy.cl"/>
         <!-- Integrate them to the global energy components variation -->
         <Tool action="insert" after="Energy" type="reduction" name="Fluid dEkindt" in="fluid_energy_dekindt" out="fluid_energy_dEkindt" null="0.f">
             c = a + b;

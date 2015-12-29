@@ -18,8 +18,8 @@ Authors:
 -->
 
 <sphInput>
-    <Include file="@RESOURCES_DIR@/Presets/motion.xml" prefix="iset0_" />
-    <Include file="@RESOURCES_DIR@/Presets/motion.xml" prefix="iset1_" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd/motion.xml" prefix="iset0_" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd/motion.xml" prefix="iset1_" />
 
     <Variables>
         <Variable name="motion_r" type="vec" value="0.0, 0.0" />

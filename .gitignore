@@ -1,5 +1,8 @@
 # Code::Blocks auxiliar files
 CodeBlocks/*.layout
 *.cbTemp
+# Eclipse project files
+.cproject
+.project
 # gedit backup files
 *~

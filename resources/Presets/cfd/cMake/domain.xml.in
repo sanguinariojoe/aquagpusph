@@ -6,6 +6,6 @@
     </Variables>
 
     <Tools>
-        <Tool action="insert" before="FixedTimeStep" type="kernel" name="Domain" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Domain.cl"/>
+        <Tool action="insert" before="FixedTimeStep" type="kernel" name="Domain" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Domain.cl"/>
     </Tools>
 </sphInput>

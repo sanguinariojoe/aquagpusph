@@ -1,5 +1,0 @@
-<?xml version="1.0" ?>
-<sphInput>
-    <Include file="@RESOURCES_OUTPUT_DIR@/Presets/cfd.xml" />
-</sphInput>
-

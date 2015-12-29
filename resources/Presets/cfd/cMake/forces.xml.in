@@ -31,7 +31,7 @@ pressureForces.xml and viscousForces.xml.
     </Variables>
 
     <Tools>
-        <Tool action="insert" before="t = t + dt" type="kernel" name="Forces" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Forces/Forces.cl"/>
+        <Tool action="insert" before="t = t + dt" type="kernel" name="Forces" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Forces/Forces.cl"/>
         <Tool action="insert" after="Forces" type="reduction" name="TotalForce" in="forces_f" out="forces_F" null="VEC_ZERO">
             c = a + b;
         </Tool>

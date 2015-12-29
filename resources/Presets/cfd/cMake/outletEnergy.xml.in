@@ -28,7 +28,7 @@ time.
 
     <Tools>
         <!-- Extract the particles at the outflow from the fluid energy -->
-        <Tool action="insert" after="Fluid Energy" type="kernel" name="Outlet Energy" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Energy/OutletEnergy.cl"/>
+        <Tool action="insert" after="Fluid Energy" type="kernel" name="Outlet Energy" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Energy/OutletEnergy.cl"/>
         
         <!-- Integrate them to the global energy components variation -->
         <Tool action="insert" after="Outlet Energy" type="reduction" name="Outlet dEkindt" in="outlet_energy_dekindt" out="outlet_energy_dEkindt" null="0.f">

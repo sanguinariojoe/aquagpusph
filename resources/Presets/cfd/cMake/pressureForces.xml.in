@@ -45,7 +45,7 @@ use forces.xml
 
     <Tools>
         <!-- Try to compute the forces for the ghost particles -->
-        <Tool action="try_insert" after="GP Interactions" type="kernel" name="GP pressure forces" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Forces/GP/PressureForces.cl"/>
+        <Tool action="try_insert" after="GP Interactions" type="kernel" name="GP pressure forces" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Forces/GP/PressureForces.cl"/>
         <Tool action="try_insert" after_prefix="GP pressure forces" type="reduction" name="GP total pressure force" in="pressureForces_f" out="pressureForces_F_GP" null="VEC_ZERO">
             c = a + b;
         </Tool>
@@ -53,7 +53,7 @@ use forces.xml
             c = a + b;
         </Tool>
         <!-- Try to compute the forces for the boundary integrals -->
-        <Tool action="try_insert" after="BI Shepard" type="kernel" name="BI pressure forces" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Forces/BI/PressureForces.cl"/>
+        <Tool action="try_insert" after="BI Shepard" type="kernel" name="BI pressure forces" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Forces/BI/PressureForces.cl"/>
         <Tool action="try_insert" after_prefix="BI pressure forces" type="reduction" name="BI total pressure force" in="pressureForces_f" out="pressureForces_F_BI" null="VEC_ZERO">
             c = a + b;
         </Tool>

@@ -28,7 +28,7 @@ time.
 
     <Tools>
         <!-- Extract the particles at the inflow from the fluid energy -->
-        <Tool action="insert" after="Fluid Energy" type="kernel" name="Inlet Energy" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Energy/InletEnergy.cl"/>
+        <Tool action="insert" after="Fluid Energy" type="kernel" name="Inlet Energy" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Energy/InletEnergy.cl"/>
         
         <!-- Integrate them to the global energy components variation -->
         <Tool action="insert" after="Inlet Energy" type="reduction" name="Inlet dEkindt" in="inlet_energy_dekindt" out="inlet_energy_dEkindt" null="0.f">

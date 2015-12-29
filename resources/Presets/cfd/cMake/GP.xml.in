@@ -54,15 +54,15 @@ Remarks:
     <Tools>
         <!-- Regenerate the particles associations in the sort space. -->
         <Tool action="insert" before="Sort" type="copy" name="Backup associations" in="associations" out="associations_in"/>
-        <Tool action="insert" after="Sort" type="kernel" name="Sort associations" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GP/Sort.cl"/>
+        <Tool action="insert" after="Sort" type="kernel" name="Sort associations" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/GP/Sort.cl"/>
         <!-- Mirror the particles and interpolate the field values -->
         <Tool action="insert" after="Shepard" type="copy" name="GP backup r" in="r" out="gp_r_in"/>        
-        <Tool action="insert" after="GP backup r" type="kernel" name="GP Mirror" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GP/Mirror.cl"/>
+        <Tool action="insert" after="GP backup r" type="kernel" name="GP Mirror" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/GP/Mirror.cl"/>
         <Tool action="insert" after="GP Mirror" type="set" name="Reinit gp_rho" in="gp_rho" value="0.f"/>
         <Tool action="insert" after="Reinit gp_rho" type="set" name="Reinit gp_p" in="gp_p" value="0.f"/>
         <Tool action="insert" after="Reinit gp_p" type="set" name="Reinit gp_u" in="gp_u" value="VEC_ZERO"/>
-        <Tool action="insert" after="Reinit gp_u" type="kernel" name="GP Interpolation" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GP/Interpolation.cl"/>
-        <Tool action="insert" after="GP Interpolation" type="kernel" name="GP Renormalization" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GP/Renormalization.cl"/>
+        <Tool action="insert" after="Reinit gp_u" type="kernel" name="GP Interpolation" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/GP/Interpolation.cl"/>
+        <Tool action="insert" after="GP Interpolation" type="kernel" name="GP Renormalization" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/GP/Renormalization.cl"/>
         <!-- Unmirror the particles to compute the interactions -->
         <Tool action="insert" after="GP Renormalization" type="copy" name="GP Unmirror" in="gp_r_in" out="r"/>        
         <!-- Backup the velocity before start overwriting its value -->
@@ -70,12 +70,12 @@ Remarks:
         <!-- We must compute first the Laplacian of the velocity because:
              1.- It requires a special fluid extension
              2.- The resulting value is required for the pressure extension. -->
-        <Tool action="insert" after="Interactions" type="kernel" name="GP PreLapU" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GP/PreLapU.cl"/>
-        <Tool action="insert" after="GP PreLapU" type="kernel" name="GP LapU" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GP/LapU.cl"/>
+        <Tool action="insert" after="Interactions" type="kernel" name="GP PreLapU" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/GP/PreLapU.cl"/>
+        <Tool action="insert" after="GP PreLapU" type="kernel" name="GP LapU" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/GP/LapU.cl"/>
         <!-- Now we can extend the pressure and velocity to compute grad_p,
         div_u, lap_p. -->
-        <Tool action="insert" after="GP LapU" type="kernel" name="GP PreInteractions" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GP/PreInteractions.cl"/>
-        <Tool action="insert" after="GP PreInteractions" type="kernel" name="GP Interactions" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Boundary/GP/Interactions.cl"/>
+        <Tool action="insert" after="GP LapU" type="kernel" name="GP PreInteractions" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/GP/PreInteractions.cl"/>
+        <Tool action="insert" after="GP PreInteractions" type="kernel" name="GP Interactions" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/GP/Interactions.cl"/>
         <!-- Restore the velocity -->
         <Tool action="insert" after="GP Interactions" type="copy" name="GP restore u" in="gp_u_in" out="u"/>        
     </Tools>

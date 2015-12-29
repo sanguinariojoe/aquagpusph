@@ -68,8 +68,8 @@ computing that. Otherwise they will be overwritten.
 
     <Tools>
         <!-- Compute the energy variations per particle -->
-        <Tool action="insert" after="GP LapU" type="kernel" name="GP viscous energy" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Energy/GP/Viscous.cl"/>
-        <Tool action="insert" after="GP Interactions" type="kernel" name="GP pressure energy" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Energy/GP/Pressure.cl"/>
+        <Tool action="insert" after="GP LapU" type="kernel" name="GP viscous energy" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Energy/GP/Viscous.cl"/>
+        <Tool action="insert" after="GP Interactions" type="kernel" name="GP pressure energy" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Energy/GP/Pressure.cl"/>
         <!-- Integrate them to the global energy components variation -->
         <Tool action="insert" after_prefix="GP pressure energy" type="reduction" name="GP dElapudt" in="GP_energy_delapudt" out="GP_energy_dElapudt" null="0.f">
             c = a + b;

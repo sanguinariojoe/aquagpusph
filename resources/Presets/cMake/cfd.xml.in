@@ -100,7 +100,7 @@ In the sensors the values of density, pressure and velocity are interpolated.
     
     <Tools>
         <!-- Improved Euler time integration predictor stage -->
-        <Tool action="add" type="kernel" name="Predictor" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Predictor.cl"/>
+        <Tool action="add" type="kernel" name="Predictor" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Predictor.cl"/>
 
         <!-- Link-list and particles sorting -->
         <Tool action="add" type="link-list" name="Link-List"/>
@@ -110,8 +110,8 @@ In the sensors the values of density, pressure and velocity are interpolated.
         <Tool action="add" type="copy" name="Backup imove" in="imove" out="imove_in"/>
         <Tool action="add" type="copy" name="Backup normal" in="normal" out="normal_in"/>
         <Tool action="add" type="copy" name="Backup m" in="m" out="m_in"/>
-        <Tool action="add" type="kernel" name="Sort stage1" entry_point="stage1" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Sort.cl"/>
-        <Tool action="add" type="kernel" name="Sort" entry_point="stage2" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Sort.cl"/>
+        <Tool action="add" type="kernel" name="Sort stage1" entry_point="stage1" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Sort.cl"/>
+        <Tool action="add" type="kernel" name="Sort" entry_point="stage2" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Sort.cl"/>
         <Tool action="add" type="copy" name="Backup dudt" in="dudt" out="dudt_in"/>
         <Tool action="add" type="copy" name="Backup drhodt" in="drhodt" out="drhodt_in"/>
 
@@ -122,17 +122,17 @@ In the sensors the values of density, pressure and velocity are interpolated.
         <Tool action="add" type="set" name="Reinit div_u" in="div_u" value="0.f"/>
         <Tool action="add" type="set" name="Reinit lap_u" in="lap_u" value="VEC_ZERO"/>
 
-        <Tool action="add" type="kernel" name="Shepard" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Shepard.cl"/>
-        <Tool action="add" type="kernel" name="Interactions" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Interactions.cl"/>
+        <Tool action="add" type="kernel" name="Shepard" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Shepard.cl"/>
+        <Tool action="add" type="kernel" name="Interactions" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Interactions.cl"/>
 
-        <Tool action="add" type="kernel" name="Sensors" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Sensors.cl"/>
-        <Tool action="add" type="kernel" name="SensorsRenormalization" path="@RESOURCES_OUTPUT_DIR@/OpenCL/SensorsRenormalization.cl"/>
+        <Tool action="add" type="kernel" name="Sensors" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Sensors.cl"/>
+        <Tool action="add" type="kernel" name="SensorsRenormalization" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/SensorsRenormalization.cl"/>
 
         <!-- Velocity and density variation rates computation -->
-        <Tool action="add" type="kernel" name="Rates" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Rates.cl"/>
+        <Tool action="add" type="kernel" name="Rates" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Rates.cl"/>
 
         <!-- Improved Euler time integration corrector stage -->
-        <Tool action="add" type="kernel" name="Corrector" path="@RESOURCES_OUTPUT_DIR@/OpenCL/Corrector.cl"/>
+        <Tool action="add" type="kernel" name="Corrector" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Corrector.cl"/>
 
         <!-- Time step computation -->
         <Tool action="add" type="set_scalar" name="FixedTimeStep" in="dt" value="courant * h / cs"/>
