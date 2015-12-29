@@ -53,9 +53,7 @@
  * @param mass Mass \f$ m \f$.
  * @param refd Density of reference \f$ \rho_0 \f$ (one per set of particles)
  * @param grad_p Pressure gradient \f$ \nabla p \f$.
- * @param lap_u Velocity laplacian \f$ \Delta \mathbf{u} \f$.
  * @param div_u Velocity divergence \f$ \nabla \cdot \mathbf{u} \f$.
- * @param lap_p Pressure laplacian \f$ \Delta p \f$.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
@@ -76,9 +74,7 @@ __kernel void entry(const __global uint* iset,
                     const __global float* p,
                     __constant float* refd,
                     __global vec* grad_p,
-                    __global vec* lap_u,
                     __global float* div_u,
-                    __global float* lap_p,
                     // Link-list data
                     __global uint *icell,
                     __global uint *ihoc,
@@ -91,7 +87,7 @@ __kernel void entry(const __global uint* iset,
     const uint it = get_local_id(0);
     if(i >= N)
         return;
-    if((!imirrored[i]) || (imove[i] <= 0))
+    if((!imirrored[i]) || (imove[i] != 1))
         return;
 
     const uint c_i = icell[i];
@@ -101,69 +97,52 @@ __kernel void entry(const __global uint* iset,
     const float rho_i = rho[i];
     const float refd_i = refd[iset[i]];
 
-    const float prfac_i = p_i / (rho_i * rho_i);
-
     // Initialize the output
     #ifndef LOCAL_MEM_SIZE
         #define _GRADP_ grad_p[i].XYZ
-        #define _LAPU_ lap_u[i].XYZ
         #define _DIVU_ div_u[i]
-        #define _LAPP_ lap_p[i]
     #else
         #define _GRADP_ grad_p_l[it]
-        #define _LAPU_ lap_u_l[it]
         #define _DIVU_ div_u_l[it]
-        #define _LAPP_ lap_p_l[it]
         __local vec_xyz grad_p_l[LOCAL_MEM_SIZE];
-        __local vec_xyz lap_u_l[LOCAL_MEM_SIZE];
         __local float div_u_l[LOCAL_MEM_SIZE];
-        __local float lap_p_l[LOCAL_MEM_SIZE];
         _GRADP_ = grad_p[i].XYZ;
-        _LAPU_ = lap_u[i].XYZ;
         _DIVU_ = div_u[i];
-        _LAPP_ = lap_p[i];
     #endif
 
-    // Loop over neighs
-    // ================
-    for(int ci = -1; ci <= 1; ci++) {
-        for(int cj = -1; cj <= 1; cj++) {
-            #ifdef HAVE_3D
-            for(int ck = -1; ck <= 1; ck++) {
-            #else
-            const int ck = 0; {
-            #endif
-                const uint c_j = c_i +
-                                 ci +
-                                 cj * n_cells.x +
-                                 ck * n_cells.x * n_cells.y;
-                uint j = ihoc[c_j];
-                while((j < N) && (icell[j] == c_j)) {
-                    if((!imirrored[j]) || (imove[j] != -3)){
-                        j++;
-                        continue;
-                    }
-                    const vec_xyz r_ij = rmirrored[j].XYZ - r_i;
-                    const float q = length(r_ij) / H;
-                    if(q >= SUPPORT)
-                    {
-                        j++;
-                        continue;
-                    }
-
-                    {
-                        #include "BoundaryIntegrals.hcl"
-                    }
-                    j++;
-                }
-            }
+    BEGIN_LOOP_OVER_NEIGHS(){
+        if((!imirrored[j]) || (imove[j] != -3)){
+            j++;
+            continue;
         }
-    }
+        const vec_xyz r_ij = rmirrored[j].XYZ - r_i;
+        const float q = length(r_ij) / H;
+        if(q >= SUPPORT)
+        {
+            j++;
+            continue;
+        }
+
+        // const float rho_j = rho[j];
+        // if(rho_j <= 0.01f * refd_i){
+        //     j++;
+        //     continue;
+        // }
+
+        {
+            const vec_xyz n_j = nmirrored[j].XYZ;  // Assumed outwarding oriented
+            const float area_j = m[j];
+            const float p_j = p[j];
+            const vec_xyz du = umirrored[j].XYZ - u_i;
+            const float w_ij = kernelW(q) * CONW * area_j;
+
+            _GRADP_ += (p_i + p_j) / rho_i * w_ij * n_j;
+            _DIVU_ += rho_i * dot(du, n_j) * w_ij;
+        }
+    }END_LOOP_OVER_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         grad_p[i].XYZ = _GRADP_;
-        lap_u[i].XYZ = _LAPU_;
         div_u[i] = _DIVU_;
-        lap_p[i] = _LAPP_;
     #endif
 }

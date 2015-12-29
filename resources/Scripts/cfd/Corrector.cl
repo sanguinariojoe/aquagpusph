@@ -96,14 +96,13 @@ __kernel void entry(__global int* imove,
     if(i >= N)
         return;
 
-    float DT = dt;
+    float DT = 0.5f * dt;
     if(imove[i] != 1)
         DT = 0.f;
-    const float HDT = 0.5f * DT;
 
     // Corrector step for the fluid
-    u[i] += HDT * (dudt[i] - dudt_in[i]);
-    rho[i] += HDT * (drhodt[i] - drhodt_in[i]);
+    u[i] += DT * (dudt[i] - dudt_in[i]);
+    rho[i] += DT * (drhodt[i] - drhodt_in[i]);
 
     r_in[i] = r[i];
     u_in[i] = u[i];

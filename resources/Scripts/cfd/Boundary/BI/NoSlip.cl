@@ -86,7 +86,7 @@ __kernel void entry(const __global uint* iset,
     const uint it = get_local_id(0);
     if(i >= N)
         return;
-    if(imove[i] <= 0)
+    if(imove[i] != 1)
         return;
 
     const vec_xyz r_i = r[i].XYZ;

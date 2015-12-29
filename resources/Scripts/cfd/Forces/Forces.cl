@@ -66,7 +66,7 @@ __kernel void entry(__global vec* forces_f,
     unsigned int i = get_global_id(0);
     if(i >= N)
         return;
-    if(imove[i] <= 0){
+    if(imove[i] != 1){
         forces_f[i] = VEC_ZERO;
         forces_m[i] = (vec4)(0.f, 0.f, 0.f, 0.f);
         return;

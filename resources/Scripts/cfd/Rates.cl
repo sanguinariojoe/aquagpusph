@@ -79,7 +79,7 @@ __kernel void entry(const __global uint* iset,
     unsigned int i = get_global_id(0);
     if(i >= N)
         return;
-    if(imove[i] <= 0)
+    if(imove[i] != 1)
         return;
 
     const uint set_i = iset[i];

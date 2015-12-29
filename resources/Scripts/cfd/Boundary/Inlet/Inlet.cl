@@ -56,7 +56,7 @@ __kernel void entry(__global int* imove,
     unsigned int i = get_global_id(0);
     if(i >= N)
         return;
-    if(imove[i] <= 0)
+    if(imove[i] != 1)
         return;
 
     // Discard the particles already passed through the inlet

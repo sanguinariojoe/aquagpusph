@@ -87,7 +87,7 @@ __kernel void entry(const __global uint* iset,
     int i = get_global_id(0);
     if(i >= N)
         return;
-    if((iset[i] != motion_iset) || (imove[i] > 0)){
+    if((iset[i] != motion_iset) || (imove[i] == 1)){
         return;
     }
 

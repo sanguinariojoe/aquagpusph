@@ -83,7 +83,7 @@ __kernel void entry(__global int* imove,
     unsigned int i = get_global_id(0);
     if(i >= N)
         return;
-    if(imove[i] <= 0)
+    if(imove[i] != 1)
         return;
 
     // Compute the distance to the outlet plane

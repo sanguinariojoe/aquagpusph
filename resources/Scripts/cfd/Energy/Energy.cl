@@ -72,7 +72,7 @@ __kernel void entry(__global float* energy_dekindt,
     unsigned int i = get_global_id(0);
     if(i >= N)
         return;
-    if(imove[i] <= 0){
+    if(imove[i] != 1){
         energy_dekindt[i] = 0.f;
         energy_depotdt[i] = 0.f;
         energy_decomdt[i] = 0.f;

@@ -22,10 +22,8 @@
     #include "types/3D.h"
 #endif
 
-/** 
-
-@brief Sort all the particle variables by the cell indexes.
- *
+/** @brief Compute the permutations to move from the sorted indexes space to the
+ * unsorted one.
  * @param id Original index of each particle (sort -> unsort space)
  * @param id_inverse Sorted index of each particle (unsort -> sort space)
  * @param N Number of particles.

@@ -77,8 +77,8 @@ __kernel void entry(const __global int* imove,
     if(i >= N)
         return;
     const int move_i = imove[i];
-    if(move_i == -4){
-        // Particles outside the domain
+    if((move_i < -3) || (move_i > 1)){
+        // Non-CFD related particle
         return;
     }
 

@@ -32,6 +32,14 @@
     #include "../../KernelFunctions/Wendland3D.hcl"
 #endif
 
+#if __LAP_FORMULATION__ == __LAP_MONAGHAN__
+    #ifndef HAVE_3D
+        #define __CLEARY__ 8.f
+    #else
+        #define __CLEARY__ 10.f
+    #endif
+#endif
+
 /** @brief Particles interactions computation.
  *
  * Compute the rates of variation due to the fluid (fixed particles will be
@@ -97,7 +105,7 @@ __kernel void entry(const __global uint* iset,
     const uint it = get_local_id(0);
     if(i >= N)
         return;
-    if((!imirrored[i]) || (imove[i] <= 0))
+    if((!imirrored[i]) || (imove[i] != 1))
         return;
 
     const uint c_i = icell[i];
@@ -106,8 +114,6 @@ __kernel void entry(const __global uint* iset,
     const float p_i = p[i];
     const float rho_i = rho[i];
     const float refd_i = refd[iset[i]];
-
-    const float prfac_i = p_i / (rho_i * rho_i);
 
     // Initialize the output
     #ifndef LOCAL_MEM_SIZE
@@ -134,43 +140,43 @@ __kernel void entry(const __global uint* iset,
         _SHEPARD_ = shepard[i];
     #endif
 
-    // Loop over neighs
-    // ================
-    for(int ci = -1; ci <= 1; ci++) {
-        for(int cj = -1; cj <= 1; cj++) {
-            #ifdef HAVE_3D
-            for(int ck = -1; ck <= 1; ck++) {
-            #else
-            const int ck = 0; {
-            #endif
-                const uint c_j = c_i +
-                                 ci +
-                                 cj * n_cells.x +
-                                 ck * n_cells.x * n_cells.y;
-                uint j = ihoc[c_j];
-                while((j < N) && (icell[j] == c_j)) {
-                    const int move_j = imove[j];
-                    if((!imirrored[j]) ||
-                       ((imove[j] != 1) && (imove[j] != -1))){
-                        j++;
-                        continue;
-                    }
-                    const vec_xyz r_ij = rmirrored[j].XYZ - r_i;
-                    const float q = length(r_ij) / H;
-                    if(q >= SUPPORT)
-                    {
-                        j++;
-                        continue;
-                    }
+	BEGIN_LOOP_OVER_NEIGHS(){
+		if((!imirrored[j]) || ((imove[j] != 1) && (imove[j] != -1))){
+			j++;
+			continue;
+		}
+		const vec_xyz r_ij = rmirrored[j].XYZ - r_i;
+		const float q = length(r_ij) / H;
+		if(q >= SUPPORT)
+		{
+			j++;
+			continue;
+		}
 
-                    {
-                        #include "Interactions.hcl"
-                    }
-                    j++;
-                }
-            }
-        }
-    }
+		{
+            const float rho_j = rho[j];
+			const float m_j = m[j];
+            const float p_j = p[j];
+            const float udr = dot(u[j].XYZ - u_i, r_ij);
+			const float w_ij = kernelW(q) * CONW * m_j;
+            const float f_ij = kernelF(q) * CONF * m_j;
+
+            _GRADP_ += (p_i + p_j) / (rho_i * rho_j) * f_ij * r_ij;
+
+            #if __LAP_FORMULATION__ == __LAP_MONAGHAN__
+                const float r2 = (q * q + 0.01f) * H * H;
+                _LAPU_ += f_ij * __CLEARY__ * udr / (r2 * rho_i * rho_j) * r_ij;
+            #elif __LAP_FORMULATION__ == __LAP_MORRIS__
+                _LAPU_ += f_ij * 2.f / (rho_i * rho_j) * (u[j].XYZ - u_i);
+            #else
+                #error Unknown Laplacian formulation: __LAP_FORMULATION__
+            #endif
+
+            _DIVU_ += udr * f_ij * rho_i / rho_j;
+            _LAPP_ += ((p_j - p_i) - refd_i * dot(g.XYZ, r_ij)) * f_ij / rho_j;
+			_SHEPARD_ += w_ij / rho_j;
+		}
+	}END_LOOP_OVER_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         grad_p[i].XYZ = _GRADP_;
