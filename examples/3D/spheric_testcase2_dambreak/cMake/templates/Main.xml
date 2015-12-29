@@ -27,8 +27,8 @@ Authors:
     <Include file="@RESOURCES_DIR@/Presets/cfd/timing.report.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/performance.report.xml" />
     <Include file="Settings.xml" />
-    <Include file="Time.xml" />
     <Include file="SPH.xml" />
+    <Include file="Time.xml" />
     <Include file="Fluids.xml" />
     <Include file="Sensors.xml" />
 </sphInput>
