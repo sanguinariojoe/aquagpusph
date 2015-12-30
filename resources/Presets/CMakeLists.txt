@@ -3,7 +3,7 @@
 # ===================================================== #
 # Create local version of the file
 SET(RESOURCES_OUTPUT_DIR ${CMAKE_BINARY_DIR}/resources)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/cfd.xml.in  
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/cfd.xml
     ${CMAKE_CURRENT_BINARY_DIR}/cfd.xml @ONLY)
 
 # Create installable version of the file
