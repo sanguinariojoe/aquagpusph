@@ -42,6 +42,11 @@ namespace Aqua{ namespace CalcServer{
 class Tool
 {
 public:
+    /** Constructor.
+     * @param tool_name Name of the tool. Useful to identify errors.
+     */
+    Tool(const char* tool_name);
+
     /** Destructor
      */
     virtual ~Tool();
@@ -105,11 +110,6 @@ public:
     float elapsedTimeDeviation() const {return sqrt(elapsedTimeVariance());}
 
 protected:
-    /** Constructor.
-     * @param tool_name Name of the tool. Useful to identify errors.
-     */
-    Tool(const char* tool_name);
-
     /** Set the allocated memory for this tool.
      * @param mem_size allocated memory by this tool.
      */

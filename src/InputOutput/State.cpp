@@ -834,6 +834,9 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                 }
                 tool->set("in", xmlAttribute(s_elem, "in"));
             }
+            else if(!strcmp(xmlAttribute(s_elem, "type"), "dummy")){
+            	// Without options
+            }
             else{
                 sprintf(msg,
                         "Unknown \"type\" for the tool \"%s\".\n",
@@ -847,6 +850,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                 S->addMessage(0, "\t\tset_scalar\n");
                 S->addMessage(0, "\t\treduction\n");
                 S->addMessage(0, "\t\tlink-list\n");
+                S->addMessage(0, "\t\tdummy\n");
                 return true;
             }
         }

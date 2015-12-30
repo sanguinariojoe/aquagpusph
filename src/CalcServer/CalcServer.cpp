@@ -34,6 +34,7 @@
 #include <ProblemSetup.h>
 #include <TimeManager.h>
 #include <ScreenManager.h>
+#include <CalcServer/Tool.h>
 #include <CalcServer/Copy.h>
 #include <CalcServer/Kernel.h>
 #include <CalcServer/LinkList.h>
@@ -265,6 +266,10 @@ CalcServer::CalcServer()
         else if(!strcmp(P->tools.at(i)->get("type"), "link-list")){
             LinkList *tool = new LinkList(P->tools.at(i)->get("name"),
                                           P->tools.at(i)->get("in"));
+            _tools.push_back(tool);
+        }
+        else if(!strcmp(P->tools.at(i)->get("type"), "dummy")){
+            Tool *tool = new Tool(P->tools.at(i)->get("name"));
             _tools.push_back(tool);
         }
         else{
