@@ -1,0 +1,149 @@
+<?xml version="1.0" ?>
+
+<!-- basic.xml
+This preset is designed to be the base for most of the time domain simulations.
+An improved Euler integration scheme will be applied, dividing it in a predictor
+and a corrector stages, such that the time step may be variable, and can be
+modified after the corrector stage computation
+
+Whithin basic.xml the following varaibles are defined, on top of the default
+ones already defined by AQUAgpusph (see below):
+- Scalars:
+  - g: Gravity acceleration
+  - r_min: Minimum position
+  - r_max: Maximum position
+- Arrays:
+  - refd: Density of reference for each set of particles
+  - imove: Moving flags
+  - normal: Normals
+  - u: Velocities
+  - dudt: Accelerations
+  - rho: Densities
+  - drhodt: Density variation rates
+  - m: Masses
+Also backup array variables (with the suffix "_in") are created for the
+predictor-corrector integration scheme, and the Link-List and sort process
+
+Also the following definitions are imposed (Notice that in the case of variable
+kernel height some of these definitions could not be used):
+ - DIMS: 2 in 2D, 3 in 3D
+ - H: Kernel height
+ - CONW: The result of evaluating 1/(h^dims)
+ - CONF: The result of evaluating 1/(h^(dims+2))
+ - SUPPORT: 2 (In principle, if you ndefine your own kernel, please ensure that
+ its compact support is equal to 2 times h)
+
+This preset is placing some dummy tools that can be used to place other tools
+later:
+ - Predictor: The predictor stage has finished.
+ - Link-List: The Link-List computation has finished
+ - Sort: The sorting process has finished
+ - Interactions: The interactions process has finished
+ - Rates: The variation rates computation has finished
+ - Corrector: The corrector stage has finished
+ - TimeStep: The time step value has been computed
+ - End: Finished the whole time step computation
+-->
+
+<sphInput>
+    <Variables>
+        <!-- Some variables are automatically defined:
+        | NAME        | TYPE          | LEN     | DESCRIPTION
+        | dims        | unsigned int  | 1       | 2 for 2D, 3 for 3D
+        | t           | float         | 1       | Simulation time
+        | dt          | float         | 1       | Time step
+        | iter        | unsigned int  | 1       | Step
+        | N           | unsigned int  | 1       | n + n_sensors
+        | n_sets      | unsigned int  | 1       | Number of particles sets
+        | n_radix     | unsigned int  | 1       | Rounded up value from N which is a power of 2
+        | n_cells     | uivec4        | 1       | Number of cells at each direction, and the total one
+        | support     | float         | 1       | Kernel support (as a factor of the kernel length h)
+        | id          | unsigned int* | N       | Original ID of each particle
+        | r           | vec*          | N       | Positions
+        | iset        | unsigned int* | N       | Particle set of each particle
+        | id_sorted   | unsigned int* | n_radix | Permutations from unsorted space to sorted space
+        | id_unsorted | unsigned int* | n_radix | Permutations from sorted space to unsorted space
+        | icell       | unsigned int* | n_radix | Cell where each particle is located
+        | ihoc        | unsigned int* | n_cells | First particle in each cell
+         -->
+        <Variable name="g" type="vec" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="r_min" type="vec" />
+        <Variable name="r_max" type="vec" />
+
+        <Variable name="refd" type="float*" length="n_sets" />
+
+        <!-- imove = 2 for solid particles
+             imove = 1 for fluid particles
+             imove = 0 for sensors
+             imove = -1 for fixed particles
+             imove = -2 for elastic bounce boundary elements
+             imove = -3 for boundary integrals boundary elements
+             imove = -255 for buffer or out of computational domain particles 
+         -->
+        <Variable name="imove" type="int*" length="N" />
+        <Variable name="normal" type="vec*" length="N" />
+        <Variable name="u" type="vec*" length="N" />
+        <Variable name="dudt" type="vec*" length="N" />
+        <Variable name="rho" type="float*" length="N" />
+        <Variable name="drhodt" type="float*" length="N" />
+        <Variable name="m" type="float*" length="N" />
+
+        <Variable name="id_in" type="unsigned int*" length="N" />
+        <Variable name="iset_in" type="unsigned int*" length="N" />
+        <Variable name="imove_in" type="int*" length="N" />
+        <Variable name="r_in" type="vec*" length="N" />
+        <Variable name="normal_in" type="vec*" length="N" />
+        <Variable name="u_in" type="vec*" length="N" />
+        <Variable name="dudt_in" type="vec*" length="N" />
+        <Variable name="rho_in" type="float*" length="N" />
+        <Variable name="drhodt_in" type="float*" length="N" />
+        <Variable name="m_in" type="float*" length="N" />
+    </Variables>
+
+    <Definitions>
+        <Define name="DIMS" value="dims" evaluate="true"/>
+        <Define name="H" value="h" evaluate="true"/>
+        <Define name="CONW" value="1/(h^dims)" evaluate="true"/>
+        <Define name="CONF" value="1/(h^(dims+2))" evaluate="true"/>
+        <Define name="SUPPORT" value="2.f" evaluate="false"/>
+    </Definitions>
+    
+    <Tools>
+        <!-- Improved Euler time integration predictor stage -->
+        <Tool action="add" type="kernel" name="predictor" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/Predictor.cl"/>
+        <Tool action="add" type="dummy" name="Predictor"/>
+
+        <!-- Link-list and particles sorting -->
+        <Tool action="add" type="link-list" name="link-list"/>
+        <Tool action="add" type="dummy" name="Link-List"/>
+
+        <Tool action="add" type="copy" name="Backup id" in="id" out="id_in"/>
+        <Tool action="add" type="copy" name="Backup iset" in="iset" out="iset_in"/>
+        <Tool action="add" type="copy" name="Backup imove" in="imove" out="imove_in"/>
+        <Tool action="add" type="copy" name="Backup normal" in="normal" out="normal_in"/>
+        <Tool action="add" type="copy" name="Backup m" in="m" out="m_in"/>
+        <Tool action="add" type="kernel" name="sort stage1" entry_point="stage1" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/Sort.cl"/>
+        <Tool action="add" type="kernel" name="sort stage2" entry_point="stage2" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/Sort.cl"/>
+        <Tool action="add" type="copy" name="Backup dudt" in="dudt" out="dudt_in"/>
+        <Tool action="add" type="copy" name="Backup drhodt" in="drhodt" out="drhodt_in"/>
+        <Tool action="add" type="dummy" name="Sort"/>
+
+        <!-- Particles interactions -->
+        <Tool action="add" type="dummy" name="Interactions"/>
+
+        <!-- Rates computation -->
+        <Tool action="add" type="dummy" name="Rates"/>
+
+        <!-- Improved Euler time integration corrector stage -->
+        <Tool action="add" type="kernel" name="corrector" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/Corrector.cl"/>
+        <Tool action="add" type="dummy" name="Corrector"/>
+
+        <!-- Time step computation -->
+        <Tool action="add" type="dummy" name="TimeStep"/>
+
+        <!-- Next time step -->
+        <Tool action="add" type="set_scalar" name="t = t + dt" in="t" value="t + dt"/>
+        <Tool action="add" type="set_scalar" name="iter += 1" in="iter" value="iter + 1"/>
+        <Tool action="add" type="dummy" name="End"/>
+    </Tools>
+</sphInput>
