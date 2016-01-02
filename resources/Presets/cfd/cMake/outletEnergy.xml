@@ -28,20 +28,20 @@ time.
 
     <Tools>
         <!-- Extract the particles at the outflow from the fluid energy -->
-        <Tool action="insert" after="Fluid Energy" type="kernel" name="Outlet Energy" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Energy/OutletEnergy.cl"/>
+        <Tool action="insert" after="cfd fluid energy" type="kernel" name="cfd outlet Energy" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Energy/OutletEnergy.cl"/>
         
         <!-- Integrate them to the global energy components variation -->
-        <Tool action="insert" after="Outlet Energy" type="reduction" name="Outlet dEkindt" in="outlet_energy_dekindt" out="outlet_energy_dEkindt" null="0.f">
+        <Tool action="insert" after="cfd outlet Energy" type="reduction" name="cfd outlet dEkindt" in="outlet_energy_dekindt" out="outlet_energy_dEkindt" null="0.f">
             c = a + b;
         </Tool>
-        <Tool action="insert" after="Outlet dEkindt" type="reduction" name="Outlet dEpotdt" in="outlet_energy_depotdt" out="outlet_energy_dEpotdt" null="0.f">
+        <Tool action="insert" after="cfd outlet dEkindt" type="reduction" name="cfd outlet dEpotdt" in="outlet_energy_depotdt" out="outlet_energy_dEpotdt" null="0.f">
             c = a + b;
         </Tool>
-        <Tool action="insert" after="Outlet dEpotdt" type="reduction" name="Outlet dEcomdt" in="outlet_energy_decomdt" out="outlet_energy_dEcomdt" null="0.f">
+        <Tool action="insert" after="cfd outlet dEpotdt" type="reduction" name="cfd outlet dEcomdt" in="outlet_energy_decomdt" out="outlet_energy_dEcomdt" null="0.f">
             c = a + b;
         </Tool>
         <!-- Deduce the internal energy and entropy -->
-        <Tool action="insert" after="Outlet dEcomdt" type="set_scalar" name="Outlet dEintdt" in="outlet_energy_dEintdt" value="outlet_energy_dEcomdt"/>
-        <Tool action="insert" after="Outlet dEintdt" type="set_scalar" name="Outlet dSdt" in="outlet_energy_dSdt" value="0.0"/>
+        <Tool action="insert" after="cfd outlet dEcomdt" type="set_scalar" name="cfd outlet dEintdt" in="outlet_energy_dEintdt" value="outlet_energy_dEcomdt"/>
+        <Tool action="insert" after="cfd outlet dEintdt" type="set_scalar" name="cfd outlet dSdt" in="outlet_energy_dSdt" value="0.0"/>
     </Tools>
 </sphInput>

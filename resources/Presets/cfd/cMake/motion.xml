@@ -56,18 +56,18 @@ undefined.
         <!-- We should start calling a generic Python script, which should be
         defined, in order to set the motion parameters for the current time
         step -->
-        <Tool action="insert" before="t = t + dt" type="python" name="MotionData" path="Motion.py"/>
+        <Tool action="insert" after="TimeStep" type="python" name="cfd motion data" path="Motion.py"/>
         <!-- In case several motions are required, they are all trying to use
         the same variables motion_r, motion_a. Therefore, in order to can revert
         the transformation and set the new one, we must save the motion state
         and restore the previous one. -->
-        <Tool action="insert" after_prefix="MotionData" type="python" name="MotionState" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Motions/State.py"/>
+        <Tool action="insert" after_prefix="cfd motion data" type="python" name="cfd motion state" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Motions/State.py"/>
         <!-- We must start recovering the initial position of the particles
         undoing the previous time step transformation. -->
-        <Tool action="insert" after_prefix="MotionState" type="kernel" name="MotionUnTransform" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Motions/UnTransform.cl"/>
+        <Tool action="insert" after_prefix="cfd motion state" type="kernel" name="cfd motion unTransform" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Motions/UnTransform.cl"/>
         <!-- Such that we can apply the new transformation -->
-        <Tool action="insert" after_prefix="MotionUnTransform" type="kernel" name="MotionVelocity" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Motions/Velocity.cl"/>
-        <Tool action="insert" after_prefix="MotionVelocity" type="kernel" name="MotionAcceleration" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Motions/Acceleration.cl"/>
-        <Tool action="insert" after_prefix="MotionAcceleration" type="kernel" name="MotionTransform" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Motions/Transform.cl"/>
+        <Tool action="insert" after_prefix="cfd motion unTransform" type="kernel" name="cfd motion velocity" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Motions/Velocity.cl"/>
+        <Tool action="insert" after_prefix="cfd motion velocity" type="kernel" name="cfd motion acceleration" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Motions/Acceleration.cl"/>
+        <Tool action="insert" after_prefix="cfd motion acceleration" type="kernel" name="cfd motion transform" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Motions/Transform.cl"/>
     </Tools>
 </sphInput>

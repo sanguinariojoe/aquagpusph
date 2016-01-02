@@ -25,6 +25,6 @@ affected freeslip_iset variable each time, for instance:
     </Variables>
 
     <Tools>
-        <Tool action="insert" after="GP PreLapU" type="kernel" name="GP FreeSlip" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/GP/FreeSlip.cl"/>
+        <Tool action="insert" after="cfd GP preLapU" type="kernel" name="cfd GP free-slip" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/GP/FreeSlip.cl"/>
     </Tools>
 </sphInput>

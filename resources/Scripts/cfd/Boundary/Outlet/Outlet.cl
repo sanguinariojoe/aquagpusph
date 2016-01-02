@@ -22,9 +22,9 @@
  */
 
 #ifndef HAVE_3D
-    #include "../../types/2D.h"
+    #include "../../../types/2D.h"
 #else
-    #include "../../types/3D.h"
+    #include "../../../types/3D.h"
 #endif
 
 /** @brief Outlet boundary condition, which is consisting into vanishing the

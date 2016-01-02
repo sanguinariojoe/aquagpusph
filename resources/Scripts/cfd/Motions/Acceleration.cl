@@ -21,9 +21,9 @@
  */
 
 #ifndef HAVE_3D
-    #include "../types/2D.h"
+    #include "../../types/2D.h"
 #else
-    #include "../types/3D.h"
+    #include "../../types/3D.h"
 #endif
 
 /** @brief Compute the boundary elements acceleration applying Euler-XYZ motion.

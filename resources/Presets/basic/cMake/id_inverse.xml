@@ -12,6 +12,6 @@ of a particle from the unsorted id.
     </Variables>
 
     <Tools>
-        <Tool action="insert" after="Sort" type="kernel" name="IdInverse" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/IdInverse.cl"/>
+        <Tool action="insert" before="Sort" type="kernel" name="Id-inverse" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/IdInverse.cl"/>
     </Tools>
 </sphInput>

@@ -28,20 +28,20 @@ time.
 
     <Tools>
         <!-- Extract the particles at the inflow from the fluid energy -->
-        <Tool action="insert" after="Fluid Energy" type="kernel" name="Inlet Energy" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Energy/InletEnergy.cl"/>
+        <Tool action="insert" after="cfd fluid energy" type="kernel" name="cfd inlet Energy" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Energy/InletEnergy.cl"/>
         
         <!-- Integrate them to the global energy components variation -->
-        <Tool action="insert" after="Inlet Energy" type="reduction" name="Inlet dEkindt" in="inlet_energy_dekindt" out="inlet_energy_dEkindt" null="0.f">
+        <Tool action="insert" after="cfd inlet Energy" type="reduction" name="cfd inlet dEkindt" in="inlet_energy_dekindt" out="inlet_energy_dEkindt" null="0.f">
             c = a + b;
         </Tool>
-        <Tool action="insert" after="Inlet dEkindt" type="reduction" name="Inlet dEpotdt" in="inlet_energy_depotdt" out="inlet_energy_dEpotdt" null="0.f">
+        <Tool action="insert" after="cfd inlet dEkindt" type="reduction" name="cfd inlet dEpotdt" in="inlet_energy_depotdt" out="inlet_energy_dEpotdt" null="0.f">
             c = a + b;
         </Tool>
-        <Tool action="insert" after="Inlet dEpotdt" type="reduction" name="Inlet dEcomdt" in="inlet_energy_decomdt" out="inlet_energy_dEcomdt" null="0.f">
+        <Tool action="insert" after="cfd inlet dEpotdt" type="reduction" name="cfd inlet dEcomdt" in="inlet_energy_decomdt" out="inlet_energy_dEcomdt" null="0.f">
             c = a + b;
         </Tool>
         <!-- Deduce the internal energy and entropy -->
-        <Tool action="insert" after="Inlet dEcomdt" type="set_scalar" name="Inlet dEintdt" in="inlet_energy_dEintdt" value="inlet_energy_dEcomdt"/>
-        <Tool action="insert" after="Inlet dEintdt" type="set_scalar" name="Inlet dSdt" in="inlet_energy_dSdt" value="0.0"/>
+        <Tool action="insert" after="cfd inlet dEcomdt" type="set_scalar" name="cfd inlet dEintdt" in="inlet_energy_dEintdt" value="inlet_energy_dEcomdt"/>
+        <Tool action="insert" after="cfd inlet dEintdt" type="set_scalar" name="cfd inlet dSdt" in="inlet_energy_dSdt" value="0.0"/>
     </Tools>
 </sphInput>

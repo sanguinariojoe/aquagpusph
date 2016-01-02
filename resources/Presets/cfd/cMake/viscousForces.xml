@@ -46,19 +46,19 @@ use forces.xml
 
     <Tools>
         <!-- Try to compute the forces for the ghost particles -->
-        <Tool action="try_insert" after="GP LapU" type="kernel" name="GP viscous forces" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Forces/GP/ViscousForces.cl"/>
-        <Tool action="try_insert" after_prefix="GP viscous forces" type="reduction" name="GP total viscous force" in="viscousForces_f" out="viscousForces_F_GP" null="VEC_ZERO">
+        <Tool action="try_insert" after="cfd GP LapU" name="cfd GP viscous forces" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Forces/GP/ViscousForces.cl"/>
+        <Tool action="try_insert" after_prefix="cfd GP viscous forces" name="cfd GP total viscous force" type="reduction" in="viscousForces_f" out="viscousForces_F_GP" null="VEC_ZERO">
             c = a + b;
         </Tool>
-        <Tool action="try_insert" after_prefix="GP total viscous force" type="reduction" name="GP total viscous moment" in="viscousForces_m" out="viscousForces_M_GP" null="(vec4)(0.f, 0.f, 0.f, 0.f)">
+        <Tool action="try_insert" after_prefix="cfd GP total viscous force" name="cfd GP total viscous moment" type="reduction" in="viscousForces_m" out="viscousForces_M_GP" null="(vec4)(0.f, 0.f, 0.f, 0.f)">
             c = a + b;
         </Tool>
         <!-- Try to compute the forces for the boundary integrals -->
-        <Tool action="try_insert" after="BI Shepard" type="kernel" name="BI viscous forces" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Forces/BI/ViscousForces.cl"/>
-        <Tool action="try_insert" after_prefix="BI viscous forces" type="reduction" name="BI total viscous force" in="viscousForces_f" out="viscousForces_F_BI" null="VEC_ZERO">
+        <Tool action="try_insert" after="cfd BI Shepard" name="cfd BI viscous forces" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Forces/BI/ViscousForces.cl"/>
+        <Tool action="try_insert" after_prefix="cfd BI viscous forces" name="cfd BI total viscous force" type="reduction" in="viscousForces_f" out="viscousForces_F_BI" null="VEC_ZERO">
             c = a + b;
         </Tool>
-        <Tool action="try_insert" after_prefix="BI total viscous force" type="reduction" name="BI total viscous moment" in="viscousForces_m" out="viscousForces_M_BI" null="(vec4)(0.f, 0.f, 0.f, 0.f)">
+        <Tool action="try_insert" after_prefix="cfd BI total viscous force" name="cfd BI total viscous moment" type="reduction" in="viscousForces_m" out="viscousForces_M_BI" null="(vec4)(0.f, 0.f, 0.f, 0.f)">
             c = a + b;
         </Tool>
     </Tools>

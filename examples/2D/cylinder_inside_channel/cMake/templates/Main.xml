@@ -19,6 +19,8 @@ Authors:
 
 <sphInput>
     <!-- In this file we will just include other XML definition files -->
+    <Include file="@RESOURCES_DIR@/Presets/basic.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/basic/domain.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/BI.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/BINoSlip.xml" />
@@ -26,13 +28,12 @@ Authors:
     <Definitions>
         <Define name="__LAP_FORMULATION__" value="__LAP_MORRIS__" evaluate="false"/>
     </Definitions>
-    <Include file="@RESOURCES_DIR@/Presets/cfd/domain.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/inlet.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/outlet.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/pressureForces.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/viscousForces.xml" />
-    <Include file="@RESOURCES_DIR@/Presets/cfd/timing.report.xml" />
-    <Include file="@RESOURCES_DIR@/Presets/cfd/performance.report.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/basic/timing.report.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/basic/performance.report.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/pressureForces.report.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/viscousForces.report.xml" />
     <Include file="Settings.xml" />

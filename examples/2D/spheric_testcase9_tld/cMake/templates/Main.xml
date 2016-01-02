@@ -19,14 +19,15 @@ Authors:
 
 <sphInput>
     <!-- In this file we will just include other XML definition files -->
+    <Include file="@RESOURCES_DIR@/Presets/basic.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/basic/domain.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/BI.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/elasticBounce.xml" />
-    <Include file="@RESOURCES_DIR@/Presets/cfd/domain.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/forces.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/motion.xml" />
-    <Include file="@RESOURCES_DIR@/Presets/cfd/timing.report.xml" />
-    <Include file="@RESOURCES_DIR@/Presets/cfd/performance.report.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/basic/timing.report.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/basic/performance.report.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/forces.report.xml" />
     <Include file="Settings.xml" />
     <Include file="Time.xml" />

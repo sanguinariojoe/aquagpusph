@@ -25,11 +25,11 @@
 #endif
 
 #ifndef HAVE_3D
-    #include "../../types/2D.h"
-    #include "../../KernelFunctions/Wendland2D.hcl"
+    #include "../../../types/2D.h"
+    #include "../../../KernelFunctions/Wendland2D.hcl"
 #else
-    #include "../../types/3D.h"
-    #include "../../KernelFunctions/Wendland3D.hcl"
+    #include "../../../types/3D.h"
+    #include "../../../KernelFunctions/Wendland3D.hcl"
 #endif
 
 /** @brief Performs the boundary effect on the fluid particles.
@@ -90,7 +90,6 @@ __kernel void entry(const __global uint* iset,
     if((!imirrored[i]) || (imove[i] != 1))
         return;
 
-    const uint c_i = icell[i];
     const vec_xyz r_i = r[i].XYZ;
     const vec_xyz u_i = u[i].XYZ;
     const float p_i = p[i];

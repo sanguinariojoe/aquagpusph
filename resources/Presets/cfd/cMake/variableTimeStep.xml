@@ -7,8 +7,8 @@
     </Variables>
 
     <Tools>
-        <Tool action="insert" after="FixedTimeStep" type="kernel" name="VariableTimeStep" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/TimeStep.cl"/>
-        <Tool action="insert" after="VariableTimeStep" type="reduction" name="MinimumTimeStep" in="dt_var" out="dt" null="INFINITY">
+        <Tool action="insert" before="TimeStep" type="kernel" name="cfd variable time step" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/TimeStep.cl"/>
+        <Tool action="insert" after="cfd variable time step" type="reduction" name="cfd minimum time step" in="dt_var" out="dt" null="INFINITY">
             c = (a &lt; b) ? a : b;
         </Tool>
     </Tools>

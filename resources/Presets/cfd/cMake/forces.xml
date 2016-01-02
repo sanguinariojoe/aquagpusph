@@ -31,11 +31,11 @@ pressureForces.xml and viscousForces.xml.
     </Variables>
 
     <Tools>
-        <Tool action="insert" before="t = t + dt" type="kernel" name="Forces" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Forces/Forces.cl"/>
-        <Tool action="insert" after="Forces" type="reduction" name="TotalForce" in="forces_f" out="forces_F" null="VEC_ZERO">
+        <Tool action="insert" after="TimeStep" type="kernel" name="cfd forces" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Forces/Forces.cl"/>
+        <Tool action="insert" after="cfd forces" type="reduction" name="cfd total force" in="forces_f" out="forces_F" null="VEC_ZERO">
             c = a + b;
         </Tool>
-        <Tool action="insert" after="TotalForce" type="reduction" name="TotalMoment" in="forces_m" out="forces_M" null="(vec4)(0.f, 0.f, 0.f, 0.f)">
+        <Tool action="insert" after="cfd total force" type="reduction" name="cfd total moment" in="forces_m" out="forces_M" null="(vec4)(0.f, 0.f, 0.f, 0.f)">
             c = a + b;
         </Tool>
     </Tools>

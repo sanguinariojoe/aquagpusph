@@ -21,9 +21,9 @@
  */
 
 #ifndef HAVE_3D
-    #include "types/2D.h"
+    #include "../types/2D.h"
 #else
-    #include "types/3D.h"
+    #include "../types/3D.h"
 #endif
 
 /** @brief Velocity and density variation rates computation.

@@ -36,7 +36,7 @@ use forces.xml
         <!-- Computed forces and moments for each boundary element -->
         <Variable name="pressureForces_f" type="vec*" length="N" />
         <Variable name="pressureForces_m" type="vec4*" length="N" />
-        <!-- Computed global forces and moments for the fluid -->
+        <!-- Computed global forces and moments (with each boundary methodology) -->
         <Variable name="pressureForces_F_GP" type="vec" value="0.0, 0.0, 0.0, 0.0" />
         <Variable name="pressureForces_M_GP" type="vec4" value="0.0, 0.0, 0.0, 0.0" />
         <Variable name="pressureForces_F_BI" type="vec" value="0.0, 0.0, 0.0, 0.0" />
@@ -45,19 +45,19 @@ use forces.xml
 
     <Tools>
         <!-- Try to compute the forces for the ghost particles -->
-        <Tool action="try_insert" after="GP Interactions" type="kernel" name="GP pressure forces" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Forces/GP/PressureForces.cl"/>
-        <Tool action="try_insert" after_prefix="GP pressure forces" type="reduction" name="GP total pressure force" in="pressureForces_f" out="pressureForces_F_GP" null="VEC_ZERO">
+        <Tool action="try_insert" after="cfd GP interactions" name="cfd GP pressure forces" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Forces/GP/PressureForces.cl"/>
+        <Tool action="try_insert" after_prefix="cfd GP pressure forces" name="cfd GP total pressure force" type="reduction" in="pressureForces_f" out="pressureForces_F_GP" null="VEC_ZERO">
             c = a + b;
         </Tool>
-        <Tool action="try_insert" after_prefix="GP total pressure force" type="reduction" name="GP total pressure moment" in="pressureForces_m" out="pressureForces_M_GP" null="(vec4)(0.f, 0.f, 0.f, 0.f)">
+        <Tool action="try_insert" after_prefix="cfd GP total pressure force" name="cfd GP total pressure moment" type="reduction" in="pressureForces_m" out="pressureForces_M_GP" null="(vec4)(0.f, 0.f, 0.f, 0.f)">
             c = a + b;
         </Tool>
         <!-- Try to compute the forces for the boundary integrals -->
-        <Tool action="try_insert" after="BI Shepard" type="kernel" name="BI pressure forces" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Forces/BI/PressureForces.cl"/>
-        <Tool action="try_insert" after_prefix="BI pressure forces" type="reduction" name="BI total pressure force" in="pressureForces_f" out="pressureForces_F_BI" null="VEC_ZERO">
+        <Tool action="try_insert" after="cfd BI Shepard" name="cfd BI pressure forces" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Forces/BI/PressureForces.cl"/>
+        <Tool action="try_insert" after_prefix="cfd BI pressure forces" name="cfd BI total pressure force" type="reduction" in="pressureForces_f" out="pressureForces_F_BI" null="VEC_ZERO">
             c = a + b;
         </Tool>
-        <Tool action="try_insert" after_prefix="BI total pressure force" type="reduction" name="BI total pressure moment" in="pressureForces_m" out="pressureForces_M_BI" null="(vec4)(0.f, 0.f, 0.f, 0.f)">
+        <Tool action="try_insert" after_prefix="cfd BI total pressure force" name="cfd BI total pressure moment" type="reduction" in="pressureForces_m" out="pressureForces_M_BI" null="(vec4)(0.f, 0.f, 0.f, 0.f)">
             c = a + b;
         </Tool>        
     </Tools>

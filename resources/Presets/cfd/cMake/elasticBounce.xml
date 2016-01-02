@@ -26,6 +26,6 @@ energy (0.f by default)
     </Variables>
 
     <Tools>
-        <Tool action="insert" after="Rates" type="kernel" name="ElasticBounce" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/ElasticBounce.cl"/>
+        <Tool action="insert" after="Rates" type="kernel" name="cfd elastic bounce" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/ElasticBounce.cl"/>
     </Tools>
 </sphInput>

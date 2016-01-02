@@ -29,8 +29,8 @@ Authors:
         as introducing a non-inertial term.
         Since we want that the non-inertial term is affecting also to the inlet
         and outlet area particles, we must do it right after both methods. -->
-        <Tool action="insert" after="Rates" type="python" name="Initialization" path="Initialization.py"/>
-        <Tool action="insert" after="Initialization" type="kernel" name="Init vel" path="Initialization.cl"/>
+        <Tool action="insert" before="Rates" type="python" name="Initialization" path="Initialization.py"/>
+        <Tool action="insert" before="Initialization" type="kernel" name="Init vel" path="Initialization.cl"/>
     </Tools>
     <Reports>
         <Report type="screen" name="Cylinder velocity" fields="U, dUdt" color="blue" bold="false"/>

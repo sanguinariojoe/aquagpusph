@@ -17,9 +17,9 @@
  */
 
 #ifndef HAVE_3D
-    #include "types/2D.h"
+    #include "../types/2D.h"
 #else
-    #include "types/3D.h"
+    #include "../types/3D.h"
 #endif
 
 /** @brief Compute the permutations to move from the sorted indexes space to the

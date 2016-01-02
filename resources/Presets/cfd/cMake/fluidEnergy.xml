@@ -29,20 +29,20 @@ time.
 
     <Tools>
         <!-- Compute the energy variations per particle -->
-        <Tool action="insert" after="Interactions" type="kernel" name="Fluid Energy Rates" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Rates.cl"/>
-        <Tool action="insert" after="Fluid Energy Rates" type="kernel" name="Fluid Energy" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Energy/FluidEnergy.cl"/>
+        <Tool action="insert" after="cfd interactions" type="kernel" name="cfd fluid energy rates" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Rates.cl"/>
+        <Tool action="insert" after="cfd fluid energy rates" type="kernel" name="cfd fluid energy" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Energy/FluidEnergy.cl"/>
         <!-- Integrate them to the global energy components variation -->
-        <Tool action="insert" after="Energy" type="reduction" name="Fluid dEkindt" in="fluid_energy_dekindt" out="fluid_energy_dEkindt" null="0.f">
+        <Tool action="insert" after="Rates" type="reduction" name="cfd fluid dEkindt" in="fluid_energy_dekindt" out="fluid_energy_dEkindt" null="0.f">
             c = a + b;
         </Tool>
-        <Tool action="insert" after="Fluid dEkindt" type="reduction" name="Fluid dEpotdt" in="fluid_energy_depotdt" out="fluid_energy_dEpotdt" null="0.f">
+        <Tool action="insert" after="cfd fluid dEkindt" type="reduction" name="cfd fluid dEpotdt" in="fluid_energy_depotdt" out="fluid_energy_dEpotdt" null="0.f">
             c = a + b;
         </Tool>
-        <Tool action="insert" after="Fluid dEpotdt" type="reduction" name="Fluid dEcomdt" in="fluid_energy_decomdt" out="fluid_energy_dEcomdt" null="0.f">
+        <Tool action="insert" after="cfd fluid dEpotdt" type="reduction" name="cfd fluid dEcomdt" in="fluid_energy_decomdt" out="fluid_energy_dEcomdt" null="0.f">
             c = a + b;
         </Tool>
         <!-- Deduce the internal energy and entropy -->
-        <Tool action="insert" after="Fluid dEcomdt" type="set_scalar" name="Fluid dEintdt" in="fluid_energy_dEintdt" value="-fluid_energy_dEkindt - fluid_energy_dEpotdt"/>
-        <Tool action="insert" after="Fluid dEintdt" type="set_scalar" name="Fluid dSdt" in="fluid_energy_dSdt" value="fluid_energy_dEintdt - fluid_energy_dEcomdt"/>
+        <Tool action="insert" after="cfd fluid dEcomdt" type="set_scalar" name="cfd fluid dEintdt" in="fluid_energy_dEintdt" value="-fluid_energy_dEkindt - fluid_energy_dEpotdt"/>
+        <Tool action="insert" after="cfd fluid dEintdt" type="set_scalar" name="cfd fluid dSdt" in="fluid_energy_dSdt" value="fluid_energy_dEintdt - fluid_energy_dEcomdt"/>
     </Tools>
 </sphInput>

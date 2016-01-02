@@ -26,9 +26,9 @@ Authors:
     </Variables>
 
     <Tools>
-        <Tool action="replace" type="python" name="iset0_MotionData" path="@EXAMPLE_DEST_DIR@/Motion.py"/>
-        <Tool action="insert" before="iset0_MotionData" type="set_scalar" name="motion_iset0" in="motion_iset" value="0"/>
-        <Tool action="replace" type="python" name="iset1_MotionData" path="@EXAMPLE_DEST_DIR@/Motion.py"/>
-        <Tool action="insert" before="iset1_MotionData" type="set_scalar" name="motion_iset1" in="motion_iset" value="1"/>
+        <Tool action="replace" name="iset0_cfd motion data" type="python" path="@EXAMPLE_DEST_DIR@/Motion.py"/>
+        <Tool action="insert" before="iset0_cfd motion data" type="set_scalar" name="motion_iset0" in="motion_iset" value="0"/>
+        <Tool action="replace" name="iset1_cfd motion data" type="python" path="@EXAMPLE_DEST_DIR@/Motion.py"/>
+        <Tool action="insert" before="iset1_cfd motion data" name="motion_iset1" type="set_scalar" in="motion_iset" value="1"/>
     </Tools>
 </sphInput>
