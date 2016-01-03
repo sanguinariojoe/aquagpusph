@@ -105,7 +105,7 @@ __kernel void entry(__global int* imove,
         return;
 
     float DT = dt;
-    if(imove[i] != 1)
+    if(imove[i] <= 0)
         DT = 0.f;
 
     dudt_in[i] = dudt[i];

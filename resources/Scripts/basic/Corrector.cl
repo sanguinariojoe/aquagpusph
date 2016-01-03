@@ -100,7 +100,7 @@ __kernel void entry(__global int* imove,
         return;
 
     float DT = 0.5f * dt;
-    if(imove[i] != 1)
+    if(imove[i] <= 0)
         DT = 0.f;
 
     u[i] += DT * (dudt[i] - dudt_in[i]);
