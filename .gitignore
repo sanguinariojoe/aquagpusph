@@ -4,6 +4,7 @@ CodeBlocks/*.layout
 # Eclipse project files
 .cproject
 .project
+.settings
 .pydevproject
 # gedit backup files
 *~

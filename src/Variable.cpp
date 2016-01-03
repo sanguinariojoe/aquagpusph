@@ -1773,7 +1773,7 @@ unsigned int Variables::typeToN(const char* type)
         #ifdef HAVE_3D
             n = 16;
         #else
-            n = 9;
+            n = 4;
         #endif // HAVE_3D
     }
     return n;
