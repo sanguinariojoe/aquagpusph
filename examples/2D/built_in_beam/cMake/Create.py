@@ -41,7 +41,7 @@ hfac = 4.0
 cs = 50.0
 courant = 0.2
 young = 0.05e6
-poisson = 0.5
+poisson = 0.49
 refd = 2.0e-3
 time_to_run = 10.0
 # Fluid dimensions
