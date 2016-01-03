@@ -31,44 +31,10 @@
 #define uivec3 uint3
 #define uivec4 uint4
 
-/** @def vec
- * @brief Vector of real components.
- *
- * The number of components depends on weather the 2D version or 3D
- * version is compiled:
- *   - 2D = 2 components
- *   - 3D = 4 components
- * 
- * This type should be used for input arguments, but for the local variables
- * maybe you can consider using vec_xyz (which has just 3 components in 3D)
- */
 #define vec float4
-
-/** @def ivec
- * @brief Vector of integer components.
- *
- * The number of components depends on weather the 2D version or 3D
- * version is compiled:
- *   - 2D = 2 components
- *   - 3D = 4 components
- * 
- * This type should be used for input arguments, but for the local variables
- * maybe you can consider using ivec_xyz (which has just 3 components in 3D)
- */
 #define ivec int4
-
-/** @def ivec
- * @brief Vector of unsigned integer components.
- *
- * The number of components depends on weather the 2D version or 3D
- * version is compiled:
- *   - 2D = 2 components
- *   - 3D = 4 components
- * 
- * This type should be used for input arguments, but for the local variables
- * maybe you can consider using uivec_xyz (which has just 3 components in 3D)
- */
 #define uivec uint4
+#define matrix float16
 
 /** @def VEC_ZERO
  * @brief Null #vec, i.e. filled with zero components.
@@ -100,6 +66,50 @@
  * @brief -Infinity #vec, i.e. filled with -infinity components.
  */
 #define VEC_ALL_NEG_INFINITY (-VEC_ALL_INFINITY)
+
+/** @def MAT_ZERO
+ * @brief Null #matrix, i.e. filled with zero components.
+ */
+#define MAT_ZERO ((float16)(0.f, 0.f, 0.f, 0.f,                                \
+						    0.f, 0.f, 0.f, 0.f,                                \
+						    0.f, 0.f, 0.f, 0.f,                                \
+						    0.f, 0.f, 0.f, 0.f))
+/** @def MAT_ONE
+ * @brief Ones #matrix, i.e. filled with one components, except the last row and
+ * column.
+ */
+#define MAT_ONE ((float16)(1.f, 1.f, 1.f, 0.f,                                 \
+				 		   1.f, 1.f, 1.f, 0.f,                                 \
+				 		   1.f, 1.f, 1.f, 0.f,                                 \
+						   0.f, 0.f, 0.f, 0.f))
+/** @def MAT_ALL_ONE
+ * @brief Ones #matrix, i.e. filled with one components.
+ */
+#define MAT_ALL_ONE ((float16)(1.f, 1.f, 1.f, 1.f,                             \
+						       1.f, 1.f, 1.f, 1.f,                             \
+						       1.f, 1.f, 1.f, 1.f,                             \
+						       1.f, 1.f, 1.f, 1.f))
+/** @def MAT_EYE
+ * @brief Eye #matrix , except the south-east component, which is filled with a
+ * zero.
+ *
+ * \f$ m_{ii} = 1 \leftrightarrow i \neq 4;
+ *     m_{ii} = 0 \leftrightarrow i = 4;
+ *     m_{ij} = 0 \leftrightarrow i \neq j \f$
+ */
+#define MAT_EYE ((float16)(1.f, 0.f, 0.f, 0.f,                                 \
+						   0.f, 1.f, 0.f, 0.f,                                 \
+						   0.f, 0.f, 1.f, 0.f,                                 \
+						   0.f, 0.f, 0.f, 0.f))
+/** @def MAT_ALL_EYE
+ * @brief Eye #matrix
+ *
+ * \f$ m_{ii} = 1; m_{ij} = 1 \leftrightarrow i \neq j \f$
+ */
+#define MAT_ALL_EYE ((float16)(1.f, 0.f, 0.f, 0.f,                             \
+				     		   0.f, 1.f, 0.f, 0.f,                             \
+					    	   0.f, 0.f, 1.f, 0.f,                             \
+						       0.f, 0.f, 0.f, 1.f))
 
 /** @def vec_xyz
  * @brief Vector of real components with the minimum number of components.
@@ -202,3 +212,48 @@
             }                                                                  \
         }                                                                      \
     }
+
+/** @def MATRIX_DOT
+ * @brief Multiply a matrix by a vector
+ *
+ * @note The vector should have 3 components, not 4.
+ */
+#define MATRIX_DOT(_M, _V)                                                     \
+	((float4)(dot(_M.s012, _V),                                                \
+              dot(_M.s456, _V),                                                \
+              dot(_M.s89A, _V),                                                \
+              0.f))
+
+/** @def MATRIX_TRANSPOSE
+ * @brief Transpose a matrix
+ */
+#define TRANSPOSE s048C159D26AE37BF
+
+/** @def DIAG
+ * @brief The matrix diagonal (as vector)
+ */
+#define DIAG s05A
+
+/** @def MATRIX_FROM_DIAG
+ * @brief Build up a matrix from the diagonal information (as vector)
+ * @note The component w of the vector is ignored (and 0.f is used instead)
+ */
+#define MATRIX_FROM_DIAG(_V)                                                   \
+	((float16)(_V.x,  0.f,  0.f,  0.f,                                         \
+                0.f, _V.y,  0.f,  0.f,                                         \
+                0.f,  0.f, _V.z,  0.f,                                         \
+                0.f,  0.f,  0.f,  0.f))
+
+/** @brief Perform the outer product of two vectors
+ *
+ * @param v1 Left operand vector (of 3 components)
+ * @param v2 Right operand vector (of 3 components)
+ */
+matrix outer(vec3 v1, vec3 v2)
+{
+	matrix m = MAT_ZERO;
+	m.s012 = v1.x * v2;
+	m.s456 = v1.y * v2;
+	m.s89A = v1.z * v2;
+	return m;
+}

@@ -34,8 +34,10 @@
     #define vec float2
     #define ivec int2
     #define uivec uint2
+    #define matrix float4
 #else
     #define vec float4
     #define ivec int4
     #define uivec uint4
+    #define matrix float16
 #endif

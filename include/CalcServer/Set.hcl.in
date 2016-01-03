@@ -39,6 +39,11 @@
     #define VEC_ALL_ONE VEC_ONE
     #define VEC_INFINITY (float2)(INFINITY, INFINITY)
     #define VEC_ALL_INFINITY VEC_INFINITY
+    #define matrix float4
+    #define MAT_ZERO ((float4)(0.f, 0.f,                                       \
+                               0.f, 0.f))
+    #define MAT_EYE ((float4)(1.f, 0.f,                                        \
+                              0.f, 1.f))    
 #else
     #define vec float4
     #define ivec int4
@@ -48,6 +53,15 @@
     #define VEC_ALL_ONE (float4)(1.f, 1.f, 1.f, 1.f)
     #define VEC_INFINITY (float4)(INFINITY, INFINITY, INFINITY, 0.f)
     #define VEC_ALL_INFINITY (float4)(INFINITY, INFINITY, INFINITY, INFINITY)
+    #define matrix float16
+    #define MAT_ZERO ((float16)(0.f, 0.f, 0.f, 0.f,                            \
+                                0.f, 0.f, 0.f, 0.f,                            \
+                                0.f, 0.f, 0.f, 0.f,                            \
+                                0.f, 0.f, 0.f, 0.f))
+    #define MAT_EYE ((float16)(1.f, 0.f, 0.f, 0.f,                             \
+                               0.f, 1.f, 0.f, 0.f,                             \
+                               0.f, 0.f, 1.f, 0.f,                             \
+                               0.f, 0.f, 0.f, 1.f))   
 #endif
 
 #define VEC_NEG_INFINITY (-VEC_INFINITY)

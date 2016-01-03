@@ -20,6 +20,10 @@
  * @brief Type definitions for the OpenCL kernels (2D version).
  */
 
+#ifndef INFINITY
+    #define INFINITY FLT_MAX
+#endif
+
 #define unit unsigned int
 #define vec2 float2
 #define vec3 float3
@@ -31,48 +35,10 @@
 #define uivec3 uint3
 #define uivec4 uint4
 
-#ifndef INFINITY
-    #define INFINITY FLT_MAX
-#endif
-
-/** @def vec
- * @brief Vector of real components.
- *
- * The number of components depends on weather the 2D version or 3D
- * version is compiled:
- *   - 2D = 2 components
- *   - 3D = 4 components
- * 
- * This type should be used for input arguments, but for the local variables
- * maybe you can consider using vec_xyz (which has just 3 components in 3D)
- */
 #define vec float2
-
-/** @def ivec
- * @brief Vector of integer components.
- *
- * The number of components depends on weather the 2D version or 3D
- * version is compiled:
- *   - 2D = 2 components
- *   - 3D = 4 components
- * 
- * This type should be used for input arguments, but for the local variables
- * maybe you can consider using ivec_xyz (which has just 3 components in 3D)
- */
 #define ivec int2
-
-/** @def ivec
- * @brief Vector of unsigned integer components.
- *
- * The number of components depends on weather the 2D version or 3D
- * version is compiled:
- *   - 2D = 2 components
- *   - 3D = 4 components
- * 
- * This type should be used for input arguments, but for the local variables
- * maybe you can consider using uivec_xyz (which has just 3 components in 3D)
- */
 #define uivec uint2
+#define matrix float4
 
 /** @def VEC_ZERO
  * @brief Null #vec, i.e. filled with zero components.
@@ -102,6 +68,32 @@
  * @brief VEC_NEG_INFINITY.
  */
 #define VEC_ALL_NEG_INFINITY (-VEC_ALL_INFINITY)
+
+/** @def MAT_ZERO
+ * @brief Null #matrix, i.e. filled with zero components.
+ */
+#define MAT_ZERO ((float4)(0.f, 0.f,                                           \
+						   0.f, 0.f))
+/** @def MAT_ONE
+ * @brief Ones #matrix, i.e. filled with one components.
+ */
+#define MAT_ONE ((float4)(1.f, 1.f,                                            \
+				          1.f, 1.f))
+/** @def MAT_ZERO
+ * @brief MAT_ONE
+ */
+#define MAT_ALL_ONE MAT_ONE
+/** @def MAT_EYE
+ * @brief Eye #matrix
+ *
+ * \f$ m_{ii} = 1; m_{ij} = 1 \leftrightarrow i \neq j \f$
+ */
+#define MAT_EYE ((float4)(1.f, 0.f,                                            \
+				   		  0.f, 1.f))
+/** @def MAT_ALL_EYE
+ * @brief MAT_EYE
+ */
+#define MAT_ALL_EYE MAT_EYE
 
 /** @def vec_xyz
  * @brief Vector of real components with the minimum number of components.
@@ -201,3 +193,40 @@
             }                                                                  \
         }                                                                      \
     }
+
+/** @def MATRIX_DOT
+ * @brief Multiply a matrix by a vector
+ */
+#define MATRIX_DOT(_M, _V)                                                     \
+	((float2)(dot(_M.s01, _V),                                                 \
+              dot(_M.s23, _V)))
+
+/** @def MATRIX_TRANSPOSE
+ * @brief Transpose a matrix
+ */
+#define TRANSPOSE s0213
+
+/** @def DIAG
+ * @brief The matrix diagonal (as vector)
+ */
+#define DIAG s03
+
+/** @def MATRIX_FROM_DIAG
+ * @brief Build up a matrix from the diagonal information (as vector)
+ */
+#define MATRIX_FROM_DIAG(_V)                                                   \
+	((float4)(_V.x,  0.f,                                                      \
+               0.f, _V.y))
+
+/** @brief Perform the outer product of two vectors
+ *
+ * @param v1 Left operand vector
+ * @param v2 Right operand vector
+ */
+matrix outer(vec v1, vec v2)
+{
+	matrix m;
+	m.s01 = v1.x * v2;
+	m.s23 = v1.y * v2;
+	return m;
+}

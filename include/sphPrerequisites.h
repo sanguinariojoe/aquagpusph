@@ -150,6 +150,17 @@
          */
         #define uivec uivec4
     #endif
+    #ifndef matrix
+        /** @def matrix
+         * @brief Matrix of float numbers.
+         *
+         * The number of components depends on weather the 2D version or 3D
+         * version is compiled:
+         *   - 2D = 2x2 components
+         *   - 3D = 4x4 components
+         */
+        #define matrix cl_float16
+    #endif
 #else
     #ifndef vec
         #define vec vec2
@@ -159,6 +170,9 @@
     #endif
     #ifndef uivec
         #define uivec uivec2
+    #endif
+    #ifndef matrix
+        #define matrix cl_float4
     #endif
 #endif
 

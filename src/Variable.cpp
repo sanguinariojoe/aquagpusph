@@ -1734,7 +1734,8 @@ size_t Variables::typeToBytes(const char* type)
         type_size = sizeof(int);
     }
     else if(strstr(type, "float") ||
-            strstr(type, "vec")){
+            strstr(type, "vec") ||
+			strstr(type, "matrix")){
         type_size = sizeof(float);
     }
     else{
@@ -1766,6 +1767,13 @@ unsigned int Variables::typeToN(const char* type)
             n = 4;
         #else
             n = 2;
+        #endif // HAVE_3D
+    }
+    else if(strstr(type, "matrix")) {
+        #ifdef HAVE_3D
+            n = 16;
+        #else
+            n = 9;
         #endif // HAVE_3D
     }
     return n;
@@ -2551,6 +2559,9 @@ bool Variables::registerClMem(const char* name,
     else if(!strcmp(auxtype, "uivec4")){
         typesize = sizeof(uivec4);
     }
+    else if(!strcmp(auxtype, "matrix")){
+        typesize = sizeof(matrix);
+    }
     else{
         sprintf(msg,
                 "\"%s\" declared as \"%s\", which is not a valid array type.\n",
@@ -2573,6 +2584,7 @@ bool Variables::registerClMem(const char* name,
         S->addMessage(0, "\tuivec2*\n");
         S->addMessage(0, "\tuivec3*\n");
         S->addMessage(0, "\tuivec4*\n");
+        S->addMessage(0, "\tmatrix*\n");
         return true;
     }
 
