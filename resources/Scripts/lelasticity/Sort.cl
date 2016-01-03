@@ -40,8 +40,8 @@
  * one.
  * @param N Number of particles.
  */
-__kernel void entry(const __global float *r0_in, __global float *r0,
-		            const __global float *r_r0_in, __global float *r_r0,
+__kernel void entry(const __global vec *r0_in, __global vec *r0,
+		            const __global vec *r_r0_in, __global vec *r_r0,
 		            const __global unit *id_sorted,
                     unsigned int N)
 {

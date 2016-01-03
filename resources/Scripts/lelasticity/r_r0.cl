@@ -53,7 +53,7 @@ __kernel void entry(const __global vec* r_in,
     if(i >= N)
         return;
 
-    r_r0 = r_in - r0;
+    r_r0[i] = r_in[i] - r0[i];
 }
 
 /*
