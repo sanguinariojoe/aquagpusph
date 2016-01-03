@@ -1,0 +1,40 @@
+<?xml version="1.0" ?>
+<!--
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
+
+Another QUAlity GPU-SPH, by CEHINAV.
+    http://canal.etsin.upm.es/
+Authors:
+    Jose Luis Cercos-Pita
+    Leo Miguel Gonzalez
+    Antonio Souto-Iglesias
+-->
+
+<sphInput>
+    <!-- The built in boundary will take the iset 1 -->
+    <ParticlesSet n="{{NBUILTIN}}">
+        <Scalar name="refd" value="{{REFD}}" />
+        <Scalar name="young" value="{{E}}" />
+        <Scalar name="poisson" value="{{NU}}" />
+
+        <Load format="FastASCII" file="BuiltInBC.dat" fields="r, r0, normal, u, dudt, rho, drhodt, m, imove" />
+        <Save format="VTK" file="builtinbc" fields="r, r0, normal, u, dudt, rho, drhodt, m, imove" />
+    </ParticlesSet>
+
+    <!-- The free boundary will take the iset 2 -->
+    <ParticlesSet n="{{NFREE}}">
+        <Scalar name="refd" value="{{REFD}}" />
+        <Scalar name="young" value="{{E}}" />
+        <Scalar name="poisson" value="{{NU}}" />
+
+        <Load format="FastASCII" file="FreeBC.dat" fields="r, r0, normal, u, dudt, rho, drhodt, m, imove" />
+        <Save format="VTK" file="freebc" fields="r, r0, normal, u, dudt, rho, drhodt, m, imove" />
+    </ParticlesSet>
+</sphInput>
