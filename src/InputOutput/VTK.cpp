@@ -388,7 +388,8 @@ void* save_pthread(void *data_void)
             vtk_arrays.push_back(vtk_array);
         }
         else if(strstr(var->type(), "float") ||
-                strstr(var->type(), "vec")){
+                strstr(var->type(), "vec") ||
+                strstr(var->type(), "matrix")){
             vtkSmartPointer<vtkFloatArray> vtk_array =
                 vtkSmartPointer<vtkFloatArray>::New();
             vtk_array->SetNumberOfComponents(n_components);
@@ -439,7 +440,8 @@ void* save_pthread(void *data_void)
                 vtk_array->InsertNextTupleValue(vect);
             }
             else if(strstr(var->type(), "float") ||
-                    strstr(var->type(), "vec")){
+                    strstr(var->type(), "vec") ||
+					strstr(var->type(), "matrix")){
                 float vect[n_components];
                 size_t offset = typesize * i;
                 memcpy(vect,
@@ -480,7 +482,8 @@ void* save_pthread(void *data_void)
             grid->GetPointData()->AddArray(vtk_array);
         }
         else if(strstr(var->type(), "float") ||
-                strstr(var->type(), "vec")){
+                strstr(var->type(), "vec") ||
+                strstr(var->type(), "matrix")){
             vtkSmartPointer<vtkFloatArray> vtk_array =
                 (vtkFloatArray*)(vtk_arrays.at(i).GetPointer());
             grid->GetPointData()->AddArray(vtk_array);
