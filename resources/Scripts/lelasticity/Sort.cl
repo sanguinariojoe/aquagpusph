@@ -16,7 +16,7 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @addtogroup cfd
+/** @addtogroup lela
  * @{
  */
 
@@ -32,14 +32,17 @@
 
 /** @brief Sort all the particle variables by the cell indexes.
  *
- * @param p_in Unsorted pressure \f$ p \f$.
- * @param p Sorted pressure \f$ p \f$.
+ * @param r0_in Unsorted equilibrium position \f$ \mathbf{r}_0 \f$.
+ * @param r0 Sorted equilibrium position \f$ \mathbf{r}_0 \f$.
+ * @param r_r0_in Unsorted deformation \f$ \mathbf{r}^{*} - \mathbf{r}_0 \f$.
+ * @param r_r0 Sorted deformation \f$ \mathbf{r}^{*} - \mathbf{r}_0 \f$.
  * @param id_sorted Permutations list from the unsorted space to the sorted
  * one.
  * @param N Number of particles.
  */
-__kernel void entry(const __global float *p_in, __global float *p,
-                    const __global unit *id_sorted,
+__kernel void entry(const __global float *r0_in, __global float *r0,
+		            const __global float *r_r0_in, __global float *r_r0,
+		            const __global unit *id_sorted,
                     unsigned int N)
 {
     uint i = get_global_id(0);
@@ -48,7 +51,8 @@ __kernel void entry(const __global float *p_in, __global float *p,
 
     const uint i_out = id_sorted[i];
 
-    p[i_out] = p_in[i];
+    r0[i_out] = r0_in[i];
+    r_r0[i_out] = r_r0_in[i];
 }
 
 /*

@@ -1,0 +1,97 @@
+<?xml version="1.0" ?>
+
+<!-- lelasticity.xml
+Linear elasticity module to perform deformable solid simulations. To use this
+preset basic.xml should be loaded first.
+
+Within this preset, no boundary conditions are loaded, or in other words, purely
+dummy particles are considered. Therefore it is strongly recommended loading
+Boundary Integrals (BI.xml)
+
+At this stage of development, sensors are useless in this module.
+ -->
+
+<sphInput>
+    <Variables>
+        <!-- Some variables are automatically defined:
+        | NAME        | TYPE          | LEN     | DESCRIPTION
+        | dims        | unsigned int  | 1       | 2 for 2D, 3 for 3D
+        | t           | float         | 1       | Simulation time
+        | dt          | float         | 1       | Time step
+        | iter        | unsigned int  | 1       | Step
+        | N           | unsigned int  | 1       | n + n_sensors
+        | n_sets      | unsigned int  | 1       | Number of particles sets
+        | n_radix     | unsigned int  | 1       | Rounded up value from N which is a power of 2
+        | n_cells     | uivec4        | 1       | Number of cells at each direction, and the total one
+        | support     | float         | 1       | Kernel support (as a factor of the kernel length h)
+        | id          | unsigned int* | N       | Original ID of each particle
+        | r           | vec*          | N       | Positions
+        | iset        | unsigned int* | N       | Particle set of each particle
+        | id_sorted   | unsigned int* | n_radix | Permutations from unsorted space to sorted space
+        | id_unsorted | unsigned int* | n_radix | Permutations from sorted space to unsorted space
+        | icell       | unsigned int* | n_radix | Cell where each particle is located
+        | ihoc        | unsigned int* | n_cells | First particle in each cell
+         -->
+        <Variable name="cs" type="float" value="15.0" />
+
+        <!-- Material properties -->
+        <Variable name="young" type="float*" length="n_sets" />
+        <Variable name="poisson" type="float*" length="n_sets" />
+
+        <!-- Deformation -->
+        <Variable name="r0" type="vec*" length="N" />
+        <Variable name="r_r0" type="vec*" length="N" />
+        <Variable name="r0_in" type="vec*" length="N" />
+        <Variable name="r_r0_in" type="vec*" length="N" />
+
+        <!-- Strain-displacement and stress matrices. In principle the
+        subindeces denote the rows, however, since these matrices are
+        symmetric, it does not matter at all -->
+        <Variable name="grad_r" type="matrix*" length="N" />
+        <Variable name="epsilon" type="matrix*" length="N" />
+        <Variable name="sigma" type="matrix*" length="N" />
+
+        <Variable name="div_u" type="float*" length="N" />
+        <Variable name="div_s" type="vec*" length="N" />
+        <Variable name="shepard" type="float*" length="N" />
+    </Variables>
+
+    <Definitions>
+    </Definitions>
+    
+    <Tools>
+        <!-- Improved Euler time integration predictor stage -->
+        <Tool action="insert" before="Predictor" name="lela deformation" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/r_r0.cl"/>
+
+        <!-- Link-list and particles sorting -->
+        <Tool action="insert" before="Sort" name="lela backup r0" type="copy" in="r0" out="r0_in"/>
+        <Tool action="insert" before="Sort" name="lela backup r_r0" type="copy" in="r_r0" out="r_r0_in"/>
+        <Tool action="insert" before="Sort" name="lela sort" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Sort.cl"/>
+
+        <!-- Particles interactions -->
+        <Tool action="insert" after="Sort" name="lela reinit gradr" type="set" in="grad_r" value="MAT_ZERO"/>
+        <Tool action="insert" after="Sort" name="lela reinit epsilon" type="set" in="epsilon" value="MAT_ZERO"/>
+        <Tool action="insert" after="Sort" name="lela reinit sigma" type="set" in="sigma" value="MAT_ZERO"/>
+        <Tool action="insert" after="Sort" name="lela reinit div_u" type="set" in="div_u" value="0.f"/>
+        <Tool action="insert" after="Sort" name="lela reinit div_s" type="set" in="div_s" value="VEC_ZERO"/>
+        <Tool action="insert" after="Sort" name="lela reinit shepard" type="set" in="shepard" value="0.f"/>
+
+        <Tool action="insert" before="Interactions" name="lela Shepard" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Shepard.cl"/>
+
+        <Tool action="insert" before="Interactions" name="lela grad r_r0" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/GradR.cl"/>
+        <Tool action="insert" before="Interactions" name="lela epsilon" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Epsilon.cl"/>
+        <Tool action="insert" before="Interactions" name="lela sigma" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Sigma.cl"/>
+
+        <Tool action="insert" before="Interactions" name="lela interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Interactions.cl"/>
+
+        <!-- Velocity and density variation rates computation -->
+        <Tool action="insert" before="Rates" name="lela rates" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Rates.cl"/>
+
+        <!-- Improved Euler time integration corrector stage -->
+
+        <!-- Time step computation -->
+        <Tool action="insert" before="TimeStep" name="lela fixed time step" type="set_scalar" in="dt" value="courant * h / cs"/>
+
+        <!-- Next time step -->
+    </Tools>
+</sphInput>

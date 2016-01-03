@@ -71,11 +71,11 @@ In the sensors the values of density, pressure and velocity are interpolated.
         <Tool action="insert" before="Sort" type="kernel" name="cfd sort" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Sort.cl"/>
 
         <!-- Particles interactions -->
-        <Tool action="insert" before="Interactions" type="set" name="cfd Reinit shepard" in="shepard" value="0.f"/>
-        <Tool action="insert" before="Interactions" type="set" name="cfd Reinit grad_p" in="grad_p" value="VEC_ZERO"/>
-        <Tool action="insert" before="Interactions" type="set" name="cfd Reinit lap_p" in="lap_p" value="0.f"/>
-        <Tool action="insert" before="Interactions" type="set" name="cfd Reinit div_u" in="div_u" value="0.f"/>
-        <Tool action="insert" before="Interactions" type="set" name="cfd Reinit lap_u" in="lap_u" value="VEC_ZERO"/>
+        <Tool action="insert" after="Sort" type="set" name="cfd Reinit shepard" in="shepard" value="0.f"/>
+        <Tool action="insert" after="Sort" type="set" name="cfd Reinit grad_p" in="grad_p" value="VEC_ZERO"/>
+        <Tool action="insert" after="Sort" type="set" name="cfd Reinit lap_p" in="lap_p" value="0.f"/>
+        <Tool action="insert" after="Sort" type="set" name="cfd Reinit div_u" in="div_u" value="0.f"/>
+        <Tool action="insert" after="Sort" type="set" name="cfd Reinit lap_u" in="lap_u" value="VEC_ZERO"/>
 
         <Tool action="insert" before="Interactions" type="kernel" name="cfd Shepard" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Shepard.cl"/>
         <Tool action="insert" before="Interactions" type="kernel" name="cfd interactions" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Interactions.cl"/>

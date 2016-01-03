@@ -16,12 +16,15 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @addtogroup cfd
+/** @defgroup lela Linear elasticity preset
+ *
+ * @brief Preset to perform Linear elasticity simulations
+ * 
  * @{
  */
 
 /** @file
- *  @brief Sort all the particle variables by the cell indexes
+ * @brief Equation Of State (EOS) computation
  */
 
 #ifndef HAVE_3D
@@ -30,25 +33,27 @@
     #include "../types/3D.h"
 #endif
 
-/** @brief Sort all the particle variables by the cell indexes.
+/** @brief Deformation computation
  *
- * @param p_in Unsorted pressure \f$ p \f$.
- * @param p Sorted pressure \f$ p \f$.
- * @param id_sorted Permutations list from the unsorted space to the sorted
- * one.
+ * The Strain-displacement and stress are computed on top of the deformations,
+ * i.e. the position of the particles relative to these equilibrium one:
+ * \f$ \mathbf{r}^{*} = \mathbf{r} - \mathbf{r}_0 \f$
+ *
+ * @param r_in Position \f$ \mathbf{r}_{n+1/2} \f$.
+ * @param r0 Equilibrium position \f$ \mathbf{r}_{0} \f$.
+ * @param r_r0 Deformation \f$ \mathbf{r}^{*} = \mathbf{r} - \mathbf{r}_0 \f$.
  * @param N Number of particles.
  */
-__kernel void entry(const __global float *p_in, __global float *p,
-                    const __global unit *id_sorted,
+__kernel void entry(const __global vec* r_in,
+                    const __global vec* r0,
+                    __global vec* r_r0,
                     unsigned int N)
 {
-    uint i = get_global_id(0);
+    unsigned int i = get_global_id(0);
     if(i >= N)
         return;
 
-    const uint i_out = id_sorted[i];
-
-    p[i_out] = p_in[i];
+    r_r0 = r_in - r0;
 }
 
 /*
