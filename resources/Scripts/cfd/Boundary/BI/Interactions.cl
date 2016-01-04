@@ -43,7 +43,7 @@
  * @param u Velocity \f$ \mathbf{u} \f$.
  * @param rho Density \f$ \rho \f$.
  * @param p Pressure \f$ p \f$.
- * @param m Mass \f$ m \f$.
+ * @param m Area of the boundary element \f$ s \f$.
  * @param refd Density of reference \f$ \rho_0 \f$ (one per set of particles)
  * @param grad_p Pressure gradient \f$ \nabla p \f$.
  * @param div_u Velocity divergence \f$ \nabla \cdot \mathbf{u} \f$.
