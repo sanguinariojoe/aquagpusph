@@ -44,7 +44,6 @@
  * @see https://en.wikipedia.org/wiki/Matrix_calculus
  * @see https://en.wikipedia.org/wiki/Outer_product
  * 
- * @param iset Set of particles index.
  * @param imove Moving flags.
  *   - imove = 2 for regular solid particles.
  *   - imove = 0 for sensors (ignored by this preset).
@@ -59,8 +58,7 @@
  * @param N Number of particles.
  * @param n_cells Number of cells in each direction
  */
-__kernel void entry(const __global uint* iset,
-                    const __global int* imove,
+__kernel void entry(const __global int* imove,
                     const __global vec* r,
                     const __global vec* r_r0,
                     const __global float* rho,

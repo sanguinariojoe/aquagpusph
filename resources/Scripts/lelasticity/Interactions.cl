@@ -41,7 +41,6 @@
  * Compute the differential operators involved in the numerical scheme, taking
  * into account just the solid-solid interactions.
  *
- * @param iset Set of particles index.
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
@@ -59,8 +58,7 @@
  * @param N Number of particles.
  * @param n_cells Number of cells in each direction.
  */
-__kernel void entry(const __global uint* iset,
-                    const __global int* imove,
+__kernel void entry(const __global int* imove,
                     const __global vec* r,
                     const __global vec* u,
                     const __global float* rho,
