@@ -38,5 +38,6 @@ INSTALL(
 # ===================================================== #
 # Configure and install dependencies                    #
 # ===================================================== #
-ADD_SUBDIRECTORY(cfd)
 ADD_SUBDIRECTORY(basic)
+ADD_SUBDIRECTORY(cfd)
+ADD_SUBDIRECTORY(lelasticity)

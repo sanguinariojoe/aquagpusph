@@ -1,0 +1,35 @@
+<?xml version="1.0" ?>
+
+<!-- BIFixed.xml
+Define a boundary which its motion is imposed by the user. In this case the
+stress tensor is computed using the resulting deformation.
+
+You just need to include it, and define which particles set will be affected
+setting the variable BIfixed_iset (0 by default).
+
+To use this preset, BI.xml should be included first.
+
+If several boundaries, belonging to different particles sets, are considered
+fixed, then include this preset several times, and reevaluate the affected
+BIfixed_iset variable each time, for instance:
+
+<Include file="BIFixed.xml" prefix="iset0_"/>
+<Include file="BIFixed.xml" prefix="iset2_"/>
+<Tools>
+    <Tool action="insert" before="iset0_lela BI Fixed" type="set_scalar" name="BIfixed_iset0" in="BIfixed_iset" value="0"/>
+    <Tool action="insert" before="iset2_lela BI Fixed" type="set_scalar" name="BIfixed_iset2" in="BIfixed_iset" value="2"/>
+</Tools>
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="BIfixed_iset" type="unsigned int" value="0" />
+    </Variables>
+
+    <Tools>
+        <!-- Compute the resulting grad(r - r0) -->
+        <Tool action="insert" after="lela BI grad r_r0" name="lela BI Fixed" type="dummy"/>
+        <Tool action="insert" after_prefix="lela BI Fixed" name="lela BI Fixed vol" type="kernel" entry_point="vol" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Boundary/BI/Fixed.cl"/>
+        <Tool action="insert" after_prefix="lela BI Fixed vol" name="lela BI Fixed area" type="kernel" entry_point="area" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Boundary/BI/Fixed.cl"/>
+    </Tools>
+</sphInput>

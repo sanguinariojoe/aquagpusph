@@ -256,7 +256,8 @@ bool Kernel::compile(const char* entry_point,
     clReleaseProgram(program);
     if(err_code != CL_SUCCESS) {
         S->addMessage(0, "FAIL\n");
-        S->addMessageF(3, "Failure creating the kernel.\n");
+        sprintf(msg, "Failure creating the kernel \"%s\"\n", entry_point);
+        S->addMessageF(3, msg);
         S->printOpenCLError(err_code);
         delete[] flags; flags=NULL;
         return true;
@@ -331,7 +332,8 @@ bool Kernel::compile(const char* entry_point,
     clReleaseProgram(program);
     if(err_code != CL_SUCCESS) {
         S->addMessage(0, "FAIL\n");
-        S->addMessageF(3, "Failure creating the kernel.\n");
+        sprintf(msg, "Failure creating the kernel \"%s\"\n", entry_point);
+        S->addMessageF(3, msg);
         S->printOpenCLError(err_code);
         S->addMessageF(1, "Falling back to no local memory usage.\n");
         return false;

@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+
+<!-- BI.xml
+Allows the usage of boundary integrals to enforce the boundary conditions.
+
+Actually this preset is just adding the effect of the boundary elements to the
+solid computation.
+
+In order to set the either the position or the stress, the following presets are
+provided:
+  - BIFixed.xml: The boundary motion is imposed, computing the stress tensor
+    from the imposed deformation
+  - BIFree.xml: A pressure field p should be imposed along the boundary, such
+    that the motion will result from the momentum equation
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="normal" type="vec*" length="N" />
+    </Variables>
+
+    <Tools>
+        <!-- Update the grad(r - r0) of the solid particles -->
+        <Tool action="insert" after="lela grad r_r0" name="lela BI grad r_r0" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Boundary/BI/GradR.cl"/>
+
+        <!-- Update the div(u) and div(sigma) of the solid particles -->
+        <Tool action="insert" before="lela interactions" name="lela BI interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Boundary/BI/Interactions.cl"/>
+    </Tools>
+</sphInput>

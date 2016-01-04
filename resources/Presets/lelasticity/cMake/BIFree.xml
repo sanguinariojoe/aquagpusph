@@ -1,0 +1,30 @@
+<?xml version="1.0" ?>
+
+<!-- BIFree.xml
+Define a boundary which its stress is imposed by the user, as a pressure field.
+In this case the boundary motion results from the momentum equation solution.
+
+You just need to include it, and define which particles set will be affected
+setting the variable BIfree_iset (0 by default).
+
+To use this preset, BI.xml should be included first.
+
+If several boundaries, belonging to different particles sets, are considered
+as free motion ones, then include this preset several times, and reevaluate the
+affected BIfree_iset variable each time, for instance:
+
+<Include file="BIFree.xml" prefix="iset0_"/>
+<Include file="BIFree.xml" prefix="iset2_"/>
+<Tools>
+    <Tool action="insert" before="iset0_lela BI Free" type="set_scalar" name="BIfree_iset0" in="BIfree_iset" value="0"/>
+    <Tool action="insert" before="iset2_lela BI Free" type="set_scalar" name="BIfree_iset2" in="BIfree_iset" value="2"/>
+</Tools>
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="BIfree_iset" type="unsigned int" value="0" />
+        <Variable name="p" type="float*" length="N" />
+        <Variable name="p_in" type="float*" length="N" />
+    </Variables>
+</sphInput>
