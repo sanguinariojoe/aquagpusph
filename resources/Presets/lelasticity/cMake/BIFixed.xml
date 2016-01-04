@@ -31,5 +31,6 @@ BIfixed_iset variable each time, for instance:
         <Tool action="insert" after="lela BI grad r_r0" name="lela BI Fixed" type="dummy"/>
         <Tool action="insert" after_prefix="lela BI Fixed" name="lela BI Fixed vol" type="kernel" entry_point="vol" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Boundary/BI/Fixed.cl"/>
         <Tool action="insert" after_prefix="lela BI Fixed vol" name="lela BI Fixed area" type="kernel" entry_point="area" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Boundary/BI/Fixed.cl"/>
+        <Tool action="insert" after_prefix="lela BI Fixed area" name="lela BI Fixed renormalization" type="kernel" entry_point="renormalization" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Boundary/BI/Fixed.cl"/>
     </Tools>
 </sphInput>

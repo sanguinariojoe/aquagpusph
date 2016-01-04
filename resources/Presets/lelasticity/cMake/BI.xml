@@ -22,8 +22,10 @@ provided:
     <Tools>
         <!-- Update the grad(r - r0) of the solid particles -->
         <Tool action="insert" after="lela grad r_r0" name="lela BI grad r_r0" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Boundary/BI/GradR.cl"/>
+        <Tool action="insert" after="lela BI grad r_r0" name="lela BI grad r_r0 renormalization" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Boundary/BI/ShepardGradR.cl"/>
 
         <!-- Update the div(u) and div(sigma) of the solid particles -->
         <Tool action="insert" before="lela interactions" name="lela BI interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Boundary/BI/Interactions.cl"/>
+        <Tool action="insert" after="lela BI interactions" name="lela BI renormalization" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Boundary/BI/Shepard.cl"/>
     </Tools>
 </sphInput>
