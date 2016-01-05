@@ -85,7 +85,7 @@ char* FastASCII::readField(const char* field,
             memcpy(ptr, &val, sizeof(unsigned int));
         }
         else if(!strcmp(type, "int") ||
-           strstr(type, "ivec")){
+                strstr(type, "ivec")){
             int val = (int)strtol(pos, &end_pos, 10);
             if(pos == end_pos){
                 char *msg = new char[strlen(var->type()) + 64];

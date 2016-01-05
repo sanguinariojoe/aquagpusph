@@ -367,6 +367,23 @@ bool ASCII::save()
                 vec4* v = (vec4*)data.at(j);
                 fprintf(f, "%g %g %g %g,", v[i].x, v[i].y, v[i].z, v[i].w);
             }
+            else if(!strcmp(type_name, "matrix*")){
+                #ifdef HAVE_3D
+                    matrix* m = (matrix*)data.at(j);
+                    fprintf(f,
+                            "%g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g,",
+                            m[i].s0, m[i].s1, m[i].s2, m[i].s3,
+                            m[i].s4, m[i].s5, m[i].s6, m[i].s7,
+                            m[i].s8, m[i].s9, m[i].sA, m[i].sB,
+                            m[i].sC, m[i].sD, m[i].sE, m[i].sF);
+                #else
+                    matrix* m = (matrix*)data.at(j);
+                    fprintf(f,
+                            "%g %g %g %g,",
+                            m[i].s0, m[i].s1,
+                            m[i].s2, m[i].s3);
+                #endif // HAVE_3D
+            }
         }
         fprintf(f, "\n");
         fflush(f);
