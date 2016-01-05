@@ -38,8 +38,8 @@ import math
 
 g = 1
 hfac = 4.0
-cs = 50.0
 courant = 0.2
+cs_max = 500.0
 young = 0.05e6
 poisson = 0.49
 refd = 2.0e-3
@@ -51,6 +51,17 @@ H = 0.1 * L
 ny = 10
 nx = 10 * ny
 
+# Sound speed and shear modulus
+nu = poisson
+E = young
+mu = E / (2.0 * (1.0 + nu))
+cs = math.sqrt(mu / refd * (2.0 + 4.0 * nu) / (3.0 - 6.0 * nu))
+if cs > cs_max:
+    cs = cs_max
+    K = refd * cs**2
+    mu = 3.0 * K * (1.0 - 2.0 * nu) / (1.0 + 2.0 * nu) 
+    E = mu * 2.0 * (1.0 + nu)
+
 # Dimensions and number of particles readjustment
 # ===============================================
 dr = H / ny
@@ -60,6 +71,7 @@ end_time = time_to_run
 
 # Particles generation
 # ====================
+input_template = "{} {}, " * 4 + "{}, " * 2 + "{} {} {} {}," * 2 + "{}, {}\n"
 
 header = """#############################################################
 #                                                           #
@@ -75,6 +87,13 @@ header = """#############################################################
 #############################################################
 """
 print(header)
+
+print("")
+print("E = {}".format(E))
+print("nu = {}".format(nu))
+print("mu = {}".format(mu))
+print("cs = {}".format(cs))
+print("")
 
 print("Writing volume particles...")
 n_vol = 0
@@ -94,16 +113,17 @@ for i in range(nx):
                j * dr + 0.5 * dr - 0.5 * H)
         dens = refd
         mass = dens * dr**2.0
-        string = ("{} {}, " * 5 + "{}, {}, {}, {}\n").format(
-            pos[0], pos[1],  # r
-            pos[0], pos[1],  # r0
-            0.0, 0.0,        # normal
-            0.0, 0.0,        # u
-            0.0, 0.0,        # dudt
-            dens,            # rho
-            0.0,             # drhodt
-            mass,            # m
-            imove)           # imove
+        string = input_template.format(
+            pos[0], pos[1],      # r
+            0.0, 0.0,            # normal
+            0.0, 0.0,            # u
+            0.0, 0.0,            # dudt
+            dens,                # rho
+            0.0,                 # drhodt
+            0.0, 0.0, 0.0, 0.0,  # S
+            0.0, 0.0, 0.0, 0.0,  # dSdt
+            mass,                # m
+            imove)               # imove
         output.write(string)
         n_vol += 1
 print('    100%')
@@ -126,16 +146,17 @@ for i in range(ny):
     normal = (-1.0, 0.0)
     dens = refd
     mass = dr
-    string = ("{} {}, " * 5 + "{}, {}, {}, {}\n").format(
-        pos[0], pos[1],       # r
-        pos[0], pos[1],       # r0
-        normal[0], normal[1], # normal
-        0.0, 0.0,             # u
-        0.0, 0.0,             # dudt
-        dens,                 # rho
-        0.0,                  # drhodt
-        mass,                 # m
-        imove)                # imove
+    string = input_template.format(
+        pos[0], pos[1],        # r
+        normal[0], normal[1],  # normal
+        0.0, 0.0,              # u
+        0.0, 0.0,              # dudt
+        dens,                  # rho
+        0.0,                   # drhodt
+        0.0, 0.0, 0.0, 0.0,    # S
+        0.0, 0.0, 0.0, 0.0,    # dSdt
+        mass,                  # m
+        imove)                 # imove
     output.write(string)
     n_left += 1
 print('    100%')
@@ -158,16 +179,17 @@ for i in range(ny):
     normal = (1.0, 0.0)
     dens = refd
     mass = dr
-    string = ("{} {}, " * 5 + "{}, {}, {}, {}\n").format(
-        pos[0], pos[1],       # r
-        pos[0], pos[1],       # r0
-        normal[0], normal[1], # normal
-        0.0, 0.0,             # u
-        0.0, 0.0,             # dudt
-        dens,                 # rho
-        0.0,                  # drhodt
-        mass,                 # m
-        imove)                # imove
+    string = input_template.format(
+        pos[0], pos[1],        # r
+        normal[0], normal[1],  # normal
+        0.0, 0.0,              # u
+        0.0, 0.0,              # dudt
+        dens,                  # rho
+        0.0,                   # drhodt
+        0.0, 0.0, 0.0, 0.0,    # S
+        0.0, 0.0, 0.0, 0.0,    # dSdt
+        mass,                  # m
+        imove)                 # imove
     output.write(string)
     n_free += 1
 for i in range(nx):
@@ -183,31 +205,33 @@ for i in range(nx):
     normal = [0.0, -1.0]
     dens = refd
     mass = dr
-    string = ("{} {}, " * 5 + "{}, {}, {}, {}\n").format(
-        pos[0], pos[1],       # r
-        pos[0], pos[1],       # r0
-        normal[0], normal[1], # normal
-        0.0, 0.0,             # u
-        0.0, 0.0,             # dudt
-        dens,                 # rho
-        0.0,                  # drhodt
-        mass,                 # m
-        imove)                # imove
+    string = input_template.format(
+        pos[0], pos[1],        # r
+        normal[0], normal[1],  # normal
+        0.0, 0.0,              # u
+        0.0, 0.0,              # dudt
+        dens,                  # rho
+        0.0,                   # drhodt
+        0.0, 0.0, 0.0, 0.0,    # S
+        0.0, 0.0, 0.0, 0.0,    # dSdt
+        mass,                  # m
+        imove)                 # imove
     output.write(string)
     n_free += 1
     #Top particle
     pos[1] *= -1.0
     normal[1] *= -1.0
-    string = ("{} {}, " * 5 + "{}, {}, {}, {}\n").format(
-        pos[0], pos[1],       # r
-        pos[0], pos[1],       # r0
-        normal[0], normal[1], # normal
-        0.0, 0.0,             # u
-        0.0, 0.0,             # dudt
-        dens,                 # rho
-        0.0,                  # drhodt
-        mass,                 # m
-        imove)                # imove
+    string = input_template.format(
+        pos[0], pos[1],        # r
+        normal[0], normal[1],  # normal
+        0.0, 0.0,              # u
+        0.0, 0.0,              # dudt
+        dens,                  # rho
+        0.0,                   # drhodt
+        0.0, 0.0, 0.0, 0.0,    # S
+        0.0, 0.0, 0.0, 0.0,    # dSdt
+        mass,                  # m
+        imove)                 # imove
     output.write(string)
     n_free += 1
 print('    100%')
@@ -227,7 +251,7 @@ domain_max = str(domain_max).replace('(', '').replace(')', '')
 
 data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
         'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max, 'REFD':str(refd), 
-        'E':str(young), 'NU':str(poisson), 'G':str(g), 'NSOLID':str(n_vol),
+        'MU':str(mu), 'G':str(g), 'NSOLID':str(n_vol),
         'NBUILTIN':str(n_left), 'NFREE':str(n_free),
         'L':str(L), 'H':str(H), 'END_TIME':str(end_time)}
 for fname in XML:

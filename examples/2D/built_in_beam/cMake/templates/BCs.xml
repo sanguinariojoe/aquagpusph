@@ -21,20 +21,18 @@ Authors:
     <!-- The built in boundary will take the iset 1 -->
     <ParticlesSet n="{{NBUILTIN}}">
         <Scalar name="refd" value="{{REFD}}" />
-        <Scalar name="young" value="{{E}}" />
-        <Scalar name="poisson" value="{{NU}}" />
+        <Scalar name="shear_mod" value="{{MU}}" />
 
-        <Load format="FastASCII" file="BuiltInBC.dat" fields="r, r0, normal, u, dudt, rho, drhodt, m, imove" />
-        <Save format="VTK" file="builtinbc" fields="r, r0, normal, u, dudt, rho, drhodt, m, imove" />
+        <Load format="FastASCII" file="BuiltInBC.dat" fields="r, normal, u, dudt, rho, drhodt, S, dSdt, m, imove" />
+        <Save format="VTK" file="builtinbc" fields="r, normal, u, dudt, rho, drhodt, S, dSdt, m, imove, p" />
     </ParticlesSet>
 
     <!-- The free boundary will take the iset 2 -->
     <ParticlesSet n="{{NFREE}}">
         <Scalar name="refd" value="{{REFD}}" />
-        <Scalar name="young" value="{{E}}" />
-        <Scalar name="poisson" value="{{NU}}" />
+        <Scalar name="shear_mod" value="{{MU}}" />
 
-        <Load format="FastASCII" file="FreeBC.dat" fields="r, r0, normal, u, dudt, rho, drhodt, m, imove" />
-        <Save format="VTK" file="freebc" fields="r, r0, normal, u, dudt, rho, drhodt, m, imove" />
+        <Load format="FastASCII" file="FreeBC.dat" fields="r, normal, u, dudt, rho, drhodt, S, dSdt, m, imove" />
+        <Save format="VTK" file="freebc" fields="r, normal, u, dudt, rho, drhodt, S, dSdt, m, imove, p" />
     </ParticlesSet>
 </sphInput>

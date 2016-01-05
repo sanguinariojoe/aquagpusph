@@ -21,10 +21,9 @@ Authors:
     <!-- The volumetric particles will take the iset 0 -->
     <ParticlesSet n="{{NSOLID}}">
         <Scalar name="refd" value="{{REFD}}" />
-        <Scalar name="young" value="{{E}}" />
-        <Scalar name="poisson" value="{{NU}}" />
+        <Scalar name="shear_mod" value="{{MU}}" />
 
-        <Load format="FastASCII" file="Solid.dat" fields="r, r0, normal, u, dudt, rho, drhodt, m, imove" />
-        <Save format="VTK" file="solid" fields="r, r0, normal, u, dudt, rho, drhodt, m, imove" />
+        <Load format="FastASCII" file="Solid.dat" fields="r, normal, u, dudt, rho, drhodt, S, dSdt, m, imove" />
+        <Save format="VTK" file="solid" fields="r, normal, u, dudt, rho, drhodt, S, dSdt, m, imove, p" />
     </ParticlesSet>
 </sphInput>
