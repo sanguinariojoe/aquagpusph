@@ -32,16 +32,16 @@
 
 /** @brief Sort all the particle variables by the cell indexes.
  *
- * @param r0_in Unsorted equilibrium position \f$ \mathbf{r}_0 \f$.
- * @param r0 Sorted equilibrium position \f$ \mathbf{r}_0 \f$.
- * @param r_r0_in Unsorted deformation \f$ \mathbf{r}^{*} - \mathbf{r}_0 \f$.
- * @param r_r0 Sorted deformation \f$ \mathbf{r}^{*} - \mathbf{r}_0 \f$.
+ * @param p_in Unsorted pressure \f$ p \f$.
+ * @param p Sorted pressure \f$ p \f$.
+ * @param S_in Unsorted Deviatory stress \f$ S \f$.
+ * @param S Sorted Deviatory stress \f$ S \f$.
  * @param id_sorted Permutations list from the unsorted space to the sorted
  * one.
  * @param N Number of particles.
  */
-__kernel void entry(const __global vec *r0_in, __global vec *r0,
-		            const __global vec *r_r0_in, __global vec *r_r0,
+__kernel void entry(const __global float *p_in, __global float *p,
+                    const __global vec *S_in, __global vec *S,
 		            const __global unit *id_sorted,
                     unsigned int N)
 {
@@ -51,8 +51,8 @@ __kernel void entry(const __global vec *r0_in, __global vec *r0,
 
     const uint i_out = id_sorted[i];
 
-    r0[i_out] = r0_in[i];
-    r_r0[i_out] = r_r0_in[i];
+    p[i_out] = p_in[i];
+    S[i_out] = S_in[i];
 }
 
 /*

@@ -49,7 +49,6 @@
  *   - imove < 0 for boundary elements/particles.
  * @param rho_in Density \f$ \rho_{n+1/2} \f$.
  * @param p_in Pressure \f$ \left. p \right\vert_{n+1/2} \f$.
- * @param gamma Eq. of state exponent \f$ \gamma \f$.
  * @param refd Density of reference of the fluid \f$ \rho_0 \f$.
  * @param N Number of particles.
  * @param cs Speed of sound \f$ c_s \f$.
@@ -59,7 +58,6 @@ __kernel void entry(__global unsigned int* iset,
                     __global unsigned int* imove,
                     __global float* rho_in,
                     __global float* p_in,
-                    __constant float* gamma,
                     __constant float* refd,
                     unsigned int N,
                     float cs,
@@ -68,13 +66,10 @@ __kernel void entry(__global unsigned int* iset,
     unsigned int i = get_global_id(0);
     if(i >= N)
         return;
-    if((imove[i] != -1) || (imove[i] != 1))
+    if(imove[i] != 2)
         return;
 
-    // Batchelor 1967
-    const float ddenf = rho_in[i] / refd[iset[i]];
-    const float prb = cs * cs * refd[iset[i]] / gamma[iset[i]];
-    p_in[i] = p0 + prb * (pow(ddenf, gamma[iset[i]]) - 1.f);
+    p_in[i] = p0 + cs * cs * (rho_in[i] - refd[iset[i]]);
 }
 
 /*

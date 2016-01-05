@@ -195,11 +195,28 @@
     }
 
 /** @def MATRIX_DOT
- * @brief Multiply a matrix by a vector
+ * @brief Multiply a matrix by a vector (inner product)
  */
 #define MATRIX_DOT(_M, _V)                                                     \
-	((float2)(dot(_M.s01, _V),                                                 \
+    ((float2)(dot(_M.s01, _V),                                                 \
               dot(_M.s23, _V)))
+
+/** @def MATRIX_DOT_ALL
+ * @brief #MATRIX_DOT
+ */
+#define MATRIX_DOT_ALL MATRIX_DOT
+
+/** @def MATRIX_MUL
+ * @brief Multiply a matrix by a matrix (inner product)
+ */
+#define MATRIX_MUL(_M1, _M2)                                                   \
+    ((float4)(dot(_M1.s01, _M2.s02), dot(_M1.s01, _M2.s13),                    \
+              dot(_M1.s12, _M2.s02), dot(_M1.s12, _M2.s13)))
+
+/** @def MATRIX_MUL_ALL
+ * @brief #MATRIX_MUL
+ */
+#define MATRIX_MUL_ALL MATRIX_MUL
 
 /** @def MATRIX_TRANSPOSE
  * @brief Transpose a matrix

@@ -41,6 +41,7 @@
  *   - \f$ \frac{\mathrm{d} \rho}{\mathrm{d} t} =
  *     - \rho \nabla \cdot \mathbf{u}\f$
  *
+ * @param iset Set of particles index.
  * @param imove Moving flags.
  *   - imove = 2 for regular solid particles.
  *   - imove = 0 for sensors (ignored by this preset).
@@ -48,18 +49,25 @@
  * @param div_s Divergence of the stress tensor
  * 	   \f$ \frac{\nabla \cdot \sigma}{rho} \f$.
  * @param div_u Velocity divergence \f$ \rho \nabla \cdot \mathbf{u} \f$.
- * @param dudt Velocity rate of change
- * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n+1} \f$.
- * @param drhodt Density rate of change
- * \f$ \left. \frac{d \rho}{d t} \right\vert_{n+1} \f$.
+ * @param grad_u Velocity gradient \f$ \nabla \mathbf{u} \f$.
+ * @param S Deviatory stress \f$ S \f$.
+ * @param dudt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
+ * @param drhodt Density rate of change \f$ \frac{d \rho}{d t} \f$.
+ * @param dSdt Deviatory stress rate of change \f$ \frac{d S}{d t} \f$.
+ * @param shear_mod Shear modulus \f$ \mu \f$.
  * @param N Number of particles.
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  */
-__kernel void entry(const __global int* imove,
-                    const __global vec* div_s,
+__kernel void entry(const __global unsigned int* iset,
+                    const __global int* imove,
+                    const __global vec* div_sigma,
                     const __global float* div_u,
+                    const __global matrix* grad_u,
+                    const __global matrix* S,
                     __global vec* dudt,
                     __global float* drhodt,
+                    __global matrix* dSdt,
+                    __constant float* shear_mod,
                     unsigned int N,
                     vec g)
 {
@@ -70,9 +78,15 @@ __kernel void entry(const __global int* imove,
         return;
 
     // Momentum equation
-    dudt[i] = -div_s[i] + g;
+    dudt[i] = -div_sigma[i] + g;
     // Conservation of mass equation
     drhodt[i] = -div_u[i];
+    // Deviatory stress rate of change
+    const matrix epsilon = 0.5f * (grad_u[i] + grad_u[i].TRANSPOSE);
+    const matrix omega = 0.5f * (grad_u[i] - grad_u[i].TRANSPOSE);
+    const float mu = shear_mod[iset[i]];
+    dSdt[i] = 2.f * mu * (epsilon - 1.f / 3.f * MATRIX_FROM_DIAG(epsilon.DIAG))
+              + MATRIX_MUL(S[i], omega.TRANSPOSE) + MATRIX_MUL(omega, S[i]);
 }
 
 /*

@@ -214,7 +214,7 @@
     }
 
 /** @def MATRIX_DOT
- * @brief Multiply a matrix by a vector
+ * @brief Multiply a matrix by a vector (inner product)
  *
  * @note The vector should have 3 components, not 4.
  */
@@ -223,6 +223,39 @@
               dot(_M.s456, _V),                                                \
               dot(_M.s89A, _V),                                                \
               0.f))
+
+/** @def MATRIX_DOT_ALL
+ * @brief Multiply a matrix by a vector (inner product)
+ */
+#define MATRIX_DOT_ALL(_M, _V)                                                 \
+    ((float4)(dot(_M.s0123, _V),                                               \
+              dot(_M.s4567, _V),                                               \
+              dot(_M.s89AB, _V),                                               \
+              dot(_M.sCDEF, _V)))
+
+/** @def MATRIX_MUL
+ * @brief Multiply a matrix by a matrix (inner product)
+ *
+ * @note The last row and column of each matrix will be ignored. To perform a
+ * complete inner product use #MATRIX_MUL_ALL
+ */
+#define MATRIX_MUL(_M1, _M2) ((float16)(                                            \
+    dot(_M1.s012, _M2.s048), dot(_M1.s012, _M2.s159), dot(_M1.s012, _M2.s26A), 0.f, \
+    dot(_M1.s456, _M2.s048), dot(_M1.s456, _M2.s159), dot(_M1.s456, _M2.s26A), 0.f, \
+    dot(_M1.s89A, _M2.s048), dot(_M1.s89A, _M2.s159), dot(_M1.s89A, _M2.s26A), 0.f, \
+    0.f, 0.f, 0.f, 0.f))
+
+/** @def MATRIX_MUL_ALL
+ * @brief Multiply a matrix by a matrix (inner product)
+ *
+ * @note For performance purposes, using #MATRIX_MUL instead of this operator is
+ * strongly recommended.
+ */
+#define MATRIX_MUL_ALL(_M1, _M2) ((float16)(                                                                    \
+    dot(_M1.s0123, _M2.s048C), dot(_M1.s0123, _M2.s159D), dot(_M1.s0123, _M2.s26AE), dot(_M1.s0123, _M2.s37BF), \
+    dot(_M1.s4567, _M2.s048C), dot(_M1.s4567, _M2.s159D), dot(_M1.s4567, _M2.s26AE), dot(_M1.s4567, _M2.s37BF), \
+    dot(_M1.s89AB, _M2.s048C), dot(_M1.s89AB, _M2.s159D), dot(_M1.s89AB, _M2.s26AE), dot(_M1.s89AB, _M2.s37BF), \
+    dot(_M1.sCDEF, _M2.s048C), dot(_M1.sCDEF, _M2.s159D), dot(_M1.sCDEF, _M2.s26AE), dot(_M1.sCDEF, _M2.s37BF)))
 
 /** @def MATRIX_TRANSPOSE
  * @brief Transpose a matrix

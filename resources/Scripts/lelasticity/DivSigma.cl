@@ -42,17 +42,15 @@
  * into account just the solid-solid interactions.
  *
  * @param imove Moving flags.
- *   - imove > 0 for regular fluid particles.
- *   - imove = 0 for sensors.
+ *   - imove = 2 for regular solid particles.
+ *   - imove = 0 for sensors (ignored by this module).
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r} \f$.
- * @param u Velocity \f$ \mathbf{u} \f$.
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
  * @param sigma Stress tensor \f$ \sigma \f$.
- * @param div_s Divergence of the stress tensor
+ * @param div_sigma Divergence of the stress tensor
  * 	   \f$ \frac{\nabla \cdot \sigma}{rho} \f$.
- * @param div_u Velocity divergence \f$ \rho \nabla \cdot \mathbf{u} \f$.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
@@ -60,12 +58,10 @@
  */
 __kernel void entry(const __global int* imove,
                     const __global vec* r,
-                    const __global vec* u,
                     const __global float* rho,
                     const __global float* m,
                     const __global matrix* sigma,
-                    __global vec* div_s,
-                    __global float* div_u,
+                    __global vec* div_sigma,
                     // Link-list data
                     const __global uint *icell,
                     const __global uint *ihoc,
@@ -82,21 +78,16 @@ __kernel void entry(const __global int* imove,
     }
 
     const vec_xyz r_i = r[i].XYZ;
-    const vec_xyz u_i = u[i].XYZ;
     const matrix s_i = sigma[i];
     const float rho_i = rho[i];
 
     // Initialize the output
     #ifndef LOCAL_MEM_SIZE
-        #define _DIVS_ div_s[i].XYZ
-        #define _DIVU_ div_u[i]
+        #define _DIVS_ div_sigma[i].XYZ
     #else
-        #define _DIVS_ div_s_l[it]
-        #define _DIVU_ div_u_l[it]
-        __local vec_xyz div_s_l[LOCAL_MEM_SIZE];
-        __local float div_u_l[LOCAL_MEM_SIZE];
+        #define _DIVS_ div_sigma_l[it]
+        __local vec_xyz div_sigma_l[LOCAL_MEM_SIZE];
         _DIVS_ = VEC_ZERO.XYZ;
-        _DIVU_ = 0.f;
     #endif
 
     BEGIN_LOOP_OVER_NEIGHS(){
@@ -114,17 +105,14 @@ __kernel void entry(const __global int* imove,
         {
             const float rho_j = rho[j];
             const matrix s_j = sigma[j];
-            const float udr = dot(u[j].XYZ - u_i, r_ij);
             const float f_ij = kernelF(q) * CONF * m[j];
 
             _DIVS_ += MATRIX_DOT((s_i + s_j), f_ij / (rho_i * rho_j) * r_ij);
-            _DIVU_ += udr * f_ij * rho_i / rho_j;
         }
     }END_LOOP_OVER_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
-        div_s[i].XYZ = _DIVS_;
-        div_u[i] = _DIVU_;
+        div_sigma[i].XYZ = _DIVS_;
     #endif
 }
 

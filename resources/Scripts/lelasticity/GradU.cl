@@ -49,10 +49,10 @@
  *   - imove = 0 for sensors (ignored by this preset).
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r} \f$.
- * @param r_r0 Deformation \f$ \mathbf{r}^{*} = \mathbf{r} - \mathbf{r}_0 \f$.
+ * @param u Velocity \f$ \mathbf{u} \f$.
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
- * @param grad_r Gradient of the deformation \f$ \nabla \mathbf{r}^{*} \f$.
+ * @param grad_u Gradient of the velocity \f$ \nabla \mathbf{u} \f$.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
@@ -60,10 +60,10 @@
  */
 __kernel void entry(const __global int* imove,
                     const __global vec* r,
-                    const __global vec* r_r0,
+                    const __global vec* u,
                     const __global float* rho,
                     const __global float* m,
-                    __global matrix* grad_r,
+                    __global matrix* grad_u,
                     // Link-list data
                     const __global uint *icell,
                     const __global uint *ihoc,
@@ -80,14 +80,15 @@ __kernel void entry(const __global int* imove,
     }
 
     const vec_xyz r_i = r[i].XYZ;
+    const vec_xyz u_i = u[i].XYZ;
 
     // Initialize the output
     #ifndef LOCAL_MEM_SIZE
-        #define _GRADR_ grad_r[i]
+        #define _GRADU_ grad_u[i]
     #else
-        #define _GRADR_ grad_r_l[it]
-        __local matrix grad_r_l[LOCAL_MEM_SIZE];
-        _GRADR_ = MAT_ZERO;
+        #define _GRADU_ grad_u_l[it]
+        __local matrix grad_u_l[LOCAL_MEM_SIZE];
+        _GRADU_ = MAT_ZERO;
     #endif
 
     BEGIN_LOOP_OVER_NEIGHS(){
@@ -104,12 +105,12 @@ __kernel void entry(const __global int* imove,
         }
         {
             const float f_ij = kernelF(q) * CONF * m[j] / rho[j];
-            _GRADR_ += outer(r_r0[j].XYZ, f_ij * r_ij);
+            _GRADU_ += outer(u[j].XYZ - u_i, f_ij * r_ij);
         }
     }END_LOOP_OVER_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
-        grad_r[i] = _GRADR_;
+        grad_u[i] = _GRADU_;
     #endif
 }
 

@@ -21,8 +21,7 @@
  */
 
 /** @file
- * @brief Solid particles deformation gradient resulting from the interaction
- * with the boundary.
+ * @brief Solid particles interaction with the boundary.
  */
 
 #if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
@@ -37,35 +36,34 @@
     #include "../../../KernelFunctions/Wendland3D.hcl"
 #endif
 
-/** @brief Solid particles deformation gradient resulting from the interaction
- * with the boundary.
+/** @brief Solid particles interaction with the boundary.
  *
- * Compute the gradient of the deformation vector:
- * \f[ \nabla \mathbf{r}^{*} = \mathbf{r}^{*} \otimes \nabla \f]
+ * Compute the differential operators involved in the numerical scheme, taking
+ * into account just the solid-solid interactions.
  *
- * @see https://en.wikipedia.org/wiki/Matrix_calculus
- * @see https://en.wikipedia.org/wiki/Outer_product
- * 
  * @param imove Moving flags.
- *   - imove = 2 for regular solid particles.
- *   - imove = 0 for sensors (ignored by this preset).
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r} \f$.
- * @param r_r0 Deformation \f$ \mathbf{r}^{*} = \mathbf{r} - \mathbf{r}_0 \f$.
  * @param normal Normal \f$ \mathbf{n} \f$.
+ * @param rho Density \f$ \rho \f$.
  * @param m Area of the boundary element \f$ s \f$.
- * @param grad_r Gradient of the deformation \f$ \nabla \mathbf{r}^{*} \f$.
+ * @param sigma Stress tensor \f$ \sigma \f$.
+ * @param div_sigma Divergence of the stress tensor
+ * 	   \f$ \frac{\nabla \cdot \sigma}{rho} \f$.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
- * @param n_cells Number of cells in each direction
+ * @param n_cells Number of cells in each direction.
  */
 __kernel void entry(const __global int* imove,
                     const __global vec* r,
-                    const __global vec* r_r0,
                     const __global vec* normal,
+                    const __global float* rho,
                     const __global float* m,
-                    __global matrix* grad_r,
+                    const __global matrix* sigma,
+                    __global vec* div_sigma,
                     // Link-list data
                     const __global uint *icell,
                     const __global uint *ihoc,
@@ -82,14 +80,16 @@ __kernel void entry(const __global int* imove,
     }
 
     const vec_xyz r_i = r[i].XYZ;
+    const matrix s_i = sigma[i];
+    const float rho_i = rho[i];
 
     // Initialize the output
     #ifndef LOCAL_MEM_SIZE
-        #define _GRADR_ grad_r[i]
+        #define _DIVS_ div_sigma[i].XYZ
     #else
-        #define _GRADR_ grad_r_l[it]
-        __local matrix grad_r_l[LOCAL_MEM_SIZE];
-        _GRADR_ = grad_r[i];
+        #define _DIVS_ div_sigma_l[it]
+        __local vec_xyz div_sigma_l[LOCAL_MEM_SIZE];
+        _DIVS_ = div_sigma[i].XYZ;
     #endif
 
     BEGIN_LOOP_OVER_NEIGHS(){
@@ -97,7 +97,7 @@ __kernel void entry(const __global int* imove,
             j++;
             continue;
         }
-        const vec_xyz r_ij = r[j] - r_i.XYZ;
+        const vec_xyz r_ij = r[j].XYZ - r_i;
         const float q = length(r_ij) / H;
         if(q >= SUPPORT)
         {
@@ -107,13 +107,16 @@ __kernel void entry(const __global int* imove,
         {
             const vec_xyz n_j = normal[j].XYZ;  // Assumed outwarding oriented
             const float area_j = m[j];
+            const matrix s_j = sigma[j];
+            const vec_xyz du = u[j].XYZ - u_i;
             const float w_ij = kernelW(q) * CONW * area_j;
-            _GRADR_ += outer(r_r0[j].XYZ, w_ij * n_j);
+
+            _DIVS_ += MATRIX_DOT((s_i + s_j), w_ij / rho_i * n_j);
         }
     }END_LOOP_OVER_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
-        grad_r[i] = _GRADR_;
+        div_sigma[i].XYZ = _DIVS_;
     #endif
 }
 
