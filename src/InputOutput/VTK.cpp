@@ -265,7 +265,8 @@ bool VTK::load()
                 }
             }
             else if(strstr(var->type(), "float") ||
-                    strstr(var->type(), "vec")){
+                    strstr(var->type(), "vec") ||
+                    strstr(var->type(), "matrix")){
                 vtkSmartPointer<vtkFloatArray> vtk_array =
                     (vtkFloatArray*)(vtk_data->GetArray(fields.at(j), aux));
                 for(k = 0; k < n_components; k++){
