@@ -36,7 +36,7 @@ import math
 # Input data
 # ==========
 
-g = 1
+g = 9.81
 hfac = 4.0
 courant = 0.2
 cs_max = 500.0
@@ -111,8 +111,9 @@ for i in range(nx):
         imove = 2
         pos = (i * dr + 0.5 * dr,
                j * dr + 0.5 * dr - 0.5 * H)
-        dens = refd
-        mass = dens * dr**2.0
+        press = refd * g * (0.5 * H - pos[1]) 
+        dens = refd + press / cs**2
+        mass = refd * dr**2.0
         string = input_template.format(
             pos[0], pos[1],      # r
             0.0, 0.0,            # normal
@@ -144,7 +145,8 @@ for i in range(ny):
     pos = (0.0,
            i * dr + 0.5 * dr - 0.5 * H)
     normal = (-1.0, 0.0)
-    dens = refd
+    press = refd * g * (0.5 * H - pos[1]) 
+    dens = refd + press / cs**2
     mass = dr
     string = input_template.format(
         pos[0], pos[1],        # r
@@ -177,7 +179,8 @@ for i in range(ny):
     pos = (L,
            i * dr + 0.5 * dr - 0.5 * H)
     normal = (1.0, 0.0)
-    dens = refd
+    press = refd * g * (0.5 * H - pos[1]) 
+    dens = refd + press / cs**2
     mass = dr
     string = input_template.format(
         pos[0], pos[1],        # r
@@ -203,7 +206,8 @@ for i in range(nx):
     pos = [i * dr + 0.5 * dr,
            -0.5 * H]
     normal = [0.0, -1.0]
-    dens = refd
+    press = refd * g * (0.5 * H - pos[1]) 
+    dens = refd + press / cs**2
     mass = dr
     string = input_template.format(
         pos[0], pos[1],        # r
@@ -221,6 +225,8 @@ for i in range(nx):
     #Top particle
     pos[1] *= -1.0
     normal[1] *= -1.0
+    press = refd * g * (0.5 * H - pos[1]) 
+    dens = refd + press / cs**2
     string = input_template.format(
         pos[0], pos[1],        # r
         normal[0], normal[1],  # normal
