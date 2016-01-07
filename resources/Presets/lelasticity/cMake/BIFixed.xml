@@ -27,10 +27,11 @@ BIfixed_iset variable each time, for instance:
     </Variables>
 
     <Tools>
-        <!-- Compute the resulting grad(r - r0) -->
-        <Tool action="insert" after="lela BI grad r_r0" name="lela BI Fixed" type="dummy"/>
-        <Tool action="insert" after_prefix="lela BI Fixed" name="lela BI Fixed vol" type="kernel" entry_point="vol" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Boundary/BI/Fixed.cl"/>
-        <Tool action="insert" after_prefix="lela BI Fixed vol" name="lela BI Fixed area" type="kernel" entry_point="area" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Boundary/BI/Fixed.cl"/>
-        <Tool action="insert" after_prefix="lela BI Fixed area" name="lela BI Fixed renormalization" type="kernel" entry_point="renormalization" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Boundary/BI/Fixed.cl"/>
+        <Tool action="insert" before="lela sigma" name="lela BI Fixed" type="dummy"/>
+        <!-- Interpolate the values of the pressure, density, and stress deviation -->
+        <Tool action="insert" after_prefix="lela BI Fixed" name="lela BI Interpolate" type="kernel" entry_point="interpolation" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Boundary/BI/Fixed.cl"/>
+        <Tool action="insert" after_prefix="lela BI Interpolate" name="lela BI Renormalizate" type="kernel" entry_point="shepard" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Boundary/BI/Fixed.cl"/>
+        <Tool action="insert" after_prefix="lela BI Renormalizate" name="lela BI EOS" type="kernel" entry_point="eos" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Boundary/BI/Fixed.cl"/>
+        <Tool action="insert" after_prefix="lela BI EOS" name="lela BI Fixed Finished" type="dummy"/>
     </Tools>
 </sphInput>

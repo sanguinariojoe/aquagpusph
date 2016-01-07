@@ -21,7 +21,7 @@
  */
 
 /** @file
- * @brief Boundary elements deformation gradient computation.
+ * @brief Fixed boundary elements methods.
  */
 
 #if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
@@ -36,45 +36,47 @@
     #include "../../../KernelFunctions/Wendland3D.hcl"
 #endif
 
-/** @brief Boundary elements deformation gradient computation due to the
- * interaction with the solid particles.
+/** @brief Pressure and stress deviation interpolation at the boundary elements.
  *
- * Compute the gradient of the deformation vector:
- * \f[ \nabla \mathbf{r}^{*} = \mathbf{r}^{*} \otimes \nabla \f]
+ * The values are computed using just the fluid information. The resulting
+ * interpolated values are not renormalized yet.
  *
- * @see https://en.wikipedia.org/wiki/Matrix_calculus
- * @see https://en.wikipedia.org/wiki/Outer_product
- * 
+ * Just the elements with the flag imove = -3 are considered boundary elements.
+ *
  * @param iset Set of particles index.
  * @param imove Moving flags.
- *   - imove = 2 for regular solid particles.
- *   - imove = 0 for sensors (ignored by this preset).
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r} \f$.
- * @param r_r0 Deformation \f$ \mathbf{r}^{*} = \mathbf{r} - \mathbf{r}_0 \f$.
- * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
- * @param grad_r Gradient of the deformation \f$ \nabla \mathbf{r}^{*} \f$.
+ * @param rho Density \f$ \rho \f$.
+ * @param p Pressure \f$ p \f$.
+ * @param S Deviatory stress \f$ S \f$.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
+ * @param refd Density of reference of the fluid \f$ \rho_0 \f$.
  * @param N Number of particles.
  * @param n_cells Number of cells in each direction
+ * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  * @param BIfixed_iset Set of particles affected
  */
-__kernel void vol(const __global uint* iset,
-                  const __global int* imove,
-                  const __global vec* r,
-                  const __global vec* r_r0,
-                  const __global float* rho,
-                  const __global float* m,
-                  __global matrix* grad_r,
-                  // Link-list data
-                  const __global uint *icell,
-                  const __global uint *ihoc,
-                  // Simulation data
-                  uint N,
-                  uivec4 n_cells,
-                  uint BIfixed_iset)
+__kernel void interpolation(const __global uint* iset,
+                            const __global int* imove,
+                            const __global vec* r,
+                            const __global float* m,
+                            const __global float* rho,
+                            __global float* p,
+                            __global matrix* S,
+                            // Link-list data
+                            const __global uint *icell,
+                            const __global uint *ihoc,
+                            // Simulation data
+                            __constant float* refd,
+                            uint N,
+                            uivec4 n_cells,
+                            vec g,
+                            uint BIfixed_iset)
 {
     const uint i = get_global_id(0);
     const uint it = get_local_id(0);
@@ -85,22 +87,27 @@ __kernel void vol(const __global uint* iset,
     }
 
     const vec_xyz r_i = r[i].XYZ;
+    const float rdenf = refd[iset[i]];
 
     // Initialize the output
     #ifndef LOCAL_MEM_SIZE
-        #define _GRADR_ grad_r[i]
+        #define _P_ p[i]
+        #define _S_ S[i]
     #else
-        #define _GRADR_ grad_r_l[it]
-        __local matrix grad_r_l[LOCAL_MEM_SIZE];
-        _GRADR_ = MAT_ZERO;
+        #define _P_ p_l[it]
+        __local float p_l[LOCAL_MEM_SIZE];
+        #define _S_ S_l[it]
+        __local matrix S_l[LOCAL_MEM_SIZE];
     #endif
+    _P_ = 0.f;
+    _S_ = MAT_ZERO;
 
     BEGIN_LOOP_OVER_NEIGHS(){
         if(imove[j] != 2){
             j++;
             continue;
         }
-        const vec_xyz r_ij = r[j] - r_i.XYZ;
+        const vec_xyz r_ij = r[j].XYZ - r_i;
         const float q = length(r_ij) / H;
         if(q >= SUPPORT)
         {
@@ -108,105 +115,19 @@ __kernel void vol(const __global uint* iset,
             continue;
         }
         {
-            const float f_ij = kernelF(q) * CONF * m[j] / rho[j];
-            _GRADR_ += outer(r_r0[j].XYZ, f_ij * r_ij);
+            const float w_ij = kernelW(q) * CONW * m[j] / rho[j];
+            _P_ += (p[j] - rdenf * dot(g.XYZ, r_ij)) * w_ij;
+            _S_ += S[j] * w_ij;
         }
     }END_LOOP_OVER_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
-        grad_r[i] = _GRADR_;
+        p[i] = _P_;
+        S[i] = _S_;
     #endif
 }
 
-/** @brief Boundary elements deformation gradient resulting from the interaction
- * with the boundary.
- *
- * Compute the gradient of the deformation vector:
- * \f[ \nabla \mathbf{r}^{*} = \mathbf{r}^{*} \otimes \nabla \f]
- *
- * @see https://en.wikipedia.org/wiki/Matrix_calculus
- * @see https://en.wikipedia.org/wiki/Outer_product
- * 
- * @param iset Set of particles index.
- * @param imove Moving flags.
- *   - imove = 2 for regular solid particles.
- *   - imove = 0 for sensors (ignored by this preset).
- *   - imove < 0 for boundary elements/particles.
- * @param r Position \f$ \mathbf{r} \f$.
- * @param r_r0 Deformation \f$ \mathbf{r}^{*} = \mathbf{r} - \mathbf{r}_0 \f$.
- * @param normal Normal \f$ \mathbf{n} \f$.
- * @param m Area of the boundary element \f$ s \f$.
- * @param grad_r Gradient of the deformation \f$ \nabla \mathbf{r}^{*} \f$.
- * @param icell Cell where each particle is located.
- * @param ihoc Head of chain for each cell (first particle found).
- * @param N Number of particles.
- * @param n_cells Number of cells in each direction
- * @param BIfixed_iset Set of particles affected
- */
-__kernel void area(const __global uint* iset,
-                   const __global int* imove,
-                   const __global vec* r,
-                   const __global vec* r_r0,
-                   const __global vec* normal,
-                   const __global float* m,
-                   __global matrix* grad_r,
-                   // Link-list data
-                   const __global uint *icell,
-                   const __global uint *ihoc,
-                   // Simulation data
-                   uint N,
-                   uivec4 n_cells,
-                   uint BIfixed_iset)
-{
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
-    if(i >= N)
-        return;
-    if((imove[i] != -3) || (iset[i] != BIfixed_iset)){
-        return;
-    }
-
-    const vec_xyz r_i = r[i].XYZ;
-
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
-        #define _GRADR_ grad_r[i]
-    #else
-        #define _GRADR_ grad_r_l[it]
-        __local matrix grad_r_l[LOCAL_MEM_SIZE];
-        _GRADR_ = grad_r[i];
-    #endif
-
-    BEGIN_LOOP_OVER_NEIGHS(){
-        if(imove[j] != -3){
-            j++;
-            continue;
-        }
-        const vec_xyz r_ij = r[j] - r_i.XYZ;
-        const float q = length(r_ij) / H;
-        if(q >= SUPPORT)
-        {
-            j++;
-            continue;
-        }
-        {
-            const vec_xyz n_j = normal[j].XYZ;  // Assumed outwarding oriented
-            const float area_j = m[j];
-            const float w_ij = kernelW(q) * CONW * area_j;
-            _GRADR_ += outer(r_r0[j].XYZ, w_ij * n_j);
-        }
-    }END_LOOP_OVER_NEIGHS()
-
-    #ifdef LOCAL_MEM_SIZE
-        grad_r[i] = _GRADR_;
-    #endif
-}
-
-/** @brief Renormalization of the deformation gradient.
- *
- * The main drawback of the boundary integrals formulation is the requirement
- * of the renormalization of the computed differentiqal operators, which is
- * destroying several conservation properties.
+/** @brief Pressure and stress deviation renormalization.
  *
  * @param iset Set of particles index.
  * @param imove Moving flags.
@@ -216,16 +137,18 @@ __kernel void area(const __global uint* iset,
  * @param shepard Shepard term
  * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
  *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{x} \f$.
- * @param grad_r Gradient of the deformation \f$ \nabla \mathbf{r}^{*} \f$.
+ * @param p Pressure \f$ p \f$.
+ * @param S Deviatory stress \f$ S \f$.
  * @param N Total number of particles and boundary elements.
  * @param BIfixed_iset Set of particles affected
  */
-__kernel void renormalization(const __global uint* iset,
-                              const __global int* imove,
-                              const __global float* shepard,
-                              __global matrix* grad_r,
-                              uint N,
-                              uint BIfixed_iset)
+__kernel void shepard(const __global uint* iset,
+                      const __global int* imove,
+                      const __global float* shepard,
+                      __global float* p,
+                      __global matrix* S,
+                      uint N,
+                      uint BIfixed_iset)
 {
     uint i = get_global_id(0);
     if(i >= N)
@@ -233,7 +156,51 @@ __kernel void renormalization(const __global uint* iset,
     if((imove[i] != -3) || (iset[i] != BIfixed_iset)){
         return;
     }
-    grad_r[i] /= shepard[i];
+    float shepard_i = shepard[i];
+    if(shepard_i < 1.0E-6f){
+        // It will be considered that there are not enough
+        // particles to interpolate
+        shepard_i = 1.f;
+    }
+
+    p[i] /= shepard_i;
+    S[i] /= shepard_i;
+}
+
+/** @brief Inverse EOS to get the density from the interpolated presseure.
+ *
+ * @param iset Set of particles index.
+ * @param imove Moving flags.
+ *   - imove = 2 for regular solid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param shepard Shepard term
+ * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
+ *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{x} \f$.
+ * @param p Pressure \f$ p \f$.
+ * @param S Deviatory stress \f$ S \f$.
+ * @param N Total number of particles and boundary elements.
+ * @param cs Speed of sound \f$ c_s \f$.
+ * @param p0 Background pressure \f$ p_0 \f$.
+ * @param BIfixed_iset Set of particles affected
+ */
+__kernel void eos(const __global uint* iset,
+                  const __global int* imove,
+                  const __global float* p,
+                  __global float* rho,
+                  __constant float* refd,
+                  uint N,
+                  float cs,
+                  float p0,
+                  uint BIfixed_iset)
+{
+    uint i = get_global_id(0);
+    if(i >= N)
+        return;
+    if((imove[i] != -3) || (iset[i] != BIfixed_iset)){
+        return;
+    }
+    rho[i] = refd[iset[i]] + (p[i] - p0) / (cs * cs);
 }
 
 /*
