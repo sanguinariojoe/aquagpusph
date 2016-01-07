@@ -43,14 +43,14 @@
  * @param shepard Shepard term
  * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
  *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{x} \f$.
- * @param div_s Divergence of the stress tensor
+ * @param div_sigma Divergence of the stress tensor
  *     \f$ \frac{\nabla \cdot \sigma}{rho} \f$.
  * @param div_u Velocity divergence \f$ \rho \nabla \cdot \mathbf{u} \f$.
  * @param N Total number of particles and boundary elements.
  */
 __kernel void entry(const __global int* imove,
                     const __global float* shepard,
-                    __global vec* div_s,
+                    __global vec* div_sigma,
                     __global float* div_u,
                     uint N)
 {
@@ -60,7 +60,7 @@ __kernel void entry(const __global int* imove,
     if(imove[i] != 2){
         return;
     }
-    div_s[i] /= shepard[i];
+    div_sigma[i] /= shepard[i];
     div_u[i] /= shepard[i];
 }
 
