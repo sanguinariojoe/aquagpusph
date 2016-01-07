@@ -36,12 +36,18 @@
  * @param p Sorted pressure \f$ p \f$.
  * @param S_in Unsorted Deviatory stress \f$ S \f$.
  * @param S Sorted Deviatory stress \f$ S \f$.
+ * @param dSdt_in Unsorted Deviatory stress rate of change
+ * \f$ \frac{d S}{d t} \f$.
+ * @param dSdt Sorted Deviatory stress rate of change
+ * \f$ \frac{d S}{d t} \f$.
+ * \f$ \left. \frac{d S}{d t} \right\vert_{n+1} \f$.
  * @param id_sorted Permutations list from the unsorted space to the sorted
  * one.
  * @param N Number of particles.
  */
 __kernel void entry(const __global float *p_in, __global float *p,
-                    const __global vec *S_in, __global vec *S,
+                    const __global matrix *S_in, __global matrix *S,
+                    const __global matrix *dSdt_in, __global matrix *dSdt,
 		            const __global unit *id_sorted,
                     unsigned int N)
 {
@@ -53,6 +59,7 @@ __kernel void entry(const __global float *p_in, __global float *p,
 
     p[i_out] = p_in[i];
     S[i_out] = S_in[i];
+    dSdt[i_out] = dSdt_in[i];
 }
 
 /*
