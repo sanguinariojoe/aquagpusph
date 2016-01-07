@@ -4,6 +4,11 @@
 Define a boundary which its stress is imposed by the user, as a pressure field.
 In this case the boundary motion results from the momentum equation solution.
 
+p=p0 will be imposed at the start of the Boundary computation ("lela BI Free"
+tool), so in order to replace the pressure field you can either:
+  - Replace the tool "lela BI Free" by a most convenient one
+  - Insert a pressure modifier right after this tool
+
 You just need to include it, and define which particles set will be affected
 setting the variable BIfree_iset (0 by default).
 
@@ -24,7 +29,15 @@ affected BIfree_iset variable each time, for instance:
 <sphInput>
     <Variables>
         <Variable name="BIfree_iset" type="unsigned int" value="0" />
-        <Variable name="p" type="float*" length="N" />
-        <Variable name="p_in" type="float*" length="N" />
     </Variables>
+    <Tools>
+        <Tool action="insert" before="lela grad u" name="lela BI Free" type="kernel" entry_point="press" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Boundary/BI/Free.cl"/>
+        <!-- Interpolate the values of the velocity and stress deviation -->
+        <Tool action="insert" after_prefix="lela BI Free" name="lela BI Interpolate" type="kernel" entry_point="interpolation" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Boundary/BI/Free.cl"/>
+        <Tool action="insert" after_prefix="lela BI Interpolate" name="lela BI Renormalizate" type="kernel" entry_point="shepard" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Boundary/BI/Free.cl"/>
+        <Tool action="insert" after_prefix="lela BI Renormalizate" name="lela BI EOS" type="kernel" entry_point="eos" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Boundary/BI/Free.cl"/>
+        <!-- Integrate the position (Simple Euler scheme) -->
+        <Tool action="insert" after_prefix="lela BI EOS" name="lela BI Integrate" type="kernel" entry_point="euler" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Boundary/BI/Free.cl"/>
+        <Tool action="insert" after_prefix="lela BI Integrate" name="lela BI Free Finished" type="dummy"/>
+    </Tools>
 </sphInput>

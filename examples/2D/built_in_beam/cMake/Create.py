@@ -112,7 +112,8 @@ for i in range(nx):
         imove = 2
         pos = (i * dr + 0.5 * dr,
                j * dr + 0.5 * dr - 0.5 * H)
-        press = refd * g * (0.5 * H - pos[1]) 
+        # press = refd * g * (0.5 * H - pos[1])
+        press = 0.0 
         dens = refd + press / cs**2
         mass = refd * dr**2.0
         string = input_template.format(
@@ -146,7 +147,8 @@ for i in range(ny):
     pos = (0.0,
            i * dr + 0.5 * dr - 0.5 * H)
     normal = (-1.0, 0.0)
-    press = refd * g * (0.5 * H - pos[1]) 
+    # press = refd * g * (0.5 * H - pos[1]) 
+    press = 0.0 
     dens = refd + press / cs**2
     mass = dr
     string = input_template.format(
@@ -180,7 +182,8 @@ for i in range(ny):
     pos = (L,
            i * dr + 0.5 * dr - 0.5 * H)
     normal = (1.0, 0.0)
-    press = refd * g * (0.5 * H - pos[1]) 
+    # press = refd * g * (0.5 * H - pos[1]) 
+    press = 0.0 
     dens = refd + press / cs**2
     mass = dr
     string = input_template.format(
@@ -207,7 +210,8 @@ for i in range(nx):
     pos = [i * dr + 0.5 * dr,
            -0.5 * H]
     normal = [0.0, -1.0]
-    press = refd * g * (0.5 * H - pos[1]) 
+    # press = refd * g * (0.5 * H - pos[1]) 
+    press = 0.0 
     dens = refd + press / cs**2
     mass = dr
     string = input_template.format(
@@ -226,7 +230,8 @@ for i in range(nx):
     #Top particle
     pos[1] *= -1.0
     normal[1] *= -1.0
-    press = refd * g * (0.5 * H - pos[1]) 
+    # press = refd * g * (0.5 * H - pos[1]) 
+    press = 0.0 
     dens = refd + press / cs**2
     string = input_template.format(
         pos[0], pos[1],        # r

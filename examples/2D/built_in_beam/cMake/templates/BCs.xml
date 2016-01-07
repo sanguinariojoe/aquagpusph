@@ -33,9 +33,9 @@ Authors:
     </ParticlesSet>
 
     <!-- The free boundary will take the iset 2 -->
-    <Include file="@RESOURCES_DIR@/Presets/lelasticity/BIFixed.xml" prefix="iset2_"/>
+    <Include file="@RESOURCES_DIR@/Presets/lelasticity/BIFree.xml" prefix="iset2_"/>
     <Tools>
-        <Tool action="insert" before="iset2_lela BI Fixed" type="set_scalar" name="BIfixed_iset2" in="BIfixed_iset" value="2"/>
+        <Tool action="insert" before="iset2_lela BI Free" type="set_scalar" name="BIfree_iset2" in="BIfree_iset" value="2"/>
     </Tools>
     <ParticlesSet n="{{NFREE}}">
         <Scalar name="refd" value="{{REFD}}" />

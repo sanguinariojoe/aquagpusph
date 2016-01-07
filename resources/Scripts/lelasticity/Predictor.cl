@@ -38,7 +38,7 @@
  * Time integration is based in the following quasi-second order
  * Predictor-Corrector integration scheme:
  * 
- *   \f$ \S_{n+1} = \S_{n} + \Delta t
+ *   \f$ S_{n+1} = S_{n} + \Delta t
  *      \left. \frac{\mathrm{d}S}{\mathrm{d}t} \right\vert_{n+1/2}
  *   + \frac{\Delta t}{2} \left(
  *      \left. \frac{\mathrm{d}S}{\mathrm{d}t} \right\vert_{n + 1/2} -
