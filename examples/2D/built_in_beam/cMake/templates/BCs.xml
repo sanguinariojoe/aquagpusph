@@ -19,6 +19,10 @@ Authors:
 
 <sphInput>
     <!-- The built in boundary will take the iset 1 -->
+    <Include file="@RESOURCES_DIR@/Presets/lelasticity/BIFixed.xml" prefix="iset1_"/>
+    <Tools>
+        <Tool action="insert" before="iset1_lela BI Fixed" type="set_scalar" name="BIfixed_iset1" in="BIfixed_iset" value="1"/>
+    </Tools>
     <ParticlesSet n="{{NBUILTIN}}">
         <Scalar name="refd" value="{{REFD}}" />
         <Scalar name="shear_mod" value="{{MU}}" />
@@ -28,6 +32,10 @@ Authors:
     </ParticlesSet>
 
     <!-- The free boundary will take the iset 2 -->
+    <Include file="@RESOURCES_DIR@/Presets/lelasticity/BIFixed.xml" prefix="iset2_"/>
+    <Tools>
+        <Tool action="insert" before="iset2_lela BI Fixed" type="set_scalar" name="BIfixed_iset2" in="BIfixed_iset" value="2"/>
+    </Tools>
     <ParticlesSet n="{{NFREE}}">
         <Scalar name="refd" value="{{REFD}}" />
         <Scalar name="shear_mod" value="{{MU}}" />
