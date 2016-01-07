@@ -108,7 +108,6 @@ __kernel void entry(const __global int* imove,
             const vec_xyz n_j = normal[j].XYZ;  // Assumed outwarding oriented
             const float area_j = m[j];
             const matrix s_j = sigma[j];
-            const vec_xyz du = u[j].XYZ - u_i;
             const float w_ij = kernelW(q) * CONW * area_j;
 
             _DIVS_ += MATRIX_DOT((s_i + s_j), w_ij / rho_i * n_j);
