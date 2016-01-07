@@ -25,6 +25,7 @@ Authors:
     </Tools>
     <ParticlesSet n="{{NBUILTIN}}">
         <Scalar name="refd" value="{{REFD}}" />
+        <Scalar name="delta" value="{{DELTA}}" />
         <Scalar name="shear_mod" value="{{MU}}" />
 
         <Load format="FastASCII" file="BuiltInBC.dat" fields="r, normal, u, dudt, rho, drhodt, S, dSdt, m, imove" />
@@ -38,6 +39,7 @@ Authors:
     </Tools>
     <ParticlesSet n="{{NFREE}}">
         <Scalar name="refd" value="{{REFD}}" />
+        <Scalar name="delta" value="{{DELTA}}" />
         <Scalar name="shear_mod" value="{{MU}}" />
 
         <Load format="FastASCII" file="FreeBC.dat" fields="r, normal, u, dudt, rho, drhodt, S, dSdt, m, imove" />

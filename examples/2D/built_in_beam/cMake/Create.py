@@ -43,6 +43,7 @@ cs_max = 500.0
 young = 0.05e6
 poisson = 0.49
 refd = 2.0e-3
+delta = 1.0
 time_to_run = 10.0
 # Fluid dimensions
 L = 1.0
@@ -257,7 +258,7 @@ domain_max = str(domain_max).replace('(', '').replace(')', '')
 
 data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
         'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max, 'REFD':str(refd), 
-        'MU':str(mu), 'G':str(g), 'NSOLID':str(n_vol),
+        'DELTA':str(delta), 'MU':str(mu), 'G':str(g), 'NSOLID':str(n_vol),
         'NBUILTIN':str(n_left), 'NFREE':str(n_free),
         'L':str(L), 'H':str(H), 'END_TIME':str(end_time)}
 for fname in XML:
