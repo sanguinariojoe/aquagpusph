@@ -678,7 +678,10 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                 }
                 P->tools.insert(P->tools.begin() + place, tool);
             }
-            else if(!strcmp(xmlAttribute(s_elem, "action"), "remove")){
+            else if(!strcmp(xmlAttribute(s_elem, "action"), "remove") ||
+                    !strcmp(xmlAttribute(s_elem, "action"), "try_remove")){
+                bool try_remove = !strcmp(xmlAttribute(s_elem, "action"),
+                                          "try_remove");
                 unsigned int place;
                 for(place = 0; place < P->tools.size(); place++){
                     if(!strcmp(P->tools.at(place)->get("name"),
@@ -690,8 +693,14 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                     sprintf(msg,
                             "Failure removing the tool \"%s\" (tool not found).\n",
                             tool->get("name"));
-                    S->addMessageF(3, msg);
-                    return true;
+                    if(try_remove){
+                        S->addMessageF(2, msg);
+                        continue;
+                    }
+                    else{
+                        S->addMessageF(3, msg);
+                        return true;
+                    }
                 }
                 delete P->tools.at(place);
                 P->tools.erase(P->tools.begin() + place);
@@ -699,7 +708,10 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                 delete tool;
                 continue;
             }
-            else if(!strcmp(xmlAttribute(s_elem, "action"), "replace")){
+            else if(!strcmp(xmlAttribute(s_elem, "action"), "replace") ||
+                    !strcmp(xmlAttribute(s_elem, "action"), "try_replace")){
+                bool try_replace = !strcmp(xmlAttribute(s_elem, "action"),
+                                          "try_replace");
                 unsigned int place;
                 for(place = 0; place < P->tools.size(); place++){
                     if(!strcmp(P->tools.at(place)->get("name"),
@@ -711,8 +723,14 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                     sprintf(msg,
                             "Failure replacing the tool \"%s\" (tool not found).\n",
                             tool->get("name"));
-                    S->addMessageF(3, msg);
-                    return true;
+                    if(try_replace){
+                        S->addMessageF(2, msg);
+                        continue;
+                    }
+                    else{
+                        S->addMessageF(3, msg);
+                        return true;
+                    }
                 }
                 delete P->tools.at(place);
                 P->tools.at(place) = tool;
