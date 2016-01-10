@@ -211,7 +211,7 @@
  */
 #define MATRIX_MUL(_M1, _M2)                                                   \
     ((float4)(dot(_M1.s01, _M2.s02), dot(_M1.s01, _M2.s13),                    \
-              dot(_M1.s12, _M2.s02), dot(_M1.s12, _M2.s13)))
+              dot(_M1.s23, _M2.s02), dot(_M1.s23, _M2.s13)))
 
 /** @def MATRIX_MUL_ALL
  * @brief #MATRIX_MUL
