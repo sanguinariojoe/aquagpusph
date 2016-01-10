@@ -16,6 +16,14 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/** @addtogroup basic
+ * @{
+ */
+
+/** @file
+ * @brief Permutations to move from the sorted indexes space to the unsorted one
+ */
+
 #ifndef HAVE_3D
     #include "../types/2D.h"
 #else
@@ -38,3 +46,7 @@ __kernel void entry(__global uint *id,
 
     id_inverse[id[i]] = i;
 }
+
+/*
+ * @}
+ */

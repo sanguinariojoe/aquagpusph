@@ -61,7 +61,7 @@
      \f$
  *
  * @param imove Moving flags.
- *   - imove > 0 for regular fluid particles.
+ *   - imove > 0 for regular fluid/solid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r}_{n+1} \f$.
