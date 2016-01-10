@@ -239,6 +239,7 @@
  *
  * @param v1 Left operand vector
  * @param v2 Right operand vector
+ * @return Outer product matrix
  */
 matrix outer(vec v1, vec v2)
 {
@@ -247,3 +248,26 @@ matrix outer(vec v1, vec v2)
 	m.s23 = v1.y * v2;
 	return m;
 }
+
+/** @brief Inverse of a matrix
+ *
+ * @param m Matrix to invert
+ * @return Inverse of the matrix
+ * @remarks If the input matrix m is singular, nan values matrix will be
+ * returned. Consider using #MATRIX_INV pseudo-inverse instead
+ */
+matrix inv(matrix m)
+{
+    float det = m.s0 * m.s3 - m.s1 * m.s2;
+    return ((matrix)( m.s3 / det, -m.s1 / det,
+                     -m.s2 / det,  m.s0 / det));
+}
+
+/** @def MATRIX_INV
+ * @brief Pseudo-inverse of a matrix
+ *
+ * The SVD Moore-Penrose method is applied:
+ * \f[ A^{\dag} = \left( A^T A \right)^{-1} A^T \f]
+ */
+#define MATRIX_INV(_M)                                                         \
+    MATRIX_MUL(inv(MATRIX_MUL(_M.TRANSPOSE, _M)), _M.TRANSPOSE)

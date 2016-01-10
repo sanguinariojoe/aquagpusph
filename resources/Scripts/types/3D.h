@@ -290,3 +290,34 @@ matrix outer(vec3 v1, vec3 v2)
 	m.s89A = v1.z * v2;
 	return m;
 }
+
+ /** @brief Inverse of a matrix
+  *
+  * @param m Matrix to invert
+  * @return Inverse of the matrix
+  * @remarks If the input matrix m is singular, nan values matrix will be
+  * returned. Consider using #MATRIX_INV pseudo-inverse instead
+  * @note The matrix will be considered as a 3x3 matrix, i.e. the last row and
+  * column will be filled by zeroes (except the bottom right corner, which will
+  * be set as 1).
+  */
+ matrix inv(matrix m)
+ {
+     float det = m.s0 * (m.s5 * m.sA - m.s6 * m.s9) +
+                 m.s1 * (m.s6 * m.s8 - m.s4 * m.sA) +
+                 m.s2 * (m.s4 * m.s9 - m.s5 * m.s8);
+     return ((matrix)(
+         (m.s5 * m.sA - m.s6 * m.s9) / det, (m.s2 * m.s9 - m.s1 * m.sA) / det, (m.s1 * m.s6 - m.s2 * m.s5) / det, 0.f,
+         (m.s6 * m.s8 - m.s4 * m.sA) / det, (m.s0 * m.sA - m.s2 * m.s8) / det, (m.s2 * m.s4 - m.s0 * m.s6) / det, 0.f,
+         (m.s4 * m.s9 - m.s5 * m.s8) / det, (m.s1 * m.s8 - m.s0 * m.s9) / det, (m.s0 * m.s5 - m.s1 * m.s4) / det, 0.f,
+                                       0.f,                               0.f,                               0.f, 1.f));
+ }
+
+ /** @def MATRIX_INV
+  * @brief Pseudo-inverse of a matrix
+  *
+  * The SVD Moore-Penrose method is applied:
+  * \f[ A^{\dag} = \left( A^T A \right)^{-1} A^T \f]
+  */
+ #define MATRIX_INV(_M)                                                        \
+     MATRIX_MUL(inv(MATRIX_MUL(_M.TRANSPOSE, _M)), _M.TRANSPOSE)
