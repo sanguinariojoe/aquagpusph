@@ -51,7 +51,6 @@ Appl. Mech. Engrg. 190 (2001) 6641-6662
         E = 2 \mu (1 + \nu)
         -->
         <Variable name="shear_mod" type="float*" length="n_sets" />
-        <Variable name="delta" type="float*" length="n_sets" />
 
         <!-- Intensive properties -->
         <Variable name="p" type="float*" length="N" />
@@ -62,7 +61,6 @@ Appl. Mech. Engrg. 190 (2001) 6641-6662
         <!-- Differential operators -->
         <Variable name="grad_u" type="matrix*" length="N" />
         <Variable name="div_u" type="float*" length="N" />
-        <Variable name="lap_p" type="float*" length="N" />
         <Variable name="div_sigma" type="vec*" length="N" />
         <Variable name="sigma" type="matrix*" length="N" />
         <Variable name="shepard" type="float*" length="N" />
@@ -88,7 +86,6 @@ Appl. Mech. Engrg. 190 (2001) 6641-6662
         <Tool action="insert" after="Sort" name="lela reinit shepard" type="set" in="shepard" value="0.f"/>
         <Tool action="insert" after="Sort" name="lela reinit gradu" type="set" in="grad_u" value="MAT_ZERO"/>
         <Tool action="insert" after="Sort" name="lela reinit div_u" type="set" in="div_u" value="0.f"/>
-        <Tool action="insert" after="Sort" name="lela reinit lap_p" type="set" in="lap_p" value="0.f"/>
         <Tool action="insert" after="Sort" name="lela reinit sigma" type="set" in="sigma" value="MAT_ZERO"/>
         <Tool action="insert" after="Sort" name="lela reinit div_sigma" type="set" in="div_sigma" value="VEC_ZERO"/>
 
@@ -96,7 +93,6 @@ Appl. Mech. Engrg. 190 (2001) 6641-6662
 
         <Tool action="insert" before="Interactions" name="lela grad u" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/GradU.cl"/>
         <Tool action="insert" before="Interactions" name="lela div u" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/DivU.cl"/>
-        <Tool action="insert" before="Interactions" name="lela lap p" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/LapP.cl"/>
         <Tool action="insert" before="Interactions" name="lela sigma" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Sigma.cl"/>
 
         <Tool action="insert" before="Interactions" name="lela div sigma" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/DivSigma.cl"/>

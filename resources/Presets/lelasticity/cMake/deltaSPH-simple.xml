@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+
+<!-- deltaSPH-simple.xml
+Add the simplest correction to the Laplacian of the pressure computation, based
+on the hypothesis that the linear part of the pressure field is equal to the
+hydrostatic component.
+-->
+
+<sphInput>
+    <Tools>
+        <Tool action="insert" before="lela lap p" name="lela lap p simple" type="kernel" entry_point="simple" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/deltaSPH.cl"/>
+    </Tools>
+</sphInput>

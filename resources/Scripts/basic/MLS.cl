@@ -39,7 +39,6 @@
  * \f$ \nabla W^{L}_{ij} = L_i \cdot \nabla W_{ij} \f$, such that the lienar
  * fields differential operators are consistently computed.
  *
- * @param iset Set of particles index.
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid/solid particles.
  *   - imove = 0 for sensors.
@@ -52,7 +51,10 @@
  * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
  * @param n_cells Number of cells in each direction
- * @param mls_iset Set of particles where the MLS matrix should be computed
+ * @param mls_imove Type of particles affected
+ * @note The MLS kernel transformation will be computed just for the particles
+ * with the moving flag mls_imove, and using just the information of the
+ * particles with the moving flag mls_imove
  */
 __kernel void entry(const __global uint* iset,
                     const __global int* imove,
@@ -66,13 +68,13 @@ __kernel void entry(const __global uint* iset,
                     const __global uint *ihoc,
                     uint N,
                     uivec4 n_cells,
-                    uint mls_iset)
+                    uint mls_imove)
 {
     const uint i = get_global_id(0);
     const uint it = get_local_id(0);
     if(i >= N)
         return;
-    if((iset[i] != mls_iset) || (imove[i] <= 0)){
+    if(imove[i] != mls_imove){
         return;
     }
 
@@ -92,7 +94,7 @@ __kernel void entry(const __global uint* iset,
             j++;
             continue;
         }
-        if((iset[j] != mls_iset) || (imove[j] <= 0)){
+        if(imove[j] != mls_imove){
             j++;
             continue;
         }
