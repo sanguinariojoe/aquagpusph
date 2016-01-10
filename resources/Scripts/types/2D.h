@@ -241,12 +241,22 @@
  * @param v2 Right operand vector
  * @return Outer product matrix
  */
-matrix outer(vec v1, vec v2)
+matrix outer(const vec v1, const vec v2)
 {
 	matrix m;
 	m.s01 = v1.x * v2;
 	m.s23 = v1.y * v2;
 	return m;
+}
+
+/** @brief Determinant of a matrix
+ *
+ * @param m Matrix to invert
+ * @return Determinant
+ */
+float det(const matrix m)
+{
+    return m.s0 * m.s3 - m.s1 * m.s2;
 }
 
 /** @brief Inverse of a matrix
@@ -256,11 +266,11 @@ matrix outer(vec v1, vec v2)
  * @remarks If the input matrix m is singular, nan values matrix will be
  * returned. Consider using #MATRIX_INV pseudo-inverse instead
  */
-matrix inv(matrix m)
+matrix inv(const matrix m)
 {
-    float det = m.s0 * m.s3 - m.s1 * m.s2;
-    return ((matrix)( m.s3 / det, -m.s1 / det,
-                     -m.s2 / det,  m.s0 / det));
+    const float d = 1.f / det(m);
+    return ((matrix)( m.s3, -m.s1,
+                     -m.s2,  m.s0)) * d;
 }
 
 /** @def MATRIX_INV
