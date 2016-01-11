@@ -22,6 +22,7 @@ Authors:
     <Include file="@RESOURCES_DIR@/Presets/basic.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/domain.xml" />
     <Include file="@RESOURCES_DIR@/Presets/lelasticity.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/lelasticity/xSPH.xml" />
     <Include file="@RESOURCES_DIR@/Presets/lelasticity/deltaSPH.xml" />
     <Include file="@RESOURCES_DIR@/Presets/lelasticity/deltaSPH-full.xml" />
     <Include file="@RESOURCES_DIR@/Presets/lelasticity/BI.xml" />

@@ -39,29 +39,20 @@ import math
 g = 9.81
 hfac = 4.0
 courant = 0.2
-cs_max = 500.0
-young = 0.05e6
-poisson = 0.49
-refd = 2.0e-3
 delta = 1.0
 time_to_run = 10.0
-# Fluid dimensions
+refd = 1.5e-3
+cs = 10.0
+mu = 0.22
+# Beam dimensions
 L = 1.0
+L_left = 0.2 * L
 H = 0.1 * L
 # Number of solid particles in y direction
 ny = 10
 nx = 10 * ny
-
-# Sound speed and shear modulus
-nu = poisson
-E = young
-mu = E / (2.0 * (1.0 + nu))
-cs = math.sqrt(mu / refd * (2.0 + 4.0 * nu) / (3.0 - 6.0 * nu))
-if cs > cs_max:
-    cs = cs_max
-    K = refd * cs**2
-    mu = 3.0 * K * (1.0 - 2.0 * nu) / (1.0 + 2.0 * nu) 
-    E = mu * 2.0 * (1.0 + nu)
+nx_left = 2 * ny
+nx_free = nx - nx_left
 
 # Dimensions and number of particles readjustment
 # ===============================================
@@ -88,13 +79,6 @@ header = """#############################################################
 #############################################################
 """
 print(header)
-
-print("")
-print("E = {}".format(E))
-print("nu = {}".format(nu))
-print("mu = {}".format(mu))
-print("cs = {}".format(cs))
-print("")
 
 print("Writing volume particles...")
 n_vol = 0
@@ -138,8 +122,8 @@ output = open("BuiltInBC.dat", "w")
 output.write(header)
 Percentage = -1
 for i in range(ny):
-    if Percentage != (i * 100) / ny:
-        Percentage = (i * 100) / ny
+    if Percentage != (n_left * 100) / (ny + 2 * nx_left):
+        Percentage = (n_left * 100) / (ny + 2 * nx_left)
         if not Percentage % 10:
             string = '    {}%'.format(Percentage)
             print(string)
@@ -164,6 +148,53 @@ for i in range(ny):
         imove)                 # imove
     output.write(string)
     n_left += 1
+for i in range(nx_left):
+    if Percentage != (n_left * 100) / (ny + 2 * nx_left):
+        Percentage = (n_left * 100) / (ny + 2 * nx_left)
+        if not Percentage % 10:
+            string = '    {}%'.format(Percentage)
+            print(string)
+    imove = -3
+    # Bottom particle
+    pos = [i * dr + 0.5 * dr,
+           -0.5 * H]
+    normal = [0.0, -1.0]
+    # press = refd * g * (0.5 * H - pos[1]) 
+    press = 0.0 
+    dens = refd + press / cs**2
+    mass = dr
+    string = input_template.format(
+        pos[0], pos[1],        # r
+        normal[0], normal[1],  # normal
+        0.0, 0.0,              # u
+        0.0, 0.0,              # dudt
+        dens,                  # rho
+        0.0,                   # drhodt
+        0.0, 0.0, 0.0, 0.0,    # S
+        0.0, 0.0, 0.0, 0.0,    # dSdt
+        mass,                  # m
+        imove)                 # imove
+    output.write(string)
+    n_left += 1
+    #Top particle
+    pos[1] *= -1.0
+    normal[1] *= -1.0
+    # press = refd * g * (0.5 * H - pos[1]) 
+    press = 0.0 
+    dens = refd + press / cs**2
+    string = input_template.format(
+        pos[0], pos[1],        # r
+        normal[0], normal[1],  # normal
+        0.0, 0.0,              # u
+        0.0, 0.0,              # dudt
+        dens,                  # rho
+        0.0,                   # drhodt
+        0.0, 0.0, 0.0, 0.0,    # S
+        0.0, 0.0, 0.0, 0.0,    # dSdt
+        mass,                  # m
+        imove)                 # imove
+    output.write(string)
+    n_left += 1
 print('    100%')
 output.close()
 
@@ -173,8 +204,8 @@ output = open("FreeBC.dat", "w")
 output.write(header)
 Percentage = -1
 for i in range(ny):
-    if Percentage != (n_free * 100) / (ny + 2 * nx):
-        Percentage = (n_free * 100) / (ny + 2 * nx)
+    if Percentage != (n_free * 100) / (ny + 2 * nx_free):
+        Percentage = (n_free * 100) / (ny + 2 * nx_free)
         if not Percentage % 10:
             string = '    {}%'.format(Percentage)
             print(string)
@@ -199,15 +230,15 @@ for i in range(ny):
         imove)                 # imove
     output.write(string)
     n_free += 1
-for i in range(nx):
-    if Percentage != (n_free * 100) / (ny + 2 * nx):
-        Percentage = (n_free * 100) / (ny + 2 * nx)
+for i in range(nx_free):
+    if Percentage != (n_free * 100) / (ny + 2 * nx_free):
+        Percentage = (n_free * 100) / (ny + 2 * nx_free)
         if not Percentage % 10:
             string = '    {}%'.format(Percentage)
             print(string)
     imove = -3
     # Bottom particle
-    pos = [i * dr + 0.5 * dr,
+    pos = [i * dr + L_left + 0.5 * dr,
            -0.5 * H]
     normal = [0.0, -1.0]
     # press = refd * g * (0.5 * H - pos[1]) 
@@ -256,9 +287,9 @@ templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
 XML = ('BCs.xml', 'Main.xml', 'Settings.xml', 'Solid.xml', 'SPH.xml',
        'Time.xml')
 
-domain_min = (-0.25 * L, -H)
+domain_min = (-0.25 * L, -L)
 domain_min = str(domain_min).replace('(', '').replace(')', '')
-domain_max = (1.2 * L, H)
+domain_max = (1.25 * L, L)
 domain_max = str(domain_max).replace('(', '').replace(')', '')
 
 data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
