@@ -235,6 +235,13 @@
 	((float4)(_V.x,  0.f,                                                      \
                0.f, _V.y))
 
+/** @def MATRIX_TRACE
+ * @brief Trace of the matrix
+ *
+ * i.e. The sum of the diagonal elements of the matrix.
+ */
+#define MATRIX_TRACE(_M) (_M.s0 + _M.s3)
+
 /** @brief Perform the outer product of two vectors
  *
  * @param v1 Left operand vector

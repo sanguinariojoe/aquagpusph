@@ -86,7 +86,7 @@ __kernel void entry(const __global unsigned int* iset,
     // Deviatory stress rate of change
     const matrix epsilon = 0.5f * (grad_u[i] + grad_u[i].TRANSPOSE);
     const matrix omega = 0.5f * (grad_u[i] - grad_u[i].TRANSPOSE);
-    dSdt[i] = 2.f * mu * (epsilon - 1.f / 3.f * MATRIX_FROM_DIAG(epsilon.DIAG))
+    dSdt[i] = 2.f * mu * (epsilon - MATRIX_TRACE(epsilon) / DIMS * MAT_EYE)
               + MATRIX_MUL(S[i], omega.TRANSPOSE) + MATRIX_MUL(omega, S[i]);
 }
 
