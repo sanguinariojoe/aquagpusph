@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+
+<!-- xSPH.xml
+xSPH is a method to increase the stability of the model, based on the
+partial replacement of the instantaneous velocity by its SPH convoluted value.
+
+To use this tool, just include it and set the variable xSPH_factor (0.5 by
+default) 
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="xSPH_factor" type="float" value="0.5" />
+        <Variable name="xSPH_u" type="vec*" length="N" />
+    </Variables>
+
+    <Tools>
+        <Tool action="insert" after="lela Shepard" name="lela xSPH interpolation" type="kernel" entry_point="interpolation" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/xSPH.cl"/>
+        <Tool action="insert" after="lela xSPH interpolation" name="lela xSPH" type="kernel" entry_point="xSPH" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/xSPH.cl"/>
+    </Tools>
+</sphInput>

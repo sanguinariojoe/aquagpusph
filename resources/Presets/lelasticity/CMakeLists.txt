@@ -15,6 +15,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/deltaSPH-simple.xml
     ${CMAKE_CURRENT_BINARY_DIR}/deltaSPH-simple.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/deltaSPH-full.xml
     ${CMAKE_CURRENT_BINARY_DIR}/deltaSPH-full.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/xSPH.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/xSPH.xml @ONLY)
 
 # Create installable version of the file
 SET(RESOURCES_OUTPUT_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/resources)
@@ -30,6 +32,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/deltaSPH-simple.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/deltaSPH.xml-simple.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/deltaSPH-full.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/deltaSPH-full.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/xSPH.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/xSPH.xml @ONLY)
 
 # ===================================================== #
 # Install                                               #
@@ -41,6 +45,7 @@ SET(RESOURCES_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/deltaSPH.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/deltaSPH-simple.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/deltaSPH-full.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/xSPH.xml
 )
 SOURCE_GROUP("ResourcesGroup" FILES ${RESOURCES_SRCS})
 INSTALL(
