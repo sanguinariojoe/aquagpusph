@@ -16,7 +16,7 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @addtogroup basic
+/** @addtogroup lela
  * @{
  */
 
