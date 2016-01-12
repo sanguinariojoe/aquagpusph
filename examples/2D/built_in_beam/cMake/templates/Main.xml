@@ -26,6 +26,7 @@ Authors:
     <Include file="@RESOURCES_DIR@/Presets/lelasticity/deltaSPH.xml" />
     <Include file="@RESOURCES_DIR@/Presets/lelasticity/deltaSPH-full.xml" />
     <Include file="@RESOURCES_DIR@/Presets/lelasticity/BI.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/lelasticity/elasticBounce.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/timing.report.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/performance.report.xml" />
     <Include file="Settings.xml" />
