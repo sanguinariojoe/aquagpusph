@@ -1,0 +1,31 @@
+<?xml version="1.0" ?>
+
+<!-- ElasticBounce.xml
+Set and unpenetrability condition based on an elastic bounce with the wall. It
+can be used when a serious risk of particles trespassing solid walls is
+considered, but reducing the time step is unacceptable.
+
+The elements considered as elastic bounce ones should be marked with the flag
+imove=-2 or imove=-3.
+
+To use this preset just include it. Optionally you can tune the effect of the
+elastic bounce using the following definitions:
+
+- __DR_FACTOR__: The factor of the "radius" of the boundary element (1.5f by
+default)
+- __MIN_BOUND_DIST__: The minimum distance from the boundary, as a factor of dr,
+such that the particles are not affected by the elastic bounce (0.3f by default)
+- __ELASTIC_FACTOR__: Ammount of energy exchanged in the process. 1.f for a
+conservative interaction, 0.f for a total dissipation of the particle kinetic
+energy (0.f by default)
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="normal" type="vec*" length="N" />
+    </Variables>
+
+    <Tools>
+        <Tool action="insert" after="Rates" type="kernel" name="lela elastic bounce" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Boundary/ElasticBounce.cl"/>
+    </Tools>
+</sphInput>

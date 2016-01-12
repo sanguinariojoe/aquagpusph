@@ -15,6 +15,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/deltaSPH-simple.xml
     ${CMAKE_CURRENT_BINARY_DIR}/deltaSPH-simple.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/deltaSPH-full.xml
     ${CMAKE_CURRENT_BINARY_DIR}/deltaSPH-full.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/elasticBounce.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/elasticBounce.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/xSPH.xml
     ${CMAKE_CURRENT_BINARY_DIR}/xSPH.xml @ONLY)
 
@@ -32,6 +34,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/deltaSPH-simple.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/deltaSPH.xml-simple.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/deltaSPH-full.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/deltaSPH-full.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/elasticBounce.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/elasticBounce.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/xSPH.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/xSPH.xml @ONLY)
 
@@ -45,6 +49,7 @@ SET(RESOURCES_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/deltaSPH.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/deltaSPH-simple.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/deltaSPH-full.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/elasticBounce.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/xSPH.xml
 )
 SOURCE_GROUP("ResourcesGroup" FILES ${RESOURCES_SRCS})
