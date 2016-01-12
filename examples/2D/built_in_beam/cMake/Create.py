@@ -41,9 +41,9 @@ hfac = 4.0
 courant = 0.2
 delta = 1.0
 time_to_run = 10.0
-refd = 1.5e-3
-cs = 10.0
-mu = 0.22
+refd = 1.5e3
+K = 1.75e6
+G = 1.0e4
 # Beam dimensions
 L = 1.0
 L_left = 0.2 * L
@@ -79,6 +79,17 @@ header = """#############################################################
 #############################################################
 """
 print(header)
+
+cs = math.sqrt(K / refd)
+E = 9.0 * K * G / (3.0 * K + G)
+Nu = (3.0 * K - 2.0 * G) / (6.0 * K + 2.0 * G)
+print("rho = {} kg/m3".format(refd))
+print("c0 = {} m/s".format(cs))
+print("K = {} GPa".format(K * 1.0e-6))
+print("G = {} GPa".format(G * 1.0e-6))
+print("E = {} GPa".format(E * 1.0e-6))
+print("Nu = {}".format(Nu))
+print("")
 
 print("Writing volume particles...")
 n_vol = 0
@@ -294,7 +305,7 @@ domain_max = str(domain_max).replace('(', '').replace(')', '')
 
 data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
         'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max, 'REFD':str(refd), 
-        'DELTA':str(delta), 'MU':str(mu), 'G':str(g), 'NSOLID':str(n_vol),
+        'DELTA':str(delta), 'MU':str(G), 'G':str(g), 'NSOLID':str(n_vol),
         'NBUILTIN':str(n_left), 'NFREE':str(n_free),
         'L':str(L), 'H':str(H), 'END_TIME':str(end_time)}
 for fname in XML:
