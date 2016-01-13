@@ -59,7 +59,7 @@
  * @param N Number of particles.
  * @param n_cells Number of cells in each direction
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
- * @param BIfixed_iset Set of particles affected
+ * @param BIstress_iset Set of particles affected
  */
 __kernel void interpolation(const __global uint* iset,
                             const __global int* imove,
@@ -76,13 +76,13 @@ __kernel void interpolation(const __global uint* iset,
                             uint N,
                             uivec4 n_cells,
                             vec g,
-                            uint BIfixed_iset)
+                            uint BIstress_iset)
 {
     const uint i = get_global_id(0);
     const uint it = get_local_id(0);
     if(i >= N)
         return;
-    if((imove[i] != -3) || (iset[i] != BIfixed_iset)){
+    if((imove[i] != -3) || (iset[i] != BIstress_iset)){
         return;
     }
 
@@ -140,7 +140,7 @@ __kernel void interpolation(const __global uint* iset,
  * @param p Pressure \f$ p \f$.
  * @param S Deviatory stress \f$ S \f$.
  * @param N Total number of particles and boundary elements.
- * @param BIfixed_iset Set of particles affected
+ * @param BIstress_iset Set of particles affected
  */
 __kernel void shepard(const __global uint* iset,
                       const __global int* imove,
@@ -148,12 +148,12 @@ __kernel void shepard(const __global uint* iset,
                       __global float* p,
                       __global matrix* S,
                       uint N,
-                      uint BIfixed_iset)
+                      uint BIstress_iset)
 {
     uint i = get_global_id(0);
     if(i >= N)
         return;
-    if((imove[i] != -3) || (iset[i] != BIfixed_iset)){
+    if((imove[i] != -3) || (iset[i] != BIstress_iset)){
         return;
     }
     float shepard_i = shepard[i];
@@ -165,42 +165,6 @@ __kernel void shepard(const __global uint* iset,
 
     p[i] /= shepard_i;
     S[i] /= shepard_i;
-}
-
-/** @brief Inverse EOS to get the density from the interpolated presseure.
- *
- * @param iset Set of particles index.
- * @param imove Moving flags.
- *   - imove = 2 for regular solid particles.
- *   - imove = 0 for sensors.
- *   - imove < 0 for boundary elements/particles.
- * @param shepard Shepard term
- * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
- *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{x} \f$.
- * @param p Pressure \f$ p \f$.
- * @param S Deviatory stress \f$ S \f$.
- * @param N Total number of particles and boundary elements.
- * @param cs Speed of sound \f$ c_s \f$.
- * @param p0 Background pressure \f$ p_0 \f$.
- * @param BIfixed_iset Set of particles affected
- */
-__kernel void eos(const __global uint* iset,
-                  const __global int* imove,
-                  const __global float* p,
-                  __global float* rho,
-                  __constant float* refd,
-                  uint N,
-                  float cs,
-                  float p0,
-                  uint BIfixed_iset)
-{
-    uint i = get_global_id(0);
-    if(i >= N)
-        return;
-    if((imove[i] != -3) || (iset[i] != BIfixed_iset)){
-        return;
-    }
-    rho[i] = refd[iset[i]] + (p[i] - p0) / (cs * cs);
 }
 
 /*

@@ -19,9 +19,9 @@ Authors:
 
 <sphInput>
     <!-- The built in boundary will take the iset 1 -->
-    <Include file="@RESOURCES_DIR@/Presets/lelasticity/BIFixed.xml" prefix="iset1_"/>
+    <Include file="@RESOURCES_DIR@/Presets/lelasticity/BIStress.xml" prefix="iset1_"/>
     <Tools>
-        <Tool action="insert" before="iset1_lela BI Fixed" type="set_scalar" name="BIfixed_iset1" in="BIfixed_iset" value="1"/>
+        <Tool action="insert" before="iset1_lela BI Stress" type="set_scalar" name="BIstress_iset1" in="BIstress_iset" value="1"/>
     </Tools>
     <ParticlesSet n="{{NBUILTIN}}">
         <Scalar name="refd" value="{{REFD}}" />
@@ -33,9 +33,11 @@ Authors:
     </ParticlesSet>
 
     <!-- The free boundary will take the iset 2 -->
-    <Include file="@RESOURCES_DIR@/Presets/lelasticity/BIFree.xml" prefix="iset2_"/>
+    <Include file="@RESOURCES_DIR@/Presets/lelasticity/BIStress.xml" prefix="iset2_"/>
+    <Include file="@RESOURCES_DIR@/Presets/lelasticity/BIMotion.xml" prefix="iset2_"/>
     <Tools>
-        <Tool action="insert" before="iset2_lela BI Free" type="set_scalar" name="BIfree_iset2" in="BIfree_iset" value="2"/>
+        <Tool action="insert" before="iset2_lela BI Stress" type="set_scalar" name="BIstress_iset2" in="BIstress_iset" value="2"/>
+        <Tool action="insert" before="iset2_lela BI Motion" type="set_scalar" name="BImotion_iset2" in="BImotion_iset" value="2"/>
     </Tools>
     <ParticlesSet n="{{NFREE}}">
         <Scalar name="refd" value="{{REFD}}" />

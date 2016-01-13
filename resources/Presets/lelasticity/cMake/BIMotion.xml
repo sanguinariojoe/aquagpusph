@@ -1,0 +1,36 @@
+<?xml version="1.0" ?>
+
+<!-- BIMotion.xml
+Interpolate the velocity from the solid information, and integrate the position.
+
+You just need to include this tool, defining later which particles set will be
+affected, setting the variable BImotion_iset (0 by default).
+
+To use this preset, BI.xml should be included first.
+
+If the velocity should be interpolated on several boundaries, belonging to
+different particles sets, then this preset can be included several times,
+reevaluating the affected set of particles each time, for instance:
+
+<Include file="BIMotion.xml" prefix="iset0_"/>
+<Include file="BIMotion.xml" prefix="iset2_"/>
+<Tools>
+    <Tool action="insert" before="iset0_lela BI Stress" type="set_scalar" name="BImotion_iset" in="BImotion_iset" value="0"/>
+    <Tool action="insert" before="iset2_lela BI Stress" type="set_scalar" name="BImotion_iset" in="BImotion_iset" value="2"/>
+</Tools>
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="BImotion_iset" type="unsigned int" value="0" />
+    </Variables>
+    <Tools>
+        <Tool action="insert" after="lela BI" name="lela BI Motion" type="dummy"/>
+        <!-- Interpolate the values of the velocity and stress deviation -->
+        <Tool action="insert" after_prefix="lela BI Motion" name="lela BI Motion Interpolate" type="kernel" entry_point="interpolation" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Boundary/BI/Motion.cl"/>
+        <Tool action="insert" after_prefix="lela BI Motion Interpolate" name="lela BI Motion Renormalizate" type="kernel" entry_point="shepard" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Boundary/BI/Motion.cl"/>
+        <!-- Integrate the position (Simple Euler scheme) -->
+        <Tool action="insert" after_prefix="lela BI Motion Renormalizate" name="lela BI Motion Integrate" type="kernel" entry_point="euler" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/Boundary/BI/Motion.cl"/>
+        <Tool action="insert" after_prefix="lela BI Motion Integrate" name="lela BI Motion Finished" type="dummy"/>
+    </Tools>
+</sphInput>
