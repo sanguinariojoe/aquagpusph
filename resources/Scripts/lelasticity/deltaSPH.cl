@@ -74,7 +74,7 @@ __kernel void simple(const __global unsigned int* iset,
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
  * @param p Pressure \f$ p \f$.
- * @param mls Kernel MLS transformation matrix \f$ L \f$.
+ * @param mls_solid Kernel MLS transformation matrix \f$ L \f$.
  * @param lap_p_corr Correction term for the Morrison Laplacian formula.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
@@ -86,7 +86,7 @@ __kernel void full(const __global int* imove,
                    const __global float* rho,
                    const __global float* m,
                    const __global float* p,
-                   const __global matrix* mls,
+                   const __global matrix* mls_solid,
                    __global vec* lap_p_corr,
                    const __global uint *icell,
                    const __global uint *ihoc,
@@ -131,7 +131,7 @@ __kernel void full(const __global int* imove,
         }
     }END_LOOP_OVER_NEIGHS()
 
-    lap_p_corr[i] = MATRIX_DOT(mls[i], _GRADP_);
+    lap_p_corr[i] = MATRIX_DOT(mls_solid[i], _GRADP_);
 }
 
 /** @brief Laplacian of the pressure computation.

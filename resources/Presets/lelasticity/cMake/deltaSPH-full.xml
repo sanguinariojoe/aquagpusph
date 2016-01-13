@@ -6,9 +6,8 @@ expensive, but great results can be expected.
 -->
 
 <sphInput>
-    <Include file="@RESOURCES_OUTPUT_DIR@/Presets/basic/MLS.xml" prefix="imove2_" />
+    <Include file="@RESOURCES_OUTPUT_DIR@/Presets/lelasticity/MLS.xml" />
     <Tools>
-        <Tool action="insert" before="imove2_MLS" type="set_scalar" name="MLS_imove2" in="mls_imove" value="2"/>
         <Tool action="insert" before="lela lap p" name="lela lap p full" type="kernel" entry_point="full" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/deltaSPH.cl"/>
     </Tools>
 </sphInput>

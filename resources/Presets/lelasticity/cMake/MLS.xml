@@ -1,0 +1,36 @@
+<?xml version="1.0" ?>
+
+<!-- MLS.xml
+Compute the MLS transformation matrix \f$ L_i \f$.
+
+Such transformation matrix can be multiplied by the kernel gradient to produce
+a new kernel gradient,
+\f$ \nabla W^{L}_{ij} = L_i \cdot \nabla W_{ij} \f$, such that the lienar fields
+differential operators are consistently computed
+
+This tool is just computing the kernel transforamtion matrix. The usage of such
+matrix is responsibility of the user.
+
+To use it, just include this file. If you include this file several times, the
+effect will be override (and computed just once). Therefore, please don't
+include this preset with a prefix.
+
+The output of this tool is the mls_solid variable, not the mls one (which can
+be overwritten by other tool)
+-->
+
+<sphInput>
+    <Include file="@RESOURCES_OUTPUT_DIR@/Presets/basic/MLS.xml" prefix="imove2_" />
+    <Variables>
+        <Variable name="mls_solid" type="matrix*" length="N" />
+    </Variables>
+
+    <Tools>
+        <!-- Try to remove previous instances -->
+        <Tool action="try_remove" name="MLS_imove2" type="dummy"/>
+        <Tool action="try_remove" name="MLS_mls_solid" type="dummy"/>
+        <!-- Add the new instance -->
+        <Tool action="insert" before="imove2_MLS" name="MLS_imove2" type="set_scalar" in="mls_imove" value="2"/>
+        <Tool action="insert" after="imove2_MLS" name="MLS_mls_solid" type="copy" in="mls" out="mls_solid"/>
+    </Tools>
+</sphInput>

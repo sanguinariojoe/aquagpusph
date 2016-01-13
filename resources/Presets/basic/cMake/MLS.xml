@@ -11,21 +11,27 @@ differential operators are consistently computed
 This tool is just computing the kernel transforamtion matrix. The usage of such
 matrix is responsibility of the user.
 
-To use it, just include this file, and later set the set the type of particles
-affected (1 or 2), mls_imove.
+To use it, just include this file, and later select the type of particles to be
+used (1 or 2), setting the variable mls_imove.
 
-You can also include this preset several times to the MLS kernel transformation
-matrix of several particle types. For instance:
+You can also include this preset several times to get the MLS kernel
+transformation matrix respect several particle types. For instance:
 
 <Include file="MLS.xml" prefix="imove1_"/>
 <Include file="MLS.xml" prefix="imove2_"/>
+<Variables>
+    <Variable name="mls1" type="matrix*" length="N" />
+    <Variable name="mls2" type="matrix*" length="N" />
+</Variables>
 <Tools>
     <Tool action="insert" before="imove1_MLS" type="set_scalar" name="MLS_imove1" in="mls_imove" value="1"/>
+    <Tool action="insert" after="imove1_MLS" type="copy" name="backup mls imove1" in="mls" out="mls1"/>
     <Tool action="insert" before="imove2_MLS" type="set_scalar" name="MLS_imove2" in="mls_imove" value="2"/>
+    <Tool action="insert" after="imove2_MLS" type="copy" name="backup mls imove2" in="mls" out="mls2"/>
 </Tools>
 
-The behaviour if this motion preset is imposed twice on the same object is
-undefined.
+In general, each specific module have a MLS.xml preset, which ensures that it is
+computed just once. Consider therefore don't using directly this tool.
 -->
 
 <sphInput>
