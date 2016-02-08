@@ -100,7 +100,6 @@ __kernel void entry(const __global int* imove,
         #define _GRADP_ grad_p_l[it]
         #define _LAPU_ lap_u_l[it]
         #define _DIVU_ div_u_l[it]
-        #define _LAPP_ lap_p_l[it]
         __local vec_xyz grad_p_l[LOCAL_MEM_SIZE];
         __local vec_xyz lap_u_l[LOCAL_MEM_SIZE];
         __local float div_u_l[LOCAL_MEM_SIZE];
