@@ -16,9 +16,27 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file
- * @brief Fluid particles interactions computation.
+/** @addtogroup basic
+ * @{
  */
+
+/** @file
+ * @brief Shepard renormalization factor computation.
+ */
+
+#ifndef EXCLUDED_PARTICLE
+    /** @brief Excluded particles from the Shepard renormalization factor
+     * computation. 
+     * 
+     * By default all the particles are included. Therefore it is strongly
+     * recommended to redefine this macro to specify whether the fluid
+     * particles (imove != 1) or the solid particles (imove != 2) are used 
+     * @note Redefining this macro this OpenCL script can be recicled
+     * @remarks The Shepard renormalization factor is ever computed at the
+     * boundary elements and sensors (imove <= 0)
+     */
+    #define EXCLUDED_PARTICLE(index) imove[index] >= 3
+#endif
 
 #if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
     #error NO_LOCAL_MEM has been set.
@@ -32,31 +50,29 @@
     #include "../KernelFunctions/Wendland3D.hcl"
 #endif
 
-#if __LAP_FORMULATION__ == __LAP_MONAGHAN__
-    #ifndef HAVE_3D
-        #define __CLEARY__ 8.f
-    #else
-        #define __CLEARY__ 10.f
-    #endif
-#endif
-
-/** @brief Fluid particles interactions computation.
+/** @brief Shepard factor computation.
  *
- * Compute the differential operators involved in the numerical scheme, taking
- * into account just the fluid-fluid interactions.
+ * \f[ \gamma(\mathbf{x}) = \int_{\Omega}
+ *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{x} \f]
+ *
+ * The shepard renormalization factor is applied for several purposes:
+ *   - To interpolate values
+ *   - To recover the consistency with the Boundary Integrals formulation
+ *   - Debugging
+ *
+ * In the shepard factor computation the fluid extension particles are not taken
+ * into account.
  *
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r} \f$.
- * @param u Velocity \f$ \mathbf{u} \f$.
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
- * @param p Pressure \f$ p \f$.
- * @param grad_p Pressure gradient \f$ \frac{\nabla p}{rho} \f$.
- * @param lap_u Velocity laplacian \f$ \frac{\Delta \mathbf{u}}{rho} \f$.
- * @param div_u Velocity divergence \f$ \rho \nabla \cdot \mathbf{u} \f$.
+ * @param shepard Shepard term
+ * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
+ *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{x} \f$.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
@@ -64,13 +80,9 @@
  */
 __kernel void entry(const __global int* imove,
                     const __global vec* r,
-                    const __global vec* u,
                     const __global float* rho,
                     const __global float* m,
-                    const __global float* p,
-                    __global vec* grad_p,
-                    __global vec* lap_u,
-                    __global float* div_u,
+                    __global float* shepard,
                     // Link-list data
                     const __global uint *icell,
                     const __global uint *ihoc,
@@ -82,42 +94,26 @@ __kernel void entry(const __global int* imove,
     const uint it = get_local_id(0);
     if(i >= N)
         return;
-    if(imove[i] != 1){
+    if((imove[i] < -3) || ((imove[i] > 0) && (EXCLUDED_PARTICLE(i))))
         return;
-    }
 
     const vec_xyz r_i = r[i].XYZ;
-    const vec_xyz u_i = u[i].XYZ;
-    const float p_i = p[i];
-    const float rho_i = rho[i];
 
     // Initialize the output
     #ifndef LOCAL_MEM_SIZE
-        #define _GRADP_ grad_p[i].XYZ
-        #define _LAPU_ lap_u[i].XYZ
-        #define _DIVU_ div_u[i]
+        #define _SHEPARD_ shepard[i]
     #else
-        #define _GRADP_ grad_p_l[it]
-        #define _LAPU_ lap_u_l[it]
-        #define _DIVU_ div_u_l[it]
-        #define _LAPP_ lap_p_l[it]
-        __local vec_xyz grad_p_l[LOCAL_MEM_SIZE];
-        __local vec_xyz lap_u_l[LOCAL_MEM_SIZE];
-        __local float div_u_l[LOCAL_MEM_SIZE];
-        _GRADP_ = VEC_ZERO.XYZ;
-        _LAPU_ = VEC_ZERO.XYZ;
-        _DIVU_ = 0.f;
+        #define _SHEPARD_ shepard_l[it]
+        __local float shepard_l[LOCAL_MEM_SIZE];
+        _SHEPARD_ = 0.f;
     #endif
 
     BEGIN_LOOP_OVER_NEIGHS(){
-        if(i == j){
+        if(EXCLUDED_PARTICLE(j)){
             j++;
             continue;
         }
-        if(imove[j] != 1){
-            j++;
-            continue;
-        }
+
         const vec_xyz r_ij = r[j].XYZ - r_i;
         const float q = length(r_ij) / H;
         if(q >= SUPPORT)
@@ -125,30 +121,13 @@ __kernel void entry(const __global int* imove,
             j++;
             continue;
         }
+
         {
-            const float rho_j = rho[j];
-            const float p_j = p[j];
-            const float udr = dot(u[j].XYZ - u_i, r_ij);
-            const float f_ij = kernelF(q) * CONF * m[j];
-
-            _GRADP_ += (p_i + p_j) / (rho_i * rho_j) * f_ij * r_ij;
-
-            #if __LAP_FORMULATION__ == __LAP_MONAGHAN__
-                const float r2 = (q * q + 0.01f) * H * H;
-                _LAPU_ += f_ij * __CLEARY__ * udr / (r2 * rho_i * rho_j) * r_ij;
-            #elif __LAP_FORMULATION__ == __LAP_MORRIS__
-                _LAPU_ += f_ij * 2.f / (rho_i * rho_j) * (u[j].XYZ - u_i);
-            #else
-                #error Unknown Laplacian formulation: __LAP_FORMULATION__
-            #endif
-
-            _DIVU_ += udr * f_ij * rho_i / rho_j;
+            _SHEPARD_ += kernelW(q) * CONW * m[j] / rho[j];
         }
     }END_LOOP_OVER_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
-        grad_p[i].XYZ = _GRADP_;
-        lap_u[i].XYZ = _LAPU_;
-        div_u[i] = _DIVU_;
+        shepard[i] = _SHEPARD_;
     #endif
 }

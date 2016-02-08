@@ -40,20 +40,11 @@ In the sensors the values of density, pressure and velocity are interpolated.
         | icell       | unsigned int* | n_radix | Cell where each particle is located
         | ihoc        | unsigned int* | n_cells | First particle in each cell
          -->
-        <Variable name="cs" type="float" value="15.0" />
-        <Variable name="p0" type="float" length="0.0" />
-
-        <Variable name="gamma" type="float*" length="n_sets" />
         <Variable name="visc_dyn" type="float*" length="n_sets" />
-        <Variable name="delta" type="float*" length="n_sets" />
-
-        <Variable name="p" type="float*" length="N" />
-        <Variable name="p_in" type="float*" length="N" />
 
         <Variable name="grad_p" type="vec*" length="N" />
         <Variable name="lap_u" type="vec*" length="N" />
         <Variable name="div_u" type="float*" length="N" />
-        <Variable name="lap_p" type="float*" length="N" />
         <Variable name="shepard" type="float*" length="N" />
     </Variables>
 
@@ -64,16 +55,9 @@ In the sensors the values of density, pressure and velocity are interpolated.
     </Definitions>
     
     <Tools>
-        <!-- Improved Euler time integration predictor stage -->
-        <Tool action="insert" before="Predictor" type="kernel" name="cfd EOS" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/EOS.cl"/>
-
-        <!-- Link-list and particles sorting -->
-        <Tool action="insert" before="Sort" type="kernel" name="cfd sort" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Sort.cl"/>
-
         <!-- Particles interactions -->
         <Tool action="insert" after="Sort" type="set" name="cfd Reinit shepard" in="shepard" value="0.f"/>
         <Tool action="insert" after="Sort" type="set" name="cfd Reinit grad_p" in="grad_p" value="VEC_ZERO"/>
-        <Tool action="insert" after="Sort" type="set" name="cfd Reinit lap_p" in="lap_p" value="0.f"/>
         <Tool action="insert" after="Sort" type="set" name="cfd Reinit div_u" in="div_u" value="0.f"/>
         <Tool action="insert" after="Sort" type="set" name="cfd Reinit lap_u" in="lap_u" value="VEC_ZERO"/>
 
@@ -85,12 +69,5 @@ In the sensors the values of density, pressure and velocity are interpolated.
 
         <!-- Velocity and density variation rates computation -->
         <Tool action="insert" before="Rates" type="kernel" name="cfd rates" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Rates.cl"/>
-
-        <!-- Improved Euler time integration corrector stage -->
-
-        <!-- Time step computation -->
-        <Tool action="insert" before="TimeStep" type="set_scalar" name="cfd fixed time step" in="dt" value="courant * h / cs"/>
-
-        <!-- Next time step -->
     </Tools>
 </sphInput>

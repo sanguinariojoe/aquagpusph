@@ -41,7 +41,6 @@ hfac = 2.0
 courant = 0.05
 courant_ramp_iters = 1000
 courant_ramp_factor = 0.001
-gamma = 1.0
 refd = 1.0
 alpha = 0.0
 delta = 1.0
@@ -80,8 +79,6 @@ visc_dyn = max(alpha / 8.0 * refd * hfac * dr * cs, visc_dyn)
 
 # Particles generation
 # ====================
-prb = cs * cs * refd / gamma
-
 print("Opening fluid particles output file...")
 output = open("Fluid.dat", "w")
 string = """#############################################################
@@ -127,8 +124,8 @@ while x <= L + sep * h + 0.5 * dr:
         imove = 1
         vx = 0.0
         vy = 0.0
-        press = 0.0
-        dens = pow(press / prb + 1.0, 1.0 / gamma) * refd
+        press = p0
+        dens = refd + (press - p0) / cs**2 
         mass = refd * dr**2.0
         string = ("{} {}, " * 4 + "{}, {}, {}, {}\n").format(
             x, y,
@@ -164,8 +161,8 @@ while x <= L + sep * h + 0.5 * dr:
         vy = 0.0
         normal_x = 0
         normal_y = 1 if i else -1
-        press = 0.0
-        dens = pow(press / prb + 1.0, 1.0 / gamma) * refd
+        press = p0
+        dens = refd + (press - p0) / cs**2 
         mass = dr
         string = ("{} {}, " * 4 + "{}, {}, {}, {}\n").format(
             x, y,
@@ -255,8 +252,8 @@ while theta < 2.0 * math.pi:
     vy = 0.0
     normal_x = -math.cos(theta)
     normal_y = -math.sin(theta)
-    press = 0.0
-    dens = pow(press / prb + 1.0, 1.0 / gamma) * refd
+    press = p0
+    dens = refd + (press - p0) / cs**2 
     mass = dr
     string = ("{} {}, " * 4 + "{}, {}, {}, {}\n").format(
         x, y,
@@ -286,10 +283,10 @@ domain_min = str(domain_min).replace('(', '').replace(')', '')
 domain_max = str(domain_max).replace('(', '').replace(')', '')
 
 data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
-        'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max, 'GAMMA':str(gamma),
-        'REFD':str(refd), 'VISC_DYN':str(visc_dyn), 'DELTA':str(delta),
-        'G':str(g), 'N':str(n), 'NY':str(ny), 'L':str(L), 'H':str(H),
-        'D':str(D), 'U':str(U), 'P0':str(p0),
+        'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max, 'REFD':str(refd),
+        'VISC_DYN':str(visc_dyn), 'DELTA':str(delta), 'G':str(g),
+        'N':str(n), 'NY':str(ny), 'L':str(L), 'H':str(H), 'D':str(D),
+        'U':str(U), 'P0':str(p0),
         'NCYL':str(n_cyl), 'XCYL':str(x_cyl), 'YCYL':str(y_cyl),
         'COURANT_RAMP_ITERS':str(courant_ramp_iters),
         'COURANT_RAMP_FACTOR':str(courant_ramp_factor),}

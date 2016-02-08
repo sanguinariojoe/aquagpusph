@@ -25,14 +25,14 @@ should be imposed, the delta factor (in principle 0.0 or 1.0)
     </Variables>
 
     <Tools>
-        <Tool action="insert" after="Sort" name="lela reinit lap_p" type="set" in="lap_p" value="0.f"/>
-        <Tool action="insert" after="Sort" name="lela reinit lap_p_corr" type="set" in="lap_p_corr" value="VEC_ZERO"/>
+        <Tool action="insert" after="Sort" name="cfd reinit lap_p" type="set" in="lap_p" value="0.f"/>
+        <Tool action="insert" after="Sort" name="cfd reinit lap_p_corr" type="set" in="lap_p_corr" value="VEC_ZERO"/>
   
         <!-- Compute the Laplacian of the pressure (the correction term should
         be already available) -->
-        <Tool action="insert" before="Interactions" name="lela lap p" type="kernel" entry_point="lapp" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/deltaSPH.cl"/>
+        <Tool action="insert" before="Interactions" name="cfd lap p" type="kernel" entry_point="lapp" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/deltaSPH.cl"/>
 
         <!-- Add the delta-SPH effect to the density variation rate -->
-        <Tool action="insert" before="Rates" name="lela delta-SPH" type="kernel" entry_point="deltaSPH" path="@RESOURCES_OUTPUT_DIR@/Scripts/lelasticity/deltaSPH.cl"/>        
+        <Tool action="insert" before="Rates" name="cfd delta-SPH" type="kernel" entry_point="deltaSPH" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/deltaSPH.cl"/>        
     </Tools>
 </sphInput>

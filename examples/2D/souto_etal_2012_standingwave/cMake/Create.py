@@ -40,10 +40,9 @@ g = 1
 hfac = 4.0
 cs = 50.0
 courant = 0.2
-gamma = 1.0
 refd = 1.0
 alpha = 0.0
-delta = 0.0
+delta = 1.0
 periods_to_run = 8
 # Fluid dimensions
 L = 2.0
@@ -108,9 +107,6 @@ Epot0 = 0.5 * g * H * (L * H * refd)
 
 # Particles generation
 # ====================
-
-prb = cs * cs * refd / gamma
-
 print("Opening output file...")
 output = open("Fluid.dat", "w")
 string = """#############################################################
@@ -153,7 +149,7 @@ for i in range(0, n):
     vel = (k_u * math.sin(k * x) * math.cosh(k * (H + y)),
           -k_u * math.cos(k * x) * math.sinh(k * (H + y)))
     press = refd * g * (H - pos[1])
-    dens = pow(press / prb + 1.0, 1.0 / gamma) * refd
+    dens = refd + press / cs**2 
     mass = dens * dr**2.0
     string = ("{} {}, " * 4 + "{}, {}, {}, {}\n").format(
         pos[0], pos[1],
@@ -184,7 +180,7 @@ for i in range(0, N):
     normal = [0.0, -1.0]
     pos = (idx * dr / DeLeffeDistFactor, 0.0)
     press = refd * g * (H - pos[1])
-    dens = pow(press / prb + 1.0, 1.0 / gamma) * refd
+    dens = refd + press / cs**2 
     imove = -3
     mass = dr / DeLeffeDistFactor
     string = ("{} {}, " * 4 + "{}, {}, {}, {}\n").format(
@@ -213,9 +209,9 @@ domain_max = (1.2 * L, 1.2 * (H + A))
 domain_max = str(domain_max).replace('(', '').replace(')', '')
 
 data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
-        'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max, 'GAMMA':str(gamma),
-        'REFD':str(refd), 'VISC_DYN':str(visc_dyn), 'DELTA':str(delta),
-        'G':str(g), 'N':str(n + N), 'L':str(L), 'END_TIME':str(end_time),
+        'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max, 'REFD':str(refd),
+        'VISC_DYN':str(visc_dyn), 'DELTA':str(delta), 'G':str(g),
+        'N':str(n + N), 'L':str(L), 'END_TIME':str(end_time),
         'E_KIN':str(Ekin0), 'E_POT':str(Epot0)}
 for fname in XML:
     # Read the template

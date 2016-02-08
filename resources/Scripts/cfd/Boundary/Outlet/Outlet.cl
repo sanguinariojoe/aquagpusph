@@ -45,12 +45,11 @@
  * @param dudt_in Prev velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
  * @param drhodt Density rate of change \f$ \frac{d \rho}{d t} \f$.
  * @param drhodt_in Prev density rate of change \f$ \frac{d \rho}{d t} \f$.
- * @param gamma Eq. of state exponent \f$ \gamma \f$.
  * @param refd Density of reference of the fluid \f$ \rho_0 \f$.
  * @param N Number of particles.
  * @param cs Speed of sound \f$ c_s \f$.
- * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  * @param p0 Background pressure \f$ p_0 \f$.
+ * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  * @param domain_max Maximum point of the computational domain.
  * @param outlet_r Lower corner of the outlet square.
  * @param outlet_n = Velocity direction of the generated particles.
@@ -71,8 +70,8 @@ __kernel void entry(__global int* imove,
                     __constant float* refd,
                     unsigned int N,
                     float cs,
-                    vec g,
                     float p0,
+                    vec g,
                     vec domain_max,
                     vec outlet_r,
                     vec outlet_n,
@@ -97,9 +96,8 @@ __kernel void entry(__global int* imove,
     dudt_in[i] = VEC_ZERO;
     u[i] = outlet_U * outlet_n;
     p[i] = refd[iset[i]] * dot(g, r[i] - outlet_rFS);
-    // Batchelor 1967
-    const float prb = cs * cs * refd[iset[i]] / gamma[iset[i]];
-    rho[i] = refd[iset[i]] * pow(p[i] / prb + 1.f, 1.f / gamma[iset[i]]);
+    // reversed EOS
+    rho[i] = refd[iset[i]] + p[i] / (cs * cs);
     p[i] += p0;
 
     // Destroy the particles far away from the outlet plane

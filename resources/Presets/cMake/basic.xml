@@ -10,6 +10,7 @@ Whithin basic.xml the following varaibles are defined, on top of the default
 ones already defined by AQUAgpusph (see below):
 - Scalars:
   - g: Gravity acceleration
+  - p0: Background pressure
   - r_min: Minimum position
   - r_max: Maximum position
 - Arrays:
@@ -21,11 +22,17 @@ ones already defined by AQUAgpusph (see below):
   - rho: Densities
   - drhodt: Density variation rates
   - m: Masses
+  - p: Pressures
 Also backup array variables (with the suffix "_in") are created for the
 predictor-corrector integration scheme, and the Link-List and sort process
 
-Also the following definitions are imposed (Notice that in the case of variable
-kernel height some of these definitions could not be used):
+The following scalar variables are required when using this preset:
+- h: Kernel height
+- cs: Speed of sound (Usually 10 times the maximum expectable particle speed)
+- courant: Courant factor to compute the time step
+
+On the other hand, the following definitions are imposed (Notice that in the
+case of variable kernel height some of these definitions could not be used):
  - DIMS: 2 in 2D, 3 in 3D
  - H: Kernel height
  - CONW: The result of evaluating 1/(h^dims)
@@ -67,6 +74,7 @@ later:
         | ihoc        | unsigned int* | n_cells | First particle in each cell
          -->
         <Variable name="g" type="vec" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="p0" type="float" value="0.0" />
         <Variable name="r_min" type="vec" />
         <Variable name="r_max" type="vec" />
 
@@ -98,6 +106,10 @@ later:
         <Variable name="rho_in" type="float*" length="N" />
         <Variable name="drhodt_in" type="float*" length="N" />
         <Variable name="m_in" type="float*" length="N" />
+
+        <!-- The pressure is an instantaneous variable, resulting from the
+        application of an EOS -->
+        <Variable name="p" type="float*" length="N" />
     </Variables>
 
     <Definitions>
@@ -110,40 +122,42 @@ later:
     
     <Tools>
         <!-- Improved Euler time integration predictor stage -->
-        <Tool action="add" type="kernel" name="predictor" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/Predictor.cl"/>
-        <Tool action="add" type="dummy" name="Predictor"/>
+        <Tool action="add" name="predictor" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/Predictor.cl"/>
+        <Tool action="add" name="Predictor" type="dummy"/>
 
         <!-- Link-list and particles sorting -->
-        <Tool action="add" type="link-list" name="link-list"/>
-        <Tool action="add" type="dummy" name="Link-List"/>
+        <Tool action="add" name="link-list" type="link-list"/>
+        <Tool action="add" name="Link-List" type="dummy"/>
 
-        <Tool action="add" type="copy" name="Backup id" in="id" out="id_in"/>
-        <Tool action="add" type="copy" name="Backup iset" in="iset" out="iset_in"/>
-        <Tool action="add" type="copy" name="Backup imove" in="imove" out="imove_in"/>
-        <Tool action="add" type="copy" name="Backup normal" in="normal" out="normal_in"/>
-        <Tool action="add" type="copy" name="Backup m" in="m" out="m_in"/>
-        <Tool action="add" type="kernel" name="sort stage1" entry_point="stage1" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/Sort.cl"/>
-        <Tool action="add" type="kernel" name="sort stage2" entry_point="stage2" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/Sort.cl"/>
-        <Tool action="add" type="copy" name="Backup dudt" in="dudt" out="dudt_in"/>
-        <Tool action="add" type="copy" name="Backup drhodt" in="drhodt" out="drhodt_in"/>
-        <Tool action="add" type="dummy" name="Sort"/>
+        <Tool action="add" name="Backup id" type="copy" in="id" out="id_in"/>
+        <Tool action="add" name="Backup iset" type="copy" in="iset" out="iset_in"/>
+        <Tool action="add" name="Backup imove" type="copy" in="imove" out="imove_in"/>
+        <Tool action="add" name="Backup normal" type="copy" in="normal" out="normal_in"/>
+        <Tool action="add" name="Backup m" type="copy" in="m" out="m_in"/>
+        <Tool action="add" name="sort stage1" type="kernel" entry_point="stage1" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/Sort.cl"/>
+        <Tool action="add" name="sort stage2" type="kernel" entry_point="stage2" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/Sort.cl"/>
+        <Tool action="add" name="Backup dudt" type="copy" in="dudt" out="dudt_in"/>
+        <Tool action="add" name="Backup drhodt" type="copy" in="drhodt" out="drhodt_in"/>
+        <Tool action="add" name="EOS" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/EOS.cl"/>
+        <Tool action="add" name="Sort" type="dummy"/>
 
         <!-- Particles interactions -->
-        <Tool action="add" type="dummy" name="Interactions"/>
+        <Tool action="add" name="Interactions" type="dummy"/>
 
         <!-- Rates computation -->
-        <Tool action="add" type="dummy" name="Rates"/>
+        <Tool action="add" name="Rates" type="dummy"/>
 
         <!-- Improved Euler time integration corrector stage -->
-        <Tool action="add" type="kernel" name="corrector" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/Corrector.cl"/>
-        <Tool action="add" type="dummy" name="Corrector"/>
+        <Tool action="add" name="corrector" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/Corrector.cl"/>
+        <Tool action="add" name="Corrector" type="dummy"/>
 
         <!-- Time step computation -->
-        <Tool action="add" type="dummy" name="TimeStep"/>
+        <Tool action="add" name="fixed time step" type="set_scalar" in="dt" value="courant * h / cs"/>
+        <Tool action="add" name="TimeStep" type="dummy"/>
 
         <!-- Next time step -->
-        <Tool action="add" type="set_scalar" name="t = t + dt" in="t" value="t + dt"/>
-        <Tool action="add" type="set_scalar" name="iter += 1" in="iter" value="iter + 1"/>
-        <Tool action="add" type="dummy" name="End"/>
+        <Tool action="add" name="t = t + dt" type="set_scalar" in="t" value="t + dt"/>
+        <Tool action="add" name="iter += 1" type="set_scalar" in="iter" value="iter + 1"/>
+        <Tool action="add" name="End" type="dummy"/>
     </Tools>
 </sphInput>

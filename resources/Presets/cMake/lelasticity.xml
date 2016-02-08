@@ -39,9 +39,6 @@ Appl. Mech. Engrg. 190 (2001) 6641-6662
         | icell       | unsigned int* | n_radix | Cell where each particle is located
         | ihoc        | unsigned int* | n_cells | First particle in each cell
          -->
-        <Variable name="cs" type="float" value="150.0" />
-        <Variable name="p0" type="float" length="0.0" />
-
         <!-- Material properties.
         In AQUAgpusph the material properties required are the speed of sound
         (c_0), the density of reference (\rho_0), and the shear modulus (\mu).
@@ -53,8 +50,6 @@ Appl. Mech. Engrg. 190 (2001) 6641-6662
         <Variable name="shear_mod" type="float*" length="n_sets" />
 
         <!-- Intensive properties -->
-        <Variable name="p" type="float*" length="N" />
-        <Variable name="p_in" type="float*" length="N" />
         <Variable name="S" type="matrix*" length="N" />
         <Variable name="S_in" type="matrix*" length="N" />
 

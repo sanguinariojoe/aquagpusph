@@ -44,9 +44,9 @@
  * @param rho Density \f$ \rho \f$.
  * @param p Pressure \f$ p \f$.
  * @param refd Density of reference of the fluid \f$ \rho_0 \f$.
- * @param gamma Gamma EOS exponent \f$ \gamma \f$.
  * @param N Total number of particles and boundary elements.
  * @param cs Speed of sound \f$ c_s \f$.
+ * @param p0 Background pressure \f$ p_0 \f$.
  * @see Boundary/BI/Interpolation.cl
  */
 __kernel void entry(const __global uint* iset,
@@ -55,9 +55,9 @@ __kernel void entry(const __global uint* iset,
                     __global float* rho,
                     __global float* p,
                     __constant float* refd,
-                    __constant float* gamma,
                     uint N,
-                    float cs)
+                    float cs,
+                    float p0)
 {
     uint i = get_global_id(0);
     if(i >= N)
@@ -75,9 +75,6 @@ __kernel void entry(const __global uint* iset,
     }
 
     p[i] /= shepard_i;
-    // Reversed Batchelor 1967
-    const float rdenf = refd[iset[i]];
-    const float gammf = gamma[iset[i]];
-    const float iprb = gammf / (cs * cs * rdenf);
-    rho[i] = rdenf * pow(1.f + iprb * p[i], 1.f / gammf);
+    // Reversed EOS
+    rho[i] = refd[iset[i]] + (p[i] - p0) / (cs * cs);
 }

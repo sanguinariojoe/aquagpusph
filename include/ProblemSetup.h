@@ -616,7 +616,7 @@ public:
         /** @brief Add a scalar property for this particles set.
          *
          * This field can be set with the tag `Scalar`, for instance:
-         * `<Scalar name="gamma" value="1.0" />`
+         * `<Scalar name="delta" value="1.0" />`
          */
         void addScalar(const char* name, const char* value);
 

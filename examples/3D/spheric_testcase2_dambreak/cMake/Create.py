@@ -40,7 +40,6 @@ g = 9.81
 hfac = 2.0
 cs = 45.0
 courant = 0.2
-gamma = 7.0
 refd = 998.0
 alpha = 0.001
 delta = 1.0
@@ -84,8 +83,6 @@ Nx = int(round(L / dr))
 Ny = int(round(D / dr))
 Nz = int(round(H / dr))
 
-prb = cs * cs * refd / gamma
-
 output = open("Fluid.dat", "w")
 string = """#############################################################
 #                                                           #
@@ -126,7 +123,7 @@ for i in range(nx):
             z = z0 + (k + 0.5) * dr
             imove = 1
             press = refd * g * (hFluid - z)
-            dens = pow(press / prb + 1.0, 1.0 / gamma) * refd
+            dens = refd + press / cs**2 
             mass = dens * dr**3.0
             string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
                 x, y, z,
@@ -451,9 +448,9 @@ domain_max = (l + 0.1, 0.5 * D + 0.1, H + 0.1, 0.0)
 domain_max = str(domain_max).replace('(', '').replace(')', '')
 
 data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
-        'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max, 'GAMMA':str(gamma),
-        'REFD':str(refd), 'VISC_DYN':str(visc_dyn), 'DELTA':str(delta),
-        'G':str(g), 'N_SENSORS':str(n_sensors), 'N':str(n + N_box + N)}
+        'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max, 'REFD':str(refd),
+        'VISC_DYN':str(visc_dyn), 'DELTA':str(delta), 'G':str(g),
+        'N_SENSORS':str(n_sensors), 'N':str(n + N_box + N)}
 for fname in XML:
     # Read the template
     f = open(path.join(templates_path, fname), 'r')

@@ -21,106 +21,15 @@
  */
 
 /** @file
- * @brief Shepard renormalization factor computation.
+ * @brief Shepard renormalization factor for the Linear elasticity module.
  */
 
-#if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
-    #error NO_LOCAL_MEM has been set.
-#endif
-
-#ifndef HAVE_3D
-    #include "../types/2D.h"
-    #include "../KernelFunctions/Wendland2D.hcl"
-#else
-    #include "../types/3D.h"
-    #include "../KernelFunctions/Wendland3D.hcl"
-#endif
-
-/** @brief Shepard factor computation.
- *
- * \f[ \gamma(\mathbf{x}) = \int_{\Omega}
- *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{x} \f]
- *
- * The shepard renormalization factor is applied for several purposes:
- *   - To interpolate values
- *   - To recover the consistency with the Boundary Integrals formulation
- *   - Debugging
- *
- * In the shepard factor computation the fluid extension particles are not taken
- * into account.
- *
- * @param imove Moving flags.
- *   - imove = 2 for regular solid particles.
- *   - imove = 0 for sensors (ignored by this preset).
- *   - imove < 0 for boundary elements/particles.
- * @param r Position \f$ \mathbf{r} \f$.
- * @param rho Density \f$ \rho \f$.
- * @param m Mass \f$ m \f$.
- * @param shepard Shepard term
- * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
- *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{x} \f$.
- * @param icell Cell where each particle is located.
- * @param ihoc Head of chain for each cell (first particle found).
- * @param N Number of particles.
- * @param n_cells Number of cells in each direction
+/** @brief Restrict the aplication to the solid particles (imove=2)
  */
-__kernel void entry(const __global int* imove,
-                    const __global vec* r,
-                    const __global float* rho,
-                    const __global float* m,
-                    __global float* shepard,
-                    // Link-list data
-                    const __global uint *icell,
-                    const __global uint *ihoc,
-                    // Simulation data
-                    uint N,
-                    uivec4 n_cells)
-{
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
-    if(i >= N)
-        return;
-    const int move_i = imove[i];
-    if((move_i != -3) && (move_i != 2)){
-        // Non-Solid related particle
-        return;
-    }
-
-    const vec_xyz r_i = r[i].XYZ;
-
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
-        #define _SHEPARD_ shepard[i]
-    #else
-        #define _SHEPARD_ shepard_l[it]
-        __local float shepard_l[LOCAL_MEM_SIZE];
-        _SHEPARD_ = 0.f;
-    #endif
-
-    BEGIN_LOOP_OVER_NEIGHS(){
-        if(imove[j] != 2){
-            j++;
-            continue;
-        }
-
-        const vec_xyz r_ij = r[j].XYZ - r_i;
-        const float q = length(r_ij) / H;
-        if(q >= SUPPORT)
-        {
-            j++;
-            continue;
-        }
-
-        {
-            _SHEPARD_ += kernelW(q) * CONW * m[j] / rho[j];
-        }
-    }END_LOOP_OVER_NEIGHS()
-
-    #ifdef LOCAL_MEM_SIZE
-        shepard[i] = _SHEPARD_;
-    #endif
-}
+#define EXCLUDED_PARTICLE(index) imove[index] != 2
 
 /*
  * @}
  */
+
+#include "../basic/Shepard.cl"

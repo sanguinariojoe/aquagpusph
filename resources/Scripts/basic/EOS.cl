@@ -16,12 +16,7 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @defgroup cfd CFD simulations preset
- *
- * @brief Preset of tools to perform CFD simulations
- *
- * @see @ref basic
- *
+/** @addtogroup basic
  * @{
  */
 
@@ -29,27 +24,35 @@
  * @brief Equation Of State (EOS) computation
  */
 
+#ifndef EXCLUDED_PARTICLE
+    /** @brief Condition to exclude a particle from the EOS computation
+     * 
+     * By default all the boundary elements are excluded, excepting the fixed
+     * particles (imove = -1)
+     * @note Redefining this macro this OpenCL script can be recicled for
+     * different particle types.
+     */
+    #define EXCLUDED_PARTICLE(index) (imove[index] <= 0) && (imove[index] != -1)
+#endif
+
 #ifndef HAVE_3D
     #include "../types/2D.h"
 #else
     #include "../types/3D.h"
 #endif
 
-/** @brief Equation Of State (EOS) computation
+/** @brief Stiffness Equation Of State (EOS) computation
  *
- * Pressure computation using the density data,
- * \f$ p = p_0 + \frac{c_s^2 \rho_0}{\gamma} \left(
- *     \left( \frac{\rho}{\rho_0} \right)^\gamma - 1
- * \right) \f$
+ * The equation of state relates the pressure and the density fields,
+ * \f$ p = p_0 + c_s^2 \left(\rho - \rho_0 \right) \f$
  *
  * @param iset Set of particles index.
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param rho_in Density \f$ \rho_{n+1/2} \f$.
- * @param p_in Pressure \f$ \left. p \right\vert_{n+1/2} \f$.
- * @param gamma Eq. of state exponent \f$ \gamma \f$.
+ * @param rho Density \f$ \rho_{n+1/2} \f$.
+ * @param p Pressure \f$ p_{n+1/2} \f$.
  * @param refd Density of reference of the fluid \f$ \rho_0 \f$.
  * @param N Number of particles.
  * @param cs Speed of sound \f$ c_s \f$.
@@ -57,9 +60,8 @@
  */
 __kernel void entry(__global unsigned int* iset,
                     __global unsigned int* imove,
-                    __global float* rho_in,
-                    __global float* p_in,
-                    __constant float* gamma,
+                    __global float* rho,
+                    __global float* p,
                     __constant float* refd,
                     unsigned int N,
                     float cs,
@@ -68,13 +70,10 @@ __kernel void entry(__global unsigned int* iset,
     unsigned int i = get_global_id(0);
     if(i >= N)
         return;
-    if((imove[i] != -1) || (imove[i] != 1))
+    if(EXCLUDED_PARTICLE(i))
         return;
 
-    // Batchelor 1967
-    const float ddenf = rho_in[i] / refd[iset[i]];
-    const float prb = cs * cs * refd[iset[i]] / gamma[iset[i]];
-    p_in[i] = p0 + prb * (pow(ddenf, gamma[iset[i]]) - 1.f);
+    p[i] = p0 + cs * cs * (rho[i] - refd[iset[i]]);
 }
 
 /*

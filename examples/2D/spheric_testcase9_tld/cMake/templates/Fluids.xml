@@ -19,7 +19,6 @@ Authors:
 
 <sphInput>
     <ParticlesSet n="{{N}}">
-        <Scalar name="gamma" value="{{GAMMA}}" />
         <Scalar name="refd" value="{{REFD}}" />
         <Scalar name="visc_dyn" value="{{VISC_DYN}}" />
         <Scalar name="delta" value="{{DELTA}}" />

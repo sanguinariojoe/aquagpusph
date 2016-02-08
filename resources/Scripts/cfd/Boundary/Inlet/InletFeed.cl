@@ -45,11 +45,11 @@
  * @param drhodt Density rate of change \f$ \frac{d \rho}{d t} \f$.
  * @param m Mass \f$ m \f$.
  * @param p Pressure \f$ p \f$.
- * @param gamma Eq. of state exponent \f$ \gamma \f$.
  * @param refd Density of reference of the fluid \f$ \rho_0 \f$.
  * @param N Number of particles.
  * @param dt Time step \f$ \Delta t \f$.
  * @param cs Speed of sound \f$ c_s \f$.
+ * @param p0 Background pressure \f$ p_0 \f$.
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  * @param dr Distance between particles \f$ \Delta r \f$.
  * @param inlet_r Lower corner of the inlet square.
@@ -71,11 +71,11 @@ __kernel void entry(__global int* imove,
                     __global float* drhodt,
                     __global float* m,
                     __global float* p,
-                    __constant float* gamma,
                     __constant float* refd,
                     unsigned int N,
                     float dt,
                     float cs,
+                    float p0,
                     vec g,
                     float dr,
                     vec inlet_r,
@@ -123,7 +123,7 @@ __kernel void entry(__global int* imove,
     #else
         m[i] = refd[iset[i]] * dr * dr;
     #endif
-    // Batchelor 1967
-    const float prb = cs * cs * refd[iset[i]] / gamma[iset[i]];
-    rho[i] = refd[iset[i]] * pow(p[i] / prb + 1.f, 1.f / gamma[iset[i]]);
+    // reversed EOS
+    rho[i] = refd[iset[i]] + p[i] / (cs * cs);
+    p[i] += p0;
 }

@@ -54,10 +54,7 @@
  * @param drhodt Density rate of change
  * \f$ \left. \frac{d \rho}{d t} \right\vert_{n+1} \f$.
  * @param visc_dyn Dynamic viscosity \f$ \mu \f$.
- * @param delta Diffusive term \f$ \delta \f$ multiplier.
- * @param refd Density of reference of the fluid \f$ \rho_0 \f$.
  * @param N Number of particles.
- * @param dt Time step \f$ \Delta t \f$.
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  */
 __kernel void entry(const __global uint* iset,
@@ -70,10 +67,7 @@ __kernel void entry(const __global uint* iset,
                     __global vec* dudt,
                     __global float* drhodt,
                     __constant float* visc_dyn,
-                    __constant float* delta,
-                    __constant float* refd,
                     unsigned int N,
-                    float dt,
                     vec g)
 {
     unsigned int i = get_global_id(0);
@@ -82,11 +76,8 @@ __kernel void entry(const __global uint* iset,
     if(imove[i] != 1)
         return;
 
-    const uint set_i = iset[i];
-    const float delta_f = delta[set_i] * dt * rho[i] / refd[set_i];
-
     // Momentum equation
-    dudt[i] = -grad_p[i] + visc_dyn[set_i] * lap_u[i] + g;
+    dudt[i] = -grad_p[i] + visc_dyn[iset[i]] * lap_u[i] + g;
     // Conservation of mass equation
-    drhodt[i] = -div_u[i] + delta_f * lap_p[i];
+    drhodt[i] = -div_u[i];
 }
