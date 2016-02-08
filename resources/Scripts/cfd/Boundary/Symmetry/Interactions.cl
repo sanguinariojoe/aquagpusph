@@ -153,7 +153,7 @@ __kernel void entry(const __global int* imove,
                 const float r2 = (q * q + 0.01f) * H * H;
                 _LAPU_ += f_ij * __CLEARY__ * udr / (r2 * rho_i * rho_j) * r_ij;
             #elif __LAP_FORMULATION__ == __LAP_MORRIS__
-                _LAPU_ += f_ij * 2.f / (rho_i * rho_j) * (u[j].XYZ - u_i);
+                _LAPU_ += f_ij * 2.f / (rho_i * rho_j) * (umirrored[j].XYZ - u_i);
             #else
                 #error Unknown Laplacian formulation: __LAP_FORMULATION__
             #endif
