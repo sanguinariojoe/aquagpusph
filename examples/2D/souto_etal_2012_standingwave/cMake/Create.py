@@ -42,7 +42,6 @@ cs = 50.0
 courant = 0.2
 refd = 1.0
 alpha = 0.0
-delta = 1.0
 periods_to_run = 8
 # Fluid dimensions
 L = 2.0
@@ -210,7 +209,7 @@ domain_max = str(domain_max).replace('(', '').replace(')', '')
 
 data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
         'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max, 'REFD':str(refd),
-        'VISC_DYN':str(visc_dyn), 'DELTA':str(delta), 'G':str(g),
+        'VISC_DYN':str(visc_dyn), 'G':str(g),
         'N':str(n + N), 'L':str(L), 'END_TIME':str(end_time),
         'E_KIN':str(Ekin0), 'E_POT':str(Epot0)}
 for fname in XML:

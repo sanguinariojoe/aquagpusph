@@ -22,8 +22,6 @@ Authors:
     <Include file="@RESOURCES_DIR@/Presets/basic.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/domain.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd.xml" />
-    <Include file="@RESOURCES_DIR@/Presets/cfd/deltaSPH.xml" />
-    <Include file="@RESOURCES_DIR@/Presets/cfd/deltaSPH-full.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/BI.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/elasticBounce.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/energy.xml" />
