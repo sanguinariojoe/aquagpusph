@@ -44,6 +44,6 @@ Authors:
     </Timing>
 
     <Tools>
-        <Tool action="insert" before="cfd fixed time step" type="set_scalar" name="courant ramp" in="courant" value="{{COURANT}} * min(1.0, iter / {{COURANT_RAMP_ITERS}}) + {{COURANT}} * {{COURANT_RAMP_FACTOR}} * (1.0 - min(1.0, iter / {{COURANT_RAMP_ITERS}}))"/>    
+        <Tool action="insert" before="fixed time step" type="set_scalar" name="courant ramp" in="courant" value="{{COURANT}} * min(1.0, iter / {{COURANT_RAMP_ITERS}}) + {{COURANT}} * {{COURANT_RAMP_FACTOR}} * (1.0 - min(1.0, iter / {{COURANT_RAMP_ITERS}}))"/>    
     </Tools>
 </sphInput>
