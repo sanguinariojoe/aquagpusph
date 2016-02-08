@@ -143,7 +143,7 @@ __kernel void entry(const __global int* imove,
             const float rho_j = rho[j];
 			const float m_j = m[j];
             const float p_j = p[j];
-            const float udr = dot(u[j].XYZ - u_i, r_ij);
+            const float udr = dot(umirrored[j].XYZ - u_i, r_ij);
 			const float w_ij = kernelW(q) * CONW * m_j;
             const float f_ij = kernelF(q) * CONF * m_j;
 
