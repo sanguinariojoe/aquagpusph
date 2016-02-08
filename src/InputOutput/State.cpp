@@ -459,6 +459,19 @@ bool State::parseTools(DOMElement *root, const char* prefix)
 
             tool->set("type", xmlAttribute(s_elem, "type"));
 
+            // Check if the conditions to add the tool are fulfilled
+            if(xmlHasAttribute(s_elem, "ifdef")){
+                if(!P->definitions.isDefined(xmlAttribute(s_elem, "ifdef"))){
+                    sprintf(msg,
+                            "Ignoring the tool \"%s\" because \"%s\" has not been defined.\n",
+                            tool->get("name"),
+                            xmlAttribute(s_elem, "ifdef"));
+                    S->addMessageF(2, msg);
+                    delete tool;
+                    continue;
+                }
+            }
+
             // Place the tool
             if(!xmlHasAttribute(s_elem, "action") ||
                !strcmp(xmlAttribute(s_elem, "action"), "add")){

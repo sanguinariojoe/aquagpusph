@@ -149,6 +149,18 @@ void ProblemSetup::sphDefinitions::registerDefinition(const char* name,
     evaluations.push_back(evaluate);
 }
 
+bool ProblemSetup::sphDefinitions::isDefined(const char* name)
+{
+    unsigned int i;
+    for(i = 0; i < names.size(); i++){
+        if(!strcmp(name, names.at(i))){
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void ProblemSetup::sphDefinitions::destroy()
 {
     unsigned int i;

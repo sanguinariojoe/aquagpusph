@@ -329,6 +329,11 @@ public:
                                 const char* value,
                                 const bool evaluate);
 
+        /** @brief Reports if a the required name has been already defined.
+         * @param name Name of the definition.
+         */
+        bool isDefined(const char* name);
+
         /// Remove all the stored definitions.
         void destroy();
     }definitions;
