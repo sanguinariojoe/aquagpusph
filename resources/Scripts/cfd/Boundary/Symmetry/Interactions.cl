@@ -48,7 +48,6 @@
  * During this stage some other operations are performed as well, like the
  * values interpolation in the boundaries (for DeLeffe boundary conditions),
  * the sensors meassurement, or the Shepard factor computation.
- * @param iset Set of particles index.
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
@@ -63,11 +62,9 @@
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
  * @param p Pressure \f$ p \f$.
- * @param refd Density of reference \f$ \rho_0 \f$ (one per set of particles)
  * @param grad_p Pressure gradient \f$ \frac{\nabla p}{rho} \f$.
  * @param lap_u Velocity laplacian \f$ \frac{\Delta \mathbf{u}}{rho} \f$.
  * @param div_u Velocity divergence \f$ \rho \nabla \cdot \mathbf{u} \f$.
- * @param lap_p Pressure laplacian \f$ \Delta p \f$.
  * @param shepard Shepard term
  * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
  *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{x} \f$.
@@ -75,10 +72,8 @@
  * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
  * @param n_cells Number of cells in each direction
- * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  */
-__kernel void entry(const __global uint* iset,
-                    const __global int* imove,
+__kernel void entry(const __global int* imove,
                     const __global int* imirrored,
                     const __global vec* r,
                     const __global vec* rmirrored,
@@ -87,19 +82,16 @@ __kernel void entry(const __global uint* iset,
                      const __global float* rho,
                     const __global float* m,
                     const __global float* p,
-                    __constant float* refd,
                     __global vec* grad_p,
                     __global vec* lap_u,
                     __global float* div_u,
-                    __global float* lap_p,
                     __global float* shepard,
                     // Link-list data
                     __global uint *icell,
                      __global uint *ihoc,
                     // Simulation data
                     uint N,
-                    uivec4 n_cells,
-                    vec g)
+                    uivec4 n_cells)
 {
     const uint i = get_global_id(0);
     const uint it = get_local_id(0);
@@ -112,30 +104,25 @@ __kernel void entry(const __global uint* iset,
     const vec_xyz u_i = u[i].XYZ;
     const float p_i = p[i];
     const float rho_i = rho[i];
-    const float refd_i = refd[iset[i]];
 
     // Initialize the output
     #ifndef LOCAL_MEM_SIZE
         #define _GRADP_ grad_p[i].XYZ
         #define _LAPU_ lap_u[i].XYZ
         #define _DIVU_ div_u[i]
-        #define _LAPP_ lap_p[i]
         #define _SHEPARD_ shepard[i]
     #else
         #define _GRADP_ grad_p_l[it]
         #define _LAPU_ lap_u_l[it]
         #define _DIVU_ div_u_l[it]
-        #define _LAPP_ lap_p_l[it]
         #define _SHEPARD_ shepard_l[it]
         __local vec_xyz grad_p_l[LOCAL_MEM_SIZE];
         __local vec_xyz lap_u_l[LOCAL_MEM_SIZE];
         __local float div_u_l[LOCAL_MEM_SIZE];
-        __local float lap_p_l[LOCAL_MEM_SIZE];
         __local float shepard_l[LOCAL_MEM_SIZE];
         _GRADP_ = grad_p[i].XYZ;
         _LAPU_ = lap_u[i].XYZ;
         _DIVU_ = div_u[i];
-        _LAPP_ = lap_p[i];
         _SHEPARD_ = shepard[i];
     #endif
 
@@ -172,7 +159,6 @@ __kernel void entry(const __global uint* iset,
             #endif
 
             _DIVU_ += udr * f_ij * rho_i / rho_j;
-            _LAPP_ += ((p_j - p_i) - refd_i * dot(g.XYZ, r_ij)) * f_ij / rho_j;
 			_SHEPARD_ += w_ij / rho_j;
 		}
 	}END_LOOP_OVER_NEIGHS()
@@ -181,7 +167,6 @@ __kernel void entry(const __global uint* iset,
         grad_p[i].XYZ = _GRADP_;
         lap_u[i].XYZ = _LAPU_;
         div_u[i] = _DIVU_;
-        lap_p[i] = _LAPP_;
         shepard[i] = _SHEPARD_;
     #endif
 }

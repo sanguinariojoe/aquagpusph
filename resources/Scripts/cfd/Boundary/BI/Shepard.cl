@@ -43,7 +43,6 @@
  * @param grad_p Pressure gradient \f$ \frac{\nabla p}{rho} \f$.
  * @param lap_u Velocity laplacian \f$ \frac{\Delta \mathbf{u}}{rho} \f$.
  * @param div_u Velocity divergence \f$ \rho \nabla \cdot \mathbf{u} \f$.
- * @param lap_p Pressure laplacian \f$ \Delta p \f$.
  * @param N Total number of particles and boundary elements.
  * @param cs Speed of sound \f$ c_s \f$.
  * @see Boundary/BI/Interactions.cl
@@ -53,7 +52,6 @@ __kernel void entry(const __global int* imove,
                     __global vec* grad_p,
                     __global vec* lap_u,
                     __global float* div_u,
-                    __global float* lap_p,
                     uint N,
                     float cs)
 {

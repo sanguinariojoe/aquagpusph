@@ -48,7 +48,6 @@
  * @param grad_p Pressure gradient \f$ \frac{\nabla p}{rho} \f$.
  * @param lap_u Velocity laplacian \f$ \frac{\Delta \mathbf{u}}{rho} \f$.
  * @param div_u Velocity divergence \f$ \rho \nabla \cdot \mathbf{u} \f$.
- * @param lap_p Pressure laplacian \f$ \Delta p \f$.
  * @param dudt Velocity rate of change
  * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n+1} \f$.
  * @param drhodt Density rate of change
@@ -63,7 +62,6 @@ __kernel void entry(const __global uint* iset,
                     const __global vec* grad_p,
                     const __global vec* lap_u,
                     const __global float* div_u,
-                    const __global float* lap_p,
                     __global vec* dudt,
                     __global float* drhodt,
                     __constant float* visc_dyn,

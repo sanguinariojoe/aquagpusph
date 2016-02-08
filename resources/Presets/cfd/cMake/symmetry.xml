@@ -35,9 +35,9 @@ prefix, for instance:
 
     <Tools>
         <!-- We must start mirroring particles (and marking them). -->
-        <Tool action="insert" after="cfd BI interactions,cfd BI no-slip,cfd GP interactions,cfd interactions" name="cfd symmetry mirror" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/Mirror.cl"/>
+        <Tool action="insert" after="cfd BI interactions,cfd BI no-slip,cfd GP interactions,cfd interactions,cfd lap p" name="cfd symmetry mirror" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/Mirror.cl"/>
         <!-- Now we can compute the interactions -->
-        <Tool action="insert" after_prefix="cfd symmetry mirror" type="kernel" name="cfd symmetry interactions" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/Interactions.cl"/>
-        <Tool action="insert" after_prefix="cfd symmetry interactions" type="kernel" name="cfd symmetry BI" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/BoundaryIntegrals.cl"/>
+        <Tool action="insert" after_prefix="cfd symmetry mirror" name="cfd symmetry interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/Interactions.cl"/>
+        <Tool action="insert" after_prefix="cfd symmetry interactions" name="cfd symmetry BI" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/BoundaryIntegrals.cl"/>
     </Tools>
 </sphInput>

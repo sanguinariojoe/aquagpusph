@@ -24,6 +24,10 @@ should be imposed, the delta factor (in principle 0.0 or 1.0)
         <Variable name="lap_p_corr" type="vec*" length="N" />
     </Variables>
 
+    <Definitions>
+        <Define name="__DELTA_SPH__"/>
+    </Definitions>
+
     <Tools>
         <Tool action="insert" after="Sort" name="cfd reinit lap_p" type="set" in="lap_p" value="0.f"/>
         <Tool action="insert" after="Sort" name="cfd reinit lap_p_corr" type="set" in="lap_p_corr" value="VEC_ZERO"/>
