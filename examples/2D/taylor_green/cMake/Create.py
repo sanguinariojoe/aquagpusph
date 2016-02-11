@@ -45,6 +45,7 @@ Re = 2000
 U = 1.0
 L = H = 2.0 * math.pi
 periods_to_run = 10.0
+p0 = 3.0 * refd * U**2
 # Number of fluid particles in y direction
 nx = ny = 200
 
@@ -58,6 +59,8 @@ visc_dyn = max(alpha / 8.0 * refd * hfac * dr * cs, visc_dyn)
 
 T = L / U
 end_time = periods_to_run * T
+
+Ekin = 2.0 * refd * math.pi * U**2
 
 # Particles generation
 # ====================
@@ -122,8 +125,8 @@ print('    100%')
 # =========================
 
 templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
-XML = ('BCs.xml', 'Fluids.xml', 'Main.xml', 'Rescale.cl', 'Rescale.xml',
-       'Settings.xml', 'SPH.xml', 'BCs.xml', 'Time.xml')
+XML = ('BCs.xml', 'Fluids.xml', 'Main.xml', 'plot_e.py', 'Rescale.cl',
+       'Rescale.xml', 'Settings.xml', 'SPH.xml', 'BCs.xml', 'Time.xml')
 
 domain_min = (-L, -H)
 domain_min = str(domain_min).replace('(', '').replace(')', '')
@@ -132,8 +135,8 @@ domain_max = str(domain_max).replace('(', '').replace(')', '')
 
 data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
         'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max, 'REFD':str(refd),
-        'VISC_DYN':str(visc_dyn), 'RE':str(Re), 'N':str(n), 'L':str(L),
-        'END_TIME':str(end_time)}
+        'VISC_DYN':str(visc_dyn), 'P0':str(p0), 'RE':str(Re), 'L':str(L),
+        'U':str(U), 'N':str(n), 'END_TIME':str(end_time), 'E_KIN':str(Ekin)}
 for fname in XML:
     # Read the template
     f = open(path.join(templates_path, fname), 'r')

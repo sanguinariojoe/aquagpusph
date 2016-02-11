@@ -13,6 +13,8 @@ configure_file(${EXAMPLE_ORIG_DIR}/templates/Fluids.xml
     ${EXAMPLE_DEST_DIR}/templates/Fluids.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/templates/Main.xml
     ${EXAMPLE_DEST_DIR}/templates/Main.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/templates/plot_e.py
+    ${EXAMPLE_DEST_DIR}/templates/plot_e.py @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/templates/Rescale.cl
     ${EXAMPLE_DEST_DIR}/templates/Rescale.cl @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/templates/Rescale.xml
@@ -47,6 +49,8 @@ configure_file(${EXAMPLE_ORIG_DIR}/templates/Fluids.xml
     ${EXAMPLE_AUX_DIR}/templates/Fluids.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/templates/Main.xml
     ${EXAMPLE_AUX_DIR}/templates/Main.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/templates/plot_e.py
+    ${EXAMPLE_AUX_DIR}/templates/plot_e.py @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/templates/Rescale.cl
     ${EXAMPLE_AUX_DIR}/templates/Rescale.cl @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/templates/Rescale.xml
@@ -72,6 +76,7 @@ INSTALL(
         ${EXAMPLE_AUX_DIR}/templates/BCs.xml
         ${EXAMPLE_AUX_DIR}/templates/Fluids.xml
         ${EXAMPLE_AUX_DIR}/templates/Main.xml
+        ${EXAMPLE_AUX_DIR}/templates/plot_e.py
         ${EXAMPLE_AUX_DIR}/templates/Rescale.cl
         ${EXAMPLE_AUX_DIR}/templates/Rescale.xml
         ${EXAMPLE_AUX_DIR}/templates/Settings.xml
