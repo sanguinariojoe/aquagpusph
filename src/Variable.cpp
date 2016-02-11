@@ -2642,7 +2642,7 @@ bool Variables::readComponents(const char* name,
         S->addMessage(0, msg);
     }
 
-    // Replace all the commas outside function by semicolons to be taken into
+    // Replace all the commas outside functions by semicolons, to be taken into
     // account as separators
     char* remain = new char[strlen(value) + 1];
     char* aux = new char[strlen(value) + 1];
@@ -2660,7 +2660,7 @@ bool Variables::readComponents(const char* name,
         if(remain[i] == '(')
             parenthesis_counter++;
         else if(remain[i] == ')')
-            parenthesis_counter++;
+            parenthesis_counter--;
         else if(remain[i] == ','){
             if(parenthesis_counter > 0){
                 // It is inside a function, skip it
