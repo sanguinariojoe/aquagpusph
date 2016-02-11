@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+<!--
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
+
+Another QUAlity GPU-SPH, by CEHINAV.
+    http://canal.etsin.upm.es/
+Authors:
+    Jose Luis Cercos-Pita
+    Leo Miguel Gonzalez
+    Antonio Souto-Iglesias
+-->
+
+<sphInput>
+    <Definitions>
+        <Define name="RE" value="{{RE}}" evaluate="false"/>
+    </Definitions>
+    <Tools>
+        <!-- The system energy decays, so in order to preserve the energy we
+        should rescale the pressure and the velocity fields each time step -->
+        <Tool action="insert" after="Sort" type="kernel" name="Fields rescale" path="Rescale.cl"/>
+    </Tools>
+</sphInput>
