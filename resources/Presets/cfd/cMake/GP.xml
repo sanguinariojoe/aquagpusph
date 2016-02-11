@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 
-<!-- inlet.xml
+<!-- GP.xml
 Fixed ghost particles boundary condition. Actually, this boundary condition is
 an extension of the dummy particles boundary condition, where the physical
 fields are interpolated from the fluid.
