@@ -491,7 +491,7 @@ void* save_pthread(void *data_void)
     #if VTK_MAJOR_VERSION <= 5
         data->f->SetInput(grid);
     #else // VTK_MAJOR_VERSION
-        f->SetInputData(grid);
+        data->f->SetInputData(grid);
     #endif // VTK_MAJOR_VERSION
 
     if(!data->f->Write()){
