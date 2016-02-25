@@ -54,27 +54,27 @@ Authors:
         <Tool action="insert" before="bottom_cfd portal teleport" type="set_scalar" name="bottom_portal_n" in="portal_n" value="0.0, -1.0"/>
         <Tool action="insert" before="topright_cfd portal mirror" type="set_scalar" name="topright_portal_out_r" in="portal_out_r" value="0.5*{{L}}, 0.5*{{L}}"/>
         <Tool action="insert" before="topright_cfd portal mirror" type="set_scalar" name="topright_portal_in_r" in="portal_in_r" value="-0.5*{{L}}, -0.5*{{L}}"/>
-        <Tool action="insert" before="topright_cfd portal mirror" type="set_scalar" name="topright_portal_n" in="portal_n" value="sqrt(2.0), sqrt(2.0)"/>
+        <Tool action="insert" before="topright_cfd portal mirror" type="set_scalar" name="topright_portal_n" in="portal_n" value="1.0 / sqrt(2.0), 1.0 / sqrt(2.0)"/>
         <Tool action="insert" before="topright_cfd portal teleport" type="set_scalar" name="topright_portal_out_r" in="portal_out_r" value="0.5*{{L}}, 0.5*{{L}}"/>
         <Tool action="insert" before="topright_cfd portal teleport" type="set_scalar" name="topright_portal_in_r" in="portal_in_r" value="-0.5*{{L}}, -0.5*{{L}}"/>
-        <Tool action="insert" before="topright_cfd portal teleport" type="set_scalar" name="topright_portal_n" in="portal_n" value="sqrt(2.0), sqrt(2.0)"/>
+        <Tool action="insert" before="topright_cfd portal teleport" type="set_scalar" name="topright_portal_n" in="portal_n" value="1.0 / sqrt(2.0), 1.0 / sqrt(2.0)"/>
         <Tool action="insert" before="topleft_cfd portal mirror" type="set_scalar" name="topleft_portal_out_r" in="portal_out_r" value="-0.5*{{L}}, 0.5*{{L}}"/>
         <Tool action="insert" before="topleft_cfd portal mirror" type="set_scalar" name="topleft_portal_in_r" in="portal_in_r" value="0.5*{{L}}, -0.5*{{L}}"/>
-        <Tool action="insert" before="topleft_cfd portal mirror" type="set_scalar" name="topleft_portal_n" in="portal_n" value="-sqrt(2.0), sqrt(2.0)"/>
+        <Tool action="insert" before="topleft_cfd portal mirror" type="set_scalar" name="topleft_portal_n" in="portal_n" value="-1.0 / sqrt(2.0), 1.0 / sqrt(2.0)"/>
         <Tool action="insert" before="topleft_cfd portal teleport" type="set_scalar" name="topleft_portal_out_r" in="portal_out_r" value="-0.5*{{L}}, 0.5*{{L}}"/>
         <Tool action="insert" before="topleft_cfd portal teleport" type="set_scalar" name="topleft_portal_in_r" in="portal_in_r" value="0.5*{{L}}, -0.5*{{L}}"/>
-        <Tool action="insert" before="topleft_cfd portal teleport" type="set_scalar" name="topleft_portal_n" in="portal_n" value="-sqrt(2.0), sqrt(2.0)"/>
+        <Tool action="insert" before="topleft_cfd portal teleport" type="set_scalar" name="topleft_portal_n" in="portal_n" value="-1.0 / sqrt(2.0), 1.0 / sqrt(2.0)"/>
         <Tool action="insert" before="bottomright_cfd portal mirror" type="set_scalar" name="bottomright_portal_out_r" in="portal_out_r" value="0.5*{{L}}, -0.5*{{L}}"/>
         <Tool action="insert" before="bottomright_cfd portal mirror" type="set_scalar" name="bottomright_portal_in_r" in="portal_in_r" value="-0.5*{{L}}, 0.5*{{L}}"/>
-        <Tool action="insert" before="bottomright_cfd portal mirror" type="set_scalar" name="bottomright_portal_n" in="portal_n" value="sqrt(2.0), -sqrt(2.0)"/>
+        <Tool action="insert" before="bottomright_cfd portal mirror" type="set_scalar" name="bottomright_portal_n" in="portal_n" value="1.0 / sqrt(2.0), -1.0 / sqrt(2.0)"/>
         <Tool action="insert" before="bottomright_cfd portal teleport" type="set_scalar" name="bottomright_portal_out_r" in="portal_out_r" value="0.5*{{L}}, -0.5*{{L}}"/>
         <Tool action="insert" before="bottomright_cfd portal teleport" type="set_scalar" name="bottomright_portal_in_r" in="portal_in_r" value="-0.5*{{L}}, 0.5*{{L}}"/>
-        <Tool action="insert" before="bottomright_cfd portal teleport" type="set_scalar" name="bottomright_portal_n" in="portal_n" value="sqrt(2.0), -sqrt(2.0)"/>
+        <Tool action="insert" before="bottomright_cfd portal teleport" type="set_scalar" name="bottomright_portal_n" in="portal_n" value="1.0 / sqrt(2.0), -1.0 / sqrt(2.0)"/>
         <Tool action="insert" before="bottomleft_cfd portal mirror" type="set_scalar" name="bottomleft_portal_out_r" in="portal_out_r" value="-0.5*{{L}}, -0.5*{{L}}"/>
         <Tool action="insert" before="bottomleft_cfd portal mirror" type="set_scalar" name="bottomleft_portal_in_r" in="portal_in_r" value="0.5*{{L}}, 0.5*{{L}}"/>
-        <Tool action="insert" before="bottomleft_cfd portal mirror" type="set_scalar" name="bottomleft_portal_n" in="portal_n" value="-sqrt(2.0), -sqrt(2.0)"/>
+        <Tool action="insert" before="bottomleft_cfd portal mirror" type="set_scalar" name="bottomleft_portal_n" in="portal_n" value="-1.0 / sqrt(2.0), -1.0 / sqrt(2.0)"/>
         <Tool action="insert" before="bottomleft_cfd portal teleport" type="set_scalar" name="bottomleft_portal_out_r" in="portal_out_r" value="-0.5*{{L}}, -0.5*{{L}}"/>
         <Tool action="insert" before="bottomleft_cfd portal teleport" type="set_scalar" name="bottomleft_portal_in_r" in="portal_in_r" value="0.5*{{L}}, 0.5*{{L}}"/>
-        <Tool action="insert" before="bottomleft_cfd portal teleport" type="set_scalar" name="bottomleft_portal_n" in="portal_n" value="-sqrt(2.0), -sqrt(2.0)"/>
+        <Tool action="insert" before="bottomleft_cfd portal teleport" type="set_scalar" name="bottomleft_portal_n" in="portal_n" value="-1.0 / sqrt(2.0), -1.0 / sqrt(2.0)"/>
     </Tools>
 </sphInput>
