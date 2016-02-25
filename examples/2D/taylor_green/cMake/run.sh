@@ -18,6 +18,8 @@ else
     echo ""
     echo "run.sh --run"
     echo "    Runs the simulation. You can stop simulation pressing the 'c' key"
+    echo "run.sh --plot e"
+    echo "    Plot the kinetic energy of the system"
     echo "run.sh --plot t"
     echo "    Plot the performance"
     echo ""
