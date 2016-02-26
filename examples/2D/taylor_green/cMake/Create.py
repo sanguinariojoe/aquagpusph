@@ -47,7 +47,7 @@ L = H = 2.0 * math.pi
 periods_to_run = 10.0
 p0 = 3.0 * refd * U**2
 # Number of fluid particles in y direction
-nx = ny = 200
+nx = ny = 800
 
 # Dimensions and number of particles readjustment
 # ===============================================
