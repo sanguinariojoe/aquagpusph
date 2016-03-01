@@ -45,7 +45,7 @@ refd = 1.0
 L = H = 1.0
 U = 1.0
 Re = 1000.0
-T = L / U * 50
+T = L / U * 35
 nx = ny = 100
 
 dr = L / nx
