@@ -1,6 +1,7 @@
 ADD_SUBDIRECTORY(built_in_beam)
 ADD_SUBDIRECTORY(cylinder_inside_channel)
 ADD_SUBDIRECTORY(souto_etal_2012_standingwave)
+ADD_SUBDIRECTORY(spheric_testcase3_liddriven)
 ADD_SUBDIRECTORY(spheric_testcase9_tld)
 ADD_SUBDIRECTORY(spheric_testcase10_waveimpact)
 ADD_SUBDIRECTORY(taylor_green)
