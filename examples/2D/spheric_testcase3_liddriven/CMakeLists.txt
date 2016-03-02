@@ -22,6 +22,8 @@ configure_file(${EXAMPLE_ORIG_DIR}/templates/Time.xml
 
 configure_file(${EXAMPLE_ORIG_DIR}/doc/SPHERIC_Test3_Figure2.png
     ${EXAMPLE_DEST_DIR}/doc/SPHERIC_Test3_Figure2.png @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/doc/SPHERIC_Test3_Figure3.png
+    ${EXAMPLE_DEST_DIR}/doc/SPHERIC_Test3_Figure3.png @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/plot_t.py
     ${EXAMPLE_DEST_DIR}/plot_t.py @ONLY)
 
@@ -54,6 +56,8 @@ configure_file(${EXAMPLE_ORIG_DIR}/templates/Time.xml
 
 configure_file(${EXAMPLE_ORIG_DIR}/doc/SPHERIC_Test3_Figure2.png
     ${EXAMPLE_AUX_DIR}/doc/SPHERIC_Test3_Figure2.png @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/doc/SPHERIC_Test3_Figure3.png
+    ${EXAMPLE_AUX_DIR}/doc/SPHERIC_Test3_Figure3.png @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/plot_t.py
     ${EXAMPLE_AUX_DIR}/plot_t.py @ONLY)
 
@@ -89,6 +93,7 @@ INSTALL(
 INSTALL(
     FILES
         ${EXAMPLE_AUX_DIR}/doc/SPHERIC_Test3_Figure2.png
+        ${EXAMPLE_AUX_DIR}/doc/SPHERIC_Test3_Figure3.png
     DESTINATION
         ${EXAMPLE_DEST_DIR}/doc
 )
