@@ -43,6 +43,6 @@ __kernel void entry(__global vec* u,
     if(i >= N)
         return;
 
-    u[i].XYZ *= exp(dt / RE);
-    p[i] *= exp(2.f * dt / RE);
+    u[i].XYZ += u[i].XYZ * expm1(dt / RE);
+    p[i] += p[i] * expm1(2.f * dt / RE);
 }

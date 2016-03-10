@@ -60,8 +60,6 @@ visc_dyn = max(alpha / 8.0 * refd * hfac * dr * cs, visc_dyn)
 T = L / U
 end_time = periods_to_run * T
 
-Ekin = 2.0 * refd * math.pi * U**2
-
 # Particles generation
 # ====================
 print("Opening output file...")
@@ -90,6 +88,7 @@ print(string)
 Percentage = -1
 i = 0
 imove = 1
+Ekin = 0.0
 x = -0.5 * L + 0.5 * dr
 while x < 0.5 * L:
     y = -0.5 * H + 0.5 * dr
@@ -107,6 +106,7 @@ while x < 0.5 * L:
         press = (math.cos(2.0 * x) + math.cos(2.0 * y)) / 4.0  
         dens = refd + press / cs**2
         mass = refd * dr**2.0
+        Ekin += 0.5 * mass * (u*u + v*v)
         string = ("{} {}, " * 4 + "{}, {}, {}, {}\n").format(
             x, y,
             0.0, 0.0,

@@ -108,9 +108,9 @@ class FigureController(FigureCanvas):
     def timerEvent(self, evt):
         """Custom timerEvent code, called at timer event receive"""
         # Read and plot the new data
-        data = self.readFile('Energy.dat')
+        data = self.readFile('EnergyKin.dat')
         t = data[0]
-        e = data[2]
+        e = data[1]
         for i in range(len(t)):
             t[i] /= self.T
             e[i] /= self.Ek
