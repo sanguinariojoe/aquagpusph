@@ -31,5 +31,5 @@ Authors:
     <Include file="BCs.xml" />
     <Include file="SPH.xml" />
     <Include file="Fluids.xml" />
-    <!-- Include file="Rescale.xml" / -->
+    <Include file="Rescale.xml" />
 </sphInput>
