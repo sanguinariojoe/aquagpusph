@@ -18,9 +18,6 @@ Authors:
 -->
 
 <sphInput>
-    <Definitions>
-        <Define name="RE" value="{{RE}}" evaluate="false"/>
-    </Definitions>
     <Tools>
         <!-- The system energy decays, so in order to preserve the energy we
         should rescale the pressure and the velocity fields each time step -->

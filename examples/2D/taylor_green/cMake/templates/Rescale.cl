@@ -29,13 +29,19 @@
 /** @brief Rescale the pressure and the velocity of the particles to restore
  * the energy dissipated.
  *
+ * @param iset Set of particles index.
  * @param u Velocity \f$ \mathbf{u} \f$.
  * @param p Pressure \f$ p \f$.
+ * @param visc_dyn Dynamic viscosity \f$ \mu \f$.
+ * @param refd Density of reference of the fluid \f$ \rho_0 \f$.
  * @param N Number of particles.
  * @param dt Time step \f$ \Delta t \f$.
  */
-__kernel void entry(__global vec* u,
+__kernel void entry(const __global uint* iset,
+                    __global vec* u,
                     __global float* p,
+                    __constant float* visc_dyn,
+                    __constant float* refd,
                     unsigned int N,
                     float dt)
 {
@@ -43,6 +49,8 @@ __kernel void entry(__global vec* u,
     if(i >= N)
         return;
 
-    u[i].XYZ += u[i].XYZ * expm1(dt / RE);
-    p[i] += p[i] * expm1(2.f * dt / RE);
+    const float visc_kin = visc_dyn[iset[i]] / refd[iset[i]];
+    
+    u[i].XYZ += u[i].XYZ * expm1(2.f * visc_kin * dt);
+    p[i] += p[i] * expm1(4.f * visc_kin * dt);
 }
