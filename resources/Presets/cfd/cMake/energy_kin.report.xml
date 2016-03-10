@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<sphInput>
+    <Reports>
+        <Report type="screen" name="Kinetic Energy" fields="energy_Kin;" color="blue" bold="false"/>
+        <Report type="file" name="Kinetic Energy file" fields="t, energy_Kin" path="EnergyKin.dat"/>
+    </Reports>
+</sphInput>
+ 
