@@ -71,7 +71,7 @@ class FigureController(FigureCanvas):
         self.ax.set_xlim(0, 10.0)
         self.ax.set_ylim(0.0, 1.0)
         self.ax.set_autoscale_on(False)
-        self.ax.set_xlabel(r"$t / T$", fontsize=21)
+        self.ax.set_xlabel(r"$t U / L$", fontsize=21)
         self.ax.set_ylabel(r"$\mathcal{E}_{k}(t) / \mathcal{E}_{k}(0)$", fontsize=21)
         # force the figure redraw
         self.fig.canvas.draw()
@@ -112,7 +112,7 @@ class FigureController(FigureCanvas):
         t = data[0]
         e = data[1]
         for i in range(len(t)):
-            t[i] /= self.T
+            # t[i] /= self.T
             e[i] /= self.Ek
         self.line.set_data(t, e)
         self.ax.set_xlim(0, t[-1])
