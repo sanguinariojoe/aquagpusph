@@ -44,7 +44,7 @@ alpha = 0.0
 Re = 2000
 U = 1.0
 L = H = 2.0 * math.pi
-periods_to_run = 10.0
+periods_to_run = 30.0
 p0 = 3.0 * refd * U**2
 # Number of fluid particles in y direction
 nx = ny = 800

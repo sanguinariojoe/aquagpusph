@@ -34,12 +34,12 @@ Authors:
             type="IPF" It will be updated after this value of iterations.
         You can conveniently combine several printing criterias.
         -->
-        <Option name="LogFile" type="FPS" value="120" />
+        <Option name="LogFile" type="FPS" value="10" />
         <!-- Set output files print criteria
             type="FPS" Frames per second
             type="IPF" Iterations per frame
         You can conveniently combine several printing criterias.
         -->
-        <Option name="Output" type="FPS" value="30" />
+        <Option name="Output" type="FPS" value="5" />
     </Timing>
 </sphInput>
