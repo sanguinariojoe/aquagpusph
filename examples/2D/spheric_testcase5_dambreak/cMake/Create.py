@@ -40,8 +40,8 @@ hfac = 3.0
 cs = 45.0
 courant = 0.25
 refd = 998.0
-alpha = 0.1
-delta = 0.0
+alpha = 0.0
+delta = 1.0
 visc_dyn = 0.000894
 # Tank dimensions
 h0 = 15e-2  # Reservoir water level
@@ -51,7 +51,7 @@ l1 = 955e-2  # Wetted bed length
 H = 2.0 * h0  # Total tank height
 # Stimated required number of fluid particles (taking into account just the
 # reservoir)
-n = 10000
+n = 100000
 
 # Distance between particles
 # ==========================
