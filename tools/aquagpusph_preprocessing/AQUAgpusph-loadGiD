@@ -142,19 +142,22 @@ def main():
 	print("Writing output...")
 	f        = open(args.output,"w")
 	f.write(header)
+    #                 r, n              u, dudt          rho     drhodt     mass    imove
+    #          ================   ===================   ======   =======   ======   ======
+    template = "{} {} {}, " * 2 + "0.0 0.0 0.0, " * 2 + "{}, " + "0.0, " + "{}, " + "{}\n"
 	for p in particles:
-		string = """%g %g %g %g %g %g 0.0 0.0 0.0 %g %d %g\n""" % (p[0][0], p[0][1], p[0][2],
-		                                                           p[1][0], p[1][1], p[1][2],
-		                                                           p[2],
-		                                                           1,
-		                                                           p[3])
+		string = template.format(p[0][0], p[0][1], p[0][2],
+		                         p[1][0], p[1][1], p[1][2],
+		                         p[3],
+		                         p[2],
+                                 1)
 		f.write(string)
 	for v in vertexes:
-		string = """%g %g %g %g %g %g 0.0 0.0 0.0 %g %d %g\n""" % (v[0][0], v[0][1], v[0][2],
-		                                                           v[1][0], v[1][1], v[1][2],
-		                                                           v[2],
-		                                                           -1,
-		                                                           v[3])
+		string = template.format(v[0][0], v[0][1], v[0][2],
+		                         v[1][0], v[1][1], v[1][2],
+		                         v[3],
+		                         v[2],
+		                         -3)
 		f.write(string)
 	print("OK")
 	print("\n%d particles have been generated, set it in your fluid configuration.\n" % (len(vertexes)+len(particles)))
