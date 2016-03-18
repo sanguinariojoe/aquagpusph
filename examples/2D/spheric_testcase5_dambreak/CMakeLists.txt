@@ -18,26 +18,28 @@ configure_file(${EXAMPLE_ORIG_DIR}/templates/SPH.xml
 configure_file(${EXAMPLE_ORIG_DIR}/templates/Time.xml
     ${EXAMPLE_DEST_DIR}/templates/Time.xml @ONLY)
 
-configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_1
-    ${EXAMPLE_DEST_DIR}/doc/d38_1 @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_2
-    ${EXAMPLE_DEST_DIR}/doc/d38_2 @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_3
-    ${EXAMPLE_DEST_DIR}/doc/d38_3 @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_4
-    ${EXAMPLE_DEST_DIR}/doc/d38_4 @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_5
-    ${EXAMPLE_DEST_DIR}/doc/d38_5 @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_6
-    ${EXAMPLE_DEST_DIR}/doc/d38_6 @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_7
-    ${EXAMPLE_DEST_DIR}/doc/d38_7 @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_8
-    ${EXAMPLE_DEST_DIR}/doc/d38_8 @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_1.csv
+    ${EXAMPLE_DEST_DIR}/doc/d38_1.csv @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_2.csv
+    ${EXAMPLE_DEST_DIR}/doc/d38_2.csv @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_3.csv
+    ${EXAMPLE_DEST_DIR}/doc/d38_3.csv @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_4.csv
+    ${EXAMPLE_DEST_DIR}/doc/d38_4.csv @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_5.csv
+    ${EXAMPLE_DEST_DIR}/doc/d38_5.csv @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_6.csv
+    ${EXAMPLE_DEST_DIR}/doc/d38_6.csv @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_7.csv
+    ${EXAMPLE_DEST_DIR}/doc/d38_7.csv @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_8.csv
+    ${EXAMPLE_DEST_DIR}/doc/d38_8.csv @ONLY)
 file(COPY ${EXAMPLE_ORIG_DIR}/doc/snapshots_d_38_mm.JPG
     DESTINATION ${EXAMPLE_DEST_DIR}/doc/snapshots_d_38_mm.JPG)
 configure_file(${EXAMPLE_ORIG_DIR}/plot_t.py
     ${EXAMPLE_DEST_DIR}/plot_t.py @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/paraview.pvsm
+    ${EXAMPLE_DEST_DIR}/paraview.pvsm @ONLY)
 
 configure_file(${EXAMPLE_ORIG_DIR}/Create.py
     ${EXAMPLE_DEST_DIR}/Create.py @ONLY)
@@ -64,24 +66,26 @@ configure_file(${EXAMPLE_ORIG_DIR}/templates/SPH.xml
 configure_file(${EXAMPLE_ORIG_DIR}/templates/Time.xml
     ${EXAMPLE_AUX_DIR}/templates/Time.xml @ONLY)
 
-configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_1
-    ${EXAMPLE_AUX_DIR}/doc/d38_1 @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_2
-    ${EXAMPLE_AUX_DIR}/doc/d38_2 @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_3
-    ${EXAMPLE_AUX_DIR}/doc/d38_3 @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_4
-    ${EXAMPLE_AUX_DIR}/doc/d38_4 @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_5
-    ${EXAMPLE_AUX_DIR}/doc/d38_5 @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_6
-    ${EXAMPLE_AUX_DIR}/doc/d38_6 @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_7
-    ${EXAMPLE_AUX_DIR}/doc/d38_7 @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_8
+configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_1.csv
+    ${EXAMPLE_AUX_DIR}/doc/d38_1.csv @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_2.csv
+    ${EXAMPLE_AUX_DIR}/doc/d38_2.csv @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_3.csv
+    ${EXAMPLE_AUX_DIR}/doc/d38_3.csv @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_4.csv
+    ${EXAMPLE_AUX_DIR}/doc/d38_4.csv @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_5.csv
+    ${EXAMPLE_AUX_DIR}/doc/d38_5.csv @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_6.csv
+    ${EXAMPLE_AUX_DIR}/doc/d38_6.csv @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_7.csv
+    ${EXAMPLE_AUX_DIR}/doc/d38_7.csv @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_8.csv
     ${EXAMPLE_AUX_DIR}/doc/d38_8 @ONLY)
 file(COPY ${EXAMPLE_ORIG_DIR}/doc/snapshots_d_38_mm.JPG
     DESTINATION ${EXAMPLE_AUX_DIR}/doc/snapshots_d_38_mm.JPG)
+configure_file(${EXAMPLE_ORIG_DIR}/paraview.pvsm
+    ${EXAMPLE_AUX_DIR}/paraview.pvsm @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/plot_t.py
     ${EXAMPLE_AUX_DIR}/plot_t.py @ONLY)
 
@@ -106,6 +110,7 @@ INSTALL(
         ${EXAMPLE_AUX_DIR}/Create.py
         ${EXAMPLE_AUX_DIR}/snapshots_d_38_mm.JPG
         ${EXAMPLE_AUX_DIR}/plot_t.py
+        ${EXAMPLE_AUX_DIR}/paraview.pvsm
         ${EXAMPLE_AUX_DIR}/run.sh
     DESTINATION
         ${EXAMPLE_DEST_DIR}
@@ -115,14 +120,14 @@ INSTALL(
 )
 INSTALL(
     FILES
-        ${EXAMPLE_AUX_DIR}/doc/d38_1
-        ${EXAMPLE_AUX_DIR}/doc/d38_2
-        ${EXAMPLE_AUX_DIR}/doc/d38_3
-        ${EXAMPLE_AUX_DIR}/doc/d38_4
-        ${EXAMPLE_AUX_DIR}/doc/d38_5
-        ${EXAMPLE_AUX_DIR}/doc/d38_6
-        ${EXAMPLE_AUX_DIR}/doc/d38_7
-        ${EXAMPLE_AUX_DIR}/doc/d38_8
+        ${EXAMPLE_AUX_DIR}/doc/d38_1.csv
+        ${EXAMPLE_AUX_DIR}/doc/d38_2.csv
+        ${EXAMPLE_AUX_DIR}/doc/d38_3.csv
+        ${EXAMPLE_AUX_DIR}/doc/d38_4.csv
+        ${EXAMPLE_AUX_DIR}/doc/d38_5.csv
+        ${EXAMPLE_AUX_DIR}/doc/d38_6.csv
+        ${EXAMPLE_AUX_DIR}/doc/d38_7.csv
+        ${EXAMPLE_AUX_DIR}/doc/d38_8.csv
         ${EXAMPLE_AUX_DIR}/doc/snapshots_d_38_mm.JPG
     DESTINATION
         ${EXAMPLE_DEST_DIR}/doc
