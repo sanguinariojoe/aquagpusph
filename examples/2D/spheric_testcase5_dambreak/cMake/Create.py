@@ -51,7 +51,7 @@ l1 = 955e-2  # Wetted bed length
 H = 2.0 * h0  # Total tank height
 # Stimated required number of fluid particles (taking into account just the
 # reservoir)
-n = 100000
+n = 50000
 
 # Distance between particles
 # ==========================
