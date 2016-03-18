@@ -29,7 +29,7 @@ Authors:
             type="Time" Simulation ends after simulate some seconds
         You can conveniently combine several stop criterias.
         -->
-        <Option name="End" type="Time" value="1.0" />
+        <Option name="End" type="Time" value="0.6" />
 
         <!-- Set the log file printing criteria. Log file contains relevant
         data about the AQUAgpusph execution, i.e.- Warnings, errors, or
@@ -44,6 +44,6 @@ Authors:
             type="IPF" Iterations per frame
         You can conveniently combine several printing criterias.
         -->
-        <Option name="Output" type="FPS" value="100" />
+        <Option name="Output" type="FPS" value="16" />
     </Timing>
 </sphInput>
