@@ -141,9 +141,9 @@ def main():
 	print("Writing output...")
 	f        = open(args.output,"w")
 	f.write(header)
-    #                 r, n              u, dudt          rho     drhodt     mass    imove
-    #          ================   ===================   ======   =======   ======   ======
-    template = "{} {} {}, " * 2 + "0.0 0.0 0.0, " * 2 + "{}, " + "0.0, " + "{}, " + "{}\n"
+    #                  r, n                   u, dudt            rho     drhodt     mass    imove
+    #          ====================   =======================   ======   =======   ======   ======
+    template = "{} {} {} 0.0, " * 2 + "0.0 0.0 0.0 0.0, " * 2 + "{}, " + "0.0, " + "{}, " + "{}\n"
 	for p in particles:
 		string = template.format(p[0][0], p[0][1], p[0][2],
 		                         p[1][0], p[1][1], p[1][2],
