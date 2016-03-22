@@ -30,7 +30,7 @@
 #******************************************************************************
 
 from numpy import *
-from vec import *
+from .vec import *
 from sys import stdout
 
 def perform(faces, level, dr, refd, cs, gamma, g):
