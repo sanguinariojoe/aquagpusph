@@ -34,10 +34,10 @@ import sys
 import argparse
 from argparse import ArgumentParser
 try:
-    from mesh_loader import GiD
+    from mesh_loader import Abaqus
     from generator import solid, fluid
 except:
-    from aquagpusph_preprocessing.mesh_loader import GiD
+    from aquagpusph_preprocessing.mesh_loader import Abaqus
     from aquagpusph_preprocessing.generator import solid, fluid
 
 
@@ -74,7 +74,7 @@ header = """#############################################################
 #############################################################
 """
 
-description = """Set boundary vertexes and fluid particles into the provided 3D GiD surface mesh.
+description = """Set boundary vertexes and fluid particles into the provided 3D Abaqus surface mesh.
 This tool will set the boundary, usable with Simple or Ferrand boundary
 conditions (and eventually with Ghost particles), placing vertexes over the
 elements of the provided mesh, and the fluid included into it.
