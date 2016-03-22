@@ -32,8 +32,8 @@
 from numpy import *
 
 def length(v):
-	""" Get vector length.
-	@param v Vector
-	@return length
-	"""
-	return sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])
+    """ Get vector length.
+    @param v Vector
+    @return length
+    """
+    return sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])
