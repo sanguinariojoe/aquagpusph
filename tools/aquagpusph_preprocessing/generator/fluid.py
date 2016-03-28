@@ -30,7 +30,7 @@
 #******************************************************************************
 
 from numpy import *
-from vec import *
+from .vec import *
 import sys
 from sys import stdout
 import os

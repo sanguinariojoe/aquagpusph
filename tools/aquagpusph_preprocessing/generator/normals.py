@@ -29,11 +29,49 @@
 #                                                                             *
 #******************************************************************************
 
-from numpy import *
+import numpy as np
+from fluid import intersections, isPointInSolid
 
-def length(v):
-    """ Get vector length.
-    @param v Vector
-    @return length
+
+def is_odd(num):
+   return num % 2 != 0
+
+
+def recompute_normals(faces):
+    """Recompute the normals to assert they are outward oriented.
+
+    Position arguments:
+    faces -- List of faces. The faces will be overwritten, the user is
+    responsible to make a copy before calling this method in case the original
+    normals should be preserved.
+
+    Returned value:
+    List of faces with the normals recomputed.
     """
-    return sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])
+    for i,face in enumerate(faces):
+        p = np.sum(face[0:len(face) - 1], axis=0) / 4.0
+        n = face[-1]
+        # Get the intersections relative to the face center
+        points = np.add(np.asarray(intersections(faces, p, n)), -p)
+        # Get the votes
+        dists = np.dot(points, n)
+        try:
+            noswap = len(np.unique(dists[np.where(dists > 0.001)]))
+        except TypeError:
+            noswap = 0
+        try:
+            swap = len(np.unique(dists[np.where(dists < -0.001)]))
+        except TypeError:
+            swap = 0
+        # Check for errors
+        if is_odd(noswap) and is_odd(swap):
+            print("ERROR: Odd number of intersections found at both directions of the face {}".format(i))
+            continue
+        if (not is_odd(noswap)) and (not is_odd(swap)):
+            print("ERROR: Even number of intersections found at both directions of the face {}".format(i))
+            continue
+        # Swap the normal if required
+        if not is_odd(swap):
+            print("Changing normal orientation of the face {}".format(i))
+            faces[i][4] *= -1.0
+    return faces

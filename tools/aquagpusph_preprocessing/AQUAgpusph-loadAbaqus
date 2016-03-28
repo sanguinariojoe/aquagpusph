@@ -34,11 +34,11 @@ import sys
 import argparse
 from argparse import ArgumentParser
 try:
-    from mesh_loader import GiD
-    from generator import solid, fluid
+    from mesh_loader import Abaqus
+    from generator import solid, fluid, normals
 except:
-    from aquagpusph_preprocessing.mesh_loader import GiD
-    from aquagpusph_preprocessing.generator import solid, fluid
+    from aquagpusph_preprocessing.mesh_loader import Abaqus
+    from aquagpusph_preprocessing.generator import solid, fluid, normals
 
 
 header = """#############################################################
@@ -74,7 +74,7 @@ header = """#############################################################
 #############################################################
 """
 
-description = """Set boundary vertexes and fluid particles into the provided 3D GiD surface mesh.
+description = """Set boundary vertexes and fluid particles into the provided 3D Abaqus surface mesh.
 This tool will set the boundary, usable with Simple or Ferrand boundary
 conditions (and eventually with Ghost particles), placing vertexes over the
 elements of the provided mesh, and the fluid included into it.
@@ -84,82 +84,97 @@ faces normals will be computed from the points data as the cross product of diag
 version     = "%prog 1.0"
 
 def main():
-	parser = ArgumentParser(description=description,
-	                        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-	parser.add_argument('-v', '--version', action='version', version=version)
-	parser.add_argument('meshfile', metavar='FILE', type=str, nargs=1,
+    parser = ArgumentParser(description=description,
+                            formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('-v', '--version', action='version', version=version)
+    parser.add_argument('meshfile', metavar='FILE', type=str, nargs=1,
                             help='GiD quadrangular elements mesh')
-	parser.add_argument('--level', metavar='VALUE', type=float,
+    parser.add_argument('--level', metavar='VALUE', type=float,
                             dest='level', required=True,
                             help="""Level of fluid to set, in absolute coordinates, meaning that
                             the solid will be filled with fluid till this z coordinate in meters,
                             even though the minimum z coordinate is not the origin.""")
-	parser.add_argument('--deltar', metavar='VALUE', type=float,
+    parser.add_argument('--deltar', metavar='VALUE', type=float,
                             dest='dr', required=True,
                             help="""Preferred distance between particles. The distance between
                             particles can be modified in order to fit them as better as possible
                             on the mesh, reflecting the new distance on the particle mass""")
-	parser.add_argument('--refd', metavar='VALUE', type=float,
+    parser.add_argument('--refd', metavar='VALUE', type=float,
                             dest='refd', default=1000.0,
                             help="""Fluid density.""")                            
-	parser.add_argument('--sound-speed', metavar='VALUE', type=float,
+    parser.add_argument('--sound-speed', metavar='VALUE', type=float,
                             dest='cs', default=15.0,
                             help="""Sound speed. This value is needed for compressibility,
                             and must match with the selected one on the SPH settings.
                             Sound speed must be, at least, 10 times the
                             maximum expected value, but be mindful that increasing
                             this value the time step may decrease""")                            
-	parser.add_argument('--gamma', metavar='VALUE', type=float,
+    parser.add_argument('--gamma', metavar='VALUE', type=float,
                             dest='gamma', default=7.0,
                             help="""Batchelor's 67 state equation gamma factor. In weakly
                             compressible SPH branch the density and the pressure are related
                             by a state equation, that in AQUAgpusph is the Batchelor's 67
                             one. Increasing gamma factor compressibility high incompressible
                             fluid will get. For water recommended value is 7.0""")
-	parser.add_argument('--gravity', metavar='VALUE', type=float,
+    parser.add_argument('--gravity', metavar='VALUE', type=float,
                             dest='g', default=9.81,
                             help="""Gravity value. Gravity vector is assumed oriented 
                             on negative Z axis. Gravity is used to compute the hydrostatic
                             pressure, and set density according""")
-	parser.add_argument('-o', '--output', metavar='FILE', type=str,
+    recompute_normals_parser = parser.add_mutually_exclusive_group(required=False)
+    recompute_normals_parser.add_argument('--recompute_normals',
+                                          dest='recompute_normals',
+                                          action='store_true',
+                                          help="""Recompute the normals to grant they are outward oriented""")
+    recompute_normals_parser.add_argument('--no-recompute_normals',
+                                          dest='recompute_normals',
+                                          action='store_false',
+                                          help="""Use the normals provided in the input mesh file""")
+    parser.set_defaults(recompute_normals=True)
+    parser.add_argument('-o', '--output', metavar='FILE', type=str,
                             dest='output', default='Particles.dat',
                             help='ASCII output particles file')
-	args     = parser.parse_args()
-	# ------------------------------------------------------------
-	print("Loading mesh...")
-	faces     = Abaqus.loadQuadMesh(args.meshfile[-1])
-	print("OK")
-	# ------------------------------------------------------------
-	print("Creating vertexes over the solid surface...")
-	vertexes  = solid.perform(faces, args.level, args.dr, args.refd, args.cs, args.gamma, args.g)
-	print("OK")
-	# ------------------------------------------------------------
-	print("Creating fluid particles inside the solid...")
-	particles = fluid.perform(faces, args.level, args.dr, args.refd, args.cs, args.gamma, args.g)
-	print("OK")
-	# ------------------------------------------------------------
-	print("Writing output...")
-	f        = open(args.output,"w")
-	f.write(header)
-	for p in particles:
-		string = """%g %g %g %g %g %g 0.0 0.0 0.0 %g %d %g\n""" % (p[0][0], p[0][1], p[0][2],
-		                                                           p[1][0], p[1][1], p[1][2],
-		                                                           p[2],
-		                                                           1,
-		                                                           p[3])
-		f.write(string)
-	for v in vertexes:
-		string = """%g %g %g %g %g %g 0.0 0.0 0.0 %g %d %g\n""" % (v[0][0], v[0][1], v[0][2],
-		                                                           v[1][0], v[1][1], v[1][2],
-		                                                           v[2],
-		                                                           -1,
-		                                                           v[3])
-		f.write(string)
-	print("OK")
-	print("\n%d particles have been generated, set it in your fluid configuration.\n" % (len(vertexes)+len(particles)))
+    args     = parser.parse_args()
+    # ------------------------------------------------------------
+    print("Loading mesh...")
+    faces     = Abaqus.loadQuadMesh(args.meshfile[-1])
+    print("OK")
+    if args.recompute_normals:
+        faces = normals.recompute_normals(faces)
+    # ------------------------------------------------------------
+    print("Creating vertexes over the solid surface...")
+    vertexes  = solid.perform(faces, args.level, args.dr, args.refd, args.cs, args.gamma, args.g)
+    print("OK")
+    # ------------------------------------------------------------
+    print("Creating fluid particles inside the solid...")
+    particles = fluid.perform(faces, args.level, args.dr, args.refd, args.cs, args.gamma, args.g)
+    print("OK")
+    # ------------------------------------------------------------
+    print("Writing output...")
+    f        = open(args.output,"w")
+    f.write(header)
+    #                  r, n                   u, dudt            rho     drhodt     mass    imove
+    #          ====================   =======================   ======   =======   ======   ======
+    template = "{} {} {} 0.0, " * 2 + "0.0 0.0 0.0 0.0, " * 2 + "{}, " + "0.0, " + "{}, " + "{}\n"
+    for p in particles:
+        string = template.format(p[0][0], p[0][1], p[0][2],
+                                 p[1][0], p[1][1], p[1][2],
+                                 p[3],
+                                 p[2],
+                                 1)
+        f.write(string)
+    for v in vertexes:
+        string = template.format(v[0][0], v[0][1], v[0][2],
+                                 v[1][0], v[1][1], v[1][2],
+                                 v[3],
+                                 v[2],
+                                 -3)
+        f.write(string)
+    print("OK")
+    print("\n%d particles have been generated, set it in your fluid configuration.\n" % (len(vertexes)+len(particles)))
 
 if __name__ == "__main__":
-	main()
+    main()
 
 
 
