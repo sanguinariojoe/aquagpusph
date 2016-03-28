@@ -35,10 +35,10 @@ import argparse
 from argparse import ArgumentParser
 try:
     from mesh_loader import GiD
-    from generator import solid, fluid
+    from generator import solid, fluid, normals
 except:
     from aquagpusph_preprocessing.mesh_loader import GiD
-    from aquagpusph_preprocessing.generator import solid, fluid
+    from aquagpusph_preprocessing.generator import solid, fluid, normals
 
 
 header = """#############################################################
@@ -122,6 +122,9 @@ def main():
                             help="""Gravity value. Gravity vector is assumed oriented 
                             on negative Z axis. Gravity is used to compute the hydrostatic
                             pressure, and set density according""")
+    parser.add_argument('--recompute_normals', metavar='VALUE', type=bool,
+                            dest='recompute_normals', default=True,
+                            help="""Recompute the normals to grant they are outward oriented""")
     parser.add_argument('-o', '--output', metavar='FILE', type=str,
                             dest='output', default='Particles.dat',
                             help='ASCII output particles file')
@@ -130,6 +133,8 @@ def main():
     print("Loading mesh...")
     faces     = GiD.loadQuadMesh(args.meshfile[-1])
     print("OK")
+    if args.recompute_normals:
+        faces = normals.recompute_normals(faces)
     # ------------------------------------------------------------
     print("Creating vertexes over the solid surface...")
     vertexes  = solid.perform(faces, args.level, args.dr, args.refd, args.cs, args.gamma, args.g)
