@@ -122,12 +122,19 @@ def main():
                             help="""Gravity value. Gravity vector is assumed oriented 
                             on negative Z axis. Gravity is used to compute the hydrostatic
                             pressure, and set density according""")
-    parser.add_argument('--recompute_normals', metavar='VALUE', type=bool,
-                            dest='recompute_normals', default=True,
-                            help="""Recompute the normals to grant they are outward oriented""")
+    recompute_normals_parser = parser.add_mutually_exclusive_group(required=False)
+    recompute_normals_parser.add_argument('--recompute_normals',
+                                          dest='recompute_normals',
+                                          action='store_true',
+                                          help="""Recompute the normals to grant they are outward oriented""")
+    recompute_normals_parser.add_argument('--no-recompute_normals',
+                                          dest='recompute_normals',
+                                          action='store_false',
+                                          help="""Use the normals provided in the input mesh file""")
+    parser.set_defaults(recompute_normals=True)
     parser.add_argument('-o', '--output', metavar='FILE', type=str,
-                            dest='output', default='Particles.dat',
-                            help='ASCII output particles file')
+                        dest='output', default='Particles.dat',
+                        help='ASCII output particles file')
     args     = parser.parse_args()
     # ------------------------------------------------------------
     print("Loading mesh...")
