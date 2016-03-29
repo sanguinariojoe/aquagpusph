@@ -109,13 +109,6 @@ def main():
                             Sound speed must be, at least, 10 times the
                             maximum expected value, but be mindful that increasing
                             this value the time step may decrease""")                            
-    parser.add_argument('--gamma', metavar='VALUE', type=float,
-                            dest='gamma', default=7.0,
-                            help="""Batchelor's 67 state equation gamma factor. In weakly
-                            compressible SPH branch the density and the pressure are related
-                            by a state equation, that in AQUAgpusph is the Batchelor's 67
-                            one. Increasing gamma factor compressibility high incompressible
-                            fluid will get. For water recommended value is 7.0""")
     parser.add_argument('--gravity', metavar='VALUE', type=float,
                             dest='g', default=9.81,
                             help="""Gravity value. Gravity vector is assumed oriented 
@@ -143,11 +136,11 @@ def main():
         faces = normals.recompute_normals(faces)
     # ------------------------------------------------------------
     print("Creating vertexes over the solid surface...")
-    vertexes  = solid.perform(faces, args.level, args.dr, args.refd, args.cs, args.gamma, args.g)
+    vertexes  = solid.perform(faces, args.level, args.dr, args.refd, args.cs, args.g)
     print("OK")
     # ------------------------------------------------------------
     print("Creating fluid particles inside the solid...")
-    particles = fluid.perform(faces, args.level, args.dr, args.refd, args.cs, args.gamma, args.g)
+    particles = fluid.perform(faces, args.level, args.dr, args.refd, args.cs, args.g)
     print("OK")
     # ------------------------------------------------------------
     print("Writing output...")

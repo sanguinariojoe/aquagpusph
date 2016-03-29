@@ -33,19 +33,17 @@ from numpy import *
 from .vec import *
 from sys import stdout
 
-def perform(faces, level, dr, refd, cs, gamma, g):
+def perform(faces, level, dr, refd, cs, g):
     """ Create solid particles
     @param faces Faces defined by 4 points and a normal
     @param level Fluid level
     @param dr Distance between particles
     @param refd Fluid density
     @param cs Sound speed
-    @param gamma Batchelor's 67 compressibility factor
     @param g Gravity acceleration
     @return Boundary vertexes
     """
     parts      = []
-    prb        = cs*cs*refd/gamma
     percentage = 0
     idf        = 0
     stdout.write("%d%%..." % (percentage))
@@ -90,7 +88,7 @@ def perform(faces, level, dr, refd, cs, gamma, g):
                 # Compute density from hidrostatic
                 if point[2] <= level:
                     press = refd*g*(level-point[2])
-                    dens  = pow( press/prb + 1.0, 1.0/gamma )*refd
+                    dens = refd + press / cs**2
                 else:
                     dens  = refd
                 # Append the area element

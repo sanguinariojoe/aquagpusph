@@ -308,7 +308,7 @@ def filterFacesX(x,dx,faces):
             filtered.append(f)
     return filtered
 
-def zThread(q, z, dz, bbox, faces, level, dr, refd, cs, gamma, g):
+def zThread(q, z, dz, bbox, faces, level, dr, refd, cs, g):
     """ Creates the particles for a desired z level
     @param q Queue to use to set the particles
     @param z z coordinate to fill with particles
@@ -319,11 +319,9 @@ def zThread(q, z, dz, bbox, faces, level, dr, refd, cs, gamma, g):
     @param dr Distance between particles
     @param refd Fluid density
     @param cs Sound speed
-    @param gamma Batchelor's 67 compressibility factor
     @param g Gravity acceleration
     """
     parts = []
-    prb   = cs*cs*refd/gamma
     # To reduce the computational requirements we are filtering the faces used
     # to compute this z level
     facesZ = filterFacesZ(z,dz,faces)
@@ -390,23 +388,22 @@ def zThread(q, z, dz, bbox, faces, level, dr, refd, cs, gamma, g):
                 # point = fixSolidEffect(facesY, point, 0.5*pdr)
                 if point == None:
                     continue
-                press    = refd*g*(level-z)
-                dens     = pow( press/prb + 1.0, 1.0/gamma )*refd
-                mass     = dens * vol
+                press = refd * g * (level-z)
+                dens = refd + press / cs**2
+                mass = dens * vol
                 # Append the new particle
                 parts.append([point,normal,mass,dens,cs])
             j = j+2
         y = y + dy
     q.put(parts)
 
-def perform(faces, level, dr, refd, cs, gamma, g):
+def perform(faces, level, dr, refd, cs, g):
     """ Create fluid particles
     @param faces Faces defined by 4 points and a normal
     @param level Fluid level
     @param dr Distance between particles
     @param refd Fluid density
     @param cs Sound speed
-    @param gamma Batchelor's 67 compressibility factor
     @param g Gravity acceleration
     @return Fluid particles
     """
@@ -457,7 +454,7 @@ def perform(faces, level, dr, refd, cs, gamma, g):
             if( q[i] != None and p[i] != None ):
                 continue
             q[i] = Queue()
-            p[i] = Process(target=zThread, args=(q[i],z,dz,bbox,faces,level,dr,refd,cs,gamma,g))
+            p[i] = Process(target=zThread, args=(q[i],z,dz,bbox,faces,level,dr,refd,cs,g))
             p[i].start()
             nValidCores = nValidCores + 1
             z = z + dz
