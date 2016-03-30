@@ -69,7 +69,7 @@ class FigureController(FigureCanvas):
         self.Ek = {{E_KIN}}
         self.ax.grid()
         self.ax.set_xlim(0, 10.0)
-        self.ax.set_ylim(0.0, 1.0)
+        self.ax.set_ylim(0.0, 1.1)
         self.ax.set_autoscale_on(False)
         self.ax.set_xlabel(r"$t U / L$", fontsize=21)
         self.ax.set_ylabel(r"$\mathcal{E}_{k}(t) / \mathcal{E}_{k}(0)$", fontsize=21)
