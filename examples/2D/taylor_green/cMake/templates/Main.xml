@@ -22,6 +22,10 @@ Authors:
     <Include file="@RESOURCES_DIR@/Presets/basic.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/domain.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd.xml" />
+    <!-- Morris laplacian formulations works fine without free surfaces -->
+    <Definitions>
+        <Define name="__LAP_FORMULATION__" value="__LAP_MORRIS__" evaluate="false"/>
+    </Definitions>
     <Include file="@RESOURCES_DIR@/Presets/cfd/energy_kin.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/timing.report.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/performance.report.xml" />
