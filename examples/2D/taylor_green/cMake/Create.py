@@ -38,7 +38,7 @@ import math
 
 hfac = 4.0
 cs = 50.0
-courant = 0.2
+courant = 0.1
 refd = 1.0
 alpha = 0.0
 Re = 2000
