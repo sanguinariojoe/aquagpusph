@@ -94,7 +94,7 @@ class FigureController(FigureCanvas):
         # Set some options
         for ax in (self.ax_em, self.ax_ec, self.ax_es):
             ax.grid()
-            ax.legend(loc='upper right')
+            ax.legend(loc='lower left')
             ax.set_xlim(0, 1.0)
             ax.set_ylim(-1.0, 1.0)
             ax.set_autoscale_on(False)
