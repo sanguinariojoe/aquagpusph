@@ -61,9 +61,6 @@
  * @param u Velocity \f$ \mathbf{u} \f$.
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
- * @param shepard Shepard term
- * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
- *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{x} \f$.
  * @param visc_dyn Dynamic viscosity \f$ \mu \f$.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
@@ -83,12 +80,9 @@ __kernel void entry(const __global uint* iset,
                     const __global vec* u,
                     const __global float* rho,
                     const __global float* m,
-                    const __global float* shepard,
                      __constant float* visc_dyn,
-                    // Link-list data
                     const __global uint *icell,
                     const __global uint *ihoc,
-                    // Simulation data
                     uint N,
                     uivec4 n_cells,
                     float dr,
@@ -109,13 +103,7 @@ __kernel void entry(const __global uint* iset,
     const vec_xyz n_i = normal[i].XYZ;
     const vec_xyz u_i = u[i].XYZ;
     const float area_i = m[i];
-    const float shepard_i = shepard[i];
     const float visc_dyn_i = visc_dyn[iset[i]];
-
-    if(shepard_i < 1.0E-6f){
-        viscousForces_f[i] = VEC_ZERO;
-        viscousForces_m[i] = (vec4)(0.f, 0.f, 0.f, 0.f);
-    }
 
     // Initialize the output
     #ifndef LOCAL_MEM_SIZE
@@ -142,18 +130,23 @@ __kernel void entry(const __global uint* iset,
         {
             const float rho_j = rho[j];
             const float m_j = m[j];
-
-            const float dr_n = max(fabs(dot(r_ij, n_i)), dr);
             const vec_xyz du = u[j].XYZ - u_i;
-            const vec_xyz du_t = du - dot(du, n_i) * n_i;
-
             const float w_ij = kernelW(q) * CONW * area_i;
 
-            _F_ += 2.f * m_j * w_ij / (rho_j * dr_n) * du_t;
+            #if __LAP_FORMULATION__ == __LAP_MONAGHAN__
+                const float r2 = (q * q + 0.01f) * H * H;
+                _F_ += __CLEARY__ * m_j * w_ij * dot(du, r_ij) / (r2 * rho_j * gamma_j) * n_i;
+            #endif
+            #if __LAP_FORMULATION__ == __LAP_MORRIS__ || \
+                __LAP_FORMULATION__ == __LAP_MONAGHAN__
+                const float dr_n = max(fabs(dot(r_ij, n_i)), dr);
+                const vec_xyz du_t = du - dot(du, n_i) * n_i;
+                _F_ += 2.f * m_j * w_ij / (rho_j * dr_n) * du_t;
+            #endif
         }
     }END_LOOP_OVER_NEIGHS()
 
-    _F_ *= visc_dyn_i / shepard_i;
+    _F_ *= visc_dyn_i;
 
     #ifdef LOCAL_MEM_SIZE
         viscousForces_f[i].XYZ = _F_;
