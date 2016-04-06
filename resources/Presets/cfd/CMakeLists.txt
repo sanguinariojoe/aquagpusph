@@ -43,6 +43,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/energy_kin.xml
     ${CMAKE_CURRENT_BINARY_DIR}/energy_kin.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/fluidEnergy.xml
     ${CMAKE_CURRENT_BINARY_DIR}/fluidEnergy.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/power.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/power.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/forces.xml
     ${CMAKE_CURRENT_BINARY_DIR}/forces.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/pressureForces.xml
@@ -53,6 +55,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/motion.xml
     ${CMAKE_CURRENT_BINARY_DIR}/motion.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/energy.report.xml
     ${CMAKE_CURRENT_BINARY_DIR}/energy.report.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/power.report.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/power.report.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/energy_kin.report.xml
     ${CMAKE_CURRENT_BINARY_DIR}/energy_kin.report.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/forces.report.xml
@@ -100,6 +104,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/variableTimeStep.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/variableTimeStep.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/energy.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/energy.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/power.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/power.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/energy_kin.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/energy_kin.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/fluidEnergy.xml
@@ -114,6 +120,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/motion.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/motion.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/energy.report.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/energy.report.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/power.report.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/power.report.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/energy_kin.report.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/energy_kin.report.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/forces.report.xml
@@ -148,6 +156,7 @@ SET(RESOURCES_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/pressureForces.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/viscousForces.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/energy.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/power.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/energy_kin.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/fluidEnergy.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/motion.xml
