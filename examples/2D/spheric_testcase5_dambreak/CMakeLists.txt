@@ -35,7 +35,7 @@ configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_7.csv
 configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_8.csv
     ${EXAMPLE_DEST_DIR}/doc/d38_8.csv @ONLY)
 file(COPY ${EXAMPLE_ORIG_DIR}/doc/snapshots_d_38_mm.JPG
-    DESTINATION ${EXAMPLE_DEST_DIR}/doc/snapshots_d_38_mm.JPG)
+    DESTINATION ${EXAMPLE_DEST_DIR}/doc/)
 configure_file(${EXAMPLE_ORIG_DIR}/plot_t.py
     ${EXAMPLE_DEST_DIR}/plot_t.py @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/paraview.pvsm
@@ -83,7 +83,7 @@ configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_7.csv
 configure_file(${EXAMPLE_ORIG_DIR}/doc/d38_8.csv
     ${EXAMPLE_AUX_DIR}/doc/d38_8 @ONLY)
 file(COPY ${EXAMPLE_ORIG_DIR}/doc/snapshots_d_38_mm.JPG
-    DESTINATION ${EXAMPLE_AUX_DIR}/doc/snapshots_d_38_mm.JPG)
+    DESTINATION ${EXAMPLE_AUX_DIR}/doc/)
 configure_file(${EXAMPLE_ORIG_DIR}/paraview.pvsm
     ${EXAMPLE_AUX_DIR}/paraview.pvsm @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/plot_t.py
