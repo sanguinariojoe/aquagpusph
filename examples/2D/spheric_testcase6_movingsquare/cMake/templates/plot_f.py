@@ -152,6 +152,6 @@ class FigureController(FigureCanvas):
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     widget = FigureController()
-    widget.setWindowTitle("Lift and drag coefficients")
+    widget.setWindowTitle("Drag coefficient")
     widget.show()
     sys.exit(app.exec_())
