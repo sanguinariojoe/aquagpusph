@@ -39,6 +39,8 @@ configure_file(${EXAMPLE_ORIG_DIR}/Create.py
     ${EXAMPLE_DEST_DIR}/Create.py @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/Motion.py
     ${EXAMPLE_DEST_DIR}/Motion.py @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/plot_e.py
+    ${EXAMPLE_DEST_DIR}/plot_e.py @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/plot_t.py
     ${EXAMPLE_DEST_DIR}/plot_t.py @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/run.sh
@@ -84,6 +86,8 @@ configure_file(${EXAMPLE_ORIG_DIR}/Create.py
     ${EXAMPLE_AUX_DIR}/Create.py @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/Motion.py
     ${EXAMPLE_AUX_DIR}/Motion.py @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/plot_e.py
+    ${EXAMPLE_AUX_DIR}/plot_e.py @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/plot_t.py
     ${EXAMPLE_AUX_DIR}/plot_t.py @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/run.sh
@@ -109,6 +113,7 @@ INSTALL(
     FILES
         ${EXAMPLE_AUX_DIR}/Create.py
         ${EXAMPLE_AUX_DIR}/Motion.py
+        ${EXAMPLE_AUX_DIR}/plot_e.py
         ${EXAMPLE_AUX_DIR}/plot_t.py
         ${EXAMPLE_AUX_DIR}/run.sh
     DESTINATION

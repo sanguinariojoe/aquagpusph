@@ -49,15 +49,6 @@ except:
     raise ImportError("matplotlib is required to use this tool")
 
 
-# Input data from the case generation script
-rho = {{REFD}}
-D = {{D}}
-U = {{U}}
-# Coefficients adimensionalization factor
-COEFF_FAC = 1.0 / (0.5 * rho * D * U**2)
-TIME_FAC = 1
-
-
 class FigureController(FigureCanvas):
     """Matplotlib figure widget controller"""
 
@@ -65,32 +56,50 @@ class FigureController(FigureCanvas):
         """Constructor"""
         # Create the figure in the canvas
         self.fig = Figure()
-        self.ax_cd = self.fig.add_subplot(111)
+        self.ax_em = self.fig.add_subplot(311)
+        self.ax_ec = self.fig.add_subplot(312)
+        self.ax_es = self.fig.add_subplot(313)
         FigureCanvas.__init__(self, self.fig)
         # generates first "empty" plot
-        data = self.readFile('doc/Force_Re100.dat')
-        t = np.asarray(data[0])
-        fx = np.asarray(data[1]) + np.asarray(data[2])
-        self.exp, = self.ax_cd.plot(t,
-                                    fx,
-                                    label=r'$\mathrm{FDM}$',
-                                    color="red",
-                                    linestyle="-",
-                                    linewidth=1.0)
-        self.cd, = self.ax_cd.plot([0.0],
+        self.em, = self.ax_em.plot([0.0],
                                    [0.0],
-                                   label=r'$\mathrm{AQUAgpusph}$',
+                                   label=r'$\frac{\mathrm{d} \mathcal{E}_m}{\mathrm{d} t}$',
                                    color="black",
                                    linestyle="-",
                                    linewidth=1.0)
+        self.ev, = self.ax_em.plot([0.0],
+                                   [0.0],
+                                   label=r'$\frac{\mathrm{d} \mathcal{E}_\mu}{\mathrm{d} t}$',
+                                   color="red",
+                                   linestyle="-",
+                                   linewidth=1.0)
+        self.ec, = self.ax_ec.plot([0.0],
+                                   [0.0],
+                                   label=r'$\frac{\mathrm{d} \mathcal{E}_c}{\mathrm{d} t}$',
+                                   color="black",
+                                   linestyle="-",
+                                   linewidth=1.0)
+        self.ed, = self.ax_ec.plot([0.0],
+                                   [0.0],
+                                   label=r'$\frac{\mathrm{d} \mathcal{E}_\delta}{\mathrm{d} t}$',
+                                   color="red",
+                                   linestyle="-",
+                                   linewidth=1.0)
+        self.es, = self.ax_es.plot([0.0],
+                                   [0.0],
+                                   label=r'$\frac{\mathrm{d} \mathcal{E}_{\partial \Omega}}{\mathrm{d} t} - W_{\Omega \rightarrow \partial \Omega}$',
+                                   color="red",
+                                   linestyle="-",
+                                   linewidth=1.0)
         # Set some options
-        self.ax_cd.grid()
-        self.ax_cd.legend(loc='upper right')
-        self.ax_cd.set_xlim(0, 1.0)
-        self.ax_cd.set_ylim(-1.0, 1.0)
-        self.ax_cd.set_autoscale_on(False)
-        self.ax_cd.set_xlabel(r"$t$", fontsize=21)
-        self.ax_cd.set_ylabel(r"$c_D$", fontsize=21)
+        for ax in (self.ax_em, self.ax_ec, self.ax_es):
+            ax.grid()
+            ax.legend(loc='upper right')
+            ax.set_xlim(0, 1.0)
+            ax.set_ylim(-1.0, 1.0)
+            ax.set_autoscale_on(False)
+            ax.set_xlabel(r"$t$", fontsize=21)
+            ax.set_ylabel(r"$\frac{\mathrm{d} \mathcal{E}}{\mathrm{d} t}$", fontsize=21)
         # force the figure redraw
         self.fig.canvas.draw()
         # call the update method (to speed-up visualization)
@@ -131,19 +140,50 @@ class FigureController(FigureCanvas):
     def timerEvent(self, evt):
         """Custom timerEvent code, called at timer event receive"""
         # Read and plot the new data
-        data = self.readFile('PressureForces.dat')
-        tp = np.asarray(data[0]) * TIME_FAC
-        fpx = (np.asarray(data[1]) + np.asarray(data[7])) * COEFF_FAC
-        data = self.readFile('ViscousForces.dat')
-        tv = np.asarray(data[0]) * TIME_FAC
-        fvx = (np.asarray(data[1]) + np.asarray(data[7])) * COEFF_FAC
-        t = tp if len(tp) < len(tv) else tv
-        fx = fpx[:len(t)] + fvx[:len(t)]
-        self.cd.set_data(t, -fx)
+        data = self.readFile('Power.dat')
+        t = np.asarray(data[0])
+        ek = np.asarray(data[2])
+        ep = np.asarray(data[3])
+        ec = np.asarray(data[4])
+        ev = np.asarray(data[5])
+        ed = np.asarray(data[6])
+        es = np.asarray(data[7])
 
-        cdmax = np.max(np.abs(fx))
-        self.ax_cd.set_xlim(0, np.max(t))
-        self.ax_cd.set_ylim(-1.05 * cdmax, 1.05 * cdmax)
+        data = self.readFile('PressureForces.dat')
+        tp = np.asarray(data[0])
+        fpx = (np.asarray(data[1]) + np.asarray(data[7]))
+        data = self.readFile('ViscousForces.dat')
+        tv = np.asarray(data[0])
+        fvx = (np.asarray(data[1]) + np.asarray(data[7]))
+
+        data = self.readFile('Motion.dat')
+        tm = np.asarray(data[0])
+        u = np.asarray(data[2])
+
+        l = min((len(t), len(tp), len(tv), len(tm)))
+        t = t[:l]
+        em = ek[:l] + ep[:l]
+        ec = ec[:l]
+        ev = ev[:l]
+        es = ed[:l]
+        es = es[:l] - (fpx[:l] + fvx[:l]) * u[:l]
+
+        for ax in (self.ax_em, self.ax_ec, self.ax_es):
+            ax.set_xlim(0, max(t))
+
+        em_max = np.max(np.abs(np.concatenate((em, ev), axis=0)))
+        self.em.set_data(t, em)
+        self.ev.set_data(t, ev)
+        self.ax_em.set_ylim(-1.05 * em_max, 1.05 * em_max)
+
+        ec_max = np.max(np.abs(np.concatenate((ec, ed), axis=0)))
+        self.ec.set_data(t, ec)
+        self.ed.set_data(t, ed)
+        self.ax_ec.set_ylim(-1.05 * ec_max, 1.05 * ec_max)
+
+        es_max = np.max(np.abs(es))
+        self.es.set_data(t, es)
+        self.ax_es.set_ylim(-1.05 * es_max, 1.05 * es_max)
 
         # Redraw
         self.fig.canvas.draw()

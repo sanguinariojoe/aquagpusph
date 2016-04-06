@@ -32,10 +32,12 @@ Authors:
     </Definitions>
     <Include file="@RESOURCES_DIR@/Presets/cfd/pressureForces.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/viscousForces.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd/power.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/timing.report.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/performance.report.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/pressureForces.report.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/viscousForces.report.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd/power.report.xml" />
     <Include file="Settings.xml" />
     <Include file="Time.xml" />
     <Include file="SPH.xml" />
