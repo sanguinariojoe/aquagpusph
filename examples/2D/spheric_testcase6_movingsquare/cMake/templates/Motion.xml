@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<!--
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
+
+Another QUAlity GPU-SPH, by CEHINAV.
+    http://canal.etsin.upm.es/
+Authors:
+    Jose Luis Cercos-Pita
+    Leo Miguel Gonzalez
+    Antonio Souto-Iglesias
+-->
+
+<sphInput>
+    <Include file="@RESOURCES_DIR@/Presets/cfd/motion.xml" />
+
+    <Variables>
+        <Variable name="motion_r" type="vec" value="{{XSQUARE}}, {{YSQUARE}}" />
+        <Variable name="motion_iset" type="unsigned int" value="2" />
+    </Variables>
+</sphInput>
