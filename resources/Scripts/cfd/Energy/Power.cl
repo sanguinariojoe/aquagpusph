@@ -54,11 +54,9 @@
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
  * @param p Pressure \f$ p \f$.
- * @param dudt Velocity rate of change
- * \f$ \frac{d \mathbf{u}}{d t} \f$.
- * @param drhodt Density rate of change
- * \f$ \frac{d \rho}{d t} \f$.
+ * @param grad_p Pressure gradient \f$ \frac{\nabla p}{rho} \f$.
  * @param lap_u Velocity laplacian \f$ \frac{\Delta \mathbf{u}}{rho} \f$.
+ * @param div_u Velocity divergence \f$ \rho \nabla \cdot \mathbf{u} \f$.
  * @param lap_p Pressure laplacian \f$ \Delta p \f$.
  * @param refd Density of reference of the fluid \f$ \rho_0 \f$.
  * @param visc_dyn Dynamic viscosity \f$ \mu \f$.
@@ -78,9 +76,9 @@ __kernel void fluid(__global float* dekdt,
                     const __global float* rho,
                     const __global float* m,
                     const __global float* p,
-                    const __global vec* dudt,
-                    const __global float* drhodt,
+                    const __global vec* grad_p,
                     const __global vec* lap_u,
+                    const __global float* div_u,
                     const __global float* lap_p,
                     __constant float* refd,
                     __constant float* visc_dyn,
@@ -102,13 +100,18 @@ __kernel void fluid(__global float* dekdt,
         return;
     }
 
-    depdt[i] = -m[i] * dot(u[i], g);
-    dekdt[i] = m[i] * dot(u[i], dudt[i]);
-    decdt[i] = m[i] * p[i] / (rho[i] * rho[i]) * drhodt[i];
-
     const uint set_i = iset[i];
     const float delta_f = delta[set_i] * dt * rho[i] / refd[set_i];
-    devdt[i] = - m[i] * dot(u[i], visc_dyn[iset[i]] * lap_u[i]);
+    const float viscdyn = visc_dyn[set_i];
+    
+    const vec dudt = -grad_p[i] + viscdyn * lap_u[i] + g;
+    const float drhodt = -div_u[i] + delta_f * lap_p[i];
+
+    depdt[i] = -m[i] * dot(u[i], g);
+    dekdt[i] = m[i] * dot(u[i], dudt);
+    decdt[i] = m[i] * p[i] / (rho[i] * rho[i]) * drhodt;
+
+    devdt[i] = - m[i] * dot(u[i], viscdyn * lap_u[i]);
     deddt[i] = - m[i] * p[i] / (rho[i] * rho[i]) * delta_f * lap_p[i];
 }
 

@@ -165,7 +165,7 @@ class FigureController(FigureCanvas):
         em = ek[:l] + ep[:l]
         ec = ec[:l]
         ev = ev[:l]
-        es = ed[:l]
+        ed = ed[:l]
         es = es[:l] - (fpx[:l] + fvx[:l]) * u[:l]
 
         for ax in (self.ax_em, self.ax_ec, self.ax_es):
