@@ -32,8 +32,8 @@ Authors:
     <Include file="@RESOURCES_DIR@/Presets/basic/performance.report.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/forces.report.xml" />
     <Include file="Settings.xml" />
-    <Include file="Time.xml" />
     <Include file="SPH.xml" />
+    <Include file="Time.xml" />
     <Include file="Fluids.xml" />
     <Include file="Motion.xml" />
 </sphInput>

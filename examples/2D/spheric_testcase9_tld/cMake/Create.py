@@ -37,8 +37,10 @@ import math
 # ==========
 
 g = 9.81
-hfac = 3.0
-cs = 30.0
+hfac = 2.0  # If you are using low resolution values, use small h/dr ratio in
+            # order to avoid that the particles may simultaneously interact with
+            # front and back walls, which may turn unstable the simulation.
+cs = 50.0
 courant = 0.2
 refd = 998.0
 alpha = 0.0
