@@ -46,7 +46,7 @@ U = 1.0
 cs = 50.0 * U
 Re = 100.0
 p0 = 3.0 * refd * U**2
-BC = 'GP'  # BI or GP
+BC = 'BI'  # BI or GP
 # Cylinder and Channel dimensions
 D = 1.0
 L = 10.0 * D
