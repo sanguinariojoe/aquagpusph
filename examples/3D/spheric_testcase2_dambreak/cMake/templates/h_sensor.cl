@@ -17,9 +17,9 @@
  */
 
 #ifndef HAVE_3D
-    #include "@RESOURCES_DIR@/Scripts/cfd/types/2D.h"
+    #include "@RESOURCES_DIR@/Scripts/types/2D.h"
 #else
-    #include "@RESOURCES_DIR@/Scripts/cfd/types/3D.h"
+    #include "@RESOURCES_DIR@/Scripts/types/3D.h"
 #endif
 
 /** @brief Set a helper array where the z coordinate of the particles far away
