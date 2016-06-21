@@ -3,12 +3,6 @@
 <!-- BI.xml
 Allows the usage of boundary integrals to enforce a solid boundary condition.
 
-To do that, include this preset, and set the set of particles which will be
-treated with boundary integrals.
-<Variables>
-    <Variable name="pressureForces_F_0" type="vec" value="0.0, 0.0, 0.0, 0.0" />
-</Variables>
-
 Remarks:
   - This file should be included once.
   - For the boundary integrals, it is intended that the boundary elements have
