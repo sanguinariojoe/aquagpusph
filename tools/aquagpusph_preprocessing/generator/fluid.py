@@ -241,10 +241,10 @@ def intersections(faces, p, v):
         walls[1][1] = f[2]
         walls[1][2] = f[3]
         point = intersection(p,v,walls[0])
-        if point != None:
+        if point is not None:
             points.append(point)
         point = intersection(p,v,walls[1])
-        if point != None:
+        if point is not None:
             points.append(point)
     return points
 
@@ -386,7 +386,7 @@ def zThread(q, z, dz, bbox, faces, level, dr, refd, cs, g):
                                         [1.0*pdr,2.0*pdr,1.5*pdr]])
                 # Discard the particles excesively near to the solid (0.5*dr).
                 # point = fixSolidEffect(facesY, point, 0.5*pdr)
-                if point == None:
+                if point is None:
                     continue
                 press = refd * g * (level-z)
                 dens = refd + press / cs**2
@@ -451,7 +451,7 @@ def perform(faces, level, dr, refd, cs, g):
             if(z >= level):
                 # No new work to assign
                 break
-            if( q[i] != None and p[i] != None ):
+            if( q[i] is not None and p[i] is not None ):
                 continue
             q[i] = Queue()
             p[i] = Process(target=zThread, args=(q[i],z,dz,bbox,faces,level,dr,refd,cs,g))
@@ -460,7 +460,7 @@ def perform(faces, level, dr, refd, cs, g):
             z = z + dz
         # Check if some thread is returning values
         for i in range(0, nCores):
-            if( q[i] == None and p[i] == None ):
+            if( q[i] is None and p[i] is None ):
                 continue
             if(not q[i].empty()):
                 # Then a thread is returning particles, get it and destroy

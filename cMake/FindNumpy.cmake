@@ -10,7 +10,7 @@ INCLUDE (FindPackageHandleStandardArgs)
 
 # Lets numpy say us where we can find the headers
 EXECUTE_PROCESS(
-    COMMAND ${PYTHON_EXECUTABLE} -c "import numpy; print numpy.get_include()"
+    COMMAND ${PYTHON_EXECUTABLE} -c "import numpy; print(numpy.get_include())"
     ERROR_VARIABLE NUMPY_INCLUDE_ERROR
     RESULT_VARIABLE NUMPY_INCLUDE_RESULT
     OUTPUT_VARIABLE NUMPY_INCLUDE_DIR
@@ -30,7 +30,7 @@ FIND_PATH(NUMPY_INCLUDE_DIRS
 
 # Lets find the numpy module
 EXECUTE_PROCESS(
-    COMMAND ${PYTHON_EXECUTABLE} -c "import numpy, os; print os.path.dirname(numpy.__file__)"
+    COMMAND ${PYTHON_EXECUTABLE} -c "import numpy, os; print(os.path.dirname(numpy.__file__))"
     ERROR_VARIABLE NUMPY_ROOT_ERROR
     RESULT_VARIABLE NUMPY_ROOT_RESULT
     OUTPUT_VARIABLE NUMPY_ROOT_DIR
