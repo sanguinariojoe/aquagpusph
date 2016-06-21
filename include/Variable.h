@@ -77,7 +77,7 @@ public:
     /** Get the variable type size.
      * @return Variable type size (in bytes)
      */
-    virtual size_t typesize() const {return sizeof(void);}
+    virtual size_t typesize() const {return 0;}
 
     /** Get the variable type size.
      * @return Variable type size (in bytes)

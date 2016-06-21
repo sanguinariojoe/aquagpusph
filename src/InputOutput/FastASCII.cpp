@@ -108,7 +108,7 @@ char* FastASCII::readField(const char* field,
 
         // Go to the next field, we already asserted that there are fields
         // enough, so we don't need to care about that
-        ptr += type_size / n;
+        ptr = ((char*)ptr) + type_size / n;
         pos = strchr(end_pos, ',');
         if(pos)
             pos++;
