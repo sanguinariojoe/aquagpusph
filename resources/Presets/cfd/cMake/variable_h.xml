@@ -14,6 +14,7 @@ modified each time step, an initial h value should be provided
 <sphInput>
     <Variables>
         <Variable name="h_var" type="float*" length="N" />
+        <Variable name="h_var_in" type="float*" length="N" />
         <Variable name="Omega" type="float*" length="N" />
     </Variables>
 
@@ -24,19 +25,12 @@ modified each time step, an initial h value should be provided
         <Tool action="insert" before="Predictor" type="reduction" name="cfd maximum h_var" in="h_var" out="h" null="-INFINITY">
             c = (a &gt; b) ? a : b;
         </Tool>
+        <Tool action="insert" before="Sort" name="sort h_var" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/variable_h/Sort.cl"/>
         <!-- We must compute the Omega function of each particle -->
         <Tool action="insert" after="Sort" name="cfd Omega" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Omega.cl"/>
         <!-- And we should replace all the affected differential operators -->
         <Tool action="try_replace" name="cfd Shepard" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Shepard.cl"/>
         <Tool action="try_replace" name="cfd interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Interactions.cl"/>
-
-
-
-        <Tool action="try_replace" name="cfd BI interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/BI/Interactions.cl"/>
-        <Tool action="try_replace" name="cfd BI no-slip" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/BI/BINoSlip.cl"/>
-        <Tool action="try_replace" name="cfd lap p full" type="kernel" entry_point="full" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/deltaSPH.cl"/>
-        <Tool action="try_replace" name="cfd lap p" type="kernel" entry_point="lapp" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/deltaSPH.cl"/>
-
 
         <!-- We should get the minimum kernel length to recompute the time
         step -->

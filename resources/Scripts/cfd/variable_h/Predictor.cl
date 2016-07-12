@@ -41,9 +41,9 @@
  *   - imove > 0 for regular fluid/solid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param rho Density \f$ \rho \f$.
+ * @param rho_in Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
- * @param h_var variable kernel lenght \f$ h \f$.
+ * @param h_var_in variable kernel lenght \f$ h \f$.
  * @param N Number of particles.
  * @param hfac Ratio between the kernel length and the distance between
  * particles.
@@ -52,9 +52,9 @@
  * Jnl. of Multiphysics. Vol. 9, Number 2. 2015
  */
 __kernel void entry(__global const int* imove,
-                    __global const float* rho,
+                    __global const float* rho_in,
                     __global const float* m,
-                    __global float* h_var,
+                    __global float* h_var_in,
                     unsigned int N,
                     float hfac)
 {
@@ -64,11 +64,11 @@ __kernel void entry(__global const int* imove,
 
     if((imove[i] == -2) || (imove[i] == -3)){
         // It is a boundary element, the mass is actually the area
-        h_var[i] = hfac * pow(m[i], 1.f / (DIMS - 1));
+        h_var_in[i] = hfac * pow(m[i], 1.f / (DIMS - 1));
         return;
     }
 
-    h_var[i] = hfac * pow(m[i] / rho[i], 1.f / DIMS);
+    h_var_in[i] = hfac * pow(m[i] / rho_in[i], 1.f / DIMS);
 }
 
 /*
