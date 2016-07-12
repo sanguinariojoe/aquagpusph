@@ -133,9 +133,9 @@ __kernel void entry(const __global int* imove,
         const vec_xyz r_ij = r[j].XYZ - r_i;
         const float h_j = h_var[j];
         const float l_ij = length(r_ij);
-        const float q_i = l_ij / h_i;
-        const float q_j = l_ij / h_i;
-        if((q_i >= SUPPORT) && (q_j >= SUPPORT))
+        const float q_i = min(l_ij / h_i, SUPPORT);
+        const float q_j = min(l_ij / h_i, SUPPORT);
+        if((q_i == SUPPORT) && (q_j == SUPPORT))
         {
             j++;
             continue;
