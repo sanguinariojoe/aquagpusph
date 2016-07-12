@@ -25,9 +25,11 @@
  */
 
 #ifndef HAVE_3D
-    #include "../types/2D.h"
+    #include "../../types/2D.h"
+    #include "../../KernelFunctions/Wendland2D.hcl"
 #else
-    #include "../types/3D.h"
+    #include "../../types/3D.h"
+    #include "../../KernelFunctions/Wendland3D.hcl"
 #endif
 
 /** @brief Compute the \f$ \Omega \f$ term

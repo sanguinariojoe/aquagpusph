@@ -25,11 +25,11 @@
 #endif
 
 #ifndef HAVE_3D
-    #include "../types/2D.h"
-    #include "../KernelFunctions/Wendland2D.hcl"
+    #include "../../types/2D.h"
+    #include "../../KernelFunctions/Wendland2D.hcl"
 #else
-    #include "../types/3D.h"
-    #include "../KernelFunctions/Wendland3D.hcl"
+    #include "../../types/3D.h"
+    #include "../../KernelFunctions/Wendland3D.hcl"
 #endif
 
 #if __LAP_FORMULATION__ == __LAP_MONAGHAN__
