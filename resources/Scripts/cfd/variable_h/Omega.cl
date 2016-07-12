@@ -105,10 +105,6 @@ __kernel void entry(const __global int* imove,
     #endif
 
     BEGIN_LOOP_OVER_NEIGHS(){
-        if(i == j){
-            j++;
-            continue;
-        }
         if(imove[j] != 1){
             j++;
             continue;
