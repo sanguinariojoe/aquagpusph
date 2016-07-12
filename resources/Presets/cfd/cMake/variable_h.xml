@@ -25,7 +25,7 @@ modified each time step, an initial h value should be provided
             c = (a &gt; b) ? a : b;
         </Tool>
         <!-- We must compute the Omega function of each particle -->
-        <Tool action="insert" before="Predictor" name="cfd Omega" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Omega.cl"/>
+        <Tool action="insert" after="Sort" name="cfd Omega" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Omega.cl"/>
         <!-- And we should replace all the affected differential operators -->
         <Tool action="try_replace" name="cfd Shepard" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Shepard.cl"/>
         <Tool action="try_replace" name="cfd interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Interactions.cl"/>
