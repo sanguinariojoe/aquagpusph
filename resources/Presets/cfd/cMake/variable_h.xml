@@ -1,0 +1,47 @@
+<?xml version="1.0" ?>
+
+<!-- Variable kernel length implementation. It allows to modify the kernel
+length as a function of the mass and density.
+
+This module should be included once (and only once), after cfd.xml. After that,
+the presets of the variable_h subfolder should be considered.
+
+When this module is loaded, the variable hfac (the ratio between h and dr)
+becomes mandatory. Even though the kernel length of each particle will be
+modified each time step, an initial h value should be provided
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="var_h" type="float*" length="N" />
+        <Variable name="Omega" type="float*" length="N" />
+    </Variables>
+
+    <Tools>
+        <!-- We should start computing the new kernel length as part of the
+        Predictor stage -->
+        <Tool action="insert" before="Predictor" name="cfd var_h" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Predictor.cl"/>
+        <Tool action="insert" before="Predictor" type="reduction" name="cfd maximum var_h" in="var_h" out="h" null="-INFINITY">
+            c = (a &gt; b) ? a : b;
+        </Tool>
+        <!-- We must compute the Omega function of each particle -->
+        <Tool action="insert" before="Predictor" name="cfd var_h Omega" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Omega.cl"/>
+        <!-- And we should replace all the affected differential operators -->
+        <Tool action="try_replace" name="cfd Shepard" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Shepard.cl"/>
+        <Tool action="try_replace" name="cfd interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Interactions.cl"/>
+
+
+
+        <Tool action="try_replace" name="cfd BI interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/BI/Interactions.cl"/>
+        <Tool action="try_replace" name="cfd BI no-slip" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/BI/BINoSlip.cl"/>
+        <Tool action="try_replace" name="cfd lap p full" type="kernel" entry_point="full" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/deltaSPH.cl"/>
+        <Tool action="try_replace" name="cfd lap p" type="kernel" entry_point="lapp" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/deltaSPH.cl"/>
+
+
+        <!-- We should get the minimum kernel length to recompute the time
+        step -->
+        <Tool action="insert" before="fixed time step" type="reduction" name="cfd minimum var_h" in="var_h" out="h" null="INFINITY">
+            c = (a &lt; b) ? a : b;
+        </Tool>
+    </Tools>
+</sphInput>
