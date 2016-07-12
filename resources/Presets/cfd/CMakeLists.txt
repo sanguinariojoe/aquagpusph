@@ -67,6 +67,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/pressureForces.report.xml
     ${CMAKE_CURRENT_BINARY_DIR}/pressureForces.report.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/viscousForces.report.xml
     ${CMAKE_CURRENT_BINARY_DIR}/viscousForces.report.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/variable_h/portal.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/variable_h/portal.xml @ONLY)
 
 # Create installable version of the file
 SET(RESOURCES_OUTPUT_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/resources)
@@ -134,6 +136,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/pressureForces.report.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/pressureForces.report.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/viscousForces.report.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/viscousForces.report.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/variable_h/portal.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/variable_h/portal.xml @ONLY)
 
 # ===================================================== #
 # Install                                               #
@@ -177,4 +181,14 @@ INSTALL(
         ${RESOURCES_SRCS}
     DESTINATION
         ${CMAKE_INSTALL_DATADIR}/resources/Presets/cfd
+)
+SET(RESOURCES_VAR_H_SRCS 
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/variable_h/portal.xml
+)
+SOURCE_GROUP("ResourcesVarHGroup" FILES ${RESOURCES_VAR_H_SRCS})
+INSTALL(
+    FILES
+        ${RESOURCES_VAR_H_SRCS}
+    DESTINATION
+        ${CMAKE_INSTALL_DATADIR}/resources/Presets/cfd/variable_h
 )
