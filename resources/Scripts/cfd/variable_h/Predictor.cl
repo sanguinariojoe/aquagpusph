@@ -25,9 +25,9 @@
  */
 
 #ifndef HAVE_3D
-    #include "../types/2D.h"
+    #include "../../types/2D.h"
 #else
-    #include "../types/3D.h"
+    #include "../../types/3D.h"
 #endif
 
 /** @brief Recompute the kernel length for each particle

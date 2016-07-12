@@ -69,10 +69,6 @@ __kernel void entry(const __global int* imove,
                     uint N,
                     uivec4 n_cells)
 {
-    unsigned int i = get_global_id(0);
-    if(i >= N)
-        return;
-
     const uint i = get_global_id(0);
     const uint it = get_local_id(0);
     if(i >= N)
@@ -119,7 +115,7 @@ __kernel void entry(const __global int* imove,
         }
         {
             // n-scheme
-            _OMEGA_ -= m_i * dhdrho_i * conh * kernelH(q)
+            _OMEGA_ -= m_i * dhdrho_i * conh * kernelH(q);
         }
     }END_LOOP_OVER_NEIGHS()
 

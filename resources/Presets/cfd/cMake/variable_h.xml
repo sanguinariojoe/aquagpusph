@@ -13,19 +13,19 @@ modified each time step, an initial h value should be provided
 
 <sphInput>
     <Variables>
-        <Variable name="var_h" type="float*" length="N" />
+        <Variable name="h_var" type="float*" length="N" />
         <Variable name="Omega" type="float*" length="N" />
     </Variables>
 
     <Tools>
         <!-- We should start computing the new kernel length as part of the
         Predictor stage -->
-        <Tool action="insert" before="Predictor" name="cfd var_h" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Predictor.cl"/>
-        <Tool action="insert" before="Predictor" type="reduction" name="cfd maximum var_h" in="var_h" out="h" null="-INFINITY">
+        <Tool action="insert" before="Predictor" name="cfd h_var" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Predictor.cl"/>
+        <Tool action="insert" before="Predictor" type="reduction" name="cfd maximum h_var" in="h_var" out="h" null="-INFINITY">
             c = (a &gt; b) ? a : b;
         </Tool>
         <!-- We must compute the Omega function of each particle -->
-        <Tool action="insert" before="Predictor" name="cfd var_h Omega" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Omega.cl"/>
+        <Tool action="insert" before="Predictor" name="cfd Omega" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Omega.cl"/>
         <!-- And we should replace all the affected differential operators -->
         <Tool action="try_replace" name="cfd Shepard" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Shepard.cl"/>
         <Tool action="try_replace" name="cfd interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Interactions.cl"/>
@@ -40,7 +40,7 @@ modified each time step, an initial h value should be provided
 
         <!-- We should get the minimum kernel length to recompute the time
         step -->
-        <Tool action="insert" before="fixed time step" type="reduction" name="cfd minimum var_h" in="var_h" out="h" null="INFINITY">
+        <Tool action="insert" before="fixed time step" type="reduction" name="cfd minimum h_var" in="h_var" out="h" null="INFINITY">
             c = (a &lt; b) ? a : b;
         </Tool>
     </Tools>
