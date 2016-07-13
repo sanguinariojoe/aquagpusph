@@ -97,7 +97,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/MLS.xml
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/deltaSPH.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/deltaSPH.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/deltaSPH-simple.xml
-    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/deltaSPH.xml-simple.xml @ONLY)
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/deltaSPH-simple.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/deltaSPH-full.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/deltaSPH-full.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/variableTimeStep.xml
