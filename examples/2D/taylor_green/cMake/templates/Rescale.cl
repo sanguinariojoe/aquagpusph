@@ -52,5 +52,5 @@ __kernel void entry(const __global uint* iset,
     const float visc_kin = visc_dyn[iset[i]] / refd[iset[i]];
     
     u[i].XYZ += u[i].XYZ * expm1(2.f * visc_kin * dt);
-    p[i] += p[i] * expm1(4.f * visc_kin * dt);
+    // p[i] += p[i] * expm1(4.f * visc_kin * dt);
 }
