@@ -148,6 +148,8 @@ private:
     /// Launched threads ids
     std::deque<pthread_t> _tids;
 
+    /// Next output file index
+    unsigned int _next_file_index;
 };  // class InputOutput
 
 }}  // namespaces

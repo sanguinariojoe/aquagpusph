@@ -105,13 +105,13 @@ protected:
      * number of digits of the integer value are greater than this value this
      * parameter will be ignored, otherwise zeroes will be appended at the left
      * of the decimal representation of the integer.
-     * @return false if all gone right, true otherwise.
+     * @return The next file index, 0 if errors are detected.
      * @note If more than one `"%d"` strings are found in @paramname{basename},
      * just the first one will be replaced.
      */
-    bool file(const char* basename,
-              unsigned int start_index,
-              unsigned int digits=5);
+    unsigned int file(const char* basename,
+                      unsigned int start_index,
+                      unsigned int digits=5);
 
     /** Download the data from the device, and store it
      * @param fields Fields to download

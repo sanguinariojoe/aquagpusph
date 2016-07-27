@@ -534,7 +534,8 @@ FILE* ASCII::create(){
     strcpy(basename, P->sets.at(setId())->outputPath());
     strcat(basename, ".%d.dat");
 
-    if(file(basename, 0)){
+    _next_file_index = file(basename, _next_file_index);
+    if(!_next_file_index){
         delete[] basename;
         S->addMessageF(3, "Failure getting a valid filename.\n");
         S->addMessageF(0, "\tHow do you received this message?.\n");

@@ -120,6 +120,9 @@ private:
      *                                         unsigned int digits=5)
      */
     FILE* create();
+
+    /// Next output file index
+    unsigned int _next_file_index;
 };  // class InputOutput
 
 }}  // namespaces

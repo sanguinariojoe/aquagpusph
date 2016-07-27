@@ -151,9 +151,9 @@ void Particles::file(const char* filename)
     strcpy(_output_file, filename);
 }
 
-bool Particles::file(const char* basename,
-                     unsigned int startindex,
-                     unsigned int digits)
+unsigned int Particles::file(const char* basename,
+                             unsigned int startindex,
+                             unsigned int digits)
 {
     FILE *f;
     char *newname = NULL, *orig_pos, *dest_pos;
@@ -161,6 +161,7 @@ bool Particles::file(const char* basename,
     unsigned int i = startindex, j;
 
     if(!basename)
+        return 0;
 
     if(!strstr(basename, "%d")){
         // We cannot replace nothing in the basename, just test if the file
@@ -169,11 +170,11 @@ bool Particles::file(const char* basename,
         if(f){
             // The fail already exist, so we cannot operate
             fclose(f);
-            return true;
+            return 0;
         }
 
         file(basename);
-        return false;
+        return 1;
     }
 
     while(true){
@@ -210,7 +211,7 @@ bool Particles::file(const char* basename,
 
     file(newname);
     delete[] newname;
-    return false;
+    return i + 1;
 }
 
 std::deque<void*> Particles::download(std::deque<char*> fields)

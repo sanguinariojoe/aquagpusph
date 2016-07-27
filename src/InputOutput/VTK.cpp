@@ -103,6 +103,7 @@ namespace Aqua{ namespace InputOutput{
 VTK::VTK(unsigned int first, unsigned int n, unsigned int iset)
     : Particles(first, n, iset)
     , _namePVD(NULL)
+    , _next_file_index(0)
 {
 }
 
@@ -609,7 +610,8 @@ vtkXMLUnstructuredGridWriter* VTK::create(){
     strcpy(basename, P->sets.at(setId())->outputPath());
     strcat(basename, ".%d.vtu");
 
-    if(file(basename, 0)){
+    _next_file_index = file(basename, _next_file_index);
+    if(!_next_file_index){
         delete[] basename;
         S->addMessageF(3, "Failure getting a valid filename.\n");
         S->addMessage(0, "\tHow do you received this message?.\n");
