@@ -615,6 +615,27 @@ bool CalcServer::setupPlatform()
     return false;
 }
 
+/** @brief Runtime error reporting tool
+ *
+ * Errors reported in this way directly depends on the implementation.
+ * @param errinfo is a pointer to an error string.
+ * @param private_info pointer to binary data that is returned by the OpenCL
+ * implementation that can be used to log additional information helpful in
+ * debugging the error.
+ * @param cb Size of the binary data, #private_info.
+ * @param user_data NULL.
+ */
+void CL_CALLBACK context_error_notify(const char *errinfo,
+                                      const void *private_info,
+                                      size_t cb,
+                                      void *user_data)
+{
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    S->addMessageF(3, "OpenCL implementation reported a runtime error:\n");
+    S->addMessage(0, errinfo);
+    S->addMessage(0, "\n");
+} 
+
 bool CalcServer::setupDevices()
 {
     cl_int err_code;
@@ -674,7 +695,7 @@ bool CalcServer::setupDevices()
     _context = clCreateContext(0,
                                _num_devices,
                                _devices,
-                               NULL,
+                               context_error_notify,
                                NULL,
                                &err_code);
     if(err_code != CL_SUCCESS) {
