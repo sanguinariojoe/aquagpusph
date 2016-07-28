@@ -128,3 +128,7 @@ __kernel void entry(const __global int* imove,
         shepard[i] = _SHEPARD_;
     #endif
 }
+
+/*
+ * @}
+ */

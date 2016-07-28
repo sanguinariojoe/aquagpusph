@@ -89,6 +89,9 @@ delta-SPH will not be affected at all!
         <Tool action="insert" after_prefix="cfd portal interactions" name="cfd portal unmirror" type="kernel" entry_point="unmirror" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Portal/Mirror.cl"/>
         <Tool action="insert" after_prefix="cfd portal unmirror" name="cfd portal icell restore" type="copy" in="icell_backup" out="icell"/>
 
+        <!-- 3rd stage: Particle teleporting
+             ===============================
+        -->
         <!-- Finally we should teleport the particles tresspassing the out
         portal. -->
         <Tool action="insert" before="Corrector" name="cfd portal teleport" type="kernel" entry_point="teleport" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Portal/Mirror.cl"/>
