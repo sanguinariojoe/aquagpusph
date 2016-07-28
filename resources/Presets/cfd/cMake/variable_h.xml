@@ -22,7 +22,7 @@ modified each time step, an initial h value should be provided
         <!-- We should start computing the new kernel length as part of the
         Predictor stage -->
         <Tool action="insert" before="Predictor" name="cfd h_var" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Predictor.cl"/>
-        <Tool action="insert" before="Predictor" type="reduction" name="cfd maximum h_var" in="h_var" out="h" null="-INFINITY">
+        <Tool action="insert" before="Predictor" type="reduction" name="cfd maximum h_var" in="h_var_in" out="h" null="-INFINITY">
             c = (a &gt; b) ? a : b;
         </Tool>
         <Tool action="insert" before="Sort" name="sort h_var" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/variable_h/Sort.cl"/>
