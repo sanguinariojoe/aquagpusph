@@ -97,8 +97,8 @@ __kernel void entry(const __global int* imove,
     #else
         #define _OMEGA_ Omega_l[it]
         __local float Omega_l[LOCAL_MEM_SIZE];
-        _OMEGA_ = 1.f;
     #endif
+    _OMEGA_ = 1.f;
 
     BEGIN_LOOP_OVER_NEIGHS(){
         if(imove[j] != 1){
