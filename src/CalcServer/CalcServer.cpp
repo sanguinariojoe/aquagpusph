@@ -597,6 +597,14 @@ bool CalcServer::queryOpenCL()
                 S->addMessage(0, "\t\tTYPE: CL_DEVICE_TYPE_ACCELERATOR\n");
             else if(dType == CL_DEVICE_TYPE_DEFAULT)
                 S->addMessage(0, "\t\tTYPE: CL_DEVICE_TYPE_DEFAULT\n");
+            #ifdef CL_DEVICE_TYPE_CUSTOM
+            else if(dType == CL_DEVICE_TYPE_CUSTOM)
+                S->addMessage(0, "\t\tTYPE: CL_DEVICE_TYPE_CUSTOM\n");
+            #endif
+            else {
+                sprintf(msg, "\t\tTYPE: %ul\n", dType);
+                S->addMessage(0, msg);
+            }
         }
         delete[] devices; devices = NULL;
     }
