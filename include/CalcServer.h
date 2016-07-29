@@ -199,6 +199,11 @@ private:
 
     /// User registered tools
     std::deque<Tool*> _tools;
+
+    /** Currently executed tool/report. Useful to can report runtime OpenCL
+     * implementation errors (see clCreateContext)
+     */
+    char *_current_tool_name;
 };
 
 }}  // namespace

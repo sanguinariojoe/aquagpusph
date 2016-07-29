@@ -67,6 +67,8 @@ CalcServer::CalcServer()
     InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 
+    _current_tool_name = new char[256];
+    strcpy(_current_tool_name, "");
     if(setupOpenCL()) {
         exit(EXIT_FAILURE);
     }
@@ -394,6 +396,8 @@ CalcServer::~CalcServer()
 
     S->addMessageF(1, "Destroying variables manager...\n");
     if(_vars) delete _vars; _vars=NULL;
+
+    if(_current_tool_name) delete[] _current_tool_name; _current_tool_name=NULL;
 }
 
 bool CalcServer::update()
@@ -406,6 +410,7 @@ bool CalcServer::update()
 
         // Execute the tools
         for(i = 0; i < _tools.size(); i++){
+            strcpy(_current_tool_name, _tools.at(i)->name());
             if(_tools.at(i)->execute()){
                 sleep(__ERROR_SHOW_TIME__);
                 return true;
@@ -623,15 +628,26 @@ bool CalcServer::setupPlatform()
  * implementation that can be used to log additional information helpful in
  * debugging the error.
  * @param cb Size of the binary data, #private_info.
- * @param user_data NULL.
+ * @param user_data Current tool name.
  */
 void CL_CALLBACK context_error_notify(const char *errinfo,
                                       const void *private_info,
                                       size_t cb,
                                       void *user_data)
 {
+    const char* current_tool_name = (const char*)user_data;
+    char msg[512];
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-    S->addMessageF(3, "OpenCL implementation reported a runtime error:\n");
+
+    strcpy(msg, "OpenCL implementation reported a runtime error");
+    if(strlen(current_tool_name)){
+        strcat(msg, " (");
+        strcat(msg, current_tool_name);
+        strcat(msg, ")");
+    }
+    strcat(msg, ":\n");
+
+    S->addMessageF(3, msg);
     S->addMessage(0, errinfo);
     S->addMessage(0, "\n");
 } 
@@ -696,7 +712,7 @@ bool CalcServer::setupDevices()
                                _num_devices,
                                _devices,
                                context_error_notify,
-                               NULL,
+                               _current_tool_name,
                                &err_code);
     if(err_code != CL_SUCCESS) {
         S->addMessageF(3, "Failure creating an OpenCL context.\n");
