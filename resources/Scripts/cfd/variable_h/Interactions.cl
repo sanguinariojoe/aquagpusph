@@ -142,6 +142,7 @@ __kernel void entry(const __global int* imove,
         }
         {
             const float rho_j = rho[j];
+            const float m_j = m[j];
             const float udr = dot(u[j].XYZ - u_i, r_ij);
             const float h_j = h_var[j];
             #ifndef HAVE_3D
@@ -149,7 +150,7 @@ __kernel void entry(const __global int* imove,
             #else
                 const float conf_j = 1.f / (h_j * h_j * h_j * h_j * h_j);
             #endif
-            const float p_j = p[j] * m[j] * m[j] / (rho_j * rho_j) / Omega[j];
+            const float p_j = p[j] * m_j * m_j / (rho_j * rho_j) / Omega[j];
 
             const float fi_ij = conf_i * kernelF(q_i);
             const float fj_ij = conf_j * kernelF(q_j);
@@ -158,15 +159,16 @@ __kernel void entry(const __global int* imove,
 
             #if __LAP_FORMULATION__ == __LAP_MONAGHAN__
                 const float r2 = (q * q + 0.01f) * H * H;
-                _LAPU_ += 0.5f * (fi_ij + fj_ij) * __CLEARY__ *
+                _LAPU_ += 0.5f * (fi_ij + fj_ij) * m_j * __CLEARY__ *
                           udr / (r2 * rho_i * rho_j) * r_ij;
             #elif __LAP_FORMULATION__ == __LAP_MORRIS__
-                _LAPU_ += (fi_ij + fj_ij) / (rho_i * rho_j) * (u[j].XYZ - u_i);
+                _LAPU_ += (fi_ij + fj_ij) * m_j / (rho_i * rho_j) *
+                          (u[j].XYZ - u_i);
             #else
                 #error Unknown Laplacian formulation: __LAP_FORMULATION__
             #endif
 
-            _DIVU_ += udr * fi_ij * m_i / Omega_i;
+            _DIVU_ += udr * fi_ij * m_j * rho_i / (rho_j * Omega_i);
         }
     }END_LOOP_OVER_NEIGHS()
 
