@@ -39,8 +39,8 @@ const char* LINKLIST_SRC = (const char*)LinkList_cl_in;
 unsigned int LINKLIST_SRC_LEN = LinkList_cl_in_len;
 
 LinkList::LinkList(const char* tool_name, const char* input)
-	: Tool(tool_name)
-	, _input_name(NULL)
+    : Tool(tool_name)
+    , _input_name(NULL)
     , _cell_length(0.f)
     , _min_pos(NULL)
     , _max_pos(NULL)
@@ -85,31 +85,31 @@ LinkList::~LinkList()
 {
     unsigned int i;
     if(_input_name) delete[] _input_name; _input_name=NULL;
-	if(_min_pos) delete _min_pos; _min_pos=NULL;
-	if(_max_pos) delete _max_pos; _max_pos=NULL;
-	if(_sort) delete _sort; _sort=NULL;
-	if(_ihoc) clReleaseKernel(_ihoc); _ihoc=NULL;
-	if(_icell) clReleaseKernel(_icell); _icell=NULL;
-	if(_ll) clReleaseKernel(_ll); _ll=NULL;
-	for(i = 0; i < _ihoc_args.size(); i++){
+    if(_min_pos) delete _min_pos; _min_pos=NULL;
+    if(_max_pos) delete _max_pos; _max_pos=NULL;
+    if(_sort) delete _sort; _sort=NULL;
+    if(_ihoc) clReleaseKernel(_ihoc); _ihoc=NULL;
+    if(_icell) clReleaseKernel(_icell); _icell=NULL;
+    if(_ll) clReleaseKernel(_ll); _ll=NULL;
+    for(i = 0; i < _ihoc_args.size(); i++){
         free(_ihoc_args.at(i));
-	}
-	_ihoc_args.clear();
-	for(i = 0; i < _icell_args.size(); i++){
+    }
+    _ihoc_args.clear();
+    for(i = 0; i < _icell_args.size(); i++){
         free(_icell_args.at(i));
-	}
-	_icell_args.clear();
-	for(i = 0; i < _ll_args.size(); i++){
+    }
+    _icell_args.clear();
+    for(i = 0; i < _ll_args.size(); i++){
         free(_ll_args.at(i));
-	}
-	_ll_args.clear();
+    }
+    _ll_args.clear();
 }
 
 bool LinkList::setup()
 {
     char msg[1024];
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
+    CalcServer *C = CalcServer::singleton();
     InputOutput::Variables *vars = C->variables();
 
     sprintf(msg,
@@ -148,7 +148,7 @@ bool LinkList::_execute()
     cl_int err_code;
     char msg[1024];
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
+    CalcServer *C = CalcServer::singleton();
 
     if(_min_pos->execute()){
         return true;
@@ -241,8 +241,8 @@ bool LinkList::setupOpenCL()
     unsigned int n_radix, N;
     cl_int err_code;
     char msg[1024];
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    CalcServer *C = CalcServer::singleton();
     InputOutput::Variables *vars = C->variables();
 
     // Create a header for the source code where the operation will be placed
@@ -261,17 +261,17 @@ bool LinkList::setupOpenCL()
         return true;
     }
 
-	err_code = clGetKernelWorkGroupInfo(_ihoc,
+    err_code = clGetKernelWorkGroupInfo(_ihoc,
                                         C->device(),
                                         CL_KERNEL_WORK_GROUP_SIZE,
                                         sizeof(size_t),
                                         &_ihoc_lws,
                                         NULL);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessageF(3, "Failure querying the work group size (\"iHoc\").\n");
+    if(err_code != CL_SUCCESS) {
+        S->addMessageF(3, "Failure querying the work group size (\"iHoc\").\n");
         S->printOpenCLError(err_code);
-	    return true;
-	}
+        return true;
+    }
     if(_ihoc_lws < __CL_MIN_LOCALSIZE__){
         S->addMessageF(3, "iHoc cannot be performed.\n");
         sprintf(msg,
@@ -303,17 +303,17 @@ bool LinkList::setupOpenCL()
                vars->get(_ihoc_vars[i])->typesize());
     }
 
-	err_code = clGetKernelWorkGroupInfo(_icell,
+    err_code = clGetKernelWorkGroupInfo(_icell,
                                         C->device(),
                                         CL_KERNEL_WORK_GROUP_SIZE,
                                         sizeof(size_t),
                                         &_icell_lws,
                                         NULL);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessageF(3, "Failure querying the work group size (\"iCell\").\n");
+    if(err_code != CL_SUCCESS) {
+        S->addMessageF(3, "Failure querying the work group size (\"iCell\").\n");
         S->printOpenCLError(err_code);
-	    return true;
-	}
+        return true;
+    }
     if(_icell_lws < __CL_MIN_LOCALSIZE__){
         S->addMessageF(3, "iCell cannot be performed.\n");
         sprintf(msg,
@@ -346,17 +346,17 @@ bool LinkList::setupOpenCL()
                vars->get(_icell_vars[i])->typesize());
     }
 
-	err_code = clGetKernelWorkGroupInfo(_ll,
+    err_code = clGetKernelWorkGroupInfo(_ll,
                                         C->device(),
                                         CL_KERNEL_WORK_GROUP_SIZE,
                                         sizeof(size_t),
                                         &_ll_lws,
                                         NULL);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessageF(3, "Failure querying the work group size (\"linkList\").\n");
+    if(err_code != CL_SUCCESS) {
+        S->addMessageF(3, "Failure querying the work group size (\"linkList\").\n");
         S->printOpenCLError(err_code);
-	    return true;
-	}
+        return true;
+    }
     if(_ll_lws < __CL_MIN_LOCALSIZE__){
         S->addMessageF(3, "linkList cannot be performed.\n");
         sprintf(msg,
@@ -388,7 +388,7 @@ bool LinkList::setupOpenCL()
                vars->get(_ll_vars[i])->typesize());
     }
 
-	return false;
+    return false;
 }
 
 bool LinkList::compile(const char* source)
@@ -396,38 +396,38 @@ bool LinkList::compile(const char* source)
     cl_int err_code;
     cl_program program;
     char msg[1024];
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    CalcServer *C = CalcServer::singleton();
 
     char flags[512];
     strcpy(flags, "");
-	#ifdef AQUA_DEBUG
-	    strcat(flags, " -DDEBUG ");
-	#else
-	    strcat(flags, " -DNDEBUG ");
-	#endif
-	strcat(flags, " -cl-mad-enable -cl-fast-relaxed-math");
-	#ifdef HAVE_3D
-		strcat(flags, " -DHAVE_3D");
-	#else
-		strcat(flags, " -DHAVE_2D");
-	#endif
-	size_t source_length = strlen(source) + 1;
-	program = clCreateProgramWithSource(C->context(),
+    #ifdef AQUA_DEBUG
+        strcat(flags, " -DDEBUG ");
+    #else
+        strcat(flags, " -DNDEBUG ");
+    #endif
+    strcat(flags, " -cl-mad-enable -cl-fast-relaxed-math");
+    #ifdef HAVE_3D
+        strcat(flags, " -DHAVE_3D");
+    #else
+        strcat(flags, " -DHAVE_2D");
+    #endif
+    size_t source_length = strlen(source) + 1;
+    program = clCreateProgramWithSource(C->context(),
                                         1,
                                         (const char **)&source,
                                         &source_length,
                                         &err_code);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessageF(3, "Failure creating the OpenCL program.\n");
-	    S->printOpenCLError(err_code);
-	    return true;
-	}
-	err_code = clBuildProgram(program, 0, NULL, flags, NULL, NULL);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessage(3, "Error compiling the source code\n");
+    if(err_code != CL_SUCCESS) {
+        S->addMessageF(3, "Failure creating the OpenCL program.\n");
         S->printOpenCLError(err_code);
-	    S->addMessage(3, "--- Build log ---------------------------------\n");
+        return true;
+    }
+    err_code = clBuildProgram(program, 0, NULL, flags, NULL, NULL);
+    if(err_code != CL_SUCCESS) {
+        S->addMessage(3, "Error compiling the source code\n");
+        S->printOpenCLError(err_code);
+        S->addMessage(3, "--- Build log ---------------------------------\n");
         size_t log_size = 0;
         clGetProgramBuildInfo(program,
                               C->device(),
@@ -453,43 +453,43 @@ bool LinkList::compile(const char* source)
                               NULL);
         strcat(log, "\n");
         S->addMessage(0, log);
-	    S->addMessage(3, "--------------------------------- Build log ---\n");
-	    free(log); log=NULL;
+        S->addMessage(3, "--------------------------------- Build log ---\n");
+        free(log); log=NULL;
         clReleaseProgram(program);
-	    return true;
-	}
-	_ihoc = clCreateKernel(program, "iHoc", &err_code);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessageF(3, "Failure creating the \"iHoc\" kernel.\n");
-	    S->printOpenCLError(err_code);
+        return true;
+    }
+    _ihoc = clCreateKernel(program, "iHoc", &err_code);
+    if(err_code != CL_SUCCESS) {
+        S->addMessageF(3, "Failure creating the \"iHoc\" kernel.\n");
+        S->printOpenCLError(err_code);
         clReleaseProgram(program);
-	    return true;
-	}
-	_icell = clCreateKernel(program, "iCell", &err_code);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessageF(3, "Failure creating the \"iCell\" kernel.\n");
-	    S->printOpenCLError(err_code);
+        return true;
+    }
+    _icell = clCreateKernel(program, "iCell", &err_code);
+    if(err_code != CL_SUCCESS) {
+        S->addMessageF(3, "Failure creating the \"iCell\" kernel.\n");
+        S->printOpenCLError(err_code);
         clReleaseProgram(program);
-	    return true;
-	}
-	_ll = clCreateKernel(program, "linkList", &err_code);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessageF(3, "Failure creating the \"linkList\" kernel.\n");
-	    S->printOpenCLError(err_code);
+        return true;
+    }
+    _ll = clCreateKernel(program, "linkList", &err_code);
+    if(err_code != CL_SUCCESS) {
+        S->addMessageF(3, "Failure creating the \"linkList\" kernel.\n");
+        S->printOpenCLError(err_code);
         clReleaseProgram(program);
-	    return true;
-	}
+        return true;
+    }
 
     clReleaseProgram(program);
-	return false;
+    return false;
 }
 
 bool LinkList::nCells()
 {
     vec pos_min, pos_max;
     char msg[1024];
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    CalcServer *C = CalcServer::singleton();
     InputOutput::Variables *vars = C->variables();
 
     if(!_cell_length){
@@ -503,13 +503,13 @@ bool LinkList::nCells()
     pos_min = *(vec*)vars->get("r_min")->get();
     pos_max = *(vec*)vars->get("r_max")->get();
 
-	_n_cells.x = (unsigned int)((pos_max.x - pos_min.x) / _cell_length) + 6;
-	_n_cells.y = (unsigned int)((pos_max.y - pos_min.y) / _cell_length) + 6;
-	#ifdef HAVE_3D
+    _n_cells.x = (unsigned int)((pos_max.x - pos_min.x) / _cell_length) + 6;
+    _n_cells.y = (unsigned int)((pos_max.y - pos_min.y) / _cell_length) + 6;
+    #ifdef HAVE_3D
         _n_cells.z = (unsigned int)((pos_max.z - pos_min.z) / _cell_length) + 6;
     #else
         _n_cells.z = 1;
-	#endif
+    #endif
     _n_cells.w = _n_cells.x * _n_cells.y * _n_cells.z;
 
     return false;
@@ -520,8 +520,8 @@ bool LinkList::allocate()
     uivec4 n_cells;
     cl_int err_code;
     char msg[1024];
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    CalcServer *C = CalcServer::singleton();
     InputOutput::Variables *vars = C->variables();
 
     if(strcmp(vars->get("n_cells")->type(), "uivec4")){
@@ -578,8 +578,8 @@ bool LinkList::setVariables()
     unsigned int i;
     char msg[1024];
     cl_int err_code;
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    CalcServer *C = CalcServer::singleton();
     InputOutput::Variables *vars = C->variables();
 
     const char *_ihoc_vars[3] = {"ihoc", "N", "n_cells"};
@@ -649,7 +649,7 @@ bool LinkList::setVariables()
         memcpy(_ll_args.at(i), var->get(), var->typesize());
     }
 
-	return false;
+    return false;
 }
 
 }}  // namespace
