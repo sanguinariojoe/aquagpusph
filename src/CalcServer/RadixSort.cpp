@@ -44,7 +44,7 @@ RadixSort::RadixSort(const char* tool_name,
                      const char* variable,
                      const char* permutations,
                      const char* inv_permutations)
-	: Tool(tool_name)
+    : Tool(tool_name)
     , _var_name(NULL)
     , _perms_name(NULL)
     , _inv_perms_name(NULL)
@@ -52,24 +52,24 @@ RadixSort::RadixSort(const char* tool_name,
     , _perms(NULL)
     , _inv_perms(NULL)
     , _n(0)
-	, _init_kernel(NULL)
-	, _histograms_kernel(NULL)
-	, _scan_kernel(NULL)
-	, _paste_kernel(NULL)
-	, _sort_kernel(NULL)
-	, _inv_perms_kernel(NULL)
-	, _in_keys(NULL)
-	, _out_keys(NULL)
-	, _in_permut(NULL)
-	, _out_permut(NULL)
-	, _histograms(NULL)
-	, _global_sums(NULL)
-	, _temp_mem(NULL)
-	, _items(_ITEMS)
-	, _groups(_GROUPS)
-	, _bits(_STEPBITS)
-	, _radix(_RADIX)
-	, _histo_split(_HISTOSPLIT)
+    , _init_kernel(NULL)
+    , _histograms_kernel(NULL)
+    , _scan_kernel(NULL)
+    , _paste_kernel(NULL)
+    , _sort_kernel(NULL)
+    , _inv_perms_kernel(NULL)
+    , _in_keys(NULL)
+    , _out_keys(NULL)
+    , _in_permut(NULL)
+    , _out_permut(NULL)
+    , _histograms(NULL)
+    , _global_sums(NULL)
+    , _temp_mem(NULL)
+    , _items(_ITEMS)
+    , _groups(_GROUPS)
+    , _bits(_STEPBITS)
+    , _radix(_RADIX)
+    , _histo_split(_HISTOSPLIT)
 {
     _var_name = new char[strlen(variable) + 1];
     strcpy(_var_name, variable);
@@ -81,15 +81,15 @@ RadixSort::RadixSort(const char* tool_name,
 
 RadixSort::~RadixSort()
 {
-	if(_var_name) delete[] _var_name; _var_name=NULL;
-	if(_perms_name) delete[] _perms_name; _perms_name=NULL;
-	if(_inv_perms_name) delete[] _inv_perms_name; _inv_perms_name=NULL;
-	if(_init_kernel) clReleaseKernel(_init_kernel); _init_kernel=NULL;
-	if(_histograms_kernel) clReleaseKernel(_histograms_kernel); _histograms_kernel=NULL;
-	if(_scan_kernel) clReleaseKernel(_scan_kernel); _scan_kernel=NULL;
-	if(_paste_kernel) clReleaseKernel(_paste_kernel); _paste_kernel=NULL;
-	if(_sort_kernel) clReleaseKernel(_sort_kernel); _sort_kernel=NULL;
-	if(_inv_perms_kernel) clReleaseKernel(_inv_perms_kernel); _inv_perms_kernel=NULL;
+    if(_var_name) delete[] _var_name; _var_name=NULL;
+    if(_perms_name) delete[] _perms_name; _perms_name=NULL;
+    if(_inv_perms_name) delete[] _inv_perms_name; _inv_perms_name=NULL;
+    if(_init_kernel) clReleaseKernel(_init_kernel); _init_kernel=NULL;
+    if(_histograms_kernel) clReleaseKernel(_histograms_kernel); _histograms_kernel=NULL;
+    if(_scan_kernel) clReleaseKernel(_scan_kernel); _scan_kernel=NULL;
+    if(_paste_kernel) clReleaseKernel(_paste_kernel); _paste_kernel=NULL;
+    if(_sort_kernel) clReleaseKernel(_sort_kernel); _sort_kernel=NULL;
+    if(_inv_perms_kernel) clReleaseKernel(_inv_perms_kernel); _inv_perms_kernel=NULL;
     if(_in_keys) clReleaseMemObject(_in_keys); _in_keys=NULL;
     if(_out_keys) clReleaseMemObject(_out_keys); _out_keys=NULL;
     if(_in_permut) clReleaseMemObject(_in_permut); _in_permut=NULL;
@@ -103,7 +103,7 @@ bool RadixSort::setup()
 {
     char msg[1024];
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
+    CalcServer *C = CalcServer::singleton();
     InputOutput::Variables *vars = C->variables();
 
     sprintf(msg,
@@ -127,26 +127,26 @@ bool RadixSort::setup()
 bool RadixSort::_execute()
 {
     cl_int err_code;
-	unsigned int i, max_val;
-	char msg[1024];
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
+    unsigned int i, max_val;
+    char msg[1024];
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    CalcServer *C = CalcServer::singleton();
     InputOutput::Variables *vars = C->variables();
 
-	// Get maximum key bits, and needed pass
-	max_val = UINT_MAX;
-	if(!strcmp(_var_name, "icell")){
+    // Get maximum key bits, and needed pass
+    max_val = UINT_MAX;
+    if(!strcmp(_var_name, "icell")){
         uivec4 n_cells = *(uivec4 *)vars->get("n_cells")->get();
         max_val = nextPowerOf2(n_cells.w);
-	}
-	for(i=0; (max_val&1) == 0; max_val >>= 1, i++);
-	_key_bits = i;
-	_key_bits = roundUp(_key_bits, _bits);
-	if(_key_bits > __UINTBITS__){
-	    S->addMessageF(3, "Resultant keys overflows unsigned int type.\n");
-	    return true;
-	}
-	_n_pass = _key_bits / _bits;
+    }
+    for(i=0; (max_val&1) == 0; max_val >>= 1, i++);
+    _key_bits = i;
+    _key_bits = roundUp(_key_bits, _bits);
+    if(_key_bits > __UINTBITS__){
+        S->addMessageF(3, "Resultant keys overflows unsigned int type.\n");
+        return true;
+    }
+    _n_pass = _key_bits / _bits;
 
     err_code = clEnqueueCopyBuffer(C->command_queue(),
                                    *(cl_mem *)_var->get(),
@@ -166,17 +166,17 @@ bool RadixSort::_execute()
         return true;
     }
 
-	if(init())
-	    return true;
+    if(init())
+        return true;
 
-	for(_pass = 0; _pass < _n_pass; _pass++){
-	    if(histograms())
-	        return true;
-	    if(scan())
-	        return true;
-	    if(reorder())
-	        return true;
-	}
+    for(_pass = 0; _pass < _n_pass; _pass++){
+        if(histograms())
+            return true;
+        if(scan())
+            return true;
+        if(reorder())
+            return true;
+    }
 
     err_code = clEnqueueCopyBuffer(C->command_queue(),
                                    _in_keys,
@@ -213,18 +213,18 @@ bool RadixSort::_execute()
         return true;
     }
 
-	if(inversePermutations())
-	    return true;
+    if(inversePermutations())
+        return true;
 
-	return false;
+    return false;
 }
 
 bool RadixSort::init()
 {
-	cl_int err_code;
-	char msg[1024];
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
+    cl_int err_code;
+    char msg[1024];
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    CalcServer *C = CalcServer::singleton();
 
     err_code = clSetKernelArg(_init_kernel,
                               0,
@@ -254,17 +254,17 @@ bool RadixSort::init()
         return true;
     }
 
-	return false;
+    return false;
 }
 
 bool RadixSort::histograms()
 {
-	cl_int err_code;
-	char msg[1024];
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
-	size_t local_work_size = _items;
-	size_t global_work_size = _groups * _items;
+    cl_int err_code;
+    char msg[1024];
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    CalcServer *C = CalcServer::singleton();
+    size_t local_work_size = _items;
+    size_t global_work_size = _groups * _items;
 
     err_code = clSetKernelArg(_histograms_kernel,
                               0,
@@ -303,22 +303,22 @@ bool RadixSort::histograms()
         return true;
     }
 
-	return false;
+    return false;
 }
 
 bool RadixSort::scan()
 {
-	cl_int err_code;
-	char msg[1024];
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
-	size_t global_work_size = _radix * _groups * _items / 2;
-	size_t local_work_size = global_work_size / _histo_split;
-	unsigned int maxmemcache=max(_histo_split,
+    cl_int err_code;
+    char msg[1024];
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    CalcServer *C = CalcServer::singleton();
+    size_t global_work_size = _radix * _groups * _items / 2;
+    size_t local_work_size = global_work_size / _histo_split;
+    unsigned int maxmemcache=max(_histo_split,
                                  _items * _groups * _radix / _histo_split);
 
-	// 1st scan
-	// ========
+    // 1st scan
+    // ========
     err_code = clSetKernelArg(_scan_kernel,
                               0,
                               sizeof(cl_mem),
@@ -356,10 +356,10 @@ bool RadixSort::scan()
         return true;
     }
 
-	// 2nd scan
-	// ========
-	global_work_size = _histo_split / 2;
-	local_work_size = global_work_size;
+    // 2nd scan
+    // ========
+    global_work_size = _histo_split / 2;
+    local_work_size = global_work_size;
     err_code = clSetKernelArg(_scan_kernel,
                               0,
                               sizeof(cl_mem),
@@ -397,10 +397,10 @@ bool RadixSort::scan()
         return true;
     }
 
-	// Histograms paste
-	// ================
-	global_work_size = _radix * _groups * _items / 2;
-	local_work_size = global_work_size / _histo_split;
+    // Histograms paste
+    // ================
+    global_work_size = _radix * _groups * _items / 2;
+    local_work_size = global_work_size / _histo_split;
 
     err_code = clEnqueueNDRangeKernel(C->command_queue(),
                                       _paste_kernel,
@@ -420,17 +420,17 @@ bool RadixSort::scan()
         return true;
     }
 
-	return false;
+    return false;
 }
 
 bool RadixSort::reorder()
 {
-	cl_int err_code;
-	char msg[1024];
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
-	size_t local_work_size = _items;
-	size_t global_work_size = _groups * _items;
+    cl_int err_code;
+    char msg[1024];
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    CalcServer *C = CalcServer::singleton();
+    size_t local_work_size = _items;
+    size_t global_work_size = _groups * _items;
 
     err_code = clSetKernelArg(_sort_kernel,
                               0,
@@ -497,25 +497,25 @@ bool RadixSort::reorder()
     }
 
     // Swap the memory identifiers for the next pass
-	cl_mem d_temp;
+    cl_mem d_temp;
 
-	d_temp = _in_keys;
-	_in_keys = _out_keys;
-	_out_keys = d_temp;
+    d_temp = _in_keys;
+    _in_keys = _out_keys;
+    _out_keys = d_temp;
 
-	d_temp = _in_permut;
-	_in_permut = _out_permut;
-	_out_permut = d_temp;
+    d_temp = _in_permut;
+    _in_permut = _out_permut;
+    _out_permut = d_temp;
 
-	return false;
+    return false;
 }
 
 bool RadixSort::inversePermutations()
 {
-	cl_int err_code;
-	char msg[1024];
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
+    cl_int err_code;
+    char msg[1024];
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    CalcServer *C = CalcServer::singleton();
 
     err_code = clSetKernelArg(_inv_perms_kernel,
                               0,
@@ -554,7 +554,7 @@ bool RadixSort::inversePermutations()
         return true;
     }
 
-	return false;
+    return false;
 }
 
 
@@ -696,8 +696,8 @@ bool RadixSort::setupOpenCL()
     cl_int err_code;
     cl_kernel kernel;
     char msg[1024];
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    CalcServer *C = CalcServer::singleton();
     InputOutput::Variables *vars = C->variables();
 
     // Create a header for the source code where the operation will be placed
@@ -735,7 +735,7 @@ bool RadixSort::setupOpenCL()
     sprintf(msg, "\tsplits: %u\n", _histo_split);
     S->addMessage(0, msg);
 
-	return false;
+    return false;
 }
 
 bool RadixSort::compile(const char* source)
@@ -743,41 +743,41 @@ bool RadixSort::compile(const char* source)
     cl_int err_code;
     cl_program program;
     char msg[1024];
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    CalcServer *C = CalcServer::singleton();
 
     char flags[512];
     sprintf(flags,
             "-D_BITS=%u -D_RADIX=%u -DPERMUT",
             _bits,
             _radix);
-	#ifdef AQUA_DEBUG
-	    strcat(flags, " -DDEBUG");
-	#else
-	    strcat(flags, " -DNDEBUG");
-	#endif
-	strcat(flags, " -cl-mad-enable -cl-fast-relaxed-math");
-	#ifdef HAVE_3D
-		strcat(flags, " -DHAVE_3D");
-	#else
-		strcat(flags, " -DHAVE_2D");
-	#endif
-	size_t source_length = strlen(source) + 1;
-	program = clCreateProgramWithSource(C->context(),
+    #ifdef AQUA_DEBUG
+        strcat(flags, " -DDEBUG");
+    #else
+        strcat(flags, " -DNDEBUG");
+    #endif
+    strcat(flags, " -cl-mad-enable -cl-fast-relaxed-math");
+    #ifdef HAVE_3D
+        strcat(flags, " -DHAVE_3D");
+    #else
+        strcat(flags, " -DHAVE_2D");
+    #endif
+    size_t source_length = strlen(source) + 1;
+    program = clCreateProgramWithSource(C->context(),
                                         1,
                                         (const char **)&source,
                                         &source_length,
                                         &err_code);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessageF(3, "Failure creating the OpenCL program.\n");
-	    S->printOpenCLError(err_code);
-	    return true;
-	}
-	err_code = clBuildProgram(program, 0, NULL, flags, NULL, NULL);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessage(3, "Error compiling the source code\n");
+    if(err_code != CL_SUCCESS) {
+        S->addMessageF(3, "Failure creating the OpenCL program.\n");
         S->printOpenCLError(err_code);
-	    S->addMessage(3, "--- Build log ---------------------------------\n");
+        return true;
+    }
+    err_code = clBuildProgram(program, 0, NULL, flags, NULL, NULL);
+    if(err_code != CL_SUCCESS) {
+        S->addMessage(3, "Error compiling the source code\n");
+        S->printOpenCLError(err_code);
+        S->addMessage(3, "--- Build log ---------------------------------\n");
         size_t log_size = 0;
         clGetProgramBuildInfo(program,
                               C->device(),
@@ -803,57 +803,57 @@ bool RadixSort::compile(const char* source)
                               NULL);
         strcat(log, "\n");
         S->addMessage(0, log);
-	    S->addMessage(3, "--------------------------------- Build log ---\n");
-	    free(log); log=NULL;
+        S->addMessage(3, "--------------------------------- Build log ---\n");
+        free(log); log=NULL;
         clReleaseProgram(program);
-	    return true;
-	}
+        return true;
+    }
 
-	_init_kernel = clCreateKernel(program, "init", &err_code);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessageF(3, "Failure creating the \"init\" kernel.\n");
-	    S->printOpenCLError(err_code);
+    _init_kernel = clCreateKernel(program, "init", &err_code);
+    if(err_code != CL_SUCCESS) {
+        S->addMessageF(3, "Failure creating the \"init\" kernel.\n");
+        S->printOpenCLError(err_code);
         clReleaseProgram(program);
-	    return true;
-	}
-	_histograms_kernel = clCreateKernel(program, "histogram", &err_code);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessageF(3, "Failure creating the \"histogram\" kernel.\n");
-	    S->printOpenCLError(err_code);
+        return true;
+    }
+    _histograms_kernel = clCreateKernel(program, "histogram", &err_code);
+    if(err_code != CL_SUCCESS) {
+        S->addMessageF(3, "Failure creating the \"histogram\" kernel.\n");
+        S->printOpenCLError(err_code);
         clReleaseProgram(program);
-	    return true;
-	}
-	_scan_kernel = clCreateKernel(program, "scan", &err_code);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessageF(3, "Failure creating the \"scan\" kernel.\n");
-	    S->printOpenCLError(err_code);
+        return true;
+    }
+    _scan_kernel = clCreateKernel(program, "scan", &err_code);
+    if(err_code != CL_SUCCESS) {
+        S->addMessageF(3, "Failure creating the \"scan\" kernel.\n");
+        S->printOpenCLError(err_code);
         clReleaseProgram(program);
-	    return true;
-	}
-	_paste_kernel = clCreateKernel(program, "paste", &err_code);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessageF(3, "Failure creating the \"paste\" kernel.\n");
-	    S->printOpenCLError(err_code);
+        return true;
+    }
+    _paste_kernel = clCreateKernel(program, "paste", &err_code);
+    if(err_code != CL_SUCCESS) {
+        S->addMessageF(3, "Failure creating the \"paste\" kernel.\n");
+        S->printOpenCLError(err_code);
         clReleaseProgram(program);
-	    return true;
-	}
-	_sort_kernel = clCreateKernel(program, "sort", &err_code);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessageF(3, "Failure creating the \"sort\" kernel.\n");
-	    S->printOpenCLError(err_code);
+        return true;
+    }
+    _sort_kernel = clCreateKernel(program, "sort", &err_code);
+    if(err_code != CL_SUCCESS) {
+        S->addMessageF(3, "Failure creating the \"sort\" kernel.\n");
+        S->printOpenCLError(err_code);
         clReleaseProgram(program);
-	    return true;
-	}
-	_inv_perms_kernel = clCreateKernel(program, "inversePermutation", &err_code);
-	if(err_code != CL_SUCCESS) {
-	    S->addMessageF(3, "Failure creating the \"inversePermutation\" kernel.\n");
-	    S->printOpenCLError(err_code);
+        return true;
+    }
+    _inv_perms_kernel = clCreateKernel(program, "inversePermutation", &err_code);
+    if(err_code != CL_SUCCESS) {
+        S->addMessageF(3, "Failure creating the \"inversePermutation\" kernel.\n");
+        S->printOpenCLError(err_code);
         clReleaseProgram(program);
-	    return true;
-	}
+        return true;
+    }
     clReleaseProgram(program);
 
-	return false;
+    return false;
 }
 
 bool RadixSort::setupDims()
@@ -861,71 +861,71 @@ bool RadixSort::setupDims()
     cl_int err_code;
     size_t max_local_work_size, sort_local_work_size, scan_local_work_size;
     char msg[1024];
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    CalcServer *C = CalcServer::singleton();
 
     // For the _histograms_kernel and _sort_kernel _items can be used as the
     // upper bound
-	err_code = clGetKernelWorkGroupInfo(_histograms_kernel,
+    err_code = clGetKernelWorkGroupInfo(_histograms_kernel,
                                         C->device(),
                                         CL_KERNEL_WORK_GROUP_SIZE,
-	                                    sizeof(size_t),
+                                        sizeof(size_t),
                                         &max_local_work_size,
                                         NULL);
-	if(err_code != CL_SUCCESS) {
-		S->addMessageF(3, "Failure getting CL_KERNEL_WORK_GROUP_SIZE from \"histogram\".\n");
+    if(err_code != CL_SUCCESS) {
+        S->addMessageF(3, "Failure getting CL_KERNEL_WORK_GROUP_SIZE from \"histogram\".\n");
         S->printOpenCLError(err_code);
-	    return true;
-	}
-	err_code = clGetKernelWorkGroupInfo(_sort_kernel,
+        return true;
+    }
+    err_code = clGetKernelWorkGroupInfo(_sort_kernel,
                                         C->device(),
                                         CL_KERNEL_WORK_GROUP_SIZE,
                                         sizeof(size_t),
                                         &sort_local_work_size,
                                         NULL);
-	if(err_code != CL_SUCCESS) {
-		S->addMessageF(3, "Failure getting CL_KERNEL_WORK_GROUP_SIZE from \"sort\".\n");
+    if(err_code != CL_SUCCESS) {
+        S->addMessageF(3, "Failure getting CL_KERNEL_WORK_GROUP_SIZE from \"sort\".\n");
         S->printOpenCLError(err_code);
-	    return true;
-	}
-	if(sort_local_work_size < max_local_work_size)
+        return true;
+    }
+    if(sort_local_work_size < max_local_work_size)
         max_local_work_size = sort_local_work_size;
-	if(max_local_work_size < _items)
+    if(max_local_work_size < _items)
         _items = max_local_work_size;
     if(!isPowerOf2(_items))
         _items = nextPowerOf2(_items) / 2;
 
     // The _scan_kernel can be used to set an upper bound to the number of
     // histogram splits
-	err_code = clGetKernelWorkGroupInfo(_scan_kernel,
+    err_code = clGetKernelWorkGroupInfo(_scan_kernel,
                                         C->device(),
                                         CL_KERNEL_WORK_GROUP_SIZE,
-	                                    sizeof(size_t),
+                                        sizeof(size_t),
                                         &scan_local_work_size,
                                         NULL);
-	if(err_code != CL_SUCCESS) {
-		S->addMessageF(3, "Failure getting CL_KERNEL_WORK_GROUP_SIZE from \"scan\".\n");
+    if(err_code != CL_SUCCESS) {
+        S->addMessageF(3, "Failure getting CL_KERNEL_WORK_GROUP_SIZE from \"scan\".\n");
         S->printOpenCLError(err_code);
-	    return true;
-	}
-	if(scan_local_work_size < _histo_split / 2)
+        return true;
+    }
+    if(scan_local_work_size < _histo_split / 2)
         _histo_split = 2 * scan_local_work_size;
     if(!isPowerOf2(_histo_split))
         _histo_split = nextPowerOf2(_histo_split) / 2;
 
     // Finally using _scan_kernel and _paste_kernel we can adjust _groups,
     // _items and _radix
-	err_code = clGetKernelWorkGroupInfo(_paste_kernel,
+    err_code = clGetKernelWorkGroupInfo(_paste_kernel,
                                         C->device(),
                                         CL_KERNEL_WORK_GROUP_SIZE,
-	                                    sizeof(size_t),
+                                        sizeof(size_t),
                                         &max_local_work_size,
                                         NULL);
-	if(err_code != CL_SUCCESS) {
-		S->addMessageF(3, "Failure getting CL_KERNEL_WORK_GROUP_SIZE from \"paste\".\n");
+    if(err_code != CL_SUCCESS) {
+        S->addMessageF(3, "Failure getting CL_KERNEL_WORK_GROUP_SIZE from \"paste\".\n");
         S->printOpenCLError(err_code);
-	    return true;
-	}
+        return true;
+    }
     max_local_work_size = min(max_local_work_size, scan_local_work_size);
     while(max_local_work_size < _radix * _groups * _items / 2 / _histo_split){
         // We can't increase _histo_split, so we may start decreasing the number
@@ -947,9 +947,9 @@ bool RadixSort::setupDims()
     }
     if(max_local_work_size < _radix * _groups * _items / 2 / _histo_split){
         // We can try to reduce the radix, but it is a bad business
-		S->addMessageF(3, "Failure setting a number of items and groups compatible with \"scan\" and \"paste\".\n");
-		S->addMessage(0, "\tYou can try to recompile the code decreasing __CL_MIN_LOCALSIZE__\n");
-	    return true;
+        S->addMessageF(3, "Failure setting a number of items and groups compatible with \"scan\" and \"paste\".\n");
+        S->addMessage(0, "\tYou can try to recompile the code decreasing __CL_MIN_LOCALSIZE__\n");
+        return true;
     }
 
     _local_work_size = getLocalWorkSize(_n, C->command_queue());
@@ -962,8 +962,8 @@ bool RadixSort::setupMems()
 {
     cl_int err_code;
     char msg[1024];
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    CalcServer *C = CalcServer::singleton();
 
     if(_in_keys) clReleaseMemObject(_in_keys); _in_keys=NULL;
     if(_out_keys) clReleaseMemObject(_out_keys); _out_keys=NULL;
@@ -974,8 +974,8 @@ bool RadixSort::setupMems()
     if(_temp_mem) clReleaseMemObject(_temp_mem); _temp_mem=NULL;
     allocatedMemory(0);
 
-	// Get the memory identifiers
-	_in_keys = clCreateBuffer(C->context(),
+    // Get the memory identifiers
+    _in_keys = clCreateBuffer(C->context(),
                               CL_MEM_READ_WRITE,
                               _n * sizeof(unsigned int),
                               NULL,
@@ -985,7 +985,7 @@ bool RadixSort::setupMems()
         S->printOpenCLError(err_code);
         return true;
     }
-	_out_keys = clCreateBuffer(C->context(),
+    _out_keys = clCreateBuffer(C->context(),
                               CL_MEM_READ_WRITE,
                               _n * sizeof(unsigned int),
                               NULL,
@@ -995,7 +995,7 @@ bool RadixSort::setupMems()
         S->printOpenCLError(err_code);
         return true;
     }
-	_in_permut = clCreateBuffer(C->context(),
+    _in_permut = clCreateBuffer(C->context(),
                                 CL_MEM_READ_WRITE,
                                 _n * sizeof(unsigned int),
                                 NULL,
@@ -1005,7 +1005,7 @@ bool RadixSort::setupMems()
         S->printOpenCLError(err_code);
         return true;
     }
-	_out_permut = clCreateBuffer(C->context(),
+    _out_permut = clCreateBuffer(C->context(),
                                  CL_MEM_READ_WRITE,
                                  _n * sizeof(unsigned int),
                                  NULL,
@@ -1015,7 +1015,7 @@ bool RadixSort::setupMems()
         S->printOpenCLError(err_code);
         return true;
     }
-	_histograms = clCreateBuffer(C->context(),
+    _histograms = clCreateBuffer(C->context(),
                                  CL_MEM_READ_WRITE,
                                  (_radix * _groups * _items) * sizeof(unsigned int),
                                  NULL,
@@ -1025,7 +1025,7 @@ bool RadixSort::setupMems()
         S->printOpenCLError(err_code);
         return true;
     }
-	_global_sums = clCreateBuffer(C->context(),
+    _global_sums = clCreateBuffer(C->context(),
                                   CL_MEM_READ_WRITE,
                                   _histo_split * sizeof(unsigned int),
                                   NULL,
@@ -1035,7 +1035,7 @@ bool RadixSort::setupMems()
         S->printOpenCLError(err_code);
         return true;
     }
-	_temp_mem = clCreateBuffer(C->context(),
+    _temp_mem = clCreateBuffer(C->context(),
                                CL_MEM_READ_WRITE,
                                sizeof(unsigned int),
                                NULL,
@@ -1058,8 +1058,8 @@ bool RadixSort::setupArgs()
 {
     cl_int err_code;
     char msg[1024];
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
+    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    CalcServer *C = CalcServer::singleton();
 
     err_code = clSetKernelArg(_init_kernel,
                               1,
@@ -1099,7 +1099,7 @@ bool RadixSort::setupArgs()
         return true;
     }
 
-	unsigned int maxmemcache = max(_histo_split,
+    unsigned int maxmemcache = max(_histo_split,
                                    _items * _groups * _radix / _histo_split);
     err_code = clSetKernelArg(_scan_kernel,
                               1,
