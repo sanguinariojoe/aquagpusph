@@ -865,6 +865,20 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                 }
                 tool->set("in", xmlAttribute(s_elem, "in"));
             }
+            else if(!strcmp(xmlAttribute(s_elem, "type"), "radix-sort")){
+                const char *atts[3] = {"in", "perm", "inv_perm"};
+                for(unsigned int k = 0; k < 3; k++){
+                    if(!xmlHasAttribute(s_elem, atts[k])){
+                        sprintf(msg,
+                                "Tool \"%s\" is of type \"set\", but \"%s\" is not defined.\n",
+                                tool->get("name"),
+                                atts[k]);
+                        S->addMessageF(3, msg);
+                        return true;
+                    }
+                    tool->set(atts[k], xmlAttribute(s_elem, atts[k]));
+                }
+            }
             else if(!strcmp(xmlAttribute(s_elem, "type"), "dummy")){
             	// Without options
             }
@@ -881,6 +895,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                 S->addMessage(0, "\t\tset_scalar\n");
                 S->addMessage(0, "\t\treduction\n");
                 S->addMessage(0, "\t\tlink-list\n");
+                S->addMessage(0, "\t\tradix-sort\n");
                 S->addMessage(0, "\t\tdummy\n");
                 return true;
             }

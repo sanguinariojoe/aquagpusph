@@ -39,6 +39,7 @@
 #include <CalcServer/Kernel.h>
 #include <CalcServer/LinkList.h>
 #include <CalcServer/Python.h>
+#include <CalcServer/RadixSort.h>
 #include <CalcServer/Reduction.h>
 #include <CalcServer/Set.h>
 #include <CalcServer/SetScalar.h>
@@ -268,6 +269,13 @@ CalcServer::CalcServer()
         else if(!strcmp(P->tools.at(i)->get("type"), "link-list")){
             LinkList *tool = new LinkList(P->tools.at(i)->get("name"),
                                           P->tools.at(i)->get("in"));
+            _tools.push_back(tool);
+        }
+        else if(!strcmp(P->tools.at(i)->get("type"), "radix-sort")){
+            RadixSort *tool = new RadixSort(P->tools.at(i)->get("name"),
+                                            P->tools.at(i)->get("in"),
+                                            P->tools.at(i)->get("perm"),
+                                            P->tools.at(i)->get("inv_perm"));
             _tools.push_back(tool);
         }
         else if(!strcmp(P->tools.at(i)->get("type"), "dummy")){
