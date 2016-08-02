@@ -1,0 +1,64 @@
+<?xml version="1.0" ?>
+
+<!-- Particles refinement and de-refinement.
+
+This module depends on basic/domain.xml module, which should be includedas well.
+This module should be included once.
+
+To use this module, include this file, and modify the particles set reading in
+order to stores the mass of the particles in the array m0, instead of m. You
+are also responsible of initialize the ilevel0 and ilevel variables.
+
+Boundary elements/particles are not never split or coalesced. Therefore the user
+is responsible to initialize them with the right resolution level
+
+In order to ask for particles refinement, the variables level and gamma_m should
+become edited. You can find some tools to do that in basic/multiresolution
+modules folder.
+
+Since this module may modify the mass of the particles, it should be included
+AFTER variable_h.xml one.
+-->
+
+<sphInput>
+    <Variables>
+        <!-- The original mass of each particle, and the transfer function -->
+        <Variable name="m0" type="float*" length="N" />
+        <Variable name="gamma_m" type="float*" length="N" />
+        <!-- The refinement level each particle belongs, and the refinement
+        level specified by the area -->
+        <Variable name="ilevel0" type="unsigned int*" length="N" />
+        <Variable name="ilevel" type="unsigned int*" length="N" />
+        <Variable name="level" type="unsigned int*" length="N" />
+        <!-- Internal variables to mark the particles to become splited -->
+        <Variable name="isplit" type="unsigned int*" length="n_radix" />
+        <Variable name="split_perm" type="unsigned int*" length="n_radix" />
+        <Variable name="split_invperm" type="unsigned int*" length="n_radix" />
+    </Variables>
+
+    <Tools>
+        <!-- Create a new section to determine the level and the gamma value
+        of the particles -->
+        <Tool action="insert" after="Corrector" name="Refinement level" type="dummy"/>
+        <!-- Create sections to carry out the particles refinement and
+        coalescing -->
+        <Tool action="insert" after="Refinement level" name="Split" type="dummy"/>
+        <Tool action="insert" after="Split" name="Coalesce" type="dummy"/>
+
+        <!-- Copy the original mass on each particle -->
+        <Tool action="insert" before="Predictor" name="basic reset mass" type="copy" in="m0" out="m"/>
+        <Tool action="insert" after="Predictor" name="basic rescale mass" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/SetMass.cl"/>
+        
+        <!-- Initialize the target level of each particle -->
+        <Tool action="insert" before="Refinement level" name="basic init level" type="set" in="level" value="0"/>
+        <Tool action="insert" before="Refinement level" name="basic init gamma_m" type="set" in="gamma_m" value="1.0"/>
+        <!-- Mark the particles to become splited -->
+        <Tool action="insert" before="Split" name="basic init isplit" type="set" in="isplit" value="2"/>
+        <Tool action="insert" before="Split" name="basic isplit" type="kernel" entry="check_split" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Split.cl"/>
+        <!-- Split the particles -->
+        <Tool action="insert" before="Split" name="basic sort isplit" type="kernel" in="isplit" perm="split_perm" inv_perm="split_invperm"/>
+        <Tool action="insert" before="Split" name="basic split" type="kernel" entry="generate" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Split.cl"/>
+        <!-- Coalesce the particles -->
+        <Tool action="insert" before="Coalesce" name="basic coalesce" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
+    </Tools>
+</sphInput>
