@@ -86,8 +86,8 @@ __kernel void check_split(__global const int* imove,
  *   - imove < 0 for boundary elements/particles.
  * @param iset Index of the set of particles.
  * @param isplit 0 if the particle should not become split, 1 otherwise.
- * @param split_perm Permutation to find the index of the particle in the list
- * of particles to become split.
+ * @param split_invperm Permutation to find the index of the particle in the
+ * list of particles to become split.
  * @param ilevel0 Level of refinement of the particle, by construction.
  * @param ilevel Current refinement level of the particle.
  * @param m0 Original mass, before applying the gamma factor, \f$ m_0 \f$
@@ -104,7 +104,7 @@ __kernel void check_split(__global const int* imove,
 __kernel void generate(__global int* imove,
                        __global int* iset,
                        __global unsigned int* isplit,
-                       __global unsigned int* split_perm,
+                       __global unsigned int* split_invperm,
                        __global unsigned int* ilevel0,
                        __global unsigned int* ilevel,
                        __global float* m0,
@@ -125,7 +125,7 @@ __kernel void generate(__global int* imove,
         return;
 
     // Check whether the particle should become split or not
-    unsigned int j = split_perm[i];
+    unsigned int j = split_invperm[i];
     if(isplit[j] != 1)
         return;
 
@@ -137,14 +137,13 @@ __kernel void generate(__global int* imove,
     // Insert the daughters
     ilevel[i]++;
     const float dr = 0.25f * pow(m0[i] / rho[i], 1 / DIMS);
-    vec_xyz r_j = r[i].XYZ;
     for(int ci = -1; ci <= 1; ci += 2) {
-        r_j.x += ci * dr;
         for(int cj = -1; cj <= 1; cj += 2) {
-            r_j.y += cj * dr;
 #ifdef HAVE_3D
             for(int ck = -1; ck <= 1; ck += 2) {
-                r_j.z += cj * dr;
+                vec_xyz r_j = r[i].XYZ + dr * (float3)(ci, cj, ck);
+#else
+                vec_xyz r_j = r[i].XYZ + dr * (float2)(ci, cj);
 #endif
                 // Set the new particle properties
                 ilevel0[j] = ilevel[i];
