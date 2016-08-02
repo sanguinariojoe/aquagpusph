@@ -118,7 +118,7 @@ __kernel void entry(__global const int* imove,
     if(ilevel0[i] == multiresolution_cube_level - 1){
         // A mother particle, which should vanish during the entrance in this
         // area
-        gamma_m[i] = min(gamma_m[i], gamma);
+        gamma_m[i] = min(gamma_m[i], 1.f - gamma);
     }
     else if(ilevel0[i] < multiresolution_cube_level){
         // An outdated mother particle
