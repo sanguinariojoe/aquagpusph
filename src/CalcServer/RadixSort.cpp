@@ -139,6 +139,9 @@ bool RadixSort::_execute()
         uivec4 n_cells = *(uivec4 *)vars->get("n_cells")->get();
         max_val = nextPowerOf2(n_cells.w);
     }
+    else if(!isPowerOf2(max_val)){
+        max_val = nextPowerOf2(max_val / 2);
+    }
     for(i=0; (max_val&1) == 0; max_val >>= 1, i++);
     _key_bits = i;
     _key_bits = roundUp(_key_bits, _bits);
