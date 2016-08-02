@@ -417,6 +417,7 @@ bool CalcServer::update()
         S->initFrame();
 
         // Execute the tools
+        strcpy(_current_tool_name, "__pre execution__");
         for(i = 0; i < _tools.size(); i++){
             strcpy(_current_tool_name, _tools.at(i)->name());
             if(_tools.at(i)->execute()){
@@ -424,6 +425,7 @@ bool CalcServer::update()
                 return true;
             }
         }
+        strcpy(_current_tool_name, "__post execution__");
 
         // Key events
         while(isKeyPressed()){
