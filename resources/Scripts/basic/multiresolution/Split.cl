@@ -90,6 +90,7 @@ __kernel void check_split(__global const int* imove,
  * list of particles to become split.
  * @param ilevel0 Level of refinement of the particle, by construction.
  * @param ilevel Current refinement level of the particle.
+ * @param level Target level.
  * @param m0 Original mass, before applying the gamma factor, \f$ m_0 \f$
  * @param gamma_m Mass multiplier \f$ \gamma_m \f$.
  * @param r Position \f$ \mathbf{r} \f$.
@@ -107,6 +108,7 @@ __kernel void generate(__global int* imove,
                        __global unsigned int* split_invperm,
                        __global unsigned int* ilevel0,
                        __global unsigned int* ilevel,
+                       __global unsigned int* level,
                        __global float* m0,
                        __global float* gamma_m,
                        __global vec* r,
@@ -148,6 +150,7 @@ __kernel void generate(__global int* imove,
                 // Set the new particle properties
                 ilevel0[j] = ilevel[i];
                 ilevel[j] = ilevel[i];
+                level[j] = ilevel[i];  // Needed to avoid coalescing
                 imove[j] = imove[i];
                 iset[j] = iset[i];                
                 m0[j] = m0[i] / N_DAUGHTER;
