@@ -72,7 +72,7 @@ __kernel void entry(__global const int* imove,
     // later).
     vec_xyz r_min = multiresolution_cube_min.XYZ;
     vec_xyz r_max = multiresolution_cube_max.XYZ;
-    if(multiresolution_cube_level = ilevel0[i]){
+    if(multiresolution_cube_level == ilevel0[i]){
         // The particle seems to be a daughter particle, let's keep it for a
         // while
         r_min -= H * VEC_ONE.XYZ;
