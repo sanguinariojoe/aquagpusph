@@ -139,12 +139,12 @@ __kernel void generate(__global int* imove,
     const float dr = 0.25f * pow(m0[i] / rho[i], 1 / DIMS);
     vec_xyz r_j = r[i].XYZ;
     for(int ci = -1; ci <= 1; ci += 2) {
-        r_j.x += r_i.x + ci * dr;
+        r_j.x += ci * dr;
         for(int cj = -1; cj <= 1; cj += 2) {
-            r_j.y += r_i.y + cj * dr;
+            r_j.y += cj * dr;
 #ifdef HAVE_3D
             for(int ck = -1; ck <= 1; ck += 2) {
-                r_j.z += r_i.z + cj * dr;
+                r_j.z += cj * dr;
 #endif
                 // Set the new particle properties
                 ilevel0[j] = ilevel[i];
