@@ -2,12 +2,12 @@
 
 <!-- Particles refinement and de-refinement.
 
-This module depends on basic/domain.xml module, which should be includedas well.
-This module should be included once.
+This module depends on basic/domain.xml module, which should be included as
+well. This module should be included once.
 
 To use this module, include this file, and modify the particles set reading in
 order to stores the mass of the particles in the array m0, instead of m. You
-are also responsible of initialize the ilevel0 and ilevel variables.
+are also responsible of initialize the gamma_m, ilevel0 and ilevel variables.
 
 Boundary elements/particles are not never split or coalesced. Therefore the user
 is responsible to initialize them with the right resolution level
@@ -51,7 +51,6 @@ AFTER variable_h.xml one.
         
         <!-- Initialize the target level of each particle -->
         <Tool action="insert" before="Refinement level" name="basic init level" type="set" in="level" value="0"/>
-        <Tool action="insert" before="Refinement level" name="basic init gamma_m" type="set" in="gamma_m" value="1.0"/>
         <!-- Mark the particles to become splited -->
         <Tool action="insert" before="Split" name="basic init isplit" type="set" in="isplit" value="2"/>
         <Tool action="insert" before="Split" name="basic isplit" type="kernel" entry="check_split" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Split.cl"/>

@@ -13,6 +13,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/MLS.xml
     ${CMAKE_CURRENT_BINARY_DIR}/MLS.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/multiresolution.xml
     ${CMAKE_CURRENT_BINARY_DIR}/multiresolution.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/multiresolution/cube.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/multiresolution/cube.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/noLocalMem.xml
     ${CMAKE_CURRENT_BINARY_DIR}/noLocalMem.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/performance.report.xml
@@ -32,6 +34,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/MLS.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/MLS.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/multiresolution.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/multiresolution.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/multiresolution/cube.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/multiresolution/cube.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/noLocalMem.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/noLocalMem.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/performance.report.xml
@@ -58,4 +62,14 @@ INSTALL(
         ${RESOURCES_SRCS}
     DESTINATION
         ${CMAKE_INSTALL_DATADIR}/resources/Presets/basic
+)
+SET(RESOURCES_MULTIRESOLUTION_SRCS 
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/multiresolution/cube.xml
+)
+SOURCE_GROUP("ResourcesMultiresolutionGroup" FILES ${RESOURCES_MULTIRESOLUTION_SRCS})
+INSTALL(
+    FILES
+        ${RESOURCES_MULTIRESOLUTION_SRCS}
+    DESTINATION
+        ${CMAKE_INSTALL_DATADIR}/resources/Presets/basic/multiresolution
 )
