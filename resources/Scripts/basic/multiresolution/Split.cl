@@ -135,6 +135,9 @@ __kernel void generate(__global int* imove,
     // radix sort is storing the particles to become split at the end of the
     // list 
     j = N - (N - j) * N_DAUGHTER;
+    #ifdef __MULTIRESOLUTION_N_SKIP__
+        j -= __MULTIRESOLUTION_N_SKIP__;
+    #endif
 
     // Insert the daughters
     ilevel[i]++;

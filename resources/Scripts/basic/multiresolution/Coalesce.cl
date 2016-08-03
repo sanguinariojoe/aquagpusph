@@ -43,6 +43,7 @@
  * @param ilevel0 Level of refinement of the particle, by construction.
  * @param ilevel Current refinement level of the particle.
  * @param level Target refinement level of the particle.
+ * @param gamma_m Mass multiplier \f$ \gamma_m \f$.
  * @param r Position \f$ \mathbf{r} \f$.
  * @param u Velocity \f$ \mathbf{u} \f$.
  * @param dudt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
@@ -55,6 +56,7 @@ __kernel void entry(__global int* imove,
                     __global const unsigned int* ilevel0,
                     __global unsigned int* ilevel,
                     __global const unsigned int* level,
+                    __global float* gamma_m,
                     __global vec* r,
                     __global vec* u,
                     __global vec* dudt,
@@ -86,6 +88,12 @@ __kernel void entry(__global int* imove,
     // Move the particle to a more convenient position (in order to can use
     // it as buffer)
     r[i] = domain_max;
+    // Reset the level and gamma values, in order to avoid that recycling the
+    // particles (at the inflow for instance) may confuse the multiresolution
+    // stuff
+    ilevel0[i] = 0;
+    ilevel[i] = 0;
+    gamma_m[i] = 1.f;
 }
 
 /*

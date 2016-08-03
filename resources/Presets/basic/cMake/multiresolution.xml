@@ -18,6 +18,14 @@ modules folder.
 
 Since this module may modify the mass of the particles, it should be included
 AFTER variable_h.xml one.
+
+This tool is recycling particles from the buffer (a set of particles out of the
+computational domain, marked with the flag imove=-255). As other tools, this
+tool is taking advantage from the fact that all the particles to become recycled
+are placed at the end of the list. However, if any other tool is recycling
+particles (for instance an inflow), both tools may have a collision. To avoid
+that you can specify a number of particles which will not become used by the
+definition of __MULTIRESOLUTION_N_SKIP__
 -->
 
 <sphInput>
