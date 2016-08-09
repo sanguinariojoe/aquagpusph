@@ -69,6 +69,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/viscousForces.report.xml
     ${CMAKE_CURRENT_BINARY_DIR}/viscousForces.report.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/variable_h/portal.xml
     ${CMAKE_CURRENT_BINARY_DIR}/variable_h/portal.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/variable_h/symmetry.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/variable_h/symmetry.xml @ONLY)
 
 # Create installable version of the file
 SET(RESOURCES_OUTPUT_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/resources)
@@ -138,6 +140,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/viscousForces.report.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/viscousForces.report.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/variable_h/portal.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/variable_h/portal.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/variable_h/symmetry.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/variable_h/symmetry.xml @ONLY)
 
 # ===================================================== #
 # Install                                               #
@@ -184,6 +188,7 @@ INSTALL(
 )
 SET(RESOURCES_VAR_H_SRCS 
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/variable_h/portal.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/variable_h/symmetry.xml
 )
 SOURCE_GROUP("ResourcesVarHGroup" FILES ${RESOURCES_VAR_H_SRCS})
 INSTALL(
