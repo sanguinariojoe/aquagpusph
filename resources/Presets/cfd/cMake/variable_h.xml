@@ -26,8 +26,11 @@ modified each time step, an initial h value should be provided
             c = (a &gt; b) ? a : b;
         </Tool>
         <Tool action="insert" before="Sort" name="sort h_var" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/variable_h/Sort.cl"/>
-        <!-- We must compute the Omega function of each particle -->
-        <Tool action="insert" after="Sort" name="cfd Omega" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Omega.cl"/>
+        <!-- We must compute the Omega function of each particle. Since Omega
+        computation requires a completely different interactions stage, prior
+        to the differential operator, we are inserting aduumy flag tool -->
+        <Tool action="insert" after="Sort" name="Omega" type="dummy"/>
+        <Tool action="insert" before="Omega" name="cfd Omega" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Omega.cl"/>
         <!-- And we should replace all the affected differential operators -->
         <Tool action="try_replace" name="cfd Shepard" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Shepard.cl"/>
         <Tool action="try_replace" name="cfd interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Interactions.cl"/>
