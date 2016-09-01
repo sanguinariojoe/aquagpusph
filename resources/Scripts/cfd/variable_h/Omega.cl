@@ -101,7 +101,7 @@ __kernel void entry(const __global int* imove,
     _OMEGA_ = 1.f;
 
     BEGIN_LOOP_OVER_NEIGHS(){
-        if(imove[j] != 1){
+        if((imove[j] != 1) && (imove[j] != -1)){
             j++;
             continue;
         }
