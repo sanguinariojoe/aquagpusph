@@ -1,0 +1,45 @@
+<?xml version="1.0" ?>
+<!--
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
+
+Another QUAlity GPU-SPH, by CEHINAV.
+    http://canal.etsin.upm.es/
+Authors:
+    Jose Luis Cercos-Pita
+    Leo Miguel Gonzalez
+    Antonio Souto-Iglesias
+-->
+
+<sphInput>
+    <Timing>
+        <!-- Set the simulation end citeria             
+            type="Frames" Simulation ends after print a number of frames
+            type="Steps" Simulation ends after perform a number of time steps
+            type="Time" Simulation ends after simulate some seconds
+        You can conveniently combine several stop criterias.
+        -->
+        <Option name="End" type="Time" value="{{END_TIME}}" />
+
+        <!-- Set the log file printing criteria. Log file contains relevant
+        data about the AQUAgpusph execution, i.e.- Warnings, errors, or
+        information about printed files and the status.
+            type="FPS" It will be updated this value of times per second.
+            type="IPF" It will be updated after this value of iterations.
+        You can conveniently combine several printing criterias.
+        -->
+        <Option name="LogFile" type="FPS" value="10" />
+        <!-- Set output files print criteria
+            type="FPS" Frames per second
+            type="IPF" Iterations per frame
+        You can conveniently combine several printing criterias.
+        -->
+        <Option name="Output" type="FPS" value="100" />
+    </Timing>
+</sphInput>

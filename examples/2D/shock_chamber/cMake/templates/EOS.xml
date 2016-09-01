@@ -1,0 +1,37 @@
+<?xml version="1.0" ?>
+<!--
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
+
+Another QUAlity GPU-SPH, by CEHINAV.
+    http://canal.etsin.upm.es/
+Authors:
+    Jose Luis Cercos-Pita
+    Leo Miguel Gonzalez
+    Antonio Souto-Iglesias
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="gamma" type="float" value="{{GAMMA}}" />
+        <Variable name="e" type="float*" length="N" />
+        <Variable name="dedt" type="float*" length="N" />
+        <Variable name="e_in" type="float*" length="N" />
+        <Variable name="dedt_in" type="float*" length="N" />
+    </Variables>
+    <Tools>
+        <Tool action="insert" before="Predictor" name="EOS predictor" type="kernel" entry_point="predictor" path="EOS.cl"/>
+        <Tool action="replace" name="EOS" type="kernel" entry_point="eos" path="EOS.cl"/>
+        <Tool action="insert" before="EOS" name="Backup e" type="copy" in="e" out="e_in"/>
+        <Tool action="insert" before="EOS" name="EOS sort" type="kernel" entry_point="sort" path="EOS.cl"/>
+        <Tool action="insert" before="EOS" name="Backup dedt" type="copy" in="dedt" out="dedt_in"/>
+        <Tool action="insert" before="Rates" name="EOS rates" type="kernel" entry_point="rates" path="EOS.cl"/>
+        <Tool action="insert" before="Corrector" name="EOS corrector" type="kernel" entry_point="corrector" path="EOS.cl"/>
+    </Tools>
+</sphInput>
