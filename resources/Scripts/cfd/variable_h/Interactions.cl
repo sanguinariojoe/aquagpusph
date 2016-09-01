@@ -126,7 +126,7 @@ __kernel void entry(const __global int* imove,
             j++;
             continue;
         }
-        if(imove[j] != 1){
+        if((imove[j] != 1) && (imove[j] != -1)){
             j++;
             continue;
         }
