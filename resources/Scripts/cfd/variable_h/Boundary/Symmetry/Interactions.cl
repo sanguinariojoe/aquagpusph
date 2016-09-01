@@ -25,11 +25,11 @@
 #endif
 
 #ifndef HAVE_3D
-    #include "../../../types/2D.h"
-    #include "../../../KernelFunctions/Wendland2D.hcl"
+    #include "../../../../types/2D.h"
+    #include "../../../../KernelFunctions/Wendland2D.hcl"
 #else
-    #include "../../../types/3D.h"
-    #include "../../../KernelFunctions/Wendland3D.hcl"
+    #include "../../../../types/3D.h"
+    #include "../../../../KernelFunctions/Wendland3D.hcl"
 #endif
 
 #if __LAP_FORMULATION__ == __LAP_MONAGHAN__
@@ -186,7 +186,7 @@ __kernel void entry(const __global int* imove,
             #endif
 
             _DIVU_ += udr * fi_ij * m_j * rho_i / (rho_j * Omega_i);
-			_SHEPARD_ += w_ij * m_j / rho_j;
+			_SHEPARD_ += wi_ij * m_j / rho_j;
 		}
 	}END_LOOP_OVER_NEIGHS()
 
