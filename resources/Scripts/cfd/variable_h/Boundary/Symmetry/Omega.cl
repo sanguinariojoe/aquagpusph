@@ -101,7 +101,7 @@ __kernel void entry(const __global int* imove,
     #else
         #define _OMEGA_ Omega_l[it]
         __local float Omega_l[LOCAL_MEM_SIZE];
-        _OMEGA_ = 1.f;
+        _OMEGA_ = Omega[i];
     #endif
 
     BEGIN_LOOP_OVER_NEIGHS(){
