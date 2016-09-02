@@ -105,7 +105,7 @@ while x <= L:
         press = press_1 if x < l_1 and y < h_1 else press_2
         e_int = press / ((gamma - 1.0) * dens)
         mass = dens * dr**2
-        string = ("{} {}, " * 4 + "{}, {}, {}, {}, {}, {}, {}\n").format(
+        string = ("{} {}, " * 4 + "{}, {}, {}, {}, {}, {}\n").format(
             x, y,
             0.0, 0.0,
             0.0, 0.0,
@@ -115,7 +115,6 @@ while x <= L:
             e_int,
             0.0,
             mass,
-            1.0,        # Omega, required by the fixed particles
             imove)
         output.write(string)
         y += dr

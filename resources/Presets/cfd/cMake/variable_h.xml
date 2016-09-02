@@ -30,6 +30,7 @@ modified each time step, an initial h value should be provided
         computation requires a completely different interactions stage, prior
         to the differential operator, we are inserting aduumy flag tool -->
         <Tool action="insert" after="Sort" name="Omega" type="dummy"/>
+        <Tool action="insert" before="Omega" type="set" name="cfd Reinit Omega" in="Omega" value="1.f"/>
         <Tool action="insert" before="Omega" name="cfd Omega" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Omega.cl"/>
         <!-- And we should replace all the affected differential operators -->
         <Tool action="try_replace" name="cfd Shepard" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Shepard.cl"/>

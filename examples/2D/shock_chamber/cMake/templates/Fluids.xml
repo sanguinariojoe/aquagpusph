@@ -23,7 +23,7 @@ Authors:
         <Scalar name="visc_dyn" value="{{VISC_DYN}}" />
         <Scalar name="delta" value="{{DELTA}}" />
 
-        <Load format="FastASCII" file="Particles.dat" fields="r, normal, u, dudt, rho, drhodt, e, dedt, m, Omega, imove" />
-        <Save format="VTK" file="output" fields="r, normal, u, dudt, rho, drhodt, e, dedt, m, Omega, p, imove" />
+        <Load format="FastASCII" file="Particles.dat" fields="r, normal, u, dudt, rho, drhodt, e, dedt, m, imove" />
+        <Save format="VTK" file="output" fields="r, normal, u, dudt, rho, drhodt, e, dedt, m, p, imove" />
     </ParticlesSet>
 </sphInput>
