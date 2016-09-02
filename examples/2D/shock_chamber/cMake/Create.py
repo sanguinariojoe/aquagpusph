@@ -30,34 +30,44 @@
 #
 #########################################################################
 
+# See:
+# Iason Zisis, Ramzi Messahel, Abdelaziz Boudlal, Bas van der Linden and
+# Barry Koren. "Validation of robust SPH schemes for fully compressible
+# multiphase flows". Int. Jnl. of Multiphysics. Vol 9(3), Pp 225-234, 2015
+
 import os.path as path
 import math
 
 # Input data
 # ==========
 
-hfac = 2.0
-cs = 100.0
-courant = 0.1
+hfac = 2.0                 # nu factor in the paper
+courant = 0.01             # Useless if dt is not None
 refd_1 = 1.0
 refd_2 = 0.125
 press_1 = 1.0
 press_2 = 0.1
-alpha = 0.0
-delta = 1.0
-gamma = 1.4
-l = h = 0.1
-L = H = 0.5
-end_time = 0.5
-# Number of fluid particles in y direction
-nx = ny = 100
+alpha = 0.0                # Artificial viscosity factor
+delta = 1.0                # delta-SPH factor (Hashemi and Manzari model)
+gamma = 5.0 / 3.0
+l_1 = h_1 = 0.5
+l_2 = h_2 = 2.5
+L = H = 3.0
+end_time = 0.5             # None to automatically compute it
+dt = 1.0E-4                # None to automatically compute it
+nx, ny = 100 * L, 100 * H
 
 # Dimensions and number of particles readjustment
 # ===============================================
 dr = L / nx
 n = nx * ny
 
+# Resulting simulation parameters
+# ===============================
+cs = math.sqrt(max(gamma * press_1 / refd_1, gamma * press_2 / refd_2))
 visc_dyn = alpha / 8.0 * min(refd_1, refd_2) * hfac * dr * cs
+dt = dt or courant * hfac * dr / cs
+end_time = end_time or 0.75 * min(L, H) / cs
 
 # Particles generation
 # ====================
@@ -86,16 +96,16 @@ print(string)
 
 N = 0
 x = 0.5 * dr
-while x < L + 2 * hfac * dr:
+while x <= L:
     y = 0.5 * dr
-    while y < H + 2 * hfac * dr:
+    while y <= H:
         N += 1
-        imove = 1 if x < L and y < H else -1
-        dens = refd_1 if x < l and y < h else refd_2
-        press = press_1 if x < l and y < h else press_2
+        imove = 1 if x < l_2 and y < h_2 else -1
+        dens = refd_1 if x < l_1 and y < h_1 else refd_2
+        press = press_1 if x < l_1 and y < h_1 else press_2
         e_int = press / ((gamma - 1.0) * dens)
         mass = dens * dr**2
-        string = ("{} {}, " * 4 + "{}, {}, {}, {}, {}, {}\n").format(
+        string = ("{} {}, " * 4 + "{}, {}, {}, {}, {}, {}, {}\n").format(
             x, y,
             0.0, 0.0,
             0.0, 0.0,
@@ -125,9 +135,9 @@ domain_max = (1.5 * L, 1.5 * H)
 domain_max = str(domain_max).replace('(', '').replace(')', '')
 
 data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
-        'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max,
+        'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max, 'GAMMA':str(gamma),
         'VISC_DYN':str(visc_dyn), 'DELTA':str(delta), 'L':str(L), 'H':str(H),
-        'N':str(N), 'END_TIME':str(end_time), 'GAMMA':str(gamma)}
+        'N':str(N), 'DT':str(dt), 'END_TIME':str(end_time)}
 for fname in XML:
     # Read the template
     f = open(path.join(templates_path, fname), 'r')

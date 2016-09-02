@@ -31,9 +31,9 @@ Authors:
     <Include file="@RESOURCES_DIR@/Presets/basic/timing.report.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/performance.report.xml" />
     <Include file="Settings.xml" />
-    <Include file="Time.xml" />
     <Include file="EOS.xml" />
     <Include file="BCs.xml" />
     <Include file="SPH.xml" />
     <Include file="Fluids.xml" />
+    <Include file="Time.xml" />
 </sphInput>
