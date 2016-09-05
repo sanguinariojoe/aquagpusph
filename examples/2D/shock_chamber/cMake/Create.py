@@ -48,7 +48,7 @@ refd_2 = 0.125
 press_1 = 1.0
 press_2 = 0.1
 alpha = 0.0                # Artificial viscosity factor
-delta = 1.0                # delta-SPH factor (Hashemi and Manzari model)
+delta = 0.0                # delta-SPH factor (Hashemi and Manzari model)
 gamma = 5.0 / 3.0
 l_1 = h_1 = 0.5
 l_2 = h_2 = 2.5

@@ -28,7 +28,6 @@ Authors:
     <Tools>
         <Tool action="insert" before="Predictor" name="EOS predictor" type="kernel" entry_point="predictor" path="EOS.cl"/>
         <Tool action="replace" name="EOS" type="kernel" entry_point="eos" path="EOS.cl"/>
-        <Tool action="insert" before="EOS" name="Backup e" type="copy" in="e" out="e_in"/>
         <Tool action="insert" before="EOS" name="EOS sort" type="kernel" entry_point="sort" path="EOS.cl"/>
         <Tool action="insert" before="EOS" name="Backup dedt" type="copy" in="dedt" out="dedt_in"/>
         <Tool action="insert" before="Rates" name="EOS rates" type="kernel" entry_point="rates" path="EOS.cl"/>
