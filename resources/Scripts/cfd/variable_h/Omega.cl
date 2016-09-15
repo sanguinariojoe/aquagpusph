@@ -81,7 +81,7 @@ __kernel void entry(const __global int* imove,
     // The partial derivative of the kernel length with respect the density is
     // the same kernel length divided by the density and the number of
     // dimensions
-    const float dhdrho_i = h_i / (DIMS * rho[i]);
+    const float dhdrho_i = - h_i / (DIMS * rho[i]);
 
     // The partial derivative of the kernel with respect to h multiplier is
     // 1 / h^(d + 1)
