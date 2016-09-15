@@ -184,7 +184,7 @@ __kernel void entry(const __global int* imove,
                 #error Unknown Laplacian formulation: __LAP_FORMULATION__
             #endif
 
-            _DIVU_ += udr * fi_ij * m_j * rho_i / (rho_j * Omega_i);
+            _DIVU_ += udr * fi_ij * m_i / Omega_i;
 			_SHEPARD_ += wi_ij * m_j / rho_j;
 		}
 	}END_LOOP_OVER_NEIGHS()
