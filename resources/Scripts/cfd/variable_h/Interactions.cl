@@ -134,7 +134,7 @@ __kernel void entry(const __global int* imove,
         const float h_j = h_var[j];
         const float l_ij = length(r_ij);
         const float q_i = min(l_ij / h_i, SUPPORT);
-        const float q_j = min(l_ij / h_i, SUPPORT);
+        const float q_j = min(l_ij / h_j, SUPPORT);
         if((q_i == SUPPORT) && (q_j == SUPPORT))
         {
             j++;
@@ -144,7 +144,6 @@ __kernel void entry(const __global int* imove,
             const float rho_j = rho[j];
             const float m_j = m[j];
             const float udr = dot(u[j].XYZ - u_i, r_ij);
-            const float h_j = h_var[j];
             #ifndef HAVE_3D
                 const float conf_j = 1.f / (h_j * h_j * h_j * h_j);
             #else
