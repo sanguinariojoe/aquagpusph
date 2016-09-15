@@ -406,6 +406,13 @@ CalcServer::~CalcServer()
     if(_vars) delete _vars; _vars=NULL;
 
     if(_current_tool_name) delete[] _current_tool_name; _current_tool_name=NULL;
+
+    std::map<std::string, UnSort*>::iterator it = unsorters.begin();
+    while(it != unsorters.end())
+    {
+        delete it->second;
+        it++;
+    }
 }
 
 bool CalcServer::update()
@@ -452,14 +459,22 @@ cl_event CalcServer::getUnsortedMem(const char* var_name,
     char msg[256];
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 
-    UnSort unsorter(var_name, var_name);
-    if(unsorter.setup()){
+    // Generate the unsorted if it does not exist yet
+    UnSort *unsorter = NULL;
+    if(unsorters.find(var_name) == unsorters.end()){
+        unsorter = new UnSort(var_name, var_name);
+        if(unsorter->setup()){
+            delete unsorter;
+            return NULL;
+        }
+        unsorters.insert(std::make_pair(var_name, unsorter));
+    }
+    // Get the unsorter
+    unsorter = unsorters[var_name];
+    if(unsorter->execute()){
         return NULL;
     }
-    if(unsorter.execute()){
-        return NULL;
-    }
-    cl_mem mem = unsorter.output();
+    cl_mem mem = unsorter->output();
     cl_event event = NULL;
     err_code = clEnqueueReadBuffer(command_queue(),
                                    mem,

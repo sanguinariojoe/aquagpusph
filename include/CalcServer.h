@@ -27,6 +27,9 @@
 #include <CL/cl.h>
 
 #include <deque>
+#include <map>
+#include <string>
+#include <iterator>
 
 #include <sphPrerequisites.h>
 #include <Variable.h>
@@ -56,6 +59,8 @@
 namespace Aqua{
 /// @namespace Aqua::CalcServer Calculation server name space.
 namespace CalcServer{
+
+class UnSort;
 
 /** @class CalcServer CalcServer.h CalcServer.h
  * @brief Entity that perform the main work of the simulation.
@@ -204,6 +209,11 @@ private:
      * implementation errors (see clCreateContext)
      */
     char *_current_tool_name;
+
+    /** Map with the unsorter for each variable. Storing the unsorters should
+     * dramatically reduce the saving files overhead in some platforms
+     */
+    std::map<std::string, UnSort*> unsorters;
 };
 
 }}  // namespace
