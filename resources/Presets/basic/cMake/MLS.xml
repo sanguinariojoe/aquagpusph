@@ -35,10 +35,6 @@ using directly this tool.
 -->
 
 <sphInput>
-    <Definitions>
-        <Define name="__MLS__"/>
-    </Definitions>
-
     <Variables>
         <Variable name="mls_imove" type="unsigned int" value="1" />
         <Variable name="mls" type="matrix*" length="N" />
