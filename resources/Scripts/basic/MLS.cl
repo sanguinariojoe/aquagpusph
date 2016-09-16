@@ -115,7 +115,6 @@ __kernel void entry(const __global int* imove,
     #ifdef LOCAL_MEM_SIZE
         mls[i] = _MLS_;
     #endif
-    mls[i] = MATRIX_INV(_MLS_);
 }
 
 /** @brief Invert the matrix computed in entry() to get the final MLS
@@ -130,18 +129,9 @@ __kernel void entry(const __global int* imove,
  *   - imove > 0 for regular fluid/solid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param r Position \f$ \mathbf{r}_{n+1} \f$.
- * @param rho Density \f$ \rho \f$.
- * @param m Mass \f$ m \f$.
  * @param mls Kernel MLS transformation matrix \f$ L \f$.
- * @param icell Cell where each particle is located.
- * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
- * @param n_cells Number of cells in each direction
  * @param mls_imove Type of particles affected
- * @note The MLS kernel transformation will be computed just for the particles
- * with the moving flag mls_imove, and using just the information of the
- * particles with the moving flag mls_imove
  */
 __kernel void mls_inv(const __global int* imove,
                       __global matrix* mls,
