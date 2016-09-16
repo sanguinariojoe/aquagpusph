@@ -22,7 +22,7 @@ to exclude the "buffer" particles becoming injected/removing from the system.
         <!-- Compute the energy variations per particle -->
         <Tool action="insert" after="Rates" type="kernel" name="cfd Energy kin" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Energy/EnergyKin.cl"/>
         <!-- Integrate them to the global energy components variation -->
-        <Tool action="insert" after="cfd EnergyKin" type="reduction" name="cfd Energy Kin" in="energy_kin" out="energy_Kin" null="0.f">
+        <Tool action="insert" after="cfd Energy kin" type="reduction" name="cfd Energy Kin" in="energy_kin" out="energy_Kin" null="0.f">
             c = a + b;
         </Tool>
     </Tools>
