@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fnmatch.h>
 #include <map>
 #include <limits>
 
@@ -37,6 +38,7 @@
 
 #include <vector>
 #include <deque>
+#include <algorithm>
 static std::deque<char*> cpp_str;
 static std::deque<XMLCh*> xml_str;
 
@@ -414,6 +416,91 @@ bool State::parseDefinitions(DOMElement *root, const char* prefix)
     return false;
 }
 
+
+/// Helper storage for the functions _toolsList() and _toolsName()
+static std::deque<unsigned int> _tool_places;
+
+/** @brief Helper function to get a list of tool placements from a list of names
+ * @param list List of tools, separated by commas
+ * @param prefix prefix to become inserted at the beggining of the name of each
+ * tool of the list
+ * @return The positions of the tools
+ * @warning This methos is not thread safe
+ */
+static std::deque<unsigned int> _toolsList(const char* list, const char* prefix)
+{
+    ScreenManager *S = ScreenManager::singleton();
+    ProblemSetup *P = ProblemSetup::singleton();
+    // Clear the list of tools (from previous executions)
+    _tool_places.clear();
+    // Loop along the list items
+    char *token = strtok((char*)list, ",");
+    while(token != NULL)
+    {
+        // Insert the prefix at the beggining of the tool name
+        char *toolname = (char*)malloc(
+            (strlen(prefix) + strlen(token) + 1) * sizeof(char));
+        if(!toolname){
+            S->addMessageF(3, "Failure allocating memory.\n");
+            return _tool_places;
+        }
+        strcpy(toolname, prefix);
+        strcat(toolname, token);
+        // Look for the tool in the already defined ones
+        unsigned int place;
+        for(place = 0; place < P->tools.size(); place++){
+            if(!strcmp(P->tools.at(place)->get("name"),
+                       toolname))
+            {
+                _tool_places.push_back(place);
+            }
+        }
+        free(toolname);
+        toolname = NULL;
+        // Move to the next tool of the list
+        token = strtok(NULL, ",");
+    }
+
+    return _tool_places;
+}
+
+/** @brief Helper function to get a list of tool placements from a wildcard
+ * @param name Wildcard formatted tool name
+ * @param prefix prefix to become inserted at the beggining of the name of each
+ * tool of the list
+ * @return The positions of the tools
+ * @warning This methos is not thread safe
+ */
+static std::deque<unsigned int> _toolsName(const char* name, const char* prefix)
+{
+    ScreenManager *S = ScreenManager::singleton();
+    ProblemSetup *P = ProblemSetup::singleton();
+    // Clear the list of tools (from previous executions)
+    _tool_places.clear();
+    // Insert the prefix at the beggining of the tool name
+    char *toolname = (char*)malloc(
+        (strlen(prefix) + strlen(name) + 1) * sizeof(char));
+    if(!toolname){
+        S->addMessageF(3, "Failure allocating memory.\n");
+        return _tool_places;
+    }
+    strcpy(toolname, prefix);
+    strcat(toolname, name);
+    // Look for the patterns in the already defined tool names
+    unsigned int place;
+    for(place = 0; place < P->tools.size(); place++){
+        if(!fnmatch(toolname,
+                    P->tools.at(place)->get("name"),
+                    0))
+        {
+            _tool_places.push_back(place);
+        }
+    }
+    free(toolname);
+    toolname = NULL;
+    return _tool_places;
+}
+
 bool State::parseTools(DOMElement *root, const char* prefix)
 {
     ScreenManager *S = ScreenManager::singleton();
@@ -479,187 +566,204 @@ bool State::parseTools(DOMElement *root, const char* prefix)
             }
             else if(!strcmp(xmlAttribute(s_elem, "action"), "insert") ||
                     !strcmp(xmlAttribute(s_elem, "action"), "try_insert")){
+                unsigned int place;
+                std::deque<unsigned int> places;
+                std::deque<unsigned int> all_places;
+                std::deque<unsigned int>::iterator it;
+
                 bool try_insert = !strcmp(xmlAttribute(s_elem, "action"),
                                           "try_insert");
-                unsigned int place = 0;
+
                 if(xmlHasAttribute(s_elem, "at")){
-                    place = atoi(xmlAttribute(s_elem, "at"));
+                    places.push_back(atoi(xmlAttribute(s_elem, "at")));
                 }
                 else if(xmlHasAttribute(s_elem, "before")){
                     char *att_str = xmlAttribute(s_elem, "before");
-                    place = P->tools.size();
-                    // Several tools can be suggested, and we should insert the
-                    // element before the first of them.
-                    char *token = strtok((char*)att_str, ",");
-                    while(token != NULL)
-                    {
-                        // Check if the tool is available
-                        unsigned int subplace;
-                        for(subplace=0; subplace < P->tools.size(); subplace++){
-                            if(!strcmp(P->tools.at(subplace)->get("name"),
-                                       token))
-                            {
-                                break;
+                    if(strchr((const char*)att_str, ',')){
+                        // It is a list of names. We must get all the matching
+                        // places and select the most convenient one
+                        all_places = _toolsList((const char*)att_str, "");
+                        if(!all_places.size()){
+                            sprintf(msg,
+                                    "The tool \"%s\" must be inserted before \"%s\", but such tools cannot be found.\n",
+                                    tool->get("name"),
+                                    att_str);
+                            if(try_insert){
+                                S->addMessageF(2, msg);
+                                continue;
+                            }
+                            else{
+                                S->addMessageF(3, msg);
+                                return true;
                             }
                         }
-                        if(subplace < place)
-                            place = subplace;
-                        // Look for another tool candidate
-                        token = strtok(NULL, ",");
+                        // Get just the first one
+                        it = std::min_element(all_places.begin(), all_places.end());
+                        places.push_back(*it);
                     }
-                    // If the place has not been moved, then the tools have not
-                    // been found
-                    if(place == P->tools.size()){
-                        sprintf(msg,
-                                "The tool \"%s\" must be inserted before \"%s\", but such tool(s) cannot be found.\n",
-                                tool->get("name"),
-                                att_str);
-                        if(try_insert){
-                            S->addMessageF(2, msg);
-                            continue;
+                    else{
+                        // We can treat the string as a wildcard. Right now we
+                        // wanna get all the places matching the pattern
+                        all_places = _toolsName((const char*)att_str, "");
+                        if(!all_places.size()){
+                            sprintf(msg,
+                                    "The tool \"%s\" must be inserted before \"%s\", but such tool cannot be found.\n",
+                                    tool->get("name"),
+                                    att_str);
+                            if(try_insert){
+                                S->addMessageF(2, msg);
+                                continue;
+                            }
+                            else{
+                                S->addMessageF(3, msg);
+                                return true;
+                            }
                         }
-                        else{
-                            S->addMessageF(3, msg);
-                            return true;
-                        }
+                        // Deep copy the places
+                        for(it = all_places.begin(); it != all_places.end(); ++it)
+                            places.push_back(*it);
                     }
                 }
                 else if(xmlHasAttribute(s_elem, "after")){
                     const char *att_str = xmlAttribute(s_elem, "after");
-                    place = 0;
-                    // Several tools can be suggested, and we should insert the
-                    // element after the last of them.
-                    char *token = strtok((char*)att_str, ",");
-                    while(token != NULL)
-                    {
-                        // Check if the tool is available
-                        unsigned int subplace;
-                        for(subplace=0; subplace < P->tools.size(); subplace++){
-                            if(!strcmp(P->tools.at(subplace)->get("name"),
-                                       token))
-                            {
-                                break;
+                    if(strchr((const char*)att_str, ',')){
+                        // It is a list of names. We must get all the matching
+                        // places and select the most convenient one
+                        all_places = _toolsList((const char*)att_str, "");
+                        if(!all_places.size()){
+                            sprintf(msg,
+                                    "The tool \"%s\" must be inserted before \"%s\", but such tools cannot be found.\n",
+                                    tool->get("name"),
+                                    att_str);
+                            if(try_insert){
+                                S->addMessageF(2, msg);
+                                continue;
+                            }
+                            else{
+                                S->addMessageF(3, msg);
+                                return true;
                             }
                         }
-                        if((subplace < P->tools.size()) && (subplace > place))
-                            place = subplace;
-                        // Look for another tool candidate
-                        token = strtok(NULL, ",");
+                        // Get just the last one (and insert after that)
+                        it = std::max_element(all_places.begin(), all_places.end());
+                        places.push_back(*it + 1);
                     }
-                    if(place == P->tools.size()){
-                        sprintf(msg,
-                                "The tool \"%s\" must be inserted after \"%s\", but such tool(s) cannot be found.\n",
-                                tool->get("name"),
-                                att_str);
-                        if(try_insert){
-                            S->addMessageF(2, msg);
-                            continue;
+                    else{
+                        // We can treat the string as a wildcard. Right now we
+                        // wanna get all the places matching the pattern
+                        all_places = _toolsName((const char*)att_str, "");
+                        if(!all_places.size()){
+                            sprintf(msg,
+                                    "The tool \"%s\" must be inserted before \"%s\", but such tool cannot be found.\n",
+                                    tool->get("name"),
+                                    att_str);
+                            if(try_insert){
+                                S->addMessageF(2, msg);
+                                continue;
+                            }
+                            else{
+                                S->addMessageF(3, msg);
+                                return true;
+                            }
                         }
-                        else{
-                            S->addMessageF(3, msg);
-                            return true;
-                        }
+                        // Deep copy the places (adding 1 to insert after that)
+                        for(it = all_places.begin(); it != all_places.end(); ++it)
+                            places.push_back(*it + 1);
                     }
-                    place++;
                 }
                 else if(xmlHasAttribute(s_elem, "before_prefix")){
                     const char *att_str = xmlAttribute(s_elem, "before_prefix");
-                    place = P->tools.size();
-                    // Several tools can be suggested, and we should insert the
-                    // element before the first of them.
-                    char *token = strtok((char*)att_str, ",");
-                    while(token != NULL)
-                    {
-                        // Insert the prefix to the tool name
-                        char *toolname = (char*)malloc(
-                            (strlen(prefix) + strlen(token) + 1) * sizeof(char));
-                        if(!toolname){
-                            S->addMessageF(3, "Failure allocating memory (before_prefix).\n");
-                            return true;
-                        }
-                        strcpy(toolname, prefix);
-                        strcat(toolname, token);
-                        // Check if the tool is available
-                        unsigned int subplace;
-                        for(subplace=0; subplace < P->tools.size(); subplace++){
-                            if(!strcmp(P->tools.at(subplace)->get("name"),
-                                       toolname))
-                            {
-                                break;
+                    if(strchr((const char*)att_str, ',')){
+                        // It is a list of names. We must get all the matching
+                        // places and select the most convenient one
+                        all_places = _toolsList((const char*)att_str, prefix);
+                        if(!all_places.size()){
+                            sprintf(msg,
+                                    "The tool \"%s\" must be inserted before \"%s\", but such tools cannot be found.\n",
+                                    tool->get("name"),
+                                    att_str);
+                            if(try_insert){
+                                S->addMessageF(2, msg);
+                                continue;
+                            }
+                            else{
+                                S->addMessageF(3, msg);
+                                return true;
                             }
                         }
-                        free(toolname);
-                        toolname = NULL;
-                        if(subplace < place)
-                            place = subplace;
-                        // Look for another tool candidate
-                        token = strtok(NULL, ",");
+                        // Get just the first one
+                        it = std::min_element(all_places.begin(), all_places.end());
+                        places.push_back(*it);
                     }
-                    if(place == P->tools.size()){
-                        sprintf(msg,
-                                "The tool \"%s\" must be inserted before \"%s\" (prefix=\"%s\"), but such tool(s) cannot be found.\n",
-                                tool->get("name"),
-                                att_str,
-                                prefix);
-                        if(try_insert){
-                            S->addMessageF(2, msg);
-                            continue;
+                    else{
+                        // We can treat the string as a wildcard. Right now we
+                        // wanna get all the places matching the pattern
+                        all_places = _toolsName((const char*)att_str, prefix);
+                        if(!all_places.size()){
+                            sprintf(msg,
+                                    "The tool \"%s\" must be inserted before \"%s\", but such tool cannot be found.\n",
+                                    tool->get("name"),
+                                    att_str);
+                            if(try_insert){
+                                S->addMessageF(2, msg);
+                                continue;
+                            }
+                            else{
+                                S->addMessageF(3, msg);
+                                return true;
+                            }
                         }
-                        else{
-                            S->addMessageF(3, msg);
-                            return true;
-                        }
+                        // Deep copy the places
+                        for(it = all_places.begin(); it != all_places.end(); ++it)
+                            places.push_back(*it);
                     }
                 }
                 else if(xmlHasAttribute(s_elem, "after_prefix")){
                     const char *att_str = xmlAttribute(s_elem, "after_prefix");
-                    place = 0;
-                    // Several tools can be suggested, and we should insert the
-                    // element after the last of them.
-                    char *token = strtok((char*)att_str, ",");
-                    while(token != NULL)
-                    {
-                        // Insert the prefix to the tool name
-                        char *toolname = (char*)malloc(
-                            (strlen(prefix) + strlen(token) + 1) * sizeof(char));
-                        if(!toolname){
-                            S->addMessageF(3, "Failure allocating memory (before_prefix).\n");
-                            return true;
-                        }
-                        strcpy(toolname, prefix);
-                        strcat(toolname, token);
-                        // Check if the tool is available
-                        unsigned int subplace;
-                        for(subplace=0; subplace < P->tools.size(); subplace++){
-                            if(!strcmp(P->tools.at(subplace)->get("name"),
-                                       toolname))
-                            {
-                                break;
+                    if(strchr((const char*)att_str, ',')){
+                        // It is a list of names. We must get all the matching
+                        // places and select the most convenient one
+                        all_places = _toolsList((const char*)att_str, prefix);
+                        if(!all_places.size()){
+                            sprintf(msg,
+                                    "The tool \"%s\" must be inserted before \"%s\", but such tools cannot be found.\n",
+                                    tool->get("name"),
+                                    att_str);
+                            if(try_insert){
+                                S->addMessageF(2, msg);
+                                continue;
+                            }
+                            else{
+                                S->addMessageF(3, msg);
+                                return true;
                             }
                         }
-                        free(toolname);
-                        toolname = NULL;
-                        if((subplace < P->tools.size()) && (subplace > place))
-                            place = subplace;
-                        // Look for another tool candidate
-                        token = strtok(NULL, ",");
+                        // Get just the last one (and insert after that)
+                        it = std::max_element(all_places.begin(), all_places.end());
+                        places.push_back(*it + 1);
                     }
-                    if(place == P->tools.size()){
-                        sprintf(msg,
-                                "The tool \"%s\" must be inserted after \"%s\" (prefix=\"%s\"), but such tool cannot be found.\n",
-                                tool->get("name"),
-                                att_str,
-                                prefix);
-                        if(try_insert){
-                            S->addMessageF(2, msg);
-                            continue;
+                    else{
+                        // We can treat the string as a wildcard. Right now we
+                        // wanna get all the places matching the pattern
+                        all_places = _toolsName((const char*)att_str, prefix);
+                        if(!all_places.size()){
+                            sprintf(msg,
+                                    "The tool \"%s\" must be inserted before \"%s\", but such tool cannot be found.\n",
+                                    tool->get("name"),
+                                    att_str);
+                            if(try_insert){
+                                S->addMessageF(2, msg);
+                                continue;
+                            }
+                            else{
+                                S->addMessageF(3, msg);
+                                return true;
+                            }
                         }
-                        else{
-                            S->addMessageF(3, msg);
-                            return true;
-                        }
+                        // Deep copy the places (adding 1 to insert after that)
+                        for(it = all_places.begin(); it != all_places.end(); ++it)
+                            places.push_back(*it + 1);
                     }
-                    place++;
                 }
                 else{
                     sprintf(msg,
@@ -674,35 +778,22 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                     S->addMessage(0, "\t\"after_prefix\"\n");
                     return true;
                 }
-                if(place > P->tools.size()){
-                    sprintf(msg,
-                            "Failure inserting the tool \"%s\" in the place %u (max=%lu).\n",
-                            tool->get("name"),
-                            place,
-                            P->tools.size());
-                    if(try_insert){
-                        S->addMessageF(2, msg);
-                        continue;
-                    }
-                    else{
-                        S->addMessageF(3, msg);
-                        return true;
-                    }
+                // We cannot directly insert the tools, because the places would
+                // change meanwhile, so better backward adding them
+                for(place = places.size(); place > 0; place--){
+                    P->tools.insert(P->tools.begin() + places.at(place - 1),
+                                    tool);
                 }
-                P->tools.insert(P->tools.begin() + place, tool);
             }
             else if(!strcmp(xmlAttribute(s_elem, "action"), "remove") ||
                     !strcmp(xmlAttribute(s_elem, "action"), "try_remove")){
                 bool try_remove = !strcmp(xmlAttribute(s_elem, "action"),
                                           "try_remove");
                 unsigned int place;
-                for(place = 0; place < P->tools.size(); place++){
-                    if(!strcmp(P->tools.at(place)->get("name"),
-                               tool->get("name"))){
-                        break;
-                    }
-                }
-                if(place == P->tools.size()){
+                std::deque<unsigned int> places;
+                // Get the places of the tools selected
+                places = _toolsName((const char*)(tool->get("name")), prefix);
+                if(!places.size()){
                     sprintf(msg,
                             "Failure removing the tool \"%s\" (tool not found).\n",
                             tool->get("name"));
@@ -715,10 +806,17 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                         return true;
                     }
                 }
-                delete P->tools.at(place);
-                P->tools.erase(P->tools.begin() + place);
-                // Delete also the new tool (useless)
+                // Delete the new tool (which is useless)
                 delete tool;
+                // Delete the tools in backward order
+                for(place = places.size(); place > 0; place--){
+                    if(P->toolInstances(P->tools.at(places.at(place - 1))) == 1){
+                        // This is the last instance
+                        delete P->tools.at(places.at(place - 1));
+                    }
+                    // Drop the tool from the list
+                    P->tools.erase(P->tools.begin() + places.at(place - 1));
+                }
                 continue;
             }
             else if(!strcmp(xmlAttribute(s_elem, "action"), "replace") ||
@@ -726,13 +824,10 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                 bool try_replace = !strcmp(xmlAttribute(s_elem, "action"),
                                           "try_replace");
                 unsigned int place;
-                for(place = 0; place < P->tools.size(); place++){
-                    if(!strcmp(P->tools.at(place)->get("name"),
-                               tool->get("name"))){
-                        break;
-                    }
-                }
-                if(place == P->tools.size()){
+                std::deque<unsigned int> places;
+                // Get the places
+                places = _toolsName((const char*)(tool->get("name")), prefix);
+                if(!places.size()){
                     sprintf(msg,
                             "Failure replacing the tool \"%s\" (tool not found).\n",
                             tool->get("name"));
@@ -745,8 +840,15 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                         return true;
                     }
                 }
-                delete P->tools.at(place);
-                P->tools.at(place) = tool;
+                // Replace the tools
+                for(place = 0; place < places.size(); place++){
+                    if(P->toolInstances(P->tools.at(places.at(place))) == 1){
+                        // This is the last instance
+                        delete P->tools.at(places.at(place));
+                    }
+                    // Set the new tool
+                    P->tools.at(places.at(place)) = tool;
+                }
             }
             else{
                 sprintf(msg,

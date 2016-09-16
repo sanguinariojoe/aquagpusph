@@ -51,8 +51,12 @@ ProblemSetup::~ProblemSetup()
     settings.destroy();
     variables.destroy();
     definitions.destroy();
-    for(i = 0; i < tools.size(); i++){
-        delete tools.at(i);
+    for(i = tools.size(); i > 0; i--){
+        if(toolInstances(tools.at(i - 1)) == 1){
+            // This is the last remaining instance
+            delete tools.at(i - 1);
+        }
+        tools.erase(tools.begin() + i - 1);
     }
     tools.clear();
     for(i = 0; i < reports.size(); i++){
@@ -234,6 +238,18 @@ bool ProblemSetup::sphTool::has(const char* name)
     if(var != _data.end())
         return true;
     return false;
+}
+
+unsigned int ProblemSetup::toolInstances(ProblemSetup::sphTool *tool)
+{
+    unsigned int i, n=0;
+    for(i = 0; i < tools.size(); i++){
+        if(tool == tools.at(i))
+        {
+            n++;
+        }
+    }
+    return n;
 }
 
 ProblemSetup::sphParticlesSet::sphParticlesSet()

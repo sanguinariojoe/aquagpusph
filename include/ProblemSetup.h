@@ -395,6 +395,18 @@ public:
     /// Array of tools
     std::deque<sphTool*> tools;
 
+    /** @brief Helper function to get the number of already defined instances of
+     * the same tool
+     *
+     * Since the same tool can be added several times (using wildcards), at the
+     * time of removing it the user should be careful before of checking that it
+     * is the last remaining instance.
+     *
+     * @param tool Tool instance to look for
+     * @return The number of instances found
+     */
+    unsigned int toolInstances(ProblemSetup::sphTool *tool);
+
     /** @brief Array of reports.
      *
      * Reports are a some kind of special tools dedicated to generate summary
