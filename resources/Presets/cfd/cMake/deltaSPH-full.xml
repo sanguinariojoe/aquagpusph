@@ -10,8 +10,12 @@ expensive, but great results can be expected.
     <Tools>
         <Tool name="cfd lap p mls" action="insert" before="cfd lap p" type="copy" in="mls_fluid" out="mls"/>
         <Tool name="cfd lap p full" action="insert" before="cfd lap p" type="kernel" entry_point="full" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/deltaSPH.cl"/>
-        <!-- Correct the Laplacian of the pressure -->
-        <Tool name="cfd lap p full mls" action="insert" before="Interactions" type="kernel" entry_point="full_mls" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/deltaSPH.cl"/>
-        <Tool name="cfd apply lap p corr" action="insert" before="Interactions" type="kernel" entry_point="lapp_corr" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/deltaSPH.cl"/>
+        <!-- Correct the Laplacian of the pressure. This operation is a bit
+        special, because we should grant that both mls and lap_p_corr
+        computations have finished. So it is more convenient to do that
+        after the Interactions stage (take care, inserting after is reversing
+        the order of the tools) -->
+        <Tool name="cfd apply lap p corr" action="insert" after="Interactions" type="kernel" entry_point="lapp_corr" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/deltaSPH.cl"/>
+        <Tool name="cfd lap p full mls" action="insert" after="Interactions" type="kernel" entry_point="full_mls" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/deltaSPH.cl"/>
     </Tools>
 </sphInput>
