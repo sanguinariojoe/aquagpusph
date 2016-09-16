@@ -7,6 +7,10 @@ expensive, but great results can be expected.
 
 <sphInput>
     <Include file="@RESOURCES_OUTPUT_DIR@/Presets/cfd/MLS.xml" />
+    <Variables>
+        <Variable name="lap_p_corr" type="vec*" length="N" />
+    </Variables>
+
     <Tools>
         <Tool name="cfd lap p mls" action="insert" before="cfd lap p" type="copy" in="mls_fluid" out="mls"/>
         <Tool name="cfd lap p full" action="insert" before="cfd lap p" type="kernel" entry_point="full" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/deltaSPH.cl"/>

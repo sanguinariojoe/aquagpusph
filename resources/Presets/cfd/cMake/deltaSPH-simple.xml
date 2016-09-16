@@ -7,6 +7,10 @@ hydrostatic component.
 -->
 
 <sphInput>
+    <Variables>
+        <Variable name="lap_p_corr" type="vec*" length="N" />
+    </Variables>
+
     <Tools>
         <Tool name="cfd lap p simple" action="insert" before="cfd lap p" type="kernel" entry_point="simple" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/deltaSPH.cl"/>
         <!-- Correct the Laplacian of the pressure. This operation is a bit

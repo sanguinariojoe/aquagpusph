@@ -25,7 +25,6 @@ should be imposed, the delta factor (in principle 0.0 or 1.0)
     <Variables>
         <Variable name="delta" type="float*" length="n_sets" />
         <Variable name="lap_p" type="float*" length="N" />
-        <Variable name="lap_p_corr" type="vec*" length="N" />
     </Variables>
 
     <Tools>
