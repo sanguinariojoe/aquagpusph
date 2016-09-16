@@ -24,26 +24,33 @@ transformation matrix respect several particle types. For instance:
     <Variable name="mls2" type="matrix*" length="N" />
 </Variables>
 <Tools>
-    <Tool action="insert" before="imove1_MLS" type="set_scalar" name="MLS_imove1" in="mls_imove" value="1"/>
+    <Tool action="insert" before="imove1_MLS interactions" type="set_scalar" name="MLS_imove1" in="mls_imove" value="1"/>
     <Tool action="insert" after="imove1_MLS" type="copy" name="backup mls imove1" in="mls" out="mls1"/>
-    <Tool action="insert" before="imove2_MLS" type="set_scalar" name="MLS_imove2" in="mls_imove" value="2"/>
+    <Tool action="insert" before="imove2_MLS interactions" type="set_scalar" name="MLS_imove2" in="mls_imove" value="2"/>
     <Tool action="insert" after="imove2_MLS" type="copy" name="backup mls imove2" in="mls" out="mls2"/>
 </Tools>
 
-In general, each specific module have a MLS.xml preset, which ensures that it is
-computed just once. Consider therefore don't using directly this tool.
+In general, each specific module have a MLS.xml preset. Consider therefore don't
+using directly this tool.
 -->
 
 <sphInput>
+    <Definitions>
+        <Define name="__MLS__"/>
+    </Definitions>
+
     <Variables>
         <Variable name="mls_imove" type="unsigned int" value="1" />
         <Variable name="mls" type="matrix*" length="N" />
     </Variables>
 
     <Tools>
-        <!-- Try to remove previous instances -->
-        <Tool action="try_remove" name="MLS" type="dummy"/>
+        <!-- Since MLS matrix computation requires a completely different
+        interactions stage, we are inserting a tool to signal everyone else
+        where the tools should be inserted. This signal will aso invert the
+        computed matrix to can be consumed later -->
         <!-- Add the new instance -->
-        <Tool action="insert" after="Sort" name="MLS" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/MLS.cl"/>
+        <Tool name="MLS" action="insert" after="Sort" type="kernel" entry_point="mls_inv" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/MLS.cl"/>
+        <Tool name="MLS interactions" action="insert" before_prefix="MLS" type="kernel" entry_point="entry" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/MLS.cl"/>
     </Tools>
 </sphInput>

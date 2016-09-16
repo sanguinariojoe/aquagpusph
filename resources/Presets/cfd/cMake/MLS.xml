@@ -26,11 +26,8 @@ be overwritten by other tool)
     </Variables>
 
     <Tools>
-        <!-- Try to remove previous instances -->
-        <Tool action="try_remove" name="MLS_imove1" type="dummy"/>
-        <Tool action="try_remove" name="MLS_mls_fluid" type="dummy"/>
         <!-- Add the new instance -->
-        <Tool action="insert" before="imove1_MLS" name="MLS_imove1" type="set_scalar" in="mls_imove" value="1"/>
+        <Tool action="insert" before="imove1_MLS interactions" name="MLS_imove1" type="set_scalar" in="mls_imove" value="1"/>
         <Tool action="insert" after="imove1_MLS" name="MLS_mls_fluid" type="copy" in="mls" out="mls_fluid"/>
     </Tools>
 </sphInput>
