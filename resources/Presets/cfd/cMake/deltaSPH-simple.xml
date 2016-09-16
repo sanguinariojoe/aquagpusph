@@ -8,6 +8,8 @@ hydrostatic component.
 
 <sphInput>
     <Tools>
-        <Tool action="insert" before="cfd lap p" name="cfd lap p simple" type="kernel" entry_point="simple" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/deltaSPH.cl"/>
+        <Tool name="cfd lap p simple" action="insert" before="cfd lap p" type="kernel" entry_point="simple" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/deltaSPH.cl"/>
+        <!-- Correct the Laplacian of the pressure -->
+        <Tool name="cfd apply lap p corr" action="insert" before="Interactions" type="kernel" entry_point="lapp_corr" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/deltaSPH.cl"/>
     </Tools>
 </sphInput>

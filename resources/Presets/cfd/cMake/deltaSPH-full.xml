@@ -8,7 +8,10 @@ expensive, but great results can be expected.
 <sphInput>
     <Include file="@RESOURCES_OUTPUT_DIR@/Presets/cfd/MLS.xml" />
     <Tools>
-        <Tool action="insert" before="cfd lap p" name="cfd lap p mls" type="copy" in="mls_fluid" out="mls"/>
-        <Tool action="insert" before="cfd lap p" name="cfd lap p full" type="kernel" entry_point="full" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/deltaSPH.cl"/>
+        <Tool name="cfd lap p mls" action="insert" before="cfd lap p" type="copy" in="mls_fluid" out="mls"/>
+        <Tool name="cfd lap p full" action="insert" before="cfd lap p" type="kernel" entry_point="full" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/deltaSPH.cl"/>
+        <!-- Correct the Laplacian of the pressure -->
+        <Tool name="cfd lap p full mls" action="insert" before="Interactions" type="kernel" entry_point="full_mls" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/deltaSPH.cl"/>
+        <Tool name="cfd apply lap p corr" action="insert" before="Interactions" type="kernel" entry_point="lapp_corr" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/deltaSPH.cl"/>
     </Tools>
 </sphInput>

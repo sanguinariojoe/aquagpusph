@@ -18,6 +18,10 @@ should be imposed, the delta factor (in principle 0.0 or 1.0)
 -->
 
 <sphInput>
+    <Definitions>
+        <Define name="__DELTA_SPH__"/>
+    </Definitions>
+
     <Variables>
         <Variable name="delta" type="float*" length="n_sets" />
         <Variable name="lap_p" type="float*" length="N" />
@@ -25,14 +29,13 @@ should be imposed, the delta factor (in principle 0.0 or 1.0)
     </Variables>
 
     <Tools>
-        <Tool action="insert" after="Sort" name="cfd reinit lap_p" type="set" in="lap_p" value="0.f"/>
-        <Tool action="insert" after="Sort" name="cfd reinit lap_p_corr" type="set" in="lap_p_corr" value="VEC_ZERO"/>
+        <Tool name="cfd reinit lap_p" action="insert" after="Sort" type="set" in="lap_p" value="0.f"/>
+        <Tool name="cfd reinit lap_p_corr" action="insert" after="Sort" type="set" in="lap_p_corr" value="VEC_ZERO"/>
   
-        <!-- Compute the Laplacian of the pressure (the correction term should
-        be already available) -->
-        <Tool action="insert" before="Interactions" name="cfd lap p" type="kernel" entry_point="lapp" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/deltaSPH.cl"/>
+        <!-- Compute the Laplacian of the pressure -->
+        <Tool name="cfd lap p" action="insert" before="Interactions" type="kernel" entry_point="lapp" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/deltaSPH.cl"/>
 
         <!-- Add the delta-SPH effect to the density variation rate -->
-        <Tool action="insert" before="Rates" name="cfd delta-SPH" type="kernel" entry_point="deltaSPH" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/deltaSPH.cl"/>        
+        <Tool name="cfd delta-SPH" action="insert" before="Rates" type="kernel" entry_point="deltaSPH" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/deltaSPH.cl"/>        
     </Tools>
 </sphInput>
