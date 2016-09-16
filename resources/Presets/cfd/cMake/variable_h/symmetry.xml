@@ -34,20 +34,28 @@ prefix, for instance:
     </Variables>
 
     <Tools>
-        <!-- 1st stage: Omega computation
+        <!-- 1st stage: MLS computation
+             ==========================
+        -->
+        <!-- We must start mirroring particles (and marking them). -->
+        <Tool name="cfd symmetry_mls mirror" action="try_insert" before="imove1_MLS" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/Mirror.cl"/>
+        <!-- Now we can compute the interactions -->
+        <Tool name="cfd symmetry_mls MLS" action="try_insert" before="imove1_MLS" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/MLS.cl"/>
+
+        <!-- 2nd stage: Omega computation
              ============================
         -->
         <!-- We must start mirroring particles (and marking them). -->
-        <Tool action="insert" before="Omega" name="cfd symmetry_omega mirror" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/Mirror.cl"/>
+        <Tool name="cfd symmetry_omega mirror" action="insert" before="Omega" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/Mirror.cl"/>
         <!-- Now we can compute the interactions -->
-        <Tool action="insert" before="Omega" name="cfd symmetry_omega Omega" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Boundary/Symmetry/Omega.cl"/>
+        <Tool name="cfd symmetry_omega Omega" action="insert" before="Omega" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Boundary/Symmetry/Omega.cl"/>
 
-        <!-- 2nd stage: Particle interactions
+        <!-- 3rd stage: Particle interactions
              ================================
         -->
         <!-- We must start mirroring particles (and marking them). -->
-        <Tool action="insert" before="Interactions" name="cfd symmetry mirror" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/Mirror.cl"/>
+        <Tool name="cfd symmetry mirror" action="insert" before="Interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/Mirror.cl"/>
         <!-- Now we can compute the interactions -->
-        <Tool action="insert" before="Interactions" name="cfd symmetry interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Boundary/Symmetry/Interactions.cl"/>
+        <Tool name="cfd symmetry interactions" action="insert" before="Interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Boundary/Symmetry/Interactions.cl"/>
     </Tools>
 </sphInput>
