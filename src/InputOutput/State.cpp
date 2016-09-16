@@ -558,6 +558,17 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                     continue;
                 }
             }
+            else if(xmlHasAttribute(s_elem, "ifndef")){
+                if(P->definitions.isDefined(xmlAttribute(s_elem, "ifndef"))){
+                    sprintf(msg,
+                            "Ignoring the tool \"%s\" because \"%s\" has been defined.\n",
+                            tool->get("name"),
+                            xmlAttribute(s_elem, "ifndef"));
+                    S->addMessageF(2, msg);
+                    delete tool;
+                    continue;
+                }
+            }
 
             // Place the tool
             if(!xmlHasAttribute(s_elem, "action") ||
