@@ -15,8 +15,12 @@ To use it, just include this file. If you include this file several times, the
 effect will be override (and computed just once). Therefore, please don't
 include this preset with a prefix.
 
-The output of this tool is the mls_solid variable, not the mls one (which can
-be overwritten by other tool)
+The output of this tool is the mls_fluid variable, not the mls one (which can
+be overwritten by other tools)
+
+This tool is prepared to work even if it is included more than once. However,
+the first time the tool is included, 2 warnings will be reported due to the
+impossibility of removing MLS_imove1 and MLS_mls_fluid. Just ignore them.
 -->
 
 <sphInput>
@@ -26,8 +30,12 @@ be overwritten by other tool)
     </Variables>
 
     <Tools>
-        <!-- Add the new instance -->
-        <Tool action="insert" before="imove1_MLS interactions" name="MLS_imove1" type="set_scalar" in="mls_imove" value="1"/>
-        <Tool action="insert" after="imove1_MLS" name="MLS_mls_fluid" type="copy" in="mls" out="mls_fluid"/>
+        <!-- Remove the existing instances to ensure we are not repeating
+        the job -->
+        <Tool name="MLS_imove1" action="try_remove" type="dummy"/>
+        <Tool name="MLS_mls_fluid" action="try_remove" type="dummy"/>
+        <!-- Add the new instances -->
+        <Tool name="MLS_imove1" action="insert" before="imove1_MLS interactions" type="set_scalar" in="mls_imove" value="1"/>
+        <Tool name="MLS_mls_fluid" action="insert" after="imove1_MLS" type="copy" in="mls" out="mls_fluid"/>
     </Tools>
 </sphInput>

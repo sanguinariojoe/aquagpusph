@@ -35,6 +35,11 @@ using directly this tool.
 -->
 
 <sphInput>
+    <Definitions>
+        <!-- To ensure it is included just once -->
+        <Define name="__MLS__"/>
+    </Definitions>
+
     <Variables>
         <Variable name="mls_imove" type="unsigned int" value="1" />
         <Variable name="mls" type="matrix*" length="N" />
@@ -46,7 +51,7 @@ using directly this tool.
         where the tools should be inserted. This signal will aso invert the
         computed matrix to can be consumed later -->
         <!-- Add the new instance -->
-        <Tool name="MLS" action="insert" after="Sort" type="kernel" entry_point="mls_inv" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/MLS.cl"/>
-        <Tool name="MLS interactions" action="insert" before_prefix="MLS" type="kernel" entry_point="entry" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/MLS.cl"/>
+        <Tool name="MLS" ifndef="__MLS__" action="insert" after="Sort" type="kernel" entry_point="mls_inv" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/MLS.cl"/>
+        <Tool name="MLS interactions" ifndef="__MLS__" action="insert" before_prefix="MLS" type="kernel" entry_point="entry" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/MLS.cl"/>
     </Tools>
 </sphInput>
