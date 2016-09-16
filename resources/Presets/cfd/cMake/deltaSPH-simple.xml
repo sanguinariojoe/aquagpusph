@@ -16,7 +16,11 @@ hydrostatic component.
         <!-- Correct the Laplacian of the pressure. This operation is a bit
         special, because we should grant that lap_p_corr computation has
         finished. So it is more convenient to do that after the Interactions
-        stage -->
-        <Tool name="cfd apply lap p corr" action="insert" after="Interactions" type="kernel" entry_point="lapp_corr" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/deltaSPH.cl"/>
+        stage. This tool is signaling other modules where they should add
+        tools: After this tool to use lap_p_corr (e.g. in a BC) -->
+        <Tool name="LapP Correction" action="insert" after="Interactions" type="kernel" entry_point="lapp_corr" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/deltaSPH.cl"/>
+        <!-- Dummy tool to signal other modules where they should add tools:
+        Before this tool to modify lap_p_corr -->
+        <Tool name="LapP Correction MLS" action="insert" after="Interactions" type="dummy"/>
     </Tools>
 </sphInput>
