@@ -28,7 +28,7 @@ modified each time step, an initial h value should be provided
         <Tool action="insert" before="Sort" name="sort h_var" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/variable_h/Sort.cl"/>
         <!-- We must compute the Omega function of each particle. Since Omega
         computation requires a completely different interactions stage, prior
-        to the differential operator, we are inserting aduumy flag tool -->
+        to the differential operator, we are inserting a dummy flag tool -->
         <Tool action="insert" after="Sort" name="Omega" type="dummy"/>
         <Tool action="insert" before="Omega" type="set" name="cfd Reinit Omega" in="Omega" value="1.f"/>
         <Tool action="insert" before="Omega" name="cfd Omega" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Omega.cl"/>
