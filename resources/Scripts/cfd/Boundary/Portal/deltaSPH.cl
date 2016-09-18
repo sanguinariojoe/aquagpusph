@@ -53,6 +53,7 @@
  * @param n_cells Number of cells in each direction
  */
 __kernel void full(const __global int* imove,
+                   const __global int* imirrored,
                    const __global vec* r,
                    const __global float* rho,
                    const __global float* m,
@@ -186,6 +187,7 @@ __kernel void lapp(const __global int* imove,
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
+ * @param imirrored 0 if the particle has not been mirrored, 1 otherwise.
  * @param r Position \f$ \mathbf{r} \f$.
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
