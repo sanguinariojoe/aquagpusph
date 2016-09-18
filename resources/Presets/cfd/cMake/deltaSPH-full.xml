@@ -19,6 +19,7 @@ This module should be importeed once
     </Variables>
 
     <Tools>
+        <Tool name="cfd reinit lap_p_corr" action="insert" after="Sort" type="set" in="lap_p_corr" value="VEC_ZERO"/>
         <Tool name="cfd lap p mls" action="insert" before="cfd lap p" type="copy" in="mls_fluid" out="mls"/>
         <Tool name="cfd lap p full" action="insert" before="cfd lap p" type="kernel" entry_point="full" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/deltaSPH.cl"/>
         <!-- Correct the Laplacian of the pressure. This operation is a bit
