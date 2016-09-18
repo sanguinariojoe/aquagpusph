@@ -54,7 +54,7 @@
  *   - imove = 2 for regular solid particles.
  *   - imove = 0 for sensors (ignored by this preset).
  *   - imove < 0 for boundary elements/particles.
- * @param lap_p_corr Correction term for the Morrison Laplacian formula.
+ * @param lap_p_corr Correction term for the Morris Laplacian formula.
  * @param refd Density of reference of the fluid \f$ \rho_0 \f$.
  * @param N Number of particles.
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
@@ -90,7 +90,7 @@ __kernel void simple(const __global unsigned int* iset,
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
  * @param p Pressure \f$ p \f$.
- * @param lap_p_corr Correction term for the Morrison Laplacian formula.
+ * @param lap_p_corr Correction term for the Morris Laplacian formula.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
@@ -160,7 +160,7 @@ __kernel void full(const __global int* imove,
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r} \f$.
  * @param mls Kernel MLS transformation matrix \f$ L \f$.
- * @param lap_p_corr Correction term for the Morrison Laplacian formula.
+ * @param lap_p_corr Correction term for the Morris Laplacian formula.
  * @param N Number of particles.
  */
 __kernel void full_mls(const __global int* imove,
@@ -258,7 +258,7 @@ __kernel void lapp(const __global int* imove,
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
  * @param p Pressure \f$ p \f$.
- * @param lap_p_corr Correction term for the Morrison Laplacian formula.
+ * @param lap_p_corr Correction term for the Morris Laplacian formula.
  * @param lap_p Pressure laplacian \f$ \Delta p \f$.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
@@ -285,7 +285,6 @@ __kernel void lapp_corr(const __global int* imove,
     }
 
     const vec_xyz r_i = r[i].XYZ;
-    const float p_i = p[i];
     const vec_xyz gradp_i = lap_p_corr[i].XYZ;
 
     // Initialize the output
