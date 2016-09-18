@@ -223,7 +223,7 @@ __kernel void mirror(const __global int* imirrored,
         return;
     }
 
-    const float v_n = dot(-lap_p_corr_mirrored[i], symmetry_n);
+    const float v_n = dot(-lap_p_corr[i], symmetry_n);
     lap_p_corr_mirrored[i] = lap_p_corr[i] + 2.f * v_n * symmetry_n;
 }
 
