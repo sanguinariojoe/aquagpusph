@@ -16,76 +16,32 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @addtogroup basic
- * @{
- */
-
 /** @file
- * @brief delta-SPH methods, including the correction terms
+ * @brief Particles interactions computation.
  */
-
-#ifndef EXCLUDED_PARTICLE
-    /** @brief Condition to exclude a particle from the delta-SPH model
-     * 
-     * By default all the boundary elements are excluded. Even though it is
-     * enough for simulation where fluid and solid mechanics are not combined,
-     * it is strongly recommended to conveniently overload this macro. 
-     * @note Redefining this macro this OpenCL script can be recicled
-     */
-    #define EXCLUDED_PARTICLE(index) imove[index] <= 0
-#endif
 
 #if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
     #error NO_LOCAL_MEM has been set.
 #endif
 
 #ifndef HAVE_3D
-    #include "../types/2D.h"
-    #include "../KernelFunctions/Wendland2D.hcl"
+    #include "../../../types/2D.h"
+    #include "../../../KernelFunctions/Wendland2D.hcl"
 #else
-    #include "../types/3D.h"
-    #include "../KernelFunctions/Wendland3D.hcl"
+    #include "../../../types/3D.h"
+    #include "../../../KernelFunctions/Wendland3D.hcl"
 #endif
 
-/** @brief Simple hidrostatic based correction term.
+/** @brief MLS based correction term, due to the particles at the other
+ * portal side.
  *
- * @param iset Set of particles index.
- * @param imove Moving flags.
- *   - imove = 2 for regular solid particles.
- *   - imove = 0 for sensors (ignored by this preset).
- *   - imove < 0 for boundary elements/particles.
- * @param lap_p_corr Correction term for the Morrison Laplacian formula.
- * @param refd Density of reference of the fluid \f$ \rho_0 \f$.
- * @param N Number of particles.
- * @param g Gravity acceleration \f$ \mathbf{g} \f$.
- */
-__kernel void simple(const __global unsigned int* iset,
-                     const __global int* imove,
-                     __global vec* lap_p_corr,
-                     __constant float* refd,
-                     unsigned int N,
-                     vec g)
-{
-    unsigned int i = get_global_id(0);
-    if(i >= N)
-        return;
-    if(EXCLUDED_PARTICLE(i))
-        return;
-
-    lap_p_corr[i] = refd[iset[i]] * g;
-}
-
-/** @brief MLS based correction term.
- *
- * The term computed with this function should be later renormalized by MLS,
- * using full_mls() function.
- * Before calling such function the user must be sure that both lap_p_corr and
- * mls have been computed (taking into account, for instance, the BCs)
+ * The term computed with this function should be later renormalized by MLS.
  *
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
+ * @param imirrored 0 if the particle has not been mirrored, 1 otherwise.
  * @param r Position \f$ \mathbf{r} \f$.
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
@@ -111,7 +67,7 @@ __kernel void full(const __global int* imove,
     const uint it = get_local_id(0);
     if(i >= N)
         return;
-    if(EXCLUDED_PARTICLE(i)){
+    if((!imirrored[i]) || (imove[i] != 1)){
         return;
     }
 
@@ -128,7 +84,7 @@ __kernel void full(const __global int* imove,
     #endif
 
     BEGIN_LOOP_OVER_NEIGHS(){
-        if( (i == j) || (EXCLUDED_PARTICLE(j))){
+        if(imirrored[j] || (imove[j] != 1)){
             j++;
             continue;
         }
@@ -150,40 +106,13 @@ __kernel void full(const __global int* imove,
     #endif
 }
 
-/** @brief MLS based correction term.
- *
- * Here the MLS renormalization is applied to the correction term
- *
- * @param imove Moving flags.
- *   - imove > 0 for regular fluid particles.
- *   - imove = 0 for sensors.
- *   - imove < 0 for boundary elements/particles.
- * @param r Position \f$ \mathbf{r} \f$.
- * @param mls Kernel MLS transformation matrix \f$ L \f$.
- * @param lap_p_corr Correction term for the Morrison Laplacian formula.
- * @param N Number of particles.
- */
-__kernel void full_mls(const __global int* imove,
-                   const __global matrix* mls,
-                   __global vec* lap_p_corr,
-                   uint N)
-{
-    const uint i = get_global_id(0);
-    if(i >= N)
-        return;
-    if(EXCLUDED_PARTICLE(i)){
-        return;
-    }
-
-    lap_p_corr[i] = MATRIX_DOT(mls[i], lap_p_corr[i]);
-}
-
 /** @brief Laplacian of the pressure computation.
  *
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
+ * @param imirrored 0 if the particle has not been mirrored, 1 otherwise.
  * @param r Position \f$ \mathbf{r} \f$.
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
@@ -195,13 +124,16 @@ __kernel void full_mls(const __global int* imove,
  * @param n_cells Number of cells in each direction
  */
 __kernel void lapp(const __global int* imove,
+                   const __global int* imirrored,
                    const __global vec* r,
                    const __global float* rho,
                    const __global float* m,
                    const __global float* p,
                    __global float* lap_p,
-                   const __global uint *icell,
-                   const __global uint *ihoc,
+                   // Link-list data
+                   __global uint *icell,
+                   __global uint *ihoc,
+                   // Simulation data
                    uint N,
                    uivec4 n_cells)
 {
@@ -209,9 +141,8 @@ __kernel void lapp(const __global int* imove,
     const uint it = get_local_id(0);
     if(i >= N)
         return;
-    if(EXCLUDED_PARTICLE(i)){
+    if((!imirrored[i]) || (imove[i] != 1))
         return;
-    }
 
     const vec_xyz r_i = r[i].XYZ;
     const float p_i = p[i];
@@ -222,26 +153,27 @@ __kernel void lapp(const __global int* imove,
     #else
         #define _LAPP_ lap_p_l[it]
         __local float lap_p_l[LOCAL_MEM_SIZE];
-        _LAPP_ = 0.f;
+        _LAPP_ = lap_p[i];
     #endif
 
-    BEGIN_LOOP_OVER_NEIGHS(){
-        if( (i == j) || (EXCLUDED_PARTICLE(j))){
-            j++;
-            continue;
-        }
-        const vec_xyz r_ij = r[j].XYZ - r_i;
-        const float q = length(r_ij) / H;
-        if(q >= SUPPORT)
-        {
-            j++;
-            continue;
-        }
-        {
+	BEGIN_LOOP_OVER_NEIGHS(){
+		if(imirrored[j] || (imove[j] != 1)){
+			j++;
+			continue;
+		}
+		const vec_xyz r_ij = r[j].XYZ - r_i;
+		const float q = length(r_ij) / H;
+		if(q >= SUPPORT)
+		{
+			j++;
+			continue;
+		}
+
+		{
             const float f_ij = kernelF(q) * CONF * m[j] / rho[j];
             _LAPP_ += (p[j] - p_i) * f_ij;
-        }
-    }END_LOOP_OVER_NEIGHS()
+		}
+	}END_LOOP_OVER_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         lap_p[i] = _LAPP_;
@@ -266,6 +198,7 @@ __kernel void lapp(const __global int* imove,
  * @param n_cells Number of cells in each direction
  */
 __kernel void lapp_corr(const __global int* imove,
+                        const __global int* imirrored,
                         const __global vec* r,
                         const __global float* rho,
                         const __global float* m,
@@ -280,9 +213,8 @@ __kernel void lapp_corr(const __global int* imove,
     const uint it = get_local_id(0);
     if(i >= N)
         return;
-    if(EXCLUDED_PARTICLE(i)){
+    if((!imirrored[i]) || (imove[i] != 1))
         return;
-    }
 
     const vec_xyz r_i = r[i].XYZ;
     const float p_i = p[i];
@@ -298,7 +230,7 @@ __kernel void lapp_corr(const __global int* imove,
     #endif
 
     BEGIN_LOOP_OVER_NEIGHS(){
-        if( (i == j) || (EXCLUDED_PARTICLE(j))){
+		if(imirrored[j] || (imove[j] != 1)){
             j++;
             continue;
         }
@@ -320,44 +252,3 @@ __kernel void lapp_corr(const __global int* imove,
         lap_p[i] = _LAPP_;
     #endif
 }
-
-/** @brief Density variation rates delta-SPH term.
- *
- * @param iset Set of particles index.
- * @param imove Moving flags.
- *   - imove = 2 for regular solid particles.
- *   - imove = 0 for sensors (ignored by this preset).
- *   - imove < 0 for boundary elements/particles.
- * @param rho Density \f$ \rho_{n+1} \f$.
- * @param lap_p Pressure laplacian \f$ \Delta p \f$.
- * @param drhodt Density rate of change \f$ \frac{d \rho}{d t} \f$.
- * @param refd Density of reference of the fluid \f$ \rho_0 \f$.
- * @param delta Diffusive term \f$ \delta \f$ multiplier.
- * @param N Number of particles.
- * @param dt Time step \f$ \Delta t \f$.
- */
-__kernel void deltaSPH(const __global unsigned int* iset,
-                    const __global int* imove,
-                    const __global float* rho,
-                    const __global float* lap_p,
-                    __global float* drhodt,
-                    __constant float* refd,
-                    __constant float* delta,
-                    unsigned int N,
-                    float dt)
-{
-    unsigned int i = get_global_id(0);
-    if(i >= N)
-        return;
-    if(EXCLUDED_PARTICLE(i))
-        return;
-
-    const uint set_i = iset[i];
-    const float delta_f = delta[set_i] * dt * rho[i] / refd[set_i];
-
-    drhodt[i] += delta_f * lap_p[i];
-}
-
-/*
- * @}
- */
