@@ -81,8 +81,8 @@ deltaSPH-full). Just simply ignore them
         <!-- We must unmirror the particles (even the ones which should be
         teleported) in order to dont missconsider the particles in subsequent
         interactions computations -->
-        <Tool name="cfd portal unmirror" action="insert" after_prefix="cfd portal interactions,cfd portal BI" type="kernel" entry_point="unmirror" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Portal/Mirror.cl"/>
-        <Tool name="cfd portal icell restore" action="insert" after_prefix="cfd portal unmirror" type="copy" in="icell_backup" out="icell"/>
+        <Tool name="cfd portal unmirror" action="insert" before="Interactions" type="kernel" entry_point="unmirror" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Portal/Mirror.cl"/>
+        <Tool name="cfd portal icell restore" action="insert" before="Interactions" type="copy" in="icell_backup" out="icell"/>
 
         <!-- 3rd stage: delta-SPH correction
              ===============================
