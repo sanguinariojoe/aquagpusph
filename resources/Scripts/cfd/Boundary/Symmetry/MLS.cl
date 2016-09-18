@@ -91,9 +91,6 @@ __kernel void entry(const __global int* imove,
         return;
 
     const vec_xyz r_i = r[i].XYZ;
-    const vec_xyz u_i = u[i].XYZ;
-    const float p_i = p[i];
-    const float rho_i = rho[i];
 
     // Initialize the output
     #ifndef LOCAL_MEM_SIZE
