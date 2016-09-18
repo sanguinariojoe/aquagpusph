@@ -63,7 +63,6 @@
  * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
  * @param n_cells Number of cells in each direction
- * @param mls_imove Type of particles affected
  * @note The MLS kernel transformation will be computed just for the particles
  * with the moving flag mls_imove, and using just the information of the
  * particles with the moving flag mls_imove
@@ -80,8 +79,7 @@ __kernel void entry(const __global int* imove,
                      __global uint *ihoc,
                     // Simulation data
                     uint N,
-                    uivec4 n_cells,
-                    uint mls_imove)
+                    uivec4 n_cells)
 {
     const uint i = get_global_id(0);
     const uint it = get_local_id(0);
@@ -102,7 +100,7 @@ __kernel void entry(const __global int* imove,
     #endif
 
 	BEGIN_LOOP_OVER_NEIGHS(){
-        if((imove[j] != mls_imove) || (imirrored[j])){
+        if(!imirrored[j] || (imove[j] != 1)){
 			j++;
 			continue;
 		}
