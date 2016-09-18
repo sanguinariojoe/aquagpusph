@@ -60,6 +60,6 @@ prefix, for instance:
         <Tool name="cfd symmetry_deltaSPH mirror" action="try_insert" before="LapP Correction" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/Mirror.cl"/>
         <Tool name="cfd symmetry_deltaSPH mirror lapp_corr" action="try_insert" before="LapP Correction" type="kernel" entry_point="mirror" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/deltaSPH.cl"/>
         <!-- Now we can compute the interactions -->
-        <Tool name="cfd symmetry_deltaSPH lapp_corr" action="try_insert" before="LapP Correction" type="kernel" entry_point="lap_corr" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/deltaSPH.cl"/>
+        <Tool name="cfd symmetry_deltaSPH lapp_corr" action="try_insert" before="LapP Correction" type="kernel" entry_point="lapp_corr" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/deltaSPH.cl"/>
     </Tools>
 </sphInput>

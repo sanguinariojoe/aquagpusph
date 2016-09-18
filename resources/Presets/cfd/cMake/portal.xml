@@ -91,7 +91,7 @@ deltaSPH-full). Just simply ignore them
         <Tool name="cfd portal_deltaSPH icell backup" action="try_insert" before="LapP Correction" type="copy" in="icell" out="icell_backup"/>
         <Tool name="cfd portal_deltaSPH mirror" action="try_insert" before="LapP Correction" type="kernel" entry_point="mirror" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Portal/Mirror.cl"/>
         <!-- Now we can compute the effect of the in portal particles -->
-        <Tool name="cfd portal_deltaSPH lapp_corr" action="try_insert" before="LapP Correction" type="kernel" entry_point="lap_corr" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Portal/deltaSPH.cl"/>
+        <Tool name="cfd portal_deltaSPH lapp_corr" action="try_insert" before="LapP Correction" type="kernel" entry_point="lapp_corr" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Portal/deltaSPH.cl"/>
         <!-- We must unmirror the particles (even the ones which should be
         teleported) in order to dont missconsider the particles in subsequent
         interactions computations -->
