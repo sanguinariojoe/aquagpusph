@@ -46,7 +46,7 @@
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
  * @param p Pressure \f$ p \f$.
- * @param lap_p_corr Correction term for the Morrison Laplacian formula.
+ * @param lap_p_corr Correction term for the Morris Laplacian formula.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
@@ -81,7 +81,7 @@ __kernel void full(const __global int* imove,
     #else
         #define _GRADP_ lap_p_corr_l[it]
         __local vec_xyz lap_p_corr_l[LOCAL_MEM_SIZE];
-        _GRADP_ = VEC_ZERO.XYZ;
+        _GRADP_ = lap_p_corr[i].XYZ;
     #endif
 
     BEGIN_LOOP_OVER_NEIGHS(){
@@ -192,7 +192,7 @@ __kernel void lapp(const __global int* imove,
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
  * @param p Pressure \f$ p \f$.
- * @param lap_p_corr Correction term for the Morrison Laplacian formula.
+ * @param lap_p_corr Correction term for the Morris Laplacian formula.
  * @param lap_p Pressure laplacian \f$ \Delta p \f$.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
