@@ -31,6 +31,7 @@ prefix, for instance:
         <Variable name="rmirrored" type="vec*" length="N" />
         <Variable name="umirrored" type="vec*" length="N" />
         <Variable name="nmirrored" type="vec*" length="N" />
+        <Variable name="lap_p_corr_mirrored" type="vec*" length="N" />
     </Variables>
 
     <Tools>
@@ -57,5 +58,16 @@ prefix, for instance:
         <Tool name="cfd symmetry mirror" action="insert" before="Interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/Mirror.cl"/>
         <!-- Now we can compute the interactions -->
         <Tool name="cfd symmetry interactions" action="insert" before="Interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Boundary/Symmetry/Interactions.cl"/>
+        <Tool name="cfd symmetry delta-SPH" ifdef="__DELTA_SPH__" action="insert" before="Interactions" type="kernel" entry_point="lapp" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/deltaSPH.cl"/>
+        <Tool name="cfd symmetry delta-SPH full" ifdef="__DELTA_SPH_FULL__" action="insert" before="Interactions" type="kernel" entry_point="full" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/deltaSPH.cl"/>
+
+        <!-- 4th stage: delta-SPH correction
+             ===============================
+        -->
+        <!-- We must start mirroring particles (and marking them). -->
+        <Tool name="cfd symmetry_deltaSPH mirror" action="try_insert" before="LapP Correction" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/Mirror.cl"/>
+        <Tool name="cfd symmetry_deltaSPH mirror lapp_corr" action="try_insert" before="LapP Correction" type="kernel" entry_point="mirror" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/deltaSPH.cl"/>
+        <!-- Now we can compute the interactions -->
+        <Tool name="cfd symmetry_deltaSPH lapp_corr" action="try_insert" before="LapP Correction" type="kernel" entry_point="lap_corr" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/deltaSPH.cl"/>
     </Tools>
 </sphInput>
