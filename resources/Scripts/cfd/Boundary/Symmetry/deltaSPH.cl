@@ -200,19 +200,17 @@ __kernel void lapp(const __global int* imove,
  * The mirrored particles (the ones close enough to the symmetry plane) will be
  * marked with \a imirrored = 1.
  * 
- * @param r Position \f$ \mathbf{r} \f$.
+ * @param imirrored 0 if the particle has not been mirrored, 1 otherwise.
  * @param lap_p_corr Correction term for the Morris Laplacian formula.
  * @param lap_p_corr_mirrored Mirrored correction term for the Morris
  * Laplacian formula.
  * @param N Number of particles.
- * @param symmetry_r Position of the symmetry plane.
  * @param symmetry_n Normal of the symmetry plane. It is assumed as normalized.
  */
-__kernel void mirror(const __global vec* r,
+__kernel void mirror(const __global int* imirrored,
                      const __global vec* lap_p_corr,
                      __global vec* lap_p_corr_mirrored,
                      unsigned int N,
-                     vec symmetry_r,
                      vec symmetry_n)
 {
     // find position in global arrays
@@ -220,15 +218,11 @@ __kernel void mirror(const __global vec* r,
     if(i >= N)
         return;
 
-    // Get the minimum distance to the plane
-    const float dr_n = dot(symmetry_r - r[i], symmetry_n);
-    // Discard the particles outside the plane, or far away
-    if((dr_n < 0.f) || (dr_n > SUPPORT * H)){
+    if(!imirrored[i]){
         lap_p_corr_mirrored[i] = lap_p_corr[i];
         return;
     }
 
-    // Compute the mirrored particle
     const float v_n = dot(-lap_p_corr_mirrored[i], symmetry_n);
     lap_p_corr_mirrored[i] = lap_p_corr[i] + 2.f * v_n * symmetry_n;
 }
