@@ -77,7 +77,7 @@ deltaSPH-full). Just simply ignore them
         <Tool name="cfd portal interactions" action="insert" before="Interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Portal/Interactions.cl"/>
         <Tool name="cfd portal BI" ifdef="__CFD_BI__" action="insert" before="Interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Portal/BoundaryIntegrals.cl"/>
         <Tool name="cfd portal delta-SPH" ifdef="__DELTA_SPH__" action="insert" before="Interactions" type="kernel" entry_point="lapp" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Portal/deltaSPH.cl"/>
-        <Tool name="cfd portal delta-SPH" ifdef="__DELTA_SPH_FULL__" action="insert" before="Interactions" type="kernel" entry_point="full" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Portal/deltaSPH.cl"/>
+        <Tool name="cfd portal delta-SPH full" ifdef="__DELTA_SPH_FULL__" action="insert" before="Interactions" type="kernel" entry_point="full" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Portal/deltaSPH.cl"/>
         <!-- We must unmirror the particles (even the ones which should be
         teleported) in order to dont missconsider the particles in subsequent
         interactions computations -->
