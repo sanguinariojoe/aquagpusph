@@ -69,32 +69,46 @@ delta-SPH will not be affected at all!
              ============================
         -->
         <!-- We must start mirroring particles (and marking them). -->
-        <Tool action="insert" before="Omega" name="cfd portal_omega icell backup" type="copy" in="icell" out="icell_backup"/>
-        <Tool action="insert" before="Omega" name="cfd portal_omega mirror" type="kernel" entry_point="mirror" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Boundary/Portal/Mirror.cl"/>
+        <Tool name="cfd portal_omega icell backup" action="insert" before="Omega" type="copy" in="icell" out="icell_backup"/>
+        <Tool name="cfd portal_omega mirror" action="insert" before="Omega" type="kernel" entry_point="mirror" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Boundary/Portal/Mirror.cl"/>
         <!-- Now we can compute the effect of the in portal particles -->
-        <Tool action="insert" before="Omega" name="cfd portal_omega Omega" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Boundary/Portal/Omega.cl"/>
+        <Tool name="cfd portal_omega Omega" action="insert" before="Omega" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Boundary/Portal/Omega.cl"/>
         <!-- We must unmirror the particles (even the ones which should be
         teleported) in order to dont missconsider the particles in subsequent
         interactions computations -->
-        <Tool action="insert" before="Omega" name="cfd portal_omega unmirror" type="kernel" entry_point="unmirror" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Portal/Mirror.cl"/>
-        <Tool action="insert" before="Omega" name="cfd portal_omega icell restore" type="copy" in="icell_backup" out="icell"/>
+        <Tool name="cfd portal_omega unmirror" action="insert" before="Omega" type="kernel" entry_point="unmirror" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Portal/Mirror.cl"/>
+        <Tool name="cfd portal_omega icell restore" action="insert" before="Omega" type="copy" in="icell_backup" out="icell"/>
 
         <!-- 3rd stage: Particle interactions
              ================================
         -->
         <!-- We must start mirroring particles (and marking them). -->
-        <Tool action="insert" before="Interactions" name="cfd portal icell backup" type="copy" in="icell" out="icell_backup"/>
-        <Tool action="insert" before="Interactions" name="cfd portal mirror" type="kernel" entry_point="mirror" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Boundary/Portal/Mirror.cl"/>
+        <Tool name="cfd portal icell backup" action="insert" before="Interactions" type="copy" in="icell" out="icell_backup"/>
+        <Tool name="cfd portal mirror" action="insert" before="Interactions" type="kernel" entry_point="mirror" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Boundary/Portal/Mirror.cl"/>
         <!-- Now we can compute the effect of the in portal particles -->
-        <Tool action="insert" before="Interactions" name="cfd portal Shepard" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Boundary/Portal/Shepard.cl"/>
-        <Tool action="insert" before="Interactions" name="cfd portal interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Boundary/Portal/Interactions.cl"/>
+        <Tool name="cfd portal Shepard" action="insert" before="Interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Boundary/Portal/Shepard.cl"/>
+        <Tool name="cfd portal interactions" action="insert" before="Interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/Boundary/Portal/Interactions.cl"/>
         <!-- We must unmirror the particles (even the ones which should be
         teleported) in order to dont missconsider the particles in subsequent
         interactions computations -->
-        <Tool action="insert" before="Interactions" name="cfd portal unmirror" type="kernel" entry_point="unmirror" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Portal/Mirror.cl"/>
-        <Tool action="insert" before="Interactions" name="cfd portal icell restore" type="copy" in="icell_backup" out="icell"/>
+        <Tool name="cfd portal unmirror" action="insert" before="Interactions" type="kernel" entry_point="unmirror" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Portal/Mirror.cl"/>
+        <Tool name="cfd portal icell restore" action="insert" before="Interactions" type="copy" in="icell_backup" out="icell"/>
 
-        <!-- 4th stage: Particle teleporting
+        <!-- 4th stage: delta-SPH correction
+             ===============================
+        -->
+        <!-- We must start mirroring particles (and marking them). -->
+        <Tool name="cfd portal_deltaSPH icell backup" action="try_insert" before="LapP Correction" type="copy" in="icell" out="icell_backup"/>
+        <Tool name="cfd portal_deltaSPH mirror" action="try_insert" before="LapP Correction" type="kernel" entry_point="mirror" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Portal/Mirror.cl"/>
+        <!-- Now we can compute the effect of the in portal particles -->
+        <Tool name="cfd portal_deltaSPH lapp_corr" action="try_insert" before="LapP Correction" type="kernel" entry_point="lap_corr" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Portal/deltaSPH.cl"/>
+        <!-- We must unmirror the particles (even the ones which should be
+        teleported) in order to dont missconsider the particles in subsequent
+        interactions computations -->
+        <Tool name="cfd portal_deltaSPH unmirror" action="try_insert" before="LapP Correction" type="kernel" entry_point="unmirror" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Portal/Mirror.cl"/>
+        <Tool name="cfd portal_deltaSPH icell restore" action="try_insert" before="LapP Correction" type="copy" in="icell_backup" out="icell"/>
+
+        <!-- 5th stage: Particle teleporting
              ===============================
         -->
         <!-- Finally we should teleport the particles tresspassing the out
