@@ -1,0 +1,39 @@
+<?xml version="1.0" ?>
+
+<!-- deltaSPH.xml
+delta-SPH is a method to reduce the pressure field noise through the
+introduction of a diffusive term inside the mass conservation equation.
+
+Such term is based in the computation of the pressure Laplacian.
+
+In principle, the Laplacian is computed using the Morrison formula, and no
+correction is added. However it is strongly recommended to add a correction
+(since it will become inconsistent close to the boundaries):
+  - If the pressure field will be heavily dominanted by the hidrostatic
+  component, the simplified correction deltaSPH-simple.xml can be used.
+  - Otherwise the MLS based correction deltaSPH-full.xml will be applied.
+
+Remember that after including this preset, a new property for each particles set
+should be imposed, the delta factor (in principle 0.0 or 1.0)
+-->
+
+<sphInput>
+    <Definitions>
+        <Define name="__DELTA_SPH__"/>
+    </Definitions>
+
+    <Variables>
+        <Variable name="delta" type="float*" length="n_sets" />
+        <Variable name="lap_p" type="float*" length="N" />
+    </Variables>
+
+    <Tools>
+        <Tool name="cfd reinit lap_p" action="insert" after="Sort" type="set" in="lap_p" value="0.f"/>
+  
+        <!-- Compute the Laplacian of the pressure -->
+        <Tool name="cfd lap p" action="insert" before="Interactions" type="kernel" entry_point="lapp" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/variable_h/deltaSPH.cl"/>
+
+        <!-- Add the delta-SPH effect to the density variation rate -->
+        <Tool name="cfd delta-SPH" action="insert" before="Rates" type="kernel" entry_point="deltaSPH" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/deltaSPH.cl"/>        
+    </Tools>
+</sphInput>
