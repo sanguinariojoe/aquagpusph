@@ -56,15 +56,14 @@ __kernel void entry(const __global vec* r,
                     vec symmetry_r,
                     vec symmetry_n)
 {
-    // find position in global arrays
     unsigned int i = get_global_id(0);
     if(i >= N)
         return;
 
     // Get the minimum distance to the plane
     const float dr_n = dot(symmetry_r - r[i], symmetry_n);
-    // Discard the particles outside the plane, or far away
-    if((dr_n < 0.f) || (dr_n > SUPPORT * H)){
+    // Discard the particles far away from the plane
+    if(fabs(dr_n) > SUPPORT * H){
         imirrored[i] = 0;        
         rmirrored[i] = r[i];
         nmirrored[i] = normal[i];
@@ -78,4 +77,77 @@ __kernel void entry(const __global vec* r,
     rmirrored[i] = r[i] + 2.f * dr_n * symmetry_n;
     umirrored[i] = u[i] + 2.f * du_n * symmetry_n;
     nmirrored[i] = normal[i] + 2.f * dn_n * symmetry_n;
+}
+
+
+/** Deflection vector.
+ *
+ * The deflection vector is defined as follows:
+ *
+ * \f$ \mathbf{v}(\mathbf{u}, \mathbf{n}) = -2 \left(
+ *     \mathbf{u} \cdot \mathbf{n}
+ * \right) \mathbf{n} \f$
+ *
+ * where \f$\mathbf{u}\f$ is the vector to become deflected, \f$\mathbf{n}\f$
+ * is the reflection plane normal, and \f$\mathbf{v}\f$ is the deflection
+ * vector, which added to the original vector returns its reflected version.
+ *
+ * @note The input vector should be relative to the symmetry plane. That's
+ * important in case of position vectors, from which an arbitrary point of the
+ * plane should be substracted
+ */
+vec_xyz reflection(vec_xyz u, vec_xyz n)
+{
+    return -2.f * dot(u, n) * n;
+}
+
+
+/** @brief Reflect the particles tresspassing the symmetry plane.
+ *
+ * The particles tresspassing the symmetry plane should be inserted again inside
+ * the fluid domain.
+ * 
+ * @param r Position \f$ \mathbf{r}_{n+1/2} \f$.
+ * @param u Velocity \f$ \mathbf{u}_{n+1/2} \f$.
+ * @param dudt Velocity rate of change
+ * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n+1/2} \f$.
+ * @param r_in Position \f$ \mathbf{r}_{n} \f$.
+ * @param u_in Velocity \f$ \mathbf{u}_{n} \f$.
+ * @param dudt_in Velocity rate of change
+ * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n-1/2} \f$.
+ * @param N Number of particles.
+ * @param symmetry_r Position of the symmetry plane.
+ * @param symmetry_n Normal of the symmetry plane. It is assumed as normalized.
+ */
+__kernel void teleport(__global vec* r,
+                       __global vec* normal,
+                       __global vec* u,
+                       __global vec* dudt,
+                       __global vec* r_in,
+                       __global vec* u_in,
+                       __global vec* dudt_in,
+                       unsigned int N,
+                       vec symmetry_r,
+                       vec symmetry_n)
+{
+    unsigned int i = get_global_id(0);
+    if(i >= N)
+        return;
+
+    // Get the minimum distance to the plane
+    const float dr_n = dot(symmetry_r - r[i], symmetry_n);
+    // Discard the particles at the good side of the plane, or far away from the
+    // symmetry plane
+    if((dr_n >= 0.f) || (fabs(dr_n) > SUPPORT * H)){
+        return;
+    }
+
+    // Compute the mirrored particle
+    r[i].XYZ += reflection(r[i].XYZ - symmetry_r.XYZ, symmetry_n.XYZ);
+    normal[i].XYZ += reflection(normal[i].XYZ, symmetry_n.XYZ);
+    u[i].XYZ += reflection(u[i].XYZ, symmetry_n.XYZ);
+    dudt[i].XYZ += reflection(dudt[i].XYZ, symmetry_n.XYZ);
+    r_in[i].XYZ += reflection(r_in[i].XYZ - symmetry_r.XYZ, symmetry_n.XYZ);
+    u_in[i].XYZ += reflection(u_in[i].XYZ, symmetry_n.XYZ);
+    dudt_in[i].XYZ += reflection(dudt_in[i].XYZ, symmetry_n.XYZ);
 }
