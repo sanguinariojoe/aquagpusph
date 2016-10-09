@@ -40,11 +40,11 @@ first component. Also the inlet_rv variable will be useless
 
     <Tools>
         <!-- Let's start feeding the inlet (if required). -->
-        <Tool action="insert" before="predictor" type="set_scalar" name="cfd inlet starvation" in="inlet_starving" value="inlet_R >= dr ? 1 : 0"/>
-        <Tool action="insert" after="cfd inlet starvation" type="set_scalar" name="cfd inlet R correction" in="inlet_R" value="inlet_R >= dr ? inlet_R - dr : inlet_R"/>
-        <Tool action="insert" after="cfd inlet R correction" type="kernel" name="cfd inlet feed" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Inlet/InletFeed.cl"/>
-        <Tool action="insert" before="Predictor" type="set_scalar" name="cfd increment inlet_R" in="inlet_R" value="inlet_R + inlet_U * dt"/>
+        <Tool name="cfd inlet starvation" action="insert" before="predictor" type="set_scalar" in="inlet_starving" value="inlet_R >= dr ? 1 : 0"/>
+        <Tool name="cfd inlet R correction" action="insert" after="cfd inlet starvation" type="set_scalar" in="inlet_R" value="inlet_R >= dr ? inlet_R - dr : inlet_R"/>
+        <Tool name="cfd inlet feed" action="insert" after="cfd inlet R correction" type="kernel" entry_point="feed" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Inlet/Inlet.cl"/>
+        <Tool name="cfd increment inlet_R" action="insert" before="Predictor" type="set_scalar" in="inlet_R" value="inlet_R + inlet_U * dt"/>
         <!-- Now ensure that particles in the inlet are not affected by the interactions -->
-        <Tool action="insert" before="Rates" type="kernel" name="cfd inlet" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Inlet/Inlet.cl"/>
+        <Tool name="cfd inlet" action="insert" before="Rates" type="kernel" entry_point="rates" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Inlet/Inlet.cl"/>
     </Tools>
 </sphInput>
