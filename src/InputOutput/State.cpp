@@ -199,6 +199,7 @@ bool State::parse(const char* filepath, const char* prefix)
 {
     ScreenManager *S = ScreenManager::singleton();
     ProblemSetup *P = ProblemSetup::singleton();
+    DOMNodeList* nodes = NULL;
     char msg[1024];
     strcpy(msg, "");
 
@@ -227,12 +228,17 @@ bool State::parse(const char* filepath, const char* prefix)
         return true;
     }
     // Look for XML files included to parse them before
-    DOMNodeList* nodes = root->getElementsByTagName(xmlS("Include"));
+    nodes = root->getElementsByTagName(xmlS("Include"));
     for(XMLSize_t i=0; i<nodes->getLength(); i++){
         DOMNode* node = nodes->item(i);
         if(node->getNodeType() != DOMNode::ELEMENT_NODE)
             continue;
         DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
+        // By default, the include statements are parsed at the very beginning.
+        if(xmlHasAttribute(elem, "when")){
+            if(!strcmp(xmlAttribute(elem, "when"), "begin"))
+                continue;
+        }
         const char* included_file = xmlAttribute(elem, "file");
         char* included_prefix = (char*)prefix;
         if(xmlHasAttribute(elem, "prefix")){
@@ -273,6 +279,27 @@ bool State::parse(const char* filepath, const char* prefix)
         return true;
     }
 
+    nodes = root->getElementsByTagName(xmlS("Include"));
+    for(XMLSize_t i=0; i<nodes->getLength(); i++){
+        DOMNode* node = nodes->item(i);
+        if(node->getNodeType() != DOMNode::ELEMENT_NODE)
+            continue;
+        DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
+        if(!xmlHasAttribute(elem, "when"))
+            continue;
+        if(!strcmp(xmlAttribute(elem, "when"), "end"))
+            continue;
+        const char* included_file = xmlAttribute(elem, "file");
+        char* included_prefix = (char*)prefix;
+        if(xmlHasAttribute(elem, "prefix")){
+            included_prefix = xmlAttribute(elem, "prefix");
+        }
+        if(parse(included_file, (const char*)included_prefix)){
+            xmlClear();
+            return true;
+        }
+    }
+    
     xmlClear();
     delete parser;
     return false;
