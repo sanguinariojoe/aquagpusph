@@ -236,7 +236,7 @@ bool State::parse(const char* filepath, const char* prefix)
         DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
         // By default, the include statements are parsed at the very beginning.
         if(xmlHasAttribute(elem, "when")){
-            if(!strcmp(xmlAttribute(elem, "when"), "begin"))
+            if(strcmp(xmlAttribute(elem, "when"), "begin"))
                 continue;
         }
         const char* included_file = xmlAttribute(elem, "file");
@@ -287,7 +287,7 @@ bool State::parse(const char* filepath, const char* prefix)
         DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
         if(!xmlHasAttribute(elem, "when"))
             continue;
-        if(!strcmp(xmlAttribute(elem, "when"), "end"))
+        if(strcmp(xmlAttribute(elem, "when"), "end"))
             continue;
         const char* included_file = xmlAttribute(elem, "file");
         char* included_prefix = (char*)prefix;
