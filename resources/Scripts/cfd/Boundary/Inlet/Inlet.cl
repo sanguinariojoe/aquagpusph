@@ -52,6 +52,7 @@
  * @param p Pressure \f$ p \f$.
  * @param refd Density of reference of the fluid \f$ \rho_0 \f$.
  * @param N Number of particles.
+ * @param nbuffer Number of buffer particles.
  * @param dt Time step \f$ \Delta t \f$.
  * @param cs Speed of sound \f$ c_s \f$.
  * @param p0 Background pressure \f$ p_0 \f$.
@@ -78,6 +79,7 @@ __kernel void feed(__global int* imove,
                    __global float* p,
                    __constant float* refd,
                    unsigned int N,
+                   unsigned int nbuffer,
                    float dt,
                    float cs,
                    float p0,
@@ -97,40 +99,40 @@ __kernel void feed(__global int* imove,
     const unsigned int i = get_global_id(0);
     if(inlet_starving == 0)
         return;
-    if(i >= N)
+    if((i >= nbuffer) || (i >= (inlet_N.x * inlet_N.y))){
+        // Either the thread has not a buffer particle to consume or such buffer
+        // particle is not required
         return;
-    const unsigned int i0 = N - (inlet_N.x * inlet_N.y);
-    if(i < i0)
-        return;
+    }
+    const unsigned int ii = i + N - nbuffer;
 
     // Compute the generation point
-    const unsigned int j = i - i0;
     #ifndef HAVE_3D
-        const float u_fac = ((float)j + 0.5f) / inlet_N.x;
+        const float u_fac = ((float)i + 0.5f) / inlet_N.x;
         const float v_fac = 0.f;
     #else
-        const unsigned int u_id = j % inlet_N.x;
-        const unsigned int v_id = j / inlet_N.x;
+        const unsigned int u_id = i % inlet_N.x;
+        const unsigned int v_id = i / inlet_N.x;
         const float u_fac = ((float)u_id + 0.5f) / inlet_N.x;
         const float v_fac = ((float)v_id + 0.5f) / inlet_N.y;
     #endif
-    r[i] = inlet_r + u_fac * inlet_ru + v_fac * inlet_rv
-           + (inlet_R - SUPPORT * H - 0.5f * dr) * inlet_n;
-    
+    r[ii] = inlet_r + u_fac * inlet_ru + v_fac * inlet_rv
+            + (inlet_R - SUPPORT * H - 0.5f * dr) * inlet_n;
+
     // Set the particle data
-    imove[i] = 1;
-    dudt[i] = VEC_ZERO;
-    drhodt[i] = 0.f;
-    u[i] = inlet_U * inlet_n;
-    p[i] = refd[iset[i]] * dot(g, r[i] - inlet_rFS);
+    imove[ii] = 1;
+    dudt[ii] = VEC_ZERO;
+    drhodt[ii] = 0.f;
+    u[ii] = inlet_U * inlet_n;
+    p[ii] = refd[iset[ii]] * dot(g, r[ii] - inlet_rFS);
     #ifdef HAVE_3D
-        m[i] = refd[iset[i]] * dr * dr * dr;
+        m[ii] = refd[iset[ii]] * dr * dr * dr;
     #else
-        m[i] = refd[iset[i]] * dr * dr;
+        m[ii] = refd[iset[ii]] * dr * dr;
     #endif
     // reversed EOS
-    rho[i] = refd[iset[i]] + p[i] / (cs * cs);
-    p[i] += p0;
+    rho[ii] = refd[iset[ii]] + p[ii] / (cs * cs);
+    p[ii] += p0;
 }
 
 /** @brief Vanish the velocity and desnity rates of variation of the velocity

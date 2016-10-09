@@ -1,0 +1,49 @@
+<?xml version="1.0" ?>
+
+<!-- This preset counts the number of buffer particles at the end of the stack,
+already available to become consumed (buffer particles are signaled with an
+imove value of -255). Known the total number of particles, and the number of
+buffer ones at the end, you can program your tool to consume them thread by
+thread.
+In order to allow other tools to continue consuming buffer particles, please use
+them in order (leaving the remaining buffer particles at the end).
+The user is responsible of checking that the buffer particle to become consumed
+is not out of bounds (id >= N).
+To use this preset, just simply add a dummy tool called "Set buffer" (a prefix
+and suffix can be optionally appended), and include this file at the end of the
+module. For instance:
+
+<Tools>
+    <Tool name="Set buffer" action="add" type="dummy" />
+    <Tool name="consumer" action="add" type="kernel" path="bufferConsume.cl"/>
+</Tools>
+<Include file="setBuffer.xml" when="end">
+
+where "consumer" is the tool where buffer particles are consumed to produce
+actual particles (and where the variable nbuffer can be used). This module can
+be safely included several times.
+
+Don't include this file with a prefix.
+Ensure that the buffer particles are consumed always after the Sort process,
+such that they are always placed at the end of the stack
+Ensure that no new buffer particles are generated before all the consumers have
+been executed.
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="ibuffer" type="unsigned int*" length="N" />
+        <Variable name="nbuffer" type="unsigned int" value="0" />
+    </Variables>
+
+    <Tools>
+        <!-- Try to remove all the previous instances -->
+        <Tool name="basic ibuffer" action="try_remove" type="dummy"/>
+        <Tool name="basic nbuffer" action="try_remove" type="dummy"/>
+        <!-- And create new instances -->
+        <Tool name="basic ibuffer" action="insert" before="*Set buffer*" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/SetBuffer.cl"/>
+        <Tool name="basic nbuffer" action="insert" before="*Set buffer*" type="reduction" in="ibuffer" out="nbuffer" null="0">
+            c = a + b;
+        </Tool>
+    </Tools>
+</sphInput>

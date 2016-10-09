@@ -17,6 +17,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/multiresolution/cube.xml
     ${CMAKE_CURRENT_BINARY_DIR}/multiresolution/cube.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/noLocalMem.xml
     ${CMAKE_CURRENT_BINARY_DIR}/noLocalMem.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/setBuffer.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/setBuffer.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/performance.report.xml
     ${CMAKE_CURRENT_BINARY_DIR}/performance.report.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/timing.report.xml
@@ -38,6 +40,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/multiresolution/cube.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/multiresolution/cube.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/noLocalMem.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/noLocalMem.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/setBuffer.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/setBuffer.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/performance.report.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/performance.report.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/timing.report.xml
@@ -53,6 +57,7 @@ SET(RESOURCES_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/MLS.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/multiresolution.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/noLocalMem.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/setBuffer.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/performance.report.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/timing.report.xml
 )
