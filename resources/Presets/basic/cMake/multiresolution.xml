@@ -12,20 +12,12 @@ are also responsible of initialize the gamma_m, ilevel0 and ilevel variables.
 Boundary elements/particles are not never split or coalesced. Therefore the user
 is responsible to initialize them with the right resolution level
 
-In order to ask for particles refinement, the variables level and gamma_m should
-become edited. You can find some tools to do that in basic/multiresolution
-modules folder.
+In order to ask for particles refinement, the level variable should become
+edited. You can find some tools to do that in basic/multiresolution modules
+folder.
 
 Since this module may modify the mass of the particles, it should be included
 AFTER variable_h.xml one.
-
-This tool is recycling particles from the buffer (a set of particles out of the
-computational domain, marked with the flag imove=-255). As other tools, this
-tool is taking advantage from the fact that all the particles to become recycled
-are placed at the end of the list. However, if any other tool is recycling
-particles (for instance an inflow), both tools may have a collision. To avoid
-that you can specify a number of particles which will not become used by the
-definition of __MULTIRESOLUTION_N_SKIP__
 -->
 
 <sphInput>
