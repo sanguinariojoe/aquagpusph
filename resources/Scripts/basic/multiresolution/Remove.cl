@@ -32,11 +32,6 @@
 #endif
 
 #ifndef M_ITERS
-    /** @brief Number of iterations to complete the mass transfer
-     *
-     * When a particle is split or coalesced, its mass is not inmediately
-     * removed, but a smooth transition is carried out
-     */
     #define M_ITERS 10
 #endif
 
@@ -57,15 +52,19 @@
  * mass is progressively transfered to its children.
  * @param miter Mass transfer iteration.
  * @param m Current mass \f$ m \f$.
+ * @param r Position \f$ \mathbf{r} \f$.
+ * @param domain_max Maximum point of the computational domain.
  * @param N Number of particles.
  */
-__kernel void set_mass(__global const int* imove,
-                       __global const unsigned int* ilevel,
-                       __global const unsigned int* level,
-                       __global const float* m0,
-                       __global unsigned int* miter,
-                       __global float* m,
-                       unsigned int N)
+__kernel void entry(__global int* imove,
+                    __global const unsigned int* ilevel,
+                    __global const unsigned int* level,
+                    __global const unsigned int* miter,
+                    __global float* m0,
+                    __global float* m,
+                    __global vec* r,
+                    vec domain_max,
+                    unsigned int N)
 {
     unsigned int i = get_global_id(0);
     if(i >= N)
@@ -73,33 +72,13 @@ __kernel void set_mass(__global const int* imove,
 
     // Neglect boundary elements/particles
     if(imove[i] <= 0){
-        miter = M_ITERS;
         return;
     }
 
-    if(ilevel[i] == level[i]){
-        // Child particle
-        if(miter[i] >= M_ITERS){
-            // Mass transfer complete
-            m[i] = m0[i];
-        }
-        else{
-            // The particle is progressively getting mass
-            m[i] = m0[i] * float(miter[i]) / M_ITERS;
-            miter[i]++;
-        }
-    }
-    else{
-        // Partner particle
-        if(miter[i] >= M_ITERS){
-            // Mass transfer complete. The particle would be destroyed
-            m[i] = 0.f;
-        }
-        else{
-            // The particle is progressively letting mass
-            m[i] = m0[i] * (1.f - float(miter[i]) / M_ITERS);
-            miter[i]++;
-        }
+    if((ilevel[i] != level[i]) && (miter[i] >= M_ITERS)){
+        // Outdated partner particle
+        r[i] = domain_max + VEC_ONE;
+        imove[i] = -255;
     }
 }
 

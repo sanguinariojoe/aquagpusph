@@ -27,6 +27,6 @@ period drhodt will be enforced to be 0.
 
     <Tools>
         <Tool action="insert" before="Rates" type="kernel" name="cfd outlet" entry_point="rates" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Outlet/Outlet.cl"/>
-        <Tool action="insert" after="TimeStep" type="kernel" name="cfd outlet feed" entry_point="feed" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Outlet/Outlet.cl"/>
+        <Tool action="insert" before="Domain" type="kernel" name="cfd outlet feed" entry_point="feed" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Outlet/Outlet.cl"/>
     </Tools>
 </sphInput>

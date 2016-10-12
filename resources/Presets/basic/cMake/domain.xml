@@ -6,6 +6,6 @@
     </Variables>
 
     <Tools>
-        <Tool action="insert" after="Corrector" type="kernel" name="Domain" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/Domain.cl"/>
+        <Tool action="insert" after="TimeStep" type="kernel" name="Domain" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/Domain.cl"/>
     </Tools>
 </sphInput>

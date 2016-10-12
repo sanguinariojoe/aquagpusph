@@ -34,19 +34,16 @@
  *
  * @param m0_in Unsorted original mass \f$ m_0 \f$.
  * @param m0 Sorted original mass \f$ m_0 \f$.
- * @param gamma_m_in Unsorted mass multiplier \f$ \gamma_m \f$.
- * @param gamma_m Sorted mass multiplier \f$ \gamma_m \f$
- * @param ilevel0_in Unsorted refinement level, by construction.
- * @param ilevel0 Sorted refinement level, by construction.
- * @param ilevel_in Unsorted current refinement level.
- * @param ilevel Sorted current refinement level.
+ * @param miter_in Unsorted iteration of the mass transfer.
+ * @param miter Sorted iteration of the mass transfer
+ * @param ilevel_in Unsorted particle refinement level.
+ * @param ilevel Sorted particle refinement level.
  * @param id_sorted Permutations list from the unsorted space to the sorted
  * one.
  * @param N Number of particles.
  */
 __kernel void entry(const __global float *m0_in, __global float *m0,
-                    const __global float *gamma_m_in, __global float *gamma_m,
-                    const __global uint *ilevel0_in, __global uint *ilevel0,
+                    const __global uint *miter_in, __global uint *miter,
                     const __global uint *ilevel_in, __global uint *ilevel,
                     const __global unit *id_sorted,
                     unsigned int N)
@@ -58,8 +55,7 @@ __kernel void entry(const __global float *m0_in, __global float *m0,
     const uint i_out = id_sorted[i];
 
     m0[i_out] = m0_in[i];
-    gamma_m[i_out] = gamma_m_in[i];
-    ilevel0[i_out] = ilevel0_in[i];
+    miter[i_out] = miter_in[i];
     ilevel[i_out] = ilevel_in[i];
 }
 
