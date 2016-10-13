@@ -51,8 +51,6 @@
  *   - imove > 0 for regular fluid/solid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param ilevel Particle refinement level.
- * @param level Area refinement level.
  * @param m0 Target mass, \f$ m_0 \f$. When a particle is split/coalesced, its
  * mass is progressively transfered to its children.
  * @param miter Mass transfer iteration (Positive for growing particles,
@@ -61,8 +59,6 @@
  * @param N Number of particles.
  */
 __kernel void set_mass(__global const int* imove,
-                       __global const unsigned int* ilevel,
-                       __global const unsigned int* level,
                        __global const float* m0,
                        __global int* miter,
                        __global float* m,
@@ -74,32 +70,34 @@ __kernel void set_mass(__global const int* imove,
 
     // Neglect boundary elements/particles
     if(imove[i] <= 0){
-        miter[i] = M_ITERS + 1;
+        miter[i] = M_ITERS;
         m[i] = m0[i];
         return;
     }
 
     if(miter[i] > 0){
         // Growing particle
-        if(miter[i] - 1 >= M_ITERS){
+        if(miter[i] >= M_ITERS){
             // Mass transfer complete
             m[i] = m0[i];
+            miter[i] = M_ITERS + 1;
         }
         else{
             // The particle is progressively getting mass
-            m[i] = m0[i] * (miter[i] - 1.f) / M_ITERS;
+            m[i] = m0[i] * (float)(miter[i]) / M_ITERS;
             miter[i]++;
         }
     }
     else{
         // Shrinking particle
-        if(-(miter[i] + 1) >= M_ITERS){
+        if(-miter[i] >= M_ITERS){
             // Mass transfer complete
             m[i] = 0.f;
+            miter[i] = -M_ITERS - 1;
         }
         else{
             // The particle is progressively letting mass
-            m[i] = m0[i] * (1.f + (miter[i] + 1.f) / M_ITERS);
+            m[i] = m0[i] * (1.f + (float)(miter[i]) / M_ITERS);
             miter[i]--;
         }
     }

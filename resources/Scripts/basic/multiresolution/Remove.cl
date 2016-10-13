@@ -46,23 +46,14 @@
  *   - imove > 0 for regular fluid/solid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param ilevel Particle refinement level.
- * @param level Area refinement level.
- * @param m0 Target mass, \f$ m_0 \f$. When a particle is split/coalesced, its
- * mass is progressively transfered to its children.
  * @param miter Mass transfer iteration (Positive for growing particles,
  * negative for shrinking particles).
- * @param m Current mass \f$ m \f$.
  * @param r Position \f$ \mathbf{r} \f$.
  * @param domain_max Maximum point of the computational domain.
  * @param N Number of particles.
  */
 __kernel void entry(__global int* imove,
-                    __global const unsigned int* ilevel,
-                    __global const unsigned int* level,
                     __global const int* miter,
-                    __global float* m0,
-                    __global float* m,
                     __global vec* r,
                     vec domain_max,
                     unsigned int N)
@@ -76,7 +67,7 @@ __kernel void entry(__global int* imove,
         return;
     }
 
-    if((ilevel[i] != level[i]) && (abs(miter[i]) - 1 >= M_ITERS)){
+    if(miter[i] < -M_ITERS){
         // Outdated partner particle
         r[i] = domain_max + VEC_ONE;
         imove[i] = -255;

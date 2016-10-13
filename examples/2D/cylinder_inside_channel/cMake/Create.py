@@ -140,7 +140,7 @@ while x <= L + sep * h + 0.5 * dr:
             mass,
             imove,
             0,
-            11)
+            10)
         output.write(string)
         y += dr
     x += dr
@@ -179,7 +179,7 @@ while x <= L + sep * h + 0.5 * dr:
             mass,
             imove,
             0,
-            11)
+            10)
         output.write(string)
     x += dr
 
@@ -215,7 +215,7 @@ for i in range(n_buffer):
         mass,
         imove,
         0,
-        11)
+        10)
     output.write(string)
 output.close()
 print('{} particles written'.format(n))
@@ -274,7 +274,7 @@ while theta < 2.0 * math.pi:
         mass,
         imove,
         0,
-        11)
+        10)
     output.write(string)
 
     theta += dtheta

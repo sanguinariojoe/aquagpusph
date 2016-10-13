@@ -75,13 +75,17 @@ __kernel void check_split(__global const int* imove,
         // Neglect boundary elements/particles
         return;
     }
-    if((abs(miter[i]) - 1 < M_ITERS) || (m[i] == 0.f)){
-        // The particle is either already spliting/coalescing, or it is an
-        // outdated partner
+    else if(miter[i] < 0){
+        // It is a partner particle shrinking, it cannot split again
         return;
     }
-    if(level[i] <= ilevel[i]){
-        // The particle should not be split (maybe it should become colesced)
+    else if(miter[i] <= M_ITERS){
+        // The particle is still growing... Let's wait
+        return;
+    }
+    else if(level[i] <= ilevel[i]){
+        // The particle is not a candidate to become split (it is OK, or even
+        // would coalesce)
         return;
     }
 
