@@ -50,13 +50,13 @@ Re = 100.0
 p0 = 3.0 * refd * U**2
 # Cylinder and Channel dimensions
 D = 1.0
-L = 10.0 * D
-H = 5.0 * D
+L = 15.0 * D
+H = 8.0 * D
 # Position of the cylinder
-x_cyl = 0.15 * L
-y_cyl = 0.1 * D
+x_cyl = 0.3 * L
+y_cyl = 0.0 * D
 # Number of fluid particles in y direction
-ny = 400
+ny = 50
 
 # Distance between particles
 # ==========================
@@ -71,6 +71,9 @@ domain_max = (L + 6.0 * sep * h, 0.5 * H + 3.0 * sep * h)
 n_buffer_x = max(int(8.0 * sep * hfac), int(D / dr))
 n_buffer_y = ny
 n_buffer = n_buffer_x * n_buffer_y
+n_level1 = 4 * int(8 * 6 * D / dr**2)
+n_level2 = 16 * int(2 * 2 * D / dr**2)
+n_buffer += 2 * (n_level1 + n_level2)
 
 # Artificial viscosity
 # ====================
@@ -127,7 +130,7 @@ while x <= L + sep * h + 0.5 * dr:
         press = p0
         dens = refd + (press - p0) / cs**2 
         mass = refd * dr**2.0
-        string = ("{} {}, " * 4 + "{}, {}, {}, {}\n").format(
+        string = ("{} {}, " * 4 + "{}, {}, {}, {}, {}, {}\n").format(
             x, y,
             0.0, 0.0,
             vx, vy,
@@ -135,7 +138,9 @@ while x <= L + sep * h + 0.5 * dr:
             dens,
             0.0,
             mass,
-            imove)
+            imove,
+            0,
+            11)
         output.write(string)
         y += dr
     x += dr
@@ -164,7 +169,7 @@ while x <= L + sep * h + 0.5 * dr:
         press = p0
         dens = refd + (press - p0) / cs**2 
         mass = dr
-        string = ("{} {}, " * 4 + "{}, {}, {}, {}\n").format(
+        string = ("{} {}, " * 4 + "{}, {}, {}, {}, {}, {}\n").format(
             x, y,
             normal_x, normal_y,
             vx, vy,
@@ -172,7 +177,9 @@ while x <= L + sep * h + 0.5 * dr:
             dens,
             0.0,
             mass,
-            imove)
+            imove,
+            0,
+            11)
         output.write(string)
     x += dr
 
@@ -192,13 +199,13 @@ for i in range(n_buffer):
             string = '    {}%'.format(Percentage)
             print(string)
     n += 1
-    imove = -4
+    imove = -255
     vx = 0.0
     vy = 0.0
     press = 0.0
     dens = refd
     mass = refd * dr**2.0
-    string = ("{} {}, " * 4 + "{}, {}, {}, {}\n").format(
+    string = ("{} {}, " * 4 + "{}, {}, {}, {}, {}, {}\n").format(
         x, y,
         0.0, 0.0,
         vx, vy,
@@ -206,7 +213,9 @@ for i in range(n_buffer):
         dens,
         0.0,
         mass,
-        imove)
+        imove,
+        0,
+        11)
     output.write(string)
 output.close()
 print('{} particles written'.format(n))
@@ -255,7 +264,7 @@ while theta < 2.0 * math.pi:
     press = p0
     dens = refd + (press - p0) / cs**2 
     mass = dr
-    string = ("{} {}, " * 4 + "{}, {}, {}, {}\n").format(
+    string = ("{} {}, " * 4 + "{}, {}, {}, {}, {}, {}\n").format(
         x, y,
         normal_x, normal_y,
         vx, vy,
@@ -263,7 +272,9 @@ while theta < 2.0 * math.pi:
         dens,
         0.0,
         mass,
-        imove)
+        imove,
+        0,
+        11)
     output.write(string)
 
     theta += dtheta
@@ -277,7 +288,7 @@ print('{} boundary elements written'.format(n_cyl))
 templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
 XML = ('Fluids.xml', 'Main.xml', 'Settings.xml', 'SPH.xml', 'Time.xml',
        'Initialization.xml', 'Initialization.py', 'Initialization.cl',
-       'plot_f.py')
+       'Refinement.xml', 'plot_f.py')
 
 domain_min = str(domain_min).replace('(', '').replace(')', '')
 domain_max = str(domain_max).replace('(', '').replace(')', '')

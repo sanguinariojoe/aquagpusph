@@ -55,7 +55,8 @@
  * @param level Area refinement level.
  * @param m0 Target mass, \f$ m_0 \f$. When a particle is split/coalesced, its
  * mass is progressively transfered to its children.
- * @param miter Mass transfer iteration.
+ * @param miter Mass transfer iteration (Positive for growing particles,
+ * negative for shrinking particles).
  * @param m Current mass \f$ m \f$.
  * @param N Number of particles.
  */
@@ -63,7 +64,7 @@ __kernel void set_mass(__global const int* imove,
                        __global const unsigned int* ilevel,
                        __global const unsigned int* level,
                        __global const float* m0,
-                       __global unsigned int* miter,
+                       __global int* miter,
                        __global float* m,
                        unsigned int N)
 {
@@ -73,32 +74,33 @@ __kernel void set_mass(__global const int* imove,
 
     // Neglect boundary elements/particles
     if(imove[i] <= 0){
-        miter = M_ITERS;
+        miter[i] = M_ITERS + 1;
+        m[i] = m0[i];
         return;
     }
 
-    if(ilevel[i] == level[i]){
-        // Child particle
-        if(miter[i] >= M_ITERS){
+    if(miter[i] > 0){
+        // Growing particle
+        if(miter[i] - 1 >= M_ITERS){
             // Mass transfer complete
             m[i] = m0[i];
         }
         else{
             // The particle is progressively getting mass
-            m[i] = m0[i] * float(miter[i]) / M_ITERS;
+            m[i] = m0[i] * (miter[i] - 1.f) / M_ITERS;
             miter[i]++;
         }
     }
     else{
-        // Partner particle
-        if(miter[i] >= M_ITERS){
-            // Mass transfer complete. The particle would be destroyed
+        // Shrinking particle
+        if(-(miter[i] + 1) >= M_ITERS){
+            // Mass transfer complete
             m[i] = 0.f;
         }
         else{
             // The particle is progressively letting mass
-            m[i] = m0[i] * (1.f - float(miter[i]) / M_ITERS);
-            miter[i]++;
+            m[i] = m0[i] * (1.f + (miter[i] + 1.f) / M_ITERS);
+            miter[i]--;
         }
     }
 }

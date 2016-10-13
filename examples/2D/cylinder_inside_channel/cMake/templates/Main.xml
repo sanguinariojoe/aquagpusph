@@ -42,5 +42,6 @@ Authors:
     <Include file="Time.xml" />
     <Include file="SPH.xml" />
     <Include file="Fluids.xml" />
+    <Include file="Refinement.xml" />
     <Include file="Initialization.xml" />
 </sphInput>

@@ -23,15 +23,15 @@ Authors:
         <Scalar name="visc_dyn" value="{{VISC_DYN}}" />
         <Scalar name="delta" value="{{DELTA}}" />
 
-        <Load format="FastASCII" file="Fluid.dat" fields="r, normal, u, dudt, rho, drhodt, m, imove" />
-        <Save format="VTK" file="output" fields="r, normal, u, dudt, rho, drhodt, m, p, imove" />
+        <Load format="FastASCII" file="Fluid.dat" fields="r, normal, u, dudt, rho, drhodt, m0, imove, ilevel, miter" />
+        <Save format="VTK" file="output" fields="r, normal, u, dudt, rho, drhodt, m0, m, p, imove, ilevel, level, miter" />
     </ParticlesSet>
     <ParticlesSet n="{{NCYL}}">
         <Scalar name="refd" value="{{REFD}}" />
         <Scalar name="visc_dyn" value="{{VISC_DYN}}" />
         <Scalar name="delta" value="{{DELTA}}" />
 
-        <Load format="FastASCII" file="Cylinder.dat" fields="r, normal, u, dudt, rho, drhodt, m, imove" />
-        <Save format="VTK" file="cylinder" fields="r, normal, u, dudt, rho, drhodt, m, p, imove" />
+        <Load format="FastASCII" file="Cylinder.dat" fields="r, normal, u, dudt, rho, drhodt, m0, imove, ilevel, miter" />
+        <Save format="VTK" file="cylinder" fields="r, normal, u, dudt, rho, drhodt, m0, m, p, imove, ilevel, level, miter" />
     </ParticlesSet>
 </sphInput>

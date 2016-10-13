@@ -36,25 +36,31 @@
     #define N_DAUGHTER 8
 #endif
 
+#ifndef M_ITERS
+    #define M_ITERS 10
+#endif
+
+
 /** @brief Check and store wether a particle should become split or not.
  *
  * A particle should be split if the target refinement level is bigger than
- * its current one.
+ * its current one, and it is not already spliting/coalescing.
  *
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid/solid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param ilevel0 Level of refinement of the particle, by construction.
+ * @param m Current mass \f$ m \f$.
+ * @param miter Mass transfer iteration (Positive for growing particles,
+ * negative for shrinking particles).
  * @param ilevel Current refinement level of the particle.
  * @param level Target refinement level of the particle.
  * @param isplit 0 if the particle should not become split, 1 otherwise
  * @param N Number of particles.
- * @see P.N. Sun, A. Colagrossi, S. Marrone, A.M. Zhang. Multi-resolution
- * delta-SPH model. 2016
  */
 __kernel void check_split(__global const int* imove,
-                          __global const unsigned int* ilevel0,
+                          __global const float* m,
+                          __global const int* miter,
                           __global const unsigned int* ilevel,
                           __global const unsigned int* level,
                           __global unsigned int* isplit,
@@ -65,9 +71,17 @@ __kernel void check_split(__global const int* imove,
         return;
 
     isplit[i] = 0;
-    if((imove[i] <= 0) ||           // Neglect boundary elements/particles
-       (ilevel[i] != ilevel0[i]) || // It is already a mother particle
-       (ilevel[i] >= level[i])) {   // Not asked to split
+    if(imove[i] <= 0){
+        // Neglect boundary elements/particles
+        return;
+    }
+    if((abs(miter[i]) - 1 < M_ITERS) || (m[i] == 0.f)){
+        // The particle is either already spliting/coalescing, or it is an
+        // outdated partner
+        return;
+    }
+    if(level[i] <= ilevel[i]){
+        // The particle should not be split (maybe it should become colesced)
         return;
     }
 
@@ -88,35 +102,35 @@ __kernel void check_split(__global const int* imove,
  * @param isplit 0 if the particle should not become split, 1 otherwise.
  * @param split_invperm Permutation to find the index of the particle in the
  * list of particles to become split.
- * @param ilevel0 Level of refinement of the particle, by construction.
  * @param ilevel Current refinement level of the particle.
- * @param level Target level.
- * @param m0 Original mass, before applying the gamma factor, \f$ m_0 \f$
- * @param gamma_m Mass multiplier \f$ \gamma_m \f$.
+ * @param level Target refinement level of the particle.
+ * @param m0 Target mass,  \f$ m_0 \f$.
+ * @param miter Mass transfer iteration (Positive for growing particles,
+ * negative for shrinking particles).
  * @param r Position \f$ \mathbf{r} \f$.
  * @param u Velocity \f$ \mathbf{u} \f$.
  * @param dudt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
  * @param rho Density \f$ \rho \f$.
  * @param drhodt Density rate of change \f$ \frac{d \rho}{d t} \f$.
  * @param N Number of particles.
- * @see P.N. Sun, A. Colagrossi, S. Marrone, A.M. Zhang. Multi-resolution
- * delta-SPH model. 2016
+ * @param nbuffer Number of available buffer particles.
  */
 __kernel void generate(__global int* imove,
                        __global int* iset,
                        __global unsigned int* isplit,
                        __global unsigned int* split_invperm,
-                       __global unsigned int* ilevel0,
                        __global unsigned int* ilevel,
                        __global unsigned int* level,
                        __global float* m0,
-                       __global float* gamma_m,
+                       __global int* miter,
+                       __global float* m,
                        __global vec* r,
                        __global vec* u,
                        __global vec* dudt,
                        __global float* rho,
                        __global float* drhodt,
-                       unsigned int N)
+                       unsigned int N,
+                       unsigned int nbuffer)
 {
     unsigned int i = get_global_id(0);
     if(i >= N)
@@ -127,44 +141,49 @@ __kernel void generate(__global int* imove,
         return;
 
     // Check whether the particle should become split or not
-    unsigned int j = split_invperm[i];
-    if(isplit[j] != 1)
+    const unsigned int j = split_invperm[i];
+    if(isplit[j] != 1){
         return;
+    }
 
     // Compute the index of the first buffer particle to steal. Take care, the
     // radix sort is storing the particles to become split at the end of the
-    // list 
-    j = N - (N - j) * N_DAUGHTER;
-    #ifdef __MULTIRESOLUTION_N_SKIP__
-        j -= __MULTIRESOLUTION_N_SKIP__;
-    #endif
+    // list
+    const unsigned int i0 = N - nbuffer;
+    unsigned int ii = i0 + N_DAUGHTER * (N - j - 1);
+    // Check that there are buffer particles enough
+    if(ii + N_DAUGHTER >= N){
+        // PROBLEMS! This particle cannot be split because we have not buffer
+        // particles enough to create the children
+        return;
+    }
 
     // Insert the daughters
-    ilevel[i]++;
+    miter[i] = -1;
     const float dr = 0.25f * pow(m0[i] / rho[i], 1 / DIMS);
     for(int ci = -1; ci <= 1; ci += 2) {
         for(int cj = -1; cj <= 1; cj += 2) {
 #ifdef HAVE_3D
             for(int ck = -1; ck <= 1; ck += 2) {
-                vec_xyz r_j = r[i].XYZ + dr * (float3)(ci, cj, ck);
+                vec_xyz r_ii = r[i].XYZ + dr * (float3)(ci, cj, ck);
 #else
-                vec_xyz r_j = r[i].XYZ + dr * (float2)(ci, cj);
+                vec_xyz r_ii = r[i].XYZ + dr * (float2)(ci, cj);
 #endif
                 // Set the new particle properties
-                ilevel0[j] = ilevel[i];
-                ilevel[j] = ilevel[i];
-                level[j] = ilevel[i];  // Needed to avoid coalescing
-                imove[j] = imove[i];
-                iset[j] = iset[i];                
-                m0[j] = m0[i] / N_DAUGHTER;
-                gamma_m[j] = 1.f - gamma_m[i];
-                r[j] = r_j;
-                u[j] = u[i];
-                dudt[j] = dudt[i];
-                rho[j] = rho[i];
-                drhodt[j] = drhodt[i];
+                ilevel[ii] = ilevel[i] + 1;
+                level[ii] = ilevel[i] + 1;
+                imove[ii] = imove[i];
+                iset[ii] = iset[i];                
+                m0[ii] = m0[i] / N_DAUGHTER;
+                miter[ii] = +1;
+                m[ii] = 0.f;
+                r[ii] = r_ii;
+                u[ii] = u[i];
+                dudt[ii] = dudt[i];
+                rho[ii] = rho[i];
+                drhodt[ii] = drhodt[i];
                 // Move to the next buffer particle
-                j--;
+                ii++;
 #ifdef HAVE_3D
             }
 #endif

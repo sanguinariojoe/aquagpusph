@@ -38,7 +38,7 @@
  * @param ibuffer 0 if the particle is not a buffer particle, 1 otherwise.
  * @param N Number of particles.
  */
-__kernel void entry(__global int* imove,
+__kernel void entry(__global const int* imove,
                     __global unsigned int* ibuffer,
                     uint N)
 {

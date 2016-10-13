@@ -36,22 +36,18 @@
  *   - imove > 0 for regular fluid/solid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param ilevel0 Level of refinement of the particle, by construction.
+ * @param ilevel Current refinement level of the particle.
  * @param r Position \f$ \mathbf{r} \f$.
  * @param level Target refinement level of the particle.
- * @param gamma_m Mass multiplier \f$ \gamma_m \f$.
  * @param N Number of particles.
  * @param multiresolution_cube_min Minimum point of the refinement area.
  * @param multiresolution_cube_max Maximum point of the refinement area.
  * @param multiresolution_cube_level Refinement level inside the area.
- * @see P.N. Sun, A. Colagrossi, S. Marrone, A.M. Zhang. Multi-resolution
- * delta-SPH model. 2016
  */
 __kernel void entry(__global const int* imove,
-                    __global const unsigned int* ilevel0,
+                    __global const unsigned int* ilevel,
                     __global const vec* r,
                     __global unsigned int* level,
-                    __global float* gamma_m,
                     unsigned int N,
                     vec multiresolution_cube_min,
                     vec multiresolution_cube_max,
@@ -69,10 +65,10 @@ __kernel void entry(__global const int* imove,
     // We must be careful at the time of selecting the target level of daughter
     // particles, because a mother particle right at the border of the
     // refinement area will generate daughters out of it (which will be removed
-    // later).
+    // inmediately after this).
     vec_xyz r_min = multiresolution_cube_min.XYZ;
     vec_xyz r_max = multiresolution_cube_max.XYZ;
-    if(multiresolution_cube_level == ilevel0[i]){
+    if(multiresolution_cube_level == ilevel[i]){
         // The particle seems to be a daughter particle, let's keep it for a
         // while
         r_min -= H * VEC_ONE.XYZ;
@@ -89,8 +85,7 @@ __kernel void entry(__global const int* imove,
         #endif
       )
     {
-        // The particles is just simply not inside the refinement area, forgive
-        // it
+        // The particle is just simply outside the refinement area
         return;
     }
 
@@ -101,34 +96,6 @@ __kernel void entry(__global const int* imove,
 
     // We can safely say that the refinement target should be set
     level[i] = multiresolution_cube_level;
-
-    // To select gamma_m, we must take care about eventually overlapped
-    // refinement areas. To do that, we should operate in a different way the
-    // mother and the daughter particles.
-    const vec r_diff = min(r[i].XYZ - multiresolution_cube_min.XYZ,
-                           multiresolution_cube_max.XYZ - r[i].XYZ);
-    #ifndef HAVE_3D
-        const float gamma = min(1.f, max(0.f,
-            min(r_diff.x, r_diff.y) / (SUPPORT * H)));
-    #else
-        const float gamma = min(1.f, max(0.f,
-            min(min(r_diff.x, r_diff.y), r_diff.z) / (SUPPORT * H)));
-    #endif
-    
-    if(ilevel0[i] == multiresolution_cube_level - 1){
-        // A mother particle, which should vanish during the entrance in this
-        // area
-        gamma_m[i] = min(gamma_m[i], 1.f - gamma);
-    }
-    else if(ilevel0[i] < multiresolution_cube_level){
-        // An outdated mother particle
-        gamma_m[i] = 0.f;
-    }
-    else if(ilevel0[i] >= multiresolution_cube_level){
-        // A daughter particle, generated in this refinement level. We should
-        // try to grow the particle as much as possible
-        gamma_m[i] = max(gamma_m[i], gamma);
-    }
 }
 
 /*

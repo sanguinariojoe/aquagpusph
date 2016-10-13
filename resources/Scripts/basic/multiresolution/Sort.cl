@@ -35,16 +35,20 @@
  * @param m0_in Unsorted original mass \f$ m_0 \f$.
  * @param m0 Sorted original mass \f$ m_0 \f$.
  * @param miter_in Unsorted iteration of the mass transfer.
- * @param miter Sorted iteration of the mass transfer
+ * @param miter Mass transfer iteration (Positive for shrinking particles,
+ * negative for growing particles).
  * @param ilevel_in Unsorted particle refinement level.
  * @param ilevel Sorted particle refinement level.
+ * @param level_in Unsorted target refinement level.
+ * @param level Sorted target refinement level.
  * @param id_sorted Permutations list from the unsorted space to the sorted
  * one.
  * @param N Number of particles.
  */
 __kernel void entry(const __global float *m0_in, __global float *m0,
-                    const __global uint *miter_in, __global uint *miter,
+                    const __global int *miter_in, __global int *miter,
                     const __global uint *ilevel_in, __global uint *ilevel,
+                    const __global uint *level_in, __global uint *level,
                     const __global unit *id_sorted,
                     unsigned int N)
 {
@@ -57,6 +61,7 @@ __kernel void entry(const __global float *m0_in, __global float *m0,
     m0[i_out] = m0_in[i];
     miter[i_out] = miter_in[i];
     ilevel[i_out] = ilevel_in[i];
+    level[i_out] = level_in[i];
 }
 
 /*

@@ -1,0 +1,32 @@
+<?xml version="1.0" ?>
+<!--
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
+
+Another QUAlity GPU-SPH, by CEHINAV.
+    http://canal.etsin.upm.es/
+Authors:
+    Jose Luis Cercos-Pita
+    Leo Miguel Gonzalez
+    Antonio Souto-Iglesias
+-->
+
+<sphInput>
+    <Include file="@RESOURCES_DIR@/Presets/basic/multiresolution.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/basic/multiresolution/cube.xml" prefix="level1_" />
+    <Include file="@RESOURCES_DIR@/Presets/basic/multiresolution/cube.xml" prefix="level2_" />
+    <Tools>
+        <Tool name="cube r_min" action="insert" before="level1_basic refinement cube" type="set_scalar" in="multiresolution_cube_min" value="{{XCYL}} - 3 * {{D}},{{YCYL}} - 3 * {{D}}"/>
+        <Tool name="cube r_max" action="insert" before="level1_basic refinement cube" type="set_scalar" in="multiresolution_cube_max" value="{{XCYL}} + 5 * {{D}},{{YCYL}} + 3 * {{D}}"/>
+        <Tool name="cube level" action="insert" before="level1_basic refinement cube" type="set_scalar" in="multiresolution_cube_level" value="1"/>
+        <Tool name="cube r_min" action="insert" before="level2_basic refinement cube" type="set_scalar" in="multiresolution_cube_min" value="{{XCYL}} - {{D}},{{YCYL}} - {{D}}"/>
+        <Tool name="cube r_max" action="insert" before="level2_basic refinement cube" type="set_scalar" in="multiresolution_cube_max" value="{{XCYL}} + {{D}},{{YCYL}} + {{D}}"/>
+        <Tool name="cube level" action="insert" before="level2_basic refinement cube" type="set_scalar" in="multiresolution_cube_level" value="2"/>
+    </Tools>
+</sphInput>

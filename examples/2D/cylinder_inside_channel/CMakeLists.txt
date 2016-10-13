@@ -11,6 +11,8 @@ configure_file(${EXAMPLE_ORIG_DIR}/templates/Fluids.xml
     ${EXAMPLE_DEST_DIR}/templates/Fluids.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/templates/Main.xml
     ${EXAMPLE_DEST_DIR}/templates/Main.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/templates/Refinement.xml
+    ${EXAMPLE_DEST_DIR}/templates/Refinement.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/templates/Settings.xml
     ${EXAMPLE_DEST_DIR}/templates/Settings.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/templates/SPH.xml
@@ -47,6 +49,8 @@ configure_file(${EXAMPLE_ORIG_DIR}/templates/Fluids.xml
     ${EXAMPLE_AUX_DIR}/templates/Fluids.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/templates/Main.xml
     ${EXAMPLE_AUX_DIR}/templates/Main.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/templates/Refinement.xml
+    ${EXAMPLE_AUX_DIR}/templates/Refinement.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/templates/Settings.xml
     ${EXAMPLE_AUX_DIR}/templates/Settings.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/templates/SPH.xml
@@ -75,6 +79,7 @@ INSTALL(
     FILES
         ${EXAMPLE_AUX_DIR}/templates/Fluids.xml
         ${EXAMPLE_AUX_DIR}/templates/Main.xml
+        ${EXAMPLE_AUX_DIR}/templates/Refinement.xml
         ${EXAMPLE_AUX_DIR}/templates/Settings.xml
         ${EXAMPLE_AUX_DIR}/templates/SPH.xml
         ${EXAMPLE_AUX_DIR}/templates/Time.xml
