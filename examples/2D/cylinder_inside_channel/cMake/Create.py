@@ -57,6 +57,11 @@ x_cyl = 0.3 * L
 y_cyl = 0.0 * D
 # Number of fluid particles in y direction
 ny = 50
+# Refinement areas
+refine1_min = (x_cyl - 3 * D, y_cyl - 3 * D)
+refine1_max = (x_cyl + 5 * D, y_cyl + 3 * D)
+refine2_min = (x_cyl - D, y_cyl - D)
+refine2_max = (x_cyl + D, y_cyl + D)
 
 # Distance between particles
 # ==========================
@@ -117,31 +122,41 @@ while x <= L + sep * h + 0.5 * dr:
             print(string)
     y = -0.5 * H + 0.5 * dr
     while y < 0.5 * H:
-        # Avoid the particles inside the cylinder
-        dist = math.sqrt((x - x_cyl)**2 + (y - y_cyl)**2)
-        if dist < 0.5 * (D + dr):
-            y += dr
-            continue
+        level = 0
+        if refine1_min[0] <= x <= refine1_max[0] and \
+           refine1_min[1] <= y <= refine1_max[1]:
+            level = 1
+        if refine2_min[0] <= x <= refine2_max[0] and \
+           refine2_min[1] <= y <= refine2_max[1]:
+            level = 2
+        for ix in range(2**level):
+            xx = x - 0.5 * dr + (ix + 0.5) * dr / (2**level)
+            for iy in range(2**level):
+                yy = y - 0.5 * dr + (iy + 0.5) * dr / (2**level)
+                # Avoid the particles inside the cylinder
+                dist = math.sqrt((xx - x_cyl)**2 + (yy - y_cyl)**2)
+                if dist < 0.5 * (D + dr / (2**level)):
+                    continue
 
-        n += 1
-        imove = 1
-        vx = 0.0
-        vy = 0.0
-        press = p0
-        dens = refd + (press - p0) / cs**2 
-        mass = refd * dr**2.0
-        string = ("{} {}, " * 4 + "{}, {}, {}, {}, {}, {}\n").format(
-            x, y,
-            0.0, 0.0,
-            vx, vy,
-            0.0, 0.0,
-            dens,
-            0.0,
-            mass,
-            imove,
-            0,
-            10)
-        output.write(string)
+                n += 1
+                imove = 1
+                vx = 0.0
+                vy = 0.0
+                press = p0
+                dens = refd + (press - p0) / cs**2
+                mass = refd * (dr / (2**level))**2.0
+                string = ("{} {}, " * 4 + "{}, {}, {}, {}, {}, {}\n").format(
+                    xx, yy,
+                    0.0, 0.0,
+                    vx, vy,
+                    0.0, 0.0,
+                    dens,
+                    0.0,
+                    mass,
+                    imove,
+                    level,
+                    10)
+                output.write(string)
         y += dr
     x += dr
 
@@ -242,8 +257,9 @@ string = """
 """
 print(string)
 Percentage = -1
+level = 2
 theta = 0.0
-dtheta = 2.0 * dr / D
+dtheta = 2.0 * (dr / (2**level)) / D
 n_cyl = int(round(2.0 * math.pi / dtheta))
 dtheta = 2.0 * math.pi / n_cyl
 while theta < 2.0 * math.pi:
@@ -263,7 +279,7 @@ while theta < 2.0 * math.pi:
     normal_y = -math.sin(theta)
     press = p0
     dens = refd + (press - p0) / cs**2 
-    mass = dr
+    mass = dr / (2**level)
     string = ("{} {}, " * 4 + "{}, {}, {}, {}, {}, {}\n").format(
         x, y,
         normal_x, normal_y,
@@ -292,6 +308,10 @@ XML = ('Fluids.xml', 'Main.xml', 'Settings.xml', 'SPH.xml', 'Time.xml',
 
 domain_min = str(domain_min).replace('(', '').replace(')', '')
 domain_max = str(domain_max).replace('(', '').replace(')', '')
+refine1_min = str(refine1_min).replace('(', '').replace(')', '')
+refine1_max = str(refine1_max).replace('(', '').replace(')', '')
+refine2_min = str(refine2_min).replace('(', '').replace(')', '')
+refine2_max = str(refine2_max).replace('(', '').replace(')', '')
 
 data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
         'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max, 'REFD':str(refd),
@@ -299,6 +319,8 @@ data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
         'N':str(n), 'NY':str(ny), 'L':str(L), 'H':str(H), 'D':str(D),
         'U':str(U), 'P0':str(p0),
         'NCYL':str(n_cyl), 'XCYL':str(x_cyl), 'YCYL':str(y_cyl),
+        'REFINE1_MIN':refine1_min, 'REFINE1_MAX':refine1_max,
+        'REFINE2_MIN':refine2_min, 'REFINE2_MAX':refine2_max,
         'COURANT_RAMP_ITERS':str(courant_ramp_iters),
         'COURANT_RAMP_FACTOR':str(courant_ramp_factor),}
 for fname in XML:
