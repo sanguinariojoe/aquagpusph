@@ -56,7 +56,7 @@ H = 8.0 * D
 x_cyl = 0.3 * L
 y_cyl = 0.0 * D
 # Number of fluid particles in y direction
-ny = 50
+ny = 200
 # Refinement areas
 refine1_min = (x_cyl - 3 * D, y_cyl - 3 * D)
 refine1_max = (x_cyl + 5 * D, y_cyl + 3 * D)
@@ -262,6 +262,7 @@ theta = 0.0
 dtheta = 2.0 * (dr / (2**level)) / D
 n_cyl = int(round(2.0 * math.pi / dtheta))
 dtheta = 2.0 * math.pi / n_cyl
+n_cyl = 0  # Avoid rounding errors
 while theta < 2.0 * math.pi:
     percentage = int(round(theta / (2.0 * math.pi) * 100))
     if Percentage != percentage:
@@ -293,6 +294,7 @@ while theta < 2.0 * math.pi:
         10)
     output.write(string)
 
+    n_cyl += 1
     theta += dtheta
 output.close()
 print('{} boundary elements written'.format(n_cyl))
