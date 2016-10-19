@@ -30,70 +30,132 @@
     #include "../../types/3D.h"
 #endif
 
-/** @brief Remove the daughter particles which should coalesce.
+/** @brief Look for all the seed candidates, i.e. all the particles which have a
+ * refinement level target lower than their current value.
  *
- * The particles should coalesce just when the refinement target level is lower
- * than the level of the particle.
- * This tool is decreasing the ilevel value of the coalescing mother particles.
+ * This tool is also placing the particles into cells with the volume of the
+ * partner particle to become generated 
  *
+ * @param iset Set of particles index.
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid/solid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param ilevel0 Level of refinement of the particle, by construction.
  * @param ilevel Current refinement level of the particle.
  * @param level Target refinement level of the particle.
- * @param gamma_m Mass multiplier \f$ \gamma_m \f$.
+ * @param m0 Mass \f$ m_0 \f$.
+ * @param miter Mass transfer iteration (Positive for growing particles,
+ * negative for shrinking particles).
  * @param r Position \f$ \mathbf{r} \f$.
- * @param u Velocity \f$ \mathbf{u} \f$.
- * @param dudt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
- * @param m Mass \f$ m \f$.
+ * @param isplit 0 if the particle should not become coalesced, 1 for the
+ * coalescing particles, 2 for the seeds.
+ * @param split_cell Seed cell where the particle is located.
+ * @param split_dist Distance to the center of the cell. Just the closest
+ * particle to the cell center will be kept as seed
+ * @param dr_level0 Theoretical distance between particles at the lowest
+ * refinement level.
  * @param N Number of particles.
- * @see P.N. Sun, A. Colagrossi, S. Marrone, A.M. Zhang. Multi-resolution
- * delta-SPH model. 2016
  */
-__kernel void entry(__global int* imove,
-                    __global const unsigned int* ilevel0,
-                    __global unsigned int* ilevel,
-                    __global const unsigned int* level,
-                    __global float* gamma_m,
-                    __global vec* r,
-                    __global vec* u,
-                    __global vec* dudt,
-                    __global float* m0,
-                    unsigned int N,
-                    vec domain_max)
+__kernel void seed_candidates(__global const unsigned int* iset,
+                              __global const int* imove,
+                              __global const unsigned int* ilevel,
+                              __global const unsigned int* level,
+                              __global const float* m0,
+                              __global const vec* r,
+                              __global int* miter,
+                              __global unsigned int* isplit,
+                              __global ivec* split_cell,
+                              __global float* split_dist,
+                              __constant float* dr_level0,
+                              unsigned int N)
 {
     unsigned int i = get_global_id(0);
     if(i >= N)
         return;
 
-    if((imove[i] <= 0) ||           // Neglect boundary elements/particles
-       (ilevel[i] <= level[i])) {   // Not asked to coalesce
+    isplit[i] = 0;
+    if(imove[i] <= 0){
+        // Neglect boundary elements/particles
+        return;
+    }
+    else if(miter[i] <= M_ITERS){
+        // The particle is growing or shrinking... Let's wait
+        return;
+    }
+    else if(level[i] >= ilevel[i]){
+        // The particle is not a candidate to become coalesced
         return;
     }
 
-    ilevel[i]--;
-    if(ilevel[i] > ilevel0[i]) {
-        // It is just a mother particle asked to coalesce
+    isplit[i] = 2;
+    miter[i] = -1;
+    const float dr = dr_level0[iset[i]] / (ilevel[i] - 1);
+    split_cell[i] = (ivec)(r[i] / dr);
+    const vec r_cell = r[i] - (split_cell[i] + VEC_ONE * 0.5 * dr);
+    split_dist[i] = length(r_cell);
+}
+
+/** @brief Get only one seed per cell.
+ *
+ * To do that, all the seed candidates will inspect their neighbours, and in
+ * case they find another seed candidate closer to the cell center, they are
+ * desisting to become a seed.
+ *
+ * @param iset Set of particles index.
+ * @param isplit 0 if the particle should not become coalesced, 1 for the
+ * coalescing particles, 2 for the seeds.
+ * @param split_cell Seed cell where the particle is located.
+ * @param split_dist Distance to the center of the cell. Just the closest
+ * particle to the cell center will be kept as seed
+ * @param N Number of particles.
+ */
+__kernel void seeds(__global const unsigned int* iset,
+                    __global unsigned int* isplit,
+                    __global const ivec* split_cell,
+                    __global const float* split_dist,
+                    __global const uint *icell,
+                    __global const uint *ihoc,
+                    unsigned int N,
+                    uivec4 n_cells)
+{
+    unsigned int i = get_global_id(0);
+    if(i >= N)
         return;
-    }
-    
-    // A daughter particles which should be removed
-    imove[i] = -255;
-    m0[i] = 0.f;
-    // Stop the particle
-    u[i] = VEC_ZERO;
-    dudt[i] = VEC_ZERO;
-    // Move the particle to a more convenient position (in order to can use
-    // it as buffer)
-    r[i] = domain_max;
-    // Reset the level and gamma values, in order to avoid that recycling the
-    // particles (at the inflow for instance) may confuse the multiresolution
-    // stuff
-    ilevel0[i] = 0;
-    ilevel[i] = 0;
-    gamma_m[i] = 1.f;
+    if(isplit[i] != 2)
+        return;
+
+    const ivec_xyz isplit_cell = split_cell[i].XYZ;
+    const float isplit_dist = split_dist[i];
+
+    BEGIN_LOOP_OVER_NEIGHS(){
+        if(i == j){
+            j++;
+            continue;
+        }
+        if((isplit[j] != 2) ||
+           (iset[i] != iset[j]) ||
+           (isplit_cell != split_cell[j].XYZ)
+        ){
+            j++;
+            continue;
+        }
+
+        {
+            const float jsplit_dist = split_dist[i];
+            if(isplit_dist > jsplit_dist){
+                // I'm not a seed, because there is another better candidate
+                isplit[i] = 1;
+                return;
+            }
+            else if(isplit_dist == jsplit_dist){
+                // A very unlikely situation... Let use just the last particle
+                if(i < j){
+                    isplit[i] = 1;
+                    return;
+                }
+            }
+        }
+    }END_LOOP_OVER_NEIGHS()
 }
 
 /*

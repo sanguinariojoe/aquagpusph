@@ -8,24 +8,25 @@ well. This module should be included once.
 In order to modify the number of iterations to transfer the mass between partner
 and children, redefine M_ITERS.
 
-To use this module, include this file, and modify the particles set reading in
-order to store the mass of the particles in the array m0, instead of m. You
-are also responsible of initialize the miter and ilevel variables. Along this
-line, miter should be initialized as M_ITERS, which is 10 by default.
+To use this module you should:
+1.- Include this module file
+2.- Modify your particles set definitions to read the field m0 instead of m
+3.- Add initial values for miter (usually equal to M_ITERS) and ilevel
+4.- Add the distance between particles at 0 level refinement, dr_level0, to each
+    particles set.
+5.- Load a module from basic/multiresolution folder to set the refinement areas
+You can also redefine the variable M_ITERS to modify the number of time steps
+required to transfer the mas from partner particles to children ones.
 
-Boundary elements/particles are not never split or coalesced. Therefore the user
-is responsible to initialize them with the right resolution level
+Boundary elements/particles are not never split or coalesced.
 
-In order to ask for particles refinement, the level variable should become
-edited. You can find some tools to do that in basic/multiresolution modules
-folder.
-
-Since this module may modify the mass of the particles, it should be included
-AFTER variable_h.xml one.
+You can find an usage example in examples/2D/cylinder_inside_channel
 -->
 
 <sphInput>
     <Variables>
+        <!-- Base distance between particles for each set -->
+        <Variable name="dr_level0" type="float*" length="n_sets" />
         <!-- Original mass of each particle -->
         <Variable name="m0" type="float*" length="N" />
         <Variable name="m0_in" type="float*" length="N" />
@@ -43,27 +44,8 @@ AFTER variable_h.xml one.
         <Variable name="isplit" type="unsigned int*" length="n_radix" />
         <Variable name="split_perm" type="unsigned int*" length="n_radix" />
         <Variable name="split_invperm" type="unsigned int*" length="n_radix" />
-
-
-
-
-        <!-- The original mass of each particle, and the transfer function -->
-        <!-- Variable name="m0" type="float*" length="N" />
-        <Variable name="gamma_m" type="float*" length="N" / -->
-        <!-- The refinement level each particle belongs, and the refinement
-        level specified by the area -->
-        <!-- Variable name="ilevel0" type="unsigned int*" length="N" />
-        <Variable name="ilevel" type="unsigned int*" length="N" />
-        <Variable name="level" type="unsigned int*" length="N" / -->
-        <!-- Internal variables to mark the particles to become splited -->
-        <!-- Variable name="isplit" type="unsigned int*" length="n_radix" />
-        <Variable name="split_perm" type="unsigned int*" length="n_radix" />
-        <Variable name="split_invperm" type="unsigned int*" length="n_radix" / -->
-        <!-- Sort helpers -->
-        <!-- Variable name="m0_in" type="float*" length="N" />
-        <Variable name="gamma_m_in" type="float*" length="N" />
-        <Variable name="ilevel0_in" type="unsigned int*" length="N" />
-        <Variable name="ilevel_in" type="unsigned int*" length="N" / -->
+        <Variable name="split_cell" type="ivec*" length="N" />
+        <Variable name="split_dist" type="float*" length="N" />
     </Variables>
 
     <Tools>
@@ -118,8 +100,28 @@ AFTER variable_h.xml one.
 
         <!--    Particles coalesce
              ========================
+        When a particle has a refinement level target lower than its current
+        level, it should become coalesced with other similar particles. Due to
+        the nature of the method, that's a quite complex operation, which is
+        solved as follows:
+        1.- Seeds detection. The seeds are the particle which will represent
+        each group of coalescing particles.
+            1.a.- All the candidate particles to become coalesced are signaled,
+            and placed in a regular grid of dr/2^level
+            1.b.- Just one particle of each cell is kept (the most centered one)
+        2.- Coalescing candidates. All the neighbour particles of the seeds,
+        which has the same refinement level and are not seeds, will be marked as
+        coalescer
+        3.- Each coalescer will look for the closest seed, and associate with
+        that.
+        4.- Finally a new partner particle is generated on top of the coalescing
+        particles data.
         -->
         <Tool name="Refinement coalesce" action="insert" after="Refinement split" type="dummy"/>
+        <Tool name="basic init icoalesce" action="insert" before="Refinement coalesce" type="set" in="isplit" value="3"/>
+        <Tool name="basic coalesce seed candidates" action="insert" before="Refinement coalesce" type="kernel" entry_point="seed_candidates" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
+        <Tool name="basic coalesce seeds" action="insert" before="Refinement coalesce" type="kernel" entry_point="seeds" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
+        
 
         <!--    Outdated partners removal
              ===============================
@@ -127,30 +129,7 @@ AFTER variable_h.xml one.
         has been transfered to the children), it is converted into a buffer
         particle -->
         <Tool name="Refinement removal" action="insert" before="Domain" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Remove.cl"/>
-        
 
-        <!-- Copy the original mass on each particle -->
-        <!-- Tool name="basic reset mass" action="insert" before="Predictor" type="copy" in="m0" out="m"/>
-        <Tool name="basic rescale mass" action="insert" after="Predictor" type="kernel" entry_point="set_mass" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/SetMass.cl"/ -->
-
-        <!-- Sort the variables -->
-        <!-- Tool name="Backup m0" action="insert" before="Sort" type="copy" in="m0" out="m0_in"/>
-        <Tool name="Backup gamma_m" action="insert" before="Sort" type="copy" in="gamma_m" out="gamma_m_in"/>
-        <Tool name="Backup ilevel0" action="insert" before="Sort" type="copy" in="ilevel0" out="ilevel0_in"/>
-        <Tool name="Backup ilevel" action="insert" before="Sort" type="copy" in="ilevel" out="ilevel_in"/>
-        <Tool name="basic multiresolution sort" action="insert" before="Sort" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Sort.cl"/ -->
-        
-        <!-- Initialize the target level of each particle -->
-        <!-- Tool name="basic init level" action="insert" before="Refinement level" type="set" in="level" value="0"/>
-        <Tool name="basic init gamma_m" action="insert" before="Refinement level" type="kernel" entry_point="init_gamma" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/SetMass.cl"/ -->
-        <!-- Mark the particles to become splited -->
-        <!-- Tool name="basic init isplit" action="insert" before="Split" type="set" in="isplit" value="2"/>
-        <Tool name="basic isplit" action="insert" before="Split" type="kernel" entry_point="check_split" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Split.cl"/ -->
-        <!-- Split the particles -->
-        <!-- Tool name="basic sort isplit" action="insert" before="Split" type="radix-sort" in="isplit" perm="split_perm" inv_perm="split_invperm"/>
-        <Tool name="basic split" action="insert" before="Split" type="kernel" entry_point="generate" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Split.cl"/ -->
-        <!-- Coalesce the particles -->
-        <!-- Tool name="basic coalesce" action="insert" before="Coalesce" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/ -->
     </Tools>
 
     <Include file="@RESOURCES_OUTPUT_DIR@/Presets/basic/setBuffer.xml" when="end"/>

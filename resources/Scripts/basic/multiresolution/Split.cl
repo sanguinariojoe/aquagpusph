@@ -164,7 +164,7 @@ __kernel void generate(__global int* imove,
 
     // Insert the daughters
     miter[i] = -1;
-    const float dr = 0.25f * pow(m0[i] / rho[i], 1 / DIMS);
+    const float dr = 0.25f * pow(m0[i] / rho[i], 1.f / DIMS);
     for(int ci = -1; ci <= 1; ci += 2) {
         for(int cj = -1; cj <= 1; cj += 2) {
 #ifdef HAVE_3D

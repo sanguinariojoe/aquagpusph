@@ -22,6 +22,7 @@ Authors:
         <Scalar name="refd" value="{{REFD}}" />
         <Scalar name="visc_dyn" value="{{VISC_DYN}}" />
         <Scalar name="delta" value="{{DELTA}}" />
+        <Scalar name="dr_level0" value="{{DR}}" />
 
         <Load format="FastASCII" file="Fluid.dat" fields="r, normal, u, dudt, rho, drhodt, m0, imove, ilevel, miter" />
         <Save format="VTK" file="output" fields="r, normal, u, dudt, rho, drhodt, m0, m, p, imove, ilevel, level, miter" />
@@ -30,6 +31,7 @@ Authors:
         <Scalar name="refd" value="{{REFD}}" />
         <Scalar name="visc_dyn" value="{{VISC_DYN}}" />
         <Scalar name="delta" value="{{DELTA}}" />
+        <Scalar name="dr_level0" value="{{DR}}" />
 
         <Load format="FastASCII" file="Cylinder.dat" fields="r, normal, u, dudt, rho, drhodt, m0, imove, ilevel, miter" />
         <Save format="VTK" file="cylinder" fields="r, normal, u, dudt, rho, drhodt, m0, m, p, imove, ilevel, level, miter" />
