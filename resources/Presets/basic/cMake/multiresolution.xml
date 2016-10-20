@@ -18,7 +18,8 @@ To use this module you should:
 You can also redefine the variable M_ITERS to modify the number of time steps
 required to transfer the mas from partner particles to children ones.
 
-Boundary elements/particles are not never split or coalesced.
+Boundary elements/particles are not never split or coalesced. This module may
+affects the inlet boundary condition, so include this file after inlet.xml
 
 You can find an usage example in examples/2D/cylinder_inside_channel
 -->
@@ -42,13 +43,20 @@ You can find an usage example in examples/2D/cylinder_inside_channel
         <!-- Internal variables to mark the particles to become split/coalesced
         -->
         <Variable name="isplit" type="unsigned int*" length="n_radix" />
+        <Variable name="isplit_in" type="unsigned int*" length="n_radix" />
         <Variable name="split_perm" type="unsigned int*" length="n_radix" />
         <Variable name="split_invperm" type="unsigned int*" length="n_radix" />
         <Variable name="split_cell" type="ivec*" length="N" />
         <Variable name="split_dist" type="float*" length="N" />
+        <!-- Internal variables to mark the buffer particles to become partner
+        -->
+        <Variable name="mybuffer" type="unsigned int*" length="N" />
     </Variables>
 
     <Tools>
+        <!-- Patch to the inlet to avoid become affected by this module -->
+        <Tool name="cfd inlet feed" action="try_replace" type="kernel" entry_point="feed" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Inlet.cl"/>
+
         <!-- Sort the intensive variables -->
         <Tool name="Backup m0" action="insert" before="Sort" type="copy" in="m0" out="m0_in"/>
         <Tool name="Backup miter" action="insert" before="Sort" type="copy" in="miter" out="miter_in"/>
@@ -118,9 +126,17 @@ You can find an usage example in examples/2D/cylinder_inside_channel
         particles data.
         -->
         <Tool name="Refinement coalesce" action="insert" after="Refinement split" type="dummy"/>
+        <Tool name="Set buffer" action="insert" before="Refinement coalesce" type="dummy" />
         <Tool name="basic init icoalesce" action="insert" before="Refinement coalesce" type="set" in="isplit" value="3"/>
         <Tool name="basic coalesce seed candidates" action="insert" before="Refinement coalesce" type="kernel" entry_point="seed_candidates" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
         <Tool name="basic coalesce seeds" action="insert" before="Refinement coalesce" type="kernel" entry_point="seeds" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
+        <Tool name="basic backup icoalesce" action="insert" before="Refinement coalesce" type="copy" in="isplit" out="isplit_in"/>
+        <Tool name="basic sort icoalesce" action="insert" before="Refinement coalesce" type="radix-sort" in="isplit" perm="split_perm" inv_perm="split_invperm"/>
+        <Tool name="basic coalesce generate" action="insert" before="Refinement coalesce" type="kernel" entry_point="generate" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
+        <Tool name="basic restore icoalesce" action="insert" before="Refinement coalesce" type="copy" in="isplit_in" out="isplit"/>
+        <Tool name="basic coalesce children candidates" action="insert" before="Refinement coalesce" type="kernel" entry_point="children_candidates" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
+        <Tool name="basic coalesce children" action="insert" before="Refinement coalesce" type="kernel" entry_point="children" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
+        <Tool name="basic coalesce fields" action="insert" before="Refinement coalesce" type="kernel" entry_point="fields" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
         
 
         <!--    Outdated partners removal

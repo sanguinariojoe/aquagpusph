@@ -108,9 +108,10 @@ __kernel void check_split(__global const int* imove,
  * list of particles to become split.
  * @param ilevel Current refinement level of the particle.
  * @param level Target refinement level of the particle.
- * @param m0 Target mass,  \f$ m_0 \f$.
+ * @param m0 Target mass, \f$ m_0 \f$.
  * @param miter Mass transfer iteration (Positive for growing particles,
  * negative for shrinking particles).
+ * @param m Current mass, \f$ m \f$.
  * @param r Position \f$ \mathbf{r} \f$.
  * @param u Velocity \f$ \mathbf{u} \f$.
  * @param dudt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
@@ -174,12 +175,12 @@ __kernel void generate(__global int* imove,
                 vec_xyz r_ii = r[i].XYZ + dr * (float2)(ci, cj);
 #endif
                 // Set the new particle properties
-                ilevel[ii] = ilevel[i] + 1;
-                level[ii] = ilevel[i] + 1;
                 imove[ii] = imove[i];
                 iset[ii] = iset[i];                
+                ilevel[ii] = ilevel[i] + 1;
+                level[ii] = ilevel[i] + 1;
                 m0[ii] = m0[i] / N_DAUGHTER;
-                miter[ii] = +1;
+                miter[ii] = 1;
                 m[ii] = 0.f;
                 r[ii] = r_ii;
                 u[ii] = u[i];

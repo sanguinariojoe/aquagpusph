@@ -66,8 +66,8 @@ __kernel void seed_candidates(__global const unsigned int* iset,
                               __global const unsigned int* ilevel,
                               __global const unsigned int* level,
                               __global const float* m0,
-                              __global const vec* r,
                               __global int* miter,
+                              __global const vec* r,
                               __global unsigned int* isplit,
                               __global ivec* split_cell,
                               __global float* split_dist,
@@ -94,7 +94,7 @@ __kernel void seed_candidates(__global const unsigned int* iset,
 
     isplit[i] = 2;
     miter[i] = -1;
-    const float dr = dr_level0[iset[i]] / (ilevel[i] - 1);
+    const float dr = dr_level0[iset[i]] / ilevel[i];
     split_cell[i] = CONVERT(ivec, r[i] / dr);
     const vec r_cell = r[i] - (CONVERT(vec, split_cell[i]) + VEC_ONE * 0.5f * dr);
     split_dist[i] = length(r_cell);
@@ -112,7 +112,10 @@ __kernel void seed_candidates(__global const unsigned int* iset,
  * @param split_cell Seed cell where the particle is located.
  * @param split_dist Distance to the center of the cell. Just the closest
  * particle to the cell center will be kept as seed
+ * @param icell Cell where each particle is located.
+ * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
+ * @param n_cells Number of cells in each direction
  */
 __kernel void seeds(__global const unsigned int* iset,
                     __global unsigned int* isplit,
@@ -161,6 +164,279 @@ __kernel void seeds(__global const unsigned int* iset,
             }
         }
     }END_LOOP_OVER_NEIGHS()
+}
+
+/** @brief Associate a buffer particle to a seed.
+ *
+ * Later we are looking for the rest of children, used to compute the variable
+ * values of this buffer/partner particle
+ *
+ * @param imove Moving flags.
+ *   - imove > 0 for regular fluid/solid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param iset Index of the set of particles.
+ * @param isplit 0 if the particle should not become split, 1 otherwise.
+ * @param split_invperm Permutation to find the index of the particle in the
+ * list of particles to become split.
+ * @param mybuffer Index of the partner buffer particle.
+ * @param ilevel Current refinement level of the particle.
+ * @param level Target refinement level of the particle.
+ * @param miter Mass transfer iteration (Positive for growing particles,
+ * negative for shrinking particles).
+ * @param N Number of particles.
+ * @param nbuffer Number of available buffer particles.
+ */
+__kernel void generate(__global int* imove,
+                       __global int* iset,
+                       __global unsigned int* isplit,
+                       __global unsigned int* split_invperm,
+                       __global unsigned int* mybuffer,
+                       __global unsigned int* ilevel,
+                       __global unsigned int* level,
+                       __global int* miter,
+                       unsigned int N,
+                       unsigned int nbuffer)
+{
+    unsigned int i = get_global_id(0);
+    if(i >= N)
+        return;
+
+    // Neglect boundary elements/particles
+    if(imove[i] <= 0)
+        return;
+
+    // Check whether the particle is a seed or not
+    const unsigned int j = split_invperm[i];
+    if(isplit[j] != 2){
+        return;
+    }
+
+    // Compute the index of the buffer particle to steal. Take care, the radix
+    // sort is storing the particles to become split at the end of the list
+    const unsigned int i0 = N - nbuffer;
+    unsigned int ii = i0 + (N - j - 1);
+    // Check that there are buffer particles enough
+    if(ii >= N){
+        // PROBLEMS! This seed cannot generate a partner
+        mybuffer[i] = N;
+        return;
+    }
+
+    // Associate the buffer particle to the seed
+    mybuffer[i] = ii;
+
+    // Set the already known variables
+    imove[ii] = imove[i];
+    iset[ii] = iset[i];                
+    ilevel[ii] = ilevel[i] - 1;
+    level[ii] = ilevel[i] - 1;
+    miter[ii] = 1;
+}
+
+/** @brief Look for all the candidates to become children, close enough to the
+ * seed.
+ *
+ * When a particle is not already splitting or coalescing, is close enough to
+ * the seed, has the same refinement level, and belongs to the same particles
+ * set, it is a children candidates.
+ *
+ * A particle marked as children candidate is invariably coalescing. However,
+ * we don't know yet which particle will be its partner. That's why it is just a
+ * candidate. Later we are looking all the neighbours of the children candidates
+ * to determine the best seed.
+ *
+ * @param imove Moving flags.
+ *   - imove > 0 for regular fluid/solid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param iset Set of particles index.
+ * @param r Position \f$ \mathbf{r} \f$.
+ * @param ilevel Current refinement level of the particle.
+ * @param isplit 0 if the particle should not become coalesced, 1 for the
+ * coalescing particles, 2 for the seeds.
+ * @param miter Mass transfer iteration (Positive for growing particles,
+ * negative for shrinking particles).
+ * @param icell Cell where each particle is located.
+ * @param ihoc Head of chain for each cell (first particle found).
+ * @param dr_level0 Theoretical distance between particles at the lowest
+ * refinement level.
+ * @param N Number of particles.
+ * @param n_cells Number of cells in each direction
+ */
+__kernel void children_candidates(__global const int* imove,
+                                  __global const unsigned int* iset,
+                                  __global const vec* r,
+                                  __global const unsigned int* ilevel,
+                                  __global unsigned int* isplit,
+                                  __global int* miter,
+                                  __global const uint *icell,
+                                  __global const uint *ihoc,
+                                  __constant float* dr_level0,
+                                  unsigned int N,
+                                  uivec4 n_cells)
+{
+    unsigned int i = get_global_id(0);
+    if(i >= N)
+        return;
+    if(isplit[i] != 2)
+        return;
+
+    const vec_xyz r_i = r[i].XYZ;
+    const float dr = dr_level0[iset[i]] / ilevel[i];
+
+
+    BEGIN_LOOP_OVER_NEIGHS(){
+        if((isplit[j] != 0) ||             // It a seed or already a child
+           (imove[j] <= 0) ||              // Neglect boundaries/sensors
+           (miter[j] <= M_ITERS) ||        // It is already splitting/coalescing
+           (iset[i] != iset[j]) ||         // Another set of particles
+           (ilevel[i] != ilevel[j]) ||     // Another level of refinement
+           (length(r[j].XYZ - r_i) > dr)   // Not close enough
+        ){
+            j++;
+            continue;
+        }
+
+        {
+            // It does not matter if several threads write this data at the same
+            // time, because are constant values
+            isplit[j] = 1;
+            miter[j] = -1;
+        }
+    }END_LOOP_OVER_NEIGHS()
+}
+
+/** @brief Associate each children to the closest seed.
+ *
+ * We are actually noit associating it to the seed, but with the buffer partner
+ * particle.
+ *
+ * @param iset Set of particles index.
+ * @param r Position \f$ \mathbf{r} \f$.
+ * @param isplit 0 if the particle should not become coalesced, 1 for the
+ * coalescing particles, 2 for the seeds.
+ * @param mybuffer Index of the partner buffer particle.
+ * @param icell Cell where each particle is located.
+ * @param ihoc Head of chain for each cell (first particle found).
+ * @param N Number of particles.
+ * @param n_cells Number of cells in each direction
+ */
+__kernel void children(__global const unsigned int* iset,
+                       __global const vec* r,
+                       __global const unsigned int* isplit,
+                       __global unsigned int* mybuffer,
+                       __global const uint *icell,
+                       __global const uint *ihoc,
+                       unsigned int N,
+                       uivec4 n_cells)
+{
+    unsigned int i = get_global_id(0);
+    if(i >= N)
+        return;
+    if(isplit[i] != 1)
+        return;
+
+    float dist = MAXFLOAT;  // So at least one seed will be closer than this
+    const vec_xyz r_i = r[i].XYZ;
+
+    BEGIN_LOOP_OVER_NEIGHS(){
+        if((isplit[j] != 2) ||             // Not a seed
+           (iset[i] != iset[j])            // Another set of particles
+        ){
+            j++;
+            continue;
+        }
+
+        {
+            const float r_ij = length(r[j].XYZ - r_i);
+            if(r_ij < dist){
+                // This is a better candidate
+                dist = r_ij;
+                mybuffer[i] = mybuffer[j];
+            }
+        }
+    }END_LOOP_OVER_NEIGHS()
+}
+
+/** @brief Collect the children, and the seed itself, in order to compute the
+ * field values of the buffer partner particle.
+ *
+ * Now we have a ssociated the children to the same partner than the seed, we
+ * can make a neighbours loop on the seed, integrating the field values to
+ * get the average value at the end of the kernel.
+ *
+ * @param isplit 0 if the particle should not become coalesced, 1 for the
+ * coalescing particles, 2 for the seeds.
+ * @param mybuffer Index of the partner buffer particle.
+ * @param m0 Target mass, \f$ m_0 \f$.
+ * @param m Current mass, \f$ m \f$.
+ * @param r Position \f$ \mathbf{r} \f$.
+ * @param icell Cell where each particle is located.
+ * @param ihoc Head of chain for each cell (first particle found).
+ * @param dr_level0 Theoretical distance between particles at the lowest
+ * refinement level.
+ * @param N Number of particles.
+ * @param n_cells Number of cells in each direction
+ */
+__kernel void fields(__global const unsigned int* isplit,
+                     __global const unsigned int* mybuffer,
+                     __global float* m0,
+                     __global float* m,
+                     __global vec* r,
+                     __global vec* u,
+                     __global vec* dudt,
+                     __global float* rho,
+                     __global float* drhodt,
+                     __global const uint *icell,
+                     __global const uint *ihoc,
+                     unsigned int N,
+                     uivec4 n_cells)
+{
+    unsigned int i = get_global_id(0);
+    if(i >= N)
+        return;
+    if(isplit[i] != 2)
+        return;
+
+    const unsigned int ii = mybuffer[i];
+    if(ii == N){
+        // A problematic particle which has not found an available buffer...
+        return;
+    }
+    unsigned int nchildren = 1;
+    m0[ii] = m0[i];
+    r[ii] = r[i];
+    u[ii] = u[i];
+    dudt[ii] = dudt[i];
+    rho[ii] = rho[i];
+    drhodt[ii] = drhodt[i];
+
+    BEGIN_LOOP_OVER_NEIGHS(){
+        if((isplit[j] != 1) ||   // Not a child
+           (mybuffer[j] != ii)   // Not the same partner
+        ){
+            j++;
+            continue;
+        }
+
+        {
+            nchildren++;
+            m0[ii] += m0[j];
+            r[ii] += r[j];
+            u[ii] += u[j];
+            dudt[ii] += dudt[j];
+            rho[ii] += rho[j];
+            drhodt[ii] += drhodt[j];
+        }
+    }END_LOOP_OVER_NEIGHS()
+
+    m[ii] = m0[ii];  // The mass is integrated, not averaged
+    r[ii] /= nchildren;
+    u[ii] /= nchildren;
+    dudt[ii] /= nchildren;
+    rho[ii] /= nchildren;
+    drhodt[ii] /= nchildren;    
 }
 
 /*
