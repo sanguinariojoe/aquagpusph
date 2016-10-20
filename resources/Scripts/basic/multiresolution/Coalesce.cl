@@ -30,6 +30,11 @@
     #include "../../types/3D.h"
 #endif
 
+#ifndef M_ITERS
+    #define M_ITERS 10
+#endif
+
+
 /** @brief Look for all the seed candidates, i.e. all the particles which have a
  * refinement level target lower than their current value.
  *
@@ -90,8 +95,8 @@ __kernel void seed_candidates(__global const unsigned int* iset,
     isplit[i] = 2;
     miter[i] = -1;
     const float dr = dr_level0[iset[i]] / (ilevel[i] - 1);
-    split_cell[i] = (ivec)(r[i] / dr);
-    const vec r_cell = r[i] - (split_cell[i] + VEC_ONE * 0.5 * dr);
+    split_cell[i] = CONVERT(ivec, r[i] / dr);
+    const vec r_cell = r[i] - (CONVERT(vec, split_cell[i]) + VEC_ONE * 0.5f * dr);
     split_dist[i] = length(r_cell);
 }
 
@@ -134,7 +139,7 @@ __kernel void seeds(__global const unsigned int* iset,
         }
         if((isplit[j] != 2) ||
            (iset[i] != iset[j]) ||
-           (isplit_cell != split_cell[j].XYZ)
+           (any(isplit_cell != split_cell[j].XYZ))
         ){
             j++;
             continue;

@@ -36,61 +36,72 @@
 #define uivec uint4
 #define matrix float16
 
-/** @def VEC_ZERO
- * @brief Null #vec, i.e. filled with zero components.
+/** @brief Helper function for CONVERT()
+ *
+ * The helper is required because the preprocessor is only recursively expanding
+ * macros if the definition is not affected by # nor ## string operators.
+ * Then, this inner function is concatenating the unexpanded words, while
+ * CONVERT() is effectively expanding the type name.
+ */
+#define _CONVERT(TYPE) convert_ ## TYPE
+
+/** @brief Conversor between complex types.
+ *
+ * In OpenCL, to convert between complex types the functions convert_TYPEN
+ * should be used. Otherwise casting errors will be received.
+ *
+ * This definition provides a convenient function to become used with the
+ * overloaded types vec, ivec and uivec.
+ *
+ * For instance, to convert a vec variable, v, to an ivec variable, you can call
+ * CONVERT(ivec, v);
+ */
+#define CONVERT(TYPE, v) _CONVERT(TYPE)(v)
+
+/** @brief Null #vec, i.e. filled with zero components.
  */
 #define VEC_ZERO ((float4)(0.f,0.f,0.f,0.f))
-/** @def VEC_ONE
- * @brief Ones #vec, i.e. filled with one components (except the w component).
+/** @brief Ones #vec, i.e. filled with one components (except the w component).
  */
 #define VEC_ONE ((float4)(1.f, 1.f, 1.f, 0.f))
-/** @def VEC_ALL_ONE
- * @brief Ones #vec, i.e. filled with one components.
+/** @brief Ones #vec, i.e. filled with one components.
  */
 #define VEC_ALL_ONE ((float4)(1.f, 1.f, 1.f, 1.f))
-/** @def VEC_INFINITY
- * @brief Infinity #vec, i.e. filled with infinity components (except the w
+/** @brief Infinity #vec, i.e. filled with infinity components (except the w
  * component).
  */
 #define VEC_INFINITY ((float4)(INFINITY, INFINITY, INFINITY, 0.f))
-/** @def VEC_ALL_INFINITY
- * @brief Infinity #vec, i.e. filled with infinity components.
+/** @brief Infinity #vec, i.e. filled with infinity components.
  */
 #define VEC_ALL_INFINITY ((float4)(INFINITY, INFINITY, INFINITY, INFINITY))
-/** @def VEC_NEG_INFINITY
- * @brief -Infinity #vec, i.e. filled with -infinity components (except the w
+/** @brief -Infinity #vec, i.e. filled with -infinity components (except the w
  * component).
  */
 #define VEC_NEG_INFINITY (-VEC_INFINITY)
-/** @def VEC_ALL_NEG_INFINITY
- * @brief -Infinity #vec, i.e. filled with -infinity components.
+/** @brief -Infinity #vec, i.e. filled with -infinity components.
  */
 #define VEC_ALL_NEG_INFINITY (-VEC_ALL_INFINITY)
 
-/** @def MAT_ZERO
- * @brief Null #matrix, i.e. filled with zero components.
+/** @brief Null #matrix, i.e. filled with zero components.
  */
 #define MAT_ZERO ((float16)(0.f, 0.f, 0.f, 0.f,                                \
-						    0.f, 0.f, 0.f, 0.f,                                \
-						    0.f, 0.f, 0.f, 0.f,                                \
-						    0.f, 0.f, 0.f, 0.f))
-/** @def MAT_ONE
- * @brief Ones #matrix, i.e. filled with one components, except the last row and
+                            0.f, 0.f, 0.f, 0.f,                                \
+                            0.f, 0.f, 0.f, 0.f,                                \
+                            0.f, 0.f, 0.f, 0.f))
+/** @brief Ones #matrix, i.e. filled with one components, except the last row and
  * column.
  */
 #define MAT_ONE ((float16)(1.f, 1.f, 1.f, 0.f,                                 \
-				 		   1.f, 1.f, 1.f, 0.f,                                 \
-				 		   1.f, 1.f, 1.f, 0.f,                                 \
-						   0.f, 0.f, 0.f, 0.f))
-/** @def MAT_ALL_ONE
- * @brief Ones #matrix, i.e. filled with one components.
+                            1.f, 1.f, 1.f, 0.f,                                 \
+                            1.f, 1.f, 1.f, 0.f,                                 \
+                           0.f, 0.f, 0.f, 0.f))
+/** @brief Ones #matrix, i.e. filled with one components.
  */
 #define MAT_ALL_ONE ((float16)(1.f, 1.f, 1.f, 1.f,                             \
-						       1.f, 1.f, 1.f, 1.f,                             \
-						       1.f, 1.f, 1.f, 1.f,                             \
-						       1.f, 1.f, 1.f, 1.f))
-/** @def MAT_EYE
- * @brief Eye #matrix , except the south-east component, which is filled with a
+                               1.f, 1.f, 1.f, 1.f,                             \
+                               1.f, 1.f, 1.f, 1.f,                             \
+                               1.f, 1.f, 1.f, 1.f))
+/** @brief Eye #matrix , except the south-east component, which is filled with a
  * zero.
  *
  * \f$ m_{ii} = 1 \leftrightarrow i \neq 4;
@@ -98,21 +109,19 @@
  *     m_{ij} = 0 \leftrightarrow i \neq j \f$
  */
 #define MAT_EYE ((float16)(1.f, 0.f, 0.f, 0.f,                                 \
-						   0.f, 1.f, 0.f, 0.f,                                 \
-						   0.f, 0.f, 1.f, 0.f,                                 \
-						   0.f, 0.f, 0.f, 0.f))
-/** @def MAT_ALL_EYE
- * @brief Eye #matrix
+                           0.f, 1.f, 0.f, 0.f,                                 \
+                           0.f, 0.f, 1.f, 0.f,                                 \
+                           0.f, 0.f, 0.f, 0.f))
+/** @brief Eye #matrix
  *
  * \f$ m_{ii} = 1; m_{ij} = 1 \leftrightarrow i \neq j \f$
  */
 #define MAT_ALL_EYE ((float16)(1.f, 0.f, 0.f, 0.f,                             \
-				     		   0.f, 1.f, 0.f, 0.f,                             \
-					    	   0.f, 0.f, 1.f, 0.f,                             \
-						       0.f, 0.f, 0.f, 1.f))
+                                0.f, 1.f, 0.f, 0.f,                             \
+                               0.f, 0.f, 1.f, 0.f,                             \
+                               0.f, 0.f, 0.f, 1.f))
 
-/** @def vec_xyz
- * @brief Vector of real components with the minimum number of components.
+/** @brief Vector of real components with the minimum number of components.
  *
  * The number of components depends on weather the 2D version or 3D
  * version is compiled:
@@ -123,8 +132,7 @@
  */
 #define vec_xyz vec3
 
-/** @def ivec_xyz
- * @brief Vector of integer components.
+/** @brief Vector of integer components.
  *
  * The number of components depends on weather the 2D version or 3D
  * version is compiled:
@@ -135,8 +143,7 @@
  */
 #define ivec_xyz ivec3
 
-/** @def uivec_xyz
- * @brief Vector of unsigned integer components.
+/** @brief Vector of unsigned integer components.
  *
  * The number of components depends on weather the 2D version or 3D
  * version is compiled:
@@ -147,8 +154,7 @@
  */
 #define uivec_xyz uivec3
 
-/** @def XYZ
- * @brief Convenient access to the vector components.
+/** @brief Convenient access to the vector components.
  * 
  * It is useful to be used with #vec_xyz, #ivec_xyz and #uivec_xyz type:
  *   - 2D = .xy
@@ -156,8 +162,7 @@
  */
 #define XYZ xyz
 
-/** @def C_I
- * @brief Utility to can redefine the cell of the particle to be  computed.
+/** @brief Utility to can redefine the cell of the particle to be  computed.
  * 
  * It can be used for mirrrored particles, which are temporary associated to a
  * different cell.
@@ -166,8 +171,7 @@
  */
 #define C_I() const uint c_i = icell[i]
 
-/** @def BEGIN_LOOP_OVER_NEIGHS
- * @brief Loop over the neighs to compute the interactions.
+/** @brief Loop over the neighs to compute the interactions.
  * 
  * All the code between this macro and END_LOOP_OVER_NEIGHS will be executed for
  * all the neighbours.
@@ -201,8 +205,7 @@
                 uint j = ihoc[c_j];                                            \
                 while((j < N) && (icell[j] == c_j)) {
 
-/** @def END_LOOP_OVER_NEIGHS
- * @brief End of the loop over the neighs to compute the interactions.
+/** @brief End of the loop over the neighs to compute the interactions.
  * 
  * @see BEGIN_LOOP_OVER_NEIGHS
  */
@@ -213,19 +216,17 @@
         }                                                                      \
     }
 
-/** @def MATRIX_DOT
- * @brief Multiply a matrix by a vector (inner product)
+/** @brief Multiply a matrix by a vector (inner product)
  *
  * @note The vector should have 3 components, not 4.
  */
 #define MATRIX_DOT(_M, _V)                                                     \
-	((float4)(dot(_M.s012, _V),                                                \
+    ((float4)(dot(_M.s012, _V),                                                \
               dot(_M.s456, _V),                                                \
               dot(_M.s89A, _V),                                                \
               0.f))
 
-/** @def MATRIX_DOT_ALL
- * @brief Multiply a matrix by a vector (inner product)
+/** @brief Multiply a matrix by a vector (inner product)
  */
 #define MATRIX_DOT_ALL(_M, _V)                                                 \
     ((float4)(dot(_M.s0123, _V),                                               \
@@ -233,8 +234,7 @@
               dot(_M.s89AB, _V),                                               \
               dot(_M.sCDEF, _V)))
 
-/** @def MATRIX_MUL
- * @brief Multiply a matrix by a matrix (inner product)
+/** @brief Multiply a matrix by a matrix (inner product)
  *
  * @note The last row and column of each matrix will be ignored. To perform a
  * complete inner product use #MATRIX_MUL_ALL
@@ -245,8 +245,7 @@
     dot(_M1.s89A, _M2.s048), dot(_M1.s89A, _M2.s159), dot(_M1.s89A, _M2.s26A), 0.f, \
     0.f, 0.f, 0.f, 0.f))
 
-/** @def MATRIX_MUL_ALL
- * @brief Multiply a matrix by a matrix (inner product)
+/** @brief Multiply a matrix by a matrix (inner product)
  *
  * @note For performance purposes, using #MATRIX_MUL instead of this operator is
  * strongly recommended.
@@ -257,28 +256,24 @@
     dot(_M1.s89AB, _M2.s048C), dot(_M1.s89AB, _M2.s159D), dot(_M1.s89AB, _M2.s26AE), dot(_M1.s89AB, _M2.s37BF), \
     dot(_M1.sCDEF, _M2.s048C), dot(_M1.sCDEF, _M2.s159D), dot(_M1.sCDEF, _M2.s26AE), dot(_M1.sCDEF, _M2.s37BF)))
 
-/** @def MATRIX_TRANSPOSE
- * @brief Transpose a matrix
+/** @brief Transpose a matrix
  */
 #define TRANSPOSE s048C159D26AE37BF
 
-/** @def DIAG
- * @brief The matrix diagonal (as vector)
+/** @brief The matrix diagonal (as vector)
  */
 #define DIAG s05A
 
-/** @def MATRIX_FROM_DIAG
- * @brief Build up a matrix from the diagonal information (as vector)
+/** @brief Build up a matrix from the diagonal information (as vector)
  * @note The component w of the vector is ignored (and 0.f is used instead)
  */
 #define MATRIX_FROM_DIAG(_V)                                                   \
-	((float16)(_V.x,  0.f,  0.f,  0.f,                                         \
+    ((float16)(_V.x,  0.f,  0.f,  0.f,                                         \
                 0.f, _V.y,  0.f,  0.f,                                         \
                 0.f,  0.f, _V.z,  0.f,                                         \
                 0.f,  0.f,  0.f,  0.f))
 
-/** @def MATRIX_TRACE
- * @brief Trace of the matrix
+/** @brief Trace of the matrix
  *
  * i.e. The sum of the diagonal elements of the matrix.
  */
@@ -291,11 +286,11 @@
  */
 matrix outer(const vec3 v1, const vec3 v2)
 {
-	matrix m = MAT_ZERO;
-	m.s012 = v1.x * v2;
-	m.s456 = v1.y * v2;
-	m.s89A = v1.z * v2;
-	return m;
+    matrix m = MAT_ZERO;
+    m.s012 = v1.x * v2;
+    m.s456 = v1.y * v2;
+    m.s89A = v1.z * v2;
+    return m;
 }
 
 /** @brief Determinant of a matrix
@@ -331,8 +326,7 @@ matrix inv(const matrix m)
                                     0.f,                             0.f,                             0.f, 1.f));
 }
 
-/** @def MATRIX_INV
- * @brief Pseudo-inverse of a matrix
+/** @brief Pseudo-inverse of a matrix
  *
  * The SVD Moore-Penrose method is applied:
  * \f[ A^{\dag} = \left( A^T A \right)^{-1} A^T \f]
