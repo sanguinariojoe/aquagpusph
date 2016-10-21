@@ -27,6 +27,28 @@
 #endif
 
 /** @brief Compute the maximum time step for each particle.
+ *
+ * In SPH the time step is selected to enforce the particles may not move more
+ * than \f$ 0.1 h \f$, where the Courant factor is not taken into account yet.
+ *
+ * Along this line, the distance moved by a particle can be written as follows:
+ *
+ * \f$ \vert \mathbf{r}_{n+1} - \mathbf{r}_{n} \vert = 
+ *     \vert \mathbf{u} \vert \Delta t +
+ *     \frac{1}{2} \left\vert
+ *                     \frac{\mathrm{d} \mathbf{u}}{\mathrm{d} t}
+ *                 \right\vert {\Delta t}^2 +
+       \mathcal{O}({\Delta t}^3) \f$
+ *
+ * Such that, taking maximums, and rearraging the equation:
+ *
+ * \f$ \Delta t = \frac{1}{20} \min \left(
+ *     \frac{h}{\vert \mathbf{u} \vert},
+ *     \sqrt{\frac{2 h}{\left\vert
+ *                          \frac{\mathrm{d} \mathbf{u}}{\mathrm{d} t}
+ *                      \right\vert}}
+ * \right) \f$
+ *
  * @param dt_var Variable time step \f$ \mathrm{min} \left(
  * C_f \frac{h}{c_s}, C_f \frac{h}{10 \vert \mathbf{u} \vert}\right)\f$.
  * @param u Velocity \f$ \mathbf{u}_{n+1/2} \f$.
@@ -50,6 +72,8 @@ __kernel void entry(__global float* dt_var,
     if(i >= N)
         return;
 
-    const float uu = 10.f * length(u[i] + dudt[i] * dt);
-    dt_var[i] = max(min(dt, h / uu), dt_min);
+    const float dr_max = 0.1f * h;
+    const float dt_u = courant * min(dr_max / length(u[i]),
+                                     sqrt(dr_max / (0.5f * length(dudt[i]))));
+    dt_var[i] = max(min(dt, dt_u), dt_min);
 }
