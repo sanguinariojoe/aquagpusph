@@ -35,6 +35,7 @@
 #include <TimeManager.h>
 #include <ScreenManager.h>
 #include <CalcServer/Tool.h>
+#include <CalcServer/Assert.h>
 #include <CalcServer/Copy.h>
 #include <CalcServer/Kernel.h>
 #include <CalcServer/LinkList.h>
@@ -276,6 +277,11 @@ CalcServer::CalcServer()
                                             P->tools.at(i)->get("in"),
                                             P->tools.at(i)->get("perm"),
                                             P->tools.at(i)->get("inv_perm"));
+            _tools.push_back(tool);
+        }
+        else if(!strcmp(P->tools.at(i)->get("type"), "assert")){
+            Assert *tool = new Assert(P->tools.at(i)->get("name"),
+                                      P->tools.at(i)->get("condition"));
             _tools.push_back(tool);
         }
         else if(!strcmp(P->tools.at(i)->get("type"), "dummy")){

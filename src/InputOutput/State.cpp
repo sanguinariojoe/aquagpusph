@@ -1019,6 +1019,16 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                     tool->set(atts[k], xmlAttribute(s_elem, atts[k]));
                 }
             }
+            else if(!strcmp(xmlAttribute(s_elem, "type"), "assert")){
+                if(!xmlHasAttribute(s_elem, "condition")){
+                    sprintf(msg,
+                            "Tool \"%s\" is of type \"assert\", but \"condition\" is not defined.\n",
+                            tool->get("name"));
+                    S->addMessageF(3, msg);
+                    return true;
+                }
+                tool->set("condition", xmlAttribute(s_elem, "condition"));
+            }
             else if(!strcmp(xmlAttribute(s_elem, "type"), "dummy")){
             	// Without options
             }

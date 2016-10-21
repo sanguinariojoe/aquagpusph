@@ -38,6 +38,7 @@ SET(DEP_LIBS
 # Sources to compile                                    #
 # ===================================================== #
 SET(Server_CPP_SRCS
+    Assert.cpp
     CalcServer.cpp
     Copy.cpp
     Kernel.cpp
