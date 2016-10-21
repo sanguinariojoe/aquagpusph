@@ -7,9 +7,11 @@
     </Variables>
 
     <Tools>
-        <Tool action="insert" before="TimeStep" type="kernel" name="cfd variable time step" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/TimeStep.cl"/>
-        <Tool action="insert" after="cfd variable time step" type="reduction" name="cfd minimum time step" in="dt_var" out="dt" null="INFINITY">
+        <Tool name="cfd variable time step" action="insert" before="TimeStep" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/TimeStep.cl"/>
+        <Tool name="cfd minimum time step" action="insert" before="TimeStep" type="reduction" in="dt_var" out="dt" null="INFINITY">
             c = min(a, b);
         </Tool>
+        <!-- Check that the time step is not null -->
+        <Tool name="cfd check time step" action="insert" before="TimeStep" type="assert" condition="dt > 0.0"/>
     </Tools>
 </sphInput>
