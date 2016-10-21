@@ -51,6 +51,8 @@ You can find an usage example in examples/2D/cylinder_inside_channel
         <!-- Internal variables to mark the buffer particles to become partner
         -->
         <Variable name="mybuffer" type="unsigned int*" length="N" />
+        <!-- Internal variable to check there are enough buffer particles -->
+        <Variable name="required_nbuffer" type="unsigned int" />        
     </Variables>
 
     <Tools>
@@ -103,6 +105,14 @@ You can find an usage example in examples/2D/cylinder_inside_channel
         <Tool name="Set buffer" action="insert" before="Refinement split" type="dummy" />
         <Tool name="basic init isplit" action="insert" before="Refinement split" type="set" in="isplit" value="2"/>
         <Tool name="basic isplit" action="insert" before="Refinement split" type="kernel" entry_point="check_split" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Split.cl"/>
+        <!-- We must check we have enough buffer particles -->
+        <Tool name="basic init isplit_in" action="insert" before="Refinement split" type="set" in="isplit_in" value="0"/>
+        <Tool name="basic isplit_in" action="insert" before="Refinement split" type="kernel" entry_point="set_isplit_in" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Split.cl"/>
+        <Tool name="basic count buffer particles" action="insert" before="Refinement split" type="reduction" in="isplit_in" out="required_nbuffer" null="0">
+            c = a + b;
+        </Tool>
+        <Tool name="basic check buffer particles" action="insert" before="Refinement split" type="assert" condition="nbuffer >= required_nbuffer"/>
+        <!-- Now we can safely consume buffer particles -->
         <Tool name="basic sort isplit" action="insert" before="Refinement split" type="radix-sort" in="isplit" perm="split_perm" inv_perm="split_invperm"/>
         <Tool name="basic split" action="insert" before="Refinement split" type="kernel" entry_point="generate" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Split.cl"/>
 
@@ -130,6 +140,14 @@ You can find an usage example in examples/2D/cylinder_inside_channel
         <Tool name="basic init icoalesce" action="insert" before="Refinement coalesce" type="set" in="isplit" value="3"/>
         <Tool name="basic coalesce seed candidates" action="insert" before="Refinement coalesce" type="kernel" entry_point="seed_candidates" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
         <Tool name="basic coalesce seeds" action="insert" before="Refinement coalesce" type="kernel" entry_point="seeds" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
+        <!-- We must check we have enough buffer particles -->
+        <Tool name="basic init icoalesce_in" action="insert" before="Refinement coalesce" type="set" in="isplit_in" value="0"/>
+        <Tool name="basic icoalesce_in" action="insert" before="Refinement coalesce" type="kernel" entry_point="set_isplit_in" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
+        <Tool name="basic count buffer particles" action="insert" before="Refinement coalesce" type="reduction" in="isplit_in" out="required_nbuffer" null="0">
+            c = a + b;
+        </Tool>
+        <Tool name="basic check buffer particles" action="insert" before="Refinement coalesce" type="assert" condition="nbuffer >= required_nbuffer"/>
+        <!-- Now we can safely consume buffer particles -->
         <Tool name="basic backup icoalesce" action="insert" before="Refinement coalesce" type="copy" in="isplit" out="isplit_in"/>
         <Tool name="basic sort icoalesce" action="insert" before="Refinement coalesce" type="radix-sort" in="isplit" perm="split_perm" inv_perm="split_invperm"/>
         <Tool name="basic coalesce generate" action="insert" before="Refinement coalesce" type="kernel" entry_point="generate" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>

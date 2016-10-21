@@ -166,6 +166,32 @@ __kernel void seeds(__global const unsigned int* iset,
     }END_LOOP_OVER_NEIGHS()
 }
 
+/** @brief Create a copy of isplit, where everything is 0 except the seeds,
+ * which take the value 1
+ *
+ * Since isplit is used to sort the particles, it should have "n_radix" items,
+ * which is bigger than "N". But in order to conveniently sort isplit, you must
+ * ensure that the values "out of bounds" are bigger than the other ones (and
+ * therefore kept at the end of the list). in this case a value of 3 is
+ * selected.
+ *
+ * @param isplit 0 if the particle should not become split, 1 otherwise
+ * @param isplit_in 0 if the particle should not become split, 1 otherwise
+ * @param N Number of particles.
+ */
+__kernel void set_isplit_in(__global const unsigned int* isplit,
+                            __global unsigned int* isplit_in,
+                            unsigned int N)
+{
+    unsigned int i = get_global_id(0);
+    if(i >= N)
+        return;
+
+    if(isplit[i] == 2)
+        isplit_in[i] = 1;
+}
+
+
 /** @brief Associate a buffer particle to a seed.
  *
  * Later we are looking for the rest of children, used to compute the variable
