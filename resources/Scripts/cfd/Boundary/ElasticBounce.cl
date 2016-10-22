@@ -76,7 +76,7 @@
  * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
  * @param n_cells Number of cells in each direction
- * @param dr Distance between particle \f$ \Delta r \f$.
+ * @param dr Distance between particles \f$ \Delta r \f$.
  * @param dt Time step \f$ \Delta t \f$.
  */
 __kernel void entry(const __global int* imove,
