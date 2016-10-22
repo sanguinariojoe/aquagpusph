@@ -87,6 +87,7 @@ bool ProblemSetup::perform()
 void ProblemSetup::sphSettings::init()
 {
     verbose_level = 1;
+    save_on_fail = true;
     platform_id = 0;
     device_id = 0;
     device_type = CL_DEVICE_TYPE_ALL;

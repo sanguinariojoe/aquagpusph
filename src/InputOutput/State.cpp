@@ -316,14 +316,31 @@ bool State::parseSettings(DOMElement *root, const char* prefix)
         if(node->getNodeType() != DOMNode::ELEMENT_NODE)
             continue;
         DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
+        DOMNodeList* s_nodes;
 
-        DOMNodeList* s_nodes = elem->getElementsByTagName(xmlS("Verbose"));
+        s_nodes = elem->getElementsByTagName(xmlS("Verbose"));
         for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
             DOMNode* s_node = s_nodes->item(j);
             if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
                 continue;
             DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
             P->settings.verbose_level = atoi(xmlAttribute(s_elem, "level"));
+        }
+
+        s_nodes = elem->getElementsByTagName(xmlS("SaveOnFail"));
+        for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
+            DOMNode* s_node = s_nodes->item(j);
+            if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
+                continue;
+            DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+            if(!strcmp(xmlAttribute(s_elem, "value"), "true") ||
+               !strcmp(xmlAttribute(s_elem, "value"), "True") ||
+               !strcmp(xmlAttribute(s_elem, "value"), "TRUE")){
+                P->settings.save_on_fail = true;
+            }
+            else{
+                P->settings.save_on_fail = false;
+            }
         }
 
         s_nodes = elem->getElementsByTagName(xmlS("Device"));

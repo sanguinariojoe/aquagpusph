@@ -186,6 +186,17 @@ public:
          */
         int verbose_level;
 
+        /** @brief Save the output in case of failure
+         *
+         * If true, the particles sets and simulation state will be saved in
+         * case of failure/fatal error. Otherwise the simulation will just stop.
+         *
+         * You can disable save on fail with the following tag (save on fail is
+         * enabled by default):
+         * `<SaveOnFail value="false" />`
+         */
+        bool save_on_fail;
+
         /** @brief Index of the OpenCL platform to use.
          *
          * AQUAgpusph is providing the available OpenCL platforms, and the

@@ -178,6 +178,8 @@ int main(int argc, char *argv[])
     while(!T->mustStop())
     {
         if(C->update()){
+            if(P->settings.save_on_fail)
+                F->save();
             float Time = T->time();
             delete S; S = NULL;
             S->printDate();
