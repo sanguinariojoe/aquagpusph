@@ -1,0 +1,6 @@
+{
+  "name": "Aquagpusph",
+  "tagline": "Free CFD software based on SPH and accelerated with OpenCL",
+  "body": "AQUAgpusph\r\n==========\r\n\r\nFree CFD software based on SPH, highly extensible, and accelerated with OpenCL.\r\n\r\nPlease, visit http://canal.etsin.upm.es/aquagpusph to learn more about AQUAgpusph.",
+  "note": "Don't delete this file! It's used internally to help with page regeneration."
+}
