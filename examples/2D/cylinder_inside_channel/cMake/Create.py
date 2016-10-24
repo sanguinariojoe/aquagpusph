@@ -37,8 +37,8 @@ import math
 # ==========
 
 g = 0.0
-hfac = 2.0
-courant = 0.05
+hfac = 1.25
+courant = 0.1
 courant_ramp_iters = 1000
 courant_ramp_factor = 0.001
 refd = 1.0
@@ -50,18 +50,20 @@ Re = 100.0
 p0 = 3.0 * refd * U**2
 # Cylinder and Channel dimensions
 D = 1.0
-L = 15.0 * D
-H = 8.0 * D
+L = 12.0 * D
+H = 5.0 * D
 # Position of the cylinder
-x_cyl = 0.3 * L
+x_cyl = 4.0 * D
 y_cyl = 0.0 * D
 # Number of fluid particles in y direction
-ny = 200
+ny = 125
 # Refinement areas
-refine1_min = (x_cyl - 3 * D, y_cyl - 3 * D)
-refine1_max = (x_cyl + 5 * D, y_cyl + 3 * D)
+refine1_min = (x_cyl - 1.5 * D, y_cyl - 1.5 * D)
+refine1_max = (x_cyl + 3.0 * D, y_cyl + 1.5 * D)
 refine2_min = (x_cyl - D, y_cyl - D)
 refine2_max = (x_cyl + D, y_cyl + D)
+# Transfer mass iterations
+m_iters = 200
 
 # Distance between particles
 # ==========================
@@ -76,9 +78,9 @@ domain_max = (L + 6.0 * sep * h, 0.5 * H + 3.0 * sep * h)
 n_buffer_x = max(int(8.0 * sep * hfac), int(D / dr))
 n_buffer_y = ny
 n_buffer = n_buffer_x * n_buffer_y
-n_level1 = 4 * int(8 * 6 * D / dr**2)
+n_level1 = 4 * int(5 * 3 * D / dr**2)
 n_level2 = 16 * int(2 * 2 * D / dr**2)
-n_buffer += 2 * (n_level1 + n_level2)
+n_buffer += (n_level1 + n_level2) / 5
 
 # Artificial viscosity
 # ====================
@@ -155,7 +157,7 @@ while x <= L + sep * h + 0.5 * dr:
                     mass,
                     imove,
                     level,
-                    10)
+                    m_iters)
                 output.write(string)
         y += dr
     x += dr
@@ -194,7 +196,7 @@ while x <= L + sep * h + 0.5 * dr:
             mass,
             imove,
             0,
-            10)
+            m_iters)
         output.write(string)
     x += dr
 
@@ -230,7 +232,7 @@ for i in range(n_buffer):
         mass,
         imove,
         0,
-        10)
+        m_iters)
     output.write(string)
 output.close()
 print('{} particles written'.format(n))
@@ -291,7 +293,7 @@ while theta < 2.0 * math.pi:
         mass,
         imove,
         0,
-        10)
+        m_iters)
     output.write(string)
 
     n_cyl += 1
@@ -303,7 +305,7 @@ print('{} boundary elements written'.format(n_cyl))
 # XML definition generation
 # =========================
 
-templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
+templates_path = path.join('/home/pepe/SPH/Code/aquagpusph-3.1.cmake/examples/2D/cylinder_inside_channel', 'templates')
 XML = ('Fluids.xml', 'Main.xml', 'Settings.xml', 'SPH.xml', 'Time.xml',
        'Initialization.xml', 'Initialization.py', 'Initialization.cl',
        'Refinement.xml', 'plot_f.py')
@@ -324,7 +326,8 @@ data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
         'REFINE1_MIN':refine1_min, 'REFINE1_MAX':refine1_max,
         'REFINE2_MIN':refine2_min, 'REFINE2_MAX':refine2_max,
         'COURANT_RAMP_ITERS':str(courant_ramp_iters),
-        'COURANT_RAMP_FACTOR':str(courant_ramp_factor),}
+        'COURANT_RAMP_FACTOR':str(courant_ramp_factor),
+        'M_ITERS':str(m_iters)}
 for fname in XML:
     # Read the template
     f = open(path.join(templates_path, fname), 'r')
