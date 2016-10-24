@@ -313,18 +313,19 @@ __kernel void children_candidates(__global const int* imove,
 
 
     BEGIN_LOOP_OVER_NEIGHS(){
-        if((isplit[j] != 0) ||             // It a seed or already a child
-           (imove[j] <= 0) ||              // Neglect boundaries/sensors
-           (miter[j] <= M_ITERS) ||        // It is already splitting/coalescing
-           (iset[i] != iset[j]) ||         // Another set of particles
-           (ilevel[i] != ilevel[j]) ||     // Another level of refinement
-           (length(r[j].XYZ - r_i) > dr)   // Not close enough
+        if((isplit[j] != 0) ||        // It a seed or already a child
+           (imove[j] <= 0) ||         // Neglect boundaries/sensors
+           (miter[j] <= M_ITERS) ||   // It is already splitting/coalescing
+           (iset[i] != iset[j]) ||    // Another set of particles
+           (ilevel[i] != ilevel[j])   // Another level of refinement
         ){
             j++;
             continue;
         }
 
-        {
+        if(all(islessequal(fabs(r[j].XYZ - r_i),
+                           0.75f * dr * VEC_ONE.XYZ))
+        ){
             // It does not matter if several threads write this data at the same
             // time, because are constant values
             isplit[j] = 1;
