@@ -60,6 +60,8 @@
  * @param m0 Target mass \f$ m_0 \f$.
  * @param miter Mass transfer iteration (Positive for growing particles,
  * negative for shrinking particles).
+ * @param ilevel Current refinement level of the particle.
+ * @param level Target refinement level of the particle.
  * @param p Pressure \f$ p \f$.
  * @param refd Density of reference of the fluid \f$ \rho_0 \f$.
  * @param N Number of particles.
@@ -89,6 +91,8 @@ __kernel void feed(__global int* imove,
                    __global float* m,
                    __global float* m0,
                    __global int* miter,
+                   __global unsigned int* ilevel,
+                   __global unsigned int* level,
                    __global float* p,
                    __constant float* refd,
                    unsigned int N,
@@ -145,6 +149,8 @@ __kernel void feed(__global int* imove,
     #endif
     m0[ii] = m[ii];
     miter[ii] = M_ITERS;
+    ilevel[ii] = 0;
+    level[ii] = 0;
     // reversed EOS
     rho[ii] = refd[iset[ii]] + p[ii] / (cs * cs);
     p[ii] += p0;
