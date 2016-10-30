@@ -19,14 +19,14 @@ Authors:
 
 <sphInput>
     <Include file="@RESOURCES_DIR@/Presets/basic/multiresolution.xml" />
-    <Include file="@RESOURCES_DIR@/Presets/basic/multiresolution/cube.xml" prefix="level1_" />
-    <Include file="@RESOURCES_DIR@/Presets/basic/multiresolution/cube.xml" prefix="level2_" />
+    <Include file="@RESOURCES_DIR@/Presets/basic/multiresolution/sphere.xml" prefix="level1_" />
+    <Include file="@RESOURCES_DIR@/Presets/basic/multiresolution/sphere.xml" prefix="level2_" />
     <Tools>
-        <Tool name="cube r_min" action="insert" before="level1_basic refinement cube" type="set_scalar" in="multiresolution_cube_min" value="{{REFINE1_MIN}}"/>
-        <Tool name="cube r_max" action="insert" before="level1_basic refinement cube" type="set_scalar" in="multiresolution_cube_max" value="{{REFINE1_MAX}}"/>
-        <Tool name="cube level" action="insert" before="level1_basic refinement cube" type="set_scalar" in="multiresolution_cube_level" value="1"/>
-        <Tool name="cube r_min" action="insert" before="level2_basic refinement cube" type="set_scalar" in="multiresolution_cube_min" value="{{REFINE2_MIN}}"/>
-        <Tool name="cube r_max" action="insert" before="level2_basic refinement cube" type="set_scalar" in="multiresolution_cube_max" value="{{REFINE2_MAX}}"/>
-        <Tool name="cube level" action="insert" before="level2_basic refinement cube" type="set_scalar" in="multiresolution_cube_level" value="2"/>
+        <Tool name="cube r_min" action="insert" before="level1_basic refinement sphere" type="set_scalar" in="multiresolution_sphere_center" value="{{REFINE1_CENTER}}"/>
+        <Tool name="cube r_max" action="insert" before="level1_basic refinement sphere" type="set_scalar" in="multiresolution_sphere_radius" value="{{REFINE1_RADIUS}}"/>
+        <Tool name="cube level" action="insert" before="level1_basic refinement sphere" type="set_scalar" in="multiresolution_sphere_level" value="1"/>
+        <Tool name="cube r_min" action="insert" before="level2_basic refinement sphere" type="set_scalar" in="multiresolution_sphere_center" value="{{REFINE2_CENTER}}"/>
+        <Tool name="cube r_max" action="insert" before="level2_basic refinement sphere" type="set_scalar" in="multiresolution_sphere_radius" value="{{REFINE2_RADIUS}}"/>
+        <Tool name="cube level" action="insert" before="level2_basic refinement sphere" type="set_scalar" in="multiresolution_sphere_level" value="2"/>
     </Tools>
 </sphInput>

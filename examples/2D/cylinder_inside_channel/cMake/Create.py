@@ -58,10 +58,10 @@ y_cyl = 0.0 * D
 # Number of fluid particles in y direction
 ny = 125
 # Refinement areas
-refine1_min = (x_cyl - 1.5 * D, y_cyl - 1.5 * D)
-refine1_max = (x_cyl + 3.0 * D, y_cyl + 1.5 * D)
-refine2_min = (x_cyl - D, y_cyl - D)
-refine2_max = (x_cyl + D, y_cyl + D)
+refine1_center = (x_cyl, y_cyl)
+refine1_radius = 2 * D
+refine2_center = (x_cyl, y_cyl)
+refine2_radius = D
 # Transfer mass iterations
 m_iters = 200
 
@@ -78,8 +78,8 @@ domain_max = (L + 6.0 * sep * h, 0.5 * H + 3.0 * sep * h)
 n_buffer_x = max(int(8.0 * sep * hfac), int(D / dr))
 n_buffer_y = ny
 n_buffer = n_buffer_x * n_buffer_y
-n_level1 = 4 * int(5 * 3 * D / dr**2)
-n_level2 = 16 * int(2 * 2 * D / dr**2)
+n_level1 = 4 * int(math.pi * refine1_radius**2 / dr**2)
+n_level2 = 16 * int(math.pi * refine2_radius**2 / dr**2)
 n_buffer += (n_level1 + n_level2) / 5
 
 # Artificial viscosity
@@ -125,11 +125,11 @@ while x <= L + sep * h + 0.5 * dr:
     y = -0.5 * H + 0.5 * dr
     while y < 0.5 * H:
         level = 0
-        if refine1_min[0] <= x <= refine1_max[0] and \
-           refine1_min[1] <= y <= refine1_max[1]:
+        if (x - refine1_center[0])**2 + (y - refine1_center[1])**2 <= \
+           refine1_radius**2:
             level = 1
-        if refine2_min[0] <= x <= refine2_max[0] and \
-           refine2_min[1] <= y <= refine2_max[1]:
+        if (x - refine2_center[0])**2 + (y - refine2_center[1])**2 <= \
+           refine2_radius**2:
             level = 2
         for ix in range(2**level):
             xx = x - 0.5 * dr + (ix + 0.5) * dr / (2**level)
@@ -305,17 +305,17 @@ print('{} boundary elements written'.format(n_cyl))
 # XML definition generation
 # =========================
 
-templates_path = path.join('/home/pepe/SPH/Code/aquagpusph-3.1.cmake/examples/2D/cylinder_inside_channel', 'templates')
+templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
 XML = ('Fluids.xml', 'Main.xml', 'Settings.xml', 'SPH.xml', 'Time.xml',
        'Initialization.xml', 'Initialization.py', 'Initialization.cl',
        'Refinement.xml', 'plot_f.py')
 
 domain_min = str(domain_min).replace('(', '').replace(')', '')
 domain_max = str(domain_max).replace('(', '').replace(')', '')
-refine1_min = str(refine1_min).replace('(', '').replace(')', '')
-refine1_max = str(refine1_max).replace('(', '').replace(')', '')
-refine2_min = str(refine2_min).replace('(', '').replace(')', '')
-refine2_max = str(refine2_max).replace('(', '').replace(')', '')
+refine1_center = str(refine1_center).replace('(', '').replace(')', '')
+refine1_radius = str(refine1_radius)
+refine2_center = str(refine2_center).replace('(', '').replace(')', '')
+refine2_radius = str(refine2_radius)
 
 data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
         'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max, 'REFD':str(refd),
@@ -323,8 +323,8 @@ data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
         'N':str(n), 'NY':str(ny), 'L':str(L), 'H':str(H), 'D':str(D),
         'U':str(U), 'P0':str(p0),
         'NCYL':str(n_cyl), 'XCYL':str(x_cyl), 'YCYL':str(y_cyl),
-        'REFINE1_MIN':refine1_min, 'REFINE1_MAX':refine1_max,
-        'REFINE2_MIN':refine2_min, 'REFINE2_MAX':refine2_max,
+        'REFINE1_CENTER':refine1_center, 'REFINE1_RADIUS':refine1_radius,
+        'REFINE2_CENTER':refine2_center, 'REFINE2_RADIUS':refine2_radius,
         'COURANT_RAMP_ITERS':str(courant_ramp_iters),
         'COURANT_RAMP_FACTOR':str(courant_ramp_factor),
         'M_ITERS':str(m_iters)}

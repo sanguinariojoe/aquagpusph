@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 
-<!-- Particles refinement cube area
+<!-- Particles refinement cube
 
 This module depends on basic/multiresolution.xml module, which should be
 included BEFORE this one.

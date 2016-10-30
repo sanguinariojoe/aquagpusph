@@ -15,6 +15,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/multiresolution.xml
     ${CMAKE_CURRENT_BINARY_DIR}/multiresolution.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/multiresolution/cube.xml
     ${CMAKE_CURRENT_BINARY_DIR}/multiresolution/cube.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/multiresolution/sphere.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/multiresolution/sphere.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/noLocalMem.xml
     ${CMAKE_CURRENT_BINARY_DIR}/noLocalMem.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/setBuffer.xml
@@ -38,6 +40,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/multiresolution.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/multiresolution.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/multiresolution/cube.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/multiresolution/cube.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/multiresolution/sphere.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/multiresolution/sphere.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/noLocalMem.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/noLocalMem.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/setBuffer.xml
@@ -70,6 +74,7 @@ INSTALL(
 )
 SET(RESOURCES_MULTIRESOLUTION_SRCS 
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/multiresolution/cube.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/multiresolution/sphere.xml
 )
 SOURCE_GROUP("ResourcesMultiresolutionGroup" FILES ${RESOURCES_MULTIRESOLUTION_SRCS})
 INSTALL(
