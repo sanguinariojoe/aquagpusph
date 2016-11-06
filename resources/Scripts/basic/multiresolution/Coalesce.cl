@@ -30,6 +30,16 @@
     #include "../../types/3D.h"
 #endif
 
+#ifndef HAVE_3D
+    #define N_DAUGHTER 4u
+    #define DAUGHTER_ID_TYPE uint4
+    #define DAUGHTER_DIST_TYPE float4
+#else
+    #define N_DAUGHTER 8u
+    #define DAUGHTER_ID_TYPE uint8
+    #define DAUGHTER_DIST_TYPE float8
+#endif
+
 #ifndef M_ITERS
     #define M_ITERS 10
 #endif
@@ -340,50 +350,197 @@ __kernel void children_candidates(__global const int* imove,
  * particle.
  *
  * @param iset Set of particles index.
+ * @param ilevel Current refinement level of the particle.
  * @param r Position \f$ \mathbf{r} \f$.
  * @param isplit 0 if the particle should not become coalesced, 1 for the
  * coalescing particles, 2 for the seeds.
- * @param mybuffer Index of the partner buffer particle.
+ * @param miter Mass transfer iteration (Positive for growing particles,
+ * negative for shrinking particles).
+ * @param mybuffer Index of the partner buffer particle associated.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
+ * @param dr_level0 Theoretical distance between particles at the lowest
+ * refinement level.
  * @param N Number of particles.
  * @param n_cells Number of cells in each direction
  */
 __kernel void children(__global const unsigned int* iset,
+                       __global const unsigned int* ilevel,
                        __global const vec* r,
-                       __global const unsigned int* isplit,
+                       __global unsigned int* isplit,
+                       __global int* miter,
                        __global unsigned int* mybuffer,
                        __global const uint *icell,
                        __global const uint *ihoc,
+                       __constant float* dr_level0,
                        unsigned int N,
                        uivec4 n_cells)
 {
     unsigned int i = get_global_id(0);
     if(i >= N)
         return;
-    if(isplit[i] != 1)
+    if((isplit[i] != 1) || (mybuffer[i] != N))
         return;
 
-    float dist = MAXFLOAT;  // So at least one seed will be closer than this
+    // Let's set the particle as not coalescing anymore. This may happens when
+    // all the seeds are already complete, i.e. they are generating a new
+    // particle with N_DAUGHTER daughters
+    isplit[i] = 0;
+    miter[i] = M_ITERS + 1;
+
+    const float dr = dr_level0[iset[i]] / ilevel[i];
+    float dist = MAXFLOAT;
     const vec_xyz r_i = r[i].XYZ;
 
     BEGIN_LOOP_OVER_NEIGHS(){
-        if((isplit[j] != 2) ||             // Not a seed
+        if((isplit[j] != 2) ||             // Not a seed/complete seed
            (iset[i] != iset[j])            // Another set of particles
         ){
             j++;
             continue;
         }
 
+        const vec_xyz r_ij = r[j].XYZ - r_i;
+        if(any(isgreater(fabs(r_ij), 0.75f * dr * VEC_ONE.XYZ))){
+            // Too far from him
+            j++;
+            continue;
+        }
         {
-            const float r_ij = length(r[j].XYZ - r_i);
-            if(r_ij < dist){
+            const float l = length(r_ij);
+            if(l < dist){
                 // This is a better candidate
-                dist = r_ij;
+                dist = l;
                 mybuffer[i] = mybuffer[j];
+                isplit[i] = 1;
+                miter[i] = -1;
             }
         }
     }END_LOOP_OVER_NEIGHS()
+}
+
+/** @brief Check if a child can be inserted into the list.
+ *
+ * If the child is closer than any other particle in the list, it will be
+ * inserted into the list, pushing out the farthest child.
+ *
+ * @param dist Distance between the particle and the seed.
+ * @param id ID of the child candidate
+ * @param dists List of distances between selected children and seed
+ * @param ids List of selected children ids
+ * @return true if the particle has been inserted, false otherwise.
+ */
+bool check_child(float dist, uint id, float *dists, uint *ids)
+{
+    unsigned int i, j;
+    for(i = 0; i < N_DAUGHTER; i++){
+        if(dist >= dists[i]){
+            continue;
+        }
+        // Push out the last particle (the farthest one)
+        for(j = N_DAUGHTER - 1; j > i; j--){
+            dists[j] = dists[j - 1];
+            ids[j] = ids[j - 1];
+        }
+        // And insert the new particle
+        dists[i] = dist;
+        ids[i] = id;
+        return true;
+    }
+    return false;
+}
+
+/** @brief Collect the children to check if the seed is complete.
+ *
+ * In order to avoid that a seed may generate a partner particle with too much
+ * children, which may create noisy fields, we are counting the number of
+ * children associated to the same partner, keeping just the N_DAUGHTER closest
+ * ones.
+ *
+ * The drop children will be set with a mybuffer
+ *
+ * @param r Position \f$ \mathbf{r} \f$.
+ * @param isplit 0 if the particle should not become coalesced, 1 for the
+ * coalescing particles, 2 for the seeds.
+ * @param mybuffer Index of the partner buffer particle associated.
+ * @param icell Cell where each particle is located.
+ * @param ihoc Head of chain for each cell (first particle found).
+ * @param N Number of particles.
+ * @param n_cells Number of cells in each direction
+ */
+__kernel void count_children(__global const vec* r,
+                             __global unsigned int* isplit,
+                             __global unsigned int* mybuffer,
+                             __global const uint *icell,
+                             __global const uint *ihoc,
+                             unsigned int N,
+                             uivec4 n_cells)
+{
+    unsigned int i = get_global_id(0);
+    if(i >= N)
+        return;
+    if(isplit[i] != 2)
+        return;
+
+    const vec_xyz r_i = r[i].XYZ;
+
+    const unsigned int ii = mybuffer[i];
+    if(ii == N){
+        // A problematic particle which has not found an available buffer...
+        return;
+    }
+    unsigned int n_children = 1;
+    // Create children id and distance lists
+    union
+    {
+        uint s[16];
+        DAUGHTER_ID_TYPE v;
+    } id_children;
+    id_children.v = (DAUGHTER_ID_TYPE)(N);
+    union
+    {
+        float s[16];
+        DAUGHTER_DIST_TYPE v;
+    } dist_children;
+    dist_children.v = (DAUGHTER_DIST_TYPE)(MAXFLOAT);
+    // Add the seed as a child
+    id_children.s[0] = i;
+    dist_children.s[0] = 0.f;
+
+    BEGIN_LOOP_OVER_NEIGHS(){
+        if((isplit[j] != 1) ||    // Not a child
+           (mybuffer[j] == N) ||  // Not partner associated?
+           (mybuffer[j] != ii)    // Not the same partner associated
+        ){
+            j++;
+            continue;
+        }
+
+        {
+            // Set the particle as non-selected. Later we are checking if it is
+            // actually present in the list of the selected ones
+            mybuffer[j] = N;
+
+            const float dist = length(r[j].XYZ - r_i);
+            if(check_child(dist, j, dist_children.s, id_children.s))
+            {
+                n_children++;
+            }
+        }
+    }END_LOOP_OVER_NEIGHS()
+
+    n_children = min(n_children, N_DAUGHTER);
+    if(n_children == N_DAUGHTER){
+        // Set the seed as complete
+        isplit[i] = 3;
+    }
+
+    // Reselect the children (all the children candidates out of id_children
+    // list are therefore kept as unselected, and should look for another
+    // partner, and give up of trying to coalesce)
+    for(uint j = 0; j < n_children; j++){
+        mybuffer[id_children.s[j]] = ii;
+    }
 }
 
 /** @brief Collect the children, and the seed itself, in order to compute the
@@ -399,10 +556,12 @@ __kernel void children(__global const unsigned int* iset,
  * @param m0 Target mass, \f$ m_0 \f$.
  * @param m Current mass, \f$ m \f$.
  * @param r Position \f$ \mathbf{r} \f$.
+ * @param u Velocity \f$ \mathbf{u} \f$.
+ * @param dudt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
+ * @param rho Density \f$ \rho \f$.
+ * @param drhodt Density rate of change \f$ \frac{d \rho}{d t} \f$.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
- * @param dr_level0 Theoretical distance between particles at the lowest
- * refinement level.
  * @param N Number of particles.
  * @param n_cells Number of cells in each direction
  */
@@ -423,7 +582,7 @@ __kernel void fields(__global const unsigned int* isplit,
     unsigned int i = get_global_id(0);
     if(i >= N)
         return;
-    if(isplit[i] != 2)
+    if((isplit[i] != 2) && (isplit[i] != 3))
         return;
 
     const unsigned int ii = mybuffer[i];
@@ -431,7 +590,7 @@ __kernel void fields(__global const unsigned int* isplit,
         // A problematic particle which has not found an available buffer...
         return;
     }
-    unsigned int nchildren = 1;
+    unsigned int n_children = 1;
     m0[ii] = m0[i];
     r[ii] = r[i];
     u[ii] = u[i];
@@ -448,7 +607,7 @@ __kernel void fields(__global const unsigned int* isplit,
         }
 
         {
-            nchildren++;
+            n_children++;
             m0[ii] += m0[j];
             r[ii] += r[j];
             u[ii] += u[j];
@@ -459,11 +618,11 @@ __kernel void fields(__global const unsigned int* isplit,
     }END_LOOP_OVER_NEIGHS()
 
     m[ii] = m0[ii];  // The mass is integrated, not averaged
-    r[ii] /= nchildren;
-    u[ii] /= nchildren;
-    dudt[ii] /= nchildren;
-    rho[ii] /= nchildren;
-    drhodt[ii] /= nchildren;    
+    r[ii] /= n_children;
+    u[ii] /= n_children;
+    dudt[ii] /= n_children;
+    rho[ii] /= n_children;
+    drhodt[ii] /= n_children;    
 }
 
 /*

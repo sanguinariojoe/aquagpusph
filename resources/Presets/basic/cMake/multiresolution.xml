@@ -148,12 +148,17 @@ You can find an usage example in examples/2D/cylinder_inside_channel
         </Tool>
         <Tool name="basic check buffer particles" action="insert" before="Refinement coalesce" type="assert" condition="nbuffer >= required_nbuffer"/>
         <!-- Now we can safely consume buffer particles -->
+        <Tool name="basic init mybuffer" action="insert" before="Refinement coalesce" type="set" in="mybuffer" value="N"/>
         <Tool name="basic backup icoalesce" action="insert" before="Refinement coalesce" type="copy" in="isplit" out="isplit_in"/>
         <Tool name="basic sort icoalesce" action="insert" before="Refinement coalesce" type="radix-sort" in="isplit" perm="split_perm" inv_perm="split_invperm"/>
         <Tool name="basic coalesce generate" action="insert" before="Refinement coalesce" type="kernel" entry_point="generate" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
         <Tool name="basic restore icoalesce" action="insert" before="Refinement coalesce" type="copy" in="isplit_in" out="isplit"/>
         <Tool name="basic coalesce children candidates" action="insert" before="Refinement coalesce" type="kernel" entry_point="children_candidates" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
         <Tool name="basic coalesce children" action="insert" before="Refinement coalesce" type="kernel" entry_point="children" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
+        <Tool name="basic count children" action="insert" before="Refinement coalesce" type="kernel" entry_point="count_children" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
+        <Tool name="basic coalesce children" action="insert" before="Refinement coalesce" type="kernel" entry_point="children" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
+        <Tool ifdef="HAVE_3D" name="basic count children" action="insert" before="Refinement coalesce" type="kernel" entry_point="count_children" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
+        <Tool ifdef="HAVE_3D" name="basic coalesce children" action="insert" before="Refinement coalesce" type="kernel" entry_point="children" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
         <Tool name="basic coalesce fields" action="insert" before="Refinement coalesce" type="kernel" entry_point="fields" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
         
 
