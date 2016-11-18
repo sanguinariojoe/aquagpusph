@@ -493,13 +493,13 @@ __kernel void count_children(__global const vec* r,
     // Create children id and distance lists
     union
     {
-        uint s[16];
+        uint s[N_DAUGHTER];
         DAUGHTER_ID_TYPE v;
     } id_children;
     id_children.v = (DAUGHTER_ID_TYPE)(N);
     union
     {
-        float s[16];
+        float s[N_DAUGHTER];
         DAUGHTER_DIST_TYPE v;
     } dist_children;
     dist_children.v = (DAUGHTER_DIST_TYPE)(MAXFLOAT);
