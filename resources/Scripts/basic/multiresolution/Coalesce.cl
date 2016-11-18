@@ -419,6 +419,12 @@ __kernel void children(__global const unsigned int* iset,
     }END_LOOP_OVER_NEIGHS()
 }
 
+#ifdef LOCAL_MEM_SIZE
+    #define MEM_ADDRESS __local
+#else
+    #define MEM_ADDRESS __private
+#endif
+
 /** @brief Check if a child can be inserted into the list.
  *
  * If the child is closer than any other particle in the list, it will be
@@ -430,7 +436,10 @@ __kernel void children(__global const unsigned int* iset,
  * @param ids List of selected children ids
  * @return true if the particle has been inserted, false otherwise.
  */
-bool check_child(float dist, uint id, float *dists, uint *ids)
+bool check_child(float dist,
+                 uint id,
+                 MEM_ADDRESS float *dists,
+                 MEM_ADDRESS uint *ids)
 {
     unsigned int i, j;
     for(i = 0; i < N_DAUGHTER; i++){
@@ -449,6 +458,7 @@ bool check_child(float dist, uint id, float *dists, uint *ids)
     }
     return false;
 }
+
 
 /** @brief Collect the children to check if the seed is complete.
  *
@@ -491,21 +501,15 @@ __kernel void count_children(__global const vec* r,
     }
     unsigned int n_children = 1;
     // Create children id and distance lists
-    union
-    {
-        uint s[N_DAUGHTER];
-        DAUGHTER_ID_TYPE v;
-    } id_children;
-    id_children.v = (DAUGHTER_ID_TYPE)(N);
-    union
-    {
-        float s[N_DAUGHTER];
-        DAUGHTER_DIST_TYPE v;
-    } dist_children;
-    dist_children.v = (DAUGHTER_DIST_TYPE)(MAXFLOAT);
+    MEM_ADDRESS uint id_children[N_DAUGHTER];
+    MEM_ADDRESS float dist_children[N_DAUGHTER];
+    for(uint j = 0; j < N_DAUGHTER; j++){
+        id_children[j] = N;
+        dist_children[j] = MAXFLOAT;
+    }
     // Add the seed as a child
-    id_children.s[0] = i;
-    dist_children.s[0] = 0.f;
+    id_children[0] = i;
+    dist_children[0] = 0.f;
 
     BEGIN_LOOP_OVER_NEIGHS(){
         if((isplit[j] != 1) ||    // Not a child
@@ -522,7 +526,7 @@ __kernel void count_children(__global const vec* r,
             mybuffer[j] = N;
 
             const float dist = length(r[j].XYZ - r_i);
-            if(check_child(dist, j, dist_children.s, id_children.s))
+            if(check_child(dist, j, dist_children, id_children))
             {
                 n_children++;
             }
@@ -539,7 +543,7 @@ __kernel void count_children(__global const vec* r,
     // list are therefore kept as unselected, and should look for another
     // partner, and give up of trying to coalesce)
     for(uint j = 0; j < n_children; j++){
-        mybuffer[id_children.s[j]] = ii;
+        mybuffer[id_children[j]] = ii;
     }
 }
 
