@@ -53,6 +53,12 @@ later:
 -->
 
 <sphInput>
+    <Settings>
+        <!-- Root path to be added to the include paths
+        -->
+        <RootPath path="@AQUAGPUSPH_ROOT_PATH@" />
+    </Settings>
+
     <Variables>
         <!-- Some variables are automatically defined:
         | NAME        | TYPE          | LEN     | DESCRIPTION

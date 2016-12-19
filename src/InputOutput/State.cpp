@@ -375,6 +375,14 @@ bool State::parseSettings(DOMElement *root, const char* prefix)
                 return true;
             }
         }
+        s_nodes = elem->getElementsByTagName(xmlS("RootPath"));
+        for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
+            DOMNode* s_node = s_nodes->item(j);
+            if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
+                continue;
+            DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+            P->settings.base_path = xmlAttribute(s_elem, "path");
+        }
     }
     return false;
 }

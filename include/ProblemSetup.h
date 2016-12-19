@@ -230,6 +230,14 @@ public:
          * @see #device_id.
          */
         cl_device_type device_type;
+
+        /** @brief AQUAgpusph root path.
+         *
+         * Usually this option is automatically set by the basic module, using
+         * the tag RootPath.
+         * This path is added to the OpenCL include paths.
+         */
+        std::string base_path;
     }settings;
 
     /** @struct sphVariables

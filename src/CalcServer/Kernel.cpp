@@ -184,6 +184,10 @@ bool Kernel::compile(const char* entry_point,
     strcat(flags, "-I");
     const char *folder = getFolderFromFilePath(path());
     strcat(flags, folder);
+    if(strcmp(C->base_path(), "")){
+        strcat(flags, " -I");
+        strcat(flags, C->base_path());
+    }
 
     strcat(flags, " -cl-mad-enable -cl-fast-relaxed-math ");
     #ifdef HAVE_3D

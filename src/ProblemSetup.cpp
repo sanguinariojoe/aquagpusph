@@ -91,6 +91,7 @@ void ProblemSetup::sphSettings::init()
     platform_id = 0;
     device_id = 0;
     device_type = CL_DEVICE_TYPE_ALL;
+    base_path = "";
 }
 
 void ProblemSetup::sphSettings::destroy()

@@ -53,7 +53,8 @@
 namespace Aqua{ namespace CalcServer{
 
 CalcServer::CalcServer()
-    : _num_platforms(0)
+    : _base_path("")
+    , _num_platforms(0)
     , _platforms(NULL)
     , _num_devices(0)
     , _devices(NULL)
@@ -74,6 +75,8 @@ CalcServer::CalcServer()
     if(setupOpenCL()) {
         exit(EXIT_FAILURE);
     }
+
+    _base_path = P->settings.base_path;
 
     unsigned int num_sets = P->sets.size();
     unsigned int N = 0;

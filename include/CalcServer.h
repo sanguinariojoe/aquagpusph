@@ -152,6 +152,11 @@ public:
                             size_t offset,
                             size_t cb,
                             void *ptr);
+
+    /** @brief Get the AQUAgpusph root path.
+     * @return AQUAgpusph root path
+     */
+    const char* base_path() const{return _base_path.c_str();}
 private:
     /// Setup the OpenCL stuff.
     /**
@@ -176,6 +181,13 @@ private:
      * otherwise
      */
     bool setupDevices();
+
+    /** @brief AQUAgpusph root path.
+     *
+     * This path is added to the OpenCL include paths.
+     */
+    std::string _base_path;
+
 
     /// Number of available OpenCL platforms
     cl_uint _num_platforms;

@@ -2,6 +2,7 @@
 # Configuration files                                   #
 # ===================================================== #
 # Create local version of the file
+SET(AQUAGPUSPH_ROOT_PATH ${CMAKE_BINARY_DIR})
 SET(RESOURCES_OUTPUT_DIR ${CMAKE_BINARY_DIR}/resources)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/basic.xml
     ${CMAKE_CURRENT_BINARY_DIR}/basic.xml @ONLY)
@@ -11,6 +12,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lelasticity.xml
     ${CMAKE_CURRENT_BINARY_DIR}/lelasticity.xml @ONLY)
 
 # Create installable version of the file
+SET(AQUAGPUSPH_ROOT_PATH ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR})
 SET(RESOURCES_OUTPUT_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/resources)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/basic.xml  
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/basic.xml @ONLY)
