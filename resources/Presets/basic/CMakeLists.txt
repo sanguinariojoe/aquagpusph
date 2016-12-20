@@ -9,6 +9,12 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/domain.xml
     ${CMAKE_CURRENT_BINARY_DIR}/domain.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/id_inverse.xml
     ${CMAKE_CURRENT_BINARY_DIR}/id_inverse.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/kernels/cubicSpline.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/kernels/cubicSpline.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/kernels/gauss.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/kernels/gauss.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/kernels/wendland.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/kernels/wendland.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/MLS.xml
     ${CMAKE_CURRENT_BINARY_DIR}/MLS.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/multiresolution.xml
@@ -34,6 +40,12 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/domain.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/domain.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/id_inverse.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/id_inverse.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/kernels/cubicSpline.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/kernels/cubicSpline.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/kernels/gauss.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/kernels/gauss.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/kernels/wendland.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/kernels/wendland.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/MLS.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/MLS.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/multiresolution.xml
@@ -71,6 +83,18 @@ INSTALL(
         ${RESOURCES_SRCS}
     DESTINATION
         ${CMAKE_INSTALL_DATADIR}/resources/Presets/basic
+)
+SET(RESOURCES_KERNELS_SRCS 
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/kernels/cubicSpline.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/kernels/gauss.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/kernels/wendland.xml
+)
+SOURCE_GROUP("ResourcesKernelsGroup" FILES ${RESOURCES_KERNELS_SRCS})
+INSTALL(
+    FILES
+        ${RESOURCES_KERNELS_SRCS}
+    DESTINATION
+        ${CMAKE_INSTALL_DATADIR}/resources/Presets/basic/kernels
 )
 SET(RESOURCES_MULTIRESOLUTION_SRCS 
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/multiresolution/cube.xml

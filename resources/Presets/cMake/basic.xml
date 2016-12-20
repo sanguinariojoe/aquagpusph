@@ -166,4 +166,8 @@ later:
         <Tool action="add" name="iter += 1" type="set_scalar" in="iter" value="iter + 1"/>
         <Tool action="add" name="End" type="dummy"/>
     </Tools>
+
+    <!-- Setup the Wendland as the default kernel. The user may optionally
+    override it later -->
+    <Include file="@RESOURCES_OUTPUT_DIR@/Presets/basic/kernels/wendland.xml" when="end"/>
 </sphInput>
