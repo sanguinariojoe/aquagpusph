@@ -20,11 +20,7 @@
  * @brief Mirroring process for the symmetry boundary condition.
  */
 
-#ifndef HAVE_3D
-    #include "../../../types/2D.h"
-#else
-    #include "../../../types/3D.h"
-#endif
+#include "resources/Scripts/types/types.h"
 
 /** @brief Compute the mirrored position of the fluid particles.
  *

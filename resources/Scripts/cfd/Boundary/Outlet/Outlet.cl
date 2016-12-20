@@ -21,11 +21,7 @@
  * infinite plane, destroying (moving out the domain) the particles far away.
  */
 
-#ifndef HAVE_3D
-    #include "../../../types/2D.h"
-#else
-    #include "../../../types/3D.h"
-#endif
+#include "resources/Scripts/types/types.h"
 
 /** @brief Outlet boundary condition, which is consisting into vanishing the
  * density variation rate of the particles tresspassing the outlet plane

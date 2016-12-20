@@ -20,11 +20,7 @@
  * @brief Set the velocity according to the initialization stage.
  */
 
-#ifndef HAVE_3D
-    #include "@RESOURCES_DIR@/Scripts/types/2D.h"
-#else
-    #include "@RESOURCES_DIR@/Scripts/types/3D.h"
-#endif
+#include "resources/Scripts/types/types.h"
 
 /** @brief Rescale the pressure and the velocity of the particles to restore
  * the energy dissipated.

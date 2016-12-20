@@ -20,11 +20,7 @@
  * @brief Euler-XYZ based transformation script.
  */
 
-#ifndef HAVE_3D
-    #include "../../types/2D.h"
-#else
-    #include "../../types/3D.h"
-#endif
+#include "resources/Scripts/types/types.h"
 
 /** @brief Transform the boundaries applying Euler-XYZ motion.
  *

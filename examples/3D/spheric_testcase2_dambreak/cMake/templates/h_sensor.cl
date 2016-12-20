@@ -16,11 +16,7 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef HAVE_3D
-    #include "@RESOURCES_DIR@/Scripts/types/2D.h"
-#else
-    #include "@RESOURCES_DIR@/Scripts/types/3D.h"
-#endif
+#include "resources/Scripts/types/types.h"
 
 /** @brief Set a helper array where the z coordinate of the particles far away
  * from the sensor is vanished.

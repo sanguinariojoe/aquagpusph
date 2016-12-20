@@ -24,11 +24,7 @@
  *  @brief Splitting particles methods
  */
 
-#ifndef HAVE_3D
-    #include "../../types/2D.h"
-#else
-    #include "../../types/3D.h"
-#endif
+#include "resources/Scripts/types/types.h"
 
 #ifndef HAVE_3D
     #define N_DAUGHTER 4u

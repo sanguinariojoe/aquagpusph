@@ -25,11 +25,7 @@
  * were split/coalesced
  */
 
-#ifndef HAVE_3D
-    #include "../../types/2D.h"
-#else
-    #include "../../types/3D.h"
-#endif
+#include "resources/Scripts/types/types.h"
 
 #ifndef M_ITERS
     #define M_ITERS 10

@@ -20,11 +20,7 @@
  * @brief OpenCL tool to compute the fluid global force and moment.
  */
 
-#ifndef HAVE_3D
-    #include "../../types/2D.h"
-#else
-    #include "../../types/3D.h"
-#endif
+#include "resources/Scripts/types/types.h"
 
 /** @brief Tool to compute the force and moment of each particle.
  *

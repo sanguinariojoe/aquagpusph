@@ -20,11 +20,7 @@
  * @brief Tool to compute the power energy components.
  */
 
-#ifndef HAVE_3D
-    #include "../../types/2D.h"
-#else
-    #include "../../types/3D.h"
-#endif
+#include "resources/Scripts/types/types.h"
 
 /** @brief Tool to compute the power components due to the interactions
  * between fluid particles, i.e. excluding the effect of the boundaries.

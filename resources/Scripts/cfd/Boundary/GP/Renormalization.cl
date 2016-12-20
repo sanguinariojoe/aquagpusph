@@ -21,11 +21,7 @@
  * (See Aqua::CalcServer::Boundary::DeLeffe for details)
  */
 
-#ifndef HAVE_3D
-    #include "../../../types/2D.h"
-#else
-    #include "../../../types/3D.h"
-#endif
+#include "resources/Scripts/types/types.h"
 
 /** @brief Set the fields for the boundary elements using the pressure
  * interpolated by Boundary/BI/Interpolation.cl.

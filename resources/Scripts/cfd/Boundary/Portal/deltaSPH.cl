@@ -24,13 +24,8 @@
     #error NO_LOCAL_MEM has been set.
 #endif
 
-#ifndef HAVE_3D
-    #include "../../../types/2D.h"
-    #include "../../../KernelFunctions/Wendland2D.hcl"
-#else
-    #include "../../../types/3D.h"
-    #include "../../../KernelFunctions/Wendland3D.hcl"
-#endif
+#include "resources/Scripts/types/types.h"
+#include "resources/Scripts/KernelFunctions/Kernel.h"
 
 /** @brief MLS based correction term, due to the particles at the other
  * portal side.

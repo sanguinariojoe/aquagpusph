@@ -20,11 +20,7 @@
  * @brief Tool to compute the energy substracted from the system by the outlet.
  */
 
-#ifndef HAVE_3D
-    #include "../../types/2D.h"
-#else
-    #include "../../types/3D.h"
-#endif
+#include "resources/Scripts/types/types.h"
 
 /** @brief Tool to compute the energy substracted from the system by the outlet.
  *

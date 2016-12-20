@@ -20,11 +20,7 @@
  * @brief Euler-XYZ based untransformation script.
  */
 
-#ifndef HAVE_3D
-    #include "../../types/2D.h"
-#else
-    #include "../../types/3D.h"
-#endif
+#include "resources/Scripts/types/types.h"
 
 /** @brief Untransform the previously applied EulerXYZ motion.
  *

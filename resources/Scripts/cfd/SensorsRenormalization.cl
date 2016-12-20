@@ -20,11 +20,7 @@
  * @brief Sensors values renormalization.
  */
 
-#ifndef HAVE_3D
-    #include "../types/2D.h"
-#else
-    #include "../types/3D.h"
-#endif
+#include "resources/Scripts/types/types.h"
 
 /** @brief Interpolated values renormalization ofr the sensors.
  *

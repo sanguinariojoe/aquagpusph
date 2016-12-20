@@ -35,11 +35,7 @@
     #define EXCLUDED_PARTICLE(index) (imove[index] <= 0) && (imove[index] != -1)
 #endif
 
-#ifndef HAVE_3D
-    #include "../types/2D.h"
-#else
-    #include "../types/3D.h"
-#endif
+#include "resources/Scripts/types/types.h"
 
 /** @brief Stiffness Equation Of State (EOS) computation
  *
