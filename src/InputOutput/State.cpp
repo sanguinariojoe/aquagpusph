@@ -442,9 +442,9 @@ bool State::parseDefinitions(DOMElement *root, const char* prefix)
                 return true;
             }
             if(!xmlHasAttribute(s_elem, "value")){
-                P->definitions.registerDefinition(xmlAttribute(s_elem, "name"),
-                                                  "",
-                                                  false);
+                P->definitions.define(xmlAttribute(s_elem, "name"),
+                                      "",
+                                      false);
                 continue;
             }
 
@@ -460,9 +460,9 @@ bool State::parseDefinitions(DOMElement *root, const char* prefix)
                 evaluate = true;
             }
 
-            P->definitions.registerDefinition(xmlAttribute(s_elem, "name"),
-                                              xmlAttribute(s_elem, "value"),
-                                              evaluate);
+            P->definitions.define(xmlAttribute(s_elem, "name"),
+                                  xmlAttribute(s_elem, "value"),
+                                  evaluate);
         }
     }
     return false;

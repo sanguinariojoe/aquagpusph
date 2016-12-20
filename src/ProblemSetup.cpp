@@ -137,11 +137,15 @@ void ProblemSetup::sphVariables::destroy()
     lengths.clear();
 }
 
-void ProblemSetup::sphDefinitions::registerDefinition(const char* name,
-                                                      const char* value,
-                                                      const bool evaluate)
+void ProblemSetup::sphDefinitions::define(const char* name,
+                                          const char* value,
+                                          const bool evaluate)
 {
     size_t len;
+
+    if(isDefined(name)){
+        undefine(name);
+    }
 
     char *aux=NULL;
     len = strlen(name) + 1;
@@ -165,6 +169,21 @@ bool ProblemSetup::sphDefinitions::isDefined(const char* name)
     }
 
     return false;
+}
+
+void ProblemSetup::sphDefinitions::undefine(const char* name)
+{
+    unsigned int i;
+    for(i = 0; i < names.size(); i++){
+        if(!strcmp(name, names.at(i))){
+            delete[] names.at(i);
+            delete[] values.at(i);
+            names.erase(names.begin() + i);
+            values.erase(values.begin() + i);
+            evaluations.erase(evaluations.begin() + i);
+            return;
+        }
+    }
 }
 
 void ProblemSetup::sphDefinitions::destroy()

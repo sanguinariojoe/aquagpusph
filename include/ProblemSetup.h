@@ -344,14 +344,20 @@ public:
          * @param evaluate True if the value should be evaluated as a math
          * expression, false otherwise.
          */
-        void registerDefinition(const char* name,
-                                const char* value,
-                                const bool evaluate);
+        void define(const char* name,
+                    const char* value,
+                    const bool evaluate);
 
         /** @brief Reports if a the required name has been already defined.
          * @param name Name of the definition.
+         * @return true if it is already defined, false otherwise.
          */
         bool isDefined(const char* name);
+
+        /** @brief Undefine a registered definition
+         * @param name Name of the definition.
+         */
+        void undefine(const char* name);
 
         /// Remove all the stored definitions.
         void destroy();
