@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+
+<!-- wendland.xml
+Quintic Wendland kernel-->
+
+<sphInput>
+    <Definitions>
+        <Define name="SUPPORT" value="2.f" evaluate="false"/>
+        <Define name="KERNEL_NAME" value="Spiky" evaluate="false"/>
+    </Definitions>
+
+    <Variables>
+        <Variable name="support" type="float" value="2.0" />
+</sphInput>

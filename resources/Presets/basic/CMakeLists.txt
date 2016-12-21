@@ -13,6 +13,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/kernels/cubicSpline.xml
     ${CMAKE_CURRENT_BINARY_DIR}/kernels/cubicSpline.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/kernels/gauss.xml
     ${CMAKE_CURRENT_BINARY_DIR}/kernels/gauss.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/kernels/spiky.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/kernels/spiky.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/kernels/wendland.xml
     ${CMAKE_CURRENT_BINARY_DIR}/kernels/wendland.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/MLS.xml
@@ -44,6 +46,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/kernels/cubicSpline.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/kernels/cubicSpline.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/kernels/gauss.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/kernels/gauss.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/kernels/spiky.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/kernels/spiky.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/kernels/wendland.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/kernels/wendland.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/MLS.xml
@@ -88,6 +92,7 @@ SET(RESOURCES_KERNELS_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/kernels/cubicSpline.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/kernels/gauss.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/kernels/wendland.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/kernels/spiky.xml
 )
 SOURCE_GROUP("ResourcesKernelsGroup" FILES ${RESOURCES_KERNELS_SRCS})
 INSTALL(
