@@ -651,6 +651,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                                     "The tool \"%s\" must be inserted before \"%s\", but such tools cannot be found.\n",
                                     tool->get("name"),
                                     att_str);
+                            delete tool;
                             if(try_insert){
                                 S->addMessageF(2, msg);
                                 continue;
@@ -673,6 +674,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                                     "The tool \"%s\" must be inserted before \"%s\", but such tool cannot be found.\n",
                                     tool->get("name"),
                                     att_str);
+                            delete tool;
                             if(try_insert){
                                 S->addMessageF(2, msg);
                                 continue;
@@ -698,6 +700,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                                     "The tool \"%s\" must be inserted before \"%s\", but such tools cannot be found.\n",
                                     tool->get("name"),
                                     att_str);
+                            delete tool;
                             if(try_insert){
                                 S->addMessageF(2, msg);
                                 continue;
@@ -720,6 +723,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                                     "The tool \"%s\" must be inserted before \"%s\", but such tool cannot be found.\n",
                                     tool->get("name"),
                                     att_str);
+                            delete tool;
                             if(try_insert){
                                 S->addMessageF(2, msg);
                                 continue;
@@ -745,6 +749,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                                     "The tool \"%s\" must be inserted before \"%s\", but such tools cannot be found.\n",
                                     tool->get("name"),
                                     att_str);
+                            delete tool;
                             if(try_insert){
                                 S->addMessageF(2, msg);
                                 continue;
@@ -767,6 +772,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                                     "The tool \"%s\" must be inserted before \"%s\", but such tool cannot be found.\n",
                                     tool->get("name"),
                                     att_str);
+                            delete tool;
                             if(try_insert){
                                 S->addMessageF(2, msg);
                                 continue;
@@ -792,6 +798,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                                     "The tool \"%s\" must be inserted before \"%s\", but such tools cannot be found.\n",
                                     tool->get("name"),
                                     att_str);
+                            delete tool;
                             if(try_insert){
                                 S->addMessageF(2, msg);
                                 continue;
@@ -814,6 +821,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                                     "The tool \"%s\" must be inserted before \"%s\", but such tool cannot be found.\n",
                                     tool->get("name"),
                                     att_str);
+                            delete tool;
                             if(try_insert){
                                 S->addMessageF(2, msg);
                                 continue;
@@ -860,6 +868,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                     sprintf(msg,
                             "Failure removing the tool \"%s\" (tool not found).\n",
                             tool->get("name"));
+                    delete tool;
                     if(try_remove){
                         S->addMessageF(2, msg);
                         continue;
@@ -894,6 +903,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                     sprintf(msg,
                             "Failure replacing the tool \"%s\" (tool not found).\n",
                             tool->get("name"));
+                    delete tool;
                     if(try_replace){
                         S->addMessageF(2, msg);
                         continue;
@@ -1823,6 +1833,7 @@ bool State::writeSet(xercesc::DOMDocument* doc,
         s_elem->setAttribute(xmlS("format"), xmlS(sets.at(i)->outputFormat()));
         s_elem->setAttribute(xmlS("fields"), xmlS(fields));
         elem->appendChild(s_elem);
+        delete[] fields; fields=NULL;
     }
 
     return false;

@@ -81,6 +81,7 @@ bool Assert::_execute()
 
     // Check the result
     memcpy(&result, data, sizeof(int));
+    free(data);
     if(result == 0){
         msg << "Assertion error. The expression \"" <<
                std::string(_condition) << "\" is false" << std::endl;

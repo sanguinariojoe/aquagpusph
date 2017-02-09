@@ -1515,6 +1515,7 @@ const char* ArrayVariable::asString(size_t i)
                 name());
         S->addMessageF(3, msg);
         S->printOpenCLError(err_code);
+        free(ptr);
         return NULL;
     }
 
@@ -1628,8 +1629,10 @@ const char* ArrayVariable::asString(size_t i)
                 name(),
                 type());
         S->addMessageF(3, msg);
+        free(ptr);
         return NULL;
     }
+    free(ptr);
     return (const char*)str_val;
 }
 
@@ -2645,6 +2648,9 @@ bool Variables::readComponents(const char* name,
     // Replace all the commas outside functions by semicolons, to be taken into
     // account as separators
     char* remain = new char[strlen(value) + 1];
+    // remain ptr will be modified, so we must keep its original reference to
+    // can delete later
+    char* remain_orig = remain;
     char* aux = new char[strlen(value) + 1];
     if((!remain) || (!aux)){
         sprintf(msg,
@@ -2652,6 +2658,7 @@ bool Variables::readComponents(const char* name,
                 2 * sizeof(char) * (strlen(value) + 1),
                 name);
         S->addMessageF(3, msg);
+        return true;
     }
     strcpy(remain, value);
     int parenthesis_counter = 0;
@@ -2682,13 +2689,18 @@ bool Variables::readComponents(const char* name,
             S->addMessageF(3, msg);
             sprintf(msg, "%u fields expected, %u received.\n", n, n_fields);
             S->addMessage(0, msg);
+            delete[] remain_orig;
+            delete[] aux;
             return true;
         }
         strcpy(strchr(aux, ';'), "");
         remain = strchr(remain, ';') + 1;
         val = tok.solve(aux, &error);
-        if(error)
+        if(error){
+            delete[] remain_orig;
+            delete[] aux;
             return true;
+        }
         strcpy(nameaux, name);
         strcat(nameaux, extensions[i]);
         tok.registerVariable(nameaux, val);
@@ -2699,6 +2711,8 @@ bool Variables::readComponents(const char* name,
     if(strchr(aux, ';'))
         strcpy(strchr(aux, ';'), "");
     val = tok.solve(aux, &error);
+    delete[] remain_orig;
+    delete[] aux;
     if(error)
         return true;
     strcpy(nameaux, name);

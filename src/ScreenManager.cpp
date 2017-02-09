@@ -282,6 +282,7 @@ void ScreenManager::addMessage(int level, const char *log, const char *func)
         _log_level.pop_back();
     }
     while(_log.size() > (unsigned int)rows){
+        delete[] _log.back();
         _log.pop_back();
     }
 

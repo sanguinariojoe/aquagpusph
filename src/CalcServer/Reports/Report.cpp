@@ -48,6 +48,7 @@ Report::~Report()
     if(_fields) delete[] _fields; _fields=NULL;
     _vars_per_line.clear();
     _vars.clear();
+    if(_data) delete[] _data; _data = NULL;
 }
 
 bool Report::setup()

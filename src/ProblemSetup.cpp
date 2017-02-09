@@ -131,10 +131,12 @@ void ProblemSetup::sphVariables::destroy()
         delete[] names.at(i);
         delete[] types.at(i);
         delete[] lengths.at(i);
+        delete[] values.at(i);
     }
     names.clear();
     types.clear();
     lengths.clear();
+    values.clear();
 }
 
 void ProblemSetup::sphDefinitions::define(const char* name,

@@ -121,6 +121,8 @@ VTK::~VTK()
         }
     }
     _tids.clear();
+
+    if(_namePVD) delete[] _namePVD; _namePVD=NULL;
 }
 
 bool VTK::load()
