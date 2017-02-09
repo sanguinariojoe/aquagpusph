@@ -225,7 +225,7 @@ CalcServer::CalcServer()
             }
             strcpy(defstr, "-D");
             strcat(defstr, P->definitions.names.at(i));
-            sprintf(defstr, "%s=%#Gf", defstr, defval);
+            sprintf(defstr + strlen(defstr), "=%#Gf", defval);
         }
         _definitions.push_back(defstr);
     }

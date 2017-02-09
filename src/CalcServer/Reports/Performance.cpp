@@ -144,13 +144,11 @@ bool Performance::_execute()
     }
     addElapsedTime(elapsed_seconds);
 
-    sprintf(data, "%sElapsed=%16gs (+-%16gs)\n",
-            data,
+    sprintf(data + strlen(data), "Elapsed=%16gs (+-%16gs)\n",
             elapsedTime(),
             elapsedTimeVariance());
 
-    sprintf(data, "%sOverhead=%16gs (+-%16gs)\n",
-            data,
+    sprintf(data + strlen(data), "Overhead=%16gs (+-%16gs)\n",
             elapsedTime() - elapsed_ave,
             elapsedTimeVariance() - elapsed_var);
 
@@ -171,9 +169,7 @@ bool Performance::_execute()
     float total_elapsed = elapsedTime() * used_times();
     float ETA = total_elapsed * (1.f / progress - 1.f);
 
-    sprintf(data,
-            "%sPercentage=%16.2f\tETA=%16gs\n",
-            data,
+    sprintf(data + strlen(data), "Percentage=%16.2f\tETA=%16gs\n",
             progress * 100.f,
             ETA);
 
