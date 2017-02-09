@@ -163,7 +163,7 @@ bool Set::setupOpenCL()
     strcpy(header, "");
     strncat(header, SET_INC, SET_INC_LEN);
     strcat(header, "");
-    sprintf(header, "%s #define VALUE %s\n", header, _value);
+    sprintf(header + strlen(header), " #define VALUE %s\n", _value);
 
     // Setup the complete source code
     char source[strlen(header) + strlen(SET_SRC) + 1];

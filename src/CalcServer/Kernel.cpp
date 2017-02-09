@@ -303,7 +303,7 @@ bool Kernel::compile(const char* entry_point,
         S->addMessageF(1, "Falling back to no local memory usage.\n");
         return false;
     }
-    sprintf(flags, "%s -DLOCAL_MEM_SIZE=%lu", flags, work_group_size);
+    sprintf(flags + strlen(flags), " -DLOCAL_MEM_SIZE=%lu", work_group_size);
     err_code = clBuildProgram(program, 0, NULL, flags, NULL, NULL);
     delete[] flags; flags=NULL;
     if(err_code != CL_SUCCESS) {

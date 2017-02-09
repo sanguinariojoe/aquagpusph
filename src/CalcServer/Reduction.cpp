@@ -256,7 +256,7 @@ bool Reduction::setupOpenCL()
     char header[REDUCTION_INC_LEN + strlen(_operation) + strlen(_null_val) + 128];
     strcpy(header, "");
     strncat(header, REDUCTION_INC, REDUCTION_INC_LEN);
-    sprintf(header, "%s #define IDENTITY %s\n", header, _null_val);
+    sprintf(header + strlen(header), " #define IDENTITY %s\n", _null_val);
     strcat(header, "T reduce(T a, T b) \n");
     strcat(header, "{ \n");
     strcat(header, "\tT c; \n");
