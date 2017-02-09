@@ -354,6 +354,12 @@ void* save_pthread(void *data_void)
                     "\"%s\" field has been set to be saved, but it was not declared.\n",
                     data->fields.at(i));
             data->S->addMessage(3, msg);
+            for(i = 0; i < data->fields.size(); i++){
+                free(data->data.at(i)); data->data.at(i) = NULL;
+            }
+            data->data.clear();
+            data->f->Delete();
+            delete data; data=NULL;
             return NULL;
         }
         if(!strchr(vars->get(data->fields.at(i))->type(), '*')){
@@ -361,6 +367,12 @@ void* save_pthread(void *data_void)
                     "\"%s\" field has been set to be saved, but it was declared as a scalar.\n",
                     data->fields.at(i));
             data->S->addMessage(3, msg);
+            for(i = 0; i < data->fields.size(); i++){
+                free(data->data.at(i)); data->data.at(i) = NULL;
+            }
+            data->data.clear();
+            data->f->Delete();
+            delete data; data=NULL;
             return NULL;
         }
         ArrayVariable *var = (ArrayVariable*)vars->get(data->fields.at(i));
@@ -371,6 +383,12 @@ void* save_pthread(void *data_void)
                     "Failure saving \"%s\" field, which has not length enough.\n",
                     data->fields.at(i));
             data->S->addMessage(3, msg);
+            for(i = 0; i < data->fields.size(); i++){
+                free(data->data.at(i)); data->data.at(i) = NULL;
+            }
+            data->data.clear();
+            data->f->Delete();
+            delete data; data=NULL;
             return NULL;
         }
 
@@ -503,7 +521,6 @@ void* save_pthread(void *data_void)
 
     if(!data->f->Write()){
         data->S->addMessageF(3, "Failure writing the VTK file.\n");
-        return NULL;
     }
 
     // Clean up
@@ -639,7 +656,12 @@ bool VTK::updatePVD(){
     sprintf(msg, "Writing \"%s\" Paraview data file...\n", filenamePVD());
     S->addMessageF(1, msg);
 
-    DOMDocument* doc = getPVD();
+    bool should_release_doc = false;
+    DOMDocument* doc = getPVD(false);
+    if(!doc){
+        should_release_doc = true;
+        doc = getPVD(true);
+    }
     DOMElement* root = doc->getDocumentElement();
     if(!root){
         S->addMessageF(3, "Empty XML file found!\n");
@@ -720,13 +742,14 @@ bool VTK::updatePVD(){
     delete target;
     saver->release();
     output->release();
-    // doc->release();
+    if(should_release_doc)
+        doc->release();
     xmlClear();
 
     return false;
 }
 
-DOMDocument* VTK::getPVD()
+DOMDocument* VTK::getPVD(bool generate)
 {
     DOMDocument* doc = NULL;
     FILE *dummy=NULL;
@@ -734,6 +757,9 @@ DOMDocument* VTK::getPVD()
     // Try to open as ascii file, just to know if the file already exist
     dummy = fopen(filenamePVD(), "r");
     if(!dummy){
+        if(!generate){
+            return NULL;
+        }
         DOMImplementation* impl;
         impl = DOMImplementationRegistry::getDOMImplementation(xmlS("Range"));
         DOMDocument* doc = impl->createDocument(

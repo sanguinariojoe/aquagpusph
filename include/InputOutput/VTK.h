@@ -133,9 +133,11 @@ private:
      *
      * Such file is used to indicates Paraview the list of files which compose
      * an animation, and the time instant of each one.
-     * @return The document object.
+     * @param generate true if the file should be generated in case it does not
+     * exist, false if the document should be associated to an existing file.
+     * @return The document object. NULL if the file cannot be open/generated
      */
-    xercesc::DOMDocument* getPVD();
+    xercesc::DOMDocument* getPVD(bool generate=true);
 
     /** @brief PVD file name
      * @return the PVD file name

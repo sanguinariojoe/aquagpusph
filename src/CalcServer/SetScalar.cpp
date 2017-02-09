@@ -83,14 +83,17 @@ bool SetScalar::_execute()
                 _var->typesize(),
                 _var->name());
         S->addMessageF(3, msg);
+        free(data);
         return true;
     }
 
     if(vars->solve(_var->type(), _value, data, _var->name())){
+        free(data);
         return true;
     }
 
     _var->set(data);
+    free(data);
     // Ensure that the variable is populated
     if(vars->populate(_var)){
         return true;
