@@ -115,10 +115,7 @@ VTK::~VTK()
     // Wait for the writers working
     S->addMessageF(1, "Waiting for the writers...\n");
     for(i = 0; i < _tids.size(); i++){
-        if(!pthread_kill(_tids.at(i), 0))
-        {
-            pthread_join(_tids.at(i), NULL);
-        }
+        pthread_join(_tids.at(i), NULL);
     }
     _tids.clear();
 
@@ -588,9 +585,15 @@ bool VTK::save()
     _tids.push_back(tid);
 
     // Clear the already finished threads
-    for(i = 0; i < _tids.size(); i++){
-        if(pthread_kill(_tids.at(i), 0)){
-            _tids.erase(_tids.begin() + i);
+    if(_tids.size() > 0){
+        i = _tids.size() - 1;
+        while(true){
+            if(pthread_kill(_tids.at(i), 0)){
+                pthread_join(_tids.at(i), NULL);
+                _tids.erase(_tids.begin() + i);
+            }
+            if(i == 0) break;
+            i--;
         }
     }
 
@@ -600,10 +603,7 @@ bool VTK::save()
         S->addMessageF(0, "This may result in heavy performance penalties, and hard disk failures\n");
         S->addMessageF(0, "Please, consider a reduction of the output printing rate\n");
         while(_tids.size() > 2){
-            if(!pthread_kill(_tids.at(0), 0))
-            {
-                pthread_join(_tids.at(0), NULL);
-            }
+            pthread_join(_tids.at(0), NULL);
             _tids.erase(_tids.begin());
         }
     }
