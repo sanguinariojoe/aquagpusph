@@ -45,6 +45,8 @@ const char* _stdout_redirect = "         \n\
 class stdoutWriter(object):              \n\
     def write(self, data):               \n\
         aquagpusph.log(0, data.rstrip()) \n\
+    def flush(self):                     \n\
+        pass                             \n\
 \n";
 
 /** @brief stderr Python redirector.
@@ -54,6 +56,8 @@ const char* _stderr_redirect = "         \n\
 class stderrWriter(object):              \n\
     def write(self, data):               \n\
         aquagpusph.log(3, data.rstrip()) \n\
+    def flush(self):                     \n\
+        pass                             \n\
 \n";
 
 /** @brief Get a variable by its name.
