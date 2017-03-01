@@ -120,7 +120,6 @@ bool Performance::_execute()
     std::deque<Tool*> tools = C->tools();
     float elapsed = 0.f;
     float elapsed_ave = 0.f;
-    float elapsed_var = 0.f;
     for(i = 0; i < tools.size(); i++){
         // Exclude the tool itself
         if(this == tools.at(i)){
@@ -128,7 +127,6 @@ bool Performance::_execute()
         }
         elapsed += tools.at(i)->elapsedTime(false);
         elapsed_ave += tools.at(i)->elapsedTime();
-        elapsed_var += tools.at(i)->elapsedTimeDeviation();
     }
 
     timeval tac;
@@ -148,9 +146,8 @@ bool Performance::_execute()
             elapsedTime(),
             elapsedTimeVariance());
 
-    sprintf(data + strlen(data), "Overhead=%16gs (+-%16gs)\n",
-            elapsedTime() - elapsed_ave,
-            elapsedTimeVariance() - elapsed_var);
+    sprintf(data + strlen(data), "Overhead=%16gs\n",
+            elapsedTime() - elapsed_ave);
 
     // Compute the progress
     InputOutput::Variables* vars = C->variables();
@@ -182,14 +179,13 @@ bool Performance::_execute()
     // Write the output file
     if(_f){
         fprintf(_f,
-                "%16g %16g %16g %16g %16g %16g %16g %16.2f %16g\n",
+                "%16g %16g %16g %16g %16g %16g %16.2f %16g\n",
                 t,
                 elapsedTime(false),
                 elapsedTime(),
                 elapsedTimeVariance(),
                 elapsedTime(false) - elapsed,
                 elapsedTime() - elapsed_ave,
-                elapsedTimeVariance() - elapsed_var,
                 progress * 100.f,
                 ETA);
     }
