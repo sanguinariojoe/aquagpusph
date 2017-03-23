@@ -89,7 +89,8 @@ __kernel void check_split(__global const int* imove,
 }
 
 /** @brief Create a copy of isplit, where the data "out of bounds" is set to
- * 0, instead of 2.
+ * 0, instead of 2. Such array can be used to count the number of new particles
+ * to become generated.
  *
  * Since isplit is used to sort the particles, it should have "n_radix" items,
  * which is bigger than "N". But in order to conveniently sort isplit, you must

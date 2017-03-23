@@ -102,8 +102,8 @@ __kernel void seed_candidates(__global const unsigned int* iset,
     miter[i] = -1;
     const float dr = dr_level0[iset[i]] / ilevel[i];
     split_cell[i] = CONVERT(ivec, r[i] / dr);
-    const vec r_cell = r[i] - (CONVERT(vec, split_cell[i]) + VEC_ONE * 0.5f * dr);
-    split_dist[i] = length(r_cell);
+    const vec r_cell = (CONVERT(vec, split_cell[i]) + 0.5f * VEC_ONE) * dr;
+    split_dist[i] = length(r[i] - r_cell);
 }
 
 /** @brief Get only one seed per cell.
@@ -155,7 +155,7 @@ __kernel void seeds(__global const unsigned int* iset,
         }
 
         {
-            const float jsplit_dist = split_dist[i];
+            const float jsplit_dist = split_dist[j];
             if(isplit_dist > jsplit_dist){
                 // I'm not a seed, because there is another better candidate
                 isplit[i] = 1;
@@ -173,7 +173,8 @@ __kernel void seeds(__global const unsigned int* iset,
 }
 
 /** @brief Create a copy of isplit, where everything is 0 except the seeds,
- * which take the value 1
+ * which take the value 1. Such array can be used to count the number of new
+ * particles to become generated.
  *
  * Since isplit is used to sort the particles, it should have "n_radix" items,
  * which is bigger than "N". But in order to conveniently sort isplit, you must
@@ -319,7 +320,7 @@ __kernel void children_candidates(__global const int* imove,
 
 
     BEGIN_LOOP_OVER_NEIGHS(){
-        if((isplit[j] != 0) ||        // It a seed or already a child
+        if((isplit[j] != 0) ||        // It is a seed or already a child
            (imove[j] <= 0) ||         // Neglect boundaries/sensors
            (miter[j] <= M_ITERS) ||   // It is already splitting/coalescing
            (iset[i] != iset[j]) ||    // Another set of particles
@@ -342,7 +343,7 @@ __kernel void children_candidates(__global const int* imove,
 
 /** @brief Associate each children to the closest seed.
  *
- * We are actually noit associating it to the seed, but with the buffer partner
+ * We are actually not associating it to the seed, but with the buffer partner
  * particle.
  *
  * @param iset Set of particles index.
@@ -378,9 +379,8 @@ __kernel void children(__global const unsigned int* iset,
     if((isplit[i] != 1) || (mybuffer[i] != N))
         return;
 
-    // Let's set the particle as not coalescing anymore. This may happens when
-    // all the seeds are already complete, i.e. they are generating a new
-    // particle with N_DAUGHTER daughters
+    // Let's set the particle as not eventually coalescing anymore (e.g. it
+    // cannot found a non-complete seed, see count_children())
     isplit[i] = 0;
     miter[i] = M_ITERS + 1;
 
@@ -389,7 +389,7 @@ __kernel void children(__global const unsigned int* iset,
     const vec_xyz r_i = r[i].XYZ;
 
     BEGIN_LOOP_OVER_NEIGHS(){
-        if((isplit[j] != 2) ||             // Not a seed/complete seed
+        if((isplit[j] != 2) ||             // Not a seed/the seed is complete
            (iset[i] != iset[j])            // Another set of particles
         ){
             j++;
@@ -405,7 +405,7 @@ __kernel void children(__global const unsigned int* iset,
         {
             const float l = length(r_ij);
             if(l < dist){
-                // This is a better candidate
+                // This is a better seed candidate
                 dist = l;
                 mybuffer[i] = mybuffer[j];
                 isplit[i] = 1;
@@ -424,7 +424,7 @@ __kernel void children(__global const unsigned int* iset,
 /** @brief Check if a child can be inserted into the list.
  *
  * If the child is closer than any other particle in the list, it will be
- * inserted into the list, pushing out the farthest child.
+ * inserted into the list, pushing out the farthest one.
  *
  * @param dist Distance between the particle and the seed.
  * @param id ID of the child candidate
@@ -492,7 +492,7 @@ __kernel void count_children(__global const vec* r,
 
     const unsigned int ii = mybuffer[i];
     if(ii == N){
-        // A problematic particle which has not found an available buffer...
+        // A problematic particle which has not found available buffer...
         return;
     }
     unsigned int n_children = 1;
@@ -536,8 +536,8 @@ __kernel void count_children(__global const vec* r,
     }
 
     // Reselect the children (all the children candidates out of id_children
-    // list are therefore kept as unselected, and should look for another
-    // partner, and give up of trying to coalesce)
+    // list are therefore kept as unselected, such that they should look for
+    // another partner, or eventually give up of trying to coalesce)
     for(uint j = 0; j < n_children; j++){
         mybuffer[id_children[j]] = ii;
     }
@@ -587,7 +587,7 @@ __kernel void fields(__global const unsigned int* isplit,
 
     const unsigned int ii = mybuffer[i];
     if(ii == N){
-        // A problematic particle which has not found an available buffer...
+        // A problematic particle which has not found available buffer...
         return;
     }
     unsigned int n_children = 1;
@@ -617,7 +617,7 @@ __kernel void fields(__global const unsigned int* isplit,
         }
     }END_LOOP_OVER_NEIGHS()
 
-    m[ii] = m0[ii];  // The mass is integrated, not averaged
+    m[ii] = m0[ii];            // The mass is integrated, not averaged
     r[ii] /= n_children;
     u[ii] /= n_children;
     dudt[ii] /= n_children;

@@ -66,7 +66,7 @@ __kernel void set_mass(__global const int* imove,
 
     // Neglect boundary elements/particles
     if(imove[i] <= 0){
-        miter[i] = M_ITERS;
+        miter[i] = M_ITERS + 1;
         m[i] = m0[i];
         return;
     }
