@@ -141,7 +141,7 @@ __kernel void full(const __global int* imove,
     }END_LOOP_OVER_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
-        lap_p_corr[i] = _GRADP_;
+        lap_p_corr[i].XYZ = _GRADP_;
     #endif
 }
 

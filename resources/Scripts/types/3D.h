@@ -221,9 +221,9 @@
  * @note The vector should have 3 components, not 4.
  */
 #define MATRIX_DOT(_M, _V)                                                     \
-    ((float4)(dot(_M.s012, _V),                                                \
-              dot(_M.s456, _V),                                                \
-              dot(_M.s89A, _V),                                                \
+    ((float4)(dot(_M.s012, _V.xyz),                                            \
+              dot(_M.s456, _V.xyz),                                            \
+              dot(_M.s89A, _V.xyz),                                            \
               0.f))
 
 /** @brief Multiply a matrix by a vector (inner product)
