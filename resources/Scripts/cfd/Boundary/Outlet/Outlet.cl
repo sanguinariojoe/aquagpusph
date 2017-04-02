@@ -127,6 +127,6 @@ __kernel void feed(__global int* imove,
     // Destroy the particles far away from the outlet plane
     if(dist > SUPPORT * H){
         r[i] = domain_max + VEC_ONE;
-        imove[i] = -255;
+        imove[i] = -256;
     }
 }

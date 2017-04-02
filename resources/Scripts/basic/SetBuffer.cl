@@ -21,7 +21,7 @@
  */
 
 /** @file
- * @brief Buffer particles identify.
+ * @brief Buffer particles identify and usage.
  */
 
 #include "resources/Scripts/types/types.h"
@@ -34,7 +34,7 @@
  * @param ibuffer 0 if the particle is not a buffer particle, 1 otherwise.
  * @param N Number of particles.
  */
-__kernel void entry(__global const int* imove,
+__kernel void count(__global const int* imove,
                     __global unsigned int* ibuffer,
                     uint N)
 {
@@ -46,6 +46,30 @@ __kernel void entry(__global const int* imove,
         ibuffer[i] = 1;
     else
         ibuffer[i] = 0;
+}
+
+/** @brief Replace the particles with the imove flag imove=-256 by imove=-255.
+ *
+ * The particles with imove=-256 are "invalid particles", i.e. particles which
+ * has been removed (e.g. particles out of the computational domain), while
+ * imove=-255 are buffer particles.
+ *
+ * In that way, the removed particles in a time step are not taken into account
+ * as buffer particles until they are sorted at the next time step.
+ *
+ * @param imove Moving flags (imove = -255 for buffer particles).
+ * @param ibuffer 0 if the particle is not a buffer particle, 1 otherwise.
+ * @param N Number of particles.
+ */
+__kernel void set_imove(__global int* imove,
+                        uint N)
+{
+    unsigned int i = get_global_id(0);
+    if(i >= N)
+        return;
+
+    if(imove[i] == -256)
+        imove[i] = -255;
 }
 
 /*

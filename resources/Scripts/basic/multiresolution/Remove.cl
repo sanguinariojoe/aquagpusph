@@ -66,7 +66,7 @@ __kernel void entry(__global int* imove,
     if(miter[i] < -M_ITERS){
         // Outdated partner particle
         r[i] = domain_max + VEC_ONE;
-        imove[i] = -255;
+        imove[i] = -256;
     }
 }
 

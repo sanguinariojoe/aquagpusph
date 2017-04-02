@@ -70,7 +70,7 @@ __kernel void entry(__global int* imove,
       )
     {
         // Set as buffer particle (non-interacting one)
-        imove[i] = -255;
+        imove[i] = -256;
         m[i] = 0.f;
         // Stop the particle
         u[i] = VEC_ZERO;

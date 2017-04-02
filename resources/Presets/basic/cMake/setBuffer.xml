@@ -40,10 +40,12 @@ been executed.
         <!-- Try to remove all the previous instances -->
         <Tool name="basic ibuffer" action="try_remove" type="dummy"/>
         <Tool name="basic nbuffer" action="try_remove" type="dummy"/>
+        <Tool name="basic buffer set imove" action="try_remove" type="dummy"/>
         <!-- And create new instances -->
-        <Tool name="basic ibuffer" action="insert" before="*Set buffer*" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/SetBuffer.cl"/>
+        <Tool name="basic ibuffer" action="insert" before="*Set buffer*" type="kernel" entry_point="count" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/SetBuffer.cl"/>
         <Tool name="basic nbuffer" action="insert" before="*Set buffer*" type="reduction" in="ibuffer" out="nbuffer" null="0">
             c = a + b;
         </Tool>
+        <Tool name="basic buffer set imove" action="insert" before="Sort" type="kernel" entry_point="set_imove" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/SetBuffer.cl"/>
     </Tools>
 </sphInput>
