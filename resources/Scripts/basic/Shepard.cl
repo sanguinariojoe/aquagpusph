@@ -48,7 +48,7 @@
 /** @brief Shepard factor computation.
  *
  * \f[ \gamma(\mathbf{x}) = \int_{\Omega}
- *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{x} \f]
+ *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{y} \f]
  *
  * The shepard renormalization factor is applied for several purposes:
  *   - To interpolate values
@@ -67,7 +67,7 @@
  * @param m Mass \f$ m \f$.
  * @param shepard Shepard term
  * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
- *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{x} \f$.
+ *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{y} \f$.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
