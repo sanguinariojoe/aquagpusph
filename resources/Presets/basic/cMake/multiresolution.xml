@@ -48,6 +48,9 @@ You can find an usage example in examples/2D/cylinder_inside_channel
         <Variable name="split_invperm" type="unsigned int*" length="n_radix" />
         <Variable name="split_cell" type="ivec*" length="N" />
         <Variable name="split_dist" type="float*" length="N" />
+        <!-- Since each particle may contribute to several partner particles
+        while coalescing, we should weight such contribution -->
+        <Variable name="split_weight" type="float*" length="N" />
         <!-- Internal variables to mark the buffer particles to become partner
         -->
         <Variable name="mybuffer" type="unsigned int*" length="N" />
@@ -128,9 +131,9 @@ You can find an usage example in examples/2D/cylinder_inside_channel
             and placed in a regular grid of dr/2^level
             1.b.- Just one particle of each cell is kept (the most centered one)
         2.- Coalescing candidates. All the neighbour particles of the seeds,
-        which has the same refinement level and are not seeds, will be marked as
-        coalescer
-        3.- Each coalescer will look for the closest seed, and associate with
+        which has the same refinement level and are close enough to a seed, will
+        be marked as coalescing
+        3.- Each coalescing particles will look for the closest seed, and associate with
         that.
         4.- Finally a new partner particle is generated on top of the coalescing
         particles data.
@@ -138,7 +141,11 @@ You can find an usage example in examples/2D/cylinder_inside_channel
         <Tool name="Refinement coalesce" action="insert" after="Refinement split" type="dummy"/>
         <Tool name="Set buffer" action="insert" before="Refinement coalesce" type="dummy" />
         <Tool name="basic init icoalesce" action="insert" before="Refinement coalesce" type="set" in="isplit" value="3"/>
+        <Tool name="basic init mybuffer" action="insert" before="Refinement coalesce" type="set" in="mybuffer" value="N"/>
+        <Tool name="basic init coalesce_weight" action="insert" before="Refinement coalesce" type="set" in="split_weight" value="1.0"/>
+        <!-- Look for the seeds -->
         <Tool name="basic coalesce seed candidates" action="insert" before="Refinement coalesce" type="kernel" entry_point="seed_candidates" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
+        <Tool name="basic backup icoalesce" action="insert" before="Refinement coalesce" type="copy" in="isplit" out="isplit_in"/>
         <Tool name="basic coalesce seeds" action="insert" before="Refinement coalesce" type="kernel" entry_point="seeds" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
         <!-- We must check we have enough buffer particles -->
         <Tool name="basic init icoalesce_in" action="insert" before="Refinement coalesce" type="set" in="isplit_in" value="0"/>
@@ -147,20 +154,17 @@ You can find an usage example in examples/2D/cylinder_inside_channel
             c = a + b;
         </Tool>
         <Tool name="basic check buffer particles" action="insert" before="Refinement coalesce" type="assert" condition="nbuffer >= required_nbuffer"/>
-        <!-- Now we can safely consume buffer particles -->
-        <Tool name="basic init mybuffer" action="insert" before="Refinement coalesce" type="set" in="mybuffer" value="N"/>
+        <!-- Look for childrens, and compute its contribution weight depending
+        on the number of seeds close enough -->
+        <Tool name="basic coalesce children" action="insert" before="Refinement coalesce" type="kernel" entry_point="children" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
+        <Tool name="basic coalesce weights" action="insert" before="Refinement coalesce" type="kernel" entry_point="weights" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
+        <!-- Generate the new particles (consuming buffer ones), and compute
+        their field values -->
         <Tool name="basic backup icoalesce" action="insert" before="Refinement coalesce" type="copy" in="isplit" out="isplit_in"/>
         <Tool name="basic sort icoalesce" action="insert" before="Refinement coalesce" type="radix-sort" in="isplit" perm="split_perm" inv_perm="split_invperm"/>
         <Tool name="basic coalesce generate" action="insert" before="Refinement coalesce" type="kernel" entry_point="generate" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
         <Tool name="basic restore icoalesce" action="insert" before="Refinement coalesce" type="copy" in="isplit_in" out="isplit"/>
-        <Tool name="basic coalesce children candidates" action="insert" before="Refinement coalesce" type="kernel" entry_point="children_candidates" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
-        <Tool name="basic coalesce children" action="insert" before="Refinement coalesce" type="kernel" entry_point="children" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
-        <Tool name="basic count children" action="insert" before="Refinement coalesce" type="kernel" entry_point="count_children" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
-        <Tool name="basic coalesce children" action="insert" before="Refinement coalesce" type="kernel" entry_point="children" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
-        <Tool ifdef="HAVE_3D" name="basic count children" action="insert" before="Refinement coalesce" type="kernel" entry_point="count_children" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
-        <Tool ifdef="HAVE_3D" name="basic coalesce children" action="insert" before="Refinement coalesce" type="kernel" entry_point="children" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
         <Tool name="basic coalesce fields" action="insert" before="Refinement coalesce" type="kernel" entry_point="fields" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/multiresolution/Coalesce.cl"/>
-        
 
         <!--    Outdated partners removal
              ===============================
