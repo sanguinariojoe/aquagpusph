@@ -315,7 +315,7 @@ __kernel void weights(__global const unsigned int* iset,
 
     const float dr = dr_level0[iset[i]] / ilevel[i];
     const vec_xyz r_i = r[i].XYZ;
-    // split_weight[i] = 1.f;
+    split_weight[i] = 0.f;
 
     BEGIN_LOOP_OVER_NEIGHS(){
         if((isplit[j] != 2) ||             // Not a seed
@@ -332,6 +332,11 @@ __kernel void weights(__global const unsigned int* iset,
             split_weight[i] += 1.f;
         }
     }END_LOOP_OVER_NEIGHS()
+
+    if(split_weight[i] == 0.f){
+        // May it happens???
+        split_weight[i] = 1.f;
+    }
 
     split_weight[i] = 1.f / split_weight[i];
 }
