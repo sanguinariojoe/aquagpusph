@@ -30,6 +30,8 @@
     #define M_ITERS 10
 #endif
 
+#define CAPTURING_RADIUS 0.75f
+#define CAPTURING_RADIUS2 (CAPTURING_RADIUS + 0.01f)
 
 /** @brief Look for all the seed candidates, i.e. all the particles which have a
  * refinement level target lower than their current value.
@@ -262,7 +264,7 @@ __kernel void children(__global const int* imove,
         }
 
         if(all(islessequal(fabs(r[j].XYZ - r_i),
-                           0.6f * dr * VEC_ONE.XYZ))
+                           CAPTURING_RADIUS * dr * VEC_ONE.XYZ))
         ){
             // It does not matter if several threads write this data at the same
             // time, because are constant values
@@ -325,7 +327,7 @@ __kernel void weights(__global const unsigned int* iset,
         }
 
         if(all(islessequal(fabs(r[j].XYZ - r_i),
-                           0.6f * dr * VEC_ONE.XYZ))
+                           CAPTURING_RADIUS2 * dr * VEC_ONE.XYZ))
         ){
             split_weight[i] += 1.f;
         }
@@ -473,7 +475,7 @@ __kernel void fields(__global const unsigned int* iset,
         }
 
         if(all(islessequal(fabs(r[j].XYZ - r_i),
-                           0.6f * dr * VEC_ONE.XYZ))
+                           CAPTURING_RADIUS2 * dr * VEC_ONE.XYZ))
         ){
             const float w_j = split_weight[j];
             w += w_j;
