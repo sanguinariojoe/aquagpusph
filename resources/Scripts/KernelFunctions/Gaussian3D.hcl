@@ -43,7 +43,7 @@
  */
 float kernelW(float q)
 {
-    return 0.179587122f*exp(-q*q);  // 0.179587122f = 1/(pi^(3/2))
+    return 0.179587122f*exp(-q*q);               // 0.179587122f = 1/(pi^(3/2))
 }
 
 /** @brief The kernel gradient factor
@@ -60,7 +60,26 @@ float kernelW(float q)
  */
 float kernelF(float q)
 {
-    return 0.359174244f*exp(-q*q);        // 0.179587122f = 1/(pi^(3/2))
+    return 0.359174244f*exp(-q*q);               // 0.359174244f = 2/(pi^(3/2))
+}
+
+/** @brief The kernel partial derivative with respect to the characteristic
+ * height \f$ \frac{\partial W}{\partial h} \f$
+ *
+ * The result returned by this function should be multiplied by
+ * \f$ \frac{1}{h^{d + 1}} \f$, where d is 2,3 for 2D and 3D respectively.
+ *
+ * @param q Normalized distance \f$ \frac{\mathbf{r_j} - \mathbf{r_i}}{h} \f$.
+ * @return Kernel partial derivative factor
+ * @note This function is useful for variable resolution (non-constant kernel
+ * height)
+ * @see Iason Zisis, Bas van der Linden, Christina Giannopapa and Barry Koren,
+ * On the derivation of SPH schemes for shocks through inhomogeneous media. Int.
+ * Jnl. of Multiphysics (2015).
+ */
+float kernelH(float q)
+{
+	return 0.359174244f*(q*q - 1.f)*exp(-q*q);   // 0.359174244f = 2/(pi^(3/2))
 }
 
 #endif    // _KERNEL_H_INCLUDED_
