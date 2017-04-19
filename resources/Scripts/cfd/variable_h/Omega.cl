@@ -66,7 +66,7 @@ __kernel void entry(const __global int* imove,
     const uint it = get_local_id(0);
     if(i >= N)
         return;
-    if(imove[i] != 1){
+    if((imove[i] != 1) && (imove[i] != -1)){
         return;
     }
 

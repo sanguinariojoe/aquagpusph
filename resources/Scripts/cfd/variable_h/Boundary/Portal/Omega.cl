@@ -68,7 +68,7 @@ __kernel void entry(const __global int* imove,
     const uint it = get_local_id(0);
     if(i >= N)
         return;
-    if((imove[i] != 1) || (!imirrored[i]))
+    if(((imove[i] != 1) && (imove[i] != -1)) || (!imirrored[i]))
         return;
 
     const vec_xyz r_i = r[i].XYZ;
@@ -97,7 +97,7 @@ __kernel void entry(const __global int* imove,
     #endif
 
     BEGIN_LOOP_OVER_NEIGHS(){
-        if((imove[j] != 1) || (imirrored[j])){
+        if(((imove[j] != 1) && (imove[j] != -1)) || (imirrored[j])){
             j++;
             continue;
         }
