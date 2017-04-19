@@ -169,7 +169,7 @@ __kernel void entry(const __global int* imove,
             _GRADP_ += (p_i * fi_ij + p_j * fj_ij) / m_i * r_ij;
 
             #if __LAP_FORMULATION__ == __LAP_MONAGHAN__
-                const float r2 = (q * q + 0.01f) * H * H;
+                const float r2 = (q_i * q_i + 0.01f) * h_i * h_i;
                 _LAPU_ += 0.5f * (fi_ij + fj_ij) * m_j * __CLEARY__ *
                           udr / (r2 * rho_i * rho_j) * r_ij;
             #elif __LAP_FORMULATION__ == __LAP_MORRIS__
