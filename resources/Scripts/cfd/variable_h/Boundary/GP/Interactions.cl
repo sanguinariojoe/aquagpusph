@@ -104,20 +104,16 @@ __kernel void entry(const __global int* imove,
         #define _GRADP_ grad_p[i].XYZ
         #define _LAPU_ lap_u[i].XYZ
         #define _DIVU_ div_u[i]
-        #define _SHEPARD_ shepard[i]
     #else
         #define _GRADP_ grad_p_l[it]
         #define _LAPU_ lap_u_l[it]
         #define _DIVU_ div_u_l[it]
-        #define _SHEPARD_ shepard_l[it]
         __local vec_xyz grad_p_l[LOCAL_MEM_SIZE];
         __local vec_xyz lap_u_l[LOCAL_MEM_SIZE];
         __local float div_u_l[LOCAL_MEM_SIZE];
-        __local float shepard_l[LOCAL_MEM_SIZE];
         _GRADP_ = grad_p[i].XYZ;
         _LAPU_ = lap_u[i].XYZ;
         _DIVU_ = div_u[i];
-        _SHEPARD_ = shepard[i];
     #endif
 
     BEGIN_LOOP_OVER_NEIGHS(){
