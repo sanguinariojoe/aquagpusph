@@ -69,6 +69,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/viscousForces.report.xml
     ${CMAKE_CURRENT_BINARY_DIR}/viscousForces.report.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/variable_h/deltaSPH.xml
     ${CMAKE_CURRENT_BINARY_DIR}/variable_h/deltaSPH.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/variable_h/FP.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/variable_h/FP.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/variable_h/portal.xml
     ${CMAKE_CURRENT_BINARY_DIR}/variable_h/portal.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/variable_h/symmetry.xml
@@ -142,6 +144,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/viscousForces.report.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/viscousForces.report.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/variable_h/deltaSPH.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/variable_h/deltaSPH.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/variable_h/FP.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/variable_h/FP.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/variable_h/portal.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/variable_h/portal.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/variable_h/symmetry.xml
@@ -192,6 +196,7 @@ INSTALL(
 )
 SET(RESOURCES_VAR_H_SRCS 
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/variable_h/deltaSPH.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/variable_h/FP.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/variable_h/portal.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/variable_h/symmetry.xml
 )

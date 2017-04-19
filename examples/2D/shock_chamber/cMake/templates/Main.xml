@@ -23,6 +23,7 @@ Authors:
     <Include file="@RESOURCES_DIR@/Presets/basic/domain.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/variable_h.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd/variable_h/FP.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/variable_h/deltaSPH.xml" />
     <!-- Morris laplacian formulations works fine without free surfaces -->
     <Definitions>
