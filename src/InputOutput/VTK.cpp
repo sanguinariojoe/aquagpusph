@@ -446,7 +446,11 @@ void* save_pthread(void *data_void)
                        n_components * sizeof(unsigned int));
                 vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
                     (vtkUnsignedIntArray*)(vtk_arrays.at(j).GetPointer());
-                vtk_array->InsertNextTupleValue(vect);
+                #if VTK_MAJOR_VERSION < 7
+                    vtk_array->InsertNextTupleValue(vect);
+                #else
+                    vtk_array->InsertNextTypedTuple(vect);
+                #endif // VTK_MAJOR_VERSION
             }
             else if(strstr(var->type(), "int") ||
                     strstr(var->type(), "ivec")){
@@ -457,7 +461,11 @@ void* save_pthread(void *data_void)
                        n_components * sizeof(int));
                 vtkSmartPointer<vtkIntArray> vtk_array =
                     (vtkIntArray*)(vtk_arrays.at(j).GetPointer());
-                vtk_array->InsertNextTupleValue(vect);
+                #if VTK_MAJOR_VERSION < 7
+                    vtk_array->InsertNextTupleValue(vect);
+                #else
+                    vtk_array->InsertNextTypedTuple(vect);
+                #endif // VTK_MAJOR_VERSION
             }
             else if(strstr(var->type(), "float") ||
                     strstr(var->type(), "vec") ||
@@ -469,7 +477,11 @@ void* save_pthread(void *data_void)
                        n_components * sizeof(float));
                 vtkSmartPointer<vtkFloatArray> vtk_array =
                     (vtkFloatArray*)(vtk_arrays.at(j).GetPointer());
-                vtk_array->InsertNextTupleValue(vect);
+                #if VTK_MAJOR_VERSION < 7
+                    vtk_array->InsertNextTupleValue(vect);
+                #else
+                    vtk_array->InsertNextTypedTuple(vect);
+                #endif // VTK_MAJOR_VERSION
             }
         }
         vtk_vertex = vtkSmartPointer<vtkVertex>::New();
