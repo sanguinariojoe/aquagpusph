@@ -30,6 +30,6 @@ Remarks:
         <Tool action="insert" before="Interactions" type="kernel" name="cfd BI interpolation" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/BI/Interpolation.cl"/>
         <Tool action="insert" after_prefix="cfd BI interpolation" type="kernel" name="cfd BI interpolation Shepard" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/BI/InterpolationShepard.cl"/>
         <Tool action="insert" after_prefix="cfd BI interpolation Shepard" type="kernel" name="cfd BI interactions" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/BI/Interactions.cl"/>
-        <Tool action="insert" after_prefix="cfd BI interactions" type="kernel" name="cfd BI Shepard" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/BI/Shepard.cl"/>
+        <Tool action="insert" after_prefix="cfd BI interactions" type="kernel" name="cfd BI Shepard" entry_point="apply" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/BI/Shepard.cl"/>
     </Tools>
 </sphInput>

@@ -21,7 +21,119 @@
  * (See Aqua::CalcServer::Boundary::DeLeffe for details)
  */
 
+#if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
+    #error NO_LOCAL_MEM has been set.
+#endif
+
 #include "resources/Scripts/types/types.h"
+#include "resources/Scripts/KernelFunctions/Kernel.h"
+
+/** @brief Shepard factor computation.
+ *
+ * \f[ \gamma(\mathbf{x}) = \int_{\Omega}
+ *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{y} \f]
+ *
+ * The shepard renormalization factor is applied for several purposes:
+ *   - To interpolate values
+ *   - To recover the consistency with the Boundary Integrals formulation
+ *   - Debugging
+ *
+ * In the shepard factor computation the fluid extension particles are not taken
+ * into account.
+ *
+ * @param imove Moving flags.
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param r Position \f$ \mathbf{r} \f$.
+ * @param normal Normal \f$ \mathbf{n} \f$.
+ * @param m Area of the boundary element \f$ s \f$.
+ * @param shepard Shepard term
+ * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
+ *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{y} \f$.
+ * @param icell Cell where each particle is located.
+ * @param ihoc Head of chain for each cell (first particle found).
+ * @param N Number of particles.
+ * @param n_cells Number of cells in each direction
+ */
+__kernel void compute(const __global int* imove,
+                      const __global vec* r,
+                      const __global vec* normal,
+                      const __global float* m,
+                      __global float* shepard,
+                      // Link-list data
+                      const __global uint *icell,
+                      const __global uint *ihoc,
+                      // Simulation data
+                      uint N,
+                      uivec4 n_cells)
+{
+    const uint i = get_global_id(0);
+    const uint it = get_local_id(0);
+    if(i >= N)
+        return;
+    if((imove[i] < -3) || (imove[i] > 0))
+        return;
+
+    const vec_xyz r_i = r[i].XYZ;
+
+    // Initialize the output
+    #ifndef LOCAL_MEM_SIZE
+        #define _SHEPARD_ shepard[i]
+    #else
+        #define _SHEPARD_ shepard_l[it]
+        __local float shepard_l[LOCAL_MEM_SIZE];
+    #endif
+
+    _SHEPARD_ = 1.f;
+    bool self_added = false;
+
+    BEGIN_LOOP_OVER_NEIGHS(){
+        if(imove[j] != -3){
+            j++;
+            continue;
+        }
+
+        if(i == j){
+            // Boundary element trying to interact with itself
+            if(!self_added){
+                self_added = true;
+                _SHEPARD_ -= 0.5f;
+            }
+            j++;
+            continue;
+        }
+        
+        const vec_xyz r_ij = r[j].XYZ - r_i;
+        const float q = length(r_ij) / H;
+        if(q >= SUPPORT)
+        {
+            j++;
+            continue;
+        }
+
+        const float r_n = dot(r_ij, normal[j].XYZ);
+        const float area_j = m[j];
+        if((r_n < 1E-2f * H) && (q * H <= 0.5f * pow(area_j, 1.f / DIMS))){
+            // The particle should add the singular value
+            if(!self_added){
+                self_added = true;
+                _SHEPARD_ -= 0.5f;
+            }
+            j++;
+            continue;
+        }
+
+        {
+            _SHEPARD_ += r_n * CONW * kernelS(q) * area_j;
+        }
+    }END_LOOP_OVER_NEIGHS()
+
+    #ifdef LOCAL_MEM_SIZE
+        shepard[i] = _SHEPARD_;
+    #endif
+}
+
 
 /** @brief Renormalize the differential operators.
  *
@@ -43,7 +155,7 @@
  * @param cs Speed of sound \f$ c_s \f$.
  * @see Boundary/BI/Interactions.cl
  */
-__kernel void entry(const __global int* imove,
+__kernel void apply(const __global int* imove,
                     const __global float* shepard,
                     __global vec* grad_p,
                     __global vec* lap_u,
