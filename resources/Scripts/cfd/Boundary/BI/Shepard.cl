@@ -72,7 +72,7 @@ __kernel void compute(const __global int* imove,
     const uint it = get_local_id(0);
     if(i >= N)
         return;
-    if((imove[i] < -3) || (imove[i] > 0))
+    if((imove[i] < -3) || (imove[i] > 1))
         return;
 
     const vec_xyz r_i = r[i].XYZ;
