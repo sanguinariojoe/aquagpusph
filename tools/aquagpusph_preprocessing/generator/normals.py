@@ -30,7 +30,7 @@
 #******************************************************************************
 
 import numpy as np
-from fluid import intersections, isPointInSolid
+from .fluid import intersections, isPointInSolid
 
 
 def is_odd(num):
