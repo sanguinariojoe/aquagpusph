@@ -28,9 +28,11 @@ Remarks:
 
     <Tools>
         <Tool name="cfd BI interpolation" action="insert" before="Interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/BI/Interpolation.cl"/>
-        <Tool name="cfd BI interpolation Shepard" action="insert" after_prefix="cfd BI interpolation" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/BI/InterpolationShepard.cl"/>
-        <Tool name="cfd BI interactions" action="insert" after_prefix="cfd BI interpolation Shepard" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/BI/Interactions.cl"/>
-        <Tool name="cfd BI Shepard" action="insert" after_prefix="cfd BI interactions" type="kernel" entry_point="apply" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/BI/Shepard.cl"/>
+        <Tool name="cfd BI interpolation Shepard" action="insert" before="Interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/BI/InterpolationShepard.cl"/>
+        <Tool name="cfd BI lap_u" action="insert" before="Interactions" type="kernel" entry_point="freeslip" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/BI/LapU.cl"/>
+        <Tool name="cfd BI grad_p" action="insert" before="Interactions" type="kernel" entry_point="freeslip" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/BI/GradP.cl"/>
+        <Tool name="cfd BI interactions" action="insert" before="Interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/BI/Interactions.cl"/>
+        <Tool name="cfd BI Shepard" action="insert" before="Interactions" type="kernel" entry_point="apply" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/BI/Shepard.cl"/>
         <!-- Replace the way Shepard factor is computed -->
         <Tool name="cfd Shepard" action="replace" type="kernel" entry_point="compute" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/BI/Shepard.cl"/>
     </Tools>
