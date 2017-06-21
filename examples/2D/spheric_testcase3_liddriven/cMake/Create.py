@@ -95,8 +95,8 @@ x = -0.5 * (L - dr)
 for i in range(nx):
     y = -0.5 * (H - dr)
     for j in range(ny):
-        if Percentage != (i * ny + j) * 100 / n:
-            Percentage = (i * ny + j) * 100 / n
+        if Percentage != (i * ny + j) * 100 // n:
+            Percentage = (i * ny + j) * 100 // n
             if not Percentage % 10:
                 string = '    {}%'.format(Percentage)
                 print(string)
@@ -132,8 +132,8 @@ Percentage = -1
 x = -0.5 * (L - dr / DeLeffeDistFactor)
 y = 0.5 * H
 for i in range(0, Nx):
-    if Percentage != i * 100 / N:
-        Percentage = i * 100 / N
+    if Percentage != i * 100 // N:
+        Percentage = i * 100 // N
         if not Percentage % 10:
             string = '    {}%'.format(Percentage)
             print(string)
@@ -159,8 +159,8 @@ for i in range(0, Nx):
 x = -0.5 * (L - dr / DeLeffeDistFactor)
 y = -0.5 * H
 for i in range(0, Nx):
-    if Percentage != (i + Nx) * 100 / N:
-        Percentage = (i + Nx) * 100 / N
+    if Percentage != (i + Nx) * 100 // N:
+        Percentage = (i + Nx) * 100 // N
         if not Percentage % 10:
             string = '    {}%'.format(Percentage)
             print(string)
@@ -186,8 +186,8 @@ for i in range(0, Nx):
 x = -0.5 * L
 y = -0.5 * (H - dr / DeLeffeDistFactor)
 for i in range(0, Ny):
-    if Percentage != (i + 2 * Nx) * 100 / N:
-        Percentage = (i + 2 * Nx) * 100 / N
+    if Percentage != (i + 2 * Nx) * 100 // N:
+        Percentage = (i + 2 * Nx) * 100 // N
         if not Percentage % 10:
             string = '    {}%'.format(Percentage)
             print(string)
@@ -213,8 +213,8 @@ for i in range(0, Ny):
 x = 0.5 * L
 y = -0.5 * (H - dr / DeLeffeDistFactor)
 for i in range(0, Ny):
-    if Percentage != (i + 2 * Nx + Ny) * 100 / N:
-        Percentage = (i + 2 * Nx + Ny) * 100 / N
+    if Percentage != (i + 2 * Nx + Ny) * 100 // N:
+        Percentage = (i + 2 * Nx + Ny) * 100 // N
         if not Percentage % 10:
             string = '    {}%'.format(Percentage)
             print(string)

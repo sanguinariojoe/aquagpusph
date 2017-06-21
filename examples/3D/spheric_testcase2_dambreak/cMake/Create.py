@@ -111,8 +111,8 @@ print('Fluid particles...')
 n = 0
 Percentage = -1
 for i in range(nx):
-    if Percentage != (n * 100) / (nx * ny * nz):
-        Percentage = (n * 100) / (nx * ny * nz)
+    if Percentage != (n * 100) // (nx * ny * nz):
+        Percentage = (n * 100) // (nx * ny * nz)
         if not Percentage % 10:
             string = '    {}%'.format(Percentage)
             print(string)

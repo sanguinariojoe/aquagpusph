@@ -80,7 +80,7 @@ n_buffer_y = ny
 n_buffer = n_buffer_x * n_buffer_y
 n_level1 = 4 * int(math.pi * refine1_radius**2 / dr**2)
 n_level2 = 16 * int(math.pi * refine2_radius**2 / dr**2)
-n_buffer += (n_level1 + n_level2) / 5
+n_buffer += (n_level1 + n_level2) // 5
 
 # Artificial viscosity
 # ====================

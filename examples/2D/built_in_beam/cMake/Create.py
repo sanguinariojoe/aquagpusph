@@ -99,8 +99,8 @@ Percentage = -1
 for i in range(nx):
     for j in range(ny):
         id = j + i * ny
-        if Percentage != (id * 100) / n:
-            Percentage = (id * 100) / n
+        if Percentage != (id * 100) // n:
+            Percentage = (id * 100) // n
             if not Percentage % 10:
                 string = '    {}%'.format(Percentage)
                 print(string)
@@ -133,8 +133,8 @@ output = open("BuiltInBC.dat", "w")
 output.write(header)
 Percentage = -1
 for i in range(ny):
-    if Percentage != (n_left * 100) / (ny + 2 * nx_left):
-        Percentage = (n_left * 100) / (ny + 2 * nx_left)
+    if Percentage != (n_left * 100) // (ny + 2 * nx_left):
+        Percentage = (n_left * 100) // (ny + 2 * nx_left)
         if not Percentage % 10:
             string = '    {}%'.format(Percentage)
             print(string)
@@ -160,8 +160,8 @@ for i in range(ny):
     output.write(string)
     n_left += 1
 for i in range(nx_left):
-    if Percentage != (n_left * 100) / (ny + 2 * nx_left):
-        Percentage = (n_left * 100) / (ny + 2 * nx_left)
+    if Percentage != (n_left * 100) // (ny + 2 * nx_left):
+        Percentage = (n_left * 100) // (ny + 2 * nx_left)
         if not Percentage % 10:
             string = '    {}%'.format(Percentage)
             print(string)
@@ -215,8 +215,8 @@ output = open("FreeBC.dat", "w")
 output.write(header)
 Percentage = -1
 for i in range(ny):
-    if Percentage != (n_free * 100) / (ny + 2 * nx_free):
-        Percentage = (n_free * 100) / (ny + 2 * nx_free)
+    if Percentage != (n_free * 100) // (ny + 2 * nx_free):
+        Percentage = (n_free * 100) // (ny + 2 * nx_free)
         if not Percentage % 10:
             string = '    {}%'.format(Percentage)
             print(string)
@@ -242,8 +242,8 @@ for i in range(ny):
     output.write(string)
     n_free += 1
 for i in range(nx_free):
-    if Percentage != (n_free * 100) / (ny + 2 * nx_free):
-        Percentage = (n_free * 100) / (ny + 2 * nx_free)
+    if Percentage != (n_free * 100) // (ny + 2 * nx_free):
+        Percentage = (n_free * 100) // (ny + 2 * nx_free)
         if not Percentage % 10:
             string = '    {}%'.format(Percentage)
             print(string)

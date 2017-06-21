@@ -106,14 +106,14 @@ print(string)
 
 Percentage = -1
 for i in range(0, n):
-    if Percentage != (i * 100) / n:
-        Percentage = (i * 100) / n
+    if Percentage != (i * 100) // n:
+        Percentage = (i * 100) // n
         if not Percentage % 10:
             string = '    {}%'.format(Percentage)
             print(string)
     j = i
     idx = j % nx
-    idy = j / nx
+    idy = j // nx
     imove = 1
     pos = (idx * dr - 0.5 * (L - dr),
            idy * dr + 0.5 * dr)
@@ -138,8 +138,8 @@ string = """
 print(string)
 Percentage = -1
 for i in range(0, N):
-    if Percentage != (i * 100) / N:
-        Percentage = (i * 100) / N
+    if Percentage != (i * 100) // N:
+        Percentage = (i * 100) // N
         if not Percentage % 10:
             string = '    {}%'.format(Percentage)
             print(string)

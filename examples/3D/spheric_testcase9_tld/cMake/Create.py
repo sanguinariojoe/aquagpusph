@@ -111,14 +111,14 @@ print(string)
 
 Percentage = -1
 for i in range(0, n):
-    if Percentage != (i * 100) / n:
-        Percentage = (i * 100) / n
+    if Percentage != (i * 100) // n:
+        Percentage = (i * 100) // n
         if not Percentage % 10:
             string = '    {}%'.format(Percentage)
             print(string)
     j = i
-    idd = j / ny
-    idx = idd / nz
+    idd = j // ny
+    idx = idd // nz
     idy = j % ny
     idz = idd % nz
     imove = 1
@@ -146,8 +146,8 @@ string = """
 print(string)
 Percentage = -1
 for i in range(0, N):
-    if Percentage != (i * 100) / N:
-        Percentage = (i * 100) / N
+    if Percentage != (i * 100) // N:
+        Percentage = (i * 100) // N
         if not Percentage % 10:
             string = '    {}%'.format(Percentage)
             print(string)
@@ -156,7 +156,7 @@ for i in range(0, N):
         j = i
         idd = j
         idz = 0
-        idx = idd / Ny + 0.5
+        idx = idd // Ny + 0.5
         idy = idd % Ny + 0.5
         normal = [0.0, 0.0, -1.0]
     # Roof
@@ -164,7 +164,7 @@ for i in range(0, N):
         j = i - Nx * Ny
         idd = j
         idz = Nz
-        idx = idd / Ny + 0.5
+        idx = idd // Ny + 0.5
         idy = idd % Ny + 0.5
         normal = [0.0, 0.0, 1.0]
     # Left
@@ -172,7 +172,7 @@ for i in range(0, N):
         j = i - 2 * Nx * Ny
         idd = j
         idy = 0
-        idx = idd / Nz + 0.5
+        idx = idd // Nz + 0.5
         idz = idd % Nz + 0.5
         normal = [0.0, -1.0, 0.0]
     # Right
@@ -180,7 +180,7 @@ for i in range(0, N):
         j = i - 2 * Nx * Ny - Nx * Nz
         idd = j
         idy = Ny
-        idx = idd / Nz + 0.5
+        idx = idd // Nz + 0.5
         idz = idd % Nz + 0.5
         normal = [0.0, 1.0, 0.0]
     # Front
@@ -188,7 +188,7 @@ for i in range(0, N):
         j = i - 2 * (Nx * Ny + Nx * Nz)
         idd = j
         idx = 0
-        idy = idd / Nz + 0.5
+        idy = idd // Nz + 0.5
         idz = idd % Nz + 0.5
         normal = [-1.0, 0.0, 0.0]
     # Back
@@ -196,7 +196,7 @@ for i in range(0, N):
         j = i - 2 * (Nx*Ny + Nx * Nz) - Ny * Nz
         idd = j
         idx = nx
-        idy = idd / Nz + 0.5
+        idy = idd // Nz + 0.5
         idz = idd % Nz + 0.5
         normal = [1.0, 0.0, 0.0]
     pos = (idx * dr / DeLeffeDistFactor - 0.5 * D,
