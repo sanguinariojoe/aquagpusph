@@ -115,7 +115,8 @@ __kernel void entry(const __global uint* iset,
         {
             const vec_xyz n_j = normal[j].XYZ;  // Assumed outwarding oriented
             const float area_j = m[j];
-            const float p_j = p_i + dot(rho[j] * grad_p[j].XYZ, r_ij);
+            // const float p_j = p_i + dot(rho[j] * grad_p[j].XYZ, r_ij);
+            const float p_j = p[j];
             const vec_xyz du = u[j].XYZ - u_i;
             const float w_ij = kernelW(q) * CONW * area_j;
 
