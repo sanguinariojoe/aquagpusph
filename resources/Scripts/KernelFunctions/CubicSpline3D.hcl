@@ -91,11 +91,33 @@ float kernelF(float q)
  */
 float kernelH(float q)
 {
-	float wcon = 1.5f * iM_PI;
+    float wcon = 1.5f * iM_PI;
     if(q <= 1.f)
         return -wcon * (q - 1.f) * (-2.f - 2.f * q + 3.f * q * q);
     else if (q < 2.f)
         return -wcon * (2.f - q) * (2.f - q) * (1.f - q);
+    return 0.f;
+}
+
+/** @brief An equivalent kernel function to compute the Shepard factor using the
+ * boundary integral elements instead of the fluid volume.
+ *
+ * The kernel is defined as follows:
+ * \f$ \hat{W} \left(\rho; h\right) =
+ * \frac{1}{\rho^d} \int \rho^{d - 1} W \left(\rho; h\right) d\rho \f$
+ *
+ * @param q Normalized distance \f$ \frac{\mathbf{r_j} - \mathbf{r_i}}{h} \f$.
+ * @return Equivalent kernel
+ */
+float kernelS(float q)
+{
+    float wcon = 4.f * iM_PI / 480.f;
+    float q2 = q * q;
+    float q3 = q2 * q;
+    if(q <= 1.f)
+        return wcon * (15.f * q3 - 36.f * q2 + 40.f - 128.f / q2 );
+    else if (q < 2.f)
+        return wcon * (-5.f * q3 - 36.f * q2 + 90.f * q - 80.f - 32.f / q2 );
     return 0.f;
 }
 
