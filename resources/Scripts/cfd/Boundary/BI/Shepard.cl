@@ -116,7 +116,7 @@ __kernel void compute(const __global int* imove,
         const float area_j = m[j];
         if((r_n >= 0.f) &&
            (r_n < 1E-6f * H) &&
-           (q * H <= 0.5f * pow(area_j, 1.f / (DIMS - 1))))
+           (q * H <= 0.5f * pow(area_j, 1.f / (DIMS - 1.f))))
         {
             // The particle should add the singular value
             if(!self_added){
