@@ -17,7 +17,8 @@
  */
 
 /** @file
- * @brief Gaussian kernel definition (3D version).
+ * @brief Gaussian kernel definition (3D version). A kernelS function cannot
+ * be efficiently provided, since it requires computing erf(q)
  */
 
 #ifndef _KERNEL_H_INCLUDED_
@@ -79,7 +80,7 @@ float kernelF(float q)
  */
 float kernelH(float q)
 {
-	return 2.f*iM_PI*(q*q - 1.f)*exp(-q*q);
+    return 2.f*iM_PI*(q*q - 1.f)*exp(-q*q);
 }
 
 #endif    // _KERNEL_H_INCLUDED_
