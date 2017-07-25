@@ -45,8 +45,8 @@
  */
 float kernelW(float q)
 {
-	float wcon = 0.384615f * iM_PI;  // 0.384615f = 5/13
-	return wcon * (2.f - q) * (2.f - q) * (2.f - q);
+    float wcon = 0.384615f * iM_PI;  // 0.384615f = 5/13
+    return wcon * (2.f - q) * (2.f - q) * (2.f - q);
 }
 
 /** @brief The kernel gradient factor
@@ -63,8 +63,8 @@ float kernelW(float q)
  */
 float kernelF(float q)
 {
-	float wcon = 1.153846f * iM_PI;  // 1.153846f = 3*5/13
-	return wcon * (2.f/q - 1.f) * (2.f/q - 1.f);
+    float wcon = 1.153846f * iM_PI;  // 1.153846f = 3*5/13
+    return wcon * (2.f/q - 1.f) * (2.f/q - 1.f);
 }
 
 /** @brief The kernel partial derivative with respect to the characteristic
@@ -83,8 +83,26 @@ float kernelF(float q)
  */
 float kernelH(float q)
 {
-	float wcon = 0.384615f * iM_PI;  // 0.384615f = 5/13
-	return wcon * (2.f - q) * (2.f - q) * (4.f - 5.f * q);
+    float wcon = 0.384615f * iM_PI;  // 0.384615f = 5/13
+    return wcon * (2.f - q) * (2.f - q) * (4.f - 5.f * q);
+}
+
+/** @brief An equivalent kernel function to compute the Shepard factor using the
+ * boundary integral elements instead of the fluid volume.
+ *
+ * The kernel is defined as follows:
+ * \f$ \hat{W} \left(\rho; h\right) =
+ * \frac{1}{\rho^d} \int \rho^{d - 1} W \left(\rho; h\right) d\rho \f$
+ *
+ * @param q Normalized distance \f$ \frac{\mathbf{r_j} - \mathbf{r_i}}{h} \f$.
+ * @return Equivalent kernel
+ */
+float kernelS(float q)
+{
+    float wcon = 4.f * iM_PI / 480.f;
+    float q2 = q * q;
+    float q3 = q2 * q;
+    return wcon * (-5.f * q3 - 36.f * q2 + 90.f * q - 80.f - 32.f / q2 );
 }
 
 #endif    // _KERNEL_H_INCLUDED_

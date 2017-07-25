@@ -27,13 +27,13 @@
     /** @def M_PI
      * \f$ \pi \f$ value.
      */
-	#define M_PI 3.14159265359f
+    #define M_PI 3.14159265359f
 #endif
 #ifndef iM_PI
     /** @def iM_PI
      * \f$ \frac{1}{\pi} \f$ value.
      */
-	#define iM_PI 0.318309886f
+    #define iM_PI 0.318309886f
 #endif
 
 /** @brief The kernel value
@@ -43,8 +43,8 @@
  */
 float kernelW(float q)
 {
-	float wcon = 0.109375f*iM_PI;  // 0.109375f = 7/64
-	return wcon*(1.f+2.f*q) * (2.f-q)*(2.f-q)*(2.f-q)*(2.f-q);
+    float wcon = 0.109375f*iM_PI;  // 0.109375f = 7/64
+    return wcon*(1.f+2.f*q) * (2.f-q)*(2.f-q)*(2.f-q)*(2.f-q);
 }
 
 /** @brief The kernel gradient factor
@@ -61,8 +61,8 @@ float kernelW(float q)
  */
 float kernelF(float q)
 {
-	float wcon = 1.09375f*iM_PI;  // 1.09375f = 2*5*7/64
-	return wcon*(2.f-q)*(2.f-q)*(2.f-q);
+    float wcon = 1.09375f*iM_PI;  // 1.09375f = 2*5*7/64
+    return wcon*(2.f-q)*(2.f-q)*(2.f-q);
 }
 
 /** @brief The kernel partial derivative with respect to the characteristic
@@ -81,14 +81,14 @@ float kernelF(float q)
  */
 float kernelH(float q)
 {
-	float wcon = 0.109375f*iM_PI;  // 0.109375f = 7/64
-	return wcon * (2.f-q)*(2.f-q)*(2.f-q) * (
+    float wcon = 0.109375f*iM_PI;  // 0.109375f = 7/64
+    return wcon * (2.f-q)*(2.f-q)*(2.f-q) * (
         4.f * q * (1.f + 2.f * q) -
         DIMS * (2.f-q) * (1.f + 2.f * q) -
         2.f * q * (2.f-q));
 }
 
-/** @brief A equivalent kernel function to compute the Shepard factor using the
+/** @brief An equivalent kernel function to compute the Shepard factor using the
  * boundary integral elements instead of the fluid volume.
  *
  * The kernel is defined as follows:
@@ -112,4 +112,4 @@ float kernelS(float q)
                   );
 }
 
-#endif	// _KERNEL_H_INCLUDED_
+#endif    // _KERNEL_H_INCLUDED_

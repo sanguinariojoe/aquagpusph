@@ -88,7 +88,7 @@ float kernelH(float q)
         2.f * q * (2.f-q));
 }
 
-/** @brief A equivalent kernel function to compute the Shepard factor using the
+/** @brief An equivalent kernel function to compute the Shepard factor using the
  * boundary integral elements instead of the fluid volume.
  *
  * The kernel is defined as follows:
