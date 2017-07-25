@@ -100,7 +100,7 @@ float kernelH(float q)
  */
 float kernelS(float q)
 {
-    float wcon = 0.08203125f*iM_PI;  // 0.08203125f = 21/256
+    float wcon = 0.109375f*iM_PI;  // 0.08203125f = 7/64
     float q2 = q * q;
     float q3 = q2 * q;
     return wcon * (  0.285714f * q3 * q2  // 0.285714f = 2/7
