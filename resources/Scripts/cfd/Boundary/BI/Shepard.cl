@@ -131,7 +131,7 @@ __kernel void compute(const __global int* imove,
         {
             const float r_t = length(r_ij - r_n * n_j);
             _SHEPARD_ += r_n * (CONW * kernelS_P(q) * area_j +
-                                kernelS_D(r_n, r_t, area_j);
+                                kernelS_D(r_n, r_t, area_j));
         }
     }END_LOOP_OVER_NEIGHS()
 
