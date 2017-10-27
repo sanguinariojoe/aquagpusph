@@ -116,7 +116,7 @@ __kernel void compute(const __global int* imove,
         const float r_n = dot(r_ij, n_j);
         const float area_j = m[j];
         if((r_n >= 0.f) &&
-           (r_n < 1E-6f * H) &&
+           (r_n < 1E-8f * H) &&
            (q * H <= 0.5f * pow(area_j, 1.f / (DIMS - 1.f))))
         {
             // The particle should add the singular value
@@ -130,8 +130,8 @@ __kernel void compute(const __global int* imove,
 
         {
             const float r_t = length(r_ij - r_n * n_j);
-            _SHEPARD_ += r_n * (CONW * kernelS_P(q) * area_j +
-                                kernelS_D(r_n, r_t, area_j));
+            _SHEPARD_ += r_n * CONW * kernelS_P(q) * area_j +
+                         kernelS_D(r_n, r_t, area_j);
         }
     }END_LOOP_OVER_NEIGHS()
 

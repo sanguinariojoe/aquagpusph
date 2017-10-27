@@ -141,12 +141,11 @@ float kernelS_P(float q)
  * @warning Due to the analytical nature of the solution, this kernel should not
  * be multiplied by the element area, nor divided by \f$ h^2 \f$
  */
-float kernelS_D(d, t, s)
+float kernelS_D(float d, float t, float s)
 {
     const float wcon = 0.5f * iM_PI;
     const float dr = 0.5f * s;
-    return wcon / d * \
-           (atan((t + dr) / d) - atan((t - dr) / d));
+    return -wcon * (atan((t + dr) / d) - atan((t - dr) / d));
 }
 
 #endif    // _KERNEL_H_INCLUDED_
