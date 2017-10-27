@@ -143,10 +143,10 @@ float kernelS_P(float q)
  */
 float kernelS_D(d, t, s)
 {
-    const float wcon = 0.5 * iM_PI;
-    const float dr = 0.5 * s;
+    const float wcon = 0.5f * iM_PI;
+    const float dr = 0.5f * s;
     return wcon / d * \
-           (atan((t + 0.5 * dr) / d) - atan((t - 0.5 * dr) / d));
+           (atan((t + dr) / d) - atan((t - dr) / d));
 }
 
 #endif    // _KERNEL_H_INCLUDED_
