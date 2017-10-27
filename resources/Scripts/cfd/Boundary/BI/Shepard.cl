@@ -112,7 +112,8 @@ __kernel void compute(const __global int* imove,
             continue;
         }
 
-        const float r_n = dot(r_ij, normal[j].XYZ);
+        const vec_xyz n_j = normal[j].XYZ;
+        const float r_n = dot(r_ij, n_j);
         const float area_j = m[j];
         if((r_n >= 0.f) &&
            (r_n < 1E-6f * H) &&
@@ -128,7 +129,9 @@ __kernel void compute(const __global int* imove,
         }
 
         {
-            _SHEPARD_ += r_n * CONW * kernelS(q) * area_j;
+            const float r_t = length(r_ij - r_n * n_j);
+            _SHEPARD_ += r_n * (CONW * kernelS_P(q) * area_j +
+                                kernelS_D(r_n, r_t, area_j);
         }
     }END_LOOP_OVER_NEIGHS()
 

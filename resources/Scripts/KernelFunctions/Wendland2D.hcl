@@ -91,16 +91,22 @@ float kernelH(float q)
 /** @brief An equivalent kernel function to compute the Shepard factor using the
  * boundary integral elements instead of the fluid volume.
  *
+ * For practical purposes, the kernel computation is split in 2 parts: The
+ * polynomial part, where trucation errors are acceptable, and the divergent
+ * part, which requires an analytical solution.
+ * This function computes the polynomial part.
+ *
  * The kernel is defined as follows:
  * \f$ \hat{W} \left(\rho; h\right) =
  * \frac{1}{\rho^d} \int \rho^{d - 1} W \left(\rho; h\right) d\rho \f$
  *
  * @param q Normalized distance \f$ \frac{\mathbf{r_j} - \mathbf{r_i}}{h} \f$.
- * @return Equivalent kernel
+ * @return Equivalent kernel polynomial part
+ * @see kernelS_D
  */
-float kernelS(float q)
+float kernelS_P(float q)
 {
-    float wcon = 0.109375f*iM_PI;  // 0.08203125f = 7/64
+    float wcon = 0.109375f*iM_PI;  // 0.109375f = 7/64
     float q2 = q * q;
     float q3 = q2 * q;
     return wcon * (  0.285714f * q3 * q2  // 0.285714f = 2/7
@@ -108,8 +114,39 @@ float kernelS(float q)
                    + 8.f * q3
                    - 10.f * q2
                    + 8.f
-                   - 4.571429f / q2       // 4.571429f = 32/7
                   );
+}
+
+/** @brief An equivalent kernel function to compute the Shepard factor using the
+ * boundary integral elements instead of the fluid volume.
+ *
+ * For practical purposes, the kernel computation is split in 2 parts: The
+ * polynomial part, where trucation errors are acceptable, and the divergent
+ * part, which requires an analytical solution.
+ * This function computes the divergent part.
+ *
+ * The kernel is defined as follows:
+ * \f$ \hat{W} \left(\rho; h\right) =
+ * \frac{1}{\rho^d} \int \rho^{d - 1} W \left(\rho; h\right) d\rho \f$
+ *
+ * @param d Normal distance to the wall,
+ * \f$ (\mathbf{r_j} - \mathbf{r_i}) \cdot \mathbf{n_j} \f$.
+ * @param t Tangential distance to the boundary element,
+ * \f$ \vert (\mathbf{r_j} - \mathbf{r_i}) - \mathbf{n_j} \left(
+ *      \left( \mathbf{r_j} - \mathbf{r_i} \right) \cdot \mathbf{n_j} 
+ * \right) \vert \f$.
+ * @param s Area of the boundary element, \f$ 2 * \Delta r \f$.
+ * @return Equivalent kernel divergent part
+ * @see kernelS_P
+ * @warning Due to the analytical nature of the solution, this kernel should not
+ * be multiplied by the element area, nor divided by \f$ h^2 \f$
+ */
+float kernelS_D(d, t, s)
+{
+    const float wcon = 0.5 * iM_PI;
+    const float dr = 0.5 * s;
+    return wcon / d * \
+           (atan((t + 0.5 * dr) / d) - atan((t - 0.5 * dr) / d));
 }
 
 #endif    // _KERNEL_H_INCLUDED_
