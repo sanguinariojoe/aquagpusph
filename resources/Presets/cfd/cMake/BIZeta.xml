@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+
+<!-- Zeta.xml
+Compute the zeta renromalization term, considered for the generalized local
+coordinates. This module should be included just once:
+
+<Include file="Zeta.xml"/>
+
+Anyway, the module will remove old previously added instances. So it is safe to
+unintentionally include it several times.
+-->
+
+<sphInput>
+    <Variables>
+        <!-- position and size of the inlet -->
+        <Variable name="zeta" type="float*" length="N" />
+    </Variables>
+
+    <Tools>
+        <!-- Remove previous instances -->
+        <Tool name="cfd BI zeta" action="try_remove" type="dummy"/>
+        <!-- Compute the zeta term. -->
+        <Tool name="cfd BI zeta" ifdef="__CFD_BI__" action="insert" before="Interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/BI/Zeta.cl" entry_point="compute"/>
+    </Tools>
+</sphInput>

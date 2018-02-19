@@ -7,6 +7,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/BI.xml
     ${CMAKE_CURRENT_BINARY_DIR}/BI.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/BINoSlip.xml
     ${CMAKE_CURRENT_BINARY_DIR}/BINoSlip.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/BIZeta.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/BIZeta.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/GP.xml
     ${CMAKE_CURRENT_BINARY_DIR}/GP.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/GPFreeSlip.xml
@@ -86,6 +88,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/BI.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/BI.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/BINoSlip.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/BINoSlip.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/BIZeta.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/BIZeta.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/GP.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/GP.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/GPFreeSlip.xml
@@ -165,6 +169,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/variable_h/symmetry.xml
 SET(RESOURCES_SRCS 
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/BI.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/BINoSlip.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/BIZeta.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/GP.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/GPFreeSlip.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/GPEnergy.xml
