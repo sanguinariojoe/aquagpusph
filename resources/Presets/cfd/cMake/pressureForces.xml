@@ -46,6 +46,9 @@ use forces.xml
         <!-- Computed global forces and moments (by momentum conservation) -->
         <Variable name="pressureForces_F" type="vec" value="0.0, 0.0, 0.0, 0.0" />
         <Variable name="pressureForces_M" type="vec4" value="0.0, 0.0, 0.0, 0.0" />
+        <!-- Helper function to store the pressure gradient before adding
+        boundary effects -->
+        <Variable name="grad_p_bulk" type="vec*" length="N" />
     </Variables>
 
     <Tools>
@@ -58,6 +61,7 @@ use forces.xml
             c = a + b;
         </Tool>
         <!-- Try to compute the forces for the boundary integrals -->
+        <Tool name="cfd BI grad_p_bulk" action="insert" ifdef="__CFD_BI__" after="cfd interactions" type="copy" in="grad_p" out="grad_p_bulk" />
         <Tool name="cfd BI pressure forces" action="try_insert" after="cfd BI Shepard,cfd BI zeta" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Forces/BI/PressureForces.cl"/>
         <Tool name="cfd BI total pressure force" action="try_insert" after_prefix="cfd BI pressure forces" type="reduction" in="pressureForces_f" out="pressureForces_F_BI" null="VEC_ZERO">
             c = a + b;

@@ -41,6 +41,8 @@
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r} \f$.
  * @param grad_p Pressure gradient \f$ \frac{\nabla p}{rho} \f$.
+ * @param grad_p_bulk Pressure gradient, due to the fluid-fluid interactions,
+ * \f$ \left. \frac{\nabla p}{rho} \right\vert_{\Omega \rightarrow \Omega} \f$.
  * @param zeta Zeta term
  * \f$ \zeta(\mathbf{x}) = \int_{\partial \Omega}
  *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{y} \f$.
@@ -59,6 +61,7 @@ __kernel void entry(__global vec* pressureForces_f,
                     const __global int* imove,
                     const __global vec* r,
                     const __global vec* grad_p,
+                    const __global vec* grad_p_bulk,
                     const __global float* zeta,
                     const __global float* m,
                     const __global uint *icell,
@@ -107,7 +110,8 @@ __kernel void entry(__global vec* pressureForces_f,
         {
             const float m_j = m[j];
             const float zeta_j = zeta[j];
-            const vec_xyz gradp_j = grad_p[j].XYZ;  // Already divided by rho_j
+            // grad_p is already divided by the density
+            const vec_xyz gradp_j = grad_p[j].XYZ - grad_p_bulk[j].XYZ;
             const float w_ij = kernelW(q) * CONW * m_j;
 
             _F_ += area_i * w_ij / zeta_j * gradp_j;
