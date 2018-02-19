@@ -77,7 +77,7 @@ __kernel void compute(const __global int* imove,
         __local float zeta_l[LOCAL_MEM_SIZE];
     #endif
 
-    _ZETA_ = 1.f;
+    _ZETA_ = 0.f;
 
     BEGIN_LOOP_OVER_NEIGHS(){
         if(imove[j] != -3){
