@@ -40,9 +40,10 @@
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r} \f$.
- * @param normal Normal \f$ \mathbf{n} \f$.
- * @param p Pressure \f$ p \f$.
- * @param rho Density \f$ \rho \f$.
+ * @param grad_p Pressure gradient \f$ \frac{\nabla p}{rho} \f$.
+ * @param zeta Zeta term
+ * \f$ \zeta(\mathbf{x}) = \int_{\partial \Omega}
+ *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{y} \f$.
  * @param m Mass \f$ m \f$.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
@@ -57,9 +58,8 @@ __kernel void entry(__global vec* pressureForces_f,
                     const __global uint* iset,
                     const __global int* imove,
                     const __global vec* r,
-                    const __global vec* normal,
-                    const __global float* p,
-                    const __global float* rho,
+                    const __global vec* grad_p,
+                    const __global float* zeta,
                     const __global float* m,
                     const __global uint *icell,
                     const __global uint *ihoc,
@@ -80,8 +80,6 @@ __kernel void entry(__global vec* pressureForces_f,
     }
 
     const vec_xyz r_i = r[i].XYZ;
-    const vec_xyz n_i = normal[i].XYZ;
-    const vec_xyz p_i = p[i];
     const float area_i = m[i];
 
     // Initialize the output
@@ -108,11 +106,11 @@ __kernel void entry(__global vec* pressureForces_f,
 
         {
             const float m_j = m[j];
-            const float rho_j = rho[j];
-            const float p_j = p[j];
-            const float w_ij = kernelW(q) * CONW * area_i;
+            const float zeta_j = zeta[j];
+            const vec_xyz gradp_j = grad_p[j].XYZ;  // Already divided by rho_j
+            const float w_ij = kernelW(q) * CONW * m_j;
 
-            _F_ += m_j * (p_i + p_j) / rho_j * w_ij * n_i;
+            _F_ += area_i * w_ij * gradp_j;
         }
     }END_LOOP_OVER_NEIGHS()
 
@@ -120,7 +118,7 @@ __kernel void entry(__global vec* pressureForces_f,
         pressureForces_f[i].XYZ = _F_;
     #endif
 
-    const vec arm = r[i] - pressureForces_r;
+    const vec_xyz arm = r_i - pressureForces_r.XYZ;
     pressureForces_m[i].z = arm.x * _F_.y - arm.y * _F_.x;
     pressureForces_m[i].w = 0.f;
     #ifdef HAVE_3D

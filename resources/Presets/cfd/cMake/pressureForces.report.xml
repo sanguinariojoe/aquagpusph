@@ -10,7 +10,8 @@ of using this preset.
     <Reports>
         <Report type="screen" name="Pressure forces (GP)" fields="pressureForces_F_GP;pressureForces_M_GP;" color="red" bold="false"/>
         <Report type="screen" name="Pressure forces (BI)" fields="pressureForces_F_BI;pressureForces_M_BI;" color="red" bold="false"/>
-        <Report type="file" name="Pressure forces file" fields="t, pressureForces_F_GP, pressureForces_M_GP, pressureForces_F_BI, pressureForces_M_BI" path="PressureForces.dat"/>
+        <Report type="screen" name="Pressure forces" fields="pressureForces_F;pressureForces_M;" color="red" bold="false"/>
+        <Report type="file" name="Pressure forces file" fields="t, pressureForces_F_GP, pressureForces_M_GP, pressureForces_F_BI, pressureForces_M_BI, pressureForces_F, pressureForces_M" path="PressureForces.dat"/>
     </Reports>
 </sphInput>
  
