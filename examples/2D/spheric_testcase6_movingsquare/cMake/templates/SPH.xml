@@ -29,9 +29,8 @@ Authors:
         <Variable name="domain_min" type="vec" value="{{DOMAIN_MIN}}" />
         <Variable name="domain_max" type="vec" value="{{DOMAIN_MAX}}" />
         <!-- Forces computation -->
-        <Variable name="pressureForces_iset" type="unsigned int" value="2" />
         <Variable name="pressureForces_r" type="vec" value="{{XSQUARE}}, {{YSQUARE}}" />
-        <Variable name="viscousForces_iset" type="unsigned int" value="2" />
         <Variable name="viscousForces_r" type="vec" value="{{XSQUARE}}, {{YSQUARE}}" />
+        <Variable name="forces_r" type="vec" value="{{XSQUARE}}, {{YSQUARE}}" />
     </Variables>
 </sphInput>

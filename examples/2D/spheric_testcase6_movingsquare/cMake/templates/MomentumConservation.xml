@@ -1,0 +1,55 @@
+<?xml version="1.0" ?>
+<!--
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
+
+Another QUAlity GPU-SPH, by CEHINAV.
+    http://canal.etsin.upm.es/
+Authors:
+    Jose Luis Cercos-Pita
+    Leo Miguel Gonzalez
+    Antonio Souto-Iglesias
+-->
+
+<sphInput>
+    <!-- Force measurement -->
+    <Include file="@RESOURCES_DIR@/Presets/cfd/forces.xml" />
+
+    <Variables>
+        <!-- Computed global forces and moments (with each boundary methodology) -->
+        <Variable name="Fp" type="vec" value="0.0, 0.0" />
+        <Variable name="Mp" type="float" value="0.0" />
+        <Variable name="Fv" type="vec" value="0.0, 0.0" />
+        <Variable name="Mv" type="float" value="0.0" />
+        <!-- Computed global forces and moments (by momentum conservation) -->
+        <Variable name="Ft" type="vec" value="0.0, 0.0" />
+        <Variable name="Mt" type="float" value="0.0" />
+    </Variables>
+
+    <Tools>
+        <!-- remove one of the copies of the global pressure forces computation -->
+        <Tool name="square_cfd pressure forces" action="try_remove" type="dummy"/>
+        <Tool name="square_cfd total pressure force" action="try_remove" type="dummy"/>
+        <Tool name="square_cfd total pressure moment" action="try_remove" type="dummy"/>
+
+        <Tool name="Ft" action="insert" after="cfd total force" type="set_scalar" in="Ft" value="forces_F_x, forces_F_y"/>
+        <Tool name="Mt" action="insert" after="cfd total moment" type="set_scalar" in="Mt" value="forces_M_z"/>
+        <Tool name="Fp" action="insert" after="box_cfd total pressure force" type="set_scalar" in="Fp" value="pressureForces_F_x, pressureForces_F_y"/>
+        <Tool name="Mp" action="insert" after="box_cfd total pressure moment" type="set_scalar" in="Mp" value="pressureForces_M_z"/>
+        <Tool name="Fv" action="insert" after="Fp,Ft" type="set_scalar" in="Fv" value="Ft_x - Fp_x, Ft_y - Fp_y"/>
+        <Tool name="Mv" action="insert" after="Mp,Mt" type="set_scalar" in="Mv" value="Mt - Mp"/>
+    </Tools>
+
+    <Reports>
+        <Report type="screen" name="Pressure force" fields="Fp;Mp;" color="red" bold="false"/>
+        <Report type="screen" name="Viscous force" fields="Fv;Mv;" color="red" bold="false"/>
+        <Report type="file" name="Forces file" fields="t, Fp, Mp, Fv, Mv" path="Forces.dat"/>
+    </Reports>
+
+</sphInput>

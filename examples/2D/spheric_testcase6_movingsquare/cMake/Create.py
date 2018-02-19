@@ -283,7 +283,8 @@ for fname in fnames:
 
 templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
 XML = ('Main.xml', 'Settings.xml', 'SPH.xml', 'Time.xml', 'Motion.xml',
-       'Fluid.xml', 'Box.xml', 'Square.xml', 'BI.xml', 'GP.xml', 'plot_f.py')
+       'Fluid.xml', 'Box.xml', 'Square.xml', 'BI.xml', 'GP.xml',
+       'MomentumConservation.xml', 'plot_f.py')
 
 domain_min = str(domain_min).replace('(', '').replace(')', '')
 domain_max = str(domain_max).replace('(', '').replace(')', '')
