@@ -110,7 +110,7 @@ __kernel void entry(__global vec* pressureForces_f,
             const vec_xyz gradp_j = grad_p[j].XYZ;  // Already divided by rho_j
             const float w_ij = kernelW(q) * CONW * m_j;
 
-            _F_ += area_i * w_ij * gradp_j;
+            _F_ += area_i * w_ij / zeta_j * gradp_j;
         }
     }END_LOOP_OVER_NEIGHS()
 
