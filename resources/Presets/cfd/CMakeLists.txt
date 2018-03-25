@@ -15,6 +15,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/GPEnergy.xml
     ${CMAKE_CURRENT_BINARY_DIR}/GPEnergy.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/elasticBounce.xml
     ${CMAKE_CURRENT_BINARY_DIR}/elasticBounce.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/inflow.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/inflow.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/inlet.xml
     ${CMAKE_CURRENT_BINARY_DIR}/inlet.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/inletEnergy.xml
@@ -94,6 +96,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/GPEnergy.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/GPEnergy.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/elasticBounce.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/elasticBounce.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/inflow.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/inflow.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/inlet.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/inlet.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/inletEnergy.xml
@@ -169,6 +173,7 @@ SET(RESOURCES_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/GPFreeSlip.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/GPEnergy.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/elasticBounce.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/inflow.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/inlet.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/inletEnergy.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/outlet.xml

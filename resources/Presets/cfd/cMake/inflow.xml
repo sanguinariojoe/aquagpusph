@@ -1,0 +1,71 @@
+<?xml version="1.0" ?>
+
+<!-- inflow.xml
+Inflow boundary condition. With this template a square plane inflow is defined.
+
+To create such inflow boundary condition you must include this preset, setting
+later the following variables:
+
+inflow_r = Lower corner of the inflow square
+inflow_ru = Square U vector
+inflow_rv = Square V vector
+inflow_n = Normal of the boundary (outwards flow)
+
+You must then populate with particles the outflow side of the boundary. As a
+general rule, you should place particles packages in planes parallel to the
+outflow boundary, starting at -0.5 * dr (dr = distance between particles), and
+spaced by dr, up to 2*h (h = kernel length). Density and velocity of inflow
+particles are constant fields.
+
+Also a buffer of particles should be created in the upper corner of the
+computational device. Remember that, when the buffer is empty, the inflow will
+start hijacking fluid particles. Grant therefore that the buffer is large
+enough.
+
+In 2-D simulations the inflow_rv variable will be useless.
+
+Each time an inflow particle tresspass the boundary, it is turned in a regular
+particle. Also the particle is duplicated at
+
+r + 2 * h * inflow_n
+
+where r is the position of the particle.
+-->
+
+<sphInput>
+    <Variables>
+        <!-- position and size of the inflow -->
+        <Variable name="inflow_r" type="vec" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="inflow_ru" type="vec" value="0.0, 1.0, 0.0, 0.0" />
+        <Variable name="inflow_rv" type="vec" value="0.0, 0.0, 1.0, 0.0" />
+        <Variable name="inflow_n" type="vec" value="-1.0, 0.0, 0.0, 0.0" />
+        <!-- helper array to identify particles at the inflow side -->
+        <Variable name="iinflow_in" type="unsigned int*" length="N" />
+        <Variable name="iinflow" type="unsigned int*" length="N" />
+        <Variable name="iinflowseed" type="int*" length="N" />
+        <Variable name="inflowseed_perm" type="unsigned int*" length="n_radix" />
+        <Variable name="inflowseed_invperm" type="unsigned int*" length="n_radix" />
+        <Variable name="inflow_N" type="unsigned int" value="0" />
+    </Variables>
+
+    <Tools>
+        <!-- Flag the particles at the inflow -->
+        <Tool name="cfd iinflow" action="insert" before="predictor" type="kernel" entry_point="marker" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Inflow/Inflow.cl"/>
+        <Tool name="sort iinflow" action="insert" before="Sort" type="kernel" entry_point="sort" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Inflow/Inflow.cl"/>
+
+        <!-- Ensure that particles in the inflow are not affected by the interactions -->
+        <Tool name="cfd inflow" action="insert" before="Rates" type="kernel" entry_point="rates" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Inflow/Inflow.cl"/>
+        <!-- Feed the inflow (if required). -->
+        <Tool name="Inflow" action="insert" after="Corrector" type="dummy"/>
+        <Tool name="Set buffer" action="insert" before="Inflow" type="dummy" />
+        <Tool name="cfd inflow seeds" action="insert" before="Inflow" type="kernel" entry_point="seeds" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Inflow/Inflow.cl"/>
+        <Tool name="cfd inflow count seeds" action="insert" before="Inflow" type="reduction" in="iinflowseed" out="inflow_N" null="0">
+            c = a + b;
+        </Tool>
+        <Tool name="cfd check buffer particles" action="insert" before="Inflow" type="assert" condition="nbuffer >= inflow_N"/>
+        <Tool name="cfd inflow sort seeds" action="insert" before="Inflow" type="radix-sort" in="iinflowseed" perm="inflowseed_perm" inv_perm="inflowseed_invperm"/>
+        <Tool name="cfd inflow feed" action="insert" before="Inflow" type="kernel" entry_point="feed" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Inflow/Inflow.cl"/>
+    </Tools>
+
+    <Include file="@RESOURCES_OUTPUT_DIR@/Presets/basic/setBuffer.xml" when="end"/>
+</sphInput>
