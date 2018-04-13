@@ -38,8 +38,6 @@
  * the boundary, 0 otherwise.
  * @param N Number of particles.
  * @param inlet_r Lower corner of the inlet square.
- * @param inlet_ru Square U vector.
- * @param inlet_rv Square V vector.
  * @param inlet_n Inflow boundary plane normal (outwards fluid domain).
  */
 __kernel void marker(const __global int* imove,
@@ -47,8 +45,6 @@ __kernel void marker(const __global int* imove,
                      __global uint* iinflow_in,
                      unsigned int N,
                      vec inlet_r,
-                     vec inlet_ru,
-                     vec inlet_rv,
                      vec inlet_n)
 {
     const unsigned int i = get_global_id(0);
@@ -101,8 +97,6 @@ __kernel void sort(const __global float *iinflow_in,
  * domain (becoming a regular fluid particle), 0 otherwise.
  * @param N Number of particles.
  * @param inlet_r Lower corner of the inlet square.
- * @param inlet_ru Square U vector.
- * @param inlet_rv Square V vector.
  * @param inlet_n Inflow boundary plane normal (outwards fluid domain).
  */
 __kernel void seeds(const __global int* imove,
@@ -111,8 +105,6 @@ __kernel void seeds(const __global int* imove,
                     __global uint* iinflowseed,
                     unsigned int N,
                     vec inlet_r,
-                    vec inlet_ru,
-                    vec inlet_rv,
                     vec inlet_n)
 {
     const unsigned int i = get_global_id(0);

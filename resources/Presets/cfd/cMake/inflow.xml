@@ -36,8 +36,6 @@ where r is the position of the particle.
     <Variables>
         <!-- position and size of the inflow -->
         <Variable name="inflow_r" type="vec" value="0.0, 0.0, 0.0, 0.0" />
-        <Variable name="inflow_ru" type="vec" value="0.0, 1.0, 0.0, 0.0" />
-        <Variable name="inflow_rv" type="vec" value="0.0, 0.0, 1.0, 0.0" />
         <Variable name="inflow_n" type="vec" value="-1.0, 0.0, 0.0, 0.0" />
         <!-- helper array to identify particles at the inflow side -->
         <Variable name="iinflow_in" type="unsigned int*" length="N" />
