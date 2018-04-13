@@ -1,3 +1,4 @@
+ADD_SUBDIRECTORY(boundary_layer)
 ADD_SUBDIRECTORY(built_in_beam)
 ADD_SUBDIRECTORY(cylinder_inside_channel)
 ADD_SUBDIRECTORY(shock_chamber)

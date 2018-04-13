@@ -1,0 +1,40 @@
+<?xml version="1.0" ?>
+<!--
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
+
+Another QUAlity GPU-SPH, by CEHINAV.
+    http://canal.etsin.upm.es/
+Authors:
+    Jose Luis Cercos-Pita
+    Leo Miguel Gonzalez
+    Antonio Souto-Iglesias
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="g" type="vec" value="0.0, -{{G}}" />
+        <Variable name="dr" type="float" value="{{DR}}" />
+        <Variable name="hfac" type="float" value="{{HFAC}}" />
+        <Variable name="h" type="float" value="hfac * dr" />
+        <Variable name="cs" type="float" value="{{CS}}" />
+        <Variable name="p0" type="float" value="{{P0}}" />
+        <Variable name="courant" type="float" value="{{COURANT}}" />
+        <Variable name="domain_min" type="vec" value="{{DOMAIN_MIN}}" />
+        <Variable name="domain_max" type="vec" value="{{DOMAIN_MAX}}" />
+        <!-- Inlet boundary condition -->
+        <Variable name="inflow_r" type="vec" value="0.0, 0.5*{{H}}" />
+        <Variable name="inlet_n" type="vec" value="-1.0, 0.0" />
+        <!-- Outlet boundary condition -->
+        <Variable name="outlet_r" type="vec" value="{{L}}, 0.0" />
+        <Variable name="outlet_rFS" type="vec" value="{{L}}, {{H}}" />
+        <Variable name="outlet_n" type="vec" value="1.0, 0.0" />
+        <Variable name="outlet_U" type="float" value="{{U}}" />
+    </Variables>
+</sphInput>

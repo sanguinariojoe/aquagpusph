@@ -1,0 +1,44 @@
+<?xml version="1.0" ?>
+<!--
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
+
+Another QUAlity GPU-SPH, by CEHINAV.
+    http://canal.etsin.upm.es/
+Authors:
+    Jose Luis Cercos-Pita
+    Leo Miguel Gonzalez
+    Antonio Souto-Iglesias
+-->
+
+<sphInput>
+    <!-- In this file we will just include other XML definition files -->
+    <Include file="@RESOURCES_DIR@/Presets/basic.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/basic/domain.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd/deltaSPH.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd/deltaSPH-full.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd/BI.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd/BINoSlip.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd/elasticBounce.xml" />
+    <Definitions>
+        <!-- Morris laplacian formulations works fine without free surfaces -->
+        <Define name="__LAP_FORMULATION__" value="__LAP_MORRIS__" evaluate="false"/>
+        <!-- Elastic bounce is ignoring multiresolution by default -->
+        <Define name="__MIN_BOUND_DIST__" value="0.05f" evaluate="false"/>
+    </Definitions>
+    <Include file="@RESOURCES_DIR@/Presets/cfd/inflow.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd/outlet.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/basic/timing.report.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/basic/performance.report.xml" />
+    <Include file="Settings.xml" />
+    <Include file="Time.xml" />
+    <Include file="SPH.xml" />
+    <Include file="Fluids.xml" />
+</sphInput>
