@@ -44,8 +44,8 @@ Authors:
     </Variables>
 
     <Tools>
-        <Tool name="square_Ft_iset" action="insert" before="square_cfd BI forces" type="set_scalar" in="forces_iset" value="1"/>
-        <Tool name="square_Fp_iset" action="insert" before="square_cfd BI pressure forces" type="set_scalar" in="pressureForces_iset" value="1"/>
+        <Tool name="square_Ft_iset" action="insert" before="square_cfd BI forces" type="set_scalar" in="forces_iset" value="2"/>
+        <Tool name="square_Fp_iset" action="insert" before="square_cfd BI pressure forces" type="set_scalar" in="pressureForces_iset" value="2"/>
         <Tool name="square_Ft" action="insert" after="square_cfd BI total force" type="set_scalar" in="square_Ft" value="forces_F_BI_x, forces_F_BI_y"/>
         <Tool name="square_Fp" action="insert" after="square_cfd BI total pressure force" type="set_scalar" in="square_Fp" value="pressureForces_F_BI_x, pressureForces_F_BI_y"/>
         <Tool name="square_Mt" action="insert" after="square_cfd BI total moment" type="set_scalar" in="square_Mt" value="forces_M_BI_z"/>
