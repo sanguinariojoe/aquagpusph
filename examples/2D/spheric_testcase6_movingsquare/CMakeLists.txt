@@ -17,6 +17,8 @@ configure_file(${EXAMPLE_ORIG_DIR}/templates/GP.xml
     ${EXAMPLE_DEST_DIR}/templates/GP.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/templates/Main.xml
     ${EXAMPLE_DEST_DIR}/templates/Main.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/templates/MomentumConservation.xml
+    ${EXAMPLE_DEST_DIR}/templates/MomentumConservation.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/templates/Motion.xml
     ${EXAMPLE_DEST_DIR}/templates/Motion.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/templates/Settings.xml
@@ -64,6 +66,8 @@ configure_file(${EXAMPLE_ORIG_DIR}/templates/GP.xml
     ${EXAMPLE_AUX_DIR}/templates/GP.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/templates/Main.xml
     ${EXAMPLE_AUX_DIR}/templates/Main.xml @ONLY)
+configure_file(${EXAMPLE_ORIG_DIR}/templates/MomentumConservation.xml
+    ${EXAMPLE_AUX_DIR}/templates/MomentumConservation.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/templates/Motion.xml
     ${EXAMPLE_AUX_DIR}/templates/Motion.xml @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/templates/Settings.xml
@@ -100,6 +104,7 @@ INSTALL(
         ${EXAMPLE_AUX_DIR}/templates/Fluid.xml
         ${EXAMPLE_AUX_DIR}/templates/GP.xml
         ${EXAMPLE_AUX_DIR}/templates/Main.xml
+        ${EXAMPLE_AUX_DIR}/templates/MomentumConservation.xml
         ${EXAMPLE_AUX_DIR}/templates/Motion.xml
         ${EXAMPLE_AUX_DIR}/templates/Settings.xml
         ${EXAMPLE_AUX_DIR}/templates/SPH.xml
