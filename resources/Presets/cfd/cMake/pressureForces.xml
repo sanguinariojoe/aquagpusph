@@ -13,7 +13,7 @@ pressureForces_iset = Particles set index affected where the forces should be
                       computed.
 pressureForces_r    = Position of the center of rotation.
 
-This preset is generating the following variables which are the global forces
+This preset is generating the following variables which are the pressure forces
 and moments with respect to pressureForces_r:
 pressureForces_F_GP = Force due to the Ghost Particles 
 pressureForces_M_GP = Moment due to the Ghost Particles
@@ -21,12 +21,14 @@ pressureForces_F_BI = Force due to the Boundary Integrals
 pressureForces_M_BI = Moment due to the Boundary Integrals
 
 If you want to get the forces on several bodies this preset can be included
-several times using different prefixes. How to do it depends on whether BI or
+several times using different prefixes. How to do that depends on whether BI or
 GP are used to enforce the boundary conditions. It is strongly recommended not
 mixing boundary conditions.
 
-If you wish to compute the global force for confined flows maybe you prefer to
-use forces.xml
+If you wish to compute pressure and viscous forces components of the force,
+it is strongly recommended to use forces.xml module to compute the total force,
+and this module to compute the pressure force, letting the viscous component be
+the difference between both.
 -->
 
 <sphInput>

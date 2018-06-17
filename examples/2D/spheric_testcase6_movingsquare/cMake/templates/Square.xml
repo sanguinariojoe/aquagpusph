@@ -29,29 +29,34 @@ Authors:
 
     <!-- Force measurement -->
     <Include file="@RESOURCES_DIR@/Presets/cfd/pressureForces.xml" prefix="square_" />
-    <Include file="@RESOURCES_DIR@/Presets/cfd/viscousForces.xml" prefix="square_" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd/forces.xml" prefix="square_" />
 
     <Variables>
-        <!-- Computed global forces and moments (with each boundary methodology) -->
+        <!-- Computed global forces and moments -->
+        <Variable name="square_Ft" type="vec" value="0.0, 0.0" />
+        <Variable name="square_Mt" type="float" value="0.0" />
+        <!-- Computed pressure forces and moments -->
         <Variable name="square_Fp" type="vec" value="0.0, 0.0" />
         <Variable name="square_Mp" type="float" value="0.0" />
-        <!-- Computed global forces and moments (by momentum conservation) -->
+        <!-- Computed viscous forces and moments -->
         <Variable name="square_Fv" type="vec" value="0.0, 0.0" />
         <Variable name="square_Mv" type="float" value="0.0" />
     </Variables>
 
     <Tools>
-        <Tool name="square_Fp_iset" action="insert" before="square_cfd BI pressure forces" type="set_scalar" in="pressureForces_iset" value="2"/>
-        <Tool name="square_Fv_iset" action="insert" before="square_cfd BI viscous forces" type="set_scalar" in="viscousForces_iset" value="2"/>
+        <Tool name="square_Ft_iset" action="insert" before="square_cfd BI forces" type="set_scalar" in="forces_iset" value="1"/>
+        <Tool name="square_Fp_iset" action="insert" before="square_cfd BI pressure forces" type="set_scalar" in="pressureForces_iset" value="1"/>
+        <Tool name="square_Ft" action="insert" after="square_cfd BI total force" type="set_scalar" in="square_Ft" value="forces_F_BI_x, forces_F_BI_y"/>
         <Tool name="square_Fp" action="insert" after="square_cfd BI total pressure force" type="set_scalar" in="square_Fp" value="pressureForces_F_BI_x, pressureForces_F_BI_y"/>
-        <Tool name="square_Fv" action="insert" after="square_cfd BI total viscous force" type="set_scalar" in="square_Fv" value="viscousForces_F_BI_x, viscousForces_F_BI_y"/>
+        <Tool name="square_Mt" action="insert" after="square_cfd BI total moment" type="set_scalar" in="square_Mt" value="forces_M_BI_z"/>
         <Tool name="square_Mp" action="insert" after="square_cfd BI total pressure moment" type="set_scalar" in="square_Mp" value="pressureForces_M_BI_z"/>
-        <Tool name="square_Mv" action="insert" after="square_cfd BI total viscous moment" type="set_scalar" in="square_Mv" value="viscousForces_M_BI_z"/>
+        <Tool name="square_Fv" action="insert" after="square_cfd BI total pressure force,square_cfd BI total force" type="set_scalar" in="square_Fv" value="square_Ft_x - square_Fp_x, square_Ft_y - square_Fp_y"/>
+        <Tool name="square_Mv" action="insert" after="square_cfd BI total pressure moment,square_cfd BI total moment" type="set_scalar" in="square_Mv" value="square_Mt - square_Mp"/>        
     </Tools>
 
     <Reports>
         <Report type="screen" name="Pressure force (square)" fields="square_Fp;square_Mp;" color="red" bold="false"/>
         <Report type="screen" name="Viscous force (square)" fields="square_Fv;square_Mv;" color="red" bold="false"/>
-        <Report type="file" name="Forces file (square)" fields="t, square_Fp, square_Mp, square_Fv, square_Mv" path="SquareForces.dat"/>
+        <Report type="file" name="Forces file (square)" fields="t, square_Fp, square_Mp, square_Fv, square_Mv, square_Ft, square_Mt" path="SquareForces.dat"/>
     </Reports>
 </sphInput>

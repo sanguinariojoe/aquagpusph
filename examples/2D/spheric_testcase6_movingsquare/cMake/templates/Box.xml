@@ -29,29 +29,34 @@ Authors:
 
     <!-- Force measurement -->
     <Include file="@RESOURCES_DIR@/Presets/cfd/pressureForces.xml" prefix="box_" />
-    <Include file="@RESOURCES_DIR@/Presets/cfd/viscousForces.xml" prefix="box_" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd/forces.xml" prefix="box_" />
 
     <Variables>
-        <!-- Computed global forces and moments (with each boundary methodology) -->
+        <!-- Computed global forces and moments -->
+        <Variable name="box_Ft" type="vec" value="0.0, 0.0" />
+        <Variable name="box_Mt" type="float" value="0.0" />
+        <!-- Computed pressure forces and moments -->
         <Variable name="box_Fp" type="vec" value="0.0, 0.0" />
         <Variable name="box_Mp" type="float" value="0.0" />
-        <!-- Computed global forces and moments (by momentum conservation) -->
+        <!-- Computed viscous forces and moments -->
         <Variable name="box_Fv" type="vec" value="0.0, 0.0" />
         <Variable name="box_Mv" type="float" value="0.0" />
     </Variables>
 
     <Tools>
+        <Tool name="box_Ft_iset" action="insert" before="box_cfd BI forces" type="set_scalar" in="forces_iset" value="1"/>
         <Tool name="box_Fp_iset" action="insert" before="box_cfd BI pressure forces" type="set_scalar" in="pressureForces_iset" value="1"/>
-        <Tool name="box_Fv_iset" action="insert" before="box_cfd BI viscous forces" type="set_scalar" in="viscousForces_iset" value="1"/>
+        <Tool name="box_Ft" action="insert" after="box_cfd BI total force" type="set_scalar" in="box_Ft" value="forces_F_BI_x, forces_F_BI_y"/>
         <Tool name="box_Fp" action="insert" after="box_cfd BI total pressure force" type="set_scalar" in="box_Fp" value="pressureForces_F_BI_x, pressureForces_F_BI_y"/>
-        <Tool name="box_Fv" action="insert" after="box_cfd BI total viscous force" type="set_scalar" in="box_Fv" value="viscousForces_F_BI_x, viscousForces_F_BI_y"/>
+        <Tool name="box_Mt" action="insert" after="box_cfd BI total moment" type="set_scalar" in="box_Mt" value="forces_M_BI_z"/>
         <Tool name="box_Mp" action="insert" after="box_cfd BI total pressure moment" type="set_scalar" in="box_Mp" value="pressureForces_M_BI_z"/>
-        <Tool name="box_Mv" action="insert" after="box_cfd BI total viscous moment" type="set_scalar" in="box_Mv" value="viscousForces_M_BI_z"/>
+        <Tool name="box_Fv" action="insert" after="box_cfd BI total pressure force,box_cfd BI total force" type="set_scalar" in="box_Fv" value="box_Ft_x - box_Fp_x, box_Ft_y - box_Fp_y"/>
+        <Tool name="box_Mv" action="insert" after="box_cfd BI total pressure moment,box_cfd BI total moment" type="set_scalar" in="box_Mv" value="box_Mt - box_Mp"/>        
     </Tools>
 
     <Reports>
         <Report type="screen" name="Pressure force (box)" fields="box_Fp;box_Mp;" color="red" bold="false"/>
         <Report type="screen" name="Viscous force (box)" fields="box_Fv;box_Mv;" color="red" bold="false"/>
-        <Report type="file" name="Forces file (box)" fields="t, box_Fp, box_Mp, box_Fv, box_Mv" path="BoxForces.dat"/>
+        <Report type="file" name="Forces file (box)" fields="t, box_Fp, box_Mp, box_Fv, box_Mv, box_Ft, box_Mt" path="BoxForces.dat"/>
     </Reports>
 </sphInput>

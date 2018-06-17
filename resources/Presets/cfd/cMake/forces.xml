@@ -1,41 +1,87 @@
 <?xml version="1.0" ?>
 
 <!-- forces.xml
-Forces and moments runtime processor.
+Forces and moments, over solid boundaries, runtime postprocessor. With
+this preset the forces caused by the Boundary Integrals (BI.xml) and by the
+Ghost Particles (GP.xml) are computed and stored in separate variables.
 This preset is designed to be loaded after cfd.xml.
 
-To use it, just include this file, and later set the initial values for the
-variables:
-forces_r = Position of the center of rotation
+This module depends on BIZeta.xml.
+
+To use it, just include BIZeta.xml and this file. Then you can conveniently set
+the initial values for the variables:
+forces_iset = Particles set index affected where the forces should be
+              computed.
+forces_r    = Position of the center of rotation.
 
 This preset is generating the following variables which are the global forces
 and moments with respect to forces_r:
-forces_F = Fluid forces
-forces_M = Fluid moments
+forces_F_GP = Force due to the Ghost Particles 
+forces_M_GP = Moment due to the Ghost Particles
+forces_F_BI = Force due to the Boundary Integrals
+forces_M_BI = Moment due to the Boundary Integrals
 
-With this method the forces are computed by the summation of the fluid particles
-acceleration, in order to integrate the forces around an object use
-pressureForces.xml and viscousForces.xml.
+If you want to get the forces on several bodies this preset can be included
+several times using different prefixes. How to do that depends on whether BI or
+GP are used to enforce the boundary conditions. It is strongly recommended not
+mixing boundary conditions.
+
+If you wish to compute pressure and viscous forces components of the force,
+it is strongly recommended to use this module to compute the total force,
+and the module pressureForces.xml to compute the pressure force, letting the
+viscous component be the difference between both.
 -->
 
 <sphInput>
     <Variables>
+        <!-- Particles set affected -->
+        <Variable name="forces_iset" type="unsigned int" value="0" />
         <!-- center of reference for the forces -->
         <Variable name="forces_r" type="vec" value="0.0, 0.0, 0.0, 0.0" />
         <!-- Computed forces and moments for each particle -->
         <Variable name="forces_f" type="vec*" length="N" />
         <Variable name="forces_m" type="vec4*" length="N" />
+        <!-- Computed global forces and moments (with each boundary methodology) -->
+        <Variable name="forces_F_GP" type="vec" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="forces_M_GP" type="vec4" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="forces_F_BI" type="vec" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="forces_M_BI" type="vec4" value="0.0, 0.0, 0.0, 0.0" />
         <!-- Computed global forces and moments for the fluid -->
         <Variable name="forces_F" type="vec" value="0.0, 0.0, 0.0, 0.0" />
         <Variable name="forces_M" type="vec4" value="0.0, 0.0, 0.0, 0.0" />
+        <!-- Helper function to store the particles acceleration before adding
+        boundary effects -->
+        <Variable name="dudt_bulk" type="vec*" length="N" />
     </Variables>
 
     <Tools>
-        <Tool action="insert" after="TimeStep" type="kernel" name="cfd forces" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Forces/Forces.cl"/>
-        <Tool action="insert" after="cfd forces" type="reduction" name="cfd total force" in="forces_f" out="forces_F" null="VEC_ZERO">
+        <!-- Try to compute the forces for the ghost particles -->
+        <Tool name="cfd GP forces" action="try_insert" after="cfd GP interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Forces/GP/Forces.cl"/>
+        <Tool name="cfd GP total force" action="try_insert" after_prefix="cfd GP forces" type="reduction" in="forces_f" out="forces_F_GP" null="VEC_ZERO">
             c = a + b;
         </Tool>
-        <Tool action="insert" after="cfd total force" type="reduction" name="cfd total moment" in="forces_m" out="forces_M" null="(vec4)(0.f, 0.f, 0.f, 0.f)">
+        <Tool name="cfd GP total moment" action="try_insert" after_prefix="cfd GP total force" type="reduction" in="forces_m" out="forces_M_GP" null="(vec4)(0.f, 0.f, 0.f, 0.f)">
+            c = a + b;
+        </Tool>
+        <!-- Try to compute the forces for the boundary integrals -->
+        <Tool name="cfd BI bulk rates" action="insert" ifdef="__CFD_BI__" after="cfd interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Rates.cl" />
+        <Tool name="cfd BI dudt_bulk" action="insert" ifdef="__CFD_BI__" after_prefix="cfd BI bulk rates" type="copy" in="dudt" out="dudt_bulk" />
+        <Tool name="cfd BI forces" action="try_insert" after="cfd rates" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Forces/BI/Forces.cl"/>
+        <Tool name="cfd BI total force" action="try_insert" after_prefix="cfd BI forces" type="reduction" in="forces_f" out="forces_F_BI" null="VEC_ZERO">
+            c = a + b;
+        </Tool>
+        <Tool name="cfd BI total moment" action="try_insert" after_prefix="cfd BI total force" type="reduction" in="forces_m" out="forces_M_BI" null="(vec4)(0.f, 0.f, 0.f, 0.f)">
+            c = a + b;
+        </Tool>
+        <!-- Compute the global forces -->
+        <Tool name="*cfd forces" action="try_remove" type="dummy"/>
+        <Tool name="cfd forces" action="insert" after="TimeStep" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Forces/Forces.cl"/>
+        <Tool name="*cfd total force" action="try_remove" type="dummy"/>
+        <Tool name="cfd total force" action="insert" after_prefix="cfd forces" type="reduction" in="forces_f" out="forces_F" null="VEC_ZERO">
+            c = a + b;
+        </Tool>
+        <Tool name="*cfd total moment" action="try_remove" type="dummy"/>
+        <Tool name="cfd total moment" action="insert" after_prefix="cfd total force" type="reduction" in="forces_m" out="forces_M" null="(vec4)(0.f, 0.f, 0.f, 0.f)">
             c = a + b;
         </Tool>
     </Tools>
