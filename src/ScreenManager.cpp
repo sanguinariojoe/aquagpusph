@@ -24,6 +24,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 
+#include <AuxiliarMethods.h>
 #include <ScreenManager.h>
 #include <FileManager.h>
 #include <ProblemSetup.h>
@@ -108,16 +109,16 @@ void ScreenManager::writeReport(std::string input,
     #ifndef HAVE_NCURSES
         std::cout << input;
         if(!hasSuffix(input, "\n")){
-            std::cout << endl;
+            std::cout << std::endl;
         }
     #else
-        std::string msg = rtrim(input);
+        std::string msg = rtrimCopy(input);
         size_t start = 0, end = 0;
-        while((end = str.find("\n", start)) != std::string::npos) {
-            writeReport(str.substr(start, end), color, bold);
+        while((end = msg.find("\n", start)) != std::string::npos) {
+            writeReport(msg.substr(start, end), color, bold);
             start = end;
         }
-        if(str.find("\n", start)) != std::string::npos) {
+        if(msg.find("\n", start) != std::string::npos) {
             // Alreadey processed by pieces
             return;
         }
@@ -133,14 +134,14 @@ void ScreenManager::writeReport(std::string input,
             // ncurses select how to divide the string
             size_t last = 0;
             end = 0;
-            while((end = str.find(" ", end)) != std::string::npos) {
+            while((end = msg.find(" ", end)) != std::string::npos) {
                 if (end > cols)
                     break;
                 last = end;
             }
             if (last) {
-                writeReport(str.substr(0, last), color, bold);
-                writeReport(str.substr(last), color, bold);
+                writeReport(msg.substr(0, last), color, bold);
+                writeReport(msg.substr(last), color, bold);
                 return;
             }
         }
@@ -148,25 +149,25 @@ void ScreenManager::writeReport(std::string input,
         // Select the font
         attrset(A_NORMAL);
         unsigned int pair_id = 1;
-        if(!strcmp(color, "white")){
+        if(!color.compare("white")){
             pair_id = 1;
         }
-        else if(!strcmp(color, "green")){
+        else if(!color.compare("green")){
             pair_id = 2;
         }
-        else if(!strcmp(color, "blue")){
+        else if(!color.compare("blue")){
             pair_id = 3;
         }
-        else if(!strcmp(color, "yellow")){
+        else if(!color.compare("yellow")){
             pair_id = 4;
         }
-        else if(!strcmp(color, "red")){
+        else if(!color.compare("red")){
             pair_id = 5;
         }
-        else if(!strcmp(color, "magenta")){
+        else if(!color.compare("magenta")){
             pair_id = 6;
         }
-        else if(!strcmp(color, "cyan")){
+        else if(!color.compare("cyan")){
             pair_id = 7;
         }
         else{
@@ -230,12 +231,12 @@ void ScreenManager::addMessage(TLogLevel level, std::string log, const char *fun
     // Compatibility mode for destroyed ScreenManager situations
     if(!ScreenManager::singleton()){
         if(level == L_INFO)
-            cout << "INFO ";
+            std::cout << "INFO ";
         else if(level == L_WARNING)
-            cout << "WARNING ";
+            std::cout << "WARNING ";
         else if(level == L_ERROR)
-            cout << "ERROR ";
-        cout << fname.str() << log << std::flush;
+            std::cout << "ERROR ";
+        std::cout << fname.str() << log << std::flush;
         return;
     }
 
@@ -384,12 +385,12 @@ void ScreenManager::printLog()
     #ifndef HAVE_NCURSES
     for(i = 0; i < _log_level.size(); i++){
         if(_log_level.at(i) == L_INFO)
-            cout << "INFO ";
+            std::cout << "INFO ";
         else if(_log_level.at(i) == L_WARNING)
-            cout << "WARNING ";
+            std::cout << "WARNING ";
         else if(_log_level.at(i) == L_ERROR)
-            cout << "ERROR ";
-        cout << _log.at(i).c_str() << std::flush;
+            std::cout << "ERROR ";
+        std::cout << _log.at(i) << std::flush;
     }
     #else
         // Get a good position candidate
