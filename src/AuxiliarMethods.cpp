@@ -65,13 +65,13 @@ int isKeyPressed()
     return 0;
 }
 
-inline bool hasSuffix(const std::string &str, const std::string &suffix)
+bool hasSuffix(const std::string &str, const std::string &suffix)
 {
     return str.size() >= suffix.size() &&
            str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
 }
 
-inline void replaceAll(std::string &str,
+void replaceAll(std::string &str,
                        const std::string &search,
                        const std::string &replace)
 {
@@ -82,48 +82,42 @@ inline void replaceAll(std::string &str,
     }
 }
 
-inline std::string replaceAllCopy(std::string str,
-                           std::string search,
-                           std::string replace)
+std::string replaceAllCopy(std::string str,
+                                  std::string search,
+                                  std::string replace)
 {
     replaceAll(str, search, replace);
     return str;
 }
 
-// trim from start (in place)
-inline void ltrim(std::string &s) {
+void ltrim(std::string &s) {
     s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
         return !std::isspace(ch);
     }));
 }
 
-// trim from end (in place)
-inline void rtrim(std::string &s) {
+void rtrim(std::string &s) {
     s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
         return !std::isspace(ch);
     }).base(), s.end());
 }
 
-// trim from both ends (in place)
-inline void trim(std::string &s) {
+void trim(std::string &s) {
     ltrim(s);
     rtrim(s);
 }
 
-// trim from start (copying)
-inline std::string ltrim_copy(std::string s) {
+std::string ltrimCopy(std::string s) {
     ltrim(s);
     return s;
 }
 
-// trim from end (copying)
-inline std::string rtrim_copy(std::string s) {
+std::string rtrimCopy(std::string s) {
     rtrim(s);
     return s;
 }
 
-// trim from both ends (copying)
-inline std::string trim_copy(std::string s) {
+inline std::string trimCopy(std::string s) {
     trim(s);
     return s;
 }

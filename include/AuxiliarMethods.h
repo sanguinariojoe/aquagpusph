@@ -50,8 +50,8 @@ bool hasSuffix(const std::string &str, const std::string &suffix);
  * @param replace Replacement substring
  */
 void replaceAll(std::string &str,
-                const std::string &search,
-                const std::string &replace);
+                       const std::string &search,
+                       const std::string &replace);
 
 /** @brief Replace all substring occurrences by another substring
  * 
@@ -61,8 +61,8 @@ void replaceAll(std::string &str,
  * @return Modified string
  */
 std::string replaceAllCopy(std::string str,
-                           std::string search,
-                           std::string replace);
+                                  std::string search,
+                                  std::string replace);
 
 /** @brief Remove all the blank spaces (including line breaks, tabulators...)
  * string prefix.
