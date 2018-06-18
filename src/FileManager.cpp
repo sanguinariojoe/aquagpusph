@@ -49,43 +49,20 @@ FileManager::~FileManager()
 {
     unsigned int i;
 
-    if(_in_file)
-        delete[] _in_file;
-    _in_file = NULL;
-    if(_state)
-        delete _state;
-    _state = NULL;
-    if(_log)
-        delete _log;
-    _log = NULL;
+    if(_state) delete _state; _state = NULL;
+    if(_log) delete _log; _log = NULL;
 
-    for(i=0; i<_loaders.size(); i++){
-        delete _loaders.at(i);
-        _loaders.at(i) = NULL;
+    for(auto i = _loaders.begin(); i != _loaders.end(); i++) {
+        delete *i;
     }
-    _loaders.clear();
-
-    for(i=0; i<_savers.size(); i++){
-        delete _savers.at(i);
-        _savers.at(i) = NULL;
+    for(auto i = _savers.begin(); i != _savers.end(); i++) {
+        delete *i;
     }
-    _savers.clear();
 }
 
-void FileManager::inputFile(const char* path)
+void FileManager::inputFile(std::string path)
 {
-    size_t len;
-
-    if(_in_file)
-        delete[] _in_file;
-    _in_file = NULL;
-
-    if(!path)
-        return;
-
-    len = strlen(path) + 1;
-    _in_file = new char[len];
-    strcpy(_in_file, path);
+    _in_file = path;
 }
 
 FILE* FileManager::logFile()
@@ -98,7 +75,6 @@ FILE* FileManager::logFile()
 CalcServer::CalcServer* FileManager::load()
 {
     unsigned int i, n=0;
-    char msg[1024];
     ProblemSetup *P = ProblemSetup::singleton();
     ScreenManager *S = ScreenManager::singleton();
 
@@ -117,7 +93,7 @@ CalcServer::CalcServer* FileManager::load()
     if(!C)
         return NULL;
     if(C->setup()){
-        delete C; C = NULL;
+        delete C;
         return NULL;
     }
 
@@ -126,7 +102,7 @@ CalcServer::CalcServer* FileManager::load()
         if(!strcmp(P->sets.at(i)->inputFormat(), "ASCII")){
             ASCII *loader = new ASCII(n, P->sets.at(i)->n(), i);
             if(!loader){
-                delete C; C = NULL;
+                delete C;
                 return NULL;
             }
             _loaders.push_back((Particles*)loader);
@@ -134,7 +110,7 @@ CalcServer::CalcServer* FileManager::load()
         else if(!strcmp(P->sets.at(i)->inputFormat(), "FastASCII")){
             FastASCII *loader = new FastASCII(n, P->sets.at(i)->n(), i);
             if(!loader){
-                delete C; C = NULL;
+                delete C;
                 return NULL;
             }
             _loaders.push_back((Particles*)loader);
@@ -143,7 +119,7 @@ CalcServer::CalcServer* FileManager::load()
             #ifdef HAVE_VTK
                 VTK *loader = new VTK(n, P->sets.at(i)->n(), i);
                 if(!loader){
-                    delete C; C = NULL;
+                    delete C;
                     return NULL;
                 }
                 _loaders.push_back((Particles*)loader);
@@ -153,17 +129,17 @@ CalcServer::CalcServer* FileManager::load()
             #endif // HAVE_VTK
         }
         else{
-            sprintf(msg,
-                    "Unknow \"%s\" input file format.\n",
-                    P->sets.at(i)->inputFormat());
-            S->addMessageF(L_ERROR, msg);
-            delete C; C = NULL;
+            std::ostringstream msg;
+            msg << "Unknow \"" << P->sets.at(i)->inputFormat()
+                << "\" input file format" << std::endl;
+            S->addMessageF(L_ERROR, msg.str());
+            delete C;
             return NULL;
         }
         if(!strcmp(P->sets.at(i)->outputFormat(), "ASCII")){
             ASCII *saver = new ASCII(n, P->sets.at(i)->n(), i);
             if(!saver){
-                delete C; C = NULL;
+                delete C;
                 return NULL;
             }
             _savers.push_back((Particles*)saver);
@@ -172,7 +148,7 @@ CalcServer::CalcServer* FileManager::load()
             #ifdef HAVE_VTK
                 VTK *saver = new VTK(n, P->sets.at(i)->n(), i);
                 if(!saver){
-                    delete C; C = NULL;
+                    delete C;
                     return NULL;
                 }
                 _savers.push_back((Particles*)saver);
@@ -182,20 +158,22 @@ CalcServer::CalcServer* FileManager::load()
             #endif // HAVE_VTK
         }
         else{
-            sprintf(msg,
-                    "Unknow \"%s\" output file format.\n",
-                    P->sets.at(i)->outputFormat());
-            S->addMessageF(L_ERROR, msg);
-            delete C; C = NULL;
+            std::ostringstream msg;
+            msg << "Unknow \"" << P->sets.at(i)->outputFormat()
+                << "\" input file format" << std::endl;
+            S->addMessageF(L_ERROR, msg.str());
+            delete C;
             return NULL;
         }
         n += P->sets.at(i)->n();
     }
 
     // Execute the loaders
-    for(i = 0; i < _loaders.size(); i++){
-        if(_loaders.at(i)->load())
+    for(auto loader = _loaders.begin(); loader != _loaders.end(); loader++) {
+        if((*loader)->load()) {
+            delete C;
             return NULL;
+        }
     }
 
     return C;
@@ -206,8 +184,8 @@ bool FileManager::save()
     unsigned int i;
 
     // Execute the savers
-    for(i = 0; i < _savers.size(); i++){
-        if(_savers.at(i)->save())
+    for(auto saver = _savers.begin(); saver != _savers.end(); saver++) {
+        if((*saver)->save())
             return true;
     }
 
@@ -219,7 +197,7 @@ bool FileManager::save()
     return false;
 }
 
-const char* FileManager::file(unsigned int i){
+std::string FileManager::file(unsigned int i){
     return _savers.at(i)->file();
 }
 

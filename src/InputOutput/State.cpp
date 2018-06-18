@@ -192,7 +192,7 @@ bool State::save()
 bool State::load()
 {
     FileManager *F = FileManager::singleton();
-    return parse(F->inputFile());
+    return parse(F->inputFile().c_str());
 }
 
 bool State::parse(const char* filepath, const char* prefix)
@@ -1823,7 +1823,7 @@ bool State::writeSet(xercesc::DOMDocument* doc,
                 strcat(fields, ",");
         }
         s_elem = doc->createElement(xmlS("Load"));
-        s_elem->setAttribute(xmlS("file"), xmlS(F->file(i)));
+        s_elem->setAttribute(xmlS("file"), xmlS(F->file(i).c_str()));
         s_elem->setAttribute(xmlS("format"), xmlS(sets.at(i)->outputFormat()));
         s_elem->setAttribute(xmlS("fields"), xmlS(fields));
         elem->appendChild(s_elem);

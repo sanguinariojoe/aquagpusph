@@ -24,7 +24,8 @@
 #ifndef FILEMANAGER_H_INCLUDED
 #define FILEMANAGER_H_INCLUDED
 
-#include <deque>
+#include <string>
+#include <vector>
 
 #include <sphPrerequisites.h>
 #include <Singleton.h>
@@ -57,57 +58,72 @@ public:
     /// Destructor
     ~FileManager();
 
-    /// Set the input file path.
-    /**
-     * @param path Path to input file.
+    /** @brief Set the main XML input file path.
+     * 
+     * AQUAgpusph simulations are built on top of a XML definition file. Such
+     * file can later include another XML definition files, such that modules
+     * can be set.
+     *
+     * @param path XML input file path.
      */
-    void inputFile(const char* path);
+    void inputFile(std::string path);
 
-    /// Get input file path.
-    /**
-     * @return Path to input file.
+    /** @brief Get the main XML input file path.
+     *
+     * AQUAgpusph simulations are built on top of a XML definition file. Such
+     * file can later include another XML definition files, such that modules
+     * can be set.
+     *
+     * @return XML input file path.
      */
-    const char* inputFile(){return (const char*)_in_file;}
+    std::string inputFile(){return _in_file;}
 
-    /// Get the log file handler.
-    /**
+    /** @brief Get the log file handler.
+     *
+     * AQUAgpusph is generating, during runtime, an HTML log file, placed in the
+     * execution folder, and named log.X.html, where X is replaced by the first
+     * unsigned integer which generates a non-existing file.
+     *
      * @return Log file handler.
      * @see Aqua::InputOutput::Log
      */
     FILE* logFile();
 
-    /// Load the input data files.
-    /** It require that:
-     *    -# Aqua::InputOutput::State should load the XML definition
-     *       files storing the data in Aqua::InputOutput::ProblemSetup.
-     *    -# Aqua::InputOutput::Particles should load the particles definition
-     *       files storing the data in Aqua::CalcServer::CalcServer.
+    /** @brief Load the input files, generating the calculation server.
+     * 
+     * It require that:
+     *    -# Aqua::InputOutput::State load the XML definition files, storing the
+     *       data in Aqua::InputOutput::ProblemSetup.
+     *    -# Aqua::InputOutput::Particles load the particles fields data,
+     *       storing it in Aqua::CalcServer::CalcServer.
      *
      * @return The built Fluid manager, NULL if errors happened.
      */
     CalcServer::CalcServer* load();
 
-    /// Save the output data files.
-    /** It require that:
-     *    -# Aqua::InputOutput::State should save the XML definition
-     *       files taking the data from Aqua::InputOutput::ProblemSetup.
-     *    -# Aqua::InputOutput::Particles should save the particles definition
-     *       files stored in Aqua::InputOutput::Fluid.
+    /** @brief Save the output data files.
      *
+     * AQUAgpusph is saving both, the XML simulation definition file, and the
+     * particles field values in the required formats. This information can be
+     * indistinctly used for postprocessing purposes, or as initial condition
+     * to resume the simulation.
+     *
+     * @warning If Python scripts are considered at the simulation, the user is
+     * responsible to save the state to can eventually resume the simulation
      * @return false if all gone right, true otherwise.
      */
     bool save();
 
-    /// Get the last printed file for a specific fluid.
-    /**
-     * @param ifluid Fluid index.
+    /** @brief Get the last printed file for a specific particles set.
+     *
+     * @param set Particles set index.
      * @return The last printed file, NULL if a file has not been printed yet.
      */
-    const char* file(unsigned int ifluid);
+    std::string file(unsigned int set);
 
 private:
     /// Name of the main XML input file
-    char* _in_file;
+    std::string _in_file;
 
     /// The XML simulation definition loader/saver
     State *_state;
@@ -116,10 +132,10 @@ private:
     Log *_log;
 
     /// The fluid loaders
-    std::deque<Particles*> _loaders;
+    std::vector<Particles*> _loaders;
 
     /// The fluid savers
-    std::deque<Particles*> _savers;
+    std::vector<Particles*> _savers;
 
 };  // class FileManager
 
