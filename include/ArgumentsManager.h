@@ -25,71 +25,16 @@
 #define ARGUMENTSMANAGER_H_INCLUDED
 
 #include <sphPrerequisites.h>
-#include <Singleton.h>
+#include <FileManager.h>
 
-namespace Aqua{ namespace InputOutput{
+namespace Aqua{ namespace InputOutput{ namespace CommandLineArgs{
 
-/** @class ArgumentsManager ArgumentsManager.h ArgumentsManager.h
- * @brief Input terminal options and parameters manager.
+/** @brief Parse the command line arguments.
  *
- * The currently valid options are:
- *   - -i, --input=INPUT            XML definition input file (Input.xml as
- *     default value).
- *   - -v, --version                Show the AQUAgpusph version.
- *   - -h, --help                   Show this help page.
- *
- * You can call `"AQUAgpusph --help"` command to see the updated list of
- * available options (in case that this documentation is outdated).
- *
- * @note This method use Getopt, from GNU libc library. See
- * http://www.gnu.org/software/libc/manual/html_node/Getopt.html#Getopt
+ * @return false if the excution must continue, true otherwise.
  */
-class ArgumentsManager : public Aqua::Singleton<Aqua::InputOutput::ArgumentsManager>
-{
-public:
-    /** @brief Constructor.
-     *
-     * @param argc Number of runtime arguments
-     * @param argv Array of runtime arguments
-     */
-    ArgumentsManager(int argc, char **argv);
-
-    /// Destructor.
-    ~ArgumentsManager();
-
-    /** @brief Parse the runtime options.
-     *
-     * @return false if the excution must continue, true otherwise.
-     */
-    bool parse();
-
-    /** @brief Display the program usage.
-     * 
-     * The program usage is shown in case the user has requested help, or
-     * wrong/insufficient options have been provided.
-     */
-    void displayUsage();
-
-    /** @brief Get the number of runtime options.
-     *
-     * @return Number of runtime options.
-     */
-    int argc(){return _argc;}
-
-    /** @brief Get the runtime options list.
-     *
-     * @return Runtime passed options.
-     */
-    char** argv(){return _argv;}
-
-private:
-    /// Number of runtime options
-    int _argc;
-    /// List of runtime options
-    char** _argv;
-
-};  // class ArgumentsManager
-
-}}  // namespace
+void parse(int argc, char **argv, FileManager &file_manager);
+    
+}}}  // namespace
 
 #endif // ARGUMENTSMANAGER_H_INCLUDED

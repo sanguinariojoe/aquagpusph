@@ -31,6 +31,8 @@
 #include <FileManager.h>
 #include <ScreenManager.h>
 
+namespace Aqua{ namespace InputOutput{ namespace CommandLineArgs{
+
 // Short and long runtime options (see
 // http://www.gnu.org/software/libc/manual/html_node/Getopt.html#Getopt)
 static const char *opts = "i:vh";
@@ -42,60 +44,12 @@ static const struct option longOpts[] = {
 };
 extern char *optarg;
 
-namespace Aqua{ namespace InputOutput{
-
-ArgumentsManager::ArgumentsManager(int argc, char **argv)
-    : _argc(argc)
-    , _argv(argv)
-{
-}
-
-ArgumentsManager::~ArgumentsManager()
-{
-}
-
-bool ArgumentsManager::parse()
-{
-    ScreenManager *S = ScreenManager::singleton();
-    FileManager *F = FileManager::singleton();
-    int index;
-    std::ostringstream msg;
-
-    int opt = getopt_long(_argc, _argv, opts, longOpts, &index);
-    while( opt != -1 ) {
-        switch( opt ) {
-            case 'i':
-                F->inputFile(optarg);
-                msg.str(std::string());
-                msg << "Input file = " << F->inputFile() << std::endl;
-                S->addMessageF(L_INFO, msg.str());
-                break;
-
-            case 'v':
-                printf("VERSION: ");
-                printf(PACKAGE_VERSION);
-                printf("\n\n");
-                return true;
-
-            case ':':
-            case '?':
-                S->addMessageF(L_ERROR, "Error parsing the runtime args\n");
-                printf("\n");
-            case 'h':
-                displayUsage();
-                return true;
-
-            default:
-                S->addMessageF(L_ERROR, "Unhandled exception\n");
-                displayUsage();
-                return true;
-        }
-        opt = getopt_long(_argc, _argv, opts, longOpts, &index);
-    }
-    return false;
-}
-
-void ArgumentsManager::displayUsage()
+/** @brief Display the program usage.
+ * 
+ * The program usage is shown in case the user has requested help, or
+ * wrong/insufficient command line args have been provided.
+ */
+void displayUsage()
 {
     printf("Usage:\tAQUAgpusph [Option]...\n");
     printf("   or:\tAQUAgpusph2D [Option]...\n");
@@ -107,4 +61,41 @@ void ArgumentsManager::displayUsage()
     printf("  -h, --help                   Show this help page\n");
 }
 
-}}  // namespaces
+void parse(int argc, char **argv, FileManager &file_manager)
+{
+    int index;
+
+    int opt = getopt_long(argc, argv, opts, longOpts, &index);
+    while( opt != -1 ) {
+        std::ostringstream msg;
+        switch( opt ) {
+            case 'i':
+                file_manager.inputFile(optarg);
+                msg.str(std::string());
+                msg << "Input file = " << file_manager.inputFile() << std::endl;
+                LOG(L_INFO, msg.str());
+                break;
+
+            case 'v':
+                printf("VERSION: ");
+                printf(PACKAGE_VERSION);
+                printf("\n\n");
+                return;
+
+            case ':':
+            case '?':
+                LOG(L_ERROR, "Error parsing the runtime args\n");
+                printf("\n");
+            case 'h':
+                displayUsage();
+
+            default:
+                LOG(L_ERROR, "Unhandled exception\n");
+                displayUsage();
+                throw std::invalid_argument("Invalid command line argument");
+        }
+        opt = getopt_long(argc, argv, opts, longOpts, &index);
+    }
+}
+
+}}}  // namespaces
