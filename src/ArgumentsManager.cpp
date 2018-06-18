@@ -59,16 +59,16 @@ bool ArgumentsManager::parse()
     ScreenManager *S = ScreenManager::singleton();
     FileManager *F = FileManager::singleton();
     int index;
-    char msg[256]; strcpy(msg, "");
-    int opt = getopt_long( _argc, _argv, opts, longOpts, &index );
+    std::ostringstream msg;
+
+    int opt = getopt_long(_argc, _argv, opts, longOpts, &index);
     while( opt != -1 ) {
         switch( opt ) {
             case 'i':
                 F->inputFile(optarg);
-                sprintf(msg,
-                        "Input file = %s\n",
-                        F->inputFile());
-                S->addMessageF(L_INFO, msg);
+                msg.str(std::string());
+                msg << "Input file = " << F->inputFile() << std::endl;
+                S->addMessageF(L_INFO, msg.str());
                 break;
 
             case 'v':
@@ -79,7 +79,7 @@ bool ArgumentsManager::parse()
 
             case ':':
             case '?':
-                S->addMessageF(L_ERROR, "Error parsing the options\n");
+                S->addMessageF(L_ERROR, "Error parsing the runtime args\n");
                 printf("\n");
             case 'h':
                 displayUsage();
@@ -90,7 +90,7 @@ bool ArgumentsManager::parse()
                 displayUsage();
                 return true;
         }
-        opt = getopt_long( _argc, _argv, opts, longOpts, &index );
+        opt = getopt_long(_argc, _argv, opts, longOpts, &index);
     }
     return false;
 }
@@ -102,7 +102,7 @@ void ArgumentsManager::displayUsage()
     printf("Performs particles based (SPH method) simulation (use AQUAgpusph2D for 2D simulations)\n");
     printf("\n");
     printf("Required arguments for long options are also required for the short ones.\n");
-    printf("  -i, --input=INPUT            XML definition input file (Input.xml as default value)\n");
+    printf("  -i, --input=INPUT            XML definition input file (Input.xml by default)\n");
     printf("  -v, --version                Show the AQUAgpusph version\n");
     printf("  -h, --help                   Show this help page\n");
 }
