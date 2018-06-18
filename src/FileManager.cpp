@@ -37,12 +37,12 @@
 namespace Aqua{ namespace InputOutput{
 
 FileManager::FileManager()
-    : _in_file(NULL)
+    : _state(NULL)
     , _log(NULL)
 {
     inputFile("Input.xml");
-    _log = new Log();
     _state = new State();
+    _log = new Log();
 }
 
 FileManager::~FileManager()
