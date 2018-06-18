@@ -101,23 +101,23 @@ State::State()
     s = setlocale(LC_NUMERIC, NULL);
     if(strcmp(s, "C")){
         sprintf(msg, "\"%s\" numeric locale found\n", s);
-        S->addMessageF(1, msg);
-        S->addMessage(0, "\tIt is replaced by \"C\"\n");
+        S->addMessageF(L_INFO, msg);
+        S->addMessage(L_DEBUG, "\tIt is replaced by \"C\"\n");
         setlocale(LC_NUMERIC, "C");
     }
     lc = localeconv();
     s = lc->decimal_point;
     if(strcmp(s, ".")){
         sprintf(msg, "\"%s\" decimal point character found\n", s);
-        S->addMessageF(2, msg);
-        S->addMessage(0, "\tIt is replaced by \".\"\n");
+        S->addMessageF(L_WARNING, msg);
+        S->addMessage(L_DEBUG, "\tIt is replaced by \".\"\n");
         lc->decimal_point = ".";
     }
     s = lc->thousands_sep;
     if(strcmp(s, "")){
         sprintf(msg, "\"%s\" thousands separator character found\n", s);
-        S->addMessageF(2, msg);
-        S->addMessage(0, "\tIt is removed\n");
+        S->addMessageF(L_WARNING, msg);
+        S->addMessage(L_DEBUG, "\tIt is removed\n");
         lc->thousands_sep = "";
     }
 
@@ -127,16 +127,16 @@ State::State()
     }
     catch( XMLException& e ){
         char* message = xmlS(e.getMessage());
-        S->addMessageF(3, "XML toolkit initialization error.\n");
+        S->addMessageF(L_ERROR, "XML toolkit initialization error.\n");
         char msg[strlen(message) + 3];
         sprintf(msg, "\t%s\n", message);
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         xmlClear();
         exit(EXIT_FAILURE);
     }
     catch( ... ){
-        S->addMessageF(3, "XML toolkit initialization error.\n");
-        S->addMessage(0, "\tUnhandled exception\n");
+        S->addMessageF(L_ERROR, "XML toolkit initialization error.\n");
+        S->addMessage(L_DEBUG, "\tUnhandled exception\n");
         xmlClear();
         exit(EXIT_FAILURE);
     }
@@ -167,16 +167,16 @@ State::~State()
     }
     catch( xercesc::XMLException& e ){
         char* message = xmlS( e.getMessage() );
-        S->addMessageF(3, "XML toolkit exit error.\n");
+        S->addMessageF(L_ERROR, "XML toolkit exit error.\n");
         char msg[strlen(message) + 3];
         sprintf(msg, "\t%s\n", message);
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         xmlClear();
         exit(EXIT_FAILURE);
     }
     catch( ... ){
-        S->addMessageF(3, "XML toolkit exit error.\n");
-        S->addMessage(0, "\tUnhandled exception\n");
+        S->addMessageF(L_ERROR, "XML toolkit exit error.\n");
+        S->addMessage(L_DEBUG, "\tUnhandled exception\n");
         xmlClear();
         exit(EXIT_FAILURE);
     }
@@ -207,11 +207,11 @@ bool State::parse(const char* filepath, const char* prefix)
             "Parsing the XML file \"%s\" with prefix \"%s\"\n",
             filepath,
             prefix);
-    S->addMessageF(1, msg);
+    S->addMessageF(L_INFO, msg);
     // Try to open as ascii file, just to know if the file already exist
     FILE *dummy=0; dummy = fopen(filepath, "r");
     if(!dummy){
-        S->addMessageF(3, "File inaccessible!\n");
+        S->addMessageF(L_ERROR, "File inaccessible!\n");
         return true;
     }
     fclose(dummy);
@@ -224,7 +224,7 @@ bool State::parse(const char* filepath, const char* prefix)
      DOMDocument* doc = parser->getDocument();
     DOMElement* root = doc->getDocumentElement();
     if( !root ){
-        S->addMessageF(3, "Empty XML file\n");
+        S->addMessageF(L_ERROR, "Empty XML file\n");
         return true;
     }
     // Look for XML files included to parse them before
@@ -365,13 +365,13 @@ bool State::parseSettings(DOMElement *root, const char* prefix)
                 sprintf(msg,
                         "Unknow \"%s\" type of device\n",
                         xmlAttribute(s_elem, "type"));
-                S->addMessageF(3, msg);
-                S->addMessage(0, "\tThe valid options are:\n");
-                S->addMessage(0, "\t\tALL\n");
-                S->addMessage(0, "\t\tCPU\n");
-                S->addMessage(0, "\t\tGPU\n");
-                S->addMessage(0, "\t\tACCELERATOR\n");
-                S->addMessage(0, "\t\tDEFAULT\n");
+                S->addMessageF(L_ERROR, msg);
+                S->addMessage(L_DEBUG, "\tThe valid options are:\n");
+                S->addMessage(L_DEBUG, "\t\tALL\n");
+                S->addMessage(L_DEBUG, "\t\tCPU\n");
+                S->addMessage(L_DEBUG, "\t\tGPU\n");
+                S->addMessage(L_DEBUG, "\t\tACCELERATOR\n");
+                S->addMessage(L_DEBUG, "\t\tDEFAULT\n");
                 return true;
             }
         }
@@ -438,7 +438,7 @@ bool State::parseDefinitions(DOMElement *root, const char* prefix)
                 continue;
             DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
             if(!xmlHasAttribute(s_elem, "name")){
-                S->addMessageF(3, "Found a definition without name\n");
+                S->addMessageF(L_ERROR, "Found a definition without name\n");
                 return true;
             }
             if(!xmlHasAttribute(s_elem, "value")){
@@ -493,7 +493,7 @@ static std::deque<unsigned int> _toolsList(const char* list, const char* prefix)
         char *toolname = (char*)malloc(
             (strlen(prefix) + strlen(token) + 1) * sizeof(char));
         if(!toolname){
-            S->addMessageF(3, "Failure allocating memory.\n");
+            S->addMessageF(L_ERROR, "Failure allocating memory.\n");
             return _tool_places;
         }
         strcpy(toolname, prefix);
@@ -533,7 +533,7 @@ static std::deque<unsigned int> _toolsName(const char* name, const char* prefix)
     char *toolname = (char*)malloc(
         (strlen(prefix) + strlen(name) + 1) * sizeof(char));
     if(!toolname){
-        S->addMessageF(3, "Failure allocating memory.\n");
+        S->addMessageF(L_ERROR, "Failure allocating memory.\n");
         return _tool_places;
     }
     strcpy(toolname, prefix);
@@ -571,11 +571,11 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                 continue;
             DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
             if(!xmlHasAttribute(s_elem, "name")){
-                S->addMessageF(3, "Found a tool without name\n");
+                S->addMessageF(L_ERROR, "Found a tool without name\n");
                 return true;
             }
             if(!xmlHasAttribute(s_elem, "type")){
-                S->addMessageF(3, "Found a tool without type\n");
+                S->addMessageF(L_ERROR, "Found a tool without type\n");
                 return true;
             }
 
@@ -587,7 +587,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                               strlen(xmlAttribute(s_elem, "name")) + 1;
             char *name = (char*)malloc(name_len * sizeof(char));
             if(!name){
-                S->addMessageF(3, "Failure allocating memory for the name\n");
+                S->addMessageF(L_ERROR, "Failure allocating memory for the name\n");
                 return true;
             }
             strcpy(name, prefix);
@@ -605,7 +605,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                             "Ignoring the tool \"%s\" because \"%s\" has not been defined.\n",
                             tool->get("name"),
                             xmlAttribute(s_elem, "ifdef"));
-                    S->addMessageF(2, msg);
+                    S->addMessageF(L_WARNING, msg);
                     delete tool;
                     continue;
                 }
@@ -616,7 +616,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                             "Ignoring the tool \"%s\" because \"%s\" has been defined.\n",
                             tool->get("name"),
                             xmlAttribute(s_elem, "ifndef"));
-                    S->addMessageF(2, msg);
+                    S->addMessageF(L_WARNING, msg);
                     delete tool;
                     continue;
                 }
@@ -653,11 +653,11 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                                     att_str);
                             delete tool;
                             if(try_insert){
-                                S->addMessageF(2, msg);
+                                S->addMessageF(L_WARNING, msg);
                                 continue;
                             }
                             else{
-                                S->addMessageF(3, msg);
+                                S->addMessageF(L_ERROR, msg);
                                 return true;
                             }
                         }
@@ -676,11 +676,11 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                                     att_str);
                             delete tool;
                             if(try_insert){
-                                S->addMessageF(2, msg);
+                                S->addMessageF(L_WARNING, msg);
                                 continue;
                             }
                             else{
-                                S->addMessageF(3, msg);
+                                S->addMessageF(L_ERROR, msg);
                                 return true;
                             }
                         }
@@ -702,11 +702,11 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                                     att_str);
                             delete tool;
                             if(try_insert){
-                                S->addMessageF(2, msg);
+                                S->addMessageF(L_WARNING, msg);
                                 continue;
                             }
                             else{
-                                S->addMessageF(3, msg);
+                                S->addMessageF(L_ERROR, msg);
                                 return true;
                             }
                         }
@@ -725,11 +725,11 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                                     att_str);
                             delete tool;
                             if(try_insert){
-                                S->addMessageF(2, msg);
+                                S->addMessageF(L_WARNING, msg);
                                 continue;
                             }
                             else{
-                                S->addMessageF(3, msg);
+                                S->addMessageF(L_ERROR, msg);
                                 return true;
                             }
                         }
@@ -751,11 +751,11 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                                     att_str);
                             delete tool;
                             if(try_insert){
-                                S->addMessageF(2, msg);
+                                S->addMessageF(L_WARNING, msg);
                                 continue;
                             }
                             else{
-                                S->addMessageF(3, msg);
+                                S->addMessageF(L_ERROR, msg);
                                 return true;
                             }
                         }
@@ -774,11 +774,11 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                                     att_str);
                             delete tool;
                             if(try_insert){
-                                S->addMessageF(2, msg);
+                                S->addMessageF(L_WARNING, msg);
                                 continue;
                             }
                             else{
-                                S->addMessageF(3, msg);
+                                S->addMessageF(L_ERROR, msg);
                                 return true;
                             }
                         }
@@ -800,11 +800,11 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                                     att_str);
                             delete tool;
                             if(try_insert){
-                                S->addMessageF(2, msg);
+                                S->addMessageF(L_WARNING, msg);
                                 continue;
                             }
                             else{
-                                S->addMessageF(3, msg);
+                                S->addMessageF(L_ERROR, msg);
                                 return true;
                             }
                         }
@@ -823,11 +823,11 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                                     att_str);
                             delete tool;
                             if(try_insert){
-                                S->addMessageF(2, msg);
+                                S->addMessageF(L_WARNING, msg);
                                 continue;
                             }
                             else{
-                                S->addMessageF(3, msg);
+                                S->addMessageF(L_ERROR, msg);
                                 return true;
                             }
                         }
@@ -840,13 +840,13 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                     sprintf(msg,
                             "Missed the place where the tool \"%s\" should be inserted.\n",
                             tool->get("name"));
-                    S->addMessageF(3, msg);
-                    S->addMessage(0, "Please set one of the following attributes:\n");
-                    S->addMessage(0, "\t\"in\"\n");
-                    S->addMessage(0, "\t\"before\"\n");
-                    S->addMessage(0, "\t\"after\"\n");
-                    S->addMessage(0, "\t\"before_prefix\"\n");
-                    S->addMessage(0, "\t\"after_prefix\"\n");
+                    S->addMessageF(L_ERROR, msg);
+                    S->addMessage(L_DEBUG, "Please set one of the following attributes:\n");
+                    S->addMessage(L_DEBUG, "\t\"in\"\n");
+                    S->addMessage(L_DEBUG, "\t\"before\"\n");
+                    S->addMessage(L_DEBUG, "\t\"after\"\n");
+                    S->addMessage(L_DEBUG, "\t\"before_prefix\"\n");
+                    S->addMessage(L_DEBUG, "\t\"after_prefix\"\n");
                     return true;
                 }
                 // We cannot directly insert the tools, because the places would
@@ -870,11 +870,11 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                             tool->get("name"));
                     delete tool;
                     if(try_remove){
-                        S->addMessageF(2, msg);
+                        S->addMessageF(L_WARNING, msg);
                         continue;
                     }
                     else{
-                        S->addMessageF(3, msg);
+                        S->addMessageF(L_ERROR, msg);
                         return true;
                     }
                 }
@@ -905,11 +905,11 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                             tool->get("name"));
                     delete tool;
                     if(try_replace){
-                        S->addMessageF(2, msg);
+                        S->addMessageF(L_WARNING, msg);
                         continue;
                     }
                     else{
-                        S->addMessageF(3, msg);
+                        S->addMessageF(L_ERROR, msg);
                         return true;
                     }
                 }
@@ -927,12 +927,12 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                 sprintf(msg,
                         "Unknown \"action\" for the tool \"%s\".\n",
                         tool->get("name"));
-                S->addMessageF(3, msg);
-                S->addMessage(0, "\tThe valid actions are:\n");
-                S->addMessage(0, "\t\tadd\n");
-                S->addMessage(0, "\t\tinsert\n");
-                S->addMessage(0, "\t\treplace\n");
-                S->addMessage(0, "\t\tremove\n");
+                S->addMessageF(L_ERROR, msg);
+                S->addMessage(L_DEBUG, "\tThe valid actions are:\n");
+                S->addMessage(L_DEBUG, "\t\tadd\n");
+                S->addMessage(L_DEBUG, "\t\tinsert\n");
+                S->addMessage(L_DEBUG, "\t\treplace\n");
+                S->addMessage(L_DEBUG, "\t\tremove\n");
                 return true;
             }
 
@@ -942,7 +942,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                     sprintf(msg,
                             "Tool \"%s\" is of type \"kernel\", but \"path\" is not defined.\n",
                             tool->get("name"));
-                    S->addMessageF(3, msg);
+                    S->addMessageF(L_ERROR, msg);
                     return true;
                 }
                 tool->set("path", xmlAttribute(s_elem, "path"));
@@ -967,7 +967,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                                 "Tool \"%s\" is of type \"set\", but \"%s\" is not defined.\n",
                                 tool->get("name"),
                                 atts[k]);
-                        S->addMessageF(3, msg);
+                        S->addMessageF(L_ERROR, msg);
                         return true;
                     }
                     tool->set(atts[k], xmlAttribute(s_elem, atts[k]));
@@ -978,7 +978,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                     sprintf(msg,
                             "Tool \"%s\" is of type \"python\", but \"path\" is not defined.\n",
                             tool->get("name"));
-                    S->addMessageF(3, msg);
+                    S->addMessageF(L_ERROR, msg);
                     return true;
                 }
                 tool->set("path", xmlAttribute(s_elem, "path"));
@@ -991,7 +991,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                                 "Tool \"%s\" is of type \"set\", but \"%s\" is not defined.\n",
                                 tool->get("name"),
                                 atts[k]);
-                        S->addMessageF(3, msg);
+                        S->addMessageF(L_ERROR, msg);
                         return true;
                     }
                     tool->set(atts[k], xmlAttribute(s_elem, atts[k]));
@@ -1005,7 +1005,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                                 "Tool \"%s\" is of type \"set\", but \"%s\" is not defined.\n",
                                 tool->get("name"),
                                 atts[k]);
-                        S->addMessageF(3, msg);
+                        S->addMessageF(L_ERROR, msg);
                         return true;
                     }
                     tool->set(atts[k], xmlAttribute(s_elem, atts[k]));
@@ -1019,7 +1019,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                                 "Tool \"%s\" is of type \"reduction\", but \"%s\" is not defined.\n",
                                 tool->get("name"),
                                 atts[k]);
-                        S->addMessageF(3, msg);
+                        S->addMessageF(L_ERROR, msg);
                         return true;
                     }
                     tool->set(atts[k], xmlAttribute(s_elem, atts[k]));
@@ -1028,7 +1028,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                     sprintf(msg,
                             "No operation specified for the reduction \"%s\".\n",
                             tool->get("name"));
-                    S->addMessageF(3, msg);
+                    S->addMessageF(L_ERROR, msg);
                     return true;
                 }
                 tool->set("operation", xmlS(s_elem->getTextContent()));
@@ -1048,7 +1048,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                                 "Tool \"%s\" is of type \"set\", but \"%s\" is not defined.\n",
                                 tool->get("name"),
                                 atts[k]);
-                        S->addMessageF(3, msg);
+                        S->addMessageF(L_ERROR, msg);
                         return true;
                     }
                     tool->set(atts[k], xmlAttribute(s_elem, atts[k]));
@@ -1059,7 +1059,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                     sprintf(msg,
                             "Tool \"%s\" is of type \"assert\", but \"condition\" is not defined.\n",
                             tool->get("name"));
-                    S->addMessageF(3, msg);
+                    S->addMessageF(L_ERROR, msg);
                     return true;
                 }
                 tool->set("condition", xmlAttribute(s_elem, "condition"));
@@ -1071,17 +1071,17 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                 sprintf(msg,
                         "Unknown \"type\" for the tool \"%s\".\n",
                         tool->get("name"));
-                S->addMessageF(3, msg);
-                S->addMessage(0, "\tThe valid types are:\n");
-                S->addMessage(0, "\t\tkernel\n");
-                S->addMessage(0, "\t\tcopy\n");
-                S->addMessage(0, "\t\tpython\n");
-                S->addMessage(0, "\t\tset\n");
-                S->addMessage(0, "\t\tset_scalar\n");
-                S->addMessage(0, "\t\treduction\n");
-                S->addMessage(0, "\t\tlink-list\n");
-                S->addMessage(0, "\t\tradix-sort\n");
-                S->addMessage(0, "\t\tdummy\n");
+                S->addMessageF(L_ERROR, msg);
+                S->addMessage(L_DEBUG, "\tThe valid types are:\n");
+                S->addMessage(L_DEBUG, "\t\tkernel\n");
+                S->addMessage(L_DEBUG, "\t\tcopy\n");
+                S->addMessage(L_DEBUG, "\t\tpython\n");
+                S->addMessage(L_DEBUG, "\t\tset\n");
+                S->addMessage(L_DEBUG, "\t\tset_scalar\n");
+                S->addMessage(L_DEBUG, "\t\treduction\n");
+                S->addMessage(L_DEBUG, "\t\tlink-list\n");
+                S->addMessage(L_DEBUG, "\t\tradix-sort\n");
+                S->addMessage(L_DEBUG, "\t\tdummy\n");
                 return true;
             }
         }
@@ -1132,11 +1132,11 @@ bool State::parseTiming(DOMElement *root, const char* prefix)
                     sprintf(msg,
                             "Unknow simulation stop criteria \"%s\"\n",
                             type);
-                    S->addMessageF(3, msg);
-                    S->addMessage(0, "\tThe valid options are:\n");
-                    S->addMessage(0, "\t\tTime\n");
-                    S->addMessage(0, "\t\tSteps\n");
-                    S->addMessage(0, "\t\tFrames\n");
+                    S->addMessageF(L_ERROR, msg);
+                    S->addMessage(L_DEBUG, "\tThe valid options are:\n");
+                    S->addMessage(L_DEBUG, "\t\tTime\n");
+                    S->addMessage(L_DEBUG, "\t\tSteps\n");
+                    S->addMessage(L_DEBUG, "\t\tFrames\n");
                     return true;
                 }
             }
@@ -1161,11 +1161,11 @@ bool State::parseTiming(DOMElement *root, const char* prefix)
                     sprintf(msg,
                             "Unknow log file print criteria \"%s\"\n",
                             xmlAttribute(s_elem, "type"));
-                    S->addMessageF(3, msg);
-                    S->addMessage(0, "\tThe valid options are:\n");
-                    S->addMessage(0, "\t\tNo\n");
-                    S->addMessage(0, "\t\tFPS\n");
-                    S->addMessage(0, "\t\tIPF\n");
+                    S->addMessageF(L_ERROR, msg);
+                    S->addMessage(L_DEBUG, "\tThe valid options are:\n");
+                    S->addMessage(L_DEBUG, "\t\tNo\n");
+                    S->addMessage(L_DEBUG, "\t\tFPS\n");
+                    S->addMessage(L_DEBUG, "\t\tIPF\n");
                     return true;
                 }
             }
@@ -1190,18 +1190,18 @@ bool State::parseTiming(DOMElement *root, const char* prefix)
                     sprintf(msg,
                             "Unknow output file print criteria \"%s\"\n",
                             type);
-                    S->addMessageF(3, msg);
-                    S->addMessage(0, "\tThe valid options are:\n");
-                    S->addMessage(0, "\t\tNo\n");
-                    S->addMessage(0, "\t\tFPS\n");
-                    S->addMessage(0, "\t\tIPF\n");
+                    S->addMessageF(L_ERROR, msg);
+                    S->addMessage(L_DEBUG, "\tThe valid options are:\n");
+                    S->addMessage(L_DEBUG, "\t\tNo\n");
+                    S->addMessage(L_DEBUG, "\t\tFPS\n");
+                    S->addMessage(L_DEBUG, "\t\tIPF\n");
                     return true;
                 }
             }
 
             else {
                 sprintf(msg, "Unknow timing option \"%s\"\n", xmlAttribute(s_elem, "name"));
-                S->addMessageF(3, msg);
+                S->addMessageF(L_ERROR, msg);
                 return true;
             }
         }
@@ -1221,7 +1221,7 @@ bool State::parseSet(DOMElement *root, const char* prefix)
             continue;
         DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
         if(!xmlHasAttribute(elem, "n")){
-            S->addMessageF(3, "Found a particles set without \"n\" attribute.\n");
+            S->addMessageF(L_ERROR, "Found a particles set without \"n\" attribute.\n");
             return true;
         }
 
@@ -1286,11 +1286,11 @@ bool State::parseReports(DOMElement *root, const char* prefix)
                 continue;
             DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
             if(!xmlHasAttribute(s_elem, "name")){
-                S->addMessageF(3, "Found a report without name\n");
+                S->addMessageF(L_ERROR, "Found a report without name\n");
                 return true;
             }
             if(!xmlHasAttribute(s_elem, "type")){
-                S->addMessageF(3, "Found a report without type\n");
+                S->addMessageF(L_ERROR, "Found a report without type\n");
                 return true;
             }
 
@@ -1302,7 +1302,7 @@ bool State::parseReports(DOMElement *root, const char* prefix)
                               strlen(xmlAttribute(s_elem, "name")) + 1;
             char *name = (char*)malloc(name_len * sizeof(char));
             if(!name){
-                S->addMessageF(3, "Failure allocating memory for the name\n");
+                S->addMessageF(L_ERROR, "Failure allocating memory for the name\n");
                 return true;
             }
             strcpy(name, prefix);
@@ -1317,7 +1317,7 @@ bool State::parseReports(DOMElement *root, const char* prefix)
             // Configure the report
             if(!strcmp(xmlAttribute(s_elem, "type"), "screen")){
                 if(!xmlHasAttribute(s_elem, "fields")){
-                    S->addMessageF(3, "Found a \"screen\" report without fields\n");
+                    S->addMessageF(L_ERROR, "Found a \"screen\" report without fields\n");
                     return true;
                 }
                 report->set("fields", xmlAttribute(s_elem, "fields"));
@@ -1336,7 +1336,7 @@ bool State::parseReports(DOMElement *root, const char* prefix)
             }
             else if(!strcmp(xmlAttribute(s_elem, "type"), "file")){
                 if(!xmlHasAttribute(s_elem, "fields")){
-                    S->addMessageF(3, "Found a \"file\" report without fields\n");
+                    S->addMessageF(L_ERROR, "Found a \"file\" report without fields\n");
                     return true;
                 }
                 report->set("fields", xmlAttribute(s_elem, "fields"));
@@ -1344,14 +1344,14 @@ bool State::parseReports(DOMElement *root, const char* prefix)
                     sprintf(msg,
                             "Report \"%s\" is of type \"file\", but the output \"path\" is not defined.\n",
                             report->get("name"));
-                    S->addMessageF(3, msg);
+                    S->addMessageF(L_ERROR, msg);
                     return true;
                 }
                 report->set("path", xmlAttribute(s_elem, "path"));
             }
             else if(!strcmp(xmlAttribute(s_elem, "type"), "particles")){
                 if(!xmlHasAttribute(s_elem, "fields")){
-                    S->addMessageF(3, "Found a \"particles\" report without fields\n");
+                    S->addMessageF(L_ERROR, "Found a \"particles\" report without fields\n");
                     return true;
                 }
                 report->set("fields", xmlAttribute(s_elem, "fields"));
@@ -1359,7 +1359,7 @@ bool State::parseReports(DOMElement *root, const char* prefix)
                     sprintf(msg,
                             "Report \"%s\" is of type \"particles\", but the output \"path\" is not defined.\n",
                             report->get("name"));
-                    S->addMessageF(3, msg);
+                    S->addMessageF(L_ERROR, msg);
                     return true;
                 }
                 report->set("path", xmlAttribute(s_elem, "path"));
@@ -1368,7 +1368,7 @@ bool State::parseReports(DOMElement *root, const char* prefix)
                     sprintf(msg,
                             "Report \"%s\" is of type \"particles\", but the \"set\" is not defined.\n",
                             report->get("name"));
-                    S->addMessageF(3, msg);
+                    S->addMessageF(L_ERROR, msg);
                     return true;
                 }
                 report->set("set", xmlAttribute(s_elem, "set"));
@@ -1410,12 +1410,12 @@ bool State::parseReports(DOMElement *root, const char* prefix)
                 sprintf(msg,
                         "Unknown \"type\" for the report \"%s\".\n",
                         report->get("name"));
-                S->addMessageF(3, msg);
-                S->addMessage(0, "\tThe valid types are:\n");
-                S->addMessage(0, "\t\tscreen\n");
-                S->addMessage(0, "\t\tfile\n");
-                S->addMessage(0, "\t\tparticles\n");
-                S->addMessage(0, "\t\tperformance\n");
+                S->addMessageF(L_ERROR, msg);
+                S->addMessage(L_DEBUG, "\tThe valid types are:\n");
+                S->addMessage(L_DEBUG, "\t\tscreen\n");
+                S->addMessage(L_DEBUG, "\t\tfile\n");
+                S->addMessage(L_DEBUG, "\t\tparticles\n");
+                S->addMessage(L_DEBUG, "\t\tperformance\n");
                 return true;
             }
         }
@@ -1429,7 +1429,7 @@ bool State::write(const char* filepath)
     char msg[64 + strlen(filepath)];
     ScreenManager *S = ScreenManager::singleton();
     sprintf(msg, "Writing \"%s\" SPH state file...\n", filepath);
-    S->addMessageF(1, msg);
+    S->addMessageF(L_INFO, msg);
 
     impl = DOMImplementationRegistry::getDOMImplementation(xmlS("Range"));
     DOMDocument* doc = impl->createDocument(
@@ -1486,25 +1486,25 @@ bool State::write(const char* filepath)
     }
     catch( XMLException& e ){
         char* message = xmlS(e.getMessage());
-        S->addMessageF(3, "XML toolkit writing error.\n");
+        S->addMessageF(L_ERROR, "XML toolkit writing error.\n");
         char msg[strlen(message) + 3];
         sprintf(msg, "\t%s\n", message);
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         xmlClear();
         exit(EXIT_FAILURE);
     }
     catch( DOMException& e ){
         char* message = xmlS(e.getMessage());
-        S->addMessageF(3, "XML DOM writing error.\n");
+        S->addMessageF(L_ERROR, "XML DOM writing error.\n");
         char msg[strlen(message) + 3];
         sprintf(msg, "\t%s\n", message);
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         xmlClear();
         exit(EXIT_FAILURE);
     }
     catch( ... ){
-        S->addMessageF(3, "Writing error.\n");
-        S->addMessage(0, "\tUnhandled exception\n");
+        S->addMessageF(L_ERROR, "Writing error.\n");
+        S->addMessage(L_DEBUG, "\tUnhandled exception\n");
         exit(EXIT_FAILURE);
     }
 

@@ -52,7 +52,7 @@ bool Screen::setup()
     sprintf(msg,
             "Loading the report \"%s\"...\n",
             name());
-    S->addMessageF(1, msg);
+    S->addMessageF(L_INFO, msg);
 
     // Set the color in lowercase
     for(i = 0; i < strlen(_color); i++){

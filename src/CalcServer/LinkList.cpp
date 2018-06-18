@@ -115,7 +115,7 @@ bool LinkList::setup()
     sprintf(msg,
             "Loading the tool \"%s\"...\n",
             name());
-    S->addMessageF(1, msg);
+    S->addMessageF(L_INFO, msg);
 
     // Setup the reduction tools
     if(_min_pos->setup()){
@@ -184,7 +184,7 @@ bool LinkList::_execute()
         sprintf(msg,
                 "Failure executing \"iCell\" from tool \"%s\".\n",
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         S->printOpenCLError(err_code);
         return true;
     }
@@ -208,7 +208,7 @@ bool LinkList::_execute()
         sprintf(msg,
                 "Failure executing \"iHoc\" from tool \"%s\".\n",
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         S->printOpenCLError(err_code);
         return true;
     }
@@ -226,7 +226,7 @@ bool LinkList::_execute()
         sprintf(msg,
                 "Failure executing \"linkList\" from tool \"%s\".\n",
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         S->printOpenCLError(err_code);
         return true;
     }
@@ -268,17 +268,17 @@ bool LinkList::setupOpenCL()
                                         &_ihoc_lws,
                                         NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure querying the work group size (\"iHoc\").\n");
+        S->addMessageF(L_ERROR, "Failure querying the work group size (\"iHoc\").\n");
         S->printOpenCLError(err_code);
         return true;
     }
     if(_ihoc_lws < __CL_MIN_LOCALSIZE__){
-        S->addMessageF(3, "iHoc cannot be performed.\n");
+        S->addMessageF(L_ERROR, "iHoc cannot be performed.\n");
         sprintf(msg,
                 "\t%lu elements can be executed, but __CL_MIN_LOCALSIZE__=%lu\n",
                 _ihoc_lws,
                 __CL_MIN_LOCALSIZE__);
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         return true;
     }
     n_cells = *(uivec4*)vars->get("n_cells")->get();
@@ -293,7 +293,7 @@ bool LinkList::setupOpenCL()
             sprintf(msg,
                     "Failure sending \"%s\" argument to \"iHoc\".\n",
                     _ihoc_vars[i]);
-            S->addMessageF(3, msg);
+            S->addMessageF(L_ERROR, msg);
             S->printOpenCLError(err_code);
             return true;
         }
@@ -310,17 +310,17 @@ bool LinkList::setupOpenCL()
                                         &_icell_lws,
                                         NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure querying the work group size (\"iCell\").\n");
+        S->addMessageF(L_ERROR, "Failure querying the work group size (\"iCell\").\n");
         S->printOpenCLError(err_code);
         return true;
     }
     if(_icell_lws < __CL_MIN_LOCALSIZE__){
-        S->addMessageF(3, "iCell cannot be performed.\n");
+        S->addMessageF(L_ERROR, "iCell cannot be performed.\n");
         sprintf(msg,
                 "\t%lu elements can be executed, but __CL_MIN_LOCALSIZE__=%lu\n",
                 _icell_lws,
                 __CL_MIN_LOCALSIZE__);
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         return true;
     }
     n_radix = *(unsigned int*)vars->get("n_radix")->get();
@@ -336,7 +336,7 @@ bool LinkList::setupOpenCL()
             sprintf(msg,
                     "Failure sending \"%s\" argument to \"iCell\".\n",
                     _icell_vars[i]);
-            S->addMessageF(3, msg);
+            S->addMessageF(L_ERROR, msg);
             S->printOpenCLError(err_code);
             return true;
         }
@@ -353,17 +353,17 @@ bool LinkList::setupOpenCL()
                                         &_ll_lws,
                                         NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure querying the work group size (\"linkList\").\n");
+        S->addMessageF(L_ERROR, "Failure querying the work group size (\"linkList\").\n");
         S->printOpenCLError(err_code);
         return true;
     }
     if(_ll_lws < __CL_MIN_LOCALSIZE__){
-        S->addMessageF(3, "linkList cannot be performed.\n");
+        S->addMessageF(L_ERROR, "linkList cannot be performed.\n");
         sprintf(msg,
                 "\t%lu elements can be executed, but __CL_MIN_LOCALSIZE__=%lu\n",
                 _ll_lws,
                 __CL_MIN_LOCALSIZE__);
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         return true;
     }
     N = *(unsigned int*)vars->get("N")->get();
@@ -378,7 +378,7 @@ bool LinkList::setupOpenCL()
             sprintf(msg,
                     "Failure sending \"%s\" argument to \"iCell\".\n",
                     _ll_vars[i]);
-            S->addMessageF(3, msg);
+            S->addMessageF(L_ERROR, msg);
             S->printOpenCLError(err_code);
             return true;
         }
@@ -419,15 +419,15 @@ bool LinkList::compile(const char* source)
                                         &source_length,
                                         &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure creating the OpenCL program.\n");
+        S->addMessageF(L_ERROR, "Failure creating the OpenCL program.\n");
         S->printOpenCLError(err_code);
         return true;
     }
     err_code = clBuildProgram(program, 0, NULL, flags, NULL, NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessage(3, "Error compiling the source code\n");
+        S->addMessage(L_ERROR, "Error compiling the source code\n");
         S->printOpenCLError(err_code);
-        S->addMessage(3, "--- Build log ---------------------------------\n");
+        S->addMessage(L_ERROR, "--- Build log ---------------------------------\n");
         size_t log_size = 0;
         clGetProgramBuildInfo(program,
                               C->device(),
@@ -440,8 +440,8 @@ bool LinkList::compile(const char* source)
             sprintf(msg,
                     "Failure allocating %lu bytes for the building log\n",
                     log_size);
-            S->addMessage(3, msg);
-            S->addMessage(3, "--------------------------------- Build log ---\n");
+            S->addMessage(L_ERROR, msg);
+            S->addMessage(L_ERROR, "--------------------------------- Build log ---\n");
             return NULL;
         }
         strcpy(log, "");
@@ -452,29 +452,29 @@ bool LinkList::compile(const char* source)
                               log,
                               NULL);
         strcat(log, "\n");
-        S->addMessage(0, log);
-        S->addMessage(3, "--------------------------------- Build log ---\n");
+        S->addMessage(L_DEBUG, log);
+        S->addMessage(L_ERROR, "--------------------------------- Build log ---\n");
         free(log); log=NULL;
         clReleaseProgram(program);
         return true;
     }
     _ihoc = clCreateKernel(program, "iHoc", &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure creating the \"iHoc\" kernel.\n");
+        S->addMessageF(L_ERROR, "Failure creating the \"iHoc\" kernel.\n");
         S->printOpenCLError(err_code);
         clReleaseProgram(program);
         return true;
     }
     _icell = clCreateKernel(program, "iCell", &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure creating the \"iCell\" kernel.\n");
+        S->addMessageF(L_ERROR, "Failure creating the \"iCell\" kernel.\n");
         S->printOpenCLError(err_code);
         clReleaseProgram(program);
         return true;
     }
     _ll = clCreateKernel(program, "linkList", &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure creating the \"linkList\" kernel.\n");
+        S->addMessageF(L_ERROR, "Failure creating the \"linkList\" kernel.\n");
         S->printOpenCLError(err_code);
         clReleaseProgram(program);
         return true;
@@ -496,7 +496,7 @@ bool LinkList::nCells()
         sprintf(msg,
                 "Zero cell length detected in the tool \"%s\".\n",
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         return true;
     }
 
@@ -528,13 +528,13 @@ bool LinkList::allocate()
         sprintf(msg,
                 "Wrong type found during the execution of the tool \"%s\".\n",
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         sprintf(msg,
                 "\tVariable \"%s\" type is \"%s\" (\"%s\" expected).\n",
                 "n_cells",
                 vars->get("n_cells")->type(),
                 "uivec4");
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         return true;
     }
 
@@ -560,7 +560,7 @@ bool LinkList::allocate()
         sprintf(msg,
                 "Buffer memory allocation failure during tool \"%s\" execution.\n",
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         S->printOpenCLError(err_code);
         return true;
     }
@@ -597,7 +597,7 @@ bool LinkList::setVariables()
                     "Failure sending \"%s\" argument to \"iHoc\" in tool \"%s\".\n",
                     _ihoc_vars[i],
                     name());
-            S->addMessageF(3, msg);
+            S->addMessageF(L_ERROR, msg);
             S->printOpenCLError(err_code);
             return true;
         }
@@ -620,7 +620,7 @@ bool LinkList::setVariables()
                     "Failure sending \"%s\" argument to \"iCell\" in tool \"%s\".\n",
                     _icell_vars[i],
                     name());
-            S->addMessageF(3, msg);
+            S->addMessageF(L_ERROR, msg);
             S->printOpenCLError(err_code);
             return true;
         }
@@ -642,7 +642,7 @@ bool LinkList::setVariables()
                     "Failure sending \"%s\" argument to \"iCell\" in tool \"%s\".\n",
                     _ll_vars[i],
                     name());
-            S->addMessageF(3, msg);
+            S->addMessageF(L_ERROR, msg);
             S->printOpenCLError(err_code);
             return true;
         }

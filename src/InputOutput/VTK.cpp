@@ -114,7 +114,7 @@ VTK::~VTK()
     ScreenManager *S = ScreenManager::singleton();
 
     // Wait for the writers working
-    S->addMessageF(1, "Waiting for the writers...\n");
+    S->addMessageF(L_INFO, "Waiting for the writers...\n");
     for(i = 0; i < _tids.size(); i++){
         pthread_join(_tids.at(i), NULL);
     }
@@ -138,13 +138,13 @@ bool VTK::load()
     sprintf(msg,
             "Loading particles from VTK file \"%s\"\n",
             P->sets.at(setId())->inputPath());
-    S->addMessageF(1, msg);
+    S->addMessageF(L_INFO, msg);
 
     vtkSmartPointer<vtkXMLUnstructuredGridReader> f =
         vtkSmartPointer<vtkXMLUnstructuredGridReader>::New();
 
     if(!f->CanReadFile(P->sets.at(setId())->inputPath())){
-        S->addMessageF(3, "The file cannot be read.\n");
+        S->addMessageF(L_ERROR, "The file cannot be read.\n");
         return true;
     }
 
@@ -161,14 +161,14 @@ bool VTK::load()
                 "Expected %u particles, but the file contains %u ones.\n",
                 n,
                 N);
-        S->addMessage(3, msg);
+        S->addMessage(L_ERROR, msg);
         return true;
     }
 
     // Check the fields to read
     std::deque<char*> fields = P->sets.at(setId())->inputFields();
     if(!fields.size()){
-        S->addMessage(3, "0 fields were set to be read from the file.\n");
+        S->addMessage(L_ERROR, "0 fields were set to be read from the file.\n");
         return true;
     }
     bool have_r = false;
@@ -179,7 +179,7 @@ bool VTK::load()
         }
     }
     if(!have_r){
-        S->addMessage(3, "\"r\" field was not set to be read from the file.\n");
+        S->addMessage(L_ERROR, "\"r\" field was not set to be read from the file.\n");
         return true;
     }
 
@@ -191,14 +191,14 @@ bool VTK::load()
             sprintf(msg,
                     "\"%s\" field has been set to be read, but it was not declared.\n",
                     fields.at(i));
-            S->addMessage(3, msg);
+            S->addMessage(L_ERROR, msg);
             return true;
         }
         if(!strchr(vars->get(fields.at(i))->type(), '*')){
             sprintf(msg,
                     "\"%s\" field has been set to be read, but it was declared as an scalar.\n",
                     fields.at(i));
-            S->addMessage(3, msg);
+            S->addMessage(L_ERROR, msg);
             return true;
         }
         ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i));
@@ -208,7 +208,7 @@ bool VTK::load()
             sprintf(msg,
                     "Failure reading \"%s\" field, which has not length enough.\n",
                     fields.at(i));
-            S->addMessage(3, msg);
+            S->addMessage(L_ERROR, msg);
             return true;
         }
         void *store = malloc(typesize * n);
@@ -216,7 +216,7 @@ bool VTK::load()
             sprintf(msg,
                     "Failure allocating memory for \"%s\" field.\n",
                     fields.at(i));
-            S->addMessage(3, msg);
+            S->addMessage(L_ERROR, msg);
             return true;
         }
         data.push_back(store);
@@ -283,7 +283,7 @@ bool VTK::load()
             progress = i * 100 / n;
             if(!(progress % 10)){
                 sprintf(msg, "\t\t%u%%\n", progress);
-                S->addMessage(0, msg);
+                S->addMessage(L_DEBUG, msg);
             }
         }
     }
@@ -307,7 +307,7 @@ bool VTK::load()
             sprintf(msg,
                     "Failure sending variable \"%s\" to the server.\n",
                     fields.at(i));
-            S->addMessageF(3, msg);
+            S->addMessageF(L_ERROR, msg);
             S->printOpenCLError(err_code);
         }
     }
@@ -351,7 +351,7 @@ void* save_pthread(void *data_void)
             sprintf(msg,
                     "\"%s\" field has been set to be saved, but it was not declared.\n",
                     data->fields.at(i));
-            data->S->addMessage(3, msg);
+            data->S->addMessage(L_ERROR, msg);
             for(i = 0; i < data->fields.size(); i++){
                 free(data->data.at(i)); data->data.at(i) = NULL;
             }
@@ -364,7 +364,7 @@ void* save_pthread(void *data_void)
             sprintf(msg,
                     "\"%s\" field has been set to be saved, but it was declared as a scalar.\n",
                     data->fields.at(i));
-            data->S->addMessage(3, msg);
+            data->S->addMessage(L_ERROR, msg);
             for(i = 0; i < data->fields.size(); i++){
                 free(data->data.at(i)); data->data.at(i) = NULL;
             }
@@ -380,7 +380,7 @@ void* save_pthread(void *data_void)
             sprintf(msg,
                     "Failure saving \"%s\" field, which has not length enough.\n",
                     data->fields.at(i));
-            data->S->addMessage(3, msg);
+            data->S->addMessage(L_ERROR, msg);
             for(i = 0; i < data->fields.size(); i++){
                 free(data->data.at(i)); data->data.at(i) = NULL;
             }
@@ -530,7 +530,7 @@ void* save_pthread(void *data_void)
     #endif // VTK_MAJOR_VERSION
 
     if(!data->f->Write()){
-        data->S->addMessageF(3, "Failure writing the VTK file.\n");
+        data->S->addMessageF(L_ERROR, "Failure writing the VTK file.\n");
     }
 
     // Clean up
@@ -553,7 +553,7 @@ bool VTK::save()
     // Check the fields to write
     std::deque<char*> fields = P->sets.at(setId())->outputFields();
     if(!fields.size()){
-        S->addMessage(3, "0 fields were set to be saved into the file.\n");
+        S->addMessage(L_ERROR, "0 fields were set to be saved into the file.\n");
         return true;
     }
     bool have_r = false;
@@ -564,7 +564,7 @@ bool VTK::save()
         }
     }
     if(!have_r){
-        S->addMessage(3, "\"r\" field was not set to be saved into the file.\n");
+        S->addMessage(L_ERROR, "\"r\" field was not set to be saved into the file.\n");
         return true;
     }
 
@@ -588,11 +588,11 @@ bool VTK::save()
     int err;
     err = pthread_create(&tid, NULL, &save_pthread, (void*)data);
     if(err){
-        S->addMessageF(3, "Failure launching the parallel thread.\n");
+        S->addMessageF(L_ERROR, "Failure launching the parallel thread.\n");
         char err_str[strlen(strerror(err)) + 2];
         strcpy(err_str, strerror(err));
         strcat(err_str, "\n");
-        S->addMessage(0, err_str);
+        S->addMessage(L_DEBUG, err_str);
         return true;
     }
     _tids.push_back(tid);
@@ -612,9 +612,9 @@ bool VTK::save()
 
     // Check and limit the number of active writing processes
     if(_tids.size() > 2){
-        S->addMessageF(2, "More than 2 active writing tasks\n");
-        S->addMessageF(0, "This may result in heavy performance penalties, and hard disk failures\n");
-        S->addMessageF(0, "Please, consider a reduction of the output printing rate\n");
+        S->addMessageF(L_WARNING, "More than 2 active writing tasks\n");
+        S->addMessageF(L_DEBUG, "This may result in heavy performance penalties, and hard disk failures\n");
+        S->addMessageF(L_DEBUG, "Please, consider a reduction of the output printing rate\n");
         while(_tids.size() > 2){
             pthread_join(_tids.at(0), NULL);
             _tids.erase(_tids.begin());
@@ -645,14 +645,14 @@ vtkXMLUnstructuredGridWriter* VTK::create(){
     _next_file_index = file(basename, _next_file_index);
     if(!_next_file_index){
         delete[] basename;
-        S->addMessageF(3, "Failure getting a valid filename.\n");
-        S->addMessage(0, "\tHow do you received this message?.\n");
+        S->addMessageF(L_ERROR, "Failure getting a valid filename.\n");
+        S->addMessage(L_DEBUG, "\tHow do you received this message?.\n");
         return NULL;
     }
     delete[] basename;
 
     sprintf(msg, "Writing \"%s\" VTK output...\n", file());
-    S->addMessageF(1, msg);
+    S->addMessageF(L_INFO, msg);
 
     f = vtkXMLUnstructuredGridWriter::New();
     f->SetFileName(file());
@@ -667,7 +667,7 @@ bool VTK::updatePVD(){
     TimeManager *T = TimeManager::singleton();
 
     sprintf(msg, "Writing \"%s\" Paraview data file...\n", filenamePVD());
-    S->addMessageF(1, msg);
+    S->addMessageF(L_INFO, msg);
 
     bool should_release_doc = false;
     DOMDocument* doc = getPVD(false);
@@ -677,7 +677,7 @@ bool VTK::updatePVD(){
     }
     DOMElement* root = doc->getDocumentElement();
     if(!root){
-        S->addMessageF(3, "Empty XML file found!\n");
+        S->addMessageF(L_ERROR, "Empty XML file found!\n");
         return true;
     }
     n = doc->getElementsByTagName(xmlS("VTKFile"))->getLength();
@@ -685,7 +685,7 @@ bool VTK::updatePVD(){
         sprintf(msg,
                 "Expected 1 VTKFile root section, but %u has been found\n",
                 n);
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         return true;
     }
 
@@ -694,7 +694,7 @@ bool VTK::updatePVD(){
         sprintf(msg,
                 "Expected 1 collection, but %u has been found\n",
                 nodes->getLength());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
     }
     DOMNode* node = nodes->item(0);
     DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
@@ -729,23 +729,23 @@ bool VTK::updatePVD(){
     }
     catch( XMLException& e ){
         char* message = xmlS(e.getMessage());
-        S->addMessageF(3, "XML toolkit writing error.\n");
+        S->addMessageF(L_ERROR, "XML toolkit writing error.\n");
         sprintf(msg, "\t%s\n", message);
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         xmlClear();
         return true;
     }
     catch( DOMException& e ){
         char* message = xmlS(e.getMessage());
-        S->addMessageF(3, "XML DOM writing error.\n");
+        S->addMessageF(L_ERROR, "XML DOM writing error.\n");
         sprintf(msg, "\t%s\n", message);
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         xmlClear();
         return true;
     }
     catch( ... ){
-        S->addMessageF(3, "Writing error.\n");
-        S->addMessage(0, "\tUnhandled exception\n");
+        S->addMessageF(L_ERROR, "Writing error.\n");
+        S->addMessage(L_DEBUG, "\tUnhandled exception\n");
         xmlClear();
         return true;
     }

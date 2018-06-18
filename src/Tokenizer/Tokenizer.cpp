@@ -41,23 +41,23 @@ Tokenizer::Tokenizer()
     s = setlocale(LC_NUMERIC, NULL);
     if(strcmp(s, "C")){
         sprintf(msg, "\"%s\" numeric locale found\n", s);
-        S->addMessageF(1, msg);
-        S->addMessage(0, "\tIt is replaced by \"C\"\n");
+        S->addMessageF(L_INFO, msg);
+        S->addMessage(L_DEBUG, "\tIt is replaced by \"C\"\n");
         setlocale(LC_NUMERIC, "C");
     }
     lc = localeconv();
     s = lc->decimal_point;
     if(strcmp(s, ".")){
         sprintf(msg, "\"%s\" decimal point character found\n", s);
-        S->addMessageF(2, msg);
-        S->addMessage(0, "\tIt is replaced by \".\"\n");
+        S->addMessageF(L_WARNING, msg);
+        S->addMessage(L_DEBUG, "\tIt is replaced by \".\"\n");
         lc->decimal_point = ".";
     }
     s = lc->thousands_sep;
     if(strcmp(s, "")){
         sprintf(msg, "\"%s\" thousands separator character found\n", s);
-        S->addMessageF(2, msg);
-        S->addMessage(0, "\tIt is removed\n");
+        S->addMessageF(L_WARNING, msg);
+        S->addMessage(L_DEBUG, "\tIt is removed\n");
         lc->thousands_sep = "";
     }
 }
@@ -139,12 +139,12 @@ float Tokenizer::solve(const char* eq, bool *error)
     catch(mu::Parser::exception_type &e)
     {
         sprintf(msg, "Error evaluating \"%s\"\n", e.GetExpr().c_str());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         sprintf(msg, "\t%s\n", e.GetMsg().c_str());
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         sprintf(msg, "\tToken %s in position %d\n", e.GetToken().c_str(),
                                                     e.GetPos());
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
     }
 
     return result;

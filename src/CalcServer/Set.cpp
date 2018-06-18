@@ -77,7 +77,7 @@ bool Set::setup()
     sprintf(msg,
             "Loading the tool \"%s\"...\n",
             name());
-    S->addMessageF(1, msg);
+    S->addMessageF(L_INFO, msg);
 
     if(variable()){
         return true;
@@ -115,7 +115,7 @@ bool Set::_execute()
                                       NULL);
     if(err_code != CL_SUCCESS) {
         sprintf(msg, "Failure executing the tool \"%s\".\n", name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         S->printOpenCLError(err_code);
         return true;
     }
@@ -134,7 +134,7 @@ bool Set::variable()
                 "The tool \"%s\" is using the undeclared variable \"%s\".\n",
                 name(),
                 _var_name);
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         return true;
     }
     if(!strchr(vars->get(_var_name)->type(), '*')){
@@ -142,7 +142,7 @@ bool Set::variable()
                 "The tool \"%s\" has received the scalar variable \"%s\".\n",
                 name(),
                 _var_name);
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         return true;
     }
     _var = (InputOutput::ArrayVariable *)vars->get(_var_name);
@@ -183,18 +183,18 @@ bool Set::setupOpenCL()
                                         &_local_work_size,
                                         NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure querying the work group size.\n");
+        S->addMessageF(L_ERROR, "Failure querying the work group size.\n");
         S->printOpenCLError(err_code);
         clReleaseKernel(kernel);
         return true;
     }
     if(_local_work_size < __CL_MIN_LOCALSIZE__){
-        S->addMessageF(3, "Set cannot be performed.\n");
+        S->addMessageF(L_ERROR, "Set cannot be performed.\n");
         sprintf(msg,
                 "\t%lu elements can be executed, but __CL_MIN_LOCALSIZE__=%lu\n",
                 _local_work_size,
                 __CL_MIN_LOCALSIZE__);
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         return true;
     }
 
@@ -205,7 +205,7 @@ bool Set::setupOpenCL()
                               _var->typesize(),
                               _var->get());
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending the array argument\n");
+        S->addMessageF(L_ERROR, "Failure sending the array argument\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -214,7 +214,7 @@ bool Set::setupOpenCL()
                               sizeof(unsigned int),
                               (void*)&_n);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending the array size argument\n");
+        S->addMessageF(L_ERROR, "Failure sending the array size argument\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -261,15 +261,15 @@ cl_kernel Set::compile(const char* source)
                                         &source_length,
                                         &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure creating the OpenCL program.\n");
+        S->addMessageF(L_ERROR, "Failure creating the OpenCL program.\n");
         S->printOpenCLError(err_code);
         return NULL;
     }
     err_code = clBuildProgram(program, 0, NULL, flags, NULL, NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessage(3, "Error compiling the source code\n");
+        S->addMessage(L_ERROR, "Error compiling the source code\n");
         S->printOpenCLError(err_code);
-        S->addMessage(3, "--- Build log ---------------------------------\n");
+        S->addMessage(L_ERROR, "--- Build log ---------------------------------\n");
         size_t log_size = 0;
         clGetProgramBuildInfo(program,
                               C->device(),
@@ -282,8 +282,8 @@ cl_kernel Set::compile(const char* source)
             sprintf(msg,
                     "Failure allocating %lu bytes for the building log\n",
                     log_size);
-            S->addMessage(3, msg);
-            S->addMessage(3, "--------------------------------- Build log ---\n");
+            S->addMessage(L_ERROR, msg);
+            S->addMessage(L_ERROR, "--------------------------------- Build log ---\n");
             return NULL;
         }
         strcpy(log, "");
@@ -294,8 +294,8 @@ cl_kernel Set::compile(const char* source)
                               log,
                               NULL);
         strcat(log, "\n");
-        S->addMessage(0, log);
-        S->addMessage(3, "--------------------------------- Build log ---\n");
+        S->addMessage(L_DEBUG, log);
+        S->addMessage(L_ERROR, "--------------------------------- Build log ---\n");
         free(log); log=NULL;
         clReleaseProgram(program);
         return NULL;
@@ -303,7 +303,7 @@ cl_kernel Set::compile(const char* source)
     kernel = clCreateKernel(program, "set", &err_code);
     clReleaseProgram(program);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure creating the kernel.\n");
+        S->addMessageF(L_ERROR, "Failure creating the kernel.\n");
         S->printOpenCLError(err_code);
         return NULL;
     }
@@ -330,7 +330,7 @@ bool Set::setVariables()
                 "Failure setting the input variable \"%s\" to the tool \"%s\".\n",
                 _var->name(),
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         S->printOpenCLError(err_code);
         return true;
     }

@@ -1208,7 +1208,7 @@ size_t ArrayVariable::size() const
         sprintf(msg,
                 "Failure getting allocated memory from variable \"%s\"\n",
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         S->printOpenCLError(status);
     }
     return memsize;
@@ -1477,11 +1477,11 @@ const char* ArrayVariable::asString(size_t i)
                 "Failure extracting the component %lu from the variable \"%s\"\n",
                 i,
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         sprintf(msg,
                 "Out of bounds (length = %lu)\n",
                 length);
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         return NULL;
     }
     void *ptr = malloc(typesize());
@@ -1491,11 +1491,11 @@ const char* ArrayVariable::asString(size_t i)
         sprintf(msg,
                 "Failure allocating memory to download the variable \"%s\"\n",
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         sprintf(msg,
                 "%lu bytes requested\n",
                 typesize());
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         return NULL;
     }
     cl_int err_code = clEnqueueReadBuffer(C->command_queue(),
@@ -1513,7 +1513,7 @@ const char* ArrayVariable::asString(size_t i)
         sprintf(msg,
                 "Failure downloading the variable \"%s\"\n",
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         S->printOpenCLError(err_code);
         free(ptr);
         return NULL;
@@ -1628,7 +1628,7 @@ const char* ArrayVariable::asString(size_t i)
                 "Variable \"%s\" is of unknown type \"%s\"",
                 name(),
                 type());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         free(ptr);
         return NULL;
     }
@@ -1747,7 +1747,7 @@ size_t Variables::typeToBytes(const char* type)
         sprintf(msg,
                 "Unvalid type \"%s\"\n",
                 type);
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         return 0;
     }
     return n * type_size;
@@ -1841,7 +1841,7 @@ bool Variables::solve(const char *type_name,
         return true;
     }
     if(!strcmp(value, "")){
-        S->addMessageF(3, "Empty value received\n");
+        S->addMessageF(L_ERROR, "Empty value received\n");
         return true;
     }
 
@@ -2042,7 +2042,7 @@ bool Variables::populate(const char* name)
             sprintf(msg,
                     "Variable \"%s\" cannot be found\n",
                     name);
-            S->addMessageF(3, msg);
+            S->addMessageF(L_ERROR, msg);
             return true;
         }
         return populate(var);
@@ -2226,23 +2226,23 @@ bool Variables::populate(Variable* var)
                 "\"%s\" declared as \"%s\", which is not a scalar type.\n",
                 var->name(),
                 type);
-        S->addMessageF(3, msg);
-        S->addMessage(0, "Valid types are:\n");
-        S->addMessage(0, "\tint\n");
-        S->addMessage(0, "\tunsigned int\n");
-        S->addMessage(0, "\tfloat\n");
-        S->addMessage(0, "\tvec\n");
-        S->addMessage(0, "\tvec2\n");
-        S->addMessage(0, "\tvec3\n");
-        S->addMessage(0, "\tvec4\n");
-        S->addMessage(0, "\tivec\n");
-        S->addMessage(0, "\tivec2\n");
-        S->addMessage(0, "\tivec3\n");
-        S->addMessage(0, "\tivec4\n");
-        S->addMessage(0, "\tuivec\n");
-        S->addMessage(0, "\tuivec2\n");
-        S->addMessage(0, "\tuivec3\n");
-        S->addMessage(0, "\tuivec4\n");
+        S->addMessageF(L_ERROR, msg);
+        S->addMessage(L_DEBUG, "Valid types are:\n");
+        S->addMessage(L_DEBUG, "\tint\n");
+        S->addMessage(L_DEBUG, "\tunsigned int\n");
+        S->addMessage(L_DEBUG, "\tfloat\n");
+        S->addMessage(L_DEBUG, "\tvec\n");
+        S->addMessage(L_DEBUG, "\tvec2\n");
+        S->addMessage(L_DEBUG, "\tvec3\n");
+        S->addMessage(L_DEBUG, "\tvec4\n");
+        S->addMessage(L_DEBUG, "\tivec\n");
+        S->addMessage(L_DEBUG, "\tivec2\n");
+        S->addMessage(L_DEBUG, "\tivec3\n");
+        S->addMessage(L_DEBUG, "\tivec4\n");
+        S->addMessage(L_DEBUG, "\tuivec\n");
+        S->addMessage(L_DEBUG, "\tuivec2\n");
+        S->addMessage(L_DEBUG, "\tuivec3\n");
+        S->addMessage(L_DEBUG, "\tuivec4\n");
         return true;
     }
 
@@ -2482,23 +2482,23 @@ bool Variables::registerScalar(const char* name,
                 "\"%s\" declared as \"%s\", which is not a valid scalar type.\n",
                 name,
                 type);
-        S->addMessageF(3, msg);
-        S->addMessage(0, "Valid types are:\n");
-        S->addMessage(0, "\tint\n");
-        S->addMessage(0, "\tunsigned int\n");
-        S->addMessage(0, "\tfloat\n");
-        S->addMessage(0, "\tvec\n");
-        S->addMessage(0, "\tvec2\n");
-        S->addMessage(0, "\tvec3\n");
-        S->addMessage(0, "\tvec4\n");
-        S->addMessage(0, "\tivec\n");
-        S->addMessage(0, "\tivec2\n");
-        S->addMessage(0, "\tivec3\n");
-        S->addMessage(0, "\tivec4\n");
-        S->addMessage(0, "\tuivec\n");
-        S->addMessage(0, "\tuivec2\n");
-        S->addMessage(0, "\tuivec3\n");
-        S->addMessage(0, "\tuivec4\n");
+        S->addMessageF(L_ERROR, msg);
+        S->addMessage(L_DEBUG, "Valid types are:\n");
+        S->addMessage(L_DEBUG, "\tint\n");
+        S->addMessage(L_DEBUG, "\tunsigned int\n");
+        S->addMessage(L_DEBUG, "\tfloat\n");
+        S->addMessage(L_DEBUG, "\tvec\n");
+        S->addMessage(L_DEBUG, "\tvec2\n");
+        S->addMessage(L_DEBUG, "\tvec3\n");
+        S->addMessage(L_DEBUG, "\tvec4\n");
+        S->addMessage(L_DEBUG, "\tivec\n");
+        S->addMessage(L_DEBUG, "\tivec2\n");
+        S->addMessage(L_DEBUG, "\tivec3\n");
+        S->addMessage(L_DEBUG, "\tivec4\n");
+        S->addMessage(L_DEBUG, "\tuivec\n");
+        S->addMessage(L_DEBUG, "\tuivec2\n");
+        S->addMessage(L_DEBUG, "\tuivec3\n");
+        S->addMessage(L_DEBUG, "\tuivec4\n");
         return true;
     }
     return false;
@@ -2570,24 +2570,24 @@ bool Variables::registerClMem(const char* name,
                 "\"%s\" declared as \"%s\", which is not a valid array type.\n",
                 name,
                 type);
-        S->addMessageF(3, msg);
-        S->addMessage(0, "Valid types are:\n");
-        S->addMessage(0, "\tint*\n");
-        S->addMessage(0, "\tunsigned int*\n");
-        S->addMessage(0, "\tfloat*\n");
-        S->addMessage(0, "\tvec*\n");
-        S->addMessage(0, "\tvec2*\n");
-        S->addMessage(0, "\tvec3*\n");
-        S->addMessage(0, "\tvec4*\n");
-        S->addMessage(0, "\tivec*\n");
-        S->addMessage(0, "\tivec2*\n");
-        S->addMessage(0, "\tivec3*\n");
-        S->addMessage(0, "\tivec4*\n");
-        S->addMessage(0, "\tuivec*\n");
-        S->addMessage(0, "\tuivec2*\n");
-        S->addMessage(0, "\tuivec3*\n");
-        S->addMessage(0, "\tuivec4*\n");
-        S->addMessage(0, "\tmatrix*\n");
+        S->addMessageF(L_ERROR, msg);
+        S->addMessage(L_DEBUG, "Valid types are:\n");
+        S->addMessage(L_DEBUG, "\tint*\n");
+        S->addMessage(L_DEBUG, "\tunsigned int*\n");
+        S->addMessage(L_DEBUG, "\tfloat*\n");
+        S->addMessage(L_DEBUG, "\tvec*\n");
+        S->addMessage(L_DEBUG, "\tvec2*\n");
+        S->addMessage(L_DEBUG, "\tvec3*\n");
+        S->addMessage(L_DEBUG, "\tvec4*\n");
+        S->addMessage(L_DEBUG, "\tivec*\n");
+        S->addMessage(L_DEBUG, "\tivec2*\n");
+        S->addMessage(L_DEBUG, "\tivec3*\n");
+        S->addMessage(L_DEBUG, "\tivec4*\n");
+        S->addMessage(L_DEBUG, "\tuivec*\n");
+        S->addMessage(L_DEBUG, "\tuivec2*\n");
+        S->addMessage(L_DEBUG, "\tuivec3*\n");
+        S->addMessage(L_DEBUG, "\tuivec4*\n");
+        S->addMessage(L_DEBUG, "\tmatrix*\n");
         return true;
     }
 
@@ -2608,7 +2608,7 @@ bool Variables::registerClMem(const char* name,
                              NULL,
                              &status);
         if(status != CL_SUCCESS) {
-            S->addMessageF(3, "Allocation failure.\n");
+            S->addMessageF(L_ERROR, "Allocation failure.\n");
             S->printOpenCLError(status);
             return true;
         }
@@ -2634,15 +2634,15 @@ bool Variables::readComponents(const char* name,
                 "%u components required for the variable \"%s\".\n",
                 n,
                 name);
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
     }
     if(n > 4){
-        S->addMessageF(3, "No more than 4 components can be required\n");
+        S->addMessageF(L_ERROR, "No more than 4 components can be required\n");
         sprintf(msg,
                 "%u components required for the variable \"%s\".\n",
                 n,
                 name);
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
     }
 
     // Replace all the commas outside functions by semicolons, to be taken into
@@ -2657,7 +2657,7 @@ bool Variables::readComponents(const char* name,
                 "Failure allocating %lu bytes to evaluate the variable \"%s\".\n",
                 2 * sizeof(char) * (strlen(value) + 1),
                 name);
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         return true;
     }
     strcpy(remain, value);
@@ -2686,9 +2686,9 @@ bool Variables::readComponents(const char* name,
                 n_fields++;
             }
             sprintf(msg, "Failure reading the variable \"%s\" value\n", name);
-            S->addMessageF(3, msg);
+            S->addMessageF(L_ERROR, msg);
             sprintf(msg, "%u fields expected, %u received.\n", n, n_fields);
-            S->addMessage(0, msg);
+            S->addMessage(L_DEBUG, msg);
             delete[] remain_orig;
             delete[] aux;
             return true;

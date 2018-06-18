@@ -78,7 +78,7 @@ bool ProblemSetup::perform()
     // Check for errors
     if(sets.size() == 0) {
         sprintf(msg, "No sets of particles have been added.\n");
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         return true;
     }
     return false;

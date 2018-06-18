@@ -59,7 +59,7 @@ bool SetScalar::setup()
     sprintf(msg,
             "Loading the tool \"%s\"...\n",
             name());
-    S->addMessageF(1, msg);
+    S->addMessageF(L_INFO, msg);
 
     if(variable()){
         return true;
@@ -82,7 +82,7 @@ bool SetScalar::_execute()
                 "Failure allocating \"%lu\" bytes for variable \"%s\".\n",
                 _var->typesize(),
                 _var->name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         free(data);
         return true;
     }
@@ -113,7 +113,7 @@ bool SetScalar::variable()
                 "The tool \"%s\" is using the undeclared variable \"%s\".\n",
                 name(),
                 _var_name);
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         return true;
     }
     if(strchr(vars->get(_var_name)->type(), '*')){
@@ -121,7 +121,7 @@ bool SetScalar::variable()
                 "The tool \"%s\" has received the array variable \"%s\".\n",
                 name(),
                 _var_name);
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         return true;
     }
     _var = vars->get(_var_name);

@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
 
     T = new InputOutput::TimeManager();
 
-    S->addMessageF(1, "Start of simulation...\n\n");
+    S->addMessageF(L_INFO, "Start of simulation...\n\n");
     S->printDate();
     S = new InputOutput::ScreenManager();
 
@@ -183,21 +183,21 @@ int main(int argc, char *argv[])
             float Time = T->time();
             delete S; S = NULL;
             S->printDate();
-            S->addMessageF(1, "Destroying time manager...\n");
+            S->addMessageF(L_INFO, "Destroying time manager...\n");
             delete T; T = NULL;
-            S->addMessageF(1, "Destroying files manager...\n");
+            S->addMessageF(L_INFO, "Destroying files manager...\n");
             delete F; F = NULL;
-            S->addMessageF(1, "Destroying calculation server...\n");
+            S->addMessageF(L_INFO, "Destroying calculation server...\n");
             delete C; C = NULL;
-            S->addMessageF(1, "Destroying problem setup...\n");
+            S->addMessageF(L_INFO, "Destroying problem setup...\n");
             delete P; P = NULL;
-            S->addMessageF(1, "Destroying arguments manager...\n");
+            S->addMessageF(L_INFO, "Destroying arguments manager...\n");
             delete A; A = NULL;
-            S->addMessageF(1, "Finishing Python...\n");
+            S->addMessageF(L_INFO, "Finishing Python...\n");
             if(Py_IsInitialized())
                 Py_Finalize();
             sprintf(msg, "Simulation finished abnormally (Time = %g s)\n\n", Time);
-            S->addMessageF(1, msg);
+            S->addMessageF(L_INFO, msg);
             return EXIT_FAILURE;
         }
 
@@ -206,21 +206,21 @@ int main(int argc, char *argv[])
             float Time = T->time();
             delete S; S = NULL;
             S->printDate();
-            S->addMessageF(1, "Destroying time manager...\n");
+            S->addMessageF(L_INFO, "Destroying time manager...\n");
             delete T; T = NULL;
-            S->addMessageF(1, "Destroying files manager...\n");
+            S->addMessageF(L_INFO, "Destroying files manager...\n");
             delete F; F = NULL;
-            S->addMessageF(1, "Destroying calculation server...\n");
+            S->addMessageF(L_INFO, "Destroying calculation server...\n");
             delete C; C = NULL;
-            S->addMessageF(1, "Destroying problem setup...\n");
+            S->addMessageF(L_INFO, "Destroying problem setup...\n");
             delete P; P = NULL;
-            S->addMessageF(1, "Destroying arguments manager...\n");
+            S->addMessageF(L_INFO, "Destroying arguments manager...\n");
             delete A; A = NULL;
-            S->addMessageF(1, "Finishing Python...\n");
+            S->addMessageF(L_INFO, "Finishing Python...\n");
             if(Py_IsInitialized())
                 Py_Finalize();
             sprintf(msg, "Simulation finished abnormally (Time = %g s)\n\n", Time);
-            S->addMessageF(1, msg);
+            S->addMessageF(L_INFO, msg);
             return EXIT_FAILURE;
         }
     }
@@ -229,20 +229,20 @@ int main(int argc, char *argv[])
     S->printDate();
 
     float Time = T->time();
-    S->addMessageF(1, "Destroying time manager...\n");
+    S->addMessageF(L_INFO, "Destroying time manager...\n");
     delete T; T = NULL;
-    S->addMessageF(1, "Destroying files manager...\n");
+    S->addMessageF(L_INFO, "Destroying files manager...\n");
     delete F; F = NULL;
-    S->addMessageF(1, "Destroying calculation server...\n");
+    S->addMessageF(L_INFO, "Destroying calculation server...\n");
     delete C; C = NULL;
-    S->addMessageF(1, "Destroying problem setup...\n");
+    S->addMessageF(L_INFO, "Destroying problem setup...\n");
     delete P; P = NULL;
-    S->addMessageF(1, "Destroying arguments manager...\n");
+    S->addMessageF(L_INFO, "Destroying arguments manager...\n");
     delete A; A = NULL;
-    S->addMessageF(1, "Finishing Python...\n");
+    S->addMessageF(L_INFO, "Finishing Python...\n");
     if(Py_IsInitialized())
         Py_Finalize();
     sprintf(msg, "Simulation finished OK (Time = %g s)\n\n", Time);
-    S->addMessageF(1, msg);
+    S->addMessageF(L_INFO, msg);
     return EXIT_SUCCESS;
 }

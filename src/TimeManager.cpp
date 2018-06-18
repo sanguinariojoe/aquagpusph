@@ -82,7 +82,7 @@ TimeManager::TimeManager()
                     var_names[i],
                     var_types[i],
                     vars->get(var_names[i])->type());
-            S->addMessageF(3, msg);
+            S->addMessageF(L_ERROR, msg);
             exit(EXIT_FAILURE);
         }
     }
@@ -143,7 +143,7 @@ TimeManager::TimeManager()
         _output_step = *_step;
     }
 
-    S->addMessageF(1, "Time manager built OK.\n");
+    S->addMessageF(L_INFO, "Time manager built OK.\n");
 }
 
 TimeManager::~TimeManager()

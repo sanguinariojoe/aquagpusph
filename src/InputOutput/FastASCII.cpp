@@ -78,9 +78,9 @@ char* FastASCII::readField(const char* field,
             unsigned int val = (unsigned int)strtol(pos, &end_pos, 10);
             if(pos == end_pos){
                 char *msg = new char[strlen(var->type()) + 64];
-                S->addMessageF(3, "Failure reading a field value\n");
+                S->addMessageF(L_ERROR, "Failure reading a field value\n");
                 sprintf(msg, "\tWhile extracting it from \"%s\"\n", pos);
-                S->addMessage(0, msg);
+                S->addMessage(L_DEBUG, msg);
             }
             memcpy(ptr, &val, sizeof(unsigned int));
         }
@@ -89,9 +89,9 @@ char* FastASCII::readField(const char* field,
             int val = (int)strtol(pos, &end_pos, 10);
             if(pos == end_pos){
                 char *msg = new char[strlen(var->type()) + 64];
-                S->addMessageF(3, "Failure reading a field value\n");
+                S->addMessageF(L_ERROR, "Failure reading a field value\n");
                 sprintf(msg, "\tWhile extracting it from \"%s\"\n", pos);
-                S->addMessage(0, msg);
+                S->addMessage(L_DEBUG, msg);
             }
             memcpy(ptr, &val, sizeof(int));
         }
@@ -99,9 +99,9 @@ char* FastASCII::readField(const char* field,
             float val = (float)strtof(pos, &end_pos);
             if(pos == end_pos){
                 char *msg = new char[strlen(var->type()) + 64];
-                S->addMessageF(3, "Failure reading a field value\n");
+                S->addMessageF(L_ERROR, "Failure reading a field value\n");
                 sprintf(msg, "\tWhile extracting it from \"%s\"\n", pos);
-                S->addMessage(0, msg);
+                S->addMessage(L_DEBUG, msg);
             }
             memcpy(ptr, &val, sizeof(float));
         }

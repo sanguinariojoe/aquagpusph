@@ -109,7 +109,7 @@ bool RadixSort::setup()
     sprintf(msg,
             "Loading the tool \"%s\"...\n",
             name());
-    S->addMessageF(1, msg);
+    S->addMessageF(L_INFO, msg);
 
     // Get the variables
     if(variables()){
@@ -146,7 +146,7 @@ bool RadixSort::_execute()
     _key_bits = i;
     _key_bits = roundUp(_key_bits, _bits);
     if(_key_bits > __UINTBITS__){
-        S->addMessageF(3, "Resultant keys overflows unsigned int type.\n");
+        S->addMessageF(L_ERROR, "Resultant keys overflows unsigned int type.\n");
         return true;
     }
     _n_pass = _key_bits / _bits;
@@ -164,7 +164,7 @@ bool RadixSort::_execute()
         sprintf(msg,
                 "Failure copying the keys to sort with the tool \"%s\".\n",
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         S->printOpenCLError(err_code);
         return true;
     }
@@ -194,7 +194,7 @@ bool RadixSort::_execute()
         sprintf(msg,
                 "Failure copying the sorted keys with the tool \"%s\".\n",
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         S->printOpenCLError(err_code);
         return true;
     }
@@ -211,7 +211,7 @@ bool RadixSort::_execute()
         sprintf(msg,
                 "Failure copying the permutations with the tool \"%s\".\n",
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         S->printOpenCLError(err_code);
         return true;
     }
@@ -234,7 +234,7 @@ bool RadixSort::init()
                               sizeof(cl_mem),
                               (void*)&_in_permut);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending argument 0 to \"init\"\n");
+        S->addMessageF(L_ERROR, "Failure sending argument 0 to \"init\"\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -252,7 +252,7 @@ bool RadixSort::init()
         sprintf(msg,
                 "Failure executing the tool \"%s\" kernel \"init\".\n",
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         S->printOpenCLError(err_code);
         return true;
     }
@@ -274,7 +274,7 @@ bool RadixSort::histograms()
                               sizeof(cl_mem),
                               (void*)&_in_keys);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending argument 0 to \"histogram\"\n");
+        S->addMessageF(L_ERROR, "Failure sending argument 0 to \"histogram\"\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -283,7 +283,7 @@ bool RadixSort::histograms()
                               sizeof(cl_uint),
                               (void*)&_pass);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending argument 2 to \"histogram\"\n");
+        S->addMessageF(L_ERROR, "Failure sending argument 2 to \"histogram\"\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -301,7 +301,7 @@ bool RadixSort::histograms()
         sprintf(msg,
                 "Failure executing the tool \"%s\" kernel \"histogram\".\n",
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         S->printOpenCLError(err_code);
         return true;
     }
@@ -327,7 +327,7 @@ bool RadixSort::scan()
                               sizeof(cl_mem),
                               (void*)&_histograms);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending argument 0 to \"scan\" (1st call)\n");
+        S->addMessageF(L_ERROR, "Failure sending argument 0 to \"scan\" (1st call)\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -336,7 +336,7 @@ bool RadixSort::scan()
                               sizeof(cl_mem),
                               (void*)&_global_sums);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending argument 2 to \"scan\" (1st call)\n");
+        S->addMessageF(L_ERROR, "Failure sending argument 2 to \"scan\" (1st call)\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -354,7 +354,7 @@ bool RadixSort::scan()
         sprintf(msg,
                 "Failure executing the tool \"%s\" kernel \"scan\" (1st call).\n",
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         S->printOpenCLError(err_code);
         return true;
     }
@@ -368,7 +368,7 @@ bool RadixSort::scan()
                               sizeof(cl_mem),
                               (void*)&_global_sums);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending argument 0 to \"scan\" (2nd call)\n");
+        S->addMessageF(L_ERROR, "Failure sending argument 0 to \"scan\" (2nd call)\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -377,7 +377,7 @@ bool RadixSort::scan()
                               sizeof(cl_mem),
                               (void*)&_temp_mem);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending argument 2 to \"scan\" (2nd call)\n");
+        S->addMessageF(L_ERROR, "Failure sending argument 2 to \"scan\" (2nd call)\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -395,7 +395,7 @@ bool RadixSort::scan()
         sprintf(msg,
                 "Failure executing the tool \"%s\" kernel \"scan\" (2nd call).\n",
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         S->printOpenCLError(err_code);
         return true;
     }
@@ -418,7 +418,7 @@ bool RadixSort::scan()
         sprintf(msg,
                 "Failure executing the tool \"%s\" kernel \"paste\".\n",
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         S->printOpenCLError(err_code);
         return true;
     }
@@ -440,7 +440,7 @@ bool RadixSort::reorder()
                               sizeof(cl_mem),
                               (void*)&_in_keys);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending argument 0 to \"sort\"\n");
+        S->addMessageF(L_ERROR, "Failure sending argument 0 to \"sort\"\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -449,7 +449,7 @@ bool RadixSort::reorder()
                               sizeof(cl_mem),
                               (void*)&_out_keys);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending argument 1 to \"sort\"\n");
+        S->addMessageF(L_ERROR, "Failure sending argument 1 to \"sort\"\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -458,7 +458,7 @@ bool RadixSort::reorder()
                               sizeof(cl_uint),
                               (void*)&_pass);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending argument 3 to \"sort\"\n");
+        S->addMessageF(L_ERROR, "Failure sending argument 3 to \"sort\"\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -467,7 +467,7 @@ bool RadixSort::reorder()
                               sizeof(cl_mem),
                               (void*)&_in_permut);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending argument 4 to \"sort\"\n");
+        S->addMessageF(L_ERROR, "Failure sending argument 4 to \"sort\"\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -476,7 +476,7 @@ bool RadixSort::reorder()
                               sizeof(cl_mem),
                               (void*)&_out_permut);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending argument 5 to \"sort\"\n");
+        S->addMessageF(L_ERROR, "Failure sending argument 5 to \"sort\"\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -494,7 +494,7 @@ bool RadixSort::reorder()
         sprintf(msg,
                 "Failure executing the tool \"%s\" kernel \"paste\".\n",
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         S->printOpenCLError(err_code);
         return true;
     }
@@ -525,7 +525,7 @@ bool RadixSort::inversePermutations()
                               sizeof(cl_mem),
                               (void*)&_in_permut);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending argument 0 to \"inversePermutation\"\n");
+        S->addMessageF(L_ERROR, "Failure sending argument 0 to \"inversePermutation\"\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -534,7 +534,7 @@ bool RadixSort::inversePermutations()
                               sizeof(cl_mem),
                               _inv_perms->get());
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending argument 1 to \"inversePermutation\"\n");
+        S->addMessageF(L_ERROR, "Failure sending argument 1 to \"inversePermutation\"\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -552,7 +552,7 @@ bool RadixSort::inversePermutations()
         sprintf(msg,
                 "Failure executing the tool \"%s\" kernel \"inversePermutation\".\n",
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         S->printOpenCLError(err_code);
         return true;
     }
@@ -575,7 +575,7 @@ bool RadixSort::variables()
                 "Undeclared variable \"%s\" cannot be sorted by tool \"%s\".\n",
                 _var_name,
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         return true;
     }
     if(strcmp(vars->get(_var_name)->type(), "unsigned int*")){
@@ -583,12 +583,12 @@ bool RadixSort::variables()
                 "Wrong type for the variable \"%s\" (tool: \"%s\").\n",
                 _var_name,
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         sprintf(msg,
                 "\t\"%s\" was expected, but \"%s\" has been found.\n",
                 "unsigned int*",
                 vars->get(_var_name)->type());
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         return true;
     }
     _var = (InputOutput::ArrayVariable *)vars->get(_var_name);
@@ -598,7 +598,7 @@ bool RadixSort::variables()
                 "Undeclared permutations variable \"%s\" (tool \"%s\").\n",
                 _perms_name,
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         return true;
     }
     if(strcmp(vars->get(_perms_name)->type(), "unsigned int*")){
@@ -606,12 +606,12 @@ bool RadixSort::variables()
                 "Wrong type for the variable \"%s\" (tool: \"%s\").\n",
                 _perms_name,
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         sprintf(msg,
                 "\t\"%s\" was expected, but \"%s\" has been found.\n",
                 "unsigned int*",
                 vars->get(_perms_name)->type());
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         return true;
     }
     _perms = (InputOutput::ArrayVariable *)vars->get(_perms_name);
@@ -621,7 +621,7 @@ bool RadixSort::variables()
                 "Undeclared permutations variable \"%s\" (tool \"%s\").\n",
                 _inv_perms_name,
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         return true;
     }
     if(strcmp(vars->get(_inv_perms_name)->type(), "unsigned int*")){
@@ -629,12 +629,12 @@ bool RadixSort::variables()
                 "Wrong type for the variable \"%s\" (tool: \"%s\").\n",
                 _inv_perms_name,
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         sprintf(msg,
                 "\t\"%s\" was expected, but \"%s\" has been found.\n",
                 "unsigned int*",
                 vars->get(_inv_perms_name)->type());
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         return true;
     }
     _inv_perms = (InputOutput::ArrayVariable *)vars->get(_inv_perms_name);
@@ -646,11 +646,11 @@ bool RadixSort::variables()
                 "Tool \"%s\" cannot sort the variable \"%s\".\n",
                 name(),
                 _var_name);
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         sprintf(msg,
                 "\tIt has a length %u, which is not power of 2.\n",
                 n);
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         return true;
     }
     _n = n;
@@ -659,17 +659,17 @@ bool RadixSort::variables()
         sprintf(msg,
                 "Lengths mismatch in the tool \"%s\".\n",
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         sprintf(msg,
                 "\tVariable \"%s\" has a length n=%u.\n",
                 _var->name(),
                 _n);
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         sprintf(msg,
                 "\tVariable \"%s\" has a length n=%u.\n",
                 _perms->name(),
                 n);
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         return true;
     }
     n = _inv_perms->size() / vars->typeToBytes(_inv_perms->type());
@@ -677,17 +677,17 @@ bool RadixSort::variables()
         sprintf(msg,
                 "Lengths mismatch in the tool \"%s\".\n",
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         sprintf(msg,
                 "\tVariable \"%s\" has a length n=%u.\n",
                 _var->name(),
                 _n);
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         sprintf(msg,
                 "\tVariable \"%s\" has a length n=%u.\n",
                 _inv_perms->name(),
                 n);
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         return true;
     }
 
@@ -732,11 +732,11 @@ bool RadixSort::setupOpenCL()
     }
 
     sprintf(msg, "\titems: %u\n", _items);
-    S->addMessage(0, msg);
+    S->addMessage(L_DEBUG, msg);
     sprintf(msg, "\tgroups: %u\n", _groups);
-    S->addMessage(0, msg);
+    S->addMessage(L_DEBUG, msg);
     sprintf(msg, "\tsplits: %u\n", _histo_split);
-    S->addMessage(0, msg);
+    S->addMessage(L_DEBUG, msg);
 
     return false;
 }
@@ -772,15 +772,15 @@ bool RadixSort::compile(const char* source)
                                         &source_length,
                                         &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure creating the OpenCL program.\n");
+        S->addMessageF(L_ERROR, "Failure creating the OpenCL program.\n");
         S->printOpenCLError(err_code);
         return true;
     }
     err_code = clBuildProgram(program, 0, NULL, flags, NULL, NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessage(3, "Error compiling the source code\n");
+        S->addMessage(L_ERROR, "Error compiling the source code\n");
         S->printOpenCLError(err_code);
-        S->addMessage(3, "--- Build log ---------------------------------\n");
+        S->addMessage(L_ERROR, "--- Build log ---------------------------------\n");
         size_t log_size = 0;
         clGetProgramBuildInfo(program,
                               C->device(),
@@ -793,8 +793,8 @@ bool RadixSort::compile(const char* source)
             sprintf(msg,
                     "Failure allocating %lu bytes for the building log\n",
                     log_size);
-            S->addMessage(3, msg);
-            S->addMessage(3, "--------------------------------- Build log ---\n");
+            S->addMessage(L_ERROR, msg);
+            S->addMessage(L_ERROR, "--------------------------------- Build log ---\n");
             return NULL;
         }
         strcpy(log, "");
@@ -805,8 +805,8 @@ bool RadixSort::compile(const char* source)
                               log,
                               NULL);
         strcat(log, "\n");
-        S->addMessage(0, log);
-        S->addMessage(3, "--------------------------------- Build log ---\n");
+        S->addMessage(L_DEBUG, log);
+        S->addMessage(L_ERROR, "--------------------------------- Build log ---\n");
         free(log); log=NULL;
         clReleaseProgram(program);
         return true;
@@ -814,42 +814,42 @@ bool RadixSort::compile(const char* source)
 
     _init_kernel = clCreateKernel(program, "init", &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure creating the \"init\" kernel.\n");
+        S->addMessageF(L_ERROR, "Failure creating the \"init\" kernel.\n");
         S->printOpenCLError(err_code);
         clReleaseProgram(program);
         return true;
     }
     _histograms_kernel = clCreateKernel(program, "histogram", &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure creating the \"histogram\" kernel.\n");
+        S->addMessageF(L_ERROR, "Failure creating the \"histogram\" kernel.\n");
         S->printOpenCLError(err_code);
         clReleaseProgram(program);
         return true;
     }
     _scan_kernel = clCreateKernel(program, "scan", &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure creating the \"scan\" kernel.\n");
+        S->addMessageF(L_ERROR, "Failure creating the \"scan\" kernel.\n");
         S->printOpenCLError(err_code);
         clReleaseProgram(program);
         return true;
     }
     _paste_kernel = clCreateKernel(program, "paste", &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure creating the \"paste\" kernel.\n");
+        S->addMessageF(L_ERROR, "Failure creating the \"paste\" kernel.\n");
         S->printOpenCLError(err_code);
         clReleaseProgram(program);
         return true;
     }
     _sort_kernel = clCreateKernel(program, "sort", &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure creating the \"sort\" kernel.\n");
+        S->addMessageF(L_ERROR, "Failure creating the \"sort\" kernel.\n");
         S->printOpenCLError(err_code);
         clReleaseProgram(program);
         return true;
     }
     _inv_perms_kernel = clCreateKernel(program, "inversePermutation", &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure creating the \"inversePermutation\" kernel.\n");
+        S->addMessageF(L_ERROR, "Failure creating the \"inversePermutation\" kernel.\n");
         S->printOpenCLError(err_code);
         clReleaseProgram(program);
         return true;
@@ -876,7 +876,7 @@ bool RadixSort::setupDims()
                                         &max_local_work_size,
                                         NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure getting CL_KERNEL_WORK_GROUP_SIZE from \"histogram\".\n");
+        S->addMessageF(L_ERROR, "Failure getting CL_KERNEL_WORK_GROUP_SIZE from \"histogram\".\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -887,7 +887,7 @@ bool RadixSort::setupDims()
                                         &sort_local_work_size,
                                         NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure getting CL_KERNEL_WORK_GROUP_SIZE from \"sort\".\n");
+        S->addMessageF(L_ERROR, "Failure getting CL_KERNEL_WORK_GROUP_SIZE from \"sort\".\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -907,7 +907,7 @@ bool RadixSort::setupDims()
                                         &scan_local_work_size,
                                         NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure getting CL_KERNEL_WORK_GROUP_SIZE from \"scan\".\n");
+        S->addMessageF(L_ERROR, "Failure getting CL_KERNEL_WORK_GROUP_SIZE from \"scan\".\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -925,7 +925,7 @@ bool RadixSort::setupDims()
                                         &max_local_work_size,
                                         NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure getting CL_KERNEL_WORK_GROUP_SIZE from \"paste\".\n");
+        S->addMessageF(L_ERROR, "Failure getting CL_KERNEL_WORK_GROUP_SIZE from \"paste\".\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -950,8 +950,8 @@ bool RadixSort::setupDims()
     }
     if(max_local_work_size < _radix * _groups * _items / 2 / _histo_split){
         // We can try to reduce the radix, but it is a bad business
-        S->addMessageF(3, "Failure setting a number of items and groups compatible with \"scan\" and \"paste\".\n");
-        S->addMessage(0, "\tYou can try to recompile the code decreasing __CL_MIN_LOCALSIZE__\n");
+        S->addMessageF(L_ERROR, "Failure setting a number of items and groups compatible with \"scan\" and \"paste\".\n");
+        S->addMessage(L_DEBUG, "\tYou can try to recompile the code decreasing __CL_MIN_LOCALSIZE__\n");
         return true;
     }
 
@@ -984,7 +984,7 @@ bool RadixSort::setupMems()
                               NULL,
                               &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Buffer memory allocation failure.\n");
+        S->addMessageF(L_ERROR, "Buffer memory allocation failure.\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -994,7 +994,7 @@ bool RadixSort::setupMems()
                               NULL,
                               &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Buffer memory allocation failure.\n");
+        S->addMessageF(L_ERROR, "Buffer memory allocation failure.\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -1004,7 +1004,7 @@ bool RadixSort::setupMems()
                                 NULL,
                                 &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Buffer memory allocation failure.\n");
+        S->addMessageF(L_ERROR, "Buffer memory allocation failure.\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -1014,7 +1014,7 @@ bool RadixSort::setupMems()
                                  NULL,
                                  &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Buffer memory allocation failure.\n");
+        S->addMessageF(L_ERROR, "Buffer memory allocation failure.\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -1024,7 +1024,7 @@ bool RadixSort::setupMems()
                                  NULL,
                                  &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Buffer memory allocation failure.\n");
+        S->addMessageF(L_ERROR, "Buffer memory allocation failure.\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -1034,7 +1034,7 @@ bool RadixSort::setupMems()
                                   NULL,
                                   &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Buffer memory allocation failure.\n");
+        S->addMessageF(L_ERROR, "Buffer memory allocation failure.\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -1044,7 +1044,7 @@ bool RadixSort::setupMems()
                                NULL,
                                &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Buffer memory allocation failure.\n");
+        S->addMessageF(L_ERROR, "Buffer memory allocation failure.\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -1069,7 +1069,7 @@ bool RadixSort::setupArgs()
                               sizeof(cl_uint),
                               (void*)&_n);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending argument 1 to \"init\"\n");
+        S->addMessageF(L_ERROR, "Failure sending argument 1 to \"init\"\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -1079,7 +1079,7 @@ bool RadixSort::setupArgs()
                               sizeof(cl_mem),
                               (void*)&_histograms);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending argument 1 to \"histogram\"\n");
+        S->addMessageF(L_ERROR, "Failure sending argument 1 to \"histogram\"\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -1088,7 +1088,7 @@ bool RadixSort::setupArgs()
                               sizeof(cl_uint) * _radix * _items,
                               NULL);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending argument 3 to \"histogram\"\n");
+        S->addMessageF(L_ERROR, "Failure sending argument 3 to \"histogram\"\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -1097,7 +1097,7 @@ bool RadixSort::setupArgs()
                               sizeof(cl_uint),
                               (void*)&_n);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending argument 4 to \"histogram\"\n");
+        S->addMessageF(L_ERROR, "Failure sending argument 4 to \"histogram\"\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -1109,7 +1109,7 @@ bool RadixSort::setupArgs()
                               sizeof(cl_uint) * maxmemcache,
                               NULL);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending argument 1 to \"scan\"\n");
+        S->addMessageF(L_ERROR, "Failure sending argument 1 to \"scan\"\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -1119,7 +1119,7 @@ bool RadixSort::setupArgs()
                               sizeof(cl_mem),
                               (void*)&_histograms);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending argument 0 to \"paste\"\n");
+        S->addMessageF(L_ERROR, "Failure sending argument 0 to \"paste\"\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -1128,7 +1128,7 @@ bool RadixSort::setupArgs()
                               sizeof(cl_mem),
                               (void*)&_global_sums);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending argument 1 to \"paste\"\n");
+        S->addMessageF(L_ERROR, "Failure sending argument 1 to \"paste\"\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -1138,7 +1138,7 @@ bool RadixSort::setupArgs()
                               sizeof(cl_mem),
                               (void*)&_histograms);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending argument 2 to \"sort\"\n");
+        S->addMessageF(L_ERROR, "Failure sending argument 2 to \"sort\"\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -1147,7 +1147,7 @@ bool RadixSort::setupArgs()
                               sizeof(cl_uint) * _radix * _items,
                               NULL);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending argument 6 to \"sort\"\n");
+        S->addMessageF(L_ERROR, "Failure sending argument 6 to \"sort\"\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -1156,7 +1156,7 @@ bool RadixSort::setupArgs()
                               sizeof(cl_uint),
                               (void*)&_n);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending argument 7 to \"sort\"\n");
+        S->addMessageF(L_ERROR, "Failure sending argument 7 to \"sort\"\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -1166,7 +1166,7 @@ bool RadixSort::setupArgs()
                               sizeof(cl_mem),
                               _inv_perms->get());
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending argument 1 to \"inversePermutation\"\n");
+        S->addMessageF(L_ERROR, "Failure sending argument 1 to \"inversePermutation\"\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -1175,7 +1175,7 @@ bool RadixSort::setupArgs()
                               sizeof(cl_uint),
                               (void*)&_n);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending argument 2 to \"inversePermutation\"\n");
+        S->addMessageF(L_ERROR, "Failure sending argument 2 to \"inversePermutation\"\n");
         S->printOpenCLError(err_code);
         return true;
     }

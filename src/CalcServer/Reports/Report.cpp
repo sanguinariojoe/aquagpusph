@@ -135,7 +135,7 @@ bool Report::processFields(const char* input)
             sprintf(msg,
                     "\"%s\" variable cannot be found.\n",
                     field);
-            S->addMessageF(3, msg);
+            S->addMessageF(L_ERROR, msg);
             return true;
         }
         vars_in_line++;

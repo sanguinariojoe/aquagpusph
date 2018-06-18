@@ -109,7 +109,7 @@ bool UnSort::_execute()
                                       NULL);
     if(err_code != CL_SUCCESS) {
         sprintf(msg, "Failure executing the tool \"%s\".\n", name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         S->printOpenCLError(err_code);
         return true;
     }
@@ -128,7 +128,7 @@ bool UnSort::variables()
                 "The tool \"%s\" is using the undeclared variable \"%s\".\n",
                 name(),
                 "id");
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         return true;
     }
     if(strcmp(vars->get("id")->type(), "unsigned int*")){
@@ -136,12 +136,12 @@ bool UnSort::variables()
                 "The tool \"%s\" has found a wrong type for the variable \"%s\".\n",
                 name(),
                 "id");
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         sprintf(msg,
                 "\t\"%s\" was expected, but \"%s\" was found.\n",
                 "unsigned int*",
                 vars->get("id")->type());
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         return true;
     }
     _id_var = (InputOutput::ArrayVariable *)vars->get("id");
@@ -151,7 +151,7 @@ bool UnSort::variables()
                 "The tool \"%s\" is using the undeclared variable \"%s\".\n",
                 name(),
                 _var_name);
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         return true;
     }
     if(!strchr(vars->get(_var_name)->type(), '*')){
@@ -159,7 +159,7 @@ bool UnSort::variables()
                 "The tool \"%s\" has received the scalar variable \"%s\".\n",
                 name(),
                 _var_name);
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         return true;
     }
     _var = (InputOutput::ArrayVariable *)vars->get(_var_name);
@@ -181,17 +181,17 @@ bool UnSort::setupMem()
         sprintf(msg,
                 "Wrong variable length in the tool \"%s\".\n",
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         sprintf(msg,
                 "\t\"%s\" has a length %lu.\n",
                 "id",
                 len_id);
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         sprintf(msg,
                 "\t\"%s\" has a length %lu.\n",
                 _var_name,
                 len_var);
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         return true;
     }
 
@@ -204,7 +204,7 @@ bool UnSort::setupMem()
         sprintf(msg,
                 "Failure allocating output memory in the tool \"%s\".\n",
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         S->printOpenCLError(err_code);
     }
     allocatedMemory(len_id * InputOutput::Variables::typeToBytes(_var->type()));
@@ -244,17 +244,17 @@ bool UnSort::setupOpenCL()
                                         &_local_work_size,
                                         NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure querying the work group size.\n");
+        S->addMessageF(L_ERROR, "Failure querying the work group size.\n");
         S->printOpenCLError(err_code);
         return true;
     }
     if(_local_work_size < __CL_MIN_LOCALSIZE__){
-        S->addMessageF(3, "UnSort cannot be performed.\n");
+        S->addMessageF(L_ERROR, "UnSort cannot be performed.\n");
         sprintf(msg,
                 "\t%lu elements can be executed, but __CL_MIN_LOCALSIZE__=%lu\n",
                 _local_work_size,
                 __CL_MIN_LOCALSIZE__);
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         return true;
     }
 
@@ -264,7 +264,7 @@ bool UnSort::setupOpenCL()
                               _id_var->typesize(),
                               _id_var->get());
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending the IDs argument\n");
+        S->addMessageF(L_ERROR, "Failure sending the IDs argument\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -273,7 +273,7 @@ bool UnSort::setupOpenCL()
                               _var->typesize(),
                               _var->get());
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending the input array argument\n");
+        S->addMessageF(L_ERROR, "Failure sending the input array argument\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -282,7 +282,7 @@ bool UnSort::setupOpenCL()
                               sizeof(cl_mem),
                               (void*)&_output);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending the output array argument\n");
+        S->addMessageF(L_ERROR, "Failure sending the output array argument\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -291,7 +291,7 @@ bool UnSort::setupOpenCL()
                               sizeof(unsigned int),
                               (void*)&_n);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending the array size argument\n");
+        S->addMessageF(L_ERROR, "Failure sending the array size argument\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -338,15 +338,15 @@ cl_kernel UnSort::compile(const char* source)
                                         &source_length,
                                         &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure creating the OpenCL program.\n");
+        S->addMessageF(L_ERROR, "Failure creating the OpenCL program.\n");
         S->printOpenCLError(err_code);
         return NULL;
     }
     err_code = clBuildProgram(program, 0, NULL, flags, NULL, NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Error compiling the source code\n");
+        S->addMessageF(L_ERROR, "Error compiling the source code\n");
         S->printOpenCLError(err_code);
-        S->addMessage(3, "--- Build log ---------------------------------\n");
+        S->addMessage(L_ERROR, "--- Build log ---------------------------------\n");
         size_t log_size = 0;
         clGetProgramBuildInfo(program,
                               C->device(),
@@ -359,8 +359,8 @@ cl_kernel UnSort::compile(const char* source)
             sprintf(msg,
                     "Failure allocating %lu bytes for the building log\n",
                     log_size);
-            S->addMessage(3, msg);
-            S->addMessage(3, "--------------------------------- Build log ---\n");
+            S->addMessage(L_ERROR, msg);
+            S->addMessage(L_ERROR, "--------------------------------- Build log ---\n");
             return NULL;
         }
         strcpy(log, "");
@@ -371,8 +371,8 @@ cl_kernel UnSort::compile(const char* source)
                               log,
                               NULL);
         strcat(log, "\n");
-        S->addMessage(0, log);
-        S->addMessage(3, "--------------------------------- Build log ---\n");
+        S->addMessage(L_DEBUG, log);
+        S->addMessage(L_ERROR, "--------------------------------- Build log ---\n");
         free(log); log=NULL;
         clReleaseProgram(program);
         return NULL;
@@ -380,7 +380,7 @@ cl_kernel UnSort::compile(const char* source)
     kernel = clCreateKernel(program, "unsort", &err_code);
     clReleaseProgram(program);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure creating the kernel.\n");
+        S->addMessageF(L_ERROR, "Failure creating the kernel.\n");
         S->printOpenCLError(err_code);
         return NULL;
     }
@@ -404,7 +404,7 @@ bool UnSort::setVariables()
                     "Failure setting the input variable \"%s\" to the tool \"%s\".\n",
                     _id_var->name(),
                     name());
-            S->addMessageF(3, msg);
+            S->addMessageF(L_ERROR, msg);
             S->printOpenCLError(err_code);
             return true;
         }
@@ -420,7 +420,7 @@ bool UnSort::setVariables()
                     "Failure setting the input variable \"%s\" to the tool \"%s\".\n",
                     _var->name(),
                     name());
-            S->addMessageF(3, msg);
+            S->addMessageF(L_ERROR, msg);
             S->printOpenCLError(err_code);
             return true;
         }

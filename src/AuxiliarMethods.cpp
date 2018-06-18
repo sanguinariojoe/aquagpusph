@@ -20,6 +20,10 @@
  * @brief Set of auxiliar functions.
  */
 
+#include <algorithm> 
+#include <cctype>
+#include <locale>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -59,6 +63,69 @@ int isKeyPressed()
     }
 
     return 0;
+}
+
+inline bool hasSuffix(const std::string &str, const std::string &suffix)
+{
+    return str.size() >= suffix.size() &&
+           str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
+}
+
+inline void replaceAll(std::string &str,
+                       const std::string &search,
+                       const std::string &replace)
+{
+    size_t pos = 0;
+    while((pos = str.find(search, pos)) != std::string::npos) {
+        str.erase(pos, search.size());
+        str.insert(pos, replace);        
+    }
+}
+
+inline std::string replaceAllCopy(std::string str,
+                           std::string search,
+                           std::string replace)
+{
+    replaceAll(str, search, replace);
+    return str;
+}
+
+// trim from start (in place)
+inline void ltrim(std::string &s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
+        return !std::isspace(ch);
+    }));
+}
+
+// trim from end (in place)
+inline void rtrim(std::string &s) {
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
+        return !std::isspace(ch);
+    }).base(), s.end());
+}
+
+// trim from both ends (in place)
+inline void trim(std::string &s) {
+    ltrim(s);
+    rtrim(s);
+}
+
+// trim from start (copying)
+inline std::string ltrim_copy(std::string s) {
+    ltrim(s);
+    return s;
+}
+
+// trim from end (copying)
+inline std::string rtrim_copy(std::string s) {
+    rtrim(s);
+    return s;
+}
+
+// trim from both ends (copying)
+inline std::string trim_copy(std::string s) {
+    trim(s);
+    return s;
 }
 
 unsigned int nextPowerOf2( unsigned int n )
@@ -117,7 +184,7 @@ size_t loadKernelFromFile(cl_kernel* kernel, cl_program* program,
         return 0;
     source = new char[source_length + 1];
     if(!source) {
-        S->addMessageF(3, "Imposible to allocate memory on host for the source code.\n");
+        S->addMessageF(L_ERROR, "Imposible to allocate memory on host for the source code.\n");
         return 0;
     }
     // Read the file
@@ -132,7 +199,7 @@ size_t loadKernelFromFile(cl_kernel* kernel, cl_program* program,
         source_length += strlen(header)*sizeof(char);
         source        = new char[source_length+1];
         if(!source) {
-            S->addMessageF(3, "Imposible to allocate memory on host to append header.\n");
+            S->addMessageF(L_ERROR, "Imposible to allocate memory on host to append header.\n");
             return 0;
         }
         strcpy(source, header);
@@ -144,7 +211,7 @@ size_t loadKernelFromFile(cl_kernel* kernel, cl_program* program,
     *program = clCreateProgramWithSource(context, 1, (const char **)&source,
                                          &source_length, &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "OpenCl source code send error.\n");
+        S->addMessageF(L_ERROR, "OpenCl source code send error.\n");
         S->printOpenCLError(err_code);
         delete[] source; source=NULL;
         return 0;
@@ -173,20 +240,20 @@ size_t loadKernelFromFile(cl_kernel* kernel, cl_program* program,
     strcat(msg, "\" :: \"");
     strcat(msg, entry_point);
     strcat(msg, "\"\n");
-    S->addMessageF(1, msg);
-    S->addMessage(0, "Flags = \"");
-    S->addMessage(0, default_flags);
-    S->addMessage(0, "\"\n");
+    S->addMessageF(L_INFO, msg);
+    S->addMessage(L_DEBUG, "Flags = \"");
+    S->addMessage(L_DEBUG, default_flags);
+    S->addMessage(L_DEBUG, "\"\n");
     if(header){
-        S->addMessageF(1, "Header append:\n");
-        S->addMessage(0, header);
-        S->addMessage(0, "\n");
+        S->addMessageF(L_INFO, "Header append:\n");
+        S->addMessage(L_DEBUG, header);
+        S->addMessage(L_DEBUG, "\n");
     }
     err_code = clBuildProgram(*program, 0, NULL, default_flags, NULL, NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Can't compile OpenCl source code.\n");
+        S->addMessageF(L_ERROR, "Can't compile OpenCl source code.\n");
         S->printOpenCLError(err_code);
-        S->addMessage(3, "--- Build log ---------------------------------\n");
+        S->addMessage(L_ERROR, "--- Build log ---------------------------------\n");
         size_t log_size = 0;
         clGetProgramBuildInfo(*program,
                               device,
@@ -199,8 +266,8 @@ size_t loadKernelFromFile(cl_kernel* kernel, cl_program* program,
             sprintf(msg,
                     "Failure allocating %lu bytes for the building log\n",
                     log_size);
-            S->addMessage(3, msg);
-            S->addMessage(3, "--------------------------------- Build log ---\n");
+            S->addMessage(L_ERROR, msg);
+            S->addMessage(L_ERROR, "--------------------------------- Build log ---\n");
             return NULL;
         }
         strcpy(log, "");
@@ -211,8 +278,8 @@ size_t loadKernelFromFile(cl_kernel* kernel, cl_program* program,
                               log,
                               NULL);
         strcat(log, "\n");
-        S->addMessage(0, log);
-        S->addMessage(3, "--------------------------------- Build log ---\n");
+        S->addMessage(L_DEBUG, log);
+        S->addMessage(L_ERROR, "--------------------------------- Build log ---\n");
         delete[] source; source=NULL;
         delete[] default_flags; default_flags=NULL;
         return 0;
@@ -228,15 +295,15 @@ size_t loadKernelFromFile(cl_kernel* kernel, cl_program* program,
         log_start++;
     }
     if(strcmp(&(log[log_start]), "")){
-        S->addMessage(2, "--- Build log ---------------------------------\n");
+        S->addMessage(L_WARNING, "--- Build log ---------------------------------\n");
         strcat(&(log[log_start]), "\n");
-        S->addMessage(0, &(log[log_start]));
-        S->addMessage(2, "--------------------------------- Build log ---\n");
+        S->addMessage(L_DEBUG, &(log[log_start]));
+        S->addMessage(L_WARNING, "--------------------------------- Build log ---\n");
     }
 
     *kernel = clCreateKernel(*program, entry_point, &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Can't create kernel.\n");
+        S->addMessageF(L_ERROR, "Can't create kernel.\n");
         S->printOpenCLError(err_code);
         delete[] source; source=NULL;
         delete[] default_flags; default_flags=NULL;
@@ -249,7 +316,7 @@ size_t loadKernelFromFile(cl_kernel* kernel, cl_program* program,
                                         sizeof(size_t), &work_group_size,
                                         NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Can't get maximum work group size from kernel.\n");
+        S->addMessageF(L_ERROR, "Can't get maximum work group size from kernel.\n");
         S->printOpenCLError(err_code);
         return 0;
     }
@@ -320,7 +387,7 @@ size_t readFile(char* source_code, const char* file_name)
     file = fopen(file_name, "rb");
     if(file == NULL) {
         sprintf(msg, "Impossible to open \"%s\".\n", file_name);
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         return 0;
     }
     fseek(file, 0, SEEK_END);
@@ -330,7 +397,7 @@ size_t readFile(char* source_code, const char* file_name)
         strcpy(msg, "(ReadFile): \"");
         strcat(msg,file_name);
         strcat(msg,"\" is empty.\n");
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         fclose(file);
         return 0;
     }
@@ -353,7 +420,7 @@ int sendArgument(cl_kernel kernel, int index, size_t size, void* ptr)
     if(err_code != CL_SUCCESS) {
         char msg[1025]; strcpy(msg, "");
         sprintf(msg, "The argument %d can not be set.\n", index);
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         S->printOpenCLError(err_code);
         return 1;
     }

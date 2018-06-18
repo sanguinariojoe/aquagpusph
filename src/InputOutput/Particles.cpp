@@ -61,7 +61,7 @@ bool Particles::loadDefault()
     unsigned int *id = new unsigned int[n];
 
     if(!iset || !id){
-        S->addMessageF(3, "Failure allocating memory.\n");
+        S->addMessageF(L_ERROR, "Failure allocating memory.\n");
     }
 
     for(i = 0; i < n; i++){
@@ -82,7 +82,7 @@ bool Particles::loadDefault()
                                     NULL,
                                     NULL);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending variable \"iset\" to the server.\n");
+        S->addMessageF(L_ERROR, "Failure sending variable \"iset\" to the server.\n");
         S->printOpenCLError(err_code);
     }
     var = (ArrayVariable*)vars->get("id");
@@ -97,7 +97,7 @@ bool Particles::loadDefault()
                                     NULL,
                                     NULL);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending variable \"id\" to the server.\n");
+        S->addMessageF(L_ERROR, "Failure sending variable \"id\" to the server.\n");
         S->printOpenCLError(err_code);
     }
     var = (ArrayVariable*)vars->get("id_sorted");
@@ -112,7 +112,7 @@ bool Particles::loadDefault()
                                     NULL,
                                     NULL);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending variable \"id_sorted\" to the server.\n");
+        S->addMessageF(L_ERROR, "Failure sending variable \"id_sorted\" to the server.\n");
         S->printOpenCLError(err_code);
     }
     var = (ArrayVariable*)vars->get("id_unsorted");
@@ -127,7 +127,7 @@ bool Particles::loadDefault()
                                     NULL,
                                     NULL);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure sending variable \"id_unsorted\" to the server.\n");
+        S->addMessageF(L_ERROR, "Failure sending variable \"id_unsorted\" to the server.\n");
         S->printOpenCLError(err_code);
     }
 
@@ -231,7 +231,7 @@ std::deque<void*> Particles::download(std::deque<char*> fields)
             sprintf(msg,
                     "Undeclared \"%s\" field cannot be downloaded.\n",
                     fields.at(i));
-            S->addMessageF(3, msg);
+            S->addMessageF(L_ERROR, msg);
             clearList(&data);
             return data;
         }
@@ -239,7 +239,7 @@ std::deque<void*> Particles::download(std::deque<char*> fields)
             sprintf(msg,
                     "\"%s\" field is a scalar.\n",
                     fields.at(i));
-            S->addMessageF(3, msg);
+            S->addMessageF(L_ERROR, msg);
             clearList(&data);
             return data;
         }
@@ -250,12 +250,12 @@ std::deque<void*> Particles::download(std::deque<char*> fields)
             sprintf(msg,
                     "Failure saving \"%s\" field, which has not length enough.\n",
                     fields.at(i));
-            S->addMessageF(3, msg);
+            S->addMessageF(L_ERROR, msg);
             sprintf(msg,
                     "length = %u was required, but just %lu was found.\n",
                     bounds().y,
                     len);
-            S->addMessage(0, msg);
+            S->addMessage(L_DEBUG, msg);
             clearList(&data);
             return data;
         }
@@ -264,7 +264,7 @@ std::deque<void*> Particles::download(std::deque<char*> fields)
             sprintf(msg,
                     "Failure allocating memory for \"%s\" field.\n",
                     fields.at(i));
-            S->addMessageF(3, msg);
+            S->addMessageF(L_ERROR, msg);
             clearList(&data);
             return data;
         }
@@ -286,7 +286,7 @@ std::deque<void*> Particles::download(std::deque<char*> fields)
     err_code = clWaitForEvents(events.size(),
                                events.data());
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure waiting for the variables download.\n");
+        S->addMessageF(L_ERROR, "Failure waiting for the variables download.\n");
         S->printOpenCLError(err_code);
         clearList(&data);
         return data;
@@ -296,7 +296,7 @@ std::deque<void*> Particles::download(std::deque<char*> fields)
     for(i = 0; i < events.size(); i++){
         err_code = clReleaseEvent(events.at(i));
         if(err_code != CL_SUCCESS){
-            S->addMessageF(3, "Failure releasing the events.\n");
+            S->addMessageF(L_ERROR, "Failure releasing the events.\n");
             S->printOpenCLError(err_code);
             clearList(&data);
             return data;

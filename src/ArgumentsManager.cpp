@@ -68,7 +68,7 @@ bool ArgumentsManager::parse()
                 sprintf(msg,
                         "Input file = %s\n",
                         F->inputFile());
-                S->addMessageF(1, msg);
+                S->addMessageF(L_INFO, msg);
                 break;
 
             case 'v':
@@ -79,14 +79,14 @@ bool ArgumentsManager::parse()
 
             case ':':
             case '?':
-                S->addMessageF(3, "Error parsing the options\n");
+                S->addMessageF(L_ERROR, "Error parsing the options\n");
                 printf("\n");
             case 'h':
                 displayUsage();
                 return true;
 
             default:
-                S->addMessageF(3, "Unhandled exception\n");
+                S->addMessageF(L_ERROR, "Unhandled exception\n");
                 displayUsage();
                 return true;
         }

@@ -26,13 +26,10 @@
 
 #include <sphPrerequisites.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
-#include <sys/time.h>
-#include <unistd.h>
+#include <string>
+#include <iostream>
 #include <deque>
+#include <CL/cl.h>
 
 #ifdef HAVE_NCURSES
     #include <ncurses.h>
@@ -48,7 +45,11 @@
     #define addMessageF(level, log) addMessage(level, log, __METHOD_CLASS_NAME__)
 #endif
 
-namespace Aqua{ namespace InputOutput{
+namespace Aqua{
+
+enum TLogLevel {L_DEBUG, L_INFO, L_WARNING, L_ERROR};
+
+namespace InputOutput{
 
 /** @class ScreenManager ScreenManager.h ScreenManager.h
  * @brief On screen output manager.
@@ -98,44 +99,32 @@ public:
      *    -# cyan
      * @param bold true if bold font should be used, false otherwise
      */
-    void writeReport(const char *msg,
-                     const char *color="white",
+    void writeReport(std::string msg,
+                     std::string color="white",
                      bool bold=false);
 
     /** @brief Add a new log record message.
      *
      * The old messages may be removed from the terminal if no more space left.
      *
-     * @param level Califier of message:
-     *   - 0 = Empty message.
-     *   - 1 = Info message.
-     *   - 2 = Warning message.
-     *   - 3 = Error message.
+     * @param level Message classification (L_DEBUG, L_INFO, L_WARNING, L_ERROR)
      * @param log Log message.
      * @param func Function name to print, NULL if it should not be printed.
      * @note In order to append the class and the method name before the
      * message use #addMessageF instead of this one.
      */
-    void addMessage(int level, const char *log, const char *func=NULL);
+    void addMessage(TLogLevel level, std::string log, const char *func=NULL);
 
     /** @brief Print a time stamp in the screen and the log file.
-     * @param level Qualifier of message:
-     *   - 0 = Empty message.
-     *   - 1 = Info message.
-     *   - 2 = Warning message.
-     *   - 3 = Error message.
+     * @param level Message classification (L_DEBUG, L_INFO, L_WARNING, L_ERROR)
      */
-    void printDate(int level=0);
+    void printDate(TLogLevel level=L_DEBUG);
 
     /** @brief Print an OpenCL error.
      * @param error Error code returned by OpenCL.
-     * @param level Qualifier of message:
-     *   - 0 = Empty message.
-     *   - 1 = Info message.
-     *   - 2 = Warning message.
-     *   - 3 = Error message.
+     * @param level Message classification (L_DEBUG, L_INFO, L_WARNING, L_ERROR)
      */
-    void printOpenCLError(int error, int level=0);
+    void printOpenCLError(cl_int error, TLogLevel level=L_DEBUG);
 protected:
     /** @brief Print the log record
      *
@@ -160,7 +149,7 @@ private:
     /// List of log messages level
     std::deque<int> _log_level;
     /// List of log messages
-    std::deque<char*> _log;
+    std::deque<std::string> _log;
 };
 
 }}  // namespace

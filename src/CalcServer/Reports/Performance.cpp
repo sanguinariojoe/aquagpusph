@@ -62,7 +62,7 @@ bool Performance::setup()
     sprintf(msg,
             "Loading the report \"%s\"...\n",
             name());
-    S->addMessageF(1, msg);
+    S->addMessageF(L_INFO, msg);
 
     // Set the color in lowercase
     for(i = 0; i < strlen(_color); i++){
@@ -76,7 +76,7 @@ bool Performance::setup()
             sprintf(msg,
                     "The file \"%s\" cannot be written\n",
                     _output_file);
-            S->addMessageF(3, msg);
+            S->addMessageF(L_ERROR, msg);
             return true;
         }
         // Write the header

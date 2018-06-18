@@ -148,7 +148,7 @@ CalcServer::CalcServer* FileManager::load()
                 }
                 _loaders.push_back((Particles*)loader);
             #else
-                S->addMessageF(3, "AQUAgpusph has been compiled without VTK format.\n");
+                S->addMessageF(L_ERROR, "AQUAgpusph has been compiled without VTK format.\n");
                 return NULL;
             #endif // HAVE_VTK
         }
@@ -156,7 +156,7 @@ CalcServer::CalcServer* FileManager::load()
             sprintf(msg,
                     "Unknow \"%s\" input file format.\n",
                     P->sets.at(i)->inputFormat());
-            S->addMessageF(3, msg);
+            S->addMessageF(L_ERROR, msg);
             delete C; C = NULL;
             return NULL;
         }
@@ -177,7 +177,7 @@ CalcServer::CalcServer* FileManager::load()
                 }
                 _savers.push_back((Particles*)saver);
             #else
-                S->addMessageF(3, "AQUAgpusph has been compiled without VTK format.\n");
+                S->addMessageF(L_ERROR, "AQUAgpusph has been compiled without VTK format.\n");
                 return NULL;
             #endif // HAVE_VTK
         }
@@ -185,7 +185,7 @@ CalcServer::CalcServer* FileManager::load()
             sprintf(msg,
                     "Unknow \"%s\" output file format.\n",
                     P->sets.at(i)->outputFormat());
-            S->addMessageF(3, msg);
+            S->addMessageF(L_ERROR, msg);
             delete C; C = NULL;
             return NULL;
         }

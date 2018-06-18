@@ -99,7 +99,7 @@ bool Reduction::setup()
     sprintf(msg,
             "Loading the tool \"%s\"...\n",
             name());
-    S->addMessageF(1, msg);
+    S->addMessageF(L_INFO, msg);
 
     if(variables()){
         return true;
@@ -147,7 +147,7 @@ bool Reduction::_execute()
                     "Failure executing the tool \"%s\" step %u.\n",
                     name(),
                     i);
-            S->addMessageF(3, msg);
+            S->addMessageF(L_ERROR, msg);
             S->printOpenCLError(err_code);
             return true;
         }
@@ -167,7 +167,7 @@ bool Reduction::_execute()
         sprintf(msg,
                 "Failure in tool \"%s\" when reading back the reduced result.\n",
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         S->printOpenCLError(err_code);
         return true;
     }
@@ -190,7 +190,7 @@ bool Reduction::variables()
                 "The tool \"%s\" has received the undeclared variable \"%s\" as input.\n",
                 name(),
                 _input_name);
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         return true;
     }
     if(!strchr(vars->get(_input_name)->type(), '*')){
@@ -198,7 +198,7 @@ bool Reduction::variables()
                 "The tool \"%s\" has received the scalar variable \"%s\" as input.\n",
                 name(),
                 _input_name);
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         return true;
     }
     _input_var = (InputOutput::ArrayVariable *)vars->get(_input_name);
@@ -207,7 +207,7 @@ bool Reduction::variables()
                 "The tool \"%s\" has received the undeclared variable \"%s\" as output.\n",
                 name(),
                 _output_name);
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         return true;
     }
     if(strchr(vars->get(_output_name)->type(), '*')){
@@ -215,7 +215,7 @@ bool Reduction::variables()
                 "The tool \"%s\" has received the array variable \"%s\" as output.\n",
                 name(),
                 _output_name);
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         return true;
     }
     _output_var = vars->get(_output_name);
@@ -223,17 +223,17 @@ bool Reduction::variables()
         sprintf(msg,
                 "The input and output types mismatch for the tool \"%s\".\n",
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         sprintf(msg,
                 "\tInput variable \"%s\" is of type \"%s\".\n",
                 _input_var->name(),
                 _input_var->type());
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         sprintf(msg,
                 "\tOutput variable \"%s\" is of type \"%s\".\n",
                 _output_var->name(),
                 _output_var->type());
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         return true;
     }
     return false;
@@ -284,18 +284,18 @@ bool Reduction::setupOpenCL()
                                         &max_local_size,
                                         NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure querying the work group size.\n");
+        S->addMessageF(L_ERROR, "Failure querying the work group size.\n");
         S->printOpenCLError(err_code);
         clReleaseKernel(kernel);
         return true;
     }
     if(max_local_size < __CL_MIN_LOCALSIZE__){
-        S->addMessageF(3, "Reduction cannot be performed (insufficient local memory)\n");
+        S->addMessageF(L_ERROR, "Reduction cannot be performed (insufficient local memory)\n");
         sprintf(msg,
                 "\t%lu elements can be executed, but __CL_MIN_LOCALSIZE__=%lu\n",
                 max_local_size,
                 __CL_MIN_LOCALSIZE__);
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         return true;
     }
     local_size = max_local_size;
@@ -326,7 +326,7 @@ bool Reduction::setupOpenCL()
                                 NULL,
                                 &err_code);
         if(err_code != CL_SUCCESS) {
-            S->addMessageF(3, "Buffer memory allocation failure.\n");
+            S->addMessageF(L_ERROR, "Buffer memory allocation failure.\n");
             S->printOpenCLError(err_code);
             return true;
         }
@@ -344,7 +344,7 @@ bool Reduction::setupOpenCL()
                                   sizeof(cl_mem),
                                   (void*)&(_mems.at(i)));
         if(err_code != CL_SUCCESS){
-            S->addMessageF(3, "Failure sending input argument\n");
+            S->addMessageF(L_ERROR, "Failure sending input argument\n");
             S->printOpenCLError(err_code);
             return true;
         }
@@ -353,7 +353,7 @@ bool Reduction::setupOpenCL()
                                   sizeof(cl_mem),
                                   (void*)&(_mems.at(i+1)));
         if(err_code != CL_SUCCESS){
-            S->addMessageF(3, "Failure sending output argument\n");
+            S->addMessageF(L_ERROR, "Failure sending output argument\n");
             S->printOpenCLError(err_code);
             return true;
         }
@@ -362,7 +362,7 @@ bool Reduction::setupOpenCL()
                                   sizeof(cl_uint),
                                   (void*)&(n));
         if(err_code != CL_SUCCESS){
-            S->addMessageF(3, "Failure sending number of threads argument\n");
+            S->addMessageF(L_ERROR, "Failure sending number of threads argument\n");
             S->printOpenCLError(err_code);
             return true;
         }
@@ -371,7 +371,7 @@ bool Reduction::setupOpenCL()
                                   local_size*data_size ,
                                   NULL);
         if(err_code != CL_SUCCESS){
-            S->addMessageF(3, "Failure setting local memory\n");
+            S->addMessageF(L_ERROR, "Failure setting local memory\n");
             S->printOpenCLError(err_code);
             return true;
         }
@@ -381,7 +381,7 @@ bool Reduction::setupOpenCL()
                 i,
                 n,
                 _number_groups.at(i));
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         n = _number_groups.at(i);
         i++;
     }
@@ -428,15 +428,15 @@ cl_kernel Reduction::compile(const char* source, size_t local_work_size)
                                         &source_length,
                                         &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure creating the OpenCL program.\n");
+        S->addMessageF(L_ERROR, "Failure creating the OpenCL program.\n");
         S->printOpenCLError(err_code);
         return NULL;
     }
     err_code = clBuildProgram(program, 0, NULL, flags, NULL, NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessage(3, "Error compiling the source code\n");
+        S->addMessage(L_ERROR, "Error compiling the source code\n");
         S->printOpenCLError(err_code);
-        S->addMessage(3, "--- Build log ---------------------------------\n");
+        S->addMessage(L_ERROR, "--- Build log ---------------------------------\n");
         size_t log_size = 0;
         clGetProgramBuildInfo(program,
                               C->device(),
@@ -449,8 +449,8 @@ cl_kernel Reduction::compile(const char* source, size_t local_work_size)
             sprintf(msg,
                     "Failure allocating %lu bytes for the building log\n",
                     log_size);
-            S->addMessage(3, msg);
-            S->addMessage(3, "--------------------------------- Build log ---\n");
+            S->addMessage(L_ERROR, msg);
+            S->addMessage(L_ERROR, "--------------------------------- Build log ---\n");
             return NULL;
         }
         strcpy(log, "");
@@ -461,8 +461,8 @@ cl_kernel Reduction::compile(const char* source, size_t local_work_size)
                               log,
                               NULL);
         strcat(log, "\n");
-        S->addMessage(0, log);
-        S->addMessage(3, "--------------------------------- Build log ---\n");
+        S->addMessage(L_DEBUG, log);
+        S->addMessage(L_ERROR, "--------------------------------- Build log ---\n");
         free(log); log=NULL;
         clReleaseProgram(program);
         return NULL;
@@ -470,7 +470,7 @@ cl_kernel Reduction::compile(const char* source, size_t local_work_size)
     kernel = clCreateKernel(program, "reduction", &err_code);
     clReleaseProgram(program);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure creating the kernel.\n");
+        S->addMessageF(L_ERROR, "Failure creating the kernel.\n");
         S->printOpenCLError(err_code);
         return NULL;
     }
@@ -497,7 +497,7 @@ bool Reduction::setVariables()
                 "Failure setting the input variable \"%s\" to the tool \"%s\".\n",
                 _input_var->name(),
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         S->printOpenCLError(err_code);
         return true;
     }

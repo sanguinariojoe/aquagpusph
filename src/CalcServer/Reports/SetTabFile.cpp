@@ -61,7 +61,7 @@ bool SetTabFile::setup()
     sprintf(msg,
             "Loading the report \"%s\"...\n",
             name());
-    S->addMessageF(1, msg);
+    S->addMessageF(L_INFO, msg);
 
     // Open the output file
     _f = fopen(_output_file, "w");
@@ -69,7 +69,7 @@ bool SetTabFile::setup()
         sprintf(msg,
                 "The file \"%s\" cannot be written\n",
                 _output_file);
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         return true;
     }
 
@@ -113,7 +113,7 @@ bool SetTabFile::_execute()
             sprintf(msg,
                     "\"%s\" field has been set to be saved, but it was declared as an scalar.\n",
                     vars.at(i)->name());
-            S->addMessageF(3, msg);
+            S->addMessageF(L_ERROR, msg);
             return true;
         }
         InputOutput::ArrayVariable *var = (InputOutput::ArrayVariable*)vars.at(i);
@@ -123,7 +123,7 @@ bool SetTabFile::_execute()
             sprintf(msg,
                     "Failure saving \"%s\" field, which has not length enough.\n",
                     vars.at(i)->name());
-            S->addMessageF(3, msg);
+            S->addMessageF(L_ERROR, msg);
             return true;
         }
     }
@@ -251,12 +251,12 @@ std::deque<void*> SetTabFile::download(std::deque<InputOutput::Variable*> vars)
             sprintf(msg,
                     "Failure saving \"%s\" field, which has not length enough.\n",
                     vars.at(i)->name());
-            S->addMessageF(3, msg);
+            S->addMessageF(L_ERROR, msg);
             sprintf(msg,
                     "length = %u was required, but just %lu was found.\n",
                     bounds().y,
                     len);
-            S->addMessage(0, msg);
+            S->addMessage(L_DEBUG, msg);
             clearList(&data);
             return data;
         }
@@ -265,7 +265,7 @@ std::deque<void*> SetTabFile::download(std::deque<InputOutput::Variable*> vars)
             sprintf(msg,
                     "Failure allocating memory for \"%s\" field.\n",
                     vars.at(i)->name());
-            S->addMessageF(3, msg);
+            S->addMessageF(L_ERROR, msg);
             clearList(&data);
             return data;
         }
@@ -287,7 +287,7 @@ std::deque<void*> SetTabFile::download(std::deque<InputOutput::Variable*> vars)
     err_code = clWaitForEvents(events.size(),
                                events.data());
     if(err_code != CL_SUCCESS){
-        S->addMessageF(3, "Failure waiting for the variables download.\n");
+        S->addMessageF(L_ERROR, "Failure waiting for the variables download.\n");
         S->printOpenCLError(err_code);
         clearList(&data);
         return data;
@@ -297,7 +297,7 @@ std::deque<void*> SetTabFile::download(std::deque<InputOutput::Variable*> vars)
     for(i = 0; i < events.size(); i++){
         err_code = clReleaseEvent(events.at(i));
         if(err_code != CL_SUCCESS){
-            S->addMessageF(3, "Failure releasing the events.\n");
+            S->addMessageF(L_ERROR, "Failure releasing the events.\n");
             S->printOpenCLError(err_code);
             clearList(&data);
             return data;

@@ -52,7 +52,7 @@ bool TabFile::setup()
     sprintf(msg,
             "Loading the report \"%s\"...\n",
             name());
-    S->addMessageF(1, msg);
+    S->addMessageF(L_INFO, msg);
 
     // Open the output file
     _f = fopen(_output_file, "w");
@@ -60,7 +60,7 @@ bool TabFile::setup()
         sprintf(msg,
                 "The file \"%s\" cannot be written\n",
                 _output_file);
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         return true;
     }
 

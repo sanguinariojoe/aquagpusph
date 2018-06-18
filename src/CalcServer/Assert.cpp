@@ -54,7 +54,7 @@ bool Assert::setup()
     sprintf(msg,
             "Loading the tool \"%s\"...\n",
             name());
-    S->addMessageF(1, msg);
+    S->addMessageF(L_INFO, msg);
 
     return false;
 }
@@ -71,7 +71,7 @@ bool Assert::_execute()
     void *data = malloc(sizeof(int));
     if(!data){
         msg << "Failure allocating memory for the integer result" << std::endl;
-        S->addMessageF(3, msg.str().c_str());
+        S->addMessageF(L_ERROR, msg.str().c_str());
         return true;
     }
 
@@ -85,7 +85,7 @@ bool Assert::_execute()
     if(result == 0){
         msg << "Assertion error. The expression \"" <<
                std::string(_condition) << "\" is false" << std::endl;
-        S->addMessageF(3, msg.str().c_str());
+        S->addMessageF(L_ERROR, msg.str().c_str());
         return true;
     }
 

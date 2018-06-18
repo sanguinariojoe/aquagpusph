@@ -61,7 +61,7 @@ bool Copy::setup()
     sprintf(msg,
             "Loading the tool \"%s\"...\n",
             name());
-    S->addMessageF(1, msg);
+    S->addMessageF(L_INFO, msg);
 
     if(variables()){
         return true;
@@ -92,7 +92,7 @@ bool Copy::_execute()
         sprintf(msg,
                 "Failure during the execution of the tool \"%s\".\n",
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         S->printOpenCLError(err_code);
         return true;
     }
@@ -111,7 +111,7 @@ bool Copy::variables()
                 "The tool \"%s\" has received undeclared variable \"%s\" as input.\n",
                 name(),
                 _input_name);
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         return true;
     }
     if(!strchr(vars->get(_input_name)->type(), '*')){
@@ -119,7 +119,7 @@ bool Copy::variables()
                 "The tool \"%s\" has received the scalar variable \"%s\" as input.\n",
                 name(),
                 _input_name);
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         return true;
     }
     _input_var = (InputOutput::ArrayVariable *)vars->get(_input_name);
@@ -129,7 +129,7 @@ bool Copy::variables()
                 "The tool \"%s\" has received undeclared variable \"%s\" as output.\n",
                 name(),
                 _output_name);
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         return true;
     }
     if(!strchr(vars->get(_output_name)->type(), '*')){
@@ -137,7 +137,7 @@ bool Copy::variables()
                 "The tool \"%s\" has received the scalar variable \"%s\" as output.\n",
                 name(),
                 _output_name);
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         return true;
     }
     _output_var = (InputOutput::ArrayVariable *)vars->get(_output_name);
@@ -146,34 +146,34 @@ bool Copy::variables()
         sprintf(msg,
                 "The input and output types mismatch for the tool \"%s\".\n",
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         sprintf(msg,
                 "\tInput variable \"%s\" is of type \"%s\".\n",
                 _input_var->name(),
                 _input_var->type());
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         sprintf(msg,
                 "\tOutput variable \"%s\" is of type \"%s\".\n",
                 _output_var->name(),
                 _output_var->type());
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         return true;
     }
     if(n_in != n_out){
         sprintf(msg,
                 "The input and output lengths mismatch for the tool \"%s\".\n",
                 name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         sprintf(msg,
                 "\tInput variable \"%s\" has a length n=%lu.\n",
                 _input_var->name(),
                 n_in);
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         sprintf(msg,
                 "\tOutput variable \"%s\" has a length n=%lu.\n",
                 _output_var->name(),
                 n_out);
-        S->addMessage(0, msg);
+        S->addMessage(L_DEBUG, msg);
         return true;
     }
 

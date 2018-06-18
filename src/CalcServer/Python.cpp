@@ -164,7 +164,16 @@ static PyObject* logMsg(PyObject *self, PyObject *args, PyObject *keywds)
         return NULL;
     }
 
-    S->addMessage(level, msg);
+    switch(level) {
+        case 0:
+            S->addMessage(Aqua::L_DEBUG, msg); break;
+        case 1:
+            S->addMessage(Aqua::L_INFO, msg); break;
+        case 2:
+            S->addMessage(Aqua::L_WARNING, msg); break;
+        case 3:
+            S->addMessage(Aqua::L_ERROR, msg); break;            
+    }
 
     Py_RETURN_NONE;
 }
@@ -260,7 +269,7 @@ bool Python::setup()
     sprintf(msg,
             "Loading the tool \"%s\"...\n",
             name());
-    S->addMessageF(1, msg);
+    S->addMessageF(L_INFO, msg);
 
     if(initPython())
         return true;
@@ -278,7 +287,7 @@ bool Python::_execute()
 
     result = PyObject_CallObject(_func, NULL);
     if(!result) {
-        S->addMessageF(3, "main() function execution failed.\n");
+        S->addMessageF(L_ERROR, "main() function execution failed.\n");
         printf("\n--- Python report --------------------------\n\n");
         PyErr_Print();
         printf("\n-------------------------- Python report ---\n");
@@ -286,13 +295,13 @@ bool Python::_execute()
     }
 
     if(!PyObject_TypeCheck(result, &PyBool_Type)){
-        S->addMessageF(3,
+        S->addMessageF(L_ERROR,
                        "main() function returned non boolean variable.\n");
         return true;
     }
 
     if(result == Py_False){
-        S->addMessageF(3, "main() function returned False.\n");
+        S->addMessageF(L_ERROR, "main() function returned False.\n");
         return true;
     }
 
@@ -311,7 +320,7 @@ bool Python::initPython()
 
     Py_Initialize();
     if(!Py_IsInitialized()){
-        S->addMessageF(3, "Failure calling Py_Initialize().\n");
+        S->addMessageF(L_ERROR, "Failure calling Py_Initialize().\n");
         return true;
     }
 
@@ -358,7 +367,7 @@ bool Python::load()
         sprintf(msg,
                 "Python module \"%s\" cannot be imported.\n",
                 filename);
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         printf("\n--- Python report --------------------------\n\n");
         PyErr_Print();
         printf("\n-------------------------- Python report ---\n");
@@ -367,7 +376,7 @@ bool Python::load()
 
     _func = PyObject_GetAttrString(_module, "main");
     if(!_func || !PyCallable_Check(_func)) {
-        S->addMessageF(3, "main() function cannot be found.\n");
+        S->addMessageF(L_ERROR, "main() function cannot be found.\n");
         printf("\n--- Python report --------------------------\n\n");
         PyErr_Print();
         printf("\n-------------------------- Python report ---\n");

@@ -71,7 +71,7 @@ bool Kernel::setup()
             "Loading the tool \"%s\" from the file \"%s\"...\n",
             name(),
             path());
-    S->addMessageF(1, msg);
+    S->addMessageF(L_INFO, msg);
 
     if(compile(_entry_point)){
         return true;
@@ -114,7 +114,7 @@ bool Kernel::_execute()
                                       NULL);
     if(err_code != CL_SUCCESS){
         sprintf(msg, "Failure launching the tool \"%s\".\n", name());
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         S->printOpenCLError(err_code);
         return true;
     }
@@ -151,7 +151,7 @@ bool Kernel::compile(const char* entry_point,
     }
     source = new char[source_length + 1];
     if(!source){
-        S->addMessageF(3, "Failure allocating memory for the source code.\n");
+        S->addMessageF(L_ERROR, "Failure allocating memory for the source code.\n");
         return true;
     }
     // Read the file
@@ -166,7 +166,7 @@ bool Kernel::compile(const char* entry_point,
         source_length += strlen(header) * sizeof(char);
         source = new char[source_length + 1];
         if(!source) {
-            S->addMessageF(3, "Failure allocate memory to append the header.\n");
+            S->addMessageF(L_ERROR, "Failure allocate memory to append the header.\n");
             return true;
         }
         strcpy(source, header);
@@ -205,15 +205,15 @@ bool Kernel::compile(const char* entry_point,
         strcat(flags, add_flags);
 
     // Try to compile without using local memory
-    S->addMessageF(1, "Compiling without local memory... ");
+    S->addMessageF(L_INFO, "Compiling without local memory... ");
     program = clCreateProgramWithSource(C->context(),
                                         1,
                                         (const char **)&source,
                                         &source_length,
                                         &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessage(0, "FAIL\n");
-        S->addMessageF(3, "Failure creating the OpenCL program.\n");
+        S->addMessage(L_DEBUG, "FAIL\n");
+        S->addMessageF(L_ERROR, "Failure creating the OpenCL program.\n");
         S->printOpenCLError(err_code);
         delete[] flags; flags=NULL;
         delete[] source; source=NULL;
@@ -221,9 +221,9 @@ bool Kernel::compile(const char* entry_point,
     }
     err_code = clBuildProgram(program, 0, NULL, flags, NULL, NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessage(0, "FAIL\n");
+        S->addMessage(L_DEBUG, "FAIL\n");
         S->printOpenCLError(err_code);
-        S->addMessage(3, "--- Build log ---------------------------------\n");
+        S->addMessage(L_ERROR, "--- Build log ---------------------------------\n");
         size_t log_size = 0;
         clGetProgramBuildInfo(program,
                               C->device(),
@@ -236,8 +236,8 @@ bool Kernel::compile(const char* entry_point,
             sprintf(msg,
                     "Failure allocating %lu bytes for the building log\n",
                     log_size);
-            S->addMessage(3, msg);
-            S->addMessage(3, "--------------------------------- Build log ---\n");
+            S->addMessage(L_ERROR, msg);
+            S->addMessage(L_ERROR, "--------------------------------- Build log ---\n");
             return NULL;
         }
         strcpy(log, "");
@@ -248,8 +248,8 @@ bool Kernel::compile(const char* entry_point,
                               log,
                               NULL);
         strcat(log, "\n");
-        S->addMessage(0, log);
-        S->addMessage(3, "--------------------------------- Build log ---\n");
+        S->addMessage(L_DEBUG, log);
+        S->addMessage(L_ERROR, "--------------------------------- Build log ---\n");
         free(log); log=NULL;
         delete[] flags; flags=NULL;
         delete[] source; source=NULL;
@@ -259,9 +259,9 @@ bool Kernel::compile(const char* entry_point,
     kernel = clCreateKernel(program, entry_point, &err_code);
     clReleaseProgram(program);
     if(err_code != CL_SUCCESS) {
-        S->addMessage(0, "FAIL\n");
+        S->addMessage(L_DEBUG, "FAIL\n");
         sprintf(msg, "Failure creating the kernel \"%s\"\n", entry_point);
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         S->printOpenCLError(err_code);
         delete[] flags; flags=NULL;
         return true;
@@ -275,20 +275,20 @@ bool Kernel::compile(const char* entry_point,
                                         &work_group_size,
                                         NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessage(0, "FAIL\n");
-        S->addMessageF(3, "Failure querying the work group size.\n");
+        S->addMessage(L_DEBUG, "FAIL\n");
+        S->addMessageF(L_ERROR, "Failure querying the work group size.\n");
         S->printOpenCLError(err_code);
         clReleaseKernel(kernel);
         delete[] flags; flags=NULL;
         return true;
     }
-    S->addMessage(0, "OK\n");
+    S->addMessage(L_DEBUG, "OK\n");
 
     _kernel = kernel;
     _work_group_size = work_group_size;
 
     // Try to compile with local memory
-    S->addMessageF(1, "Compiling with local memory... ");
+    S->addMessageF(L_INFO, "Compiling with local memory... ");
     program = clCreateProgramWithSource(C->context(),
                                         1,
                                         (const char **)&source,
@@ -296,20 +296,20 @@ bool Kernel::compile(const char* entry_point,
                                         &err_code);
     delete[] source; source=NULL;
     if(err_code != CL_SUCCESS) {
-        S->addMessage(0, "FAIL\n");
-        S->addMessageF(3, "Failure creating the OpenCL program.\n");
+        S->addMessage(L_DEBUG, "FAIL\n");
+        S->addMessageF(L_ERROR, "Failure creating the OpenCL program.\n");
         S->printOpenCLError(err_code);
         delete[] flags; flags=NULL;
-        S->addMessageF(1, "Falling back to no local memory usage.\n");
+        S->addMessageF(L_INFO, "Falling back to no local memory usage.\n");
         return false;
     }
     sprintf(flags + strlen(flags), " -DLOCAL_MEM_SIZE=%lu", work_group_size);
     err_code = clBuildProgram(program, 0, NULL, flags, NULL, NULL);
     delete[] flags; flags=NULL;
     if(err_code != CL_SUCCESS) {
-        S->addMessage(0, "FAIL\n");
+        S->addMessage(L_DEBUG, "FAIL\n");
         S->printOpenCLError(err_code);
-        S->addMessage(3, "--- Build log ---------------------------------\n");
+        S->addMessage(L_ERROR, "--- Build log ---------------------------------\n");
         size_t log_size;
         clGetProgramBuildInfo(program,
                               C->device(),
@@ -325,21 +325,21 @@ bool Kernel::compile(const char* entry_point,
                               log,
                               NULL);
         strcat(log, "\n");
-        S->addMessage(0, log);
-        S->addMessage(3, "--------------------------------- Build log ---\n");
+        S->addMessage(L_DEBUG, log);
+        S->addMessage(L_ERROR, "--------------------------------- Build log ---\n");
         free(log); log=NULL;
         clReleaseProgram(program);
-        S->addMessageF(1, "Falling back to no local memory usage.\n");
+        S->addMessageF(L_INFO, "Falling back to no local memory usage.\n");
         return false;
     }
     kernel = clCreateKernel(program, entry_point, &err_code);
     clReleaseProgram(program);
     if(err_code != CL_SUCCESS) {
-        S->addMessage(0, "FAIL\n");
+        S->addMessage(L_DEBUG, "FAIL\n");
         sprintf(msg, "Failure creating the kernel \"%s\"\n", entry_point);
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         S->printOpenCLError(err_code);
-        S->addMessageF(1, "Falling back to no local memory usage.\n");
+        S->addMessageF(L_INFO, "Falling back to no local memory usage.\n");
         return false;
     }
     cl_ulong used_local_mem;
@@ -350,10 +350,10 @@ bool Kernel::compile(const char* entry_point,
                                         &used_local_mem,
                                         NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessage(0, "FAIL\n");
-        S->addMessageF(3, "Failure querying the used local memory.\n");
+        S->addMessage(L_DEBUG, "FAIL\n");
+        S->addMessageF(L_ERROR, "Failure querying the used local memory.\n");
         S->printOpenCLError(err_code);
-        S->addMessageF(1, "Falling back to no local memory usage.\n");
+        S->addMessageF(L_INFO, "Falling back to no local memory usage.\n");
         return false;
     }
     cl_ulong available_local_mem;
@@ -363,21 +363,21 @@ bool Kernel::compile(const char* entry_point,
                                &available_local_mem,
                                NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessage(0, "FAIL\n");
-        S->addMessageF(3, "Failure querying the available local memory.\n");
+        S->addMessage(L_DEBUG, "FAIL\n");
+        S->addMessageF(L_ERROR, "Failure querying the available local memory.\n");
         S->printOpenCLError(err_code);
-        S->addMessageF(1, "Falling back to no local memory usage.\n");
+        S->addMessageF(L_INFO, "Falling back to no local memory usage.\n");
         return false;
     }
 
     if(available_local_mem < used_local_mem){
-        S->addMessage(0, "FAIL\n");
-        S->addMessageF(3, "Not enough available local memory.\n");
+        S->addMessage(L_DEBUG, "FAIL\n");
+        S->addMessageF(L_ERROR, "Not enough available local memory.\n");
         S->printOpenCLError(err_code);
-        S->addMessageF(1, "Falling back to no local memory usage.\n");
+        S->addMessageF(L_INFO, "Falling back to no local memory usage.\n");
         return false;
     }
-    S->addMessage(0, "OK\n");
+    S->addMessage(L_DEBUG, "OK\n");
     clReleaseKernel(_kernel);
     _kernel = kernel;
 
@@ -434,7 +434,7 @@ bool Kernel::variables(const char* entry_point)
 
     CXIndex index = clang_createIndex(0, 0);
     if(index == 0){
-        S->addMessageF(3, "Failure creating parser index.\n");
+        S->addMessageF(L_ERROR, "Failure creating parser index.\n");
         return true;
     }
 
@@ -449,7 +449,7 @@ bool Kernel::variables(const char* entry_point)
         0,
         CXTranslationUnit_None);
     if(translation_unit == 0){
-        S->addMessageF(3, "Failure parsing the source code.\n");
+        S->addMessageF(L_ERROR, "Failure parsing the source code.\n");
         return true;
     }
 
@@ -461,7 +461,7 @@ bool Kernel::variables(const char* entry_point)
     clang_visitChildren(root_cursor, *cursorVisitor, &client_data);
     if(client_data.entry_points == 0){
         sprintf(msg, "The entry point \"%s\" cannot be found.\n", entry_point);
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         return true;
     }
     if(client_data.entry_points != 1){
@@ -469,7 +469,7 @@ bool Kernel::variables(const char* entry_point)
                 "Entry point \"%s\" found %u times.\n",
                 entry_point,
                 client_data.entry_points);
-        S->addMessageF(3, msg);
+        S->addMessageF(L_ERROR, msg);
         return true;
     }
 
@@ -533,7 +533,7 @@ bool Kernel::setVariables()
                     "The tool \"%s\" requires the undeclared variable \"%s\".\n",
                     name(),
                     _var_names.at(i));
-            S->addMessageF(3, msg);
+            S->addMessageF(L_ERROR, msg);
             return true;
         }
         InputOutput::Variable *var = vars->get(_var_names.at(i));
@@ -554,7 +554,7 @@ bool Kernel::setVariables()
                     _var_names.at(i),
                     i,
                     name());
-            S->addMessageF(3, msg);
+            S->addMessageF(L_ERROR, msg);
             S->printOpenCLError(err_code);
             return true;
         }
@@ -570,12 +570,12 @@ bool Kernel::computeGlobalWorkSize()
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
     if(!_work_group_size){
-        S->addMessageF(3, "Work group size must be greater than 0.\n");
+        S->addMessageF(L_ERROR, "Work group size must be greater than 0.\n");
         return true;
     }
     InputOutput::Variables *vars = C->variables();
     if(vars->solve("unsigned int", _n, &N)){
-        S->addMessageF(3, "Failure evaluating the number of threads.\n");
+        S->addMessageF(L_ERROR, "Failure evaluating the number of threads.\n");
         return true;
     }
 

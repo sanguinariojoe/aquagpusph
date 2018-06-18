@@ -25,6 +25,8 @@
 
 #include <sphPrerequisites.h>
 
+#include <string>
+
 namespace Aqua{
 
 /// Returns if a key press event has been registered.
@@ -33,6 +35,80 @@ namespace Aqua{
  */
 int isKeyPressed();
 
+/** @brief Check if a string ends with an specific suffix
+ * 
+ * @param str String to be checked
+ * @param suffix Suffix to be looked for
+ * @return true if #str ends with #suffix, false otherwise.
+ */
+bool hasSuffix(const std::string &str, const std::string &suffix);
+
+/** @brief Replace all substring occurrences by another substring
+ * 
+ * @param str String to be modified
+ * @param search Substring to be replaced
+ * @param replace Replacement substring
+ */
+void replaceAll(std::string &str,
+                const std::string &search,
+                const std::string &replace);
+
+/** @brief Replace all substring occurrences by another substring
+ * 
+ * @param str String to be modified
+ * @param search Substring to be replaced
+ * @param replace Replacement substring
+ * @return Modified string
+ */
+std::string replaceAllCopy(std::string str,
+                           std::string search,
+                           std::string replace);
+
+/** @brief Remove all the blank spaces (including line breaks, tabulators...)
+ * string prefix.
+ * 
+ * @param s String to become trimmed
+ */
+void ltrim(std::string &s);
+
+/** @brief Remove all the blank spaces (including line breaks, tabulators...)
+ * string suffix.
+ * 
+ * @param s String to become trimmed
+ */
+void rtrim(std::string &s);
+
+/** @brief Remove all the blank spaces (including line breaks, tabulators...)
+ * string prefix and suffix.
+ * 
+ * @param s String to become trimmed
+ */
+void trim(std::string &s);
+
+/** @brief Remove all the blank spaces (including line breaks, tabulators...)
+ * string suffix.
+ * 
+ * @param s String to become trimmed
+ * @return Trimmed string
+ */
+std::string ltrimCopy(std::string s);
+
+/** @brief Remove all the blank spaces (including line breaks, tabulators...)
+ * string suffix.
+ * 
+ * @param s String to become trimmed
+ * @return Trimmed string
+ */
+std::string rtrimCopy(std::string s);
+
+/** @brief Remove all the blank spaces (including line breaks, tabulators...)
+ * string prefix and suffix.
+ * 
+ * @param s String to become trimmed
+ * @return Trimmed string
+ */
+std::string trimCopy(std::string s);
+    
 /// Next number which is power of 2.
 /** Compute a value which, being power of two, is greater or equal than
  * @paramname{x}.
