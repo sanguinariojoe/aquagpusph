@@ -284,11 +284,8 @@ ProblemSetup::sphParticlesSet::~sphParticlesSet()
 void ProblemSetup::sphParticlesSet::addScalar(std::string name,
                                               std::string value)
 {
-    std::cout << "addScalar " << name << " " << value << std::endl;
     _snames.push_back(name);
     _svalues.push_back(value);
-    std::cout << _snames.size() << std::endl;
-    std::cout << _svalues.size() << std::endl;
 }
 
 void ProblemSetup::sphParticlesSet::input(std::string path,
