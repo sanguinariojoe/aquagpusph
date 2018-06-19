@@ -25,6 +25,7 @@
 #define TIMEMANAGER_H_INCLUDED
 
 #include <sphPrerequisites.h>
+#include <ProblemSetup.h>
 #include <Singleton.h>
 
 namespace Aqua{ namespace InputOutput{
@@ -41,8 +42,11 @@ namespace Aqua{ namespace InputOutput{
 struct TimeManager : public Aqua::Singleton<Aqua::InputOutput::TimeManager>
 {
 public:
-    /// Constructor
-    TimeManager();
+    /** Constructor
+     *
+     * @param sim_data Simulation data
+     */
+    TimeManager(ProblemSetup sim_data);
 
     /// Destructor
     ~TimeManager();

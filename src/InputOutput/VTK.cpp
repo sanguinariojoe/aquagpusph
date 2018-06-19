@@ -101,8 +101,11 @@ using namespace xercesc;
 
 namespace Aqua{ namespace InputOutput{
 
-VTK::VTK(unsigned int first, unsigned int n, unsigned int iset)
-    : Particles(first, n, iset)
+VTK::VTK(ProblemSetup sim_data,
+         unsigned int first,
+         unsigned int n,
+         unsigned int iset)
+    : Particles(sim_data, first, n, iset)
     , _namePVD(NULL)
     , _next_file_index(0)
 {
@@ -130,25 +133,24 @@ bool VTK::load()
     cl_int err_code;
     char msg[1024];
     ScreenManager *S = ScreenManager::singleton();
-    ProblemSetup *P = ProblemSetup::singleton();
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
 
     loadDefault();
 
     sprintf(msg,
             "Loading particles from VTK file \"%s\"\n",
-            P->sets.at(setId())->inputPath());
+            simData().sets.at(setId())->inputPath());
     S->addMessageF(L_INFO, msg);
 
     vtkSmartPointer<vtkXMLUnstructuredGridReader> f =
         vtkSmartPointer<vtkXMLUnstructuredGridReader>::New();
 
-    if(!f->CanReadFile(P->sets.at(setId())->inputPath())){
+    if(!f->CanReadFile(simData().sets.at(setId())->inputPath())){
         S->addMessageF(L_ERROR, "The file cannot be read.\n");
         return true;
     }
 
-    f->SetFileName(P->sets.at(setId())->inputPath());
+    f->SetFileName(simData().sets.at(setId())->inputPath());
     f->Update();
 
     vtkSmartPointer<vtkUnstructuredGrid> grid = f->GetOutput();
@@ -166,7 +168,7 @@ bool VTK::load()
     }
 
     // Check the fields to read
-    std::deque<char*> fields = P->sets.at(setId())->inputFields();
+    std::deque<char*> fields = simData().sets.at(setId())->inputFields();
     if(!fields.size()){
         S->addMessage(L_ERROR, "0 fields were set to be read from the file.\n");
         return true;
@@ -469,7 +471,7 @@ void* save_pthread(void *data_void)
             }
             else if(strstr(var->type(), "float") ||
                     strstr(var->type(), "vec") ||
-					strstr(var->type(), "matrix")){
+                    strstr(var->type(), "matrix")){
                 float vect[n_components];
                 size_t offset = typesize * i;
                 memcpy(vect,
@@ -547,11 +549,10 @@ bool VTK::save()
 {
     unsigned int i;
     ScreenManager *S = ScreenManager::singleton();
-    ProblemSetup *P = ProblemSetup::singleton();
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
 
     // Check the fields to write
-    std::deque<char*> fields = P->sets.at(setId())->outputFields();
+    std::deque<char*> fields = simData().sets.at(setId())->outputFields();
     if(!fields.size()){
         S->addMessage(L_ERROR, "0 fields were set to be saved into the file.\n");
         return true;
@@ -634,12 +635,11 @@ vtkXMLUnstructuredGridWriter* VTK::create(){
     size_t len;
     vtkXMLUnstructuredGridWriter *f = NULL;
     ScreenManager *S = ScreenManager::singleton();
-    ProblemSetup *P = ProblemSetup::singleton();
 
     // Create the file base name
-    len = strlen(P->sets.at(setId())->outputPath()) + 8;
+    len = strlen(simData().sets.at(setId())->outputPath()) + 8;
     basename = new char[len];
-    strcpy(basename, P->sets.at(setId())->outputPath());
+    strcpy(basename, simData().sets.at(setId())->outputPath());
     strcat(basename, ".%d.vtu");
 
     _next_file_index = file(basename, _next_file_index);
@@ -802,10 +802,9 @@ DOMDocument* VTK::getPVD(bool generate)
 const char* VTK::filenamePVD()
 {
     if(!_namePVD){
-        ProblemSetup *P = ProblemSetup::singleton();
-        size_t len = strlen(P->sets.at(setId())->outputPath()) + 5;
+        size_t len = strlen(simData().sets.at(setId())->outputPath()) + 5;
         _namePVD = new char[len];
-        strcpy(_namePVD, P->sets.at(setId())->outputPath());
+        strcpy(_namePVD, simData().sets.at(setId())->outputPath());
         strcat(_namePVD, ".pvd");
     }
     return (const char*)_namePVD;

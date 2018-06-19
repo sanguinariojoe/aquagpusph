@@ -32,6 +32,7 @@
 #include <iterator>
 
 #include <sphPrerequisites.h>
+#include <ProblemSetup.h>
 #include <Variable.h>
 #include <Singleton.h>
 #include <CalcServer/Tool.h>
@@ -76,11 +77,14 @@ class UnSort;
 class CalcServer : public Aqua::Singleton<Aqua::CalcServer::CalcServer>
 {
 public:
-    /// Constructor.
-    /** The constructor will just initialize default values, however setup()
-     * should be called after that.
+    /** @brief Constructor.
+     *
+     * The constructor will just initialize default values.
+     * setup() function should be therefore called after.
+     *
+     * @param sim_data Simulation data read from XML files
      */
-    CalcServer();
+    CalcServer(Aqua::InputOutput::ProblemSetup sim_data);
 
     /// Destructor
     ~CalcServer();
@@ -226,6 +230,9 @@ private:
      * dramatically reduce the saving files overhead in some platforms
      */
     std::map<std::string, UnSort*> unsorters;
+private:
+    /// Simulation data read from XML files
+    Aqua::InputOutput::ProblemSetup _sim_data;
 };
 
 }}  // namespace

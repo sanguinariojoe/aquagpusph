@@ -26,7 +26,6 @@
 
 #include <AuxiliarMethods.h>
 #include <ScreenManager.h>
-#include <FileManager.h>
 #include <ProblemSetup.h>
 #include <TimeManager.h>
 
@@ -36,8 +35,9 @@
 
 namespace Aqua{ namespace InputOutput{
 
-ScreenManager::ScreenManager()
+ScreenManager::ScreenManager(FileManager *fmanager)
     : _last_row(0)
+    , _fmanager(fmanager)
 {
     int i;
 
@@ -199,34 +199,32 @@ void ScreenManager::addMessage(TLogLevel level, std::string log, const char *fun
     fname << "(" << func << "): ";
 
     // Send the info to the log file (if possible)
-    if(FileManager::singleton()){
-        FILE *LogFileID = FileManager::singleton()->logFile();
-        if(LogFileID){
-            if(level == L_INFO)
-                fprintf(LogFileID,
-                        "<b><font color=\"#000000\">[INFO] %s%s</font></b><br>",
-                        fname.str().c_str(),
-                        log.c_str());
-            else if(level == L_WARNING)
-                fprintf(LogFileID,
-                        "<b><font color=\"#ff9900\">[WARNING] %s%s</font></b><br>",
-                        fname.str().c_str(),
-                        log.c_str());
-            else if(level == L_ERROR)
-                fprintf(LogFileID,
-                        "<b><font color=\"#dd0000\">[ERROR] %s%s</font></b><br>",
-                        fname.str().c_str(),
-                        log.c_str());
-            else{
-                fprintf(LogFileID,
-                        "<font color=\"#000000\">%s%s</font>",
-                        fname.str().c_str(),
-                        log.c_str());
-                if(hasSuffix(log, "\n"))
-                    fprintf(LogFileID, "<br>");
-            }
-            fflush(LogFileID);
+    FILE *LogFileID = _fmanager->logFile();
+    if(LogFileID){
+        if(level == L_INFO)
+            fprintf(LogFileID,
+                    "<b><font color=\"#000000\">[INFO] %s%s</font></b><br>",
+                    fname.str().c_str(),
+                    log.c_str());
+        else if(level == L_WARNING)
+            fprintf(LogFileID,
+                    "<b><font color=\"#ff9900\">[WARNING] %s%s</font></b><br>",
+                    fname.str().c_str(),
+                    log.c_str());
+        else if(level == L_ERROR)
+            fprintf(LogFileID,
+                    "<b><font color=\"#dd0000\">[ERROR] %s%s</font></b><br>",
+                    fname.str().c_str(),
+                    log.c_str());
+        else{
+            fprintf(LogFileID,
+                    "<font color=\"#000000\">%s%s</font>",
+                    fname.str().c_str(),
+                    log.c_str());
+            if(hasSuffix(log, "\n"))
+                fprintf(LogFileID, "<br>");
         }
+        fflush(LogFileID);
     }
     // Compatibility mode for destroyed ScreenManager situations
     if(!ScreenManager::singleton()){

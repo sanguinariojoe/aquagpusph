@@ -106,12 +106,12 @@ using namespace Aqua;
  */
 int main(int argc, char *argv[])
 {
-    InputOutput::ArgumentsManager *A = NULL;
-    InputOutput::FileManager *F = NULL;
-    InputOutput::ProblemSetup *P = NULL;
+    InputOutput::FileManager file_manager;
+    InputOutput::ScreenManager *S = new InputOutput::ScreenManager(
+        &file_manager);
+
     CalcServer::CalcServer *C = NULL;
     InputOutput::TimeManager *T = NULL;
-    InputOutput::ScreenManager *S = NULL;
     char msg[256];
     strcpy(msg, "");
 
@@ -140,27 +140,15 @@ int main(int argc, char *argv[])
     printf("\tunder certain conditions; see LICENSE for details.\n");
     printf("\n");
 
-    A = new InputOutput::ArgumentsManager(argc,argv);
-    F = new InputOutput::FileManager();
-    P = new InputOutput::ProblemSetup();
-
-    // We must start reading the runtime arguments
-    if(A->parse()){
-        delete A;
-        delete F;
-        delete P;
-        delete C;
-        delete T;
-        delete S;
+    try {
+        InputOutput::CommandLineArgs::parse(argc, argv, file_manager);
+    } catch (const std::invalid_argument& e) {
         return EXIT_FAILURE;
     }
 
     // Now we can load the simulation definition
-    C = F->load();
+    C = file_manager.load();
     if(!C){
-        delete A;
-        delete F;
-        delete P;
         delete C;
         delete T;
         delete S;
@@ -169,30 +157,23 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    T = new InputOutput::TimeManager();
+    T = new InputOutput::TimeManager(file_manager.problemSetup());
 
     S->addMessageF(L_INFO, "Start of simulation...\n\n");
     S->printDate();
-    S = new InputOutput::ScreenManager();
 
     while(!T->mustStop())
     {
         if(C->update()){
-            if(P->settings.save_on_fail)
-                F->save();
+            if(file_manager.problemSetup().settings.save_on_fail)
+                file_manager.save();
             float Time = T->time();
             delete S; S = NULL;
             S->printDate();
             S->addMessageF(L_INFO, "Destroying time manager...\n");
             delete T; T = NULL;
-            S->addMessageF(L_INFO, "Destroying files manager...\n");
-            delete F; F = NULL;
             S->addMessageF(L_INFO, "Destroying calculation server...\n");
             delete C; C = NULL;
-            S->addMessageF(L_INFO, "Destroying problem setup...\n");
-            delete P; P = NULL;
-            S->addMessageF(L_INFO, "Destroying arguments manager...\n");
-            delete A; A = NULL;
             S->addMessageF(L_INFO, "Finishing Python...\n");
             if(Py_IsInitialized())
                 Py_Finalize();
@@ -201,21 +182,15 @@ int main(int argc, char *argv[])
             return EXIT_FAILURE;
         }
 
-        if(F->save()){
+        if(file_manager.save()){
             sleep(__ERROR_SHOW_TIME__);
             float Time = T->time();
             delete S; S = NULL;
             S->printDate();
             S->addMessageF(L_INFO, "Destroying time manager...\n");
             delete T; T = NULL;
-            S->addMessageF(L_INFO, "Destroying files manager...\n");
-            delete F; F = NULL;
             S->addMessageF(L_INFO, "Destroying calculation server...\n");
             delete C; C = NULL;
-            S->addMessageF(L_INFO, "Destroying problem setup...\n");
-            delete P; P = NULL;
-            S->addMessageF(L_INFO, "Destroying arguments manager...\n");
-            delete A; A = NULL;
             S->addMessageF(L_INFO, "Finishing Python...\n");
             if(Py_IsInitialized())
                 Py_Finalize();
@@ -231,14 +206,8 @@ int main(int argc, char *argv[])
     float Time = T->time();
     S->addMessageF(L_INFO, "Destroying time manager...\n");
     delete T; T = NULL;
-    S->addMessageF(L_INFO, "Destroying files manager...\n");
-    delete F; F = NULL;
     S->addMessageF(L_INFO, "Destroying calculation server...\n");
     delete C; C = NULL;
-    S->addMessageF(L_INFO, "Destroying problem setup...\n");
-    delete P; P = NULL;
-    S->addMessageF(L_INFO, "Destroying arguments manager...\n");
-    delete A; A = NULL;
     S->addMessageF(L_INFO, "Finishing Python...\n");
     if(Py_IsInitialized())
         Py_Finalize();

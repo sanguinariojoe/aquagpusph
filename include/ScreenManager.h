@@ -35,6 +35,7 @@
     #include <ncurses.h>
 #endif
 
+#include <FileManager.h>
 #include <Singleton.h>
 
 #ifndef addMessageF
@@ -43,6 +44,15 @@
      * method, which is automatically setting the class and function names.
      */
     #define addMessageF(level, log) addMessage(level, log, __METHOD_CLASS_NAME__)
+#endif
+
+#ifndef LOG
+    /** @def LOG
+     * Overloaded version of
+     * Aqua::InputOutput::ScreenManager::singleton()->addMessage(), such that
+     * this macro can ve conveniently called to fill the log file.
+     */
+    #define LOG(level, log) Aqua::InputOutput::ScreenManager::singleton()->addMessageF(level, log)
 #endif
 
 namespace Aqua{
@@ -59,8 +69,11 @@ namespace InputOutput{
 struct ScreenManager : public Aqua::Singleton<Aqua::InputOutput::ScreenManager>
 {
 public:
-    /// Constructor.
-    ScreenManager();
+    /** @brief Constructor.
+     *
+     * @param fmanager Files manager
+     */
+    ScreenManager(FileManager *fmanager);
 
     /// Destructor.
     ~ScreenManager();
@@ -137,6 +150,8 @@ protected:
      */
     void refreshAll();
 private:
+    /// Files manager
+    FileManager *_fmanager;
 
     /// Last row where datas was printed (used to locate the registry position)
     int _last_row;

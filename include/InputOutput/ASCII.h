@@ -61,11 +61,15 @@ class ASCII : public Particles
 {
 public:
     /** @brief Constructor
+     * @param sim_data Simulation data
      * @param first First particle managed by this saver/loader.
      * @param n Number of particles managed by this saver/loader.
      * @param iset Particles set index.
      */
-    ASCII(unsigned int first, unsigned int n, unsigned int iset);
+    ASCII(ProblemSetup sim_data,
+          unsigned int first,
+          unsigned int n,
+          unsigned int iset);
 
     /// Destructor
     virtual ~ASCII();

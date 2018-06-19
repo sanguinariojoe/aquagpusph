@@ -26,6 +26,7 @@
 
 #include <deque>
 #include <sphPrerequisites.h>
+#include <ProblemSetup.h>
 #include <InputOutput/InputOutput.h>
 
 namespace Aqua{
@@ -51,19 +52,18 @@ class Particles : public InputOutput
 {
 public:
     /** @brief Constructor
+     * @param sim_data Simulation data
      * @param first First particle managed by this saver/loader.
      * @param n Number of particles managed by this saver/loader.
      * @param iset Particles set index.
      */
-    Particles(unsigned int first, unsigned int n, unsigned int iset);
+    Particles(ProblemSetup sim_data,
+              unsigned int first,
+              unsigned int n,
+              unsigned int iset);
 
     /// Destructor
     virtual ~Particles();
-
-    /** @brief Save the data.
-     * @return false if all gone right, true otherwise.
-     */
-    virtual bool save()=0;
 
     /** @brief Get the last printed file path.
      * @return The last printed file, NULL if a file has not been printed yet.
@@ -71,6 +71,12 @@ public:
     const char* file(){return (const char*)_output_file;}
 
 protected:
+    /** @brief Get the simulation data structure
+     *
+     * @return Simulation data
+     */
+    ProblemSetup simData() {return _sim_data;}
+
     /** @brief Get the particle index bounds of the "set of particles" managed
      * by this class.
      * @return The index bounds (first and last particle).
@@ -125,6 +131,9 @@ private:
      */
     void clearList(std::deque<void*> *data);
 
+    /// Simulation data
+    ProblemSetup _sim_data;
+
     /// Particles managed bounds
     uivec2 _bounds;
 
@@ -133,7 +142,6 @@ private:
 
     /// Last file printed
     char* _output_file;
-
 };  // class InputOutput
 
 }}  // namespaces

@@ -62,11 +62,15 @@ class FastASCII : public ASCII
 {
 public:
     /** @brief Constructor
+     * @param sim_data Simulation data
      * @param first First particle managed by this saver/loader.
      * @param n Number of particles managed by this saver/loader.
      * @param iset Particles set index.
      */
-    FastASCII(unsigned int first, unsigned int n, unsigned int iset);
+    FastASCII(ProblemSetup sim_data,
+              unsigned int first,
+              unsigned int n,
+              unsigned int iset);
 
     /// Destructor
     ~FastASCII();

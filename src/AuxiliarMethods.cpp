@@ -169,7 +169,6 @@ size_t loadKernelFromFile(cl_kernel* kernel, cl_program* program,
     *program = NULL;
     *kernel = NULL;
     size_t work_group_size=0;
-    InputOutput::ProblemSetup* problemSetup = InputOutput::ProblemSetup::singleton();
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 
     // Allocate the required memory to read the source code

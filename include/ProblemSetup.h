@@ -54,61 +54,21 @@
  */
 #define __FRAME_MODE__ 1 << 2
 
-/** \def __H5Part__
- * H5Part output is selected.
- */
-#define __H5Part__ 1 << 0
-/** \def __VTK__
- * VTK output is selected.
- */
-#define __VTK__ 1 << 1
-/** \def __TECPLOT__
- * TECPLOT output is selected.
- */
-#define __TECPLOT__ 1 << 2
-
-/** \def __DT_VARIABLE__
- * Time step will be calculated every iteration. This method guarantee the
- * Courant number conservation.
- */
-#define __DT_VARIABLE__ 0
-/** \def __DT_FIXCALCULATED__
- * Time step will be calculated at the start of simulation, and conserved along
- * it.
- */
-#define __DT_FIXCALCULATED__ 1
-/** \def __DT_FIX__
- * Time step will be provided by user.
- */
-#define __DT_FIX__ 2
-
-/** \def __BOUNDARY_ELASTIC__
- * Elastic bounce will be selected as the boundary condition.
- */
-#define __BOUNDARY_ELASTIC__ 0
-/** \def __BOUNDARY_FIXED__
- * Fixed particles will be selected as the boundary condition.
- */
-#define __BOUNDARY_FIXED__ 1
-/** \def __BOUNDARY_DELEFFE__
- * Boundary integrals will be selected as the boundary condition.
- */
-#define __BOUNDARY_DELEFFE__ 2
 
 #include <sphPrerequisites.h>
+
+#include <string>
+#include <vector>
+
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include <vector>
 #include <deque>
 #include <map>
-#include <string>
 
 #include <CL/cl.h>
-
-#include <Singleton.h>
 
 namespace Aqua{ namespace InputOutput{
 
@@ -128,16 +88,16 @@ namespace Aqua{ namespace InputOutput{
  *
  * @see Aqua::InputOutput::State
  */
-class ProblemSetup : public Aqua::Singleton<Aqua::InputOutput::ProblemSetup>
+class ProblemSetup
 {
 public:
     /** @brief Constructor.
      *
      * In this method some initial values will be assigned, however it is
      * expected that Aqua::InputOutput::FileManager is overwritting them.
-     *
-     * perform() method should be called after Aqua::InputOutput::FileManager
-     * was setup the simulation configuration data.
+     * The method perform() is conveniently provided to let
+     * Aqua::InputOutput::FileManager to report this class that the data shall
+     * be recomputed.
      */
     ProblemSetup();
 

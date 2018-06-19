@@ -28,7 +28,7 @@
 #include <vector>
 
 #include <sphPrerequisites.h>
-#include <Singleton.h>
+#include <ProblemSetup.h>
 #include <CalcServer.h>
 #include <InputOutput/State.h>
 #include <InputOutput/Log.h>
@@ -49,7 +49,7 @@ namespace InputOutput{
  * @see Aqua::InputOutput::Bounds
  * @see Aqua::InputOutput::Particles
  */
-class FileManager : public Aqua::Singleton<Aqua::InputOutput::FileManager>
+class FileManager
 {
 public:
     /// Constructor
@@ -62,7 +62,7 @@ public:
      * 
      * AQUAgpusph simulations are built on top of a XML definition file. Such
      * file can later include another XML definition files, such that modules
-     * can be set.
+     * can be easily created.
      *
      * @param path XML input file path.
      */
@@ -72,7 +72,7 @@ public:
      *
      * AQUAgpusph simulations are built on top of a XML definition file. Such
      * file can later include another XML definition files, such that modules
-     * can be set.
+     * can be easily created.
      *
      * @return XML input file path.
      */
@@ -88,6 +88,21 @@ public:
      * @see Aqua::InputOutput::Log
      */
     FILE* logFile();
+
+    /** @brief Get the simulation setup, extracted from the XML definition files
+     *
+     * AQUAgpusph simulations are built on top of a XML definition file. Such
+     * file can later include another XML definition files, such that modules
+     * can be easily created.
+     * The simulation data read from such XML files is stored in this
+     * Aqua::InputOutput::ProblemSetup structure
+     *
+     * @return Simualtion data
+     * @warning The returned Aqua::InputOutput::ProblemSetup static object is in
+     * the same scope than this class.
+     */
+    ProblemSetup& problemSetup(){return _simulation;}
+    
 
     /** @brief Load the input files, generating the calculation server.
      * 
@@ -114,29 +129,24 @@ public:
      */
     bool save();
 
-    /** @brief Get the last printed file for a specific particles set.
-     *
-     * @param set Particles set index.
-     * @return The last printed file, NULL if a file has not been printed yet.
-     */
-    std::string file(unsigned int set);
-
 private:
-    /// Name of the main XML input file
-    std::string _in_file;
-
     /// The XML simulation definition loader/saver
     State *_state;
 
     /// The output log file
     Log *_log;
 
+    /// Simulation data read from XML files
+    ProblemSetup _simulation;
+
+    /// Name of the main XML input file
+    std::string _in_file;
+
     /// The fluid loaders
     std::vector<Particles*> _loaders;
 
     /// The fluid savers
     std::vector<Particles*> _savers;
-
 };  // class FileManager
 
 }}  // namespaces

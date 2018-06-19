@@ -39,6 +39,7 @@ namespace Aqua{ namespace InputOutput{
 FileManager::FileManager()
     : _state(NULL)
     , _log(NULL)
+    , _simulation()
 {
     inputFile("Input.xml");
     _state = new State();
@@ -75,21 +76,19 @@ FILE* FileManager::logFile()
 CalcServer::CalcServer* FileManager::load()
 {
     unsigned int i, n=0;
-    ProblemSetup *P = ProblemSetup::singleton();
-    ScreenManager *S = ScreenManager::singleton();
 
     // Load the XML definition file
-    if(_state->load()){
+    if(_state->load(inputFile(), _simulation)){
         return NULL;
     }
 
     // Setup the problem setup
-    if(P->perform()) {
+    if(_simulation.perform()) {
         return NULL;
     }
 
     // Build the calculation server
-    CalcServer::CalcServer *C = new CalcServer::CalcServer();
+    CalcServer::CalcServer *C = new CalcServer::CalcServer(_simulation);
     if(!C)
         return NULL;
     if(C->setup()){
@@ -98,74 +97,79 @@ CalcServer::CalcServer* FileManager::load()
     }
 
     // Now we can build the loaders/savers
-    for(i = 0; i < P->sets.size(); i++){
-        if(!strcmp(P->sets.at(i)->inputFormat(), "ASCII")){
-            ASCII *loader = new ASCII(n, P->sets.at(i)->n(), i);
+    for(i = 0; i < _simulation.sets.size(); i++){
+        if(!strcmp(_simulation.sets.at(i)->inputFormat(), "ASCII")){
+            ASCII *loader = new ASCII(
+                _simulation, n, _simulation.sets.at(i)->n(), i);
             if(!loader){
                 delete C;
                 return NULL;
             }
             _loaders.push_back((Particles*)loader);
         }
-        else if(!strcmp(P->sets.at(i)->inputFormat(), "FastASCII")){
-            FastASCII *loader = new FastASCII(n, P->sets.at(i)->n(), i);
+        else if(!strcmp(_simulation.sets.at(i)->inputFormat(), "FastASCII")){
+            FastASCII *loader = new FastASCII(
+                _simulation, n, _simulation.sets.at(i)->n(), i);
             if(!loader){
                 delete C;
                 return NULL;
             }
             _loaders.push_back((Particles*)loader);
         }
-        else if(!strcmp(P->sets.at(i)->inputFormat(), "VTK")){
+        else if(!strcmp(_simulation.sets.at(i)->inputFormat(), "VTK")){
             #ifdef HAVE_VTK
-                VTK *loader = new VTK(n, P->sets.at(i)->n(), i);
+                VTK *loader = new VTK(
+                    _simulation, n, _simulation.sets.at(i)->n(), i);
                 if(!loader){
                     delete C;
                     return NULL;
                 }
                 _loaders.push_back((Particles*)loader);
             #else
-                S->addMessageF(L_ERROR, "AQUAgpusph has been compiled without VTK format.\n");
+                LOG(L_ERROR, "AQUAgpusph has been compiled without VTK format.\n");
                 return NULL;
             #endif // HAVE_VTK
         }
         else{
             std::ostringstream msg;
-            msg << "Unknow \"" << P->sets.at(i)->inputFormat()
+            msg << "Unknow \"" << _simulation.sets.at(i)->inputFormat()
                 << "\" input file format" << std::endl;
-            S->addMessageF(L_ERROR, msg.str());
+            LOG(L_ERROR, msg.str());
             delete C;
             return NULL;
         }
-        if(!strcmp(P->sets.at(i)->outputFormat(), "ASCII")){
-            ASCII *saver = new ASCII(n, P->sets.at(i)->n(), i);
+        if(!strcmp(_simulation.sets.at(i)->outputFormat(), "ASCII")){
+            ASCII *saver = new ASCII(
+                _simulation, n, _simulation.sets.at(i)->n(), i);
             if(!saver){
                 delete C;
                 return NULL;
             }
             _savers.push_back((Particles*)saver);
         }
-        else if(!strcmp(P->sets.at(i)->outputFormat(), "VTK")){
+        else if(!strcmp(_simulation.sets.at(i)->outputFormat(), "VTK")){
             #ifdef HAVE_VTK
-                VTK *saver = new VTK(n, P->sets.at(i)->n(), i);
+                VTK *saver = new VTK(
+                    _simulation, n, _simulation.sets.at(i)->n(), i);
                 if(!saver){
                     delete C;
                     return NULL;
                 }
                 _savers.push_back((Particles*)saver);
             #else
-                S->addMessageF(L_ERROR, "AQUAgpusph has been compiled without VTK format.\n");
+                LOG(L_ERROR, "AQUAgpusph has been compiled without VTK format.\n");
                 return NULL;
             #endif // HAVE_VTK
         }
         else{
             std::ostringstream msg;
-            msg << "Unknow \"" << P->sets.at(i)->outputFormat()
+            msg << "Unknow \"" << _simulation.sets.at(i)->outputFormat()
                 << "\" input file format" << std::endl;
-            S->addMessageF(L_ERROR, msg.str());
+            LOG(L_ERROR, msg.str());
             delete C;
             return NULL;
         }
-        n += P->sets.at(i)->n();
+        n += _simulation.sets.at(i)->n();
     }
 
     // Execute the loaders
@@ -190,16 +194,11 @@ bool FileManager::save()
     }
 
     // Save the XML definition file
-    if(_state->save()){
+    if(_state->save(_simulation, _savers)){
         return true;
     }
 
     return false;
 }
-
-std::string FileManager::file(unsigned int i){
-    return _savers.at(i)->file();
-}
-
 
 }}  // namespace

@@ -38,8 +38,11 @@
 
 namespace Aqua{ namespace InputOutput{
 
-ASCII::ASCII(unsigned int first, unsigned int n, unsigned int iset)
-    : Particles(first, n, iset)
+ASCII::ASCII(ProblemSetup sim_data,
+             unsigned int first,
+             unsigned int n,
+             unsigned int iset)
+    : Particles(sim_data, first, n, iset)
 {
 }
 
@@ -55,17 +58,16 @@ bool ASCII::load()
     char *pos = NULL;
     unsigned int i, j, iline, n, N, n_fields, progress;
     ScreenManager *S = ScreenManager::singleton();
-    ProblemSetup *P = ProblemSetup::singleton();
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
 
     loadDefault();
 
     sprintf(msg,
             "Loading particles from ASCII file \"%s\"\n",
-            P->sets.at(setId())->inputPath());
+            simData().sets.at(setId())->inputPath());
     S->addMessageF(L_INFO, msg);
 
-    f = fopen(P->sets.at(setId())->inputPath(), "r");
+    f = fopen(simData().sets.at(setId())->inputPath(), "r");
     if(!f){
         S->addMessageF(L_ERROR, "The file is inaccessible.\n");
         return true;
@@ -84,7 +86,7 @@ bool ASCII::load()
     }
 
     // Check the fields to read
-    std::deque<char*> fields = P->sets.at(setId())->inputFields();
+    std::deque<char*> fields = simData().sets.at(setId())->inputFields();
     if(!fields.size()){
         S->addMessageF(L_ERROR, "0 fields were set to be read from the file.\n");
         return true;
@@ -221,11 +223,10 @@ bool ASCII::save()
     cl_int err_code;
     char msg[256];
     ScreenManager *S = ScreenManager::singleton();
-    ProblemSetup *P = ProblemSetup::singleton();
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
     TimeManager *T = TimeManager::singleton();
 
-    std::deque<char*> fields = P->sets.at(setId())->outputFields();
+    std::deque<char*> fields = simData().sets.at(setId())->outputFields();
     if(!fields.size()){
         S->addMessageF(L_ERROR, "0 fields were set to be saved into the file.\n");
         return true;
@@ -526,12 +527,11 @@ FILE* ASCII::create(){
     size_t len;
     FILE *f;
     ScreenManager *S = ScreenManager::singleton();
-    ProblemSetup *P = ProblemSetup::singleton();
 
     // Create the file base name
-    len = strlen(P->sets.at(setId())->outputPath()) + 8;
+    len = strlen(simData().sets.at(setId())->outputPath()) + 8;
     basename = new char[len];
-    strcpy(basename, P->sets.at(setId())->outputPath());
+    strcpy(basename, simData().sets.at(setId())->outputPath());
     strcat(basename, ".%d.dat");
 
     _next_file_index = file(basename, _next_file_index);

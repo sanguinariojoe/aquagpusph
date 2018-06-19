@@ -52,7 +52,7 @@
 
 namespace Aqua{ namespace CalcServer{
 
-CalcServer::CalcServer()
+CalcServer::CalcServer(Aqua::InputOutput::ProblemSetup sim_data)
     : _base_path("")
     , _num_platforms(0)
     , _platforms(NULL)
@@ -64,10 +64,10 @@ CalcServer::CalcServer()
     , _device(NULL)
     , _command_queue(NULL)
     , _vars(NULL)
+    , _sim_data(sim_data)
 {
     unsigned int i, j;
     char msg[1024];
-    InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 
     _current_tool_name = new char[256];
@@ -76,12 +76,12 @@ CalcServer::CalcServer()
         exit(EXIT_FAILURE);
     }
 
-    _base_path = P->settings.base_path;
+    _base_path = _sim_data.settings.base_path;
 
-    unsigned int num_sets = P->sets.size();
+    unsigned int num_sets = _sim_data.sets.size();
     unsigned int N = 0;
-    for(i = 0; i < P->sets.size(); i++) {
-        N += P->sets.at(i)->n();
+    for(i = 0; i < _sim_data.sets.size(); i++) {
+        N += _sim_data.sets.at(i)->n();
     }
 
     unsigned int num_icell = nextPowerOf2(N);
@@ -124,7 +124,7 @@ CalcServer::CalcServer()
     sprintf(val, "%u", N);
     if(_vars->registerVariable("N", "unsigned int", len, val))
         exit(EXIT_FAILURE);
-    sprintf(val, "%u", P->sets.size());
+    sprintf(val, "%u", _sim_data.sets.size());
     if(_vars->registerVariable("n_sets", "unsigned int", len, val))
         exit(EXIT_FAILURE);
     sprintf(val, "%u", num_icell);
@@ -160,217 +160,217 @@ CalcServer::CalcServer()
         exit(EXIT_FAILURE);
 
     // Register the user variables and arrays
-    for(i = 0; i < P->variables.names.size(); i++){
-        bool flag = _vars->registerVariable(P->variables.names.at(i),
-                                            P->variables.types.at(i),
-                                            P->variables.lengths.at(i),
-                                            P->variables.values.at(i));
+    for(i = 0; i < _sim_data.variables.names.size(); i++){
+        bool flag = _vars->registerVariable(_sim_data.variables.names.at(i),
+                                            _sim_data.variables.types.at(i),
+                                            _sim_data.variables.lengths.at(i),
+                                            _sim_data.variables.values.at(i));
         if(flag){
             exit(EXIT_FAILURE);
         }
     }
 
     // Register the user definitions
-    for(i = 0; i < P->definitions.names.size(); i++){
+    for(i = 0; i < _sim_data.definitions.names.size(); i++){
         size_t deflen=0;
         char *defstr = NULL;
-        if(!strcmp(P->definitions.values.at(i), "")){
+        if(!strcmp(_sim_data.definitions.values.at(i), "")){
             // First case, named definitions
-            deflen = strlen(P->definitions.names.at(i));
+            deflen = strlen(_sim_data.definitions.names.at(i));
             defstr = new char[deflen + 3];
             if(!defstr){
                 S->addMessageF(
                     L_ERROR, "Failure allocating memory for the definition\n");
-                sprintf(msg, "\t\"%s\"\n", P->definitions.names.at(i));
+                sprintf(msg, "\t\"%s\"\n", _sim_data.definitions.names.at(i));
                 S->addMessage(L_DEBUG, msg);
                 exit(EXIT_FAILURE);
             }
             strcpy(defstr, "-D");
-            strcat(defstr, P->definitions.names.at(i));
+            strcat(defstr, _sim_data.definitions.names.at(i));
         }
-        else if(!P->definitions.evaluations.at(i)){
+        else if(!_sim_data.definitions.evaluations.at(i)){
             // Second case, valued definitions
-            deflen = strlen(P->definitions.names.at(i)) +
-                     strlen(P->definitions.values.at(i));
+            deflen = strlen(_sim_data.definitions.names.at(i)) +
+                     strlen(_sim_data.definitions.values.at(i));
             defstr = new char[deflen + 4];
             if(!defstr){
                 S->addMessageF(
                     L_ERROR, "Failure allocating memory for the definition\n");
-                sprintf(msg, "\t\"%s\"\n", P->definitions.names.at(i));
+                sprintf(msg, "\t\"%s\"\n", _sim_data.definitions.names.at(i));
                 S->addMessage(L_DEBUG, msg);
                 exit(EXIT_FAILURE);
             }
             strcpy(defstr, "-D");
-            strcat(defstr, P->definitions.names.at(i));
+            strcat(defstr, _sim_data.definitions.names.at(i));
             strcat(defstr, "=");
-            strcat(defstr, P->definitions.values.at(i));
+            strcat(defstr, _sim_data.definitions.values.at(i));
         }
         else{
             // Third case, evaluated definitions
-            deflen = strlen(P->definitions.names.at(i));
+            deflen = strlen(_sim_data.definitions.names.at(i));
             defstr = new char[deflen + 1 + 4 + 128];
             if(!defstr){
                 S->addMessageF(
                     L_ERROR, "Failure allocating memory for the definition\n");
-                sprintf(msg, "\t\"%s\"\n", P->definitions.names.at(i));
+                sprintf(msg, "\t\"%s\"\n", _sim_data.definitions.names.at(i));
                 S->addMessage(L_DEBUG, msg);
                 exit(EXIT_FAILURE);
             }
             float defval = 0.f;
             if(_vars->solve("float",
-                            P->definitions.values.at(i),
+                            _sim_data.definitions.values.at(i),
                             &defval))
             {
                 exit(EXIT_FAILURE);
             }
             strcpy(defstr, "-D");
-            strcat(defstr, P->definitions.names.at(i));
+            strcat(defstr, _sim_data.definitions.names.at(i));
             sprintf(defstr + strlen(defstr), "=%#Gf", defval);
         }
         _definitions.push_back(defstr);
     }
 
     // Register the tools
-    for(i = 0; i < P->tools.size(); i++){
-        if(!strcmp(P->tools.at(i)->get("type"), "kernel")){
-            Kernel *tool = new Kernel(P->tools.at(i)->get("name"),
-                                      P->tools.at(i)->get("path"),
-                                      P->tools.at(i)->get("entry_point"),
-                                      P->tools.at(i)->get("n"));
+    for(i = 0; i < _sim_data.tools.size(); i++){
+        if(!strcmp(_sim_data.tools.at(i)->get("type"), "kernel")){
+            Kernel *tool = new Kernel(_sim_data.tools.at(i)->get("name"),
+                                      _sim_data.tools.at(i)->get("path"),
+                                      _sim_data.tools.at(i)->get("entry_point"),
+                                      _sim_data.tools.at(i)->get("n"));
             _tools.push_back(tool);
         }
-        else if(!strcmp(P->tools.at(i)->get("type"), "copy")){
-            Copy *tool = new Copy(P->tools.at(i)->get("name"),
-                                  P->tools.at(i)->get("in"),
-                                  P->tools.at(i)->get("out"));
+        else if(!strcmp(_sim_data.tools.at(i)->get("type"), "copy")){
+            Copy *tool = new Copy(_sim_data.tools.at(i)->get("name"),
+                                  _sim_data.tools.at(i)->get("in"),
+                                  _sim_data.tools.at(i)->get("out"));
             _tools.push_back(tool);
         }
-        else if(!strcmp(P->tools.at(i)->get("type"), "python")){
-            Python *tool = new Python(P->tools.at(i)->get("name"),
-                                      P->tools.at(i)->get("path"));
+        else if(!strcmp(_sim_data.tools.at(i)->get("type"), "python")){
+            Python *tool = new Python(_sim_data.tools.at(i)->get("name"),
+                                      _sim_data.tools.at(i)->get("path"));
             _tools.push_back(tool);
         }
-        else if(!strcmp(P->tools.at(i)->get("type"), "set")){
-            Set *tool = new Set(P->tools.at(i)->get("name"),
-                                P->tools.at(i)->get("in"),
-                                P->tools.at(i)->get("value"));
+        else if(!strcmp(_sim_data.tools.at(i)->get("type"), "set")){
+            Set *tool = new Set(_sim_data.tools.at(i)->get("name"),
+                                _sim_data.tools.at(i)->get("in"),
+                                _sim_data.tools.at(i)->get("value"));
             _tools.push_back(tool);
         }
-        else if(!strcmp(P->tools.at(i)->get("type"), "set_scalar")){
-            SetScalar *tool = new SetScalar(P->tools.at(i)->get("name"),
-                                            P->tools.at(i)->get("in"),
-                                            P->tools.at(i)->get("value"));
+        else if(!strcmp(_sim_data.tools.at(i)->get("type"), "set_scalar")){
+            SetScalar *tool = new SetScalar(_sim_data.tools.at(i)->get("name"),
+                                            _sim_data.tools.at(i)->get("in"),
+                                            _sim_data.tools.at(i)->get("value"));
             _tools.push_back(tool);
         }
-        else if(!strcmp(P->tools.at(i)->get("type"), "reduction")){
-            Reduction *tool = new Reduction(P->tools.at(i)->get("name"),
-                                            P->tools.at(i)->get("in"),
-                                            P->tools.at(i)->get("out"),
-                                            P->tools.at(i)->get("operation"),
-                                            P->tools.at(i)->get("null"));
+        else if(!strcmp(_sim_data.tools.at(i)->get("type"), "reduction")){
+            Reduction *tool = new Reduction(_sim_data.tools.at(i)->get("name"),
+                                            _sim_data.tools.at(i)->get("in"),
+                                            _sim_data.tools.at(i)->get("out"),
+                                            _sim_data.tools.at(i)->get("operation"),
+                                            _sim_data.tools.at(i)->get("null"));
             _tools.push_back(tool);
         }
-        else if(!strcmp(P->tools.at(i)->get("type"), "link-list")){
-            LinkList *tool = new LinkList(P->tools.at(i)->get("name"),
-                                          P->tools.at(i)->get("in"));
+        else if(!strcmp(_sim_data.tools.at(i)->get("type"), "link-list")){
+            LinkList *tool = new LinkList(_sim_data.tools.at(i)->get("name"),
+                                          _sim_data.tools.at(i)->get("in"));
             _tools.push_back(tool);
         }
-        else if(!strcmp(P->tools.at(i)->get("type"), "radix-sort")){
-            RadixSort *tool = new RadixSort(P->tools.at(i)->get("name"),
-                                            P->tools.at(i)->get("in"),
-                                            P->tools.at(i)->get("perm"),
-                                            P->tools.at(i)->get("inv_perm"));
+        else if(!strcmp(_sim_data.tools.at(i)->get("type"), "radix-sort")){
+            RadixSort *tool = new RadixSort(_sim_data.tools.at(i)->get("name"),
+                                            _sim_data.tools.at(i)->get("in"),
+                                            _sim_data.tools.at(i)->get("perm"),
+                                            _sim_data.tools.at(i)->get("inv_perm"));
             _tools.push_back(tool);
         }
-        else if(!strcmp(P->tools.at(i)->get("type"), "assert")){
-            Assert *tool = new Assert(P->tools.at(i)->get("name"),
-                                      P->tools.at(i)->get("condition"));
+        else if(!strcmp(_sim_data.tools.at(i)->get("type"), "assert")){
+            Assert *tool = new Assert(_sim_data.tools.at(i)->get("name"),
+                                      _sim_data.tools.at(i)->get("condition"));
             _tools.push_back(tool);
         }
-        else if(!strcmp(P->tools.at(i)->get("type"), "dummy")){
-            Tool *tool = new Tool(P->tools.at(i)->get("name"));
+        else if(!strcmp(_sim_data.tools.at(i)->get("type"), "dummy")){
+            Tool *tool = new Tool(_sim_data.tools.at(i)->get("name"));
             _tools.push_back(tool);
         }
         else{
             sprintf(msg,
                     "Unrecognized tool type \"%s\" when parsing the tool \"%s\".\n",
-                    P->tools.at(i)->get("type"),
-                    P->tools.at(i)->get("name"));
+                    _sim_data.tools.at(i)->get("type"),
+                    _sim_data.tools.at(i)->get("name"));
             S->addMessageF(L_ERROR, msg);
             exit(EXIT_FAILURE);
         }
     }
     // Register the reporters
-    for(i = 0; i < P->reports.size(); i++){
-        if(!strcmp(P->reports.at(i)->get("type"), "screen")){
+    for(i = 0; i < _sim_data.reports.size(); i++){
+        if(!strcmp(_sim_data.reports.at(i)->get("type"), "screen")){
             bool bold = false;
-            if(!strcmp(P->reports.at(i)->get("bold"), "true") ||
-               !strcmp(P->reports.at(i)->get("bold"), "True")){
+            if(!strcmp(_sim_data.reports.at(i)->get("bold"), "true") ||
+               !strcmp(_sim_data.reports.at(i)->get("bold"), "True")){
                bold = true;
             }
             Reports::Screen *tool = new Reports::Screen(
-                P->reports.at(i)->get("name"),
-                P->reports.at(i)->get("fields"),
-                P->reports.at(i)->get("color"),
+                _sim_data.reports.at(i)->get("name"),
+                _sim_data.reports.at(i)->get("fields"),
+                _sim_data.reports.at(i)->get("color"),
                 bold);
             _tools.push_back(tool);
         }
-        else if(!strcmp(P->reports.at(i)->get("type"), "file")){
+        else if(!strcmp(_sim_data.reports.at(i)->get("type"), "file")){
             Reports::TabFile *tool = new Reports::TabFile(
-                P->reports.at(i)->get("name"),
-                P->reports.at(i)->get("fields"),
-                P->reports.at(i)->get("path"));
+                _sim_data.reports.at(i)->get("name"),
+                _sim_data.reports.at(i)->get("fields"),
+                _sim_data.reports.at(i)->get("path"));
             _tools.push_back(tool);
         }
-        else if(!strcmp(P->reports.at(i)->get("type"), "particles")){
+        else if(!strcmp(_sim_data.reports.at(i)->get("type"), "particles")){
             // Get the first particle associated to this set
-            unsigned int set_id = atoi(P->reports.at(i)->get("set"));
-            if(set_id >= P->sets.size()){
+            unsigned int set_id = atoi(_sim_data.reports.at(i)->get("set"));
+            if(set_id >= _sim_data.sets.size()){
                 sprintf(msg,
                         "Report \"%s\" requested the particles set %u but just %lu can be found.\n",
-                        P->reports.at(i)->get("name"),
+                        _sim_data.reports.at(i)->get("name"),
                         set_id,
-                        P->sets.size());
+                        _sim_data.sets.size());
                 S->addMessageF(L_ERROR, msg);
                 exit(EXIT_FAILURE);
             }
             unsigned int first = 0;
             for(j = 0; j < set_id; j++){
-                first += P->sets.at(j)->n();
+                first += _sim_data.sets.at(j)->n();
             }
 
             // And the ipf and fps
-            unsigned int ipf = atoi(P->reports.at(i)->get("ipf"));
-            float fps = atof(P->reports.at(i)->get("fps"));
+            unsigned int ipf = atoi(_sim_data.reports.at(i)->get("ipf"));
+            float fps = atof(_sim_data.reports.at(i)->get("fps"));
 
             Reports::SetTabFile *tool = new Reports::SetTabFile(
-                P->reports.at(i)->get("name"),
-                P->reports.at(i)->get("fields"),
+                _sim_data.reports.at(i)->get("name"),
+                _sim_data.reports.at(i)->get("fields"),
                 first,
-                P->sets.at(set_id)->n(),
-                P->reports.at(i)->get("path"),
+                _sim_data.sets.at(set_id)->n(),
+                _sim_data.reports.at(i)->get("path"),
                 ipf,
                 fps);
             _tools.push_back(tool);
         }
-        else if(!strcmp(P->reports.at(i)->get("type"), "performance")){
+        else if(!strcmp(_sim_data.reports.at(i)->get("type"), "performance")){
             bool bold = false;
-            if(!strcmp(P->reports.at(i)->get("bold"), "true") ||
-               !strcmp(P->reports.at(i)->get("bold"), "True")){
+            if(!strcmp(_sim_data.reports.at(i)->get("bold"), "true") ||
+               !strcmp(_sim_data.reports.at(i)->get("bold"), "True")){
                bold = true;
             }
             Reports::Performance *tool = new Reports::Performance(
-                P->reports.at(i)->get("name"),
-                P->reports.at(i)->get("color"),
+                _sim_data.reports.at(i)->get("name"),
+                _sim_data.reports.at(i)->get("color"),
                 bold,
-                P->reports.at(i)->get("path"));
+                _sim_data.reports.at(i)->get("path"));
             _tools.push_back(tool);
         }
         else{
             sprintf(msg,
                     "Unrecognized report type \"%s\" when parsing the \"%s\".\n",
-                    P->reports.at(i)->get("type"),
-                    P->reports.at(i)->get("name"));
+                    _sim_data.reports.at(i)->get("type"),
+                    _sim_data.reports.at(i)->get("name"));
             S->addMessageF(L_ERROR, msg);
             exit(EXIT_FAILURE);
         }
@@ -648,17 +648,16 @@ bool CalcServer::queryOpenCL()
 bool CalcServer::setupPlatform()
 {
     char msg[1024];
-    InputOutput::ProblemSetup  *P = InputOutput::ProblemSetup::singleton();
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-    if(P->settings.platform_id >= _num_platforms){
+    if(_sim_data.settings.platform_id >= _num_platforms){
         S->addMessageF(L_ERROR, "Impossible to use the requested platform.\n");
         strcpy(msg, "");
         sprintf(msg, "\t%u platform has been selected, but just %u platforms have been found\n",
-                P->settings.platform_id, _num_platforms);
+                _sim_data.settings.platform_id, _num_platforms);
         S->addMessage(L_DEBUG, msg);
         return true;
     }
-    _platform = _platforms[P->settings.platform_id];
+    _platform = _platforms[_sim_data.settings.platform_id];
     return false;
 }
 
@@ -699,12 +698,11 @@ bool CalcServer::setupDevices()
     cl_int err_code;
     cl_uint i;
     char msg[1024];
-    InputOutput::ProblemSetup  *P = InputOutput::ProblemSetup::singleton();
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     _devices = NULL;
     // Gets the number of valid devices
     err_code = clGetDeviceIDs(_platform,
-                              P->settings.device_type,
+                              _sim_data.settings.device_type,
                               0,
                               NULL,
                               &_num_devices);
@@ -713,21 +711,21 @@ bool CalcServer::setupDevices()
         S->printOpenCLError(err_code);
         return true;
     }
-    if(P->settings.device_id >= _num_devices) {
+    if(_sim_data.settings.device_id >= _num_devices) {
         S->addMessageF(L_ERROR, "Impossible to use the selected device.\n");
         strcpy(msg, "");
         sprintf(msg, "\t%u device has been selected, but just %u devices are available\n",
-                P->settings.device_id, _num_devices);
+                _sim_data.settings.device_id, _num_devices);
         S->addMessage(L_DEBUG, msg);
-        if(P->settings.device_type == CL_DEVICE_TYPE_ALL)
+        if(_sim_data.settings.device_type == CL_DEVICE_TYPE_ALL)
             S->addMessage(L_DEBUG, "\t\tCL_DEVICE_TYPE_ALL filter activated\n");
-        else if(P->settings.device_type == CL_DEVICE_TYPE_CPU)
+        else if(_sim_data.settings.device_type == CL_DEVICE_TYPE_CPU)
             S->addMessage(L_DEBUG, "\t\tCL_DEVICE_TYPE_CPU filter activated\n");
-        else if(P->settings.device_type == CL_DEVICE_TYPE_GPU)
+        else if(_sim_data.settings.device_type == CL_DEVICE_TYPE_GPU)
             S->addMessage(L_DEBUG, "\t\tCL_DEVICE_TYPE_GPU filter activated\n");
-        else if(P->settings.device_type == CL_DEVICE_TYPE_ACCELERATOR)
+        else if(_sim_data.settings.device_type == CL_DEVICE_TYPE_ACCELERATOR)
             S->addMessage(L_DEBUG, "\t\tCL_DEVICE_TYPE_ACCELERATOR filter activated\n");
-        else if(P->settings.device_type == CL_DEVICE_TYPE_DEFAULT)
+        else if(_sim_data.settings.device_type == CL_DEVICE_TYPE_DEFAULT)
             S->addMessage(L_DEBUG, "\t\tCL_DEVICE_TYPE_DEFAULT filter activated\n");
 
         return true;
@@ -740,7 +738,7 @@ bool CalcServer::setupDevices()
         return true;
     }
     err_code = clGetDeviceIDs(_platform,
-                              P->settings.device_type,
+                              _sim_data.settings.device_type,
                               _num_devices,
                               _devices,
                               &_num_devices);
@@ -782,8 +780,8 @@ bool CalcServer::setupDevices()
         }
     }
     // Store the selected ones
-    _device = _devices[P->settings.device_id];
-    _command_queue = _command_queues[P->settings.device_id];
+    _device = _devices[_sim_data.settings.device_id];
+    _command_queue = _command_queues[_sim_data.settings.device_id];
     return false;
 }
 
@@ -792,7 +790,6 @@ bool CalcServer::setup()
     unsigned int i, j;
     cl_uint err_code=0;
     char msg[512];
-    InputOutput::ProblemSetup *P = InputOutput::ProblemSetup::singleton();
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     strcpy(msg, "");
 
@@ -821,8 +818,8 @@ bool CalcServer::setup()
     S->addMessageF(L_INFO, msg);
 
     // Setup the scalar data per particles sets
-    for(i = 0; i < P->sets.size(); i++){
-        InputOutput::ProblemSetup::sphParticlesSet* set = P->sets.at(i);
+    for(i = 0; i < _sim_data.sets.size(); i++){
+        InputOutput::ProblemSetup::sphParticlesSet* set = _sim_data.sets.at(i);
         for(j = 0; j < set->scalarNames().size(); j++){
             const char *name = set->scalarNames().at(j);
             const char *val = set->scalarValues().at(j);
@@ -847,12 +844,12 @@ bool CalcServer::setup()
             InputOutput::ArrayVariable *var = (InputOutput::ArrayVariable *)_vars->get(name);
             size_t typesize = _vars->typeToBytes(_vars->get(name)->type());
             size_t len = _vars->get(name)->size() / typesize;
-            if(len != P->sets.size()){
+            if(len != _sim_data.sets.size()){
                 sprintf(msg,
                         "Variable \"%s\" is an array of %u components, which does not match with the number of particles sets (n_sets = %u)\n",
                         name,
                         len,
-                        P->sets.size());
+                        _sim_data.sets.size());
                 S->addMessageF(L_ERROR, msg);
                 return true;
             }

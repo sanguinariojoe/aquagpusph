@@ -32,8 +32,12 @@
 
 namespace Aqua{ namespace InputOutput{
 
-Particles::Particles(unsigned int first, unsigned int n, unsigned int iset)
-    : _iset(iset)
+Particles::Particles(ProblemSetup sim_data,
+                     unsigned int first,
+                     unsigned int n,
+                     unsigned int iset)
+    : _sim_data(sim_data)
+    , _iset(iset)
     , _output_file(NULL)
 {
     _bounds.x = first;

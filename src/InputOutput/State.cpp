@@ -30,8 +30,6 @@
 
 #include <InputOutput/State.h>
 #include <ScreenManager.h>
-#include <ProblemSetup.h>
-#include <FileManager.h>
 #include <TimeManager.h>
 #include <CalcServer.h>
 #include <AuxiliarMethods.h>
@@ -184,21 +182,21 @@ State::~State()
     delete[] _output_file;
 }
 
-bool State::save()
+bool State::save(ProblemSetup sim_data, std::vector<Particles*> savers)
 {
-    return write(_output_file);
+    return write(_output_file, sim_data, savers);
 }
 
-bool State::load()
+bool State::load(std::string input_file, ProblemSetup &sim_data)
 {
-    FileManager *F = FileManager::singleton();
-    return parse(F->inputFile().c_str());
+    return parse(input_file.c_str(), sim_data);
 }
 
-bool State::parse(const char* filepath, const char* prefix)
+bool State::parse(const char* filepath,
+                  ProblemSetup &sim_data,
+                  const char* prefix)
 {
     ScreenManager *S = ScreenManager::singleton();
-    ProblemSetup *P = ProblemSetup::singleton();
     DOMNodeList* nodes = NULL;
     char msg[1024];
     strcpy(msg, "");
@@ -244,37 +242,37 @@ bool State::parse(const char* filepath, const char* prefix)
         if(xmlHasAttribute(elem, "prefix")){
             included_prefix = xmlAttribute(elem, "prefix");
         }
-        if(parse(included_file, (const char*)included_prefix)){
+        if(parse(included_file, sim_data, (const char*)included_prefix)){
             xmlClear();
             return true;
         }
     }
 
-    if(parseSettings(root, prefix)){
+    if(parseSettings(root, sim_data, prefix)){
         xmlClear();
         return true;
     }
-    if(parseVariables(root, prefix)){
+    if(parseVariables(root, sim_data, prefix)){
         xmlClear();
         return true;
     }
-    if(parseDefinitions(root, prefix)){
+    if(parseDefinitions(root, sim_data, prefix)){
         xmlClear();
         return true;
     }
-    if(parseTools(root, prefix)){
+    if(parseTools(root, sim_data, prefix)){
         xmlClear();
         return true;
     }
-    if(parseReports(root, prefix)){
+    if(parseReports(root, sim_data, prefix)){
         xmlClear();
         return true;
     }
-    if(parseTiming(root, prefix)){
+    if(parseTiming(root, sim_data, prefix)){
         xmlClear();
         return true;
     }
-    if(parseSet(root, prefix)){
+    if(parseSets(root, sim_data, prefix)){
         xmlClear();
         return true;
     }
@@ -294,7 +292,7 @@ bool State::parse(const char* filepath, const char* prefix)
         if(xmlHasAttribute(elem, "prefix")){
             included_prefix = xmlAttribute(elem, "prefix");
         }
-        if(parse(included_file, (const char*)included_prefix)){
+        if(parse(included_file, sim_data, (const char*)included_prefix)){
             xmlClear();
             return true;
         }
@@ -305,10 +303,11 @@ bool State::parse(const char* filepath, const char* prefix)
     return false;
 }
 
-bool State::parseSettings(DOMElement *root, const char* prefix)
+bool State::parseSettings(DOMElement *root,
+                          ProblemSetup &sim_data,
+                          const char* prefix)
 {
     ScreenManager *S = ScreenManager::singleton();
-    ProblemSetup *P = ProblemSetup::singleton();
     char msg[1024]; strcpy(msg, "");
     DOMNodeList* nodes = root->getElementsByTagName(xmlS("Settings"));
     for(XMLSize_t i=0; i<nodes->getLength();i++){
@@ -324,7 +323,7 @@ bool State::parseSettings(DOMElement *root, const char* prefix)
             if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
                 continue;
             DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
-            P->settings.verbose_level = atoi(xmlAttribute(s_elem, "level"));
+            sim_data.settings.verbose_level = atoi(xmlAttribute(s_elem, "level"));
         }
 
         s_nodes = elem->getElementsByTagName(xmlS("SaveOnFail"));
@@ -336,10 +335,10 @@ bool State::parseSettings(DOMElement *root, const char* prefix)
             if(!strcmp(xmlAttribute(s_elem, "value"), "true") ||
                !strcmp(xmlAttribute(s_elem, "value"), "True") ||
                !strcmp(xmlAttribute(s_elem, "value"), "TRUE")){
-                P->settings.save_on_fail = true;
+                sim_data.settings.save_on_fail = true;
             }
             else{
-                P->settings.save_on_fail = false;
+                sim_data.settings.save_on_fail = false;
             }
         }
 
@@ -349,18 +348,18 @@ bool State::parseSettings(DOMElement *root, const char* prefix)
             if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
                 continue;
             DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
-            P->settings.platform_id = atoi(xmlAttribute(s_elem, "platform"));
-            P->settings.device_id   = atoi(xmlAttribute(s_elem, "device"));
+            sim_data.settings.platform_id = atoi(xmlAttribute(s_elem, "platform"));
+            sim_data.settings.device_id   = atoi(xmlAttribute(s_elem, "device"));
             if(!strcmp("ALL", xmlAttribute(s_elem, "type")))
-                P->settings.device_type = CL_DEVICE_TYPE_ALL;
+                sim_data.settings.device_type = CL_DEVICE_TYPE_ALL;
             else if(!strcmp("CPU", xmlAttribute(s_elem, "type")))
-                P->settings.device_type = CL_DEVICE_TYPE_CPU;
+                sim_data.settings.device_type = CL_DEVICE_TYPE_CPU;
             else if(!strcmp("GPU", xmlAttribute(s_elem, "type")))
-                P->settings.device_type = CL_DEVICE_TYPE_GPU;
+                sim_data.settings.device_type = CL_DEVICE_TYPE_GPU;
             else if(!strcmp("ACCELERATOR", xmlAttribute(s_elem, "type")))
-                P->settings.device_type = CL_DEVICE_TYPE_ACCELERATOR;
+                sim_data.settings.device_type = CL_DEVICE_TYPE_ACCELERATOR;
             else if(!strcmp("DEFAULT", xmlAttribute(s_elem, "type")))
-                P->settings.device_type = CL_DEVICE_TYPE_DEFAULT;
+                sim_data.settings.device_type = CL_DEVICE_TYPE_DEFAULT;
             else{
                 sprintf(msg,
                         "Unknow \"%s\" type of device\n",
@@ -381,16 +380,17 @@ bool State::parseSettings(DOMElement *root, const char* prefix)
             if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
                 continue;
             DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
-            P->settings.base_path = xmlAttribute(s_elem, "path");
+            sim_data.settings.base_path = xmlAttribute(s_elem, "path");
         }
     }
     return false;
 }
 
-bool State::parseVariables(DOMElement *root, const char* prefix)
+bool State::parseVariables(DOMElement *root,
+                           ProblemSetup &sim_data,
+                           const char* prefix)
 {
     ScreenManager *S = ScreenManager::singleton();
-    ProblemSetup *P = ProblemSetup::singleton();
     DOMNodeList* nodes = root->getElementsByTagName(xmlS("Variables"));
     for(XMLSize_t i=0; i<nodes->getLength(); i++){
         DOMNode* node = nodes->item(i);
@@ -405,13 +405,13 @@ bool State::parseVariables(DOMElement *root, const char* prefix)
             DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 
             if(!strstr(xmlAttribute(s_elem, "type"), "*")){
-                P->variables.registerVariable(xmlAttribute(s_elem, "name"),
+                sim_data.variables.registerVariable(xmlAttribute(s_elem, "name"),
                                               xmlAttribute(s_elem, "type"),
                                               "1",
                                               xmlAttribute(s_elem, "value"));
             }
             else{
-                P->variables.registerVariable(xmlAttribute(s_elem, "name"),
+                sim_data.variables.registerVariable(xmlAttribute(s_elem, "name"),
                                               xmlAttribute(s_elem, "type"),
                                               xmlAttribute(s_elem, "length"),
                                               "NULL");
@@ -421,10 +421,11 @@ bool State::parseVariables(DOMElement *root, const char* prefix)
     return false;
 }
 
-bool State::parseDefinitions(DOMElement *root, const char* prefix)
+bool State::parseDefinitions(DOMElement *root,
+                             ProblemSetup &sim_data,
+                             const char* prefix)
 {
     ScreenManager *S = ScreenManager::singleton();
-    ProblemSetup *P = ProblemSetup::singleton();
     DOMNodeList* nodes = root->getElementsByTagName(xmlS("Definitions"));
     for(XMLSize_t i=0; i<nodes->getLength(); i++){
         DOMNode* node = nodes->item(i);
@@ -442,7 +443,7 @@ bool State::parseDefinitions(DOMElement *root, const char* prefix)
                 return true;
             }
             if(!xmlHasAttribute(s_elem, "value")){
-                P->definitions.define(xmlAttribute(s_elem, "name"),
+                sim_data.definitions.define(xmlAttribute(s_elem, "name"),
                                       "",
                                       false);
                 continue;
@@ -460,7 +461,7 @@ bool State::parseDefinitions(DOMElement *root, const char* prefix)
                 evaluate = true;
             }
 
-            P->definitions.define(xmlAttribute(s_elem, "name"),
+            sim_data.definitions.define(xmlAttribute(s_elem, "name"),
                                   xmlAttribute(s_elem, "value"),
                                   evaluate);
         }
@@ -479,10 +480,11 @@ static std::deque<unsigned int> _tool_places;
  * @return The positions of the tools
  * @warning This methos is not thread safe
  */
-static std::deque<unsigned int> _toolsList(const char* list, const char* prefix)
+static std::deque<unsigned int> _toolsList(const char* list,
+                                           ProblemSetup &sim_data,
+                                           const char* prefix)
 {
     ScreenManager *S = ScreenManager::singleton();
-    ProblemSetup *P = ProblemSetup::singleton();
     // Clear the list of tools (from previous executions)
     _tool_places.clear();
     // Loop along the list items
@@ -500,8 +502,8 @@ static std::deque<unsigned int> _toolsList(const char* list, const char* prefix)
         strcat(toolname, token);
         // Look for the tool in the already defined ones
         unsigned int place;
-        for(place = 0; place < P->tools.size(); place++){
-            if(!strcmp(P->tools.at(place)->get("name"),
+        for(place = 0; place < sim_data.tools.size(); place++){
+            if(!strcmp(sim_data.tools.at(place)->get("name"),
                        toolname))
             {
                 _tool_places.push_back(place);
@@ -523,10 +525,11 @@ static std::deque<unsigned int> _toolsList(const char* list, const char* prefix)
  * @return The positions of the tools
  * @warning This methos is not thread safe
  */
-static std::deque<unsigned int> _toolsName(const char* name, const char* prefix)
+static std::deque<unsigned int> _toolsName(const char* name,
+                                           ProblemSetup &sim_data,
+                                           const char* prefix)
 {
     ScreenManager *S = ScreenManager::singleton();
-    ProblemSetup *P = ProblemSetup::singleton();
     // Clear the list of tools (from previous executions)
     _tool_places.clear();
     // Insert the prefix at the beggining of the tool name
@@ -540,9 +543,9 @@ static std::deque<unsigned int> _toolsName(const char* name, const char* prefix)
     strcat(toolname, name);
     // Look for the patterns in the already defined tool names
     unsigned int place;
-    for(place = 0; place < P->tools.size(); place++){
+    for(place = 0; place < sim_data.tools.size(); place++){
         if(!fnmatch(toolname,
-                    P->tools.at(place)->get("name"),
+                    sim_data.tools.at(place)->get("name"),
                     0))
         {
             _tool_places.push_back(place);
@@ -553,10 +556,11 @@ static std::deque<unsigned int> _toolsName(const char* name, const char* prefix)
     return _tool_places;
 }
 
-bool State::parseTools(DOMElement *root, const char* prefix)
+bool State::parseTools(DOMElement *root,
+                       ProblemSetup &sim_data,
+                       const char* prefix)
 {
     ScreenManager *S = ScreenManager::singleton();
-    ProblemSetup *P = ProblemSetup::singleton();
     char msg[1024]; strcpy(msg, "");
     DOMNodeList* nodes = root->getElementsByTagName(xmlS("Tools"));
     for(XMLSize_t i=0; i<nodes->getLength(); i++){
@@ -600,7 +604,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
 
             // Check if the conditions to add the tool are fulfilled
             if(xmlHasAttribute(s_elem, "ifdef")){
-                if(!P->definitions.isDefined(xmlAttribute(s_elem, "ifdef"))){
+                if(!sim_data.definitions.isDefined(xmlAttribute(s_elem, "ifdef"))){
                     sprintf(msg,
                             "Ignoring the tool \"%s\" because \"%s\" has not been defined.\n",
                             tool->get("name"),
@@ -611,7 +615,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                 }
             }
             else if(xmlHasAttribute(s_elem, "ifndef")){
-                if(P->definitions.isDefined(xmlAttribute(s_elem, "ifndef"))){
+                if(sim_data.definitions.isDefined(xmlAttribute(s_elem, "ifndef"))){
                     sprintf(msg,
                             "Ignoring the tool \"%s\" because \"%s\" has been defined.\n",
                             tool->get("name"),
@@ -625,7 +629,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
             // Place the tool
             if(!xmlHasAttribute(s_elem, "action") ||
                !strcmp(xmlAttribute(s_elem, "action"), "add")){
-                P->tools.push_back(tool);
+                sim_data.tools.push_back(tool);
             }
             else if(!strcmp(xmlAttribute(s_elem, "action"), "insert") ||
                     !strcmp(xmlAttribute(s_elem, "action"), "try_insert")){
@@ -645,7 +649,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                     if(strchr((const char*)att_str, ',')){
                         // It is a list of names. We must get all the matching
                         // places and select the most convenient one
-                        all_places = _toolsList((const char*)att_str, "");
+                        all_places = _toolsList((const char*)att_str, sim_data, "");
                         if(!all_places.size()){
                             sprintf(msg,
                                     "The tool \"%s\" must be inserted before \"%s\", but such tools cannot be found.\n",
@@ -668,7 +672,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                     else{
                         // We can treat the string as a wildcard. Right now we
                         // wanna get all the places matching the pattern
-                        all_places = _toolsName((const char*)att_str, "");
+                        all_places = _toolsName((const char*)att_str, sim_data, "");
                         if(!all_places.size()){
                             sprintf(msg,
                                     "The tool \"%s\" must be inserted before \"%s\", but such tool cannot be found.\n",
@@ -694,7 +698,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                     if(strchr((const char*)att_str, ',')){
                         // It is a list of names. We must get all the matching
                         // places and select the most convenient one
-                        all_places = _toolsList((const char*)att_str, "");
+                        all_places = _toolsList((const char*)att_str, sim_data, "");
                         if(!all_places.size()){
                             sprintf(msg,
                                     "The tool \"%s\" must be inserted before \"%s\", but such tools cannot be found.\n",
@@ -717,7 +721,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                     else{
                         // We can treat the string as a wildcard. Right now we
                         // wanna get all the places matching the pattern
-                        all_places = _toolsName((const char*)att_str, "");
+                        all_places = _toolsName((const char*)att_str, sim_data, "");
                         if(!all_places.size()){
                             sprintf(msg,
                                     "The tool \"%s\" must be inserted before \"%s\", but such tool cannot be found.\n",
@@ -743,7 +747,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                     if(strchr((const char*)att_str, ',')){
                         // It is a list of names. We must get all the matching
                         // places and select the most convenient one
-                        all_places = _toolsList((const char*)att_str, prefix);
+                        all_places = _toolsList((const char*)att_str, sim_data, prefix);
                         if(!all_places.size()){
                             sprintf(msg,
                                     "The tool \"%s\" must be inserted before \"%s\", but such tools cannot be found.\n",
@@ -766,7 +770,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                     else{
                         // We can treat the string as a wildcard. Right now we
                         // wanna get all the places matching the pattern
-                        all_places = _toolsName((const char*)att_str, prefix);
+                        all_places = _toolsName((const char*)att_str, sim_data, prefix);
                         if(!all_places.size()){
                             sprintf(msg,
                                     "The tool \"%s\" must be inserted before \"%s\", but such tool cannot be found.\n",
@@ -792,7 +796,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                     if(strchr((const char*)att_str, ',')){
                         // It is a list of names. We must get all the matching
                         // places and select the most convenient one
-                        all_places = _toolsList((const char*)att_str, prefix);
+                        all_places = _toolsList((const char*)att_str, sim_data, prefix);
                         if(!all_places.size()){
                             sprintf(msg,
                                     "The tool \"%s\" must be inserted before \"%s\", but such tools cannot be found.\n",
@@ -815,7 +819,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                     else{
                         // We can treat the string as a wildcard. Right now we
                         // wanna get all the places matching the pattern
-                        all_places = _toolsName((const char*)att_str, prefix);
+                        all_places = _toolsName((const char*)att_str, sim_data, prefix);
                         if(!all_places.size()){
                             sprintf(msg,
                                     "The tool \"%s\" must be inserted before \"%s\", but such tool cannot be found.\n",
@@ -852,7 +856,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                 // We cannot directly insert the tools, because the places would
                 // change meanwhile, so better backward adding them
                 for(place = places.size(); place > 0; place--){
-                    P->tools.insert(P->tools.begin() + places.at(place - 1),
+                    sim_data.tools.insert(sim_data.tools.begin() + places.at(place - 1),
                                     tool);
                 }
             }
@@ -863,7 +867,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                 unsigned int place;
                 std::deque<unsigned int> places;
                 // Get the places of the tools selected
-                places = _toolsName((const char*)(tool->get("name")), prefix);
+                places = _toolsName((const char*)(tool->get("name")), sim_data, prefix);
                 if(!places.size()){
                     sprintf(msg,
                             "Failure removing the tool \"%s\" (tool not found).\n",
@@ -882,12 +886,12 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                 delete tool;
                 // Delete the tools in backward order
                 for(place = places.size(); place > 0; place--){
-                    if(P->toolInstances(P->tools.at(places.at(place - 1))) == 1){
+                    if(sim_data.toolInstances(sim_data.tools.at(places.at(place - 1))) == 1){
                         // This is the last instance
-                        delete P->tools.at(places.at(place - 1));
+                        delete sim_data.tools.at(places.at(place - 1));
                     }
                     // Drop the tool from the list
-                    P->tools.erase(P->tools.begin() + places.at(place - 1));
+                    sim_data.tools.erase(sim_data.tools.begin() + places.at(place - 1));
                 }
                 continue;
             }
@@ -898,7 +902,7 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                 unsigned int place;
                 std::deque<unsigned int> places;
                 // Get the places
-                places = _toolsName((const char*)(tool->get("name")), prefix);
+                places = _toolsName((const char*)(tool->get("name")), sim_data, prefix);
                 if(!places.size()){
                     sprintf(msg,
                             "Failure replacing the tool \"%s\" (tool not found).\n",
@@ -915,12 +919,12 @@ bool State::parseTools(DOMElement *root, const char* prefix)
                 }
                 // Replace the tools
                 for(place = 0; place < places.size(); place++){
-                    if(P->toolInstances(P->tools.at(places.at(place))) == 1){
+                    if(sim_data.toolInstances(sim_data.tools.at(places.at(place))) == 1){
                         // This is the last instance
-                        delete P->tools.at(places.at(place));
+                        delete sim_data.tools.at(places.at(place));
                     }
                     // Set the new tool
-                    P->tools.at(places.at(place)) = tool;
+                    sim_data.tools.at(places.at(place)) = tool;
                 }
             }
             else{
@@ -1089,10 +1093,11 @@ bool State::parseTools(DOMElement *root, const char* prefix)
     return false;
 }
 
-bool State::parseTiming(DOMElement *root, const char* prefix)
+bool State::parseTiming(DOMElement *root,
+                        ProblemSetup &sim_data,
+                        const char* prefix)
 {
     ScreenManager *S = ScreenManager::singleton();
-    ProblemSetup *P = ProblemSetup::singleton();
     char msg[1024]; strcpy(msg, "");
     DOMNodeList* nodes = root->getElementsByTagName(xmlS("Timing"));
     for(XMLSize_t i=0; i<nodes->getLength(); i++){
@@ -1111,21 +1116,21 @@ bool State::parseTiming(DOMElement *root, const char* prefix)
             if(!strcmp(name, "End") || !strcmp(name, "SimulationStop")){
                 const char *type = xmlAttribute(s_elem, "type");
                 if(!strcmp(type, "Time") || !strcmp(type, "T")){
-                    P->time_opts.sim_end_mode =
-                        P->time_opts.sim_end_mode | __TIME_MODE__;
-                    P->time_opts.sim_end_time =
+                    sim_data.time_opts.sim_end_mode =
+                        sim_data.time_opts.sim_end_mode | __TIME_MODE__;
+                    sim_data.time_opts.sim_end_time =
                         atof(xmlAttribute(s_elem, "value"));
                 }
                 else if(!strcmp(type, "Steps") || !strcmp(type, "S")){
-                    P->time_opts.sim_end_mode =
-                        P->time_opts.sim_end_mode | __ITER_MODE__;
-                    P->time_opts.sim_end_step =
+                    sim_data.time_opts.sim_end_mode =
+                        sim_data.time_opts.sim_end_mode | __ITER_MODE__;
+                    sim_data.time_opts.sim_end_step =
                         atoi(xmlAttribute(s_elem, "value"));
                 }
                 else if(!strcmp(type, "Frames") || !strcmp(type, "F")){
-                    P->time_opts.sim_end_mode =
-                        P->time_opts.sim_end_mode | __FRAME_MODE__;
-                    P->time_opts.sim_end_frame =
+                    sim_data.time_opts.sim_end_mode =
+                        sim_data.time_opts.sim_end_mode | __FRAME_MODE__;
+                    sim_data.time_opts.sim_end_frame =
                         atoi(xmlAttribute(s_elem, "value"));
                 }
                 else {
@@ -1143,18 +1148,18 @@ bool State::parseTiming(DOMElement *root, const char* prefix)
             else if(!strcmp(name, "LogFile")){
                 const char *type = xmlAttribute(s_elem, "type");
                 if(!strcmp(type, "No")){
-                    P->time_opts.log_mode = __NO_OUTPUT_MODE__;
+                    sim_data.time_opts.log_mode = __NO_OUTPUT_MODE__;
                 }
                 else if(!strcmp(type, "FPS")){
-                    P->time_opts.log_mode =
-                        P->time_opts.log_mode | __FPS_MODE__;
-                    P->time_opts.log_fps =
+                    sim_data.time_opts.log_mode =
+                        sim_data.time_opts.log_mode | __FPS_MODE__;
+                    sim_data.time_opts.log_fps =
                         atof(xmlAttribute(s_elem, "value"));
                 }
                 else if(!strcmp(type, "IPF")){
-                    P->time_opts.log_mode =
-                        P->time_opts.log_mode | __IPF_MODE__;
-                    P->time_opts.log_ipf =
+                    sim_data.time_opts.log_mode =
+                        sim_data.time_opts.log_mode | __IPF_MODE__;
+                    sim_data.time_opts.log_ipf =
                         atoi(xmlAttribute(s_elem, "value"));
                 }
                 else {
@@ -1172,18 +1177,18 @@ bool State::parseTiming(DOMElement *root, const char* prefix)
             else if(!strcmp(name, "Output")){
                 const char *type = xmlAttribute(s_elem, "type");
                 if(!strcmp(type, "No")){
-                    P->time_opts.output_mode = __NO_OUTPUT_MODE__;
+                    sim_data.time_opts.output_mode = __NO_OUTPUT_MODE__;
                 }
                 else if(!strcmp(type, "FPS")){
-                    P->time_opts.output_mode =
-                        P->time_opts.output_mode | __FPS_MODE__;
-                    P->time_opts.output_fps =
+                    sim_data.time_opts.output_mode =
+                        sim_data.time_opts.output_mode | __FPS_MODE__;
+                    sim_data.time_opts.output_fps =
                         atof(xmlAttribute(s_elem, "value"));
                 }
                 else if(!strcmp(type, "IPF")){
-                    P->time_opts.output_mode =
-                        P->time_opts.output_mode | __IPF_MODE__;
-                    P->time_opts.output_ipf =
+                    sim_data.time_opts.output_mode =
+                        sim_data.time_opts.output_mode | __IPF_MODE__;
+                    sim_data.time_opts.output_ipf =
                         atoi(xmlAttribute(s_elem, "value"));
                 }
                 else {
@@ -1209,10 +1214,11 @@ bool State::parseTiming(DOMElement *root, const char* prefix)
     return false;
 }
 
-bool State::parseSet(DOMElement *root, const char* prefix)
+bool State::parseSets(DOMElement *root,
+                      ProblemSetup &sim_data,
+                      const char* prefix)
 {
     ScreenManager *S = ScreenManager::singleton();
-    ProblemSetup *P = ProblemSetup::singleton();
     char msg[1024]; strcpy(msg, "");
     DOMNodeList* nodes = root->getElementsByTagName(xmlS("ParticlesSet"));
     for(XMLSize_t i=0; i<nodes->getLength(); i++){
@@ -1263,15 +1269,16 @@ bool State::parseSet(DOMElement *root, const char* prefix)
             const char *fields = xmlAttribute(s_elem, "fields");
             Set->output(path, format, fields);
         }
-        P->sets.push_back(Set);
+        sim_data.sets.push_back(Set);
     }
     return false;
 }
 
-bool State::parseReports(DOMElement *root, const char* prefix)
+bool State::parseReports(DOMElement *root,
+                         ProblemSetup &sim_data,
+                         const char* prefix)
 {
     ScreenManager *S = ScreenManager::singleton();
-    ProblemSetup *P = ProblemSetup::singleton();
     char msg[1024]; strcpy(msg, "");
     DOMNodeList* nodes = root->getElementsByTagName(xmlS("Reports"));
     for(XMLSize_t i=0; i<nodes->getLength(); i++){
@@ -1312,7 +1319,7 @@ bool State::parseReports(DOMElement *root, const char* prefix)
             name = NULL;
 
             report->set("type", xmlAttribute(s_elem, "type"));
-            P->reports.push_back(report);
+            sim_data.reports.push_back(report);
 
             // Configure the report
             if(!strcmp(xmlAttribute(s_elem, "type"), "screen")){
@@ -1423,7 +1430,9 @@ bool State::parseReports(DOMElement *root, const char* prefix)
     return false;
 }
 
-bool State::write(const char* filepath)
+bool State::write(const char* filepath,
+                  ProblemSetup sim_data,
+                  std::vector<Particles*> savers)
 {
     DOMImplementation* impl;
     char msg[64 + strlen(filepath)];
@@ -1438,31 +1447,31 @@ bool State::write(const char* filepath)
         NULL);
     DOMElement* root = doc->getDocumentElement();
 
-    if(writeSettings(doc, root)){
+    if(writeSettings(doc, root, sim_data)){
         xmlClear();
         return true;
     }
-    if(writeVariables(doc, root)){
+    if(writeVariables(doc, root, sim_data)){
         xmlClear();
         return true;
     }
-    if(writeDefinitions(doc, root)){
+    if(writeDefinitions(doc, root, sim_data)){
         xmlClear();
         return true;
     }
-    if(writeTools(doc, root)){
+    if(writeTools(doc, root, sim_data)){
         xmlClear();
         return true;
     }
-    if(writeReports(doc, root)){
+    if(writeReports(doc, root, sim_data)){
         xmlClear();
         return true;
     }
-    if(writeTiming(doc, root)){
+    if(writeTiming(doc, root, sim_data)){
         xmlClear();
         return true;
     }
-    if(writeSet(doc, root)){
+    if(writeSets(doc, root, sim_data, savers)){
         xmlClear();
         return true;
     }
@@ -1520,25 +1529,25 @@ bool State::write(const char* filepath)
 }
 
 bool State::writeSettings(xercesc::DOMDocument* doc,
-                          xercesc::DOMElement *root)
+                          xercesc::DOMElement *root,
+                          ProblemSetup sim_data)
 {
     DOMElement *elem, *s_elem;
     char att[1024];
-    ProblemSetup *P = ProblemSetup::singleton();
 
     elem = doc->createElement(xmlS("Settings"));
     root->appendChild(elem);
 
     s_elem = doc->createElement(xmlS("Verbose"));
-    sprintf(att, "%d", P->settings.verbose_level);
+    sprintf(att, "%d", sim_data.settings.verbose_level);
     s_elem->setAttribute(xmlS("level"), xmlS(att));
     elem->appendChild(s_elem);
     s_elem = doc->createElement(xmlS("Device"));
-    sprintf(att, "%u", P->settings.platform_id);
+    sprintf(att, "%u", sim_data.settings.platform_id);
     s_elem->setAttribute(xmlS("platform"), xmlS(att));
-    sprintf(att, "%u", P->settings.device_id);
+    sprintf(att, "%u", sim_data.settings.device_id);
     s_elem->setAttribute(xmlS("device"), xmlS(att));
-    switch(P->settings.device_type){
+    switch(sim_data.settings.device_type){
     case CL_DEVICE_TYPE_ALL:
         strcpy(att, "ALL");
         break;
@@ -1561,7 +1570,8 @@ bool State::writeSettings(xercesc::DOMDocument* doc,
 }
 
 bool State::writeVariables(xercesc::DOMDocument* doc,
-                           xercesc::DOMElement *root)
+                           xercesc::DOMElement *root,
+                           ProblemSetup sim_data)
 {
     unsigned int i;
     DOMElement *elem, *s_elem;
@@ -1605,16 +1615,16 @@ bool State::writeVariables(xercesc::DOMDocument* doc,
 }
 
 bool State::writeDefinitions(xercesc::DOMDocument* doc,
-                           xercesc::DOMElement *root)
+                             xercesc::DOMElement *root,
+                             ProblemSetup sim_data)
 {
     unsigned int i;
     DOMElement *elem, *s_elem;
-    ProblemSetup *P = ProblemSetup::singleton();
 
     elem = doc->createElement(xmlS("Definitions"));
     root->appendChild(elem);
 
-    ProblemSetup::sphDefinitions defs = P->definitions;
+    ProblemSetup::sphDefinitions defs = sim_data.definitions;
 
     for(i = 0; i < defs.names.size(); i++){
         s_elem = doc->createElement(xmlS("Define"));
@@ -1638,16 +1648,16 @@ bool State::writeDefinitions(xercesc::DOMDocument* doc,
 }
 
 bool State::writeTools(xercesc::DOMDocument* doc,
-                           xercesc::DOMElement *root)
+                       xercesc::DOMElement *root,
+                       ProblemSetup sim_data)
 {
     unsigned int i, j;
     DOMElement *elem, *s_elem;
-    ProblemSetup *P = ProblemSetup::singleton();
 
     elem = doc->createElement(xmlS("Tools"));
     root->appendChild(elem);
 
-    std::deque<ProblemSetup::sphTool*> tools = P->tools;
+    std::deque<ProblemSetup::sphTool*> tools = sim_data.tools;
 
     for(i = 0; i < tools.size(); i++){
         s_elem = doc->createElement(xmlS("Tool"));
@@ -1670,16 +1680,16 @@ bool State::writeTools(xercesc::DOMDocument* doc,
 }
 
 bool State::writeReports(xercesc::DOMDocument* doc,
-                         xercesc::DOMElement *root)
+                         xercesc::DOMElement *root,
+                         ProblemSetup sim_data)
 {
     unsigned int i, j;
     DOMElement *elem, *s_elem;
-    ProblemSetup *P = ProblemSetup::singleton();
 
     elem = doc->createElement(xmlS("Reports"));
     root->appendChild(elem);
 
-    std::deque<ProblemSetup::sphTool*> reports = P->reports;
+    std::deque<ProblemSetup::sphTool*> reports = sim_data.reports;
 
     for(i = 0; i < reports.size(); i++){
         s_elem = doc->createElement(xmlS("Report"));
@@ -1697,71 +1707,71 @@ bool State::writeReports(xercesc::DOMDocument* doc,
 }
 
 bool State::writeTiming(xercesc::DOMDocument* doc,
-                        xercesc::DOMElement *root)
+                        xercesc::DOMElement *root,
+                        ProblemSetup sim_data)
 {
     DOMElement *elem, *s_elem;
     char att[1024];
-    ProblemSetup *P = ProblemSetup::singleton();
     TimeManager *T = TimeManager::singleton();
 
     elem = doc->createElement(xmlS("Timing"));
     root->appendChild(elem);
 
-    if(P->time_opts.sim_end_mode & __TIME_MODE__){
+    if(sim_data.time_opts.sim_end_mode & __TIME_MODE__){
         s_elem = doc->createElement(xmlS("Option"));
         s_elem->setAttribute(xmlS("name"), xmlS("End"));
         s_elem->setAttribute(xmlS("type"), xmlS("Time"));
-        sprintf(att, "%g", P->time_opts.sim_end_time);
+        sprintf(att, "%g", sim_data.time_opts.sim_end_time);
         s_elem->setAttribute(xmlS("value"), xmlS(att));
         elem->appendChild(s_elem);
     }
-    if(P->time_opts.sim_end_mode & __ITER_MODE__){
+    if(sim_data.time_opts.sim_end_mode & __ITER_MODE__){
         s_elem = doc->createElement(xmlS("Option"));
         s_elem->setAttribute(xmlS("name"), xmlS("End"));
         s_elem->setAttribute(xmlS("type"), xmlS("Steps"));
-        sprintf(att, "%d", P->time_opts.sim_end_step);
+        sprintf(att, "%d", sim_data.time_opts.sim_end_step);
         s_elem->setAttribute(xmlS("value"), xmlS(att));
         elem->appendChild(s_elem);
     }
-    if(P->time_opts.sim_end_mode & __FRAME_MODE__){
+    if(sim_data.time_opts.sim_end_mode & __FRAME_MODE__){
         s_elem = doc->createElement(xmlS("Option"));
         s_elem->setAttribute(xmlS("name"), xmlS("End"));
         s_elem->setAttribute(xmlS("type"), xmlS("Frames"));
-        sprintf(att, "%d", P->time_opts.sim_end_frame);
+        sprintf(att, "%d", sim_data.time_opts.sim_end_frame);
         s_elem->setAttribute(xmlS("value"), xmlS(att));
         elem->appendChild(s_elem);
     }
 
-    if(P->time_opts.log_mode & __FPS_MODE__){
+    if(sim_data.time_opts.log_mode & __FPS_MODE__){
         s_elem = doc->createElement(xmlS("Option"));
         s_elem->setAttribute(xmlS("name"), xmlS("LogFile"));
         s_elem->setAttribute(xmlS("type"), xmlS("FPS"));
-        sprintf(att, "%g", P->time_opts.log_fps);
+        sprintf(att, "%g", sim_data.time_opts.log_fps);
         s_elem->setAttribute(xmlS("value"), xmlS(att));
         elem->appendChild(s_elem);
     }
-    if(P->time_opts.log_mode & __IPF_MODE__){
+    if(sim_data.time_opts.log_mode & __IPF_MODE__){
         s_elem = doc->createElement(xmlS("Option"));
         s_elem->setAttribute(xmlS("name"), xmlS("LogFile"));
         s_elem->setAttribute(xmlS("type"), xmlS("IPF"));
-        sprintf(att, "%d", P->time_opts.log_ipf);
+        sprintf(att, "%d", sim_data.time_opts.log_ipf);
         s_elem->setAttribute(xmlS("value"), xmlS(att));
         elem->appendChild(s_elem);
     }
 
-    if(P->time_opts.output_mode & __FPS_MODE__){
+    if(sim_data.time_opts.output_mode & __FPS_MODE__){
         s_elem = doc->createElement(xmlS("Option"));
         s_elem->setAttribute(xmlS("name"), xmlS("Output"));
         s_elem->setAttribute(xmlS("type"), xmlS("FPS"));
-        sprintf(att, "%g", P->time_opts.output_fps);
+        sprintf(att, "%g", sim_data.time_opts.output_fps);
         s_elem->setAttribute(xmlS("value"), xmlS(att));
         elem->appendChild(s_elem);
     }
-    if(P->time_opts.output_mode & __IPF_MODE__){
+    if(sim_data.time_opts.output_mode & __IPF_MODE__){
         s_elem = doc->createElement(xmlS("Option"));
         s_elem->setAttribute(xmlS("name"), xmlS("Output"));
         s_elem->setAttribute(xmlS("type"), xmlS("IPF"));
-        sprintf(att, "%d", P->time_opts.output_ipf);
+        sprintf(att, "%d", sim_data.time_opts.output_ipf);
         s_elem->setAttribute(xmlS("value"), xmlS(att));
         elem->appendChild(s_elem);
     }
@@ -1769,22 +1779,22 @@ bool State::writeTiming(xercesc::DOMDocument* doc,
     return false;
 }
 
-bool State::writeSet(xercesc::DOMDocument* doc,
-                     xercesc::DOMElement *root)
+bool State::writeSets(xercesc::DOMDocument* doc,
+                      xercesc::DOMElement *root,
+                      ProblemSetup sim_data,
+                      std::vector<Particles*> savers)
 {
     unsigned int i, j;
     char att[16];
     DOMElement *elem, *s_elem;
-    ProblemSetup *P = ProblemSetup::singleton();
-    FileManager *F = FileManager::singleton();
 
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
     Variables* vars = C->variables();
-    std::deque<ProblemSetup::sphParticlesSet*> sets = P->sets;
+    std::deque<ProblemSetup::sphParticlesSet*> sets = sim_data.sets;
 
     for(i = 0; i < sets.size(); i++){
         elem = doc->createElement(xmlS("ParticlesSet"));
-        sprintf(att, "%u", P->sets.at(i)->n());
+        sprintf(att, "%u", sim_data.sets.at(i)->n());
         elem->setAttribute(xmlS("n"), xmlS(att));
         root->appendChild(elem);
 
@@ -1823,7 +1833,7 @@ bool State::writeSet(xercesc::DOMDocument* doc,
                 strcat(fields, ",");
         }
         s_elem = doc->createElement(xmlS("Load"));
-        s_elem->setAttribute(xmlS("file"), xmlS(F->file(i).c_str()));
+        s_elem->setAttribute(xmlS("file"), xmlS(savers.at(i)->file()));
         s_elem->setAttribute(xmlS("format"), xmlS(sets.at(i)->outputFormat()));
         s_elem->setAttribute(xmlS("fields"), xmlS(fields));
         elem->appendChild(s_elem);

@@ -27,13 +27,12 @@
 #include <string.h>
 
 #include <TimeManager.h>
-#include <ProblemSetup.h>
 #include <CalcServer.h>
 #include <ScreenManager.h>
 
 namespace Aqua{ namespace InputOutput{
 
-TimeManager::TimeManager()
+TimeManager::TimeManager(ProblemSetup sim_data)
     : _step(NULL)
     , _time(NULL)
     , _dt(NULL)
@@ -54,7 +53,6 @@ TimeManager::TimeManager()
 {
     unsigned int i;
     char msg[1024];
-    ProblemSetup *P = ProblemSetup::singleton();
     ScreenManager *S = ScreenManager::singleton();
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
 
@@ -95,39 +93,39 @@ TimeManager::TimeManager()
     _steps_max = (unsigned int *)vars->get("end_iter")->get();
     _frames_max = (unsigned int *)vars->get("end_frame")->get();
 
-    unsigned int mode = P->time_opts.sim_end_mode;
+    unsigned int mode = sim_data.time_opts.sim_end_mode;
     if(mode & __FRAME_MODE__) {
-        *_frames_max = P->time_opts.sim_end_frame;
+        *_frames_max = sim_data.time_opts.sim_end_frame;
     }
     if(mode & __ITER_MODE__) {
-        *_steps_max = P->time_opts.sim_end_step;
+        *_steps_max = sim_data.time_opts.sim_end_step;
     }
     if(mode & __TIME_MODE__) {
-        *_time_max = P->time_opts.sim_end_time;
+        *_time_max = sim_data.time_opts.sim_end_time;
     }
 
-    mode = P->time_opts.log_mode;
+    mode = sim_data.time_opts.log_mode;
     if(mode >= __IPF_MODE__)
     {
         mode -= __IPF_MODE__;
-        _log_ipf = P->time_opts.log_ipf;
+        _log_ipf = sim_data.time_opts.log_ipf;
     }
     if(mode >= __FPS_MODE__)
     {
         mode -= __FPS_MODE__;
-        _log_fps = P->time_opts.log_fps;
+        _log_fps = sim_data.time_opts.log_fps;
     }
 
-    mode = P->time_opts.output_mode;
+    mode = sim_data.time_opts.output_mode;
     if(mode >= __IPF_MODE__)
     {
         mode -= __IPF_MODE__;
-        _output_ipf = P->time_opts.output_ipf;
+        _output_ipf = sim_data.time_opts.output_ipf;
     }
     if(mode >= __FPS_MODE__)
     {
         mode -= __FPS_MODE__;
-        _output_fps = P->time_opts.output_fps;
+        _output_fps = sim_data.time_opts.output_fps;
     }
 
     *_step = 0;

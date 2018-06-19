@@ -72,7 +72,7 @@ ProblemSetup::~ProblemSetup()
 bool ProblemSetup::perform()
 {
     unsigned int i;
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    ScreenManager *S = ScreenManager::singleton();
     char msg[512];
     strcpy(msg, "");
     // Check for errors

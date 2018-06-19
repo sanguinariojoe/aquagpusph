@@ -31,8 +31,6 @@
 #include <FileManager.h>
 #include <ScreenManager.h>
 
-namespace Aqua{ namespace InputOutput{ namespace CommandLineArgs{
-
 // Short and long runtime options (see
 // http://www.gnu.org/software/libc/manual/html_node/Getopt.html#Getopt)
 static const char *opts = "i:vh";
@@ -43,6 +41,8 @@ static const struct option longOpts[] = {
     { NULL, no_argument, NULL, 0 }
 };
 extern char *optarg;
+
+namespace Aqua{ namespace InputOutput{ namespace CommandLineArgs{
 
 /** @brief Display the program usage.
  * 
