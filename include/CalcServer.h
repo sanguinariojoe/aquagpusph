@@ -84,7 +84,7 @@ public:
      *
      * @param sim_data Simulation data read from XML files
      */
-    CalcServer(Aqua::InputOutput::ProblemSetup sim_data);
+    CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data);
 
     /// Destructor
     ~CalcServer();

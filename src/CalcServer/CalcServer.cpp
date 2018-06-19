@@ -52,7 +52,7 @@
 
 namespace Aqua{ namespace CalcServer{
 
-CalcServer::CalcServer(Aqua::InputOutput::ProblemSetup sim_data)
+CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
     : _base_path("")
     , _num_platforms(0)
     , _platforms(NULL)
