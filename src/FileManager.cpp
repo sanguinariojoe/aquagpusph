@@ -37,21 +37,16 @@
 namespace Aqua{ namespace InputOutput{
 
 FileManager::FileManager()
-    : _state(NULL)
-    , _log(NULL)
+    : _state()
+    , _log()
     , _simulation()
+    , _in_file("Input.xml")
 {
-    inputFile("Input.xml");
-    _state = new State();
-    _log = new Log();
 }
 
 FileManager::~FileManager()
 {
     unsigned int i;
-
-    if(_state) delete _state; _state = NULL;
-    if(_log) delete _log; _log = NULL;
 
     for(auto i = _loaders.begin(); i != _loaders.end(); i++) {
         delete *i;
@@ -68,9 +63,7 @@ void FileManager::inputFile(std::string path)
 
 FILE* FileManager::logFile()
 {
-    if(_log)
-        return _log->fileHandler();
-    return NULL;
+    return _log.fileHandler();
 }
 
 CalcServer::CalcServer* FileManager::load()
@@ -78,7 +71,7 @@ CalcServer::CalcServer* FileManager::load()
     unsigned int i, n=0;
 
     // Load the XML definition file
-    if(_state->load(inputFile(), _simulation)){
+    if(_state.load(inputFile(), _simulation)){
         return NULL;
     }
 
@@ -194,7 +187,7 @@ bool FileManager::save()
     }
 
     // Save the XML definition file
-    if(_state->save(_simulation, _savers)){
+    if(_state.save(_simulation, _savers)){
         return true;
     }
 

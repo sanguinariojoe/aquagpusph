@@ -37,9 +37,6 @@ ProblemSetup::ProblemSetup()
     time_opts.sim_end_time = 0.f;
     time_opts.sim_end_step = 0;
     time_opts.sim_end_frame = 0;
-    time_opts.log_mode = __NO_OUTPUT_MODE__;
-    time_opts.log_fps = 0.f;
-    time_opts.log_ipf = 0;
     time_opts.output_mode = __NO_OUTPUT_MODE__;
     time_opts.output_fps = 0.f;
     time_opts.output_ipf = 0;

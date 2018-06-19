@@ -104,18 +104,6 @@ TimeManager::TimeManager(ProblemSetup sim_data)
         *_time_max = sim_data.time_opts.sim_end_time;
     }
 
-    mode = sim_data.time_opts.log_mode;
-    if(mode >= __IPF_MODE__)
-    {
-        mode -= __IPF_MODE__;
-        _log_ipf = sim_data.time_opts.log_ipf;
-    }
-    if(mode >= __FPS_MODE__)
-    {
-        mode -= __FPS_MODE__;
-        _log_fps = sim_data.time_opts.log_fps;
-    }
-
     mode = sim_data.time_opts.output_mode;
     if(mode >= __IPF_MODE__)
     {
@@ -163,26 +151,6 @@ bool TimeManager::mustStop()
         return true;
     if(frame() >= maxFrame())
         return true;
-    return false;
-}
-
-bool TimeManager::mustPrintLog()
-{
-    if( ( (_log_fps >= 0.f) || (_log_ipf >= 0.f) ) && (frame()==1) && (step()==1) ) {
-        _log_time = time();
-        _log_step = step();
-        return true;
-    }
-    if( (_log_fps >= 0.f) && (time() - _log_time >= 1.f/_log_fps) ) {
-        _log_time += 1.f/_log_fps;
-        _log_step = step();
-        return true;
-    }
-    if( (_log_ipf > 0) && (step() - _log_step >= _log_ipf) ) {
-        _log_time = time();
-        _log_step = step();
-         return true;
-    }
     return false;
 }
 

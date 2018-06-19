@@ -1145,35 +1145,6 @@ bool State::parseTiming(DOMElement *root,
                     return true;
                 }
             }
-            else if(!strcmp(name, "LogFile")){
-                const char *type = xmlAttribute(s_elem, "type");
-                if(!strcmp(type, "No")){
-                    sim_data.time_opts.log_mode = __NO_OUTPUT_MODE__;
-                }
-                else if(!strcmp(type, "FPS")){
-                    sim_data.time_opts.log_mode =
-                        sim_data.time_opts.log_mode | __FPS_MODE__;
-                    sim_data.time_opts.log_fps =
-                        atof(xmlAttribute(s_elem, "value"));
-                }
-                else if(!strcmp(type, "IPF")){
-                    sim_data.time_opts.log_mode =
-                        sim_data.time_opts.log_mode | __IPF_MODE__;
-                    sim_data.time_opts.log_ipf =
-                        atoi(xmlAttribute(s_elem, "value"));
-                }
-                else {
-                    sprintf(msg,
-                            "Unknow log file print criteria \"%s\"\n",
-                            xmlAttribute(s_elem, "type"));
-                    S->addMessageF(L_ERROR, msg);
-                    S->addMessage(L_DEBUG, "\tThe valid options are:\n");
-                    S->addMessage(L_DEBUG, "\t\tNo\n");
-                    S->addMessage(L_DEBUG, "\t\tFPS\n");
-                    S->addMessage(L_DEBUG, "\t\tIPF\n");
-                    return true;
-                }
-            }
             else if(!strcmp(name, "Output")){
                 const char *type = xmlAttribute(s_elem, "type");
                 if(!strcmp(type, "No")){
@@ -1738,23 +1709,6 @@ bool State::writeTiming(xercesc::DOMDocument* doc,
         s_elem->setAttribute(xmlS("name"), xmlS("End"));
         s_elem->setAttribute(xmlS("type"), xmlS("Frames"));
         sprintf(att, "%d", sim_data.time_opts.sim_end_frame);
-        s_elem->setAttribute(xmlS("value"), xmlS(att));
-        elem->appendChild(s_elem);
-    }
-
-    if(sim_data.time_opts.log_mode & __FPS_MODE__){
-        s_elem = doc->createElement(xmlS("Option"));
-        s_elem->setAttribute(xmlS("name"), xmlS("LogFile"));
-        s_elem->setAttribute(xmlS("type"), xmlS("FPS"));
-        sprintf(att, "%g", sim_data.time_opts.log_fps);
-        s_elem->setAttribute(xmlS("value"), xmlS(att));
-        elem->appendChild(s_elem);
-    }
-    if(sim_data.time_opts.log_mode & __IPF_MODE__){
-        s_elem = doc->createElement(xmlS("Option"));
-        s_elem->setAttribute(xmlS("name"), xmlS("LogFile"));
-        s_elem->setAttribute(xmlS("type"), xmlS("IPF"));
-        sprintf(att, "%d", sim_data.time_opts.log_ipf);
         s_elem->setAttribute(xmlS("value"), xmlS(att));
         elem->appendChild(s_elem);
     }

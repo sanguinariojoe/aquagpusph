@@ -31,14 +31,6 @@ Authors:
         -->
         <Option name="End" type="Time" value="6.0" />
 
-        <!-- Set the log file printing criteria. Log file contains relevant
-        data about the AQUAgpusph execution, i.e.- Warnings, errors, or
-        information about printed files and the status.
-            type="FPS" It will be updated this value of times per second.
-            type="IPF" It will be updated after this value of iterations.
-        You can conveniently combine several printing criterias.
-        -->
-        <Option name="LogFile" type="FPS" value="120" />
         <!-- Set output files print criteria
             type="FPS" Frames per second
             type="IPF" Iterations per frame

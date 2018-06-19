@@ -61,13 +61,6 @@ public:
      */
     bool mustStop();
 
-    /** @brief Check if the log file must be updated.
-     * @return true if the log should be updated, false otherwise.
-     * @warning This method is returning true just one time per time step (i.e.
-     * until update() is called again).
-     */
-    bool mustPrintLog();
-
     /** @brief Check if a general simulation output must be printed.
      * @return true if an output should be printed, false otherwise.
      * @warning This method is returning true just one time per time step (i.e.

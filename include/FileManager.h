@@ -131,10 +131,10 @@ public:
 
 private:
     /// The XML simulation definition loader/saver
-    State *_state;
+    State _state;
 
     /// The output log file
-    Log *_log;
+    Log _log;
 
     /// Simulation data read from XML files
     ProblemSetup _simulation;

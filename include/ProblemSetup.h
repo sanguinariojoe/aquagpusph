@@ -469,46 +469,6 @@ public:
          */
         int sim_end_frame;
 
-        /** @brief Log file updating criteria to apply.
-         *
-         * Must a combination of the following options:
-         *   - #__NO_OUTPUT_MODE__ : The log file will not be never updated
-         *     (default value).
-         *   - #__FPS_MODE__ : Frames per second.
-         *   - #__IPF_MODE__ : Iterations (time steps) per frame.
-         *
-         * This field can be set with the tag `Option`, for instance:
-         *   - `<Option name="LogFile" type="FPS" value="120" />`
-         *   - `<Option name="LogFile" type="IPF" value="10" />`
-         *
-         * @see Aqua::InputOutput::Log
-         */
-        unsigned int log_mode;
-
-        /** @brief Log file updating rate.
-         *
-         * If #__FPS_MODE__ is set in #log_mode, the log file will be updated
-         * this value times per second of simulations.
-         *
-         * This field can be set with the tag `Option`, for instance:
-         * `<Option name="LogFile" type="FPS" value="120" />`
-         *
-         * @see #log_mode
-         */
-        float log_fps;
-
-        /** @brief Log file updating rate.
-         *
-         * If #__IPF_MODE__ is set in #log_mode, the log file will be updated
-         * every time that this value of time steps is computed.
-         *
-         * This field can be set with the tag `Option`, for instance:
-         * `<Option name="LogFile" type="IPF" value="10" />`
-         *
-         * @see #log_mode
-         */
-        int log_ipf;
-
         /** @brief Particles output updating criteria to apply.
          *
          * The particles output may be hard disk heavily demanding, hardly
