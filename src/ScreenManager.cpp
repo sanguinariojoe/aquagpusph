@@ -196,7 +196,8 @@ void ScreenManager::writeReport(std::string input,
 void ScreenManager::addMessage(TLogLevel level, std::string log, const char *func)
 {
     std::ostringstream fname;
-    fname << "(" << func << "): ";
+    if (func)
+        fname << "(" << func << "): ";
 
     // Send the info to the log file (if possible)
     FILE *LogFileID = _fmanager->logFile();
