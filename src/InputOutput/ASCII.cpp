@@ -64,10 +64,10 @@ bool ASCII::load()
 
     sprintf(msg,
             "Loading particles from ASCII file \"%s\"\n",
-            simData().sets.at(setId())->inputPath());
+            simData().sets.at(setId())->inputPath().c_str());
     S->addMessageF(L_INFO, msg);
 
-    f = fopen(simData().sets.at(setId())->inputPath(), "r");
+    f = fopen(simData().sets.at(setId())->inputPath().c_str(), "r");
     if(!f){
         S->addMessageF(L_ERROR, "The file is inaccessible.\n");
         return true;
@@ -86,14 +86,14 @@ bool ASCII::load()
     }
 
     // Check the fields to read
-    std::deque<char*> fields = simData().sets.at(setId())->inputFields();
+    std::vector<std::string> fields = simData().sets.at(setId())->inputFields();
     if(!fields.size()){
         S->addMessageF(L_ERROR, "0 fields were set to be read from the file.\n");
         return true;
     }
     bool have_r = false;
     for(i = 0; i < fields.size(); i++){
-        if(!strcmp(fields.at(i), "r")){
+        if(!fields.at(i).compare("r")){
             have_r = true;
             break;
         }
@@ -107,28 +107,28 @@ bool ASCII::load()
     Variables* vars = C->variables();
     n_fields = 0;
     for(i = 0; i < fields.size(); i++){
-        if(!vars->get(fields.at(i))){
+        if(!vars->get(fields.at(i).c_str())){
             sprintf(msg,
                     "\"%s\" field has been set to be read, but it was not declared.\n",
-                    fields.at(i));
+                    fields.at(i).c_str());
             S->addMessageF(L_ERROR, msg);
             return true;
         }
-        if(!strchr(vars->get(fields.at(i))->type(), '*')){
+        if(!strchr(vars->get(fields.at(i).c_str())->type(), '*')){
             sprintf(msg,
                     "\"%s\" field has been set to be read, but it was declared as a scalar.\n",
-                    fields.at(i));
+                    fields.at(i).c_str());
             S->addMessageF(L_ERROR, msg);
             return true;
         }
-        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i));
+        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i).c_str());
         n_fields += vars->typeToN(var->type());
         size_t typesize = vars->typeToBytes(var->type());
         size_t len = var->size() / typesize;
         if(len < bounds().y){
             sprintf(msg,
                     "Failure reading \"%s\" field, which has not length enough.\n",
-                    fields.at(i));
+                    fields.at(i).c_str());
             S->addMessageF(L_ERROR, msg);
             return true;
         }
@@ -136,7 +136,7 @@ bool ASCII::load()
         if(!store){
             sprintf(msg,
                     "Failure allocating memory for \"%s\" field.\n",
-                    fields.at(i));
+                    fields.at(i).c_str());
             S->addMessageF(L_ERROR, msg);
             return true;
         }
@@ -172,7 +172,7 @@ bool ASCII::load()
 
         pos = line;
         for(j = 0; j < fields.size(); j++){
-            pos = readField((const char*)fields.at(j), pos, i, data.at(j));
+            pos = readField((const char*)fields.at(j).c_str(), pos, i, data.at(j));
             if(!pos && (j != fields.size() - 1))
                 return true;
         }
@@ -190,7 +190,7 @@ bool ASCII::load()
 
     // Send the data to the server and release it
     for(i = 0; i < fields.size(); i++){
-        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i));
+        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i).c_str());
         size_t typesize = vars->typeToBytes(var->type());
         cl_mem mem = *(cl_mem*)var->get();
         err_code = clEnqueueWriteBuffer(C->command_queue(),
@@ -226,7 +226,7 @@ bool ASCII::save()
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
     TimeManager *T = TimeManager::singleton();
 
-    std::deque<char*> fields = simData().sets.at(setId())->outputFields();
+    std::vector<std::string> fields = simData().sets.at(setId())->outputFields();
     if(!fields.size()){
         S->addMessageF(L_ERROR, "0 fields were set to be saved into the file.\n");
         return true;
@@ -259,27 +259,27 @@ bool ASCII::save()
 
     Variables* vars = C->variables();
     for(i = 0; i < fields.size(); i++){
-        if(!vars->get(fields.at(i))){
+        if(!vars->get(fields.at(i).c_str())){
             sprintf(msg,
                     "\"%s\" field has been set to be saved, but it was not declared.\n",
-                    fields.at(i));
+                    fields.at(i).c_str());
             S->addMessageF(L_ERROR, msg);
             return true;
         }
-        if(!strchr(vars->get(fields.at(i))->type(), '*')){
+        if(!strchr(vars->get(fields.at(i).c_str())->type(), '*')){
             sprintf(msg,
                     "\"%s\" field has been set to be saved, but it was declared as an scalar.\n",
-                    fields.at(i));
+                    fields.at(i).c_str());
             S->addMessageF(L_ERROR, msg);
             return true;
         }
-        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i));
+        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i).c_str());
         size_t typesize = vars->typeToBytes(var->type());
         size_t len = var->size() / typesize;
         if(len < bounds().y){
             sprintf(msg,
                     "Failure saving \"%s\" field, which has not length enough.\n",
-                    fields.at(i));
+                    fields.at(i).c_str());
             S->addMessageF(L_ERROR, msg);
             return true;
         }
@@ -291,7 +291,7 @@ bool ASCII::save()
 
     for(i = 0; i < bounds().y - bounds().x; i++){
         for(j = 0; j < fields.size(); j++){
-            ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(j));
+            ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(j).c_str());
             const char* type_name = var->type();
             if(!strcmp(type_name, "int*")){
                 int* v = (int*)data.at(j);
@@ -529,9 +529,9 @@ FILE* ASCII::create(){
     ScreenManager *S = ScreenManager::singleton();
 
     // Create the file base name
-    len = strlen(simData().sets.at(setId())->outputPath()) + 8;
+    len = strlen(simData().sets.at(setId())->outputPath().c_str()) + 8;
     basename = new char[len];
-    strcpy(basename, simData().sets.at(setId())->outputPath());
+    strcpy(basename, simData().sets.at(setId())->outputPath().c_str());
     strcat(basename, ".%d.dat");
 
     _next_file_index = file(basename, _next_file_index);

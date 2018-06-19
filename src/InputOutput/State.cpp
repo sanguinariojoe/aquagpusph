@@ -1202,8 +1202,8 @@ bool State::parseSets(DOMElement *root,
             return true;
         }
 
-        ProblemSetup::sphParticlesSet *Set = new ProblemSetup::sphParticlesSet();
-        Set->n(atoi(xmlAttribute(elem, "n")));
+        ProblemSetup::sphParticlesSet *set = new ProblemSetup::sphParticlesSet();
+        set->n(atoi(xmlAttribute(elem, "n")));
 
         DOMNodeList* s_nodes = elem->getElementsByTagName(xmlS("Scalar"));
         for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
@@ -1214,7 +1214,7 @@ bool State::parseSets(DOMElement *root,
 
             const char *name = xmlAttribute(s_elem, "name");
             const char *value = xmlAttribute(s_elem, "value");
-            Set->addScalar(name, value);
+            set->addScalar(name, value);
         }
 
         s_nodes = elem->getElementsByTagName(xmlS("Load"));
@@ -1226,7 +1226,7 @@ bool State::parseSets(DOMElement *root,
             const char *path = xmlAttribute(s_elem, "file");
             const char *format = xmlAttribute(s_elem, "format");
             const char *fields = xmlAttribute(s_elem, "fields");
-            Set->input(path, format, fields);
+            set->input(path, format, fields);
         }
 
         s_nodes = elem->getElementsByTagName(xmlS("Save"));
@@ -1238,9 +1238,9 @@ bool State::parseSets(DOMElement *root,
             const char *path = xmlAttribute(s_elem, "file");
             const char *format = xmlAttribute(s_elem, "format");
             const char *fields = xmlAttribute(s_elem, "fields");
-            Set->output(path, format, fields);
+            set->output(path, format, fields);
         }
-        sim_data.sets.push_back(Set);
+        sim_data.sets.push_back(set);
     }
     return false;
 }
@@ -1744,16 +1744,15 @@ bool State::writeSets(xercesc::DOMDocument* doc,
 
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
     Variables* vars = C->variables();
-    std::deque<ProblemSetup::sphParticlesSet*> sets = sim_data.sets;
 
-    for(i = 0; i < sets.size(); i++){
+    for(i = 0; i < sim_data.sets.size(); i++){
         elem = doc->createElement(xmlS("ParticlesSet"));
         sprintf(att, "%u", sim_data.sets.at(i)->n());
         elem->setAttribute(xmlS("n"), xmlS(att));
         root->appendChild(elem);
 
-        for(j = 0; j < sets.at(i)->scalarNames().size(); j++){
-            const char* name = sets.at(i)->scalarNames().at(j);
+        for(j = 0; j < sim_data.sets.at(i)->scalarNames().size(); j++){
+            const char* name = sim_data.sets.at(i)->scalarNames().at(j).c_str();
             s_elem = doc->createElement(xmlS("Scalar"));
             s_elem->setAttribute(xmlS("name"), xmlS(name));
 
@@ -1775,26 +1774,26 @@ bool State::writeSets(xercesc::DOMDocument* doc,
         unsigned int n = 1;
         char *fields = new char[n];
         strcpy(fields, "");
-        for(j = 0; j < sets.at(i)->outputFields().size(); j++){
-            const char* field = sets.at(i)->outputFields().at(j);
+        for(j = 0; j < sim_data.sets.at(i)->outputFields().size(); j++){
+            const char* field = sim_data.sets.at(i)->outputFields().at(j).c_str();
             n += strlen(field) + 1;
             char *backup = fields;
             fields = new char[n];
             strcpy(fields, backup);
             delete[] backup; backup = NULL;
             strcat(fields, field);
-            if(j < sets.at(i)->outputFields().size() - 1)
+            if(j < sim_data.sets.at(i)->outputFields().size() - 1)
                 strcat(fields, ",");
         }
         s_elem = doc->createElement(xmlS("Load"));
         s_elem->setAttribute(xmlS("file"), xmlS(savers.at(i)->file()));
-        s_elem->setAttribute(xmlS("format"), xmlS(sets.at(i)->outputFormat()));
+        s_elem->setAttribute(xmlS("format"), xmlS(sim_data.sets.at(i)->outputFormat().c_str()));
         s_elem->setAttribute(xmlS("fields"), xmlS(fields));
         elem->appendChild(s_elem);
 
         s_elem = doc->createElement(xmlS("Save"));
-        s_elem->setAttribute(xmlS("file"), xmlS(sets.at(i)->outputPath()));
-        s_elem->setAttribute(xmlS("format"), xmlS(sets.at(i)->outputFormat()));
+        s_elem->setAttribute(xmlS("file"), xmlS(sim_data.sets.at(i)->outputPath().c_str()));
+        s_elem->setAttribute(xmlS("format"), xmlS(sim_data.sets.at(i)->outputFormat().c_str()));
         s_elem->setAttribute(xmlS("fields"), xmlS(fields));
         elem->appendChild(s_elem);
         delete[] fields; fields=NULL;

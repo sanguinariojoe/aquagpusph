@@ -821,8 +821,8 @@ bool CalcServer::setup()
     for(i = 0; i < _sim_data.sets.size(); i++){
         InputOutput::ProblemSetup::sphParticlesSet* set = _sim_data.sets.at(i);
         for(j = 0; j < set->scalarNames().size(); j++){
-            const char *name = set->scalarNames().at(j);
-            const char *val = set->scalarValues().at(j);
+            const char *name = set->scalarNames().at(j).c_str();
+            const char *val = set->scalarValues().at(j).c_str();
             if(!_vars->get(name)){
                 sprintf(msg,
                         "Variable \"%s\" has not been registered\n",

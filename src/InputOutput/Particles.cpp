@@ -218,7 +218,7 @@ unsigned int Particles::file(const char* basename,
     return i + 1;
 }
 
-std::deque<void*> Particles::download(std::deque<char*> fields)
+std::deque<void*> Particles::download(std::vector<std::string> fields)
 {
     std::deque<void*> data;
     std::vector<cl_event> events;  // vector storage is continuous memory
@@ -231,29 +231,29 @@ std::deque<void*> Particles::download(std::deque<char*> fields)
     Variables* vars = C->variables();
 
     for(i = 0; i < fields.size(); i++){
-        if(!vars->get(fields.at(i))){
+        if(!vars->get(fields.at(i).c_str())){
             sprintf(msg,
                     "Undeclared \"%s\" field cannot be downloaded.\n",
-                    fields.at(i));
+                    fields.at(i).c_str());
             S->addMessageF(L_ERROR, msg);
             clearList(&data);
             return data;
         }
-        if(!strchr(vars->get(fields.at(i))->type(), '*')){
+        if(!strchr(vars->get(fields.at(i).c_str())->type(), '*')){
             sprintf(msg,
                     "\"%s\" field is a scalar.\n",
-                    fields.at(i));
+                    fields.at(i).c_str());
             S->addMessageF(L_ERROR, msg);
             clearList(&data);
             return data;
         }
-        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i));
+        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i).c_str());
         typesize = vars->typeToBytes(var->type());
         len = var->size() / typesize;
         if(len < bounds().y){
             sprintf(msg,
                     "Failure saving \"%s\" field, which has not length enough.\n",
-                    fields.at(i));
+                    fields.at(i).c_str());
             S->addMessageF(L_ERROR, msg);
             sprintf(msg,
                     "length = %u was required, but just %lu was found.\n",
@@ -267,7 +267,7 @@ std::deque<void*> Particles::download(std::deque<char*> fields)
         if(!store){
             sprintf(msg,
                     "Failure allocating memory for \"%s\" field.\n",
-                    fields.at(i));
+                    fields.at(i).c_str());
             S->addMessageF(L_ERROR, msg);
             clearList(&data);
             return data;

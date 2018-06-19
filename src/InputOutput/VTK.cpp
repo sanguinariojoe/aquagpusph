@@ -139,18 +139,18 @@ bool VTK::load()
 
     sprintf(msg,
             "Loading particles from VTK file \"%s\"\n",
-            simData().sets.at(setId())->inputPath());
+            simData().sets.at(setId())->inputPath().c_str());
     S->addMessageF(L_INFO, msg);
 
     vtkSmartPointer<vtkXMLUnstructuredGridReader> f =
         vtkSmartPointer<vtkXMLUnstructuredGridReader>::New();
 
-    if(!f->CanReadFile(simData().sets.at(setId())->inputPath())){
+    if(!f->CanReadFile(simData().sets.at(setId())->inputPath().c_str())){
         S->addMessageF(L_ERROR, "The file cannot be read.\n");
         return true;
     }
 
-    f->SetFileName(simData().sets.at(setId())->inputPath());
+    f->SetFileName(simData().sets.at(setId())->inputPath().c_str());
     f->Update();
 
     vtkSmartPointer<vtkUnstructuredGrid> grid = f->GetOutput();
@@ -168,14 +168,14 @@ bool VTK::load()
     }
 
     // Check the fields to read
-    std::deque<char*> fields = simData().sets.at(setId())->inputFields();
+    std::vector<std::string> fields = simData().sets.at(setId())->inputFields();
     if(!fields.size()){
         S->addMessage(L_ERROR, "0 fields were set to be read from the file.\n");
         return true;
     }
     bool have_r = false;
     for(i = 0; i < fields.size(); i++){
-        if(!strcmp(fields.at(i), "r")){
+        if(!strcmp(fields.at(i).c_str(), "r")){
             have_r = true;
             break;
         }
@@ -189,27 +189,27 @@ bool VTK::load()
     std::deque<void*> data;
     Variables* vars = C->variables();
     for(i = 0; i < fields.size(); i++){
-        if(!vars->get(fields.at(i))){
+        if(!vars->get(fields.at(i).c_str())){
             sprintf(msg,
                     "\"%s\" field has been set to be read, but it was not declared.\n",
-                    fields.at(i));
+                    fields.at(i).c_str());
             S->addMessage(L_ERROR, msg);
             return true;
         }
-        if(!strchr(vars->get(fields.at(i))->type(), '*')){
+        if(!strchr(vars->get(fields.at(i).c_str())->type(), '*')){
             sprintf(msg,
                     "\"%s\" field has been set to be read, but it was declared as an scalar.\n",
-                    fields.at(i));
+                    fields.at(i).c_str());
             S->addMessage(L_ERROR, msg);
             return true;
         }
-        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i));
+        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i).c_str());
         size_t typesize = vars->typeToBytes(var->type());
         size_t len = var->size() / typesize;
         if(len < bounds().y){
             sprintf(msg,
                     "Failure reading \"%s\" field, which has not length enough.\n",
-                    fields.at(i));
+                    fields.at(i).c_str());
             S->addMessage(L_ERROR, msg);
             return true;
         }
@@ -217,7 +217,7 @@ bool VTK::load()
         if(!store){
             sprintf(msg,
                     "Failure allocating memory for \"%s\" field.\n",
-                    fields.at(i));
+                    fields.at(i).c_str());
             S->addMessage(L_ERROR, msg);
             return true;
         }
@@ -229,7 +229,7 @@ bool VTK::load()
     vtkSmartPointer<vtkPointData> vtk_data = grid->GetPointData();
     for(i = 0; i < n; i++){
         for(j = 0; j < fields.size(); j++){
-            if(!strcmp(fields.at(j), "r")){
+            if(!fields.at(j).compare("r")){
                 double *vect = vtk_points->GetPoint(i);
                 vec *ptr = (vec*)data.at(j);
                 ptr[i].x = vect[0];
@@ -240,13 +240,13 @@ bool VTK::load()
                 #endif
                 continue;
             }
-            ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(j));
+            ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(j).c_str());
             size_t type_size = vars->typeToBytes(var->type());
             unsigned int n_components = vars->typeToN(var->type());
             if(strstr(var->type(), "unsigned int") ||
                strstr(var->type(), "uivec")){
                 vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
-                    (vtkUnsignedIntArray*)(vtk_data->GetArray(fields.at(j), aux));
+                    (vtkUnsignedIntArray*)(vtk_data->GetArray(fields.at(j).c_str(), aux));
                 for(k = 0; k < n_components; k++){
                     unsigned int component = vtk_array->GetComponent(i, k);
                     size_t offset = type_size * i + sizeof(unsigned int) * k;
@@ -258,7 +258,7 @@ bool VTK::load()
             else if(strstr(var->type(), "int") ||
                     strstr(var->type(), "ivec")){
                 vtkSmartPointer<vtkIntArray> vtk_array =
-                    (vtkIntArray*)(vtk_data->GetArray(fields.at(j), aux));
+                    (vtkIntArray*)(vtk_data->GetArray(fields.at(j).c_str(), aux));
                 for(k = 0; k < n_components; k++){
                     int component = vtk_array->GetComponent(i, k);
                     size_t offset = type_size * i + sizeof(int) * k;
@@ -271,7 +271,7 @@ bool VTK::load()
                     strstr(var->type(), "vec") ||
                     strstr(var->type(), "matrix")){
                 vtkSmartPointer<vtkFloatArray> vtk_array =
-                    (vtkFloatArray*)(vtk_data->GetArray(fields.at(j), aux));
+                    (vtkFloatArray*)(vtk_data->GetArray(fields.at(j).c_str(), aux));
                 for(k = 0; k < n_components; k++){
                     float component = vtk_array->GetComponent(i, k);
                     size_t offset = type_size * i + sizeof(float) * k;
@@ -292,7 +292,7 @@ bool VTK::load()
 
     // Send the data to the server and release it
     for(i = 0; i < fields.size(); i++){
-        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i));
+        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i).c_str());
         size_t typesize = vars->typeToBytes(var->type());
         cl_mem mem = *(cl_mem*)var->get();
         err_code = clEnqueueWriteBuffer(C->command_queue(),
@@ -308,7 +308,7 @@ bool VTK::load()
         if(err_code != CL_SUCCESS){
             sprintf(msg,
                     "Failure sending variable \"%s\" to the server.\n",
-                    fields.at(i));
+                    fields.at(i).c_str());
             S->addMessageF(L_ERROR, msg);
             S->printOpenCLError(err_code);
         }
@@ -322,7 +322,7 @@ bool VTK::load()
  */
 typedef struct{
     /// The field names
-    std::deque<char*> fields;
+    std::vector<std::string> fields;
     /// Bounds of the particles index managed by this writer
     uivec2 bounds;
     /// Screen manager
@@ -349,10 +349,10 @@ void* save_pthread(void *data_void)
     std::deque< vtkSmartPointer<vtkDataArray> > vtk_arrays;
     Variables* vars = data->C->variables();
     for(i = 0; i < data->fields.size(); i++){
-        if(!vars->get(data->fields.at(i))){
+        if(!vars->get(data->fields.at(i).c_str())){
             sprintf(msg,
                     "\"%s\" field has been set to be saved, but it was not declared.\n",
-                    data->fields.at(i));
+                    data->fields.at(i).c_str());
             data->S->addMessage(L_ERROR, msg);
             for(i = 0; i < data->fields.size(); i++){
                 free(data->data.at(i)); data->data.at(i) = NULL;
@@ -362,10 +362,10 @@ void* save_pthread(void *data_void)
             delete data; data=NULL;
             return NULL;
         }
-        if(!strchr(vars->get(data->fields.at(i))->type(), '*')){
+        if(!strchr(vars->get(data->fields.at(i).c_str())->type(), '*')){
             sprintf(msg,
                     "\"%s\" field has been set to be saved, but it was declared as a scalar.\n",
-                    data->fields.at(i));
+                    data->fields.at(i).c_str());
             data->S->addMessage(L_ERROR, msg);
             for(i = 0; i < data->fields.size(); i++){
                 free(data->data.at(i)); data->data.at(i) = NULL;
@@ -375,13 +375,13 @@ void* save_pthread(void *data_void)
             delete data; data=NULL;
             return NULL;
         }
-        ArrayVariable *var = (ArrayVariable*)vars->get(data->fields.at(i));
+        ArrayVariable *var = (ArrayVariable*)vars->get(data->fields.at(i).c_str());
         size_t typesize = vars->typeToBytes(var->type());
         size_t len = var->size() / typesize;
         if(len < data->bounds.y){
             sprintf(msg,
                     "Failure saving \"%s\" field, which has not length enough.\n",
-                    data->fields.at(i));
+                    data->fields.at(i).c_str());
             data->S->addMessage(L_ERROR, msg);
             for(i = 0; i < data->fields.size(); i++){
                 free(data->data.at(i)); data->data.at(i) = NULL;
@@ -398,7 +398,7 @@ void* save_pthread(void *data_void)
             vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
                 vtkSmartPointer<vtkUnsignedIntArray>::New();
             vtk_array->SetNumberOfComponents(n_components);
-            vtk_array->SetName(data->fields.at(i));
+            vtk_array->SetName(data->fields.at(i).c_str());
             vtk_arrays.push_back(vtk_array);
         }
         else if(strstr(var->type(), "int") ||
@@ -406,7 +406,7 @@ void* save_pthread(void *data_void)
             vtkSmartPointer<vtkIntArray> vtk_array =
                 vtkSmartPointer<vtkIntArray>::New();
             vtk_array->SetNumberOfComponents(n_components);
-            vtk_array->SetName(data->fields.at(i));
+            vtk_array->SetName(data->fields.at(i).c_str());
             vtk_arrays.push_back(vtk_array);
         }
         else if(strstr(var->type(), "float") ||
@@ -415,7 +415,7 @@ void* save_pthread(void *data_void)
             vtkSmartPointer<vtkFloatArray> vtk_array =
                 vtkSmartPointer<vtkFloatArray>::New();
             vtk_array->SetNumberOfComponents(n_components);
-            vtk_array->SetName(data->fields.at(i));
+            vtk_array->SetName(data->fields.at(i).c_str());
             vtk_arrays.push_back(vtk_array);
         }
     }
@@ -426,7 +426,7 @@ void* save_pthread(void *data_void)
 
     for(i = 0; i < data->bounds.y - data->bounds.x; i++){
         for(j = 0; j < data->fields.size(); j++){
-            if(!strcmp(data->fields.at(j), "r")){
+            if(!strcmp(data->fields.at(j).c_str(), "r")){
                 vec *ptr = (vec*)(data->data.at(j));
                 #ifdef HAVE_3D
                     vtk_points->InsertNextPoint(ptr[i].x, ptr[i].y, ptr[i].z);
@@ -436,7 +436,7 @@ void* save_pthread(void *data_void)
                 continue;
             }
             ArrayVariable *var = (ArrayVariable*)(
-                vars->get(data->fields.at(j)));
+                vars->get(data->fields.at(j).c_str()));
             size_t typesize = vars->typeToBytes(var->type());
             unsigned int n_components = vars->typeToN(var->type());
             if(strstr(var->type(), "unsigned int") ||
@@ -497,12 +497,12 @@ void* save_pthread(void *data_void)
     grid->SetPoints(vtk_points);
     grid->SetCells(vtk_vertex->GetCellType(), vtk_cells);
     for(i = 0; i < data->fields.size(); i++){
-        if(!strcmp(data->fields.at(i), "r")){
+        if(!data->fields.at(i).compare("r")){
             continue;
         }
 
         ArrayVariable *var = (ArrayVariable*)(
-            vars->get(data->fields.at(i)));
+            vars->get(data->fields.at(i).c_str()));
         if(strstr(var->type(), "unsigned int") ||
            strstr(var->type(), "uivec")){
             vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
@@ -552,14 +552,14 @@ bool VTK::save()
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
 
     // Check the fields to write
-    std::deque<char*> fields = simData().sets.at(setId())->outputFields();
+    std::vector<std::string> fields = simData().sets.at(setId())->outputFields();
     if(!fields.size()){
         S->addMessage(L_ERROR, "0 fields were set to be saved into the file.\n");
         return true;
     }
     bool have_r = false;
     for(i = 0; i < fields.size(); i++){
-        if(!strcmp(fields.at(i), "r")){
+        if(!fields.at(i).compare("r")){
             have_r = true;
             break;
         }
@@ -637,9 +637,9 @@ vtkXMLUnstructuredGridWriter* VTK::create(){
     ScreenManager *S = ScreenManager::singleton();
 
     // Create the file base name
-    len = strlen(simData().sets.at(setId())->outputPath()) + 8;
+    len = strlen(simData().sets.at(setId())->outputPath().c_str()) + 8;
     basename = new char[len];
-    strcpy(basename, simData().sets.at(setId())->outputPath());
+    strcpy(basename, simData().sets.at(setId())->outputPath().c_str());
     strcat(basename, ".%d.vtu");
 
     _next_file_index = file(basename, _next_file_index);
@@ -802,9 +802,9 @@ DOMDocument* VTK::getPVD(bool generate)
 const char* VTK::filenamePVD()
 {
     if(!_namePVD){
-        size_t len = strlen(simData().sets.at(setId())->outputPath()) + 5;
+        size_t len = strlen(simData().sets.at(setId())->outputPath().c_str()) + 5;
         _namePVD = new char[len];
-        strcpy(_namePVD, simData().sets.at(setId())->outputPath());
+        strcpy(_namePVD, simData().sets.at(setId())->outputPath().c_str());
         strcat(_namePVD, ".pvd");
     }
     return (const char*)_namePVD;

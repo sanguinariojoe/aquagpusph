@@ -580,17 +580,17 @@ public:
          * This field can be set with the tag `Scalar`, for instance:
          * `<Scalar name="delta" value="1.0" />`
          */
-        void addScalar(const char* name, const char* value);
+        void addScalar(std::string name, std::string value);
 
         /** @brief Get the scalar names list
          * @return scalar names.
          */
-        std::deque<char*> scalarNames() const {return _snames;}
+        std::vector<std::string> scalarNames() const {return _snames;}
 
         /** @brief Get the scalar values list
          * @return scalar values.
          */
-        std::deque<char*> scalarValues() const {return _svalues;}
+        std::vector<std::string> scalarValues() const {return _svalues;}
 
         /** @brief Set the file path from which the particles should be read.
          *
@@ -602,25 +602,25 @@ public:
          * @param fields Fields to be loaded from the file
          * @see Aqua::InputOutput::Particles
          */
-        void input(const char* path, const char* format, const char* fields);
+        void input(std::string path, std::string format, std::string fields);
 
         /** @brief Get the file path from the particles would be read.
          * @return File path.
          * @see input()
          */
-        const char* inputPath() const {return _in_path;}
+        const std::string inputPath() const {return _in_path;}
 
         /** @brief Get the input file format
          * @return File format.
          * @see input()
          */
-        const char* inputFormat() const {return _in_format;}
+        const std::string inputFormat() const {return _in_format;}
 
         /** @brief Get the input file fields
          * @return Fields to be loaded list.
          * @see input()
          */
-        std::deque<char*> inputFields() const {return _in_fields;}
+        std::vector<std::string> inputFields() const {return _in_fields;}
 
         /** @brief Set the file path where the particles should be written.
          *
@@ -632,55 +632,55 @@ public:
          * @param fields Fields to be loaded from the file
          * @see Aqua::InputOutput::Particles
          */
-        void output(const char* path, const char* format, const char* fields);
+        void output(std::string path, std::string format, std::string fields);
 
         /** @brief Get the output file path
          * @return File path.
          * @see output()
          */
-        const char* outputPath() const {return _out_path;}
+        const std::string outputPath() const {return _out_path;}
 
         /** @brief Get the output file format
          * @return File format.
          * @see output()
          */
-        const char* outputFormat() const {return _out_format;}
+        const std::string outputFormat() const {return _out_format;}
 
         /** @brief Get the output file fields
          * @return Fields to be written list.
          * @see output()
          */
-        std::deque<char*> outputFields() const {return _out_fields;}
+        std::vector<std::string> outputFields() const {return _out_fields;}
     private:
         /// Number of particles
         unsigned int _n;
 
         /// Scalars names
-        std::deque<char*> _snames;
+        std::vector<std::string> _snames;
         /// Scalar values
-        std::deque<char*> _svalues;
+        std::vector<std::string> _svalues;
 
         /// Particles data file to load
-        char *_in_path;
+        std::string _in_path;
 
         /// Format of the particles data file to load
-        char *_in_format;
+        std::string _in_format;
 
         /// Fields to load from the file
-        std::deque<char*> _in_fields;
+        std::vector<std::string> _in_fields;
 
         /// Fluid particles data file to write
-        char *_out_path;
+        std::string _out_path;
 
         /// Fluid particles data file to write format
-        char *_out_format;
+        std::string _out_format;
 
         /// Fields to write in the file
-        std::deque<char*> _out_fields;
+        std::vector<std::string> _out_fields;
     };
 
     /// Array of particles sets
-    std::deque<sphParticlesSet*> sets;
+    std::vector<sphParticlesSet*> sets;
 };
 
 }}  // namespace

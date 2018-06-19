@@ -91,7 +91,7 @@ CalcServer::CalcServer* FileManager::load()
 
     // Now we can build the loaders/savers
     for(i = 0; i < _simulation.sets.size(); i++){
-        if(!strcmp(_simulation.sets.at(i)->inputFormat(), "ASCII")){
+        if(!_simulation.sets.at(i)->inputFormat().compare("ASCII")){
             ASCII *loader = new ASCII(
                 _simulation, n, _simulation.sets.at(i)->n(), i);
             if(!loader){
@@ -100,7 +100,7 @@ CalcServer::CalcServer* FileManager::load()
             }
             _loaders.push_back((Particles*)loader);
         }
-        else if(!strcmp(_simulation.sets.at(i)->inputFormat(), "FastASCII")){
+        else if(!_simulation.sets.at(i)->inputFormat().compare("FastASCII")){
             FastASCII *loader = new FastASCII(
                 _simulation, n, _simulation.sets.at(i)->n(), i);
             if(!loader){
@@ -109,7 +109,7 @@ CalcServer::CalcServer* FileManager::load()
             }
             _loaders.push_back((Particles*)loader);
         }
-        else if(!strcmp(_simulation.sets.at(i)->inputFormat(), "VTK")){
+        else if(!_simulation.sets.at(i)->inputFormat().compare("VTK")){
             #ifdef HAVE_VTK
                 VTK *loader = new VTK(
                     _simulation, n, _simulation.sets.at(i)->n(), i);
@@ -131,7 +131,7 @@ CalcServer::CalcServer* FileManager::load()
             delete C;
             return NULL;
         }
-        if(!strcmp(_simulation.sets.at(i)->outputFormat(), "ASCII")){
+        if(!_simulation.sets.at(i)->outputFormat().compare("ASCII")){
             ASCII *saver = new ASCII(
                 _simulation, n, _simulation.sets.at(i)->n(), i);
             if(!saver){
@@ -140,7 +140,7 @@ CalcServer::CalcServer* FileManager::load()
             }
             _savers.push_back((Particles*)saver);
         }
-        else if(!strcmp(_simulation.sets.at(i)->outputFormat(), "VTK")){
+        else if(!_simulation.sets.at(i)->outputFormat().compare("VTK")){
             #ifdef HAVE_VTK
                 VTK *saver = new VTK(
                     _simulation, n, _simulation.sets.at(i)->n(), i);

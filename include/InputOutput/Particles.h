@@ -124,7 +124,7 @@ protected:
      * @return host allocated memory, a clear list if errors are detected
      * @note The returned data must be manually cleared.
      */
-    std::deque<void*> download(std::deque<char*> fields);
+    std::deque<void*> download(std::vector<std::string> fields);
 private:
     /** Remove the content of the data list.
      * @param data List of memory allocated arrays to be cleared.
