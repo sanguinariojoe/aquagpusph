@@ -821,45 +821,45 @@ bool CalcServer::setup()
     for(i = 0; i < _sim_data.sets.size(); i++){
         InputOutput::ProblemSetup::sphParticlesSet* set = _sim_data.sets.at(i);
         for(j = 0; j < set->scalarNames().size(); j++){
-            const char *name = set->scalarNames().at(j).c_str();
-            const char *val = set->scalarValues().at(j).c_str();
-            if(!_vars->get(name)){
+            std::string name = set->scalarNames().at(j).c_str();
+            std::string val = set->scalarValues().at(j).c_str();
+            if(!_vars->get(name.c_str())){
                 sprintf(msg,
                         "Variable \"%s\" has not been registered\n",
-                        name);
+                        name.c_str());
                 S->addMessageF(L_ERROR, msg);
                 sprintf(msg, "Particles set: %u\n", i);
                 S->addMessage(L_DEBUG, msg);
                 return true;
             }
-            if(!strchr(_vars->get(name)->type(), '*')){
+            if(!strchr(_vars->get(name.c_str())->type(), '*')){
                 sprintf(msg,
                         "Variable \"%s\" has been registered as a scalar, however it is established per particles set\n",
-                        name);
+                        name.c_str());
                 S->addMessageF(L_ERROR, msg);
                 sprintf(msg, "Particles set: %u\n", i);
                 S->addMessage(L_DEBUG, msg);
                 return true;
             }
-            InputOutput::ArrayVariable *var = (InputOutput::ArrayVariable *)_vars->get(name);
-            size_t typesize = _vars->typeToBytes(_vars->get(name)->type());
-            size_t len = _vars->get(name)->size() / typesize;
+            InputOutput::ArrayVariable *var = (InputOutput::ArrayVariable *)_vars->get(name.c_str());
+            size_t typesize = _vars->typeToBytes(_vars->get(name.c_str())->type());
+            size_t len = _vars->get(name.c_str())->size() / typesize;
             if(len != _sim_data.sets.size()){
                 sprintf(msg,
                         "Variable \"%s\" is an array of %u components, which does not match with the number of particles sets (n_sets = %u)\n",
-                        name,
+                        name.c_str(),
                         len,
                         _sim_data.sets.size());
                 S->addMessageF(L_ERROR, msg);
                 return true;
             }
             void *data = malloc(typesize);
-            if(_vars->solve(_vars->get(name)->type(), val, data)){
+            if(_vars->solve(_vars->get(name.c_str())->type(), val.c_str(), data)){
                 sprintf(msg, "Particles set: %u\n", i);
                 S->addMessage(L_DEBUG, msg);
                 return true;
             }
-            cl_mem mem = *(cl_mem*)_vars->get(name)->get();
+            cl_mem mem = *(cl_mem*)_vars->get(name.c_str())->get();
             cl_int status;
             status = clEnqueueWriteBuffer(_command_queue, mem, CL_TRUE,
                                           i * typesize, typesize, data,
@@ -868,7 +868,7 @@ bool CalcServer::setup()
             if(status != CL_SUCCESS) {
                 sprintf(msg,
                         "Failure sending variable \"%s\" to particles set %u\n",
-                        name,
+                        name.c_str(),
                         i);
                 S->addMessageF(L_ERROR, msg);
                 S->printOpenCLError(status);
