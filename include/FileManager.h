@@ -106,13 +106,13 @@ public:
 
     /** @brief Load the input files, generating the calculation server.
      * 
-     * It require that:
-     *    -# Aqua::InputOutput::State load the XML definition files, storing the
-     *       data in Aqua::InputOutput::ProblemSetup.
-     *    -# Aqua::InputOutput::Particles load the particles fields data,
+     * Depends on:
+     *    -# Aqua::InputOutput::State to load the XML definition files, storing
+     *       the data in Aqua::InputOutput::ProblemSetup.
+     *    -# Aqua::InputOutput::Particles to load the particles fields data,
      *       storing it in Aqua::CalcServer::CalcServer.
      *
-     * @return The built Fluid manager, NULL if errors happened.
+     * @return The built Calculation server, NULL if errors happened.
      */
     CalcServer::CalcServer* load();
 
@@ -125,9 +125,8 @@ public:
      *
      * @warning If Python scripts are considered at the simulation, the user is
      * responsible to save the state to can eventually resume the simulation
-     * @return false if all gone right, true otherwise.
      */
-    bool save();
+    void save();
 
 private:
     /// The XML simulation definition loader/saver

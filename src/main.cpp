@@ -106,14 +106,12 @@ using namespace Aqua;
  */
 int main(int argc, char *argv[])
 {
+    std::ostringstream msg;
     InputOutput::FileManager file_manager;
-    InputOutput::ScreenManager *S = new InputOutput::ScreenManager(
-        &file_manager);
-
+    InputOutput::ScreenManager *S =
+        new InputOutput::ScreenManager(&file_manager);
     CalcServer::CalcServer *C = NULL;
     InputOutput::TimeManager *T = NULL;
-    char msg[256];
-    strcpy(msg, "");
 
     printf("\n");
     printf("\t#########################################################\n");
@@ -147,71 +145,49 @@ int main(int argc, char *argv[])
     }
 
     // Now we can load the simulation definition
-    C = file_manager.load();
-    if(!C){
-        delete C;
-        delete T;
-        delete S;
+    try {
+        C = file_manager.load();
+    } catch(...) {
         if(Py_IsInitialized())
             Py_Finalize();
-        return EXIT_FAILURE;
+        throw;
     }
 
     T = new InputOutput::TimeManager(file_manager.problemSetup());
 
-    S->addMessageF(L_INFO, "Start of simulation...\n\n");
+    LOG(L_INFO, "Start of simulation...\n\n");
     S->printDate();
 
     while(!T->mustStop())
     {
-        if(C->update()){
-            if(file_manager.problemSetup().settings.save_on_fail)
-                file_manager.save();
-            float Time = T->time();
-            delete S; S = NULL;
-            S->printDate();
-            S->addMessageF(L_INFO, "Destroying time manager...\n");
-            delete T; T = NULL;
-            S->addMessageF(L_INFO, "Destroying calculation server...\n");
-            delete C; C = NULL;
-            S->addMessageF(L_INFO, "Finishing Python...\n");
-            if(Py_IsInitialized())
-                Py_Finalize();
-            sprintf(msg, "Simulation finished abnormally (Time = %g s)\n\n", Time);
-            S->addMessageF(L_INFO, msg);
-            return EXIT_FAILURE;
-        }
-
-        if(file_manager.save()){
+        try {
+            C->update();
+            file_manager.save();
+        } catch (...) {
             sleep(__ERROR_SHOW_TIME__);
-            float Time = T->time();
+            float t = T->time();
             delete S; S = NULL;
-            S->printDate();
-            S->addMessageF(L_INFO, "Destroying time manager...\n");
             delete T; T = NULL;
-            S->addMessageF(L_INFO, "Destroying calculation server...\n");
             delete C; C = NULL;
-            S->addMessageF(L_INFO, "Finishing Python...\n");
             if(Py_IsInitialized())
                 Py_Finalize();
-            sprintf(msg, "Simulation finished abnormally (Time = %g s)\n\n", Time);
-            S->addMessageF(L_INFO, msg);
-            return EXIT_FAILURE;
+            S->printDate();
+            msg << "Simulation finished abnormally (Time = " << t
+                << " s)" << std::endl << std::endl;
+            LOG(L_INFO, msg.str());
+            throw;
         }
     }
 
+    float t = T->time();
     delete S; S = NULL;
-    S->printDate();
-
-    float Time = T->time();
-    S->addMessageF(L_INFO, "Destroying time manager...\n");
     delete T; T = NULL;
-    S->addMessageF(L_INFO, "Destroying calculation server...\n");
     delete C; C = NULL;
-    S->addMessageF(L_INFO, "Finishing Python...\n");
     if(Py_IsInitialized())
         Py_Finalize();
-    sprintf(msg, "Simulation finished OK (Time = %g s)\n\n", Time);
-    S->addMessageF(L_INFO, msg);
+    S->printDate();
+    msg << "Simulation finished OK (Time = " << t
+        << " s)" << std::endl << std::endl;
+    LOG(L_INFO, msg.str());
     return EXIT_SUCCESS;
 }

@@ -46,8 +46,6 @@ FileManager::FileManager()
 
 FileManager::~FileManager()
 {
-    unsigned int i;
-
     for(auto i = _loaders.begin(); i != _loaders.end(); i++) {
         delete *i;
     }
@@ -71,22 +69,20 @@ CalcServer::CalcServer* FileManager::load()
     unsigned int i, n=0;
 
     // Load the XML definition file
-    if(_state.load(inputFile(), _simulation)){
-        return NULL;
-    }
+    _state.load(inputFile(), _simulation);
 
     // Setup the problem setup
-    if(_simulation.perform()) {
-        return NULL;
-    }
+    _simulation.perform();
 
     // Build the calculation server
     CalcServer::CalcServer *C = new CalcServer::CalcServer(_simulation);
     if(!C)
-        return NULL;
-    if(C->setup()){
+        throw std::bad_alloc();
+    try {
+        C->setup();
+    } catch (...) {
         delete C;
-        return NULL;
+        throw;
     }
 
     // Now we can build the loaders/savers
@@ -96,7 +92,7 @@ CalcServer::CalcServer* FileManager::load()
                 _simulation, n, _simulation.sets.at(i)->n(), i);
             if(!loader){
                 delete C;
-                return NULL;
+                throw std::bad_alloc();
             }
             _loaders.push_back((Particles*)loader);
         }
@@ -105,7 +101,7 @@ CalcServer::CalcServer* FileManager::load()
                 _simulation, n, _simulation.sets.at(i)->n(), i);
             if(!loader){
                 delete C;
-                return NULL;
+                throw std::bad_alloc();
             }
             _loaders.push_back((Particles*)loader);
         }
@@ -115,12 +111,13 @@ CalcServer::CalcServer* FileManager::load()
                     _simulation, n, _simulation.sets.at(i)->n(), i);
                 if(!loader){
                     delete C;
-                    return NULL;
+                    throw std::bad_alloc();
                 }
                 _loaders.push_back((Particles*)loader);
             #else
                 LOG(L_ERROR, "AQUAgpusph has been compiled without VTK format.\n");
-                return NULL;
+                delete C;
+                throw std::runtime_error("VTK support is disabled");
             #endif // HAVE_VTK
         }
         else{
@@ -129,14 +126,14 @@ CalcServer::CalcServer* FileManager::load()
                 << "\" input file format" << std::endl;
             LOG(L_ERROR, msg.str());
             delete C;
-            return NULL;
+            throw std::runtime_error("Unknown input file format");
         }
         if(!_simulation.sets.at(i)->outputFormat().compare("ASCII")){
             ASCII *saver = new ASCII(
                 _simulation, n, _simulation.sets.at(i)->n(), i);
             if(!saver){
                 delete C;
-                return NULL;
+                throw std::bad_alloc();
             }
             _savers.push_back((Particles*)saver);
         }
@@ -146,12 +143,13 @@ CalcServer::CalcServer* FileManager::load()
                     _simulation, n, _simulation.sets.at(i)->n(), i);
                 if(!saver){
                     delete C;
-                    return NULL;
+                    throw std::bad_alloc();
                 }
                 _savers.push_back((Particles*)saver);
             #else
                 LOG(L_ERROR, "AQUAgpusph has been compiled without VTK format.\n");
-                return NULL;
+                delete C;
+                throw std::runtime_error("VTK support is disabled");
             #endif // HAVE_VTK
         }
         else{
@@ -160,38 +158,33 @@ CalcServer::CalcServer* FileManager::load()
                 << "\" input file format" << std::endl;
             LOG(L_ERROR, msg.str());
             delete C;
-            return NULL;
+            throw std::runtime_error("Unknown output file format");
         }
         n += _simulation.sets.at(i)->n();
     }
 
     // Execute the loaders
     for(auto loader = _loaders.begin(); loader != _loaders.end(); loader++) {
-        if((*loader)->load()) {
+        try {
+            (*loader)->load();
+        } catch (...) {
             delete C;
-            return NULL;
+            throw;
         }
     }
 
     return C;
 }
 
-bool FileManager::save()
+void FileManager::save()
 {
-    unsigned int i;
-
     // Execute the savers
     for(auto saver = _savers.begin(); saver != _savers.end(); saver++) {
-        if((*saver)->save())
-            return true;
+        (*saver)->save();
     }
 
     // Save the XML definition file
-    if(_state.save(_simulation, _savers)){
-        return true;
-    }
-
-    return false;
+    _state.save(_simulation, _savers);
 }
 
 }}  // namespace
