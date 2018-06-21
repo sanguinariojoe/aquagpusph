@@ -45,14 +45,12 @@ protected:
 
 public:
     /** @brief Save the data
-     * @return false if all gone right, true otherwise.
      */
-    virtual bool save() = 0;
+    virtual void save() = 0;
 
     /** @brief Load the data
-     * @return false if all gone right, true otherwise.
      */
-    virtual bool load() = 0;
+    virtual void load() = 0;
 
 };  // class InputOutput
 

@@ -59,7 +59,7 @@ void FileManager::inputFile(std::string path)
     _in_file = path;
 }
 
-FILE* FileManager::logFile()
+std::ofstream& FileManager::logFile()
 {
     return _log.fileHandler();
 }

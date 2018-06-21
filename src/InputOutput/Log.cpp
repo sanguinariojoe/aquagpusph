@@ -32,10 +32,8 @@
 namespace Aqua{ namespace InputOutput{
 
 Log::Log()
-    : _file(NULL)
 {
-    if(create())
-        exit(EXIT_FAILURE);
+    create();
 }
 
 Log::~Log()
@@ -43,76 +41,60 @@ Log::~Log()
     close();
 }
 
-bool Log::save()
+void Log::save()
 {
     if(!_file){
-        return true;
+        LOG(L_ERROR, "The Log file was not correctly created");
+        throw std::runtime_error("Invalid Log file");
     }
-
-    return false;
 }
 
-bool Log::create()
+void Log::create()
 {
-    char msg[1024];
-    ScreenManager *S = ScreenManager::singleton();
-
-    if(file("log.%d.html", 0)){
-        S->addMessageF(L_ERROR, "Failure getting a valid filename.\n");
-        S->addMessage(L_DEBUG, "\tHow do you received this message?.\n");
-        return true;
-    }
-    _file = fopen(file(), "w");
-    if(!_file){
-        sprintf(msg,
-                "Failure creating the log file \"%s\"\n",
-                file());
-        return true;
+    file("log.%d.html", 0);
+    _file.open(file().c_str());
+    if(!_file.is_open()){
+        std::ostringstream msg;
+        msg << "Failure creating the log file \"" << file()
+            << "\"" << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("Failure creating the Log file");
     }
 
-    fprintf(_file, "<html>\n");
-    fprintf(_file, "<head><title>AQUAgpusph log file.</title></head>\n");
-    fprintf(_file, "<body bgcolor=\"#f0ffff\">\n");
-    fprintf(_file, "<h1 align=\"center\">AQUAgpusph log file.</h1>\n");
+    _file << "<html>" << std::endl;
+    _file << "<head><title>AQUAgpusph log file.</title></head>" << std::endl;
+    _file << "<body bgcolor=\"#f0ffff\">" << std::endl;
+    _file << "<h1 align=\"center\">AQUAgpusph log file.</h1>" << std::endl;
     // Starting data
     struct timeval now_time;
     gettimeofday(&now_time, NULL);
     const time_t seconds = now_time.tv_sec;
-    fprintf(_file, "<p align=\"left\">%s</p>\n", ctime(&seconds));
-    fprintf(_file, "<hr><br>\n");
-    fflush(_file);
-
-    return false;
+    _file << "<p align=\"left\">" << ctime(&seconds) << "</p>" << std::endl;
+    _file << "<hr><br>" << std::endl;
+    _file.flush();
 }
 
-bool Log::close()
+void Log::close()
 {
-    if(!_file)
-        return true;
+    if(!_file.is_open()) {
+        LOG(L_ERROR, "The Log file was not correctly created");
+        throw std::runtime_error("Invalid Log file");
+    }
 
-    unsigned int i;
-    char msg[512];
-    ScreenManager *S = ScreenManager::singleton();
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
     float fluid_mass = 0.f;
     int err_code = CL_SUCCESS;
-    strcpy(msg, "");
 
-    fprintf(_file, "<br><hr>\n");
+    _file << "<br><hr>" << std::endl;
     struct timeval now_time;
     gettimeofday(&now_time, NULL);
     const time_t seconds = now_time.tv_sec;
-    fprintf(_file,
-            "<b><font color=\"#000000\">End of simulation</font></b><br>\n");
-    fprintf(_file, "<p align=\"left\">%s</p>\n", ctime(&seconds));
-    fprintf(_file, "</body>\n");
-    fprintf(_file, "</html>\n");
-
-    fflush(_file);
-    fclose(_file);
-    _file = NULL;
-
-    return false;
+    _file << "<b><font color=\"#000000\">End of simulation</font></b><br>"
+          << std::endl;
+    _file << "<p align=\"left\">" << ctime(&seconds) << "</p>" << std::endl;
+    _file << "</body>" << std::endl;
+    _file << "</html>" << std::endl;
+    _file.close();
 }
 
 }}  // namespace

@@ -24,7 +24,8 @@
 #ifndef LOG_H_INCLUDED
 #define LOG_H_INCLUDED
 
-#include <stdio.h>
+#include <iostream>
+#include <fstream>
 
 #include <sphPrerequisites.h>
 #include <InputOutput/Report.h>
@@ -51,27 +52,24 @@ public:
     ~Log();
 
     /** @brief Save the data.
-     * @return false if all gone right, true otherwise.
      */
-    bool save();
+    void save();
 
     /** @brief Get the log file handler
      * @return The log file handler.
      */
-    FILE* fileHandler(){return _file;}
+    std::ofstream& fileHandler(){return _file;}
 private:
     /** @brief Create the log file
-     * @return false if all gone right, true otherwise.
      */
-    bool create();
+    void create();
 
     /** @brief Close the log file
-     * @return false if all gone right, true otherwise.
      */
-    bool close();
+    void close();
 
     /// Output file
-    FILE *_file;
+    std::ofstream _file;
 
 };  // class InputOutput
 

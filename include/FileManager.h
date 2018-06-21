@@ -87,7 +87,7 @@ public:
      * @return Log file handler.
      * @see Aqua::InputOutput::Log
      */
-    FILE* logFile();
+    std::ofstream& logFile();
 
     /** @brief Get the simulation setup, extracted from the XML definition files
      *

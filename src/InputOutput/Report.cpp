@@ -35,86 +35,56 @@
 namespace Aqua{ namespace InputOutput{
 
 Report::Report()
-    : _output_file(NULL)
 {
 }
 
 Report::~Report()
 {
-    if(_output_file)
-        delete[] _output_file;
-    _output_file = NULL;
 }
 
-void Report::file(const char* filename)
+void Report::file(std::string filename)
 {
-    size_t len;
-
-    if(_output_file)
-        delete[] _output_file;
-    _output_file = NULL;
-
-    if(!filename)
-        return;
-
-    len = strlen(filename) + 1;
-    _output_file = new char[len];
-    strcpy(_output_file, filename);
+    _output_file = filename;
 }
 
-bool Report::file(const char* basename, unsigned int startindex)
+void Report::file(std::string basename, unsigned int startindex)
 {
     FILE *f;
-    char *newname = NULL, *orig_pos, *dest_pos;
-    size_t len;
     unsigned int i = startindex;
+    std::string newname;
+    std::ostringstream number_str;
 
-    if(!basename)
-
-    if(!strstr(basename, "%d")){
+    if(basename.find("%d") == std::string::npos){
         // We cannot replace nothing in the basename, just test if the file
         // does not exist
-        f = fopen(basename, "r");
+        f = fopen(basename.c_str(), "r");
         if(f){
             // The fail already exist, so we cannot operate
             fclose(f);
-            return true;
+            std::ostringstream msg;
+            msg << "Can't get a non-existing file name with the pattern \""
+                << basename << "\"" << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw std::invalid_argument("Invalid file name pattern");
         }
 
         file(basename);
-        return false;
+        return;
     }
 
     while(true){
-        if(newname)
-            delete[] newname;
-        newname = NULL;
+        number_str.str("");
+        number_str << i;
+        newname = replaceAllCopy(basename, "%d", number_str.str());
 
-        len = strlen(basename) + 1 + numberOfDigits(i);
-        newname = new char[len];
-
-        // Copy all the string
-        strcpy(newname, basename);
-        // Replace the number
-        dest_pos = strstr(newname, "%d");
-        sprintf(dest_pos, "%u", i);
-        // Copy the rest of the original string after the inserted number
-        dest_pos += numberOfDigits(i);
-        orig_pos = (char*)strstr(basename, "%d") + 2;
-        strcpy(dest_pos, orig_pos);
-
-        f = fopen(newname, "r");
-        if(!f){
-            // We found an available slot
+        f = fopen(newname.c_str(), "r");
+        if(!f)
             break;
-        }
         fclose(f);
         i++;
     }
 
     file(newname);
-    delete[] newname;
-    return false;
 }
 
 }}  // namespace

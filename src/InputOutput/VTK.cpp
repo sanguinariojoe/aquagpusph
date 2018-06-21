@@ -126,7 +126,7 @@ VTK::~VTK()
     if(_namePVD) delete[] _namePVD; _namePVD=NULL;
 }
 
-bool VTK::load()
+void VTK::load()
 {
     unsigned int i, j, k, n, N, progress;
     int aux;
@@ -147,7 +147,7 @@ bool VTK::load()
 
     if(!f->CanReadFile(simData().sets.at(setId())->inputPath().c_str())){
         S->addMessageF(L_ERROR, "The file cannot be read.\n");
-        return true;
+        throw std::runtime_error("Failure reading file");
     }
 
     f->SetFileName(simData().sets.at(setId())->inputPath().c_str());
@@ -164,14 +164,14 @@ bool VTK::load()
                 n,
                 N);
         S->addMessage(L_ERROR, msg);
-        return true;
+        throw std::runtime_error("Invalid number of particles");
     }
 
     // Check the fields to read
     std::vector<std::string> fields = simData().sets.at(setId())->inputFields();
     if(!fields.size()){
         S->addMessage(L_ERROR, "0 fields were set to be read from the file.\n");
-        return true;
+        throw std::runtime_error("No fields have been marked to read");
     }
     bool have_r = false;
     for(i = 0; i < fields.size(); i++){
@@ -182,7 +182,7 @@ bool VTK::load()
     }
     if(!have_r){
         S->addMessage(L_ERROR, "\"r\" field was not set to be read from the file.\n");
-        return true;
+        throw std::runtime_error("\"r\" field is mandatory");
     }
 
     // Setup an storage
@@ -194,14 +194,14 @@ bool VTK::load()
                     "\"%s\" field has been set to be read, but it was not declared.\n",
                     fields.at(i).c_str());
             S->addMessage(L_ERROR, msg);
-            return true;
+            throw std::runtime_error("Invalid field");
         }
         if(!strchr(vars->get(fields.at(i).c_str())->type(), '*')){
             sprintf(msg,
                     "\"%s\" field has been set to be read, but it was declared as an scalar.\n",
                     fields.at(i).c_str());
             S->addMessage(L_ERROR, msg);
-            return true;
+            throw std::runtime_error("Invalid field type");
         }
         ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i).c_str());
         size_t typesize = vars->typeToBytes(var->type());
@@ -211,7 +211,7 @@ bool VTK::load()
                     "Failure reading \"%s\" field, which has not length enough.\n",
                     fields.at(i).c_str());
             S->addMessage(L_ERROR, msg);
-            return true;
+            throw std::runtime_error("Invalid field length");
         }
         void *store = malloc(typesize * n);
         if(!store){
@@ -219,7 +219,7 @@ bool VTK::load()
                     "Failure allocating memory for \"%s\" field.\n",
                     fields.at(i).c_str());
             S->addMessage(L_ERROR, msg);
-            return true;
+            throw std::bad_alloc();
         }
         data.push_back(store);
     }
@@ -314,8 +314,6 @@ bool VTK::load()
         }
     }
     data.clear();
-
-    return false;
 }
 
 /** @brief Data structure to send the data to a parallel writer thread
@@ -545,7 +543,7 @@ void* save_pthread(void *data_void)
     return NULL;
 }
 
-bool VTK::save()
+void VTK::save()
 {
     unsigned int i;
     ScreenManager *S = ScreenManager::singleton();
@@ -555,7 +553,7 @@ bool VTK::save()
     std::vector<std::string> fields = simData().sets.at(setId())->outputFields();
     if(!fields.size()){
         S->addMessage(L_ERROR, "0 fields were set to be saved into the file.\n");
-        return true;
+        throw std::runtime_error("No fields have been marked to be saved");
     }
     bool have_r = false;
     for(i = 0; i < fields.size(); i++){
@@ -566,7 +564,7 @@ bool VTK::save()
     }
     if(!have_r){
         S->addMessage(L_ERROR, "\"r\" field was not set to be saved into the file.\n");
-        return true;
+        throw std::runtime_error("\"r\" field is mandatory");
     }
 
     // Setup the data struct for the parallel thread
@@ -577,11 +575,11 @@ bool VTK::save()
     data->S = S;
     data->data = download(fields);
     if(!data->data.size()){
-        return true;
+        throw std::runtime_error("Failure downloading data");
     }
     data->f = create();
     if(!data->f){
-        return true;
+        throw std::runtime_error("Failure creating file");
     }
 
     // Launch the thread
@@ -594,7 +592,7 @@ bool VTK::save()
         strcpy(err_str, strerror(err));
         strcat(err_str, "\n");
         S->addMessage(L_DEBUG, err_str);
-        return true;
+        throw std::runtime_error("Failure launching saving thread");
     }
     _tids.push_back(tid);
 
@@ -624,10 +622,8 @@ bool VTK::save()
 
     // Update the PVD file
     if(updatePVD()){
-        return true;
+        throw std::runtime_error("Failure updating PVD description file");
     }
-
-    return false;
 }
 
 vtkXMLUnstructuredGridWriter* VTK::create(){

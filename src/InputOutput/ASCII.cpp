@@ -50,7 +50,7 @@ ASCII::~ASCII()
 {
 }
 
-bool ASCII::load()
+void ASCII::load()
 {
     FILE *f;
     cl_int err_code;
@@ -70,7 +70,7 @@ bool ASCII::load()
     f = fopen(simData().sets.at(setId())->inputPath().c_str(), "r");
     if(!f){
         S->addMessageF(L_ERROR, "The file is inaccessible.\n");
-        return true;
+        throw std::runtime_error("The file is inaccessible");
     }
 
     // Assert that the number of particles is right
@@ -82,14 +82,14 @@ bool ASCII::load()
                 n,
                 N);
         S->addMessageF(L_ERROR, msg);
-        return true;
+        throw std::runtime_error("Invalid number of particles in file");
     }
 
     // Check the fields to read
     std::vector<std::string> fields = simData().sets.at(setId())->inputFields();
     if(!fields.size()){
         S->addMessageF(L_ERROR, "0 fields were set to be read from the file.\n");
-        return true;
+        throw std::runtime_error("No fields have to be read");
     }
     bool have_r = false;
     for(i = 0; i < fields.size(); i++){
@@ -100,7 +100,7 @@ bool ASCII::load()
     }
     if(!have_r){
         S->addMessageF(L_ERROR, "\"r\" field was not set to be read from the file.\n");
-        return true;
+        throw std::runtime_error("Reading \"r\" field is mandatory");
     }
     // Setup an storage
     std::deque<void*> data;
@@ -112,14 +112,14 @@ bool ASCII::load()
                     "\"%s\" field has been set to be read, but it was not declared.\n",
                     fields.at(i).c_str());
             S->addMessageF(L_ERROR, msg);
-            return true;
+            throw std::runtime_error("Invalid field");
         }
         if(!strchr(vars->get(fields.at(i).c_str())->type(), '*')){
             sprintf(msg,
                     "\"%s\" field has been set to be read, but it was declared as a scalar.\n",
                     fields.at(i).c_str());
             S->addMessageF(L_ERROR, msg);
-            return true;
+            throw std::runtime_error("Invalid field type");
         }
         ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i).c_str());
         n_fields += vars->typeToN(var->type());
@@ -130,7 +130,7 @@ bool ASCII::load()
                     "Failure reading \"%s\" field, which has not length enough.\n",
                     fields.at(i).c_str());
             S->addMessageF(L_ERROR, msg);
-            return true;
+            throw std::runtime_error("Invalid field length");
         }
         void *store = malloc(typesize * n);
         if(!store){
@@ -138,7 +138,7 @@ bool ASCII::load()
                     "Failure allocating memory for \"%s\" field.\n",
                     fields.at(i).c_str());
             S->addMessageF(L_ERROR, msg);
-            return true;
+            throw std::bad_alloc();
         }
         data.push_back(store);
     }
@@ -167,14 +167,14 @@ bool ASCII::load()
             S->addMessage(L_DEBUG, msg);
             sprintf(msg, "\t\"%s\".\n", line);
             S->addMessage(L_DEBUG, msg);
-            return true;
+            throw std::runtime_error("Bad formatted file");
         }
 
         pos = line;
         for(j = 0; j < fields.size(); j++){
             pos = readField((const char*)fields.at(j).c_str(), pos, i, data.at(j));
             if(!pos && (j != fields.size() - 1))
-                return true;
+                throw std::runtime_error("Incorrect number of fields");
         }
 
         i++;
@@ -209,15 +209,15 @@ bool ASCII::load()
                     fields.at(i));
             S->addMessageF(L_ERROR, msg);
             S->printOpenCLError(err_code);
+            throw std::runtime_error("Failure sending data");
         }
     }
     data.clear();
 
     fclose(f);
-    return false;
 }
 
-bool ASCII::save()
+void ASCII::save()
 {
     unsigned int i, j;
     cl_int err_code;
@@ -229,12 +229,12 @@ bool ASCII::save()
     std::vector<std::string> fields = simData().sets.at(setId())->outputFields();
     if(!fields.size()){
         S->addMessageF(L_ERROR, "0 fields were set to be saved into the file.\n");
-        return true;
+        throw std::runtime_error("No fields have been set to be saved");
     }
 
     FILE *f = create();
     if(!f)
-        return true;
+        throw std::runtime_error("Failure creating the file");
 
     // Write a head
     fprintf(f, "#########################################################\n");
@@ -264,14 +264,14 @@ bool ASCII::save()
                     "\"%s\" field has been set to be saved, but it was not declared.\n",
                     fields.at(i).c_str());
             S->addMessageF(L_ERROR, msg);
-            return true;
+            throw std::runtime_error("Invalid field");
         }
         if(!strchr(vars->get(fields.at(i).c_str())->type(), '*')){
             sprintf(msg,
                     "\"%s\" field has been set to be saved, but it was declared as an scalar.\n",
                     fields.at(i).c_str());
             S->addMessageF(L_ERROR, msg);
-            return true;
+            throw std::runtime_error("Invalid field type");
         }
         ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i).c_str());
         size_t typesize = vars->typeToBytes(var->type());
@@ -281,12 +281,12 @@ bool ASCII::save()
                     "Failure saving \"%s\" field, which has not length enough.\n",
                     fields.at(i).c_str());
             S->addMessageF(L_ERROR, msg);
-            return true;
+            throw std::runtime_error("Invalid field length");
         }
     }
     std::deque<void*> data = download(fields);
     if(!data.size()){
-        return true;
+        throw std::runtime_error("Failure downloading data");
     }
 
     for(i = 0; i < bounds().y - bounds().x; i++){
@@ -396,7 +396,6 @@ bool ASCII::save()
     data.clear();
 
     fclose(f);
-    return false;
 }
 
 unsigned int ASCII::readNParticles(FILE *f)

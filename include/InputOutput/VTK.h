@@ -107,14 +107,12 @@ public:
     ~VTK();
 
     /** @brief Save the data.
-     * @return false if all gone right, true otherwise.
      */
-    bool save();
+    void save();
 
     /** @brief Load the data.
-     * @return false if all gone right, true otherwise.
      */
-    bool load();
+    void load();
 
 private:
     /** @brief Create a new file to write.

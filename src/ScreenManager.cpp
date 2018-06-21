@@ -200,32 +200,24 @@ void ScreenManager::addMessage(TLogLevel level, std::string log, const char *fun
         fname << "(" << func << "): ";
 
     // Send the info to the log file (if possible)
-    FILE *LogFileID = _fmanager->logFile();
-    if(LogFileID){
+    std::ofstream log_file = std::move(_fmanager->logFile());
+    if(log_file){
         if(level == L_INFO)
-            fprintf(LogFileID,
-                    "<b><font color=\"#000000\">[INFO] %s%s</font></b><br>",
-                    fname.str().c_str(),
-                    log.c_str());
+            log_file << "<b><font color=\"#000000\">[INFO] "
+                     << fname.str() << log << "</font></b><br>";
         else if(level == L_WARNING)
-            fprintf(LogFileID,
-                    "<b><font color=\"#ff9900\">[WARNING] %s%s</font></b><br>",
-                    fname.str().c_str(),
-                    log.c_str());
+            log_file << "<b><font color=\"#ff9900\">[WARNING] "
+                     << fname.str() << log << "</font></b><br>";
         else if(level == L_ERROR)
-            fprintf(LogFileID,
-                    "<b><font color=\"#dd0000\">[ERROR] %s%s</font></b><br>",
-                    fname.str().c_str(),
-                    log.c_str());
+            log_file << "<b><font color=\"#dd0000\">[ERROR] "
+                     << fname.str() << log << "</font></b><br>";
         else{
-            fprintf(LogFileID,
-                    "<font color=\"#000000\">%s%s</font>",
-                    fname.str().c_str(),
-                    log.c_str());
+            log_file << "<b><font color=\"#000000\">"
+                     << fname.str() << log << "</font></b><br>";
             if(hasSuffix(log, "\n"))
-                fprintf(LogFileID, "<br>");
+                log_file << "<br>";
         }
-        fflush(LogFileID);
+        log_file.flush();
     }
     // Compatibility mode for destroyed ScreenManager situations
     if(!ScreenManager::singleton()){

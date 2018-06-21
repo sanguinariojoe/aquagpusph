@@ -75,14 +75,12 @@ public:
     virtual ~ASCII();
 
     /** @brief Save the data.
-     * @return false if all gone right, true otherwise.
      */
-    bool save();
+    void save();
 
     /** @brief Load the data.
-     * @return false if all gone right, true otherwise.
      */
-    bool load();
+    void load();
 
 private:
     /** @brief Count the number of particles present in the input file.
