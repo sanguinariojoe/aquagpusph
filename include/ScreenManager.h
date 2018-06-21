@@ -49,10 +49,18 @@
 #ifndef LOG
     /** @def LOG
      * Overloaded version of
-     * Aqua::InputOutput::ScreenManager::singleton()->addMessage(), such that
+     * Aqua::InputOutput::ScreenManager::singleton()->addMessageF(), such that
      * this macro can ve conveniently called to fill the log file.
      */
     #define LOG(level, log) Aqua::InputOutput::ScreenManager::singleton()->addMessageF(level, log)
+#endif
+#ifndef LOG0
+    /** @def LOG0
+     * Overloaded version of
+     * Aqua::InputOutput::ScreenManager::singleton()->addMessage(), such that
+     * this macro can ve conveniently called to fill the log file.
+     */
+    #define LOG0(level, log) Aqua::InputOutput::ScreenManager::singleton()->addMessage(level, log)
 #endif
 
 namespace Aqua{

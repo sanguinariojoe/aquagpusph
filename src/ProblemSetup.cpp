@@ -81,9 +81,8 @@ bool ProblemSetup::perform()
     return false;
 }
 
-void ProblemSetup::sphSettings::init()
+void ProblemSetup::sphSettings::sphSettings()
 {
-    verbose_level = 1;
     save_on_fail = true;
     platform_id = 0;
     device_id = 0;
@@ -91,7 +90,7 @@ void ProblemSetup::sphSettings::init()
     base_path = "";
 }
 
-void ProblemSetup::sphSettings::destroy()
+void ProblemSetup::sphSettings::~sphSettings()
 {
 }
 

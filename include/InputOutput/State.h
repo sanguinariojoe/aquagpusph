@@ -42,6 +42,7 @@
 #include <xercesc/framework/LocalFileFormatTarget.hpp>
 #include <xercesc/util/XMLUni.hpp>
 
+#include <string>
 #include <vector>
 
 namespace Aqua{ namespace InputOutput{
@@ -90,17 +91,15 @@ public:
      * @see Aqua::InputOutput::Particles::save()
      * @param sim_data Simulation data
      * @param savers Particles savers list
-     * @return false if all gone right, true otherwise.
      */
-    bool save(ProblemSetup sim_data, std::vector<Particles*> savers);
+    void save(ProblemSetup sim_data, std::vector<Particles*> savers);
 
     /** @brief Load the simulation XML definition files.
      *
      * @param input_file XML file to load
      * @param sim_data Simulation data
-     * @return false if all gone right, true otherwise
      */
-    bool load(std::string input_file, ProblemSetup &sim_data);
+    void load(std::string input_file, ProblemSetup &sim_data);
 
 protected:
     /** @brief Parse the XML file
@@ -114,9 +113,9 @@ protected:
      * specified in the `<Include>` tag, the same received \a prefix will be
      * used.
      */
-    bool parse(const char* filepath,
+    void parse(std::string filepath,
                ProblemSetup &sim_data,
-               const char* prefix="");
+               std::string prefix="");
 
     /** @brief Parse the general settings sections.
      * @param root root XML node.
@@ -125,9 +124,9 @@ protected:
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphSettings
      */
-    bool parseSettings(xercesc::DOMElement *root,
+    void parseSettings(xercesc::DOMElement *root,
                        ProblemSetup &sim_data,
-                       const char* prefix="");
+                       std::string prefix="");
 
     /** @brief Parse the variables sections.
      * @param root root XML node.
@@ -136,9 +135,9 @@ protected:
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphVariables
      */
-    bool parseVariables(xercesc::DOMElement *root,
+    void parseVariables(xercesc::DOMElement *root,
                         ProblemSetup &sim_data,
-                        const char* prefix="");
+                        std::string prefix="");
 
     /** @brief Parse the definitions sections.
      * @param root root XML node.
@@ -147,9 +146,9 @@ protected:
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphDefinitions
      */
-    bool parseDefinitions(xercesc::DOMElement *root,
+    void parseDefinitions(xercesc::DOMElement *root,
                           ProblemSetup &sim_data,
-                          const char* prefix="");
+                          std::string prefix="");
 
     /** @brief Parse the tools sections.
      * @param root root XML node.
@@ -158,9 +157,9 @@ protected:
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphTool
      */
-    bool parseTools(xercesc::DOMElement *root,
+    void parseTools(xercesc::DOMElement *root,
                     ProblemSetup &sim_data,
-                    const char* prefix="");
+                    std::string prefix="");
 
     /** @brief Parse the time control sections.
      * @param root Root XML node.
@@ -169,9 +168,9 @@ protected:
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphTimingParameters
      */
-    bool parseTiming(xercesc::DOMElement *root,
+    void parseTiming(xercesc::DOMElement *root,
                      ProblemSetup &sim_data,
-                     const char* prefix="");
+                     std::string prefix="");
 
     /** Look for particles set sections.
      * @param root Root XML node.
@@ -180,9 +179,9 @@ protected:
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphParticlesSet
      */
-    bool parseSets(xercesc::DOMElement *root,
+    void parseSets(xercesc::DOMElement *root,
                    ProblemSetup &sim_data,
-                   const char* prefix="");
+                   std::string prefix="");
 
     /** @brief Parse the reports sections.
      * @param root root XML node.
@@ -191,9 +190,9 @@ protected:
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphTool
      */
-    bool parseReports(xercesc::DOMElement *root,
+    void parseReports(xercesc::DOMElement *root,
                       ProblemSetup &sim_data,
-                      const char* prefix="");
+                      std::string prefix="");
 
     /** @brief Write the XML file
      * @param filepath file to be written.
@@ -201,7 +200,7 @@ protected:
      * @param savers Particles savers list
      * @return false if all gone right, true otherwise
      */
-    bool write(const char* filepath,
+    void write(std::string filepath,
                ProblemSetup sim_data,
                std::vector<Particles*> savers);
 
@@ -212,7 +211,7 @@ protected:
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphSettings
      */
-    bool writeSettings(xercesc::DOMDocument* doc,
+    void writeSettings(xercesc::DOMDocument* doc,
                        xercesc::DOMElement *root,
                        ProblemSetup sim_data);
 
@@ -223,7 +222,7 @@ protected:
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphVariables
      */
-    bool writeVariables(xercesc::DOMDocument* doc,
+    void writeVariables(xercesc::DOMDocument* doc,
                         xercesc::DOMElement *root,
                         ProblemSetup sim_data);
 
@@ -234,7 +233,7 @@ protected:
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphDefinitions
      */
-    bool writeDefinitions(xercesc::DOMDocument* doc,
+    void writeDefinitions(xercesc::DOMDocument* doc,
                           xercesc::DOMElement *root,
                           ProblemSetup sim_data);
 
@@ -245,7 +244,7 @@ protected:
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphTool
      */
-    bool writeTools(xercesc::DOMDocument* doc,
+    void writeTools(xercesc::DOMDocument* doc,
                     xercesc::DOMElement *root,
                     ProblemSetup sim_data);
 
@@ -256,7 +255,7 @@ protected:
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphTimingParameters
      */
-    bool writeTiming(xercesc::DOMDocument* doc,
+    void writeTiming(xercesc::DOMDocument* doc,
                      xercesc::DOMElement *root,
                      ProblemSetup sim_data);
 
@@ -268,7 +267,7 @@ protected:
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphParticlesSet
      */
-    bool writeSets(xercesc::DOMDocument* doc,
+    void writeSets(xercesc::DOMDocument* doc,
                    xercesc::DOMElement *root,
                    ProblemSetup sim_data,
                    std::vector<Particles*> savers);
@@ -280,13 +279,13 @@ protected:
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphTool
      */
-    bool writeReports(xercesc::DOMDocument* doc,
+    void writeReports(xercesc::DOMDocument* doc,
                       xercesc::DOMElement *root,
                       ProblemSetup sim_data);
 
 private:
     /// Output file
-    char* _output_file;
+    std::string _output_file;
 };  // class InputOutput
 
 }}  // namespaces

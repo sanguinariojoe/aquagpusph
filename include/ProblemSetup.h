@@ -116,8 +116,7 @@ public:
      */
     bool perform();
 
-    /** @struct sphSettings
-     * @brief General program settings.
+    /** @brief General program settings.
      *
      * These setting are set between the following XML tags:
      * @code{.xml}
@@ -127,24 +126,12 @@ public:
      *
      * @see Aqua::InputOutput::ProblemSetup
      */
-    struct sphSettings
+    class sphSettings
     {
         /// Constructor.
-        void init();
+        void sphSettings();
         /// Destructor
-        void destroy();
-
-        /** @brief Verbose level.
-         *
-         *   - 2 = Slowest alternative, prints relevant data every timestep.
-         *   - 1 = Prints relevant data every frame (i.e. when output data
-         *     files are updated).
-         *   - 0 = Fastest alternative, prints minimum data.
-         *
-         * This field can be set with the tag `Verbose`, for instance:
-         * `<Verbose level="1" />`
-         */
-        int verbose_level;
+        void ~sphSettings();
 
         /** @brief Save the output in case of failure
          *
