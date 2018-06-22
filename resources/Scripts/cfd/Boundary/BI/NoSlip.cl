@@ -58,7 +58,6 @@
  * @param n_cells Number of cells in each direction
  * @param noslip_iset Particles set of the boundary terms which friction should
  * be taken into account.
- * @param dr Distance between particles \f$ \Delta r \f$.
  */
 __kernel void entry(const __global uint* iset,
                     const __global int* imove,
@@ -74,8 +73,7 @@ __kernel void entry(const __global uint* iset,
                     // Simulation data
                     uint N,
                     uivec4 n_cells,
-                    uint noslip_iset,
-                    float dr)
+                    uint noslip_iset)
 {
     const uint i = get_global_id(0);
     const uint it = get_local_id(0);
@@ -117,15 +115,13 @@ __kernel void entry(const __global uint* iset,
             const float w_ij = kernelW(q) * CONW * area_j;
             const vec_xyz du = u[j].XYZ - u_i;
 
+            const float r2 = (q * q + 0.01f) * H * H;
             #if __LAP_FORMULATION__ == __LAP_MONAGHAN__
-                const float r2 = (q * q + 0.01f) * H * H;
                 _LAPU_ += __CLEARY__ * w_ij * dot(du, r_ij) / (r2 * rho_i) * n_j;
             #endif
             #if __LAP_FORMULATION__ == __LAP_MORRIS__ || \
                 __LAP_FORMULATION__ == __LAP_MONAGHAN__
-                const float dr_n = max(fabs(dot(r_ij, n_j)), dr);
-                const vec_xyz du_t = du - dot(du, n_j) * n_j;
-                _LAPU_ += 2.f * w_ij / (rho_i * dr_n) * du_t;
+                _LAPU_ += 2.f * w_ij * dot(r_ij, n_j) / r2 * du;
             #endif
         }
     }END_LOOP_OVER_NEIGHS()

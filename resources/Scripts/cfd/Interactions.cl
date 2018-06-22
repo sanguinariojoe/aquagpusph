@@ -129,9 +129,9 @@ __kernel void entry(const __global int* imove,
 
             #if __LAP_FORMULATION__ == __LAP_MONAGHAN__
                 const float r2 = (q * q + 0.01f) * H * H;
-                _LAPU_ += f_ij * __CLEARY__ * udr / (r2 * rho_i * rho_j) * r_ij;
+                _LAPU_ += __CLEARY__ * f_ij * udr / (r2 * rho_i * rho_j) * r_ij;
             #elif __LAP_FORMULATION__ == __LAP_MORRIS__
-                _LAPU_ += f_ij * 2.f / (rho_i * rho_j) * (u[j].XYZ - u_i);
+                _LAPU_ += 2.f * f_ij / (rho_i * rho_j) * (u[j].XYZ - u_i);
             #else
                 #error Unknown Laplacian formulation: __LAP_FORMULATION__
             #endif
