@@ -30,6 +30,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <string>
 #include <vector>
 #include <deque>
 #include <sphPrerequisites.h>
@@ -909,6 +910,12 @@ public:
      * @return Variable, NULL if the variable cannot be found.
      */
     Variable* get(const char* name);
+
+    /** Get a variable.
+     * @param name Name of the variable.
+     * @return Variable, NULL if the variable cannot be found.
+     */
+    Variable* get(std::string name) {return get(name.c_str());};
 
     /** Get all the registered variables.
      * @return Variable, NULL if the variable cannot be found.

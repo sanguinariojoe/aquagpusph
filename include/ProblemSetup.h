@@ -128,10 +128,11 @@ public:
      */
     class sphSettings
     {
+    public:
         /// Constructor.
-        void sphSettings();
+        sphSettings();
         /// Destructor
-        void ~sphSettings();
+        ~sphSettings() {};
 
         /** @brief Save the output in case of failure
          *
@@ -185,7 +186,10 @@ public:
          * This path is added to the OpenCL include paths.
          */
         std::string base_path;
-    }settings;
+    };
+
+    /// Stored settings
+    sphSettings settings;
 
     /** @struct sphVariables
      * @brief Simulation variables registered.
@@ -214,16 +218,22 @@ public:
      * @see Aqua::InputOutput::Variables
      * @see Aqua::InputOutput::ProblemSetup
      */
-    struct sphVariables
+    class sphVariables
     {
+    public:
+        /// Constructor.
+        sphVariables() {};
+        /// Destructor
+        ~sphVariables() {};
+
         /// Name of the variables
-        std::deque<char*> names;
+        std::deque<std::string> names;
         /// Type of variables
-        std::deque<char*> types;
+        std::deque<std::string> types;
         /// Lengths
-        std::deque<char*> lengths;
+        std::deque<std::string> lengths;
         /// Values
-        std::deque<char*> values;
+        std::deque<std::string> values;
 
         /** @brief Add a new variable.
          *
@@ -238,14 +248,14 @@ public:
          * @param value Variable value, NULL for arrays. It is optional for
          * scalar variables.
          */
-        void registerVariable(const char* name,
-                              const char* type,
-                              const char* length,
-                              const char* value);
+        void registerVariable(std::string name,
+                              std::string type,
+                              std::string length,
+                              std::string value);
+    };
 
-        /// Remove all the stored variables.
-        void destroy();
-    }variables;
+    /// Variables storage
+    sphVariables variables;
 
     /** @struct sphDefinitions
      * @brief OpenCL kernels compilation definitions.
@@ -272,10 +282,15 @@ public:
      */
     struct sphDefinitions
     {
+        /// Constructor.
+        sphDefinitions() {};
+        /// Destructor
+        ~sphDefinitions() {};
+
         /// Name of the definition
-        std::deque<char*> names;
+        std::deque<std::string> names;
         /// Value of the definition, empty for named definitions.
-        std::deque<char*> values;
+        std::deque<std::string> values;
         /** True if the value should be evaluated as a math expression, false
          * otherwise
          */
@@ -291,24 +306,24 @@ public:
          * @param evaluate True if the value should be evaluated as a math
          * expression, false otherwise.
          */
-        void define(const char* name,
-                    const char* value,
+        void define(const std::string name,
+                    const std::string value,
                     const bool evaluate);
 
         /** @brief Reports if a the required name has been already defined.
          * @param name Name of the definition.
          * @return true if it is already defined, false otherwise.
          */
-        bool isDefined(const char* name);
+        bool isDefined(std::string name);
 
         /** @brief Undefine a registered definition
          * @param name Name of the definition.
          */
-        void undefine(const char* name);
-
-        /// Remove all the stored definitions.
-        void destroy();
-    }definitions;
+        void undefine(std::string name);
+    };
+    
+    /// Definitions storage
+    sphDefinitions definitions;
 
     /** @class sphTool ProblemSetup.h ProblemSetup.h
      * @brief Tool to be executed.
@@ -318,35 +333,35 @@ public:
     public:
         /** Constructor
          */
-        sphTool();
+        sphTool() {};
 
         /** Destructor
          */
-        ~sphTool();
+        ~sphTool() {};
 
         /** Add new data value
          * @param name Name of the data value
          * @param value Value
          */
-        void set(const char* name, const char* value);
+        void set(const std::string name, const std::string value);
 
         /** Get a data value
          * @param name Name of the data value
          * @return Value, NULL if the variable does not exist
          */
-        const char* get(const char* name);
+        const std::string get(const std::string name);
 
         /** Get a data value
          * @param index Index of the data value
          * @return Value, NULL if the variable does not exist
          */
-        const char* get(unsigned int index);
+        const std::string get(unsigned int index);
 
         /** Get a data value name
          * @param index Index of the data value
          * @return Name, NULL if the variable does not exist
          */
-        const char* getName(unsigned int index);
+        const std::string getName(unsigned int index);
 
         /** Get the number of data values
          * @return Number of data values
@@ -358,7 +373,7 @@ public:
          * @param name Name of the data value
          * @return true if the data value has been found, false otherwise
          */
-        bool has(const char* name);
+        bool has(const std::string name);
 
         /// Registered data
         std::map<std::string, std::string> _data;

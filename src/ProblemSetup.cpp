@@ -31,8 +31,6 @@ namespace Aqua{ namespace InputOutput{
 
 ProblemSetup::ProblemSetup()
 {
-    settings.init();
-
     time_opts.sim_end_mode = __NO_OUTPUT_MODE__;
     time_opts.sim_end_time = 0.f;
     time_opts.sim_end_step = 0;
@@ -45,9 +43,6 @@ ProblemSetup::ProblemSetup()
 ProblemSetup::~ProblemSetup()
 {
     unsigned int i;
-    settings.destroy();
-    variables.destroy();
-    definitions.destroy();
     for(i = tools.size(); i > 0; i--){
         if(toolInstances(tools.at(i - 1)) == 1){
             // This is the last remaining instance
@@ -81,7 +76,7 @@ bool ProblemSetup::perform()
     return false;
 }
 
-void ProblemSetup::sphSettings::sphSettings()
+ProblemSetup::sphSettings::sphSettings()
 {
     save_on_fail = true;
     platform_id = 0;
@@ -90,78 +85,35 @@ void ProblemSetup::sphSettings::sphSettings()
     base_path = "";
 }
 
-void ProblemSetup::sphSettings::~sphSettings()
+void ProblemSetup::sphVariables::registerVariable(std::string name,
+                                                  std::string type,
+                                                  std::string length,
+                                                  std::string value)
 {
+    names.push_back(name);
+    types.push_back(type);
+    lengths.push_back(length);
+    values.push_back(value);
 }
 
-void ProblemSetup::sphVariables::registerVariable(const char* name,
-                                                  const char* type,
-                                                  const char* length,
-                                                  const char* value)
-{
-    size_t len;
-
-    char *aux=NULL;
-    len = strlen(name) + 1;
-    aux = new char[len];
-    strcpy(aux, name);
-    names.push_back(aux);
-    len = strlen(type) + 1;
-    aux = new char[len];
-    strcpy(aux, type);
-    types.push_back(aux);
-    len = strlen(length) + 1;
-    aux = new char[len];
-    strcpy(aux, length);
-    lengths.push_back(aux);
-    len = strlen(value) + 1;
-    aux = new char[len];
-    strcpy(aux, value);
-    values.push_back(aux);
-}
-
-void ProblemSetup::sphVariables::destroy()
-{
-    unsigned int i;
-    for(i=0;i<names.size();i++){
-        delete[] names.at(i);
-        delete[] types.at(i);
-        delete[] lengths.at(i);
-        delete[] values.at(i);
-    }
-    names.clear();
-    types.clear();
-    lengths.clear();
-    values.clear();
-}
-
-void ProblemSetup::sphDefinitions::define(const char* name,
-                                          const char* value,
+void ProblemSetup::sphDefinitions::define(const std::string name,
+                                          const std::string value,
                                           const bool evaluate)
 {
-    size_t len;
-
     if(isDefined(name)){
         undefine(name);
     }
 
-    char *aux=NULL;
-    len = strlen(name) + 1;
-    aux = new char[len];
-    strcpy(aux, name);
-    names.push_back(aux);
-    len = strlen(value) + 1;
-    aux = new char[len];
-    strcpy(aux, value);
-    values.push_back(aux);
+    names.push_back(name);
+    values.push_back(value);
     evaluations.push_back(evaluate);
 }
 
-bool ProblemSetup::sphDefinitions::isDefined(const char* name)
+bool ProblemSetup::sphDefinitions::isDefined(const std::string name)
 {
     unsigned int i;
     for(i = 0; i < names.size(); i++){
-        if(!strcmp(name, names.at(i))){
+        if(!name.compare(names.at(i))){
             return true;
         }
     }
@@ -169,13 +121,11 @@ bool ProblemSetup::sphDefinitions::isDefined(const char* name)
     return false;
 }
 
-void ProblemSetup::sphDefinitions::undefine(const char* name)
+void ProblemSetup::sphDefinitions::undefine(const std::string name)
 {
     unsigned int i;
     for(i = 0; i < names.size(); i++){
-        if(!strcmp(name, names.at(i))){
-            delete[] names.at(i);
-            delete[] values.at(i);
+        if(!name.compare(names.at(i))){
             names.erase(names.begin() + i);
             values.erase(values.begin() + i);
             evaluations.erase(evaluations.begin() + i);
@@ -184,29 +134,8 @@ void ProblemSetup::sphDefinitions::undefine(const char* name)
     }
 }
 
-void ProblemSetup::sphDefinitions::destroy()
-{
-    unsigned int i;
-    for(i=0;i<names.size();i++){
-        delete[] names.at(i);
-        delete[] values.at(i);
-    }
-    names.clear();
-    values.clear();
-    evaluations.clear();
-}
-
-ProblemSetup::sphTool::sphTool()
-{
-}
-
-ProblemSetup::sphTool::~sphTool()
-{
-    _data.clear();
-}
-
-void ProblemSetup::sphTool::set(const char* name,
-                                const char* value)
+void ProblemSetup::sphTool::set(const std::string name,
+                                const std::string value)
 {
     if(has(name)){
         _data[name] = value;
@@ -215,15 +144,12 @@ void ProblemSetup::sphTool::set(const char* name,
     _data.insert(std::make_pair(name, value));
 }
 
-const char* ProblemSetup::sphTool::get(const char* name)
+const std::string ProblemSetup::sphTool::get(const std::string name)
 {
-    if(!has(name)){
-        return NULL;
-    }
     return _data[name].c_str();
 }
 
-const char* ProblemSetup::sphTool::get(unsigned int index)
+const std::string ProblemSetup::sphTool::get(unsigned int index)
 {
     unsigned int i = 0;
     for(std::map<std::string,std::string>::iterator it=_data.begin();
@@ -237,7 +163,7 @@ const char* ProblemSetup::sphTool::get(unsigned int index)
     return NULL;
 }
 
-const char* ProblemSetup::sphTool::getName(unsigned int index)
+const std::string ProblemSetup::sphTool::getName(unsigned int index)
 {
     unsigned int i = 0;
     for(std::map<std::string,std::string>::iterator it=_data.begin();
@@ -251,7 +177,7 @@ const char* ProblemSetup::sphTool::getName(unsigned int index)
     return NULL;
 }
 
-bool ProblemSetup::sphTool::has(const char* name)
+bool ProblemSetup::sphTool::has(const std::string name)
 {
     std::map<std::string, std::string>::iterator var = _data.find(name);
     if(var != _data.end())

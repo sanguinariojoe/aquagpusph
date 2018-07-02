@@ -161,10 +161,10 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 
     // Register the user variables and arrays
     for(i = 0; i < _sim_data.variables.names.size(); i++){
-        bool flag = _vars->registerVariable(_sim_data.variables.names.at(i),
-                                            _sim_data.variables.types.at(i),
-                                            _sim_data.variables.lengths.at(i),
-                                            _sim_data.variables.values.at(i));
+        bool flag = _vars->registerVariable(_sim_data.variables.names.at(i).c_str(),
+                                            _sim_data.variables.types.at(i).c_str(),
+                                            _sim_data.variables.lengths.at(i).c_str(),
+                                            _sim_data.variables.values.at(i).c_str());
         if(flag){
             exit(EXIT_FAILURE);
         }
@@ -174,57 +174,57 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
     for(i = 0; i < _sim_data.definitions.names.size(); i++){
         size_t deflen=0;
         char *defstr = NULL;
-        if(!strcmp(_sim_data.definitions.values.at(i), "")){
+        if(!strcmp(_sim_data.definitions.values.at(i).c_str(), "")){
             // First case, named definitions
-            deflen = strlen(_sim_data.definitions.names.at(i));
+            deflen = strlen(_sim_data.definitions.names.at(i).c_str());
             defstr = new char[deflen + 3];
             if(!defstr){
                 S->addMessageF(
                     L_ERROR, "Failure allocating memory for the definition\n");
-                sprintf(msg, "\t\"%s\"\n", _sim_data.definitions.names.at(i));
+                sprintf(msg, "\t\"%s\"\n", _sim_data.definitions.names.at(i).c_str());
                 S->addMessage(L_DEBUG, msg);
                 exit(EXIT_FAILURE);
             }
             strcpy(defstr, "-D");
-            strcat(defstr, _sim_data.definitions.names.at(i));
+            strcat(defstr, _sim_data.definitions.names.at(i).c_str());
         }
         else if(!_sim_data.definitions.evaluations.at(i)){
             // Second case, valued definitions
-            deflen = strlen(_sim_data.definitions.names.at(i)) +
-                     strlen(_sim_data.definitions.values.at(i));
+            deflen = strlen(_sim_data.definitions.names.at(i).c_str()) +
+                     strlen(_sim_data.definitions.values.at(i).c_str());
             defstr = new char[deflen + 4];
             if(!defstr){
                 S->addMessageF(
                     L_ERROR, "Failure allocating memory for the definition\n");
-                sprintf(msg, "\t\"%s\"\n", _sim_data.definitions.names.at(i));
+                sprintf(msg, "\t\"%s\"\n", _sim_data.definitions.names.at(i).c_str());
                 S->addMessage(L_DEBUG, msg);
                 exit(EXIT_FAILURE);
             }
             strcpy(defstr, "-D");
-            strcat(defstr, _sim_data.definitions.names.at(i));
+            strcat(defstr, _sim_data.definitions.names.at(i).c_str());
             strcat(defstr, "=");
-            strcat(defstr, _sim_data.definitions.values.at(i));
+            strcat(defstr, _sim_data.definitions.values.at(i).c_str());
         }
         else{
             // Third case, evaluated definitions
-            deflen = strlen(_sim_data.definitions.names.at(i));
+            deflen = strlen(_sim_data.definitions.names.at(i).c_str());
             defstr = new char[deflen + 1 + 4 + 128];
             if(!defstr){
                 S->addMessageF(
                     L_ERROR, "Failure allocating memory for the definition\n");
-                sprintf(msg, "\t\"%s\"\n", _sim_data.definitions.names.at(i));
+                sprintf(msg, "\t\"%s\"\n", _sim_data.definitions.names.at(i).c_str());
                 S->addMessage(L_DEBUG, msg);
                 exit(EXIT_FAILURE);
             }
             float defval = 0.f;
             if(_vars->solve("float",
-                            _sim_data.definitions.values.at(i),
+                            _sim_data.definitions.values.at(i).c_str(),
                             &defval))
             {
                 exit(EXIT_FAILURE);
             }
             strcpy(defstr, "-D");
-            strcat(defstr, _sim_data.definitions.names.at(i));
+            strcat(defstr, _sim_data.definitions.names.at(i).c_str());
             sprintf(defstr + strlen(defstr), "=%#Gf", defval);
         }
         _definitions.push_back(defstr);
@@ -232,103 +232,103 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 
     // Register the tools
     for(i = 0; i < _sim_data.tools.size(); i++){
-        if(!strcmp(_sim_data.tools.at(i)->get("type"), "kernel")){
-            Kernel *tool = new Kernel(_sim_data.tools.at(i)->get("name"),
-                                      _sim_data.tools.at(i)->get("path"),
-                                      _sim_data.tools.at(i)->get("entry_point"),
-                                      _sim_data.tools.at(i)->get("n"));
+        if(!strcmp(_sim_data.tools.at(i)->get("type").c_str(), "kernel")){
+            Kernel *tool = new Kernel(_sim_data.tools.at(i)->get("name").c_str(),
+                                      _sim_data.tools.at(i)->get("path").c_str(),
+                                      _sim_data.tools.at(i)->get("entry_point").c_str(),
+                                      _sim_data.tools.at(i)->get("n").c_str());
             _tools.push_back(tool);
         }
-        else if(!strcmp(_sim_data.tools.at(i)->get("type"), "copy")){
-            Copy *tool = new Copy(_sim_data.tools.at(i)->get("name"),
-                                  _sim_data.tools.at(i)->get("in"),
-                                  _sim_data.tools.at(i)->get("out"));
+        else if(!strcmp(_sim_data.tools.at(i)->get("type").c_str(), "copy")){
+            Copy *tool = new Copy(_sim_data.tools.at(i)->get("name").c_str(),
+                                  _sim_data.tools.at(i)->get("in").c_str(),
+                                  _sim_data.tools.at(i)->get("out").c_str());
             _tools.push_back(tool);
         }
-        else if(!strcmp(_sim_data.tools.at(i)->get("type"), "python")){
-            Python *tool = new Python(_sim_data.tools.at(i)->get("name"),
-                                      _sim_data.tools.at(i)->get("path"));
+        else if(!strcmp(_sim_data.tools.at(i)->get("type").c_str(), "python")){
+            Python *tool = new Python(_sim_data.tools.at(i)->get("name").c_str(),
+                                      _sim_data.tools.at(i)->get("path").c_str());
             _tools.push_back(tool);
         }
-        else if(!strcmp(_sim_data.tools.at(i)->get("type"), "set")){
-            Set *tool = new Set(_sim_data.tools.at(i)->get("name"),
-                                _sim_data.tools.at(i)->get("in"),
-                                _sim_data.tools.at(i)->get("value"));
+        else if(!strcmp(_sim_data.tools.at(i)->get("type").c_str(), "set")){
+            Set *tool = new Set(_sim_data.tools.at(i)->get("name").c_str(),
+                                _sim_data.tools.at(i)->get("in").c_str(),
+                                _sim_data.tools.at(i)->get("value").c_str());
             _tools.push_back(tool);
         }
-        else if(!strcmp(_sim_data.tools.at(i)->get("type"), "set_scalar")){
-            SetScalar *tool = new SetScalar(_sim_data.tools.at(i)->get("name"),
-                                            _sim_data.tools.at(i)->get("in"),
-                                            _sim_data.tools.at(i)->get("value"));
+        else if(!strcmp(_sim_data.tools.at(i)->get("type").c_str(), "set_scalar")){
+            SetScalar *tool = new SetScalar(_sim_data.tools.at(i)->get("name").c_str(),
+                                            _sim_data.tools.at(i)->get("in").c_str(),
+                                            _sim_data.tools.at(i)->get("value").c_str());
             _tools.push_back(tool);
         }
-        else if(!strcmp(_sim_data.tools.at(i)->get("type"), "reduction")){
-            Reduction *tool = new Reduction(_sim_data.tools.at(i)->get("name"),
-                                            _sim_data.tools.at(i)->get("in"),
-                                            _sim_data.tools.at(i)->get("out"),
-                                            _sim_data.tools.at(i)->get("operation"),
-                                            _sim_data.tools.at(i)->get("null"));
+        else if(!strcmp(_sim_data.tools.at(i)->get("type").c_str(), "reduction")){
+            Reduction *tool = new Reduction(_sim_data.tools.at(i)->get("name").c_str(),
+                                            _sim_data.tools.at(i)->get("in").c_str(),
+                                            _sim_data.tools.at(i)->get("out").c_str(),
+                                            _sim_data.tools.at(i)->get("operation").c_str(),
+                                            _sim_data.tools.at(i)->get("null").c_str());
             _tools.push_back(tool);
         }
-        else if(!strcmp(_sim_data.tools.at(i)->get("type"), "link-list")){
-            LinkList *tool = new LinkList(_sim_data.tools.at(i)->get("name"),
-                                          _sim_data.tools.at(i)->get("in"));
+        else if(!strcmp(_sim_data.tools.at(i)->get("type").c_str(), "link-list")){
+            LinkList *tool = new LinkList(_sim_data.tools.at(i)->get("name").c_str(),
+                                          _sim_data.tools.at(i)->get("in").c_str());
             _tools.push_back(tool);
         }
-        else if(!strcmp(_sim_data.tools.at(i)->get("type"), "radix-sort")){
-            RadixSort *tool = new RadixSort(_sim_data.tools.at(i)->get("name"),
-                                            _sim_data.tools.at(i)->get("in"),
-                                            _sim_data.tools.at(i)->get("perm"),
-                                            _sim_data.tools.at(i)->get("inv_perm"));
+        else if(!strcmp(_sim_data.tools.at(i)->get("type").c_str(), "radix-sort")){
+            RadixSort *tool = new RadixSort(_sim_data.tools.at(i)->get("name").c_str(),
+                                            _sim_data.tools.at(i)->get("in").c_str(),
+                                            _sim_data.tools.at(i)->get("perm").c_str(),
+                                            _sim_data.tools.at(i)->get("inv_perm").c_str());
             _tools.push_back(tool);
         }
-        else if(!strcmp(_sim_data.tools.at(i)->get("type"), "assert")){
-            Assert *tool = new Assert(_sim_data.tools.at(i)->get("name"),
-                                      _sim_data.tools.at(i)->get("condition"));
+        else if(!strcmp(_sim_data.tools.at(i)->get("type").c_str(), "assert")){
+            Assert *tool = new Assert(_sim_data.tools.at(i)->get("name").c_str(),
+                                      _sim_data.tools.at(i)->get("condition").c_str());
             _tools.push_back(tool);
         }
-        else if(!strcmp(_sim_data.tools.at(i)->get("type"), "dummy")){
-            Tool *tool = new Tool(_sim_data.tools.at(i)->get("name"));
+        else if(!strcmp(_sim_data.tools.at(i)->get("type").c_str(), "dummy")){
+            Tool *tool = new Tool(_sim_data.tools.at(i)->get("name").c_str());
             _tools.push_back(tool);
         }
         else{
             sprintf(msg,
                     "Unrecognized tool type \"%s\" when parsing the tool \"%s\".\n",
-                    _sim_data.tools.at(i)->get("type"),
-                    _sim_data.tools.at(i)->get("name"));
+                    _sim_data.tools.at(i)->get("type").c_str(),
+                    _sim_data.tools.at(i)->get("name").c_str());
             S->addMessageF(L_ERROR, msg);
             exit(EXIT_FAILURE);
         }
     }
     // Register the reporters
     for(i = 0; i < _sim_data.reports.size(); i++){
-        if(!strcmp(_sim_data.reports.at(i)->get("type"), "screen")){
+        if(!strcmp(_sim_data.reports.at(i)->get("type").c_str(), "screen")){
             bool bold = false;
-            if(!strcmp(_sim_data.reports.at(i)->get("bold"), "true") ||
-               !strcmp(_sim_data.reports.at(i)->get("bold"), "True")){
+            if(!strcmp(_sim_data.reports.at(i)->get("bold").c_str(), "true") ||
+               !strcmp(_sim_data.reports.at(i)->get("bold").c_str(), "True")){
                bold = true;
             }
             Reports::Screen *tool = new Reports::Screen(
-                _sim_data.reports.at(i)->get("name"),
-                _sim_data.reports.at(i)->get("fields"),
-                _sim_data.reports.at(i)->get("color"),
+                _sim_data.reports.at(i)->get("name").c_str(),
+                _sim_data.reports.at(i)->get("fields").c_str(),
+                _sim_data.reports.at(i)->get("color").c_str(),
                 bold);
             _tools.push_back(tool);
         }
-        else if(!strcmp(_sim_data.reports.at(i)->get("type"), "file")){
+        else if(!strcmp(_sim_data.reports.at(i)->get("type").c_str(), "file")){
             Reports::TabFile *tool = new Reports::TabFile(
-                _sim_data.reports.at(i)->get("name"),
-                _sim_data.reports.at(i)->get("fields"),
-                _sim_data.reports.at(i)->get("path"));
+                _sim_data.reports.at(i)->get("name").c_str(),
+                _sim_data.reports.at(i)->get("fields").c_str(),
+                _sim_data.reports.at(i)->get("path").c_str());
             _tools.push_back(tool);
         }
-        else if(!strcmp(_sim_data.reports.at(i)->get("type"), "particles")){
+        else if(!strcmp(_sim_data.reports.at(i)->get("type").c_str(), "particles")){
             // Get the first particle associated to this set
-            unsigned int set_id = atoi(_sim_data.reports.at(i)->get("set"));
+            unsigned int set_id = atoi(_sim_data.reports.at(i)->get("set").c_str());
             if(set_id >= _sim_data.sets.size()){
                 sprintf(msg,
                         "Report \"%s\" requested the particles set %u but just %lu can be found.\n",
-                        _sim_data.reports.at(i)->get("name"),
+                        _sim_data.reports.at(i)->get("name").c_str(),
                         set_id,
                         _sim_data.sets.size());
                 S->addMessageF(L_ERROR, msg);
@@ -340,30 +340,30 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
             }
 
             // And the ipf and fps
-            unsigned int ipf = atoi(_sim_data.reports.at(i)->get("ipf"));
-            float fps = atof(_sim_data.reports.at(i)->get("fps"));
+            unsigned int ipf = atoi(_sim_data.reports.at(i)->get("ipf").c_str());
+            float fps = atof(_sim_data.reports.at(i)->get("fps").c_str());
 
             Reports::SetTabFile *tool = new Reports::SetTabFile(
-                _sim_data.reports.at(i)->get("name"),
-                _sim_data.reports.at(i)->get("fields"),
+                _sim_data.reports.at(i)->get("name").c_str(),
+                _sim_data.reports.at(i)->get("fields").c_str(),
                 first,
                 _sim_data.sets.at(set_id)->n(),
-                _sim_data.reports.at(i)->get("path"),
+                _sim_data.reports.at(i)->get("path").c_str(),
                 ipf,
                 fps);
             _tools.push_back(tool);
         }
-        else if(!strcmp(_sim_data.reports.at(i)->get("type"), "performance")){
+        else if(!strcmp(_sim_data.reports.at(i)->get("type").c_str(), "performance")){
             bool bold = false;
-            if(!strcmp(_sim_data.reports.at(i)->get("bold"), "true") ||
-               !strcmp(_sim_data.reports.at(i)->get("bold"), "True")){
+            if(!strcmp(_sim_data.reports.at(i)->get("bold").c_str(), "true") ||
+               !strcmp(_sim_data.reports.at(i)->get("bold").c_str(), "True")){
                bold = true;
             }
             Reports::Performance *tool = new Reports::Performance(
-                _sim_data.reports.at(i)->get("name"),
-                _sim_data.reports.at(i)->get("color"),
+                _sim_data.reports.at(i)->get("name").c_str(),
+                _sim_data.reports.at(i)->get("color").c_str(),
                 bold,
-                _sim_data.reports.at(i)->get("path"));
+                _sim_data.reports.at(i)->get("path").c_str());
             _tools.push_back(tool);
         }
         else{
