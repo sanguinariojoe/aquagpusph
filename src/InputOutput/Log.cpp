@@ -21,9 +21,6 @@
  * (See Aqua::InputOutput::Log for details)
  */
 
-#include <stdlib.h>
-#include <string.h>
-
 #include <InputOutput/Log.h>
 #include <ScreenManager.h>
 #include <CalcServer.h>

@@ -57,14 +57,9 @@
 
 #include <sphPrerequisites.h>
 
+#include <math.h>
 #include <string>
 #include <vector>
-
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
 #include <deque>
 #include <map>
 

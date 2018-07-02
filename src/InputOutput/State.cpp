@@ -21,12 +21,11 @@
  * (See Aqua::InputOutput::State for details)
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <fnmatch.h>
 #include <map>
 #include <limits>
+#include <deque>
+#include <algorithm>
 
 #include <InputOutput/State.h>
 #include <ScreenManager.h>
@@ -34,9 +33,7 @@
 #include <CalcServer.h>
 #include <AuxiliarMethods.h>
 
-#include <vector>
-#include <deque>
-#include <algorithm>
+
 static std::deque<std::string> cpp_str;
 static std::deque<XMLCh*> xml_str;
 

@@ -21,10 +21,6 @@
  * (See Aqua::InputOutput::FileManager for details)
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include <FileManager.h>
 #include <ScreenManager.h>
 #include <ProblemSetup.h>
