@@ -72,7 +72,11 @@ CalcServer::CalcServer* FileManager::load()
     _state.load(inputFile(), _simulation);
 
     // Setup the problem setup
-    _simulation.perform();
+    if(_simulation.sets.size() == 0) {
+        LOG(L_ERROR, "No sets of particles have been added.\n");
+        throw std::runtime_error("No particles sets");
+    }
+
 
     // Build the calculation server
     CalcServer::CalcServer *C = new CalcServer::CalcServer(_simulation);

@@ -61,21 +61,6 @@ ProblemSetup::~ProblemSetup()
     sets.clear();
 }
 
-bool ProblemSetup::perform()
-{
-    unsigned int i;
-    ScreenManager *S = ScreenManager::singleton();
-    char msg[512];
-    strcpy(msg, "");
-    // Check for errors
-    if(sets.size() == 0) {
-        sprintf(msg, "No sets of particles have been added.\n");
-        S->addMessageF(L_ERROR, msg);
-        return true;
-    }
-    return false;
-}
-
 ProblemSetup::sphSettings::sphSettings()
 {
     save_on_fail = true;

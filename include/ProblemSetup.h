@@ -92,29 +92,12 @@ class ProblemSetup
 {
 public:
     /** @brief Constructor.
-     *
-     * In this method some initial values will be assigned, however it is
-     * expected that Aqua::InputOutput::FileManager is overwritting them.
-     * The method perform() is conveniently provided to let
-     * Aqua::InputOutput::FileManager to report this class that the data shall
-     * be recomputed.
      */
     ProblemSetup();
 
     /** @brief Destructor.
      */
     ~ProblemSetup();
-
-    /** @brief Compute the kernel length \f$ h \f$ and the corrected dynamic
-     * viscosity \f$ \mu \f$ (due to the artificial viscosity factor
-     * \f$ \alpha \f$).
-     *
-     * This method must be called after Aqua::InputOutput::FileManager was set
-     * the simulation configuration.
-     *
-     * @return false if all gone right, true otherwise.
-     */
-    bool perform();
 
     /** @brief General program settings.
      *
