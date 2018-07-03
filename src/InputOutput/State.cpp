@@ -579,11 +579,11 @@ void State::parseTools(DOMElement *root,
                     std::string att_str, att_prefix;
                     if(xmlHasAttribute(s_elem, "before")) {
                         att_str = xmlAttribute(s_elem, "before");
-                        att_prefix = prefix;
+                        att_prefix = "";
                     }
                     else {
                         att_str = xmlAttribute(s_elem, "before_prefix");
-                        att_prefix = "";
+                        att_prefix = prefix;
                     }
                     if(att_str.find(',') != std::string::npos){
                         // It is a list of names. We must get all the matching
@@ -637,11 +637,11 @@ void State::parseTools(DOMElement *root,
                     std::string att_str, att_prefix;
                     if(xmlHasAttribute(s_elem, "after")) {
                         att_str = xmlAttribute(s_elem, "after");
-                        att_prefix = prefix;
+                        att_prefix = "";
                     }
                     else {
                         att_str = xmlAttribute(s_elem, "after_prefix");
-                        att_prefix = "";
+                        att_prefix = prefix;
                     }
                     if(att_str.find(',') != std::string::npos){
                         // It is a list of names. We must get all the matching
