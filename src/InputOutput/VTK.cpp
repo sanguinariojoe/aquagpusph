@@ -196,7 +196,7 @@ void VTK::load()
             S->addMessage(L_ERROR, msg);
             throw std::runtime_error("Invalid field");
         }
-        if(!strchr(vars->get(fields.at(i).c_str())->type(), '*')){
+        if(vars->get(fields.at(i).c_str())->type().find('*') == std::string::npos){
             sprintf(msg,
                     "\"%s\" field has been set to be read, but it was declared as an scalar.\n",
                     fields.at(i).c_str());
@@ -243,8 +243,8 @@ void VTK::load()
             ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(j).c_str());
             size_t type_size = vars->typeToBytes(var->type());
             unsigned int n_components = vars->typeToN(var->type());
-            if(strstr(var->type(), "unsigned int") ||
-               strstr(var->type(), "uivec")){
+            if(var->type().find("unsigned int") != std::string::npos ||
+               var->type().find("uivec") != std::string::npos) {
                 vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
                     (vtkUnsignedIntArray*)(vtk_data->GetArray(fields.at(j).c_str(), aux));
                 for(k = 0; k < n_components; k++){
@@ -255,8 +255,8 @@ void VTK::load()
                            sizeof(unsigned int));
                 }
             }
-            else if(strstr(var->type(), "int") ||
-                    strstr(var->type(), "ivec")){
+            else if(var->type().find("int") != std::string::npos ||
+                    var->type().find("ivec") != std::string::npos) {
                 vtkSmartPointer<vtkIntArray> vtk_array =
                     (vtkIntArray*)(vtk_data->GetArray(fields.at(j).c_str(), aux));
                 for(k = 0; k < n_components; k++){
@@ -267,9 +267,9 @@ void VTK::load()
                            sizeof(int));
                 }
             }
-            else if(strstr(var->type(), "float") ||
-                    strstr(var->type(), "vec") ||
-                    strstr(var->type(), "matrix")){
+            else if(var->type().find("float") != std::string::npos ||
+                    var->type().find("vec") != std::string::npos ||
+                    var->type().find("matrix") != std::string::npos) {
                 vtkSmartPointer<vtkFloatArray> vtk_array =
                     (vtkFloatArray*)(vtk_data->GetArray(fields.at(j).c_str(), aux));
                 for(k = 0; k < n_components; k++){
@@ -360,7 +360,7 @@ void* save_pthread(void *data_void)
             delete data; data=NULL;
             return NULL;
         }
-        if(!strchr(vars->get(data->fields.at(i).c_str())->type(), '*')){
+        if(vars->get(data->fields.at(i).c_str())->type().find('*') == std::string::npos){
             sprintf(msg,
                     "\"%s\" field has been set to be saved, but it was declared as a scalar.\n",
                     data->fields.at(i).c_str());
@@ -391,25 +391,25 @@ void* save_pthread(void *data_void)
         }
 
         unsigned int n_components = vars->typeToN(var->type());
-        if(strstr(var->type(), "unsigned int") ||
-           strstr(var->type(), "uivec")){
+        if(var->type().find("unsigned int") != std::string::npos ||
+           var->type().find("uivec") != std::string::npos) {
             vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
                 vtkSmartPointer<vtkUnsignedIntArray>::New();
             vtk_array->SetNumberOfComponents(n_components);
             vtk_array->SetName(data->fields.at(i).c_str());
             vtk_arrays.push_back(vtk_array);
         }
-        else if(strstr(var->type(), "int") ||
-                strstr(var->type(), "ivec")){
+        else if(var->type().find("int") != std::string::npos ||
+                var->type().find("ivec") != std::string::npos) {
             vtkSmartPointer<vtkIntArray> vtk_array =
                 vtkSmartPointer<vtkIntArray>::New();
             vtk_array->SetNumberOfComponents(n_components);
             vtk_array->SetName(data->fields.at(i).c_str());
             vtk_arrays.push_back(vtk_array);
         }
-        else if(strstr(var->type(), "float") ||
-                strstr(var->type(), "vec") ||
-                strstr(var->type(), "matrix")){
+        else if(var->type().find("float") != std::string::npos ||
+                var->type().find("vec") != std::string::npos ||
+                var->type().find("matrix") != std::string::npos) {
             vtkSmartPointer<vtkFloatArray> vtk_array =
                 vtkSmartPointer<vtkFloatArray>::New();
             vtk_array->SetNumberOfComponents(n_components);
@@ -437,8 +437,8 @@ void* save_pthread(void *data_void)
                 vars->get(data->fields.at(j).c_str()));
             size_t typesize = vars->typeToBytes(var->type());
             unsigned int n_components = vars->typeToN(var->type());
-            if(strstr(var->type(), "unsigned int") ||
-               strstr(var->type(), "uivec")){
+            if(var->type().find("unsigned int") != std::string::npos ||
+               var->type().find("uivec") != std::string::npos) {
                 unsigned int vect[n_components];
                 size_t offset = typesize * i;
                 memcpy(vect,
@@ -452,8 +452,8 @@ void* save_pthread(void *data_void)
                     vtk_array->InsertNextTypedTuple(vect);
                 #endif // VTK_MAJOR_VERSION
             }
-            else if(strstr(var->type(), "int") ||
-                    strstr(var->type(), "ivec")){
+            else if(var->type().find("int") != std::string::npos ||
+                    var->type().find("ivec") != std::string::npos) {
                 int vect[n_components];
                 size_t offset = typesize * i;
                 memcpy(vect,
@@ -467,9 +467,9 @@ void* save_pthread(void *data_void)
                     vtk_array->InsertNextTypedTuple(vect);
                 #endif // VTK_MAJOR_VERSION
             }
-            else if(strstr(var->type(), "float") ||
-                    strstr(var->type(), "vec") ||
-                    strstr(var->type(), "matrix")){
+            else if(var->type().find("float") != std::string::npos ||
+                    var->type().find("vec") != std::string::npos ||
+                    var->type().find("matrix") != std::string::npos) {
                 float vect[n_components];
                 size_t offset = typesize * i;
                 memcpy(vect,
@@ -501,21 +501,21 @@ void* save_pthread(void *data_void)
 
         ArrayVariable *var = (ArrayVariable*)(
             vars->get(data->fields.at(i).c_str()));
-        if(strstr(var->type(), "unsigned int") ||
-           strstr(var->type(), "uivec")){
+        if(var->type().find("unsigned int") != std::string::npos ||
+           var->type().find("uivec") != std::string::npos) {
             vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
                 (vtkUnsignedIntArray*)(vtk_arrays.at(i).GetPointer());
             grid->GetPointData()->AddArray(vtk_array);
         }
-        else if(strstr(var->type(), "int") ||
-                strstr(var->type(), "ivec")){
+        else if(var->type().find("int") != std::string::npos ||
+                var->type().find("ivec") != std::string::npos) {
             vtkSmartPointer<vtkIntArray> vtk_array =
                 (vtkIntArray*)(vtk_arrays.at(i).GetPointer());
             grid->GetPointData()->AddArray(vtk_array);
         }
-        else if(strstr(var->type(), "float") ||
-                strstr(var->type(), "vec") ||
-                strstr(var->type(), "matrix")){
+        else if(var->type().find("float") != std::string::npos ||
+                var->type().find("vec") != std::string::npos ||
+                var->type().find("matrix") != std::string::npos) {
             vtkSmartPointer<vtkFloatArray> vtk_array =
                 (vtkFloatArray*)(vtk_arrays.at(i).GetPointer());
             grid->GetPointData()->AddArray(vtk_array);

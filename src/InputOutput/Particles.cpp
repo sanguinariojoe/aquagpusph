@@ -239,7 +239,7 @@ std::deque<void*> Particles::download(std::vector<std::string> fields)
             clearList(&data);
             return data;
         }
-        if(!strchr(vars->get(fields.at(i).c_str())->type(), '*')){
+        if(vars->get(fields.at(i).c_str())->type().find('*') == std::string::npos){
             sprintf(msg,
                     "\"%s\" field is a scalar.\n",
                     fields.at(i).c_str());
@@ -274,7 +274,7 @@ std::deque<void*> Particles::download(std::vector<std::string> fields)
         }
         data.push_back(store);
 
-        cl_event event = C->getUnsortedMem(var->name(),
+        cl_event event = C->getUnsortedMem(var->name().c_str(),
                                            typesize * bounds().x,
                                            typesize * (bounds().y - bounds().x),
                                            store);

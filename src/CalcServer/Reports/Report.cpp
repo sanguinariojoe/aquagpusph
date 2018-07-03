@@ -78,10 +78,10 @@ const char* Report::data(bool with_title, bool with_names)
         for(j = 0; j < _vars_per_line.at(i); j++){
             InputOutput::Variable* var = _vars.at(var_id);
             if(with_names){
-                strcat(_data, var->name());
+                strcat(_data, var->name().c_str());
                 strcat(_data, "=");
             }
-            strcat(_data, var->asString());
+            strcat(_data, var->asString().c_str());
             strcat(_data, " ");
             var_id++;
         }
@@ -160,9 +160,9 @@ size_t Report::dataLength(bool with_title, bool with_names)
     for(i = 0; i < _vars.size(); i++){
         InputOutput::Variable *var = _vars.at(i);
         if(with_names){
-            len += strlen(var->name()) + 1;
+            len += strlen(var->name().c_str()) + 1;
         }
-        len += strlen(var->asString()) + 1;
+        len += strlen(var->asString().c_str()) + 1;
     }
 
     return len;

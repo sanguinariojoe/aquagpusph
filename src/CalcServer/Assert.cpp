@@ -75,7 +75,9 @@ bool Assert::_execute()
         return true;
     }
 
-    if(vars->solve("int", _condition, data, "assert_result")){
+    try {
+        vars->solve("int", _condition, data, "assert_result");
+    } catch (...) {
         return true;
     }
 

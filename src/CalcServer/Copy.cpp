@@ -114,7 +114,7 @@ bool Copy::variables()
         S->addMessageF(L_ERROR, msg);
         return true;
     }
-    if(!strchr(vars->get(_input_name)->type(), '*')){
+    if(vars->get(_input_name)->type().find('*') == std::string::npos){
         sprintf(msg,
                 "The tool \"%s\" has received the scalar variable \"%s\" as input.\n",
                 name(),
@@ -132,7 +132,7 @@ bool Copy::variables()
         S->addMessageF(L_ERROR, msg);
         return true;
     }
-    if(!strchr(vars->get(_output_name)->type(), '*')){
+    if(vars->get(_output_name)->type().find('*') == std::string::npos){
         sprintf(msg,
                 "The tool \"%s\" has received the scalar variable \"%s\" as output.\n",
                 name(),

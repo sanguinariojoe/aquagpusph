@@ -1363,8 +1363,8 @@ void State::writeVariables(xercesc::DOMDocument* doc,
     elem = doc->createElement(xmlS("Variables"));
     root->appendChild(elem);
 
-    std::deque<Variable*> vars = C->variables()->getAll();
-    deque<Variable*>::iterator var_it;
+    std::vector<Variable*> vars = C->variables()->getAll();
+    std::vector<Variable*>::iterator var_it;
     for (var_it = vars.begin(); var_it != vars.end(); var_it++ ) {
         s_elem = doc->createElement(xmlS("Variable"));
         elem->appendChild(s_elem);
@@ -1388,8 +1388,8 @@ void State::writeVariables(xercesc::DOMDocument* doc,
         if(value_txt.at(0) == '('){
             value_txt.at(0) = ' ';
         }
-        if(value_txt.at(std::string::npos - 1) == ')'){
-            value_txt.at(std::string::npos - 1) = ' ';
+        if(value_txt.at(std::string::npos) == ')'){
+            value_txt.at(std::string::npos) = ' ';
         }
         s_elem->setAttribute(xmlS("value"), xmlS(value_txt));
     }
@@ -1563,8 +1563,8 @@ void State::writeSets(xercesc::DOMDocument* doc,
             if(value_txt.at(0) == '('){
                 value_txt.at(0) = ' ';
             }
-            if(value_txt.at(std::string::npos - 1) == ')'){
-                value_txt.at(std::string::npos - 1) = ' ';
+            if(value_txt.at(std::string::npos) == ')'){
+                value_txt.at(std::string::npos) = ' ';
             }
             s_elem->setAttribute(xmlS("value"), xmlS(value_txt));
             elem->appendChild(s_elem);

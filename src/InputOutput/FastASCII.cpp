@@ -63,8 +63,8 @@ char* FastASCII::readField(const char* field,
     // Extract the variable type data
     unsigned int n = vars->typeToN(var->type());
     size_t type_size = vars->typeToBytes(var->type());
-    char *type = new char[strlen(var->type()) + 1];
-    strcpy(type, var->type());
+    char *type = new char[strlen(var->type().c_str()) + 1];
+    strcpy(type, var->type().c_str());
     if(strchr(type, '*'))
         strcpy(strchr(type, '*'), "");
 
@@ -80,7 +80,7 @@ char* FastASCII::readField(const char* field,
            strstr(type, "uivec")){
             unsigned int val = (unsigned int)strtol(pos, &end_pos, 10);
             if(pos == end_pos){
-                char *msg = new char[strlen(var->type()) + 64];
+                char *msg = new char[strlen(var->type().c_str()) + 64];
                 S->addMessageF(L_ERROR, "Failure reading a field value\n");
                 sprintf(msg, "\tWhile extracting it from \"%s\"\n", pos);
                 S->addMessage(L_DEBUG, msg);
@@ -91,7 +91,7 @@ char* FastASCII::readField(const char* field,
                 strstr(type, "ivec")){
             int val = (int)strtol(pos, &end_pos, 10);
             if(pos == end_pos){
-                char *msg = new char[strlen(var->type()) + 64];
+                char *msg = new char[strlen(var->type().c_str()) + 64];
                 S->addMessageF(L_ERROR, "Failure reading a field value\n");
                 sprintf(msg, "\tWhile extracting it from \"%s\"\n", pos);
                 S->addMessage(L_DEBUG, msg);
@@ -101,7 +101,7 @@ char* FastASCII::readField(const char* field,
         else{
             float val = (float)strtof(pos, &end_pos);
             if(pos == end_pos){
-                char *msg = new char[strlen(var->type()) + 64];
+                char *msg = new char[strlen(var->type().c_str()) + 64];
                 S->addMessageF(L_ERROR, "Failure reading a field value\n");
                 sprintf(msg, "\tWhile extracting it from \"%s\"\n", pos);
                 S->addMessage(L_DEBUG, msg);

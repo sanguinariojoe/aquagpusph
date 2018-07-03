@@ -87,7 +87,9 @@ bool SetScalar::_execute()
         return true;
     }
 
-    if(vars->solve(_var->type(), _value, data, _var->name())){
+    try {
+        vars->solve(_var->type(), _value, data, _var->name());
+    } catch(...) {
         free(data);
         return true;
     }
@@ -95,7 +97,9 @@ bool SetScalar::_execute()
     _var->set(data);
     free(data);
     // Ensure that the variable is populated
-    if(vars->populate(_var)){
+    try {
+        vars->populate(_var);
+    } catch (...) {
         return true;
     }
 
@@ -116,7 +120,7 @@ bool SetScalar::variable()
         S->addMessageF(L_ERROR, msg);
         return true;
     }
-    if(strchr(vars->get(_var_name)->type(), '*')){
+    if(vars->get(_var_name)->type().find('*') != std::string::npos){
         sprintf(msg,
                 "The tool \"%s\" has received the array variable \"%s\".\n",
                 name(),

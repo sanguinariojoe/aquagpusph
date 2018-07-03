@@ -173,7 +173,9 @@ bool Reduction::_execute()
     }
 
     // Ensure that the variable is populated
-    if(vars->populate(_output_var)){
+    try {
+        vars->populate(_output_var);
+    } catch(...) {
         return true;
     }
     return false;
@@ -193,7 +195,7 @@ bool Reduction::variables()
         S->addMessageF(L_ERROR, msg);
         return true;
     }
-    if(!strchr(vars->get(_input_name)->type(), '*')){
+    if(vars->get(_input_name)->type().find('*') == std::string::npos){
         sprintf(msg,
                 "The tool \"%s\" has received the scalar variable \"%s\" as input.\n",
                 name(),
@@ -210,7 +212,7 @@ bool Reduction::variables()
         S->addMessageF(L_ERROR, msg);
         return true;
     }
-    if(strchr(vars->get(_output_name)->type(), '*')){
+    if(vars->get(_output_name)->type().find('*') != std::string::npos){
         sprintf(msg,
                 "The tool \"%s\" has received the array variable \"%s\" as output.\n",
                 name(),
@@ -398,7 +400,7 @@ cl_kernel Reduction::compile(const char* source, size_t local_work_size)
     CalcServer *C = CalcServer::singleton();
 
     char flags[512];
-    if(!strcmp(_output_var->type(), "unsigned int")){
+    if(!_output_var->type().compare("unsigned int")){
         sprintf(flags,
                 "-DT=%s -DLOCAL_WORK_SIZE=%luu",
                 "uint",

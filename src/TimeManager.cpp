@@ -74,7 +74,7 @@ TimeManager::TimeManager(ProblemSetup sim_data)
                                       "unsigned int",
                                       "unsigned int"};
     for(i = 0; i < var_num; i++){
-        if(strcmp(vars->get(var_names[i])->type(), var_types[i])){
+        if(vars->get(var_names[i])->type().compare(var_types[i])){
             sprintf(msg,
                     "Expected a variable \"%s\" of type \"%s\", but \"%s\" one was found\n",
                     var_names[i],

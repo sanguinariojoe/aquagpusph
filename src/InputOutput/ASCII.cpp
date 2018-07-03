@@ -114,7 +114,7 @@ void ASCII::load()
             S->addMessageF(L_ERROR, msg);
             throw std::runtime_error("Invalid field");
         }
-        if(!strchr(vars->get(fields.at(i).c_str())->type(), '*')){
+        if(vars->get(fields.at(i).c_str())->type().find('*') == std::string::npos){
             sprintf(msg,
                     "\"%s\" field has been set to be read, but it was declared as a scalar.\n",
                     fields.at(i).c_str());
@@ -266,7 +266,7 @@ void ASCII::save()
             S->addMessageF(L_ERROR, msg);
             throw std::runtime_error("Invalid field");
         }
-        if(!strchr(vars->get(fields.at(i).c_str())->type(), '*')){
+        if(vars->get(fields.at(i).c_str())->type().find('*') == std::string::npos){
             sprintf(msg,
                     "\"%s\" field has been set to be saved, but it was declared as an scalar.\n",
                     fields.at(i).c_str());
@@ -292,7 +292,7 @@ void ASCII::save()
     for(i = 0; i < bounds().y - bounds().x; i++){
         for(j = 0; j < fields.size(); j++){
             ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(j).c_str());
-            const char* type_name = var->type();
+            const char* type_name = var->type().c_str();
             if(!strcmp(type_name, "int*")){
                 int* v = (int*)data.at(j);
                 fprintf(f, "%d,", v[i]);
@@ -507,7 +507,9 @@ char* ASCII::readField(const char* field,
     size_t type_size = vars->typeToBytes(var->type());
 
     void* ptr = (void*)((char*)data + type_size * index);
-    if(vars->solve(var->type(), line, ptr)){
+    try {
+        vars->solve(var->type(), line, ptr);
+    } catch (...) {
         return NULL;
     }
 

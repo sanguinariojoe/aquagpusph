@@ -578,7 +578,7 @@ bool RadixSort::variables()
         S->addMessageF(L_ERROR, msg);
         return true;
     }
-    if(strcmp(vars->get(_var_name)->type(), "unsigned int*")){
+    if(vars->get(_var_name)->type().compare("unsigned int*")){
         sprintf(msg,
                 "Wrong type for the variable \"%s\" (tool: \"%s\").\n",
                 _var_name,
@@ -601,7 +601,7 @@ bool RadixSort::variables()
         S->addMessageF(L_ERROR, msg);
         return true;
     }
-    if(strcmp(vars->get(_perms_name)->type(), "unsigned int*")){
+    if(vars->get(_perms_name)->type().compare("unsigned int*")){
         sprintf(msg,
                 "Wrong type for the variable \"%s\" (tool: \"%s\").\n",
                 _perms_name,
@@ -624,7 +624,7 @@ bool RadixSort::variables()
         S->addMessageF(L_ERROR, msg);
         return true;
     }
-    if(strcmp(vars->get(_inv_perms_name)->type(), "unsigned int*")){
+    if(vars->get(_inv_perms_name)->type().compare("unsigned int*")){
         sprintf(msg,
                 "Wrong type for the variable \"%s\" (tool: \"%s\").\n",
                 _inv_perms_name,

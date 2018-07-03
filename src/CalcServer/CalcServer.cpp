@@ -98,76 +98,53 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
         dims = 3;
     #endif
     sprintf(val, "%u", dims);
-    if(_vars->registerVariable("dims", "unsigned int", len, val))
-        exit(EXIT_FAILURE);
+    _vars->registerVariable("dims", "unsigned int", len, val);
     sprintf(val, "%g", 0.f);
-    if(_vars->registerVariable("t", "float", len, val))
-        exit(EXIT_FAILURE);
+    _vars->registerVariable("t", "float", len, val);
     sprintf(val, "%g", 0.f);
-    if(_vars->registerVariable("dt", "float", len, val))
-        exit(EXIT_FAILURE);
+    _vars->registerVariable("dt", "float", len, val);
     sprintf(val, "%u", 0);
-    if(_vars->registerVariable("iter", "unsigned int", len, val))
-        exit(EXIT_FAILURE);
+    _vars->registerVariable("iter", "unsigned int", len, val);
     sprintf(val, "%u", 0);
-    if(_vars->registerVariable("frame", "unsigned int", len, val))
-        exit(EXIT_FAILURE);
+    _vars->registerVariable("frame", "unsigned int", len, val);
     sprintf(val, "%g", std::numeric_limits<float>::max());
-    if(_vars->registerVariable("end_t", "float", len, val))
-        exit(EXIT_FAILURE);
+    _vars->registerVariable("end_t", "float", len, val);
     sprintf(val, "%u", std::numeric_limits<unsigned int>::max());
-    if(_vars->registerVariable("end_iter", "unsigned int", len, val))
-        exit(EXIT_FAILURE);
+    _vars->registerVariable("end_iter", "unsigned int", len, val);
     sprintf(val, "%u", std::numeric_limits<unsigned int>::max());
-    if(_vars->registerVariable("end_frame", "unsigned int", len, val))
-        exit(EXIT_FAILURE);
+    _vars->registerVariable("end_frame", "unsigned int", len, val);
     sprintf(val, "%u", N);
-    if(_vars->registerVariable("N", "unsigned int", len, val))
-        exit(EXIT_FAILURE);
+    _vars->registerVariable("N", "unsigned int", len, val);
     sprintf(val, "%u", _sim_data.sets.size());
-    if(_vars->registerVariable("n_sets", "unsigned int", len, val))
-        exit(EXIT_FAILURE);
+    _vars->registerVariable("n_sets", "unsigned int", len, val);
     sprintf(val, "%u", num_icell);
-    if(_vars->registerVariable("n_radix", "unsigned int", len, val))
-        exit(EXIT_FAILURE);
+    _vars->registerVariable("n_radix", "unsigned int", len, val);
     // Number of cells in x, y, z directions, and the total (n_x * n_y * n_z)
     strcpy(val, "0, 0, 0, 0");
-    if(_vars->registerVariable("n_cells", "uivec4", len, val))
-        exit(EXIT_FAILURE);
+    _vars->registerVariable("n_cells", "uivec4", len, val);
     // Kernel support
     sprintf(val, "%g", 2.f);
-    if(_vars->registerVariable("support", "float", len, val))
-        exit(EXIT_FAILURE);
+    _vars->registerVariable("support", "float", len, val);
 
     // Register default arrays
     strcpy(val, "");
     sprintf(len, "%u", N);
-    if(_vars->registerVariable("id", "unsigned int*", len, val))
-        exit(EXIT_FAILURE);
-    if(_vars->registerVariable("r", "vec*", len, val))
-        exit(EXIT_FAILURE);
-    if(_vars->registerVariable("iset", "unsigned int*", len, val))
-        exit(EXIT_FAILURE);
+    _vars->registerVariable("id", "unsigned int*", len, val);
+    _vars->registerVariable("r", "vec*", len, val);
+    _vars->registerVariable("iset", "unsigned int*", len, val);
     sprintf(len, "%u", num_icell);
-    if(_vars->registerVariable("id_sorted", "unsigned int*", len, val))
-        exit(EXIT_FAILURE);
-    if(_vars->registerVariable("id_unsorted", "unsigned int*", len, val))
-        exit(EXIT_FAILURE);
-    if(_vars->registerVariable("icell", "unsigned int*", len, val))
-        exit(EXIT_FAILURE);
+    _vars->registerVariable("id_sorted", "unsigned int*", len, val);
+    _vars->registerVariable("id_unsorted", "unsigned int*", len, val);
+    _vars->registerVariable("icell", "unsigned int*", len, val);
     sprintf(len, "n_cells_w");
-    if(_vars->registerVariable("ihoc", "unsigned int*", len, val))
-        exit(EXIT_FAILURE);
+    _vars->registerVariable("ihoc", "unsigned int*", len, val);
 
     // Register the user variables and arrays
     for(i = 0; i < _sim_data.variables.names.size(); i++){
-        bool flag = _vars->registerVariable(_sim_data.variables.names.at(i).c_str(),
-                                            _sim_data.variables.types.at(i).c_str(),
-                                            _sim_data.variables.lengths.at(i).c_str(),
-                                            _sim_data.variables.values.at(i).c_str());
-        if(flag){
-            exit(EXIT_FAILURE);
-        }
+        _vars->registerVariable(_sim_data.variables.names.at(i).c_str(),
+                                _sim_data.variables.types.at(i).c_str(),
+                                _sim_data.variables.lengths.at(i).c_str(),
+                                _sim_data.variables.values.at(i).c_str());
     }
 
     // Register the user definitions
@@ -217,12 +194,9 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
                 exit(EXIT_FAILURE);
             }
             float defval = 0.f;
-            if(_vars->solve("float",
-                            _sim_data.definitions.values.at(i).c_str(),
-                            &defval))
-            {
-                exit(EXIT_FAILURE);
-            }
+            _vars->solve("float",
+                         _sim_data.definitions.values.at(i).c_str(),
+                         &defval);
             strcpy(defstr, "-D");
             strcat(defstr, _sim_data.definitions.names.at(i).c_str());
             sprintf(defstr + strlen(defstr), "=%#Gf", defval);
@@ -798,7 +772,7 @@ bool CalcServer::setup()
         S->addMessageF(L_ERROR, "Missed kernel length \"h\".\n");
         return true;
     }
-    if(strcmp(_vars->get("h")->type(), "float")){
+    if(_vars->get("h")->type().compare("float")){
         sprintf(msg,
                 "Kernel length \"h\" must be of type \"float\", but \"%s\" has been specified\n",
                 _vars->get("h")->type());
@@ -832,7 +806,7 @@ bool CalcServer::setup()
                 S->addMessage(L_DEBUG, msg);
                 return true;
             }
-            if(!strchr(_vars->get(name.c_str())->type(), '*')){
+            if(_vars->get(name.c_str())->type().find('*') == std::string::npos){
                 sprintf(msg,
                         "Variable \"%s\" has been registered as a scalar, however it is established per particles set\n",
                         name.c_str());
@@ -854,7 +828,9 @@ bool CalcServer::setup()
                 return true;
             }
             void *data = malloc(typesize);
-            if(_vars->solve(_vars->get(name.c_str())->type(), val.c_str(), data)){
+            try {
+                _vars->solve(_vars->get(name.c_str())->type(), val.c_str(), data);
+            } catch(...) {
                 sprintf(msg, "Particles set: %u\n", i);
                 S->addMessage(L_DEBUG, msg);
                 return true;

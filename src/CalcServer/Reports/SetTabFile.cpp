@@ -109,7 +109,7 @@ bool SetTabFile::_execute()
     // Get the data to be printed
     std::deque<InputOutput::Variable*> vars = variables();
     for(i = 0; i < vars.size(); i++){
-        if(!strchr(vars.at(i)->type(), '*')){
+        if(vars.at(i)->type().find('*') == std::string::npos){
             sprintf(msg,
                     "\"%s\" field has been set to be saved, but it was declared as an scalar.\n",
                     vars.at(i)->name());
@@ -136,7 +136,7 @@ bool SetTabFile::_execute()
     for(i = 0; i < bounds().y - bounds().x; i++){
         for(j = 0; j < vars.size(); j++){
             InputOutput::ArrayVariable *var = (InputOutput::ArrayVariable*)vars.at(j);
-            const char* type_name = var->type();
+            const char* type_name = var->type().c_str();
             if(!strcmp(type_name, "int*")){
                 int* v = (int*)data.at(j);
                 fprintf(_f, "%16d ", v[i]);
@@ -271,7 +271,7 @@ std::deque<void*> SetTabFile::download(std::deque<InputOutput::Variable*> vars)
         }
         data.push_back(store);
 
-        cl_event event = C->getUnsortedMem(var->name(),
+        cl_event event = C->getUnsortedMem(var->name().c_str(),
                                            typesize * bounds().x,
                                            typesize * (bounds().y - bounds().x),
                                            store);

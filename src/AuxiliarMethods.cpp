@@ -117,7 +117,7 @@ std::string rtrimCopy(std::string s) {
     return s;
 }
 
-inline std::string trimCopy(std::string s) {
+std::string trimCopy(std::string s) {
     trim(s);
     return s;
 }

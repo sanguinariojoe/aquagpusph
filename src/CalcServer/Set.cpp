@@ -137,7 +137,7 @@ bool Set::variable()
         S->addMessageF(L_ERROR, msg);
         return true;
     }
-    if(!strchr(vars->get(_var_name)->type(), '*')){
+    if(vars->get(_var_name)->type().find('*') == std::string::npos){
         sprintf(msg,
                 "The tool \"%s\" has received the scalar variable \"%s\".\n",
                 name(),
@@ -232,7 +232,7 @@ cl_kernel Set::compile(const char* source)
     CalcServer *C = CalcServer::singleton();
 
     char flags[512];
-    if(!strcmp(_var->type(), "unsigned int*")){
+    if(!_var->type().compare("unsigned int*")){
         sprintf(flags,
                 "-DT=%s",
                 "uint*");

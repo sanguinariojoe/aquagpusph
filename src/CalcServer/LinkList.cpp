@@ -524,7 +524,7 @@ bool LinkList::allocate()
     CalcServer *C = CalcServer::singleton();
     InputOutput::Variables *vars = C->variables();
 
-    if(strcmp(vars->get("n_cells")->type(), "uivec4")){
+    if(vars->get("n_cells")->type().compare("uivec4")){
         sprintf(msg,
                 "Wrong type found during the execution of the tool \"%s\".\n",
                 name());

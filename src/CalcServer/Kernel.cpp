@@ -574,7 +574,9 @@ bool Kernel::computeGlobalWorkSize()
         return true;
     }
     InputOutput::Variables *vars = C->variables();
-    if(vars->solve("unsigned int", _n, &N)){
+    try {
+        vars->solve("unsigned int", _n, &N);
+    } catch(...) {
         S->addMessageF(L_ERROR, "Failure evaluating the number of threads.\n");
         return true;
     }

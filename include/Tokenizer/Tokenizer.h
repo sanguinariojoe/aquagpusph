@@ -58,7 +58,7 @@ public:
      * @param value Value of the variable.
      * @return true if the variable already exists, false otherwise.
      */
-    bool registerVariable(const char* name, float value);
+    bool registerVariable(const std::string name, float value);
 
     /** @brief Clear/unregister all the registered variables.
      */
@@ -69,14 +69,14 @@ public:
      * @return true if already exist a variable with the given name, false
      * otherwise.
      */
-    bool isVariable(const char* name);
+    bool isVariable(const std::string name);
 
     /** @brief Returns a variable value.
      * @param name Name of the variable
      * @return The Value of the variable, or 0.0 if the variable cannot be
      * found.
      */
-    float variable(const char* name);
+    float variable(const std::string name);
 
     /** @brief Solve a math expression.
      * @param eq Math expression to solve.
@@ -85,7 +85,7 @@ public:
      * @return Expression value, 0.0 if the evaluation failed (it will be
      * reported by terminal).
      */
-    float solve(const char* eq, bool *error=NULL);
+    float solve(const std::string eq, bool *error=NULL);
 
 protected:
     /** @brief Register the default variables.

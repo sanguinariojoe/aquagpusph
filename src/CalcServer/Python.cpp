@@ -130,8 +130,10 @@ static PyObject* set(PyObject *self, PyObject *args, PyObject *keywds)
     }
 
     // Populate the variable if it is a scalar one
-    if(!strchr(var->type(), '*')){
-        if(V->populate(var)){
+    if(var->type().find('*') == std::string::npos){
+        try {
+            V->populate(var);
+        } catch(...) {
             return NULL;
         }
     }
