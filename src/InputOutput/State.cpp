@@ -380,7 +380,7 @@ void State::parseVariables(DOMElement *root,
                 sim_data.variables.registerVariable(xmlAttribute(s_elem, "name"),
                                                     xmlAttribute(s_elem, "type"),
                                                     xmlAttribute(s_elem, "length"),
-                                                    "NULL");
+                                                    "");
             }
         }
     }

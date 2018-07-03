@@ -1914,7 +1914,7 @@ void Variables::readComponents(const std::string name,
     std::istringstream f(edited_val);
     std::string s;
     while (getline(f, s, ';')) {
-        val = tok.solve(aux, &error);
+        val = tok.solve(s, &error);
         if(error){
             std::ostringstream msg;
             msg << "parsing variable \""
