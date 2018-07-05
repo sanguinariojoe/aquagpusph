@@ -1,0 +1,23 @@
+<?xml version="1.0" ?>
+
+<!-- gradU.xml
+Compute the gradient of the velocity matrix \f$ \nabla \mathbf{u} \f$.
+
+To use this module, just include this file after BINoSlip.xml, WITH THE SAME
+PREFIX.
+
+Each time you include this file, a new instance of "cfd grad_u" tool will be
+added. However, such a tool is required just once. Please, remove the extra
+instances.
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="grad_u" type="matrix*" length="N" />
+    </Variables>
+
+    <Tools>
+        <Tool name="cfd grad_u" action="insert" after="cfd interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/GradU.cl"/>
+        <Tool name="cfd grad_u BI" ifdef="__CFD_BI__" action="insert" after_prefix="cfd BI no-slip" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/BI/GradU.cl"/>
+    </Tools>
+</sphInput>

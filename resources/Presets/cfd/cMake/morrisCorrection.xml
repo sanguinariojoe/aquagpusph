@@ -1,0 +1,26 @@
+<?xml version="1.0" ?>
+
+<!-- morrisCorrection.xml
+Correct the Morris term close to the boundaries.
+
+To use this module, just include this file after GradU.xml, WITH THE SAME
+PREFIX.
+
+Each time you include this file, new instances of "cfd morris_o1" and
+"cfd morris correction" tools will be added. However, both tools shall be ran
+just once. Please, remove the extra instances.
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="morris_o1" type="vec*" length="N" />
+    </Variables>
+
+    <Tools>
+        <!-- Compute the order 1 terms -->
+        <Tool name="cfd morris_o1" action="insert" after_prefix="cfd grad_u" type="kernel" entry_point="order1" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/MorrisCorrection.cl"/>
+        <Tool name="cfd morris_o1 BI" ifdef="__CFD_BI__" action="insert" after_prefix="cfd grad_u BI" entry_point="order1" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/BI/MorrisCorrection.cl"/>
+        <!-- Apply the correction -->
+        <Tool name="cfd morris correction" action="insert" after_prefix="cfd morris_o1,cfd morris_o1 BI" entry_point="entry" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/MorrisCorrection.cl"/>
+    </Tools>
+</sphInput>

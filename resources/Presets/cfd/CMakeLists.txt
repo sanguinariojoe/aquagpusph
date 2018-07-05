@@ -37,6 +37,10 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/deltaSPH-simple.xml
     ${CMAKE_CURRENT_BINARY_DIR}/deltaSPH-simple.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/deltaSPH-full.xml
     ${CMAKE_CURRENT_BINARY_DIR}/deltaSPH-full.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/gradU.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/gradU.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/morrisCorrection.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/morrisCorrection.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/variableTimeStep.xml
     ${CMAKE_CURRENT_BINARY_DIR}/variableTimeStep.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/energy.xml
@@ -118,6 +122,10 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/deltaSPH-simple.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/deltaSPH-simple.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/deltaSPH-full.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/deltaSPH-full.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/gradU.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/gradU.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/morrisCorrection.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/morrisCorrection.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/variableTimeStep.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/variableTimeStep.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/energy.xml
@@ -184,6 +192,8 @@ SET(RESOURCES_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/deltaSPH.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/deltaSPH-simple.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/deltaSPH-full.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/gradU.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/morrisCorrection.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/variableTimeStep.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/forces.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/pressureForces.xml

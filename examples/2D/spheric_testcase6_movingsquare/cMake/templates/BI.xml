@@ -30,9 +30,17 @@ Authors:
     
     <!-- Impose no-slip boundary condition to the box and the square -->
     <Include file="@RESOURCES_DIR@/Presets/cfd/BINoSlip.xml" prefix="iset1_"/>
+    <Include file="@RESOURCES_DIR@/Presets/cfd/gradU.xml" prefix="iset1_"/>
+    <Include file="@RESOURCES_DIR@/Presets/cfd/morrisCorrection.xml" prefix="iset1_"/>
     <Include file="@RESOURCES_DIR@/Presets/cfd/BINoSlip.xml" prefix="iset2_"/>
+    <Include file="@RESOURCES_DIR@/Presets/cfd/gradU.xml" prefix="iset2_"/>
+    <Include file="@RESOURCES_DIR@/Presets/cfd/morrisCorrection.xml" prefix="iset2_"/>
     <Tools>
         <Tool action="insert" before="iset1_cfd BI no-slip" type="set_scalar" name="noslip_iset1" in="noslip_iset" value="1"/>
         <Tool action="insert" before="iset2_cfd BI no-slip" type="set_scalar" name="noslip_iset2" in="noslip_iset" value="2"/>
+        <!-- We wanna compute and apply the Morris correction term just once -->
+        <Tool action="remove" name="iset2_cfd grad_u" type="dummy"/>
+        <Tool action="remove" name="iset2_cfd morris_o1" type="dummy"/>
+        <Tool action="remove" name="iset2_cfd morris correction" type="dummy"/>
     </Tools>
 </sphInput>
