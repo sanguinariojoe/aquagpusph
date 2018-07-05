@@ -355,9 +355,11 @@ bool CalcServer::update()
         for(i = 0; i < _tools.size(); i++){
             strncpy(_current_tool_name, _tools.at(i)->name(), 255);
             _current_tool_name[255] = '\0';
-            if(_tools.at(i)->execute()){
+            try {
+                _tools.at(i)->execute())
+            } catch (std::runtime_error &e) {
                 sleep(__ERROR_SHOW_TIME__);
-                return true;
+                throw;
             }
         }
         strcpy(_current_tool_name, "__post execution__");
@@ -389,7 +391,9 @@ cl_event CalcServer::getUnsortedMem(const std::string var_name,
     UnSort *unsorter = NULL;
     if(unsorters.find(var_name) == unsorters.end()){
         unsorter = new UnSort(var_name.c_str(), var_name.c_str());
-        if(unsorter->setup()){
+        try {
+            unsorter->setup();
+        } catch(std::runtime_error &e) {
             delete unsorter;
             return NULL;
         }
@@ -397,7 +401,9 @@ cl_event CalcServer::getUnsortedMem(const std::string var_name,
     }
     // Get the unsorter
     unsorter = unsorters[var_name];
-    if(unsorter->execute()){
+    try {
+        unsorter->execute();
+    } catch (std::runtime_error &e) {
         return NULL;
     }
     cl_mem mem = unsorter->output();
@@ -798,9 +804,7 @@ bool CalcServer::setup()
 
     // Setup the tools
     for(i = 0; i < _tools.size(); i++){
-        if(_tools.at(i)->setup()){
-            return true;
-        }
+        _tools.at(i)->setup();
     }
 
     return false;

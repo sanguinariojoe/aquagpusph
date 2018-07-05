@@ -43,16 +43,15 @@ public:
      * @param name Tool name.
      * @param var_name Variable to unsort.
      */
-    UnSort(const char *name, const char *var_name);
+    UnSort(const std::string name, const std::string var_name);
 
     /** Destructor.
      */
     ~UnSort();
 
     /** Initialize the tool.
-     * @return false if all gone right, true otherwise.
      */
-    bool setup();
+    void setup();
 
     /** Get the memory object where the unsorted data is stored.
      * @return The memory object where the unsorted data is stored.
@@ -61,31 +60,29 @@ public:
 
 protected:
     /** Compute the reduction.
-     * @return false if all gone right, true otherwise.
      */
-    bool _execute();
+    void _execute();
 
 private:
     /** Get the input variable
-     * @return false if all gone right, true otherwise
      */
-    bool variables();
+    void variables();
 
     /** Create the output memory object
      * @return false if all gone right, true otherwise.
      */
-    bool setupMem();
+    void setupMem();
 
     /** Setup the OpenCL stuff
      * @return false if all gone right, true otherwise.
      */
-    bool setupOpenCL();
+    void setupOpenCL();
 
     /** Compile the source code and generate the corresponding kernel
      * @param source Source code to be compiled.
-     * @return Kernel instance, NULL if error happened.
+     * @return Kernel instance.
      */
-    cl_kernel compile(const char* source);
+    cl_kernel compile(const std::string source);
 
     /** Update the input looking for changed value.
      * @return false if all gone right, true otherwise.
@@ -93,7 +90,7 @@ private:
     bool setVariables();
 
     /// Input variable name
-    char* _var_name;
+    std::string _var_name;
 
     /// ID variable
     InputOutput::ArrayVariable *_id_var;

@@ -143,49 +143,19 @@ unsigned int roundUp(unsigned int x, unsigned int divisor);
  */
 int round(float n);
 
-/// Load an OpenCL kernel from a file.
-/**
- * @param kernel The output kernel identifier.
- * @param program The output program identifier.
- * @param context Context from where the program should be loaded.
- * @param device Device where the kernel should be computed.
- * @param path Path of the kernel source code file.
- * @param entry_point Method into the kernel to be called.
- * @param flags Compilation flags.
- * @param header Source code to be inserted at the start of the readed source
- * code.
- * @return A valid work group size to compute the kernel, 0 if errors happened.
- * @note Several compilation flags will be automatically added:
- *  -# -IKERNEL_SRC_PATH (KERNEL_SRC_PATH will be replaced by the path patern @paramname{path})
- *  -# -cl-mad-enable
- *  -# -cl-fast-relaxed-math
- *  -# -DDEBUG (if AQUA_DEBUG has been defined)
- *  -# -DNDEBUG (if AQUA_DEBUG has not been defined)
- *  -# -DHAVE_3D (if HAVE_3D has been defined)
- *  -# -DHAVE_2D (if HAVE_3D has not been defined)
- *  -# -Dh=KERNEL_LENGTH (KERNEL_LENGTH will be replaced by Aqua::InputOutput::ProblemSetup::sphSPHParameters::h)
- *  -# -D__BOUNDARY__=BOUNDARY_TYPE (BOUNDARY_TYPE will be replaced by Aqua::InputOutput::ProblemSetup::sphSPHParameters::boundary_type)
- *  -# -D__FREE_SLIP__ (if Aqua::InputOutput::ProblemSetup::sphSPHParameters::slip_condition is 1)
- *  -# -D__NO_SLIP__ (if Aqua::InputOutput::ProblemSetup::sphSPHParameters::slip_condition is 0)
- */
-size_t loadKernelFromFile(cl_kernel* kernel, cl_program* program,
-                          cl_context context, cl_device_id device,
-                          const char* path, const char* entry_point,
-                          const char* flags, const char* header=NULL);
-
 /// Gets the folder path which contains the file @paramname{file_path}.
 /**
  * @param file_path The file path.
  * @return The folder.
  */
-const char* getFolderFromFilePath(const char* file_path);
+const std::string getFolderFromFilePath(const std::string file_path);
 
 /// Gets the file name of the path @paramname{file_path}.
 /**
  * @param file_path The file path.
  * @return The file name.
  */
-const char* getFileNameFromFilePath(const char* file_path);
+const std::string getFileNameFromFilePath(const std::string file_path);
 
 /// Gets the file extension.
 /** Get the file extension from the full file path @paramname{file_path}.
@@ -193,14 +163,14 @@ const char* getFileNameFromFilePath(const char* file_path);
  * @param file_path The file path.
  * @return Extension of the file.
  */
-const char* getExtensionFromFilePath(const char* file_path);
+const std::string getExtensionFromFilePath(const std::string file_path);
 
 /// Check if the file @paramname{file_path} exist on the system.
 /**
  * @param file_name The file path.
  * @return 0 if the file can not be found in the system, 1 otherwise.
  */
-int isFile(const char* file_name);
+bool isFile(const std::string file_name);
 
 /// Load a file returning it as a characters array.
 /**
@@ -212,7 +182,7 @@ int isFile(const char* file_name);
  * @warning Be sure that @paramname{source_code} has allocated memory enough,
  * otherwise a segmentation fault will be received.
  */
-size_t readFile(char* source_code, const char* file_name);
+size_t readFile(char* source_code, const std::string file_name);
 
 /// Send an argument to an OpenCL kernel.
 /**

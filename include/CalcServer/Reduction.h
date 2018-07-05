@@ -61,11 +61,11 @@ public:
      *   - VEC_NEG_INFINITY: -VEC_INFINITY
      *   - VEC_ALL_NEG_INFINITY: -VEC_ALL_INFINITY.
      */
-    Reduction(const char *name,
-              const char *input_name,
-              const char *output_name,
-              const char* operation,
-              const char* null_val);
+    Reduction(const std::string name,
+              const std::string input_name,
+              const std::string output_name,
+              const std::string operation,
+              const std::string null_val);
 
     /// Destructor.
     ~Reduction();
@@ -74,10 +74,8 @@ public:
      *
      * This method should be called after the constructor, such that it could
      * report errors that the application may handle quitting in a safe way.
-     *
-     * @return false if all gone right, true otherwise.
      */
-    bool setup();
+    void setup();
 
     /** @brief Number of steps needed.
      *
@@ -93,25 +91,23 @@ protected:
     /** @brief Perform the work.
      * @return Output memory object, NULL if error is detected.
      */
-    bool _execute();
+    void _execute();
 
 private:
     /** @brief Extract the input and output variables from the provided data in
      * Reduction().
-     * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::Variables
      */
-    bool variables();
+    void variables();
 
     /** @brief Setup the OpenCL stuff
-     * @return false if all gone right, true otherwise.
      */
-    bool setupOpenCL();
+    void setupOpenCL();
 
     /** @brief Compile the source code and generate the corresponding kernel.
      * @param source Source code to be compiled.
      * @param local_work_size Desired local work size.
-     * @return Kernel instance, NULL if error happened.
+     * @return Kernel instance.
      */
     cl_kernel compile(const char* source, size_t local_work_size);
 
@@ -119,9 +115,8 @@ private:
      *
      * This function is looking for changed value to send them again to the
      * computational device.
-     * @return false if all gone right, true otherwise.
      */
-    bool setVariables();
+    void setVariables();
 
     /// Input variable name
     char* _input_name;

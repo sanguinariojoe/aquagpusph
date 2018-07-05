@@ -26,7 +26,7 @@
 
 #include <sphPrerequisites.h>
 
-#include <deque>
+#include <vector>
 #include <CL/cl.h>
 #include <clang-c/Index.h>
 #include <clang-c/Platform.h>
@@ -48,10 +48,10 @@ public:
      * @param kernel_path Kernel path.
      * @param n Number of threads to launch.
      */
-    Kernel(const char* tool_name,
-           const char* kernel_path,
-           const char* entry_point="entry",
-           const char* n="N");
+    Kernel(const std::string tool_name,
+           const std::string kernel_path,
+           const std::string entry_point="entry",
+           const std::string n="N");
 
     /** Destructor
      */
@@ -60,17 +60,12 @@ public:
     /** Initialize the tool.
      * @return false if all gone right, true otherwise.
      */
-    bool setup();
-
-    /** Set the kernel file path.
-     * @param kernel_path kernel file path.
-     */
-    void path(const char* kernel_path);
+    void setup();
 
     /** Get the kernel file path.
      * @return Tool kernel file path.
      */
-    const char* path(){return (const char*)_path;}
+    const std::string path(){return (const std::string)_path;}
 
     /** Get the work group size
      * @return Work group size
@@ -86,7 +81,7 @@ protected:
     /** Execute the tool.
      * @return false if all gone right, true otherwise.
      */
-    bool _execute();
+    void _execute();
 
 protected:
     /** Compile the OpenCL program
@@ -95,33 +90,35 @@ protected:
      * @param header Header to be append at the start of the source code.
      * @return false if all gone right, true otherwise.
      */
-    bool compile(const char* entry_point="entry",
-                 const char* flags="",
-                 const char* header="");
+    void compile(const std::string entry_point="entry",
+                 const std::string flags="",
+                 const std::string header="");
 
     /** Compute the variables required by the program
      * @param entry_point Program entry point method.
      * @return false if all gone right, true otherwise.
      */
-    bool variables(const char* entry_point="main");
+    void variables(const std::string entry_point="main");
 
-    /** Set the variables to the OpenCL kernel. The method detects if a variable
-     * should be updated or if it already set either.
-     * @return false if all gone right, true otherwise.
+    /** @brief Set the variables to the OpenCL kernel.
+     * 
+     * The method detects if a variable should be updated or if it already set either.
      */
-    bool setVariables();
+    void setVariables();
 
     /** Compute the global work size
-     * @return false if all gone right, true otherwise.
      */
-    bool computeGlobalWorkSize();
+    void computeGlobalWorkSize();
 
 private:
     /// Kernel path
-    char* _path;
+    std::string _path;
 
     /// Kernel entry point
-    char* _entry_point;
+    std::string _entry_point;
+
+    /// Number of threads expression
+    std::string _n;
 
     /// OpenCL kernel
     cl_kernel _kernel;
@@ -132,13 +129,10 @@ private:
     /// global work size
     size_t _global_work_size;
 
-    /// Number of threads expression
-    char* _n;
-
     /// List of required variables
-    std::deque<char*> _var_names;
+    std::vector<std::string> _var_names;
     /// List of variable values
-    std::deque<void*> _var_values;
+    std::vector<void*> _var_values;
 };
 
 }}  // namespace

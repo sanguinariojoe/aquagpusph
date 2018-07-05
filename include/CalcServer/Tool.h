@@ -45,7 +45,7 @@ public:
     /** Constructor.
      * @param tool_name Name of the tool. Useful to identify errors.
      */
-    Tool(const char* tool_name);
+    Tool(const std::string tool_name);
 
     /** Destructor
      */
@@ -54,17 +54,16 @@ public:
     /** Set the tool name.
      * @param tool_name Tool name.
      */
-    void name(const char* tool_name);
+    void name(const std::string tool_name){_name = tool_name;};
 
     /** Get the tool name.
      * @return Tool name.
      */
-    const char* name(){return (const char*)_name;}
+    const std::string name(){return _name;}
 
     /** Initialize the tool.
-     * @return false if all gone right, true otherwise.
      */
-    virtual bool setup(){return false;}
+    virtual void setup(){return;}
 
     /** @brief Execute the tool measuring the elapsed time.
      *
@@ -74,7 +73,7 @@ public:
      * @note Usually you don't want to overload this method, but the _execute()
      * one.
      */
-    virtual bool execute();
+    virtual void execute();
 
     /** Get the allocated memory for this tool.
      * @return allocated memory by this tool.
@@ -116,9 +115,8 @@ protected:
     void allocatedMemory(size_t mem_size){_allocated_memory = mem_size;}
 
     /** Execute the tool.
-     * @return false if all gone right, true otherwise.
      */
-    virtual bool _execute(){return false;}
+    virtual void _execute(){return;}
 
     /** @brief Add new data to the average and squared elapsed times
      * @param elapsed_time Elapsed time
@@ -127,7 +125,7 @@ protected:
 
 private:
     /// Kernel name
-    char* _name;
+    std::string _name;
 
     /// Total auxiliar memory allocated in the device
     size_t _allocated_memory;

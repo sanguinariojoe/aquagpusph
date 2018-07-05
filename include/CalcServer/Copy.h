@@ -40,33 +40,32 @@ public:
      * @param input_name Variable to copy.
      * @param output_name Variable to set.
      */
-    Copy(const char *name, const char *input_name, const char *output_name);
+    Copy(const std::string name,
+         const std::string input_name,
+         const std::string output_name);
 
     /** Destructor.
      */
     ~Copy();
 
     /** Initialize the tool.
-     * @return false if all gone right, true otherwise.
      */
-    bool setup();
+    void setup();
 
 protected:
-    /** Compute the reduction.
-     * @return false if all gone right, true otherwise.
+    /** Copy the data.
      */
-    bool _execute();
+    void _execute();
 
 private:
     /** Get the input and output variables
-     * @return false if all gone right, true otherwise
      */
-    bool variables();
+    void variables();
 
     /// Input variable name
-    char* _input_name;
+    std::string _input_name;
     /// Output variable name
-    char* _output_name;
+    std::string _output_name;
 
     /// Input variable
     InputOutput::ArrayVariable *_input_var;
