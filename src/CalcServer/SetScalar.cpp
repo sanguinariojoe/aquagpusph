@@ -74,7 +74,7 @@ bool SetScalar::_execute()
     char msg[1024];
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables *vars = C->variables();
+    InputOutput::Variables vars = C->variables();
 
     void *data = malloc(_var->typesize());
     if(!data){
@@ -88,7 +88,7 @@ bool SetScalar::_execute()
     }
 
     try {
-        vars->solve(_var->type(), _value, data, _var->name());
+        vars.solve(_var->type(), _value, data, _var->name());
     } catch(...) {
         free(data);
         return true;
@@ -98,7 +98,7 @@ bool SetScalar::_execute()
     free(data);
     // Ensure that the variable is populated
     try {
-        vars->populate(_var);
+        vars.populate(_var);
     } catch (...) {
         return true;
     }
@@ -111,8 +111,8 @@ bool SetScalar::variable()
     char msg[1024];
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables *vars = C->variables();
-    if(!vars->get(_var_name)){
+    InputOutput::Variables vars = C->variables();
+    if(!vars.get(_var_name)){
         sprintf(msg,
                 "The tool \"%s\" is using the undeclared variable \"%s\".\n",
                 name(),
@@ -120,7 +120,7 @@ bool SetScalar::variable()
         S->addMessageF(L_ERROR, msg);
         return true;
     }
-    if(vars->get(_var_name)->type().find('*') != std::string::npos){
+    if(vars.get(_var_name)->type().find('*') != std::string::npos){
         sprintf(msg,
                 "The tool \"%s\" has received the array variable \"%s\".\n",
                 name(),
@@ -128,7 +128,7 @@ bool SetScalar::variable()
         S->addMessageF(L_ERROR, msg);
         return true;
     }
-    _var = vars->get(_var_name);
+    _var = vars.get(_var_name);
     return false;
 }
 

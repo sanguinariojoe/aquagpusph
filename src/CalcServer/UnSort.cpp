@@ -122,8 +122,8 @@ bool UnSort::variables()
     char msg[1024];
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables *vars = C->variables();
-    if(!vars->get("id")){
+    InputOutput::Variables vars = C->variables();
+    if(!vars.get("id")){
         sprintf(msg,
                 "The tool \"%s\" is using the undeclared variable \"%s\".\n",
                 name(),
@@ -131,7 +131,7 @@ bool UnSort::variables()
         S->addMessageF(L_ERROR, msg);
         return true;
     }
-    if(vars->get("id")->type().compare("unsigned int*")){
+    if(vars.get("id")->type().compare("unsigned int*")){
         sprintf(msg,
                 "The tool \"%s\" has found a wrong type for the variable \"%s\".\n",
                 name(),
@@ -140,13 +140,13 @@ bool UnSort::variables()
         sprintf(msg,
                 "\t\"%s\" was expected, but \"%s\" was found.\n",
                 "unsigned int*",
-                vars->get("id")->type());
+                vars.get("id")->type());
         S->addMessage(L_DEBUG, msg);
         return true;
     }
-    _id_var = (InputOutput::ArrayVariable *)vars->get("id");
+    _id_var = (InputOutput::ArrayVariable *)vars.get("id");
 
-    if(!vars->get(_var_name)){
+    if(!vars.get(_var_name)){
         sprintf(msg,
                 "The tool \"%s\" is using the undeclared variable \"%s\".\n",
                 name(),
@@ -154,7 +154,7 @@ bool UnSort::variables()
         S->addMessageF(L_ERROR, msg);
         return true;
     }
-    if(vars->get(_var_name)->type().find('*') == std::string::npos){
+    if(vars.get(_var_name)->type().find('*') == std::string::npos){
         sprintf(msg,
                 "The tool \"%s\" has received the scalar variable \"%s\".\n",
                 name(),
@@ -162,7 +162,7 @@ bool UnSort::variables()
         S->addMessageF(L_ERROR, msg);
         return true;
     }
-    _var = (InputOutput::ArrayVariable *)vars->get(_var_name);
+    _var = (InputOutput::ArrayVariable *)vars.get(_var_name);
 
     return false;
 }
@@ -218,7 +218,6 @@ bool UnSort::setupOpenCL()
     char msg[1024];
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables *vars = C->variables();
 
     // Create a header for the source code where the operation will be placed
     char header[UNSORT_INC_LEN + 128];

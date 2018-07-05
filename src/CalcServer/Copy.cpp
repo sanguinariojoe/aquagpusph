@@ -56,7 +56,6 @@ bool Copy::setup()
     char msg[1024];
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables *vars = C->variables();
 
     sprintf(msg,
             "Loading the tool \"%s\"...\n",
@@ -105,8 +104,8 @@ bool Copy::variables()
     char msg[1024];
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables *vars = C->variables();
-    if(!vars->get(_input_name)){
+    InputOutput::Variables vars = C->variables();
+    if(!vars.get(_input_name)){
         sprintf(msg,
                 "The tool \"%s\" has received undeclared variable \"%s\" as input.\n",
                 name(),
@@ -114,7 +113,7 @@ bool Copy::variables()
         S->addMessageF(L_ERROR, msg);
         return true;
     }
-    if(vars->get(_input_name)->type().find('*') == std::string::npos){
+    if(vars.get(_input_name)->type().find('*') == std::string::npos){
         sprintf(msg,
                 "The tool \"%s\" has received the scalar variable \"%s\" as input.\n",
                 name(),
@@ -122,9 +121,9 @@ bool Copy::variables()
         S->addMessageF(L_ERROR, msg);
         return true;
     }
-    _input_var = (InputOutput::ArrayVariable *)vars->get(_input_name);
-    size_t n_in = _input_var->size() / vars->typeToBytes(_input_var->type());
-    if(!vars->get(_output_name)){
+    _input_var = (InputOutput::ArrayVariable *)vars.get(_input_name);
+    size_t n_in = _input_var->size() / vars.typeToBytes(_input_var->type());
+    if(!vars.get(_output_name)){
         sprintf(msg,
                 "The tool \"%s\" has received undeclared variable \"%s\" as output.\n",
                 name(),
@@ -132,7 +131,7 @@ bool Copy::variables()
         S->addMessageF(L_ERROR, msg);
         return true;
     }
-    if(vars->get(_output_name)->type().find('*') == std::string::npos){
+    if(vars.get(_output_name)->type().find('*') == std::string::npos){
         sprintf(msg,
                 "The tool \"%s\" has received the scalar variable \"%s\" as output.\n",
                 name(),
@@ -140,9 +139,9 @@ bool Copy::variables()
         S->addMessageF(L_ERROR, msg);
         return true;
     }
-    _output_var = (InputOutput::ArrayVariable *)vars->get(_output_name);
-    size_t n_out = _input_var->size() / vars->typeToBytes(_input_var->type());
-    if(!vars->isSameType(_input_var->type(), _output_var->type())){
+    _output_var = (InputOutput::ArrayVariable *)vars.get(_output_name);
+    size_t n_out = _input_var->size() / vars.typeToBytes(_input_var->type());
+    if(!vars.isSameType(_input_var->type(), _output_var->type())){
         sprintf(msg,
                 "The input and output types mismatch for the tool \"%s\".\n",
                 name());

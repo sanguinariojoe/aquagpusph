@@ -1363,7 +1363,7 @@ void State::writeVariables(xercesc::DOMDocument* doc,
     elem = doc->createElement(xmlS("Variables"));
     root->appendChild(elem);
 
-    std::vector<Variable*> vars = C->variables()->getAll();
+    std::vector<Variable*> vars = C->variables().getAll();
     std::vector<Variable*>::iterator var_it;
     for (var_it = vars.begin(); var_it != vars.end(); var_it++ ) {
         s_elem = doc->createElement(xmlS("Variable"));
@@ -1545,7 +1545,6 @@ void State::writeSets(xercesc::DOMDocument* doc,
     DOMElement *elem, *s_elem;
 
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
-    Variables* vars = C->variables();
 
     for(i = 0; i < sim_data.sets.size(); i++){
         elem = doc->createElement(xmlS("ParticlesSet"));
@@ -1558,7 +1557,7 @@ void State::writeSets(xercesc::DOMDocument* doc,
             s_elem = doc->createElement(xmlS("Scalar"));
             s_elem->setAttribute(xmlS("name"), xmlS(name));
 
-            ArrayVariable* var = (ArrayVariable*)vars->get(name);
+            ArrayVariable* var = (ArrayVariable*)C->variables().get(name);
             std::string value_txt = var->asString(i);
             if(value_txt.at(0) == '('){
                 value_txt.at(0) = ' ';

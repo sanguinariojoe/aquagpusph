@@ -128,8 +128,8 @@ bool Set::variable()
     char msg[1024];
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables *vars = C->variables();
-    if(!vars->get(_var_name)){
+    InputOutput::Variables vars = C->variables();
+    if(!vars.get(_var_name)){
         sprintf(msg,
                 "The tool \"%s\" is using the undeclared variable \"%s\".\n",
                 name(),
@@ -137,7 +137,7 @@ bool Set::variable()
         S->addMessageF(L_ERROR, msg);
         return true;
     }
-    if(vars->get(_var_name)->type().find('*') == std::string::npos){
+    if(vars.get(_var_name)->type().find('*') == std::string::npos){
         sprintf(msg,
                 "The tool \"%s\" has received the scalar variable \"%s\".\n",
                 name(),
@@ -145,7 +145,7 @@ bool Set::variable()
         S->addMessageF(L_ERROR, msg);
         return true;
     }
-    _var = (InputOutput::ArrayVariable *)vars->get(_var_name);
+    _var = (InputOutput::ArrayVariable *)vars.get(_var_name);
     return false;
 }
 
@@ -156,7 +156,6 @@ bool Set::setupOpenCL()
     char msg[1024];
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables *vars = C->variables();
 
     // Create a header for the source code where the operation will be placed
     char header[SET_INC_LEN + strlen(_value) + 128];

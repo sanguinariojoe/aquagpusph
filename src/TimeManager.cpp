@@ -56,7 +56,7 @@ TimeManager::TimeManager(ProblemSetup sim_data)
     ScreenManager *S = ScreenManager::singleton();
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
 
-    Variables* vars = C->variables();
+    Variables vars = C->variables();
     // Check the variables validity
     const unsigned int var_num = 7;
     const char* var_names[var_num] = {"t",
@@ -74,24 +74,24 @@ TimeManager::TimeManager(ProblemSetup sim_data)
                                       "unsigned int",
                                       "unsigned int"};
     for(i = 0; i < var_num; i++){
-        if(vars->get(var_names[i])->type().compare(var_types[i])){
+        if(vars.get(var_names[i])->type().compare(var_types[i])){
             sprintf(msg,
                     "Expected a variable \"%s\" of type \"%s\", but \"%s\" one was found\n",
                     var_names[i],
                     var_types[i],
-                    vars->get(var_names[i])->type());
+                    vars.get(var_names[i])->type());
             S->addMessageF(L_ERROR, msg);
             exit(EXIT_FAILURE);
         }
     }
 
-    _time = (float *)vars->get("t")->get();
-    _dt = (float *)vars->get("dt")->get();
-    _step = (unsigned int *)vars->get("iter")->get();
-    _frame = (unsigned int *)vars->get("frame")->get();
-    _time_max = (float *)vars->get("end_t")->get();
-    _steps_max = (unsigned int *)vars->get("end_iter")->get();
-    _frames_max = (unsigned int *)vars->get("end_frame")->get();
+    _time = (float *)vars.get("t")->get();
+    _dt = (float *)vars.get("dt")->get();
+    _step = (unsigned int *)vars.get("iter")->get();
+    _frame = (unsigned int *)vars.get("frame")->get();
+    _time_max = (float *)vars.get("end_t")->get();
+    _steps_max = (unsigned int *)vars.get("end_iter")->get();
+    _frames_max = (unsigned int *)vars.get("end_frame")->get();
 
     unsigned int mode = sim_data.time_opts.sim_end_mode;
     if(mode & __FRAME_MODE__) {

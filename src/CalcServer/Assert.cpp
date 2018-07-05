@@ -66,7 +66,7 @@ bool Assert::_execute()
     int result;
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables *vars = C->variables();
+    InputOutput::Variables vars = C->variables();
 
     void *data = malloc(sizeof(int));
     if(!data){
@@ -76,7 +76,7 @@ bool Assert::_execute()
     }
 
     try {
-        vars->solve("int", _condition, data, "assert_result");
+        vars.solve("int", _condition, data, "assert_result");
     } catch (...) {
         return true;
     }

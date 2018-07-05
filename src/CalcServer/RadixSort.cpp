@@ -104,7 +104,7 @@ bool RadixSort::setup()
     char msg[1024];
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables *vars = C->variables();
+    InputOutput::Variables vars = C->variables();
 
     sprintf(msg,
             "Loading the tool \"%s\"...\n",
@@ -131,12 +131,12 @@ bool RadixSort::_execute()
     char msg[1024];
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables *vars = C->variables();
+    InputOutput::Variables vars = C->variables();
 
     // Get maximum key bits, and needed pass
     max_val = UINT_MAX;
     if(!strcmp(_var_name, "icell")){
-        uivec4 n_cells = *(uivec4 *)vars->get("n_cells")->get();
+        uivec4 n_cells = *(uivec4 *)vars.get("n_cells")->get();
         max_val = nextPowerOf2(n_cells.w);
     }
     else if(!isPowerOf2(max_val)){
@@ -567,10 +567,10 @@ bool RadixSort::variables()
     char msg[1024];
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables *vars = C->variables();
+    InputOutput::Variables vars = C->variables();
 
     // Check and get the variables
-    if(!vars->get(_var_name)){
+    if(!vars.get(_var_name)){
         sprintf(msg,
                 "Undeclared variable \"%s\" cannot be sorted by tool \"%s\".\n",
                 _var_name,
@@ -578,7 +578,7 @@ bool RadixSort::variables()
         S->addMessageF(L_ERROR, msg);
         return true;
     }
-    if(vars->get(_var_name)->type().compare("unsigned int*")){
+    if(vars.get(_var_name)->type().compare("unsigned int*")){
         sprintf(msg,
                 "Wrong type for the variable \"%s\" (tool: \"%s\").\n",
                 _var_name,
@@ -587,13 +587,13 @@ bool RadixSort::variables()
         sprintf(msg,
                 "\t\"%s\" was expected, but \"%s\" has been found.\n",
                 "unsigned int*",
-                vars->get(_var_name)->type());
+                vars.get(_var_name)->type());
         S->addMessage(L_DEBUG, msg);
         return true;
     }
-    _var = (InputOutput::ArrayVariable *)vars->get(_var_name);
+    _var = (InputOutput::ArrayVariable *)vars.get(_var_name);
 
-    if(!vars->get(_perms_name)){
+    if(!vars.get(_perms_name)){
         sprintf(msg,
                 "Undeclared permutations variable \"%s\" (tool \"%s\").\n",
                 _perms_name,
@@ -601,7 +601,7 @@ bool RadixSort::variables()
         S->addMessageF(L_ERROR, msg);
         return true;
     }
-    if(vars->get(_perms_name)->type().compare("unsigned int*")){
+    if(vars.get(_perms_name)->type().compare("unsigned int*")){
         sprintf(msg,
                 "Wrong type for the variable \"%s\" (tool: \"%s\").\n",
                 _perms_name,
@@ -610,13 +610,13 @@ bool RadixSort::variables()
         sprintf(msg,
                 "\t\"%s\" was expected, but \"%s\" has been found.\n",
                 "unsigned int*",
-                vars->get(_perms_name)->type());
+                vars.get(_perms_name)->type());
         S->addMessage(L_DEBUG, msg);
         return true;
     }
-    _perms = (InputOutput::ArrayVariable *)vars->get(_perms_name);
+    _perms = (InputOutput::ArrayVariable *)vars.get(_perms_name);
 
-    if(!vars->get(_inv_perms_name)){
+    if(!vars.get(_inv_perms_name)){
         sprintf(msg,
                 "Undeclared permutations variable \"%s\" (tool \"%s\").\n",
                 _inv_perms_name,
@@ -624,7 +624,7 @@ bool RadixSort::variables()
         S->addMessageF(L_ERROR, msg);
         return true;
     }
-    if(vars->get(_inv_perms_name)->type().compare("unsigned int*")){
+    if(vars.get(_inv_perms_name)->type().compare("unsigned int*")){
         sprintf(msg,
                 "Wrong type for the variable \"%s\" (tool: \"%s\").\n",
                 _inv_perms_name,
@@ -633,14 +633,14 @@ bool RadixSort::variables()
         sprintf(msg,
                 "\t\"%s\" was expected, but \"%s\" has been found.\n",
                 "unsigned int*",
-                vars->get(_inv_perms_name)->type());
+                vars.get(_inv_perms_name)->type());
         S->addMessage(L_DEBUG, msg);
         return true;
     }
-    _inv_perms = (InputOutput::ArrayVariable *)vars->get(_inv_perms_name);
+    _inv_perms = (InputOutput::ArrayVariable *)vars.get(_inv_perms_name);
 
     // Check the lengths
-    n = _var->size() / vars->typeToBytes(_var->type());
+    n = _var->size() / vars.typeToBytes(_var->type());
     if(!isPowerOf2(n)){
         sprintf(msg,
                 "Tool \"%s\" cannot sort the variable \"%s\".\n",
@@ -654,7 +654,7 @@ bool RadixSort::variables()
         return true;
     }
     _n = n;
-    n = _perms->size() / vars->typeToBytes(_perms->type());
+    n = _perms->size() / vars.typeToBytes(_perms->type());
     if(n != _n){
         sprintf(msg,
                 "Lengths mismatch in the tool \"%s\".\n",
@@ -672,7 +672,7 @@ bool RadixSort::variables()
         S->addMessage(L_DEBUG, msg);
         return true;
     }
-    n = _inv_perms->size() / vars->typeToBytes(_inv_perms->type());
+    n = _inv_perms->size() / vars.typeToBytes(_inv_perms->type());
     if(n != _n){
         sprintf(msg,
                 "Lengths mismatch in the tool \"%s\".\n",
@@ -701,7 +701,7 @@ bool RadixSort::setupOpenCL()
     char msg[1024];
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables *vars = C->variables();
+    InputOutput::Variables vars = C->variables();
 
     // Create a header for the source code where the operation will be placed
     char header[RADIXSORT_INC_LEN + 128];

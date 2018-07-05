@@ -26,7 +26,7 @@
 
 #include <CL/cl.h>
 
-#include <deque>
+#include <vector>
 #include <map>
 #include <string>
 #include <iterator>
@@ -109,17 +109,17 @@ public:
     /** Get the variables manager
      * @return Variables manager
      */
-    InputOutput::Variables* variables() const {return _vars;}
+    InputOutput::Variables& variables() {return _vars;}
 
     /** Get the definitions registered.
      * @return List of definitions.
      */
-    std::deque<char*> definitions() const {return _definitions;}
+    std::vector<std::string> definitions() const {return _definitions;}
 
     /** Get the tools registered.
      * @return List of tools.
      */
-    std::deque<Tool*> tools() const {return _tools;}
+    std::vector<Tool*> tools() const {return _tools;}
 
     /** Get the active context
      * @return OpenCL context
@@ -152,7 +152,7 @@ public:
      * @remarks The caller must call clReleaseEvent to destroy the event.
      * Otherwise a memory leak can be expected.
      */
-    cl_event getUnsortedMem(const char* var_name,
+    cl_event getUnsortedMem(const std::string var_name,
                             size_t offset,
                             size_t cb,
                             void *ptr);
@@ -160,7 +160,7 @@ public:
     /** @brief Get the AQUAgpusph root path.
      * @return AQUAgpusph root path
      */
-    const char* base_path() const{return _base_path.c_str();}
+    const std::string base_path() const{return _base_path.c_str();}
 private:
     /// Setup the OpenCL stuff.
     /**
@@ -186,13 +186,6 @@ private:
      */
     bool setupDevices();
 
-    /** @brief AQUAgpusph root path.
-     *
-     * This path is added to the OpenCL include paths.
-     */
-    std::string _base_path;
-
-
     /// Number of available OpenCL platforms
     cl_uint _num_platforms;
     /// List of OpenCL platforms
@@ -213,18 +206,29 @@ private:
     cl_command_queue _command_queue;
 
     /// User registered variables
-    InputOutput::Variables *_vars;
+    InputOutput::Variables _vars;
 
     /// User registered definitions
-    std::deque<char*> _definitions;
+    std::vector<std::string> _definitions;
 
     /// User registered tools
-    std::deque<Tool*> _tools;
+    std::vector<Tool*> _tools;
 
-    /** Currently executed tool/report. Useful to can report runtime OpenCL
-     * implementation errors (see clCreateContext)
+    /** @brief AQUAgpusph root path.
+     *
+     * This path is added to the OpenCL include paths.
      */
-    char *_current_tool_name;
+    std::string _base_path;
+
+    /** @brief Currently executed tool/report.
+     * 
+     * Useful to can report runtime OpenCL implementation errors (see
+     * clCreateContext).
+     *
+     * @note Since this data is automatically readed by OpenCL at the time of
+     * reporting errors, old-style C string is more convenient
+     */
+    char* _current_tool_name;
 
     /** Map with the unsorter for each variable. Storing the unsorters should
      * dramatically reduce the saving files overhead in some platforms

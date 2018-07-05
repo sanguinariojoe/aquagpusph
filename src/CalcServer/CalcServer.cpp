@@ -53,8 +53,7 @@
 namespace Aqua{ namespace CalcServer{
 
 CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
-    : _base_path("")
-    , _num_platforms(0)
+    : _num_platforms(0)
     , _platforms(NULL)
     , _num_devices(0)
     , _devices(NULL)
@@ -63,20 +62,18 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
     , _platform(NULL)
     , _device(NULL)
     , _command_queue(NULL)
-    , _vars(NULL)
+    , _current_tool_name(NULL)
     , _sim_data(sim_data)
 {
     unsigned int i, j;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 
-    _current_tool_name = new char[256];
-    strcpy(_current_tool_name, "");
     if(setupOpenCL()) {
         exit(EXIT_FAILURE);
     }
 
     _base_path = _sim_data.settings.base_path;
+    _current_tool_name = new char[256];
+    strcpy(_current_tool_name, "");
 
     unsigned int num_sets = _sim_data.sets.size();
     unsigned int N = 0;
@@ -87,61 +84,49 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
     unsigned int num_icell = nextPowerOf2(N);
     num_icell = roundUp(num_icell, _ITEMS*_GROUPS);
 
-    _vars = new InputOutput::Variables();
-
     // Register default scalars
-    char val[64];
-    char len[16];
-    strcpy(len, "");
-    unsigned int dims = 2;
+    std::ostringstream valstr;
     #ifdef HAVE_3D
-        dims = 3;
+        unsigned int dims = 3;
+    #else
+        unsigned int dims = 2;
     #endif
-    sprintf(val, "%u", dims);
-    _vars->registerVariable("dims", "unsigned int", len, val);
-    sprintf(val, "%g", 0.f);
-    _vars->registerVariable("t", "float", len, val);
-    sprintf(val, "%g", 0.f);
-    _vars->registerVariable("dt", "float", len, val);
-    sprintf(val, "%u", 0);
-    _vars->registerVariable("iter", "unsigned int", len, val);
-    sprintf(val, "%u", 0);
-    _vars->registerVariable("frame", "unsigned int", len, val);
-    sprintf(val, "%g", std::numeric_limits<float>::max());
-    _vars->registerVariable("end_t", "float", len, val);
-    sprintf(val, "%u", std::numeric_limits<unsigned int>::max());
-    _vars->registerVariable("end_iter", "unsigned int", len, val);
-    sprintf(val, "%u", std::numeric_limits<unsigned int>::max());
-    _vars->registerVariable("end_frame", "unsigned int", len, val);
-    sprintf(val, "%u", N);
-    _vars->registerVariable("N", "unsigned int", len, val);
-    sprintf(val, "%u", _sim_data.sets.size());
-    _vars->registerVariable("n_sets", "unsigned int", len, val);
-    sprintf(val, "%u", num_icell);
-    _vars->registerVariable("n_radix", "unsigned int", len, val);
+    valstr.str(""); valstr << dims;
+    _vars.registerVariable("dims", "unsigned int", "", valstr.str());
+    _vars.registerVariable("t", "float", "", "0");
+    _vars.registerVariable("dt", "float", "", "0");
+    _vars.registerVariable("iter", "unsigned int", "", "0");
+    _vars.registerVariable("frame", "unsigned int", "", "0");
+    valstr.str(""); valstr << std::numeric_limits<float>::max();
+    _vars.registerVariable("end_t", "float", "", valstr.str());
+    valstr.str(""); valstr << std::numeric_limits<unsigned int>::max();
+    _vars.registerVariable("end_iter", "unsigned int", "", valstr.str());
+    _vars.registerVariable("end_frame", "unsigned int", "", valstr.str());
+    valstr.str(""); valstr << N;
+    _vars.registerVariable("N", "unsigned int", "", valstr.str());
+    valstr.str(""); valstr << _sim_data.sets.size();
+    _vars.registerVariable("n_sets", "unsigned int", "", valstr.str());
+    valstr.str(""); valstr << num_icell;
+    _vars.registerVariable("n_radix", "unsigned int", "", valstr.str());
     // Number of cells in x, y, z directions, and the total (n_x * n_y * n_z)
-    strcpy(val, "0, 0, 0, 0");
-    _vars->registerVariable("n_cells", "uivec4", len, val);
+    _vars.registerVariable("n_cells", "uivec4", "", "0, 0, 0, 0");
     // Kernel support
-    sprintf(val, "%g", 2.f);
-    _vars->registerVariable("support", "float", len, val);
+    _vars.registerVariable("support", "float", "", "2");
 
     // Register default arrays
-    strcpy(val, "");
-    sprintf(len, "%u", N);
-    _vars->registerVariable("id", "unsigned int*", len, val);
-    _vars->registerVariable("r", "vec*", len, val);
-    _vars->registerVariable("iset", "unsigned int*", len, val);
-    sprintf(len, "%u", num_icell);
-    _vars->registerVariable("id_sorted", "unsigned int*", len, val);
-    _vars->registerVariable("id_unsorted", "unsigned int*", len, val);
-    _vars->registerVariable("icell", "unsigned int*", len, val);
-    sprintf(len, "n_cells_w");
-    _vars->registerVariable("ihoc", "unsigned int*", len, val);
+    valstr.str(""); valstr << N;
+    _vars.registerVariable("id", "unsigned int*", valstr.str(), "");
+    _vars.registerVariable("r", "vec*", valstr.str(), "");
+    _vars.registerVariable("iset", "unsigned int*", valstr.str(), "");
+    valstr.str(""); valstr << num_icell;
+    _vars.registerVariable("id_sorted", "unsigned int*", valstr.str(), "");
+    _vars.registerVariable("id_unsorted", "unsigned int*", valstr.str(), "");
+    _vars.registerVariable("icell", "unsigned int*", valstr.str(), "");
+    _vars.registerVariable("ihoc", "unsigned int*", "n_cells_w", "");
 
     // Register the user variables and arrays
     for(i = 0; i < _sim_data.variables.names.size(); i++){
-        _vars->registerVariable(_sim_data.variables.names.at(i),
+        _vars.registerVariable(_sim_data.variables.names.at(i),
                                 _sim_data.variables.types.at(i),
                                 _sim_data.variables.lengths.at(i),
                                 _sim_data.variables.values.at(i));
@@ -149,164 +134,133 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 
     // Register the user definitions
     for(i = 0; i < _sim_data.definitions.names.size(); i++){
-        size_t deflen=0;
-        char *defstr = NULL;
-        if(!strcmp(_sim_data.definitions.values.at(i).c_str(), "")){
-            // First case, named definitions
-            deflen = strlen(_sim_data.definitions.names.at(i).c_str());
-            defstr = new char[deflen + 3];
-            if(!defstr){
-                S->addMessageF(
-                    L_ERROR, "Failure allocating memory for the definition\n");
-                sprintf(msg, "\t\"%s\"\n", _sim_data.definitions.names.at(i).c_str());
-                S->addMessage(L_DEBUG, msg);
-                exit(EXIT_FAILURE);
+        valstr.str("");
+        valstr << "-D" << _sim_data.definitions.names.at(i);
+        if(!_sim_data.definitions.values.at(i).compare("")){
+            if(!_sim_data.definitions.evaluations.at(i)) {
+                valstr << "=" << _sim_data.definitions.values.at(i);
             }
-            strcpy(defstr, "-D");
-            strcat(defstr, _sim_data.definitions.names.at(i).c_str());
-        }
-        else if(!_sim_data.definitions.evaluations.at(i)){
-            // Second case, valued definitions
-            deflen = strlen(_sim_data.definitions.names.at(i).c_str()) +
-                     strlen(_sim_data.definitions.values.at(i).c_str());
-            defstr = new char[deflen + 4];
-            if(!defstr){
-                S->addMessageF(
-                    L_ERROR, "Failure allocating memory for the definition\n");
-                sprintf(msg, "\t\"%s\"\n", _sim_data.definitions.names.at(i).c_str());
-                S->addMessage(L_DEBUG, msg);
-                exit(EXIT_FAILURE);
+            else {
+                float defval = 0.f;
+                _vars.solve("float",
+                            _sim_data.definitions.values.at(i),
+                            &defval);
+                // We need to specify the format, to ensure that a decimal
+                // number (i.e. a number with decimal point) is retrieved, so
+                // C++ streamer can't be directly applied
+                char defvalstr[100];
+                snprintf(defvalstr, sizeof(defvalstr), "%#G", defval);
+                valstr << "=" << defvalstr << "f";
             }
-            strcpy(defstr, "-D");
-            strcat(defstr, _sim_data.definitions.names.at(i).c_str());
-            strcat(defstr, "=");
-            strcat(defstr, _sim_data.definitions.values.at(i).c_str());
         }
-        else{
-            // Third case, evaluated definitions
-            deflen = strlen(_sim_data.definitions.names.at(i).c_str());
-            defstr = new char[deflen + 1 + 4 + 128];
-            if(!defstr){
-                S->addMessageF(
-                    L_ERROR, "Failure allocating memory for the definition\n");
-                sprintf(msg, "\t\"%s\"\n", _sim_data.definitions.names.at(i).c_str());
-                S->addMessage(L_DEBUG, msg);
-                exit(EXIT_FAILURE);
-            }
-            float defval = 0.f;
-            _vars->solve("float",
-                         _sim_data.definitions.values.at(i).c_str(),
-                         &defval);
-            strcpy(defstr, "-D");
-            strcat(defstr, _sim_data.definitions.names.at(i).c_str());
-            sprintf(defstr + strlen(defstr), "=%#Gf", defval);
-        }
-        _definitions.push_back(defstr);
+        _definitions.push_back(valstr.str());
     }
 
     // Register the tools
-    for(i = 0; i < _sim_data.tools.size(); i++){
-        if(!strcmp(_sim_data.tools.at(i)->get("type").c_str(), "kernel")){
-            Kernel *tool = new Kernel(_sim_data.tools.at(i)->get("name").c_str(),
-                                      _sim_data.tools.at(i)->get("path").c_str(),
-                                      _sim_data.tools.at(i)->get("entry_point").c_str(),
-                                      _sim_data.tools.at(i)->get("n").c_str());
+    std::deque<Aqua::InputOutput::ProblemSetup::sphTool*>::iterator t_it;
+    for(t_it = _sim_data.tools.begin(); t_it < _sim_data.tools.end(); t_it++){
+        if(!(*t_it)->get("type").compare("kernel")){
+            Kernel *tool = new Kernel((*t_it)->get("name").c_str(),
+                                      (*t_it)->get("path").c_str(),
+                                      (*t_it)->get("entry_point").c_str(),
+                                      (*t_it)->get("n").c_str());
             _tools.push_back(tool);
         }
-        else if(!strcmp(_sim_data.tools.at(i)->get("type").c_str(), "copy")){
-            Copy *tool = new Copy(_sim_data.tools.at(i)->get("name").c_str(),
-                                  _sim_data.tools.at(i)->get("in").c_str(),
-                                  _sim_data.tools.at(i)->get("out").c_str());
+        else if(!(*t_it)->get("type").compare("copy")){
+            Copy *tool = new Copy((*t_it)->get("name").c_str(),
+                                  (*t_it)->get("in").c_str(),
+                                  (*t_it)->get("out").c_str());
             _tools.push_back(tool);
         }
-        else if(!strcmp(_sim_data.tools.at(i)->get("type").c_str(), "python")){
-            Python *tool = new Python(_sim_data.tools.at(i)->get("name").c_str(),
-                                      _sim_data.tools.at(i)->get("path").c_str());
+        else if(!(*t_it)->get("type").compare("python")){
+            Python *tool = new Python((*t_it)->get("name").c_str(),
+                                      (*t_it)->get("path").c_str());
             _tools.push_back(tool);
         }
-        else if(!strcmp(_sim_data.tools.at(i)->get("type").c_str(), "set")){
-            Set *tool = new Set(_sim_data.tools.at(i)->get("name").c_str(),
-                                _sim_data.tools.at(i)->get("in").c_str(),
-                                _sim_data.tools.at(i)->get("value").c_str());
+        else if(!(*t_it)->get("type").compare("set")){
+            Set *tool = new Set((*t_it)->get("name").c_str(),
+                                (*t_it)->get("in").c_str(),
+                                (*t_it)->get("value").c_str());
             _tools.push_back(tool);
         }
-        else if(!strcmp(_sim_data.tools.at(i)->get("type").c_str(), "set_scalar")){
-            SetScalar *tool = new SetScalar(_sim_data.tools.at(i)->get("name").c_str(),
-                                            _sim_data.tools.at(i)->get("in").c_str(),
-                                            _sim_data.tools.at(i)->get("value").c_str());
+        else if(!(*t_it)->get("type").compare("set_scalar")){
+            SetScalar *tool = new SetScalar((*t_it)->get("name").c_str(),
+                                            (*t_it)->get("in").c_str(),
+                                            (*t_it)->get("value").c_str());
             _tools.push_back(tool);
         }
-        else if(!strcmp(_sim_data.tools.at(i)->get("type").c_str(), "reduction")){
-            Reduction *tool = new Reduction(_sim_data.tools.at(i)->get("name").c_str(),
-                                            _sim_data.tools.at(i)->get("in").c_str(),
-                                            _sim_data.tools.at(i)->get("out").c_str(),
-                                            _sim_data.tools.at(i)->get("operation").c_str(),
-                                            _sim_data.tools.at(i)->get("null").c_str());
+        else if(!(*t_it)->get("type").compare("reduction")){
+            Reduction *tool = new Reduction((*t_it)->get("name").c_str(),
+                                            (*t_it)->get("in").c_str(),
+                                            (*t_it)->get("out").c_str(),
+                                            (*t_it)->get("operation").c_str(),
+                                            (*t_it)->get("null").c_str());
             _tools.push_back(tool);
         }
-        else if(!strcmp(_sim_data.tools.at(i)->get("type").c_str(), "link-list")){
-            LinkList *tool = new LinkList(_sim_data.tools.at(i)->get("name").c_str(),
-                                          _sim_data.tools.at(i)->get("in").c_str());
+        else if(!(*t_it)->get("type").compare("link-list")){
+            LinkList *tool = new LinkList((*t_it)->get("name").c_str(),
+                                          (*t_it)->get("in").c_str());
             _tools.push_back(tool);
         }
-        else if(!strcmp(_sim_data.tools.at(i)->get("type").c_str(), "radix-sort")){
-            RadixSort *tool = new RadixSort(_sim_data.tools.at(i)->get("name").c_str(),
-                                            _sim_data.tools.at(i)->get("in").c_str(),
-                                            _sim_data.tools.at(i)->get("perm").c_str(),
-                                            _sim_data.tools.at(i)->get("inv_perm").c_str());
+        else if(!(*t_it)->get("type").compare("radix-sort")){
+            RadixSort *tool = new RadixSort((*t_it)->get("name").c_str(),
+                                            (*t_it)->get("in").c_str(),
+                                            (*t_it)->get("perm").c_str(),
+                                            (*t_it)->get("inv_perm").c_str());
             _tools.push_back(tool);
         }
-        else if(!strcmp(_sim_data.tools.at(i)->get("type").c_str(), "assert")){
-            Assert *tool = new Assert(_sim_data.tools.at(i)->get("name").c_str(),
-                                      _sim_data.tools.at(i)->get("condition").c_str());
+        else if(!(*t_it)->get("type").compare("assert")){
+            Assert *tool = new Assert((*t_it)->get("name").c_str(),
+                                      (*t_it)->get("condition").c_str());
             _tools.push_back(tool);
         }
-        else if(!strcmp(_sim_data.tools.at(i)->get("type").c_str(), "dummy")){
-            Tool *tool = new Tool(_sim_data.tools.at(i)->get("name").c_str());
+        else if(!(*t_it)->get("type").compare("dummy")){
+            Tool *tool = new Tool((*t_it)->get("name").c_str());
             _tools.push_back(tool);
         }
         else{
-            sprintf(msg,
-                    "Unrecognized tool type \"%s\" when parsing the tool \"%s\".\n",
-                    _sim_data.tools.at(i)->get("type").c_str(),
-                    _sim_data.tools.at(i)->get("name").c_str());
-            S->addMessageF(L_ERROR, msg);
-            exit(EXIT_FAILURE);
+            std::ostringstream msg;
+            msg << "Unrecognized tool type \""
+                << (*t_it)->get("type")
+                << "\" when parsing the tool \""
+                << (*t_it)->get("name") << "\"." << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw std::runtime_error("Invalid tool type");
         }
     }
     // Register the reporters
-    for(i = 0; i < _sim_data.reports.size(); i++){
-        if(!strcmp(_sim_data.reports.at(i)->get("type").c_str(), "screen")){
+    for(t_it = _sim_data.reports.begin(); t_it < _sim_data.reports.end(); t_it++){
+        if(!(*t_it)->get("type").compare("screen")){
             bool bold = false;
-            if(!strcmp(_sim_data.reports.at(i)->get("bold").c_str(), "true") ||
-               !strcmp(_sim_data.reports.at(i)->get("bold").c_str(), "True")){
+            if(!(*t_it)->get("bold").compare("true") ||
+               !(*t_it)->get("bold").compare("True")){
                bold = true;
             }
             Reports::Screen *tool = new Reports::Screen(
-                _sim_data.reports.at(i)->get("name").c_str(),
-                _sim_data.reports.at(i)->get("fields").c_str(),
-                _sim_data.reports.at(i)->get("color").c_str(),
+                (*t_it)->get("name").c_str(),
+                (*t_it)->get("fields").c_str(),
+                (*t_it)->get("color").c_str(),
                 bold);
             _tools.push_back(tool);
         }
-        else if(!strcmp(_sim_data.reports.at(i)->get("type").c_str(), "file")){
+        else if(!(*t_it)->get("type").compare("file")){
             Reports::TabFile *tool = new Reports::TabFile(
-                _sim_data.reports.at(i)->get("name").c_str(),
-                _sim_data.reports.at(i)->get("fields").c_str(),
-                _sim_data.reports.at(i)->get("path").c_str());
+                (*t_it)->get("name").c_str(),
+                (*t_it)->get("fields").c_str(),
+                (*t_it)->get("path").c_str());
             _tools.push_back(tool);
         }
-        else if(!strcmp(_sim_data.reports.at(i)->get("type").c_str(), "particles")){
+        else if(!(*t_it)->get("type").compare("particles")){
             // Get the first particle associated to this set
-            unsigned int set_id = atoi(_sim_data.reports.at(i)->get("set").c_str());
+            unsigned int set_id = std::stoi((*t_it)->get("set"));
             if(set_id >= _sim_data.sets.size()){
-                sprintf(msg,
-                        "Report \"%s\" requested the particles set %u but just %lu can be found.\n",
-                        _sim_data.reports.at(i)->get("name").c_str(),
-                        set_id,
-                        _sim_data.sets.size());
-                S->addMessageF(L_ERROR, msg);
-                exit(EXIT_FAILURE);
+                std::ostringstream msg;
+                msg << "Report \"" << (*t_it)->get("name")
+                    << "\" requested the particles set " << set_id
+                    << " but just " << _sim_data.sets.size()
+                    << " can be found." << std::endl;
+                LOG(L_ERROR, msg.str());
+                throw std::runtime_error("particles set out of bounds");
             }
             unsigned int first = 0;
             for(j = 0; j < set_id; j++){
@@ -314,82 +268,73 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
             }
 
             // And the ipf and fps
-            unsigned int ipf = atoi(_sim_data.reports.at(i)->get("ipf").c_str());
-            float fps = atof(_sim_data.reports.at(i)->get("fps").c_str());
+            unsigned int ipf = std::stoi((*t_it)->get("ipf"));
+            float fps = std::stof((*t_it)->get("fps"));
 
             Reports::SetTabFile *tool = new Reports::SetTabFile(
-                _sim_data.reports.at(i)->get("name").c_str(),
-                _sim_data.reports.at(i)->get("fields").c_str(),
+                (*t_it)->get("name").c_str(),
+                (*t_it)->get("fields").c_str(),
                 first,
                 _sim_data.sets.at(set_id)->n(),
-                _sim_data.reports.at(i)->get("path").c_str(),
+                (*t_it)->get("path").c_str(),
                 ipf,
                 fps);
             _tools.push_back(tool);
         }
-        else if(!strcmp(_sim_data.reports.at(i)->get("type").c_str(), "performance")){
+        else if(!(*t_it)->get("type").compare("performance")){
             bool bold = false;
-            if(!strcmp(_sim_data.reports.at(i)->get("bold").c_str(), "true") ||
-               !strcmp(_sim_data.reports.at(i)->get("bold").c_str(), "True")){
+            if(!(*t_it)->get("bold").compare("true") ||
+               !(*t_it)->get("bold").compare("True")){
                bold = true;
             }
             Reports::Performance *tool = new Reports::Performance(
-                _sim_data.reports.at(i)->get("name").c_str(),
-                _sim_data.reports.at(i)->get("color").c_str(),
+                (*t_it)->get("name").c_str(),
+                (*t_it)->get("color").c_str(),
                 bold,
-                _sim_data.reports.at(i)->get("path").c_str());
+                (*t_it)->get("path").c_str());
             _tools.push_back(tool);
         }
         else{
-            sprintf(msg,
-                    "Unrecognized report type \"%s\" when parsing the \"%s\".\n",
-                    _sim_data.reports.at(i)->get("type"),
-                    _sim_data.reports.at(i)->get("name"));
-            S->addMessageF(L_ERROR, msg);
-            exit(EXIT_FAILURE);
+            std::ostringstream msg;
+            msg << "Unrecognized report type \"" << (*t_it)->get("type")
+                << "\" when parsing the report \"" << (*t_it)->get("name")
+                << "\"." << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw std::runtime_error("Invalid report type");
         }
     }
 
-    sprintf(msg, "Allocated memory = %lu bytes\n", _vars->allocatedMemory());
-    S->addMessageF(L_INFO, msg);
+    std::ostringstream msg;
+    msg << "Allocated memory = " << _vars.allocatedMemory()
+        << " bytes" << std::endl;
+    LOG(L_INFO, msg.str());
 }
 
 CalcServer::~CalcServer()
 {
     unsigned int i;
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    delete[] _current_tool_name;
 
-    S->addMessageF(L_INFO, "Sutting down the OpenCL context...\n");
+    LOG(L_INFO, "Sutting down the OpenCL context...\n");
     if(_context) clReleaseContext(_context); _context = NULL;
     for(i = 0; i < _num_devices; i++){
         if(_command_queues[i]) clReleaseCommandQueue(_command_queues[i]);
         _command_queues[i] = NULL;
     }
 
-    S->addMessageF(L_INFO, "Deallocating host memory...\n");
+    LOG(L_INFO, "Deallocating host memory...\n");
     if(_platforms) delete[] _platforms; _platforms=NULL;
     if(_devices) delete[] _devices; _devices=NULL;
     if(_command_queues) delete[] _command_queues; _command_queues=NULL;
 
-    S->addMessageF(L_INFO, "Destroying tools...\n");
+    LOG(L_INFO, "Destroying tools...\n");
     for(i = 0; i < _tools.size(); i++){
         delete _tools.at(i);
         _tools.at(i) = NULL;
     }
     _tools.clear();
 
-    S->addMessageF(L_INFO, "Destroying definitions...\n");
-    for(i = 0; i < _definitions.size(); i++){
-        delete[] _definitions.at(i);
-        _definitions.at(i) = NULL;
-    }
-    _definitions.clear();
-
-    S->addMessageF(L_INFO, "Destroying variables manager...\n");
-    if(_vars) delete _vars; _vars=NULL;
-
-    if(_current_tool_name) delete[] _current_tool_name; _current_tool_name=NULL;
-
+    LOG(L_INFO, "Destroying unsorters...\n");
     std::map<std::string, UnSort*>::iterator it = unsorters.begin();
     while(it != unsorters.end())
     {
@@ -401,15 +346,15 @@ CalcServer::~CalcServer()
 bool CalcServer::update()
 {
     InputOutput::TimeManager *T = InputOutput::TimeManager::singleton();
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     unsigned int i;
     while(!T->mustPrintOutput() && !T->mustStop()){
-        S->initFrame();
+        InputOutput::ScreenManager::singleton()->initFrame();
 
         // Execute the tools
         strcpy(_current_tool_name, "__pre execution__");
         for(i = 0; i < _tools.size(); i++){
-            strcpy(_current_tool_name, _tools.at(i)->name());
+            strncpy(_current_tool_name, _tools.at(i)->name(), 255);
+            _current_tool_name[255] = '\0';
             if(_tools.at(i)->execute()){
                 sleep(__ERROR_SHOW_TIME__);
                 return true;
@@ -420,7 +365,7 @@ bool CalcServer::update()
         // Key events
         while(isKeyPressed()){
             if(getchar() == 'c'){
-                S->addMessageF(L_WARNING, "Interrumption request detected.\n");
+                LOG(L_WARNING, "Interrumption request detected.\n");
                 sleep(__ERROR_SHOW_TIME__);
                 return true;
             }
@@ -428,24 +373,22 @@ bool CalcServer::update()
 
         clFinish(command_queue());
 
-        S->endFrame();
-	}
-	return false;
+        InputOutput::ScreenManager::singleton()->endFrame();
+    }
+    return false;
 }
 
-cl_event CalcServer::getUnsortedMem(const char* var_name,
+cl_event CalcServer::getUnsortedMem(const std::string var_name,
                                     size_t offset,
                                     size_t cb,
                                     void *ptr)
 {
     cl_int err_code;
-    char msg[256];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 
     // Generate the unsorted if it does not exist yet
     UnSort *unsorter = NULL;
     if(unsorters.find(var_name) == unsorters.end()){
-        unsorter = new UnSort(var_name, var_name);
+        unsorter = new UnSort(var_name.c_str(), var_name.c_str());
         if(unsorter->setup()){
             delete unsorter;
             return NULL;
@@ -469,11 +412,11 @@ cl_event CalcServer::getUnsortedMem(const char* var_name,
                                    NULL,
                                    &event);
     if(err_code != CL_SUCCESS){
-        sprintf(msg,
-                "Failure receiving the variable \"%s\" from server.\n",
-                var_name);
-        S->addMessageF(L_ERROR, msg);
-        S->printOpenCLError(err_code);
+        std::ostringstream msg;
+        msg << "Failure receiving the variable \"" << var_name
+            << "\" from server." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
         return NULL;
     }
     return event;
@@ -768,18 +711,18 @@ bool CalcServer::setup()
     strcpy(msg, "");
 
     // Check for the required variables that must be defined by the user
-    if(!_vars->get("h")){
+    if(!_vars.get("h")){
         S->addMessageF(L_ERROR, "Missed kernel length \"h\".\n");
         return true;
     }
-    if(_vars->get("h")->type().compare("float")){
+    if(_vars.get("h")->type().compare("float")){
         sprintf(msg,
                 "Kernel length \"h\" must be of type \"float\", but \"%s\" has been specified\n",
-                _vars->get("h")->type());
+                _vars.get("h")->type());
         S->addMessageF(L_ERROR, msg);
         return true;
     }
-    float h = *(float *)_vars->get("h")->get();
+    float h = *(float *)_vars.get("h")->get();
     if(h <= 0.f){
         sprintf(msg,
                 "Kernel length \"h\" must be greater than 0, but \"%g\" has been set\n",
@@ -797,7 +740,7 @@ bool CalcServer::setup()
         for(j = 0; j < set->scalarNames().size(); j++){
             std::string name = set->scalarNames().at(j).c_str();
             std::string val = set->scalarValues().at(j).c_str();
-            if(!_vars->get(name.c_str())){
+            if(!_vars.get(name.c_str())){
                 sprintf(msg,
                         "Variable \"%s\" has not been registered\n",
                         name.c_str());
@@ -806,7 +749,7 @@ bool CalcServer::setup()
                 S->addMessage(L_DEBUG, msg);
                 return true;
             }
-            if(_vars->get(name.c_str())->type().find('*') == std::string::npos){
+            if(_vars.get(name.c_str())->type().find('*') == std::string::npos){
                 sprintf(msg,
                         "Variable \"%s\" has been registered as a scalar, however it is established per particles set\n",
                         name.c_str());
@@ -815,9 +758,9 @@ bool CalcServer::setup()
                 S->addMessage(L_DEBUG, msg);
                 return true;
             }
-            InputOutput::ArrayVariable *var = (InputOutput::ArrayVariable *)_vars->get(name.c_str());
-            size_t typesize = _vars->typeToBytes(_vars->get(name.c_str())->type());
-            size_t len = _vars->get(name.c_str())->size() / typesize;
+            InputOutput::ArrayVariable *var = (InputOutput::ArrayVariable *)_vars.get(name.c_str());
+            size_t typesize = _vars.typeToBytes(_vars.get(name.c_str())->type());
+            size_t len = _vars.get(name.c_str())->size() / typesize;
             if(len != _sim_data.sets.size()){
                 sprintf(msg,
                         "Variable \"%s\" is an array of %u components, which does not match with the number of particles sets (n_sets = %u)\n",
@@ -829,13 +772,13 @@ bool CalcServer::setup()
             }
             void *data = malloc(typesize);
             try {
-                _vars->solve(_vars->get(name.c_str())->type(), val.c_str(), data);
+                _vars.solve(_vars.get(name.c_str())->type(), val.c_str(), data);
             } catch(...) {
                 sprintf(msg, "Particles set: %u\n", i);
                 S->addMessage(L_DEBUG, msg);
                 return true;
             }
-            cl_mem mem = *(cl_mem*)_vars->get(name.c_str())->get();
+            cl_mem mem = *(cl_mem*)_vars.get(name.c_str())->get();
             cl_int status;
             status = clEnqueueWriteBuffer(_command_queue, mem, CL_TRUE,
                                           i * typesize, typesize, data,

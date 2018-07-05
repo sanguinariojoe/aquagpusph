@@ -125,11 +125,11 @@ bool Report::processFields(const char* input)
     }
 
     // Now we now taht the fields should be process as a single line
-    InputOutput::Variables* vars = C->variables();
+    InputOutput::Variables vars = C->variables();
     unsigned int vars_in_line = 0;
     char *field = strtok(fields, " ,");
     while(field){
-        InputOutput::Variable *var = vars->get(field);
+        InputOutput::Variable *var = vars.get(field);
         if(!var){
             char msg[strlen(field) + 64];
             sprintf(msg,
@@ -171,13 +171,13 @@ size_t Report::dataLength(bool with_title, bool with_names)
 bool Report::mustUpdate()
 {
     CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables* vars = C->variables();
+    InputOutput::Variables vars = C->variables();
 
     InputOutput::UIntVariable *iter_var =
-        (InputOutput::UIntVariable*)vars->get("iter");
+        (InputOutput::UIntVariable*)vars.get("iter");
     unsigned int iter = *(unsigned int*)iter_var->get();
     InputOutput::FloatVariable *time_var =
-        (InputOutput::FloatVariable*)vars->get("t");
+        (InputOutput::FloatVariable*)vars.get("t");
     float t = *(float*)time_var->get();
 
     if(_ipf > 0){

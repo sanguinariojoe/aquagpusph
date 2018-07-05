@@ -94,11 +94,11 @@ size_t Performance::computeAllocatedMemory(){
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 
     // Get the allocated memory in the variables
-    InputOutput::Variables* vars = C->variables();
-    allocated_mem += vars->allocatedMemory();
+    InputOutput::Variables vars = C->variables();
+    allocated_mem += vars.allocatedMemory();
 
     // Gwet the additionally allocated memory in the tools
-    std::deque<Tool*> tools = C->tools();
+    std::vector<Tool*> tools = C->tools();
     for(i = 0; i < tools.size(); i++){
         allocated_mem += tools.at(i)->allocatedMemory();
     }
@@ -117,7 +117,7 @@ bool Performance::_execute()
     sprintf(data, "Performance:\nMemory=%16luMB\n", allocated_MB);
 
     // Add the tools time elapsed
-    std::deque<Tool*> tools = C->tools();
+    std::vector<Tool*> tools = C->tools();
     float elapsed = 0.f;
     float elapsed_ave = 0.f;
     for(i = 0; i < tools.size(); i++){
@@ -150,16 +150,16 @@ bool Performance::_execute()
             elapsedTime() - elapsed_ave);
 
     // Compute the progress
-    InputOutput::Variables* vars = C->variables();
+    InputOutput::Variables vars = C->variables();
     float progress = 0.f;
-    float t = *(float *)vars->get("t")->get();
-    float end_t = *(float *)vars->get("end_t")->get();
+    float t = *(float *)vars.get("t")->get();
+    float end_t = *(float *)vars.get("end_t")->get();
     progress = max(progress, t / end_t);
-    unsigned int iter = *(unsigned int *)vars->get("iter")->get();
-    unsigned int end_iter = *(unsigned int *)vars->get("end_iter")->get();
+    unsigned int iter = *(unsigned int *)vars.get("iter")->get();
+    unsigned int end_iter = *(unsigned int *)vars.get("end_iter")->get();
     progress = max(progress, (float)iter / end_iter);
-    unsigned int frame = *(unsigned int *)vars->get("frame")->get();
-    unsigned int end_frame = *(unsigned int *)vars->get("end_frame")->get();
+    unsigned int frame = *(unsigned int *)vars.get("frame")->get();
+    unsigned int end_frame = *(unsigned int *)vars.get("end_frame")->get();
     progress = max(progress, (float)frame / end_frame);
 
     // And the estimated time to arrive

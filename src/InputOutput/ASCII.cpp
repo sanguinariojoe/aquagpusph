@@ -104,26 +104,26 @@ void ASCII::load()
     }
     // Setup an storage
     std::deque<void*> data;
-    Variables* vars = C->variables();
+    Variables vars = C->variables();
     n_fields = 0;
     for(i = 0; i < fields.size(); i++){
-        if(!vars->get(fields.at(i).c_str())){
+        if(!vars.get(fields.at(i).c_str())){
             sprintf(msg,
                     "\"%s\" field has been set to be read, but it was not declared.\n",
                     fields.at(i).c_str());
             S->addMessageF(L_ERROR, msg);
             throw std::runtime_error("Invalid field");
         }
-        if(vars->get(fields.at(i).c_str())->type().find('*') == std::string::npos){
+        if(vars.get(fields.at(i).c_str())->type().find('*') == std::string::npos){
             sprintf(msg,
                     "\"%s\" field has been set to be read, but it was declared as a scalar.\n",
                     fields.at(i).c_str());
             S->addMessageF(L_ERROR, msg);
             throw std::runtime_error("Invalid field type");
         }
-        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i).c_str());
-        n_fields += vars->typeToN(var->type());
-        size_t typesize = vars->typeToBytes(var->type());
+        ArrayVariable *var = (ArrayVariable*)vars.get(fields.at(i).c_str());
+        n_fields += vars.typeToN(var->type());
+        size_t typesize = vars.typeToBytes(var->type());
         size_t len = var->size() / typesize;
         if(len < bounds().y){
             sprintf(msg,
@@ -190,8 +190,8 @@ void ASCII::load()
 
     // Send the data to the server and release it
     for(i = 0; i < fields.size(); i++){
-        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i).c_str());
-        size_t typesize = vars->typeToBytes(var->type());
+        ArrayVariable *var = (ArrayVariable*)vars.get(fields.at(i).c_str());
+        size_t typesize = vars.typeToBytes(var->type());
         cl_mem mem = *(cl_mem*)var->get();
         err_code = clEnqueueWriteBuffer(C->command_queue(),
                                         mem,
@@ -257,24 +257,24 @@ void ASCII::save()
     fprintf(f, "\n");
     fflush(f);
 
-    Variables* vars = C->variables();
+    Variables vars = C->variables();
     for(i = 0; i < fields.size(); i++){
-        if(!vars->get(fields.at(i).c_str())){
+        if(!vars.get(fields.at(i).c_str())){
             sprintf(msg,
                     "\"%s\" field has been set to be saved, but it was not declared.\n",
                     fields.at(i).c_str());
             S->addMessageF(L_ERROR, msg);
             throw std::runtime_error("Invalid field");
         }
-        if(vars->get(fields.at(i).c_str())->type().find('*') == std::string::npos){
+        if(vars.get(fields.at(i).c_str())->type().find('*') == std::string::npos){
             sprintf(msg,
                     "\"%s\" field has been set to be saved, but it was declared as an scalar.\n",
                     fields.at(i).c_str());
             S->addMessageF(L_ERROR, msg);
             throw std::runtime_error("Invalid field type");
         }
-        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i).c_str());
-        size_t typesize = vars->typeToBytes(var->type());
+        ArrayVariable *var = (ArrayVariable*)vars.get(fields.at(i).c_str());
+        size_t typesize = vars.typeToBytes(var->type());
         size_t len = var->size() / typesize;
         if(len < bounds().y){
             sprintf(msg,
@@ -291,7 +291,7 @@ void ASCII::save()
 
     for(i = 0; i < bounds().y - bounds().x; i++){
         for(j = 0; j < fields.size(); j++){
-            ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(j).c_str());
+            ArrayVariable *var = (ArrayVariable*)vars.get(fields.at(j).c_str());
             const char* type_name = var->type().c_str();
             if(!strcmp(type_name, "int*")){
                 int* v = (int*)data.at(j);
@@ -500,15 +500,15 @@ char* ASCII::readField(const char* field,
     unsigned int i;
     ScreenManager *S = ScreenManager::singleton();
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
-    Variables* vars = C->variables();
-    ArrayVariable *var = (ArrayVariable*)vars->get(field);
+    Variables vars = C->variables();
+    ArrayVariable *var = (ArrayVariable*)vars.get(field);
 
-    unsigned int n = vars->typeToN(var->type());
-    size_t type_size = vars->typeToBytes(var->type());
+    unsigned int n = vars.typeToN(var->type());
+    size_t type_size = vars.typeToBytes(var->type());
 
     void* ptr = (void*)((char*)data + type_size * index);
     try {
-        vars->solve(var->type(), line, ptr);
+        vars.solve(var->type(), line, ptr);
     } catch (...) {
         return NULL;
     }

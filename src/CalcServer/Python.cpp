@@ -69,7 +69,7 @@ class stderrWriter(object):              \n\
 static PyObject* get(PyObject *self, PyObject *args, PyObject *keywds)
 {
     Aqua::CalcServer::CalcServer *C = Aqua::CalcServer::CalcServer::singleton();
-    Aqua::InputOutput::Variables *V = C->variables();
+    Aqua::InputOutput::Variables vars = C->variables();
     const char* varname;
 
     int i0 = 0;
@@ -82,7 +82,7 @@ static PyObject* get(PyObject *self, PyObject *args, PyObject *keywds)
         return NULL;
     }
 
-    Aqua::InputOutput::Variable *var = V->get(varname);
+    Aqua::InputOutput::Variable *var = vars.get(varname);
     if(!var){
         char errstr[64 + strlen(varname)];
         sprintf(errstr, "Variable \"%s\" has not been declared", varname);
@@ -103,7 +103,7 @@ static PyObject* get(PyObject *self, PyObject *args, PyObject *keywds)
 static PyObject* set(PyObject *self, PyObject *args, PyObject *keywds)
 {
     Aqua::CalcServer::CalcServer *C = Aqua::CalcServer::CalcServer::singleton();
-    Aqua::InputOutput::Variables *V = C->variables();
+    Aqua::InputOutput::Variables vars = C->variables();
     const char* varname;
     PyObject *value;
 
@@ -117,7 +117,7 @@ static PyObject* set(PyObject *self, PyObject *args, PyObject *keywds)
         return NULL;
     }
 
-    Aqua::InputOutput::Variable *var = V->get(varname);
+    Aqua::InputOutput::Variable *var = vars.get(varname);
     if(!var){
         char errstr[64 + strlen(varname)];
         sprintf(errstr, "Variable \"%s\" has not been declared", varname);
@@ -132,7 +132,7 @@ static PyObject* set(PyObject *self, PyObject *args, PyObject *keywds)
     // Populate the variable if it is a scalar one
     if(var->type().find('*') == std::string::npos){
         try {
-            V->populate(var);
+            vars.populate(var);
         } catch(...) {
             return NULL;
         }

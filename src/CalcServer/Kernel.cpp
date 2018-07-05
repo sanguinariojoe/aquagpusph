@@ -184,9 +184,9 @@ bool Kernel::compile(const char* entry_point,
     strcat(flags, "-I");
     const char *folder = getFolderFromFilePath(path());
     strcat(flags, folder);
-    if(strcmp(C->base_path(), "")){
+    if(C->base_path().compare("")){
         strcat(flags, " -I");
-        strcat(flags, C->base_path());
+        strcat(flags, C->base_path().c_str());
     }
 
     strcat(flags, " -cl-mad-enable -cl-fast-relaxed-math ");
@@ -197,7 +197,7 @@ bool Kernel::compile(const char* entry_point,
     #endif
     // Setup the user registered flags
     for(i = 0; i < C->definitions().size(); i++){
-        strcat(flags, C->definitions().at(i));
+        strcat(flags, C->definitions().at(i).c_str());
         strcat(flags, " ");
     }
     // Add the additionally specified flags
@@ -525,10 +525,10 @@ bool Kernel::setVariables()
     cl_int err_code;
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables *vars = C->variables();
+    InputOutput::Variables vars = C->variables();
 
     for(i = 0; i < _var_names.size(); i++){
-        if(!vars->get(_var_names.at(i))){
+        if(!vars.get(_var_names.at(i))){
             sprintf(msg,
                     "The tool \"%s\" requires the undeclared variable \"%s\".\n",
                     name(),
@@ -536,7 +536,7 @@ bool Kernel::setVariables()
             S->addMessageF(L_ERROR, msg);
             return true;
         }
-        InputOutput::Variable *var = vars->get(_var_names.at(i));
+        InputOutput::Variable *var = vars.get(_var_names.at(i));
         if(_var_values.at(i) == NULL){
             _var_values.at(i) = malloc(var->typesize());
         }
@@ -573,9 +573,9 @@ bool Kernel::computeGlobalWorkSize()
         S->addMessageF(L_ERROR, "Work group size must be greater than 0.\n");
         return true;
     }
-    InputOutput::Variables *vars = C->variables();
+    InputOutput::Variables vars = C->variables();
     try {
-        vars->solve("unsigned int", _n, &N);
+        vars.solve("unsigned int", _n, &N);
     } catch(...) {
         S->addMessageF(L_ERROR, "Failure evaluating the number of threads.\n");
         return true;

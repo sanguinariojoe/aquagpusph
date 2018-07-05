@@ -104,7 +104,7 @@ bool SetTabFile::_execute()
 	CalcServer *C = CalcServer::singleton();
 
     // Print the time instant
-    fprintf(_f, "%s ", C->variables()->get("t")->asString());
+    fprintf(_f, "%s ", C->variables().get("t")->asString());
 
     // Get the data to be printed
     std::deque<InputOutput::Variable*> vars = variables();
@@ -117,7 +117,7 @@ bool SetTabFile::_execute()
             return true;
         }
         InputOutput::ArrayVariable *var = (InputOutput::ArrayVariable*)vars.at(i);
-        size_t typesize = C->variables()->typeToBytes(var->type());
+        size_t typesize = C->variables().typeToBytes(var->type());
         size_t len = var->size() / typesize;
         if(len < bounds().y){
             sprintf(msg,
@@ -245,7 +245,7 @@ std::deque<void*> SetTabFile::download(std::deque<InputOutput::Variable*> vars)
 
     for(i = 0; i < vars.size(); i++){
         InputOutput::ArrayVariable *var = (InputOutput::ArrayVariable*)vars.at(i);
-        typesize = C->variables()->typeToBytes(var->type());
+        typesize = C->variables().typeToBytes(var->type());
         len = var->size() / typesize;
         if(len < bounds().y){
             sprintf(msg,

@@ -123,7 +123,7 @@ bool Reduction::_execute()
     char msg[1024];
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables *vars = C->variables();
+    InputOutput::Variables vars = C->variables();
 
     if(setVariables()){
         return true;
@@ -174,7 +174,7 @@ bool Reduction::_execute()
 
     // Ensure that the variable is populated
     try {
-        vars->populate(_output_var);
+        vars.populate(_output_var);
     } catch(...) {
         return true;
     }
@@ -186,8 +186,8 @@ bool Reduction::variables()
     char msg[1024];
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables *vars = C->variables();
-    if(!vars->get(_input_name)){
+    InputOutput::Variables vars = C->variables();
+    if(!vars.get(_input_name)){
         sprintf(msg,
                 "The tool \"%s\" has received the undeclared variable \"%s\" as input.\n",
                 name(),
@@ -195,7 +195,7 @@ bool Reduction::variables()
         S->addMessageF(L_ERROR, msg);
         return true;
     }
-    if(vars->get(_input_name)->type().find('*') == std::string::npos){
+    if(vars.get(_input_name)->type().find('*') == std::string::npos){
         sprintf(msg,
                 "The tool \"%s\" has received the scalar variable \"%s\" as input.\n",
                 name(),
@@ -203,8 +203,8 @@ bool Reduction::variables()
         S->addMessageF(L_ERROR, msg);
         return true;
     }
-    _input_var = (InputOutput::ArrayVariable *)vars->get(_input_name);
-    if(!vars->get(_output_name)){
+    _input_var = (InputOutput::ArrayVariable *)vars.get(_input_name);
+    if(!vars.get(_output_name)){
         sprintf(msg,
                 "The tool \"%s\" has received the undeclared variable \"%s\" as output.\n",
                 name(),
@@ -212,7 +212,7 @@ bool Reduction::variables()
         S->addMessageF(L_ERROR, msg);
         return true;
     }
-    if(vars->get(_output_name)->type().find('*') != std::string::npos){
+    if(vars.get(_output_name)->type().find('*') != std::string::npos){
         sprintf(msg,
                 "The tool \"%s\" has received the array variable \"%s\" as output.\n",
                 name(),
@@ -220,8 +220,8 @@ bool Reduction::variables()
         S->addMessageF(L_ERROR, msg);
         return true;
     }
-    _output_var = vars->get(_output_name);
-    if(!vars->isSameType(_input_var->type(), _output_var->type())){
+    _output_var = vars.get(_output_name);
+    if(!vars.isSameType(_input_var->type(), _output_var->type())){
         sprintf(msg,
                 "The input and output types mismatch for the tool \"%s\".\n",
                 name());
@@ -249,10 +249,10 @@ bool Reduction::setupOpenCL()
     char msg[1024];
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables *vars = C->variables();
+    InputOutput::Variables vars = C->variables();
 
     // Get the elements data size to can allocate local memory later
-    data_size = vars->typeToBytes(_input_var->type());
+    data_size = vars.typeToBytes(_input_var->type());
 
     // Create a header for the source code where the operation will be placed
     char header[REDUCTION_INC_LEN + strlen(_operation) + strlen(_null_val) + 128];

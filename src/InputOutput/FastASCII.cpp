@@ -57,12 +57,12 @@ char* FastASCII::readField(const char* field,
     unsigned int i;
     ScreenManager *S = ScreenManager::singleton();
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
-    Variables* vars = C->variables();
-    ArrayVariable *var = (ArrayVariable*)vars->get(field);
+    Variables vars = C->variables();
+    ArrayVariable *var = (ArrayVariable*)vars.get(field);
 
     // Extract the variable type data
-    unsigned int n = vars->typeToN(var->type());
-    size_t type_size = vars->typeToBytes(var->type());
+    unsigned int n = vars.typeToN(var->type());
+    size_t type_size = vars.typeToBytes(var->type());
     char *type = new char[strlen(var->type().c_str()) + 1];
     strcpy(type, var->type().c_str());
     if(strchr(type, '*'))

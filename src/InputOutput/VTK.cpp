@@ -187,24 +187,24 @@ void VTK::load()
 
     // Setup an storage
     std::deque<void*> data;
-    Variables* vars = C->variables();
+    Variables vars = C->variables();
     for(i = 0; i < fields.size(); i++){
-        if(!vars->get(fields.at(i).c_str())){
+        if(!vars.get(fields.at(i).c_str())){
             sprintf(msg,
                     "\"%s\" field has been set to be read, but it was not declared.\n",
                     fields.at(i).c_str());
             S->addMessage(L_ERROR, msg);
             throw std::runtime_error("Invalid field");
         }
-        if(vars->get(fields.at(i).c_str())->type().find('*') == std::string::npos){
+        if(vars.get(fields.at(i).c_str())->type().find('*') == std::string::npos){
             sprintf(msg,
                     "\"%s\" field has been set to be read, but it was declared as an scalar.\n",
                     fields.at(i).c_str());
             S->addMessage(L_ERROR, msg);
             throw std::runtime_error("Invalid field type");
         }
-        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i).c_str());
-        size_t typesize = vars->typeToBytes(var->type());
+        ArrayVariable *var = (ArrayVariable*)vars.get(fields.at(i).c_str());
+        size_t typesize = vars.typeToBytes(var->type());
         size_t len = var->size() / typesize;
         if(len < bounds().y){
             sprintf(msg,
@@ -240,9 +240,9 @@ void VTK::load()
                 #endif
                 continue;
             }
-            ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(j).c_str());
-            size_t type_size = vars->typeToBytes(var->type());
-            unsigned int n_components = vars->typeToN(var->type());
+            ArrayVariable *var = (ArrayVariable*)vars.get(fields.at(j).c_str());
+            size_t type_size = vars.typeToBytes(var->type());
+            unsigned int n_components = vars.typeToN(var->type());
             if(var->type().find("unsigned int") != std::string::npos ||
                var->type().find("uivec") != std::string::npos) {
                 vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
@@ -292,8 +292,8 @@ void VTK::load()
 
     // Send the data to the server and release it
     for(i = 0; i < fields.size(); i++){
-        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i).c_str());
-        size_t typesize = vars->typeToBytes(var->type());
+        ArrayVariable *var = (ArrayVariable*)vars.get(fields.at(i).c_str());
+        size_t typesize = vars.typeToBytes(var->type());
         cl_mem mem = *(cl_mem*)var->get();
         err_code = clEnqueueWriteBuffer(C->command_queue(),
                                         mem,
@@ -345,9 +345,9 @@ void* save_pthread(void *data_void)
 
     // Create storage arrays
     std::deque< vtkSmartPointer<vtkDataArray> > vtk_arrays;
-    Variables* vars = data->C->variables();
+    Variables vars = data->C->variables();
     for(i = 0; i < data->fields.size(); i++){
-        if(!vars->get(data->fields.at(i).c_str())){
+        if(!vars.get(data->fields.at(i).c_str())){
             sprintf(msg,
                     "\"%s\" field has been set to be saved, but it was not declared.\n",
                     data->fields.at(i).c_str());
@@ -360,7 +360,7 @@ void* save_pthread(void *data_void)
             delete data; data=NULL;
             return NULL;
         }
-        if(vars->get(data->fields.at(i).c_str())->type().find('*') == std::string::npos){
+        if(vars.get(data->fields.at(i).c_str())->type().find('*') == std::string::npos){
             sprintf(msg,
                     "\"%s\" field has been set to be saved, but it was declared as a scalar.\n",
                     data->fields.at(i).c_str());
@@ -373,8 +373,8 @@ void* save_pthread(void *data_void)
             delete data; data=NULL;
             return NULL;
         }
-        ArrayVariable *var = (ArrayVariable*)vars->get(data->fields.at(i).c_str());
-        size_t typesize = vars->typeToBytes(var->type());
+        ArrayVariable *var = (ArrayVariable*)vars.get(data->fields.at(i).c_str());
+        size_t typesize = vars.typeToBytes(var->type());
         size_t len = var->size() / typesize;
         if(len < data->bounds.y){
             sprintf(msg,
@@ -390,7 +390,7 @@ void* save_pthread(void *data_void)
             return NULL;
         }
 
-        unsigned int n_components = vars->typeToN(var->type());
+        unsigned int n_components = vars.typeToN(var->type());
         if(var->type().find("unsigned int") != std::string::npos ||
            var->type().find("uivec") != std::string::npos) {
             vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
@@ -434,9 +434,9 @@ void* save_pthread(void *data_void)
                 continue;
             }
             ArrayVariable *var = (ArrayVariable*)(
-                vars->get(data->fields.at(j).c_str()));
-            size_t typesize = vars->typeToBytes(var->type());
-            unsigned int n_components = vars->typeToN(var->type());
+                vars.get(data->fields.at(j).c_str()));
+            size_t typesize = vars.typeToBytes(var->type());
+            unsigned int n_components = vars.typeToN(var->type());
             if(var->type().find("unsigned int") != std::string::npos ||
                var->type().find("uivec") != std::string::npos) {
                 unsigned int vect[n_components];
@@ -500,7 +500,7 @@ void* save_pthread(void *data_void)
         }
 
         ArrayVariable *var = (ArrayVariable*)(
-            vars->get(data->fields.at(i).c_str()));
+            vars.get(data->fields.at(i).c_str()));
         if(var->type().find("unsigned int") != std::string::npos ||
            var->type().find("uivec") != std::string::npos) {
             vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
