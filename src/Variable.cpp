@@ -1023,10 +1023,9 @@ Variable* Variables::get(unsigned int index)
 
 Variable* Variables::get(const std::string name)
 {
-    std::vector<Variable*>::iterator it;
-    for(it = _vars.begin(); it < _vars.end(); it++){
-        if(!name.compare((*it)->name())){
-            return *it;
+    for(auto var : _vars){
+        if(!name.compare(var->name())){
+            return var;
         }
     }
     return NULL;
@@ -1034,12 +1033,11 @@ Variable* Variables::get(const std::string name)
 
 size_t Variables::allocatedMemory(){
     size_t allocated_mem = 0;
-    std::vector<Variable*>::iterator it;
-    for(it = _vars.begin(); it < _vars.end(); it++){
-        if((*it)->type().find('*') == std::string::npos){
+    for(auto var : _vars){
+        if(var->type().find('*') == std::string::npos){
             continue;
         }
-        allocated_mem += (*it)->size();
+        allocated_mem += var->size();
     }
     return allocated_mem;
 }
@@ -1339,9 +1337,8 @@ void Variables::populate(const std::string name)
         return;
     }
 
-    std::vector<Variable*>::iterator it;
-    for(it = _vars.begin(); it < _vars.end(); it++){
-        populate(*it);
+    for(auto var : _vars){
+        populate(var);
     }
 }
 
@@ -1895,8 +1892,7 @@ void Variables::readComponents(const std::string name,
     // account as separators
     std::string edited_val = value;
     int parenthesis_counter = 0;
-    std::string::iterator it;
-    for (it = edited_val.begin(); it < edited_val.end(); it++) {
+    for (auto it = edited_val.begin(); it != edited_val.end(); ++it) {
         // We does not care about unbalanced parenthesis, muparser will do it
         if(*it == '(')
             parenthesis_counter++;

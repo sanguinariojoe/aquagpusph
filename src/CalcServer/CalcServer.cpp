@@ -157,106 +157,105 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
     }
 
     // Register the tools
-    std::deque<Aqua::InputOutput::ProblemSetup::sphTool*>::iterator t_it;
-    for(t_it = _sim_data.tools.begin(); t_it < _sim_data.tools.end(); t_it++){
-        if(!(*t_it)->get("type").compare("kernel")){
-            Kernel *tool = new Kernel((*t_it)->get("name"),
-                                      (*t_it)->get("path"),
-                                      (*t_it)->get("entry_point"),
-                                      (*t_it)->get("n"));
+    for(auto t : _sim_data.tools){
+        if(!t->get("type").compare("kernel")){
+            Kernel *tool = new Kernel(t->get("name"),
+                                      t->get("path"),
+                                      t->get("entry_point"),
+                                      t->get("n"));
             _tools.push_back(tool);
         }
-        else if(!(*t_it)->get("type").compare("copy")){
-            Copy *tool = new Copy((*t_it)->get("name"),
-                                  (*t_it)->get("in"),
-                                  (*t_it)->get("out"));
+        else if(!t->get("type").compare("copy")){
+            Copy *tool = new Copy(t->get("name"),
+                                  t->get("in"),
+                                  t->get("out"));
             _tools.push_back(tool);
         }
-        else if(!(*t_it)->get("type").compare("python")){
-            Python *tool = new Python((*t_it)->get("name"),
-                                      (*t_it)->get("path"));
+        else if(!t->get("type").compare("python")){
+            Python *tool = new Python(t->get("name"),
+                                      t->get("path"));
             _tools.push_back(tool);
         }
-        else if(!(*t_it)->get("type").compare("set")){
-            Set *tool = new Set((*t_it)->get("name"),
-                                (*t_it)->get("in"),
-                                (*t_it)->get("value"));
+        else if(!t->get("type").compare("set")){
+            Set *tool = new Set(t->get("name"),
+                                t->get("in"),
+                                t->get("value"));
             _tools.push_back(tool);
         }
-        else if(!(*t_it)->get("type").compare("set_scalar")){
-            SetScalar *tool = new SetScalar((*t_it)->get("name"),
-                                            (*t_it)->get("in"),
-                                            (*t_it)->get("value"));
+        else if(!t->get("type").compare("set_scalar")){
+            SetScalar *tool = new SetScalar(t->get("name"),
+                                            t->get("in"),
+                                            t->get("value"));
             _tools.push_back(tool);
         }
-        else if(!(*t_it)->get("type").compare("reduction")){
-            Reduction *tool = new Reduction((*t_it)->get("name"),
-                                            (*t_it)->get("in"),
-                                            (*t_it)->get("out"),
-                                            (*t_it)->get("operation"),
-                                            (*t_it)->get("null"));
+        else if(!t->get("type").compare("reduction")){
+            Reduction *tool = new Reduction(t->get("name"),
+                                            t->get("in"),
+                                            t->get("out"),
+                                            t->get("operation"),
+                                            t->get("null"));
             _tools.push_back(tool);
         }
-        else if(!(*t_it)->get("type").compare("link-list")){
-            LinkList *tool = new LinkList((*t_it)->get("name"),
-                                          (*t_it)->get("in"));
+        else if(!t->get("type").compare("link-list")){
+            LinkList *tool = new LinkList(t->get("name"),
+                                          t->get("in"));
             _tools.push_back(tool);
         }
-        else if(!(*t_it)->get("type").compare("radix-sort")){
-            RadixSort *tool = new RadixSort((*t_it)->get("name"),
-                                            (*t_it)->get("in"),
-                                            (*t_it)->get("perm"),
-                                            (*t_it)->get("inv_perm"));
+        else if(!t->get("type").compare("radix-sort")){
+            RadixSort *tool = new RadixSort(t->get("name"),
+                                            t->get("in"),
+                                            t->get("perm"),
+                                            t->get("inv_perm"));
             _tools.push_back(tool);
         }
-        else if(!(*t_it)->get("type").compare("assert")){
-            Assert *tool = new Assert((*t_it)->get("name"),
-                                      (*t_it)->get("condition"));
+        else if(!t->get("type").compare("assert")){
+            Assert *tool = new Assert(t->get("name"),
+                                      t->get("condition"));
             _tools.push_back(tool);
         }
-        else if(!(*t_it)->get("type").compare("dummy")){
-            Tool *tool = new Tool((*t_it)->get("name"));
+        else if(!t->get("type").compare("dummy")){
+            Tool *tool = new Tool(t->get("name"));
             _tools.push_back(tool);
         }
         else{
             std::ostringstream msg;
             msg << "Unrecognized tool type \""
-                << (*t_it)->get("type")
+                << t->get("type")
                 << "\" when parsing the tool \""
-                << (*t_it)->get("name") << "\"." << std::endl;
+                << t->get("name") << "\"." << std::endl;
             LOG(L_ERROR, msg.str());
             throw std::runtime_error("Invalid tool type");
         }
     }
 
     // Register the reporters
-    for(t_it = _sim_data.reports.begin(); t_it < _sim_data.reports.end(); t_it++){
-        if(!(*t_it)->get("type").compare("screen")){
+    for(auto r : _sim_data.reports){
+        if(!r->get("type").compare("screen")){
             bool bold = false;
-            if(!(*t_it)->get("bold").compare("true") ||
-               !(*t_it)->get("bold").compare("True")){
+            if(!r->get("bold").compare("true") ||
+               !r->get("bold").compare("True")){
                bold = true;
             }
             Reports::Screen *tool = new Reports::Screen(
-                (*t_it)->get("name"),
-                (*t_it)->get("fields"),
-                (*t_it)->get("color"),
+                r->get("name"),
+                r->get("fields"),
+                r->get("color"),
                 bold);
             _tools.push_back(tool);
         }
-        else if(!(*t_it)->get("type").compare("file")){
+        else if(!r->get("type").compare("file")){
             Reports::TabFile *tool = new Reports::TabFile(
-                (*t_it)->get("name"),
-                (*t_it)->get("fields"),
-                (*t_it)->get("path"));
+                r->get("name"),
+                r->get("fields"),
+                r->get("path"));
             _tools.push_back(tool);
         }
-        else if(!(*t_it)->get("type").compare("particles")){
+        else if(!r->get("type").compare("particles")){
             // Get the first particle associated to this set
-            unsigned int set_id = std::stoi((*t_it)->get("set"));
+            unsigned int set_id = std::stoi(r->get("set"));
             if(set_id >= _sim_data.sets.size()){
                 std::ostringstream msg;
-                msg << "Report \"" << (*t_it)->get("name")
+                msg << "Report \"" << r->get("name")
                     << "\" requested the particles set " << set_id
                     << " but just " << _sim_data.sets.size()
                     << " can be found." << std::endl;
@@ -269,36 +268,36 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
             }
 
             // And the ipf and fps
-            unsigned int ipf = std::stoi((*t_it)->get("ipf"));
-            float fps = std::stof((*t_it)->get("fps"));
+            unsigned int ipf = std::stoi(r->get("ipf"));
+            float fps = std::stof(r->get("fps"));
 
             Reports::SetTabFile *tool = new Reports::SetTabFile(
-                (*t_it)->get("name"),
-                (*t_it)->get("fields"),
+                r->get("name"),
+                r->get("fields"),
                 first,
                 _sim_data.sets.at(set_id)->n(),
-                (*t_it)->get("path"),
+                r->get("path"),
                 ipf,
                 fps);
             _tools.push_back(tool);
         }
-        else if(!(*t_it)->get("type").compare("performance")){
+        else if(!r->get("type").compare("performance")){
             bool bold = false;
-            if(!(*t_it)->get("bold").compare("true") ||
-               !(*t_it)->get("bold").compare("True")){
+            if(!r->get("bold").compare("true") ||
+               !r->get("bold").compare("True")){
                bold = true;
             }
             Reports::Performance *tool = new Reports::Performance(
-                (*t_it)->get("name"),
-                (*t_it)->get("color"),
+                r->get("name"),
+                r->get("color"),
                 bold,
-                (*t_it)->get("path"));
+                r->get("path"));
             _tools.push_back(tool);
         }
         else{
             std::ostringstream msg;
-            msg << "Unrecognized report type \"" << (*t_it)->get("type")
-                << "\" when parsing the report \"" << (*t_it)->get("name")
+            msg << "Unrecognized report type \"" << r->get("type")
+                << "\" when parsing the report \"" << r->get("name")
                 << "\"." << std::endl;
             LOG(L_ERROR, msg.str());
             throw std::runtime_error("Invalid report type");
@@ -334,11 +333,8 @@ CalcServer::~CalcServer()
     }
     _tools.clear();
 
-    std::map<std::string, UnSort*>::iterator it = unsorters.begin();
-    while(it != unsorters.end())
-    {
-        delete it->second;
-        it++;
+    for (auto& unsorter : unsorters) {
+        delete unsorter.second;
     }
 }
 

@@ -45,8 +45,7 @@ Kernel::~Kernel()
 {
     if(_kernel) clReleaseKernel(_kernel); _kernel=NULL;
 
-    std::vector<void*>::iterator it;
-    for(it = _var_values.begin(); it < _var_values.end(); it++){
+    for(auto it = _var_values.begin(); it < _var_values.end(); it++){
         free(*it);
     }
 }
@@ -97,7 +96,7 @@ void Kernel::compile(const std::string entry_point,
     unsigned int i;
     cl_program program;
     cl_kernel kernel;
-    std::string source;
+    std::ostringstream source;
     std::ostringstream flags;
     size_t source_length = 0;
     cl_int err_code = CL_SUCCESS;
@@ -107,9 +106,7 @@ void Kernel::compile(const std::string entry_point,
     // Read the script file
     try {
         std::ifstream script(path());
-        std::ostringstream source_stream;
-        source_stream << header << script.rdbuf();
-        source = source_stream.str();
+        source << header << script.rdbuf();
     } catch (const std::ifstream::failure& e) {
         std::stringstream msg;
         msg << "Failure reading the file \"" <<
@@ -118,9 +115,7 @@ void Kernel::compile(const std::string entry_point,
         msg.str(""); msg << e.what() << std::endl;
         LOG0(L_DEBUG, msg.str());
         throw;
-        
     }
-    source_length = source.size();
 
     // Setup the default flags
     #ifdef AQUA_DEBUG
@@ -139,16 +134,16 @@ void Kernel::compile(const std::string entry_point,
         flags << " -DHAVE_2D ";
     #endif
     // Setup the user registered flags
-    std::vector<std::string>::iterator def;
-    for(def = C->definitions().begin(); def < C->definitions().end(); def++) {
-        flags << *def << " ";
+    for(auto def : C->definitions()) {
+        flags << def << " ";
     }
     // Add the additionally specified flags
     flags << add_flags;
 
     // Try to compile without using local memory
     LOG(L_INFO, "Compiling without local memory... ");
-    const char *source_cstr = source.c_str();
+    source_length = source.str().size();
+    const char *source_cstr = source.str().c_str();
     program = clCreateProgramWithSource(C->context(),
                                         1,
                                         &source_cstr,
@@ -228,7 +223,6 @@ void Kernel::compile(const std::string entry_point,
 
     // Try to compile with local memory
     LOG(L_INFO, "Compiling with local memory... ");
-    source_cstr = source.c_str();
     program = clCreateProgramWithSource(C->context(),
                                         1,
                                         &source_cstr,

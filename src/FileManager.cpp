@@ -42,11 +42,11 @@ FileManager::FileManager()
 
 FileManager::~FileManager()
 {
-    for(auto i = _loaders.begin(); i != _loaders.end(); i++) {
-        delete *i;
+    for(auto loader : _loaders) {
+        delete loader;
     }
-    for(auto i = _savers.begin(); i != _savers.end(); i++) {
-        delete *i;
+    for(auto saver : _savers) {
+        delete saver;
     }
 }
 
@@ -72,7 +72,6 @@ CalcServer::CalcServer* FileManager::load()
         LOG(L_ERROR, "No sets of particles have been added.\n");
         throw std::runtime_error("No particles sets");
     }
-
 
     // Build the calculation server
     CalcServer::CalcServer *C = new CalcServer::CalcServer(_simulation);
@@ -156,9 +155,9 @@ CalcServer::CalcServer* FileManager::load()
     }
 
     // Execute the loaders
-    for(auto loader = _loaders.begin(); loader != _loaders.end(); loader++) {
+    for(auto loader : _loaders) {
         try {
-            (*loader)->load();
+            loader->load();
         } catch (...) {
             delete C;
             throw;
@@ -171,8 +170,8 @@ CalcServer::CalcServer* FileManager::load()
 void FileManager::save()
 {
     // Execute the savers
-    for(auto saver = _savers.begin(); saver != _savers.end(); saver++) {
-        (*saver)->save();
+    for(auto saver : _savers) {
+        saver->save();
     }
 
     // Save the XML definition file

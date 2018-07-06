@@ -628,8 +628,8 @@ void State::parseTools(DOMElement *root,
                             }
                         }
                         // Deep copy the places
-                        for(it = all_places.begin(); it != all_places.end(); ++it)
-                            places.push_back(*it);
+                        for(auto place : all_places)
+                            places.push_back(place);
                     }
                 }
                 else if(xmlHasAttribute(s_elem, "after") ||
@@ -686,8 +686,8 @@ void State::parseTools(DOMElement *root,
                             }
                         }
                         // Deep copy the places (adding 1 to insert after that)
-                        for(it = all_places.begin(); it != all_places.end(); ++it)
-                            places.push_back(*it + 1);
+                        for(auto place : all_places)
+                            places.push_back(place + 1);
                     }
                 }
                 else{
@@ -1364,11 +1364,9 @@ void State::writeVariables(xercesc::DOMDocument* doc,
     root->appendChild(elem);
 
     std::vector<Variable*> vars = C->variables().getAll();
-    std::vector<Variable*>::iterator var_it;
-    for (var_it = vars.begin(); var_it != vars.end(); var_it++ ) {
+    for (auto var : vars) {
         s_elem = doc->createElement(xmlS("Variable"));
         elem->appendChild(s_elem);
-        Variable* var = *var_it;
 
         s_elem->setAttribute(xmlS("name"), xmlS(var->name()));
         std::string type = var->type();
