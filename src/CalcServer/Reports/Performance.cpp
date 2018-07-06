@@ -149,7 +149,7 @@ void Performance::_execute()
          << progress * 100.f << "\tETA=" << std::setw(16) << ETA << std::endl;
 
     // Replace the trailing space by a line break
-    if(data.str().at(std::string::npos) == ' ') {
+    if(data.str().back() == ' ') {
         data.seekp(-1, data.cur);
         data << std::endl;
     }

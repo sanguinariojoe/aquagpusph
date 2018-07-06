@@ -76,14 +76,6 @@ CalcServer::CalcServer* FileManager::load()
 
     // Build the calculation server
     CalcServer::CalcServer *C = new CalcServer::CalcServer(_simulation);
-    if(!C)
-        throw std::bad_alloc();
-    try {
-        C->setup();
-    } catch (...) {
-        delete C;
-        throw;
-    }
 
     // Now we can build the loaders/savers
     for(i = 0; i < _simulation.sets.size(); i++){

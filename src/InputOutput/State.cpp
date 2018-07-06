@@ -1388,8 +1388,8 @@ void State::writeVariables(xercesc::DOMDocument* doc,
         if(value_txt.at(0) == '('){
             value_txt.at(0) = ' ';
         }
-        if(value_txt.at(std::string::npos) == ')'){
-            value_txt.at(std::string::npos) = ' ';
+        if(value_txt.back() == ')'){
+            value_txt.back() = ' ';
         }
         s_elem->setAttribute(xmlS("value"), xmlS(value_txt));
     }
@@ -1562,8 +1562,8 @@ void State::writeSets(xercesc::DOMDocument* doc,
             if(value_txt.at(0) == '('){
                 value_txt.at(0) = ' ';
             }
-            if(value_txt.at(std::string::npos) == ')'){
-                value_txt.at(std::string::npos) = ' ';
+            if(value_txt.back() == ')'){
+                value_txt.back() = ' ';
             }
             s_elem->setAttribute(xmlS("value"), xmlS(value_txt));
             elem->appendChild(s_elem);

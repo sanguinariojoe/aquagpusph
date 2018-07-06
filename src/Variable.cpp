@@ -209,7 +209,7 @@ const std::string ScalarVecVariable<T>::asString(){
         msg << val->s[i] << ",";
     }
     str_val = msg.str();
-    str_val.at(std::string::npos) = ')';
+    str_val.back() = ')';
     return str_val;
 }
 
@@ -1120,21 +1120,21 @@ bool Variables::isSameType(const std::string type_a,
     }
 
     std::string ta = trimCopy(type_a);
-    if((ta.at(std::string::npos) == '*')){
+    if((ta.back() == '*')){
         ta.pop_back();
     }
-    if((ta.at(std::string::npos) == '2') ||
-       (ta.at(std::string::npos) == '3') ||
-       (ta.at(std::string::npos) == '4')){
+    if((ta.back() == '2') ||
+       (ta.back() == '3') ||
+       (ta.back() == '4')){
         ta.pop_back();
     }
     std::string tb = trimCopy(type_b);
-    if((tb.at(std::string::npos) == '*')){
+    if((tb.back() == '*')){
         tb.pop_back();
     }
-    if((tb.at(std::string::npos) == '2') ||
-       (tb.at(std::string::npos) == '3') ||
-       (tb.at(std::string::npos) == '4')){
+    if((tb.back() == '2') ||
+       (tb.back() == '3') ||
+       (tb.back() == '4')){
         tb.pop_back();
     }
 
@@ -1161,7 +1161,7 @@ void Variables::solve(const std::string type_name,
 
     // Ignore whether it is an array or a scalar
     std::string type = trimCopy(type_name);
-    if(type.at(std::string::npos) == '*')
+    if(type.back() == '*')
         type.pop_back();
 
     if(!type.compare("int")){
