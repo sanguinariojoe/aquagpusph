@@ -574,11 +574,10 @@ size_t ArrayVariable::size() const
                                        &memsize,
                                        NULL);
     if(status != CL_SUCCESS){
-        char msg[256];
-        sprintf(msg,
-                "Failure getting allocated memory from variable \"%s\"\n",
-                name());
-        LOG(L_ERROR, msg);
+        std::ostringstream msg;
+        msg << "Failure getting allocated memory from variable \"" << name()
+            << "\"." << std::endl,
+        LOG(L_ERROR, msg.str());
         Aqua::InputOutput::ScreenManager::singleton()->printOpenCLError(status);
     }
     return memsize;
@@ -1037,11 +1036,9 @@ size_t Variables::allocatedMemory(){
     size_t allocated_mem = 0;
     std::vector<Variable*>::iterator it;
     for(it = _vars.begin(); it < _vars.end(); it++){
-        std::cout << (*it)->name() << std::endl;
         if((*it)->type().find('*') == std::string::npos){
             continue;
         }
-        std::cout << (*it)->size() << std::endl;
         allocated_mem += (*it)->size();
     }
     return allocated_mem;
@@ -1850,8 +1847,8 @@ void Variables::registerClMem(const std::string name,
         n = (unsigned int)round(tok.solve(length));
 
     // Generate the variable
-    ArrayVariable *var = new ArrayVariable(name, type);
-    if(n){
+    ArrayVariable *var = new ArrayVariable(name, trimCopy(type_name));
+    if(n > 0){
         // Allocate memory on device
         cl_int status;
         cl_mem mem;
