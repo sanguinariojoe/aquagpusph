@@ -999,7 +999,7 @@ void Variables::registerVariable(const std::string name,
     // Look for an already existing variable with the same name
     unsigned int i;
     for(i = 0; i < _vars.size(); i++){
-        if(_vars.at(i)->name().compare(name)){
+        if(!_vars.at(i)->name().compare(name)){
             delete _vars.at(i);
             _vars.erase(_vars.begin() + i);
         }
@@ -1037,9 +1037,11 @@ size_t Variables::allocatedMemory(){
     size_t allocated_mem = 0;
     std::vector<Variable*>::iterator it;
     for(it = _vars.begin(); it < _vars.end(); it++){
+        std::cout << (*it)->name() << std::endl;
         if((*it)->type().find('*') == std::string::npos){
             continue;
         }
+        std::cout << (*it)->size() << std::endl;
         allocated_mem += (*it)->size();
     }
     return allocated_mem;
