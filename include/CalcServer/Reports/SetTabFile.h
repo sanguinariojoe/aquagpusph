@@ -24,8 +24,9 @@
 #ifndef SETSetTabFile_H_INCLUDED
 #define SETSetTabFile_H_INCLUDED
 
+#include <iostream>
+#include <fstream>
 #include <sphPrerequisites.h>
-
 #include <CalcServer/Reports/Report.h>
 #include <AuxiliarMethods.h>
 
@@ -74,11 +75,11 @@ public:
      * @param fps Frames per second, 0 to just ignore this printing criteria.
      * @remarks The output file will be cleared.
      */
-    SetTabFile(const char* tool_name,
-               const char* fields,
+    SetTabFile(const std::string tool_name,
+               const std::string fields,
                unsigned int first,
                unsigned int n,
-               const char* output_file,
+               const std::string output_file,
                unsigned int ipf=1,
                float fps=0.f);
 
@@ -87,15 +88,13 @@ public:
     ~SetTabFile();
 
     /** @brief Initialize the tool.
-     * @return false if all gone right, true otherwise.
      */
-    bool setup();
+    void setup();
 
 protected:
     /** @brief Execute the tool.
-     * @return false if all gone right, true otherwise.
      */
-    bool _execute();
+    void _execute();
 
     /** @brief Get the particle index bounds of the "set of particles" managed
      * by this class.
@@ -108,21 +107,21 @@ protected:
      * @return host allocated memory. A clear list if errors happened.
      * @note The returned data must be manually cleared.
      */
-    std::deque<void*> download(std::deque<InputOutput::Variable*> vars);
+    std::vector<void*> download(std::vector<InputOutput::Variable*> vars);
 
 private:
     /** Remove the content of the data list.
      * @param data List of memory allocated arrays to be cleared.
      */
-    void clearList(std::deque<void*> *data);
+    void clearList(std::vector<void*> *data);
 
     /// Particles managed bounds
     uivec2 _bounds;
 
     /// Output file name
-    char *_output_file;
+    std::string _output_file;
     /// Output file handler
-    FILE *_f;
+    std::ofstream _f;
 };
 
 }}} // namespace

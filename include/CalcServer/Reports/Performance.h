@@ -25,6 +25,8 @@
 #define PERFORMANCE_H_INCLUDED
 
 #include <sys/time.h>
+#include <iostream>
+#include <fstream>
 #include <sphPrerequisites.h>
 #include <CalcServer/Reports/Report.h>
 #include <AuxiliarMethods.h>
@@ -58,29 +60,27 @@ public:
      * font, true otherwise.
      * @param output_file Path of the output file.
      */
-    Performance(const char* tool_name,
-                const char* color="white",
+    Performance(const std::string tool_name,
+                const std::string color="white",
                 bool bold=false,
-                const char* output_file="");
+                const std::string output_file="");
 
     /** @brief Destructor
      */
     ~Performance();
 
     /** @brief Initialize the tool.
-     * @return false if all gone right, true otherwise.
      */
-    bool setup();
+    void setup();
 
     /** @brief Launch _execute() without measuring the elapsed time
      *
      * This tool is measuring the total time elapsed during a single time step
      * computation, and comparing it with the time consumed by the other tools.
      * Hence we should override the overloaded time measuring capabilities
-     * @return false if all gone right, true otherwise.
      * @see Aqua::CalcServer::Tool
      */
-    bool execute(){return _execute();}
+    void execute(){return _execute();}
 
 protected:
     /** @brief Get the allocated memory.
@@ -89,19 +89,16 @@ protected:
     size_t computeAllocatedMemory();
 
     /** @brief Execute the tool.
-     * @return false if all gone right, true otherwise.
      */
-    bool _execute();
+    void _execute();
 
 private:
     /// Output color
-    char *_color;
+    std::string _color;
     /// Output bold or normal flag
     bool _bold;
     /// Output file name
-    char *_output_file;
-    /// Output file handler
-    FILE *_f;
+    std::string _output_file;
     /** @brief Time mark at the end of the previous time step (to measure the
      * total elapsed time per time step)
      */
@@ -113,6 +110,8 @@ private:
      * therefore better using the elapsed time by the tools
      */
     bool _first_execution;
+    /// Output file handler
+    std::ofstream _f;
 };
 
 }}} // namespace

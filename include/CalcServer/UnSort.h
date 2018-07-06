@@ -69,12 +69,10 @@ private:
     void variables();
 
     /** Create the output memory object
-     * @return false if all gone right, true otherwise.
      */
     void setupMem();
 
     /** Setup the OpenCL stuff
-     * @return false if all gone right, true otherwise.
      */
     void setupOpenCL();
 
@@ -85,9 +83,8 @@ private:
     cl_kernel compile(const std::string source);
 
     /** Update the input looking for changed value.
-     * @return false if all gone right, true otherwise.
      */
-    bool setVariables();
+    void setVariables();
 
     /// Input variable name
     std::string _var_name;

@@ -24,8 +24,9 @@
 #ifndef TABFILE_H_INCLUDED
 #define TABFILE_H_INCLUDED
 
+#include <iostream>
+#include <fstream>
 #include <sphPrerequisites.h>
-
 #include <CalcServer/Reports/Report.h>
 #include <AuxiliarMethods.h>
 
@@ -51,30 +52,28 @@ public:
      * @param output_file File to be written.
      * @remarks The output file will be cleared.
      */
-    TabFile(const char* tool_name,
-            const char* fields,
-            const char* output_file);
+    TabFile(const std::string tool_name,
+            const std::string fields,
+            const std::string output_file);
 
     /** @brief Destructor
      */
     ~TabFile();
 
     /** @brief Initialize the tool.
-     * @return false if all gone right, true otherwise.
      */
-    bool setup();
+    void setup();
 
 protected:
     /** @brief Execute the tool.
-     * @return false if all gone right, true otherwise.
      */
-    bool _execute();
+    void _execute();
 
 private:
     /// Output file name
-    char *_output_file;
+    std::string _output_file;
     /// Output file handler
-    FILE *_f;
+    std::ofstream _f;
 };
 
 }}} // namespace

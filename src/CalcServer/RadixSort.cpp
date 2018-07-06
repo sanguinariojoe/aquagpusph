@@ -40,14 +40,14 @@ unsigned int RADIXSORT_INC_LEN = RadixSort_hcl_in_len;
 const char* RADIXSORT_SRC = (const char*)RadixSort_cl_in;
 unsigned int RADIXSORT_SRC_LEN = RadixSort_cl_in_len;
 
-RadixSort::RadixSort(const char* tool_name,
-                     const char* variable,
-                     const char* permutations,
-                     const char* inv_permutations)
+RadixSort::RadixSort(const std::string tool_name,
+                     const std::string variable,
+                     const std::string permutations,
+                     const std::string inv_permutations)
     : Tool(tool_name)
-    , _var_name(NULL)
-    , _perms_name(NULL)
-    , _inv_perms_name(NULL)
+    , _var_name(variable)
+    , _perms_name(permutations)
+    , _inv_perms_name(inv_permutations)
     , _var(NULL)
     , _perms(NULL)
     , _inv_perms(NULL)
@@ -71,19 +71,10 @@ RadixSort::RadixSort(const char* tool_name,
     , _radix(_RADIX)
     , _histo_split(_HISTOSPLIT)
 {
-    _var_name = new char[strlen(variable) + 1];
-    strcpy(_var_name, variable);
-    _perms_name = new char[strlen(permutations) + 1];
-    strcpy(_perms_name, permutations);
-    _inv_perms_name = new char[strlen(inv_permutations) + 1];
-    strcpy(_inv_perms_name, inv_permutations);
 }
 
 RadixSort::~RadixSort()
 {
-    if(_var_name) delete[] _var_name; _var_name=NULL;
-    if(_perms_name) delete[] _perms_name; _perms_name=NULL;
-    if(_inv_perms_name) delete[] _inv_perms_name; _inv_perms_name=NULL;
     if(_init_kernel) clReleaseKernel(_init_kernel); _init_kernel=NULL;
     if(_histograms_kernel) clReleaseKernel(_histograms_kernel); _histograms_kernel=NULL;
     if(_scan_kernel) clReleaseKernel(_scan_kernel); _scan_kernel=NULL;
@@ -99,43 +90,29 @@ RadixSort::~RadixSort()
     if(_temp_mem) clReleaseMemObject(_temp_mem); _temp_mem=NULL;
 }
 
-bool RadixSort::setup()
+void RadixSort::setup()
 {
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-    CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables vars = C->variables();
-
-    sprintf(msg,
-            "Loading the tool \"%s\"...\n",
-            name());
-    S->addMessageF(L_INFO, msg);
+    std::ostringstream msg;
+    msg << "Loading the tool \"" << name() << "\"..." << std::endl;
+    LOG(L_INFO, msg.str());
 
     // Get the variables
-    if(variables()){
-        return true;
-    }
+    variables();
 
     // Setup the working tools
-    if(setupOpenCL()){
-        return true;
-    }
-
-    return false;
+    setupOpenCL();
 }
 
-bool RadixSort::_execute()
+void RadixSort::_execute()
 {
     cl_int err_code;
     unsigned int i, max_val;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
     InputOutput::Variables vars = C->variables();
 
     // Get maximum key bits, and needed pass
     max_val = UINT_MAX;
-    if(!strcmp(_var_name, "icell")){
+    if(!_var_name.compare("icell")){
         uivec4 n_cells = *(uivec4 *)vars.get("n_cells")->get();
         max_val = nextPowerOf2(n_cells.w);
     }
@@ -146,8 +123,8 @@ bool RadixSort::_execute()
     _key_bits = i;
     _key_bits = roundUp(_key_bits, _bits);
     if(_key_bits > __UINTBITS__){
-        S->addMessageF(L_ERROR, "Resultant keys overflows unsigned int type.\n");
-        return true;
+        LOG(L_ERROR, "Resultant keys overflows unsigned int type.\n");
+        throw std::runtime_error("Unsigned int overflow");
     }
     _n_pass = _key_bits / _bits;
 
@@ -161,24 +138,20 @@ bool RadixSort::_execute()
                                    NULL,
                                    NULL);
     if(err_code != CL_SUCCESS){
-        sprintf(msg,
-                "Failure copying the keys to sort with the tool \"%s\".\n",
-                name());
-        S->addMessageF(L_ERROR, msg);
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure copying the keys to sort within the tool \"" << name()
+            << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
 
-    if(init())
-        return true;
+    init();
 
     for(_pass = 0; _pass < _n_pass; _pass++){
-        if(histograms())
-            return true;
-        if(scan())
-            return true;
-        if(reorder())
-            return true;
+        histograms();
+        scan();
+        reorder();
     }
 
     err_code = clEnqueueCopyBuffer(C->command_queue(),
@@ -191,12 +164,12 @@ bool RadixSort::_execute()
                                    NULL,
                                    NULL);
     if(err_code != CL_SUCCESS){
-        sprintf(msg,
-                "Failure copying the sorted keys with the tool \"%s\".\n",
-                name());
-        S->addMessageF(L_ERROR, msg);
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure copying the sort keys within the tool \"" << name()
+            << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     err_code = clEnqueueCopyBuffer(C->command_queue(),
                                    _in_permut,
@@ -208,25 +181,20 @@ bool RadixSort::_execute()
                                    NULL,
                                    NULL);
     if(err_code != CL_SUCCESS){
-        sprintf(msg,
-                "Failure copying the permutations with the tool \"%s\".\n",
-                name());
-        S->addMessageF(L_ERROR, msg);
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure copying the permutations within the tool \"" << name()
+            << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
 
-    if(inversePermutations())
-        return true;
-
-    return false;
+    inversePermutations();
 }
 
-bool RadixSort::init()
+void RadixSort::init()
 {
     cl_int err_code;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
 
     err_code = clSetKernelArg(_init_kernel,
@@ -234,9 +202,12 @@ bool RadixSort::init()
                               sizeof(cl_mem),
                               (void*)&_in_permut);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending argument 0 to \"init\"\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure sending argument 0 to \"init\" within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
 
     err_code = clEnqueueNDRangeKernel(C->command_queue(),
@@ -249,22 +220,18 @@ bool RadixSort::init()
                                       NULL,
                                       NULL);
     if(err_code != CL_SUCCESS) {
-        sprintf(msg,
-                "Failure executing the tool \"%s\" kernel \"init\".\n",
-                name());
-        S->addMessageF(L_ERROR, msg);
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure executing \"init\" within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
     }
-
-    return false;
 }
 
-bool RadixSort::histograms()
+void RadixSort::histograms()
 {
     cl_int err_code;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
     size_t local_work_size = _items;
     size_t global_work_size = _groups * _items;
@@ -274,18 +241,24 @@ bool RadixSort::histograms()
                               sizeof(cl_mem),
                               (void*)&_in_keys);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending argument 0 to \"histogram\"\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure sending argument 0 to \"histogram\" within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_histograms_kernel,
                               2,
                               sizeof(cl_uint),
                               (void*)&_pass);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending argument 2 to \"histogram\"\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure sending argument 2 to \"histogram\" within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
 
     err_code = clEnqueueNDRangeKernel(C->command_queue(),
@@ -298,22 +271,18 @@ bool RadixSort::histograms()
                                       NULL,
                                       NULL);
     if(err_code != CL_SUCCESS) {
-        sprintf(msg,
-                "Failure executing the tool \"%s\" kernel \"histogram\".\n",
-                name());
-        S->addMessageF(L_ERROR, msg);
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure executing \"histogram\" within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
     }
-
-    return false;
 }
 
-bool RadixSort::scan()
+void RadixSort::scan()
 {
     cl_int err_code;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
     size_t global_work_size = _radix * _groups * _items / 2;
     size_t local_work_size = global_work_size / _histo_split;
@@ -327,18 +296,24 @@ bool RadixSort::scan()
                               sizeof(cl_mem),
                               (void*)&_histograms);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending argument 0 to \"scan\" (1st call)\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure sending argument 0 to \"scan\" (1st call) "
+            << "within the tool \"" << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_scan_kernel,
                               2,
                               sizeof(cl_mem),
                               (void*)&_global_sums);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending argument 2 to \"scan\" (1st call)\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure sending argument 2 to \"scan\" (1st call) "
+            << "within the tool \"" << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
 
     err_code = clEnqueueNDRangeKernel(C->command_queue(),
@@ -351,12 +326,12 @@ bool RadixSort::scan()
                                       NULL,
                                       NULL);
     if(err_code != CL_SUCCESS) {
-        sprintf(msg,
-                "Failure executing the tool \"%s\" kernel \"scan\" (1st call).\n",
-                name());
-        S->addMessageF(L_ERROR, msg);
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure executing \"scan\" (1st call) within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
     }
 
     // 2nd scan
@@ -368,18 +343,24 @@ bool RadixSort::scan()
                               sizeof(cl_mem),
                               (void*)&_global_sums);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending argument 0 to \"scan\" (2nd call)\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure sending argument 0 to \"scan\" (2nd call) "
+            << "within the tool \"" << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_scan_kernel,
                               2,
                               sizeof(cl_mem),
                               (void*)&_temp_mem);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending argument 2 to \"scan\" (2nd call)\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure sending argument 2 to \"scan\" (2nd call) "
+            << "within the tool \"" << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
 
     err_code = clEnqueueNDRangeKernel(C->command_queue(),
@@ -392,12 +373,12 @@ bool RadixSort::scan()
                                       NULL,
                                       NULL);
     if(err_code != CL_SUCCESS) {
-        sprintf(msg,
-                "Failure executing the tool \"%s\" kernel \"scan\" (2nd call).\n",
-                name());
-        S->addMessageF(L_ERROR, msg);
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure executing \"scan\" (2nd call) within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
     }
 
     // Histograms paste
@@ -415,22 +396,18 @@ bool RadixSort::scan()
                                       NULL,
                                       NULL);
     if(err_code != CL_SUCCESS) {
-        sprintf(msg,
-                "Failure executing the tool \"%s\" kernel \"paste\".\n",
-                name());
-        S->addMessageF(L_ERROR, msg);
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure executing \"paste\" within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
     }
-
-    return false;
 }
 
-bool RadixSort::reorder()
+void RadixSort::reorder()
 {
     cl_int err_code;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
     size_t local_work_size = _items;
     size_t global_work_size = _groups * _items;
@@ -440,45 +417,60 @@ bool RadixSort::reorder()
                               sizeof(cl_mem),
                               (void*)&_in_keys);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending argument 0 to \"sort\"\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure sending argument 0 to \"sort\" within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_sort_kernel,
                               1,
                               sizeof(cl_mem),
                               (void*)&_out_keys);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending argument 1 to \"sort\"\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure sending argument 1 to \"sort\" within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_sort_kernel,
                               3,
                               sizeof(cl_uint),
                               (void*)&_pass);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending argument 3 to \"sort\"\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure sending argument 3 to \"sort\" within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_sort_kernel,
                               4,
                               sizeof(cl_mem),
                               (void*)&_in_permut);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending argument 4 to \"sort\"\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure sending argument 4 to \"sort\" within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_sort_kernel,
                               5,
                               sizeof(cl_mem),
                               (void*)&_out_permut);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending argument 5 to \"sort\"\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure sending argument 5 to \"sort\" within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
 
     err_code = clEnqueueNDRangeKernel(C->command_queue(),
@@ -491,12 +483,12 @@ bool RadixSort::reorder()
                                       NULL,
                                       NULL);
     if(err_code != CL_SUCCESS) {
-        sprintf(msg,
-                "Failure executing the tool \"%s\" kernel \"paste\".\n",
-                name());
-        S->addMessageF(L_ERROR, msg);
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure executing \"sort\" within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
     }
 
     // Swap the memory identifiers for the next pass
@@ -509,15 +501,11 @@ bool RadixSort::reorder()
     d_temp = _in_permut;
     _in_permut = _out_permut;
     _out_permut = d_temp;
-
-    return false;
 }
 
-bool RadixSort::inversePermutations()
+void RadixSort::inversePermutations()
 {
     cl_int err_code;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
 
     err_code = clSetKernelArg(_inv_perms_kernel,
@@ -525,18 +513,24 @@ bool RadixSort::inversePermutations()
                               sizeof(cl_mem),
                               (void*)&_in_permut);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending argument 0 to \"inversePermutation\"\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure sending argument 0 to \"inversePermutation\" within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_inv_perms_kernel,
                               1,
                               sizeof(cl_mem),
                               _inv_perms->get());
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending argument 1 to \"inversePermutation\"\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure sending argument 1 to \"inversePermutation\" within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
 
     err_code = clEnqueueNDRangeKernel(C->command_queue(),
@@ -549,238 +543,196 @@ bool RadixSort::inversePermutations()
                                       NULL,
                                       NULL);
     if(err_code != CL_SUCCESS) {
-        sprintf(msg,
-                "Failure executing the tool \"%s\" kernel \"inversePermutation\".\n",
-                name());
-        S->addMessageF(L_ERROR, msg);
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure executing \"inversePermutation\" within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
     }
-
-    return false;
 }
 
 
-bool RadixSort::variables()
+void RadixSort::variables()
 {
     size_t n;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
     InputOutput::Variables vars = C->variables();
 
     // Check and get the variables
     if(!vars.get(_var_name)){
-        sprintf(msg,
-                "Undeclared variable \"%s\" cannot be sorted by tool \"%s\".\n",
-                _var_name,
-                name());
-        S->addMessageF(L_ERROR, msg);
-        return true;
+        std::ostringstream msg;
+        msg << "Tool \"" << name()
+            << "\" is asking for the undeclared variable \"" << _var_name
+            << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("Invalid variable");
     }
     if(vars.get(_var_name)->type().compare("unsigned int*")){
-        sprintf(msg,
-                "Wrong type for the variable \"%s\" (tool: \"%s\").\n",
-                _var_name,
-                name());
-        S->addMessageF(L_ERROR, msg);
-        sprintf(msg,
-                "\t\"%s\" was expected, but \"%s\" has been found.\n",
-                "unsigned int*",
-                vars.get(_var_name)->type());
-        S->addMessage(L_DEBUG, msg);
-        return true;
+        std::ostringstream msg;
+        msg << "Tool \"" << name()
+            << "\" cannot process variable \"" << _var_name
+            << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        msg.str("");
+        msg << "\t\"unsigned int*\" type was expected, but \""
+            << vars.get(_var_name)->type() << "\" has been received." << std::endl;
+        LOG(L_DEBUG, msg.str());
+        throw std::runtime_error("Invalid variable type");
     }
     _var = (InputOutput::ArrayVariable *)vars.get(_var_name);
 
     if(!vars.get(_perms_name)){
-        sprintf(msg,
-                "Undeclared permutations variable \"%s\" (tool \"%s\").\n",
-                _perms_name,
-                name());
-        S->addMessageF(L_ERROR, msg);
-        return true;
+        std::ostringstream msg;
+        msg << "Tool \"" << name()
+            << "\" is asking for the undeclared permutations variable \""
+            << _perms_name << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("Invalid variable");
     }
     if(vars.get(_perms_name)->type().compare("unsigned int*")){
-        sprintf(msg,
-                "Wrong type for the variable \"%s\" (tool: \"%s\").\n",
-                _perms_name,
-                name());
-        S->addMessageF(L_ERROR, msg);
-        sprintf(msg,
-                "\t\"%s\" was expected, but \"%s\" has been found.\n",
-                "unsigned int*",
-                vars.get(_perms_name)->type());
-        S->addMessage(L_DEBUG, msg);
-        return true;
+        std::ostringstream msg;
+        msg << "Tool \"" << name()
+            << "\" cannot process permutations variable \"" << _perms_name
+            << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        msg.str("");
+        msg << "\t\"unsigned int*\" type was expected, but \""
+            << vars.get(_perms_name)->type() << "\" has been received." << std::endl;
+        LOG(L_DEBUG, msg.str());
+        throw std::runtime_error("Invalid variable type");
     }
     _perms = (InputOutput::ArrayVariable *)vars.get(_perms_name);
 
     if(!vars.get(_inv_perms_name)){
-        sprintf(msg,
-                "Undeclared permutations variable \"%s\" (tool \"%s\").\n",
-                _inv_perms_name,
-                name());
-        S->addMessageF(L_ERROR, msg);
-        return true;
+        std::ostringstream msg;
+        msg << "Tool \"" << name()
+            << "\" is asking for the undeclared inverse permutations variable \""
+            << _inv_perms_name << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("Invalid variable");
     }
     if(vars.get(_inv_perms_name)->type().compare("unsigned int*")){
-        sprintf(msg,
-                "Wrong type for the variable \"%s\" (tool: \"%s\").\n",
-                _inv_perms_name,
-                name());
-        S->addMessageF(L_ERROR, msg);
-        sprintf(msg,
-                "\t\"%s\" was expected, but \"%s\" has been found.\n",
-                "unsigned int*",
-                vars.get(_inv_perms_name)->type());
-        S->addMessage(L_DEBUG, msg);
-        return true;
+        std::ostringstream msg;
+        msg << "Tool \"" << name()
+            << "\" cannot process inverse permutations variable \"" << _inv_perms_name
+            << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        msg.str("");
+        msg << "\t\"unsigned int*\" type was expected, but \""
+            << vars.get(_inv_perms_name)->type() << "\" has been received." << std::endl;
+        LOG(L_DEBUG, msg.str());
+        throw std::runtime_error("Invalid variable type");
     }
     _inv_perms = (InputOutput::ArrayVariable *)vars.get(_inv_perms_name);
 
     // Check the lengths
     n = _var->size() / vars.typeToBytes(_var->type());
     if(!isPowerOf2(n)){
-        sprintf(msg,
-                "Tool \"%s\" cannot sort the variable \"%s\".\n",
-                name(),
-                _var_name);
-        S->addMessageF(L_ERROR, msg);
-        sprintf(msg,
-                "\tIt has a length %u, which is not power of 2.\n",
-                n);
-        S->addMessage(L_DEBUG, msg);
-        return true;
+        std::ostringstream msg;
+        msg << "Tool \"" << name()
+            << "\" cannot process variable \"" << _var_name
+            << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        msg.str("");
+        msg << "\tThe variable has length, n=" << n
+            << ", which is not power of 2." << std::endl;
+        LOG(L_DEBUG, msg.str());
+        throw std::runtime_error("Invalid variable length");
     }
     _n = n;
     n = _perms->size() / vars.typeToBytes(_perms->type());
     if(n != _n){
-        sprintf(msg,
-                "Lengths mismatch in the tool \"%s\".\n",
-                name());
-        S->addMessageF(L_ERROR, msg);
-        sprintf(msg,
-                "\tVariable \"%s\" has a length n=%u.\n",
-                _var->name(),
-                _n);
-        S->addMessage(L_DEBUG, msg);
-        sprintf(msg,
-                "\tVariable \"%s\" has a length n=%u.\n",
-                _perms->name(),
-                n);
-        S->addMessage(L_DEBUG, msg);
-        return true;
+        std::ostringstream msg;
+        msg << "Lengths mismatch in tool \"" << name()
+            << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        msg.str("");
+        msg << "\tVariable \"" << _var->name()
+            << "\" has length, n=" << _n << std::endl;
+        LOG(L_DEBUG, msg.str());
+        msg.str("");
+        msg << "\tVariable \"" << _perms->name()
+            << "\" has length, n=" << n << std::endl;
+        LOG(L_DEBUG, msg.str());
+        throw std::runtime_error("Invalid variable length");
     }
     n = _inv_perms->size() / vars.typeToBytes(_inv_perms->type());
     if(n != _n){
-        sprintf(msg,
-                "Lengths mismatch in the tool \"%s\".\n",
-                name());
-        S->addMessageF(L_ERROR, msg);
-        sprintf(msg,
-                "\tVariable \"%s\" has a length n=%u.\n",
-                _var->name(),
-                _n);
-        S->addMessage(L_DEBUG, msg);
-        sprintf(msg,
-                "\tVariable \"%s\" has a length n=%u.\n",
-                _inv_perms->name(),
-                n);
-        S->addMessage(L_DEBUG, msg);
-        return true;
+        std::ostringstream msg;
+        msg << "Lengths mismatch in tool \"" << name()
+            << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        msg.str("");
+        msg << "\tVariable \"" << _var->name()
+            << "\" has length, n=" << _n << std::endl;
+        LOG(L_DEBUG, msg.str());
+        msg.str("");
+        msg << "\tVariable \"" << _inv_perms->name()
+            << "\" has length, n=" << n << std::endl;
+        LOG(L_DEBUG, msg.str());
+        throw std::runtime_error("Invalid variable length");
     }
-
-    return false;
 }
 
-bool RadixSort::setupOpenCL()
+void RadixSort::setupOpenCL()
 {
-    cl_int err_code;
-    cl_kernel kernel;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-    CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables vars = C->variables();
+    std::ostringstream source;
+    source << RADIXSORT_INC << RADIXSORT_SRC;
+    compile(source.str());
 
-    // Create a header for the source code where the operation will be placed
-    char header[RADIXSORT_INC_LEN + 128];
-    strcpy(header, "");
-    strncat(header, RADIXSORT_INC, RADIXSORT_INC_LEN);
-    strcat(header, "");
-
-    // Setup the complete source code
-    char source[strlen(header) + strlen(RADIXSORT_SRC) + 1];
-    strcpy(source, header);
-    strncat(source, RADIXSORT_SRC, RADIXSORT_SRC_LEN);
-    strcat(source, "");
-
-    // Compile the kernels
-    if(compile(source)){
-        return true;
-    }
     // Check and correct _items, _groups and _histo_split
-    if(setupDims()){
-        return true;
-    }
+    setupDims();
+
     // Setup the memory objects
-    if(setupMems()){
-        return true;
-    }
-    if(setupArgs()){
-        return true;
-    }
+    setupMems();
+    setupArgs();
 
-    sprintf(msg, "\titems: %u\n", _items);
-    S->addMessage(L_DEBUG, msg);
-    sprintf(msg, "\tgroups: %u\n", _groups);
-    S->addMessage(L_DEBUG, msg);
-    sprintf(msg, "\tsplits: %u\n", _histo_split);
-    S->addMessage(L_DEBUG, msg);
-
-    return false;
+    std::ostringstream msg;
+    msg << "\titems: " << _items << std::endl;
+    LOG0(L_DEBUG, msg.str());
+    msg.str(""); msg << "\tgroups: " << _groups << std::endl;
+    LOG0(L_DEBUG, msg.str());
+    msg.str(""); msg << "\tsplits: " << _histo_split << std::endl;
+    LOG0(L_DEBUG, msg.str());
 }
 
-bool RadixSort::compile(const char* source)
+void RadixSort::compile(const std::string source)
 {
     cl_int err_code;
     cl_program program;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
 
-    char flags[512];
-    sprintf(flags,
-            "-D_BITS=%u -D_RADIX=%u -DPERMUT",
-            _bits,
-            _radix);
+    std::ostringstream flags;
+    flags << "-D_BITS=" << _bits << " -D_RADIX=" << _radix << " -DPERMUT";
     #ifdef AQUA_DEBUG
-        strcat(flags, " -DDEBUG");
+        flags << " -DDEBUG";
     #else
-        strcat(flags, " -DNDEBUG");
+        flags << " -DNDEBUG";
     #endif
-    strcat(flags, " -cl-mad-enable -cl-fast-relaxed-math");
+    flags << " -cl-mad-enable -cl-fast-relaxed-math";
     #ifdef HAVE_3D
-        strcat(flags, " -DHAVE_3D");
+        flags << " -DHAVE_3D";
     #else
-        strcat(flags, " -DHAVE_2D");
+        flags << " -DHAVE_2D";
     #endif
-    size_t source_length = strlen(source) + 1;
+    size_t source_length = source.size();
+    const char* source_cstr = source.c_str();
     program = clCreateProgramWithSource(C->context(),
                                         1,
-                                        (const char **)&source,
+                                        &source_cstr,
                                         &source_length,
                                         &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(L_ERROR, "Failure creating the OpenCL program.\n");
-        S->printOpenCLError(err_code);
-        return true;
+        LOG(L_ERROR, "Failure creating the OpenCL program.\n");
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL compilation error");
     }
-    err_code = clBuildProgram(program, 0, NULL, flags, NULL, NULL);
+    err_code = clBuildProgram(program, 0, NULL, flags.str().c_str(), NULL, NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessage(L_ERROR, "Error compiling the source code\n");
-        S->printOpenCLError(err_code);
-        S->addMessage(L_ERROR, "--- Build log ---------------------------------\n");
+        LOG0(L_ERROR, "Error compiling the source code\n");
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        LOG0(L_ERROR, "--- Build log ---------------------------------\n");
         size_t log_size = 0;
         clGetProgramBuildInfo(program,
                               C->device(),
@@ -790,12 +742,12 @@ bool RadixSort::compile(const char* source)
                               &log_size);
         char *log = (char*)malloc(log_size + sizeof(char));
         if(!log){
-            sprintf(msg,
-                    "Failure allocating %lu bytes for the building log\n",
-                    log_size);
-            S->addMessage(L_ERROR, msg);
-            S->addMessage(L_ERROR, "--------------------------------- Build log ---\n");
-            return NULL;
+            std::stringstream msg;
+            msg << "Failure allocating " << log_size
+                << " bytes for the building log" << std::endl;
+            LOG0(L_ERROR, msg.str());
+            LOG0(L_ERROR, "--------------------------------- Build log ---\n");
+            throw std::bad_alloc();
         }
         strcpy(log, "");
         clGetProgramBuildInfo(program,
@@ -805,66 +757,62 @@ bool RadixSort::compile(const char* source)
                               log,
                               NULL);
         strcat(log, "\n");
-        S->addMessage(L_DEBUG, log);
-        S->addMessage(L_ERROR, "--------------------------------- Build log ---\n");
+        LOG0(L_DEBUG, log);
+        LOG0(L_ERROR, "--------------------------------- Build log ---\n");
         free(log); log=NULL;
         clReleaseProgram(program);
-        return true;
+        throw std::runtime_error("OpenCL compilation error");
     }
 
     _init_kernel = clCreateKernel(program, "init", &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(L_ERROR, "Failure creating the \"init\" kernel.\n");
-        S->printOpenCLError(err_code);
+        LOG(L_ERROR, "Failure creating the \"init\" kernel.\n");
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
         clReleaseProgram(program);
-        return true;
+        throw std::runtime_error("OpenCL error");
     }
     _histograms_kernel = clCreateKernel(program, "histogram", &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(L_ERROR, "Failure creating the \"histogram\" kernel.\n");
-        S->printOpenCLError(err_code);
+        LOG(L_ERROR, "Failure creating the \"histogram\" kernel.\n");
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
         clReleaseProgram(program);
-        return true;
+        throw std::runtime_error("OpenCL error");
     }
     _scan_kernel = clCreateKernel(program, "scan", &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(L_ERROR, "Failure creating the \"scan\" kernel.\n");
-        S->printOpenCLError(err_code);
+        LOG(L_ERROR, "Failure creating the \"scan\" kernel.\n");
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
         clReleaseProgram(program);
-        return true;
+        throw std::runtime_error("OpenCL error");
     }
     _paste_kernel = clCreateKernel(program, "paste", &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(L_ERROR, "Failure creating the \"paste\" kernel.\n");
-        S->printOpenCLError(err_code);
+        LOG(L_ERROR, "Failure creating the \"paste\" kernel.\n");
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
         clReleaseProgram(program);
-        return true;
+        throw std::runtime_error("OpenCL error");
     }
     _sort_kernel = clCreateKernel(program, "sort", &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(L_ERROR, "Failure creating the \"sort\" kernel.\n");
-        S->printOpenCLError(err_code);
+        LOG(L_ERROR, "Failure creating the \"sort\" kernel.\n");
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
         clReleaseProgram(program);
-        return true;
+        throw std::runtime_error("OpenCL error");
     }
     _inv_perms_kernel = clCreateKernel(program, "inversePermutation", &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(L_ERROR, "Failure creating the \"inversePermutation\" kernel.\n");
-        S->printOpenCLError(err_code);
+        LOG(L_ERROR, "Failure creating the \"inversePermutation\" kernel.\n");
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
         clReleaseProgram(program);
-        return true;
+        throw std::runtime_error("OpenCL error");
     }
     clReleaseProgram(program);
-
-    return false;
 }
 
-bool RadixSort::setupDims()
+void RadixSort::setupDims()
 {
     cl_int err_code;
     size_t max_local_work_size, sort_local_work_size, scan_local_work_size;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
 
     // For the _histograms_kernel and _sort_kernel _items can be used as the
@@ -876,9 +824,9 @@ bool RadixSort::setupDims()
                                         &max_local_work_size,
                                         NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(L_ERROR, "Failure getting CL_KERNEL_WORK_GROUP_SIZE from \"histogram\".\n");
-        S->printOpenCLError(err_code);
-        return true;
+        LOG(L_ERROR, "Failure getting CL_KERNEL_WORK_GROUP_SIZE from \"histogram\".\n");
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     err_code = clGetKernelWorkGroupInfo(_sort_kernel,
                                         C->device(),
@@ -887,9 +835,9 @@ bool RadixSort::setupDims()
                                         &sort_local_work_size,
                                         NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(L_ERROR, "Failure getting CL_KERNEL_WORK_GROUP_SIZE from \"sort\".\n");
-        S->printOpenCLError(err_code);
-        return true;
+        LOG(L_ERROR, "Failure getting CL_KERNEL_WORK_GROUP_SIZE from \"sort\".\n");
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     if(sort_local_work_size < max_local_work_size)
         max_local_work_size = sort_local_work_size;
@@ -907,9 +855,9 @@ bool RadixSort::setupDims()
                                         &scan_local_work_size,
                                         NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(L_ERROR, "Failure getting CL_KERNEL_WORK_GROUP_SIZE from \"scan\".\n");
-        S->printOpenCLError(err_code);
-        return true;
+        LOG(L_ERROR, "Failure getting CL_KERNEL_WORK_GROUP_SIZE from \"scan\".\n");
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     if(scan_local_work_size < _histo_split / 2)
         _histo_split = 2 * scan_local_work_size;
@@ -925,9 +873,9 @@ bool RadixSort::setupDims()
                                         &max_local_work_size,
                                         NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(L_ERROR, "Failure getting CL_KERNEL_WORK_GROUP_SIZE from \"paste\".\n");
-        S->printOpenCLError(err_code);
-        return true;
+        LOG(L_ERROR, "Failure getting CL_KERNEL_WORK_GROUP_SIZE from \"paste\".\n");
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     max_local_work_size = min(max_local_work_size, scan_local_work_size);
     while(max_local_work_size < _radix * _groups * _items / 2 / _histo_split){
@@ -950,22 +898,18 @@ bool RadixSort::setupDims()
     }
     if(max_local_work_size < _radix * _groups * _items / 2 / _histo_split){
         // We can try to reduce the radix, but it is a bad business
-        S->addMessageF(L_ERROR, "Failure setting a number of items and groups compatible with \"scan\" and \"paste\".\n");
-        S->addMessage(L_DEBUG, "\tYou can try to recompile the code decreasing __CL_MIN_LOCALSIZE__\n");
-        return true;
+        LOG(L_ERROR, "Failure setting a number of items and groups compatible with \"scan\" and \"paste\".\n");
+        LOG0(L_DEBUG, "\tYou can try to recompile the code decreasing __CL_MIN_LOCALSIZE__\n");
+        throw std::runtime_error("OpenCL error");
     }
 
     _local_work_size = getLocalWorkSize(_n, C->command_queue());
     _global_work_size = getGlobalWorkSize(_n, _local_work_size);
-
-    return false;
 }
 
-bool RadixSort::setupMems()
+void RadixSort::setupMems()
 {
     cl_int err_code;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
 
     if(_in_keys) clReleaseMemObject(_in_keys); _in_keys=NULL;
@@ -984,9 +928,12 @@ bool RadixSort::setupMems()
                               NULL,
                               &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(L_ERROR, "Buffer memory allocation failure.\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::stringstream msg;
+        msg << "Failure allocating device memory in the tool \"" <<
+               name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL allocation error");
     }
     _out_keys = clCreateBuffer(C->context(),
                               CL_MEM_READ_WRITE,
@@ -994,9 +941,12 @@ bool RadixSort::setupMems()
                               NULL,
                               &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(L_ERROR, "Buffer memory allocation failure.\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::stringstream msg;
+        msg << "Failure allocating device memory in the tool \"" <<
+               name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL allocation error");
     }
     _in_permut = clCreateBuffer(C->context(),
                                 CL_MEM_READ_WRITE,
@@ -1004,9 +954,12 @@ bool RadixSort::setupMems()
                                 NULL,
                                 &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(L_ERROR, "Buffer memory allocation failure.\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::stringstream msg;
+        msg << "Failure allocating device memory in the tool \"" <<
+               name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL allocation error");
     }
     _out_permut = clCreateBuffer(C->context(),
                                  CL_MEM_READ_WRITE,
@@ -1014,9 +967,12 @@ bool RadixSort::setupMems()
                                  NULL,
                                  &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(L_ERROR, "Buffer memory allocation failure.\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::stringstream msg;
+        msg << "Failure allocating device memory in the tool \"" <<
+               name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL allocation error");
     }
     _histograms = clCreateBuffer(C->context(),
                                  CL_MEM_READ_WRITE,
@@ -1024,9 +980,12 @@ bool RadixSort::setupMems()
                                  NULL,
                                  &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(L_ERROR, "Buffer memory allocation failure.\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::stringstream msg;
+        msg << "Failure allocating device memory in the tool \"" <<
+               name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL allocation error");
     }
     _global_sums = clCreateBuffer(C->context(),
                                   CL_MEM_READ_WRITE,
@@ -1034,9 +993,12 @@ bool RadixSort::setupMems()
                                   NULL,
                                   &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(L_ERROR, "Buffer memory allocation failure.\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::stringstream msg;
+        msg << "Failure allocating device memory in the tool \"" <<
+               name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL allocation error");
     }
     _temp_mem = clCreateBuffer(C->context(),
                                CL_MEM_READ_WRITE,
@@ -1044,24 +1006,23 @@ bool RadixSort::setupMems()
                                NULL,
                                &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(L_ERROR, "Buffer memory allocation failure.\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::stringstream msg;
+        msg << "Failure allocating device memory in the tool \"" <<
+               name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL allocation error");
     }
 
     allocatedMemory(4 * _n * sizeof(unsigned int) +
                     (_radix * _groups * _items) * sizeof(unsigned int) +
                     _histo_split * sizeof(unsigned int) +
                     sizeof(unsigned int));
-
-    return false;
 }
 
-bool RadixSort::setupArgs()
+void RadixSort::setupArgs()
 {
     cl_int err_code;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
 
     err_code = clSetKernelArg(_init_kernel,
@@ -1069,9 +1030,12 @@ bool RadixSort::setupArgs()
                               sizeof(cl_uint),
                               (void*)&_n);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending argument 1 to \"init\"\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure sending argument 1 to \"init\" within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
 
     err_code = clSetKernelArg(_histograms_kernel,
@@ -1079,27 +1043,36 @@ bool RadixSort::setupArgs()
                               sizeof(cl_mem),
                               (void*)&_histograms);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending argument 1 to \"histogram\"\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure sending argument 1 to \"histogram\" within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_histograms_kernel,
                               3,
                               sizeof(cl_uint) * _radix * _items,
                               NULL);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending argument 3 to \"histogram\"\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure sending argument 3 to \"histogram\" within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_histograms_kernel,
                               4,
                               sizeof(cl_uint),
                               (void*)&_n);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending argument 4 to \"histogram\"\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure sending argument 4 to \"histogram\" within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
 
     unsigned int maxmemcache = max(_histo_split,
@@ -1109,9 +1082,12 @@ bool RadixSort::setupArgs()
                               sizeof(cl_uint) * maxmemcache,
                               NULL);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending argument 1 to \"scan\"\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure sending argument 1 to \"scan\" within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
 
     err_code = clSetKernelArg(_paste_kernel,
@@ -1119,18 +1095,24 @@ bool RadixSort::setupArgs()
                               sizeof(cl_mem),
                               (void*)&_histograms);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending argument 0 to \"paste\"\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure sending argument 0 to \"paste\" within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_paste_kernel,
                               1,
                               sizeof(cl_mem),
                               (void*)&_global_sums);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending argument 1 to \"paste\"\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure sending argument 1 to \"paste\" within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
 
     err_code = clSetKernelArg(_sort_kernel,
@@ -1138,27 +1120,36 @@ bool RadixSort::setupArgs()
                               sizeof(cl_mem),
                               (void*)&_histograms);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending argument 2 to \"sort\"\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure sending argument 2 to \"sort\" within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_sort_kernel,
                               6,
                               sizeof(cl_uint) * _radix * _items,
                               NULL);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending argument 6 to \"sort\"\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure sending argument 6 to \"sort\" within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_sort_kernel,
                               7,
                               sizeof(cl_uint),
                               (void*)&_n);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending argument 7 to \"sort\"\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure sending argument 7 to \"sort\" within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
 
     err_code = clSetKernelArg(_inv_perms_kernel,
@@ -1166,21 +1157,22 @@ bool RadixSort::setupArgs()
                               sizeof(cl_mem),
                               _inv_perms->get());
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending argument 1 to \"inversePermutation\"\n");
-        S->printOpenCLError(err_code);
-        return true;
+        LOG(L_ERROR, "Failure sending argument 1 to \"inversePermutation\"\n");
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_inv_perms_kernel,
                               2,
                               sizeof(cl_uint),
                               (void*)&_n);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending argument 2 to \"inversePermutation\"\n");
-        S->printOpenCLError(err_code);
-        return true;
+        std::ostringstream msg;
+        msg << "Failure sending argument 1 to \"inversePermutation\" within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
-
-    return false;
 }
 
 }}  // namespace

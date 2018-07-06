@@ -353,10 +353,10 @@ bool CalcServer::update()
         // Execute the tools
         strcpy(_current_tool_name, "__pre execution__");
         for(i = 0; i < _tools.size(); i++){
-            strncpy(_current_tool_name, _tools.at(i)->name(), 255);
+            strncpy(_current_tool_name, _tools.at(i)->name().c_str(), 255);
             _current_tool_name[255] = '\0';
             try {
-                _tools.at(i)->execute())
+                _tools.at(i)->execute();
             } catch (std::runtime_error &e) {
                 sleep(__ERROR_SHOW_TIME__);
                 throw;

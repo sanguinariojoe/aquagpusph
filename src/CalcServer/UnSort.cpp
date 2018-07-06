@@ -264,7 +264,6 @@ cl_kernel UnSort::compile(const std::string source)
     CalcServer *C = CalcServer::singleton();
 
     std::ostringstream flags;
-    char flags[512];
     if(!_var->type().compare("unsigned int*")){
         // Spaces are not a good business to define a variable
         flags << "-DT=uint";
@@ -300,7 +299,7 @@ cl_kernel UnSort::compile(const std::string source)
     err_code = clBuildProgram(program, 0, NULL, flags.str().c_str(), NULL, NULL);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Error compiling the OpenCL script\n");
-        S->printOpenCLError(err_code);
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
         LOG0(L_ERROR, "--- Build log ---------------------------------\n");
         size_t log_size = 0;
         clGetProgramBuildInfo(program,

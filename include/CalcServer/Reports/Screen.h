@@ -25,7 +25,6 @@
 #define SCREEN_H_INCLUDED
 
 #include <sphPrerequisites.h>
-
 #include <CalcServer/Reports/Report.h>
 #include <AuxiliarMethods.h>
 
@@ -54,9 +53,9 @@ public:
      * @param bold true if the text should be highlighted as bold text, false
      * otherwise.
      */
-    Screen(const char* tool_name,
-           const char* fields,
-           const char* color="white",
+    Screen(const std::string tool_name,
+           const std::string fields,
+           const std::string color="white",
            bool bold=false);
 
     /** @brief Destructor
@@ -64,19 +63,17 @@ public:
     ~Screen();
 
     /** @brief Initialize the tool.
-     * @return false if all gone right, true otherwise.
      */
-    bool setup();
+    void setup();
 
 protected:
     /** @brief Execute the tool.
-     * @return false if all gone right, true otherwise.
      */
-    bool _execute();
+    void _execute();
 
 private:
     /// Output color
-    char *_color;
+    std::string _color;
     /// Output bold or normal flag
     bool _bold;
 };

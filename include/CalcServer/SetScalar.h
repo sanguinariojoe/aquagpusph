@@ -40,32 +40,31 @@ public:
      * @param var_name Variable to set.
      * @param value Value to set.
      */
-    SetScalar(const char *name, const char *var_name, const char *value);
+    SetScalar(const std::string name,
+              const std::string var_name,
+              const std::string value);
 
     /// Destructor.
     ~SetScalar();
 
     /** @brief Initialize the tool.
-     * @return false if all gone right, true otherwise.
      */
-    bool setup();
+    void setup();
 
 protected:
     /** @brief Perform the work.
-     * @return false if all gone right, true otherwise.
      */
-    bool _execute();
+    void _execute();
 
 private:
     /** @brief Get the input variable
-     * @return false if all gone right, true otherwise
      */
-    bool variable();
+    void variable();
 
     /// Input variable name
-    char* _var_name;
+    std::string _var_name;
     /// Value to set
-    char* _value;
+    std::string _value;
 
     /// Input variable
     InputOutput::Variable *_var;

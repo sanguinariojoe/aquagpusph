@@ -44,37 +44,24 @@ const char* REDUCTION_SRC = (const char*)Reduction_cl_in;
 unsigned int REDUCTION_SRC_LEN = Reduction_cl_in_len;
 
 
-Reduction::Reduction(const char *name,
-                     const char *input_name,
-                     const char *output_name,
-                     const char* operation,
-                     const char* null_val)
+Reduction::Reduction(const std::string name,
+                     const std::string input_name,
+                     const std::string output_name,
+                     const std::string operation,
+                     const std::string null_val)
     : Tool(name)
-    , _input_name(NULL)
-    , _output_name(NULL)
-    , _operation(NULL)
-    , _null_val(NULL)
+    , _input_name(input_name)
+    , _output_name(output_name)
+    , _operation(operation)
+    , _null_val(null_val)
     , _input_var(NULL)
     , _output_var(NULL)
     , _input(NULL)
 {
-    _input_name = new char[strlen(input_name) + 1];
-    strcpy(_input_name, input_name);
-    _output_name = new char[strlen(output_name) + 1];
-    strcpy(_output_name, output_name);
-    _operation = new char[strlen(operation) + 1];
-    strcpy(_operation, operation);
-    _null_val = new char[strlen(null_val) + 1];
-    strcpy(_null_val, null_val);
 }
 
 Reduction::~Reduction()
 {
-    if(_input_name) delete[] _input_name; _input_name=NULL;
-    if(_output_name) delete[] _output_name; _output_name=NULL;
-    if(_operation) delete[] _operation; _operation=NULL;
-    if(_null_val) delete[] _null_val; _null_val=NULL;
-
     unsigned int i;
     for(i=1;i<_mems.size();i++){
         if(_mems.at(i))
@@ -91,43 +78,30 @@ Reduction::~Reduction()
     _local_work_sizes.clear();
 }
 
-bool Reduction::setup()
+void Reduction::setup()
 {
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    std::ostringstream msg;
+    msg << "Loading the tool \"" << name() << "\"..." << std::endl;
+    LOG(L_INFO, msg.str());
 
-    sprintf(msg,
-            "Loading the tool \"%s\"...\n",
-            name());
-    S->addMessageF(L_INFO, msg);
-
-    if(variables()){
-        return true;
-    }
+    variables();
 
     _mems.push_back(*(cl_mem*)_input_var->get());
     _input = *(cl_mem*)_input_var->get();
     size_t n = _input_var->size() / InputOutput::Variables::typeToBytes(
         _input_var->type());
     _n.push_back(n);
-    if(setupOpenCL())
-        return true;
-    return false;
+    setupOpenCL();
 }
 
-
-bool Reduction::_execute()
+void Reduction::_execute()
 {
     unsigned int i;
     cl_int err_code;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
     InputOutput::Variables vars = C->variables();
 
-    if(setVariables()){
-        return true;
-    }
+    setVariables();
 
     // Execute the kernels
     for(i = 0;i < _kernels.size(); i++){
@@ -143,13 +117,12 @@ bool Reduction::_execute()
                                           NULL,
                                           NULL);
         if(err_code != CL_SUCCESS) {
-            sprintf(msg,
-                    "Failure executing the tool \"%s\" step %u.\n",
-                    name(),
-                    i);
-            S->addMessageF(L_ERROR, msg);
-            S->printOpenCLError(err_code);
-            return true;
+            std::ostringstream msg;
+            msg << "Failure executing the step " << i << " within the tool \""
+                << name() << "\"." << std::endl;
+            LOG(L_ERROR, msg.str());
+            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL execution error");
         }
     }
 
@@ -164,121 +137,97 @@ bool Reduction::_execute()
                                    NULL,
                                    NULL);
     if(err_code != CL_SUCCESS) {
-        sprintf(msg,
-                "Failure in tool \"%s\" when reading back the reduced result.\n",
-                name());
-        S->addMessageF(L_ERROR, msg);
-        S->printOpenCLError(err_code);
-        return true;
+            std::ostringstream msg;
+            msg << "Failure reading back the result within the tool \""
+                << name() << "\"." << std::endl;
+            LOG(L_ERROR, msg.str());
+            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL error");
     }
 
     // Ensure that the variable is populated
-    try {
-        vars.populate(_output_var);
-    } catch(...) {
-        return true;
-    }
-    return false;
+    vars.populate(_output_var);
 }
 
-bool Reduction::variables()
+void Reduction::variables()
 {
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-    CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables vars = C->variables();
+    InputOutput::Variables vars = CalcServer::singleton()->variables();
     if(!vars.get(_input_name)){
-        sprintf(msg,
-                "The tool \"%s\" has received the undeclared variable \"%s\" as input.\n",
-                name(),
-                _input_name);
-        S->addMessageF(L_ERROR, msg);
-        return true;
+        std::stringstream msg;
+        msg << "The tool \"" << name()
+            << "\" is asking the undeclared input variable \""
+            << _input_name << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("Invalid variable");
     }
     if(vars.get(_input_name)->type().find('*') == std::string::npos){
-        sprintf(msg,
-                "The tool \"%s\" has received the scalar variable \"%s\" as input.\n",
-                name(),
-                _input_name);
-        S->addMessageF(L_ERROR, msg);
-        return true;
+        std::stringstream msg;
+        msg << "The tool \"" << name()
+            << "\" is asking the input variable \"" << _input_name
+            << "\", which is a scalar." << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("Invalid variable type");
     }
     _input_var = (InputOutput::ArrayVariable *)vars.get(_input_name);
     if(!vars.get(_output_name)){
-        sprintf(msg,
-                "The tool \"%s\" has received the undeclared variable \"%s\" as output.\n",
-                name(),
-                _output_name);
-        S->addMessageF(L_ERROR, msg);
-        return true;
+        std::stringstream msg;
+        msg << "The tool \"" << name()
+            << "\" is asking the undeclared output variable \""
+            << _output_name << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("Invalid variable");
     }
     if(vars.get(_output_name)->type().find('*') != std::string::npos){
-        sprintf(msg,
-                "The tool \"%s\" has received the array variable \"%s\" as output.\n",
-                name(),
-                _output_name);
-        S->addMessageF(L_ERROR, msg);
-        return true;
+        std::stringstream msg;
+        msg << "The tool \"" << name()
+            << "\" is asking the output variable \"" << _output_name
+            << "\", which is an array." << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("Invalid variable type");
     }
     _output_var = vars.get(_output_name);
     if(!vars.isSameType(_input_var->type(), _output_var->type())){
-        sprintf(msg,
-                "The input and output types mismatch for the tool \"%s\".\n",
-                name());
-        S->addMessageF(L_ERROR, msg);
-        sprintf(msg,
-                "\tInput variable \"%s\" is of type \"%s\".\n",
-                _input_var->name(),
-                _input_var->type());
-        S->addMessage(L_DEBUG, msg);
-        sprintf(msg,
-                "\tOutput variable \"%s\" is of type \"%s\".\n",
-                _output_var->name(),
-                _output_var->type());
-        S->addMessage(L_DEBUG, msg);
-        return true;
+        std::stringstream msg;
+        msg << "Mismatching input and output types within the tool \"" << name()
+            << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        msg.str("");
+        msg << "\tInput variable \"" << _input_var->name()
+            << "\" is of type \"" << _input_var->type()
+            << "\"." << std::endl;
+        LOG0(L_DEBUG, msg.str());
+        msg << "\tOutput variable \"" << _output_var->name()
+            << "\" is of type \"" << _output_var->type()
+            << "\"." << std::endl;
+        LOG0(L_DEBUG, msg.str());
+        throw std::runtime_error("Invalid variable type");
     }
-    return false;
 }
 
-bool Reduction::setupOpenCL()
+void Reduction::setupOpenCL()
 {
     size_t data_size, local_size, max_local_size;
     cl_int err_code;
     cl_kernel kernel;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
     InputOutput::Variables vars = C->variables();
 
     // Get the elements data size to can allocate local memory later
     data_size = vars.typeToBytes(_input_var->type());
 
-    // Create a header for the source code where the operation will be placed
-    char header[REDUCTION_INC_LEN + strlen(_operation) + strlen(_null_val) + 128];
-    strcpy(header, "");
-    strncat(header, REDUCTION_INC, REDUCTION_INC_LEN);
-    sprintf(header + strlen(header), " #define IDENTITY %s\n", _null_val);
-    strcat(header, "T reduce(T a, T b) \n");
-    strcat(header, "{ \n");
-    strcat(header, "\tT c; \n");
-    strcat(header, _operation);
-    strcat(header, "\n");
-    strcat(header, "\treturn c;\n");
-    strcat(header, "} \n");
-
-    // Setup the complete source code
-    char source[strlen(header) + strlen(REDUCTION_SRC) + 1];
-    strcpy(source, header);
-    strncat(source, REDUCTION_SRC, REDUCTION_SRC_LEN);
-    strcat(source, "");
+    std::ostringstream source;
+    source << REDUCTION_INC << " #define IDENTITY " << _null_val << std::endl;
+    source << "T reduce(T a, T b) " << std::endl;
+    source << "{ " << std::endl;
+    source << "    T c; " << std::endl;
+    source << _operation << std::endl;
+    source << "    return c; " << std::endl;
+    source << "} " << std::endl;
+    source << REDUCTION_SRC;
 
     // Starts a dummy kernel in order to study the local size that can be used
     local_size = __CL_MAX_LOCALSIZE__;
-    kernel = compile(source, local_size);
-    if(!kernel){
-        return true;
-    }
+    kernel = compile(source.str(), local_size);
     err_code = clGetKernelWorkGroupInfo(kernel,
                                         C->device(),
                                         CL_KERNEL_WORK_GROUP_SIZE,
@@ -286,26 +235,25 @@ bool Reduction::setupOpenCL()
                                         &max_local_size,
                                         NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(L_ERROR, "Failure querying the work group size.\n");
-        S->printOpenCLError(err_code);
+        LOG(L_ERROR, "Failure querying the work group size.\n");
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
         clReleaseKernel(kernel);
-        return true;
+        throw std::runtime_error("OpenCL error");
     }
     if(max_local_size < __CL_MIN_LOCALSIZE__){
-        S->addMessageF(L_ERROR, "Reduction cannot be performed (insufficient local memory)\n");
-        sprintf(msg,
-                "\t%lu elements can be executed, but __CL_MIN_LOCALSIZE__=%lu\n",
-                max_local_size,
-                __CL_MIN_LOCALSIZE__);
-        S->addMessage(L_DEBUG, msg);
-        return true;
+        LOG(L_ERROR, "insufficient local memory.\n");
+        std::stringstream msg;
+        msg << "\t" << max_local_size
+            << " local work group size with __CL_MIN_LOCALSIZE__="
+            << __CL_MIN_LOCALSIZE__ << std::endl;
+        LOG0(L_DEBUG, msg.str());
+        throw std::runtime_error("OpenCL error");
     }
     local_size = max_local_size;
     if(!isPowerOf2(local_size)){
         local_size = nextPowerOf2(local_size) / 2;
     }
-
-    if(kernel)clReleaseKernel(kernel); kernel=NULL;
+    clReleaseKernel(kernel);
 
     // Now we can start a loop while the amount of reduced data is greater than
     // one
@@ -328,17 +276,17 @@ bool Reduction::setupOpenCL()
                                 NULL,
                                 &err_code);
         if(err_code != CL_SUCCESS) {
-            S->addMessageF(L_ERROR, "Buffer memory allocation failure.\n");
-            S->printOpenCLError(err_code);
-            return true;
+            std::stringstream msg;
+            msg << "Failure allocating device memory in the tool \"" <<
+                name() << "\"." << std::endl;
+            LOG(L_ERROR, msg.str());
+            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL allocation error");
         }
         allocatedMemory(_number_groups.at(i) * data_size + allocatedMemory());
         _mems.push_back(output);
         // Build the kernel
-        kernel = compile(source, local_size);
-        if(!kernel){
-            return true;
-        }
+        kernel = compile(source.str(), local_size);
         _kernels.push_back(kernel);
 
         err_code = clSetKernelArg(kernel,
@@ -346,99 +294,92 @@ bool Reduction::setupOpenCL()
                                   sizeof(cl_mem),
                                   (void*)&(_mems.at(i)));
         if(err_code != CL_SUCCESS){
-            S->addMessageF(L_ERROR, "Failure sending input argument\n");
-            S->printOpenCLError(err_code);
-            return true;
+            LOG(L_ERROR, "Failure sending input argument\n");
+            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL error");
         }
         err_code = clSetKernelArg(kernel,
                                   1,
                                   sizeof(cl_mem),
                                   (void*)&(_mems.at(i+1)));
         if(err_code != CL_SUCCESS){
-            S->addMessageF(L_ERROR, "Failure sending output argument\n");
-            S->printOpenCLError(err_code);
-            return true;
+            LOG(L_ERROR, "Failure sending output argument\n");
+            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL error");
         }
         err_code = clSetKernelArg(kernel,
                                   2,
                                   sizeof(cl_uint),
                                   (void*)&(n));
         if(err_code != CL_SUCCESS){
-            S->addMessageF(L_ERROR, "Failure sending number of threads argument\n");
-            S->printOpenCLError(err_code);
-            return true;
+            LOG(L_ERROR, "Failure sending number of threads argument\n");
+            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL error");
         }
         err_code = clSetKernelArg(kernel,
                                   3,
                                   local_size*data_size ,
                                   NULL);
         if(err_code != CL_SUCCESS){
-            S->addMessageF(L_ERROR, "Failure setting local memory\n");
-            S->printOpenCLError(err_code);
-            return true;
+            LOG(L_ERROR, "Failure setting local memory\n");
+            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL error");
         }
         // Setup next step
-        sprintf(msg,
-                "\tStep %u, %u elements reduced to %u\n",
-                i,
-                n,
-                _number_groups.at(i));
-        S->addMessage(L_DEBUG, msg);
+        std::stringstream msg;
+        msg << "\tStep " << i << ", " << n << " elements reduced to "
+            << _number_groups.at(i) << std::endl;
+        LOG(L_DEBUG, msg.str());
         n = _number_groups.at(i);
         i++;
     }
-    return false;
 }
 
-cl_kernel Reduction::compile(const char* source, size_t local_work_size)
+cl_kernel Reduction::compile(const std::string source, size_t local_work_size)
 {
     cl_int err_code;
     cl_program program;
     cl_kernel kernel;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
 
-    char flags[512];
+    std::ostringstream flags;
     if(!_output_var->type().compare("unsigned int")){
-        sprintf(flags,
-                "-DT=%s -DLOCAL_WORK_SIZE=%luu",
-                "uint",
-                local_work_size);
+        // Spaces are not a good business into definitions passed as args
+        flags << "-DT=uint";
     }
     else{
-        sprintf(flags,
-                "-DT=%s -DLOCAL_WORK_SIZE=%luu",
-                _output_var->type(),
-                local_work_size);
+        flags << "-DT=" << _output_var->type();
     }
+    flags << " -DLOCAL_WORK_SIZE=" << local_work_size << "u";
     #ifdef AQUA_DEBUG
-        strcat(flags, " -DDEBUG ");
+        flags << " -DDEBUG";
     #else
-        strcat(flags, " -DNDEBUG ");
+        flags << " -DNDEBUG";
     #endif
-    strcat(flags, " -cl-mad-enable -cl-fast-relaxed-math");
+    flags << " -cl-mad-enable -cl-fast-relaxed-math";
     #ifdef HAVE_3D
-        strcat(flags, " -DHAVE_3D");
+        flags << " -DHAVE_3D";
     #else
-        strcat(flags, " -DHAVE_2D");
+        flags << " -DHAVE_2D";
     #endif
-    size_t source_length = strlen(source) + 1;
+
+    size_t source_length = source.size();
+    const char* source_cstr = source.c_str();
     program = clCreateProgramWithSource(C->context(),
                                         1,
-                                        (const char **)&source,
+                                        &source_cstr,
                                         &source_length,
                                         &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(L_ERROR, "Failure creating the OpenCL program.\n");
-        S->printOpenCLError(err_code);
-        return NULL;
+        LOG(L_ERROR, "Failure creating the OpenCL program.\n");
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL compilation error");
     }
-    err_code = clBuildProgram(program, 0, NULL, flags, NULL, NULL);
+    err_code = clBuildProgram(program, 0, NULL, flags.str().c_str(), NULL, NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessage(L_ERROR, "Error compiling the source code\n");
-        S->printOpenCLError(err_code);
-        S->addMessage(L_ERROR, "--- Build log ---------------------------------\n");
+        LOG0(L_ERROR, "Error compiling the source code\n");
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        LOG0(L_ERROR, "--- Build log ---------------------------------\n");
         size_t log_size = 0;
         clGetProgramBuildInfo(program,
                               C->device(),
@@ -448,12 +389,12 @@ cl_kernel Reduction::compile(const char* source, size_t local_work_size)
                               &log_size);
         char *log = (char*)malloc(log_size + sizeof(char));
         if(!log){
-            sprintf(msg,
-                    "Failure allocating %lu bytes for the building log\n",
-                    log_size);
-            S->addMessage(L_ERROR, msg);
-            S->addMessage(L_ERROR, "--------------------------------- Build log ---\n");
-            return NULL;
+            std::stringstream msg;
+            msg << "Failure allocating " << log_size
+                << " bytes for the building log" << std::endl;
+            LOG0(L_ERROR, msg.str());
+            LOG0(L_ERROR, "--------------------------------- Build log ---\n");
+            throw std::bad_alloc();
         }
         strcpy(log, "");
         clGetProgramBuildInfo(program,
@@ -463,31 +404,29 @@ cl_kernel Reduction::compile(const char* source, size_t local_work_size)
                               log,
                               NULL);
         strcat(log, "\n");
-        S->addMessage(L_DEBUG, log);
-        S->addMessage(L_ERROR, "--------------------------------- Build log ---\n");
+        LOG0(L_DEBUG, log);
+        LOG0(L_ERROR, "--------------------------------- Build log ---\n");
         free(log); log=NULL;
         clReleaseProgram(program);
-        return NULL;
+        throw std::runtime_error("OpenCL compilation error");
     }
     kernel = clCreateKernel(program, "reduction", &err_code);
     clReleaseProgram(program);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(L_ERROR, "Failure creating the kernel.\n");
-        S->printOpenCLError(err_code);
-        return NULL;
+        LOG(L_ERROR, "Failure creating the kernel.\n");
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
 
     return kernel;
 }
 
-bool Reduction::setVariables()
+void Reduction::setVariables()
 {
-    char msg[1024];
     cl_int err_code;
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 
     if(_input == *(cl_mem*)_input_var->get()){
-        return false;
+        return;
     }
 
     err_code = clSetKernelArg(_kernels.at(0),
@@ -495,19 +434,16 @@ bool Reduction::setVariables()
                               _input_var->typesize(),
                               _input_var->get());
     if(err_code != CL_SUCCESS) {
-        sprintf(msg,
-                "Failure setting the input variable \"%s\" to the tool \"%s\".\n",
-                _input_var->name(),
-                name());
-        S->addMessageF(L_ERROR, msg);
-        S->printOpenCLError(err_code);
-        return true;
+        std::stringstream msg;
+        msg << "Failure setting the input variable \"" << _input_var->name()
+            << "\" to the tool \"" << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
 
     _input = *(cl_mem *)_input_var->get();
     _mems.at(0) = _input;
-
-    return false;
 }
 
 

@@ -26,7 +26,7 @@
 #ifndef REDUCTION_H_INCLUDED
 #define REDUCTION_H_INCLUDED
 
-#include <deque>
+#include <vector>
 
 #include <CalcServer.h>
 #include <CalcServer/Kernel.h>
@@ -109,7 +109,7 @@ private:
      * @param local_work_size Desired local work size.
      * @return Kernel instance.
      */
-    cl_kernel compile(const char* source, size_t local_work_size);
+    cl_kernel compile(const std::string source, size_t local_work_size);
 
     /** Update the input variables.
      *
@@ -119,13 +119,13 @@ private:
     void setVariables();
 
     /// Input variable name
-    char* _input_name;
+    std::string _input_name;
     /// Output variable name
-    char* _output_name;
+    std::string _output_name;
     /// Operation to be computed
-    char* _operation;
+    std::string _operation;
     /// Considered null val
-    char* _null_val;
+    std::string _null_val;
 
     /// Input variable
     InputOutput::ArrayVariable *_input_var;
@@ -136,19 +136,19 @@ private:
     cl_mem _input;
 
     /// OpenCL kernels
-    std::deque<cl_kernel> _kernels;
+    std::vector<cl_kernel> _kernels;
 
     /// Global work sizes in each step
-    std::deque<size_t> _global_work_sizes;
+    std::vector<size_t> _global_work_sizes;
     /// Local work sizes in each step
-    std::deque<size_t> _local_work_sizes;
+    std::vector<size_t> _local_work_sizes;
     /// Number of work groups in each step
-    std::deque<size_t> _number_groups;
+    std::vector<size_t> _number_groups;
     /// Number of input elements for each step
-    std::deque<size_t> _n;
+    std::vector<size_t> _n;
 
     /// Memory objects
-    std::deque<cl_mem> _mems;
+    std::vector<cl_mem> _mems;
 };
 
 }}  // namespace

@@ -21,7 +21,6 @@
  * (See Aqua::CalcServer::Python for details)
  */
 
-#include <string.h>
 #include <AuxiliarMethods.h>
 #include <ScreenManager.h>
 #include <CalcServer/Python.h>
@@ -84,9 +83,9 @@ static PyObject* get(PyObject *self, PyObject *args, PyObject *keywds)
 
     Aqua::InputOutput::Variable *var = vars.get(varname);
     if(!var){
-        char errstr[64 + strlen(varname)];
-        sprintf(errstr, "Variable \"%s\" has not been declared", varname);
-        PyErr_SetString(PyExc_ValueError, errstr);
+        std::ostringstream errstr;
+        errstr << "Variable \"" << varname << "\" has not been declared";
+        PyErr_SetString(PyExc_ValueError, errstr.str().c_str());
         return NULL;
     }
 
@@ -119,9 +118,9 @@ static PyObject* set(PyObject *self, PyObject *args, PyObject *keywds)
 
     Aqua::InputOutput::Variable *var = vars.get(varname);
     if(!var){
-        char errstr[64 + strlen(varname)];
-        sprintf(errstr, "Variable \"%s\" has not been declared", varname);
-        PyErr_SetString(PyExc_ValueError, errstr);
+        std::ostringstream errstr;
+        errstr << "Variable \"" << varname << "\" has not been declared";
+        PyErr_SetString(PyExc_ValueError, errstr.str().c_str());
         return NULL;
     }
 
@@ -154,8 +153,6 @@ static PyObject* set(PyObject *self, PyObject *args, PyObject *keywds)
  */
 static PyObject* logMsg(PyObject *self, PyObject *args, PyObject *keywds)
 {
-    Aqua::InputOutput::ScreenManager *S =
-        Aqua::InputOutput::ScreenManager::singleton();
     int level;
     const char* msg;
 
@@ -168,13 +165,13 @@ static PyObject* logMsg(PyObject *self, PyObject *args, PyObject *keywds)
 
     switch(level) {
         case 0:
-            S->addMessage(Aqua::L_DEBUG, msg); break;
+            LOG0(Aqua::L_DEBUG, msg); break;
         case 1:
-            S->addMessage(Aqua::L_INFO, msg); break;
+            LOG0(Aqua::L_INFO, msg); break;
         case 2:
-            S->addMessage(Aqua::L_WARNING, msg); break;
+            LOG0(Aqua::L_WARNING, msg); break;
         case 3:
-            S->addMessage(Aqua::L_ERROR, msg); break;            
+            LOG0(Aqua::L_ERROR, msg); break;            
     }
 
     Py_RETURN_NONE;
@@ -241,89 +238,72 @@ PyMODINIT_FUNC PyInit_aquagpusph(void)
 
 namespace Aqua{ namespace CalcServer{
 
-Python::Python(const char *tool_name, const char *script)
+Python::Python(const std::string tool_name, const std::string script)
     : Tool(tool_name)
-    , _script(NULL)
+    , _script(script)
     , _module(NULL)
     , _func(NULL)
 {
-    _script = new char[strlen(script) + 1];
-    strcpy(_script, script);
     // Look for a .py extension to remove it
-    char *dot = strrchr(_script, '.');
-    if(dot && !strcmp(dot, ".py")){
-        strcpy(dot, "");
+    std::size_t last_sep = _script.find_last_of(".");
+    if(last_sep != std::string::npos &&
+       !_script.substr(last_sep + 1).compare(".py")){
+        _script = _script.substr(0, last_sep);
     }
 }
 
 Python::~Python()
 {
-    if(_script) delete[] _script; _script=NULL;
     if(_module) Py_DECREF(_module); _module=0;
     if(_func) Py_DECREF(_func); _func=0;
 }
 
-bool Python::setup()
+void Python::setup()
 {
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    std::ostringstream msg;
+    msg << "Loading the tool \"" << name() << "\"..." << std::endl;
+    LOG(L_INFO, msg.str());
 
-    sprintf(msg,
-            "Loading the tool \"%s\"...\n",
-            name());
-    S->addMessageF(L_INFO, msg);
-
-    if(initPython())
-        return true;
-
-    if(load())
-        return true;
-
-    return false;
+    initPython();
+    load();
 }
 
-bool Python::_execute()
+void Python::_execute()
 {
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     PyObject *result;
 
     result = PyObject_CallObject(_func, NULL);
     if(!result) {
-        S->addMessageF(L_ERROR, "main() function execution failed.\n");
+        LOG(L_ERROR, "main() function execution failed.\n");
         printf("\n--- Python report --------------------------\n\n");
         PyErr_Print();
         printf("\n-------------------------- Python report ---\n");
-        return true;
+        throw std::runtime_error("Python execution error");
     }
 
     if(!PyObject_TypeCheck(result, &PyBool_Type)){
-        S->addMessageF(L_ERROR,
-                       "main() function returned non boolean variable.\n");
-        return true;
+        LOG(L_ERROR, "main() function returned non boolean variable.\n");
+        throw std::runtime_error("Python execution error");
     }
 
     if(result == Py_False){
-        S->addMessageF(L_ERROR, "main() function returned False.\n");
-        return true;
+        LOG(L_ERROR, "main() function returned False.\n");
+        throw std::runtime_error("Python invoked simulation stop");
     }
-
-    return false;
 }
 
-bool Python::initPython()
+void Python::initPython()
 {
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-
     if(Py_IsInitialized()){
-        return false;
+        return;
     }
 
     PyImport_AppendInittab("aquagpusph", PyInit_aquagpusph);
 
     Py_Initialize();
     if(!Py_IsInitialized()){
-        S->addMessageF(L_ERROR, "Failure calling Py_Initialize().\n");
-        return true;
+        LOG(L_ERROR, "Failure calling Py_Initialize().\n");
+        throw std::runtime_error("Python error");
     }
 
     PyRun_SimpleString("import sys");
@@ -340,51 +320,45 @@ bool Python::initPython()
     PyRun_SimpleString(_stderr_redirect);
     PyRun_SimpleString("logger = stderrWriter()");
     PyRun_SimpleString("sys.stderr = logger");
-
-    return false;
 }
 
-bool Python::load()
+void Python::load()
 {
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-    char msg[1024];
     PyObject *modName;
 
-    char comm[512];
-    strcpy(comm, "");
+    std::ostringstream comm;
     PyRun_SimpleString("curdir = os.getcwd()");
-    const char *path = getFolderFromFilePath((const char*)_script);
-    const char *filename = getFileNameFromFilePath((const char*)_script);
-    if(path[0]=='.')   // "./" prefix has been set
-        sprintf(comm, "modulePath = curdir + \"%s\"", &path[1]);
+    std::string path = trimCopy(getFolderFromFilePath(_script));
+    std::string filename = trimCopy(getFileNameFromFilePath(_script));
+    if(path.at(0) == '.')   // "./" prefix has been set
+        comm << "modulePath = curdir + \"" << path.substr(1) << "\"";
     else
-        sprintf(comm, "modulePath = \"%s\"", path);
-    PyRun_SimpleString(comm);
+        comm << "modulePath = \"" << path << "\"";
+    PyRun_SimpleString(comm.str().c_str());
     PyRun_SimpleString("sys.path.append(modulePath)");
 
-    modName = PyUnicode_FromString(filename);
+    modName = PyUnicode_FromString(filename.c_str());
     _module = PyImport_Import(modName);
     Py_DECREF(modName); modName=0;
     if(!_module){
-        sprintf(msg,
-                "Python module \"%s\" cannot be imported.\n",
-                filename);
-        S->addMessageF(L_ERROR, msg);
+        std::ostringstream msg;
+        msg << "Python module \"" << filename
+            << "\" cannot be imported." << std::endl;
+        LOG(L_ERROR, msg.str());
         printf("\n--- Python report --------------------------\n\n");
         PyErr_Print();
         printf("\n-------------------------- Python report ---\n");
-        return true;
+        throw std::runtime_error("Python execution error");
     }
 
     _func = PyObject_GetAttrString(_module, "main");
     if(!_func || !PyCallable_Check(_func)) {
-        S->addMessageF(L_ERROR, "main() function cannot be found.\n");
+        LOG(L_ERROR, "main() function cannot be found.\n");
         printf("\n--- Python report --------------------------\n\n");
         PyErr_Print();
         printf("\n-------------------------- Python report ---\n");
-        return true;
+        throw std::runtime_error("Python execution error");
     }
-    return false;
 }
 
 }}  // namespaces

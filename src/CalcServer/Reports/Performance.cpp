@@ -21,77 +21,57 @@
  * (See Aqua::CalcServer::Reports::Performance for details)
  */
 
+#include <algorithm>
+#include <iomanip>
 #include <CalcServer/Reports/Performance.h>
 #include <CalcServer.h>
 #include <ScreenManager.h>
 
 namespace Aqua{ namespace CalcServer{ namespace Reports{
 
-Performance::Performance(const char* tool_name,
-                         const char* color,
+Performance::Performance(const std::string tool_name,
+                         const std::string color,
                          bool bold,
-                         const char* output_file)
+                         const std::string output_file)
     : Report(tool_name, "dummy_fields_string")
-    , _color(NULL)
+    , _color(color)
     , _bold(bold)
-    , _output_file(NULL)
-    , _f(NULL)
+    , _output_file(output_file)
     , _first_execution(true)
 {
-    _color = new char[strlen(color) + 1];
-    strcpy(_color, color);
-    _output_file = new char[strlen(output_file) + 1];
-    strcpy(_output_file, output_file);
-
     gettimeofday(&_tic, NULL);
 }
 
 Performance::~Performance()
 {
-    if(_color) delete[] _color; _color=NULL;
-    if(_output_file) delete[] _output_file; _output_file=NULL;
-    if(_f) fclose(_f); _f = NULL;
+    if(_f.is_open()) _f.close();
 }
 
-bool Performance::setup()
+void Performance::setup()
 {
     unsigned int i;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 
-    sprintf(msg,
-            "Loading the report \"%s\"...\n",
-            name());
-    S->addMessageF(L_INFO, msg);
+    std::ostringstream msg;
+    msg << "Loading the report \"" << name() << "\"..." << std::endl;
+    LOG(L_INFO, msg.str());
 
     // Set the color in lowercase
-    for(i = 0; i < strlen(_color); i++){
-        _color[i] = tolower(_color[i]);
-    }
+    std::transform(_color.begin(), _color.end(), _color.begin(), ::tolower);
 
     // Open the output file
-    if(strcmp(_output_file, "")){
-        _f = fopen(_output_file, "w");
-        if(!_f){
-            sprintf(msg,
-                    "The file \"%s\" cannot be written\n",
-                    _output_file);
-            S->addMessageF(L_ERROR, msg);
-            return true;
-        }
+    if(_output_file.compare("")) {
+        _f.open(_output_file.c_str(), std::ios::out);
         // Write the header
-        fprintf(_f,
-                "# t elapsed average(elapsed) variance(elapsed) overhead average(overhead) variance(overhead) progress ETA\n");
+        _f << "# t elapsed average(elapsed) variance(elapsed) "
+           << "overhead average(overhead) variance(overhead) progress ETA"
+           << std::endl;
     }
-
-    return false;
 }
 
 size_t Performance::computeAllocatedMemory(){
     unsigned int i;
     size_t allocated_mem = 0;
     CalcServer *C = CalcServer::singleton();
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 
     // Get the allocated memory in the variables
     InputOutput::Variables vars = C->variables();
@@ -106,15 +86,15 @@ size_t Performance::computeAllocatedMemory(){
     return allocated_mem;
 }
 
-bool Performance::_execute()
+void Performance::_execute()
 {
     unsigned int i;
     CalcServer *C = CalcServer::singleton();
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-    char data[4096];
+    std::stringstream data;
 
     size_t allocated_MB = computeAllocatedMemory() / (1024 * 1024);
-    sprintf(data, "Performance:\nMemory=%16luMB\n", allocated_MB);
+    data << "Performance:" << std::endl
+         << "Memory=" << std::setw(2) << allocated_MB << "MB" << std::endl;
 
     // Add the tools time elapsed
     std::vector<Tool*> tools = C->tools();
@@ -142,12 +122,11 @@ bool Performance::_execute()
     }
     addElapsedTime(elapsed_seconds);
 
-    sprintf(data + strlen(data), "Elapsed=%16gs (+-%16gs)\n",
-            elapsedTime(),
-            elapsedTimeVariance());
-
-    sprintf(data + strlen(data), "Overhead=%16gs\n",
-            elapsedTime() - elapsed_ave);
+    data << "Elapsed=" << std::setw(16) << elapsedTime()
+         << "s (+-" << std::setw(16) << elapsedTimeVariance()
+         << "s)" << std::endl;
+    data << "Overhead=" << std::setw(16) << elapsedTime() - elapsed_ave
+         << "s" << std::endl;
 
     // Compute the progress
     InputOutput::Variables vars = C->variables();
@@ -166,31 +145,28 @@ bool Performance::_execute()
     float total_elapsed = elapsedTime() * used_times();
     float ETA = total_elapsed * (1.f / progress - 1.f);
 
-    sprintf(data + strlen(data), "Percentage=%16.2f\tETA=%16gs\n",
-            progress * 100.f,
-            ETA);
+    data << "Percentage=" << std::setw(16) << std::setprecision(2)
+         << progress * 100.f << "\tETA=" << std::setw(16) << ETA << std::endl;
 
     // Replace the trailing space by a line break
-    if(data[strlen(data) - 1] == ' ')
-        data[strlen(data) - 1] = '\n';
-
-    S->writeReport(data, _color, _bold);
-
-    // Write the output file
-    if(_f){
-        fprintf(_f,
-                "%16g %16g %16g %16g %16g %16g %16.2f %16g\n",
-                t,
-                elapsedTime(false),
-                elapsedTime(),
-                elapsedTimeVariance(),
-                elapsedTime(false) - elapsed,
-                elapsedTime() - elapsed_ave,
-                progress * 100.f,
-                ETA);
+    if(data.str().at(std::string::npos) == ' ') {
+        data.seekp(-1, data.cur);
+        data << std::endl;
     }
 
-    return false;
+    InputOutput::ScreenManager::singleton()->writeReport(data.str(),
+                                                         _color,
+                                                         _bold);
+
+    // Write the output file
+    if(_f.is_open()){
+        _f << t << " "
+           << elapsedTime(false) << " " << elapsedTime() << " "
+           << elapsedTimeVariance() << " "
+           << elapsedTime(false) - elapsed << " "
+           << elapsedTime() - elapsed_ave << " "
+           << progress * 100.f << " " << ETA << std::endl;
+    }
 }
 
 }}} // namespace

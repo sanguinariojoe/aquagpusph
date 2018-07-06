@@ -152,7 +152,7 @@ private:
     /** Compile the source code and generate the corresponding kernels
      * @param source Source code to compile.
      */
-    void compile(const char* source);
+    void compile(const std::string source);
 
     /** Setup the main computing dimensions _items, _groups and _histo_split
      * from the valid local work sizes per each kernel.
@@ -168,13 +168,13 @@ private:
     void setupArgs();
 
     /// Variable to sort name
-    char *_var_name;
+    std::string _var_name;
 
     /// Permutations array name
-    char *_perms_name;
+    std::string _perms_name;
 
     /// Inverse permutations array name
-    char *_inv_perms_name;
+    std::string _inv_perms_name;
 
     /// Variable to sort
     InputOutput::ArrayVariable *_var;

@@ -23,7 +23,6 @@
  * CalcServer/Set.hcl.in are internally included as a text array.
  */
 
-#include <stdlib.h>
 #include <math.h>
 #include <vector>
 
@@ -45,10 +44,12 @@ const char* SET_SRC = (const char*)Set_cl_in;
 unsigned int SET_SRC_LEN = Set_cl_in_len;
 
 
-Set::Set(const char *name, const char *var_name, const char *value)
+Set::Set(const std::string name,
+         const std::string var_name,
+         const std::string value)
     : Tool(name)
-    , _var_name(NULL)
-    , _value(NULL)
+    , _var_name(var_name)
+    , _value(value)
     , _var(NULL)
     , _input(NULL)
     , _kernel(NULL)
@@ -56,52 +57,34 @@ Set::Set(const char *name, const char *var_name, const char *value)
     , _local_work_size(0)
     , _n(0)
 {
-    _var_name = new char[strlen(var_name) + 1];
-    strcpy(_var_name, var_name);
-    _value = new char[strlen(value) + 1];
-    strcpy(_value, value);
 }
 
 Set::~Set()
 {
-    if(_var_name) delete[] _var_name; _var_name=NULL;
-    if(_value) delete[] _value; _value=NULL;
     if(_kernel) clReleaseKernel(_kernel); _kernel=NULL;
 }
 
-bool Set::setup()
+void Set::setup()
 {
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    std::ostringstream msg;
+    msg << "Loading the tool \"" << name() << "\"..." << std::endl;
+    LOG(L_INFO, msg.str());
 
-    sprintf(msg,
-            "Loading the tool \"%s\"...\n",
-            name());
-    S->addMessageF(L_INFO, msg);
-
-    if(variable()){
-        return true;
-    }
+    variable();
 
     _input = *(cl_mem*)_var->get();
     _n = _var->size() / InputOutput::Variables::typeToBytes(_var->type());
-    if(setupOpenCL())
-        return true;
-    return false;
+    setupOpenCL();
 }
 
 
-bool Set::_execute()
+void Set::_execute()
 {
     unsigned int i;
     cl_int err_code;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
 
-    if(setVariables()){
-        return true;
-    }
+    setVariables();
 
     // Execute the kernels
     err_code = clEnqueueNDRangeKernel(C->command_queue(),
@@ -114,67 +97,49 @@ bool Set::_execute()
                                       NULL,
                                       NULL);
     if(err_code != CL_SUCCESS) {
-        sprintf(msg, "Failure executing the tool \"%s\".\n", name());
-        S->addMessageF(L_ERROR, msg);
-        S->printOpenCLError(err_code);
-        return true;
+        std::stringstream msg;
+        msg << "Failure executing the tool \"" <<
+               name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
     }
-
-    return false;
 }
 
-bool Set::variable()
+void Set::variable()
 {
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-    CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables vars = C->variables();
+    InputOutput::Variables vars = CalcServer::singleton()->variables();
     if(!vars.get(_var_name)){
-        sprintf(msg,
-                "The tool \"%s\" is using the undeclared variable \"%s\".\n",
-                name(),
-                _var_name);
-        S->addMessageF(L_ERROR, msg);
-        return true;
+        std::stringstream msg;
+        msg << "The tool \"" << name()
+            << "\" is asking the undeclared variable \""
+            << _var_name << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("Invalid variable");
     }
     if(vars.get(_var_name)->type().find('*') == std::string::npos){
-        sprintf(msg,
-                "The tool \"%s\" has received the scalar variable \"%s\".\n",
-                name(),
-                _var_name);
-        S->addMessageF(L_ERROR, msg);
-        return true;
+        std::stringstream msg;
+        msg << "The tool \"" << name()
+            << "\" is asking the variable \"" << _var_name
+            << "\", which is a scalar." << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("Invalid variable type");
     }
     _var = (InputOutput::ArrayVariable *)vars.get(_var_name);
-    return false;
 }
 
-bool Set::setupOpenCL()
+void Set::setupOpenCL()
 {
     cl_int err_code;
     cl_kernel kernel;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
 
     // Create a header for the source code where the operation will be placed
-    char header[SET_INC_LEN + strlen(_value) + 128];
-    strcpy(header, "");
-    strncat(header, SET_INC, SET_INC_LEN);
-    strcat(header, "");
-    sprintf(header + strlen(header), " #define VALUE %s\n", _value);
-
-    // Setup the complete source code
-    char source[strlen(header) + strlen(SET_SRC) + 1];
-    strcpy(source, header);
-    strncat(source, SET_SRC, SET_SRC_LEN);
-    strcat(source, "");
+    std::ostringstream source;
+    source << SET_INC << " #define VALUE " << _value << SET_SRC;
 
     // Starts a dummy kernel in order to study the local size that can be used
-    kernel = compile(source);
-    if(!kernel){
-        return true;
-    }
+    kernel = compile(source.str());
     err_code = clGetKernelWorkGroupInfo(kernel,
                                         C->device(),
                                         CL_KERNEL_WORK_GROUP_SIZE,
@@ -182,19 +147,19 @@ bool Set::setupOpenCL()
                                         &_local_work_size,
                                         NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(L_ERROR, "Failure querying the work group size.\n");
-        S->printOpenCLError(err_code);
+        LOG(L_ERROR, "Failure querying the work group size.\n");
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
         clReleaseKernel(kernel);
-        return true;
+        throw std::runtime_error("OpenCL error");
     }
     if(_local_work_size < __CL_MIN_LOCALSIZE__){
-        S->addMessageF(L_ERROR, "Set cannot be performed.\n");
-        sprintf(msg,
-                "\t%lu elements can be executed, but __CL_MIN_LOCALSIZE__=%lu\n",
-                _local_work_size,
-                __CL_MIN_LOCALSIZE__);
-        S->addMessage(L_DEBUG, msg);
-        return true;
+        LOG(L_ERROR, "insufficient local memory.\n");
+        std::stringstream msg;
+        msg << "\t" << _local_work_size
+            << " local work group size with __CL_MIN_LOCALSIZE__="
+            << __CL_MIN_LOCALSIZE__ << std::endl;
+        LOG0(L_DEBUG, msg.str());
+        throw std::runtime_error("OpenCL error");
     }
 
     _global_work_size = roundUp(_n, _local_work_size);
@@ -204,71 +169,68 @@ bool Set::setupOpenCL()
                               _var->typesize(),
                               _var->get());
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending the array argument\n");
-        S->printOpenCLError(err_code);
-        return true;
+        LOG(L_ERROR, "Failure sending the array argument\n");
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(kernel,
                               1,
                               sizeof(unsigned int),
                               (void*)&_n);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending the array size argument\n");
-        S->printOpenCLError(err_code);
-        return true;
+        LOG(L_ERROR, "Failure sending the array size argument\n");
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
-
-    return false;
 }
 
-cl_kernel Set::compile(const char* source)
+cl_kernel Set::compile(const std::string source)
 {
     cl_int err_code;
     cl_program program;
     cl_kernel kernel;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
 
-    char flags[512];
+    std::ostringstream flags;
     if(!_var->type().compare("unsigned int*")){
-        sprintf(flags,
-                "-DT=%s",
-                "uint*");
+        // Spaces are not a good business into definitions passed as args
+        flags << "-DT=uint";
     }
     else{
-        sprintf(flags,
-                "-DT=%s",
-                _var->type());
+        std::string t = trimCopy(_var->type());
+        t.pop_back();  // Remove the asterisk
+        flags << "-DT=" << t;
+        flags << "-DT=" << _var->type();
     }
-    strcpy(strchr(flags, '*'), "");
     #ifdef AQUA_DEBUG
-        strcat(flags, " -DDEBUG ");
+        flags << " -DDEBUG";
     #else
-        strcat(flags, " -DNDEBUG ");
+        flags << " -DNDEBUG";
     #endif
-    strcat(flags, " -cl-mad-enable -cl-fast-relaxed-math");
+    flags << " -cl-mad-enable -cl-fast-relaxed-math";
     #ifdef HAVE_3D
-        strcat(flags, " -DHAVE_3D");
+        flags << " -DHAVE_3D";
     #else
-        strcat(flags, " -DHAVE_2D");
+        flags << " -DHAVE_2D";
     #endif
-    size_t source_length = strlen(source) + 1;
+
+    size_t source_length = source.size();
+    const char* source_cstr = source.c_str();
     program = clCreateProgramWithSource(C->context(),
                                         1,
-                                        (const char **)&source,
+                                        &source_cstr,
                                         &source_length,
                                         &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(L_ERROR, "Failure creating the OpenCL program.\n");
-        S->printOpenCLError(err_code);
-        return NULL;
+        LOG(L_ERROR, "Failure creating the OpenCL program.\n");
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL compilation error");
     }
-    err_code = clBuildProgram(program, 0, NULL, flags, NULL, NULL);
+    err_code = clBuildProgram(program, 0, NULL, flags.str().c_str(), NULL, NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessage(L_ERROR, "Error compiling the source code\n");
-        S->printOpenCLError(err_code);
-        S->addMessage(L_ERROR, "--- Build log ---------------------------------\n");
+        LOG0(L_ERROR, "Error compiling the source code\n");
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        LOG0(L_ERROR, "--- Build log ---------------------------------\n");
         size_t log_size = 0;
         clGetProgramBuildInfo(program,
                               C->device(),
@@ -278,12 +240,12 @@ cl_kernel Set::compile(const char* source)
                               &log_size);
         char *log = (char*)malloc(log_size + sizeof(char));
         if(!log){
-            sprintf(msg,
-                    "Failure allocating %lu bytes for the building log\n",
-                    log_size);
-            S->addMessage(L_ERROR, msg);
-            S->addMessage(L_ERROR, "--------------------------------- Build log ---\n");
-            return NULL;
+            std::stringstream msg;
+            msg << "Failure allocating " << log_size
+                << " bytes for the building log" << std::endl;
+            LOG0(L_ERROR, msg.str());
+            LOG0(L_ERROR, "--------------------------------- Build log ---\n");
+            throw std::bad_alloc();
         }
         strcpy(log, "");
         clGetProgramBuildInfo(program,
@@ -293,31 +255,29 @@ cl_kernel Set::compile(const char* source)
                               log,
                               NULL);
         strcat(log, "\n");
-        S->addMessage(L_DEBUG, log);
-        S->addMessage(L_ERROR, "--------------------------------- Build log ---\n");
+        LOG0(L_DEBUG, log);
+        LOG0(L_ERROR, "--------------------------------- Build log ---\n");
         free(log); log=NULL;
         clReleaseProgram(program);
-        return NULL;
+        throw std::runtime_error("OpenCL compilation error");
     }
     kernel = clCreateKernel(program, "set", &err_code);
     clReleaseProgram(program);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(L_ERROR, "Failure creating the kernel.\n");
-        S->printOpenCLError(err_code);
-        return NULL;
+        LOG(L_ERROR, "Failure creating the kernel.\n");
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
 
     return kernel;
 }
 
-bool Set::setVariables()
+void Set::setVariables()
 {
-    char msg[1024];
     cl_int err_code;
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 
     if(_input == *(cl_mem*)_var->get()){
-        return false;
+        return;
     }
 
     err_code = clSetKernelArg(_kernel,
@@ -325,18 +285,15 @@ bool Set::setVariables()
                               _var->typesize(),
                               _var->get());
     if(err_code != CL_SUCCESS) {
-        sprintf(msg,
-                "Failure setting the input variable \"%s\" to the tool \"%s\".\n",
-                _var->name(),
-                name());
-        S->addMessageF(L_ERROR, msg);
-        S->printOpenCLError(err_code);
-        return true;
+        std::stringstream msg;
+        msg << "Failure setting the variable \"" << _var->name()
+            << "\" to the tool \"" << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
 
     _input = *(cl_mem *)_var->get();
-
-    return false;
 }
 
 }}  // namespaces

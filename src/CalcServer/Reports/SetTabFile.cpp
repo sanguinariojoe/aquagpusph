@@ -28,256 +28,252 @@
 
 namespace Aqua{ namespace CalcServer{ namespace Reports{
 
-SetTabFile::SetTabFile(const char* tool_name,
-                       const char* fields,
+SetTabFile::SetTabFile(const std::string tool_name,
+                       const std::string fields,
                        unsigned int first,
                        unsigned int n,
-                       const char* output_file,
+                       const std::string output_file,
                        unsigned int ipf,
                        float fps)
     : Report(tool_name, fields, ipf, fps)
-    , _output_file(NULL)
-    , _f(NULL)
+    , _output_file(output_file)
 {
     _bounds.x = first;
     _bounds.y = first + n;
-
-    _output_file = new char[strlen(output_file) + 1];
-    strcpy(_output_file, output_file);
 }
 
 SetTabFile::~SetTabFile()
 {
-    if(_output_file) delete[] _output_file; _output_file=NULL;
-    if(_f) fclose(_f); _f = NULL;
+    if(_f.is_open()) _f.close();
 }
 
-bool SetTabFile::setup()
+void SetTabFile::setup()
 {
     unsigned int i, j;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 
-    sprintf(msg,
-            "Loading the report \"%s\"...\n",
-            name());
-    S->addMessageF(L_INFO, msg);
+    std::ostringstream msg;
+    msg << "Loading the report \"" << name() << "\"..." << std::endl;
+    LOG(L_INFO, msg.str());
 
-    // Open the output file
-    _f = fopen(_output_file, "w");
-    if(!_f){
-        sprintf(msg,
-                "The file \"%s\" cannot be written\n",
-                _output_file);
-        S->addMessageF(L_ERROR, msg);
-        return true;
-    }
+    _f.open(_output_file.c_str(), std::ios::out);
 
-    if(Report::setup()){
-        return true;
-    }
+    Report::setup();
 
     // Write the header
-    fprintf(_f, "# Time ");
-    std::deque<InputOutput::Variable*> vars = variables();
+    _f << "# Time ";
+    std::vector<InputOutput::Variable*> vars = variables();
     for(i = _bounds.x; i < _bounds.y; i++){
         for(j = 0; j < vars.size(); j++){
-            fprintf(_f, "%s_%u ", vars.at(j)->name(), i);
+            _f << vars.at(j)->name() << "_" << i;
         }
     }
-    fprintf(_f, "\n");
-    fflush(_f);
-
-    return false;
+    _f << std::endl;
+    _f.flush();
 }
 
-bool SetTabFile::_execute()
+void SetTabFile::_execute()
 {
     if(!mustUpdate()){
-        return false;
+        return;
     }
 
     unsigned int i, j;
     cl_int err_code;
-    char msg[256];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
+    CalcServer *C = CalcServer::singleton();
 
     // Print the time instant
-    fprintf(_f, "%s ", C->variables().get("t")->asString());
+    _f << C->variables().get("t")->asString() << " ";
 
     // Get the data to be printed
-    std::deque<InputOutput::Variable*> vars = variables();
+    std::vector<InputOutput::Variable*> vars = variables();
     for(i = 0; i < vars.size(); i++){
         if(vars.at(i)->type().find('*') == std::string::npos){
-            sprintf(msg,
-                    "\"%s\" field has been set to be saved, but it was declared as an scalar.\n",
-                    vars.at(i)->name());
-            S->addMessageF(L_ERROR, msg);
-            return true;
+            std::stringstream msg;
+            msg << "The report \"" << name()
+                << "\" may not save scalar variables (\""
+                << vars.at(i)->name() << "\")." << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw std::runtime_error("Invalid variable type");
         }
         InputOutput::ArrayVariable *var = (InputOutput::ArrayVariable*)vars.at(i);
         size_t typesize = C->variables().typeToBytes(var->type());
         size_t len = var->size() / typesize;
         if(len < bounds().y){
-            sprintf(msg,
-                    "Failure saving \"%s\" field, which has not length enough.\n",
-                    vars.at(i)->name());
-            S->addMessageF(L_ERROR, msg);
-            return true;
+            std::stringstream msg;
+            msg << "The report \"" << name()
+                << "\" may not save field \""
+                << vars.at(i)->name() << "\" because is not long enough."
+                << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw std::runtime_error("Invalid variable type");
         }
     }
-    std::deque<void*> data = download(vars);
-    if(!data.size()){
-        return true;
-    }
+    std::vector<void*> data = download(vars);
 
     // Print the data
     for(i = 0; i < bounds().y - bounds().x; i++){
         for(j = 0; j < vars.size(); j++){
             InputOutput::ArrayVariable *var = (InputOutput::ArrayVariable*)vars.at(j);
-            const char* type_name = var->type().c_str();
-            if(!strcmp(type_name, "int*")){
+            const std::string type_name = var->type();
+            if(!type_name.compare("int*")){
                 int* v = (int*)data.at(j);
-                fprintf(_f, "%16d ", v[i]);
+                _f << v[i] << " ";
             }
-            else if(!strcmp(type_name, "unsigned int*")){
+            else if(!type_name.compare("unsigned int*")){
                 unsigned int* v = (unsigned int*)data.at(j);
-                fprintf(_f, "%16u ", v[i]);
+                _f << v[i] << " ";
             }
-            else if(!strcmp(type_name, "float*")){
+            else if(!type_name.compare("float*")){
                 float* v = (float*)data.at(j);
-                fprintf(_f, "%16g ", v[i]);
+                _f << v[i] << " ";
             }
-            else if(!strcmp(type_name, "ivec*")){
+            else if(!type_name.compare("ivec*")){
                 #ifdef HAVE_3D
                     ivec* v = (ivec*)data.at(j);
-                    fprintf(_f, "(%16d,%16d,%16d,%16d) ",
-                            v[i].x, v[i].y, v[i].z, v[i].w);
+                    _f << "(" << v[i].x << ","
+                              << v[i].y << ","
+                              << v[i].z << ","
+                              << v[i].w << ") ";
                 #else
                     ivec* v = (ivec*)data.at(j);
-                    fprintf(_f, "(%16d,%16d) ", v[i].x, v[i].y);
+                    _f << "(" << v[i].x << ","
+                              << v[i].y << ") ";
                 #endif // HAVE_3D
             }
-            else if(!strcmp(type_name, "ivec2*")){
+            else if(!type_name.compare("ivec2*")){
                 ivec2* v = (ivec2*)data.at(j);
-                fprintf(_f, "(%16d,%16d) ", v[i].x, v[i].y);
+                _f << "(" << v[i].x << ","
+                          << v[i].y << ") ";
             }
-            else if(!strcmp(type_name, "ivec3*")){
+            else if(!type_name.compare("ivec3*")){
                 ivec3* v = (ivec3*)data.at(j);
-                fprintf(_f, "(%16d,%16d,%16d) ", v[i].x, v[i].y, v[i].z);
+                _f << "(" << v[i].x << ","
+                          << v[i].y << ","
+                          << v[i].z << ") ";
             }
-            else if(!strcmp(type_name, "ivec4*")){
+            else if(!type_name.compare("ivec4*")){
                 ivec4* v = (ivec4*)data.at(j);
-                fprintf(_f, "(%16d,%16d,%16d,%16d) ",
-                        v[i].x, v[i].y, v[i].z, v[i].w);
+                _f << "(" << v[i].x << ","
+                          << v[i].y << ","
+                          << v[i].z << ","
+                          << v[i].w << ") ";
             }
-            else if(!strcmp(type_name, "uivec*")){
+            else if(!type_name.compare("uivec*")){
                 #ifdef HAVE_3D
                     uivec* v = (uivec*)data.at(j);
-                    fprintf(_f, "(%16u,%16u,%16u,%16u) ",
-                            v[i].x, v[i].y, v[i].z, v[i].w);
+                    _f << "(" << v[i].x << ","
+                              << v[i].y << ","
+                              << v[i].z << ","
+                              << v[i].w << ") ";
                 #else
                     uivec* v = (uivec*)data.at(j);
-                    fprintf(_f, "(%16u,%16u) ", v[i].x, v[i].y);
+                    _f << "(" << v[i].x << ","
+                              << v[i].y << ") ";
                 #endif // HAVE_3D
             }
-            else if(!strcmp(type_name, "uivec2*")){
+            else if(!type_name.compare("uivec2*")){
                 uivec2* v = (uivec2*)data.at(j);
-                fprintf(_f, "(%16u,%16u) ", v[i].x, v[i].y);
+                _f << "(" << v[i].x << ","
+                          << v[i].y << ") ";
             }
-            else if(!strcmp(type_name, "uivec3*")){
+            else if(!type_name.compare("uivec3*")){
                 uivec3* v = (uivec3*)data.at(j);
-                fprintf(_f, "(%16u,%16u,%16u) ", v[i].x, v[i].y, v[i].z);
+                _f << "(" << v[i].x << ","
+                          << v[i].y << ","
+                          << v[i].z << ") ";
             }
-            else if(!strcmp(type_name, "uivec4*")){
+            else if(!type_name.compare("uivec4*")){
                 uivec4* v = (uivec4*)data.at(j);
-                fprintf(_f, "(%16u,%16u,%16u,%16u) ",
-                        v[i].x, v[i].y, v[i].z, v[i].w);
+                _f << "(" << v[i].x << ","
+                          << v[i].y << ","
+                          << v[i].z << ","
+                          << v[i].w << ") ";
             }
-            else if(!strcmp(type_name, "vec*")){
+            else if(!type_name.compare("vec*")){
                 #ifdef HAVE_3D
                     vec* v = (vec*)data.at(j);
-                    fprintf(_f, "(%16g,%16g,%16g,%16g) ",
-                            v[i].x, v[i].y, v[i].z, v[i].w);
+                    _f << "(" << v[i].x << ","
+                              << v[i].y << ","
+                              << v[i].z << ","
+                              << v[i].w << ") ";
                 #else
                     vec* v = (vec*)data.at(j);
-                    fprintf(_f, "(%16g,%16g) ", v[i].x, v[i].y);
+                    _f << "(" << v[i].x << ","
+                              << v[i].y << ") ";
                 #endif // HAVE_3D
             }
-            else if(!strcmp(type_name, "vec2*")){
+            else if(!type_name.compare("vec2*")){
                 vec2* v = (vec2*)data.at(j);
-                fprintf(_f, "(%16g,%16g) ", v[i].x, v[i].y);
+                _f << "(" << v[i].x << ","
+                          << v[i].y << ") ";
             }
-            else if(!strcmp(type_name, "vec3*")){
+            else if(!type_name.compare("vec3*")){
                 vec3* v = (vec3*)data.at(j);
-                fprintf(_f, "(%16u,%16u,%16u) ", v[i].x, v[i].y, v[i].z);
+                _f << "(" << v[i].x << ","
+                          << v[i].y << ","
+                          << v[i].z << ") ";
             }
-            else if(!strcmp(type_name, "vec4*")){
+            else if(!type_name.compare("vec4*")){
                 vec4* v = (vec4*)data.at(j);
-                fprintf(_f, "(%16u,%16u,%16u,%16u) ",
-                        v[i].x, v[i].y, v[i].z, v[i].w);
+                    _f << "(" << v[i].x << ","
+                              << v[i].y << ","
+                              << v[i].z << ","
+                              << v[i].w << ") ";
             }
         }
     }
-    fprintf(_f, "\n");
-    fflush(_f);
+    _f << std::endl;
+    _f.flush();
 
     for(i = 0; i < vars.size(); i++){
         free(data.at(i)); data.at(i) = NULL;
     }
     data.clear();
-
-    fflush(_f);
-    return false;
 }
 
-std::deque<void*> SetTabFile::download(std::deque<InputOutput::Variable*> vars)
+std::vector<void*> SetTabFile::download(std::vector<InputOutput::Variable*> vars)
 {
-    std::deque<void*> data;
+    std::vector<void*> data;
     std::vector<cl_event> events;  // vector storage is continuous memory
     size_t typesize, len;
     unsigned int i, j;
     cl_int err_code;
-    char msg[256];
-	InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-	CalcServer *C = CalcServer::singleton();
+    CalcServer *C = CalcServer::singleton();
 
     for(i = 0; i < vars.size(); i++){
         InputOutput::ArrayVariable *var = (InputOutput::ArrayVariable*)vars.at(i);
         typesize = C->variables().typeToBytes(var->type());
         len = var->size() / typesize;
         if(len < bounds().y){
-            sprintf(msg,
-                    "Failure saving \"%s\" field, which has not length enough.\n",
-                    vars.at(i)->name());
-            S->addMessageF(L_ERROR, msg);
-            sprintf(msg,
-                    "length = %u was required, but just %lu was found.\n",
-                    bounds().y,
-                    len);
-            S->addMessage(L_DEBUG, msg);
+            std::stringstream msg;
+            msg << "The report \"" << name()
+                << "\" may not save field \""
+                << vars.at(i)->name() << "\" because is not long enough."
+                << std::endl;
+            LOG(L_ERROR, msg.str());
             clearList(&data);
-            return data;
+            throw std::runtime_error("Invalid variable type");
         }
         void *store = malloc(typesize * (bounds().y - bounds().x));
         if(!store){
-            sprintf(msg,
-                    "Failure allocating memory for \"%s\" field.\n",
-                    vars.at(i)->name());
-            S->addMessageF(L_ERROR, msg);
+            std::stringstream msg;
+            msg << "Failure allocating " << typesize * (bounds().y - bounds().x)
+                << " bytes for the field \"" << vars.at(i)->name()
+                << "\"." << std::endl;
             clearList(&data);
-            return data;
+            throw std::bad_alloc();
         }
         data.push_back(store);
 
-        cl_event event = C->getUnsortedMem(var->name().c_str(),
-                                           typesize * bounds().x,
-                                           typesize * (bounds().y - bounds().x),
-                                           store);
-        if(!event){
+        cl_event event;
+        try {
+            event = C->getUnsortedMem(var->name().c_str(),
+                                      typesize * bounds().x,
+                                      typesize * (bounds().y - bounds().x),
+                                      store);
+        } catch(...) {
             clearList(&data);
-            return data;
+            throw;
         }
 
         events.push_back(event);
@@ -287,27 +283,27 @@ std::deque<void*> SetTabFile::download(std::deque<InputOutput::Variable*> vars)
     err_code = clWaitForEvents(events.size(),
                                events.data());
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure waiting for the variables download.\n");
-        S->printOpenCLError(err_code);
+        LOG(L_ERROR, "Failure waiting for the variables download.\n");
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
         clearList(&data);
-        return data;
+        throw std::runtime_error("OpenCL error");
     }
 
     // Destroy the events
     for(i = 0; i < events.size(); i++){
         err_code = clReleaseEvent(events.at(i));
         if(err_code != CL_SUCCESS){
-            S->addMessageF(L_ERROR, "Failure releasing the events.\n");
-            S->printOpenCLError(err_code);
+            LOG(L_ERROR, "Failure releasing the events.\n");
+            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
             clearList(&data);
-            return data;
+            throw std::runtime_error("OpenCL error");
         }
     }
 
     return data;
 }
 
-void SetTabFile::clearList(std::deque<void*> *data)
+void SetTabFile::clearList(std::vector<void*> *data)
 {
     unsigned int i;
     for(i = 0; i < data->size(); i++){
