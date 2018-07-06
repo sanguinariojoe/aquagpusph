@@ -370,7 +370,7 @@ void State::parseVariables(DOMElement *root,
                 continue;
             DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
 
-            if(!xmlAttribute(s_elem, "type").compare("*")){
+            if(xmlAttribute(s_elem, "type").find('*') == std::string::npos){
                 sim_data.variables.registerVariable(xmlAttribute(s_elem, "name"),
                                                     xmlAttribute(s_elem, "type"),
                                                     "1",
