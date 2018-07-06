@@ -93,18 +93,15 @@ public:
     /** Calculation server will be iterating while no output files should be
      * updated (or the simulation is finished).
      *
-     * @return false if all gone right, true otherwise.
      */
-    bool update();
+    void update();
 
     /// Setup some additional simulation data.
     /** Even thought this work is associated with the constructor CalcServer(),
      * when something may fail it is preferable to let it to a separated method
      * that could report errors, allowing the program to deal with them.
-     * @return false if the calculation server has been successfully setup,
-     * true otherwise
      */
-    bool setup();
+    void setup();
 
     /** Get the variables manager
      * @return Variables manager

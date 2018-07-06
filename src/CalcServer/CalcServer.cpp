@@ -309,6 +309,8 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
     msg << "Allocated memory = " << _vars.allocatedMemory()
         << " bytes" << std::endl;
     LOG(L_INFO, msg.str());
+
+    setup();
 }
 
 CalcServer::~CalcServer()
@@ -316,26 +318,22 @@ CalcServer::~CalcServer()
     unsigned int i;
     delete[] _current_tool_name;
 
-    LOG(L_INFO, "Sutting down the OpenCL context...\n");
     if(_context) clReleaseContext(_context); _context = NULL;
     for(i = 0; i < _num_devices; i++){
         if(_command_queues[i]) clReleaseCommandQueue(_command_queues[i]);
         _command_queues[i] = NULL;
     }
 
-    LOG(L_INFO, "Deallocating host memory...\n");
     if(_platforms) delete[] _platforms; _platforms=NULL;
     if(_devices) delete[] _devices; _devices=NULL;
     if(_command_queues) delete[] _command_queues; _command_queues=NULL;
 
-    LOG(L_INFO, "Destroying tools...\n");
     for(i = 0; i < _tools.size(); i++){
         delete _tools.at(i);
         _tools.at(i) = NULL;
     }
     _tools.clear();
 
-    LOG(L_INFO, "Destroying unsorters...\n");
     std::map<std::string, UnSort*>::iterator it = unsorters.begin();
     while(it != unsorters.end())
     {
@@ -344,7 +342,7 @@ CalcServer::~CalcServer()
     }
 }
 
-bool CalcServer::update()
+void CalcServer::update()
 {
     InputOutput::TimeManager *T = InputOutput::TimeManager::singleton();
     unsigned int i;
@@ -370,7 +368,7 @@ bool CalcServer::update()
             if(getchar() == 'c'){
                 LOG(L_WARNING, "Interrumption request detected.\n");
                 sleep(__ERROR_SHOW_TIME__);
-                return true;
+                throw std::runtime_error("Simulation interrupted by the user");
             }
         }
 
@@ -378,7 +376,6 @@ bool CalcServer::update()
 
         InputOutput::ScreenManager::singleton()->endFrame();
     }
-    return false;
 }
 
 cl_event CalcServer::getUnsortedMem(const std::string var_name,
@@ -432,7 +429,7 @@ cl_event CalcServer::getUnsortedMem(const std::string var_name,
 bool CalcServer::setupOpenCL()
 {
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-    S->addMessageF(L_INFO, "Initializating OpenCL...\n");
+    LOG(L_INFO, "Initializating OpenCL...\n");
     if(queryOpenCL()){
         return true;
     }
@@ -442,7 +439,7 @@ bool CalcServer::setupOpenCL()
     if(setupDevices()){
         return true;
     }
-    S->addMessageF(L_INFO, "OpenCL is ready to work!\n");
+    LOG(L_INFO, "OpenCL is ready to work!\n");
     return false;
 }
 
@@ -458,20 +455,20 @@ bool CalcServer::queryOpenCL()
     // Gets the total number of platforms
     err_code = clGetPlatformIDs(0, NULL, &_num_platforms);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(L_ERROR, "Failure getting the number of platforms.\n");
+        LOG(L_ERROR, "Failure getting the number of platforms.\n");
         S->printOpenCLError(err_code);
         return true;
     }
     // Get the array of platforms
     _platforms = new cl_platform_id[_num_platforms];
     if(!_platforms) {
-        S->addMessageF(L_ERROR, "Allocation memory error.\n");
-        S->addMessage(L_DEBUG, "\tPlatforms array cannot be allocated\n");
+        LOG(L_ERROR, "Allocation memory error.\n");
+        LOG0(L_DEBUG, "\tPlatforms array cannot be allocated\n");
         return true;
     }
     err_code = clGetPlatformIDs(_num_platforms, _platforms, NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(L_ERROR, "Failure getting the platforms list.\n");
+        LOG(L_ERROR, "Failure getting the platforms list.\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -483,21 +480,21 @@ bool CalcServer::queryOpenCL()
                                   NULL,
                                   &num_devices);
         if(err_code != CL_SUCCESS) {
-            S->addMessageF(L_ERROR, "Failure getting the number of devices.\n");
+            LOG(L_ERROR, "Failure getting the number of devices.\n");
             S->printOpenCLError(err_code);
             return true;
         }
         // Gets the devices array
         devices = new cl_device_id[num_devices];
         if(!devices) {
-            S->addMessageF(L_ERROR, "Allocation memory error.\n");
-            S->addMessage(L_DEBUG, "\tDevices array cannot be allocated\n");
+            LOG(L_ERROR, "Allocation memory error.\n");
+            LOG0(L_DEBUG, "\tDevices array cannot be allocated\n");
             return true;
         }
         err_code = clGetDeviceIDs(_platforms[i], CL_DEVICE_TYPE_ALL,
                                   num_devices, devices, NULL);
         if(err_code != CL_SUCCESS) {
-            S->addMessageF(L_ERROR, "Failure getting the devices list.\n");
+            LOG(L_ERROR, "Failure getting the devices list.\n");
             S->printOpenCLError(err_code);
             return true;
         }
@@ -506,7 +503,7 @@ bool CalcServer::queryOpenCL()
             // Identifier
             strcpy(msg, "");
             sprintf(msg, "\tDevice %u, Platform %u...\n", j, i);
-            S->addMessage(L_INFO, msg);
+            LOG0(L_INFO, msg);
             // Device name
             err_code = clGetDeviceInfo(devices[j],
                                        CL_DEVICE_NAME,
@@ -514,13 +511,13 @@ bool CalcServer::queryOpenCL()
                                        &aux,
                                        NULL);
             if(err_code != CL_SUCCESS) {
-                S->addMessageF(L_ERROR, "Failure getting the device name.\n");
+                LOG(L_ERROR, "Failure getting the device name.\n");
                 S->printOpenCLError(err_code);
                 return true;
             }
             strcpy(msg, "");
             sprintf(msg, "\t\tDEVICE: %s\n", aux);
-            S->addMessage(L_DEBUG, msg);
+            LOG0(L_DEBUG, msg);
             // Platform vendor
             err_code = clGetDeviceInfo(devices[j],
                                        CL_DEVICE_VENDOR,
@@ -528,13 +525,13 @@ bool CalcServer::queryOpenCL()
                                        &aux,
                                        NULL);
             if(err_code != CL_SUCCESS) {
-                S->addMessageF(L_ERROR, "Failure getting the device vendor.\n");
+                LOG(L_ERROR, "Failure getting the device vendor.\n");
                 S->printOpenCLError(err_code);
                 return true;
             }
             strcpy(msg, "");
             sprintf(msg, "\t\tVENDOR: %s\n", aux);
-            S->addMessage(L_DEBUG, msg);
+            LOG0(L_DEBUG, msg);
             // Device type
             cl_device_type dType;
             err_code = clGetDeviceInfo(devices[j],
@@ -543,25 +540,25 @@ bool CalcServer::queryOpenCL()
                                        &dType,
                                        NULL);
             if(err_code != CL_SUCCESS) {
-                S->addMessageF(L_ERROR, "Failure getting the device type.\n");
+                LOG(L_ERROR, "Failure getting the device type.\n");
                 S->printOpenCLError(err_code);
                 return true;
             }
             if(dType == CL_DEVICE_TYPE_CPU)
-                S->addMessage(L_DEBUG, "\t\tTYPE: CL_DEVICE_TYPE_CPU\n");
+                LOG0(L_DEBUG, "\t\tTYPE: CL_DEVICE_TYPE_CPU\n");
             else if(dType == CL_DEVICE_TYPE_GPU)
-                S->addMessage(L_DEBUG, "\t\tTYPE: CL_DEVICE_TYPE_GPU\n");
+                LOG0(L_DEBUG, "\t\tTYPE: CL_DEVICE_TYPE_GPU\n");
             else if(dType == CL_DEVICE_TYPE_ACCELERATOR)
-                S->addMessage(L_DEBUG, "\t\tTYPE: CL_DEVICE_TYPE_ACCELERATOR\n");
+                LOG0(L_DEBUG, "\t\tTYPE: CL_DEVICE_TYPE_ACCELERATOR\n");
             else if(dType == CL_DEVICE_TYPE_DEFAULT)
-                S->addMessage(L_DEBUG, "\t\tTYPE: CL_DEVICE_TYPE_DEFAULT\n");
+                LOG0(L_DEBUG, "\t\tTYPE: CL_DEVICE_TYPE_DEFAULT\n");
             #ifdef CL_DEVICE_TYPE_CUSTOM
             else if(dType == CL_DEVICE_TYPE_CUSTOM)
-                S->addMessage(L_DEBUG, "\t\tTYPE: CL_DEVICE_TYPE_CUSTOM\n");
+                LOG0(L_DEBUG, "\t\tTYPE: CL_DEVICE_TYPE_CUSTOM\n");
             #endif
             else {
                 sprintf(msg, "\t\tTYPE: %ul\n", dType);
-                S->addMessage(L_DEBUG, msg);
+                LOG0(L_DEBUG, msg);
             }
         }
         delete[] devices; devices = NULL;
@@ -574,11 +571,11 @@ bool CalcServer::setupPlatform()
     char msg[1024];
     InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     if(_sim_data.settings.platform_id >= _num_platforms){
-        S->addMessageF(L_ERROR, "Impossible to use the requested platform.\n");
+        LOG(L_ERROR, "Impossible to use the requested platform.\n");
         strcpy(msg, "");
         sprintf(msg, "\t%u platform has been selected, but just %u platforms have been found\n",
                 _sim_data.settings.platform_id, _num_platforms);
-        S->addMessage(L_DEBUG, msg);
+        LOG0(L_DEBUG, msg);
         return true;
     }
     _platform = _platforms[_sim_data.settings.platform_id];
@@ -612,9 +609,9 @@ void CL_CALLBACK context_error_notify(const char *errinfo,
     }
     strcat(msg, ":\n");
 
-    S->addMessageF(L_ERROR, msg);
-    S->addMessage(L_DEBUG, errinfo);
-    S->addMessage(L_DEBUG, "\n");
+    LOG(L_ERROR, msg);
+    LOG0(L_DEBUG, errinfo);
+    LOG0(L_DEBUG, "\n");
 } 
 
 bool CalcServer::setupDevices()
@@ -631,34 +628,34 @@ bool CalcServer::setupDevices()
                               NULL,
                               &_num_devices);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(L_ERROR, "Failure getting the number of devices.\n");
+        LOG(L_ERROR, "Failure getting the number of devices.\n");
         S->printOpenCLError(err_code);
         return true;
     }
     if(_sim_data.settings.device_id >= _num_devices) {
-        S->addMessageF(L_ERROR, "Impossible to use the selected device.\n");
+        LOG(L_ERROR, "Impossible to use the selected device.\n");
         strcpy(msg, "");
         sprintf(msg, "\t%u device has been selected, but just %u devices are available\n",
                 _sim_data.settings.device_id, _num_devices);
-        S->addMessage(L_DEBUG, msg);
+        LOG0(L_DEBUG, msg);
         if(_sim_data.settings.device_type == CL_DEVICE_TYPE_ALL)
-            S->addMessage(L_DEBUG, "\t\tCL_DEVICE_TYPE_ALL filter activated\n");
+            LOG0(L_DEBUG, "\t\tCL_DEVICE_TYPE_ALL filter activated\n");
         else if(_sim_data.settings.device_type == CL_DEVICE_TYPE_CPU)
-            S->addMessage(L_DEBUG, "\t\tCL_DEVICE_TYPE_CPU filter activated\n");
+            LOG0(L_DEBUG, "\t\tCL_DEVICE_TYPE_CPU filter activated\n");
         else if(_sim_data.settings.device_type == CL_DEVICE_TYPE_GPU)
-            S->addMessage(L_DEBUG, "\t\tCL_DEVICE_TYPE_GPU filter activated\n");
+            LOG0(L_DEBUG, "\t\tCL_DEVICE_TYPE_GPU filter activated\n");
         else if(_sim_data.settings.device_type == CL_DEVICE_TYPE_ACCELERATOR)
-            S->addMessage(L_DEBUG, "\t\tCL_DEVICE_TYPE_ACCELERATOR filter activated\n");
+            LOG0(L_DEBUG, "\t\tCL_DEVICE_TYPE_ACCELERATOR filter activated\n");
         else if(_sim_data.settings.device_type == CL_DEVICE_TYPE_DEFAULT)
-            S->addMessage(L_DEBUG, "\t\tCL_DEVICE_TYPE_DEFAULT filter activated\n");
+            LOG0(L_DEBUG, "\t\tCL_DEVICE_TYPE_DEFAULT filter activated\n");
 
         return true;
     }
     // Gets the devices array
     _devices = new cl_device_id[_num_devices];
     if(!_devices){
-        S->addMessageF(L_ERROR, "Allocation memory error.\n");
-        S->addMessage(L_DEBUG, "\tDevices array can't be allocated\n");
+        LOG(L_ERROR, "Allocation memory error.\n");
+        LOG0(L_DEBUG, "\tDevices array can't be allocated\n");
         return true;
     }
     err_code = clGetDeviceIDs(_platform,
@@ -667,7 +664,7 @@ bool CalcServer::setupDevices()
                               _devices,
                               &_num_devices);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(L_ERROR, "Failure getting the devices list.\n");
+        LOG(L_ERROR, "Failure getting the devices list.\n");
         S->printOpenCLError(err_code);
         return true;
     }
@@ -679,15 +676,15 @@ bool CalcServer::setupDevices()
                                _current_tool_name,
                                &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(L_ERROR, "Failure creating an OpenCL context.\n");
+        LOG(L_ERROR, "Failure creating an OpenCL context.\n");
         S->printOpenCLError(err_code);
         return true;
     }
     // Create command queues
     _command_queues = new cl_command_queue[_num_devices];
     if(_command_queues == NULL){
-        S->addMessageF(L_ERROR, "Allocation memory error.\n");
-        S->addMessage(L_DEBUG, "\tCommand queues array cannot be allocated\n");
+        LOG(L_ERROR, "Allocation memory error.\n");
+        LOG0(L_DEBUG, "\tCommand queues array cannot be allocated\n");
         return true;
     }
     for(i = 0; i < _num_devices; i++) {
@@ -698,7 +695,7 @@ bool CalcServer::setupDevices()
         if(err_code != CL_SUCCESS) {
             strcpy(msg, "");
             sprintf(msg, "Can't create a command queue for the device %u.\n",i);
-            S->addMessageF(L_ERROR, msg);
+            LOG(L_ERROR, msg);
             S->printOpenCLError(err_code);
             return true;
         }
@@ -709,37 +706,35 @@ bool CalcServer::setupDevices()
     return false;
 }
 
-bool CalcServer::setup()
+void CalcServer::setup()
 {
     unsigned int i, j;
     cl_uint err_code=0;
-    char msg[512];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-    strcpy(msg, "");
 
     // Check for the required variables that must be defined by the user
     if(!_vars.get("h")){
-        S->addMessageF(L_ERROR, "Missed kernel length \"h\".\n");
-        return true;
+        LOG(L_ERROR, "Missing kernel length \"h\".\n");
+        throw std::runtime_error("Undeclared kernel length variable");
     }
     if(_vars.get("h")->type().compare("float")){
-        sprintf(msg,
-                "Kernel length \"h\" must be of type \"float\", but \"%s\" has been specified\n",
-                _vars.get("h")->type());
-        S->addMessageF(L_ERROR, msg);
-        return true;
+        std::ostringstream msg;
+        msg << "Kernel length \"h\" must be of type \"float\", not \""
+            << _vars.get("h")->type() << "\"" << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("Invalid kernel length variable type");
     }
     float h = *(float *)_vars.get("h")->get();
     if(h <= 0.f){
-        sprintf(msg,
-                "Kernel length \"h\" must be greater than 0, but \"%g\" has been set\n",
-                h);
-        S->addMessageF(L_ERROR, msg);
-        return true;
+        std::ostringstream msg;
+        msg << "Kernel length \"h\" must be a positive value (h="
+            << h << ")" << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("Invalid kernel length value");
     }
 
-    sprintf(msg, "Found kernel height: h = %g [m]\n", h);
-    S->addMessageF(L_INFO, msg);
+    std::ostringstream msg;
+    msg << "Found kernel length, h = " << h << " [m]" << std::endl;
+    LOG(L_INFO, msg.str());
 
     // Setup the scalar data per particles sets
     for(i = 0; i < _sim_data.sets.size(); i++){
@@ -748,59 +743,58 @@ bool CalcServer::setup()
             std::string name = set->scalarNames().at(j);
             std::string val = set->scalarValues().at(j);
             if(!_vars.get(name)){
-                sprintf(msg,
-                        "Variable \"%s\" has not been registered\n",
-                        name);
-                S->addMessageF(L_ERROR, msg);
-                sprintf(msg, "Particles set: %u\n", i);
-                S->addMessage(L_DEBUG, msg);
-                return true;
+                std::ostringstream msg;
+                msg << "Particles set " << i
+                    << " asks for the undeclared variable \"" << name
+                    << "\"." << std::endl;
+                LOG(L_ERROR, msg.str());
+                throw std::runtime_error("Invalid variable");
             }
             if(_vars.get(name)->type().find('*') == std::string::npos){
-                sprintf(msg,
-                        "Variable \"%s\" has been registered as a scalar, however it is established per particles set\n",
-                        name.c_str());
-                S->addMessageF(L_ERROR, msg);
-                sprintf(msg, "Particles set: %u\n", i);
-                S->addMessage(L_DEBUG, msg);
-                return true;
+                std::ostringstream msg;
+                msg << "Particles set " << i
+                    << " can't set the value of a scalar variable, \"" << name
+                    << "\"." << std::endl;
+                LOG(L_ERROR, msg.str());
+                throw std::runtime_error("Invalid variable type");
             }
             InputOutput::ArrayVariable *var = (InputOutput::ArrayVariable *)_vars.get(name);
             size_t typesize = _vars.typeToBytes(_vars.get(name)->type());
             size_t len = _vars.get(name)->size() / typesize;
             if(len != _sim_data.sets.size()){
-                sprintf(msg,
-                        "Variable \"%s\" is an array of %u components, which does not match with the number of particles sets (n_sets = %u)\n",
-                        name.c_str(),
-                        len,
-                        _sim_data.sets.size());
-                S->addMessageF(L_ERROR, msg);
-                return true;
+                std::ostringstream msg;
+                msg << "Particles set " << i
+                    << " can't set the value of the array variable, \"" << name
+                    << "\", because its length, " << len
+                    << "differs from the number of sets, "
+                    << _sim_data.sets.size() << std::endl;
+                LOG(L_ERROR, msg.str());
+                throw std::runtime_error("Invalid variable length");
             }
             void *data = malloc(typesize);
             try {
                 _vars.solve(_vars.get(name)->type(), val, data);
             } catch(...) {
-                sprintf(msg, "Failure evaluating variable \"%s\"\n", name.c_str());
-                S->addMessageF(L_ERROR, msg);
-                sprintf(msg, "Particles set: %u\n", i);
-                S->addMessage(L_DEBUG, msg);
-                return true;
+                std::ostringstream msg;
+                msg << "Particles set " << i
+                    << " failed evaluating variable, \"" << name
+                    << "\"." << std::endl;
+                LOG(L_ERROR, msg.str());
+                throw;
             }
             cl_mem mem = *(cl_mem*)_vars.get(name.c_str())->get();
-            cl_int status;
-            status = clEnqueueWriteBuffer(_command_queue, mem, CL_TRUE,
-                                          i * typesize, typesize, data,
-                                          0, NULL, NULL);
+            err_code = clEnqueueWriteBuffer(_command_queue, mem, CL_TRUE,
+                                            i * typesize, typesize, data,
+                                            0, NULL, NULL);
             free(data); data = NULL;
-            if(status != CL_SUCCESS) {
-                sprintf(msg,
-                        "Failure sending variable \"%s\" to particles set %u\n",
-                        name.c_str(),
-                        i);
-                S->addMessageF(L_ERROR, msg);
-                S->printOpenCLError(status);
-                return true;
+            if(err_code != CL_SUCCESS) {
+                std::ostringstream msg;
+                msg << "Particles set " << i
+                    << " failed sending variable, \"" << name
+                    << "\" to the computational device." << std::endl;
+                LOG(L_ERROR, msg.str());
+                InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+                throw std::runtime_error("OpenCL error");
             }
         }
     }
@@ -809,8 +803,6 @@ bool CalcServer::setup()
     for(i = 0; i < _tools.size(); i++){
         _tools.at(i)->setup();
     }
-
-    return false;
 }
 
 }}  // namespace
