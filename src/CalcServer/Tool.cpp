@@ -29,14 +29,13 @@
 namespace Aqua{ namespace CalcServer{
 
 Tool::Tool(const std::string tool_name)
-    : _name(NULL)
+    : _name(tool_name)
     , _allocated_memory(0)
     , _n_iters(0)
     , _elapsed_time(0.f)
     , _average_elapsed_time(0.f)
     , _squared_elapsed_time(0.f)
 {
-    name(tool_name);
 }
 
 Tool::~Tool()

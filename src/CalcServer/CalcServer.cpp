@@ -160,62 +160,62 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
     std::deque<Aqua::InputOutput::ProblemSetup::sphTool*>::iterator t_it;
     for(t_it = _sim_data.tools.begin(); t_it < _sim_data.tools.end(); t_it++){
         if(!(*t_it)->get("type").compare("kernel")){
-            Kernel *tool = new Kernel((*t_it)->get("name").c_str(),
-                                      (*t_it)->get("path").c_str(),
-                                      (*t_it)->get("entry_point").c_str(),
-                                      (*t_it)->get("n").c_str());
+            Kernel *tool = new Kernel((*t_it)->get("name"),
+                                      (*t_it)->get("path"),
+                                      (*t_it)->get("entry_point"),
+                                      (*t_it)->get("n"));
             _tools.push_back(tool);
         }
         else if(!(*t_it)->get("type").compare("copy")){
-            Copy *tool = new Copy((*t_it)->get("name").c_str(),
-                                  (*t_it)->get("in").c_str(),
-                                  (*t_it)->get("out").c_str());
+            Copy *tool = new Copy((*t_it)->get("name"),
+                                  (*t_it)->get("in"),
+                                  (*t_it)->get("out"));
             _tools.push_back(tool);
         }
         else if(!(*t_it)->get("type").compare("python")){
-            Python *tool = new Python((*t_it)->get("name").c_str(),
-                                      (*t_it)->get("path").c_str());
+            Python *tool = new Python((*t_it)->get("name"),
+                                      (*t_it)->get("path"));
             _tools.push_back(tool);
         }
         else if(!(*t_it)->get("type").compare("set")){
-            Set *tool = new Set((*t_it)->get("name").c_str(),
-                                (*t_it)->get("in").c_str(),
-                                (*t_it)->get("value").c_str());
+            Set *tool = new Set((*t_it)->get("name"),
+                                (*t_it)->get("in"),
+                                (*t_it)->get("value"));
             _tools.push_back(tool);
         }
         else if(!(*t_it)->get("type").compare("set_scalar")){
-            SetScalar *tool = new SetScalar((*t_it)->get("name").c_str(),
-                                            (*t_it)->get("in").c_str(),
-                                            (*t_it)->get("value").c_str());
+            SetScalar *tool = new SetScalar((*t_it)->get("name"),
+                                            (*t_it)->get("in"),
+                                            (*t_it)->get("value"));
             _tools.push_back(tool);
         }
         else if(!(*t_it)->get("type").compare("reduction")){
-            Reduction *tool = new Reduction((*t_it)->get("name").c_str(),
-                                            (*t_it)->get("in").c_str(),
-                                            (*t_it)->get("out").c_str(),
-                                            (*t_it)->get("operation").c_str(),
-                                            (*t_it)->get("null").c_str());
+            Reduction *tool = new Reduction((*t_it)->get("name"),
+                                            (*t_it)->get("in"),
+                                            (*t_it)->get("out"),
+                                            (*t_it)->get("operation"),
+                                            (*t_it)->get("null"));
             _tools.push_back(tool);
         }
         else if(!(*t_it)->get("type").compare("link-list")){
-            LinkList *tool = new LinkList((*t_it)->get("name").c_str(),
-                                          (*t_it)->get("in").c_str());
+            LinkList *tool = new LinkList((*t_it)->get("name"),
+                                          (*t_it)->get("in"));
             _tools.push_back(tool);
         }
         else if(!(*t_it)->get("type").compare("radix-sort")){
-            RadixSort *tool = new RadixSort((*t_it)->get("name").c_str(),
-                                            (*t_it)->get("in").c_str(),
-                                            (*t_it)->get("perm").c_str(),
-                                            (*t_it)->get("inv_perm").c_str());
+            RadixSort *tool = new RadixSort((*t_it)->get("name"),
+                                            (*t_it)->get("in"),
+                                            (*t_it)->get("perm"),
+                                            (*t_it)->get("inv_perm"));
             _tools.push_back(tool);
         }
         else if(!(*t_it)->get("type").compare("assert")){
-            Assert *tool = new Assert((*t_it)->get("name").c_str(),
-                                      (*t_it)->get("condition").c_str());
+            Assert *tool = new Assert((*t_it)->get("name"),
+                                      (*t_it)->get("condition"));
             _tools.push_back(tool);
         }
         else if(!(*t_it)->get("type").compare("dummy")){
-            Tool *tool = new Tool((*t_it)->get("name").c_str());
+            Tool *tool = new Tool((*t_it)->get("name"));
             _tools.push_back(tool);
         }
         else{
@@ -228,6 +228,7 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
             throw std::runtime_error("Invalid tool type");
         }
     }
+
     // Register the reporters
     for(t_it = _sim_data.reports.begin(); t_it < _sim_data.reports.end(); t_it++){
         if(!(*t_it)->get("type").compare("screen")){
@@ -237,17 +238,17 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
                bold = true;
             }
             Reports::Screen *tool = new Reports::Screen(
-                (*t_it)->get("name").c_str(),
-                (*t_it)->get("fields").c_str(),
-                (*t_it)->get("color").c_str(),
+                (*t_it)->get("name"),
+                (*t_it)->get("fields"),
+                (*t_it)->get("color"),
                 bold);
             _tools.push_back(tool);
         }
         else if(!(*t_it)->get("type").compare("file")){
             Reports::TabFile *tool = new Reports::TabFile(
-                (*t_it)->get("name").c_str(),
-                (*t_it)->get("fields").c_str(),
-                (*t_it)->get("path").c_str());
+                (*t_it)->get("name"),
+                (*t_it)->get("fields"),
+                (*t_it)->get("path"));
             _tools.push_back(tool);
         }
         else if(!(*t_it)->get("type").compare("particles")){
@@ -272,11 +273,11 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
             float fps = std::stof((*t_it)->get("fps"));
 
             Reports::SetTabFile *tool = new Reports::SetTabFile(
-                (*t_it)->get("name").c_str(),
-                (*t_it)->get("fields").c_str(),
+                (*t_it)->get("name"),
+                (*t_it)->get("fields"),
                 first,
                 _sim_data.sets.at(set_id)->n(),
-                (*t_it)->get("path").c_str(),
+                (*t_it)->get("path"),
                 ipf,
                 fps);
             _tools.push_back(tool);
@@ -288,10 +289,10 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
                bold = true;
             }
             Reports::Performance *tool = new Reports::Performance(
-                (*t_it)->get("name").c_str(),
-                (*t_it)->get("color").c_str(),
+                (*t_it)->get("name"),
+                (*t_it)->get("color"),
                 bold,
-                (*t_it)->get("path").c_str());
+                (*t_it)->get("path"));
             _tools.push_back(tool);
         }
         else{

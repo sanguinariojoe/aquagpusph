@@ -37,7 +37,6 @@ Report::Report(const std::string tool_name,
     , _fps(fps)
     , _iter(0)
     , _t(0.f)
-    , _data(NULL)
 {
 }
 
