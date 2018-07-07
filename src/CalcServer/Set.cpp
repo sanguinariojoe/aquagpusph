@@ -38,10 +38,8 @@ namespace Aqua{ namespace CalcServer{
 #include "CalcServer/Set.hcl"
 #include "CalcServer/Set.cl"
 #endif
-const char* SET_INC = (const char*)Set_hcl_in;
-unsigned int SET_INC_LEN = Set_hcl_in_len;
-const char* SET_SRC = (const char*)Set_cl_in;
-unsigned int SET_SRC_LEN = Set_cl_in_len;
+std::string SET_INC = xxd2string(Set_hcl_in, Set_hcl_in_len);
+std::string SET_SRC = xxd2string(Set_cl_in, Set_cl_in_len);
 
 
 Set::Set(const std::string name,

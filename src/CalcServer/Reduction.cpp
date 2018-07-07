@@ -38,10 +38,8 @@ namespace Aqua{ namespace CalcServer{
 #include "CalcServer/Reduction.hcl"
 #include "CalcServer/Reduction.cl"
 #endif
-const char* REDUCTION_INC = (const char*)Reduction_hcl_in;
-unsigned int REDUCTION_INC_LEN = Reduction_hcl_in_len;
-const char* REDUCTION_SRC = (const char*)Reduction_cl_in;
-unsigned int REDUCTION_SRC_LEN = Reduction_cl_in_len;
+std::string REDUCTION_INC = xxd2string(Reduction_hcl_in, Reduction_hcl_in_len);
+std::string REDUCTION_SRC = xxd2string(Reduction_cl_in, Reduction_cl_in_len);
 
 
 Reduction::Reduction(const std::string name,

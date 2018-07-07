@@ -38,10 +38,8 @@ namespace Aqua{ namespace CalcServer{
 #include "CalcServer/UnSort.hcl"
 #include "CalcServer/UnSort.cl"
 #endif
-const char* UNSORT_INC = (const char*)UnSort_hcl_in;
-unsigned int UNSORT_INC_LEN = UnSort_hcl_in_len;
-const char* UNSORT_SRC = (const char*)UnSort_cl_in;
-unsigned int UNSORT_SRC_LEN = UnSort_cl_in_len;
+std::string UNSORT_INC = xxd2string(UnSort_hcl_in, UnSort_hcl_in_len);
+std::string UNSORT_SRC = xxd2string(UnSort_cl_in, UnSort_cl_in_len);
 
 
 UnSort::UnSort(const std::string name, const std::string var_name)

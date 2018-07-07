@@ -33,10 +33,9 @@ namespace Aqua{ namespace CalcServer{
 #include "CalcServer/LinkList.hcl"
 #include "CalcServer/LinkList.cl"
 #endif
-const char* LINKLIST_INC = (const char*)LinkList_hcl_in;
-unsigned int LINKLIST_INC_LEN = LinkList_hcl_in_len;
-const char* LINKLIST_SRC = (const char*)LinkList_cl_in;
-unsigned int LINKLIST_SRC_LEN = LinkList_cl_in_len;
+std::string LINKLIST_INC = xxd2string(LinkList_hcl_in, LinkList_hcl_in_len);
+std::string LINKLIST_SRC = xxd2string(LinkList_cl_in, LinkList_cl_in_len);
+
 
 LinkList::LinkList(const std::string tool_name, const std::string input)
     : Tool(tool_name)

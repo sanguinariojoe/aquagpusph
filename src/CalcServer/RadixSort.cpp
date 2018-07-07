@@ -35,10 +35,8 @@ namespace Aqua{ namespace CalcServer{
 #include "CalcServer/RadixSort.hcl"
 #include "CalcServer/RadixSort.cl"
 #endif
-const char* RADIXSORT_INC = (const char*)RadixSort_hcl_in;
-unsigned int RADIXSORT_INC_LEN = RadixSort_hcl_in_len;
-const char* RADIXSORT_SRC = (const char*)RadixSort_cl_in;
-unsigned int RADIXSORT_SRC_LEN = RadixSort_cl_in_len;
+std::string RADIXSORT_INC = xxd2string(RadixSort_hcl_in, RadixSort_hcl_in_len);
+std::string RADIXSORT_SRC = xxd2string(RadixSort_cl_in, RadixSort_cl_in_len);
 
 RadixSort::RadixSort(const std::string tool_name,
                      const std::string variable,

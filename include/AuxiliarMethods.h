@@ -108,7 +108,20 @@ std::string rtrimCopy(std::string s);
  * @return Trimmed string
  */
 std::string trimCopy(std::string s);
-    
+
+/** @brief Transform a xxd exported file into a C++ string.
+ *
+ * xdd can be used to embed external files into the program source code, by
+ * means of an include statement. However, the data is exported as a non-null
+ * terminated char array and its length.
+ * This method is appending the null character, and building a C++ string
+ * 
+ * @param arr C-Like chars array
+ * @param len C-Like chars array length
+ * @return C++ string
+ */
+std::string xxd2string(unsigned char* arr, unsigned int len);
+
 /// Next number which is power of 2.
 /** Compute a value which, being power of two, is greater or equal than
  * @paramname{x}.
