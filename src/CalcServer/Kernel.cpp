@@ -123,9 +123,9 @@ void Kernel::compile(const std::string entry_point,
     #else
         flags << "-DNDEBUG ";
     #endif
-    flags << "-I" << getFolderFromFilePath(path());
+    flags << "-I" << getFolderFromFilePath(path()) << " ";
     if(C->base_path().compare("")){
-        flags << "-I" << C->base_path();
+        flags << "-I" << C->base_path() << " ";
     }
     flags << " -cl-mad-enable -cl-fast-relaxed-math ";
     #ifdef HAVE_3D
@@ -143,7 +143,8 @@ void Kernel::compile(const std::string entry_point,
     // Try to compile without using local memory
     LOG(L_INFO, "Compiling without local memory... ");
     source_length = source.str().size();
-    const char *source_cstr = source.str().c_str();
+    std::string source_str = source.str();
+    const char *source_cstr = source_str.c_str();
     program = clCreateProgramWithSource(C->context(),
                                         1,
                                         &source_cstr,
