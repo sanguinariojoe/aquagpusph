@@ -465,10 +465,10 @@ void Kernel::setVariables()
 {
     unsigned int i;
     cl_int err_code;
-    InputOutput::Variables vars = CalcServer::singleton()->variables();
+    InputOutput::Variables *vars = CalcServer::singleton()->variables();
 
     for(i = 0; i < _var_names.size(); i++){
-        if(!vars.get(_var_names.at(i))){
+        if(!vars->get(_var_names.at(i))){
             std::stringstream msg;
             msg << "The tool \"" << name()
                 << "\" is asking the undeclared variable \""
@@ -476,7 +476,7 @@ void Kernel::setVariables()
             LOG(L_ERROR, msg.str());
             throw std::runtime_error("Invalid variable");
         }
-        InputOutput::Variable *var = vars.get(_var_names.at(i));
+        InputOutput::Variable *var = vars->get(_var_names.at(i));
         if(_var_values.at(i) == NULL){
             _var_values.at(i) = malloc(var->typesize());
         }
@@ -507,9 +507,9 @@ void Kernel::computeGlobalWorkSize()
         LOG(L_ERROR, "Work group size must be greater than 0.\n");
         throw std::runtime_error("Null work group size");
     }
-    InputOutput::Variables vars = CalcServer::singleton()->variables();
+    InputOutput::Variables *vars = CalcServer::singleton()->variables();
     try {
-        vars.solve("unsigned int", _n, &N);
+        vars->solve("unsigned int", _n, &N);
     } catch(...) {
         LOG(L_ERROR, "Failure evaluating the number of threads.\n");
         throw std::runtime_error("Invalid number of threads");

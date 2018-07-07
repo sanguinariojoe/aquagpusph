@@ -55,7 +55,7 @@ void Assert::_execute()
 {
     int result;
     CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables vars = C->variables();
+    InputOutput::Variables *vars = C->variables();
 
     void *data = malloc(sizeof(int));
     if(!data){
@@ -65,7 +65,7 @@ void Assert::_execute()
         throw std::bad_alloc();
     }
 
-    vars.solve("int", _condition, data, "assert_result");
+    vars->solve("int", _condition, data, "assert_result");
 
     // Check the result
     memcpy(&result, data, sizeof(int));

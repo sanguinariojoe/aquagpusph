@@ -59,7 +59,7 @@ void SetScalar::setup()
 
 void SetScalar::_execute()
 {
-    InputOutput::Variables vars = CalcServer::singleton()->variables();
+    InputOutput::Variables *vars = CalcServer::singleton()->variables();
 
     void *data = malloc(_var->typesize());
     if(!data){
@@ -72,7 +72,7 @@ void SetScalar::_execute()
     }
 
     try {
-        vars.solve(_var->type(), _value, data, _var->name());
+        vars->solve(_var->type(), _value, data, _var->name());
     } catch(...) {
         free(data);
         throw;
@@ -81,14 +81,14 @@ void SetScalar::_execute()
     _var->set(data);
     free(data);
     // Ensure that the variable is populated
-    vars.populate(_var);
+    vars->populate(_var);
 }
 
 void SetScalar::variable()
 {
     CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables vars = C->variables();
-    if(!vars.get(_var_name)){
+    InputOutput::Variables *vars = C->variables();
+    if(!vars->get(_var_name)){
         std::stringstream msg;
         msg << "The tool \"" << name()
             << "\" is asking the undeclared variable \""
@@ -96,7 +96,7 @@ void SetScalar::variable()
         LOG(L_ERROR, msg.str());
         throw std::runtime_error("Invalid variable");
     }
-    if(vars.get(_var_name)->type().find('*') != std::string::npos){
+    if(vars->get(_var_name)->type().find('*') != std::string::npos){
         std::stringstream msg;
         msg << "The tool \"" << name()
             << "\" is asking the variable \"" << _var_name
@@ -104,7 +104,7 @@ void SetScalar::variable()
         LOG(L_ERROR, msg.str());
         throw std::runtime_error("Invalid variable type");
     }
-    _var = vars.get(_var_name);
+    _var = vars->get(_var_name);
 }
 
 }}  // namespaces

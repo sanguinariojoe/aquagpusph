@@ -99,7 +99,7 @@ void Reduction::_execute()
     unsigned int i;
     cl_int err_code;
     CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables vars = C->variables();
+    InputOutput::Variables *vars = C->variables();
 
     setVariables();
 
@@ -146,13 +146,13 @@ void Reduction::_execute()
     }
 
     // Ensure that the variable is populated
-    vars.populate(_output_var);
+    vars->populate(_output_var);
 }
 
 void Reduction::variables()
 {
-    InputOutput::Variables vars = CalcServer::singleton()->variables();
-    if(!vars.get(_input_name)){
+    InputOutput::Variables *vars = CalcServer::singleton()->variables();
+    if(!vars->get(_input_name)){
         std::stringstream msg;
         msg << "The tool \"" << name()
             << "\" is asking the undeclared input variable \""
@@ -160,7 +160,7 @@ void Reduction::variables()
         LOG(L_ERROR, msg.str());
         throw std::runtime_error("Invalid variable");
     }
-    if(vars.get(_input_name)->type().find('*') == std::string::npos){
+    if(vars->get(_input_name)->type().find('*') == std::string::npos){
         std::stringstream msg;
         msg << "The tool \"" << name()
             << "\" is asking the input variable \"" << _input_name
@@ -168,8 +168,8 @@ void Reduction::variables()
         LOG(L_ERROR, msg.str());
         throw std::runtime_error("Invalid variable type");
     }
-    _input_var = (InputOutput::ArrayVariable *)vars.get(_input_name);
-    if(!vars.get(_output_name)){
+    _input_var = (InputOutput::ArrayVariable *)vars->get(_input_name);
+    if(!vars->get(_output_name)){
         std::stringstream msg;
         msg << "The tool \"" << name()
             << "\" is asking the undeclared output variable \""
@@ -177,7 +177,7 @@ void Reduction::variables()
         LOG(L_ERROR, msg.str());
         throw std::runtime_error("Invalid variable");
     }
-    if(vars.get(_output_name)->type().find('*') != std::string::npos){
+    if(vars->get(_output_name)->type().find('*') != std::string::npos){
         std::stringstream msg;
         msg << "The tool \"" << name()
             << "\" is asking the output variable \"" << _output_name
@@ -185,8 +185,8 @@ void Reduction::variables()
         LOG(L_ERROR, msg.str());
         throw std::runtime_error("Invalid variable type");
     }
-    _output_var = vars.get(_output_name);
-    if(!vars.isSameType(_input_var->type(), _output_var->type())){
+    _output_var = vars->get(_output_name);
+    if(!vars->isSameType(_input_var->type(), _output_var->type())){
         std::stringstream msg;
         msg << "Mismatching input and output types within the tool \"" << name()
             << "\"." << std::endl;
@@ -210,10 +210,10 @@ void Reduction::setupOpenCL()
     cl_int err_code;
     cl_kernel kernel;
     CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables vars = C->variables();
+    InputOutput::Variables *vars = C->variables();
 
     // Get the elements data size to can allocate local memory later
-    data_size = vars.typeToBytes(_input_var->type());
+    data_size = vars->typeToBytes(_input_var->type());
 
     std::ostringstream source;
     source << REDUCTION_INC << " #define IDENTITY " << _null_val << std::endl;

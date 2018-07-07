@@ -107,15 +107,15 @@ void UnSort::_execute()
 void UnSort::variables()
 {
     CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables vars = C->variables();
-    if(!vars.get("id")){
+    InputOutput::Variables *vars = C->variables();
+    if(!vars->get("id")){
         std::stringstream msg;
         msg << "The tool \"" << name()
             << "\" is asking the undeclared variable \"id\"" << std::endl;
         LOG(L_ERROR, msg.str());
         throw std::runtime_error("Invalid variable");
     }
-    if(vars.get("id")->type().compare("unsigned int*")){
+    if(vars->get("id")->type().compare("unsigned int*")){
         std::stringstream msg;
         msg << "The tool \"" << name()
             << "\" is asking the variable \"id\", which has an invalid type"
@@ -123,13 +123,13 @@ void UnSort::variables()
         LOG(L_ERROR, msg.str());
         msg.str("");
         msg << "\t\"unsigned int*\" was expected, but \""
-            << vars.get("id")->type() << "\" was found." << std::endl;
+            << vars->get("id")->type() << "\" was found." << std::endl;
         LOG0(L_DEBUG, msg.str());
         throw std::runtime_error("Invalid variable type");
     }
-    _id_var = (InputOutput::ArrayVariable *)vars.get("id");
+    _id_var = (InputOutput::ArrayVariable *)vars->get("id");
 
-    if(!vars.get(_var_name)){
+    if(!vars->get(_var_name)){
         std::stringstream msg;
         msg << "The tool \"" << name()
             << "\" is asking the undeclared variable \""
@@ -137,7 +137,7 @@ void UnSort::variables()
         LOG(L_ERROR, msg.str());
         throw std::runtime_error("Invalid variable");
     }
-    if(vars.get(_var_name)->type().find('*') == std::string::npos){
+    if(vars->get(_var_name)->type().find('*') == std::string::npos){
         std::stringstream msg;
         msg << "The tool \"" << name()
             << "\" may not use a scalar variable (\""
@@ -145,7 +145,7 @@ void UnSort::variables()
         LOG(L_ERROR, msg.str());
         throw std::runtime_error("Invalid variable type");
     }
-    _var = (InputOutput::ArrayVariable *)vars.get(_var_name);
+    _var = (InputOutput::ArrayVariable *)vars->get(_var_name);
 }
 
 void UnSort::setupMem()

@@ -1363,7 +1363,7 @@ void State::writeVariables(xercesc::DOMDocument* doc,
     elem = doc->createElement(xmlS("Variables"));
     root->appendChild(elem);
 
-    std::vector<Variable*> vars = C->variables().getAll();
+    std::vector<Variable*> vars = C->variables()->getAll();
     for (auto var : vars) {
         s_elem = doc->createElement(xmlS("Variable"));
         elem->appendChild(s_elem);
@@ -1555,7 +1555,7 @@ void State::writeSets(xercesc::DOMDocument* doc,
             s_elem = doc->createElement(xmlS("Scalar"));
             s_elem->setAttribute(xmlS("name"), xmlS(name));
 
-            ArrayVariable* var = (ArrayVariable*)C->variables().get(name);
+            ArrayVariable* var = (ArrayVariable*)C->variables()->get(name);
             std::string value_txt = var->asString(i);
             if(value_txt.at(0) == '('){
                 value_txt.at(0) = ' ';

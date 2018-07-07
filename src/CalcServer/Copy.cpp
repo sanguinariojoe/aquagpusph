@@ -85,8 +85,8 @@ void Copy::_execute()
 void Copy::variables()
 {
     CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables vars = C->variables();
-    if(!vars.get(_input_name)){
+    InputOutput::Variables *vars = C->variables();
+    if(!vars->get(_input_name)){
         std::stringstream msg;
         msg << "The tool \"" << name()
             << "\" is asking the undeclared variable \""
@@ -94,7 +94,7 @@ void Copy::variables()
         LOG(L_ERROR, msg.str());
         throw std::runtime_error("Invalid variable");
     }
-    if(vars.get(_input_name)->type().find('*') == std::string::npos){
+    if(vars->get(_input_name)->type().find('*') == std::string::npos){
         std::stringstream msg;
         msg << "The tool \"" << name()
             << "\" may not use a scalar variable (\""
@@ -102,9 +102,9 @@ void Copy::variables()
         LOG(L_ERROR, msg.str());
         throw std::runtime_error("Invalid variable type");
     }
-    _input_var = (InputOutput::ArrayVariable *)vars.get(_input_name);
-    size_t n_in = _input_var->size() / vars.typeToBytes(_input_var->type());
-    if(!vars.get(_output_name)){
+    _input_var = (InputOutput::ArrayVariable *)vars->get(_input_name);
+    size_t n_in = _input_var->size() / vars->typeToBytes(_input_var->type());
+    if(!vars->get(_output_name)){
         std::stringstream msg;
         msg << "The tool \"" << name()
             << "\" is asking the undeclared variable \""
@@ -112,7 +112,7 @@ void Copy::variables()
         LOG(L_ERROR, msg.str());
         throw std::runtime_error("Invalid variable");
     }
-    if(vars.get(_output_name)->type().find('*') == std::string::npos){
+    if(vars->get(_output_name)->type().find('*') == std::string::npos){
         std::stringstream msg;
         msg << "The tool \"" << name()
             << "\" may not use a scalar variable (\""
@@ -120,9 +120,9 @@ void Copy::variables()
         LOG(L_ERROR, msg.str());
         throw std::runtime_error("Invalid variable type");
     }
-    _output_var = (InputOutput::ArrayVariable *)vars.get(_output_name);
-    size_t n_out = _input_var->size() / vars.typeToBytes(_input_var->type());
-    if(!vars.isSameType(_input_var->type(), _output_var->type())){
+    _output_var = (InputOutput::ArrayVariable *)vars->get(_output_name);
+    size_t n_out = _input_var->size() / vars->typeToBytes(_input_var->type());
+    if(!vars->isSameType(_input_var->type(), _output_var->type())){
         std::stringstream msg;
         msg << "The input and output types mismatch for the tool \""
             << name() << "\"." << std::endl;

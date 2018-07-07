@@ -108,12 +108,12 @@ void RadixSort::_execute()
     cl_int err_code;
     unsigned int i, max_val;
     CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables vars = C->variables();
+    InputOutput::Variables *vars = C->variables();
 
     // Get maximum key bits, and needed pass
     max_val = UINT_MAX;
     if(!_var_name.compare("icell")){
-        uivec4 n_cells = *(uivec4 *)vars.get("n_cells")->get();
+        uivec4 n_cells = *(uivec4 *)vars->get("n_cells")->get();
         max_val = nextPowerOf2(n_cells.w);
     }
     else if(!isPowerOf2(max_val)){
@@ -557,10 +557,10 @@ void RadixSort::variables()
 {
     size_t n;
     CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables vars = C->variables();
+    InputOutput::Variables *vars = C->variables();
 
     // Check and get the variables
-    if(!vars.get(_var_name)){
+    if(!vars->get(_var_name)){
         std::ostringstream msg;
         msg << "Tool \"" << name()
             << "\" is asking for the undeclared variable \"" << _var_name
@@ -568,7 +568,7 @@ void RadixSort::variables()
         LOG(L_ERROR, msg.str());
         throw std::runtime_error("Invalid variable");
     }
-    if(vars.get(_var_name)->type().compare("unsigned int*")){
+    if(vars->get(_var_name)->type().compare("unsigned int*")){
         std::ostringstream msg;
         msg << "Tool \"" << name()
             << "\" cannot process variable \"" << _var_name
@@ -576,13 +576,13 @@ void RadixSort::variables()
         LOG(L_ERROR, msg.str());
         msg.str("");
         msg << "\t\"unsigned int*\" type was expected, but \""
-            << vars.get(_var_name)->type() << "\" has been received." << std::endl;
+            << vars->get(_var_name)->type() << "\" has been received." << std::endl;
         LOG(L_DEBUG, msg.str());
         throw std::runtime_error("Invalid variable type");
     }
-    _var = (InputOutput::ArrayVariable *)vars.get(_var_name);
+    _var = (InputOutput::ArrayVariable *)vars->get(_var_name);
 
-    if(!vars.get(_perms_name)){
+    if(!vars->get(_perms_name)){
         std::ostringstream msg;
         msg << "Tool \"" << name()
             << "\" is asking for the undeclared permutations variable \""
@@ -590,7 +590,7 @@ void RadixSort::variables()
         LOG(L_ERROR, msg.str());
         throw std::runtime_error("Invalid variable");
     }
-    if(vars.get(_perms_name)->type().compare("unsigned int*")){
+    if(vars->get(_perms_name)->type().compare("unsigned int*")){
         std::ostringstream msg;
         msg << "Tool \"" << name()
             << "\" cannot process permutations variable \"" << _perms_name
@@ -598,13 +598,13 @@ void RadixSort::variables()
         LOG(L_ERROR, msg.str());
         msg.str("");
         msg << "\t\"unsigned int*\" type was expected, but \""
-            << vars.get(_perms_name)->type() << "\" has been received." << std::endl;
+            << vars->get(_perms_name)->type() << "\" has been received." << std::endl;
         LOG(L_DEBUG, msg.str());
         throw std::runtime_error("Invalid variable type");
     }
-    _perms = (InputOutput::ArrayVariable *)vars.get(_perms_name);
+    _perms = (InputOutput::ArrayVariable *)vars->get(_perms_name);
 
-    if(!vars.get(_inv_perms_name)){
+    if(!vars->get(_inv_perms_name)){
         std::ostringstream msg;
         msg << "Tool \"" << name()
             << "\" is asking for the undeclared inverse permutations variable \""
@@ -612,7 +612,7 @@ void RadixSort::variables()
         LOG(L_ERROR, msg.str());
         throw std::runtime_error("Invalid variable");
     }
-    if(vars.get(_inv_perms_name)->type().compare("unsigned int*")){
+    if(vars->get(_inv_perms_name)->type().compare("unsigned int*")){
         std::ostringstream msg;
         msg << "Tool \"" << name()
             << "\" cannot process inverse permutations variable \"" << _inv_perms_name
@@ -620,14 +620,14 @@ void RadixSort::variables()
         LOG(L_ERROR, msg.str());
         msg.str("");
         msg << "\t\"unsigned int*\" type was expected, but \""
-            << vars.get(_inv_perms_name)->type() << "\" has been received." << std::endl;
+            << vars->get(_inv_perms_name)->type() << "\" has been received." << std::endl;
         LOG(L_DEBUG, msg.str());
         throw std::runtime_error("Invalid variable type");
     }
-    _inv_perms = (InputOutput::ArrayVariable *)vars.get(_inv_perms_name);
+    _inv_perms = (InputOutput::ArrayVariable *)vars->get(_inv_perms_name);
 
     // Check the lengths
-    n = _var->size() / vars.typeToBytes(_var->type());
+    n = _var->size() / vars->typeToBytes(_var->type());
     if(!isPowerOf2(n)){
         std::ostringstream msg;
         msg << "Tool \"" << name()
@@ -641,7 +641,7 @@ void RadixSort::variables()
         throw std::runtime_error("Invalid variable length");
     }
     _n = n;
-    n = _perms->size() / vars.typeToBytes(_perms->type());
+    n = _perms->size() / vars->typeToBytes(_perms->type());
     if(n != _n){
         std::ostringstream msg;
         msg << "Lengths mismatch in tool \"" << name()
@@ -657,7 +657,7 @@ void RadixSort::variables()
         LOG(L_DEBUG, msg.str());
         throw std::runtime_error("Invalid variable length");
     }
-    n = _inv_perms->size() / vars.typeToBytes(_inv_perms->type());
+    n = _inv_perms->size() / vars->typeToBytes(_inv_perms->type());
     if(n != _n){
         std::ostringstream msg;
         msg << "Lengths mismatch in tool \"" << name()

@@ -600,13 +600,13 @@ PyObject* ArrayVariable::getPythonObject(int i0, int n)
         return NULL;
     }
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
-    Variables vars = C->variables();
+    Variables *vars = C->variables();
     cl_int err_code;
     // Clear outdated references
     cleanMem();
     // Get the dimensions
-    unsigned components = vars.typeToN(type());
-    size_t typesize = vars.typeToBytes(type());
+    unsigned components = vars->typeToN(type());
+    size_t typesize = vars->typeToBytes(type());
     size_t memsize = size();
     size_t offset = i0;
     if(offset * typesize > memsize){
@@ -716,13 +716,13 @@ bool ArrayVariable::setFromPythonObject(PyObject* obj, int i0, int n)
         return NULL;
     }
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
-    Variables vars = C->variables();
+    Variables *vars = C->variables();
     cl_int err_code;
     // Clear outdated references
     cleanMem();
     // Get the dimensions
-    unsigned components = vars.typeToN(type());
-    size_t typesize = vars.typeToBytes(type());
+    unsigned components = vars->typeToN(type());
+    size_t typesize = vars->typeToBytes(type());
     size_t memsize = size();
     size_t offset = i0;
     if(offset * typesize > memsize){

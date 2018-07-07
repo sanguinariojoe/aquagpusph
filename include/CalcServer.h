@@ -106,7 +106,7 @@ public:
     /** Get the variables manager
      * @return Variables manager
      */
-    InputOutput::Variables& variables() {return _vars;}
+    InputOutput::Variables* variables() {return &_vars;}
 
     /** Get the definitions registered.
      * @return List of definitions.

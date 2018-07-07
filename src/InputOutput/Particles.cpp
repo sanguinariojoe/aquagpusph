@@ -73,8 +73,8 @@ bool Particles::loadDefault()
         id[i] = bounds().x + i;
     }
 
-    Variables vars = C->variables();
-    var = (ArrayVariable*)vars.get("iset");
+    Variables *vars = C->variables();
+    var = (ArrayVariable*)vars->get("iset");
     mem = *(cl_mem*)var->get();
     err_code = clEnqueueWriteBuffer(C->command_queue(),
                                     mem,
@@ -89,7 +89,7 @@ bool Particles::loadDefault()
         S->addMessageF(L_ERROR, "Failure sending variable \"iset\" to the server.\n");
         S->printOpenCLError(err_code);
     }
-    var = (ArrayVariable*)vars.get("id");
+    var = (ArrayVariable*)vars->get("id");
     mem = *(cl_mem*)var->get();
     err_code = clEnqueueWriteBuffer(C->command_queue(),
                                     mem,
@@ -104,7 +104,7 @@ bool Particles::loadDefault()
         S->addMessageF(L_ERROR, "Failure sending variable \"id\" to the server.\n");
         S->printOpenCLError(err_code);
     }
-    var = (ArrayVariable*)vars.get("id_sorted");
+    var = (ArrayVariable*)vars->get("id_sorted");
     mem = *(cl_mem*)var->get();
     err_code = clEnqueueWriteBuffer(C->command_queue(),
                                     mem,
@@ -119,7 +119,7 @@ bool Particles::loadDefault()
         S->addMessageF(L_ERROR, "Failure sending variable \"id_sorted\" to the server.\n");
         S->printOpenCLError(err_code);
     }
-    var = (ArrayVariable*)vars.get("id_unsorted");
+    var = (ArrayVariable*)vars->get("id_unsorted");
     mem = *(cl_mem*)var->get();
     err_code = clEnqueueWriteBuffer(C->command_queue(),
                                     mem,
@@ -228,10 +228,10 @@ std::deque<void*> Particles::download(std::vector<std::string> fields)
     char msg[256];
 	ScreenManager *S = ScreenManager::singleton();
 	CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
-    Variables vars = C->variables();
+    Variables *vars = C->variables();
 
     for(i = 0; i < fields.size(); i++){
-        if(!vars.get(fields.at(i).c_str())){
+        if(!vars->get(fields.at(i).c_str())){
             sprintf(msg,
                     "Undeclared \"%s\" field cannot be downloaded.\n",
                     fields.at(i).c_str());
@@ -239,7 +239,7 @@ std::deque<void*> Particles::download(std::vector<std::string> fields)
             clearList(&data);
             return data;
         }
-        if(vars.get(fields.at(i).c_str())->type().find('*') == std::string::npos){
+        if(vars->get(fields.at(i).c_str())->type().find('*') == std::string::npos){
             sprintf(msg,
                     "\"%s\" field is a scalar.\n",
                     fields.at(i).c_str());
@@ -247,8 +247,8 @@ std::deque<void*> Particles::download(std::vector<std::string> fields)
             clearList(&data);
             return data;
         }
-        ArrayVariable *var = (ArrayVariable*)vars.get(fields.at(i).c_str());
-        typesize = vars.typeToBytes(var->type());
+        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i).c_str());
+        typesize = vars->typeToBytes(var->type());
         len = var->size() / typesize;
         if(len < bounds().y){
             sprintf(msg,

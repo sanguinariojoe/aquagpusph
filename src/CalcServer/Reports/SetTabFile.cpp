@@ -82,7 +82,7 @@ void SetTabFile::_execute()
     CalcServer *C = CalcServer::singleton();
 
     // Print the time instant
-    _f << C->variables().get("t")->asString() << " ";
+    _f << C->variables()->get("t")->asString() << " ";
 
     // Get the data to be printed
     std::vector<InputOutput::Variable*> vars = variables();
@@ -96,7 +96,7 @@ void SetTabFile::_execute()
             throw std::runtime_error("Invalid variable type");
         }
         InputOutput::ArrayVariable *var = (InputOutput::ArrayVariable*)vars.at(i);
-        size_t typesize = C->variables().typeToBytes(var->type());
+        size_t typesize = C->variables()->typeToBytes(var->type());
         size_t len = var->size() / typesize;
         if(len < bounds().y){
             std::stringstream msg;
@@ -242,7 +242,7 @@ std::vector<void*> SetTabFile::download(std::vector<InputOutput::Variable*> vars
 
     for(i = 0; i < vars.size(); i++){
         InputOutput::ArrayVariable *var = (InputOutput::ArrayVariable*)vars.at(i);
-        typesize = C->variables().typeToBytes(var->type());
+        typesize = C->variables()->typeToBytes(var->type());
         len = var->size() / typesize;
         if(len < bounds().y){
             std::stringstream msg;

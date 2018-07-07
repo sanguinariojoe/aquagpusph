@@ -100,7 +100,7 @@ LinkList::~LinkList()
 
 void LinkList::setup()
 {
-    InputOutput::Variables vars = CalcServer::singleton()->variables();
+    InputOutput::Variables *vars = CalcServer::singleton()->variables();
 
     std::ostringstream msg;
     msg << "Loading the tool \"" << name() << "\"..." << std::endl;
@@ -111,8 +111,8 @@ void LinkList::setup()
     _max_pos->setup();
 
     // Compute the cells length
-    InputOutput::Variable *s = vars.get("support");
-    InputOutput::Variable *h = vars.get("h");
+    InputOutput::Variable *s = vars->get("support");
+    InputOutput::Variable *h = vars->get("h");
     _cell_length = *(float*)s->get() * *(float*)h->get();
 
     // Setup the kernels
@@ -204,7 +204,7 @@ void LinkList::setupOpenCL()
     unsigned int n_radix, N;
     cl_int err_code;
     CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables vars = C->variables();
+    InputOutput::Variables *vars = C->variables();
 
     // Create a header for the source code where the operation will be placed
     std::ostringstream source;
@@ -231,14 +231,14 @@ void LinkList::setupOpenCL()
         LOG0(L_DEBUG, msg.str());
         throw std::runtime_error("OpenCL error");
     }
-    n_cells = *(uivec4*)vars.get("n_cells")->get();
+    n_cells = *(uivec4*)vars->get("n_cells")->get();
     _ihoc_gws = roundUp(n_cells.w, _ihoc_lws);
     const char *_ihoc_vars[3] = {"ihoc", "N", "n_cells"};
     for(i = 0; i < 3; i++){
         err_code = clSetKernelArg(_ihoc,
                                   i,
-                                  vars.get(_ihoc_vars[i])->typesize(),
-                                  vars.get(_ihoc_vars[i])->get());
+                                  vars->get(_ihoc_vars[i])->typesize(),
+                                  vars->get(_ihoc_vars[i])->get());
         if(err_code != CL_SUCCESS){
             std::stringstream msg;
             msg << "Failure sending \"" << _ihoc_vars[i]
@@ -247,10 +247,10 @@ void LinkList::setupOpenCL()
             InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
             throw std::runtime_error("OpenCL error");
         }
-        _ihoc_args.push_back(malloc(vars.get(_ihoc_vars[i])->typesize()));
+        _ihoc_args.push_back(malloc(vars->get(_ihoc_vars[i])->typesize()));
         memcpy(_ihoc_args.at(i),
-               vars.get(_ihoc_vars[i])->get(),
-               vars.get(_ihoc_vars[i])->typesize());
+               vars->get(_ihoc_vars[i])->get(),
+               vars->get(_ihoc_vars[i])->typesize());
     }
 
     err_code = clGetKernelWorkGroupInfo(_icell,
@@ -273,15 +273,15 @@ void LinkList::setupOpenCL()
         LOG0(L_DEBUG, msg.str());
         throw std::runtime_error("OpenCL error");
     }
-    n_radix = *(unsigned int*)vars.get("n_radix")->get();
+    n_radix = *(unsigned int*)vars->get("n_radix")->get();
     _icell_gws = roundUp(n_radix, _icell_lws);
     const char *_icell_vars[8] = {"icell", _input_name.c_str(), "N", "n_radix",
                                   "r_min", "support", "h", "n_cells"};
     for(i = 0; i < 8; i++){
         err_code = clSetKernelArg(_icell,
                                   i,
-                                  vars.get(_icell_vars[i])->typesize(),
-                                  vars.get(_icell_vars[i])->get());
+                                  vars->get(_icell_vars[i])->typesize(),
+                                  vars->get(_icell_vars[i])->get());
         if(err_code != CL_SUCCESS){
             std::stringstream msg;
             msg << "Failure sending \"" << _icell_vars[i]
@@ -290,10 +290,10 @@ void LinkList::setupOpenCL()
             InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
             throw std::runtime_error("OpenCL error");
         }
-        _icell_args.push_back(malloc(vars.get(_icell_vars[i])->typesize()));
+        _icell_args.push_back(malloc(vars->get(_icell_vars[i])->typesize()));
         memcpy(_icell_args.at(i),
-               vars.get(_icell_vars[i])->get(),
-               vars.get(_icell_vars[i])->typesize());
+               vars->get(_icell_vars[i])->get(),
+               vars->get(_icell_vars[i])->typesize());
     }
 
     err_code = clGetKernelWorkGroupInfo(_ll,
@@ -316,14 +316,14 @@ void LinkList::setupOpenCL()
         LOG0(L_DEBUG, msg.str());
         throw std::runtime_error("OpenCL error");
     }
-    N = *(unsigned int*)vars.get("N")->get();
+    N = *(unsigned int*)vars->get("N")->get();
     _ll_gws = roundUp(N, _ll_lws);
     const char *_ll_vars[3] = {"icell", "ihoc", "N"};
     for(i = 0; i < 3; i++){
         err_code = clSetKernelArg(_ll,
                                   i,
-                                  vars.get(_ll_vars[i])->typesize(),
-                                  vars.get(_ll_vars[i])->get());
+                                  vars->get(_ll_vars[i])->typesize(),
+                                  vars->get(_ll_vars[i])->get());
         if(err_code != CL_SUCCESS){
             std::stringstream msg;
             msg << "Failure sending \"" << _ll_vars[i]
@@ -332,10 +332,10 @@ void LinkList::setupOpenCL()
             InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
             throw std::runtime_error("OpenCL error");
         }
-        _ll_args.push_back(malloc(vars.get(_ll_vars[i])->typesize()));
+        _ll_args.push_back(malloc(vars->get(_ll_vars[i])->typesize()));
         memcpy(_ll_args.at(i),
-               vars.get(_ll_vars[i])->get(),
-               vars.get(_ll_vars[i])->typesize());
+               vars->get(_ll_vars[i])->get(),
+               vars->get(_ll_vars[i])->typesize());
     }
 }
 
@@ -432,7 +432,7 @@ void LinkList::compile(const std::string source)
 void LinkList::nCells()
 {
     vec pos_min, pos_max;
-    InputOutput::Variables vars = CalcServer::singleton()->variables();
+    InputOutput::Variables *vars = CalcServer::singleton()->variables();
 
     if(!_cell_length){
         std::stringstream msg;
@@ -442,8 +442,8 @@ void LinkList::nCells()
         throw std::runtime_error("Invalid number of cells");
     }
 
-    pos_min = *(vec*)vars.get("r_min")->get();
-    pos_max = *(vec*)vars.get("r_max")->get();
+    pos_min = *(vec*)vars->get("r_min")->get();
+    pos_max = *(vec*)vars->get("r_max")->get();
 
     _n_cells.x = (unsigned int)((pos_max.x - pos_min.x) / _cell_length) + 6;
     _n_cells.y = (unsigned int)((pos_max.y - pos_min.y) / _cell_length) + 6;
@@ -460,31 +460,31 @@ void LinkList::allocate()
     uivec4 n_cells;
     cl_int err_code;
     CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables vars = C->variables();
+    InputOutput::Variables *vars = C->variables();
 
-    if(vars.get("n_cells")->type().compare("uivec4")){
+    if(vars->get("n_cells")->type().compare("uivec4")){
         std::stringstream msg;
         msg << "\"n_cells\" has and invalid type for \"" << name()
             << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
         msg.str("");
-        msg << "\tVariable \"n_cells\" type is \"" << vars.get("n_cells")->type()
+        msg << "\tVariable \"n_cells\" type is \"" << vars->get("n_cells")->type()
             << "\", while \"uivec4\" was expected" << std::endl;
         LOG0(L_DEBUG, msg.str());
         throw std::runtime_error("Invalid n_cells type");
     }
 
-    n_cells = *(uivec4*)vars.get("n_cells")->get();
+    n_cells = *(uivec4*)vars->get("n_cells")->get();
 
     if(_n_cells.w <= n_cells.w){
         n_cells.x = _n_cells.x;
         n_cells.y = _n_cells.y;
         n_cells.z = _n_cells.z;
-        vars.get("n_cells")->set(&n_cells);
+        vars->get("n_cells")->set(&n_cells);
         return;
     }
 
-    cl_mem mem = *(cl_mem*)vars.get("ihoc")->get();
+    cl_mem mem = *(cl_mem*)vars->get("ihoc")->get();
     if(mem) clReleaseMemObject(mem); mem = NULL;
 
     mem = clCreateBuffer(C->context(),
@@ -502,8 +502,8 @@ void LinkList::allocate()
     }
 
     n_cells = _n_cells;
-    vars.get("n_cells")->set(&n_cells);
-    vars.get("ihoc")->set(&mem);
+    vars->get("n_cells")->set(&n_cells);
+    vars->get("ihoc")->set(&mem);
     _ihoc_gws = roundUp(n_cells.w, _ihoc_lws);
 }
 
@@ -511,11 +511,11 @@ void LinkList::setVariables()
 {
     unsigned int i;
     cl_int err_code;
-    InputOutput::Variables vars = CalcServer::singleton()->variables();
+    InputOutput::Variables *vars = CalcServer::singleton()->variables();
 
     const char *_ihoc_vars[3] = {"ihoc", "N", "n_cells"};
     for(i = 0; i < 3; i++){
-        InputOutput::Variable *var = vars.get(_ihoc_vars[i]);
+        InputOutput::Variable *var = vars->get(_ihoc_vars[i]);
         if(!memcmp(var->get(), _ihoc_args.at(i), var->typesize())){
             continue;
         }
@@ -538,7 +538,7 @@ void LinkList::setVariables()
     const char *_icell_vars[8] = {"icell", _input_name.c_str(), "N", "n_radix",
                                   "r_min", "support", "h", "n_cells"};
     for(i = 0; i < 8; i++){
-        InputOutput::Variable *var = vars.get(_icell_vars[i]);
+        InputOutput::Variable *var = vars->get(_icell_vars[i]);
         if(!memcmp(var->get(), _icell_args.at(i), var->typesize())){
             continue;
         }
@@ -560,7 +560,7 @@ void LinkList::setVariables()
 
     const char *_ll_vars[3] = {"icell", "ihoc", "N"};
     for(i = 0; i < 3; i++){
-        InputOutput::Variable *var = vars.get(_ll_vars[i]);
+        InputOutput::Variable *var = vars->get(_ll_vars[i]);
         if(!memcmp(var->get(), _ll_args.at(i), var->typesize())){
             continue;
         }

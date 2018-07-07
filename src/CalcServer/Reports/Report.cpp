@@ -99,11 +99,11 @@ void Report::processFields(const std::string input)
     }
 
     // Now we now that the fields should be process as a single line
-    InputOutput::Variables vars = C->variables();
+    InputOutput::Variables *vars = C->variables();
     unsigned int vars_in_line = 0;
     std::istringstream subfields(replaceAllCopy(input, " ", ","));
     while (getline(fields, s, ',')) {
-        InputOutput::Variable *var = vars.get(s);
+        InputOutput::Variable *var = vars->get(s);
         if(!var){
             std::stringstream msg;
             msg << "The report \"" << name()
@@ -121,13 +121,13 @@ void Report::processFields(const std::string input)
 bool Report::mustUpdate()
 {
     CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables vars = C->variables();
+    InputOutput::Variables *vars = C->variables();
 
     InputOutput::UIntVariable *iter_var =
-        (InputOutput::UIntVariable*)vars.get("iter");
+        (InputOutput::UIntVariable*)vars->get("iter");
     unsigned int iter = *(unsigned int*)iter_var->get();
     InputOutput::FloatVariable *time_var =
-        (InputOutput::FloatVariable*)vars.get("t");
+        (InputOutput::FloatVariable*)vars->get("t");
     float t = *(float*)time_var->get();
 
     if(_ipf > 0){

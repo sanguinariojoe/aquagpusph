@@ -108,8 +108,8 @@ void Set::_execute()
 
 void Set::variable()
 {
-    InputOutput::Variables vars = CalcServer::singleton()->variables();
-    if(!vars.get(_var_name)){
+    InputOutput::Variables *vars = CalcServer::singleton()->variables();
+    if(!vars->get(_var_name)){
         std::stringstream msg;
         msg << "The tool \"" << name()
             << "\" is asking the undeclared variable \""
@@ -117,7 +117,7 @@ void Set::variable()
         LOG(L_ERROR, msg.str());
         throw std::runtime_error("Invalid variable");
     }
-    if(vars.get(_var_name)->type().find('*') == std::string::npos){
+    if(vars->get(_var_name)->type().find('*') == std::string::npos){
         std::stringstream msg;
         msg << "The tool \"" << name()
             << "\" is asking the variable \"" << _var_name
@@ -125,7 +125,7 @@ void Set::variable()
         LOG(L_ERROR, msg.str());
         throw std::runtime_error("Invalid variable type");
     }
-    _var = (InputOutput::ArrayVariable *)vars.get(_var_name);
+    _var = (InputOutput::ArrayVariable *)vars->get(_var_name);
 }
 
 void Set::setupOpenCL()
