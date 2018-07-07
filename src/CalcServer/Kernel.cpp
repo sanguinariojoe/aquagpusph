@@ -384,13 +384,13 @@ void Kernel::variables(const std::string entry_point)
     }
 
     int argc = 2;
-    const char* argv[2] = {"Kernel", path().c_str()};
+    const char* argv[2] = {"Kernel", _path.c_str()};
     CXTranslationUnit translation_unit = clang_parseTranslationUnit(
         index,
         0,
         argv,
         argc,
-        0,
+        NULL,
         0,
         CXTranslationUnit_None);
     if(translation_unit == 0){
