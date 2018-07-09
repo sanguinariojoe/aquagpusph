@@ -198,7 +198,6 @@ cl_kernel Set::compile(const std::string source)
         std::string t = trimCopy(_var->type());
         t.pop_back();  // Remove the asterisk
         flags << "-DT=" << t;
-        flags << "-DT=" << _var->type();
     }
     #ifdef AQUA_DEBUG
         flags << " -DDEBUG";
