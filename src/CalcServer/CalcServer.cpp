@@ -361,7 +361,7 @@ void CalcServer::update()
             if(getchar() == 'c'){
                 LOG(L_WARNING, "Interrumption request detected.\n");
                 sleep(__ERROR_SHOW_TIME__);
-                throw std::runtime_error("Simulation interrupted by the user");
+                throw user_interruption("Simulation interrupted by the user");
             }
         }
 

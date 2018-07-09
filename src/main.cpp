@@ -163,33 +163,39 @@ int main(int argc, char *argv[])
         try {
             C->update();
             file_manager.save();
+        } catch (const Aqua::CalcServer::user_interruption& e) {
+            // The user has interrupted the simulation, just exit normally
+            file_manager.save();
+            break;
         } catch (...) {
             sleep(__ERROR_SHOW_TIME__);
             file_manager.waitForSavers();
+            S->printDate();
             float t = T->time();
+            msg << "Simulation finished abnormally (Time = " << t
+                << " s)" << std::endl << std::endl;
+            LOG(L_INFO, msg.str());
+
             delete S; S = NULL;
             delete T; T = NULL;
             delete C; C = NULL;
             if(Py_IsInitialized())
                 Py_Finalize();
-            S->printDate();
-            msg << "Simulation finished abnormally (Time = " << t
-                << " s)" << std::endl << std::endl;
-            LOG(L_INFO, msg.str());
             throw;
         }
     }
 
     file_manager.waitForSavers();
+    S->printDate();
     float t = T->time();
+    msg << "Simulation finished OK (Time = " << t
+        << " s)" << std::endl << std::endl;
+    LOG(L_INFO, msg.str());
+
     delete S; S = NULL;
     delete T; T = NULL;
     delete C; C = NULL;
     if(Py_IsInitialized())
         Py_Finalize();
-    S->printDate();
-    msg << "Simulation finished OK (Time = " << t
-        << " s)" << std::endl << std::endl;
-    LOG(L_INFO, msg.str());
     return EXIT_SUCCESS;
 }

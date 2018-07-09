@@ -152,6 +152,7 @@ void FileManager::save()
 
 void FileManager::waitForSavers()
 {
+    LOG(L_INFO, "Waiting for the writers...\n");
     for(auto saver : _savers) {
         saver->waitForSavers();
     }

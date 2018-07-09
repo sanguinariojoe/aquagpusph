@@ -107,7 +107,6 @@ VTK::VTK(ProblemSetup& sim_data,
 VTK::~VTK()
 {
     waitForSavers();
-    _tids.clear();
 }
 
 void VTK::load()
@@ -600,10 +599,10 @@ void VTK::save()
 }
 
 void VTK::waitForSavers(){
-    LOG(L_INFO, "Waiting for the writers...\n");
     for(auto tid : _tids){
         pthread_join(tid, NULL);
     }
+    _tids.clear();
 }
 
 vtkXMLUnstructuredGridWriter* VTK::create(){

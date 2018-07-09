@@ -64,7 +64,22 @@ namespace CalcServer{
 class UnSort;
 
 /** @class CalcServer CalcServer.h CalcServer.h
+ * @brief Exception raised when the user manually interrupts the simulation.
+ *
+ * The target of this exception is handling the users interrumptions without
+ * returning back a core dump in the command line, which might be wrongly
+ * interpreted as an error.
+ */
+class user_interruption : public std::runtime_error
+{
+public:
+    /// Constructor
+    user_interruption(const std::string msg) : std::runtime_error(msg) {};
+};
+
+/** @class CalcServer CalcServer.h CalcServer.h
  * @brief Entity that perform the main work of the simulation.
+ *
  * In the Aqua::CalcServer::CalcServer a time subloop is performed where the
  * SPH simulation is performed while no output files should be updated.
  * @note Updating output files require to download data from the server, which
@@ -78,10 +93,6 @@ class CalcServer : public Aqua::Singleton<Aqua::CalcServer::CalcServer>
 {
 public:
     /** @brief Constructor.
-     *
-     * The constructor will just initialize default values.
-     * setup() function should be therefore called after.
-     *
      * @param sim_data Simulation data read from XML files
      */
     CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data);
