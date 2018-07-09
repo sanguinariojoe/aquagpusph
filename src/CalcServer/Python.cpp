@@ -247,7 +247,7 @@ Python::Python(const std::string tool_name, const std::string script)
     // Look for a .py extension to remove it
     std::size_t last_sep = _script.find_last_of(".");
     if(last_sep != std::string::npos &&
-       !_script.substr(last_sep + 1).compare(".py")){
+       !_script.substr(last_sep).compare(".py")){
         _script = _script.substr(0, last_sep);
     }
 }
