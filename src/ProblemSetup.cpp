@@ -30,6 +30,7 @@
 namespace Aqua{ namespace InputOutput{
 
 ProblemSetup::ProblemSetup()
+    : _copy(false)
 {
     time_opts.sim_end_mode = __NO_OUTPUT_MODE__;
     time_opts.sim_end_time = 0.f;
@@ -40,8 +41,23 @@ ProblemSetup::ProblemSetup()
     time_opts.output_ipf = 0;
 }
 
+ProblemSetup::ProblemSetup(const ProblemSetup& p)
+    : settings(p.settings)
+    , variables(p.variables)
+    , definitions(p.definitions)
+    , tools(p.tools)
+    , reports(p.reports)
+    , time_opts(p.time_opts)
+    , sets(p.sets)
+    , _copy(true)
+{
+}
+
 ProblemSetup::~ProblemSetup()
 {
+    if (_copy)
+        return;
+
     unsigned int i;
     for(i = tools.size(); i > 0; i--){
         if(toolInstances(tools.at(i - 1)) == 1){

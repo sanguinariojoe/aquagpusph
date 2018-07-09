@@ -150,4 +150,11 @@ void FileManager::save()
     _state.save(_simulation, _savers);
 }
 
+void FileManager::waitForSavers()
+{
+    for(auto saver : _savers) {
+        saver->waitForSavers();
+    }
+}
+
 }}  // namespace

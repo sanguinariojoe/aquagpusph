@@ -90,6 +90,9 @@ public:
      */
     ProblemSetup();
 
+    /// Copy constructor
+    ProblemSetup(const ProblemSetup& p);
+
     /** @brief Destructor.
      */
     ~ProblemSetup();
@@ -661,6 +664,10 @@ public:
 
     /// Array of particles sets
     std::vector<sphParticlesSet*> sets;
+
+private:
+    /// Hack to avoid local copies try to remove the class
+    bool _copy;
 };
 
 }}  // namespace

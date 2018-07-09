@@ -165,6 +165,7 @@ int main(int argc, char *argv[])
             file_manager.save();
         } catch (...) {
             sleep(__ERROR_SHOW_TIME__);
+            file_manager.waitForSavers();
             float t = T->time();
             delete S; S = NULL;
             delete T; T = NULL;
@@ -179,6 +180,7 @@ int main(int argc, char *argv[])
         }
     }
 
+    file_manager.waitForSavers();
     float t = T->time();
     delete S; S = NULL;
     delete T; T = NULL;

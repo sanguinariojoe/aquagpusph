@@ -114,6 +114,14 @@ public:
      */
     void load();
 
+    /** @brief Wait for the parallel saving threads.
+     *
+     * VTK saver is launching parallel threads to save the data in an
+     * asynchronous way, significantly improving the performance. Therefore,
+     * AQUAgpusph shall wait them to finish before proceeding to destroy the
+     * data
+     */
+    void waitForSavers();
 private:
     /** @brief Create a new file to write.
      * @return The file handler, NULL if errors happened.

@@ -128,6 +128,15 @@ public:
      */
     void save();
 
+    /** @brief Wait for the parallel saving threads.
+     *
+     * Some savers may optionally launch parallel threads to save the data, in
+     * an asynchronous way, in order to improve the performance. In such a case,
+     * AQUAgpusph shall wait them to finish before proceeding to destroy the
+     * data
+     * @see Aqua::InputOutput::VTK::waitForSavers()
+     */
+    void waitForSavers();
 private:
     /// The XML simulation definition loader/saver
     State _state;

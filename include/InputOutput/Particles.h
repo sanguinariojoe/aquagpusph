@@ -70,6 +70,14 @@ public:
      */
     const std::string file(){return _output_file;}
 
+    /** @brief Wait for the eventual parallel saving threads.
+     *
+     * Some savers may optionally launch parallel threads to save the data, in
+     * an asynchronous way, in order to improve the performance. In such a case,
+     * AQUAgpusph shall wait them to finish before proceeding to destroy the
+     * data
+     */
+    virtual void waitForSavers() {return;}
 protected:
     /** @brief Get the simulation data structure
      *

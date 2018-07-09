@@ -106,13 +106,7 @@ VTK::VTK(ProblemSetup& sim_data,
 
 VTK::~VTK()
 {
-    unsigned int i;
-
-    // Wait for the writers working
-    LOG(L_INFO, "Waiting for the writers...\n");
-    for(i = 0; i < _tids.size(); i++){
-        pthread_join(_tids.at(i), NULL);
-    }
+    waitForSavers();
     _tids.clear();
 }
 
@@ -603,6 +597,13 @@ void VTK::save()
     }
 
     updatePVD();
+}
+
+void VTK::waitForSavers(){
+    LOG(L_INFO, "Waiting for the writers...\n");
+    for(auto tid : _tids){
+        pthread_join(tid, NULL);
+    }
 }
 
 vtkXMLUnstructuredGridWriter* VTK::create(){
