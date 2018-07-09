@@ -136,7 +136,7 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
     for(i = 0; i < _sim_data.definitions.names.size(); i++){
         valstr.str("");
         valstr << "-D" << _sim_data.definitions.names.at(i);
-        if(!_sim_data.definitions.values.at(i).compare("")){
+        if(_sim_data.definitions.values.at(i).compare("")){
             if(!_sim_data.definitions.evaluations.at(i)) {
                 valstr << "=" << _sim_data.definitions.values.at(i);
             }
