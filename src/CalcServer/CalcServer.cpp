@@ -325,9 +325,8 @@ CalcServer::~CalcServer()
     if(_devices) delete[] _devices; _devices=NULL;
     if(_command_queues) delete[] _command_queues; _command_queues=NULL;
 
-    for(i = 0; i < _tools.size(); i++){
-        delete _tools.at(i);
-        _tools.at(i) = NULL;
+    for(auto tool : _tools){
+        delete tool;
     }
     _tools.clear();
 
@@ -345,11 +344,11 @@ void CalcServer::update()
 
         // Execute the tools
         strcpy(_current_tool_name, "__pre execution__");
-        for(i = 0; i < _tools.size(); i++){
-            strncpy(_current_tool_name, _tools.at(i)->name().c_str(), 255);
+        for(auto tool : _tools){
+            strncpy(_current_tool_name, tool->name().c_str(), 255);
             _current_tool_name[255] = '\0';
             try {
-                _tools.at(i)->execute();
+                tool->execute();
             } catch (std::runtime_error &e) {
                 sleep(__ERROR_SHOW_TIME__);
                 throw;
@@ -367,7 +366,6 @@ void CalcServer::update()
         }
 
         clFinish(command_queue());
-
         InputOutput::ScreenManager::singleton()->endFrame();
     }
 }
