@@ -57,7 +57,7 @@ public:
      * @param n Number of particles managed by this saver/loader.
      * @param iset Particles set index.
      */
-    Particles(ProblemSetup sim_data,
+    Particles(ProblemSetup &sim_data,
               unsigned int first,
               unsigned int n,
               unsigned int iset);
@@ -75,7 +75,7 @@ protected:
      *
      * @return Simulation data
      */
-    ProblemSetup simData() {return _sim_data;}
+    ProblemSetup& simData() {return _sim_data;}
 
     /** @brief Get the particle index bounds of the "set of particles" managed
      * by this class.

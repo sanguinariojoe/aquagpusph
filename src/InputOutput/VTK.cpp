@@ -101,7 +101,7 @@ using namespace xercesc;
 
 namespace Aqua{ namespace InputOutput{
 
-VTK::VTK(ProblemSetup sim_data,
+VTK::VTK(ProblemSetup& sim_data,
          unsigned int first,
          unsigned int n,
          unsigned int iset)

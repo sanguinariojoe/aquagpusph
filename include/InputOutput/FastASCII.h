@@ -67,7 +67,7 @@ public:
      * @param n Number of particles managed by this saver/loader.
      * @param iset Particles set index.
      */
-    FastASCII(ProblemSetup sim_data,
+    FastASCII(ProblemSetup& sim_data,
               unsigned int first,
               unsigned int n,
               unsigned int iset);

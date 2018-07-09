@@ -98,7 +98,7 @@ public:
      * @param n Number of particles managed by this saver/loader.
      * @param iset Particles set index.
      */
-    VTK(ProblemSetup sim_data,
+    VTK(ProblemSetup& sim_data,
         unsigned int first,
         unsigned int n,
         unsigned int iset);

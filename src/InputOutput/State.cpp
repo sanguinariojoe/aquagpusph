@@ -173,7 +173,7 @@ State::~State()
     }
 }
 
-void State::save(ProblemSetup sim_data, std::vector<Particles*> savers)
+void State::save(ProblemSetup &sim_data, std::vector<Particles*> savers)
 {
     return write(_output_file, sim_data, savers);
 }
@@ -1238,7 +1238,7 @@ void State::parseReports(DOMElement *root,
 }
 
 void State::write(std::string filepath,
-                  ProblemSetup sim_data,
+                  ProblemSetup &sim_data,
                   std::vector<Particles*> savers)
 {
     DOMImplementation* impl;
@@ -1317,7 +1317,7 @@ void State::write(std::string filepath,
 
 void State::writeSettings(xercesc::DOMDocument* doc,
                           xercesc::DOMElement *root,
-                          ProblemSetup sim_data)
+                          ProblemSetup &sim_data)
 {
     DOMElement *elem, *s_elem;
     std::ostringstream att;
@@ -1354,7 +1354,7 @@ void State::writeSettings(xercesc::DOMDocument* doc,
 
 void State::writeVariables(xercesc::DOMDocument* doc,
                            xercesc::DOMElement *root,
-                           ProblemSetup sim_data)
+                           ProblemSetup &sim_data)
 {
     unsigned int i;
     DOMElement *elem, *s_elem;
@@ -1395,7 +1395,7 @@ void State::writeVariables(xercesc::DOMDocument* doc,
 
 void State::writeDefinitions(xercesc::DOMDocument* doc,
                              xercesc::DOMElement *root,
-                             ProblemSetup sim_data)
+                             ProblemSetup &sim_data)
 {
     unsigned int i;
     DOMElement *elem, *s_elem;
@@ -1426,7 +1426,7 @@ void State::writeDefinitions(xercesc::DOMDocument* doc,
 
 void State::writeTools(xercesc::DOMDocument* doc,
                        xercesc::DOMElement *root,
-                       ProblemSetup sim_data)
+                       ProblemSetup &sim_data)
 {
     unsigned int i, j;
     DOMElement *elem, *s_elem;
@@ -1456,7 +1456,7 @@ void State::writeTools(xercesc::DOMDocument* doc,
 
 void State::writeReports(xercesc::DOMDocument* doc,
                          xercesc::DOMElement *root,
-                         ProblemSetup sim_data)
+                         ProblemSetup &sim_data)
 {
     unsigned int i, j;
     DOMElement *elem, *s_elem;
@@ -1481,7 +1481,7 @@ void State::writeReports(xercesc::DOMDocument* doc,
 
 void State::writeTiming(xercesc::DOMDocument* doc,
                         xercesc::DOMElement *root,
-                        ProblemSetup sim_data)
+                        ProblemSetup &sim_data)
 {
     DOMElement *elem, *s_elem;
     std::ostringstream att;
@@ -1535,7 +1535,7 @@ void State::writeTiming(xercesc::DOMDocument* doc,
 
 void State::writeSets(xercesc::DOMDocument* doc,
                       xercesc::DOMElement *root,
-                      ProblemSetup sim_data,
+                      ProblemSetup &sim_data,
                       std::vector<Particles*> savers)
 {
     unsigned int i, j;

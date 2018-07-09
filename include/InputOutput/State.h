@@ -92,7 +92,7 @@ public:
      * @param sim_data Simulation data
      * @param savers Particles savers list
      */
-    void save(ProblemSetup sim_data, std::vector<Particles*> savers);
+    void save(ProblemSetup& sim_data, std::vector<Particles*> savers);
 
     /** @brief Load the simulation XML definition files.
      *
@@ -201,7 +201,7 @@ protected:
      * @return false if all gone right, true otherwise
      */
     void write(std::string filepath,
-               ProblemSetup sim_data,
+               ProblemSetup &sim_data,
                std::vector<Particles*> savers);
 
     /** @brief Write the settings section.
@@ -213,7 +213,7 @@ protected:
      */
     void writeSettings(xercesc::DOMDocument* doc,
                        xercesc::DOMElement *root,
-                       ProblemSetup sim_data);
+                       ProblemSetup &sim_data);
 
     /** @brief Write the variables section.
      * @param doc XML generated document.
@@ -224,7 +224,7 @@ protected:
      */
     void writeVariables(xercesc::DOMDocument* doc,
                         xercesc::DOMElement *root,
-                        ProblemSetup sim_data);
+                        ProblemSetup &sim_data);
 
     /** @brief Write the definitions section.
      * @param doc XML generated document.
@@ -235,7 +235,7 @@ protected:
      */
     void writeDefinitions(xercesc::DOMDocument* doc,
                           xercesc::DOMElement *root,
-                          ProblemSetup sim_data);
+                          ProblemSetup &sim_data);
 
     /** @brief Write the tools section.
      * @param doc XML generated document.
@@ -246,7 +246,7 @@ protected:
      */
     void writeTools(xercesc::DOMDocument* doc,
                     xercesc::DOMElement *root,
-                    ProblemSetup sim_data);
+                    ProblemSetup &sim_data);
 
     /** @brief Write the time control section.
      * @param doc XML generated document.
@@ -257,7 +257,7 @@ protected:
      */
     void writeTiming(xercesc::DOMDocument* doc,
                      xercesc::DOMElement *root,
-                     ProblemSetup sim_data);
+                     ProblemSetup &sim_data);
 
     /** @brief Write the particles set sections.
      * @param doc XML generated document.
@@ -269,7 +269,7 @@ protected:
      */
     void writeSets(xercesc::DOMDocument* doc,
                    xercesc::DOMElement *root,
-                   ProblemSetup sim_data,
+                   ProblemSetup &sim_data,
                    std::vector<Particles*> savers);
 
     /** @brief Write the reports section.
@@ -281,7 +281,7 @@ protected:
      */
     void writeReports(xercesc::DOMDocument* doc,
                       xercesc::DOMElement *root,
-                      ProblemSetup sim_data);
+                      ProblemSetup &sim_data);
 
 private:
     /// Output file

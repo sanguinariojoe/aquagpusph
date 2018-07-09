@@ -37,7 +37,7 @@
 
 namespace Aqua{ namespace InputOutput{
 
-FastASCII::FastASCII(ProblemSetup sim_data,
+FastASCII::FastASCII(ProblemSetup& sim_data,
                      unsigned int first,
                      unsigned int n,
                      unsigned int iset)

@@ -32,7 +32,7 @@
 
 namespace Aqua{ namespace InputOutput{
 
-Particles::Particles(ProblemSetup sim_data,
+Particles::Particles(ProblemSetup& sim_data,
                      unsigned int first,
                      unsigned int n,
                      unsigned int iset)
