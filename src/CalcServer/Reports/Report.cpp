@@ -90,11 +90,10 @@ void Report::processFields(const std::string input)
     // The user may ask to break lines by semicolon usage. In such a case,
     // we are splitting the input and recursively calling this function with
     // each piece
-    while (getline(fields, s, ';')) {
-        processFields(s);
-    }
     if(input.find(';') != std::string::npos) {
-        // So we already nprocessed it by pieces
+        while (getline(fields, s, ';')) {
+            processFields(s);
+        }
         return;
     }
 
@@ -102,7 +101,8 @@ void Report::processFields(const std::string input)
     InputOutput::Variables *vars = C->variables();
     unsigned int vars_in_line = 0;
     std::istringstream subfields(replaceAllCopy(input, " ", ","));
-    while (getline(fields, s, ',')) {
+    while (getline(subfields, s, ',')) {
+        if (s == "") continue;
         InputOutput::Variable *var = vars->get(s);
         if(!var){
             std::stringstream msg;
