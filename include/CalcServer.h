@@ -159,29 +159,18 @@ public:
      */
     const std::string base_path() const{return _base_path.c_str();}
 private:
-    /// Setup the OpenCL stuff.
-    /**
-     * @return false if the OpenCL environment has been succesfully built,
-     * true otherwise
+    /** Setup the OpenCL stuff.
      */
-    bool setupOpenCL();
-    /// Prints all the available platforms and devices returned by OpenCL.
-    /**
-     * @return false if the OpenCL environment can be succesfully built,
-     * true otherwise
+    void setupOpenCL();
+    /** Prints all the available platforms and devices returned by OpenCL.
      */
-    bool queryOpenCL();
-    /// Get a platform from the available ones.
-    /**
-     * @return false if a platform could be obtained, true otherwise
+    void queryOpenCL();
+    /** Get a platform from the available ones.
      */
-    bool setupPlatform();
-    /// Get the available devices in the selected platform.
-    /**
-     * @return false if the devices have been succesfully obtained, true
-     * otherwise
+    void setupPlatform();
+    /** Get the available devices in the selected platform.
      */
-    bool setupDevices();
+    void setupDevices();
 
     /// Number of available OpenCL platforms
     cl_uint _num_platforms;

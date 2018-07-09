@@ -67,9 +67,7 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 {
     unsigned int i, j;
 
-    if(setupOpenCL()) {
-        exit(EXIT_FAILURE);
-    }
+    setupOpenCL();
 
     _base_path = _sim_data.settings.base_path;
     _current_tool_name = new char[256];
@@ -422,51 +420,43 @@ cl_event CalcServer::getUnsortedMem(const std::string var_name,
     return event;
 }
 
-bool CalcServer::setupOpenCL()
+void CalcServer::setupOpenCL()
 {
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     LOG(L_INFO, "Initializating OpenCL...\n");
-    if(queryOpenCL()){
-        return true;
-    }
-    if(setupPlatform()){
-        return true;
-    }
-    if(setupDevices()){
-        return true;
-    }
+    queryOpenCL();
+    setupPlatform();
+    setupDevices();
     LOG(L_INFO, "OpenCL is ready to work!\n");
-    return false;
 }
 
-bool CalcServer::queryOpenCL()
+void CalcServer::queryOpenCL()
 {
     cl_int err_code;
     cl_uint i, j, num_devices=0;
     cl_device_id *devices;
-    char msg[1024], aux[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    char aux[1024];
     _platforms = NULL;
-    strcpy(msg, "");
     // Gets the total number of platforms
     err_code = clGetPlatformIDs(0, NULL, &_num_platforms);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure getting the number of platforms.\n");
-        S->printOpenCLError(err_code);
-        return true;
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     // Get the array of platforms
     _platforms = new cl_platform_id[_num_platforms];
     if(!_platforms) {
-        LOG(L_ERROR, "Allocation memory error.\n");
-        LOG0(L_DEBUG, "\tPlatforms array cannot be allocated\n");
-        return true;
+        std::ostringstream msg;
+        msg << "Failure allocating " << _num_platforms * sizeof(cl_platform_id)
+            << " bytes for OpenCL platforms array." << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::bad_alloc();
     }
     err_code = clGetPlatformIDs(_num_platforms, _platforms, NULL);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure getting the platforms list.\n");
-        S->printOpenCLError(err_code);
-        return true;
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     for(i = 0; i < _num_platforms; i++){
         // Get the number of devices
@@ -476,58 +466,69 @@ bool CalcServer::queryOpenCL()
                                   NULL,
                                   &num_devices);
         if(err_code != CL_SUCCESS) {
-            LOG(L_ERROR, "Failure getting the number of devices.\n");
-            S->printOpenCLError(err_code);
-            return true;
+            std::ostringstream msg;
+            msg << "Failure getting the number of devices (platform " << i
+                << ")." << std::endl;
+            LOG(L_ERROR, msg.str());
+            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL error");
         }
         // Gets the devices array
         devices = new cl_device_id[num_devices];
         if(!devices) {
-            LOG(L_ERROR, "Allocation memory error.\n");
-            LOG0(L_DEBUG, "\tDevices array cannot be allocated\n");
-            return true;
+            std::ostringstream msg;
+            msg << "Failure allocating " << num_devices * sizeof(cl_device_id)
+                << " bytes for OpenCL devices array (platform " << i
+                << ")." << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw std::bad_alloc();
         }
         err_code = clGetDeviceIDs(_platforms[i], CL_DEVICE_TYPE_ALL,
                                   num_devices, devices, NULL);
         if(err_code != CL_SUCCESS) {
-            LOG(L_ERROR, "Failure getting the devices list.\n");
-            S->printOpenCLError(err_code);
-            return true;
+            std::ostringstream msg;
+            msg << "Failure getting the devices list (platform " << i
+                << ")." << std::endl;
+            LOG(L_ERROR, msg.str());
+            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL error");
         }
         // Shows device arrays
         for(j = 0; j < num_devices; j++){
+            std::ostringstream info;
             // Identifier
-            strcpy(msg, "");
-            sprintf(msg, "\tDevice %u, Platform %u...\n", j, i);
-            LOG0(L_INFO, msg);
+            info << "\tDevice " << j << ", Platform " << i << "..." << std::endl;
+            LOG0(L_INFO, info.str());
             // Device name
             err_code = clGetDeviceInfo(devices[j],
                                        CL_DEVICE_NAME,
-                                       1024 * sizeof(char),
+                                       1023 * sizeof(char),
                                        &aux,
                                        NULL);
+            aux[1023] = '\0';
             if(err_code != CL_SUCCESS) {
                 LOG(L_ERROR, "Failure getting the device name.\n");
-                S->printOpenCLError(err_code);
-                return true;
+                InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+                throw std::runtime_error("OpenCL error");
             }
-            strcpy(msg, "");
-            sprintf(msg, "\t\tDEVICE: %s\n", aux);
-            LOG0(L_DEBUG, msg);
+            info.str("");
+            info << "\t\tDEVICE: " << aux << std::endl;
+            LOG0(L_DEBUG, info.str());
             // Platform vendor
             err_code = clGetDeviceInfo(devices[j],
                                        CL_DEVICE_VENDOR,
-                                       1024 * sizeof(char),
+                                       1023 * sizeof(char),
                                        &aux,
                                        NULL);
+            aux[1023] = '\0';
             if(err_code != CL_SUCCESS) {
                 LOG(L_ERROR, "Failure getting the device vendor.\n");
-                S->printOpenCLError(err_code);
-                return true;
+                InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+                throw std::runtime_error("OpenCL error");
             }
-            strcpy(msg, "");
-            sprintf(msg, "\t\tVENDOR: %s\n", aux);
-            LOG0(L_DEBUG, msg);
+            info.str("");
+            info << "\t\tVENDOR: " << aux << std::endl;
+            LOG0(L_DEBUG, info.str());
             // Device type
             cl_device_type dType;
             err_code = clGetDeviceInfo(devices[j],
@@ -537,8 +538,8 @@ bool CalcServer::queryOpenCL()
                                        NULL);
             if(err_code != CL_SUCCESS) {
                 LOG(L_ERROR, "Failure getting the device type.\n");
-                S->printOpenCLError(err_code);
-                return true;
+                InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+                throw std::runtime_error("OpenCL error");
             }
             if(dType == CL_DEVICE_TYPE_CPU)
                 LOG0(L_DEBUG, "\t\tTYPE: CL_DEVICE_TYPE_CPU\n");
@@ -553,29 +554,27 @@ bool CalcServer::queryOpenCL()
                 LOG0(L_DEBUG, "\t\tTYPE: CL_DEVICE_TYPE_CUSTOM\n");
             #endif
             else {
-                sprintf(msg, "\t\tTYPE: %ul\n", dType);
-                LOG0(L_DEBUG, msg);
+                info.str("");
+                info << "\t\tTYPE: " << dType << std::endl;
+                LOG0(L_DEBUG, info.str());
             }
         }
         delete[] devices; devices = NULL;
     }
-    return false;
 }
 
-bool CalcServer::setupPlatform()
+void CalcServer::setupPlatform()
 {
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     if(_sim_data.settings.platform_id >= _num_platforms){
-        LOG(L_ERROR, "Impossible to use the requested platform.\n");
-        strcpy(msg, "");
-        sprintf(msg, "\t%u platform has been selected, but just %u platforms have been found\n",
-                _sim_data.settings.platform_id, _num_platforms);
-        LOG0(L_DEBUG, msg);
-        return true;
+        std::ostringstream msg;
+        LOG(L_ERROR, "The requested OpenCL platform can't be used.\n");
+        msg << "\tPlatform " << _sim_data.settings.platform_id
+            << "has been selected, but just " << _num_platforms
+            << "are available." << std::endl;
+        LOG0(L_DEBUG, msg.str());
+        throw std::runtime_error("Out of bounds");
     }
     _platform = _platforms[_sim_data.settings.platform_id];
-    return false;
 }
 
 /** @brief Runtime error reporting tool
@@ -594,28 +593,24 @@ void CL_CALLBACK context_error_notify(const char *errinfo,
                                       void *user_data)
 {
     const char* current_tool_name = (const char*)user_data;
-    char msg[512];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 
-    strcpy(msg, "OpenCL implementation reported a runtime error");
-    if(strlen(current_tool_name)){
-        strcat(msg, " (");
-        strcat(msg, current_tool_name);
-        strcat(msg, ")");
+    std::ostringstream msg;
+    msg << "OpenCL implementation reported a runtime error";
+    if (strlen(current_tool_name)) {
+        msg << "(" << current_tool_name << ")";
     }
-    strcat(msg, ":\n");
+    msg << ":" << std::endl;
 
-    LOG(L_ERROR, msg);
-    LOG0(L_DEBUG, errinfo);
-    LOG0(L_DEBUG, "\n");
+    LOG(L_ERROR, msg.str());
+    msg.str("");
+    msg << errinfo << std::endl;
+    LOG0(L_DEBUG, msg.str());
 } 
 
-bool CalcServer::setupDevices()
+void CalcServer::setupDevices()
 {
     cl_int err_code;
     cl_uint i;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     _devices = NULL;
     // Gets the number of valid devices
     err_code = clGetDeviceIDs(_platform,
@@ -625,15 +620,16 @@ bool CalcServer::setupDevices()
                               &_num_devices);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure getting the number of devices.\n");
-        S->printOpenCLError(err_code);
-        return true;
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     if(_sim_data.settings.device_id >= _num_devices) {
-        LOG(L_ERROR, "Impossible to use the selected device.\n");
-        strcpy(msg, "");
-        sprintf(msg, "\t%u device has been selected, but just %u devices are available\n",
-                _sim_data.settings.device_id, _num_devices);
-        LOG0(L_DEBUG, msg);
+        LOG(L_ERROR, "The selected device can't be used.\n");
+        std::ostringstream msg;
+        msg << "\tDevice " << _sim_data.settings.device_id
+            << " has been selected, but just " << _num_devices
+            << " devices are available." << std::endl;
+        LOG0(L_DEBUG, msg.str());
         if(_sim_data.settings.device_type == CL_DEVICE_TYPE_ALL)
             LOG0(L_DEBUG, "\t\tCL_DEVICE_TYPE_ALL filter activated\n");
         else if(_sim_data.settings.device_type == CL_DEVICE_TYPE_CPU)
@@ -645,14 +641,16 @@ bool CalcServer::setupDevices()
         else if(_sim_data.settings.device_type == CL_DEVICE_TYPE_DEFAULT)
             LOG0(L_DEBUG, "\t\tCL_DEVICE_TYPE_DEFAULT filter activated\n");
 
-        return true;
+        throw std::runtime_error("Out of bounds");
     }
     // Gets the devices array
     _devices = new cl_device_id[_num_devices];
     if(!_devices){
-        LOG(L_ERROR, "Allocation memory error.\n");
-        LOG0(L_DEBUG, "\tDevices array can't be allocated\n");
-        return true;
+        std::ostringstream msg;
+        msg << "Failure allocating " << _num_devices * sizeof(cl_device_id)
+            << " bytes for the selected devices array." << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::bad_alloc();
     }
     err_code = clGetDeviceIDs(_platform,
                               _sim_data.settings.device_type,
@@ -661,8 +659,8 @@ bool CalcServer::setupDevices()
                               &_num_devices);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure getting the devices list.\n");
-        S->printOpenCLError(err_code);
-        return true;
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     // Create a devices context
     _context = clCreateContext(0,
@@ -673,15 +671,17 @@ bool CalcServer::setupDevices()
                                &err_code);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure creating an OpenCL context.\n");
-        S->printOpenCLError(err_code);
-        return true;
+        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     // Create command queues
     _command_queues = new cl_command_queue[_num_devices];
     if(_command_queues == NULL){
-        LOG(L_ERROR, "Allocation memory error.\n");
-        LOG0(L_DEBUG, "\tCommand queues array cannot be allocated\n");
-        return true;
+        std::ostringstream msg;
+        msg << "Failure allocating " << _num_devices * sizeof(cl_command_queue)
+            << " bytes for the command queues." << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::bad_alloc();
     }
     for(i = 0; i < _num_devices; i++) {
         _command_queues[i] = clCreateCommandQueue(_context,
@@ -689,17 +689,17 @@ bool CalcServer::setupDevices()
                                                   0,
                                                   &err_code);
         if(err_code != CL_SUCCESS) {
-            strcpy(msg, "");
-            sprintf(msg, "Can't create a command queue for the device %u.\n",i);
-            LOG(L_ERROR, msg);
-            S->printOpenCLError(err_code);
-            return true;
+            std::ostringstream msg;
+            msg << "Failure generating the command queue number " << i
+                << "." << std::endl;
+            LOG(L_ERROR, msg.str());
+            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL error");
         }
     }
     // Store the selected ones
     _device = _devices[_sim_data.settings.device_id];
     _command_queue = _command_queues[_sim_data.settings.device_id];
-    return false;
 }
 
 void CalcServer::setup()
