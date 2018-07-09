@@ -62,7 +62,7 @@ std::ofstream& FileManager::logFile()
 
 CalcServer::CalcServer* FileManager::load()
 {
-    unsigned int i, n=0;
+    unsigned int n=0;
 
     // Load the XML definition file
     _state.load(inputFile(), _simulation);
@@ -77,33 +77,19 @@ CalcServer::CalcServer* FileManager::load()
     CalcServer::CalcServer *C = new CalcServer::CalcServer(_simulation);
 
     // Now we can build the loaders/savers
-    for(i = 0; i < _simulation.sets.size(); i++){
-        if(!_simulation.sets.at(i)->inputFormat().compare("ASCII")){
-            ASCII *loader = new ASCII(
-                _simulation, n, _simulation.sets.at(i)->n(), i);
-            if(!loader){
-                delete C;
-                throw std::bad_alloc();
-            }
+    unsigned int i = 0;
+    for(auto set : _simulation.sets){
+        if(!set->inputFormat().compare("ASCII")){
+            ASCII *loader = new ASCII(_simulation, n, set->n(), i);
             _loaders.push_back((Particles*)loader);
         }
-        else if(!_simulation.sets.at(i)->inputFormat().compare("FastASCII")){
-            FastASCII *loader = new FastASCII(
-                _simulation, n, _simulation.sets.at(i)->n(), i);
-            if(!loader){
-                delete C;
-                throw std::bad_alloc();
-            }
+        else if(!set->inputFormat().compare("FastASCII")){
+            FastASCII *loader = new FastASCII(_simulation, n, set->n(), i);
             _loaders.push_back((Particles*)loader);
         }
-        else if(!_simulation.sets.at(i)->inputFormat().compare("VTK")){
+        else if(!set->inputFormat().compare("VTK")){
             #ifdef HAVE_VTK
-                VTK *loader = new VTK(
-                    _simulation, n, _simulation.sets.at(i)->n(), i);
-                if(!loader){
-                    delete C;
-                    throw std::bad_alloc();
-                }
+                VTK *loader = new VTK(_simulation, n, set->n(), i);
                 _loaders.push_back((Particles*)loader);
             #else
                 LOG(L_ERROR, "AQUAgpusph has been compiled without VTK format.\n");
@@ -113,29 +99,19 @@ CalcServer::CalcServer* FileManager::load()
         }
         else{
             std::ostringstream msg;
-            msg << "Unknow \"" << _simulation.sets.at(i)->inputFormat()
+            msg << "Unknow \"" << set->inputFormat()
                 << "\" input file format" << std::endl;
             LOG(L_ERROR, msg.str());
             delete C;
             throw std::runtime_error("Unknown input file format");
         }
-        if(!_simulation.sets.at(i)->outputFormat().compare("ASCII")){
-            ASCII *saver = new ASCII(
-                _simulation, n, _simulation.sets.at(i)->n(), i);
-            if(!saver){
-                delete C;
-                throw std::bad_alloc();
-            }
+        if(!set->outputFormat().compare("ASCII")){
+            ASCII *saver = new ASCII(_simulation, n, set->n(), i);
             _savers.push_back((Particles*)saver);
         }
-        else if(!_simulation.sets.at(i)->outputFormat().compare("VTK")){
+        else if(!set->outputFormat().compare("VTK")){
             #ifdef HAVE_VTK
-                VTK *saver = new VTK(
-                    _simulation, n, _simulation.sets.at(i)->n(), i);
-                if(!saver){
-                    delete C;
-                    throw std::bad_alloc();
-                }
+                VTK *saver = new VTK(_simulation, n, set->n(), i);
                 _savers.push_back((Particles*)saver);
             #else
                 LOG(L_ERROR, "AQUAgpusph has been compiled without VTK format.\n");
@@ -145,13 +121,14 @@ CalcServer::CalcServer* FileManager::load()
         }
         else{
             std::ostringstream msg;
-            msg << "Unknow \"" << _simulation.sets.at(i)->outputFormat()
+            msg << "Unknow \"" << set->outputFormat()
                 << "\" input file format" << std::endl;
             LOG(L_ERROR, msg.str());
             delete C;
             throw std::runtime_error("Unknown output file format");
         }
-        n += _simulation.sets.at(i)->n();
+        n += set->n();
+        i++;
     }
 
     // Execute the loaders
