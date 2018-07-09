@@ -21,9 +21,8 @@
  * (See Aqua::InputOutput::Particles for details)
  */
 
-#include <stdlib.h>
-#include <string.h>
-#include <vector>
+#include <string>
+#include <iomanip>
 
 #include <InputOutput/Particles.h>
 #include <ScreenManager.h>
@@ -38,7 +37,6 @@ Particles::Particles(ProblemSetup& sim_data,
                      unsigned int iset)
     : _sim_data(sim_data)
     , _iset(iset)
-    , _output_file(NULL)
 {
     _bounds.x = first;
     _bounds.y = first + n;
@@ -46,18 +44,14 @@ Particles::Particles(ProblemSetup& sim_data,
 
 Particles::~Particles()
 {
-    if(_output_file)
-        delete[] _output_file;
-    _output_file = NULL;
 }
 
-bool Particles::loadDefault()
+void Particles::loadDefault()
 {
     unsigned int i;
     cl_int err_code;
-    ArrayVariable * var;
+    ArrayVariable *var;
     cl_mem mem;
-    ScreenManager *S = ScreenManager::singleton();
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
 
     unsigned int n = bounds().y - bounds().x;
@@ -65,7 +59,7 @@ bool Particles::loadDefault()
     unsigned int *id = new unsigned int[n];
 
     if(!iset || !id){
-        S->addMessageF(L_ERROR, "Failure allocating memory.\n");
+        LOG(L_ERROR, "Failure allocating memory.\n");
     }
 
     for(i = 0; i < n; i++){
@@ -86,8 +80,9 @@ bool Particles::loadDefault()
                                     NULL,
                                     NULL);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending variable \"iset\" to the server.\n");
-        S->printOpenCLError(err_code);
+        LOG(L_ERROR, "Failure sending variable \"iset\" to the server.\n");
+        ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     var = (ArrayVariable*)vars->get("id");
     mem = *(cl_mem*)var->get();
@@ -101,8 +96,9 @@ bool Particles::loadDefault()
                                     NULL,
                                     NULL);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending variable \"id\" to the server.\n");
-        S->printOpenCLError(err_code);
+        LOG(L_ERROR, "Failure sending variable \"id\" to the server.\n");
+        ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     var = (ArrayVariable*)vars->get("id_sorted");
     mem = *(cl_mem*)var->get();
@@ -116,8 +112,9 @@ bool Particles::loadDefault()
                                     NULL,
                                     NULL);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending variable \"id_sorted\" to the server.\n");
-        S->printOpenCLError(err_code);
+        LOG(L_ERROR, "Failure sending variable \"id_sorted\" to the server.\n");
+        ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     var = (ArrayVariable*)vars->get("id_unsorted");
     mem = *(cl_mem*)var->get();
@@ -131,81 +128,45 @@ bool Particles::loadDefault()
                                     NULL,
                                     NULL);
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure sending variable \"id_unsorted\" to the server.\n");
-        S->printOpenCLError(err_code);
+        LOG(L_ERROR, "Failure sending variable \"id_unsorted\" to the server.\n");
+        ScreenManager::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
 
     delete[] iset; iset = NULL;
     delete[] id; id = NULL;
 }
 
-void Particles::file(const char* filename)
-{
-    size_t len;
-
-    if(_output_file)
-        delete[] _output_file;
-    _output_file = NULL;
-
-    if(!filename)
-        return;
-
-    len = strlen(filename) + 1;
-    _output_file = new char[len];
-    strcpy(_output_file, filename);
-}
-
-unsigned int Particles::file(const char* basename,
+unsigned int Particles::file(const std::string basename,
                              unsigned int startindex,
                              unsigned int digits)
 {
     FILE *f;
-    char *newname = NULL, *orig_pos, *dest_pos;
-    size_t len;
-    unsigned int i = startindex, j;
 
-    if(!basename)
-        return 0;
-
-    if(!strstr(basename, "%d")){
+    if(basename.find("%d") == std::string::npos){
         // We cannot replace nothing in the basename, just test if the file
         // does not exist
-        f = fopen(basename, "r");
+        f = fopen(basename.c_str(), "r");
         if(f){
             // The fail already exist, so we cannot operate
             fclose(f);
-            return 0;
+            throw std::runtime_error("Bad file name");
         }
 
         file(basename);
-        return 1;
+        return startindex;
     }
 
+    unsigned int i = startindex;
     while(true){
-        if(newname)
-            delete[] newname;
-        newname = NULL;
+        std::ostringstream number;
+        number << std::setfill('0') << std::setw(digits) << i;
+        std::string newname = replaceAllCopy(basename, "%d", number.str());
 
-        len = strlen(basename) - 1 + max(numberOfDigits(i), digits);
-        newname = new char[len];
-
-        // Copy all the string
-        strcpy(newname, basename);
-        // Replace the number
-        dest_pos = strstr(newname, "%d");
-        for(j = 0; j < digits - numberOfDigits(i); j++){
-            strcpy(dest_pos, "0");
-            dest_pos += 1;
-        }
-        sprintf(dest_pos, "%u", i);
-        // Copy the rest of the original string after the inserted number
-        dest_pos += numberOfDigits(i);
-        orig_pos = (char*)strstr(basename, "%d") + 2;
-        strcpy(dest_pos, orig_pos);
-
-        f = fopen(newname, "r");
+        f = fopen(newname.c_str(), "r");
         if(!f){
             // We found an available slot
+            file(newname);
             break;
         }
         fclose(f);
@@ -213,74 +174,69 @@ unsigned int Particles::file(const char* basename,
         i++;
     }
 
-    file(newname);
-    delete[] newname;
-    return i + 1;
+    return i;
 }
 
-std::deque<void*> Particles::download(std::vector<std::string> fields)
+std::vector<void*> Particles::download(std::vector<std::string> fields)
 {
-    std::deque<void*> data;
+    std::vector<void*> data;
     std::vector<cl_event> events;  // vector storage is continuous memory
     size_t typesize, len;
-    unsigned int i, j;
     cl_int err_code;
-    char msg[256];
-	ScreenManager *S = ScreenManager::singleton();
-	CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
+    CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
     Variables *vars = C->variables();
 
-    for(i = 0; i < fields.size(); i++){
-        if(!vars->get(fields.at(i).c_str())){
-            sprintf(msg,
-                    "Undeclared \"%s\" field cannot be downloaded.\n",
-                    fields.at(i).c_str());
-            S->addMessageF(L_ERROR, msg);
+    for(auto field : fields){
+        if(!vars->get(field)){
+            std::ostringstream msg;
+            msg << "Can't download undeclared variable \"" << field
+                << "\"." << std::endl;
+            LOG(L_ERROR, msg.str());
             clearList(&data);
-            return data;
+            throw std::runtime_error("Invalid variable");
         }
-        if(vars->get(fields.at(i).c_str())->type().find('*') == std::string::npos){
-            sprintf(msg,
-                    "\"%s\" field is a scalar.\n",
-                    fields.at(i).c_str());
-            S->addMessageF(L_ERROR, msg);
+        if(vars->get(field)->type().find('*') == std::string::npos){
+            std::ostringstream msg;
+            msg << "Variable \"" << field << "\" is a scalar." << std::endl;
+            LOG(L_ERROR, msg.str());
             clearList(&data);
-            return data;
+            throw std::runtime_error("Invalid variable type");
         }
-        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i).c_str());
+        ArrayVariable *var = (ArrayVariable*)vars->get(field);
         typesize = vars->typeToBytes(var->type());
         len = var->size() / typesize;
         if(len < bounds().y){
-            sprintf(msg,
-                    "Failure saving \"%s\" field, which has not length enough.\n",
-                    fields.at(i).c_str());
-            S->addMessageF(L_ERROR, msg);
-            sprintf(msg,
-                    "length = %u was required, but just %lu was found.\n",
-                    bounds().y,
-                    len);
-            S->addMessage(L_DEBUG, msg);
+            std::ostringstream msg;
+            msg << "Variable \"" << field << "\" is not long enough." << std::endl;
+            LOG(L_ERROR, msg.str());
+            msg.str("");
+            msg << "length = " << bounds().y << "is required, but just "
+                << len << " components are available." << std::endl;
+            LOG0(L_DEBUG, msg.str());
             clearList(&data);
-            return data;
+            throw std::runtime_error("Invalid variable length");
         }
         void *store = malloc(typesize * (bounds().y - bounds().x));
         if(!store){
-            sprintf(msg,
-                    "Failure allocating memory for \"%s\" field.\n",
-                    fields.at(i).c_str());
-            S->addMessageF(L_ERROR, msg);
+            std::ostringstream msg;
+            msg << "Failure allocating " << typesize * (bounds().y - bounds().x)
+                << "bytes for variable \"" << field << "\"." << std::endl;
+            LOG(L_ERROR, msg.str());
             clearList(&data);
-            return data;
+            throw std::bad_alloc();
         }
         data.push_back(store);
 
-        cl_event event = C->getUnsortedMem(var->name().c_str(),
-                                           typesize * bounds().x,
-                                           typesize * (bounds().y - bounds().x),
-                                           store);
-        if(!event){
+        cl_event event;
+        try {
+            event = C->getUnsortedMem(
+                var->name().c_str(),
+                typesize * bounds().x,
+                typesize * (bounds().y - bounds().x),
+                store);
+        } catch (...) {
             clearList(&data);
-            return data;
+            throw;
         }
 
         events.push_back(event);
@@ -290,27 +246,27 @@ std::deque<void*> Particles::download(std::vector<std::string> fields)
     err_code = clWaitForEvents(events.size(),
                                events.data());
     if(err_code != CL_SUCCESS){
-        S->addMessageF(L_ERROR, "Failure waiting for the variables download.\n");
-        S->printOpenCLError(err_code);
+        LOG(L_ERROR, "Failure waiting for the variables download.\n");
+        ScreenManager::singleton()->printOpenCLError(err_code);
         clearList(&data);
-        return data;
+        throw std::runtime_error("OpenCL error");
     }
 
     // Destroy the events
-    for(i = 0; i < events.size(); i++){
-        err_code = clReleaseEvent(events.at(i));
+    for(auto event : events){
+        err_code = clReleaseEvent(event);
         if(err_code != CL_SUCCESS){
-            S->addMessageF(L_ERROR, "Failure releasing the events.\n");
-            S->printOpenCLError(err_code);
+            LOG(L_ERROR, "Failure releasing the events.\n");
+            ScreenManager::singleton()->printOpenCLError(err_code);
             clearList(&data);
-            return data;
+            throw std::runtime_error("OpenCL error");
         }
     }
 
     return data;
 }
 
-void Particles::clearList(std::deque<void*> *data)
+void Particles::clearList(std::vector<void*> *data)
 {
     unsigned int i;
     for(i = 0; i < data->size(); i++){

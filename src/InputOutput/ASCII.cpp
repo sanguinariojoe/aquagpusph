@@ -52,129 +52,118 @@ ASCII::~ASCII()
 
 void ASCII::load()
 {
-    FILE *f;
+    std::ifstream f;
     cl_int err_code;
-    char msg[MAX_LINE_LEN + 64], line[MAX_LINE_LEN];
     char *pos = NULL;
-    unsigned int i, j, iline, n, N, n_fields, progress;
-    ScreenManager *S = ScreenManager::singleton();
+    unsigned int n, N, n_fields;
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
 
     loadDefault();
 
-    sprintf(msg,
-            "Loading particles from ASCII file \"%s\"\n",
-            simData().sets.at(setId())->inputPath().c_str());
-    S->addMessageF(L_INFO, msg);
+    std::ostringstream msg;
+    msg << "Loading particles from ASCII file \""
+             <<  simData().sets.at(setId())->inputPath()
+             << "\"..." << std::endl;
+    LOG(L_INFO, msg.str());
 
-    f = fopen(simData().sets.at(setId())->inputPath().c_str(), "r");
-    if(!f){
-        S->addMessageF(L_ERROR, "The file is inaccessible.\n");
-        throw std::runtime_error("The file is inaccessible");
-    }
+    f.open(simData().sets.at(setId())->inputPath());
 
     // Assert that the number of particles is right
     n = bounds().y - bounds().x;
     N = readNParticles(f);
     if(n != N){
-        sprintf(msg,
-                "Expected %u particles, but the file contains %u ones.\n",
-                n,
-                N);
-        S->addMessageF(L_ERROR, msg);
+        std::ostringstream msg;
+        msg << "Expected " << n << " particles, but the file contains just "
+            << N << " ones." << std::endl;
+        LOG(L_ERROR, msg.str());
         throw std::runtime_error("Invalid number of particles in file");
     }
 
     // Check the fields to read
     std::vector<std::string> fields = simData().sets.at(setId())->inputFields();
     if(!fields.size()){
-        S->addMessageF(L_ERROR, "0 fields were set to be read from the file.\n");
+        LOG(L_ERROR, "0 fields were set to be read from the file.\n");
         throw std::runtime_error("No fields have to be read");
     }
     bool have_r = false;
-    for(i = 0; i < fields.size(); i++){
-        if(!fields.at(i).compare("r")){
+    for(auto field : fields){
+        if(!field.compare("r")){
             have_r = true;
             break;
         }
     }
     if(!have_r){
-        S->addMessageF(L_ERROR, "\"r\" field was not set to be read from the file.\n");
+        LOG(L_ERROR, "\"r\" field was not set to be read from the file.\n");
         throw std::runtime_error("Reading \"r\" field is mandatory");
     }
     // Setup an storage
-    std::deque<void*> data;
+    std::vector<void*> data;
     Variables *vars = C->variables();
     n_fields = 0;
-    for(i = 0; i < fields.size(); i++){
-        if(!vars->get(fields.at(i).c_str())){
-            sprintf(msg,
-                    "\"%s\" field has been set to be read, but it was not declared.\n",
-                    fields.at(i).c_str());
-            S->addMessageF(L_ERROR, msg);
-            throw std::runtime_error("Invalid field");
+    for(auto field : fields){
+        if(!vars->get(field)){
+            std::ostringstream msg;
+            msg << "Undeclared variable \"" << field
+                << "\" set to be read." << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw std::runtime_error("Invalid variable");
         }
-        if(vars->get(fields.at(i).c_str())->type().find('*') == std::string::npos){
-            sprintf(msg,
-                    "\"%s\" field has been set to be read, but it was declared as a scalar.\n",
-                    fields.at(i).c_str());
-            S->addMessageF(L_ERROR, msg);
-            throw std::runtime_error("Invalid field type");
+        if(vars->get(field)->type().find('*') == std::string::npos){
+            std::ostringstream msg;
+            msg << "Can't read scalar variable \"" << field
+                << "\"." << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw std::runtime_error("Invalid variable type");
         }
-        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i).c_str());
+        ArrayVariable *var = (ArrayVariable*)vars->get(field);
         n_fields += vars->typeToN(var->type());
         size_t typesize = vars->typeToBytes(var->type());
         size_t len = var->size() / typesize;
-        if(len < bounds().y){
-            sprintf(msg,
-                    "Failure reading \"%s\" field, which has not length enough.\n",
-                    fields.at(i).c_str());
-            S->addMessageF(L_ERROR, msg);
-            throw std::runtime_error("Invalid field length");
+        if(len < bounds().y) {
+            std::ostringstream msg;
+            msg << "Array variable \"" << field
+                << "\" is not long enough." << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw std::runtime_error("Invalid variable length");
         }
         void *store = malloc(typesize * n);
         if(!store){
-            sprintf(msg,
-                    "Failure allocating memory for \"%s\" field.\n",
-                    fields.at(i).c_str());
-            S->addMessageF(L_ERROR, msg);
+            std::ostringstream msg;
+            msg << "Failure allocating " << typesize * n
+                << "bytes for variable \"" << field
+                << "\"." << std::endl;
+            LOG(L_ERROR, msg.str());
             throw std::bad_alloc();
         }
         data.push_back(store);
     }
 
     // Read the particles
-    rewind(f);
-    i = 0;
-    iline = 0;
-    progress = -1;
-    while(fgets(line, MAX_LINE_LEN * sizeof(char), f))
+    f.clear();
+    f.seekg(0);
+    unsigned int i=0, i_line=0, progress=-1;
+    std::string line;
+    while(getline(f, line))
     {
-        iline++;
+        i_line++;
 
         formatLine(line);
-        if(!strlen(line))
+        if(line == "")
             continue;
 
         unsigned int n_available_fields = readNFields(line);
         if(n_available_fields != n_fields){
-            sprintf(msg,
-                    "Expected %u fields, but a line contains %u ones.\n",
-                    n_fields,
-                    n_available_fields);
-            S->addMessageF(L_ERROR, msg);
-            sprintf(msg, "\terror found in the line %u.\n", iline);
-            S->addMessage(L_DEBUG, msg);
-            sprintf(msg, "\t\"%s\".\n", line);
-            S->addMessage(L_DEBUG, msg);
+            std::ostringstream msg;
+            msg << "Line " << i_line << " has " << n_available_fields
+                << " fields, but " << n_fields << " are required." << std::endl;
+            LOG(L_ERROR, msg.str());
             throw std::runtime_error("Bad formatted file");
         }
 
-        pos = line;
-        for(j = 0; j < fields.size(); j++){
-            pos = readField((const char*)fields.at(j).c_str(), pos, i, data.at(j));
-            if(!pos && (j != fields.size() - 1))
-                throw std::runtime_error("Incorrect number of fields");
+        unsigned int j = 0;
+        for(auto field : fields){
+            line = readField(field, line, i, data.at(j));
+            j++;
         }
 
         i++;
@@ -182,15 +171,17 @@ void ASCII::load()
         if(progress != i * 100 / n){
             progress = i * 100 / n;
             if(!(progress % 10)){
-                sprintf(msg, "\t\t%u%%\n", progress);
-                S->addMessage(L_DEBUG, msg);
+                msg.str("");
+                msg << "\t\t" << progress << "%" << std::endl;
+                LOG0(L_DEBUG, msg.str());
             }
         }
     }
 
     // Send the data to the server and release it
-    for(i = 0; i < fields.size(); i++){
-        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i).c_str());
+    i = 0;
+    for(auto field : fields){
+        ArrayVariable *var = (ArrayVariable*)vars->get(field);
         size_t typesize = vars->typeToBytes(var->type());
         cl_mem mem = *(cl_mem*)var->get();
         err_code = clEnqueueWriteBuffer(C->command_queue(),
@@ -204,190 +195,209 @@ void ASCII::load()
                                         NULL);
         free(data.at(i)); data.at(i) = NULL;
         if(err_code != CL_SUCCESS){
-            sprintf(msg,
-                    "Failure sending variable \"%s\" to the server.\n",
-                    fields.at(i));
-            S->addMessageF(L_ERROR, msg);
-            S->printOpenCLError(err_code);
-            throw std::runtime_error("Failure sending data");
+            std::ostringstream msg;
+            msg << "Failure sending variable \"" << field
+                << "\" to the server." << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw std::runtime_error("OpenCL error");
         }
+        i++;
     }
     data.clear();
 
-    fclose(f);
+    f.close();
 }
 
 void ASCII::save()
 {
     unsigned int i, j;
     cl_int err_code;
-    char msg[256];
-    ScreenManager *S = ScreenManager::singleton();
-    CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
+    Variables *vars = CalcServer::CalcServer::singleton()->variables();
     TimeManager *T = TimeManager::singleton();
 
     std::vector<std::string> fields = simData().sets.at(setId())->outputFields();
     if(!fields.size()){
-        S->addMessageF(L_ERROR, "0 fields were set to be saved into the file.\n");
+        LOG(L_ERROR, "0 fields were set to be saved into the file.\n");
         throw std::runtime_error("No fields have been set to be saved");
     }
 
-    FILE *f = create();
-    if(!f)
-        throw std::runtime_error("Failure creating the file");
+    std::ofstream f;
+    create(f);
 
     // Write a head
-    fprintf(f, "#########################################################\n");
-    fprintf(f, "#                                                       #\n");
-    fprintf(f, "#    #    ##   #  #   #                           #     #\n");
-    fprintf(f, "#   # #  #  #  #  #  # #                          #     #\n");
-    fprintf(f, "#  ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###   #\n");
-    fprintf(f, "#  #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #  #\n");
-    fprintf(f, "#  #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #  #\n");
-    fprintf(f, "#  #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #  #\n");
-    fprintf(f, "#                            # #             #          #\n");
-    fprintf(f, "#                          ##  #             #          #\n");
-    fprintf(f, "#                                                       #\n");
-    fprintf(f, "#########################################################\n");
-    fprintf(f, "#\n");
-    fprintf(f, "#    File autogenerated by AQUAgpusph\n");
-    fprintf(f, "#    t = %g s\n", T->time());
-    fprintf(f, "#\n");
-    fprintf(f, "#########################################################\n");
-    fprintf(f, "\n");
-    fflush(f);
+    f << "#########################################################" << std::endl;
+    f << "#                                                       #" << std::endl;
+    f << "#    #    ##   #  #   #                           #     #" << std::endl;
+    f << "#   # #  #  #  #  #  # #                          #     #" << std::endl;
+    f << "#  ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###   #" << std::endl;
+    f << "#  #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #  #" << std::endl;
+    f << "#  #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #  #" << std::endl;
+    f << "#  #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #  #" << std::endl;
+    f << "#                            # #             #          #" << std::endl;
+    f << "#                          ##  #             #          #" << std::endl;
+    f << "#                                                       #" << std::endl;
+    f << "#########################################################" << std::endl;
+    f << "#" << std::endl;
+    f << "#    File autogenerated by AQUAgpusph" << std::endl;
+    f << "#    t = " << T->time() << " s" << std::endl;
+    f << "#" << std::endl;
+    f << "#########################################################" << std::endl;
+    f << std::endl;
+    f.flush();
 
-    Variables *vars = C->variables();
-    for(i = 0; i < fields.size(); i++){
-        if(!vars->get(fields.at(i).c_str())){
-            sprintf(msg,
-                    "\"%s\" field has been set to be saved, but it was not declared.\n",
-                    fields.at(i).c_str());
-            S->addMessageF(L_ERROR, msg);
-            throw std::runtime_error("Invalid field");
+    for(auto field : fields){
+        if(!vars->get(field)){
+            std::ostringstream msg;
+            msg << "Can't save undeclared variable \"" << field
+                << "\"." << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw std::runtime_error("Invalid variable");
         }
-        if(vars->get(fields.at(i).c_str())->type().find('*') == std::string::npos){
-            sprintf(msg,
-                    "\"%s\" field has been set to be saved, but it was declared as an scalar.\n",
-                    fields.at(i).c_str());
-            S->addMessageF(L_ERROR, msg);
-            throw std::runtime_error("Invalid field type");
+        if(vars->get(field)->type().find('*') == std::string::npos){
+            std::ostringstream msg;
+            msg << "Can't save scalar variable \"" << field
+                << "\"." << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw std::runtime_error("Invalid variable type");
         }
-        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i).c_str());
+        ArrayVariable *var = (ArrayVariable*)vars->get(field);
         size_t typesize = vars->typeToBytes(var->type());
         size_t len = var->size() / typesize;
         if(len < bounds().y){
-            sprintf(msg,
-                    "Failure saving \"%s\" field, which has not length enough.\n",
-                    fields.at(i).c_str());
-            S->addMessageF(L_ERROR, msg);
-            throw std::runtime_error("Invalid field length");
+            std::ostringstream msg;
+            msg << "Variable \"" << field
+                << "\" is not long enough." << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw std::runtime_error("Invalid variable length");
         }
     }
-    std::deque<void*> data = download(fields);
-    if(!data.size()){
-        throw std::runtime_error("Failure downloading data");
-    }
+    std::vector<void*> data = download(fields);
 
     for(i = 0; i < bounds().y - bounds().x; i++){
         for(j = 0; j < fields.size(); j++){
             ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(j).c_str());
-            const char* type_name = var->type().c_str();
-            if(!strcmp(type_name, "int*")){
+            std::string type_name = var->type();
+            if(!type_name.compare("int*")){
                 int* v = (int*)data.at(j);
-                fprintf(f, "%d,", v[i]);
+                f << v[i] << ",";
             }
-            else if(!strcmp(type_name, "unsigned int*")){
+            else if(!type_name.compare("unsigned int*")){
                 unsigned int* v = (unsigned int*)data.at(j);
-                fprintf(f, "%u,", v[i]);
+                f << v[i] << ",";
             }
-            else if(!strcmp(type_name, "float*")){
+            else if(!type_name.compare("float*")){
                 float* v = (float*)data.at(j);
-                fprintf(f, "%g,", v[i]);
+                f << v[i] << ",";
             }
-            else if(!strcmp(type_name, "ivec*")){
+            else if(!type_name.compare("ivec*")){
                 #ifdef HAVE_3D
                     ivec* v = (ivec*)data.at(j);
-                    fprintf(f, "%d %d %d %d,", v[i].x, v[i].y, v[i].z, v[i].w);
+                    f << v[i].x << " "
+                      << v[i].y << " "
+                      << v[i].z << " "
+                      << v[i].w << ",";
                 #else
                     ivec* v = (ivec*)data.at(j);
-                    fprintf(f, "%d %d,", v[i].x, v[i].y);
+                    f << v[i].x << " "
+                      << v[i].y << ",";
                 #endif // HAVE_3D
             }
-            else if(!strcmp(type_name, "ivec2*")){
+            else if(!type_name.compare("ivec2*")){
                 ivec2* v = (ivec2*)data.at(j);
-                fprintf(f, "%d %d,", v[i].x, v[i].y);
+                f << v[i].x << " "
+                  << v[i].y << ",";
             }
-            else if(!strcmp(type_name, "ivec3*")){
+            else if(!type_name.compare("ivec3*")){
                 ivec3* v = (ivec3*)data.at(j);
-                fprintf(f, "%d %d %d,", v[i].x, v[i].y, v[i].z);
+                f << v[i].x << " "
+                  << v[i].y << " "
+                  << v[i].z << ",";
             }
-            else if(!strcmp(type_name, "ivec4*")){
+            else if(!type_name.compare("ivec4*")){
                 ivec4* v = (ivec4*)data.at(j);
-                fprintf(f, "%d %d %d %d,", v[i].x, v[i].y, v[i].z, v[i].w);
+                f << v[i].x << " "
+                  << v[i].y << " "
+                  << v[i].z << " "
+                  << v[i].w << ",";
             }
-            else if(!strcmp(type_name, "uivec*")){
+            else if(!type_name.compare("uivec*")){
                 #ifdef HAVE_3D
                     uivec* v = (uivec*)data.at(j);
-                    fprintf(f, "%u %u %u %u,", v[i].x, v[i].y, v[i].z, v[i].w);
+                    f << v[i].x << " "
+                      << v[i].y << " "
+                      << v[i].z << " "
+                      << v[i].w << ",";
                 #else
                     uivec* v = (uivec*)data.at(j);
-                    fprintf(f, "%u %u,", v[i].x, v[i].y);
+                    f << v[i].x << " "
+                      << v[i].y << ",";
                 #endif // HAVE_3D
             }
-            else if(!strcmp(type_name, "uivec2*")){
+            else if(!type_name.compare("uivec2*")){
                 uivec2* v = (uivec2*)data.at(j);
-                fprintf(f, "%u %u,", v[i].x, v[i].y);
+                f << v[i].x << " "
+                  << v[i].y << ",";
             }
-            else if(!strcmp(type_name, "uivec3*")){
+            else if(!type_name.compare("uivec3*")){
                 uivec3* v = (uivec3*)data.at(j);
-                fprintf(f, "%u %u %u,", v[i].x, v[i].y, v[i].z);
+                f << v[i].x << " "
+                  << v[i].y << " "
+                  << v[i].z << ",";
             }
-            else if(!strcmp(type_name, "uivec4*")){
+            else if(!type_name.compare("uivec4*")){
                 uivec4* v = (uivec4*)data.at(j);
-                fprintf(f, "%u %u %u %u,", v[i].x, v[i].y, v[i].z, v[i].w);
+                f << v[i].x << " "
+                  << v[i].y << " "
+                  << v[i].z << " "
+                  << v[i].w << ",";
             }
-            else if(!strcmp(type_name, "vec*")){
+            else if(!type_name.compare("vec*")){
                 #ifdef HAVE_3D
                     vec* v = (vec*)data.at(j);
-                    fprintf(f, "%g %g %g %g,", v[i].x, v[i].y, v[i].z, v[i].w);
+                    f << v[i].x << " "
+                      << v[i].y << " "
+                      << v[i].z << " "
+                      << v[i].w << ",";
                 #else
                     vec* v = (vec*)data.at(j);
-                    fprintf(f, "%g %g,", v[i].x, v[i].y);
+                    f << v[i].x << " "
+                      << v[i].y << ",";
                 #endif // HAVE_3D
             }
-            else if(!strcmp(type_name, "vec2*")){
+            else if(!type_name.compare("vec2*")){
                 vec2* v = (vec2*)data.at(j);
-                fprintf(f, "%g %g,", v[i].x, v[i].y);
+                f << v[i].x << " "
+                  << v[i].y << ",";
             }
-            else if(!strcmp(type_name, "vec3*")){
+            else if(!type_name.compare("vec3*")){
                 vec3* v = (vec3*)data.at(j);
-                fprintf(f, "%g %g %g,", v[i].x, v[i].y, v[i].z);
+                f << v[i].x << " "
+                  << v[i].y << " "
+                  << v[i].z << ",";
             }
-            else if(!strcmp(type_name, "vec4*")){
+            else if(!type_name.compare("vec4*")){
                 vec4* v = (vec4*)data.at(j);
-                fprintf(f, "%g %g %g %g,", v[i].x, v[i].y, v[i].z, v[i].w);
+                f << v[i].x << " "
+                  << v[i].y << " "
+                  << v[i].z << " "
+                  << v[i].w << ",";
             }
-            else if(!strcmp(type_name, "matrix*")){
+            else if(!type_name.compare("matrix*")){
                 #ifdef HAVE_3D
                     matrix* m = (matrix*)data.at(j);
-                    fprintf(f,
-                            "%g %g %g %g %g %g %g %g %g %g %g %g %g %g %g %g,",
-                            m[i].s0, m[i].s1, m[i].s2, m[i].s3,
-                            m[i].s4, m[i].s5, m[i].s6, m[i].s7,
-                            m[i].s8, m[i].s9, m[i].sA, m[i].sB,
-                            m[i].sC, m[i].sD, m[i].sE, m[i].sF);
+                    f << m[i].s0 << " " << m[i].s1 << " " << m[i].s2 << " " << m[i].s3 << " "
+                      << m[i].s4 << " " << m[i].s5 << " " << m[i].s6 << " " << m[i].s7 << " "
+                      << m[i].s8 << " " << m[i].s9 << " " << m[i].sA << " " << m[i].sB << " "
+                      << m[i].sC << " " << m[i].sD << " " << m[i].sE << " " << m[i].sF << ",";
                 #else
                     matrix* m = (matrix*)data.at(j);
-                    fprintf(f,
-                            "%g %g %g %g,",
-                            m[i].s0, m[i].s1,
-                            m[i].s2, m[i].s3);
+                    f << m[i].s0 << " " << m[i].s1 << " "
+                      << m[i].s2 << " " << m[i].s3 << ",";
                 #endif // HAVE_3D
             }
         }
-        fprintf(f, "\n");
-        fflush(f);
+        f << std::endl;
+        f.flush();
     }
 
     for(i = 0; i < fields.size(); i++){
@@ -395,24 +405,23 @@ void ASCII::save()
     }
     data.clear();
 
-    fclose(f);
+    f.close();
 }
 
-unsigned int ASCII::readNParticles(FILE *f)
+unsigned int ASCII::readNParticles(std::ifstream& f)
 {
-    if(!f)
+    if(!f.is_open())
         return 0;
+    f.clear();
+    f.seekg(0);
 
-    char line[MAX_LINE_LEN];
+    std::string line;
     unsigned int n=0;
-
-    rewind(f);
-    while( fgets( line, MAX_LINE_LEN*sizeof(char), f) )
+    while(getline(f, line))
     {
         formatLine(line);
-        if(!strlen(line)){
+        if(line == "")
             continue;
-        }
 
         n++;
     }
@@ -420,87 +429,66 @@ unsigned int ASCII::readNParticles(FILE *f)
     return n;
 }
 
-void ASCII::formatLine(char* l)
+void ASCII::formatLine(std::string& l)
 {
-    if(!l)
-        return;
-    if(!strlen(l))
+    if(l == "")
         return;
 
-    unsigned int i, len;
+    unsigned int i;
 
-    // Look for a comment and discard it
-    if(strchr(l, '#')){
-        strcpy(strchr(l, '#'), "");
-    }
+    // Look for comments and discard them
+    if(l.find('#') != std::string::npos)
+        l.erase(l.begin() + l.find('#'), l.end());
 
-    // Remove the line break if exist
-    if(strchr(l, '\n')){
-        strcpy(strchr(l, '\n'), "");
-    }
-
+    trim(l);
     // Replace all the separators by commas
     const char *separators = " ;()[]{}\t";
     for(i=0; i<strlen(separators); i++){
-        while(strchr(l, separators[i])){
-            strncpy(strchr(l, separators[i]), ",", 1);
-        }
+        replaceAll(l, std::string(1, separators[i]), ",");
     }
 
     // Remove all the concatenated separators
-    while(char* mempos = strstr(l, ",,")){
-        memmove(mempos, mempos + 1, strlen(mempos));
+    while(l.find(",,") != std::string::npos){
+        replaceAll(l, ",,", ",");
     }
 
-    // Remove the preceding separators
-    len = strlen(l);
-    while(len){
-        if(l[0] != ','){
-            break;
-        }
-        memmove(l, l + 1, len);
-        len--;
+    // Remove the preceding and trailing separators
+    while ((l.size() > 0) && (l.front() == ',')) {
+        l.erase(l.begin());
     }
-    // And the trailing ones
-    while(len){
-        if(l[len - 1] != ','){
-            break;
-        }
-        strcpy(l + len - 1, "");
-        len--;
+    while ((l.size() > 0) && (l.back() == ',')) {
+        l.pop_back();
     }
 }
 
-unsigned int ASCII::readNFields(char* l)
+unsigned int ASCII::readNFields(std::string l)
 {
-    if(!l){
-        return 0;
-    }
-    if(!strlen(l)){
+    if (l == "") {
         return 0;
     }
 
     unsigned int n = 0;
-    char *pos = l;
-    while(pos){
+    std::istringstream fields(l);
+    std::string s;
+    // The user may ask to break lines by semicolon usage. In such a case,
+    // we are splitting the input and recursively calling this function with
+    // each piece
+    while (getline(fields, s, ',')) {
         n++;
-        pos = strchr(pos, ',');
-        if(pos)
-            pos++;
     }
 
     return n;
 }
 
-char* ASCII::readField(const char* field,
-                       const char* line,
-                       unsigned int index,
-                       void* data)
+static std::string _remaining;
+
+std::string ASCII::readField(const std::string field,
+                             const std::string line,
+                             unsigned int index,
+                             void* data)
 {
     unsigned int i;
-    ScreenManager *S = ScreenManager::singleton();
-    CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
-    Variables *vars = C->variables();
+    Variables *vars = CalcServer::CalcServer::singleton()->variables();
     ArrayVariable *var = (ArrayVariable*)vars->get(field);
 
     unsigned int n = vars->typeToN(var->type());
@@ -513,49 +501,30 @@ char* ASCII::readField(const char* field,
         return NULL;
     }
 
-    char* pos = (char*)line;
+    std::string _remaining = line;
     for(i = 0; i < n; i++){
-        pos = strchr(pos, ',');
-        if(pos)
-            pos++;
+        std::size_t sep = _remaining.find(',');
+        if (sep == std::string::npos) {
+            _remaining = "";
+            break;
+        }
+        _remaining = _remaining.substr(sep + 1);
     }
-    return pos;
+    return _remaining;
 }
 
+void ASCII::create(std::ofstream& f){
+    std::ostringstream basename;
 
-FILE* ASCII::create(){
-    char *basename, msg[1024];
-    size_t len;
-    FILE *f;
-    ScreenManager *S = ScreenManager::singleton();
+    basename << simData().sets.at(setId())->outputPath() << ".%d.dat";
+    std::string basename_str = basename.str();  // Avoid static mem free
+    _next_file_index = file(basename_str.c_str(), _next_file_index);
 
-    // Create the file base name
-    len = strlen(simData().sets.at(setId())->outputPath().c_str()) + 8;
-    basename = new char[len];
-    strcpy(basename, simData().sets.at(setId())->outputPath().c_str());
-    strcat(basename, ".%d.dat");
+    std::ostringstream msg;
+    msg << "Writing \"" << file() << "\" ASCII file..." << std::endl;
+    LOG(L_INFO, msg.str());
 
-    _next_file_index = file(basename, _next_file_index);
-    if(!_next_file_index){
-        delete[] basename;
-        S->addMessageF(L_ERROR, "Failure getting a valid filename.\n");
-        S->addMessageF(L_DEBUG, "\tHow do you received this message?.\n");
-        return NULL;
-    }
-    delete[] basename;
-
-    sprintf(msg, "Writing \"%s\" ASCII file...\n", file());
-    S->addMessageF(L_INFO, msg);
-
-    f = fopen(file(), "w");
-    if(!f){
-        sprintf(msg,
-                "Failure creating the file \"%s\"\n",
-                file());
-        return NULL;
-    }
-
-    return f;
+    f.open(file());
 }
 
 }}  // namespace

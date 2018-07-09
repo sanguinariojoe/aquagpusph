@@ -21,8 +21,7 @@
  * (See Aqua::InputOutput::FastASCII for details)
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include <string>
 
 #include <InputOutput/FastASCII.h>
 #include <ScreenManager.h>
@@ -49,76 +48,67 @@ FastASCII::~FastASCII()
 {
 }
 
-char* FastASCII::readField(const char* field,
-                           const char* line,
-                           unsigned int index,
-                           void* data)
+std::string FastASCII::readField(const std::string field,
+                                 const std::string line,
+                                 unsigned int index,
+                                 void* data)
 {
     unsigned int i;
-    ScreenManager *S = ScreenManager::singleton();
-    CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
-    Variables *vars = C->variables();
+    Variables *vars = CalcServer::CalcServer::singleton()->variables();
     ArrayVariable *var = (ArrayVariable*)vars->get(field);
 
     // Extract the variable type data
     unsigned int n = vars->typeToN(var->type());
     size_t type_size = vars->typeToBytes(var->type());
-    char *type = new char[strlen(var->type().c_str()) + 1];
-    strcpy(type, var->type().c_str());
-    if(strchr(type, '*'))
-        strcpy(strchr(type, '*'), "");
+    std::string type = trimCopy(var->type());
+    if (type.back() == '*') {
+        type.pop_back();
+    }
 
     // Point to the chunk of data to become read
     void* ptr = (void*)((char*)data + type_size * index);
 
-    // Start reading the sub-fields
-    char* pos = (char*)line;
+    std::string remaining = line;
     for(i = 0; i < n; i++){
-        char* end_pos = NULL;
-        // Let's use different tools depending on the type to become read
-        if(!strcmp(type, "unsigned int") ||
-           strstr(type, "uivec")){
-            unsigned int val = (unsigned int)strtol(pos, &end_pos, 10);
-            if(pos == end_pos){
-                char *msg = new char[strlen(var->type().c_str()) + 64];
-                S->addMessageF(L_ERROR, "Failure reading a field value\n");
-                sprintf(msg, "\tWhile extracting it from \"%s\"\n", pos);
-                S->addMessage(L_DEBUG, msg);
+        std::string::size_type end_pos;
+        try {
+            if(!type.compare("unsigned int") ||
+            (type.find("uivec") != std::string::npos)){
+                unsigned int val = (unsigned int)std::stoul(remaining, &end_pos);
+                memcpy(ptr, &val, sizeof(unsigned int));
             }
-            memcpy(ptr, &val, sizeof(unsigned int));
-        }
-        else if(!strcmp(type, "int") ||
-                strstr(type, "ivec")){
-            int val = (int)strtol(pos, &end_pos, 10);
-            if(pos == end_pos){
-                char *msg = new char[strlen(var->type().c_str()) + 64];
-                S->addMessageF(L_ERROR, "Failure reading a field value\n");
-                sprintf(msg, "\tWhile extracting it from \"%s\"\n", pos);
-                S->addMessage(L_DEBUG, msg);
+            else if(!type.compare("int") ||
+            (type.find("ivec") != std::string::npos)){
+                int val = std::stoi(remaining, &end_pos);
+                memcpy(ptr, &val, sizeof(int));
             }
-            memcpy(ptr, &val, sizeof(int));
-        }
-        else{
-            float val = (float)strtof(pos, &end_pos);
-            if(pos == end_pos){
-                char *msg = new char[strlen(var->type().c_str()) + 64];
-                S->addMessageF(L_ERROR, "Failure reading a field value\n");
-                sprintf(msg, "\tWhile extracting it from \"%s\"\n", pos);
-                S->addMessage(L_DEBUG, msg);
+            else{
+                float val = std::stof(remaining, &end_pos);
+                memcpy(ptr, &val, sizeof(int));
             }
-            memcpy(ptr, &val, sizeof(float));
+        } catch(const std::invalid_argument& e) {
+            std::ostringstream msg;
+            msg << "Cannot extract a number from \"" << remaining
+                << "\" string." << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw;
+        } catch(const std::out_of_range & e) {
+            std::ostringstream msg;
+            msg << "The number extracted from \"" << remaining
+                << "\" string overflows \""
+                << type << "\" type." << std::endl;
+            LOG(L_ERROR, msg.str());                
+            throw;
         }
 
         // Go to the next field, we already asserted that there are fields
         // enough, so we don't need to care about that
         ptr = ((char*)ptr) + type_size / n;
-        pos = strchr(end_pos, ',');
-        if(pos)
-            pos++;
+        remaining = remaining.substr(end_pos);
+        if (remaining.find(',') != std::string::npos)
+            remaining = remaining.substr(remaining.find(',') + 1);
     }
-
-    delete[] type;
-    return pos;
+    return remaining;
 }
 
 }}  // namespace

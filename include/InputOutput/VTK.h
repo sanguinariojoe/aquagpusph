@@ -127,9 +127,8 @@ private:
      *
      * Such file is used to indicates Paraview the list of files which compose
      * an animation, and the time instant of each one.
-     * @return false if all gone right, true otherwise.
      */
-    bool updatePVD();
+    void updatePVD();
 
     /** @brief Check if the Paraview Data File exist, creating it otherwise.
      *
@@ -144,16 +143,17 @@ private:
     /** @brief PVD file name
      * @return the PVD file name
      */
-    const char* filenamePVD();
+    const std::string filenamePVD();
+
+    /// Next output file index
+    unsigned int _next_file_index;
 
     /// PVD file name
-    char* _namePVD;
+    std::string _namePVD;
 
     /// Launched threads ids
     std::deque<pthread_t> _tids;
 
-    /// Next output file index
-    unsigned int _next_file_index;
 };  // class InputOutput
 
 }}  // namespaces

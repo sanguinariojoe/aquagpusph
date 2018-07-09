@@ -87,12 +87,12 @@ private:
      * @param f File to be read.
      * @return The number of particles found in the file.
      */
-    unsigned int readNParticles(FILE *f);
+    unsigned int readNParticles(std::ifstream& f);
 
     /** @brief Conveniently format a read line.
      * @param l Line text.
      */
-    void formatLine(char* l);
+    void formatLine(std::string& l);
 
     /** @brief Count the number of fields in a text line.
      * @param l Line text.
@@ -100,28 +100,25 @@ private:
      * @warning It is assumed that the line text has been formatted calling
      * formatLine().
      */
-    unsigned int readNFields(char* l);
+    unsigned int readNFields(std::string l);
 
     /** @brief Extract the field value from a line.
      * @param field Field name.
      * @param line Text line,
      * @param index Index of the particle to read.
      * @param data Data array.
-     * @return Remaining text after extracting the field values, NULL if no
-     * remaining text lefts to be read, or if the operation has failed.
+     * @return Remaining text after extracting the field values.
      */
-    virtual char* readField(const char* field,
-                            const char* line,
-                            unsigned int index,
-                            void* data);
+    virtual std::string readField(const std::string field,
+                                  const std::string line,
+                                  unsigned int index,
+                                  void* data);
 
     /** @brief Create a new file to write.
-     * @return The file handler, NULL if errors happened.
-     * @see Aqua::InputOutput::Particles::file(const char* basename,
-     *                                         unsigned int start_index,
-     *                                         unsigned int digits=5)
+     * @param f The file handler to be overwritten.
+     * @see Aqua::InputOutput::Particles::file()
      */
-    FILE* create();
+    void create(std::ofstream& f);
 
     /// Next output file index
     unsigned int _next_file_index;

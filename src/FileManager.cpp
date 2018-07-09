@@ -133,12 +133,7 @@ CalcServer::CalcServer* FileManager::load()
 
     // Execute the loaders
     for(auto loader : _loaders) {
-        try {
-            loader->load();
-        } catch (...) {
-            delete C;
-            throw;
-        }
+        loader->load();
     }
 
     return C;

@@ -81,13 +81,12 @@ private:
      * @param line Text line,
      * @param index Index of the particle to read.
      * @param data Data array.
-     * @return Remaining text after extracting the field values, NULL if no
-     * remaining text lefts to be read, or if the operation has failed.
+     * @return Remaining text after extracting the field values.
      */
-    char* readField(const char* field,
-                    const char* line,
-                    unsigned int index,
-                    void* data);
+    std::string readField(const std::string field,
+                          const std::string line,
+                          unsigned int index,
+                          void* data);
 };  // class InputOutput
 
 }}  // namespaces
