@@ -728,7 +728,7 @@ void RadixSort::compile(const std::string source)
     }
     err_code = clBuildProgram(program, 0, NULL, flags.str().c_str(), NULL, NULL);
     if(err_code != CL_SUCCESS) {
-        LOG0(L_ERROR, "Error compiling the source code\n");
+        LOG(L_ERROR, "Error compiling the source code\n");
         InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
         LOG0(L_ERROR, "--- Build log ---------------------------------\n");
         size_t log_size = 0;

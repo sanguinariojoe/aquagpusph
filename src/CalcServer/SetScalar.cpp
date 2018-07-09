@@ -67,7 +67,7 @@ void SetScalar::_execute()
         msg << "Failure allocating " << _var->typesize()
             << " bytes for the variable \""
             << _var->name() << "\"." << std::endl;
-        LOG0(L_ERROR, msg.str());
+        LOG(L_ERROR, msg.str());
         throw std::bad_alloc();
     }
 
