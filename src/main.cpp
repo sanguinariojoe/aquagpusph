@@ -110,7 +110,6 @@ int main(int argc, char *argv[])
     InputOutput::Logger *S = new InputOutput::Logger();
     InputOutput::FileManager file_manager;
     CalcServer::CalcServer *C = NULL;
-    InputOutput::TimeManager *T = NULL;
 
     printf("\n");
     printf("\t#########################################################\n");
@@ -152,33 +151,32 @@ int main(int argc, char *argv[])
         throw;
     }
 
-    T = new InputOutput::TimeManager(file_manager.problemSetup());
+    InputOutput::TimeManager t_manager(file_manager.problemSetup());
 
     LOG(L_INFO, "Start of simulation...\n\n");
     S->printDate();
     S->initNCurses();
 
-    while(!T->mustStop())
+    while(!t_manager.mustStop())
     {
         try {
-            C->update();
-            file_manager.save();
+            C->update(t_manager);
+            file_manager.save(t_manager.time());
         } catch (const Aqua::CalcServer::user_interruption& e) {
             // The user has interrupted the simulation, just exit normally
-            file_manager.save();
+            file_manager.save(t_manager.time());
             break;
         } catch (...) {
             S->endNCurses();
             sleep(__ERROR_SHOW_TIME__);
             file_manager.waitForSavers();
             S->printDate();
-            float t = T->time();
+            float t = t_manager.time();
             msg << "Simulation finished abnormally (Time = " << t
                 << " s)" << std::endl << std::endl;
             LOG(L_INFO, msg.str());
 
             delete S; S = NULL;
-            delete T; T = NULL;
             delete C; C = NULL;
             if(Py_IsInitialized())
                 Py_Finalize();
@@ -189,13 +187,12 @@ int main(int argc, char *argv[])
     S->endNCurses();
     file_manager.waitForSavers();
     S->printDate();
-    float t = T->time();
+    float t = t_manager.time();
     msg << "Simulation finished OK (Time = " << t
         << " s)" << std::endl << std::endl;
     LOG(L_INFO, msg.str());
 
     delete S; S = NULL;
-    delete T; T = NULL;
     delete C; C = NULL;
     if(Py_IsInitialized())
         Py_Finalize();

@@ -29,7 +29,6 @@
 #include <AuxiliarMethods.h>
 #include <InputOutput/Logger.h>
 #include <ProblemSetup.h>
-#include <TimeManager.h>
 
 #ifdef HAVE_NCURSES
     WINDOW *wnd, *log_wnd;

@@ -75,8 +75,10 @@ public:
     virtual ~ASCII();
 
     /** @brief Save the data.
+     *
+     * @param t Simulation time
      */
-    void save();
+    void save(float t);
 
     /** @brief Load the data.
      */

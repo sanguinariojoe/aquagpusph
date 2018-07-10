@@ -32,7 +32,7 @@
 
 namespace Aqua{ namespace InputOutput{
 
-TimeManager::TimeManager(ProblemSetup sim_data)
+TimeManager::TimeManager(ProblemSetup& sim_data)
     : _step(NULL)
     , _time(NULL)
     , _dt(NULL)

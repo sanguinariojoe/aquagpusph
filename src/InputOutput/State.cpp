@@ -29,7 +29,6 @@
 
 #include <InputOutput/State.h>
 #include <InputOutput/Logger.h>
-#include <TimeManager.h>
 #include <CalcServer.h>
 #include <AuxiliarMethods.h>
 
@@ -1485,7 +1484,6 @@ void State::writeTiming(xercesc::DOMDocument* doc,
 {
     DOMElement *elem, *s_elem;
     std::ostringstream att;
-    TimeManager *T = TimeManager::singleton();
 
     elem = doc->createElement(xmlS("Timing"));
     root->appendChild(elem);

@@ -26,7 +26,6 @@
 
 #include <sphPrerequisites.h>
 #include <ProblemSetup.h>
-#include <Singleton.h>
 
 namespace Aqua{ namespace InputOutput{
 
@@ -39,14 +38,14 @@ namespace Aqua{ namespace InputOutput{
  *
  * @see Aqua::InputOutput::ProblemSetup::sphTimingParameters
  */
-struct TimeManager : public Aqua::Singleton<Aqua::InputOutput::TimeManager>
+struct TimeManager
 {
 public:
     /** Constructor
      *
      * @param sim_data Simulation data
      */
-    TimeManager(ProblemSetup sim_data);
+    TimeManager(ProblemSetup& sim_data);
 
     /// Destructor
     ~TimeManager();

@@ -133,11 +133,11 @@ CalcServer::CalcServer* FileManager::load()
     return C;
 }
 
-void FileManager::save()
+void FileManager::save(float t)
 {
     // Execute the savers
     for(auto saver : _savers) {
-        saver->save();
+        saver->save(t);
     }
 
     // Save the XML definition file

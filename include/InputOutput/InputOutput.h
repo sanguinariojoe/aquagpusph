@@ -44,9 +44,11 @@ protected:
     virtual ~InputOutput(){};
 
 public:
-    /** @brief Save the data
+    /** @brief Save the data.
+     *
+     * @param t Simulation time
      */
-    virtual void save() = 0;
+    virtual void save(float t) = 0;
 
     /** @brief Load the data
      */

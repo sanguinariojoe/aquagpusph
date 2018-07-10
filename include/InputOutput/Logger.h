@@ -160,8 +160,11 @@ public:
      */
     void printOpenCLError(cl_int error, TLogLevel level=L_DEBUG);
 
-    /// Do nothing
-    void save() {};
+    /** @brief Do nothing.
+     *
+     * @param t Simulation time
+     */
+    void save(float t) {};
 protected:
     /** @brief Print the log record
      *

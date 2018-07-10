@@ -109,10 +109,11 @@ public:
      * indistinctly used for postprocessing purposes, or as initial condition
      * to resume the simulation.
      *
+     * @param t Simulation time
      * @warning If Python scripts are considered at the simulation, the user is
      * responsible to save the state to can eventually resume the simulation
      */
-    void save();
+    void save(float t);
 
     /** @brief Wait for the parallel saving threads.
      *

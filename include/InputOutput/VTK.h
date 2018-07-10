@@ -107,8 +107,10 @@ public:
     ~VTK();
 
     /** @brief Save the data.
+     *
+     * @param t Simulation time
      */
-    void save();
+    void save(float t);
 
     /** @brief Load the data.
      */
@@ -135,8 +137,9 @@ private:
      *
      * Such file is used to indicates Paraview the list of files which compose
      * an animation, and the time instant of each one.
+     * @param t Simulation time
      */
-    void updatePVD();
+    void updatePVD(float t);
 
     /** @brief Check if the Paraview Data File exist, creating it otherwise.
      *

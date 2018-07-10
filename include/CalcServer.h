@@ -33,6 +33,7 @@
 
 #include <sphPrerequisites.h>
 #include <ProblemSetup.h>
+#include <TimeManager.h>
 #include <Variable.h>
 #include <Singleton.h>
 #include <CalcServer/Tool.h>
@@ -100,12 +101,14 @@ public:
     /// Destructor
     ~CalcServer();
 
-    /// Internal time loop.
-    /** Calculation server will be iterating while no output files should be
-     * updated (or the simulation is finished).
-     *
+    /** @brief Internal time loop.
+     * 
+     * Calculation server will be iterating while no output files should be
+     * updated (or even the simulation is finished).
+     * @param t_manager Time manager to let the calculation server when shall
+     * stop the internal loop.
      */
-    void update();
+    void update(InputOutput::TimeManager& t_manager);
 
     /// Setup some additional simulation data.
     /** Even thought this work is associated with the constructor CalcServer(),

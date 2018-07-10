@@ -31,7 +31,6 @@
 #include <InputOutput/VTK.h>
 #include <InputOutput/Logger.h>
 #include <ProblemSetup.h>
-#include <TimeManager.h>
 #include <CalcServer.h>
 #include <AuxiliarMethods.h>
 
@@ -522,7 +521,7 @@ void* save_pthread(void *data_void)
     return NULL;
 }
 
-void VTK::save()
+void VTK::save(float t)
 {
     unsigned int i;
 
@@ -595,7 +594,7 @@ void VTK::save()
         }
     }
 
-    updatePVD();
+    updatePVD(t);
 }
 
 void VTK::waitForSavers(){
@@ -624,9 +623,8 @@ vtkXMLUnstructuredGridWriter* VTK::create(){
     return f;
 }
 
-void VTK::updatePVD(){
+void VTK::updatePVD(float t){
     unsigned int n;
-    TimeManager *T = TimeManager::singleton();
 
     std::ostringstream msg;
     msg << "Writing \"" << filenamePVD() << "\" Paraview data file..." << std::endl;
@@ -664,7 +662,7 @@ void VTK::updatePVD(){
 
     DOMElement *s_elem;
     s_elem = doc->createElement(xmlS("DataSet"));
-    s_elem->setAttribute(xmlS("timestep"), xmlS(std::to_string(T->time())));
+    s_elem->setAttribute(xmlS("timestep"), xmlS(std::to_string(t)));
     s_elem->setAttribute(xmlS("group"), xmlS(""));
     s_elem->setAttribute(xmlS("part"), xmlS("0"));
     s_elem->setAttribute(xmlS("file"), xmlS(file()));

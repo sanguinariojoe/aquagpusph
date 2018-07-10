@@ -32,7 +32,6 @@
 #include <AuxiliarMethods.h>
 #include <FileManager.h>
 #include <ProblemSetup.h>
-#include <TimeManager.h>
 #include <InputOutput/Logger.h>
 #include <CalcServer/Tool.h>
 #include <CalcServer/Assert.h>
@@ -335,11 +334,10 @@ CalcServer::~CalcServer()
     }
 }
 
-void CalcServer::update()
+void CalcServer::update(InputOutput::TimeManager& t_manager)
 {
-    InputOutput::TimeManager *T = InputOutput::TimeManager::singleton();
     unsigned int i;
-    while(!T->mustPrintOutput() && !T->mustStop()){
+    while(!t_manager.mustPrintOutput() && !t_manager.mustStop()){
         InputOutput::Logger::singleton()->initFrame();
 
         // Execute the tools
