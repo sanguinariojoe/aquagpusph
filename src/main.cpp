@@ -156,6 +156,7 @@ int main(int argc, char *argv[])
 
     LOG(L_INFO, "Start of simulation...\n\n");
     S->printDate();
+    S->initNCurses();
 
     while(!T->mustStop())
     {
@@ -167,6 +168,7 @@ int main(int argc, char *argv[])
             file_manager.save();
             break;
         } catch (...) {
+            S->endNCurses();
             sleep(__ERROR_SHOW_TIME__);
             file_manager.waitForSavers();
             S->printDate();
@@ -184,6 +186,7 @@ int main(int argc, char *argv[])
         }
     }
 
+    S->endNCurses();
     file_manager.waitForSavers();
     S->printDate();
     float t = T->time();

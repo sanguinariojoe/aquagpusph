@@ -58,9 +58,7 @@ void Screen::setup()
 void Screen::_execute()
 {
     InputOutput::Logger *S = InputOutput::Logger::singleton();
-    InputOutput::Logger::singleton()->writeReport(data(),
-                                                         _color,
-                                                         _bold);
+    InputOutput::Logger::singleton()->writeReport(data(), _color, _bold);
 }
 
 }}} // namespace

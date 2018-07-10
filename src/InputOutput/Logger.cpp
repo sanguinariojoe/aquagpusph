@@ -33,6 +33,8 @@
 
 #ifdef HAVE_NCURSES
     WINDOW *wnd, *log_wnd;
+#else
+    void *wnd;
 #endif
 
 namespace Aqua{ namespace InputOutput{
@@ -40,162 +42,182 @@ namespace Aqua{ namespace InputOutput{
 Logger::Logger()
     : _last_row(0)
 {
-    int i;
-
+    wnd = NULL;
     open();
-
-    #ifdef HAVE_NCURSES
-        wnd = initscr();
-        if(!wnd){
-            addMessageF(L_INFO, "Failure initializating the screen manager\n");
-            return;
-        }
-        if(has_colors())
-            start_color();
-        log_wnd = NULL;
-    #endif
-
     gettimeofday(&_start_time, NULL);
 }
 
 Logger::~Logger()
 {
-    #ifdef HAVE_NCURSES
-        // Stop ncurses
-        endwin();
-    #endif
-
     close();
+}
+
+void Logger::initNCurses()
+{
+#ifdef HAVE_NCURSES
+    if (wnd)
+        return;
+
+    wnd = initscr();
+    if(!wnd){
+        addMessageF(L_INFO, "Failure initializating the screen manager\n");
+        return;
+    }
+    if(has_colors())
+        start_color();
+    log_wnd = NULL;        
+#endif
+}
+
+void Logger::endNCurses()
+{
+#ifdef HAVE_NCURSES
+    if(!wnd)
+        return;
+
+    endwin();
+    // Avoid problems if endNCurses is called several times
+    wnd = NULL;
+    log_wnd = NULL;
+#endif
 }
 
 void Logger::initFrame()
 {
-    #ifdef HAVE_NCURSES
-        // Clear the entire frame
-        if(!wnd)
-            return;
-        clear();
+#ifdef HAVE_NCURSES
+    // Clear the entire frame
+    if(!wnd)
+        return;
+    clear();
 
-        // Init the colour pairs
-        init_pair(1, COLOR_WHITE, COLOR_BLACK);
-        init_pair(2, COLOR_GREEN, COLOR_BLACK);
-        init_pair(3, COLOR_BLUE, COLOR_BLACK);
-        init_pair(4, COLOR_YELLOW, COLOR_BLACK);
-        init_pair(5, COLOR_RED, COLOR_BLACK);
-        init_pair(6, COLOR_MAGENTA, COLOR_BLACK);
-        init_pair(7, COLOR_CYAN, COLOR_BLACK);
+    // Init the colour pairs
+    init_pair(1, COLOR_WHITE, COLOR_BLACK);
+    init_pair(2, COLOR_GREEN, COLOR_BLACK);
+    init_pair(3, COLOR_BLUE, COLOR_BLACK);
+    init_pair(4, COLOR_YELLOW, COLOR_BLACK);
+    init_pair(5, COLOR_RED, COLOR_BLACK);
+    init_pair(6, COLOR_MAGENTA, COLOR_BLACK);
+    init_pair(7, COLOR_CYAN, COLOR_BLACK);
 
-        // Setup the default font
-        attrset(A_NORMAL);
-        attron(COLOR_PAIR(1));
+    // Setup the default font
+    attrset(A_NORMAL);
+    attron(COLOR_PAIR(1));
 
-        // Set the cursor at the start of the window
-        _last_row = 0;
-    #endif
+    // Set the cursor at the start of the window
+    _last_row = 0;
+#endif
 }
 
 void Logger::endFrame()
 {
-    #ifdef HAVE_NCURSES
-        printLog();
-        refreshAll();
-    #else
-        std::cout << std::flush;
-    #endif
+#ifdef HAVE_NCURSES
+    printLog();
+    refreshAll();
+#else
+    std::cout << std::flush;
+#endif
 }
 
 void Logger::writeReport(std::string input,
-                                std::string color,
-                                bool bold)
+                         std::string color,
+                         bool bold)
 {
     if(!input.size()){
         return;
     }
-    #ifndef HAVE_NCURSES
+
+    if(!wnd) {
         std::cout << input;
         if(!hasSuffix(input, "\n")){
             std::cout << std::endl;
         }
-    #else
-        std::string msg = rtrimCopy(input);
-        size_t start = 0, end = 0;
-        while((end = msg.find("\n", start)) != std::string::npos) {
-            writeReport(msg.substr(start, end), color, bold);
-            start = end;
+        return;
+    }
+
+#ifdef HAVE_NCURSES
+    std::string msg = rtrimCopy(input);
+
+    // In case of multiline messages, report it by pieces
+    size_t end = 0;
+    std::string remain = msg;
+    while(remain.find("\n") != std::string::npos) {
+        end = remain.find("\n");
+        writeReport(remain.substr(0, end), color, bold);
+        remain = remain.substr(end + 1);
+    }
+    if(msg.find("\n") != std::string::npos) {
+        // Already processed by pieces
+        return;
+    }
+
+    // Replace the tabulators by spaces
+    replaceAll(msg, "\t", " ");
+
+    // Check if the message is larger than the terminal output
+    int rows, cols;
+    getmaxyx(wnd, rows, cols);
+    if(msg.size() > cols){
+        // We can try to split it by a blank space, and if it fails just let
+        // ncurses select how to divide the string
+        size_t last = 0;
+        end = 0;
+        while((end = msg.find(" ", end)) != std::string::npos) {
+            if (end > cols)
+                break;
+            last = end;
         }
-        if(msg.find("\n", start) != std::string::npos) {
-            // Alreadey processed by pieces
+        if (last) {
+            writeReport(msg.substr(0, last), color, bold);
+            writeReport(msg.substr(last), color, bold);
             return;
         }
+    }
 
-        // Replace the tabulators by spaces
-        replaceAll(msg, "\t", " ");
+    // Select the font
+    attrset(A_NORMAL);
+    unsigned int pair_id = 1;
+    if(!color.compare("white")){
+        pair_id = 1;
+    }
+    else if(!color.compare("green")){
+        pair_id = 2;
+    }
+    else if(!color.compare("blue")){
+        pair_id = 3;
+    }
+    else if(!color.compare("yellow")){
+        pair_id = 4;
+    }
+    else if(!color.compare("red")){
+        pair_id = 5;
+    }
+    else if(!color.compare("magenta")){
+        pair_id = 6;
+    }
+    else if(!color.compare("cyan")){
+        pair_id = 7;
+    }
+    else{
+        std::ostringstream err_msg;
+        err_msg << "Invalid message color \"" << color << "\"" << std::endl;
+        addMessageF(L_ERROR, err_msg.str());
+    }
+    attron(COLOR_PAIR(pair_id));
+    if(bold){
+        attron(A_BOLD);
+    }
 
-        // Check if the message is larger than the terminal output
-        int rows, cols;
-        getmaxyx(wnd, rows, cols);
-        if(msg.size() > cols){
-            // We can try to split it by a blank space, and if it fails just let
-            // ncurses select how to divide the string
-            size_t last = 0;
-            end = 0;
-            while((end = msg.find(" ", end)) != std::string::npos) {
-                if (end > cols)
-                    break;
-                last = end;
-            }
-            if (last) {
-                writeReport(msg.substr(0, last), color, bold);
-                writeReport(msg.substr(last), color, bold);
-                return;
-            }
-        }
+    // Print the message
+    int row = _last_row;
+    move(row, 0);
+    printw(msg.c_str());
+    // The message may require several lines
+    _last_row += msg.size() / cols + 1;
 
-        // Select the font
-        attrset(A_NORMAL);
-        unsigned int pair_id = 1;
-        if(!color.compare("white")){
-            pair_id = 1;
-        }
-        else if(!color.compare("green")){
-            pair_id = 2;
-        }
-        else if(!color.compare("blue")){
-            pair_id = 3;
-        }
-        else if(!color.compare("yellow")){
-            pair_id = 4;
-        }
-        else if(!color.compare("red")){
-            pair_id = 5;
-        }
-        else if(!color.compare("magenta")){
-            pair_id = 6;
-        }
-        else if(!color.compare("cyan")){
-            pair_id = 7;
-        }
-        else{
-            std::ostringstream err_msg;
-            err_msg << "Invalid message color \"" << color << "\"" << std::endl;
-            addMessageF(L_ERROR, err_msg.str());
-        }
-        attron(COLOR_PAIR(pair_id));
-        if(bold){
-            attron(A_BOLD);
-        }
-
-        // Print the message
-        int row = _last_row;
-        move(row, 0);
-        printw(msg.c_str());
-        // The message may require several lines
-        _last_row += msg.size() / cols + 1;
-
-        // Refresh
-        // printLog();
-        // refresh();
-    #endif
+    // Refresh
+    // printLog();
+    // refresh();
+#endif
 }
 
 void Logger::addMessage(TLogLevel level, std::string log, const char *func)
@@ -223,8 +245,8 @@ void Logger::addMessage(TLogLevel level, std::string log, const char *func)
         }
         _log_file.flush();
     }
-    // Compatibility mode for destroyed Logger situations
-    if(!Logger::singleton()){
+    // Just in case the Logger has been destroyed
+    if(!Logger::singleton() || !wnd){
         if(level == L_INFO)
             std::cout << "INFO ";
         else if(level == L_WARNING)
@@ -247,10 +269,8 @@ void Logger::addMessage(TLogLevel level, std::string log, const char *func)
     #ifdef HAVE_NCURSES
         getmaxyx(wnd, rows, cols);
     #endif
-    while(_log_level.size() > (unsigned int)rows){
+    while(_log_level.size() >= (unsigned int)rows){
         _log_level.pop_back();
-    }
-    while(_log.size() > (unsigned int)rows){
         _log.pop_back();
     }
 
@@ -260,12 +280,12 @@ void Logger::addMessage(TLogLevel level, std::string log, const char *func)
 
 void Logger::printDate(TLogLevel level)
 {
-    char msg[512];
+    std::ostringstream msg;
     struct timeval now_time;
     gettimeofday(&now_time, NULL);
     const time_t seconds = now_time.tv_sec;
-    sprintf(msg, "%s\n", ctime(&seconds));
-    addMessage(level, msg);
+    msg << ctime(&seconds) << std::endl;
+    addMessage(level, msg.str());
 }
 
 void Logger::printOpenCLError(cl_int error, TLogLevel level)
@@ -377,71 +397,73 @@ void Logger::printOpenCLError(cl_int error, TLogLevel level)
 void Logger::printLog()
 {
     unsigned int i;
-    #ifndef HAVE_NCURSES
-    for(i = 0; i < _log_level.size(); i++){
-        if(_log_level.at(i) == L_INFO)
-            std::cout << "INFO ";
-        else if(_log_level.at(i) == L_WARNING)
-            std::cout << "WARNING ";
-        else if(_log_level.at(i) == L_ERROR)
-            std::cout << "ERROR ";
-        std::cout << _log.at(i) << std::flush;
-    }
-    #else
-        // Get a good position candidate
-        int row = _last_row + 2, rows, cols;
-        getmaxyx(wnd, rows, cols);
-        if(row > rows - 2){
-            row = rows - 2;
-        }
-
-        // Setup the subwindow
-        if(log_wnd){
-            wclear(log_wnd);
-            delwin(log_wnd);
-            log_wnd = NULL;
-        }
-        log_wnd = subwin(wnd, rows - row, cols, row, 0);
-        wclear(log_wnd);
-
-        // Print the info
-        wattrset(log_wnd, A_NORMAL);
-        wattron(log_wnd, A_BOLD);
-        wattron(log_wnd, COLOR_PAIR(1));
-        wmove(log_wnd, 0, 0);
-        wprintw(log_wnd, "--- Log registry ------------------------------");
-        unsigned int lines = 1;
+    if (!wnd) {
         for(i = 0; i < _log_level.size(); i++){
-            wattrset(log_wnd, A_NORMAL);
-            wattron(log_wnd, COLOR_PAIR(1));
-            if(_log_level.at(i) == L_INFO){
-                wattron(log_wnd, A_NORMAL);
-                wattron(log_wnd, COLOR_PAIR(1));
-            }
-            else if(_log_level.at(i) == L_WARNING){
-                wattron(log_wnd, A_BOLD);
-                wattron(log_wnd, COLOR_PAIR(4));
-            }
-            else if(_log_level.at(i) == L_ERROR){
-                wattron(log_wnd, A_BOLD);
-                wattron(log_wnd, COLOR_PAIR(5));
-            }
-            else{
-            }
-            wmove(log_wnd, lines, 0);
-            wprintw(log_wnd, _log.at(i).c_str());
-            lines += _log.at(i).size() / cols + 1;
+            if(_log_level.at(i) == L_INFO)
+                std::cout << "INFO ";
+            else if(_log_level.at(i) == L_WARNING)
+                std::cout << "WARNING ";
+            else if(_log_level.at(i) == L_ERROR)
+                std::cout << "ERROR ";
+            std::cout << _log.at(i) << std::flush;
         }
-        // wrefresh(log_wnd);
-    #endif
+        return;
+    }
+#ifdef HAVE_NCURSES
+    // Get a good position candidate
+    int row = _last_row + 2, rows, cols;
+    getmaxyx(wnd, rows, cols);
+    if(row > rows - 2){
+        row = rows - 2;
+    }
+
+    // Setup the subwindow
+    if(log_wnd){
+        wclear(log_wnd);
+        delwin(log_wnd);
+        log_wnd = NULL;
+    }
+    log_wnd = subwin(wnd, rows - row, cols, row, 0);
+    wclear(log_wnd);
+
+    // Print the info
+    wattrset(log_wnd, A_NORMAL);
+    wattron(log_wnd, A_BOLD);
+    wattron(log_wnd, COLOR_PAIR(1));
+    wmove(log_wnd, 0, 0);
+    wprintw(log_wnd, "--- Log registry ------------------------------");
+    unsigned int lines = 1;
+    for(i = 0; i < _log_level.size(); i++){
+        wattrset(log_wnd, A_NORMAL);
+        wattron(log_wnd, COLOR_PAIR(1));
+        if(_log_level.at(i) == L_INFO){
+            wattron(log_wnd, A_NORMAL);
+            wattron(log_wnd, COLOR_PAIR(1));
+        }
+        else if(_log_level.at(i) == L_WARNING){
+            wattron(log_wnd, A_BOLD);
+            wattron(log_wnd, COLOR_PAIR(4));
+        }
+        else if(_log_level.at(i) == L_ERROR){
+            wattron(log_wnd, A_BOLD);
+            wattron(log_wnd, COLOR_PAIR(5));
+        }
+        else{
+        }
+        wmove(log_wnd, lines, 0);
+        wprintw(log_wnd, _log.at(i).c_str());
+        lines += _log.at(i).size() / cols + 1;
+    }
+    // wrefresh(log_wnd);
+#endif
 }
 
 void Logger::refreshAll()
 {
-    #ifdef HAVE_NCURSES
-        refresh();
-        wrefresh(log_wnd);
-    #endif
+#ifdef HAVE_NCURSES
+    refresh();
+    wrefresh(log_wnd);
+#endif
 }
 
 void Logger::open()

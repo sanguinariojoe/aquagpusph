@@ -86,6 +86,19 @@ public:
     /// Destructor.
     ~Logger();
 
+    /** @brief Transform the terminal into an ncurses one.
+     *
+     * This method should be called ONCE before starting the simulation main
+     * loop
+     */
+    void initNCurses();
+
+    /** @brief Transform the terminal into an ncurses one.
+     *
+     * This method should be called after finishing the simulation main loop
+     */
+    void endNCurses();
+
     /** @brief Call to setup a new terminal frame.
      *
      * This method should be called at the start of every time step.
