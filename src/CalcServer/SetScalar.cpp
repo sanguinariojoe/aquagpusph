@@ -27,7 +27,7 @@
 
 #include <AuxiliarMethods.h>
 #include <ProblemSetup.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 #include <CalcServer/SetScalar.h>
 #include <CalcServer.h>
 

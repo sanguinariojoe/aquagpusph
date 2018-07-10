@@ -28,7 +28,7 @@
 
 #include <TimeManager.h>
 #include <CalcServer.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 
 namespace Aqua{ namespace InputOutput{
 
@@ -53,7 +53,7 @@ TimeManager::TimeManager(ProblemSetup sim_data)
 {
     unsigned int i;
     char msg[1024];
-    ScreenManager *S = ScreenManager::singleton();
+    Logger *S = Logger::singleton();
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
 
     Variables *vars = C->variables();

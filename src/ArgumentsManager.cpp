@@ -29,7 +29,7 @@
 
 #include <ArgumentsManager.h>
 #include <FileManager.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 
 // Short and long runtime options (see
 // http://www.gnu.org/software/libc/manual/html_node/Getopt.html#Getopt)

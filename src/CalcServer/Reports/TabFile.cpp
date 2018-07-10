@@ -22,7 +22,7 @@
  */
 
 #include <CalcServer/Reports/TabFile.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 
 namespace Aqua{ namespace CalcServer{ namespace Reports{
 

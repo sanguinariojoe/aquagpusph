@@ -23,7 +23,7 @@
 
 #include <CalcServer/Kernel.h>
 #include <CalcServer.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 
 namespace Aqua{ namespace CalcServer{
 
@@ -84,7 +84,7 @@ void Kernel::_execute()
         msg << "Failure executing the tool \"" <<
                name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL execution error");
     }
 }
@@ -153,13 +153,13 @@ void Kernel::compile(const std::string entry_point,
     if(err_code != CL_SUCCESS) {
         LOG0(L_DEBUG, "FAIL\n");
         LOG(L_ERROR, "Failure creating the OpenCL program.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL compilation error");
     }
     err_code = clBuildProgram(program, 0, NULL, flags.str().c_str(), NULL, NULL);
     if(err_code != CL_SUCCESS) {
         LOG0(L_DEBUG, "FAIL\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         LOG0(L_ERROR, "--- Build log ---------------------------------\n");
         size_t log_size = 0;
         clGetProgramBuildInfo(program,
@@ -199,7 +199,7 @@ void Kernel::compile(const std::string entry_point,
         msg << "Failure creating the kernel \"" << entry_point
             << "\"" << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
 
@@ -213,7 +213,7 @@ void Kernel::compile(const std::string entry_point,
     if(err_code != CL_SUCCESS) {
         LOG0(L_DEBUG, "FAIL\n");
         LOG(L_ERROR, "Failure querying the work group size.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         clReleaseKernel(kernel);
         throw std::runtime_error("OpenCL error");
     }
@@ -232,7 +232,7 @@ void Kernel::compile(const std::string entry_point,
     if(err_code != CL_SUCCESS) {
         LOG0(L_DEBUG, "FAIL\n");
         LOG(L_ERROR, "Failure creating the OpenCL program.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         LOG(L_INFO, "Falling back to no local memory usage.\n");
         return;
     }
@@ -240,7 +240,7 @@ void Kernel::compile(const std::string entry_point,
     err_code = clBuildProgram(program, 0, NULL, flags.str().c_str(), NULL, NULL);
     if(err_code != CL_SUCCESS) {
         LOG0(L_DEBUG, "FAIL\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         LOG0(L_ERROR, "--- Build log ---------------------------------\n");
         size_t log_size = 0;
         clGetProgramBuildInfo(program,
@@ -281,7 +281,7 @@ void Kernel::compile(const std::string entry_point,
         msg << "Failure creating the kernel \"" << entry_point
             << "\"" << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         LOG(L_INFO, "Falling back to no local memory usage.\n");
         return;
     }
@@ -295,7 +295,7 @@ void Kernel::compile(const std::string entry_point,
     if(err_code != CL_SUCCESS) {
         LOG0(L_DEBUG, "FAIL\n");
         LOG(L_ERROR, "Failure querying the used local memory.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         clReleaseKernel(kernel);
         LOG(L_INFO, "Falling back to no local memory usage.\n");
         return;
@@ -309,7 +309,7 @@ void Kernel::compile(const std::string entry_point,
     if(err_code != CL_SUCCESS) {
         LOG0(L_DEBUG, "FAIL\n");
         LOG(L_ERROR, "Failure querying the available local memory.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         clReleaseKernel(kernel);
         LOG(L_INFO, "Falling back to no local memory usage.\n");
         return;
@@ -318,7 +318,7 @@ void Kernel::compile(const std::string entry_point,
     if(available_local_mem < used_local_mem){
         LOG0(L_DEBUG, "FAIL\n");
         LOG(L_ERROR, "Not enough available local memory.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         clReleaseKernel(kernel);
         LOG(L_INFO, "Falling back to no local memory usage.\n");
         return;
@@ -327,7 +327,7 @@ void Kernel::compile(const std::string entry_point,
     err_code = clReleaseKernel(_kernel);
     if(err_code != CL_SUCCESS) {
         LOG(L_WARNING, "Failure releasing the non-local memory kernel.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
     }
     _kernel = kernel;
 }
@@ -493,7 +493,7 @@ void Kernel::setVariables()
                 << "\" (id=" << i
                 << ") to the tool \"" << name() << "\"." << std::endl;
             LOG(L_ERROR, msg.str());
-            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
             throw std::runtime_error("OpenCL error");
         }
         memcpy(_var_values.at(i), var->get(), var->typesize());

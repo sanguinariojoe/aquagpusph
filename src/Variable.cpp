@@ -24,7 +24,7 @@
 
 #include <Variable.h>
 #include <AuxiliarMethods.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 #include <CalcServer.h>
 
 /** @def PY_ARRAY_UNIQUE_SYMBOL
@@ -578,7 +578,7 @@ size_t ArrayVariable::size() const
         msg << "Failure getting allocated memory from variable \"" << name()
             << "\"." << std::endl,
         LOG(L_ERROR, msg.str());
-        Aqua::InputOutput::ScreenManager::singleton()->printOpenCLError(status);
+        Aqua::InputOutput::Logger::singleton()->printOpenCLError(status);
     }
     return memsize;
 }
@@ -850,7 +850,7 @@ const std::string ArrayVariable::asString(size_t i)
         std::ostringstream msg;
         msg << "Failure downloading the variable \"" << name() << "\"" << std::endl;
         LOG(L_ERROR, msg.str());
-        Aqua::InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        Aqua::InputOutput::Logger::singleton()->printOpenCLError(err_code);
         free(ptr);
         return NULL;
     }
@@ -1856,7 +1856,7 @@ void Variables::registerClMem(const std::string name,
                              &status);
         if(status != CL_SUCCESS) {
             LOG(L_ERROR, "Allocation failure.\n");
-            Aqua::InputOutput::ScreenManager::singleton()->printOpenCLError(status);
+            Aqua::InputOutput::Logger::singleton()->printOpenCLError(status);
             throw std::bad_alloc();
         }
         var->set(&mem);

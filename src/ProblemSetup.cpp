@@ -22,9 +22,10 @@
  */
 
 #include <limits>
+#include <sstream>
 
 #include <ProblemSetup.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 #include <AuxiliarMethods.h>
 
 namespace Aqua{ namespace InputOutput{

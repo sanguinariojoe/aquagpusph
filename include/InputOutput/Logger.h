@@ -18,29 +18,29 @@
 
 /** @file
  * @brief Terminal output, with Log automatic copying.
- * (See Aqua::InputOutput::ScreenManager for details)
+ * (See Aqua::InputOutput::Logger for details)
  */
 
-#ifndef SCREENMANAGER_H_INCLUDED
-#define SCREENMANAGER_H_INCLUDED
+#ifndef LOGGER_H_INCLUDED
+#define LOGGER_H_INCLUDED
 
 #include <sphPrerequisites.h>
 
 #include <string>
-#include <iostream>
-#include <deque>
+#include <fstream>
+#include <vector>
 #include <CL/cl.h>
 
 #ifdef HAVE_NCURSES
     #include <ncurses.h>
 #endif
 
-#include <FileManager.h>
+#include <InputOutput/Report.h>
 #include <Singleton.h>
 
 #ifndef addMessageF
     /** @def addMessageF
-     * Overloaded version of Aqua::InputOutput::ScreenManager::addMessage()
+     * Overloaded version of Aqua::InputOutput::Logger::addMessage()
      * method, which is automatically setting the class and function names.
      */
     #define addMessageF(level, log) addMessage(level, log, __METHOD_CLASS_NAME__)
@@ -49,18 +49,18 @@
 #ifndef LOG
     /** @def LOG
      * Overloaded version of
-     * Aqua::InputOutput::ScreenManager::singleton()->addMessageF(), such that
+     * Aqua::InputOutput::Logger::singleton()->addMessageF(), such that
      * this macro can ve conveniently called to fill the log file.
      */
-    #define LOG(level, log) Aqua::InputOutput::ScreenManager::singleton()->addMessageF(level, log)
+    #define LOG(level, log) Aqua::InputOutput::Logger::singleton()->addMessageF(level, log)
 #endif
 #ifndef LOG0
     /** @def LOG0
      * Overloaded version of
-     * Aqua::InputOutput::ScreenManager::singleton()->addMessage(), such that
+     * Aqua::InputOutput::Logger::singleton()->addMessage(), such that
      * this macro can ve conveniently called to fill the log file.
      */
-    #define LOG0(level, log) Aqua::InputOutput::ScreenManager::singleton()->addMessage(level, log)
+    #define LOG0(level, log) Aqua::InputOutput::Logger::singleton()->addMessage(level, log)
 #endif
 
 namespace Aqua{
@@ -69,22 +69,22 @@ enum TLogLevel {L_DEBUG, L_INFO, L_WARNING, L_ERROR};
 
 namespace InputOutput{
 
-/** @class ScreenManager ScreenManager.h ScreenManager.h
- * @brief On screen output manager.
+/** @class Logger Logger.h Logger.h
+ * @brief On screen and log file output manager.
  *
- * This class is able to conveniently redirect the data to the log file.
+ * AQUAgpusph is generating, during runtime, an HTML log file, placed in the
+ * execution folder, and named log.X.html, where X is replaced by the first
+ * unsigned integer which generates a non-existing file.
  */
-struct ScreenManager : public Aqua::Singleton<Aqua::InputOutput::ScreenManager>
+struct Logger : public Aqua::Singleton<Aqua::InputOutput::Logger>
+              , public Aqua::InputOutput::Report
 {
 public:
-    /** @brief Constructor.
-     *
-     * @param fmanager Files manager
-     */
-    ScreenManager(FileManager *fmanager);
+    /// @brief Constructor.
+    Logger();
 
     /// Destructor.
-    ~ScreenManager();
+    ~Logger();
 
     /** @brief Call to setup a new terminal frame.
      *
@@ -146,6 +146,9 @@ public:
      * @param level Message classification (L_DEBUG, L_INFO, L_WARNING, L_ERROR)
      */
     void printOpenCLError(cl_int error, TLogLevel level=L_DEBUG);
+
+    /// Do nothing
+    void save() {};
 protected:
     /** @brief Print the log record
      *
@@ -157,10 +160,13 @@ protected:
     /** Call to refresh the output screen, useless if ncurses is not active.
      */
     void refreshAll();
-private:
-    /// Files manager
-    FileManager *_fmanager;
 
+    /// Create the log file
+    void open();
+
+    /// Close the log file
+    void close();
+private:
     /// Last row where datas was printed (used to locate the registry position)
     int _last_row;
 
@@ -170,11 +176,13 @@ private:
     struct timeval _actual_time;
 
     /// List of log messages level
-    std::deque<int> _log_level;
+    std::vector<int> _log_level;
     /// List of log messages
-    std::deque<std::string> _log;
+    std::vector<std::string> _log;
+    /// Output log file
+    std::ofstream _log_file;
 };
 
 }}  // namespace
 
-#endif // SCREENMANAGER_H_INCLUDED
+#endif // LOGGER_H_INCLUDED

@@ -78,7 +78,7 @@
 #include <ProblemSetup.h>
 #include <CalcServer.h>
 #include <TimeManager.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 #include <unistd.h>
 
 /** @namespace Aqua
@@ -107,9 +107,8 @@ using namespace Aqua;
 int main(int argc, char *argv[])
 {
     std::ostringstream msg;
+    InputOutput::Logger *S = new InputOutput::Logger();
     InputOutput::FileManager file_manager;
-    InputOutput::ScreenManager *S =
-        new InputOutput::ScreenManager(&file_manager);
     CalcServer::CalcServer *C = NULL;
     InputOutput::TimeManager *T = NULL;
 

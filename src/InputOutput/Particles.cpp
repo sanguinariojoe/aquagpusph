@@ -25,7 +25,7 @@
 #include <iomanip>
 
 #include <InputOutput/Particles.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 #include <CalcServer.h>
 #include <AuxiliarMethods.h>
 
@@ -81,7 +81,7 @@ void Particles::loadDefault()
                                     NULL);
     if(err_code != CL_SUCCESS){
         LOG(L_ERROR, "Failure sending variable \"iset\" to the server.\n");
-        ScreenManager::singleton()->printOpenCLError(err_code);
+        Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     var = (ArrayVariable*)vars->get("id");
@@ -97,7 +97,7 @@ void Particles::loadDefault()
                                     NULL);
     if(err_code != CL_SUCCESS){
         LOG(L_ERROR, "Failure sending variable \"id\" to the server.\n");
-        ScreenManager::singleton()->printOpenCLError(err_code);
+        Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     var = (ArrayVariable*)vars->get("id_sorted");
@@ -113,7 +113,7 @@ void Particles::loadDefault()
                                     NULL);
     if(err_code != CL_SUCCESS){
         LOG(L_ERROR, "Failure sending variable \"id_sorted\" to the server.\n");
-        ScreenManager::singleton()->printOpenCLError(err_code);
+        Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     var = (ArrayVariable*)vars->get("id_unsorted");
@@ -129,7 +129,7 @@ void Particles::loadDefault()
                                     NULL);
     if(err_code != CL_SUCCESS){
         LOG(L_ERROR, "Failure sending variable \"id_unsorted\" to the server.\n");
-        ScreenManager::singleton()->printOpenCLError(err_code);
+        Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
 
@@ -247,7 +247,7 @@ std::vector<void*> Particles::download(std::vector<std::string> fields)
                                events.data());
     if(err_code != CL_SUCCESS){
         LOG(L_ERROR, "Failure waiting for the variables download.\n");
-        ScreenManager::singleton()->printOpenCLError(err_code);
+        Logger::singleton()->printOpenCLError(err_code);
         clearList(&data);
         throw std::runtime_error("OpenCL error");
     }
@@ -257,7 +257,7 @@ std::vector<void*> Particles::download(std::vector<std::string> fields)
         err_code = clReleaseEvent(event);
         if(err_code != CL_SUCCESS){
             LOG(L_ERROR, "Failure releasing the events.\n");
-            ScreenManager::singleton()->printOpenCLError(err_code);
+            Logger::singleton()->printOpenCLError(err_code);
             clearList(&data);
             throw std::runtime_error("OpenCL error");
         }

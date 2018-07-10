@@ -65,7 +65,6 @@ INSTALL(
         ${CMAKE_CURRENT_SOURCE_DIR}/CalcServer.h
         ${CMAKE_CURRENT_SOURCE_DIR}/FileManager.h
         ${CMAKE_CURRENT_SOURCE_DIR}/ProblemSetup.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/ScreenManager.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Singleton.h
         ${CMAKE_CURRENT_SOURCE_DIR}/sphPrerequisites.h
         ${CMAKE_CURRENT_SOURCE_DIR}/TimeManager.h

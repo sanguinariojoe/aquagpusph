@@ -22,7 +22,7 @@
  */
 
 #include <CalcServer/Reports/SetTabFile.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 #include <CalcServer.h>
 #include <Variable.h>
 
@@ -284,7 +284,7 @@ std::vector<void*> SetTabFile::download(std::vector<InputOutput::Variable*> vars
                                events.data());
     if(err_code != CL_SUCCESS){
         LOG(L_ERROR, "Failure waiting for the variables download.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         clearList(&data);
         throw std::runtime_error("OpenCL error");
     }
@@ -294,7 +294,7 @@ std::vector<void*> SetTabFile::download(std::vector<InputOutput::Variable*> vars
         err_code = clReleaseEvent(events.at(i));
         if(err_code != CL_SUCCESS){
             LOG(L_ERROR, "Failure releasing the events.\n");
-            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
             clearList(&data);
             throw std::runtime_error("OpenCL error");
         }

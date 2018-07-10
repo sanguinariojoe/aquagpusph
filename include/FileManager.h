@@ -31,7 +31,6 @@
 #include <ProblemSetup.h>
 #include <CalcServer.h>
 #include <InputOutput/State.h>
-#include <InputOutput/Log.h>
 #include <InputOutput/Particles.h>
 
 namespace Aqua{
@@ -44,10 +43,8 @@ namespace InputOutput{
  * load/save the files.
  *
  * @see Aqua::InputOutput::State
- * @see Aqua::InputOutput::Log
- * @see Aqua::InputOutput::Energy
- * @see Aqua::InputOutput::Bounds
  * @see Aqua::InputOutput::Particles
+ * @note The Log file is controlled by Aqua::InputOutput::Logger
  */
 class FileManager
 {
@@ -77,17 +74,6 @@ public:
      * @return XML input file path.
      */
     std::string inputFile(){return _in_file;}
-
-    /** @brief Get the log file handler.
-     *
-     * AQUAgpusph is generating, during runtime, an HTML log file, placed in the
-     * execution folder, and named log.X.html, where X is replaced by the first
-     * unsigned integer which generates a non-existing file.
-     *
-     * @return Log file handler.
-     * @see Aqua::InputOutput::Log
-     */
-    std::ofstream& logFile();
 
     /** @brief Get the simulation setup, extracted from the XML definition files
      *
@@ -140,9 +126,6 @@ public:
 private:
     /// The XML simulation definition loader/saver
     State _state;
-
-    /// The output log file
-    Log _log;
 
     /// Simulation data read from XML files
     ProblemSetup _simulation;

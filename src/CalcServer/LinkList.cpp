@@ -25,7 +25,7 @@
 
 #include <CalcServer/LinkList.h>
 #include <CalcServer.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 
 namespace Aqua{ namespace CalcServer{
 
@@ -151,7 +151,7 @@ void LinkList::_execute()
         msg << "Failure executing \"iCell\" from tool \"" <<
                name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL execution error");
     }
 
@@ -173,7 +173,7 @@ void LinkList::_execute()
         msg << "Failure executing \"iHoc\" from tool \"" <<
                name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL execution error");
     }
 
@@ -191,7 +191,7 @@ void LinkList::_execute()
         msg << "Failure executing \"linkList\" from tool \"" <<
                name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL execution error");
     }
 }
@@ -218,7 +218,7 @@ void LinkList::setupOpenCL()
                                         NULL);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure querying the work group size (\"iHoc\").\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     if(_ihoc_lws < __CL_MIN_LOCALSIZE__){
@@ -243,7 +243,7 @@ void LinkList::setupOpenCL()
             msg << "Failure sending \"" << _ihoc_vars[i]
                 << "\" argument to \"iHoc\"." << std::endl;
             LOG(L_ERROR, msg.str());
-            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
             throw std::runtime_error("OpenCL error");
         }
         _ihoc_args.push_back(malloc(vars->get(_ihoc_vars[i])->typesize()));
@@ -260,7 +260,7 @@ void LinkList::setupOpenCL()
                                         NULL);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure querying the work group size (\"iCell\").\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     if(_icell_lws < __CL_MIN_LOCALSIZE__){
@@ -286,7 +286,7 @@ void LinkList::setupOpenCL()
             msg << "Failure sending \"" << _icell_vars[i]
                 << "\" argument to \"iCell\"." << std::endl;
             LOG(L_ERROR, msg.str());
-            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
             throw std::runtime_error("OpenCL error");
         }
         _icell_args.push_back(malloc(vars->get(_icell_vars[i])->typesize()));
@@ -303,7 +303,7 @@ void LinkList::setupOpenCL()
                                         NULL);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure querying the work group size (\"linkList\").\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     if(_ll_lws < __CL_MIN_LOCALSIZE__){
@@ -328,7 +328,7 @@ void LinkList::setupOpenCL()
             msg << "Failure sending \"" << _ll_vars[i]
                 << "\" argument to \"iCell\"." << std::endl;
             LOG(L_ERROR, msg.str());
-            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
             throw std::runtime_error("OpenCL error");
         }
         _ll_args.push_back(malloc(vars->get(_ll_vars[i])->typesize()));
@@ -365,13 +365,13 @@ void LinkList::compile(const std::string source)
                                         &err_code);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure creating the OpenCL program.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL compilation error");
     }
     err_code = clBuildProgram(program, 0, NULL, flags.str().c_str(), NULL, NULL);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Error compiling the source code\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         LOG0(L_ERROR, "--- Build log ---------------------------------\n");
         size_t log_size = 0;
         clGetProgramBuildInfo(program,
@@ -406,21 +406,21 @@ void LinkList::compile(const std::string source)
     _ihoc = clCreateKernel(program, "iHoc", &err_code);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure creating the \"iHoc\" kernel.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         clReleaseProgram(program);
         throw std::runtime_error("OpenCL error");
     }
     _icell = clCreateKernel(program, "iCell", &err_code);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure creating the \"iCell\" kernel.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         clReleaseProgram(program);
         throw std::runtime_error("OpenCL error");
     }
     _ll = clCreateKernel(program, "linkList", &err_code);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure creating the \"linkList\" kernel.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         clReleaseProgram(program);
         throw std::runtime_error("OpenCL error");
     }
@@ -496,7 +496,7 @@ void LinkList::allocate()
         msg << "Failure allocating device memory in the tool \"" <<
                name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL allocation error");
     }
 
@@ -528,7 +528,7 @@ void LinkList::setVariables()
                 << "\" to the tool \"" << name()
                 << "\" (\"iHoc\")." << std::endl;
             LOG(L_ERROR, msg.str());
-            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
             throw std::runtime_error("OpenCL error");
         }
         memcpy(_ihoc_args.at(i), var->get(), var->typesize());
@@ -551,7 +551,7 @@ void LinkList::setVariables()
                 << "\" to the tool \"" << name()
                 << "\" (\"iCell\")." << std::endl;
             LOG(L_ERROR, msg.str());
-            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
             throw std::runtime_error("OpenCL error");
         }
         memcpy(_icell_args.at(i), var->get(), var->typesize());
@@ -573,7 +573,7 @@ void LinkList::setVariables()
                 << "\" to the tool \"" << name()
                 << "\" (\"linkList\")." << std::endl;
             LOG(L_ERROR, msg.str());
-            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
             throw std::runtime_error("OpenCL error");
         }
         memcpy(_ll_args.at(i), var->get(), var->typesize());

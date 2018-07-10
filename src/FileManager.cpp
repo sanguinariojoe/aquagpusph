@@ -22,7 +22,7 @@
  */
 
 #include <FileManager.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 #include <ProblemSetup.h>
 #include <InputOutput/ASCII.h>
 #include <InputOutput/FastASCII.h>
@@ -34,7 +34,6 @@ namespace Aqua{ namespace InputOutput{
 
 FileManager::FileManager()
     : _state()
-    , _log()
     , _simulation()
     , _in_file("Input.xml")
 {
@@ -53,11 +52,6 @@ FileManager::~FileManager()
 void FileManager::inputFile(std::string path)
 {
     _in_file = path;
-}
-
-std::ofstream& FileManager::logFile()
-{
-    return _log.fileHandler();
 }
 
 CalcServer::CalcServer* FileManager::load()

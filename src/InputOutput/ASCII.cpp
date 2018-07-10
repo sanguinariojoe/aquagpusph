@@ -26,7 +26,7 @@
 #include <string.h>
 
 #include <InputOutput/ASCII.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 #include <ProblemSetup.h>
 #include <TimeManager.h>
 #include <CalcServer.h>

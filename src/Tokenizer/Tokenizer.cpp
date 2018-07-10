@@ -24,7 +24,7 @@
 // #include <matheval.h>
 
 #include <Tokenizer/Tokenizer.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 
 using namespace std;
 

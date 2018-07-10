@@ -18,14 +18,16 @@
 
 /** @file
  * @brief Terminal output, with Log automatic copying.
- * (See Aqua::InputOutput::ScreenManager for details)
+ * (See Aqua::InputOutput::Logger for details)
  */
 
 #include <sys/time.h>
 #include <unistd.h>
+#include <sstream>
+#include <iostream>
 
 #include <AuxiliarMethods.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 #include <ProblemSetup.h>
 #include <TimeManager.h>
 
@@ -35,11 +37,12 @@
 
 namespace Aqua{ namespace InputOutput{
 
-ScreenManager::ScreenManager(FileManager *fmanager)
+Logger::Logger()
     : _last_row(0)
-    , _fmanager(fmanager)
 {
     int i;
+
+    open();
 
     #ifdef HAVE_NCURSES
         wnd = initscr();
@@ -55,15 +58,17 @@ ScreenManager::ScreenManager(FileManager *fmanager)
     gettimeofday(&_start_time, NULL);
 }
 
-ScreenManager::~ScreenManager()
+Logger::~Logger()
 {
     #ifdef HAVE_NCURSES
         // Stop ncurses
         endwin();
     #endif
+
+    close();
 }
 
-void ScreenManager::initFrame()
+void Logger::initFrame()
 {
     #ifdef HAVE_NCURSES
         // Clear the entire frame
@@ -89,7 +94,7 @@ void ScreenManager::initFrame()
     #endif
 }
 
-void ScreenManager::endFrame()
+void Logger::endFrame()
 {
     #ifdef HAVE_NCURSES
         printLog();
@@ -99,7 +104,7 @@ void ScreenManager::endFrame()
     #endif
 }
 
-void ScreenManager::writeReport(std::string input,
+void Logger::writeReport(std::string input,
                                 std::string color,
                                 bool bold)
 {
@@ -193,34 +198,33 @@ void ScreenManager::writeReport(std::string input,
     #endif
 }
 
-void ScreenManager::addMessage(TLogLevel level, std::string log, const char *func)
+void Logger::addMessage(TLogLevel level, std::string log, const char *func)
 {
     std::ostringstream fname;
     if (func)
         fname << "(" << func << "): ";
 
     // Send the info to the log file (if possible)
-    std::ofstream log_file = std::move(_fmanager->logFile());
-    if(log_file){
+    if(_log_file.is_open()){
         if(level == L_INFO)
-            log_file << "<b><font color=\"#000000\">[INFO] "
+            _log_file << "<b><font color=\"#000000\">[INFO] "
                      << fname.str() << log << "</font></b><br>";
         else if(level == L_WARNING)
-            log_file << "<b><font color=\"#ff9900\">[WARNING] "
+            _log_file << "<b><font color=\"#ff9900\">[WARNING] "
                      << fname.str() << log << "</font></b><br>";
         else if(level == L_ERROR)
-            log_file << "<b><font color=\"#dd0000\">[ERROR] "
+            _log_file << "<b><font color=\"#dd0000\">[ERROR] "
                      << fname.str() << log << "</font></b><br>";
         else{
-            log_file << "<b><font color=\"#000000\">"
+            _log_file << "<b><font color=\"#000000\">"
                      << fname.str() << log << "</font></b><br>";
             if(hasSuffix(log, "\n"))
-                log_file << "<br>";
+                _log_file << "<br>";
         }
-        log_file.flush();
+        _log_file.flush();
     }
-    // Compatibility mode for destroyed ScreenManager situations
-    if(!ScreenManager::singleton()){
+    // Compatibility mode for destroyed Logger situations
+    if(!Logger::singleton()){
         if(level == L_INFO)
             std::cout << "INFO ";
         else if(level == L_WARNING)
@@ -254,7 +258,7 @@ void ScreenManager::addMessage(TLogLevel level, std::string log, const char *fun
     refreshAll();
 }
 
-void ScreenManager::printDate(TLogLevel level)
+void Logger::printDate(TLogLevel level)
 {
     char msg[512];
     struct timeval now_time;
@@ -264,7 +268,7 @@ void ScreenManager::printDate(TLogLevel level)
     addMessage(level, msg);
 }
 
-void ScreenManager::printOpenCLError(cl_int error, TLogLevel level)
+void Logger::printOpenCLError(cl_int error, TLogLevel level)
 {
     switch(error) {
         case CL_DEVICE_NOT_FOUND:
@@ -370,7 +374,7 @@ void ScreenManager::printOpenCLError(cl_int error, TLogLevel level)
     }
 }
 
-void ScreenManager::printLog()
+void Logger::printLog()
 {
     unsigned int i;
     #ifndef HAVE_NCURSES
@@ -432,12 +436,55 @@ void ScreenManager::printLog()
     #endif
 }
 
-void ScreenManager::refreshAll()
+void Logger::refreshAll()
 {
     #ifdef HAVE_NCURSES
         refresh();
         wrefresh(log_wnd);
     #endif
+}
+
+void Logger::open()
+{
+    file("log.%d.html", 0);
+    _log_file.open(file().c_str());
+    if(!_log_file.is_open()){
+        std::ostringstream msg;
+        msg << "Failure creating the log file \"" << file()
+            << "\"" << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("Failure creating the Log file");
+    }
+
+    _log_file << "<html>" << std::endl;
+    _log_file << "<head><title>AQUAgpusph log file.</title></head>" << std::endl;
+    _log_file << "<body bgcolor=\"#f0ffff\">" << std::endl;
+    _log_file << "<h1 align=\"center\">AQUAgpusph log file.</h1>" << std::endl;
+    // Starting data
+    struct timeval now_time;
+    gettimeofday(&now_time, NULL);
+    const time_t seconds = now_time.tv_sec;
+    _log_file << "<p align=\"left\">" << ctime(&seconds) << "</p>" << std::endl;
+    _log_file << "<hr><br>" << std::endl;
+    _log_file.flush();
+}
+
+void Logger::close()
+{
+    if(!_log_file.is_open()) {
+        return;
+    }
+
+    _log_file << "<br><hr>" << std::endl;
+    struct timeval now_time;
+    gettimeofday(&now_time, NULL);
+    const time_t seconds = now_time.tv_sec;
+    _log_file << "<b><font color=\"#000000\">End of simulation</font></b><br>"
+          << std::endl;
+    _log_file << "<p align=\"left\">" << ctime(&seconds) << "</p>" << std::endl;
+    _log_file << "</body>" << std::endl;
+    _log_file << "</html>" << std::endl;
+    _log_file.close();
 }
 
 }}  // namespace

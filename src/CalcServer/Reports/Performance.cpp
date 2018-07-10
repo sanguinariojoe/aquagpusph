@@ -25,7 +25,7 @@
 #include <iomanip>
 #include <CalcServer/Reports/Performance.h>
 #include <CalcServer.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 
 namespace Aqua{ namespace CalcServer{ namespace Reports{
 
@@ -154,7 +154,7 @@ void Performance::_execute()
         data << std::endl;
     }
 
-    InputOutput::ScreenManager::singleton()->writeReport(data.str(),
+    InputOutput::Logger::singleton()->writeReport(data.str(),
                                                          _color,
                                                          _bold);
 

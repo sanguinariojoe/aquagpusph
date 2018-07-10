@@ -28,7 +28,6 @@
 #include <InputOutput/InputOutput.h>
 
 #include <string>
-#include <iostream>
 
 namespace Aqua{ namespace InputOutput{
 
@@ -56,7 +55,6 @@ class Report : public InputOutput
 {
 public:
     /** @brief Save the data.
-     * @return false if all gone right, true otherwise.
      */
     virtual void save() = 0;
 

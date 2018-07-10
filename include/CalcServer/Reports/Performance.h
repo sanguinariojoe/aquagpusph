@@ -41,7 +41,7 @@ namespace Aqua{ namespace CalcServer{ namespace Reports{
  *    -# The average CPU time consumend of each tool (GPU time can be taken
  *    with the profiling tools of each vendor)
  *
- * @see Aqua::InputOutput::ScreenManager
+ * @see Aqua::InputOutput::Logger
  */
 class Performance : public Aqua::CalcServer::Reports::Report
 {

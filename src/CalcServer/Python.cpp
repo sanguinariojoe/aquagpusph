@@ -22,7 +22,7 @@
  */
 
 #include <AuxiliarMethods.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 #include <CalcServer/Python.h>
 
 /** @def PY_ARRAY_UNIQUE_SYMBOL

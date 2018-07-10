@@ -28,7 +28,7 @@
 #include <vector>
 
 #include <ProblemSetup.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 #include <CalcServer/Reduction.h>
 #include <CalcServer.h>
 
@@ -119,7 +119,7 @@ void Reduction::_execute()
             msg << "Failure executing the step " << i << " within the tool \""
                 << name() << "\"." << std::endl;
             LOG(L_ERROR, msg.str());
-            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
             throw std::runtime_error("OpenCL execution error");
         }
     }
@@ -139,7 +139,7 @@ void Reduction::_execute()
             msg << "Failure reading back the result within the tool \""
                 << name() << "\"." << std::endl;
             LOG(L_ERROR, msg.str());
-            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
             throw std::runtime_error("OpenCL error");
     }
 
@@ -234,7 +234,7 @@ void Reduction::setupOpenCL()
                                         NULL);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure querying the work group size.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         clReleaseKernel(kernel);
         throw std::runtime_error("OpenCL error");
     }
@@ -278,7 +278,7 @@ void Reduction::setupOpenCL()
             msg << "Failure allocating device memory in the tool \"" <<
                 name() << "\"." << std::endl;
             LOG(L_ERROR, msg.str());
-            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
             throw std::runtime_error("OpenCL allocation error");
         }
         allocatedMemory(_number_groups.at(i) * data_size + allocatedMemory());
@@ -293,7 +293,7 @@ void Reduction::setupOpenCL()
                                   (void*)&(_mems.at(i)));
         if(err_code != CL_SUCCESS){
             LOG(L_ERROR, "Failure sending input argument\n");
-            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
             throw std::runtime_error("OpenCL error");
         }
         err_code = clSetKernelArg(kernel,
@@ -302,7 +302,7 @@ void Reduction::setupOpenCL()
                                   (void*)&(_mems.at(i+1)));
         if(err_code != CL_SUCCESS){
             LOG(L_ERROR, "Failure sending output argument\n");
-            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
             throw std::runtime_error("OpenCL error");
         }
         err_code = clSetKernelArg(kernel,
@@ -311,7 +311,7 @@ void Reduction::setupOpenCL()
                                   (void*)&(n));
         if(err_code != CL_SUCCESS){
             LOG(L_ERROR, "Failure sending number of threads argument\n");
-            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
             throw std::runtime_error("OpenCL error");
         }
         err_code = clSetKernelArg(kernel,
@@ -320,7 +320,7 @@ void Reduction::setupOpenCL()
                                   NULL);
         if(err_code != CL_SUCCESS){
             LOG(L_ERROR, "Failure setting local memory\n");
-            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
             throw std::runtime_error("OpenCL error");
         }
         // Setup next step
@@ -370,13 +370,13 @@ cl_kernel Reduction::compile(const std::string source, size_t local_work_size)
                                         &err_code);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure creating the OpenCL program.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL compilation error");
     }
     err_code = clBuildProgram(program, 0, NULL, flags.str().c_str(), NULL, NULL);
     if(err_code != CL_SUCCESS) {
         LOG0(L_ERROR, "Error compiling the source code\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         LOG0(L_ERROR, "--- Build log ---------------------------------\n");
         size_t log_size = 0;
         clGetProgramBuildInfo(program,
@@ -412,7 +412,7 @@ cl_kernel Reduction::compile(const std::string source, size_t local_work_size)
     clReleaseProgram(program);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure creating the kernel.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
 
@@ -436,7 +436,7 @@ void Reduction::setVariables()
         msg << "Failure setting the input variable \"" << _input_var->name()
             << "\" to the tool \"" << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
 

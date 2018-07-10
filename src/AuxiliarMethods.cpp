@@ -32,10 +32,11 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string>
+#include <sstream>
 
 #include <AuxiliarMethods.h>
 #include <ProblemSetup.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 
 namespace Aqua{
 
@@ -222,7 +223,7 @@ size_t readFile(char* source_code, const std::string file_name)
     size_t length = 0;
     FILE *file = NULL;
     char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    InputOutput::Logger *S = InputOutput::Logger::singleton();
 
     file = fopen(file_name.c_str(), "rb");
     if(file == NULL) {
@@ -255,7 +256,7 @@ size_t readFile(char* source_code, const std::string file_name)
 int sendArgument(cl_kernel kernel, int index, size_t size, void* ptr)
 {
     int err_code;
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    InputOutput::Logger *S = InputOutput::Logger::singleton();
     err_code = clSetKernelArg(kernel, index, size, ptr);
     if(err_code != CL_SUCCESS) {
         char msg[1025]; strcpy(msg, "");

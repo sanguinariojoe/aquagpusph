@@ -26,7 +26,7 @@
 #include <vector>
 
 #include <ProblemSetup.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 #include <CalcServer/Copy.h>
 #include <CalcServer.h>
 
@@ -77,7 +77,7 @@ void Copy::_execute()
         msg << "Failure executing the tool \"" <<
                name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL execution error");
     }
 }

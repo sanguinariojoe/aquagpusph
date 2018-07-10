@@ -38,7 +38,7 @@ namespace Aqua{ namespace CalcServer{ namespace Reports{
  *    -# Its computation is not taking too much time
  * Therefore it could be computed and printed oftenly.
  *
- * @see Aqua::InputOutput::ScreenManager
+ * @see Aqua::InputOutput::Logger
  */
 class Screen : public Aqua::CalcServer::Reports::Report
 {

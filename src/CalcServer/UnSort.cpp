@@ -28,7 +28,7 @@
 #include <vector>
 
 #include <ProblemSetup.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 #include <CalcServer/UnSort.h>
 #include <CalcServer.h>
 
@@ -97,7 +97,7 @@ void UnSort::_execute()
         msg << "Failure executing the tool \"" <<
                name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL execution error");
     }
 }
@@ -178,7 +178,7 @@ void UnSort::setupMem()
         msg << "Failure allocating device memory in the tool \"" <<
                name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL allocation error");
     }
     allocatedMemory(len_id * InputOutput::Variables::typeToBytes(_var->type()));
@@ -202,7 +202,7 @@ void UnSort::setupOpenCL()
                                         NULL);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure querying the work group size.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     if(_local_work_size < __CL_MIN_LOCALSIZE__){
@@ -222,7 +222,7 @@ void UnSort::setupOpenCL()
                               _id_var->get());
     if(err_code != CL_SUCCESS){
         LOG(L_ERROR, "Failure sending the IDs argument\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_kernel,
@@ -231,7 +231,7 @@ void UnSort::setupOpenCL()
                               _var->get());
     if(err_code != CL_SUCCESS){
         LOG(L_ERROR, "Failure sending the input array argument\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_kernel,
@@ -240,7 +240,7 @@ void UnSort::setupOpenCL()
                               (void*)&_output);
     if(err_code != CL_SUCCESS){
         LOG(L_ERROR, "Failure sending the output array argument\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_kernel,
@@ -249,7 +249,7 @@ void UnSort::setupOpenCL()
                               (void*)&_n);
     if(err_code != CL_SUCCESS){
         LOG(L_ERROR, "Failure sending the array size argument\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
 }
@@ -291,13 +291,13 @@ cl_kernel UnSort::compile(const std::string source)
                                         &err_code);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure creating the OpenCL program\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     err_code = clBuildProgram(program, 0, NULL, flags.str().c_str(), NULL, NULL);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Error compiling the OpenCL script\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         LOG0(L_ERROR, "--- Build log ---------------------------------\n");
         size_t log_size = 0;
         clGetProgramBuildInfo(program,
@@ -333,7 +333,7 @@ cl_kernel UnSort::compile(const std::string source)
     clReleaseProgram(program);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure creating the OpenCL kernel\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
 
@@ -354,7 +354,7 @@ void UnSort::setVariables()
             msg << "Failure setting the variable \"" << _id_var->name()
                 << "\" to the tool \"" << name() << "\"." << std::endl;
             LOG(L_ERROR, msg.str());
-            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
             throw std::runtime_error("OpenCL error");
         }
         _id_input = *(cl_mem *)_id_var->get();
@@ -369,7 +369,7 @@ void UnSort::setVariables()
             msg << "Failure setting the variable \"" << _var->name()
                 << "\" to the tool \"" << name() << "\"." << std::endl;
             LOG(L_ERROR, msg.str());
-            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
             throw std::runtime_error("OpenCL error");
         }
         _input = *(cl_mem *)_var->get();

@@ -26,7 +26,7 @@
 
 #include <limits.h>
 #include <CalcServer/RadixSort.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 #include <AuxiliarMethods.h>
 
 namespace Aqua{ namespace CalcServer{
@@ -140,7 +140,7 @@ void RadixSort::_execute()
         msg << "Failure copying the keys to sort within the tool \"" << name()
             << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
 
@@ -166,7 +166,7 @@ void RadixSort::_execute()
         msg << "Failure copying the sort keys within the tool \"" << name()
             << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     err_code = clEnqueueCopyBuffer(C->command_queue(),
@@ -183,7 +183,7 @@ void RadixSort::_execute()
         msg << "Failure copying the permutations within the tool \"" << name()
             << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
 
@@ -204,7 +204,7 @@ void RadixSort::init()
         msg << "Failure sending argument 0 to \"init\" within the tool \""
             << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
 
@@ -222,7 +222,7 @@ void RadixSort::init()
         msg << "Failure executing \"init\" within the tool \""
             << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL execution error");
     }
 }
@@ -243,7 +243,7 @@ void RadixSort::histograms()
         msg << "Failure sending argument 0 to \"histogram\" within the tool \""
             << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_histograms_kernel,
@@ -255,7 +255,7 @@ void RadixSort::histograms()
         msg << "Failure sending argument 2 to \"histogram\" within the tool \""
             << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
 
@@ -273,7 +273,7 @@ void RadixSort::histograms()
         msg << "Failure executing \"histogram\" within the tool \""
             << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL execution error");
     }
 }
@@ -298,7 +298,7 @@ void RadixSort::scan()
         msg << "Failure sending argument 0 to \"scan\" (1st call) "
             << "within the tool \"" << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_scan_kernel,
@@ -310,7 +310,7 @@ void RadixSort::scan()
         msg << "Failure sending argument 2 to \"scan\" (1st call) "
             << "within the tool \"" << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
 
@@ -328,7 +328,7 @@ void RadixSort::scan()
         msg << "Failure executing \"scan\" (1st call) within the tool \""
             << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL execution error");
     }
 
@@ -345,7 +345,7 @@ void RadixSort::scan()
         msg << "Failure sending argument 0 to \"scan\" (2nd call) "
             << "within the tool \"" << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_scan_kernel,
@@ -357,7 +357,7 @@ void RadixSort::scan()
         msg << "Failure sending argument 2 to \"scan\" (2nd call) "
             << "within the tool \"" << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
 
@@ -375,7 +375,7 @@ void RadixSort::scan()
         msg << "Failure executing \"scan\" (2nd call) within the tool \""
             << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL execution error");
     }
 
@@ -398,7 +398,7 @@ void RadixSort::scan()
         msg << "Failure executing \"paste\" within the tool \""
             << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL execution error");
     }
 }
@@ -419,7 +419,7 @@ void RadixSort::reorder()
         msg << "Failure sending argument 0 to \"sort\" within the tool \""
             << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_sort_kernel,
@@ -431,7 +431,7 @@ void RadixSort::reorder()
         msg << "Failure sending argument 1 to \"sort\" within the tool \""
             << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_sort_kernel,
@@ -443,7 +443,7 @@ void RadixSort::reorder()
         msg << "Failure sending argument 3 to \"sort\" within the tool \""
             << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_sort_kernel,
@@ -455,7 +455,7 @@ void RadixSort::reorder()
         msg << "Failure sending argument 4 to \"sort\" within the tool \""
             << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_sort_kernel,
@@ -467,7 +467,7 @@ void RadixSort::reorder()
         msg << "Failure sending argument 5 to \"sort\" within the tool \""
             << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
 
@@ -485,7 +485,7 @@ void RadixSort::reorder()
         msg << "Failure executing \"sort\" within the tool \""
             << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL execution error");
     }
 
@@ -515,7 +515,7 @@ void RadixSort::inversePermutations()
         msg << "Failure sending argument 0 to \"inversePermutation\" within the tool \""
             << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_inv_perms_kernel,
@@ -527,7 +527,7 @@ void RadixSort::inversePermutations()
         msg << "Failure sending argument 1 to \"inversePermutation\" within the tool \""
             << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
 
@@ -545,7 +545,7 @@ void RadixSort::inversePermutations()
         msg << "Failure executing \"inversePermutation\" within the tool \""
             << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL execution error");
     }
 }
@@ -723,13 +723,13 @@ void RadixSort::compile(const std::string source)
                                         &err_code);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure creating the OpenCL program.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL compilation error");
     }
     err_code = clBuildProgram(program, 0, NULL, flags.str().c_str(), NULL, NULL);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Error compiling the source code\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         LOG0(L_ERROR, "--- Build log ---------------------------------\n");
         size_t log_size = 0;
         clGetProgramBuildInfo(program,
@@ -765,42 +765,42 @@ void RadixSort::compile(const std::string source)
     _init_kernel = clCreateKernel(program, "init", &err_code);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure creating the \"init\" kernel.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         clReleaseProgram(program);
         throw std::runtime_error("OpenCL error");
     }
     _histograms_kernel = clCreateKernel(program, "histogram", &err_code);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure creating the \"histogram\" kernel.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         clReleaseProgram(program);
         throw std::runtime_error("OpenCL error");
     }
     _scan_kernel = clCreateKernel(program, "scan", &err_code);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure creating the \"scan\" kernel.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         clReleaseProgram(program);
         throw std::runtime_error("OpenCL error");
     }
     _paste_kernel = clCreateKernel(program, "paste", &err_code);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure creating the \"paste\" kernel.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         clReleaseProgram(program);
         throw std::runtime_error("OpenCL error");
     }
     _sort_kernel = clCreateKernel(program, "sort", &err_code);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure creating the \"sort\" kernel.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         clReleaseProgram(program);
         throw std::runtime_error("OpenCL error");
     }
     _inv_perms_kernel = clCreateKernel(program, "inversePermutation", &err_code);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure creating the \"inversePermutation\" kernel.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         clReleaseProgram(program);
         throw std::runtime_error("OpenCL error");
     }
@@ -823,7 +823,7 @@ void RadixSort::setupDims()
                                         NULL);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure getting CL_KERNEL_WORK_GROUP_SIZE from \"histogram\".\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     err_code = clGetKernelWorkGroupInfo(_sort_kernel,
@@ -834,7 +834,7 @@ void RadixSort::setupDims()
                                         NULL);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure getting CL_KERNEL_WORK_GROUP_SIZE from \"sort\".\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     if(sort_local_work_size < max_local_work_size)
@@ -854,7 +854,7 @@ void RadixSort::setupDims()
                                         NULL);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure getting CL_KERNEL_WORK_GROUP_SIZE from \"scan\".\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     if(scan_local_work_size < _histo_split / 2)
@@ -872,7 +872,7 @@ void RadixSort::setupDims()
                                         NULL);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure getting CL_KERNEL_WORK_GROUP_SIZE from \"paste\".\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     max_local_work_size = min(max_local_work_size, scan_local_work_size);
@@ -930,7 +930,7 @@ void RadixSort::setupMems()
         msg << "Failure allocating device memory in the tool \"" <<
                name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL allocation error");
     }
     _out_keys = clCreateBuffer(C->context(),
@@ -943,7 +943,7 @@ void RadixSort::setupMems()
         msg << "Failure allocating device memory in the tool \"" <<
                name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL allocation error");
     }
     _in_permut = clCreateBuffer(C->context(),
@@ -956,7 +956,7 @@ void RadixSort::setupMems()
         msg << "Failure allocating device memory in the tool \"" <<
                name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL allocation error");
     }
     _out_permut = clCreateBuffer(C->context(),
@@ -969,7 +969,7 @@ void RadixSort::setupMems()
         msg << "Failure allocating device memory in the tool \"" <<
                name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL allocation error");
     }
     _histograms = clCreateBuffer(C->context(),
@@ -982,7 +982,7 @@ void RadixSort::setupMems()
         msg << "Failure allocating device memory in the tool \"" <<
                name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL allocation error");
     }
     _global_sums = clCreateBuffer(C->context(),
@@ -995,7 +995,7 @@ void RadixSort::setupMems()
         msg << "Failure allocating device memory in the tool \"" <<
                name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL allocation error");
     }
     _temp_mem = clCreateBuffer(C->context(),
@@ -1008,7 +1008,7 @@ void RadixSort::setupMems()
         msg << "Failure allocating device memory in the tool \"" <<
                name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL allocation error");
     }
 
@@ -1032,7 +1032,7 @@ void RadixSort::setupArgs()
         msg << "Failure sending argument 1 to \"init\" within the tool \""
             << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
 
@@ -1045,7 +1045,7 @@ void RadixSort::setupArgs()
         msg << "Failure sending argument 1 to \"histogram\" within the tool \""
             << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_histograms_kernel,
@@ -1057,7 +1057,7 @@ void RadixSort::setupArgs()
         msg << "Failure sending argument 3 to \"histogram\" within the tool \""
             << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_histograms_kernel,
@@ -1069,7 +1069,7 @@ void RadixSort::setupArgs()
         msg << "Failure sending argument 4 to \"histogram\" within the tool \""
             << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
 
@@ -1084,7 +1084,7 @@ void RadixSort::setupArgs()
         msg << "Failure sending argument 1 to \"scan\" within the tool \""
             << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
 
@@ -1097,7 +1097,7 @@ void RadixSort::setupArgs()
         msg << "Failure sending argument 0 to \"paste\" within the tool \""
             << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_paste_kernel,
@@ -1109,7 +1109,7 @@ void RadixSort::setupArgs()
         msg << "Failure sending argument 1 to \"paste\" within the tool \""
             << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
 
@@ -1122,7 +1122,7 @@ void RadixSort::setupArgs()
         msg << "Failure sending argument 2 to \"sort\" within the tool \""
             << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_sort_kernel,
@@ -1134,7 +1134,7 @@ void RadixSort::setupArgs()
         msg << "Failure sending argument 6 to \"sort\" within the tool \""
             << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_sort_kernel,
@@ -1146,7 +1146,7 @@ void RadixSort::setupArgs()
         msg << "Failure sending argument 7 to \"sort\" within the tool \""
             << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
 
@@ -1156,7 +1156,7 @@ void RadixSort::setupArgs()
                               _inv_perms->get());
     if(err_code != CL_SUCCESS){
         LOG(L_ERROR, "Failure sending argument 1 to \"inversePermutation\"\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(_inv_perms_kernel,
@@ -1168,7 +1168,7 @@ void RadixSort::setupArgs()
         msg << "Failure sending argument 1 to \"inversePermutation\" within the tool \""
             << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
 }

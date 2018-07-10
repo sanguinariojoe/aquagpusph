@@ -23,7 +23,7 @@
 
 #include <algorithm>
 #include <CalcServer/Reports/Screen.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 
 namespace Aqua{ namespace CalcServer{ namespace Reports{
 
@@ -57,8 +57,8 @@ void Screen::setup()
 
 void Screen::_execute()
 {
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-    InputOutput::ScreenManager::singleton()->writeReport(data(),
+    InputOutput::Logger *S = InputOutput::Logger::singleton();
+    InputOutput::Logger::singleton()->writeReport(data(),
                                                          _color,
                                                          _bold);
 }

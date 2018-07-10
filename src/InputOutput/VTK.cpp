@@ -29,7 +29,7 @@
 #include <signal.h>
 
 #include <InputOutput/VTK.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 #include <ProblemSetup.h>
 #include <TimeManager.h>
 #include <CalcServer.h>
@@ -293,7 +293,7 @@ void VTK::load()
             msg << "Failure sending variable \"" << fields.at(i)
                 << "\" to the computational device." << std::endl;
             LOG(L_ERROR, msg.str());
-            ScreenManager::singleton()->printOpenCLError(err_code);
+            Logger::singleton()->printOpenCLError(err_code);
             throw std::runtime_error("OpenCL error");
         }
     }
@@ -308,7 +308,7 @@ typedef struct{
     /// Bounds of the particles index managed by this writer
     uivec2 bounds;
     /// Screen manager
-    ScreenManager *S;
+    Logger *S;
     /// VTK arrays
     CalcServer::CalcServer *C;
     /// The data associated to each field
@@ -549,7 +549,7 @@ void VTK::save()
     data->fields = fields;
     data->bounds = bounds();
     data->C = CalcServer::CalcServer::singleton();
-    data->S = ScreenManager::singleton();
+    data->S = Logger::singleton();
     data->data = download(fields);
     if(!data->data.size()){
         LOG(L_ERROR, "\"r\" field was not set to be saved into the file.\n");

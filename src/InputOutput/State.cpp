@@ -28,7 +28,7 @@
 #include <algorithm>
 
 #include <InputOutput/State.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 #include <TimeManager.h>
 #include <CalcServer.h>
 #include <AuxiliarMethods.h>

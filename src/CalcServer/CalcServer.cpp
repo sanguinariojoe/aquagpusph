@@ -33,7 +33,7 @@
 #include <FileManager.h>
 #include <ProblemSetup.h>
 #include <TimeManager.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 #include <CalcServer/Tool.h>
 #include <CalcServer/Assert.h>
 #include <CalcServer/Copy.h>
@@ -340,7 +340,7 @@ void CalcServer::update()
     InputOutput::TimeManager *T = InputOutput::TimeManager::singleton();
     unsigned int i;
     while(!T->mustPrintOutput() && !T->mustStop()){
-        InputOutput::ScreenManager::singleton()->initFrame();
+        InputOutput::Logger::singleton()->initFrame();
 
         // Execute the tools
         strcpy(_current_tool_name, "__pre execution__");
@@ -366,7 +366,7 @@ void CalcServer::update()
         }
 
         clFinish(command_queue());
-        InputOutput::ScreenManager::singleton()->endFrame();
+        InputOutput::Logger::singleton()->endFrame();
     }
 }
 
@@ -412,7 +412,7 @@ cl_event CalcServer::getUnsortedMem(const std::string var_name,
         msg << "Failure receiving the variable \"" << var_name
             << "\" from server." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         return NULL;
     }
     return event;
@@ -438,7 +438,7 @@ void CalcServer::queryOpenCL()
     err_code = clGetPlatformIDs(0, NULL, &_num_platforms);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure getting the number of platforms.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     // Get the array of platforms
@@ -453,7 +453,7 @@ void CalcServer::queryOpenCL()
     err_code = clGetPlatformIDs(_num_platforms, _platforms, NULL);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure getting the platforms list.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     for(i = 0; i < _num_platforms; i++){
@@ -468,7 +468,7 @@ void CalcServer::queryOpenCL()
             msg << "Failure getting the number of devices (platform " << i
                 << ")." << std::endl;
             LOG(L_ERROR, msg.str());
-            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
             throw std::runtime_error("OpenCL error");
         }
         // Gets the devices array
@@ -488,7 +488,7 @@ void CalcServer::queryOpenCL()
             msg << "Failure getting the devices list (platform " << i
                 << ")." << std::endl;
             LOG(L_ERROR, msg.str());
-            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
             throw std::runtime_error("OpenCL error");
         }
         // Shows device arrays
@@ -506,7 +506,7 @@ void CalcServer::queryOpenCL()
             aux[1023] = '\0';
             if(err_code != CL_SUCCESS) {
                 LOG(L_ERROR, "Failure getting the device name.\n");
-                InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+                InputOutput::Logger::singleton()->printOpenCLError(err_code);
                 throw std::runtime_error("OpenCL error");
             }
             info.str("");
@@ -521,7 +521,7 @@ void CalcServer::queryOpenCL()
             aux[1023] = '\0';
             if(err_code != CL_SUCCESS) {
                 LOG(L_ERROR, "Failure getting the device vendor.\n");
-                InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+                InputOutput::Logger::singleton()->printOpenCLError(err_code);
                 throw std::runtime_error("OpenCL error");
             }
             info.str("");
@@ -536,7 +536,7 @@ void CalcServer::queryOpenCL()
                                        NULL);
             if(err_code != CL_SUCCESS) {
                 LOG(L_ERROR, "Failure getting the device type.\n");
-                InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+                InputOutput::Logger::singleton()->printOpenCLError(err_code);
                 throw std::runtime_error("OpenCL error");
             }
             if(dType == CL_DEVICE_TYPE_CPU)
@@ -618,7 +618,7 @@ void CalcServer::setupDevices()
                               &_num_devices);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure getting the number of devices.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     if(_sim_data.settings.device_id >= _num_devices) {
@@ -657,7 +657,7 @@ void CalcServer::setupDevices()
                               &_num_devices);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure getting the devices list.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     // Create a devices context
@@ -669,7 +669,7 @@ void CalcServer::setupDevices()
                                &err_code);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure creating an OpenCL context.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     // Create command queues
@@ -691,7 +691,7 @@ void CalcServer::setupDevices()
             msg << "Failure generating the command queue number " << i
                 << "." << std::endl;
             LOG(L_ERROR, msg.str());
-            InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
             throw std::runtime_error("OpenCL error");
         }
     }
@@ -787,7 +787,7 @@ void CalcServer::setup()
                     << " failed sending variable, \"" << name
                     << "\" to the computational device." << std::endl;
                 LOG(L_ERROR, msg.str());
-                InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+                InputOutput::Logger::singleton()->printOpenCLError(err_code);
                 throw std::runtime_error("OpenCL error");
             }
         }

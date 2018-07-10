@@ -25,9 +25,10 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <sstream>
+#include <iostream>
 
 #include <InputOutput/Report.h>
-#include <ScreenManager.h>
 #include <AuxiliarMethods.h>
 
 namespace Aqua{ namespace InputOutput{
@@ -57,12 +58,8 @@ void Report::file(std::string basename, unsigned int startindex)
         // does not exist
         f = fopen(basename.c_str(), "r");
         if(f){
-            // The fail already exist, so we cannot operate
+            // The file already exist, so we cannot operate
             fclose(f);
-            std::ostringstream msg;
-            msg << "Can't get a non-existing file name with the pattern \""
-                << basename << "\"" << std::endl;
-            LOG(L_ERROR, msg.str());
             throw std::invalid_argument("Invalid file name pattern");
         }
 

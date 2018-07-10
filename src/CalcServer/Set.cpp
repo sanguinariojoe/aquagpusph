@@ -28,7 +28,7 @@
 
 #include <AuxiliarMethods.h>
 #include <ProblemSetup.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 #include <CalcServer/Set.h>
 #include <CalcServer.h>
 
@@ -99,7 +99,7 @@ void Set::_execute()
         msg << "Failure executing the tool \"" <<
                name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL execution error");
     }
 }
@@ -146,7 +146,7 @@ void Set::setupOpenCL()
                                         NULL);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure querying the work group size.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         clReleaseKernel(kernel);
         throw std::runtime_error("OpenCL error");
     }
@@ -168,7 +168,7 @@ void Set::setupOpenCL()
                               _var->get());
     if(err_code != CL_SUCCESS){
         LOG(L_ERROR, "Failure sending the array argument\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
     err_code = clSetKernelArg(kernel,
@@ -177,7 +177,7 @@ void Set::setupOpenCL()
                               (void*)&_n);
     if(err_code != CL_SUCCESS){
         LOG(L_ERROR, "Failure sending the array size argument\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
 }
@@ -220,13 +220,13 @@ cl_kernel Set::compile(const std::string source)
                                         &err_code);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure creating the OpenCL program.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL compilation error");
     }
     err_code = clBuildProgram(program, 0, NULL, flags.str().c_str(), NULL, NULL);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Error compiling the source code\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         LOG0(L_ERROR, "--- Build log ---------------------------------\n");
         size_t log_size = 0;
         clGetProgramBuildInfo(program,
@@ -262,7 +262,7 @@ cl_kernel Set::compile(const std::string source)
     clReleaseProgram(program);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure creating the kernel.\n");
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
 
@@ -286,7 +286,7 @@ void Set::setVariables()
         msg << "Failure setting the variable \"" << _var->name()
             << "\" to the tool \"" << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        InputOutput::ScreenManager::singleton()->printOpenCLError(err_code);
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
 
