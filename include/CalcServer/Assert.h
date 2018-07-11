@@ -24,7 +24,6 @@
 #ifndef ASSERT_H_INCLUDED
 #define ASSERT_H_INCLUDED
 
-#include <CalcServer.h>
 #include <CalcServer/Tool.h>
 
 namespace Aqua{ namespace CalcServer{

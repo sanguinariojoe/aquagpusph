@@ -51,14 +51,17 @@ namespace Aqua{ namespace InputOutput{ namespace CommandLineArgs{
  */
 void displayUsage()
 {
-    printf("Usage:\tAQUAgpusph [Option]...\n");
-    printf("   or:\tAQUAgpusph2D [Option]...\n");
-    printf("Performs particles based (SPH method) simulation (use AQUAgpusph2D for 2D simulations)\n");
-    printf("\n");
-    printf("Required arguments for long options are also required for the short ones.\n");
-    printf("  -i, --input=INPUT            XML definition input file (Input.xml by default)\n");
-    printf("  -v, --version                Show the AQUAgpusph version\n");
-    printf("  -h, --help                   Show this help page\n");
+    std::cout << "Usage:\tAQUAgpusph [Option]..." << std::endl;
+    std::cout << "   or:\tAQUAgpusph2D [Option]..." << std::endl;
+    std::cout << "Performs particles based (SPH method) simulation "
+              << "(use AQUAgpusph2D for 2D simulations)" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Required arguments for long options are also required for "
+              << "the short ones." << std::endl;
+    std::cout << "  -i, --input=INPUT            XML definition input file "
+              << "(Input.xml by default)" << std::endl;
+    std::cout << "  -v, --version                Show the AQUAgpusph version" << std::endl;
+    std::cout << "  -h, --help                   Show this help page" << std::endl;
 }
 
 void parse(int argc, char **argv, FileManager &file_manager)
@@ -77,15 +80,12 @@ void parse(int argc, char **argv, FileManager &file_manager)
                 break;
 
             case 'v':
-                printf("VERSION: ");
-                printf(PACKAGE_VERSION);
-                printf("\n\n");
+                std::cout << "VERSION: " << PACKAGE_VERSION << std::endl << std::endl;
                 return;
 
             case ':':
             case '?':
-                LOG(L_ERROR, "Error parsing the runtime args\n");
-                printf("\n");
+                LOG(L_ERROR, "Error parsing the runtime args\n\n");
             case 'h':
                 displayUsage();
 

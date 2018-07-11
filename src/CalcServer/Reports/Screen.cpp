@@ -22,8 +22,8 @@
  */
 
 #include <algorithm>
-#include <CalcServer/Reports/Screen.h>
 #include <InputOutput/Logger.h>
+#include <CalcServer/Reports/Screen.h>
 
 namespace Aqua{ namespace CalcServer{ namespace Reports{
 

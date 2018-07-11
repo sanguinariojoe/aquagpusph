@@ -22,9 +22,6 @@
  * (See Aqua::InputOutput::ASCII for details)
  */
 
-#include <stdlib.h>
-#include <string.h>
-
 #include <InputOutput/ASCII.h>
 #include <InputOutput/Logger.h>
 #include <ProblemSetup.h>

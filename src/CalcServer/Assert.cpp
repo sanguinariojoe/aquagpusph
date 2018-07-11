@@ -21,15 +21,12 @@
  * (See Aqua::CalcServer::Assert for details)
  */
 
-#include <stdlib.h>
 #include <math.h>
-#include <vector>
 
 #include <AuxiliarMethods.h>
-#include <ProblemSetup.h>
 #include <InputOutput/Logger.h>
-#include <CalcServer/Assert.h>
 #include <CalcServer.h>
+#include <CalcServer/Assert.h>
 
 namespace Aqua{ namespace CalcServer{
 
@@ -54,8 +51,7 @@ void Assert::setup()
 void Assert::_execute()
 {
     int result;
-    CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables *vars = C->variables();
+    InputOutput::Variables *vars = CalcServer::singleton()->variables();
 
     void *data = malloc(sizeof(int));
     if(!data){

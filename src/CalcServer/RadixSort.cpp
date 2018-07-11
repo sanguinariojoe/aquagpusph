@@ -24,10 +24,9 @@
  * CalcServer/RadixSort.hcl.in are internally included as a text array.
  */
 
-#include <limits.h>
-#include <CalcServer/RadixSort.h>
-#include <InputOutput/Logger.h>
 #include <AuxiliarMethods.h>
+#include <InputOutput/Logger.h>
+#include <CalcServer/RadixSort.h>
 
 namespace Aqua{ namespace CalcServer{
 

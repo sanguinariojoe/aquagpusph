@@ -24,7 +24,6 @@
 #ifndef COPY_H_INCLUDED
 #define COPY_H_INCLUDED
 
-#include <CalcServer.h>
 #include <CalcServer/Kernel.h>
 
 namespace Aqua{ namespace CalcServer{

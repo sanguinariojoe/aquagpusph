@@ -60,7 +60,7 @@
 #include <math.h>
 #include <string>
 #include <vector>
-#include <deque>
+#include <vector>
 #include <map>
 
 #include <CL/cl.h>
@@ -208,13 +208,13 @@ public:
         ~sphVariables() {};
 
         /// Name of the variables
-        std::deque<std::string> names;
+        std::vector<std::string> names;
         /// Type of variables
-        std::deque<std::string> types;
+        std::vector<std::string> types;
         /// Lengths
-        std::deque<std::string> lengths;
+        std::vector<std::string> lengths;
         /// Values
-        std::deque<std::string> values;
+        std::vector<std::string> values;
 
         /** @brief Add a new variable.
          *
@@ -269,13 +269,13 @@ public:
         ~sphDefinitions() {};
 
         /// Name of the definition
-        std::deque<std::string> names;
+        std::vector<std::string> names;
         /// Value of the definition, empty for named definitions.
-        std::deque<std::string> values;
+        std::vector<std::string> values;
         /** True if the value should be evaluated as a math expression, false
          * otherwise
          */
-        std::deque<bool> evaluations;
+        std::vector<bool> evaluations;
 
         /** @brief Add a new definition.
          *
@@ -361,7 +361,7 @@ public:
     };
 
     /// Array of tools
-    std::deque<sphTool*> tools;
+    std::vector<sphTool*> tools;
 
     /** @brief Helper function to get the number of already defined instances of
      * the same tool
@@ -380,7 +380,7 @@ public:
      * Reports are a some kind of special tools dedicated to generate summary
      * outputs.
      */
-    std::deque<sphTool*> reports;
+    std::vector<sphTool*> reports;
 
     /** @struct sphTimingParameters
      * @brief Simulation time flow options.

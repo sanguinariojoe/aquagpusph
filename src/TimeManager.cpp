@@ -21,11 +21,7 @@
  * (See Aqua::InputOutput::TimeManager for details)
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
-
+#include <string>
 #include <TimeManager.h>
 #include <CalcServer.h>
 #include <InputOutput/Logger.h>

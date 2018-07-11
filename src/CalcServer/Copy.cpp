@@ -25,10 +25,10 @@
 #include <math.h>
 #include <vector>
 
-#include <ProblemSetup.h>
+#include <AuxiliarMethods.h>
 #include <InputOutput/Logger.h>
-#include <CalcServer/Copy.h>
 #include <CalcServer.h>
+#include <CalcServer/Copy.h>
 
 namespace Aqua{ namespace CalcServer{
 

@@ -218,56 +218,6 @@ bool isFile(const std::string file_name)
     return false;
 }
 
-size_t readFile(char* source_code, const std::string file_name)
-{
-    size_t length = 0;
-    FILE *file = NULL;
-    char msg[1024];
-    InputOutput::Logger *S = InputOutput::Logger::singleton();
-
-    file = fopen(file_name.c_str(), "rb");
-    if(file == NULL) {
-        sprintf(msg, "Impossible to open \"%s\".\n", file_name.c_str());
-        S->addMessageF(L_ERROR, msg);
-        return 0;
-    }
-    fseek(file, 0, SEEK_END);
-    length = ftell(file);
-    fseek(file, 0, SEEK_SET);
-    if(length == 0) {
-        strcpy(msg, "(ReadFile): \"");
-        strcat(msg,file_name.c_str());
-        strcat(msg,"\" is empty.\n");
-        S->addMessageF(L_ERROR, msg);
-        fclose(file);
-        return 0;
-    }
-    if(!source_code) {
-        fclose(file);
-        return length;
-    }
-    size_t readed = fread(source_code, length, 1, file);
-    source_code[length] = '\0';
-
-    fclose(file);
-    return length;
-}
-
-int sendArgument(cl_kernel kernel, int index, size_t size, void* ptr)
-{
-    int err_code;
-    InputOutput::Logger *S = InputOutput::Logger::singleton();
-    err_code = clSetKernelArg(kernel, index, size, ptr);
-    if(err_code != CL_SUCCESS) {
-        char msg[1025]; strcpy(msg, "");
-        sprintf(msg, "The argument %d can not be set.\n", index);
-        S->addMessageF(L_ERROR, msg);
-        S->printOpenCLError(err_code);
-        return 1;
-    }
-    return 0;
-}
-
 size_t getLocalWorkSize(cl_uint n, cl_command_queue queue)
 {
     cl_int flag;

@@ -21,9 +21,12 @@
  * (see Aqua::CalcServer::Kernel for details)
  */
 
-#include <CalcServer/Kernel.h>
-#include <CalcServer.h>
+#include <clang-c/Index.h>
+#include <clang-c/Platform.h>
+#include <AuxiliarMethods.h>
 #include <InputOutput/Logger.h>
+#include <CalcServer.h>
+#include <CalcServer/Kernel.h>
 
 namespace Aqua{ namespace CalcServer{
 

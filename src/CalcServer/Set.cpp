@@ -23,11 +23,7 @@
  * CalcServer/Set.hcl.in are internally included as a text array.
  */
 
-#include <math.h>
-#include <vector>
-
 #include <AuxiliarMethods.h>
-#include <ProblemSetup.h>
 #include <InputOutput/Logger.h>
 #include <CalcServer/Set.h>
 #include <CalcServer.h>

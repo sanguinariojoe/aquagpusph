@@ -28,11 +28,7 @@
 
 #include <vector>
 #include <CL/cl.h>
-#include <clang-c/Index.h>
-#include <clang-c/Platform.h>
-
 #include <CalcServer/Tool.h>
-#include <AuxiliarMethods.h>
 
 namespace Aqua{ namespace CalcServer{
 

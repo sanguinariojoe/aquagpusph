@@ -73,12 +73,12 @@
 
 #include <sphPrerequisites.h>
 #include <Python.h>
-#include <FileManager.h>
+#include <InputOutput/Logger.h>
 #include <ArgumentsManager.h>
+#include <FileManager.h>
 #include <ProblemSetup.h>
 #include <CalcServer.h>
 #include <TimeManager.h>
-#include <InputOutput/Logger.h>
 
 /** @namespace Aqua
  * @brief Main AQUAgpusph namespace.
@@ -92,13 +92,12 @@ using namespace Aqua;
  *    -# Parsing the runtime input options and the input files (see
  *       Aqua::InputOutput::ArgumentsManager and
  *       Aqua::InputOutput::FileManager).
- *    -# Generating the simulation setup (see Aqua::InputOutput::ProblemSetup).
+ *    -# Setting up the simulation (see Aqua::InputOutput::ProblemSetup).
  *    -# Controlling the simulation time events (see
- *       Aqua::InputOutput::TimeManager), like the output files updating or the
- *       Simulation end.
+ *       Aqua::InputOutput::TimeManager).
  *
- * The host is responsible to create the calculation server (see
- * Aqua::CalcServer::CalcServer) and call it to work as well.
+ * The host is also responsible to create the calculation server (see
+ * Aqua::CalcServer::CalcServer).
  *
  * @param argc Number of arguments parsed by terminal.
  * @param argv Array of arguments parsed by terminal.

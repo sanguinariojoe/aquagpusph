@@ -25,8 +25,6 @@
 #ifndef ASCII_H_INCLUDED
 #define ASCII_H_INCLUDED
 
-#include <stdio.h>
-
 #include <sphPrerequisites.h>
 #include <InputOutput/Particles.h>
 

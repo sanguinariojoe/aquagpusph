@@ -21,13 +21,8 @@
  * (See Aqua::InputOutput::Report for details)
  */
 
-#include <sys/time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
 #include <sstream>
 #include <iostream>
-
 #include <InputOutput/Report.h>
 #include <AuxiliarMethods.h>
 

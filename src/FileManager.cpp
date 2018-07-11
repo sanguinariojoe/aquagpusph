@@ -23,7 +23,6 @@
 
 #include <FileManager.h>
 #include <InputOutput/Logger.h>
-#include <ProblemSetup.h>
 #include <InputOutput/ASCII.h>
 #include <InputOutput/FastASCII.h>
 #ifdef HAVE_VTK

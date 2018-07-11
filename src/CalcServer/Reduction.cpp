@@ -23,11 +23,7 @@
  * CalcServer/Reduction.hcl.in are internally included as a text array.
  */
 
-#include <stdlib.h>
-#include <math.h>
-#include <vector>
-
-#include <ProblemSetup.h>
+#include <AuxiliarMethods.h>
 #include <InputOutput/Logger.h>
 #include <CalcServer/Reduction.h>
 #include <CalcServer.h>

@@ -23,9 +23,10 @@
 
 #include <algorithm>
 #include <iomanip>
-#include <CalcServer/Reports/Performance.h>
-#include <CalcServer.h>
+#include <AuxiliarMethods.h>
 #include <InputOutput/Logger.h>
+#include <CalcServer.h>
+#include <CalcServer/Reports/Performance.h>
 
 namespace Aqua{ namespace CalcServer{ namespace Reports{
 

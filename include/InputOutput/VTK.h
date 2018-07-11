@@ -163,7 +163,7 @@ private:
     std::string _namePVD;
 
     /// Launched threads ids
-    std::deque<pthread_t> _tids;
+    std::vector<pthread_t> _tids;
 
 };  // class InputOutput
 

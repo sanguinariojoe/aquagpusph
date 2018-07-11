@@ -24,10 +24,9 @@
 #ifndef REPORT_H_INCLUDED
 #define REPORT_H_INCLUDED
 
+#include <string>
 #include <sphPrerequisites.h>
 #include <InputOutput/InputOutput.h>
-
-#include <string>
 
 namespace Aqua{ namespace InputOutput{
 

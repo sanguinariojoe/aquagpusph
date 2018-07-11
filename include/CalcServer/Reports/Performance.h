@@ -25,11 +25,8 @@
 #define PERFORMANCE_H_INCLUDED
 
 #include <sys/time.h>
-#include <iostream>
 #include <fstream>
-#include <sphPrerequisites.h>
 #include <CalcServer/Reports/Report.h>
-#include <AuxiliarMethods.h>
 
 namespace Aqua{ namespace CalcServer{ namespace Reports{
 

@@ -21,19 +21,12 @@
  * (See Aqua::CalcServer::CalcServer for details)
  */
 
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <limits>
-#include <sys/time.h>
-#include <unistd.h>
 
 #include <CalcServer.h>
 #include <AuxiliarMethods.h>
-#include <FileManager.h>
-#include <ProblemSetup.h>
 #include <InputOutput/Logger.h>
-#include <CalcServer/Tool.h>
 #include <CalcServer/Assert.h>
 #include <CalcServer/Copy.h>
 #include <CalcServer/Kernel.h>

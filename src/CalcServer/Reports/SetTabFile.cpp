@@ -21,10 +21,9 @@
  * (See Aqua::CalcServer::Reports::SetTabFile for details)
  */
 
-#include <CalcServer/Reports/SetTabFile.h>
 #include <InputOutput/Logger.h>
 #include <CalcServer.h>
-#include <Variable.h>
+#include <CalcServer/Reports/SetTabFile.h>
 
 namespace Aqua{ namespace CalcServer{ namespace Reports{
 

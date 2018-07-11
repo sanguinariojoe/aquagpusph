@@ -21,8 +21,9 @@
  * (See Aqua::CalcServer::Reports::TabFile for details)
  */
 
-#include <CalcServer/Reports/TabFile.h>
+#include <AuxiliarMethods.h>
 #include <InputOutput/Logger.h>
+#include <CalcServer/Reports/TabFile.h>
 
 namespace Aqua{ namespace CalcServer{ namespace Reports{
 

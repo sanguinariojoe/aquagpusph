@@ -24,8 +24,6 @@
 #ifndef SINGLETON_H_INCLUDED
 #define SINGLETON_H_INCLUDED
 
-#include <stdlib.h>
-
 namespace Aqua{
 
 /** \class Singleton Singleton.h Singleton.h

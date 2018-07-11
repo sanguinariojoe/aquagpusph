@@ -24,7 +24,6 @@
 #define AUXILIARMETHODS_H_INCLUDED
 
 #include <sphPrerequisites.h>
-
 #include <string>
 
 namespace Aqua{
@@ -184,28 +183,6 @@ const std::string getExtensionFromFilePath(const std::string file_path);
  * @return 0 if the file can not be found in the system, 1 otherwise.
  */
 bool isFile(const std::string file_name);
-
-/// Load a file returning it as a characters array.
-/**
- * @param source_code Readed file content.
- * @param file_name The file path.
- * @return Length of the source code array.
- * @note If @paramname{source_code} is a NULL pointer, just the length of the source code
- * will be returned without reading the file contents.
- * @warning Be sure that @paramname{source_code} has allocated memory enough,
- * otherwise a segmentation fault will be received.
- */
-size_t readFile(char* source_code, const std::string file_name);
-
-/// Send an argument to an OpenCL kernel.
-/**
- * @param kernel Kernel that must receive the argument.
- * @param index Index of the argument into the kernel @paramname{kernel}.
- * @param size Memory size of the argument.
- * @param ptr Pointer to the argument.
- * @return 0 if the argument has been successfully sent, 1 otherwise.
- */
-int sendArgument(cl_kernel kernel, int index, size_t size, void* ptr);
 
 /// Compute the maximum local work size allowed by a device.
 /**

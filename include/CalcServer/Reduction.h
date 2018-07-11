@@ -27,7 +27,6 @@
 #define REDUCTION_H_INCLUDED
 
 #include <vector>
-
 #include <CalcServer.h>
 #include <CalcServer/Kernel.h>
 

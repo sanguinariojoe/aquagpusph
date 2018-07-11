@@ -23,9 +23,10 @@
  * CalcServer/LinkList.hcl.in are internally included as a text array.
  */
 
-#include <CalcServer/LinkList.h>
-#include <CalcServer.h>
+#include <AuxiliarMethods.h>
 #include <InputOutput/Logger.h>
+#include <CalcServer.h>
+#include <CalcServer/LinkList.h>
 
 namespace Aqua{ namespace CalcServer{
 

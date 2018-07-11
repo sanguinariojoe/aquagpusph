@@ -24,7 +24,7 @@
 #include <fnmatch.h>
 #include <map>
 #include <limits>
-#include <deque>
+#include <vector>
 #include <algorithm>
 
 #include <InputOutput/State.h>
@@ -33,8 +33,8 @@
 #include <AuxiliarMethods.h>
 
 
-static std::deque<std::string> cpp_str;
-static std::deque<XMLCh*> xml_str;
+static std::vector<std::string> cpp_str;
+static std::vector<XMLCh*> xml_str;
 
 static std::string xmlTranscode(const XMLCh *txt)
 {
@@ -435,7 +435,7 @@ void State::parseDefinitions(DOMElement *root,
 
 
 /// Helper storage for the functions _toolsList() and _toolsName()
-static std::deque<unsigned int> _tool_places;
+static std::vector<unsigned int> _tool_places;
 
 /** @brief Helper function to get a list of tool placements from a list of names
  * @param list List of tools, separated by commas
@@ -444,7 +444,7 @@ static std::deque<unsigned int> _tool_places;
  * @return The positions of the tools
  * @warning This methos is not thread safe
  */
-static std::deque<unsigned int> _toolsList(std::string list,
+static std::vector<unsigned int> _toolsList(std::string list,
                                            ProblemSetup &sim_data,
                                            std::string prefix)
 {
@@ -475,7 +475,7 @@ static std::deque<unsigned int> _toolsList(std::string list,
  * @return The positions of the tools
  * @warning This methos is not thread safe
  */
-static std::deque<unsigned int> _toolsName(std::string name,
+static std::vector<unsigned int> _toolsName(std::string name,
                                            ProblemSetup &sim_data,
                                            std::string prefix)
 {
@@ -563,9 +563,9 @@ void State::parseTools(DOMElement *root,
             else if(!xmlAttribute(s_elem, "action").compare("insert") ||
                     !xmlAttribute(s_elem, "action").compare("try_insert")){
                 unsigned int place;
-                std::deque<unsigned int> places;
-                std::deque<unsigned int> all_places;
-                std::deque<unsigned int>::iterator it;
+                std::vector<unsigned int> places;
+                std::vector<unsigned int> all_places;
+                std::vector<unsigned int>::iterator it;
 
                 bool try_insert = !xmlAttribute(s_elem, "action").compare(
                     "try_insert");
@@ -714,7 +714,7 @@ void State::parseTools(DOMElement *root,
                 bool try_remove = !xmlAttribute(s_elem, "action").compare(
                     "try_remove");
                 unsigned int place;
-                std::deque<unsigned int> places;
+                std::vector<unsigned int> places;
                 // Get the places of the tools selected
                 places = _toolsName(tool->get("name"), sim_data, prefix);
                 if(!places.size()){
@@ -749,7 +749,7 @@ void State::parseTools(DOMElement *root,
                 bool try_replace = !xmlAttribute(s_elem, "action").compare(
                     "try_replace");
                 unsigned int place;
-                std::deque<unsigned int> places;
+                std::vector<unsigned int> places;
                 // Get the places
                 places = _toolsName(tool->get("name"), sim_data, prefix);
                 if(!places.size()){
@@ -1433,7 +1433,7 @@ void State::writeTools(xercesc::DOMDocument* doc,
     elem = doc->createElement(xmlS("Tools"));
     root->appendChild(elem);
 
-    std::deque<ProblemSetup::sphTool*> tools = sim_data.tools;
+    std::vector<ProblemSetup::sphTool*> tools = sim_data.tools;
 
     for(i = 0; i < tools.size(); i++){
         s_elem = doc->createElement(xmlS("Tool"));
@@ -1463,7 +1463,7 @@ void State::writeReports(xercesc::DOMDocument* doc,
     elem = doc->createElement(xmlS("Reports"));
     root->appendChild(elem);
 
-    std::deque<ProblemSetup::sphTool*> reports = sim_data.reports;
+    std::vector<ProblemSetup::sphTool*> reports = sim_data.reports;
 
     for(i = 0; i < reports.size(); i++){
         s_elem = doc->createElement(xmlS("Report"));

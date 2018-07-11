@@ -21,9 +21,10 @@
  * (See Aqua::CalcServer::Reports::Report for details)
  */
 
-#include <CalcServer/Reports/Report.h>
-#include <CalcServer.h>
+#include <AuxiliarMethods.h>
 #include <InputOutput/Logger.h>
+#include <CalcServer.h>
+#include <CalcServer/Reports/Report.h>
 
 namespace Aqua{ namespace CalcServer{ namespace Reports{
 

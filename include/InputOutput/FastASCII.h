@@ -24,8 +24,6 @@
 #ifndef FastASCII_H_INCLUDED
 #define FastASCII_H_INCLUDED
 
-#include <stdio.h>
-
 #include <sphPrerequisites.h>
 #include <InputOutput/ASCII.h>
 

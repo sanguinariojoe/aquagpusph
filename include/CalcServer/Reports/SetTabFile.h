@@ -24,11 +24,9 @@
 #ifndef SETSetTabFile_H_INCLUDED
 #define SETSetTabFile_H_INCLUDED
 
-#include <iostream>
 #include <fstream>
 #include <sphPrerequisites.h>
 #include <CalcServer/Reports/Report.h>
-#include <AuxiliarMethods.h>
 
 namespace Aqua{ namespace CalcServer{ namespace Reports{
 

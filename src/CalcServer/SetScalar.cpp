@@ -21,12 +21,6 @@
  * (See Aqua::CalcServer::SetScalar for details)
  */
 
-#include <stdlib.h>
-#include <math.h>
-#include <vector>
-
-#include <AuxiliarMethods.h>
-#include <ProblemSetup.h>
 #include <InputOutput/Logger.h>
 #include <CalcServer/SetScalar.h>
 #include <CalcServer.h>

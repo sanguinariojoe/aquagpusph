@@ -27,9 +27,8 @@
 #include <sphPrerequisites.h>
 
 #include <vector>
-#include <CalcServer/Tool.h>
 #include <Variable.h>
-#include <AuxiliarMethods.h>
+#include <CalcServer/Tool.h>
 
 namespace Aqua{ namespace CalcServer{
 /// @namespace Aqua::CalcServer::Reports Runtime outputs name space.

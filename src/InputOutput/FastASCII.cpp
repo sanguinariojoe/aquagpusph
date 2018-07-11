@@ -22,7 +22,6 @@
  */
 
 #include <string>
-
 #include <InputOutput/FastASCII.h>
 #include <InputOutput/Logger.h>
 #include <ProblemSetup.h>
