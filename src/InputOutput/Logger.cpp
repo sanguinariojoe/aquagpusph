@@ -135,17 +135,19 @@ void Logger::writeReport(std::string input,
 
 #ifdef HAVE_NCURSES
     std::string msg = rtrimCopy(input);
+    if(msg == "")
+        return;
 
     // In case of multiline messages, report it by pieces
     size_t end = 0;
-    std::string remain = msg;
-    while(remain.find("\n") != std::string::npos) {
-        end = remain.find("\n");
-        writeReport(remain.substr(0, end), color, bold);
-        remain = remain.substr(end + 1);
-    }
     if(msg.find("\n") != std::string::npos) {
-        // Already processed by pieces
+        std::string remain = msg;
+        while(remain.find("\n") != std::string::npos) {
+            end = remain.find("\n");
+            writeReport(remain.substr(0, end), color, bold);
+            remain = remain.substr(end + 1);
+        }
+        writeReport(remain, color, bold);
         return;
     }
 
