@@ -21,19 +21,14 @@
  * (See Aqua::InputOutput::TimeManager for details)
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
-
+#include <string>
 #include <TimeManager.h>
-#include <ProblemSetup.h>
 #include <CalcServer.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 
 namespace Aqua{ namespace InputOutput{
 
-TimeManager::TimeManager()
+TimeManager::TimeManager(ProblemSetup& sim_data)
     : _step(NULL)
     , _time(NULL)
     , _dt(NULL)
@@ -53,37 +48,26 @@ TimeManager::TimeManager()
     , _output_ipf(-1)
 {
     unsigned int i;
-    char msg[1024];
-    ProblemSetup *P = ProblemSetup::singleton();
-    ScreenManager *S = ScreenManager::singleton();
-    CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
-
-    Variables* vars = C->variables();
+    Variables *vars = CalcServer::CalcServer::singleton()->variables();
     // Check the variables validity
-    const unsigned int var_num = 7;
-    const char* var_names[var_num] = {"t",
-                                      "dt",
-                                      "iter",
-                                      "frame",
-                                      "end_t",
-                                      "end_iter",
-                                      "end_frame"};
-    const char* var_types[var_num] = {"float",
-                                      "float",
-                                      "unsigned int",
-                                      "unsigned int",
-                                      "float",
-                                      "unsigned int",
-                                      "unsigned int"};
-    for(i = 0; i < var_num; i++){
-        if(strcmp(vars->get(var_names[i])->type(), var_types[i])){
-            sprintf(msg,
-                    "Expected a variable \"%s\" of type \"%s\", but \"%s\" one was found\n",
-                    var_names[i],
-                    var_types[i],
-                    vars->get(var_names[i])->type());
-            S->addMessageF(3, msg);
-            exit(EXIT_FAILURE);
+    std::map<std::string, std::string> var_types {
+        {"t", "float"},
+        {"dt", "float"},
+        {"iter", "unsigned int"},
+        {"frame", "unsigned int"},
+        {"end_t", "float"},
+        {"end_iter", "unsigned int"},
+        {"end_frame", "unsigned int"}
+    };
+    for (auto& type : var_types) {
+        if(vars->get(type.first)->type().compare(type.second)){
+            std::ostringstream msg;
+            msg << "Variable \"" << type.first
+                << "\" has been redeclared as \"" << type.second
+                << "\" instead of the expected type, \""
+                << vars->get(type.first)->type() << "\"." << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw std::runtime_error("Invalid variable type");
         }
     }
 
@@ -95,39 +79,27 @@ TimeManager::TimeManager()
     _steps_max = (unsigned int *)vars->get("end_iter")->get();
     _frames_max = (unsigned int *)vars->get("end_frame")->get();
 
-    unsigned int mode = P->time_opts.sim_end_mode;
+    unsigned int mode = sim_data.time_opts.sim_end_mode;
     if(mode & __FRAME_MODE__) {
-        *_frames_max = P->time_opts.sim_end_frame;
+        *_frames_max = sim_data.time_opts.sim_end_frame;
     }
     if(mode & __ITER_MODE__) {
-        *_steps_max = P->time_opts.sim_end_step;
+        *_steps_max = sim_data.time_opts.sim_end_step;
     }
     if(mode & __TIME_MODE__) {
-        *_time_max = P->time_opts.sim_end_time;
+        *_time_max = sim_data.time_opts.sim_end_time;
     }
 
-    mode = P->time_opts.log_mode;
+    mode = sim_data.time_opts.output_mode;
     if(mode >= __IPF_MODE__)
     {
         mode -= __IPF_MODE__;
-        _log_ipf = P->time_opts.log_ipf;
+        _output_ipf = sim_data.time_opts.output_ipf;
     }
     if(mode >= __FPS_MODE__)
     {
         mode -= __FPS_MODE__;
-        _log_fps = P->time_opts.log_fps;
-    }
-
-    mode = P->time_opts.output_mode;
-    if(mode >= __IPF_MODE__)
-    {
-        mode -= __IPF_MODE__;
-        _output_ipf = P->time_opts.output_ipf;
-    }
-    if(mode >= __FPS_MODE__)
-    {
-        mode -= __FPS_MODE__;
-        _output_fps = P->time_opts.output_fps;
+        _output_fps = sim_data.time_opts.output_fps;
     }
 
     *_step = 0;
@@ -142,8 +114,6 @@ TimeManager::TimeManager()
         _output_time = *_time;
         _output_step = *_step;
     }
-
-    S->addMessageF(1, "Time manager built OK.\n");
 }
 
 TimeManager::~TimeManager()
@@ -159,32 +129,12 @@ void TimeManager::update(float sim_dt)
 
 bool TimeManager::mustStop()
 {
-    if(time() >= maxTime())
+    if((time() >= maxTime()) ||
+       (step() >= maxStep()) ||
+       (frame() >= maxFrame())) {
         return true;
-    if(step() >= maxStep())
-        return true;
-    if(frame() >= maxFrame())
-        return true;
-    return false;
-}
+    }
 
-bool TimeManager::mustPrintLog()
-{
-    if( ( (_log_fps >= 0.f) || (_log_ipf >= 0.f) ) && (frame()==1) && (step()==1) ) {
-        _log_time = time();
-        _log_step = step();
-        return true;
-    }
-    if( (_log_fps >= 0.f) && (time() - _log_time >= 1.f/_log_fps) ) {
-        _log_time += 1.f/_log_fps;
-        _log_step = step();
-        return true;
-    }
-    if( (_log_ipf > 0) && (step() - _log_step >= _log_ipf) ) {
-        _log_time = time();
-        _log_step = step();
-         return true;
-    }
     return false;
 }
 

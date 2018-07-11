@@ -21,75 +21,51 @@
  * (See Aqua::CalcServer::Reports::TabFile for details)
  */
 
+#include <AuxiliarMethods.h>
+#include <InputOutput/Logger.h>
 #include <CalcServer/Reports/TabFile.h>
-#include <ScreenManager.h>
 
 namespace Aqua{ namespace CalcServer{ namespace Reports{
 
-TabFile::TabFile(const char* tool_name,
-                 const char* fields,
-                 const char* output_file)
+TabFile::TabFile(const std::string tool_name,
+                 const std::string fields,
+                 const std::string output_file)
     : Report(tool_name, fields)
-    , _output_file(NULL)
-    , _f(NULL)
+    , _output_file(output_file)
 {
-    _output_file = new char[strlen(output_file) + 1];
-    strcpy(_output_file, output_file);
 }
 
 TabFile::~TabFile()
 {
-    if(_output_file) delete[] _output_file; _output_file=NULL;
-    if(_f) fclose(_f); _f = NULL;
+    if(_f.is_open()) _f.close();
 }
 
-bool TabFile::setup()
+void TabFile::setup()
 {
-    unsigned int i;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
+    std::ostringstream msg;
+    msg << "Loading the report \"" << name() << "\"..." << std::endl;
+    LOG(L_INFO, msg.str());
 
-    sprintf(msg,
-            "Loading the report \"%s\"...\n",
-            name());
-    S->addMessageF(1, msg);
+    _f.open(_output_file.c_str(), std::ios::out);
 
-    // Open the output file
-    _f = fopen(_output_file, "w");
-    if(!_f){
-        sprintf(msg,
-                "The file \"%s\" cannot be written\n",
-                _output_file);
-        S->addMessageF(3, msg);
-        return true;
-    }
-
-    if(Report::setup()){
-        return true;
-    }
+    Report::setup();
 
     // Write the header
-    fprintf(_f, "# ");
-    std::deque<InputOutput::Variable*> vars = variables();
-    for(i = 0; i < vars.size(); i++){
-        fprintf(_f, "%s ", vars.at(i)->name());
+    _f << "# ";
+    std::vector<InputOutput::Variable*> vars = variables();
+    for(auto var : vars){
+        _f << var->name() << " ";
     }
-    fprintf(_f, "\n");
-
-    return false;
+    _f << std::endl;
+    _f.flush();
 }
 
-bool TabFile::_execute()
+void TabFile::_execute()
 {
-    char* out = (char*)data(false, false);
     // Change break lines by spaces
-    while(strchr(out, '\n')){
-        strchr(out, '\n')[0] = ' ';
-    }
-
-    fprintf(_f, "%s\n", out);
-    fflush(_f);
-    return false;
+    std::string out = replaceAllCopy(data(false, false), "\n", " ");
+    _f << out << std::endl;
+    _f.flush();
 }
 
 }}} // namespace

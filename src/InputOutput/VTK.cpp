@@ -25,34 +25,30 @@
 
 #ifdef HAVE_VTK
 
-#include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 #include <signal.h>
 
 #include <InputOutput/VTK.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 #include <ProblemSetup.h>
-#include <TimeManager.h>
 #include <CalcServer.h>
 #include <AuxiliarMethods.h>
 
 #include <vector>
-#include <deque>
-static std::deque<char*> cpp_str;
-static std::deque<XMLCh*> xml_str;
-static std::deque<xercesc::XercesDOMParser*> parsers;
+static std::vector<std::string> cpp_str;
+static std::vector<XMLCh*> xml_str;
+static std::vector<xercesc::XercesDOMParser*> parsers;
 
-static char *xmlTranscode(const XMLCh *txt)
+static std::string xmlTranscode(const XMLCh *txt)
 {
-    char *str = xercesc::XMLString::transcode(txt);
+    std::string str = xercesc::XMLString::transcode(txt);
     cpp_str.push_back(str);
     return str;
 }
 
-static XMLCh *xmlTranscode(const char *txt)
+static XMLCh *xmlTranscode(const std::string txt)
 {
-    XMLCh *str = xercesc::XMLString::transcode(txt);
+    XMLCh *str = xercesc::XMLString::transcode(txt.c_str());
     xml_str.push_back(str);
     return str;
 }
@@ -60,16 +56,13 @@ static XMLCh *xmlTranscode(const char *txt)
 static void xmlClear()
 {
     unsigned int i;
-    for(i = 0; i < cpp_str.size(); i++){
-        xercesc::XMLString::release(&cpp_str.at(i));
-    }
     cpp_str.clear();
-    for(i = 0; i < xml_str.size(); i++){
-        xercesc::XMLString::release(&xml_str.at(i));
+    for(auto str : xml_str){
+        xercesc::XMLString::release(&str);
     }
     xml_str.clear();
-    for(i = 0; i < parsers.size(); i++){
-        delete parsers.at(i);
+    for(auto parser : parsers){
+        delete parser;
     }
     parsers.clear();
 }
@@ -101,54 +94,44 @@ using namespace xercesc;
 
 namespace Aqua{ namespace InputOutput{
 
-VTK::VTK(unsigned int first, unsigned int n, unsigned int iset)
-    : Particles(first, n, iset)
-    , _namePVD(NULL)
+VTK::VTK(ProblemSetup& sim_data,
+         unsigned int first,
+         unsigned int n,
+         unsigned int iset)
+    : Particles(sim_data, first, n, iset)
     , _next_file_index(0)
 {
 }
 
 VTK::~VTK()
 {
-    unsigned int i;
-    ScreenManager *S = ScreenManager::singleton();
-
-    // Wait for the writers working
-    S->addMessageF(1, "Waiting for the writers...\n");
-    for(i = 0; i < _tids.size(); i++){
-        pthread_join(_tids.at(i), NULL);
-    }
-    _tids.clear();
-
-    if(_namePVD) delete[] _namePVD; _namePVD=NULL;
+    waitForSavers();
 }
 
-bool VTK::load()
+void VTK::load()
 {
     unsigned int i, j, k, n, N, progress;
     int aux;
     cl_int err_code;
-    char msg[1024];
-    ScreenManager *S = ScreenManager::singleton();
-    ProblemSetup *P = ProblemSetup::singleton();
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
 
     loadDefault();
 
-    sprintf(msg,
-            "Loading particles from VTK file \"%s\"\n",
-            P->sets.at(setId())->inputPath());
-    S->addMessageF(1, msg);
+    std::ostringstream msg;
+    msg << "Loading particles from VTK file \""
+             <<  simData().sets.at(setId())->inputPath()
+             << "\"..." << std::endl;
+    LOG(L_INFO, msg.str());
 
     vtkSmartPointer<vtkXMLUnstructuredGridReader> f =
         vtkSmartPointer<vtkXMLUnstructuredGridReader>::New();
 
-    if(!f->CanReadFile(P->sets.at(setId())->inputPath())){
-        S->addMessageF(3, "The file cannot be read.\n");
-        return true;
+    if(!f->CanReadFile(simData().sets.at(setId())->inputPath().c_str())){
+        LOG(L_ERROR, "The file cannot be read.\n");
+        throw std::runtime_error("Failure reading file");
     }
 
-    f->SetFileName(P->sets.at(setId())->inputPath());
+    f->SetFileName(simData().sets.at(setId())->inputPath().c_str());
     f->Update();
 
     vtkSmartPointer<vtkUnstructuredGrid> grid = f->GetOutput();
@@ -157,67 +140,67 @@ bool VTK::load()
     n = bounds().y - bounds().x;
     N = (unsigned int)grid->GetNumberOfPoints();
     if( n != N){
-        sprintf(msg,
-                "Expected %u particles, but the file contains %u ones.\n",
-                n,
-                N);
-        S->addMessage(3, msg);
-        return true;
+        std::ostringstream msg;
+        msg << "Expected " << n << " particles, but the file contains just "
+            << N << " ones." << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("Invalid number of particles in file");
     }
 
     // Check the fields to read
-    std::deque<char*> fields = P->sets.at(setId())->inputFields();
+    std::vector<std::string> fields = simData().sets.at(setId())->inputFields();
     if(!fields.size()){
-        S->addMessage(3, "0 fields were set to be read from the file.\n");
-        return true;
+        LOG0(L_ERROR, "0 fields were set to be read from the file.\n");
+        throw std::runtime_error("No fields have been marked to read");
     }
     bool have_r = false;
-    for(i = 0; i < fields.size(); i++){
-        if(!strcmp(fields.at(i), "r")){
+    for(auto field : fields){
+        if(!field.compare("r")){
             have_r = true;
             break;
         }
     }
     if(!have_r){
-        S->addMessage(3, "\"r\" field was not set to be read from the file.\n");
-        return true;
+        LOG0(L_ERROR, "\"r\" field was not set to be read from the file.\n");
+        throw std::runtime_error("\"r\" field is mandatory");
     }
 
     // Setup an storage
-    std::deque<void*> data;
-    Variables* vars = C->variables();
-    for(i = 0; i < fields.size(); i++){
-        if(!vars->get(fields.at(i))){
-            sprintf(msg,
-                    "\"%s\" field has been set to be read, but it was not declared.\n",
-                    fields.at(i));
-            S->addMessage(3, msg);
-            return true;
+    std::vector<void*> data;
+    Variables *vars = C->variables();
+    for(auto field : fields){
+        if(!vars->get(field)){
+            std::ostringstream msg;
+            msg << "Undeclared variable \"" << field
+                << "\" set to be read." << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw std::runtime_error("Invalid variable");
         }
-        if(!strchr(vars->get(fields.at(i))->type(), '*')){
-            sprintf(msg,
-                    "\"%s\" field has been set to be read, but it was declared as an scalar.\n",
-                    fields.at(i));
-            S->addMessage(3, msg);
-            return true;
+        if(vars->get(field)->type().find('*') == std::string::npos){
+            std::ostringstream msg;
+            msg << "Can't read scalar variable \"" << field
+                << "\"." << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw std::runtime_error("Invalid variable type");
         }
-        ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(i));
+        ArrayVariable *var = (ArrayVariable*)vars->get(field);
         size_t typesize = vars->typeToBytes(var->type());
         size_t len = var->size() / typesize;
         if(len < bounds().y){
-            sprintf(msg,
-                    "Failure reading \"%s\" field, which has not length enough.\n",
-                    fields.at(i));
-            S->addMessage(3, msg);
-            return true;
+            std::ostringstream msg;
+            msg << "Array variable \"" << field
+                << "\" is not long enough." << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw std::runtime_error("Invalid variable length");
         }
         void *store = malloc(typesize * n);
         if(!store){
-            sprintf(msg,
-                    "Failure allocating memory for \"%s\" field.\n",
-                    fields.at(i));
-            S->addMessage(3, msg);
-            return true;
+            std::ostringstream msg;
+            msg << "Failure allocating " << typesize * n
+                << "bytes for variable \"" << field
+                << "\"." << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw std::bad_alloc();
         }
         data.push_back(store);
     }
@@ -227,7 +210,7 @@ bool VTK::load()
     vtkSmartPointer<vtkPointData> vtk_data = grid->GetPointData();
     for(i = 0; i < n; i++){
         for(j = 0; j < fields.size(); j++){
-            if(!strcmp(fields.at(j), "r")){
+            if(!fields.at(j).compare("r")){
                 double *vect = vtk_points->GetPoint(i);
                 vec *ptr = (vec*)data.at(j);
                 ptr[i].x = vect[0];
@@ -241,10 +224,10 @@ bool VTK::load()
             ArrayVariable *var = (ArrayVariable*)vars->get(fields.at(j));
             size_t type_size = vars->typeToBytes(var->type());
             unsigned int n_components = vars->typeToN(var->type());
-            if(strstr(var->type(), "unsigned int") ||
-               strstr(var->type(), "uivec")){
+            if(var->type().find("unsigned int") != std::string::npos ||
+               var->type().find("uivec") != std::string::npos) {
                 vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
-                    (vtkUnsignedIntArray*)(vtk_data->GetArray(fields.at(j), aux));
+                    (vtkUnsignedIntArray*)(vtk_data->GetArray(fields.at(j).c_str(), aux));
                 for(k = 0; k < n_components; k++){
                     unsigned int component = vtk_array->GetComponent(i, k);
                     size_t offset = type_size * i + sizeof(unsigned int) * k;
@@ -253,10 +236,10 @@ bool VTK::load()
                            sizeof(unsigned int));
                 }
             }
-            else if(strstr(var->type(), "int") ||
-                    strstr(var->type(), "ivec")){
+            else if(var->type().find("int") != std::string::npos ||
+                    var->type().find("ivec") != std::string::npos) {
                 vtkSmartPointer<vtkIntArray> vtk_array =
-                    (vtkIntArray*)(vtk_data->GetArray(fields.at(j), aux));
+                    (vtkIntArray*)(vtk_data->GetArray(fields.at(j).c_str(), aux));
                 for(k = 0; k < n_components; k++){
                     int component = vtk_array->GetComponent(i, k);
                     size_t offset = type_size * i + sizeof(int) * k;
@@ -265,11 +248,11 @@ bool VTK::load()
                            sizeof(int));
                 }
             }
-            else if(strstr(var->type(), "float") ||
-                    strstr(var->type(), "vec") ||
-                    strstr(var->type(), "matrix")){
+            else if(var->type().find("float") != std::string::npos ||
+                    var->type().find("vec") != std::string::npos ||
+                    var->type().find("matrix") != std::string::npos) {
                 vtkSmartPointer<vtkFloatArray> vtk_array =
-                    (vtkFloatArray*)(vtk_data->GetArray(fields.at(j), aux));
+                    (vtkFloatArray*)(vtk_data->GetArray(fields.at(j).c_str(), aux));
                 for(k = 0; k < n_components; k++){
                     float component = vtk_array->GetComponent(i, k);
                     size_t offset = type_size * i + sizeof(float) * k;
@@ -282,8 +265,9 @@ bool VTK::load()
         if(progress != i * 100 / n){
             progress = i * 100 / n;
             if(!(progress % 10)){
-                sprintf(msg, "\t\t%u%%\n", progress);
-                S->addMessage(0, msg);
+                std::ostringstream msg;
+                msg << "\t\t" << progress << "%" << std::endl;
+                LOG(L_DEBUG, msg.str());
             }
         }
     }
@@ -304,31 +288,30 @@ bool VTK::load()
                                         NULL);
         free(data.at(i)); data.at(i) = NULL;
         if(err_code != CL_SUCCESS){
-            sprintf(msg,
-                    "Failure sending variable \"%s\" to the server.\n",
-                    fields.at(i));
-            S->addMessageF(3, msg);
-            S->printOpenCLError(err_code);
+            std::ostringstream msg;
+            msg << "Failure sending variable \"" << fields.at(i)
+                << "\" to the computational device." << std::endl;
+            LOG(L_ERROR, msg.str());
+            Logger::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL error");
         }
     }
     data.clear();
-
-    return false;
 }
 
 /** @brief Data structure to send the data to a parallel writer thread
  */
 typedef struct{
     /// The field names
-    std::deque<char*> fields;
+    std::vector<std::string> fields;
     /// Bounds of the particles index managed by this writer
     uivec2 bounds;
     /// Screen manager
-    ScreenManager *S;
+    Logger *S;
     /// VTK arrays
     CalcServer::CalcServer *C;
     /// The data associated to each field
-    std::deque<void*> data;
+    std::vector<void*> data;
     /// The VTK file decriptor
     vtkXMLUnstructuredGridWriter *f;
 }data_pthread;
@@ -340,50 +323,46 @@ typedef struct{
 void* save_pthread(void *data_void)
 {
     unsigned int i, j;
-    char msg[1024];
     data_pthread *data = (data_pthread*)data_void;
 
     // Create storage arrays
-    std::deque< vtkSmartPointer<vtkDataArray> > vtk_arrays;
-    Variables* vars = data->C->variables();
-    for(i = 0; i < data->fields.size(); i++){
-        if(!vars->get(data->fields.at(i))){
-            sprintf(msg,
-                    "\"%s\" field has been set to be saved, but it was not declared.\n",
-                    data->fields.at(i));
-            data->S->addMessage(3, msg);
-            for(i = 0; i < data->fields.size(); i++){
-                free(data->data.at(i)); data->data.at(i) = NULL;
-            }
+    std::vector< vtkSmartPointer<vtkDataArray> > vtk_arrays;
+    Variables *vars = data->C->variables();
+    for(auto field : data->fields){
+        if(!vars->get(field)){
+            std::ostringstream msg;
+            msg << "Can't save undeclared variable \"" << field
+                << "\"." << std::endl;
+            data->S->addMessage(L_ERROR, msg.str());
+            for(auto d : data->data)
+                free(d);
             data->data.clear();
             data->f->Delete();
             delete data; data=NULL;
             return NULL;
         }
-        if(!strchr(vars->get(data->fields.at(i))->type(), '*')){
-            sprintf(msg,
-                    "\"%s\" field has been set to be saved, but it was declared as a scalar.\n",
-                    data->fields.at(i));
-            data->S->addMessage(3, msg);
-            for(i = 0; i < data->fields.size(); i++){
-                free(data->data.at(i)); data->data.at(i) = NULL;
-            }
+        if(vars->get(field)->type().find('*') == std::string::npos){
+            std::ostringstream msg;
+            msg << "Can't save scalar variable \"" << field
+                << "\"." << std::endl;
+            data->S->addMessage(L_ERROR, msg.str());
+            for(auto d : data->data)
+                free(d);
             data->data.clear();
             data->f->Delete();
             delete data; data=NULL;
             return NULL;
         }
-        ArrayVariable *var = (ArrayVariable*)vars->get(data->fields.at(i));
+        ArrayVariable *var = (ArrayVariable*)vars->get(field);
         size_t typesize = vars->typeToBytes(var->type());
         size_t len = var->size() / typesize;
         if(len < data->bounds.y){
-            sprintf(msg,
-                    "Failure saving \"%s\" field, which has not length enough.\n",
-                    data->fields.at(i));
-            data->S->addMessage(3, msg);
-            for(i = 0; i < data->fields.size(); i++){
-                free(data->data.at(i)); data->data.at(i) = NULL;
-            }
+            std::ostringstream msg;
+            msg << "Variable \"" << field
+                << "\" is not long enough." << std::endl;
+            data->S->addMessageF(L_ERROR, msg.str());
+            for(auto d : data->data)
+                free(d);
             data->data.clear();
             data->f->Delete();
             delete data; data=NULL;
@@ -391,29 +370,29 @@ void* save_pthread(void *data_void)
         }
 
         unsigned int n_components = vars->typeToN(var->type());
-        if(strstr(var->type(), "unsigned int") ||
-           strstr(var->type(), "uivec")){
+        if(var->type().find("unsigned int") != std::string::npos ||
+           var->type().find("uivec") != std::string::npos) {
             vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
                 vtkSmartPointer<vtkUnsignedIntArray>::New();
             vtk_array->SetNumberOfComponents(n_components);
-            vtk_array->SetName(data->fields.at(i));
+            vtk_array->SetName(field.c_str());
             vtk_arrays.push_back(vtk_array);
         }
-        else if(strstr(var->type(), "int") ||
-                strstr(var->type(), "ivec")){
+        else if(var->type().find("int") != std::string::npos ||
+                var->type().find("ivec") != std::string::npos) {
             vtkSmartPointer<vtkIntArray> vtk_array =
                 vtkSmartPointer<vtkIntArray>::New();
             vtk_array->SetNumberOfComponents(n_components);
-            vtk_array->SetName(data->fields.at(i));
+            vtk_array->SetName(field.c_str());
             vtk_arrays.push_back(vtk_array);
         }
-        else if(strstr(var->type(), "float") ||
-                strstr(var->type(), "vec") ||
-                strstr(var->type(), "matrix")){
+        else if(var->type().find("float") != std::string::npos ||
+                var->type().find("vec") != std::string::npos ||
+                var->type().find("matrix") != std::string::npos) {
             vtkSmartPointer<vtkFloatArray> vtk_array =
                 vtkSmartPointer<vtkFloatArray>::New();
             vtk_array->SetNumberOfComponents(n_components);
-            vtk_array->SetName(data->fields.at(i));
+            vtk_array->SetName(field.c_str());
             vtk_arrays.push_back(vtk_array);
         }
     }
@@ -424,7 +403,7 @@ void* save_pthread(void *data_void)
 
     for(i = 0; i < data->bounds.y - data->bounds.x; i++){
         for(j = 0; j < data->fields.size(); j++){
-            if(!strcmp(data->fields.at(j), "r")){
+            if(!data->fields.at(j).compare("r")){
                 vec *ptr = (vec*)(data->data.at(j));
                 #ifdef HAVE_3D
                     vtk_points->InsertNextPoint(ptr[i].x, ptr[i].y, ptr[i].z);
@@ -437,8 +416,8 @@ void* save_pthread(void *data_void)
                 vars->get(data->fields.at(j)));
             size_t typesize = vars->typeToBytes(var->type());
             unsigned int n_components = vars->typeToN(var->type());
-            if(strstr(var->type(), "unsigned int") ||
-               strstr(var->type(), "uivec")){
+            if(var->type().find("unsigned int") != std::string::npos ||
+               var->type().find("uivec") != std::string::npos) {
                 unsigned int vect[n_components];
                 size_t offset = typesize * i;
                 memcpy(vect,
@@ -452,8 +431,8 @@ void* save_pthread(void *data_void)
                     vtk_array->InsertNextTypedTuple(vect);
                 #endif // VTK_MAJOR_VERSION
             }
-            else if(strstr(var->type(), "int") ||
-                    strstr(var->type(), "ivec")){
+            else if(var->type().find("int") != std::string::npos ||
+                    var->type().find("ivec") != std::string::npos) {
                 int vect[n_components];
                 size_t offset = typesize * i;
                 memcpy(vect,
@@ -467,9 +446,9 @@ void* save_pthread(void *data_void)
                     vtk_array->InsertNextTypedTuple(vect);
                 #endif // VTK_MAJOR_VERSION
             }
-            else if(strstr(var->type(), "float") ||
-                    strstr(var->type(), "vec") ||
-					strstr(var->type(), "matrix")){
+            else if(var->type().find("float") != std::string::npos ||
+                    var->type().find("vec") != std::string::npos ||
+                    var->type().find("matrix") != std::string::npos) {
                 float vect[n_components];
                 size_t offset = typesize * i;
                 memcpy(vect,
@@ -495,27 +474,27 @@ void* save_pthread(void *data_void)
     grid->SetPoints(vtk_points);
     grid->SetCells(vtk_vertex->GetCellType(), vtk_cells);
     for(i = 0; i < data->fields.size(); i++){
-        if(!strcmp(data->fields.at(i), "r")){
+        if(!data->fields.at(i).compare("r")){
             continue;
         }
 
         ArrayVariable *var = (ArrayVariable*)(
             vars->get(data->fields.at(i)));
-        if(strstr(var->type(), "unsigned int") ||
-           strstr(var->type(), "uivec")){
+        if(var->type().find("unsigned int") != std::string::npos ||
+           var->type().find("uivec") != std::string::npos) {
             vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
                 (vtkUnsignedIntArray*)(vtk_arrays.at(i).GetPointer());
             grid->GetPointData()->AddArray(vtk_array);
         }
-        else if(strstr(var->type(), "int") ||
-                strstr(var->type(), "ivec")){
+        else if(var->type().find("int") != std::string::npos ||
+                var->type().find("ivec") != std::string::npos) {
             vtkSmartPointer<vtkIntArray> vtk_array =
                 (vtkIntArray*)(vtk_arrays.at(i).GetPointer());
             grid->GetPointData()->AddArray(vtk_array);
         }
-        else if(strstr(var->type(), "float") ||
-                strstr(var->type(), "vec") ||
-                strstr(var->type(), "matrix")){
+        else if(var->type().find("float") != std::string::npos ||
+                var->type().find("vec") != std::string::npos ||
+                var->type().find("matrix") != std::string::npos) {
             vtkSmartPointer<vtkFloatArray> vtk_array =
                 (vtkFloatArray*)(vtk_arrays.at(i).GetPointer());
             grid->GetPointData()->AddArray(vtk_array);
@@ -530,70 +509,64 @@ void* save_pthread(void *data_void)
     #endif // VTK_MAJOR_VERSION
 
     if(!data->f->Write()){
-        data->S->addMessageF(3, "Failure writing the VTK file.\n");
+        data->S->addMessageF(L_ERROR, "Failure writing the VTK file.\n");
     }
 
     // Clean up
-    for(i = 0; i < data->fields.size(); i++){
-        free(data->data.at(i)); data->data.at(i) = NULL;
-    }
+    for(auto d : data->data)
+        free(d);
     data->data.clear();
     data->f->Delete();
     delete data; data=NULL;
     return NULL;
 }
 
-bool VTK::save()
+void VTK::save(float t)
 {
     unsigned int i;
-    ScreenManager *S = ScreenManager::singleton();
-    ProblemSetup *P = ProblemSetup::singleton();
-    CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
 
     // Check the fields to write
-    std::deque<char*> fields = P->sets.at(setId())->outputFields();
+    std::vector<std::string> fields = simData().sets.at(setId())->outputFields();
     if(!fields.size()){
-        S->addMessage(3, "0 fields were set to be saved into the file.\n");
-        return true;
+        LOG(L_ERROR, "0 fields were set to be saved into the file.\n");
+        throw std::runtime_error("No fields have been marked to be saved");
     }
     bool have_r = false;
-    for(i = 0; i < fields.size(); i++){
-        if(!strcmp(fields.at(i), "r")){
+    for(auto field : fields){
+        if(!field.compare("r")){
             have_r = true;
             break;
         }
     }
     if(!have_r){
-        S->addMessage(3, "\"r\" field was not set to be saved into the file.\n");
-        return true;
+        LOG(L_ERROR, "\"r\" field was not set to be saved into the file.\n");
+        throw std::runtime_error("\"r\" field is mandatory");
     }
 
     // Setup the data struct for the parallel thread
     data_pthread *data = new data_pthread;
     data->fields = fields;
     data->bounds = bounds();
-    data->C = C;
-    data->S = S;
+    data->C = CalcServer::CalcServer::singleton();
+    data->S = Logger::singleton();
     data->data = download(fields);
     if(!data->data.size()){
-        return true;
+        LOG(L_ERROR, "\"r\" field was not set to be saved into the file.\n");
+        throw std::runtime_error("Failure downloading data");
     }
     data->f = create();
-    if(!data->f){
-        return true;
-    }
 
     // Launch the thread
     pthread_t tid;
     int err;
     err = pthread_create(&tid, NULL, &save_pthread, (void*)data);
     if(err){
-        S->addMessageF(3, "Failure launching the parallel thread.\n");
+        LOG(L_ERROR, "Failure launching the parallel thread.\n");
         char err_str[strlen(strerror(err)) + 2];
         strcpy(err_str, strerror(err));
         strcat(err_str, "\n");
-        S->addMessage(0, err_str);
-        return true;
+        LOG0(L_DEBUG, err_str);
+        throw std::runtime_error("Failure launching VTK saving thread");
     }
     _tids.push_back(tid);
 
@@ -612,62 +585,50 @@ bool VTK::save()
 
     // Check and limit the number of active writing processes
     if(_tids.size() > 2){
-        S->addMessageF(2, "More than 2 active writing tasks\n");
-        S->addMessageF(0, "This may result in heavy performance penalties, and hard disk failures\n");
-        S->addMessageF(0, "Please, consider a reduction of the output printing rate\n");
+        LOG(L_WARNING, "More than 2 active writing tasks\n");
+        LOG(L_DEBUG, "This may result in heavy performance penalties, and hard disk failures\n");
+        LOG(L_DEBUG, "Please, consider a reduction of the output printing rate\n");
         while(_tids.size() > 2){
             pthread_join(_tids.at(0), NULL);
             _tids.erase(_tids.begin());
         }
     }
 
-    // Update the PVD file
-    if(updatePVD()){
-        return true;
-    }
+    updatePVD(t);
+}
 
-    return false;
+void VTK::waitForSavers(){
+    for(auto tid : _tids){
+        pthread_join(tid, NULL);
+    }
+    _tids.clear();
 }
 
 vtkXMLUnstructuredGridWriter* VTK::create(){
-    char *basename, msg[1024];
-    size_t len;
+    std::ostringstream basename;
     vtkXMLUnstructuredGridWriter *f = NULL;
-    ScreenManager *S = ScreenManager::singleton();
-    ProblemSetup *P = ProblemSetup::singleton();
 
-    // Create the file base name
-    len = strlen(P->sets.at(setId())->outputPath()) + 8;
-    basename = new char[len];
-    strcpy(basename, P->sets.at(setId())->outputPath());
-    strcat(basename, ".%d.vtu");
+    basename << simData().sets.at(setId())->outputPath() << ".%d.vtu";
+    std::string basename_str = basename.str();  // Avoid static mem free
+    _next_file_index = file(basename_str.c_str(), _next_file_index);
 
-    _next_file_index = file(basename, _next_file_index);
-    if(!_next_file_index){
-        delete[] basename;
-        S->addMessageF(3, "Failure getting a valid filename.\n");
-        S->addMessage(0, "\tHow do you received this message?.\n");
-        return NULL;
-    }
-    delete[] basename;
-
-    sprintf(msg, "Writing \"%s\" VTK output...\n", file());
-    S->addMessageF(1, msg);
+    std::ostringstream msg;
+    msg << "Writing \"" << file() << "\" VTK file..." << std::endl;
+    LOG(L_INFO, msg.str());
 
     f = vtkXMLUnstructuredGridWriter::New();
-    f->SetFileName(file());
+    basename_str = file();
+    f->SetFileName(basename_str.c_str());
 
     return f;
 }
 
-bool VTK::updatePVD(){
+void VTK::updatePVD(float t){
     unsigned int n;
-    char msg[1024];
-    ScreenManager *S = ScreenManager::singleton();
-    TimeManager *T = TimeManager::singleton();
 
-    sprintf(msg, "Writing \"%s\" Paraview data file...\n", filenamePVD());
-    S->addMessageF(1, msg);
+    std::ostringstream msg;
+    msg << "Writing \"" << filenamePVD() << "\" Paraview data file..." << std::endl;
+    LOG(L_INFO, msg.str());
 
     bool should_release_doc = false;
     DOMDocument* doc = getPVD(false);
@@ -677,32 +638,31 @@ bool VTK::updatePVD(){
     }
     DOMElement* root = doc->getDocumentElement();
     if(!root){
-        S->addMessageF(3, "Empty XML file found!\n");
-        return true;
+        LOG(L_ERROR, "Empty XML file found!\n");
+        throw std::runtime_error("Bad XML file format");
     }
     n = doc->getElementsByTagName(xmlS("VTKFile"))->getLength();
     if(n != 1){
-        sprintf(msg,
-                "Expected 1 VTKFile root section, but %u has been found\n",
-                n);
-        S->addMessageF(3, msg);
-        return true;
+        std::ostringstream msg;
+        msg << "Expected 1 VTKFile root section, but " << n
+            << "have been found" << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("Bad XML file format");
     }
 
     DOMNodeList* nodes = root->getElementsByTagName(xmlS("Collection"));
     if(nodes->getLength() != 1){
-        sprintf(msg,
-                "Expected 1 collection, but %u has been found\n",
-                nodes->getLength());
-        S->addMessageF(3, msg);
+        std::ostringstream msg;
+        msg << "Expected 1 collection, but " << nodes->getLength()
+            << "have been found" << std::endl;
+        LOG(L_ERROR, msg.str());
     }
     DOMNode* node = nodes->item(0);
     DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
 
     DOMElement *s_elem;
     s_elem = doc->createElement(xmlS("DataSet"));
-    sprintf(msg, "%g", T->time());
-    s_elem->setAttribute(xmlS("timestep"), xmlS(msg));
+    s_elem->setAttribute(xmlS("timestep"), xmlS(std::to_string(t)));
     s_elem->setAttribute(xmlS("group"), xmlS(""));
     s_elem->setAttribute(xmlS("part"), xmlS("0"));
     s_elem->setAttribute(xmlS("file"), xmlS(file()));
@@ -718,7 +678,8 @@ bool VTK::updatePVD(){
         saver->getDomConfig()->setParameter(XMLUni::fgDOMWRTFormatPrettyPrint, true);
     saver->setNewLine(xmlS("\r\n"));
 
-    XMLFormatTarget *target = new LocalFileFormatTarget(filenamePVD());
+    std::string fname = filenamePVD();
+    XMLFormatTarget *target = new LocalFileFormatTarget(fname.c_str());
     // XMLFormatTarget *target = new StdOutFormatTarget();
     DOMLSOutput *output = ((DOMImplementationLS*)impl)->createLSOutput();
     output->setByteStream(target);
@@ -728,26 +689,28 @@ bool VTK::updatePVD(){
         saver->write(doc, output);
     }
     catch( XMLException& e ){
-        char* message = xmlS(e.getMessage());
-        S->addMessageF(3, "XML toolkit writing error.\n");
-        sprintf(msg, "\t%s\n", message);
-        S->addMessage(0, msg);
+        std::string message = xmlS(e.getMessage());
+        LOG(L_ERROR, "XML toolkit writing error.\n");
+        std::ostringstream msg;
+        msg << "\t" << message << std::endl;
+        LOG0(L_DEBUG, msg.str());
         xmlClear();
-        return true;
+        throw;
     }
     catch( DOMException& e ){
-        char* message = xmlS(e.getMessage());
-        S->addMessageF(3, "XML DOM writing error.\n");
-        sprintf(msg, "\t%s\n", message);
-        S->addMessage(0, msg);
+        std::string message = xmlS(e.getMessage());
+        LOG(L_ERROR, "XML DOM writing error.\n");
+        std::ostringstream msg;
+        msg << "\t" << message << std::endl;
+        LOG0(L_DEBUG, msg.str());
         xmlClear();
-        return true;
+        throw;
     }
     catch( ... ){
-        S->addMessageF(3, "Writing error.\n");
-        S->addMessage(0, "\tUnhandled exception\n");
+        LOG(L_ERROR, "Writing error.\n");
+        LOG0(L_DEBUG, "\tUnhandled exception\n");
         xmlClear();
-        return true;
+        throw;
     }
 
     target->flush();
@@ -758,8 +721,6 @@ bool VTK::updatePVD(){
     if(should_release_doc)
         doc->release();
     xmlClear();
-
-    return false;
 }
 
 DOMDocument* VTK::getPVD(bool generate)
@@ -768,7 +729,7 @@ DOMDocument* VTK::getPVD(bool generate)
     FILE *dummy=NULL;
 
     // Try to open as ascii file, just to know if the file already exist
-    dummy = fopen(filenamePVD(), "r");
+    dummy = fopen(filenamePVD().c_str(), "r");
     if(!dummy){
         if(!generate){
             return NULL;
@@ -793,22 +754,21 @@ DOMDocument* VTK::getPVD(bool generate)
     parser->setDoNamespaces(false);
     parser->setDoSchema(false);
     parser->setLoadExternalDTD(false);
-    parser->parse(filenamePVD());
+    std::string fname = filenamePVD();
+    parser->parse(fname.c_str());
     doc = parser->getDocument();
     parsers.push_back(parser);
     return doc;
 }
 
-const char* VTK::filenamePVD()
+const std::string VTK::filenamePVD()
 {
-    if(!_namePVD){
-        ProblemSetup *P = ProblemSetup::singleton();
-        size_t len = strlen(P->sets.at(setId())->outputPath()) + 5;
-        _namePVD = new char[len];
-        strcpy(_namePVD, P->sets.at(setId())->outputPath());
-        strcat(_namePVD, ".pvd");
+    if(_namePVD == ""){
+        std::ostringstream namePVD;
+        namePVD << simData().sets.at(setId())->outputPath() << ".pvd";
+        _namePVD = namePVD.str();
     }
-    return (const char*)_namePVD;
+    return _namePVD;
 }
 
 }}  // namespace

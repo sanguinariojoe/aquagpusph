@@ -46,40 +46,35 @@ public:
      * @param tool_name Tool name.
      * @param script Python script path.
      */
-    Python(const char *tool_name, const char *script);
+    Python(const std::string tool_name, const std::string script);
 
     /// Destructor.
     ~Python();
 
     /** @brief Initialize the tool.
-     * @return false if all gone right, true otherwise.
      */
-    bool setup();
+    void setup();
 
 protected:
     /** @brief Perform the work.
-     * @return false if all gone right, true otherwise.
      */
-    bool _execute();
+    void _execute();
 
     /** @brief Initialize the Python interpreter.
      *
      * This method is safely creating the Python environment just one time,
      * adding the execution folder to the system path (in order to import
      * modules).
-     *
-     * @return false if all gone right, true otherwise.
      */
-    bool initPython();
+    void initPython();
 
     /** @brief Load the script and extract the callable function.
-     * @return false if all gone right, true otherwise.
      */
-    bool load();
+    void load();
 
 private:
     /// Script path
-    char* _script;
+    std::string _script;
 
     /// Python module object
     PyObject *_module;

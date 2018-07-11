@@ -78,12 +78,6 @@
     #define _GROUPS 2*__CL_MIN_LOCALSIZE__*_HISTOSPLIT / (_RADIX*_ITEMS)
 #endif
 
-#ifndef NDEBUG
-    #pragma message "_ITEMS: " XSTR(_ITEMS)
-    #pragma message "_GROUPS: " XSTR(_GROUPS)
-    #pragma message "_HISTOSPLIT: " XSTR(_HISTOSPLIT)
-#endif
-
 namespace Aqua{ namespace CalcServer{
 
 /** @class RadixSort RadixSort.h CalcServer/RadixSort.h
@@ -108,92 +102,79 @@ public:
      * @param inv_permutations Variable where the inverse permutations will be
      * stored.
      */
-    RadixSort(const char* tool_name,
-              const char* variable="icell",
-              const char* permutations="id_unsorted",
-              const char* inv_permutations="id_sorted");
+    RadixSort(const std::string tool_name,
+              const std::string variable="icell",
+              const std::string permutations="id_unsorted",
+              const std::string inv_permutations="id_sorted");
 
     /** Destructor
      */
     ~RadixSort();
 
     /** Initialize the tool.
-     * @return false if all gone right, true otherwise.
      */
-    bool setup();
+    void setup();
 
 protected:
     /** Execute the tool.
-     * @return false if all gone right, true otherwise.
      */
-    bool _execute();
+    void _execute();
 
 private:
     /** Initialize permutations array.
-     * @return false if all gone right, true otherwise.
      */
-    bool init();
+    void init();
 
     /** Perform histograms.
-     * @return false if all gone right, true otherwise.
      */
-    bool histograms();
+    void histograms();
 
     /** Scan histograms.
-     * @return false if all gone right, true otherwise.
      */
-    bool scan();
+    void scan();
 
     /** Scan histograms.
-     * @return false if all gone right, true otherwise.
      */
-    bool reorder();
+    void reorder();
 
     /** Build the reversed permutations vector.
-     * @return false if all gone right, true otherwise.
      */
-    bool inversePermutations();
+    void inversePermutations();
 
     /** Get the variables to compute.
-     * @return false if all gone right, true otherwise.
      */
-    bool variables();
+    void variables();
 
     /** Setup the OpenCL stuff
-     * @return false if all gone right, true otherwise.
      */
-    bool setupOpenCL();
+    void setupOpenCL();
 
     /** Compile the source code and generate the corresponding kernels
      * @param source Source code to compile.
-     * @return false if all gone right, true otherwise.
      */
-    bool compile(const char* source);
+    void compile(const std::string source);
 
     /** Setup the main computing dimensions _items, _groups and _histo_split
      * from the valid local work sizes per each kernel.
-     * @return false if all gone right, true otherwise.
      */
-    bool setupDims();
+    void setupDims();
 
     /** Setup the memory objects.
-     * @return false if all gone right, true otherwise.
      */
-    bool setupMems();
+    void setupMems();
 
     /** Send the fixed arguments to the kernels.
-     * @return false if all gone right, true otherwise.
      */
-    bool setupArgs();
+    void setupArgs();
 
     /// Variable to sort name
-    char *_var_name;
+    std::string _var_name;
 
     /// Permutations array name
-    char *_perms_name;
+    std::string _perms_name;
 
     /// Inverse permutations array name
-    char *_inv_perms_name;
+    std::string _inv_perms_name;
 
     /// Variable to sort
     InputOutput::ArrayVariable *_var;

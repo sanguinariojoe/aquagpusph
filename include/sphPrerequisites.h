@@ -38,9 +38,6 @@
  */
 #define STR(x) #x
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <string>
 
 // CMake configuration file
@@ -220,7 +217,7 @@
 #endif
 
 /// Helper string for #methodAndClassName function.
-static char aux[512];
+static std::string methodAndClassName_str;
 
 /** @brief Function to extract the class and function from
  * @paramname{__PRETTY_FUNCTION__} macro.
@@ -234,7 +231,7 @@ static char aux[512];
  * @return Class and function name ("Class::function")
  * @see #__METHOD_CLASS_NAME__
  */
-inline const char* methodAndClassName(const std::string& pretty_function)
+inline const std::string methodAndClassName(const std::string& pretty_function)
 {
     std::string all_name, method_name, class_name;
     size_t begin, end;
@@ -249,8 +246,8 @@ inline const char* methodAndClassName(const std::string& pretty_function)
     begin = all_name.rfind("::");
     if (begin == std::string::npos){
         // There are no class name
-        strcpy(aux, all_name.c_str());
-        return aux;
+        methodAndClassName_str = all_name;
+        return methodAndClassName_str;
     }
     method_name = all_name.substr(begin+2, std::string::npos);
     end = begin;
@@ -261,8 +258,8 @@ inline const char* methodAndClassName(const std::string& pretty_function)
         begin += 2;
     end -= begin;
     class_name = all_name.substr(begin, end);
-    strcpy(aux, (class_name + "::" + method_name).c_str());
-    return aux;
+    methodAndClassName_str = class_name + "::" + method_name;
+    return methodAndClassName_str;
 }
 
 /** @def __METHOD_CLASS_NAME__

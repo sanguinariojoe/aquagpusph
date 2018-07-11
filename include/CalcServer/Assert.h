@@ -24,7 +24,6 @@
 #ifndef ASSERT_H_INCLUDED
 #define ASSERT_H_INCLUDED
 
-#include <CalcServer.h>
 #include <CalcServer/Tool.h>
 
 namespace Aqua{ namespace CalcServer{
@@ -46,25 +45,24 @@ public:
      * considered, and fatal error will be raised, otherwise the simulation will
      * continue.
      */
-    Assert(const char *name, const char *condition);
+    Assert(const std::string name, const std::string condition);
 
     /// Destructor.
     ~Assert();
 
     /** @brief Initialize the tool.
-     * @return false if all gone right, true otherwise.
      */
-    bool setup();
+    void setup();
 
 protected:
     /** @brief Perform the work.
      * @return false if all gone right, true otherwise.
      */
-    bool _execute();
+    void _execute();
 
 private:
     /// Condition expression to evaluate
-    char* _condition;
+    std::string _condition;
 };
 
 }}  // namespace

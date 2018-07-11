@@ -28,35 +28,26 @@
 
 namespace Aqua{ namespace CalcServer{
 
-Tool::Tool(const char* tool_name)
-    : _name(NULL)
+Tool::Tool(const std::string tool_name)
+    : _name(tool_name)
     , _allocated_memory(0)
     , _n_iters(0)
     , _elapsed_time(0.f)
     , _average_elapsed_time(0.f)
     , _squared_elapsed_time(0.f)
 {
-    name(tool_name);
 }
 
 Tool::~Tool()
 {
-    if(_name) delete[] _name; _name=NULL;
 }
 
-void Tool::name(const char* tool_name)
-{
-    if(_name) delete[] _name; _name=NULL;
-    _name = new char[strlen(tool_name) + 1];
-    strcpy(_name, tool_name);
-}
-
-bool Tool::execute()
+void Tool::execute()
 {
     timeval tic, tac;
     gettimeofday(&tic, NULL);
 
-    bool err = _execute();
+    _execute();
 
     gettimeofday(&tac, NULL);
 
@@ -65,8 +56,6 @@ bool Tool::execute()
     elapsed_seconds += (float)(tac.tv_usec - tic.tv_usec) * 1E-6f;
 
     addElapsedTime(elapsed_seconds);
-
-    return err;
 }
 
 void Tool::addElapsedTime(float elapsed_time)

@@ -24,8 +24,6 @@
 #ifndef FastASCII_H_INCLUDED
 #define FastASCII_H_INCLUDED
 
-#include <stdio.h>
-
 #include <sphPrerequisites.h>
 #include <InputOutput/ASCII.h>
 
@@ -62,11 +60,15 @@ class FastASCII : public ASCII
 {
 public:
     /** @brief Constructor
+     * @param sim_data Simulation data
      * @param first First particle managed by this saver/loader.
      * @param n Number of particles managed by this saver/loader.
      * @param iset Particles set index.
      */
-    FastASCII(unsigned int first, unsigned int n, unsigned int iset);
+    FastASCII(ProblemSetup& sim_data,
+              unsigned int first,
+              unsigned int n,
+              unsigned int iset);
 
     /// Destructor
     ~FastASCII();
@@ -77,13 +79,12 @@ private:
      * @param line Text line,
      * @param index Index of the particle to read.
      * @param data Data array.
-     * @return Remaining text after extracting the field values, NULL if no
-     * remaining text lefts to be read, or if the operation has failed.
+     * @return Remaining text after extracting the field values.
      */
-    char* readField(const char* field,
-                    const char* line,
-                    unsigned int index,
-                    void* data);
+    std::string readField(const std::string field,
+                          const std::string line,
+                          unsigned int index,
+                          void* data);
 };  // class InputOutput
 
 }}  // namespaces

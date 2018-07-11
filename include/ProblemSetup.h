@@ -54,61 +54,16 @@
  */
 #define __FRAME_MODE__ 1 << 2
 
-/** \def __H5Part__
- * H5Part output is selected.
- */
-#define __H5Part__ 1 << 0
-/** \def __VTK__
- * VTK output is selected.
- */
-#define __VTK__ 1 << 1
-/** \def __TECPLOT__
- * TECPLOT output is selected.
- */
-#define __TECPLOT__ 1 << 2
-
-/** \def __DT_VARIABLE__
- * Time step will be calculated every iteration. This method guarantee the
- * Courant number conservation.
- */
-#define __DT_VARIABLE__ 0
-/** \def __DT_FIXCALCULATED__
- * Time step will be calculated at the start of simulation, and conserved along
- * it.
- */
-#define __DT_FIXCALCULATED__ 1
-/** \def __DT_FIX__
- * Time step will be provided by user.
- */
-#define __DT_FIX__ 2
-
-/** \def __BOUNDARY_ELASTIC__
- * Elastic bounce will be selected as the boundary condition.
- */
-#define __BOUNDARY_ELASTIC__ 0
-/** \def __BOUNDARY_FIXED__
- * Fixed particles will be selected as the boundary condition.
- */
-#define __BOUNDARY_FIXED__ 1
-/** \def __BOUNDARY_DELEFFE__
- * Boundary integrals will be selected as the boundary condition.
- */
-#define __BOUNDARY_DELEFFE__ 2
 
 #include <sphPrerequisites.h>
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <math.h>
-#include <string.h>
-#include <vector>
-#include <deque>
-#include <map>
 #include <string>
+#include <vector>
+#include <vector>
+#include <map>
 
 #include <CL/cl.h>
-
-#include <Singleton.h>
 
 namespace Aqua{ namespace InputOutput{
 
@@ -128,36 +83,21 @@ namespace Aqua{ namespace InputOutput{
  *
  * @see Aqua::InputOutput::State
  */
-class ProblemSetup : public Aqua::Singleton<Aqua::InputOutput::ProblemSetup>
+class ProblemSetup
 {
 public:
     /** @brief Constructor.
-     *
-     * In this method some initial values will be assigned, however it is
-     * expected that Aqua::InputOutput::FileManager is overwritting them.
-     *
-     * perform() method should be called after Aqua::InputOutput::FileManager
-     * was setup the simulation configuration data.
      */
     ProblemSetup();
+
+    /// Copy constructor
+    ProblemSetup(const ProblemSetup& p);
 
     /** @brief Destructor.
      */
     ~ProblemSetup();
 
-    /** @brief Compute the kernel length \f$ h \f$ and the corrected dynamic
-     * viscosity \f$ \mu \f$ (due to the artificial viscosity factor
-     * \f$ \alpha \f$).
-     *
-     * This method must be called after Aqua::InputOutput::FileManager was set
-     * the simulation configuration.
-     *
-     * @return false if all gone right, true otherwise.
-     */
-    bool perform();
-
-    /** @struct sphSettings
-     * @brief General program settings.
+    /** @brief General program settings.
      *
      * These setting are set between the following XML tags:
      * @code{.xml}
@@ -167,24 +107,13 @@ public:
      *
      * @see Aqua::InputOutput::ProblemSetup
      */
-    struct sphSettings
+    class sphSettings
     {
+    public:
         /// Constructor.
-        void init();
+        sphSettings();
         /// Destructor
-        void destroy();
-
-        /** @brief Verbose level.
-         *
-         *   - 2 = Slowest alternative, prints relevant data every timestep.
-         *   - 1 = Prints relevant data every frame (i.e. when output data
-         *     files are updated).
-         *   - 0 = Fastest alternative, prints minimum data.
-         *
-         * This field can be set with the tag `Verbose`, for instance:
-         * `<Verbose level="1" />`
-         */
-        int verbose_level;
+        ~sphSettings() {};
 
         /** @brief Save the output in case of failure
          *
@@ -238,7 +167,10 @@ public:
          * This path is added to the OpenCL include paths.
          */
         std::string base_path;
-    }settings;
+    };
+
+    /// Stored settings
+    sphSettings settings;
 
     /** @struct sphVariables
      * @brief Simulation variables registered.
@@ -267,16 +199,22 @@ public:
      * @see Aqua::InputOutput::Variables
      * @see Aqua::InputOutput::ProblemSetup
      */
-    struct sphVariables
+    class sphVariables
     {
+    public:
+        /// Constructor.
+        sphVariables() {};
+        /// Destructor
+        ~sphVariables() {};
+
         /// Name of the variables
-        std::deque<char*> names;
+        std::vector<std::string> names;
         /// Type of variables
-        std::deque<char*> types;
+        std::vector<std::string> types;
         /// Lengths
-        std::deque<char*> lengths;
+        std::vector<std::string> lengths;
         /// Values
-        std::deque<char*> values;
+        std::vector<std::string> values;
 
         /** @brief Add a new variable.
          *
@@ -291,14 +229,14 @@ public:
          * @param value Variable value, NULL for arrays. It is optional for
          * scalar variables.
          */
-        void registerVariable(const char* name,
-                              const char* type,
-                              const char* length,
-                              const char* value);
+        void registerVariable(std::string name,
+                              std::string type,
+                              std::string length,
+                              std::string value);
+    };
 
-        /// Remove all the stored variables.
-        void destroy();
-    }variables;
+    /// Variables storage
+    sphVariables variables;
 
     /** @struct sphDefinitions
      * @brief OpenCL kernels compilation definitions.
@@ -325,14 +263,19 @@ public:
      */
     struct sphDefinitions
     {
+        /// Constructor.
+        sphDefinitions() {};
+        /// Destructor
+        ~sphDefinitions() {};
+
         /// Name of the definition
-        std::deque<char*> names;
+        std::vector<std::string> names;
         /// Value of the definition, empty for named definitions.
-        std::deque<char*> values;
+        std::vector<std::string> values;
         /** True if the value should be evaluated as a math expression, false
          * otherwise
          */
-        std::deque<bool> evaluations;
+        std::vector<bool> evaluations;
 
         /** @brief Add a new definition.
          *
@@ -344,24 +287,24 @@ public:
          * @param evaluate True if the value should be evaluated as a math
          * expression, false otherwise.
          */
-        void define(const char* name,
-                    const char* value,
+        void define(const std::string name,
+                    const std::string value,
                     const bool evaluate);
 
         /** @brief Reports if a the required name has been already defined.
          * @param name Name of the definition.
          * @return true if it is already defined, false otherwise.
          */
-        bool isDefined(const char* name);
+        bool isDefined(std::string name);
 
         /** @brief Undefine a registered definition
          * @param name Name of the definition.
          */
-        void undefine(const char* name);
-
-        /// Remove all the stored definitions.
-        void destroy();
-    }definitions;
+        void undefine(std::string name);
+    };
+    
+    /// Definitions storage
+    sphDefinitions definitions;
 
     /** @class sphTool ProblemSetup.h ProblemSetup.h
      * @brief Tool to be executed.
@@ -371,35 +314,35 @@ public:
     public:
         /** Constructor
          */
-        sphTool();
+        sphTool() {};
 
         /** Destructor
          */
-        ~sphTool();
+        ~sphTool() {};
 
         /** Add new data value
          * @param name Name of the data value
          * @param value Value
          */
-        void set(const char* name, const char* value);
+        void set(const std::string name, const std::string value);
 
         /** Get a data value
          * @param name Name of the data value
          * @return Value, NULL if the variable does not exist
          */
-        const char* get(const char* name);
+        const std::string get(const std::string name);
 
         /** Get a data value
          * @param index Index of the data value
          * @return Value, NULL if the variable does not exist
          */
-        const char* get(unsigned int index);
+        const std::string get(unsigned int index);
 
         /** Get a data value name
          * @param index Index of the data value
          * @return Name, NULL if the variable does not exist
          */
-        const char* getName(unsigned int index);
+        const std::string getName(unsigned int index);
 
         /** Get the number of data values
          * @return Number of data values
@@ -411,14 +354,14 @@ public:
          * @param name Name of the data value
          * @return true if the data value has been found, false otherwise
          */
-        bool has(const char* name);
+        bool has(const std::string name);
 
         /// Registered data
         std::map<std::string, std::string> _data;
     };
 
     /// Array of tools
-    std::deque<sphTool*> tools;
+    std::vector<sphTool*> tools;
 
     /** @brief Helper function to get the number of already defined instances of
      * the same tool
@@ -437,7 +380,7 @@ public:
      * Reports are a some kind of special tools dedicated to generate summary
      * outputs.
      */
-    std::deque<sphTool*> reports;
+    std::vector<sphTool*> reports;
 
     /** @struct sphTimingParameters
      * @brief Simulation time flow options.
@@ -508,46 +451,6 @@ public:
          * @see #sim_end_mode
          */
         int sim_end_frame;
-
-        /** @brief Log file updating criteria to apply.
-         *
-         * Must a combination of the following options:
-         *   - #__NO_OUTPUT_MODE__ : The log file will not be never updated
-         *     (default value).
-         *   - #__FPS_MODE__ : Frames per second.
-         *   - #__IPF_MODE__ : Iterations (time steps) per frame.
-         *
-         * This field can be set with the tag `Option`, for instance:
-         *   - `<Option name="LogFile" type="FPS" value="120" />`
-         *   - `<Option name="LogFile" type="IPF" value="10" />`
-         *
-         * @see Aqua::InputOutput::Log
-         */
-        unsigned int log_mode;
-
-        /** @brief Log file updating rate.
-         *
-         * If #__FPS_MODE__ is set in #log_mode, the log file will be updated
-         * this value times per second of simulations.
-         *
-         * This field can be set with the tag `Option`, for instance:
-         * `<Option name="LogFile" type="FPS" value="120" />`
-         *
-         * @see #log_mode
-         */
-        float log_fps;
-
-        /** @brief Log file updating rate.
-         *
-         * If #__IPF_MODE__ is set in #log_mode, the log file will be updated
-         * every time that this value of time steps is computed.
-         *
-         * This field can be set with the tag `Option`, for instance:
-         * `<Option name="LogFile" type="IPF" value="10" />`
-         *
-         * @see #log_mode
-         */
-        int log_ipf;
 
         /** @brief Particles output updating criteria to apply.
          *
@@ -660,17 +563,17 @@ public:
          * This field can be set with the tag `Scalar`, for instance:
          * `<Scalar name="delta" value="1.0" />`
          */
-        void addScalar(const char* name, const char* value);
+        void addScalar(std::string name, std::string value);
 
         /** @brief Get the scalar names list
          * @return scalar names.
          */
-        std::deque<char*> scalarNames() const {return _snames;}
+        std::vector<std::string> scalarNames() const {return _snames;}
 
         /** @brief Get the scalar values list
          * @return scalar values.
          */
-        std::deque<char*> scalarValues() const {return _svalues;}
+        std::vector<std::string> scalarValues() const {return _svalues;}
 
         /** @brief Set the file path from which the particles should be read.
          *
@@ -682,25 +585,25 @@ public:
          * @param fields Fields to be loaded from the file
          * @see Aqua::InputOutput::Particles
          */
-        void input(const char* path, const char* format, const char* fields);
+        void input(std::string path, std::string format, std::string fields);
 
         /** @brief Get the file path from the particles would be read.
          * @return File path.
          * @see input()
          */
-        const char* inputPath() const {return _in_path;}
+        const std::string inputPath() const {return _in_path;}
 
         /** @brief Get the input file format
          * @return File format.
          * @see input()
          */
-        const char* inputFormat() const {return _in_format;}
+        const std::string inputFormat() const {return _in_format;}
 
         /** @brief Get the input file fields
          * @return Fields to be loaded list.
          * @see input()
          */
-        std::deque<char*> inputFields() const {return _in_fields;}
+        std::vector<std::string> inputFields() const {return _in_fields;}
 
         /** @brief Set the file path where the particles should be written.
          *
@@ -712,55 +615,59 @@ public:
          * @param fields Fields to be loaded from the file
          * @see Aqua::InputOutput::Particles
          */
-        void output(const char* path, const char* format, const char* fields);
+        void output(std::string path, std::string format, std::string fields);
 
         /** @brief Get the output file path
          * @return File path.
          * @see output()
          */
-        const char* outputPath() const {return _out_path;}
+        const std::string outputPath() const {return _out_path;}
 
         /** @brief Get the output file format
          * @return File format.
          * @see output()
          */
-        const char* outputFormat() const {return _out_format;}
+        const std::string outputFormat() const {return _out_format;}
 
         /** @brief Get the output file fields
          * @return Fields to be written list.
          * @see output()
          */
-        std::deque<char*> outputFields() const {return _out_fields;}
+        std::vector<std::string> outputFields() const {return _out_fields;}
     private:
         /// Number of particles
         unsigned int _n;
 
         /// Scalars names
-        std::deque<char*> _snames;
+        std::vector<std::string> _snames;
         /// Scalar values
-        std::deque<char*> _svalues;
+        std::vector<std::string> _svalues;
 
         /// Particles data file to load
-        char *_in_path;
+        std::string _in_path;
 
         /// Format of the particles data file to load
-        char *_in_format;
+        std::string _in_format;
 
         /// Fields to load from the file
-        std::deque<char*> _in_fields;
+        std::vector<std::string> _in_fields;
 
         /// Fluid particles data file to write
-        char *_out_path;
+        std::string _out_path;
 
         /// Fluid particles data file to write format
-        char *_out_format;
+        std::string _out_format;
 
         /// Fields to write in the file
-        std::deque<char*> _out_fields;
+        std::vector<std::string> _out_fields;
     };
 
     /// Array of particles sets
-    std::deque<sphParticlesSet*> sets;
+    std::vector<sphParticlesSet*> sets;
+
+private:
+    /// Hack to avoid local copies try to remove the class
+    bool _copy;
 };
 
 }}  // namespace

@@ -73,13 +73,12 @@
 
 #include <sphPrerequisites.h>
 #include <Python.h>
-#include <FileManager.h>
+#include <InputOutput/Logger.h>
 #include <ArgumentsManager.h>
+#include <FileManager.h>
 #include <ProblemSetup.h>
 #include <CalcServer.h>
 #include <TimeManager.h>
-#include <ScreenManager.h>
-#include <unistd.h>
 
 /** @namespace Aqua
  * @brief Main AQUAgpusph namespace.
@@ -93,156 +92,103 @@ using namespace Aqua;
  *    -# Parsing the runtime input options and the input files (see
  *       Aqua::InputOutput::ArgumentsManager and
  *       Aqua::InputOutput::FileManager).
- *    -# Generating the simulation setup (see Aqua::InputOutput::ProblemSetup).
+ *    -# Setting up the simulation (see Aqua::InputOutput::ProblemSetup).
  *    -# Controlling the simulation time events (see
- *       Aqua::InputOutput::TimeManager), like the output files updating or the
- *       Simulation end.
+ *       Aqua::InputOutput::TimeManager).
  *
- * The host is responsible to create the calculation server (see
- * Aqua::CalcServer::CalcServer) and call it to work as well.
+ * The host is also responsible to create the calculation server (see
+ * Aqua::CalcServer::CalcServer).
  *
  * @param argc Number of arguments parsed by terminal.
  * @param argv Array of arguments parsed by terminal.
  */
 int main(int argc, char *argv[])
 {
-    InputOutput::ArgumentsManager *A = NULL;
-    InputOutput::FileManager *F = NULL;
-    InputOutput::ProblemSetup *P = NULL;
-    CalcServer::CalcServer *C = NULL;
-    InputOutput::TimeManager *T = NULL;
-    InputOutput::ScreenManager *S = NULL;
-    char msg[256];
-    strcpy(msg, "");
+    std::ostringstream msg;
+    InputOutput::Logger *logger = new InputOutput::Logger();
+    InputOutput::FileManager file_manager;
 
-    printf("\n");
-    printf("\t#########################################################\n");
-    printf("\t#                                                       #\n");
-    printf("\t#    #    ##   #  #   #                           #     #\n");
-    printf("\t#   # #  #  #  #  #  # #                          #     #\n");
-    printf("\t#  ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###   #\n");
-    printf("\t#  #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #  #\n");
-    printf("\t#  #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #  #\n");
-    printf("\t#  #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #  #\n");
-    printf("\t#                            # #             #          #\n");
-    printf("\t#                          ##  #             #          #\n");
-    printf("\t#                                                       #\n");
-    printf("\t#########################################################\n");
-    printf("\tAnother QUAlity GPU-SPH, by CEHINAV.\n");
-    printf("\t\thttp://canal.etsin.upm.es/\n");
-    printf("\tAuthors:\n");
-    printf("\t\tJose Luis Cercos Pita\n");
-    printf("\t\tLeo Miguel Gonzalez\n");
-    printf("\t\tAntonio Souto-Iglesias\n");
-    printf("\tAQUAgpusph Copyright (C) 2012  Jose Luis Cercos-Pita\n");
-    printf("\tThis program comes with ABSOLUTELY NO WARRANTY; for details see LICENSE.\n");
-    printf("\tThis is free software, and you are welcome to redistribute it\n");
-    printf("\tunder certain conditions; see LICENSE for details.\n");
-    printf("\n");
+    std::cout << std::endl;
+    std::cout << "\t#########################################################" << std::endl;
+    std::cout << "\t#                                                       #" << std::endl;
+    std::cout << "\t#    #    ##   #  #   #                           #     #" << std::endl;
+    std::cout << "\t#   # #  #  #  #  #  # #                          #     #" << std::endl;
+    std::cout << "\t#  ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###   #" << std::endl;
+    std::cout << "\t#  #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #  #" << std::endl;
+    std::cout << "\t#  #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #  #" << std::endl;
+    std::cout << "\t#  #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #  #" << std::endl;
+    std::cout << "\t#                            # #             #          #" << std::endl;
+    std::cout << "\t#                          ##  #             #          #" << std::endl;
+    std::cout << "\t#                                                       #" << std::endl;
+    std::cout << "\t#########################################################" << std::endl;
+    std::cout << "\tAnother QUAlity GPU-SPH, by CEHINAV (UPM) group." << std::endl;
+    std::cout << "\t\thttp://canal.etsin.upm.es/" << std::endl;
+    std::cout << "\tAuthors:" << std::endl;
+    std::cout << "\t\tJose Luis Cercos Pita" << std::endl;
+    std::cout << "\t\tLeo Miguel Gonzalez" << std::endl;
+    std::cout << "\t\tAntonio Souto-Iglesias" << std::endl;
+    std::cout << "\t\tJavier Calderon-Sanchez" << std::endl;
+    std::cout << "\tAQUAgpusph Copyright (C) 2012-2018  Jose Luis Cercos-Pita" << std::endl;
+    std::cout << "\tThis program comes with ABSOLUTELY NO WARRANTY; for details see LICENSE." << std::endl;
+    std::cout << "\tThis is free software, and you are welcome to redistribute it" << std::endl;
+    std::cout << "\tunder certain conditions; see LICENSE for details." << std::endl;
+    std::cout << std::endl;
 
-    A = new InputOutput::ArgumentsManager(argc,argv);
-    F = new InputOutput::FileManager();
-    P = new InputOutput::ProblemSetup();
+    InputOutput::CommandLineArgs::parse(argc, argv, file_manager);
 
-    // We must start reading the runtime arguments
-    if(A->parse()){
-        delete A;
-        delete F;
-        delete P;
-        delete C;
-        delete T;
-        delete S;
-        return EXIT_FAILURE;
-    }
-
-    // Now we can load the simulation definition
-    C = F->load();
-    if(!C){
-        delete A;
-        delete F;
-        delete P;
-        delete C;
-        delete T;
-        delete S;
+    // Now we can load the simulation definition, building the calculation
+    // server
+    CalcServer::CalcServer *calc_server = NULL;
+    try {
+        calc_server = file_manager.load();
+    } catch(...) {
         if(Py_IsInitialized())
             Py_Finalize();
-        return EXIT_FAILURE;
+        throw;
     }
 
-    T = new InputOutput::TimeManager();
+    InputOutput::TimeManager t_manager(file_manager.problemSetup());
 
-    S->addMessageF(1, "Start of simulation...\n\n");
-    S->printDate();
-    S = new InputOutput::ScreenManager();
+    LOG(L_INFO, "Start of simulation...\n");
+    logger->printDate();
+    logger->initNCurses();
 
-    while(!T->mustStop())
+    while(!t_manager.mustStop())
     {
-        if(C->update()){
-            if(P->settings.save_on_fail)
-                F->save();
-            float Time = T->time();
-            delete S; S = NULL;
-            S->printDate();
-            S->addMessageF(1, "Destroying time manager...\n");
-            delete T; T = NULL;
-            S->addMessageF(1, "Destroying files manager...\n");
-            delete F; F = NULL;
-            S->addMessageF(1, "Destroying calculation server...\n");
-            delete C; C = NULL;
-            S->addMessageF(1, "Destroying problem setup...\n");
-            delete P; P = NULL;
-            S->addMessageF(1, "Destroying arguments manager...\n");
-            delete A; A = NULL;
-            S->addMessageF(1, "Finishing Python...\n");
-            if(Py_IsInitialized())
-                Py_Finalize();
-            sprintf(msg, "Simulation finished abnormally (Time = %g s)\n\n", Time);
-            S->addMessageF(1, msg);
-            return EXIT_FAILURE;
-        }
-
-        if(F->save()){
+        try {
+            calc_server->update(t_manager);
+            file_manager.save(t_manager.time());
+        } catch (const Aqua::CalcServer::user_interruption& e) {
+            // The user has interrupted the simulation, just exit normally
+            file_manager.save(t_manager.time());
+            break;
+        } catch (...) {
+            logger->endNCurses();
             sleep(__ERROR_SHOW_TIME__);
-            float Time = T->time();
-            delete S; S = NULL;
-            S->printDate();
-            S->addMessageF(1, "Destroying time manager...\n");
-            delete T; T = NULL;
-            S->addMessageF(1, "Destroying files manager...\n");
-            delete F; F = NULL;
-            S->addMessageF(1, "Destroying calculation server...\n");
-            delete C; C = NULL;
-            S->addMessageF(1, "Destroying problem setup...\n");
-            delete P; P = NULL;
-            S->addMessageF(1, "Destroying arguments manager...\n");
-            delete A; A = NULL;
-            S->addMessageF(1, "Finishing Python...\n");
+            file_manager.waitForSavers();
+            logger->printDate();
+            msg << "Simulation finished abnormally (t = " << t_manager.time()
+                << " s)" << std::endl << std::endl;
+            LOG(L_INFO, msg.str());
+
+            delete logger; logger = NULL;
+            delete calc_server; calc_server = NULL;
             if(Py_IsInitialized())
                 Py_Finalize();
-            sprintf(msg, "Simulation finished abnormally (Time = %g s)\n\n", Time);
-            S->addMessageF(1, msg);
-            return EXIT_FAILURE;
+            throw;
         }
     }
 
-    delete S; S = NULL;
-    S->printDate();
+    logger->endNCurses();
+    file_manager.waitForSavers();
+    logger->printDate();
+    msg << "Simulation finished OK (t = " << t_manager.time()
+        << " s)" << std::endl;
+    LOG(L_INFO, msg.str());
 
-    float Time = T->time();
-    S->addMessageF(1, "Destroying time manager...\n");
-    delete T; T = NULL;
-    S->addMessageF(1, "Destroying files manager...\n");
-    delete F; F = NULL;
-    S->addMessageF(1, "Destroying calculation server...\n");
-    delete C; C = NULL;
-    S->addMessageF(1, "Destroying problem setup...\n");
-    delete P; P = NULL;
-    S->addMessageF(1, "Destroying arguments manager...\n");
-    delete A; A = NULL;
-    S->addMessageF(1, "Finishing Python...\n");
+    delete logger; logger = NULL;
+    delete calc_server; calc_server = NULL;
     if(Py_IsInitialized())
         Py_Finalize();
-    sprintf(msg, "Simulation finished OK (Time = %g s)\n\n", Time);
-    S->addMessageF(1, msg);
     return EXIT_SUCCESS;
 }

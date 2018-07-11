@@ -21,13 +21,8 @@
  * (See Aqua::InputOutput::FileManager for details)
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include <FileManager.h>
-#include <ScreenManager.h>
-#include <ProblemSetup.h>
+#include <InputOutput/Logger.h>
 #include <InputOutput/ASCII.h>
 #include <InputOutput/FastASCII.h>
 #ifdef HAVE_VTK
@@ -37,191 +32,123 @@
 namespace Aqua{ namespace InputOutput{
 
 FileManager::FileManager()
-    : _in_file(NULL)
-    , _log(NULL)
+    : _state()
+    , _simulation()
+    , _in_file("Input.xml")
 {
-    inputFile("Input.xml");
-    _log = new Log();
-    _state = new State();
 }
 
 FileManager::~FileManager()
 {
-    unsigned int i;
-
-    if(_in_file)
-        delete[] _in_file;
-    _in_file = NULL;
-    if(_state)
-        delete _state;
-    _state = NULL;
-    if(_log)
-        delete _log;
-    _log = NULL;
-
-    for(i=0; i<_loaders.size(); i++){
-        delete _loaders.at(i);
-        _loaders.at(i) = NULL;
+    for(auto loader : _loaders) {
+        delete loader;
     }
-    _loaders.clear();
-
-    for(i=0; i<_savers.size(); i++){
-        delete _savers.at(i);
-        _savers.at(i) = NULL;
+    for(auto saver : _savers) {
+        delete saver;
     }
-    _savers.clear();
 }
 
-void FileManager::inputFile(const char* path)
+void FileManager::inputFile(std::string path)
 {
-    size_t len;
-
-    if(_in_file)
-        delete[] _in_file;
-    _in_file = NULL;
-
-    if(!path)
-        return;
-
-    len = strlen(path) + 1;
-    _in_file = new char[len];
-    strcpy(_in_file, path);
-}
-
-FILE* FileManager::logFile()
-{
-    if(_log)
-        return _log->fileHandler();
-    return NULL;
+    _in_file = path;
 }
 
 CalcServer::CalcServer* FileManager::load()
 {
-    unsigned int i, n=0;
-    char msg[1024];
-    ProblemSetup *P = ProblemSetup::singleton();
-    ScreenManager *S = ScreenManager::singleton();
+    unsigned int n=0;
 
     // Load the XML definition file
-    if(_state->load()){
-        return NULL;
-    }
+    _state.load(inputFile(), _simulation);
 
     // Setup the problem setup
-    if(P->perform()) {
-        return NULL;
+    if(_simulation.sets.size() == 0) {
+        LOG(L_ERROR, "No sets of particles have been added.\n");
+        throw std::runtime_error("No particles sets");
     }
 
     // Build the calculation server
-    CalcServer::CalcServer *C = new CalcServer::CalcServer();
-    if(!C)
-        return NULL;
-    if(C->setup()){
-        delete C; C = NULL;
-        return NULL;
-    }
+    CalcServer::CalcServer *C = new CalcServer::CalcServer(_simulation);
 
     // Now we can build the loaders/savers
-    for(i = 0; i < P->sets.size(); i++){
-        if(!strcmp(P->sets.at(i)->inputFormat(), "ASCII")){
-            ASCII *loader = new ASCII(n, P->sets.at(i)->n(), i);
-            if(!loader){
-                delete C; C = NULL;
-                return NULL;
-            }
+    unsigned int i = 0;
+    for(auto set : _simulation.sets){
+        if(!set->inputFormat().compare("ASCII")){
+            ASCII *loader = new ASCII(_simulation, n, set->n(), i);
             _loaders.push_back((Particles*)loader);
         }
-        else if(!strcmp(P->sets.at(i)->inputFormat(), "FastASCII")){
-            FastASCII *loader = new FastASCII(n, P->sets.at(i)->n(), i);
-            if(!loader){
-                delete C; C = NULL;
-                return NULL;
-            }
+        else if(!set->inputFormat().compare("FastASCII")){
+            FastASCII *loader = new FastASCII(_simulation, n, set->n(), i);
             _loaders.push_back((Particles*)loader);
         }
-        else if(!strcmp(P->sets.at(i)->inputFormat(), "VTK")){
+        else if(!set->inputFormat().compare("VTK")){
             #ifdef HAVE_VTK
-                VTK *loader = new VTK(n, P->sets.at(i)->n(), i);
-                if(!loader){
-                    delete C; C = NULL;
-                    return NULL;
-                }
+                VTK *loader = new VTK(_simulation, n, set->n(), i);
                 _loaders.push_back((Particles*)loader);
             #else
-                S->addMessageF(3, "AQUAgpusph has been compiled without VTK format.\n");
-                return NULL;
+                LOG(L_ERROR, "AQUAgpusph has been compiled without VTK format.\n");
+                delete C;
+                throw std::runtime_error("VTK support is disabled");
             #endif // HAVE_VTK
         }
         else{
-            sprintf(msg,
-                    "Unknow \"%s\" input file format.\n",
-                    P->sets.at(i)->inputFormat());
-            S->addMessageF(3, msg);
-            delete C; C = NULL;
-            return NULL;
+            std::ostringstream msg;
+            msg << "Unknow \"" << set->inputFormat()
+                << "\" input file format" << std::endl;
+            LOG(L_ERROR, msg.str());
+            delete C;
+            throw std::runtime_error("Unknown input file format");
         }
-        if(!strcmp(P->sets.at(i)->outputFormat(), "ASCII")){
-            ASCII *saver = new ASCII(n, P->sets.at(i)->n(), i);
-            if(!saver){
-                delete C; C = NULL;
-                return NULL;
-            }
+        if(!set->outputFormat().compare("ASCII")){
+            ASCII *saver = new ASCII(_simulation, n, set->n(), i);
             _savers.push_back((Particles*)saver);
         }
-        else if(!strcmp(P->sets.at(i)->outputFormat(), "VTK")){
+        else if(!set->outputFormat().compare("VTK")){
             #ifdef HAVE_VTK
-                VTK *saver = new VTK(n, P->sets.at(i)->n(), i);
-                if(!saver){
-                    delete C; C = NULL;
-                    return NULL;
-                }
+                VTK *saver = new VTK(_simulation, n, set->n(), i);
                 _savers.push_back((Particles*)saver);
             #else
-                S->addMessageF(3, "AQUAgpusph has been compiled without VTK format.\n");
-                return NULL;
+                LOG(L_ERROR, "AQUAgpusph has been compiled without VTK format.\n");
+                delete C;
+                throw std::runtime_error("VTK support is disabled");
             #endif // HAVE_VTK
         }
         else{
-            sprintf(msg,
-                    "Unknow \"%s\" output file format.\n",
-                    P->sets.at(i)->outputFormat());
-            S->addMessageF(3, msg);
-            delete C; C = NULL;
-            return NULL;
+            std::ostringstream msg;
+            msg << "Unknow \"" << set->outputFormat()
+                << "\" input file format" << std::endl;
+            LOG(L_ERROR, msg.str());
+            delete C;
+            throw std::runtime_error("Unknown output file format");
         }
-        n += P->sets.at(i)->n();
+        n += set->n();
+        i++;
     }
 
     // Execute the loaders
-    for(i = 0; i < _loaders.size(); i++){
-        if(_loaders.at(i)->load())
-            return NULL;
+    for(auto loader : _loaders) {
+        loader->load();
     }
 
     return C;
 }
 
-bool FileManager::save()
+void FileManager::save(float t)
 {
-    unsigned int i;
-
     // Execute the savers
-    for(i = 0; i < _savers.size(); i++){
-        if(_savers.at(i)->save())
-            return true;
+    for(auto saver : _savers) {
+        saver->save(t);
     }
 
     // Save the XML definition file
-    if(_state->save()){
-        return true;
+    _state.save(_simulation, _savers);
+}
+
+void FileManager::waitForSavers()
+{
+    LOG(L_INFO, "Waiting for the writers...\n");
+    for(auto saver : _savers) {
+        saver->waitForSavers();
     }
-
-    return false;
 }
-
-const char* FileManager::file(unsigned int i){
-    return _savers.at(i)->file();
-}
-
 
 }}  // namespace

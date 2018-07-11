@@ -26,10 +26,9 @@
 
 #include <sphPrerequisites.h>
 
-#include <deque>
-#include <CalcServer/Tool.h>
+#include <vector>
 #include <Variable.h>
-#include <AuxiliarMethods.h>
+#include <CalcServer/Tool.h>
 
 namespace Aqua{ namespace CalcServer{
 /// @namespace Aqua::CalcServer::Reports Runtime outputs name space.
@@ -57,8 +56,8 @@ public:
      * @param ipf Iterations per frame, 0 to just ignore this printing criteria.
      * @param fps Frames per second, 0 to just ignore this printing criteria.
      */
-    Report(const char* tool_name,
-           const char* fields,
+    Report(const std::string tool_name,
+           const std::string fields,
            unsigned int ipf=1,
            float fps=0.f);
 
@@ -67,9 +66,8 @@ public:
     virtual ~Report();
 
     /** @brief Initialize the tool.
-     * @return false if all gone right, true otherwise.
      */
-    virtual bool setup();
+    virtual void setup();
 
     /** @brief Return the text string of the data to be printed.
      * @param with_title true if the report title should be inserted, false
@@ -78,32 +76,22 @@ public:
      * otherwise.
      * @return Text string to be printed either in a file or in the screen.
      */
-    const char* data(bool with_title=true, bool with_names=true);
+    const std::string data(bool with_title=true, bool with_names=true);
 
 protected:
     /** @brief Execute the tool.
      * @return false if all gone right, true otherwise.
      */
-    virtual bool _execute(){return false;}
+    virtual void _execute(){return;}
 
     /** @brief Compute the fields by lines
-     * @return false if all gone right, true otherwise.
      */
-    bool processFields(const char* fields);
-
-    /** @brief Get data string length
-     * @param with_title true if the report title should be inserted, false
-     * otherwise.
-     * @param with_names true if the variable names should be printed, false
-     * otherwise.
-     * @return Length of the output string.
-     */
-    size_t dataLength(bool with_title=true, bool with_names=true);
+    void processFields(const std::string fields);
 
     /** @brief Get the variables list
      * @return The variables list resulting from _fields
      */
-    std::deque<InputOutput::Variable*> variables(){return _vars;}
+    std::vector<InputOutput::Variable*> variables(){return _vars;}
 
     /** @brief Check if an output must be performed.
      *
@@ -114,7 +102,7 @@ protected:
     bool mustUpdate();
 private:
     /// Input fields string
-    char *_fields;
+    std::string _fields;
     /// Iterations per frame
     unsigned int _ipf;
     /// Frames per second
@@ -124,11 +112,11 @@ private:
     /// Last printing event time instant
     float _t;
     /// Output data string
-    char *_data;
+    std::string _data;
     /// Number of variables per line
-    std::deque<unsigned int> _vars_per_line;
+    std::vector<unsigned int> _vars_per_line;
     /// List of variables to be printed
-    std::deque<InputOutput::Variable*> _vars;
+    std::vector<InputOutput::Variable*> _vars;
 };
 
 }}} // namespace

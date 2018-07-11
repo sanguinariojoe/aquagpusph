@@ -26,8 +26,7 @@
 #ifndef REDUCTION_H_INCLUDED
 #define REDUCTION_H_INCLUDED
 
-#include <deque>
-
+#include <vector>
 #include <CalcServer.h>
 #include <CalcServer/Kernel.h>
 
@@ -61,11 +60,11 @@ public:
      *   - VEC_NEG_INFINITY: -VEC_INFINITY
      *   - VEC_ALL_NEG_INFINITY: -VEC_ALL_INFINITY.
      */
-    Reduction(const char *name,
-              const char *input_name,
-              const char *output_name,
-              const char* operation,
-              const char* null_val);
+    Reduction(const std::string name,
+              const std::string input_name,
+              const std::string output_name,
+              const std::string operation,
+              const std::string null_val);
 
     /// Destructor.
     ~Reduction();
@@ -74,10 +73,8 @@ public:
      *
      * This method should be called after the constructor, such that it could
      * report errors that the application may handle quitting in a safe way.
-     *
-     * @return false if all gone right, true otherwise.
      */
-    bool setup();
+    void setup();
 
     /** @brief Number of steps needed.
      *
@@ -93,44 +90,41 @@ protected:
     /** @brief Perform the work.
      * @return Output memory object, NULL if error is detected.
      */
-    bool _execute();
+    void _execute();
 
 private:
     /** @brief Extract the input and output variables from the provided data in
      * Reduction().
-     * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::Variables
      */
-    bool variables();
+    void variables();
 
     /** @brief Setup the OpenCL stuff
-     * @return false if all gone right, true otherwise.
      */
-    bool setupOpenCL();
+    void setupOpenCL();
 
     /** @brief Compile the source code and generate the corresponding kernel.
      * @param source Source code to be compiled.
      * @param local_work_size Desired local work size.
-     * @return Kernel instance, NULL if error happened.
+     * @return Kernel instance.
      */
-    cl_kernel compile(const char* source, size_t local_work_size);
+    cl_kernel compile(const std::string source, size_t local_work_size);
 
     /** Update the input variables.
      *
      * This function is looking for changed value to send them again to the
      * computational device.
-     * @return false if all gone right, true otherwise.
      */
-    bool setVariables();
+    void setVariables();
 
     /// Input variable name
-    char* _input_name;
+    std::string _input_name;
     /// Output variable name
-    char* _output_name;
+    std::string _output_name;
     /// Operation to be computed
-    char* _operation;
+    std::string _operation;
     /// Considered null val
-    char* _null_val;
+    std::string _null_val;
 
     /// Input variable
     InputOutput::ArrayVariable *_input_var;
@@ -141,19 +135,19 @@ private:
     cl_mem _input;
 
     /// OpenCL kernels
-    std::deque<cl_kernel> _kernels;
+    std::vector<cl_kernel> _kernels;
 
     /// Global work sizes in each step
-    std::deque<size_t> _global_work_sizes;
+    std::vector<size_t> _global_work_sizes;
     /// Local work sizes in each step
-    std::deque<size_t> _local_work_sizes;
+    std::vector<size_t> _local_work_sizes;
     /// Number of work groups in each step
-    std::deque<size_t> _number_groups;
+    std::vector<size_t> _number_groups;
     /// Number of input elements for each step
-    std::deque<size_t> _n;
+    std::vector<size_t> _n;
 
     /// Memory objects
-    std::deque<cl_mem> _mems;
+    std::vector<cl_mem> _mems;
 };
 
 }}  // namespace

@@ -50,49 +50,47 @@ public:
      *   - VEC_NEG_INFINITY: -VEC_INFINITY
      *   - VEC_ALL_NEG_INFINITY: -VEC_ALL_INFINITY.
      */
-    Set(const char *name, const char *var_name, const char *value);
+    Set(const std::string name,
+        const std::string var_name,
+        const std::string value);
 
     /** Destructor.
      */
     ~Set();
 
     /** Initialize the tool.
-     * @return false if all gone right, true otherwise.
      */
-    bool setup();
+    void setup();
 
 protected:
     /** Compute the reduction.
-     * @return false if all gone right, true otherwise.
      */
-    bool _execute();
+    void _execute();
 
 private:
     /** Get the input variable
-     * @return false if all gone right, true otherwise
      */
-    bool variable();
+    void variable();
 
     /** Setup the OpenCL stuff
-     * @return false if all gone right, true otherwise.
      */
-    bool setupOpenCL();
+    void setupOpenCL();
 
     /** Compile the source code and generate the corresponding kernel
      * @param source Source code to be compiled.
      * @return Kernel instance, NULL if error happened.
      */
-    cl_kernel compile(const char* source);
+    cl_kernel compile(const std::string source);
 
     /** Update the input looking for changed value.
      * @return false if all gone right, true otherwise.
      */
-    bool setVariables();
+    void setVariables();
 
     /// Input variable name
-    char* _var_name;
+    std::string _var_name;
     /// Value to set
-    char* _value;
+    std::string _value;
 
     /// Input variable
     InputOutput::ArrayVariable *_var;

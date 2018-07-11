@@ -25,7 +25,7 @@
 #define TIMEMANAGER_H_INCLUDED
 
 #include <sphPrerequisites.h>
-#include <Singleton.h>
+#include <ProblemSetup.h>
 
 namespace Aqua{ namespace InputOutput{
 
@@ -38,11 +38,14 @@ namespace Aqua{ namespace InputOutput{
  *
  * @see Aqua::InputOutput::ProblemSetup::sphTimingParameters
  */
-struct TimeManager : public Aqua::Singleton<Aqua::InputOutput::TimeManager>
+struct TimeManager
 {
 public:
-    /// Constructor
-    TimeManager();
+    /** Constructor
+     *
+     * @param sim_data Simulation data
+     */
+    TimeManager(ProblemSetup& sim_data);
 
     /// Destructor
     ~TimeManager();
@@ -56,13 +59,6 @@ public:
      * @return true if simulation should finish, false otherwise.
      */
     bool mustStop();
-
-    /** @brief Check if the log file must be updated.
-     * @return true if the log should be updated, false otherwise.
-     * @warning This method is returning true just one time per time step (i.e.
-     * until update() is called again).
-     */
-    bool mustPrintLog();
 
     /** @brief Check if a general simulation output must be printed.
      * @return true if an output should be printed, false otherwise.

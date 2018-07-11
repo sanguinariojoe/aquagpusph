@@ -22,10 +22,9 @@
  */
 
 // #include <matheval.h>
-#include <stdlib.h>
 
 #include <Tokenizer/Tokenizer.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 
 using namespace std;
 
@@ -34,30 +33,32 @@ namespace Aqua{
 Tokenizer::Tokenizer()
 {
     struct lconv *lc;
-    char *s, msg[256];
-    Aqua::InputOutput::ScreenManager *S = Aqua::InputOutput::ScreenManager::singleton();
+    char *s;
 
     // Set the decimal-point character (which is depending on the locale)
     s = setlocale(LC_NUMERIC, NULL);
     if(strcmp(s, "C")){
-        sprintf(msg, "\"%s\" numeric locale found\n", s);
-        S->addMessageF(1, msg);
-        S->addMessage(0, "\tIt is replaced by \"C\"\n");
+        std::ostringstream msg;
+        msg << "\"" << s << "\" numeric locale found" << std::endl;
+        LOG(L_INFO, msg.str());
+        LOG0(L_DEBUG, "\tIt is replaced by \"C\"\n");
         setlocale(LC_NUMERIC, "C");
     }
     lc = localeconv();
     s = lc->decimal_point;
     if(strcmp(s, ".")){
-        sprintf(msg, "\"%s\" decimal point character found\n", s);
-        S->addMessageF(2, msg);
-        S->addMessage(0, "\tIt is replaced by \".\"\n");
+        std::ostringstream msg;
+        msg << "\"" << s << "\" decimal point character found" << std::endl;
+        LOG(L_WARNING, msg.str());
+        LOG0(L_DEBUG, "\tIt is replaced by \".\"\n");
         lc->decimal_point = ".";
     }
     s = lc->thousands_sep;
     if(strcmp(s, "")){
-        sprintf(msg, "\"%s\" thousands separator character found\n", s);
-        S->addMessageF(2, msg);
-        S->addMessage(0, "\tIt is removed\n");
+        std::ostringstream msg;
+        msg << "\"" << s << "\" thousands separator character found" << std::endl;
+        LOG(L_WARNING, msg.str());
+        LOG0(L_DEBUG, "\tIt is removed\n");
         lc->thousands_sep = "";
     }
 }
@@ -67,7 +68,7 @@ Tokenizer::~Tokenizer()
     p.ClearConst();
 }
 
-bool Tokenizer::registerVariable(const char* name, float value)
+bool Tokenizer::registerVariable(const std::string name, float value)
 {
     bool overwritten = false;
     // Look for the variable in order to know if it already exist
@@ -85,14 +86,14 @@ void Tokenizer::clearVariables()
     defaultVariables();
 }
 
-bool Tokenizer::isVariable(const char* name)
+bool Tokenizer::isVariable(const std::string name)
 {
     mu::valmap_type cmap = p.GetConst();
     if (cmap.size())
     {
         mu::valmap_type::const_iterator item = cmap.begin();
         for (; item!=cmap.end(); ++item){
-            if(!strcmp(name, item->first.c_str())){
+            if(!name.compare(item->first.c_str())){
                 return true;
             }
         }
@@ -100,37 +101,38 @@ bool Tokenizer::isVariable(const char* name)
     return false;
 }
 
-float Tokenizer::variable(const char* name)
+float Tokenizer::variable(const std::string name)
 {
     if(!isVariable(name)){
         return 0.f;
     }
     mu::valmap_type cmap = p.GetConst();
-    return (float)cmap[name];
+    return (float)cmap[name.c_str()];
 }
 
 
-float Tokenizer::solve(const char* eq, bool *error)
+float Tokenizer::solve(const std::string eq, bool *error)
 {
-    Aqua::InputOutput::ScreenManager *S;
-    char msg[1024], *test;
     float result;
-    S = Aqua::InputOutput::ScreenManager::singleton();
 
     if(error)
         *error = false;
 
-    // First test if the equation is directly a number
-    result = strtof(eq, &test);
-    if(test != eq){
-        // We have been able to convert it, but we must test that there are
-        // no remaining data to compute
-        if(!strlen(test)){
+    // First try a straight number conversion
+    try {
+        std::string::size_type sz;
+        result = std::stof(eq, &sz);
+        if (sz == eq.size()) {
+            // There is remaining content
             return result;
         }
     }
+    catch(...){
+        // No possible conversion (by a variety of errors), just proceed with
+        // the parser
+    }
 
-    // No way, let's evaluate the new expression
+    // No way, let's evaluate it as a expression
     p.SetExpr(eq);
     try
     {
@@ -138,13 +140,16 @@ float Tokenizer::solve(const char* eq, bool *error)
     }
     catch(mu::Parser::exception_type &e)
     {
-        sprintf(msg, "Error evaluating \"%s\"\n", e.GetExpr().c_str());
-        S->addMessageF(3, msg);
-        sprintf(msg, "\t%s\n", e.GetMsg().c_str());
-        S->addMessage(0, msg);
-        sprintf(msg, "\tToken %s in position %d\n", e.GetToken().c_str(),
-                                                    e.GetPos());
-        S->addMessage(0, msg);
+        std::ostringstream msg;
+        msg << "Error evaluating \"" << e.GetExpr() << "\"" << std::endl;
+        LOG(L_ERROR, msg.str());
+        msg.str("");
+        msg << "\t" << e.GetMsg() << std::endl;
+        LOG0(L_DEBUG, msg.str());
+        msg.str("");
+        msg << "\tToken " << e.GetToken()
+            << " in position " << e.GetPos() << std::endl;
+        LOG0(L_DEBUG, msg.str());
     }
 
     return result;

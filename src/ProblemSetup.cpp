@@ -22,35 +22,44 @@
  */
 
 #include <limits>
+#include <sstream>
 
 #include <ProblemSetup.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 #include <AuxiliarMethods.h>
 
 namespace Aqua{ namespace InputOutput{
 
 ProblemSetup::ProblemSetup()
+    : _copy(false)
 {
-    settings.init();
-
     time_opts.sim_end_mode = __NO_OUTPUT_MODE__;
     time_opts.sim_end_time = 0.f;
     time_opts.sim_end_step = 0;
     time_opts.sim_end_frame = 0;
-    time_opts.log_mode = __NO_OUTPUT_MODE__;
-    time_opts.log_fps = 0.f;
-    time_opts.log_ipf = 0;
     time_opts.output_mode = __NO_OUTPUT_MODE__;
     time_opts.output_fps = 0.f;
     time_opts.output_ipf = 0;
 }
 
+ProblemSetup::ProblemSetup(const ProblemSetup& p)
+    : settings(p.settings)
+    , variables(p.variables)
+    , definitions(p.definitions)
+    , tools(p.tools)
+    , reports(p.reports)
+    , time_opts(p.time_opts)
+    , sets(p.sets)
+    , _copy(true)
+{
+}
+
 ProblemSetup::~ProblemSetup()
 {
+    if (_copy)
+        return;
+
     unsigned int i;
-    settings.destroy();
-    variables.destroy();
-    definitions.destroy();
     for(i = tools.size(); i > 0; i--){
         if(toolInstances(tools.at(i - 1)) == 1){
             // This is the last remaining instance
@@ -59,34 +68,18 @@ ProblemSetup::~ProblemSetup()
         tools.erase(tools.begin() + i - 1);
     }
     tools.clear();
-    for(i = 0; i < reports.size(); i++){
-        delete reports.at(i);
+    for(auto report : reports){
+        delete report;
     }
     reports.clear();
-    for(i=0;i<sets.size();i++){
-        delete sets.at(i);
+    for(auto set : sets){
+        delete set;
     }
     sets.clear();
 }
 
-bool ProblemSetup::perform()
+ProblemSetup::sphSettings::sphSettings()
 {
-    unsigned int i;
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-    char msg[512];
-    strcpy(msg, "");
-    // Check for errors
-    if(sets.size() == 0) {
-        sprintf(msg, "No sets of particles have been added.\n");
-        S->addMessageF(3, msg);
-        return true;
-    }
-    return false;
-}
-
-void ProblemSetup::sphSettings::init()
-{
-    verbose_level = 1;
     save_on_fail = true;
     platform_id = 0;
     device_id = 0;
@@ -94,78 +87,34 @@ void ProblemSetup::sphSettings::init()
     base_path = "";
 }
 
-void ProblemSetup::sphSettings::destroy()
+void ProblemSetup::sphVariables::registerVariable(std::string name,
+                                                  std::string type,
+                                                  std::string length,
+                                                  std::string value)
 {
+    names.push_back(name);
+    types.push_back(type);
+    lengths.push_back(length);
+    values.push_back(value);
 }
 
-void ProblemSetup::sphVariables::registerVariable(const char* name,
-                                                  const char* type,
-                                                  const char* length,
-                                                  const char* value)
-{
-    size_t len;
-
-    char *aux=NULL;
-    len = strlen(name) + 1;
-    aux = new char[len];
-    strcpy(aux, name);
-    names.push_back(aux);
-    len = strlen(type) + 1;
-    aux = new char[len];
-    strcpy(aux, type);
-    types.push_back(aux);
-    len = strlen(length) + 1;
-    aux = new char[len];
-    strcpy(aux, length);
-    lengths.push_back(aux);
-    len = strlen(value) + 1;
-    aux = new char[len];
-    strcpy(aux, value);
-    values.push_back(aux);
-}
-
-void ProblemSetup::sphVariables::destroy()
-{
-    unsigned int i;
-    for(i=0;i<names.size();i++){
-        delete[] names.at(i);
-        delete[] types.at(i);
-        delete[] lengths.at(i);
-        delete[] values.at(i);
-    }
-    names.clear();
-    types.clear();
-    lengths.clear();
-    values.clear();
-}
-
-void ProblemSetup::sphDefinitions::define(const char* name,
-                                          const char* value,
+void ProblemSetup::sphDefinitions::define(const std::string name,
+                                          const std::string value,
                                           const bool evaluate)
 {
-    size_t len;
-
     if(isDefined(name)){
         undefine(name);
     }
 
-    char *aux=NULL;
-    len = strlen(name) + 1;
-    aux = new char[len];
-    strcpy(aux, name);
-    names.push_back(aux);
-    len = strlen(value) + 1;
-    aux = new char[len];
-    strcpy(aux, value);
-    values.push_back(aux);
+    names.push_back(name);
+    values.push_back(value);
     evaluations.push_back(evaluate);
 }
 
-bool ProblemSetup::sphDefinitions::isDefined(const char* name)
+bool ProblemSetup::sphDefinitions::isDefined(const std::string name)
 {
-    unsigned int i;
-    for(i = 0; i < names.size(); i++){
-        if(!strcmp(name, names.at(i))){
+    for(auto str : names){
+        if(!name.compare(str)){
             return true;
         }
     }
@@ -173,13 +122,11 @@ bool ProblemSetup::sphDefinitions::isDefined(const char* name)
     return false;
 }
 
-void ProblemSetup::sphDefinitions::undefine(const char* name)
+void ProblemSetup::sphDefinitions::undefine(const std::string name)
 {
     unsigned int i;
     for(i = 0; i < names.size(); i++){
-        if(!strcmp(name, names.at(i))){
-            delete[] names.at(i);
-            delete[] values.at(i);
+        if(!name.compare(names.at(i))){
             names.erase(names.begin() + i);
             values.erase(values.begin() + i);
             evaluations.erase(evaluations.begin() + i);
@@ -188,29 +135,8 @@ void ProblemSetup::sphDefinitions::undefine(const char* name)
     }
 }
 
-void ProblemSetup::sphDefinitions::destroy()
-{
-    unsigned int i;
-    for(i=0;i<names.size();i++){
-        delete[] names.at(i);
-        delete[] values.at(i);
-    }
-    names.clear();
-    values.clear();
-    evaluations.clear();
-}
-
-ProblemSetup::sphTool::sphTool()
-{
-}
-
-ProblemSetup::sphTool::~sphTool()
-{
-    _data.clear();
-}
-
-void ProblemSetup::sphTool::set(const char* name,
-                                const char* value)
+void ProblemSetup::sphTool::set(const std::string name,
+                                const std::string value)
 {
     if(has(name)){
         _data[name] = value;
@@ -219,43 +145,36 @@ void ProblemSetup::sphTool::set(const char* name,
     _data.insert(std::make_pair(name, value));
 }
 
-const char* ProblemSetup::sphTool::get(const char* name)
+const std::string ProblemSetup::sphTool::get(const std::string name)
 {
-    if(!has(name)){
-        return NULL;
-    }
     return _data[name].c_str();
 }
 
-const char* ProblemSetup::sphTool::get(unsigned int index)
+const std::string ProblemSetup::sphTool::get(unsigned int index)
 {
     unsigned int i = 0;
-    for(std::map<std::string,std::string>::iterator it=_data.begin();
-        it != _data.end();
-        ++it){
+    for (auto& d : _data) {
         if(i == index){
-            return it->second.c_str();
+            return d.second;
         }
         i++;
     }
     return NULL;
 }
 
-const char* ProblemSetup::sphTool::getName(unsigned int index)
+const std::string ProblemSetup::sphTool::getName(unsigned int index)
 {
     unsigned int i = 0;
-    for(std::map<std::string,std::string>::iterator it=_data.begin();
-        it != _data.end();
-        ++it){
+    for (auto& d : _data) {
         if(i == index){
-            return it->first.c_str();
+            return d.first;
         }
         i++;
     }
     return NULL;
 }
 
-bool ProblemSetup::sphTool::has(const char* name)
+bool ProblemSetup::sphTool::has(const std::string name)
 {
     std::map<std::string, std::string>::iterator var = _data.find(name);
     if(var != _data.end())
@@ -266,8 +185,8 @@ bool ProblemSetup::sphTool::has(const char* name)
 unsigned int ProblemSetup::toolInstances(ProblemSetup::sphTool *tool)
 {
     unsigned int i, n=0;
-    for(i = 0; i < tools.size(); i++){
-        if(tool == tools.at(i))
+    for(auto t : tools){
+        if(tool == t)
         {
             n++;
         }
@@ -277,100 +196,45 @@ unsigned int ProblemSetup::toolInstances(ProblemSetup::sphTool *tool)
 
 ProblemSetup::sphParticlesSet::sphParticlesSet()
     : _n(0)
-    , _in_path(NULL)
-    , _in_format(NULL)
-    , _out_path(NULL)
-    , _out_format(NULL)
 {
 }
 
 ProblemSetup::sphParticlesSet::~sphParticlesSet()
 {
-    unsigned int i;
-    for(i = 0; i < _snames.size(); i++){
-        delete[] _snames.at(i); _snames.at(i) = NULL;
-        delete[] _svalues.at(i); _svalues.at(i) = NULL;
-    }
-    _snames.clear();
-    _svalues.clear();
-    delete[] _in_path; _in_path=NULL;
-    delete[] _in_format; _in_format=NULL;
-    delete[] _out_path; _out_path=NULL;
-    delete[] _out_format; _out_format=NULL;
-    for(i = 0; i < _in_fields.size(); i++){
-        delete[] _in_fields.at(i); _in_fields.at(i) = NULL;
-    }
-    _in_fields.clear();
-    for(i = 0; i < _out_fields.size(); i++){
-        delete[] _out_fields.at(i); _out_fields.at(i) = NULL;
-    }
-    _out_fields.clear();
 }
 
-void ProblemSetup::sphParticlesSet::addScalar(const char* name,
-                                              const char* value)
+void ProblemSetup::sphParticlesSet::addScalar(std::string name,
+                                              std::string value)
 {
-    char* sname = new char[strlen(name) + 1];
-    strcpy(sname, name);
-    char* svalue = new char[strlen(value) + 1];
-    strcpy(svalue, value);
-    _snames.push_back(sname);
-    _svalues.push_back(svalue);
+    _snames.push_back(name);
+    _svalues.push_back(value);
 }
 
-void ProblemSetup::sphParticlesSet::input(const char* path,
-                                          const char* format,
-                                          const char* fields)
+void ProblemSetup::sphParticlesSet::input(std::string path,
+                                          std::string format,
+                                          std::string fields)
 {
-    unsigned int i;
-    if(_in_path) delete[] _in_path;
-    if(_in_format) delete[] _in_format;
-    for(i = 0; i < _in_fields.size(); i++){
-        delete[] _in_fields.at(i); _in_fields.at(i) = NULL;
-    }
-    _in_fields.clear();
-
-    _in_path = new char[strlen(path) + 1];
-    strcpy(_in_path, path);
-    _in_format = new char[strlen(format) + 1];
-    strcpy(_in_format, format);
-
-    char auxfields[strlen(fields) + 1];
-    strcpy(auxfields, fields);
-    char *field = strtok(auxfields, " ,");
-    while(field){
-        char *aux = new char[strlen(field) + 1];
-        strcpy(aux, field);
-        _in_fields.push_back(aux);
-        field = strtok (NULL, " ,");
+    _in_path = path;
+    _in_format = format;
+    // Split the fields
+    std::istringstream f(replaceAllCopy(fields, " ", ""));
+    std::string s;
+    while (getline(f, s, ',')) {
+        _in_fields.push_back(s);
     }
 }
 
-void ProblemSetup::sphParticlesSet::output(const char* path,
-                                           const char* format,
-                                           const char* fields)
+void ProblemSetup::sphParticlesSet::output(std::string path,
+                                           std::string format,
+                                           std::string fields)
 {
-    unsigned int i;
-    if(_out_path) delete[] _out_path;
-    if(_out_format) delete[] _out_format;
-    for(i = 0; i < _out_fields.size(); i++){
-        delete[] _out_fields.at(i); _out_fields.at(i) = NULL;
-    }
-    _out_fields.clear();
-
-    _out_path = new char[strlen(path) + 1];
-    strcpy(_out_path, path);
-    _out_format = new char[strlen(format) + 1];
-    strcpy(_out_format, format);
-
-    char auxfields[strlen(fields) + 1];
-    strcpy(auxfields, fields);
-    char *field = strtok(auxfields, " ,");
-    while(field){
-        char *aux = new char[strlen(field) + 1];
-        strcpy(aux, field);
-        _out_fields.push_back(aux);
-        field = strtok (NULL, " ,");
+    _out_path = path;
+    _out_format = format;
+    // Split the fields
+    std::istringstream f(replaceAllCopy(fields, " ", ""));
+    std::string s;
+    while (getline(f, s, ',')) {
+        _out_fields.push_back(s);
     }
 }
 

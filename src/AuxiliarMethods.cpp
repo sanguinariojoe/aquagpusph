@@ -20,6 +20,10 @@
  * @brief Set of auxiliar functions.
  */
 
+#include <algorithm> 
+#include <cctype>
+#include <locale>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -28,10 +32,11 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string>
+#include <sstream>
 
 #include <AuxiliarMethods.h>
 #include <ProblemSetup.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 
 namespace Aqua{
 
@@ -59,6 +64,74 @@ int isKeyPressed()
     }
 
     return 0;
+}
+
+bool hasSuffix(const std::string &str, const std::string &suffix)
+{
+    return str.size() >= suffix.size() &&
+           str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
+}
+
+void replaceAll(std::string &str,
+                       const std::string &search,
+                       const std::string &replace)
+{
+    size_t pos = 0;
+    while((pos = str.find(search, pos)) != std::string::npos) {
+        str.erase(pos, search.size());
+        str.insert(pos, replace);        
+    }
+}
+
+std::string replaceAllCopy(std::string str,
+                                  std::string search,
+                                  std::string replace)
+{
+    replaceAll(str, search, replace);
+    return str;
+}
+
+void ltrim(std::string &s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
+        return !std::isspace(ch);
+    }));
+}
+
+void rtrim(std::string &s) {
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
+        return !std::isspace(ch);
+    }).base(), s.end());
+}
+
+void trim(std::string &s) {
+    ltrim(s);
+    rtrim(s);
+}
+
+std::string ltrimCopy(std::string s) {
+    ltrim(s);
+    return s;
+}
+
+std::string rtrimCopy(std::string s) {
+    rtrim(s);
+    return s;
+}
+
+std::string trimCopy(std::string s) {
+    trim(s);
+    return s;
+}
+
+static std::string xxd_str;
+
+std::string xxd2string(unsigned char* arr, unsigned int len)
+{
+    char txt[len + 1];
+    strncpy(txt, (const char*)arr, len);
+    txt[len] = '\0';
+    xxd_str = txt;
+    return xxd_str;
 }
 
 unsigned int nextPowerOf2( unsigned int n )
@@ -96,268 +169,53 @@ int round(float n)
     return (int)(n + 0.5f);
 }
 
-size_t loadKernelFromFile(cl_kernel* kernel, cl_program* program,
-                          cl_context context, cl_device_id device,
-                          const char* path, const char* entry_point,
-                          const char* flags, const char* header)
+static std::string folder;
+
+const std::string getFolderFromFilePath(const std::string file_path)
 {
-    char* source = NULL;
-    char* default_flags = NULL;
-    size_t source_length = 0;
-    int err_code = CL_SUCCESS;
-    *program = NULL;
-    *kernel = NULL;
-    size_t work_group_size=0;
-    InputOutput::ProblemSetup* problemSetup = InputOutput::ProblemSetup::singleton();
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-
-    // Allocate the required memory to read the source code
-    source_length = readFile(NULL, path);
-    if(!source_length)
-        return 0;
-    source = new char[source_length + 1];
-    if(!source) {
-        S->addMessageF(3, "Imposible to allocate memory on host for the source code.\n");
-        return 0;
-    }
-    // Read the file
-    source_length = readFile(source, path);
-    if(!source_length){
-        delete[] source; source=NULL;
-        return 0;
-    }
-    // Append the header on top of the source code
-    if(header){
-        char *backup   = source;
-        source_length += strlen(header)*sizeof(char);
-        source        = new char[source_length+1];
-        if(!source) {
-            S->addMessageF(3, "Imposible to allocate memory on host to append header.\n");
-            return 0;
-        }
-        strcpy(source, header);
-        strcat(source, backup);
-        delete[] backup;
-    }
-
-    // Create the program and compile it
-    *program = clCreateProgramWithSource(context, 1, (const char **)&source,
-                                         &source_length, &err_code);
-    if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "OpenCl source code send error.\n");
-        S->printOpenCLError(err_code);
-        delete[] source; source=NULL;
-        return 0;
-    }
-    default_flags = new char[1024];
-    #ifdef AQUA_DEBUG
-        strcpy(default_flags, "-DDEBUG ");
-    #else
-        strcpy(default_flags, "-DNDEBUG ");
-    #endif
-    strcat(default_flags, "-I");
-    const char *folder = getFolderFromFilePath(path);
-    strcat(default_flags, folder);
-
-    strcat(default_flags, " -cl-mad-enable -cl-fast-relaxed-math ");
-    #ifdef HAVE_3D
-        strcat(default_flags, " -DHAVE_3D ");
-    #else
-        strcat(default_flags, " -DHAVE_2D ");
-    #endif
-
-    strcat(default_flags, flags);
-    char msg[1024];
-    strcpy(msg, "\"");
-    strcat(msg, path);
-    strcat(msg, "\" :: \"");
-    strcat(msg, entry_point);
-    strcat(msg, "\"\n");
-    S->addMessageF(1, msg);
-    S->addMessage(0, "Flags = \"");
-    S->addMessage(0, default_flags);
-    S->addMessage(0, "\"\n");
-    if(header){
-        S->addMessageF(1, "Header append:\n");
-        S->addMessage(0, header);
-        S->addMessage(0, "\n");
-    }
-    err_code = clBuildProgram(*program, 0, NULL, default_flags, NULL, NULL);
-    if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Can't compile OpenCl source code.\n");
-        S->printOpenCLError(err_code);
-        S->addMessage(3, "--- Build log ---------------------------------\n");
-        size_t log_size = 0;
-        clGetProgramBuildInfo(*program,
-                              device,
-                              CL_PROGRAM_BUILD_LOG,
-                              0,
-                              NULL,
-                              &log_size);
-        char *log = (char*)malloc(log_size + sizeof(char));
-        if(!log){
-            sprintf(msg,
-                    "Failure allocating %lu bytes for the building log\n",
-                    log_size);
-            S->addMessage(3, msg);
-            S->addMessage(3, "--------------------------------- Build log ---\n");
-            return NULL;
-        }
-        strcpy(log, "");
-        clGetProgramBuildInfo(*program,
-                              device,
-                              CL_PROGRAM_BUILD_LOG,
-                              log_size,
-                              log,
-                              NULL);
-        strcat(log, "\n");
-        S->addMessage(0, log);
-        S->addMessage(3, "--------------------------------- Build log ---\n");
-        delete[] source; source=NULL;
-        delete[] default_flags; default_flags=NULL;
-        return 0;
-    }
-    char log[10240];
-    unsigned int log_start = 0;
-    clGetProgramBuildInfo(*program, device, CL_PROGRAM_BUILD_LOG,
-                          10240*sizeof(char), log, NULL );
-    while(    (log[log_start] == ' ')
-           || (log[log_start] == '\t')
-           || (log[log_start] == '\n'))
-    {
-        log_start++;
-    }
-    if(strcmp(&(log[log_start]), "")){
-        S->addMessage(2, "--- Build log ---------------------------------\n");
-        strcat(&(log[log_start]), "\n");
-        S->addMessage(0, &(log[log_start]));
-        S->addMessage(2, "--------------------------------- Build log ---\n");
-    }
-
-    *kernel = clCreateKernel(*program, entry_point, &err_code);
-    if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Can't create kernel.\n");
-        S->printOpenCLError(err_code);
-        delete[] source; source=NULL;
-        delete[] default_flags; default_flags=NULL;
-        return 0;
-    }
-    delete[] source; source=NULL;
-    delete[] default_flags; default_flags=NULL;
-    err_code = clGetKernelWorkGroupInfo(*kernel, device,
-                                        CL_KERNEL_WORK_GROUP_SIZE,
-                                        sizeof(size_t), &work_group_size,
-                                        NULL);
-    if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Can't get maximum work group size from kernel.\n");
-        S->printOpenCLError(err_code);
-        return 0;
-    }
-    return work_group_size;
-}
-
-static char folder[1024];
-
-const char* getFolderFromFilePath(const char* file_path)
-{
-    int i;
-    strcpy(folder, "");
+    std::ostringstream str;
     if(file_path[0] != '/')
-        strcat(folder, "./");
-    for(i = strlen(file_path); i > 0; i--) {
-        if(file_path[i - 1] == '/') {
-            break;
-        }
-    }
-    strncat(folder, file_path, i);
+        str << "./";
+    std::size_t last_sep = file_path.find_last_of("/\\");
+    if(last_sep != std::string::npos)
+        str << file_path.substr(0, last_sep);
+    folder = str.str();
     return folder;
 }
 
-static char filename[1024];
+static std::string filename;
 
-const char* getFileNameFromFilePath(const char* file_path)
+const std::string getFileNameFromFilePath(const std::string file_path)
 {
-    int i;
-    strcpy(filename, "");
-    for(i = strlen(file_path) - 1; i >= 0; i--) {
-        if(file_path[i] == '/') {
-            break;
-        }
-    }
-    strcpy(filename, &(file_path[i + 1]));
+    std::size_t last_sep = file_path.find_last_of("/\\");
+    if(last_sep != std::string::npos)
+        filename = file_path.substr(last_sep + 1);
+    else
+        filename = file_path;
     return filename;
 }
 
-const char* getExtensionFromFilePath(const char* file_path)
+static std::string extension;
+
+const std::string getExtensionFromFilePath(const std::string file_path)
 {
-    int i;
-    for(i=strlen(file_path)-1;i>0;i--) {
-        if(file_path[i-1] == '.') {
-            break;
-        }
-    }
-    return strstr(file_path, &file_path[i]);
+    std::size_t last_sep = file_path.find_last_of(".");
+    if(last_sep != std::string::npos)
+        extension = file_path.substr(last_sep + 1);
+    else
+        extension = "";
+    return extension;
 }
 
-int isFile(const char* file_name)
+bool isFile(const std::string file_name)
 {
     FILE *streamer=0;
-    streamer = fopen(file_name, "rb");
+    streamer = fopen(file_name.c_str(), "rb");
     if(streamer){
         fclose(streamer);
-        return 1;
+        return true;
     }
-    return 0;
-}
-
-size_t readFile(char* source_code, const char* file_name)
-{
-    size_t length = 0;
-    FILE *file = NULL;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-
-    file = fopen(file_name, "rb");
-    if(file == NULL) {
-        sprintf(msg, "Impossible to open \"%s\".\n", file_name);
-        S->addMessageF(3, msg);
-        return 0;
-    }
-    fseek(file, 0, SEEK_END);
-    length = ftell(file);
-    fseek(file, 0, SEEK_SET);
-    if(length == 0) {
-        strcpy(msg, "(ReadFile): \"");
-        strcat(msg,file_name);
-        strcat(msg,"\" is empty.\n");
-        S->addMessageF(3, msg);
-        fclose(file);
-        return 0;
-    }
-    if(!source_code) {
-        fclose(file);
-        return length;
-    }
-    size_t readed = fread(source_code, length, 1, file);
-    source_code[length] = '\0';
-
-    fclose(file);
-    return length;
-}
-
-int sendArgument(cl_kernel kernel, int index, size_t size, void* ptr)
-{
-    int err_code;
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-    err_code = clSetKernelArg(kernel, index, size, ptr);
-    if(err_code != CL_SUCCESS) {
-        char msg[1025]; strcpy(msg, "");
-        sprintf(msg, "The argument %d can not be set.\n", index);
-        S->addMessageF(3, msg);
-        S->printOpenCLError(err_code);
-        return 1;
-    }
-    return 0;
+    return false;
 }
 
 size_t getLocalWorkSize(cl_uint n, cl_command_queue queue)

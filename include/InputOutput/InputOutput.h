@@ -28,12 +28,7 @@ namespace Aqua{
 namespace InputOutput{
 
 /** \class InputOutput InputOutput.h InputOutput/InputOutput.h
- * @brief Base class for all the input/output file managers.
- *
- * In AQUAgpusph the input/output managers are divided in 3 different types:
- *   -# The simulation configuration files manager
- *   -# The report file managers
- *   -# The particles output file managers
+ * @brief Base class for input/output file managers.
  *
  * @see Aqua::InputOutput::State
  * @see Aqua::InputOutput::Report
@@ -49,15 +44,15 @@ protected:
     virtual ~InputOutput(){};
 
 public:
-    /** @brief Save the data
-     * @return false if all gone right, true otherwise.
+    /** @brief Save the data.
+     *
+     * @param t Simulation time
      */
-    virtual bool save() = 0;
+    virtual void save(float t) = 0;
 
     /** @brief Load the data
-     * @return false if all gone right, true otherwise.
      */
-    virtual bool load() = 0;
+    virtual void load() = 0;
 
 };  // class InputOutput
 

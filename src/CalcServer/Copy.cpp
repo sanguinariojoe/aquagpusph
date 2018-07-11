@@ -25,58 +25,42 @@
 #include <math.h>
 #include <vector>
 
-#include <ProblemSetup.h>
-#include <ScreenManager.h>
-#include <CalcServer/Copy.h>
+#include <AuxiliarMethods.h>
+#include <InputOutput/Logger.h>
 #include <CalcServer.h>
+#include <CalcServer/Copy.h>
 
 namespace Aqua{ namespace CalcServer{
 
-Copy::Copy(const char *name, const char *input_name, const char *output_name)
+Copy::Copy(const std::string name,
+           const std::string input_name,
+           const std::string output_name)
     : Tool(name)
-    , _input_name(NULL)
-    , _output_name(NULL)
+    , _input_name(input_name)
+    , _output_name(output_name)
     , _input_var(NULL)
     , _output_var(NULL)
 {
-    _input_name = new char[strlen(input_name) + 1];
-    strcpy(_input_name, input_name);
-    _output_name = new char[strlen(output_name) + 1];
-    strcpy(_output_name, output_name);
 }
 
 Copy::~Copy()
 {
-    if(_input_name) delete[] _input_name; _input_name=NULL;
-    if(_output_name) delete[] _output_name; _output_name=NULL;
 }
 
-bool Copy::setup()
+void Copy::setup()
 {
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-    CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables *vars = C->variables();
+    std::ostringstream msg;
+    msg << "Loading the tool \"" << name() << "\"..." << std::endl;
+    LOG(L_INFO, msg.str());
 
-    sprintf(msg,
-            "Loading the tool \"%s\"...\n",
-            name());
-    S->addMessageF(1, msg);
-
-    if(variables()){
-        return true;
-    }
-
-    return false;
+    variables();
 }
 
 
-bool Copy::_execute()
+void Copy::_execute()
 {
     unsigned int i;
     cl_int err_code;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
 
     err_code = clEnqueueCopyBuffer(C->command_queue(),
@@ -89,95 +73,83 @@ bool Copy::_execute()
                                    NULL,
                                    NULL);
     if(err_code != CL_SUCCESS){
-        sprintf(msg,
-                "Failure during the execution of the tool \"%s\".\n",
-                name());
-        S->addMessageF(3, msg);
-        S->printOpenCLError(err_code);
-        return true;
+        std::stringstream msg;
+        msg << "Failure executing the tool \"" <<
+               name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
     }
-
-    return false;
 }
 
-bool Copy::variables()
+void Copy::variables()
 {
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
     InputOutput::Variables *vars = C->variables();
     if(!vars->get(_input_name)){
-        sprintf(msg,
-                "The tool \"%s\" has received undeclared variable \"%s\" as input.\n",
-                name(),
-                _input_name);
-        S->addMessageF(3, msg);
-        return true;
+        std::stringstream msg;
+        msg << "The tool \"" << name()
+            << "\" is asking the undeclared variable \""
+            << _input_name << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("Invalid variable");
     }
-    if(!strchr(vars->get(_input_name)->type(), '*')){
-        sprintf(msg,
-                "The tool \"%s\" has received the scalar variable \"%s\" as input.\n",
-                name(),
-                _input_name);
-        S->addMessageF(3, msg);
-        return true;
+    if(vars->get(_input_name)->type().find('*') == std::string::npos){
+        std::stringstream msg;
+        msg << "The tool \"" << name()
+            << "\" may not use a scalar variable (\""
+            << _input_name << "\")." << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("Invalid variable type");
     }
     _input_var = (InputOutput::ArrayVariable *)vars->get(_input_name);
     size_t n_in = _input_var->size() / vars->typeToBytes(_input_var->type());
     if(!vars->get(_output_name)){
-        sprintf(msg,
-                "The tool \"%s\" has received undeclared variable \"%s\" as output.\n",
-                name(),
-                _output_name);
-        S->addMessageF(3, msg);
-        return true;
+        std::stringstream msg;
+        msg << "The tool \"" << name()
+            << "\" is asking the undeclared variable \""
+            << _output_name << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("Invalid variable");
     }
-    if(!strchr(vars->get(_output_name)->type(), '*')){
-        sprintf(msg,
-                "The tool \"%s\" has received the scalar variable \"%s\" as output.\n",
-                name(),
-                _output_name);
-        S->addMessageF(3, msg);
-        return true;
+    if(vars->get(_output_name)->type().find('*') == std::string::npos){
+        std::stringstream msg;
+        msg << "The tool \"" << name()
+            << "\" may not use a scalar variable (\""
+            << _output_name << "\")." << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("Invalid variable type");
     }
     _output_var = (InputOutput::ArrayVariable *)vars->get(_output_name);
     size_t n_out = _input_var->size() / vars->typeToBytes(_input_var->type());
     if(!vars->isSameType(_input_var->type(), _output_var->type())){
-        sprintf(msg,
-                "The input and output types mismatch for the tool \"%s\".\n",
-                name());
-        S->addMessageF(3, msg);
-        sprintf(msg,
-                "\tInput variable \"%s\" is of type \"%s\".\n",
-                _input_var->name(),
-                _input_var->type());
-        S->addMessage(0, msg);
-        sprintf(msg,
-                "\tOutput variable \"%s\" is of type \"%s\".\n",
-                _output_var->name(),
-                _output_var->type());
-        S->addMessage(0, msg);
-        return true;
+        std::stringstream msg;
+        msg << "The input and output types mismatch for the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        msg.str("");
+        msg << "\tInput variable \"" << _input_var->name()
+            << "\" is of type \"" << _input_var->type() << "\"" << std::endl;
+        LOG0(L_DEBUG, msg.str());
+        msg << "\tOutput variable \"" << _output_var->name()
+            << "\" is of type \"" << _output_var->type() << "\"" << std::endl;
+        LOG0(L_DEBUG, msg.str());
+        throw std::runtime_error("Incompatible types");
     }
     if(n_in != n_out){
-        sprintf(msg,
-                "The input and output lengths mismatch for the tool \"%s\".\n",
-                name());
-        S->addMessageF(3, msg);
-        sprintf(msg,
-                "\tInput variable \"%s\" has a length n=%lu.\n",
-                _input_var->name(),
-                n_in);
-        S->addMessage(0, msg);
-        sprintf(msg,
-                "\tOutput variable \"%s\" has a length n=%lu.\n",
-                _output_var->name(),
-                n_out);
-        S->addMessage(0, msg);
-        return true;
+        std::stringstream msg;
+        msg << "Input and output lengths mismatch for the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        msg.str("");
+        msg << "\tInput variable \"" << _input_var->name()
+            << "\" has length " << n_in << std::endl;
+        LOG0(L_DEBUG, msg.str());
+        msg << "\tOutput variable \"" << _output_var->name()
+            << "\" has length " << n_out << std::endl;
+        LOG0(L_DEBUG, msg.str());
+        throw std::runtime_error("Incompatible lenghts");
     }
-
-    return false;
 }
 
 }}  // namespaces

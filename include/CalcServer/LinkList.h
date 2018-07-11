@@ -27,7 +27,7 @@
 #define LINKLIST_H_INCLUDED
 
 #include <sphPrerequisites.h>
-#include <deque>
+#include <vector>
 #include <CalcServer/Tool.h>
 #include <CalcServer/Reduction.h>
 #include <CalcServer/RadixSort.h>
@@ -52,52 +52,45 @@ public:
      * @param tool_name Tool name.
      * @param input Input array to be used as the particles positions.
      */
-    LinkList(const char* tool_name, const char* input="pos");
+    LinkList(const std::string tool_name, const std::string input="pos");
 
     /** Destructor
      */
     ~LinkList();
 
     /** Initialize the tool.
-     * @return false if all gone right, true otherwise.
      */
-    bool setup();
+    void setup();
 
 protected:
     /** Execute the tool.
-     * @return false if all gone right, true otherwise.
      */
-    bool _execute();
+    void _execute();
 
 private:
     /** Setup the OpenCL stuff
-     * @return false if all gone right, true otherwise.
      */
-    bool setupOpenCL();
+    void setupOpenCL();
 
     /** Compile the source code and generate the kernels
      * @param source Source code to be compiled.
-     * @return false if all gone right, true otherwise.
      */
-    bool compile(const char* source);
+    void compile(const std::string source);
 
     /** Compute the number of cells
-     * @return false if all gone right, true otherwise.
      */
-    bool nCells();
+    void nCells();
 
     /** Allocate the "ihoc" array
-     * @return false if all gone right, true otherwise.
      */
-    bool allocate();
+    void allocate();
 
     /** Update the input and output looking for changed values.
-     * @return false if all gone right, true otherwise.
      */
-    bool setVariables();
+    void setVariables();
 
     /// Input variable name
-    char *_input_name;
+    std::string _input_name;
 
     /// Cells length
     float _cell_length;
@@ -121,7 +114,7 @@ private:
     /// "ihoc" array initialization global work size
     size_t _ihoc_gws;
     /// "ihoc" array initialization sent arguments
-    std::deque<void*> _ihoc_args;
+    std::vector<void*> _ihoc_args;
 
     /// "icell" array computation
     cl_kernel _icell;
@@ -130,7 +123,7 @@ private:
     /// "icell" array computation global work size
     size_t _icell_gws;
     /// "icell" array computation sent arguments
-    std::deque<void*> _icell_args;
+    std::vector<void*> _icell_args;
 
     /// "ihoc" array computation
     cl_kernel _ll;
@@ -139,7 +132,7 @@ private:
     /// "ihoc" array computation global work size
     size_t _ll_gws;
     /// "ihoc" array computation sent arguments
-    std::deque<void*> _ll_args;
+    std::vector<void*> _ll_args;
 };
 
 }}  // namespace

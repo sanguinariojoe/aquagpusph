@@ -23,9 +23,10 @@
  * CalcServer/LinkList.hcl.in are internally included as a text array.
  */
 
-#include <CalcServer/LinkList.h>
+#include <AuxiliarMethods.h>
+#include <InputOutput/Logger.h>
 #include <CalcServer.h>
-#include <ScreenManager.h>
+#include <CalcServer/LinkList.h>
 
 namespace Aqua{ namespace CalcServer{
 
@@ -33,14 +34,13 @@ namespace Aqua{ namespace CalcServer{
 #include "CalcServer/LinkList.hcl"
 #include "CalcServer/LinkList.cl"
 #endif
-const char* LINKLIST_INC = (const char*)LinkList_hcl_in;
-unsigned int LINKLIST_INC_LEN = LinkList_hcl_in_len;
-const char* LINKLIST_SRC = (const char*)LinkList_cl_in;
-unsigned int LINKLIST_SRC_LEN = LinkList_cl_in_len;
+std::string LINKLIST_INC = xxd2string(LinkList_hcl_in, LinkList_hcl_in_len);
+std::string LINKLIST_SRC = xxd2string(LinkList_cl_in, LinkList_cl_in_len);
 
-LinkList::LinkList(const char* tool_name, const char* input)
+
+LinkList::LinkList(const std::string tool_name, const std::string input)
     : Tool(tool_name)
-    , _input_name(NULL)
+    , _input_name(input)
     , _cell_length(0.f)
     , _min_pos(NULL)
     , _max_pos(NULL)
@@ -54,76 +54,60 @@ LinkList::LinkList(const char* tool_name, const char* input)
     , _ll_lws(0)
     , _ll_gws(0)
 {
-    _input_name = new char[strlen(input) + 1];
-    strcpy(_input_name, input);
-
-    char min_pos_name[strlen(tool_name) + strlen("->Min. Pos.") + 1];
-    strcpy(min_pos_name, tool_name);
-    strcat(min_pos_name, "->Min. Pos.");
-    const char *min_pos_op = "c.x = (a.x < b.x) ? a.x : b.x;\nc.y = (a.y < b.y) ? a.y : b.y;\n#ifdef HAVE_3D\nc.z = (a.z < b.z) ? a.z : b.z;\nc.w = 0.f;\n#endif\n";
-    _min_pos = new Reduction(min_pos_name,
+    std::stringstream min_pos_name;
+    min_pos_name << tool_name << "->Min. Pos.";
+    std::string min_pos_op = "c.x = (a.x < b.x) ? a.x : b.x;\nc.y = (a.y < b.y) ? a.y : b.y;\n#ifdef HAVE_3D\nc.z = (a.z < b.z) ? a.z : b.z;\nc.w = 0.f;\n#endif\n";
+    _min_pos = new Reduction(min_pos_name.str(),
                              input,
                              "r_min",
                              min_pos_op,
                              "VEC_INFINITY");
-    char max_pos_name[strlen(tool_name) + strlen("->Max. Pos.") + 1];
-    strcpy(max_pos_name, tool_name);
-    strcat(max_pos_name, "->Max. Pos.");
-    const char *max_pos_op = "c.x = (a.x > b.x) ? a.x : b.x;\nc.y = (a.y > b.y) ? a.y : b.y;\n#ifdef HAVE_3D\nc.z = (a.z > b.z) ? a.z : b.z;\nc.w = 0.f;\n#endif\n";
-    _max_pos = new Reduction(max_pos_name,
+    std::stringstream max_pos_name;
+    max_pos_name << tool_name << "->Max. Pos.";
+    std::string max_pos_op = "c.x = (a.x > b.x) ? a.x : b.x;\nc.y = (a.y > b.y) ? a.y : b.y;\n#ifdef HAVE_3D\nc.z = (a.z > b.z) ? a.z : b.z;\nc.w = 0.f;\n#endif\n";
+    _max_pos = new Reduction(max_pos_name.str(),
                              input,
                              "r_max",
                              max_pos_op,
                              "-VEC_INFINITY");
-    char sort_name[strlen(tool_name) + strlen("->Radix-Sort") + 1];
-    strcpy(sort_name, tool_name);
-    strcat(sort_name, "->Radix-Sort");
-    _sort = new RadixSort(sort_name);
+    std::stringstream sort_name;
+    sort_name << tool_name << "->Radix-Sort";
+    _sort = new RadixSort(sort_name.str());
 }
 
 LinkList::~LinkList()
 {
-    unsigned int i;
-    if(_input_name) delete[] _input_name; _input_name=NULL;
     if(_min_pos) delete _min_pos; _min_pos=NULL;
     if(_max_pos) delete _max_pos; _max_pos=NULL;
     if(_sort) delete _sort; _sort=NULL;
     if(_ihoc) clReleaseKernel(_ihoc); _ihoc=NULL;
     if(_icell) clReleaseKernel(_icell); _icell=NULL;
     if(_ll) clReleaseKernel(_ll); _ll=NULL;
-    for(i = 0; i < _ihoc_args.size(); i++){
-        free(_ihoc_args.at(i));
+    for(auto arg : _ihoc_args){
+        free(arg);
     }
     _ihoc_args.clear();
-    for(i = 0; i < _icell_args.size(); i++){
-        free(_icell_args.at(i));
+    for(auto arg : _icell_args){
+        free(arg);
     }
     _icell_args.clear();
-    for(i = 0; i < _ll_args.size(); i++){
-        free(_ll_args.at(i));
+    for(auto arg : _ll_args){
+        free(arg);
     }
     _ll_args.clear();
 }
 
-bool LinkList::setup()
+void LinkList::setup()
 {
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-    CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables *vars = C->variables();
+    InputOutput::Variables *vars = CalcServer::singleton()->variables();
 
-    sprintf(msg,
-            "Loading the tool \"%s\"...\n",
-            name());
-    S->addMessageF(1, msg);
+    std::ostringstream msg;
+    msg << "Loading the tool \"" << name() << "\"..." << std::endl;
+    LOG(L_INFO, msg.str());
 
     // Setup the reduction tools
-    if(_min_pos->setup()){
-        return true;
-    }
-    if(_max_pos->setup()){
-        return true;
-    }
+    _min_pos->setup();
+    _max_pos->setup();
 
     // Compute the cells length
     InputOutput::Variable *s = vars->get("support");
@@ -131,44 +115,26 @@ bool LinkList::setup()
     _cell_length = *(float*)s->get() * *(float*)h->get();
 
     // Setup the kernels
-    if(setupOpenCL()){
-        return true;
-    }
+    setupOpenCL();
 
     // Setup the radix-sort
-    if(_sort->setup()){
-        return true;
-    }
-
-    return false;
+    _sort->setup();
 }
 
-bool LinkList::_execute()
+void LinkList::_execute()
 {
     cl_int err_code;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
 
-    if(_min_pos->execute()){
-        return true;
-    }
-    if(_max_pos->execute()){
-        return true;
-    }
+    _min_pos->execute();
+    _max_pos->execute();
 
     // Compute the number of cells, and allocate memory for ihoc
-    if(nCells()){
-        return true;
-    }
-    if(allocate()){
-        return true;
-    }
+    nCells();
+    allocate();
 
     // Check the validity of the variables
-    if(setVariables()){
-        return true;
-    }
+    setVariables();
 
     // Compute the cell of each particle
     err_code = clEnqueueNDRangeKernel(C->command_queue(),
@@ -181,18 +147,16 @@ bool LinkList::_execute()
                                       NULL,
                                       NULL);
     if(err_code != CL_SUCCESS) {
-        sprintf(msg,
-                "Failure executing \"iCell\" from tool \"%s\".\n",
-                name());
-        S->addMessageF(3, msg);
-        S->printOpenCLError(err_code);
-        return true;
+        std::stringstream msg;
+        msg << "Failure executing \"iCell\" from tool \"" <<
+               name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
     }
 
     // Sort the particles from the cells
-    if(_sort->execute()){
-        return true;
-    }
+    _sort->execute();
 
     // Compute the head of cells
     err_code = clEnqueueNDRangeKernel(C->command_queue(),
@@ -205,12 +169,12 @@ bool LinkList::_execute()
                                       NULL,
                                       NULL);
     if(err_code != CL_SUCCESS) {
-        sprintf(msg,
-                "Failure executing \"iHoc\" from tool \"%s\".\n",
-                name());
-        S->addMessageF(3, msg);
-        S->printOpenCLError(err_code);
-        return true;
+        std::stringstream msg;
+        msg << "Failure executing \"iHoc\" from tool \"" <<
+               name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
     }
 
     err_code = clEnqueueNDRangeKernel(C->command_queue(),
@@ -223,43 +187,28 @@ bool LinkList::_execute()
                                       NULL,
                                       NULL);
     if(err_code != CL_SUCCESS) {
-        sprintf(msg,
-                "Failure executing \"linkList\" from tool \"%s\".\n",
-                name());
-        S->addMessageF(3, msg);
-        S->printOpenCLError(err_code);
-        return true;
+        std::stringstream msg;
+        msg << "Failure executing \"linkList\" from tool \"" <<
+               name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
     }
-
-    return false;
 }
 
-bool LinkList::setupOpenCL()
+void LinkList::setupOpenCL()
 {
     unsigned int i;
     uivec4 n_cells;
     unsigned int n_radix, N;
     cl_int err_code;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
     InputOutput::Variables *vars = C->variables();
 
     // Create a header for the source code where the operation will be placed
-    char header[LINKLIST_INC_LEN + 1];
-    strcpy(header, "");
-    strncat(header, LINKLIST_INC, LINKLIST_INC_LEN);
-    strcat(header, "");
-
-    // Setup the complete source code
-    char source[strlen(header) + strlen(LINKLIST_SRC) + 1];
-    strcpy(source, header);
-    strncat(source, LINKLIST_SRC, LINKLIST_SRC_LEN);
-    strcat(source, "");
-
-    if(compile(source)){
-        return true;
-    }
+    std::ostringstream source;
+    source << LINKLIST_INC << LINKLIST_SRC;
+    compile(source.str());
 
     err_code = clGetKernelWorkGroupInfo(_ihoc,
                                         C->device(),
@@ -268,18 +217,18 @@ bool LinkList::setupOpenCL()
                                         &_ihoc_lws,
                                         NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure querying the work group size (\"iHoc\").\n");
-        S->printOpenCLError(err_code);
-        return true;
+        LOG(L_ERROR, "Failure querying the work group size (\"iHoc\").\n");
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     if(_ihoc_lws < __CL_MIN_LOCALSIZE__){
-        S->addMessageF(3, "iHoc cannot be performed.\n");
-        sprintf(msg,
-                "\t%lu elements can be executed, but __CL_MIN_LOCALSIZE__=%lu\n",
-                _ihoc_lws,
-                __CL_MIN_LOCALSIZE__);
-        S->addMessage(0, msg);
-        return true;
+        LOG(L_ERROR, "insufficient local memory for \"iHoc\".\n");
+        std::stringstream msg;
+        msg << "\t" << _ihoc_lws
+            << " local work group size with __CL_MIN_LOCALSIZE__="
+            << __CL_MIN_LOCALSIZE__ << std::endl;
+        LOG0(L_DEBUG, msg.str());
+        throw std::runtime_error("OpenCL error");
     }
     n_cells = *(uivec4*)vars->get("n_cells")->get();
     _ihoc_gws = roundUp(n_cells.w, _ihoc_lws);
@@ -290,12 +239,12 @@ bool LinkList::setupOpenCL()
                                   vars->get(_ihoc_vars[i])->typesize(),
                                   vars->get(_ihoc_vars[i])->get());
         if(err_code != CL_SUCCESS){
-            sprintf(msg,
-                    "Failure sending \"%s\" argument to \"iHoc\".\n",
-                    _ihoc_vars[i]);
-            S->addMessageF(3, msg);
-            S->printOpenCLError(err_code);
-            return true;
+            std::stringstream msg;
+            msg << "Failure sending \"" << _ihoc_vars[i]
+                << "\" argument to \"iHoc\"." << std::endl;
+            LOG(L_ERROR, msg.str());
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL error");
         }
         _ihoc_args.push_back(malloc(vars->get(_ihoc_vars[i])->typesize()));
         memcpy(_ihoc_args.at(i),
@@ -310,22 +259,22 @@ bool LinkList::setupOpenCL()
                                         &_icell_lws,
                                         NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure querying the work group size (\"iCell\").\n");
-        S->printOpenCLError(err_code);
-        return true;
+        LOG(L_ERROR, "Failure querying the work group size (\"iCell\").\n");
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     if(_icell_lws < __CL_MIN_LOCALSIZE__){
-        S->addMessageF(3, "iCell cannot be performed.\n");
-        sprintf(msg,
-                "\t%lu elements can be executed, but __CL_MIN_LOCALSIZE__=%lu\n",
-                _icell_lws,
-                __CL_MIN_LOCALSIZE__);
-        S->addMessage(0, msg);
-        return true;
+        LOG(L_ERROR, "insufficient local memory for \"iCell\".\n");
+        std::stringstream msg;
+        msg << "\t" << _icell_lws
+            << " local work group size with __CL_MIN_LOCALSIZE__="
+            << __CL_MIN_LOCALSIZE__ << std::endl;
+        LOG0(L_DEBUG, msg.str());
+        throw std::runtime_error("OpenCL error");
     }
     n_radix = *(unsigned int*)vars->get("n_radix")->get();
     _icell_gws = roundUp(n_radix, _icell_lws);
-    const char *_icell_vars[8] = {"icell", _input_name, "N", "n_radix",
+    const char *_icell_vars[8] = {"icell", _input_name.c_str(), "N", "n_radix",
                                   "r_min", "support", "h", "n_cells"};
     for(i = 0; i < 8; i++){
         err_code = clSetKernelArg(_icell,
@@ -333,12 +282,12 @@ bool LinkList::setupOpenCL()
                                   vars->get(_icell_vars[i])->typesize(),
                                   vars->get(_icell_vars[i])->get());
         if(err_code != CL_SUCCESS){
-            sprintf(msg,
-                    "Failure sending \"%s\" argument to \"iCell\".\n",
-                    _icell_vars[i]);
-            S->addMessageF(3, msg);
-            S->printOpenCLError(err_code);
-            return true;
+            std::stringstream msg;
+            msg << "Failure sending \"" << _icell_vars[i]
+                << "\" argument to \"iCell\"." << std::endl;
+            LOG(L_ERROR, msg.str());
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL error");
         }
         _icell_args.push_back(malloc(vars->get(_icell_vars[i])->typesize()));
         memcpy(_icell_args.at(i),
@@ -353,18 +302,18 @@ bool LinkList::setupOpenCL()
                                         &_ll_lws,
                                         NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure querying the work group size (\"linkList\").\n");
-        S->printOpenCLError(err_code);
-        return true;
+        LOG(L_ERROR, "Failure querying the work group size (\"linkList\").\n");
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
     if(_ll_lws < __CL_MIN_LOCALSIZE__){
-        S->addMessageF(3, "linkList cannot be performed.\n");
-        sprintf(msg,
-                "\t%lu elements can be executed, but __CL_MIN_LOCALSIZE__=%lu\n",
-                _ll_lws,
-                __CL_MIN_LOCALSIZE__);
-        S->addMessage(0, msg);
-        return true;
+        LOG(L_ERROR, "insufficient local memory for \"linkList\".\n");
+        std::stringstream msg;
+        msg << "\t" << _ll_lws
+            << " local work group size with __CL_MIN_LOCALSIZE__="
+            << __CL_MIN_LOCALSIZE__ << std::endl;
+        LOG0(L_DEBUG, msg.str());
+        throw std::runtime_error("OpenCL error");
     }
     N = *(unsigned int*)vars->get("N")->get();
     _ll_gws = roundUp(N, _ll_lws);
@@ -375,59 +324,55 @@ bool LinkList::setupOpenCL()
                                   vars->get(_ll_vars[i])->typesize(),
                                   vars->get(_ll_vars[i])->get());
         if(err_code != CL_SUCCESS){
-            sprintf(msg,
-                    "Failure sending \"%s\" argument to \"iCell\".\n",
-                    _ll_vars[i]);
-            S->addMessageF(3, msg);
-            S->printOpenCLError(err_code);
-            return true;
+            std::stringstream msg;
+            msg << "Failure sending \"" << _ll_vars[i]
+                << "\" argument to \"iCell\"." << std::endl;
+            LOG(L_ERROR, msg.str());
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL error");
         }
         _ll_args.push_back(malloc(vars->get(_ll_vars[i])->typesize()));
         memcpy(_ll_args.at(i),
                vars->get(_ll_vars[i])->get(),
                vars->get(_ll_vars[i])->typesize());
     }
-
-    return false;
 }
 
-bool LinkList::compile(const char* source)
+void LinkList::compile(const std::string source)
 {
     cl_int err_code;
     cl_program program;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
 
-    char flags[512];
-    strcpy(flags, "");
+    std::ostringstream flags;
     #ifdef AQUA_DEBUG
-        strcat(flags, " -DDEBUG ");
+        flags << " -DDEBUG ";
     #else
-        strcat(flags, " -DNDEBUG ");
+        flags << " -DNDEBUG ";
     #endif
-    strcat(flags, " -cl-mad-enable -cl-fast-relaxed-math");
+    flags << " -cl-mad-enable -cl-fast-relaxed-math";
     #ifdef HAVE_3D
-        strcat(flags, " -DHAVE_3D");
+        flags << " -DHAVE_3D ";
     #else
-        strcat(flags, " -DHAVE_2D");
+        flags << " -DHAVE_2D ";
     #endif
-    size_t source_length = strlen(source) + 1;
+    size_t source_length = source.size();
+    const char* source_cstr = source.c_str();
     program = clCreateProgramWithSource(C->context(),
                                         1,
-                                        (const char **)&source,
+                                        &source_cstr,
                                         &source_length,
                                         &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure creating the OpenCL program.\n");
-        S->printOpenCLError(err_code);
-        return true;
+        LOG(L_ERROR, "Failure creating the OpenCL program.\n");
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL compilation error");
     }
-    err_code = clBuildProgram(program, 0, NULL, flags, NULL, NULL);
+    err_code = clBuildProgram(program, 0, NULL, flags.str().c_str(), NULL, NULL);
     if(err_code != CL_SUCCESS) {
-        S->addMessage(3, "Error compiling the source code\n");
-        S->printOpenCLError(err_code);
-        S->addMessage(3, "--- Build log ---------------------------------\n");
+        LOG(L_ERROR, "Error compiling the source code\n");
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        LOG0(L_ERROR, "--- Build log ---------------------------------\n");
         size_t log_size = 0;
         clGetProgramBuildInfo(program,
                               C->device(),
@@ -437,12 +382,12 @@ bool LinkList::compile(const char* source)
                               &log_size);
         char *log = (char*)malloc(log_size + sizeof(char));
         if(!log){
-            sprintf(msg,
-                    "Failure allocating %lu bytes for the building log\n",
-                    log_size);
-            S->addMessage(3, msg);
-            S->addMessage(3, "--------------------------------- Build log ---\n");
-            return NULL;
+            std::stringstream msg;
+            msg << "Failure allocating " << log_size
+                << " bytes for the building log" << std::endl;
+            LOG0(L_ERROR, msg.str());
+            LOG0(L_ERROR, "--------------------------------- Build log ---\n");
+            throw std::bad_alloc();
         }
         strcpy(log, "");
         clGetProgramBuildInfo(program,
@@ -452,52 +397,48 @@ bool LinkList::compile(const char* source)
                               log,
                               NULL);
         strcat(log, "\n");
-        S->addMessage(0, log);
-        S->addMessage(3, "--------------------------------- Build log ---\n");
+        LOG0(L_DEBUG, log);
+        LOG0(L_ERROR, "--------------------------------- Build log ---\n");
         free(log); log=NULL;
         clReleaseProgram(program);
-        return true;
+        throw std::runtime_error("OpenCL compilation error");
     }
     _ihoc = clCreateKernel(program, "iHoc", &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure creating the \"iHoc\" kernel.\n");
-        S->printOpenCLError(err_code);
+        LOG(L_ERROR, "Failure creating the \"iHoc\" kernel.\n");
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         clReleaseProgram(program);
-        return true;
+        throw std::runtime_error("OpenCL error");
     }
     _icell = clCreateKernel(program, "iCell", &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure creating the \"iCell\" kernel.\n");
-        S->printOpenCLError(err_code);
+        LOG(L_ERROR, "Failure creating the \"iCell\" kernel.\n");
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         clReleaseProgram(program);
-        return true;
+        throw std::runtime_error("OpenCL error");
     }
     _ll = clCreateKernel(program, "linkList", &err_code);
     if(err_code != CL_SUCCESS) {
-        S->addMessageF(3, "Failure creating the \"linkList\" kernel.\n");
-        S->printOpenCLError(err_code);
+        LOG(L_ERROR, "Failure creating the \"linkList\" kernel.\n");
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
         clReleaseProgram(program);
-        return true;
+        throw std::runtime_error("OpenCL error");
     }
 
     clReleaseProgram(program);
-    return false;
 }
 
-bool LinkList::nCells()
+void LinkList::nCells()
 {
     vec pos_min, pos_max;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-    CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables *vars = C->variables();
+    InputOutput::Variables *vars = CalcServer::singleton()->variables();
 
     if(!_cell_length){
-        sprintf(msg,
-                "Zero cell length detected in the tool \"%s\".\n",
-                name());
-        S->addMessageF(3, msg);
-        return true;
+        std::stringstream msg;
+        msg << "Zero cell length detected in the tool \"" << name()
+            << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("Invalid number of cells");
     }
 
     pos_min = *(vec*)vars->get("r_min")->get();
@@ -511,31 +452,25 @@ bool LinkList::nCells()
         _n_cells.z = 1;
     #endif
     _n_cells.w = _n_cells.x * _n_cells.y * _n_cells.z;
-
-    return false;
 }
 
-bool LinkList::allocate()
+void LinkList::allocate()
 {
     uivec4 n_cells;
     cl_int err_code;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
     CalcServer *C = CalcServer::singleton();
     InputOutput::Variables *vars = C->variables();
 
-    if(strcmp(vars->get("n_cells")->type(), "uivec4")){
-        sprintf(msg,
-                "Wrong type found during the execution of the tool \"%s\".\n",
-                name());
-        S->addMessageF(3, msg);
-        sprintf(msg,
-                "\tVariable \"%s\" type is \"%s\" (\"%s\" expected).\n",
-                "n_cells",
-                vars->get("n_cells")->type(),
-                "uivec4");
-        S->addMessage(0, msg);
-        return true;
+    if(vars->get("n_cells")->type().compare("uivec4")){
+        std::stringstream msg;
+        msg << "\"n_cells\" has and invalid type for \"" << name()
+            << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        msg.str("");
+        msg << "\tVariable \"n_cells\" type is \"" << vars->get("n_cells")->type()
+            << "\", while \"uivec4\" was expected" << std::endl;
+        LOG0(L_DEBUG, msg.str());
+        throw std::runtime_error("Invalid n_cells type");
     }
 
     n_cells = *(uivec4*)vars->get("n_cells")->get();
@@ -545,7 +480,7 @@ bool LinkList::allocate()
         n_cells.y = _n_cells.y;
         n_cells.z = _n_cells.z;
         vars->get("n_cells")->set(&n_cells);
-        return false;
+        return;
     }
 
     cl_mem mem = *(cl_mem*)vars->get("ihoc")->get();
@@ -557,30 +492,25 @@ bool LinkList::allocate()
                          NULL,
                          &err_code);
     if(err_code != CL_SUCCESS){
-        sprintf(msg,
-                "Buffer memory allocation failure during tool \"%s\" execution.\n",
-                name());
-        S->addMessageF(3, msg);
-        S->printOpenCLError(err_code);
-        return true;
+        std::stringstream msg;
+        msg << "Failure allocating device memory in the tool \"" <<
+               name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL allocation error");
     }
 
     n_cells = _n_cells;
     vars->get("n_cells")->set(&n_cells);
     vars->get("ihoc")->set(&mem);
     _ihoc_gws = roundUp(n_cells.w, _ihoc_lws);
-
-    return false;
 }
 
-bool LinkList::setVariables()
+void LinkList::setVariables()
 {
     unsigned int i;
-    char msg[1024];
     cl_int err_code;
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-    CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables *vars = C->variables();
+    InputOutput::Variables *vars = CalcServer::singleton()->variables();
 
     const char *_ihoc_vars[3] = {"ihoc", "N", "n_cells"};
     for(i = 0; i < 3; i++){
@@ -593,18 +523,18 @@ bool LinkList::setVariables()
                                   var->typesize(),
                                   var->get());
         if(err_code != CL_SUCCESS){
-            sprintf(msg,
-                    "Failure sending \"%s\" argument to \"iHoc\" in tool \"%s\".\n",
-                    _ihoc_vars[i],
-                    name());
-            S->addMessageF(3, msg);
-            S->printOpenCLError(err_code);
-            return true;
+            std::stringstream msg;
+            msg << "Failure setting the variable \"" << _ihoc_vars[i]
+                << "\" to the tool \"" << name()
+                << "\" (\"iHoc\")." << std::endl;
+            LOG(L_ERROR, msg.str());
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL error");
         }
         memcpy(_ihoc_args.at(i), var->get(), var->typesize());
     }
 
-    const char *_icell_vars[8] = {"icell", _input_name, "N", "n_radix",
+    const char *_icell_vars[8] = {"icell", _input_name.c_str(), "N", "n_radix",
                                   "r_min", "support", "h", "n_cells"};
     for(i = 0; i < 8; i++){
         InputOutput::Variable *var = vars->get(_icell_vars[i]);
@@ -616,13 +546,13 @@ bool LinkList::setVariables()
                                   var->typesize(),
                                   var->get());
         if(err_code != CL_SUCCESS){
-            sprintf(msg,
-                    "Failure sending \"%s\" argument to \"iCell\" in tool \"%s\".\n",
-                    _icell_vars[i],
-                    name());
-            S->addMessageF(3, msg);
-            S->printOpenCLError(err_code);
-            return true;
+            std::stringstream msg;
+            msg << "Failure setting the variable \"" << _ihoc_vars[i]
+                << "\" to the tool \"" << name()
+                << "\" (\"iCell\")." << std::endl;
+            LOG(L_ERROR, msg.str());
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL error");
         }
         memcpy(_icell_args.at(i), var->get(), var->typesize());
     }
@@ -638,18 +568,16 @@ bool LinkList::setVariables()
                                   var->typesize(),
                                   var->get());
         if(err_code != CL_SUCCESS){
-            sprintf(msg,
-                    "Failure sending \"%s\" argument to \"iCell\" in tool \"%s\".\n",
-                    _ll_vars[i],
-                    name());
-            S->addMessageF(3, msg);
-            S->printOpenCLError(err_code);
-            return true;
+            std::stringstream msg;
+            msg << "Failure setting the variable \"" << _ihoc_vars[i]
+                << "\" to the tool \"" << name()
+                << "\" (\"linkList\")." << std::endl;
+            LOG(L_ERROR, msg.str());
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL error");
         }
         memcpy(_ll_args.at(i), var->get(), var->typesize());
     }
-
-    return false;
 }
 
 }}  // namespace

@@ -47,13 +47,12 @@ SET(Client_CPP_SRCS
     FileManager.cpp
     InputOutput/State.cpp
     InputOutput/Report.cpp
-    InputOutput/Log.cpp
+    InputOutput/Logger.cpp
     InputOutput/Particles.cpp
     InputOutput/ASCII.cpp
     InputOutput/FastASCII.cpp
     InputOutput/VTK.cpp
     ProblemSetup.cpp
-    ScreenManager.cpp
     TimeManager.cpp
     Variable.cpp
     Tokenizer/Tokenizer.cpp

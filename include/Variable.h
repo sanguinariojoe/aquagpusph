@@ -28,10 +28,8 @@
 #include <Python.h>
 #include <CL/cl.h>
 
-#include <stdlib.h>
-#include <string.h>
+#include <string>
 #include <vector>
-#include <deque>
 #include <sphPrerequisites.h>
 #include <Tokenizer/Tokenizer.h>
 
@@ -54,54 +52,54 @@ namespace Aqua{ namespace InputOutput{
 class Variable
 {
 public:
-    /** Constructor.
+    /** @brief Constructor.
      * @param varname Name of the variable.
      * @param vartype Type of the variable.
      */
-    Variable(const char *varname, const char *vartype);
+    Variable(const std::string varname, const std::string vartype);
 
-    /** Destructor.
+    /** @brief Destructor.
      */
-    virtual ~Variable();
+    virtual ~Variable() {};
 
-    /** Name of the variable
+    /** @brief Name of the variable
      * @return The name of the variable
      */
-    const char* name() const {return (const char*)_name;}
+    std::string name() const {return _name;}
 
-    /** Type of the variable
+    /** @brief Type of the variable
      * @return The type of the variable
      */
-    virtual const char* type() const {return _typename;}
+    virtual std::string type() const {return _typename;}
 
-    /** Get the variable type size.
+    /** @brief Get the variable type size.
      * @return Variable type size (in bytes)
      */
     virtual size_t typesize() const {return 0;}
 
-    /** Get the variable type size.
+    /** @brief Get the variable type size.
      * @return Variable type size (in bytes)
      */
     virtual size_t size() const {return typesize();}
 
-    /** Get variable pointer basis pointer
+    /** @brief Get variable pointer basis pointer
      * @return Implementation pointer, NULL for this class.
      */
     virtual void* get(){return NULL;}
 
-    /** Set variable from memory
+    /** @brief Set variable from memory
      * @param ptr Memory to copy.
      */
     virtual void set(void* ptr)=0;
 
-    /** Get a Python interpretation of the variable
+    /** @brief Get a Python interpretation of the variable
      * @param i0 First component to be read, just for array variables.
      * @param n Number of component to be read, just for array variables.
      * @return Python object, NULL for this class.
      */
     virtual PyObject* getPythonObject(int i0=0, int n=0){return NULL;}
 
-    /** Set the variable from a Python object
+    /** @brief Set the variable from a Python object
      * @param obj Python object.
      * @param i0 First component to be set, just for array variables.
      * @param n Number of component to be set, just for array variables.
@@ -112,664 +110,492 @@ public:
         return true;
     }
 
-    /** Get the variable text representation
+    /** @brief Get the variable text representation
      * @return The variable represented as a string, NULL in case of errors.
      */
-    virtual const char* asString(){return NULL;}
+    virtual const std::string asString(){return "";}
 private:
     /// Name of the variable
-    char* _name;
+    std::string _name;
 
     /// Type of the variable
-    char* _typename;
+    std::string _typename;
+};
+
+/** @class ScalarVariable Variable.h Variable.h
+ * @brief A generic Scalar variable.
+ */
+template <class T>
+class ScalarVariable : public Variable
+{
+public:
+    /** @brief Constructor.
+     * @param varname Name of the variable.
+     * @param vartype Type of the variable.
+     */
+    ScalarVariable(const std::string varname, const std::string vartype);
+
+    /** @brief Destructor.
+     */
+    ~ScalarVariable() {};
+
+    /** @brief Get the variable type size.
+     * @return Variable type size (in bytes)
+     */
+    size_t typesize() const {return sizeof(T);}
+
+    /** @brief Get variable pointer basis pointer
+     * @return Implementation pointer.
+     */
+    T* get(){return &_value;}
+
+    /** @brief Set variable from memory
+     * @param ptr Memory to copy.
+     */
+    void set(void* ptr){memcpy(&_value, ptr, sizeof(T));}
+
+    /** @brief Get the variable text representation
+     * @return The variable represented as a string, NULL in case of errors.
+     */
+    virtual const std::string asString() = 0;
+protected:
+    /// Variable value
+    T _value;
+};
+
+/** @class ScalarVariable Variable.h Variable.h
+ * @brief A generic Scalar variable.
+ */
+template <class T>
+class ScalarNumberVariable : public ScalarVariable<T>
+{
+public:
+    /** @brief Constructor.
+     * @param varname Name of the variable.
+     * @param vartype Type of the variable.
+     */
+    ScalarNumberVariable(const std::string varname, const std::string vartype);
+
+    /** @brief Destructor.
+     */
+    ~ScalarNumberVariable() {};
+
+    /** @brief Get the variable text representation
+     * @return The variable represented as a string, NULL in case of errors.
+     */
+    virtual const std::string asString();
 };
 
 /** @class IntVariable Variable.h Variable.h
  * @brief An integer variable.
  */
-class IntVariable : public Variable
+class IntVariable : public ScalarNumberVariable<int>
 {
 public:
-    /** Constructor.
+    /** @brief Constructor.
      * @param varname Name of the variable.
      */
-    IntVariable(const char *varname);
+    IntVariable(const std::string varname);
 
-    /** Destructor.
+    /** @brief Destructor.
      */
-    ~IntVariable();
+    ~IntVariable() {};
 
-    /** Get the variable type size.
-     * @return Variable type size (in bytes)
-     */
-    size_t typesize() const {return sizeof(int);}
-
-    /** Get variable pointer basis pointer
-     * @return Implementation pointer.
-     */
-    int* get(){return &_value;}
-
-    /** Set variable from memory
-     * @param ptr Memory to copy.
-     */
-    void set(void* ptr){_value = *(int*)ptr;}
-
-    /** Get a PyLongObject interpretation of the variable
-     * @param i0 0, otherwise an error will be returned.
-     * @param n 0, otherwise an error will be returned.
+    /** @brief Get a PyLongObject interpretation of the variable
+     * @param i0 ignored parameter.
+     * @param n ignored parameter.
      * @return PyLongObject Python object.
      */
     PyObject* getPythonObject(int i0=0, int n=0);
 
-    /** Set the variable from a Python object
+    /** @brief Set the variable from a Python object
      * @param obj PyLongObject object.
-     * @param i0 0, otherwise an error will be returned.
-     * @param n 0, otherwise an error will be returned.
+     * @param i0 ignored parameter.
+     * @param n ignored parameter
      * @return false if all gone right, true otherwise.
      */
     bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
-
-    /** Get the variable text representation
-     * @return The variable represented as a string, NULL in case of errors.
-     */
-    const char* asString();
-private:
-    /// Variable value
-    int _value;
 };
 
 /** @class UIntVariable Variable.h Variable.h
  * @brief An integer variable.
  */
-class UIntVariable : public Variable
+class UIntVariable : public ScalarNumberVariable<unsigned int>
 {
 public:
-    /** Constructor.
+    /** @brief Constructor.
      * @param varname Name of the variable.
      */
-    UIntVariable(const char *varname);
+    UIntVariable(const std::string varname);
 
-    /** Destructor.
+    /** @brief Destructor.
      */
-    ~UIntVariable();
+    ~UIntVariable() {};
 
-    /** Get the variable type size.
-     * @return Variable type size (in bytes)
-     */
-    size_t typesize() const {return sizeof(unsigned int);}
-
-    /** Get variable pointer basis pointer
-     * @return Implementation pointer.
-     */
-    unsigned int* get(){return &_value;}
-
-    /** Set variable from memory
-     * @param ptr Memory to copy.
-     */
-    void set(void* ptr){_value = *(unsigned int*)ptr;}
-
-    /** Get a PyLongObject interpretation of the variable
-     * @param i0 0, otherwise an error will be returned.
-     * @param n 0, otherwise an error will be returned.
+    /** @brief Get a PyLongObject interpretation of the variable
+     * @param i0 ignored parameter.
+     * @param n ignored parameter
      * @return PyLongObject Python object.
      */
     PyObject* getPythonObject(int i0=0, int n=0);
 
-    /** Set the variable from a Python object
+    /** @brief Set the variable from a Python object
      * @param obj PyLongObject object.
-     * @param i0 0, otherwise an error will be returned.
-     * @param n 0, otherwise an error will be returned.
+     * @param i0 ignored parameter.
+     * @param n ignored parameter
      * @return false if all gone right, true otherwise.
      */
     bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
-
-    /** Get the variable text representation
-     * @return The variable represented as a string, NULL in case of errors.
-     */
-    const char* asString();
-private:
-    /// Variable value
-    unsigned int _value;
 };
 
 /** @class FloatVariable Variable.h Variable.h
  * @brief A float variable.
  */
-class FloatVariable : public Variable
+class FloatVariable : public ScalarNumberVariable<float>
 {
 public:
-    /** Constructor.
+    /** @brief Constructor.
      * @param varname Name of the variable.
      */
-    FloatVariable(const char *varname);
+    FloatVariable(const std::string varname);
 
-    /** Destructor.
+    /** @brief Destructor.
      */
-    ~FloatVariable();
+    ~FloatVariable() {};
 
-    /** Get the variable type size.
-     * @return Variable type size (in bytes)
-     */
-    size_t typesize() const {return sizeof(float);}
-
-    /** Get variable pointer basis pointer
-     * @return Implementation pointer.
-     */
-    float* get(){return &_value;}
-
-    /** Set variable from memory
-     * @param ptr Memory to copy.
-     */
-    void set(void* ptr){_value = *(float*)ptr;}
-
-    /** Get a PyFloatObject interpretation of the variable
-     * @param i0 0, otherwise an error will be returned.
-     * @param n 0, otherwise an error will be returned.
+    /** @brief Get a PyFloatObject interpretation of the variable
+     * @param i0 ignored parameter.
+     * @param n ignored parameter
      * @return PyFloatObject Python object.
      */
     PyObject* getPythonObject(int i0=0, int n=0);
 
-    /** Set the variable from a Python object
+    /** @brief Set the variable from a Python object
      * @param obj PyFloatObject object.
-     * @param i0 0, otherwise an error will be returned.
-     * @param n 0, otherwise an error will be returned.
+     * @param i0 ignored parameter.
+     * @param n ignored parameter
      * @return false if all gone right, true otherwise.
      */
     bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
+};
 
-    /** Get the variable text representation
+/** @class ScalarVecVariable Variable.h Variable.h
+ * @brief A generic Scalar variable, of 2 or more components.
+ */
+template <class T>
+class ScalarVecVariable : public ScalarVariable<T>
+{
+public:
+    /** @brief Constructor.
+     * @param varname Name of the variable.
+     * @param vartype Type of the variable.
+     */
+    ScalarVecVariable(const std::string varname,
+                      const std::string vartype,
+                      const unsigned int dims);
+
+    /** @brief Destructor.
+     */
+    ~ScalarVecVariable() {};
+
+    /** @brief Get the variable text representation
      * @return The variable represented as a string, NULL in case of errors.
      */
-    const char* asString();
+    virtual const std::string asString();
+protected:
+    /** @brief Check that a Python object is compatible with the variable type
+     * 
+     * This method is checking that the Python object is an array with the same
+     * number of components of the variable type. The internal data type is not
+     * checked.
+     *
+     * @param obj Python object object.
+     * @return false if the Python object matchs with the variable type, true
+     * otherwise.
+     */
+    bool checkPyhonObjectDims(PyObject* obj);
 private:
-    /// Variable value
-    float _value;
+    /// Number of components of the type
+    unsigned int _dims;
 };
 
 /** @class Vec2Variable Variable.h Variable.h
  * @brief A vec2 variable.
  */
-class Vec2Variable : public Variable
+class Vec2Variable : public ScalarVecVariable<vec2>
 {
 public:
     /** Constructor.
      * @param varname Name of the variable.
      */
-    Vec2Variable(const char *varname);
+    Vec2Variable(const std::string varname);
 
     /** Destructor.
      */
-    ~Vec2Variable();
-
-    /** Get the variable type size.
-     * @return Variable type size (in bytes)
-     */
-    size_t typesize() const {return sizeof(vec2);}
-
-    /** Get variable pointer basis pointer
-     * @return Implementation pointer.
-     */
-    vec2* get(){return &_value;}
-
-    /** Set variable from memory
-     * @param ptr Memory to copy.
-     */
-    void set(void* ptr){memcpy(&_value, ptr, sizeof(vec2));}
+    ~Vec2Variable() {};
 
     /** Get a PyArrayObject interpretation of the variable
-     * @param i0 0, otherwise an error will be returned.
-     * @param n 0, otherwise an error will be returned.
+     * @param i0 ignored parameter.
+     * @param n ignored parameter
      * @return PyArrayObject Python object (PyArray_FLOAT subtype).
      */
     PyObject* getPythonObject(int i0=0, int n=0);
 
     /** Set the variable from a Python object
      * @param obj PyArrayObject object (PyArray_FLOAT subtype).
-     * @param i0 0, otherwise an error will be returned.
-     * @param n 0, otherwise an error will be returned.
+     * @param i0 ignored parameter.
+     * @param n ignored parameter
      * @return false if all gone right, true otherwise.
      */
     bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
-
-    /** Get the variable text representation
-     * @return The variable represented as a string, NULL in case of errors.
-     */
-    const char* asString();
-private:
-    /// Variable value
-    vec2 _value;
 };
 
 /** @class Vec3Variable Variable.h Variable.h
  * @brief A vec3 variable.
  */
-class Vec3Variable : public Variable
+class Vec3Variable : public ScalarVecVariable<vec3>
 {
 public:
     /** Constructor.
      * @param varname Name of the variable.
      */
-    Vec3Variable(const char *varname);
+    Vec3Variable(const std::string varname);
 
     /** Destructor.
      */
-    ~Vec3Variable();
-
-    /** Get the variable type size.
-     * @return Variable type size (in bytes)
-     */
-    size_t typesize() const {return sizeof(vec3);}
-
-    /** Get variable pointer basis pointer
-     * @return Implementation pointer.
-     */
-    vec3* get(){return &_value;}
-
-    /** Set variable from memory
-     * @param ptr Memory to copy.
-     */
-    void set(void* ptr){memcpy(&_value, ptr, sizeof(vec3));}
+    ~Vec3Variable() {};
 
     /** Get a PyArrayObject interpretation of the variable
-     * @param i0 0, otherwise an error will be returned.
-     * @param n 0, otherwise an error will be returned.
+     * @param i0 ignored parameter.
+     * @param n ignored parameter
      * @return PyArrayObject Python object (PyArray_FLOAT subtype).
      */
     PyObject* getPythonObject(int i0=0, int n=0);
 
     /** Set the variable from a Python object
      * @param obj PyArrayObject object (PyArray_FLOAT subtype).
-     * @param i0 0, otherwise an error will be returned.
-     * @param n 0, otherwise an error will be returned.
+     * @param i0 ignored parameter.
+     * @param n ignored parameter
      * @return false if all gone right, true otherwise.
      */
     bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
-
-    /** Get the variable text representation
-     * @return The variable represented as a string, NULL in case of errors.
-     */
-    const char* asString();
-private:
-    /// Variable value
-    vec3 _value;
 };
 
 /** @class Vec4Variable Variable.h Variable.h
  * @brief A vec4 variable.
  */
-class Vec4Variable : public Variable
+class Vec4Variable : public ScalarVecVariable<vec4>
 {
 public:
     /** Constructor.
      * @param varname Name of the variable.
      */
-    Vec4Variable(const char *varname);
+    Vec4Variable(const std::string varname);
 
     /** Destructor.
      */
-    ~Vec4Variable();
-
-    /** Get the variable type size.
-     * @return Variable type size (in bytes)
-     */
-    size_t typesize() const {return sizeof(vec4);}
-
-    /** Get variable pointer basis pointer
-     * @return Implementation pointer.
-     */
-    vec4* get(){return &_value;}
-
-    /** Set variable from memory
-     * @param ptr Memory to copy.
-     */
-    void set(void* ptr){memcpy(&_value, ptr, sizeof(vec4));}
+    ~Vec4Variable() {};
 
     /** Get a PyArrayObject interpretation of the variable
-     * @param i0 0, otherwise an error will be returned.
-     * @param n 0, otherwise an error will be returned.
+     * @param i0 ignored parameter.
+     * @param n ignored parameter
      * @return PyArrayObject Python object (PyArray_FLOAT subtype).
      */
     PyObject* getPythonObject(int i0=0, int n=0);
 
     /** Set the variable from a Python object
      * @param obj PyArrayObject object (PyArray_FLOAT subtype).
-     * @param i0 0, otherwise an error will be returned.
-     * @param n 0, otherwise an error will be returned.
+     * @param i0 ignored parameter.
+     * @param n ignored parameter
      * @return false if all gone right, true otherwise.
      */
     bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
-
-    /** Get the variable text representation
-     * @return The variable represented as a string, NULL in case of errors.
-     */
-    const char* asString();
-private:
-    /// Variable value
-    vec4 _value;
 };
 
 /** @class IVec2Variable Variable.h Variable.h
  * @brief A ivec2 variable.
  */
-class IVec2Variable : public Variable
+class IVec2Variable : public ScalarVecVariable<ivec2>
 {
 public:
     /** Constructor.
      * @param varname Name of the variable.
      */
-    IVec2Variable(const char *varname);
+    IVec2Variable(const std::string varname);
 
     /** Destructor.
      */
-    ~IVec2Variable();
-
-    /** Get the variable type size.
-     * @return Variable type size (in bytes)
-     */
-    size_t typesize() const {return sizeof(ivec2);}
-
-    /** Get variable pointer basis pointer
-     * @return Implementation pointer.
-     */
-    ivec2* get(){return &_value;}
-
-    /** Set variable from memory
-     * @param ptr Memory to copy.
-     */
-    void set(void* ptr){memcpy(&_value, ptr, sizeof(ivec2));}
+    ~IVec2Variable() {};
 
     /** Get a PyArrayObject interpretation of the variable
-     * @param i0 0, otherwise an error will be returned.
-     * @param n 0, otherwise an error will be returned.
+     * @param i0 ignored parameter.
+     * @param n ignored parameter
      * @return PyArrayObject Python object (PyArray_INT subtype).
      */
     PyObject* getPythonObject(int i0=0, int n=0);
 
     /** Set the variable from a Python object
      * @param obj PyArrayObject object (PyArray_INT subtype).
-     * @param i0 0, otherwise an error will be returned.
-     * @param n 0, otherwise an error will be returned.
+     * @param i0 ignored parameter.
+     * @param n ignored parameter
      * @return false if all gone right, true otherwise.
      */
     bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
-
-    /** Get the variable text representation
-     * @return The variable represented as a string, NULL in case of errors.
-     */
-    const char* asString();
-private:
-    /// Variable value
-    ivec2 _value;
 };
 
 /** @class IVec3Variable Variable.h Variable.h
  * @brief A ivec3 variable.
  */
-class IVec3Variable : public Variable
+class IVec3Variable : public ScalarVecVariable<ivec3>
 {
 public:
     /** Constructor.
      * @param varname Name of the variable.
      */
-    IVec3Variable(const char *varname);
+    IVec3Variable(const std::string varname);
 
     /** Destructor.
      */
-    ~IVec3Variable();
-
-    /** Get the variable type size.
-     * @return Variable type size (in bytes)
-     */
-    size_t typesize() const {return sizeof(ivec3);}
-
-    /** Get variable pointer basis pointer
-     * @return Implementation pointer.
-     */
-    ivec3* get(){return &_value;}
-
-    /** Set variable from memory
-     * @param ptr Memory to copy.
-     */
-    void set(void* ptr){memcpy(&_value, ptr, sizeof(ivec3));}
+    ~IVec3Variable() {};
 
     /** Get a PyArrayObject interpretation of the variable
-     * @param i0 0, otherwise an error will be returned.
-     * @param n 0, otherwise an error will be returned.
+     * @param i0 ignored parameter.
+     * @param n ignored parameter
      * @return PyArrayObject Python object (PyArray_INT subtype).
      */
     PyObject* getPythonObject(int i0=0, int n=0);
 
     /** Set the variable from a Python object
      * @param obj PyArrayObject object (PyArray_INT subtype).
-     * @param i0 0, otherwise an error will be returned.
-     * @param n 0, otherwise an error will be returned.
+     * @param i0 ignored parameter.
+     * @param n ignored parameter
      * @return false if all gone right, true otherwise.
      */
     bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
-
-    /** Get the variable text representation
-     * @return The variable represented as a string, NULL in case of errors.
-     */
-    const char* asString();
-private:
-    /// Variable value
-    ivec3 _value;
 };
 
 /** @class IVec4Variable Variable.h Variable.h
  * @brief A ivec4 variable.
  */
-class IVec4Variable : public Variable
+class IVec4Variable : public ScalarVecVariable<ivec4>
 {
 public:
     /** Constructor.
      * @param varname Name of the variable.
      */
-    IVec4Variable(const char *varname);
+    IVec4Variable(const std::string varname);
 
     /** Destructor.
      */
-    ~IVec4Variable();
-
-    /** Get the variable type size.
-     * @return Variable type size (in bytes)
-     */
-    size_t typesize() const {return sizeof(ivec4);}
-
-    /** Get variable pointer basis pointer
-     * @return Implementation pointer.
-     */
-    ivec4* get(){return &_value;}
-
-    /** Set variable from memory
-     * @param ptr Memory to copy.
-     */
-    void set(void* ptr){memcpy(&_value, ptr, sizeof(ivec4));}
+    ~IVec4Variable() {};
 
     /** Get a PyArrayObject interpretation of the variable
-     * @param i0 0, otherwise an error will be returned.
-     * @param n 0, otherwise an error will be returned.
+     * @param i0 ignored parameter.
+     * @param n ignored parameter
      * @return PyArrayObject Python object (PyArray_INT subtype).
      */
     PyObject* getPythonObject(int i0=0, int n=0);
 
     /** Set the variable from a Python object
      * @param obj PyArrayObject object (PyArray_INT subtype).
-     * @param i0 0, otherwise an error will be returned.
-     * @param n 0, otherwise an error will be returned.
+     * @param i0 ignored parameter.
+     * @param n ignored parameter
      * @return false if all gone right, true otherwise.
      */
     bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
-
-    /** Get the variable text representation
-     * @return The variable represented as a string, NULL in case of errors.
-     */
-    const char* asString();
-private:
-    /// Variable value
-    ivec4 _value;
 };
 
 /** @class UIVec2Variable Variable.h Variable.h
  * @brief A uivec2 variable.
  */
-class UIVec2Variable : public Variable
+class UIVec2Variable : public ScalarVecVariable<uivec2>
 {
 public:
     /** Constructor.
      * @param varname Name of the variable.
      */
-    UIVec2Variable(const char *varname);
+    UIVec2Variable(const std::string varname);
 
     /** Destructor.
      */
-    ~UIVec2Variable();
-
-    /** Get the variable type size.
-     * @return Variable type size (in bytes)
-     */
-    size_t typesize() const {return sizeof(uivec2);}
-
-    /** Get variable pointer basis pointer
-     * @return Implementation pointer.
-     */
-    uivec2* get(){return &_value;}
-
-    /** Set variable from memory
-     * @param ptr Memory to copy.
-     */
-    void set(void* ptr){memcpy(&_value, ptr, sizeof(uivec2));}
+    ~UIVec2Variable() {};
 
     /** Get a PyArrayObject interpretation of the variable
-     * @param i0 0, otherwise an error will be returned.
-     * @param n 0, otherwise an error will be returned.
+     * @param i0 ignored parameter.
+     * @param n ignored parameter
      * @return PyArrayObject Python object (PyArray_UINT subtype).
      */
     PyObject* getPythonObject(int i0=0, int n=0);
 
     /** Set the variable from a Python object
      * @param obj PyArrayObject object (PyArray_UINT subtype).
-     * @param i0 0, otherwise an error will be returned.
-     * @param n 0, otherwise an error will be returned.
+     * @param i0 ignored parameter.
+     * @param n ignored parameter
      * @return false if all gone right, true otherwise.
      */
     bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
-
-    /** Get the variable text representation
-     * @return The variable represented as a string, NULL in case of errors.
-     */
-    const char* asString();
-private:
-    /// Variable value
-    uivec2 _value;
 };
 
 /** @class IVec3Variable Variable.h Variable.h
  * @brief A uivec3 variable.
  */
-class UIVec3Variable : public Variable
+class UIVec3Variable : public ScalarVecVariable<uivec3>
 {
 public:
     /** Constructor.
      * @param varname Name of the variable.
      */
-    UIVec3Variable(const char *varname);
+    UIVec3Variable(const std::string varname);
 
     /** Destructor.
      */
-    ~UIVec3Variable();
-
-    /** Get the variable type size.
-     * @return Variable type size (in bytes)
-     */
-    size_t typesize() const {return sizeof(uivec3);}
-
-    /** Get variable pointer basis pointer
-     * @return Implementation pointer.
-     */
-    uivec3* get(){return &_value;}
-
-    /** Set variable from memory
-     * @param ptr Memory to copy.
-     */
-    void set(void* ptr){memcpy(&_value, ptr, sizeof(uivec3));}
+    ~UIVec3Variable() {};
 
     /** Get a PyArrayObject interpretation of the variable
-     * @param i0 0, otherwise an error will be returned.
-     * @param n 0, otherwise an error will be returned.
+     * @param i0 ignored parameter.
+     * @param n ignored parameter
      * @return PyArrayObject Python object (PyArray_UINT subtype).
      */
     PyObject* getPythonObject(int i0=0, int n=0);
 
     /** Set the variable from a Python object
      * @param obj PyArrayObject object (PyArray_UINT subtype).
-     * @param i0 0, otherwise an error will be returned.
-     * @param n 0, otherwise an error will be returned.
+     * @param i0 ignored parameter.
+     * @param n ignored parameter
      * @return false if all gone right, true otherwise.
      */
     bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
-
-    /** Get the variable text representation
-     * @return The variable represented as a string, NULL in case of errors.
-     */
-    const char* asString();
-private:
-    /// Variable value
-    uivec3 _value;
 };
 
 /** @class UIVec4Variable Variable.h Variable.h
  * @brief A uivec4 variable.
  */
-class UIVec4Variable : public Variable
+class UIVec4Variable : public ScalarVecVariable<uivec4>
 {
 public:
     /** Constructor.
      * @param varname Name of the variable.
      */
-    UIVec4Variable(const char *varname);
+    UIVec4Variable(const std::string varname);
 
     /** Destructor.
      */
-    ~UIVec4Variable();
-
-    /** Get the variable type size.
-     * @return Variable type size (in bytes)
-     */
-    size_t typesize() const {return sizeof(uivec4);}
-
-    /** Get variable pointer basis pointer
-     * @return Implementation pointer.
-     */
-    uivec4* get(){return &_value;}
-
-    /** Set variable from memory
-     * @param ptr Memory to copy.
-     */
-    void set(void* ptr){memcpy(&_value, ptr, sizeof(uivec4));}
+    ~UIVec4Variable() {};
 
     /** Get a PyArrayObject interpretation of the variable
-     * @param i0 0, otherwise an error will be returned.
-     * @param n 0, otherwise an error will be returned.
+     * @param i0 ignored parameter.
+     * @param n ignored parameter
      * @return PyArrayObject Python object (PyArray_UINT subtype).
      */
     PyObject* getPythonObject(int i0=0, int n=0);
 
     /** Set the variable from a Python object
      * @param obj PyArrayObject object (PyArray_UINT subtype).
-     * @param i0 0, otherwise an error will be returned.
-     * @param n 0, otherwise an error will be returned.
+     * @param i0 ignored parameter.
+     * @param n ignored parameter
      * @return false if all gone right, true otherwise.
      */
     bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
-
-    /** Get the variable text representation
-     * @return The variable represented as a string, NULL in case of errors.
-     */
-    const char* asString();
-private:
-    /// Variable value
-    uivec4 _value;
 };
 
 /** @class FloatVariable Variable.h Variable.h
@@ -782,7 +608,7 @@ public:
      * @param varname Name of the variable.
      * @param vartype Type of the variable.
      */
-    ArrayVariable(const char *varname, const char *vartype);
+    ArrayVariable(const std::string varname, const std::string vartype);
 
     /** Destructor.
      */
@@ -822,8 +648,8 @@ public:
 
     /** Set the variable from a Python object
      * @param obj PyArrayObject object.
-     * @param i0 0, otherwise an error will be returned.
-     * @param n 0, otherwise an error will be returned.
+     * @param i0 ignored parameter.
+     * @param n ignored parameter
      * @return false if all gone right, true otherwise.
      */
     bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
@@ -831,13 +657,13 @@ public:
     /** Get the variable text representation
      * @return The variable represented as a string, NULL in case of errors.
      */
-    const char* asString();
+    const std::string asString();
 
     /** Get a component text representation
      * @param i Index of the component to be extracted.
      * @return The component represented as a string, NULL in case of errors.
      */
-    const char* asString(size_t i);
+    const std::string asString(size_t i);
 private:
     /// Check for abandoned python objects to destroy them.
     void cleanMem();
@@ -857,12 +683,12 @@ private:
      * @see getPythonObject()
      * @see _objects
      */
-    std::deque<void*> _data;
+    std::vector<void*> _data;
     /** @brief List of helpers data array storages for the Python objects
      * @see getPythonObject()
      * @see _data
      */
-    std::deque<PyObject*> _objects;
+    std::vector<PyObject*> _objects;
 };
 
 // ---------------------------------------------------------------------------
@@ -891,12 +717,11 @@ public:
      * which requires the number of cells).
      * @param value Variable value, NULL for arrays. It is optional for
      * scalar variables.
-     * @return false if all gone right, true otherwise
      */
-    bool registerVariable(const char* name,
-                          const char* type,
-                          const char* length,
-                          const char* value);
+    void registerVariable(const std::string name,
+                          const std::string type,
+                          const std::string length,
+                          const std::string value);
 
     /** Get a variable.
      * @param index Index of the variable.
@@ -908,12 +733,12 @@ public:
      * @param name Name of the variable.
      * @return Variable, NULL if the variable cannot be found.
      */
-    Variable* get(const char* name);
+    Variable* get(const std::string name);
 
     /** Get all the registered variables.
      * @return Variable, NULL if the variable cannot be found.
      */
-    std::deque<Variable*> getAll(){return _vars;}
+    std::vector<Variable*> getAll(){return _vars;}
 
     /** Get the number of variables.
      * @return Number of registered variables.
@@ -929,13 +754,13 @@ public:
      * @param type Type name.
      * @return Type size in bytes, 0 if the type is not recognized.
      */
-    static size_t typeToBytes(const char* type);
+    static size_t typeToBytes(const std::string type);
 
     /** Get the number of components of a type name.
      * @param type Type name.
      * @return Number of components (1 for not recognized types).
      */
-    static unsigned int typeToN(const char* type);
+    static unsigned int typeToN(const std::string type);
 
     /** Get if two types strings are the same one.
      * @param type_a First type name.
@@ -943,8 +768,8 @@ public:
      * @param ignore_asterisk true to ignore the asterisk of arrays.
      * @return true if it is the same type, false otherwise.
      */
-    bool isSameType(const char* type_a,
-                    const char* type_b,
+    bool isSameType(const std::string type_a,
+                    const std::string type_b,
                     bool ignore_asterisk=true);
 
     /** Solve a string, interpreting the variables.
@@ -952,28 +777,25 @@ public:
      * @param value Expression to evaluate.
      * @param data Allocated memory where the result should be stored.
      * @param name Variable name to register in the tokenizer.
-     * @return false if all gone right, true otherwise.
      * @note typeToBytes(type) bytes should be allocated in data.
      */
-    bool solve(const char *type_name,
-               const char *value,
+    void solve(const std::string type_name,
+               const std::string value,
                void *data,
-               const char* name="NULL");
+               const std::string name="NULL");
 
     /** @brief Populate variables in order that the tokenizer may get the
      * updated value.
-     * @param name Name of the variable to be populated, NULL if all the
+     * @param name Name of the variable to be populated, "" if all the
      * variables should be populated.
-     * @return false if all gone right, true otherwise
      */
-    bool populate(const char* name=NULL);
+    void populate(const std::string name="");
 
     /** @brief Populate a variable in order that the tokenizer may know the
      * updated value.
      * @param var Variable to be populated.
-     * @return false if all gone right, true otherwise
      */
-    bool populate(Variable* var);
+    void populate(Variable* var);
 private:
 
     /** Register a scalar variable
@@ -981,22 +803,20 @@ private:
      * @param type Type of the variable.
      * @param value Variable value, NULL for arrays. It is optional for
      * scalar variables.
-     * @return false if all gone right, true otherwise
      */
-    bool registerScalar(const char* name,
-                        const char* type,
-                        const char* value);
+    void registerScalar(const std::string name,
+                        const std::string type,
+                        const std::string value);
     /** Register a cl_mem variable
      * @param name Name of the variable.
      * @param type Type of the variable.
      * @param length Array length, 1 for scalars, 0 for arrays that will
      * not be allocated at the start (for instance the heads of chains,
      * which requires the number of cells).
-     * @return false if all gone right, true otherwise
      */
-    bool registerClMem(const char* name,
-                       const char* type,
-                       const char* length);
+    void registerClMem(const std::string name,
+                       const std::string type,
+                       const std::string length);
 
     /** Read a set of components from a value array.
      * @param name Name of the variable. It is used to register variables in
@@ -1004,16 +824,15 @@ private:
      * @param value Value string where the components are extracted from.
      * @param n Number of components to read.
      * @param v Allocated array where the components should be stored
-     * @return false if all gone right, true otherwise.
      */
-    bool readComponents(const char* name,
-                        const char* value,
+    void readComponents(const std::string name,
+                        const std::string value,
                         unsigned int n,
                         float* v);
 
 
     /// Set of available variables
-    std::deque<Variable*> _vars;
+    std::vector<Variable*> _vars;
     /// Tokenizer to evaluate variables
     Tokenizer tok;
 };

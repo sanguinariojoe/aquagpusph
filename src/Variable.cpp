@@ -24,7 +24,7 @@
 
 #include <Variable.h>
 #include <AuxiliarMethods.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 #include <CalcServer.h>
 
 /** @def PY_ARRAY_UNIQUE_SYMBOL
@@ -46,90 +46,56 @@
 
 namespace Aqua{ namespace InputOutput{
 
-static char str_val[256];
+static std::string str_val;
+static std::ostringstream pyerr;
 
-Variable::Variable(const char *varname, const char *vartype)
-    : _name(NULL)
-    , _typename(NULL)
+Variable::Variable(const std::string varname, const std::string vartype)
 {
-    unsigned int len;
-
-    len = strlen(varname) + 1;
-    _name = new char[len];
-    strcpy(_name, varname);
-    len = strlen(vartype) + 1;
-    _typename = new char[len];
-    strcpy(_typename, vartype);
+    _name = varname;
+    _typename = vartype;
 }
 
-Variable::~Variable()
-{
-    delete[] _name; _name = NULL;
-    delete[] _typename; _typename = NULL;
-}
-
-IntVariable::IntVariable(const char *varname)
-    : Variable(varname, "int")
-    , _value(0)
+template <class T>
+ScalarVariable<T>::ScalarVariable(const std::string varname,
+                                  const std::string vartype)
+    : Variable(varname, vartype)
 {
 }
 
-IntVariable::~IntVariable()
+template <class T>
+ScalarNumberVariable<T>::ScalarNumberVariable(const std::string varname,
+                                              const std::string vartype)
+    : ScalarVariable<T>(varname, vartype)
 {
+}
+
+template <class T>
+const std::string ScalarNumberVariable<T>::asString(){
+    std::ostringstream msg;
+    msg << *(this->get());
+    str_val = msg.str();
+    return str_val;
+}
+
+IntVariable::IntVariable(const std::string varname)
+    : ScalarNumberVariable<int>(varname, "int")
+{
+    _value = 0;
 }
 
 PyObject* IntVariable::getPythonObject(int i0, int n)
 {
-    if(i0 != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return NULL;
-    }
-    if(n != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return NULL;
-    }
-
-    long val = *(int*)get();
+    long val = *(get());
     return PyLong_FromLong(val);
 }
 
 bool IntVariable::setFromPythonObject(PyObject* obj, int i0, int n)
 {
-    if(i0 != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-    if(n != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-
     if(!PyLong_Check(obj)){
-        char errstr[64 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" expected a PyLongObject",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
+        pyerr.str("");
+        pyerr << "Variable \"" << name()
+            << "\" expected a PyLongObject" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
 
@@ -139,19 +105,10 @@ bool IntVariable::setFromPythonObject(PyObject* obj, int i0, int n)
     return false;
 }
 
-const char* IntVariable::asString(){
-    sprintf(str_val, "%16d", *(get()));
-    return (const char*)str_val;
-}
-
-UIntVariable::UIntVariable(const char *varname)
-    : Variable(varname, "unsigned int")
-    , _value(0)
+UIntVariable::UIntVariable(const std::string varname)
+    : ScalarNumberVariable<unsigned int>(varname, "unsigned int")
 {
-}
-
-UIntVariable::~UIntVariable()
-{
+    _value = 0;
 }
 
 PyObject* UIntVariable::getPythonObject(int i0, int n)
@@ -162,31 +119,11 @@ PyObject* UIntVariable::getPythonObject(int i0, int n)
 
 bool UIntVariable::setFromPythonObject(PyObject* obj, int i0, int n)
 {
-    if(i0 != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-    if(n != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-
     if(!PyLong_Check(obj)){
-        char errstr[64 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" expected a PyLongObject",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
+        pyerr.str("");
+        pyerr << "Variable \"" << name()
+            << "\" expected a PyLongObject" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
 
@@ -196,72 +133,25 @@ bool UIntVariable::setFromPythonObject(PyObject* obj, int i0, int n)
     return false;
 }
 
-const char* UIntVariable::asString(){
-    sprintf(str_val, "%16u", *(get()));
-    return (const char*)str_val;
-}
-
-FloatVariable::FloatVariable(const char *varname)
-    : Variable(varname, "float")
-    , _value(0.f)
+FloatVariable::FloatVariable(const std::string varname)
+    : ScalarNumberVariable<float>(varname, "float")
 {
-}
-
-FloatVariable::~FloatVariable()
-{
+    _value = 0.f;
 }
 
 PyObject* FloatVariable::getPythonObject(int i0, int n)
 {
-    if(i0 != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return NULL;
-    }
-    if(n != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return NULL;
-    }
-    double val = *(float*)get();
+    double val = *(get());
     return PyFloat_FromDouble(val);
 }
 
 bool FloatVariable::setFromPythonObject(PyObject* obj, int i0, int n)
 {
-    if(i0 != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-    if(n != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-
     if(!PyFloat_Check(obj)){
-        char errstr[64 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" expected a PyFloatObject",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
+        pyerr.str("");
+        pyerr << "Variable \"" << name()
+            << "\" expected a PyFloatObject" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
 
@@ -271,42 +161,68 @@ bool FloatVariable::setFromPythonObject(PyObject* obj, int i0, int n)
     return false;
 }
 
-const char* FloatVariable::asString(){
-    sprintf(str_val, "%16g", *(get()));
-    return (const char*)str_val;
+template <class T>
+ScalarVecVariable<T>::ScalarVecVariable(const std::string varname,
+                                        const std::string vartype,
+                                        const unsigned int dims)
+    : ScalarVariable<T>(varname, vartype)
+    , _dims(dims)
+{
 }
 
-Vec2Variable::Vec2Variable(const char *varname)
-    : Variable(varname, "vec2")
+template <class T>
+bool ScalarVecVariable<T>::checkPyhonObjectDims(PyObject* obj){
+    if(!PyObject_TypeCheck(obj, &PyArray_Type)){
+        pyerr.str("");
+        pyerr << "Variable \"" << this->name()
+            << "\" expected a PyArrayObject" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+        return true;
+    }
+
+    PyArrayObject* array_obj = (PyArrayObject*) obj;
+    if(array_obj->nd != 1){
+        pyerr.str("");
+        pyerr << "Variable \"" << this->name()
+            << "\" expected an one dimensional array" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+        return true;
+    }
+    npy_intp dim = array_obj->dimensions[0];
+    if(dim != _dims){
+        pyerr.str("");
+        pyerr << "Variable \"" << this->name()
+            << "\" expected an array with "<< _dims
+            << " components" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+        return true;
+    }
+    return false;
+}
+
+template <class T>
+const std::string ScalarVecVariable<T>::asString(){
+    T *val = this->get();
+    std::ostringstream msg;
+    msg << "(";
+    for (unsigned int i = 0; i < _dims; i++) {
+        msg << val->s[i] << ",";
+    }
+    str_val = msg.str();
+    str_val.back() = ')';
+    return str_val;
+}
+
+
+Vec2Variable::Vec2Variable(const std::string varname)
+    : ScalarVecVariable(varname, "vec2", 2)
 {
     _value.x = 0.f;
     _value.y = 0.f;
 }
 
-Vec2Variable::~Vec2Variable()
-{
-}
-
 PyObject* Vec2Variable::getPythonObject(int i0, int n)
 {
-    if(i0 != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return NULL;
-    }
-    if(n != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return NULL;
-    }
     vec2 *vv = (vec2*)get();
     npy_intp dims[] = {2};
     return PyArray_SimpleNewFromData(1, dims, PyArray_FLOAT, vv->s);
@@ -314,50 +230,15 @@ PyObject* Vec2Variable::getPythonObject(int i0, int n)
 
 bool Vec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 {
-    if(i0 != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
+    if(checkPyhonObjectDims(obj))
         return true;
-    }
-    if(n != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-
-    if(!PyObject_TypeCheck(obj, &PyArray_Type)){
-        char errstr[64 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" expected a PyArrayObject",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-
     PyArrayObject* array_obj = (PyArrayObject*) obj;
-    if(array_obj->nd != 1){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "Variable \"%s\" expected an one dimensional array",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-    npy_intp dim = array_obj->dimensions[0];
-    if(dim != 2){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "Variable \"%s\" expected a 2 components array",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
+    int typ = PyArray_TYPE(array_obj);
+    if (typ != PyArray_FLOAT) {
+        pyerr.str("");
+        pyerr << "Variable \"" << name()
+            << "\" expected a PyArray_FLOAT array" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
 
@@ -368,44 +249,16 @@ bool Vec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
     return false;
 }
 
-const char* Vec2Variable::asString(){
-    vec2 *val = get();
-    sprintf(str_val, "(%16g,%16g)", val->x, val->y);
-    return (const char*)str_val;
-}
-
-Vec3Variable::Vec3Variable(const char *varname)
-    : Variable(varname, "vec3")
+Vec3Variable::Vec3Variable(const std::string varname)
+    : ScalarVecVariable(varname, "vec3", 3)
 {
     _value.x = 0.f;
     _value.y = 0.f;
     _value.z = 0.f;
 }
 
-Vec3Variable::~Vec3Variable()
-{
-}
-
 PyObject* Vec3Variable::getPythonObject(int i0, int n)
 {
-    if(i0 != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return NULL;
-    }
-    if(n != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return NULL;
-    }
     vec3 *vv = (vec3*)get();
     npy_intp dims[] = {3};
     return PyArray_SimpleNewFromData(1, dims, PyArray_FLOAT, vv->s);
@@ -413,50 +266,15 @@ PyObject* Vec3Variable::getPythonObject(int i0, int n)
 
 bool Vec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 {
-    if(i0 != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
+    if(checkPyhonObjectDims(obj))
         return true;
-    }
-    if(n != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-
-    if(!PyObject_TypeCheck(obj, &PyArray_Type)){
-        char errstr[64 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" expected a PyArrayObject",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-
     PyArrayObject* array_obj = (PyArrayObject*) obj;
-    if(array_obj->nd != 1){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "Variable \"%s\" expected an one dimensional array",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-    npy_intp dim = array_obj->dimensions[0];
-    if(dim != 3){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "Variable \"%s\" expected a 3 components array",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
+    int typ = PyArray_TYPE(array_obj);
+    if (typ != PyArray_FLOAT) {
+        pyerr.str("");
+        pyerr << "Variable \"" << name()
+            << "\" expected a PyArray_FLOAT array" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
 
@@ -467,14 +285,8 @@ bool Vec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
     return false;
 }
 
-const char* Vec3Variable::asString(){
-    vec3 *val = get();
-    sprintf(str_val, "(%16g,%16g,%16g)", val->x, val->y, val->z);
-    return (const char*)str_val;
-}
-
-Vec4Variable::Vec4Variable(const char *varname)
-    : Variable(varname, "vec4")
+Vec4Variable::Vec4Variable(const std::string varname)
+    : ScalarVecVariable(varname, "vec4", 4)
 {
     _value.x = 0.f;
     _value.y = 0.f;
@@ -482,30 +294,8 @@ Vec4Variable::Vec4Variable(const char *varname)
     _value.w = 0.f;
 }
 
-Vec4Variable::~Vec4Variable()
-{
-}
-
 PyObject* Vec4Variable::getPythonObject(int i0, int n)
 {
-    if(i0 != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return NULL;
-    }
-    if(n != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return NULL;
-    }
     vec4 *vv = (vec4*)get();
     npy_intp dims[] = {4};
     return PyArray_SimpleNewFromData(1, dims, PyArray_FLOAT, vv->s);
@@ -513,50 +303,15 @@ PyObject* Vec4Variable::getPythonObject(int i0, int n)
 
 bool Vec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 {
-    if(i0 != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
+    if(checkPyhonObjectDims(obj))
         return true;
-    }
-    if(n != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-
-    if(!PyObject_TypeCheck(obj, &PyArray_Type)){
-        char errstr[64 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" expected a PyArrayObject",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-
     PyArrayObject* array_obj = (PyArrayObject*) obj;
-    if(array_obj->nd != 1){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "Variable \"%s\" expected an one dimensional array",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-    npy_intp dim = array_obj->dimensions[0];
-    if(dim != 4){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "Variable \"%s\" expected a 4 components array",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
+    int typ = PyArray_TYPE(array_obj);
+    if (typ != PyArray_FLOAT) {
+        pyerr.str("");
+        pyerr << "Variable \"" << name()
+            << "\" expected a PyArray_FLOAT array" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
 
@@ -567,43 +322,15 @@ bool Vec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
     return false;
 }
 
-const char* Vec4Variable::asString(){
-    vec4 *val = get();
-    sprintf(str_val, "(%16g,%16g,%16g,%16g)", val->x, val->y, val->z, val->w);
-    return (const char*)str_val;
-}
-
-IVec2Variable::IVec2Variable(const char *varname)
-    : Variable(varname, "ivec2")
+IVec2Variable::IVec2Variable(const std::string varname)
+    : ScalarVecVariable(varname, "ivec2", 2)
 {
     _value.x = 0;
     _value.y = 0;
 }
 
-IVec2Variable::~IVec2Variable()
-{
-}
-
 PyObject* IVec2Variable::getPythonObject(int i0, int n)
 {
-    if(i0 != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return NULL;
-    }
-    if(n != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return NULL;
-    }
     ivec2 *vv = (ivec2*)get();
     npy_intp dims[] = {2};
     return PyArray_SimpleNewFromData(1, dims, PyArray_INT, vv->s);
@@ -611,50 +338,15 @@ PyObject* IVec2Variable::getPythonObject(int i0, int n)
 
 bool IVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 {
-    if(i0 != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
+    if(checkPyhonObjectDims(obj))
         return true;
-    }
-    if(n != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-
-    if(!PyObject_TypeCheck(obj, &PyArray_Type)){
-        char errstr[64 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" expected a PyArrayObject",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-
     PyArrayObject* array_obj = (PyArrayObject*) obj;
-    if(array_obj->nd != 1){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "Variable \"%s\" expected an one dimensional array",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-    npy_intp dim = array_obj->dimensions[0];
-    if(dim != 2){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "Variable \"%s\" expected a 2 components array",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
+    int typ = PyArray_TYPE(array_obj);
+    if (typ != PyArray_INT) {
+        pyerr.str("");
+        pyerr << "Variable \"" << name()
+            << "\" expected a PyArray_INT array" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
 
@@ -665,44 +357,16 @@ bool IVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
     return false;
 }
 
-const char* IVec2Variable::asString(){
-    ivec2 *val = get();
-    sprintf(str_val, "(%16d,%16d)", val->x, val->y);
-    return (const char*)str_val;
-}
-
-IVec3Variable::IVec3Variable(const char *varname)
-    : Variable(varname, "ivec3")
+IVec3Variable::IVec3Variable(const std::string varname)
+    : ScalarVecVariable(varname, "ivec3", 3)
 {
     _value.x = 0;
     _value.y = 0;
     _value.z = 0;
 }
 
-IVec3Variable::~IVec3Variable()
-{
-}
-
 PyObject* IVec3Variable::getPythonObject(int i0, int n)
 {
-    if(i0 != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return NULL;
-    }
-    if(n != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return NULL;
-    }
     ivec3 *vv = (ivec3*)get();
     npy_intp dims[] = {3};
     return PyArray_SimpleNewFromData(1, dims, PyArray_INT, vv->s);
@@ -710,50 +374,15 @@ PyObject* IVec3Variable::getPythonObject(int i0, int n)
 
 bool IVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 {
-    if(i0 != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
+    if(checkPyhonObjectDims(obj))
         return true;
-    }
-    if(n != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-
-    if(!PyObject_TypeCheck(obj, &PyArray_Type)){
-        char errstr[64 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" expected a PyArrayObject",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-
     PyArrayObject* array_obj = (PyArrayObject*) obj;
-    if(array_obj->nd != 1){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "Variable \"%s\" expected an one dimensional array",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-    npy_intp dim = array_obj->dimensions[0];
-    if(dim != 3){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "Variable \"%s\" expected a 3 components array",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
+    int typ = PyArray_TYPE(array_obj);
+    if (typ != PyArray_INT) {
+        pyerr.str("");
+        pyerr << "Variable \"" << name()
+            << "\" expected a PyArray_INT array" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
 
@@ -764,14 +393,8 @@ bool IVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
     return false;
 }
 
-const char* IVec3Variable::asString(){
-    ivec3 *val = get();
-    sprintf(str_val, "(%16d,%16d,%16d)", val->x, val->y, val->z);
-    return (const char*)str_val;
-}
-
-IVec4Variable::IVec4Variable(const char *varname)
-    : Variable(varname, "ivec4")
+IVec4Variable::IVec4Variable(const std::string varname)
+    : ScalarVecVariable(varname, "ivec4", 4)
 {
     _value.x = 0;
     _value.y = 0;
@@ -779,30 +402,8 @@ IVec4Variable::IVec4Variable(const char *varname)
     _value.w = 0;
 }
 
-IVec4Variable::~IVec4Variable()
-{
-}
-
 PyObject* IVec4Variable::getPythonObject(int i0, int n)
 {
-    if(i0 != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return NULL;
-    }
-    if(n != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return NULL;
-    }
     ivec4 *vv = (ivec4*)get();
     npy_intp dims[] = {4};
     return PyArray_SimpleNewFromData(1, dims, PyArray_INT, vv->s);
@@ -810,50 +411,15 @@ PyObject* IVec4Variable::getPythonObject(int i0, int n)
 
 bool IVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 {
-    if(i0 != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
+    if(checkPyhonObjectDims(obj))
         return true;
-    }
-    if(n != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-
-    if(!PyObject_TypeCheck(obj, &PyArray_Type)){
-        char errstr[64 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" expected a PyArrayObject",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-
     PyArrayObject* array_obj = (PyArrayObject*) obj;
-    if(array_obj->nd != 1){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "Variable \"%s\" expected an one dimensional array",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-    npy_intp dim = array_obj->dimensions[0];
-    if(dim != 4){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "Variable \"%s\" expected a 4 components array",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
+    int typ = PyArray_TYPE(array_obj);
+    if (typ != PyArray_INT) {
+        pyerr.str("");
+        pyerr << "Variable \"" << name()
+            << "\" expected a PyArray_INT array" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
 
@@ -864,43 +430,15 @@ bool IVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
     return false;
 }
 
-const char* IVec4Variable::asString(){
-    ivec4 *val = get();
-    sprintf(str_val, "(%16d,%16d,%16d,%16d)", val->x, val->y, val->z, val->w);
-    return (const char*)str_val;
-}
-
-UIVec2Variable::UIVec2Variable(const char *varname)
-    : Variable(varname, "uivec2")
+UIVec2Variable::UIVec2Variable(const std::string varname)
+    : ScalarVecVariable(varname, "uivec2", 2)
 {
     _value.x = 0;
     _value.y = 0;
 }
 
-UIVec2Variable::~UIVec2Variable()
-{
-}
-
 PyObject* UIVec2Variable::getPythonObject(int i0, int n)
 {
-    if(i0 != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return NULL;
-    }
-    if(n != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return NULL;
-    }
     uivec2 *vv = (uivec2*)get();
     npy_intp dims[] = {2};
     return PyArray_SimpleNewFromData(1, dims, PyArray_UINT, vv->s);
@@ -908,50 +446,15 @@ PyObject* UIVec2Variable::getPythonObject(int i0, int n)
 
 bool UIVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 {
-    if(i0 != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
+    if(checkPyhonObjectDims(obj))
         return true;
-    }
-    if(n != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-
-    if(!PyObject_TypeCheck(obj, &PyArray_Type)){
-        char errstr[64 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" expected a PyArrayObject",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-
     PyArrayObject* array_obj = (PyArrayObject*) obj;
-    if(array_obj->nd != 1){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "Variable \"%s\" expected an one dimensional array",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-    npy_intp dim = array_obj->dimensions[0];
-    if(dim != 2){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "Variable \"%s\" expected a 2 components array",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
+    int typ = PyArray_TYPE(array_obj);
+    if (typ != PyArray_UINT) {
+        pyerr.str("");
+        pyerr << "Variable \"" << name()
+            << "\" expected a PyArray_UINT array" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
 
@@ -962,44 +465,16 @@ bool UIVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
     return false;
 }
 
-const char* UIVec2Variable::asString(){
-    uivec2 *val = get();
-    sprintf(str_val, "(%16u,%16u)", val->x, val->y);
-    return (const char*)str_val;
-}
-
-UIVec3Variable::UIVec3Variable(const char *varname)
-    : Variable(varname, "uivec3")
+UIVec3Variable::UIVec3Variable(const std::string varname)
+    : ScalarVecVariable(varname, "uivec3", 3)
 {
     _value.x = 0;
     _value.y = 0;
     _value.z = 0;
 }
 
-UIVec3Variable::~UIVec3Variable()
-{
-}
-
 PyObject* UIVec3Variable::getPythonObject(int i0, int n)
 {
-    if(i0 != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return NULL;
-    }
-    if(n != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return NULL;
-    }
     uivec3 *vv = (uivec3*)get();
     npy_intp dims[] = {3};
     return PyArray_SimpleNewFromData(1, dims, PyArray_UINT, vv->s);
@@ -1007,50 +482,15 @@ PyObject* UIVec3Variable::getPythonObject(int i0, int n)
 
 bool UIVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 {
-    if(i0 != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
+    if(checkPyhonObjectDims(obj))
         return true;
-    }
-    if(n != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-
-    if(!PyObject_TypeCheck(obj, &PyArray_Type)){
-        char errstr[64 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" expected a PyArrayObject",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-
     PyArrayObject* array_obj = (PyArrayObject*) obj;
-    if(array_obj->nd != 1){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "Variable \"%s\" expected an one dimensional array",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-    npy_intp dim = array_obj->dimensions[0];
-    if(dim != 3){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "Variable \"%s\" expected a 3 components array",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
+    int typ = PyArray_TYPE(array_obj);
+    if (typ != PyArray_UINT) {
+        pyerr.str("");
+        pyerr << "Variable \"" << name()
+            << "\" expected a PyArray_UINT array" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
 
@@ -1061,14 +501,8 @@ bool UIVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
     return false;
 }
 
-const char* UIVec3Variable::asString(){
-    uivec3 *val = get();
-    sprintf(str_val, "(%16u,%16u,%16u)", val->x, val->y, val->z);
-    return (const char*)str_val;
-}
-
-UIVec4Variable::UIVec4Variable(const char *varname)
-    : Variable(varname, "uivec4")
+UIVec4Variable::UIVec4Variable(const std::string varname)
+    : ScalarVecVariable(varname, "uivec4", 4)
 {
     _value.x = 0;
     _value.y = 0;
@@ -1076,30 +510,8 @@ UIVec4Variable::UIVec4Variable(const char *varname)
     _value.w = 0;
 }
 
-UIVec4Variable::~UIVec4Variable()
-{
-}
-
 PyObject* UIVec4Variable::getPythonObject(int i0, int n)
 {
-    if(i0 != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return NULL;
-    }
-    if(n != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return NULL;
-    }
     uivec4 *vv = (uivec4*)get();
     npy_intp dims[] = {4};
     return PyArray_SimpleNewFromData(1, dims, PyArray_UINT, vv->s);
@@ -1107,50 +519,15 @@ PyObject* UIVec4Variable::getPythonObject(int i0, int n)
 
 bool UIVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 {
-    if(i0 != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"offset\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
+    if(checkPyhonObjectDims(obj))
         return true;
-    }
-    if(n != 0){
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", but \"n\" different from 0 has been received",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-
-    if(!PyObject_TypeCheck(obj, &PyArray_Type)){
-        char errstr[64 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" expected a PyArrayObject",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-
     PyArrayObject* array_obj = (PyArrayObject*) obj;
-    if(array_obj->nd != 1){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "Variable \"%s\" expected an one dimensional array",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
-    }
-    npy_intp dim = array_obj->dimensions[0];
-    if(dim != 4){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "Variable \"%s\" expected a 4 components array",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
+    int typ = PyArray_TYPE(array_obj);
+    if (typ != PyArray_UINT) {
+        pyerr.str("");
+        pyerr << "Variable \"" << name()
+            << "\" expected a PyArray_UINT array" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
 
@@ -1161,13 +538,7 @@ bool UIVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
     return false;
 }
 
-const char* UIVec4Variable::asString(){
-    uivec4 *val = get();
-    sprintf(str_val, "(%16u,%16u,%16u,%16u)", val->x, val->y, val->z, val->w);
-    return (const char*)str_val;
-}
-
-ArrayVariable::ArrayVariable(const char *varname, const char *vartype)
+ArrayVariable::ArrayVariable(const std::string varname, const std::string vartype)
     : Variable(varname, vartype)
     , _value(NULL)
 {
@@ -1175,17 +546,12 @@ ArrayVariable::ArrayVariable(const char *varname, const char *vartype)
 
 ArrayVariable::~ArrayVariable()
 {
-    unsigned int i;
-    for(i = 0; i < _objects.size(); i++){
-        if(_objects.at(i))
-            Py_DECREF(_objects.at(i));
-        _objects.at(i) = NULL;
+    for(auto object : _objects){
+        if(object) Py_DECREF(object);
     }
     _objects.clear();
-    for(i = 0; i < _data.size(); i++){
-        if(_data.at(i))
-            free(_data.at(i));
-        _data.at(i) = NULL;
+    for(auto data : _data){
+        if(data) free(data);
     }
     _data.clear();
     if(_value) clReleaseMemObject(_value); _value=NULL;
@@ -1203,13 +569,11 @@ size_t ArrayVariable::size() const
                                        &memsize,
                                        NULL);
     if(status != CL_SUCCESS){
-        char msg[256];
-        ScreenManager *S = ScreenManager::singleton();
-        sprintf(msg,
-                "Failure getting allocated memory from variable \"%s\"\n",
-                name());
-        S->addMessageF(3, msg);
-        S->printOpenCLError(status);
+        std::ostringstream msg;
+        msg << "Failure getting allocated memory from variable \"" << name()
+            << "\"." << std::endl,
+        LOG(L_ERROR, msg.str());
+        Aqua::InputOutput::Logger::singleton()->printOpenCLError(status);
     }
     return memsize;
 }
@@ -1217,24 +581,22 @@ size_t ArrayVariable::size() const
 PyObject* ArrayVariable::getPythonObject(int i0, int n)
 {
     if(i0 < 0){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "Variable \"%s\" cannot handle \"offset\" lower than 0",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
+        pyerr.str("");
+        pyerr << "Variable \"" << name()
+            << "\" cannot handle \"offset\" lower than 0" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return NULL;
     }
     if(n < 0){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "Variable \"%s\" cannot handle \"n\" lower than 0",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
+        pyerr.str("");
+        pyerr << "Variable \"" << name()
+            << "\" cannot handle \"n\" lower than 0" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return NULL;
     }
-	CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
-	Variables *vars = C->variables();
-	cl_int err_code;
+    CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
+    Variables *vars = C->variables();
+    cl_int err_code;
     // Clear outdated references
     cleanMem();
     // Get the dimensions
@@ -1243,11 +605,10 @@ PyObject* ArrayVariable::getPythonObject(int i0, int n)
     size_t memsize = size();
     size_t offset = i0;
     if(offset * typesize > memsize){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "Failure reading variable \"%s\" out of bounds",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
+        pyerr.str("");
+        pyerr << "Failure reading variable \"" << name()
+            << "\" out of bounds" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return NULL;
     }
     size_t len = memsize / typesize - offset;
@@ -1255,54 +616,50 @@ PyObject* ArrayVariable::getPythonObject(int i0, int n)
         len = n;
     }
     if(len == 0){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "0 bytes asked to be read from variable \"%s\"",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
+        pyerr.str("");
+        pyerr << "0 bytes asked to be read from variable \"" << name()
+            << "\"" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return NULL;
     }
     if((offset + len) * typesize > memsize){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "Failure reading variable \"%s\" out of bounds",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
+        pyerr.str("");
+        pyerr << "Failure reading variable \"" << name()
+            << "\" out of bounds" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return NULL;
     }
     npy_intp dims[] = {len, components};
     // Get the appropiate type
     int pytype = PyArray_FLOAT;
-    if(strstr(type(), "unsigned int") ||
-       strstr(type(), "uivec")){
+    if(type().compare("unsigned int") ||
+       type().compare("uivec")){
        pytype = PyArray_UINT;
     }
-    else if(strstr(type(), "int") ||
-       strstr(type(), "ivec")){
+    else if(type().compare("int") ||
+            type().compare("ivec")){
        pytype = PyArray_INT;
     }
-    else if(strstr(type(), "float") ||
-       strstr(type(), "vec")){
+    else if(type().compare("float") ||
+            type().compare("vec")){
        pytype = PyArray_FLOAT;
     }
     else{
-        char errstr[128 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" is of type \"%s\", which is not handled by Python",
-                name(),
-                type());
-        PyErr_SetString(PyExc_ValueError, errstr);
+        pyerr.str("");
+        pyerr << "Variable \"" << name()
+            << "\" is of type \"" << type()
+            << "\", which can't be handled by Python" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return NULL;
     }
     // Reallocate memory
     void *data = malloc(len * typesize);
     if(!data){
-        char errstr[128 + strlen(name())];
-        sprintf(errstr,
-                "Failure allocating %lu bytes for variable \"%s\"",
-                len * typesize,
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
+        pyerr.str("");
+        pyerr << "Failure allocating " << len * typesize
+            << " bytes for variable \"" << name()
+            << "\"" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return NULL;
     }
     _data.push_back(data);
@@ -1317,21 +674,19 @@ PyObject* ArrayVariable::getPythonObject(int i0, int n)
                                    NULL,
                                    NULL);
     if(err_code != CL_SUCCESS){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "Failure downloading variable \"%s\"",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
+        pyerr.str("");
+        pyerr << "Failure downloading variable \"" << name()
+            << "\"" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return NULL;
     }
     // Build and return the Python object
     PyObject *obj = PyArray_SimpleNewFromData(2, dims, pytype, data);
     if(!obj){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "Failure creating a Python object for variable \"%s\"",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
+        pyerr.str("");
+        pyerr << "Failure creating a Python object for variable \"" << name()
+            << "\"" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return NULL;
     }
     _objects.push_back(obj);
@@ -1342,24 +697,22 @@ PyObject* ArrayVariable::getPythonObject(int i0, int n)
 bool ArrayVariable::setFromPythonObject(PyObject* obj, int i0, int n)
 {
     if(i0 < 0){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "Variable \"%s\" cannot handle \"offset\" lower than 0",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
+        pyerr.str("");
+        pyerr << "Variable \"" << name()
+            << "\" cannot handle \"offset\" lower than 0" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+        return NULL;
     }
     if(n < 0){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "Variable \"%s\" cannot handle \"n\" lower than 0",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
-        return true;
+        pyerr.str("");
+        pyerr << "Variable \"" << name()
+            << "\" cannot handle \"n\" lower than 0" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+        return NULL;
     }
-	CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
-	Variables *vars = C->variables();
-	cl_int err_code;
+    CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
+    Variables *vars = C->variables();
+    cl_int err_code;
     // Clear outdated references
     cleanMem();
     // Get the dimensions
@@ -1368,11 +721,10 @@ bool ArrayVariable::setFromPythonObject(PyObject* obj, int i0, int n)
     size_t memsize = size();
     size_t offset = i0;
     if(offset * typesize > memsize){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "Failure writing variable \"%s\" out of bounds",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
+        pyerr.str("");
+        pyerr << "Failure writing variable \"" << name()
+            << "\" out of bounds" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
     size_t len = memsize / typesize - offset;
@@ -1380,59 +732,51 @@ bool ArrayVariable::setFromPythonObject(PyObject* obj, int i0, int n)
         len = n;
     }
     if(len == 0){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "0 bytes asked to be written to variable \"%s\"",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
+        pyerr.str("");
+        pyerr << "0 bytes asked to be written into variable \"" << name()
+            << "\"" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
     if((offset + len) * typesize > memsize){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "Failure writing variable \"%s\" out of bounds",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
+        pyerr.str("");
+        pyerr << "Failure writing variable \"" << name()
+            << "\" out of bounds" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
 
     if(!PyObject_TypeCheck(obj, &PyArray_Type)){
-        char errstr[64 + strlen(name()) + strlen(type())];
-        sprintf(errstr,
-                "Variable \"%s\" expected a PyArrayObject",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
+        pyerr.str("");
+        pyerr << "Variable \"" << name()
+            << "\" expected a PyArrayObject" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
 
     PyArrayObject* array_obj = (PyArrayObject*) obj;
     if(array_obj->nd != 2){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "Variable \"%s\" expected an one dimensional array",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
+        pyerr.str("");
+        pyerr << "Variable \"" << name()
+            << "\" expected a 2D array" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
     npy_intp *dims = array_obj->dimensions;
     if((size_t)dims[0] != len){
-        char errstr[128 + strlen(name())];
-        sprintf(errstr,
-                "%lu elements have been asked to be written in variable \"%s\" but %lu have been provided",
-                len,
-                name(),
-                (size_t)dims[0]);
-        PyErr_SetString(PyExc_ValueError, errstr);
+        pyerr.str("");
+        pyerr << len << " elements have been asked to be written in variable \""
+              << name() << "\" but " << (size_t)dims[0]
+              << " have been provided" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
     if((size_t)dims[1] != components){
-        char errstr[128 + strlen(name())];
-        sprintf(errstr,
-                "%lu components per elements are expected by variable \"%s\" but %lu have been provided",
-                components,
-                name(),
-                (size_t)dims[1]);
-        PyErr_SetString(PyExc_ValueError, errstr);
+        pyerr.str("");
+        pyerr << components << " components per elements are expected by variable \""
+              << name() << "\" but " << (size_t)dims[1]
+              << " have been provided" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
 
@@ -1448,54 +792,44 @@ bool ArrayVariable::setFromPythonObject(PyObject* obj, int i0, int n)
                                      NULL,
                                      NULL);
     if(err_code != CL_SUCCESS){
-        char errstr[64 + strlen(name())];
-        sprintf(errstr,
-                "Failure uploading variable \"%s\"",
-                name());
-        PyErr_SetString(PyExc_ValueError, errstr);
+        pyerr.str("");
+        pyerr << "Failure uploading variable \""
+              << name() << "\"" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
 
     return false;
 }
 
-const char* ArrayVariable::asString()
+const std::string ArrayVariable::asString()
 {
-    void *val = get();
-    sprintf(str_val, "%p", val);
-    return (const char*)str_val;
+    cl_mem* val = get();
+    std::ostringstream msg;
+    msg << val;
+    str_val = msg.str();
+    return str_val;
 }
 
-const char* ArrayVariable::asString(size_t i)
+const std::string ArrayVariable::asString(size_t i)
 {
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
     size_t length = size() / Variables::typeToBytes(type());
     if(i > length){
-        char msg[256];
-        ScreenManager *S = ScreenManager::singleton();
-        sprintf(msg,
-                "Failure extracting the component %lu from the variable \"%s\"\n",
-                i,
-                name());
-        S->addMessageF(3, msg);
-        sprintf(msg,
-                "Out of bounds (length = %lu)\n",
-                length);
-        S->addMessage(0, msg);
+        std::ostringstream msg;
+        msg << "Out of bounds (length = " << length << ")" << std::endl;
+        LOG(L_ERROR, msg.str());
         return NULL;
     }
     void *ptr = malloc(typesize());
     if(!ptr){
-        char msg[256];
-        ScreenManager *S = ScreenManager::singleton();
-        sprintf(msg,
-                "Failure allocating memory to download the variable \"%s\"\n",
-                name());
-        S->addMessageF(3, msg);
-        sprintf(msg,
-                "%lu bytes requested\n",
-                typesize());
-        S->addMessage(0, msg);
+        std::ostringstream msg;
+        msg << "Failure allocating memory to download the variable \""
+            << name() << "\"" << std::endl;
+        LOG(L_ERROR, msg.str());
+        msg.str("");
+        msg << typesize() << "bytes requested" << std::endl;
+        LOG0(L_DEBUG, msg.str());
         return NULL;
     }
     cl_int err_code = clEnqueueReadBuffer(C->command_queue(),
@@ -1508,138 +842,121 @@ const char* ArrayVariable::asString(size_t i)
                                           NULL,
                                           NULL);
     if(err_code != CL_SUCCESS){
-        char msg[256];
-        ScreenManager *S = ScreenManager::singleton();
-        sprintf(msg,
-                "Failure downloading the variable \"%s\"\n",
-                name());
-        S->addMessageF(3, msg);
-        S->printOpenCLError(err_code);
+        std::ostringstream msg;
+        msg << "Failure downloading the variable \"" << name() << "\"" << std::endl;
+        LOG(L_ERROR, msg.str());
+        Aqua::InputOutput::Logger::singleton()->printOpenCLError(err_code);
         free(ptr);
         return NULL;
     }
 
-    if(strstr(type(), "unsigned int")){
-        sprintf(str_val, "%16u", ((unsigned int*)ptr)[0]);
+    std::ostringstream str_stream;
+
+    if(type().compare("unsigned int")){
+        str_stream << ((unsigned int*)ptr)[0];
     }
-    else if(strstr(type(), "uivec2")){
-        sprintf(str_val, "(%16u,%16u)",
-                         ((unsigned int*)ptr)[0],
-                         ((unsigned int*)ptr)[1]);
+    else if(type().compare("uivec2")){
+        str_stream << "(" << ((unsigned int*)ptr)[0] << ","
+                          << ((unsigned int*)ptr)[1] << ")";
     }
-    else if(strstr(type(), "uivec3")){
-        sprintf(str_val, "(%16u,%16u,%16u)",
-                         ((unsigned int*)ptr)[0],
-                         ((unsigned int*)ptr)[1],
-                         ((unsigned int*)ptr)[2]);
+    else if(type().compare("uivec3")){
+        str_stream << "(" << ((unsigned int*)ptr)[0] << ","
+                          << ((unsigned int*)ptr)[1] << ","
+                          << ((unsigned int*)ptr)[2] << ")";
     }
-    else if(strstr(type(), "uivec4")){
-        sprintf(str_val, "(%16u,%16u,%16u,%16u)",
-                         ((unsigned int*)ptr)[0],
-                         ((unsigned int*)ptr)[1],
-                         ((unsigned int*)ptr)[2],
-                         ((unsigned int*)ptr)[3]);
+    else if(type().compare("uivec4")){
+        str_stream << "(" << ((unsigned int*)ptr)[0] << ","
+                          << ((unsigned int*)ptr)[1] << ","
+                          << ((unsigned int*)ptr)[2] << ","
+                          << ((unsigned int*)ptr)[3] << ")";
     }
-    else if(strstr(type(), "uivec")){
+    else if(type().compare("uivec")){
         #ifdef HAVE_3D
-            sprintf(str_val, "(%16u,%16u,%16u,%16u)",
-                             ((unsigned int*)ptr)[0],
-                             ((unsigned int*)ptr)[1],
-                             ((unsigned int*)ptr)[2],
-                             ((unsigned int*)ptr)[3]);
+            str_stream << "(" << ((unsigned int*)ptr)[0] << ","
+                              << ((unsigned int*)ptr)[1] << ","
+                              << ((unsigned int*)ptr)[2] << ","
+                              << ((unsigned int*)ptr)[3] << ")";
         #else
-            sprintf(str_val, "(%16u,%16u)",
-                             ((unsigned int*)ptr)[0],
-                             ((unsigned int*)ptr)[1]);
+            str_stream << "(" << ((unsigned int*)ptr)[0] << ","
+                              << ((unsigned int*)ptr)[1] << ")";
         #endif
     }
-    else if(strstr(type(), "int")){
-        sprintf(str_val, "%16d", ((int*)ptr)[0]);
+    else if(type().compare("int")){
+        str_stream << ((int*)ptr)[0];
     }
-    else if(strstr(type(), "ivec2")){
-        sprintf(str_val, "(%16d,%16d)",
-                         ((int*)ptr)[0],
-                         ((int*)ptr)[1]);
+    else if(type().compare("ivec2")){
+        str_stream << "(" << ((int*)ptr)[0] << ","
+                          << ((int*)ptr)[1] << ")";
     }
-    else if(strstr(type(), "ivec3")){
-        sprintf(str_val, "(%16d,%16d,%16d)",
-                         ((int*)ptr)[0],
-                         ((int*)ptr)[1],
-                         ((int*)ptr)[2]);
+    else if(type().compare("ivec3")){
+        str_stream << "(" << ((int*)ptr)[0] << ","
+                          << ((int*)ptr)[1] << ","
+                          << ((int*)ptr)[2] << ")";
     }
-    else if(strstr(type(), "ivec4")){
-        sprintf(str_val, "(%16d,%16d,%16d,%16d)",
-                         ((int*)ptr)[0],
-                         ((int*)ptr)[1],
-                         ((int*)ptr)[2],
-                         ((int*)ptr)[3]);
+    else if(type().compare("ivec4")){
+        str_stream << "(" << ((int*)ptr)[0] << ","
+                          << ((int*)ptr)[1] << ","
+                          << ((int*)ptr)[2] << ","
+                          << ((int*)ptr)[3] << ")";
     }
-    else if(strstr(type(), "ivec")){
+    else if(type().compare("ivec")){
         #ifdef HAVE_3D
-            sprintf(str_val, "(%16d,%16d,%16d,%16d)",
-                             ((int*)ptr)[0],
-                             ((int*)ptr)[1],
-                             ((int*)ptr)[2],
-                             ((int*)ptr)[3]);
+            str_stream << "(" << ((int*)ptr)[0] << ","
+                              << ((int*)ptr)[1] << ","
+                              << ((int*)ptr)[2] << ","
+                              << ((int*)ptr)[3] << ")";
         #else
-            sprintf(str_val, "(%16d,%16d)",
-                             ((int*)ptr)[0],
-                             ((int*)ptr)[1]);
+            str_stream << "(" << ((int*)ptr)[0] << ","
+                              << ((int*)ptr)[1] << ")";
         #endif
     }
-    else if(strstr(type(), "float")){
-        sprintf(str_val, "%16g", ((float*)ptr)[0]);
+    else if(type().compare("float")){
+        str_stream << ((float*)ptr)[0];
     }
-    else if(strstr(type(), "vec2")){
-        sprintf(str_val, "(%16g,%16g)",
-                         ((float*)ptr)[0],
-                         ((float*)ptr)[1]);
+    else if(type().compare("vec2")){
+        str_stream << "(" << ((float*)ptr)[0] << ","
+                          << ((float*)ptr)[1] << ")";
     }
-    else if(strstr(type(), "vec3")){
-        sprintf(str_val, "(%16g,%16g,%16g)",
-                         ((float*)ptr)[0],
-                         ((float*)ptr)[1],
-                         ((float*)ptr)[2]);
+    else if(type().compare("vec3")){
+        str_stream << "(" << ((float*)ptr)[0] << ","
+                          << ((float*)ptr)[1] << ","
+                          << ((float*)ptr)[2] << ")";
     }
-    else if(strstr(type(), "vec4")){
-        sprintf(str_val, "(%16g,%16g,%16g,%16g)",
-                         ((float*)ptr)[0],
-                         ((float*)ptr)[1],
-                         ((float*)ptr)[2],
-                         ((float*)ptr)[3]);
+    else if(type().compare("vec4")){
+        str_stream << "(" << ((float*)ptr)[0] << ","
+                          << ((float*)ptr)[1] << ","
+                          << ((float*)ptr)[2] << ","
+                          << ((float*)ptr)[3] << ")";
     }
-    else if(strstr(type(), "vec")){
+    else if(type().compare("vec")){
         #ifdef HAVE_3D
-            sprintf(str_val, "(%16d,%16d,%16d,%16d)",
-                             ((float*)ptr)[0],
-                             ((float*)ptr)[1],
-                             ((float*)ptr)[2],
-                             ((float*)ptr)[3]);
+            str_stream << "(" << ((float*)ptr)[0] << ","
+                              << ((float*)ptr)[1] << ","
+                              << ((float*)ptr)[2] << ","
+                              << ((float*)ptr)[3] << ")";
         #else
-            sprintf(str_val, "(%16g,%16g)",
-                             ((float*)ptr)[0],
-                             ((float*)ptr)[1]);
+            str_stream << "(" << ((float*)ptr)[0] << ","
+                              << ((float*)ptr)[1] << ")";
         #endif
     }
     else{
-        char msg[128 + strlen(name()) + strlen(type())];
-        ScreenManager *S = ScreenManager::singleton();
-        sprintf(msg,
-                "Variable \"%s\" is of unknown type \"%s\"",
-                name(),
-                type());
-        S->addMessageF(3, msg);
+        std::ostringstream msg;
+        msg << "Variable \"" << name()
+            << "\" has unknown type \"" << type()
+            << "\"" << std::endl;
+        LOG(L_ERROR, msg.str());
         free(ptr);
         return NULL;
     }
     free(ptr);
-    return (const char*)str_val;
+    
+    str_val = str_stream.str();
+    return str_val;
 }
 
 void ArrayVariable::cleanMem()
 {
-    int i;  // unsigned cannot be used here
-    for(i = _objects.size() - 1; i >= 0; i--){
+    for(int i = _objects.size() - 1; i >= 0; i--){
         if(_objects.at(i)->ob_refcnt == 1){
             Py_DECREF(_objects.at(i));
             free(_data.at(i));
@@ -1661,34 +978,32 @@ Variables::Variables()
 Variables::~Variables()
 {
     unsigned int i;
-    for(i = 0; i < _vars.size(); i++){
-        delete _vars.at(i);
+    for(auto var : _vars){
+        delete var;
     }
     _vars.clear();
 }
 
-bool Variables::registerVariable(const char* name,
-                                 const char* type,
-                                 const char* length,
-                                 const char* value)
+void Variables::registerVariable(const std::string name,
+                                 const std::string type,
+                                 const std::string length,
+                                 const std::string value)
 {
     // Look for an already existing variable with the same name
-    unsigned int i;
-    for(i = 0; i < _vars.size(); i++){
-        if(!strcmp(_vars.at(i)->name(), name)){
+    for(unsigned int i = 0; i < _vars.size(); i++){
+        if(!_vars.at(i)->name().compare(name)){
             delete _vars.at(i);
             _vars.erase(_vars.begin() + i);
         }
     }
 
     // Discriminate scalar vs. array
-    if(strstr(type, "*")){
-        return registerClMem(name, type, length);
+    if(type.find('*') != std::string::npos){
+        registerClMem(name, type, length);
     }
     else{
-        return registerScalar(name, type, value);
+        registerScalar(name, type, value);
     }
-    return false;
 }
 
 Variable* Variables::get(unsigned int index)
@@ -1699,80 +1014,74 @@ Variable* Variables::get(unsigned int index)
     return _vars.at(index);
 }
 
-Variable* Variables::get(const char* name)
+Variable* Variables::get(const std::string name)
 {
-    unsigned int i;
-    for(i = 0; i < _vars.size(); i++){
-        if(!strcmp(name, _vars.at(i)->name())){
-            return _vars.at(i);
+    for(auto var : _vars){
+        if(!name.compare(var->name())){
+            return var;
         }
     }
     return NULL;
 }
 
 size_t Variables::allocatedMemory(){
-    unsigned int i;
     size_t allocated_mem = 0;
-    for(i = 0; i < size(); i++){
-        if(!strchr(_vars.at(i)->type(), '*')){
+    for(auto var : _vars){
+        if(var->type().find('*') == std::string::npos){
             continue;
         }
-        ArrayVariable *var = (ArrayVariable *)_vars.at(i);
         allocated_mem += var->size();
     }
     return allocated_mem;
 }
 
-size_t Variables::typeToBytes(const char* type)
+size_t Variables::typeToBytes(const std::string type)
 {
     unsigned int n = typeToN(type);
     size_t type_size = 0;
 
-    if(strstr(type, "unsigned int") ||
-       strstr(type, "uivec")){
+    if(type.find("unsigned int") != std::string::npos ||
+       type.find("uivec") != std::string::npos) {
         type_size = sizeof(unsigned int);
     }
-    else if(strstr(type, "int") ||
-            strstr(type, "ivec")){
+    else if(type.find("int") != std::string::npos ||
+            type.find("ivec") != std::string::npos){
         type_size = sizeof(int);
     }
-    else if(strstr(type, "float") ||
-            strstr(type, "vec") ||
-			strstr(type, "matrix")){
+    else if(type.find("float") != std::string::npos ||
+            type.find("vec") != std::string::npos ||
+            type.find("matrix") != std::string::npos){
         type_size = sizeof(float);
     }
     else{
-        char msg[256];
-        ScreenManager *S = ScreenManager::singleton();
-        sprintf(msg,
-                "Unvalid type \"%s\"\n",
-                type);
-        S->addMessageF(3, msg);
+        std::ostringstream msg;
+        msg << "Unvalid type \"" << type << "\"" << std::endl;
+        LOG(L_ERROR, msg.str());
         return 0;
     }
     return n * type_size;
 }
 
-unsigned int Variables::typeToN(const char* type)
+unsigned int Variables::typeToN(const std::string type)
 {
     unsigned int n = 1;
-    if(strstr(type, "vec2")) {
+    if(type.find("vec2") != std::string::npos) {
         n = 2;
     }
-    else if(strstr(type, "vec3")) {
+    else if(type.find("vec3") != std::string::npos) {
         n = 3;
     }
-    else if(strstr(type, "vec4")) {
+    else if(type.find("vec4") != std::string::npos) {
         n = 4;
     }
-    else if(strstr(type, "vec")) {
+    else if(type.find("vec") != std::string::npos) {
         #ifdef HAVE_3D
             n = 4;
         #else
             n = 2;
         #endif // HAVE_3D
     }
-    else if(strstr(type, "matrix")) {
+    else if(type.find("matrix") != std::string::npos) {
         #ifdef HAVE_3D
             n = 16;
         #else
@@ -1782,8 +1091,8 @@ unsigned int Variables::typeToN(const char* type)
     return n;
 }
 
-bool Variables::isSameType(const char* type_a,
-                           const char* type_b,
+bool Variables::isSameType(const std::string type_a,
+                           const std::string type_b,
                            bool ignore_asterisk)
 {
     if(typeToN(type_a) != typeToN(type_b)){
@@ -1791,93 +1100,85 @@ bool Variables::isSameType(const char* type_a,
     }
 
     if(!ignore_asterisk){
-        if(strchr(type_a, '*') && !strchr(type_b, '*')){
+        if((type_a.find('*') != std::string::npos) &&
+           (type_b.find('*') == std::string::npos)) {
             return false;
         }
-        else if(!strchr(type_a, '*') && strchr(type_b, '*')){
+        else if((type_a.find('*') == std::string::npos) &&
+                (type_b.find('*') != std::string::npos)) {
             return false;
         }
     }
 
-    size_t len_a = strlen(type_a);
-    if((type_a[len_a - 1] == '*')){
-        len_a--;
+    std::string ta = trimCopy(type_a);
+    if((ta.back() == '*')){
+        ta.pop_back();
     }
-    if((type_a[len_a - 1] == '2') ||
-       (type_a[len_a - 1] == '3') ||
-       (type_a[len_a - 1] == '4')){
-        len_a--;
+    if((ta.back() == '2') ||
+       (ta.back() == '3') ||
+       (ta.back() == '4')){
+        ta.pop_back();
     }
-    size_t len_b = strlen(type_b);
-    if((type_b[len_b - 1] == '*')){
-        len_b--;
+    std::string tb = trimCopy(type_b);
+    if((tb.back() == '*')){
+        tb.pop_back();
     }
-    if((type_b[len_b - 1] == '2') ||
-       (type_b[len_b - 1] == '3') ||
-       (type_b[len_b - 1] == '4')){
-        len_b--;
-    }
-
-    if(len_a != len_b){
-        return false;
+    if((tb.back() == '2') ||
+       (tb.back() == '3') ||
+       (tb.back() == '4')){
+        tb.pop_back();
     }
 
-    if(strncmp(type_a, type_b, len_a)){
+    if(ta.compare(tb)){
         return false;
     }
 
     return true;
 }
 
-bool Variables::solve(const char *type_name,
-                      const char *value,
+void Variables::solve(const std::string type_name,
+                      const std::string value,
                       void *data,
-                      const char* name)
+                      const std::string name)
 {
-    char msg[256];
-    ScreenManager *S = ScreenManager::singleton();
     size_t typesize = typeToBytes(type_name);
     if(!typesize){
-        return true;
+        throw std::runtime_error("0 bytes size");
     }
-    if(!strcmp(value, "")){
-        S->addMessageF(3, "Empty value received\n");
-        return true;
+    if(!value.compare("")){
+        LOG(L_ERROR, "Empty value received\n");
+        throw std::runtime_error("Empty value string");
     }
 
-    char *type = new char[strlen(type_name) + 1];
-    strcpy(type, type_name);
-    if(strchr(type, '*'))
-        strcpy(strchr(type, '*'), "");
+    // Ignore whether it is an array or a scalar
+    std::string type = trimCopy(type_name);
+    if(type.back() == '*')
+        type.pop_back();
 
-    if(!strcmp(type, "int")){
+    if(!type.compare("int")){
         int val;
         float auxval;
-        if(readComponents(name, value, 1, &auxval))
-            return true;
+        readComponents(name, value, 1, &auxval);
         val = round(auxval);
         memcpy(data, &val, typesize);
     }
-    else if(!strcmp(type, "unsigned int")){
+    else if(!type.compare("unsigned int")){
         unsigned int val;
         float auxval;
-        if(readComponents(name, value, 1, &auxval))
-            return true;
+        readComponents(name, value, 1, &auxval);
         val = (unsigned int)round(auxval);
         memcpy(data, &val, typesize);
     }
-    else if(!strcmp(type, "float")){
+    else if(!type.compare("float")){
         float val;
-        if(readComponents(name, value, 1, &val))
-            return true;
+        readComponents(name, value, 1, &val);
         memcpy(data, &val, typesize);
     }
-    else if(!strcmp(type, "vec")){
+    else if(!type.compare("vec")){
         vec val;
         #ifdef HAVE_3D
             float auxval[4];
-            if(readComponents(name, value, 4, auxval))
-                return true;
+            readComponents(name, value, 4, auxval);
             val.x = auxval[0];
             val.y = auxval[1];
             val.z = auxval[2];
@@ -1885,49 +1186,44 @@ bool Variables::solve(const char *type_name,
             memcpy(data, &val, typesize);
         #else
             float auxval[2];
-            if(readComponents(name, value, 2, auxval))
-                return true;
+            readComponents(name, value, 2, auxval);
             val.x = auxval[0];
             val.y = auxval[1];
         #endif
         memcpy(data, &val, typesize);
     }
-    else if(!strcmp(type, "vec2")){
+    else if(!type.compare("vec2")){
         vec2 val;
         float auxval[2];
-        if(readComponents(name, value, 2, auxval))
-            return true;
+        readComponents(name, value, 2, auxval);
         val.x = auxval[0];
         val.y = auxval[1];
         memcpy(data, &val, typesize);
     }
-    else if(!strcmp(type, "vec3")){
+    else if(!type.compare("vec3")){
         vec3 val;
         float auxval[3];
-        if(readComponents(name, value, 3, auxval))
-            return true;
+        readComponents(name, value, 3, auxval);
         val.x = auxval[0];
         val.y = auxval[1];
         val.z = auxval[2];
         memcpy(data, &val, typesize);
     }
-    else if(!strcmp(type, "vec4")){
+    else if(!type.compare("vec4")){
         vec4 val;
         float auxval[4];
-        if(readComponents(name, value, 4, auxval))
-            return true;
+        readComponents(name, value, 4, auxval);
         val.x = auxval[0];
         val.y = auxval[1];
         val.z = auxval[2];
         val.w = auxval[3];
         memcpy(data, &val, typesize);
     }
-    else if(!strcmp(type, "ivec")){
+    else if(!type.compare("ivec")){
         ivec val;
         #ifdef HAVE_3D
             float auxval[4];
-            if(readComponents(name, value, 4, auxval))
-                return true;
+            readComponents(name, value, 4, auxval);
             val.x = round(auxval[0]);
             val.y = round(auxval[1]);
             val.z = round(auxval[2]);
@@ -1935,49 +1231,44 @@ bool Variables::solve(const char *type_name,
             memcpy(data, &val, typesize);
         #else
             float auxval[2];
-            if(readComponents(name, value, 2, auxval))
-                return true;
+            readComponents(name, value, 2, auxval);
             val.x = round(auxval[0]);
             val.y = round(auxval[1]);
         #endif
         memcpy(data, &val, typesize);
     }
-    else if(!strcmp(type, "ivec2")){
+    else if(!type.compare("ivec2")){
         ivec2 val;
         float auxval[2];
-        if(readComponents(name, value, 2, auxval))
-            return true;
+        readComponents(name, value, 2, auxval);
         val.x = round(auxval[0]);
         val.y = round(auxval[1]);
         memcpy(data, &val, typesize);
     }
-    else if(!strcmp(type, "ivec3")){
+    else if(!type.compare("ivec3")){
         ivec3 val;
         float auxval[3];
-        if(readComponents(name, value, 3, auxval))
-            return true;
+        readComponents(name, value, 3, auxval);
         val.x = round(auxval[0]);
         val.y = round(auxval[1]);
         val.z = round(auxval[2]);
         memcpy(data, &val, typesize);
     }
-    else if(!strcmp(type, "ivec4")){
+    else if(!type.compare("ivec4")){
         ivec4 val;
         float auxval[4];
-        if(readComponents(name, value, 4, auxval))
-            return true;
+        readComponents(name, value, 4, auxval);
         val.x = round(auxval[0]);
         val.y = round(auxval[1]);
         val.z = round(auxval[2]);
         val.w = round(auxval[3]);
         memcpy(data, &val, typesize);
     }
-    else if(!strcmp(type, "uivec")){
+    else if(!type.compare("uivec")){
         uivec val;
         #ifdef HAVE_3D
             float auxval[4];
-            if(readComponents(name, value, 4, auxval))
-                return true;
+            readComponents(name, value, 4, auxval);
             val.x = (unsigned int)round(auxval[0]);
             val.y = (unsigned int)round(auxval[1]);
             val.z = (unsigned int)round(auxval[2]);
@@ -1985,37 +1276,33 @@ bool Variables::solve(const char *type_name,
             memcpy(data, &val, typesize);
         #else
             float auxval[2];
-            if(readComponents(name, value, 2, auxval))
-                return true;
+            readComponents(name, value, 2, auxval);
             val.x = (unsigned int)round(auxval[0]);
             val.y = (unsigned int)round(auxval[1]);
         #endif
         memcpy(data, &val, typesize);
     }
-    else if(!strcmp(type, "uivec2")){
+    else if(!type.compare("uivec2")){
         uivec2 val;
         float auxval[2];
-        if(readComponents(name, value, 2, auxval))
-            return true;
+        readComponents(name, value, 2, auxval);
         val.x = (unsigned int)round(auxval[0]);
         val.y = (unsigned int)round(auxval[1]);
         memcpy(data, &val, typesize);
     }
-    else if(!strcmp(type, "uivec3")){
+    else if(!type.compare("uivec3")){
         uivec3 val;
         float auxval[3];
-        if(readComponents(name, value, 3, auxval))
-            return true;
+        readComponents(name, value, 3, auxval);
         val.x = (unsigned int)round(auxval[0]);
         val.y = (unsigned int)round(auxval[1]);
         val.z = (unsigned int)round(auxval[2]);
         memcpy(data, &val, typesize);
     }
-    else if(!strcmp(type, "uivec4")){
+    else if(!type.compare("uivec4")){
         uivec4 val;
         float auxval[4];
-        if(readComponents(name, value, 4, auxval))
-            return true;
+        readComponents(name, value, 4, auxval);
         val.x = (unsigned int)round(auxval[0]);
         val.y = (unsigned int)round(auxval[1]);
         val.z = (unsigned int)round(auxval[2]);
@@ -2023,279 +1310,253 @@ bool Variables::solve(const char *type_name,
         memcpy(data, &val, typesize);
     }
     else{
-        return true;
+        throw std::runtime_error("Invalid variable type");
     }
-
-    delete[] type; type = NULL;
-    return false;
 }
 
-bool Variables::populate(const char* name)
+void Variables::populate(const std::string name)
 {
     unsigned int i;
     Variable *var = NULL;
-    if(name){
+    if(name.compare("")){
         var = get(name);
         if(!var){
-            char msg[strlen(name) + 64];
-            ScreenManager *S = ScreenManager::singleton();
-            sprintf(msg,
-                    "Variable \"%s\" cannot be found\n",
-                    name);
-            S->addMessageF(3, msg);
-            return true;
+            std::ostringstream msg;
+            msg << "Variable \"" << name << "\" cannot be found" << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw std::runtime_error("No such variable");
         }
-        return populate(var);
+        populate(var);
+        return;
     }
 
-    for(i = 0; i < _vars.size(); i++){
-        var = _vars.at(i);
-        if(populate(var)){
-            return true;
-        }
+    for(auto var : _vars){
+        populate(var);
     }
-    return false;
 }
 
-bool Variables::populate(Variable* var)
+void Variables::populate(Variable* var)
 {
-    const char* type = var->type();
-    if(!strcmp(type, "int")){
+    std::ostringstream name;
+    const std::string type = trimCopy(var->type());
+    if(!type.compare("int")){
         int val = *(int*)var->get();
         tok.registerVariable(var->name(), (float)val);
     }
-    else if(!strcmp(type, "unsigned int")){
+    else if(!type.compare("unsigned int")){
         unsigned int val = *(unsigned int*)var->get();
         tok.registerVariable(var->name(), (float)val);
     }
-    else if(!strcmp(type, "float")){
+    else if(!type.compare("float")){
         float val = *(float*)var->get();
         tok.registerVariable(var->name(), (float)val);
     }
-    else if(!strcmp(type, "vec")){
+    else if(!type.compare("vec")){
         vec val = *(vec*)var->get();
-        char name[strlen(var->name()) + 3];
         #ifdef HAVE_3D
-            sprintf(name, "%s_x", var->name());
-            tok.registerVariable(name, (float)(val.x));
-            sprintf(name, "%s_y", var->name());
-            tok.registerVariable(name, (float)(val.y));
-            sprintf(name, "%s_z", var->name());
-            tok.registerVariable(name, (float)(val.z));
-            sprintf(name, "%s_w", var->name());
-            tok.registerVariable(name, (float)(val.w));
+            name.str(""); name << var->name() << "_x";
+            tok.registerVariable(name.str(), (float)(val.x));
+            name.str(""); name << var->name() << "_y";
+            tok.registerVariable(name.str(), (float)(val.y));
+            name.str(""); name << var->name() << "_z";
+            tok.registerVariable(name.str(), (float)(val.z));
+            name.str(""); name << var->name() << "_w";
+            tok.registerVariable(name.str(), (float)(val.w));
         #else
-            sprintf(name, "%s_x", var->name());
-            tok.registerVariable(name, (float)(val.x));
-            sprintf(name, "%s_y", var->name());
-            tok.registerVariable(name, (float)(val.y));
+            name.str(""); name << var->name() << "_x";
+            tok.registerVariable(name.str(), (float)(val.x));
+            name.str(""); name << var->name() << "_y";
+            tok.registerVariable(name.str(), (float)(val.y));
         #endif // HAVE_3D
     }
-    else if(!strcmp(type, "vec2")){
+    else if(!type.compare("vec2")){
         vec2 val = *(vec2*)var->get();
-        char name[strlen(var->name()) + 3];
-        sprintf(name, "%s_x", var->name());
-        tok.registerVariable(name, (float)(val.x));
-        sprintf(name, "%s_y", var->name());
-        tok.registerVariable(name, (float)(val.y));
+        name.str(""); name << var->name() << "_x";
+        tok.registerVariable(name.str(), (float)(val.x));
+        name.str(""); name << var->name() << "_y";
+        tok.registerVariable(name.str(), (float)(val.y));
     }
-    else if(!strcmp(type, "vec3")){
+    else if(!type.compare("vec3")){
         vec3 val = *(vec3*)var->get();
-        char name[strlen(var->name()) + 3];
-        sprintf(name, "%s_x", var->name());
-        tok.registerVariable(name, (float)(val.x));
-        sprintf(name, "%s_y", var->name());
-        tok.registerVariable(name, (float)(val.y));
-        sprintf(name, "%s_z", var->name());
-        tok.registerVariable(name, (float)(val.z));
+        name.str(""); name << var->name() << "_x";
+        tok.registerVariable(name.str(), (float)(val.x));
+        name.str(""); name << var->name() << "_y";
+        tok.registerVariable(name.str(), (float)(val.y));
+        name.str(""); name << var->name() << "_z";
+        tok.registerVariable(name.str(), (float)(val.z));
     }
-    else if(!strcmp(type, "vec4")){
+    else if(!type.compare("vec4")){
         vec4 val = *(vec4*)var->get();
-        char name[strlen(var->name()) + 3];
-        sprintf(name, "%s_x", var->name());
-        tok.registerVariable(name, (float)(val.x));
-        sprintf(name, "%s_y", var->name());
-        tok.registerVariable(name, (float)(val.y));
-        sprintf(name, "%s_z", var->name());
-        tok.registerVariable(name, (float)(val.z));
-        sprintf(name, "%s_w", var->name());
-        tok.registerVariable(name, (float)(val.w));
+        name.str(""); name << var->name() << "_x";
+        tok.registerVariable(name.str(), (float)(val.x));
+        name.str(""); name << var->name() << "_y";
+        tok.registerVariable(name.str(), (float)(val.y));
+        name.str(""); name << var->name() << "_z";
+        tok.registerVariable(name.str(), (float)(val.z));
+        name.str(""); name << var->name() << "_w";
+        tok.registerVariable(name.str(), (float)(val.w));
     }
-    else if(!strcmp(type, "ivec")){
+    else if(!type.compare("ivec")){
         ivec val = *(ivec*)var->get();
-        char name[strlen(var->name()) + 3];
         #ifdef HAVE_3D
-            sprintf(name, "%s_x", var->name());
-            tok.registerVariable(name, (float)(val.x));
-            sprintf(name, "%s_y", var->name());
-            tok.registerVariable(name, (float)(val.y));
-            sprintf(name, "%s_z", var->name());
-            tok.registerVariable(name, (float)(val.z));
-            sprintf(name, "%s_w", var->name());
-            tok.registerVariable(name, (float)(val.w));
+            name.str(""); name << var->name() << "_x";
+            tok.registerVariable(name.str(), (float)(val.x));
+            name.str(""); name << var->name() << "_y";
+            tok.registerVariable(name.str(), (float)(val.y));
+            name.str(""); name << var->name() << "_z";
+            tok.registerVariable(name.str(), (float)(val.z));
+            name.str(""); name << var->name() << "_w";
+            tok.registerVariable(name.str(), (float)(val.w));
         #else
-            sprintf(name, "%s_x", var->name());
-            tok.registerVariable(name, (float)(val.x));
-            sprintf(name, "%s_y", var->name());
-            tok.registerVariable(name, (float)(val.y));
+            name.str(""); name << var->name() << "_x";
+            tok.registerVariable(name.str(), (float)(val.x));
+            name.str(""); name << var->name() << "_y";
+            tok.registerVariable(name.str(), (float)(val.y));
         #endif // HAVE_3D
     }
-    else if(!strcmp(type, "ivec2")){
+    else if(!type.compare("ivec2")){
         ivec2 val = *(ivec2*)var->get();
-        char name[strlen(var->name()) + 3];
-        sprintf(name, "%s_x", var->name());
-        tok.registerVariable(name, (float)(val.x));
-        sprintf(name, "%s_y", var->name());
-        tok.registerVariable(name, (float)(val.y));
+        name.str(""); name << var->name() << "_x";
+        tok.registerVariable(name.str(), (float)(val.x));
+        name.str(""); name << var->name() << "_y";
+        tok.registerVariable(name.str(), (float)(val.y));
     }
-    else if(!strcmp(type, "ivec3")){
+    else if(!type.compare("ivec3")){
         ivec3 val = *(ivec3*)var->get();
-        char name[strlen(var->name()) + 3];
-        sprintf(name, "%s_x", var->name());
-        tok.registerVariable(name, (float)(val.x));
-        sprintf(name, "%s_y", var->name());
-        tok.registerVariable(name, (float)(val.y));
-        sprintf(name, "%s_z", var->name());
-        tok.registerVariable(name, (float)(val.z));
+        name.str(""); name << var->name() << "_x";
+        tok.registerVariable(name.str(), (float)(val.x));
+        name.str(""); name << var->name() << "_y";
+        tok.registerVariable(name.str(), (float)(val.y));
+        name.str(""); name << var->name() << "_z";
+        tok.registerVariable(name.str(), (float)(val.z));
     }
-    else if(!strcmp(type, "ivec4")){
+    else if(!type.compare("ivec4")){
         ivec4 val = *(ivec4*)var->get();
-        char name[strlen(var->name()) + 3];
-        sprintf(name, "%s_x", var->name());
-        tok.registerVariable(name, (float)(val.x));
-        sprintf(name, "%s_y", var->name());
-        tok.registerVariable(name, (float)(val.y));
-        sprintf(name, "%s_z", var->name());
-        tok.registerVariable(name, (float)(val.z));
-        sprintf(name, "%s_w", var->name());
-        tok.registerVariable(name, (float)(val.w));
+        name.str(""); name << var->name() << "_x";
+        tok.registerVariable(name.str(), (float)(val.x));
+        name.str(""); name << var->name() << "_y";
+        tok.registerVariable(name.str(), (float)(val.y));
+        name.str(""); name << var->name() << "_z";
+        tok.registerVariable(name.str(), (float)(val.z));
+        name.str(""); name << var->name() << "_w";
+        tok.registerVariable(name.str(), (float)(val.w));
     }
-    else if(!strcmp(type, "uivec")){
+    else if(!type.compare("uivec")){
         uivec val = *(uivec*)var->get();
-        char name[strlen(var->name()) + 3];
         #ifdef HAVE_3D
-            sprintf(name, "%s_x", var->name());
-            tok.registerVariable(name, (float)(val.x));
-            sprintf(name, "%s_y", var->name());
-            tok.registerVariable(name, (float)(val.y));
-            sprintf(name, "%s_z", var->name());
-            tok.registerVariable(name, (float)(val.z));
-            sprintf(name, "%s_w", var->name());
-            tok.registerVariable(name, (float)(val.w));
+            name.str(""); name << var->name() << "_x";
+            tok.registerVariable(name.str(), (float)(val.x));
+            name.str(""); name << var->name() << "_y";
+            tok.registerVariable(name.str(), (float)(val.y));
+            name.str(""); name << var->name() << "_z";
+            tok.registerVariable(name.str(), (float)(val.z));
+            name.str(""); name << var->name() << "_w";
+            tok.registerVariable(name.str(), (float)(val.w));
         #else
-            sprintf(name, "%s_x", var->name());
-            tok.registerVariable(name, (float)(val.x));
-            sprintf(name, "%s_y", var->name());
-            tok.registerVariable(name, (float)(val.y));
+            name.str(""); name << var->name() << "_x";
+            tok.registerVariable(name.str(), (float)(val.x));
+            name.str(""); name << var->name() << "_y";
+            tok.registerVariable(name.str(), (float)(val.y));
         #endif // HAVE_3D
     }
-    else if(!strcmp(type, "uivec2")){
+    else if(!type.compare("uivec2")){
         uivec2 val = *(uivec2*)var->get();
-        char name[strlen(var->name()) + 3];
-        sprintf(name, "%s_x", var->name());
-        tok.registerVariable(name, (float)(val.x));
-        sprintf(name, "%s_y", var->name());
-        tok.registerVariable(name, (float)(val.y));
+        name.str(""); name << var->name() << "_x";
+        tok.registerVariable(name.str(), (float)(val.x));
+        name.str(""); name << var->name() << "_y";
+        tok.registerVariable(name.str(), (float)(val.y));
     }
-    else if(!strcmp(type, "uivec3")){
+    else if(!type.compare("uivec3")){
         uivec3 val = *(uivec3*)var->get();
-        char name[strlen(var->name()) + 3];
-        sprintf(name, "%s_x", var->name());
-        tok.registerVariable(name, (float)(val.x));
-        sprintf(name, "%s_y", var->name());
-        tok.registerVariable(name, (float)(val.y));
-        sprintf(name, "%s_z", var->name());
-        tok.registerVariable(name, (float)(val.z));
+        name.str(""); name << var->name() << "_x";
+        tok.registerVariable(name.str(), (float)(val.x));
+        name.str(""); name << var->name() << "_y";
+        tok.registerVariable(name.str(), (float)(val.y));
+        name.str(""); name << var->name() << "_z";
+        tok.registerVariable(name.str(), (float)(val.z));
     }
-    else if(!strcmp(type, "uivec4")){
+    else if(!type.compare("uivec4")){
         uivec4 val = *(uivec4*)var->get();
-        char name[strlen(var->name()) + 3];
-        sprintf(name, "%s_x", var->name());
-        tok.registerVariable(name, (float)(val.x));
-        sprintf(name, "%s_y", var->name());
-        tok.registerVariable(name, (float)(val.y));
-        sprintf(name, "%s_z", var->name());
-        tok.registerVariable(name, (float)(val.z));
-        sprintf(name, "%s_w", var->name());
-        tok.registerVariable(name, (float)(val.w));
+        name.str(""); name << var->name() << "_x";
+        tok.registerVariable(name.str(), (float)(val.x));
+        name.str(""); name << var->name() << "_y";
+        tok.registerVariable(name.str(), (float)(val.y));
+        name.str(""); name << var->name() << "_z";
+        tok.registerVariable(name.str(), (float)(val.z));
+        name.str(""); name << var->name() << "_w";
+        tok.registerVariable(name.str(), (float)(val.w));
     }
     else{
-        char msg[256];
-        ScreenManager *S = ScreenManager::singleton();
-        sprintf(msg,
-                "\"%s\" declared as \"%s\", which is not a scalar type.\n",
-                var->name(),
-                type);
-        S->addMessageF(3, msg);
-        S->addMessage(0, "Valid types are:\n");
-        S->addMessage(0, "\tint\n");
-        S->addMessage(0, "\tunsigned int\n");
-        S->addMessage(0, "\tfloat\n");
-        S->addMessage(0, "\tvec\n");
-        S->addMessage(0, "\tvec2\n");
-        S->addMessage(0, "\tvec3\n");
-        S->addMessage(0, "\tvec4\n");
-        S->addMessage(0, "\tivec\n");
-        S->addMessage(0, "\tivec2\n");
-        S->addMessage(0, "\tivec3\n");
-        S->addMessage(0, "\tivec4\n");
-        S->addMessage(0, "\tuivec\n");
-        S->addMessage(0, "\tuivec2\n");
-        S->addMessage(0, "\tuivec3\n");
-        S->addMessage(0, "\tuivec4\n");
-        return true;
+        std::ostringstream msg;
+        msg << "\"" << var->name() << "\" declared as \""
+            << type << "\", which is not a scalar type" << std::endl;
+        LOG(L_ERROR, msg.str());
+        LOG0(L_DEBUG, "Valid types are:\n");
+        LOG0(L_DEBUG, "\tint\n");
+        LOG0(L_DEBUG, "\tunsigned int\n");
+        LOG0(L_DEBUG, "\tfloat\n");
+        LOG0(L_DEBUG, "\tvec\n");
+        LOG0(L_DEBUG, "\tvec2\n");
+        LOG0(L_DEBUG, "\tvec3\n");
+        LOG0(L_DEBUG, "\tvec4\n");
+        LOG0(L_DEBUG, "\tivec\n");
+        LOG0(L_DEBUG, "\tivec2\n");
+        LOG0(L_DEBUG, "\tivec3\n");
+        LOG0(L_DEBUG, "\tivec4\n");
+        LOG0(L_DEBUG, "\tuivec\n");
+        LOG0(L_DEBUG, "\tuivec2\n");
+        LOG0(L_DEBUG, "\tuivec3\n");
+        LOG0(L_DEBUG, "\tuivec4\n");
+        throw std::runtime_error("Invalid variable type");
     }
-
-    return false;
 }
 
-bool Variables::registerScalar(const char* name,
-                               const char* type,
-                               const char* value)
+void Variables::registerScalar(const std::string name,
+                               const std::string type_name,
+                               const std::string value)
 {
-    if(!strcmp(type, "int")){
+    std::string type = trimCopy(type_name);
+    if(!type.compare("int")){
         IntVariable *var = new IntVariable(name);
-        if(strcmp(value, "")){
+        if(value.compare("")){
             int val = round(tok.solve(value));
             tok.registerVariable(name, (float)val);
             var->set(&val);
         }
         _vars.push_back(var);
     }
-    else if(!strcmp(type, "unsigned int")){
+    else if(!type.compare("unsigned int")){
         UIntVariable *var = new UIntVariable(name);
-        if(strcmp(value, "")){
+        if(value.compare("")){
             unsigned int val = (unsigned int)round(tok.solve(value));
             tok.registerVariable(name, (float)val);
             var->set(&val);
         }
         _vars.push_back(var);
     }
-    else if(!strcmp(type, "float")){
+    else if(!type.compare("float")){
         FloatVariable *var = new FloatVariable(name);
-        if(strcmp(value, "")){
+        if(value.compare("")){
             float val = tok.solve(value);
             tok.registerVariable(name, val);
             var->set(&val);
         }
         _vars.push_back(var);
     }
-    else if(!strcmp(type, "vec")){
+    else if(!type.compare("vec")){
         VecVariable *var = new VecVariable(name);
-        if(strcmp(value, "")){
+        if(value.compare("")){
             vec val;
             #ifdef HAVE_3D
                 float auxval[4];
-                if(readComponents(name, value, 4, auxval))
-                    return true;
+                readComponents(name, value, 4, auxval);
                 val.x = auxval[0];
                 val.y = auxval[1];
                 val.z = auxval[2];
                 val.w = auxval[3];
             #else
                 float auxval[2];
-                if(readComponents(name, value, 2, auxval))
-                    return true;
+                readComponents(name, value, 2, auxval);
                 val.x = auxval[0];
                 val.y = auxval[1];
             #endif // HAVE_3D
@@ -2303,26 +1564,24 @@ bool Variables::registerScalar(const char* name,
         }
         _vars.push_back(var);
     }
-    else if(!strcmp(type, "vec2")){
+    else if(!type.compare("vec2")){
         Vec2Variable *var = new Vec2Variable(name);
-        if(strcmp(value, "")){
+        if(value.compare("")){
             vec2 val;
             float auxval[2];
-            if(readComponents(name, value, 2, auxval))
-                return true;
+            readComponents(name, value, 2, auxval);
             val.x = auxval[0];
             val.y = auxval[1];
             var->set(&val);
         }
         _vars.push_back(var);
     }
-    else if(!strcmp(type, "vec3")){
+    else if(!type.compare("vec3")){
         Vec3Variable *var = new Vec3Variable(name);
-        if(strcmp(value, "")){
+        if(value.compare("")){
             vec3 val;
             float auxval[3];
-            if(readComponents(name, value, 3, auxval))
-                return true;
+            readComponents(name, value, 3, auxval);
             val.x = auxval[0];
             val.y = auxval[1];
             val.z = auxval[2];
@@ -2330,13 +1589,12 @@ bool Variables::registerScalar(const char* name,
         }
         _vars.push_back(var);
     }
-    else if(!strcmp(type, "vec4")){
+    else if(!type.compare("vec4")){
         Vec4Variable *var = new Vec4Variable(name);
-        if(strcmp(value, "")){
+        if(value.compare("")){
             vec4 val;
             float auxval[4];
-            if(readComponents(name, value, 4, auxval))
-                return true;
+            readComponents(name, value, 4, auxval);
             val.x = auxval[0];
             val.y = auxval[1];
             val.z = auxval[2];
@@ -2345,22 +1603,20 @@ bool Variables::registerScalar(const char* name,
         }
         _vars.push_back(var);
     }
-    else if(!strcmp(type, "ivec")){
+    else if(!type.compare("ivec")){
         IVecVariable *var = new IVecVariable(name);
-        if(strcmp(value, "")){
+        if(value.compare("")){
             ivec val;
             #ifdef HAVE_3D
                 float auxval[4];
-                if(readComponents(name, value, 4, auxval))
-                    return true;
+                readComponents(name, value, 4, auxval);
                 val.x = round(auxval[0]);
                 val.y = round(auxval[1]);
                 val.z = round(auxval[2]);
                 val.w = round(auxval[3]);
             #else
                 float auxval[2];
-                if(readComponents(name, value, 2, auxval))
-                    return true;
+                readComponents(name, value, 2, auxval);
                 val.x = round(auxval[0]);
                 val.y = round(auxval[1]);
             #endif // HAVE_3D
@@ -2368,26 +1624,24 @@ bool Variables::registerScalar(const char* name,
         }
         _vars.push_back(var);
     }
-    else if(!strcmp(type, "ivec2")){
+    else if(!type.compare("ivec2")){
         IVec2Variable *var = new IVec2Variable(name);
-        if(strcmp(value, "")){
+        if(value.compare("")){
             ivec2 val;
             float auxval[2];
-            if(readComponents(name, value, 2, auxval))
-                return true;
+            readComponents(name, value, 2, auxval);
             val.x = round(auxval[0]);
             val.y = round(auxval[1]);
             var->set(&val);
         }
         _vars.push_back(var);
     }
-    else if(!strcmp(type, "ivec3")){
+    else if(!type.compare("ivec3")){
         IVec3Variable *var = new IVec3Variable(name);
-        if(strcmp(value, "")){
+        if(value.compare("")){
             ivec3 val;
             float auxval[3];
-            if(readComponents(name, value, 3, auxval))
-                return true;
+            readComponents(name, value, 3, auxval);
             val.x = round(auxval[0]);
             val.y = round(auxval[1]);
             val.z = round(auxval[2]);
@@ -2395,13 +1649,12 @@ bool Variables::registerScalar(const char* name,
         }
         _vars.push_back(var);
     }
-    else if(!strcmp(type, "ivec4")){
+    else if(!type.compare("ivec4")){
         IVec4Variable *var = new IVec4Variable(name);
-        if(strcmp(value, "")){
+        if(value.compare("")){
             ivec4 val;
             float auxval[4];
-            if(readComponents(name, value, 4, auxval))
-                return true;
+            readComponents(name, value, 4, auxval);
             val.x = round(auxval[0]);
             val.y = round(auxval[1]);
             val.z = round(auxval[2]);
@@ -2410,22 +1663,20 @@ bool Variables::registerScalar(const char* name,
         }
         _vars.push_back(var);
     }
-    else if(!strcmp(type, "uivec")){
+    else if(!type.compare("uivec")){
         UIVecVariable *var = new UIVecVariable(name);
-        if(strcmp(value, "")){
+        if(value.compare("")){
             uivec val;
             #ifdef HAVE_3D
                 float auxval[4];
-                if(readComponents(name, value, 4, auxval))
-                    return true;
+                readComponents(name, value, 4, auxval);
                 val.x = (unsigned int)round(auxval[0]);
                 val.y = (unsigned int)round(auxval[1]);
                 val.z = (unsigned int)round(auxval[2]);
                 val.w = (unsigned int)round(auxval[3]);
             #else
                 float auxval[2];
-                if(readComponents(name, value, 2, auxval))
-                    return true;
+                readComponents(name, value, 2, auxval);
                 val.x = (unsigned int)round(auxval[0]);
                 val.y = (unsigned int)round(auxval[1]);
             #endif // HAVE_3D
@@ -2433,26 +1684,24 @@ bool Variables::registerScalar(const char* name,
         }
         _vars.push_back(var);
     }
-    else if(!strcmp(type, "uivec2")){
+    else if(!type.compare("uivec2")){
         UIVec2Variable *var = new UIVec2Variable(name);
-        if(strcmp(value, "")){
+        if(value.compare("")){
             uivec2 val;
             float auxval[2];
-            if(readComponents(name, value, 2, auxval))
-                return true;
+            readComponents(name, value, 2, auxval);
             val.x = (unsigned int)round(auxval[0]);
             val.y = (unsigned int)round(auxval[1]);
             var->set(&val);
         }
         _vars.push_back(var);
     }
-    else if(!strcmp(type, "uivec3")){
+    else if(!type.compare("uivec3")){
         UIVec3Variable *var = new UIVec3Variable(name);
-        if(strcmp(value, "")){
+        if(value.compare("")){
             uivec3 val;
             float auxval[3];
-            if(readComponents(name, value, 3, auxval))
-                return true;
+            readComponents(name, value, 3, auxval);
             val.x = (unsigned int)round(auxval[0]);
             val.y = (unsigned int)round(auxval[1]);
             val.z = (unsigned int)round(auxval[2]);
@@ -2460,13 +1709,12 @@ bool Variables::registerScalar(const char* name,
         }
         _vars.push_back(var);
     }
-    else if(!strcmp(type, "uivec4")){
+    else if(!type.compare("uivec4")){
         UIVec4Variable *var = new UIVec4Variable(name);
-        if(strcmp(value, "")){
+        if(value.compare("")){
             uivec4 val;
             float auxval[4];
-            if(readComponents(name, value, 4, auxval))
-                return true;
+            readComponents(name, value, 4, auxval);
             val.x = (unsigned int)round(auxval[0]);
             val.y = (unsigned int)round(auxval[1]);
             val.z = (unsigned int)round(auxval[2]);
@@ -2476,129 +1724,121 @@ bool Variables::registerScalar(const char* name,
         _vars.push_back(var);
     }
     else{
-        char msg[256];
-        ScreenManager *S = ScreenManager::singleton();
-        sprintf(msg,
-                "\"%s\" declared as \"%s\", which is not a valid scalar type.\n",
-                name,
-                type);
-        S->addMessageF(3, msg);
-        S->addMessage(0, "Valid types are:\n");
-        S->addMessage(0, "\tint\n");
-        S->addMessage(0, "\tunsigned int\n");
-        S->addMessage(0, "\tfloat\n");
-        S->addMessage(0, "\tvec\n");
-        S->addMessage(0, "\tvec2\n");
-        S->addMessage(0, "\tvec3\n");
-        S->addMessage(0, "\tvec4\n");
-        S->addMessage(0, "\tivec\n");
-        S->addMessage(0, "\tivec2\n");
-        S->addMessage(0, "\tivec3\n");
-        S->addMessage(0, "\tivec4\n");
-        S->addMessage(0, "\tuivec\n");
-        S->addMessage(0, "\tuivec2\n");
-        S->addMessage(0, "\tuivec3\n");
-        S->addMessage(0, "\tuivec4\n");
-        return true;
+        std::ostringstream msg;
+        msg << "\"" << name << "\" declared as \""
+            << type << "\", which is not a valid scalar type" << std::endl;
+        LOG(L_ERROR, msg.str());
+        LOG0(L_DEBUG, "Valid types are:\n");
+        LOG0(L_DEBUG, "\tint\n");
+        LOG0(L_DEBUG, "\tunsigned int\n");
+        LOG0(L_DEBUG, "\tfloat\n");
+        LOG0(L_DEBUG, "\tvec\n");
+        LOG0(L_DEBUG, "\tvec2\n");
+        LOG0(L_DEBUG, "\tvec3\n");
+        LOG0(L_DEBUG, "\tvec4\n");
+        LOG0(L_DEBUG, "\tivec\n");
+        LOG0(L_DEBUG, "\tivec2\n");
+        LOG0(L_DEBUG, "\tivec3\n");
+        LOG0(L_DEBUG, "\tivec4\n");
+        LOG0(L_DEBUG, "\tuivec\n");
+        LOG0(L_DEBUG, "\tuivec2\n");
+        LOG0(L_DEBUG, "\tuivec3\n");
+        LOG0(L_DEBUG, "\tuivec4\n");
+        throw std::runtime_error("Invalid scalar variable type");
     }
-    return false;
 }
 
-bool Variables::registerClMem(const char* name,
-                              const char* type,
-                              const char* length)
+void Variables::registerClMem(const std::string name,
+                              const std::string type_name,
+                              const std::string length)
 {
     size_t typesize;
     unsigned int n;
-    char msg[256];
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
-    ScreenManager *S = ScreenManager::singleton();
     // Get the type size
-    char auxtype[strlen(type) + 1];
-    strcpy(auxtype, type);
-    strcpy(strchr(auxtype, '*'), "");
-    if(!strcmp(auxtype, "int")){
+    std::string type = trimCopy(type_name);
+    type.pop_back();  // Remove the asterisk
+    if(!type.compare("int")){
         typesize = sizeof(int);
     }
-    else if(!strcmp(auxtype, "unsigned int")){
+    else if(!type.compare("unsigned int")){
         typesize = sizeof(unsigned int);
     }
-    else if(!strcmp(auxtype, "float")){
+    else if(!type.compare("float")){
         typesize = sizeof(float);
     }
-    else if(!strcmp(auxtype, "vec")){
+    else if(!type.compare("vec")){
         typesize = sizeof(vec);
     }
-    else if(!strcmp(auxtype, "vec2")){
+    else if(!type.compare("vec2")){
         typesize = sizeof(vec2);
     }
-    else if(!strcmp(auxtype, "vec3")){
+    else if(!type.compare("vec3")){
         typesize = sizeof(vec3);
     }
-    else if(!strcmp(auxtype, "vec4")){
+    else if(!type.compare("vec4")){
         typesize = sizeof(vec4);
     }
-    else if(!strcmp(auxtype, "ivec")){
+    else if(!type.compare("ivec")){
         typesize = sizeof(ivec);
     }
-    else if(!strcmp(auxtype, "ivec2")){
+    else if(!type.compare("ivec2")){
         typesize = sizeof(ivec2);
     }
-    else if(!strcmp(auxtype, "ivec3")){
+    else if(!type.compare("ivec3")){
         typesize = sizeof(ivec3);
     }
-    else if(!strcmp(auxtype, "ivec4")){
+    else if(!type.compare("ivec4")){
         typesize = sizeof(ivec4);
     }
-    else if(!strcmp(auxtype, "uivec")){
+    else if(!type.compare("uivec")){
         typesize = sizeof(uivec);
     }
-    else if(!strcmp(auxtype, "uivec2")){
+    else if(!type.compare("uivec2")){
         typesize = sizeof(uivec2);
     }
-    else if(!strcmp(auxtype, "uivec3")){
+    else if(!type.compare("uivec3")){
         typesize = sizeof(uivec3);
     }
-    else if(!strcmp(auxtype, "uivec4")){
+    else if(!type.compare("uivec4")){
         typesize = sizeof(uivec4);
     }
-    else if(!strcmp(auxtype, "matrix")){
+    else if(!type.compare("matrix")){
         typesize = sizeof(matrix);
     }
     else{
-        sprintf(msg,
-                "\"%s\" declared as \"%s\", which is not a valid array type.\n",
-                name,
-                type);
-        S->addMessageF(3, msg);
-        S->addMessage(0, "Valid types are:\n");
-        S->addMessage(0, "\tint*\n");
-        S->addMessage(0, "\tunsigned int*\n");
-        S->addMessage(0, "\tfloat*\n");
-        S->addMessage(0, "\tvec*\n");
-        S->addMessage(0, "\tvec2*\n");
-        S->addMessage(0, "\tvec3*\n");
-        S->addMessage(0, "\tvec4*\n");
-        S->addMessage(0, "\tivec*\n");
-        S->addMessage(0, "\tivec2*\n");
-        S->addMessage(0, "\tivec3*\n");
-        S->addMessage(0, "\tivec4*\n");
-        S->addMessage(0, "\tuivec*\n");
-        S->addMessage(0, "\tuivec2*\n");
-        S->addMessage(0, "\tuivec3*\n");
-        S->addMessage(0, "\tuivec4*\n");
-        S->addMessage(0, "\tmatrix*\n");
-        return true;
+        std::ostringstream msg;
+        msg << "\"" << name << "\" declared as \""
+            << type << "*\", which is not a valid array type" << std::endl;
+        LOG(L_ERROR, msg.str());
+        LOG0(L_DEBUG, "Valid types are:\n");
+        LOG0(L_DEBUG, "\tint*\n");
+        LOG0(L_DEBUG, "\tunsigned int*\n");
+        LOG0(L_DEBUG, "\tfloat*\n");
+        LOG0(L_DEBUG, "\tvec*\n");
+        LOG0(L_DEBUG, "\tvec2*\n");
+        LOG0(L_DEBUG, "\tvec3*\n");
+        LOG0(L_DEBUG, "\tvec4*\n");
+        LOG0(L_DEBUG, "\tivec*\n");
+        LOG0(L_DEBUG, "\tivec2*\n");
+        LOG0(L_DEBUG, "\tivec3*\n");
+        LOG0(L_DEBUG, "\tivec4*\n");
+        LOG0(L_DEBUG, "\tuivec*\n");
+        LOG0(L_DEBUG, "\tuivec2*\n");
+        LOG0(L_DEBUG, "\tuivec3*\n");
+        LOG0(L_DEBUG, "\tuivec4*\n");
+        LOG0(L_DEBUG, "\tmatrix*\n");
+        throw std::runtime_error("Invalid array variable type");
     }
 
     // Get the length
     n = 0;
-    if(strcmp(length, ""))
+    if(length.compare(""))
         n = (unsigned int)round(tok.solve(length));
 
     // Generate the variable
-    ArrayVariable *var = new ArrayVariable(name, type);
-    if(n){
+    ArrayVariable *var = new ArrayVariable(name, trimCopy(type_name));
+    if(n > 0){
         // Allocate memory on device
         cl_int status;
         cl_mem mem;
@@ -2608,119 +1848,92 @@ bool Variables::registerClMem(const char* name,
                              NULL,
                              &status);
         if(status != CL_SUCCESS) {
-            S->addMessageF(3, "Allocation failure.\n");
-            S->printOpenCLError(status);
-            return true;
+            LOG(L_ERROR, "Allocation failure.\n");
+            Aqua::InputOutput::Logger::singleton()->printOpenCLError(status);
+            throw std::bad_alloc();
         }
         var->set(&mem);
     }
     _vars.push_back(var);
-
-    return false;
 }
 
-bool Variables::readComponents(const char* name,
-                               const char* value,
+void Variables::readComponents(const std::string name,
+                               const std::string value,
                                unsigned int n,
                                float* v)
 {
     float val;
     unsigned int i, j;
-    char msg[256];
     bool error;
-    ScreenManager *S = ScreenManager::singleton();
     if(n == 0){
-        sprintf(msg,
-                "%u components required for the variable \"%s\".\n",
-                n,
-                name);
-        S->addMessageF(3, msg);
+        std::ostringstream msg;
+        msg << n << " components required for the variable \""
+            << name << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("0 components variable registration");
     }
     if(n > 4){
-        S->addMessageF(3, "No more than 4 components can be required\n");
-        sprintf(msg,
-                "%u components required for the variable \"%s\".\n",
-                n,
-                name);
-        S->addMessage(0, msg);
+        LOG(L_ERROR, "No more than 4 components can be required\n");
+        std::ostringstream msg;
+        msg << n << " components required for the variable \""
+            << name << "\"." << std::endl;
+        LOG0(L_DEBUG, msg.str());
+        throw std::runtime_error("5+ components variable registration");
     }
 
     // Replace all the commas outside functions by semicolons, to be taken into
     // account as separators
-    char* remain = new char[strlen(value) + 1];
-    // remain ptr will be modified, so we must keep its original reference to
-    // can delete later
-    char* remain_orig = remain;
-    char* aux = new char[strlen(value) + 1];
-    if((!remain) || (!aux)){
-        sprintf(msg,
-                "Failure allocating %lu bytes to evaluate the variable \"%s\".\n",
-                2 * sizeof(char) * (strlen(value) + 1),
-                name);
-        S->addMessageF(3, msg);
-        return true;
-    }
-    strcpy(remain, value);
+    std::string edited_val = value;
     int parenthesis_counter = 0;
-    for(i = 0; i < strlen(remain); i++){
+    for (auto it = edited_val.begin(); it != edited_val.end(); ++it) {
         // We does not care about unbalanced parenthesis, muparser will do it
-        if(remain[i] == '(')
+        if(*it == '(')
             parenthesis_counter++;
-        else if(remain[i] == ')')
+        else if(*it == ')')
             parenthesis_counter--;
-        else if(remain[i] == ','){
-            if(parenthesis_counter > 0){
-                // It is inside a function, skip it
-                continue;
-            }
-            remain[i] = ';';
-        }
-    }
-    char nameaux[strlen(name) + 3];
-    const char* extensions[4] = {"_x", "_y", "_z", "_w"};
-    for(i = 0; i < n - 1; i++){
-        strcpy(aux, remain);
-        if(!strchr(aux, ';')){
-            unsigned int n_fields = i;
-            if(strcmp(aux, "")){
-                n_fields++;
-            }
-            sprintf(msg, "Failure reading the variable \"%s\" value\n", name);
-            S->addMessageF(3, msg);
-            sprintf(msg, "%u fields expected, %u received.\n", n, n_fields);
-            S->addMessage(0, msg);
-            delete[] remain_orig;
-            delete[] aux;
-            return true;
-        }
-        strcpy(strchr(aux, ';'), "");
-        remain = strchr(remain, ';') + 1;
-        val = tok.solve(aux, &error);
-        if(error){
-            delete[] remain_orig;
-            delete[] aux;
-            return true;
-        }
-        strcpy(nameaux, name);
-        strcat(nameaux, extensions[i]);
-        tok.registerVariable(nameaux, val);
-        v[i] = val;
+        else if((*it == ',') && (parenthesis_counter == 0)){
+            *it = ';';
+        }        
     }
 
-    strcpy(aux, remain);
-    if(strchr(aux, ';'))
-        strcpy(strchr(aux, ';'), "");
-    val = tok.solve(aux, &error);
-    delete[] remain_orig;
-    delete[] aux;
-    if(error)
-        return true;
-    strcpy(nameaux, name);
-    if(n != 1)
-        strcat(nameaux, extensions[n - 1]);
-    tok.registerVariable(nameaux, val);
-    v[n - 1] = val;
-    return false;
+    // Split the expression by semicolons, and parse each one
+    const char* extensions[4] = {"_x", "_y", "_z", "_w"};
+    i = 0;
+    std::istringstream f(edited_val);
+    std::string s;
+    while (getline(f, s, ';')) {
+        val = tok.solve(s, &error);
+        if(error){
+            std::ostringstream msg;
+            msg << "parsing variable \""
+                << name << "\"" << std::endl;
+            LOG0(L_DEBUG, msg.str());
+            throw std::runtime_error("Variable evaluation error");
+        }
+        std::ostringstream tok_name;
+        if (n != 1) {
+            tok_name << name << extensions[i];
+        }
+        else {
+            tok_name << name;
+        }
+        tok.registerVariable(tok_name.str(), val);
+        v[i] = val;
+        if(++i == n) {
+            break;
+        }
+    }
+    if (i != n) {
+        std::ostringstream msg;
+        msg << "Failure parsing the variable \""
+            << name << "\" value" << std::endl;
+        LOG(L_ERROR, msg.str());
+        msg.str("");
+        msg << n << " fields expected, "
+            << i << "received" << std::endl;
+        LOG0(L_DEBUG, msg.str());
+        throw std::runtime_error("Invalid number of fields");
+    }
 }
 
 }}  // namespace

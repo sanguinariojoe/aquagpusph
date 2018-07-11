@@ -21,75 +21,58 @@
  * (See Aqua::CalcServer::Assert for details)
  */
 
-#include <stdlib.h>
 #include <math.h>
-#include <vector>
 
 #include <AuxiliarMethods.h>
-#include <ProblemSetup.h>
-#include <ScreenManager.h>
-#include <CalcServer/Assert.h>
+#include <InputOutput/Logger.h>
 #include <CalcServer.h>
+#include <CalcServer/Assert.h>
 
 namespace Aqua{ namespace CalcServer{
 
-Assert::Assert(const char *name, const char *condition)
+Assert::Assert(const std::string name, const std::string condition)
     : Tool(name)
-    , _condition(NULL)
+    , _condition(condition)
 {
-    _condition = new char[strlen(condition) + 1];
-    strcpy(_condition, condition);
 }
 
 Assert::~Assert()
 {
-    if(_condition) delete[] _condition; _condition=NULL;
 }
 
-bool Assert::setup()
+void Assert::setup()
 {
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-
-    sprintf(msg,
-            "Loading the tool \"%s\"...\n",
-            name());
-    S->addMessageF(1, msg);
-
-    return false;
+    std::ostringstream msg;
+    msg << "Loading the tool \"" << name() << "\"..." << std::endl;
+    LOG(L_INFO, msg.str());
 }
 
 
-bool Assert::_execute()
+void Assert::_execute()
 {
-    std::stringstream msg;
     int result;
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-    CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables *vars = C->variables();
+    InputOutput::Variables *vars = CalcServer::singleton()->variables();
 
     void *data = malloc(sizeof(int));
     if(!data){
+        std::stringstream msg;
         msg << "Failure allocating memory for the integer result" << std::endl;
-        S->addMessageF(3, msg.str().c_str());
-        return true;
+        LOG(L_ERROR, msg.str());
+        throw std::bad_alloc();
     }
 
-    if(vars->solve("int", _condition, data, "assert_result")){
-        return true;
-    }
+    vars->solve("int", _condition, data, "assert_result");
 
     // Check the result
     memcpy(&result, data, sizeof(int));
     free(data);
     if(result == 0){
+        std::stringstream msg;
         msg << "Assertion error. The expression \"" <<
                std::string(_condition) << "\" is false" << std::endl;
-        S->addMessageF(3, msg.str().c_str());
-        return true;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("Assertion error");
     }
-
-    return false;
 }
 
 }}  // namespaces

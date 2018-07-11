@@ -21,56 +21,43 @@
  * (See Aqua::CalcServer::Reports::Screen for details)
  */
 
+#include <algorithm>
+#include <InputOutput/Logger.h>
 #include <CalcServer/Reports/Screen.h>
-#include <ScreenManager.h>
 
 namespace Aqua{ namespace CalcServer{ namespace Reports{
 
-Screen::Screen(const char* tool_name,
-               const char* fields,
-               const char* color,
+Screen::Screen(const std::string tool_name,
+               const std::string fields,
+               const std::string color,
                bool bold)
     : Report(tool_name, fields)
-    , _color(NULL)
+    , _color(color)
     , _bold(bold)
 {
-    _color = new char[strlen(color) + 1];
-    strcpy(_color, color);
 }
 
 Screen::~Screen()
 {
-    if(_color) delete[] _color; _color=NULL;
 }
 
-bool Screen::setup()
+void Screen::setup()
 {
     unsigned int i;
-    char msg[1024];
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
 
-    sprintf(msg,
-            "Loading the report \"%s\"...\n",
-            name());
-    S->addMessageF(1, msg);
+    std::ostringstream msg;
+    msg << "Loading the report \"" << name() << "\"..." << std::endl;
+    LOG(L_INFO, msg.str());
 
     // Set the color in lowercase
-    for(i = 0; i < strlen(_color); i++){
-        _color[i] = tolower(_color[i]);
-    }
+    std::transform(_color.begin(), _color.end(), _color.begin(), ::tolower);
 
-    if(Report::setup()){
-        return true;
-    }
-
-    return false;
+    Report::setup();
 }
 
-bool Screen::_execute()
+void Screen::_execute()
 {
-    InputOutput::ScreenManager *S = InputOutput::ScreenManager::singleton();
-    S->writeReport(data(), _color, _bold);
-    return false;
+    InputOutput::Logger::singleton()->writeReport(data(), _color, _bold);
 }
 
 }}} // namespace

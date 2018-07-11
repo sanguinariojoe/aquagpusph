@@ -24,8 +24,9 @@
 #ifndef PARTICLES_H_INCLUDED
 #define PARTICLES_H_INCLUDED
 
-#include <deque>
+#include <vector>
 #include <sphPrerequisites.h>
+#include <ProblemSetup.h>
 #include <InputOutput/InputOutput.h>
 
 namespace Aqua{
@@ -51,26 +52,39 @@ class Particles : public InputOutput
 {
 public:
     /** @brief Constructor
+     * @param sim_data Simulation data
      * @param first First particle managed by this saver/loader.
      * @param n Number of particles managed by this saver/loader.
      * @param iset Particles set index.
      */
-    Particles(unsigned int first, unsigned int n, unsigned int iset);
+    Particles(ProblemSetup &sim_data,
+              unsigned int first,
+              unsigned int n,
+              unsigned int iset);
 
     /// Destructor
     virtual ~Particles();
 
-    /** @brief Save the data.
-     * @return false if all gone right, true otherwise.
-     */
-    virtual bool save()=0;
-
     /** @brief Get the last printed file path.
      * @return The last printed file, NULL if a file has not been printed yet.
      */
-    const char* file(){return (const char*)_output_file;}
+    const std::string file(){return _output_file;}
 
+    /** @brief Wait for the eventual parallel saving threads.
+     *
+     * Some savers may optionally launch parallel threads to save the data, in
+     * an asynchronous way, in order to improve the performance. In such a case,
+     * AQUAgpusph shall wait them to finish before proceeding to destroy the
+     * data
+     */
+    virtual void waitForSavers() {return;}
 protected:
+    /** @brief Get the simulation data structure
+     *
+     * @return Simulation data
+     */
+    ProblemSetup& simData() {return _sim_data;}
+
     /** @brief Get the particle index bounds of the "set of particles" managed
      * by this class.
      * @return The index bounds (first and last particle).
@@ -86,15 +100,14 @@ protected:
      *   -# iset
      *   -# id_sorted
      *   -# id_unsorted
-     * @return false if all gone right, true otherwise.
      */
-    bool loadDefault();
+    void loadDefault();
 
     /** @brief Set the file name.
      * @param filename The new file to save/load. Optionally a null parameter
      * can be passed in order to clear the stored file name.
      */
-    void file(const char* filename);
+    void file(const std::string filename){_output_file = filename;};
 
     /** Look for the first non existing file name.
      * @param basename The base name of the file. In this base name the `%d`
@@ -105,25 +118,26 @@ protected:
      * number of digits of the integer value are greater than this value this
      * parameter will be ignored, otherwise zeroes will be appended at the left
      * of the decimal representation of the integer.
-     * @return The next file index, 0 if errors are detected.
-     * @note If more than one `"%d"` strings are found in @paramname{basename},
-     * just the first one will be replaced.
+     * @return The next non-existing file index.
      */
-    unsigned int file(const char* basename,
+    unsigned int file(const std::string basename,
                       unsigned int start_index,
                       unsigned int digits=5);
 
     /** Download the data from the device, and store it
      * @param fields Fields to download
-     * @return host allocated memory, a clear list if errors are detected
+     * @return host allocated memory
      * @note The returned data must be manually cleared.
      */
-    std::deque<void*> download(std::deque<char*> fields);
+    std::vector<void*> download(std::vector<std::string> fields);
 private:
     /** Remove the content of the data list.
      * @param data List of memory allocated arrays to be cleared.
      */
-    void clearList(std::deque<void*> *data);
+    void clearList(std::vector<void*> *data);
+
+    /// Simulation data
+    ProblemSetup _sim_data;
 
     /// Particles managed bounds
     uivec2 _bounds;
@@ -132,8 +146,7 @@ private:
     unsigned int _iset;
 
     /// Last file printed
-    char* _output_file;
-
+    std::string _output_file;
 };  // class InputOutput
 
 }}  // namespaces

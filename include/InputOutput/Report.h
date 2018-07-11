@@ -24,11 +24,11 @@
 #ifndef REPORT_H_INCLUDED
 #define REPORT_H_INCLUDED
 
+#include <string>
 #include <sphPrerequisites.h>
 #include <InputOutput/InputOutput.h>
 
-namespace Aqua{
-namespace InputOutput{
+namespace Aqua{ namespace InputOutput{
 
 /** \class Report Report.h InputOutput/Report.h
  * @brief Base class for all the report file managers.
@@ -54,23 +54,23 @@ class Report : public InputOutput
 {
 public:
     /** @brief Save the data.
-     * @return false if all gone right, true otherwise.
+     *
+     * @param t Simulation time
      */
-    virtual bool save() = 0;
+    virtual void save(float t) = 0;
 
     /** @brief Load the data.
      *
      * Since the reports are mainly output files, the load method should be
      * useless, and therefore this class provide a way to can omit it in the
      * inherited ones.
-     * @return false.
      */
-    virtual bool load(){return false;}
+    virtual void load(){throw std::logic_error("Report cannot load files");}
 
     /** @brief Get the used output file path.
      * @return The report file, NULL if it is not a file.
      */
-    const char* file(){return (const char*)_output_file;}
+    std::string file(){return _output_file;}
 
 protected:
     /// Constructor
@@ -83,22 +83,21 @@ protected:
      * @param filename The file name. Optionally @paramname{filename} = null can
      * be set in order to clear the stored file name.
      */
-    void file(const char* filename);
+    void file(std::string filename);
 
     /** @brief Look for the first non existing file name.
      * @param basename The base name of the file. In this base name the `%d`
      * string will be replaced by the first integer such that the file does not
      * exist in the system.
      * @param start_index First index that will be checked.
-     * @return false if all gone right, true otherwise.
      * @note If more than one `"%d"` strings are found in @paramname{basename},
      * just the first one will be replaced.
      */
-    bool file(const char* basename, unsigned int start_index);
+    void file(std::string basename, unsigned int start_index);
 
 private:
     /// Last file printed
-    char* _output_file;
+    std::string _output_file;
 
 };  // class InputOutput
 

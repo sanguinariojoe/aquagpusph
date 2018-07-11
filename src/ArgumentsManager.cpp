@@ -29,7 +29,7 @@
 
 #include <ArgumentsManager.h>
 #include <FileManager.h>
-#include <ScreenManager.h>
+#include <InputOutput/Logger.h>
 
 // Short and long runtime options (see
 // http://www.gnu.org/software/libc/manual/html_node/Getopt.html#Getopt)
@@ -42,69 +42,60 @@ static const struct option longOpts[] = {
 };
 extern char *optarg;
 
-namespace Aqua{ namespace InputOutput{
+namespace Aqua{ namespace InputOutput{ namespace CommandLineArgs{
 
-ArgumentsManager::ArgumentsManager(int argc, char **argv)
-    : _argc(argc)
-    , _argv(argv)
+/** @brief Display the program usage.
+ * 
+ * The program usage is shown in case the user has requested help, or
+ * wrong/insufficient command line args have been provided.
+ */
+void displayUsage()
 {
+    std::cout << "Usage:\tAQUAgpusph [Option]..." << std::endl;
+    std::cout << "   or:\tAQUAgpusph2D [Option]..." << std::endl;
+    std::cout << "Performs particles based (SPH method) simulation "
+              << "(use AQUAgpusph2D for 2D simulations)" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Required arguments for long options are also required for "
+              << "the short ones." << std::endl;
+    std::cout << "  -i, --input=INPUT            XML definition input file "
+              << "(Input.xml by default)" << std::endl;
+    std::cout << "  -v, --version                Show the AQUAgpusph version" << std::endl;
+    std::cout << "  -h, --help                   Show this help page" << std::endl;
 }
 
-ArgumentsManager::~ArgumentsManager()
+void parse(int argc, char **argv, FileManager &file_manager)
 {
-}
-
-bool ArgumentsManager::parse()
-{
-    ScreenManager *S = ScreenManager::singleton();
-    FileManager *F = FileManager::singleton();
     int index;
-    char msg[256]; strcpy(msg, "");
-    int opt = getopt_long( _argc, _argv, opts, longOpts, &index );
+
+    int opt = getopt_long(argc, argv, opts, longOpts, &index);
     while( opt != -1 ) {
+        std::ostringstream msg;
         switch( opt ) {
             case 'i':
-                F->inputFile(optarg);
-                sprintf(msg,
-                        "Input file = %s\n",
-                        F->inputFile());
-                S->addMessageF(1, msg);
+                file_manager.inputFile(optarg);
+                msg.str(std::string());
+                msg << "Input file = " << file_manager.inputFile() << std::endl;
+                LOG(L_INFO, msg.str());
                 break;
 
             case 'v':
-                printf("VERSION: ");
-                printf(PACKAGE_VERSION);
-                printf("\n\n");
-                return true;
+                std::cout << "VERSION: " << PACKAGE_VERSION << std::endl << std::endl;
+                return;
 
             case ':':
             case '?':
-                S->addMessageF(3, "Error parsing the options\n");
-                printf("\n");
+                LOG(L_ERROR, "Error parsing the runtime args\n\n");
             case 'h':
                 displayUsage();
-                return true;
 
             default:
-                S->addMessageF(3, "Unhandled exception\n");
+                LOG(L_ERROR, "Unhandled exception\n");
                 displayUsage();
-                return true;
+                throw std::invalid_argument("Invalid command line argument");
         }
-        opt = getopt_long( _argc, _argv, opts, longOpts, &index );
+        opt = getopt_long(argc, argv, opts, longOpts, &index);
     }
-    return false;
 }
 
-void ArgumentsManager::displayUsage()
-{
-    printf("Usage:\tAQUAgpusph [Option]...\n");
-    printf("   or:\tAQUAgpusph2D [Option]...\n");
-    printf("Performs particles based (SPH method) simulation (use AQUAgpusph2D for 2D simulations)\n");
-    printf("\n");
-    printf("Required arguments for long options are also required for the short ones.\n");
-    printf("  -i, --input=INPUT            XML definition input file (Input.xml as default value)\n");
-    printf("  -v, --version                Show the AQUAgpusph version\n");
-    printf("  -h, --help                   Show this help page\n");
-}
-
-}}  // namespaces
+}}}  // namespaces

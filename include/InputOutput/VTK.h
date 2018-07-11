@@ -93,25 +93,37 @@ class VTK : public Particles
 {
 public:
     /** @brief Constructor
+     * @param sim_data Simulation data
      * @param first First particle managed by this saver/loader.
      * @param n Number of particles managed by this saver/loader.
      * @param iset Particles set index.
      */
-    VTK(unsigned int first, unsigned int n, unsigned int iset);
+    VTK(ProblemSetup& sim_data,
+        unsigned int first,
+        unsigned int n,
+        unsigned int iset);
 
     /// Destructor
     ~VTK();
 
     /** @brief Save the data.
-     * @return false if all gone right, true otherwise.
+     *
+     * @param t Simulation time
      */
-    bool save();
+    void save(float t);
 
     /** @brief Load the data.
-     * @return false if all gone right, true otherwise.
      */
-    bool load();
+    void load();
 
+    /** @brief Wait for the parallel saving threads.
+     *
+     * VTK saver is launching parallel threads to save the data in an
+     * asynchronous way, significantly improving the performance. Therefore,
+     * AQUAgpusph shall wait them to finish before proceeding to destroy the
+     * data
+     */
+    void waitForSavers();
 private:
     /** @brief Create a new file to write.
      * @return The file handler, NULL if errors happened.
@@ -125,9 +137,9 @@ private:
      *
      * Such file is used to indicates Paraview the list of files which compose
      * an animation, and the time instant of each one.
-     * @return false if all gone right, true otherwise.
+     * @param t Simulation time
      */
-    bool updatePVD();
+    void updatePVD(float t);
 
     /** @brief Check if the Paraview Data File exist, creating it otherwise.
      *
@@ -142,16 +154,17 @@ private:
     /** @brief PVD file name
      * @return the PVD file name
      */
-    const char* filenamePVD();
-
-    /// PVD file name
-    char* _namePVD;
-
-    /// Launched threads ids
-    std::deque<pthread_t> _tids;
+    const std::string filenamePVD();
 
     /// Next output file index
     unsigned int _next_file_index;
+
+    /// PVD file name
+    std::string _namePVD;
+
+    /// Launched threads ids
+    std::vector<pthread_t> _tids;
+
 };  // class InputOutput
 
 }}  // namespaces

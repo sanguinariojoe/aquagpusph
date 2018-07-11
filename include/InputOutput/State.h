@@ -24,6 +24,10 @@
 #ifndef STATE_H_INCLUDED
 #define STATE_H_INCLUDED
 
+#include <ProblemSetup.h>
+#include <InputOutput/InputOutput.h>
+#include <InputOutput/Particles.h>
+
 #include <xercesc/dom/DOM.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
 #include <xercesc/dom/DOMDocumentType.hpp>
@@ -38,10 +42,10 @@
 #include <xercesc/framework/LocalFileFormatTarget.hpp>
 #include <xercesc/util/XMLUni.hpp>
 
-#include <InputOutput/InputOutput.h>
+#include <string>
+#include <vector>
 
-namespace Aqua{
-namespace InputOutput{
+namespace Aqua{ namespace InputOutput{
 
 /** \class State State.h InputOutput/State.h
  * @brief Load/Save the XML simulation definition files.
@@ -57,17 +61,17 @@ namespace InputOutput{
  * http://xerces.apache.org/xerces-c
  *
  * You can find more information about how to create simulation configuration
- * files in the examples provided with the package, in the user manual (chapter
- * 4), and in the Aqua::InputOutput::ProblemSetup class documentation.
+ * files in the examples provided with the package and in the
+ * Aqua::InputOutput::ProblemSetup class documentation.
  *
- * @see Aqua::InputOutput::InputOutput
  * @see Aqua::InputOutput::Report
  * @see Aqua::InputOutput::Particles
  */
-class State : public InputOutput
+class State
 {
 public:
-    /// Constructor
+    /** @brief Constructor
+     */
     State();
 
     /// Destructor
@@ -83,19 +87,24 @@ public:
      *
      * Of course, to can load a saved simulation, the output particles file
      * should be saved as well.
+     * 
      * @see Aqua::InputOutput::Particles::save()
-     * @return false if all gone right, true otherwise.
+     * @param sim_data Simulation data
+     * @param savers Particles savers list
      */
-    bool save();
+    void save(ProblemSetup& sim_data, std::vector<Particles*> savers);
 
-    /** @brief Load the simulation configuration data.
-     * @return false if all gone right, true otherwise.
+    /** @brief Load the simulation XML definition files.
+     *
+     * @param input_file XML file to load
+     * @param sim_data Simulation data
      */
-    bool load();
+    void load(std::string input_file, ProblemSetup &sim_data);
 
 protected:
     /** @brief Parse the XML file
      * @param filepath file to be parsed.
+     * @param sim_data Simulation data
      * @param prefix String to be inserted before the variable names
      * defined in the file.
      * @return false if all gone right, true otherwise
@@ -104,129 +113,179 @@ protected:
      * specified in the `<Include>` tag, the same received \a prefix will be
      * used.
      */
-    bool parse(const char* filepath, const char* prefix="");
+    void parse(std::string filepath,
+               ProblemSetup &sim_data,
+               std::string prefix="");
 
     /** @brief Parse the general settings sections.
      * @param root root XML node.
+     * @param sim_data Simulation data
      * @param prefix String to be inserted before the variable names.
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphSettings
      */
-    bool parseSettings(xercesc::DOMElement *root, const char* prefix="");
+    void parseSettings(xercesc::DOMElement *root,
+                       ProblemSetup &sim_data,
+                       std::string prefix="");
 
     /** @brief Parse the variables sections.
      * @param root root XML node.
+     * @param sim_data Simulation data
      * @param prefix String to be inserted before the variable names.
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphVariables
      */
-    bool parseVariables(xercesc::DOMElement *root, const char* prefix="");
+    void parseVariables(xercesc::DOMElement *root,
+                        ProblemSetup &sim_data,
+                        std::string prefix="");
 
     /** @brief Parse the definitions sections.
      * @param root root XML node.
+     * @param sim_data Simulation data
      * @param prefix String to be inserted before the variable names.
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphDefinitions
      */
-    bool parseDefinitions(xercesc::DOMElement *root, const char* prefix="");
+    void parseDefinitions(xercesc::DOMElement *root,
+                          ProblemSetup &sim_data,
+                          std::string prefix="");
 
     /** @brief Parse the tools sections.
      * @param root root XML node.
+     * @param sim_data Simulation data
      * @param prefix String to be inserted before the variable names.
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphTool
      */
-    bool parseTools(xercesc::DOMElement *root, const char* prefix="");
+    void parseTools(xercesc::DOMElement *root,
+                    ProblemSetup &sim_data,
+                    std::string prefix="");
 
     /** @brief Parse the time control sections.
      * @param root Root XML node.
+     * @param sim_data Simulation data
      * @param prefix String to be inserted before the variable names.
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphTimingParameters
      */
-    bool parseTiming(xercesc::DOMElement *root, const char* prefix="");
+    void parseTiming(xercesc::DOMElement *root,
+                     ProblemSetup &sim_data,
+                     std::string prefix="");
 
     /** Look for particles set sections.
      * @param root Root XML node.
+     * @param sim_data Simulation data
      * @param prefix String to be inserted before the variable names.
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphParticlesSet
      */
-    bool parseSet(xercesc::DOMElement *root, const char* prefix="");
+    void parseSets(xercesc::DOMElement *root,
+                   ProblemSetup &sim_data,
+                   std::string prefix="");
 
     /** @brief Parse the reports sections.
      * @param root root XML node.
+     * @param sim_data Simulation data
      * @param prefix String to be inserted before the variable names.
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphTool
      */
-    bool parseReports(xercesc::DOMElement *root, const char* prefix="");
+    void parseReports(xercesc::DOMElement *root,
+                      ProblemSetup &sim_data,
+                      std::string prefix="");
 
     /** @brief Write the XML file
      * @param filepath file to be written.
+     * @param sim_data Simulation data
+     * @param savers Particles savers list
      * @return false if all gone right, true otherwise
      */
-    bool write(const char* filepath);
+    void write(std::string filepath,
+               ProblemSetup &sim_data,
+               std::vector<Particles*> savers);
 
     /** @brief Write the settings section.
      * @param doc XML generated document.
      * @param root root XML node.
+     * @param sim_data Simulation data
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphSettings
      */
-    bool writeSettings(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
+    void writeSettings(xercesc::DOMDocument* doc,
+                       xercesc::DOMElement *root,
+                       ProblemSetup &sim_data);
 
     /** @brief Write the variables section.
      * @param doc XML generated document.
      * @param root Root XML node.
+     * @param sim_data Simulation data
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphVariables
      */
-    bool writeVariables(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
+    void writeVariables(xercesc::DOMDocument* doc,
+                        xercesc::DOMElement *root,
+                        ProblemSetup &sim_data);
 
     /** @brief Write the definitions section.
      * @param doc XML generated document.
      * @param root Root XML node.
+     * @param sim_data Simulation data
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphDefinitions
      */
-    bool writeDefinitions(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
+    void writeDefinitions(xercesc::DOMDocument* doc,
+                          xercesc::DOMElement *root,
+                          ProblemSetup &sim_data);
 
     /** @brief Write the tools section.
      * @param doc XML generated document.
      * @param root Root XML node.
+     * @param sim_data Simulation data
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphTool
      */
-    bool writeTools(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
+    void writeTools(xercesc::DOMDocument* doc,
+                    xercesc::DOMElement *root,
+                    ProblemSetup &sim_data);
 
     /** @brief Write the time control section.
      * @param doc XML generated document.
      * @param root Root XML node.
+     * @param sim_data Simulation data
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphTimingParameters
      */
-    bool writeTiming(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
+    void writeTiming(xercesc::DOMDocument* doc,
+                     xercesc::DOMElement *root,
+                     ProblemSetup &sim_data);
 
     /** @brief Write the particles set sections.
      * @param doc XML generated document.
      * @param root Root XML node.
+     * @param sim_data Simulation data
+     * @param savers Particles savers list
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphParticlesSet
      */
-    bool writeSet(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
+    void writeSets(xercesc::DOMDocument* doc,
+                   xercesc::DOMElement *root,
+                   ProblemSetup &sim_data,
+                   std::vector<Particles*> savers);
 
     /** @brief Write the reports section.
      * @param doc XML generated document.
      * @param root Root XML node.
+     * @param sim_data Simulation data
      * @return false if all gone right, true otherwise
      * @see Aqua::InputOutput::ProblemSetup::sphTool
      */
-    bool writeReports(xercesc::DOMDocument* doc, xercesc::DOMElement *root);
+    void writeReports(xercesc::DOMDocument* doc,
+                      xercesc::DOMElement *root,
+                      ProblemSetup &sim_data);
 
 private:
     /// Output file
-    char* _output_file;
+    std::string _output_file;
 };  // class InputOutput
 
 }}  // namespaces

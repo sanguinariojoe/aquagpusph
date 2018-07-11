@@ -24,13 +24,13 @@
 #ifndef FILEMANAGER_H_INCLUDED
 #define FILEMANAGER_H_INCLUDED
 
-#include <deque>
+#include <string>
+#include <vector>
 
 #include <sphPrerequisites.h>
-#include <Singleton.h>
+#include <ProblemSetup.h>
 #include <CalcServer.h>
 #include <InputOutput/State.h>
-#include <InputOutput/Log.h>
 #include <InputOutput/Particles.h>
 
 namespace Aqua{
@@ -43,12 +43,10 @@ namespace InputOutput{
  * load/save the files.
  *
  * @see Aqua::InputOutput::State
- * @see Aqua::InputOutput::Log
- * @see Aqua::InputOutput::Energy
- * @see Aqua::InputOutput::Bounds
  * @see Aqua::InputOutput::Particles
+ * @note The Log file is controlled by Aqua::InputOutput::Logger
  */
-class FileManager : public Aqua::Singleton<Aqua::InputOutput::FileManager>
+class FileManager
 {
 public:
     /// Constructor
@@ -57,70 +55,90 @@ public:
     /// Destructor
     ~FileManager();
 
-    /// Set the input file path.
-    /**
-     * @param path Path to input file.
-     */
-    void inputFile(const char* path);
-
-    /// Get input file path.
-    /**
-     * @return Path to input file.
-     */
-    const char* inputFile(){return (const char*)_in_file;}
-
-    /// Get the log file handler.
-    /**
-     * @return Log file handler.
-     * @see Aqua::InputOutput::Log
-     */
-    FILE* logFile();
-
-    /// Load the input data files.
-    /** It require that:
-     *    -# Aqua::InputOutput::State should load the XML definition
-     *       files storing the data in Aqua::InputOutput::ProblemSetup.
-     *    -# Aqua::InputOutput::Particles should load the particles definition
-     *       files storing the data in Aqua::CalcServer::CalcServer.
+    /** @brief Set the main XML input file path.
+     * 
+     * AQUAgpusph simulations are built on top of a XML definition file. Such
+     * file can later include another XML definition files, such that modules
+     * can be easily created.
      *
-     * @return The built Fluid manager, NULL if errors happened.
+     * @param path XML input file path.
+     */
+    void inputFile(std::string path);
+
+    /** @brief Get the main XML input file path.
+     *
+     * AQUAgpusph simulations are built on top of a XML definition file. Such
+     * file can later include another XML definition files, such that modules
+     * can be easily created.
+     *
+     * @return XML input file path.
+     */
+    std::string inputFile(){return _in_file;}
+
+    /** @brief Get the simulation setup, extracted from the XML definition files
+     *
+     * AQUAgpusph simulations are built on top of a XML definition file. Such
+     * file can later include another XML definition files, such that modules
+     * can be easily created.
+     * The simulation data read from such XML files is stored in this
+     * Aqua::InputOutput::ProblemSetup structure
+     *
+     * @return Simualtion data
+     * @warning The returned Aqua::InputOutput::ProblemSetup static object is in
+     * the same scope than this class.
+     */
+    ProblemSetup& problemSetup(){return _simulation;}
+    
+
+    /** @brief Load the input files, generating the calculation server.
+     * 
+     * Depends on:
+     *    -# Aqua::InputOutput::State to load the XML definition files, storing
+     *       the data in Aqua::InputOutput::ProblemSetup.
+     *    -# Aqua::InputOutput::Particles to load the particles fields data,
+     *       storing it in Aqua::CalcServer::CalcServer.
+     *
+     * @return The built Calculation server, NULL if errors happened.
      */
     CalcServer::CalcServer* load();
 
-    /// Save the output data files.
-    /** It require that:
-     *    -# Aqua::InputOutput::State should save the XML definition
-     *       files taking the data from Aqua::InputOutput::ProblemSetup.
-     *    -# Aqua::InputOutput::Particles should save the particles definition
-     *       files stored in Aqua::InputOutput::Fluid.
+    /** @brief Save the output data files.
      *
-     * @return false if all gone right, true otherwise.
+     * AQUAgpusph is saving both, the XML simulation definition file, and the
+     * particles field values in the required formats. This information can be
+     * indistinctly used for postprocessing purposes, or as initial condition
+     * to resume the simulation.
+     *
+     * @param t Simulation time
+     * @warning If Python scripts are considered at the simulation, the user is
+     * responsible to save the state to can eventually resume the simulation
      */
-    bool save();
+    void save(float t);
 
-    /// Get the last printed file for a specific fluid.
-    /**
-     * @param ifluid Fluid index.
-     * @return The last printed file, NULL if a file has not been printed yet.
+    /** @brief Wait for the parallel saving threads.
+     *
+     * Some savers may optionally launch parallel threads to save the data, in
+     * an asynchronous way, in order to improve the performance. In such a case,
+     * AQUAgpusph shall wait them to finish before proceeding to destroy the
+     * data
+     * @see Aqua::InputOutput::VTK::waitForSavers()
      */
-    const char* file(unsigned int ifluid);
-
+    void waitForSavers();
 private:
-    /// Name of the main XML input file
-    char* _in_file;
-
     /// The XML simulation definition loader/saver
-    State *_state;
+    State _state;
 
-    /// The output log file
-    Log *_log;
+    /// Simulation data read from XML files
+    ProblemSetup _simulation;
+
+    /// Name of the main XML input file
+    std::string _in_file;
 
     /// The fluid loaders
-    std::deque<Particles*> _loaders;
+    std::vector<Particles*> _loaders;
 
     /// The fluid savers
-    std::deque<Particles*> _savers;
-
+    std::vector<Particles*> _savers;
 };  // class FileManager
 
 }}  // namespaces
