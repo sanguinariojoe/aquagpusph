@@ -57,7 +57,7 @@ Reduction::Reduction(const std::string name,
 Reduction::~Reduction()
 {
     for(auto mem : _mems){
-        if(mem)
+        if(mem && (mem != _mems.front()))  // The first element can't be removed
             clReleaseMemObject(mem);
     }
     _mems.clear();

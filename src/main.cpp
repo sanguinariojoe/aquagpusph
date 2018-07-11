@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
 
     InputOutput::TimeManager t_manager(file_manager.problemSetup());
 
-    LOG(L_INFO, "Start of simulation...\n\n");
+    LOG(L_INFO, "Start of simulation...\n");
     logger->printDate();
     logger->initNCurses();
 
@@ -183,7 +183,7 @@ int main(int argc, char *argv[])
     file_manager.waitForSavers();
     logger->printDate();
     msg << "Simulation finished OK (t = " << t_manager.time()
-        << " s)" << std::endl << std::endl;
+        << " s)" << std::endl;
     LOG(L_INFO, msg.str());
 
     delete logger; logger = NULL;
