@@ -147,7 +147,7 @@ public:
      * @note In order to append the class and the method name before the
      * message use #addMessageF instead of this one.
      */
-    void addMessage(TLogLevel level, std::string log, const char *func=NULL);
+    void addMessage(TLogLevel level, std::string log, std::string func="");
 
     /** @brief Print a time stamp in the screen and the log file.
      * @param level Message classification (L_DEBUG, L_INFO, L_WARNING, L_ERROR)

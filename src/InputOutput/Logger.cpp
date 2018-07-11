@@ -221,10 +221,10 @@ void Logger::writeReport(std::string input,
 #endif
 }
 
-void Logger::addMessage(TLogLevel level, std::string log, const char *func)
+void Logger::addMessage(TLogLevel level, std::string log, std::string func)
 {
     std::ostringstream fname;
-    if (func)
+    if (func != "")
         fname << "(" << func << "): ";
 
     // Send the info to the log file (if possible)
