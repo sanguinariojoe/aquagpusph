@@ -84,7 +84,6 @@ const std::string Report::data(bool with_title, bool with_names)
 
 void Report::processFields(const std::string input)
 {
-    unsigned int i;
     CalcServer *C = CalcServer::singleton();
     std::istringstream fields(input);
     std::string s;

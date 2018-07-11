@@ -395,8 +395,8 @@ void ASCII::save(float t)
         f.flush();
     }
 
-    for(i = 0; i < fields.size(); i++){
-        free(data.at(i)); data.at(i) = NULL;
+    for(auto d : data){
+        free(d);
     }
     data.clear();
 

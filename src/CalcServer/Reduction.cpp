@@ -56,16 +56,14 @@ Reduction::Reduction(const std::string name,
 
 Reduction::~Reduction()
 {
-    unsigned int i;
-    for(i=1;i<_mems.size();i++){
-        if(_mems.at(i))
-            clReleaseMemObject(_mems.at(i));
-            _mems.at(i)=NULL;
+    for(auto mem : _mems){
+        if(mem)
+            clReleaseMemObject(mem);
     }
-    for(i=0;i<_kernels.size();i++){
-        if(_kernels.at(i))
-            clReleaseKernel(_kernels.at(i));
-        _kernels.at(i)=NULL;
+    _mems.clear();
+    for(auto kernel : _kernels){
+        if(kernel)
+            clReleaseKernel(kernel);
     }
     _kernels.clear();
     _global_work_sizes.clear();

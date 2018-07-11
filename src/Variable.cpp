@@ -546,17 +546,12 @@ ArrayVariable::ArrayVariable(const std::string varname, const std::string vartyp
 
 ArrayVariable::~ArrayVariable()
 {
-    unsigned int i;
-    for(i = 0; i < _objects.size(); i++){
-        if(_objects.at(i))
-            Py_DECREF(_objects.at(i));
-        _objects.at(i) = NULL;
+    for(auto object : _objects){
+        if(object) Py_DECREF(object);
     }
     _objects.clear();
-    for(i = 0; i < _data.size(); i++){
-        if(_data.at(i))
-            free(_data.at(i));
-        _data.at(i) = NULL;
+    for(auto data : _data){
+        if(data) free(data);
     }
     _data.clear();
     if(_value) clReleaseMemObject(_value); _value=NULL;
@@ -961,8 +956,7 @@ const std::string ArrayVariable::asString(size_t i)
 
 void ArrayVariable::cleanMem()
 {
-    int i;  // unsigned cannot be used here
-    for(i = _objects.size() - 1; i >= 0; i--){
+    for(int i = _objects.size() - 1; i >= 0; i--){
         if(_objects.at(i)->ob_refcnt == 1){
             Py_DECREF(_objects.at(i));
             free(_data.at(i));
@@ -984,8 +978,8 @@ Variables::Variables()
 Variables::~Variables()
 {
     unsigned int i;
-    for(i = 0; i < _vars.size(); i++){
-        delete _vars.at(i);
+    for(auto var : _vars){
+        delete var;
     }
     _vars.clear();
 }
@@ -996,8 +990,7 @@ void Variables::registerVariable(const std::string name,
                                  const std::string value)
 {
     // Look for an already existing variable with the same name
-    unsigned int i;
-    for(i = 0; i < _vars.size(); i++){
+    for(unsigned int i = 0; i < _vars.size(); i++){
         if(!_vars.at(i)->name().compare(name)){
             delete _vars.at(i);
             _vars.erase(_vars.begin() + i);

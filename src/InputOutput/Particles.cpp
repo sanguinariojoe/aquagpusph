@@ -268,9 +268,9 @@ std::vector<void*> Particles::download(std::vector<std::string> fields)
 
 void Particles::clearList(std::vector<void*> *data)
 {
-    unsigned int i;
-    for(i = 0; i < data->size(); i++){
-        if(data->at(i)) free(data->at(i)); data->at(i)=NULL;
+    for(auto d : *data){
+        if(d)
+            free(d);
     }
     data->clear();
 }

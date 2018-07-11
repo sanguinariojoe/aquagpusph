@@ -77,23 +77,22 @@ LinkList::LinkList(const std::string tool_name, const std::string input)
 
 LinkList::~LinkList()
 {
-    unsigned int i;
     if(_min_pos) delete _min_pos; _min_pos=NULL;
     if(_max_pos) delete _max_pos; _max_pos=NULL;
     if(_sort) delete _sort; _sort=NULL;
     if(_ihoc) clReleaseKernel(_ihoc); _ihoc=NULL;
     if(_icell) clReleaseKernel(_icell); _icell=NULL;
     if(_ll) clReleaseKernel(_ll); _ll=NULL;
-    for(i = 0; i < _ihoc_args.size(); i++){
-        free(_ihoc_args.at(i));
+    for(auto arg : _ihoc_args){
+        free(arg);
     }
     _ihoc_args.clear();
-    for(i = 0; i < _icell_args.size(); i++){
-        free(_icell_args.at(i));
+    for(auto arg : _icell_args){
+        free(arg);
     }
     _icell_args.clear();
-    for(i = 0; i < _ll_args.size(); i++){
-        free(_ll_args.at(i));
+    for(auto arg : _ll_args){
+        free(arg);
     }
     _ll_args.clear();
 }

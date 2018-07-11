@@ -1427,7 +1427,7 @@ void State::writeTools(xercesc::DOMDocument* doc,
                        xercesc::DOMElement *root,
                        ProblemSetup &sim_data)
 {
-    unsigned int i, j;
+    unsigned int i;
     DOMElement *elem, *s_elem;
 
     elem = doc->createElement(xmlS("Tools"));
@@ -1435,14 +1435,12 @@ void State::writeTools(xercesc::DOMDocument* doc,
 
     std::vector<ProblemSetup::sphTool*> tools = sim_data.tools;
 
-    for(i = 0; i < tools.size(); i++){
+    for(auto tool : tools){
         s_elem = doc->createElement(xmlS("Tool"));
         elem->appendChild(s_elem);
-
-        ProblemSetup::sphTool* tool = tools.at(i);
-        for(j = 0; j < tool->n(); j++){
-            std::string name = tool->getName(j);
-            std::string value = tool->get(j);
+        for(i = 0; i < tool->n(); i++){
+            std::string name = tool->getName(i);
+            std::string value = tool->get(i);
             if(!name.compare("operation")){
                 // The reduction operation is not an attribute, but a text
                 s_elem->setTextContent(xmlS(value));
@@ -1457,7 +1455,7 @@ void State::writeReports(xercesc::DOMDocument* doc,
                          xercesc::DOMElement *root,
                          ProblemSetup &sim_data)
 {
-    unsigned int i, j;
+    unsigned int i;
     DOMElement *elem, *s_elem;
 
     elem = doc->createElement(xmlS("Reports"));
@@ -1465,14 +1463,12 @@ void State::writeReports(xercesc::DOMDocument* doc,
 
     std::vector<ProblemSetup::sphTool*> reports = sim_data.reports;
 
-    for(i = 0; i < reports.size(); i++){
+    for(auto report : reports){
         s_elem = doc->createElement(xmlS("Report"));
         elem->appendChild(s_elem);
-
-        ProblemSetup::sphTool* report = reports.at(i);
-        for(j = 0; j < report->n(); j++){
-            std::string name = report->getName(j);
-            std::string value = report->get(j);
+        for(i = 0; i < report->n(); i++){
+            std::string name = report->getName(i);
+            std::string value = report->get(i);
             s_elem->setAttribute(xmlS(name), xmlS(value));
         }
     }
@@ -1548,8 +1544,7 @@ void State::writeSets(xercesc::DOMDocument* doc,
         elem->setAttribute(xmlS("n"), xmlS(att.str()));
         root->appendChild(elem);
 
-        for(j = 0; j < sim_data.sets.at(i)->scalarNames().size(); j++){
-            std::string name = sim_data.sets.at(i)->scalarNames().at(j);
+        for(auto name : sim_data.sets.at(i)->scalarNames()){
             s_elem = doc->createElement(xmlS("Scalar"));
             s_elem->setAttribute(xmlS("name"), xmlS(name));
 

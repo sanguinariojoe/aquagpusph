@@ -67,8 +67,8 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 
     unsigned int num_sets = _sim_data.sets.size();
     unsigned int N = 0;
-    for(i = 0; i < _sim_data.sets.size(); i++) {
-        N += _sim_data.sets.at(i)->n();
+    for(auto set : _sim_data.sets) {
+        N += set->n();
     }
 
     unsigned int num_icell = nextPowerOf2(N);
@@ -137,8 +137,8 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
                             &defval);
                 // We need to specify the format, to ensure that a decimal
                 // number (i.e. a number with decimal point) is retrieved, so
-                // C++ streamer can't be directly applied
-                char defvalstr[100];
+                // C++ streamer can't be applied here
+                char defvalstr[128];
                 snprintf(defvalstr, sizeof(defvalstr), "%#G", defval);
                 valstr << "=" << defvalstr << "f";
             }
@@ -785,8 +785,8 @@ void CalcServer::setup()
     }
 
     // Setup the tools
-    for(i = 0; i < _tools.size(); i++){
-        _tools.at(i)->setup();
+    for(auto tool : _tools){
+        tool->setup();
     }
 }
 

@@ -48,7 +48,7 @@ SetTabFile::~SetTabFile()
 
 void SetTabFile::setup()
 {
-    unsigned int i, j;
+    unsigned int i;
 
     std::ostringstream msg;
     msg << "Loading the report \"" << name() << "\"..." << std::endl;
@@ -62,8 +62,8 @@ void SetTabFile::setup()
     _f << "# Time ";
     std::vector<InputOutput::Variable*> vars = variables();
     for(i = _bounds.x; i < _bounds.y; i++){
-        for(j = 0; j < vars.size(); j++){
-            _f << vars.at(j)->name() << "_" << i;
+        for(auto var : vars){
+            _f << var->name() << "_" << i;
         }
     }
     _f << std::endl;
@@ -85,23 +85,22 @@ void SetTabFile::_execute()
 
     // Get the data to be printed
     std::vector<InputOutput::Variable*> vars = variables();
-    for(i = 0; i < vars.size(); i++){
-        if(vars.at(i)->type().find('*') == std::string::npos){
+    for(auto var : vars){
+        if(var->type().find('*') == std::string::npos){
             std::stringstream msg;
             msg << "The report \"" << name()
                 << "\" may not save scalar variables (\""
-                << vars.at(i)->name() << "\")." << std::endl;
+                << var->name() << "\")." << std::endl;
             LOG(L_ERROR, msg.str());
             throw std::runtime_error("Invalid variable type");
         }
-        InputOutput::ArrayVariable *var = (InputOutput::ArrayVariable*)vars.at(i);
         size_t typesize = C->variables()->typeToBytes(var->type());
         size_t len = var->size() / typesize;
         if(len < bounds().y){
             std::stringstream msg;
             msg << "The report \"" << name()
                 << "\" may not save field \""
-                << vars.at(i)->name() << "\" because is not long enough."
+                << var->name() << "\" because is not long enough."
                 << std::endl;
             LOG(L_ERROR, msg.str());
             throw std::runtime_error("Invalid variable type");
@@ -235,19 +234,17 @@ std::vector<void*> SetTabFile::download(std::vector<InputOutput::Variable*> vars
     std::vector<void*> data;
     std::vector<cl_event> events;  // vector storage is continuous memory
     size_t typesize, len;
-    unsigned int i, j;
     cl_int err_code;
     CalcServer *C = CalcServer::singleton();
 
-    for(i = 0; i < vars.size(); i++){
-        InputOutput::ArrayVariable *var = (InputOutput::ArrayVariable*)vars.at(i);
+    for(auto var : vars){
         typesize = C->variables()->typeToBytes(var->type());
         len = var->size() / typesize;
         if(len < bounds().y){
             std::stringstream msg;
             msg << "The report \"" << name()
                 << "\" may not save field \""
-                << vars.at(i)->name() << "\" because is not long enough."
+                << var->name() << "\" because is not long enough."
                 << std::endl;
             LOG(L_ERROR, msg.str());
             clearList(&data);
@@ -257,7 +254,7 @@ std::vector<void*> SetTabFile::download(std::vector<InputOutput::Variable*> vars
         if(!store){
             std::stringstream msg;
             msg << "Failure allocating " << typesize * (bounds().y - bounds().x)
-                << " bytes for the field \"" << vars.at(i)->name()
+                << " bytes for the field \"" << var->name()
                 << "\"." << std::endl;
             clearList(&data);
             throw std::bad_alloc();
@@ -289,8 +286,8 @@ std::vector<void*> SetTabFile::download(std::vector<InputOutput::Variable*> vars
     }
 
     // Destroy the events
-    for(i = 0; i < events.size(); i++){
-        err_code = clReleaseEvent(events.at(i));
+    for(auto event : events){
+        err_code = clReleaseEvent(event);
         if(err_code != CL_SUCCESS){
             LOG(L_ERROR, "Failure releasing the events.\n");
             InputOutput::Logger::singleton()->printOpenCLError(err_code);
@@ -304,9 +301,9 @@ std::vector<void*> SetTabFile::download(std::vector<InputOutput::Variable*> vars
 
 void SetTabFile::clearList(std::vector<void*> *data)
 {
-    unsigned int i;
-    for(i = 0; i < data->size(); i++){
-        if(data->at(i)) free(data->at(i)); data->at(i)=NULL;
+    for(auto d : *data){
+        if(d)
+            free(d);
     }
     data->clear();
 }

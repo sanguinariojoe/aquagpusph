@@ -42,8 +42,6 @@ TabFile::~TabFile()
 
 void TabFile::setup()
 {
-    unsigned int i;
-
     std::ostringstream msg;
     msg << "Loading the report \"" << name() << "\"..." << std::endl;
     LOG(L_INFO, msg.str());
@@ -55,8 +53,8 @@ void TabFile::setup()
     // Write the header
     _f << "# ";
     std::vector<InputOutput::Variable*> vars = variables();
-    for(i = 0; i < vars.size(); i++){
-        _f << vars.at(i)->name() << " ";
+    for(auto var : vars){
+        _f << var->name() << " ";
     }
     _f << std::endl;
     _f.flush();

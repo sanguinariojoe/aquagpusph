@@ -57,12 +57,12 @@ static void xmlClear()
 {
     unsigned int i;
     cpp_str.clear();
-    for(i = 0; i < xml_str.size(); i++){
-        xercesc::XMLString::release(&xml_str.at(i));
+    for(auto str : xml_str){
+        xercesc::XMLString::release(&str);
     }
     xml_str.clear();
-    for(i = 0; i < parsers.size(); i++){
-        delete parsers.at(i);
+    for(auto parser : parsers){
+        delete parser;
     }
     parsers.clear();
 }
@@ -154,8 +154,8 @@ void VTK::load()
         throw std::runtime_error("No fields have been marked to read");
     }
     bool have_r = false;
-    for(i = 0; i < fields.size(); i++){
-        if(!fields.at(i).compare("r")){
+    for(auto field : fields){
+        if(!field.compare("r")){
             have_r = true;
             break;
         }

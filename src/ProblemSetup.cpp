@@ -68,12 +68,12 @@ ProblemSetup::~ProblemSetup()
         tools.erase(tools.begin() + i - 1);
     }
     tools.clear();
-    for(i = 0; i < reports.size(); i++){
-        delete reports.at(i);
+    for(auto report : reports){
+        delete report;
     }
     reports.clear();
-    for(i=0;i<sets.size();i++){
-        delete sets.at(i);
+    for(auto set : sets){
+        delete set;
     }
     sets.clear();
 }
@@ -113,9 +113,8 @@ void ProblemSetup::sphDefinitions::define(const std::string name,
 
 bool ProblemSetup::sphDefinitions::isDefined(const std::string name)
 {
-    unsigned int i;
-    for(i = 0; i < names.size(); i++){
-        if(!name.compare(names.at(i))){
+    for(auto str : names){
+        if(!name.compare(str)){
             return true;
         }
     }
@@ -154,11 +153,9 @@ const std::string ProblemSetup::sphTool::get(const std::string name)
 const std::string ProblemSetup::sphTool::get(unsigned int index)
 {
     unsigned int i = 0;
-    for(std::map<std::string,std::string>::iterator it=_data.begin();
-        it != _data.end();
-        ++it){
+    for (auto& d : _data) {
         if(i == index){
-            return it->second.c_str();
+            return d.second;
         }
         i++;
     }
@@ -168,11 +165,9 @@ const std::string ProblemSetup::sphTool::get(unsigned int index)
 const std::string ProblemSetup::sphTool::getName(unsigned int index)
 {
     unsigned int i = 0;
-    for(std::map<std::string,std::string>::iterator it=_data.begin();
-        it != _data.end();
-        ++it){
+    for (auto& d : _data) {
         if(i == index){
-            return it->first.c_str();
+            return d.first;
         }
         i++;
     }
@@ -190,8 +185,8 @@ bool ProblemSetup::sphTool::has(const std::string name)
 unsigned int ProblemSetup::toolInstances(ProblemSetup::sphTool *tool)
 {
     unsigned int i, n=0;
-    for(i = 0; i < tools.size(); i++){
-        if(tool == tools.at(i))
+    for(auto t : tools){
+        if(tool == t)
         {
             n++;
         }

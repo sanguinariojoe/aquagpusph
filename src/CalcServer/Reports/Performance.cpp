@@ -70,7 +70,6 @@ void Performance::setup()
 }
 
 size_t Performance::computeAllocatedMemory(){
-    unsigned int i;
     size_t allocated_mem = 0;
     CalcServer *C = CalcServer::singleton();
 
@@ -80,8 +79,8 @@ size_t Performance::computeAllocatedMemory(){
 
     // Gwet the additionally allocated memory in the tools
     std::vector<Tool*> tools = C->tools();
-    for(i = 0; i < tools.size(); i++){
-        allocated_mem += tools.at(i)->allocatedMemory();
+    for(auto tool : tools){
+        allocated_mem += tool->allocatedMemory();
     }
 
     return allocated_mem;
@@ -89,7 +88,6 @@ size_t Performance::computeAllocatedMemory(){
 
 void Performance::_execute()
 {
-    unsigned int i;
     CalcServer *C = CalcServer::singleton();
     std::stringstream data;
 
@@ -101,13 +99,13 @@ void Performance::_execute()
     std::vector<Tool*> tools = C->tools();
     float elapsed = 0.f;
     float elapsed_ave = 0.f;
-    for(i = 0; i < tools.size(); i++){
+    for(auto tool : tools){
         // Exclude the tool itself
-        if(this == tools.at(i)){
+        if(this == tool){
             continue;
         }
-        elapsed += tools.at(i)->elapsedTime(false);
-        elapsed_ave += tools.at(i)->elapsedTime();
+        elapsed += tool->elapsedTime(false);
+        elapsed_ave += tool->elapsedTime();
     }
 
     timeval tac;
