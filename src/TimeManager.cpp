@@ -52,36 +52,26 @@ TimeManager::TimeManager(ProblemSetup& sim_data)
     , _output_ipf(-1)
 {
     unsigned int i;
-    char msg[1024];
-    Logger *S = Logger::singleton();
-    CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
-
-    Variables *vars = C->variables();
+    Variables *vars = CalcServer::CalcServer::singleton()->variables();
     // Check the variables validity
-    const unsigned int var_num = 7;
-    const char* var_names[var_num] = {"t",
-                                      "dt",
-                                      "iter",
-                                      "frame",
-                                      "end_t",
-                                      "end_iter",
-                                      "end_frame"};
-    const char* var_types[var_num] = {"float",
-                                      "float",
-                                      "unsigned int",
-                                      "unsigned int",
-                                      "float",
-                                      "unsigned int",
-                                      "unsigned int"};
-    for(i = 0; i < var_num; i++){
-        if(vars->get(var_names[i])->type().compare(var_types[i])){
-            sprintf(msg,
-                    "Expected a variable \"%s\" of type \"%s\", but \"%s\" one was found\n",
-                    var_names[i],
-                    var_types[i],
-                    vars->get(var_names[i])->type());
-            S->addMessageF(L_ERROR, msg);
-            exit(EXIT_FAILURE);
+    std::map<std::string, std::string> var_types {
+        {"t", "float"},
+        {"dt", "float"},
+        {"iter", "unsigned int"},
+        {"frame", "unsigned int"},
+        {"end_t", "float"},
+        {"end_iter", "unsigned int"},
+        {"end_frame", "unsigned int"}
+    };
+    for (auto& type : var_types) {
+        if(vars->get(type.first)->type().compare(type.second)){
+            std::ostringstream msg;
+            msg << "Variable \"" << type.first
+                << "\" has been redeclared as \"" << type.second
+                << "\" instead of the expected type, \""
+                << vars->get(type.first)->type() << "\"." << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw std::runtime_error("Invalid variable type");
         }
     }
 
@@ -128,8 +118,6 @@ TimeManager::TimeManager(ProblemSetup& sim_data)
         _output_time = *_time;
         _output_step = *_step;
     }
-
-    S->addMessageF(L_INFO, "Time manager built OK.\n");
 }
 
 TimeManager::~TimeManager()
@@ -145,12 +133,12 @@ void TimeManager::update(float sim_dt)
 
 bool TimeManager::mustStop()
 {
-    if(time() >= maxTime())
+    if((time() >= maxTime()) ||
+       (step() >= maxStep()) ||
+       (frame() >= maxFrame())) {
         return true;
-    if(step() >= maxStep())
-        return true;
-    if(frame() >= maxFrame())
-        return true;
+    }
+
     return false;
 }
 
