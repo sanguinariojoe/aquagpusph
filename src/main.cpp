@@ -79,7 +79,6 @@
 #include <CalcServer.h>
 #include <TimeManager.h>
 #include <InputOutput/Logger.h>
-#include <unistd.h>
 
 /** @namespace Aqua
  * @brief Main AQUAgpusph namespace.
@@ -107,44 +106,42 @@ using namespace Aqua;
 int main(int argc, char *argv[])
 {
     std::ostringstream msg;
-    InputOutput::Logger *S = new InputOutput::Logger();
+    InputOutput::Logger *logger = new InputOutput::Logger();
     InputOutput::FileManager file_manager;
-    CalcServer::CalcServer *C = NULL;
 
-    printf("\n");
-    printf("\t#########################################################\n");
-    printf("\t#                                                       #\n");
-    printf("\t#    #    ##   #  #   #                           #     #\n");
-    printf("\t#   # #  #  #  #  #  # #                          #     #\n");
-    printf("\t#  ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###   #\n");
-    printf("\t#  #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #  #\n");
-    printf("\t#  #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #  #\n");
-    printf("\t#  #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #  #\n");
-    printf("\t#                            # #             #          #\n");
-    printf("\t#                          ##  #             #          #\n");
-    printf("\t#                                                       #\n");
-    printf("\t#########################################################\n");
-    printf("\tAnother QUAlity GPU-SPH, by CEHINAV.\n");
-    printf("\t\thttp://canal.etsin.upm.es/\n");
-    printf("\tAuthors:\n");
-    printf("\t\tJose Luis Cercos Pita\n");
-    printf("\t\tLeo Miguel Gonzalez\n");
-    printf("\t\tAntonio Souto-Iglesias\n");
-    printf("\tAQUAgpusph Copyright (C) 2012  Jose Luis Cercos-Pita\n");
-    printf("\tThis program comes with ABSOLUTELY NO WARRANTY; for details see LICENSE.\n");
-    printf("\tThis is free software, and you are welcome to redistribute it\n");
-    printf("\tunder certain conditions; see LICENSE for details.\n");
-    printf("\n");
+    std::cout << std::endl;
+    std::cout << "\t#########################################################" << std::endl;
+    std::cout << "\t#                                                       #" << std::endl;
+    std::cout << "\t#    #    ##   #  #   #                           #     #" << std::endl;
+    std::cout << "\t#   # #  #  #  #  #  # #                          #     #" << std::endl;
+    std::cout << "\t#  ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###   #" << std::endl;
+    std::cout << "\t#  #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #  #" << std::endl;
+    std::cout << "\t#  #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #  #" << std::endl;
+    std::cout << "\t#  #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #  #" << std::endl;
+    std::cout << "\t#                            # #             #          #" << std::endl;
+    std::cout << "\t#                          ##  #             #          #" << std::endl;
+    std::cout << "\t#                                                       #" << std::endl;
+    std::cout << "\t#########################################################" << std::endl;
+    std::cout << "\tAnother QUAlity GPU-SPH, by CEHINAV (UPM) group." << std::endl;
+    std::cout << "\t\thttp://canal.etsin.upm.es/" << std::endl;
+    std::cout << "\tAuthors:" << std::endl;
+    std::cout << "\t\tJose Luis Cercos Pita" << std::endl;
+    std::cout << "\t\tLeo Miguel Gonzalez" << std::endl;
+    std::cout << "\t\tAntonio Souto-Iglesias" << std::endl;
+    std::cout << "\t\tJavier Calderon-Sanchez" << std::endl;
+    std::cout << "\tAQUAgpusph Copyright (C) 2012-2018  Jose Luis Cercos-Pita" << std::endl;
+    std::cout << "\tThis program comes with ABSOLUTELY NO WARRANTY; for details see LICENSE." << std::endl;
+    std::cout << "\tThis is free software, and you are welcome to redistribute it" << std::endl;
+    std::cout << "\tunder certain conditions; see LICENSE for details." << std::endl;
+    std::cout << std::endl;
 
+    InputOutput::CommandLineArgs::parse(argc, argv, file_manager);
+
+    // Now we can load the simulation definition, building the calculation
+    // server
+    CalcServer::CalcServer *calc_server = NULL;
     try {
-        InputOutput::CommandLineArgs::parse(argc, argv, file_manager);
-    } catch (const std::invalid_argument& e) {
-        return EXIT_FAILURE;
-    }
-
-    // Now we can load the simulation definition
-    try {
-        C = file_manager.load();
+        calc_server = file_manager.load();
     } catch(...) {
         if(Py_IsInitialized())
             Py_Finalize();
@@ -154,46 +151,44 @@ int main(int argc, char *argv[])
     InputOutput::TimeManager t_manager(file_manager.problemSetup());
 
     LOG(L_INFO, "Start of simulation...\n\n");
-    S->printDate();
-    S->initNCurses();
+    logger->printDate();
+    logger->initNCurses();
 
     while(!t_manager.mustStop())
     {
         try {
-            C->update(t_manager);
+            calc_server->update(t_manager);
             file_manager.save(t_manager.time());
         } catch (const Aqua::CalcServer::user_interruption& e) {
             // The user has interrupted the simulation, just exit normally
             file_manager.save(t_manager.time());
             break;
         } catch (...) {
-            S->endNCurses();
+            logger->endNCurses();
             sleep(__ERROR_SHOW_TIME__);
             file_manager.waitForSavers();
-            S->printDate();
-            float t = t_manager.time();
-            msg << "Simulation finished abnormally (Time = " << t
+            logger->printDate();
+            msg << "Simulation finished abnormally (t = " << t_manager.time()
                 << " s)" << std::endl << std::endl;
             LOG(L_INFO, msg.str());
 
-            delete S; S = NULL;
-            delete C; C = NULL;
+            delete logger; logger = NULL;
+            delete calc_server; calc_server = NULL;
             if(Py_IsInitialized())
                 Py_Finalize();
             throw;
         }
     }
 
-    S->endNCurses();
+    logger->endNCurses();
     file_manager.waitForSavers();
-    S->printDate();
-    float t = t_manager.time();
-    msg << "Simulation finished OK (Time = " << t
+    logger->printDate();
+    msg << "Simulation finished OK (t = " << t_manager.time()
         << " s)" << std::endl << std::endl;
     LOG(L_INFO, msg.str());
 
-    delete S; S = NULL;
-    delete C; C = NULL;
+    delete logger; logger = NULL;
+    delete calc_server; calc_server = NULL;
     if(Py_IsInitialized())
         Py_Finalize();
     return EXIT_SUCCESS;
