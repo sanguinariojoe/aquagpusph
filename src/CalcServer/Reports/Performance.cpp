@@ -93,7 +93,7 @@ void Performance::_execute()
 
     size_t allocated_MB = computeAllocatedMemory() / (1024 * 1024);
     data << "Performance:" << std::endl
-         << "Memory=" << std::setw(2) << allocated_MB << "MB" << std::endl;
+         << "Memory=" << std::setw(18) << allocated_MB << "MB" << std::endl;
 
     // Add the tools time elapsed
     std::vector<Tool*> tools = C->tools();
@@ -121,8 +121,8 @@ void Performance::_execute()
     }
     addElapsedTime(elapsed_seconds);
 
-    data << "Elapsed=" << std::setw(16) << elapsedTime()
-         << "s (+-" << std::setw(16) << elapsedTimeVariance()
+    data << "Elapsed=" << std::setw(17) << elapsedTime()
+         << "s  (+-" << std::setw(16) << elapsedTimeVariance()
          << "s)" << std::endl;
     data << "Overhead=" << std::setw(16) << elapsedTime() - elapsed_ave
          << "s" << std::endl;
@@ -144,8 +144,9 @@ void Performance::_execute()
     float total_elapsed = elapsedTime() * used_times();
     float ETA = total_elapsed * (1.f / progress - 1.f);
 
-    data << "Percentage=" << std::setw(16) << std::setprecision(2)
-         << progress * 100.f << "\tETA=" << std::setw(16) << ETA << std::endl;
+    data << "Percentage=" << std::setw(14) << std::setprecision(2)
+         << progress * 100.f;
+    data << "   ETA=" << ETA << std::endl;
 
     // Replace the trailing space by a line break
     if(data.str().back() == ' ') {
