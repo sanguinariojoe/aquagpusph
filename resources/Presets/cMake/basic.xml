@@ -96,6 +96,8 @@ later:
          -->
         <Variable name="imove" type="int*" length="N" />
         <Variable name="normal" type="vec*" length="N" />
+        <Variable name="tangent" type="vec*" length="N" />
+        <Variable name="binormal" type="vec*" length="N" />
         <Variable name="u" type="vec*" length="N" />
         <Variable name="dudt" type="vec*" length="N" />
         <Variable name="rho" type="float*" length="N" />
@@ -107,6 +109,7 @@ later:
         <Variable name="imove_in" type="int*" length="N" />
         <Variable name="r_in" type="vec*" length="N" />
         <Variable name="normal_in" type="vec*" length="N" />
+        <Variable name="tangent_in" type="vec*" length="N" />
         <Variable name="u_in" type="vec*" length="N" />
         <Variable name="dudt_in" type="vec*" length="N" />
         <Variable name="rho_in" type="float*" length="N" />
@@ -143,12 +146,14 @@ later:
         <Tool action="add" name="Backup iset" type="copy" in="iset" out="iset_in"/>
         <Tool action="add" name="Backup imove" type="copy" in="imove" out="imove_in"/>
         <Tool action="add" name="Backup normal" type="copy" in="normal" out="normal_in"/>
+        <Tool action="add" name="Backup tangent" type="copy" in="tangent" out="tangent_in"/>
         <Tool action="add" name="Backup m" type="copy" in="m" out="m_in"/>
         <Tool action="add" name="sort stage1" type="kernel" entry_point="stage1" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/Sort.cl"/>
         <Tool action="add" name="sort stage2" type="kernel" entry_point="stage2" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/Sort.cl"/>
         <Tool action="add" name="Backup dudt" type="copy" in="dudt" out="dudt_in"/>
         <Tool action="add" name="Backup drhodt" type="copy" in="drhodt" out="drhodt_in"/>
         <Tool action="add" name="EOS" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/EOS.cl"/>
+        <Tool action="add" name="Binormal" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/Binormal.cl"/>
         <Tool action="add" name="Sort" type="dummy"/>
 
         <!-- Particles interactions -->

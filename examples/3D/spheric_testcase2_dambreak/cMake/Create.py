@@ -125,8 +125,9 @@ for i in range(nx):
             press = refd * g * (hFluid - z)
             dens = refd + press / cs**2 
             mass = dens * dr**3.0
-            string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
+            string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}\n").format(
                 x, y, z,
+                0.0, 0.0, 0.0,
                 0.0, 0.0, 0.0,
                 0.0, 0.0, 0.0,
                 0.0, 0.0, 0.0,
@@ -151,15 +152,17 @@ N_box = 0
 
 print('    Top face...')
 normal = (0.0, 0.0, -1.0)
+tangent = (-1.0, 0.0, 0.0)
 z = z0 + Nz_box * dr
 for i in range(Nx_box):
     x = x0 + (i + 0.5) * dr
     for j in range(Ny_box):
         y = y0 + (j + 0.5) * dr
         imove = -3
-        string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
+        string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}\n").format(
             x, y, z,
             normal[0], normal[1], normal[2],
+            tangent[0], tangent[1], tangent[2],
             0.0, 0.0, 0.0,
             0.0, 0.0, 0.0,
             dens,
@@ -171,15 +174,17 @@ for i in range(Nx_box):
 
 print('    Front face...')
 normal = (1.0, 0.0, 0.0)
+tangent = (0.0, -1.0, 0.0)
 x = x0
 for i in range(Ny_box):
     y = y0 + (i + 0.5) * dr
     for j in range(Nz_box):
         z = z0 + (j + 0.5) * dr
         imove = -3
-        string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
+        string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}\n").format(
             x, y, z,
             normal[0], normal[1], normal[2],
+            tangent[0], tangent[1], tangent[2],
             0.0, 0.0, 0.0,
             0.0, 0.0, 0.0,
             dens,
@@ -191,15 +196,17 @@ for i in range(Ny_box):
 
 print('    Back face...')
 normal = (-1.0, 0.0, 0.0)
+tangent = (0.0, -1.0, 0.0)
 x = x0 + Nx_box * dr
 for i in range(Ny_box):
     y = y0 + (i + 0.5) * dr
     for j in range(Nz_box):
         z = z0 + (j + 0.5) * dr
         imove = -3
-        string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
+        string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}\n").format(
             x, y, z,
             normal[0], normal[1], normal[2],
+            tangent[0], tangent[1], tangent[2],
             0.0, 0.0, 0.0,
             0.0, 0.0, 0.0,
             dens,
@@ -211,15 +218,17 @@ for i in range(Ny_box):
 
 print('    Left face...')
 normal = (0.0, 1.0, 0.0)
+tangent = (1.0, 0.0, 0.0)
 y = y0
 for i in range(Nx_box):
     x = x0 + (i + 0.5) * dr
     for j in range(Nz_box):
         z = z0 + (j + 0.5) * dr
         imove = -3
-        string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
+        string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}\n").format(
             x, y, z,
             normal[0], normal[1], normal[2],
+            tangent[0], tangent[1], tangent[2],
             0.0, 0.0, 0.0,
             0.0, 0.0, 0.0,
             dens,
@@ -231,15 +240,17 @@ for i in range(Nx_box):
 
 print('    Right face...')
 normal = (0.0, -1.0, 0.0)
+tangent = (-1.0, 0.0, 0.0)
 y = y0 + Ny_box * dr
 for i in range(Nx_box):
     x = x0 + (i + 0.5) * dr
     for j in range(Nz_box):
         z = z0 + (j + 0.5) * dr
         imove = -3
-        string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
+        string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}\n").format(
             x, y, z,
             normal[0], normal[1], normal[2],
+            tangent[0], tangent[1], tangent[2],
             0.0, 0.0, 0.0,
             0.0, 0.0, 0.0,
             dens,
@@ -272,6 +283,7 @@ ybox_min = -0.5 * Ny_box * dr
 ybox_max = 0.5 * Ny_box * dr
 
 normal = (0.0, 0.0, -1.0)
+tangent = (-1.0, 0.0, 0.0)
 z = z0
 for i in range(Nx):
     x = x0 + (i + 0.5) * dr
@@ -281,9 +293,10 @@ for i in range(Nx):
             if y > ybox_min and y < ybox_max:
                 continue
         imove = -3
-        string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
+        string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}\n").format(
             x, y, z,
             normal[0], normal[1], normal[2],
+            tangent[0], tangent[1], tangent[2],
             0.0, 0.0, 0.0,
             0.0, 0.0, 0.0,
             dens,
@@ -295,15 +308,17 @@ for i in range(Nx):
 
 print('    Top face...')
 normal = (0.0, 0.0, 1.0)
+tangent = (1.0, 0.0, 0.0)
 z = z0 + Nz * dr
 for i in range(Nx):
     x = x0 + (i + 0.5) * dr
     for j in range(Ny):
         y = y0 + (j + 0.5) * dr
         imove = -3
-        string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
+        string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}\n").format(
             x, y, z,
             normal[0], normal[1], normal[2],
+            tangent[0], tangent[1], tangent[2],
             0.0, 0.0, 0.0,
             0.0, 0.0, 0.0,
             dens,
@@ -315,15 +330,17 @@ for i in range(Nx):
 
 print('    Front face...')
 normal = (-1.0, 0.0, 0.0)
+tangent = (0.0, -1.0, 0.0)
 x = x0
 for i in range(Ny):
     y = y0 + (i + 0.5) * dr
     for j in range(Nz):
         z = z0 + (j + 0.5) * dr
         imove = -3
-        string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
+        string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}\n").format(
             x, y, z,
             normal[0], normal[1], normal[2],
+            tangent[0], tangent[1], tangent[2],
             0.0, 0.0, 0.0,
             0.0, 0.0, 0.0,
             dens,
@@ -335,15 +352,17 @@ for i in range(Ny):
 
 print('    Back face...')
 normal = (1.0, 0.0, 0.0)
+tangent = (0.0, 1.0, 0.0)
 x = x0 + Nx * dr
 for i in range(Ny):
     y = y0 + (i + 0.5) * dr
     for j in range(Nz):
         z = z0 + (j + 0.5) * dr
         imove = -3
-        string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
+        string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}\n").format(
             x, y, z,
             normal[0], normal[1], normal[2],
+            tangent[0], tangent[1], tangent[2],
             0.0, 0.0, 0.0,
             0.0, 0.0, 0.0,
             dens,
@@ -355,15 +374,17 @@ for i in range(Ny):
 
 print('    Left face...')
 normal = (0.0, -1.0, 0.0)
+tangent = (1.0, 0.0, 0.0)
 y = y0
 for i in range(Nx):
     x = x0 + (i + 0.5) * dr
     for j in range(Nz):
         z = z0 + (j + 0.5) * dr
         imove = -3
-        string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
+        string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}\n").format(
             x, y, z,
             normal[0], normal[1], normal[2],
+            tangent[0], tangent[1], tangent[2],
             0.0, 0.0, 0.0,
             0.0, 0.0, 0.0,
             dens,
@@ -375,15 +396,17 @@ for i in range(Nx):
 
 print('    Right face...')
 normal = (0.0, 1.0, 0.0)
+tangent = (-1.0, 0.0, 0.0)
 y = y0 + Ny * dr
 for i in range(Nx):
     x = x0 + (i + 0.5) * dr
     for j in range(Nz):
         z = z0 + (j + 0.5) * dr
         imove = -3
-        string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
+        string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}\n").format(
             x, y, z,
             normal[0], normal[1], normal[2],
+            tangent[0], tangent[1], tangent[2],
             0.0, 0.0, 0.0,
             0.0, 0.0, 0.0,
             dens,
@@ -401,31 +424,38 @@ print('OK')
 
 positions = []
 normals = []
+tangents = []
 
 n_sensors = 8
 xx = xbox_max
 yy = 0.0
 zz = Nz_box * dr
 nn = (-1.0, 0.0, 0.0)
+tt = (0.0, 1.0, 0.0)
 for i in range(4):
     normals.append(nn)
+    tangents.append(tt)
     positions.append((xx, yy, 0.021 + i * 0.04))
 
 nn = (0.0, 0.0, 1.0)
+tt = (1.0, 0.0, 0.0)
 for i in range(4):
     normals.append(nn)
+    tangents.append(tt)
     positions.append((xx - 0.021 - i * 0.04, yy, zz))
 
 output = open("Sensors.dat", "w")
 for i in range(len(positions)):
     pos = positions[i]
     normal = normals[i]
+    tangent = tangents[i]
     dens = refd
     mass = 0.0
     imove = 0
-    string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
+    string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}\n").format(
         pos[0], pos[1], pos[2],
         normal[0], normal[1], normal[2],
+        tangent[0], tangent[1], tangent[2],
         0.0, 0.0, 0.0,
         0.0, 0.0, 0.0,
         dens,
