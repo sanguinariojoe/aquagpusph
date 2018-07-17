@@ -134,13 +134,13 @@ float kernelS_P(float q)
  * @return Equivalent kernel divergent part
  * @see kernelS_D
  */
-float _Omega(a, b)
+float _Omega(const float a, const float b)
 {
     const float a2 = a * a;
     const float b2 = b * b;
-    return acospi(min(native_sqrt(
+    return acospi(min(sqrt(
         (1.f + a2 + b2) / ((1.f + a2) * (1.f + b2))
-    ),1.f));
+    ), 1.f));
 }
 
 /** @brief An equivalent kernel function to compute the Shepard factor using the
