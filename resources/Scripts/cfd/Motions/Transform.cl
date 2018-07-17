@@ -54,6 +54,7 @@
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r} \f$.
  * @param normal Normal \f$ \mathbf{n} \f$.
+ * @param tangent Tangent \f$ \mathbf{t} \f$.
  * @param N Number of particles.
  * @param motion_iset Set of particles affected.
  * @param motion_r Center of rotation.
@@ -66,6 +67,7 @@ __kernel void entry(const __global uint* iset,
                     const __global int* imove,
                     __global vec* r,
                     __global vec* normal,
+                    __global vec* tangent,
                     unsigned int N,
                     unsigned int motion_iset,
                     vec motion_r,
@@ -79,7 +81,7 @@ __kernel void entry(const __global uint* iset,
         return;
     }
 
-    vec r_i, rr, n_i, nn;
+    vec r_i, rr, n_i, nn, t_i, tt;
 
     const float cphi = cos(motion_a.x);
     const float sphi = sin(motion_a.x);
@@ -91,34 +93,44 @@ __kernel void entry(const __global uint* iset,
     //---------------------------------------------
     // Transform the point
     //---------------------------------------------
-    n_i = normal[i];
     r_i = r[i];
+    n_i = normal[i];
+    t_i = tangent[i];
     #ifdef HAVE_3D
         // Rotate along x
         rr = r_i;
         nn = n_i;
+        tt = t_i;
         r_i.y = cphi * rr.y - sphi * rr.z;
         r_i.z = sphi * rr.y + cphi * rr.z;
         n_i.y = cphi * nn.y - sphi * nn.z;
         n_i.z = sphi * nn.y + cphi * nn.z;
+        t_i.y = cphi * tt.y - sphi * tt.z;
+        t_i.z = sphi * tt.y + cphi * tt.z;
         // Rotate along y
         rr = r_i;
         nn = n_i;
+        tt = t_i;
         r_i.x = ctheta * rr.x + stheta * rr.z;
         r_i.z = -stheta * rr.x + ctheta * rr.z;
         n_i.x = ctheta * nn.x + stheta * nn.z;
         n_i.z = -stheta * nn.x + ctheta * nn.z;
+        t_i.x = ctheta * tt.x + stheta * tt.z;
+        t_i.z = -stheta * tt.x + ctheta * tt.z;
     #endif
     // Rotate along z
     rr = r_i;
     nn = n_i;
+    tt = t_i;
     r_i.x = cpsi * rr.x - spsi * rr.y;
     r_i.y = spsi * rr.x + cpsi * rr.y;
     n_i.x = cpsi * nn.x - spsi * nn.y;
     n_i.y = spsi * nn.x + cpsi * nn.y;
+    t_i.x = cpsi * tt.x - spsi * tt.y;
+    t_i.y = spsi * tt.x + cpsi * tt.y;
 
-    normal[i] = n_i;
-    // Displace the point
     r[i] = r_i + motion_r;
+    normal[i] = normalize(n_i);
+    tangent[i] = normalize(t_i);
 }
 

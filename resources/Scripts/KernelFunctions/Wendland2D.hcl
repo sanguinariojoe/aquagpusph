@@ -132,16 +132,16 @@ float kernelS_P(float q)
  * @param d Normal distance to the wall,
  * \f$ (\mathbf{r_j} - \mathbf{r_i}) \cdot \mathbf{n_j} \f$.
  * @param t Tangential distance to the boundary element,
- * \f$ \vert (\mathbf{r_j} - \mathbf{r_i}) - \mathbf{n_j} \left(
- *      \left( \mathbf{r_j} - \mathbf{r_i} \right) \cdot \mathbf{n_j} 
- * \right) \vert \f$.
+ * \f$ (\mathbf{r_j} - \mathbf{r_i}) \cdot \mathbf{t_j} \f$.
+ * @param b 0 in 2D simulations, distance along the normal direction in 3D
+ * simulations, \f$ (\mathbf{r_j} - \mathbf{r_i}) \cdot \mathbf{b_j} \f$.
  * @param s Area of the boundary element, \f$ 2 * \Delta r \f$.
  * @return Equivalent kernel divergent part
  * @see kernelS_P
  * @warning Due to the analytical nature of the solution, this kernel should not
  * be multiplied by the element area, nor divided by \f$ h^2 \f$
  */
-float kernelS_D(float d, float t, float s)
+float kernelS_D(float d, float t, float b, float s)
 {
     const float wcon = 0.5f * iM_PI;
     const float dr = 0.5f * s;

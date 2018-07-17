@@ -91,25 +91,94 @@ float kernelH(float q)
 /** @brief An equivalent kernel function to compute the Shepard factor using the
  * boundary integral elements instead of the fluid volume.
  *
+ * For practical purposes, the kernel computation is split in 2 parts: The
+ * polynomial part, where trucation errors are acceptable, and the divergent
+ * part, which requires an analytical solution.
+ * This function computes the polynomial part.
+ *
  * The kernel is defined as follows:
  * \f$ \hat{W} \left(\rho; h\right) =
  * \frac{1}{\rho^d} \int \rho^{d - 1} W \left(\rho; h\right) d\rho \f$
  *
  * @param q Normalized distance \f$ \frac{\mathbf{r_j} - \mathbf{r_i}}{h} \f$.
- * @return Equivalent kernel
+ * @return Equivalent kernel polynomial part
+ * @see kernelS_D
  */
-float kernelS(float q)
+float kernelS_P(float q)
 {
     float wcon = 0.08203125f*iM_PI;  // 0.08203125f = 21/256
     float q2 = q * q;
     float q3 = q2 * q;
-    return wcon * (  0.25 * q3 * q2       // 0.25f = 1/4
+    return wcon * (  0.25f * q3 * q2      // 0.25f = 1/4
                    - 2.142857f * q2 * q2  // 2.142857f = 15/7
                    + 6.666667f * q3       // 6.666667f = 20/3
                    - 8.f * q2
                    + 5.333333f            // 5.333333f = 16/3
-                   - 3.047619f / q3       // 3.047619f = 64/21
                   );
+}
+
+
+/** @brief Helper function to compute the solid angle of a rectangular patch,
+ * with a corner placed in the projection of the origin into the patch plane.
+ *
+ * b
+ *  A
+ *  |
+ *  |XXXXXXX
+ *  |XXXXXXX
+ * -+-----------> t
+ *
+ * @param d Normal distance of the patch to the origin.
+ * @param a Width of the rectangular patch.
+ * @param b Height of the rectangular patch.
+ * @return Equivalent kernel divergent part
+ * @see kernelS_D
+ */
+float _Omega(a, b)
+{
+    const float a2 = a * a;
+    const float b2 = b * b;
+    return acospi(min(native_sqrt(
+        (1.f + a2 + b2) / ((1.f + a2) * (1.f + b2))
+    ),1.f));
+}
+
+/** @brief An equivalent kernel function to compute the Shepard factor using the
+ * boundary integral elements instead of the fluid volume.
+ *
+ * For practical purposes, the kernel computation is split in 2 parts: The
+ * polynomial part, where trucation errors are acceptable, and the divergent
+ * part, which requires an analytical solution.
+ * This function computes the divergent part.
+ *
+ * The kernel is defined as follows:
+ * \f$ \hat{W} \left(\rho; h\right) =
+ * \frac{1}{\rho^d} \int \rho^{d - 1} W \left(\rho; h\right) d\rho \f$
+ *
+ * @param d Unsigned normal distance to the wall,
+ * \f$ \vert (\mathbf{r_j} - \mathbf{r_i}) \cdot \mathbf{n_j} \vert \f$.
+ * @param t Unsigned Tangential distance to the boundary element,
+ * \f$ \vert (\mathbf{r_j} - \mathbf{r_i}) \cdot \mathbf{t_j} \vert \f$.
+ * @param b 0 in 2D simulations, unsigned distance along the binormal direction
+ * in 3D simulations,
+ * \f$ \vert (\mathbf{r_j} - \mathbf{r_i}) \cdot \mathbf{b_j} \vert  \f$.
+ * @param s Area of the boundary element, \f$ \Delta r^2 \f$.
+ * @return Equivalent kernel divergent part
+ * @see kernelS_P
+ * @warning Due to the analytical nature of the solution, this kernel should not
+ * be multiplied by the element area, nor divided by \f$ h^2 \f$
+ */
+float kernelS_D(float d, float t, float b, float s)
+{
+    const float wcon = 0.25f;
+    const float dr = 0.5f * sqrt(s);
+    const float t1 = (t - dr) / d, t2 = (t + dr) / d;
+    const float b1 = (b - dr) / d, b2 = (b + dr) / d;
+    const float st = sign(t1), sb = sign(b1);
+    return -wcon * (_Omega(t2, b2)
+                    - st * _Omega(t1, b2)
+                    - sb * _Omega(t2, b1)
+                    + st * sb * _Omega(t1, b1));
 }
 
 #endif    // _KERNEL_H_INCLUDED_

@@ -71,6 +71,7 @@ __kernel void entry(const __global uint* iset,
                     const __global int* imove,
                     __global vec* r,
                     __global vec* normal,
+                    __global vec* tangent,
                     unsigned int N,
                     unsigned int motion_iset,
                     vec motion_r_in,
@@ -84,7 +85,7 @@ __kernel void entry(const __global uint* iset,
         return;
     }
 
-    vec r_i, rr, n_i, nn;
+    vec r_i, rr, n_i, nn, t_i, tt;
 
     const float cphi = cos(motion_a_in.x);
     const float sphi = -sin(motion_a_in.x);
@@ -96,33 +97,43 @@ __kernel void entry(const __global uint* iset,
     //---------------------------------------------
     // Untransform the point
     //---------------------------------------------
-    n_i = normal[i];
-    // Undisplace the point
     r_i = r[i] - motion_r_in;
+    n_i = normal[i];
+    t_i = tangent[i];
     // Unrotate along z
     rr = r_i;
     nn = n_i;
+    tt = t_i;
     r_i.x = cpsi * rr.x - spsi * rr.y;
     r_i.y = spsi * rr.x + cpsi * rr.y;
     n_i.x = cpsi * nn.x - spsi * nn.y;
     n_i.y = spsi * nn.x + cpsi * nn.y;
+    t_i.x = cpsi * tt.x - spsi * tt.y;
+    t_i.y = spsi * tt.x + cpsi * tt.y;
     #ifdef HAVE_3D
         // Unrotate along y
         rr = r_i;
         nn = n_i;
+        tt = t_i;
         r_i.x = ctheta * rr.x + stheta * rr.z;
         r_i.z = -stheta * rr.x + ctheta * rr.z;
         n_i.x = ctheta * nn.x + stheta * nn.z;
         n_i.z = -stheta * nn.x + ctheta * nn.z;
+        t_i.x = ctheta * tt.x + stheta * tt.z;
+        t_i.z = -stheta * tt.x + ctheta * tt.z;
         // Unrotate along x
         rr = r_i;
         nn = n_i;
+        tt = t_i;
         r_i.y = cphi * rr.y - sphi * rr.z;
         r_i.z = sphi * rr.y + cphi * rr.z;
         n_i.y = cphi * nn.y - sphi * nn.z;
         n_i.z = sphi * nn.y + cphi * nn.z;
+        t_i.y = cphi * tt.y - sphi * tt.z;
+        t_i.z = sphi * tt.y + cphi * tt.z;
     #endif
 
-    normal[i] = n_i;
     r[i] = r_i;
+    normal[i] = n_i;
+    tangent[i] = t_i;
 }
