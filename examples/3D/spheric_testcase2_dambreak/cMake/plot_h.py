@@ -29,7 +29,6 @@
 #                                                                             *
 #******************************************************************************
 
-import sys
 import os
 from os import path
 import numpy as np
@@ -61,7 +60,9 @@ def readFile(filepath):
     # Transpose the data
     return [list(d) for d in zip(*data)]
 
+
 lines = []
+
 
 def update(frame_index):
     data = readFile('sensors_h.out')
