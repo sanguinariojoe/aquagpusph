@@ -48,8 +48,8 @@
  * @param r Sorted position \f$ \mathbf{r} \f$.
  * @param normal_in Unsorted normal \f$ \mathbf{n} \f$.
  * @param normal Sorted normal \f$ \mathbf{n} \f$.
- * @param u_in Unsorted velocity \f$ \mathbf{u} \f$.
- * @param u Sorted velocity \f$ \mathbf{u} \f$.
+ * @param normal_in Unsorted tangent \f$ \mathbf{t} \f$.
+ * @param normal Sorted tangent \f$ \mathbf{t} \f$.
  * @param id_sorted Permutations list from the unsorted space to the sorted
  * one.
  * @param N Number of particles.
@@ -59,7 +59,7 @@ __kernel void stage1(const __global uint *id_in, __global uint *id,
                      const __global int *imove_in, __global int *imove,
                      const __global vec *r_in, __global vec *r,
                      const __global vec *normal_in, __global vec *normal,
-                     const __global vec *u_in, __global vec *u,
+                     const __global vec *tangent_in, __global vec *tangent,
                      const __global unit *id_sorted,
                      unsigned int N)
 {
@@ -74,7 +74,7 @@ __kernel void stage1(const __global uint *id_in, __global uint *id,
     imove[i_out] = imove_in[i];
     r[i_out] = r_in[i];
     normal[i_out] = normal_in[i];
-    u[i_out] = u_in[i];
+    tangent[i_out] = tangent_in[i];
 }
 
 /** @brief Sort all the particle variables by the cell indexes.
@@ -83,6 +83,8 @@ __kernel void stage1(const __global uint *id_in, __global uint *id,
  * loaded), it is safer carrying out the sorting process in to stages. This
  * is the first stage.
  *
+ * @param u_in Unsorted velocity \f$ \mathbf{u} \f$.
+ * @param u Sorted velocity \f$ \mathbf{u} \f$.
  * @param dudt_in Unsorted velocity rate of change
  * \f$ \frac{d \mathbf{u}}{d t} \f$.
  * @param dudt Sorted velocity rate of change
@@ -97,7 +99,8 @@ __kernel void stage1(const __global uint *id_in, __global uint *id,
  * one.
  * @param N Number of particles.
  */
-__kernel void stage2(const __global vec *dudt_in, __global vec *dudt,
+__kernel void stage2(const __global vec *u_in, __global vec *u,
+                     const __global vec *dudt_in, __global vec *dudt,
                      const __global float *rho_in, __global float *rho,
                      const __global float *drhodt_in, __global float *drhodt,
                      const __global float *m_in, __global float *m,
@@ -110,6 +113,7 @@ __kernel void stage2(const __global vec *dudt_in, __global vec *dudt,
 
     const uint i_out = id_sorted[i];
 
+    u[i_out] = u_in[i];
     dudt[i_out] = dudt_in[i];
     rho[i_out] = rho_in[i];
     drhodt[i_out] = drhodt_in[i];

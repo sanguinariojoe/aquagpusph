@@ -47,6 +47,8 @@
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r} \f$.
  * @param normal Normal \f$ \mathbf{n} \f$.
+ * @param tangent Tangent \f$ \mathbf{t} \f$.
+ * @param binormal Binormal \f$ \mathbf{b} \f$.
  * @param m Area of the boundary element \f$ s \f$.
  * @param shepard Shepard term
  * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
@@ -59,6 +61,8 @@
 __kernel void compute(const __global int* imove,
                       const __global vec* r,
                       const __global vec* normal,
+                      const __global vec* tangent,
+                      const __global vec* binormal,
                       const __global float* m,
                       __global float* shepard,
                       // Link-list data
@@ -113,6 +117,8 @@ __kernel void compute(const __global int* imove,
         }
 
         const vec_xyz n_j = normal[j].XYZ;
+        const vec_xyz t_j = tangent[j].XYZ;
+        const vec_xyz b_j = binormal[j].XYZ;
         const float r_n = dot(r_ij, n_j);
         const float area_j = m[j];
         if((r_n >= 0.f) &&
@@ -129,9 +135,10 @@ __kernel void compute(const __global int* imove,
         }
 
         {
-            const float r_t = length(r_ij - r_n * n_j);
+            const float r_t = fabs(dot(r_ij, t_j));
+            const float r_b = fabs(dot(r_ij, b_j));
             _SHEPARD_ += r_n * CONW * kernelS_P(q) * area_j +
-                         kernelS_D(r_n, r_t, area_j);
+                         kernelS_D(fabs(r_n), r_t, r_b, area_j);
         }
     }END_LOOP_OVER_NEIGHS()
 
