@@ -121,6 +121,16 @@ std::string trimCopy(std::string s);
  */
 std::string xxd2string(unsigned char* arr, unsigned int len);
 
+/** @brief Convert a string to lower case
+ */
+void toLower(std::string &str);
+
+/** @brief Convert a string to lower case
+ * @return Modified string
+ */
+std::string toLowerCopy(std::string str);
+
+
 /// Next number which is power of 2.
 /** Compute a value which, being power of two, is greater or equal than
  * @paramname{x}.

@@ -84,8 +84,8 @@ void replaceAll(std::string &str,
 }
 
 std::string replaceAllCopy(std::string str,
-                                  std::string search,
-                                  std::string replace)
+                           std::string search,
+                           std::string replace)
 {
     replaceAll(str, search, replace);
     return str;
@@ -132,6 +132,17 @@ std::string xxd2string(unsigned char* arr, unsigned int len)
     txt[len] = '\0';
     xxd_str = txt;
     return xxd_str;
+}
+
+void toLower(std::string &str)
+{
+    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+}
+
+std::string toLowerCopy(std::string str)
+{
+    toLower(str);
+    return str;
 }
 
 unsigned int nextPowerOf2( unsigned int n )
