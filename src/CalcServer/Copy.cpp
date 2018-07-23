@@ -34,8 +34,9 @@ namespace Aqua{ namespace CalcServer{
 
 Copy::Copy(const std::string name,
            const std::string input_name,
-           const std::string output_name)
-    : Tool(name)
+           const std::string output_name,
+           bool once)
+    : Tool(name, once)
     , _input_name(input_name)
     , _output_name(output_name)
     , _input_var(NULL)

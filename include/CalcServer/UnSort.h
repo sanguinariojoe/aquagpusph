@@ -42,8 +42,9 @@ public:
     /** Constructor.
      * @param name Tool name.
      * @param var_name Variable to unsort.
+     * @param once Run this tool just once. Useful to make initializations.
      */
-    UnSort(const std::string name, const std::string var_name);
+    UnSort(const std::string name, const std::string var_name, bool once=false);
 
     /** Destructor.
      */

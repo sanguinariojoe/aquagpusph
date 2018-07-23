@@ -41,6 +41,7 @@ public:
      * @param name Tool name.
      * @param var_name Variable to set.
      * @param value Value to set.
+     * @param once Run this tool just once. Useful to make initializations.
      * @note Some helpers are available for value:
      *   - VEC_ZERO: Zeroes vector.
      *   - VEC_ONE: Ones vector, in 3D cases the last component will be zero.
@@ -52,7 +53,8 @@ public:
      */
     Set(const std::string name,
         const std::string var_name,
-        const std::string value);
+        const std::string value,
+        bool once=false);
 
     /** Destructor.
      */

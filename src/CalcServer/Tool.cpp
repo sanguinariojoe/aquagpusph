@@ -28,8 +28,9 @@
 
 namespace Aqua{ namespace CalcServer{
 
-Tool::Tool(const std::string tool_name)
+Tool::Tool(const std::string tool_name, bool once)
     : _name(tool_name)
+    , _once(once)
     , _allocated_memory(0)
     , _n_iters(0)
     , _elapsed_time(0.f)
@@ -44,6 +45,9 @@ Tool::~Tool()
 
 void Tool::execute()
 {
+    if(_once && (_n_iters > 0))
+        return;
+
     timeval tic, tac;
     gettimeofday(&tic, NULL);
 

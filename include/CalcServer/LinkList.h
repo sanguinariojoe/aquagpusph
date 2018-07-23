@@ -51,8 +51,11 @@ public:
     /** Constructor.
      * @param tool_name Tool name.
      * @param input Input array to be used as the particles positions.
+     * @param once Run this tool just once. Useful to make initializations.
      */
-    LinkList(const std::string tool_name, const std::string input="pos");
+    LinkList(const std::string tool_name,
+             const std::string input="pos",
+             bool once=false);
 
     /** Destructor
      */

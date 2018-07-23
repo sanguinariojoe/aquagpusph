@@ -42,8 +42,9 @@ Reduction::Reduction(const std::string name,
                      const std::string input_name,
                      const std::string output_name,
                      const std::string operation,
-                     const std::string null_val)
-    : Tool(name)
+                     const std::string null_val,
+                     bool once)
+    : Tool(name, once)
     , _input_name(input_name)
     , _output_name(output_name)
     , _operation(operation)

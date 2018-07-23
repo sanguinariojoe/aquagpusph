@@ -101,11 +101,13 @@ public:
      * @param permutations Variable where the permutations will be stored.
      * @param inv_permutations Variable where the inverse permutations will be
      * stored.
+     * @param once Run this tool just once. Useful to make initializations.
      */
     RadixSort(const std::string tool_name,
               const std::string variable="icell",
               const std::string permutations="id_unsorted",
-              const std::string inv_permutations="id_sorted");
+              const std::string inv_permutations="id_sorted",
+              bool once=false);
 
     /** Destructor
      */

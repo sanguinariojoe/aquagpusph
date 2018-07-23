@@ -521,7 +521,16 @@ void State::parseTools(DOMElement *root,
             std::ostringstream name;
             name << prefix << xmlAttribute(s_elem, "name");
             tool->set("name", name.str());
+
             tool->set("type", xmlAttribute(s_elem, "type"));
+            if(xmlHasAttribute(s_elem, "once")){
+                tool->set("once", toLowerCopy(xmlAttribute(s_elem, "once")));
+                std::cout << "ONCE :: " << toLowerCopy(xmlAttribute(s_elem, "once")) << std::endl;
+            }
+            else {
+                tool->set("once", "false");
+            }
+
 
             // Check if the conditions to add the tool are fulfilled
             if(xmlHasAttribute(s_elem, "ifdef")){

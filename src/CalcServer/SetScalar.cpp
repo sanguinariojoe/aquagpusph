@@ -29,8 +29,9 @@ namespace Aqua{ namespace CalcServer{
 
 SetScalar::SetScalar(const std::string name,
                      const std::string var_name,
-                     const std::string value)
-    : Tool(name)
+                     const std::string value,
+                     bool once)
+    : Tool(name, once)
     , _var_name(var_name)
     , _value(value)
     , _var(NULL)

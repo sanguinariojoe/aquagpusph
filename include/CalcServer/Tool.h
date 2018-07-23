@@ -44,8 +44,9 @@ class Tool
 public:
     /** Constructor.
      * @param tool_name Name of the tool. Useful to identify errors.
+     * @param once Run this tool just once. Useful to make initializations.
      */
-    Tool(const std::string tool_name);
+    Tool(const std::string tool_name, bool once=false);
 
     /** Destructor
      */
@@ -67,11 +68,14 @@ public:
 
     /** @brief Execute the tool measuring the elapsed time.
      *
-     * Actually this method is just measuring the time required to carry out the
-     * _execute() method, which is internally called by this function.
+     * Actually this method is just ensuring that the tool can be executed,
+     * e.g. the tool has been already executed, but it is asked to be ran just
+     * once.
+     * If the tool can be executed, then _execute() method is called, measuring
+     * the time required to carry out the task.
      * @return false if all gone right, true otherwise.
      * @note Usually you don't want to overload this method, but the _execute()
-     * one.
+     * protected one.
      */
     virtual void execute();
 
@@ -126,6 +130,9 @@ protected:
 private:
     /// Kernel name
     std::string _name;
+
+    /// true if the tool shall be run just once, false otherwise
+    bool _once;
 
     /// Total auxiliar memory allocated in the device
     size_t _allocated_memory;
