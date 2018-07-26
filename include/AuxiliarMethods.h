@@ -130,7 +130,6 @@ void toLower(std::string &str);
  */
 std::string toLowerCopy(std::string str);
 
-
 /// Next number which is power of 2.
 /** Compute a value which, being power of two, is greater or equal than
  * @paramname{x}.
@@ -187,12 +186,19 @@ const std::string getFileNameFromFilePath(const std::string file_path);
  */
 const std::string getExtensionFromFilePath(const std::string file_path);
 
-/// Check if the file @paramname{file_path} exist on the system.
-/**
+/** @brief Check if the file @paramname{file_name} exist on the system.
+ *
  * @param file_name The file path.
- * @return 0 if the file can not be found in the system, 1 otherwise.
+ * @return false if the file can not be found in the system, true otherwise.
  */
 bool isFile(const std::string file_name);
+
+/** @brief Check if the path @paramname{path} is a relative or an absolute one.
+ *
+ * @param path The path.
+ * @return true if it is a relative path, false otherwise.
+ */
+bool isRelativePath(const std::string path);
 
 /// Compute the maximum local work size allowed by a device.
 /**

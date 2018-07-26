@@ -153,8 +153,12 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
             once = true;
         }
         if(!t->get("type").compare("kernel")){
+            std::string tool_path = t->get("path");
+            if (!isFile(tool_path) && isFile(_base_path + "/" + tool_path)) {
+                tool_path = _base_path + "/" + tool_path;
+            }
             Kernel *tool = new Kernel(t->get("name"),
-                                      t->get("path"),
+                                      tool_path,
                                       t->get("entry_point"),
                                       t->get("n"),
                                       once);

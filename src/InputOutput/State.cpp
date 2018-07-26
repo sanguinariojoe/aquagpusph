@@ -226,7 +226,20 @@ void State::parse(std::string filepath,
             if(xmlAttribute(elem, "when").compare("begin"))
                 continue;
         }
-        std::string included_file = xmlAttribute(elem, "file");
+        std::string included_file = trimCopy(xmlAttribute(elem, "file"));
+        if(!isFile(included_file) && isRelativePath(included_file)) {
+            // Check if there is such file relative to some root paths
+            std::vector<std::string> root_paths = {
+                sim_data.settings.base_path + "/",
+                getFolderFromFilePath(filepath) + "/"
+            };
+            for(auto root_path : root_paths) {
+                if (isFile(root_path + included_file)) {
+                    included_file = root_path + included_file;
+                    break;
+                }
+            }            
+        }
         std::string included_prefix = prefix;
         if(xmlHasAttribute(elem, "prefix")){
             included_prefix = xmlAttribute(elem, "prefix");
