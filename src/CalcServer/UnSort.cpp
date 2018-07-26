@@ -38,8 +38,8 @@ std::string UNSORT_INC = xxd2string(UnSort_hcl_in, UnSort_hcl_in_len);
 std::string UNSORT_SRC = xxd2string(UnSort_cl_in, UnSort_cl_in_len);
 
 
-UnSort::UnSort(const std::string name, const std::string var_name)
-    : Tool(name)
+UnSort::UnSort(const std::string name, const std::string var_name, bool once)
+    : Tool(name, once)
     , _var_name(var_name)
     , _var(NULL)
     , _input(NULL)

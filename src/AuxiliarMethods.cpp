@@ -84,8 +84,8 @@ void replaceAll(std::string &str,
 }
 
 std::string replaceAllCopy(std::string str,
-                                  std::string search,
-                                  std::string replace)
+                           std::string search,
+                           std::string replace)
 {
     replaceAll(str, search, replace);
     return str;
@@ -132,6 +132,17 @@ std::string xxd2string(unsigned char* arr, unsigned int len)
     txt[len] = '\0';
     xxd_str = txt;
     return xxd_str;
+}
+
+void toLower(std::string &str)
+{
+    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+}
+
+std::string toLowerCopy(std::string str)
+{
+    toLower(str);
+    return str;
 }
 
 unsigned int nextPowerOf2( unsigned int n )
@@ -209,13 +220,15 @@ const std::string getExtensionFromFilePath(const std::string file_path)
 
 bool isFile(const std::string file_name)
 {
-    FILE *streamer=0;
-    streamer = fopen(file_name.c_str(), "rb");
-    if(streamer){
-        fclose(streamer);
-        return true;
-    }
-    return false;
+    std::ifstream f(file_name);
+    return f.good();
+}
+
+bool isRelativePath(const std::string path)
+{
+    if (trimCopy(path).front() == '/')
+        return false;
+    return true;
 }
 
 size_t getLocalWorkSize(cl_uint n, cl_command_queue queue)

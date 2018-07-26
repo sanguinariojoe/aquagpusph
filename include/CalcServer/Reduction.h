@@ -51,6 +51,7 @@ public:
      *   - "c.x = (a.x < b.x) ? a.x : b.x; a.y = (a.y < b.y) ? a.y : b.y;"
      * @param null_val The value considered as the null one, i.e. INFINITY for
      * float min value reduction, or (vec2)(0.f,0.f) for a 2D vec sum reduction.
+     * @param once Run this tool just once. Useful to make initializations.
      * @note Some helpers are available for null_val:
      *   - VEC_ZERO: Zeroes vector.
      *   - VEC_ONE: Ones vector, in 3D cases the last component will be zero.
@@ -64,7 +65,8 @@ public:
               const std::string input_name,
               const std::string output_name,
               const std::string operation,
-              const std::string null_val);
+              const std::string null_val,
+              bool once=false);
 
     /// Destructor.
     ~Reduction();

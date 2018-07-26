@@ -19,6 +19,6 @@ Authors:
 
 <sphInput>
     <Settings>
-        <Device platform="0" device="0" type="GPU" />
+        <RootPath path="@CMAKE_SOURCE_DIR@" />
     </Settings>
 </sphInput>

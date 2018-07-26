@@ -226,7 +226,20 @@ void State::parse(std::string filepath,
             if(xmlAttribute(elem, "when").compare("begin"))
                 continue;
         }
-        std::string included_file = xmlAttribute(elem, "file");
+        std::string included_file = trimCopy(xmlAttribute(elem, "file"));
+        if(!isFile(included_file) && isRelativePath(included_file)) {
+            // Check if there is such file relative to some root paths
+            std::vector<std::string> root_paths = {
+                sim_data.settings.base_path + "/",
+                getFolderFromFilePath(filepath) + "/"
+            };
+            for(auto root_path : root_paths) {
+                if (isFile(root_path + included_file)) {
+                    included_file = root_path + included_file;
+                    break;
+                }
+            }            
+        }
         std::string included_prefix = prefix;
         if(xmlHasAttribute(elem, "prefix")){
             included_prefix = xmlAttribute(elem, "prefix");
@@ -299,9 +312,7 @@ void State::parseSettings(DOMElement *root,
             if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
                 continue;
             DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
-            if(!xmlAttribute(s_elem, "value").compare("true") ||
-               !xmlAttribute(s_elem, "value").compare("True") ||
-               !xmlAttribute(s_elem, "value").compare("TRUE")){
+            if(!toLowerCopy(xmlAttribute(s_elem, "value")).compare("true")){
                 sim_data.settings.save_on_fail = true;
             }
             else{
@@ -414,14 +425,8 @@ void State::parseDefinitions(DOMElement *root,
             }
 
             bool evaluate = false;
-            if(!xmlAttribute(s_elem, "evaluate").compare("true") ||
-               !xmlAttribute(s_elem, "evaluate").compare("True") ||
-               !xmlAttribute(s_elem, "evaluate").compare("TRUE")){
-                evaluate = true;
-            }
-            if(!xmlAttribute(s_elem, "evaluate").compare("yes") ||
-               !xmlAttribute(s_elem, "evaluate").compare("Yes") ||
-               !xmlAttribute(s_elem, "evaluate").compare("YES")){
+            if(!toLowerCopy(xmlAttribute(s_elem, "evaluate")).compare("true") ||
+               !toLowerCopy(xmlAttribute(s_elem, "evaluate")).compare("yes")){
                 evaluate = true;
             }
 
@@ -529,7 +534,16 @@ void State::parseTools(DOMElement *root,
             std::ostringstream name;
             name << prefix << xmlAttribute(s_elem, "name");
             tool->set("name", name.str());
+
             tool->set("type", xmlAttribute(s_elem, "type"));
+            if(xmlHasAttribute(s_elem, "once")){
+                tool->set("once", toLowerCopy(xmlAttribute(s_elem, "once")));
+                std::cout << "ONCE :: " << toLowerCopy(xmlAttribute(s_elem, "once")) << std::endl;
+            }
+            else {
+                tool->set("once", "false");
+            }
+
 
             // Check if the conditions to add the tool are fulfilled
             if(xmlHasAttribute(s_elem, "ifdef")){
@@ -549,6 +563,18 @@ void State::parseTools(DOMElement *root,
                     msg << "Ignoring the tool \"" << tool->get("name")
                         << "\" because \"" << xmlAttribute(s_elem, "ifndef")
                         << "\" has been defined." << std::endl;
+                    LOG(L_WARNING, msg.str());
+                    delete tool;
+                    continue;
+                }
+            }
+
+            if(xmlHasAttribute(s_elem, "ifdef")){
+                if(!sim_data.definitions.isDefined(xmlAttribute(s_elem, "ifdef"))){
+                    std::ostringstream msg;
+                    msg << "Ignoring the tool \"" << tool->get("name")
+                        << "\" because \"" << xmlAttribute(s_elem, "ifdef")
+                        << "\" has not been defined." << std::endl;
                     LOG(L_WARNING, msg.str());
                     delete tool;
                     continue;

@@ -40,8 +40,9 @@ std::string RADIXSORT_SRC = xxd2string(RadixSort_cl_in, RadixSort_cl_in_len);
 RadixSort::RadixSort(const std::string tool_name,
                      const std::string variable,
                      const std::string permutations,
-                     const std::string inv_permutations)
-    : Tool(tool_name)
+                     const std::string inv_permutations,
+                     bool once)
+    : Tool(tool_name, once)
     , _var_name(variable)
     , _perms_name(permutations)
     , _inv_perms_name(inv_permutations)

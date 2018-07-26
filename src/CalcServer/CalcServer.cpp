@@ -148,34 +148,47 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 
     // Register the tools
     for(auto t : _sim_data.tools){
+        bool once = false;
+        if (!t->get("once").compare("true")) {
+            once = true;
+        }
         if(!t->get("type").compare("kernel")){
+            std::string tool_path = t->get("path");
+            if (!isFile(tool_path) && isFile(_base_path + "/" + tool_path)) {
+                tool_path = _base_path + "/" + tool_path;
+            }
             Kernel *tool = new Kernel(t->get("name"),
-                                      t->get("path"),
+                                      tool_path,
                                       t->get("entry_point"),
-                                      t->get("n"));
+                                      t->get("n"),
+                                      once);
             _tools.push_back(tool);
         }
         else if(!t->get("type").compare("copy")){
             Copy *tool = new Copy(t->get("name"),
                                   t->get("in"),
-                                  t->get("out"));
+                                  t->get("out"),
+                                  once);
             _tools.push_back(tool);
         }
         else if(!t->get("type").compare("python")){
             Python *tool = new Python(t->get("name"),
-                                      t->get("path"));
+                                      t->get("path"),
+                                      once);
             _tools.push_back(tool);
         }
         else if(!t->get("type").compare("set")){
             Set *tool = new Set(t->get("name"),
                                 t->get("in"),
-                                t->get("value"));
+                                t->get("value"),
+                                once);
             _tools.push_back(tool);
         }
         else if(!t->get("type").compare("set_scalar")){
             SetScalar *tool = new SetScalar(t->get("name"),
                                             t->get("in"),
-                                            t->get("value"));
+                                            t->get("value"),
+                                            once);
             _tools.push_back(tool);
         }
         else if(!t->get("type").compare("reduction")){
@@ -183,7 +196,8 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
                                             t->get("in"),
                                             t->get("out"),
                                             t->get("operation"),
-                                            t->get("null"));
+                                            t->get("null"),
+                                            once);
             _tools.push_back(tool);
         }
         else if(!t->get("type").compare("link-list")){
@@ -195,16 +209,18 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
             RadixSort *tool = new RadixSort(t->get("name"),
                                             t->get("in"),
                                             t->get("perm"),
-                                            t->get("inv_perm"));
+                                            t->get("inv_perm"),
+                                            once);
             _tools.push_back(tool);
         }
         else if(!t->get("type").compare("assert")){
             Assert *tool = new Assert(t->get("name"),
-                                      t->get("condition"));
+                                      t->get("condition"),
+                                      once);
             _tools.push_back(tool);
         }
         else if(!t->get("type").compare("dummy")){
-            Tool *tool = new Tool(t->get("name"));
+            Tool *tool = new Tool(t->get("name"), once);
             _tools.push_back(tool);
         }
         else{

@@ -30,8 +30,8 @@
 
 namespace Aqua{ namespace CalcServer{
 
-Assert::Assert(const std::string name, const std::string condition)
-    : Tool(name)
+Assert::Assert(const std::string name, const std::string condition, bool once)
+    : Tool(name, once)
     , _condition(condition)
 {
 }

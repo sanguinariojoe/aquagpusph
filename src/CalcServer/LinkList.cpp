@@ -38,8 +38,10 @@ std::string LINKLIST_INC = xxd2string(LinkList_hcl_in, LinkList_hcl_in_len);
 std::string LINKLIST_SRC = xxd2string(LinkList_cl_in, LinkList_cl_in_len);
 
 
-LinkList::LinkList(const std::string tool_name, const std::string input)
-    : Tool(tool_name)
+LinkList::LinkList(const std::string tool_name,
+                   const std::string input,
+                   bool once)
+    : Tool(tool_name, once)
     , _input_name(input)
     , _cell_length(0.f)
     , _min_pos(NULL)

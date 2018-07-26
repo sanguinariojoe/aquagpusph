@@ -45,8 +45,11 @@ public:
     /** @brief Constructor.
      * @param tool_name Tool name.
      * @param script Python script path.
+     * @param once Run this tool just once. Useful to make initializations.
      */
-    Python(const std::string tool_name, const std::string script);
+    Python(const std::string tool_name,
+           const std::string script,
+           bool once=false);
 
     /// Destructor.
     ~Python();

@@ -39,10 +39,12 @@ public:
      * @param name Tool name.
      * @param var_name Variable to set.
      * @param value Value to set.
+     * @param once Run this tool just once. Useful to make initializations.
      */
     SetScalar(const std::string name,
               const std::string var_name,
-              const std::string value);
+              const std::string value,
+              bool once=false);
 
     /// Destructor.
     ~SetScalar();

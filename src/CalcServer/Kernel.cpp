@@ -33,8 +33,9 @@ namespace Aqua{ namespace CalcServer{
 Kernel::Kernel(const std::string tool_name,
                const std::string kernel_path,
                const std::string entry_point,
-               const std::string n)
-    : Tool(tool_name)
+               const std::string n,
+               bool once)
+    : Tool(tool_name, once)
     , _path(kernel_path)
     , _entry_point(entry_point)
     , _n(n)

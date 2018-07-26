@@ -44,8 +44,11 @@ public:
      * @param condition Condition to evaluate. If the result is 0, false will be
      * considered, and fatal error will be raised, otherwise the simulation will
      * continue.
+     * @param once Run this tool just once. Useful to make initializations.
      */
-    Assert(const std::string name, const std::string condition);
+    Assert(const std::string name,
+           const std::string condition,
+           bool once=false);
 
     /// Destructor.
     ~Assert();

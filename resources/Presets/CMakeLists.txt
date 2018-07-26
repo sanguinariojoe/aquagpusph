@@ -10,6 +10,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/cfd.xml
     ${CMAKE_CURRENT_BINARY_DIR}/cfd.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lelasticity.xml
     ${CMAKE_CURRENT_BINARY_DIR}/lelasticity.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/root_path.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/root_path.xml @ONLY)
 
 # Create installable version of the file
 SET(AQUAGPUSPH_ROOT_PATH ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR})
@@ -20,6 +22,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/cfd.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/cfd.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lelasticity.xml  
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/lelasticity.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/root_path.xml  
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/root_path.xml @ONLY)
 
 # ===================================================== #
 # Install                                               #
@@ -28,6 +32,7 @@ SET(RESOURCES_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/basic.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/cfd.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/lelasticity.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/root_path.xml
 )
 SOURCE_GROUP("ResourcesGroup" FILES ${RESOURCES_SRCS})
 INSTALL(

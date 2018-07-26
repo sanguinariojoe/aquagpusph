@@ -38,10 +38,12 @@ public:
      * @param name Tool name.
      * @param input_name Variable to copy.
      * @param output_name Variable to set.
+     * @param once Run this tool just once. Useful to make initializations.
      */
     Copy(const std::string name,
          const std::string input_name,
-         const std::string output_name);
+         const std::string output_name,
+         bool once=false);
 
     /** Destructor.
      */
