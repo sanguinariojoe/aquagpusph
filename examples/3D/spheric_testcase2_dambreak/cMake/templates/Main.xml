@@ -19,7 +19,7 @@ Authors:
 
 <sphInput>
     <!-- In this file we will just include other XML definition files -->
-    <Include file="../../RootPath.xml" />
+    <Include file="@RESOURCES_DIR@/../examples/RootPath.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/domain.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd.xml" />
