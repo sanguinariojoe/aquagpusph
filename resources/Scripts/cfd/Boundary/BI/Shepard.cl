@@ -121,9 +121,9 @@ __kernel void compute(const __global int* imove,
         const vec_xyz b_j = binormal[j].XYZ;
         const float r_n = dot(r_ij, n_j);
         const float area_j = m[j];
-        if((r_n >= 0.f) &&
+        if((r_n > -1E-8f * H) &&
            (r_n < 1E-8f * H) &&
-           (q * H <= 0.5f * pow(area_j, 1.f / (DIMS - 1.f))))
+           all(fabs(r_ij) <= 0.55f * pow(area_j, 1.f / (DIMS - 1.f))))
         {
             // The particle should add the singular value
             if(!self_added){
