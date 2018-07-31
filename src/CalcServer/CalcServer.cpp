@@ -152,6 +152,7 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
         if (!t->get("once").compare("true")) {
             once = true;
         }
+        // Computation tools
         if(!t->get("type").compare("kernel")){
             std::string tool_path = t->get("path");
             if (!isFile(tool_path) && isFile(_base_path + "/" + tool_path)) {
@@ -223,6 +224,72 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
             Tool *tool = new Tool(t->get("name"), once);
             _tools.push_back(tool);
         }
+        // Reports
+        if(!t->get("type").compare("report_screen")){
+            bool bold = false;
+            if(!t->get("bold").compare("true") ||
+               !t->get("bold").compare("True")){
+               bold = true;
+            }
+            Reports::Screen *tool = new Reports::Screen(
+                t->get("name"),
+                t->get("fields"),
+                t->get("color"),
+                bold);
+            _tools.push_back(tool);
+        }
+        else if(!t->get("type").compare("report_file")){
+            Reports::TabFile *tool = new Reports::TabFile(
+                t->get("name"),
+                t->get("fields"),
+                t->get("path"));
+            _tools.push_back(tool);
+        }
+        else if(!t->get("type").compare("report_particles")){
+            // Get the first particle associated to this set
+            unsigned int set_id = std::stoi(t->get("set"));
+            if(set_id >= _sim_data.sets.size()){
+                std::ostringstream msg;
+                msg << "Report \"" << t->get("name")
+                    << "\" requested the particles set " << set_id
+                    << " but just " << _sim_data.sets.size()
+                    << " can be found." << std::endl;
+                LOG(L_ERROR, msg.str());
+                throw std::runtime_error("particles set out of bounds");
+            }
+            unsigned int first = 0;
+            for(j = 0; j < set_id; j++){
+                first += _sim_data.sets.at(j)->n();
+            }
+
+            // And the ipf and fps
+            unsigned int ipf = std::stoi(t->get("ipf"));
+            float fps = std::stof(t->get("fps"));
+
+            Reports::SetTabFile *tool = new Reports::SetTabFile(
+                t->get("name"),
+                t->get("fields"),
+                first,
+                _sim_data.sets.at(set_id)->n(),
+                t->get("path"),
+                ipf,
+                fps);
+            _tools.push_back(tool);
+        }
+        else if(!t->get("type").compare("report_performance")){
+            bool bold = false;
+            if(!t->get("bold").compare("true") ||
+               !t->get("bold").compare("True")){
+               bold = true;
+            }
+            Reports::Performance *tool = new Reports::Performance(
+                t->get("name"),
+                t->get("color"),
+                bold,
+                t->get("path"));
+            _tools.push_back(tool);
+        }
+        // Error
         else{
             std::ostringstream msg;
             msg << "Unrecognized tool type \""

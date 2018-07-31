@@ -949,6 +949,99 @@ void State::parseTools(DOMElement *root,
             else if(!xmlAttribute(s_elem, "type").compare("dummy")){
                 // Without options
             }
+            // Reports directly dealt as tools. Suited for the non-linear
+            // simulations editor
+            else if(!xmlAttribute(s_elem, "type").compare("report_screen")){
+                if(!xmlHasAttribute(s_elem, "fields")){
+                    LOG(L_ERROR, "Found a \"screen\" report without fields\n");
+                    throw std::runtime_error("Missing report fields");
+                }
+                tool->set("fields", xmlAttribute(s_elem, "fields"));
+                if(xmlHasAttribute(s_elem, "bold")){
+                    tool->set("bold", xmlAttribute(s_elem, "bold"));
+                }
+                else{
+                    tool->set("bold", "false");
+                }
+                if(xmlHasAttribute(s_elem, "color")){
+                    tool->set("color", xmlAttribute(s_elem, "color"));
+                }
+                else{
+                    tool->set("color", "white");
+                }
+            }
+            else if(!xmlAttribute(s_elem, "type").compare("report_file")){
+                if(!xmlHasAttribute(s_elem, "fields")){
+                    LOG(L_ERROR, "Found a \"file\" report without fields\n");
+                    throw std::runtime_error("Missing report fields");
+                }
+                tool->set("fields", xmlAttribute(s_elem, "fields"));
+                if(!xmlHasAttribute(s_elem, "path")){
+                    std::ostringstream msg;
+                    msg << "Report \"" << tool->get("name")
+                        << "\" is of type \"file\", but the output \"path\" is not defined." << std::endl;
+                    LOG(L_ERROR, msg.str());
+                    throw std::runtime_error("Missing report file path");
+                }
+                tool->set("path", xmlAttribute(s_elem, "path"));
+            }
+            else if(!xmlAttribute(s_elem, "type").compare("report_particles")){
+                if(!xmlHasAttribute(s_elem, "fields")){
+                    LOG(L_ERROR, "Found a \"particles\" report without fields\n");
+                    throw std::runtime_error("Missing report fields");
+                }
+                tool->set("fields", xmlAttribute(s_elem, "fields"));
+                if(!xmlHasAttribute(s_elem, "path")){
+                    std::ostringstream msg;
+                    msg << "Report \"" << tool->get("name")
+                        << "\" is of type \"particles\", but the output \"path\" is not defined." << std::endl;
+                    LOG(L_ERROR, msg.str());
+                    throw std::runtime_error("Missing report file path");
+                }
+                tool->set("path", xmlAttribute(s_elem, "path"));
+
+                if(!xmlHasAttribute(s_elem, "set")){
+                    std::ostringstream msg;
+                    msg << "Report \"" << tool->get("name")
+                        << "\" is of type \"particles\", but the output \"set\" is not defined." << std::endl;
+                    LOG(L_ERROR, msg.str());
+                    throw std::runtime_error("Missing report particles set");
+                }
+                tool->set("set", xmlAttribute(s_elem, "set"));
+
+                if(!xmlHasAttribute(s_elem, "ipf")){
+                    tool->set("ipf", "1");
+                }
+                else{
+                    tool->set("ipf", xmlAttribute(s_elem, "ipf"));
+                }
+                if(!xmlHasAttribute(s_elem, "fps")){
+                    tool->set("fps", "0.0");
+                }
+                else{
+                    tool->set("fps", xmlAttribute(s_elem, "fps"));
+                }
+            }
+            else if(!xmlAttribute(s_elem, "type").compare("report_performance")){
+                if(xmlHasAttribute(s_elem, "bold")){
+                    tool->set("bold", xmlAttribute(s_elem, "bold"));
+                }
+                else{
+                    tool->set("bold", "false");
+                }
+                if(xmlHasAttribute(s_elem, "color")){
+                    tool->set("color", xmlAttribute(s_elem, "color"));
+                }
+                else{
+                    tool->set("color", "white");
+                }
+                if(xmlHasAttribute(s_elem, "path")){
+                    tool->set("path", xmlAttribute(s_elem, "path"));
+                }
+                else{
+                    tool->set("path", "");
+                }
+            }
             else{
                 std::ostringstream msg;
                 msg << "Unknown \"type\" for the tool \"" << tool->get("name")
@@ -964,6 +1057,10 @@ void State::parseTools(DOMElement *root,
                 LOG0(L_DEBUG, "\t\tlink-list\n");
                 LOG0(L_DEBUG, "\t\tradix-sort\n");
                 LOG0(L_DEBUG, "\t\tdummy\n");
+                LOG0(L_DEBUG, "\t\treport_screen\n");
+                LOG0(L_DEBUG, "\t\treport_file\n");
+                LOG0(L_DEBUG, "\t\treport_particles\n");
+                LOG0(L_DEBUG, "\t\treport_performance\n");
                 throw std::runtime_error("Unknown tool type");
             }
         }
