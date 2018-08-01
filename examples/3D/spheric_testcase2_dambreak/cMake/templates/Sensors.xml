@@ -26,7 +26,7 @@ Authors:
         <Scalar name="delta" value="{{DELTA}}" />
 
         <Load format="FastASCII" file="Sensors.dat" fields="r, normal, tangent, u, dudt, rho, drhodt, m, imove" />
-        <Save format="VTK" file="sensors" fields="r, normal, tangent, u, dudt, rho, drhodt, m, p, imove" />
+        <Save format="VTK" file="sensors" fields="r, normal, tangent, binormal, u, dudt, rho, drhodt, m, p, imove, shepard" />
     </ParticlesSet>
     <Reports>
         <Report type="particles" name="Sensors" fields="p" path="sensors.out" set="1" ipf="0" fps="1000"/>
