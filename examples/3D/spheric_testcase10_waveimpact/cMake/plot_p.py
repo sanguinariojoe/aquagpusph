@@ -29,108 +29,91 @@
 #                                                                             *
 #******************************************************************************
 
-import sys
 import os
 from os import path
 import numpy as np
-try:
-    from PyQt4 import QtGui
-except:
+from scipy.signal import savgol_filter
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+
+
+def readFile(filepath):
+    """ Read and extract data from a file
+    :param filepath File ot read
+    """
+    abspath = filepath
+    if not path.isabs(filepath):
+        abspath = path.join(path.dirname(path.abspath(__file__)), filepath)
+    # Read the file by lines
+    f = open(abspath, "r")
+    lines = f.readlines()
+    f.close()
+    data = []
+    for l in lines[1:-1]:  # Skip the last line, which may be unready
+        l = l.strip()
+        while l.find('  ') != -1:
+            l = l.replace('  ', ' ')
+        fields = l.split(' ')
+        try:
+            data.append(map(float, fields))
+        except:
+            continue
+    # Transpose the data
+    return [list(d) for d in zip(*data)]
+
+
+line = None
+
+
+def update(frame_index):
+    plt.tight_layout()
     try:
-        from PySide import QtGui
-    except:
-        raise ImportError("PyQt4 or PySide is required to use this tool")
-
-try:
-    from matplotlib.figure import Figure
-    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-except:
-    raise ImportError("matplotlib is required to use this tool")
-
-
-class FigureController(FigureCanvas):
-    """Matplotlib figure widget controller"""
-
-    def __init__(self):
-        """Constructor"""
-        # Create the figure in the canvas
-        self.fig = Figure()
-        self.ax = self.fig.add_subplot(111)
-        FigureCanvas.__init__(self, self.fig)
-        # generates first "empty" plot
-        FNAME = path.join('@EXAMPLE_DEST_DIR@', 'lateral_water_1x.txt')
-        T,P,A,DADT,_,_ = np.loadtxt(FNAME,
-                                    delimiter='\t',
-                                    skiprows=1,
-                                    unpack=True)
-        self.exp_t = T
-        self.exp_p = 100.0 * P
-        self.exp_line, = self.ax.plot(self.exp_t,
-                                      self.exp_p,
-                                      label=r'$p_{Exp}$',
-                                      color="red",
-                                      linewidth=1.0)
-        self.t = [0.0]
-        self.p = [0.0]
-        self.line, = self.ax.plot(self.t,
-                                  self.p,
-                                  label=r'$p_{SPH}$',
-                                  color="black",
-                                  linewidth=1.0)
-        # Set some options
-        self.ax.grid()
-        self.ax.legend(loc='best')
-        self.ax.set_xlim(0, 5)
-        self.ax.set_ylim(-1000, 5000)
-        self.ax.set_autoscale_on(False)
-        self.ax.set_xlabel(r"$t \, [\mathrm{s}]$", fontsize=21)
-        self.ax.set_ylabel(r"$p \, [\mathrm{Pa}]$", fontsize=21)
-        # force the figure redraw
-        self.fig.canvas.draw()
-        # call the update method (to speed-up visualization)
-        self.timerEvent(None)
-        # start timer, trigger event every 1000 millisecs (=1sec)
-        self.timer = self.startTimer(1000)
-
-    def readFile(self, filepath):
-        """ Read and extract data from a file
-        :param filepath File ot read
-        """
-        abspath = filepath
-        if not path.isabs(filepath):
-            abspath = path.join(path.dirname(path.abspath(__file__)), filepath)
-        # Read the file by lines
-        f = open(abspath, "r")
-        lines = f.readlines()
-        f.close()
-        data = []
-        for l in lines[1:-1]:  # Skip the last line, which may be unready
-            l = l.strip()
-            while l.find('  ') != -1:
-                l = l.replace('  ', ' ')
-            fields = l.split(' ')
-            try:
-                data.append(map(float, fields))
-            except:
-                continue
-        # Transpose the data
-        return map(list, zip(*data))
-
-    def timerEvent(self, evt):
-        """Custom timerEvent code, called at timer event receive"""
-        # Read and plot the new data
-        data = self.readFile('sensors.out')
-        self.t = data[0]
-        self.p = data[1]
-        self.line.set_data(self.t, self.p)
-
-        # Redraw
-        self.fig.canvas.draw()
+        data = readFile('sensors.out')
+        t = data[0]
+        p = data[1]
+    except IndexError:
+        return
+    except FileNotFoundError:
+        return
+    try:
+        line.set_data(t, savgol_filter(p, 15, 3))
+    except ValueError:
+        # Not enough data yet
+        line.set_data(t, p)
 
 
-if __name__ == '__main__':
-    app = QtGui.QApplication(sys.argv)
-    widget = FigureController()
-    widget.setWindowTitle("Pressure")
-    widget.show()
-    sys.exit(app.exec_())
+fig = plt.figure()
+ax = fig.add_subplot(111)
+
+FNAME = path.join('@EXAMPLE_DEST_DIR@', 'lateral_water_1x.txt')
+T,P,A,DADT,_,_ = np.loadtxt(FNAME,
+                            delimiter='\t',
+                            skiprows=1,
+                            unpack=True)
+exp_t = T
+exp_p = 100.0 * P
+
+ax.plot(exp_t,
+        exp_p,
+        label=r'$\mathrm{Experiments}$',
+        color="red",
+        linewidth=1.0)
+t = [0.0]
+p = [0.0]
+line, = ax.plot(t,
+                p,
+                label=r'$\mathrm{SPH}$',
+                color="black",
+                linewidth=1.0)
+# Set some options
+ax.grid()
+ax.legend(loc='best')
+ax.set_xlim(0, 5)
+ax.set_ylim(-1000, 5000)
+ax.set_autoscale_on(False)
+ax.set_xlabel(r"$t \, [\mathrm{s}]$")
+ax.set_ylabel(r"$p \, [\mathrm{Pa}]$")
+
+update(0)
+ani = animation.FuncAnimation(fig, update, interval=5000)
+plt.show()
