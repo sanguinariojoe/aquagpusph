@@ -99,6 +99,7 @@ line, = ax.plot(t,
 
 
 def update(frame_index):
+    plt.tight_layout()
     data = readFile('Performance.dat')
     t = data[0]
     e = data[1]
