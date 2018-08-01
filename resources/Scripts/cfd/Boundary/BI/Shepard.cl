@@ -121,14 +121,19 @@ __kernel void compute(const __global int* imove,
         const vec_xyz b_j = binormal[j].XYZ;
         const float r_n = dot(r_ij, n_j);
         const float area_j = m[j];
-        if((r_n >= 0.f) &&
-           (r_n < 1E-8f * H) &&
-           (q * H <= 0.5f * pow(area_j, 1.f / (DIMS - 1.f))))
+
+        // Special case of particles/sensors lying at the boundary
+        if((r_n > -1E-8f * H) &&
+           (r_n < 1E-8f * H))
         {
-            // The particle should add the singular value
-            if(!self_added){
-                self_added = true;
-                _SHEPARD_ -= 0.5f;
+            if(!self_added) {
+                const float r_t = fabs(dot(r_ij, t_j));
+                const float r_b = fabs(dot(r_ij, b_j));
+                const float dr = 0.55f * pow(area_j, 1.f / (DIMS - 1.f));
+                if ((r_t <= dr) && (r_b <= dr)) {
+                    self_added = true;
+                    _SHEPARD_ -= 0.5f;
+                }
             }
             j++;
             continue;
