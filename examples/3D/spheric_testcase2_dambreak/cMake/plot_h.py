@@ -122,5 +122,6 @@ for i, ax in enumerate(axes):
     else:
         plt.setp(ax.get_yticklabels(), visible=False)
 
+update(0)
 ani = animation.FuncAnimation(fig, update, interval=5000)
 plt.show()
