@@ -225,7 +225,7 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
             _tools.push_back(tool);
         }
         // Reports
-        if(!t->get("type").compare("report_screen")){
+        else if(!t->get("type").compare("report_screen")){
             bool bold = false;
             if(!t->get("bold").compare("true") ||
                !t->get("bold").compare("True")){
