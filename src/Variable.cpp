@@ -1930,7 +1930,7 @@ void Variables::readComponents(const std::string name,
         LOG(L_ERROR, msg.str());
         msg.str("");
         msg << n << " fields expected, "
-            << i << "received" << std::endl;
+            << i << " received" << std::endl;
         LOG0(L_DEBUG, msg.str());
         throw std::runtime_error("Invalid number of fields");
     }
