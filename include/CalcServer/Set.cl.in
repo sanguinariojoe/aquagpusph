@@ -27,11 +27,19 @@
  * @param N Number of elements into var.
  */
 __kernel void set(__global T *var,
-                  unsigned int N)
+                  unsigned int N
+#ifndef VALUE
+                  , T value
+#endif
+                 )
 {
 	unsigned int i = get_global_id(0);
     if(i >= N)
         return;
 
+#ifndef VALUE
+    var[i] = value;
+#else
     var[i] = VALUE;
+#endif
 }

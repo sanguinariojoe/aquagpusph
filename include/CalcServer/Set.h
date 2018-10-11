@@ -84,6 +84,14 @@ private:
      */
     cl_kernel compile(const std::string source);
 
+    /** Solve the equation.
+     *
+     * @note Solve may eventually fail. In that case, the _value string will be
+     * directly used by means of a define. This way the user may use shortcuts
+     * like VEC_ZERO
+     */
+    void solve();
+
     /** Update the input looking for changed value.
      * @return false if all gone right, true otherwise.
      */
@@ -109,6 +117,9 @@ private:
     size_t _local_work_size;
     /// Number of elements
     unsigned int _n;
+
+    /// Memory storage for the value
+    void *_data;
 };
 
 }}  // namespace

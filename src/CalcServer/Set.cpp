@@ -51,12 +51,14 @@ Set::Set(const std::string name,
     , _global_work_size(0)
     , _local_work_size(0)
     , _n(0)
+    , _data(NULL)
 {
 }
 
 Set::~Set()
 {
     if(_kernel) clReleaseKernel(_kernel); _kernel=NULL;
+    if(_data) free(_data); _data=NULL;
 }
 
 void Set::setup()
@@ -67,8 +69,19 @@ void Set::setup()
 
     variable();
 
+    size_t typesize = InputOutput::Variables::typeToBytes(_var->type());
+    _data = malloc(typesize);
+    if(!_data){
+        std::stringstream msg;
+        msg << "Failure allocating " << typesize << " bytes for the variable \""
+            << _var->name() << "\" value." << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::bad_alloc();
+    }
+    solve();
+    
     _input = *(cl_mem*)_var->get();
-    _n = _var->size() / InputOutput::Variables::typeToBytes(_var->type());
+    _n = _var->size() / typesize;
     setupOpenCL();
 }
 
@@ -79,6 +92,10 @@ void Set::_execute()
     cl_int err_code;
     CalcServer *C = CalcServer::singleton();
 
+    if(_data) {
+        // A valid equation is available!
+        solve();
+    }
     setVariables();
 
     // Execute the kernels
@@ -131,7 +148,13 @@ void Set::setupOpenCL()
 
     // Create a header for the source code where the operation will be placed
     std::ostringstream source;
-    source << SET_INC << " #define VALUE " << _value << SET_SRC;
+    source << SET_INC;
+    if (!_data) {
+        // No valid equation is available, so let's try to use _value as a
+        // straight definition
+        source << " #define VALUE " << _value;
+    }
+    source << SET_SRC;
 
     // Starts a dummy kernel in order to study the local size that can be used
     kernel = compile(source.str());
@@ -174,6 +197,17 @@ void Set::setupOpenCL()
                               (void*)&_n);
     if(err_code != CL_SUCCESS){
         LOG(L_ERROR, "Failure sending the array size argument\n");
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
+    }
+    if(!_data)
+        return;
+    err_code = clSetKernelArg(kernel,
+                              2,
+                              InputOutput::Variables::typeToBytes(_var->type()),
+                              _data);
+    if(err_code != CL_SUCCESS){
+        LOG(L_ERROR, "Failure sending the value argument\n");
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
@@ -266,6 +300,19 @@ cl_kernel Set::compile(const std::string source)
     return kernel;
 }
 
+void Set::solve()
+{
+    InputOutput::Variables *vars = CalcServer::singleton()->variables();
+
+    try {
+        vars->solve(_var->type(), _value, _data, _var->name());
+    } catch(...) {
+        free(_data);
+        _data = NULL;
+        LOG(L_INFO, "Falling back to definition mode...\n");
+    }
+}
+
 void Set::setVariables()
 {
     cl_int err_code;
@@ -282,6 +329,18 @@ void Set::setVariables()
         std::stringstream msg;
         msg << "Failure setting the variable \"" << _var->name()
             << "\" to the tool \"" << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
+    }
+    err_code = clSetKernelArg(_kernel,
+                              2,
+                              InputOutput::Variables::typeToBytes(_var->type()),
+                              _data);
+    if(err_code != CL_SUCCESS) {
+        std::stringstream msg;
+        msg << "Failure setting the value to the tool \""
+            << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
