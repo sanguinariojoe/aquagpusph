@@ -518,6 +518,7 @@ void ASCII::create(std::ofstream& f){
     std::ostringstream msg;
     msg << "Writing \"" << file() << "\" ASCII file..." << std::endl;
     LOG(L_INFO, msg.str());
+    _next_file_index++;
 
     f.open(file());
 }

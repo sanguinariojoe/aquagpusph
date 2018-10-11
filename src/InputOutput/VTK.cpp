@@ -619,6 +619,7 @@ vtkXMLUnstructuredGridWriter* VTK::create(){
     f = vtkXMLUnstructuredGridWriter::New();
     basename_str = file();
     f->SetFileName(basename_str.c_str());
+    _next_file_index++;
 
     return f;
 }
