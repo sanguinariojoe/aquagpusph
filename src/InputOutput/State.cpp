@@ -538,7 +538,6 @@ void State::parseTools(DOMElement *root,
             tool->set("type", xmlAttribute(s_elem, "type"));
             if(xmlHasAttribute(s_elem, "once")){
                 tool->set("once", toLowerCopy(xmlAttribute(s_elem, "once")));
-                std::cout << "ONCE :: " << toLowerCopy(xmlAttribute(s_elem, "once")) << std::endl;
             }
             else {
                 tool->set("once", "false");
