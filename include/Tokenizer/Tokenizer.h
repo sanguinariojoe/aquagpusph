@@ -80,12 +80,10 @@ public:
 
     /** @brief Solve a math expression.
      * @param eq Math expression to solve.
-     * @param error true if the expression evaluation has failed, false
-     * otherwise. NULL if not errors feedback is required.
      * @return Expression value, 0.0 if the evaluation failed (it will be
      * reported by terminal).
      */
-    float solve(const std::string eq, bool *error=NULL);
+    float solve(const std::string eq);
 
 protected:
     /** @brief Register the default variables.

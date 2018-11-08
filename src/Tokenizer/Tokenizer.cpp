@@ -111,12 +111,9 @@ float Tokenizer::variable(const std::string name)
 }
 
 
-float Tokenizer::solve(const std::string eq, bool *error)
+float Tokenizer::solve(const std::string eq)
 {
     float result;
-
-    if(error)
-        *error = false;
 
     // First try a straight number conversion
     try {
@@ -142,7 +139,7 @@ float Tokenizer::solve(const std::string eq, bool *error)
     {
         std::ostringstream msg;
         msg << "Error evaluating \"" << e.GetExpr() << "\"" << std::endl;
-        LOG(L_ERROR, msg.str());
+        LOG(L_WARNING, msg.str());
         msg.str("");
         msg << "\t" << e.GetMsg() << std::endl;
         LOG0(L_DEBUG, msg.str());
@@ -150,6 +147,7 @@ float Tokenizer::solve(const std::string eq, bool *error)
         msg << "\tToken " << e.GetToken()
             << " in position " << e.GetPos() << std::endl;
         LOG0(L_DEBUG, msg.str());
+        throw;
     }
 
     return result;

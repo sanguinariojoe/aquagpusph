@@ -1864,7 +1864,6 @@ void Variables::readComponents(const std::string name,
 {
     float val;
     unsigned int i, j;
-    bool error;
     if(n == 0){
         std::ostringstream msg;
         msg << n << " components required for the variable \""
@@ -1902,8 +1901,10 @@ void Variables::readComponents(const std::string name,
     std::istringstream f(edited_val);
     std::string s;
     while (getline(f, s, ';')) {
-        val = tok.solve(s, &error);
-        if(error){
+        try {
+            val = tok.solve(s);
+        }
+        catch(...){
             std::ostringstream msg;
             msg << "parsing variable \""
                 << name << "\"" << std::endl;
