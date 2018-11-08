@@ -239,8 +239,8 @@ void Logger::addMessage(TLogLevel level, std::string log, std::string func)
             _log_file << "<b><font color=\"#dd0000\">[ERROR] "
                      << fname.str() << log << "</font></b><br>";
         else{
-            _log_file << "<b><font color=\"#000000\">"
-                     << fname.str() << log << "</font></b><br>";
+            _log_file << "<font color=\"#000000\">"
+                     << fname.str() << log << "</font></b>";
             if(hasSuffix(log, "\n"))
                 _log_file << "<br>";
         }
