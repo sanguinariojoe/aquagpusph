@@ -69,6 +69,7 @@ INSTALL(
         ${CMAKE_CURRENT_SOURCE_DIR}/sphPrerequisites.h
         ${CMAKE_CURRENT_SOURCE_DIR}/TimeManager.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Variable.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../config.h
     DESTINATION
         ${CMAKE_INSTALL_INCLUDEDIR}
 )
