@@ -22,6 +22,7 @@
  */
 
 #include <stdlib.h>
+#include <dlfcn.h>
 #include <limits>
 
 #include <CalcServer.h>
@@ -218,6 +219,31 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
             Assert *tool = new Assert(t->get("name"),
                                       t->get("condition"),
                                       once);
+            _tools.push_back(tool);
+        }
+        else if(!t->get("type").compare("installable")){
+            void* handle = dlopen(t->get("path").c_str(), RTLD_LAZY);
+            if (!handle) {
+                std::ostringstream msg;
+                msg << "Installable tool \"" << t->get("name")
+                    << "\" failed loading \"" << t->get("path")
+                    << "\" library." << std::endl;
+                LOG(L_ERROR, msg.str());
+                LOG0(L_DEBUG, dlerror());
+                throw std::runtime_error("failure loading library");
+            }
+
+            Tool* (*maker)(const std::string, bool);
+            maker = (Tool* (*)(const std::string, bool))dlsym(handle, "create_object");
+            if (!maker) {
+                std::ostringstream msg;
+                msg << "Installable tool \"" << t->get("name")
+                    << "\" failed loading \"create_tool\" symbol." << std::endl;
+                LOG(L_ERROR, msg.str());
+                LOG0(L_DEBUG, dlerror());
+                throw std::runtime_error("failure loading library");
+            }
+            Tool *tool = (Tool*)maker(t->get("name"), once);
             _tools.push_back(tool);
         }
         else if(!t->get("type").compare("dummy")){

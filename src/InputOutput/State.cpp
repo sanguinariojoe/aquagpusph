@@ -945,6 +945,17 @@ void State::parseTools(DOMElement *root,
                 }
                 tool->set("condition", xmlAttribute(s_elem, "condition"));
             }
+            else if(!xmlAttribute(s_elem, "type").compare("installable")){
+                if(!xmlHasAttribute(s_elem, "path")){
+                    std::ostringstream msg;
+                    msg << "Tool \"" << tool->get("name")
+                        << "\" is of type \"installable\", but \"" << "path"
+                        << "\" is not defined." << std::endl;
+                    LOG(L_ERROR, msg.str());
+                    throw std::runtime_error("Undefined library path");
+                }
+                tool->set("path", xmlAttribute(s_elem, "path"));
+            }
             else if(!xmlAttribute(s_elem, "type").compare("dummy")){
                 // Without options
             }
@@ -1055,6 +1066,7 @@ void State::parseTools(DOMElement *root,
                 LOG0(L_DEBUG, "\t\treduction\n");
                 LOG0(L_DEBUG, "\t\tlink-list\n");
                 LOG0(L_DEBUG, "\t\tradix-sort\n");
+                LOG0(L_DEBUG, "\t\tinstallable\n");
                 LOG0(L_DEBUG, "\t\tdummy\n");
                 LOG0(L_DEBUG, "\t\treport_screen\n");
                 LOG0(L_DEBUG, "\t\treport_file\n");
