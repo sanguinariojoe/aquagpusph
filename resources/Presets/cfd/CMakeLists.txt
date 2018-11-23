@@ -23,6 +23,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/inletEnergy.xml
     ${CMAKE_CURRENT_BINARY_DIR}/inletEnergy.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/outlet.xml
     ${CMAKE_CURRENT_BINARY_DIR}/outlet.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/outflow.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/outflow.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/outletEnergy.xml
     ${CMAKE_CURRENT_BINARY_DIR}/outletEnergy.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/portal.xml
@@ -104,6 +106,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/inletEnergy.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/inletEnergy.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/outlet.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/outlet.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/outflow.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/outflow.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/outletEnergy.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/outletEnergy.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/portal.xml
@@ -177,6 +181,7 @@ SET(RESOURCES_SRCS
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/inflow.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/inletEnergy.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/outlet.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/outflow.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/outletEnergy.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/portal.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/symmetry.xml
