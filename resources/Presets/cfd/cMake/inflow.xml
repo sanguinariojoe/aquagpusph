@@ -1,0 +1,55 @@
+<?xml version="1.0" ?>
+
+<!-- inlet.xml
+Inlet (i.e. Inflow) boundary condition. With this template a square plane inlet
+is defined.
+
+To create such inlet boundary condition you must include this preset, setting
+later the following variables:
+inlet_r = Lower corner of the inlet square
+inlet_ru = Square U vector
+inlet_rv = Square V vector
+inlet_N = Number of particles to be generated in each direction
+inlet_n = Velocity direction of the particles
+inlet_U = Constant inlet velocity magnitude
+inlet_rFS = The point where the pressure is the reference one (0 Pa).
+
+Also a buffer of particles should be created in the upper corner of the
+computational device. Remember that, when the buffer is empty, the inlet will
+start hijacking fluid particles, so ensure that the buffer is large enough.
+
+In 2-D simulations, inlet_N is still a 2D vector, just appropiately set the
+first component. Also the inlet_rv variable will be useless
+-->
+
+<sphInput>
+    <Variables>
+        <!-- position and size of the inlet -->
+        <Variable name="inlet_r" type="vec" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="inlet_ru" type="vec" value="0.0, 1.0, 0.0, 0.0" />
+        <Variable name="inlet_rv" type="vec" value="0.0, 0.0, 1.0, 0.0" />
+        <!-- Particles generation -->
+        <Variable name="inlet_N" type="uivec2" value="1, 1" />
+        <Variable name="inlet_n" type="vec" value="1.0, 0.0, 0.0, 0.0" />
+        <Variable name="inlet_U" type="float" value="0.0" />
+        <Variable name="inlet_rFS" type="vec" value="0.0, 0.0, 0.0, 0.0" />
+        <!-- Internal variables to know when the inlet should be feed -->
+        <Variable name="inlet_R" type="float" value="0.0" />
+        <Variable name="inlet_starving" type="int" value="0" />
+    </Variables>
+
+    <Tools>
+        <!-- Let's start feeding the inlet (if required). -->
+        <Tool name="Inlet" action="insert" after="Corrector" type="dummy"/>
+        <Tool name="Set buffer" action="insert" before="Inlet" type="dummy" />
+        <Tool name="cfd inlet starvation" action="insert" before="Inlet" type="set_scalar" in="inlet_starving" value="inlet_R >= dr ? 1 : 0"/>
+        <Tool name="cfd inlet R correction" action="insert" before="Inlet" type="set_scalar" in="inlet_R" value="inlet_R >= dr ? inlet_R - dr : inlet_R"/>
+        <Tool name="cfd increment inlet_R" action="insert" before="Inlet" type="set_scalar" in="inlet_R" value="inlet_R + inlet_U * dt"/>
+        <Tool name="cfd check buffer particles" action="insert" before="Inlet" type="assert" condition="nbuffer >= inlet_starving * inlet_N_x * inlet_N_y"/>
+        <Tool name="cfd inlet feed" action="insert" before="Inlet" type="kernel" entry_point="feed" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Inlet/Inlet.cl"/>
+        <!-- Now ensure that particles in the inlet are not affected by the interactions -->
+        <Tool name="cfd inlet" action="insert" before="Rates" type="kernel" entry_point="rates" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Inlet/Inlet.cl"/>
+    </Tools>
+
+    <Include file="@RESOURCES_OUTPUT_DIR@/Presets/basic/setBuffer.xml" when="end"/>
+</sphInput>
