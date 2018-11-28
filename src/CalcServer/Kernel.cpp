@@ -73,6 +73,7 @@ void Kernel::_execute()
     CalcServer *C = CalcServer::singleton();
 
     setVariables();
+    computeGlobalWorkSize();
 
     err_code = clEnqueueNDRangeKernel(C->command_queue(),
                                       _kernel,
