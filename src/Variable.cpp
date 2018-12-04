@@ -633,15 +633,21 @@ PyObject* ArrayVariable::getPythonObject(int i0, int n)
     // Get the appropiate type
     int pytype = PyArray_FLOAT;
     if(!type().compare("unsigned int") ||
-       !type().compare("uivec")){
+       !type().compare("unsigned int*") ||
+       !type().compare("uivec") ||
+       !type().compare("uivec*")){
        pytype = PyArray_UINT;
     }
     else if(!type().compare("int") ||
-            !type().compare("ivec")){
+            !type().compare("int*") ||
+            !type().compare("ivec") ||
+            !type().compare("ivec*")){
        pytype = PyArray_INT;
     }
     else if(!type().compare("float") ||
-            !type().compare("vec")){
+            !type().compare("float*") ||
+            !type().compare("vec") ||
+            !type().compare("vec*")){
        pytype = PyArray_FLOAT;
     }
     else{
