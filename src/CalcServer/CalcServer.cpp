@@ -667,8 +667,8 @@ void CalcServer::setupPlatform()
         std::ostringstream msg;
         LOG(L_ERROR, "The requested OpenCL platform can't be used.\n");
         msg << "\tPlatform " << _sim_data.settings.platform_id
-            << "has been selected, but just " << _num_platforms
-            << "are available." << std::endl;
+            << " has been selected, but just " << _num_platforms
+            << " are available." << std::endl;
         LOG0(L_DEBUG, msg.str());
         throw std::runtime_error("Out of bounds");
     }
