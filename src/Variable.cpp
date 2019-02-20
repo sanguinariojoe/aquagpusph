@@ -55,17 +55,36 @@ Variable::Variable(const std::string varname, const std::string vartype)
 {
 }
 
-void Variable::addEvent(cl_event event)
+void CL_CALLBACK event_completed(cl_event event,
+                                 cl_int cmd_exec_status,
+                                 void *user_data)
 {
-    clRetainEvent(event);
-    _events.push_front(event);
+    Variable *var = (Variable *)(user_data);
+    var->__delEvent(event);
 }
 
-void Variable::delEvent()
+void Variable::addEvent(cl_event event)
 {
-    cl_event event = _events.front();
+    cl_int error;
+    clRetainEvent(event);
+    _events.push(event);
+    error = clSetEventCallback(event,
+                               CL_COMPLETE,
+                               event_completed,
+                               (void *)(this));
+}
+
+void Variable::__delEvent(cl_event event)
+{
+    if (event != _events.front()) {
+        std::stringstream msg;
+        msg << "The event " << event << " is completed before its predecessor "
+            << _events.front() << "." << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("Invalid queue");
+    }
     clReleaseEvent(event);
-    _events.pop_front();
+    _events.pop();
 }
 
 template <class T>

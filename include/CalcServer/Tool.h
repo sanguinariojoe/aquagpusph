@@ -147,6 +147,12 @@ protected:
      */
     void setDependencies(std::vector<InputOutput::Variable*> vars);
 
+    /** @brief Get the depedencies of the tool
+     *
+     * @return Dependencies
+     */
+    const std::vector<InputOutput::Variable*> getDependencies();
+
     /** @brief Get the list of events that this tool shall wait for
      *
      * @return C++ vector of events. This should be considered ephimere.

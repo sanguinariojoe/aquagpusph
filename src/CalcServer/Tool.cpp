@@ -26,7 +26,7 @@
 #include <CalcServer.h>
 #include <InputOutput/Logger.h>
 #include <sys/time.h>
-#include <deque>
+#include <queue>
 #include <algorithm>
 
 namespace Aqua{ namespace CalcServer{
@@ -105,12 +105,18 @@ void Tool::setDependencies(std::vector<InputOutput::Variable*> vars)
     _vars = vars;
 }
 
+const std::vector<InputOutput::Variable*> Tool::getDependencies()
+{
+    return _vars;
+}
+
 const std::vector<cl_event> Tool::getEvents()
 {
     _events.clear();
     for(auto it = _vars.begin(); it < _vars.end(); it++){
-        const std::deque<cl_event> events = (*it)->getEvents();
-        _events.insert(_events.end(), events.begin(), events.end() );
+        const std::queue<cl_event> events = (*it)->getEvents();
+        if(events.size() > 0)
+            _events.push_back(events.back());
     }
     // Remove duplicates
     std::vector<cl_event>::iterator ip; 
