@@ -50,9 +50,22 @@ static std::string str_val;
 static std::ostringstream pyerr;
 
 Variable::Variable(const std::string varname, const std::string vartype)
+    : _name(varname)
+    , _typename(vartype)
 {
-    _name = varname;
-    _typename = vartype;
+}
+
+void Variable::addEvent(cl_event event)
+{
+    clRetainEvent(event);
+    _events.push(event);
+}
+
+void Variable::delEvent()
+{
+    cl_event event = _events.front();
+    clReleaseEvent(event);
+    _events.pop();
 }
 
 template <class T>

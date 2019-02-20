@@ -30,6 +30,7 @@
 
 #include <string>
 #include <vector>
+#include <queue>
 #include <sphPrerequisites.h>
 #include <Tokenizer/Tokenizer.h>
 
@@ -114,12 +115,44 @@ public:
      * @return The variable represented as a string, NULL in case of errors.
      */
     virtual const std::string asString(){return "";}
+
+    /** @brief Returns the list of events affecting this variable
+     *
+     * The events shall be added using the function addEvent()
+     *
+     * @return List of events. This shall be considered ephimere, since
+     * delEvent() can be called after.
+     */
+    const std::queue<cl_event> getEvents(){return _events;}
+    
+    /** @brief Add a new event to the list
+     *
+     * This function is never trying to release completed events, use delEvent()
+     * to this end. clRetainEvent() is called on top of the provided event.
+     */
+    void addEvent(cl_event event);
+
+    /** @brief Delete the oldest event from the list.
+     *
+     * FIFO paradigm is followed, that is, the event released will be always
+     * the oldest available one.
+     *
+     * This function is calling clReleaseEvent(). Since clRetainEvent() was
+     * called when the event was registered, this should have very little
+     * effect.
+     */
+    void delEvent();
+
+    
 private:
     /// Name of the variable
     std::string _name;
 
     /// Type of the variable
     std::string _typename;
+
+    /// List of events affecting this variable
+    std::queue<cl_event> _events;
 };
 
 /** @class ScalarVariable Variable.h Variable.h
