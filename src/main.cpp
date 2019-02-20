@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
     } catch(...) {
         if(Py_IsInitialized())
             Py_Finalize();
-        throw;
+        return EXIT_FAILURE;
     }
 
     InputOutput::TimeManager t_manager(file_manager.problemSetup());
@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
             delete calc_server; calc_server = NULL;
             if(Py_IsInitialized())
                 Py_Finalize();
-            throw;
+            return EXIT_FAILURE;
         }
     }
 
