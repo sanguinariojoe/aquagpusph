@@ -58,14 +58,14 @@ Variable::Variable(const std::string varname, const std::string vartype)
 void Variable::addEvent(cl_event event)
 {
     clRetainEvent(event);
-    _events.push(event);
+    _events.push_front(event);
 }
 
 void Variable::delEvent()
 {
     cl_event event = _events.front();
     clReleaseEvent(event);
-    _events.pop();
+    _events.pop_front();
 }
 
 template <class T>

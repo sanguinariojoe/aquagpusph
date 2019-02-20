@@ -30,7 +30,7 @@
 
 #include <string>
 #include <vector>
-#include <queue>
+#include <deque>
 #include <sphPrerequisites.h>
 #include <Tokenizer/Tokenizer.h>
 
@@ -123,12 +123,14 @@ public:
      * @return List of events. This shall be considered ephimere, since
      * delEvent() can be called after.
      */
-    const std::queue<cl_event> getEvents(){return _events;}
+    const std::deque<cl_event> getEvents(){return _events;}
     
     /** @brief Add a new event to the list
      *
      * This function is never trying to release completed events, use delEvent()
      * to this end. clRetainEvent() is called on top of the provided event.
+     *
+     * @param event OpenCL event to enqueue.
      */
     void addEvent(cl_event event);
 
@@ -152,7 +154,7 @@ private:
     std::string _typename;
 
     /// List of events affecting this variable
-    std::queue<cl_event> _events;
+    std::deque<cl_event> _events;
 };
 
 /** @class ScalarVariable Variable.h Variable.h

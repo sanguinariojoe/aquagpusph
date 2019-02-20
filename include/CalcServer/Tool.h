@@ -26,7 +26,9 @@
 #define TOOL_H_INCLUDED
 
 #include <sphPrerequisites.h>
+#include <Variable.h>
 #include <math.h>
+#include <vector>
 
 namespace Aqua{ namespace CalcServer{
 
@@ -127,6 +129,30 @@ protected:
      */
     void addElapsedTime(float elapsed_time);
 
+    /** @brief Set the depedencies of the tool
+     *
+     * The dependencies are the variables that this tool is either reading or
+     * writing.
+     *
+     * @param var_names Names of the dependencies
+     */
+    void setDependencies(std::vector<std::string> var_names);
+
+    /** @brief Set the depedencies of the tool
+     *
+     * The dependencies are the variables that this tool is either reading or
+     * writing.
+     *
+     * @param vars Dependencies
+     */
+    void setDependencies(std::vector<InputOutput::Variable*> vars);
+
+    /** @brief Get the list of events that this tool shall wait for
+     *
+     * @return C++ vector of events. This should be considered ephimere.
+     */
+    const std::vector<cl_event> getEvents();
+
 private:
     /// Kernel name
     std::string _name;
@@ -148,6 +174,12 @@ private:
 
     /// Average squared elapsed time
     float _squared_elapsed_time;
+
+    /// List of dependencies
+    std::vector<InputOutput::Variable*> _vars;
+
+    /// Internal storage to can safely return memory with getEvents()
+    std::vector<cl_event> _events;
 };
 
 }}  // namespace

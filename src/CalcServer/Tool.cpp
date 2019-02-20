@@ -24,7 +24,10 @@
 
 #include <CalcServer/Tool.h>
 #include <CalcServer.h>
+#include <InputOutput/Logger.h>
 #include <sys/time.h>
+#include <deque>
+#include <algorithm>
 
 namespace Aqua{ namespace CalcServer{
 
@@ -75,6 +78,46 @@ void Tool::addElapsedTime(float elapsed_time)
     _n_iters++;
     _average_elapsed_time /= _n_iters;
     _squared_elapsed_time /= _n_iters;
+}
+
+
+void Tool::setDependencies(std::vector<std::string> var_names)
+{
+    InputOutput::Variables *vars = CalcServer::singleton()->variables();
+    _vars.clear();
+    for(auto it = var_names.begin(); it < var_names.end(); it++){
+        InputOutput::Variable *var = vars->get(*it);
+        if(!var){
+            std::stringstream msg;
+            msg << "The tool \"" << name()
+                << "\" is asking the undeclared variable \""
+                << *it << "\"." << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw std::runtime_error("Invalid variable");
+        }
+        _vars.push_back(var);
+    }
+
+}
+
+void Tool::setDependencies(std::vector<InputOutput::Variable*> vars)
+{
+    _vars = vars;
+}
+
+const std::vector<cl_event> Tool::getEvents()
+{
+    _events.clear();
+    for(auto it = _vars.begin(); it < _vars.end(); it++){
+        const std::deque<cl_event> events = (*it)->getEvents();
+        _events.insert(_events.end(), events.begin(), events.end() );
+    }
+    // Remove duplicates
+    std::vector<cl_event>::iterator ip; 
+    ip = std::unique(_events.begin(), _events.end());
+    _events.resize(std::distance(_events.begin(), ip));
+
+    return _events;
 }
 
 }}  // namespace
