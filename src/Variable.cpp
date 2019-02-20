@@ -53,6 +53,41 @@ Variable::Variable(const std::string varname, const std::string vartype)
     : _name(varname)
     , _typename(vartype)
 {
+    cl_int err_code;
+    CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
+    // Create a dummy event for the queue (so the queue has always at least
+    // one event)
+    cl_event event = clCreateUserEvent(C->context(), err_code);
+    if(err_code != CL_SUCCESS){
+        std::stringstream msg;
+        msg << "Failure creating user event for \"" <<
+               varname << "\" variable." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
+    }
+    err_code = clSetUserEventStatus(event, CL_COMPLETE);
+    if(err_code != CL_SUCCESS){
+        std::stringstream msg;
+        msg << "Failure setting user event status for \"" <<
+               varname << "\" variable." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
+    }
+    // Avoid the event get destroyed right after its generation, when the
+    // listener detects it is already complete
+    err_code = clRetainEvent(event);
+    if(err_code != CL_SUCCESS){
+        std::stringstream msg;
+        msg << "Failure releasing user event for \"" <<
+               varname << "\" variable." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
+    }
+    // Setup the one single complete event list
+    addEvent(event);
 }
 
 void CL_CALLBACK event_completed(cl_event event,
@@ -65,13 +100,29 @@ void CL_CALLBACK event_completed(cl_event event,
 
 void Variable::addEvent(cl_event event)
 {
-    cl_int error;
-    clRetainEvent(event);
+    cl_int err_code;
+    err_code = clRetainEvent(event);
+    if(err_code != CL_SUCCESS){
+        std::stringstream msg;
+        msg << "Failure releasing user event for \"" <<
+               name() << "\" variable." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
+    }
     _events.push(event);
-    error = clSetEventCallback(event,
-                               CL_COMPLETE,
-                               event_completed,
-                               (void *)(this));
+    err_code = clSetEventCallback(event,
+                                  CL_COMPLETE,
+                                  event_completed,
+                                  (void *)(this));
+    if(err_code != CL_SUCCESS){
+        std::stringstream msg;
+        msg << "Failure releasing user event for \"" <<
+               name() << "\" variable." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
+    }
 }
 
 void Variable::__delEvent(cl_event event)
@@ -83,8 +134,18 @@ void Variable::__delEvent(cl_event event)
         LOG(L_ERROR, msg.str());
         throw std::runtime_error("Invalid queue");
     }
-    clReleaseEvent(event);
-    _events.pop();
+    err_code = clReleaseEvent(event);
+    if(err_code != CL_SUCCESS){
+        std::stringstream msg;
+        msg << "Failure releasing user event for \"" <<
+               name() << "\" variable." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
+    }
+    // Keep at least one event in the queue
+    if (_events.size() > 1)
+        _events.pop();
 }
 
 template <class T>

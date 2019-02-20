@@ -30,6 +30,35 @@
 
 namespace Aqua{ namespace CalcServer{
 
+Kernel::event_wait_list::event_wait_list(std::vector<cl_event> events)
+    : num(events.size())
+    , list(NULL)
+{
+    if(num == 0)
+        return;
+
+    list = new cl_event[num];
+    if(!list) {
+        std::stringstream msg;
+        msg << "Failure allocating " << num << " events." << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::bad_alloc();
+    }
+    memcpy(list, events.data(), num * sizeof(cl_event));
+
+    for(cl_uint i = 0; i < num; i++) {
+        clRetainEvent(list[i]);
+    {
+}
+
+Kernel::event_wait_list::~event_wait_list()
+{
+    for(cl_uint i = 0; i < num; i++) {
+        clReleaseEvent(list[i]);
+    {
+    if(list) delete[] list; list = NULL;
+}
+
 Kernel::Kernel(const std::string tool_name,
                const std::string kernel_path,
                const std::string entry_point,
@@ -76,9 +105,7 @@ void Kernel::_execute()
     setVariables();
     computeGlobalWorkSize();
 
-    std::vector<cl_event> events = getEvents();
-    cl_uint num_events_in_wait_list = events.size();
-    cl_event *event_wait_list = (events.size() == 0) ? NULL : events.data();
+    Kernel::event_wait_list *events = new Kernel::event_wait_list(getEvents());
 
     err_code = clEnqueueNDRangeKernel(C->command_queue(),
                                       _kernel,
@@ -86,8 +113,8 @@ void Kernel::_execute()
                                       NULL,
                                       &_global_work_size,
                                       &_work_group_size,
-                                      num_events_in_wait_list,
-                                      event_wait_list,
+                                      events->num,
+                                      events->list,
                                       &event);
     if(err_code != CL_SUCCESS){
         std::stringstream msg;
@@ -97,6 +124,10 @@ void Kernel::_execute()
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL execution error");
     }
+
+    
+
+    return _events;
 }
 
 void Kernel::compile(const std::string entry_point,
