@@ -70,10 +70,15 @@ void Kernel::setup()
 void Kernel::_execute()
 {
     cl_int err_code;
+    cl_event event;
     CalcServer *C = CalcServer::singleton();
 
     setVariables();
     computeGlobalWorkSize();
+
+    std::vector<cl_event> events = getEvents();
+    cl_uint num_events_in_wait_list = events.size();
+    cl_event *event_wait_list = (events.size() == 0) ? NULL : events.data();
 
     err_code = clEnqueueNDRangeKernel(C->command_queue(),
                                       _kernel,
@@ -81,9 +86,9 @@ void Kernel::_execute()
                                       NULL,
                                       &_global_work_size,
                                       &_work_group_size,
-                                      0,
-                                      NULL,
-                                      NULL);
+                                      num_events_in_wait_list,
+                                      event_wait_list,
+                                      &event);
     if(err_code != CL_SUCCESS){
         std::stringstream msg;
         msg << "Failure executing the tool \"" <<
@@ -425,6 +430,7 @@ void Kernel::variables(const std::string entry_point)
         throw std::runtime_error("Invalid entry point");
     }
     _var_names = client_data.var_names;
+    setDependencies(_var_names);
     
     for(unsigned int i = 0; i < _var_names.size(); i++){
         _var_values.push_back(NULL);
