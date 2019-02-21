@@ -717,14 +717,15 @@ PyObject* ArrayVariable::getPythonObject(int i0, int n)
     }
     _data.push_back(data);
     // Download the data
+    cl_event event_wait = getEvent();
     err_code = clEnqueueReadBuffer(C->command_queue(),
                                    _value,
                                    CL_TRUE,
                                    offset * typesize,
                                    len * typesize,
                                    data,
-                                   0,
-                                   NULL,
+                                   1,
+                                   &event_wait,
                                    NULL);
     if(err_code != CL_SUCCESS){
         pyerr.str("");
@@ -834,20 +835,29 @@ bool ArrayVariable::setFromPythonObject(PyObject* obj, int i0, int n)
     }
 
     void *data = array_obj->data;
-
+    cl_event event, event_wait = getEvent();
     err_code =  clEnqueueWriteBuffer(C->command_queue(),
                                      _value,
-                                     CL_TRUE,
+                                     CL_FALSE,
                                      offset * typesize,
                                      len * typesize,
                                      data,
-                                     0,
-                                     NULL,
-                                     NULL);
+                                     1,
+                                     &event_wait,
+                                     &event);
     if(err_code != CL_SUCCESS){
         pyerr.str("");
         pyerr << "Failure uploading variable \""
               << name() << "\"" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+        return true;
+    }
+    setEvent(event);
+    err_code = clReleaseEvent(event);
+    if(err_code != CL_SUCCESS){
+        pyerr.str("");
+        pyerr << "Failure releasing variable \""
+              << name() << "\" event" << std::endl;
         PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
