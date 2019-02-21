@@ -101,10 +101,11 @@ void RadixSort::setup()
     setupOpenCL();
 }
 
-void RadixSort::_execute()
+cl_event RadixSort::_execute(const std::vector<cl_event> events)
 {
     cl_int err_code;
     unsigned int i, max_val;
+    cl_event event, event_wait, event_perms_in;
     CalcServer *C = CalcServer::singleton();
     InputOutput::Variables *vars = C->variables();
 
@@ -126,15 +127,19 @@ void RadixSort::_execute()
     }
     _n_pass = _key_bits / _bits;
 
+    // Even though we are using Tool dependencies stuff, we are really
+    // interested in following a more complex events chain, due to the large and
+    // complex net of tools we are executing
+    event_wait = _var->getEvent();
     err_code = clEnqueueCopyBuffer(C->command_queue(),
                                    *(cl_mem *)_var->get(),
                                    _in_keys,
                                    0,
                                    0,
                                    _n * sizeof(cl_uint),
-                                   0,
-                                   NULL,
-                                   NULL);
+                                   1,
+                                   &event_wait,
+                                   &event);
     if(err_code != CL_SUCCESS){
         std::ostringstream msg;
         msg << "Failure copying the keys to sort within the tool \"" << name()
@@ -143,24 +148,45 @@ void RadixSort::_execute()
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
-
-    init();
-
-    for(_pass = 0; _pass < _n_pass; _pass++){
-        histograms();
-        scan();
-        reorder();
+    _var->setEvent(event);
+    err_code = clReleaseEvent(event);
+    if(err_code != CL_SUCCESS) {
+        std::ostringstream msg;
+        msg << "Failure releasing keys event within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
     }
 
+    event_perms_in = init();
+
+    event_wait = NULL;
+    for(_pass = 0; _pass < _n_pass; _pass++){
+        event_wait = histograms(event, event_wait);
+        event_wait = scan(event_wait);
+        event_wait = reorder(event_perms_in, event_wait);
+    }
+    err_code = clReleaseEvent(event_perms_in);
+    if(err_code != CL_SUCCESS){
+        std::ostringstream msg;
+        msg << "Failure releasing permutations event within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
+    }
+
+    const cl_event event_wait_list1[] = {event_wait, _var->getEvent()};
     err_code = clEnqueueCopyBuffer(C->command_queue(),
                                    _in_keys,
                                    *(cl_mem *)_var->get(),
                                    0,
                                    0,
                                    _n * sizeof(cl_uint),
-                                   0,
-                                   NULL,
-                                   NULL);
+                                   2,
+                                   event_wait_list1,
+                                   &event);
     if(err_code != CL_SUCCESS){
         std::ostringstream msg;
         msg << "Failure copying the sort keys within the tool \"" << name()
@@ -169,15 +195,27 @@ void RadixSort::_execute()
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
+    _var->setEvent(event);
+    err_code = clReleaseEvent(event);
+    if(err_code != CL_SUCCESS) {
+        std::ostringstream msg;
+        msg << "Failure releasing variable event within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
+    }
+
+    const cl_event event_wait_list2[] = {event_wait, _perms->getEvent()};
     err_code = clEnqueueCopyBuffer(C->command_queue(),
                                    _in_permut,
                                    *(cl_mem *)_perms->get(),
                                    0,
                                    0,
                                    _n * sizeof(cl_uint),
-                                   0,
-                                   NULL,
-                                   NULL);
+                                   2,
+                                   event_wait_list2,
+                                   &event);
     if(err_code != CL_SUCCESS){
         std::ostringstream msg;
         msg << "Failure copying the permutations within the tool \"" << name()
@@ -186,13 +224,36 @@ void RadixSort::_execute()
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
+    _perms->setEvent(event);
+    err_code = clReleaseEvent(event);
+    if(err_code != CL_SUCCESS) {
+        std::ostringstream msg;
+        msg << "Failure releasing permutations event within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
+    }
 
-    inversePermutations();
+    err_code = clReleaseEvent(event_wait);
+    if(err_code != CL_SUCCESS){
+        std::ostringstream msg;
+        msg << "Failure releasing transactional event within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
+    }
+
+    // The Tool dependencies system is actually restricted to the permutations
+    // array. The sorted variable event has been set above
+    return inversePermutations();
 }
 
-void RadixSort::init()
+cl_event RadixSort::init()
 {
     cl_int err_code;
+    cl_event event;
     CalcServer *C = CalcServer::singleton();
 
     err_code = clSetKernelArg(_init_kernel,
@@ -216,7 +277,7 @@ void RadixSort::init()
                                       NULL,
                                       0,
                                       NULL,
-                                      NULL);
+                                      &event);
     if(err_code != CL_SUCCESS) {
         std::ostringstream msg;
         msg << "Failure executing \"init\" within the tool \""
@@ -225,11 +286,14 @@ void RadixSort::init()
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL execution error");
     }
+
+    return event;
 }
 
-void RadixSort::histograms()
+cl_event RadixSort::histograms(cl_event keys_event, cl_event histograms_event)
 {
     cl_int err_code;
+    cl_event event;
     CalcServer *C = CalcServer::singleton();
     size_t local_work_size = _items;
     size_t global_work_size = _groups * _items;
@@ -259,15 +323,21 @@ void RadixSort::histograms()
         throw std::runtime_error("OpenCL error");
     }
 
+    std::vector<cl_event> events = {keys_event};
+    if(histograms_event)
+        events.push_back(histograms_event);
+    cl_uint num_events_in_wait_list = events.size();
+    const cl_event *event_wait_list = events.size() ? events.data() : NULL;
+
     err_code = clEnqueueNDRangeKernel(C->command_queue(),
                                       _histograms_kernel,
                                       1,
                                       NULL,
                                       &global_work_size,
                                       &local_work_size,
-                                      0,
-                                      NULL,
-                                      NULL);
+                                      num_events_in_wait_list,
+                                      event_wait_list,
+                                      &event);
     if(err_code != CL_SUCCESS) {
         std::ostringstream msg;
         msg << "Failure executing \"histogram\" within the tool \""
@@ -276,11 +346,26 @@ void RadixSort::histograms()
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL execution error");
     }
+
+    if(histograms_event) {
+        err_code = clReleaseEvent(histograms_event);
+        if(err_code != CL_SUCCESS) {
+            std::ostringstream msg;
+            msg << "Failure releasing \"histogram\" event within the tool \""
+                << name() << "\"." << std::endl;
+            LOG(L_ERROR, msg.str());
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL execution error");
+        }
+    }
+
+    return event;
 }
 
-void RadixSort::scan()
+cl_event RadixSort::scan(cl_event event_histo)
 {
     cl_int err_code;
+    cl_event event, event_wait = event_histo;
     CalcServer *C = CalcServer::singleton();
     size_t global_work_size = _radix * _groups * _items / 2;
     size_t local_work_size = global_work_size / _histo_split;
@@ -320,9 +405,9 @@ void RadixSort::scan()
                                       NULL,
                                       &global_work_size,
                                       &local_work_size,
-                                      0,
-                                      NULL,
-                                      NULL);
+                                      1,
+                                      &event_wait,
+                                      &event);
     if(err_code != CL_SUCCESS) {
         std::ostringstream msg;
         msg << "Failure executing \"scan\" (1st call) within the tool \""
@@ -331,6 +416,16 @@ void RadixSort::scan()
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL execution error");
     }
+    err_code = clReleaseEvent(event_wait);
+    if(err_code != CL_SUCCESS) {
+        std::ostringstream msg;
+        msg << "Failure releasing \"scan\" (1st call) event within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
+    }
+    event_wait = event;
 
     // 2nd scan
     // ========
@@ -367,9 +462,9 @@ void RadixSort::scan()
                                       NULL,
                                       &global_work_size,
                                       &local_work_size,
-                                      0,
-                                      NULL,
-                                      NULL);
+                                      1,
+                                      &event_wait,
+                                      &event);
     if(err_code != CL_SUCCESS) {
         std::ostringstream msg;
         msg << "Failure executing \"scan\" (2nd call) within the tool \""
@@ -378,6 +473,16 @@ void RadixSort::scan()
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL execution error");
     }
+    err_code = clReleaseEvent(event_wait);
+    if(err_code != CL_SUCCESS) {
+        std::ostringstream msg;
+        msg << "Failure releasing \"scan\" (2nd call) event within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
+    }
+    event_wait = event;
 
     // Histograms paste
     // ================
@@ -390,9 +495,9 @@ void RadixSort::scan()
                                       NULL,
                                       &global_work_size,
                                       &local_work_size,
-                                      0,
-                                      NULL,
-                                      NULL);
+                                      1,
+                                      &event_wait,
+                                      &event);
     if(err_code != CL_SUCCESS) {
         std::ostringstream msg;
         msg << "Failure executing \"paste\" within the tool \""
@@ -401,11 +506,23 @@ void RadixSort::scan()
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL execution error");
     }
+    err_code = clReleaseEvent(event_wait);
+    if(err_code != CL_SUCCESS) {
+        std::ostringstream msg;
+        msg << "Failure releasing \"scan\" (2nd call) event within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
+    }
+
+    return event;
 }
 
-void RadixSort::reorder()
+cl_event RadixSort::reorder(cl_event perms_event, cl_event histograms_event)
 {
     cl_int err_code;
+    cl_event event;
     CalcServer *C = CalcServer::singleton();
     size_t local_work_size = _items;
     size_t global_work_size = _groups * _items;
@@ -471,18 +588,31 @@ void RadixSort::reorder()
         throw std::runtime_error("OpenCL error");
     }
 
+    std::vector<cl_event> events = {perms_event, histograms_event};
+    cl_uint num_events_in_wait_list = events.size();
+    const cl_event *event_wait_list = events.size() ? events.data() : NULL;
+
     err_code = clEnqueueNDRangeKernel(C->command_queue(),
                                       _sort_kernel,
                                       1,
                                       NULL,
                                       &global_work_size,
                                       &local_work_size,
-                                      0,
-                                      NULL,
-                                      NULL);
+                                      num_events_in_wait_list,
+                                      event_wait_list,
+                                      &event);
     if(err_code != CL_SUCCESS) {
         std::ostringstream msg;
         msg << "Failure executing \"sort\" within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
+    }
+    err_code = clReleaseEvent(histograms_event);
+    if(err_code != CL_SUCCESS) {
+        std::ostringstream msg;
+        msg << "Failure releasing \"scan\" (2nd call) event within the tool \""
             << name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
@@ -499,11 +629,14 @@ void RadixSort::reorder()
     d_temp = _in_permut;
     _in_permut = _out_permut;
     _out_permut = d_temp;
+
+    return event;
 }
 
-void RadixSort::inversePermutations()
+cl_event RadixSort::inversePermutations()
 {
     cl_int err_code;
+    cl_event event;
     CalcServer *C = CalcServer::singleton();
 
     err_code = clSetKernelArg(_inv_perms_kernel,
@@ -531,15 +664,17 @@ void RadixSort::inversePermutations()
         throw std::runtime_error("OpenCL error");
     }
 
+    const cl_event event_wait_list[] = {_perms->getEvent(),
+                                        _inv_perms->getEvent()};
     err_code = clEnqueueNDRangeKernel(C->command_queue(),
                                       _inv_perms_kernel,
                                       1,
                                       NULL,
                                       &_global_work_size,
                                       NULL,
-                                      0,
-                                      NULL,
-                                      NULL);
+                                      2,
+                                      event_wait_list,
+                                      &event);
     if(err_code != CL_SUCCESS) {
         std::ostringstream msg;
         msg << "Failure executing \"inversePermutation\" within the tool \""
@@ -548,6 +683,8 @@ void RadixSort::inversePermutations()
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL execution error");
     }
+
+    return event;
 }
 
 
@@ -671,6 +808,9 @@ void RadixSort::variables()
         LOG(L_DEBUG, msg.str());
         throw std::runtime_error("Invalid variable length");
     }
+
+    std::vector<InputOutput::Variable*> deps = {_perms, _inv_perms};
+    setDependencies(deps);
 }
 
 void RadixSort::setupOpenCL()
