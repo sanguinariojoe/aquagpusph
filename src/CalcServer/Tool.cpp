@@ -46,21 +46,6 @@ Tool::~Tool()
 {
 }
 
-void CL_CALLBACK event_completed(cl_event event,
-                                 cl_int cmd_exec_status,
-                                 void *user_data)
-{
-    cl_int err_code = clReleaseEvent(event);
-    if(err_code != CL_SUCCESS){
-        std::stringstream msg;
-        msg << "Failure releasing the event \"" <<
-               event << "\" inside its listener." << std::endl;
-        LOG(L_ERROR, msg.str());
-        InputOutput::Logger::singleton()->printOpenCLError(err_code);
-        throw std::runtime_error("OpenCL execution error");
-    }
-}
-
 void Tool::execute()
 {
     if(_once && (_n_iters > 0))
@@ -82,14 +67,11 @@ void Tool::execute()
             (*it)->setEvent(event);
         }
 
-        // Register a listener to automatically release the new event when done
-        err_code = clSetEventCallback(event,
-                                    CL_COMPLETE,
-                                    event_completed,
-                                    NULL);
+        // Release the event now that it is retained by its users
+        err_code = clReleaseEvent(event);
         if(err_code != CL_SUCCESS){
             std::stringstream msg;
-            msg << "Failure setting the event listener in tool \"" <<
+            msg << "Failure releasing the new event in tool \"" <<
                 name() << "\"." << std::endl;
             LOG(L_ERROR, msg.str());
             InputOutput::Logger::singleton()->printOpenCLError(err_code);
