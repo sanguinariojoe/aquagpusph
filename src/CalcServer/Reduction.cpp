@@ -87,17 +87,23 @@ void Reduction::setup()
     setupOpenCL();
 }
 
-void Reduction::_execute()
+cl_event Reduction::_execute(const std::vector<cl_event> events_src)
 {
     unsigned int i;
+    cl_event event;
     cl_int err_code;
     CalcServer *C = CalcServer::singleton();
     InputOutput::Variables *vars = C->variables();
 
     setVariables();
 
-    // Execute the kernels
-    for(i = 0;i < _kernels.size(); i++){
+    // We must execute several kernel in a sequential way, so we are just adding
+    // more events to the wait list.
+    std::vector<cl_event> events;
+    std::copy(events_src.begin(), events_src.end(), std::back_inserter(events));
+    for(i = 0; i < _kernels.size(); i++){
+        cl_uint num_events_in_wait_list = events.size();
+        const cl_event *event_wait_list = events.size() ? events.data() : NULL;
         size_t _global_work_size = _global_work_sizes.at(i);
         size_t _local_work_size  = _local_work_sizes.at(i);
         err_code = clEnqueueNDRangeKernel(C->command_queue(),
@@ -106,9 +112,9 @@ void Reduction::_execute()
                                           NULL,
                                           &_global_work_size,
                                           &_local_work_size,
-                                          0,
-                                          NULL,
-                                          NULL);
+                                          num_events_in_wait_list,
+                                          event_wait_list,
+                                          &event);
         if(err_code != CL_SUCCESS) {
             std::ostringstream msg;
             msg << "Failure executing the step " << i << " within the tool \""
@@ -117,29 +123,47 @@ void Reduction::_execute()
             InputOutput::Logger::singleton()->printOpenCLError(err_code);
             throw std::runtime_error("OpenCL execution error");
         }
+        events.push_back(event);
     }
 
     // Get back the result
+    cl_uint num_events_in_wait_list = events.size();
+    const cl_event *event_wait_list = events.size() ? events.data() : NULL;
     err_code = clEnqueueReadBuffer(C->command_queue(),
                                    _mems.at(_mems.size()-1),
-                                   CL_TRUE,
+                                   CL_FALSE,
                                    0,
                                    _output_var->typesize(),
                                    _output_var->get(),
-                                   0,
-                                   NULL,
-                                   NULL);
+                                   num_events_in_wait_list,
+                                   event_wait_list,
+                                   &event);
     if(err_code != CL_SUCCESS) {
-            std::ostringstream msg;
-            msg << "Failure reading back the result within the tool \""
-                << name() << "\"." << std::endl;
-            LOG(L_ERROR, msg.str());
-            InputOutput::Logger::singleton()->printOpenCLError(err_code);
-            throw std::runtime_error("OpenCL error");
+        std::ostringstream msg;
+        msg << "Failure reading back the result within the tool \""
+            << name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
     }
 
     // Ensure that the variable is populated
     vars->populate(_output_var);
+
+    // Release useless transactional events
+    for(auto it = events.begin() + events_src.size(); it < events.end(); it++){
+        err_code = clReleaseEvent(*it);
+        if(err_code != CL_SUCCESS) {
+            std::ostringstream msg;
+            msg << "Failure releasing transactional event in the tool \""
+                << name() << "\"." << std::endl;
+            LOG(L_ERROR, msg.str());
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL error");
+        }
+    }
+
+    return event;
 }
 
 void Reduction::variables()
@@ -195,6 +219,9 @@ void Reduction::variables()
         LOG0(L_DEBUG, msg.str());
         throw std::runtime_error("Invalid variable type");
     }
+
+    std::vector<InputOutput::Variable*> deps = {_input_var, _output_var};
+    setDependencies(deps);
 }
 
 void Reduction::setupOpenCL()

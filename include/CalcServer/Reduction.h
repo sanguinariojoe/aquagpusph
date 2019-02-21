@@ -89,10 +89,11 @@ public:
     unsigned int nSteps(){return _global_work_sizes.size();}
 
 protected:
-    /** @brief Perform the work.
-     * @return Output memory object, NULL if error is detected.
+    /** Execute the tool
+     * @param events List of events that shall be waited before safe execution
+     * @return OpenCL event to be waited before accesing the dependencies
      */
-    void _execute();
+    cl_event _execute(const std::vector<cl_event> events);
 
 private:
     /** @brief Extract the input and output variables from the provided data in
