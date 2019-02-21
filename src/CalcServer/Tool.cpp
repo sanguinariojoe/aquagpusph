@@ -46,15 +46,69 @@ Tool::~Tool()
 {
 }
 
+void CL_CALLBACK event_completed(cl_event event,
+                                 cl_int cmd_exec_status,
+                                 void *user_data)
+{
+    cl_int err_code = clReleaseEvent(event);
+    if(err_code != CL_SUCCESS){
+        std::stringstream msg;
+        msg << "Failure releasing the event \"" <<
+               event << "\" inside its listener." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
+    }
+}
+
 void Tool::execute()
 {
     if(_once && (_n_iters > 0))
         return;
 
+    cl_int err_code;
     timeval tic, tac;
+
     gettimeofday(&tic, NULL);
 
-    _execute();
+    // Launch the tool
+    std::vector<cl_event> events = getEvents();
+    cl_event event = _execute(events);
+
+    if(event != NULL) {
+        // Replace the dependencies event by the new one
+        std::vector<InputOutput::Variable*> vars = getDependencies();
+        for(auto it = vars.begin(); it < vars.end(); it++){
+            (*it)->setEvent(event);
+        }
+
+        // Register a listener to automatically release the new event when done
+        err_code = clSetEventCallback(event,
+                                    CL_COMPLETE,
+                                    event_completed,
+                                    NULL);
+        if(err_code != CL_SUCCESS){
+            std::stringstream msg;
+            msg << "Failure setting the event listener in tool \"" <<
+                name() << "\"." << std::endl;
+            LOG(L_ERROR, msg.str());
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL execution error");
+        }
+    }
+
+    // Release the events in the wait list, which were retained by getEvents()
+    for(auto it = events.begin(); it < events.end(); it++){
+        err_code = clReleaseEvent((*it));
+        if(err_code != CL_SUCCESS){
+            std::stringstream msg;
+            msg << "Failure releasing a predecessor event in \"" <<
+                name() << "\" tool." << std::endl;
+            LOG(L_ERROR, msg.str());
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL execution error");
+        }
+    }    
 
     gettimeofday(&tac, NULL);
 

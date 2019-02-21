@@ -27,6 +27,7 @@
 #include <InputOutput/Logger.h>
 #include <CalcServer.h>
 #include <CalcServer/LinkList.h>
+#include <algorithm>
 
 namespace Aqua{ namespace CalcServer{
 
@@ -121,19 +122,45 @@ void LinkList::setup()
 
     // Setup the radix-sort
     _sort->setup();
+
+    // _input_name at front and icell at back on forward purpose!
+    std::vector<std::string> deps = {_input_name, "ihoc", "N",
+                                     "n_cells", "n_radix", "support",
+                                     "h", "r_min", "r_max", "icell"};
+    setDependencies(deps);
 }
 
-void LinkList::_execute()
+cl_event LinkList::_execute(const std::vector<cl_event> events_prior)
 {
     cl_int err_code;
+    cl_event event, event_wait;
+    std::vector<cl_event> events;
     CalcServer *C = CalcServer::singleton();
 
+    // Reduction steps to find maximum and minimum position
     _min_pos->execute();
     _max_pos->execute();
 
+    // We should refresh the events adding the new one (we can just keep the
+    // outdated ones, which are already retained). The new events existence are
+    // granted while we don't set new events to those variables, which would not
+    // gonna happen until we returns the new event herein.
+    // The new event comes from the first dependency (see setup())
+    std::copy(events_prior.begin(), events_prior.end(),
+              std::back_inserter(events));
+    events.push_back(getDependencies().front()->getEvent());
+
+    // Enqueue a barrier such that we can create a waiting chain
+    cl_uint num_events_in_wait_list = events.size();
+    const cl_event *event_wait_list = events.size() ? events.data() : NULL;
+    err_code = clEnqueueMarkerWithWaitList(C->command_queue(),
+                                           num_events_in_wait_list,
+                                           event_wait_list,
+                                           &event_wait);
+
     // Compute the number of cells, and allocate memory for ihoc
-    nCells();
-    allocate();
+    event_wait = nCells(event_wait);
+    event_wait = allocate(event_wait);
 
     // Check the validity of the variables
     setVariables();
@@ -145,12 +172,21 @@ void LinkList::_execute()
                                       NULL,
                                       &_icell_gws,
                                       &_icell_lws,
-                                      0,
-                                      NULL,
-                                      NULL);
+                                      1,
+                                      &event_wait,
+                                      &event);
     if(err_code != CL_SUCCESS) {
         std::stringstream msg;
         msg << "Failure executing \"iCell\" from tool \"" <<
+               name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
+    }
+    err_code = clReleaseEvent(event_wait);
+    if(err_code != CL_SUCCESS) {
+        std::stringstream msg;
+        msg << "Failure releasing transactional \"iCell\" event from tool \"" <<
                name() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
@@ -160,6 +196,10 @@ void LinkList::_execute()
     // Sort the particles from the cells
     _sort->execute();
 
+    // Now our transactional event is the one coming from sorting algorithm
+    // The new event comes from the last dependency (see setup())
+    event_wait = getDependencies().back()->getEvent();
+
     // Compute the head of cells
     err_code = clEnqueueNDRangeKernel(C->command_queue(),
                                       _ihoc,
@@ -167,9 +207,9 @@ void LinkList::_execute()
                                       NULL,
                                       &_ihoc_gws,
                                       &_ihoc_lws,
-                                      0,
-                                      NULL,
-                                      NULL);
+                                      1,
+                                      &event_wait,
+                                      &event);
     if(err_code != CL_SUCCESS) {
         std::stringstream msg;
         msg << "Failure executing \"iHoc\" from tool \"" <<
@@ -178,6 +218,16 @@ void LinkList::_execute()
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL execution error");
     }
+    err_code = clReleaseEvent(event_wait);
+    if(err_code != CL_SUCCESS) {
+        std::stringstream msg;
+        msg << "Failure releasing transactional \"iHoc\" event from tool \"" <<
+               name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
+    }
+    event_wait = event;
 
     err_code = clEnqueueNDRangeKernel(C->command_queue(),
                                       _ll,
@@ -185,9 +235,9 @@ void LinkList::_execute()
                                       NULL,
                                       &_ll_gws,
                                       &_ll_lws,
-                                      0,
-                                      NULL,
-                                      NULL);
+                                      1,
+                                      &event_wait,
+                                      &event);
     if(err_code != CL_SUCCESS) {
         std::stringstream msg;
         msg << "Failure executing \"linkList\" from tool \"" <<
@@ -196,6 +246,17 @@ void LinkList::_execute()
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL execution error");
     }
+    err_code = clReleaseEvent(event_wait);
+    if(err_code != CL_SUCCESS) {
+        std::stringstream msg;
+        msg << "Failure releasing transactional \"linkList\" event from tool \"" <<
+               name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
+    }
+
+    return event;
 }
 
 void LinkList::setupOpenCL()
@@ -430,7 +491,7 @@ void LinkList::compile(const std::string source)
     clReleaseProgram(program);
 }
 
-void LinkList::nCells()
+cl_event LinkList::nCells(cl_event event)
 {
     vec pos_min, pos_max;
     InputOutput::Variables *vars = CalcServer::singleton()->variables();
@@ -454,9 +515,11 @@ void LinkList::nCells()
         _n_cells.z = 1;
     #endif
     _n_cells.w = _n_cells.x * _n_cells.y * _n_cells.z;
+
+    return event;
 }
 
-void LinkList::allocate()
+cl_event LinkList::allocate(cl_event event)
 {
     uivec4 n_cells;
     cl_int err_code;
@@ -482,9 +545,11 @@ void LinkList::allocate()
         n_cells.y = _n_cells.y;
         n_cells.z = _n_cells.z;
         vars->get("n_cells")->set(&n_cells);
-        return;
+        return event;
     }
 
+    // We have no alternative, we must sync here
+    clWaitForEvents(1, &event);
     cl_mem mem = *(cl_mem*)vars->get("ihoc")->get();
     if(mem) clReleaseMemObject(mem); mem = NULL;
 
@@ -506,6 +571,8 @@ void LinkList::allocate()
     vars->get("n_cells")->set(&n_cells);
     vars->get("ihoc")->set(&mem);
     _ihoc_gws = roundUp(n_cells.w, _ihoc_lws);
+
+    return event;
 }
 
 void LinkList::setVariables()

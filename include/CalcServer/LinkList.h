@@ -66,9 +66,11 @@ public:
     void setup();
 
 protected:
-    /** Execute the tool.
+    /** Execute the tool
+     * @param events List of events that shall be waited before safe execution
+     * @return OpenCL event to be waited before accesing the dependencies
      */
-    void _execute();
+    cl_event _execute(const std::vector<cl_event> events);
 
 private:
     /** Setup the OpenCL stuff
@@ -81,12 +83,14 @@ private:
     void compile(const std::string source);
 
     /** Compute the number of cells
+     * @param event A master event to wait for
+     * @return OpenCL event to be waited before accessing the dependencies
      */
-    void nCells();
+    cl_event nCells(cl_event event);
 
     /** Allocate the "ihoc" array
      */
-    void allocate();
+    cl_event allocate(cl_event event);
 
     /** Update the input and output looking for changed values.
      */
