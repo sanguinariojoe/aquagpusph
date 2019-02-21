@@ -30,35 +30,6 @@
 
 namespace Aqua{ namespace CalcServer{
 
-Kernel::event_wait_list::event_wait_list(std::vector<cl_event> events)
-    : num(events.size())
-    , list(NULL)
-{
-    if(num == 0)
-        return;
-
-    list = new cl_event[num];
-    if(!list) {
-        std::stringstream msg;
-        msg << "Failure allocating " << num << " events." << std::endl;
-        LOG(L_ERROR, msg.str());
-        throw std::bad_alloc();
-    }
-    memcpy(list, events.data(), num * sizeof(cl_event));
-
-    for(cl_uint i = 0; i < num; i++) {
-        clRetainEvent(list[i]);
-    {
-}
-
-Kernel::event_wait_list::~event_wait_list()
-{
-    for(cl_uint i = 0; i < num; i++) {
-        clReleaseEvent(list[i]);
-    {
-    if(list) delete[] list; list = NULL;
-}
-
 Kernel::Kernel(const std::string tool_name,
                const std::string kernel_path,
                const std::string entry_point,
@@ -96,6 +67,21 @@ void Kernel::setup()
     computeGlobalWorkSize();
 }
 
+void CL_CALLBACK event_completed(cl_event event,
+                                 cl_int cmd_exec_status,
+                                 void *user_data)
+{
+    cl_int err_code = clReleaseEvent(event);
+    if(err_code != CL_SUCCESS){
+        std::stringstream msg;
+        msg << "Failure releasing the event \"" <<
+               event << "\" inside its listener." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
+    }
+}
+
 void Kernel::_execute()
 {
     cl_int err_code;
@@ -105,16 +91,21 @@ void Kernel::_execute()
     setVariables();
     computeGlobalWorkSize();
 
-    Kernel::event_wait_list *events = new Kernel::event_wait_list(getEvents());
+    // Get the dependencies and the list of events associated to them
+    std::vector<InputOutput::Variable*> vars = getDependencies();
+    std::vector<cl_event> events = getEvents();
+    cl_uint num_events_in_wait_list = events.size();
+    const cl_event *event_wait_list = events.size() ? events.data() : NULL;
 
+    // Launch the tool
     err_code = clEnqueueNDRangeKernel(C->command_queue(),
                                       _kernel,
                                       1,
                                       NULL,
                                       &_global_work_size,
                                       &_work_group_size,
-                                      events->num,
-                                      events->list,
+                                      num_events_in_wait_list,
+                                      event_wait_list,
                                       &event);
     if(err_code != CL_SUCCESS){
         std::stringstream msg;
@@ -125,9 +116,37 @@ void Kernel::_execute()
         throw std::runtime_error("OpenCL execution error");
     }
 
-    
+    // Replace the dependencies event by the new one
+    for(auto it = vars.begin(); it < vars.end(); it++){
+        (*it)->setEvent(event);
+    }
 
-    return _events;
+    // Register a listener to automatically release the new event when done
+    err_code = clSetEventCallback(event,
+                                  CL_COMPLETE,
+                                  event_completed,
+                                  NULL);
+    if(err_code != CL_SUCCESS){
+        std::stringstream msg;
+        msg << "Failure setting the event listener in tool \"" <<
+               name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
+    }
+
+    // Finally release the events in the wait list
+    for(auto it = events.begin(); it < events.end(); it++){
+        err_code = clReleaseEvent((*it));
+        if(err_code != CL_SUCCESS){
+            std::stringstream msg;
+            msg << "Failure releasing a predecessor event in \"" <<
+                name() << "\" tool." << std::endl;
+            LOG(L_ERROR, msg.str());
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL execution error");
+        }
+    }    
 }
 
 void Kernel::compile(const std::string entry_point,

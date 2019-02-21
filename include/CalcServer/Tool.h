@@ -155,7 +155,9 @@ protected:
 
     /** @brief Get the list of events that this tool shall wait for
      *
-     * @return C++ vector of events. This should be considered ephimere.
+     * @return C++ vector of events
+     * @warning The events returned have been retained, so call clReleaseEvent()
+     * after using them
      */
     const std::vector<cl_event> getEvents();
 

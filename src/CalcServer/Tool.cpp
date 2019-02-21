@@ -112,16 +112,25 @@ const std::vector<InputOutput::Variable*> Tool::getDependencies()
 
 const std::vector<cl_event> Tool::getEvents()
 {
+    cl_int err_code;
     _events.clear();
     for(auto it = _vars.begin(); it < _vars.end(); it++){
-        const std::queue<cl_event> events = (*it)->getEvents();
-        if(events.size() > 0)
-            _events.push_back(events.back());
+        cl_event event = (*it)->getEvent();
+        if(std::find(_events.begin(), _events.end(), event) != _events.end())
+            continue;
+        // Retain the event until we work with it
+        err_code = clRetainEvent(event);
+        if(err_code != CL_SUCCESS){
+            std::stringstream msg;
+            msg << "Failure reteaning the event for \"" <<
+                (*it)->name() << "\" variable in \"" <<
+                name() << "\" tool." << std::endl;
+            LOG(L_ERROR, msg.str());
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL execution error");
+        }
+        _events.push_back(event);            
     }
-    // Remove duplicates
-    std::vector<cl_event>::iterator ip; 
-    ip = std::unique(_events.begin(), _events.end());
-    _events.resize(std::distance(_events.begin(), ip));
 
     return _events;
 }

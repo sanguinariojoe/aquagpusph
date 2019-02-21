@@ -38,32 +38,6 @@ namespace Aqua{ namespace CalcServer{
  */
 class Kernel : public Aqua::CalcServer::Tool
 {
-private:
-    /** @class event_wait_list Kernel.h CalcServer/Kernel.h
-     * @brief Helper to store events wait list
-     *
-     * This is useful to can send the data to the event listener.
-     */
-    class event_wait_list
-    {
-    public:
-        /** Constructor
-         * @param events Events to be waited.
-         */
-        event_wait_list(std::vector<cl_event> events);
-
-        /** Destructor
-         */
-        ~event_wait_list();
-    
-        /// Number of events
-        cl_uint num;
-
-        /// List of events
-        cl_event *list;
-    };
-
-
 public:
     /** Constructor.
      * @param tool_name Tool name.

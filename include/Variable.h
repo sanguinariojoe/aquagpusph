@@ -30,7 +30,6 @@
 
 #include <string>
 #include <vector>
-#include <queue>
 #include <sphPrerequisites.h>
 #include <Tokenizer/Tokenizer.h>
 
@@ -116,38 +115,24 @@ public:
      */
     virtual const std::string asString(){return "";}
 
-    /** @brief Returns the list of events affecting this variable
+    /** @brief Set the variable current event
      *
-     * The events shall be added using the function addEvent()
+     * clRetainEvent() is called on top of the provided event, while any
+     * previous event is conveniently released calling clReleaseEvent()
      *
-     * @return List of events. This shall be considered ephimere, since
-     * delEvent() can be called after.
+     * Might exists other events linked to this variable, but since those are
+     * considered predecessors, we can just forgive about them.
+     *
+     * @remarks Events are used even for non-OpenCL variables
+     * @param event OpenCL event
      */
-    const std::queue<cl_event> getEvents(){return _events;}
-    
-    /** @brief Add a new event to the list
-     *
-     * clRetainEvent() is called on top of the provided event. A listener is
-     * registered to automatically drop the completed events.
-     *
-     * @param event OpenCL event to enqueue.
-     */
-    void addEvent(cl_event event);    
+    void setEvent(cl_event event);    
 
-    /** @brief Delete the oldest event from the list.
+    /** @brief Returns the last event associated to this variable
      *
-     * FIFO paradigm is followed, that is, the event released will be always
-     * the oldest available one.
-     *
-     * This function is calling clReleaseEvent(). Since clRetainEvent() was
-     * called when the event was registered, this should have very little
-     * effect.
-     *
-     * @warning This function is triggered by the event listener. Don't manually
-     * call it!
-     * @param event OpenCL event triggering the execution
+     * @return OpenCL event
      */
-    void __delEvent(cl_event event);
+    cl_event getEvent(){return _event;}
 
 private:
     /// Name of the variable
@@ -157,7 +142,7 @@ private:
     std::string _typename;
 
     /// List of events affecting this variable
-    std::queue<cl_event> _events;
+    cl_event _event;
 };
 
 /** @class ScalarVariable Variable.h Variable.h
