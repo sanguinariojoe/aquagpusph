@@ -131,7 +131,7 @@ cl_event Reduction::_execute(const std::vector<cl_event> events_src)
     const cl_event *event_wait_list = events.size() ? events.data() : NULL;
     err_code = clEnqueueReadBuffer(C->command_queue(),
                                    _mems.at(_mems.size()-1),
-                                   CL_FALSE,
+                                   CL_TRUE,
                                    0,
                                    _output_var->typesize(),
                                    _output_var->get(),

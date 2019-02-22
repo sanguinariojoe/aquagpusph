@@ -83,14 +83,12 @@ private:
     void compile(const std::string source);
 
     /** Compute the number of cells
-     * @param event A master event to wait for
-     * @return OpenCL event to be waited before accessing the dependencies
      */
-    cl_event nCells(cl_event event);
+    void nCells();
 
     /** Allocate the "ihoc" array
      */
-    cl_event allocate(cl_event event);
+    void allocate();
 
     /** Update the input and output looking for changed values.
      */
