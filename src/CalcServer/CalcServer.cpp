@@ -497,15 +497,15 @@ cl_event CalcServer::getUnsortedMem(const std::string var_name,
         return NULL;
     }
     cl_mem mem = unsorter->output();
-    cl_event event = NULL;
+    cl_event event = NULL, event_wait = unsorter->input()->getEvent();
     err_code = clEnqueueReadBuffer(command_queue(),
                                    mem,
                                    CL_FALSE,
                                    offset,
                                    cb,
                                    ptr,
-                                   0,
-                                   NULL,
+                                   1,
+                                   &event_wait,
                                    &event);
     if(err_code != CL_SUCCESS){
         std::ostringstream msg;
@@ -515,6 +515,9 @@ cl_event CalcServer::getUnsortedMem(const std::string var_name,
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
         return NULL;
     }
+
+    unsorter->input()->setEvent(event);
+
     return event;
 }
 

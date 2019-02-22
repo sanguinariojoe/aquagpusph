@@ -70,10 +70,10 @@ void SetTabFile::setup()
     _f.flush();
 }
 
-void SetTabFile::_execute()
+cl_event SetTabFile::_execute(const std::vector<cl_event> events)
 {
     if(!mustUpdate()){
-        return;
+        return NULL;
     }
 
     unsigned int i, j;
@@ -227,6 +227,8 @@ void SetTabFile::_execute()
         free(data.at(i)); data.at(i) = NULL;
     }
     data.clear();
+
+    return NULL;
 }
 
 std::vector<void*> SetTabFile::download(std::vector<InputOutput::Variable*> vars)

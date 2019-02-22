@@ -54,6 +54,11 @@ public:
      */
     void setup();
 
+    /** Get the input variable.
+     * @return The variable to become sorted.
+     */
+    InputOutput::ArrayVariable* input(){return _var;}
+
     /** Get the memory object where the unsorted data is stored.
      * @return The memory object where the unsorted data is stored.
      */
