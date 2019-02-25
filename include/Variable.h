@@ -148,6 +148,16 @@ public:
      */
     cl_event getEvent(){return _event;}
 
+protected:
+    /** @brief Wait for variable underlying event to be complete
+     * 
+     * This function is tracking the syncing state, avoiding calling
+     * clWaitForEvents() more than once, while the event is not updated.
+     *
+     * This is obviously a blocking function
+     */
+    void sync();
+
 private:
     /// Name of the variable
     std::string _name;
@@ -157,6 +167,9 @@ private:
 
     /// List of events affecting this variable
     cl_event _event;
+
+    /// Shortcut to avoid calling the expensive OpenCL API
+    bool _synced;
 };
 
 /** @class ScalarVariable Variable.h Variable.h
@@ -188,14 +201,22 @@ public:
     size_t typesize() const {return sizeof(T);}
 
     /** @brief Get variable pointer basis pointer
-     * @return Implementation pointer.
+     *
+     * This is a blocking operation, that will retain the program until the
+     * underlying variable event is complete.
+     *
+     * @return Implementation pointer
      */
-    T* get(){return &_value;}
+    inline T* get(){sync(); return &_value;}
 
     /** @brief Set variable from memory
-     * @param ptr Memory to copy.
+     *
+     * This is a blocking operation, that will retain the program until the
+     * underlying variable event is complete.
+     *
+     * @param ptr Memory to copy
      */
-    void set(void* ptr){memcpy(&_value, ptr, sizeof(T));}
+    inline void set(void* ptr){sync(); memcpy(&_value, ptr, sizeof(T));}
 
     /** @brief Get the variable text representation
      * @return The variable represented as a string, NULL in case of errors.

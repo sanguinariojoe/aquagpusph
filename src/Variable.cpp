@@ -52,6 +52,8 @@ static std::ostringstream pyerr;
 Variable::Variable(const std::string varname, const std::string vartype)
     : _name(varname)
     , _typename(vartype)
+    , _event(NULL)
+    , _synced(true)
 {
     cl_int err_code;
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
@@ -100,6 +102,25 @@ void Variable::setEvent(cl_event event)
         throw std::runtime_error("OpenCL execution error");
     }
     _event = event;
+    _synced = false;
+}
+
+void Variable::sync()
+{
+    if(_synced)
+        return;
+
+    cl_int err_code;
+    err_code = clWaitForEvents(1, &_event);
+    if(err_code != CL_SUCCESS){
+        std::stringstream msg;
+        msg << "Failure syncing variable \"" <<
+               name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
+    }
+    _synced = true;
 }
 
 template <class T>
