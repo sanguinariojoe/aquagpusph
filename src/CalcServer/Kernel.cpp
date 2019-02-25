@@ -388,6 +388,8 @@ struct clientData{
 
 void Kernel::variables(const std::string entry_point)
 {
+    InputOutput::Variables *vars = CalcServer::singleton()->variables();
+
     CXIndex index = clang_createIndex(0, 0);
     if(index == 0){
         LOG(L_ERROR, "Failure creating parser index.\n");
@@ -431,7 +433,23 @@ void Kernel::variables(const std::string entry_point)
         throw std::runtime_error("Invalid entry point");
     }
     _var_names = client_data.var_names;
-    setDependencies(_var_names);
+    // Retain just the array variables as dependencies, provided that scalar
+    // variables are synced when passed using clSetKernelArg()
+    std::vector<InputOutput::Variable*> deps;
+    for(auto var_name : _var_names) {
+        InputOutput::Variable *var = vars->get(var_name);
+        if(!var){
+            std::stringstream msg;
+            msg << "The tool \"" << name()
+                << "\" is asking the undeclared variable \""
+                << var_name << "\"." << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw std::runtime_error("Invalid variable");
+        }
+        if(var->isArray())
+            deps.push_back(var);
+    }
+    setDependencies(deps);
     
     for(unsigned int i = 0; i < _var_names.size(); i++){
         _var_values.push_back(NULL);
@@ -480,7 +498,8 @@ void Kernel::setVariables()
     InputOutput::Variables *vars = CalcServer::singleton()->variables();
 
     for(i = 0; i < _var_names.size(); i++){
-        if(!vars->get(_var_names.at(i))){
+        InputOutput::Variable *var = vars->get(_var_names.at(i));
+        if(!var){
             std::stringstream msg;
             msg << "The tool \"" << name()
                 << "\" is asking the undeclared variable \""
@@ -488,7 +507,6 @@ void Kernel::setVariables()
             LOG(L_ERROR, msg.str());
             throw std::runtime_error("Invalid variable");
         }
-        InputOutput::Variable *var = vars->get(_var_names.at(i));
         if(_var_values.at(i) == NULL){
             _var_values.at(i) = malloc(var->typesize());
         }

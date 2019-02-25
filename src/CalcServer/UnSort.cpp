@@ -145,7 +145,7 @@ void UnSort::variables()
     }
     _var = (InputOutput::ArrayVariable *)vars->get(_var_name);
 
-    std::vector<InputOutput::Variable*> deps = {_var};
+    std::vector<InputOutput::Variable*> deps = {_id_var, _var};
     setDependencies(deps);
 }
 

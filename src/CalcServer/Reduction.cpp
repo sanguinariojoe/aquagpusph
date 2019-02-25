@@ -147,9 +147,6 @@ cl_event Reduction::_execute(const std::vector<cl_event> events_src)
         throw std::runtime_error("OpenCL error");
     }
 
-    // Ensure that the variable is populated
-    vars->populate(_output_var);
-
     // Release useless transactional events
     for(auto it = events.begin() + events_src.size(); it < events.end(); it++){
         err_code = clReleaseEvent(*it);
@@ -162,6 +159,11 @@ cl_event Reduction::_execute(const std::vector<cl_event> events_src)
             throw std::runtime_error("OpenCL error");
         }
     }
+
+    // Ensure that the variable is populated, this is in fact a blocking
+    // operation
+    _output_var->setEvent(event);
+    vars->populate(_output_var);
 
     return event;
 }
@@ -177,7 +179,7 @@ void Reduction::variables()
         LOG(L_ERROR, msg.str());
         throw std::runtime_error("Invalid variable");
     }
-    if(vars->get(_input_name)->type().find('*') == std::string::npos){
+    if(vars->get(_input_name)->isScalar()){
         std::stringstream msg;
         msg << "The tool \"" << name()
             << "\" is asking the input variable \"" << _input_name
@@ -194,7 +196,7 @@ void Reduction::variables()
         LOG(L_ERROR, msg.str());
         throw std::runtime_error("Invalid variable");
     }
-    if(vars->get(_output_name)->type().find('*') != std::string::npos){
+    if(vars->get(_output_name)->isArray()){
         std::stringstream msg;
         msg << "The tool \"" << name()
             << "\" is asking the output variable \"" << _output_name
@@ -220,7 +222,8 @@ void Reduction::variables()
         throw std::runtime_error("Invalid variable type");
     }
 
-    std::vector<InputOutput::Variable*> deps = {_input_var, _output_var};
+    // The scalar variable event is internally handled by the tool
+    std::vector<InputOutput::Variable*> deps = {_input_var};
     setDependencies(deps);
 }
 
