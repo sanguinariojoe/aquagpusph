@@ -785,9 +785,11 @@ void CalcServer::setupDevices()
         throw std::bad_alloc();
     }
     for(i = 0; i < _num_devices; i++) {
+        cl_command_queue_properties properties = 
+            CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
         _command_queues[i] = clCreateCommandQueue(_context,
                                                   _devices[i],
-                                                  0,
+                                                  properties,
                                                   &err_code);
         if(err_code != CL_SUCCESS) {
             std::ostringstream msg;
