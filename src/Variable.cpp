@@ -110,6 +110,12 @@ ScalarVariable<T>::ScalarVariable(const std::string varname,
 }
 
 template <class T>
+inline bool ScalarVariable<T>::isArray()
+{
+    return false;
+}
+
+template <class T>
 ScalarNumberVariable<T>::ScalarNumberVariable(const std::string varname,
                                               const std::string vartype)
     : ScalarVariable<T>(varname, vartype)
@@ -602,6 +608,11 @@ ArrayVariable::~ArrayVariable()
     }
     _data.clear();
     if(_value) clReleaseMemObject(_value); _value=NULL;
+}
+
+inline bool ArrayVariable::isArray()
+{
+    return true;
 }
 
 size_t ArrayVariable::size() const

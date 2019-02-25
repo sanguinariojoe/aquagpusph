@@ -62,6 +62,20 @@ public:
      */
     virtual ~Variable() {};
 
+    /** @brief Let efficiently know whether the variable is an array or not
+     *
+     * @return true if the variable is an array, false if the variable is a
+     * scalar
+     */
+    virtual bool isArray()=0;
+
+    /** @brief Let efficiently know whether the variable is a scalar or not
+     *
+     * @return true if the variable is a scalar, false if the variable is an
+     * array
+     */
+    virtual bool isScalar(){return !isArray();}
+
     /** @brief Name of the variable
      * @return The name of the variable
      */
@@ -161,6 +175,12 @@ public:
     /** @brief Destructor.
      */
     ~ScalarVariable() {};
+
+    /** @brief Report that the varaible is not an array
+     *
+     * @return false
+     */
+    bool isArray();
 
     /** @brief Get the variable type size.
      * @return Variable type size (in bytes)
@@ -636,6 +656,12 @@ public:
     /** Destructor.
      */
     ~ArrayVariable();
+
+    /** @brief Report that the varaible is an array
+     *
+     * @return true
+     */
+    bool isArray();
 
     /** Get the cl_mem type size.
      * @return cl_mem type size (in bytes)
