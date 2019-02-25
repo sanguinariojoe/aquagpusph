@@ -465,7 +465,6 @@ void CalcServer::update(InputOutput::TimeManager& t_manager)
             }
         }
 
-        clFinish(command_queue());
         InputOutput::Logger::singleton()->endFrame();
     }
 }
