@@ -996,7 +996,7 @@ const std::string ArrayVariable::asString(size_t i)
                           << ((int*)ptr)[2] << ","
                           << ((int*)ptr)[3] << ")";
     }
-    else if(type().compare("ivec")){
+    else if(!type().compare("ivec")){
         #ifdef HAVE_3D
             str_stream << "(" << ((int*)ptr)[0] << ","
                               << ((int*)ptr)[1] << ","
