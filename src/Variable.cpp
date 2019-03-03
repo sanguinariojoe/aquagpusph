@@ -909,21 +909,22 @@ const std::string ArrayVariable::asString()
 const std::string ArrayVariable::asString(size_t i)
 {
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
-    size_t length = size() / Variables::typeToBytes(type());
+    size_t type_size = Variables::typeToBytes(type());
+    size_t length = size() / type_size;
     if(i > length){
         std::ostringstream msg;
         msg << "Out of bounds (length = " << length << ")" << std::endl;
         LOG(L_ERROR, msg.str());
         return NULL;
     }
-    void *ptr = malloc(typesize());
+    void *ptr = malloc(type_size);
     if(!ptr){
         std::ostringstream msg;
         msg << "Failure allocating memory to download the variable \""
             << name() << "\"" << std::endl;
         LOG(L_ERROR, msg.str());
         msg.str("");
-        msg << typesize() << "bytes requested" << std::endl;
+        msg << type_size << "bytes requested" << std::endl;
         LOG0(L_DEBUG, msg.str());
         return NULL;
     }
@@ -931,8 +932,8 @@ const std::string ArrayVariable::asString(size_t i)
     cl_int err_code = clEnqueueReadBuffer(C->command_queue(),
                                           _value,
                                           CL_TRUE,
-                                          i * Variables::typeToBytes(type()),
-                                          Variables::typeToBytes(type()),
+                                          i * type_size,
+                                          type_size,
                                           ptr,
                                           1,
                                           &event_wait,
