@@ -927,14 +927,15 @@ const std::string ArrayVariable::asString(size_t i)
         LOG0(L_DEBUG, msg.str());
         return NULL;
     }
+    cl_event event_wait = getEvent();
     cl_int err_code = clEnqueueReadBuffer(C->command_queue(),
                                           _value,
                                           CL_TRUE,
                                           i * Variables::typeToBytes(type()),
                                           Variables::typeToBytes(type()),
                                           ptr,
-                                          0,
-                                          NULL,
+                                          1,
+                                          &event_wait,
                                           NULL);
     if(err_code != CL_SUCCESS){
         std::ostringstream msg;
