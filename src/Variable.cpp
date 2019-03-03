@@ -146,7 +146,7 @@ ScalarNumberVariable<T>::ScalarNumberVariable(const std::string varname,
 template <class T>
 const std::string ScalarNumberVariable<T>::asString(){
     std::ostringstream msg;
-    msg << *(this->get());
+    msg << *((T*)this->get());
     str_val = msg.str();
     return str_val;
 }
@@ -159,7 +159,7 @@ IntVariable::IntVariable(const std::string varname)
 
 PyObject* IntVariable::getPythonObject(int i0, int n)
 {
-    long val = *(get());
+    long val = *((int*)get());
     return PyLong_FromLong(val);
 }
 
@@ -215,7 +215,7 @@ FloatVariable::FloatVariable(const std::string varname)
 
 PyObject* FloatVariable::getPythonObject(int i0, int n)
 {
-    double val = *(get());
+    double val = *((float*)get());
     return PyFloat_FromDouble(val);
 }
 
@@ -276,7 +276,7 @@ bool ScalarVecVariable<T>::checkPyhonObjectDims(PyObject* obj){
 
 template <class T>
 const std::string ScalarVecVariable<T>::asString(){
-    T *val = this->get();
+    T *val = (T*)(this->get());
     std::ostringstream msg;
     msg << "(";
     for (unsigned int i = 0; i < _dims; i++) {
@@ -708,7 +708,7 @@ PyObject* ArrayVariable::getPythonObject(int i0, int n)
         PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return NULL;
     }
-    npy_intp dims[] = {len, components};
+    npy_intp dims[] = {static_cast<npy_intp>(len), components};
     // Get the appropiate type
     int pytype = PyArray_FLOAT;
     if(!type().compare("unsigned int") ||
@@ -899,7 +899,7 @@ bool ArrayVariable::setFromPythonObject(PyObject* obj, int i0, int n)
 
 const std::string ArrayVariable::asString()
 {
-    cl_mem* val = get();
+    cl_mem* val = (cl_mem*)get();
     std::ostringstream msg;
     msg << val;
     str_val = msg.str();

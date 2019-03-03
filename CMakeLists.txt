@@ -215,7 +215,7 @@ ENDIF(AQUAGPUSPH_BUILD_DOC)
 # ===================================================== #
 if(CMAKE_COMPILER_IS_GNUCXX)
     include(cMake/ConfigureChecks.cmake)
-    configure_file(config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h)
+    configure_file(config.h.gcc.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h)
     add_definitions(-DHAVE_CONFIG_H)
     add_definitions(-Wno-write-strings)
     add_definitions(-Wno-deprecated)
@@ -224,7 +224,18 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     if(UNIX)
     #    SET(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
     endif(UNIX)
-endif(CMAKE_COMPILER_IS_GNUCXX)
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    include(cMake/ConfigureChecks.cmake)
+    configure_file(config.h.clang.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h)
+    add_definitions(-DHAVE_CONFIG_H)
+    add_definitions(-Wno-write-strings)
+    add_definitions(-Wno-deprecated)
+    INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+    # get linker errors as soon as possible and not at runtime e.g. for modules
+    if(UNIX)
+    #    SET(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
+    endif(UNIX)
+endif()
 
 
 # ===================================================== #
