@@ -38,7 +38,9 @@ static std::vector<XMLCh*> xml_str;
 
 static std::string xmlTranscode(const XMLCh *txt)
 {
-    std::string str = std::string(xercesc::XMLString::transcode(txt));
+    char *temp = xercesc::XMLString::transcode(txt);
+    std::string str(temp);
+    xercesc::XMLString::release(&temp);
     cpp_str.push_back(str);
     return str;
 }
