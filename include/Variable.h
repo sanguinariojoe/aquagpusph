@@ -147,7 +147,7 @@ public:
     /** @brief Get variable pointer basis pointer
      * @return Implementation pointer.
      */
-    T* get(){return &_value;}
+    void* get(){return &_value;}
 
     /** @brief Set variable from memory
      * @param ptr Memory to copy.
@@ -631,7 +631,7 @@ public:
     /** Get variable pointer basis pointer
      * @return Implementation pointer.
      */
-    cl_mem* get(){return &_value;}
+    void* get(){return &_value;}
 
     /** Set variable from memory
      * @param ptr Memory to copy.
