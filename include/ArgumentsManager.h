@@ -33,7 +33,7 @@ namespace Aqua{ namespace InputOutput{ namespace CommandLineArgs{
  *
  * @return false if the excution must continue, true otherwise.
  */
-void parse(int argc, char **argv, FileManager &file_manager);
+void parse(int argc, char* const* argv, FileManager &file_manager);
     
 }}}  // namespace
 

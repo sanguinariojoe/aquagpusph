@@ -64,7 +64,7 @@ void displayUsage()
     std::cout << "  -h, --help                   Show this help page" << std::endl;
 }
 
-void parse(int argc, char **argv, FileManager &file_manager)
+void parse(int argc, char* const* argv, FileManager &file_manager)
 {
     int index;
 
