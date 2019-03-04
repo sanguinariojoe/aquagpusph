@@ -40,7 +40,7 @@
 
 namespace Aqua{
 
-int isKeyPressed()
+const bool isKeyPressed()
 {
     struct termios oldt, newt;
     int ch;
@@ -60,21 +60,21 @@ int isKeyPressed()
 
     if(ch != EOF) {
         ungetc(ch, stdin);
-        return 1;
+        return true;
     }
 
-    return 0;
+    return false;
 }
 
-bool hasSuffix(const std::string &str, const std::string &suffix)
+const bool hasSuffix(const std::string &str, const std::string &suffix)
 {
     return str.size() >= suffix.size() &&
            str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
 }
 
 void replaceAll(std::string &str,
-                       const std::string &search,
-                       const std::string &replace)
+                const std::string &search,
+                const std::string &replace)
 {
     size_t pos = 0;
     while((pos = str.find(search, pos)) != std::string::npos) {
@@ -84,8 +84,8 @@ void replaceAll(std::string &str,
 }
 
 std::string replaceAllCopy(std::string str,
-                           std::string search,
-                           std::string replace)
+                           const std::string &search,
+                           const std::string &replace)
 {
     replaceAll(str, search, replace);
     return str;
@@ -125,7 +125,7 @@ std::string trimCopy(std::string s) {
 
 static std::string xxd_str;
 
-std::string xxd2string(unsigned char* arr, unsigned int len)
+std::string xxd2string(const unsigned char* arr, const unsigned int &len)
 {
     char txt[len + 1];
     strncpy(txt, (const char*)arr, len);
@@ -145,34 +145,32 @@ std::string toLowerCopy(std::string str)
     return str;
 }
 
-unsigned int nextPowerOf2( unsigned int n )
+const unsigned int nextPowerOf2(const unsigned int &n)
 {
-    if (n & !(n & (n - 1)))
+    if(!n)
+        return 1;
+    if(isPowerOf2(n))
         return n;
 
     unsigned int p = 1;
-    while (p < n) {
+    while(p < n) {
         p <<= 1;
     }
     return p;
 }
 
-unsigned int isPowerOf2( unsigned int n )
+const unsigned int roundUp(const unsigned int &n, const unsigned int &divisor)
 {
-    return ((n&(n-1))==0);
-}
-
-unsigned int roundUp(unsigned int n, unsigned int divisor)
-{
-    unsigned int rest = n%divisor;
+    unsigned int result = n;
+    const unsigned int rest = n % divisor;
     if(rest) {
-        n -= rest;
-        n += divisor;
+        result -= rest;
+        result += divisor;
     }
-    return n;
+    return result;
 }
 
-int round(float n)
+const int round(const float &n)
 {
     if(n < 0.f){
         return (int)(n - 0.5f);
@@ -182,7 +180,7 @@ int round(float n)
 
 static std::string folder;
 
-const std::string getFolderFromFilePath(const std::string file_path)
+const std::string getFolderFromFilePath(const std::string &file_path)
 {
     std::ostringstream str;
     if(file_path[0] != '/')
@@ -196,7 +194,7 @@ const std::string getFolderFromFilePath(const std::string file_path)
 
 static std::string filename;
 
-const std::string getFileNameFromFilePath(const std::string file_path)
+const std::string getFileNameFromFilePath(const std::string &file_path)
 {
     std::size_t last_sep = file_path.find_last_of("/\\");
     if(last_sep != std::string::npos)
@@ -208,7 +206,7 @@ const std::string getFileNameFromFilePath(const std::string file_path)
 
 static std::string extension;
 
-const std::string getExtensionFromFilePath(const std::string file_path)
+const std::string getExtensionFromFilePath(const std::string &file_path)
 {
     std::size_t last_sep = file_path.find_last_of(".");
     if(last_sep != std::string::npos)
@@ -218,46 +216,60 @@ const std::string getExtensionFromFilePath(const std::string file_path)
     return extension;
 }
 
-bool isFile(const std::string file_name)
+const bool isFile(const std::string &file_name)
 {
     std::ifstream f(file_name);
-    return f.good();
+    const bool good = f.good();
+    f.close();
+    return good;
 }
 
-bool isRelativePath(const std::string path)
+const bool isRelativePath(const std::string &path)
 {
-    if (trimCopy(path).front() == '/')
+    if (ltrimCopy(path).front() == '/')
         return false;
     return true;
 }
 
-size_t getLocalWorkSize(cl_uint n, cl_command_queue queue)
+const size_t getLocalWorkSize(const cl_command_queue &queue)
 {
-    cl_int flag;
+    cl_int err_code;
     cl_device_id d;
-    flag = clGetCommandQueueInfo(queue,CL_QUEUE_DEVICE,
-                                 sizeof(cl_device_id),&d, NULL);
-    if(flag != CL_SUCCESS){
+    err_code = clGetCommandQueueInfo(queue,
+                                     CL_QUEUE_DEVICE,
+                                     sizeof(cl_device_id),
+                                     &d,
+                                     NULL);
+    if(err_code != CL_SUCCESS){
         return 0;
     }
     // Start trying maximum local work size per dimension
     cl_uint dims;
-    flag = clGetDeviceInfo(d,CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS,
-                           sizeof(cl_uint),&dims, NULL);
-    if(flag != CL_SUCCESS){
+    err_code = clGetDeviceInfo(d,
+                               CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS,
+                               sizeof(cl_uint),
+                               &dims,
+                               NULL);
+    if(err_code != CL_SUCCESS){
         return 0;
     }
     size_t l[dims];
-    flag = clGetDeviceInfo(d,CL_DEVICE_MAX_WORK_ITEM_SIZES,
-                           dims*sizeof(size_t),l, NULL);
-    if(flag != CL_SUCCESS){
+    err_code = clGetDeviceInfo(d,
+                               CL_DEVICE_MAX_WORK_ITEM_SIZES,
+                               dims * sizeof(size_t),
+                               l,
+                               NULL);
+    if(err_code != CL_SUCCESS){
         return 0;
     }
     // Correct it with maximum local size
     size_t max_l;
-    flag = clGetDeviceInfo(d,CL_DEVICE_MAX_WORK_GROUP_SIZE,
-                           sizeof(size_t),&max_l, NULL);
-    if(flag != CL_SUCCESS){
+    err_code = clGetDeviceInfo(d,
+                               CL_DEVICE_MAX_WORK_GROUP_SIZE,
+                               sizeof(size_t),
+                               &max_l,
+                               NULL);
+    if(err_code != CL_SUCCESS){
         return 0;
     }
     if(max_l < l[0])
@@ -265,131 +277,77 @@ size_t getLocalWorkSize(cl_uint n, cl_command_queue queue)
     return l[0];
 }
 
-size_t getGlobalWorkSize(cl_uint n, size_t local_work_size)
+const vec mult(const float &n, const vec &v)
 {
-    return roundUp(n, local_work_size);
-}
-
-vec Vzero()
-{
-    vec r;
-    r.x = 0.f; r.y = 0.f;
-    #ifdef HAVE_3D
-        r.z = 0.f; r.w = 0.f;
-    #endif
-    return r;
-}
-
-vec Vx()
-{
-    vec r;
-    r.x = 1.f; r.y = 0.f;
-    #ifdef HAVE_3D
-        r.z = 0.f; r.w = 0.f;
-    #endif
-    return r;
-}
-
-vec Vy()
-{
-    vec r;
-    r.x = 0.f; r.y = 1.f;
-    #ifdef HAVE_3D
-        r.z = 0.f; r.w = 0.f;
-    #endif
-    return r;
-}
-
 #ifdef HAVE_3D
-vec Vz()
-{
-    vec r;
-    r.x = 0.f; r.y = 0.f;
-    r.z = 1.f; r.w = 0.f;
-    return r;
-}
+    const vec r = {n * v.x, n * v.y, n * v.z, n * v.w};
+#else
+    const vec r = {n * v.x, n * v.y};
 #endif
-
-vec mult(float n, vec v)
-{
-    vec r;
-    r.x = n*v.x;
-    r.y = n*v.y;
-    #ifdef HAVE_3D
-        r.z = n + v.z;
-        r.w = n + v.w;
-    #endif
     return r;
 }
 
-vec add(vec a, vec b)
+const vec add(const vec &a, const vec &b)
 {
-    vec r;
-    r.x = a.x + b.x;
-    r.y = a.y + b.y;
-    #ifdef HAVE_3D
-        r.z = a.z + b.z;
-        r.w = a.w + b.w;
-    #endif
+#ifdef HAVE_3D
+    const vec r = {a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w};
+#else
+    const vec r = {a.x + b.x, a.y + b.y};
+#endif
     return r;
 }
 
-vec sub(vec a, vec b)
+const vec sub(const vec &a, const vec &b)
 {
-    vec r;
-    r.x = a.x - b.x;
-    r.y = a.y - b.y;
-    #ifdef HAVE_3D
-        r.z = a.z - b.z;
-        r.w = a.w - b.w;
-    #endif
+#ifdef HAVE_3D
+    const vec r = {a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w};
+#else
+    const vec r = {a.x - b.x, a.y - b.y};
+#endif
     return r;
 }
 
-float dot(vec a, vec b)
+const float dot(const vec &a, vec &b)
 {
-    float d = a.x*b.x + a.y*b.y;
-    #ifdef HAVE_3D
-        d += a.z*b.z;
-        d += a.w*b.w;
-    #endif
+    float d = a.x * b.x + a.y * b.y;
+#ifdef HAVE_3D
+    d += a.z * b.z + a.w * b.w;
+#endif
     return d;
 }
 
-float length(vec v)
+const float length(const vec &v)
 {
-    float m = v.x*v.x + v.y*v.y;
-    #ifdef HAVE_3D
-        m += v.z*v.z;
-    #endif
+    float m = v.x * v.x + v.y * v.y;
+#ifdef HAVE_3D
+    m += v.z * v.z;
+#endif
     return sqrt(m);
 }
 
-vec normalize(vec v)
+const vec normalize(const vec &v)
 {
-    float m = length(v);
-    vec n;
-    n.x = v.x / m;
-    n.y = v.y / m;
-    #ifdef HAVE_3D
-        n.z = v.z / m;
-    #endif
-    return n;
+    const float m = length(v);
+#ifdef HAVE_3D
+    const vec r = {v.x / m, v.y / m, v.z / m, v.w};
+#else
+    const vec r = {v.x / m, v.y / m};
+#endif
+    return r;
 }
 
 #ifdef HAVE_3D
-vec cross(vec a, vec b)
+const vec cross(const vec &a, const vec &b)
 {
-    vec c;
-    c.x = a.y*b.z - a.z*b.y;
-    c.y = a.z*b.x - a.x*b.z;
-    c.z = a.x*b.y - a.y*b.x;
-    c.w = 0.f;
+    const vec c = {a.y * b.z - a.z * b.y,
+                   a.z * b.x - a.x * b.z,
+                   a.x * b.y - a.y * b.x,
+                   0.f};
     return c;
 }
 #endif
 
-unsigned int numberOfDigits(unsigned int number)
+const unsigned int numberOfDigits(const unsigned int number)
 {
     return number > 0 ? (int)log10((double)number) + 1 : 1;
 }

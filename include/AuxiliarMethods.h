@@ -28,11 +28,11 @@
 
 namespace Aqua{
 
-/// Returns if a key press event has been registered.
-/**
- * @return 0 if no keys have been pressed, 1 otherwise.
+/** @brief Check wkether a key press event has been triggered.
+ * 
+ * @return false if no keys have been pressed, true otherwise.
  */
-int isKeyPressed();
+const bool isKeyPressed();
 
 /** @brief Check if a string ends with an specific suffix
  * 
@@ -40,7 +40,7 @@ int isKeyPressed();
  * @param suffix Suffix to be looked for
  * @return true if #str ends with #suffix, false otherwise.
  */
-bool hasSuffix(const std::string &str, const std::string &suffix);
+const bool hasSuffix(const std::string &str, const std::string &suffix);
 
 /** @brief Replace all substring occurrences by another substring
  * 
@@ -60,8 +60,8 @@ void replaceAll(std::string &str,
  * @return Modified string
  */
 std::string replaceAllCopy(std::string str,
-                           std::string search,
-                           std::string replace);
+                           const std::string &search,
+                           const std::string &replace);
 
 /** @brief Remove all the blank spaces (including line breaks, tabulators...)
  * string prefix.
@@ -119,7 +119,7 @@ std::string trimCopy(std::string s);
  * @param len C-Like chars array length
  * @return C++ string
  */
-std::string xxd2string(unsigned char* arr, unsigned int len);
+std::string xxd2string(const unsigned char* arr, const unsigned int &len);
 
 /** @brief Convert a string to lower case
  */
@@ -130,211 +130,244 @@ void toLower(std::string &str);
  */
 std::string toLowerCopy(std::string str);
 
-/// Next number which is power of 2.
-/** Compute a value which, being power of two, is greater or equal than
- * @paramname{x}.
- *
- * @param x Number to round up to a power of two.
- * @return Next value which is power of two (it can be the same input value
- * @paramname{x}).
- */
-unsigned int nextPowerOf2(unsigned int x);
-
-/// Check if a number is power of 2.
-/** Compute if a value is power of 2.
+/** @brief Check if a number is power of 2.
  *
  * @param x Value to test.
- * @return 1 if it is a power of two, 0 otherwise.
+ * @return true if it is a power of two, false otherwise.
  */
-unsigned int isPowerOf2(unsigned int x);
+inline const bool isPowerOf2(const unsigned int &x) {
+    return x && ((x & (x - 1)) == 0);
+}
 
-/// Rounded up value which is divisible by @paramname{divisor}.
-/** Compute a value, which being divisible by @paramname{divisor}, is greater
+/** @brief Next number which is power of 2.
+ *
+ * Compute a power of value greater or equal than @paramname{x}.
+ *
+ * @param x Number to round up to a power of two.
+ * @return Next value which is power of two (it can be the same @paramname{x}
+ * input value).
+ */
+const unsigned int nextPowerOf2(const unsigned int &x);
+
+/** @brief Rounded up value which is divisible by @paramname{divisor}.
+ *
+ * Compute a value which is divisible by @paramname{divisor} and greater
  * or equal than @paramname{x}.
  *
  * @param x Number to round up.
  * @param divisor Divisor.
  * @return Rounded up number.
  */
-unsigned int roundUp(unsigned int x, unsigned int divisor);
+const unsigned int roundUp(const unsigned int &x, const unsigned int &divisor);
 
 /** @brief Round an float value to an integer one.
  * @param n Number to round.
  * @return The closest integer to @paramname{n}.
  */
-int round(float n);
+const int round(const float &n);
 
-/// Gets the folder path which contains the file @paramname{file_path}.
-/**
+/** @brief Gets the folder path which contains the file @paramname{file_path}.
+ *
  * @param file_path The file path.
  * @return The folder.
  */
-const std::string getFolderFromFilePath(const std::string file_path);
+const std::string getFolderFromFilePath(const std::string &file_path);
 
-/// Gets the file name of the path @paramname{file_path}.
-/**
+/** @brief Gets the file name of the path @paramname{file_path}.
+ *
  * @param file_path The file path.
  * @return The file name.
  */
-const std::string getFileNameFromFilePath(const std::string file_path);
+const std::string getFileNameFromFilePath(const std::string &file_path);
 
-/// Gets the file extension.
-/** Get the file extension from the full file path @paramname{file_path}.
+/** @brief Gets the file extension.
+ *
+ * Get the file extension from the full file path @paramname{file_path}.
  *
  * @param file_path The file path.
  * @return Extension of the file.
  */
-const std::string getExtensionFromFilePath(const std::string file_path);
+const std::string getExtensionFromFilePath(const std::string &file_path);
 
 /** @brief Check if the file @paramname{file_name} exist on the system.
  *
  * @param file_name The file path.
  * @return false if the file can not be found in the system, true otherwise.
  */
-bool isFile(const std::string file_name);
+const bool isFile(const std::string &file_name);
 
 /** @brief Check if the path @paramname{path} is a relative or an absolute one.
  *
  * @param path The path.
  * @return true if it is a relative path, false otherwise.
  */
-bool isRelativePath(const std::string path);
+const bool isRelativePath(const std::string &path);
 
-/// Compute the maximum local work size allowed by a device.
-/**
- * @param n Amount of data to operate in kernel (aiming threads to launch).
+/** @brief Compute the maximum local work size allowed by a device.
+ *
  * @param queue Command queue.
  * @return The local work size, 0 if it is not possible to find a valid value.
  */
-size_t getLocalWorkSize(cl_uint n, cl_command_queue queue);
+const size_t getLocalWorkSize(const cl_command_queue &queue);
 
-/// Compute the global work size needed to compute @paramname{n} threads.
-/**
+/** @brief Compute the global work size needed to compute @paramname{n} threads.
+ *
  * @param n Amount of data to operate in kernel (aiming threads to launch).
  * @param local_work_size The local work size which will be applied.
  * @return The required global work size.
  *
  * @see roundUp()
  */
-size_t getGlobalWorkSize(cl_uint n, size_t local_work_size);
+inline const size_t getGlobalWorkSize(const cl_uint &n,
+                                      const size_t &local_work_size)
+{
+    return roundUp(n, local_work_size);
+}
 
-/// Gets the minimum of two values.
-/**
+/** @brief Gets the minimum of two values.
+ *
  * @param a First value.
  * @param b Second value.
  * @return Minimum value.
  */
-template <typename T> inline T min(T a, T b){return (a>b)?b:a;}
+template <typename T> inline const T min(const T &a, const T &b)
+{
+    return (a > b) ? b : a;
+}
 
-/// Gets the maximum of two values.
-/**
+/** @brief Gets the maximum of two values.
+ *
  * @param a First value.
  * @param b Second value.
  * @return Maximum value.
  */
-template <typename T> inline T max(T a, T b){return (a<b)?b:a;}
+template <typename T> inline const T max(const T &a, const T &b)
+{
+    return (a < b) ? b : a;
+}
 
-/// Clamps a value between the bounds.
-/**
+/** @brief Clamps a value between the bounds.
+ *
  * @param x Value to adjust into the bounds.
  * @param a Minimum value.
  * @param b Maximum value.
  * @return Clamped value.
  */
-inline float clamp(float x, float a, float b){return x < a ? a : (x > b ? b : x);}
-
-/// Return a null vector.
-/**
- * @return zeroes vector.
- */
-vec Vzero();
-
-/// Return the x direction unit vector.
-/**
- * @return x direction unit vector.
- */
-vec Vx();
-
-/// Return the y direction unit vector.
-/**
- * @return y direction unit vector.
- */
-vec Vy();
+inline const float clamp(const float &x, const float &a, const float &b)
+{
+    return x < a ? a : (x > b ? b : x);
+}
 
 #ifdef HAVE_3D
-/// Return the z direction unit vector.
-/**
+/// Null vector
+static const vec VEC_ZERO = {0.f, 0.f, 0.f, 0.f};
+/// X axis unit vector
+static const vec VEC_X = {1.f, 0.f, 0.f, 0.f};
+/// Y axis unit vector
+static const vec VEC_Y = {0.f, 1.f, 0.f, 0.f};
+/// Z axis unit vector
+static const vec VEC_Z = {0.f, 0.f, 1.f, 0.f};
+#else
+/// Null vector
+static const vec VEC_ZERO = {0.f, 0.f};
+/// X axis unit vector
+static const vec VEC_X = {1.f, 0.f};
+/// Y axis unit vector
+static const vec VEC_Y = {0.f, 1.f};
+#endif
+
+/** @brief Return a null vector.
+ *
+ * @return zeroes vector.
+ */
+inline const vec Vzero() { return VEC_ZERO; }
+
+/** @brief Return the x direction unit vector.
+ *
+ * @return x direction unit vector.
+ */
+inline const vec Vx() { return VEC_X; }
+
+/** @brief Return the y direction unit vector.
+ *
+ * @return y direction unit vector.
+ */
+inline const vec Vy() { return VEC_Y; }
+
+#ifdef HAVE_3D
+/** @brief Return the z direction unit vector.
+ *
  * @remarks Only available in the 3D version.
  * @return z direction unit vector.
  */
-vec Vz();
+inline const vec Vz() { return VEC_Z; }
 #endif
 
-/// Multiply a vector by a scalar.
-/**
+/** @brief Multiply a vector by a scalar.
+ *
  * @param n Scalar to operate.
  * @param v Vector to operate.
  * @return @paramname{n} \f$ \cdot \f$ @paramname{v} Resulting vector.
  */
-vec mult(float n, vec v);
+const vec mult(const float &n, const vec &v);
 
-/// Adding operation.
-/**
+/** @brief Adding operation.
+ *
  * @param a Vector to operate.
  * @param b Vector to operate.
  * @return @paramname{a} + @paramname{b}.
  */
-vec add(vec a, vec b);
+const vec add(const vec &a, const vec &b);
 
-/// Subtracting operation.
-/**
+/** @brief Subtracting operation.
+ *
  * @param a Vector to operate.
  * @param b Vector to operate.
  * @return @paramname{a} - @paramname{b}.
  */
-vec sub(vec a, vec b);
+const vec sub(const vec &a, const vec &b);
 
-/// Inner product.
-/**
+/** @brief Inner product.
+ *
  * @param a Vector to operate.
  * @param b Vector to operate.
  * @return @paramname{a} \f$ \cdot \f$ @paramname{b} scalar product value.
  */
-float dot(vec a, vec b);
+const float dot(const vec &a, const vec &b);
 
-/// Compute the vector length.
-/**
+/** @brief Compute the vector length.
+ *
  * @param v Input vector.
  * @return \f$ \vert \f$ @paramname{v} \f$ \vert \f$ vector length.
  */
-float length(vec v);
+const float length(const vec &v);
 
-/// Compute a normalized vector copy (such that length() will return 1.0.
-/**
+/** @brief Compute a normalized vector copy (such that length() will return 1.0.
+ *
  * @param v Vector to normalize.
  * @return Normalized copy of the vector.
  *
  * @see length()
  */
-vec normalize(vec v);
+const vec normalize(const vec &v);
 
 #ifdef HAVE_3D
-/// Cross product.
-/**
+/** @brief Cross product.
+ *
  * @remarks Only available in the 3D version.
  * @param a Vector to operate.
  * @param b Vector to operate.
  * @return @paramname{a} \f$ \times \f$ @paramname{b} crossed product vector.
  */
-vec cross(vec a, vec b);
+const vec cross(const vec &a, const vec &b);
 #endif
 
-/// Get the number of digits of an integer decimal text representation.
-/**
+/** @brief Get the number of digits of an integer decimal text representation.
+ *
  * @param number Number from which the number of digits should be computed.
  * @return Number of digits.
  */
-unsigned int numberOfDigits(unsigned int number);
+const unsigned int numberOfDigits(const unsigned int number);
 
 }   // namespace
 

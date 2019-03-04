@@ -901,7 +901,7 @@ void RadixSort::setupDims()
         throw std::runtime_error("OpenCL error");
     }
 
-    _local_work_size = getLocalWorkSize(_n, C->command_queue());
+    _local_work_size = getLocalWorkSize(C->command_queue());
     _global_work_size = getGlobalWorkSize(_n, _local_work_size);
 }
 
