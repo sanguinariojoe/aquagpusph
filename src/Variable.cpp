@@ -1759,61 +1759,13 @@ void Variables::registerClMem(const std::string name,
                               const std::string type_name,
                               const std::string length)
 {
-    size_t typesize;
     unsigned int n;
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
     // Get the type size
     std::string type = trimCopy(type_name);
     type.pop_back();  // Remove the asterisk
-    if(!type.compare("int")){
-        typesize = sizeof(int);
-    }
-    else if(!type.compare("unsigned int")){
-        typesize = sizeof(unsigned int);
-    }
-    else if(!type.compare("float")){
-        typesize = sizeof(float);
-    }
-    else if(!type.compare("vec")){
-        typesize = sizeof(vec);
-    }
-    else if(!type.compare("vec2")){
-        typesize = sizeof(vec2);
-    }
-    else if(!type.compare("vec3")){
-        typesize = sizeof(vec3);
-    }
-    else if(!type.compare("vec4")){
-        typesize = sizeof(vec4);
-    }
-    else if(!type.compare("ivec")){
-        typesize = sizeof(ivec);
-    }
-    else if(!type.compare("ivec2")){
-        typesize = sizeof(ivec2);
-    }
-    else if(!type.compare("ivec3")){
-        typesize = sizeof(ivec3);
-    }
-    else if(!type.compare("ivec4")){
-        typesize = sizeof(ivec4);
-    }
-    else if(!type.compare("uivec")){
-        typesize = sizeof(uivec);
-    }
-    else if(!type.compare("uivec2")){
-        typesize = sizeof(uivec2);
-    }
-    else if(!type.compare("uivec3")){
-        typesize = sizeof(uivec3);
-    }
-    else if(!type.compare("uivec4")){
-        typesize = sizeof(uivec4);
-    }
-    else if(!type.compare("matrix")){
-        typesize = sizeof(matrix);
-    }
-    else{
+    const size_t typesize = typeToBytes(type);
+    if(!typesize){
         std::ostringstream msg;
         msg << "\"" << name << "\" declared as \""
             << type << "*\", which is not a valid array type" << std::endl;
@@ -1839,28 +1791,49 @@ void Variables::registerClMem(const std::string name,
     }
 
     // Get the length
-    n = 0;
-    if(length.compare(""))
+    if(!length.compare("")){
+        std::ostringstream msg;
+        msg << "No length specified for variable \"" << name
+            << "\", declared as array (" << type << "*)" << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("Invalid array length");        
+    }
+
+    try{
         n = (unsigned int)round(tok.solve(length));
+    }catch(...){
+        std::ostringstream msg;
+        msg << "Failure evaluating variable \"" << name
+            << "\" length" << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("Invalid array length");                
+    }
+
+    if(!n){
+        std::ostringstream msg;
+        msg << "Variable \"" << name << "\" has null length" << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("Invalid array length");                
+    }
 
     // Generate the variable
     ArrayVariable *var = new ArrayVariable(name, trimCopy(type_name));
-    if(n > 0){
-        // Allocate memory on device
-        cl_int status;
-        cl_mem mem;
-        mem = clCreateBuffer(C->context(),
-                             CL_MEM_READ_WRITE,
-                             n * typesize,
-                             NULL,
-                             &status);
-        if(status != CL_SUCCESS) {
-            LOG(L_ERROR, "Allocation failure.\n");
-            Aqua::InputOutput::Logger::singleton()->printOpenCLError(status);
-            throw std::bad_alloc();
-        }
-        var->set(&mem);
+
+    // Allocate memory on device
+    cl_int status;
+    cl_mem mem;
+    mem = clCreateBuffer(C->context(),
+                            CL_MEM_READ_WRITE,
+                            n * typesize,
+                            NULL,
+                            &status);
+    if(status != CL_SUCCESS) {
+        LOG(L_ERROR, "Allocation failure.\n");
+        Aqua::InputOutput::Logger::singleton()->printOpenCLError(status);
+        throw std::bad_alloc();
     }
+    var->set(&mem);
+
     _vars.push_back(var);
 }
 
