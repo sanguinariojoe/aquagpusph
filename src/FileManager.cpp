@@ -48,12 +48,7 @@ FileManager::~FileManager()
     }
 }
 
-void FileManager::inputFile(std::string path)
-{
-    _in_file = path;
-}
-
-CalcServer::CalcServer* FileManager::load()
+CalcServer::CalcServer* const FileManager::load()
 {
     unsigned int n=0;
 
@@ -132,7 +127,7 @@ CalcServer::CalcServer* FileManager::load()
     return C;
 }
 
-void FileManager::save(float t)
+void FileManager::save(const float &t)
 {
     // Execute the savers
     for(auto saver : _savers) {

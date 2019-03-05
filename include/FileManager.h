@@ -63,7 +63,7 @@ public:
      *
      * @param path XML input file path.
      */
-    void inputFile(std::string path);
+    inline void inputFile(std::string path){_in_file = path;}
 
     /** @brief Get the main XML input file path.
      *
@@ -73,7 +73,7 @@ public:
      *
      * @return XML input file path.
      */
-    std::string inputFile(){return _in_file;}
+    inline const std::string inputFile() const {return _in_file;}
 
     /** @brief Get the simulation setup, extracted from the XML definition files
      *
@@ -87,7 +87,7 @@ public:
      * @warning The returned Aqua::InputOutput::ProblemSetup static object is in
      * the same scope than this class.
      */
-    ProblemSetup& problemSetup(){return _simulation;}
+    inline const ProblemSetup& problemSetup() const {return _simulation;}
     
 
     /** @brief Load the input files, generating the calculation server.
@@ -100,7 +100,7 @@ public:
      *
      * @return The built Calculation server, NULL if errors happened.
      */
-    CalcServer::CalcServer* load();
+    CalcServer::CalcServer* const load();
 
     /** @brief Save the output data files.
      *
@@ -113,7 +113,7 @@ public:
      * @warning If Python scripts are considered at the simulation, the user is
      * responsible to save the state to can eventually resume the simulation
      */
-    void save(float t);
+    void save(const float &t);
 
     /** @brief Wait for the parallel saving threads.
      *
