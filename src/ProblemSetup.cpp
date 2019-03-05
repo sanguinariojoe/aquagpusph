@@ -79,12 +79,12 @@ ProblemSetup::~ProblemSetup()
 }
 
 ProblemSetup::sphSettings::sphSettings()
+    : _save_on_fail(true)
+    , _platform_id(0)
+    , _device_id(0)
+    , _device_type(CL_DEVICE_TYPE_ALL)
+    , _base_path("")
 {
-    save_on_fail = true;
-    platform_id = 0;
-    device_id = 0;
-    device_type = CL_DEVICE_TYPE_ALL;
-    base_path = "";
 }
 
 void ProblemSetup::sphVariables::registerVariable(std::string name,

@@ -97,7 +97,8 @@ public:
      */
     ~ProblemSetup();
 
-    /** @brief General program settings.
+    /** @class sphSettings ProblemSetup.h ProblemSetup.h
+     * @brief General program settings.
      *
      * These setting are set between the following XML tags:
      * @code{.xml}
@@ -117,48 +118,114 @@ public:
 
         /** @brief Save the output in case of failure
          *
-         * If true, the particles sets and simulation state will be saved in
-         * case of failure/fatal error. Otherwise the simulation will just stop.
+         * @param save_on_fail true if the particles sets and simulation state
+         * will be saved upon simulation failure/fatal error.
          *
-         * You can disable save on fail with the following tag (save on fail is
-         * enabled by default):
+         * @note You can disable save on fail with the following tag (save on
+         * fail is enabled by default):
          * `<SaveOnFail value="false" />`
          */
-        bool save_on_fail;
+        inline void saveOnFail(const bool &save_on_fail){
+            _save_on_fail = save_on_fail;
+        }
 
-        /** @brief Index of the OpenCL platform to use.
+        /** @brief Save the output in case of failure
          *
-         * AQUAgpusph is providing the available OpenCL platforms, and the
-         * devices into them.
+         * @return true if the particles sets and simulation state will be saved
+         * upon simulation failure/fatal error.
          *
-         * This field can be set with the tag `Device`, for instance:
+         * @note You can disable save on fail with the following tag (save on
+         * fail is enabled by default):
+         * `<SaveOnFail value="false" />`
+         */
+        inline const bool saveOnFail() const {return _save_on_fail;}
+
+        /** @brief Index of the OpenCL platform to use
+         * @param platform Index of the platform to be considered
+         * @note This field can be set with the tag `Device`, for instance:
          * `<Device platform="0" device="0" type="GPU" />`
          */
-        unsigned int platform_id;
+        inline void platformID(const unsigned int &platform){
+            _platform_id = platform;
+        }
 
-        /** @brief Index of the OpenCL device to use in the platform
-         * #platform_id.
-         *
-         * AQUAgpusph is providing the available OpenCL platforms, and the
-         * devices into them.
-         *
-         * This field can be set with the tag `Device`, for instance:
+        /** @brief Index of the OpenCL platform to use
+         * @return Index of the platform to be considered
+         * @note This field can be set with the tag `Device`, for instance:
          * `<Device platform="0" device="0" type="GPU" />`
-         *
-         * @remarks The index of the device is refered to the available ones
-         * compatibles with the selected type #device_type.
          */
-        unsigned int device_id;
+        inline const unsigned int platformID() const {return _platform_id;}
+
+        /** @brief Index of the OpenCL device to use
+         * @param device Index of the device to be considered within the ones
+         * available for the selected platform
+         * @note This field can be set with the tag `Device`, for instance:
+         * `<Device platform="0" device="0" type="GPU" />`
+         */
+        inline void deviceID(const unsigned int &device){
+            _device_id = device;
+        }
+
+        /** @brief Index of the OpenCL device to use
+         * @return Index of the device to be considered within the ones
+         * available for the selected platform
+         * @note This field can be set with the tag `Device`, for instance:
+         * `<Device platform="0" device="0" type="GPU" />`
+         */
+        inline const unsigned int deviceID() const {return _device_id;}
 
         /** @brief Type of devices that will be considered in the platform
-         * #platform_id.
-         *
-         * This field can be set with the tag `Device`, for instance:
+         * @param device_type Type of devices to be considered. See
+         * clGetDeviceIDs() to see the accepted values
+         * @note This field can be set with the tag `Device`, for instance:
          * `<Device platform="0" device="0" type="GPU" />`
-         *
-         * @see #device_id.
+         * @see deviceID()
          */
-        cl_device_type device_type;
+        inline void deviceType(const cl_device_type &device_type){
+            _device_type = device_type;
+        }
+
+        /** @brief Type of devices that will be considered in the platform
+         * @return Type of devices to be considered. See clGetDeviceIDs() to see
+         * the accepted values
+         * @note This field can be set with the tag `Device`, for instance:
+         * `<Device platform="0" device="0" type="GPU" />`
+         * @see deviceID()
+         */
+        inline const cl_device_type deviceType() const {return _device_type;}
+
+        /** @brief AQUAgpusph root path
+         * @param path AQUAgpusph root path, where resources folder can be
+         * located
+         * @note Usually this option is automatically set by the basic module,
+         * using the tag RootPath
+         * @note This path is added to the OpenCL compilation include paths
+         */
+        inline void basePath(const std::string &path){
+            _base_path = path;
+        }
+
+        /** @brief AQUAgpusph root path
+         * @return AQUAgpusph root path, where resources folder can be
+         * located
+         * @note Usually this option is automatically set by the basic module,
+         * using the tag RootPath
+         * @note This path is added to the OpenCL compilation include paths
+         */
+        inline const std::string basePath() const {return _base_path;}
+
+    private:
+        /// true to save everything upon simulation failure, false otherwise
+        bool _save_on_fail;
+
+        /// OpenCL platform index
+        unsigned int _platform_id;
+
+        /// OpenCL device index
+        unsigned int _device_id;
+
+        /// Type of device (see clGetDeviceIDs)
+        cl_device_type _device_type;
 
         /** @brief AQUAgpusph root path.
          *
@@ -166,13 +233,13 @@ public:
          * the tag RootPath.
          * This path is added to the OpenCL include paths.
          */
-        std::string base_path;
+        std::string _base_path;
     };
 
     /// Stored settings
     sphSettings settings;
 
-    /** @struct sphVariables
+    /** @class sphVariables ProblemSetup.h ProblemSetup.h
      * @brief Simulation variables registered.
      *
      * In order to make AQUAgpusph more extensible, variables can be registered
@@ -238,7 +305,7 @@ public:
     /// Variables storage
     sphVariables variables;
 
-    /** @struct sphDefinitions
+    /** @class sphDefinitions ProblemSetup.h ProblemSetup.h
      * @brief OpenCL kernels compilation definitions.
      *
      * In order to make AQUAgpusph more extensible, preprocessor definitions
@@ -261,8 +328,9 @@ public:
      * they are set just one time, so you cannot use them to pass changing
      * variables to the OpenCL kernels.
      */
-    struct sphDefinitions
+    class sphDefinitions
     {
+    public:
         /// Constructor.
         sphDefinitions() {};
         /// Destructor
@@ -382,7 +450,7 @@ public:
      */
     std::vector<sphTool*> reports;
 
-    /** @struct sphTimingParameters
+    /** @class sphTimingParameters ProblemSetup.h ProblemSetup.h
      * @brief Simulation time flow options.
      *
      * This options are used to control the simulation time step, the output

@@ -62,7 +62,7 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 
     setupOpenCL();
 
-    _base_path = _sim_data.settings.base_path;
+    _base_path = _sim_data.settings.basePath();
     _current_tool_name = new char[256];
     strcpy(_current_tool_name, "");
 
@@ -664,16 +664,16 @@ void CalcServer::queryOpenCL()
 
 void CalcServer::setupPlatform()
 {
-    if(_sim_data.settings.platform_id >= _num_platforms){
+    if(_sim_data.settings.platformID() >= _num_platforms){
         std::ostringstream msg;
         LOG(L_ERROR, "The requested OpenCL platform can't be used.\n");
-        msg << "\tPlatform " << _sim_data.settings.platform_id
+        msg << "\tPlatform " << _sim_data.settings.platformID()
             << " has been selected, but just " << _num_platforms
             << " are available." << std::endl;
         LOG0(L_DEBUG, msg.str());
         throw std::runtime_error("Out of bounds");
     }
-    _platform = _platforms[_sim_data.settings.platform_id];
+    _platform = _platforms[_sim_data.settings.platformID()];
 }
 
 /** @brief Runtime error reporting tool
@@ -713,7 +713,7 @@ void CalcServer::setupDevices()
     _devices = NULL;
     // Gets the number of valid devices
     err_code = clGetDeviceIDs(_platform,
-                              _sim_data.settings.device_type,
+                              _sim_data.settings.deviceType(),
                               0,
                               NULL,
                               &_num_devices);
@@ -722,22 +722,22 @@ void CalcServer::setupDevices()
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
-    if(_sim_data.settings.device_id >= _num_devices) {
+    if(_sim_data.settings.deviceID() >= _num_devices) {
         LOG(L_ERROR, "The selected device can't be used.\n");
         std::ostringstream msg;
-        msg << "\tDevice " << _sim_data.settings.device_id
+        msg << "\tDevice " << _sim_data.settings.deviceID()
             << " has been selected, but just " << _num_devices
             << " devices are available." << std::endl;
         LOG0(L_DEBUG, msg.str());
-        if(_sim_data.settings.device_type == CL_DEVICE_TYPE_ALL)
+        if(_sim_data.settings.deviceType() == CL_DEVICE_TYPE_ALL)
             LOG0(L_DEBUG, "\t\tCL_DEVICE_TYPE_ALL filter activated\n");
-        else if(_sim_data.settings.device_type == CL_DEVICE_TYPE_CPU)
+        else if(_sim_data.settings.deviceType() == CL_DEVICE_TYPE_CPU)
             LOG0(L_DEBUG, "\t\tCL_DEVICE_TYPE_CPU filter activated\n");
-        else if(_sim_data.settings.device_type == CL_DEVICE_TYPE_GPU)
+        else if(_sim_data.settings.deviceType() == CL_DEVICE_TYPE_GPU)
             LOG0(L_DEBUG, "\t\tCL_DEVICE_TYPE_GPU filter activated\n");
-        else if(_sim_data.settings.device_type == CL_DEVICE_TYPE_ACCELERATOR)
+        else if(_sim_data.settings.deviceType() == CL_DEVICE_TYPE_ACCELERATOR)
             LOG0(L_DEBUG, "\t\tCL_DEVICE_TYPE_ACCELERATOR filter activated\n");
-        else if(_sim_data.settings.device_type == CL_DEVICE_TYPE_DEFAULT)
+        else if(_sim_data.settings.deviceType() == CL_DEVICE_TYPE_DEFAULT)
             LOG0(L_DEBUG, "\t\tCL_DEVICE_TYPE_DEFAULT filter activated\n");
 
         throw std::runtime_error("Out of bounds");
@@ -752,7 +752,7 @@ void CalcServer::setupDevices()
         throw std::bad_alloc();
     }
     err_code = clGetDeviceIDs(_platform,
-                              _sim_data.settings.device_type,
+                              _sim_data.settings.deviceType(),
                               _num_devices,
                               _devices,
                               &_num_devices);
@@ -797,8 +797,8 @@ void CalcServer::setupDevices()
         }
     }
     // Store the selected ones
-    _device = _devices[_sim_data.settings.device_id];
-    _command_queue = _command_queues[_sim_data.settings.device_id];
+    _device = _devices[_sim_data.settings.deviceID()];
+    _command_queue = _command_queues[_sim_data.settings.deviceID()];
 }
 
 void CalcServer::setup()

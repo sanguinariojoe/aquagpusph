@@ -232,7 +232,7 @@ void State::parse(std::string filepath,
         if(!isFile(included_file) && isRelativePath(included_file)) {
             // Check if there is such file relative to some root paths
             std::vector<std::string> root_paths = {
-                sim_data.settings.base_path + "/",
+                sim_data.settings.basePath() + "/",
                 getFolderFromFilePath(filepath) + "/"
             };
             for(auto root_path : root_paths) {
@@ -315,10 +315,10 @@ void State::parseSettings(DOMElement *root,
                 continue;
             DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
             if(!toLowerCopy(xmlAttribute(s_elem, "value")).compare("true")){
-                sim_data.settings.save_on_fail = true;
+                sim_data.settings.saveOnFail(true);
             }
             else{
-                sim_data.settings.save_on_fail = false;
+                sim_data.settings.saveOnFail(false);
             }
         }
 
@@ -328,18 +328,20 @@ void State::parseSettings(DOMElement *root,
             if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
                 continue;
             DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
-            sim_data.settings.platform_id = std::stoi(xmlAttribute(s_elem, "platform"));
-            sim_data.settings.device_id   = std::stoi(xmlAttribute(s_elem, "device"));
+            sim_data.settings.platformID(std::stoi(
+                xmlAttribute(s_elem, "platform")));
+            sim_data.settings.deviceID(std::stoi(
+                xmlAttribute(s_elem, "device")));
             if(!xmlAttribute(s_elem, "type").compare("ALL"))
-                sim_data.settings.device_type = CL_DEVICE_TYPE_ALL;
+                sim_data.settings.deviceType(CL_DEVICE_TYPE_ALL);
             else if(!xmlAttribute(s_elem, "type").compare("CPU"))
-                sim_data.settings.device_type = CL_DEVICE_TYPE_CPU;
+                sim_data.settings.deviceType(CL_DEVICE_TYPE_CPU);
             else if(!xmlAttribute(s_elem, "type").compare("GPU"))
-                sim_data.settings.device_type = CL_DEVICE_TYPE_GPU;
+                sim_data.settings.deviceType(CL_DEVICE_TYPE_GPU);
             else if(!xmlAttribute(s_elem, "type").compare("ACCELERATOR"))
-                sim_data.settings.device_type = CL_DEVICE_TYPE_ACCELERATOR;
+                sim_data.settings.deviceType(CL_DEVICE_TYPE_ACCELERATOR);
             else if(!xmlAttribute(s_elem, "type").compare("DEFAULT"))
-                sim_data.settings.device_type = CL_DEVICE_TYPE_DEFAULT;
+                sim_data.settings.deviceType(CL_DEVICE_TYPE_DEFAULT);
             else{
                 std::ostringstream msg;
                 msg << "Unknow \"" << xmlAttribute(s_elem, "type")
@@ -360,7 +362,7 @@ void State::parseSettings(DOMElement *root,
             if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
                 continue;
             DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
-            sim_data.settings.base_path = xmlAttribute(s_elem, "path");
+            sim_data.settings.basePath(xmlAttribute(s_elem, "path"));
         }
     }
 }
@@ -1461,12 +1463,12 @@ void State::writeSettings(xercesc::DOMDocument* doc,
     root->appendChild(elem);
 
     s_elem = doc->createElement(xmlS("Device"));
-    att << sim_data.settings.platform_id;
+    att << sim_data.settings.platformID();
     s_elem->setAttribute(xmlS("platform"), xmlS(att.str()));
-    att.str(""); att << sim_data.settings.device_id;
+    att.str(""); att << sim_data.settings.deviceID();
     s_elem->setAttribute(xmlS("device"), xmlS(att.str()));
     att.str("");
-    switch(sim_data.settings.device_type){
+    switch(sim_data.settings.deviceType()){
         case CL_DEVICE_TYPE_ALL:
             att << "ALL";
             break;
