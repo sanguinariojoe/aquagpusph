@@ -32,6 +32,7 @@ TimeManager::TimeManager(const ProblemSetup& sim_data)
     : _step(NULL)
     , _time(NULL)
     , _dt(NULL)
+    , _frame_var(NULL)
     , _frame(NULL)
     , _time_max(NULL)
     , _steps_max(NULL)
@@ -68,7 +69,8 @@ TimeManager::TimeManager(const ProblemSetup& sim_data)
     _time = (float *)vars->get("t")->get();
     _dt = (float *)vars->get("dt")->get();
     _step = (unsigned int *)vars->get("iter")->get();
-    _frame = (unsigned int *)vars->get("frame")->get();
+    _frame_var = (FloatVariable*)vars->get("frame")->get();
+    _frame = (unsigned int *)(_frame_var->get());
     _time_max = (float *)vars->get("end_t")->get();
     _steps_max = (unsigned int *)vars->get("end_iter")->get();
     _frames_max = (unsigned int *)vars->get("end_frame")->get();
@@ -104,14 +106,7 @@ TimeManager::~TimeManager()
 {
 }
 
-void TimeManager::update(float sim_dt)
-{
-    dt(sim_dt);
-    step(step() + 1);
-    time(time() + dt());
-}
-
-bool TimeManager::mustStop()
+const bool TimeManager::mustStop() const
 {
     if((time() >= maxTime()) ||
        (step() >= maxStep()) ||
@@ -122,10 +117,9 @@ bool TimeManager::mustStop()
     return false;
 }
 
-bool TimeManager::mustPrintOutput()
+const bool TimeManager::mustPrintOutput()
 {
     if(time() < 0.f){
-        step(0);
         return false;
     }
     if( ( (_output_fps >= 0.f) || (_output_ipf >= 0.f) ) && (frame()==0) && (step()==1) ) {
@@ -152,6 +146,11 @@ bool TimeManager::mustPrintOutput()
     }
 
     return false;
+}
+
+void TimeManager::frame(const unsigned int& frame)
+{
+    _frame_var->set((void*)&frame);
 }
 
 }}  // namespace
