@@ -173,6 +173,24 @@
     #endif
 #endif
 
+#ifdef HAVE_3D
+/// Null vector
+static const vec VEC_ZERO = {0.f, 0.f, 0.f, 0.f};
+/// X axis unit vector
+static const vec VEC_X = {1.f, 0.f, 0.f, 0.f};
+/// Y axis unit vector
+static const vec VEC_Y = {0.f, 1.f, 0.f, 0.f};
+/// Z axis unit vector
+static const vec VEC_Z = {0.f, 0.f, 1.f, 0.f};
+#else
+/// Null vector
+static const vec VEC_ZERO = {0.f, 0.f};
+/// X axis unit vector
+static const vec VEC_X = {1.f, 0.f};
+/// Y axis unit vector
+static const vec VEC_Y = {0.f, 1.f};
+#endif
+
 #ifndef __CL_MIN_LOCALSIZE__
     /** @def __CL_MIN_LOCALSIZE__
      * @brief Minimum local work size to execute kernels.
@@ -287,14 +305,11 @@ public:
      * The matrix will be initialized as a zeroes one.
      */
     mat(){
+        row[0] = VEC_ZERO;
+        row[1] = VEC_ZERO;
         #ifdef HAVE_3D
-            row[0].x=0.f; row[0].y=0.f; row[0].z=0.f; row[0].w=0.f;
-            row[1].x=0.f; row[1].y=0.f; row[1].z=0.f; row[1].w=0.f;
-            row[2].x=0.f; row[2].y=0.f; row[2].z=0.f; row[2].w=0.f;
-            row[3].x=0.f; row[3].y=0.f; row[3].z=0.f; row[3].w=0.f;
-        #else
-            row[0].x=0.f; row[0].y=0.f;
-            row[1].x=0.f; row[1].y=0.f;
+            row[0] = VEC_ZERO;
+            row[1] = VEC_ZERO;
         #endif
     }
 
@@ -302,14 +317,14 @@ public:
      * @param index Row index.
      * @return Row vector.
      */
-    vec const& operator[] (unsigned index) const{
+    vec const& operator[] (const unsigned &index) const{
         return row[index];
     }
     /** Subscript operator to return a matrix row.
      * @param index Row index.
      * @return Row vector.
      */
-    vec& operator[] (unsigned index){
+    vec& operator[] (const unsigned &index){
         return row[index];
     }
 

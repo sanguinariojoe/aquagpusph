@@ -258,24 +258,6 @@ inline const float clamp(const float &x, const float &a, const float &b)
     return x < a ? a : (x > b ? b : x);
 }
 
-#ifdef HAVE_3D
-/// Null vector
-static const vec VEC_ZERO = {0.f, 0.f, 0.f, 0.f};
-/// X axis unit vector
-static const vec VEC_X = {1.f, 0.f, 0.f, 0.f};
-/// Y axis unit vector
-static const vec VEC_Y = {0.f, 1.f, 0.f, 0.f};
-/// Z axis unit vector
-static const vec VEC_Z = {0.f, 0.f, 1.f, 0.f};
-#else
-/// Null vector
-static const vec VEC_ZERO = {0.f, 0.f};
-/// X axis unit vector
-static const vec VEC_X = {1.f, 0.f};
-/// Y axis unit vector
-static const vec VEC_Y = {0.f, 1.f};
-#endif
-
 /** @brief Return a null vector.
  *
  * @return zeroes vector.
