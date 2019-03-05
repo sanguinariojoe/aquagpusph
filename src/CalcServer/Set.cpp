@@ -85,11 +85,11 @@ void Set::setup()
     setupOpenCL();
 }
 
-
-void Set::_execute()
+cl_event Set::_execute(const std::vector<cl_event> events)
 {
     unsigned int i;
     cl_int err_code;
+    cl_event event;
     CalcServer *C = CalcServer::singleton();
 
     if(_data) {
@@ -98,16 +98,18 @@ void Set::_execute()
     }
     setVariables();
 
-    // Execute the kernels
+    cl_uint num_events_in_wait_list = events.size();
+    const cl_event *event_wait_list = events.size() ? events.data() : NULL;
+
     err_code = clEnqueueNDRangeKernel(C->command_queue(),
                                       _kernel,
                                       1,
                                       NULL,
                                       &_global_work_size,
                                       &_local_work_size,
-                                      0,
-                                      NULL,
-                                      NULL);
+                                      num_events_in_wait_list,
+                                      event_wait_list,
+                                      &event);
     if(err_code != CL_SUCCESS) {
         std::stringstream msg;
         msg << "Failure executing the tool \"" <<
@@ -116,6 +118,8 @@ void Set::_execute()
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL execution error");
     }
+
+    return event;
 }
 
 void Set::variable()
@@ -138,6 +142,9 @@ void Set::variable()
         throw std::runtime_error("Invalid variable type");
     }
     _var = (InputOutput::ArrayVariable *)vars->get(_var_name);
+
+    std::vector<InputOutput::Variable*> deps = {_var};
+    setDependencies(deps);
 }
 
 void Set::setupOpenCL()
@@ -317,36 +324,39 @@ void Set::setVariables()
 {
     cl_int err_code;
 
-    if(_input == *(cl_mem*)_var->get()){
-        return;
+    if(_data) {
+        err_code = clSetKernelArg(
+            _kernel,
+            2,
+            InputOutput::Variables::typeToBytes(_var->type()),
+            _data);
+        if(err_code != CL_SUCCESS) {
+            std::stringstream msg;
+            msg << "Failure setting the value to the tool \""
+                << name() << "\"." << std::endl;
+            LOG(L_ERROR, msg.str());
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL error");
+        }
     }
 
-    err_code = clSetKernelArg(_kernel,
-                              0,
-                              _var->typesize(),
-                              _var->get());
-    if(err_code != CL_SUCCESS) {
-        std::stringstream msg;
-        msg << "Failure setting the variable \"" << _var->name()
-            << "\" to the tool \"" << name() << "\"." << std::endl;
-        LOG(L_ERROR, msg.str());
-        InputOutput::Logger::singleton()->printOpenCLError(err_code);
-        throw std::runtime_error("OpenCL error");
-    }
-    err_code = clSetKernelArg(_kernel,
-                              2,
-                              InputOutput::Variables::typeToBytes(_var->type()),
-                              _data);
-    if(err_code != CL_SUCCESS) {
-        std::stringstream msg;
-        msg << "Failure setting the value to the tool \""
-            << name() << "\"." << std::endl;
-        LOG(L_ERROR, msg.str());
-        InputOutput::Logger::singleton()->printOpenCLError(err_code);
-        throw std::runtime_error("OpenCL error");
-    }
+    if(_input != *(cl_mem*)_var->get()){
+        // For some reason the input variable has changed...
+        err_code = clSetKernelArg(_kernel,
+                                0,
+                                _var->typesize(),
+                                _var->get());
+        if(err_code != CL_SUCCESS) {
+            std::stringstream msg;
+            msg << "Failure setting the variable \"" << _var->name()
+                << "\" to the tool \"" << name() << "\"." << std::endl;
+            LOG(L_ERROR, msg.str());
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL error");
+        }
 
-    _input = *(cl_mem *)_var->get();
+        _input = *(cl_mem *)_var->get();
+    }
 }
 
 }}  // namespaces

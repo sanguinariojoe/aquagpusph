@@ -26,7 +26,9 @@
 #define TOOL_H_INCLUDED
 
 #include <sphPrerequisites.h>
+#include <Variable.h>
 #include <math.h>
+#include <vector>
 
 namespace Aqua{ namespace CalcServer{
 
@@ -118,16 +120,50 @@ protected:
      */
     void allocatedMemory(size_t mem_size){_allocated_memory = mem_size;}
 
-    /** Execute the tool.
+    /** Execute the tool
+     * @param events List of events that shall be waited before safe execution
+     * @return OpenCL event to be waited before accessing the dependencies
      */
-    virtual void _execute(){return;}
+    virtual cl_event _execute(const std::vector<cl_event> events){return NULL;}
 
     /** @brief Add new data to the average and squared elapsed times
      * @param elapsed_time Elapsed time
      */
     void addElapsedTime(float elapsed_time);
 
+    /** @brief Set the depedencies of the tool
+     *
+     * The dependencies are the variables that this tool is either reading or
+     * writing.
+     *
+     * @param var_names Names of the dependencies
+     */
+    void setDependencies(std::vector<std::string> var_names);
+
+    /** @brief Set the depedencies of the tool
+     *
+     * The dependencies are the variables that this tool is either reading or
+     * writing.
+     *
+     * @param vars Dependencies
+     */
+    void setDependencies(std::vector<InputOutput::Variable*> vars);
+
+    /** @brief Get the depedencies of the tool
+     *
+     * @return Dependencies
+     */
+    const std::vector<InputOutput::Variable*> getDependencies();
+
 private:
+    /** @brief Get the list of events that this tool shall wait for
+     *
+     * @return C++ vector of events
+     * @warning The events returned have been retained, so call clReleaseEvent()
+     * after using them
+     */
+    const std::vector<cl_event> getEvents();
+
     /// Kernel name
     std::string _name;
 
@@ -148,6 +184,12 @@ private:
 
     /// Average squared elapsed time
     float _squared_elapsed_time;
+
+    /// List of dependencies
+    std::vector<InputOutput::Variable*> _vars;
+
+    /// Internal storage to can safely return memory with getEvents()
+    std::vector<cl_event> _events;
 };
 
 }}  // namespace

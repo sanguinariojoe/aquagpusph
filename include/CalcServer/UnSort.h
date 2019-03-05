@@ -54,15 +54,22 @@ public:
      */
     void setup();
 
+    /** Get the input variable.
+     * @return The variable to become sorted.
+     */
+    InputOutput::ArrayVariable* input(){return _var;}
+
     /** Get the memory object where the unsorted data is stored.
      * @return The memory object where the unsorted data is stored.
      */
     cl_mem output(){return _output;}
 
 protected:
-    /** Compute the reduction.
+    /** Execute the tool
+     * @param events List of events that shall be waited before safe execution
+     * @return OpenCL event to be waited before accessing the dependencies
      */
-    void _execute();
+    cl_event _execute(const std::vector<cl_event> events);
 
 private:
     /** Get the input variable

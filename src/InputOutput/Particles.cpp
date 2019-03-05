@@ -180,7 +180,7 @@ unsigned int Particles::file(const std::string basename,
 std::vector<void*> Particles::download(std::vector<std::string> fields)
 {
     std::vector<void*> data;
-    std::vector<cl_event> events;  // vector storage is continuous memory
+    std::vector<cl_event> events;
     size_t typesize, len;
     cl_int err_code;
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();

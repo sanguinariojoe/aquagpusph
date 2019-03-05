@@ -58,10 +58,11 @@ public:
     void setup();
 
 protected:
-    /** @brief Perform the work.
-     * @return false if all gone right, true otherwise.
+    /** Execute the tool
+     * @param events List of events that shall be waited before safe execution
+     * @return OpenCL event to be waited before accessing the dependencies
      */
-    void _execute();
+    cl_event _execute(const std::vector<cl_event> events);
 
 private:
     /// Condition expression to evaluate

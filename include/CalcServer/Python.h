@@ -59,9 +59,11 @@ public:
     void setup();
 
 protected:
-    /** @brief Perform the work.
+    /** Execute the tool
+     * @param events List of events that shall be waited before safe execution
+     * @return OpenCL event to be waited before accesing the dependencies
      */
-    void _execute();
+    cl_event _execute(const std::vector<cl_event> events);
 
     /** @brief Initialize the Python interpreter.
      *
