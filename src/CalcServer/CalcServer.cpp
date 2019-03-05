@@ -100,7 +100,7 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
     valstr.str(""); valstr << num_icell;
     _vars.registerVariable("n_radix", "unsigned int", "", valstr.str());
     // Number of cells in x, y, z directions, and the total (n_x * n_y * n_z)
-    _vars.registerVariable("n_cells", "uivec4", "", "0, 0, 0, 0");
+    _vars.registerVariable("n_cells", "uivec4", "", "1, 1, 1, 1");
     // Kernel support
     _vars.registerVariable("support", "float", "", "2");
 
@@ -118,9 +118,9 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
     // Register the user variables and arrays
     for(i = 0; i < _sim_data.variables.names.size(); i++){
         _vars.registerVariable(_sim_data.variables.names.at(i),
-                                _sim_data.variables.types.at(i),
-                                _sim_data.variables.lengths.at(i),
-                                _sim_data.variables.values.at(i));
+                               _sim_data.variables.types.at(i),
+                               _sim_data.variables.lengths.at(i),
+                               _sim_data.variables.values.at(i));
     }
 
     // Register the user definitions
@@ -453,6 +453,7 @@ void CalcServer::update(InputOutput::TimeManager& t_manager)
                 sleep(__ERROR_SHOW_TIME__);
                 throw;
             }
+            clFinish(command_queue());
         }
         strcpy(_current_tool_name, "__post execution__");
 
