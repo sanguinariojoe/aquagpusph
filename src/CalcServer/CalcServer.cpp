@@ -453,7 +453,6 @@ void CalcServer::update(InputOutput::TimeManager& t_manager)
                 sleep(__ERROR_SHOW_TIME__);
                 throw;
             }
-            clFinish(command_queue());
         }
         strcpy(_current_tool_name, "__post execution__");
 
