@@ -33,15 +33,9 @@ TimeManager::TimeManager(const ProblemSetup& sim_data)
     , _time(NULL)
     , _dt(NULL)
     , _frame(NULL)
-    , _start_time(0.f)
-    , _start_frame(0)
     , _time_max(NULL)
     , _steps_max(NULL)
     , _frames_max(NULL)
-    , _log_time(0.f)
-    , _log_fps(-1.f)
-    , _log_step(0)
-    , _log_ipf(-1)
     , _output_time(0.f)
     , _output_fps(-1.f)
     , _output_step(0)
@@ -102,18 +96,8 @@ TimeManager::TimeManager(const ProblemSetup& sim_data)
         _output_fps = sim_data.time_opts.output_fps;
     }
 
-    *_step = 0;
-    *_dt = 0.f;
-    *_time = 0.f;
-    _start_time = 0.f;
-    *_frame = 0;
-
-    if(*_time > 0.f){
-        _log_time = *_time;
-        _log_step = *_step;
-        _output_time = *_time;
-        _output_step = *_step;
-    }
+    _output_time = *_time;
+    _output_step = *_step;
 }
 
 TimeManager::~TimeManager()

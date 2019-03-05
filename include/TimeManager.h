@@ -105,28 +105,6 @@ public:
      * @return Simulation time step \f$ \Delta t \f$.
      */
     float dt(){return *_dt;}
-    /** @brief Set the simulation starting frame.
-     *
-     * The frame is the index of the current particles output.
-     *
-     * @param start starting frame.
-     */
-    void startFrame(int start){_start_frame=start;}
-    /** @brief Get the simulation starting frame.
-     *
-     * The frame is the index of the current particles output.
-     *
-     * @return Simulation starting frame.
-     */
-    int startFrame(){return _start_frame;}
-    /** @brief Set the simulation starting time \f$ t_0 \f$.
-     * @param start Simulation starting time \f$ t_0 \f$.
-     */
-    void startTime(float start){_start_time=start;}
-    /** @brief Get the simulation starting time \f$ t_0 \f$.
-     * @return Simulation starting time \f$ t_0 \f$.
-     */
-    float startTime(){return _start_time;}
 
     /** @brief Set the last output event time step index.
      * @param s last output event time step index.
@@ -175,25 +153,12 @@ private:
     float *_dt;
     /// Actual frame
     unsigned int *_frame;
-    /// Start frame
-    float _start_time;
-    /// Start frame
-    int _start_frame;
     /// Maximum time into simulation (-1 if simulation don't stop by time criteria)
     float *_time_max;
     /// Maximum number of steps into simulation (-1 if simulation don't stop by steps criteria)
     unsigned int *_steps_max;
     /// Maximum number of frames into simulation (-1 if simulation don't stop by frames criteria)
     unsigned int *_frames_max;
-
-    /// Time when last log file printed
-    float _log_time;
-    /// FPS for Log files (-1 if Log file must not be printed)
-    float _log_fps;
-    /// Step when last log file printed
-    int _log_step;
-    /// IPF for Log files (-1 if Log file must not be printed)
-    int _log_ipf;
 
     /// Time when last Output file printed
     float _output_time;
