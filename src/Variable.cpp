@@ -859,25 +859,25 @@ const std::string ArrayVariable::asString(size_t i)
 
     std::ostringstream str_stream;
 
-    if(!type().compare("unsigned int")){
+    if(!type().compare("unsigned int*")){
         str_stream << ((unsigned int*)ptr)[0];
     }
-    else if(!type().compare("uivec2")){
+    else if(!type().compare("uivec2*")){
         str_stream << "(" << ((unsigned int*)ptr)[0] << ","
                           << ((unsigned int*)ptr)[1] << ")";
     }
-    else if(!type().compare("uivec3")){
+    else if(!type().compare("uivec3*")){
         str_stream << "(" << ((unsigned int*)ptr)[0] << ","
                           << ((unsigned int*)ptr)[1] << ","
                           << ((unsigned int*)ptr)[2] << ")";
     }
-    else if(!type().compare("uivec4")){
+    else if(!type().compare("uivec4*")){
         str_stream << "(" << ((unsigned int*)ptr)[0] << ","
                           << ((unsigned int*)ptr)[1] << ","
                           << ((unsigned int*)ptr)[2] << ","
                           << ((unsigned int*)ptr)[3] << ")";
     }
-    else if(!type().compare("uivec")){
+    else if(!type().compare("uivec*")){
         #ifdef HAVE_3D
             str_stream << "(" << ((unsigned int*)ptr)[0] << ","
                               << ((unsigned int*)ptr)[1] << ","
@@ -888,25 +888,25 @@ const std::string ArrayVariable::asString(size_t i)
                               << ((unsigned int*)ptr)[1] << ")";
         #endif
     }
-    else if(!type().compare("int")){
+    else if(!type().compare("int*")){
         str_stream << ((int*)ptr)[0];
     }
-    else if(!type().compare("ivec2")){
+    else if(!type().compare("ivec2*")){
         str_stream << "(" << ((int*)ptr)[0] << ","
                           << ((int*)ptr)[1] << ")";
     }
-    else if(!type().compare("ivec3")){
+    else if(!type().compare("ivec3*")){
         str_stream << "(" << ((int*)ptr)[0] << ","
                           << ((int*)ptr)[1] << ","
                           << ((int*)ptr)[2] << ")";
     }
-    else if(!type().compare("ivec4")){
+    else if(!type().compare("ivec4*")){
         str_stream << "(" << ((int*)ptr)[0] << ","
                           << ((int*)ptr)[1] << ","
                           << ((int*)ptr)[2] << ","
                           << ((int*)ptr)[3] << ")";
     }
-    else if(!type().compare("ivec")){
+    else if(!type().compare("ivec*")){
         #ifdef HAVE_3D
             str_stream << "(" << ((int*)ptr)[0] << ","
                               << ((int*)ptr)[1] << ","
@@ -917,25 +917,25 @@ const std::string ArrayVariable::asString(size_t i)
                               << ((int*)ptr)[1] << ")";
         #endif
     }
-    else if(!type().compare("float")){
+    else if(!type().compare("float*")){
         str_stream << ((float*)ptr)[0];
     }
-    else if(!type().compare("vec2")){
+    else if(!type().compare("vec2*")){
         str_stream << "(" << ((float*)ptr)[0] << ","
                           << ((float*)ptr)[1] << ")";
     }
-    else if(!type().compare("vec3")){
+    else if(!type().compare("vec3*")){
         str_stream << "(" << ((float*)ptr)[0] << ","
                           << ((float*)ptr)[1] << ","
                           << ((float*)ptr)[2] << ")";
     }
-    else if(!type().compare("vec4")){
+    else if(!type().compare("vec4*")){
         str_stream << "(" << ((float*)ptr)[0] << ","
                           << ((float*)ptr)[1] << ","
                           << ((float*)ptr)[2] << ","
                           << ((float*)ptr)[3] << ")";
     }
-    else if(!type().compare("vec")){
+    else if(!type().compare("vec*")){
         #ifdef HAVE_3D
             str_stream << "(" << ((float*)ptr)[0] << ","
                               << ((float*)ptr)[1] << ","
