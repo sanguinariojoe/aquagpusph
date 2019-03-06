@@ -99,9 +99,9 @@ public:
      * @param iset Particles set index.
      */
     VTK(ProblemSetup& sim_data,
-        unsigned int first,
-        unsigned int n,
-        unsigned int iset);
+        const unsigned int& first,
+        const unsigned int& n,
+        const unsigned int& iset);
 
     /// Destructor
     ~VTK();
@@ -110,7 +110,7 @@ public:
      *
      * @param t Simulation time
      */
-    void save(float t);
+    void save(const float& t);
 
     /** @brief Load the data.
      */
@@ -139,7 +139,7 @@ private:
      * an animation, and the time instant of each one.
      * @param t Simulation time
      */
-    void updatePVD(float t);
+    void updatePVD(const float& t);
 
     /** @brief Check if the Paraview Data File exist, creating it otherwise.
      *
@@ -149,7 +149,7 @@ private:
      * exist, false if the document should be associated to an existing file.
      * @return The document object. NULL if the file cannot be open/generated
      */
-    xercesc::DOMDocument* getPVD(bool generate=true);
+    xercesc::DOMDocument* getPVD(const bool generate=true);
 
     /** @brief PVD file name
      * @return the PVD file name

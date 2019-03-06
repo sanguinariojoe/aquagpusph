@@ -48,7 +48,7 @@ public:
      *
      * @param t Simulation time
      */
-    virtual void save(float t) = 0;
+    virtual void save(const float& t) = 0;
 
     /** @brief Load the data
      */

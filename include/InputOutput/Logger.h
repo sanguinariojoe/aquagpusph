@@ -86,32 +86,32 @@ public:
     /// Destructor.
     ~Logger();
 
-    /** @brief Transform the terminal into an ncurses one.
+    /** @brief Transform the terminal into an ncurses one
      *
      * This method should be called ONCE before starting the simulation main
      * loop
      */
     void initNCurses();
 
-    /** @brief Transform the terminal into an ncurses one.
+    /** @brief Transform the terminal into an ncurses one
      *
      * This method should be called after finishing the simulation main loop
      */
     void endNCurses();
 
-    /** @brief Call to setup a new terminal frame.
+    /** @brief Call to setup a new terminal frame
      *
-     * This method should be called at the start of every time step.
+     * This method should be called at the start of every time step
      */
     void initFrame();
 
-    /** @brief Call to refresh the terminal frame.
+    /** @brief Call to refresh the terminal frame
      *
-     * This method should be called at the end of every time step.
+     * This method should be called at the end of every time step
      */
     void endFrame();
 
-    /** @brief Write a new message in the terminal output.
+    /** @brief Write a new message in the terminal output
      *
      * This method is not redirecting the data to the log file.
      * In case that ncurses is active:
@@ -133,38 +133,41 @@ public:
      *    -# cyan
      * @param bold true if bold font should be used, false otherwise
      */
-    void writeReport(std::string msg,
-                     std::string color="white",
-                     bool bold=false);
+    void writeReport(const std::string& msg,
+                     const std::string color="white",
+                     const bool bold=false);
 
-    /** @brief Add a new log record message.
+    /** @brief Add a new log record message
      *
-     * The old messages may be removed from the terminal if no more space left.
+     * The old messages may be removed from the terminal if no more space left
      *
      * @param level Message classification (L_DEBUG, L_INFO, L_WARNING, L_ERROR)
-     * @param log Log message.
-     * @param func Function name to print, NULL if it should not be printed.
+     * @param log Log message
+     * @param func Function name to print, NULL if it should not be printed
      * @note In order to append the class and the method name before the
-     * message use #addMessageF instead of this one.
+     * message use #addMessageF instead of this one
      */
-    void addMessage(TLogLevel level, std::string log, std::string func="");
+    void addMessage(const TLogLevel& level,
+                    const std::string& log,
+                    const std::string func="");
 
-    /** @brief Print a time stamp in the screen and the log file.
+    /** @brief Print a time stamp in the screen and the log file
      * @param level Message classification (L_DEBUG, L_INFO, L_WARNING, L_ERROR)
      */
-    void printDate(TLogLevel level=L_DEBUG);
+    void printDate(const TLogLevel level=L_DEBUG);
 
-    /** @brief Print an OpenCL error.
-     * @param error Error code returned by OpenCL.
+    /** @brief Print an OpenCL error
+     * @param error Error code returned by OpenCL
      * @param level Message classification (L_DEBUG, L_INFO, L_WARNING, L_ERROR)
      */
-    void printOpenCLError(cl_int error, TLogLevel level=L_DEBUG);
+    void printOpenCLError(const cl_int& error,
+                          const TLogLevel level=L_DEBUG);
 
-    /** @brief Do nothing.
+    /** @brief Do nothing
      *
      * @param t Simulation time
      */
-    void save(float t) {};
+    inline void save(const float& t) {};
 protected:
     /** @brief Print the log record
      *

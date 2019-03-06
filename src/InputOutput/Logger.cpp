@@ -117,9 +117,9 @@ void Logger::endFrame()
 #endif
 }
 
-void Logger::writeReport(std::string input,
-                         std::string color,
-                         bool bold)
+void Logger::writeReport(const std::string& input,
+                         const std::string color,
+                         const bool bold)
 {
     if(!input.size()){
         return;
@@ -221,7 +221,9 @@ void Logger::writeReport(std::string input,
 #endif
 }
 
-void Logger::addMessage(TLogLevel level, std::string log, std::string func)
+void Logger::addMessage(const TLogLevel& level,
+                        const std::string& log,
+                        const std::string func)
 {
     std::ostringstream fname;
     if (func != "")
@@ -279,7 +281,7 @@ void Logger::addMessage(TLogLevel level, std::string log, std::string func)
     refreshAll();
 }
 
-void Logger::printDate(TLogLevel level)
+void Logger::printDate(const TLogLevel level)
 {
     std::ostringstream msg;
     struct timeval now_time;
@@ -289,7 +291,8 @@ void Logger::printDate(TLogLevel level)
     addMessage(level, msg.str());
 }
 
-void Logger::printOpenCLError(cl_int error, TLogLevel level)
+void Logger::printOpenCLError(const cl_int& error,
+                              const TLogLevel level)
 {
     switch(error) {
         case CL_DEVICE_NOT_FOUND:

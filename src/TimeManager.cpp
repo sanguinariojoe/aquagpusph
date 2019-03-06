@@ -69,7 +69,7 @@ TimeManager::TimeManager(const ProblemSetup& sim_data)
     _time = (float *)vars->get("t")->get();
     _dt = (float *)vars->get("dt")->get();
     _step = (unsigned int *)vars->get("iter")->get();
-    _frame_var = (FloatVariable*)vars->get("frame")->get();
+    _frame_var = (UIntVariable*)vars->get("frame");
     _frame = (unsigned int *)(_frame_var->get());
     _time_max = (float *)vars->get("end_t")->get();
     _steps_max = (unsigned int *)vars->get("end_iter")->get();
@@ -146,11 +146,6 @@ const bool TimeManager::mustPrintOutput()
     }
 
     return false;
-}
-
-void TimeManager::frame(const unsigned int& frame)
-{
-    _frame_var->set((void*)&frame);
 }
 
 }}  // namespace

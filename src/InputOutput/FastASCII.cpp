@@ -35,9 +35,9 @@
 namespace Aqua{ namespace InputOutput{
 
 FastASCII::FastASCII(ProblemSetup& sim_data,
-                     unsigned int first,
-                     unsigned int n,
-                     unsigned int iset)
+                     const unsigned int& first,
+                     const unsigned int& n,
+                     const unsigned int& iset)
     : ASCII(sim_data, first, n, iset)
 {
 }
@@ -46,10 +46,10 @@ FastASCII::~FastASCII()
 {
 }
 
-std::string FastASCII::readField(const std::string field,
-                                 const std::string line,
-                                 unsigned int index,
-                                 void* data)
+const std::string FastASCII::readField(const std::string& field,
+                                       const std::string& line,
+                                       const unsigned int& index,
+                                       void* data)
 {
     unsigned int i;
     Variables *vars = CalcServer::CalcServer::singleton()->variables();

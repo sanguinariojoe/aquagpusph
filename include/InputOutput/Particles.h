@@ -57,10 +57,10 @@ public:
      * @param n Number of particles managed by this saver/loader.
      * @param iset Particles set index.
      */
-    Particles(ProblemSetup &sim_data,
-              unsigned int first,
-              unsigned int n,
-              unsigned int iset);
+    Particles(ProblemSetup& sim_data,
+              const unsigned int& first,
+              const unsigned int& n,
+              const unsigned int& iset);
 
     /// Destructor
     virtual ~Particles();
@@ -68,7 +68,7 @@ public:
     /** @brief Get the last printed file path.
      * @return The last printed file, NULL if a file has not been printed yet.
      */
-    const std::string file(){return _output_file;}
+    inline const std::string& file() const {return _output_file;}
 
     /** @brief Wait for the eventual parallel saving threads.
      *
@@ -77,24 +77,24 @@ public:
      * AQUAgpusph shall wait them to finish before proceeding to destroy the
      * data
      */
-    virtual void waitForSavers() {return;}
+    virtual void waitForSavers() {}
 protected:
     /** @brief Get the simulation data structure
      *
      * @return Simulation data
      */
-    ProblemSetup& simData() {return _sim_data;}
+    inline ProblemSetup& simData() {return _sim_data;}
 
     /** @brief Get the particle index bounds of the "set of particles" managed
      * by this class.
      * @return The index bounds (first and last particle).
      */
-    uivec2 bounds(){return _bounds;}
+    inline const uivec2& bounds() const {return _bounds;}
 
     /** @brief Get the "particles set" index associated with this class
      * @return The "particles index" index.
      */
-    unsigned int setId(){return _iset;}
+    const unsigned int& setId() const {return _iset;}
 
     /** @brief Register some default arrays:
      *   -# iset
@@ -107,7 +107,7 @@ protected:
      * @param filename The new file to save/load. Optionally a null parameter
      * can be passed in order to clear the stored file name.
      */
-    void file(const std::string filename){_output_file = filename;};
+    inline void file(const std::string& filename){_output_file = filename;};
 
     /** Look for the first non existing file name.
      * @param basename The base name of the file. In this base name the `%d`
@@ -120,16 +120,16 @@ protected:
      * of the decimal representation of the integer.
      * @return The next non-existing file index.
      */
-    unsigned int file(const std::string basename,
-                      unsigned int start_index,
-                      unsigned int digits=5);
+    const unsigned int file(const std::string& basename,
+                            const unsigned int& start_index,
+                            const unsigned int digits=5);
 
     /** Download the data from the device, and store it
      * @param fields Fields to download
      * @return host allocated memory
      * @note The returned data must be manually cleared.
      */
-    std::vector<void*> download(std::vector<std::string> fields);
+    const std::vector<void*> download(const std::vector<std::string>& fields);
 private:
     /** Remove the content of the data list.
      * @param data List of memory allocated arrays to be cleared.

@@ -57,7 +57,7 @@ public:
      *
      * @param t Simulation time
      */
-    virtual void save(float t) = 0;
+    virtual void save(const float& t) = 0;
 
     /** @brief Load the data.
      *
@@ -70,7 +70,7 @@ public:
     /** @brief Get the used output file path.
      * @return The report file, NULL if it is not a file.
      */
-    std::string file(){return _output_file;}
+    inline const std::string file() const {return _output_file;}
 
 protected:
     /// Constructor
@@ -83,7 +83,7 @@ protected:
      * @param filename The file name. Optionally @paramname{filename} = null can
      * be set in order to clear the stored file name.
      */
-    void file(std::string filename);
+    inline void file(const std::string& filename){ _output_file = filename; }
 
     /** @brief Look for the first non existing file name.
      * @param basename The base name of the file. In this base name the `%d`
@@ -93,7 +93,8 @@ protected:
      * @note If more than one `"%d"` strings are found in @paramname{basename},
      * just the first one will be replaced.
      */
-    void file(std::string basename, unsigned int start_index);
+    void file(const std::string& basename,
+              const unsigned int& start_index);
 
 private:
     /// Last file printed

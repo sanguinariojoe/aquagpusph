@@ -116,12 +116,14 @@ public:
     inline const unsigned int maxFrame() const {return *_frames_max;}
 
 private:
-    /** @brief Get the simulation frame
-     * @return Simulation frame.
+    /** @brief Set the simulation frame
+     * @param frame Current simulation frame
      * @note Frame stands for output files, while step stands for the number of
      * time iterations
      */
-    void frame(const unsigned int& frame);
+    inline void frame(const unsigned int& frame){
+        _frame_var->set((void*)&frame);
+    }
 
     /// Current time step
     unsigned int *_step;
@@ -132,7 +134,7 @@ private:
     /// Current frame (frame stands for the number of outputs)
     unsigned int *_frame;
     /// Current frame variable
-    FloatVariable *_frame_var;
+    UIntVariable *_frame_var;
     /// Maximum simulation time (-1 if simulation don't stop by time criteria)
     float *_time_max;
     /// Maximum number of steps (-1 if simulation don't stop by steps criteria)

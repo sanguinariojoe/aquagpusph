@@ -66,25 +66,25 @@ public:
      * @param iset Particles set index.
      */
     FastASCII(ProblemSetup& sim_data,
-              unsigned int first,
-              unsigned int n,
-              unsigned int iset);
+              const unsigned int& first,
+              const unsigned int& n,
+              const unsigned int& iset);
 
     /// Destructor
     ~FastASCII();
 
 private:
-    /** @brief Extract the field value from a line.
-     * @param field Field name.
-     * @param line Text line,
-     * @param index Index of the particle to read.
-     * @param data Data array.
-     * @return Remaining text after extracting the field values.
+    /** @brief Extract the field value from a line
+     * @param field Field name
+     * @param line Text line
+     * @param index Index of the particle to read
+     * @param data Data array
+     * @return Remaining text after extracting the field values
      */
-    std::string readField(const std::string field,
-                          const std::string line,
-                          unsigned int index,
-                          void* data);
+    virtual const std::string readField(const std::string& field,
+                                        const std::string& line,
+                                        const unsigned int& index,
+                                        void* data);
 };  // class InputOutput
 
 }}  // namespaces

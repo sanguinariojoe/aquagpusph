@@ -65,20 +65,19 @@ public:
      * @param iset Particles set index.
      */
     ASCII(ProblemSetup& sim_data,
-          unsigned int first,
-          unsigned int n,
-          unsigned int iset);
+          const unsigned int& first,
+          const unsigned int& n,
+          const unsigned int& iset);
 
     /// Destructor
     virtual ~ASCII();
 
-    /** @brief Save the data.
-     *
+    /** @brief Save the data
      * @param t Simulation time
      */
-    void save(float t);
+    void save(const float& t);
 
-    /** @brief Load the data.
+    /** @brief Load the data
      */
     void load();
 
@@ -87,7 +86,7 @@ private:
      * @param f File to be read.
      * @return The number of particles found in the file.
      */
-    unsigned int readNParticles(std::ifstream& f);
+    const unsigned int readNParticles(std::ifstream& f);
 
     /** @brief Conveniently format a read line.
      * @param l Line text.
@@ -100,22 +99,22 @@ private:
      * @warning It is assumed that the line text has been formatted calling
      * formatLine().
      */
-    unsigned int readNFields(std::string l);
+    const unsigned int readNFields(const std::string& l);
 
-    /** @brief Extract the field value from a line.
-     * @param field Field name.
-     * @param line Text line,
-     * @param index Index of the particle to read.
-     * @param data Data array.
-     * @return Remaining text after extracting the field values.
+    /** @brief Extract the field value from a line
+     * @param field Field name
+     * @param line Text line
+     * @param index Index of the particle to read
+     * @param data Data array
+     * @return Remaining text after extracting the field values
      */
-    virtual std::string readField(const std::string field,
-                                  const std::string line,
-                                  unsigned int index,
-                                  void* data);
+    virtual const std::string readField(const std::string& field,
+                                        const std::string& line,
+                                        const unsigned int& index,
+                                        void* data);
 
-    /** @brief Create a new file to write.
-     * @param f The file handler to be overwritten.
+    /** @brief Create a new file to write
+     * @param f The file handler to be overwritten
      * @see Aqua::InputOutput::Particles::file()
      */
     void create(std::ofstream& f);

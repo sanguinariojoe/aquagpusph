@@ -32,14 +32,13 @@
 namespace Aqua{ namespace InputOutput{
 
 Particles::Particles(ProblemSetup& sim_data,
-                     unsigned int first,
-                     unsigned int n,
-                     unsigned int iset)
+                     const unsigned int& first,
+                     const unsigned int& n,
+                     const unsigned int& iset)
     : _sim_data(sim_data)
     , _iset(iset)
 {
-    _bounds.x = first;
-    _bounds.y = first + n;
+    _bounds = {first, first + n};
 }
 
 Particles::~Particles()
@@ -137,19 +136,16 @@ void Particles::loadDefault()
     delete[] id; id = NULL;
 }
 
-unsigned int Particles::file(const std::string basename,
-                             unsigned int startindex,
-                             unsigned int digits)
+const unsigned int Particles::file(const std::string& basename,
+                                   const unsigned int& startindex,
+                                   const unsigned int digits)
 {
-    FILE *f;
-
     if(basename.find("%d") == std::string::npos){
         // We cannot replace nothing in the basename, just test if the file
         // does not exist
-        f = fopen(basename.c_str(), "r");
-        if(f){
-            // The fail already exist, so we cannot operate
-            fclose(f);
+        std::ifstream f(basename.c_str());
+        if(f.good()){
+            f.close();
             throw std::runtime_error("Bad file name");
         }
 
@@ -163,13 +159,12 @@ unsigned int Particles::file(const std::string basename,
         number << std::setfill('0') << std::setw(digits) << i;
         std::string newname = replaceAllCopy(basename, "%d", number.str());
 
-        f = fopen(newname.c_str(), "r");
-        if(!f){
-            // We found an available slot
+        std::ifstream f(newname.c_str());
+        if(!f.good()){
             file(newname);
             break;
         }
-        fclose(f);
+        f.close();
 
         i++;
     }
@@ -177,34 +172,33 @@ unsigned int Particles::file(const std::string basename,
     return i;
 }
 
-std::vector<void*> Particles::download(std::vector<std::string> fields)
+const std::vector<void*> Particles::download(const std::vector<std::string>& fields)
 {
     std::vector<void*> data;
     std::vector<cl_event> events;
-    size_t typesize, len;
     cl_int err_code;
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
     Variables *vars = C->variables();
 
     for(auto field : fields){
-        if(!vars->get(field)){
+        Variable *var = vars->get(field);
+        if(!var){
             std::ostringstream msg;
-            msg << "Can't download undeclared variable \"" << field
+            msg << "Cannot download undeclared variable \"" << field
                 << "\"." << std::endl;
             LOG(L_ERROR, msg.str());
             clearList(&data);
             throw std::runtime_error("Invalid variable");
         }
-        if(vars->get(field)->type().find('*') == std::string::npos){
+        if(var->isScalar()){
             std::ostringstream msg;
             msg << "Variable \"" << field << "\" is a scalar." << std::endl;
             LOG(L_ERROR, msg.str());
             clearList(&data);
             throw std::runtime_error("Invalid variable type");
         }
-        ArrayVariable *var = (ArrayVariable*)vars->get(field);
-        typesize = vars->typeToBytes(var->type());
-        len = var->size() / typesize;
+        const size_t typesize = Variables::typeToBytes(var->type());
+        const size_t len = var->size() / typesize;
         if(len < bounds().y){
             std::ostringstream msg;
             msg << "Variable \"" << field << "\" is not long enough." << std::endl;
@@ -269,8 +263,7 @@ std::vector<void*> Particles::download(std::vector<std::string> fields)
 void Particles::clearList(std::vector<void*> *data)
 {
     for(auto d : *data){
-        if(d)
-            free(d);
+        if(d) free(d);
     }
     data->clear();
 }

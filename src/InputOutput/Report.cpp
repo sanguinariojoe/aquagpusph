@@ -23,6 +23,7 @@
 
 #include <sstream>
 #include <iostream>
+#include <fstream>
 #include <InputOutput/Report.h>
 #include <AuxiliarMethods.h>
 
@@ -36,45 +37,38 @@ Report::~Report()
 {
 }
 
-void Report::file(std::string filename)
+void Report::file(const std::string& basename,
+                  const unsigned int& startindex)
 {
-    _output_file = filename;
-}
-
-void Report::file(std::string basename, unsigned int startindex)
-{
-    FILE *f;
-    unsigned int i = startindex;
-    std::string newname;
-    std::ostringstream number_str;
-
     if(basename.find("%d") == std::string::npos){
         // We cannot replace nothing in the basename, just test if the file
         // does not exist
-        f = fopen(basename.c_str(), "r");
-        if(f){
-            // The file already exist, so we cannot operate
-            fclose(f);
-            throw std::invalid_argument("Invalid file name pattern");
+        std::ifstream f(basename.c_str());
+        if(f.good()){
+            f.close();
+            throw std::runtime_error("Bad file name");
         }
 
         file(basename);
         return;
     }
 
+    unsigned int i = startindex;
     while(true){
+        std::ostringstream number_str;
         number_str.str("");
         number_str << i;
-        newname = replaceAllCopy(basename, "%d", number_str.str());
+        std::string newname = replaceAllCopy(basename, "%d", number_str.str());
 
-        f = fopen(newname.c_str(), "r");
-        if(!f)
+        std::ifstream f(newname.c_str());
+        if(!f.good()){
+            file(newname);
             break;
-        fclose(f);
+        }
+        f.close();
+
         i++;
     }
-
-    file(newname);
 }
 
 }}  // namespace

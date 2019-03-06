@@ -35,9 +35,9 @@
 namespace Aqua{ namespace InputOutput{
 
 ASCII::ASCII(ProblemSetup& sim_data,
-             unsigned int first,
-             unsigned int n,
-             unsigned int iset)
+             const unsigned int& first,
+             const unsigned int& n,
+             const unsigned int& iset)
     : Particles(sim_data, first, n, iset)
 {
 }
@@ -204,7 +204,7 @@ void ASCII::load()
     f.close();
 }
 
-void ASCII::save(float t)
+void ASCII::save(const float& t)
 {
     unsigned int i, j;
     cl_int err_code;
@@ -403,7 +403,7 @@ void ASCII::save(float t)
     f.close();
 }
 
-unsigned int ASCII::readNParticles(std::ifstream& f)
+const unsigned int ASCII::readNParticles(std::ifstream& f)
 {
     if(!f.is_open())
         return 0;
@@ -438,7 +438,7 @@ void ASCII::formatLine(std::string& l)
     trim(l);
     // Replace all the separators by commas
     const char *separators = " ;()[]{}\t";
-    for(i=0; i<strlen(separators); i++){
+    for(i = 0; i < strlen(separators); i++){
         replaceAll(l, std::string(1, separators[i]), ",");
     }
 
@@ -456,7 +456,7 @@ void ASCII::formatLine(std::string& l)
     }
 }
 
-unsigned int ASCII::readNFields(std::string l)
+const unsigned int ASCII::readNFields(const std::string& l)
 {
     if (l == "") {
         return 0;
@@ -477,10 +477,10 @@ unsigned int ASCII::readNFields(std::string l)
 
 static std::string _remaining;
 
-std::string ASCII::readField(const std::string field,
-                             const std::string line,
-                             unsigned int index,
-                             void* data)
+const std::string ASCII::readField(const std::string& field,
+                                   const std::string& line,
+                                   const unsigned int& index,
+                                   void* data)
 {
     unsigned int i;
     Variables *vars = CalcServer::CalcServer::singleton()->variables();

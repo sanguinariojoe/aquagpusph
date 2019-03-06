@@ -95,9 +95,9 @@ using namespace xercesc;
 namespace Aqua{ namespace InputOutput{
 
 VTK::VTK(ProblemSetup& sim_data,
-         unsigned int first,
-         unsigned int n,
-         unsigned int iset)
+         const unsigned int& first,
+         const unsigned int& n,
+         const unsigned int& iset)
     : Particles(sim_data, first, n, iset)
     , _next_file_index(0)
 {
@@ -521,7 +521,7 @@ void* save_pthread(void *data_void)
     return NULL;
 }
 
-void VTK::save(float t)
+void VTK::save(const float& t)
 {
     unsigned int i;
 
@@ -624,7 +624,7 @@ vtkXMLUnstructuredGridWriter* VTK::create(){
     return f;
 }
 
-void VTK::updatePVD(float t){
+void VTK::updatePVD(const float& t){
     unsigned int n;
 
     std::ostringstream msg;
@@ -724,7 +724,7 @@ void VTK::updatePVD(float t){
     xmlClear();
 }
 
-DOMDocument* VTK::getPVD(bool generate)
+DOMDocument* VTK::getPVD(const bool generate)
 {
     DOMDocument* doc = NULL;
     FILE *dummy=NULL;
