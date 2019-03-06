@@ -131,12 +131,6 @@ ScalarVariable<T>::ScalarVariable(const std::string varname,
 }
 
 template <class T>
-inline bool ScalarVariable<T>::isArray()
-{
-    return false;
-}
-
-template <class T>
 ScalarNumberVariable<T>::ScalarNumberVariable(const std::string varname,
                                               const std::string vartype)
     : ScalarVariable<T>(varname, vartype)
@@ -144,7 +138,7 @@ ScalarNumberVariable<T>::ScalarNumberVariable(const std::string varname,
 }
 
 template <class T>
-const std::string ScalarNumberVariable<T>::asString(){
+const std::string ScalarNumberVariable<T>::asString() {
     std::ostringstream msg;
     msg << *((T*)this->get());
     str_val = msg.str();
@@ -163,7 +157,7 @@ PyObject* IntVariable::getPythonObject(int i0, int n)
     return PyLong_FromLong(val);
 }
 
-bool IntVariable::setFromPythonObject(PyObject* obj, int i0, int n)
+const bool IntVariable::setFromPythonObject(PyObject* obj, int i0, int n)
 {
     if(!PyLong_Check(obj)){
         pyerr.str("");
@@ -173,7 +167,7 @@ bool IntVariable::setFromPythonObject(PyObject* obj, int i0, int n)
         return true;
     }
 
-    int value = (int) PyLong_AsLong(obj);
+    const int value = (int) PyLong_AsLong(obj);
     set(&value);
 
     return false;
@@ -191,7 +185,7 @@ PyObject* UIntVariable::getPythonObject(int i0, int n)
     return PyLong_FromUnsignedLong(val);
 }
 
-bool UIntVariable::setFromPythonObject(PyObject* obj, int i0, int n)
+const bool UIntVariable::setFromPythonObject(PyObject* obj, int i0, int n)
 {
     if(!PyLong_Check(obj)){
         pyerr.str("");
@@ -201,7 +195,7 @@ bool UIntVariable::setFromPythonObject(PyObject* obj, int i0, int n)
         return true;
     }
 
-    unsigned int value = (unsigned int) PyLong_AsLong(obj);
+    const unsigned int value = (unsigned int) PyLong_AsLong(obj);
     set(&value);
 
     return false;
@@ -210,7 +204,7 @@ bool UIntVariable::setFromPythonObject(PyObject* obj, int i0, int n)
 FloatVariable::FloatVariable(const std::string varname)
     : ScalarNumberVariable<float>(varname, "float")
 {
-    _value = 0.f;
+    _value = 0;
 }
 
 PyObject* FloatVariable::getPythonObject(int i0, int n)
@@ -219,7 +213,7 @@ PyObject* FloatVariable::getPythonObject(int i0, int n)
     return PyFloat_FromDouble(val);
 }
 
-bool FloatVariable::setFromPythonObject(PyObject* obj, int i0, int n)
+const bool FloatVariable::setFromPythonObject(PyObject* obj, int i0, int n)
 {
     if(!PyFloat_Check(obj)){
         pyerr.str("");
@@ -229,7 +223,7 @@ bool FloatVariable::setFromPythonObject(PyObject* obj, int i0, int n)
         return true;
     }
 
-    float value = (float) PyFloat_AsDouble(obj);
+    const float value = (float) PyFloat_AsDouble(obj);
     set(&value);
 
     return false;
@@ -241,11 +235,10 @@ ScalarVecVariable<T>::ScalarVecVariable(const std::string varname,
                                         const unsigned int dims)
     : ScalarVariable<T>(varname, vartype)
     , _dims(dims)
-{
-}
+{}
 
 template <class T>
-bool ScalarVecVariable<T>::checkPyhonObjectDims(PyObject* obj){
+const bool ScalarVecVariable<T>::checkPyhonObjectDims(PyObject* obj){
     if(!PyObject_TypeCheck(obj, &PyArray_Type)){
         pyerr.str("");
         pyerr << "Variable \"" << this->name()
@@ -275,7 +268,7 @@ bool ScalarVecVariable<T>::checkPyhonObjectDims(PyObject* obj){
 }
 
 template <class T>
-const std::string ScalarVecVariable<T>::asString(){
+const std::string ScalarVecVariable<T>::asString() {
     T *val = (T*)(this->get());
     std::ostringstream msg;
     msg << "(";
@@ -291,8 +284,7 @@ const std::string ScalarVecVariable<T>::asString(){
 Vec2Variable::Vec2Variable(const std::string varname)
     : ScalarVecVariable(varname, "vec2", 2)
 {
-    _value.x = 0.f;
-    _value.y = 0.f;
+    _value = {0.f, 0.f};
 }
 
 PyObject* Vec2Variable::getPythonObject(int i0, int n)
@@ -302,7 +294,7 @@ PyObject* Vec2Variable::getPythonObject(int i0, int n)
     return PyArray_SimpleNewFromData(1, dims, PyArray_FLOAT, vv->s);
 }
 
-bool Vec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
+const bool Vec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 {
     if(checkPyhonObjectDims(obj))
         return true;
@@ -317,8 +309,7 @@ bool Vec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
     }
 
     vec2 *vv = (vec2*)get();
-    void *data = array_obj->data;
-    memcpy(vv->s, data, sizeof(vec2));
+    memcpy(vv->s, array_obj->data, sizeof(vec2));
 
     return false;
 }
@@ -326,9 +317,7 @@ bool Vec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 Vec3Variable::Vec3Variable(const std::string varname)
     : ScalarVecVariable(varname, "vec3", 3)
 {
-    _value.x = 0.f;
-    _value.y = 0.f;
-    _value.z = 0.f;
+    _value = {0.f, 0.f, 0.f};
 }
 
 PyObject* Vec3Variable::getPythonObject(int i0, int n)
@@ -338,7 +327,7 @@ PyObject* Vec3Variable::getPythonObject(int i0, int n)
     return PyArray_SimpleNewFromData(1, dims, PyArray_FLOAT, vv->s);
 }
 
-bool Vec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
+const bool Vec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 {
     if(checkPyhonObjectDims(obj))
         return true;
@@ -353,8 +342,7 @@ bool Vec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
     }
 
     vec3 *vv = (vec3*)get();
-    void *data = array_obj->data;
-    memcpy(vv->s, data, sizeof(vec3));
+    memcpy(vv->s, array_obj->data, sizeof(vec3));
 
     return false;
 }
@@ -362,10 +350,7 @@ bool Vec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 Vec4Variable::Vec4Variable(const std::string varname)
     : ScalarVecVariable(varname, "vec4", 4)
 {
-    _value.x = 0.f;
-    _value.y = 0.f;
-    _value.z = 0.f;
-    _value.w = 0.f;
+    _value = {0.f, 0.f, 0.f, 0.f};
 }
 
 PyObject* Vec4Variable::getPythonObject(int i0, int n)
@@ -375,7 +360,7 @@ PyObject* Vec4Variable::getPythonObject(int i0, int n)
     return PyArray_SimpleNewFromData(1, dims, PyArray_FLOAT, vv->s);
 }
 
-bool Vec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
+const bool Vec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 {
     if(checkPyhonObjectDims(obj))
         return true;
@@ -390,8 +375,7 @@ bool Vec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
     }
 
     vec4 *vv = (vec4*)get();
-    void *data = array_obj->data;
-    memcpy(vv->s, data, sizeof(vec4));
+    memcpy(vv->s, array_obj->data, sizeof(vec4));
 
     return false;
 }
@@ -399,8 +383,7 @@ bool Vec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 IVec2Variable::IVec2Variable(const std::string varname)
     : ScalarVecVariable(varname, "ivec2", 2)
 {
-    _value.x = 0;
-    _value.y = 0;
+    _value = {0, 0};
 }
 
 PyObject* IVec2Variable::getPythonObject(int i0, int n)
@@ -410,7 +393,7 @@ PyObject* IVec2Variable::getPythonObject(int i0, int n)
     return PyArray_SimpleNewFromData(1, dims, PyArray_INT, vv->s);
 }
 
-bool IVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
+const bool IVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 {
     if(checkPyhonObjectDims(obj))
         return true;
@@ -425,8 +408,7 @@ bool IVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
     }
 
     ivec2 *vv = (ivec2*)get();
-    void *data = array_obj->data;
-    memcpy(vv->s, data, sizeof(ivec2));
+    memcpy(vv->s, array_obj->data, sizeof(ivec2));
 
     return false;
 }
@@ -434,9 +416,7 @@ bool IVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 IVec3Variable::IVec3Variable(const std::string varname)
     : ScalarVecVariable(varname, "ivec3", 3)
 {
-    _value.x = 0;
-    _value.y = 0;
-    _value.z = 0;
+    _value = {0, 0, 0};
 }
 
 PyObject* IVec3Variable::getPythonObject(int i0, int n)
@@ -446,7 +426,7 @@ PyObject* IVec3Variable::getPythonObject(int i0, int n)
     return PyArray_SimpleNewFromData(1, dims, PyArray_INT, vv->s);
 }
 
-bool IVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
+const bool IVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 {
     if(checkPyhonObjectDims(obj))
         return true;
@@ -461,8 +441,7 @@ bool IVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
     }
 
     ivec3 *vv = (ivec3*)get();
-    void *data = array_obj->data;
-    memcpy(vv->s, data, sizeof(ivec3));
+    memcpy(vv->s, array_obj->data, sizeof(ivec3));
 
     return false;
 }
@@ -470,10 +449,7 @@ bool IVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 IVec4Variable::IVec4Variable(const std::string varname)
     : ScalarVecVariable(varname, "ivec4", 4)
 {
-    _value.x = 0;
-    _value.y = 0;
-    _value.z = 0;
-    _value.w = 0;
+    _value = {0, 0, 0, 0};
 }
 
 PyObject* IVec4Variable::getPythonObject(int i0, int n)
@@ -483,7 +459,7 @@ PyObject* IVec4Variable::getPythonObject(int i0, int n)
     return PyArray_SimpleNewFromData(1, dims, PyArray_INT, vv->s);
 }
 
-bool IVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
+const bool IVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 {
     if(checkPyhonObjectDims(obj))
         return true;
@@ -498,8 +474,7 @@ bool IVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
     }
 
     ivec4 *vv = (ivec4*)get();
-    void *data = array_obj->data;
-    memcpy(vv->s, data, sizeof(ivec4));
+    memcpy(vv->s, array_obj->data, sizeof(ivec4));
 
     return false;
 }
@@ -507,8 +482,7 @@ bool IVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 UIVec2Variable::UIVec2Variable(const std::string varname)
     : ScalarVecVariable(varname, "uivec2", 2)
 {
-    _value.x = 0;
-    _value.y = 0;
+    _value = {0, 0};
 }
 
 PyObject* UIVec2Variable::getPythonObject(int i0, int n)
@@ -518,7 +492,7 @@ PyObject* UIVec2Variable::getPythonObject(int i0, int n)
     return PyArray_SimpleNewFromData(1, dims, PyArray_UINT, vv->s);
 }
 
-bool UIVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
+const bool UIVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 {
     if(checkPyhonObjectDims(obj))
         return true;
@@ -533,8 +507,7 @@ bool UIVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
     }
 
     uivec2 *vv = (uivec2*)get();
-    void *data = array_obj->data;
-    memcpy(vv->s, data, sizeof(uivec2));
+    memcpy(vv->s, array_obj->data, sizeof(uivec2));
 
     return false;
 }
@@ -542,9 +515,7 @@ bool UIVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 UIVec3Variable::UIVec3Variable(const std::string varname)
     : ScalarVecVariable(varname, "uivec3", 3)
 {
-    _value.x = 0;
-    _value.y = 0;
-    _value.z = 0;
+    _value = {0, 0, 0};
 }
 
 PyObject* UIVec3Variable::getPythonObject(int i0, int n)
@@ -554,7 +525,7 @@ PyObject* UIVec3Variable::getPythonObject(int i0, int n)
     return PyArray_SimpleNewFromData(1, dims, PyArray_UINT, vv->s);
 }
 
-bool UIVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
+const bool UIVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 {
     if(checkPyhonObjectDims(obj))
         return true;
@@ -569,8 +540,7 @@ bool UIVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
     }
 
     uivec3 *vv = (uivec3*)get();
-    void *data = array_obj->data;
-    memcpy(vv->s, data, sizeof(uivec3));
+    memcpy(vv->s, array_obj->data, sizeof(uivec3));
 
     return false;
 }
@@ -578,10 +548,7 @@ bool UIVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 UIVec4Variable::UIVec4Variable(const std::string varname)
     : ScalarVecVariable(varname, "uivec4", 4)
 {
-    _value.x = 0;
-    _value.y = 0;
-    _value.z = 0;
-    _value.w = 0;
+    _value = {0, 0, 0, 0};
 }
 
 PyObject* UIVec4Variable::getPythonObject(int i0, int n)
@@ -591,7 +558,7 @@ PyObject* UIVec4Variable::getPythonObject(int i0, int n)
     return PyArray_SimpleNewFromData(1, dims, PyArray_UINT, vv->s);
 }
 
-bool UIVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
+const bool UIVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 {
     if(checkPyhonObjectDims(obj))
         return true;
@@ -606,16 +573,15 @@ bool UIVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
     }
 
     uivec4 *vv = (uivec4*)get();
-    void *data = array_obj->data;
-    memcpy(vv->s, data, sizeof(uivec4));
+    memcpy(vv->s, array_obj->data, sizeof(uivec4));
 
     return false;
 }
 
 ArrayVariable::ArrayVariable(const std::string varname, const std::string vartype)
     : Variable(varname, vartype)
-    , _value(NULL)
 {
+    _value = NULL;
 }
 
 ArrayVariable::~ArrayVariable()
@@ -631,12 +597,7 @@ ArrayVariable::~ArrayVariable()
     if(_value) clReleaseMemObject(_value); _value=NULL;
 }
 
-inline bool ArrayVariable::isArray()
-{
-    return true;
-}
-
-size_t ArrayVariable::size() const
+const size_t ArrayVariable::size() const
 {
     if(!_value)
         return 0;
@@ -780,7 +741,7 @@ PyObject* ArrayVariable::getPythonObject(int i0, int n)
     return obj;
 }
 
-bool ArrayVariable::setFromPythonObject(PyObject* obj, int i0, int n)
+const bool ArrayVariable::setFromPythonObject(PyObject* obj, int i0, int n)
 {
     if(i0 < 0){
         pyerr.str("");
@@ -899,7 +860,7 @@ bool ArrayVariable::setFromPythonObject(PyObject* obj, int i0, int n)
 
 const std::string ArrayVariable::asString()
 {
-    cl_mem* val = (cl_mem*)get();
+    const cl_mem* val = (cl_mem*)get();
     std::ostringstream msg;
     msg << val;
     str_val = msg.str();
@@ -1081,10 +1042,10 @@ Variables::~Variables()
     _vars.clear();
 }
 
-void Variables::registerVariable(const std::string name,
-                                 const std::string type,
-                                 const std::string length,
-                                 const std::string value)
+void Variables::registerVariable(const std::string& name,
+                                 const std::string& type,
+                                 const std::string& length,
+                                 const std::string& value)
 {
     // Look for an already existing variable with the same name
     for(unsigned int i = 0; i < _vars.size(); i++){
@@ -1103,7 +1064,7 @@ void Variables::registerVariable(const std::string name,
     }
 }
 
-Variable* Variables::get(unsigned int index)
+Variable* Variables::get(const unsigned int& index) const
 {
     if(index >= _vars.size()){
         return NULL;
@@ -1111,7 +1072,7 @@ Variable* Variables::get(unsigned int index)
     return _vars.at(index);
 }
 
-Variable* Variables::get(const std::string name)
+Variable* Variables::get(const std::string& name) const
 {
     for(auto var : _vars){
         if(!name.compare(var->name())){
@@ -1121,7 +1082,7 @@ Variable* Variables::get(const std::string name)
     return NULL;
 }
 
-size_t Variables::allocatedMemory(){
+const size_t Variables::allocatedMemory() const{
     size_t allocated_mem = 0;
     for(auto var : _vars){
         if(var->type().find('*') == std::string::npos){
@@ -1132,9 +1093,9 @@ size_t Variables::allocatedMemory(){
     return allocated_mem;
 }
 
-size_t Variables::typeToBytes(const std::string type)
+const size_t Variables::typeToBytes(const std::string& type)
 {
-    unsigned int n = typeToN(type);
+    const unsigned int n = typeToN(type);
     size_t type_size = 0;
 
     if(type.find("unsigned int") != std::string::npos ||
@@ -1159,7 +1120,7 @@ size_t Variables::typeToBytes(const std::string type)
     return n * type_size;
 }
 
-unsigned int Variables::typeToN(const std::string type)
+const unsigned int Variables::typeToN(const std::string& type)
 {
     unsigned int n = 1;
     if(type.find("vec2") != std::string::npos) {
@@ -1188,9 +1149,9 @@ unsigned int Variables::typeToN(const std::string type)
     return n;
 }
 
-bool Variables::isSameType(const std::string type_a,
-                           const std::string type_b,
-                           bool ignore_asterisk)
+const bool Variables::isSameType(const std::string& type_a,
+                                 const std::string& type_b,
+                                 const bool ignore_asterisk)
 {
     if(typeToN(type_a) != typeToN(type_b)){
         return false;
@@ -1233,8 +1194,8 @@ bool Variables::isSameType(const std::string type_a,
     return true;
 }
 
-void Variables::solve(const std::string type_name,
-                      const std::string value,
+void Variables::solve(const std::string& type_name,
+                      const std::string& value,
                       void *data,
                       const std::string name)
 {
@@ -1411,25 +1372,23 @@ void Variables::solve(const std::string type_name,
     }
 }
 
-void Variables::populate(const std::string name)
+void Variables::populate()
 {
-    unsigned int i;
-    Variable *var = NULL;
-    if(name.compare("")){
-        var = get(name);
-        if(!var){
-            std::ostringstream msg;
-            msg << "Variable \"" << name << "\" cannot be found" << std::endl;
-            LOG(L_ERROR, msg.str());
-            throw std::runtime_error("No such variable");
-        }
-        populate(var);
-        return;
-    }
-
     for(auto var : _vars){
         populate(var);
     }
+}
+
+void Variables::populate(const std::string& name)
+{
+    Variable *var = get(name);
+    if(!var){
+        std::ostringstream msg;
+        msg << "Variable \"" << name << "\" cannot be found" << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("No such variable");
+    }
+    populate(var);
 }
 
 void Variables::populate(Variable* var)
@@ -1608,11 +1567,11 @@ void Variables::populate(Variable* var)
     }
 }
 
-void Variables::registerScalar(const std::string name,
-                               const std::string type_name,
-                               const std::string value)
+void Variables::registerScalar(const std::string& name,
+                               const std::string& type_name,
+                               const std::string& value)
 {
-    std::string type = trimCopy(type_name);
+    const std::string type = trimCopy(type_name);
     if(!type.compare("int")){
         IntVariable *var = new IntVariable(name);
         if(value.compare("")){
@@ -1845,9 +1804,9 @@ void Variables::registerScalar(const std::string name,
     }
 }
 
-void Variables::registerClMem(const std::string name,
-                              const std::string type_name,
-                              const std::string length)
+void Variables::registerClMem(const std::string& name,
+                              const std::string& type_name,
+                              const std::string& length)
 {
     unsigned int n;
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
@@ -1927,9 +1886,9 @@ void Variables::registerClMem(const std::string name,
     _vars.push_back(var);
 }
 
-void Variables::readComponents(const std::string name,
-                               const std::string value,
-                               unsigned int n,
+void Variables::readComponents(const std::string& name,
+                               const std::string& value,
+                               const unsigned int& n,
                                float* v)
 {
     float val;

@@ -134,7 +134,7 @@ cl_event Reduction::_execute(const std::vector<cl_event> events_src)
                                    CL_TRUE,
                                    0,
                                    _output_var->typesize(),
-                                   _output_var->get(),
+                                   (void*)_output_var->get(),
                                    num_events_in_wait_list,
                                    event_wait_list,
                                    &event);
