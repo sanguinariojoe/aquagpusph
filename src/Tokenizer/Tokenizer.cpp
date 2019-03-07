@@ -68,7 +68,8 @@ Tokenizer::~Tokenizer()
     p.ClearConst();
 }
 
-bool Tokenizer::registerVariable(const std::string name, float value)
+const bool Tokenizer::registerVariable(const std::string& name,
+                                       const float& value)
 {
     bool overwritten = false;
     // Look for the variable in order to know if it already exist
@@ -86,7 +87,7 @@ void Tokenizer::clearVariables()
     defaultVariables();
 }
 
-bool Tokenizer::isVariable(const std::string name)
+const bool Tokenizer::isVariable(const std::string& name) const
 {
     mu::valmap_type cmap = p.GetConst();
     if (cmap.size())
@@ -101,7 +102,7 @@ bool Tokenizer::isVariable(const std::string name)
     return false;
 }
 
-float Tokenizer::variable(const std::string name)
+const float Tokenizer::variable(const std::string& name) const
 {
     if(!isVariable(name)){
         return 0.f;
@@ -111,7 +112,7 @@ float Tokenizer::variable(const std::string name)
 }
 
 
-float Tokenizer::solve(const std::string eq)
+const float Tokenizer::solve(const std::string& eq)
 {
     float result;
 
@@ -153,7 +154,7 @@ float Tokenizer::solve(const std::string eq)
     return result;
 }
 
-void Tokenizer::defaultVariables()
+inline void Tokenizer::defaultVariables()
 {
     // Pi and e are registered variables out of the box
 }
