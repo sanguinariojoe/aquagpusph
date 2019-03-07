@@ -25,7 +25,7 @@ configure_file(${EXAMPLE_ORIG_DIR}/plot_t.py
 configure_file(${EXAMPLE_ORIG_DIR}/plot_e.py
     ${EXAMPLE_DEST_DIR}/plot_e.py @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/doc/standing_wave.wxmx
-    ${EXAMPLE_DEST_DIR}/doc/standing_wave.wxmx @ONLY)
+    ${EXAMPLE_DEST_DIR}/doc/standing_wave.wxmx COPYONLY)
 
 configure_file(${EXAMPLE_ORIG_DIR}/Create.py
     ${EXAMPLE_DEST_DIR}/Create.py @ONLY)
@@ -59,7 +59,7 @@ configure_file(${EXAMPLE_ORIG_DIR}/plot_t.py
 configure_file(${EXAMPLE_ORIG_DIR}/plot_e.py
     ${EXAMPLE_AUX_DIR}/plot_e.py @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/doc/standing_wave.wxmx
-    ${EXAMPLE_AUX_DIR}/doc/standing_wave.wxmx @ONLY)
+    ${EXAMPLE_AUX_DIR}/doc/standing_wave.wxmx COPYONLY)
 
 configure_file(${EXAMPLE_ORIG_DIR}/Create.py
     ${EXAMPLE_AUX_DIR}/Create.py @ONLY)

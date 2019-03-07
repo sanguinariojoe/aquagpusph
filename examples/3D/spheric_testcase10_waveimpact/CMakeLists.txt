@@ -23,9 +23,9 @@ configure_file(${EXAMPLE_ORIG_DIR}/templates/Time.xml
     ${EXAMPLE_DEST_DIR}/templates/Time.xml @ONLY)
 
 configure_file(${EXAMPLE_ORIG_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE10_IMPACT_PRESSURE.pdf
-    ${EXAMPLE_DEST_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE10_IMPACT_PRESSURE.pdf @ONLY)
+    ${EXAMPLE_DEST_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE10_IMPACT_PRESSURE.pdf COPYONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/lateral_water_1x.txt
-    ${EXAMPLE_DEST_DIR}/lateral_water_1x.txt @ONLY)
+    ${EXAMPLE_DEST_DIR}/lateral_water_1x.txt COPYONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/Motion.py
     ${EXAMPLE_DEST_DIR}/Motion.py @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/plot_p.py
@@ -63,9 +63,9 @@ configure_file(${EXAMPLE_ORIG_DIR}/templates/Time.xml
     ${EXAMPLE_AUX_DIR}/templates/Time.xml @ONLY)
 
 configure_file(${EXAMPLE_ORIG_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE10_IMPACT_PRESSURE.pdf
-    ${EXAMPLE_AUX_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE10_IMPACT_PRESSURE.pdf @ONLY)
+    ${EXAMPLE_AUX_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE10_IMPACT_PRESSURE.pdf COPYONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/lateral_water_1x.txt
-    ${EXAMPLE_AUX_DIR}/lateral_water_1x.txt @ONLY)
+    ${EXAMPLE_AUX_DIR}/lateral_water_1x.txt COPYONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/Motion.py
     ${EXAMPLE_AUX_DIR}/Motion.py @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/plot_p.py

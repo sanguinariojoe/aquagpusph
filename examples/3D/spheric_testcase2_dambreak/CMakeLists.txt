@@ -29,9 +29,9 @@ configure_file(${EXAMPLE_ORIG_DIR}/plot_h.py
 configure_file(${EXAMPLE_ORIG_DIR}/plot_t.py
     ${EXAMPLE_DEST_DIR}/plot_t.py @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/doc/test_case_2_v1p1.pdf
-    ${EXAMPLE_DEST_DIR}/doc/test_case_2_v1p1.pdf @ONLY)
+    ${EXAMPLE_DEST_DIR}/doc/test_case_2_v1p1.pdf COPYONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/test_case_2_exp_data.dat
-    ${EXAMPLE_DEST_DIR}/test_case_2_exp_data.dat @ONLY)
+    ${EXAMPLE_DEST_DIR}/test_case_2_exp_data.dat COPYONLY)
 
 configure_file(${EXAMPLE_ORIG_DIR}/Create.py
     ${EXAMPLE_DEST_DIR}/Create.py @ONLY)
@@ -69,9 +69,9 @@ configure_file(${EXAMPLE_ORIG_DIR}/plot_h.py
 configure_file(${EXAMPLE_ORIG_DIR}/plot_t.py
     ${EXAMPLE_AUX_DIR}/plot_t.py @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/doc/test_case_2_v1p1.pdf
-    ${EXAMPLE_AUX_DIR}/doc/test_case_2_v1p1.pdf @ONLY)
+    ${EXAMPLE_AUX_DIR}/doc/test_case_2_v1p1.pdf COPYONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/test_case_2_exp_data.dat
-    ${EXAMPLE_AUX_DIR}/test_case_2_exp_data.dat @ONLY)
+    ${EXAMPLE_AUX_DIR}/test_case_2_exp_data.dat COPYONLY)
 
 configure_file(${EXAMPLE_ORIG_DIR}/Create.py
     ${EXAMPLE_AUX_DIR}/Create.py @ONLY)

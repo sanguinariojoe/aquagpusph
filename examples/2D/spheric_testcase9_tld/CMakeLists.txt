@@ -25,9 +25,9 @@ configure_file(${EXAMPLE_ORIG_DIR}/plot_m.py
 configure_file(${EXAMPLE_ORIG_DIR}/plot_t.py
     ${EXAMPLE_DEST_DIR}/plot_t.py @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE9_TLD.pdf
-    ${EXAMPLE_DEST_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE9_TLD.pdf @ONLY)
+    ${EXAMPLE_DEST_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE9_TLD.pdf COPYONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/T_1-94_A100mm_water.dat
-    ${EXAMPLE_DEST_DIR}/T_1-94_A100mm_water.dat @ONLY)
+    ${EXAMPLE_DEST_DIR}/T_1-94_A100mm_water.dat COPYONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/Motion.py
     ${EXAMPLE_DEST_DIR}/Motion.py @ONLY)
 
@@ -63,9 +63,9 @@ configure_file(${EXAMPLE_ORIG_DIR}/plot_m.py
 configure_file(${EXAMPLE_ORIG_DIR}/plot_t.py
     ${EXAMPLE_AUX_DIR}/plot_t.py @ONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE9_TLD.pdf
-    ${EXAMPLE_AUX_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE9_TLD.pdf @ONLY)
+    ${EXAMPLE_AUX_DIR}/doc/SOUTOIGLESIAS_BOTIA_SPHERIC_TESTCASE9_TLD.pdf COPYONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/T_1-94_A100mm_water.dat
-    ${EXAMPLE_AUX_DIR}/T_1-94_A100mm_water.dat @ONLY)
+    ${EXAMPLE_AUX_DIR}/T_1-94_A100mm_water.dat COPYONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/Motion.py
     ${EXAMPLE_AUX_DIR}/Motion.py @ONLY)
 
