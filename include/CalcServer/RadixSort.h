@@ -118,30 +118,43 @@ public:
     void setup();
 
 protected:
-    /** Execute the tool.
+    /** Execute the tool
+     * @param events List of events that shall be waited before safe execution
+     * @return OpenCL event to be waited before accesing the dependencies
      */
-    void _execute();
+    cl_event _execute(const std::vector<cl_event> events);
 
 private:
-    /** Initialize permutations array.
+    /** Initialize permutations array
+     * @return Permutations initialization event
      */
-    void init();
+    cl_event init();
 
-    /** Perform histograms.
+    /** Perform histograms
+     * @param keys_event Event of the last keys manipulation 
+     * @param histograms_event Event of the last histogram manipulation. NULL if
+     * it has not been manipulated yet
+     * @return Histograms event
      */
-    void histograms();
+    cl_event histograms(cl_event keys_event, cl_event histograms_event);
 
     /** Scan histograms.
+     * @param event Event of the last histogram manipulation
+     * @return Histograms event
      */
-    void scan();
+    cl_event scan(cl_event event);
 
     /** Scan histograms.
+     * @param perms_event Event of the permutations initialization
+     * @param histograms_event Event of the last histogram manipulation
+     * @return Histograms event
      */
-    void reorder();
+    cl_event reorder(cl_event perms_event, cl_event histograms_event);
 
     /** Build the reversed permutations vector.
+     * @return Permutation arrays event
      */
-    void inversePermutations();
+    cl_event inversePermutations();
 
     /** Get the variables to compute.
      */

@@ -47,8 +47,7 @@ void Assert::setup()
     LOG(L_INFO, msg.str());
 }
 
-
-void Assert::_execute()
+cl_event Assert::_execute(const std::vector<cl_event> events)
 {
     int result;
     InputOutput::Variables *vars = CalcServer::singleton()->variables();
@@ -73,6 +72,8 @@ void Assert::_execute()
         LOG(L_ERROR, msg.str());
         throw std::runtime_error("Assertion error");
     }
+
+    return NULL;
 }
 
 }}  // namespaces

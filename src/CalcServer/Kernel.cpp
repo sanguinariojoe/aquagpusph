@@ -67,13 +67,17 @@ void Kernel::setup()
     computeGlobalWorkSize();
 }
 
-void Kernel::_execute()
+cl_event Kernel::_execute(const std::vector<cl_event> events)
 {
     cl_int err_code;
+    cl_event event;
     CalcServer *C = CalcServer::singleton();
 
     setVariables();
     computeGlobalWorkSize();
+
+    cl_uint num_events_in_wait_list = events.size();
+    const cl_event *event_wait_list = events.size() ? events.data() : NULL;
 
     err_code = clEnqueueNDRangeKernel(C->command_queue(),
                                       _kernel,
@@ -81,9 +85,9 @@ void Kernel::_execute()
                                       NULL,
                                       &_global_work_size,
                                       &_work_group_size,
-                                      0,
-                                      NULL,
-                                      NULL);
+                                      num_events_in_wait_list,
+                                      event_wait_list,
+                                      &event);
     if(err_code != CL_SUCCESS){
         std::stringstream msg;
         msg << "Failure executing the tool \"" <<
@@ -92,6 +96,8 @@ void Kernel::_execute()
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL execution error");
     }
+
+    return event;
 }
 
 void Kernel::compile(const std::string entry_point,
@@ -382,6 +388,8 @@ struct clientData{
 
 void Kernel::variables(const std::string entry_point)
 {
+    InputOutput::Variables *vars = CalcServer::singleton()->variables();
+
     CXIndex index = clang_createIndex(0, 0);
     if(index == 0){
         LOG(L_ERROR, "Failure creating parser index.\n");
@@ -425,6 +433,23 @@ void Kernel::variables(const std::string entry_point)
         throw std::runtime_error("Invalid entry point");
     }
     _var_names = client_data.var_names;
+    // Retain just the array variables as dependencies, provided that scalar
+    // variables are synced when passed using clSetKernelArg()
+    std::vector<InputOutput::Variable*> deps;
+    for(auto var_name : _var_names) {
+        InputOutput::Variable *var = vars->get(var_name);
+        if(!var){
+            std::stringstream msg;
+            msg << "The tool \"" << name()
+                << "\" is asking the undeclared variable \""
+                << var_name << "\"." << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw std::runtime_error("Invalid variable");
+        }
+        if(var->isArray())
+            deps.push_back(var);
+    }
+    setDependencies(deps);
     
     for(unsigned int i = 0; i < _var_names.size(); i++){
         _var_values.push_back(NULL);
@@ -473,7 +498,8 @@ void Kernel::setVariables()
     InputOutput::Variables *vars = CalcServer::singleton()->variables();
 
     for(i = 0; i < _var_names.size(); i++){
-        if(!vars->get(_var_names.at(i))){
+        InputOutput::Variable *var = vars->get(_var_names.at(i));
+        if(!var){
             std::stringstream msg;
             msg << "The tool \"" << name()
                 << "\" is asking the undeclared variable \""
@@ -481,7 +507,6 @@ void Kernel::setVariables()
             LOG(L_ERROR, msg.str());
             throw std::runtime_error("Invalid variable");
         }
-        InputOutput::Variable *var = vars->get(_var_names.at(i));
         if(_var_values.at(i) == NULL){
             _var_values.at(i) = malloc(var->typesize());
         }

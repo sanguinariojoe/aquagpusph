@@ -62,6 +62,20 @@ public:
      */
     virtual ~Variable() {};
 
+    /** @brief Let efficiently know whether the variable is an array or not
+     *
+     * @return true if the variable is an array, false if the variable is a
+     * scalar
+     */
+    virtual bool isArray()=0;
+
+    /** @brief Let efficiently know whether the variable is a scalar or not
+     *
+     * @return true if the variable is a scalar, false if the variable is an
+     * array
+     */
+    virtual bool isScalar(){return !isArray();}
+
     /** @brief Name of the variable
      * @return The name of the variable
      */
@@ -114,12 +128,48 @@ public:
      * @return The variable represented as a string, NULL in case of errors.
      */
     virtual const std::string asString(){return "";}
+
+    /** @brief Set the variable current event
+     *
+     * clRetainEvent() is called on top of the provided event, while any
+     * previous event is conveniently released calling clReleaseEvent()
+     *
+     * Might exists other events linked to this variable, but since those are
+     * considered predecessors, we can just forgive about them.
+     *
+     * @remarks Events are used even for non-OpenCL variables
+     * @param event OpenCL event
+     */
+    void setEvent(cl_event event);    
+
+    /** @brief Returns the last event associated to this variable
+     *
+     * @return OpenCL event
+     */
+    cl_event getEvent(){return _event;}
+
+protected:
+    /** @brief Wait for variable underlying event to be complete
+     * 
+     * This function is tracking the syncing state, avoiding calling
+     * clWaitForEvents() more than once, while the event is not updated.
+     *
+     * This is obviously a blocking function
+     */
+    void sync();
+
 private:
     /// Name of the variable
     std::string _name;
 
     /// Type of the variable
     std::string _typename;
+
+    /// List of events affecting this variable
+    cl_event _event;
+
+    /// Shortcut to avoid calling the expensive OpenCL API
+    bool _synced;
 };
 
 /** @class ScalarVariable Variable.h Variable.h
@@ -139,20 +189,34 @@ public:
      */
     ~ScalarVariable() {};
 
+    /** @brief Report that the varaible is not an array
+     *
+     * @return false
+     */
+    bool isArray();
+
     /** @brief Get the variable type size.
      * @return Variable type size (in bytes)
      */
     size_t typesize() const {return sizeof(T);}
 
     /** @brief Get variable pointer basis pointer
-     * @return Implementation pointer.
+     *
+     * This is a blocking operation, that will retain the program until the
+     * underlying variable event is complete.
+     *
+     * @return Implementation pointer
      */
-    void* get(){return &_value;}
+    inline void* get(){sync(); return &_value;}
 
     /** @brief Set variable from memory
-     * @param ptr Memory to copy.
+     *
+     * This is a blocking operation, that will retain the program until the
+     * underlying variable event is complete.
+     *
+     * @param ptr Memory to copy
      */
-    void set(void* ptr){memcpy(&_value, ptr, sizeof(T));}
+    inline void set(void* ptr){sync(); memcpy(&_value, ptr, sizeof(T));}
 
     /** @brief Get the variable text representation
      * @return The variable represented as a string, NULL in case of errors.
@@ -613,6 +677,12 @@ public:
     /** Destructor.
      */
     ~ArrayVariable();
+
+    /** @brief Report that the varaible is an array
+     *
+     * @return true
+     */
+    bool isArray();
 
     /** Get the cl_mem type size.
      * @return cl_mem type size (in bytes)

@@ -86,7 +86,7 @@ size_t Performance::computeAllocatedMemory(){
     return allocated_mem;
 }
 
-void Performance::_execute()
+cl_event Performance::_execute(const std::vector<cl_event> events)
 {
     CalcServer *C = CalcServer::singleton();
     std::stringstream data;
@@ -167,6 +167,8 @@ void Performance::_execute()
            << elapsedTime() - elapsed_ave << " "
            << progress * 100.f << " " << ETA << std::endl;
     }
+
+    return NULL;
 }
 
 }}} // namespace

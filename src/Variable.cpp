@@ -50,9 +50,77 @@ static std::string str_val;
 static std::ostringstream pyerr;
 
 Variable::Variable(const std::string varname, const std::string vartype)
+    : _name(varname)
+    , _typename(vartype)
+    , _event(NULL)
+    , _synced(true)
 {
-    _name = varname;
-    _typename = vartype;
+    cl_int err_code;
+    CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
+    // Create a dummy starting event for the queue
+    _event = clCreateUserEvent(C->context(), &err_code);
+    if(err_code != CL_SUCCESS){
+        std::stringstream msg;
+        msg << "Failure creating user event for \"" <<
+               varname << "\" variable." << std::endl;
+        LOG(L_ERROR, msg.str());
+        Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
+    }
+    err_code = clSetUserEventStatus(_event, CL_COMPLETE);
+    if(err_code != CL_SUCCESS){
+        std::stringstream msg;
+        msg << "Failure setting user event status for \"" <<
+               varname << "\" variable." << std::endl;
+        LOG(L_ERROR, msg.str());
+        Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
+    }
+}
+
+void Variable::setEvent(cl_event event)
+{
+    cl_int err_code;
+    // Forgive the former/predecessor event
+    err_code = clReleaseEvent(_event);
+    if(err_code != CL_SUCCESS){
+        std::stringstream msg;
+        msg << "Failure releasing the predecessor event for \"" <<
+               name() << "\" variable." << std::endl;
+        LOG(L_ERROR, msg.str());
+        Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
+    }
+    // And get retained the current event
+    err_code = clRetainEvent(event);
+    if(err_code != CL_SUCCESS){
+        std::stringstream msg;
+        msg << "Failure reteaning the event for \"" <<
+               name() << "\" variable." << std::endl;
+        LOG(L_ERROR, msg.str());
+        Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
+    }
+    _event = event;
+    _synced = false;
+}
+
+void Variable::sync()
+{
+    if(_synced)
+        return;
+
+    cl_int err_code;
+    err_code = clWaitForEvents(1, &_event);
+    if(err_code != CL_SUCCESS){
+        std::stringstream msg;
+        msg << "Failure syncing variable \"" <<
+               name() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
+    }
+    _synced = true;
 }
 
 template <class T>
@@ -60,6 +128,12 @@ ScalarVariable<T>::ScalarVariable(const std::string varname,
                                   const std::string vartype)
     : Variable(varname, vartype)
 {
+}
+
+template <class T>
+inline bool ScalarVariable<T>::isArray()
+{
+    return false;
 }
 
 template <class T>
@@ -557,6 +631,11 @@ ArrayVariable::~ArrayVariable()
     if(_value) clReleaseMemObject(_value); _value=NULL;
 }
 
+inline bool ArrayVariable::isArray()
+{
+    return true;
+}
+
 size_t ArrayVariable::size() const
 {
     if(!_value)
@@ -573,7 +652,7 @@ size_t ArrayVariable::size() const
         msg << "Failure getting allocated memory from variable \"" << name()
             << "\"." << std::endl,
         LOG(L_ERROR, msg.str());
-        Aqua::InputOutput::Logger::singleton()->printOpenCLError(status);
+        Logger::singleton()->printOpenCLError(status);
     }
     return memsize;
 }
@@ -670,14 +749,15 @@ PyObject* ArrayVariable::getPythonObject(int i0, int n)
     }
     _data.push_back(data);
     // Download the data
+    cl_event event_wait = getEvent();
     err_code = clEnqueueReadBuffer(C->command_queue(),
                                    _value,
                                    CL_TRUE,
                                    offset * typesize,
                                    len * typesize,
                                    data,
-                                   0,
-                                   NULL,
+                                   1,
+                                   &event_wait,
                                    NULL);
     if(err_code != CL_SUCCESS){
         pyerr.str("");
@@ -787,20 +867,29 @@ bool ArrayVariable::setFromPythonObject(PyObject* obj, int i0, int n)
     }
 
     void *data = array_obj->data;
-
+    cl_event event, event_wait = getEvent();
     err_code =  clEnqueueWriteBuffer(C->command_queue(),
                                      _value,
-                                     CL_TRUE,
+                                     CL_FALSE,
                                      offset * typesize,
                                      len * typesize,
                                      data,
-                                     0,
-                                     NULL,
-                                     NULL);
+                                     1,
+                                     &event_wait,
+                                     &event);
     if(err_code != CL_SUCCESS){
         pyerr.str("");
         pyerr << "Failure uploading variable \""
               << name() << "\"" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+        return true;
+    }
+    setEvent(event);
+    err_code = clReleaseEvent(event);
+    if(err_code != CL_SUCCESS){
+        pyerr.str("");
+        pyerr << "Failure releasing variable \""
+              << name() << "\" event" << std::endl;
         PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
@@ -839,20 +928,21 @@ const std::string ArrayVariable::asString(size_t i)
         LOG0(L_DEBUG, msg.str());
         return NULL;
     }
+    cl_event event_wait = getEvent();
     cl_int err_code = clEnqueueReadBuffer(C->command_queue(),
                                           _value,
                                           CL_TRUE,
                                           i * type_size,
                                           type_size,
                                           ptr,
-                                          0,
-                                          NULL,
+                                          1,
+                                          &event_wait,
                                           NULL);
     if(err_code != CL_SUCCESS){
         std::ostringstream msg;
         msg << "Failure downloading the variable \"" << name() << "\"" << std::endl;
         LOG(L_ERROR, msg.str());
-        Aqua::InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        Logger::singleton()->printOpenCLError(err_code);
         free(ptr);
         return NULL;
     }

@@ -69,25 +69,27 @@ void UnSort::setup()
     setupOpenCL();
 }
 
-
-void UnSort::_execute()
+cl_event UnSort::_execute(const std::vector<cl_event> events)
 {
     unsigned int i;
     cl_int err_code;
+    cl_event event;
     CalcServer *C = CalcServer::singleton();
 
     setVariables();
 
-    // Execute the kernels
+    cl_uint num_events_in_wait_list = events.size();
+    const cl_event *event_wait_list = events.size() ? events.data() : NULL;
+
     err_code = clEnqueueNDRangeKernel(C->command_queue(),
                                       _kernel,
                                       1,
                                       NULL,
                                       &_global_work_size,
                                       &_local_work_size,
-                                      0,
-                                      NULL,
-                                      NULL);
+                                      num_events_in_wait_list,
+                                      event_wait_list,
+                                      &event);
     if(err_code != CL_SUCCESS) {
         std::stringstream msg;
         msg << "Failure executing the tool \"" <<
@@ -96,6 +98,8 @@ void UnSort::_execute()
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL execution error");
     }
+
+    return event;
 }
 
 void UnSort::variables()
@@ -140,6 +144,9 @@ void UnSort::variables()
         throw std::runtime_error("Invalid variable type");
     }
     _var = (InputOutput::ArrayVariable *)vars->get(_var_name);
+
+    std::vector<InputOutput::Variable*> deps = {_id_var, _var};
+    setDependencies(deps);
 }
 
 void UnSort::setupMem()

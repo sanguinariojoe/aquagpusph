@@ -453,7 +453,6 @@ void CalcServer::update(InputOutput::TimeManager& t_manager)
                 sleep(__ERROR_SHOW_TIME__);
                 throw;
             }
-            clFinish(command_queue());
         }
         strcpy(_current_tool_name, "__post execution__");
 
@@ -466,7 +465,6 @@ void CalcServer::update(InputOutput::TimeManager& t_manager)
             }
         }
 
-        clFinish(command_queue());
         InputOutput::Logger::singleton()->endFrame();
     }
 }
@@ -498,15 +496,15 @@ cl_event CalcServer::getUnsortedMem(const std::string var_name,
         return NULL;
     }
     cl_mem mem = unsorter->output();
-    cl_event event = NULL;
+    cl_event event = NULL, event_wait = unsorter->input()->getEvent();
     err_code = clEnqueueReadBuffer(command_queue(),
                                    mem,
                                    CL_FALSE,
                                    offset,
                                    cb,
                                    ptr,
-                                   0,
-                                   NULL,
+                                   1,
+                                   &event_wait,
                                    &event);
     if(err_code != CL_SUCCESS){
         std::ostringstream msg;
@@ -516,6 +514,9 @@ cl_event CalcServer::getUnsortedMem(const std::string var_name,
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
         return NULL;
     }
+
+    unsorter->input()->setEvent(event);
+
     return event;
 }
 
@@ -783,9 +784,11 @@ void CalcServer::setupDevices()
         throw std::bad_alloc();
     }
     for(i = 0; i < _num_devices; i++) {
+        cl_command_queue_properties properties = 
+            CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
         _command_queues[i] = clCreateCommandQueue(_context,
                                                   _devices[i],
-                                                  0,
+                                                  properties,
                                                   &err_code);
         if(err_code != CL_SUCCESS) {
             std::ostringstream msg;

@@ -60,12 +60,14 @@ void TabFile::setup()
     _f.flush();
 }
 
-void TabFile::_execute()
+cl_event TabFile::_execute(const std::vector<cl_event> events)
 {
     // Change break lines by spaces
     std::string out = replaceAllCopy(data(false, false), "\n", " ");
     _f << out << std::endl;
     _f.flush();
+
+    return NULL;
 }
 
 }}} // namespace

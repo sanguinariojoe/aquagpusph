@@ -58,11 +58,15 @@ void Copy::setup()
 }
 
 
-void Copy::_execute()
+cl_event Copy::_execute(const std::vector<cl_event> events)
 {
     unsigned int i;
     cl_int err_code;
+    cl_event event;
     CalcServer *C = CalcServer::singleton();
+
+    cl_uint num_events_in_wait_list = events.size();
+    const cl_event *event_wait_list = events.size() ? events.data() : NULL;
 
     err_code = clEnqueueCopyBuffer(C->command_queue(),
                                    *(cl_mem*)_input_var->get(),
@@ -70,9 +74,9 @@ void Copy::_execute()
                                    0,
                                    0,
                                    _output_var->size(),
-                                   0,
-                                   NULL,
-                                   NULL);
+                                   num_events_in_wait_list,
+                                   event_wait_list,
+                                   &event);
     if(err_code != CL_SUCCESS){
         std::stringstream msg;
         msg << "Failure executing the tool \"" <<
@@ -81,6 +85,8 @@ void Copy::_execute()
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL execution error");
     }
+
+    return event;
 }
 
 void Copy::variables()
@@ -151,6 +157,9 @@ void Copy::variables()
         LOG0(L_DEBUG, msg.str());
         throw std::runtime_error("Incompatible lenghts");
     }
+
+    std::vector<InputOutput::Variable*> deps = {_input_var, _output_var};
+    setDependencies(deps);
 }
 
 }}  // namespaces

@@ -79,11 +79,6 @@ public:
     const std::string data(bool with_title=true, bool with_names=true);
 
 protected:
-    /** @brief Execute the tool.
-     * @return false if all gone right, true otherwise.
-     */
-    virtual void _execute(){return;}
-
     /** @brief Compute the fields by lines
      */
     void processFields(const std::string fields);

@@ -52,7 +52,7 @@ void SetScalar::setup()
 }
 
 
-void SetScalar::_execute()
+cl_event SetScalar::_execute(const std::vector<cl_event> events)
 {
     InputOutput::Variables *vars = CalcServer::singleton()->variables();
 
@@ -77,6 +77,8 @@ void SetScalar::_execute()
     free(data);
     // Ensure that the variable is populated
     vars->populate(_var);
+
+    return NULL;
 }
 
 void SetScalar::variable()

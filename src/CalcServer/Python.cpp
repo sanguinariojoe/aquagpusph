@@ -268,7 +268,7 @@ void Python::setup()
     load();
 }
 
-void Python::_execute()
+cl_event Python::_execute(const std::vector<cl_event> events)
 {
     PyObject *result;
 
@@ -290,6 +290,10 @@ void Python::_execute()
         LOG(L_ERROR, "main() function returned False.\n");
         throw std::runtime_error("Python invoked simulation stop");
     }
+
+    // This function is not pruducing events by itself. This work is relayed
+    // to the setters
+    return NULL;
 }
 
 void Python::initPython()
