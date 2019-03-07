@@ -53,6 +53,7 @@ SET(Client_CPP_SRCS
     InputOutput/FastASCII.cpp
     InputOutput/VTK.cpp
     ProblemSetup.cpp
+    PyCast.cpp
     TimeManager.cpp
     Variable.cpp
     Tokenizer/Tokenizer.cpp

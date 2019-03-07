@@ -25,23 +25,13 @@
 #ifndef VARIABLE_H_INCLUDED
 #define VARIABLE_H_INCLUDED
 
-#include <Python.h>
 #include <CL/cl.h>
 
 #include <string>
 #include <vector>
 #include <sphPrerequisites.h>
+#include <PyCast.h>
 #include <Tokenizer/Tokenizer.h>
-
-#ifdef HAVE_3D
-    #define VecVariable Vec4Variable
-    #define IVecVariable IVec4Variable
-    #define UIVecVariable UIVec4Variable
-#else
-    #define VecVariable Vec2Variable
-    #define IVecVariable IVec2Variable
-    #define UIVecVariable UIVec2Variable
-#endif
 
 namespace Aqua{ namespace InputOutput{
 
@@ -156,6 +146,11 @@ public:
     inline const cl_event& getEvent() const {return _event;}
 
 protected:
+    /** @brief Set the variable type
+     * @param tname New type
+     */
+    void type(const std::string& tname) {_typename = tname;}
+
     /** @brief Wait for variable underlying event to be complete
      * 
      * This function is tracking the syncing state, avoiding calling
@@ -191,7 +186,7 @@ public:
      * @param varname Name of the variable.
      * @param vartype Type of the variable.
      */
-    ScalarVariable(const std::string varname, const std::string vartype);
+    ScalarVariable(const std::string varname);
 
     /** @brief Destructor
      */
@@ -239,39 +234,18 @@ protected:
  * @brief A generic Scalar variable of one single component
  */
 template <class T>
-class ScalarNumberVariable : public ScalarVariable<T>
+class ScalarNumberVariable : public ScalarVariable<T>, public PyCast<T>
 {
 public:
     /** @brief Constructor
      * @param varname Name of the variable.
      * @param vartype Type of the variable.
      */
-    ScalarNumberVariable(const std::string varname, const std::string vartype);
+    ScalarNumberVariable(const std::string varname);
 
     /** @brief Destructor
      */
     ~ScalarNumberVariable() {};
-
-    /** @brief Get the variable text representation
-     * @return The variable represented as a string, NULL in case of errors.
-     */
-    virtual const std::string asString();
-};
-
-/** @class IntVariable Variable.h Variable.h
- * @brief An integer variable
- */
-class IntVariable : public ScalarNumberVariable<int>
-{
-public:
-    /** @brief Constructor
-     * @param varname Name of the variable.
-     */
-    IntVariable(const std::string varname);
-
-    /** @brief Destructor
-     */
-    ~IntVariable() {};
 
     /** @brief Get a PyLongObject interpretation of the variable value
      * @param i0 ignored parameter.
@@ -287,69 +261,24 @@ public:
      * @return false if all gone right, true otherwise.
      */
     const bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
+
+    /** @brief Get the variable text representation
+     * @return The variable represented as a string, NULL in case of errors.
+     */
+    virtual const std::string asString();
 };
 
-/** @class UIntVariable Variable.h Variable.h
- * @brief An unsigned integer variable
+/** @brief An integer variable
  */
-class UIntVariable : public ScalarNumberVariable<unsigned int>
-{
-public:
-    /** @brief Constructor
-     * @param varname Name of the variable.
-     */
-    UIntVariable(const std::string varname);
+using IntVariable = ScalarNumberVariable<int>;
 
-    /** @brief Destructor
-     */
-    ~UIntVariable() {};
-
-    /** @brief Get a PyLongObject interpretation of the variable
-     * @param i0 ignored parameter.
-     * @param n ignored parameter
-     * @return PyLongObject Python object.
-     */
-    PyObject* getPythonObject(int i0=0, int n=0);
-
-    /** @brief Set the variable from a Python object
-     * @param obj PyLongObject object.
-     * @param i0 ignored parameter.
-     * @param n ignored parameter
-     * @return false if all gone right, true otherwise.
-     */
-    const bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
-};
-
-/** @class FloatVariable Variable.h Variable.h
- * @brief A float variable
+/** @brief An integer variable
  */
-class FloatVariable : public ScalarNumberVariable<float>
-{
-public:
-    /** @brief Constructor
-     * @param varname Name of the variable.
-     */
-    FloatVariable(const std::string varname);
+using UIntVariable = ScalarNumberVariable<unsigned int>;
 
-    /** @brief Destructor
-     */
-    ~FloatVariable() {};
-
-    /** @brief Get a PyFloatObject interpretation of the variable
-     * @param i0 ignored parameter.
-     * @param n ignored parameter
-     * @return PyFloatObject Python object.
-     */
-    PyObject* getPythonObject(int i0=0, int n=0);
-
-    /** @brief Set the variable from a Python object
-     * @param obj PyFloatObject object.
-     * @param i0 ignored parameter.
-     * @param n ignored parameter
-     * @return false if all gone right, true otherwise.
-     */
-    const bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
-};
+/** @brief An integer variable
+ */
+using FloatVariable = ScalarNumberVariable<float>;
 
 /** @class ScalarVecVariable Variable.h Variable.h
  * @brief A generic Scalar variable of 2 or more components
@@ -367,7 +296,6 @@ public:
      * @param dims Number of components
      */
     ScalarVecVariable(const std::string varname,
-                      const std::string vartype,
                       const unsigned int dims);
 
     /** @brief Destructor
@@ -673,6 +601,37 @@ public:
      */
     const bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
 };
+
+#ifdef HAVE_3D
+    /** @brief A real vector variable.
+     *
+     * The number of components depends on weather the 2D version or 3D
+     * version is compiled:
+     *   - 2D = 2 components
+     *   - 3D = 4 components
+     */
+    using VecVariable = Vec4Variable;
+    /** @brief A real vector variable.
+     *
+     * The number of components depends on weather the 2D version or 3D
+     * version is compiled:
+     *   - 2D = 2 components
+     *   - 3D = 4 components
+     */
+    using IVecVariable = IVec4Variable;
+    /** @brief A real vector variable.
+     *
+     * The number of components depends on weather the 2D version or 3D
+     * version is compiled:
+     *   - 2D = 2 components
+     *   - 3D = 4 components
+     */
+    using UIVecVariable = UIVec4Variable;
+#else
+    using VecVariable = Vec2Variable;
+    using IVecVariable = IVec2Variable;
+    using UIVecVariable = UIVec2Variable;
+#endif
 
 /** @class FloatVariable Variable.h Variable.h
  * @brief A float variable.

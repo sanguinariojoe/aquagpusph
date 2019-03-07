@@ -20,6 +20,7 @@
  * @brief Set of auxiliar functions.
  */
 
+
 #include <algorithm> 
 #include <cctype>
 #include <locale>
@@ -31,7 +32,6 @@
 #include <termios.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <string>
 #include <sstream>
 
 #include <AuxiliarMethods.h>

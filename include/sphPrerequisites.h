@@ -57,119 +57,97 @@
 #endif
 
 #ifndef vec2
-    /** @def vec2
-     * @brief Vector of 2 real components.
-     */
-    #define vec2 cl_float2
+    /// @brief Vector of 2 real components.
+    typedef cl_float2 vec2;
 #endif
 #ifndef vec3
-    /** @def vec3
-     * @brief Vector of 3 real components.
-     */
-    #define vec3 cl_float3
+    /// @brief Vector of 3 real components.
+    typedef cl_float3 vec3;
 #endif
 #ifndef vec4
-    /** @def vec4
-     * @brief Vector of 4 real components.
-     */
-    #define vec4 cl_float4
+    /// @brief Vector of 4 real components.
+    typedef cl_float4 vec4;
 #endif
 
 #ifndef ivec2
-    /** @def ivec2
-     * @brief Vector of 2 integer components.
-     */
-    #define ivec2 cl_int2
+    /// @brief Vector of 2 integer components.
+    typedef cl_int2 ivec2;
 #endif
 #ifndef ivec3
-    /** @def ivec3
-     * @brief Vector of 3 integer components.
-     */
-    #define ivec3 cl_int3
+    /// @brief Vector of 3 integer components.
+    typedef cl_int3 ivec3;
 #endif
 #ifndef ivec4
-    /** @def ivec4
-     * @brief Vector of 4 integer components.
-     */
-    #define ivec4 cl_int4
+    /// @brief Vector of 4 integer components.
+    typedef cl_int4 ivec4;
 #endif
 
-#ifndef uivec2
-    /** @def uivec2
-     * @brief Vector of 2 unsigned integer components.
-     */
-    #define uivec2 cl_uint2
+#ifndef ivec2
+    /// @brief Vector of 2 unsigned integer components.
+    typedef cl_uint2 uivec2;
 #endif
-#ifndef uivec3
-    /** @def uivec3
-     * @brief Vector of 3 unsigned integer components.
-     */
-    #define uivec3 cl_uint3
+#ifndef ivec3
+    /// @brief Vector of 3 unsigned integer components.
+    typedef cl_uint3 uivec3;
 #endif
-#ifndef uivec4
-    /** @def uivec4
-     * @brief Vector of 4 unsigned integer components.
-     */
-    #define uivec4 cl_uint4
+#ifndef ivec4
+    /// @brief Vector of 4 unsigned integer components.
+    typedef cl_uint4 uivec4;
 #endif
 
 #ifdef HAVE_3D
     #ifndef vec
-        /** @def vec
-         * @brief Vector of real components.
+        /** @brief Vector of real components.
          *
          * The number of components depends on weather the 2D version or 3D
          * version is compiled:
          *   - 2D = 2 components
          *   - 3D = 4 components
          */
-        #define vec vec4
+        typedef vec4 vec;
     #endif
     #ifndef ivec
-        /** @def ivec
-         * @brief Vector of integer components.
+        /** @brief Vector of integer components.
          *
          * The number of components depends on weather the 2D version or 3D
          * version is compiled:
          *   - 2D = 2 components
          *   - 3D = 4 components
          */
-        #define ivec ivec4
+        typedef ivec4 ivec;
     #endif
     #ifndef uivec
-        /** @def uivec
-         * @brief Vector of unsigned integer components.
+        /** @brief Vector of unsigned integer components.
          *
          * The number of components depends on weather the 2D version or 3D
          * version is compiled:
          *   - 2D = 2 components
          *   - 3D = 4 components
          */
-        #define uivec uivec4
+        typedef uivec4 uivec;
     #endif
     #ifndef matrix
-        /** @def matrix
-         * @brief Matrix of float numbers.
+        /** @brief Matrix of float numbers.
          *
          * The number of components depends on weather the 2D version or 3D
          * version is compiled:
          *   - 2D = 2x2 components
          *   - 3D = 4x4 components
          */
-        #define matrix cl_float16
+        typedef cl_float16 matrix;
     #endif
 #else
     #ifndef vec
-        #define vec vec2
+        typedef vec2 vec;
     #endif
     #ifndef ivec
-        #define ivec ivec2
+        typedef ivec2 ivec;
     #endif
     #ifndef uivec
-        #define uivec uivec2
+        typedef uivec2 uivec;
     #endif
     #ifndef matrix
-        #define matrix cl_float4
+        typedef cl_float4 matrix;
     #endif
 #endif
 

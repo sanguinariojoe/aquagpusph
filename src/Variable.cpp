@@ -124,17 +124,51 @@ void Variable::sync()
 }
 
 template <class T>
-ScalarVariable<T>::ScalarVariable(const std::string varname,
-                                  const std::string vartype)
-    : Variable(varname, vartype)
+ScalarVariable<T>::ScalarVariable(const std::string varname)
+    : Variable(varname, "")
 {
+    type(type_name<decltype(_value)>());
+    std::cout << "ScalarVariable<T>::ScalarVariable " << varname << std::endl;
+    std::cout << type() << std::endl;
 }
 
 template <class T>
-ScalarNumberVariable<T>::ScalarNumberVariable(const std::string varname,
-                                              const std::string vartype)
-    : ScalarVariable<T>(varname, vartype)
+ScalarNumberVariable<T>::ScalarNumberVariable(const std::string varname)
+    : ScalarVariable<T>(varname)
+    , PyCast<T>()
 {
+    this->_value = 0;
+}
+
+template <class T>
+PyObject* ScalarNumberVariable<T>::getPythonObject(int i0, int n)
+{
+    PyObject* obj = this->valToPython(*((T*)this->get()));
+    if(!obj){
+        pyerr.str("");
+        pyerr << "Failure creating Python object for \"" << this->name()
+            << "\" variable" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+    }
+    return obj;
+}
+
+template <class T>
+const bool ScalarNumberVariable<T>::setFromPythonObject(PyObject* obj,
+                                                        int i0,
+                                                        int n)
+{
+    void *value = this->PythonToPtr(obj);
+    if(!value){
+        pyerr.str("");
+        pyerr << "Failure casting Python object for \"" << this->name()
+            << "\" variable" << std::endl;
+        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+        return true;
+    }
+
+    this->set(value);
+    return false;
 }
 
 template <class T>
@@ -145,95 +179,10 @@ const std::string ScalarNumberVariable<T>::asString() {
     return str_val;
 }
 
-IntVariable::IntVariable(const std::string varname)
-    : ScalarNumberVariable<int>(varname, "int")
-{
-    _value = 0;
-}
-
-PyObject* IntVariable::getPythonObject(int i0, int n)
-{
-    long val = *((int*)get());
-    return PyLong_FromLong(val);
-}
-
-const bool IntVariable::setFromPythonObject(PyObject* obj, int i0, int n)
-{
-    if(!PyLong_Check(obj)){
-        pyerr.str("");
-        pyerr << "Variable \"" << name()
-            << "\" expected a PyLongObject" << std::endl;
-        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-        return true;
-    }
-
-    const int value = (int) PyLong_AsLong(obj);
-    set(&value);
-
-    return false;
-}
-
-UIntVariable::UIntVariable(const std::string varname)
-    : ScalarNumberVariable<unsigned int>(varname, "unsigned int")
-{
-    _value = 0;
-}
-
-PyObject* UIntVariable::getPythonObject(int i0, int n)
-{
-    unsigned long val = *(unsigned int*)get();
-    return PyLong_FromUnsignedLong(val);
-}
-
-const bool UIntVariable::setFromPythonObject(PyObject* obj, int i0, int n)
-{
-    if(!PyLong_Check(obj)){
-        pyerr.str("");
-        pyerr << "Variable \"" << name()
-            << "\" expected a PyLongObject" << std::endl;
-        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-        return true;
-    }
-
-    const unsigned int value = (unsigned int) PyLong_AsLong(obj);
-    set(&value);
-
-    return false;
-}
-
-FloatVariable::FloatVariable(const std::string varname)
-    : ScalarNumberVariable<float>(varname, "float")
-{
-    _value = 0;
-}
-
-PyObject* FloatVariable::getPythonObject(int i0, int n)
-{
-    double val = *((float*)get());
-    return PyFloat_FromDouble(val);
-}
-
-const bool FloatVariable::setFromPythonObject(PyObject* obj, int i0, int n)
-{
-    if(!PyFloat_Check(obj)){
-        pyerr.str("");
-        pyerr << "Variable \"" << name()
-            << "\" expected a PyFloatObject" << std::endl;
-        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-        return true;
-    }
-
-    const float value = (float) PyFloat_AsDouble(obj);
-    set(&value);
-
-    return false;
-}
-
 template <class T>
 ScalarVecVariable<T>::ScalarVecVariable(const std::string varname,
-                                        const std::string vartype,
                                         const unsigned int dims)
-    : ScalarVariable<T>(varname, vartype)
+    : ScalarVariable<T>(varname)
     , _dims(dims)
 {}
 
@@ -282,7 +231,7 @@ const std::string ScalarVecVariable<T>::asString() {
 
 
 Vec2Variable::Vec2Variable(const std::string varname)
-    : ScalarVecVariable(varname, "vec2", 2)
+    : ScalarVecVariable(varname, 2)
 {
     _value = {0.f, 0.f};
 }
@@ -315,7 +264,7 @@ const bool Vec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 }
 
 Vec3Variable::Vec3Variable(const std::string varname)
-    : ScalarVecVariable(varname, "vec3", 3)
+    : ScalarVecVariable(varname, 3)
 {
     _value = {0.f, 0.f, 0.f};
 }
@@ -348,7 +297,7 @@ const bool Vec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 }
 
 Vec4Variable::Vec4Variable(const std::string varname)
-    : ScalarVecVariable(varname, "vec4", 4)
+    : ScalarVecVariable(varname, 4)
 {
     _value = {0.f, 0.f, 0.f, 0.f};
 }
@@ -381,7 +330,7 @@ const bool Vec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 }
 
 IVec2Variable::IVec2Variable(const std::string varname)
-    : ScalarVecVariable(varname, "ivec2", 2)
+    : ScalarVecVariable(varname, 2)
 {
     _value = {0, 0};
 }
@@ -414,7 +363,7 @@ const bool IVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 }
 
 IVec3Variable::IVec3Variable(const std::string varname)
-    : ScalarVecVariable(varname, "ivec3", 3)
+    : ScalarVecVariable(varname, 3)
 {
     _value = {0, 0, 0};
 }
@@ -447,7 +396,7 @@ const bool IVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 }
 
 IVec4Variable::IVec4Variable(const std::string varname)
-    : ScalarVecVariable(varname, "ivec4", 4)
+    : ScalarVecVariable(varname, 4)
 {
     _value = {0, 0, 0, 0};
 }
@@ -480,7 +429,7 @@ const bool IVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 }
 
 UIVec2Variable::UIVec2Variable(const std::string varname)
-    : ScalarVecVariable(varname, "uivec2", 2)
+    : ScalarVecVariable(varname, 2)
 {
     _value = {0, 0};
 }
@@ -513,7 +462,7 @@ const bool UIVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 }
 
 UIVec3Variable::UIVec3Variable(const std::string varname)
-    : ScalarVecVariable(varname, "uivec3", 3)
+    : ScalarVecVariable(varname, 3)
 {
     _value = {0, 0, 0};
 }
@@ -546,7 +495,7 @@ const bool UIVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 }
 
 UIVec4Variable::UIVec4Variable(const std::string varname)
-    : ScalarVecVariable(varname, "uivec4", 4)
+    : ScalarVecVariable(varname, 4)
 {
     _value = {0, 0, 0, 0};
 }

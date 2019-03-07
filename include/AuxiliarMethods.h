@@ -24,6 +24,13 @@
 #define AUXILIARMETHODS_H_INCLUDED
 
 #include <sphPrerequisites.h>
+#include <type_traits>
+#include <typeinfo>
+#ifndef _MSC_VER
+#   include <cxxabi.h>
+#endif
+#include <memory>
+#include <cstdlib>
 #include <string>
 
 namespace Aqua{
@@ -124,6 +131,37 @@ std::string xxd2string(const unsigned char* arr, const unsigned int &len);
 /** @brief Convert a string to lower case
  */
 void toLower(std::string &str);
+
+/** @brief Get a typename as a string
+ * @return Type string
+ */
+template <class T> std::string type_name() {
+    typedef typename std::remove_reference<T>::type TR;
+    std::unique_ptr<char, void(*)(void*)> own
+           (
+#ifndef _MSC_VER
+                abi::__cxa_demangle(typeid(TR).name(), nullptr,
+                                           nullptr, nullptr),
+#else
+                nullptr,
+#endif
+                std::free
+           );
+    std::string r = own != nullptr ? own.get() : typeid(TR).name();
+    if (std::is_const<TR>::value)
+        r += " const";
+    if (std::is_volatile<TR>::value)
+        r += " volatile";
+    if (std::is_lvalue_reference<T>::value)
+        r += "&";
+    else if (std::is_rvalue_reference<T>::value)
+        r += "&&";
+    // Convert OpenCL types
+    replaceAll(r, "cl_float", "vec");
+    replaceAll(r, "cl_int", "ivec");
+    replaceAll(r, "cl_uint", "uivec");
+    return r;
+}
 
 /** @brief Convert a string to lower case
  * @return Modified string
