@@ -613,8 +613,6 @@ cl_event CalcServer::getUnsortedMem(const std::string& var_name,
         return NULL;
     }
 
-    unsorter->input()->setEvent(event);
-
     return event;
 }
 
