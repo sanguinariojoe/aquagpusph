@@ -21,9 +21,9 @@ configure_file(${EXAMPLE_ORIG_DIR}/templates/Time.xml
     ${EXAMPLE_DEST_DIR}/templates/Time.xml @ONLY)
 
 configure_file(${EXAMPLE_ORIG_DIR}/doc/SPHERIC_Test3_Figure2.png
-    ${EXAMPLE_DEST_DIR}/doc/SPHERIC_Test3_Figure2.png @ONLY)
+    ${EXAMPLE_DEST_DIR}/doc/SPHERIC_Test3_Figure2.png COPYONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/doc/SPHERIC_Test3_Figure3.png
-    ${EXAMPLE_DEST_DIR}/doc/SPHERIC_Test3_Figure3.png @ONLY)
+    ${EXAMPLE_DEST_DIR}/doc/SPHERIC_Test3_Figure3.png COPYONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/plot_t.py
     ${EXAMPLE_DEST_DIR}/plot_t.py @ONLY)
 
@@ -55,9 +55,9 @@ configure_file(${EXAMPLE_ORIG_DIR}/templates/Time.xml
     ${EXAMPLE_AUX_DIR}/templates/Time.xml @ONLY)
 
 configure_file(${EXAMPLE_ORIG_DIR}/doc/SPHERIC_Test3_Figure2.png
-    ${EXAMPLE_AUX_DIR}/doc/SPHERIC_Test3_Figure2.png @ONLY)
+    ${EXAMPLE_AUX_DIR}/doc/SPHERIC_Test3_Figure2.png COPYONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/doc/SPHERIC_Test3_Figure3.png
-    ${EXAMPLE_AUX_DIR}/doc/SPHERIC_Test3_Figure3.png @ONLY)
+    ${EXAMPLE_AUX_DIR}/doc/SPHERIC_Test3_Figure3.png COPYONLY)
 configure_file(${EXAMPLE_ORIG_DIR}/plot_t.py
     ${EXAMPLE_AUX_DIR}/plot_t.py @ONLY)
 
