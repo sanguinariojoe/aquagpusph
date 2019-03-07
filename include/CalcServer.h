@@ -79,16 +79,14 @@ public:
 };
 
 /** @class CalcServer CalcServer.h CalcServer.h
- * @brief Entity that perform the main work of the simulation.
+ * @brief Entity devoted to perform the main work of the simulation.
  *
  * In the Aqua::CalcServer::CalcServer a time subloop is performed where the
  * SPH simulation is performed while no output files should be updated.
  * @note Updating output files require to download data from the server, which
  * due to the low bandwidth asigned is usually a bottleneck, hence letting the
- * Aqua::CalcServer::CalcServer works without interrumptions is the best
+ * Aqua::CalcServer::CalcServer works without interrumptions is a great
  * optimization technique.
- * @remarks Some output files are managed internally by this class, like the
- * log file, the energy file, pressure sensors file, or bounds file.
  */
 class CalcServer : public Aqua::Singleton<Aqua::CalcServer::CalcServer>
 {
@@ -110,81 +108,96 @@ public:
      */
     void update(InputOutput::TimeManager& t_manager);
 
-    /// Setup some additional simulation data.
-    /** Even thought this work is associated with the constructor CalcServer(),
+    /** @brief Setup some additional simulation data.
+     * Even thought this work is associated with the constructor CalcServer(),
      * when something may fail it is preferable to let it to a separated method
      * that could report errors, allowing the program to deal with them.
      */
     void setup();
 
-    /** Get the variables manager
+    /** @brief Download a unsorted variable from the device
+     *
+     * AQUAgpusph is specifically designed to allow particles be sorted by their
+     * cell index, in such a way the list of particles in a specific cell can
+     * be computed by means of an increasing index. However, at the time of
+     * saving information it is usually required to get the information sorted
+     * again.
+     *
+     * @param var_name Variable to unsort and download
+     * @param offset The offset in bytes in the memory object to read from
+     * @param cb The size in bytes of data being downloaded
+     * @param ptr The host memory where the data should be copied
+     * @return The data download event, NULL if errors are detected
+     * @note The caller must wait for the event be complete (clWaitForEvents)
+     * before accessing the downloaded data
+     * @note The caller must call clReleaseEvent() on the returned event
+     * when finished
+     */
+    cl_event getUnsortedMem(const std::string& var_name,
+                            const size_t& offset,
+                            const size_t& cb,
+                            void *ptr);
+
+    /** @brief Get the variables manager
      * @return Variables manager
      */
-    InputOutput::Variables* variables() {return &_vars;}
+    inline InputOutput::Variables* variables() {return &_vars;}
 
-    /** Get the definitions registered.
+    /** @brief Get the registered definitions.
      * @return List of definitions.
      */
-    std::vector<std::string> definitions() const {return _definitions;}
+    inline const std::vector<std::string>& definitions() const {
+        return _definitions;
+    }
 
-    /** Get the tools registered.
+    /** @brief Get the registered tools
      * @return List of tools.
      */
-    std::vector<Tool*> tools() const {return _tools;}
+    inline const std::vector<Tool*>& tools() const {return _tools;}
 
-    /** Get the active context
+    /** @brief Get the current OpenCL context
      * @return OpenCL context
      */
-    cl_context context() const{return _context;}
+    inline const cl_context& context() const {return _context;}
 
-    /** Get the platform
+    /** @brief Get the platform
      * @return OpenCL platform
      */
-    cl_platform_id platform() const{return _platform;}
+    inline const cl_platform_id& platform() const {return _platform;}
 
-    /** Get the device
+    /** @brief Get the device
      * @return OpenCL device
      */
-    cl_device_id device() const{return _device;}
+    inline const cl_device_id& device() const {return _device;}
 
-    /** Get the command queue
+    /** @brief Get the command queue
      * @return OpenCL command queue
      */
-    cl_command_queue command_queue() const{return _command_queue;}
-
-    /** Download a unsorted variable from the device.
-     * @param var_name Variable to unsort and download.
-     * @param offset The offset in bytes in the memory object to read from.
-     * @param cb The size in bytes of data being downloaded.
-     * @param ptr The host memory where the data should be copied
-     * @return The data download event, NULL if errors are detected.
-     * @note The caller must wait for the events (clWaitForEvents) before
-     * accessing the downloaded data.
-     * @remarks The caller must call clReleaseEvent to destroy the event.
-     * Otherwise a memory leak can be expected.
-     */
-    cl_event getUnsortedMem(const std::string var_name,
-                            size_t offset,
-                            size_t cb,
-                            void *ptr);
+    inline const cl_command_queue& command_queue() const {
+        return _command_queue;
+    }
 
     /** @brief Get the AQUAgpusph root path.
      * @return AQUAgpusph root path
      */
-    const std::string base_path() const{return _base_path.c_str();}
+    inline const std::string& base_path() const {return _base_path;}
+
 private:
-    /** Setup the OpenCL stuff.
+    /** @brief Setup the OpenCL stuff
      */
     void setupOpenCL();
-    /** Prints all the available platforms and devices returned by OpenCL.
+    /** @brief Prints all the available OpenCL platforms and devices
      */
     void queryOpenCL();
-    /** Get a platform from the available ones.
+    /** @brief Get the selected platform from the available ones
      */
     void setupPlatform();
-    /** Get the available devices in the selected platform.
+    /** @brief Compute the available devices in the selected platform.
      */
     void setupDevices();
+
+    /// Simulation data read from XML files
+    Aqua::InputOutput::ProblemSetup _sim_data;
 
     /// Number of available OpenCL platforms
     cl_uint _num_platforms;
@@ -234,9 +247,6 @@ private:
      * dramatically reduce the saving files overhead in some platforms
      */
     std::map<std::string, UnSort*> unsorters;
-private:
-    /// Simulation data read from XML files
-    Aqua::InputOutput::ProblemSetup _sim_data;
 };
 
 }}  // namespace

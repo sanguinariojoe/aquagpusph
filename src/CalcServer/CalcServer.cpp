@@ -46,7 +46,8 @@
 namespace Aqua{ namespace CalcServer{
 
 CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
-    : _num_platforms(0)
+    : _sim_data(sim_data)
+    , _num_platforms(0)
     , _platforms(NULL)
     , _num_devices(0)
     , _devices(NULL)
@@ -56,7 +57,6 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
     , _device(NULL)
     , _command_queue(NULL)
     , _current_tool_name(NULL)
-    , _sim_data(sim_data)
 {
     unsigned int i, j;
 
@@ -66,7 +66,7 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
     _current_tool_name = new char[256];
     strcpy(_current_tool_name, "");
 
-    unsigned int num_sets = _sim_data.sets.size();
+    const unsigned int num_sets = _sim_data.sets.size();
     unsigned int N = 0;
     for(auto set : _sim_data.sets) {
         N += set->n();
@@ -77,11 +77,11 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 
     // Register default scalars
     std::ostringstream valstr;
-    #ifdef HAVE_3D
-        unsigned int dims = 3;
-    #else
-        unsigned int dims = 2;
-    #endif
+#ifdef HAVE_3D
+    const unsigned int dims = 3;
+#else
+    const unsigned int dims = 2;
+#endif
     valstr.str(""); valstr << dims;
     _vars.registerVariable("dims", "unsigned int", "", valstr.str());
     _vars.registerVariable("t", "float", "", "0");
@@ -413,11 +413,10 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 
 CalcServer::~CalcServer()
 {
-    unsigned int i;
     delete[] _current_tool_name;
 
     if(_context) clReleaseContext(_context); _context = NULL;
-    for(i = 0; i < _num_devices; i++){
+    for(unsigned int i = 0; i < _num_devices; i++){
         if(_command_queues[i]) clReleaseCommandQueue(_command_queues[i]);
         _command_queues[i] = NULL;
     }
@@ -469,9 +468,108 @@ void CalcServer::update(InputOutput::TimeManager& t_manager)
     }
 }
 
-cl_event CalcServer::getUnsortedMem(const std::string var_name,
-                                    size_t offset,
-                                    size_t cb,
+void CalcServer::setup()
+{
+    unsigned int i, j;
+    cl_uint err_code=0;
+
+    // Check for the required variables that must be defined by the user
+    if(!_vars.get("h")){
+        LOG(L_ERROR, "Missing kernel length \"h\".\n");
+        throw std::runtime_error("Undeclared kernel length variable");
+    }
+    if(_vars.get("h")->type().compare("float")){
+        std::ostringstream msg;
+        msg << "Kernel length \"h\" must be of type \"float\", not \""
+            << _vars.get("h")->type() << "\"" << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("Invalid kernel length variable type");
+    }
+    float h = *(float *)_vars.get("h")->get();
+    if(h <= 0.f){
+        std::ostringstream msg;
+        msg << "Kernel length \"h\" must be a positive value (h="
+            << h << ")" << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("Invalid kernel length value");
+    }
+
+    std::ostringstream msg;
+    msg << "Found kernel length, h = " << h << " [m]" << std::endl;
+    LOG(L_INFO, msg.str());
+
+    // Setup the scalar data per particles sets
+    for(i = 0; i < _sim_data.sets.size(); i++){
+        InputOutput::ProblemSetup::sphParticlesSet* set = _sim_data.sets.at(i);
+        for(j = 0; j < set->scalarNames().size(); j++){
+            std::string name = set->scalarNames().at(j);
+            std::string val = set->scalarValues().at(j);
+            if(!_vars.get(name)){
+                std::ostringstream msg;
+                msg << "Particles set " << i
+                    << " asks for the undeclared variable \"" << name
+                    << "\"." << std::endl;
+                LOG(L_ERROR, msg.str());
+                throw std::runtime_error("Invalid variable");
+            }
+            if(_vars.get(name)->type().find('*') == std::string::npos){
+                std::ostringstream msg;
+                msg << "Particles set " << i
+                    << " can't set the value of a scalar variable, \"" << name
+                    << "\"." << std::endl;
+                LOG(L_ERROR, msg.str());
+                throw std::runtime_error("Invalid variable type");
+            }
+            InputOutput::ArrayVariable *var = (InputOutput::ArrayVariable *)_vars.get(name);
+            size_t typesize = _vars.typeToBytes(_vars.get(name)->type());
+            size_t len = _vars.get(name)->size() / typesize;
+            if(len != _sim_data.sets.size()){
+                std::ostringstream msg;
+                msg << "Particles set " << i
+                    << " can't set the value of the array variable, \"" << name
+                    << "\", because its length, " << len
+                    << "differs from the number of sets, "
+                    << _sim_data.sets.size() << std::endl;
+                LOG(L_ERROR, msg.str());
+                throw std::runtime_error("Invalid variable length");
+            }
+            void *data = malloc(typesize);
+            try {
+                _vars.solve(_vars.get(name)->type(), val, data);
+            } catch(...) {
+                std::ostringstream msg;
+                msg << "Particles set " << i
+                    << " failed evaluating variable, \"" << name
+                    << "\"." << std::endl;
+                LOG(L_ERROR, msg.str());
+                throw;
+            }
+            cl_mem mem = *(cl_mem*)_vars.get(name.c_str())->get();
+            err_code = clEnqueueWriteBuffer(_command_queue, mem, CL_TRUE,
+                                            i * typesize, typesize, data,
+                                            0, NULL, NULL);
+            free(data); data = NULL;
+            if(err_code != CL_SUCCESS) {
+                std::ostringstream msg;
+                msg << "Particles set " << i
+                    << " failed sending variable, \"" << name
+                    << "\" to the computational device." << std::endl;
+                LOG(L_ERROR, msg.str());
+                InputOutput::Logger::singleton()->printOpenCLError(err_code);
+                throw std::runtime_error("OpenCL error");
+            }
+        }
+    }
+
+    // Setup the tools
+    for(auto tool : _tools){
+        tool->setup();
+    }
+}
+
+cl_event CalcServer::getUnsortedMem(const std::string& var_name,
+                                    const size_t& offset,
+                                    const size_t& cb,
                                     void *ptr)
 {
     cl_int err_code;
@@ -802,105 +900,6 @@ void CalcServer::setupDevices()
     // Store the selected ones
     _device = _devices[_sim_data.settings.deviceID()];
     _command_queue = _command_queues[_sim_data.settings.deviceID()];
-}
-
-void CalcServer::setup()
-{
-    unsigned int i, j;
-    cl_uint err_code=0;
-
-    // Check for the required variables that must be defined by the user
-    if(!_vars.get("h")){
-        LOG(L_ERROR, "Missing kernel length \"h\".\n");
-        throw std::runtime_error("Undeclared kernel length variable");
-    }
-    if(_vars.get("h")->type().compare("float")){
-        std::ostringstream msg;
-        msg << "Kernel length \"h\" must be of type \"float\", not \""
-            << _vars.get("h")->type() << "\"" << std::endl;
-        LOG(L_ERROR, msg.str());
-        throw std::runtime_error("Invalid kernel length variable type");
-    }
-    float h = *(float *)_vars.get("h")->get();
-    if(h <= 0.f){
-        std::ostringstream msg;
-        msg << "Kernel length \"h\" must be a positive value (h="
-            << h << ")" << std::endl;
-        LOG(L_ERROR, msg.str());
-        throw std::runtime_error("Invalid kernel length value");
-    }
-
-    std::ostringstream msg;
-    msg << "Found kernel length, h = " << h << " [m]" << std::endl;
-    LOG(L_INFO, msg.str());
-
-    // Setup the scalar data per particles sets
-    for(i = 0; i < _sim_data.sets.size(); i++){
-        InputOutput::ProblemSetup::sphParticlesSet* set = _sim_data.sets.at(i);
-        for(j = 0; j < set->scalarNames().size(); j++){
-            std::string name = set->scalarNames().at(j);
-            std::string val = set->scalarValues().at(j);
-            if(!_vars.get(name)){
-                std::ostringstream msg;
-                msg << "Particles set " << i
-                    << " asks for the undeclared variable \"" << name
-                    << "\"." << std::endl;
-                LOG(L_ERROR, msg.str());
-                throw std::runtime_error("Invalid variable");
-            }
-            if(_vars.get(name)->type().find('*') == std::string::npos){
-                std::ostringstream msg;
-                msg << "Particles set " << i
-                    << " can't set the value of a scalar variable, \"" << name
-                    << "\"." << std::endl;
-                LOG(L_ERROR, msg.str());
-                throw std::runtime_error("Invalid variable type");
-            }
-            InputOutput::ArrayVariable *var = (InputOutput::ArrayVariable *)_vars.get(name);
-            size_t typesize = _vars.typeToBytes(_vars.get(name)->type());
-            size_t len = _vars.get(name)->size() / typesize;
-            if(len != _sim_data.sets.size()){
-                std::ostringstream msg;
-                msg << "Particles set " << i
-                    << " can't set the value of the array variable, \"" << name
-                    << "\", because its length, " << len
-                    << "differs from the number of sets, "
-                    << _sim_data.sets.size() << std::endl;
-                LOG(L_ERROR, msg.str());
-                throw std::runtime_error("Invalid variable length");
-            }
-            void *data = malloc(typesize);
-            try {
-                _vars.solve(_vars.get(name)->type(), val, data);
-            } catch(...) {
-                std::ostringstream msg;
-                msg << "Particles set " << i
-                    << " failed evaluating variable, \"" << name
-                    << "\"." << std::endl;
-                LOG(L_ERROR, msg.str());
-                throw;
-            }
-            cl_mem mem = *(cl_mem*)_vars.get(name.c_str())->get();
-            err_code = clEnqueueWriteBuffer(_command_queue, mem, CL_TRUE,
-                                            i * typesize, typesize, data,
-                                            0, NULL, NULL);
-            free(data); data = NULL;
-            if(err_code != CL_SUCCESS) {
-                std::ostringstream msg;
-                msg << "Particles set " << i
-                    << " failed sending variable, \"" << name
-                    << "\" to the computational device." << std::endl;
-                LOG(L_ERROR, msg.str());
-                InputOutput::Logger::singleton()->printOpenCLError(err_code);
-                throw std::runtime_error("OpenCL error");
-            }
-        }
-    }
-
-    // Setup the tools
-    for(auto tool : _tools){
-        tool->setup();
-    }
 }
 
 }}  // namespace
