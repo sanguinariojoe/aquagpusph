@@ -126,22 +126,13 @@ void Variable::sync()
 template <class T>
 ScalarVariable<T>::ScalarVariable(const std::string varname)
     : Variable(varname, "")
-{
-    type(type_name<decltype(_value)>());
-    std::cout << "ScalarVariable<T>::ScalarVariable " << varname << std::endl;
-    std::cout << type() << std::endl;
-}
-
-template <class T>
-ScalarNumberVariable<T>::ScalarNumberVariable(const std::string varname)
-    : ScalarVariable<T>(varname)
     , PyCast<T>()
 {
-    this->_value = 0;
+    type(type_name<decltype(_value)>());
 }
 
 template <class T>
-PyObject* ScalarNumberVariable<T>::getPythonObject(int i0, int n)
+PyObject* ScalarVariable<T>::getPythonObject(int i0, int n)
 {
     PyObject* obj = this->valToPython(*((T*)this->get()));
     if(!obj){
@@ -154,7 +145,7 @@ PyObject* ScalarNumberVariable<T>::getPythonObject(int i0, int n)
 }
 
 template <class T>
-const bool ScalarNumberVariable<T>::setFromPythonObject(PyObject* obj,
+const bool ScalarVariable<T>::setFromPythonObject(PyObject* obj,
                                                         int i0,
                                                         int n)
 {
@@ -172,6 +163,13 @@ const bool ScalarNumberVariable<T>::setFromPythonObject(PyObject* obj,
 }
 
 template <class T>
+ScalarNumberVariable<T>::ScalarNumberVariable(const std::string varname)
+    : ScalarVariable<T>(varname)
+{
+    this->_value = 0;
+}
+
+template <class T>
 const std::string ScalarNumberVariable<T>::asString() {
     std::ostringstream msg;
     msg << *((T*)this->get());
@@ -179,45 +177,16 @@ const std::string ScalarNumberVariable<T>::asString() {
     return str_val;
 }
 
-template <class T>
-ScalarVecVariable<T>::ScalarVecVariable(const std::string varname,
-                                        const unsigned int dims)
+template <class T, size_t N>
+ScalarVecVariable<T, N>::ScalarVecVariable(const std::string varname)
     : ScalarVariable<T>(varname)
-    , _dims(dims)
-{}
-
-template <class T>
-const bool ScalarVecVariable<T>::checkPyhonObjectDims(PyObject* obj){
-    if(!PyObject_TypeCheck(obj, &PyArray_Type)){
-        pyerr.str("");
-        pyerr << "Variable \"" << this->name()
-            << "\" expected a PyArrayObject" << std::endl;
-        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-        return true;
-    }
-
-    PyArrayObject* array_obj = (PyArrayObject*) obj;
-    if(array_obj->nd != 1){
-        pyerr.str("");
-        pyerr << "Variable \"" << this->name()
-            << "\" expected an one dimensional array" << std::endl;
-        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-        return true;
-    }
-    npy_intp dim = array_obj->dimensions[0];
-    if(dim != _dims){
-        pyerr.str("");
-        pyerr << "Variable \"" << this->name()
-            << "\" expected an array with "<< _dims
-            << " components" << std::endl;
-        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-        return true;
-    }
-    return false;
+    , _dims(N)
+{
+    memset(&(this->_value), 0, sizeof(T));
 }
 
-template <class T>
-const std::string ScalarVecVariable<T>::asString() {
+template <class T, size_t N>
+const std::string ScalarVecVariable<T, N>::asString() {
     T *val = (T*)(this->get());
     std::ostringstream msg;
     msg << "(";
@@ -227,304 +196,6 @@ const std::string ScalarVecVariable<T>::asString() {
     str_val = msg.str();
     str_val.back() = ')';
     return str_val;
-}
-
-
-Vec2Variable::Vec2Variable(const std::string varname)
-    : ScalarVecVariable(varname, 2)
-{
-    _value = {0.f, 0.f};
-}
-
-PyObject* Vec2Variable::getPythonObject(int i0, int n)
-{
-    vec2 *vv = (vec2*)get();
-    npy_intp dims[] = {2};
-    return PyArray_SimpleNewFromData(1, dims, PyArray_FLOAT, vv->s);
-}
-
-const bool Vec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
-{
-    if(checkPyhonObjectDims(obj))
-        return true;
-    PyArrayObject* array_obj = (PyArrayObject*) obj;
-    int typ = PyArray_TYPE(array_obj);
-    if (typ != PyArray_FLOAT) {
-        pyerr.str("");
-        pyerr << "Variable \"" << name()
-            << "\" expected a PyArray_FLOAT array" << std::endl;
-        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-        return true;
-    }
-
-    vec2 *vv = (vec2*)get();
-    memcpy(vv->s, array_obj->data, sizeof(vec2));
-
-    return false;
-}
-
-Vec3Variable::Vec3Variable(const std::string varname)
-    : ScalarVecVariable(varname, 3)
-{
-    _value = {0.f, 0.f, 0.f};
-}
-
-PyObject* Vec3Variable::getPythonObject(int i0, int n)
-{
-    vec3 *vv = (vec3*)get();
-    npy_intp dims[] = {3};
-    return PyArray_SimpleNewFromData(1, dims, PyArray_FLOAT, vv->s);
-}
-
-const bool Vec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
-{
-    if(checkPyhonObjectDims(obj))
-        return true;
-    PyArrayObject* array_obj = (PyArrayObject*) obj;
-    int typ = PyArray_TYPE(array_obj);
-    if (typ != PyArray_FLOAT) {
-        pyerr.str("");
-        pyerr << "Variable \"" << name()
-            << "\" expected a PyArray_FLOAT array" << std::endl;
-        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-        return true;
-    }
-
-    vec3 *vv = (vec3*)get();
-    memcpy(vv->s, array_obj->data, sizeof(vec3));
-
-    return false;
-}
-
-Vec4Variable::Vec4Variable(const std::string varname)
-    : ScalarVecVariable(varname, 4)
-{
-    _value = {0.f, 0.f, 0.f, 0.f};
-}
-
-PyObject* Vec4Variable::getPythonObject(int i0, int n)
-{
-    vec4 *vv = (vec4*)get();
-    npy_intp dims[] = {4};
-    return PyArray_SimpleNewFromData(1, dims, PyArray_FLOAT, vv->s);
-}
-
-const bool Vec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
-{
-    if(checkPyhonObjectDims(obj))
-        return true;
-    PyArrayObject* array_obj = (PyArrayObject*) obj;
-    int typ = PyArray_TYPE(array_obj);
-    if (typ != PyArray_FLOAT) {
-        pyerr.str("");
-        pyerr << "Variable \"" << name()
-            << "\" expected a PyArray_FLOAT array" << std::endl;
-        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-        return true;
-    }
-
-    vec4 *vv = (vec4*)get();
-    memcpy(vv->s, array_obj->data, sizeof(vec4));
-
-    return false;
-}
-
-IVec2Variable::IVec2Variable(const std::string varname)
-    : ScalarVecVariable(varname, 2)
-{
-    _value = {0, 0};
-}
-
-PyObject* IVec2Variable::getPythonObject(int i0, int n)
-{
-    ivec2 *vv = (ivec2*)get();
-    npy_intp dims[] = {2};
-    return PyArray_SimpleNewFromData(1, dims, PyArray_INT, vv->s);
-}
-
-const bool IVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
-{
-    if(checkPyhonObjectDims(obj))
-        return true;
-    PyArrayObject* array_obj = (PyArrayObject*) obj;
-    int typ = PyArray_TYPE(array_obj);
-    if (typ != PyArray_INT) {
-        pyerr.str("");
-        pyerr << "Variable \"" << name()
-            << "\" expected a PyArray_INT array" << std::endl;
-        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-        return true;
-    }
-
-    ivec2 *vv = (ivec2*)get();
-    memcpy(vv->s, array_obj->data, sizeof(ivec2));
-
-    return false;
-}
-
-IVec3Variable::IVec3Variable(const std::string varname)
-    : ScalarVecVariable(varname, 3)
-{
-    _value = {0, 0, 0};
-}
-
-PyObject* IVec3Variable::getPythonObject(int i0, int n)
-{
-    ivec3 *vv = (ivec3*)get();
-    npy_intp dims[] = {3};
-    return PyArray_SimpleNewFromData(1, dims, PyArray_INT, vv->s);
-}
-
-const bool IVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
-{
-    if(checkPyhonObjectDims(obj))
-        return true;
-    PyArrayObject* array_obj = (PyArrayObject*) obj;
-    int typ = PyArray_TYPE(array_obj);
-    if (typ != PyArray_INT) {
-        pyerr.str("");
-        pyerr << "Variable \"" << name()
-            << "\" expected a PyArray_INT array" << std::endl;
-        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-        return true;
-    }
-
-    ivec3 *vv = (ivec3*)get();
-    memcpy(vv->s, array_obj->data, sizeof(ivec3));
-
-    return false;
-}
-
-IVec4Variable::IVec4Variable(const std::string varname)
-    : ScalarVecVariable(varname, 4)
-{
-    _value = {0, 0, 0, 0};
-}
-
-PyObject* IVec4Variable::getPythonObject(int i0, int n)
-{
-    ivec4 *vv = (ivec4*)get();
-    npy_intp dims[] = {4};
-    return PyArray_SimpleNewFromData(1, dims, PyArray_INT, vv->s);
-}
-
-const bool IVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
-{
-    if(checkPyhonObjectDims(obj))
-        return true;
-    PyArrayObject* array_obj = (PyArrayObject*) obj;
-    int typ = PyArray_TYPE(array_obj);
-    if (typ != PyArray_INT) {
-        pyerr.str("");
-        pyerr << "Variable \"" << name()
-            << "\" expected a PyArray_INT array" << std::endl;
-        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-        return true;
-    }
-
-    ivec4 *vv = (ivec4*)get();
-    memcpy(vv->s, array_obj->data, sizeof(ivec4));
-
-    return false;
-}
-
-UIVec2Variable::UIVec2Variable(const std::string varname)
-    : ScalarVecVariable(varname, 2)
-{
-    _value = {0, 0};
-}
-
-PyObject* UIVec2Variable::getPythonObject(int i0, int n)
-{
-    uivec2 *vv = (uivec2*)get();
-    npy_intp dims[] = {2};
-    return PyArray_SimpleNewFromData(1, dims, PyArray_UINT, vv->s);
-}
-
-const bool UIVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
-{
-    if(checkPyhonObjectDims(obj))
-        return true;
-    PyArrayObject* array_obj = (PyArrayObject*) obj;
-    int typ = PyArray_TYPE(array_obj);
-    if (typ != PyArray_UINT) {
-        pyerr.str("");
-        pyerr << "Variable \"" << name()
-            << "\" expected a PyArray_UINT array" << std::endl;
-        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-        return true;
-    }
-
-    uivec2 *vv = (uivec2*)get();
-    memcpy(vv->s, array_obj->data, sizeof(uivec2));
-
-    return false;
-}
-
-UIVec3Variable::UIVec3Variable(const std::string varname)
-    : ScalarVecVariable(varname, 3)
-{
-    _value = {0, 0, 0};
-}
-
-PyObject* UIVec3Variable::getPythonObject(int i0, int n)
-{
-    uivec3 *vv = (uivec3*)get();
-    npy_intp dims[] = {3};
-    return PyArray_SimpleNewFromData(1, dims, PyArray_UINT, vv->s);
-}
-
-const bool UIVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
-{
-    if(checkPyhonObjectDims(obj))
-        return true;
-    PyArrayObject* array_obj = (PyArrayObject*) obj;
-    int typ = PyArray_TYPE(array_obj);
-    if (typ != PyArray_UINT) {
-        pyerr.str("");
-        pyerr << "Variable \"" << name()
-            << "\" expected a PyArray_UINT array" << std::endl;
-        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-        return true;
-    }
-
-    uivec3 *vv = (uivec3*)get();
-    memcpy(vv->s, array_obj->data, sizeof(uivec3));
-
-    return false;
-}
-
-UIVec4Variable::UIVec4Variable(const std::string varname)
-    : ScalarVecVariable(varname, 4)
-{
-    _value = {0, 0, 0, 0};
-}
-
-PyObject* UIVec4Variable::getPythonObject(int i0, int n)
-{
-    uivec4 *vv = (uivec4*)get();
-    npy_intp dims[] = {4};
-    return PyArray_SimpleNewFromData(1, dims, PyArray_UINT, vv->s);
-}
-
-const bool UIVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
-{
-    if(checkPyhonObjectDims(obj))
-        return true;
-    PyArrayObject* array_obj = (PyArrayObject*) obj;
-    int typ = PyArray_TYPE(array_obj);
-    if (typ != PyArray_UINT) {
-        pyerr.str("");
-        pyerr << "Variable \"" << name()
-            << "\" expected a PyArray_UINT array" << std::endl;
-        PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-        return true;
-    }
-
-    uivec4 *vv = (uivec4*)get();
-    memcpy(vv->s, array_obj->data, sizeof(uivec4));
-
-    return false;
 }
 
 ArrayVariable::ArrayVariable(const std::string varname, const std::string vartype)

@@ -179,12 +179,11 @@ private:
  * @brief A generic Scalar variable
  */
 template <class T>
-class ScalarVariable : public Variable
+class ScalarVariable : public Variable, public PyCast<T>
 {
 public:
     /** @brief Constructor
      * @param varname Name of the variable.
-     * @param vartype Type of the variable.
      */
     ScalarVariable(const std::string varname);
 
@@ -221,6 +220,21 @@ public:
      */
     inline void set(const void* ptr){sync(); memcpy(&_value, ptr, sizeof(T));}
 
+    /** @brief Get a PyArrayObject interpretation of the variable
+     * @param i0 ignored parameter.
+     * @param n ignored parameter
+     * @return PyArrayObject Python object (PyArray_FLOAT subtype).
+     */
+    PyObject* getPythonObject(int i0=0, int n=0);
+
+    /** @brief Set the variable from a Python object
+     * @param obj PyArrayObject object (PyArray_FLOAT subtype).
+     * @param i0 ignored parameter.
+     * @param n ignored parameter
+     * @return false if all gone right, true otherwise.
+     */
+    const bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
+
     /** @brief Get the variable text representation
      * @return The variable represented as a string, NULL in case of errors.
      */
@@ -234,33 +248,17 @@ protected:
  * @brief A generic Scalar variable of one single component
  */
 template <class T>
-class ScalarNumberVariable : public ScalarVariable<T>, public PyCast<T>
+class ScalarNumberVariable : public ScalarVariable<T>
 {
 public:
     /** @brief Constructor
      * @param varname Name of the variable.
-     * @param vartype Type of the variable.
      */
     ScalarNumberVariable(const std::string varname);
 
     /** @brief Destructor
      */
     ~ScalarNumberVariable() {};
-
-    /** @brief Get a PyLongObject interpretation of the variable value
-     * @param i0 ignored parameter.
-     * @param n ignored parameter.
-     * @return PyLongObject Python object.
-     */
-    PyObject* getPythonObject(int i0=0, int n=0);
-
-    /** @brief Set the variable value from a Python object
-     * @param obj PyLongObject object.
-     * @param i0 ignored parameter.
-     * @param n ignored parameter
-     * @return false if all gone right, true otherwise.
-     */
-    const bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
 
     /** @brief Get the variable text representation
      * @return The variable represented as a string, NULL in case of errors.
@@ -286,17 +284,14 @@ using FloatVariable = ScalarNumberVariable<float>;
  * Scalar varaibles are those that are stored in the host, while array variables
  * are conversely stored in the computational device
  */
-template <class T>
+template <class T, size_t N>
 class ScalarVecVariable : public ScalarVariable<T>
 {
 public:
     /** @brief Constructor
      * @param varname Name of the variable
-     * @param vartype Type of the variable
-     * @param dims Number of components
      */
-    ScalarVecVariable(const std::string varname,
-                      const unsigned int dims);
+    ScalarVecVariable(const std::string varname);
 
     /** @brief Destructor
      */
@@ -306,301 +301,46 @@ public:
      * @return The variable represented as a string, NULL in case of errors.
      */
     virtual const std::string asString();
-protected:
-    /** @brief Check that a Python object is compatible with the variable type
-     * 
-     * This method is checking that the Python object is an array with the same
-     * number of components of the variable type. The internal data type is not
-     * checked.
-     *
-     * @param obj Python object object.
-     * @return false if the Python object matchs with the variable type, true
-     * otherwise.
-     */
-    const bool checkPyhonObjectDims(PyObject* obj);
 private:
     /// Number of components of the type
     unsigned int _dims;
 };
 
-/** @class Vec2Variable Variable.h Variable.h
- * @brief A vec2 variable
+/** @brief A vec2 variable
  */
-class Vec2Variable : public ScalarVecVariable<vec2>
-{
-public:
-    /** @brief Constructor
-     * @param varname Name of the variable.
-     */
-    Vec2Variable(const std::string varname);
+using Vec2Variable = ScalarVecVariable<vec2, 2>;
 
-    /** @brief Destructor
-     */
-    ~Vec2Variable() {};
-
-    /** @brief Get a PyArrayObject interpretation of the variable
-     * @param i0 ignored parameter.
-     * @param n ignored parameter
-     * @return PyArrayObject Python object (PyArray_FLOAT subtype).
-     */
-    PyObject* getPythonObject(int i0=0, int n=0);
-
-    /** @brief Set the variable from a Python object
-     * @param obj PyArrayObject object (PyArray_FLOAT subtype).
-     * @param i0 ignored parameter.
-     * @param n ignored parameter
-     * @return false if all gone right, true otherwise.
-     */
-    const bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
-};
-
-/** @class Vec3Variable Variable.h Variable.h
- * @brief A vec3 variable
+/** @brief A vec3 variable
  */
-class Vec3Variable : public ScalarVecVariable<vec3>
-{
-public:
-    /** @brief Constructor
-     * @param varname Name of the variable.
-     */
-    Vec3Variable(const std::string varname);
+using Vec3Variable = ScalarVecVariable<vec3, 3>;
 
-    /** @brief Destructor
-     */
-    ~Vec3Variable() {};
-
-    /** @brief Get a PyArrayObject interpretation of the variable
-     * @param i0 ignored parameter.
-     * @param n ignored parameter
-     * @return PyArrayObject Python object (PyArray_FLOAT subtype).
-     */
-    PyObject* getPythonObject(int i0=0, int n=0);
-
-    /** @brief Set the variable from a Python object
-     * @param obj PyArrayObject object (PyArray_FLOAT subtype).
-     * @param i0 ignored parameter.
-     * @param n ignored parameter
-     * @return false if all gone right, true otherwise.
-     */
-    const bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
-};
-
-/** @class Vec4Variable Variable.h Variable.h
- * @brief A vec4 variable
+/** @brief A vec4 variable
  */
-class Vec4Variable : public ScalarVecVariable<vec4>
-{
-public:
-    /** @brief Constructor
-     * @param varname Name of the variable.
-     */
-    Vec4Variable(const std::string varname);
+using Vec4Variable = ScalarVecVariable<vec4, 4>;
 
-    /** @brief Destructor
-     */
-    ~Vec4Variable() {};
-
-    /** @brief Get a PyArrayObject interpretation of the variable
-     * @param i0 ignored parameter.
-     * @param n ignored parameter
-     * @return PyArrayObject Python object (PyArray_FLOAT subtype).
-     */
-    PyObject* getPythonObject(int i0=0, int n=0);
-
-    /** @brief Set the variable value from a Python object
-     * @param obj PyArrayObject object (PyArray_FLOAT subtype).
-     * @param i0 ignored parameter.
-     * @param n ignored parameter
-     * @return false if all gone right, true otherwise.
-     */
-    const bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
-};
-
-/** @class IVec2Variable Variable.h Variable.h
- * @brief A ivec2 variable
+/** @brief A ivec2 variable
  */
-class IVec2Variable : public ScalarVecVariable<ivec2>
-{
-public:
-    /** @brief Constructor
-     * @param varname Name of the variable.
-     */
-    IVec2Variable(const std::string varname);
+using IVec2Variable = ScalarVecVariable<ivec2, 2>;
 
-    /** @brief Destructor
-     */
-    ~IVec2Variable() {};
-
-    /** @brief Get a PyArrayObject interpretation of the variable
-     * @param i0 ignored parameter.
-     * @param n ignored parameter
-     * @return PyArrayObject Python object (PyArray_INT subtype).
-     */
-    PyObject* getPythonObject(int i0=0, int n=0);
-
-    /** @brief Set the variable value from a Python object
-     * @param obj PyArrayObject object (PyArray_INT subtype).
-     * @param i0 ignored parameter.
-     * @param n ignored parameter
-     * @return false if all gone right, true otherwise.
-     */
-    const bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
-};
-
-/** @class IVec3Variable Variable.h Variable.h
- * @brief A ivec3 variable
+/** @brief A ivec3 variable
  */
-class IVec3Variable : public ScalarVecVariable<ivec3>
-{
-public:
-    /** @brief Constructor
-     * @param varname Name of the variable.
-     */
-    IVec3Variable(const std::string varname);
+using IVec3Variable = ScalarVecVariable<ivec3, 3>;
 
-    /** @brief Destructor
-     */
-    ~IVec3Variable() {};
-
-    /** @brief Get a PyArrayObject interpretation of the variable
-     * @param i0 ignored parameter.
-     * @param n ignored parameter
-     * @return PyArrayObject Python object (PyArray_INT subtype).
-     */
-    PyObject* getPythonObject(int i0=0, int n=0);
-
-    /** @brief Set the variable value from a Python object
-     * @param obj PyArrayObject object (PyArray_INT subtype).
-     * @param i0 ignored parameter.
-     * @param n ignored parameter
-     * @return false if all gone right, true otherwise.
-     */
-    const bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
-};
-
-/** @class IVec4Variable Variable.h Variable.h
- * @brief A ivec4 variable
+/** @brief A ivec4 variable
  */
-class IVec4Variable : public ScalarVecVariable<ivec4>
-{
-public:
-    /** @brief Constructor
-     * @param varname Name of the variable.
-     */
-    IVec4Variable(const std::string varname);
+using IVec4Variable = ScalarVecVariable<ivec4, 4>;
 
-    /** @brief Destructor
-     */
-    ~IVec4Variable() {};
-
-    /** @brief Get a PyArrayObject interpretation of the variable
-     * @param i0 ignored parameter.
-     * @param n ignored parameter
-     * @return PyArrayObject Python object (PyArray_INT subtype).
-     */
-    PyObject* getPythonObject(int i0=0, int n=0);
-
-    /** @brief Set the variable value from a Python object
-     * @param obj PyArrayObject object (PyArray_INT subtype).
-     * @param i0 ignored parameter.
-     * @param n ignored parameter
-     * @return false if all gone right, true otherwise.
-     */
-    const bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
-};
-
-/** @class UIVec2Variable Variable.h Variable.h
- * @brief A uivec2 variable
+/** @brief A uivec2 variable
  */
-class UIVec2Variable : public ScalarVecVariable<uivec2>
-{
-public:
-    /** @brief Constructor
-     * @param varname Name of the variable.
-     */
-    UIVec2Variable(const std::string varname);
+using UIVec2Variable = ScalarVecVariable<uivec2, 2>;
 
-    /** @brief Destructor
-     */
-    ~UIVec2Variable() {};
-
-    /** @brief Get a PyArrayObject interpretation of the variable
-     * @param i0 ignored parameter.
-     * @param n ignored parameter
-     * @return PyArrayObject Python object (PyArray_UINT subtype).
-     */
-    PyObject* getPythonObject(int i0=0, int n=0);
-
-    /** @brief Set the variable value from a Python object
-     * @param obj PyArrayObject object (PyArray_UINT subtype).
-     * @param i0 ignored parameter.
-     * @param n ignored parameter
-     * @return false if all gone right, true otherwise.
-     */
-    const bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
-};
-
-/** @class IVec3Variable Variable.h Variable.h
- * @brief A uivec3 variable
+/** @brief A uivec3 variable
  */
-class UIVec3Variable : public ScalarVecVariable<uivec3>
-{
-public:
-    /** @brief Constructor
-     * @param varname Name of the variable.
-     */
-    UIVec3Variable(const std::string varname);
+using UIVec3Variable = ScalarVecVariable<uivec3, 3>;
 
-    /** @brief Destructor
-     */
-    ~UIVec3Variable() {};
-
-    /** @brief Get a PyArrayObject interpretation of the variable
-     * @param i0 ignored parameter.
-     * @param n ignored parameter
-     * @return PyArrayObject Python object (PyArray_UINT subtype).
-     */
-    PyObject* getPythonObject(int i0=0, int n=0);
-
-    /** @brief Set the variable value from a Python object
-     * @param obj PyArrayObject object (PyArray_UINT subtype).
-     * @param i0 ignored parameter.
-     * @param n ignored parameter
-     * @return false if all gone right, true otherwise.
-     */
-    const bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
-};
-
-/** @class UIVec4Variable Variable.h Variable.h
- * @brief A uivec4 variable
+/** @brief A uivec4 variable
  */
-class UIVec4Variable : public ScalarVecVariable<uivec4>
-{
-public:
-    /** @brief Constructor
-     * @param varname Name of the variable.
-     */
-    UIVec4Variable(const std::string varname);
-
-    /** @brief Destructor
-     */
-    ~UIVec4Variable() {};
-
-    /** @brief Get a PyArrayObject interpretation of the variable
-     * @param i0 ignored parameter.
-     * @param n ignored parameter
-     * @return PyArrayObject Python object (PyArray_UINT subtype).
-     */
-    PyObject* getPythonObject(int i0=0, int n=0);
-
-    /** @brief Set the variable value from a Python object
-     * @param obj PyArrayObject object (PyArray_UINT subtype).
-     * @param i0 ignored parameter.
-     * @param n ignored parameter
-     * @return false if all gone right, true otherwise.
-     */
-    const bool setFromPythonObject(PyObject* obj, int i0=0, int n=0);
-};
+using UIVec4Variable = ScalarVecVariable<uivec4, 4>;
 
 #ifdef HAVE_3D
     /** @brief A real vector variable.
