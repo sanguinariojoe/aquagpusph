@@ -48,7 +48,7 @@ namespace Reports{
 class Report : public Aqua::CalcServer::Tool
 {
 public:
-    /** @brief Constructor.
+    /** @brief Constructor
      * @param tool_name Tool name.
      * @param fields Fields to be printed.
      * The fields are separated by commas or semicolons, and the spaces are just
@@ -56,45 +56,51 @@ public:
      * @param ipf Iterations per frame, 0 to just ignore this printing criteria.
      * @param fps Frames per second, 0 to just ignore this printing criteria.
      */
-    Report(const std::string tool_name,
-           const std::string fields,
-           unsigned int ipf=1,
-           float fps=0.f);
+    Report(const std::string& tool_name,
+           const std::string& fields,
+           const unsigned int ipf=1,
+           const float fps=0.f);
 
     /** @brief Destructor
      */
     virtual ~Report();
 
-    /** @brief Initialize the tool.
+    /** @brief Initialize the tool
      */
     virtual void setup();
 
-    /** @brief Return the text string of the data to be printed.
+    /** @brief Return the text string of the data to be printed
      * @param with_title true if the report title should be inserted, false
-     * otherwise.
+     * otherwise
      * @param with_names true if the variable names should be printed, false
-     * otherwise.
-     * @return Text string to be printed either in a file or in the screen.
+     * otherwise
+     * @return Text string to be printed either in a file or in the screen
      */
-    const std::string data(bool with_title=true, bool with_names=true);
+    const std::string data(const bool with_title=true,
+                           const bool with_names=true);
 
 protected:
     /** @brief Compute the fields by lines
      */
-    void processFields(const std::string fields);
+    void processFields(const std::string& fields);
 
     /** @brief Get the variables list
      * @return The variables list resulting from _fields
      */
-    std::vector<InputOutput::Variable*> variables(){return _vars;}
+    inline const std::vector<InputOutput::Variable*>& variables() const {
+        return _vars;
+    }
 
     /** @brief Check if an output must be performed.
      *
      * If the answer is true, the tool will set the time instant as the last
-     * printing event
+     * printing event.
+     * Therefore, further calls to this function in the same time step are
+     * always returning false
+     *
      * @return true if a report should be printed, false otherwise.
      */
-    bool mustUpdate();
+    const bool mustUpdate();
 private:
     /// Input fields string
     std::string _fields;

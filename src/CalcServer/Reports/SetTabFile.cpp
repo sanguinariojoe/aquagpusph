@@ -27,13 +27,13 @@
 
 namespace Aqua{ namespace CalcServer{ namespace Reports{
 
-SetTabFile::SetTabFile(const std::string tool_name,
-                       const std::string fields,
-                       unsigned int first,
-                       unsigned int n,
-                       const std::string output_file,
-                       unsigned int ipf,
-                       float fps)
+SetTabFile::SetTabFile(const std::string& tool_name,
+                       const std::string& fields,
+                       const unsigned int& first,
+                       const unsigned int& n,
+                       const std::string& output_file,
+                       const unsigned int ipf,
+                       const float fps)
     : Report(tool_name, fields, ipf, fps)
     , _output_file(output_file)
 {
@@ -70,7 +70,7 @@ void SetTabFile::setup()
     _f.flush();
 }
 
-cl_event SetTabFile::_execute(const std::vector<cl_event> events)
+const cl_event SetTabFile::_execute(const std::vector<cl_event>& events)
 {
     if(!mustUpdate()){
         return NULL;
@@ -231,7 +231,8 @@ cl_event SetTabFile::_execute(const std::vector<cl_event> events)
     return NULL;
 }
 
-std::vector<void*> SetTabFile::download(std::vector<InputOutput::Variable*> vars)
+const std::vector<void*> SetTabFile::download(
+    const std::vector<InputOutput::Variable*> vars)
 {
     std::vector<void*> data;
     std::vector<cl_event> events;  // vector storage is continuous memory

@@ -39,73 +39,69 @@ namespace Aqua{ namespace CalcServer{
 class Kernel : public Aqua::CalcServer::Tool
 {
 public:
-    /** Constructor.
+    /** @brief Constructor
      * @param tool_name Tool name.
      * @param kernel_path Kernel path.
      * @param n Number of threads to launch.
      * @param once Run this tool just once. Useful to make initializations.
      */
-    Kernel(const std::string tool_name,
-           const std::string kernel_path,
+    Kernel(const std::string& tool_name,
+           const std::string& kernel_path,
            const std::string entry_point="entry",
            const std::string n="N",
-           bool once=false);
+           const bool once=false);
 
-    /** Destructor
-     */
+    /// Destructor
     virtual ~Kernel();
 
-    /** Initialize the tool.
-     * @return false if all gone right, true otherwise.
+    /** @brief Initialize the tool
      */
     void setup();
 
-    /** Get the kernel file path.
-     * @return Tool kernel file path.
+    /** @brief Get the kernel file path
+     * @return Tool kernel file path
      */
-    const std::string path(){return (const std::string)_path;}
-
-    /** Get the work group size
-     * @return Work group size
-     */
-    size_t workGroupSize() const {return _work_group_size;}
-
-    /** Get the work group size
-     * @return Work group size
-     */
-    size_t globalWorkSize() const {return _global_work_size;}
+    inline const std::string& path() const {return _path;}
 
 protected:
-    /** Execute the tool
+    /** @brief Get the work group size
+     * @return Work group size
+     */
+    inline const size_t& workGroupSize() const {return _work_group_size;}
+
+    /** @brief Get the global work size
+     * @return Work group size
+     */
+    inline const size_t& globalWorkSize() const {return _global_work_size;}
+
+    /** @brief Execute the tool
      * @param events List of events that shall be waited before safe execution
      * @return OpenCL event to be waited before accessing the dependencies
      */
-    cl_event _execute(const std::vector<cl_event> events);
+    const cl_event _execute(const std::vector<cl_event>& events);
 
-protected:
-    /** Compile the OpenCL program
+    /** @brief Compile the OpenCL program
      * @param entry_point Program entry point method.
      * @param flags Compiling additional flags.
      * @param header Header to be append at the start of the source code.
-     * @return false if all gone right, true otherwise.
      */
     void compile(const std::string entry_point="entry",
                  const std::string flags="",
                  const std::string header="");
 
-    /** Compute the variables required by the program
-     * @param entry_point Program entry point method.
-     * @return false if all gone right, true otherwise.
+    /** @brief Compute the variables required by the program
+     * @param entry_point Program entry point method
      */
     void variables(const std::string entry_point="main");
 
-    /** @brief Set the variables to the OpenCL kernel.
+    /** @brief Set the variables to the OpenCL kernel
      * 
-     * The method detects if a variable should be updated or if it already set either.
+     * The method detects if a variable should be updated or if it already set
+     * either
      */
     void setVariables();
 
-    /** Compute the global work size
+    /** @brief Compute the global work size
      */
     void computeGlobalWorkSize();
 

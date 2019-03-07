@@ -30,7 +30,9 @@
 
 namespace Aqua{ namespace CalcServer{
 
-Assert::Assert(const std::string name, const std::string condition, bool once)
+Assert::Assert(const std::string& name,
+               const std::string& condition,
+               const bool once)
     : Tool(name, once)
     , _condition(condition)
 {
@@ -47,7 +49,7 @@ void Assert::setup()
     LOG(L_INFO, msg.str());
 }
 
-cl_event Assert::_execute(const std::vector<cl_event> events)
+const cl_event Assert::_execute(const std::vector<cl_event>& events)
 {
     int result;
     InputOutput::Variables *vars = CalcServer::singleton()->variables();

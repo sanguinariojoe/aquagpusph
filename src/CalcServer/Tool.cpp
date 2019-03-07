@@ -31,7 +31,7 @@
 
 namespace Aqua{ namespace CalcServer{
 
-Tool::Tool(const std::string tool_name, bool once)
+Tool::Tool(const std::string& tool_name, const bool once)
     : _name(tool_name)
     , _once(once)
     , _allocated_memory(0)
@@ -101,7 +101,7 @@ void Tool::execute()
     addElapsedTime(elapsed_seconds);
 }
 
-void Tool::addElapsedTime(float elapsed_time)
+void Tool::addElapsedTime(const float& elapsed_time)
 {
     _elapsed_time = elapsed_time;
     // Invert the average computation
@@ -117,7 +117,7 @@ void Tool::addElapsedTime(float elapsed_time)
 }
 
 
-void Tool::setDependencies(std::vector<std::string> var_names)
+void Tool::setDependencies(const std::vector<std::string>& var_names)
 {
     InputOutput::Variables *vars = CalcServer::singleton()->variables();
     _vars.clear();
@@ -134,16 +134,6 @@ void Tool::setDependencies(std::vector<std::string> var_names)
         _vars.push_back(var);
     }
 
-}
-
-void Tool::setDependencies(std::vector<InputOutput::Variable*> vars)
-{
-    _vars = vars;
-}
-
-const std::vector<InputOutput::Variable*> Tool::getDependencies()
-{
-    return _vars;
 }
 
 const std::vector<cl_event> Tool::getEvents()

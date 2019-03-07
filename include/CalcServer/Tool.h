@@ -44,101 +44,108 @@ namespace Aqua{ namespace CalcServer{
 class Tool
 {
 public:
-    /** Constructor.
-     * @param tool_name Name of the tool. Useful to identify errors.
-     * @param once Run this tool just once. Useful to make initializations.
+    /** @brief Constructor
+     * @param tool_name Name of the tool
+     * @param once Run this tool just once. Useful to make initializations
      */
-    Tool(const std::string tool_name, bool once=false);
+    Tool(const std::string& tool_name, const bool once=false);
 
-    /** Destructor
+    /** @brief Destructor
      */
     virtual ~Tool();
 
-    /** Set the tool name.
-     * @param tool_name Tool name.
+    /** @brief Set the tool name
+     * @param tool_name Tool name
      */
-    void name(const std::string tool_name){_name = tool_name;};
+    inline void name(const std::string& tool_name){_name = tool_name;};
 
-    /** Get the tool name.
-     * @return Tool name.
+    /** @brief Get the tool name
+     * @return Tool name
      */
-    const std::string name(){return _name;}
+    inline const std::string& name() const {return _name;}
 
-    /** Initialize the tool.
+    /** @brief Get the allocated memory
+     * @return allocated memory
      */
-    virtual void setup(){return;}
+    inline const size_t& allocatedMemory() const {return _allocated_memory;}
 
-    /** @brief Execute the tool measuring the elapsed time.
-     *
-     * Actually this method is just ensuring that the tool can be executed,
-     * e.g. the tool has been already executed, but it is asked to be ran just
-     * once.
-     * If the tool can be executed, then _execute() method is called, measuring
-     * the time required to carry out the task.
-     * @return false if all gone right, true otherwise.
-     * @note Usually you don't want to overload this method, but the _execute()
-     * protected one.
+    /** @brief Get the number of times that this tool has been called
+     * @return Number of times this tool has been called
      */
-    virtual void execute();
+    inline const unsigned int& used_times() const {return _n_iters;}
 
-    /** Get the allocated memory for this tool.
-     * @return allocated memory by this tool.
+    /** @brief Get the time consumed by the tool
+     * @param averaged true if the averaged consumed time is required, false
+     * otherwise
+     * @return time consumed
      */
-    size_t allocatedMemory() const {return _allocated_memory;}
-
-    /** Get the number of times that this tool has been called.
-     * @return Number of times this tool has been called.
-     */
-    unsigned int used_times() const {return _n_iters;}
-
-    /** Get the time consumed by the tool.
-     * @param averaged true if the avergaed time step is required, false
-     * otherwise.
-     * @return time consumed.
-     */
-    float elapsedTime(bool averaged=true) const {
+    inline const float elapsedTime(const bool averaged=true) const {
         if(!averaged)
             return _elapsed_time;
         return _average_elapsed_time;
     }
 
-    /** Get the time consumed variance.
-     * @return Time consumed variance.
+    /** @brief Get the time consumed variance
+     * @return Time consumed variance
      */
-    float elapsedTimeVariance() const {
+    inline const float elapsedTimeVariance() const {
         return _squared_elapsed_time - pow(_average_elapsed_time, 2);
     }
 
-    /** Get the time consumed standard deviation.
-     * @return Time consumed standard deviation.
+    /** @brief Get the time consumed standard deviation
+     * @return Time consumed standard deviation
      */
-    float elapsedTimeDeviation() const {return sqrt(elapsedTimeVariance());}
+    inline const float elapsedTimeDeviation() const {
+        return sqrt(elapsedTimeVariance());
+    }
+
+    /** @brief Initialize the tool.
+     */
+    virtual void setup(){return;}
+
+    /** @brief Execute the tool measuring the elapsed time.
+     *
+     * This method is checking that the tool can be executed, e.g. tools
+     * that are configured to run once.
+     * If the tool can be executed, then _execute() method is called, measuring
+     * the time required to carry out the task.
+     * This methos is also automagically handling the dependency events.
+     *
+     * @note Usually you don't want to overload this method, but the _execute()
+     * protected one.
+     */
+    virtual void execute();
 
 protected:
-    /** Set the allocated memory for this tool.
-     * @param mem_size allocated memory by this tool.
+    /** @brief Set the allocated memory for this tool
+     * @param mem_size allocated memory by this tool
      */
-    void allocatedMemory(size_t mem_size){_allocated_memory = mem_size;}
+    inline void allocatedMemory(const size_t& mem_size){
+        _allocated_memory = mem_size;
+    }
 
-    /** Execute the tool
+    /** @brief Execute the tool
      * @param events List of events that shall be waited before safe execution
+     * @note This is the execution method you normally want to overload
      * @return OpenCL event to be waited before accessing the dependencies
      */
-    virtual cl_event _execute(const std::vector<cl_event> events){return NULL;}
+    virtual const cl_event _execute(const std::vector<cl_event>& events){
+        return NULL;
+    }
 
     /** @brief Add new data to the average and squared elapsed times
      * @param elapsed_time Elapsed time
      */
-    void addElapsedTime(float elapsed_time);
+    void addElapsedTime(const float& elapsed_time);
 
     /** @brief Set the depedencies of the tool
      *
      * The dependencies are the variables that this tool is either reading or
-     * writing.
+     * writing
      *
      * @param var_names Names of the dependencies
      */
-    void setDependencies(std::vector<std::string> var_names);
+    void setDependencies(const std::vector<std::string>& var_names);
 
     /** @brief Set the depedencies of the tool
      *
@@ -147,13 +154,17 @@ protected:
      *
      * @param vars Dependencies
      */
-    void setDependencies(std::vector<InputOutput::Variable*> vars);
+    inline void setDependencies(const std::vector<InputOutput::Variable*>& vars) {
+        _vars = vars;
+    }
 
     /** @brief Get the depedencies of the tool
      *
      * @return Dependencies
      */
-    const std::vector<InputOutput::Variable*> getDependencies();
+    inline const std::vector<InputOutput::Variable*>& getDependencies() const {
+        return _vars;
+    }
 
 private:
     /** @brief Get the list of events that this tool shall wait for

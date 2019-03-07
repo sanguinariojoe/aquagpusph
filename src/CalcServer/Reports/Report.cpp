@@ -28,10 +28,10 @@
 
 namespace Aqua{ namespace CalcServer{ namespace Reports{
 
-Report::Report(const std::string tool_name,
-               const std::string fields,
-               unsigned int ipf,
-               float fps)
+Report::Report(const std::string& tool_name,
+               const std::string& fields,
+               const unsigned int ipf,
+               const float fps)
     : Tool(tool_name)
     , _fields(fields)
     , _ipf(ipf)
@@ -52,7 +52,8 @@ void Report::setup()
     processFields(_fields);
 }
 
-const std::string Report::data(bool with_title, bool with_names)
+const std::string Report::data(const bool with_title,
+                               const bool with_names)
 {
     unsigned int i, j, var_id=0;
 
@@ -82,7 +83,7 @@ const std::string Report::data(bool with_title, bool with_names)
     return _data;
 }
 
-void Report::processFields(const std::string input)
+void Report::processFields(const std::string& input)
 {
     CalcServer *C = CalcServer::singleton();
     std::istringstream fields(input);
@@ -120,7 +121,7 @@ void Report::processFields(const std::string input)
     setDependencies(_vars);
 }
 
-bool Report::mustUpdate()
+const bool Report::mustUpdate()
 {
     CalcServer *C = CalcServer::singleton();
     InputOutput::Variables *vars = C->variables();

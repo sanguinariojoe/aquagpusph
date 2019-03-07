@@ -38,7 +38,9 @@ std::string UNSORT_INC = xxd2string(UnSort_hcl_in, UnSort_hcl_in_len);
 std::string UNSORT_SRC = xxd2string(UnSort_cl_in, UnSort_cl_in_len);
 
 
-UnSort::UnSort(const std::string name, const std::string var_name, bool once)
+UnSort::UnSort(const std::string& name,
+               const std::string& var_name,
+               const bool once)
     : Tool(name, once)
     , _var_name(var_name)
     , _var(NULL)
@@ -69,7 +71,7 @@ void UnSort::setup()
     setupOpenCL();
 }
 
-cl_event UnSort::_execute(const std::vector<cl_event> events)
+const cl_event UnSort::_execute(const std::vector<cl_event>& events)
 {
     unsigned int i;
     cl_int err_code;
@@ -257,7 +259,7 @@ void UnSort::setupOpenCL()
     }
 }
 
-cl_kernel UnSort::compile(const std::string source)
+const cl_kernel UnSort::compile(const std::string& source)
 {
     cl_int err_code;
     cl_program program;

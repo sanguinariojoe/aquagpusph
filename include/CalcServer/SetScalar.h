@@ -35,30 +35,30 @@ namespace Aqua{ namespace CalcServer{
 class SetScalar : public Aqua::CalcServer::Tool
 {
 public:
-    /** @brief Constructor.
+    /** @brief Constructor
      * @param name Tool name.
      * @param var_name Variable to set.
      * @param value Value to set.
      * @param once Run this tool just once. Useful to make initializations.
      */
-    SetScalar(const std::string name,
-              const std::string var_name,
-              const std::string value,
-              bool once=false);
+    SetScalar(const std::string& name,
+              const std::string& var_name,
+              const std::string& value,
+              const bool once=false);
 
-    /// Destructor.
+    /// Destructor
     ~SetScalar();
 
-    /** @brief Initialize the tool.
+    /** @brief Initialize the tool
      */
     void setup();
 
 protected:
-    /** Execute the tool
+    /** @brief Execute the tool
      * @param events List of events that shall be waited before safe execution
      * @return OpenCL event to be waited before accessing the dependencies
      */
-    cl_event _execute(const std::vector<cl_event> events);
+    const cl_event _execute(const std::vector<cl_event>& events);
 
 private:
     /** @brief Get the input variable

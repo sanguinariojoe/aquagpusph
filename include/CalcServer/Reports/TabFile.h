@@ -40,7 +40,7 @@ namespace Aqua{ namespace CalcServer{ namespace Reports{
 class TabFile : public Aqua::CalcServer::Reports::Report
 {
 public:
-    /** @brief Constructor.
+    /** @brief Constructor
      * @param tool_name Tool name.
      * @param fields Fields to be printed.
      * The fields are separated by commas or semicolons, and the spaces are just
@@ -49,24 +49,24 @@ public:
      * @param output_file File to be written.
      * @remarks The output file will be cleared.
      */
-    TabFile(const std::string tool_name,
-            const std::string fields,
-            const std::string output_file);
+    TabFile(const std::string& tool_name,
+            const std::string& fields,
+            const std::string& output_file);
 
     /** @brief Destructor
      */
     ~TabFile();
 
-    /** @brief Initialize the tool.
+    /** @brief Initialize the tool
      */
     void setup();
 
 protected:
-    /** Execute the tool
+    /** @brief Execute the tool
      * @param events List of events that shall be waited before safe execution
      * @return OpenCL event to be waited before accessing the dependencies
      */
-    cl_event _execute(const std::vector<cl_event> events);
+    const cl_event _execute(const std::vector<cl_event>& events);
 
 private:
     /// Output file name

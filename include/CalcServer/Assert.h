@@ -39,18 +39,18 @@ namespace Aqua{ namespace CalcServer{
 class Assert : public Aqua::CalcServer::Tool
 {
 public:
-    /** @brief Constructor.
+    /** @brief Constructor
      * @param name Tool name.
      * @param condition Condition to evaluate. If the result is 0, false will be
      * considered, and fatal error will be raised, otherwise the simulation will
      * continue.
      * @param once Run this tool just once. Useful to make initializations.
      */
-    Assert(const std::string name,
-           const std::string condition,
-           bool once=false);
+    Assert(const std::string& name,
+           const std::string& condition,
+           const bool once=false);
 
-    /// Destructor.
+    /// Destructor
     ~Assert();
 
     /** @brief Initialize the tool.
@@ -58,11 +58,11 @@ public:
     void setup();
 
 protected:
-    /** Execute the tool
+    /** @brief Execute the tool
      * @param events List of events that shall be waited before safe execution
      * @return OpenCL event to be waited before accessing the dependencies
      */
-    cl_event _execute(const std::vector<cl_event> events);
+    const cl_event _execute(const std::vector<cl_event>& events);
 
 private:
     /// Condition expression to evaluate

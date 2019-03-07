@@ -41,7 +41,7 @@ namespace Aqua{ namespace CalcServer{ namespace Reports{
 class Screen : public Aqua::CalcServer::Reports::Report
 {
 public:
-    /** @brief Constructor.
+    /** @brief Constructor
      * @param tool_name Tool name.
      * @param fields Fields to be printed.
      * The fields are separated by commas or semicolons, and the spaces are just
@@ -51,25 +51,25 @@ public:
      * @param bold true if the text should be highlighted as bold text, false
      * otherwise.
      */
-    Screen(const std::string tool_name,
-           const std::string fields,
+    Screen(const std::string& tool_name,
+           const std::string& fields,
            const std::string color="white",
-           bool bold=false);
+           const bool bold=false);
 
     /** @brief Destructor
      */
     ~Screen();
 
-    /** @brief Initialize the tool.
+    /** @brief Initialize the tool
      */
     void setup();
 
 protected:
-    /** Execute the tool
+    /** @brief Execute the tool
      * @param events List of events that shall be waited before safe execution
      * @return OpenCL event to be waited before accessing the dependencies
      */
-    cl_event _execute(const std::vector<cl_event> events);
+    const cl_event _execute(const std::vector<cl_event>& events);
 
 private:
     /// Output color

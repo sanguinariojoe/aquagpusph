@@ -30,11 +30,11 @@
 
 namespace Aqua{ namespace CalcServer{
 
-Kernel::Kernel(const std::string tool_name,
-               const std::string kernel_path,
+Kernel::Kernel(const std::string& tool_name,
+               const std::string& kernel_path,
                const std::string entry_point,
                const std::string n,
-               bool once)
+               const bool once)
     : Tool(tool_name, once)
     , _path(kernel_path)
     , _entry_point(entry_point)
@@ -67,7 +67,7 @@ void Kernel::setup()
     computeGlobalWorkSize();
 }
 
-cl_event Kernel::_execute(const std::vector<cl_event> events)
+const cl_event Kernel::_execute(const std::vector<cl_event>& events)
 {
     cl_int err_code;
     cl_event event;
@@ -76,7 +76,7 @@ cl_event Kernel::_execute(const std::vector<cl_event> events)
     setVariables();
     computeGlobalWorkSize();
 
-    cl_uint num_events_in_wait_list = events.size();
+    const cl_uint num_events_in_wait_list = events.size();
     const cl_event *event_wait_list = events.size() ? events.data() : NULL;
 
     err_code = clEnqueueNDRangeKernel(C->command_queue(),

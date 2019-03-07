@@ -27,9 +27,9 @@
 
 namespace Aqua{ namespace CalcServer{ namespace Reports{
 
-TabFile::TabFile(const std::string tool_name,
-                 const std::string fields,
-                 const std::string output_file)
+TabFile::TabFile(const std::string& tool_name,
+                 const std::string& fields,
+                 const std::string& output_file)
     : Report(tool_name, fields)
     , _output_file(output_file)
 {
@@ -60,7 +60,7 @@ void TabFile::setup()
     _f.flush();
 }
 
-cl_event TabFile::_execute(const std::vector<cl_event> events)
+const cl_event TabFile::_execute(const std::vector<cl_event>& events)
 {
     // Change break lines by spaces
     std::string out = replaceAllCopy(data(false, false), "\n", " ");

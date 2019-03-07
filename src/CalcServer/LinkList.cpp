@@ -39,9 +39,9 @@ std::string LINKLIST_INC = xxd2string(LinkList_hcl_in, LinkList_hcl_in_len);
 std::string LINKLIST_SRC = xxd2string(LinkList_cl_in, LinkList_cl_in_len);
 
 
-LinkList::LinkList(const std::string tool_name,
+LinkList::LinkList(const std::string& tool_name,
                    const std::string input,
-                   bool once)
+                   const bool once)
     : Tool(tool_name, once)
     , _input_name(input)
     , _cell_length(0.f)
@@ -128,7 +128,7 @@ void LinkList::setup()
     setDependencies(deps);
 }
 
-cl_event LinkList::_execute(const std::vector<cl_event> events_prior)
+const cl_event LinkList::_execute(const std::vector<cl_event>& events_prior)
 {
     cl_int err_code;
     cl_event event, event_wait;
@@ -156,7 +156,7 @@ cl_event LinkList::_execute(const std::vector<cl_event> events_prior)
     setVariables();
 
     // Compute the cell of each particle
-    cl_uint num_events_in_wait_list = events.size();
+    const cl_uint num_events_in_wait_list = events.size();
     const cl_event *event_wait_list = events.size() ? events.data() : NULL;
     err_code = clEnqueueNDRangeKernel(C->command_queue(),
                                       _icell,
@@ -389,7 +389,7 @@ void LinkList::setupOpenCL()
     }
 }
 
-void LinkList::compile(const std::string source)
+void LinkList::compile(const std::string& source)
 {
     cl_int err_code;
     cl_program program;

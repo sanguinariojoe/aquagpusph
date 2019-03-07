@@ -38,12 +38,12 @@ std::string REDUCTION_INC = xxd2string(Reduction_hcl_in, Reduction_hcl_in_len);
 std::string REDUCTION_SRC = xxd2string(Reduction_cl_in, Reduction_cl_in_len);
 
 
-Reduction::Reduction(const std::string name,
-                     const std::string input_name,
-                     const std::string output_name,
-                     const std::string operation,
-                     const std::string null_val,
-                     bool once)
+Reduction::Reduction(const std::string& name,
+                     const std::string& input_name,
+                     const std::string& output_name,
+                     const std::string& operation,
+                     const std::string& null_val,
+                     const bool once)
     : Tool(name, once)
     , _input_name(input_name)
     , _output_name(output_name)
@@ -87,7 +87,7 @@ void Reduction::setup()
     setupOpenCL();
 }
 
-cl_event Reduction::_execute(const std::vector<cl_event> events_src)
+const cl_event Reduction::_execute(const std::vector<cl_event>& events_src)
 {
     unsigned int i;
     cl_event event;
@@ -102,7 +102,7 @@ cl_event Reduction::_execute(const std::vector<cl_event> events_src)
     std::vector<cl_event> events;
     std::copy(events_src.begin(), events_src.end(), std::back_inserter(events));
     for(i = 0; i < _kernels.size(); i++){
-        cl_uint num_events_in_wait_list = events.size();
+        const cl_uint num_events_in_wait_list = events.size();
         const cl_event *event_wait_list = events.size() ? events.data() : NULL;
         size_t _global_work_size = _global_work_sizes.at(i);
         size_t _local_work_size  = _local_work_sizes.at(i);
@@ -127,7 +127,7 @@ cl_event Reduction::_execute(const std::vector<cl_event> events_src)
     }
 
     // Get back the result
-    cl_uint num_events_in_wait_list = events.size();
+    const cl_uint num_events_in_wait_list = events.size();
     const cl_event *event_wait_list = events.size() ? events.data() : NULL;
     err_code = clEnqueueReadBuffer(C->command_queue(),
                                    _mems.at(_mems.size()-1),
@@ -358,7 +358,8 @@ void Reduction::setupOpenCL()
     }
 }
 
-cl_kernel Reduction::compile(const std::string source, size_t local_work_size)
+const cl_kernel Reduction::compile(const std::string& source,
+                                   const size_t& local_work_size)
 {
     cl_int err_code;
     cl_program program;
@@ -386,7 +387,7 @@ cl_kernel Reduction::compile(const std::string source, size_t local_work_size)
         flags << " -DHAVE_2D";
     #endif
 
-    size_t source_length = source.size();
+    const size_t source_length = source.size();
     const char* source_cstr = source.c_str();
     program = clCreateProgramWithSource(C->context(),
                                         1,

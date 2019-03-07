@@ -95,7 +95,7 @@ namespace Aqua{ namespace CalcServer{
 class RadixSort : public Aqua::CalcServer::Tool
 {
 public:
-    /** Constructor.
+    /** @brief Constructor
      * @param tool_name Tool name.
      * @param variable Variable to sort.
      * @param permutations Variable where the permutations will be stored.
@@ -103,32 +103,30 @@ public:
      * stored.
      * @param once Run this tool just once. Useful to make initializations.
      */
-    RadixSort(const std::string tool_name,
+    RadixSort(const std::string& tool_name,
               const std::string variable="icell",
               const std::string permutations="id_unsorted",
               const std::string inv_permutations="id_sorted",
-              bool once=false);
+              const bool once=false);
 
-    /** Destructor
-     */
+    /// Destructor
     ~RadixSort();
 
-    /** Initialize the tool.
-     */
+    /// Initialize the tool
     void setup();
 
 protected:
-    /** Execute the tool
+    /** @brief Execute the tool
      * @param events List of events that shall be waited before safe execution
      * @return OpenCL event to be waited before accesing the dependencies
      */
-    cl_event _execute(const std::vector<cl_event> events);
+    const cl_event _execute(const std::vector<cl_event>& events);
 
 private:
-    /** Initialize permutations array
+    /** @brief Initialize permutations array
      * @return Permutations initialization event
      */
-    cl_event init();
+    const cl_event init();
 
     /** Perform histograms
      * @param keys_event Event of the last keys manipulation 
@@ -136,25 +134,27 @@ private:
      * it has not been manipulated yet
      * @return Histograms event
      */
-    cl_event histograms(cl_event keys_event, cl_event histograms_event);
+    const cl_event histograms(const cl_event& keys_event,
+                              const cl_event& histograms_event);
 
     /** Scan histograms.
      * @param event Event of the last histogram manipulation
      * @return Histograms event
      */
-    cl_event scan(cl_event event);
+    const cl_event scan(const cl_event& event);
 
     /** Scan histograms.
      * @param perms_event Event of the permutations initialization
      * @param histograms_event Event of the last histogram manipulation
      * @return Histograms event
      */
-    cl_event reorder(cl_event perms_event, cl_event histograms_event);
+    const cl_event reorder(const cl_event& perms_event,
+                           const cl_event& histograms_event);
 
     /** Build the reversed permutations vector.
      * @return Permutation arrays event
      */
-    cl_event inversePermutations();
+    const cl_event inversePermutations();
 
     /** Get the variables to compute.
      */
@@ -167,7 +167,7 @@ private:
     /** Compile the source code and generate the corresponding kernels
      * @param source Source code to compile.
      */
-    void compile(const std::string source);
+    void compile(const std::string& source);
 
     /** Setup the main computing dimensions _items, _groups and _histo_split
      * from the valid local work sizes per each kernel.

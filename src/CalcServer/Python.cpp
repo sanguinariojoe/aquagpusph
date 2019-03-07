@@ -238,7 +238,9 @@ PyMODINIT_FUNC PyInit_aquagpusph(void)
 
 namespace Aqua{ namespace CalcServer{
 
-Python::Python(const std::string tool_name, const std::string script, bool once)
+Python::Python(const std::string& tool_name,
+               const std::string& script,
+               const bool once)
     : Tool(tool_name, once)
     , _script(script)
     , _module(NULL)
@@ -268,7 +270,7 @@ void Python::setup()
     load();
 }
 
-cl_event Python::_execute(const std::vector<cl_event> events)
+const cl_event Python::_execute(const std::vector<cl_event>& events)
 {
     PyObject *result;
 

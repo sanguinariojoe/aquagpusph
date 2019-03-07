@@ -60,7 +60,7 @@ namespace Aqua{ namespace CalcServer{ namespace Reports{
 class SetTabFile : public Aqua::CalcServer::Reports::Report
 {
 public:
-    /** @brief Constructor.
+    /** @brief Constructor
      * @param tool_name Tool name.
      * @param fields Fields to be printed.
      * The fields are separated by commas or semicolons, and the spaces are just
@@ -73,41 +73,42 @@ public:
      * @param fps Frames per second, 0 to just ignore this printing criteria.
      * @remarks The output file will be cleared.
      */
-    SetTabFile(const std::string tool_name,
-               const std::string fields,
-               unsigned int first,
-               unsigned int n,
-               const std::string output_file,
-               unsigned int ipf=1,
-               float fps=0.f);
+    SetTabFile(const std::string& tool_name,
+               const std::string& fields,
+               const unsigned int& first,
+               const unsigned int& n,
+               const std::string& output_file,
+               const unsigned int ipf=1,
+               const float fps=0.f);
 
     /** @brief Destructor
      */
     ~SetTabFile();
 
-    /** @brief Initialize the tool.
+    /** @brief Initialize the tool
      */
     void setup();
 
 protected:
-    /** Execute the tool
+    /** @brief Execute the tool
      * @param events List of events that shall be waited before safe execution
      * @return OpenCL event to be waited before accessing the dependencies
      */
-    cl_event _execute(const std::vector<cl_event> events);
+    const cl_event _execute(const std::vector<cl_event>& events);
 
     /** @brief Get the particle index bounds of the "set of particles" managed
      * by this class.
      * @return The index bounds (first and last particle).
      */
-    uivec2 bounds(){return _bounds;}
+    inline const uivec2& bounds() const {return _bounds;}
 
     /** Download the data from the device, and store it.
      * @param vars Fields to download.
      * @return host allocated memory. A clear list if errors happened.
      * @note The returned data must be manually cleared.
      */
-    std::vector<void*> download(std::vector<InputOutput::Variable*> vars);
+    const std::vector<void*> download(
+        const std::vector<InputOutput::Variable*> vars);
 
 private:
     /** Remove the content of the data list.

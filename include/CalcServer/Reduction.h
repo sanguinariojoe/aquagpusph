@@ -41,7 +41,7 @@ namespace Aqua{ namespace CalcServer{
 class Reduction : public Aqua::CalcServer::Tool
 {
 public:
-    /** @brief Reduction definition.
+    /** @brief Reduction definition
      * @param name Tool name.
      * @param input_name Variable to be reduced name.
      * @param output_name Variable where the reduced value will be stored.
@@ -61,24 +61,21 @@ public:
      *   - VEC_NEG_INFINITY: -VEC_INFINITY
      *   - VEC_ALL_NEG_INFINITY: -VEC_ALL_INFINITY.
      */
-    Reduction(const std::string name,
-              const std::string input_name,
-              const std::string output_name,
-              const std::string operation,
-              const std::string null_val,
-              bool once=false);
+    Reduction(const std::string& name,
+              const std::string& input_name,
+              const std::string& output_name,
+              const std::string& operation,
+              const std::string& null_val,
+              const bool once=false);
 
-    /// Destructor.
+    /// Destructor
     ~Reduction();
 
-    /** @brief Initialize the tool.
-     *
-     * This method should be called after the constructor, such that it could
-     * report errors that the application may handle quitting in a safe way.
+    /** @brief Initialize the tool
      */
     void setup();
 
-    /** @brief Number of steps needed.
+    /** @brief Number of steps needed
      *
      * To reduce the array to just one variable several steps may be needed,
      * depending on the number of work groups that should be launched at each
@@ -86,18 +83,18 @@ public:
      *
      * @return Number of steps needed.
      */
-    unsigned int nSteps(){return _global_work_sizes.size();}
+    inline const unsigned int nSteps() const {return _global_work_sizes.size();}
 
 protected:
-    /** Execute the tool
+    /** @brief Execute the tool
      * @param events List of events that shall be waited before safe execution
      * @return OpenCL event to be waited before accesing the dependencies
      */
-    cl_event _execute(const std::vector<cl_event> events);
+    const cl_event _execute(const std::vector<cl_event>& events);
 
 private:
     /** @brief Extract the input and output variables from the provided data in
-     * Reduction().
+     * Reduction()
      * @see Aqua::InputOutput::Variables
      */
     void variables();
@@ -111,7 +108,8 @@ private:
      * @param local_work_size Desired local work size.
      * @return Kernel instance.
      */
-    cl_kernel compile(const std::string source, size_t local_work_size);
+    const cl_kernel compile(const std::string& source,
+                            const size_t& local_work_size);
 
     /** Update the input variables.
      *

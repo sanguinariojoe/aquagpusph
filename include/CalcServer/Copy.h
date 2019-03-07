@@ -34,34 +34,33 @@ namespace Aqua{ namespace CalcServer{
 class Copy : public Aqua::CalcServer::Tool
 {
 public:
-    /** Constructor.
+    /** @brief Constructor
      * @param name Tool name.
      * @param input_name Variable to copy.
      * @param output_name Variable to set.
      * @param once Run this tool just once. Useful to make initializations.
      */
-    Copy(const std::string name,
-         const std::string input_name,
-         const std::string output_name,
-         bool once=false);
+    Copy(const std::string& name,
+         const std::string& input_name,
+         const std::string& output_name,
+         const bool once=false);
 
-    /** Destructor.
-     */
+    /// Destructor
     ~Copy();
 
-    /** Initialize the tool.
+    /** @brief Initialize the tool
      */
     void setup();
 
 protected:
-    /** Execute the tool
+    /** @brief Execute the tool
      * @param events List of events that shall be waited before safe execution
      * @return OpenCL event to be waited before accessing the dependencies
      */
-    cl_event _execute(const std::vector<cl_event> events);
+    const cl_event _execute(const std::vector<cl_event>& events);
 
 private:
-    /** Get the input and output variables
+    /** @brief Get the input and output variables
      */
     void variables();
 

@@ -48,49 +48,47 @@ namespace Aqua{ namespace CalcServer{
 class LinkList : public Aqua::CalcServer::Tool
 {
 public:
-    /** Constructor.
-     * @param tool_name Tool name.
-     * @param input Input array to be used as the particles positions.
-     * @param once Run this tool just once. Useful to make initializations.
+    /** @brief Constructor
+     * @param tool_name Tool name
+     * @param input Input array to be used as the particles positions
+     * @param once Run this tool just once. Useful to make initializations
      */
-    LinkList(const std::string tool_name,
+    LinkList(const std::string& tool_name,
              const std::string input="pos",
-             bool once=false);
+             const bool once=false);
 
-    /** Destructor
-     */
+    /// Destructor
     ~LinkList();
 
-    /** Initialize the tool.
-     */
+    /// Initialize the tool.
     void setup();
 
 protected:
-    /** Execute the tool
+    /** @brief Execute the tool
      * @param events List of events that shall be waited before safe execution
      * @return OpenCL event to be waited before accesing the dependencies
      */
-    cl_event _execute(const std::vector<cl_event> events);
+    const cl_event _execute(const std::vector<cl_event>& events);
 
 private:
-    /** Setup the OpenCL stuff
+    /** @brief Setup the OpenCL stuff
      */
     void setupOpenCL();
 
-    /** Compile the source code and generate the kernels
+    /** @brief Compile the source code and generate the kernels
      * @param source Source code to be compiled.
      */
-    void compile(const std::string source);
+    void compile(const std::string& source);
 
-    /** Compute the number of cells
+    /** @brief Compute the number of cells
      */
     void nCells();
 
-    /** Allocate the "ihoc" array
+    /** @brief Allocate the "ihoc" array
      */
     void allocate();
 
-    /** Update the input and output looking for changed values.
+    /** @brief Update the input and output looking for changed values.
      */
     void setVariables();
 

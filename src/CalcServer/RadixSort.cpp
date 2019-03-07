@@ -37,11 +37,11 @@ namespace Aqua{ namespace CalcServer{
 std::string RADIXSORT_INC = xxd2string(RadixSort_hcl_in, RadixSort_hcl_in_len);
 std::string RADIXSORT_SRC = xxd2string(RadixSort_cl_in, RadixSort_cl_in_len);
 
-RadixSort::RadixSort(const std::string tool_name,
+RadixSort::RadixSort(const std::string& tool_name,
                      const std::string variable,
                      const std::string permutations,
                      const std::string inv_permutations,
-                     bool once)
+                     const bool once)
     : Tool(tool_name, once)
     , _var_name(variable)
     , _perms_name(permutations)
@@ -101,7 +101,7 @@ void RadixSort::setup()
     setupOpenCL();
 }
 
-cl_event RadixSort::_execute(const std::vector<cl_event> events)
+const cl_event RadixSort::_execute(const std::vector<cl_event>& events)
 {
     cl_int err_code;
     unsigned int i, max_val;
@@ -250,7 +250,7 @@ cl_event RadixSort::_execute(const std::vector<cl_event> events)
     return inversePermutations();
 }
 
-cl_event RadixSort::init()
+const cl_event RadixSort::init()
 {
     cl_int err_code;
     cl_event event;
@@ -290,7 +290,8 @@ cl_event RadixSort::init()
     return event;
 }
 
-cl_event RadixSort::histograms(cl_event keys_event, cl_event histograms_event)
+const cl_event RadixSort::histograms(const cl_event& keys_event,
+                                     const cl_event& histograms_event)
 {
     cl_int err_code;
     cl_event event;
@@ -362,7 +363,7 @@ cl_event RadixSort::histograms(cl_event keys_event, cl_event histograms_event)
     return event;
 }
 
-cl_event RadixSort::scan(cl_event event_histo)
+const cl_event RadixSort::scan(const cl_event& event_histo)
 {
     cl_int err_code;
     cl_event event, event_wait = event_histo;
@@ -519,7 +520,8 @@ cl_event RadixSort::scan(cl_event event_histo)
     return event;
 }
 
-cl_event RadixSort::reorder(cl_event perms_event, cl_event histograms_event)
+const cl_event RadixSort::reorder(const cl_event& perms_event,
+                                  const cl_event& histograms_event)
 {
     cl_int err_code;
     cl_event event;
@@ -633,7 +635,7 @@ cl_event RadixSort::reorder(cl_event perms_event, cl_event histograms_event)
     return event;
 }
 
-cl_event RadixSort::inversePermutations()
+const cl_event RadixSort::inversePermutations()
 {
     cl_int err_code;
     cl_event event;
@@ -835,7 +837,7 @@ void RadixSort::setupOpenCL()
     LOG0(L_DEBUG, msg.str());
 }
 
-void RadixSort::compile(const std::string source)
+void RadixSort::compile(const std::string& source)
 {
     cl_int err_code;
     cl_program program;

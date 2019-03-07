@@ -42,34 +42,34 @@ namespace Aqua{ namespace CalcServer{
 class Python : public Aqua::CalcServer::Tool
 {
 public:
-    /** @brief Constructor.
+    /** @brief Constructor
      * @param tool_name Tool name.
      * @param script Python script path.
      * @param once Run this tool just once. Useful to make initializations.
      */
-    Python(const std::string tool_name,
-           const std::string script,
-           bool once=false);
+    Python(const std::string& tool_name,
+           const std::string& script,
+           const bool once=false);
 
-    /// Destructor.
+    /// Destructor
     ~Python();
 
-    /** @brief Initialize the tool.
+    /** @brief Initialize the tool
      */
     void setup();
 
 protected:
-    /** Execute the tool
+    /** @brief Execute the tool
      * @param events List of events that shall be waited before safe execution
      * @return OpenCL event to be waited before accesing the dependencies
      */
-    cl_event _execute(const std::vector<cl_event> events);
+    const cl_event _execute(const std::vector<cl_event>& events);
 
     /** @brief Initialize the Python interpreter.
      *
      * This method is safely creating the Python environment just one time,
      * adding the execution folder to the system path (in order to import
-     * modules).
+     * modules)
      */
     void initPython();
 

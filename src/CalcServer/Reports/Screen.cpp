@@ -27,10 +27,10 @@
 
 namespace Aqua{ namespace CalcServer{ namespace Reports{
 
-Screen::Screen(const std::string tool_name,
-               const std::string fields,
+Screen::Screen(const std::string& tool_name,
+               const std::string& fields,
                const std::string color,
-               bool bold)
+               const bool bold)
     : Report(tool_name, fields)
     , _color(color)
     , _bold(bold)
@@ -55,7 +55,7 @@ void Screen::setup()
     Report::setup();
 }
 
-cl_event Screen::_execute(const std::vector<cl_event> events)
+const cl_event Screen::_execute(const std::vector<cl_event>& events)
 {
     // For the time being, let's sync here
     cl_uint num_events_in_wait_list = events.size();

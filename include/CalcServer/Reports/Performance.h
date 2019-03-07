@@ -57,9 +57,9 @@ public:
      * font, true otherwise.
      * @param output_file Path of the output file.
      */
-    Performance(const std::string tool_name,
+    Performance(const std::string& tool_name,
                 const std::string color="white",
-                bool bold=false,
+                const bool bold=false,
                 const std::string output_file="");
 
     /** @brief Destructor
@@ -77,19 +77,19 @@ public:
      * Hence we should override the overloaded time measuring capabilities
      * @see Aqua::CalcServer::Tool
      */
-    void execute(){std::vector<cl_event> null; _execute(null);}
+    void execute() {std::vector<cl_event> null; _execute(null);}
 
 protected:
-    /** @brief Get the allocated memory.
-     * @return Allocated memory in the computational device.
+    /** @brief Get the allocated memory
+     * @return Allocated memory in the computational device
      */
-    size_t computeAllocatedMemory();
+    static const size_t computeAllocatedMemory();
 
-    /** Execute the tool
+    /** @brief Execute the tool
      * @param events List of events that shall be waited before safe execution
      * @return OpenCL event to be waited before accessing the dependencies
      */
-    cl_event _execute(const std::vector<cl_event> events);
+    const cl_event _execute(const std::vector<cl_event>& events);
 
 private:
     /// Output color

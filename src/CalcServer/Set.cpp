@@ -38,10 +38,10 @@ std::string SET_INC = xxd2string(Set_hcl_in, Set_hcl_in_len);
 std::string SET_SRC = xxd2string(Set_cl_in, Set_cl_in_len);
 
 
-Set::Set(const std::string name,
-         const std::string var_name,
-         const std::string value,
-         bool once)
+Set::Set(const std::string& name,
+         const std::string& var_name,
+         const std::string& value,
+         const bool once)
     : Tool(name, once)
     , _var_name(var_name)
     , _value(value)
@@ -85,9 +85,8 @@ void Set::setup()
     setupOpenCL();
 }
 
-cl_event Set::_execute(const std::vector<cl_event> events)
+const cl_event Set::_execute(const std::vector<cl_event>& events)
 {
-    unsigned int i;
     cl_int err_code;
     cl_event event;
     CalcServer *C = CalcServer::singleton();
@@ -98,7 +97,7 @@ cl_event Set::_execute(const std::vector<cl_event> events)
     }
     setVariables();
 
-    cl_uint num_events_in_wait_list = events.size();
+    const cl_uint num_events_in_wait_list = events.size();
     const cl_event *event_wait_list = events.size() ? events.data() : NULL;
 
     err_code = clEnqueueNDRangeKernel(C->command_queue(),
@@ -220,7 +219,7 @@ void Set::setupOpenCL()
     }
 }
 
-cl_kernel Set::compile(const std::string source)
+const cl_kernel Set::compile(const std::string& source)
 {
     cl_int err_code;
     cl_program program;
@@ -249,7 +248,7 @@ cl_kernel Set::compile(const std::string source)
         flags << " -DHAVE_2D";
     #endif
 
-    size_t source_length = source.size();
+    const size_t source_length = source.size();
     const char* source_cstr = source.c_str();
     program = clCreateProgramWithSource(C->context(),
                                         1,

@@ -30,9 +30,9 @@
 
 namespace Aqua{ namespace CalcServer{ namespace Reports{
 
-Performance::Performance(const std::string tool_name,
+Performance::Performance(const std::string& tool_name,
                          const std::string color,
-                         bool bold,
+                         const bool bold,
                          const std::string output_file)
     : Report(tool_name, "dummy_fields_string")
     , _color(color)
@@ -50,8 +50,6 @@ Performance::~Performance()
 
 void Performance::setup()
 {
-    unsigned int i;
-
     std::ostringstream msg;
     msg << "Loading the report \"" << name() << "\"..." << std::endl;
     LOG(L_INFO, msg.str());
@@ -69,7 +67,7 @@ void Performance::setup()
     }
 }
 
-size_t Performance::computeAllocatedMemory(){
+const size_t Performance::computeAllocatedMemory(){
     size_t allocated_mem = 0;
     CalcServer *C = CalcServer::singleton();
 
@@ -86,7 +84,7 @@ size_t Performance::computeAllocatedMemory(){
     return allocated_mem;
 }
 
-cl_event Performance::_execute(const std::vector<cl_event> events)
+const cl_event Performance::_execute(const std::vector<cl_event>& events)
 {
     CalcServer *C = CalcServer::singleton();
     std::stringstream data;

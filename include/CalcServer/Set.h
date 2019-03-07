@@ -37,7 +37,7 @@ namespace Aqua{ namespace CalcServer{
 class Set : public Aqua::CalcServer::Tool
 {
 public:
-    /** Constructor.
+    /** @brief Constructor
      * @param name Tool name.
      * @param var_name Variable to set.
      * @param value Value to set.
@@ -51,42 +51,40 @@ public:
      *   - VEC_NEG_INFINITY: -VEC_INFINITY
      *   - VEC_ALL_NEG_INFINITY: -VEC_ALL_INFINITY.
      */
-    Set(const std::string name,
-        const std::string var_name,
-        const std::string value,
-        bool once=false);
+    Set(const std::string& name,
+        const std::string& var_name,
+        const std::string& value,
+        const bool once=false);
 
-    /** Destructor.
-     */
+    /// Destructor
     ~Set();
 
-    /** Initialize the tool.
-     */
+    /// Initialize the tool.
     void setup();
 
 protected:
-    /** Execute the tool
+    /** @brief Execute the tool
      * @param events List of events that shall be waited before safe execution
      * @return OpenCL event to be waited before accessing the dependencies
      */
-    cl_event _execute(const std::vector<cl_event> events);
+    const cl_event _execute(const std::vector<cl_event>& events);
 
 private:
-    /** Get the input variable
+    /** @brief Get the input variable
      */
     void variable();
 
-    /** Setup the OpenCL stuff
+    /** @brief Setup the OpenCL stuff
      */
     void setupOpenCL();
 
-    /** Compile the source code and generate the corresponding kernel
+    /** @brief Compile the source code and generate the corresponding kernel
      * @param source Source code to be compiled.
      * @return Kernel instance, NULL if error happened.
      */
-    cl_kernel compile(const std::string source);
+    const cl_kernel compile(const std::string& source);
 
-    /** Solve the equation.
+    /** @brief Solve the equation
      *
      * @note Solve may eventually fail. In that case, the _value string will be
      * directly used by means of a define. This way the user may use shortcuts
@@ -94,8 +92,8 @@ private:
      */
     void solve();
 
-    /** Update the input looking for changed value.
-     * @return false if all gone right, true otherwise.
+    /** @brief Update the input looking for changed value
+     * @return false if all gone right, true otherwise
      */
     void setVariables();
 

@@ -32,10 +32,10 @@
 
 namespace Aqua{ namespace CalcServer{
 
-Copy::Copy(const std::string name,
-           const std::string input_name,
-           const std::string output_name,
-           bool once)
+Copy::Copy(const std::string& name,
+           const std::string& input_name,
+           const std::string& output_name,
+           const bool once)
     : Tool(name, once)
     , _input_name(input_name)
     , _output_name(output_name)
@@ -58,14 +58,13 @@ void Copy::setup()
 }
 
 
-cl_event Copy::_execute(const std::vector<cl_event> events)
+const cl_event Copy::_execute(const std::vector<cl_event>& events)
 {
-    unsigned int i;
     cl_int err_code;
     cl_event event;
     CalcServer *C = CalcServer::singleton();
 
-    cl_uint num_events_in_wait_list = events.size();
+    const cl_uint num_events_in_wait_list = events.size();
     const cl_event *event_wait_list = events.size() ? events.data() : NULL;
 
     err_code = clEnqueueCopyBuffer(C->command_queue(),

@@ -39,58 +39,60 @@ namespace Aqua{ namespace CalcServer{
 class UnSort : public Aqua::CalcServer::Tool
 {
 public:
-    /** Constructor.
+    /** @brief Constructor
      * @param name Tool name.
      * @param var_name Variable to unsort.
      * @param once Run this tool just once. Useful to make initializations.
      */
-    UnSort(const std::string name, const std::string var_name, bool once=false);
+    UnSort(const std::string& name,
+           const std::string& var_name,
+           const bool once=false);
 
-    /** Destructor.
+    /** @brief Destructor
      */
     ~UnSort();
 
-    /** Initialize the tool.
+    /** @brief Initialize the tool
      */
     void setup();
 
-    /** Get the input variable.
-     * @return The variable to become sorted.
+    /** @brief Get the input variable
+     * @return The variable to become sorted
      */
-    InputOutput::ArrayVariable* input(){return _var;}
+    inline const InputOutput::ArrayVariable* input() const {return _var;}
 
-    /** Get the memory object where the unsorted data is stored.
-     * @return The memory object where the unsorted data is stored.
+    /** @brief Get the memory object where the unsorted data is stored
+     * @return The memory object where the unsorted data is stored
      */
-    cl_mem output(){return _output;}
+    inline const cl_mem& output() const {return _output;}
 
 protected:
-    /** Execute the tool
+    /** @brief Execute the tool
      * @param events List of events that shall be waited before safe execution
      * @return OpenCL event to be waited before accessing the dependencies
      */
-    cl_event _execute(const std::vector<cl_event> events);
+    const cl_event _execute(const std::vector<cl_event>& events);
 
 private:
-    /** Get the input variable
+    /** @brief Get the input variable
      */
     void variables();
 
-    /** Create the output memory object
+    /** @brief Create the output memory object
      */
     void setupMem();
 
-    /** Setup the OpenCL stuff
+    /** @brief Setup the OpenCL stuff
      */
     void setupOpenCL();
 
-    /** Compile the source code and generate the corresponding kernel
+    /** @brief Compile the source code and generate the corresponding kernel
      * @param source Source code to be compiled.
      * @return Kernel instance.
      */
-    cl_kernel compile(const std::string source);
+    const cl_kernel compile(const std::string& source);
 
-    /** Update the input looking for changed value.
+    /** @brief Update the input looking for changed value.
      */
     void setVariables();
 

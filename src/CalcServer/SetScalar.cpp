@@ -27,10 +27,10 @@
 
 namespace Aqua{ namespace CalcServer{
 
-SetScalar::SetScalar(const std::string name,
-                     const std::string var_name,
-                     const std::string value,
-                     bool once)
+SetScalar::SetScalar(const std::string& name,
+                     const std::string& var_name,
+                     const std::string& value,
+                     const bool once)
     : Tool(name, once)
     , _var_name(var_name)
     , _value(value)
@@ -52,7 +52,7 @@ void SetScalar::setup()
 }
 
 
-cl_event SetScalar::_execute(const std::vector<cl_event> events)
+const cl_event SetScalar::_execute(const std::vector<cl_event>& events)
 {
     InputOutput::Variables *vars = CalcServer::singleton()->variables();
 
