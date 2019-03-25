@@ -36,6 +36,9 @@ set(PACKAGE_STRING "${PACKAGE_NAME} ${PACKAGE_VERSION}")
 # include local modules
 include(AddFileDependencies)
 
+# Setup CTest to build tests
+include(CTest)
+
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cMake")
 
 if(COMMAND cmake_policy)
@@ -189,6 +192,13 @@ IF(AQUAGPUSPH_GPU_PROFILE)
 	ADD_DEFINITIONS(-DHAVE_GPUPROFILE)
 ENDIF(AQUAGPUSPH_GPU_PROFILE)
 
+# Tests building
+IF(BUILD_TESTING)
+    FIND_PROGRAM(BASH_PROGRAM bash)
+    IF(BASH_PROGRAM)
+    MESSAGE(FATAL_ERROR "Bash not found, but BUILD_TESTING has been set. Install Bash or set BUILD_TESTING=OFF")
+    ENDIF(BASH_PROGRAM)
+ENDIF()
 
 # ===================================================== #
 # Search special packages needed to build doc           #
@@ -254,6 +264,10 @@ ENDIF(AQUAGPUSPH_BUILD_EXAMPLES)
 IF(AQUAGPUSPH_BUILD_DOC)
 	ADD_SUBDIRECTORY(doc)
 ENDIF(AQUAGPUSPH_BUILD_DOC)
+
+IF(BUILD_TESTING)
+    ADD_SUBDIRECTORY(tests)
+ENDIF()
 
 # ===================================================== #
 # Show a brief                                          #
