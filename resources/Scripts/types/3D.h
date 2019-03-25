@@ -117,7 +117,7 @@
  * \f$ m_{ii} = 1; m_{ij} = 1 \leftrightarrow i \neq j \f$
  */
 #define MAT_ALL_EYE ((float16)(1.f, 0.f, 0.f, 0.f,                             \
-                                0.f, 1.f, 0.f, 0.f,                             \
+                               0.f, 1.f, 0.f, 0.f,                             \
                                0.f, 0.f, 1.f, 0.f,                             \
                                0.f, 0.f, 0.f, 1.f))
 
@@ -310,8 +310,8 @@ float det(const matrix m)
  *
  * @param m Matrix to invert
  * @return Inverse of the matrix
- * @remarks If the input matrix m is singular, nan values matrix will be
- * returned. Consider using #MATRIX_INV pseudo-inverse instead
+ * @remarks If the input matrix m is singular, eye matrix will be returned.
+ * Consider using #MATRIX_INV pseudo-inverse instead
  * @note The matrix will be considered as a 3x3 matrix, i.e. the last row and
  * column will be filled by zeroes (except the bottom right corner, which will
  * be set as 1).
@@ -319,6 +319,9 @@ float det(const matrix m)
 matrix inv(const matrix m)
 {
     const float d = 1.f / det(m);
+    if(fabs(d) > 1.e16f) {
+        return MAT_ALL_EYE;
+    }
     return ((matrix)(
         (m.s5 * m.sA - m.s6 * m.s9) * d, (m.s2 * m.s9 - m.s1 * m.sA) * d, (m.s1 * m.s6 - m.s2 * m.s5) * d, 0.f,
         (m.s6 * m.s8 - m.s4 * m.sA) * d, (m.s0 * m.sA - m.s2 * m.s8) * d, (m.s2 * m.s4 - m.s0 * m.s6) * d, 0.f,

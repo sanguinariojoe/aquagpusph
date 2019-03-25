@@ -271,6 +271,9 @@ float det(const matrix m)
 matrix inv(const matrix m)
 {
     const float d = 1.f / det(m);
+    if(fabs(d) > 1.e16f) {
+        return MAT_ALL_EYE;
+    }
     return ((matrix)( m.s3, -m.s1,
                      -m.s2,  m.s0)) * d;
 }
