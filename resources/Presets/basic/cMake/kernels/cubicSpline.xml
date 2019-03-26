@@ -6,6 +6,7 @@ Cubic Spline kernel-->
 <sphInput>
     <Definitions>
         <Define name="SUPPORT" value="2.f" evaluate="false"/>
+        <Define name="SUPPORT2" value="4.f" evaluate="false"/>
         <Define name="KERNEL_NAME" value="CubicSpline" evaluate="false"/>
     </Definitions>
 

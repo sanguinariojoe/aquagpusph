@@ -121,9 +121,11 @@ later:
     <Definitions>
         <Define name="DIMS" value="dims" evaluate="true"/>
         <Define name="H" value="h" evaluate="true"/>
+        <Define name="H2" value="h*h" evaluate="true"/>
         <Define name="CONW" value="1/(h^dims)" evaluate="true"/>
         <Define name="CONF" value="1/(h^(dims+2))" evaluate="true"/>
         <Define name="SUPPORT" value="2.f" evaluate="false"/>
+        <Define name="SUPPORT2" value="4.f" evaluate="false"/>
     </Definitions>
     
     <Tools>

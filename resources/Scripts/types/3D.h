@@ -216,6 +216,13 @@
         }                                                                      \
     }
 
+/** @brief Neglect a neighbour particle at the neighbours interaction loop
+ * 
+ * @see BEGIN_LOOP_OVER_NEIGHS
+ */
+#define NEGLECT_NEIGH()                                                        \
+                    j++; continue;
+
 /** @brief Multiply a matrix by a vector (inner product)
  *
  * @note The vector should have 3 components, not 4.

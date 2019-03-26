@@ -104,21 +104,15 @@ __kernel void entry(const __global int* imove,
     #endif
 
     BEGIN_LOOP_OVER_NEIGHS(){
-        if(i == j){
-            j++;
-            continue;
-        }
-        if(imove[j] != 1){
-            j++;
-            continue;
+        if((i == j) || (imove[j] != 1)){
+            NEGLECT_NEIGH();
         }
         const vec_xyz r_ij = r[j].XYZ - r_i;
-        const float q = length(r_ij) / H;
-        if(q >= SUPPORT)
-        {
-            j++;
-            continue;
+        const float q2 = dot(r_ij, r_ij) / H2;
+        if(q2 >= SUPPORT2){
+            NEGLECT_NEIGH();
         }
+        const float q = sqrt(q2);
         {
             const float rho_j = rho[j];
             const float p_j = p[j];

@@ -28,3 +28,11 @@
 #else
     #include "resources/Scripts/types/2D.h"
 #endif
+
+#ifndef H2
+#define H2 H*H
+#endif
+
+#ifndef SUPPORT2
+#define SUPPORT2 SUPPORT*SUPPORT
+#endif
