@@ -6,6 +6,10 @@ add_subdirectory(CalcServer)
 # ===================================================== #
 # Dependencies                                          #
 # ===================================================== #
+IF(HAVE_MPI)
+    SET(OPTIONAL_INCLUDE_PATH ${OPTIONAL_INCLUDE_PATH} ${MPI_INCLUDE_PATH})
+    SET(OPTIONAL_LIBS ${OPTIONAL_LIBS} ${MPI_CXX_LIBRARIES})
+ENDIF(HAVE_MPI)
 IF(HAVE_NCURSES)
     SET(OPTIONAL_INCLUDE_PATH ${OPTIONAL_INCLUDE_PATH} ${CURSES_INCLUDE_PATH})
     SET(OPTIONAL_LIBS ${OPTIONAL_LIBS} ${CURSES_LIBRARY})
@@ -34,8 +38,8 @@ SET(DEP_LIBS
     ${OPENCL_LIBRARIES}
     ${PYTHON_LIBRARIES}
     ${XERCESC_LIBRARIES}
-    ${OPTIONAL_LIBS}
     ${MUPARSER_LIBRARIES}
+    ${OPTIONAL_LIBS}
 )
 
 # ===================================================== #

@@ -1,6 +1,10 @@
 # ===================================================== #
 # Dependencies                                          #
 # ===================================================== #
+IF(HAVE_MPI)
+    SET(OPTIONAL_INCLUDE_PATH ${OPTIONAL_INCLUDE_PATH} ${MPI_INCLUDE_PATH})
+    SET(OPTIONAL_LIBS ${OPTIONAL_LIBS} ${MPI_CXX_LIBRARIES})
+ENDIF(HAVE_MPI)
 IF(HAVE_NCURSES)
     SET(OPTIONAL_INCLUDE_PATH ${OPTIONAL_INCLUDE_PATH} ${CURSES_INCLUDE_PATH})
     SET(OPTIONAL_LIBS ${OPTIONAL_LIBS} ${CURSES_LIBRARY})

@@ -22,7 +22,7 @@
 # ===================================================== #
 # General CMake options                                 #
 # ===================================================== #
-cmake_minimum_required(VERSION 2.8.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.0.2 FATAL_ERROR)
 project(AQUAgpusph)
 set(AQUAGPUSPH_VERSION "4.1.1")
 
@@ -91,6 +91,7 @@ IF(NOT CMAKE_BUILD_TYPE)
     SET(CMAKE_BUILD_TYPE "Release")
 ENDIF(NOT CMAKE_BUILD_TYPE)
 OPTION(AQUAGPUSPH_3D "Build 3D AQUAgpusph version. 2D and 3D versions can be installed on the same system." ON)
+OPTION(AQUAGPUSPH_USE_MPI "Build AQUAgpusph with MPI support, for multidevice running." ON)
 OPTION(AQUAGPUSPH_USE_NCURSES "Build AQUAgpusph with Ncurses terminal support." ON)
 OPTION(AQUAGPUSPH_USE_VTK "Build AQUAgpusph with VTK output format support (on development)." ON)
 OPTION(AQUAGPUSPH_BUILD_TOOLS "Build AQUAgpusph tools" ON)
@@ -116,6 +117,16 @@ FIND_PACKAGE(XXD REQUIRED)
 IF(NOT XXD_FOUND)
 MESSAGE(FATAL_ERROR "xxd not found, but ${PACKAGE_NAME} requires it. Please install vim!")
 ENDIF(NOT XXD_FOUND)
+
+# MPI
+IF(AQUAGPUSPH_USE_MPI)
+    FIND_PACKAGE(MPI)
+    IF(NOT MPI_FOUND)
+        MESSAGE(FATAL_ERROR "MPI not found, but AQUAGPUSPH_USE_MPI is ON. Install MPI or set AQUAGPUSPH_USE_MPI=OFF")
+    ENDIF(NOT MPI_FOUND)
+
+    SET(HAVE_MPI TRUE)
+ENDIF(AQUAGPUSPH_USE_MPI)
 
 # Python
 SET(PYTHON_ADDITIONAL_VERSIONS "2.5" "2.6" "2.7" "2.8" "2.9" "3.0" "3.1" "3.2" "3.3")
@@ -289,6 +300,11 @@ IF(AQUAGPUSPH_BUILD_DOC)
     MESSAGE("Documentation destination: ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DOCDIR}")
 ENDIF(AQUAGPUSPH_BUILD_DOC)
 MESSAGE("OPTIONS:")
+IF(AQUAGPUSPH_USE_MPI)
+    MESSAGE("    - With MPI")
+ELSE(AQUAGPUSPH_USE_MPI)
+    MESSAGE("    - Without MPI")
+ENDIF(AQUAGPUSPH_USE_MPI)
 IF(AQUAGPUSPH_USE_NCURSES)
     MESSAGE("    - With NCurses")
 ELSE(AQUAGPUSPH_USE_NCURSES)
