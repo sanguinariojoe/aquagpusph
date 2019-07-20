@@ -79,6 +79,9 @@
 #include <ProblemSetup.h>
 #include <CalcServer.h>
 #include <TimeManager.h>
+#ifdef HAVE_MPI
+#include <mpi.h>
+#endif
 
 /** @namespace Aqua
  * @brief Main AQUAgpusph namespace.
@@ -134,6 +137,18 @@ int main(int argc, char *argv[])
     std::cout << "\tunder certain conditions; see LICENSE for details." << std::endl;
     std::cout << std::endl;
 
+#ifdef HAVE_MPI
+    try {
+        MPI::Init(argc, argv);
+    } 
+    catch(MPI::Exception e){
+        LOG(L_INFO, "MPI cannot be initialized\n");
+        msg << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
+        LOG0(L_DEBUG, msg.str());
+        return EXIT_FAILURE;
+    }
+    MPI::COMM_WORLD.Set_errhandler(MPI::ERRORS_THROW_EXCEPTIONS);
+#endif
     InputOutput::CommandLineArgs::parse(argc, argv, file_manager);
 
     // Now we can load the simulation definition, building the calculation
@@ -190,5 +205,17 @@ int main(int argc, char *argv[])
     delete calc_server; calc_server = NULL;
     if(Py_IsInitialized())
         Py_Finalize();
+#ifdef HAVE_MPI
+    try {
+        MPI::Finalize();
+    } 
+    catch(MPI::Exception e){
+        LOG(L_INFO, "MPI cannot be correctly finished\n");
+        msg << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
+        LOG0(L_DEBUG, msg.str());
+        MPI::COMM_WORLD.Abort(-1);
+    }
+#endif
+
     return EXIT_SUCCESS;
 }
