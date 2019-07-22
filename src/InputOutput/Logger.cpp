@@ -36,6 +36,10 @@
     void *wnd;
 #endif
 
+#ifdef HAVE_MPI
+#include <mpi.h>
+#endif
+
 namespace Aqua{ namespace InputOutput{
 
 Logger::Logger()
@@ -223,6 +227,19 @@ void Logger::writeReport(std::string input,
 
 void Logger::addMessage(TLogLevel level, std::string log, std::string func)
 {
+#ifdef HAVE_MPI
+    try {
+        if((level < L_ERROR) && (MPI::COMM_WORLD.Get_rank() > 0))
+            return;
+    } catch(MPI::Exception e){
+        std::ostringstream msg;
+        msg << "Error getting MPI rank. " << std::endl
+            << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw;
+    }
+#endif
+
     std::ostringstream fname;
     if (func != "")
         fname << "(" << func << "): ";
