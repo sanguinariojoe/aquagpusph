@@ -126,40 +126,6 @@ public:
          */
         bool save_on_fail;
 
-        /** @brief Index of the OpenCL platform to use.
-         *
-         * AQUAgpusph is providing the available OpenCL platforms, and the
-         * devices into them.
-         *
-         * This field can be set with the tag `Device`, for instance:
-         * `<Device platform="0" device="0" type="GPU" />`
-         */
-        unsigned int platform_id;
-
-        /** @brief Index of the OpenCL device to use in the platform
-         * #platform_id.
-         *
-         * AQUAgpusph is providing the available OpenCL platforms, and the
-         * devices into them.
-         *
-         * This field can be set with the tag `Device`, for instance:
-         * `<Device platform="0" device="0" type="GPU" />`
-         *
-         * @remarks The index of the device is refered to the available ones
-         * compatibles with the selected type #device_type.
-         */
-        unsigned int device_id;
-
-        /** @brief Type of devices that will be considered in the platform
-         * #platform_id.
-         *
-         * This field can be set with the tag `Device`, for instance:
-         * `<Device platform="0" device="0" type="GPU" />`
-         *
-         * @see #device_id.
-         */
-        cl_device_type device_type;
-
         /** @brief AQUAgpusph root path.
          *
          * Usually this option is automatically set by the basic module, using
@@ -167,6 +133,82 @@ public:
          * This path is added to the OpenCL include paths.
          */
         std::string base_path;
+
+        /** @brief General program settings.
+        *
+        * These setting are set between the following XML tags:
+        * @code{.xml}
+            <Settings>
+            </Settings>
+        * @endcode
+        *
+        * @see Aqua::InputOutput::ProblemSetup
+        */
+        class device
+        {
+        public:
+            /** @brief Constructor
+            *
+            * @param platform_index Index of the OpenCL platform to use
+            * @param device_index Index of the OpenCL device to use from the
+            * platform
+            * @param t Type of OpenCL device
+            */
+            device(const unsigned int platform_index,
+                   const unsigned int device_index,
+                   const cl_device_type t=CL_DEVICE_TYPE_ALL)
+                : platform_id(platform_index)
+                , device_id(device_index)
+                , device_type(t) {};
+
+            /// Destructor
+            ~device() {};
+
+            /** @brief Index of the OpenCL platform to use.
+            *
+            * AQUAgpusph is providing the available OpenCL platforms, and the
+            * devices into them.
+            *
+            * This field can be set with the tag `Device`, for instance:
+            * `<Device platform="0" device="0" type="GPU" />`
+            */
+            unsigned int platform_id;
+
+            /** @brief Index of the OpenCL device to use in the platform
+            * #platform_id.
+            *
+            * AQUAgpusph is providing the available OpenCL platforms, and the
+            * devices into them.
+            *
+            * This field can be set with the tag `Device`, for instance:
+            * `<Device platform="0" device="0" type="GPU" />`
+            *
+            * @remarks The index of the device is refered to the available ones
+            * compatibles with the selected type #device_type.
+            */
+            unsigned int device_id;
+
+            /** @brief Type of devices that will be considered in the platform
+            * #platform_id.
+            *
+            * This field can be set with the tag `Device`, for instance:
+            * `<Device platform="0" device="0" type="GPU" />`
+            *
+            * @see #device_id.
+            */
+            cl_device_type device_type;
+        };
+
+        /** @brief The list of devices to be considered
+         * 
+         * Devices can be added with the tag `Device`, for instance:
+         * `<Device platform="0" device="0" type="GPU" />`
+         *
+         * In case MPI is enabled, devices are assigned to the processes in the
+         * same order they are declared in the XML file. Thus, the XML file and
+         * the MPI machine file must hold a strict relation
+         */
+        std::vector<ProblemSetup::sphSettings::device> devices;
     };
 
     /// Stored settings

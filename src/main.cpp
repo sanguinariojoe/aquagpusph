@@ -140,8 +140,7 @@ int main(int argc, char *argv[])
 #ifdef HAVE_MPI
     try {
         MPI::Init(argc, argv);
-    } 
-    catch(MPI::Exception e){
+    } catch(MPI::Exception e){
         LOG(L_INFO, "MPI cannot be initialized\n");
         msg << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
         LOG0(L_DEBUG, msg.str());

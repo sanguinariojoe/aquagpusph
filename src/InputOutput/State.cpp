@@ -301,7 +301,7 @@ void State::parseSettings(DOMElement *root,
                           std::string prefix)
 {
     DOMNodeList* nodes = root->getElementsByTagName(xmlS("Settings"));
-    for(XMLSize_t i=0; i<nodes->getLength();i++){
+    for(XMLSize_t i=0; i<nodes->getLength(); i++){
         DOMNode* node = nodes->item(i);
         if(node->getNodeType() != DOMNode::ELEMENT_NODE)
             continue;
@@ -322,38 +322,6 @@ void State::parseSettings(DOMElement *root,
             }
         }
 
-        s_nodes = elem->getElementsByTagName(xmlS("Device"));
-        for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
-            DOMNode* s_node = s_nodes->item(j);
-            if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
-                continue;
-            DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
-            sim_data.settings.platform_id = std::stoi(xmlAttribute(s_elem, "platform"));
-            sim_data.settings.device_id   = std::stoi(xmlAttribute(s_elem, "device"));
-            if(!xmlAttribute(s_elem, "type").compare("ALL"))
-                sim_data.settings.device_type = CL_DEVICE_TYPE_ALL;
-            else if(!xmlAttribute(s_elem, "type").compare("CPU"))
-                sim_data.settings.device_type = CL_DEVICE_TYPE_CPU;
-            else if(!xmlAttribute(s_elem, "type").compare("GPU"))
-                sim_data.settings.device_type = CL_DEVICE_TYPE_GPU;
-            else if(!xmlAttribute(s_elem, "type").compare("ACCELERATOR"))
-                sim_data.settings.device_type = CL_DEVICE_TYPE_ACCELERATOR;
-            else if(!xmlAttribute(s_elem, "type").compare("DEFAULT"))
-                sim_data.settings.device_type = CL_DEVICE_TYPE_DEFAULT;
-            else{
-                std::ostringstream msg;
-                msg << "Unknow \"" << xmlAttribute(s_elem, "type")
-                    << "\" type of device" << std::endl;
-                LOG(L_ERROR, msg.str());
-                LOG0(L_DEBUG, "\tThe valid options are:\n");
-                LOG0(L_DEBUG, "\t\tALL\n");
-                LOG0(L_DEBUG, "\t\tCPU\n");
-                LOG0(L_DEBUG, "\t\tGPU\n");
-                LOG0(L_DEBUG, "\t\tACCELERATOR\n");
-                LOG0(L_DEBUG, "\t\tDEFAULT\n");
-                throw std::runtime_error("Invalid device type");
-            }
-        }
         s_nodes = elem->getElementsByTagName(xmlS("RootPath"));
         for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
             DOMNode* s_node = s_nodes->item(j);
@@ -361,6 +329,46 @@ void State::parseSettings(DOMElement *root,
                 continue;
             DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
             sim_data.settings.base_path = xmlAttribute(s_elem, "path");
+        }
+
+        s_nodes = elem->getElementsByTagName(xmlS("Device"));
+        for(XMLSize_t j=0; j<s_nodes->getLength(); j++){
+            DOMNode* s_node = s_nodes->item(j);
+            if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
+                continue;
+            DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+            unsigned int platform_id = std::stoi(xmlAttribute(s_elem, "platform"));
+            unsigned int device_id = std::stoi(xmlAttribute(s_elem, "device"));
+            cl_device_type device_type = CL_DEVICE_TYPE_ALL;
+            if(!xmlHasAttribute(s_elem, "type")){
+                if(!xmlAttribute(s_elem, "type").compare("ALL"))
+                    device_type = CL_DEVICE_TYPE_ALL;
+                else if(!xmlAttribute(s_elem, "type").compare("CPU"))
+                    device_type = CL_DEVICE_TYPE_CPU;
+                else if(!xmlAttribute(s_elem, "type").compare("GPU"))
+                    device_type = CL_DEVICE_TYPE_GPU;
+                else if(!xmlAttribute(s_elem, "type").compare("ACCELERATOR"))
+                    device_type = CL_DEVICE_TYPE_ACCELERATOR;
+                else if(!xmlAttribute(s_elem, "type").compare("DEFAULT"))
+                    device_type = CL_DEVICE_TYPE_DEFAULT;
+                else{
+                    std::ostringstream msg;
+                    msg << "Unknow \"" << xmlAttribute(s_elem, "type")
+                        << "\" type of device" << std::endl;
+                    LOG(L_ERROR, msg.str());
+                    LOG0(L_DEBUG, "\tThe valid options are:\n");
+                    LOG0(L_DEBUG, "\t\tALL\n");
+                    LOG0(L_DEBUG, "\t\tCPU\n");
+                    LOG0(L_DEBUG, "\t\tGPU\n");
+                    LOG0(L_DEBUG, "\t\tACCELERATOR\n");
+                    LOG0(L_DEBUG, "\t\tDEFAULT\n");
+                    throw std::runtime_error("Invalid device type");
+                }
+            }
+            sim_data.settings.devices.push_back(
+                ProblemSetup::sphSettings::device(platform_id,
+                                                  device_id,
+                                                  device_type));
         }
     }
 }
@@ -1477,31 +1485,44 @@ void State::writeSettings(xercesc::DOMDocument* doc,
     elem = doc->createElement(xmlS("Settings"));
     root->appendChild(elem);
 
-    s_elem = doc->createElement(xmlS("Device"));
-    att << sim_data.settings.platform_id;
-    s_elem->setAttribute(xmlS("platform"), xmlS(att.str()));
-    att.str(""); att << sim_data.settings.device_id;
-    s_elem->setAttribute(xmlS("device"), xmlS(att.str()));
-    att.str("");
-    switch(sim_data.settings.device_type){
-        case CL_DEVICE_TYPE_ALL:
-            att << "ALL";
-            break;
-        case CL_DEVICE_TYPE_CPU:
-            att << "CPU";
-            break;
-        case CL_DEVICE_TYPE_GPU:
-            att << "GPU";
-            break;
-        case CL_DEVICE_TYPE_ACCELERATOR:
-            att << "ACCELERATOR";
-            break;
-        case CL_DEVICE_TYPE_DEFAULT:
-            att << "DEFAULT";
-            break;
-    }
-    s_elem->setAttribute(xmlS("type"), xmlS(att.str()));
+    s_elem = doc->createElement(xmlS("SaveOnFail"));
+    if(sim_data.settings.save_on_fail)
+        s_elem->setAttribute(xmlS("value"), xmlS("true"));
+    else
+        s_elem->setAttribute(xmlS("value"), xmlS("false"));
     elem->appendChild(s_elem);
+
+    s_elem = doc->createElement(xmlS("RootPath"));
+    s_elem->setAttribute(xmlS("path"), xmlS(sim_data.settings.base_path));
+    elem->appendChild(s_elem);
+    
+    for(auto device : sim_data.settings.devices) {
+        s_elem = doc->createElement(xmlS("Device"));
+        att.str(""); att << device.platform_id;
+        s_elem->setAttribute(xmlS("platform"), xmlS(att.str()));
+        att.str(""); att << device.device_id;
+        s_elem->setAttribute(xmlS("device"), xmlS(att.str()));
+        att.str("");
+        switch(device.device_type){
+            case CL_DEVICE_TYPE_ALL:
+                att << "ALL";
+                break;
+            case CL_DEVICE_TYPE_CPU:
+                att << "CPU";
+                break;
+            case CL_DEVICE_TYPE_GPU:
+                att << "GPU";
+                break;
+            case CL_DEVICE_TYPE_ACCELERATOR:
+                att << "ACCELERATOR";
+                break;
+            case CL_DEVICE_TYPE_DEFAULT:
+                att << "DEFAULT";
+                break;
+        }
+        s_elem->setAttribute(xmlS("type"), xmlS(att.str()));
+        elem->appendChild(s_elem);
+    }
 }
 
 void State::writeVariables(xercesc::DOMDocument* doc,

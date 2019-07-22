@@ -46,6 +46,10 @@
 #include <CalcServer/Reports/TabFile.h>
 #include <CalcServer/Reports/SetTabFile.h>
 
+#ifdef HAVE_MPI
+#include <mpi.h>
+#endif
+
 namespace Aqua{ namespace CalcServer{
 
 CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
@@ -684,16 +688,37 @@ void CalcServer::queryOpenCL()
 
 void CalcServer::setupPlatform()
 {
-    if(_sim_data.settings.platform_id >= _num_platforms){
+    int rank = 0;
+#ifdef HAVE_MPI
+    try {
+        rank = MPI::COMM_WORLD.Get_rank();
+    } catch(MPI::Exception e){
+        std::ostringstream msg;
+        LOG(L_INFO, "Error getting MPI rank\n");
+        msg << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
+        LOG0(L_DEBUG, msg.str());
+        throw;
+    }
+#endif
+    if(rank >= _sim_data.settings.devices.size()) {
+        std::ostringstream msg;
+        msg << "\tProcess " << rank << " has not an OpenCL declared device ("
+            << _sim_data.settings.devices.size() << " devices declared)"
+            << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("Out of bounds");
+    }
+    const unsigned int platform_id =
+        _sim_data.settings.devices.at(rank).platform_id;
+    if(platform_id >= _num_platforms) {
         std::ostringstream msg;
         LOG(L_ERROR, "The requested OpenCL platform can't be used.\n");
-        msg << "\tPlatform " << _sim_data.settings.platform_id
-            << " has been selected, but just " << _num_platforms
-            << " are available." << std::endl;
+        msg << "\tPlatform " << platform_id << " has been selected, but just "
+            << _num_platforms << " are available." << std::endl;
         LOG0(L_DEBUG, msg.str());
         throw std::runtime_error("Out of bounds");
     }
-    _platform = _platforms[_sim_data.settings.platform_id];
+    _platform = _platforms[platform_id];
 }
 
 /** @brief Runtime error reporting tool
@@ -731,9 +756,36 @@ void CalcServer::setupDevices()
     cl_int err_code;
     cl_uint i;
     _devices = NULL;
+
+    // Get the selected device index and type
+    int rank = 0;
+#ifdef HAVE_MPI
+    try {
+        rank = MPI::COMM_WORLD.Get_rank();
+    } catch(MPI::Exception e){
+        std::ostringstream msg;
+        LOG(L_INFO, "Error getting MPI rank\n");
+        msg << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
+        LOG0(L_DEBUG, msg.str());
+        throw;
+    }
+#endif
+    if(rank >= _sim_data.settings.devices.size()) {
+        std::ostringstream msg;
+        msg << "\tProcess " << rank << " has not an OpenCL declared device ("
+            << _sim_data.settings.devices.size() << " devices declared)"
+            << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("Out of bounds");
+    }
+    const unsigned int device_id =
+        _sim_data.settings.devices.at(rank).device_id;
+    const cl_device_type device_type =
+        _sim_data.settings.devices.at(rank).device_type;
+
     // Gets the number of valid devices
     err_code = clGetDeviceIDs(_platform,
-                              _sim_data.settings.device_type,
+                              device_type,
                               0,
                               NULL,
                               &_num_devices);
@@ -742,22 +794,21 @@ void CalcServer::setupDevices()
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
-    if(_sim_data.settings.device_id >= _num_devices) {
+    if(device_id >= _num_devices) {
         LOG(L_ERROR, "The selected device can't be used.\n");
         std::ostringstream msg;
-        msg << "\tDevice " << _sim_data.settings.device_id
-            << " has been selected, but just " << _num_devices
-            << " devices are available." << std::endl;
+        msg << "\tDevice " << device_id << " has been selected, but just "
+            << _num_devices << " devices are available." << std::endl;
         LOG0(L_DEBUG, msg.str());
-        if(_sim_data.settings.device_type == CL_DEVICE_TYPE_ALL)
+        if(device_type == CL_DEVICE_TYPE_ALL)
             LOG0(L_DEBUG, "\t\tCL_DEVICE_TYPE_ALL filter activated\n");
-        else if(_sim_data.settings.device_type == CL_DEVICE_TYPE_CPU)
+        else if(device_type == CL_DEVICE_TYPE_CPU)
             LOG0(L_DEBUG, "\t\tCL_DEVICE_TYPE_CPU filter activated\n");
-        else if(_sim_data.settings.device_type == CL_DEVICE_TYPE_GPU)
+        else if(device_type == CL_DEVICE_TYPE_GPU)
             LOG0(L_DEBUG, "\t\tCL_DEVICE_TYPE_GPU filter activated\n");
-        else if(_sim_data.settings.device_type == CL_DEVICE_TYPE_ACCELERATOR)
+        else if(device_type == CL_DEVICE_TYPE_ACCELERATOR)
             LOG0(L_DEBUG, "\t\tCL_DEVICE_TYPE_ACCELERATOR filter activated\n");
-        else if(_sim_data.settings.device_type == CL_DEVICE_TYPE_DEFAULT)
+        else if(device_type == CL_DEVICE_TYPE_DEFAULT)
             LOG0(L_DEBUG, "\t\tCL_DEVICE_TYPE_DEFAULT filter activated\n");
 
         throw std::runtime_error("Out of bounds");
@@ -772,7 +823,7 @@ void CalcServer::setupDevices()
         throw std::bad_alloc();
     }
     err_code = clGetDeviceIDs(_platform,
-                              _sim_data.settings.device_type,
+                              device_type,
                               _num_devices,
                               _devices,
                               &_num_devices);
@@ -793,6 +844,7 @@ void CalcServer::setupDevices()
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
+
     // Create command queues
     _command_queues = new cl_command_queue[_num_devices];
     if(_command_queues == NULL){
@@ -818,9 +870,10 @@ void CalcServer::setupDevices()
             throw std::runtime_error("OpenCL error");
         }
     }
+
     // Store the selected ones
-    _device = _devices[_sim_data.settings.device_id];
-    _command_queue = _command_queues[_sim_data.settings.device_id];
+    _device = _devices[device_id];
+    _command_queue = _command_queues[device_id];
 }
 
 void CalcServer::setup()

@@ -79,11 +79,10 @@ ProblemSetup::~ProblemSetup()
 }
 
 ProblemSetup::sphSettings::sphSettings()
+    : save_on_fail(true)
+    , base_path("")
 {
     save_on_fail = true;
-    platform_id = 0;
-    device_id = 0;
-    device_type = CL_DEVICE_TYPE_ALL;
     base_path = "";
 }
 
