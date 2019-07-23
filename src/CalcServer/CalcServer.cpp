@@ -694,15 +694,15 @@ void CalcServer::setupPlatform()
         rank = MPI::COMM_WORLD.Get_rank();
     } catch(MPI::Exception e){
         std::ostringstream msg;
-        LOG(L_INFO, "Error getting MPI rank\n");
-        msg << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
-        LOG0(L_DEBUG, msg.str());
+        msg << "Error getting MPI rank. " << std::endl
+            << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
+        LOG(L_ERROR, msg.str());
         throw;
     }
 #endif
     if(rank >= _sim_data.settings.devices.size()) {
         std::ostringstream msg;
-        msg << "\tProcess " << rank << " has not an OpenCL declared device ("
+        msg << "Process " << rank << " has not an OpenCL declared device ("
             << _sim_data.settings.devices.size() << " devices declared)"
             << std::endl;
         LOG(L_ERROR, msg.str());
@@ -713,7 +713,7 @@ void CalcServer::setupPlatform()
     if(platform_id >= _num_platforms) {
         std::ostringstream msg;
         LOG(L_ERROR, "The requested OpenCL platform can't be used.\n");
-        msg << "\tPlatform " << platform_id << " has been selected, but just "
+        msg << "Platform " << platform_id << " has been selected, but just "
             << _num_platforms << " are available." << std::endl;
         LOG0(L_DEBUG, msg.str());
         throw std::runtime_error("Out of bounds");
@@ -764,15 +764,15 @@ void CalcServer::setupDevices()
         rank = MPI::COMM_WORLD.Get_rank();
     } catch(MPI::Exception e){
         std::ostringstream msg;
-        LOG(L_INFO, "Error getting MPI rank\n");
-        msg << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
-        LOG0(L_DEBUG, msg.str());
+        msg << "Error getting MPI rank. " << std::endl
+            << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
+        LOG(L_ERROR, msg.str());
         throw;
     }
 #endif
     if(rank >= _sim_data.settings.devices.size()) {
         std::ostringstream msg;
-        msg << "\tProcess " << rank << " has not an OpenCL declared device ("
+        msg << "Process " << rank << " has not an OpenCL declared device ("
             << _sim_data.settings.devices.size() << " devices declared)"
             << std::endl;
         LOG(L_ERROR, msg.str());
@@ -797,7 +797,7 @@ void CalcServer::setupDevices()
     if(device_id >= _num_devices) {
         LOG(L_ERROR, "The selected device can't be used.\n");
         std::ostringstream msg;
-        msg << "\tDevice " << device_id << " has been selected, but just "
+        msg << "Device " << device_id << " has been selected, but just "
             << _num_devices << " devices are available." << std::endl;
         LOG0(L_DEBUG, msg.str());
         if(device_type == CL_DEVICE_TYPE_ALL)
