@@ -486,7 +486,7 @@ void Logger::refreshAll()
 
 void Logger::open()
 {
-    file("log.%d.html", 0);
+    file("log.proc{mpi_rank}.{index}.html", 0);
     _log_file.open(file().c_str());
     if(!_log_file.is_open()){
         std::ostringstream msg;

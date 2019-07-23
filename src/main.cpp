@@ -108,6 +108,18 @@ using namespace Aqua;
 int main(int argc, char *argv[])
 {
     std::ostringstream msg;
+#ifdef HAVE_MPI
+    try {
+        MPI::Init(argc, argv);
+    } catch(MPI::Exception e){
+        LOG(L_INFO, "MPI cannot be initialized\n");
+        msg << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
+        LOG0(L_DEBUG, msg.str());
+        return EXIT_FAILURE;
+    }
+    MPI::COMM_WORLD.Set_errhandler(MPI::ERRORS_THROW_EXCEPTIONS);
+#endif
+
     InputOutput::Logger *logger = new InputOutput::Logger();
     InputOutput::FileManager file_manager;
 
@@ -137,17 +149,6 @@ int main(int argc, char *argv[])
     std::cout << "\tunder certain conditions; see LICENSE for details." << std::endl;
     std::cout << std::endl;
 
-#ifdef HAVE_MPI
-    try {
-        MPI::Init(argc, argv);
-    } catch(MPI::Exception e){
-        LOG(L_INFO, "MPI cannot be initialized\n");
-        msg << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
-        LOG0(L_DEBUG, msg.str());
-        return EXIT_FAILURE;
-    }
-    MPI::COMM_WORLD.Set_errhandler(MPI::ERRORS_THROW_EXCEPTIONS);
-#endif
     InputOutput::CommandLineArgs::parse(argc, argv, file_manager);
 
     // Now we can load the simulation definition, building the calculation

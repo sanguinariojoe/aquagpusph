@@ -86,13 +86,15 @@ protected:
      */
     void file(std::string filename);
 
-    /** @brief Look for the first non existing file name.
-     * @param basename The base name of the file. In this base name the `%d`
-     * string will be replaced by the first integer such that the file does not
-     * exist in the system.
-     * @param start_index First index that will be checked.
-     * @note If more than one `"%d"` strings are found in @paramname{basename},
-     * just the first one will be replaced.
+    /** @brief Look for the first non-existing file name
+     *
+     * Several scape strings can be applied to look for the appropriate name:
+     *   - `"%d"`/`"{index}"` will be replaced by the first integer which
+     *     results in a non-existing file path
+     *   - `"{mpi_rank}"` will be replaced by the process identifier index
+     *
+     * @param basename The base name of the file
+     * @param start_index First index that will be checked
      */
     void file(std::string basename, unsigned int start_index);
 

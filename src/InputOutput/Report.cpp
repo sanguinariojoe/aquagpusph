@@ -23,8 +23,13 @@
 
 #include <sstream>
 #include <iostream>
+#include <InputOutput/Logger.h>
 #include <InputOutput/Report.h>
 #include <AuxiliarMethods.h>
+
+#ifdef HAVE_MPI
+#include <mpi.h>
+#endif
 
 namespace Aqua{ namespace InputOutput{
 
@@ -48,24 +53,46 @@ void Report::file(std::string basename, unsigned int startindex)
     std::string newname;
     std::ostringstream number_str;
 
-    if(basename.find("%d") == std::string::npos){
-        // We cannot replace nothing in the basename, just test if the file
+    // Start replacing all the old-school formatting string instances by the new
+    // one, based on a more intelligible variable name
+    newname = replaceAllCopy(basename, "%d", "{index}");
+
+    // Now replace all the instances of constant variables
+    int mpi_rank = 0;
+    #ifdef HAVE_MPI
+        try {
+            mpi_rank = MPI::COMM_WORLD.Get_rank();
+        } catch(MPI::Exception e){
+            std::ostringstream msg;
+            msg << "Error getting MPI rank. " << std::endl
+                << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw;
+        }
+    #endif
+    number_str.str(""); number_str << mpi_rank;
+    replaceAll(newname, "{mpi_rank}", number_str.str());
+    
+    if(newname.find("{index}") == std::string::npos){
+        // We cannot insert the file index anywhere, so just test if the file
         // does not exist
-        f = fopen(basename.c_str(), "r");
+        f = fopen(newname.c_str(), "r");
         if(f){
-            // The file already exist, so we cannot operate
+            std::ostringstream msg;
+            msg << "A report is trying to overwrite an existing file. "
+                << std::endl << "'" << newname << "'" << std::endl;
+            LOG(L_ERROR, msg.str());
             fclose(f);
             throw std::invalid_argument("Invalid file name pattern");
         }
 
-        file(basename);
+        file(newname);
         return;
     }
 
     while(true){
-        number_str.str("");
-        number_str << i;
-        newname = replaceAllCopy(basename, "%d", number_str.str());
+        number_str.str(""); number_str << i;
+        replaceAll(newname, "{index}", number_str.str());
 
         f = fopen(newname.c_str(), "r");
         if(!f)
