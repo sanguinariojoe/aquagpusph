@@ -768,7 +768,7 @@ const std::string VTK::filenamePVD()
 {
     if(_namePVD == ""){
         try {
-            unsigned int i;
+            unsigned int i=0;
             _namePVD = newFilePath(
                 simData().sets.at(setId())->outputPath() + ".pvd", i, 1);
         } catch(std::invalid_argument e) {
