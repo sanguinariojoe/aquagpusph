@@ -22,7 +22,6 @@
  */
 
 #include <string>
-#include <iomanip>
 
 #include <InputOutput/Particles.h>
 #include <InputOutput/Logger.h>
@@ -141,39 +140,16 @@ unsigned int Particles::file(const std::string basename,
                              unsigned int startindex,
                              unsigned int digits)
 {
-    FILE *f;
-
-    if(basename.find("%d") == std::string::npos){
-        // We cannot replace nothing in the basename, just test if the file
-        // does not exist
-        f = fopen(basename.c_str(), "r");
-        if(f){
-            // The fail already exist, so we cannot operate
-            fclose(f);
-            throw std::runtime_error("Bad file name");
-        }
-
-        file(basename);
-        return startindex;
-    }
-
     unsigned int i = startindex;
-    while(true){
-        std::ostringstream number;
-        number << std::setfill('0') << std::setw(digits) << i;
-        std::string newname = replaceAllCopy(basename, "%d", number.str());
-
-        f = fopen(newname.c_str(), "r");
-        if(!f){
-            // We found an available slot
-            file(newname);
-            break;
-        }
-        fclose(f);
-
-        i++;
+    try {
+        file(newFilePath(basename, i, digits));
+    } catch(std::invalid_argument e) {
+        std::ostringstream msg;
+        msg << "It is forbidden to overwrite particles output file '"
+            << setStrConstantsCopy(basename) << "'" << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw;
     }
-
     return i;
 }
 

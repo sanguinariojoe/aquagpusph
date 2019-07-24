@@ -130,6 +130,51 @@ void toLower(std::string &str);
  */
 std::string toLowerCopy(std::string str);
 
+/** @brief Set several constants into a string
+ *
+ * Following scape strings can be used, that will be replaced as follows:
+ *   - `"{mpi_rank}"` will be replaced by the process identifier index
+ *   - `"{version}"` will be replaced by the AQUAgpusph package version
+ *
+ * @param str The string where constants shall be set
+ */
+void setStrConstants(std::string &str);
+
+/** @brief Set several constants into a string
+ *
+ * Following scape strings can be used, that will be replaced as follows:
+ *   - `"{mpi_rank}"` will be replaced by the process identifier index
+ *   - `"{version}"` will be replaced by the AQUAgpusph package version
+ *
+ * @param str The string where constants shall be set
+ * @return The modified string
+ */
+std::string setStrConstantsCopy(std::string str);
+
+/** @brief Look for a file path which is not already taken
+ *
+ * Several scape strings can be used, that will be replaced as follows:
+ *   - `"%d"`/`"{index}"` will be replaced by the first integer which
+ *     results in a non-existing file path
+ *   - `"{mpi_rank}"` will be replaced by the process identifier index
+ *   - `"{version}"` will be replaced by the AQUAgpusph package version
+ *
+ * In case a file path cannot be obtained, a std::invalid_argument exception
+ * will be raised.
+ *
+ * @param basename The base name of the file
+ * @param i First index that will be checked. Also, the resulting file index is
+ * stored in this variable.
+ * @return The available file path
+ * @note In case overwriting files is allowed, you can call this method with a
+ * try, catching std::invalid_argument exception. If exception 
+ * std::invalid_argument is eventually raised, you can call
+ * setStrConstantsCopy()
+ */
+std::string newFilePath(const std::string &basename,
+                        unsigned int &i,
+                        unsigned int digits=5);
+
 /// Next number which is power of 2.
 /** Compute a value which, being power of two, is greater or equal than
  * @paramname{x}.

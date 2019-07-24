@@ -619,8 +619,11 @@ public:
 
         /** @brief Set the file path from which the particles should be read.
          *
-         * This field can be set with the tag `Option`, for instance:
+         * This field can be set with the tag `Load`, for instance:
          * `<Load format="ASCII" file="./Fluid.dat" fields="r,normal" />`
+         *
+         * Several constants can be used in the file name. See
+         * Aqua::setStrConstants()
          *
          * @param path File path.
          * @param format File format.
@@ -649,13 +652,20 @@ public:
 
         /** @brief Set the file path where the particles should be written.
          *
-         * This field can be set with the tag `Option`, for instance:
-         * `<Save format="VTK" file="output" fields="r,normal" />`
+         * This field can be set with the tag `Save`, for instance:
+         * `<Save format="VTK" file="output.proc{mpi_rank}.{index}.vtk" fields="r,normal" />`
+         *
+         * Several scaper strings can be used to let AQUAgpusph compute the
+         * file path, at the appropriate Aqua::InputOutput::Particles instance.
+         * See Aqua::newFilePath()
          *
          * @param path File path.
          * @param format File format.
          * @param fields Fields to be loaded from the file
          * @see Aqua::InputOutput::Particles
+         * @note In case `"%d"`/`"{index}"` is not provided, it will be appended
+         * at the end of the file name, as well as the appropriate file
+         * extension (backward compatibility)
          */
         void output(std::string path, std::string format, std::string fields);
 

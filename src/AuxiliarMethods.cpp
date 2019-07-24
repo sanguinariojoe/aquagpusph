@@ -33,10 +33,15 @@
 #include <fcntl.h>
 #include <string>
 #include <sstream>
+#include <iomanip>
 
 #include <AuxiliarMethods.h>
 #include <ProblemSetup.h>
 #include <InputOutput/Logger.h>
+
+#ifdef HAVE_MPI
+#include <mpi.h>
+#endif
 
 namespace Aqua{
 
@@ -141,6 +146,79 @@ std::string toLowerCopy(std::string str)
 {
     toLower(str);
     return str;
+}
+
+void setStrConstants(std::string &str)
+{
+    std::ostringstream number_str;
+
+    int mpi_rank = 0;
+    #ifdef HAVE_MPI
+        try {
+            mpi_rank = MPI::COMM_WORLD.Get_rank();
+        } catch(MPI::Exception e){
+            std::ostringstream msg;
+            msg << "Error getting MPI rank. " << std::endl
+                << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw;
+        }
+    #endif
+    number_str << mpi_rank;
+    replaceAll(str, "{mpi_rank}", number_str.str());
+    replaceAll(str, "{version}", PACKAGE_VERSION);    
+}
+
+std::string setStrConstantsCopy(std::string str)
+{
+    setStrConstants(str);
+    return str;    
+}
+
+std::string newFilePath(const std::string &basename,
+                        unsigned int &i,
+                        unsigned int digits)
+{
+    FILE *f;
+    std::string filepath;
+    std::ostringstream number_str;
+
+    // Start replacing all the old-school formatting string instances by the new
+    // one, based on a more intelligible variable name
+    filepath = replaceAllCopy(basename, "%d", "{index}");
+
+    // Set the constants
+    setStrConstants(filepath);
+
+    if(filepath.find("{index}") == std::string::npos){
+        // We cannot insert the file index anywhere, so just test if the file
+        // does not exist
+        f = fopen(filepath.c_str(), "r");
+        if(f){
+            fclose(f);
+            throw std::invalid_argument("Invalid file name pattern");
+        }
+
+        return filepath;
+    }
+
+    while(true){
+        number_str.str("");
+        number_str << std::setfill('0') << std::setw(digits) << i;
+        std::string newfilepath = replaceAllCopy(filepath,
+                                                 "{index}",
+                                                 number_str.str());
+
+        f = fopen(newfilepath.c_str(), "r");
+        if(!f) {
+            filepath = newfilepath;
+            break;
+        }
+        fclose(f);
+        i++;
+    }
+
+    return filepath;
 }
 
 unsigned int nextPowerOf2( unsigned int n )

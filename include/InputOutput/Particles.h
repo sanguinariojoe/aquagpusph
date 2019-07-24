@@ -109,16 +109,15 @@ protected:
      */
     void file(const std::string filename){_output_file = filename;};
 
-    /** Look for the first non existing file name.
-     * @param basename The base name of the file. In this base name the `%d`
-     * string will be replaced by the first integer such that the file does not
-     * exist in the system.
+    /** Look for the first non-existing file path
+     * @param basename The base name of the file
      * @param start_index First index that will be checked.
      * @param digits Number of digits of the replaced integer number. If the
      * number of digits of the integer value are greater than this value this
      * parameter will be ignored, otherwise zeroes will be appended at the left
      * of the decimal representation of the integer.
      * @return The next non-existing file index.
+     * @see Aqua::newFilePath()
      */
     unsigned int file(const std::string basename,
                       unsigned int start_index,

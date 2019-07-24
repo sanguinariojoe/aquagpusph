@@ -510,11 +510,12 @@ std::string ASCII::readField(const std::string field,
 }
 
 void ASCII::create(std::ofstream& f){
-    std::ostringstream basename;
-
-    basename << simData().sets.at(setId())->outputPath() << ".%d.dat";
-    std::string basename_str = basename.str();  // Avoid static mem free
-    _next_file_index = file(basename_str.c_str(), _next_file_index);
+    std::string basename = simData().sets.at(setId())->outputPath();
+    // Check that {index} scape string is present, for backward compatibility
+    if(basename.find("{index}") == std::string::npos){
+        basename += ".{index}.dat";
+    }
+    _next_file_index = file(basename, _next_file_index);
 
     std::ostringstream msg;
     msg << "Writing \"" << file() << "\" ASCII file..." << std::endl;

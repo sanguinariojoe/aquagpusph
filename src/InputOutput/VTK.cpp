@@ -605,20 +605,22 @@ void VTK::waitForSavers(){
 }
 
 vtkXMLUnstructuredGridWriter* VTK::create(){
-    std::ostringstream basename;
     vtkXMLUnstructuredGridWriter *f = NULL;
 
-    basename << simData().sets.at(setId())->outputPath() << ".%d.vtu";
-    std::string basename_str = basename.str();  // Avoid static mem free
-    _next_file_index = file(basename_str.c_str(), _next_file_index);
+    std::string basename = simData().sets.at(setId())->outputPath();
+    // Check that {index} scape string is present, for backward compatibility
+    if(basename.find("{index}") == std::string::npos){
+        basename += ".{index}.vtu";
+    }
+    _next_file_index = file(basename, _next_file_index);
 
     std::ostringstream msg;
-    msg << "Writing \"" << file() << "\" VTK file..." << std::endl;
+    msg << "Writing \"" << file() << "\" ASCII file..." << std::endl;
     LOG(L_INFO, msg.str());
 
     f = vtkXMLUnstructuredGridWriter::New();
-    basename_str = file();
-    f->SetFileName(basename_str.c_str());
+    basename = file();
+    f->SetFileName(basename.c_str());
     _next_file_index++;
 
     return f;
@@ -765,9 +767,17 @@ DOMDocument* VTK::getPVD(bool generate)
 const std::string VTK::filenamePVD()
 {
     if(_namePVD == ""){
-        std::ostringstream namePVD;
-        namePVD << simData().sets.at(setId())->outputPath() << ".pvd";
-        _namePVD = namePVD.str();
+        try {
+            unsigned int i;
+            _namePVD = newFilePath(
+                simData().sets.at(setId())->outputPath() + ".pvd", i, 1);
+        } catch(std::invalid_argument e) {
+            std::ostringstream msg;
+            _namePVD = setStrConstantsCopy(
+                simData().sets.at(setId())->outputPath()) + ".pvd";
+            msg << "Overwriting '" << _namePVD << "'" << std::endl;
+            LOG(L_WARNING, msg.str());
+        }
     }
     return _namePVD;
 }

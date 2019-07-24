@@ -27,10 +27,6 @@
 #include <InputOutput/Report.h>
 #include <AuxiliarMethods.h>
 
-#ifdef HAVE_MPI
-#include <mpi.h>
-#endif
-
 namespace Aqua{ namespace InputOutput{
 
 Report::Report()
@@ -46,62 +42,16 @@ void Report::file(std::string filename)
     _output_file = filename;
 }
 
-void Report::file(std::string basename, unsigned int startindex)
+void Report::file(std::string basename, unsigned int start_index)
 {
-    FILE *f;
-    unsigned int i = startindex;
-    std::string newname;
-    std::ostringstream number_str;
-
-    // Start replacing all the old-school formatting string instances by the new
-    // one, based on a more intelligible variable name
-    newname = replaceAllCopy(basename, "%d", "{index}");
-
-    // Now replace all the instances of constant variables
-    int mpi_rank = 0;
-    #ifdef HAVE_MPI
-        try {
-            mpi_rank = MPI::COMM_WORLD.Get_rank();
-        } catch(MPI::Exception e){
-            std::ostringstream msg;
-            msg << "Error getting MPI rank. " << std::endl
-                << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
-            LOG(L_ERROR, msg.str());
-            throw;
-        }
-    #endif
-    number_str.str(""); number_str << mpi_rank;
-    replaceAll(newname, "{mpi_rank}", number_str.str());
-    
-    if(newname.find("{index}") == std::string::npos){
-        // We cannot insert the file index anywhere, so just test if the file
-        // does not exist
-        f = fopen(newname.c_str(), "r");
-        if(f){
-            std::ostringstream msg;
-            msg << "A report is trying to overwrite an existing file. "
-                << std::endl << "'" << newname << "'" << std::endl;
-            LOG(L_ERROR, msg.str());
-            fclose(f);
-            throw std::invalid_argument("Invalid file name pattern");
-        }
-
-        file(newname);
-        return;
+    try {
+        file(newFilePath(basename, start_index));
+    } catch(std::invalid_argument e){
+        file(setStrConstantsCopy(basename));
+        std::ostringstream msg;
+        msg << "Overwriting file '" << file() << "'" << std::endl;
+        LOG(L_WARNING, msg.str());
     }
-
-    while(true){
-        number_str.str(""); number_str << i;
-        replaceAll(newname, "{index}", number_str.str());
-
-        f = fopen(newname.c_str(), "r");
-        if(!f)
-            break;
-        fclose(f);
-        i++;
-    }
-
-    file(newname);
 }
 
 }}  // namespace
