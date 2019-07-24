@@ -27,6 +27,7 @@
 #include <string>
 #include <stack>
 #include <assert.h>
+#include <signal.h>
 
 #include <CalcServer.h>
 #include <AuxiliarMethods.h>
@@ -53,6 +54,30 @@
 
 namespace Aqua{ namespace CalcServer{
 
+/// @brief Have been a SIGINT already registered?
+static bool sigint_received = false;
+
+/** @brief Handle SIGINT signals
+ *
+ * The first time a SIGINT is received, Aqua::CalcServer::sigint_received is set
+ * to true, such that, at the end of the current time step the simulation will
+ * stop, the last output will be printed, and the resources will be correctly
+ * released.
+ *
+ * If SIGINT is received twice, then this handler will enforce the inmediate
+ * program exit.
+ *
+ * @param s Recevied signal, SIGINT
+ */
+void sigint_handler(int s){
+    if (sigint_received) {
+        // The user asked more than once to stop the simulation, force it
+        LOG(L_ERROR, "Forced program exit (SIGINT/SIGTERM received twice)\n");
+        exit(EXIT_FAILURE);
+    }
+    sigint_received = true;
+}
+    
 CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
     : _num_platforms(0)
     , _platforms(NULL)
@@ -455,6 +480,9 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
     LOG(L_INFO, msg.str());
 
     setup();
+
+    signal(SIGINT, sigint_handler);
+    signal(SIGTERM, sigint_handler);
 }
 
 CalcServer::~CalcServer()
@@ -502,12 +530,10 @@ void CalcServer::update(InputOutput::TimeManager& t_manager)
         strcpy(_current_tool_name, "__post execution__");
 
         // Key events
-        while(isKeyPressed()){
-            if(getchar() == 'c'){
-                LOG(L_WARNING, "Interrumption request detected.\n");
-                sleep(__ERROR_SHOW_TIME__);
-                throw user_interruption("Simulation interrupted by the user");
-            }
+        if(sigint_received){
+            LOG(L_WARNING, "Interrumption request (SIGINT/SIGTERM) detected\n");
+            sleep(__ERROR_SHOW_TIME__);
+            throw user_interruption("Simulation interrupted by the user");
         }
 
         InputOutput::Logger::singleton()->endFrame();
