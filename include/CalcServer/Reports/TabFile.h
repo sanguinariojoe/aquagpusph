@@ -32,21 +32,23 @@ namespace Aqua{ namespace CalcServer{ namespace Reports{
 /** @class TabFile TabFile.h CalcServer/TabFile.h
  * @brief Runtime output file.
  *
- * A runtime output is an output value that:
- *    -# Is composed by a relatively low amount of memory
- *    -# Its computation is not taking too much time
- * Therefore it could be computed and printed oftenly.
+ * A runtime output is an output which is created during the code execution,
+ * featured by:
+ *    -# Low amount of involved memory
+ *    -# Relatively low computational cost
+ * Thus, it can be safely computed and printed quite often
  */
 class TabFile : public Aqua::CalcServer::Reports::Report
 {
 public:
-    /** @brief Constructor.
-     * @param tool_name Tool name.
-     * @param fields Fields to be printed.
+    /** @brief Constructor
+     * @param tool_name Tool name
+     * @param fields Fields to be printed
      * The fields are separated by commas or semicolons, and the spaces are just
-     * ignored.
-     * The semicolons will also force a line break in the report.
-     * @param output_file File to be written.
+     * ignored
+     * The semicolons will also force a line break in the report
+     * @param output_file File to be written. Several scape strings can be used,
+     * as described in Aqua::newFilePath()
      * @remarks The output file will be cleared.
      */
     TabFile(const std::string tool_name,

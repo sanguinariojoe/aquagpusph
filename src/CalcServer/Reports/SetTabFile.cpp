@@ -21,6 +21,7 @@
  * (See Aqua::CalcServer::Reports::SetTabFile for details)
  */
 
+#include <AuxiliarMethods.h>
 #include <InputOutput/Logger.h>
 #include <CalcServer.h>
 #include <CalcServer/Reports/SetTabFile.h>
@@ -35,10 +36,19 @@ SetTabFile::SetTabFile(const std::string tool_name,
                        unsigned int ipf,
                        float fps)
     : Report(tool_name, fields, ipf, fps)
-    , _output_file(output_file)
+    , _output_file("")
 {
     _bounds.x = first;
     _bounds.y = first + n;
+    try {
+        unsigned int i = 0;
+        _output_file = newFilePath(output_file, i, 1);
+    } catch(std::invalid_argument e) {
+        std::ostringstream msg;
+        _output_file = setStrConstantsCopy(output_file);
+        msg << "Overwriting '" << _output_file << "'" << std::endl;
+        LOG(L_WARNING, msg.str());
+    }
 }
 
 SetTabFile::~SetTabFile()

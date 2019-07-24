@@ -37,10 +37,21 @@ Performance::Performance(const std::string tool_name,
     : Report(tool_name, "dummy_fields_string")
     , _color(color)
     , _bold(bold)
-    , _output_file(output_file)
+    , _output_file("")
     , _first_execution(true)
 {
     gettimeofday(&_tic, NULL);
+    if(output_file != "") {
+        try {
+            unsigned int i = 0;
+            _output_file = newFilePath(output_file, i, 1);
+        } catch(std::invalid_argument e) {
+            std::ostringstream msg;
+            _output_file = setStrConstantsCopy(output_file);
+            msg << "Overwriting '" << _output_file << "'" << std::endl;
+            LOG(L_WARNING, msg.str());
+        }
+    }
 }
 
 Performance::~Performance()
