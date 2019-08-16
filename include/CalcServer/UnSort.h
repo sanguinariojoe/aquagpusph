@@ -32,19 +32,25 @@
 namespace Aqua{ namespace CalcServer{
 
 /** @class UnSort UnSort.h CalcServer/UnSort.h
- * @brief UnSort Recover the original id of each particle. This tool is not
- * designed for the common usage but as an auxiliar tool for the savers,
- * therefore it will not be selectable for the users.
+ * @brief Recover the original id of each particle.
+ *
+ * This tool is not designed for the common usage but as an auxiliar tool for
+ * the savers or the MPI syncing, therefore it will not be selectable for the
+ * users.
  */
 class UnSort : public Aqua::CalcServer::Tool
 {
 public:
-    /** Constructor.
-     * @param name Tool name.
-     * @param var_name Variable to unsort.
-     * @param once Run this tool just once. Useful to make initializations.
+    /** Constructor
+     * @param name Tool name
+     * @param var_name Variable to unsort
+     * @param permutations_name Permutations to be considered
+     * @param once Run this tool just once. Useful to make initializations
      */
-    UnSort(const std::string name, const std::string var_name, bool once=false);
+    UnSort(const std::string name,
+           const std::string var_name,
+           const std::string permutations_name="id",
+           bool once=false);
 
     /** Destructor.
      */
@@ -97,11 +103,14 @@ private:
     /// Input variable name
     std::string _var_name;
 
-    /// ID variable
-    InputOutput::ArrayVariable *_id_var;
+    /// Input permutations name
+    std::string _perms_name;
 
     /// Input variable
     InputOutput::ArrayVariable *_var;
+
+    /// ID variable
+    InputOutput::ArrayVariable *_id_var;
 
     /// ID Memory object sent
     cl_mem _id_input;

@@ -1,0 +1,248 @@
+/*
+ *  This file is part of AQUAgpusph, a free CFD program based on SPH.
+ *  Copyright (C) 2012  Jose Luis Cercos Pita <jl.cercos@upm.es>
+ *
+ *  AQUAgpusph is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  AQUAgpusph is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @file
+ * @brief Synchronize arrays between processes, sending information by
+ * the network.
+ * (See Aqua::CalcServer::MPISync for details)
+ * @note Hardcoded versions of the files CalcServer/MPISync.cl.in and
+ * CalcServer/MPISync.hcl.in are internally included as a text array.
+ */
+
+#ifndef MPISYNC_H_INCLUDED
+#define MPISYNC_H_INCLUDED
+
+#ifndef HAVE_MPI
+#error MPI not available
+#endif
+
+#include <CalcServer.h>
+#include <CalcServer/Kernel.h>
+#include <CalcServer/RadixSort.h>
+#include <CalcServer/Reduction.h>
+#include <CalcServer/UnSort.h>
+
+namespace Aqua{ namespace CalcServer{
+
+/** @class MPISync MPISync.h CalcServer/MPISync.h
+ * @brief Synchronize arrays between processes.
+ * 
+ * When MPI is enabled, several instances/processes of AQUAgpusph can be
+ * simultaneously launched, letting each process compute a subset of the whole
+ * simulation, in such a way the global simulation computation can be
+ * accelerated.
+ *
+ * The data synchronization is a quite expensive operation, both in
+ * computational and physical time, so it shall be thoroughly used.
+ *
+ * First, the tool should dispose the data in a convenient way,
+ * which implies a sorting algorithm, as well as reduction operations to compute
+ * the amount of data to be sent to each process.
+ * After that, the data is sent by the network to the rest of processes, which
+ * would take some time, depending on the amount of data to send, and the
+ * network speed.
+ *
+ * In parallel, the tool will prepare everything to download the data incoming
+ * from the other processes, INSIDE THE SAME ARRAYS.
+ *
+ * To reduce the computational cost and avoid aside effects, it is strongly
+ * recommended to copy the actual data into helper arrays before synchronizing.
+ *
+ * @note Since the mask array shall be sorted, power of 2 arrays are required.
+ */
+class MPISync : public Aqua::CalcServer::Tool
+{
+public:
+    /** Constructor
+     * @param name Tool name
+     * @param mask Mask of the data to be sent to each process. Numbers out
+     * of bounds (i.e. bigger or equal to the number of processes) will be
+     * ignored, and therefore not sent anywhere
+     * @param fields Fields to be synchronized between processes
+     * @param procs Processes to be considered to send information. If an empty
+     * list is provided, all the processes will be considered. Providing a list
+     * of processes is reducing the number of reductions to be carried out, and
+     * therefore the computational cost
+     * @param once Run this tool just once. Useful to make initializations
+     *
+     * @warning The used mask will be overwritten
+     */
+    MPISync(const std::string name,
+            const std::string mask,
+            const std::vector<std::string> fields,
+            const std::vector<unsigned int> procs,
+            bool once=false);
+
+    /** Destructor.
+     */
+    ~MPISync();
+
+    /** Initialize the tool.
+     */
+    void setup();
+
+protected:
+    /** Execute the tool
+     * @param events List of events that shall be waited before safe execution
+     * @return OpenCL event to be waited before accessing the dependencies
+     */
+    cl_event _execute(const std::vector<cl_event> events);
+
+private:
+    /** Get the input variables
+     */
+    void variables();
+
+    /** @brief Create the mask sort tool
+     *
+     * Creating the sort tool requires creating also a set of additional
+     * variables to store the permutations. Those variables will be named alike
+     * the mask, with a '__' prefix and a suffix to describe them, i.e.
+     * '_sorted' for the unsorted to sorted permutations, and '_unsorted' for
+     * the sorted to unsorted permutations.
+     */
+    void setupSort();
+
+    /** @brief Create a field sort tool
+     *
+     * The sorted field will be stored in a new field named like the original
+     * field, with a '__' prefix and a '_sorted' suffix.
+     */
+    void setupFieldSort(InputOutput::ArrayVariable* field);
+
+    /// Mask name
+    std::string _mask_name;
+    /// Mask variable
+    InputOutput::ArrayVariable *_mask;
+
+    /// List of field names
+    std::vector<std::string> _field_names;
+    /// List of fields
+    std::vector<InputOutput::ArrayVariable*> _fields;
+    /// List of sorted fields
+    std::vector<InputOutput::ArrayVariable*> _fields_sorted;
+
+    /// List of processes to be considered at the time of sending data
+    std::vector<unsigned int> _procs,
+
+    /** Auxiliar variable to store the original index of each sorted component
+     * of the mask.
+     */
+    InputOutput::ArrayVariable *_unsorted_id;
+
+    /** Auxiliar variable to store the sorted index of each unsorted component
+     * of the mask.
+     */
+    InputOutput::ArrayVariable *_sorted_id;
+
+    /// Sorting by cells computation tool
+    RadixSort *_sort;
+
+    /// List of field sorters
+    std::vector<UnSort*> _field_sorters;
+
+    /// Total number of elements
+    unsigned int _n;
+
+    /** @class Sender MPISync.h CalcServer/MPISync.h
+     * @brief Synchronize arrays between processes.
+     * 
+     * 
+     */
+    class Sender
+    {
+    public:
+        /** Constructor
+         * @param name The same name that the owner tool (See
+         * Aqua::CalcServer::MPISync)
+         * @param mask Already sorted mask
+         * @param fields Already sorted fields
+         * @param proc Process to which the data shall be sent
+         */
+        Sender(const std::string name,
+               const InputOutput::ArrayVariable *mask,
+               const std::vector<InputOutput::ArrayVariable*> fields,
+               const unsigned int proc);
+
+        /** @brief Parent tool name
+         * @return Parent tool name
+         */
+        const std::string name(){return _name;}
+
+        /** @brief Send the information
+         * @param offset Index of the first bunch of data to be sent
+         */
+        void execute(const unsigned int offset);
+    private:
+        /** Create the submask array
+        */
+        void setupSubMaskMem();
+
+        /** Setup the OpenCL stuff
+        */
+        void setupOpenCL();
+
+        /** Compile the source code and generate the corresponding kernel
+         * @param source Source code to be compiled.
+         * @return Kernel instance.
+         */
+        cl_kernel compile(const std::string source);
+
+        /** Register the number of elements to send variable
+        */
+        void setupNSend();
+
+        /// Owner tool name
+        std::string _name;
+
+        /// Mask
+        InputOutput::ArrayVariable *_mask;
+
+        /// Field
+        std::vector<InputOutput::ArrayVariable*> _fields;
+
+        /// Processor
+        unsigned int _proc;
+
+        /// Submask memory object
+        InputOutput::ArrayVariable* _submask;
+
+        /// OpenCL kernel
+        cl_kernel _kernel;
+
+        /// Number of elements to be sent
+        InputOutput::UIntVariable *_n_send;
+
+        /// Reduction to compute the number of elements to send
+        Reduction *_n_send_reduction;
+
+        /// Global work sizes in each step
+        size_t _global_work_size;
+        /// Local work sizes in each step
+        size_t _local_work_size;
+        /// Total number of elements
+        unsigned int _n;
+
+        /// Host memory arrays to download, send, receive and upload the data
+        std::vector<void*> _fields_host;
+    };
+};
+
+}}  // namespace
+
+#endif // MPISYNC_H_INCLUDED

@@ -38,10 +38,15 @@ std::string UNSORT_INC = xxd2string(UnSort_hcl_in, UnSort_hcl_in_len);
 std::string UNSORT_SRC = xxd2string(UnSort_cl_in, UnSort_cl_in_len);
 
 
-UnSort::UnSort(const std::string name, const std::string var_name, bool once)
+UnSort::UnSort(const std::string name,
+               const std::string var_name,
+               const std::string permutations_name="id",
+               bool once)
     : Tool(name, once)
     , _var_name(var_name)
+    , _perms_name(permutations_name)
     , _var(NULL)
+    , _id_var(NULL)
     , _input(NULL)
     , _id_input(NULL)
     , _output(NULL)
@@ -107,14 +112,15 @@ void UnSort::variables()
 {
     CalcServer *C = CalcServer::singleton();
     InputOutput::Variables *vars = C->variables();
-    if(!vars->get("id")){
+    if(!vars->get(_perms_name)){
         std::stringstream msg;
         msg << "The tool \"" << name()
-            << "\" is asking the undeclared variable \"id\"" << std::endl;
+            << "\" is asking the undeclared variable \"" << _perms_name << "\""
+            << std::endl;
         LOG(L_ERROR, msg.str());
         throw std::runtime_error("Invalid variable");
     }
-    if(vars->get("id")->type().compare("unsigned int*")){
+    if(vars->get(_perms_name)->type().compare("unsigned int*")){
         std::stringstream msg;
         msg << "The tool \"" << name()
             << "\" is asking the variable \"id\", which has an invalid type"
@@ -122,11 +128,11 @@ void UnSort::variables()
         LOG(L_ERROR, msg.str());
         msg.str("");
         msg << "\t\"unsigned int*\" was expected, but \""
-            << vars->get("id")->type() << "\" was found." << std::endl;
+            << vars->get(_perms_name)->type() << "\" was found." << std::endl;
         LOG0(L_DEBUG, msg.str());
         throw std::runtime_error("Invalid variable type");
     }
-    _id_var = (InputOutput::ArrayVariable *)vars->get("id");
+    _id_var = (InputOutput::ArrayVariable *)vars->get(_perms_name);
 
     if(!vars->get(_var_name)){
         std::stringstream msg;
@@ -164,7 +170,7 @@ void UnSort::setupMem()
             << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
         msg.str("");
-        msg << "\t\"" << "id" << "\" has length " << len_id << std::endl;
+        msg << "\t\"" << _perms_name << "\" has length " << len_id << std::endl;
         LOG0(L_DEBUG, msg.str());
         msg.str("");
         msg << "\t\"" << _var_name << "\" has length " << len_var << std::endl;
@@ -195,9 +201,8 @@ void UnSort::setupOpenCL()
 
     std::ostringstream source;
     source << UNSORT_INC << UNSORT_SRC;
-
-    // Starts a dummy kernel in order to study the local size that can be used
     _kernel = compile(source.str());
+
     err_code = clGetKernelWorkGroupInfo(_kernel,
                                         C->device(),
                                         CL_KERNEL_WORK_GROUP_SIZE,
