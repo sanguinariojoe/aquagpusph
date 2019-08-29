@@ -4,6 +4,7 @@
 IF(HAVE_MPI)
     SET(OPTIONAL_INCLUDE_PATH ${OPTIONAL_INCLUDE_PATH} ${MPI_INCLUDE_PATH})
     SET(OPTIONAL_LIBS ${OPTIONAL_LIBS} ${MPI_CXX_LIBRARIES})
+    SET(OPTIONAL_SRCS ${OPTIONAL_SRCS} MPISync.cpp)
 ENDIF(HAVE_MPI)
 IF(HAVE_NCURSES)
     SET(OPTIONAL_INCLUDE_PATH ${OPTIONAL_INCLUDE_PATH} ${CURSES_INCLUDE_PATH})
@@ -59,6 +60,7 @@ SET(Server_CPP_SRCS
     Reports/Screen.cpp
     Reports/SetTabFile.cpp
     Reports/TabFile.cpp
+    ${OPTIONAL_SRCS}
 )
 
 # ===================================================== #

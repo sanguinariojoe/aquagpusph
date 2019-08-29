@@ -40,7 +40,7 @@ std::string UNSORT_SRC = xxd2string(UnSort_cl_in, UnSort_cl_in_len);
 
 UnSort::UnSort(const std::string name,
                const std::string var_name,
-               const std::string permutations_name="id",
+               const std::string permutations_name,
                bool once)
     : Tool(name, once)
     , _var_name(var_name)

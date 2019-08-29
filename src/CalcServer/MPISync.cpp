@@ -24,6 +24,8 @@
  * CalcServer/MPISync.hcl.in are internally included as a text array.
  */
 
+#include <sphPrerequisites.h>
+
 #ifdef HAVE_MPI
 
 #include <AuxiliarMethods.h>
@@ -39,13 +41,13 @@ namespace Aqua{ namespace CalcServer{
 #include "CalcServer/MPISync.cl"
 #endif
 std::string MPISYNC_INC = xxd2string(MPISync_hcl_in, MPISync_hcl_in_len);
-std::string MPISYNC_INC = xxd2string(MPISync_cl_in, MPISync_cl_in_len);
+std::string MPISYNC_SRC = xxd2string(MPISync_cl_in, MPISync_cl_in_len);
 
 MPISync::MPISync(const std::string name,
                  const std::string mask,
                  const std::vector<std::string> fields,
                  const std::vector<unsigned int> procs,
-                 bool once=false)
+                 bool once)
     : Tool(name, once)
     , _mask_name(mask)
     , _mask(NULL)
@@ -55,6 +57,7 @@ MPISync::MPISync(const std::string name,
     , _sorted_id(NULL)
     , _sort(NULL)
     , _n(0)
+    , _n_offset(NULL)
 {
     int mpi_rank, mpi_size;
     try {
@@ -95,6 +98,10 @@ MPISync::~MPISync()
     // Now we can delete the sorters
     for(auto sorter : _field_sorters) {
         delete sorter;
+    }
+    // And the senders
+    for(auto sender : _senders) {
+        delete sender;
     }    
 }
 
@@ -120,29 +127,35 @@ void MPISync::setup()
 
 cl_event MPISync::_execute(const std::vector<cl_event> events)
 {
-    if(_procs.size() > 0) {
-        // Sort the mask
+    if(!_procs.size())
+        return NULL;
+
+    // Sort the mask
+    try {
+        _sort->execute();
+    } catch (std::runtime_error &e) {
+        std::stringstream msg;
+        msg << "Error while sorting the mask for tool \"" << name() << "\""
+            << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw;        
+    }
+    // Sort the fields
+    for(auto sorter : _field_sorters) {
         try {
-            _sort->execute();
+            sorter->execute();
         } catch (std::runtime_error &e) {
             std::stringstream msg;
-            msg << "Error while sorting the mask for tool \"" << name() << "\""
-                << std::endl;
+            msg << "Error while sorting \"" << sorter->input()->name()
+                << "\" for tool \"" << name() << "\"" << std::endl;
             LOG(L_ERROR, msg.str());
             throw;        
         }
-        // Sort the fields
-        for(auto sorter : _field_sorters) {
-            try {
-                sorter->execute();
-            } catch (std::runtime_error &e) {
-                std::stringstream msg;
-                msg << "Error while sorting \"" << sorter->input()->name()
-                    << "\" for tool \"" << name() << "\"" << std::endl;
-                LOG(L_ERROR, msg.str());
-                throw;        
-            }
-        }
+    }
+
+    // Send the data to other processes
+    for(auto sender : _senders) {
+        sender->execute();
     }
 
     return NULL;
@@ -177,26 +190,26 @@ void MPISync::variables()
     _mask = (InputOutput::ArrayVariable *)vars->get(_mask_name);
     _n = _mask->size() / InputOutput::Variables::typeToBytes(_mask->type());
 
-    for(auto name : _field_names) {
-        if(!vars->get(name)){
+    for(auto var_name : _field_names) {
+        if(!vars->get(var_name)){
             std::stringstream msg;
             msg << "The tool \"" << name()
                 << "\" is asking the undeclared variable \""
-                << name << "\"." << std::endl;
+                << var_name << "\"." << std::endl;
             LOG(L_ERROR, msg.str());
             throw std::runtime_error("Invalid variable");
         }
-        if(vars->get(name)->type().find('*') == std::string::npos){
+        if(vars->get(var_name)->type().find('*') == std::string::npos){
             std::stringstream msg;
             msg << "The tool \"" << name()
                 << "\" may not use a scalar variable (\""
-                << name << "\")." << std::endl;
+                << var_name << "\")." << std::endl;
             LOG(L_ERROR, msg.str());
             throw std::runtime_error("Invalid variable type");
         }
         InputOutput::ArrayVariable *var =
-            (InputOutput::ArrayVariable *)vars->get(name);
-        n = var->size() / InputOutput::Variables::typeToBytes(var->type())
+            (InputOutput::ArrayVariable *)vars->get(var_name);
+        n = var->size() / InputOutput::Variables::typeToBytes(var->type());
         if(n != _n) {
             std::stringstream msg;
             msg << "Wrong variable length in the tool \"" << name()
@@ -206,46 +219,49 @@ void MPISync::variables()
             msg << "\t\"" << _mask_name << "\" has length " << _n << std::endl;
             LOG0(L_DEBUG, msg.str());
             msg.str("");
-            msg << "\t\"" << name << "\" has length " << n << std::endl;
+            msg << "\t\"" << var_name << "\" has length " << n << std::endl;
             LOG0(L_DEBUG, msg.str());
             throw std::runtime_error("Invalid variable length");
         }
-        _fields.push_back((InputOutput::ArrayVariable *)vars->get(name));
+        _fields.push_back((InputOutput::ArrayVariable *)vars->get(var_name));
     }
 
-    std::vector<InputOutput::Variable*> deps = _fields;
-    deps.push_back(_mask);
+    std::vector<InputOutput::Variable*> deps;
+    for(auto field : _fields) {
+        deps.push_back((InputOutput::Variable*)field);
+    }
+    deps.push_back((InputOutput::Variable*)_mask);
     setDependencies(deps);
 }
 
 void MPISync::setupSort()
 {
-    std::string name;
+    std::string var_name;
     std::ostringstream valstr;
     CalcServer *C = CalcServer::singleton();
     InputOutput::Variables *vars = C->variables();
 
     // Register the variables to store the permutations
     valstr << _n;
-    name = "__" + _mask_name + "_unsorted"
-    vars->registerVariable(name, "unsigned int*", valstr.str(), "");
-    _unsorted_id = vars->get(name);
-    name = "__" + _mask_name + "_sorted"
-    vars->registerVariable(name, "unsigned int*", valstr.str(), "");
-    _sorted_id = vars->get(name);
+    var_name = "__" + _mask_name + "_unsorted";
+    vars->registerVariable(var_name, "unsigned int*", valstr.str(), "");
+    _unsorted_id = (InputOutput::ArrayVariable*)vars->get(var_name);
+    var_name = "__" + _mask_name + "_sorted";
+    vars->registerVariable(var_name, "unsigned int*", valstr.str(), "");
+    _sorted_id = (InputOutput::ArrayVariable*)vars->get(var_name);
 
     // Create the sorter
-    name << "__" << _mask_name << "->Radix-Sort";
-    _sort = new RadixSort(name,
+    var_name = "__" + _mask_name + "->Radix-Sort";
+    _sort = new RadixSort(var_name,
                           _mask_name,
-                          _unsorted_id.name(),
-                          _sorted_id.name());
+                          _unsorted_id->name(),
+                          _sorted_id->name());
     _sort->setup();
 }
 
 void MPISync::setupFieldSort(InputOutput::ArrayVariable* field)
 {
-    std::string name;
+    std::string var_name;
     std::ostringstream valstr;
     cl_int err_code;
     cl_mem inner_mem;
@@ -254,9 +270,9 @@ void MPISync::setupFieldSort(InputOutput::ArrayVariable* field)
 
     // Register the variable to store the sorted copy
     valstr.str(""); valstr << _n;
-    name = "__" + field->name() + "_sorted"
-    vars->registerVariable(name, field->type(), valstr.str(), "");
-    _fields_sorted.push_back(vars->get(name));
+    var_name = "__" + field->name() + "_sorted";
+    vars->registerVariable(var_name, field->type(), valstr.str(), "");
+    _fields_sorted.push_back((InputOutput::ArrayVariable*)vars->get(var_name));
     // Remove the inner memory object, since we are using the one computed by
     // the sorting tool
     inner_mem = *(cl_mem*)_fields_sorted.back()->get();
@@ -264,7 +280,7 @@ void MPISync::setupFieldSort(InputOutput::ArrayVariable* field)
     if(err_code != CL_SUCCESS) {
         std::stringstream msg;
         msg << "Failure Releasing the inner memory object of \""
-            << _fields_sorted.back()->name() << "\" for tool \"" name() 
+            << _fields_sorted.back()->name() << "\" for tool \"" << name() 
             << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
@@ -272,9 +288,9 @@ void MPISync::setupFieldSort(InputOutput::ArrayVariable* field)
     }
 
     // Create the sorter
-    name << "__" << field->name() << "->Radix-Sort";
+    var_name = "__" + field->name() + "->Radix-Sort";
     _field_sorters.push_back(
-        new UnSort(name, field->name(), _sorted_id->name()));
+        new UnSort(var_name, field->name(), _sorted_id->name()));
     _field_sorters.back()->setup();
 
     // Replace the inner CL memory object of the sorted field by the one
@@ -283,32 +299,52 @@ void MPISync::setupFieldSort(InputOutput::ArrayVariable* field)
     _fields_sorted.back()->set((void*)(&inner_mem));
 }
 
-MPISync::Sender::Sender(const std::string name,
-                        const InputOutput::ArrayVariable *mask,
-                        const std::vector<InputOutput::ArrayVariable*> fields,
-                        const unsigned int proc)
-    : _name(name)
+void MPISync::setupSenders()
+{
+    CalcServer *C = CalcServer::singleton();
+    InputOutput::Variables *vars = C->variables();
+
+    // Create a variable for the cumulative offset computation
+    vars->registerVariable("__mpi_offset", "unsigned int", "", "0");
+    _n_offset = (InputOutput::UIntVariable*)vars->get("__mpi_offset");
+
+    // Create the senders
+    for(auto proc : _procs) {
+        Sender* sender = new Sender(name(),
+                                    _mask,
+                                    _fields_sorted,
+                                    proc,
+                                    _n_offset);
+        if(!sender) {
+            std::stringstream msg;
+            msg << "Failure Allocating memory for the process "
+                << proc << " sender in tool \"" << name() 
+                << "\"." << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw std::bad_alloc();
+        }
+        _senders.push_back(sender);
+    }
+}
+
+MPISync::Exchanger::Exchanger(const std::string tool_name,
+                              InputOutput::ArrayVariable *mask,
+                              const std::vector<InputOutput::ArrayVariable*> fields,
+                              const unsigned int proc)
+    : _name(tool_name)
     , _mask(mask)
     , _fields(fields)
     , _proc(proc)
-    , _submask(NULL)
-    , _kernel(NULL)
-    , _n_send(NULL)
-    , _global_work_size(0)
-    , _local_work_size(0)
     , _n(0)
 {
     _n = _mask->size() / InputOutput::Variables::typeToBytes(_mask->type());
-    setupSubMaskMem();
-    setupOpenCL();
-    setupNSend();
 
     for(auto field : fields) {
         void *data = malloc(field->size());
         if(!data) {
             std::stringstream msg;
             msg << "Failure allocating \"" << field->size()
-                << "\" bytes for the array \"" field->name() 
+                << "\" bytes for the array \"" << field->name() 
                 << "\" in the tool \"" << name() << "\"" << std::endl;
             LOG(L_ERROR, msg.str());
             throw std::bad_alloc();
@@ -317,32 +353,111 @@ MPISync::Sender::Sender(const std::string name,
     }
 }
 
-MPISync::Sender::~Sender()
+MPISync::Exchanger::~Exchanger()
 {
-    if(_kernel) clReleaseKernel(_kernel); _kernel=NULL;
-    if(_n_send_reduction) delete _n_send_reduction; _n_send_reduction=NULL;
     for(auto field : _fields_host) {
         free(field);
     }
 }
 
+MPISync::Sender::Sender(const std::string name,
+                        InputOutput::ArrayVariable *mask,
+                        const std::vector<InputOutput::ArrayVariable*> fields,
+                        const unsigned int proc,
+                        InputOutput::UIntVariable *n_offset)
+    : MPISync::Exchanger(name, mask, fields, proc)
+    , _submask(NULL)
+    , _kernel(NULL)
+    , _n_send(NULL)
+    , _n_offset(n_offset)
+    , _global_work_size(0)
+    , _local_work_size(0)
+{
+    setupSubMaskMem();
+    setupOpenCL();
+    setupNSend();
+}
+
+MPISync::Sender::~Sender()
+{
+    if(_kernel) clReleaseKernel(_kernel); _kernel=NULL;
+    if(_n_send_reduction) delete _n_send_reduction; _n_send_reduction=NULL;
+}
+
 typedef struct {
+    CalcServer *C;
+    InputOutput::ArrayVariable *field;
+    InputOutput::UIntVariable *n;
+    bool send_n;
     unsigned int proc;
-    unsigned int n;
-    std::string type;
+    InputOutput::UIntVariable *offset;
     void* ptr;
     unsigned int tag;
-} MPISyncSendUserData;
+} MPISyncDownloadUserData;
 
-void CL_CALLBACK cbSend(cl_event event,
-                        cl_int cmd_exec_status,
-                        void *user_data)
+void CL_CALLBACK cbDownloadAndSend(cl_event n_event,
+                                   cl_int cmd_exec_status,
+                                   void *user_data)
 {
-    MPISyncSendUserData *data = (MPISyncSendUserData*)user_data;
-    unsigned int n = data->n;
+    cl_int err_code;
+    MPISyncDownloadUserData *data = (MPISyncDownloadUserData*)user_data;
+    unsigned int n = *(unsigned int*)data->n->get();
+    const unsigned int offset = *(unsigned int*)data->offset->get();
 
-    // Select the appropriate datatype, and addapt the array length
-    std::string t = trimCopy(data->type);
+    if(data->send_n) {
+        // We need to report the proc the number of particles to be sent. We
+        // don't want to hang here, so we aqsk for async sending
+        MPI::COMM_WORLD.Isend(&n, 1, MPI::UNSIGNED, data->proc, 0);
+        // We know this is the very only sending instance (to this proc)
+        // executing this piece of code, so we can take advantage to increase
+        // the offset variable
+        const unsigned int next_offset = offset + n;
+        data->offset->set((void*)(&next_offset));
+    }
+
+    if(!n) {
+        // There is nothing to send
+        return;
+    }
+
+    // We can now proceed to download the data. We are in a parallel thread, so
+    // we can do this synchronously
+    size_t typesize = InputOutput::Variables::typeToBytes(data->field->type());
+    err_code = clEnqueueReadBuffer(data->C->command_queue(),
+                                   *(cl_mem*)data->field->get(),
+                                   CL_TRUE,
+                                   offset * typesize,
+                                   n * typesize,
+                                   data->ptr,
+                                   0,
+                                   NULL,
+                                   NULL);
+    if(err_code != CL_SUCCESS){
+        std::ostringstream msg;
+        msg << "Failure downloading the variable \"" << data->field->name()
+            << "\" to send that by MPI." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        return;
+    }
+
+    // If we reach this point, then all the information we need which can be
+    // shared with other threads has been already consumed, so we can mark as
+    // complete the events affecting both the field and the offset (eventually)
+    // variables
+    err_code = clSetUserEventStatus(data->field->getEvent(), CL_COMPLETE);
+    if(err_code != CL_SUCCESS){
+        std::stringstream msg;
+        msg << "Failure setting user event status for \"" <<
+               data->field->name() << "\" variable." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
+    }
+
+    // Select the appropriate datatype (MPI needs its own type decriptor), and
+    // addapt the array length (vectorial types)
+    std::string t = trimCopy(data->field->type());
     MPI_Datatype datatype;
 
     if((t.back() == '*')){
@@ -373,73 +488,16 @@ void CL_CALLBACK cbSend(cl_event event,
         datatype = MPI::FLOAT;
     } else {
         std::ostringstream msg;
-        msg << "Unrecognized type \"" << data->type << "\"" << std::endl;
+        msg << "Unrecognized type \"" << data->field->type() << "\"" << std::endl;
         LOG(L_ERROR, msg.str());
         return;
     }
 
-    // Launch the missiles
+    // Launch the missiles. Again we can proceed in synchronous mode
     MPI::COMM_WORLD.Send(data->ptr, n, datatype, data->proc, data->tag);
 }
 
-typedef struct {
-    CalcServer *C;
-    InputOutput::ArrayVariable *field;
-    InputOutput::UIntVariable *n;
-    unsigned int proc;
-    unsigned int offset;
-    void* ptr;
-    unsigned int tag;
-} MPISyncDownloadUserData;
-
-void CL_CALLBACK cbDownloadAndSend(cl_event event,
-                                 cl_int cmd_exec_status,
-                                 void *user_data)
-{
-    MPISyncDownloadUserData *data = (MPISyncDownloadUserData*)user_data;
-    const unsigned int n = *(unsigned int*)data->n->get();
-    const cl_event wait_event = data->field->getEvent();
-
-    size_t typesize = InputOutput::Variables::typeToBytes(data->field->type());
-    err_code = clEnqueueReadBuffer(C->command_queue(),
-                                   data->field->get(),
-                                   CL_FALSE,
-                                   data->offset * typesize,
-                                   n * typesize,
-                                   data->ptr,
-                                   1,
-                                   &event_wait,
-                                   &event);
-    if(err_code != CL_SUCCESS){
-        std::ostringstream msg;
-        msg << "Failure downloading the variable \"" << data->field->name()
-            << "\" to send that by MPI." << std::endl;
-        LOG(L_ERROR, msg.str());
-        InputOutput::Logger::singleton()->printOpenCLError(err_code);
-        return;
-    }
-
-    MPISyncSendUserData sub_user_data;
-    sub_user_data.proc = data->proc;
-    sub_user_data.n = n;
-    sub_user_data.type = data->field->type();
-    sub_user_data.ptr = data->ptr;
-    sub_user_data.tag = data->tag;
-    errcode = clSetEventCallback(_n_send->getEvent(),
-                                CL_COMPLETE,
-                                &cbSend,
-                                (void*)(&sub_user_data));
-    if(err_code != CL_SUCCESS) {
-        std::stringstream msg;
-        msg << "Failure setting the send callback for \""
-            << data->field->name() << "\"" << std::endl;
-        LOG(L_ERROR, msg.str());
-        InputOutput::Logger::singleton()->printOpenCLError(err_code);
-        return;
-    }
-}
-
-void MPISync::Sender::execute(const unsigned int offset)
+void MPISync::Sender::execute()
 {
     unsigned int i;
     cl_int err_code;
@@ -473,24 +531,69 @@ void MPISync::Sender::execute(const unsigned int offset)
     // Compute the number of elements to download
     _n_send_reduction->execute();
 
-    
-
     for(i = 0; i <= _fields.size(); i++) {
         // At this point we cannot do anything else but waiting for the
         // reduction to be completed, since we need to know the number of
-        // elements to be downloaded and sent
+        // elements to be downloaded and sent.
+        // Along this line, we are collecting all the events involved in the
+        // process to wait for them, and then we are setting up a new syncing
+        // event to trigger the donwloading and send callback execution.
+        // However, we should ensure that the field remain untouched until it is
+        // downloaded, operation carried out inside the callback itself.
+        // Therefore we are feeding the field with a new user event, which we
+        // can control.
+        // Along the same line, offset shall be computed in strict order, that
+        // is we shall grant that the callbacks are executed in the same order
+        // they were registered. For this reason we are setting the same custom
+        // event to the offset variable
+        const cl_event event_wait_list[3] = {
+            _n_send->getEvent(),
+            _n_offset->getEvent(),
+            _fields.at(i)->getEvent()
+        };
+        
+        cl_event field_event = clCreateUserEvent(C->context(), &err_code);
+        if(err_code != CL_SUCCESS){
+            std::stringstream msg;
+            msg << "Failure creating user event for \"" <<
+                _fields.at(i)->name() << "\" variable in tool \"" << name()
+                << "\"" << std::endl;
+            LOG(L_ERROR, msg.str());
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL execution error");
+        }
+        _fields.at(i)->setEvent(field_event);
+        if(i == 0)
+            _n_offset->setEvent(field_event);
+
         MPISyncDownloadUserData user_data;
         user_data.C = C;
-        user_data.field = _fields->at(i)->get();
+        user_data.field = _fields.at(i);
         user_data.n = _n_send;
+        user_data.send_n = i == 0;
         user_data.proc = _proc;
-        user_data.offset = offset;
+        user_data.offset = _n_offset;
         user_data.ptr = _fields_host.at(i);
-        user_data.tag = i;
-        errcode = clSetEventCallback(_n_send->getEvent(),
-                                    CL_COMPLETE,
-                                    &cbDownloadAndSend,
-                                    (void*)(&user_data));
+        user_data.tag = i + 1;
+        // So we can asynchronously ask to dispatch the data download and send
+        // when reduction is done.
+        err_code = clEnqueueMarkerWithWaitList(C->command_queue(),
+                                               3,
+                                               event_wait_list,
+                                               &event);
+        if(err_code != CL_SUCCESS) {
+            std::stringstream msg;
+            msg << "Failure creating events syncing point for field \""
+                << _fields.at(i)->name() << "\" in tool \"" << name() << "\""
+                << std::endl;
+            LOG(L_ERROR, msg.str());
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL execution error");
+        }
+        err_code = clSetEventCallback(event,
+                                      CL_COMPLETE,
+                                      &cbDownloadAndSend,
+                                      (void*)(&user_data));
         if(err_code != CL_SUCCESS) {
             std::stringstream msg;
             msg << "Failure setting the download & send callback for \""
@@ -500,13 +603,7 @@ void MPISync::Sender::execute(const unsigned int offset)
             InputOutput::Logger::singleton()->printOpenCLError(err_code);
             throw std::runtime_error("OpenCL execution error");
         }
-        
-        
     }
-
-
-    return event;
-
 }
 
 void MPISync::Sender::setupSubMaskMem()
@@ -519,12 +616,12 @@ void MPISync::Sender::setupSubMaskMem()
     // Register a variable where we can reduce the result
     i = 0;
     name << "__" << _mask->name() << "_submask_" << i;
-    while(vars->get(name) != NULL) {
+    while(vars->get(name.str()) != NULL) {
         name << "__" << _mask->name() << "_submask_" << ++i;
     }
     valstr << _n;
     vars->registerVariable(name.str(), "unsigned int*", valstr.str(), "");
-    _submask = (InputOutput::UIntVariable*)vars->get(name);
+    _submask = (InputOutput::ArrayVariable*)vars->get(name.str());
 }
 
 void MPISync::Sender::setupOpenCL()
@@ -533,7 +630,7 @@ void MPISync::Sender::setupOpenCL()
     CalcServer *C = CalcServer::singleton();
 
     std::ostringstream source;
-    source << MPISYNC_INC_INC << MPISYNC_INC_SRC;
+    source << MPISYNC_INC << MPISYNC_SRC;
     _kernel = compile(source.str());
 
     err_code = clGetKernelWorkGroupInfo(_kernel,
@@ -683,11 +780,11 @@ void MPISync::Sender::setupNSend()
     // Register a variable where we can reduce the result
     i = 0;
     name << "__n_send_" << i;
-    while(vars->get(name) != NULL) {
+    while(vars->get(name.str()) != NULL) {
         name << "__n_send_" << ++i;
     }
     vars->registerVariable(name.str(), "unsigned int", "", "0");
-    _n_send = (InputOutput::UIntVariable*)vars->get(name);
+    _n_send = (InputOutput::UIntVariable*)vars->get(name.str());
 
     name << "->Sum";
     std::string op = "c = a + b;\n";

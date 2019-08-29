@@ -125,6 +125,13 @@ private:
      */
     void setupFieldSort(InputOutput::ArrayVariable* field);
 
+    /** @brief Create a field sort tool
+     *
+     * The sorted field will be stored in a new field named like the original
+     * field, with a '__' prefix and a '_sorted' suffix.
+     */
+    void setupSenders();
+
     /// Mask name
     std::string _mask_name;
     /// Mask variable
@@ -138,7 +145,7 @@ private:
     std::vector<InputOutput::ArrayVariable*> _fields_sorted;
 
     /// List of processes to be considered at the time of sending data
-    std::vector<unsigned int> _procs,
+    std::vector<unsigned int> _procs;
 
     /** Auxiliar variable to store the original index of each sorted component
      * of the mask.
@@ -159,12 +166,14 @@ private:
     /// Total number of elements
     unsigned int _n;
 
-    /** @class Sender MPISync.h CalcServer/MPISync.h
-     * @brief Synchronize arrays between processes.
+public:
+    /** @class Exchanger MPISync.h CalcServer/MPISync.h
+     * @brief Interprocess array synchronization base class.
      * 
-     * 
+     * This class is used to setup host storages for the send & receive
+     * operations, to provide some helper functions to translate
      */
-    class Sender
+    class Exchanger
     {
     public:
         /** Constructor
@@ -174,20 +183,75 @@ private:
          * @param fields Already sorted fields
          * @param proc Process to which the data shall be sent
          */
-        Sender(const std::string name,
-               const InputOutput::ArrayVariable *mask,
-               const std::vector<InputOutput::ArrayVariable*> fields,
-               const unsigned int proc);
+        Exchanger(const std::string name,
+                  InputOutput::ArrayVariable *mask,
+                  const std::vector<InputOutput::ArrayVariable*> fields,
+                  const unsigned int proc);
+
+        /** Destructor.
+        */
+        ~Exchanger();
 
         /** @brief Parent tool name
          * @return Parent tool name
          */
         const std::string name(){return _name;}
+    protected:
+        /// Mask
+        InputOutput::ArrayVariable *_mask;
+
+        /// Field
+        std::vector<InputOutput::ArrayVariable*> _fields;
+
+        /// Processor
+        unsigned int _proc;
+
+        /// Total number of elements
+        unsigned int _n;
+
+        /// Host memory arrays to download, send, receive and upload the data
+        std::vector<void*> _fields_host;
+    private:
+        /// Owner tool name
+        std::string _name;
+    };
+
+
+    /** @class Sender MPISync.h CalcServer/MPISync.h
+     * @brief Synchronize arrays between processes.
+     * 
+     * 
+     */
+    class Sender : public Exchanger
+    {
+    public:
+        /** Constructor
+         * @param name The same name that the owner tool (See
+         * Aqua::CalcServer::MPISync)
+         * @param mask Already sorted mask
+         * @param fields Already sorted fields
+         * @param proc Process to which the data shall be sent
+         * @param n_offset Variable where the number of already sent particles
+         * should be stored. Sending instances will use this variable to both,
+         * know when they can proceed, and which is the offset to read from
+         * fields
+         */
+        Sender(const std::string name,
+               InputOutput::ArrayVariable *mask,
+               const std::vector<InputOutput::ArrayVariable*> fields,
+               const unsigned int proc,
+               InputOutput::UIntVariable *n_offset);
+
+        /** Destructor.
+        */
+        ~Sender();
 
         /** @brief Send the information
          * @param offset Index of the first bunch of data to be sent
+         * @return The number of sent particles variable, which can be used to
+         * both, know the offset of the next sending event
          */
-        void execute(const unsigned int offset);
+        void execute(void);
     private:
         /** Create the submask array
         */
@@ -207,23 +271,14 @@ private:
         */
         void setupNSend();
 
-        /// Owner tool name
-        std::string _name;
-
-        /// Mask
-        InputOutput::ArrayVariable *_mask;
-
-        /// Field
-        std::vector<InputOutput::ArrayVariable*> _fields;
-
-        /// Processor
-        unsigned int _proc;
-
         /// Submask memory object
         InputOutput::ArrayVariable* _submask;
 
         /// OpenCL kernel
         cl_kernel _kernel;
+
+        /// Number of elements to be sent
+        InputOutput::UIntVariable *_n_offset;
 
         /// Number of elements to be sent
         InputOutput::UIntVariable *_n_send;
@@ -235,12 +290,14 @@ private:
         size_t _global_work_size;
         /// Local work sizes in each step
         size_t _local_work_size;
-        /// Total number of elements
-        unsigned int _n;
-
-        /// Host memory arrays to download, send, receive and upload the data
-        std::vector<void*> _fields_host;
     };
+
+private:
+    /// Cumulative number of particles sent
+    InputOutput::UIntVariable *_n_offset;
+
+    /// Set of information senders
+    std::vector<Sender*> _senders;
 };
 
 }}  // namespace
