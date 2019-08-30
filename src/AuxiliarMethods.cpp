@@ -78,8 +78,8 @@ bool hasSuffix(const std::string &str, const std::string &suffix)
 }
 
 void replaceAll(std::string &str,
-                       const std::string &search,
-                       const std::string &replace)
+                const std::string &search,
+                const std::string &replace)
 {
     size_t pos = 0;
     while((pos = str.find(search, pos)) != std::string::npos) {

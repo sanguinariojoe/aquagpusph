@@ -31,6 +31,8 @@
 #error MPI not available
 #endif
 
+#include <mpi.h>
+
 #include <CalcServer.h>
 #include <CalcServer/Kernel.h>
 #include <CalcServer/RadixSort.h>
@@ -181,11 +183,15 @@ public:
          * Aqua::CalcServer::MPISync)
          * @param mask Already sorted mask
          * @param fields Already sorted fields
+         * @param field_hosts Allocated host memory to temporary copy the data,
+         * while it is sent to another process or it is uploaded to the
+         * computational device either
          * @param proc Process to which the data shall be sent
          */
         Exchanger(const std::string name,
                   InputOutput::ArrayVariable *mask,
                   const std::vector<InputOutput::ArrayVariable*> fields,
+                  const std::vector<void*> field_hosts,
                   const unsigned int proc);
 
         /** Destructor.
@@ -196,6 +202,28 @@ public:
          * @return Parent tool name
          */
         const std::string name(){return _name;}
+
+        /** @brief Data structure to store the type information required by MPI
+         *
+         * MPI requires its own data type enumerate to let the interface know
+         * how the data shall be packed/unpacked.
+         * To this end, we should store the underlying type, and the number of
+         * components
+         */
+        typedef struct {
+            /// Number of components
+            unsigned int n;
+            /// Underlying type, in MPI format
+            MPI_Datatype t;
+        } MPIType;
+
+        /** @brief MPI type descriptor
+         * @param t Type string
+         * @return MPI type descriptor. In case type cannot be handled, a
+         * MPI::DATATYPE_NULL type will be returned
+         */
+        static const MPIType typeToMPI(std::string t);
+
     protected:
         /// Mask
         InputOutput::ArrayVariable *_mask;
@@ -230,6 +258,9 @@ public:
          * Aqua::CalcServer::MPISync)
          * @param mask Already sorted mask
          * @param fields Already sorted fields
+         * @param field_hosts Allocated host memory to temporary copy the data,
+         * while it is sent to another process or it is uploaded to the
+         * computational device either
          * @param proc Process to which the data shall be sent
          * @param n_offset Variable where the number of already sent particles
          * should be stored. Sending instances will use this variable to both,
@@ -239,6 +270,7 @@ public:
         Sender(const std::string name,
                InputOutput::ArrayVariable *mask,
                const std::vector<InputOutput::ArrayVariable*> fields,
+               const std::vector<void*> field_hosts,
                const unsigned int proc,
                InputOutput::UIntVariable *n_offset);
 
@@ -295,6 +327,9 @@ public:
 private:
     /// Cumulative number of particles sent
     InputOutput::UIntVariable *_n_offset;
+
+    /// Host memory arrays to download and send data to other processes
+    std::vector<void*> _fields_send;
 
     /// Set of information senders
     std::vector<Sender*> _senders;

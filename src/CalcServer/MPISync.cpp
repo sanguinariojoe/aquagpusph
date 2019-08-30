@@ -32,7 +32,6 @@
 #include <InputOutput/Logger.h>
 #include <CalcServer/MPISync.h>
 #include <CalcServer.h>
-#include <mpi.h>
 
 namespace Aqua{ namespace CalcServer{
 
@@ -100,6 +99,9 @@ MPISync::~MPISync()
         delete sorter;
     }
     // And the senders
+    for(auto field : _fields_send) {
+        free(field);
+    }
     for(auto sender : _senders) {
         delete sender;
     }    
@@ -308,11 +310,27 @@ void MPISync::setupSenders()
     vars->registerVariable("__mpi_offset", "unsigned int", "", "0");
     _n_offset = (InputOutput::UIntVariable*)vars->get("__mpi_offset");
 
+    // Allocate the host memory to download the fields and subsequently send
+    // them
+    for(auto field : _fields_sorted) {
+        void *data = malloc(field->size());
+        if(!data) {
+            std::stringstream msg;
+            msg << "Failure allocating \"" << field->size()
+                << "\" bytes for the array \"" << field->name() 
+                << "\" in the tool \"" << name() << "\"" << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw std::bad_alloc();
+        }
+        _fields_send.push_back(data);
+    }
+
     // Create the senders
     for(auto proc : _procs) {
         Sender* sender = new Sender(name(),
                                     _mask,
                                     _fields_sorted,
+                                    _fields_send,
                                     proc,
                                     _n_offset);
         if(!sender) {
@@ -330,42 +348,67 @@ void MPISync::setupSenders()
 MPISync::Exchanger::Exchanger(const std::string tool_name,
                               InputOutput::ArrayVariable *mask,
                               const std::vector<InputOutput::ArrayVariable*> fields,
+                              const std::vector<void*> field_hosts,
                               const unsigned int proc)
     : _name(tool_name)
     , _mask(mask)
     , _fields(fields)
+    , _fields_host(field_hosts)
     , _proc(proc)
     , _n(0)
 {
     _n = _mask->size() / InputOutput::Variables::typeToBytes(_mask->type());
-
-    for(auto field : fields) {
-        void *data = malloc(field->size());
-        if(!data) {
-            std::stringstream msg;
-            msg << "Failure allocating \"" << field->size()
-                << "\" bytes for the array \"" << field->name() 
-                << "\" in the tool \"" << name() << "\"" << std::endl;
-            LOG(L_ERROR, msg.str());
-            throw std::bad_alloc();
-        }
-        _fields_host.push_back(data);
-    }
 }
 
 MPISync::Exchanger::~Exchanger()
 {
-    for(auto field : _fields_host) {
-        free(field);
+}
+
+const MPISync::Exchanger::MPIType MPISync::Exchanger::typeToMPI(std::string t)
+{
+    MPISync::Exchanger::MPIType mpi_t;
+
+    mpi_t.n = 1;
+    mpi_t.t = MPI::DATATYPE_NULL;
+
+    if((t.back() == '*')){
+        t.pop_back();
     }
+    if(hasSuffix(t, "vec")) {
+#ifdef HAVE_3D
+        mpi_t.n = 4;
+#else
+        mpi_t.n = 2;
+#endif
+    } else if(hasSuffix(t, "2")) {
+        mpi_t.n = 2;
+        t.pop_back();
+    } else if(hasSuffix(t, "3")) {
+        mpi_t.n = 3;
+        t.pop_back();
+    } else if(hasSuffix(t, "4")) {
+        mpi_t.n = 4;
+        t.pop_back();
+    }
+
+    if((!t.compare("int")) || (!t.compare("ivec"))) {
+        mpi_t.t = MPI::INT;
+    } else if((!t.compare("unsigned int")) || (!t.compare("uivec"))) {
+        mpi_t.t = MPI::UNSIGNED;
+    } else if((!t.compare("float")) || (!t.compare("vec"))) {
+        mpi_t.t = MPI::FLOAT;
+    }
+
+    return mpi_t;
 }
 
 MPISync::Sender::Sender(const std::string name,
                         InputOutput::ArrayVariable *mask,
                         const std::vector<InputOutput::ArrayVariable*> fields,
+                        const std::vector<void*> field_hosts,
                         const unsigned int proc,
                         InputOutput::UIntVariable *n_offset)
-    : MPISync::Exchanger(name, mask, fields, proc)
+    : MPISync::Exchanger(name, mask, fields, field_hosts, proc)
     , _submask(NULL)
     , _kernel(NULL)
     , _n_send(NULL)
@@ -422,13 +465,15 @@ void CL_CALLBACK cbDownloadAndSend(cl_event n_event,
 
     // We can now proceed to download the data. We are in a parallel thread, so
     // we can do this synchronously
-    size_t typesize = InputOutput::Variables::typeToBytes(data->field->type());
+    const size_t typesize = InputOutput::Variables::typeToBytes(
+        data->field->type());
+    void *ptr = (void*)((char*)data->ptr + offset * typesize);
     err_code = clEnqueueReadBuffer(data->C->command_queue(),
                                    *(cl_mem*)data->field->get(),
                                    CL_TRUE,
                                    offset * typesize,
                                    n * typesize,
-                                   data->ptr,
+                                   ptr,
                                    0,
                                    NULL,
                                    NULL);
@@ -457,44 +502,18 @@ void CL_CALLBACK cbDownloadAndSend(cl_event n_event,
 
     // Select the appropriate datatype (MPI needs its own type decriptor), and
     // addapt the array length (vectorial types)
-    std::string t = trimCopy(data->field->type());
-    MPI_Datatype datatype;
-
-    if((t.back() == '*')){
-        t.pop_back();
-    }
-    if(hasSuffix(t, "vec")) {
-#ifdef HAVE_3D
-        n *= 4;
-#else
-        n *= 2;
-#endif
-    } else if(hasSuffix(t, "2")) {
-        n *= 2;
-        t.pop_back();
-    } else if(hasSuffix(t, "3")) {
-        n *= 3;
-        t.pop_back();
-    } else if(hasSuffix(t, "4")) {
-        n *= 4;
-        t.pop_back();
-    }
-
-    if((!t.compare("int")) || (!t.compare("ivec"))) {
-        datatype = MPI::INT;
-    } else if((!t.compare("unsigned int")) || (!t.compare("uivec"))) {
-        datatype = MPI::UNSIGNED;
-    } else if((!t.compare("float")) || (!t.compare("vec"))) {
-        datatype = MPI::FLOAT;
-    } else {
+    const MPISync::Exchanger::MPIType mpi_t = 
+        MPISync::Exchanger::typeToMPI(data->field->type());
+    if(mpi_t.t == MPI::DATATYPE_NULL) {
         std::ostringstream msg;
-        msg << "Unrecognized type \"" << data->field->type() << "\"" << std::endl;
+        msg << "Unrecognized type \"" << data->field->type()
+            << "\" for variable \"" << data->field->name() << "\"" << std::endl;
         LOG(L_ERROR, msg.str());
         return;
     }
 
     // Launch the missiles. Again we can proceed in synchronous mode
-    MPI::COMM_WORLD.Send(data->ptr, n, datatype, data->proc, data->tag);
+    MPI::COMM_WORLD.Send(ptr, n * mpi_t.n, mpi_t.t, data->proc, data->tag);
 }
 
 void MPISync::Sender::execute()
@@ -552,7 +571,8 @@ void MPISync::Sender::execute()
             _fields.at(i)->getEvent()
         };
         
-        cl_event field_event = clCreateUserEvent(C->context(), &err_code);
+        cl_event field_event = clCreateUserEvent(C->context(),
+ &err_code);
         if(err_code != CL_SUCCESS){
             std::stringstream msg;
             msg << "Failure creating user event for \"" <<
@@ -577,8 +597,10 @@ void MPISync::Sender::execute()
         user_data.tag = i + 1;
         // So we can asynchronously ask to dispatch the data download and send
         // when reduction is done.
-        err_code = clEnqueueMarkerWithWaitList(C->command_queue(),
-                                               3,
+        err_code = clEnqueueMarkerWithWaitList(C->command_queue(),
+
+                                               3,
+
                                                event_wait_list,
                                                &event);
         if(err_code != CL_SUCCESS) {
