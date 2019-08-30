@@ -169,6 +169,103 @@ const std::vector<InputOutput::Variable*> Tool::getDependencies()
     return _vars;
 }
 
+std::vector<cl_kernel> Tool::compile(const std::string source,
+                                     const std::vector<std::string> names,
+                                     const std::string additional_flags)
+{
+    cl_int err_code;
+    cl_program program;
+    std::vector<cl_kernel> kernels;
+    Aqua::CalcServer::CalcServer *C = Aqua::CalcServer::CalcServer::singleton();
+
+    if(!names.size()) {
+        LOG(L_WARNING, "compile() called without kernel names\n");
+        return kernels;
+    }
+
+    std::ostringstream flags;
+    #ifdef AQUA_DEBUG
+        flags << " -DDEBUG ";
+    #else
+        flags << " -DNDEBUG ";
+    #endif
+    flags << " -cl-mad-enable -cl-fast-relaxed-math";
+    #ifdef HAVE_3D
+        flags << " -DHAVE_3D";
+    #else
+        flags << " -DHAVE_2D";
+    #endif
+    flags << " " << additional_flags;
+
+    size_t source_length = source.size();
+    const char* source_cstr = source.c_str();
+    program = clCreateProgramWithSource(C->context(),
+                                        1,
+                                        &source_cstr,
+                                        &source_length,
+                                        &err_code);
+    if(err_code != CL_SUCCESS) {
+        LOG(L_ERROR, "Failure creating the OpenCL program\n");
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
+    }
+    err_code = clBuildProgram(program, 0, NULL, flags.str().c_str(), NULL, NULL);
+    if(err_code != CL_SUCCESS) {
+        LOG(L_ERROR, "Error compiling the OpenCL script\n");
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        LOG0(L_ERROR, "--- Build log ---------------------------------\n");
+        size_t log_size = 0;
+        clGetProgramBuildInfo(program,
+                              C->device(),
+                              CL_PROGRAM_BUILD_LOG,
+                              0,
+                              NULL,
+                              &log_size);
+        char *log = (char*)malloc(log_size + sizeof(char));
+        if(!log){
+            std::stringstream msg;
+            msg << "Failure allocating " << log_size
+                << " bytes for the building log" << std::endl;
+            LOG0(L_ERROR, msg.str());
+            LOG0(L_ERROR, "--------------------------------- Build log ---\n");
+            throw std::bad_alloc();
+        }
+        strcpy(log, "");
+        clGetProgramBuildInfo(program,
+                              C->device(),
+                              CL_PROGRAM_BUILD_LOG,
+                              log_size,
+                              log,
+                              NULL);
+        strcat(log, "\n");
+        LOG0(L_DEBUG, log);
+        LOG0(L_ERROR, "--------------------------------- Build log ---\n");
+        free(log); log=NULL;
+        clReleaseProgram(program);
+        throw std::runtime_error("OpenCL compilation error");
+    }
+    for(auto name : names) {
+        kernels.push_back(clCreateKernel(program, name.c_str(), &err_code));
+        if(err_code != CL_SUCCESS) {
+            std::stringstream msg;
+            msg << "Failure creating the \"" << name << "\" OpenCL kernel"
+                << std::endl;
+            LOG0(L_ERROR, msg.str());
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL error");
+        }
+    }
+
+    return kernels;
+}
+
+cl_kernel Tool::compile_kernel(const std::string source,
+                               const std::string kernel_name,
+                               const std::string additional_flags)
+{
+    return compile(source, {kernel_name}, additional_flags).at(0);
+}
+
 const std::vector<cl_event> Tool::getEvents()
 {
     cl_int err_code;

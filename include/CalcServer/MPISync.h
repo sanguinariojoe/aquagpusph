@@ -293,12 +293,6 @@ public:
         */
         void setupOpenCL();
 
-        /** Compile the source code and generate the corresponding kernel
-         * @param source Source code to be compiled.
-         * @return Kernel instance.
-         */
-        cl_kernel compile(const std::string source);
-
         /** Register the number of elements to send variable
         */
         void setupNSend();

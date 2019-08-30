@@ -261,7 +261,13 @@ void LinkList::setupOpenCL()
     // Create a header for the source code where the operation will be placed
     std::ostringstream source;
     source << LINKLIST_INC << LINKLIST_SRC;
-    compile(source.str());
+
+    std::vector<cl_kernel> kernels = compile(
+        source.str(),
+        {"iHoc", "iCell", "linkList"});
+    _ihoc = kernels.at(0);
+    _icell = kernels.at(1);
+    _ll = kernels.at(2);
 
     err_code = clGetKernelWorkGroupInfo(_ihoc,
                                         C->device(),
@@ -389,96 +395,6 @@ void LinkList::setupOpenCL()
                vars->get(_ll_vars[i])->get(),
                vars->get(_ll_vars[i])->typesize());
     }
-}
-
-void LinkList::compile(const std::string source)
-{
-    cl_int err_code;
-    cl_program program;
-    CalcServer *C = CalcServer::singleton();
-
-    std::ostringstream flags;
-    #ifdef AQUA_DEBUG
-        flags << " -DDEBUG ";
-    #else
-        flags << " -DNDEBUG ";
-    #endif
-    flags << " -cl-mad-enable -cl-fast-relaxed-math";
-    #ifdef HAVE_3D
-        flags << " -DHAVE_3D ";
-    #else
-        flags << " -DHAVE_2D ";
-    #endif
-    size_t source_length = source.size();
-    const char* source_cstr = source.c_str();
-    program = clCreateProgramWithSource(C->context(),
-                                        1,
-                                        &source_cstr,
-                                        &source_length,
-                                        &err_code);
-    if(err_code != CL_SUCCESS) {
-        LOG(L_ERROR, "Failure creating the OpenCL program.\n");
-        InputOutput::Logger::singleton()->printOpenCLError(err_code);
-        throw std::runtime_error("OpenCL compilation error");
-    }
-    err_code = clBuildProgram(program, 0, NULL, flags.str().c_str(), NULL, NULL);
-    if(err_code != CL_SUCCESS) {
-        LOG(L_ERROR, "Error compiling the source code\n");
-        InputOutput::Logger::singleton()->printOpenCLError(err_code);
-        LOG0(L_ERROR, "--- Build log ---------------------------------\n");
-        size_t log_size = 0;
-        clGetProgramBuildInfo(program,
-                              C->device(),
-                              CL_PROGRAM_BUILD_LOG,
-                              0,
-                              NULL,
-                              &log_size);
-        char *log = (char*)malloc(log_size + sizeof(char));
-        if(!log){
-            std::stringstream msg;
-            msg << "Failure allocating " << log_size
-                << " bytes for the building log" << std::endl;
-            LOG0(L_ERROR, msg.str());
-            LOG0(L_ERROR, "--------------------------------- Build log ---\n");
-            throw std::bad_alloc();
-        }
-        strcpy(log, "");
-        clGetProgramBuildInfo(program,
-                              C->device(),
-                              CL_PROGRAM_BUILD_LOG,
-                              log_size,
-                              log,
-                              NULL);
-        strcat(log, "\n");
-        LOG0(L_DEBUG, log);
-        LOG0(L_ERROR, "--------------------------------- Build log ---\n");
-        free(log); log=NULL;
-        clReleaseProgram(program);
-        throw std::runtime_error("OpenCL compilation error");
-    }
-    _ihoc = clCreateKernel(program, "iHoc", &err_code);
-    if(err_code != CL_SUCCESS) {
-        LOG(L_ERROR, "Failure creating the \"iHoc\" kernel.\n");
-        InputOutput::Logger::singleton()->printOpenCLError(err_code);
-        clReleaseProgram(program);
-        throw std::runtime_error("OpenCL error");
-    }
-    _icell = clCreateKernel(program, "iCell", &err_code);
-    if(err_code != CL_SUCCESS) {
-        LOG(L_ERROR, "Failure creating the \"iCell\" kernel.\n");
-        InputOutput::Logger::singleton()->printOpenCLError(err_code);
-        clReleaseProgram(program);
-        throw std::runtime_error("OpenCL error");
-    }
-    _ll = clCreateKernel(program, "linkList", &err_code);
-    if(err_code != CL_SUCCESS) {
-        LOG(L_ERROR, "Failure creating the \"linkList\" kernel.\n");
-        InputOutput::Logger::singleton()->printOpenCLError(err_code);
-        clReleaseProgram(program);
-        throw std::runtime_error("OpenCL error");
-    }
-
-    clReleaseProgram(program);
 }
 
 void LinkList::nCells()

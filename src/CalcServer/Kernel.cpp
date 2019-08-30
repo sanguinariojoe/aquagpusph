@@ -130,21 +130,10 @@ void Kernel::compile(const std::string entry_point,
     }
 
     // Setup the default flags
-    #ifdef AQUA_DEBUG
-        flags << "-DDEBUG ";
-    #else
-        flags << "-DNDEBUG ";
-    #endif
     flags << "-I" << getFolderFromFilePath(path()) << " ";
     if(C->base_path().compare("")){
         flags << "-I" << C->base_path() << " ";
     }
-    flags << " -cl-mad-enable -cl-fast-relaxed-math ";
-    #ifdef HAVE_3D
-        flags << " -DHAVE_3D ";
-    #else
-        flags << " -DHAVE_2D ";
-    #endif
     // Setup the user registered flags
     for(auto def : C->definitions()) {
         flags << def << " ";
@@ -154,66 +143,9 @@ void Kernel::compile(const std::string entry_point,
 
     // Try to compile without using local memory
     LOG(L_INFO, "Compiling without local memory... ");
-    source_length = source.str().size();
-    std::string source_str = source.str();
-    const char *source_cstr = source_str.c_str();
-    program = clCreateProgramWithSource(C->context(),
-                                        1,
-                                        &source_cstr,
-                                        &source_length,
-                                        &err_code);
-    if(err_code != CL_SUCCESS) {
-        LOG0(L_DEBUG, "FAIL\n");
-        LOG(L_ERROR, "Failure creating the OpenCL program.\n");
-        InputOutput::Logger::singleton()->printOpenCLError(err_code);
-        throw std::runtime_error("OpenCL compilation error");
-    }
-    err_code = clBuildProgram(program, 0, NULL, flags.str().c_str(), NULL, NULL);
-    if(err_code != CL_SUCCESS) {
-        LOG0(L_DEBUG, "FAIL\n");
-        InputOutput::Logger::singleton()->printOpenCLError(err_code);
-        LOG0(L_ERROR, "--- Build log ---------------------------------\n");
-        size_t log_size = 0;
-        clGetProgramBuildInfo(program,
-                              C->device(),
-                              CL_PROGRAM_BUILD_LOG,
-                              0,
-                              NULL,
-                              &log_size);
-        char *log = (char*)malloc(log_size + sizeof(char));
-        if(!log){
-            std::stringstream msg;
-            msg << "Failure allocating " << log_size
-                << " bytes for the building log" << std::endl;
-            LOG0(L_ERROR, msg.str());
-            LOG0(L_ERROR, "--------------------------------- Build log ---\n");
-            throw std::bad_alloc();
-        }
-        strcpy(log, "");
-        clGetProgramBuildInfo(program,
-                              C->device(),
-                              CL_PROGRAM_BUILD_LOG,
-                              log_size,
-                              log,
-                              NULL);
-        strcat(log, "\n");
-        LOG0(L_DEBUG, log);
-        LOG0(L_ERROR, "--------------------------------- Build log ---\n");
-        free(log); log=NULL;
-        clReleaseProgram(program);
-        throw std::runtime_error("OpenCL compilation error");
-    }
-    kernel = clCreateKernel(program, entry_point.c_str(), &err_code);
-    clReleaseProgram(program);
-    if(err_code != CL_SUCCESS) {
-        LOG0(L_DEBUG, "FAIL\n");
-        std::stringstream msg;
-        msg << "Failure creating the kernel \"" << entry_point
-            << "\"" << std::endl;
-        LOG(L_ERROR, msg.str());
-        InputOutput::Logger::singleton()->printOpenCLError(err_code);
-        throw std::runtime_error("OpenCL error");
-    }
+    kernel = compile_kernel(source.str(),
+                            entry_point,
+                            flags.str());
 
     // Get the work group size
     err_code = clGetKernelWorkGroupInfo(kernel,
@@ -223,7 +155,6 @@ void Kernel::compile(const std::string entry_point,
                                         &work_group_size,
                                         NULL);
     if(err_code != CL_SUCCESS) {
-        LOG0(L_DEBUG, "FAIL\n");
         LOG(L_ERROR, "Failure querying the work group size.\n");
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
         clReleaseKernel(kernel);
@@ -236,64 +167,12 @@ void Kernel::compile(const std::string entry_point,
 
     // Try to compile with local memory
     LOG(L_INFO, "Compiling with local memory... ");
-    program = clCreateProgramWithSource(C->context(),
-                                        1,
-                                        &source_cstr,
-                                        &source_length,
-                                        &err_code);
-    if(err_code != CL_SUCCESS) {
-        LOG0(L_DEBUG, "FAIL\n");
-        LOG(L_ERROR, "Failure creating the OpenCL program.\n");
-        InputOutput::Logger::singleton()->printOpenCLError(err_code);
-        LOG(L_INFO, "Falling back to no local memory usage.\n");
-        return;
-    }
     flags << " -DLOCAL_MEM_SIZE=" << work_group_size;
-    err_code = clBuildProgram(program, 0, NULL, flags.str().c_str(), NULL, NULL);
-    if(err_code != CL_SUCCESS) {
-        LOG0(L_DEBUG, "FAIL\n");
-        InputOutput::Logger::singleton()->printOpenCLError(err_code);
-        LOG0(L_ERROR, "--- Build log ---------------------------------\n");
-        size_t log_size = 0;
-        clGetProgramBuildInfo(program,
-                              C->device(),
-                              CL_PROGRAM_BUILD_LOG,
-                              0,
-                              NULL,
-                              &log_size);
-        char *log = (char*)malloc(log_size + sizeof(char));
-        if(!log){
-            std::stringstream msg;
-            msg << "Failure allocating " << log_size
-                << " bytes for the building log" << std::endl;
-            LOG0(L_ERROR, msg.str());
-            LOG0(L_ERROR, "--------------------------------- Build log ---\n");
-            throw std::bad_alloc();
-        }
-        strcpy(log, "");
-        clGetProgramBuildInfo(program,
-                              C->device(),
-                              CL_PROGRAM_BUILD_LOG,
-                              log_size,
-                              log,
-                              NULL);
-        strcat(log, "\n");
-        LOG0(L_DEBUG, log);
-        LOG0(L_ERROR, "--------------------------------- Build log ---\n");
-        free(log); log=NULL;
-        clReleaseProgram(program);
-        LOG(L_INFO, "Falling back to no local memory usage.\n");
-        return;
-    }
-    kernel = clCreateKernel(program, entry_point.c_str(), &err_code);
-    clReleaseProgram(program);
-    if(err_code != CL_SUCCESS) {
-        LOG0(L_DEBUG, "FAIL\n");
-        std::stringstream msg;
-        msg << "Failure creating the kernel \"" << entry_point
-            << "\"" << std::endl;
-        LOG(L_ERROR, msg.str());
-        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+    try {
+        kernel = compile_kernel(source.str(),
+                                entry_point,
+                                flags.str());
+    } catch(std::runtime_error& e) {
         LOG(L_INFO, "Falling back to no local memory usage.\n");
         return;
     }
@@ -305,7 +184,6 @@ void Kernel::compile(const std::string entry_point,
                                         &used_local_mem,
                                         NULL);
     if(err_code != CL_SUCCESS) {
-        LOG0(L_DEBUG, "FAIL\n");
         LOG(L_ERROR, "Failure querying the used local memory.\n");
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
         clReleaseKernel(kernel);
@@ -319,8 +197,7 @@ void Kernel::compile(const std::string entry_point,
                                &available_local_mem,
                                NULL);
     if(err_code != CL_SUCCESS) {
-        LOG0(L_DEBUG, "FAIL\n");
-        LOG(L_ERROR, "Failure querying the available local memory.\n");
+        LOG(L_ERROR, "Failure querying the device available local memory.\n");
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
         clReleaseKernel(kernel);
         LOG(L_INFO, "Falling back to no local memory usage.\n");
@@ -328,7 +205,6 @@ void Kernel::compile(const std::string entry_point,
     }
 
     if(available_local_mem < used_local_mem){
-        LOG0(L_DEBUG, "FAIL\n");
         LOG(L_ERROR, "Not enough available local memory.\n");
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
         clReleaseKernel(kernel);
@@ -336,9 +212,11 @@ void Kernel::compile(const std::string entry_point,
         return;
     }
     LOG0(L_DEBUG, "OK\n");
+
+    // Swap kernels
     err_code = clReleaseKernel(_kernel);
     if(err_code != CL_SUCCESS) {
-        LOG(L_WARNING, "Failure releasing the non-local memory kernel.\n");
+        LOG(L_WARNING, "Failure releasing non-local memory based kernel.\n");
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
     }
     _kernel = kernel;

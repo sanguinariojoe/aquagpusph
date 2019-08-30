@@ -90,12 +90,6 @@ private:
      */
     void setupOpenCL();
 
-    /** Compile the source code and generate the corresponding kernel
-     * @param source Source code to be compiled.
-     * @return Kernel instance.
-     */
-    cl_kernel compile(const std::string source);
-
     /** Update the input looking for changed value.
      */
     void setVariables();

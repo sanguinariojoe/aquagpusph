@@ -186,6 +186,45 @@ protected:
      */
     const std::vector<InputOutput::Variable*> getDependencies();
 
+    /** @brief Compile an OpenCL source code and generate the corresponding
+     * kernel
+     *
+     * With this method several operations are carried out at the same time.
+     * First the program is compiled and linked. Afterwards, the required
+     * kernels are extracted, and the program object is released
+     *
+     * @param source Source code to be compiled
+     * @param names Function names to be extracted in the kernel
+     * @param flags Additional compilation flags. Some flags are used by
+     * default:
+     *   - -DDEBUG/-DNDEBUG depending on whether DEBUG mode is enabled or not
+     *   - -cl-mad-enable -cl-fast-relaxed-math
+     *   - -DHAVE_2D/-DHAVE_3D depending on whether 2D or 3D is considered
+     * @return Kernel instances
+     */
+    static std::vector<cl_kernel> compile(const std::string source,
+                                          const std::vector<std::string> names,
+                                          const std::string flags="");
+
+    /** @brief Compile an OpenCL source code and generate the corresponding
+     * kernel
+     *
+     * With this method several operations are carried out at the same time.
+     * First the program is compiled and linked. Afterwards, the required kernel
+     * is extracted, and the program object is released
+     *
+     * @param source Source code to be compiled
+     * @param kernel_name Function name to be extracted in the kernel
+     * @param flags Additional compilation flags. Some flags are used by
+     * default:
+     *   - -DDEBUG/-DNDEBUG depending on whether DEBUG mode is enabled or not
+     *   - -cl-mad-enable -cl-fast-relaxed-math
+     *   - -DHAVE_2D/-DHAVE_3D depending on whether 2D or 3D is considered
+     * @return Kernel instance
+     */
+    static cl_kernel compile_kernel(const std::string source,
+                                    const std::string kernel_name,
+                                    const std::string flags="");
 private:
     /** @brief Get the list of events that this tool shall wait for
      *

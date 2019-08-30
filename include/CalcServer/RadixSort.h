@@ -164,11 +164,6 @@ private:
      */
     void setupOpenCL();
 
-    /** Compile the source code and generate the corresponding kernels
-     * @param source Source code to compile.
-     */
-    void compile(const std::string source);
-
     /** Setup the main computing dimensions _items, _groups and _histo_split
      * from the valid local work sizes per each kernel.
      */

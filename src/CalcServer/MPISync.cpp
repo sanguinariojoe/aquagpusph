@@ -653,7 +653,7 @@ void MPISync::Sender::setupOpenCL()
 
     std::ostringstream source;
     source << MPISYNC_INC << MPISYNC_SRC;
-    _kernel = compile(source.str());
+    _kernel = compile_kernel(source.str(), "extract_submask");
 
     err_code = clGetKernelWorkGroupInfo(_kernel,
                                         C->device(),
@@ -713,83 +713,6 @@ void MPISync::Sender::setupOpenCL()
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
-}
-
-cl_kernel MPISync::Sender::compile(const std::string source)
-{
-    cl_int err_code;
-    cl_program program;
-    cl_kernel kernel;
-    CalcServer *C = CalcServer::singleton();
-
-    std::ostringstream flags;
-    #ifdef AQUA_DEBUG
-        flags << " -DDEBUG ";
-    #else
-        flags << " -DNDEBUG ";
-    #endif
-    flags << " -cl-mad-enable -cl-fast-relaxed-math";
-    #ifdef HAVE_3D
-        flags << " -DHAVE_3D";
-    #else
-        flags << " -DHAVE_2D";
-    #endif
-    size_t source_length = source.size();
-    const char* source_cstr = source.c_str();
-    program = clCreateProgramWithSource(C->context(),
-                                        1,
-                                        &source_cstr,
-                                        &source_length,
-                                        &err_code);
-    if(err_code != CL_SUCCESS) {
-        LOG(L_ERROR, "Failure creating the OpenCL program\n");
-        InputOutput::Logger::singleton()->printOpenCLError(err_code);
-        throw std::runtime_error("OpenCL error");
-    }
-    err_code = clBuildProgram(program, 0, NULL, flags.str().c_str(), NULL, NULL);
-    if(err_code != CL_SUCCESS) {
-        LOG(L_ERROR, "Error compiling the OpenCL script\n");
-        InputOutput::Logger::singleton()->printOpenCLError(err_code);
-        LOG0(L_ERROR, "--- Build log ---------------------------------\n");
-        size_t log_size = 0;
-        clGetProgramBuildInfo(program,
-                              C->device(),
-                              CL_PROGRAM_BUILD_LOG,
-                              0,
-                              NULL,
-                              &log_size);
-        char *log = (char*)malloc(log_size + sizeof(char));
-        if(!log){
-            std::stringstream msg;
-            msg << "Failure allocating " << log_size
-                << " bytes for the building log" << std::endl;
-            LOG0(L_ERROR, msg.str());
-            LOG0(L_ERROR, "--------------------------------- Build log ---\n");
-            throw std::bad_alloc();
-        }
-        strcpy(log, "");
-        clGetProgramBuildInfo(program,
-                              C->device(),
-                              CL_PROGRAM_BUILD_LOG,
-                              log_size,
-                              log,
-                              NULL);
-        strcat(log, "\n");
-        LOG0(L_DEBUG, log);
-        LOG0(L_ERROR, "--------------------------------- Build log ---\n");
-        free(log); log=NULL;
-        clReleaseProgram(program);
-        throw std::runtime_error("OpenCL compilation error");
-    }
-    kernel = clCreateKernel(program, "extract_submask", &err_code);
-    clReleaseProgram(program);
-    if(err_code != CL_SUCCESS) {
-        LOG(L_ERROR, "Failure creating the OpenCL kernel\n");
-        InputOutput::Logger::singleton()->printOpenCLError(err_code);
-        throw std::runtime_error("OpenCL error");
-    }
-
-    return kernel;
 }
 
 void MPISync::Sender::setupNSend()

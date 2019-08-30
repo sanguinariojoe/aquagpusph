@@ -106,19 +106,21 @@ private:
      */
     void setupOpenCL();
 
-    /** @brief Compile the source code and generate the corresponding kernel.
-     * @param source Source code to be compiled.
-     * @param local_work_size Desired local work size.
-     * @return Kernel instance.
-     */
-    cl_kernel compile(const std::string source, size_t local_work_size);
-
-    /** Update the input variables.
+    /** @brief Update the input variables.
      *
      * This function is looking for changed value to send them again to the
      * computational device.
      */
     void setVariables();
+
+    /** @brief Create the compilation flags
+     *
+     * The compilation flags depends on the intended work group size
+     *
+     * @param local_size Work group size
+     * @return Flags string
+     */
+    const std::string flags(const size_t local_size);
 
     /// Input variable name
     std::string _input_name;

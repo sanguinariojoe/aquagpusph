@@ -77,11 +77,6 @@ private:
      */
     void setupOpenCL();
 
-    /** Compile the source code and generate the kernels
-     * @param source Source code to be compiled.
-     */
-    void compile(const std::string source);
-
     /** Compute the number of cells
      */
     void nCells();
