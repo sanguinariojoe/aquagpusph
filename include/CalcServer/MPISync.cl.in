@@ -39,3 +39,21 @@ __kernel void extract_submask(const __global unsigned int *mask,
 
     submask[i] = (mask[i] == proc) ? 1 : 0;
 }
+
+/** Set mask value
+ * @param mask Processes mask
+ * @param proc Selected process
+ * @param offset First element to be set
+ * @param n Number of elements to be set
+ */
+__kernel void set_mask(const __global unsigned int *mask,
+                       unsigned int proc,
+                       unsigned int offset,
+                       unsigned int n)
+{
+    unsigned int i = get_global_id(0);
+    if(i >= n)
+        return;
+
+    mask[i + offset] = proc;
+}

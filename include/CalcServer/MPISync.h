@@ -38,6 +38,8 @@
 #include <CalcServer/RadixSort.h>
 #include <CalcServer/Reduction.h>
 #include <CalcServer/UnSort.h>
+#include <CalcServer/SetScalar.h>
+#include <CalcServer/Set.h>
 
 namespace Aqua{ namespace CalcServer{
 
@@ -127,12 +129,13 @@ private:
      */
     void setupFieldSort(InputOutput::ArrayVariable* field);
 
-    /** @brief Create a field sort tool
-     *
-     * The sorted field will be stored in a new field named like the original
-     * field, with a '__' prefix and a '_sorted' suffix.
+    /** @brief Create the senders to each process
      */
     void setupSenders();
+
+    /** @brief Create the receivers from each process
+     */
+    void setupReceivers();
 
     /// Mask name
     std::string _mask_name;
@@ -195,7 +198,7 @@ public:
                   const unsigned int proc);
 
         /** Destructor.
-        */
+         */
         ~Exchanger();
 
         /** @brief Parent tool name
@@ -244,7 +247,6 @@ public:
         std::string _name;
     };
 
-
     /** @class Sender MPISync.h CalcServer/MPISync.h
      * @brief Synchronize arrays between processes.
      * 
@@ -275,13 +277,10 @@ public:
                InputOutput::UIntVariable *n_offset);
 
         /** Destructor.
-        */
+         */
         ~Sender();
 
         /** @brief Send the information
-         * @param offset Index of the first bunch of data to be sent
-         * @return The number of sent particles variable, which can be used to
-         * both, know the offset of the next sending event
          */
         void execute(void);
     private:
@@ -293,7 +292,7 @@ public:
         */
         void setupOpenCL();
 
-        /** Register the number of elements to send variable
+        /** Register the "number of elements to send" variable
         */
         void setupNSend();
 
@@ -303,7 +302,7 @@ public:
         /// OpenCL kernel
         cl_kernel _kernel;
 
-        /// Number of elements to be sent
+        /// Accumulated number of elements sent
         InputOutput::UIntVariable *_n_offset;
 
         /// Number of elements to be sent
@@ -318,15 +317,82 @@ public:
         size_t _local_work_size;
     };
 
+    /** @class Receiver MPISync.h CalcServer/MPISync.h
+     * @brief Synchronize arrays between processes.
+     * 
+     * 
+     */
+    class Receiver : public Exchanger
+    {
+    public:
+        /** Constructor
+         * @param name The same name that the owner tool (See
+         * Aqua::CalcServer::MPISync)
+         * @param mask Incoming data process mask
+         * @param fields Fields to store the incoming data
+         * @param field_hosts Allocated host memory to temporary copy the
+         * incoming data, which will be uploaded to the computational device
+         * afterwards
+         * @param proc Process from which the data shall be received
+         * @param n_offset Variable where the number of already received
+         * particles should be stored.
+         */
+        Receiver(const std::string name,
+                 InputOutput::ArrayVariable *mask,
+                 const std::vector<InputOutput::ArrayVariable*> fields,
+                 const std::vector<void*> field_hosts,
+                 const unsigned int proc,
+                 InputOutput::UIntVariable *n_offset);
+
+        /** Destructor.
+         */
+        ~Receiver();
+
+        /** @brief Receive the information
+         */
+        void execute(void);
+    private:
+        /** Setup the OpenCL stuff
+        */
+        void setupOpenCL();
+
+        /// OpenCL kernel
+        cl_kernel _kernel;
+
+        /// Accumulated number of received elements
+        InputOutput::UIntVariable *_n_offset;
+
+        /** Small storage for the number of elements to receive, so we can
+         * easily share this information between field receiving callbacks
+         */
+        unsigned int _n_recv;
+
+        /// Local work sizes in each step
+        size_t _local_work_size;
+    };
+
+
 private:
     /// Cumulative number of particles sent
     InputOutput::UIntVariable *_n_offset;
+
+    /// Offset reinitialization tool
+    SetScalar *_n_offset_reinit;
 
     /// Host memory arrays to download and send data to other processes
     std::vector<void*> _fields_send;
 
     /// Set of information senders
     std::vector<Sender*> _senders;
+
+    /// Mask reinitialization tool
+    Set *_mask_reinit;
+
+    /// Host memory arrays to download and send data to other processes
+    std::vector<void*> _fields_recv;
+
+    /// Set of information senders
+    std::vector<Receiver*> _receivers;
 };
 
 }}  // namespace

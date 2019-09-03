@@ -88,6 +88,9 @@ MPISync::MPISync(const std::string name,
 MPISync::~MPISync()
 {
     if(_sort) delete _sort; _sort=NULL;
+    if(_n_offset_reinit) delete _n_offset_reinit; _n_offset_reinit=NULL;
+    if(_mask_reinit) delete _mask_reinit; _mask_reinit=NULL;
+
     // We must unset the inner memory objects of the sorted fields to avoid
     // releasing them twice while deleting the sorters
     cl_mem inner_mem = NULL;
@@ -104,6 +107,13 @@ MPISync::~MPISync()
     }
     for(auto sender : _senders) {
         delete sender;
+    }    
+    // And the receivers
+    for(auto field : _fields_recv) {
+        free(field);
+    }
+    for(auto receiver : _receivers) {
+        delete receiver;
     }    
 }
 
@@ -125,6 +135,9 @@ void MPISync::setup()
     for(auto field : _fields) {
         setupFieldSort(field);
     }
+
+    setupSenders();
+    setupReceivers();
 }
 
 cl_event MPISync::_execute(const std::vector<cl_event> events)
@@ -156,8 +169,16 @@ cl_event MPISync::_execute(const std::vector<cl_event> events)
     }
 
     // Send the data to other processes
+    _n_offset_reinit->execute();
     for(auto sender : _senders) {
         sender->execute();
+    }
+
+    // Receive the data from the other processes
+    _n_offset_reinit->execute();
+    _mask_reinit->execute();
+    for(auto receiver : _receivers) {
+        receiver->execute();
     }
 
     return NULL;
@@ -310,15 +331,21 @@ void MPISync::setupSenders()
     vars->registerVariable("__mpi_offset", "unsigned int", "", "0");
     _n_offset = (InputOutput::UIntVariable*)vars->get("__mpi_offset");
 
+    // Create a tool to reinit it to zero value
+    _n_offset_reinit = new SetScalar("__" + _n_offset->name() + "->reset",
+                                     _n_offset->name(),
+                                     "0");
+    _n_offset_reinit->setup();
+
     // Allocate the host memory to download the fields and subsequently send
     // them
-    for(auto field : _fields_sorted) {
+    for(auto field : _fields) {
         void *data = malloc(field->size());
         if(!data) {
             std::stringstream msg;
             msg << "Failure allocating \"" << field->size()
                 << "\" bytes for the array \"" << field->name() 
-                << "\" in the tool \"" << name() << "\"" << std::endl;
+                << "\" send in the tool \"" << name() << "\"" << std::endl;
             LOG(L_ERROR, msg.str());
             throw std::bad_alloc();
         }
@@ -342,6 +369,54 @@ void MPISync::setupSenders()
             throw std::bad_alloc();
         }
         _senders.push_back(sender);
+    }
+}
+
+void MPISync::setupReceivers()
+{
+    CalcServer *C = CalcServer::singleton();
+    InputOutput::Variables *vars = C->variables();
+
+    // Create a tool to reinit the mask
+    std::ostringstream valstr;
+    valstr << _procs.size();
+    _mask_reinit = new Set("__" + _mask->name() + "->reset",
+                           _mask->name(),
+                           valstr.str());
+    _mask_reinit->setup();
+    
+    // Allocate the host memory to receive the fields and subsequently upload
+    // them
+    for(auto field : _fields) {
+        void *data = malloc(field->size());
+        if(!data) {
+            std::stringstream msg;
+            msg << "Failure allocating \"" << field->size()
+                << "\" bytes for the array \"" << field->name() 
+                << "\" in the tool \"" << name() << "\"" << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw std::bad_alloc();
+        }
+        _fields_recv.push_back(data);
+    }
+
+    // Create the receivers
+    for(auto proc : _procs) {
+        Receiver* receiver = new Receiver(name(),
+                                          _mask,
+                                          _fields,
+                                          _fields_recv,
+                                          proc,
+                                          _n_offset);
+        if(!receiver) {
+            std::stringstream msg;
+            msg << "Failure Allocating memory for the process "
+                << proc << " sender in tool \"" << name() 
+                << "\"." << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw std::bad_alloc();
+        }
+        _receivers.push_back(receiver);
     }
 }
 
@@ -436,16 +511,16 @@ typedef struct {
     InputOutput::UIntVariable *offset;
     void* ptr;
     unsigned int tag;
-} MPISyncDownloadUserData;
+} MPISyncSendUserData;
 
 void CL_CALLBACK cbDownloadAndSend(cl_event n_event,
                                    cl_int cmd_exec_status,
                                    void *user_data)
 {
     cl_int err_code;
-    MPISyncDownloadUserData *data = (MPISyncDownloadUserData*)user_data;
+    MPISyncSendUserData *data = (MPISyncSendUserData*)user_data;
     unsigned int n = *(unsigned int*)data->n->get();
-    const unsigned int offset = *(unsigned int*)data->offset->get();
+    unsigned int offset = *(unsigned int*)data->offset->get();
 
     if(data->send_n) {
         // We need to report the proc the number of particles to be sent. We
@@ -454,12 +529,23 @@ void CL_CALLBACK cbDownloadAndSend(cl_event n_event,
         // We know this is the very only sending instance (to this proc)
         // executing this piece of code, so we can take advantage to increase
         // the offset variable
-        const unsigned int next_offset = offset + n;
-        data->offset->set((void*)(&next_offset));
+        offset += n;
+        data->offset->set((void*)(&offset));
     }
+    // Reached this point, the offset is always n elements ahead
+    offset -= n;
 
     if(!n) {
         // There is nothing to send
+        err_code = clSetUserEventStatus(data->field->getEvent(), CL_COMPLETE);
+        if(err_code != CL_SUCCESS){
+            std::stringstream msg;
+            msg << "Failure setting user event status for \"" <<
+                data->field->name() << "\" variable." << std::endl;
+            LOG(L_ERROR, msg.str());
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL execution error");
+        }
         return;
     }
 
@@ -483,7 +569,7 @@ void CL_CALLBACK cbDownloadAndSend(cl_event n_event,
             << "\" to send that by MPI." << std::endl;
         LOG(L_ERROR, msg.str());
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
-        return;
+        throw std::runtime_error("OpenCL execution error");
     }
 
     // If we reach this point, then all the information we need which can be
@@ -571,11 +657,10 @@ void MPISync::Sender::execute()
             _fields.at(i)->getEvent()
         };
         
-        cl_event field_event = clCreateUserEvent(C->context(),
- &err_code);
+        cl_event field_event = clCreateUserEvent(C->context(), &err_code);
         if(err_code != CL_SUCCESS){
             std::stringstream msg;
-            msg << "Failure creating user event for \"" <<
+            msg << "Failure creating send user event for \"" <<
                 _fields.at(i)->name() << "\" variable in tool \"" << name()
                 << "\"" << std::endl;
             LOG(L_ERROR, msg.str());
@@ -586,7 +671,7 @@ void MPISync::Sender::execute()
         if(i == 0)
             _n_offset->setEvent(field_event);
 
-        MPISyncDownloadUserData user_data;
+        MPISyncSendUserData user_data;
         user_data.C = C;
         user_data.field = _fields.at(i);
         user_data.n = _n_send;
@@ -598,14 +683,12 @@ void MPISync::Sender::execute()
         // So we can asynchronously ask to dispatch the data download and send
         // when reduction is done.
         err_code = clEnqueueMarkerWithWaitList(C->command_queue(),
-
                                                3,
-
                                                event_wait_list,
                                                &event);
         if(err_code != CL_SUCCESS) {
             std::stringstream msg;
-            msg << "Failure creating events syncing point for field \""
+            msg << "Failure creating send events syncing point for field \""
                 << _fields.at(i)->name() << "\" in tool \"" << name() << "\""
                 << std::endl;
             LOG(L_ERROR, msg.str());
@@ -739,6 +822,306 @@ void MPISync::Sender::setupNSend()
                                       op,
                                       "0");
 }
+
+
+
+
+MPISync::Receiver::Receiver(const std::string name,
+                        InputOutput::ArrayVariable *mask,
+                        const std::vector<InputOutput::ArrayVariable*> fields,
+                        const std::vector<void*> field_hosts,
+                        const unsigned int proc,
+                        InputOutput::UIntVariable *n_offset)
+    : MPISync::Exchanger(name, mask, fields, field_hosts, proc)
+    , _kernel(NULL)
+    , _n_offset(n_offset)
+    , _n_recv(0)
+    , _local_work_size(0)
+{
+    setupOpenCL();
+}
+
+MPISync::Receiver::~Receiver()
+{
+    if(_kernel) clReleaseKernel(_kernel); _kernel=NULL;
+}
+
+typedef struct {
+    CalcServer *C;
+    InputOutput::ArrayVariable *field;
+    bool recv_n;
+    unsigned int proc;
+    InputOutput::UIntVariable *offset;
+    unsigned int *n;
+    void* ptr;
+    unsigned int tag;
+    // To set the mask
+    InputOutput::ArrayVariable *mask;
+    cl_kernel kernel;
+    size_t local_work_size;
+
+} MPISyncRecvUserData;
+
+void CL_CALLBACK cbReceiveAndUpload(cl_event n_event,
+                                   cl_int cmd_exec_status,
+                                   void *user_data)
+{
+    cl_int err_code;
+    cl_event mask_event=NULL;
+    MPISyncRecvUserData *data = (MPISyncRecvUserData*)user_data;
+    unsigned int offset = *(unsigned int*)data->offset->get();
+    if(data->recv_n) {
+        // We need to receive the number of transmitted elements
+        MPI::COMM_WORLD.Recv(data->n, 1, MPI::UNSIGNED, data->proc, 0);
+        // We know this is the very only sending instance (for this proc)
+        // executing this piece of code, so we can take advantage to increase
+        // the offset variable
+        offset += *(data->n);
+        data->offset->set((void*)(&offset));
+        // We also take advantage to set the mask values
+        err_code = clSetKernelArg(data->kernel,
+                                  2,
+                                  sizeof(unsigned int),
+                                  (void*)&offset);
+        if(err_code != CL_SUCCESS){
+            LOG(L_ERROR, "Failure sending the offset argument\n");
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL error");
+        }
+        err_code = clSetKernelArg(data->kernel,
+                                  3,
+                                  sizeof(unsigned int),
+                                  (void*)data->n);
+        if(err_code != CL_SUCCESS){
+            LOG(L_ERROR, "Failure sending the n argument\n");
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL error");
+        }
+        size_t global_work_size = roundUp(*(data->n), data->local_work_size);
+        err_code = clEnqueueNDRangeKernel(data->C->command_queue(),
+                                          data->kernel,
+                                          1,
+                                          NULL,
+                                          &global_work_size,
+                                          &(data->local_work_size),
+                                          0,
+                                          NULL,
+                                          &mask_event);
+        if(err_code != CL_SUCCESS) {
+            LOG(L_ERROR, "Failure setting the mask");
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL execution error");
+        }
+    }
+    unsigned int n = *(data->n);
+    // Reached this point, the offset is always n elements ahead
+    offset -= n;
+
+    if(!n) {
+        // There is nothing to receive
+        err_code = clSetUserEventStatus(data->field->getEvent(), CL_COMPLETE);
+        if(err_code != CL_SUCCESS){
+            std::stringstream msg;
+            msg << "Failure setting user event status for \"" <<
+                data->field->name() << "\" variable." << std::endl;
+            LOG(L_ERROR, msg.str());
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL execution error");
+        }
+        return;
+    }
+
+    // Select the appropriate datatype (MPI needs its own type decriptor), and
+    // addapt the array length (vectorial types)
+    const MPISync::Exchanger::MPIType mpi_t = 
+        MPISync::Exchanger::typeToMPI(data->field->type());
+    if(mpi_t.t == MPI::DATATYPE_NULL) {
+        std::ostringstream msg;
+        msg << "Unrecognized type \"" << data->field->type()
+            << "\" for variable \"" << data->field->name() << "\"" << std::endl;
+        LOG(L_ERROR, msg.str());
+        return;
+    }
+
+    // We can now proceed to receive the data. We are in a parallel thread, so
+    // we can do this synchronously
+    const size_t typesize = InputOutput::Variables::typeToBytes(
+        data->field->type());
+    void *ptr = (void*)((char*)data->ptr + offset * typesize);
+    MPI::COMM_WORLD.Recv(ptr, n * mpi_t.n, mpi_t.t, data->proc, data->tag);
+
+    // We are set, time to upload the data to the 
+    err_code = clEnqueueWriteBuffer(data->C->command_queue(),
+                                    *(cl_mem*)data->field->get(),
+                                    CL_TRUE,
+                                    offset * typesize,
+                                    n * typesize,
+                                    ptr,
+                                    0,
+                                    NULL,
+                                    NULL);
+    if(err_code != CL_SUCCESS){
+        std::ostringstream msg;
+        msg << "Failure uploading the variable \"" << data->field->name()
+            << "\" received from MPI." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
+    }
+
+    // This is not the ideal situation, but the safest way to avoid racing
+    // conditions is to synchronouly wait until the mask has been completely set
+    if(mask_event != NULL) {
+        err_code = clWaitForEvents(1, &mask_event);
+        if(err_code != CL_SUCCESS) {
+            LOG(L_ERROR, "Failure waiting mask to be set");
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL execution error");
+        }
+    }
+    
+    // Unlock the resources
+    err_code = clSetUserEventStatus(data->field->getEvent(), CL_COMPLETE);
+    if(err_code != CL_SUCCESS){
+        std::stringstream msg;
+        msg << "Failure setting user event status for \"" <<
+               data->field->name() << "\" variable." << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
+    }
+}
+
+void MPISync::Receiver::execute()
+{
+    unsigned int i;
+    cl_int err_code;
+    cl_event event;
+    CalcServer *C = CalcServer::singleton();
+
+    for(i = 0; i <= _fields.size(); i++) {
+        // Nothing can be done until we have free way
+        const cl_event event_wait_list[3] = {
+            _n_offset->getEvent(),
+            _fields.at(i)->getEvent(),
+            _mask->getEvent(),            
+        };
+        err_code = clEnqueueMarkerWithWaitList(C->command_queue(),
+                                               3,
+                                               event_wait_list,
+                                               &event);
+        if(err_code != CL_SUCCESS) {
+            std::stringstream msg;
+            msg << "Failure creating recv events syncing point for field \""
+                << _fields.at(i)->name() << "\" in tool \"" << name() << "\""
+                << std::endl;
+            LOG(L_ERROR, msg.str());
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL execution error");
+        }
+
+
+        // As it happened with the sender, we are setting up a user event that we
+        // can use to lock the simultaneous access to the fields and offset
+        // variables
+        cl_event field_event = clCreateUserEvent(C->context(), &err_code);
+        if(err_code != CL_SUCCESS){
+            std::stringstream msg;
+            msg << "Failure creating recv user event for \"" <<
+                _fields.at(i)->name() << "\" variable in tool \"" << name()
+                << "\"" << std::endl;
+            LOG(L_ERROR, msg.str());
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL execution error");
+        }
+        _fields.at(i)->setEvent(field_event);
+        if(i == 0) {
+            _n_offset->setEvent(field_event);
+            _mask->setEvent(field_event);
+        }
+
+        // Asynchronously receive and upload the data
+        MPISyncRecvUserData user_data;
+        user_data.C = C;
+        user_data.field = _fields.at(i);
+        user_data.recv_n = i == 0;
+        user_data.proc = _proc;
+        user_data.offset = _n_offset;
+        user_data.n = &_n_recv;
+        user_data.ptr = _fields_host.at(i);
+        user_data.tag = i + 1;
+        user_data.mask = _mask;
+        user_data.kernel = _kernel;
+        user_data.local_work_size = _local_work_size;
+        // So we can asynchronously ask to dispatch the data download and send
+        // when reduction is done.
+        err_code = clSetEventCallback(event,
+                                      CL_COMPLETE,
+                                      &cbReceiveAndUpload,
+                                      (void*)(&user_data));
+        if(err_code != CL_SUCCESS) {
+            std::stringstream msg;
+            msg << "Failure setting the receive & upload callback for \""
+                << _fields.at(i)->name() << "\" in tool \"" << name() << "\""
+                << std::endl;
+            LOG(L_ERROR, msg.str());
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL execution error");
+        }
+    }
+}
+
+void MPISync::Receiver::setupOpenCL()
+{
+    cl_int err_code;
+    CalcServer *C = CalcServer::singleton();
+
+    std::ostringstream source;
+    source << MPISYNC_INC << MPISYNC_SRC;
+    _kernel = compile_kernel(source.str(), "set_mask");
+
+    err_code = clGetKernelWorkGroupInfo(_kernel,
+                                        C->device(),
+                                        CL_KERNEL_WORK_GROUP_SIZE,
+                                        sizeof(size_t),
+                                        &_local_work_size,
+                                        NULL);
+    if(err_code != CL_SUCCESS) {
+        LOG(L_ERROR, "Failure querying the work group size.\n");
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
+    }
+    if(_local_work_size < __CL_MIN_LOCALSIZE__){
+        std::stringstream msg;
+        LOG(L_ERROR, "UnSort cannot be performed.\n");
+        msg << "\t" << _local_work_size
+            << " elements can be executed, but __CL_MIN_LOCALSIZE__="
+            << __CL_MIN_LOCALSIZE__ << std::endl;
+        LOG0(L_DEBUG, msg.str());
+        throw std::runtime_error("OpenCL error");
+    }
+
+    err_code = clSetKernelArg(_kernel,
+                              0,
+                              _mask->typesize(),
+                              _mask->get());
+    if(err_code != CL_SUCCESS){
+        LOG(L_ERROR, "Failure sending the mask argument\n");
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
+    }
+    err_code = clSetKernelArg(_kernel,
+                              1,
+                              sizeof(unsigned int),
+                              (void*)&_proc);
+    if(err_code != CL_SUCCESS){
+        LOG(L_ERROR, "Failure sending the proc argument\n");
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
+    }
+}
+
+
 
 }}  // namespaces
 
