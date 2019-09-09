@@ -1950,27 +1950,11 @@ void Variables::readComponents(const std::string name,
         throw std::runtime_error("5+ components variable registration");
     }
 
-    // Replace all the commas outside functions by semicolons, to be taken into
-    // account as separators
-    std::string edited_val = value;
-    int parenthesis_counter = 0;
-    for (auto it = edited_val.begin(); it != edited_val.end(); ++it) {
-        // We does not care about unbalanced parenthesis, muparser will do it
-        if(*it == '(')
-            parenthesis_counter++;
-        else if(*it == ')')
-            parenthesis_counter--;
-        else if((*it == ',') && (parenthesis_counter == 0)){
-            *it = ';';
-        }        
-    }
-
-    // Split the expression by semicolons, and parse each one
+    // Split and parse subexpressions
+    std::vector<std::string> value_strs = split_formulae(value);
     const char* extensions[4] = {"_x", "_y", "_z", "_w"};
     i = 0;
-    std::istringstream f(edited_val);
-    std::string s;
-    while (getline(f, s, ';')) {
+    for(auto s : value_strs) {
         try {
             val = tok.solve(s);
         }

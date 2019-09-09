@@ -25,6 +25,7 @@
 
 #include <sphPrerequisites.h>
 #include <string>
+#include <vector>
 
 namespace Aqua{
 
@@ -150,6 +151,24 @@ void setStrConstants(std::string &str);
  * @return The modified string
  */
 std::string setStrConstantsCopy(std::string str);
+
+/** @brief Split a string by a character
+ * @param str String to be split
+ * @param chr Splitting cahracter
+ * @return List of substrings
+ */
+std::vector<std::string> split(std::string str, char chr);
+
+/** @brief Split a list of split_formulae
+ *
+ * Formulae can be separated either by semicolon, ';', or by simple comma, ','.
+ * This function already takes care of parentheses, but it is not checking for
+ * syntax errors
+ *
+ * @param str String within formulae
+ * @return List of formulae string
+ */
+std::vector<std::string> split_formulae(std::string str);
 
 /** @brief Look for a file path which is not already taken
  *

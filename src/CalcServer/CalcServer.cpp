@@ -50,10 +50,35 @@
 
 #ifdef HAVE_MPI
 #include <mpi.h>
+#include <CalcServer/MPISync.h>
 #endif
 
 namespace Aqua{ namespace CalcServer{
 
+/// @brief Have been a SIGINT already registered?
+static bool sigint_received = false;
+
+/** @brief Handle SIGINT signals
+ *
+ * The first time a SIGINT is received, Aqua::CalcServer::sigint_received is set
+ * to true, such that, at the end of the current time step the simulation will
+ * stop, the last output will be printed, and the resources will be correctly
+ * released.
+ *
+ * If SIGINT is received twice, then this handler will enforce the inmediate
+ * program exit.
+ *
+ * @param s Recevied signal, SIGINT
+ */
+void sigint_handler(int s){
+    if (sigint_received) {
+        // The user asked more than once to stop the simulation, force it
+        LOG(L_ERROR, "Forced program exit (SIGINT/SIGTERM received twice)\n");
+        exit(EXIT_FAILURE);
+    }
+    sigint_received = true;
+}
+    
 /// @brief Have been a SIGINT already registered?
 static bool sigint_received = false;
 
@@ -290,6 +315,29 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
         {
             End *tool = new End(t->get("name"),
                                 once);
+            _tools.push_back(tool);
+        }
+        else if(!t->get("type").compare("mpi-sync")){
+            std::vector<std::string> fields = split(
+                replaceAllCopy(t->get("fields"), " ", ""),
+                ',');
+            std::vector<unsigned int> procs;
+            if(t->get("processes").compare("")) {
+                unsigned int val;
+                std::vector<std::string> exprs = split_formulae(
+                    t->get("processes"));
+                for(auto expr : exprs) {
+                    _vars.solve("unsigned int",
+                                expr,
+                                (void*)(&val));
+                    procs.push_back(val);
+                }
+            }
+            MPISync *tool = new MPISync(t->get("name"),
+                                        t->get("mask"),
+                                        fields,
+                                        procs,
+                                        once);
             _tools.push_back(tool);
         }
         else if(!t->get("type").compare("installable")){

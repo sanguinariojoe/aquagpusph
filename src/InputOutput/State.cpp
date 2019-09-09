@@ -27,6 +27,7 @@
 #include <vector>
 #include <algorithm>
 
+#include <sphPrerequisites.h>
 #include <InputOutput/State.h>
 #include <InputOutput/Logger.h>
 #include <CalcServer.h>
@@ -968,6 +969,29 @@ void State::parseTools(DOMElement *root,
             }
             else if(!xmlAttribute(s_elem, "type").compare("end")){
             }
+#ifdef HAVE_MPI
+            else if(!xmlAttribute(s_elem, "type").compare("mpi-sync")){
+                const char *atts[2] = {"mask", "fields"};
+                for(unsigned int k = 0; k < 2; k++){
+                    if(!xmlHasAttribute(s_elem, atts[k])){
+                        std::ostringstream msg;
+                        msg << "Tool \"" << tool->get("name")
+                            << "\" is of type \"mpi-sync\", but \"" << atts[k]
+                            << "\" is not defined." << std::endl;
+                        LOG(L_ERROR, msg.str());
+                        throw std::runtime_error("Missing attribute");
+                    }
+                    tool->set(atts[k], xmlAttribute(s_elem, atts[k]));
+                }
+
+                if(xmlHasAttribute(s_elem, "processes")){
+                    tool->set("procs", xmlAttribute(s_elem, "processes"));
+                }
+                else {
+                    tool->set("procs", xmlAttribute(s_elem, ""));
+                }
+            }
+#endif
             else if(!xmlAttribute(s_elem, "type").compare("installable")){
                 if(!xmlHasAttribute(s_elem, "path")){
                     std::ostringstream msg;

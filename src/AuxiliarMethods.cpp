@@ -175,6 +175,37 @@ std::string setStrConstantsCopy(std::string str)
     return str;    
 }
 
+std::vector<std::string> split(std::string str, char chr)
+{
+    std::vector<std::string> substrs;
+    std::istringstream istr(str);
+    std::string substr;    
+    while (getline(istr, substr, chr)) {
+        substrs.push_back(substr);
+    }
+    return substrs;
+}
+
+std::vector<std::string> split_formulae(std::string str)
+{
+    // Replace all the commas outside functions by semicolons, to be taken into
+    // account as separators
+    std::string edited_str = str;
+    int parenthesis_counter = 0;
+    for (auto it = edited_str.begin(); it != edited_str.end(); ++it) {
+        // We does not care about unbalanced parenthesis, muparser will do it
+        if(*it == '(')
+            parenthesis_counter++;
+        else if(*it == ')')
+            parenthesis_counter--;
+        else if((*it == ',') && (parenthesis_counter == 0)){
+            *it = ';';
+        }        
+    }
+
+    return split(str, ';');
+}
+
 std::string newFilePath(const std::string &basename,
                         unsigned int &i,
                         unsigned int digits)
