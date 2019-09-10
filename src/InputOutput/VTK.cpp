@@ -95,12 +95,15 @@ using namespace xercesc;
 namespace Aqua{ namespace InputOutput{
 
 VTK::VTK(ProblemSetup& sim_data,
+         unsigned int iset,
          unsigned int first,
-         unsigned int n,
-         unsigned int iset)
-    : Particles(sim_data, first, n, iset)
+         unsigned int n_in)
+    : Particles(sim_data, iset, first, n_in)
     , _next_file_index(0)
 {
+    if(n() == 0) {
+        n(compute_n());
+    }
 }
 
 VTK::~VTK()
@@ -602,6 +605,28 @@ void VTK::waitForSavers(){
         pthread_join(tid, NULL);
     }
     _tids.clear();
+}
+
+const unsigned int VTK::compute_n()
+{
+    vtkSmartPointer<vtkXMLUnstructuredGridReader> f =
+        vtkSmartPointer<vtkXMLUnstructuredGridReader>::New();
+
+    if(!f->CanReadFile(simData().sets.at(setId())->inputPath().c_str())){
+        std::ostringstream msg;
+        msg << "Cannot load VTK file \""
+            <<  simData().sets.at(setId())->inputPath()
+            << "\"!" << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::runtime_error("Failure reading file");
+    }
+
+    f->SetFileName(simData().sets.at(setId())->inputPath().c_str());
+    f->Update();
+
+    vtkSmartPointer<vtkUnstructuredGrid> grid = f->GetOutput();
+
+    return (const unsigned int)grid->GetNumberOfPoints();
 }
 
 vtkXMLUnstructuredGridWriter* VTK::create(){

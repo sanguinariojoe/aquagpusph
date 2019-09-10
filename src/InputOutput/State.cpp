@@ -1230,13 +1230,14 @@ void State::parseSets(DOMElement *root,
         if(node->getNodeType() != DOMNode::ELEMENT_NODE)
             continue;
         DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
-        if(!xmlHasAttribute(elem, "n")){
-            LOG(L_ERROR, "Found a particles set without \"n\" attribute.\n");
-            throw std::runtime_error("Missing number of particles in a set");
-        }
 
         ProblemSetup::sphParticlesSet *set = new ProblemSetup::sphParticlesSet();
-        set->n(std::stoi(xmlAttribute(elem, "n")));
+        // Now the number of particles can be let unknown, and will be
+        // determined later, from the input file. See FileManager::load()
+        unsigned int n = 0;
+        if(xmlHasAttribute(elem, "n")){
+            set->n(std::stoi(xmlAttribute(elem, "n")));
+        }
 
         DOMNodeList* s_nodes = elem->getElementsByTagName(xmlS("Scalar"));
         for(XMLSize_t j=0; j<s_nodes->getLength(); j++){

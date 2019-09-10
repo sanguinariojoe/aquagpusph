@@ -31,9 +31,9 @@
 namespace Aqua{ namespace InputOutput{
 
 Particles::Particles(ProblemSetup& sim_data,
+                     unsigned int iset,
                      unsigned int first,
-                     unsigned int n,
-                     unsigned int iset)
+                     unsigned int n)
     : _sim_data(sim_data)
     , _iset(iset)
 {

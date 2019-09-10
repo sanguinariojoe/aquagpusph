@@ -55,8 +55,6 @@ void FileManager::inputFile(std::string path)
 
 CalcServer::CalcServer* FileManager::load()
 {
-    unsigned int n=0;
-
     // Load the XML definition file
     _state.load(inputFile(), _simulation);
 
@@ -66,23 +64,20 @@ CalcServer::CalcServer* FileManager::load()
         throw std::runtime_error("No particles sets");
     }
 
-    // Build the calculation server
-    CalcServer::CalcServer *C = new CalcServer::CalcServer(_simulation);
-
-    // Now we can build the loaders/savers
-    unsigned int i = 0;
+    // Prepare the loaders/savers
+    unsigned int i = 0, offset = 0;
     for(auto set : _simulation.sets){
-        if(!set->inputFormat().compare("ASCII")){
-            ASCII *loader = new ASCII(_simulation, n, set->n(), i);
+        if(!set->inputFormat().compare("ASCII")) {
+            ASCII *loader = new ASCII(_simulation, i, offset, set->n());
             _loaders.push_back((Particles*)loader);
         }
-        else if(!set->inputFormat().compare("FastASCII")){
-            FastASCII *loader = new FastASCII(_simulation, n, set->n(), i);
+        else if(!set->inputFormat().compare("FastASCII")) {
+            FastASCII *loader = new FastASCII(_simulation, i, offset, set->n());
             _loaders.push_back((Particles*)loader);
         }
-        else if(!set->inputFormat().compare("VTK")){
+        else if(!set->inputFormat().compare("VTK")) {
             #ifdef HAVE_VTK
-                VTK *loader = new VTK(_simulation, n, set->n(), i);
+                VTK *loader = new VTK(_simulation, i, offset, set->n());
                 _loaders.push_back((Particles*)loader);
             #else
                 LOG(L_ERROR, "AQUAgpusph has been compiled without VTK format.\n");
@@ -95,20 +90,28 @@ CalcServer::CalcServer* FileManager::load()
             msg << "Unknow \"" << set->inputFormat()
                 << "\" input file format" << std::endl;
             LOG(L_ERROR, msg.str());
-            delete C;
             throw std::runtime_error("Unknown input file format");
         }
-        if(!set->outputFormat().compare("ASCII")){
-            ASCII *saver = new ASCII(_simulation, n, set->n(), i);
+        // The number of particles can be unknown yet, so better getting it from
+        // the loader
+        set->n(_loaders.back()->n());
+        if(set->n() == 0) {
+            std::ostringstream msg;
+            msg << "Empty set \"" << i << "\"" << std::endl;
+            LOG(L_ERROR, msg.str());
+            throw std::runtime_error("Empty set");
+        }
+        if(!set->outputFormat().compare("ASCII") ||
+           !set->outputFormat().compare("FastASCII")) {
+            ASCII *saver = new ASCII(_simulation, i, offset, set->n());
             _savers.push_back((Particles*)saver);
         }
-        else if(!set->outputFormat().compare("VTK")){
+        else if(!set->outputFormat().compare("VTK")) {
             #ifdef HAVE_VTK
-                VTK *saver = new VTK(_simulation, n, set->n(), i);
+                VTK *saver = new VTK(_simulation, i, offset, set->n());
                 _savers.push_back((Particles*)saver);
             #else
                 LOG(L_ERROR, "AQUAgpusph has been compiled without VTK format.\n");
-                delete C;
                 throw std::runtime_error("VTK support is disabled");
             #endif // HAVE_VTK
         }
@@ -117,12 +120,14 @@ CalcServer::CalcServer* FileManager::load()
             msg << "Unknow \"" << set->outputFormat()
                 << "\" input file format" << std::endl;
             LOG(L_ERROR, msg.str());
-            delete C;
             throw std::runtime_error("Unknown output file format");
         }
-        n += set->n();
+        offset += set->n();
         i++;
     }
+    
+    // Build the calculation server
+    CalcServer::CalcServer *C = new CalcServer::CalcServer(_simulation);
 
     // Execute the loaders
     for(auto loader : _loaders) {

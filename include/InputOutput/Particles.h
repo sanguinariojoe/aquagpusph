@@ -53,14 +53,16 @@ class Particles : public InputOutput
 public:
     /** @brief Constructor
      * @param sim_data Simulation data
-     * @param first First particle managed by this saver/loader.
-     * @param n Number of particles managed by this saver/loader.
-     * @param iset Particles set index.
+     * @param offset First particle managed by this saver/loader
+     * @param iset Particles set index
+     * @param n Number of particles managed by this saver/loader. If 0,
+     * the number of particles will be obtained from the input file (thus only
+     * valid for loaders)
      */
     Particles(ProblemSetup &sim_data,
-              unsigned int first,
-              unsigned int n,
-              unsigned int iset);
+              unsigned int iset,
+              unsigned int offset,
+              unsigned int n=0);
 
     /// Destructor
     virtual ~Particles();
@@ -69,6 +71,11 @@ public:
      * @return The last printed file, NULL if a file has not been printed yet.
      */
     const std::string file(){return _output_file;}
+
+    /** @brief Get the number of particles managed by this instance
+     * @return Number of particles
+     */
+    unsigned int n() {return _bounds.y - _bounds.x;}
 
     /** @brief Wait for the eventual parallel saving threads.
      *
@@ -85,16 +92,21 @@ protected:
      */
     ProblemSetup& simData() {return _sim_data;}
 
+    /** @brief Set the number of particles managed by this instance
+     * @return Number of particles
+     */
+    void n(unsigned int n) {_bounds.y = _bounds.x + n;}
+
     /** @brief Get the particle index bounds of the "set of particles" managed
      * by this class.
      * @return The index bounds (first and last particle).
      */
-    uivec2 bounds(){return _bounds;}
+    const uivec2 bounds() const {return _bounds;}
 
     /** @brief Get the "particles set" index associated with this class
      * @return The "particles index" index.
      */
-    unsigned int setId(){return _iset;}
+    const unsigned int setId() const {return _iset;}
 
     /** @brief Register some default arrays:
      *   -# iset

@@ -35,10 +35,10 @@
 namespace Aqua{ namespace InputOutput{
 
 FastASCII::FastASCII(ProblemSetup& sim_data,
+                     unsigned int iset,
                      unsigned int first,
-                     unsigned int n,
-                     unsigned int iset)
-    : ASCII(sim_data, first, n, iset)
+                     unsigned int n)
+    : ASCII(sim_data, iset, first, n)
 {
 }
 

@@ -60,14 +60,16 @@ class ASCII : public Particles
 public:
     /** @brief Constructor
      * @param sim_data Simulation data
-     * @param first First particle managed by this saver/loader.
-     * @param n Number of particles managed by this saver/loader.
      * @param iset Particles set index.
+     * @param offset First particle managed by this saver/loader.
+     * @param n Number of particles managed by this saver/loader. If 0,
+     * the number of particles will be obtained from the input file (thus only
+     * valid for loaders)
      */
     ASCII(ProblemSetup& sim_data,
-          unsigned int first,
-          unsigned int n,
-          unsigned int iset);
+          unsigned int iset,
+          unsigned int offset,
+          unsigned int n=0);
 
     /// Destructor
     virtual ~ASCII();
@@ -83,6 +85,11 @@ public:
     void load();
 
 private:
+    /** @brief Compute the number of particles handled by this instance
+     * @return Number of particles
+     */
+    const unsigned int compute_n();
+
     /** @brief Count the number of particles present in the input file.
      * @param f File to be read.
      * @return The number of particles found in the file.

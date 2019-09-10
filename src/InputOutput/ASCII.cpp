@@ -35,12 +35,14 @@
 namespace Aqua{ namespace InputOutput{
 
 ASCII::ASCII(ProblemSetup& sim_data,
+             unsigned int iset,
              unsigned int first,
-             unsigned int n,
-             unsigned int iset)
-    : Particles(sim_data, first, n, iset)
-    , _next_file_index(0)
+             unsigned int n_in)
+    : Particles(sim_data, iset, first, n_in)
 {
+    if(n() == 0) {
+        n(compute_n());
+    }
 }
 
 ASCII::~ASCII()
@@ -402,6 +404,15 @@ void ASCII::save(float t)
     data.clear();
 
     f.close();
+}
+
+const unsigned int ASCII::compute_n()
+{
+    std::ifstream f;
+    f.open(simData().sets.at(setId())->inputPath());
+    unsigned int n = readNParticles(f);
+    f.close();
+    return (const unsigned int)n;
 }
 
 unsigned int ASCII::readNParticles(std::ifstream& f)
