@@ -1,0 +1,33 @@
+<?xml version="1.0" ?>
+<!--
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
+
+Another QUAlity GPU-SPH, by CEHINAV.
+    http://canal.etsin.upm.es/
+Authors:
+    Jose Luis Cercos-Pita
+    Leo Miguel Gonzalez
+    Antonio Souto-Iglesias
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="g" type="vec" value="0.0, 0.0, -{{G}}, 0.0" />
+        <Variable name="dr" type="float" value="{{DR}}" />
+        <Variable name="hfac" type="float" value="{{HFAC}}" />
+        <Variable name="h" type="float" value="hfac * dr" />
+        <Variable name="cs" type="float" value="{{CS}}" />
+        <Variable name="courant" type="float" value="{{COURANT}}" />
+        <Variable name="domain_min" type="vec" value="{{DOMAIN_MIN}}" />
+        <Variable name="domain_max" type="vec" value="{{DOMAIN_MAX}}" />
+        <Variable name="mpi_planes_orig" type="vec" value="domain_min_x, domain_min_y, domain_min_z, 0"/>
+        <Variable name="mpi_planes_dist" type="vec" value="0, (domain_max_y - domain_min_y) / mpi_size, 0, 0"/>
+    </Variables>
+</sphInput>

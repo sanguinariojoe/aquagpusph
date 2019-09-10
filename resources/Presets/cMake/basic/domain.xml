@@ -6,6 +6,7 @@
     </Variables>
 
     <Tools>
+        <Tool action="try_remove" name="Domain" type="dummy"/>
         <Tool action="insert" after="TimeStep" type="kernel" name="Domain" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/Domain.cl"/>
     </Tools>
 </sphInput>
