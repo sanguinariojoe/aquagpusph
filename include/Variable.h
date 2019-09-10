@@ -203,12 +203,23 @@ public:
     /** @brief Get variable pointer basis pointer
      *
      * This is a blocking operation, that will retain the program until the
-     * underlying variable event is complete.
+     * underlying variable event is complete. For asynchronous variable
+     * retrieval see get_async()
      *
      * @return Implementation pointer
      */
     inline void* get(){sync(); return &_value;}
 
+    /** @brief Get variable pointer basis pointer
+     *
+     * Sometimes a tool would make events micromanagement, becoming useful to
+     * can retrieve the value in an asynchronous way. That is for instance the
+     * case of events manipulated in callbacks
+     *
+     * @return Implementation pointer
+     */
+    inline void* get_async(){return &_value;}
+    
     /** @brief Set variable from memory
      *
      * This is a blocking operation, that will retain the program until the
@@ -218,6 +229,16 @@ public:
      */
     inline void set(void* ptr){sync(); memcpy(&_value, ptr, sizeof(T));}
 
+    /** @brief Set variable from memory
+     *
+     * Sometimes a tool would make events micromanagement, becoming useful to
+     * can retrieve the value in an asynchronous way. That is for instance the
+     * case of events manipulated in callbacks
+     *
+     * @param ptr Memory to copy
+     */
+    inline void set_async(void* ptr){memcpy(&_value, ptr, sizeof(T));}
+    
     /** @brief Get the variable text representation
      * @return The variable represented as a string, NULL in case of errors.
      */
