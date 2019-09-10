@@ -203,7 +203,7 @@ std::vector<std::string> split_formulae(std::string str)
         }        
     }
 
-    return split(str, ';');
+    return split(edited_str, ';');
 }
 
 std::string newFilePath(const std::string &basename,
