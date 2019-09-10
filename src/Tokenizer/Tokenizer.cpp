@@ -158,7 +158,7 @@ float Tokenizer::solve(const std::string eq)
     {
         std::ostringstream msg;
         msg << "Error evaluating \"" << e.GetExpr() << "\"" << std::endl;
-        LOG(L_ERROR, msg.str());
+        LOG(L_WARNING, msg.str());
         msg.str("");
         msg << "\t" << e.GetMsg() << std::endl;
         LOG0(L_DEBUG, msg.str());

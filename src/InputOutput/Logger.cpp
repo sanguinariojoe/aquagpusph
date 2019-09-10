@@ -227,19 +227,6 @@ void Logger::writeReport(std::string input,
 
 void Logger::addMessage(TLogLevel level, std::string log, std::string func)
 {
-#ifdef HAVE_MPI
-    try {
-        if((level < L_ERROR) && (MPI::COMM_WORLD.Get_rank() > 0))
-            return;
-    } catch(MPI::Exception e){
-        std::ostringstream msg;
-        msg << "Error getting MPI rank. " << std::endl
-            << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
-        LOG(L_ERROR, msg.str());
-        throw;
-    }
-#endif
-
     std::ostringstream fname;
     if (func != "")
         fname << "(" << func << "): ";
@@ -248,7 +235,7 @@ void Logger::addMessage(TLogLevel level, std::string log, std::string func)
     if(_log_file.is_open()){
         if(level == L_INFO)
             _log_file << "<b><font color=\"#000000\">[INFO] "
-                     << fname.str() << log << "</font></b><br>";
+                      << fname.str() << log << "</font></b><br>";
         else if(level == L_WARNING)
             _log_file << "<b><font color=\"#ff9900\">[WARNING] "
                      << fname.str() << log << "</font></b><br>";
@@ -263,6 +250,22 @@ void Logger::addMessage(TLogLevel level, std::string log, std::string func)
         }
         _log_file.flush();
     }
+
+    int mpi_rank = 0;
+#ifdef HAVE_MPI
+    try {
+        mpi_rank = MPI::COMM_WORLD.Get_rank();
+    } catch(MPI::Exception e){
+        std::ostringstream msg;
+        msg << "Error getting MPI rank. " << std::endl
+            << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw;
+    }
+#endif
+    if((level < L_ERROR) && (mpi_rank > 0))
+        return;
+
     // Just in case the Logger has been destroyed
     if(!Logger::singleton() || !wnd){
         if(level == L_INFO)
