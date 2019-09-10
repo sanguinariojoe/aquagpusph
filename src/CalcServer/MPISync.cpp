@@ -379,7 +379,19 @@ void MPISync::setupReceivers()
 
     // Create a tool to reinit the mask
     std::ostringstream valstr;
-    valstr << _procs.size();
+    int mpi_rank, mpi_size;
+    try {
+        mpi_rank = MPI::COMM_WORLD.Get_rank();
+    } catch(MPI::Exception e){
+        std::ostringstream msg;
+        msg << "Error getting MPI rank. " << std::endl
+            << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw;
+    }
+    assert(mpi_rank >= 0);
+
+    valstr << mpi_rank;
     _mask_reinit = new Set("__" + _mask->name() + "->reset",
                            _mask->name(),
                            valstr.str());
