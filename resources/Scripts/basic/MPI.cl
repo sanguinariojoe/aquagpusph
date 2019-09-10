@@ -66,13 +66,13 @@ __kernel void mask_planes(__global unsigned int* mpi_mask,
 #ifdef CL_VERSION_2_0
     __attribute__((opencl_unroll_hint(2)))
 #endif
-    for (unsigned int i=0; i < 2; i++) {
+    for (unsigned int j=0; j < 2; j++) {
         const vec_xyz orig = mpi_planes_orig.XYZ +
-                             (mpi_rank + i) * mpi_planes_dist.XYZ;
-        const float normal_sign = (float)(mpi_rank) - (float)(i) - 1.f;
+                             (mpi_rank + j) * mpi_planes_dist.XYZ;
+        const float normal_sign = -2.f * (float)(j) - 1.f;
         const float dist = dot(r_in[i].XYZ - orig, normal_sign * normal);
         if(dist > -SUPPORT * H) {
-            mpi_mask[i] = mpi_rank + i - 1;
+            mpi_mask[i] = mpi_rank + 2 * j - 1;
         }
     }
 }
@@ -160,10 +160,10 @@ __kernel void drop_planes(__global unsigned int* imove,
 #ifdef CL_VERSION_2_0
     __attribute__((opencl_unroll_hint(2)))
 #endif
-    for (unsigned int i=0; i < 2; i++) {
+    for (unsigned int j=0; j < 2; j++) {
         const vec_xyz orig = mpi_planes_orig.XYZ +
-                             (mpi_rank + i) * mpi_planes_dist.XYZ;
-        const float normal_sign = (float)(mpi_rank) - (float)(i) - 1.f;
+                             (mpi_rank + j) * mpi_planes_dist.XYZ;
+        const float normal_sign = -2.f * (float)(j) - 1.f;
         if(dot(r[i].XYZ - orig, normal_sign * normal) > 0) {
             r[i] = domain_max;
             imove[i] = -256;
