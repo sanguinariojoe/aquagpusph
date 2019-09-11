@@ -227,7 +227,7 @@ void ProblemSetup::sphParticlesSet::output(std::string path,
                                            std::string format,
                                            std::string fields)
 {
-    _out_path = replaceAllCopy(path, "%d", "{index}");
+    _out_path = setStrConstantsCopy(replaceAllCopy(path, "%d", "{index}"));
     _out_format = format;
     // Split the fields
     std::istringstream f(replaceAllCopy(fields, " ", ""));
