@@ -11,6 +11,7 @@
 		<Variable length="n_radix" name="mpi_dudt" symbol="\frac{d\boldsymbol{u}_{mpi}}{d t}" type="vec*"/>
 		<Variable length="n_radix" name="mpi_rho" symbol="\rho_{mpi}" type="float*"/>
 		<Variable length="n_radix" name="mpi_drhodt" symbol="\frac{d\rho_{mpi}}{d t}" type="float*"/>
+		<Variable length="n_radix" name="mpi_mask_in" symbol="j_{mpi}^{in}" type="unsigned int*"/>
 	</Variables>
 
 	<Tools>
@@ -21,6 +22,9 @@
 		<Tool action="insert" after="mpi mask reset" entry_point="copy" name="mpi copy" once="false" path="resources/Scripts/basic/MPI.cl" type="kernel"/>
 		<Tool action="insert" after="mpi copy" name="Set buffer"  type="dummy" />
 		<Tool action="insert" before="MPI" entry_point="restore" name="mpi restore" once="false" path="resources/Scripts/basic/MPI.cl" type="kernel"/>
+
+		<Tool action="insert" before="Sort" in="mpi_mask" name="Backup mpi_mask" once="false" out="mpi_mask_in" type="copy"/>
+		<Tool action="insert" before="Sort" entry_point="sort" name="sort mpi_mask" once="false" path="resources/Scripts/basic/MPI.cl" type="kernel"/>
 
 		<Tool action="insert" after="Interactions" entry_point="drop_planes" name="MPI-drop (planes)" once="false" path="resources/Scripts/basic/MPI.cl" type="kernel"/>
 	</Tools>

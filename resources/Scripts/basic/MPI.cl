@@ -69,7 +69,7 @@ __kernel void mask_planes(__global unsigned int* mpi_mask,
     for (unsigned int j=0; j < 2; j++) {
         const vec_xyz orig = mpi_planes_orig.XYZ +
                              (mpi_rank + j) * mpi_planes_dist.XYZ;
-        const float normal_sign = -2.f * (float)(j) - 1.f;
+        const float normal_sign = 2.f * (float)(j) - 1.f;
         const float dist = dot(r_in[i].XYZ - orig, normal_sign * normal);
         if(dist > -SUPPORT * H) {
             mpi_mask[i] = mpi_rank + 2 * j - 1;
@@ -120,55 +120,6 @@ __kernel void copy(__global vec* mpi_r,
     mpi_dudt[i] = dudt_in[i];
     mpi_rho[i] = rho_in[i];
     mpi_drhodt[i] = drhodt_in[i];
-}
-
-/** @brief Drop particles belonging to different processes
- *
- * Transfer the particles belonging to different processes, i.e. outside the
- * current process bounding planes, to "the buffer". It should be always bear in
- * mind that the buffer particles are not made available until next time step
- *
- * @param imove Moving flags
- *   - imove > 0 for regular fluid particles
- *   - imove = 0 for sensors
- *   - imove < 0 for boundary elements/particles
- * @param r Position \f$ \mathbf{r} \f$
- * @param mpi_mask Output processes mask
- * @param mpi_rank MPI process index
- * @param mpi_planes_orig Center of the first interface (between procs) plane
- * @param mpi_planes_dist Distance between interface planes
- * @param domain_max Top-left-frontal corner of the computational domain
- * @param N Number of particles
- */
-__kernel void drop_planes(__global unsigned int* imove,
-                          __global vec* r,
-                          unsigned int mpi_rank,
-                          vec mpi_planes_orig,
-                          vec mpi_planes_dist,
-                          vec domain_max,
-                          unsigned int N)
-{
-    unsigned int i = get_global_id(0);
-    if(i >= N)
-        return;
-    if(imove[i] <= 0)
-        return;
-
-    // We just need the sign, so no need to normalize
-    const vec_xyz normal = mpi_planes_dist.XYZ;
-    
-#ifdef CL_VERSION_2_0
-    __attribute__((opencl_unroll_hint(2)))
-#endif
-    for (unsigned int j=0; j < 2; j++) {
-        const vec_xyz orig = mpi_planes_orig.XYZ +
-                             (mpi_rank + j) * mpi_planes_dist.XYZ;
-        const float normal_sign = -2.f * (float)(j) - 1.f;
-        if(dot(r[i].XYZ - orig, normal_sign * normal) > 0) {
-            r[i] = domain_max;
-            imove[i] = -256;
-        }
-    }
 }
 
 /** @brief Add the particles received from other processes
@@ -227,4 +178,78 @@ __kernel void restore(__global vec* r_in,
     dudt_in[i_out] = mpi_dudt[i];
     rho_in[i_out] = mpi_rho[i];
     drhodt_in[i_out] = mpi_drhodt[i];
+}
+
+/** @brief Sort the mask
+ *
+ * The processes mask can be used for debugging purposes. To this end we should
+ * sort it before.
+ *
+ * @param mpi_mask_in Unsorted processes mask
+ * @param mpi_mask Sorted processes mask
+ * @param id_sorted Permutations list from the unsorted space to the sorted
+ * one.
+ * @param N Number of particles
+ */
+__kernel void sort(const __global unsigned int* mpi_mask_in,
+                   __global unsigned int* mpi_mask,
+                   const __global unit *id_sorted,
+                   unsigned int N)
+{
+    unsigned int i = get_global_id(0);
+    if(i >= N)
+        return;
+
+    const uint i_out = id_sorted[i];
+
+    mpi_mask[id_sorted[i]] = mpi_mask_in[i];
+}
+
+/** @brief Drop particles belonging to different processes
+ *
+ * Transfer the particles belonging to different processes, i.e. outside the
+ * current process bounding planes, to "the buffer". It should be always bear in
+ * mind that the buffer particles are not made available until next time step
+ *
+ * @param imove Moving flags
+ *   - imove > 0 for regular fluid particles
+ *   - imove = 0 for sensors
+ *   - imove < 0 for boundary elements/particles
+ * @param r Position \f$ \mathbf{r} \f$
+ * @param mpi_mask Output processes mask
+ * @param mpi_rank MPI process index
+ * @param mpi_planes_orig Center of the first interface (between procs) plane
+ * @param mpi_planes_dist Distance between interface planes
+ * @param domain_max Top-left-frontal corner of the computational domain
+ * @param N Number of particles
+ */
+__kernel void drop_planes(__global unsigned int* imove,
+                          __global vec* r,
+                          unsigned int mpi_rank,
+                          vec mpi_planes_orig,
+                          vec mpi_planes_dist,
+                          vec domain_max,
+                          unsigned int N)
+{
+    unsigned int i = get_global_id(0);
+    if(i >= N)
+        return;
+    if(imove[i] <= 0)
+        return;
+
+    // We just need the sign, so no need to normalize
+    const vec_xyz normal = mpi_planes_dist.XYZ;
+    
+#ifdef CL_VERSION_2_0
+    __attribute__((opencl_unroll_hint(2)))
+#endif
+    for (unsigned int j=0; j < 2; j++) {
+        const vec_xyz orig = mpi_planes_orig.XYZ +
+                             (mpi_rank + j) * mpi_planes_dist.XYZ;
+        const float normal_sign = 2.f * (float)(j) - 1.f;
+        if(dot(r[i].XYZ - orig, normal_sign * normal) > 0) {
+            r[i] = domain_max;
+            imove[i] = -256;
+        }
+    }
 }
