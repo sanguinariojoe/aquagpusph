@@ -71,6 +71,10 @@ static bool sigint_received = false;
  * @param s Recevied signal, SIGINT
  */
 void sigint_handler(int s){
+    // Log the reception, and afterwards the processing. That way, in case of
+    // MPI jobs we can know if some uncoordinated processes have failed to
+    // correctly finish the job
+    LOG(L_WARNING, "SIGINT/SIGTERM received\n");
     if (sigint_received) {
         // The user asked more than once to stop the simulation, force it
         LOG(L_ERROR, "Forced program exit (SIGINT/SIGTERM received twice)\n");

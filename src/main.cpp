@@ -175,7 +175,12 @@ int main(int argc, char *argv[])
             file_manager.save(t_manager.time());
         } catch (const Aqua::CalcServer::user_interruption& e) {
             // The user has interrupted the simulation, just exit normally
+#ifndef HAVE_MPI
+            // In case of MPI it is not much useful to ask for a new file, since
+            // we can hardly enforce the software to wait for the current
+            // writers before MPI send a kill signal
             file_manager.save(t_manager.time());
+#endif
             break;
         } catch (...) {
             logger->endNCurses();
@@ -207,6 +212,7 @@ int main(int argc, char *argv[])
         Py_Finalize();
 #ifdef HAVE_MPI
     try {
+        MPI::COMM_WORLD.Barrier();
         MPI::Finalize();
     } 
     catch(MPI::Exception e){

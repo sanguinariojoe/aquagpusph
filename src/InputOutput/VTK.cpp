@@ -512,14 +512,19 @@ void* save_pthread(void *data_void)
     #endif // VTK_MAJOR_VERSION
 
     if(!data->f->Write()){
-        data->S->addMessageF(L_ERROR, "Failure writing the VTK file.\n");
+        data->S->addMessageF(L_ERROR,
+            std::string("Failure writing \"") +
+            data->f->GetFileName() + "\" VTK file.\n");
     }
 
     // Clean up
     for(auto d : data->data)
         free(d);
     data->data.clear();
+    data->S->addMessageF(L_INFO,
+        std::string("Wrote \"") + data->f->GetFileName() + "\" VTK file.\n");
     data->f->Delete();
+
     delete data; data=NULL;
     return NULL;
 }
