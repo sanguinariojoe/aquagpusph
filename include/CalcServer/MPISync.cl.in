@@ -28,10 +28,28 @@
  * @param proc Selected process
  * @param N Number of elements into the mask
  */
-__kernel void extract_submask(const __global unsigned int *mask,
-                              __global unsigned int *submask,
-                              unsigned int proc,
-                              unsigned int N)
+__kernel void n_offset_mask(const __global unsigned int *mask,
+                            __global unsigned int *submask,
+                            unsigned int proc,
+                            unsigned int N)
+{
+    unsigned int i = get_global_id(0);
+    if(i >= N)
+        return;
+
+    submask[i] = (mask[i] < proc) ? 1 : 0;
+}
+
+/** Extract the submask from the selected process
+ * @param mask Original processes mask
+ * @param submask Mask of the selected process
+ * @param proc Selected process
+ * @param N Number of elements into the mask
+ */
+__kernel void n_send_mask(const __global unsigned int *mask,
+                          __global unsigned int *submask,
+                          unsigned int proc,
+                          unsigned int N)
 {
     unsigned int i = get_global_id(0);
     if(i >= N)

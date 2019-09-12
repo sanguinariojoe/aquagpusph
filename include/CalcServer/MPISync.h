@@ -286,27 +286,39 @@ public:
     private:
         /** Create the submask array
         */
-        void setupSubMaskMem();
+        void setupSubMaskMems();
 
         /** Setup the OpenCL stuff
-        */
-        void setupOpenCL();
+         * @param kernel_name Name of the kernel, either "n_offset_mask" or
+         * "n_send_mask"
+         */
+        void setupOpenCL(const std::string kernel_name);
 
         /** Register the "number of elements to send" variable
-        */
-        void setupNSend();
-
-        /// Submask memory object
-        InputOutput::ArrayVariable* _submask;
-
-        /// OpenCL kernel
-        cl_kernel _kernel;
+         * @param var_name Variable name, either "n_offset" or "n_send"
+         */
+        void setupReduction(const std::string var_name);
 
         /// Accumulated number of elements sent
         InputOutput::UIntVariable *_n_offset;
 
+        /// Submask memory object
+        InputOutput::ArrayVariable* _n_offset_mask;
+
+        /// OpenCL kernel to compute the offset mask
+        cl_kernel _n_offset_kernel;
+
+        /// Submaks of elements already processed
+        Reduction *_n_offset_reduction;
+
         /// Number of elements to be sent
         InputOutput::UIntVariable *_n_send;
+
+        /// Submask of elements to be sent
+        InputOutput::ArrayVariable* _n_send_mask;
+
+        /// OpenCL kernel to compute the sending mask
+        cl_kernel _n_send_kernel;
 
         /// Reduction to compute the number of elements to send
         Reduction *_n_send_reduction;
@@ -362,11 +374,6 @@ public:
         /// Accumulated number of received elements
         InputOutput::UIntVariable *_n_offset;
 
-        /** Small storage for the number of elements to receive, so we can
-         * easily share this information between field receiving callbacks
-         */
-        unsigned int _n_recv;
-
         /// Local work sizes in each step
         size_t _local_work_size;
     };
@@ -374,10 +381,10 @@ public:
 
 private:
     /// Cumulative number of particles sent
-    InputOutput::UIntVariable *_n_offset;
+    InputOutput::UIntVariable *_n_offset_send;
 
     /// Offset reinitialization tool
-    SetScalar *_n_offset_reinit;
+    SetScalar *_n_offset_send_reinit;
 
     /// Host memory arrays to download and send data to other processes
     std::vector<void*> _fields_send;
@@ -387,6 +394,12 @@ private:
 
     /// Mask reinitialization tool
     Set *_mask_reinit;
+
+    /// Cumulative number of particles sent
+    InputOutput::UIntVariable *_n_offset_recv;
+
+    /// Offset reinitialization tool
+    SetScalar *_n_offset_recv_reinit;
 
     /// Host memory arrays to download and send data to other processes
     std::vector<void*> _fields_recv;
