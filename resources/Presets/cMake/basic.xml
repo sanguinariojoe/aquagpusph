@@ -132,7 +132,7 @@ later:
         <Tool action="add" name="Predictor" type="dummy"/>
 
         <!-- Link-list and particles sorting -->
-        <Tool action="add" name="link-list" type="link-list"/>
+        <Tool action="add" name="link-list" type="link-list" in="r_in"/>
         <Tool action="add" name="Link-List" type="dummy"/>
 
         <Tool action="add" name="Backup id" type="copy" in="id" out="id_in"/>
