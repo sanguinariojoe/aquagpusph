@@ -47,7 +47,7 @@
  * @param N Number of particles
  */
 __kernel void mask_planes(__global unsigned int* mpi_mask,
-                          const __global unsigned int* imove,
+                          const __global int* imove,
                           const __global vec* r_in,
                           unsigned int mpi_rank,
                           vec mpi_planes_orig,
@@ -150,7 +150,7 @@ __kernel void restore(__global vec* r_in,
                       __global vec* dudt_in,
                       __global float* rho_in,
                       __global float* drhodt_in,
-                      __global unsigned int* imove,
+                      __global int* imove,
                       const __global unsigned int* mpi_mask,
                       const __global vec* mpi_r,
                       const __global vec* mpi_u,
@@ -223,7 +223,7 @@ __kernel void sort(const __global unsigned int* mpi_mask_in,
  * @param domain_max Top-left-frontal corner of the computational domain
  * @param N Number of particles
  */
-__kernel void drop_planes(__global unsigned int* imove,
+__kernel void drop_planes(__global int* imove,
                           __global vec* r,
                           unsigned int mpi_rank,
                           vec mpi_planes_orig,
