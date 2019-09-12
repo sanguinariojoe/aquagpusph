@@ -432,11 +432,32 @@ def fluid_file(proc):
             output.write(string)
             N += 1
 
+    # Buffer particles
+    # ================
+
+    print('Buffer particles...')
+    x, y, z, _ = domain_max
+    press = 0
+    dens = refd 
+    mass = dens * dr**3.0
+    imove = -255
+    for i in range(n):
+        string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
+            x, y, z,
+            0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0,
+            dens,
+            0.0,
+            mass,
+            imove)
+        output.write(string)
+    n_buffer = n
+
     output.close()
     print('OK')
 
-
-    return n, N_box, N
+    return n, N_box, N, n_buffer
 print('OK')
 
 n = 0
