@@ -92,11 +92,13 @@ __kernel void mask_planes(__global unsigned int* mpi_mask,
  * @param mpi_dudt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$ MPI copy
  * @param mpi_rho Density \f$ \rho \f$ MPI copy
  * @param mpi_drhodt Density rate of change \f$ \frac{d \rho}{d t} \f$ MPI copy
+ * @param mpi_m Mass \f$ m \f$ MPI copy
  * @param r_in Position \f$ \mathbf{r} \f$
  * @param u_in Velocity \f$ \mathbf{u} \f$
  * @param dudt_in Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$
  * @param rho_in Density \f$ \rho \f$
  * @param drhodt_in Density rate of change \f$ \frac{d \rho}{d t} \f$
+ * @param m Mass \f$ m \f$
  * @param N Number of particles
  */
 __kernel void copy(__global vec* mpi_r,
@@ -104,11 +106,13 @@ __kernel void copy(__global vec* mpi_r,
                    __global vec* mpi_dudt,
                    __global float* mpi_rho,
                    __global float* mpi_drhodt,
+                   __global float* mpi_m,
                    const __global vec* r_in,
                    const __global vec* u_in,
                    const __global vec* dudt_in,
                    const __global float* rho_in,
                    const __global float* drhodt_in,
+                   const __global float* m,
                    unsigned int N)
 {
     unsigned int i = get_global_id(0);
@@ -120,6 +124,7 @@ __kernel void copy(__global vec* mpi_r,
     mpi_dudt[i] = dudt_in[i];
     mpi_rho[i] = rho_in[i];
     mpi_drhodt[i] = drhodt_in[i];
+    mpi_m[i] = m[i];
 }
 
 /** @brief Add the particles received from other processes
@@ -135,12 +140,14 @@ __kernel void copy(__global vec* mpi_r,
  * @param dudt_in Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$
  * @param rho_in Density \f$ \rho \f$
  * @param drhodt_in Density rate of change \f$ \frac{d \rho}{d t} \f$
+ * @param m Mass \f$ m \f$
  * @param mpi_mask Incoming processes mask
  * @param mpi_r Position \f$ \mathbf{r} \f$ MPI copy
  * @param mpi_u Velocity \f$ \mathbf{u} \f$ MPI copy
  * @param mpi_dudt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$ MPI copy
  * @param mpi_rho Density \f$ \rho \f$ MPI copy
  * @param mpi_drhodt Density rate of change \f$ \frac{d \rho}{d t} \f$ MPI copy
+ * @param mpi_m Mass \f$ m \f$ MPI copy
  * @param mpi_rank MPI process index
  * @param nbuffer Number of buffer particles
  * @param N Number of particles
@@ -150,6 +157,7 @@ __kernel void restore(__global vec* r_in,
                       __global vec* dudt_in,
                       __global float* rho_in,
                       __global float* drhodt_in,
+                      __global float* m,
                       __global int* imove,
                       const __global unsigned int* mpi_mask,
                       const __global vec* mpi_r,
@@ -157,6 +165,7 @@ __kernel void restore(__global vec* r_in,
                       const __global vec* mpi_dudt,
                       const __global float* mpi_rho,
                       const __global float* mpi_drhodt,
+                      const __global float* mpi_m,
                       unsigned int mpi_rank,
                       unsigned int nbuffer,
                       unsigned int N)
@@ -178,6 +187,7 @@ __kernel void restore(__global vec* r_in,
     dudt_in[i_out] = mpi_dudt[i];
     rho_in[i_out] = mpi_rho[i];
     drhodt_in[i_out] = mpi_drhodt[i];
+    m[i_out] = mpi_m[i];
 }
 
 /** @brief Sort the mask
