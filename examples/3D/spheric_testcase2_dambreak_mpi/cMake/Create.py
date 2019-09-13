@@ -520,7 +520,7 @@ with open(path.join(templates_path, 'Settings.xml'), 'r') as fin, \
         fout.write(dev_str.replace(
             "{{CLPLATFORM}}", cl_platforms[proc]).replace(
             "{{CLDEVICE}}", cl_devices[proc]).replace(
-            "{{CLTYPE}}", cl_types[proc]))
+            "{{CLTYPE}}", "ALL"))
     fout.write(txt[dev_end:])
 
 XML = ('Fluids.xml', 'Main.xml', 'Sensors.xml', 'SPH.xml', 'Time.xml',
