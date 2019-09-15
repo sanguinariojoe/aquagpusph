@@ -113,10 +113,10 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
     , _num_devices(0)
     , _devices(NULL)
     , _context(NULL)
-    , _command_queues(NULL)
     , _platform(NULL)
     , _device(NULL)
     , _command_queue(NULL)
+    , _command_queue_parallel(NULL)
     , _current_tool_name(NULL)
     , _sim_data(sim_data)
 {
@@ -542,15 +542,12 @@ CalcServer::~CalcServer()
     unsigned int i;
     delete[] _current_tool_name;
 
+    if(_command_queue) clReleaseCommandQueue(_command_queue);
+    if(_command_queue_parallel) clReleaseCommandQueue(_command_queue_parallel);
     if(_context) clReleaseContext(_context); _context = NULL;
-    for(i = 0; i < _num_devices; i++){
-        if(_command_queues[i]) clReleaseCommandQueue(_command_queues[i]);
-        _command_queues[i] = NULL;
-    }
 
     if(_platforms) delete[] _platforms; _platforms=NULL;
     if(_devices) delete[] _devices; _devices=NULL;
-    if(_command_queues) delete[] _command_queues; _command_queues=NULL;
 
     for(auto tool : _tools){
         delete tool;
@@ -566,6 +563,19 @@ void CalcServer::update(InputOutput::TimeManager& t_manager)
 {
     unsigned int i;
     while(!t_manager.mustPrintOutput() && !t_manager.mustStop()){
+#ifdef HAVE_MPI
+        try {
+            MPI::COMM_WORLD.Barrier();
+        } 
+        catch(MPI::Exception e){
+            LOG(L_INFO, "MPI error while syncing at the beggining\n");
+            std::ostringstream msg;
+            msg << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
+            LOG0(L_DEBUG, msg.str());
+            MPI::COMM_WORLD.Abort(-1);
+            throw;
+        }
+#endif
         InputOutput::Logger::singleton()->initFrame();
 
         // Execute the tools
@@ -943,35 +953,30 @@ void CalcServer::setupDevices()
         throw std::runtime_error("OpenCL error");
     }
 
-    // Create command queues
-    _command_queues = new cl_command_queue[_num_devices];
-    if(_command_queues == NULL){
-        std::ostringstream msg;
-        msg << "Failure allocating " << _num_devices * sizeof(cl_command_queue)
-            << " bytes for the command queues." << std::endl;
-        LOG(L_ERROR, msg.str());
-        throw std::bad_alloc();
-    }
-    for(i = 0; i < _num_devices; i++) {
-        cl_command_queue_properties properties = 
-            CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
-        _command_queues[i] = clCreateCommandQueue(_context,
-                                                  _devices[i],
-                                                  properties,
-                                                  &err_code);
-        if(err_code != CL_SUCCESS) {
-            std::ostringstream msg;
-            msg << "Failure generating the command queue number " << i
-                << "." << std::endl;
-            LOG(L_ERROR, msg.str());
-            InputOutput::Logger::singleton()->printOpenCLError(err_code);
-            throw std::runtime_error("OpenCL error");
-        }
-    }
-
-    // Store the selected ones
+    // Select the appropriate device
     _device = _devices[device_id];
-    _command_queue = _command_queues[device_id];
+
+    // Create the command queues
+    cl_command_queue_properties properties = 
+        CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
+    _command_queue = clCreateCommandQueue(_context,
+                                          _device,
+                                          properties,
+                                          &err_code);
+    if(err_code != CL_SUCCESS) {
+        LOG(L_ERROR, "Failure generating the main command queue\n");
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
+    }
+    _command_queue_parallel = clCreateCommandQueue(_context,
+                                                   _device,
+                                                   properties,
+                                                   &err_code);
+    if(err_code != CL_SUCCESS) {
+        LOG(L_ERROR, "Failure generating the parallel command queue\n");
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL error");
+    }
 }
 
 void CalcServer::setup()

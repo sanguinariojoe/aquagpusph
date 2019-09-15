@@ -168,17 +168,6 @@ int main(int argc, char *argv[])
     logger->printDate();
     logger->initNCurses();
 
-#ifdef HAVE_MPI
-    try {
-        MPI::COMM_WORLD.Barrier();
-    } 
-    catch(MPI::Exception e){
-        LOG(L_INFO, "MPI error while syncing at the beggining\n");
-        msg << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
-        LOG0(L_DEBUG, msg.str());
-        MPI::COMM_WORLD.Abort(-1);
-    }
-#endif
     while(!t_manager.mustStop())
     {
         try {

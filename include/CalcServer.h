@@ -148,9 +148,25 @@ public:
     cl_device_id device() const{return _device;}
 
     /** Get the command queue
-     * @return OpenCL command queue
+     *
+     * Two different command queues are available. Indeed, OpenCL specification
+     * allows to create the command queues with the
+     * CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE option, which allows that a
+     * subsequent kernel/task execution begins before the preceding one has
+     * already finished. However, the specification does not allows, by any
+     * means, that a preceding kernel/task execution can be triggered after
+     * a subsequent one. Therefore, parallel tasks shall use a different queue
+     * to ensure the correct order within each queue
+     *
+     * @param parallel true if the command queue for task executed in parallel
+     * is queried, false otherwise
+     * @return The command queue
      */
-    cl_command_queue command_queue() const{return _command_queue;}
+    cl_command_queue command_queue(bool parallel=false) const {
+        if(parallel)
+            return _command_queue_parallel;
+        return _command_queue;
+    }
 
     /** Download a unsorted variable from the device.
      * @param var_name Variable to unsort and download.
@@ -196,14 +212,16 @@ private:
     cl_device_id *_devices;
     /// OpenCL context
     cl_context _context;
-    /// OpenCL command queue
-    cl_command_queue *_command_queues;
     /// Selected platform
     cl_platform_id _platform;
     /// Selected device
     cl_device_id _device;
-    /// Selected command queue
+    /// Main command queue
     cl_command_queue _command_queue;
+    /** Command queue for task carried out in parallel tasks (e.g. events
+     * callbacks).
+     */
+    cl_command_queue _command_queue_parallel;
 
     /// User registered variables
     InputOutput::Variables _vars;

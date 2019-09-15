@@ -173,32 +173,6 @@ cl_event MPISync::_execute(const std::vector<cl_event> events)
             throw;        
         }
     }
-    // Download the data. Apparently some OpenCL implementations don't like at
-    // all enqueuing commands (or at least reading commands) in event callbacks.
-    // Thus, we just simply download the whole data (which is obviously less
-    // efficient), and meanwhile we work on the data senders
-    for(i = 0; i < _fields.size(); i++) {
-        cl_event event, wait_event = _fields_sorted.at(i)->getEvent();
-        err_code = clEnqueueReadBuffer(C->command_queue(),
-                                       *(cl_mem*)_fields_sorted.at(i)->get(),
-                                       CL_FALSE,
-                                       0,
-                                       _fields_sorted.at(i)->size(),
-                                       _fields_send.at(i),
-                                       1,
-                                       &wait_event,
-                                       &event);
-        if(err_code != CL_SUCCESS){
-            std::ostringstream msg;
-            msg << "Failure downloading the variable \""
-                << _fields.at(i)->name() << "\" in tool \""
-                << name() << "\"" << std::endl;
-            LOG(L_ERROR, msg.str());
-            InputOutput::Logger::singleton()->printOpenCLError(err_code);
-            throw std::runtime_error("OpenCL execution error");
-        }
-        _fields_sorted.at(i)->setEvent(event);
-    }
 
     // Send the data to other processes
     _n_offset_send_reinit->execute();
@@ -211,30 +185,6 @@ cl_event MPISync::_execute(const std::vector<cl_event> events)
     _mask_reinit->execute();
     for(auto receiver : _receivers) {
         receiver->execute();
-    }
-
-    for(i = 0; i < _fields.size(); i++) {
-        cl_event event, wait_event = _fields.at(i)->getEvent();
-        err_code = clEnqueueWriteBuffer(C->command_queue(),
-                                        *(cl_mem*)_fields.at(i)->get(),
-                                        CL_FALSE,
-                                        0,
-                                        _fields.at(i)->size(),
-                                        _fields_recv.at(i),
-                                        1,
-                                        &wait_event,
-                                        &event);
-        if(err_code != CL_SUCCESS){
-            std::ostringstream msg;
-            msg << "Failure uploading the variable \""
-                << _fields.at(i)->name() << "\" in tool \""
-                << name() << "\"" << std::endl;
-            LOG(L_ERROR, msg.str());
-            InputOutput::Logger::singleton()->printOpenCLError(err_code);
-            throw std::runtime_error("OpenCL execution error");
-        }
-        _fields.at(i)->setEvent(event);
-        clWaitForEvents(1, &event);
     }
 
     return NULL;
@@ -635,6 +585,26 @@ void CL_CALLBACK cbMPISend(cl_event n_event,
     const size_t tsize = InputOutput::Variables::typeToBytes(field->type());
     void *ptr = (void*)((char*)(data->ptr) + offset * tsize);
 
+    // Download the data
+    cl_int err_code;
+    err_code = clEnqueueReadBuffer(data->C->command_queue(true),
+                                   *(cl_mem*)field->get(),
+                                   CL_TRUE,
+                                   offset * tsize,
+                                   n * tsize,
+                                   ptr,
+                                   0,
+                                   NULL,
+                                   NULL);
+    if(err_code != CL_SUCCESS){
+        std::ostringstream msg;
+        msg << "Failure downloading the variable \""
+            << field->name() << "\"" << std::endl;
+        LOG(L_ERROR, msg.str());
+        InputOutput::Logger::singleton()->printOpenCLError(err_code);
+        throw std::runtime_error("OpenCL execution error");
+    }
+
     // Select the appropriate datatype (MPI needs its own type decriptor), and
     // addapt the array length (vectorial types)
     const MPISync::Exchanger::MPIType mpi_t = 
@@ -989,6 +959,12 @@ void CL_CALLBACK cbUserEventSync(cl_event n_event,
             InputOutput::Logger::singleton()->printOpenCLError(err_code);
             throw std::runtime_error("OpenCL execution error");
         }
+        err_code = clReleaseEvent(n_event);
+        if(err_code != CL_SUCCESS){
+            LOG(L_ERROR, "Failure releasing triggering event");
+            InputOutput::Logger::singleton()->printOpenCLError(err_code);
+            throw std::runtime_error("OpenCL execution error");
+        }
     }
     free(user_data);
 }
@@ -1051,7 +1027,7 @@ void CL_CALLBACK cbMPIRecv(cl_event n_event,
                            void *user_data)
 {
     cl_int err_code;
-    cl_event mask_event=NULL;
+    cl_event mask_event=NULL, field_event=NULL;
     MPISyncRecvUserData *data = (MPISyncRecvUserData*)user_data;
     unsigned int offset = *(unsigned int*)data->offset->get_async();
     unsigned int n;
@@ -1146,7 +1122,7 @@ void CL_CALLBACK cbMPIRecv(cl_event n_event,
         throw std::runtime_error("OpenCL error");
     }
     size_t global_work_size = roundUp(n, data->local_work_size);
-    err_code = clEnqueueNDRangeKernel(data->C->command_queue(),
+    err_code = clEnqueueNDRangeKernel(data->C->command_queue(true),
                                       data->kernel,
                                       1,
                                       NULL,
@@ -1180,28 +1156,27 @@ void CL_CALLBACK cbMPIRecv(cl_event n_event,
             return;
         }
 
-        // Launch the missiles. Again we can proceed in synchronous mode
+        // Get the data in synchronous mode
         MPI::COMM_WORLD.Recv(ptr, n * mpi_t.n, mpi_t.t, data->proc, i + 1);
-
-        // Unlock the field to become uploaded
-        err_code = clSetUserEventStatus(data->field_events[i], CL_COMPLETE);
+        // But upload it in asynchronous mode
+        err_code = clEnqueueWriteBuffer(data->C->command_queue(true),
+                                        *(cl_mem*)field->get(),
+                                        CL_FALSE,
+                                        offset * tsize,
+                                        n * tsize,
+                                        ptr,
+                                        0,
+                                        NULL,
+                                        &field_event);
         if(err_code != CL_SUCCESS){
-            std::stringstream msg;
-            msg << "Failure setting user event status for \""
-                << field->name() << "\" variable." << std::endl;
+            std::ostringstream msg;
+            msg << "Failure uploading the variable \""
+                << field->name() << "\"" << std::endl;
             LOG(L_ERROR, msg.str());
             InputOutput::Logger::singleton()->printOpenCLError(err_code);
             throw std::runtime_error("OpenCL execution error");
         }
-        err_code = clReleaseEvent(data->field_events[i]);
-        if(err_code != CL_SUCCESS){
-            std::stringstream msg;
-            msg << "Failure releasing user event status for \""
-                << field->name() << "\" variable." << std::endl;
-            LOG(L_ERROR, msg.str());
-            InputOutput::Logger::singleton()->printOpenCLError(err_code);
-            throw std::runtime_error("OpenCL execution error");
-        }
+        sync_user_event(data->field_events[i], field_event);
     }
     free(data->field_events);
     free(data);
