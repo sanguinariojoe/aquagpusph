@@ -19,7 +19,7 @@
 		<Tool action="insert" after="Predictor" name="MPI"  once="false" type="dummy"/>
 		<Tool action="insert" before="MPI" in="mpi_mask" name="mpi mask reset" once="false" type="set" value="mpi_rank"/>
 		<Tool action="insert" after="mpi mask reset" entry_point="mask_planes" name="mpi mask (planes)" once="false" path="resources/Scripts/basic/MPI.cl" type="kernel"/>
-		<Tool action="insert" after="mpi mask (planes)" fields="mpi_r,mpi_u,mpi_dudt,mpi_rho,mpi_drhodt" mask="mpi_mask" name="mpi sync" once="false" processes="mpi_rank-1,mpi_rank+1" type="mpi-sync"/>
+		<Tool action="insert" after="mpi mask (planes)" fields="mpi_r,mpi_u,mpi_dudt,mpi_rho,mpi_drhodt,mpi_m" mask="mpi_mask" name="mpi sync" once="false" processes="mpi_rank-1,mpi_rank+1" type="mpi-sync"/>
 		<Tool action="insert" after="mpi mask reset" entry_point="copy" name="mpi copy" once="false" path="resources/Scripts/basic/MPI.cl" type="kernel"/>
 		<Tool action="insert" after="mpi copy" name="Set buffer"  type="dummy" />
 		<Tool action="insert" before="MPI" entry_point="restore" name="mpi restore" once="false" path="resources/Scripts/basic/MPI.cl" type="kernel"/>
