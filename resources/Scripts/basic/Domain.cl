@@ -57,6 +57,8 @@ __kernel void entry(__global int* imove,
     unsigned int i = get_global_id(0);
     if(i >= N)
         return;
+    if(imove[i] <= -255)
+        return;
 
     const vec coords = r[i];
     if(    (coords.x < domain_min.x)
