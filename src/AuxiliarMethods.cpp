@@ -71,6 +71,12 @@ int isKeyPressed()
     return 0;
 }
 
+bool hasPrefix(const std::string &str, const std::string &prefix)
+{
+    return str.size() >= prefix.size() &&
+           str.compare(0, prefix.size(), prefix) == 0;
+}
+
 bool hasSuffix(const std::string &str, const std::string &suffix)
 {
     return str.size() >= suffix.size() &&

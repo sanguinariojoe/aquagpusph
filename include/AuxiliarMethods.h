@@ -35,6 +35,14 @@ namespace Aqua{
  */
 int isKeyPressed();
 
+/** @brief Check if a string starts with an specific prefix
+ * 
+ * @param str String to be checked
+ * @param prefix Prefix to be looked for
+ * @return true if #str starts with #prefix, false otherwise.
+ */
+bool hasPrefix(const std::string &str, const std::string &prefix);
+
 /** @brief Check if a string ends with an specific suffix
  * 
  * @param str String to be checked

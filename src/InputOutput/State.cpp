@@ -390,15 +390,27 @@ void State::parseVariables(DOMElement *root,
             if(s_node->getNodeType() != DOMNode::ELEMENT_NODE)
                 continue;
             DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+            if(!xmlHasAttribute(s_elem, "name")) {
+                LOG(L_ERROR, "Unnamed variable");
+                throw std::runtime_error("Invalid variable name");
+            }
+            std::string var_name = xmlAttribute(s_elem, "name");
+            if(hasPrefix(var_name, "__")) {
+                std::ostringstream msg;
+                msg << "Invalid variable name \"" << var_name
+                    << "\", since prefix \"__\" is reserved" << std::endl;
+                LOG(L_ERROR, msg.str());
+                throw std::runtime_error("Invalid variable name");
+            }
 
             if(xmlAttribute(s_elem, "type").find('*') == std::string::npos){
-                sim_data.variables.registerVariable(xmlAttribute(s_elem, "name"),
+                sim_data.variables.registerVariable(var_name,
                                                     xmlAttribute(s_elem, "type"),
                                                     "1",
                                                     xmlAttribute(s_elem, "value"));
             }
             else{
-                sim_data.variables.registerVariable(xmlAttribute(s_elem, "name"),
+                sim_data.variables.registerVariable(var_name,
                                                     xmlAttribute(s_elem, "type"),
                                                     xmlAttribute(s_elem, "length"),
                                                     "");
@@ -1563,10 +1575,14 @@ void State::writeVariables(xercesc::DOMDocument* doc,
 
     std::vector<Variable*> vars = C->variables()->getAll();
     for (auto var : vars) {
+        std::string var_name = var->name();
+        if(hasPrefix(var_name, "__"))
+            continue;
+
         s_elem = doc->createElement(xmlS("Variable"));
         elem->appendChild(s_elem);
 
-        s_elem->setAttribute(xmlS("name"), xmlS(var->name()));
+        s_elem->setAttribute(xmlS("name"), xmlS(var_name));
         std::string type = var->type();
         s_elem->setAttribute(xmlS("type"), xmlS(type));
 
