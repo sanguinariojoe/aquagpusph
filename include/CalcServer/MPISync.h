@@ -273,8 +273,7 @@ public:
                InputOutput::ArrayVariable *mask,
                const std::vector<InputOutput::ArrayVariable*> fields,
                const std::vector<void*> field_hosts,
-               const unsigned int proc,
-               InputOutput::UIntVariable *n_offset);
+               const unsigned int proc);
 
         /** Destructor.
          */
@@ -380,12 +379,6 @@ public:
 
 
 private:
-    /// Cumulative number of particles sent
-    InputOutput::UIntVariable *_n_offset_send;
-
-    /// Offset reinitialization tool
-    SetScalar *_n_offset_send_reinit;
-
     /// Host memory arrays to download and send data to other processes
     std::vector<void*> _fields_send;
 

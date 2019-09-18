@@ -56,7 +56,6 @@ MPISync::MPISync(const std::string name,
     , _sorted_id(NULL)
     , _sort(NULL)
     , _n(0)
-    , _n_offset_send(NULL)
     , _n_offset_recv(NULL)
 {
     int mpi_rank, mpi_size;
@@ -89,7 +88,6 @@ MPISync::MPISync(const std::string name,
 MPISync::~MPISync()
 {
     if(_sort) delete _sort; _sort=NULL;
-    if(_n_offset_send_reinit) delete _n_offset_send_reinit; _n_offset_send_reinit=NULL;
     if(_n_offset_recv_reinit) delete _n_offset_recv_reinit; _n_offset_recv_reinit=NULL;
     if(_mask_reinit) delete _mask_reinit; _mask_reinit=NULL;
 
@@ -175,7 +173,6 @@ cl_event MPISync::_execute(const std::vector<cl_event> events)
     }
 
     // Send the data to other processes
-    _n_offset_send_reinit->execute();
     for(auto sender : _senders) {
         sender->execute();
     }
@@ -333,16 +330,6 @@ void MPISync::setupSenders()
     CalcServer *C = CalcServer::singleton();
     InputOutput::Variables *vars = C->variables();
 
-    // Create a variable for the cumulative offset computation
-    vars->registerVariable("__mpi_offset", "unsigned int", "", "0");
-    _n_offset_send = (InputOutput::UIntVariable*)vars->get("__mpi_offset");
-
-    // Create a tool to reinit it to zero value
-    _n_offset_send_reinit = new SetScalar("__" + _n_offset_send->name() + "->reset",
-                                          _n_offset_send->name(),
-                                          "0");
-    _n_offset_send_reinit->setup();
-
     // Allocate the host memory to download the fields and subsequently send
     // them
     for(auto field : _fields) {
@@ -364,8 +351,7 @@ void MPISync::setupSenders()
                                     _mask,
                                     _fields_sorted,
                                     _fields_send,
-                                    proc,
-                                    _n_offset_send);
+                                    proc);
         if(!sender) {
             std::stringstream msg;
             msg << "Failure Allocating memory for the process "
@@ -525,10 +511,9 @@ MPISync::Sender::Sender(const std::string name,
                         InputOutput::ArrayVariable *mask,
                         const std::vector<InputOutput::ArrayVariable*> fields,
                         const std::vector<void*> field_hosts,
-                        const unsigned int proc,
-                        InputOutput::UIntVariable *n_offset)
+                        const unsigned int proc)
     : MPISync::Exchanger(name, mask, fields, field_hosts, proc)
-    , _n_offset(n_offset)
+    , _n_offset(NULL)
     , _n_offset_mask(NULL)
     , _n_offset_kernel(NULL)
     , _n_offset_reduction(NULL)
@@ -573,6 +558,7 @@ void CL_CALLBACK cbMPISend(cl_event n_event,
     unsigned int n = *(data->n);
 
     if(data->tag == 1) {
+
         MPI::COMM_WORLD.Isend(&n, 1, MPI::UNSIGNED, data->proc, 0);
     }
 
@@ -627,19 +613,20 @@ void MPISync::Sender::execute()
 {
     unsigned int i, j;
     cl_int err_code;
-    cl_event event, event_wait;
+    cl_event event;
+    std::vector<cl_event> event_wait_list;
     CalcServer *C = CalcServer::singleton();
 
-    // Extract the submasks
-    event_wait = _mask->getEvent();
+    // Compute the offset of the first particle to be sent
+    event_wait_list = {_mask->getEvent(), _n_offset_mask->getEvent()};
     err_code = clEnqueueNDRangeKernel(C->command_queue(),
                                       _n_offset_kernel,
                                       1,
                                       NULL,
                                       &_global_work_size,
                                       &_local_work_size,
-                                      1,
-                                      &event_wait,
+                                      event_wait_list.size(),
+                                      event_wait_list.data(),
                                       &event);
     if(err_code != CL_SUCCESS) {
         std::stringstream msg;
@@ -652,16 +639,18 @@ void MPISync::Sender::execute()
     // Mark the variables with an event to be subsequently waited for
     _mask->setEvent(event);
     _n_offset_mask->setEvent(event);
+    _n_offset_reduction->execute();
 
-    event_wait = event;
+    // Compute number of particles to be sent
+    event_wait_list = {_mask->getEvent(), _n_send_mask->getEvent()};
     err_code = clEnqueueNDRangeKernel(C->command_queue(),
                                       _n_send_kernel,
                                       1,
                                       NULL,
                                       &_global_work_size,
                                       &_local_work_size,
-                                      1,
-                                      &event_wait,
+                                      event_wait_list.size(),
+                                      event_wait_list.data(),
                                       &event);
     if(err_code != CL_SUCCESS) {
         std::stringstream msg;
@@ -674,22 +663,19 @@ void MPISync::Sender::execute()
     // Mark the variables with an event to be subsequently waited for
     _mask->setEvent(event);
     _n_send_mask->setEvent(event);
-
-    // Compute the number of elements to download
-    _n_offset_reduction->execute();
     _n_send_reduction->execute();
 
     for(unsigned int i = 0; i < _fields.size(); i++) {
         // Setup a events syncing point to can register a callback to send the
         // fields
-        std::vector<cl_event> event_wait_list = {_n_offset->getEvent(),
-                                                 _n_send->getEvent(),
-                                                 _fields.at(i)->getEvent()};
+        event_wait_list = {_n_offset->getEvent(),
+                           _n_send->getEvent(),
+                           _fields.at(i)->getEvent()};
 
         err_code = clEnqueueMarkerWithWaitList(C->command_queue(),
-                                            event_wait_list.size(),
-                                            event_wait_list.data(),
-                                            &event);
+                                               event_wait_list.size(),
+                                               event_wait_list.data(),
+                                               &event);
         if(err_code != CL_SUCCESS) {
             std::stringstream msg;
             msg << "Failure creating send events syncing point in tool \""
@@ -719,12 +705,6 @@ void MPISync::Sender::execute()
         user_data->tag = i + 1;
         
         // So we can asynchronously ask to dispatch the data send
-        /*
-        clWaitForEvents(1, &event);
-        cbMPISend(event,
-                            CL_COMPLETE,
-                            (void*)(&user_data));
-        */
         err_code = clSetEventCallback(event,
                                       CL_COMPLETE,
                                       &cbMPISend,
@@ -870,18 +850,17 @@ void MPISync::Sender::setupReduction(const std::string var_name)
         throw std::runtime_error("Invalid value");
     }
 
-    InputOutput::Variable* var;
+    // Register a variable where we can reduce the result
+    i = 0;
+    name << "__" << var_name << "_" << i;
+    while(vars->get(name.str()) != NULL) {
+        name << "__" << var_name << "_" << ++i;
+    }
+    vars->registerVariable(name.str(), "unsigned int", "", "0");
+    InputOutput::Variable* var = vars->get(name.str());
     if(!var_name.compare("n_offset")) {
-        var = (InputOutput::Variable*)_n_offset;
+        _n_offset = (InputOutput::UIntVariable*)var;
     } else if(!var_name.compare("n_send")) {
-        // Register a variable where we can reduce the result
-        i = 0;
-        name << "__" << var_name << "_" << i;
-        while(vars->get(name.str()) != NULL) {
-            name << "__" << var_name << "_" << ++i;
-        }
-        vars->registerVariable(name.str(), "unsigned int", "", "0");
-        var = vars->get(name.str());
         _n_send = (InputOutput::UIntVariable*)var;
     }
 
