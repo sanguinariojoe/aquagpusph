@@ -25,6 +25,7 @@
 #define REPORT_H_INCLUDED
 
 #include <string>
+#include <stdexcept>
 #include <sphPrerequisites.h>
 #include <InputOutput/InputOutput.h>
 
