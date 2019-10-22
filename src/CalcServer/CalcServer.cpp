@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <dlfcn.h>
 #include <limits>
+#include <string>
 
 #include <CalcServer.h>
 #include <AuxiliarMethods.h>
