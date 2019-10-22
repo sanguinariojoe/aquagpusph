@@ -237,6 +237,8 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     endif(UNIX)
 endif()
 
+# CMAKE < 3.1 Change this when minimum CMake version is updated
+SET(CMAKE_CXX_FLAGS "-std=c++11")
 
 # ===================================================== #
 # Global Compiler and Linker Settings                   #
