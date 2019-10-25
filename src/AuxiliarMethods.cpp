@@ -123,14 +123,12 @@ std::string trimCopy(std::string s) {
     return s;
 }
 
-static std::string xxd_str;
-
 std::string xxd2string(unsigned char* arr, unsigned int len)
 {
     char txt[len + 1];
     strncpy(txt, (const char*)arr, len);
     txt[len] = '\0';
-    xxd_str = txt;
+    std::string xxd_str(txt);
     return xxd_str;
 }
 
