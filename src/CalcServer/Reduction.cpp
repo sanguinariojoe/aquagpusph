@@ -243,7 +243,7 @@ void Reduction::setupOpenCL()
     source << "T reduce(T a, T b) " << std::endl;
     source << "{ " << std::endl;
     source << "    T c; " << std::endl;
-    source << _operation << std::endl;
+    source << _operation << ";" << std::endl;
     source << "    return c; " << std::endl;
     source << "} " << std::endl;
     source << REDUCTION_SRC;
