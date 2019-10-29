@@ -55,7 +55,7 @@
  * @param p0 Background pressure \f$ p_0 \f$.
  */
 __kernel void entry(__global unsigned int* iset,
-                    __global unsigned int* imove,
+                    __global int* imove,
                     __global float* rho,
                     __global float* p,
                     __constant float* refd,
