@@ -30,23 +30,19 @@
  *
  * Time integration is based in the following quasi-second order
  * Predictor-Corrector integration scheme:
- *   - \f$ \mathbf{u}_{n+1} = \mathbf{u}_{n} + \Delta t \left(
-        \mathbf{g} +
+ *   - \f$ \mathbf{u}_{n+1} = \mathbf{u}_{n} + \Delta t
         \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n+1/2}
-     \right)
      + \frac{\Delta t}{2} \left(
         \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n + 1/2} -
         \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n - 1/2}
      \right)
      \f$
  *   - \f$ \mathbf{r}_{n+1} = \mathbf{r}_{n} + \Delta t \, \mathbf{u}_{n}
-     + \frac{\Delta t^2}{2} \left(
-        \mathbf{g} +
+     + \frac{\Delta t^2}{2}
         \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n+1/2}
-     \right)
      \f$
  *   - \f$ \rho_{n+1} = \rho_{n} + \Delta t
-        \left. \frac{\mathrm{d}\rho}{\mathrm{d}t} \right\vert_{n+1/2}
+        \frac{\mathrm{d}\rho}{\mathrm{d}t} \right\vert_{n+1/2}
      + \frac{\Delta t}{2} \left(
         \left. \frac{\mathrm{d}\rho}{\mathrm{d}t} \right\vert_{n + 1/2} -
         \left. \frac{\mathrm{d}\rho}{\mathrm{d}t} \right\vert_{n - 1/2}

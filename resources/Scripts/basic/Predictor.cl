@@ -33,23 +33,19 @@
  *
  * Time integration is based in the following quasi-second order
  * Predictor-Corrector integration scheme:
- *   - \f$ \mathbf{u}_{n+1} = \mathbf{u}_{n} + \Delta t \left(
-        \mathbf{g} +
+ *   - \f$ \mathbf{u}_{n+1} = \mathbf{u}_{n} + \Delta t
         \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n+1/2}
-     \right)
      + \frac{\Delta t}{2} \left(
         \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n + 1/2} -
         \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n - 1/2}
      \right)
      \f$
  *   - \f$ \mathbf{r}_{n+1} = \mathbf{r}_{n} + \Delta t \, \mathbf{u}_{n}
-     + \frac{\Delta t^2}{2} \left(
-        \mathbf{g} +
+     + \frac{\Delta t^2}{2}
         \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n+1/2}
-     \right)
      \f$
  *   - \f$ \rho_{n+1} = \rho_{n} + \Delta t
-        \left. \frac{\mathrm{d}\rho}{\mathrm{d}t} \right\vert_{n+1/2}
+        \frac{\mathrm{d}\rho}{\mathrm{d}t} \right\vert_{n+1/2}
      + \frac{\Delta t}{2} \left(
         \left. \frac{\mathrm{d}\rho}{\mathrm{d}t} \right\vert_{n + 1/2} -
         \left. \frac{\mathrm{d}\rho}{\mathrm{d}t} \right\vert_{n - 1/2}
@@ -76,7 +72,6 @@
  * \f$ \left. \frac{d \rho}{d t} \right\vert_{n+1/2} \f$.
  * @param N Number of particles.
  * @param dt Time step \f$ \Delta t \f$.
- * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  * @see basic/Corrector.cl
  */
 __kernel void entry(__global int* imove,
@@ -91,8 +86,7 @@ __kernel void entry(__global int* imove,
                     __global float* rho_in,
                     __global float* drhodt_in,
                     unsigned int N,
-                    float dt,
-                    vec g)
+                    float dt)
 {
     unsigned int i = get_global_id(0);
     if(i >= N)
