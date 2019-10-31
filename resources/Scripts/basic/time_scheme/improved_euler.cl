@@ -115,11 +115,8 @@ __kernel void predictor(__global int* imove,
  * @param rho Density \f$ \rho_{n+1/2} \f$.
  * @param drhodt Density rate of change
  * \f$ \left. \frac{d \rho}{d t} \right\vert_{n+1/2} \f$.
- * @param r_in Position \f$ \mathbf{r}_{n} \f$.
- * @param u_in Velocity \f$ \mathbf{u}_{n} \f$.
  * @param dudt_in Velocity rate of change
  * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n-1/2} \f$.
- * @param rho_in Density \f$ \rho_{n} \f$.
  * @param drhodt_in Density rate of change
  * \f$ \left. \frac{d \rho}{d t} \right\vert_{n-1/2} \f$.
  * @param N Number of particles.
@@ -132,10 +129,7 @@ __kernel void corrector(__global int* imove,
                         __global vec* dudt,
                         __global float* rho,
                         __global float* drhodt,
-                        __global vec* r_in,
-                        __global vec* u_in,
                         __global vec* dudt_in,
-                        __global float* rho_in,
                         __global float* drhodt_in,
                         unsigned int N,
                         float dt)
@@ -150,12 +144,6 @@ __kernel void corrector(__global int* imove,
         r[i] += DT * DT * (dudt[i] - dudt_in[i]);
         rho[i] += DT * (drhodt[i] - drhodt_in[i]);
     }
-
-    r_in[i] = r[i];
-    u_in[i] = u[i];
-    rho_in[i] = rho[i];
-    dudt_in[i] = dudt[i];
-    drhodt_in[i] = drhodt[i];
 }
 
 /*
