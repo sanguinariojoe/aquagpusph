@@ -30,22 +30,22 @@
  *
  * Time integration is based in the following quasi-second order
  * Predictor-Corrector integration scheme:
- *   - \f$ \mathbf{u}_{n+1} = \mathbf{u}_{n} + \Delta t
-        \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n+1/2}
+ *   - \f$ \mathbf{u}_{n+1} = \mathbf{u}_{n}
      + \frac{\Delta t}{2} \left(
-        \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n + 1/2} -
-        \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n - 1/2}
+        \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n+1/2} +
+        \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n-1/2}
      \right)
      \f$
  *   - \f$ \mathbf{r}_{n+1} = \mathbf{r}_{n} + \Delta t \, \mathbf{u}_{n}
-     + \frac{\Delta t^2}{2}
-        \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n+1/2}
+     + \frac{\Delta t^2}{4} \left(
+        \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n+1/2} +
+        \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n-1/2}
+     \right)
      \f$
- *   - \f$ \rho_{n+1} = \rho_{n} + \Delta t
-        \frac{\mathrm{d}\rho}{\mathrm{d}t} \right\vert_{n+1/2}
+ *   - \f$ \rho_{n+1} = \rho_{n}
      + \frac{\Delta t}{2} \left(
-        \left. \frac{\mathrm{d}\rho}{\mathrm{d}t} \right\vert_{n + 1/2} -
-        \left. \frac{\mathrm{d}\rho}{\mathrm{d}t} \right\vert_{n - 1/2}
+        \left. \frac{\mathrm{d}\rho}{\mathrm{d}t} \right\vert_{n+1/2} +
+        \left. \frac{\mathrm{d}\rho}{\mathrm{d}t} \right\vert_{n-1/2}
      \right)
      \f$
  *
@@ -91,12 +91,12 @@ __kernel void entry(__global int* imove,
     if(i >= N)
         return;
 
-    float DT = 0.5f * dt;
-    if(imove[i] <= 0)
-        DT = 0.f;
-
-    u[i] += DT * (dudt[i] - dudt_in[i]);
-    rho[i] += DT * (drhodt[i] - drhodt_in[i]);
+    if(imove[i] > 0) {
+        const float DT = 0.5f * dt;
+        u[i] += DT * (dudt[i] - dudt_in[i]);
+        r[i] += DT * DT * (dudt[i] - dudt_in[i]);
+        rho[i] += DT * (drhodt[i] - drhodt_in[i]);
+    }
 
     r_in[i] = r[i];
     u_in[i] = u[i];
