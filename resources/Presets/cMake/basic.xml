@@ -126,6 +126,7 @@ later:
         <Define name="SUPPORT" value="2.f" evaluate="false"/>
         <Define name="TSCHEME_EULER" value="0" evaluate="false"/>
         <Define name="TSCHEME_IMPROVED_EULER" value="1" evaluate="false"/>
+        <Define name="TSCHEME_TSCHEME_ADAMS_BASHFORTH" value="2" evaluate="false"/>
         <Define name="TSCHEME" value="TSCHEME_IMPROVED_EULER" evaluate="false"/>
     </Definitions>
     

@@ -29,6 +29,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/time_scheme/euler.xml
     ${CMAKE_CURRENT_BINARY_DIR}/time_scheme/euler.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/time_scheme/improved_euler.xml
     ${CMAKE_CURRENT_BINARY_DIR}/time_scheme/improved_euler.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/time_scheme/adams_bashforth.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/time_scheme/adams_bashforth.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/neighsLimit.xml
     ${CMAKE_CURRENT_BINARY_DIR}/neighsLimit.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/noLocalMem.xml
@@ -68,6 +70,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/time_scheme/euler.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/time_scheme/euler.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/time_scheme/improved_euler.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/time_scheme/improved_euler.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/time_scheme/adams_bashforth.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/time_scheme/adams_bashforth.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/neighsLimit.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/neighsLimit.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/noLocalMem.xml
@@ -128,6 +132,7 @@ INSTALL(
 SET(RESOURCES_TIMESCHEME_SRCS 
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/time_scheme/euler.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/time_scheme/improved_euler.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/time_scheme/adams_bashforth.xml
 )
 SOURCE_GROUP("ResourcesTimeSchemeGroup" FILES ${RESOURCES_TIMESCHEME_SRCS})
 INSTALL(
