@@ -25,6 +25,10 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/multiresolution/cube.xml
     ${CMAKE_CURRENT_BINARY_DIR}/multiresolution/cube.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/multiresolution/sphere.xml
     ${CMAKE_CURRENT_BINARY_DIR}/multiresolution/sphere.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/time_scheme/euler.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/time_scheme/euler.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/time_scheme/improved_euler.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/time_scheme/improved_euler.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/neighsLimit.xml
     ${CMAKE_CURRENT_BINARY_DIR}/neighsLimit.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/noLocalMem.xml
@@ -60,6 +64,10 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/multiresolution/cube.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/multiresolution/cube.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/multiresolution/sphere.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/multiresolution/sphere.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/time_scheme/euler.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/time_scheme/euler.xml @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/time_scheme/improved_euler.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/time_scheme/improved_euler.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/neighsLimit.xml
     ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/neighsLimit.xml @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/noLocalMem.xml
@@ -116,4 +124,15 @@ INSTALL(
         ${RESOURCES_MULTIRESOLUTION_SRCS}
     DESTINATION
         ${CMAKE_INSTALL_DATADIR}/resources/Presets/basic/multiresolution
+)
+SET(RESOURCES_TIMESCHEME_SRCS 
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/time_scheme/euler.xml
+    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/time_scheme/improved_euler.xml
+)
+SOURCE_GROUP("ResourcesTimeSchemeGroup" FILES ${RESOURCES_TIMESCHEME_SRCS})
+INSTALL(
+    FILES
+        ${RESOURCES_TIMESCHEME_SRCS}
+    DESTINATION
+        ${CMAKE_INSTALL_DATADIR}/resources/Presets/basic/time_scheme
 )
