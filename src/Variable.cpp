@@ -787,14 +787,14 @@ bool ArrayVariable::setFromPythonObject(PyObject* obj, int i0, int n)
         pyerr << "Variable \"" << name()
             << "\" cannot handle \"offset\" lower than 0" << std::endl;
         PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-        return NULL;
+        return true;
     }
     if(n < 0){
         pyerr.str("");
         pyerr << "Variable \"" << name()
             << "\" cannot handle \"n\" lower than 0" << std::endl;
         PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-        return NULL;
+        return true;
     }
     CalcServer::CalcServer *C = CalcServer::CalcServer::singleton();
     Variables *vars = C->variables();
@@ -1208,7 +1208,7 @@ bool Variables::isSameType(const std::string type_a,
     }
 
     std::string ta = trimCopy(type_a);
-    if((ta.back() == '*')){
+    if(ta.back() == '*'){
         ta.pop_back();
     }
     if((ta.back() == '2') ||
@@ -1217,7 +1217,7 @@ bool Variables::isSameType(const std::string type_a,
         ta.pop_back();
     }
     std::string tb = trimCopy(type_b);
-    if((tb.back() == '*')){
+    if(tb.back() == '*'){
         tb.pop_back();
     }
     if((tb.back() == '2') ||
