@@ -114,6 +114,25 @@ public:
      */
     float elapsedTimeDeviation() const {return sqrt(elapsedTimeVariance());}
 
+    /** Get the scope modifier
+     *
+     * Scopes can be used to create groups of tools that can be eventually
+     * enabled/disabled in runtime. This is sueful to create conditions.
+     *
+     * @return 0 if this tool is not modifying the scope, 1 if this tool is
+     * creating a new subscope, and -1 if this tool is closing an already
+     * created subscope, returning to the previous one
+     * @note scopes shall be always balanced
+     */
+    virtual const int scope_modifier(){return 0;}
+
+    /** Check if the scope is enabled
+     *
+     * When a new scope is created this function can be used to notify if the
+     * inner tools are enabled or not. Thus, this method is only used for those
+     * tools creating new scopes, i.e. scope_modifier() returning 1.
+     */
+    virtual const bool scope_enabled(){return true;}
 protected:
     /** Set the allocated memory for this tool.
      * @param mem_size allocated memory by this tool.

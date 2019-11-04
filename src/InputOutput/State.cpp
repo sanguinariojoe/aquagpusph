@@ -545,7 +545,6 @@ void State::parseTools(DOMElement *root,
                 tool->set("once", "false");
             }
 
-
             // Check if the conditions to add the tool are fulfilled
             if(xmlHasAttribute(s_elem, "ifdef")){
                 if(!sim_data.definitions.isDefined(xmlAttribute(s_elem, "ifdef"))){
@@ -564,18 +563,6 @@ void State::parseTools(DOMElement *root,
                     msg << "Ignoring the tool \"" << tool->get("name")
                         << "\" because \"" << xmlAttribute(s_elem, "ifndef")
                         << "\" has been defined." << std::endl;
-                    LOG(L_WARNING, msg.str());
-                    delete tool;
-                    continue;
-                }
-            }
-
-            if(xmlHasAttribute(s_elem, "ifdef")){
-                if(!sim_data.definitions.isDefined(xmlAttribute(s_elem, "ifdef"))){
-                    std::ostringstream msg;
-                    msg << "Ignoring the tool \"" << tool->get("name")
-                        << "\" because \"" << xmlAttribute(s_elem, "ifdef")
-                        << "\" has not been defined." << std::endl;
                     LOG(L_WARNING, msg.str());
                     delete tool;
                     continue;
@@ -947,6 +934,19 @@ void State::parseTools(DOMElement *root,
                 }
                 tool->set("condition", xmlAttribute(s_elem, "condition"));
             }
+            else if(!xmlAttribute(s_elem, "type").compare("if")){
+                if(!xmlHasAttribute(s_elem, "condition")){
+                    std::ostringstream msg;
+                    msg << "Tool \"" << tool->get("name")
+                        << "\" is of type \"if\", but \"" << "condition"
+                        << "\" is not defined." << std::endl;
+                    LOG(L_ERROR, msg.str());
+                    throw std::runtime_error("Missing attribute");
+                }
+                tool->set("condition", xmlAttribute(s_elem, "condition"));
+            }
+            else if(!xmlAttribute(s_elem, "type").compare("endif")){
+            }
             else if(!xmlAttribute(s_elem, "type").compare("installable")){
                 if(!xmlHasAttribute(s_elem, "path")){
                     std::ostringstream msg;
@@ -1068,6 +1068,9 @@ void State::parseTools(DOMElement *root,
                 LOG0(L_DEBUG, "\t\treduction\n");
                 LOG0(L_DEBUG, "\t\tlink-list\n");
                 LOG0(L_DEBUG, "\t\tradix-sort\n");
+                LOG0(L_DEBUG, "\t\tassert\n");
+                LOG0(L_DEBUG, "\t\tif\n");
+                LOG0(L_DEBUG, "\t\tendif\n");
                 LOG0(L_DEBUG, "\t\tinstallable\n");
                 LOG0(L_DEBUG, "\t\tdummy\n");
                 LOG0(L_DEBUG, "\t\treport_screen\n");
