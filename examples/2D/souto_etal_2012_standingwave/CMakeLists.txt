@@ -1,98 +1,61 @@
-SET(RESOURCES_DIR ${CMAKE_SOURCE_DIR}/resources)
+SET(EXAMPLE_ORIG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cMake)
+FILE(GLOB_RECURSE FNAMES RELATIVE ${EXAMPLE_ORIG_DIR} "*")
 
 # ===================================================== #
-# In place configuration                                #
+# Configuration                                         #
 # ===================================================== #
-SET(EXAMPLE_ORIG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cMake)
-SET(EXAMPLE_DEST_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+SET(RESOURCES_DIR ${CMAKE_BINARY_DIR}/resources)
+SET(EXAMPLE_DEST_DIR ${CMAKE_CURRENT_BINARY_DIR})
 SET(BINARY_DIR ${CMAKE_BINARY_DIR}/bin)
 
-configure_file(${EXAMPLE_ORIG_DIR}/templates/Fluids.xml
-    ${EXAMPLE_DEST_DIR}/templates/Fluids.xml @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/templates/Main.xml
-    ${EXAMPLE_DEST_DIR}/templates/Main.xml @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/templates/Settings.xml
-    ${EXAMPLE_DEST_DIR}/templates/Settings.xml @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/templates/SPH.xml
-    ${EXAMPLE_DEST_DIR}/templates/SPH.xml @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/templates/Symmetries.xml
-    ${EXAMPLE_DEST_DIR}/templates/Symmetries.xml @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/templates/Time.xml
-    ${EXAMPLE_DEST_DIR}/templates/Time.xml @ONLY)
-
-configure_file(${EXAMPLE_ORIG_DIR}/plot_t.py
-    ${EXAMPLE_DEST_DIR}/plot_t.py @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/plot_e.py
-    ${EXAMPLE_DEST_DIR}/plot_e.py @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/doc/standing_wave.wxmx
-    ${EXAMPLE_DEST_DIR}/doc/standing_wave.wxmx COPYONLY)
-
-configure_file(${EXAMPLE_ORIG_DIR}/Create.py
-    ${EXAMPLE_DEST_DIR}/Create.py @ONLY)
-
-configure_file(${EXAMPLE_ORIG_DIR}/run.sh
-    ${EXAMPLE_DEST_DIR}/run.sh @ONLY)
+FOREACH(FNAME ${FNAMES})
+    GET_FILENAME_COMPONENT(FEXT ${FNAME} EXT)
+    IF((${FEXT} MATCHES ".xml") OR (${FEXT} MATCHES ".py") OR (${FEXT} MATCHES ".sh"))
+        configure_file(${EXAMPLE_ORIG_DIR}/${FNAME}
+            ${EXAMPLE_DEST_DIR}/${FNAME} @ONLY)
+    ELSE()
+        configure_file(${EXAMPLE_ORIG_DIR}/${FNAME}
+            ${EXAMPLE_DEST_DIR}/${FNAME} COPYONLY)
+    ENDIF()
+ENDFOREACH()
 
 # ===================================================== #
-# Installable version (and tagets)                      #
+# Installable version (and targets)                     #
 # ===================================================== #
-SET(EXAMPLE_ORIG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cMake)
-SET(EXAMPLE_AUX_DIR ${CMAKE_CURRENT_SOURCE_DIR}/CMakeFiles/CMakeTmp)
-SET(EXAMPLE_DEST_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/examples/2D/souto_etal_2012_standingwave)
+FILE(RELATIVE_PATH RUN_REL_PATH ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/cMake/run.sh)
+GET_FILENAME_COMPONENT(EXAMPLE_REL_PATH ${RUN_REL_PATH} PATH)
+SET(RESOURCES_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/resources)
+SET(EXAMPLE_AUX_DIR ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp)
+SET(EXAMPLE_DEST_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/${EXAMPLE_REL_PATH}/..)
 SET(BINARY_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 
-configure_file(${EXAMPLE_ORIG_DIR}/templates/Fluids.xml
-    ${EXAMPLE_AUX_DIR}/templates/Fluids.xml @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/templates/Main.xml
-    ${EXAMPLE_AUX_DIR}/templates/Main.xml @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/templates/Settings.xml
-    ${EXAMPLE_AUX_DIR}/templates/Settings.xml @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/templates/SPH.xml
-    ${EXAMPLE_AUX_DIR}/templates/SPH.xml @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/templates/Symmetries.xml
-    ${EXAMPLE_AUX_DIR}/templates/Symmetries.xml @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/templates/Time.xml
-    ${EXAMPLE_AUX_DIR}/templates/Time.xml @ONLY)
-
-configure_file(${EXAMPLE_ORIG_DIR}/plot_t.py
-    ${EXAMPLE_AUX_DIR}/plot_t.py @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/plot_e.py
-    ${EXAMPLE_AUX_DIR}/plot_e.py @ONLY)
-configure_file(${EXAMPLE_ORIG_DIR}/doc/standing_wave.wxmx
-    ${EXAMPLE_AUX_DIR}/doc/standing_wave.wxmx COPYONLY)
-
-configure_file(${EXAMPLE_ORIG_DIR}/Create.py
-    ${EXAMPLE_AUX_DIR}/Create.py @ONLY)
-
-configure_file(${EXAMPLE_ORIG_DIR}/run.sh
-    ${EXAMPLE_AUX_DIR}/run.sh @ONLY)
+FOREACH(FNAME ${FNAMES})
+    GET_FILENAME_COMPONENT(FEXT ${FNAME} EXT)
+    IF((${FEXT} MATCHES ".xml") OR (${FEXT} MATCHES ".py") OR (${FEXT} MATCHES ".sh"))
+        configure_file(${EXAMPLE_ORIG_DIR}/${FNAME}
+            ${EXAMPLE_AUX_DIR}/${FNAME} @ONLY)
+    ELSE()
+        configure_file(${EXAMPLE_ORIG_DIR}/${FNAME}
+            ${EXAMPLE_AUX_DIR}/${FNAME} COPYONLY)
+    ENDIF()
+ENDFOREACH()
 
 INSTALL(
-    FILES
-        ${EXAMPLE_AUX_DIR}/templates/Fluids.xml
-        ${EXAMPLE_AUX_DIR}/templates/Main.xml
-        ${EXAMPLE_AUX_DIR}/templates/Settings.xml
-        ${EXAMPLE_AUX_DIR}/templates/SPH.xml
-        ${EXAMPLE_AUX_DIR}/templates/Symmetries.xml
-        ${EXAMPLE_AUX_DIR}/templates/Time.xml
+    DIRECTORY
+        ${EXAMPLE_AUX_DIR}/
     DESTINATION
-        ${EXAMPLE_DEST_DIR}/templates/
+        ${EXAMPLE_DEST_DIR}
+    FILES_MATCHING
+    PATTERN "*"
+    PATTERN "*.sh" EXCLUDE
 )
+
 INSTALL(
     FILES
-        ${EXAMPLE_AUX_DIR}/Create.py
-        ${EXAMPLE_AUX_DIR}/plot_t.py
-        ${EXAMPLE_AUX_DIR}/plot_e.py
         ${EXAMPLE_AUX_DIR}/run.sh
     DESTINATION
         ${EXAMPLE_DEST_DIR}
     PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
                 GROUP_EXECUTE             GROUP_READ
                 WORLD_EXECUTE             WORLD_READ             
-)
-INSTALL(
-    FILES
-        ${EXAMPLE_AUX_DIR}/doc/standing_wave.wxmx
-    DESTINATION
-        ${EXAMPLE_DEST_DIR}/doc
 )

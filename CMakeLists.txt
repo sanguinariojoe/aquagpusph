@@ -206,32 +206,23 @@ ENDIF(AQUAGPUSPH_BUILD_DOC)
 # ===================================================== #
 # config.h stuff                                        #
 # ===================================================== #
+include(cMake/ConfigureChecks.cmake)
 if(CMAKE_COMPILER_IS_GNUCXX)
-    include(cMake/ConfigureChecks.cmake)
-    configure_file(config.h.gcc.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h)
-    add_definitions(-DHAVE_CONFIG_H)
-    add_definitions(-Wno-write-strings)
-    add_definitions(-Wno-deprecated)
-    INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
-    # get linker errors as soon as possible and not at runtime e.g. for modules
-    if(UNIX)
-    #    SET(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
-    endif(UNIX)
+    configure_file(config.h.gcc.cmake ${CMAKE_BINARY_DIR}/config.h)
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    include(cMake/ConfigureChecks.cmake)
-    configure_file(config.h.clang.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h)
-    add_definitions(-DHAVE_CONFIG_H)
-    add_definitions(-Wno-write-strings)
-    add_definitions(-Wno-deprecated)
-    INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
-    # get linker errors as soon as possible and not at runtime e.g. for modules
-    if(UNIX)
-    #    SET(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
-    endif(UNIX)
+    configure_file(config.h.clang.cmake ${CMAKE_BINARY_DIR}/config.h)
 endif()
+add_definitions(-DHAVE_CONFIG_H)
+add_definitions(-Wno-write-strings)
+add_definitions(-Wno-deprecated)
+INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR})
 
-# CMAKE < 3.1 Change this when minimum CMake version is updated
+# CMAKE < 3.1 Change this when minimum CMake version is updated (see
+# CMAKE_CXX_STANDARD)
 SET(CMAKE_CXX_FLAGS "-std=c++11")
+# Apparently -std=c++11 implies defining __STRICT_ANSI__ in GCC, disabling union
+# structures in CL/cl_platform.h
+add_definitions(-U__STRICT_ANSI__)
 
 # ===================================================== #
 # Global Compiler and Linker Settings                   #
@@ -245,43 +236,8 @@ ELSE(CMAKE_SIZEOF_VOID_P EQUAL 8)
 	MESSAGE(STATUS "Platform is 32-bit")
 ENDIF(CMAKE_SIZEOF_VOID_P EQUAL 8)
 
-IF(MSVC)
-	# set default compiler settings
-	#SET (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /GF /GY")
-	SET (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DAQUA_DEBUG")
-	# set default libs
-	SET (CMAKE_C_STANDARD_LIBRARIES "kernel32.lib user32.lib gdi32.lib winspool.lib SHFolder.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib ")
-	set (CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_C_STANDARD_LIBRARIES}")
-	# set linker flag /nodefaultlib
-	set (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /NODEFAULTLIB")
-	SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB")
-
-	# Mark 32 bit executables large address aware so they can use > 2GB address space
-	# NOTE: This setting only has an effect on machines with at least 3GB of RAM, although it sets the linker option it doesn't set the the linker switch 'Enable Large Addresses'
-	IF(CMAKE_SIZEOF_VOID_P EQUAL 4)
-		set (CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /LARGEADDRESSAWARE")
-		SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LARGEADDRESSAWARE")
-	ENDIF(CMAKE_SIZEOF_VOID_P EQUAL 4)
-ELSE(MSVC)
-	SET (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DAQUA_DEBUG")
-	MESSAGE(STATUS "DEBUG: ${CMAKE_CXX_FLAGS_DEBUG}")
-ENDIF(MSVC)
-IF(MINGW)
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mthreads")
-	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mthreads")
-	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -mthreads -Wl,--export-all-symbols")
-	SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -mthreads -Wl,--export-all-symbols")
-	LINK_LIBRARIES(-lgdi32)
-ENDIF(MINGW)
-# 0000661: cmake build on Mac OS: dealing with dylib versus so
-IF(APPLE)
-	SET(CMAKE_SHARED_LIBRARY_SUFFIX ".so")
-ENDIF(APPLE)
-IF(UNIX)
-	ADD_DEFINITIONS(-DUNIX)
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
-	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w")
-ENDIF(UNIX)
+SET (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DAQUA_DEBUG")
+MESSAGE(STATUS "DEBUG: ${CMAKE_CXX_FLAGS_DEBUG}")
 
 # ===================================================== #
 # Compilation parts                                     #

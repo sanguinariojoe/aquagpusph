@@ -1,50 +1,38 @@
+SET(PRESETS_ORIG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cMake)
+FILE(GLOB_RECURSE FNAMES RELATIVE ${PRESETS_ORIG_DIR} "*")
+
 # ===================================================== #
-# Configuration files                                   #
+# Configuration                                         #
 # ===================================================== #
-# Create local version of the file
 SET(AQUAGPUSPH_ROOT_PATH ${CMAKE_BINARY_DIR})
 SET(RESOURCES_OUTPUT_DIR ${CMAKE_BINARY_DIR}/resources)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/basic.xml
-    ${CMAKE_CURRENT_BINARY_DIR}/basic.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/cfd.xml
-    ${CMAKE_CURRENT_BINARY_DIR}/cfd.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lelasticity.xml
-    ${CMAKE_CURRENT_BINARY_DIR}/lelasticity.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/root_path.xml
-    ${CMAKE_CURRENT_BINARY_DIR}/root_path.xml @ONLY)
+SET(RESOURCES_DIR ${CMAKE_SOURCE_DIR}/resources)
+SET(PRESETS_DEST_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
-# Create installable version of the file
+FOREACH(FNAME ${FNAMES})
+    CONFIGURE_FILE(${PRESETS_ORIG_DIR}/${FNAME}
+        ${PRESETS_DEST_DIR}/${FNAME} @ONLY)
+ENDFOREACH()
+
+# ===================================================== #
+# Installable version (and targets)                     #
+# ===================================================== #
 SET(AQUAGPUSPH_ROOT_PATH ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR})
 SET(RESOURCES_OUTPUT_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/resources)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/basic.xml  
-    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/basic.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/cfd.xml  
-    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/cfd.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/lelasticity.xml  
-    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/lelasticity.xml @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/root_path.xml  
-    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/root_path.xml @ONLY)
+SET(RESOURCES_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/resources)
+SET(PRESETS_AUX_DIR ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp)
+SET(PRESETS_DEST_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/resources/Presets)
 
-# ===================================================== #
-# Install                                               #
-# ===================================================== #
-SET(RESOURCES_SRCS 
-    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/basic.xml
-    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/cfd.xml
-    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/lelasticity.xml
-    ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp/root_path.xml
-)
-SOURCE_GROUP("ResourcesGroup" FILES ${RESOURCES_SRCS})
+FOREACH(FNAME ${FNAMES})
+    CONFIGURE_FILE(${PRESETS_ORIG_DIR}/${FNAME}
+        ${PRESETS_AUX_DIR}/${FNAME} @ONLY)
+ENDFOREACH()
+
 INSTALL(
-    FILES
-        ${RESOURCES_SRCS}
+    DIRECTORY
+        ${PRESETS_AUX_DIR}/
     DESTINATION
-        ${CMAKE_INSTALL_DATADIR}/resources/Presets
+        ${PRESETS_DEST_DIR}
+    FILES_MATCHING
+    PATTERN "*"
 )
-
-# ===================================================== #
-# Configure and install dependencies                    #
-# ===================================================== #
-ADD_SUBDIRECTORY(basic)
-ADD_SUBDIRECTORY(cfd)
-ADD_SUBDIRECTORY(lelasticity)

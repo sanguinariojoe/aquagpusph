@@ -31,6 +31,15 @@
 
 from distutils.core import setup
 
+LONG_DESC = """
+AQUAgpusph
+==========
+
+Free CFD software based on SPH.
+AQUAgpusph is highly extensible, and accelerated with OpenCL.
+
+Please, visit http://canal.etsin.upm.es/aquagpusph"""
+
 setup(
     name='AQUAgpusph-tools',
     version='1.4.6',
@@ -45,6 +54,6 @@ setup(
     url='http://canal.etsin.upm.es/aquagpusph',
     license='LICENSE',
     description='free SPH solver developed by the CEHINAV group.',
-    long_description=open('../README.md').read(),
+    long_description=LONG_DESC,
 )
 
