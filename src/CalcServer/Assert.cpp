@@ -17,7 +17,7 @@
  */
 
 /** @file
- * @brief Set a scalar variable.
+ * @brief Check that a condition holds true, or trhow a fatal error otherwise.
  * (See Aqua::CalcServer::Assert for details)
  */
 
