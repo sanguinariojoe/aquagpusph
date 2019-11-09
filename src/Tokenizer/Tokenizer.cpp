@@ -30,6 +30,15 @@ using namespace std;
 
 namespace Aqua{
 
+double mod_operator(double v, double w) {
+#ifdef MAX
+#undef MAX
+#endif
+#define MAX(a, b) ((a > b) ? a : b)
+    return (int)v % MAX(1, (int)w);
+#undef MAX
+}
+
 Tokenizer::Tokenizer()
 {
     struct lconv *lc;
@@ -61,6 +70,10 @@ Tokenizer::Tokenizer()
         LOG0(L_DEBUG, "\tIt is removed\n");
         lc->thousands_sep = "";
     }
+
+    // Register a modulus operator
+    p.DefineOprtChars("%");
+    p.DefineOprt("%", mod_operator, mu::prINFIX);
 }
 
 Tokenizer::~Tokenizer()
