@@ -474,7 +474,7 @@ void CalcServer::update(InputOutput::TimeManager& t_manager)
             const int scope_mod = tool->scope_modifier();
             if(scope_mod == 1) {
                 scopes.push(tool);
-                if(!scope_disabler and tool->scope_enabled())
+                if(!scope_disabler and !tool->scope_enabled())
                     scope_disabler = tool;
             }
             else if(scope_mod == -1) {
