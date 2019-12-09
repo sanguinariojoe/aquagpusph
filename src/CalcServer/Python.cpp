@@ -264,6 +264,7 @@ void Python::setup()
     msg << "Loading the tool \"" << name() << "\"..." << std::endl;
     LOG(L_INFO, msg.str());
 
+    Tool::setup();
     initPython();
     load();
 }

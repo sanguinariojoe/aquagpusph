@@ -45,6 +45,7 @@ void Assert::setup()
     std::ostringstream msg;
     msg << "Loading the tool \"" << name() << "\"..." << std::endl;
     LOG(L_INFO, msg.str());
+    Tool::setup();
 }
 
 cl_event Assert::_execute(const std::vector<cl_event> events)

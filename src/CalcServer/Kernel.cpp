@@ -61,6 +61,7 @@ void Kernel::setup()
         << "\" from the file \"" << path() << "\"..." << std::endl;
     LOG(L_INFO, msg.str());
 
+    Tool::setup();
     compile(_entry_point);
     variables(_entry_point);
     setVariables();

@@ -108,6 +108,8 @@ void LinkList::setup()
     msg << "Loading the tool \"" << name() << "\"..." << std::endl;
     LOG(L_INFO, msg.str());
 
+    Tool::setup();
+
     // Setup the reduction tools
     _min_pos->setup();
     _max_pos->setup();

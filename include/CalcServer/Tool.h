@@ -66,7 +66,7 @@ public:
 
     /** Initialize the tool.
      */
-    virtual void setup(){return;}
+    virtual void setup();
 
     /** @brief Execute the tool measuring the elapsed time.
      *
@@ -81,6 +81,15 @@ public:
      */
     virtual void execute();
 
+    /** Get the next tool to be executed in the pipeline.
+     *
+     * Such tool is usually just the next one in the linearized tools chain.
+     * However, conditional tools may alter the flow
+     * @return Next tool to be executed. NULL if this is the last tool of the
+     * pipeline
+     */
+    virtual Tool* next_tool() {return _next_tool;}
+    
     /** Get the allocated memory for this tool.
      * @return allocated memory by this tool.
      */
@@ -125,15 +134,18 @@ public:
      * @note scopes shall be always balanced
      */
     virtual const int scope_modifier(){return 0;}
-
-    /** Check if the scope is enabled
-     *
-     * When a new scope is created this function can be used to notify if the
-     * inner tools are enabled or not. Thus, this method is only used for those
-     * tools creating new scopes, i.e. scope_modifier() returning 1.
-     */
-    virtual const bool scope_enabled(){return true;}
 protected:
+    /** Get the tool index in the pipeline
+     * @return Index of the tool in the pipeline. -1 if the tool cannot be find
+     */
+    int id_in_pipeline();
+
+    /** Set the next tool to be executed in the pipeline.
+     * @param tool Next tool to be executed. NULL if this is the last tool of
+     * the pipeline
+     */
+    void next_tool(Tool* tool){_next_tool = tool;}
+
     /** Set the allocated memory for this tool.
      * @param mem_size allocated memory by this tool.
      */
@@ -188,6 +200,9 @@ private:
 
     /// true if the tool shall be run just once, false otherwise
     bool _once;
+
+    /// Next tool in the execution pipeline
+    Tool* _next_tool;
 
     /// Total auxiliar memory allocated in the device
     size_t _allocated_memory;

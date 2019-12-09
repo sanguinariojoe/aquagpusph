@@ -60,6 +60,7 @@ UnSort::~UnSort()
 
 void UnSort::setup()
 {
+    Tool::setup();
     variables();
     setupMem();
 

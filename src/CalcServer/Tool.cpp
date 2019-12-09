@@ -34,6 +34,7 @@ namespace Aqua{ namespace CalcServer{
 Tool::Tool(const std::string tool_name, bool once)
     : _name(tool_name)
     , _once(once)
+    , _next_tool(NULL)
     , _allocated_memory(0)
     , _n_iters(0)
     , _elapsed_time(0.f)
@@ -44,6 +45,20 @@ Tool::Tool(const std::string tool_name, bool once)
 
 Tool::~Tool()
 {
+}
+
+void Tool::setup()
+{
+    std::vector<Tool*> tools = CalcServer::singleton()->tools();
+
+    // Get the next tool in the pipeline
+    int i = id_in_pipeline();
+    // There are some tools which can be out of the pipeline (e.g. UnSort or
+    // reports)
+    if((i >= 0) && (i + 1 < tools.size())) {
+        next_tool(tools.at(i + 1));
+    }
+    return;
 }
 
 void Tool::execute()
@@ -101,6 +116,15 @@ void Tool::execute()
     addElapsedTime(elapsed_seconds);
 }
 
+int Tool::id_in_pipeline()
+{
+    std::vector<Tool*> tools = CalcServer::singleton()->tools();
+    auto it = std::find(tools.begin(), tools.end(), this);
+    if(it == tools.end())
+        return -1;
+    return std::distance(tools.begin(), it);
+}
+
 void Tool::addElapsedTime(float elapsed_time)
 {
     _elapsed_time = elapsed_time;
@@ -115,7 +139,6 @@ void Tool::addElapsedTime(float elapsed_time)
     _average_elapsed_time /= _n_iters;
     _squared_elapsed_time /= _n_iters;
 }
-
 
 void Tool::setDependencies(std::vector<std::string> var_names)
 {

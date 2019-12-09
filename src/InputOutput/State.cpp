@@ -945,7 +945,20 @@ void State::parseTools(DOMElement *root,
                 }
                 tool->set("condition", xmlAttribute(s_elem, "condition"));
             }
+            else if(!xmlAttribute(s_elem, "type").compare("while")){
+                if(!xmlHasAttribute(s_elem, "condition")){
+                    std::ostringstream msg;
+                    msg << "Tool \"" << tool->get("name")
+                        << "\" is of type \"while\", but \"" << "condition"
+                        << "\" is not defined." << std::endl;
+                    LOG(L_ERROR, msg.str());
+                    throw std::runtime_error("Missing attribute");
+                }
+                tool->set("condition", xmlAttribute(s_elem, "condition"));
+            }
             else if(!xmlAttribute(s_elem, "type").compare("endif")){
+            }
+            else if(!xmlAttribute(s_elem, "type").compare("end")){
             }
             else if(!xmlAttribute(s_elem, "type").compare("installable")){
                 if(!xmlHasAttribute(s_elem, "path")){
@@ -1070,7 +1083,8 @@ void State::parseTools(DOMElement *root,
                 LOG0(L_DEBUG, "\t\tradix-sort\n");
                 LOG0(L_DEBUG, "\t\tassert\n");
                 LOG0(L_DEBUG, "\t\tif\n");
-                LOG0(L_DEBUG, "\t\tendif\n");
+                LOG0(L_DEBUG, "\t\twhile\n");
+                LOG0(L_DEBUG, "\t\tend\n");
                 LOG0(L_DEBUG, "\t\tinstallable\n");
                 LOG0(L_DEBUG, "\t\tdummy\n");
                 LOG0(L_DEBUG, "\t\treport_screen\n");

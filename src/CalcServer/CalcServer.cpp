@@ -31,8 +31,8 @@
 #include <AuxiliarMethods.h>
 #include <InputOutput/Logger.h>
 #include <CalcServer/Assert.h>
+#include <CalcServer/Conditional.h>
 #include <CalcServer/Copy.h>
-#include <CalcServer/If.h>
 #include <CalcServer/Kernel.h>
 #include <CalcServer/LinkList.h>
 #include <CalcServer/Python.h>
@@ -230,9 +230,17 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
                               once);
             _tools.push_back(tool);
         }
-        else if(!t->get("type").compare("endif")){
-            EndIf *tool = new EndIf(t->get("name"),
+        else if(!t->get("type").compare("while")){
+            While *tool = new While(t->get("name"),
+                                    t->get("condition"),
                                     once);
+            _tools.push_back(tool);
+        }
+        else if(!t->get("type").compare("endif") ||
+                !t->get("type").compare("end"))
+        {
+            End *tool = new End(t->get("name"),
+                                once);
             _tools.push_back(tool);
         }
         else if(!t->get("type").compare("installable")){
@@ -453,55 +461,21 @@ CalcServer::~CalcServer()
 void CalcServer::update(InputOutput::TimeManager& t_manager)
 {
     unsigned int i;
-    std::stack<Tool*> scopes;
-    Tool* scope_disabler = NULL;
     while(!t_manager.mustPrintOutput() && !t_manager.mustStop()){
         InputOutput::Logger::singleton()->initFrame();
 
         // Execute the tools
-        strcpy(_current_tool_name, "__pre execution__");
-        for(auto tool : _tools) {
-            strncpy(_current_tool_name, tool->name().c_str(), 255);
-            _current_tool_name[255] = '\0';
-            if(!scope_disabler) {
-                try {
-                    tool->execute();
-                } catch (std::runtime_error &e) {
-                    sleep(__ERROR_SHOW_TIME__);
-                    throw;
-                }
+        Tool* tool = _tools.front();
+        while(tool) {
+            try {
+                tool->execute();
+            } catch (std::runtime_error &e) {
+                sleep(__ERROR_SHOW_TIME__);
+                throw;
             }
-            const int scope_mod = tool->scope_modifier();
-            if(scope_mod == 1) {
-                scopes.push(tool);
-                if(!scope_disabler and !tool->scope_enabled())
-                    scope_disabler = tool;
-            }
-            else if(scope_mod == -1) {
-                if(scopes.empty()) {
-                    std::ostringstream msg;
-                    msg << "Tool \"" << tool->name()
-                        << "\" cannot close the main scope" << std::endl;
-                    LOG(L_ERROR, msg.str());
-                    throw std::runtime_error("Unbalanced scope");
-                }
-                if(scopes.top() == scope_disabler)
-                    scope_disabler = NULL;
-                scopes.pop();
-            }
+            tool = tool->next_tool();
         }
         strcpy(_current_tool_name, "__post execution__");
-
-        if(!scopes.empty()) {
-            while(!scopes.empty()) {
-                std::ostringstream msg;
-                msg << "Unclosed scope open by tool \"" << scopes.top()->name()
-                    << "\"" << std::endl;
-                LOG(L_ERROR, msg.str());
-                scopes.pop();
-            }
-            throw std::runtime_error("Unbalanced scope");
-        }
 
         // Key events
         while(isKeyPressed()){

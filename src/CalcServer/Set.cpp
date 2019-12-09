@@ -67,6 +67,7 @@ void Set::setup()
     msg << "Loading the tool \"" << name() << "\"..." << std::endl;
     LOG(L_INFO, msg.str());
 
+    Tool::setup();
     variable();
 
     size_t typesize = InputOutput::Variables::typeToBytes(_var->type());

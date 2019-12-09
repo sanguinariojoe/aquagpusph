@@ -94,6 +94,8 @@ void RadixSort::setup()
     msg << "Loading the tool \"" << name() << "\"..." << std::endl;
     LOG(L_INFO, msg.str());
 
+    Tool::setup();
+
     // Get the variables
     variables();
 

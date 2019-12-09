@@ -77,6 +77,7 @@ void Reduction::setup()
     msg << "Loading the tool \"" << name() << "\"..." << std::endl;
     LOG(L_INFO, msg.str());
 
+    Tool::setup();
     variables();
 
     _mems.push_back(*(cl_mem*)_input_var->get());

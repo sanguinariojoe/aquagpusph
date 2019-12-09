@@ -48,6 +48,7 @@ void SetScalar::setup()
     msg << "Loading the tool \"" << name() << "\"..." << std::endl;
     LOG(L_INFO, msg.str());
 
+    Tool::setup();
     variable();
 }
 

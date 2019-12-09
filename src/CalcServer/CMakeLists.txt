@@ -39,8 +39,8 @@ SET(DEP_LIBS
 SET(Server_CPP_SRCS
     Assert.cpp
     CalcServer.cpp
+    Conditional.cpp
     Copy.cpp
-    If.cpp
     Kernel.cpp
     LinkList.cpp
     Python.cpp
