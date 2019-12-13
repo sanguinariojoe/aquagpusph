@@ -30,13 +30,18 @@ using namespace std;
 
 namespace Aqua{
 
-double mod_operator(double v, double w) {
+double mod_operator(double v, double w)
+{
 #ifdef MAX
 #undef MAX
 #endif
 #define MAX(a, b) ((a > b) ? a : b)
     return (int)v % MAX(1, (int)w);
 #undef MAX
+}
+
+double not_operator(double v) {
+    return v == 0;
 }
 
 Tokenizer::Tokenizer()
@@ -74,6 +79,7 @@ Tokenizer::Tokenizer()
     // Register a modulus operator
     p.DefineOprtChars("%");
     p.DefineOprt("%", mod_operator, mu::prINFIX);
+    p.DefineInfixOprt("!", not_operator, 0);
 }
 
 Tokenizer::~Tokenizer()
@@ -133,7 +139,7 @@ float Tokenizer::solve(const std::string eq)
         std::string::size_type sz;
         result = std::stof(eq, &sz);
         if (sz == eq.size()) {
-            // There is remaining content
+            // There is not remaining content
             return result;
         }
     }
