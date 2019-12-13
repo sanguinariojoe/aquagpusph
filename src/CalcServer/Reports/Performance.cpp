@@ -67,6 +67,8 @@ void Performance::setup()
            << "overhead average(overhead) variance(overhead) progress ETA"
            << std::endl;
     }
+
+    Tool::setup();
 }
 
 size_t Performance::computeAllocatedMemory(){

@@ -49,6 +49,7 @@ Report::~Report()
 
 void Report::setup()
 {
+    Tool::setup();
     processFields(_fields);
 }
 
