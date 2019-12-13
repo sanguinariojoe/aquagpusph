@@ -148,8 +148,28 @@ void If::setup()
 Tool* If::next_tool()
 {
     Tool* next_tool = Conditional::next_tool();
-    _result = false;
+    // There are several possibilities here:
+    // 1.- We have evaluated the condition, and it has been true, so we want
+    //     to skip the next evaluation (_result = false), when the associated
+    //     End ives back us the control
+    // 2.- We have evaluated the condition, and it has been false, we are
+    //     jumping out of our scope. Thus next time we has control we want to
+    //     evaluate the condition again (_result = true)
+    // 3.- End has gave back control to us, so _result = false (see point 1).
+    //     this situation is exactly the same than point 2.
+    // Therefore, all the casees are covered just simply swaping _result value
+    _result = !_result;
     return next_tool;
+}
+
+cl_event If::_execute(const std::vector<cl_event> events)
+{
+    // Execute the tool just if _result is true. Otherwise is an End tool which
+    // has gave back the control to us
+    if(_result)
+        return Conditional::_execute(events);
+
+    return NULL;
 }
 
 End::End(const std::string name, bool once)
