@@ -83,24 +83,24 @@ __kernel void stage1(const __global uint *id_in, __global uint *id,
  * loaded), it is safer carrying out the sorting process in to stages. This
  * is the first stage.
  *
- * @param dudt_in Unsorted velocity rate of change
- * \f$ \frac{d \mathbf{u}}{d t} \f$.
- * @param dudt Sorted velocity rate of change
- * \f$ \frac{d \mathbf{u}}{d t} \f$.
  * @param rho_in Unsorted density \f$ \rho \f$.
  * @param rho Sorted density \f$ \rho \f$.
- * @param drhodt_in Unsorted density rate of change \f$ \frac{d \rho}{d t} \f$.
- * @param drhodt Sorted density rate of change \f$ \frac{d \rho}{d t} \f$.
  * @param m_in Unsorted mass \f$ m \f$.
  * @param m Sorted mass \f$ m \f$.
+ * @param dudt Unsorted velocity rate of change
+ * \f$ \frac{d \mathbf{u}}{d t} \f$.
+ * @param dudt_in Sorted velocity rate of change
+ * \f$ \frac{d \mathbf{u}}{d t} \f$.
+ * @param drhodt Unsorted density rate of change \f$ \frac{d \rho}{d t} \f$.
+ * @param drhodt_in Sorted density rate of change \f$ \frac{d \rho}{d t} \f$.
  * @param id_sorted Permutations list from the unsorted space to the sorted
  * one.
  * @param N Number of particles.
  */
-__kernel void stage2(const __global vec *dudt_in, __global vec *dudt,
-                     const __global float *rho_in, __global float *rho,
-                     const __global float *drhodt_in, __global float *drhodt,
+__kernel void stage2(const __global float *rho_in, __global float *rho,
                      const __global float *m_in, __global float *m,
+                     const __global vec *dudt, __global vec *dudt_in,
+                     const __global float *drhodt, __global float *drhodt_in,
                      const __global unit *id_sorted,
                      unsigned int N)
 {
@@ -110,10 +110,13 @@ __kernel void stage2(const __global vec *dudt_in, __global vec *dudt,
 
     const uint i_out = id_sorted[i];
 
-    dudt[i_out] = dudt_in[i];
     rho[i_out] = rho_in[i];
-    drhodt[i_out] = drhodt_in[i];
     m[i_out] = m_in[i];
+    // Take care with the variation rates, since they are epheremeral. Thus, the
+    // output is actually the _in variable, whilst the other one will be
+    // overwritten
+    dudt_in[i_out] = dudt[i];
+    drhodt_in[i_out] = drhodt[i];
 }
 
 /*
