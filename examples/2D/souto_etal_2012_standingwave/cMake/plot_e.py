@@ -85,8 +85,31 @@ line, = ax.plot(t,
 # Set some options
 ax.grid()
 ax.legend(loc='best')
-ax.set_xlim(0, 5)
-ax.set_ylim(-1000, 5000)
+ax.set_xlim(0.0, 8.0)
+ax.set_ylim(0.0, 1.0)
 ax.set_autoscale_on(False)
 ax.set_xlabel(r"$t / T$")
 ax.set_ylabel(r"$\mathcal{E}_{k}(t) / \mathcal{E}_{k}(0)$")
+
+
+# Animate
+def update(frame_index):
+    plt.tight_layout()
+    try:
+        data = readFile('Energy.dat')
+        t = data[0]
+        e = data[1]
+        e0 = e[0]
+        for i in range(len(t)):
+            t[i] /= T
+            e[i] /= e0
+    except IndexError:
+        return
+    except FileNotFoundError:
+        return
+    line.set_data(t, e)
+
+
+update(0)
+ani = animation.FuncAnimation(fig, update, interval=1000)
+plt.show()
