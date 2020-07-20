@@ -3,7 +3,7 @@
 set -e
 
 # Run the "simulation", and clear everything but the main result
-../../../bin/AQUAgpusph -i main.xml
+@BINARY_DIR@/AQUAgpusph -i main.xml
 rm -f AQUAgpusph.save.* fluid.* log.*
 
 # Collect the result

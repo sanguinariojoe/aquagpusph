@@ -1,5 +1,5 @@
 FILES = ['set0.00000.dat', 'set1.00000.dat']
-N = 5000
+N = 500
 
 count = 0
 for fname in FILES:
