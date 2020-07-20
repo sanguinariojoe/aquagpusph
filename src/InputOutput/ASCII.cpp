@@ -66,6 +66,13 @@ void ASCII::load()
     LOG(L_INFO, msg.str());
 
     f.open(simData().sets.at(setId())->inputPath());
+    if(!f) {
+        std::ostringstream msg;
+        msg << "Failure reading the file \"" <<
+               simData().sets.at(setId())->inputPath() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::ifstream::failure(msg.str());
+    }
 
     // Assert that the number of particles is right
     n = bounds().y - bounds().x;
@@ -410,6 +417,14 @@ const unsigned int ASCII::compute_n()
 {
     std::ifstream f;
     f.open(simData().sets.at(setId())->inputPath());
+    if(!f) {
+        std::ostringstream msg;
+        msg << "Failure reading the file \"" <<
+               simData().sets.at(setId())->inputPath() << "\"." << std::endl;
+        LOG(L_ERROR, msg.str());
+        throw std::ifstream::failure(msg.str());
+    }
+
     unsigned int n = readNParticles(f);
     f.close();
     return (const unsigned int)n;

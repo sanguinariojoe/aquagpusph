@@ -116,18 +116,15 @@ void Kernel::make(const std::string entry_point,
     CalcServer *C = CalcServer::singleton();
 
     // Read the script file
-    try {
-        std::ifstream script(path());
-        source << header << script.rdbuf();
-    } catch (const std::ifstream::failure& e) {
+    std::ifstream script(path());
+    if(!script) {
         std::stringstream msg;
         msg << "Failure reading the file \"" <<
                path() << "\"." << std::endl;
         LOG(L_ERROR, msg.str());
-        msg.str(""); msg << e.what() << std::endl;
-        LOG0(L_DEBUG, msg.str());
-        throw;
+        throw std::ifstream::failure(msg.str());
     }
+    source << header << script.rdbuf();
 
     // Setup the default flags
     flags << "-I" << getFolderFromFilePath(path()) << " ";

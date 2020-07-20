@@ -252,6 +252,9 @@ std::vector<cl_kernel> Tool::compile(const std::string source,
                 << std::endl;
             LOG0(L_ERROR, msg.str());
             InputOutput::Logger::singleton()->printOpenCLError(err_code);
+            LOG0(L_ERROR, "--- Source ---------------------------------\n");
+            LOG0(L_ERROR, source);
+            LOG0(L_ERROR, "--------------------------------- Source ---\n");
             throw std::runtime_error("OpenCL error");
         }
     }

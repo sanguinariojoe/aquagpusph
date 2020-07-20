@@ -140,11 +140,9 @@ State::State()
     while(true){
         file_name.str("");
         file_name << "AQUAgpusph.save." << i << ".xml";
-        std::ifstream f(file_name.str());
-        if(f.is_open()){
+        if(isFile(file_name.str())){
             // The file already exist, look for another one
             i++;
-            f.close();
             continue;
         }
         break;
@@ -197,9 +195,9 @@ void State::parse(std::string filepath,
 
     // Try to open as ascii file, just to know if the file already exist
     std::ifstream f(filepath);
-    if(!f.is_open()){
+    if(!f){
         LOG(L_ERROR, "File inaccessible!\n");
-        throw std::runtime_error("File inaccessible!");
+        throw std::ifstream::failure("File inaccessible!");
     }
     f.close();
 
