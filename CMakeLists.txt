@@ -195,9 +195,10 @@ ENDIF(AQUAGPUSPH_GPU_PROFILE)
 # Tests building
 IF(BUILD_TESTING)
     FIND_PROGRAM(BASH_PROGRAM bash)
-    IF(BASH_PROGRAM)
-    MESSAGE(FATAL_ERROR "Bash not found, but BUILD_TESTING has been set. Install Bash or set BUILD_TESTING=OFF")
-    ENDIF(BASH_PROGRAM)
+    IF(NOT BASH_PROGRAM)
+        MESSAGE(FATAL_ERROR "Bash not found, but BUILD_TESTING has been set. Install Bash or set BUILD_TESTING=OFF")
+    ENDIF(NOT BASH_PROGRAM)
+    MARK_AS_ADVANCED(BASH_PROGRAM)
 ENDIF()
 
 # ===================================================== #
