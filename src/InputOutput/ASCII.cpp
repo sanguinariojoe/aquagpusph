@@ -39,6 +39,7 @@ ASCII::ASCII(ProblemSetup& sim_data,
              unsigned int first,
              unsigned int n_in)
     : Particles(sim_data, iset, first, n_in)
+    , _next_file_index(0)
 {
     if(n() == 0) {
         n(compute_n());
