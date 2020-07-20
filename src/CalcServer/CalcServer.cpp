@@ -83,30 +83,6 @@ void sigint_handler(int s){
     sigint_received = true;
 }
     
-/// @brief Have been a SIGINT already registered?
-static bool sigint_received = false;
-
-/** @brief Handle SIGINT signals
- *
- * The first time a SIGINT is received, Aqua::CalcServer::sigint_received is set
- * to true, such that, at the end of the current time step the simulation will
- * stop, the last output will be printed, and the resources will be correctly
- * released.
- *
- * If SIGINT is received twice, then this handler will enforce the inmediate
- * program exit.
- *
- * @param s Recevied signal, SIGINT
- */
-void sigint_handler(int s){
-    if (sigint_received) {
-        // The user asked more than once to stop the simulation, force it
-        LOG(L_ERROR, "Forced program exit (SIGINT/SIGTERM received twice)\n");
-        exit(EXIT_FAILURE);
-    }
-    sigint_received = true;
-}
-    
 CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
     : _num_platforms(0)
     , _platforms(NULL)
