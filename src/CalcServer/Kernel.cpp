@@ -62,7 +62,7 @@ void Kernel::setup()
     LOG(L_INFO, msg.str());
 
     Tool::setup();
-    compile(_entry_point);
+    make(_entry_point);
     variables(_entry_point);
     setVariables();
     computeGlobalWorkSize();
@@ -101,9 +101,9 @@ cl_event Kernel::_execute(const std::vector<cl_event> events)
     return event;
 }
 
-void Kernel::compile(const std::string entry_point,
-                     const std::string add_flags,
-                     const std::string header)
+void Kernel::make(const std::string entry_point,
+                  const std::string add_flags,
+                  const std::string header)
 {
     unsigned int i;
     cl_program program;

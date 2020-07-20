@@ -89,9 +89,9 @@ protected:
      * @param header Header to be append at the start of the source code.
      * @return false if all gone right, true otherwise.
      */
-    void compile(const std::string entry_point="entry",
-                 const std::string flags="",
-                 const std::string header="");
+    void make(const std::string entry_point="entry",
+              const std::string flags="",
+              const std::string header="");
 
     /** Compute the variables required by the program
      * @param entry_point Program entry point method.
