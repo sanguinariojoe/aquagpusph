@@ -1,0 +1,35 @@
+<?xml version="1.0" ?>
+<sphInput>
+    <Variables>
+        <Variable length="1" name="h" symbol="h" type="float" value="0.1"/>
+        <Variable name="dt" type="float" symbol="\Delta t" value="1.0" />
+        <Variable name="cs" type="float" symbol="c_s" value="1.0" />
+
+        <Variable name="r" length="N" symbol="\boldsymbol{r}" type="vec*"/>
+        <Variable name="mask" length="N" symbol="j" type="unsigned int*"/>
+        <Variable name="mpi_r" length="n_radix" symbol="\boldsymbol{r}_{mpi}" type="vec*"/>
+        <Variable name="mpi_mask" length="n_radix" symbol="j_{mpi}" type="unsigned int*"/>
+    </Variables>
+
+    <ParticlesSet>
+        <Load fields="r, mask" file="particles_{mpi_rank}.dat" format="FastASCII"/>
+        <Save fields="r" file="out_{mpi_rank}.{index}.dat" format="ASCII"/>
+    </ParticlesSet>
+
+    <Tools>
+        <Tool action="add" name="mask reset" type="set" in="mpi_mask" value="mpi_rank" once="false"/>
+        <Tool action="add" name="copy in" type="kernel" path="copy.cl" entry_point="copy_in" once="false"/>
+        <Tool action="add" name="sync" type="mpi-sync" fields="mpi_r" mask="mpi_mask" once="false"/>
+        <Tool action="add" name="copy out" type="kernel" path="copy.cl" entry_point="copy_out" once="false"/>
+        <Tool action="add" name="iter += 1" type="set_scalar" in="iter" value="iter + 1"/>
+    </Tools>
+
+    <Settings>
+        <Device platform="0" device="0" type="ALL" />
+        <Device platform="0" device="0" type="ALL" />
+        <RootPath path="@RESOURCES_DIR@/.."/>
+    </Settings>
+    <Timing>
+        <Option name="End" type="Steps" value="1"/>
+    </Timing>
+</sphInput>
