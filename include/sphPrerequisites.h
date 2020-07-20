@@ -46,7 +46,7 @@
 #include <CL/cl.h>
 
 // Assume the 3D version if 2D has not been set
-#ifndef HAVE_2D
+#if !defined(HAVE_2D) && !defined(HAVE_3D)
     /** @def HAVE_3D
      * @brief AQUAgpusph 3D version.
      *
