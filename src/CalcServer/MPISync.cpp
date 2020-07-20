@@ -119,6 +119,12 @@ MPISync::~MPISync()
 
 void MPISync::setup()
 {
+    std::ostringstream msg;
+    msg << "Loading the tool \"" << name() << "\"..." << std::endl;
+    LOG(L_INFO, msg.str());
+
+    Tool::setup();
+
     // Get the involved variables
     variables();
     // Setup the mask sorting subtool
@@ -425,7 +431,7 @@ void MPISync::setupReceivers()
         if(!receiver) {
             std::stringstream msg;
             msg << "Failure Allocating memory for the process "
-                << proc << " sender in tool \"" << name() 
+                << proc << " receiver in tool \"" << name()
                 << "\"." << std::endl;
             LOG(L_ERROR, msg.str());
             throw std::bad_alloc();
