@@ -25,8 +25,8 @@ Authors:
         <Scalar name="visc_dyn" value="{{VISC_DYN}}" />
         <Scalar name="delta" value="{{DELTA}}" />
 
-        <Load format="FastASCII" file="Sensors.dat" fields="r, normal, u, dudt, rho, drhodt, m, imove" />
-        <Save format="VTK" file="sensors_{mpi_rank}.{index}.vtu" fields="r, normal, u, dudt, rho, drhodt, m, p, imove" />
+        <Load format="FastASCII" file="Sensors.dat" fields="r, normal, tangent, u, dudt, rho, drhodt, m, imove" />
+        <Save format="VTK" file="sensors_{mpi_rank}.{index}.vtu" fields="r, normal, tangent, binormal, u, dudt, rho, drhodt, m, p, imove" />
     </ParticlesSet>
     <Reports>
         <Report type="particles" name="Sensors" fields="p" path="sensors_{mpi_rank}.out" set="1" ipf="0" fps="1000"/>
