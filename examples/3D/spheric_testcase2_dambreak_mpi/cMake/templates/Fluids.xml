@@ -23,7 +23,7 @@ Authors:
         <Scalar name="visc_dyn" value="{{VISC_DYN}}" />
         <Scalar name="delta" value="{{DELTA}}" />
 
-        <Load format="FastASCII" file="Fluid_{mpi_rank}.dat" fields="r, normal, u, dudt, rho, drhodt, m, imove" />
-        <Save format="VTK" file="output_{mpi_rank}.{index}.vtu" fields="r, normal, u, dudt, rho, drhodt, m, p, imove" />
+        <Load format="FastASCII" file="Fluid_{mpi_rank}.dat" fields="r, normal, tangent, u, dudt, rho, drhodt, m, imove" />
+        <Save format="VTK" file="output_{mpi_rank}.{index}.vtu" fields="r, normal, tangent, binormal, u, dudt, rho, drhodt, m, p, imove" />
     </ParticlesSet>
 </sphInput>

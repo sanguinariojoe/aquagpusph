@@ -25,9 +25,12 @@ Authors:
     <Include file="@RESOURCES_DIR@/Presets/basic/MPI_planes.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/deltaSPH.xml" />
-    <Include file="@RESOURCES_DIR@/Presets/cfd/deltaSPH-full.xml" />
+    <!-- Include file="@RESOURCES_DIR@/Presets/cfd/deltaSPH-full.xml" / -->
     <Include file="@RESOURCES_DIR@/Presets/cfd/BI.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/elasticBounce.xml" />
+    <Definitions>
+        <Define name="__MIN_BOUND_DIST__" value="0.1f" evaluate="false"/>
+    </Definitions>
     <Include file="@RESOURCES_DIR@/Presets/cfd/variableTimeStep.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/timing.report.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/performance.report.xml" />

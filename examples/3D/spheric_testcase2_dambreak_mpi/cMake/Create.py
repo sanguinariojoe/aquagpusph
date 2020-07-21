@@ -38,11 +38,11 @@ import math
 
 g = 9.81
 hfac = 2.0
-cs = 45.0
-courant = 0.2
+cs = 40.0
+courant = 0.1
 refd = 998.0
-alpha = 0.001
-delta = 1.0
+alpha = 0.0
+delta = 10.0
 visc_dyn = 0.000894
 # Initial fluid dimensions
 h = 0.55
@@ -173,8 +173,9 @@ def fluid_file(proc):
                 press = refd * g * (hFluid - z)
                 dens = refd + press / cs**2 
                 mass = dens * dr**3.0
-                string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
+                string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}\n").format(
                     x, y, z,
+                    0.0, 0.0, 0.0,
                     0.0, 0.0, 0.0,
                     0.0, 0.0, 0.0,
                     0.0, 0.0, 0.0,
@@ -199,15 +200,17 @@ def fluid_file(proc):
 
     print('    Top face...')
     normal = (0.0, 0.0, -1.0)
+    tangent = (-1.0, 0.0, 0.0)
     z = z0 + Nz_box * dr
     for i in range(Nx_box):
         x = x0 + (i + 0.5) * dr
         for j in range(Ny_box):
             y = y0 + (j + 0.5) * dr
             imove = -3
-            string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
+            string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}\n").format(
                 x, y, z,
                 normal[0], normal[1], normal[2],
+                tangent[0], tangent[1], tangent[2],
                 0.0, 0.0, 0.0,
                 0.0, 0.0, 0.0,
                 dens,
@@ -219,15 +222,17 @@ def fluid_file(proc):
 
     print('    Front face...')
     normal = (1.0, 0.0, 0.0)
+    tangent = (0.0, -1.0, 0.0)
     x = x0
     for i in range(Ny_box):
         y = y0 + (i + 0.5) * dr
         for j in range(Nz_box):
             z = z0 + (j + 0.5) * dr
             imove = -3
-            string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
+            string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}\n").format(
                 x, y, z,
                 normal[0], normal[1], normal[2],
+                tangent[0], tangent[1], tangent[2],
                 0.0, 0.0, 0.0,
                 0.0, 0.0, 0.0,
                 dens,
@@ -239,15 +244,17 @@ def fluid_file(proc):
 
     print('    Back face...')
     normal = (-1.0, 0.0, 0.0)
+    tangent = (0.0, -1.0, 0.0)
     x = x0 + Nx_box * dr
     for i in range(Ny_box):
         y = y0 + (i + 0.5) * dr
         for j in range(Nz_box):
             z = z0 + (j + 0.5) * dr
             imove = -3
-            string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
+            string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}\n").format(
                 x, y, z,
                 normal[0], normal[1], normal[2],
+                tangent[0], tangent[1], tangent[2],
                 0.0, 0.0, 0.0,
                 0.0, 0.0, 0.0,
                 dens,
@@ -259,15 +266,17 @@ def fluid_file(proc):
 
     print('    Left face...')
     normal = (0.0, 1.0, 0.0)
+    tangent = (1.0, 0.0, 0.0)
     y = y0
     for i in range(Nx_box):
         x = x0 + (i + 0.5) * dr
         for j in range(Nz_box):
             z = z0 + (j + 0.5) * dr
             imove = -3
-            string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
+            string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}\n").format(
                 x, y, z,
                 normal[0], normal[1], normal[2],
+                tangent[0], tangent[1], tangent[2],
                 0.0, 0.0, 0.0,
                 0.0, 0.0, 0.0,
                 dens,
@@ -279,15 +288,17 @@ def fluid_file(proc):
 
     print('    Right face...')
     normal = (0.0, -1.0, 0.0)
+    tangent = (-1.0, 0.0, 0.0)
     y = y0 + Ny_box * dr
     for i in range(Nx_box):
         x = x0 + (i + 0.5) * dr
         for j in range(Nz_box):
             z = z0 + (j + 0.5) * dr
             imove = -3
-            string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
+            string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}\n").format(
                 x, y, z,
                 normal[0], normal[1], normal[2],
+                tangent[0], tangent[1], tangent[2],
                 0.0, 0.0, 0.0,
                 0.0, 0.0, 0.0,
                 dens,
@@ -311,6 +322,7 @@ def fluid_file(proc):
 
     print('    Bottom face...')
     normal = (0.0, 0.0, -1.0)
+    tangent = (-1.0, 0.0, 0.0)
     z = z0
     for i in range(Nx):
         x = x0 + (i + 0.5) * dr
@@ -320,9 +332,10 @@ def fluid_file(proc):
                 if y > ybox_min and y < ybox_max:
                     continue
             imove = -3
-            string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
+            string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}\n").format(
                 x, y, z,
                 normal[0], normal[1], normal[2],
+                tangent[0], tangent[1], tangent[2],
                 0.0, 0.0, 0.0,
                 0.0, 0.0, 0.0,
                 dens,
@@ -334,15 +347,17 @@ def fluid_file(proc):
 
     print('    Top face...')
     normal = (0.0, 0.0, 1.0)
+    tangent = (1.0, 0.0, 0.0)
     z = z0 + Nz * dr
     for i in range(Nx):
         x = x0 + (i + 0.5) * dr
         for j in range(Ny):
             y = y0 + (j + 0.5) * dr
             imove = -3
-            string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
+            string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}\n").format(
                 x, y, z,
                 normal[0], normal[1], normal[2],
+                tangent[0], tangent[1], tangent[2],
                 0.0, 0.0, 0.0,
                 0.0, 0.0, 0.0,
                 dens,
@@ -354,15 +369,17 @@ def fluid_file(proc):
 
     print('    Front face...')
     normal = (-1.0, 0.0, 0.0)
+    tangent = (0.0, -1.0, 0.0)
     x = x0
     for i in range(Ny):
         y = y0 + (i + 0.5) * dr
         for j in range(Nz):
             z = z0 + (j + 0.5) * dr
             imove = -3
-            string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
+            string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}\n").format(
                 x, y, z,
                 normal[0], normal[1], normal[2],
+                tangent[0], tangent[1], tangent[2],
                 0.0, 0.0, 0.0,
                 0.0, 0.0, 0.0,
                 dens,
@@ -374,15 +391,17 @@ def fluid_file(proc):
 
     print('    Back face...')
     normal = (1.0, 0.0, 0.0)
+    tangent = (0.0, 1.0, 0.0)
     x = x0 + Nx * dr
     for i in range(Ny):
         y = y0 + (i + 0.5) * dr
         for j in range(Nz):
             z = z0 + (j + 0.5) * dr
             imove = -3
-            string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
+            string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}\n").format(
                 x, y, z,
                 normal[0], normal[1], normal[2],
+                tangent[0], tangent[1], tangent[2],
                 0.0, 0.0, 0.0,
                 0.0, 0.0, 0.0,
                 dens,
@@ -394,15 +413,17 @@ def fluid_file(proc):
 
     print('    Left face...')
     normal = (0.0, -1.0, 0.0)
+    tangent = (1.0, 0.0, 0.0)
     y = y0
     for i in range(Nx):
         x = x0 + (i + 0.5) * dr
         for j in range(Nz):
             z = z0 + (j + 0.5) * dr
             imove = -3
-            string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
+            string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}\n").format(
                 x, y, z,
                 normal[0], normal[1], normal[2],
+                tangent[0], tangent[1], tangent[2],
                 0.0, 0.0, 0.0,
                 0.0, 0.0, 0.0,
                 dens,
@@ -414,15 +435,17 @@ def fluid_file(proc):
 
     print('    Right face...')
     normal = (0.0, 1.0, 0.0)
+    tangent = (-1.0, 0.0, 0.0)
     y = y0 + Ny * dr
     for i in range(Nx):
         x = x0 + (i + 0.5) * dr
         for j in range(Nz):
             z = z0 + (j + 0.5) * dr
             imove = -3
-            string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
+            string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}\n").format(
                 x, y, z,
                 normal[0], normal[1], normal[2],
+                tangent[0], tangent[1], tangent[2],
                 0.0, 0.0, 0.0,
                 0.0, 0.0, 0.0,
                 dens,
@@ -442,8 +465,9 @@ def fluid_file(proc):
     mass = dens * dr**3.0
     imove = -255
     for i in range(n):
-        string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
+        string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}\n").format(
             x, y, z,
+            0.0, 0.0, 0.0,
             0.0, 0.0, 0.0,
             0.0, 0.0, 0.0,
             0.0, 0.0, 0.0,
@@ -469,31 +493,38 @@ for proc in range(nprocs):
 
 positions = []
 normals = []
+tangents = []
 
 n_sensors = 8
 xx = xbox_max
 yy = 0.0
 zz = Nz_box * dr
 nn = (-1.0, 0.0, 0.0)
+tt = (0.0, 1.0, 0.0)
 for i in range(4):
     normals.append(nn)
+    tangents.append(tt)
     positions.append((xx, yy, 0.021 + i * 0.04))
 
 nn = (0.0, 0.0, 1.0)
+tt = (1.0, 0.0, 0.0)
 for i in range(4):
     normals.append(nn)
+    tangents.append(tt)
     positions.append((xx - 0.021 - i * 0.04, yy, zz))
 
 output = open("Sensors.dat", "w")
 for i in range(len(positions)):
     pos = positions[i]
     normal = normals[i]
+    tangent = tangents[i]
     dens = refd
     mass = 0.0
     imove = 0
-    string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
+    string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}\n").format(
         pos[0], pos[1], pos[2],
         normal[0], normal[1], normal[2],
+        tangent[0], tangent[1], tangent[2],
         0.0, 0.0, 0.0,
         0.0, 0.0, 0.0,
         dens,
