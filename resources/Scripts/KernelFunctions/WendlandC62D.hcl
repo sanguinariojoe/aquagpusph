@@ -41,10 +41,11 @@
  * @param q Normalized distance \f$ \frac{\mathbf{r_j} - \mathbf{r_i}}{h} \f$.
  * @return Kernel value.
  */
-float kernelW(float q)
+const float kernelW(float q)
 {
-	float wcon  = 0.010881696428571428f*iM_PI;  // 0.0108817f = 7/7168 = 7/(78 * 2**10)
-	float facq8 = (2.f-q)*(2.f-q)*(2.f-q)*(2.f-q)*(2.f-q)*(2.f-q)*(2.f-q)*(2.f-q);
+	const float wcon  = 0.010881696428571428f*iM_PI;  // 0.0108817f = 7/7168 = 7/(78 * 2**10)
+	const float tmq = 2.f - q;
+	const float facq8 = tmq * tmq * tmq * tmq * tmq * tmq * tmq * tmq;
 	return wcon * (1.f + 4.f*q + 6.25f*q*q + 4.f*q*q*q) * facq8;
 }
 
@@ -60,10 +61,11 @@ float kernelW(float q)
  * @param q Normalized distance \f$ \frac{\mathbf{r_j} - \mathbf{r_i}}{h} \f$.
  * @return Kernel gradient factor value
  */
-float kernelF(float q)
+const float kernelF(float q)
 {
-	float wcon  = 0.010881696428571428f*iM_PI;  // 0.0108817f = 7/7168 = 7/(78 * 2**10)
-	float facq7 = (2.f-q)*(2.f-q)*(2.f-q)*(2.f-q)*(2.f-q)*(2.f-q)*(2.f-q);
+	const float wcon  = 0.010881696428571428f*iM_PI;  // 0.0108817f = 7/7168 = 7/(78 * 2**10)
+	const float tmq = 2.f - q;
+	const float facq7 = tmq * tmq * tmq * tmq * tmq * tmq * tmq;
 	return wcon * facq7 * (-11.f - 38.5f*q - 44.f*q*q);
 }
 
@@ -83,11 +85,11 @@ float kernelF(float q)
  * @return Equivalent kernel polynomial part
  * @see kernelS_D
  */
-float kernelS_P(float q)
+const float kernelS_P(float q)
 {
-    float wcon = 0.010881696428571428f*iM_PI;  // 0.0108817f = 78/7168 = 78/(7 * 2**10)
-    float q2 = q * q;
-    float q5 = q2 * q2 * q;
+    const float wcon = 0.010881696428571428f*iM_PI;  // 0.0108817f = 78/7168 = 78/(7 * 2**10)
+    const float q2 = q * q;
+    const float q5 = q2 * q2 * q;
     return wcon * ( 0.3076923076923077f * q5 * q5 * q  - // 0.3076923076923077f = 4/13
 		    4.8125f * q5 * q5                  + // 4.8125f = 77/16
 		    32.f * q5 * q2 * q2                - //
@@ -124,7 +126,7 @@ float kernelS_P(float q)
  * @warning Due to the analytical nature of the solution, this kernel should not
  * be multiplied by the element area, nor divided by \f$ h^2 \f$
  */
-float kernelS_D(float d, float t, float b, float s)
+const float kernelS_D(float d, float t, float b, float s)
 {
     const float wcon = 0.5f * iM_PI;
     const float dr = 0.5f * s;

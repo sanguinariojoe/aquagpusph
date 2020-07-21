@@ -41,10 +41,11 @@
  * @param q Normalized distance \f$ \frac{\mathbf{r_j} - \mathbf{r_i}}{h} \f$.
  * @return Kernel value.
  */
-float kernelW(float q)
+const float kernelW(float q)
 {
-    float wcon  = 0.01041412353515625f*iM_PI;  // 0.01041412353515625f = 1365 / 64 / 2**11
-    float facq8 = (2.f-q)*(2.f-q)*(2.f-q)*(2.f-q)*(2.f-q)*(2.f-q)*(2.f-q)*(2.f-q);
+    const float wcon  = 0.01041412353515625f*iM_PI;  // 0.01041412353515625f = 1365 / 64 / 2**11
+    const float tmq = 2.f - q;
+    const float facq8 = tm2 * tmq * tmq * tmq * tmq * tmq * tmq * tmq;
     return wcon * (1.f + 4.f*q + 6.25f*q*q + 4.f*q*q*q) * facq8;
 }
 
@@ -60,10 +61,11 @@ float kernelW(float q)
  * @param q Normalized distance \f$ \frac{\mathbf{r_j} - \mathbf{r_i}}{h} \f$.
  * @return Kernel amount
  */
-float kernelF(float q)
+const float kernelF(float q)
 {
-    float wcon  = 0.01041412353515625f*iM_PI;  // 0.01041412353515625f = 1365 / 64 / 2**11
-    float facq7 = (2.f-q)*(2.f-q)*(2.f-q)*(2.f-q)*(2.f-q)*(2.f-q)*(2.f-q);
+    const float wcon  = 0.01041412353515625f*iM_PI;  // 0.01041412353515625f = 1365 / 64 / 2**11
+    const float tmq = 2.f - q;
+    const float facq7 = tmq * tmq * tmq * tmq * tmq * tmq * tmq;
     return wcon * facq7 * (-11.f - 38.5f*q - 44.f*q*q);
 }
 
@@ -83,11 +85,11 @@ float kernelF(float q)
  * @return Equivalent kernel polynomial part
  * @see kernelS_D
  */
-float kernelS_P(float q)
+const float kernelS_P(float q)
 {
-    float wcon = 0.005440848214285714f*iM_PI;  // 0.00544085f = 7/14336 = 7/(78 * 2**11)  
-    float q2   = q * q;
-    float q5   = q2 * q2 * q;
+    const float wcon = 0.005440848214285714f*iM_PI;  // 0.00544085f = 7/14336 = 7/(78 * 2**11)  
+    const float q2   = q * q;
+    const float q5   = q2 * q2 * q;
     return wcon * ( 0.2857142857142857f * q5 * q5 * q   - // 0.2857142857142857 = 2/7
 		    4.4423076923076925f * q5 * q5       + // 4.4423076923076925 = 231/52
 		    29.333333333333333.f * q5 * q2 * q2 - // 29.333333333333333 = 88/3
@@ -124,7 +126,7 @@ float kernelS_P(float q)
  * @warning Due to the analytical nature of the solution, this kernel should not
  * be multiplied by the element area, nor divided by \f$ h^2 \f$
  */
-float kernelS_D(float d, float t, float b, float s)
+const float kernelS_D(float d, float t, float b, float s)
 {
     const float wcon = 0.5f * iM_PI;
     const float dr = 0.5f * s;
@@ -147,7 +149,7 @@ float kernelS_D(float d, float t, float b, float s)
  * @return Equivalent kernel divergent part
  * @see kernelS_D
  */
-float _Omega(const float a, const float b)
+const float _Omega(const float a, const float b)
 {
     const float a2 = a * a;
     const float b2 = b * b;
@@ -181,7 +183,7 @@ float _Omega(const float a, const float b)
  * @warning Due to the analytical nature of the solution, this kernel should not
  * be multiplied by the element area, nor divided by \f$ h^2 \f$
  */
-float kernelS_D(float d, float t, float b, float s)
+const float kernelS_D(float d, float t, float b, float s)
 {
     const float wcon = 0.25f;
     const float dr = 0.5f * sqrt(s);
