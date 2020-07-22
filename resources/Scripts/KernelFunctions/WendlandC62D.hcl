@@ -66,7 +66,7 @@ const float kernelF(float q)
 	const float wcon  = 0.010881696428571428f*iM_PI;  // 0.0108817f = 7/7168 = 7/(78 * 2**10)
 	const float tmq = 2.f - q;
 	const float facq7 = tmq * tmq * tmq * tmq * tmq * tmq * tmq;
-	return wcon * facq7 * (-11.f - 38.5f*q - 44.f*q*q);
+	return wcon * facq7 * (11.f + 38.5f*q + 44.f*q*q);
 }
 
 /** @brief An equivalent kernel function to compute the Shepard factor using the
