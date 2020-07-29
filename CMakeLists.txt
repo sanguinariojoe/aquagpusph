@@ -23,6 +23,11 @@
 # General CMake options                                 #
 # ===================================================== #
 cmake_minimum_required(VERSION 3.0.2 FATAL_ERROR)
+set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
+set(CMAKE_DISABLE_SOURCE_CHANGES ON)
+if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
+   message(FATAL_ERROR "In-source builds are not allowed. Please, run cmake in a different folder.")
+endif("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 project(AQUAgpusph)
 set(AQUAGPUSPH_VERSION "4.1.1")
 
