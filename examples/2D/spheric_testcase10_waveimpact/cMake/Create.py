@@ -37,12 +37,12 @@ import math
 # ==========
 
 g = 9.81
-hfac = 3.0
+hfac = 4.0
 cs = 45.0
-courant = 0.25
+courant = 0.1
 refd = 998.0
-alpha = 0.1
-delta = 0.0
+alpha = 0.01
+delta = 10.0
 visc_dyn = 0.000894
 # Tank dimensions
 H = 0.508
