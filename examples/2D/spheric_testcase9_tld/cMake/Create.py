@@ -37,14 +37,12 @@ import math
 # ==========
 
 g = 9.81
-hfac = 2.0  # If you are using low resolution values, use small h/dr ratio in
-            # order to avoid that the particles may simultaneously interact with
-            # front and back walls, which may turn unstable the simulation.
+hfac = 4.0
 cs = 50.0
-courant = 0.2
+courant = 0.1
 refd = 998.0
-alpha = 0.0
-delta = 1.0
+alpha = 0.001
+delta = 10.0
 visc_dyn = 0.000894
 # Tank dimensions
 H = 0.508
