@@ -41,7 +41,7 @@ hfac = 4.0
 cs = 45.0
 courant = 0.1
 refd = 998.0
-alpha = 0.01
+alpha = 0.001
 delta = 10.0
 visc_dyn = 0.000894
 # Tank dimensions
@@ -50,7 +50,7 @@ L = 0.9
 # Fluid
 h = 0.093
 # Stimated required number of fluid particles
-n = 100000
+n = 10000
 
 # Dimensions and number of particles readjustment
 # ===============================================
