@@ -49,16 +49,22 @@ def readFile(filepath):
     f.close()
     data = []
     for l in lines[1:-1]:  # Skip the last line, which may be unready
-        l = l.strip()
+        l = l.replace('\t', ' ')
+        l = l.replace('(', ' ')
+        l = l.replace(')', ' ')
+        l = l.replace(',', ' ')
         while l.find('  ') != -1:
             l = l.replace('  ', ' ')
-        fields = l.split(' ')
+        fields = l.strip().split(' ')
+        if len(data) and len(fields) != len(data[-1]):
+            # Probably the system is writing it
+            continue
         try:
-            data.append(map(float, fields))
+            data.append(list(map(float, fields)))
         except:
             continue
     # Transpose the data
-    return map(list, zip(*data))
+    return list(map(list, zip(*data)))
 
 
 line = None
@@ -98,7 +104,7 @@ def update(frame_index):
     try:
         data = readFile('Energy.dat')
         t = data[0]
-        e = data[1]
+        e = data[2]
         e0 = e[0]
         for i in range(len(t)):
             t[i] /= T
