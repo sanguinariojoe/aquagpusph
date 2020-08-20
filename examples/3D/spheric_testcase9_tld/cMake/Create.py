@@ -39,10 +39,10 @@ import math
 g = 9.81
 hfac = 3.0
 cs = 30.0
-courant = 0.2
+courant = 0.1
 refd = 998.0
-alpha = 0.0
-delta = 1.0
+alpha = 0.1
+delta = 10.0
 visc_dyn = 0.000894
 # Tank dimensions
 H = 0.508
@@ -51,7 +51,7 @@ D = 0.062
 # Fluid
 h = 0.092
 # Stimated required number of fluid particles
-n = 10000
+n = 100000
 
 # Dimensions and number of particles readjustment
 # ===============================================
@@ -128,8 +128,9 @@ for i in range(0, n):
     press = refd * g * (hFluid - pos[2])
     dens = refd + press / cs**2 
     mass = dens * dr**3.0
-    string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
+    string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}\n").format(
         pos[0], pos[1], pos[2],
+        0.0, 0.0, 0.0,
         0.0, 0.0, 0.0,
         0.0, 0.0, 0.0,
         0.0, 0.0, 0.0,
@@ -159,6 +160,7 @@ for i in range(0, N):
         idx = idd // Ny + 0.5
         idy = idd % Ny + 0.5
         normal = [0.0, 0.0, -1.0]
+        tangent = [-1.0, 0.0, 0.0]
     # Roof
     elif(i < 2 * Nx * Ny):
         j = i - Nx * Ny
@@ -167,6 +169,7 @@ for i in range(0, N):
         idx = idd // Ny + 0.5
         idy = idd % Ny + 0.5
         normal = [0.0, 0.0, 1.0]
+        tangent = [-1.0, 0.0, 0.0]
     # Left
     elif(i < 2 * Nx * Ny + Nx * Nz):
         j = i - 2 * Nx * Ny
@@ -175,6 +178,7 @@ for i in range(0, N):
         idx = idd // Nz + 0.5
         idz = idd % Nz + 0.5
         normal = [0.0, -1.0, 0.0]
+        tangent = [1.0, 0.0, 0.0]
     # Right
     elif(i < 2 * (Nx * Ny + Nx * Nz)):
         j = i - 2 * Nx * Ny - Nx * Nz
@@ -183,6 +187,7 @@ for i in range(0, N):
         idx = idd // Nz + 0.5
         idz = idd % Nz + 0.5
         normal = [0.0, 1.0, 0.0]
+        tangent = [1.0, 0.0, 0.0]
     # Front
     elif(i < 2 * (Nx * Ny + Nx * Nz) + Ny * Nz):
         j = i - 2 * (Nx * Ny + Nx * Nz)
@@ -191,6 +196,7 @@ for i in range(0, N):
         idy = idd // Nz + 0.5
         idz = idd % Nz + 0.5
         normal = [-1.0, 0.0, 0.0]
+        tangent = [0.0, -1.0, 0.0]
     # Back
     elif(i < 2 * (Nx * Ny + Nx * Nz + Ny * Nz)):
         j = i - 2 * (Nx*Ny + Nx * Nz) - Ny * Nz
@@ -199,6 +205,7 @@ for i in range(0, N):
         idy = idd // Nz + 0.5
         idz = idd % Nz + 0.5
         normal = [1.0, 0.0, 0.0]
+        tangent = [0.0, -1.0, 0.0]
     pos = (idx * dr / DeLeffeDistFactor - 0.5 * D,
            idy * dr / DeLeffeDistFactor - 0.5 * L,
            idz * dr / DeLeffeDistFactor)
@@ -210,9 +217,10 @@ for i in range(0, N):
         press = 0.0
     imove = -3
     mass = (dr / DeLeffeDistFactor)**2.0
-    string = ("{} {} {} 0.0, " * 4 + "{}, {}, {}, {}\n").format(
+    string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}\n").format(
         pos[0], pos[1], pos[2],
         normal[0], normal[1], normal[2],
+        tangent[0], tangent[1], tangent[2],
         0.0, 0.0, 0.0,
         0.0, 0.0, 0.0,
         dens,

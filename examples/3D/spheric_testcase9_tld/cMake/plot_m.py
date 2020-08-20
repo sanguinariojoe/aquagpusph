@@ -56,7 +56,7 @@ def readFile(filepath):
         except:
             continue
     # Transpose the data
-    return map(list, zip(*data))
+    return list(map(list, zip(*data)))
 
 
 line = None
@@ -65,8 +65,6 @@ line = None
 fig = plt.figure()
 ax = fig.add_subplot(111)
 
-data = readFile('Ekin.dat')
-T = data[0][-1] / data[1][-1]
 exp_line, = ax.plot([0.0], [0.0],
                     label=r'$\theta_{Exp}$',
                     color="black",
@@ -98,7 +96,7 @@ ax2.set_xlim(0, 0.1)
 ax2.set_ylim(-0.1, 0.1)
 ax2.set_autoscale_on(False)
 ax2.set_ylabel(r"$M_{fluid} \, [\mathrm{N} \cdot \mathrm{m}]$", color="blue")
-for tl in self.ax2.get_yticklabels():
+for tl in ax2.get_yticklabels():
     tl.set_color("blue")
 
 

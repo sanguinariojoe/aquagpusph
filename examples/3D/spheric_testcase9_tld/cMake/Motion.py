@@ -34,6 +34,7 @@ import os.path as path
 import aquagpusph as aqua
 
 
+# Mechanical model
 D = np.float32(0.062)  # Tank width
 g = np.float32(9.81)   # Gravity acceleration [m/s2]
 I0 = np.float32(26.9)   # Polar moment of inertia [kg m2]
@@ -42,9 +43,8 @@ Sg = np.float32(-29.2)  # Satic moment of the rigid system [kg m]
 Kdf = np.float32(0.540)  # Dry friction damping coefficient 
 Bphi = np.float32(0.326)  # Linear damping coefficient
 
+# Experimental data
 FNAME = path.join('@EXAMPLE_DEST_DIR@', 'T_1-94_A100mm_water.dat')
-# We must skip the column zero, which is empty due to the heading space of each
-# file line
 T,XI,DXI,DDXI,THETA,DTHETA,DDTHETA = np.loadtxt(
     FNAME, delimiter=' ', skiprows=2, usecols=list(range(1, 8)), unpack=True)
 
@@ -54,29 +54,36 @@ dTheta = np.float32(0.0)
 ddTheta = np.float32(0.0)
 DT = np.float32(0.0)
 
+# Moment filtering data
+ddtheta_list = []
+dt_list = []
+
 # Open the output file
 F = open('Motion.dat', 'w')
 
 
 def damping(dTheta):
-    """ Compute the tank structural damping moment.
+    """ Compute the tank structural damping moment
+
     Params:
-        dTheta: Angle time derivative dTheta/dt
+        dTheta (float): Angle time derivative dTheta/dt
+
     Returns:
-        Tank structural damping moment.
+        m (float): Tank structural damping moment
     """
     return -Kdf * np.sign(dTheta) - Bphi * dTheta
 
 
 def angularForce(M, xi, dXi, theta, dTheta):
-    """ Compute the tank angular acceleration.
+    """ Compute the tank angular acceleration
+
     Params:
-        xi: Mass position
-        dXi: Mass position time derivative dXi/dt
-        theta: Tank angle
-        dTheta: Tank angle time derivative dTheta/dt
+        xi (float): Mass position
+        dXi (float): Mass position time derivative dXi/dt
+        theta (float): Tank angle
+        dTheta (float): Tank angle time derivative dTheta/dt
     Returns:
-        Tank angular acceleration ddTheta/dt.
+        ddTheta (float): Tank angular acceleration ddTheta/ddt.
     """
     Mdamp = damping(dTheta)
     k0 = I0 + m*xi*xi  # ddTheta term
@@ -87,12 +94,17 @@ def angularForce(M, xi, dXi, theta, dTheta):
 
 
 def predictor(dx, y, dy, ddy):
-    """ Performs predictor Leap-Frog stage.
+    """ Performs the Heun's integrator predictor
+
     Params:
-        dx: Integration step
-        y: Current function value
-        dy: Current function derivative dy/dx
-        ddy: Current function second derivative ddy/ddx
+        dx (float): Integration step
+        y (float): Current function value
+        dy (float): Current function derivative dy/dx
+        ddy (float): Current function second derivative ddy/ddx
+
+    Returns:
+        y (float) : Integrated function value
+        dy (float): Integrated function derivative dy/dx
     """
     dy += dx * ddy
     y += dx * dy + 0.5 * dx * dx * ddy
@@ -100,36 +112,65 @@ def predictor(dx, y, dy, ddy):
 
 
 def corrector(dx, dy, ddy, ddy_in):
-    """ Performs corrector Leap-Frog stage.
+    """ Performs the Heun's integrator corrector
+
     Params:
-        dx: Integration step
-        y: Current function value
-        dy: Current function derivative dy/dx
-        ddy: Current function second derivative ddy/ddx
-        ddy_in: Second derivative from the previous step
+        dx (float): Integration step
+        y (float): Current function value
+        dy (float): Current function derivative dy/dx
+        ddy (float): Current function second derivative ddy/ddx
+        ddy_in (float): Second derivative from the previous step
+
+    Returns:
+        dy (float): Integrated function derivative dy/dx
     """
     dy += 0.5 * DT * (ddy - ddy_in);
     return dy
 
 
+def win_filter(m, dt, T=0.01):
+    """Low-pass filter
+
+    Params:
+        m (list): Collected fluid moments
+        dt (list): Collected time steps
+        T (float): Filtering window
+
+    Returns:
+        m (list): Remaining moments (after droping the data out of window)
+        dt (list): Remaining time steps (after droping the data out of window)
+        M (float): Filtered moment value
+    """
+    # Drop the data out of window
+    while np.sum(dt) > T:
+        m = m[:-1]
+        dt = dt[:-1]
+    # Carry out the convolution
+    f = np.exp(-(2.0 * np.cumsum(dt) / T)**2)
+    M = np.sum(f * dt * m) / np.sum(f * dt)
+    return m, dt, M
+
+
 def main():
-    global DT, Theta, dTheta, ddTheta, F
+    global DT, Theta, dTheta, ddTheta, F, dt_list, ddtheta_list
     ddTheta_in = ddTheta  # Backup for the predictor-corrector
     # Predictor
     Theta, dTheta = predictor(DT, Theta, dTheta, ddTheta)
     # Get the new time and time step
     t = aqua.get("t")
     dt = aqua.get("dt")
-    # Get new mass position (and experimental resulting angle)
+    # Get the new mass position, and the expected angle
     xi = np.interp(t, T, XI)
     dXi = np.interp(t, T, DXI)
     exp_theta = np.interp(t, T, THETA)
-    # Compute ddTheta
+    # Compute the angular acceleration, ddTheta
     M = aqua.get("forces_M")[0]
-    ddTheta = angularForce(M, xi, dXi, Theta, dTheta)
+    dt_list.insert(0, dt)
+    ddtheta_list.insert(0, angularForce(M, xi, dXi, Theta, dTheta))
+    ddtheta_list, dt_list, ddTheta = win_filter(ddtheta_list, dt_list)
     # Corrector
     dTheta = corrector(dt, dTheta, ddTheta, ddTheta_in)
-    DT = dt  # Store it for the predictor in the following time step
+    DT = dt  # For the next predictor
     # Send the data to SPH
     a = np.zeros(4, dtype=np.float32)
     a[0] = Theta
