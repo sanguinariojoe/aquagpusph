@@ -46,7 +46,7 @@ L = H = 1.0
 U = 1.0
 Re = 1000.0
 T = L / U * 35
-nx = ny = 100
+nx = ny = 200
 
 dr = L / nx
 n = nx * ny
@@ -55,7 +55,7 @@ visc_dyn = refd * U * L / Re
 p0 = 3.0 * refd * U**2
 
 alpha = 8.0 * visc_dyn / (refd * hfac * dr * cs)
-delta = 1.0 if alpha < 0.03 else 0.0
+delta = 10.0 if alpha < 0.03 else 0.0
 
 Nx = nx
 Ny = ny
