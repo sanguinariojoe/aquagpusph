@@ -38,12 +38,12 @@ import math
 
 g = 0.0
 hfac = 1.25
-courant = 0.1
+courant = 0.05
 courant_ramp_iters = 1000
 courant_ramp_factor = 0.001
 refd = 1.0
 alpha = 0.0
-delta = 1.0
+delta = 20.0
 U = 1.0
 cs = 10.0 * U
 Re = 100.0
