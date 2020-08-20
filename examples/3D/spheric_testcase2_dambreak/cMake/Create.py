@@ -151,7 +151,7 @@ print('Box boundary elements...')
 N_box = 0
 
 print('    Top face...')
-normal = (0.0, 0.0, -1.0)
+normal = (0.0, 0.0, 1.0)
 tangent = (-1.0, 0.0, 0.0)
 z = z0 + Nz_box * dr
 for i in range(Nx_box):
