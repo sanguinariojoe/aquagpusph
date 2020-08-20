@@ -38,10 +38,10 @@ import math
 
 g = 0.0
 hfac = 4.0
-courant = 0.2
+courant = 0.1
 refd = 1.0
 alpha = 0.0
-delta = 1.0
+delta = 20.0
 U = 1.0
 cs = 50.0 * U
 Re = 100.0
