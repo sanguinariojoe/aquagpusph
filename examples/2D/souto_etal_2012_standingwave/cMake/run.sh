@@ -8,7 +8,7 @@ if [[ $1 == "--run" ]]; then
     rm -f output.pvd
     rm -f Timing.dat
     rm -f Performance.dat
-    rm -f sensors_h.out
+    rm -f EnergyKin.dat
     @EXAMPLE_DEST_DIR@/Create.py
     @BINARY_DIR@/AQUAgpusph2D -i Main.xml
 elif [[ $1 == "--plot" ]]; then

@@ -102,9 +102,9 @@ ax.set_ylabel(r"$\mathcal{E}_{k}(t) / \mathcal{E}_{k}(0)$")
 def update(frame_index):
     plt.tight_layout()
     try:
-        data = readFile('Energy.dat')
+        data = readFile('EnergyKin.dat')
         t = data[0]
-        e = data[2]
+        e = data[1]
         e0 = e[0]
         for i in range(len(t)):
             t[i] /= T

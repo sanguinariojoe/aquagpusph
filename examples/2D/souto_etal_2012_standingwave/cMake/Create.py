@@ -39,9 +39,10 @@ import math
 g = 1
 hfac = 4.0
 cs = 50.0
-courant = 0.2
+courant = 0.1
 refd = 1.0
 alpha = 0.0
+delta = 10.0
 periods_to_run = 8
 # Fluid dimensions
 L = 2.0
@@ -58,12 +59,17 @@ nx = 2 * ny
 
 # Dimensions and number of particles readjustment
 # ===============================================
+sep = 2.0
 dr = H / ny
+h = hfac * dr
 n = nx * ny
 
 visc_dyn = refd * H * math.sqrt(g * H) / Re
-visc_dyn = max(alpha / 8.0 * refd * hfac * dr * cs, visc_dyn)
+visc_dyn = max(alpha / 8.0 * refd * h * cs, visc_dyn)
 A = 0.5 * Epsilon * H
+
+domain_min = (-0.2 * L - 6.0 * sep * h, -0.2 * (H + A) - 6.0 * sep * h)
+domain_max = (1.2 * L + 6.0 * sep * h, 1.2 * (H + A) + 6.0 * sep * h)
 
 # Solid boundary elements
 Nx = nx
@@ -71,6 +77,9 @@ Nx = nx
 DeLeffeDistFactor = 1
 Nx = DeLeffeDistFactor * Nx
 N = Nx
+
+# Buffer particles for the symmetry planes
+n_buffer = n + N
 
 T = 2.0 * math.pi / omega
 end_time = periods_to_run * T
@@ -193,6 +202,34 @@ for i in range(0, N):
         imove)
     output.write(string)
 print('    100%')
+
+string = """
+    Writing buffer particles...
+"""
+print(string)
+Percentage = -1
+x = domain_max[0] + sep * h
+y = domain_max[1] + sep * h
+for i in range(n_buffer):
+    percentage = int(round((i + 1.0) / n_buffer * 100))
+    if Percentage != percentage:
+        Percentage = percentage
+        if not Percentage % 10:
+            string = '    {}%'.format(Percentage)
+            print(string)
+    imove = -255
+    dens = refd
+    mass = 0.0
+    string = ("{} {}, " * 4 + "{}, {}, {}, {}\n").format(
+        x, y,
+        0.0, 0.0,
+        0.0, 0.0,
+        0.0, 0.0,
+        dens,
+        0.0,
+        mass,
+        imove)
+    output.write(string)
 output.close()
 
 # XML definition generation
@@ -202,15 +239,13 @@ templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
 XML = ('Fluids.xml', 'Main.xml', 'Settings.xml', 'SPH.xml',
        'Symmetries.xml', 'Time.xml')
 
-domain_min = (-0.2 * L, -0.2 * (H + A))
 domain_min = str(domain_min).replace('(', '').replace(')', '')
-domain_max = (1.2 * L, 1.2 * (H + A))
 domain_max = str(domain_max).replace('(', '').replace(')', '')
 
 data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
         'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max, 'REFD':str(refd),
-        'VISC_DYN':str(visc_dyn), 'G':str(g),
-        'N':str(n + N), 'L':str(L), 'END_TIME':str(end_time),
+        'VISC_DYN':str(visc_dyn), 'DELTA':str(delta), 'G':str(g),
+        'N':str(n + N + n_buffer), 'L':str(L), 'END_TIME':str(end_time),
         'E_KIN':str(Ekin0), 'E_POT':str(Epot0)}
 for fname in XML:
     # Read the template
