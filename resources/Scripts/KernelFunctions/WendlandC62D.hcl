@@ -27,13 +27,13 @@
     /** @def M_PI
      * \f$ \pi \f$ value.
      */
-	#define M_PI 3.14159265359f
+    #define M_PI 3.14159265359f
 #endif
 #ifndef iM_PI
     /** @def iM_PI
      * \f$ \frac{1}{\pi} \f$ value.
      */
-	#define iM_PI 0.318309886f
+    #define iM_PI 0.318309886f
 #endif
 
 /** @brief The kernel value
@@ -41,12 +41,12 @@
  * @param q Normalized distance \f$ \frac{\mathbf{r_j} - \mathbf{r_i}}{h} \f$.
  * @return Kernel value.
  */
-const float kernelW(float q)
+inline const float kernelW(const float q)
 {
-	const float wcon  = 0.010881696428571428f*iM_PI;  // 0.0108817f = 7/7168 = 7/(78 * 2**10)
-	const float tmq = 2.f - q;
-	const float facq8 = tmq * tmq * tmq * tmq * tmq * tmq * tmq * tmq;
-	return wcon * (1.f + 4.f*q + 6.25f*q*q + 4.f*q*q*q) * facq8;
+    const float wcon  = 0.010881696428571428f * iM_PI;  // 0.0108817f = 7/7168 = 7/(78 * 2**10)
+    const float tmq = 2.f - q;
+    const float facq8 = tmq * tmq * tmq * tmq * tmq * tmq * tmq * tmq;
+    return wcon * (1.f + 4.f * q + 6.25f * q * q + 4.f * q * q * q) * facq8;
 }
 
 /** @brief The kernel gradient factor
@@ -61,12 +61,12 @@ const float kernelW(float q)
  * @param q Normalized distance \f$ \frac{\mathbf{r_j} - \mathbf{r_i}}{h} \f$.
  * @return Kernel gradient factor value
  */
-const float kernelF(float q)
+inline const float kernelF(const float q)
 {
-	const float wcon  = 0.010881696428571428f*iM_PI;  // 0.0108817f = 7/7168 = 7/(78 * 2**10)
-	const float tmq = 2.f - q;
-	const float facq7 = tmq * tmq * tmq * tmq * tmq * tmq * tmq;
-	return wcon * facq7 * (11.f + 38.5f*q + 44.f*q*q);
+    const float wcon  = 0.010881696428571428f * iM_PI;  // 0.0108817f = 7/7168 = 7/(78 * 2**10)
+    const float tmq = 2.f - q;
+    const float facq7 = tmq * tmq * tmq * tmq * tmq * tmq * tmq;
+    return wcon * facq7 * (11.f + 38.5f * q + 44.f * q * q);
 }
 
 /** @brief An equivalent kernel function to compute the Shepard factor using the
@@ -85,20 +85,20 @@ const float kernelF(float q)
  * @return Equivalent kernel polynomial part
  * @see kernelS_D
  */
-const float kernelS_P(float q)
+inline const float kernelS_P(const float q)
 {
     const float wcon = 0.010881696428571428f*iM_PI;  // 0.0108817f = 78/7168 = 78/(7 * 2**10)
     const float q2 = q * q;
     const float q5 = q2 * q2 * q;
     return wcon * ( 0.3076923076923077f * q5 * q5 * q  - // 0.3076923076923077f = 4/13
-		    4.8125f * q5 * q5                  + // 4.8125f = 77/16
-		    32.f * q5 * q2 * q2                - //
-		    115.5f * q5 * q2 * q               + // 115.5f = 1155/10
-		    234.66666666666667f * q5 * q2      - // 234.66666667f = 704/3
-		    231.f * q5 * q                     + //
-		    176.f * q2 * q2                    - //
-		    176.f * q2                         + //
-		    128.f
+            4.8125f * q5 * q5                  + // 4.8125f = 77/16
+            32.f * q5 * q2 * q2                - //
+            115.5f * q5 * q2 * q               + // 115.5f = 1155/10
+            234.66666666666667f * q5 * q2      - // 234.66666667f = 704/3
+            231.f * q5 * q                     + //
+            176.f * q2 * q2                    - //
+            176.f * q2                         + //
+            128.f
                   );
 }
 
@@ -126,11 +126,14 @@ const float kernelS_P(float q)
  * @warning Due to the analytical nature of the solution, this kernel should not
  * be multiplied by the element area, nor divided by \f$ h^2 \f$
  */
-const float kernelS_D(float d, float t, float b, float s)
+inline const float kernelS_D(const float d,
+                             const float t,
+                             const float b,
+                             const float s)
 {
     const float wcon = 0.5f * iM_PI;
     const float dr = 0.5f * s;
     return -wcon * (atan((t + dr) / d) - atan((t - dr) / d));
 }
 
-#endif	// _KERNEL_H_INCLUDED_
+#endif    // _KERNEL_H_INCLUDED_

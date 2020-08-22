@@ -41,10 +41,10 @@
  * @param q Normalized distance \f$ \frac{\mathbf{r_j} - \mathbf{r_i}}{h} \f$.
  * @return Kernel value.
  */
-float kernelW(float q)
+inline const float kernelW(const float q)
 {
-    float wcon = 0.109375f*iM_PI;  // 0.109375f = 7/64
-    return wcon*(1.f+2.f*q) * (2.f-q)*(2.f-q)*(2.f-q)*(2.f-q);
+    const float wcon = 0.109375f * iM_PI;  // 0.109375f = 7/64
+    return wcon*(1.f + 2.f * q) * (2.f - q) * (2.f - q) * (2.f - q) * (2.f - q);
 }
 
 /** @brief The kernel gradient factor
@@ -59,10 +59,10 @@ float kernelW(float q)
  * @param q Normalized distance \f$ \frac{\mathbf{r_j} - \mathbf{r_i}}{h} \f$.
  * @return Kernel gradient factor value
  */
-float kernelF(float q)
+inline const float kernelF(const float q)
 {
-    float wcon = 1.09375f*iM_PI;  // 1.09375f = 2*5*7/64
-    return wcon*(2.f-q)*(2.f-q)*(2.f-q);
+    const float wcon = 1.09375f * iM_PI;  // 1.09375f = 2*5*7/64
+    return wcon * (2.f - q) * (2.f - q) * (2.f - q);
 }
 
 /** @brief The kernel partial derivative with respect to the characteristic
@@ -79,13 +79,13 @@ float kernelF(float q)
  * On the derivation of SPH schemes for shocks through inhomogeneous media. Int.
  * Jnl. of Multiphysics (2015).
  */
-float kernelH(float q)
+inline const float kernelH(const float q)
 {
-    float wcon = 0.109375f*iM_PI;  // 0.109375f = 7/64
-    return wcon * (2.f-q)*(2.f-q)*(2.f-q) * (
+    const float wcon = 0.109375f * iM_PI;  // 0.109375f = 7/64
+    return wcon * (2.f - q) * (2.f - q) * (2.f - q) * (
         4.f * q * (1.f + 2.f * q) -
-        DIMS * (2.f-q) * (1.f + 2.f * q) -
-        2.f * q * (2.f-q));
+        DIMS * (2.f - q) * (1.f + 2.f * q) -
+        2.f * q * (2.f - q));
 }
 
 /** @brief An equivalent kernel function to compute the Shepard factor using the
@@ -104,11 +104,11 @@ float kernelH(float q)
  * @return Equivalent kernel polynomial part
  * @see kernelS_D
  */
-float kernelS_P(float q)
+inline const float kernelS_P(const float q)
 {
-    float wcon = 0.109375f*iM_PI;  // 0.109375f = 7/64
-    float q2 = q * q;
-    float q3 = q2 * q;
+    const float wcon = 0.109375f*iM_PI;  // 0.109375f = 7/64
+    const float q2 = q * q;
+    const float q3 = q2 * q;
     return wcon * (  0.285714f * q3 * q2  // 0.285714f = 2/7
                    - 2.5f * q2 * q2       // 2.5f = 5/2
                    + 8.f * q3
@@ -141,7 +141,10 @@ float kernelS_P(float q)
  * @warning Due to the analytical nature of the solution, this kernel should not
  * be multiplied by the element area, nor divided by \f$ h^2 \f$
  */
-float kernelS_D(float d, float t, float b, float s)
+inline const float kernelS_D(const float d,
+                             const float t,
+                             const float b,
+                             const float s)
 {
     const float wcon = 0.5f * iM_PI;
     const float dr = 0.5f * s;

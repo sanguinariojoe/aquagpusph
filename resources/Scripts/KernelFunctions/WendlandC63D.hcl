@@ -41,12 +41,12 @@
  * @param q Normalized distance \f$ \frac{\mathbf{r_j} - \mathbf{r_i}}{h} \f$.
  * @return Kernel value.
  */
-const float kernelW(float q)
+inline const float kernelW(const float q)
 {
-    const float wcon  = 0.01041412353515625f*iM_PI;  // 0.01041412353515625f = 1365 / 64 / 2**11
+    const float wcon  = 0.01041412353515625f * iM_PI;  // 0.01041412353515625f = 1365 / 64 / 2**11
     const float tmq = 2.f - q;
     const float facq8 = tm2 * tmq * tmq * tmq * tmq * tmq * tmq * tmq;
-    return wcon * (1.f + 4.f*q + 6.25f*q*q + 4.f*q*q*q) * facq8;
+    return wcon * (1.f + 4.f * q + 6.25f * q * q + 4.f * q * q * q) * facq8;
 }
 
 /** @brief The kernel gradient factor
@@ -61,12 +61,12 @@ const float kernelW(float q)
  * @param q Normalized distance \f$ \frac{\mathbf{r_j} - \mathbf{r_i}}{h} \f$.
  * @return Kernel amount
  */
-const float kernelF(float q)
+inline const float kernelF(const float q)
 {
-    const float wcon  = 0.01041412353515625f*iM_PI;  // 0.01041412353515625f = 1365 / 64 / 2**11
+    const float wcon  = 0.01041412353515625f * iM_PI;  // 0.01041412353515625f = 1365 / 64 / 2**11
     const float tmq = 2.f - q;
     const float facq7 = tmq * tmq * tmq * tmq * tmq * tmq * tmq;
-    return wcon * facq7 * (11.f + 38.5f*q + 44.f*q*q);
+    return wcon * facq7 * (11.f + 38.5f * q + 44.f * q * q);
 }
 
 /** @brief An equivalent kernel function to compute the Shepard factor using the
@@ -85,20 +85,20 @@ const float kernelF(float q)
  * @return Equivalent kernel polynomial part
  * @see kernelS_D
  */
-const float kernelS_P(float q)
+inline const float kernelS_P(const float q)
 {
-    const float wcon = 0.005440848214285714f*iM_PI;  // 0.00544085f = 7/14336 = 7/(78 * 2**11)  
+    const float wcon = 0.005440848214285714f * iM_PI;  // 0.00544085f = 7/14336 = 7/(78 * 2**11)  
     const float q2   = q * q;
     const float q5   = q2 * q2 * q;
     return wcon * ( 0.2857142857142857f * q5 * q5 * q   - // 0.2857142857142857 = 2/7
-		    4.4423076923076925f * q5 * q5       + // 4.4423076923076925 = 231/52
-		    29.333333333333333f * q5 * q2 * q2  - // 29.333333333333333 = 88/3
-		    105.f * q5 * q2 * q                 + // 
-		    211.2f * q5 * q2                    - // 211.2 = 2112/10
-		    205.33333333333334f * q5 * q        + // 205.33333333333333 = 616/3
-		    150.85714285714286f * q2 * q2       - // 150.85714285714286 = 1056/7
-		    140.8f * q2                         + // 140.8f = 704/5
-		    85.33333333333333f                    // 85.33333333333333f = 256/3
+            4.4423076923076925f * q5 * q5       + // 4.4423076923076925 = 231/52
+            29.333333333333333f * q5 * q2 * q2  - // 29.333333333333333 = 88/3
+            105.f * q5 * q2 * q                 + // 
+            211.2f * q5 * q2                    - // 211.2 = 2112/10
+            205.33333333333334f * q5 * q        + // 205.33333333333333 = 616/3
+            150.85714285714286f * q2 * q2       - // 150.85714285714286 = 1056/7
+            140.8f * q2                         + // 140.8f = 704/5
+            85.33333333333333f                    // 85.33333333333333f = 256/3
                   );
 }
 
@@ -118,7 +118,7 @@ const float kernelS_P(float q)
  * @return Equivalent kernel divergent part
  * @see kernelS_D
  */
-const float _Omega(const float a, const float b)
+inline const float _Omega(const float a, const float b)
 {
     const float a2 = a * a;
     const float b2 = b * b;
@@ -152,7 +152,10 @@ const float _Omega(const float a, const float b)
  * @warning Due to the analytical nature of the solution, this kernel should not
  * be multiplied by the element area, nor divided by \f$ h^2 \f$
  */
-const float kernelS_D(float d, float t, float b, float s)
+inline const float kernelS_D(const float d,
+                             const float t,
+                             const float b,
+                             const float s)
 {
     const float wcon = 0.25f;
     const float dr = 0.5f * sqrt(s);
