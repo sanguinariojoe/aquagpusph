@@ -135,7 +135,7 @@ later:
     
     <Tools>
         <!-- Improved Euler time integration predictor stage -->
-        <Tool action="add" name="predictor" type="kernel" entry_point="predictor" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/time_scheme/improved_euler.cl"/>
+        <Tool action="add" name="predictor" type="kernel" entry_point="predictor" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/time_scheme/euler.cl"/>
         <Tool action="add" name="Predictor" type="dummy"/>
 
         <!-- Link-list and particles sorting -->
@@ -163,7 +163,7 @@ later:
         <Tool action="add" name="Rates" type="dummy"/>
 
         <!-- Improved Euler time integration corrector stage -->
-        <Tool action="add" name="corrector" type="kernel" entry_point="corrector" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/time_scheme/improved_euler.cl"/>
+        <Tool action="add" name="corrector" type="kernel" entry_point="corrector" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/time_scheme/euler.cl"/>
         <Tool action="add" name="Corrector" type="dummy"/>
 
         <!-- Time step computation -->
