@@ -564,7 +564,6 @@ void CL_CALLBACK cbMPISend(cl_event n_event,
     unsigned int n = *(data->n);
 
     if(data->tag == 1) {
-
         MPI::COMM_WORLD.Isend(&n, 1, MPI::UNSIGNED, data->proc, 0);
     }
 
