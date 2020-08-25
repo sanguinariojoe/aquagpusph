@@ -255,14 +255,14 @@ bool ScalarVecVariable<T>::checkPyhonObjectDims(PyObject* obj){
     }
 
     PyArrayObject* array_obj = (PyArrayObject*) obj;
-    if(array_obj->nd != 1){
+    if(PyArray_NDIM(array_obj) != 1){
         pyerr.str("");
         pyerr << "Variable \"" << this->name()
             << "\" expected an one dimensional array" << std::endl;
         PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
-    npy_intp dim = array_obj->dimensions[0];
+    npy_intp dim = PyArray_DIMS(array_obj)[0];
     if(dim != _dims){
         pyerr.str("");
         pyerr << "Variable \"" << this->name()
@@ -299,7 +299,7 @@ PyObject* Vec2Variable::getPythonObject(int i0, int n)
 {
     vec2 *vv = (vec2*)get();
     npy_intp dims[] = {2};
-    return PyArray_SimpleNewFromData(1, dims, PyArray_FLOAT, vv->s);
+    return PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, vv->s);
 }
 
 bool Vec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
@@ -308,16 +308,16 @@ bool Vec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
         return true;
     PyArrayObject* array_obj = (PyArrayObject*) obj;
     int typ = PyArray_TYPE(array_obj);
-    if (typ != PyArray_FLOAT) {
+    if (typ != NPY_FLOAT32) {
         pyerr.str("");
         pyerr << "Variable \"" << name()
-            << "\" expected a PyArray_FLOAT array" << std::endl;
+            << "\" expected a NPY_FLOAT32 array" << std::endl;
         PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
 
     vec2 *vv = (vec2*)get();
-    void *data = array_obj->data;
+    void *data = PyArray_DATA(array_obj);
     memcpy(vv->s, data, sizeof(vec2));
 
     return false;
@@ -335,7 +335,7 @@ PyObject* Vec3Variable::getPythonObject(int i0, int n)
 {
     vec3 *vv = (vec3*)get();
     npy_intp dims[] = {3};
-    return PyArray_SimpleNewFromData(1, dims, PyArray_FLOAT, vv->s);
+    return PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, vv->s);
 }
 
 bool Vec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
@@ -344,16 +344,16 @@ bool Vec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
         return true;
     PyArrayObject* array_obj = (PyArrayObject*) obj;
     int typ = PyArray_TYPE(array_obj);
-    if (typ != PyArray_FLOAT) {
+    if (typ != NPY_FLOAT32) {
         pyerr.str("");
         pyerr << "Variable \"" << name()
-            << "\" expected a PyArray_FLOAT array" << std::endl;
+            << "\" expected a NPY_FLOAT32 array" << std::endl;
         PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
 
     vec3 *vv = (vec3*)get();
-    void *data = array_obj->data;
+    void *data = PyArray_DATA(array_obj);
     memcpy(vv->s, data, sizeof(vec3));
 
     return false;
@@ -372,7 +372,7 @@ PyObject* Vec4Variable::getPythonObject(int i0, int n)
 {
     vec4 *vv = (vec4*)get();
     npy_intp dims[] = {4};
-    return PyArray_SimpleNewFromData(1, dims, PyArray_FLOAT, vv->s);
+    return PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, vv->s);
 }
 
 bool Vec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
@@ -381,16 +381,16 @@ bool Vec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
         return true;
     PyArrayObject* array_obj = (PyArrayObject*) obj;
     int typ = PyArray_TYPE(array_obj);
-    if (typ != PyArray_FLOAT) {
+    if (typ != NPY_FLOAT32) {
         pyerr.str("");
         pyerr << "Variable \"" << name()
-            << "\" expected a PyArray_FLOAT array" << std::endl;
+            << "\" expected a NPY_FLOAT32 array" << std::endl;
         PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
 
     vec4 *vv = (vec4*)get();
-    void *data = array_obj->data;
+    void *data = PyArray_DATA(array_obj);
     memcpy(vv->s, data, sizeof(vec4));
 
     return false;
@@ -407,7 +407,7 @@ PyObject* IVec2Variable::getPythonObject(int i0, int n)
 {
     ivec2 *vv = (ivec2*)get();
     npy_intp dims[] = {2};
-    return PyArray_SimpleNewFromData(1, dims, PyArray_INT, vv->s);
+    return PyArray_SimpleNewFromData(1, dims, NPY_INT32, vv->s);
 }
 
 bool IVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
@@ -416,16 +416,16 @@ bool IVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
         return true;
     PyArrayObject* array_obj = (PyArrayObject*) obj;
     int typ = PyArray_TYPE(array_obj);
-    if (typ != PyArray_INT) {
+    if (typ != NPY_INT32) {
         pyerr.str("");
         pyerr << "Variable \"" << name()
-            << "\" expected a PyArray_INT array" << std::endl;
+            << "\" expected a NPY_INT32 array" << std::endl;
         PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
 
     ivec2 *vv = (ivec2*)get();
-    void *data = array_obj->data;
+    void *data = PyArray_DATA(array_obj);
     memcpy(vv->s, data, sizeof(ivec2));
 
     return false;
@@ -443,7 +443,7 @@ PyObject* IVec3Variable::getPythonObject(int i0, int n)
 {
     ivec3 *vv = (ivec3*)get();
     npy_intp dims[] = {3};
-    return PyArray_SimpleNewFromData(1, dims, PyArray_INT, vv->s);
+    return PyArray_SimpleNewFromData(1, dims, NPY_INT32, vv->s);
 }
 
 bool IVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
@@ -452,16 +452,16 @@ bool IVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
         return true;
     PyArrayObject* array_obj = (PyArrayObject*) obj;
     int typ = PyArray_TYPE(array_obj);
-    if (typ != PyArray_INT) {
+    if (typ != NPY_INT32) {
         pyerr.str("");
         pyerr << "Variable \"" << name()
-            << "\" expected a PyArray_INT array" << std::endl;
+            << "\" expected a NPY_INT32 array" << std::endl;
         PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
 
     ivec3 *vv = (ivec3*)get();
-    void *data = array_obj->data;
+    void *data = PyArray_DATA(array_obj);
     memcpy(vv->s, data, sizeof(ivec3));
 
     return false;
@@ -480,7 +480,7 @@ PyObject* IVec4Variable::getPythonObject(int i0, int n)
 {
     ivec4 *vv = (ivec4*)get();
     npy_intp dims[] = {4};
-    return PyArray_SimpleNewFromData(1, dims, PyArray_INT, vv->s);
+    return PyArray_SimpleNewFromData(1, dims, NPY_INT32, vv->s);
 }
 
 bool IVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
@@ -489,16 +489,16 @@ bool IVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
         return true;
     PyArrayObject* array_obj = (PyArrayObject*) obj;
     int typ = PyArray_TYPE(array_obj);
-    if (typ != PyArray_INT) {
+    if (typ != NPY_INT32) {
         pyerr.str("");
         pyerr << "Variable \"" << name()
-            << "\" expected a PyArray_INT array" << std::endl;
+            << "\" expected a NPY_INT32 array" << std::endl;
         PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
 
     ivec4 *vv = (ivec4*)get();
-    void *data = array_obj->data;
+    void *data = PyArray_DATA(array_obj);
     memcpy(vv->s, data, sizeof(ivec4));
 
     return false;
@@ -515,7 +515,7 @@ PyObject* UIVec2Variable::getPythonObject(int i0, int n)
 {
     uivec2 *vv = (uivec2*)get();
     npy_intp dims[] = {2};
-    return PyArray_SimpleNewFromData(1, dims, PyArray_UINT, vv->s);
+    return PyArray_SimpleNewFromData(1, dims, NPY_UINT32, vv->s);
 }
 
 bool UIVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
@@ -524,16 +524,16 @@ bool UIVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
         return true;
     PyArrayObject* array_obj = (PyArrayObject*) obj;
     int typ = PyArray_TYPE(array_obj);
-    if (typ != PyArray_UINT) {
+    if (typ != NPY_UINT32) {
         pyerr.str("");
         pyerr << "Variable \"" << name()
-            << "\" expected a PyArray_UINT array" << std::endl;
+            << "\" expected a NPY_UINT32 array" << std::endl;
         PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
 
     uivec2 *vv = (uivec2*)get();
-    void *data = array_obj->data;
+    void *data = PyArray_DATA(array_obj);
     memcpy(vv->s, data, sizeof(uivec2));
 
     return false;
@@ -551,7 +551,7 @@ PyObject* UIVec3Variable::getPythonObject(int i0, int n)
 {
     uivec3 *vv = (uivec3*)get();
     npy_intp dims[] = {3};
-    return PyArray_SimpleNewFromData(1, dims, PyArray_UINT, vv->s);
+    return PyArray_SimpleNewFromData(1, dims, NPY_UINT32, vv->s);
 }
 
 bool UIVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
@@ -560,16 +560,16 @@ bool UIVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
         return true;
     PyArrayObject* array_obj = (PyArrayObject*) obj;
     int typ = PyArray_TYPE(array_obj);
-    if (typ != PyArray_UINT) {
+    if (typ != NPY_UINT32) {
         pyerr.str("");
         pyerr << "Variable \"" << name()
-            << "\" expected a PyArray_UINT array" << std::endl;
+            << "\" expected a NPY_UINT32 array" << std::endl;
         PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
 
     uivec3 *vv = (uivec3*)get();
-    void *data = array_obj->data;
+    void *data = PyArray_DATA(array_obj);
     memcpy(vv->s, data, sizeof(uivec3));
 
     return false;
@@ -588,7 +588,7 @@ PyObject* UIVec4Variable::getPythonObject(int i0, int n)
 {
     uivec4 *vv = (uivec4*)get();
     npy_intp dims[] = {4};
-    return PyArray_SimpleNewFromData(1, dims, PyArray_UINT, vv->s);
+    return PyArray_SimpleNewFromData(1, dims, NPY_UINT32, vv->s);
 }
 
 bool UIVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
@@ -597,16 +597,16 @@ bool UIVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
         return true;
     PyArrayObject* array_obj = (PyArrayObject*) obj;
     int typ = PyArray_TYPE(array_obj);
-    if (typ != PyArray_UINT) {
+    if (typ != NPY_UINT32) {
         pyerr.str("");
         pyerr << "Variable \"" << name()
-            << "\" expected a PyArray_UINT array" << std::endl;
+            << "\" expected a NPY_UINT32 array" << std::endl;
         PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
 
     uivec4 *vv = (uivec4*)get();
-    void *data = array_obj->data;
+    void *data = PyArray_DATA(array_obj);
     memcpy(vv->s, data, sizeof(uivec4));
 
     return false;
@@ -710,24 +710,24 @@ PyObject* ArrayVariable::getPythonObject(int i0, int n)
     }
     npy_intp dims[] = {static_cast<npy_intp>(len), components};
     // Get the appropiate type
-    int pytype = PyArray_FLOAT;
+    int pytype = NPY_FLOAT32;
     if(!type().compare("unsigned int") ||
        !type().compare("unsigned int*") ||
        !type().compare("uivec") ||
        !type().compare("uivec*")){
-       pytype = PyArray_UINT;
+       pytype = NPY_UINT32;
     }
     else if(!type().compare("int") ||
             !type().compare("int*") ||
             !type().compare("ivec") ||
             !type().compare("ivec*")){
-       pytype = PyArray_INT;
+       pytype = NPY_INT32;
     }
     else if(!type().compare("float") ||
             !type().compare("float*") ||
             !type().compare("vec") ||
             !type().compare("vec*")){
-       pytype = PyArray_FLOAT;
+       pytype = NPY_FLOAT32;
     }
     else{
         pyerr.str("");
@@ -841,14 +841,14 @@ bool ArrayVariable::setFromPythonObject(PyObject* obj, int i0, int n)
     }
 
     PyArrayObject* array_obj = (PyArrayObject*) obj;
-    if(array_obj->nd != 2){
+    if(PyArray_NDIM(array_obj) != 2){
         pyerr.str("");
         pyerr << "Variable \"" << name()
             << "\" expected a 2D array" << std::endl;
         PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
         return true;
     }
-    npy_intp *dims = array_obj->dimensions;
+    npy_intp *dims = PyArray_DIMS(array_obj);
     if((size_t)dims[0] != len){
         pyerr.str("");
         pyerr << len << " elements have been asked to be written in variable \""
@@ -866,7 +866,7 @@ bool ArrayVariable::setFromPythonObject(PyObject* obj, int i0, int n)
         return true;
     }
 
-    void *data = array_obj->data;
+    void *data = PyArray_DATA(array_obj);
     cl_event event, event_wait = getEvent();
     err_code =  clEnqueueWriteBuffer(C->command_queue(),
                                      _value,

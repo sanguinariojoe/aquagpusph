@@ -43,7 +43,7 @@
 const char* _stdout_redirect = "         \n\
 class stdoutWriter(object):              \n\
     def write(self, data):               \n\
-        aquagpusph.log(0, data.rstrip()) \n\
+        aquagpusph.log(0, data)          \n\
     def flush(self):                     \n\
         pass                             \n\
 \n";
@@ -54,7 +54,7 @@ class stdoutWriter(object):              \n\
 const char* _stderr_redirect = "         \n\
 class stderrWriter(object):              \n\
     def write(self, data):               \n\
-        aquagpusph.log(3, data.rstrip()) \n\
+        aquagpusph.log(0, data)          \n\
     def flush(self):                     \n\
         pass                             \n\
 \n";
@@ -276,9 +276,9 @@ cl_event Python::_execute(const std::vector<cl_event> events)
     result = PyObject_CallObject(_func, NULL);
     if(!result) {
         LOG(L_ERROR, "main() function execution failed.\n");
-        printf("\n--- Python report --------------------------\n\n");
+        LOG0(L_DEBUG, "\n--- Python report --------------------------\n\n");
         PyErr_Print();
-        printf("\n-------------------------- Python report ---\n");
+        LOG0(L_DEBUG, "\n-------------------------- Python report ---\n\n");
         throw std::runtime_error("Python execution error");
     }
 
@@ -350,18 +350,18 @@ void Python::load()
         msg << "Python module \"" << filename
             << "\" cannot be imported." << std::endl;
         LOG(L_ERROR, msg.str());
-        printf("\n--- Python report --------------------------\n\n");
+        LOG0(L_DEBUG, "\n--- Python report --------------------------\n\n");
         PyErr_Print();
-        printf("\n-------------------------- Python report ---\n");
+        LOG0(L_DEBUG, "\n-------------------------- Python report ---\n\n");
         throw std::runtime_error("Python execution error");
     }
 
     _func = PyObject_GetAttrString(_module, "main");
     if(!_func || !PyCallable_Check(_func)) {
         LOG(L_ERROR, "main() function cannot be found.\n");
-        printf("\n--- Python report --------------------------\n\n");
+        LOG0(L_DEBUG, "\n--- Python report --------------------------\n\n");
         PyErr_Print();
-        printf("\n-------------------------- Python report ---\n");
+        LOG0(L_DEBUG, "\n-------------------------- Python report ---\n\n");
         throw std::runtime_error("Python execution error");
     }
 }
