@@ -78,7 +78,23 @@ with open("clinfo_platforms", "r") as f1, open("clinfo_devices", "r") as f2:
         if line == "":
             continue
         cl_types.append(line.split(" ")[-1])
+
+# Let's try to use just GPUs
+if "GPU" in cl_types:
+    for i in list(range(len(cl_types)))[::-1]:
+        if cl_types[i] != "GPU":
+            del cl_platforms[i]
+            del cl_devices[i]
+            del cl_types[i]
+
 nprocs = len(cl_platforms)
+if nprocs == 1:
+    # Artificially duplicate the very only available device
+    print("WARNING: The same platform and device will be considered twice")
+    cl_platforms.append(cl_platforms[0])
+    cl_devices.append(cl_devices[0])
+    cl_types.append(cl_types[0])
+    nprocs = 2
 
 # Create the MPI hostfile
 with open("hostfile", "w") as f:
