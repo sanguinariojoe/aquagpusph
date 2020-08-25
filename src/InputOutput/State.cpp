@@ -163,13 +163,11 @@ State::~State()
         msg << "\t" << xmlS(e.getMessage()) << std::endl;
         LOG0(L_DEBUG, msg.str());
         xmlClear();
-        throw;
     }
     catch( ... ){
         LOG(L_ERROR, "XML toolkit exit error.\n");
         LOG0(L_DEBUG, "\tUnhandled exception\n");
         xmlClear();
-        throw;
     }
 }
 
