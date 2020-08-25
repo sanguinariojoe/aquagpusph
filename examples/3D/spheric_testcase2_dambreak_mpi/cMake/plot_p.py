@@ -31,7 +31,6 @@
 
 import os
 from os import path
-import numpy as np
 from scipy.signal import savgol_filter
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -68,7 +67,7 @@ lines = []
 def update(frame_index):
     plt.tight_layout()
     try:
-        data = readFile('sensors.out')
+        data = readFile('sensors_0.out')
         t = data[0]
         pp = data[1:]
     except IndexError:

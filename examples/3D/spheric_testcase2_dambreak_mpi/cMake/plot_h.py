@@ -67,7 +67,7 @@ lines = []
 def update(frame_index):
     plt.tight_layout()
     try:
-        data = readFile('sensors_h.out')
+        data = readFile('sensors_h_0.out')
         t = data[0]
         hh = (data[-4], data[-3], data[-2], data[-1])
     except IndexError:
