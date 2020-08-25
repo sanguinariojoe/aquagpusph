@@ -83,42 +83,99 @@ IF(OPENCL_INCLUDE_DIRS AND OPENCL_LIBRARIES)
   SET(_OPENCL_VERSION_TEST_SOURCE
 "
 #if __APPLE__
-#include <OpenCL/cl.h>
+    #include <OpenCL/cl.h>
 #else /* !__APPLE__ */
-#include <CL/cl.h>
+    #include <CL/cl.h>
 #endif /* __APPLE__ */
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <limits.h>
+
+cl_int parse_version(char* v, cl_uint *major, cl_uint *minor)
+{
+    char *v_major, *v_minor, *tmp;
+    cl_uint i_major, i_minor;
+    size_t pos;
+    if (strncmp(v, \"OpenCL \", 7) != 0) {
+        return CL_INVALID_VALUE;
+    }
+
+    v_major = &(v[7]);
+    pos = strcspn(v_major, \".\");
+    if ((pos == strlen(v_major)) || (pos == 0))
+        return CL_INVALID_VALUE;
+
+    tmp = (char*)malloc((pos + 1) * sizeof(char));
+    strncpy(tmp, v_major, pos);
+    tmp[pos] = '\\0';
+    i_major = (unsigned int)atoi(tmp);
+    free(tmp);
+
+    v_minor = &(v_major[pos]);
+    pos = strcspn(v_minor, \" \");
+    if ((pos == strlen(v_minor)) || (pos == 0))
+        return CL_INVALID_VALUE;
+
+    tmp = (char*)malloc((pos + 1) * sizeof(char));
+    strncpy(tmp, v_minor, pos);
+    tmp[pos] = '\\0';
+    i_minor = (unsigned int)atoi(tmp);
+    free(tmp);
+
+    if ((i_major < *major) || ((i_major == *major) && (i_minor < *minor))) {
+        *major = i_major;
+        *minor = i_minor;
+        return CL_SUCCESS;
+    }
+
+    return CL_INVALID_PLATFORM;
+}
 
 int main()
 {
-    char *version;
+    char *version = NULL;
     cl_int result;
-    cl_platform_id id;
+    cl_uint n_platforms, i;
+    cl_platform_id *ids;
     size_t n;
+    cl_uint major = UINT_MAX, minor = UINT_MAX;
 
-    result = clGetPlatformIDs(1, &id, NULL);
+    result = clGetPlatformIDs(0, NULL, &n_platforms);
+    if ((result != CL_SUCCESS) || (n_platforms == 0))
+        return EXIT_FAILURE;
 
-    if (result == CL_SUCCESS) {
-        result = clGetPlatformInfo(id, CL_PLATFORM_VERSION, 0, NULL, &n);
+    ids = (cl_platform_id*)malloc(n_platforms * sizeof(cl_platform_id));
+    result = clGetPlatformIDs(n_platforms, ids, NULL);
+    if (result != CL_SUCCESS)
+        return EXIT_FAILURE;
 
-        if (result == CL_SUCCESS) {
-            version = (char*)malloc(n * sizeof(char));
+    for (i = 0; i < n_platforms; i++) {
+        result = clGetPlatformInfo(ids[i], CL_PLATFORM_VERSION, 0, NULL, &n);
+        if (result != CL_SUCCESS)
+            continue;
 
-            result = clGetPlatformInfo(id, CL_PLATFORM_VERSION, n, version,
-                NULL);
+        char *v = (char*)malloc(n * sizeof(char));
+        if (!v)
+            continue;
 
-            if (result == CL_SUCCESS) {
-                printf(\"%s\", version);
-                fflush(stdout);
-            }
+        result = clGetPlatformInfo(ids[i], CL_PLATFORM_VERSION, n, v, NULL);
+        if (result != CL_SUCCESS)
+            continue;
 
-            free(version);
-        }
+        result = parse_version(v, &major, &minor);
+        if (result == CL_SUCCESS)
+            version = v;
+        else
+            free(v);
     }
-
-    return result == CL_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
+    
+    printf(\"%s\", version);
+    fflush(stdout);
+    free(ids);
+    free(version);
+    return version != NULL ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 ")
 
@@ -149,7 +206,9 @@ int main()
   
 ENDIF(OPENCL_INCLUDE_DIRS AND OPENCL_LIBRARIES)
 
-MARK_AS_ADVANCED(OPENCL_ROOT_DIR OPENCL_INCLUDE_DIRS OPENCL_LIBRARIES)
+MARK_AS_ADVANCED(OPENCL_ROOT_DIR OPENCL_INCLUDE_DIRS OPENCL_LIBRARIES
+ OPENCL_VERSION_MAJOR OPENCL_VERSION_MINOR)
 
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(OpenCL REQUIRED_VARS OPENCL_ROOT_DIR
-  OPENCL_INCLUDE_DIRS OPENCL_LIBRARIES)
+  OPENCL_INCLUDE_DIRS OPENCL_LIBRARIES
+  OPENCL_VERSION_MAJOR OPENCL_VERSION_MINOR)

@@ -29,7 +29,11 @@
 #include <string>
 #include <fstream>
 #include <vector>
-#include <CL/cl.h>
+#if __APPLE__
+    #include <OpenCL/cl.h>
+#else
+    #include <CL/cl.h>
+#endif
 
 #ifdef HAVE_NCURSES
     #include <ncurses.h>

@@ -24,7 +24,11 @@
 #ifndef CALCSERVER_H_INCLUDED
 #define CALCSERVER_H_INCLUDED
 
-#include <CL/cl.h>
+#if __APPLE__
+    #include <OpenCL/cl.h>
+#else
+    #include <CL/cl.h>
+#endif
 
 #include <vector>
 #include <map>

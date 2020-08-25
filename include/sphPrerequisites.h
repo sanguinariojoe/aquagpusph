@@ -43,7 +43,11 @@
 // CMake configuration file
 #include <config.h>
 
-#include <CL/cl.h>
+#if __APPLE__
+    #include <OpenCL/cl.h>
+#else
+    #include <CL/cl.h>
+#endif
 
 // Assume the 3D version if 2D has not been set
 #if !defined(HAVE_2D) && !defined(HAVE_3D)

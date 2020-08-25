@@ -114,6 +114,7 @@
 /* Define to 1 if you have the <values.h> header file. */
 #cmakedefine HAVE_VALUES_H
 
+
 /* Name of package */
 #define PACKAGE "AQUAgpusph"
 
@@ -144,6 +145,10 @@
 /* ========================================================================== */
 /* Dependencies                                                               */
 /* ========================================================================== */
+/* Lowest OpenCL version to be supported */
+#define OPENCL_PLATFORM_MAJOR ${OPENCL_VERSION_MAJOR}
+#define OPENCL_PLATFORM_MINOR ${OPENCL_VERSION_MINOR}
+
 /* MPI */
 #cmakedefine HAVE_MPI
 

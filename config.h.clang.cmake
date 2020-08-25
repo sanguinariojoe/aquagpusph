@@ -111,6 +111,10 @@
 /* ========================================================================== */
 /* Dependencies                                                               */
 /* ========================================================================== */
+/* Lowest OpenCL version to be supported */
+#define OPENCL_PLATFORM_MAJOR ${OPENCL_VERSION_MAJOR}
+#define OPENCL_PLATFORM_MINOR ${OPENCL_VERSION_MINOR}
+
 /* MPI */
 #cmakedefine HAVE_MPI
 

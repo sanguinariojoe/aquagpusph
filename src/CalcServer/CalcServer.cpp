@@ -805,6 +805,38 @@ void CalcServer::setupPlatform()
     _platform = _platforms[platform_id];
 }
 
+/** @brief Create an OpenCL command queue
+ *
+ * This function is just a wrapper for backguard compatibility. More
+ * specifically, clCreateCommandQueue is deprecated since OpenCL 1.2
+ *
+ * @param context OpenCL context
+ * @param device OpenCL device
+ * @param errcode_ret Returning error code
+ * @see https://www.khronos.org/registry/OpenCL/sdk/2.0/docs/man/xhtml/deprecated.html
+ * @see https://www.khronos.org/registry/OpenCL/sdk/2.0/docs/man/xhtml/clCreateCommandQueueWithProperties.html
+ */
+cl_command_queue create_command_queue(cl_context context,
+                                      cl_device_id device,
+                                      cl_int *errcode_ret)
+{
+#if (OPENCL_PLATFORM_MAJOR > 1) || ((OPENCL_PLATFORM_MAJOR == 1) && (OPENCL_PLATFORM_MINOR > 1))
+    const cl_queue_properties properties[3] = {
+        CL_QUEUE_PROPERTIES, CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, 0};
+    return clCreateCommandQueueWithProperties(context,
+                                              device,
+                                              properties,
+                                              errcode_ret);
+#else
+    cl_command_queue_properties properties = 
+        CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
+    return clCreateCommandQueue(context,
+                                device,
+                                properties,
+                                errcode_ret);
+#endif
+}
+
 /** @brief Runtime error reporting tool
  *
  * Errors reported in this way directly depends on the implementation.
@@ -935,19 +967,13 @@ void CalcServer::setupDevices()
     // Create the command queues
     cl_command_queue_properties properties = 
         CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
-    _command_queue = clCreateCommandQueue(_context,
-                                          _device,
-                                          properties,
-                                          &err_code);
+    _command_queue = create_command_queue(_context, _device, &err_code);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure generating the main command queue\n");
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
-    _command_queue_parallel = clCreateCommandQueue(_context,
-                                                   _device,
-                                                   properties,
-                                                   &err_code);
+    _command_queue = create_command_queue(_context, _device, &err_code);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure generating the parallel command queue\n");
         InputOutput::Logger::singleton()->printOpenCLError(err_code);

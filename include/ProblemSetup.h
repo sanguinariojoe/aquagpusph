@@ -63,7 +63,11 @@
 #include <vector>
 #include <map>
 
-#include <CL/cl.h>
+#if __APPLE__
+    #include <OpenCL/cl.h>
+#else
+    #include <CL/cl.h>
+#endif
 
 namespace Aqua{ namespace InputOutput{
 
