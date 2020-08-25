@@ -973,7 +973,7 @@ void CalcServer::setupDevices()
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
         throw std::runtime_error("OpenCL error");
     }
-    _command_queue = create_command_queue(_context, _device, &err_code);
+    _command_queue_parallel = create_command_queue(_context, _device, &err_code);
     if(err_code != CL_SUCCESS) {
         LOG(L_ERROR, "Failure generating the parallel command queue\n");
         InputOutput::Logger::singleton()->printOpenCLError(err_code);
