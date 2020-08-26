@@ -18,10 +18,6 @@ Remarks:
 -->
 
 <sphInput>
-    <Variables>
-        <Variable name="normal" type="vec*" length="N" />
-    </Variables>
-
     <Definitions>
         <Define name="__CFD_BI__"/>
     </Definitions>
