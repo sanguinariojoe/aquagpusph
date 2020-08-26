@@ -127,10 +127,11 @@ later:
         <Define name="CONW" value="1/(h^dims)" evaluate="true"/>
         <Define name="CONF" value="1/(h^(dims+2))" evaluate="true"/>
         <Define name="SUPPORT" value="2.f" evaluate="false"/>
+        <Define name="KERNEL_NAME" value="Wendland" evaluate="false"/>
         <Define name="TSCHEME_EULER" value="0" evaluate="false"/>
         <Define name="TSCHEME_IMPROVED_EULER" value="1" evaluate="false"/>
         <Define name="TSCHEME_TSCHEME_ADAMS_BASHFORTH" value="2" evaluate="false"/>
-        <Define name="TSCHEME" value="TSCHEME_IMPROVED_EULER" evaluate="false"/>
+        <Define name="TSCHEME" value="TSCHEME_EULER" evaluate="false"/>
     </Definitions>
     
     <Tools>
@@ -150,8 +151,6 @@ later:
         <Tool action="add" name="Backup m" type="copy" in="m" out="m_in"/>
         <Tool action="add" name="sort stage1" type="kernel" entry_point="stage1" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/Sort.cl"/>
         <Tool action="add" name="sort stage2" type="kernel" entry_point="stage2" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/Sort.cl"/>
-        <Tool action="add" name="Backup dudt" type="copy" in="dudt" out="dudt_in"/>
-        <Tool action="add" name="Backup drhodt" type="copy" in="drhodt" out="drhodt_in"/>
         <Tool action="add" name="EOS" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/EOS.cl"/>
         <Tool action="add" name="Binormal" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/Binormal.cl"/>
         <Tool action="add" name="Sort" type="dummy"/>
