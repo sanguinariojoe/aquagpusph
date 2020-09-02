@@ -23,6 +23,6 @@ Authors:
         <Scalar name="visc_dyn" value="{{VISC_DYN}}" />
 
         <Load format="FastASCII" file="Fluid.dat" fields="r, normal, u, dudt, rho, drhodt, m, imove" />
-        <Save format="VTK" file="output" fields="r, normal, u, dudt, rho, drhodt, m, p, imove" />
+        <Save format="VTK" file="output" fields="r, normal, u, dudt, rho, drhodt, m, p, imove, dudt_as1_in, dudt_as2_in, dudt_as3_in, dudt_as4_in, drhodt_as1_in, drhodt_as2_in, drhodt_as3_in, drhodt_as4_in" />
     </ParticlesSet>
 </sphInput>
