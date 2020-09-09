@@ -79,6 +79,9 @@ Nx = DeLeffeDistFactor * Nx
 Ny = DeLeffeDistFactor * Ny
 N = 2 * Nx + 2 * Ny
 
+# Particles packing boundary elements
+NFS = 2 * Nx + 2 * ny
+
 # Particles generation
 # ====================
 print("Opening output file...")
@@ -103,7 +106,6 @@ string = """
     Writing fluid particles...
 """
 print(string)
-
 Percentage = -1
 for i in range(0, n):
     if Percentage != (i * 100) // n:
@@ -117,21 +119,21 @@ for i in range(0, n):
     imove = 1
     pos = (idx * dr - 0.5 * (L - dr),
            idy * dr + 0.5 * dr)
-    press = refd * g * (hFluid - pos[1])
-    dens = refd + press / cs**2 
-    mass = dens * dr**2.0
+    mass = refd * dr**2.0
     string = ("{} {}, " * 4 + "{}, {}, {}, {}\n").format(
         pos[0], pos[1],
         0.0, 0.0,
         0.0, 0.0,
         0.0, 0.0,
-        dens,
+        refd,
         0.0,
         mass,
         imove)
     output.write(string)
 print('    100%')
+output.close()
 
+output = open("Tank.dat", "w")
 string = """
     Writing the boundary elements...
 """
@@ -190,12 +192,71 @@ for i in range(0, N):
 print('    100%')
 output.close()
 
+output = open("FreeSurface.dat", "w")
+string = """
+    Writing the free-surface...
+"""
+print(string)
+Percentage = -1
+for i in range(0, NFS):
+    if Percentage != (i * 100) // NFS:
+        Percentage = (i * 100) // NFS
+        if not Percentage % 10:
+            string = '    {}%'.format(Percentage)
+            print(string)
+    # Bottom
+    if(i < Nx):
+        j = i
+        idx = j + 0.5
+        idy = 0.0
+        normal = [0.0, -1.0]
+    # Roof
+    elif(i < 2 * Nx):
+        j = i - Nx
+        idx = j + 0.5
+        idy = ny
+        normal = [0.0, 1.0]
+    # Left
+    elif(i < 2 * Nx + ny):
+        j = i - 2 * Nx
+        idx = 0.0
+        idy = j + 0.5
+        normal = [-1.0, 0.0]
+    # Right
+    elif(i < 2 * (Nx + ny)):
+        j = i - 2 * Nx - ny
+        idx = Nx
+        idy = j + 0.5
+        normal = [1.0, 0.0]
+    pos = (idx * dr / DeLeffeDistFactor - 0.5 * L,
+           idy * dr / DeLeffeDistFactor)
+    if pos[1] <= hFluid:
+        press = refd * g * (hFluid - pos[1])
+        dens = refd + press / cs**2 
+    else:
+        dens = refd
+        press = 0.0
+    imove = -3
+    mass = dr / DeLeffeDistFactor
+    string = ("{} {}, " * 4 + "{}, {}, {}, {}\n").format(
+        pos[0], pos[1],
+        normal[0], normal[1],
+        0.0, 0.0,
+        0.0, 0.0,
+        dens,
+        0.0,
+        mass,
+        imove)
+    output.write(string)
+print('    100%')
+output.close()
+
 # XML definition generation
 # =========================
 
 templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
-XML = ('Fluids.xml', 'Main.xml', 'Motion.xml', 'Settings.xml', 'SPH.xml',
-       'Time.xml')
+XML = ('particlesPacking.xml', 'Fluids.xml', 'Main.xml', 'Motion.xml',
+       'Settings.xml', 'SPH.xml', 'Time.xml')
 
 radius = math.sqrt((0.5 * L)**2 + H**2)
 domain_min = (-1.1 * radius, -0.5 * L * math.sin(0.5 * math.pi))
@@ -206,7 +267,7 @@ domain_max = str(domain_max).replace('(', '').replace(')', '')
 data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
         'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max, 'REFD':str(refd),
         'VISC_DYN':str(visc_dyn), 'DELTA':str(delta), 'G':str(g),
-        'N':str(n + N)}
+        'HFS':str(hFluid), 'N':str(n), 'NBC':str(N), 'NFS':str(NFS)}
 for fname in XML:
     # Read the template
     f = open(path.join(templates_path, fname), 'r')

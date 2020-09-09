@@ -23,7 +23,15 @@ Authors:
         <Scalar name="visc_dyn" value="{{VISC_DYN}}" />
         <Scalar name="delta" value="{{DELTA}}" />
 
-        <Load format="FastASCII" file="Fluid.dat" fields="r, normal, u, dudt, rho, drhodt, m, imove" />
+        <Load format="VTK" file="Fluid.00001.vtu" fields="r, normal, u, dudt, rho, drhodt, m, imove" />
         <Save format="VTK" file="output" fields="r, normal, u, dudt, rho, drhodt, m, p, imove" />
+    </ParticlesSet>
+    <ParticlesSet n="{{NBC}}">
+        <Scalar name="refd" value="{{REFD}}" />
+        <Scalar name="visc_dyn" value="{{VISC_DYN}}" />
+        <Scalar name="delta" value="{{DELTA}}" />
+
+        <Load format="FastASCII" file="Tank.dat" fields="r, normal, u, dudt, rho, drhodt, m, imove" />
+        <Save format="VTK" file="output_bc" fields="r, normal, u, dudt, rho, drhodt, m, p, imove" />
     </ParticlesSet>
 </sphInput>
