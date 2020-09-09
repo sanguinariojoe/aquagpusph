@@ -19,6 +19,7 @@ Authors:
 
 <sphInput>
     <Variables>
+        <Variable name="motion_iset" type="unsigned int" value="1" />
         <Variable name="motion_r" type="vec" value="0.0, 0.47" />
         <Variable name="forces_r" type="vec" value="0.0, 0.47" />
     </Variables>
