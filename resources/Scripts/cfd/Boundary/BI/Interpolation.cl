@@ -42,13 +42,13 @@
  * @param r Position \f$ \mathbf{r} \f$.
  * @param m Mass \f$ m \f$.
  * @param rho Density \f$ \rho \f$.
+ * @param grad_p Pressure gradient \f$ \frac{\nabla p}{rho} \f$.
  * @param p Pressure \f$ p \f$.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
  * @param refd Density of reference of the fluid \f$ \rho_0 \f$.
  * @param N Number of particles.
  * @param n_cells Number of cells in each direction
- * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  * @see SensorsRenormalization.cl
  */
 __kernel void entry(const __global uint* iset,
@@ -56,6 +56,7 @@ __kernel void entry(const __global uint* iset,
                     const __global vec* r,
                     const __global float* m,
                     const __global float* rho,
+                    const __global vec* grad_p,
                     __global float* p,
                     // Link-list data
                     const __global uint *icell,
@@ -63,8 +64,7 @@ __kernel void entry(const __global uint* iset,
                     // Simulation data
                     __constant float* refd,
                     uint N,
-                    uivec4 n_cells,
-                    vec g)
+                    uivec4 n_cells)
 {
     const uint i = get_global_id(0);
     const uint it = get_local_id(0);
@@ -75,7 +75,7 @@ __kernel void entry(const __global uint* iset,
     }
 
     const vec_xyz r_i = r[i].XYZ;
-    const float rdenf = refd[iset[i]];
+    const vec_xyz gradp_i = rho[i] * grad_p[i].XYZ;
 
     // Initialize the output
     #ifndef LOCAL_MEM_SIZE
@@ -100,7 +100,7 @@ __kernel void entry(const __global uint* iset,
         }
         {
             const float w_ij = kernelW(q) * CONW * m[j] / rho[j];
-            _P_ += (p[j] - rdenf * dot(g.XYZ, r_ij)) * w_ij;
+            _P_ += (p[j] - dot(gradp_i, r_ij)) * w_ij;
         }
     }END_LOOP_OVER_NEIGHS()
 
