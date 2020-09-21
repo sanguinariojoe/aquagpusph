@@ -44,10 +44,11 @@
  * @param rho Density \f$ \rho \f$.
  * @param p Pressure \f$ p \f$.
  * @param rho Density \f$ \rho_{n+1} \f$.
- * @param lap_u Velocity laplacian \f$ \frac{\Delta \mathbf{u}}{rho} \f$.
+ * @param lap_u Velocity laplacian \f$ \Delta \mathbf{u} \f$.
  * @param dudt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
  * @param grad_p Pressure gradient \f$ \frac{\nabla p}{rho} \f$.
  * @param visc_dyn Dynamic viscosity \f$ \mu \f$.
+ * @param refd Density of reference \f$ \rho_0 \f$.
  * @param N Number of particles.
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  */
@@ -59,6 +60,7 @@ __kernel void freeslip(const __global uint* iset,
                        const __global vec* dudt,
                        __global vec* grad_p,
                        __constant float* visc_dyn,
+                       __constant float* refd,
                        unsigned int N,
                        vec g)
 {
@@ -77,5 +79,5 @@ __kernel void freeslip(const __global uint* iset,
         shepard_i = 1.f;
     }
 
-    grad_p[i] = visc_dyn[iset[i]] * lap_u[i] / shepard_i + g - dudt[i];
+    grad_p[i] = visc_dyn[iset[i]] / refd[iset[i]] * lap_u[i] / shepard_i + g - dudt[i];
 }

@@ -48,7 +48,7 @@
  * @param m Mass \f$ m \f$.
  * @param p Pressure \f$ p \f$.
  * @param grad_p Pressure gradient \f$ \frac{\nabla p}{rho} \f$.
- * @param lap_u Velocity laplacian \f$ \frac{\Delta \mathbf{u}}{rho} \f$.
+ * @param lap_u Velocity laplacian \f$ \Delta \mathbf{u} \f$.
  * @param div_u Velocity divergence \f$ \rho \nabla \cdot \mathbf{u} \f$.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
@@ -78,7 +78,6 @@ __kernel void freeslip(const __global int* imove,
 
     const vec_xyz r_i = r[i].XYZ;
     const vec_xyz u_i = u[i].XYZ;
-    const float rho_i = rho[i];
 
     // Initialize the output
     #ifndef LOCAL_MEM_SIZE
@@ -112,9 +111,9 @@ __kernel void freeslip(const __global int* imove,
             #if __LAP_FORMULATION__ == __LAP_MONAGHAN__
                 const float udr = dot(u[j].XYZ - u_i, r_ij);
                 const float r2 = (q * q + 0.01f) * H * H;
-                _LAPU_ += f_ij * __CLEARY__ * udr / (r2 * rho_i * rho_j) * r_ij;
+                _LAPU_ += f_ij * __CLEARY__ * udr / (r2 * rho_j) * r_ij;
             #elif __LAP_FORMULATION__ == __LAP_MORRIS__
-                _LAPU_ += f_ij * 2.f / (rho_i * rho_j) * (u[j].XYZ - u_i);
+                _LAPU_ += f_ij * 2.f / rho_j * (u[j].XYZ - u_i);
             #else
                 #error Unknown Laplacian formulation: __LAP_FORMULATION__
             #endif
