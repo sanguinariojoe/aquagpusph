@@ -75,12 +75,14 @@ L = Nx * dr
 H = Ny * dr
 
 DeLeffeDistFactor = 1
-Nx = DeLeffeDistFactor * Nx
-Ny = DeLeffeDistFactor * Ny
+Nx *= DeLeffeDistFactor
+Ny *= DeLeffeDistFactor
 N = 2 * Nx + 2 * Ny
 
 # Particles packing boundary elements
-NFS = 2 * Nx + 2 * ny
+NFSx = Nx
+NFSy = DeLeffeDistFactor * ny
+NFS = 2 * NFSx + 2 * NFSy
 
 # Particles generation
 # ====================
@@ -205,27 +207,27 @@ for i in range(0, NFS):
             string = '    {}%'.format(Percentage)
             print(string)
     # Bottom
-    if(i < Nx):
+    if(i < NFSx):
         j = i
         idx = j + 0.5
         idy = 0.0
         normal = [0.0, -1.0]
     # Roof
-    elif(i < 2 * Nx):
-        j = i - Nx
+    elif(i < 2 * NFSx):
+        j = i - NFSx
         idx = j + 0.5
-        idy = ny
+        idy = NFSy
         normal = [0.0, 1.0]
     # Left
-    elif(i < 2 * Nx + ny):
-        j = i - 2 * Nx
+    elif(i < 2 * NFSx + NFSy):
+        j = i - 2 * NFSx
         idx = 0.0
         idy = j + 0.5
         normal = [-1.0, 0.0]
     # Right
-    elif(i < 2 * (Nx + ny)):
-        j = i - 2 * Nx - ny
-        idx = Nx
+    elif(i < 2 * (NFSx + NFSy)):
+        j = i - 2 * NFSx - NFSy
+        idx = NFSx
         idy = j + 0.5
         normal = [1.0, 0.0]
     pos = (idx * dr / DeLeffeDistFactor - 0.5 * L,
