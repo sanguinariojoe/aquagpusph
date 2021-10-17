@@ -474,7 +474,7 @@ const MPISync::Exchanger::MPIType MPISync::Exchanger::typeToMPI(std::string t)
     mpi_t.n = 1;
     mpi_t.t = MPI::DATATYPE_NULL;
 
-    if((t.back() == '*')){
+    if(t.back() == '*'){
         t.pop_back();
     }
     if(hasSuffix(t, "vec")) {

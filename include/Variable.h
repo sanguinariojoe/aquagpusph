@@ -26,12 +26,6 @@
 #define VARIABLE_H_INCLUDED
 
 #include <Python.h>
-#if __APPLE__
-    #include <OpenCL/cl.h>
-#else
-    #include <CL/cl.h>
-#endif
-
 #include <string>
 #include <vector>
 #include <sphPrerequisites.h>

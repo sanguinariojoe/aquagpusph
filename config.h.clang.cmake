@@ -112,8 +112,9 @@
 /* Dependencies                                                               */
 /* ========================================================================== */
 /* Lowest OpenCL version to be supported */
-#define OPENCL_PLATFORM_MAJOR ${OPENCL_VERSION_MAJOR}
-#define OPENCL_PLATFORM_MINOR ${OPENCL_VERSION_MINOR}
+#define CL_TARGET_OPENCL_VERSION 200
+#define OPENCL_PLATFORM_MAJOR ${OpenCL_VERSION_MAJOR}
+#define OPENCL_PLATFORM_MINOR ${OpenCL_VERSION_MINOR}
 
 /* Numpy version */
 #define NUMPY_VERSION_MAJOR ${NUMPY_VERSION_MAJOR}

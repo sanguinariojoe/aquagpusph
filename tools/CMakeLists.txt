@@ -15,7 +15,7 @@ ENDFOREACH()
 # Build                                                 #
 # ===================================================== #
 ADD_CUSTOM_TARGET(tools ALL
-    COMMAND ${PYTHON_EXECUTABLE} setup.py build
+    COMMAND ${Python_EXECUTABLE} setup.py build
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 IF(AQUAGPUSPH_3D)
@@ -33,7 +33,7 @@ IF(NOT CMAKE_INSTALL_PREFIX STREQUAL /usr/local)
 ENDIF(NOT CMAKE_INSTALL_PREFIX STREQUAL /usr/local)
 INSTALL(
     CODE "EXECUTE_PROCESS(
-        COMMAND ${PYTHON_EXECUTABLE} setup.py install ${PYTHON_INSTALL_PREFIX}
+        COMMAND ${Python_EXECUTABLE} setup.py install ${PYTHON_INSTALL_PREFIX}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )"
 )

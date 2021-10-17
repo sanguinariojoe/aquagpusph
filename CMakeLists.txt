@@ -22,7 +22,7 @@
 # ===================================================== #
 # General CMake options                                 #
 # ===================================================== #
-cmake_minimum_required(VERSION 3.0.2 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.12.0 FATAL_ERROR)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
@@ -51,12 +51,12 @@ if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
     message(FATAL_ERROR "In-source builds are not allowed. Please, run cmake in a different folder.")
 endif("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 project(AQUAgpusph)
-set(AQUAGPUSPH_VERSION "4.1.1")
+set(AQUAGPUSPH_VERSION "4.1.2")
 
 set(PACKAGE_NAME "AQUAgpusph")
 set(PACKAGE_VERSION_MAJOR "4")
 set(PACKAGE_VERSION_MINOR "1")
-set(PACKAGE_VERSION_PATCH "1")
+set(PACKAGE_VERSION_PATCH "2")
 set(PACKAGE_VERSION "${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR}.${PACKAGE_VERSION_PATCH}")
 set(PACKAGE_STRING "${PACKAGE_NAME} ${PACKAGE_VERSION}")
 
@@ -119,10 +119,10 @@ IF(NOT CMAKE_BUILD_TYPE)
 ENDIF(NOT CMAKE_BUILD_TYPE)
 OPTION(AQUAGPUSPH_3D "Build 3D AQUAgpusph version. 2D and 3D versions can be installed on the same system." ON)
 OPTION(AQUAGPUSPH_USE_MPI "Build AQUAgpusph with MPI support, for multidevice running." ON)
-OPTION(AQUAGPUSPH_USE_NCURSES "Build AQUAgpusph with Ncurses terminal support." ON)
 OPTION(AQUAGPUSPH_USE_VTK "Build AQUAgpusph with VTK output format support (on development)." ON)
 OPTION(AQUAGPUSPH_BUILD_TOOLS "Build AQUAgpusph tools" ON)
 OPTION(AQUAGPUSPH_BUILD_EXAMPLES "Build AQUAgpusph examples" ON)
+OPTION(AQUAGPUSPH_USE_NCURSES "Build AQUAgpusph with Ncurses terminal support." OFF)
 OPTION(AQUAGPUSPH_BUILD_DOC "Build AQUAgpusph documentation" OFF)
 OPTION(AQUAGPUSPH_GPU_PROFILE "Profile the GPU during the runtime (consuming additional resources)" OFF)
 MARK_AS_ADVANCED(
@@ -156,37 +156,37 @@ IF(AQUAGPUSPH_USE_MPI)
 ENDIF(AQUAGPUSPH_USE_MPI)
 
 # Python
-SET(PYTHON_ADDITIONAL_VERSIONS "2.5" "2.6" "2.7" "2.8" "2.9" "3.0" "3.1" "3.2" "3.3")
-FIND_PACKAGE(PythonLibs REQUIRED)
-FIND_PACKAGE(PythonInterp REQUIRED)
+FIND_PACKAGE(Python REQUIRED)
 
-IF(NOT PYTHONLIBS_FOUND)
+IF(NOT Python_FOUND)
 MESSAGE(FATAL_ERROR "Python not found, but ${PACKAGE_NAME} requires it. Please install Python!")
-ENDIF(NOT PYTHONLIBS_FOUND)
+ENDIF(NOT Python_FOUND)
 
-# Numpy
+# Numpy (CMake >= 3.14 offers finding it within FindPython. However, just
+# system installed versions will be considered, which in our case is not
+# actually a limitation)
 FIND_PACKAGE(Numpy REQUIRED)
 IF(NOT NUMPY_FOUND)
 MESSAGE(FATAL_ERROR "numpy not found, but ${PACKAGE_NAME} requires it. Please install numpy!")
 ENDIF(NOT NUMPY_FOUND)
 
 # Xerces-C
-FIND_PACKAGE(Xerces REQUIRED)
+FIND_PACKAGE(XercesC REQUIRED)
 
-IF(NOT XERCESC_FOUND)
+IF(NOT XercesC_FOUND)
 MESSAGE(FATAL_ERROR "Xerces-C not found, but ${PACKAGE_NAME} requires it. Please install Xerces-C!")
-ENDIF(NOT XERCESC_FOUND)
+ENDIF(NOT XercesC_FOUND)
 
 # OpenCL
 FIND_PACKAGE(OpenCL REQUIRED)
 
-IF(NOT OPENCL_FOUND)
+IF(NOT OpenCL_FOUND)
 MESSAGE(FATAL_ERROR "OpenCL not found, but ${PACKAGE_NAME} requires it. Please install OpenCL!")
-ENDIF(NOT OPENCL_FOUND)
+ENDIF(NOT OpenCL_FOUND)
 
-IF((OPENCL_VERSION_MAJOR LESS 1) OR ((OPENCL_VERSION_MAJOR EQUAL 1) AND (OPENCL_VERSION_MINOR LESS 2)))
-MESSAGE(WARNING "An OpenCL ${OPENCL_VERSION_MAJOR}.${OPENCL_VERSION_MINOR} platform has been found, but OpenCL >= 1.2 is strongly recommneded.")
-ENDIF((OPENCL_VERSION_MAJOR LESS 1) OR ((OPENCL_VERSION_MAJOR EQUAL 1) AND (OPENCL_VERSION_MINOR LESS 2)))
+IF(OpenCL_VERSION_MAJOR LESS 2)
+MESSAGE(FATAL_ERROR "OpenCL ${OpenCL_VERSION_MAJOR}.${OpenCL_VERSION_MINOR} found, but OpenCL >= 2.0 is required.")
+ENDIF(OpenCL_VERSION_MAJOR LESS 2)
 
 # CLang
 FIND_PACKAGE(CLang REQUIRED)
@@ -260,22 +260,15 @@ ENDIF(AQUAGPUSPH_BUILD_DOC)
 # config.h stuff                                        #
 # ===================================================== #
 include(cMake/ConfigureChecks.cmake)
-if(CMAKE_COMPILER_IS_GNUCXX)
-    configure_file(config.h.gcc.cmake ${CMAKE_BINARY_DIR}/config.h)
-elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    configure_file(config.h.clang.cmake ${CMAKE_BINARY_DIR}/config.h)
-endif()
+IF(CMAKE_COMPILER_IS_GNUCXX)
+    CONFIGURE_FILE(config.h.gcc.cmake ${CMAKE_BINARY_DIR}/config.h)
+ELSEIF (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    CONFIGURE_FILE(config.h.clang.cmake ${CMAKE_BINARY_DIR}/config.h)
+ENDIF()
 add_definitions(-DHAVE_CONFIG_H)
 add_definitions(-Wno-write-strings)
 add_definitions(-Wno-deprecated)
 INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR})
-
-# CMAKE < 3.1 Change this when minimum CMake version is updated (see
-# CMAKE_CXX_STANDARD)
-SET(CMAKE_CXX_FLAGS "-std=c++11")
-# Apparently -std=c++11 implies defining __STRICT_ANSI__ in GCC, disabling union
-# structures in CL/cl_platform.h
-add_definitions(-U__STRICT_ANSI__)
 
 # ===================================================== #
 # Global Compiler and Linker Settings                   #

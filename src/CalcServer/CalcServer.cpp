@@ -820,7 +820,7 @@ cl_command_queue create_command_queue(cl_context context,
                                       cl_device_id device,
                                       cl_int *errcode_ret)
 {
-#if (OPENCL_PLATFORM_MAJOR > 1) || ((OPENCL_PLATFORM_MAJOR == 1) && (OPENCL_PLATFORM_MINOR > 1))
+#if (OPENCL_PLATFORM_MAJOR > 1)
     const cl_queue_properties properties[3] = {
         CL_QUEUE_PROPERTIES, CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, 0};
     return clCreateCommandQueueWithProperties(context,

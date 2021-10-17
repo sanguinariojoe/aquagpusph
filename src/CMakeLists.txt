@@ -11,8 +11,8 @@ IF(HAVE_MPI)
     SET(OPTIONAL_LIBS ${OPTIONAL_LIBS} ${MPI_CXX_LIBRARIES})
 ENDIF(HAVE_MPI)
 IF(HAVE_NCURSES)
-    SET(OPTIONAL_INCLUDE_PATH ${OPTIONAL_INCLUDE_PATH} ${CURSES_INCLUDE_PATH})
-    SET(OPTIONAL_LIBS ${OPTIONAL_LIBS} ${CURSES_LIBRARY})
+    SET(OPTIONAL_INCLUDE_PATH ${OPTIONAL_INCLUDE_PATH} ${CURSES_INCLUDE_DIRS})
+    SET(OPTIONAL_LIBS ${OPTIONAL_LIBS} ${CURSES_LIBRARIES})
 ENDIF(HAVE_NCURSES)
 IF(HAVE_VTK)
     SET(OPTIONAL_INCLUDE_PATH ${OPTIONAL_INCLUDE_PATH} ${VTK_INCLUDE_DIRS})
@@ -26,18 +26,18 @@ INCLUDE_DIRECTORIES(
     ${CMAKE_BINARY_DIR}/include
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_CURRENT_BINARY_DIR}
-    ${PYTHON_INCLUDE_DIRS}
+    ${Python_INCLUDE_DIRS}
     ${NUMPY_INCLUDE_DIRS}
-    ${OPENCL_INCLUDE_DIRS}
-    ${XERCESC_INCLUDE_PATH}
+    ${OpenCL_INCLUDE_DIRS}
+    ${XercesC_INCLUDE_DIRS}
     ${MUPARSER_INCLUDE_DIRS}
     ${OPTIONAL_INCLUDE_PATH}
 )
 
 SET(DEP_LIBS 
-    ${OPENCL_LIBRARIES}
-    ${PYTHON_LIBRARIES}
-    ${XERCESC_LIBRARIES}
+    ${OpenCL_LIBRARIES}
+    ${Python_LIBRARIES}
+    ${XercesC_LIBRARIES}
     ${MUPARSER_LIBRARIES}
     ${OPTIONAL_LIBS}
 )
@@ -73,9 +73,8 @@ ELSE(AQUAGPUSPH_3D)
     SET(ClientTagetName AQUAgpusphClient2D)
 ENDIF(AQUAGPUSPH_3D)
 
-add_library(${ClientTagetName} SHARED ${Client_CPP_SRCS})
-
-target_link_libraries(${ClientTagetName} ${DEP_LIBS})
+ADD_LIBRARY(${ClientTagetName} SHARED ${Client_CPP_SRCS})
+TARGET_LINK_LIBRARIES(${ClientTagetName} ${DEP_LIBS})
 
 # ===================================================== #
 # Install client                                        #
@@ -124,9 +123,8 @@ ELSE(AQUAGPUSPH_3D)
     SET(ServerTagetName AQUAgpusphServer2D)
 ENDIF(AQUAGPUSPH_3D)
 
-add_executable(${BinTagetName} ${APP_CPP_SRCS})
-
-target_link_libraries(${BinTagetName} ${ClientTagetName} ${ServerTagetName} ${DEP_LIBS})
+ADD_EXECUTABLE(${BinTagetName} ${APP_CPP_SRCS})
+TARGET_LINK_LIBRARIES(${BinTagetName} ${ClientTagetName} ${ServerTagetName} ${DEP_LIBS})
 
 # ===================================================== #
 # Install App                                           #

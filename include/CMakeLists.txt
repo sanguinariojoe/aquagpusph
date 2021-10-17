@@ -6,13 +6,17 @@ ADD_CUSTOM_TARGET(opencl_embed_directory ALL
 SET(embed_targets opencl_embed_directory)
 FOREACH(FNAME LinkList MPISync RadixSort Reduction Set UnSort)
     FOREACH(FEXT .cl .hcl)
-        ADD_CUSTOM_TARGET(opencl_embed_${FNAME}${FEXT} ALL
+        ADD_CUSTOM_COMMAND(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/CalcServer/${FNAME}${FEXT}
             COMMAND echo "/** @file" > ${CMAKE_CURRENT_BINARY_DIR}/CalcServer/${FNAME}${FEXT}
             COMMAND echo " * @brief Hardcoded version of the file CalcServer/${FNAME}${FEXT}.in" >> ${CMAKE_CURRENT_BINARY_DIR}/CalcServer/${FNAME}${FEXT}
             COMMAND echo " */" >> ${CMAKE_CURRENT_BINARY_DIR}/CalcServer/${FNAME}${FEXT}
             COMMAND echo "" >> ${CMAKE_CURRENT_BINARY_DIR}/CalcServer/${FNAME}${FEXT}
             COMMAND ${XXD_BIN} -i ${FNAME}${FEXT}.in >> ${CMAKE_CURRENT_BINARY_DIR}/CalcServer/${FNAME}${FEXT}
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/CalcServer/
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/CalcServer/${FNAME}${FEXT}.in)
+
+        ADD_CUSTOM_TARGET(opencl_embed_${FNAME}${FEXT} ALL
+            DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/CalcServer/${FNAME}${FEXT}
         )
         ADD_DEPENDENCIES(opencl_embed_${FNAME}${FEXT} opencl_embed_directory)
         LIST(APPEND embed_targets opencl_embed_${FNAME}${FEXT})
