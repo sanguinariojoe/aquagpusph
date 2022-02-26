@@ -42,15 +42,6 @@
 
 // CMake configuration file
 #include <config.h>
-#if (NUMPY_VERSION_MAJOR > 1) || ((NUMPY_VERSION_MAJOR == 1) && (NUMPY_VERSION_MINOR >= 7))
-    /** @def NPY_NO_DEPRECATED_API
-     * @brief Get rid of deprecated Numpy features and types.
-     *
-     * It is defined with the oldest supported Numpy API version.
-     */
-    #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-    
-#endif
 
 #if __APPLE__
     #include <OpenCL/cl.h>

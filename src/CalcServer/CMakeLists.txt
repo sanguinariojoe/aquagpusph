@@ -2,8 +2,7 @@
 # Dependencies                                          #
 # ===================================================== #
 IF(HAVE_MPI)
-    SET(OPTIONAL_INCLUDE_PATH ${OPTIONAL_INCLUDE_PATH} ${MPI_INCLUDE_PATH})
-    SET(OPTIONAL_LIBS ${OPTIONAL_LIBS} ${MPI_CXX_LIBRARIES})
+    SET(OPTIONAL_LIBS ${OPTIONAL_LIBS} MPI::MPI_CXX)
     SET(OPTIONAL_SRCS ${OPTIONAL_SRCS} MPISync.cpp)
 ENDIF(HAVE_MPI)
 IF(HAVE_NCURSES)
@@ -11,8 +10,7 @@ IF(HAVE_NCURSES)
     SET(OPTIONAL_LIBS ${OPTIONAL_LIBS} ${CURSES_LIBRARIES})
 ENDIF(HAVE_NCURSES)
 IF(HAVE_VTK)
-    SET(OPTIONAL_INCLUDE_PATH ${OPTIONAL_INCLUDE_PATH} ${VTK_INCLUDE_DIRS})
-    SET(OPTIONAL_LIBS ${OPTIONAL_LIBS} ${VTK_LIBRARIES})
+    SET(OPTIONAL_LIBS ${OPTIONAL_LIBS} VTK::CommonCore VTK::IOXML)
 ENDIF(HAVE_VTK)
 
 # ===================================================== #
@@ -22,18 +20,15 @@ INCLUDE_DIRECTORIES(
     ${CMAKE_BINARY_DIR}/include
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_CURRENT_BINARY_DIR}
-    ${Python_INCLUDE_DIRS}
-    ${NUMPY_INCLUDE_DIRS}
-    ${OpenCL_INCLUDE_DIRS}
-    ${XercesC_INCLUDE_DIRS}
     ${CLANG_INCLUDE_DIRS}
     ${OPTIONAL_INCLUDE_PATH}
 )
 
 SET(DEP_LIBS 
-    ${OpenCL_LIBRARIES}
-    ${Python_LIBRARIES}
-    ${XercesC_LIBRARIES}
+    Python::Python
+    Python::NumPy
+    XercesC::XercesC
+    OpenCL::OpenCL
     ${CLANG_LIBRARIES}
     ${OPTIONAL_LIBS}
 )

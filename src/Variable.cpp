@@ -40,6 +40,7 @@
  * @see http://docs.scipy.org/doc/numpy/reference/c-api.array.html#importing-the-api
  */
 #define NO_IMPORT_ARRAY
+#include <numpy/npy_no_deprecated_api.h>
 #include <numpy/ndarraytypes.h>
 #include <numpy/ufuncobject.h>
 #include <numpy/npy_3kcompat.h>

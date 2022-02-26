@@ -22,7 +22,7 @@
 # ===================================================== #
 # General CMake options                                 #
 # ===================================================== #
-cmake_minimum_required(VERSION 3.12.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15.0 FATAL_ERROR)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
@@ -148,27 +148,22 @@ ENDIF(NOT XXD_FOUND)
 # MPI
 IF(AQUAGPUSPH_USE_MPI)
     FIND_PACKAGE(MPI)
-    IF(NOT MPI_FOUND)
+    IF(NOT MPI_MPICXX_FOUND)
         MESSAGE(FATAL_ERROR "MPI not found, but AQUAGPUSPH_USE_MPI is ON. Install MPI or set AQUAGPUSPH_USE_MPI=OFF")
-    ENDIF(NOT MPI_FOUND)
+    ENDIF(NOT MPI_MPICXX_FOUND)
 
     SET(HAVE_MPI TRUE)
 ENDIF(AQUAGPUSPH_USE_MPI)
 
 # Python
-FIND_PACKAGE(Python REQUIRED)
+FIND_PACKAGE(Python REQUIRED COMPONENTS
+    Interpreter
+    Development
+    NumPy)
 
 IF(NOT Python_FOUND)
 MESSAGE(FATAL_ERROR "Python not found, but ${PACKAGE_NAME} requires it. Please install Python!")
 ENDIF(NOT Python_FOUND)
-
-# Numpy (CMake >= 3.14 offers finding it within FindPython. However, just
-# system installed versions will be considered, which in our case is not
-# actually a limitation)
-FIND_PACKAGE(Numpy REQUIRED)
-IF(NOT NUMPY_FOUND)
-MESSAGE(FATAL_ERROR "numpy not found, but ${PACKAGE_NAME} requires it. Please install numpy!")
-ENDIF(NOT NUMPY_FOUND)
 
 # Xerces-C
 FIND_PACKAGE(XercesC REQUIRED)
@@ -208,17 +203,16 @@ ENDIF(AQUAGPUSPH_USE_NCURSES)
 
 # VTK
 IF(AQUAGPUSPH_USE_VTK)
-    FIND_PACKAGE(VTK)
+    FIND_PACKAGE(VTK REQUIRED COMPONENTS
+        CommonCore
+        IOXML)
     IF(NOT VTK_FOUND)
-        MESSAGE(FATAL_ERROR "VTK not found, but AQUAGPUSPH_USE_VTK is ON. Install vtk or set AQUAGPUSPH_USE_VTK=OFF")
-    ELSE(NOT VTK_FOUND)
-        MESSAGE(STATUS "Found VTK ${VTK_VERSION}")
+        MESSAGE(FATAL_ERROR "VTK not found, but AQUAGPUSPH_USE_VTK is ON. Install VTK or set AQUAGPUSPH_USE_VTK=OFF")
     ENDIF(NOT VTK_FOUND)
-
-    IF(NOT VTK_LIBRARIES)
-        SET(VTK_LIBRARIES vtkCommon vtkHybrid vtkIO vtkFiltering)
-    ENDIF(NOT VTK_LIBRARIES)
-
+    IF (VTK_VERSION VERSION_LESS "8.90.0")
+        MESSAGE(FATAL_ERROR "VTK >= 8.9 is required if AQUAGPUSPH_USE_VTK is ON. Update VTK or set AQUAGPUSPH_USE_VTK=OFF")
+    ENDIF (VTK_VERSION VERSION_LESS "8.90.0")
+    MESSAGE(STATUS "Found VTK ${VTK_VERSION}")
     SET(HAVE_VTK TRUE)
 ENDIF(AQUAGPUSPH_USE_VTK)
 
