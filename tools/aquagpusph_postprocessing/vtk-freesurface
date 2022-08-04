@@ -134,7 +134,7 @@ def parse(filepath, args):
     N = [int(round(L[i] / args.dr)) + 1 for i in range(3)]
 
     voxels = vtk.vtkGaussianSplatter()
-    voxels.SetInput(fs_particles)
+    voxels.SetInputData(fs_particles)
     voxels.SetSampleDimensions(*N)
     # voxels.SetRadius(args.dr / max(L))
     voxels.SetRadius(args.dr)
@@ -151,7 +151,7 @@ def parse(filepath, args):
     polyData = mesh.GetOutput()
     if args.smooth > 0:
         smooth = vtk.vtkSmoothPolyDataFilter()
-        smooth.SetInput(polyData)
+        smooth.SetInputData(polyData)
         smooth.SetNumberOfIterations(args.smooth)
         # smooth.SetRelaxationFactor(0.1)
         # smooth.SetFeatureAngle(60.0)
@@ -161,7 +161,7 @@ def parse(filepath, args):
         polyData = smooth.GetOutput()
 
     writer = vtk.vtkXMLPolyDataWriter()
-    writer.SetInput(polyData)
+    writer.SetInputData(polyData)
     writer.SetDataModeToBinary()
     writer.SetFileName('fs.' + filepath + '.vtp')
     writer.Write()
