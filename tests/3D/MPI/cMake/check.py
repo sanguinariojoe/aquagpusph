@@ -2,7 +2,7 @@ PAIRS = [{'in':'particles_0.dat', 'out':'out_1.00000.dat'},
          {'in':'particles_1.dat', 'out':'out_0.00000.dat'},]
 
 
-def is_equal(a, b, tol=1E-6):
+def is_equal(a, b, tol=1E-7):
     return abs(a - b) < tol
 
 
