@@ -27,6 +27,8 @@
 #include <ProblemSetup.h>
 #include <CalcServer.h>
 #include <AuxiliarMethods.h>
+#include <iomanip>
+#include <limits>
 
 #ifndef MAX_LINE_LEN
     #define MAX_LINE_LEN 1024
@@ -251,6 +253,9 @@ void ASCII::save(float t)
     f << std::endl;
     f.flush();
 
+    // Set the precision as the maximum for float numbers
+    const auto max_precision = std::numeric_limits<float>::digits10 + 1;
+
     for(auto field : fields){
         if(!vars->get(field)){
             std::ostringstream msg;
@@ -293,7 +298,7 @@ void ASCII::save(float t)
             }
             else if(!type_name.compare("float*")){
                 float* v = (float*)data.at(j);
-                f << v[i] << ",";
+                f << std::setprecision(max_precision) << v[i] << ",";
             }
             else if(!type_name.compare("ivec*")){
                 #ifdef HAVE_3D
@@ -360,30 +365,35 @@ void ASCII::save(float t)
             else if(!type_name.compare("vec*")){
                 #ifdef HAVE_3D
                     vec* v = (vec*)data.at(j);
-                    f << v[i].x << " "
+                    f << std::setprecision(max_precision)
+                      << v[i].x << " "
                       << v[i].y << " "
                       << v[i].z << " "
                       << v[i].w << ",";
                 #else
                     vec* v = (vec*)data.at(j);
-                    f << v[i].x << " "
+                    f << std::setprecision(max_precision)
+                      << v[i].x << " "
                       << v[i].y << ",";
                 #endif // HAVE_3D
             }
             else if(!type_name.compare("vec2*")){
                 vec2* v = (vec2*)data.at(j);
-                f << v[i].x << " "
+                f << std::setprecision(max_precision)
+                  << v[i].x << " "
                   << v[i].y << ",";
             }
             else if(!type_name.compare("vec3*")){
                 vec3* v = (vec3*)data.at(j);
-                f << v[i].x << " "
+                f << std::setprecision(max_precision)
+                  << v[i].x << " "
                   << v[i].y << " "
                   << v[i].z << ",";
             }
             else if(!type_name.compare("vec4*")){
                 vec4* v = (vec4*)data.at(j);
-                f << v[i].x << " "
+                f << std::setprecision(max_precision)
+                  << v[i].x << " "
                   << v[i].y << " "
                   << v[i].z << " "
                   << v[i].w << ",";
@@ -391,13 +401,15 @@ void ASCII::save(float t)
             else if(!type_name.compare("matrix*")){
                 #ifdef HAVE_3D
                     matrix* m = (matrix*)data.at(j);
-                    f << m[i].s0 << " " << m[i].s1 << " " << m[i].s2 << " " << m[i].s3 << " "
+                    f << std::setprecision(max_precision)
+                      << m[i].s0 << " " << m[i].s1 << " " << m[i].s2 << " " << m[i].s3 << " "
                       << m[i].s4 << " " << m[i].s5 << " " << m[i].s6 << " " << m[i].s7 << " "
                       << m[i].s8 << " " << m[i].s9 << " " << m[i].sA << " " << m[i].sB << " "
                       << m[i].sC << " " << m[i].sD << " " << m[i].sE << " " << m[i].sF << ",";
                 #else
                     matrix* m = (matrix*)data.at(j);
-                    f << m[i].s0 << " " << m[i].s1 << " "
+                    f << std::setprecision(max_precision)
+                      << m[i].s0 << " " << m[i].s1 << " "
                       << m[i].s2 << " " << m[i].s3 << ",";
                 #endif // HAVE_3D
             }
