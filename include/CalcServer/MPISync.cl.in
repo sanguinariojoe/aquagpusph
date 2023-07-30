@@ -28,16 +28,17 @@
  * @param proc Selected process
  * @param N Number of elements into the mask
  */
-__kernel void n_offset_mask(const __global unsigned int *mask,
-                            __global unsigned int *submask,
-                            unsigned int proc,
-                            unsigned int N)
+__kernel void
+n_offset_mask(const __global unsigned int* mask,
+              __global unsigned int* submask,
+              unsigned int proc,
+              unsigned int N)
 {
-    unsigned int i = get_global_id(0);
-    if(i >= N)
-        return;
+	unsigned int i = get_global_id(0);
+	if (i >= N)
+		return;
 
-    submask[i] = (mask[i] < proc) ? 1 : 0;
+	submask[i] = (mask[i] < proc) ? 1 : 0;
 }
 
 /** Extract the submask from the selected process
@@ -46,16 +47,17 @@ __kernel void n_offset_mask(const __global unsigned int *mask,
  * @param proc Selected process
  * @param N Number of elements into the mask
  */
-__kernel void n_send_mask(const __global unsigned int *mask,
-                          __global unsigned int *submask,
-                          unsigned int proc,
-                          unsigned int N)
+__kernel void
+n_send_mask(const __global unsigned int* mask,
+            __global unsigned int* submask,
+            unsigned int proc,
+            unsigned int N)
 {
-    unsigned int i = get_global_id(0);
-    if(i >= N)
-        return;
+	unsigned int i = get_global_id(0);
+	if (i >= N)
+		return;
 
-    submask[i] = (mask[i] == proc) ? 1 : 0;
+	submask[i] = (mask[i] == proc) ? 1 : 0;
 }
 
 /** Set mask value
@@ -64,14 +66,15 @@ __kernel void n_send_mask(const __global unsigned int *mask,
  * @param offset First element to be set
  * @param n Number of elements to be set
  */
-__kernel void set_mask(__global unsigned int *mask,
-                       unsigned int proc,
-                       unsigned int offset,
-                       unsigned int n)
+__kernel void
+set_mask(__global unsigned int* mask,
+         unsigned int proc,
+         unsigned int offset,
+         unsigned int n)
 {
-    unsigned int i = get_global_id(0);
-    if(i >= n)
-        return;
+	unsigned int i = get_global_id(0);
+	if (i >= n)
+		return;
 
-    mask[i + offset] = proc;
+	mask[i + offset] = proc;
 }

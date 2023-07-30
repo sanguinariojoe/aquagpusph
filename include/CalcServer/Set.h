@@ -29,95 +29,100 @@
 #include <CalcServer.h>
 #include <CalcServer/Tool.h>
 
-namespace Aqua{ namespace CalcServer{
+namespace Aqua {
+namespace CalcServer {
 
 /** @class Set Set.h CalcServer/Set.h
  * @brief Set all the components of an array with the desired value.
  */
 class Set : public Aqua::CalcServer::Tool
 {
-public:
-    /** Constructor.
-     * @param name Tool name.
-     * @param var_name Variable to set.
-     * @param value Value to set.
-     * @param once Run this tool just once. Useful to make initializations.
-     * @note Some helpers are available for value:
-     *   - VEC_ZERO: Zeroes vector.
-     *   - VEC_ONE: Ones vector, in 3D cases the last component will be zero.
-     *   - VEC_ALL_ONE: Equal to VEC_ONE, but in 3D cases the last component will be one as well.
-     *   - VEC_INFINITY: INFINITY components vector, in 3D cases the last component will be zero.
-     *   - VEC_ALL_INFINITY: Equal to VEC_INFINITY, but in 3D cases the last component will be INFINITY as well.
-     *   - VEC_NEG_INFINITY: -VEC_INFINITY
-     *   - VEC_ALL_NEG_INFINITY: -VEC_ALL_INFINITY.
-     */
-    Set(const std::string name,
-        const std::string var_name,
-        const std::string value,
-        bool once=false);
+  public:
+	/** Constructor.
+	 * @param name Tool name.
+	 * @param var_name Variable to set.
+	 * @param value Value to set.
+	 * @param once Run this tool just once. Useful to make initializations.
+	 * @note Some helpers are available for value:
+	 *   - VEC_ZERO: Zeroes vector.
+	 *   - VEC_ONE: Ones vector, in 3D cases the last component will be zero.
+	 *   - VEC_ALL_ONE: Equal to VEC_ONE, but in 3D cases the last component
+	 * will be one as well.
+	 *   - VEC_INFINITY: INFINITY components vector, in 3D cases the last
+	 * component will be zero.
+	 *   - VEC_ALL_INFINITY: Equal to VEC_INFINITY, but in 3D cases the last
+	 * component will be INFINITY as well.
+	 *   - VEC_NEG_INFINITY: -VEC_INFINITY
+	 *   - VEC_ALL_NEG_INFINITY: -VEC_ALL_INFINITY.
+	 */
+	Set(const std::string name,
+	    const std::string var_name,
+	    const std::string value,
+	    bool once = false);
 
-    /** Destructor.
-     */
-    ~Set();
+	/** Destructor.
+	 */
+	~Set();
 
-    /** Initialize the tool.
-     */
-    void setup();
+	/** Initialize the tool.
+	 */
+	void setup();
 
-protected:
-    /** Execute the tool
-     * @param events List of events that shall be waited before safe execution
-     * @return OpenCL event to be waited before accessing the dependencies
-     */
-    cl_event _execute(const std::vector<cl_event> events);
+  protected:
+	/** Execute the tool
+	 * @param events List of events that shall be waited before safe execution
+	 * @return OpenCL event to be waited before accessing the dependencies
+	 */
+	cl_event _execute(const std::vector<cl_event> events);
 
-private:
-    /** Get the input variable
-     */
-    void variable();
+  private:
+	/** Get the input variable
+	 */
+	void variable();
 
-    /** Setup the OpenCL stuff
-     */
-    void setupOpenCL();
+	/** Setup the OpenCL stuff
+	 */
+	void setupOpenCL();
 
-    /** Solve the equation.
-     *
-     * @note Solve may eventually fail. In that case, the _value string will be
-     * directly used by means of a define. This way the user may use shortcuts
-     * like VEC_ZERO
-     */
-    void solve();
+	/** Solve the equation.
+	 *
+	 * @note Solve may eventually fail. In that case, the _value string will be
+	 * directly used by means of a define. This way the user may use shortcuts
+	 * like VEC_ZERO
+	 */
+	void solve();
 
-    /** Update the input looking for changed value.
-     * @return false if all gone right, true otherwise.
-     */
-    void setVariables();
+	/** Update the input looking for changed value.
+	 * @return false if all gone right, true otherwise.
+	 */
+	void setVariables();
 
-    /// Input variable name
-    std::string _var_name;
-    /// Value to set
-    std::string _value;
+	/// Input variable name
+	std::string _var_name;
+	/// Value to set
+	std::string _value;
 
-    /// Input variable
-    InputOutput::ArrayVariable *_var;
+	/// Input variable
+	InputOutput::ArrayVariable* _var;
 
-    /// Memory object sent
-    cl_mem _input;
+	/// Memory object sent
+	cl_mem _input;
 
-    /// OpenCL kernel
-    cl_kernel _kernel;
+	/// OpenCL kernel
+	cl_kernel _kernel;
 
-    /// Global work sizes in each step
-    size_t _global_work_size;
-    /// Local work sizes in each step
-    size_t _local_work_size;
-    /// Number of elements
-    unsigned int _n;
+	/// Global work sizes in each step
+	size_t _global_work_size;
+	/// Local work sizes in each step
+	size_t _local_work_size;
+	/// Number of elements
+	unsigned int _n;
 
-    /// Memory storage for the value
-    void *_data;
+	/// Memory storage for the value
+	void* _data;
 };
 
-}}  // namespace
+}
+} // namespace
 
 #endif // SET_H_INCLUDED

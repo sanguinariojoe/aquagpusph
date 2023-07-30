@@ -26,56 +26,58 @@
 
 #include <CalcServer/Kernel.h>
 
-namespace Aqua{ namespace CalcServer{
+namespace Aqua {
+namespace CalcServer {
 
 /** @class Copy Copy.h CalcServer/Copy.h
  * @brief Copy an array component by component.
  */
 class Copy : public Aqua::CalcServer::Tool
 {
-public:
-    /** Constructor.
-     * @param name Tool name.
-     * @param input_name Variable to copy.
-     * @param output_name Variable to set.
-     * @param once Run this tool just once. Useful to make initializations.
-     */
-    Copy(const std::string name,
-         const std::string input_name,
-         const std::string output_name,
-         bool once=false);
+  public:
+	/** Constructor.
+	 * @param name Tool name.
+	 * @param input_name Variable to copy.
+	 * @param output_name Variable to set.
+	 * @param once Run this tool just once. Useful to make initializations.
+	 */
+	Copy(const std::string name,
+	     const std::string input_name,
+	     const std::string output_name,
+	     bool once = false);
 
-    /** Destructor.
-     */
-    ~Copy();
+	/** Destructor.
+	 */
+	~Copy();
 
-    /** Initialize the tool.
-     */
-    void setup();
+	/** Initialize the tool.
+	 */
+	void setup();
 
-protected:
-    /** Execute the tool
-     * @param events List of events that shall be waited before safe execution
-     * @return OpenCL event to be waited before accessing the dependencies
-     */
-    cl_event _execute(const std::vector<cl_event> events);
+  protected:
+	/** Execute the tool
+	 * @param events List of events that shall be waited before safe execution
+	 * @return OpenCL event to be waited before accessing the dependencies
+	 */
+	cl_event _execute(const std::vector<cl_event> events);
 
-private:
-    /** Get the input and output variables
-     */
-    void variables();
+  private:
+	/** Get the input and output variables
+	 */
+	void variables();
 
-    /// Input variable name
-    std::string _input_name;
-    /// Output variable name
-    std::string _output_name;
+	/// Input variable name
+	std::string _input_name;
+	/// Output variable name
+	std::string _output_name;
 
-    /// Input variable
-    InputOutput::ArrayVariable *_input_var;
-    /// Output variable
-    InputOutput::ArrayVariable *_output_var;
+	/// Input variable
+	InputOutput::ArrayVariable* _input_var;
+	/// Output variable
+	InputOutput::ArrayVariable* _output_var;
 };
 
-}}  // namespace
+}
+} // namespace
 
 #endif // COPY_H_INCLUDED

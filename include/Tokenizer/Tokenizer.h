@@ -28,7 +28,7 @@
 #include <string>
 #include <muParser.h>
 
-namespace Aqua{
+namespace Aqua {
 
 /** \class Tokenizer Tokenizer.h Tokenizer/Tokenizer.h
  * @brief Tool to evaluate math expressions.
@@ -40,65 +40,65 @@ namespace Aqua{
  */
 class Tokenizer
 {
-public:
-    /// Constructor
-    Tokenizer();
+  public:
+	/// Constructor
+	Tokenizer();
 
-    /// Destructor
-    ~Tokenizer();
+	/// Destructor
+	~Tokenizer();
 
-    /** @brief Register a variable.
-     *
-     * In case that the variable already exist, it will be modified.
-     *
-     * The registered variables can be used later in the expression to be
-     * evaluated.
-     *
-     * @param name Name of the variable.
-     * @param value Value of the variable.
-     * @return true if the variable already exists, false otherwise.
-     */
-    bool registerVariable(const std::string name, float value);
+	/** @brief Register a variable.
+	 *
+	 * In case that the variable already exist, it will be modified.
+	 *
+	 * The registered variables can be used later in the expression to be
+	 * evaluated.
+	 *
+	 * @param name Name of the variable.
+	 * @param value Value of the variable.
+	 * @return true if the variable already exists, false otherwise.
+	 */
+	bool registerVariable(const std::string name, float value);
 
-    /** @brief Clear/unregister all the registered variables.
-     */
-    void clearVariables();
+	/** @brief Clear/unregister all the registered variables.
+	 */
+	void clearVariables();
 
-    /** @brief Checks if a variable has been registered.
-     * @param name Name of the variable
-     * @return true if already exist a variable with the given name, false
-     * otherwise.
-     */
-    bool isVariable(const std::string name);
+	/** @brief Checks if a variable has been registered.
+	 * @param name Name of the variable
+	 * @return true if already exist a variable with the given name, false
+	 * otherwise.
+	 */
+	bool isVariable(const std::string name);
 
-    /** @brief Returns a variable value.
-     * @param name Name of the variable
-     * @return The Value of the variable, or 0.0 if the variable cannot be
-     * found.
-     */
-    float variable(const std::string name);
+	/** @brief Returns a variable value.
+	 * @param name Name of the variable
+	 * @return The Value of the variable, or 0.0 if the variable cannot be
+	 * found.
+	 */
+	float variable(const std::string name);
 
-    /** @brief Solve a math expression.
-     * @param eq Math expression to solve.
-     * @return Expression value, 0.0 if the evaluation failed (it will be
-     * reported by terminal).
-     */
-    float solve(const std::string eq);
+	/** @brief Solve a math expression.
+	 * @param eq Math expression to solve.
+	 * @return Expression value, 0.0 if the evaluation failed (it will be
+	 * reported by terminal).
+	 */
+	float solve(const std::string eq);
 
-protected:
-    /** @brief Register the default variables.
-     *
-     * After the libmatheval implementation, variables like \f$ e \f$ or
-     * \f$ \pi \f$ are defined out of the box, but the function is retained just
-     * in case.
-     */
-    virtual void defaultVariables();
+  protected:
+	/** @brief Register the default variables.
+	 *
+	 * After the libmatheval implementation, variables like \f$ e \f$ or
+	 * \f$ \pi \f$ are defined out of the box, but the function is retained just
+	 * in case.
+	 */
+	virtual void defaultVariables();
 
-private:
-    /// Mathematical expressions parser
-    mu::Parser p;
-};   // class Tokenizer
+  private:
+	/// Mathematical expressions parser
+	mu::Parser p;
+}; // class Tokenizer
 
-}   // namespaces
+} // namespaces
 
 #endif // TOKENIZER_H_INCLUDED

@@ -35,21 +35,21 @@
  * @note Must be power of 2, and in some devices greather than 32.
  */
 #ifndef _ITEMS
-    #define _ITEMS  128
+#define _ITEMS 128
 #endif
 /** @def _GROUPS Number of groups (data must be divisible of _ITEMS*_GROUPS)
  * @note Must be power of 2
  */
 #ifndef _GROUPS
-    #define _GROUPS 32
+#define _GROUPS 32
 #endif
 /// @def __UINTBITS__ Bits of an unsigned integer variable
 #ifndef __UINTBITS__
-    #define __UINTBITS__ 32
+#define __UINTBITS__ 32
 #endif
 /// @def _STEPBITS Bits that be sorted in each pass
 #ifndef _STEPBITS
-    #define _STEPBITS 4
+#define _STEPBITS 4
 #endif
 /// @def _RADIX Bits that be sorted in each pass
 #define _RADIX (1 << _STEPBITS)
@@ -59,26 +59,27 @@
  * @remarks Must be power of 2, and in some devices greather than 64.
  */
 #ifndef _HISTOSPLIT
-    #define _HISTOSPLIT 512
+#define _HISTOSPLIT 512
 #endif
 
 /* Modify data in order to impose that local size don't be lower than
-* minimum allowed value.
-*/
+ * minimum allowed value.
+ */
 #if _ITEMS < __CL_MIN_LOCALSIZE__
-    #undef _ITEMS
-    #define _ITEMS __CL_MIN_LOCALSIZE__
+#undef _ITEMS
+#define _ITEMS __CL_MIN_LOCALSIZE__
 #endif
-#if _HISTOSPLIT/2 < __CL_MIN_LOCALSIZE__
-    #undef _HISTOSPLIT
-    #define _HISTOSPLIT 2*__CL_MIN_LOCALSIZE__
+#if _HISTOSPLIT / 2 < __CL_MIN_LOCALSIZE__
+#undef _HISTOSPLIT
+#define _HISTOSPLIT 2 * __CL_MIN_LOCALSIZE__
 #endif
-#if _RADIX*_GROUPS*_ITEMS/2/_HISTOSPLIT < __CL_MIN_LOCALSIZE__
-    #undef _GROUPS
-    #define _GROUPS 2*__CL_MIN_LOCALSIZE__*_HISTOSPLIT / (_RADIX*_ITEMS)
+#if _RADIX * _GROUPS * _ITEMS / 2 / _HISTOSPLIT < __CL_MIN_LOCALSIZE__
+#undef _GROUPS
+#define _GROUPS 2 * __CL_MIN_LOCALSIZE__* _HISTOSPLIT / (_RADIX * _ITEMS)
 #endif
 
-namespace Aqua{ namespace CalcServer{
+namespace Aqua {
+namespace CalcServer {
 
 /** @class RadixSort RadixSort.h CalcServer/RadixSort.h
  * @brief Methods to perform a radix sort using the GPU (or any device
@@ -94,162 +95,164 @@ namespace Aqua{ namespace CalcServer{
  */
 class RadixSort : public Aqua::CalcServer::Tool
 {
-public:
-    /** Constructor.
-     * @param tool_name Tool name.
-     * @param variable Variable to sort.
-     * @param permutations Variable where the permutations will be stored.
-     * @param inv_permutations Variable where the inverse permutations will be
-     * stored.
-     * @param once Run this tool just once. Useful to make initializations.
-     */
-    RadixSort(const std::string tool_name,
-              const std::string variable="icell",
-              const std::string permutations="id_unsorted",
-              const std::string inv_permutations="id_sorted",
-              bool once=false);
+  public:
+	/** Constructor.
+	 * @param tool_name Tool name.
+	 * @param variable Variable to sort.
+	 * @param permutations Variable where the permutations will be stored.
+	 * @param inv_permutations Variable where the inverse permutations will be
+	 * stored.
+	 * @param once Run this tool just once. Useful to make initializations.
+	 */
+	RadixSort(const std::string tool_name,
+	          const std::string variable = "icell",
+	          const std::string permutations = "id_unsorted",
+	          const std::string inv_permutations = "id_sorted",
+	          bool once = false);
 
-    /** Destructor
-     */
-    ~RadixSort();
+	/** Destructor
+	 */
+	~RadixSort();
 
-    /** Initialize the tool.
-     */
-    void setup();
+	/** Initialize the tool.
+	 */
+	void setup();
 
-protected:
-    /** Execute the tool
-     * @param events List of events that shall be waited before safe execution
-     * @return OpenCL event to be waited before accesing the dependencies
-     */
-    cl_event _execute(const std::vector<cl_event> events);
+  protected:
+	/** Execute the tool
+	 * @param events List of events that shall be waited before safe execution
+	 * @return OpenCL event to be waited before accesing the dependencies
+	 */
+	cl_event _execute(const std::vector<cl_event> events);
 
-private:
-    /** Initialize permutations array
-     * @return Permutations initialization event
-     */
-    cl_event init();
+  private:
+	/** Initialize permutations array
+	 * @return Permutations initialization event
+	 */
+	cl_event init();
 
-    /** Perform histograms
-     * @param keys_event Event of the last keys manipulation 
-     * @param histograms_event Event of the last histogram manipulation. NULL if
-     * it has not been manipulated yet
-     * @return Histograms event
-     */
-    cl_event histograms(cl_event keys_event, cl_event histograms_event);
+	/** Perform histograms
+	 * @param keys_event Event of the last keys manipulation
+	 * @param histograms_event Event of the last histogram manipulation. NULL if
+	 * it has not been manipulated yet
+	 * @return Histograms event
+	 */
+	cl_event histograms(cl_event keys_event, cl_event histograms_event);
 
-    /** Scan histograms.
-     * @param event Event of the last histogram manipulation
-     * @return Histograms event
-     */
-    cl_event scan(cl_event event);
+	/** Scan histograms.
+	 * @param event Event of the last histogram manipulation
+	 * @return Histograms event
+	 */
+	cl_event scan(cl_event event);
 
-    /** Scan histograms.
-     * @param perms_event Event of the permutations initialization
-     * @param histograms_event Event of the last histogram manipulation
-     * @return Histograms event
-     */
-    cl_event reorder(cl_event perms_event, cl_event histograms_event);
+	/** Scan histograms.
+	 * @param perms_event Event of the permutations initialization
+	 * @param histograms_event Event of the last histogram manipulation
+	 * @return Histograms event
+	 */
+	cl_event reorder(cl_event perms_event, cl_event histograms_event);
 
-    /** Build the reversed permutations vector.
-     * @return Permutation arrays event
-     */
-    cl_event inversePermutations();
+	/** Build the reversed permutations vector.
+	 * @return Permutation arrays event
+	 */
+	cl_event inversePermutations();
 
-    /** Get the variables to compute.
-     */
-    void variables();
+	/** Get the variables to compute.
+	 */
+	void variables();
 
-    /** Setup the OpenCL stuff
-     */
-    void setupOpenCL();
+	/** Setup the OpenCL stuff
+	 */
+	void setupOpenCL();
 
-    /** Setup the main computing dimensions _items, _groups and _histo_split
-     * from the valid local work sizes per each kernel.
-     */
-    void setupDims();
+	/** Setup the main computing dimensions _items, _groups and _histo_split
+	 * from the valid local work sizes per each kernel.
+	 */
+	void setupDims();
 
-    /** Setup the memory objects.
-     */
-    void setupMems();
+	/** Setup the memory objects.
+	 */
+	void setupMems();
 
-    /** Send the fixed arguments to the kernels.
-     */
-    void setupArgs();
+	/** Send the fixed arguments to the kernels.
+	 */
+	void setupArgs();
 
-    /// Variable to sort name
-    std::string _var_name;
+	/// Variable to sort name
+	std::string _var_name;
 
-    /// Permutations array name
-    std::string _perms_name;
+	/// Permutations array name
+	std::string _perms_name;
 
-    /// Inverse permutations array name
-    std::string _inv_perms_name;
+	/// Inverse permutations array name
+	std::string _inv_perms_name;
 
-    /// Variable to sort
-    InputOutput::ArrayVariable *_var;
+	/// Variable to sort
+	InputOutput::ArrayVariable* _var;
 
-    /// Permutations array
-    InputOutput::ArrayVariable *_perms;
+	/// Permutations array
+	InputOutput::ArrayVariable* _perms;
 
-    /// Inverse permutations array
-    InputOutput::ArrayVariable *_inv_perms;
+	/// Inverse permutations array
+	InputOutput::ArrayVariable* _inv_perms;
 
-    /// Number of keys to sort
-    unsigned int _n;
+	/// Number of keys to sort
+	unsigned int _n;
 
-    /// OpenCL initialization kernel
-    cl_kernel _init_kernel;
-    /// OpenCL histogram kernel
-    cl_kernel _histograms_kernel;
-    /// OpenCL scan histogram kernel
-    cl_kernel _scan_kernel;
-    /// OpenCL paste histogram kernel
-    cl_kernel _paste_kernel;
-    /// OpenCL permutations kernel
-    cl_kernel _sort_kernel;
-    /// OpenCL reverse permutations kernel
-    cl_kernel _inv_perms_kernel;
+	/// OpenCL initialization kernel
+	cl_kernel _init_kernel;
+	/// OpenCL histogram kernel
+	cl_kernel _histograms_kernel;
+	/// OpenCL scan histogram kernel
+	cl_kernel _scan_kernel;
+	/// OpenCL paste histogram kernel
+	cl_kernel _paste_kernel;
+	/// OpenCL permutations kernel
+	cl_kernel _sort_kernel;
+	/// OpenCL reverse permutations kernel
+	cl_kernel _inv_perms_kernel;
 
-    /// Input keys
-    cl_mem _in_keys;
-    /// Output keys
-    cl_mem _out_keys;
-    /// Input permutations
-    cl_mem _in_permut;
-    /// Output permutations
-    cl_mem _out_permut;
-    /// Histograms
-    cl_mem _histograms;
-    /// Sums for each histogram split
-    cl_mem _global_sums;
-    /// Temporal memory
-    cl_mem _temp_mem;
+	/// Input keys
+	cl_mem _in_keys;
+	/// Output keys
+	cl_mem _out_keys;
+	/// Input permutations
+	cl_mem _in_permut;
+	/// Output permutations
+	cl_mem _out_permut;
+	/// Histograms
+	cl_mem _histograms;
+	/// Sums for each histogram split
+	cl_mem _global_sums;
+	/// Temporal memory
+	cl_mem _temp_mem;
 
-    /// Number of items in a group
-    unsigned int _items;
-    /// Number of groups in a radix
-    unsigned int _groups;
-    /// Bits of the Radix
-    unsigned int _bits;
-    /// Number of Radices
-    unsigned int _radix;
-    /// Splits of the histogram
-    unsigned int _histo_split;
+	/// Number of items in a group
+	unsigned int _items;
+	/// Number of groups in a radix
+	unsigned int _groups;
+	/// Bits of the Radix
+	unsigned int _bits;
+	/// Number of Radices
+	unsigned int _radix;
+	/// Splits of the histogram
+	unsigned int _histo_split;
 
-    /// Key bits (maximum)
-    unsigned int _key_bits;
-    /// Needed radix pass (_key_bits / _STEPBITS)
-    unsigned int _n_pass;
-    /// Pass of the radix decomposition
-    unsigned int _pass;
+	/// Key bits (maximum)
+	unsigned int _key_bits;
+	/// Needed radix pass (_key_bits / _STEPBITS)
+	unsigned int _n_pass;
+	/// Pass of the radix decomposition
+	unsigned int _pass;
 
-    /// Maximum local work size allowed by the device
-    size_t _local_work_size;
-    /// Global work size (assuming the maximum local work size) to compute _n threads.
-    size_t _global_work_size;
+	/// Maximum local work size allowed by the device
+	size_t _local_work_size;
+	/// Global work size (assuming the maximum local work size) to compute _n
+	/// threads.
+	size_t _global_work_size;
 };
 
-}}  // namespace
+}
+} // namespace
 
 #endif // RADIXSORT_H_INCLUDED

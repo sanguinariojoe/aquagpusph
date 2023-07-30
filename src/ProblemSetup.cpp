@@ -28,213 +28,223 @@
 #include <InputOutput/Logger.h>
 #include <AuxiliarMethods.h>
 
-namespace Aqua{ namespace InputOutput{
+namespace Aqua {
+namespace InputOutput {
 
 ProblemSetup::ProblemSetup()
-    : _copy(false)
+  : _copy(false)
 {
-    time_opts.sim_end_mode = __NO_OUTPUT_MODE__;
-    time_opts.sim_end_time = 0.f;
-    time_opts.sim_end_step = 0;
-    time_opts.sim_end_frame = 0;
-    time_opts.output_mode = __NO_OUTPUT_MODE__;
-    time_opts.output_fps = 0.f;
-    time_opts.output_ipf = 0;
+	time_opts.sim_end_mode = __NO_OUTPUT_MODE__;
+	time_opts.sim_end_time = 0.f;
+	time_opts.sim_end_step = 0;
+	time_opts.sim_end_frame = 0;
+	time_opts.output_mode = __NO_OUTPUT_MODE__;
+	time_opts.output_fps = 0.f;
+	time_opts.output_ipf = 0;
 }
 
 ProblemSetup::ProblemSetup(const ProblemSetup& p)
-    : settings(p.settings)
-    , variables(p.variables)
-    , definitions(p.definitions)
-    , tools(p.tools)
-    , reports(p.reports)
-    , time_opts(p.time_opts)
-    , sets(p.sets)
-    , _copy(true)
+  : settings(p.settings)
+  , variables(p.variables)
+  , definitions(p.definitions)
+  , tools(p.tools)
+  , reports(p.reports)
+  , time_opts(p.time_opts)
+  , sets(p.sets)
+  , _copy(true)
 {
 }
 
 ProblemSetup::~ProblemSetup()
 {
-    if (_copy)
-        return;
+	if (_copy)
+		return;
 
-    unsigned int i;
-    for(i = tools.size(); i > 0; i--){
-        if(toolInstances(tools.at(i - 1)) == 1){
-            // This is the last remaining instance
-            delete tools.at(i - 1);
-        }
-        tools.erase(tools.begin() + i - 1);
-    }
-    tools.clear();
-    for(auto report : reports){
-        delete report;
-    }
-    reports.clear();
-    for(auto set : sets){
-        delete set;
-    }
-    sets.clear();
+	unsigned int i;
+	for (i = tools.size(); i > 0; i--) {
+		if (toolInstances(tools.at(i - 1)) == 1) {
+			// This is the last remaining instance
+			delete tools.at(i - 1);
+		}
+		tools.erase(tools.begin() + i - 1);
+	}
+	tools.clear();
+	for (auto report : reports) {
+		delete report;
+	}
+	reports.clear();
+	for (auto set : sets) {
+		delete set;
+	}
+	sets.clear();
 }
 
 ProblemSetup::sphSettings::sphSettings()
-    : save_on_fail(true)
-    , base_path("")
+  : save_on_fail(true)
+  , base_path("")
 {
-    save_on_fail = true;
-    base_path = "";
+	save_on_fail = true;
+	base_path = "";
 }
 
-void ProblemSetup::sphVariables::registerVariable(std::string name,
-                                                  std::string type,
-                                                  std::string length,
-                                                  std::string value)
+void
+ProblemSetup::sphVariables::registerVariable(std::string name,
+                                             std::string type,
+                                             std::string length,
+                                             std::string value)
 {
-    names.push_back(name);
-    types.push_back(type);
-    lengths.push_back(length);
-    values.push_back(value);
+	names.push_back(name);
+	types.push_back(type);
+	lengths.push_back(length);
+	values.push_back(value);
 }
 
-void ProblemSetup::sphDefinitions::define(const std::string name,
-                                          const std::string value,
-                                          const bool evaluate)
+void
+ProblemSetup::sphDefinitions::define(const std::string name,
+                                     const std::string value,
+                                     const bool evaluate)
 {
-    if(isDefined(name)){
-        undefine(name);
-    }
+	if (isDefined(name)) {
+		undefine(name);
+	}
 
-    names.push_back(name);
-    values.push_back(value);
-    evaluations.push_back(evaluate);
+	names.push_back(name);
+	values.push_back(value);
+	evaluations.push_back(evaluate);
 }
 
-bool ProblemSetup::sphDefinitions::isDefined(const std::string name)
+bool
+ProblemSetup::sphDefinitions::isDefined(const std::string name)
 {
-    for(auto str : names){
-        if(!name.compare(str)){
-            return true;
-        }
-    }
+	for (auto str : names) {
+		if (!name.compare(str)) {
+			return true;
+		}
+	}
 
-    return false;
+	return false;
 }
 
-void ProblemSetup::sphDefinitions::undefine(const std::string name)
+void
+ProblemSetup::sphDefinitions::undefine(const std::string name)
 {
-    unsigned int i;
-    for(i = 0; i < names.size(); i++){
-        if(!name.compare(names.at(i))){
-            names.erase(names.begin() + i);
-            values.erase(values.begin() + i);
-            evaluations.erase(evaluations.begin() + i);
-            return;
-        }
-    }
+	unsigned int i;
+	for (i = 0; i < names.size(); i++) {
+		if (!name.compare(names.at(i))) {
+			names.erase(names.begin() + i);
+			values.erase(values.begin() + i);
+			evaluations.erase(evaluations.begin() + i);
+			return;
+		}
+	}
 }
 
-void ProblemSetup::sphTool::set(const std::string name,
-                                const std::string value)
+void
+ProblemSetup::sphTool::set(const std::string name, const std::string value)
 {
-    if(has(name)){
-        _data[name] = value;
-        return;
-    }
-    _data.insert(std::make_pair(name, value));
+	if (has(name)) {
+		_data[name] = value;
+		return;
+	}
+	_data.insert(std::make_pair(name, value));
 }
 
-const std::string ProblemSetup::sphTool::get(const std::string name)
+const std::string
+ProblemSetup::sphTool::get(const std::string name)
 {
-    return _data[name].c_str();
+	return _data[name].c_str();
 }
 
-const std::string ProblemSetup::sphTool::get(unsigned int index)
+const std::string
+ProblemSetup::sphTool::get(unsigned int index)
 {
-    unsigned int i = 0;
-    for (auto& d : _data) {
-        if(i == index){
-            return d.second;
-        }
-        i++;
-    }
-    return NULL;
+	unsigned int i = 0;
+	for (auto& d : _data) {
+		if (i == index) {
+			return d.second;
+		}
+		i++;
+	}
+	return NULL;
 }
 
-const std::string ProblemSetup::sphTool::getName(unsigned int index)
+const std::string
+ProblemSetup::sphTool::getName(unsigned int index)
 {
-    unsigned int i = 0;
-    for (auto& d : _data) {
-        if(i == index){
-            return d.first;
-        }
-        i++;
-    }
-    return NULL;
+	unsigned int i = 0;
+	for (auto& d : _data) {
+		if (i == index) {
+			return d.first;
+		}
+		i++;
+	}
+	return NULL;
 }
 
-bool ProblemSetup::sphTool::has(const std::string name)
+bool
+ProblemSetup::sphTool::has(const std::string name)
 {
-    std::map<std::string, std::string>::iterator var = _data.find(name);
-    if(var != _data.end())
-        return true;
-    return false;
+	std::map<std::string, std::string>::iterator var = _data.find(name);
+	if (var != _data.end())
+		return true;
+	return false;
 }
 
-unsigned int ProblemSetup::toolInstances(ProblemSetup::sphTool *tool)
+unsigned int
+ProblemSetup::toolInstances(ProblemSetup::sphTool* tool)
 {
-    unsigned int i, n=0;
-    for(auto t : tools){
-        if(tool == t)
-        {
-            n++;
-        }
-    }
-    return n;
+	unsigned int i, n = 0;
+	for (auto t : tools) {
+		if (tool == t) {
+			n++;
+		}
+	}
+	return n;
 }
 
 ProblemSetup::sphParticlesSet::sphParticlesSet()
-    : _n(0)
+  : _n(0)
 {
 }
 
-ProblemSetup::sphParticlesSet::~sphParticlesSet()
+ProblemSetup::sphParticlesSet::~sphParticlesSet() {}
+
+void
+ProblemSetup::sphParticlesSet::addScalar(std::string name, std::string value)
 {
+	_snames.push_back(name);
+	_svalues.push_back(value);
 }
 
-void ProblemSetup::sphParticlesSet::addScalar(std::string name,
-                                              std::string value)
+void
+ProblemSetup::sphParticlesSet::input(std::string path,
+                                     std::string format,
+                                     std::string fields)
 {
-    _snames.push_back(name);
-    _svalues.push_back(value);
+	_in_path = setStrConstantsCopy(path);
+	_in_format = format;
+	// Split the fields
+	std::istringstream f(replaceAllCopy(fields, " ", ""));
+	std::string s;
+	while (getline(f, s, ',')) {
+		_in_fields.push_back(s);
+	}
 }
 
-void ProblemSetup::sphParticlesSet::input(std::string path,
-                                          std::string format,
-                                          std::string fields)
+void
+ProblemSetup::sphParticlesSet::output(std::string path,
+                                      std::string format,
+                                      std::string fields)
 {
-    _in_path = setStrConstantsCopy(path);
-    _in_format = format;
-    // Split the fields
-    std::istringstream f(replaceAllCopy(fields, " ", ""));
-    std::string s;
-    while (getline(f, s, ',')) {
-        _in_fields.push_back(s);
-    }
+	_out_path = setStrConstantsCopy(replaceAllCopy(path, "%d", "{index}"));
+	_out_format = format;
+	// Split the fields
+	std::istringstream f(replaceAllCopy(fields, " ", ""));
+	std::string s;
+	while (getline(f, s, ',')) {
+		_out_fields.push_back(s);
+	}
 }
 
-void ProblemSetup::sphParticlesSet::output(std::string path,
-                                           std::string format,
-                                           std::string fields)
-{
-    _out_path = setStrConstantsCopy(replaceAllCopy(path, "%d", "{index}"));
-    _out_format = format;
-    // Split the fields
-    std::istringstream f(replaceAllCopy(fields, " ", ""));
-    std::string s;
-    while (getline(f, s, ',')) {
-        _out_fields.push_back(s);
-    }
 }
-
-}}  // namespace
+} // namespace

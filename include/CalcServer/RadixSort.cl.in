@@ -26,88 +26,92 @@
  * @param perms Initial permutations (null)
  * @param n Number of keys.
  */
-__kernel void init(__global unsigned int* perms,
-                   unsigned int n){
-    // find position in global arrays
-    unsigned int i = get_global_id(0);
-    if(i >= n)
-        return;
+__kernel void
+init(__global unsigned int* perms, unsigned int n)
+{
+	// find position in global arrays
+	unsigned int i = get_global_id(0);
+	if (i >= n)
+		return;
 
-    perms[i] = i;
+	perms[i] = i;
 }
 
 /** Perform the local histograms. The histograms are the number of occurrences
  * of each radix. Since we are working in parallel, the number of ocurrences
  * of each radix will be splited in blocks of dimension _ITEMS * _GROUPS:
- *   | it(0)gr(0)ra(0)          | it(1)gr(0)ra(0)          | ... | it(items)gr(0)ra(0)          |
- *   | it(0)gr(1)ra(0)          | it(1)gr(1)ra(0)          | ... | it(items)gr(1)ra(0)          |
- *   | ...                      | ...                      | ... | ...                          |
- *   | it(0)gr(groups)ra(0)     | it(1)gr(groups)ra(0)     | ... | it(items)gr(groups)ra(0)     |
- *   | it(0)gr(0)ra(1)          | it(1)gr(0)ra(1)          | ... | it(items)gr(0)ra(1)          |
- *   | ...                      | ...                      | ... | ...                          |
- *   | it(0)gr(groups)ra(1)     | it(1)gr(groups)ra(1)     | ... | it(items)gr(groups)ra(1)     |
- *   | ...                      | ...                      | ... | ...                          |
- *   | it(0)gr(groups)ra(radix) | it(1)gr(groups)ra(radix) | ... | it(items)gr(groups)ra(radix) |
- * where it is the thread, gr is the group, and ra is the radix.
+ *   | it(0)gr(0)ra(0)          | it(1)gr(0)ra(0)          | ... |
+ * it(items)gr(0)ra(0)          | | it(0)gr(1)ra(0)          | it(1)gr(1)ra(0)
+ * | ... | it(items)gr(1)ra(0)          | | ...                      | ... | ...
+ * | ...                          | | it(0)gr(groups)ra(0)     |
+ * it(1)gr(groups)ra(0)     | ... | it(items)gr(groups)ra(0)     | |
+ * it(0)gr(0)ra(1)          | it(1)gr(0)ra(1)          | ... |
+ * it(items)gr(0)ra(1)          | | ...                      | ... | ... | ... |
+ *   | it(0)gr(groups)ra(1)     | it(1)gr(groups)ra(1)     | ... |
+ * it(items)gr(groups)ra(1)     | | ...                      | ... | ... | ... |
+ *   | it(0)gr(groups)ra(radix) | it(1)gr(groups)ra(radix) | ... |
+ * it(items)gr(groups)ra(radix) | where it is the thread, gr is the group, and
+ * ra is the radix.
  * @param keys Input unsorted keys allocated into the device.
  * @param histograms Computed histograms.
  * @param pass Pass of the radix decomposition.
  * @param loc_histo Histograms local memory to speed up the process.
  * @param n Number of keys.
  */
-__kernel void histogram(const __global unsigned int* keys,
-                        __global unsigned int* histograms,
-                        const unsigned int pass,
-                        __local unsigned int* loc_histo,
-                        const unsigned int n)
+__kernel void
+histogram(const __global unsigned int* keys,
+          __global unsigned int* histograms,
+          const unsigned int pass,
+          __local unsigned int* loc_histo,
+          const unsigned int n)
 {
-    unsigned int it = get_local_id(0);
-    unsigned int ig = get_global_id(0);
-    unsigned int gr = get_group_id(0);
+	unsigned int it = get_local_id(0);
+	unsigned int ig = get_global_id(0);
+	unsigned int gr = get_group_id(0);
 
-    unsigned int groups = get_num_groups(0);
-    unsigned int items = get_local_size(0);
+	unsigned int groups = get_num_groups(0);
+	unsigned int items = get_local_size(0);
 
-    // Initializate the histograms in each thread of this work group
-    for(unsigned int ir = 0; ir < _RADIX; ir++){
-        loc_histo[ir * items + it] = 0;
-    }
+	// Initializate the histograms in each thread of this work group
+	for (unsigned int ir = 0; ir < _RADIX; ir++) {
+		loc_histo[ir * items + it] = 0;
+	}
 
-    barrier(CLK_LOCAL_MEM_FENCE);  
+	barrier(CLK_LOCAL_MEM_FENCE);
 
-    // Set the keys analized by each thread
-    unsigned int size = n / groups / items;
-    #ifndef TRANSPOSE
-    // If the data has not been transposed we must start reading from a
-    // different place of ig
-    unsigned int start= ig * size;
-    #endif
+	// Set the keys analized by each thread
+	unsigned int size = n / groups / items;
+#ifndef TRANSPOSE
+	// If the data has not been transposed we must start reading from a
+	// different place of ig
+	unsigned int start = ig * size;
+#endif
 
-    unsigned int key, radix, k;
-    for(unsigned int j = 0; j < size; j++){
-        k = j + start;
-        if(k >= n)
-            return;
-        key = keys[k];   
+	unsigned int key, radix, k;
+	for (unsigned int j = 0; j < size; j++) {
+		k = j + start;
+		if (k >= n)
+			return;
+		key = keys[k];
 
-        // Extract from the key the corresponding radix.
-        // "key >> (pass * _BITS)" discards all the previously parsed data
-        // and the comparation "& (_RADIX-1)" will return the radix in the
-        // range (0 -> _RADIX-1)
-        radix = ((key >> (pass * _BITS)) & (_RADIX - 1));  
+		// Extract from the key the corresponding radix.
+		// "key >> (pass * _BITS)" discards all the previously parsed data
+		// and the comparation "& (_RADIX-1)" will return the radix in the
+		// range (0 -> _RADIX-1)
+		radix = ((key >> (pass * _BITS)) & (_RADIX - 1));
 
-        // increment the local histogram of the radix
-        loc_histo[radix * items + it]++;
-    }
+		// increment the local histogram of the radix
+		loc_histo[radix * items + it]++;
+	}
 
-    barrier(CLK_LOCAL_MEM_FENCE);  
+	barrier(CLK_LOCAL_MEM_FENCE);
 
-    for(unsigned int ir = 0; ir < _RADIX; ir++){
-        histograms[items * (ir * groups + gr) + it] =
-            loc_histo[ir * items + it];
-    }
+	for (unsigned int ir = 0; ir < _RADIX; ir++) {
+		histograms[items * (ir * groups + gr) + it] =
+		    loc_histo[ir * items + it];
+	}
 
-    barrier(CLK_GLOBAL_MEM_FENCE);  
+	barrier(CLK_GLOBAL_MEM_FENCE);
 }
 
 /** perform a parallel prefix sum (a scan) on the local histograms (see
@@ -121,76 +125,79 @@ __kernel void histogram(const __global unsigned int* keys,
  * @note The histogram histograms will be transformed in the accumulated
  * histogram.
  * @remarks This method is called two times:
- *   -# The first time _HISTOSPLIT global sums are computed, as well as _RADIX*_GROUPS*_ITEMS/_HISTOSPLIT accumulated histograms.
- *   -# The second time the previously computed global sums are transformed in a accumulated histogram.
+ *   -# The first time _HISTOSPLIT global sums are computed, as well as
+ * _RADIX*_GROUPS*_ITEMS/_HISTOSPLIT accumulated histograms.
+ *   -# The second time the previously computed global sums are transformed in a
+ * accumulated histogram.
  */
-__kernel void scan(__global unsigned int* histograms,
-                   __local unsigned int* temp,
-                   __global unsigned int* globsum)
+__kernel void
+scan(__global unsigned int* histograms,
+     __local unsigned int* temp,
+     __global unsigned int* globsum)
 {
-    unsigned int it = get_local_id(0);
-    unsigned int ig = get_global_id(0);
-    unsigned int n = get_local_size(0) * 2;
-    unsigned int gr = get_group_id(0);
-    unsigned int decale = 1; 
+	unsigned int it = get_local_id(0);
+	unsigned int ig = get_global_id(0);
+	unsigned int n = get_local_size(0) * 2;
+	unsigned int gr = get_group_id(0);
+	unsigned int decale = 1;
 
-    temp[2 * it] = histograms[2 * ig];  
-    temp[2 * it + 1] = histograms[2 * ig + 1];  
-     
-    // parallel prefix sum (algorithm of Blelloch 1990)
-    // In each stage (the first line is the input data) following process is
-    // done:
-    //   -# [h0, h1, h2, h3, ...]
-    //   -# [h0, h0+h1, h2, h2+h3, ...]
-    //   -# [h0, h0+h1, h2, h0+h1+h2+h3, ...]
-    // Therefore at the end we have the global sum of the local histograms
-    // stored in the last component (we want to save this value, and discard it
-    // for the next stage).
-    for (unsigned int d = n >> 1; d > 0; d >>= 1){   
-        barrier(CLK_LOCAL_MEM_FENCE);
-        if(it < d){
-            unsigned int ai = decale * (2 * it + 1) - 1;
-            unsigned int bi = decale * (2 * it + 2) - 1;
-            temp[bi] += temp[ai];
-        }
-        decale *= 2;
-    }
+	temp[2 * it] = histograms[2 * ig];
+	temp[2 * it + 1] = histograms[2 * ig + 1];
 
-    if(it == 0){
-        globsum[gr] = temp[n - 1];
-        temp[n - 1] = 0;
-    }
+	// parallel prefix sum (algorithm of Blelloch 1990)
+	// In each stage (the first line is the input data) following process is
+	// done:
+	//   -# [h0, h1, h2, h3, ...]
+	//   -# [h0, h0+h1, h2, h2+h3, ...]
+	//   -# [h0, h0+h1, h2, h0+h1+h2+h3, ...]
+	// Therefore at the end we have the global sum of the local histograms
+	// stored in the last component (we want to save this value, and discard it
+	// for the next stage).
+	for (unsigned int d = n >> 1; d > 0; d >>= 1) {
+		barrier(CLK_LOCAL_MEM_FENCE);
+		if (it < d) {
+			unsigned int ai = decale * (2 * it + 1) - 1;
+			unsigned int bi = decale * (2 * it + 2) - 1;
+			temp[bi] += temp[ai];
+		}
+		decale *= 2;
+	}
 
-    // down sweep phase.
-    // Now we are combining the previous result in the inverse order. For
-    // instance, with 4 histograms, we will perform the following process (the
-    // first line is the input data again):
-    //   -# [h0, h0+h1, h2, 0]
-    //   -# [h0, 0, h2, h0+h1]
-    //   -# [0, h0, h0+h1, h0+h1+h2]
-    // Which is the desired accumulated histogram.
-    for (unsigned int d = 1; d < n; d *= 2){  
-        decale >>= 1;  
-        barrier(CLK_LOCAL_MEM_FENCE);
+	if (it == 0) {
+		globsum[gr] = temp[n - 1];
+		temp[n - 1] = 0;
+	}
 
-        if (it < d){  
-            unsigned int ai = decale * (2 * it + 1) - 1;
-            unsigned int bi = decale * (2 * it + 2) - 1;
+	// down sweep phase.
+	// Now we are combining the previous result in the inverse order. For
+	// instance, with 4 histograms, we will perform the following process (the
+	// first line is the input data again):
+	//   -# [h0, h0+h1, h2, 0]
+	//   -# [h0, 0, h2, h0+h1]
+	//   -# [0, h0, h0+h1, h0+h1+h2]
+	// Which is the desired accumulated histogram.
+	for (unsigned int d = 1; d < n; d *= 2) {
+		decale >>= 1;
+		barrier(CLK_LOCAL_MEM_FENCE);
 
-            unsigned int t = temp[ai];
-            temp[ai] = temp[bi];
-            temp[bi] += t;
-        }
-    }
+		if (it < d) {
+			unsigned int ai = decale * (2 * it + 1) - 1;
+			unsigned int bi = decale * (2 * it + 2) - 1;
 
-    barrier(CLK_LOCAL_MEM_FENCE);
+			unsigned int t = temp[ai];
+			temp[ai] = temp[bi];
+			temp[bi] += t;
+		}
+	}
 
-    // Save the accumulated histogram
-    histograms[2 * ig] = temp[2 * it];
-    histograms[2 * ig + 1] = temp[2 * it + 1];
+	barrier(CLK_LOCAL_MEM_FENCE);
 
-    barrier(CLK_GLOBAL_MEM_FENCE);
-}  
+	// Save the accumulated histogram
+	histograms[2 * ig] = temp[2 * it];
+	histograms[2 * ig + 1] = temp[2 * it + 1];
+
+	barrier(CLK_GLOBAL_MEM_FENCE);
+}
 
 /** Paste the _HISTOSPLIT accumulated global sums into the splited accumulated
  * histogram, to get a global accumulated histogram.
@@ -200,19 +207,19 @@ __kernel void scan(__global unsigned int* histograms,
  * previous splits.
  * @param globsum Accumulated global sums (_HISTOSPLIT components).
  */
-__kernel void paste(__global unsigned int* histograms,
-                    __global unsigned int* globsum)
+__kernel void
+paste(__global unsigned int* histograms, __global unsigned int* globsum)
 {
-    unsigned int ig = get_global_id(0);
-    unsigned int gr = get_group_id(0);
-    unsigned int s;
+	unsigned int ig = get_global_id(0);
+	unsigned int gr = get_group_id(0);
+	unsigned int s;
 
-    s = globsum[gr];
+	s = globsum[gr];
 
-    histograms[2 * ig] += s;  
-    histograms[2 * ig + 1] += s;  
+	histograms[2 * ig] += s;
+	histograms[2 * ig + 1] += s;
 
-    barrier(CLK_GLOBAL_MEM_FENCE);
+	barrier(CLK_GLOBAL_MEM_FENCE);
 }
 
 /** Perform permutations using the accumulated histogram.
@@ -228,62 +235,63 @@ __kernel void paste(__global unsigned int* histograms,
  * pass must be the input unsorted keys of the next pass. Don't forgive to swap
  * the OpenCL identifiers (for keys and permutations).
  */
-__kernel void sort(const __global unsigned int* in_keys,
-                   __global unsigned int* out_keys,
-                   __global unsigned int* histograms,
-                   const unsigned int pass,
-                   __global unsigned int* in_permut,
-                   __global unsigned int* out_permut,
-                   __local unsigned int* loc_histo,
-                   const unsigned int n)
+__kernel void
+sort(const __global unsigned int* in_keys,
+     __global unsigned int* out_keys,
+     __global unsigned int* histograms,
+     const unsigned int pass,
+     __global unsigned int* in_permut,
+     __global unsigned int* out_permut,
+     __local unsigned int* loc_histo,
+     const unsigned int n)
 {
-    unsigned int it = get_local_id(0);
-    unsigned int ig = get_global_id(0);
-    unsigned int gr = get_group_id(0);
+	unsigned int it = get_local_id(0);
+	unsigned int ig = get_global_id(0);
+	unsigned int gr = get_group_id(0);
 
-    unsigned int groups = get_num_groups(0);
-    unsigned int items = get_local_size(0);
+	unsigned int groups = get_num_groups(0);
+	unsigned int items = get_local_size(0);
 
-    // Set the keys analized by each thread
-    unsigned int size = n / groups / items;
-    unsigned int start = ig * (n / groups / items);
+	// Set the keys analized by each thread
+	unsigned int size = n / groups / items;
+	unsigned int start = ig * (n / groups / items);
 
-    // take the accumulated histogram in the cache
-    for(unsigned int ir = 0; ir < _RADIX; ir++){
-        loc_histo[ir * items + it] =
-            histograms[items * (ir * groups + gr) + it];
-    }
-    barrier(CLK_LOCAL_MEM_FENCE);  
+	// take the accumulated histogram in the cache
+	for (unsigned int ir = 0; ir < _RADIX; ir++) {
+		loc_histo[ir * items + it] =
+		    histograms[items * (ir * groups + gr) + it];
+	}
+	barrier(CLK_LOCAL_MEM_FENCE);
 
-    unsigned int newpos, key, radix, k;
-    for(unsigned int j = 0; j < size; j++){
-        // Get the key to sort
-        k = j + start;
-        if(k >= n)
-            return;
-        key = in_keys[k];
+	unsigned int newpos, key, radix, k;
+	for (unsigned int j = 0; j < size; j++) {
+		// Get the key to sort
+		k = j + start;
+		if (k >= n)
+			return;
+		key = in_keys[k];
 
-        // Extract from the key the corresponding radix.
-        // "key >> (pass * _BITS)" discards all the previously parsed data
-        // and the comparation "& (_RADIX-1)" will return the radix in the
-        // range (0 -> _RADIX-1)
-        radix = ((key >> (pass * _BITS)) & (_RADIX - 1)); 
+		// Extract from the key the corresponding radix.
+		// "key >> (pass * _BITS)" discards all the previously parsed data
+		// and the comparation "& (_RADIX-1)" will return the radix in the
+		// range (0 -> _RADIX-1)
+		radix = ((key >> (pass * _BITS)) & (_RADIX - 1));
 
-        // Get the new position of the key from the histogram
-        newpos = loc_histo[radix * items + it];
+		// Get the new position of the key from the histogram
+		newpos = loc_histo[radix * items + it];
 
-        // And set the new key
-        out_keys[newpos] = key;
+		// And set the new key
+		out_keys[newpos] = key;
 
-        #ifdef PERMUT 
-        out_permut[newpos] = in_permut[k]; 
-        #endif
+#ifdef PERMUT
+		out_permut[newpos] = in_permut[k];
+#endif
 
-        // The position is filled, modify the histogram to point to the
-        // next available one
-        newpos++;
-        loc_histo[radix * items + it] = newpos;
-    }
+		// The position is filled, modify the histogram to point to the
+		// next available one
+		newpos++;
+		loc_histo[radix * items + it] = newpos;
+	}
 }
 
 /** Compute the inversed permutations, which allows to know the original
@@ -294,14 +302,15 @@ __kernel void sort(const __global unsigned int* in_keys,
  * unsorted one)
  * @param n Number of keys.
  */
-__kernel void inversePermutation(__global unsigned int* perms,
-                                 __global unsigned int* inv_perms,
-                                 unsigned int n)
+__kernel void
+inversePermutation(__global unsigned int* perms,
+                   __global unsigned int* inv_perms,
+                   unsigned int n)
 {
-    unsigned int i = get_global_id(0);
-    if(i >= n)
-        return;
+	unsigned int i = get_global_id(0);
+	if (i >= n)
+		return;
 
-    unsigned int permut = perms[i];
-    inv_perms[permut] = i;
+	unsigned int permut = perms[i];
+	inv_perms[permut] = i;
 }

@@ -30,137 +30,136 @@
 #include <CalcServer.h>
 #include <CalcServer/Copy.h>
 
-namespace Aqua{ namespace CalcServer{
+namespace Aqua {
+namespace CalcServer {
 
 Copy::Copy(const std::string name,
            const std::string input_name,
            const std::string output_name,
            bool once)
-    : Tool(name, once)
-    , _input_name(input_name)
-    , _output_name(output_name)
-    , _input_var(NULL)
-    , _output_var(NULL)
+  : Tool(name, once)
+  , _input_name(input_name)
+  , _output_name(output_name)
+  , _input_var(NULL)
+  , _output_var(NULL)
 {
 }
 
-Copy::~Copy()
+Copy::~Copy() {}
+
+void
+Copy::setup()
 {
+	std::ostringstream msg;
+	msg << "Loading the tool \"" << name() << "\"..." << std::endl;
+	LOG(L_INFO, msg.str());
+
+	Tool::setup();
+	variables();
 }
 
-void Copy::setup()
+cl_event
+Copy::_execute(const std::vector<cl_event> events)
 {
-    std::ostringstream msg;
-    msg << "Loading the tool \"" << name() << "\"..." << std::endl;
-    LOG(L_INFO, msg.str());
+	unsigned int i;
+	cl_int err_code;
+	cl_event event;
+	CalcServer* C = CalcServer::singleton();
 
-    Tool::setup();
-    variables();
+	cl_uint num_events_in_wait_list = events.size();
+	const cl_event* event_wait_list = events.size() ? events.data() : NULL;
+
+	err_code = clEnqueueCopyBuffer(C->command_queue(),
+	                               *(cl_mem*)_input_var->get(),
+	                               *(cl_mem*)_output_var->get(),
+	                               0,
+	                               0,
+	                               _output_var->size(),
+	                               num_events_in_wait_list,
+	                               event_wait_list,
+	                               &event);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure executing the tool \"" << name() << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
+
+	return event;
 }
 
-
-cl_event Copy::_execute(const std::vector<cl_event> events)
+void
+Copy::variables()
 {
-    unsigned int i;
-    cl_int err_code;
-    cl_event event;
-    CalcServer *C = CalcServer::singleton();
+	CalcServer* C = CalcServer::singleton();
+	InputOutput::Variables* vars = C->variables();
+	if (!vars->get(_input_name)) {
+		std::stringstream msg;
+		msg << "The tool \"" << name()
+		    << "\" is asking the undeclared variable \"" << _input_name << "\"."
+		    << std::endl;
+		LOG(L_ERROR, msg.str());
+		throw std::runtime_error("Invalid variable");
+	}
+	if (vars->get(_input_name)->type().find('*') == std::string::npos) {
+		std::stringstream msg;
+		msg << "The tool \"" << name() << "\" may not use a scalar variable (\""
+		    << _input_name << "\")." << std::endl;
+		LOG(L_ERROR, msg.str());
+		throw std::runtime_error("Invalid variable type");
+	}
+	_input_var = (InputOutput::ArrayVariable*)vars->get(_input_name);
+	size_t n_in = _input_var->size() / vars->typeToBytes(_input_var->type());
+	if (!vars->get(_output_name)) {
+		std::stringstream msg;
+		msg << "The tool \"" << name()
+		    << "\" is asking the undeclared variable \"" << _output_name
+		    << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		throw std::runtime_error("Invalid variable");
+	}
+	if (vars->get(_output_name)->type().find('*') == std::string::npos) {
+		std::stringstream msg;
+		msg << "The tool \"" << name() << "\" may not use a scalar variable (\""
+		    << _output_name << "\")." << std::endl;
+		LOG(L_ERROR, msg.str());
+		throw std::runtime_error("Invalid variable type");
+	}
+	_output_var = (InputOutput::ArrayVariable*)vars->get(_output_name);
+	size_t n_out = _input_var->size() / vars->typeToBytes(_input_var->type());
+	if (!vars->isSameType(_input_var->type(), _output_var->type())) {
+		std::stringstream msg;
+		msg << "The input and output types mismatch for the tool \"" << name()
+		    << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		msg.str("");
+		msg << "\tInput variable \"" << _input_var->name() << "\" is of type \""
+		    << _input_var->type() << "\"" << std::endl;
+		LOG0(L_DEBUG, msg.str());
+		msg << "\tOutput variable \"" << _output_var->name()
+		    << "\" is of type \"" << _output_var->type() << "\"" << std::endl;
+		LOG0(L_DEBUG, msg.str());
+		throw std::runtime_error("Incompatible types");
+	}
+	if (n_in != n_out) {
+		std::stringstream msg;
+		msg << "Input and output lengths mismatch for the tool \"" << name()
+		    << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		msg.str("");
+		msg << "\tInput variable \"" << _input_var->name() << "\" has length "
+		    << n_in << std::endl;
+		LOG0(L_DEBUG, msg.str());
+		msg << "\tOutput variable \"" << _output_var->name() << "\" has length "
+		    << n_out << std::endl;
+		LOG0(L_DEBUG, msg.str());
+		throw std::runtime_error("Incompatible lenghts");
+	}
 
-    cl_uint num_events_in_wait_list = events.size();
-    const cl_event *event_wait_list = events.size() ? events.data() : NULL;
-
-    err_code = clEnqueueCopyBuffer(C->command_queue(),
-                                   *(cl_mem*)_input_var->get(),
-                                   *(cl_mem*)_output_var->get(),
-                                   0,
-                                   0,
-                                   _output_var->size(),
-                                   num_events_in_wait_list,
-                                   event_wait_list,
-                                   &event);
-    if(err_code != CL_SUCCESS){
-        std::stringstream msg;
-        msg << "Failure executing the tool \"" <<
-               name() << "\"." << std::endl;
-        LOG(L_ERROR, msg.str());
-        InputOutput::Logger::singleton()->printOpenCLError(err_code);
-        throw std::runtime_error("OpenCL execution error");
-    }
-
-    return event;
+	std::vector<InputOutput::Variable*> deps = { _input_var, _output_var };
+	setDependencies(deps);
 }
 
-void Copy::variables()
-{
-    CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables *vars = C->variables();
-    if(!vars->get(_input_name)){
-        std::stringstream msg;
-        msg << "The tool \"" << name()
-            << "\" is asking the undeclared variable \""
-            << _input_name << "\"." << std::endl;
-        LOG(L_ERROR, msg.str());
-        throw std::runtime_error("Invalid variable");
-    }
-    if(vars->get(_input_name)->type().find('*') == std::string::npos){
-        std::stringstream msg;
-        msg << "The tool \"" << name()
-            << "\" may not use a scalar variable (\""
-            << _input_name << "\")." << std::endl;
-        LOG(L_ERROR, msg.str());
-        throw std::runtime_error("Invalid variable type");
-    }
-    _input_var = (InputOutput::ArrayVariable *)vars->get(_input_name);
-    size_t n_in = _input_var->size() / vars->typeToBytes(_input_var->type());
-    if(!vars->get(_output_name)){
-        std::stringstream msg;
-        msg << "The tool \"" << name()
-            << "\" is asking the undeclared variable \""
-            << _output_name << "\"." << std::endl;
-        LOG(L_ERROR, msg.str());
-        throw std::runtime_error("Invalid variable");
-    }
-    if(vars->get(_output_name)->type().find('*') == std::string::npos){
-        std::stringstream msg;
-        msg << "The tool \"" << name()
-            << "\" may not use a scalar variable (\""
-            << _output_name << "\")." << std::endl;
-        LOG(L_ERROR, msg.str());
-        throw std::runtime_error("Invalid variable type");
-    }
-    _output_var = (InputOutput::ArrayVariable *)vars->get(_output_name);
-    size_t n_out = _input_var->size() / vars->typeToBytes(_input_var->type());
-    if(!vars->isSameType(_input_var->type(), _output_var->type())){
-        std::stringstream msg;
-        msg << "The input and output types mismatch for the tool \""
-            << name() << "\"." << std::endl;
-        LOG(L_ERROR, msg.str());
-        msg.str("");
-        msg << "\tInput variable \"" << _input_var->name()
-            << "\" is of type \"" << _input_var->type() << "\"" << std::endl;
-        LOG0(L_DEBUG, msg.str());
-        msg << "\tOutput variable \"" << _output_var->name()
-            << "\" is of type \"" << _output_var->type() << "\"" << std::endl;
-        LOG0(L_DEBUG, msg.str());
-        throw std::runtime_error("Incompatible types");
-    }
-    if(n_in != n_out){
-        std::stringstream msg;
-        msg << "Input and output lengths mismatch for the tool \""
-            << name() << "\"." << std::endl;
-        LOG(L_ERROR, msg.str());
-        msg.str("");
-        msg << "\tInput variable \"" << _input_var->name()
-            << "\" has length " << n_in << std::endl;
-        LOG0(L_DEBUG, msg.str());
-        msg << "\tOutput variable \"" << _output_var->name()
-            << "\" has length " << n_out << std::endl;
-        LOG0(L_DEBUG, msg.str());
-        throw std::runtime_error("Incompatible lenghts");
-    }
-
-    std::vector<InputOutput::Variable*> deps = {_input_var, _output_var};
-    setDependencies(deps);
 }
-
-}}  // namespaces
+} // namespaces

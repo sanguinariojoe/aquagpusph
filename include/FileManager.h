@@ -33,9 +33,9 @@
 #include <InputOutput/State.h>
 #include <InputOutput/Particles.h>
 
-namespace Aqua{
+namespace Aqua {
 /// @namespace Aqua::InputOutput Input/Output data interfaces.
-namespace InputOutput{
+namespace InputOutput {
 
 /** @class FileManager FileManager.h FileManager.h
  * @brief Input/Output files manager.
@@ -48,99 +48,100 @@ namespace InputOutput{
  */
 class FileManager
 {
-public:
-    /// Constructor
-    FileManager();
+  public:
+	/// Constructor
+	FileManager();
 
-    /// Destructor
-    ~FileManager();
+	/// Destructor
+	~FileManager();
 
-    /** @brief Set the main XML input file path.
-     * 
-     * AQUAgpusph simulations are built on top of a XML definition file. Such
-     * file can later include another XML definition files, such that modules
-     * can be easily created.
-     *
-     * @param path XML input file path.
-     */
-    void inputFile(std::string path);
+	/** @brief Set the main XML input file path.
+	 *
+	 * AQUAgpusph simulations are built on top of a XML definition file. Such
+	 * file can later include another XML definition files, such that modules
+	 * can be easily created.
+	 *
+	 * @param path XML input file path.
+	 */
+	void inputFile(std::string path);
 
-    /** @brief Get the main XML input file path.
-     *
-     * AQUAgpusph simulations are built on top of a XML definition file. Such
-     * file can later include another XML definition files, such that modules
-     * can be easily created.
-     *
-     * @return XML input file path.
-     */
-    std::string inputFile(){return _in_file;}
+	/** @brief Get the main XML input file path.
+	 *
+	 * AQUAgpusph simulations are built on top of a XML definition file. Such
+	 * file can later include another XML definition files, such that modules
+	 * can be easily created.
+	 *
+	 * @return XML input file path.
+	 */
+	std::string inputFile() { return _in_file; }
 
-    /** @brief Get the simulation setup, extracted from the XML definition files
-     *
-     * AQUAgpusph simulations are built on top of a XML definition file. Such
-     * file can later include another XML definition files, such that modules
-     * can be easily created.
-     * The simulation data read from such XML files is stored in this
-     * Aqua::InputOutput::ProblemSetup structure
-     *
-     * @return Simualtion data
-     * @warning The returned Aqua::InputOutput::ProblemSetup static object is in
-     * the same scope than this class.
-     */
-    ProblemSetup& problemSetup(){return _simulation;}
-    
+	/** @brief Get the simulation setup, extracted from the XML definition files
+	 *
+	 * AQUAgpusph simulations are built on top of a XML definition file. Such
+	 * file can later include another XML definition files, such that modules
+	 * can be easily created.
+	 * The simulation data read from such XML files is stored in this
+	 * Aqua::InputOutput::ProblemSetup structure
+	 *
+	 * @return Simualtion data
+	 * @warning The returned Aqua::InputOutput::ProblemSetup static object is in
+	 * the same scope than this class.
+	 */
+	ProblemSetup& problemSetup() { return _simulation; }
 
-    /** @brief Load the input files, generating the calculation server.
-     * 
-     * Depends on:
-     *    -# Aqua::InputOutput::State to load the XML definition files, storing
-     *       the data in Aqua::InputOutput::ProblemSetup.
-     *    -# Aqua::InputOutput::Particles to load the particles fields data,
-     *       storing it in Aqua::CalcServer::CalcServer.
-     *
-     * @return The built Calculation server, NULL if errors happened.
-     */
-    CalcServer::CalcServer* load();
+	/** @brief Load the input files, generating the calculation server.
+	 *
+	 * Depends on:
+	 *    -# Aqua::InputOutput::State to load the XML definition files, storing
+	 *       the data in Aqua::InputOutput::ProblemSetup.
+	 *    -# Aqua::InputOutput::Particles to load the particles fields data,
+	 *       storing it in Aqua::CalcServer::CalcServer.
+	 *
+	 * @return The built Calculation server, NULL if errors happened.
+	 */
+	CalcServer::CalcServer* load();
 
-    /** @brief Save the output data files.
-     *
-     * AQUAgpusph is saving both, the XML simulation definition file, and the
-     * particles field values in the required formats. This information can be
-     * indistinctly used for postprocessing purposes, or as initial condition
-     * to resume the simulation.
-     *
-     * @param t Simulation time
-     * @warning If Python scripts are considered at the simulation, the user is
-     * responsible to save the state to can eventually resume the simulation
-     */
-    void save(float t);
+	/** @brief Save the output data files.
+	 *
+	 * AQUAgpusph is saving both, the XML simulation definition file, and the
+	 * particles field values in the required formats. This information can be
+	 * indistinctly used for postprocessing purposes, or as initial condition
+	 * to resume the simulation.
+	 *
+	 * @param t Simulation time
+	 * @warning If Python scripts are considered at the simulation, the user is
+	 * responsible to save the state to can eventually resume the simulation
+	 */
+	void save(float t);
 
-    /** @brief Wait for the parallel saving threads.
-     *
-     * Some savers may optionally launch parallel threads to save the data, in
-     * an asynchronous way, in order to improve the performance. In such a case,
-     * AQUAgpusph shall wait them to finish before proceeding to destroy the
-     * data
-     * @see Aqua::InputOutput::VTK::waitForSavers()
-     */
-    void waitForSavers();
-private:
-    /// The XML simulation definition loader/saver
-    State _state;
+	/** @brief Wait for the parallel saving threads.
+	 *
+	 * Some savers may optionally launch parallel threads to save the data, in
+	 * an asynchronous way, in order to improve the performance. In such a case,
+	 * AQUAgpusph shall wait them to finish before proceeding to destroy the
+	 * data
+	 * @see Aqua::InputOutput::VTK::waitForSavers()
+	 */
+	void waitForSavers();
 
-    /// Simulation data read from XML files
-    ProblemSetup _simulation;
+  private:
+	/// The XML simulation definition loader/saver
+	State _state;
 
-    /// Name of the main XML input file
-    std::string _in_file;
+	/// Simulation data read from XML files
+	ProblemSetup _simulation;
 
-    /// The fluid loaders
-    std::vector<Particles*> _loaders;
+	/// Name of the main XML input file
+	std::string _in_file;
 
-    /// The fluid savers
-    std::vector<Particles*> _savers;
-};  // class FileManager
+	/// The fluid loaders
+	std::vector<Particles*> _loaders;
 
-}}  // namespaces
+	/// The fluid savers
+	std::vector<Particles*> _savers;
+}; // class FileManager
+
+}
+} // namespaces
 
 #endif // FILEMANAGER_H_INCLUDED

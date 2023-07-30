@@ -24,8 +24,8 @@
 #ifndef INPUTOUTPUT_H_INCLUDED
 #define INPUTOUTPUT_H_INCLUDED
 
-namespace Aqua{
-namespace InputOutput{
+namespace Aqua {
+namespace InputOutput {
 
 /** \class InputOutput InputOutput.h InputOutput/InputOutput.h
  * @brief Base class for input/output file managers.
@@ -36,26 +36,27 @@ namespace InputOutput{
  */
 class InputOutput
 {
-protected:
-    /// Constructor
-    InputOutput(){};
+  protected:
+	/// Constructor
+	InputOutput(){};
 
-    /// Destructor
-    virtual ~InputOutput(){};
+	/// Destructor
+	virtual ~InputOutput(){};
 
-public:
-    /** @brief Save the data.
-     *
-     * @param t Simulation time
-     */
-    virtual void save(float t) = 0;
+  public:
+	/** @brief Save the data.
+	 *
+	 * @param t Simulation time
+	 */
+	virtual void save(float t) = 0;
 
-    /** @brief Load the data
-     */
-    virtual void load() = 0;
+	/** @brief Load the data
+	 */
+	virtual void load() = 0;
 
-};  // class InputOutput
+}; // class InputOutput
 
-}}  // namespaces
+}
+} // namespaces
 
 #endif // INPUTOUTPUT_H_INCLUDED

@@ -31,23 +31,22 @@
 #define uivec4 uint4
 
 #ifndef HAVE_3D
-    #define vec float2
-    #define ivec int2
-    #define uivec uint2
-    #define matrix float4
+#define vec float2
+#define ivec int2
+#define uivec uint2
+#define matrix float4
 #else
-    #define vec float4
-    #define ivec int4
-    #define uivec uint4
-    #define matrix float16
+#define vec float4
+#define ivec int4
+#define uivec uint4
+#define matrix float16
 #endif
 
 /// @def _BITS Bits of the Radix
 #ifndef _BITS
-    #define _BITS 8
+#define _BITS 8
 #endif
 /// @def _RADIX Resultant Radix
 #ifndef _RADIX
-    #define _RADIX (1 << _BITS)
+#define _RADIX (1 << _BITS)
 #endif
-

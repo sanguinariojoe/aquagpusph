@@ -30,7 +30,8 @@
 #include <CalcServer.h>
 #include <CalcServer/Kernel.h>
 
-namespace Aqua{ namespace CalcServer{
+namespace Aqua {
+namespace CalcServer {
 
 /** @class Reduction Reduction.h CalcServer/Reduction.h
  * @brief Reductions, like scans, prefix sums, maximum or minimum, etc...
@@ -40,121 +41,125 @@ namespace Aqua{ namespace CalcServer{
  */
 class Reduction : public Aqua::CalcServer::Tool
 {
-public:
-    /** @brief Reduction definition.
-     * @param name Tool name.
-     * @param input_name Variable to be reduced name.
-     * @param output_name Variable where the reduced value will be stored.
-     * @param operation The reduction operation.
-     * For instance:
-     *   - "c += b;"
-     *   - "c.x = (a.x < b.x) ? a.x : b.x; a.y = (a.y < b.y) ? a.y : b.y;"
-     * @param null_val The value considered as the null one, i.e. INFINITY for
-     * float min value reduction, or (vec2)(0.f,0.f) for a 2D vec sum reduction.
-     * @param once Run this tool just once. Useful to make initializations.
-     * @note Some helpers are available for null_val:
-     *   - VEC_ZERO: Zeroes vector.
-     *   - VEC_ONE: Ones vector, in 3D cases the last component will be zero.
-     *   - VEC_ALL_ONE: Equal to VEC_ONE, but in 3D cases the last component will be one as well.
-     *   - VEC_INFINITY: INFINITY components vector, in 3D cases the last component will be zero.
-     *   - VEC_ALL_INFINITY: Equal to VEC_INFINITY, but in 3D cases the last component will be INFINITY as well.
-     *   - VEC_NEG_INFINITY: -VEC_INFINITY
-     *   - VEC_ALL_NEG_INFINITY: -VEC_ALL_INFINITY.
-     */
-    Reduction(const std::string name,
-              const std::string input_name,
-              const std::string output_name,
-              const std::string operation,
-              const std::string null_val,
-              bool once=false);
+  public:
+	/** @brief Reduction definition.
+	 * @param name Tool name.
+	 * @param input_name Variable to be reduced name.
+	 * @param output_name Variable where the reduced value will be stored.
+	 * @param operation The reduction operation.
+	 * For instance:
+	 *   - "c += b;"
+	 *   - "c.x = (a.x < b.x) ? a.x : b.x; a.y = (a.y < b.y) ? a.y : b.y;"
+	 * @param null_val The value considered as the null one, i.e. INFINITY for
+	 * float min value reduction, or (vec2)(0.f,0.f) for a 2D vec sum reduction.
+	 * @param once Run this tool just once. Useful to make initializations.
+	 * @note Some helpers are available for null_val:
+	 *   - VEC_ZERO: Zeroes vector.
+	 *   - VEC_ONE: Ones vector, in 3D cases the last component will be zero.
+	 *   - VEC_ALL_ONE: Equal to VEC_ONE, but in 3D cases the last component
+	 * will be one as well.
+	 *   - VEC_INFINITY: INFINITY components vector, in 3D cases the last
+	 * component will be zero.
+	 *   - VEC_ALL_INFINITY: Equal to VEC_INFINITY, but in 3D cases the last
+	 * component will be INFINITY as well.
+	 *   - VEC_NEG_INFINITY: -VEC_INFINITY
+	 *   - VEC_ALL_NEG_INFINITY: -VEC_ALL_INFINITY.
+	 */
+	Reduction(const std::string name,
+	          const std::string input_name,
+	          const std::string output_name,
+	          const std::string operation,
+	          const std::string null_val,
+	          bool once = false);
 
-    /// Destructor.
-    ~Reduction();
+	/// Destructor.
+	~Reduction();
 
-    /** @brief Initialize the tool.
-     *
-     * This method should be called after the constructor, such that it could
-     * report errors that the application may handle quitting in a safe way.
-     */
-    void setup();
+	/** @brief Initialize the tool.
+	 *
+	 * This method should be called after the constructor, such that it could
+	 * report errors that the application may handle quitting in a safe way.
+	 */
+	void setup();
 
-    /** @brief Number of steps needed.
-     *
-     * To reduce the array to just one variable several steps may be needed,
-     * depending on the number of work groups that should be launched at each
-     * pass.
-     *
-     * @return Number of steps needed.
-     */
-    unsigned int nSteps(){return _global_work_sizes.size();}
+	/** @brief Number of steps needed.
+	 *
+	 * To reduce the array to just one variable several steps may be needed,
+	 * depending on the number of work groups that should be launched at each
+	 * pass.
+	 *
+	 * @return Number of steps needed.
+	 */
+	unsigned int nSteps() { return _global_work_sizes.size(); }
 
-protected:
-    /** Execute the tool
-     * @param events List of events that shall be waited before safe execution
-     * @return OpenCL event to be waited before accesing the dependencies
-     */
-    cl_event _execute(const std::vector<cl_event> events);
+  protected:
+	/** Execute the tool
+	 * @param events List of events that shall be waited before safe execution
+	 * @return OpenCL event to be waited before accesing the dependencies
+	 */
+	cl_event _execute(const std::vector<cl_event> events);
 
-private:
-    /** @brief Extract the input and output variables from the provided data in
-     * Reduction().
-     * @see Aqua::InputOutput::Variables
-     */
-    void variables();
+  private:
+	/** @brief Extract the input and output variables from the provided data in
+	 * Reduction().
+	 * @see Aqua::InputOutput::Variables
+	 */
+	void variables();
 
-    /** @brief Setup the OpenCL stuff
-     */
-    void setupOpenCL();
+	/** @brief Setup the OpenCL stuff
+	 */
+	void setupOpenCL();
 
-    /** @brief Update the input variables.
-     *
-     * This function is looking for changed value to send them again to the
-     * computational device.
-     */
-    void setVariables();
+	/** @brief Update the input variables.
+	 *
+	 * This function is looking for changed value to send them again to the
+	 * computational device.
+	 */
+	void setVariables();
 
-    /** @brief Create the compilation flags
-     *
-     * The compilation flags depends on the intended work group size
-     *
-     * @param local_size Work group size
-     * @return Flags string
-     */
-    const std::string flags(const size_t local_size);
+	/** @brief Create the compilation flags
+	 *
+	 * The compilation flags depends on the intended work group size
+	 *
+	 * @param local_size Work group size
+	 * @return Flags string
+	 */
+	const std::string flags(const size_t local_size);
 
-    /// Input variable name
-    std::string _input_name;
-    /// Output variable name
-    std::string _output_name;
-    /// Operation to be computed
-    std::string _operation;
-    /// Considered null val
-    std::string _null_val;
+	/// Input variable name
+	std::string _input_name;
+	/// Output variable name
+	std::string _output_name;
+	/// Operation to be computed
+	std::string _operation;
+	/// Considered null val
+	std::string _null_val;
 
-    /// Input variable
-    InputOutput::ArrayVariable *_input_var;
-    /// Output variable
-    InputOutput::Variable *_output_var;
+	/// Input variable
+	InputOutput::ArrayVariable* _input_var;
+	/// Output variable
+	InputOutput::Variable* _output_var;
 
-    /// Input array
-    cl_mem _input;
+	/// Input array
+	cl_mem _input;
 
-    /// OpenCL kernels
-    std::vector<cl_kernel> _kernels;
+	/// OpenCL kernels
+	std::vector<cl_kernel> _kernels;
 
-    /// Global work sizes in each step
-    std::vector<size_t> _global_work_sizes;
-    /// Local work sizes in each step
-    std::vector<size_t> _local_work_sizes;
-    /// Number of work groups in each step
-    std::vector<size_t> _number_groups;
-    /// Number of input elements for each step
-    std::vector<size_t> _n;
+	/// Global work sizes in each step
+	std::vector<size_t> _global_work_sizes;
+	/// Local work sizes in each step
+	std::vector<size_t> _local_work_sizes;
+	/// Number of work groups in each step
+	std::vector<size_t> _number_groups;
+	/// Number of input elements for each step
+	std::vector<size_t> _n;
 
-    /// Memory objects
-    std::vector<cl_mem> _mems;
+	/// Memory objects
+	std::vector<cl_mem> _mems;
 };
 
-}}  // namespace
+}
+} // namespace
 
 #endif // REDUCTION_H_INCLUDED

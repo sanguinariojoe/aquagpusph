@@ -24,7 +24,7 @@
 #ifndef SINGLETON_H_INCLUDED
 #define SINGLETON_H_INCLUDED
 
-namespace Aqua{
+namespace Aqua {
 
 /** \class Singleton Singleton.h Singleton.h
  * \brief Simple but versatile singleton instance (Meyers singleton).
@@ -52,30 +52,30 @@ namespace Aqua{
  *
  * @warning This implementation will not support multithreading.
  */
-template<typename T> class Singleton
+template<typename T>
+class Singleton
 {
-public:
-    /** @brief Returns the instance of the class.
-     * @return singleton instance.
-     */
-    static T* singleton(){return _singletonPtr;}
+  public:
+	/** @brief Returns the instance of the class.
+	 * @return singleton instance.
+	 */
+	static T* singleton() { return _singletonPtr; }
 
-protected:
-    /// Constructor
-    Singleton(){
-        _singletonPtr = (T*)this;
-    }
-    /// Destructor
-    virtual ~Singleton(){_singletonPtr = NULL;}
+  protected:
+	/// Constructor
+	Singleton() { _singletonPtr = (T*)this; }
+	/// Destructor
+	virtual ~Singleton() { _singletonPtr = NULL; }
 
-private:
-    /// Static singleton pointer store
-    static T *_singletonPtr;
+  private:
+	/// Static singleton pointer store
+	static T* _singletonPtr;
 };
 
 /// Initialization of the singleton as a NULL pointer
-template <typename T> T* Singleton <T>::_singletonPtr = NULL;
+template<typename T>
+T* Singleton<T>::_singletonPtr = NULL;
 
-}   // namespaces
+} // namespaces
 
 #endif // SINGLETON_H_INCLUDED

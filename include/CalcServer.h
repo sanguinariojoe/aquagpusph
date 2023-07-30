@@ -37,28 +37,27 @@
 #include <CalcServer/Tool.h>
 
 #ifndef _ITEMS
-    /** @def _ITEMS
-     * @brief Number of items in a group
-     * @note Must be power of 2, and in some devices greather than 32.
-     * @see Aqua::CalcServer::RadixSort
-     */
-    #define _ITEMS  128
+/** @def _ITEMS
+ * @brief Number of items in a group
+ * @note Must be power of 2, and in some devices greather than 32.
+ * @see Aqua::CalcServer::RadixSort
+ */
+#define _ITEMS 128
 #endif
 
 #ifndef _GROUPS
-    /** @def _GROUPS
-     * @brief Number of groups
-     * @note Must be power of 2, and the amount of data should be divisible by
-     * _ITEMS*_GROUPS
-     * @see Aqua::CalcServer::RadixSort
-     */
-    #define _GROUPS 32
+/** @def _GROUPS
+ * @brief Number of groups
+ * @note Must be power of 2, and the amount of data should be divisible by
+ * _ITEMS*_GROUPS
+ * @see Aqua::CalcServer::RadixSort
+ */
+#define _GROUPS 32
 #endif
 
-
-namespace Aqua{
+namespace Aqua {
 /// @namespace Aqua::CalcServer Calculation server name space.
-namespace CalcServer{
+namespace CalcServer {
 
 class UnSort;
 
@@ -71,9 +70,10 @@ class UnSort;
  */
 class user_interruption : public std::runtime_error
 {
-public:
-    /// Constructor
-    user_interruption(const std::string msg) : std::runtime_error(msg) {};
+  public:
+	/// Constructor
+	user_interruption(const std::string msg)
+	  : std::runtime_error(msg){};
 };
 
 /** @class CalcServer CalcServer.h CalcServer.h
@@ -90,171 +90,175 @@ public:
  */
 class CalcServer : public Aqua::Singleton<Aqua::CalcServer::CalcServer>
 {
-public:
-    /** @brief Constructor.
-     * @param sim_data Simulation data read from XML files
-     */
-    CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data);
+  public:
+	/** @brief Constructor.
+	 * @param sim_data Simulation data read from XML files
+	 */
+	CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data);
 
-    /// Destructor
-    ~CalcServer();
+	/// Destructor
+	~CalcServer();
 
-    /** @brief Internal time loop.
-     * 
-     * Calculation server will be iterating while no output files should be
-     * updated (or even the simulation is finished).
-     * @param t_manager Time manager to let the calculation server when shall
-     * stop the internal loop.
-     */
-    void update(InputOutput::TimeManager& t_manager);
+	/** @brief Internal time loop.
+	 *
+	 * Calculation server will be iterating while no output files should be
+	 * updated (or even the simulation is finished).
+	 * @param t_manager Time manager to let the calculation server when shall
+	 * stop the internal loop.
+	 */
+	void update(InputOutput::TimeManager& t_manager);
 
-    /// Setup some additional simulation data.
-    /** Even thought this work is associated with the constructor CalcServer(),
-     * when something may fail it is preferable to let it to a separated method
-     * that could report errors, allowing the program to deal with them.
-     */
-    void setup();
+	/// Setup some additional simulation data.
+	/** Even thought this work is associated with the constructor CalcServer(),
+	 * when something may fail it is preferable to let it to a separated method
+	 * that could report errors, allowing the program to deal with them.
+	 */
+	void setup();
 
-    /** Get the variables manager
-     * @return Variables manager
-     */
-    InputOutput::Variables* variables() {return &_vars;}
+	/** Get the variables manager
+	 * @return Variables manager
+	 */
+	InputOutput::Variables* variables() { return &_vars; }
 
-    /** Get the definitions registered.
-     * @return List of definitions.
-     */
-    std::vector<std::string> definitions() const {return _definitions;}
+	/** Get the definitions registered.
+	 * @return List of definitions.
+	 */
+	std::vector<std::string> definitions() const { return _definitions; }
 
-    /** Get the tools registered.
-     * @return List of tools.
-     */
-    std::vector<Tool*> tools() const {return _tools;}
+	/** Get the tools registered.
+	 * @return List of tools.
+	 */
+	std::vector<Tool*> tools() const { return _tools; }
 
-    /** Get the active context
-     * @return OpenCL context
-     */
-    cl_context context() const{return _context;}
+	/** Get the active context
+	 * @return OpenCL context
+	 */
+	cl_context context() const { return _context; }
 
-    /** Get the platform
-     * @return OpenCL platform
-     */
-    cl_platform_id platform() const{return _platform;}
+	/** Get the platform
+	 * @return OpenCL platform
+	 */
+	cl_platform_id platform() const { return _platform; }
 
-    /** Get the device
-     * @return OpenCL device
-     */
-    cl_device_id device() const{return _device;}
+	/** Get the device
+	 * @return OpenCL device
+	 */
+	cl_device_id device() const { return _device; }
 
-    /** Get the command queue
-     *
-     * Two different command queues are available. Indeed, OpenCL specification
-     * allows to create the command queues with the
-     * CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE option, which allows that a
-     * subsequent kernel/task execution begins before the preceding one has
-     * already finished. However, the specification does not allows, by any
-     * means, that a preceding kernel/task execution can be triggered after
-     * a subsequent one. Therefore, parallel tasks shall use a different queue
-     * to ensure the correct order within each queue
-     *
-     * @param parallel true if the command queue for task executed in parallel
-     * is queried, false otherwise
-     * @return The command queue
-     */
-    cl_command_queue command_queue(bool parallel=false) const {
-        if(parallel)
-            return _command_queue_parallel;
-        return _command_queue;
-    }
+	/** Get the command queue
+	 *
+	 * Two different command queues are available. Indeed, OpenCL specification
+	 * allows to create the command queues with the
+	 * CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE option, which allows that a
+	 * subsequent kernel/task execution begins before the preceding one has
+	 * already finished. However, the specification does not allows, by any
+	 * means, that a preceding kernel/task execution can be triggered after
+	 * a subsequent one. Therefore, parallel tasks shall use a different queue
+	 * to ensure the correct order within each queue
+	 *
+	 * @param parallel true if the command queue for task executed in parallel
+	 * is queried, false otherwise
+	 * @return The command queue
+	 */
+	cl_command_queue command_queue(bool parallel = false) const
+	{
+		if (parallel)
+			return _command_queue_parallel;
+		return _command_queue;
+	}
 
-    /** Download a unsorted variable from the device.
-     * @param var_name Variable to unsort and download.
-     * @param offset The offset in bytes in the memory object to read from.
-     * @param cb The size in bytes of data being downloaded.
-     * @param ptr The host memory where the data should be copied
-     * @return The data download event, NULL if errors are detected.
-     * @note The caller must wait for the events (clWaitForEvents) before
-     * accessing the downloaded data.
-     * @remarks The caller must call clReleaseEvent to destroy the event.
-     * Otherwise a memory leak can be expected.
-     */
-    cl_event getUnsortedMem(const std::string var_name,
-                            size_t offset,
-                            size_t cb,
-                            void *ptr);
+	/** Download a unsorted variable from the device.
+	 * @param var_name Variable to unsort and download.
+	 * @param offset The offset in bytes in the memory object to read from.
+	 * @param cb The size in bytes of data being downloaded.
+	 * @param ptr The host memory where the data should be copied
+	 * @return The data download event, NULL if errors are detected.
+	 * @note The caller must wait for the events (clWaitForEvents) before
+	 * accessing the downloaded data.
+	 * @remarks The caller must call clReleaseEvent to destroy the event.
+	 * Otherwise a memory leak can be expected.
+	 */
+	cl_event getUnsortedMem(const std::string var_name,
+	                        size_t offset,
+	                        size_t cb,
+	                        void* ptr);
 
-    /** @brief Get the AQUAgpusph root path.
-     * @return AQUAgpusph root path
-     */
-    const std::string base_path() const{return _base_path.c_str();}
-private:
-    /** Setup the OpenCL stuff.
-     */
-    void setupOpenCL();
-    /** Prints all the available platforms and devices returned by OpenCL.
-     */
-    void queryOpenCL();
-    /** Get a platform from the available ones.
-     */
-    void setupPlatform();
-    /** Get the available devices in the selected platform.
-     */
-    void setupDevices();
+	/** @brief Get the AQUAgpusph root path.
+	 * @return AQUAgpusph root path
+	 */
+	const std::string base_path() const { return _base_path.c_str(); }
 
-    /// Number of available OpenCL platforms
-    cl_uint _num_platforms;
-    /// List of OpenCL platforms
-    cl_platform_id *_platforms;
-    /// Number of devices
-    cl_uint _num_devices;
-    /// List of devices
-    cl_device_id *_devices;
-    /// OpenCL context
-    cl_context _context;
-    /// Selected platform
-    cl_platform_id _platform;
-    /// Selected device
-    cl_device_id _device;
-    /// Main command queue
-    cl_command_queue _command_queue;
-    /** Command queue for task carried out in parallel tasks (e.g. events
-     * callbacks).
-     */
-    cl_command_queue _command_queue_parallel;
+  private:
+	/** Setup the OpenCL stuff.
+	 */
+	void setupOpenCL();
+	/** Prints all the available platforms and devices returned by OpenCL.
+	 */
+	void queryOpenCL();
+	/** Get a platform from the available ones.
+	 */
+	void setupPlatform();
+	/** Get the available devices in the selected platform.
+	 */
+	void setupDevices();
 
-    /// User registered variables
-    InputOutput::Variables _vars;
+	/// Number of available OpenCL platforms
+	cl_uint _num_platforms;
+	/// List of OpenCL platforms
+	cl_platform_id* _platforms;
+	/// Number of devices
+	cl_uint _num_devices;
+	/// List of devices
+	cl_device_id* _devices;
+	/// OpenCL context
+	cl_context _context;
+	/// Selected platform
+	cl_platform_id _platform;
+	/// Selected device
+	cl_device_id _device;
+	/// Main command queue
+	cl_command_queue _command_queue;
+	/** Command queue for task carried out in parallel tasks (e.g. events
+	 * callbacks).
+	 */
+	cl_command_queue _command_queue_parallel;
 
-    /// User registered definitions
-    std::vector<std::string> _definitions;
+	/// User registered variables
+	InputOutput::Variables _vars;
 
-    /// User registered tools
-    std::vector<Tool*> _tools;
+	/// User registered definitions
+	std::vector<std::string> _definitions;
 
-    /** @brief AQUAgpusph root path.
-     *
-     * This path is added to the OpenCL include paths.
-     */
-    std::string _base_path;
+	/// User registered tools
+	std::vector<Tool*> _tools;
 
-    /** @brief Currently executed tool/report.
-     * 
-     * Useful to can report runtime OpenCL implementation errors (see
-     * clCreateContext).
-     *
-     * @note Since this data is automatically readed by OpenCL at the time of
-     * reporting errors, old-style C string is more convenient
-     */
-    char* _current_tool_name;
+	/** @brief AQUAgpusph root path.
+	 *
+	 * This path is added to the OpenCL include paths.
+	 */
+	std::string _base_path;
 
-    /** Map with the unsorter for each variable. Storing the unsorters should
-     * dramatically reduce the saving files overhead in some platforms
-     */
-    std::map<std::string, UnSort*> unsorters;
-private:
-    /// Simulation data read from XML files
-    Aqua::InputOutput::ProblemSetup _sim_data;
+	/** @brief Currently executed tool/report.
+	 *
+	 * Useful to can report runtime OpenCL implementation errors (see
+	 * clCreateContext).
+	 *
+	 * @note Since this data is automatically readed by OpenCL at the time of
+	 * reporting errors, old-style C string is more convenient
+	 */
+	char* _current_tool_name;
+
+	/** Map with the unsorter for each variable. Storing the unsorters should
+	 * dramatically reduce the saving files overhead in some platforms
+	 */
+	std::map<std::string, UnSort*> unsorters;
+
+  private:
+	/// Simulation data read from XML files
+	Aqua::InputOutput::ProblemSetup _sim_data;
 };
 
-}}  // namespace
+}
+} // namespace
 
 #endif // CALCSERVER_H_INCLUDED

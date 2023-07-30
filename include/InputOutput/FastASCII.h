@@ -27,8 +27,8 @@
 #include <sphPrerequisites.h>
 #include <InputOutput/ASCII.h>
 
-namespace Aqua{
-namespace InputOutput{
+namespace Aqua {
+namespace InputOutput {
 
 /** @class FastASCII FastASCII.h InputOutput/FastASCII.h
  * @brief Plain text particles data files loader/saver.
@@ -58,37 +58,38 @@ namespace InputOutput{
  */
 class FastASCII : public ASCII
 {
-public:
-    /** @brief Constructor
-     * @param sim_data Simulation data
-     * @param iset Particles set index.
-     * @param offset First particle managed by this saver/loader.
-     * @param n Number of particles managed by this saver/loader. If 0,
-     * the number of particles will be obtained from the input file (thus only
-     * valid for loaders)
-     */
-    FastASCII(ProblemSetup& sim_data,
-              unsigned int iset,
-              unsigned int offset,
-              unsigned int n=0);
+  public:
+	/** @brief Constructor
+	 * @param sim_data Simulation data
+	 * @param iset Particles set index.
+	 * @param offset First particle managed by this saver/loader.
+	 * @param n Number of particles managed by this saver/loader. If 0,
+	 * the number of particles will be obtained from the input file (thus only
+	 * valid for loaders)
+	 */
+	FastASCII(ProblemSetup& sim_data,
+	          unsigned int iset,
+	          unsigned int offset,
+	          unsigned int n = 0);
 
-    /// Destructor
-    ~FastASCII();
+	/// Destructor
+	~FastASCII();
 
-private:
-    /** @brief Extract the field value from a line.
-     * @param field Field name.
-     * @param line Text line,
-     * @param index Index of the particle to read.
-     * @param data Data array.
-     * @return Remaining text after extracting the field values.
-     */
-    std::string readField(const std::string field,
-                          const std::string line,
-                          unsigned int index,
-                          void* data);
-};  // class InputOutput
+  private:
+	/** @brief Extract the field value from a line.
+	 * @param field Field name.
+	 * @param line Text line,
+	 * @param index Index of the particle to read.
+	 * @param data Data array.
+	 * @return Remaining text after extracting the field values.
+	 */
+	std::string readField(const std::string field,
+	                      const std::string line,
+	                      unsigned int index,
+	                      void* data);
+}; // class InputOutput
 
-}}  // namespaces
+}
+} // namespaces
 
 #endif // FastASCII_H_INCLUDED

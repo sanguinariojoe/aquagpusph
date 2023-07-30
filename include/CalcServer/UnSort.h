@@ -29,7 +29,8 @@
 #include <CalcServer.h>
 #include <CalcServer/Kernel.h>
 
-namespace Aqua{ namespace CalcServer{
+namespace Aqua {
+namespace CalcServer {
 
 /** @class UnSort UnSort.h CalcServer/UnSort.h
  * @brief Recover the original id of each particle.
@@ -40,92 +41,93 @@ namespace Aqua{ namespace CalcServer{
  */
 class UnSort : public Aqua::CalcServer::Tool
 {
-public:
-    /** Constructor
-     * @param name Tool name
-     * @param var_name Variable to unsort
-     * @param permutations_name Permutations to be considered
-     * @param once Run this tool just once. Useful to make initializations
-     */
-    UnSort(const std::string name,
-           const std::string var_name,
-           const std::string permutations_name="id",
-           bool once=false);
+  public:
+	/** Constructor
+	 * @param name Tool name
+	 * @param var_name Variable to unsort
+	 * @param permutations_name Permutations to be considered
+	 * @param once Run this tool just once. Useful to make initializations
+	 */
+	UnSort(const std::string name,
+	       const std::string var_name,
+	       const std::string permutations_name = "id",
+	       bool once = false);
 
-    /** Destructor.
-     */
-    ~UnSort();
+	/** Destructor.
+	 */
+	~UnSort();
 
-    /** Initialize the tool.
-     */
-    void setup();
+	/** Initialize the tool.
+	 */
+	void setup();
 
-    /** Get the input variable.
-     * @return The variable to become sorted.
-     */
-    InputOutput::ArrayVariable* input(){return _var;}
+	/** Get the input variable.
+	 * @return The variable to become sorted.
+	 */
+	InputOutput::ArrayVariable* input() { return _var; }
 
-    /** Get the memory object where the unsorted data is stored.
-     * @return The memory object where the unsorted data is stored.
-     */
-    cl_mem output(){return _output;}
+	/** Get the memory object where the unsorted data is stored.
+	 * @return The memory object where the unsorted data is stored.
+	 */
+	cl_mem output() { return _output; }
 
-protected:
-    /** Execute the tool
-     * @param events List of events that shall be waited before safe execution
-     * @return OpenCL event to be waited before accessing the dependencies
-     */
-    cl_event _execute(const std::vector<cl_event> events);
+  protected:
+	/** Execute the tool
+	 * @param events List of events that shall be waited before safe execution
+	 * @return OpenCL event to be waited before accessing the dependencies
+	 */
+	cl_event _execute(const std::vector<cl_event> events);
 
-private:
-    /** Get the input variable
-     */
-    void variables();
+  private:
+	/** Get the input variable
+	 */
+	void variables();
 
-    /** Create the output memory object
-     */
-    void setupMem();
+	/** Create the output memory object
+	 */
+	void setupMem();
 
-    /** Setup the OpenCL stuff
-     */
-    void setupOpenCL();
+	/** Setup the OpenCL stuff
+	 */
+	void setupOpenCL();
 
-    /** Update the input looking for changed value.
-     */
-    void setVariables();
+	/** Update the input looking for changed value.
+	 */
+	void setVariables();
 
-    /// Input variable name
-    std::string _var_name;
+	/// Input variable name
+	std::string _var_name;
 
-    /// Input permutations name
-    std::string _perms_name;
+	/// Input permutations name
+	std::string _perms_name;
 
-    /// Input variable
-    InputOutput::ArrayVariable *_var;
+	/// Input variable
+	InputOutput::ArrayVariable* _var;
 
-    /// ID variable
-    InputOutput::ArrayVariable *_id_var;
+	/// ID variable
+	InputOutput::ArrayVariable* _id_var;
 
-    /// ID Memory object sent
-    cl_mem _id_input;
+	/// ID Memory object sent
+	cl_mem _id_input;
 
-    /// Memory object sent
-    cl_mem _input;
+	/// Memory object sent
+	cl_mem _input;
 
-    /// Output memory object
-    cl_mem _output;
+	/// Output memory object
+	cl_mem _output;
 
-    /// OpenCL kernel
-    cl_kernel _kernel;
+	/// OpenCL kernel
+	cl_kernel _kernel;
 
-    /// Global work sizes in each step
-    size_t _global_work_size;
-    /// Local work sizes in each step
-    size_t _local_work_size;
-    /// Number of elements
-    unsigned int _n;
+	/// Global work sizes in each step
+	size_t _global_work_size;
+	/// Local work sizes in each step
+	size_t _local_work_size;
+	/// Number of elements
+	unsigned int _n;
 };
 
-}}  // namespace
+}
+} // namespace
 
 #endif // UNSORT_H_INCLUDED

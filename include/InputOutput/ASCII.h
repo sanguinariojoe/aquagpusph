@@ -28,8 +28,8 @@
 #include <sphPrerequisites.h>
 #include <InputOutput/Particles.h>
 
-namespace Aqua{
-namespace InputOutput{
+namespace Aqua {
+namespace InputOutput {
 
 /** @class ASCII ASCII.h InputOutput/ASCII.h
  * @brief Plain text particles data files loader/saver.
@@ -57,80 +57,81 @@ namespace InputOutput{
  */
 class ASCII : public Particles
 {
-public:
-    /** @brief Constructor
-     * @param sim_data Simulation data
-     * @param iset Particles set index.
-     * @param offset First particle managed by this saver/loader.
-     * @param n Number of particles managed by this saver/loader. If 0,
-     * the number of particles will be obtained from the input file (thus only
-     * valid for loaders)
-     */
-    ASCII(ProblemSetup& sim_data,
-          unsigned int iset,
-          unsigned int offset,
-          unsigned int n=0);
+  public:
+	/** @brief Constructor
+	 * @param sim_data Simulation data
+	 * @param iset Particles set index.
+	 * @param offset First particle managed by this saver/loader.
+	 * @param n Number of particles managed by this saver/loader. If 0,
+	 * the number of particles will be obtained from the input file (thus only
+	 * valid for loaders)
+	 */
+	ASCII(ProblemSetup& sim_data,
+	      unsigned int iset,
+	      unsigned int offset,
+	      unsigned int n = 0);
 
-    /// Destructor
-    virtual ~ASCII();
+	/// Destructor
+	virtual ~ASCII();
 
-    /** @brief Save the data.
-     *
-     * @param t Simulation time
-     */
-    void save(float t);
+	/** @brief Save the data.
+	 *
+	 * @param t Simulation time
+	 */
+	void save(float t);
 
-    /** @brief Load the data.
-     */
-    void load();
+	/** @brief Load the data.
+	 */
+	void load();
 
-private:
-    /** @brief Compute the number of particles handled by this instance
-     * @return Number of particles
-     */
-    const unsigned int compute_n();
+  private:
+	/** @brief Compute the number of particles handled by this instance
+	 * @return Number of particles
+	 */
+	const unsigned int compute_n();
 
-    /** @brief Count the number of particles present in the input file.
-     * @param f File to be read.
-     * @return The number of particles found in the file.
-     */
-    unsigned int readNParticles(std::ifstream& f);
+	/** @brief Count the number of particles present in the input file.
+	 * @param f File to be read.
+	 * @return The number of particles found in the file.
+	 */
+	unsigned int readNParticles(std::ifstream& f);
 
-    /** @brief Conveniently format a read line.
-     * @param l Line text.
-     */
-    void formatLine(std::string& l);
+	/** @brief Conveniently format a read line.
+	 * @param l Line text.
+	 */
+	void formatLine(std::string& l);
 
-    /** @brief Count the number of fields in a text line.
-     * @param l Line text.
-     * @return The number of fields found in the line.
-     * @warning It is assumed that the line text has been formatted calling
-     * formatLine().
-     */
-    unsigned int readNFields(std::string l);
+	/** @brief Count the number of fields in a text line.
+	 * @param l Line text.
+	 * @return The number of fields found in the line.
+	 * @warning It is assumed that the line text has been formatted calling
+	 * formatLine().
+	 */
+	unsigned int readNFields(std::string l);
 
-    /** @brief Extract the field value from a line.
-     * @param field Field name.
-     * @param line Text line,
-     * @param index Index of the particle to read.
-     * @param data Data array.
-     * @return Remaining text after extracting the field values.
-     */
-    virtual std::string readField(const std::string field,
-                                  const std::string line,
-                                  unsigned int index,
-                                  void* data);
+	/** @brief Extract the field value from a line.
+	 * @param field Field name.
+	 * @param line Text line,
+	 * @param index Index of the particle to read.
+	 * @param data Data array.
+	 * @return Remaining text after extracting the field values.
+	 */
+	virtual std::string readField(const std::string field,
+	                              const std::string line,
+	                              unsigned int index,
+	                              void* data);
 
-    /** @brief Create a new file to write.
-     * @param f The file handler to be overwritten.
-     * @see Aqua::InputOutput::Particles::file()
-     */
-    void create(std::ofstream& f);
+	/** @brief Create a new file to write.
+	 * @param f The file handler to be overwritten.
+	 * @see Aqua::InputOutput::Particles::file()
+	 */
+	void create(std::ofstream& f);
 
-    /// Next output file index
-    unsigned int _next_file_index;
-};  // class InputOutput
+	/// Next output file index
+	unsigned int _next_file_index;
+}; // class InputOutput
 
-}}  // namespaces
+}
+} // namespaces
 
 #endif // ASCII_H_INCLUDED

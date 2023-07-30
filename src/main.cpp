@@ -105,123 +105,146 @@ using namespace Aqua;
  * @param argc Number of arguments parsed by terminal.
  * @param argv Array of arguments parsed by terminal.
  */
-int main(int argc, char *argv[])
+int
+main(int argc, char* argv[])
 {
-    std::ostringstream msg;
+	std::ostringstream msg;
 #ifdef HAVE_MPI
-    try {
-        MPI::Init(argc, argv);
-    } catch(MPI::Exception e){
-        LOG(L_INFO, "MPI cannot be initialized\n");
-        msg << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
-        LOG0(L_DEBUG, msg.str());
-        return EXIT_FAILURE;
-    }
-    MPI::COMM_WORLD.Set_errhandler(MPI::ERRORS_THROW_EXCEPTIONS);
+	try {
+		MPI::Init(argc, argv);
+	} catch (MPI::Exception e) {
+		LOG(L_INFO, "MPI cannot be initialized\n");
+		msg << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
+		LOG0(L_DEBUG, msg.str());
+		return EXIT_FAILURE;
+	}
+	MPI::COMM_WORLD.Set_errhandler(MPI::ERRORS_THROW_EXCEPTIONS);
 #endif
 
-    InputOutput::Logger *logger = new InputOutput::Logger();
-    InputOutput::FileManager file_manager;
+	InputOutput::Logger* logger = new InputOutput::Logger();
+	InputOutput::FileManager file_manager;
 
-    std::cout << std::endl;
-    std::cout << "\t#########################################################" << std::endl;
-    std::cout << "\t#                                                       #" << std::endl;
-    std::cout << "\t#    #    ##   #  #   #                           #     #" << std::endl;
-    std::cout << "\t#   # #  #  #  #  #  # #                          #     #" << std::endl;
-    std::cout << "\t#  ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###   #" << std::endl;
-    std::cout << "\t#  #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #  #" << std::endl;
-    std::cout << "\t#  #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #  #" << std::endl;
-    std::cout << "\t#  #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #  #" << std::endl;
-    std::cout << "\t#                            # #             #          #" << std::endl;
-    std::cout << "\t#                          ##  #             #          #" << std::endl;
-    std::cout << "\t#                                                       #" << std::endl;
-    std::cout << "\t#########################################################" << std::endl;
-    std::cout << "\tAnother QUAlity GPU-SPH, by CEHINAV (UPM) group." << std::endl;
-    std::cout << "\t\thttp://canal.etsin.upm.es/" << std::endl;
-    std::cout << "\tAuthors:" << std::endl;
-    std::cout << "\t\tJose Luis Cercos Pita" << std::endl;
-    std::cout << "\t\tLeo Miguel Gonzalez" << std::endl;
-    std::cout << "\t\tAntonio Souto-Iglesias" << std::endl;
-    std::cout << "\t\tJavier Calderon-Sanchez" << std::endl;
-    std::cout << "\tAQUAgpusph Copyright (C) 2012-2018  Jose Luis Cercos-Pita" << std::endl;
-    std::cout << "\tThis program comes with ABSOLUTELY NO WARRANTY; for details see LICENSE." << std::endl;
-    std::cout << "\tThis is free software, and you are welcome to redistribute it" << std::endl;
-    std::cout << "\tunder certain conditions; see LICENSE for details." << std::endl;
-    std::cout << std::endl;
+	std::cout << std::endl;
+	std::cout << "\t#########################################################"
+	          << std::endl;
+	std::cout << "\t#                                                       #"
+	          << std::endl;
+	std::cout << "\t#    #    ##   #  #   #                           #     #"
+	          << std::endl;
+	std::cout << "\t#   # #  #  #  #  #  # #                          #     #"
+	          << std::endl;
+	std::cout << "\t#  ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###   #"
+	          << std::endl;
+	std::cout << "\t#  #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #  #"
+	          << std::endl;
+	std::cout << "\t#  #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #  #"
+	          << std::endl;
+	std::cout << "\t#  #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #  #"
+	          << std::endl;
+	std::cout << "\t#                            # #             #          #"
+	          << std::endl;
+	std::cout << "\t#                          ##  #             #          #"
+	          << std::endl;
+	std::cout << "\t#                                                       #"
+	          << std::endl;
+	std::cout << "\t#########################################################"
+	          << std::endl;
+	std::cout << "\tAnother QUAlity GPU-SPH, by CEHINAV (UPM) group."
+	          << std::endl;
+	std::cout << "\t\thttp://canal.etsin.upm.es/" << std::endl;
+	std::cout << "\tAuthors:" << std::endl;
+	std::cout << "\t\tJose Luis Cercos Pita" << std::endl;
+	std::cout << "\t\tLeo Miguel Gonzalez" << std::endl;
+	std::cout << "\t\tAntonio Souto-Iglesias" << std::endl;
+	std::cout << "\t\tJavier Calderon-Sanchez" << std::endl;
+	std::cout << "\tAQUAgpusph Copyright (C) 2012-2018  Jose Luis Cercos-Pita"
+	          << std::endl;
+	std::cout << "\tThis program comes with ABSOLUTELY NO WARRANTY; for "
+	             "details see LICENSE."
+	          << std::endl;
+	std::cout
+	    << "\tThis is free software, and you are welcome to redistribute it"
+	    << std::endl;
+	std::cout << "\tunder certain conditions; see LICENSE for details."
+	          << std::endl;
+	std::cout << std::endl;
 
-    InputOutput::CommandLineArgs::parse(argc, argv, file_manager);
+	InputOutput::CommandLineArgs::parse(argc, argv, file_manager);
 
-    // Now we can load the simulation definition, building the calculation
-    // server
-    CalcServer::CalcServer *calc_server = NULL;
-    try {
-        calc_server = file_manager.load();
-    } catch(...) {
-        if(Py_IsInitialized())
-            Py_Finalize();
-        return EXIT_FAILURE;
-    }
+	// Now we can load the simulation definition, building the calculation
+	// server
+	CalcServer::CalcServer* calc_server = NULL;
+	try {
+		calc_server = file_manager.load();
+	} catch (...) {
+		if (Py_IsInitialized())
+			Py_Finalize();
+		return EXIT_FAILURE;
+	}
 
-    InputOutput::TimeManager t_manager(file_manager.problemSetup());
+	InputOutput::TimeManager t_manager(file_manager.problemSetup());
 
-    LOG(L_INFO, "Start of simulation...\n");
-    logger->printDate();
-    logger->initNCurses();
+	LOG(L_INFO, "Start of simulation...\n");
+	logger->printDate();
+	logger->initNCurses();
 
-    while(!t_manager.mustStop())
-    {
-        try {
-            calc_server->update(t_manager);
-            file_manager.save(t_manager.time());
-        } catch (const Aqua::CalcServer::user_interruption& e) {
-            // The user has interrupted the simulation, just exit normally
+	while (!t_manager.mustStop()) {
+		try {
+			calc_server->update(t_manager);
+			file_manager.save(t_manager.time());
+		} catch (const Aqua::CalcServer::user_interruption& e) {
+			// The user has interrupted the simulation, just exit normally
 #ifndef HAVE_MPI
-            // In case of MPI it is not much useful to ask for a new file, since
-            // we can hardly enforce the software to wait for the current
-            // writers before MPI send a kill signal
-            file_manager.save(t_manager.time());
+			// In case of MPI it is not much useful to ask for a new file, since
+			// we can hardly enforce the software to wait for the current
+			// writers before MPI send a kill signal
+			file_manager.save(t_manager.time());
 #endif
-            break;
-        } catch (...) {
-            logger->endNCurses();
-            sleep(__ERROR_SHOW_TIME__);
-            file_manager.waitForSavers();
-            logger->printDate();
-            msg << "Simulation finished abnormally (t = " << t_manager.time()
-                << " s)" << std::endl << std::endl;
-            LOG(L_INFO, msg.str());
+			break;
+		} catch (...) {
+			logger->endNCurses();
+			sleep(__ERROR_SHOW_TIME__);
+			file_manager.waitForSavers();
+			logger->printDate();
+			msg << "Simulation finished abnormally (t = " << t_manager.time()
+			    << " s)" << std::endl
+			    << std::endl;
+			LOG(L_INFO, msg.str());
 
-            delete logger; logger = NULL;
-            delete calc_server; calc_server = NULL;
-            if(Py_IsInitialized())
-                Py_Finalize();
-            return EXIT_FAILURE;
-        }
-    }
+			delete logger;
+			logger = NULL;
+			delete calc_server;
+			calc_server = NULL;
+			if (Py_IsInitialized())
+				Py_Finalize();
+			return EXIT_FAILURE;
+		}
+	}
 
-    logger->endNCurses();
-    file_manager.waitForSavers();
-    logger->printDate();
-    msg << "Simulation finished OK (t = " << t_manager.time()
-        << " s)" << std::endl;
-    LOG(L_INFO, msg.str());
+	logger->endNCurses();
+	file_manager.waitForSavers();
+	logger->printDate();
+	msg << "Simulation finished OK (t = " << t_manager.time() << " s)"
+	    << std::endl;
+	LOG(L_INFO, msg.str());
 
-    delete logger; logger = NULL;
-    delete calc_server; calc_server = NULL;
-    if(Py_IsInitialized())
-        Py_Finalize();
+	delete logger;
+	logger = NULL;
+	delete calc_server;
+	calc_server = NULL;
+	if (Py_IsInitialized())
+		Py_Finalize();
 #ifdef HAVE_MPI
-    try {
-        MPI::COMM_WORLD.Barrier();
-        MPI::Finalize();
-    } 
-    catch(MPI::Exception e){
-        LOG(L_INFO, "MPI cannot be correctly finished\n");
-        msg << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
-        LOG0(L_DEBUG, msg.str());
-        MPI::COMM_WORLD.Abort(-1);
-    }
+	try {
+		MPI::COMM_WORLD.Barrier();
+		MPI::Finalize();
+	} catch (MPI::Exception e) {
+		LOG(L_INFO, "MPI cannot be correctly finished\n");
+		msg << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
+		LOG0(L_DEBUG, msg.str());
+		MPI::COMM_WORLD.Abort(-1);
+	}
 #endif
 
-    return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }

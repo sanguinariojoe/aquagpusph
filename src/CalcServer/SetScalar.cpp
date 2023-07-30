@@ -25,84 +25,85 @@
 #include <CalcServer/SetScalar.h>
 #include <CalcServer.h>
 
-namespace Aqua{ namespace CalcServer{
+namespace Aqua {
+namespace CalcServer {
 
 SetScalar::SetScalar(const std::string name,
                      const std::string var_name,
                      const std::string value,
                      bool once)
-    : Tool(name, once)
-    , _var_name(var_name)
-    , _value(value)
-    , _var(NULL)
+  : Tool(name, once)
+  , _var_name(var_name)
+  , _value(value)
+  , _var(NULL)
 {
 }
 
-SetScalar::~SetScalar()
+SetScalar::~SetScalar() {}
+
+void
+SetScalar::setup()
 {
+	std::ostringstream msg;
+	msg << "Loading the tool \"" << name() << "\"..." << std::endl;
+	LOG(L_INFO, msg.str());
+
+	Tool::setup();
+	variable();
 }
 
-void SetScalar::setup()
+cl_event
+SetScalar::_execute(const std::vector<cl_event> events)
 {
-    std::ostringstream msg;
-    msg << "Loading the tool \"" << name() << "\"..." << std::endl;
-    LOG(L_INFO, msg.str());
+	InputOutput::Variables* vars = CalcServer::singleton()->variables();
 
-    Tool::setup();
-    variable();
+	void* data = malloc(_var->typesize());
+	if (!data) {
+		std::stringstream msg;
+		msg << "Failure allocating " << _var->typesize()
+		    << " bytes for the variable \"" << _var->name() << "\"."
+		    << std::endl;
+		LOG(L_ERROR, msg.str());
+		throw std::bad_alloc();
+	}
+
+	try {
+		vars->solve(_var->type(), _value, data, _var->name());
+	} catch (...) {
+		free(data);
+		throw;
+	}
+
+	_var->set(data);
+	free(data);
+	// Ensure that the variable is populated
+	vars->populate(_var);
+
+	return NULL;
 }
 
-
-cl_event SetScalar::_execute(const std::vector<cl_event> events)
+void
+SetScalar::variable()
 {
-    InputOutput::Variables *vars = CalcServer::singleton()->variables();
-
-    void *data = malloc(_var->typesize());
-    if(!data){
-        std::stringstream msg;
-        msg << "Failure allocating " << _var->typesize()
-            << " bytes for the variable \""
-            << _var->name() << "\"." << std::endl;
-        LOG(L_ERROR, msg.str());
-        throw std::bad_alloc();
-    }
-
-    try {
-        vars->solve(_var->type(), _value, data, _var->name());
-    } catch(...) {
-        free(data);
-        throw;
-    }
-
-    _var->set(data);
-    free(data);
-    // Ensure that the variable is populated
-    vars->populate(_var);
-
-    return NULL;
+	CalcServer* C = CalcServer::singleton();
+	InputOutput::Variables* vars = C->variables();
+	if (!vars->get(_var_name)) {
+		std::stringstream msg;
+		msg << "The tool \"" << name()
+		    << "\" is asking the undeclared variable \"" << _var_name << "\"."
+		    << std::endl;
+		LOG(L_ERROR, msg.str());
+		throw std::runtime_error("Invalid variable");
+	}
+	if (vars->get(_var_name)->type().find('*') != std::string::npos) {
+		std::stringstream msg;
+		msg << "The tool \"" << name() << "\" is asking the variable \""
+		    << _var_name << "\", which is an array." << std::endl;
+		LOG(L_ERROR, msg.str());
+		throw std::runtime_error("Invalid variable type");
+	}
+	_var = vars->get(_var_name);
 }
 
-void SetScalar::variable()
-{
-    CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables *vars = C->variables();
-    if(!vars->get(_var_name)){
-        std::stringstream msg;
-        msg << "The tool \"" << name()
-            << "\" is asking the undeclared variable \""
-            << _var_name << "\"." << std::endl;
-        LOG(L_ERROR, msg.str());
-        throw std::runtime_error("Invalid variable");
-    }
-    if(vars->get(_var_name)->type().find('*') != std::string::npos){
-        std::stringstream msg;
-        msg << "The tool \"" << name()
-            << "\" is asking the variable \"" << _var_name
-            << "\", which is an array." << std::endl;
-        LOG(L_ERROR, msg.str());
-        throw std::runtime_error("Invalid variable type");
-    }
-    _var = vars->get(_var_name);
 }
-
-}}  // namespaces
+} // namespaces

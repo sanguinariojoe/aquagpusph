@@ -26,7 +26,8 @@
 
 #include <CalcServer/Tool.h>
 
-namespace Aqua{ namespace CalcServer{
+namespace Aqua {
+namespace CalcServer {
 
 /** @class Conditional Conditional.h CalcServer/Conditional.h
  * @brief Base class for conditional tools like While or If
@@ -37,55 +38,56 @@ namespace Aqua{ namespace CalcServer{
  */
 class Conditional : public Aqua::CalcServer::Tool
 {
-public:
-    /** @brief Constructor.
-     * @param name Tool name.
-     * @param condition Condition to evaluate. If the result is 0, false will be
-     * considered and all the subsequent tools will be disabled until an End
-     * tool is reached.
-     * @param once Run this tool just once. Useful to make initializations.
-     */
-    Conditional(const std::string name,
-       const std::string condition,
-       bool once=false);
+  public:
+	/** @brief Constructor.
+	 * @param name Tool name.
+	 * @param condition Condition to evaluate. If the result is 0, false will be
+	 * considered and all the subsequent tools will be disabled until an End
+	 * tool is reached.
+	 * @param once Run this tool just once. Useful to make initializations.
+	 */
+	Conditional(const std::string name,
+	            const std::string condition,
+	            bool once = false);
 
-    /// Destructor.
-    ~Conditional();
+	/// Destructor.
+	~Conditional();
 
-    /** @brief Initialize the tool.
-     */
-    void setup();
+	/** @brief Initialize the tool.
+	 */
+	void setup();
 
-    /** Get the next tool to be executed in the pipeline.
-     *
-     * Depending on the condition value, that tool is the next one or the tool
-     * after the End tool which closes the scope
-     * @return Next tool to be executed. NULL if no more tools shall be executed
-     * in the pipeline
-     */
-    virtual Tool* next_tool();
+	/** Get the next tool to be executed in the pipeline.
+	 *
+	 * Depending on the condition value, that tool is the next one or the tool
+	 * after the End tool which closes the scope
+	 * @return Next tool to be executed. NULL if no more tools shall be executed
+	 * in the pipeline
+	 */
+	virtual Tool* next_tool();
 
-    /** Open a new scope
-     * @return 1
-     * @note The scope shall be close at some point by an EndIf tool
-     */
-    const int scope_modifier(){return 1;}
-protected:
-    /** Execute the tool
-     * @param events List of events that shall be waited before safe execution
-     * @return OpenCL event to be waited before accessing the dependencies
-     */
-    cl_event _execute(const std::vector<cl_event> events);
+	/** Open a new scope
+	 * @return 1
+	 * @note The scope shall be close at some point by an EndIf tool
+	 */
+	const int scope_modifier() { return 1; }
 
-private:
-    /// Condition expression to evaluate
-    std::string _condition;
-    /// The next tool in the pipeline when the condition is not fulfilled
-    Tool* _ending_tool;
+  protected:
+	/** Execute the tool
+	 * @param events List of events that shall be waited before safe execution
+	 * @return OpenCL event to be waited before accessing the dependencies
+	 */
+	cl_event _execute(const std::vector<cl_event> events);
 
-protected:
-    /// Condition result
-    bool _result;
+  private:
+	/// Condition expression to evaluate
+	std::string _condition;
+	/// The next tool in the pipeline when the condition is not fulfilled
+	Tool* _ending_tool;
+
+  protected:
+	/// Condition result
+	bool _result;
 };
 
 /** @class While Conditional.h CalcServer/Conditional.h
@@ -95,24 +97,24 @@ protected:
  */
 class While : public Aqua::CalcServer::Conditional
 {
-public:
-    /** @brief Constructor.
-     * @param name Tool name.
-     * @param condition Condition to evaluate. If the result is 0, false will be
-     * considered and all the subsequent tools will be disabled until an End
-     * tool is reached.
-     * @param once Run this tool just once. Useful to make initializations.
-     */
-    While(const std::string name,
-       const std::string condition,
-       bool once=false);
+  public:
+	/** @brief Constructor.
+	 * @param name Tool name.
+	 * @param condition Condition to evaluate. If the result is 0, false will be
+	 * considered and all the subsequent tools will be disabled until an End
+	 * tool is reached.
+	 * @param once Run this tool just once. Useful to make initializations.
+	 */
+	While(const std::string name,
+	      const std::string condition,
+	      bool once = false);
 
-    /// Destructor.
-    ~While();
+	/// Destructor.
+	~While();
 
-    /** @brief Initialize the tool.
-     */
-    void setup();
+	/** @brief Initialize the tool.
+	 */
+	void setup();
 };
 
 /** @class If Conditional.h CalcServer/Conditional.h
@@ -121,43 +123,42 @@ public:
  */
 class If : public Aqua::CalcServer::Conditional
 {
-public:
-    /** @brief Constructor.
-     * @param name Tool name.
-     * @param condition Condition to evaluate. If the result is 0, false will be
-     * considered and all the subsequent tools will be disabled until an End
-     * tool is reached.
-     * @param once Run this tool just once. Useful to make initializations.
-     */
-    If(const std::string name,
-       const std::string condition,
-       bool once=false);
+  public:
+	/** @brief Constructor.
+	 * @param name Tool name.
+	 * @param condition Condition to evaluate. If the result is 0, false will be
+	 * considered and all the subsequent tools will be disabled until an End
+	 * tool is reached.
+	 * @param once Run this tool just once. Useful to make initializations.
+	 */
+	If(const std::string name, const std::string condition, bool once = false);
 
-    /// Destructor.
-    ~If();
+	/// Destructor.
+	~If();
 
-    /** @brief Initialize the tool.
-     */
-    void setup();
+	/** @brief Initialize the tool.
+	 */
+	void setup();
 
-    /** Get the next tool to be executed in the pipeline.
-     *
-     * Such tool will be the next one if the condition is fulfilled, or the tool
-     * after the Aqua::CalcServer::End tool which closes the scope otherwise.
-     *
-     * Since the closing Aqua::CalcServer::End tool is invariably giving back
-     * the control to this tool, the condition will be marked as unfulfilled
-     * when this tool is called, avoiding the loop execution
-     * @return Next tool to be executed. NULL if no more tools shall be executed
-     * in the pipeline
-     */
-    Tool* next_tool();
-protected:
-    /** Execute the tool
-     * @param events List of events that shall be waited before safe execution
-     * @return OpenCL event to be waited before accessing the dependencies
-     */
-    cl_event _execute(const std::vector<cl_event> events);
+	/** Get the next tool to be executed in the pipeline.
+	 *
+	 * Such tool will be the next one if the condition is fulfilled, or the tool
+	 * after the Aqua::CalcServer::End tool which closes the scope otherwise.
+	 *
+	 * Since the closing Aqua::CalcServer::End tool is invariably giving back
+	 * the control to this tool, the condition will be marked as unfulfilled
+	 * when this tool is called, avoiding the loop execution
+	 * @return Next tool to be executed. NULL if no more tools shall be executed
+	 * in the pipeline
+	 */
+	Tool* next_tool();
+
+  protected:
+	/** Execute the tool
+	 * @param events List of events that shall be waited before safe execution
+	 * @return OpenCL event to be waited before accessing the dependencies
+	 */
+	cl_event _execute(const std::vector<cl_event> events);
 };
 
 /** @class End Conditional.h CalcServer/Conditional.h
@@ -168,26 +169,27 @@ protected:
  */
 class End : public Aqua::CalcServer::Tool
 {
-public:
-    /** @brief Constructor.
-     * @param name Tool name.
-     * @param once Run this tool just once. Useful to make initializations.
-     */
-    End(const std::string name, bool once=false);
+  public:
+	/** @brief Constructor.
+	 * @param name Tool name.
+	 * @param once Run this tool just once. Useful to make initializations.
+	 */
+	End(const std::string name, bool once = false);
 
-    /// Destructor.
-    ~End();
+	/// Destructor.
+	~End();
 
-    /** @brief Initialize the tool.
-     */
-    void setup();
+	/** @brief Initialize the tool.
+	 */
+	void setup();
 
-    /** Close an already open scope
-     * @return -1
-     */
-    const int scope_modifier(){return -1;}
+	/** Close an already open scope
+	 * @return -1
+	 */
+	const int scope_modifier() { return -1; }
 };
 
-}}  // namespace
+}
+} // namespace
 
 #endif // IF_H_INCLUDED

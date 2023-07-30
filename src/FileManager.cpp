@@ -26,134 +26,135 @@
 #include <InputOutput/ASCII.h>
 #include <InputOutput/FastASCII.h>
 #ifdef HAVE_VTK
-    #include <InputOutput/VTK.h>
+#include <InputOutput/VTK.h>
 #endif // HAVE_VTK
 
-namespace Aqua{ namespace InputOutput{
+namespace Aqua {
+namespace InputOutput {
 
 FileManager::FileManager()
-    : _state()
-    , _simulation()
-    , _in_file("Input.xml")
+  : _state()
+  , _simulation()
+  , _in_file("Input.xml")
 {
 }
 
 FileManager::~FileManager()
 {
-    for(auto loader : _loaders) {
-        delete loader;
-    }
-    for(auto saver : _savers) {
-        delete saver;
-    }
+	for (auto loader : _loaders) {
+		delete loader;
+	}
+	for (auto saver : _savers) {
+		delete saver;
+	}
 }
 
-void FileManager::inputFile(std::string path)
+void
+FileManager::inputFile(std::string path)
 {
-    _in_file = path;
+	_in_file = path;
 }
 
-CalcServer::CalcServer* FileManager::load()
+CalcServer::CalcServer*
+FileManager::load()
 {
-    // Load the XML definition file
-    _state.load(inputFile(), _simulation);
+	// Load the XML definition file
+	_state.load(inputFile(), _simulation);
 
-    // Setup the problem setup
-    if(_simulation.sets.size() == 0) {
-        LOG(L_ERROR, "No sets of particles have been added.\n");
-        throw std::runtime_error("No particles sets");
-    }
+	// Setup the problem setup
+	if (_simulation.sets.size() == 0) {
+		LOG(L_ERROR, "No sets of particles have been added.\n");
+		throw std::runtime_error("No particles sets");
+	}
 
-    // Prepare the loaders/savers
-    unsigned int i = 0, offset = 0;
-    for(auto set : _simulation.sets){
-        if(!set->inputFormat().compare("ASCII")) {
-            ASCII *loader = new ASCII(_simulation, i, offset, set->n());
-            _loaders.push_back((Particles*)loader);
-        }
-        else if(!set->inputFormat().compare("FastASCII")) {
-            FastASCII *loader = new FastASCII(_simulation, i, offset, set->n());
-            _loaders.push_back((Particles*)loader);
-        }
-        else if(!set->inputFormat().compare("VTK")) {
-            #ifdef HAVE_VTK
-                VTK *loader = new VTK(_simulation, i, offset, set->n());
-                _loaders.push_back((Particles*)loader);
-            #else
-                LOG(L_ERROR, "AQUAgpusph has been compiled without VTK format.\n");
-                delete C;
-                throw std::runtime_error("VTK support is disabled");
-            #endif // HAVE_VTK
-        }
-        else{
-            std::ostringstream msg;
-            msg << "Unknow \"" << set->inputFormat()
-                << "\" input file format" << std::endl;
-            LOG(L_ERROR, msg.str());
-            throw std::runtime_error("Unknown input file format");
-        }
-        // The number of particles can be unknown yet, so better getting it from
-        // the loader
-        set->n(_loaders.back()->n());
-        if(set->n() == 0) {
-            std::ostringstream msg;
-            msg << "Empty set \"" << i << "\"" << std::endl;
-            LOG(L_ERROR, msg.str());
-            throw std::runtime_error("Empty set");
-        }
-        if(!set->outputFormat().compare("ASCII") ||
-           !set->outputFormat().compare("FastASCII")) {
-            ASCII *saver = new ASCII(_simulation, i, offset, set->n());
-            _savers.push_back((Particles*)saver);
-        }
-        else if(!set->outputFormat().compare("VTK")) {
-            #ifdef HAVE_VTK
-                VTK *saver = new VTK(_simulation, i, offset, set->n());
-                _savers.push_back((Particles*)saver);
-            #else
-                LOG(L_ERROR, "AQUAgpusph has been compiled without VTK format.\n");
-                throw std::runtime_error("VTK support is disabled");
-            #endif // HAVE_VTK
-        }
-        else{
-            std::ostringstream msg;
-            msg << "Unknow \"" << set->outputFormat()
-                << "\" input file format" << std::endl;
-            LOG(L_ERROR, msg.str());
-            throw std::runtime_error("Unknown output file format");
-        }
-        offset += set->n();
-        i++;
-    }
-    
-    // Build the calculation server
-    CalcServer::CalcServer *C = new CalcServer::CalcServer(_simulation);
+	// Prepare the loaders/savers
+	unsigned int i = 0, offset = 0;
+	for (auto set : _simulation.sets) {
+		if (!set->inputFormat().compare("ASCII")) {
+			ASCII* loader = new ASCII(_simulation, i, offset, set->n());
+			_loaders.push_back((Particles*)loader);
+		} else if (!set->inputFormat().compare("FastASCII")) {
+			FastASCII* loader = new FastASCII(_simulation, i, offset, set->n());
+			_loaders.push_back((Particles*)loader);
+		} else if (!set->inputFormat().compare("VTK")) {
+#ifdef HAVE_VTK
+			VTK* loader = new VTK(_simulation, i, offset, set->n());
+			_loaders.push_back((Particles*)loader);
+#else
+			LOG(L_ERROR, "AQUAgpusph has been compiled without VTK format.\n");
+			delete C;
+			throw std::runtime_error("VTK support is disabled");
+#endif // HAVE_VTK
+		} else {
+			std::ostringstream msg;
+			msg << "Unknow \"" << set->inputFormat() << "\" input file format"
+			    << std::endl;
+			LOG(L_ERROR, msg.str());
+			throw std::runtime_error("Unknown input file format");
+		}
+		// The number of particles can be unknown yet, so better getting it from
+		// the loader
+		set->n(_loaders.back()->n());
+		if (set->n() == 0) {
+			std::ostringstream msg;
+			msg << "Empty set \"" << i << "\"" << std::endl;
+			LOG(L_ERROR, msg.str());
+			throw std::runtime_error("Empty set");
+		}
+		if (!set->outputFormat().compare("ASCII") ||
+		    !set->outputFormat().compare("FastASCII")) {
+			ASCII* saver = new ASCII(_simulation, i, offset, set->n());
+			_savers.push_back((Particles*)saver);
+		} else if (!set->outputFormat().compare("VTK")) {
+#ifdef HAVE_VTK
+			VTK* saver = new VTK(_simulation, i, offset, set->n());
+			_savers.push_back((Particles*)saver);
+#else
+			LOG(L_ERROR, "AQUAgpusph has been compiled without VTK format.\n");
+			throw std::runtime_error("VTK support is disabled");
+#endif // HAVE_VTK
+		} else {
+			std::ostringstream msg;
+			msg << "Unknow \"" << set->outputFormat() << "\" input file format"
+			    << std::endl;
+			LOG(L_ERROR, msg.str());
+			throw std::runtime_error("Unknown output file format");
+		}
+		offset += set->n();
+		i++;
+	}
 
-    // Execute the loaders
-    for(auto loader : _loaders) {
-        loader->load();
-    }
+	// Build the calculation server
+	CalcServer::CalcServer* C = new CalcServer::CalcServer(_simulation);
 
-    return C;
+	// Execute the loaders
+	for (auto loader : _loaders) {
+		loader->load();
+	}
+
+	return C;
 }
 
-void FileManager::save(float t)
+void
+FileManager::save(float t)
 {
-    // Execute the savers
-    for(auto saver : _savers) {
-        saver->save(t);
-    }
+	// Execute the savers
+	for (auto saver : _savers) {
+		saver->save(t);
+	}
 
-    // Save the XML definition file
-    _state.save(_simulation, _savers);
+	// Save the XML definition file
+	_state.save(_simulation, _savers);
 }
 
-void FileManager::waitForSavers()
+void
+FileManager::waitForSavers()
 {
-    LOG(L_INFO, "Waiting for the writers...\n");
-    for(auto saver : _savers) {
-        saver->waitForSavers();
-    }
+	LOG(L_INFO, "Waiting for the writers...\n");
+	for (auto saver : _savers) {
+		saver->waitForSavers();
+	}
 }
 
-}}  // namespace
+}
+} // namespace

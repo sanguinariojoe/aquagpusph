@@ -28,53 +28,55 @@
 #include <CalcServer.h>
 #include <CalcServer/Assert.h>
 
-namespace Aqua{ namespace CalcServer{
+namespace Aqua {
+namespace CalcServer {
 
 Assert::Assert(const std::string name, const std::string condition, bool once)
-    : Tool(name, once)
-    , _condition(condition)
+  : Tool(name, once)
+  , _condition(condition)
 {
 }
 
-Assert::~Assert()
+Assert::~Assert() {}
+
+void
+Assert::setup()
 {
+	std::ostringstream msg;
+	msg << "Loading the tool \"" << name() << "\"..." << std::endl;
+	LOG(L_INFO, msg.str());
+	Tool::setup();
 }
 
-void Assert::setup()
+cl_event
+Assert::_execute(const std::vector<cl_event> events)
 {
-    std::ostringstream msg;
-    msg << "Loading the tool \"" << name() << "\"..." << std::endl;
-    LOG(L_INFO, msg.str());
-    Tool::setup();
+	int result;
+	InputOutput::Variables* vars = CalcServer::singleton()->variables();
+
+	void* data = malloc(sizeof(int));
+	if (!data) {
+		std::stringstream msg;
+		msg << "Failure allocating memory for the integer result" << std::endl;
+		LOG(L_ERROR, msg.str());
+		throw std::bad_alloc();
+	}
+
+	vars->solve("int", _condition, data, "assert_result");
+
+	// Check the result
+	memcpy(&result, data, sizeof(int));
+	free(data);
+	if (result == 0) {
+		std::stringstream msg;
+		msg << "Assertion error. The expression \"" << std::string(_condition)
+		    << "\" is false" << std::endl;
+		LOG(L_ERROR, msg.str());
+		throw std::runtime_error("Assertion error");
+	}
+
+	return NULL;
 }
 
-cl_event Assert::_execute(const std::vector<cl_event> events)
-{
-    int result;
-    InputOutput::Variables *vars = CalcServer::singleton()->variables();
-
-    void *data = malloc(sizeof(int));
-    if(!data){
-        std::stringstream msg;
-        msg << "Failure allocating memory for the integer result" << std::endl;
-        LOG(L_ERROR, msg.str());
-        throw std::bad_alloc();
-    }
-
-    vars->solve("int", _condition, data, "assert_result");
-
-    // Check the result
-    memcpy(&result, data, sizeof(int));
-    free(data);
-    if(result == 0){
-        std::stringstream msg;
-        msg << "Assertion error. The expression \"" <<
-               std::string(_condition) << "\" is false" << std::endl;
-        LOG(L_ERROR, msg.str());
-        throw std::runtime_error("Assertion error");
-    }
-
-    return NULL;
 }
-
-}}  // namespaces
+} // namespaces

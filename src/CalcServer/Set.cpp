@@ -28,7 +28,8 @@
 #include <CalcServer/Set.h>
 #include <CalcServer.h>
 
-namespace Aqua{ namespace CalcServer{
+namespace Aqua {
+namespace CalcServer {
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #include "CalcServer/Set.hcl"
@@ -37,250 +38,246 @@ namespace Aqua{ namespace CalcServer{
 std::string SET_INC = xxd2string(Set_hcl_in, Set_hcl_in_len);
 std::string SET_SRC = xxd2string(Set_cl_in, Set_cl_in_len);
 
-
 Set::Set(const std::string name,
          const std::string var_name,
          const std::string value,
          bool once)
-    : Tool(name, once)
-    , _var_name(var_name)
-    , _value(value)
-    , _var(NULL)
-    , _input(NULL)
-    , _kernel(NULL)
-    , _global_work_size(0)
-    , _local_work_size(0)
-    , _n(0)
-    , _data(NULL)
+  : Tool(name, once)
+  , _var_name(var_name)
+  , _value(value)
+  , _var(NULL)
+  , _input(NULL)
+  , _kernel(NULL)
+  , _global_work_size(0)
+  , _local_work_size(0)
+  , _n(0)
+  , _data(NULL)
 {
 }
 
 Set::~Set()
 {
-    if(_kernel) clReleaseKernel(_kernel); _kernel=NULL;
-    if(_data) free(_data); _data=NULL;
+	if (_kernel)
+		clReleaseKernel(_kernel);
+	_kernel = NULL;
+	if (_data)
+		free(_data);
+	_data = NULL;
 }
 
-void Set::setup()
+void
+Set::setup()
 {
-    std::ostringstream msg;
-    msg << "Loading the tool \"" << name() << "\"..." << std::endl;
-    LOG(L_INFO, msg.str());
+	std::ostringstream msg;
+	msg << "Loading the tool \"" << name() << "\"..." << std::endl;
+	LOG(L_INFO, msg.str());
 
-    Tool::setup();
-    variable();
+	Tool::setup();
+	variable();
 
-    size_t typesize = InputOutput::Variables::typeToBytes(_var->type());
-    _data = malloc(typesize);
-    if(!_data){
-        std::stringstream msg;
-        msg << "Failure allocating " << typesize << " bytes for the variable \""
-            << _var->name() << "\" value." << std::endl;
-        LOG(L_ERROR, msg.str());
-        throw std::bad_alloc();
-    }
-    solve();
-    
-    _input = *(cl_mem*)_var->get();
-    _n = _var->size() / typesize;
-    setupOpenCL();
+	size_t typesize = InputOutput::Variables::typeToBytes(_var->type());
+	_data = malloc(typesize);
+	if (!_data) {
+		std::stringstream msg;
+		msg << "Failure allocating " << typesize << " bytes for the variable \""
+		    << _var->name() << "\" value." << std::endl;
+		LOG(L_ERROR, msg.str());
+		throw std::bad_alloc();
+	}
+	solve();
+
+	_input = *(cl_mem*)_var->get();
+	_n = _var->size() / typesize;
+	setupOpenCL();
 }
 
-cl_event Set::_execute(const std::vector<cl_event> events)
+cl_event
+Set::_execute(const std::vector<cl_event> events)
 {
-    unsigned int i;
-    cl_int err_code;
-    cl_event event;
-    CalcServer *C = CalcServer::singleton();
+	unsigned int i;
+	cl_int err_code;
+	cl_event event;
+	CalcServer* C = CalcServer::singleton();
 
-    if(_data) {
-        // A valid equation is available!
-        solve();
-    }
-    setVariables();
+	if (_data) {
+		// A valid equation is available!
+		solve();
+	}
+	setVariables();
 
-    cl_uint num_events_in_wait_list = events.size();
-    const cl_event *event_wait_list = events.size() ? events.data() : NULL;
+	cl_uint num_events_in_wait_list = events.size();
+	const cl_event* event_wait_list = events.size() ? events.data() : NULL;
 
-    err_code = clEnqueueNDRangeKernel(C->command_queue(),
-                                      _kernel,
-                                      1,
-                                      NULL,
-                                      &_global_work_size,
-                                      &_local_work_size,
-                                      num_events_in_wait_list,
-                                      event_wait_list,
-                                      &event);
-    if(err_code != CL_SUCCESS) {
-        std::stringstream msg;
-        msg << "Failure executing the tool \"" <<
-               name() << "\"." << std::endl;
-        LOG(L_ERROR, msg.str());
-        InputOutput::Logger::singleton()->printOpenCLError(err_code);
-        throw std::runtime_error("OpenCL execution error");
-    }
+	err_code = clEnqueueNDRangeKernel(C->command_queue(),
+	                                  _kernel,
+	                                  1,
+	                                  NULL,
+	                                  &_global_work_size,
+	                                  &_local_work_size,
+	                                  num_events_in_wait_list,
+	                                  event_wait_list,
+	                                  &event);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure executing the tool \"" << name() << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
 
-    return event;
+	return event;
 }
 
-void Set::variable()
+void
+Set::variable()
 {
-    InputOutput::Variables *vars = CalcServer::singleton()->variables();
-    if(!vars->get(_var_name)){
-        std::stringstream msg;
-        msg << "The tool \"" << name()
-            << "\" is asking the undeclared variable \""
-            << _var_name << "\"." << std::endl;
-        LOG(L_ERROR, msg.str());
-        throw std::runtime_error("Invalid variable");
-    }
-    if(vars->get(_var_name)->type().find('*') == std::string::npos){
-        std::stringstream msg;
-        msg << "The tool \"" << name()
-            << "\" is asking the variable \"" << _var_name
-            << "\", which is a scalar." << std::endl;
-        LOG(L_ERROR, msg.str());
-        throw std::runtime_error("Invalid variable type");
-    }
-    _var = (InputOutput::ArrayVariable *)vars->get(_var_name);
+	InputOutput::Variables* vars = CalcServer::singleton()->variables();
+	if (!vars->get(_var_name)) {
+		std::stringstream msg;
+		msg << "The tool \"" << name()
+		    << "\" is asking the undeclared variable \"" << _var_name << "\"."
+		    << std::endl;
+		LOG(L_ERROR, msg.str());
+		throw std::runtime_error("Invalid variable");
+	}
+	if (vars->get(_var_name)->type().find('*') == std::string::npos) {
+		std::stringstream msg;
+		msg << "The tool \"" << name() << "\" is asking the variable \""
+		    << _var_name << "\", which is a scalar." << std::endl;
+		LOG(L_ERROR, msg.str());
+		throw std::runtime_error("Invalid variable type");
+	}
+	_var = (InputOutput::ArrayVariable*)vars->get(_var_name);
 
-    std::vector<InputOutput::Variable*> deps = {_var};
-    setDependencies(deps);
+	std::vector<InputOutput::Variable*> deps = { _var };
+	setDependencies(deps);
 }
 
-void Set::setupOpenCL()
+void
+Set::setupOpenCL()
 {
-    cl_int err_code;
-    cl_kernel kernel;
-    CalcServer *C = CalcServer::singleton();
+	cl_int err_code;
+	cl_kernel kernel;
+	CalcServer* C = CalcServer::singleton();
 
-    // Create a header for the source code where the operation will be placed
-    std::ostringstream source;
-    source << SET_INC;
-    if (!_data) {
-        // No valid equation is available, so let's try to use _value as a
-        // straight definition
-        source << " #define VALUE " << _value;
-    }
-    source << SET_SRC;
+	// Create a header for the source code where the operation will be placed
+	std::ostringstream source;
+	source << SET_INC;
+	if (!_data) {
+		// No valid equation is available, so let's try to use _value as a
+		// straight definition
+		source << " #define VALUE " << _value;
+	}
+	source << SET_SRC;
 
-    // Compile the kernel
-    std::ostringstream flags;
-    if(!_var->type().compare("unsigned int*")){
-        // Spaces are not a good business into definitions passed as args
-        flags << "-DT=uint";
-    }
-    else{
-        std::string t = trimCopy(_var->type());
-        t.pop_back();  // Remove the asterisk
-        flags << "-DT=" << t;
-    }
-    kernel = compile_kernel(source.str(), "set", flags.str());
-    err_code = clGetKernelWorkGroupInfo(kernel,
-                                        C->device(),
-                                        CL_KERNEL_WORK_GROUP_SIZE,
-                                        sizeof(size_t),
-                                        &_local_work_size,
-                                        NULL);
-    if(err_code != CL_SUCCESS) {
-        LOG(L_ERROR, "Failure querying the work group size.\n");
-        InputOutput::Logger::singleton()->printOpenCLError(err_code);
-        clReleaseKernel(kernel);
-        throw std::runtime_error("OpenCL error");
-    }
-    if(_local_work_size < __CL_MIN_LOCALSIZE__){
-        LOG(L_ERROR, "insufficient local memory.\n");
-        std::stringstream msg;
-        msg << "\t" << _local_work_size
-            << " local work group size with __CL_MIN_LOCALSIZE__="
-            << __CL_MIN_LOCALSIZE__ << std::endl;
-        LOG0(L_DEBUG, msg.str());
-        throw std::runtime_error("OpenCL error");
-    }
+	// Compile the kernel
+	std::ostringstream flags;
+	if (!_var->type().compare("unsigned int*")) {
+		// Spaces are not a good business into definitions passed as args
+		flags << "-DT=uint";
+	} else {
+		std::string t = trimCopy(_var->type());
+		t.pop_back(); // Remove the asterisk
+		flags << "-DT=" << t;
+	}
+	kernel = compile_kernel(source.str(), "set", flags.str());
+	err_code = clGetKernelWorkGroupInfo(kernel,
+	                                    C->device(),
+	                                    CL_KERNEL_WORK_GROUP_SIZE,
+	                                    sizeof(size_t),
+	                                    &_local_work_size,
+	                                    NULL);
+	if (err_code != CL_SUCCESS) {
+		LOG(L_ERROR, "Failure querying the work group size.\n");
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		clReleaseKernel(kernel);
+		throw std::runtime_error("OpenCL error");
+	}
+	if (_local_work_size < __CL_MIN_LOCALSIZE__) {
+		LOG(L_ERROR, "insufficient local memory.\n");
+		std::stringstream msg;
+		msg << "\t" << _local_work_size
+		    << " local work group size with __CL_MIN_LOCALSIZE__="
+		    << __CL_MIN_LOCALSIZE__ << std::endl;
+		LOG0(L_DEBUG, msg.str());
+		throw std::runtime_error("OpenCL error");
+	}
 
-    _global_work_size = roundUp(_n, _local_work_size);
-    _kernel = kernel;
-    err_code = clSetKernelArg(kernel,
-                              0,
-                              _var->typesize(),
-                              _var->get());
-    if(err_code != CL_SUCCESS){
-        LOG(L_ERROR, "Failure sending the array argument\n");
-        InputOutput::Logger::singleton()->printOpenCLError(err_code);
-        throw std::runtime_error("OpenCL error");
-    }
-    err_code = clSetKernelArg(kernel,
-                              1,
-                              sizeof(unsigned int),
-                              (void*)&_n);
-    if(err_code != CL_SUCCESS){
-        LOG(L_ERROR, "Failure sending the array size argument\n");
-        InputOutput::Logger::singleton()->printOpenCLError(err_code);
-        throw std::runtime_error("OpenCL error");
-    }
-    if(!_data)
-        return;
-    err_code = clSetKernelArg(kernel,
-                              2,
-                              InputOutput::Variables::typeToBytes(_var->type()),
-                              _data);
-    if(err_code != CL_SUCCESS){
-        LOG(L_ERROR, "Failure sending the value argument\n");
-        InputOutput::Logger::singleton()->printOpenCLError(err_code);
-        throw std::runtime_error("OpenCL error");
-    }
+	_global_work_size = roundUp(_n, _local_work_size);
+	_kernel = kernel;
+	err_code = clSetKernelArg(kernel, 0, _var->typesize(), _var->get());
+	if (err_code != CL_SUCCESS) {
+		LOG(L_ERROR, "Failure sending the array argument\n");
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL error");
+	}
+	err_code = clSetKernelArg(kernel, 1, sizeof(unsigned int), (void*)&_n);
+	if (err_code != CL_SUCCESS) {
+		LOG(L_ERROR, "Failure sending the array size argument\n");
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL error");
+	}
+	if (!_data)
+		return;
+	err_code = clSetKernelArg(
+	    kernel, 2, InputOutput::Variables::typeToBytes(_var->type()), _data);
+	if (err_code != CL_SUCCESS) {
+		LOG(L_ERROR, "Failure sending the value argument\n");
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL error");
+	}
 }
 
-void Set::solve()
+void
+Set::solve()
 {
-    InputOutput::Variables *vars = CalcServer::singleton()->variables();
+	InputOutput::Variables* vars = CalcServer::singleton()->variables();
 
-    try {
-        vars->solve(_var->type(), _value, _data, _var->name());
-    } catch(...) {
-        free(_data);
-        _data = NULL;
-        LOG(L_INFO, "Falling back to definition mode...\n");
-    }
+	try {
+		vars->solve(_var->type(), _value, _data, _var->name());
+	} catch (...) {
+		free(_data);
+		_data = NULL;
+		LOG(L_INFO, "Falling back to definition mode...\n");
+	}
 }
 
-void Set::setVariables()
+void
+Set::setVariables()
 {
-    cl_int err_code;
+	cl_int err_code;
 
-    if(_data) {
-        err_code = clSetKernelArg(
-            _kernel,
-            2,
-            InputOutput::Variables::typeToBytes(_var->type()),
-            _data);
-        if(err_code != CL_SUCCESS) {
-            std::stringstream msg;
-            msg << "Failure setting the value to the tool \""
-                << name() << "\"." << std::endl;
-            LOG(L_ERROR, msg.str());
-            InputOutput::Logger::singleton()->printOpenCLError(err_code);
-            throw std::runtime_error("OpenCL error");
-        }
-    }
+	if (_data) {
+		err_code =
+		    clSetKernelArg(_kernel,
+		                   2,
+		                   InputOutput::Variables::typeToBytes(_var->type()),
+		                   _data);
+		if (err_code != CL_SUCCESS) {
+			std::stringstream msg;
+			msg << "Failure setting the value to the tool \"" << name() << "\"."
+			    << std::endl;
+			LOG(L_ERROR, msg.str());
+			InputOutput::Logger::singleton()->printOpenCLError(err_code);
+			throw std::runtime_error("OpenCL error");
+		}
+	}
 
-    if(_input != *(cl_mem*)_var->get()){
-        // For some reason the input variable has changed...
-        err_code = clSetKernelArg(_kernel,
-                                0,
-                                _var->typesize(),
-                                _var->get());
-        if(err_code != CL_SUCCESS) {
-            std::stringstream msg;
-            msg << "Failure setting the variable \"" << _var->name()
-                << "\" to the tool \"" << name() << "\"." << std::endl;
-            LOG(L_ERROR, msg.str());
-            InputOutput::Logger::singleton()->printOpenCLError(err_code);
-            throw std::runtime_error("OpenCL error");
-        }
+	if (_input != *(cl_mem*)_var->get()) {
+		// For some reason the input variable has changed...
+		err_code = clSetKernelArg(_kernel, 0, _var->typesize(), _var->get());
+		if (err_code != CL_SUCCESS) {
+			std::stringstream msg;
+			msg << "Failure setting the variable \"" << _var->name()
+			    << "\" to the tool \"" << name() << "\"." << std::endl;
+			LOG(L_ERROR, msg.str());
+			InputOutput::Logger::singleton()->printOpenCLError(err_code);
+			throw std::runtime_error("OpenCL error");
+		}
 
-        _input = *(cl_mem *)_var->get();
-    }
+		_input = *(cl_mem*)_var->get();
+	}
 }
 
-}}  // namespaces
+}
+} // namespaces

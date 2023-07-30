@@ -28,153 +28,157 @@
 
 using namespace std;
 
-namespace Aqua{
+namespace Aqua {
 
-double mod_operator(double v, double w)
+double
+mod_operator(double v, double w)
 {
 #ifdef MAX
 #undef MAX
 #endif
 #define MAX(a, b) ((a > b) ? a : b)
-    return (int)v % MAX(1, (int)w);
+	return (int)v % MAX(1, (int)w);
 #undef MAX
 }
 
-double not_operator(double v) {
-    return v == 0;
+double
+not_operator(double v)
+{
+	return v == 0;
 }
 
 Tokenizer::Tokenizer()
 {
-    struct lconv *lc;
-    char *s;
+	struct lconv* lc;
+	char* s;
 
-    // Set the decimal-point character (which is depending on the locale)
-    s = setlocale(LC_NUMERIC, NULL);
-    if(strcmp(s, "C")){
-        std::ostringstream msg;
-        msg << "\"" << s << "\" numeric locale found" << std::endl;
-        LOG(L_INFO, msg.str());
-        LOG0(L_DEBUG, "\tIt is replaced by \"C\"\n");
-        setlocale(LC_NUMERIC, "C");
-    }
-    lc = localeconv();
-    s = lc->decimal_point;
-    if(strcmp(s, ".")){
-        std::ostringstream msg;
-        msg << "\"" << s << "\" decimal point character found" << std::endl;
-        LOG(L_WARNING, msg.str());
-        LOG0(L_DEBUG, "\tIt is replaced by \".\"\n");
-        lc->decimal_point = ".";
-    }
-    s = lc->thousands_sep;
-    if(strcmp(s, "")){
-        std::ostringstream msg;
-        msg << "\"" << s << "\" thousands separator character found" << std::endl;
-        LOG(L_WARNING, msg.str());
-        LOG0(L_DEBUG, "\tIt is removed\n");
-        lc->thousands_sep = "";
-    }
+	// Set the decimal-point character (which is depending on the locale)
+	s = setlocale(LC_NUMERIC, NULL);
+	if (strcmp(s, "C")) {
+		std::ostringstream msg;
+		msg << "\"" << s << "\" numeric locale found" << std::endl;
+		LOG(L_INFO, msg.str());
+		LOG0(L_DEBUG, "\tIt is replaced by \"C\"\n");
+		setlocale(LC_NUMERIC, "C");
+	}
+	lc = localeconv();
+	s = lc->decimal_point;
+	if (strcmp(s, ".")) {
+		std::ostringstream msg;
+		msg << "\"" << s << "\" decimal point character found" << std::endl;
+		LOG(L_WARNING, msg.str());
+		LOG0(L_DEBUG, "\tIt is replaced by \".\"\n");
+		lc->decimal_point = ".";
+	}
+	s = lc->thousands_sep;
+	if (strcmp(s, "")) {
+		std::ostringstream msg;
+		msg << "\"" << s << "\" thousands separator character found"
+		    << std::endl;
+		LOG(L_WARNING, msg.str());
+		LOG0(L_DEBUG, "\tIt is removed\n");
+		lc->thousands_sep = "";
+	}
 
-    // Register a modulus operator
-    p.DefineOprtChars("%");
-    p.DefineOprt("%", mod_operator, mu::prINFIX);
-    p.DefineInfixOprt("!", not_operator, 0);
+	// Register a modulus operator
+	p.DefineOprtChars("%");
+	p.DefineOprt("%", mod_operator, mu::prINFIX);
+	p.DefineInfixOprt("!", not_operator, 0);
 }
 
 Tokenizer::~Tokenizer()
 {
-    p.ClearConst();
+	p.ClearConst();
 }
 
-bool Tokenizer::registerVariable(const std::string name, float value)
+bool
+Tokenizer::registerVariable(const std::string name, float value)
 {
-    bool overwritten = false;
-    // Look for the variable in order to know if it already exist
-    if(isVariable(name)){
-        // The variable already exist
-        overwritten = true;
-    }
-    p.DefineConst(name, (mu::value_type)value);
-    return overwritten;
+	bool overwritten = false;
+	// Look for the variable in order to know if it already exist
+	if (isVariable(name)) {
+		// The variable already exist
+		overwritten = true;
+	}
+	p.DefineConst(name, (mu::value_type)value);
+	return overwritten;
 }
 
-void Tokenizer::clearVariables()
+void
+Tokenizer::clearVariables()
 {
-    p.ClearVar();
-    defaultVariables();
+	p.ClearVar();
+	defaultVariables();
 }
 
-bool Tokenizer::isVariable(const std::string name)
+bool
+Tokenizer::isVariable(const std::string name)
 {
-    mu::valmap_type cmap = p.GetConst();
-    if (cmap.size())
-    {
-        mu::valmap_type::const_iterator item = cmap.begin();
-        for (; item!=cmap.end(); ++item){
-            if(!name.compare(item->first.c_str())){
-                return true;
-            }
-        }
-    }
-    return false;
+	mu::valmap_type cmap = p.GetConst();
+	if (cmap.size()) {
+		mu::valmap_type::const_iterator item = cmap.begin();
+		for (; item != cmap.end(); ++item) {
+			if (!name.compare(item->first.c_str())) {
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
-float Tokenizer::variable(const std::string name)
+float
+Tokenizer::variable(const std::string name)
 {
-    if(!isVariable(name)){
-        return 0.f;
-    }
-    mu::valmap_type cmap = p.GetConst();
-    return (float)cmap[name.c_str()];
+	if (!isVariable(name)) {
+		return 0.f;
+	}
+	mu::valmap_type cmap = p.GetConst();
+	return (float)cmap[name.c_str()];
 }
 
-
-float Tokenizer::solve(const std::string eq)
+float
+Tokenizer::solve(const std::string eq)
 {
-    float result;
+	float result;
 
-    // First try a straight number conversion
-    try {
-        std::string::size_type sz;
-        result = std::stof(eq, &sz);
-        if (sz == eq.size()) {
-            // There is not remaining content
-            return result;
-        }
-    }
-    catch(...){
-        // No possible conversion (by a variety of errors), just proceed with
-        // the parser
-    }
+	// First try a straight number conversion
+	try {
+		std::string::size_type sz;
+		result = std::stof(eq, &sz);
+		if (sz == eq.size()) {
+			// There is not remaining content
+			return result;
+		}
+	} catch (...) {
+		// No possible conversion (by a variety of errors), just proceed with
+		// the parser
+	}
 
-    // No way, let's evaluate it as a expression
-    p.SetExpr(eq);
-    try
-    {
-        result = (float)p.Eval();
-    }
-    catch(mu::Parser::exception_type &e)
-    {
-        std::ostringstream msg;
-        msg << "Error evaluating \"" << e.GetExpr() << "\"" << std::endl;
-        LOG(L_WARNING, msg.str());
-        msg.str("");
-        msg << "\t" << e.GetMsg() << std::endl;
-        LOG0(L_DEBUG, msg.str());
-        msg.str("");
-        msg << "\tToken " << e.GetToken()
-            << " in position " << e.GetPos() << std::endl;
-        LOG0(L_DEBUG, msg.str());
-        throw;
-    }
+	// No way, let's evaluate it as a expression
+	p.SetExpr(eq);
+	try {
+		result = (float)p.Eval();
+	} catch (mu::Parser::exception_type& e) {
+		std::ostringstream msg;
+		msg << "Error evaluating \"" << e.GetExpr() << "\"" << std::endl;
+		LOG(L_WARNING, msg.str());
+		msg.str("");
+		msg << "\t" << e.GetMsg() << std::endl;
+		LOG0(L_DEBUG, msg.str());
+		msg.str("");
+		msg << "\tToken " << e.GetToken() << " in position " << e.GetPos()
+		    << std::endl;
+		LOG0(L_DEBUG, msg.str());
+		throw;
+	}
 
-    return result;
+	return result;
 }
 
-void Tokenizer::defaultVariables()
+void
+Tokenizer::defaultVariables()
 {
-    // Pi and e are registered variables out of the box
+	// Pi and e are registered variables out of the box
 }
 
-}  // namespace
+} // namespace

@@ -56,8 +56,8 @@
 #include <sphPrerequisites.h>
 #include <InputOutput/Particles.h>
 
-namespace Aqua{
-namespace InputOutput{
+namespace Aqua {
+namespace InputOutput {
 
 /** \class VTK VTK.h InputOutput/VTK.h
  * @brief VTK particles data files loader/saver.
@@ -91,90 +91,91 @@ namespace InputOutput{
  */
 class VTK : public Particles
 {
-public:
-    /** @brief Constructor
-     * @param sim_data Simulation data
-     * @param iset Particles set index.
-     * @param offset First particle managed by this saver/loader.
-     * @param n Number of particles managed by this saver/loader. If 0,
-     * the number of particles will be obtained from the input file (thus only
-     * valid for loaders)
-     */
-    VTK(ProblemSetup& sim_data,
-        unsigned int iset,
-        unsigned int offset,
-        unsigned int n=0);
+  public:
+	/** @brief Constructor
+	 * @param sim_data Simulation data
+	 * @param iset Particles set index.
+	 * @param offset First particle managed by this saver/loader.
+	 * @param n Number of particles managed by this saver/loader. If 0,
+	 * the number of particles will be obtained from the input file (thus only
+	 * valid for loaders)
+	 */
+	VTK(ProblemSetup& sim_data,
+	    unsigned int iset,
+	    unsigned int offset,
+	    unsigned int n = 0);
 
-    /// Destructor
-    ~VTK();
+	/// Destructor
+	~VTK();
 
-    /** @brief Save the data.
-     *
-     * @param t Simulation time
-     */
-    void save(float t);
+	/** @brief Save the data.
+	 *
+	 * @param t Simulation time
+	 */
+	void save(float t);
 
-    /** @brief Load the data.
-     */
-    void load();
+	/** @brief Load the data.
+	 */
+	void load();
 
-    /** @brief Wait for the parallel saving threads.
-     *
-     * VTK saver is launching parallel threads to save the data in an
-     * asynchronous way, significantly improving the performance. Therefore,
-     * AQUAgpusph shall wait them to finish before proceeding to destroy the
-     * data
-     */
-    void waitForSavers();
+	/** @brief Wait for the parallel saving threads.
+	 *
+	 * VTK saver is launching parallel threads to save the data in an
+	 * asynchronous way, significantly improving the performance. Therefore,
+	 * AQUAgpusph shall wait them to finish before proceeding to destroy the
+	 * data
+	 */
+	void waitForSavers();
 
-private:
-    /** @brief Compute the number of particles handled by this instance
-     * @return Number of particles
-     */
-    const unsigned int compute_n();
+  private:
+	/** @brief Compute the number of particles handled by this instance
+	 * @return Number of particles
+	 */
+	const unsigned int compute_n();
 
-    /** @brief Create a new file to write.
-     * @return The file handler, NULL if errors happened.
-     * @see Aqua::InputOutput::Particles::file(const char* basename,
-     *                                         unsigned int start_index,
-     *                                         unsigned int digits=5)
-     */
-    vtkXMLUnstructuredGridWriter* create();
+	/** @brief Create a new file to write.
+	 * @return The file handler, NULL if errors happened.
+	 * @see Aqua::InputOutput::Particles::file(const char* basename,
+	 *                                         unsigned int start_index,
+	 *                                         unsigned int digits=5)
+	 */
+	vtkXMLUnstructuredGridWriter* create();
 
-    /** @brief Create/Update the Paraview Data File.
-     *
-     * Such file is used to indicates Paraview the list of files which compose
-     * an animation, and the time instant of each one.
-     * @param t Simulation time
-     */
-    void updatePVD(float t);
+	/** @brief Create/Update the Paraview Data File.
+	 *
+	 * Such file is used to indicates Paraview the list of files which compose
+	 * an animation, and the time instant of each one.
+	 * @param t Simulation time
+	 */
+	void updatePVD(float t);
 
-    /** @brief Check if the Paraview Data File exist, creating it otherwise.
-     *
-     * Such file is used to indicates Paraview the list of files which compose
-     * an animation, and the time instant of each one.
-     * @param generate true if the file should be generated in case it does not
-     * exist, false if the document should be associated to an existing file.
-     * @return The document object. NULL if the file cannot be open/generated
-     */
-    xercesc::DOMDocument* getPVD(bool generate=true);
+	/** @brief Check if the Paraview Data File exist, creating it otherwise.
+	 *
+	 * Such file is used to indicates Paraview the list of files which compose
+	 * an animation, and the time instant of each one.
+	 * @param generate true if the file should be generated in case it does not
+	 * exist, false if the document should be associated to an existing file.
+	 * @return The document object. NULL if the file cannot be open/generated
+	 */
+	xercesc::DOMDocument* getPVD(bool generate = true);
 
-    /** @brief PVD file name
-     * @return the PVD file name
-     */
-    const std::string filenamePVD();
+	/** @brief PVD file name
+	 * @return the PVD file name
+	 */
+	const std::string filenamePVD();
 
-    /// Next output file index
-    unsigned int _next_file_index;
+	/// Next output file index
+	unsigned int _next_file_index;
 
-    /// PVD file name
-    std::string _namePVD;
+	/// PVD file name
+	std::string _namePVD;
 
-    /// Launched threads ids
-    std::vector<pthread_t> _tids;
+	/// Launched threads ids
+	std::vector<pthread_t> _tids;
 
-};  // class InputOutput
+}; // class InputOutput
 
-}}  // namespaces
+}
+} // namespaces
 
 #endif // VTK_H_INCLUDED

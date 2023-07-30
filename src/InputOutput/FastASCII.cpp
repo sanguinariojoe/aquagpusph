@@ -29,84 +29,83 @@
 #include <AuxiliarMethods.h>
 
 #ifndef MAX_LINE_LEN
-    #define MAX_LINE_LEN 1024
+#define MAX_LINE_LEN 1024
 #endif // MAX_LINE_LEN
 
-namespace Aqua{ namespace InputOutput{
+namespace Aqua {
+namespace InputOutput {
 
 FastASCII::FastASCII(ProblemSetup& sim_data,
                      unsigned int iset,
                      unsigned int first,
                      unsigned int n)
-    : ASCII(sim_data, iset, first, n)
+  : ASCII(sim_data, iset, first, n)
 {
 }
 
-FastASCII::~FastASCII()
+FastASCII::~FastASCII() {}
+
+std::string
+FastASCII::readField(const std::string field,
+                     const std::string line,
+                     unsigned int index,
+                     void* data)
 {
+	unsigned int i;
+	Variables* vars = CalcServer::CalcServer::singleton()->variables();
+	ArrayVariable* var = (ArrayVariable*)vars->get(field);
+
+	// Extract the variable type data
+	unsigned int n = vars->typeToN(var->type());
+	size_t type_size = vars->typeToBytes(var->type());
+	std::string type = trimCopy(var->type());
+	if (type.back() == '*') {
+		type.pop_back();
+	}
+
+	// Point to the chunk of data to become read
+	void* ptr = (void*)((char*)data + type_size * index);
+
+	std::string remaining = line;
+	for (i = 0; i < n; i++) {
+		std::string::size_type end_pos;
+		try {
+			if (!type.compare("unsigned int") ||
+			    (type.find("uivec") != std::string::npos)) {
+				unsigned int val =
+				    (unsigned int)std::stoul(remaining, &end_pos);
+				memcpy(ptr, &val, sizeof(unsigned int));
+			} else if (!type.compare("int") ||
+			           (type.find("ivec") != std::string::npos)) {
+				int val = std::stoi(remaining, &end_pos);
+				memcpy(ptr, &val, sizeof(int));
+			} else {
+				float val = std::stof(remaining, &end_pos);
+				memcpy(ptr, &val, sizeof(int));
+			}
+		} catch (const std::invalid_argument& e) {
+			std::ostringstream msg;
+			msg << "Cannot extract a number from \"" << remaining
+			    << "\" string." << std::endl;
+			LOG(L_ERROR, msg.str());
+			throw;
+		} catch (const std::out_of_range& e) {
+			std::ostringstream msg;
+			msg << "The number extracted from \"" << remaining
+			    << "\" string overflows \"" << type << "\" type." << std::endl;
+			LOG(L_ERROR, msg.str());
+			throw;
+		}
+
+		// Go to the next field, we already asserted that there are fields
+		// enough, so we don't need to care about that
+		ptr = ((char*)ptr) + type_size / n;
+		remaining = remaining.substr(end_pos);
+		if (remaining.find(',') != std::string::npos)
+			remaining = remaining.substr(remaining.find(',') + 1);
+	}
+	return remaining;
 }
 
-std::string FastASCII::readField(const std::string field,
-                                 const std::string line,
-                                 unsigned int index,
-                                 void* data)
-{
-    unsigned int i;
-    Variables *vars = CalcServer::CalcServer::singleton()->variables();
-    ArrayVariable *var = (ArrayVariable*)vars->get(field);
-
-    // Extract the variable type data
-    unsigned int n = vars->typeToN(var->type());
-    size_t type_size = vars->typeToBytes(var->type());
-    std::string type = trimCopy(var->type());
-    if (type.back() == '*') {
-        type.pop_back();
-    }
-
-    // Point to the chunk of data to become read
-    void* ptr = (void*)((char*)data + type_size * index);
-
-    std::string remaining = line;
-    for(i = 0; i < n; i++){
-        std::string::size_type end_pos;
-        try {
-            if(!type.compare("unsigned int") ||
-            (type.find("uivec") != std::string::npos)){
-                unsigned int val = (unsigned int)std::stoul(remaining, &end_pos);
-                memcpy(ptr, &val, sizeof(unsigned int));
-            }
-            else if(!type.compare("int") ||
-            (type.find("ivec") != std::string::npos)){
-                int val = std::stoi(remaining, &end_pos);
-                memcpy(ptr, &val, sizeof(int));
-            }
-            else{
-                float val = std::stof(remaining, &end_pos);
-                memcpy(ptr, &val, sizeof(int));
-            }
-        } catch(const std::invalid_argument& e) {
-            std::ostringstream msg;
-            msg << "Cannot extract a number from \"" << remaining
-                << "\" string." << std::endl;
-            LOG(L_ERROR, msg.str());
-            throw;
-        } catch(const std::out_of_range & e) {
-            std::ostringstream msg;
-            msg << "The number extracted from \"" << remaining
-                << "\" string overflows \""
-                << type << "\" type." << std::endl;
-            LOG(L_ERROR, msg.str());                
-            throw;
-        }
-
-        // Go to the next field, we already asserted that there are fields
-        // enough, so we don't need to care about that
-        ptr = ((char*)ptr) + type_size / n;
-        remaining = remaining.substr(end_pos);
-        if (remaining.find(',') != std::string::npos)
-            remaining = remaining.substr(remaining.find(',') + 1);
-    }
-    return remaining;
 }
-
-}}  // namespace
+} // namespace

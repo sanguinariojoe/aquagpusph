@@ -27,31 +27,31 @@
 #include <InputOutput/Report.h>
 #include <AuxiliarMethods.h>
 
-namespace Aqua{ namespace InputOutput{
+namespace Aqua {
+namespace InputOutput {
 
-Report::Report()
+Report::Report() {}
+
+Report::~Report() {}
+
+void
+Report::file(std::string filename)
 {
+	_output_file = filename;
 }
 
-Report::~Report()
+void
+Report::file(std::string basename, unsigned int start_index)
 {
+	try {
+		file(newFilePath(basename, start_index));
+	} catch (std::invalid_argument e) {
+		file(setStrConstantsCopy(basename));
+		std::ostringstream msg;
+		msg << "Overwriting file '" << file() << "'" << std::endl;
+		LOG(L_WARNING, msg.str());
+	}
 }
 
-void Report::file(std::string filename)
-{
-    _output_file = filename;
 }
-
-void Report::file(std::string basename, unsigned int start_index)
-{
-    try {
-        file(newFilePath(basename, start_index));
-    } catch(std::invalid_argument e){
-        file(setStrConstantsCopy(basename));
-        std::ostringstream msg;
-        msg << "Overwriting file '" << file() << "'" << std::endl;
-        LOG(L_WARNING, msg.str());
-    }
-}
-
-}}  // namespace
+} // namespace

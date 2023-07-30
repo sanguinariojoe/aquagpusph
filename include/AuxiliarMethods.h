@@ -27,95 +27,104 @@
 #include <string>
 #include <vector>
 
-namespace Aqua{
+namespace Aqua {
 
 /// Returns if a key press event has been registered.
 /**
  * @return 0 if no keys have been pressed, 1 otherwise.
  */
-int isKeyPressed();
+int
+isKeyPressed();
 
 /** @brief Check if a string starts with an specific prefix
- * 
+ *
  * @param str String to be checked
  * @param prefix Prefix to be looked for
  * @return true if #str starts with #prefix, false otherwise.
  */
-bool hasPrefix(const std::string &str, const std::string &prefix);
+bool
+hasPrefix(const std::string& str, const std::string& prefix);
 
 /** @brief Check if a string ends with an specific suffix
- * 
+ *
  * @param str String to be checked
  * @param suffix Suffix to be looked for
  * @return true if #str ends with #suffix, false otherwise.
  */
-bool hasSuffix(const std::string &str, const std::string &suffix);
+bool
+hasSuffix(const std::string& str, const std::string& suffix);
 
 /** @brief Replace all substring occurrences by another substring
- * 
+ *
  * @param str String to be modified
  * @param search Substring to be replaced
  * @param replace Replacement substring
  */
-void replaceAll(std::string &str,
-                const std::string &search,
-                const std::string &replace);
+void
+replaceAll(std::string& str,
+           const std::string& search,
+           const std::string& replace);
 
 /** @brief Replace all substring occurrences by another substring
- * 
+ *
  * @param str String to be modified
  * @param search Substring to be replaced
  * @param replace Replacement substring
  * @return Modified string
  */
-std::string replaceAllCopy(std::string str,
-                           std::string search,
-                           std::string replace);
+std::string
+replaceAllCopy(std::string str, std::string search, std::string replace);
 
 /** @brief Remove all the blank spaces (including line breaks, tabulators...)
  * string prefix.
- * 
+ *
  * @param s String to become trimmed
  */
-void ltrim(std::string &s);
+void
+ltrim(std::string& s);
 
 /** @brief Remove all the blank spaces (including line breaks, tabulators...)
  * string suffix.
- * 
+ *
  * @param s String to become trimmed
  */
-void rtrim(std::string &s);
+void
+rtrim(std::string& s);
 
 /** @brief Remove all the blank spaces (including line breaks, tabulators...)
  * string prefix and suffix.
- * 
+ *
  * @param s String to become trimmed
  */
-void trim(std::string &s);
+void
+trim(std::string& s);
 
 /** @brief Remove all the blank spaces (including line breaks, tabulators...)
  * string suffix.
- * 
+ *
  * @param s String to become trimmed
  * @return Trimmed string
  */
-std::string ltrimCopy(std::string s);
+std::string
+ltrimCopy(std::string s);
 
 /** @brief Remove all the blank spaces (including line breaks, tabulators...)
  * string suffix.
- * 
+ *
  * @param s String to become trimmed
  * @return Trimmed string
  */
-std::string rtrimCopy(std::string s);
+std::string
+rtrimCopy(std::string s);
 
 /** @brief Remove all the blank spaces (including line breaks, tabulators...)
  * string prefix and suffix.
- * 
+ *
  * @param s String to become trimmed
  * @return Trimmed string
  */
-std::string trimCopy(std::string s);
+std::string
+trimCopy(std::string s);
 
 /** @brief Transform a xxd exported file into a C++ string.
  *
@@ -123,21 +132,24 @@ std::string trimCopy(std::string s);
  * means of an include statement. However, the data is exported as a non-null
  * terminated char array and its length.
  * This method is appending the null character, and building a C++ string
- * 
+ *
  * @param arr C-Like chars array
  * @param len C-Like chars array length
  * @return C++ string
  */
-std::string xxd2string(unsigned char* arr, unsigned int len);
+std::string
+xxd2string(unsigned char* arr, unsigned int len);
 
 /** @brief Convert a string to lower case
  */
-void toLower(std::string &str);
+void
+toLower(std::string& str);
 
 /** @brief Convert a string to lower case
  * @return Modified string
  */
-std::string toLowerCopy(std::string str);
+std::string
+toLowerCopy(std::string str);
 
 /** @brief Set several constants into a string
  *
@@ -147,7 +159,8 @@ std::string toLowerCopy(std::string str);
  *
  * @param str The string where constants shall be set
  */
-void setStrConstants(std::string &str);
+void
+setStrConstants(std::string& str);
 
 /** @brief Set several constants into a string
  *
@@ -158,14 +171,16 @@ void setStrConstants(std::string &str);
  * @param str The string where constants shall be set
  * @return The modified string
  */
-std::string setStrConstantsCopy(std::string str);
+std::string
+setStrConstantsCopy(std::string str);
 
 /** @brief Split a string by a character
  * @param str String to be split
  * @param chr Splitting cahracter
  * @return List of substrings
  */
-std::vector<std::string> split(std::string str, char chr);
+std::vector<std::string>
+split(std::string str, char chr);
 
 /** @brief Split a list of split_formulae
  *
@@ -176,7 +191,8 @@ std::vector<std::string> split(std::string str, char chr);
  * @param str String within formulae
  * @return List of formulae string
  */
-std::vector<std::string> split_formulae(std::string str);
+std::vector<std::string>
+split_formulae(std::string str);
 
 /** @brief Look for a file path which is not already taken
  *
@@ -194,13 +210,14 @@ std::vector<std::string> split_formulae(std::string str);
  * stored in this variable.
  * @return The available file path
  * @note In case overwriting files is allowed, you can call this method with a
- * try, catching std::invalid_argument exception. If exception 
+ * try, catching std::invalid_argument exception. If exception
  * std::invalid_argument is eventually raised, you can call
  * setStrConstantsCopy()
  */
-std::string newFilePath(const std::string &basename,
-                        unsigned int &i,
-                        unsigned int digits=5);
+std::string
+newFilePath(const std::string& basename,
+            unsigned int& i,
+            unsigned int digits = 5);
 
 /// Next number which is power of 2.
 /** Compute a value which, being power of two, is greater or equal than
@@ -210,7 +227,8 @@ std::string newFilePath(const std::string &basename,
  * @return Next value which is power of two (it can be the same input value
  * @paramname{x}).
  */
-unsigned int nextPowerOf2(unsigned int x);
+unsigned int
+nextPowerOf2(unsigned int x);
 
 /// Check if a number is power of 2.
 /** Compute if a value is power of 2.
@@ -218,7 +236,8 @@ unsigned int nextPowerOf2(unsigned int x);
  * @param x Value to test.
  * @return 1 if it is a power of two, 0 otherwise.
  */
-unsigned int isPowerOf2(unsigned int x);
+unsigned int
+isPowerOf2(unsigned int x);
 
 /// Rounded up value which is divisible by @paramname{divisor}.
 /** Compute a value, which being divisible by @paramname{divisor}, is greater
@@ -228,27 +247,31 @@ unsigned int isPowerOf2(unsigned int x);
  * @param divisor Divisor.
  * @return Rounded up number.
  */
-unsigned int roundUp(unsigned int x, unsigned int divisor);
+unsigned int
+roundUp(unsigned int x, unsigned int divisor);
 
 /** @brief Round an float value to an integer one.
  * @param n Number to round.
  * @return The closest integer to @paramname{n}.
  */
-int round(float n);
+int
+round(float n);
 
 /// Gets the folder path which contains the file @paramname{file_path}.
 /**
  * @param file_path The file path.
  * @return The folder.
  */
-const std::string getFolderFromFilePath(const std::string file_path);
+const std::string
+getFolderFromFilePath(const std::string file_path);
 
 /// Gets the file name of the path @paramname{file_path}.
 /**
  * @param file_path The file path.
  * @return The file name.
  */
-const std::string getFileNameFromFilePath(const std::string file_path);
+const std::string
+getFileNameFromFilePath(const std::string file_path);
 
 /// Gets the file extension.
 /** Get the file extension from the full file path @paramname{file_path}.
@@ -256,21 +279,24 @@ const std::string getFileNameFromFilePath(const std::string file_path);
  * @param file_path The file path.
  * @return Extension of the file.
  */
-const std::string getExtensionFromFilePath(const std::string file_path);
+const std::string
+getExtensionFromFilePath(const std::string file_path);
 
 /** @brief Check if the file @paramname{file_name} exist on the system.
  *
  * @param file_name The file path.
  * @return false if the file can not be found in the system, true otherwise.
  */
-bool isFile(const std::string file_name);
+bool
+isFile(const std::string file_name);
 
 /** @brief Check if the path @paramname{path} is a relative or an absolute one.
  *
  * @param path The path.
  * @return true if it is a relative path, false otherwise.
  */
-bool isRelativePath(const std::string path);
+bool
+isRelativePath(const std::string path);
 
 /// Compute the maximum local work size allowed by a device.
 /**
@@ -278,7 +304,8 @@ bool isRelativePath(const std::string path);
  * @param queue Command queue.
  * @return The local work size, 0 if it is not possible to find a valid value.
  */
-size_t getLocalWorkSize(cl_uint n, cl_command_queue queue);
+size_t
+getLocalWorkSize(cl_uint n, cl_command_queue queue);
 
 /// Compute the global work size needed to compute @paramname{n} threads.
 /**
@@ -288,7 +315,8 @@ size_t getLocalWorkSize(cl_uint n, cl_command_queue queue);
  *
  * @see roundUp()
  */
-size_t getGlobalWorkSize(cl_uint n, size_t local_work_size);
+size_t
+getGlobalWorkSize(cl_uint n, size_t local_work_size);
 
 /// Gets the minimum of two values.
 /**
@@ -296,7 +324,12 @@ size_t getGlobalWorkSize(cl_uint n, size_t local_work_size);
  * @param b Second value.
  * @return Minimum value.
  */
-template <typename T> inline T min(T a, T b){return (a>b)?b:a;}
+template<typename T>
+inline T
+min(T a, T b)
+{
+	return (a > b) ? b : a;
+}
 
 /// Gets the maximum of two values.
 /**
@@ -304,7 +337,12 @@ template <typename T> inline T min(T a, T b){return (a>b)?b:a;}
  * @param b Second value.
  * @return Maximum value.
  */
-template <typename T> inline T max(T a, T b){return (a<b)?b:a;}
+template<typename T>
+inline T
+max(T a, T b)
+{
+	return (a < b) ? b : a;
+}
 
 /// Clamps a value between the bounds.
 /**
@@ -313,25 +351,32 @@ template <typename T> inline T max(T a, T b){return (a<b)?b:a;}
  * @param b Maximum value.
  * @return Clamped value.
  */
-inline float clamp(float x, float a, float b){return x < a ? a : (x > b ? b : x);}
+inline float
+clamp(float x, float a, float b)
+{
+	return x < a ? a : (x > b ? b : x);
+}
 
 /// Return a null vector.
 /**
  * @return zeroes vector.
  */
-vec Vzero();
+vec
+Vzero();
 
 /// Return the x direction unit vector.
 /**
  * @return x direction unit vector.
  */
-vec Vx();
+vec
+Vx();
 
 /// Return the y direction unit vector.
 /**
  * @return y direction unit vector.
  */
-vec Vy();
+vec
+Vy();
 
 #ifdef HAVE_3D
 /// Return the z direction unit vector.
@@ -339,7 +384,8 @@ vec Vy();
  * @remarks Only available in the 3D version.
  * @return z direction unit vector.
  */
-vec Vz();
+vec
+Vz();
 #endif
 
 /// Multiply a vector by a scalar.
@@ -348,7 +394,8 @@ vec Vz();
  * @param v Vector to operate.
  * @return @paramname{n} \f$ \cdot \f$ @paramname{v} Resulting vector.
  */
-vec mult(float n, vec v);
+vec
+mult(float n, vec v);
 
 /// Adding operation.
 /**
@@ -356,7 +403,8 @@ vec mult(float n, vec v);
  * @param b Vector to operate.
  * @return @paramname{a} + @paramname{b}.
  */
-vec add(vec a, vec b);
+vec
+add(vec a, vec b);
 
 /// Subtracting operation.
 /**
@@ -364,7 +412,8 @@ vec add(vec a, vec b);
  * @param b Vector to operate.
  * @return @paramname{a} - @paramname{b}.
  */
-vec sub(vec a, vec b);
+vec
+sub(vec a, vec b);
 
 /// Inner product.
 /**
@@ -372,14 +421,16 @@ vec sub(vec a, vec b);
  * @param b Vector to operate.
  * @return @paramname{a} \f$ \cdot \f$ @paramname{b} scalar product value.
  */
-float dot(vec a, vec b);
+float
+dot(vec a, vec b);
 
 /// Compute the vector length.
 /**
  * @param v Input vector.
  * @return \f$ \vert \f$ @paramname{v} \f$ \vert \f$ vector length.
  */
-float length(vec v);
+float
+length(vec v);
 
 /// Compute a normalized vector copy (such that length() will return 1.0.
 /**
@@ -388,7 +439,8 @@ float length(vec v);
  *
  * @see length()
  */
-vec normalize(vec v);
+vec
+normalize(vec v);
 
 #ifdef HAVE_3D
 /// Cross product.
@@ -398,7 +450,8 @@ vec normalize(vec v);
  * @param b Vector to operate.
  * @return @paramname{a} \f$ \times \f$ @paramname{b} crossed product vector.
  */
-vec cross(vec a, vec b);
+vec
+cross(vec a, vec b);
 #endif
 
 /// Get the number of digits of an integer decimal text representation.
@@ -406,8 +459,9 @@ vec cross(vec a, vec b);
  * @param number Number from which the number of digits should be computed.
  * @return Number of digits.
  */
-unsigned int numberOfDigits(unsigned int number);
+unsigned int
+numberOfDigits(unsigned int number);
 
-}   // namespace
+} // namespace
 
 #endif // AUXILIARMETHODS_H_INCLUDED

@@ -27,53 +27,55 @@
 #include <CalcServer.h>
 #include <CalcServer/Tool.h>
 
-namespace Aqua{ namespace CalcServer{
+namespace Aqua {
+namespace CalcServer {
 
 /** @class SetScalar SetScalar.h CalcServer/SetScalar.h
  * @brief Set a scalar variable.
  */
 class SetScalar : public Aqua::CalcServer::Tool
 {
-public:
-    /** @brief Constructor.
-     * @param name Tool name.
-     * @param var_name Variable to set.
-     * @param value Value to set.
-     * @param once Run this tool just once. Useful to make initializations.
-     */
-    SetScalar(const std::string name,
-              const std::string var_name,
-              const std::string value,
-              bool once=false);
+  public:
+	/** @brief Constructor.
+	 * @param name Tool name.
+	 * @param var_name Variable to set.
+	 * @param value Value to set.
+	 * @param once Run this tool just once. Useful to make initializations.
+	 */
+	SetScalar(const std::string name,
+	          const std::string var_name,
+	          const std::string value,
+	          bool once = false);
 
-    /// Destructor.
-    ~SetScalar();
+	/// Destructor.
+	~SetScalar();
 
-    /** @brief Initialize the tool.
-     */
-    void setup();
+	/** @brief Initialize the tool.
+	 */
+	void setup();
 
-protected:
-    /** Execute the tool
-     * @param events List of events that shall be waited before safe execution
-     * @return OpenCL event to be waited before accessing the dependencies
-     */
-    cl_event _execute(const std::vector<cl_event> events);
+  protected:
+	/** Execute the tool
+	 * @param events List of events that shall be waited before safe execution
+	 * @return OpenCL event to be waited before accessing the dependencies
+	 */
+	cl_event _execute(const std::vector<cl_event> events);
 
-private:
-    /** @brief Get the input variable
-     */
-    void variable();
+  private:
+	/** @brief Get the input variable
+	 */
+	void variable();
 
-    /// Input variable name
-    std::string _var_name;
-    /// Value to set
-    std::string _value;
+	/// Input variable name
+	std::string _var_name;
+	/// Value to set
+	std::string _value;
 
-    /// Input variable
-    InputOutput::Variable *_var;
+	/// Input variable
+	InputOutput::Variable* _var;
 };
 
-}}  // namespace
+}
+} // namespace
 
 #endif // SETSCALAR_H_INCLUDED

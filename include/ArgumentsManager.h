@@ -27,14 +27,19 @@
 #include <sphPrerequisites.h>
 #include <FileManager.h>
 
-namespace Aqua{ namespace InputOutput{ namespace CommandLineArgs{
+namespace Aqua {
+namespace InputOutput {
+namespace CommandLineArgs {
 
 /** @brief Parse the command line arguments.
  *
  * @return false if the excution must continue, true otherwise.
  */
-void parse(int argc, char **argv, FileManager &file_manager);
-    
-}}}  // namespace
+void
+parse(int argc, char** argv, FileManager& file_manager);
+
+}
+}
+} // namespace
 
 #endif // ARGUMENTSMANAGER_H_INCLUDED

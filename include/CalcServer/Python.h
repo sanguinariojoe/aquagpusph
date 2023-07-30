@@ -28,7 +28,8 @@
 #include <CalcServer.h>
 #include <CalcServer/Tool.h>
 
-namespace Aqua{ namespace CalcServer{
+namespace Aqua {
+namespace CalcServer {
 
 /** @class Python Python.h CalcServer/Python.h
  * @brief Execute a Python script.
@@ -41,52 +42,53 @@ namespace Aqua{ namespace CalcServer{
  */
 class Python : public Aqua::CalcServer::Tool
 {
-public:
-    /** @brief Constructor.
-     * @param tool_name Tool name.
-     * @param script Python script path.
-     * @param once Run this tool just once. Useful to make initializations.
-     */
-    Python(const std::string tool_name,
-           const std::string script,
-           bool once=false);
+  public:
+	/** @brief Constructor.
+	 * @param tool_name Tool name.
+	 * @param script Python script path.
+	 * @param once Run this tool just once. Useful to make initializations.
+	 */
+	Python(const std::string tool_name,
+	       const std::string script,
+	       bool once = false);
 
-    /// Destructor.
-    ~Python();
+	/// Destructor.
+	~Python();
 
-    /** @brief Initialize the tool.
-     */
-    void setup();
+	/** @brief Initialize the tool.
+	 */
+	void setup();
 
-protected:
-    /** Execute the tool
-     * @param events List of events that shall be waited before safe execution
-     * @return OpenCL event to be waited before accesing the dependencies
-     */
-    cl_event _execute(const std::vector<cl_event> events);
+  protected:
+	/** Execute the tool
+	 * @param events List of events that shall be waited before safe execution
+	 * @return OpenCL event to be waited before accesing the dependencies
+	 */
+	cl_event _execute(const std::vector<cl_event> events);
 
-    /** @brief Initialize the Python interpreter.
-     *
-     * This method is safely creating the Python environment just one time,
-     * adding the execution folder to the system path (in order to import
-     * modules).
-     */
-    void initPython();
+	/** @brief Initialize the Python interpreter.
+	 *
+	 * This method is safely creating the Python environment just one time,
+	 * adding the execution folder to the system path (in order to import
+	 * modules).
+	 */
+	void initPython();
 
-    /** @brief Load the script and extract the callable function.
-     */
-    void load();
+	/** @brief Load the script and extract the callable function.
+	 */
+	void load();
 
-private:
-    /// Script path
-    std::string _script;
+  private:
+	/// Script path
+	std::string _script;
 
-    /// Python module object
-    PyObject *_module;
-    /// Python function to be called
-    PyObject *_func;
+	/// Python module object
+	PyObject* _module;
+	/// Python function to be called
+	PyObject* _func;
 };
 
-}}  // namespace
+}
+} // namespace
 
 #endif // PYTHON_H_INCLUDED
