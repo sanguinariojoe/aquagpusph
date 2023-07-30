@@ -298,6 +298,7 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
             _tools.push_back(tool);
         }
         else if(!t->get("type").compare("mpi-sync")){
+#ifdef HAVE_MPI
             std::vector<std::string> fields = split(
                 replaceAllCopy(t->get("fields"), " ", ""),
                 ',');
@@ -319,6 +320,10 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
                                         procs,
                                         once);
             _tools.push_back(tool);
+#else
+            LOG(L_ERROR, "AQUAgpusph has been compiled without MPI support\n");
+            LOG0(L_DEBUG, "Tools of type 'mpi-sync' cannot be considered");
+#endif
         }
         else if(!t->get("type").compare("installable")){
             void* handle = dlopen(t->get("path").c_str(), RTLD_LAZY);
