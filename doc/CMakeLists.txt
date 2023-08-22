@@ -2,10 +2,10 @@
 # Doxygen configuration file                            #
 # ===================================================== #
 # Included source directories
-SET(DOXYGEN_SOURCE_DIR 
+SET(DOXYGEN_SOURCE_DIR
 	${CMAKE_SOURCE_DIR}/src
 	${CMAKE_SOURCE_DIR}/include
-	${CMAKE_SOURCE_DIR}/resources/OpenCL
+	${CMAKE_SOURCE_DIR}/resources
 )
 STRING(REGEX REPLACE ";" " " DOXYGEN_INPUT_LIST "${DOXYGEN_SOURCE_DIR}")
 
@@ -20,7 +20,7 @@ SET(DOXYGEN_IMAGE_PATH )
 SET(DOXYGEN_LAYOUT_FILE )
 
 # Configuration file
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/Doxyfile.in  
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cMake/Doxyfile.in
 	${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 
 # ===================================================== #
