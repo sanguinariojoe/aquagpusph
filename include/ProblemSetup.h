@@ -130,6 +130,19 @@ class ProblemSetup
 		 */
 		bool save_on_fail;
 
+		/** @brief Setup the tools debugging mode
+		 *
+		 * On the tools debugging mode the tools are executed one by one, while
+		 * they are logged. No tool is launched until the previous one
+		 * finished.
+		 * This obviously has a quite negative impact on the performance, but
+		 * can be of use to find the tool which is causing issues.
+		 *
+		 * You can enable the tools debugging with the following tag:
+		 * `<DebugTools value="true" />`
+		 */
+		bool debug_tools;
+
 		/** @brief AQUAgpusph root path.
 		 *
 		 * Usually this option is automatically set by the basic module, using

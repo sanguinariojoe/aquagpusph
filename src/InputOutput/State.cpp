@@ -319,6 +319,18 @@ State::parseSettings(DOMElement* root,
 				sim_data.settings.save_on_fail = false;
 			}
 		}
+		s_nodes = elem->getElementsByTagName(xmlS("DebugTools"));
+		for (XMLSize_t j = 0; j < s_nodes->getLength(); j++) {
+			DOMNode* s_node = s_nodes->item(j);
+			if (s_node->getNodeType() != DOMNode::ELEMENT_NODE)
+				continue;
+			DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+			if (!toLowerCopy(xmlAttribute(s_elem, "value")).compare("true")) {
+				sim_data.settings.debug_tools = true;
+			} else {
+				sim_data.settings.debug_tools = false;
+			}
+		}
 
 		s_nodes = elem->getElementsByTagName(xmlS("RootPath"));
 		for (XMLSize_t j = 0; j < s_nodes->getLength(); j++) {

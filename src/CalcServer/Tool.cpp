@@ -73,6 +73,12 @@ Tool::execute()
 	gettimeofday(&tic, NULL);
 
 	// Launch the tool
+	CalcServer* C = CalcServer::singleton();
+	if (C->debug_mode()) {
+		std::stringstream msg;
+		msg << "Executing \"" << name() << "\"..." << std::endl;
+		LOG(L_DEBUG, msg.str());
+	}
 	std::vector<cl_event> events = getEvents();
 	cl_event event = _execute(events);
 
@@ -106,6 +112,34 @@ Tool::execute()
 			InputOutput::Logger::singleton()->printOpenCLError(err_code);
 			throw std::runtime_error("OpenCL execution error");
 		}
+	}
+
+	if (C->debug_mode()) {
+		if (event != NULL) {
+			err_code = clWaitForEvents(1, &event);
+			if (err_code != CL_SUCCESS) {
+				std::stringstream msg;
+				msg << "Failure waiting for \"" << name() << "\" event."
+				    << std::endl;
+				LOG(L_ERROR, msg.str());
+				InputOutput::Logger::singleton()->printOpenCLError(err_code);
+				throw std::runtime_error("OpenCL execution error");
+			}
+		}
+		err_code = clFinish(C->command_queue());
+		if (err_code == CL_SUCCESS)
+			err_code = clFinish(C->command_queue(true));
+		if (err_code != CL_SUCCESS) {
+			std::stringstream msg;
+			msg << "Failure calling clFinish() after launching \"" << name()
+				<< "\"." << std::endl;
+			LOG(L_ERROR, msg.str());
+			InputOutput::Logger::singleton()->printOpenCLError(err_code);
+			throw std::runtime_error("OpenCL execution error");
+		}
+		std::stringstream msg;
+		msg << "\"" << name() << "\" finished" << std::endl;
+		LOG(L_DEBUG, msg.str());
 	}
 
 	gettimeofday(&tac, NULL);

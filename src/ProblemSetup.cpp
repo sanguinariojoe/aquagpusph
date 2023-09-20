@@ -81,10 +81,9 @@ ProblemSetup::~ProblemSetup()
 
 ProblemSetup::sphSettings::sphSettings()
   : save_on_fail(true)
+  , debug_tools(false)
   , base_path("")
 {
-	save_on_fail = true;
-	base_path = "";
 }
 
 void

@@ -167,7 +167,7 @@ class CalcServer : public Aqua::Singleton<Aqua::CalcServer::CalcServer>
 		return _command_queue;
 	}
 
-	/** Download a unsorted variable from the device.
+	/** @brief Download a unsorted variable from the device.
 	 * @param var_name Variable to unsort and download.
 	 * @param offset The offset in bytes in the memory object to read from.
 	 * @param cb The size in bytes of data being downloaded.
@@ -188,6 +188,11 @@ class CalcServer : public Aqua::Singleton<Aqua::CalcServer::CalcServer>
 	 */
 	const std::string base_path() const { return _base_path.c_str(); }
 
+	/** @brief Report if the tools debug mode is enabled.
+	 * @see Aqua::InputOutput::ProblemSetup::sphSettings::debug_tools
+	 * @return true if the tools debug mode is enabled, false otherwise
+	 */
+	inline bool debug_mode() const { return _sim_data.settings.debug_tools; }
   private:
 	/** Setup the OpenCL stuff.
 	 */
