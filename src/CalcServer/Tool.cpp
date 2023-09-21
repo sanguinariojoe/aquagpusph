@@ -61,6 +61,20 @@ Tool::setup()
 	return;
 }
 
+void CL_CALLBACK exec_status_check(cl_event event,
+                                   cl_int event_command_status,
+                                   void* user_data)
+{
+	clReleaseEvent(event);
+	if (event_command_status == CL_COMPLETE)
+		return;
+	std::string name = *((std::string*)user_data);
+	std::stringstream msg;
+	msg << "Tool \"" << name << "\" exited with the error code "
+	    << event_command_status << "." << std::endl;
+	LOG(L_ERROR, msg.str());
+}
+
 void
 Tool::execute()
 {
@@ -89,12 +103,17 @@ Tool::execute()
 			(*it)->setEvent(event);
 		}
 
-		// Release the event now that it is retained by its users
-		err_code = clReleaseEvent(event);
+		// Check for errors when the event is marked as completed
+		// NOTE: clReleaseEvent() will be called on the callback, so no need to
+		// do it here
+		err_code = clSetEventCallback(event,
+		                              CL_COMPLETE,
+		                              exec_status_check,
+		                              &_name);
 		if (err_code != CL_SUCCESS) {
 			std::stringstream msg;
-			msg << "Failure releasing the new event in tool \"" << name()
-			    << "\"." << std::endl;
+			msg << "Failure registering the CL_COMPLETE callback in tool \""
+			    << name() << "\"." << std::endl;
 			LOG(L_ERROR, msg.str());
 			InputOutput::Logger::singleton()->printOpenCLError(err_code);
 			throw std::runtime_error("OpenCL execution error");
