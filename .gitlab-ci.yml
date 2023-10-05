@@ -1,0 +1,54 @@
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+
+stages:
+  - build_and_test
+
+compile-and-test-2D:
+  image: "ubuntu:latest"
+  stage: build_and_test
+  before_script:
+    - sudo apt-get -qq update
+    - sudo apt-get -qq install -y build-essential git cmake
+    - sudo apt-get -qq install -y python3-numpy python3-dev python-is-python3
+    - sudo apt-get -qq install -y libxerces-c-dev libmuparser-dev
+    - sudo apt-get -qq install -y libopenmpi-dev
+    - sudo apt-get -qq install -y llvm-dev clang libclang-dev
+    - sudo apt-get -qq install -y ocl-icd-opencl-dev pocl-opencl-icd
+    - mkdir -p build2D
+    - mkdir -p install2D
+  script:
+    - cmake -B build2D/ -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=install2D -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DAQUAGPUSPH_3D:BOOL=OFF -DAQUAGPUSPH_USE_MPI:BOOL=ON -DAQUAGPUSPH_USE_VTK:BOOL=ON -DBUILD_TESTING=ON
+    - cmake --build build2D/ --config Release
+    - cmake --install build2D/ --config Release
+    - cd build2D
+    - ctest -C Release
+  artifacts:
+    paths:
+      - build2D/
+      - install2D/
+
+compile-and-test-3D:
+  image: "ubuntu:latest"
+  stage: build_and_test
+  before_script:
+    - sudo apt-get -qq update
+    - sudo apt-get -qq install -y build-essential git cmake
+    - sudo apt-get -qq install -y python3-numpy python3-dev python-is-python3
+    - sudo apt-get -qq install -y libxerces-c-dev libmuparser-dev
+    - sudo apt-get -qq install -y libopenmpi-dev
+    - sudo apt-get -qq install -y llvm-dev clang libclang-dev
+    - sudo apt-get -qq install -y ocl-icd-opencl-dev pocl-opencl-icd
+    - mkdir -p build3D
+    - mkdir -p install3D
+  script:
+    - cmake -B build3D/ -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=install3D -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DAQUAGPUSPH_3D:BOOL=ON -DAQUAGPUSPH_USE_MPI:BOOL=ON -DAQUAGPUSPH_USE_VTK:BOOL=ON -DBUILD_TESTING=ON
+    - cmake --build build3D/ --config Release
+    - cmake --install build3D/ --config Release
+    - cd build3D
+    - ctest -C Release
+  artifacts:
+    paths:
+      - buil3D/
+      - install3D/
