@@ -10,7 +10,7 @@ compile-and-test-2D:
   stage: build_and_test
   before_script:
     - apt-get -qq update
-    - apt-get -qq install -y build-essential git cmake
+    - apt-get -qq install -y build-essential git cmake xxd
     - apt-get -qq install -y python3-numpy python3-dev python-is-python3
     - apt-get -qq install -y libxerces-c-dev libmuparser-dev
     - apt-get -qq install -y libopenmpi-dev
