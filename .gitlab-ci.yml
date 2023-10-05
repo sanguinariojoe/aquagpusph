@@ -9,13 +9,13 @@ compile-and-test-2D:
   image: "ubuntu:latest"
   stage: build_and_test
   before_script:
-    - sudo apt-get -qq update
-    - sudo apt-get -qq install -y build-essential git cmake
-    - sudo apt-get -qq install -y python3-numpy python3-dev python-is-python3
-    - sudo apt-get -qq install -y libxerces-c-dev libmuparser-dev
-    - sudo apt-get -qq install -y libopenmpi-dev
-    - sudo apt-get -qq install -y llvm-dev clang libclang-dev
-    - sudo apt-get -qq install -y ocl-icd-opencl-dev pocl-opencl-icd
+    - apt-get -qq update
+    - apt-get -qq install -y build-essential git cmake
+    - apt-get -qq install -y python3-numpy python3-dev python-is-python3
+    - apt-get -qq install -y libxerces-c-dev libmuparser-dev
+    - apt-get -qq install -y libopenmpi-dev
+    - apt-get -qq install -y llvm-dev clang libclang-dev
+    - apt-get -qq install -y ocl-icd-opencl-dev pocl-opencl-icd
     - mkdir -p build2D
     - mkdir -p install2D
   script:
@@ -33,13 +33,13 @@ compile-and-test-3D:
   image: "ubuntu:latest"
   stage: build_and_test
   before_script:
-    - sudo apt-get -qq update
-    - sudo apt-get -qq install -y build-essential git cmake
-    - sudo apt-get -qq install -y python3-numpy python3-dev python-is-python3
-    - sudo apt-get -qq install -y libxerces-c-dev libmuparser-dev
-    - sudo apt-get -qq install -y libopenmpi-dev
-    - sudo apt-get -qq install -y llvm-dev clang libclang-dev
-    - sudo apt-get -qq install -y ocl-icd-opencl-dev pocl-opencl-icd
+    - apt-get -qq update
+    - apt-get -qq install -y build-essential git cmake
+    - apt-get -qq install -y python3-numpy python3-dev python-is-python3
+    - apt-get -qq install -y libxerces-c-dev libmuparser-dev
+    - apt-get -qq install -y libopenmpi-dev
+    - apt-get -qq install -y llvm-dev clang libclang-dev
+    - apt-get -qq install -y ocl-icd-opencl-dev pocl-opencl-icd
     - mkdir -p build3D
     - mkdir -p install3D
   script:
