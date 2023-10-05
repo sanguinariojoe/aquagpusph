@@ -38,7 +38,7 @@ compile-and-test-3D:
     - echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
     - DEBIAN_FRONTEND=noninteractive apt-get -qq update && apt-get -qq -y --no-install-recommends install tzdata
     - cp /usr/share/zoneinfo/Europe/Madrid /etc/localtime
-    - apt-get -qq install -y build-essential git cmake
+    - apt-get -qq install -y build-essential git cmake xxd
     - apt-get -qq install -y python3-numpy python3-dev python-is-python3
     - apt-get -qq install -y libxerces-c-dev libmuparser-dev
     - apt-get -qq install -y llvm-dev clang libclang-dev
