@@ -5,6 +5,10 @@ workflow:
 stages:
   - build_and_test
 
+variables:
+  OMPI_ALLOW_RUN_AS_ROOT: 1
+  OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1
+
 compile-and-test-2D:
   image: "ubuntu:latest"
   stage: build_and_test
