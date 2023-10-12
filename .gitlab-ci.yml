@@ -71,23 +71,37 @@ compile-and-test-3D:
       - buil3D/
       - install3D/
 
-release_job:
-  stage: release
-  image: registry.gitlab.com/gitlab-org/release-cli:latest
+version_job:
+  stage: version
   rules:
     - if: $CI_COMMIT_TAG
       when: never
     # - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_BRANCH == 'cicd'
-  variables:
-     CMAKELISTS: $(cat ${CI_PROJECT_DIRECTORY}/CMakeLists.txt)
-     VERSION_MAJOR: $(cat ${CI_PROJECT_DIRECTORY}/CMakeLists.txt | grep PACKAGE_VERSION_MAJOR | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}')
-     VERSION_MINOR: $(cat ${CI_PROJECT_DIRECTORY}/CMakeLists.txt | grep PACKAGE_VERSION_MINOR | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}')
-     VERSION_PATCH: $(cat ${CI_PROJECT_DIRECTORY}/CMakeLists.txt | grep PACKAGE_VERSION_PATCH | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}')
   script:
-    - echo "$CMAKELISTS"
-    - echo "Releasing v${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.$CI_PIPELINE_IID"
+    - export VERSION_MAJOR=$(cat ${CI_PROJECT_DIRECTORY}/CMakeLists.txt | grep PACKAGE_VERSION_MAJOR | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}')
+    - export VERSION_MINOR=$(cat ${CI_PROJECT_DIRECTORY}/CMakeLists.txt | grep PACKAGE_VERSION_MINOR | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}')
+    - export VERSION_PATCH=$(cat ${CI_PROJECT_DIRECTORY}/CMakeLists.txt | grep PACKAGE_VERSION_PATCH | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}')
+    - echo "TAG=v$VERSION_MAJOR.$VERSION_MINOR.$VERSION_PATCH" >> variables.env
+  artifacts:
+    reports:
+      dotenv: variables.env
+
+release_job:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  needs:
+    - job: prepare_job
+      artifacts: true
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    # - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH == 'cicd'
+  script:
+    - echo "running release_job for $TAG"
   release:
-    tag_name: 'v${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.$CI_PIPELINE_IID'
-    description: 'v${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.$CI_PIPELINE_IID'
+    name: 'Release $TAG'
+    tag_name: '$TAG.$CI_PIPELINE_IID'
+    description: '$TAG.$CI_PIPELINE_IID'
     ref: '$CI_COMMIT_SHA'
