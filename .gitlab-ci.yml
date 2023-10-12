@@ -79,9 +79,11 @@ version_job:
     # - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_BRANCH == 'cicd'
   script:
-    - export VERSION_MAJOR=$(cat ${CI_PROJECT_DIRECTORY}/CMakeLists.txt | grep PACKAGE_VERSION_MAJOR | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}')
-    - export VERSION_MINOR=$(cat ${CI_PROJECT_DIRECTORY}/CMakeLists.txt | grep PACKAGE_VERSION_MINOR | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}')
-    - export VERSION_PATCH=$(cat ${CI_PROJECT_DIRECTORY}/CMakeLists.txt | grep PACKAGE_VERSION_PATCH | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}')
+    - ls ${CI_PROJECT_DIRECTORY}
+    - VERSION_MAJOR=$(cat ${CI_PROJECT_DIRECTORY}/CMakeLists.txt | grep PACKAGE_VERSION_MAJOR | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}')
+    - echo "VERSION_MAJOR=$VERSION_MAJOR"
+    - VERSION_MINOR=$(cat ${CI_PROJECT_DIRECTORY}/CMakeLists.txt | grep PACKAGE_VERSION_MINOR | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}')
+    - VERSION_PATCH=$(cat ${CI_PROJECT_DIRECTORY}/CMakeLists.txt | grep PACKAGE_VERSION_PATCH | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}')
     - echo "TAG=v$VERSION_MAJOR.$VERSION_MINOR.$VERSION_PATCH" >> variables.env
   artifacts:
     reports:
