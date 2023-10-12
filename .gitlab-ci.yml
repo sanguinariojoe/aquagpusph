@@ -1,9 +1,14 @@
 workflow:
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_TAG
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH == 'cicd'
 
 stages:
   - build_and_test
+  - release
 
 variables:
   OMPI_ALLOW_RUN_AS_ROOT: 1
@@ -12,6 +17,8 @@ variables:
 compile-and-test-2D:
   image: "ubuntu:latest"
   stage: build_and_test
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
   before_script:
     - echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
     - DEBIAN_FRONTEND=noninteractive apt-get -qq update && apt-get -qq -y --no-install-recommends install tzdata
@@ -38,6 +45,8 @@ compile-and-test-2D:
 compile-and-test-3D:
   image: "ubuntu:latest"
   stage: build_and_test
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
   before_script:
     - echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
     - DEBIAN_FRONTEND=noninteractive apt-get -qq update && apt-get -qq -y --no-install-recommends install tzdata
@@ -60,3 +69,20 @@ compile-and-test-3D:
     paths:
       - buil3D/
       - install3D/
+
+release_job:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    # - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH == 'cicd'
+  variables:
+     VERSION_MAJOR: $(cat CMakeLists.txt | grep PACKAGE_VERSION_MAJOR | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1})
+     VERSION_MINOR: $(cat CMakeLists.txt | grep PACKAGE_VERSION_MINOR | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1})
+     VERSION_PATCH: $(cat CMakeLists.txt | grep PACKAGE_VERSION_PATCH | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1})
+  release:
+    tag_name: 'v${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.$CI_PIPELINE_IID'
+    description: 'v${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.$CI_PIPELINE_IID'
+    ref: '$CI_COMMIT_SHA'
