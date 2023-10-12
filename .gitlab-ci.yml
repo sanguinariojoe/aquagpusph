@@ -8,6 +8,7 @@ workflow:
 
 stages:
   - build_and_test
+  - version
   - release
 
 variables:
@@ -79,10 +80,12 @@ release_job:
     # - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_BRANCH == 'cicd'
   variables:
-     VERSION_MAJOR: $(cat CMakeLists.txt | grep PACKAGE_VERSION_MAJOR | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}')
-     VERSION_MINOR: $(cat CMakeLists.txt | grep PACKAGE_VERSION_MINOR | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}')
-     VERSION_PATCH: $(cat CMakeLists.txt | grep PACKAGE_VERSION_PATCH | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}')
+     CMAKELISTS: $(cat ${CI_PROJECT_DIRECTORY}/CMakeLists.txt)
+     VERSION_MAJOR: $(cat ${CI_PROJECT_DIRECTORY}/CMakeLists.txt | grep PACKAGE_VERSION_MAJOR | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}')
+     VERSION_MINOR: $(cat ${CI_PROJECT_DIRECTORY}/CMakeLists.txt | grep PACKAGE_VERSION_MINOR | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}')
+     VERSION_PATCH: $(cat ${CI_PROJECT_DIRECTORY}/CMakeLists.txt | grep PACKAGE_VERSION_PATCH | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}')
   script:
+    - echo "$CMAKELISTS"
     - echo "Releasing v${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.$CI_PIPELINE_IID"
   release:
     tag_name: 'v${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.$CI_PIPELINE_IID'
