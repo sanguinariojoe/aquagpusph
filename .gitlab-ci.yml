@@ -6,13 +6,42 @@ workflow:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 stages:
-  - build_and_test
   - version
+  - version_check
+  - build_and_test
   - release
 
 variables:
   OMPI_ALLOW_RUN_AS_ROOT: 1
   OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1
+
+version_job:
+  stage: version
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    - VERSION_MAJOR=$(cat CMakeLists.txt | grep PACKAGE_VERSION_MAJOR | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}')
+    - VERSION_MINOR=$(cat CMakeLists.txt | grep PACKAGE_VERSION_MINOR | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}')
+    - VERSION_PATCH=$(cat CMakeLists.txt | grep PACKAGE_VERSION_PATCH | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}')
+    - echo "The release tag is v$VERSION_MAJOR.$VERSION_MINOR.$VERSION_PATCH"
+    - echo "TAG=v$VERSION_MAJOR.$VERSION_MINOR.$VERSION_PATCH" >> variables.env
+  artifacts:
+    reports:
+      dotenv: variables.env
+
+version_check_job:
+  stage: version_check
+  needs:
+    - job: version_job
+      artifacts: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+  script:
+    - echo "Checking if $TAG release already exist"
+    - if wget https://gitlab.com/sanguinariojoe/aquagpusph/-/releases/$TAG ; then echo "$TAG already exist, please increase the version"; exit 1; fi
 
 compile-and-test-2D:
   image: "ubuntu:latest"
@@ -69,34 +98,6 @@ compile-and-test-3D:
     paths:
       - buil3D/
       - install3D/
-
-version_job:
-  stage: version
-  rules:
-    - if: $CI_COMMIT_TAG
-      when: never
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-  script:
-    - VERSION_MAJOR=$(cat CMakeLists.txt | grep PACKAGE_VERSION_MAJOR | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}')
-    - VERSION_MINOR=$(cat CMakeLists.txt | grep PACKAGE_VERSION_MINOR | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}')
-    - VERSION_PATCH=$(cat CMakeLists.txt | grep PACKAGE_VERSION_PATCH | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}')
-    - echo "The release tag is v$VERSION_MAJOR.$VERSION_MINOR.$VERSION_PATCH"
-    - echo "TAG=v$VERSION_MAJOR.$VERSION_MINOR.$VERSION_PATCH" >> variables.env
-  artifacts:
-    reports:
-      dotenv: variables.env
-
-check_release_job:
-  stage: release
-  needs:
-    - job: version_job
-      artifacts: true
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-  script:
-    - echo "Checking if $TAG release already exist"
-    - if wget https://gitlab.com/sanguinariojoe/aquagpusph/-/releases/$TAG ; then echo "$TAG already exist, please increase the version"; exit 1; fi
 
 release_job:
   stage: release
