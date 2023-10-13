@@ -86,27 +86,49 @@ void
 Variable::setEvent(cl_event event)
 {
 	cl_int err_code;
-	// Forgive the former/predecessor event
-	err_code = clReleaseEvent(_event);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure releasing the predecessor event for \"" << name()
-		    << "\" variable." << std::endl;
-		LOG(L_ERROR, msg.str());
-		Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
+	if (_event != NULL) {
+		// Forgive the former/predecessor event
+		err_code = clReleaseEvent(_event);
+		if (err_code != CL_SUCCESS) {
+			std::stringstream msg;
+			msg << "Failure releasing the predecessor event for \"" << name()
+				<< "\" variable." << std::endl;
+			LOG(L_ERROR, msg.str());
+			Logger::singleton()->printOpenCLError(err_code);
+			throw std::runtime_error("OpenCL execution error");
+		}
 	}
 	// And get retained the current event
 	err_code = clRetainEvent(event);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
-		msg << "Failure reteaning the event for \"" << name() << "\" variable."
-		    << std::endl;
+		msg << "Failure reteaning the writing event for \"" << name()
+		    << "\" variable." << std::endl;
 		LOG(L_ERROR, msg.str());
 		Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
 	}
 	_event = event;
+	_synced = false;
+}
+
+void
+Variable::addReadingEvent(cl_event event)
+{
+	cl_int err_code;
+	// Tidy up the former events
+	cleanReadingEvents();
+	// And get retained the current event
+	err_code = clRetainEvent(event);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure reteaning the reading event for \"" << name()
+		    << "\" variable." << std::endl;
+		LOG(L_ERROR, msg.str());
+		Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
+	_reading_events.push_back(event);
 	_synced = false;
 }
 
@@ -117,7 +139,14 @@ Variable::sync()
 		return;
 
 	cl_int err_code;
-	err_code = clWaitForEvents(1, &_event);
+	std::vector<cl_event> events = _reading_events;
+	if(_event != NULL)
+		events.push_back(_event);
+	if(!events.size()) {
+		_synced = true;
+		return;
+	}
+	err_code = clWaitForEvents(events.size(), events.data());
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
 		msg << "Failure syncing variable \"" << name() << "\"." << std::endl;
@@ -128,25 +157,42 @@ Variable::sync()
 	_synced = true;
 }
 
-template<class T>
-ScalarVariable<T>::ScalarVariable(const std::string varname,
-                                  const std::string vartype)
-  : Variable(varname, vartype)
+void
+Variable::cleanReadingEvents()
 {
-}
+	cl_int err_code, event_status;
+	for(auto it = _reading_events.begin(); it != _reading_events.end();)
+	{
+		cl_event event = *it;
+		err_code = clGetEventInfo(event,
+		                          CL_EVENT_COMMAND_EXECUTION_STATUS,
+		                          sizeof(cl_int),
+		                          &event_status,
+		                          NULL);
+		if (err_code != CL_SUCCESS) {
+			std::stringstream msg;
+			msg << "Failure querying a reading event status for variable \""
+			    << name() << "\"." << std::endl;
+			LOG(L_ERROR, msg.str());
+			Logger::singleton()->printOpenCLError(err_code);
+			throw std::runtime_error("OpenCL execution error");
+		}
 
-template<class T>
-inline bool
-ScalarVariable<T>::isArray()
-{
-	return false;
-}
-
-template<class T>
-ScalarNumberVariable<T>::ScalarNumberVariable(const std::string varname,
-                                              const std::string vartype)
-  : ScalarVariable<T>(varname, vartype)
-{
+		if(event_status == CL_COMPLETE) {
+			err_code = clReleaseEvent(event);
+			if (err_code != CL_SUCCESS) {
+				std::stringstream msg;
+				msg << "Failure releasing a reading event for \"" << name()
+					<< "\" variable." << std::endl;
+				LOG(L_ERROR, msg.str());
+				Logger::singleton()->printOpenCLError(err_code);
+				throw std::runtime_error("OpenCL execution error");
+			}
+			it = _reading_events.erase(it);
+		}
+		else
+			++it;
+	}
 }
 
 template<class T>
@@ -192,7 +238,7 @@ IntVariable::setFromPythonObject(PyObject* obj, int i0, int n)
 UIntVariable::UIntVariable(const std::string varname)
   : ScalarNumberVariable<unsigned int>(varname, "unsigned int")
 {
-	_value = 0;
+	_value = 0u;
 }
 
 PyObject*

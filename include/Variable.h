@@ -73,7 +73,7 @@ class Variable
 	 * @return true if the variable is a scalar, false if the variable is an
 	 * array
 	 */
-	virtual bool isScalar() { return !isArray(); }
+	inline bool isScalar() { return !isArray(); }
 
 	/** @brief Name of the variable
 	 * @return The name of the variable
@@ -128,34 +128,89 @@ class Variable
 	 */
 	virtual const std::string asString() { return ""; }
 
-	/** @brief Set the variable current event
+	/**
+	 * \defgroup VariableEventsGroup Events tracked on variables
+	 * @brief On AQUAgpusph the variables are used to track the events, and
+	 * thus when each tool can be executed.
 	 *
-	 * clRetainEvent() is called on top of the provided event, while any
-	 * previous event is conveniently released calling clReleaseEvent()
+	 * The rationale is that each variable can store 2 types of events,
+	 * reading events and writing events.
+	 * Along this line, reading processes shall only wait for the last writing
+	 * event, while writing processes shall wait for both the last writing
+	 * event as well all the recorded reading events
+	 * @{
+	 */
+
+	/** @brief Set the variable current writing event
 	 *
-	 * Might exists other events linked to this variable, but since those are
-	 * considered predecessors, we can just forgive about them.
+	 * clRetainEvent() is called on the provided event, while clReleaseEvent()
+	 * is called on the eventually previous stored event
 	 *
 	 * @remarks Events are used even for non-OpenCL variables
 	 * @param event OpenCL event
 	 */
 	void setEvent(cl_event event);
 
-	/** @brief Returns the last event associated to this variable
+	/** @brief Alias of InputOutput::Variable::setEvent()
+	 */
+	inline void setWritingEvent(cl_event event) { setEvent(event); }
+
+	/** @brief Returns the last writing event associated to this variable
 	 *
 	 * @return OpenCL event
 	 */
-	cl_event getEvent() { return _event; }
+	inline cl_event getEvent() const { return _event; }
 
-  protected:
-	/** @brief Wait for variable underlying event to be complete
+	/** @brief Alias of InputOutput::Variable::getEvent()
+	 */
+	inline cl_event getWritingEvent() const { return getEvent(); }
+
+	/** @brief Add a new reading event to the variable
 	 *
-	 * This function is tracking the syncing state, avoiding calling
-	 * clWaitForEvents() more than once, while the event is not updated.
+	 * clRetainEvent() is called on the provided event.
+	 * 
+	 * On top of that, the list of reading events is traversed, calling
+	 * clReleaseEvent() on those completed and droping them from the list
+	 *
+	 * @remarks Events are used even for non-OpenCL variables
+	 * @param event OpenCL event
+	 */
+	void addReadingEvent(cl_event event);
+
+	/** @brief Get the list of reading events
+	 *
+	 * The list of reading events is only valid until
+	 * InputOutput::Variable::addReadingEvent() is called again
+	 *
+	 * @remarks Events are used even for non-OpenCL variables
+	 * @param event OpenCL event
+	 */
+	inline std::vector<cl_event> getReadingEvents() const
+	{
+		return _reading_events;
+	}
+
+	/**
+	 * @}
+	 */
+  protected:
+	/** @ingroup VariableEventsGroup
+	 * @brief Wait for variable reading and writing events to be completed
+	 *
+	 * This function is tracking the syncing state, so clWaitForEvents() is not
+	 * called until the previous syncing has been completed.
 	 *
 	 * This is obviously a blocking function
 	 */
 	void sync();
+
+	/** @ingroup VariableEventsGroup
+	 * @brief Clean up the list of reading events
+	 *
+	 * All the events marked as completed are released (calling
+	 * clReleaseEvent()) and dropped from the list
+	 */
+	void cleanReadingEvents();
 
   private:
 	/// Name of the variable
@@ -164,8 +219,11 @@ class Variable
 	/// Type of the variable
 	std::string _typename;
 
-	/// List of events affecting this variable
+	/// Last writing event
 	cl_event _event;
+
+	/// List of reading events
+	std::vector<cl_event> _reading_events;
 
 	/// Shortcut to avoid calling the expensive OpenCL API
 	bool _synced;
@@ -182,7 +240,9 @@ class ScalarVariable : public Variable
 	 * @param varname Name of the variable.
 	 * @param vartype Type of the variable.
 	 */
-	ScalarVariable(const std::string varname, const std::string vartype);
+	ScalarVariable(const std::string varname, const std::string vartype)
+		: Variable(varname, vartype)
+	{}
 
 	/** @brief Destructor.
 	 */
@@ -192,7 +252,7 @@ class ScalarVariable : public Variable
 	 *
 	 * @return false
 	 */
-	bool isArray();
+	inline bool isArray() { return false; }
 
 	/** @brief Get the variable type size.
 	 * @return Variable type size (in bytes)
@@ -207,11 +267,17 @@ class ScalarVariable : public Variable
 	 *
 	 * @return Implementation pointer
 	 */
-	inline void* get()
-	{
-		sync();
-		return &_value;
-	}
+	inline void* get() { sync(); return &_value; }
+
+	/** @brief Get variable value
+	 *
+	 * This is a blocking operation, that will retain the program until the
+	 * underlying variable event is complete. For asynchronous variable
+	 * retrieval see get_async()
+	 *
+	 * @param value Output value
+	 */
+	inline void get(T &value) { sync(); value = _value; }
 
 	/** @brief Get variable pointer basis pointer
 	 *
@@ -223,6 +289,16 @@ class ScalarVariable : public Variable
 	 */
 	inline void* get_async() { return &_value; }
 
+	/** @brief Get variable pointer basis pointer
+	 *
+	 * Sometimes a tool would make events micromanagement, becoming useful to
+	 * can retrieve the value in an asynchronous way. That is for instance the
+	 * case of events manipulated in callbacks
+	 *
+	 * @param value Output value
+	 */
+	inline void get_async(T &value) { value = _value; }
+
 	/** @brief Set variable from memory
 	 *
 	 * This is a blocking operation, that will retain the program until the
@@ -230,11 +306,16 @@ class ScalarVariable : public Variable
 	 *
 	 * @param ptr Memory to copy
 	 */
-	inline void set(void* ptr)
-	{
-		sync();
-		memcpy(&_value, ptr, sizeof(T));
-	}
+	inline void set(void* ptr) { sync(); memcpy(&_value, ptr, sizeof(T)); }
+
+	/** @brief Set variable value
+	 *
+	 * This is a blocking operation, that will retain the program until the
+	 * underlying variable event is complete.
+	 *
+	 * @param value New value
+	 */
+	inline void set(T &value) { sync(); _value = value; }
 
 	/** @brief Set variable from memory
 	 *
@@ -245,6 +326,31 @@ class ScalarVariable : public Variable
 	 * @param ptr Memory to copy
 	 */
 	inline void set_async(void* ptr) { memcpy(&_value, ptr, sizeof(T)); }
+
+	/** @brief Set variable value
+	 *
+	 * Sometimes a tool would make events micromanagement, becoming useful to
+	 * can retrieve the value in an asynchronous way. That is for instance the
+	 * case of events manipulated in callbacks
+	 *
+	 * @param value New value
+	 */
+	inline void set_async(T &value) { _value = value; }
+
+	/** @brief Get a Python Object representation of the variable
+	 * @param i0 ignored parameter.
+	 * @param n ignored parameter.
+	 * @return Python object.
+	 */
+	virtual PyObject* getPythonObject(int i0 = 0, int n = 0) = 0;
+
+	/** @brief Set the variable from a Python object
+	 * @param obj Python object.
+	 * @param i0 ignored parameter.
+	 * @param n ignored parameter
+	 * @return false if all gone right, true otherwise.
+	 */
+	virtual bool setFromPythonObject(PyObject* obj, int i0 = 0, int n = 0) = 0;
 
 	/** @brief Get the variable text representation
 	 * @return The variable represented as a string, NULL in case of errors.
@@ -267,7 +373,9 @@ class ScalarNumberVariable : public ScalarVariable<T>
 	 * @param varname Name of the variable.
 	 * @param vartype Type of the variable.
 	 */
-	ScalarNumberVariable(const std::string varname, const std::string vartype);
+	ScalarNumberVariable(const std::string varname, const std::string vartype)
+		: ScalarVariable<T>(varname, vartype)
+	{}
 
 	/** @brief Destructor.
 	 */
@@ -282,7 +390,7 @@ class ScalarNumberVariable : public ScalarVariable<T>
 /** @class IntVariable Variable.h Variable.h
  * @brief An integer variable.
  */
-class IntVariable : public ScalarNumberVariable<int>
+class IntVariable final : public ScalarNumberVariable<int>
 {
   public:
 	/** @brief Constructor.
@@ -313,7 +421,7 @@ class IntVariable : public ScalarNumberVariable<int>
 /** @class UIntVariable Variable.h Variable.h
  * @brief An integer variable.
  */
-class UIntVariable : public ScalarNumberVariable<unsigned int>
+class UIntVariable final : public ScalarNumberVariable<unsigned int>
 {
   public:
 	/** @brief Constructor.
@@ -344,7 +452,7 @@ class UIntVariable : public ScalarNumberVariable<unsigned int>
 /** @class FloatVariable Variable.h Variable.h
  * @brief A float variable.
  */
-class FloatVariable : public ScalarNumberVariable<float>
+class FloatVariable final : public ScalarNumberVariable<float>
 {
   public:
 	/** @brief Constructor.
@@ -417,7 +525,7 @@ class ScalarVecVariable : public ScalarVariable<T>
 /** @class Vec2Variable Variable.h Variable.h
  * @brief A vec2 variable.
  */
-class Vec2Variable : public ScalarVecVariable<vec2>
+class Vec2Variable final : public ScalarVecVariable<vec2>
 {
   public:
 	/** Constructor.
