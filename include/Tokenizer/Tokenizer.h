@@ -78,6 +78,12 @@ class Tokenizer
 	 */
 	float variable(const std::string name);
 
+	/** @brief Get the list of variables used on an mathematical expression.
+	 * @param eq Math expression to solve.
+	 * @return List of variable names
+	 */
+	std::vector<std::string> exprVariables(const std::string eq);
+
 	/** @brief Solve a math expression.
 	 * @param eq Math expression to solve.
 	 * @return Expression value, 0.0 if the evaluation failed (it will be
@@ -95,6 +101,8 @@ class Tokenizer
 	virtual void defaultVariables();
 
   private:
+	/// Mathematical expressions variables inspector
+	mu::Parser q;
 	/// Mathematical expressions parser
 	mu::Parser p;
 }; // class Tokenizer

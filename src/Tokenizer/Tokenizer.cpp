@@ -107,7 +107,7 @@ Tokenizer::registerVariable(const std::string name, float value)
 void
 Tokenizer::clearVariables()
 {
-	p.ClearVar();
+	p.ClearConst();
 	defaultVariables();
 }
 
@@ -136,6 +136,17 @@ Tokenizer::variable(const std::string name)
 	return (float)cmap[name.c_str()];
 }
 
+std::vector<std::string>
+Tokenizer::exprVariables(const std::string eq)
+{
+	std::vector<std::string> vars;
+	q.SetExpr(eq);
+	auto variables = q.GetUsedVar();
+	for (auto it = variables.begin(); it != variables.end(); ++it)
+		vars.push_back(it->first);
+	return vars;
+}
+
 float
 Tokenizer::solve(const std::string eq)
 {
@@ -156,6 +167,7 @@ Tokenizer::solve(const std::string eq)
 
 	// No way, let's evaluate it as a expression
 	p.SetExpr(eq);
+
 	try {
 		result = (float)p.Eval();
 	} catch (mu::Parser::exception_type& e) {
