@@ -21,8 +21,6 @@
  * (see Aqua::CalcServer::Kernel for details)
  */
 
-#include <clang-c/Index.h>
-#include <clang-c/Platform.h>
 #include <AuxiliarMethods.h>
 #include <InputOutput/Logger.h>
 #include <CalcServer.h>
@@ -219,89 +217,97 @@ Kernel::make(const std::string entry_point,
 	_kernel = kernel;
 }
 
-/** @brief Main traverse method, which will parse all tokens except functions
- * declarations.
- * @param cursor the cursor whose child may be visited. All kinds of cursors can
- * be visited, including invalid cursors (which, by definition, have no
- * children).
- * @param parent the visitor function that will be invoked for each child of
- * parent.
- * @param client_data pointer data supplied by the client, which will be passed
- * to the visitor each time it is invoked.
- * @return CXChildVisit_Continue if a function declaration is found,
- * CXChildVisit_Recurse otherwise.
- */
-CXChildVisitResult
-cursorVisitor(CXCursor cursor, CXCursor parent, CXClientData client_data);
-
-/** Method traverse method, which will parse the input arguments.
- * @param cursor the cursor whose child may be visited. All kinds of cursors can
- * be visited, including invalid cursors (which, by definition, have no
- * children).
- * @param parent the visitor function that will be invoked for each child of
- * parent.
- * @param client_data pointer data supplied by the client, which will be passed
- * to the visitor each time it is invoked.
- * @return CXChildVisit_Continue.
- */
-CXChildVisitResult
-functionDeclVisitor(CXCursor cursor, CXCursor parent, CXClientData client_data);
-
-/** @struct clientData
- * @brief Data structure to store the variables requested and a flag
- * to know if the entry point has been found.
- */
-struct clientData
+bool
+isKernelArgReadOnly(cl_kernel kernel, cl_uint arg_index)
 {
-	/// Entry point
-	std::string entry_point;
-	/// Number of instances of the entry point found.
-	unsigned int entry_points;
-	/// List of required variables
-	std::vector<std::string> var_names;
-};
+	cl_int err_code;
+	cl_kernel_arg_address_qualifier address;
+	err_code = clGetKernelArgInfo(kernel,
+	                              arg_index,
+	                              CL_KERNEL_ARG_ADDRESS_QUALIFIER,
+	                              sizeof(cl_kernel_arg_address_qualifier),
+	                              &address,
+	                              NULL);
+	if (err_code != CL_SUCCESS) {
+		std::ostringstream msg;
+		msg << "Failure asking for CL_KERNEL_ARG_ADDRESS_QUALIFIER on arg "
+		    << arg_index << std::endl;
+		LOG(L_WARNING, msg.str());
+		return false;
+	}
+	if (address != CL_KERNEL_ARG_ADDRESS_GLOBAL)
+		return true;
+	cl_kernel_arg_type_qualifier type;
+	err_code = clGetKernelArgInfo(kernel,
+	                              arg_index,
+	                              CL_KERNEL_ARG_TYPE_QUALIFIER,
+	                              sizeof(cl_kernel_arg_type_qualifier),
+	                              &type,
+	                              NULL);
+	if (err_code != CL_SUCCESS) {
+		std::ostringstream msg;
+		msg << "Failure asking for CL_KERNEL_ARG_TYPE_QUALIFIER on arg "
+		    << arg_index << std::endl;
+		LOG(L_WARNING, msg.str());
+		return false;
+	}
+	if (type == CL_KERNEL_ARG_TYPE_CONST)
+		return true;
+	return false;
+}
 
 void
 Kernel::variables(const std::string entry_point)
 {
+	cl_int err_code;
+	cl_uint num_args;
 	InputOutput::Variables* vars = CalcServer::singleton()->variables();
-
-	CXIndex index = clang_createIndex(0, 0);
-	if (index == 0) {
-		LOG(L_ERROR, "Failure creating parser index.\n");
-		throw std::runtime_error("clang initialization failure");
+	err_code = clGetKernelInfo(_kernel,
+	                           CL_KERNEL_NUM_ARGS,
+	                           sizeof(cl_uint),
+	                           &num_args,
+	                           NULL);
+	if (err_code != CL_SUCCESS) {
+		LOG(L_WARNING, "Failure asking for CL_KERNEL_NUM_ARGS.\n");
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+	}
+	for (cl_uint i = 0; i < num_args; i++) {
+		char* arg_name;
+		size_t arg_name_len;
+		err_code = clGetKernelArgInfo(_kernel,
+		                              i,
+		                              CL_KERNEL_ARG_NAME,
+		                              0,
+		                              NULL,
+		                              &arg_name_len);
+		if (err_code != CL_SUCCESS) {
+			LOG(L_WARNING, "Failure asking for CL_KERNEL_ARG_NAME len.\n");
+			InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		}
+		arg_name = new char[arg_name_len + 1];
+		if (!arg_name) {
+			std::ostringstream msg;
+			msg << "Failure allocating " << arg_name_len + 1
+			    << " for CL_KERNEL_ARG_NAME" << std::endl;
+			LOG(L_ERROR, msg.str());
+			throw std::bad_alloc();
+		}
+		arg_name[arg_name_len] = '\0';
+		err_code = clGetKernelArgInfo(_kernel,
+		                              i,
+		                              CL_KERNEL_ARG_NAME,
+		                              arg_name_len,
+		                              arg_name,
+		                              NULL);
+		if (err_code != CL_SUCCESS) {
+			LOG(L_WARNING, "Failure asking for CL_KERNEL_ARG_NAME.\n");
+			InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		}
+		_var_names.push_back(arg_name);
+		delete[] arg_name;
+		_var_readonlys.push_back(isKernelArgReadOnly(_kernel, i));
 	}
 
-	int argc = 2;
-	const char* argv[2] = { "Kernel", _path.c_str() };
-	CXTranslationUnit translation_unit = clang_parseTranslationUnit(
-	    index, 0, argv, argc, NULL, 0, CXTranslationUnit_None);
-	if (translation_unit == 0) {
-		LOG(L_ERROR, "Failure parsing the source code.\n");
-		throw std::runtime_error("clang parsing error");
-	}
-
-	CXCursor root_cursor = clang_getTranslationUnitCursor(translation_unit);
-	struct clientData client_data;
-	client_data.entry_point = entry_point;
-	client_data.entry_points = 0;
-	client_data.var_names = _var_names;
-	clang_visitChildren(root_cursor, *cursorVisitor, &client_data);
-	if (client_data.entry_points == 0) {
-		std::stringstream msg;
-		msg << "The entry point \"" << entry_point << "\" cannot be found."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		throw std::runtime_error("Invalid entry point");
-	}
-	if (client_data.entry_points != 1) {
-		std::stringstream msg;
-		msg << "The entry point \"" << entry_point << "\" has been found "
-		    << client_data.entry_points << "times." << std::endl;
-		LOG(L_ERROR, msg.str());
-		throw std::runtime_error("Invalid entry point");
-	}
-	_var_names = client_data.var_names;
 	// Retain just the array variables as dependencies, provided that scalar
 	// variables are synced when passed using clSetKernelArg()
 	std::vector<InputOutput::Variable*> deps;
@@ -323,38 +329,6 @@ Kernel::variables(const std::string entry_point)
 	for (unsigned int i = 0; i < _var_names.size(); i++) {
 		_var_values.push_back(NULL);
 	}
-
-	clang_disposeTranslationUnit(translation_unit);
-	clang_disposeIndex(index);
-}
-
-CXChildVisitResult
-cursorVisitor(CXCursor cursor, CXCursor parent, CXClientData client_data)
-{
-	struct clientData* data = (struct clientData*)client_data;
-	CXCursorKind kind = clang_getCursorKind(cursor);
-	CXString name = clang_getCursorSpelling(cursor);
-	if (kind == CXCursor_FunctionDecl ||
-	    kind == CXCursor_ObjCInstanceMethodDecl) {
-		if (!data->entry_point.compare(clang_getCString(name))) {
-			data->entry_points++;
-			clang_visitChildren(cursor, *functionDeclVisitor, client_data);
-		}
-		return CXChildVisit_Continue;
-	}
-	return CXChildVisit_Recurse;
-}
-
-CXChildVisitResult
-functionDeclVisitor(CXCursor cursor, CXCursor parent, CXClientData client_data)
-{
-	struct clientData* data = (struct clientData*)client_data;
-	CXCursorKind kind = clang_getCursorKind(cursor);
-	if (kind == CXCursor_ParmDecl) {
-		CXString name = clang_getCursorSpelling(cursor);
-		data->var_names.push_back(clang_getCString(name));
-	}
-	return CXChildVisit_Continue;
 }
 
 void

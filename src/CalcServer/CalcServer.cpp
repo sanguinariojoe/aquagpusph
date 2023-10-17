@@ -28,6 +28,7 @@
 #include <stack>
 #include <assert.h>
 #include <signal.h>
+#include <tuple>
 
 #include <CalcServer.h>
 #include <AuxiliarMethods.h>
@@ -604,13 +605,151 @@ CalcServer::setupOpenCL()
 	LOG(L_INFO, "OpenCL is ready to work!\n");
 }
 
+/** @brief Get the OpenCL major and minor version from the string returned by
+ * clGetPlatformInfo() and clGetDeviceInfo()
+ * @param version The version string
+ * @return The major and minor version numbers. 0.0 if the string is
+ * ill-formatted
+ */
+std::tuple<unsigned int, unsigned int>
+opencl_version(std::string version)
+{
+	auto words = split(version);
+	if ((words.size() < 2) || (words.at(0) != "OpenCL")) {
+		return {0u, 0u};
+	}
+	auto version_nums = split(words.at(1), '.');
+	if (version_nums.size() < 2) {
+		return {0u, 0u};
+	}
+	return {std::stoi(version_nums.at(0)), std::stoi(version_nums.at(1))};
+}
+
+/** @brief Get the paltform's OpenCL major and minor version
+ * @param platform The platform identifier
+ * @return The major and minor version numbers. 0.0 if the version cannot be
+ * recovered
+ */
+std::tuple<unsigned int, unsigned int>
+opencl_version(cl_platform_id platform)
+{
+	cl_int err_code;
+	char *opencl_version_str;
+	size_t opencl_version_str_len;
+	unsigned int opencl_version_major, opencl_version_minor;
+	err_code = clGetPlatformInfo(platform,
+	                             CL_PLATFORM_VERSION,
+	                             0,
+	                             NULL,
+	                             &opencl_version_str_len);
+	if (err_code != CL_SUCCESS) {
+		return {0u, 0u};
+	}
+	opencl_version_str = new char[opencl_version_str_len];
+	if (!opencl_version_str) {
+		std::ostringstream msg;
+		msg << "Failure allocating " << opencl_version_str_len
+		    << " bytes for the CL_PLATFORM_VERSION string" << std::endl;
+		LOG(L_ERROR, msg.str());
+		throw std::bad_alloc();
+	}
+	err_code = clGetPlatformInfo(platform,
+	                             CL_PLATFORM_VERSION,
+	                             opencl_version_str_len,
+	                             opencl_version_str,
+	                             NULL);
+	if (err_code != CL_SUCCESS) {
+		return {0u, 0u};
+	}
+	auto [version_major, version_minor] = opencl_version(opencl_version_str);
+	delete[] opencl_version_str;
+	return {version_major, version_minor};
+}
+
+/** @brief Get the device's OpenCL major and minor version
+ * @param platform The platform identifier
+ * @return The major and minor version numbers. 0.0 if the version cannot be
+ * recovered
+ */
+std::tuple<unsigned int, unsigned int>
+opencl_version(cl_device_id device)
+{
+	cl_int err_code;
+	char *opencl_version_str;
+	size_t opencl_version_str_len;
+	unsigned int opencl_version_major, opencl_version_minor;
+	err_code = clGetDeviceInfo(device,
+	                           CL_DEVICE_VERSION,
+	                           0,
+	                           NULL,
+	                           &opencl_version_str_len);
+	if (err_code != CL_SUCCESS) {
+		return {0u, 0u};
+	}
+	opencl_version_str = new char[opencl_version_str_len];
+	if (!opencl_version_str) {
+		std::ostringstream msg;
+		msg << "Failure allocating " << opencl_version_str_len
+		    << " bytes for the CL_DEVICE_VERSION string" << std::endl;
+		LOG(L_ERROR, msg.str());
+		throw std::bad_alloc();
+	}
+	err_code = clGetDeviceInfo(device,
+	                           CL_DEVICE_VERSION,
+	                           opencl_version_str_len,
+	                           opencl_version_str,
+	                           NULL);
+	if (err_code != CL_SUCCESS) {
+		return {0u, 0u};
+	}
+	auto [version_major, version_minor] = opencl_version(opencl_version_str);
+	delete[] opencl_version_str;
+	return {version_major, version_minor};
+}
+
+/** @brief Wrapper to clGetDeviceInfo() for strings related operations
+ * @param device The device
+ * @param param_name The parameter
+ * @return The returned string
+ */
+std::string getDeviceInfoStr(cl_device_id device, cl_device_info param_name) {
+	cl_int err_code;
+	char* param;
+	size_t param_len;
+	err_code = clGetDeviceInfo(device, param_name, 0, NULL, &param_len);
+	if (err_code != CL_SUCCESS) {
+		LOG(L_ERROR, "Failure getting the device param len.\n");
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL error");
+	}
+	param = new char[param_len + 1];
+	if (!param) {
+		std::ostringstream msg;
+		msg << "Failure allocating " << param_len + 1
+			<< " bytes for the device's param" << std::endl;
+		LOG(L_ERROR, msg.str());
+		throw std::bad_alloc();
+	}
+	param[param_len] = '\0';
+	err_code = clGetDeviceInfo(device, param_name, param_len, param, NULL);
+	if (err_code != CL_SUCCESS) {
+		LOG(L_ERROR, "Failure getting the device param.\n");
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL error");
+	}
+	std::string res(param);
+	delete[] param;
+	return res;
+}
+
 void
 CalcServer::queryOpenCL()
 {
 	cl_int err_code;
 	cl_uint i, j, num_devices = 0;
 	cl_device_id* devices;
-	char aux[1024];
+	char *name;
+	size_t name_len;
 	_platforms = NULL;
 	// Gets the total number of platforms
 	err_code = clGetPlatformIDs(0, NULL, &_num_platforms);
@@ -635,6 +774,45 @@ CalcServer::queryOpenCL()
 		throw std::runtime_error("OpenCL error");
 	}
 	for (i = 0; i < _num_platforms; i++) {
+		auto [version_major, version_minor] = opencl_version(_platforms[i]);
+		std::ostringstream info;
+		info << "Platform " << i << "..." << std::endl;
+		LOG0(L_INFO, info.str());
+
+		err_code = clGetPlatformInfo(
+			_platforms[i], CL_PLATFORM_NAME, 0, NULL, &name_len);
+		if (err_code != CL_SUCCESS) {
+			LOG(L_ERROR, "Failure getting the platform name length.\n");
+			InputOutput::Logger::singleton()->printOpenCLError(err_code);
+			throw std::runtime_error("OpenCL error");
+		}
+		name = new char[name_len + 1];
+		if (!name) {
+			std::ostringstream msg;
+			msg << "Failure allocating " << name_len + 1
+			    << " bytes for the platform's name" << std::endl;
+			LOG(L_ERROR, msg.str());
+			throw std::bad_alloc();
+
+		}
+		name[name_len] = '\0';
+		err_code = clGetPlatformInfo(
+			_platforms[i], CL_PLATFORM_NAME, name_len, name, NULL);
+		if (err_code != CL_SUCCESS) {
+			LOG(L_ERROR, "Failure getting the platform name.\n");
+			InputOutput::Logger::singleton()->printOpenCLError(err_code);
+			throw std::runtime_error("OpenCL error");
+		}
+		info.str("");
+		info << "\tNAME: " << name << std::endl;
+		LOG0(L_DEBUG, info.str());
+		delete[] name;
+
+		info.str("");
+		info << "\tOPENCL: " << version_major << "." << version_minor
+		     << std::endl;
+		LOG0(L_DEBUG, info.str());
+
 		// Get the number of devices
 		err_code = clGetDeviceIDs(
 		    _platforms[i], CL_DEVICE_TYPE_ALL, 0, NULL, &num_devices);
@@ -668,36 +846,21 @@ CalcServer::queryOpenCL()
 		}
 		// Shows device arrays
 		for (j = 0; j < num_devices; j++) {
-			std::ostringstream info;
-			// Identifier
-			info << "\tDevice " << j << ", Platform " << i << "..."
+			info.str("");
+			info << "\tDevice " << j << "..."
 			     << std::endl;
 			LOG0(L_INFO, info.str());
-			// Device name
-			err_code = clGetDeviceInfo(
-			    devices[j], CL_DEVICE_NAME, 1023 * sizeof(char), &aux, NULL);
-			aux[1023] = '\0';
-			if (err_code != CL_SUCCESS) {
-				LOG(L_ERROR, "Failure getting the device name.\n");
-				InputOutput::Logger::singleton()->printOpenCLError(err_code);
-				throw std::runtime_error("OpenCL error");
-			}
+
 			info.str("");
-			info << "\t\tDEVICE: " << aux << std::endl;
+			info << "\t\tNAME: "
+			     << getDeviceInfoStr(devices[j], CL_DEVICE_NAME) << std::endl;
 			LOG0(L_DEBUG, info.str());
-			// Platform vendor
-			err_code = clGetDeviceInfo(
-			    devices[j], CL_DEVICE_VENDOR, 1023 * sizeof(char), &aux, NULL);
-			aux[1023] = '\0';
-			if (err_code != CL_SUCCESS) {
-				LOG(L_ERROR, "Failure getting the device vendor.\n");
-				InputOutput::Logger::singleton()->printOpenCLError(err_code);
-				throw std::runtime_error("OpenCL error");
-			}
+
 			info.str("");
-			info << "\t\tVENDOR: " << aux << std::endl;
+			info << "\t\tVENDOR: "
+			     << getDeviceInfoStr(devices[j], CL_DEVICE_VENDOR) << std::endl;
 			LOG0(L_DEBUG, info.str());
-			// Device type
+
 			cl_device_type dType;
 			err_code = clGetDeviceInfo(devices[j],
 			                           CL_DEVICE_TYPE,
@@ -726,6 +889,11 @@ CalcServer::queryOpenCL()
 				info << "\t\tTYPE: " << dType << std::endl;
 				LOG0(L_DEBUG, info.str());
 			}
+			auto [version_major, version_minor] = opencl_version(devices[j]);
+			info.str("");
+			info << "\t\tOPENCL: " << version_major << "." << version_minor
+			     << std::endl;
+			LOG0(L_DEBUG, info.str());
 		}
 		delete[] devices;
 		devices = NULL;
@@ -766,6 +934,15 @@ CalcServer::setupPlatform()
 		throw std::runtime_error("Out of bounds");
 	}
 	_platform = _platforms[platform_id];
+	auto [version_major, version_minor] = opencl_version(_platform);
+	if ((version_major < 1) || ((version_major == 1) && (version_minor < 2))) {
+		std::ostringstream msg;
+		LOG(L_ERROR, "The requested OpenCL platform can't be used.\n");
+		msg << "Platform " << platform_id << " supports just OpenCL "
+		    << version_major << "." << version_minor << std::endl;
+		LOG0(L_DEBUG, msg.str());
+		throw std::runtime_error("Insufficient OpenCL support");
+	}
 }
 
 /** @brief Create an OpenCL command queue
@@ -920,6 +1097,16 @@ CalcServer::setupDevices()
 
 	// Select the appropriate device
 	_device = _devices[device_id];
+
+	auto [version_major, version_minor] = opencl_version(_device);
+	if ((version_major < 1) || ((version_major == 1) && (version_minor < 2))) {
+		std::ostringstream msg;
+		LOG(L_ERROR, "The requested OpenCL device can't be used.\n");
+		msg << "Device " << device_id << " supports just OpenCL "
+		    << version_major << "." << version_minor << std::endl;
+		LOG0(L_DEBUG, msg.str());
+		throw std::runtime_error("Insufficient OpenCL support");
+	}
 
 	// Create the command queues
 	cl_command_queue_properties properties =

@@ -136,6 +136,8 @@ class Kernel : public Aqua::CalcServer::Tool
 
 	/// List of required variables
 	std::vector<std::string> _var_names;
+	/// Are the required varaibles read-only?
+	std::vector<bool> _var_readonlys;
 	/// List of variable values
 	std::vector<void*> _var_values;
 };

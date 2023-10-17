@@ -20,7 +20,6 @@ INCLUDE_DIRECTORIES(
     ${CMAKE_BINARY_DIR}/include
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_CURRENT_BINARY_DIR}
-    ${CLANG_INCLUDE_DIRS}
     ${OPTIONAL_INCLUDE_PATH}
 )
 
@@ -29,7 +28,6 @@ SET(DEP_LIBS
     Python::NumPy
     XercesC::XercesC
     OpenCL::OpenCL
-    ${CLANG_LIBRARIES}
     ${OPTIONAL_LIBS}
 )
 

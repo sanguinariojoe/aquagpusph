@@ -198,6 +198,18 @@ setStrConstantsCopy(std::string str);
 std::vector<std::string>
 split(std::string str, char chr);
 
+/** @brief Split a string in a list of substrings
+ *
+ * The space is used as separator
+ * @param s String to split
+ * @return The list of substrings
+ */
+inline std::vector<std::string>
+split(const std::string& s)
+{
+	return split(s, ' ');
+}
+
 /** @brief Split a list of split_formulae
  *
  * Formulae can be separated either by semicolon, ';', or by simple comma, ','.

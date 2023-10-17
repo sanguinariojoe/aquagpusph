@@ -55,7 +55,6 @@ compile-and-test-2D:
     - apt-get -qq install -y build-essential git cmake xxd
     - apt-get -qq install -y python3-numpy python3-dev python-is-python3
     - apt-get -qq install -y libxerces-c-dev libmuparser-dev
-    - apt-get -qq install -y llvm-dev clang libclang-dev
     - apt-get -qq install -y ocl-icd-opencl-dev pocl-opencl-icd
     - apt-get -qq install -y libopenmpi-dev libvtk9-dev
     - mkdir -p build2D
