@@ -50,7 +50,7 @@ hasPrefix(const std::string& str, const std::string& prefix);
 inline bool
 startswith(const std::string& str, const std::string& prefix)
 {
-    return hasPrefix(str, prefix);
+	return hasPrefix(str, prefix);
 }
 
 /** @brief Check if a string ends with an specific suffix
@@ -67,7 +67,7 @@ hasSuffix(const std::string& str, const std::string& suffix);
 inline bool
 endswith(const std::string& str, const std::string& prefix)
 {
-    return hasSuffix(str, prefix);
+	return hasSuffix(str, prefix);
 }
 
 /** @brief Replace all substring occurrences by another substring

@@ -29,6 +29,7 @@
 #include <Variable.h>
 #include <math.h>
 #include <vector>
+#include <tuple>
 
 namespace Aqua {
 namespace CalcServer {
@@ -63,7 +64,7 @@ class Tool
 	/** Get the tool name.
 	 * @return Tool name.
 	 */
-	const std::string name() { return _name; }
+	const std::string name() const { return _name; }
 
 	/** Initialize the tool.
 	 */
@@ -174,24 +175,82 @@ class Tool
 	 * The dependencies are the variables that this tool is either reading or
 	 * writing.
 	 *
-	 * @param var_names Names of the dependencies
+	 * @param inputs Names of the input variables
+	 * @param outputs Names of the output variables
 	 */
-	void setDependencies(std::vector<std::string> var_names);
+	inline void setDependencies(std::vector<std::string> inputs,
+	                            std::vector<std::string> outputs)
+	{
+		_in_vars = namesToVars(inputs);
+		_out_vars = namesToVars(outputs);
+	}
 
 	/** @brief Set the depedencies of the tool
 	 *
 	 * The dependencies are the variables that this tool is either reading or
 	 * writing.
 	 *
-	 * @param vars Dependencies
+	 * @param inputs Input variables
+	 * @param outputs Output variables
 	 */
-	void setDependencies(std::vector<InputOutput::Variable*> vars);
+	inline void setDependencies(std::vector<InputOutput::Variable*> inputs,
+	                            std::vector<InputOutput::Variable*> outputs)
+	{
+		_in_vars = inputs;
+		_out_vars = outputs;
+	}
+
+	/** @brief Set the depedencies of the tool
+	 *
+	 * The dependencies are the variables that this tool is either reading or
+	 * writing.
+	 * @warning This function will treat all the dependencies as outputs
+	 * @param vars Output variable names
+	 */
+	inline void setDependencies(std::vector<std::string> vars)
+	{
+		std::vector<std::string> inputs;
+		setDependencies(inputs, vars);
+	}
+
+	/** @brief Set the depedencies of the tool
+	 *
+	 * The dependencies are the variables that this tool is either reading or
+	 * writing.
+	 * @warning This function will treat all the dependencies as outputs
+	 * @param vars Output variables
+	 */
+	inline void setDependencies(std::vector<InputOutput::Variable*> vars)
+	{
+		std::vector<InputOutput::Variable*> inputs;
+		setDependencies(inputs, vars);
+	}
+
+	/** @brief Get the input depedencies of the tool
+	 * @return The input and output dependencies
+	 */
+	inline std::vector<InputOutput::Variable*> getInputDependencies() const
+	{
+		return _in_vars;
+	}
+
+	/** @brief Get the output depedencies of the tool
+	 * @return The input and output dependencies
+	 */
+	inline std::vector<InputOutput::Variable*> getOutputDependencies() const
+	{
+		return _out_vars;
+	}
 
 	/** @brief Get the depedencies of the tool
-	 *
-	 * @return Dependencies
+	 * @return The input and output dependencies
 	 */
-	const std::vector<InputOutput::Variable*> getDependencies();
+	inline std::tuple<std::vector<InputOutput::Variable*>,
+	                  std::vector<InputOutput::Variable*>>
+	getDependencies() const
+	{
+		return { _in_vars, _out_vars };
+	}
 
 	/** @brief Compile an OpenCL source code and generate the corresponding
 	 * kernel
@@ -235,12 +294,18 @@ class Tool
 
   private:
 	/** @brief Get the list of events that this tool shall wait for
-	 *
-	 * @return C++ vector of events
-	 * @warning The events returned have been retained, so call clReleaseEvent()
+	 * @return List of events
+	 * @note The events returned have been retained, so call clReleaseEvent()
 	 * after using them
 	 */
-	const std::vector<cl_event> getEvents();
+	const std::vector<cl_event> getEvents() const;
+
+	/** @brief Get a list of variables from their names
+	 * @param names List of names
+	 * @return List of varaibles
+	 */
+	std::vector<InputOutput::Variable*> namesToVars(
+	    const std::vector<std::string>& names) const;
 
 	/// Kernel name
 	std::string _name;
@@ -266,11 +331,11 @@ class Tool
 	/// Average squared elapsed time
 	float _squared_elapsed_time;
 
-	/// List of dependencies
-	std::vector<InputOutput::Variable*> _vars;
+	/// List of input dependencies
+	std::vector<InputOutput::Variable*> _in_vars;
 
-	/// Internal storage to can safely return memory with getEvents()
-	std::vector<cl_event> _events;
+	/// List of output dependencies
+	std::vector<InputOutput::Variable*> _out_vars;
 };
 
 }

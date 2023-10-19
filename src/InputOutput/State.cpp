@@ -412,7 +412,7 @@ State::parseVariables(DOMElement* root,
 				LOG(L_ERROR, msg.str());
 				throw std::runtime_error("Invalid variable name");
 			}
-			for (auto suffix : {"_x", "_y", "_z", "_w"}) {
+			for (auto suffix : { "_x", "_y", "_z", "_w" }) {
 				if (hasSuffix(var_name, suffix)) {
 					std::ostringstream msg;
 					msg << "Invalid variable name \"" << var_name

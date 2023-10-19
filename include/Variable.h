@@ -96,14 +96,38 @@ class Variable
 	virtual size_t size() const { return typesize(); }
 
 	/** @brief Get variable pointer basis pointer
+	 * @param synced true if the operation shall block the execution until the
+	 * variable events are dispatched
 	 * @return Implementation pointer, NULL for this class.
 	 */
-	virtual void* get() { return NULL; }
+	virtual inline void* get(bool synced = true) { return NULL; }
+
+	/** @brief Get variable pointer basis pointer
+	 *
+	 * Sometimes a tool would make events micromanagement, becoming useful to
+	 * can retrieve the value in an asynchronous way. That is for instance the
+	 * case of events manipulated in callbacks
+	 *
+	 * @return Implementation pointer
+	 */
+	inline void* get_async() { return get(false); }
 
 	/** @brief Set variable from memory
 	 * @param ptr Memory to copy.
+	 * @param synced true if the operation shall block the execution until the
+	 * variable events are dispatched
 	 */
-	virtual void set(void* ptr) = 0;
+	virtual void set(void* ptr, bool synced = true) = 0;
+
+	/** @brief Set variable from memory
+	 *
+	 * Sometimes a tool would make events micromanagement, becoming useful to
+	 * can retrieve the value in an asynchronous way. That is for instance the
+	 * case of events manipulated in callbacks
+	 *
+	 * @param ptr Memory to copy
+	 */
+	inline void set_async(void* ptr) { set(ptr, false); }
 
 	/** @brief Get a Python interpretation of the variable
 	 * @param i0 First component to be read, just for array variables.
@@ -168,7 +192,7 @@ class Variable
 	/** @brief Add a new reading event to the variable
 	 *
 	 * clRetainEvent() is called on the provided event.
-	 * 
+	 *
 	 * On top of that, the list of reading events is traversed, calling
 	 * clReleaseEvent() on those completed and droping them from the list
 	 *
@@ -241,8 +265,9 @@ class ScalarVariable : public Variable
 	 * @param vartype Type of the variable.
 	 */
 	ScalarVariable(const std::string varname, const std::string vartype)
-		: Variable(varname, vartype)
-	{}
+	  : Variable(varname, vartype)
+	{
+	}
 
 	/** @brief Destructor.
 	 */
@@ -264,78 +289,62 @@ class ScalarVariable : public Variable
 	 * This is a blocking operation, that will retain the program until the
 	 * underlying variable event is complete. For asynchronous variable
 	 * retrieval see get_async()
-	 *
+	 * @param synced true if the operation shall block the execution until the
+	 * variable events are dispatched
 	 * @return Implementation pointer
 	 */
-	inline void* get() { sync(); return &_value; }
+	inline void* get(bool synced = true)
+	{
+		if (synced)
+			sync();
+		return &_value;
+	}
 
 	/** @brief Get variable value
 	 *
 	 * This is a blocking operation, that will retain the program until the
 	 * underlying variable event is complete. For asynchronous variable
 	 * retrieval see get_async()
-	 *
 	 * @param value Output value
+	 * @param synced true if the operation shall block the execution until the
+	 * variable events are dispatched
 	 */
-	inline void get(T &value) { sync(); value = _value; }
-
-	/** @brief Get variable pointer basis pointer
-	 *
-	 * Sometimes a tool would make events micromanagement, becoming useful to
-	 * can retrieve the value in an asynchronous way. That is for instance the
-	 * case of events manipulated in callbacks
-	 *
-	 * @return Implementation pointer
-	 */
-	inline void* get_async() { return &_value; }
-
-	/** @brief Get variable pointer basis pointer
-	 *
-	 * Sometimes a tool would make events micromanagement, becoming useful to
-	 * can retrieve the value in an asynchronous way. That is for instance the
-	 * case of events manipulated in callbacks
-	 *
-	 * @param value Output value
-	 */
-	inline void get_async(T &value) { value = _value; }
+	inline void get(T& value, bool synced = true)
+	{
+		if (synced)
+			sync();
+		value = _value;
+	}
 
 	/** @brief Set variable from memory
 	 *
 	 * This is a blocking operation, that will retain the program until the
 	 * underlying variable event is complete.
-	 *
 	 * @param ptr Memory to copy
+	 * @param synced true if the operation shall block the execution until the
+	 * variable events are dispatched
 	 */
-	inline void set(void* ptr) { sync(); memcpy(&_value, ptr, sizeof(T)); }
+	inline void set(void* ptr, bool synced = true)
+	{
+		if (synced)
+			sync();
+		memcpy(&_value, ptr, sizeof(T));
+	}
 
 	/** @brief Set variable value
 	 *
 	 * This is a blocking operation, that will retain the program until the
 	 * underlying variable event is complete.
-	 *
 	 * @param value New value
+	 * @param synced true if the operation shall block the execution until the
+	 * variable events are dispatched
 	 */
-	inline void set(T &value) { sync(); _value = value; }
-
-	/** @brief Set variable from memory
-	 *
-	 * Sometimes a tool would make events micromanagement, becoming useful to
-	 * can retrieve the value in an asynchronous way. That is for instance the
-	 * case of events manipulated in callbacks
-	 *
-	 * @param ptr Memory to copy
-	 */
-	inline void set_async(void* ptr) { memcpy(&_value, ptr, sizeof(T)); }
-
-	/** @brief Set variable value
-	 *
-	 * Sometimes a tool would make events micromanagement, becoming useful to
-	 * can retrieve the value in an asynchronous way. That is for instance the
-	 * case of events manipulated in callbacks
-	 *
-	 * @param value New value
-	 */
-	inline void set_async(T &value) { _value = value; }
+	inline void set(T& value, bool synced = true)
+	{
+		if (synced)
+			sync();
+		_value = value;
+	}
 
 	/** @brief Get a Python Object representation of the variable
 	 * @param i0 ignored parameter.
@@ -374,8 +383,9 @@ class ScalarNumberVariable : public ScalarVariable<T>
 	 * @param vartype Type of the variable.
 	 */
 	ScalarNumberVariable(const std::string varname, const std::string vartype)
-		: ScalarVariable<T>(varname, vartype)
-	{}
+	  : ScalarVariable<T>(varname, vartype)
+	{
+	}
 
 	/** @brief Destructor.
 	 */
@@ -838,14 +848,16 @@ class ArrayVariable : public Variable
 	size_t size() const;
 
 	/** Get variable pointer basis pointer
+	 * @param synced Unused parameter
 	 * @return Implementation pointer.
 	 */
-	void* get() { return &_value; }
+	void* get(bool synced = false) { return &_value; }
 
 	/** Set variable from memory
 	 * @param ptr Memory to copy.
+	 * @param synced Unused parameter
 	 */
-	void set(void* ptr) { _value = *(cl_mem*)ptr; }
+	void set(void* ptr, bool synced = false) { _value = *(cl_mem*)ptr; }
 
 	/** Get a PyArrayObject interpretation of the variable
 	 * @param i0 First component to be read.
@@ -982,6 +994,13 @@ class Variables
 	bool isSameType(const std::string type_a,
 	                const std::string type_b,
 	                bool ignore_asterisk = true);
+
+	/** Get the list of variables called on a expression.
+	 * @param expr Expression to parse.
+	 * @return The list of input variables.
+	 * @see Aqua::Tokenizer::exprVariables()
+	 */
+	std::vector<Variable*> exprVariables(const std::string& expr);
 
 	/** Solve a string, interpreting the variables.
 	 * @param type_name Type of the output desired value.

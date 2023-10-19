@@ -26,6 +26,7 @@
 
 #include <CalcServer.h>
 #include <CalcServer/Tool.h>
+#include <vector>
 
 namespace Aqua {
 namespace CalcServer {
@@ -54,6 +55,21 @@ class SetScalar : public Aqua::CalcServer::Tool
 	 */
 	void setup();
 
+	/** @brief Get the output variable
+	 * @return The output variable
+	 */
+	inline InputOutput::Variable* getOutputVariable() const { return _var; }
+
+	/** @brief Get the expression to evaluate
+	 * @return The expression
+	 */
+	inline const std::string getExpression() const { return _value; }
+
+	/** @brief Get the main tool event
+	 * @return The event
+	 */
+	inline cl_event getEvent() const { return _event; }
+
   protected:
 	/** Execute the tool
 	 * @param events List of events that shall be waited before safe execution
@@ -62,17 +78,33 @@ class SetScalar : public Aqua::CalcServer::Tool
 	cl_event _execute(const std::vector<cl_event> events);
 
   private:
-	/** @brief Get the input variable
+	/** @brief Get a variable
+	 *
+	 * The varaible must exist and it shall not be an array
+	 * @param name Variable name
+	 * @return The variable
+	 * @throw std::runtime_error If either the variable does not exist, or it
+	 * has an invalid type
 	 */
-	void variable();
+	InputOutput::Variable* variable(const std::string& name) const;
 
-	/// Input variable name
+	/** @brief Get the input and output variables
+	 */
+	void variables();
+
+	/// Output variable name
 	std::string _var_name;
 	/// Value to set
 	std::string _value;
 
-	/// Input variable
+	/// Input variables
+	std::vector<InputOutput::Variable*> _in_vars;
+	/// Output variable
 	InputOutput::Variable* _var;
+
+	/// Convenient storage of the event to make easier to work with the
+	/// callback
+	cl_event _event;
 };
 
 }

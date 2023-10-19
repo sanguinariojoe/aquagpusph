@@ -616,13 +616,13 @@ opencl_version(std::string version)
 {
 	auto words = split(version);
 	if ((words.size() < 2) || (words.at(0) != "OpenCL")) {
-		return {0u, 0u};
+		return { 0u, 0u };
 	}
 	auto version_nums = split(words.at(1), '.');
 	if (version_nums.size() < 2) {
-		return {0u, 0u};
+		return { 0u, 0u };
 	}
-	return {std::stoi(version_nums.at(0)), std::stoi(version_nums.at(1))};
+	return { std::stoi(version_nums.at(0)), std::stoi(version_nums.at(1)) };
 }
 
 /** @brief Get the paltform's OpenCL major and minor version
@@ -634,16 +634,13 @@ std::tuple<unsigned int, unsigned int>
 opencl_version(cl_platform_id platform)
 {
 	cl_int err_code;
-	char *opencl_version_str;
+	char* opencl_version_str;
 	size_t opencl_version_str_len;
 	unsigned int opencl_version_major, opencl_version_minor;
-	err_code = clGetPlatformInfo(platform,
-	                             CL_PLATFORM_VERSION,
-	                             0,
-	                             NULL,
-	                             &opencl_version_str_len);
+	err_code = clGetPlatformInfo(
+	    platform, CL_PLATFORM_VERSION, 0, NULL, &opencl_version_str_len);
 	if (err_code != CL_SUCCESS) {
-		return {0u, 0u};
+		return { 0u, 0u };
 	}
 	opencl_version_str = new char[opencl_version_str_len];
 	if (!opencl_version_str) {
@@ -659,11 +656,11 @@ opencl_version(cl_platform_id platform)
 	                             opencl_version_str,
 	                             NULL);
 	if (err_code != CL_SUCCESS) {
-		return {0u, 0u};
+		return { 0u, 0u };
 	}
 	auto [version_major, version_minor] = opencl_version(opencl_version_str);
 	delete[] opencl_version_str;
-	return {version_major, version_minor};
+	return { version_major, version_minor };
 }
 
 /** @brief Get the device's OpenCL major and minor version
@@ -675,16 +672,13 @@ std::tuple<unsigned int, unsigned int>
 opencl_version(cl_device_id device)
 {
 	cl_int err_code;
-	char *opencl_version_str;
+	char* opencl_version_str;
 	size_t opencl_version_str_len;
 	unsigned int opencl_version_major, opencl_version_minor;
-	err_code = clGetDeviceInfo(device,
-	                           CL_DEVICE_VERSION,
-	                           0,
-	                           NULL,
-	                           &opencl_version_str_len);
+	err_code = clGetDeviceInfo(
+	    device, CL_DEVICE_VERSION, 0, NULL, &opencl_version_str_len);
 	if (err_code != CL_SUCCESS) {
-		return {0u, 0u};
+		return { 0u, 0u };
 	}
 	opencl_version_str = new char[opencl_version_str_len];
 	if (!opencl_version_str) {
@@ -700,11 +694,11 @@ opencl_version(cl_device_id device)
 	                           opencl_version_str,
 	                           NULL);
 	if (err_code != CL_SUCCESS) {
-		return {0u, 0u};
+		return { 0u, 0u };
 	}
 	auto [version_major, version_minor] = opencl_version(opencl_version_str);
 	delete[] opencl_version_str;
-	return {version_major, version_minor};
+	return { version_major, version_minor };
 }
 
 /** @brief Wrapper to clGetDeviceInfo() for strings related operations
@@ -712,7 +706,9 @@ opencl_version(cl_device_id device)
  * @param param_name The parameter
  * @return The returned string
  */
-std::string getDeviceInfoStr(cl_device_id device, cl_device_info param_name) {
+std::string
+getDeviceInfoStr(cl_device_id device, cl_device_info param_name)
+{
 	cl_int err_code;
 	char* param;
 	size_t param_len;
@@ -726,7 +722,7 @@ std::string getDeviceInfoStr(cl_device_id device, cl_device_info param_name) {
 	if (!param) {
 		std::ostringstream msg;
 		msg << "Failure allocating " << param_len + 1
-			<< " bytes for the device's param" << std::endl;
+		    << " bytes for the device's param" << std::endl;
 		LOG(L_ERROR, msg.str());
 		throw std::bad_alloc();
 	}
@@ -748,7 +744,7 @@ CalcServer::queryOpenCL()
 	cl_int err_code;
 	cl_uint i, j, num_devices = 0;
 	cl_device_id* devices;
-	char *name;
+	char* name;
 	size_t name_len;
 	_platforms = NULL;
 	// Gets the total number of platforms
@@ -780,7 +776,7 @@ CalcServer::queryOpenCL()
 		LOG0(L_INFO, info.str());
 
 		err_code = clGetPlatformInfo(
-			_platforms[i], CL_PLATFORM_NAME, 0, NULL, &name_len);
+		    _platforms[i], CL_PLATFORM_NAME, 0, NULL, &name_len);
 		if (err_code != CL_SUCCESS) {
 			LOG(L_ERROR, "Failure getting the platform name length.\n");
 			InputOutput::Logger::singleton()->printOpenCLError(err_code);
@@ -793,11 +789,10 @@ CalcServer::queryOpenCL()
 			    << " bytes for the platform's name" << std::endl;
 			LOG(L_ERROR, msg.str());
 			throw std::bad_alloc();
-
 		}
 		name[name_len] = '\0';
 		err_code = clGetPlatformInfo(
-			_platforms[i], CL_PLATFORM_NAME, name_len, name, NULL);
+		    _platforms[i], CL_PLATFORM_NAME, name_len, name, NULL);
 		if (err_code != CL_SUCCESS) {
 			LOG(L_ERROR, "Failure getting the platform name.\n");
 			InputOutput::Logger::singleton()->printOpenCLError(err_code);
@@ -847,13 +842,12 @@ CalcServer::queryOpenCL()
 		// Shows device arrays
 		for (j = 0; j < num_devices; j++) {
 			info.str("");
-			info << "\tDevice " << j << "..."
-			     << std::endl;
+			info << "\tDevice " << j << "..." << std::endl;
 			LOG0(L_INFO, info.str());
 
 			info.str("");
-			info << "\t\tNAME: "
-			     << getDeviceInfoStr(devices[j], CL_DEVICE_NAME) << std::endl;
+			info << "\t\tNAME: " << getDeviceInfoStr(devices[j], CL_DEVICE_NAME)
+			     << std::endl;
 			LOG0(L_DEBUG, info.str());
 
 			info.str("");

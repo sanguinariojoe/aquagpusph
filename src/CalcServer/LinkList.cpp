@@ -160,7 +160,7 @@ LinkList::_execute(const std::vector<cl_event> events_prior)
 	// The new event comes from the first dependency (see setup())
 	std::copy(
 	    events_prior.begin(), events_prior.end(), std::back_inserter(events));
-	events.push_back(getDependencies().front()->getEvent());
+	events.push_back(getOutputDependencies().front()->getEvent());
 
 	// Compute the number of cells, and eventually allocate memory for ihoc
 	nCells();
@@ -190,8 +190,8 @@ LinkList::_execute(const std::vector<cl_event> events_prior)
 		throw std::runtime_error("OpenCL execution error");
 	}
 
-	getDependencies().front()->setEvent(event);
-	getDependencies().back()->setEvent(event);
+	getOutputDependencies().front()->setEvent(event);
+	getOutputDependencies().back()->setEvent(event);
 	err_code = clReleaseEvent(event);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
@@ -209,7 +209,7 @@ LinkList::_execute(const std::vector<cl_event> events_prior)
 	// Such a new event can be taken from the last dependency (see setup())
 	// This transactional event SHALL NOT BE RELEASED. It is automagically
 	// destroyed when no more variables use it
-	event_wait = getDependencies().back()->getEvent();
+	event_wait = getOutputDependencies().back()->getEvent();
 
 	// Compute the head of cells
 	err_code = clEnqueueNDRangeKernel(C->command_queue(),

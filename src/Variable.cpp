@@ -26,6 +26,7 @@
 #include <AuxiliarMethods.h>
 #include <InputOutput/Logger.h>
 #include <CalcServer.h>
+#include <algorithm>
 
 /** @def PY_ARRAY_UNIQUE_SYMBOL
  * @brief Define the extension module which this Python stuff should be linked
@@ -92,7 +93,7 @@ Variable::setEvent(cl_event event)
 		if (err_code != CL_SUCCESS) {
 			std::stringstream msg;
 			msg << "Failure releasing the predecessor event for \"" << name()
-				<< "\" variable." << std::endl;
+			    << "\" variable." << std::endl;
 			LOG(L_ERROR, msg.str());
 			Logger::singleton()->printOpenCLError(err_code);
 			throw std::runtime_error("OpenCL execution error");
@@ -109,6 +110,20 @@ Variable::setEvent(cl_event event)
 		throw std::runtime_error("OpenCL execution error");
 	}
 	_event = event;
+	// Output events are blocking all reading events, so we can forget about
+	// them
+	for (auto e : _reading_events) {
+		err_code = clReleaseEvent(e);
+		if (err_code != CL_SUCCESS) {
+			std::stringstream msg;
+			msg << "Failure releasing a reading event for \"" << name()
+			    << "\" variable." << std::endl;
+			LOG(L_ERROR, msg.str());
+			Logger::singleton()->printOpenCLError(err_code);
+			throw std::runtime_error("OpenCL execution error");
+		}
+	}
+	_reading_events.clear();
 	_synced = false;
 }
 
@@ -140,9 +155,9 @@ Variable::sync()
 
 	cl_int err_code;
 	std::vector<cl_event> events = _reading_events;
-	if(_event != NULL)
+	if (_event != NULL)
 		events.push_back(_event);
-	if(!events.size()) {
+	if (!events.size()) {
 		_synced = true;
 		return;
 	}
@@ -161,8 +176,7 @@ void
 Variable::cleanReadingEvents()
 {
 	cl_int err_code, event_status;
-	for(auto it = _reading_events.begin(); it != _reading_events.end();)
-	{
+	for (auto it = _reading_events.begin(); it != _reading_events.end();) {
 		cl_event event = *it;
 		err_code = clGetEventInfo(event,
 		                          CL_EVENT_COMMAND_EXECUTION_STATUS,
@@ -178,19 +192,18 @@ Variable::cleanReadingEvents()
 			throw std::runtime_error("OpenCL execution error");
 		}
 
-		if(event_status == CL_COMPLETE) {
+		if (event_status == CL_COMPLETE) {
 			err_code = clReleaseEvent(event);
 			if (err_code != CL_SUCCESS) {
 				std::stringstream msg;
 				msg << "Failure releasing a reading event for \"" << name()
-					<< "\" variable." << std::endl;
+				    << "\" variable." << std::endl;
 				LOG(L_ERROR, msg.str());
 				Logger::singleton()->printOpenCLError(err_code);
 				throw std::runtime_error("OpenCL execution error");
 			}
 			it = _reading_events.erase(it);
-		}
-		else
+		} else
 			++it;
 	}
 }
@@ -1273,6 +1286,45 @@ Variables::isSameType(const std::string type_a,
 	return true;
 }
 
+/** @brief Convert the names populated at the tokenizer to variable names
+ * @param name The name populated on the tokenizer
+ * @return The variable name
+ */
+std::string
+tokNameToVarName(const std::string& name)
+{
+	std::string var_name = name;
+	for (auto suffix : { "_x", "_y", "_z", "_w" }) {
+		if (endswith(var_name, suffix)) {
+			var_name.erase(var_name.end() - 2, var_name.end());
+			break;
+		}
+	}
+	return var_name;
+}
+
+std::vector<Variable*>
+Variables::exprVariables(const std::string& expr)
+{
+	std::vector<Variable*> vars;
+	auto var_names = tok.exprVariables(expr);
+	for (auto var_name : var_names) {
+		Variable* var = get(tokNameToVarName(var_name));
+		if (std::find(vars.begin(), vars.end(), var) != vars.end())
+			continue;
+		if (!var) {
+			std::ostringstream msg;
+			msg << "Variable \"" << var->name()
+			    << "\", referenced on the expression " << expr
+			    << ", cannot be found" << std::endl;
+			LOG(L_ERROR, msg.str());
+			throw std::runtime_error("No such variable");
+		}
+		vars.push_back(var);
+	}
+	return vars;
+}
+
 void
 Variables::solve(const std::string type_name,
                  const std::string value,
@@ -1465,16 +1517,16 @@ Variables::populate(Variable* var)
 	std::ostringstream name;
 	const std::string type = trimCopy(var->type());
 	if (!type.compare("int")) {
-		int val = *(int*)var->get();
+		int val = *(int*)var->get_async();
 		tok.registerVariable(var->name(), (float)val);
 	} else if (!type.compare("unsigned int")) {
-		unsigned int val = *(unsigned int*)var->get();
+		unsigned int val = *(unsigned int*)var->get_async();
 		tok.registerVariable(var->name(), (float)val);
 	} else if (!type.compare("float")) {
-		float val = *(float*)var->get();
+		float val = *(float*)var->get_async();
 		tok.registerVariable(var->name(), (float)val);
 	} else if (!type.compare("vec")) {
-		vec val = *(vec*)var->get();
+		vec val = *(vec*)var->get_async();
 #ifdef HAVE_3D
 		name.str("");
 		name << var->name() << "_x";
@@ -1497,7 +1549,7 @@ Variables::populate(Variable* var)
 		tok.registerVariable(name.str(), (float)(val.y));
 #endif // HAVE_3D
 	} else if (!type.compare("vec2")) {
-		vec2 val = *(vec2*)var->get();
+		vec2 val = *(vec2*)var->get_async();
 		name.str("");
 		name << var->name() << "_x";
 		tok.registerVariable(name.str(), (float)(val.x));
@@ -1505,7 +1557,7 @@ Variables::populate(Variable* var)
 		name << var->name() << "_y";
 		tok.registerVariable(name.str(), (float)(val.y));
 	} else if (!type.compare("vec3")) {
-		vec3 val = *(vec3*)var->get();
+		vec3 val = *(vec3*)var->get_async();
 		name.str("");
 		name << var->name() << "_x";
 		tok.registerVariable(name.str(), (float)(val.x));
@@ -1516,7 +1568,7 @@ Variables::populate(Variable* var)
 		name << var->name() << "_z";
 		tok.registerVariable(name.str(), (float)(val.z));
 	} else if (!type.compare("vec4")) {
-		vec4 val = *(vec4*)var->get();
+		vec4 val = *(vec4*)var->get_async();
 		name.str("");
 		name << var->name() << "_x";
 		tok.registerVariable(name.str(), (float)(val.x));
@@ -1530,7 +1582,7 @@ Variables::populate(Variable* var)
 		name << var->name() << "_w";
 		tok.registerVariable(name.str(), (float)(val.w));
 	} else if (!type.compare("ivec")) {
-		ivec val = *(ivec*)var->get();
+		ivec val = *(ivec*)var->get_async();
 #ifdef HAVE_3D
 		name.str("");
 		name << var->name() << "_x";
@@ -1553,7 +1605,7 @@ Variables::populate(Variable* var)
 		tok.registerVariable(name.str(), (float)(val.y));
 #endif // HAVE_3D
 	} else if (!type.compare("ivec2")) {
-		ivec2 val = *(ivec2*)var->get();
+		ivec2 val = *(ivec2*)var->get_async();
 		name.str("");
 		name << var->name() << "_x";
 		tok.registerVariable(name.str(), (float)(val.x));
@@ -1561,7 +1613,7 @@ Variables::populate(Variable* var)
 		name << var->name() << "_y";
 		tok.registerVariable(name.str(), (float)(val.y));
 	} else if (!type.compare("ivec3")) {
-		ivec3 val = *(ivec3*)var->get();
+		ivec3 val = *(ivec3*)var->get_async();
 		name.str("");
 		name << var->name() << "_x";
 		tok.registerVariable(name.str(), (float)(val.x));
@@ -1572,7 +1624,7 @@ Variables::populate(Variable* var)
 		name << var->name() << "_z";
 		tok.registerVariable(name.str(), (float)(val.z));
 	} else if (!type.compare("ivec4")) {
-		ivec4 val = *(ivec4*)var->get();
+		ivec4 val = *(ivec4*)var->get_async();
 		name.str("");
 		name << var->name() << "_x";
 		tok.registerVariable(name.str(), (float)(val.x));
@@ -1586,7 +1638,7 @@ Variables::populate(Variable* var)
 		name << var->name() << "_w";
 		tok.registerVariable(name.str(), (float)(val.w));
 	} else if (!type.compare("uivec")) {
-		uivec val = *(uivec*)var->get();
+		uivec val = *(uivec*)var->get_async();
 #ifdef HAVE_3D
 		name.str("");
 		name << var->name() << "_x";
@@ -1609,7 +1661,7 @@ Variables::populate(Variable* var)
 		tok.registerVariable(name.str(), (float)(val.y));
 #endif // HAVE_3D
 	} else if (!type.compare("uivec2")) {
-		uivec2 val = *(uivec2*)var->get();
+		uivec2 val = *(uivec2*)var->get_async();
 		name.str("");
 		name << var->name() << "_x";
 		tok.registerVariable(name.str(), (float)(val.x));
@@ -1617,7 +1669,7 @@ Variables::populate(Variable* var)
 		name << var->name() << "_y";
 		tok.registerVariable(name.str(), (float)(val.y));
 	} else if (!type.compare("uivec3")) {
-		uivec3 val = *(uivec3*)var->get();
+		uivec3 val = *(uivec3*)var->get_async();
 		name.str("");
 		name << var->name() << "_x";
 		tok.registerVariable(name.str(), (float)(val.x));
@@ -1628,7 +1680,7 @@ Variables::populate(Variable* var)
 		name << var->name() << "_z";
 		tok.registerVariable(name.str(), (float)(val.z));
 	} else if (!type.compare("uivec4")) {
-		uivec4 val = *(uivec4*)var->get();
+		uivec4 val = *(uivec4*)var->get_async();
 		name.str("");
 		name << var->name() << "_x";
 		tok.registerVariable(name.str(), (float)(val.x));

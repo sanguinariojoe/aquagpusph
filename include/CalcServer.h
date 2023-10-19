@@ -193,6 +193,7 @@ class CalcServer : public Aqua::Singleton<Aqua::CalcServer::CalcServer>
 	 * @return true if the tools debug mode is enabled, false otherwise
 	 */
 	inline bool debug_mode() const { return _sim_data.settings.debug_tools; }
+
   private:
 	/** Setup the OpenCL stuff.
 	 */

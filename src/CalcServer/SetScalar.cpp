@@ -36,6 +36,7 @@ SetScalar::SetScalar(const std::string name,
   , _var_name(var_name)
   , _value(value)
   , _var(NULL)
+  , _event(NULL)
 {
 }
 
@@ -49,60 +50,138 @@ SetScalar::setup()
 	LOG(L_INFO, msg.str());
 
 	Tool::setup();
-	variable();
+	variables();
+}
+
+void CL_CALLBACK
+solver(cl_event event, cl_int event_command_status, void* user_data)
+{
+	auto tool = (SetScalar*)user_data;
+
+	clReleaseEvent(event);
+	InputOutput::Variables* vars = CalcServer::singleton()->variables();
+
+	auto var = tool->getOutputVariable();
+	cl_event user_event = tool->getEvent();
+
+	void* data = malloc(var->typesize());
+	if (!data) {
+		std::stringstream msg;
+		msg << "Failure allocating " << var->typesize()
+		    << " bytes for the variable \"" << var->name() << "\"."
+		    << std::endl;
+		LOG(L_ERROR, msg.str());
+		clSetUserEventStatus(user_event, -1);
+		return;
+	}
+
+	try {
+		vars->solve(var->type(), tool->getExpression(), data, "__NONE");
+	} catch (...) {
+		free(data);
+		clSetUserEventStatus(user_event, -2);
+		return;
+	}
+
+	var->set_async(data);
+	free(data);
+	// Ensure that the variable is populated
+	vars->populate(var);
+
+	clSetUserEventStatus(user_event, CL_COMPLETE);
+	clReleaseEvent(user_event);
 }
 
 cl_event
 SetScalar::_execute(const std::vector<cl_event> events)
 {
-	InputOutput::Variables* vars = CalcServer::singleton()->variables();
+	cl_int err_code;
+	cl_event trigger;
+	CalcServer* C = CalcServer::singleton();
 
-	void* data = malloc(_var->typesize());
-	if (!data) {
+	// We create a trigger event to be marked as completed when all the
+	// dependencies are fullfiled
+	cl_uint num_events_in_wait_list = events.size();
+	const cl_event* event_wait_list = events.size() ? events.data() : NULL;
+
+	err_code = clEnqueueMarkerWithWaitList(
+	    C->command_queue(), num_events_in_wait_list, event_wait_list, &trigger);
+	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
-		msg << "Failure allocating " << _var->typesize()
-		    << " bytes for the variable \"" << _var->name() << "\"."
+		msg << "Failure setting the trigger for tool \"" << name() << "\"."
 		    << std::endl;
 		LOG(L_ERROR, msg.str());
-		throw std::bad_alloc();
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
 	}
 
-	try {
-		vars->solve(_var->type(), _value, data, _var->name());
-	} catch (...) {
-		free(data);
-		throw;
+	// Now we create a user event that we will set as completed when we already
+	// solved the equation and set the varaible value
+	auto event = clCreateUserEvent(C->context(), &err_code);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure creating the event for tool \"" << name() << "\"."
+		    << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
+	err_code = clRetainEvent(event);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure retaining the event for tool \"" << name() << "\"."
+		    << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
+	_event = event;
+
+	// So it is time to register our callback on our trigger
+	err_code = clSetEventCallback(trigger, CL_COMPLETE, solver, this);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure registering the solver callback in tool \"" << name()
+		    << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
 	}
 
-	_var->set(data);
-	free(data);
-	// Ensure that the variable is populated
-	vars->populate(_var);
-
-	return NULL;
+	return _event;
 }
 
-void
-SetScalar::variable()
+InputOutput::Variable*
+SetScalar::variable(const std::string& var_name) const
 {
-	CalcServer* C = CalcServer::singleton();
-	InputOutput::Variables* vars = C->variables();
-	if (!vars->get(_var_name)) {
+	InputOutput::Variables* vars = CalcServer::singleton()->variables();
+	auto var = vars->get(var_name);
+	if (!var) {
 		std::stringstream msg;
 		msg << "The tool \"" << name()
-		    << "\" is asking the undeclared variable \"" << _var_name << "\"."
+		    << "\" is querying the undeclared variable \"" << var_name << "\"."
 		    << std::endl;
 		LOG(L_ERROR, msg.str());
 		throw std::runtime_error("Invalid variable");
 	}
-	if (vars->get(_var_name)->type().find('*') != std::string::npos) {
+	if (var->type().find('*') != std::string::npos) {
 		std::stringstream msg;
-		msg << "The tool \"" << name() << "\" is asking the variable \""
+		msg << "The tool \"" << name() << "\" is considering the variable \""
 		    << _var_name << "\", which is an array." << std::endl;
 		LOG(L_ERROR, msg.str());
 		throw std::runtime_error("Invalid variable type");
 	}
-	_var = vars->get(_var_name);
+	return var;
+}
+
+void
+SetScalar::variables()
+{
+	InputOutput::Variables* vars = CalcServer::singleton()->variables();
+	_in_vars = vars->exprVariables(_value);
+	_var = variable(_var_name);
+	std::vector<InputOutput::Variable*> out_vars{ _var };
+	setDependencies(_in_vars, out_vars);
 }
 
 }

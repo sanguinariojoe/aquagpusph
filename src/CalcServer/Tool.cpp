@@ -61,9 +61,8 @@ Tool::setup()
 	return;
 }
 
-void CL_CALLBACK exec_status_check(cl_event event,
-                                   cl_int event_command_status,
-                                   void* user_data)
+void CL_CALLBACK
+exec_status_check(cl_event event, cl_int event_command_status, void* user_data)
 {
 	clReleaseEvent(event);
 	if (event_command_status == CL_COMPLETE)
@@ -98,7 +97,7 @@ Tool::execute()
 
 	if (event != NULL) {
 		// Replace the dependencies event by the new one
-		std::vector<InputOutput::Variable*> vars = getDependencies();
+		std::vector<InputOutput::Variable*> vars = getOutputDependencies();
 		for (auto it = vars.begin(); it < vars.end(); it++) {
 			(*it)->setEvent(event);
 		}
@@ -106,10 +105,8 @@ Tool::execute()
 		// Check for errors when the event is marked as completed
 		// NOTE: clReleaseEvent() will be called on the callback, so no need to
 		// do it here
-		err_code = clSetEventCallback(event,
-		                              CL_COMPLETE,
-		                              exec_status_check,
-		                              &_name);
+		err_code =
+		    clSetEventCallback(event, CL_COMPLETE, exec_status_check, &_name);
 		if (err_code != CL_SUCCESS) {
 			std::stringstream msg;
 			msg << "Failure registering the CL_COMPLETE callback in tool \""
@@ -151,7 +148,7 @@ Tool::execute()
 		if (err_code != CL_SUCCESS) {
 			std::stringstream msg;
 			msg << "Failure calling clFinish() after launching \"" << name()
-				<< "\"." << std::endl;
+			    << "\"." << std::endl;
 			LOG(L_ERROR, msg.str());
 			InputOutput::Logger::singleton()->printOpenCLError(err_code);
 			throw std::runtime_error("OpenCL execution error");
@@ -194,37 +191,6 @@ Tool::addElapsedTime(float elapsed_time)
 	_n_iters++;
 	_average_elapsed_time /= _n_iters;
 	_squared_elapsed_time /= _n_iters;
-}
-
-void
-Tool::setDependencies(std::vector<std::string> var_names)
-{
-	InputOutput::Variables* vars = CalcServer::singleton()->variables();
-	_vars.clear();
-	for (auto it = var_names.begin(); it < var_names.end(); it++) {
-		InputOutput::Variable* var = vars->get(*it);
-		if (!var) {
-			std::stringstream msg;
-			msg << "The tool \"" << name()
-			    << "\" is asking the undeclared variable \"" << *it << "\"."
-			    << std::endl;
-			LOG(L_ERROR, msg.str());
-			throw std::runtime_error("Invalid variable");
-		}
-		_vars.push_back(var);
-	}
-}
-
-void
-Tool::setDependencies(std::vector<InputOutput::Variable*> vars)
-{
-	_vars = vars;
-}
-
-const std::vector<InputOutput::Variable*>
-Tool::getDependencies()
-{
-	return _vars;
 }
 
 std::vector<cl_kernel>
@@ -321,28 +287,65 @@ Tool::compile_kernel(const std::string source,
 }
 
 const std::vector<cl_event>
-Tool::getEvents()
+Tool::getEvents() const
 {
 	cl_int err_code;
-	_events.clear();
-	for (auto it = _vars.begin(); it < _vars.end(); it++) {
-		cl_event event = (*it)->getEvent();
-		if (std::find(_events.begin(), _events.end(), event) != _events.end())
+	std::vector<cl_event> res;
+	// First traverse the input variables. We must wait for their writing
+	// events
+	for (auto var : _in_vars) {
+		cl_event event = var->getWritingEvent();
+		if (std::find(res.begin(), res.end(), event) != res.end())
 			continue;
+		res.push_back(event);
+	}
+	// Now we must parse the output variables. On output variables we must wait
+	// for both their writing and their reading events
+	for (auto var : _out_vars) {
+		auto events = var->getReadingEvents();
+		if (var->getWritingEvent())
+			events.push_back(var->getWritingEvent());
+		for (auto e : events) {
+			if (std::find(res.begin(), res.end(), e) != res.end())
+				continue;
+			res.push_back(e);
+		}
+	}
+
+	for (auto event : res) {
 		// Retain the event until we work with it
 		err_code = clRetainEvent(event);
 		if (err_code != CL_SUCCESS) {
 			std::stringstream msg;
-			msg << "Failure reteaning the event for \"" << (*it)->name()
-			    << "\" variable in \"" << name() << "\" tool." << std::endl;
+			msg << "Failure retaining an event in \"" << name() << "\" tool."
+			    << std::endl;
 			LOG(L_ERROR, msg.str());
 			InputOutput::Logger::singleton()->printOpenCLError(err_code);
 			throw std::runtime_error("OpenCL execution error");
 		}
-		_events.push_back(event);
 	}
 
-	return _events;
+	return res;
+}
+
+std::vector<InputOutput::Variable*>
+Tool::namesToVars(const std::vector<std::string>& names) const
+{
+	InputOutput::Variables* vars = CalcServer::singleton()->variables();
+	std::vector<InputOutput::Variable*> res;
+	for (auto var_name : names) {
+		InputOutput::Variable* var = vars->get(var_name);
+		if (!var) {
+			std::stringstream msg;
+			msg << "The tool \"" << name()
+			    << "\" is asking the undeclared variable \"" << var_name
+			    << "\"." << std::endl;
+			LOG(L_ERROR, msg.str());
+			throw std::runtime_error("Invalid variable");
+		}
+		res.push_back(var);
+	}
+	return res;
 }
 
 }

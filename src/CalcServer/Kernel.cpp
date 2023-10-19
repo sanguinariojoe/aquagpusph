@@ -262,11 +262,8 @@ Kernel::variables(const std::string entry_point)
 	cl_int err_code;
 	cl_uint num_args;
 	InputOutput::Variables* vars = CalcServer::singleton()->variables();
-	err_code = clGetKernelInfo(_kernel,
-	                           CL_KERNEL_NUM_ARGS,
-	                           sizeof(cl_uint),
-	                           &num_args,
-	                           NULL);
+	err_code = clGetKernelInfo(
+	    _kernel, CL_KERNEL_NUM_ARGS, sizeof(cl_uint), &num_args, NULL);
 	if (err_code != CL_SUCCESS) {
 		LOG(L_WARNING, "Failure asking for CL_KERNEL_NUM_ARGS.\n");
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
@@ -274,12 +271,8 @@ Kernel::variables(const std::string entry_point)
 	for (cl_uint i = 0; i < num_args; i++) {
 		char* arg_name;
 		size_t arg_name_len;
-		err_code = clGetKernelArgInfo(_kernel,
-		                              i,
-		                              CL_KERNEL_ARG_NAME,
-		                              0,
-		                              NULL,
-		                              &arg_name_len);
+		err_code = clGetKernelArgInfo(
+		    _kernel, i, CL_KERNEL_ARG_NAME, 0, NULL, &arg_name_len);
 		if (err_code != CL_SUCCESS) {
 			LOG(L_WARNING, "Failure asking for CL_KERNEL_ARG_NAME len.\n");
 			InputOutput::Logger::singleton()->printOpenCLError(err_code);
@@ -293,12 +286,8 @@ Kernel::variables(const std::string entry_point)
 			throw std::bad_alloc();
 		}
 		arg_name[arg_name_len] = '\0';
-		err_code = clGetKernelArgInfo(_kernel,
-		                              i,
-		                              CL_KERNEL_ARG_NAME,
-		                              arg_name_len,
-		                              arg_name,
-		                              NULL);
+		err_code = clGetKernelArgInfo(
+		    _kernel, i, CL_KERNEL_ARG_NAME, arg_name_len, arg_name, NULL);
 		if (err_code != CL_SUCCESS) {
 			LOG(L_WARNING, "Failure asking for CL_KERNEL_ARG_NAME.\n");
 			InputOutput::Logger::singleton()->printOpenCLError(err_code);
