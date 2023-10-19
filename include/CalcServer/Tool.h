@@ -59,12 +59,12 @@ class Tool
 	/** Set the tool name.
 	 * @param tool_name Tool name.
 	 */
-	void name(const std::string tool_name) { _name = tool_name; };
+	inline void name(const std::string tool_name) { _name = tool_name; };
 
 	/** Get the tool name.
 	 * @return Tool name.
 	 */
-	const std::string name() const { return _name; }
+	inline const std::string name() const { return _name; }
 
 	/** Initialize the tool.
 	 */
@@ -90,24 +90,29 @@ class Tool
 	 * @return Next tool to be executed. NULL if this is the last tool of the
 	 * pipeline
 	 */
-	virtual Tool* next_tool() { return _next_tool; }
+	virtual inline Tool* next_tool() { return _next_tool; }
 
 	/** Get the allocated memory for this tool.
 	 * @return allocated memory by this tool.
 	 */
-	size_t allocatedMemory() const { return _allocated_memory; }
+	inline size_t allocatedMemory() const { return _allocated_memory; }
 
 	/** Get the number of times that this tool has been called.
 	 * @return Number of times this tool has been called.
 	 */
-	unsigned int used_times() const { return _n_iters; }
+	inline unsigned int used_times() const { return _n_iters; }
+
+	/** @brief Add new data to the average and squared elapsed times
+	 * @param elapsed_time Elapsed time
+	 */
+	void addElapsedTime(float elapsed_time);
 
 	/** Get the time consumed by the tool.
 	 * @param averaged true if the avergaed time step is required, false
 	 * otherwise.
 	 * @return time consumed.
 	 */
-	float elapsedTime(bool averaged = true) const
+	inline float elapsedTime(bool averaged = true) const
 	{
 		if (!averaged)
 			return _elapsed_time;
@@ -117,7 +122,7 @@ class Tool
 	/** Get the time consumed variance.
 	 * @return Time consumed variance.
 	 */
-	float elapsedTimeVariance() const
+	inline float elapsedTimeVariance() const
 	{
 		return _squared_elapsed_time - pow(_average_elapsed_time, 2);
 	}
@@ -125,7 +130,10 @@ class Tool
 	/** Get the time consumed standard deviation.
 	 * @return Time consumed standard deviation.
 	 */
-	float elapsedTimeDeviation() const { return sqrt(elapsedTimeVariance()); }
+	inline float elapsedTimeDeviation() const
+	{
+		return sqrt(elapsedTimeVariance());
+	}
 
 	/** Get the scope modifier
 	 *
@@ -164,11 +172,6 @@ class Tool
 	{
 		return NULL;
 	}
-
-	/** @brief Add new data to the average and squared elapsed times
-	 * @param elapsed_time Elapsed time
-	 */
-	void addElapsedTime(float elapsed_time);
 
 	/** @brief Set the depedencies of the tool
 	 *

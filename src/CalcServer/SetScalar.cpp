@@ -24,6 +24,7 @@
 #include <InputOutput/Logger.h>
 #include <CalcServer/SetScalar.h>
 #include <CalcServer.h>
+#include <sys/time.h>
 
 namespace Aqua {
 namespace CalcServer {
@@ -56,6 +57,9 @@ SetScalar::setup()
 void CL_CALLBACK
 solver(cl_event event, cl_int event_command_status, void* user_data)
 {
+	timeval tic, tac;
+	gettimeofday(&tic, NULL);
+
 	auto tool = (SetScalar*)user_data;
 
 	clReleaseEvent(event);
@@ -90,6 +94,14 @@ solver(cl_event event, cl_int event_command_status, void* user_data)
 
 	clSetUserEventStatus(user_event, CL_COMPLETE);
 	clReleaseEvent(user_event);
+
+	gettimeofday(&tac, NULL);
+
+	float elapsed_seconds;
+	elapsed_seconds = (float)(tac.tv_sec - tic.tv_sec);
+	elapsed_seconds += (float)(tac.tv_usec - tic.tv_usec) * 1E-6f;
+
+	tool->addElapsedTime(elapsed_seconds);
 }
 
 cl_event

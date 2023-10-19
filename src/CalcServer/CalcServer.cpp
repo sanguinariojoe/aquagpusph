@@ -957,15 +957,18 @@ create_command_queue(cl_context context,
                      cl_device_id device,
                      cl_int* errcode_ret)
 {
-#if (OPENCL_PLATFORM_MAJOR > 1)
-	const cl_queue_properties properties[3] = {
-		CL_QUEUE_PROPERTIES, CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, 0
+#if (OPENCL_PLATFORM_MAJOR > 1) ||                                             \
+    ((OPENCL_PLATFORM_MAJOR == 1) && (OPENCL_PLATFORM_MINOR > 1))
+	const cl_queue_properties properties[4] = {
+		CL_QUEUE_PROPERTIES,
+		CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE | CL_QUEUE_PROFILING_ENABLE,
+		0
 	};
 	return clCreateCommandQueueWithProperties(
 	    context, device, properties, errcode_ret);
 #else
 	cl_command_queue_properties properties =
-	    CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
+	    CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE | CL_QUEUE_PROFILING_ENABLE;
 	return clCreateCommandQueue(context, device, properties, errcode_ret);
 #endif
 }
@@ -1103,8 +1106,6 @@ CalcServer::setupDevices()
 	}
 
 	// Create the command queues
-	cl_command_queue_properties properties =
-	    CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
 	_command_queue = create_command_queue(_context, _device, &err_code);
 	if (err_code != CL_SUCCESS) {
 		LOG(L_ERROR, "Failure generating the main command queue\n");

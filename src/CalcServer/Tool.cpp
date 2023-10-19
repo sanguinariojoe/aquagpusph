@@ -25,7 +25,6 @@
 #include <CalcServer/Tool.h>
 #include <CalcServer.h>
 #include <InputOutput/Logger.h>
-#include <sys/time.h>
 #include <queue>
 #include <algorithm>
 
@@ -64,12 +63,29 @@ Tool::setup()
 void CL_CALLBACK
 exec_status_check(cl_event event, cl_int event_command_status, void* user_data)
 {
+	auto tool = (Tool*)user_data;
+
+	cl_command_type event_type;
+	clGetEventInfo(event,
+	               CL_EVENT_COMMAND_TYPE,
+	               sizeof(cl_command_type),
+	               &event_type,
+	               NULL);
+	if (event_type != CL_COMMAND_USER) {
+		cl_ulong start = 0, end = 0;
+		clGetEventProfilingInfo(
+		    event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, NULL);
+		clGetEventProfilingInfo(
+		    event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, NULL);
+		tool->addElapsedTime((cl_double)(end - start) * (cl_double)(1e-06));
+	}
+
 	clReleaseEvent(event);
 	if (event_command_status == CL_COMPLETE)
 		return;
 	std::string name = *((std::string*)user_data);
 	std::stringstream msg;
-	msg << "Tool \"" << name << "\" exited with the error code "
+	msg << "Tool \"" << tool->name() << "\" exited with the error code "
 	    << event_command_status << "." << std::endl;
 	LOG(L_ERROR, msg.str());
 }
@@ -81,9 +97,6 @@ Tool::execute()
 		return;
 
 	cl_int err_code;
-	timeval tic, tac;
-
-	gettimeofday(&tic, NULL);
 
 	// Launch the tool
 	CalcServer* C = CalcServer::singleton();
@@ -106,7 +119,7 @@ Tool::execute()
 		// NOTE: clReleaseEvent() will be called on the callback, so no need to
 		// do it here
 		err_code =
-		    clSetEventCallback(event, CL_COMPLETE, exec_status_check, &_name);
+		    clSetEventCallback(event, CL_COMPLETE, exec_status_check, this);
 		if (err_code != CL_SUCCESS) {
 			std::stringstream msg;
 			msg << "Failure registering the CL_COMPLETE callback in tool \""
@@ -157,14 +170,6 @@ Tool::execute()
 		msg << "\"" << name() << "\" finished" << std::endl;
 		LOG(L_DEBUG, msg.str());
 	}
-
-	gettimeofday(&tac, NULL);
-
-	float elapsed_seconds;
-	elapsed_seconds = (float)(tac.tv_sec - tic.tv_sec);
-	elapsed_seconds += (float)(tac.tv_usec - tic.tv_usec) * 1E-6f;
-
-	addElapsedTime(elapsed_seconds);
 }
 
 int

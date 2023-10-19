@@ -102,6 +102,7 @@ size_t Performance::computeAllocatedMemory(){
 cl_event Performance::_execute(const std::vector<cl_event> events)
 {
     CalcServer *C = CalcServer::singleton();
+    clFinish(C->command_queue());
     std::stringstream data;
 
     size_t allocated_MB = computeAllocatedMemory() / (1024 * 1024);
