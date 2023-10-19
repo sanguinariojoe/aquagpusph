@@ -100,17 +100,10 @@ TimeManager::TimeManager(ProblemSetup& sim_data)
 
 TimeManager::~TimeManager() {}
 
-void
-TimeManager::update(float sim_dt)
-{
-	dt(sim_dt);
-	step(step() + 1);
-	time(time() + dt());
-}
-
 bool
 TimeManager::mustStop()
 {
+	sync();
 	if ((time() >= maxTime()) || (step() >= maxStep()) ||
 	    (frame() >= maxFrame())) {
 		return true;
@@ -122,27 +115,28 @@ TimeManager::mustStop()
 bool
 TimeManager::mustPrintOutput()
 {
+	sync();
 	if (time() < 0.f) {
-		step(0);
+		*_step = 0;
 		return false;
 	}
 	if (((_output_fps >= 0.f) || (_output_ipf >= 0.f)) && (frame() == 0) &&
 	    (step() == 1)) {
 		_output_time = time();
 		_output_step = step();
-		frame(frame() + 1);
+		*_frame += 1;
 		return true;
 	}
 	if ((_output_fps > 0.f) && (time() - _output_time >= 1.f / _output_fps)) {
 		_output_time += 1.f / _output_fps;
 		_output_step = step();
-		frame(frame() + 1);
+		*_frame += 1;
 		return true;
 	}
 	if ((_output_ipf > 0) && (step() - _output_step >= _output_ipf)) {
 		_output_time = time();
 		_output_step = step();
-		frame(frame() + 1);
+		*_frame += 1;
 		return true;
 	}
 	// We are interested into print an output in the simulation end state
@@ -151,6 +145,16 @@ TimeManager::mustPrintOutput()
 	}
 
 	return false;
+}
+
+void
+TimeManager::sync()
+{
+	Variables* vars = CalcServer::CalcServer::singleton()->variables();
+	for (auto var_name :
+	     { "t", "dt", "iter", "frame", "end_t", "end_iter", "end_frame" }) {
+		vars->get(var_name)->get(true);
+	}
 }
 
 }

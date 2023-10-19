@@ -51,11 +51,6 @@ struct TimeManager
 	/// Destructor
 	~TimeManager();
 
-	/** @brief Pass to the next time step.
-	 * @param dt Simulation time elapsed in this frame.
-	 */
-	void update(float dt);
-
 	/** @brief Check if the simulation must be finished.
 	 * @return true if simulation should finish, false otherwise.
 	 */
@@ -68,84 +63,80 @@ struct TimeManager
 	 */
 	bool mustPrintOutput();
 
-	/** @brief Set the simulation time step index.
-	 * @param s Simulation time step index.
-	 */
-	void step(unsigned int s) { *_step = s; }
 	/** @brief Get the simulation time step index.
 	 * @return Simulation time step index.
 	 */
-	unsigned int step() { return *_step; }
-	/** @brief Set the simulation time instant.
-	 * @param t Simulation time instant.
-	 */
-	void time(float t) { *_time = t; }
+	inline unsigned int step() const { return *_step; }
+
 	/** @brief Get the simulation time instant.
 	 * @return Simulation time instant.
 	 */
-	float time() { return *_time; }
-	/** @brief Set the simulation frame.
-	 *
-	 * The frame is the index of the current particles output.
-	 *
-	 * @param frame Simulation frame.
-	 */
-	void frame(unsigned int frame) { *_frame = frame; }
+	inline float time() const { return *_time; }
+
 	/** @brief Get the simulation frame.
 	 *
 	 * The frame is the index of the current particles output.
 	 *
 	 * @return Simulation frame.
 	 */
-	unsigned int frame() { return *_frame; }
-	/** @brief Set the simulation time step \f$ \Delta t \f$.
-	 * @param dt Simulation time step \f$ \Delta t \f$.
-	 */
-	void dt(float dt) { *_dt = dt; }
+	inline unsigned int frame() const { return *_frame; }
+
 	/** @brief Get the simulation time step \f$ \Delta t \f$.
 	 * @return Simulation time step \f$ \Delta t \f$.
 	 */
-	float dt() { return *_dt; }
-
-	/** @brief Set the last output event time step index.
-	 * @param s last output event time step index.
-	 */
-	void outputStep(int s) { _output_step = s; }
-	/** @brief Get the last output event time step index.
-	 * @return Last output event time step index.
-	 */
-	int outputStep() { return _output_step; }
-	/** @brief Get the iterations per output frame.
-	 * @return Iterations per frame.
-	 */
-	int outputIPF() { return _output_ipf; }
-	/** @brief Set the last output event time instant.
-	 * @param t Last output event time instant.
-	 */
-	void outputTime(float t) { _output_time = t; }
-	/** @brief Get the last output event time instant.
-	 * @return Last output event time instant.
-	 */
-	float outputTime() { return _output_time; }
-	/** @brief Get the output frames per second.
-	 * @return Frames per second.
-	 */
-	float outputFPS() { return _output_fps; }
+	inline float dt() const { return *_dt; }
 
 	/** @brief Get the total simulation time to compute.
 	 * @return Total simulation time to compute.
 	 */
-	float maxTime() { return *_time_max; }
+	inline float maxTime() const { return *_time_max; }
+
 	/** @brief Get the number of frames to compute.
 	 * @return Number of frames to compute.
 	 */
-	unsigned int maxStep() { return *_steps_max; }
+	inline unsigned int maxStep() const { return *_steps_max; }
+
 	/** @brief Get the number of frames to compute.
 	 * @return Number of frames to compute.
 	 */
-	unsigned int maxFrame() { return *_frames_max; }
+	inline unsigned int maxFrame() const { return *_frames_max; }
+
+	/** @brief Set the last output event time step index.
+	 * @param s last output event time step index.
+	 */
+	inline void outputStep(int s) { _output_step = s; }
+
+	/** @brief Get the last output event time step index.
+	 * @return Last output event time step index.
+	 */
+	inline int outputStep() const { return _output_step; }
+
+	/** @brief Get the iterations per output frame.
+	 * @return Iterations per frame.
+	 */
+	inline int outputIPF() const { return _output_ipf; }
+
+	/** @brief Set the last output event time instant.
+	 * @param t Last output event time instant.
+	 */
+	inline void outputTime(float t) { _output_time = t; }
+
+	/** @brief Get the last output event time instant.
+	 * @return Last output event time instant.
+	 */
+	inline float outputTime() const { return _output_time; }
+
+	/** @brief Get the output frames per second.
+	 * @return Frames per second.
+	 */
+	inline float outputFPS() const { return _output_fps; }
 
   private:
+	/** @brief Ask to synchronize all the dependant variables, so they can be
+	 * safety read and wrote
+	 */
+	void sync();
+
 	/// Actual step
 	unsigned int* _step;
 	/// Actual time
