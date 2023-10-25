@@ -32,50 +32,25 @@ namespace Aqua {
 namespace CalcServer {
 
 Assert::Assert(const std::string name, const std::string condition, bool once)
-  : Tool(name, once)
-  , _condition(condition)
+  : ScalarExpression(name, condition, "int", once)
 {
 }
 
 Assert::~Assert() {}
 
-void
-Assert::setup()
-{
-	std::ostringstream msg;
-	msg << "Loading the tool \"" << name() << "\"..." << std::endl;
-	LOG(L_INFO, msg.str());
-	Tool::setup();
-}
-
-cl_event
-Assert::_execute(const std::vector<cl_event> events)
+void Assert::_solve()
 {
 	int result;
-	InputOutput::Variables* vars = CalcServer::singleton()->variables();
-
-	void* data = malloc(sizeof(int));
-	if (!data) {
-		std::stringstream msg;
-		msg << "Failure allocating memory for the integer result" << std::endl;
-		LOG(L_ERROR, msg.str());
-		throw std::bad_alloc();
-	}
-
-	vars->solve("int", _condition, data, "assert_result");
-
+	ScalarExpression::_solve();
 	// Check the result
-	memcpy(&result, data, sizeof(int));
-	free(data);
+	memcpy(&result, getValue(), sizeof(int));
 	if (result == 0) {
 		std::stringstream msg;
-		msg << "Assertion error. The expression \"" << std::string(_condition)
-		    << "\" is false" << std::endl;
+		msg << "Assertion error. The expression \"" << getExpression()
+		    << "\" on tool \"" << name() << "\" is false" << std::endl;
 		LOG(L_ERROR, msg.str());
 		throw std::runtime_error("Assertion error");
 	}
-
-	return NULL;
 }
 
 }

@@ -24,20 +24,20 @@
 #ifndef ASSERT_H_INCLUDED
 #define ASSERT_H_INCLUDED
 
-#include <CalcServer/Tool.h>
+#include <CalcServer/SetScalar.h>
 
 namespace Aqua {
 namespace CalcServer {
 
 /** @class Assert Assert.h CalcServer/Assert.h
- * @brief Check that a condition holds true, or trhow a fatal error otherwise.
+ * @brief Check that a condition holds true, or throw a fatal error otherwise.
  *
  * If the result of evaluating the condition expression is equal to 0, the
  * result will be considered false, and therefore a fatal error will be raised.
  * Any other value will be considered as true, letting the simulation to
  * normally continue.
  */
-class Assert : public Aqua::CalcServer::Tool
+class Assert final : public Aqua::CalcServer::ScalarExpression
 {
   public:
 	/** @brief Constructor.
@@ -54,20 +54,10 @@ class Assert : public Aqua::CalcServer::Tool
 	/// Destructor.
 	~Assert();
 
-	/** @brief Initialize the tool.
-	 */
-	void setup();
-
   protected:
-	/** Execute the tool
-	 * @param events List of events that shall be waited before safe execution
-	 * @return OpenCL event to be waited before accessing the dependencies
+	/** @brief Evaluate the expression and check whether it is true or false
 	 */
-	cl_event _execute(const std::vector<cl_event> events);
-
-  private:
-	/// Condition expression to evaluate
-	std::string _condition;
+	void _solve();
 };
 
 }

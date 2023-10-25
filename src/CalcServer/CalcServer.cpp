@@ -502,6 +502,14 @@ CalcServer::~CalcServer()
 }
 
 void
+CalcServer::raiseSIGINT()
+{
+	if (sigint_received)
+		return;
+	sigint_handler(SIGINT);
+}
+
+void
 CalcServer::update(InputOutput::TimeManager& t_manager)
 {
 	unsigned int i;

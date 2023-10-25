@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <sphInput>
     <Variables>
-        <Variable length="N" name="r" symbol="h" type="vec*" />
+        <Variable length="N" name="r" symbol="r" type="vec*" />
         <Variable length="1" name="h" symbol="h" type="float" value="1.0"/>
         <Variable length="1" name="i" symbol="i" type="int" value="-1"/>
         <Variable length="1" name="v" symbol="v" type="vec" value="3.0, 4.0"/>

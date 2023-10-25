@@ -83,11 +83,11 @@ exec_status_check(cl_event event, cl_int event_command_status, void* user_data)
 	clReleaseEvent(event);
 	if (event_command_status == CL_COMPLETE)
 		return;
-	std::string name = *((std::string*)user_data);
 	std::stringstream msg;
 	msg << "Tool \"" << tool->name() << "\" exited with the error code "
 	    << event_command_status << "." << std::endl;
 	LOG(L_ERROR, msg.str());
+	CalcServer::singleton()->raiseSIGINT();
 }
 
 void
@@ -109,11 +109,17 @@ Tool::execute()
 	cl_event event = _execute(events);
 
 	if (event != NULL) {
-		// Replace the dependencies event by the new one
-		std::vector<InputOutput::Variable*> vars = getOutputDependencies();
-		for (auto it = vars.begin(); it < vars.end(); it++) {
-			(*it)->setEvent(event);
+		// Add the event to the reading dependencies
+		auto in_vars = getInputDependencies();
+		for (auto var : in_vars) {
+			var->addReadingEvent(event);
 		}
+		// Replace the writing dependencies event by the new one
+		auto out_vars = getOutputDependencies();
+		for (auto var : out_vars) {
+			var->setEvent(event);
+		}
+
 
 		// Check for errors when the event is marked as completed
 		// NOTE: clReleaseEvent() will be called on the callback, so no need to

@@ -147,6 +147,32 @@ class Tool
 	 */
 	virtual const int scope_modifier() { return 0; }
 
+	/** @brief Get the input depedencies of the tool
+	 * @return The input and output dependencies
+	 */
+	inline std::vector<InputOutput::Variable*> getInputDependencies() const
+	{
+		return _in_vars;
+	}
+
+	/** @brief Get the output depedencies of the tool
+	 * @return The input and output dependencies
+	 */
+	inline std::vector<InputOutput::Variable*> getOutputDependencies() const
+	{
+		return _out_vars;
+	}
+
+	/** @brief Get the depedencies of the tool
+	 * @return The input and output dependencies
+	 */
+	inline std::tuple<std::vector<InputOutput::Variable*>,
+	                  std::vector<InputOutput::Variable*>>
+	getDependencies() const
+	{
+		return { _in_vars, _out_vars };
+	}
+
   protected:
 	/** Get the tool index in the pipeline
 	 * @return Index of the tool in the pipeline. -1 if the tool cannot be find
@@ -276,32 +302,6 @@ class Tool
 	{
 		std::vector<InputOutput::Variable*> inputs;
 		setDependencies(inputs, vars);
-	}
-
-	/** @brief Get the input depedencies of the tool
-	 * @return The input and output dependencies
-	 */
-	inline std::vector<InputOutput::Variable*> getInputDependencies() const
-	{
-		return _in_vars;
-	}
-
-	/** @brief Get the output depedencies of the tool
-	 * @return The input and output dependencies
-	 */
-	inline std::vector<InputOutput::Variable*> getOutputDependencies() const
-	{
-		return _out_vars;
-	}
-
-	/** @brief Get the depedencies of the tool
-	 * @return The input and output dependencies
-	 */
-	inline std::tuple<std::vector<InputOutput::Variable*>,
-	                  std::vector<InputOutput::Variable*>>
-	getDependencies() const
-	{
-		return { _in_vars, _out_vars };
 	}
 
 	/** @brief Compile an OpenCL source code and generate the corresponding

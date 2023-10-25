@@ -99,6 +99,16 @@ class CalcServer : public Aqua::Singleton<Aqua::CalcServer::CalcServer>
 	/// Destructor
 	~CalcServer();
 
+	/** @brief Raise a SIGINT/SIGTERM signal
+	 *
+	 * This can be useful for instance to asynchronously interrupt the
+	 * execution after detecting errors
+	 * @note This function will never force the execution termination. If the
+	 * signal has been already rised somewhere else, this function will just
+	 * gently wait for the execution to be finished
+	 */
+	void raiseSIGINT();
+
 	/** @brief Internal time loop.
 	 *
 	 * Calculation server will be iterating while no output files should be

@@ -84,6 +84,8 @@ void ScalarExpression::solve()
 	try {
 		_solve();
 	} catch (...) {
+		std::stringstream msg;
+		LOG(L_ERROR, msg.str());
 		err_code = clSetUserEventStatus(user_event, -1);
 		if (err_code != CL_SUCCESS) {
 			std::stringstream msg;
@@ -91,7 +93,7 @@ void ScalarExpression::solve()
 			    << "\" user event." << std::endl;
 			LOG(L_ERROR, msg.str());
 		}
-		throw;
+		return;
 	}
 
 	err_code = clSetUserEventStatus(user_event, CL_COMPLETE);
@@ -101,7 +103,7 @@ void ScalarExpression::solve()
 		    << std::endl;
 		LOG(L_ERROR, msg.str());
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
+		return;
 	}
 
 	err_code = clReleaseEvent(user_event);
@@ -111,7 +113,7 @@ void ScalarExpression::solve()
 		    << std::endl;
 		LOG(L_ERROR, msg.str());
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
+		return;
 	}
 
 	gettimeofday(&tac, NULL);
@@ -137,12 +139,15 @@ void ScalarExpression::solve()
 void CL_CALLBACK
 solver(cl_event event, cl_int event_command_status, void* user_data)
 {
+	cl_int err_code;
 	auto tool = (ScalarExpression*)user_data;
 	if (event_command_status != CL_COMPLETE) {
 		std::stringstream msg;
 		msg << "Skipping \"" << tool->name() << "\" due to dependency errors."
 		    << std::endl;
-		LOG(L_ERROR, msg.str());
+		LOG(L_WARNING, msg.str());
+		clSetUserEventStatus(tool->getEvent(), event_command_status);
+		clReleaseEvent(tool->getEvent());
 		return;
 	}
 
