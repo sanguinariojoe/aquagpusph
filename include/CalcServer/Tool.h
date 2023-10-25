@@ -216,6 +216,55 @@ class Tool
 		setDependencies(inputs, vars);
 	}
 
+	/** @brief Set the reading depedencies of the tool
+	 *
+	 * The dependencies are the variables that this tool is either reading or
+	 * writing.
+	 *
+	 * @param inputs Names of the input variables
+	 */
+	inline void setInputDependencies(std::vector<std::string> vars)
+	{
+		_in_vars = namesToVars(vars);
+	}
+
+	/** @brief Set the reading depedencies of the tool
+	 *
+	 * The dependencies are the variables that this tool is either reading or
+	 * writing.
+	 *
+	 * @param inputs Input variables
+	 */
+	inline void setInputDependencies(std::vector<InputOutput::Variable*> vars)
+	{
+		_in_vars = vars;
+	}
+
+	/** @brief Set the writing depedencies of the tool
+	 *
+	 * The dependencies are the variables that this tool is either reading or
+	 * writing.
+	 *
+	 * @param inputs Names of the output variables
+	 */
+	inline void setOutputDependencies(std::vector<std::string> vars)
+	{
+		_out_vars = namesToVars(vars);
+	}
+
+	/** @brief Set the writing depedencies of the tool
+	 *
+	 * The dependencies are the variables that this tool is either reading or
+	 * writing.
+	 *
+	 * @param inputs Output variables
+	 */
+	inline void setOutputDependencies(std::vector<InputOutput::Variable*> vars)
+	{
+		_out_vars = vars;
+	}
+
+
 	/** @brief Set the depedencies of the tool
 	 *
 	 * The dependencies are the variables that this tool is either reading or

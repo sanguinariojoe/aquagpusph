@@ -29,22 +29,26 @@
 namespace Aqua {
 namespace CalcServer {
 
-SetScalar::SetScalar(const std::string name,
-                     const std::string var_name,
-                     const std::string value,
-                     bool once)
+ScalarExpression::ScalarExpression(const std::string name,
+	                               const std::string expr,
+	                               const std::string type,
+	                               bool once)
   : Tool(name, once)
-  , _var_name(var_name)
-  , _value(value)
-  , _var(NULL)
+  , _value(expr)
+  , _output(NULL)
+  , _output_type(type)
   , _event(NULL)
 {
+	setOutputType(type);
 }
 
-SetScalar::~SetScalar() {}
+ScalarExpression::~ScalarExpression()
+{
+	free(_output);
+}
 
 void
-SetScalar::setup()
+ScalarExpression::setup()
 {
 	std::ostringstream msg;
 	msg << "Loading the tool \"" << name() << "\"..." << std::endl;
@@ -54,46 +58,61 @@ SetScalar::setup()
 	variables();
 }
 
-void CL_CALLBACK
-solver(cl_event event, cl_int event_command_status, void* user_data)
+void ScalarExpression::setOutputType(const std::string type)
 {
-	timeval tic, tac;
-	gettimeofday(&tic, NULL);
-
-	auto tool = (SetScalar*)user_data;
-
-	clReleaseEvent(event);
-	InputOutput::Variables* vars = CalcServer::singleton()->variables();
-
-	auto var = tool->getOutputVariable();
-	cl_event user_event = tool->getEvent();
-
-	void* data = malloc(var->typesize());
-	if (!data) {
-		std::stringstream msg;
-		msg << "Failure allocating " << var->typesize()
-		    << " bytes for the variable \"" << var->name() << "\"."
-		    << std::endl;
+	_output_type = type;
+	size_t typesize = InputOutput::Variables::typeToBytes(type);
+	free(_output);
+	_output = malloc(typesize);
+	if (!_output) {
+		std::ostringstream msg;
+		msg << "Failure allocating " << typesize << " bytes ("
+		    << type << ")for the output." << std::endl;
 		LOG(L_ERROR, msg.str());
-		clSetUserEventStatus(user_event, -1);
-		return;
+		throw std::bad_alloc();
 	}
+}
+
+void ScalarExpression::solve()
+{
+	cl_int err_code;
+	timeval tic, tac;
+
+	gettimeofday(&tic, NULL);
+	cl_event user_event = getEvent();
 
 	try {
-		vars->solve(var->type(), tool->getExpression(), data, "__NONE");
+		_solve();
 	} catch (...) {
-		free(data);
-		clSetUserEventStatus(user_event, -2);
-		return;
+		err_code = clSetUserEventStatus(user_event, -1);
+		if (err_code != CL_SUCCESS) {
+			std::stringstream msg;
+			msg << "Failure setting the error on the tool \"" << name()
+			    << "\" user event." << std::endl;
+			LOG(L_ERROR, msg.str());
+		}
+		throw;
 	}
 
-	var->set_async(data);
-	free(data);
-	// Ensure that the variable is populated
-	vars->populate(var);
+	err_code = clSetUserEventStatus(user_event, CL_COMPLETE);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure setting as complete the tool \"" << name() << "\""
+		    << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
 
-	clSetUserEventStatus(user_event, CL_COMPLETE);
-	clReleaseEvent(user_event);
+	err_code = clReleaseEvent(user_event);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure releasing the user even of tool \"" << name() << "\""
+		    << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
 
 	gettimeofday(&tac, NULL);
 
@@ -101,11 +120,47 @@ solver(cl_event event, cl_int event_command_status, void* user_data)
 	elapsed_seconds = (float)(tac.tv_sec - tic.tv_sec);
 	elapsed_seconds += (float)(tac.tv_usec - tic.tv_usec) * 1E-6f;
 
-	tool->addElapsedTime(elapsed_seconds);
+	addElapsedTime(elapsed_seconds);
+}
+
+/** @brief Callback called when all the dependencies of the
+ * Aqua::CalcServer::ScalarExpression tool are fulfilled.
+ *
+ * This function is just redirecting the work to
+ * Aqua::CalcServer::ScalarExpression::solve()
+ * @param event The triggering event
+ * @param event_command_status CL_COMPLETE upon all dependencies successfully
+ * fulfilled. A negative integer if one or mor dependencies failed.
+ * @param user_data A casted pointer to the Aqua::CalcServer::ScalarExpression
+ * tool (or the inherited one)
+ */
+void CL_CALLBACK
+solver(cl_event event, cl_int event_command_status, void* user_data)
+{
+	auto tool = (ScalarExpression*)user_data;
+	if (event_command_status != CL_COMPLETE) {
+		std::stringstream msg;
+		msg << "Skipping \"" << tool->name() << "\" due to dependency errors."
+		    << std::endl;
+		LOG(L_ERROR, msg.str());
+		return;
+	}
+
+	tool->solve();
+}
+
+void ScalarExpression::_solve()
+{
+	InputOutput::Variables* vars = CalcServer::singleton()->variables();
+	try {
+		vars->solve(getOutputType(), getExpression(), _output, "__NONE");
+	} catch (...) {
+		throw;
+	}
 }
 
 cl_event
-SetScalar::_execute(const std::vector<cl_event> events)
+ScalarExpression::_execute(const std::vector<cl_event> events)
 {
 	cl_int err_code;
 	cl_event trigger;
@@ -163,6 +218,52 @@ SetScalar::_execute(const std::vector<cl_event> events)
 	return _event;
 }
 
+void
+ScalarExpression::variables()
+{
+	InputOutput::Variables* vars = CalcServer::singleton()->variables();
+	_in_vars = vars->exprVariables(_value);
+	setInputDependencies(_in_vars);
+}
+
+// We start setting the outpu variable type as float, and modify it later
+SetScalar::SetScalar(const std::string name,
+                     const std::string var_name,
+                     const std::string value,
+                     bool once)
+  : ScalarExpression(name, value, "float", once)
+  , _var_name(var_name)
+  , _var(NULL)
+{
+}
+
+SetScalar::~SetScalar() {}
+
+void
+SetScalar::setup()
+{
+	ScalarExpression::setup();
+	_var = variable(_var_name);
+	if (!_var) {
+		std::stringstream msg;
+		msg << "Invalid output variable \"" << _var_name << " for tool \""
+		    << name() << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		throw std::invalid_argument("Invalid variable");
+	}
+	setOutputType(_var->type());
+	std::vector<InputOutput::Variable*> out_vars{ _var };
+	setOutputDependencies(out_vars);
+}
+
+void SetScalar::_solve()
+{
+	ScalarExpression::_solve();
+	InputOutput::Variables* vars = CalcServer::singleton()->variables();
+	_var->set_async((void*)getValue());
+	vars->populate(_var);
+}
+
 InputOutput::Variable*
 SetScalar::variable(const std::string& var_name) const
 {
@@ -184,16 +285,6 @@ SetScalar::variable(const std::string& var_name) const
 		throw std::runtime_error("Invalid variable type");
 	}
 	return var;
-}
-
-void
-SetScalar::variables()
-{
-	InputOutput::Variables* vars = CalcServer::singleton()->variables();
-	_in_vars = vars->exprVariables(_value);
-	_var = variable(_var_name);
-	std::vector<InputOutput::Variable*> out_vars{ _var };
-	setDependencies(_in_vars, out_vars);
 }
 
 }
