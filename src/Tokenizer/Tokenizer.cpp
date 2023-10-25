@@ -84,6 +84,9 @@ Tokenizer::Tokenizer()
 	p.DefineOprtChars("%");
 	p.DefineOprt("%", mod_operator, mu::prINFIX);
 	p.DefineInfixOprt("!", not_operator, 0);
+	q.DefineOprtChars("%");
+	q.DefineOprt("%", mod_operator, mu::prINFIX);
+	q.DefineInfixOprt("!", not_operator, 0);
 }
 
 Tokenizer::~Tokenizer()
