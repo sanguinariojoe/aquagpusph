@@ -173,6 +173,13 @@ class Tool
 		return { _in_vars, _out_vars };
 	}
 
+	/** @brief Get the tool event
+	 *
+	 * That event will mark when the tool has already finished
+	 * @return The event
+	 */
+	inline cl_event getEvent() const { return _event; }
+
   protected:
 	/** Get the tool index in the pipeline
 	 * @return Index of the tool in the pipeline. -1 if the tool cannot be find
@@ -388,6 +395,9 @@ class Tool
 
 	/// List of output dependencies
 	std::vector<InputOutput::Variable*> _out_vars;
+
+	/// Output event of the tool
+	cl_event _event;
 };
 
 }

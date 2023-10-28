@@ -37,7 +37,6 @@ ScalarExpression::ScalarExpression(const std::string name,
   , _value(expr)
   , _output(NULL)
   , _output_type(type)
-  , _event(NULL)
 {
 	setOutputType(type);
 }
@@ -79,7 +78,7 @@ void ScalarExpression::solve()
 	timeval tic, tac;
 
 	gettimeofday(&tic, NULL);
-	cl_event user_event = getEvent();
+	cl_event user_event = getUserEvent();
 
 	try {
 		_solve();
@@ -139,15 +138,15 @@ void ScalarExpression::solve()
 void CL_CALLBACK
 solver(cl_event event, cl_int event_command_status, void* user_data)
 {
-	cl_int err_code;
+	clReleaseEvent(event);
 	auto tool = (ScalarExpression*)user_data;
 	if (event_command_status != CL_COMPLETE) {
 		std::stringstream msg;
 		msg << "Skipping \"" << tool->name() << "\" due to dependency errors."
 		    << std::endl;
 		LOG(L_WARNING, msg.str());
-		clSetUserEventStatus(tool->getEvent(), event_command_status);
-		clReleaseEvent(tool->getEvent());
+		clSetUserEventStatus(tool->getUserEvent(), event_command_status);
+		clReleaseEvent(tool->getUserEvent());
 		return;
 	}
 
@@ -207,7 +206,7 @@ ScalarExpression::_execute(const std::vector<cl_event> events)
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
 	}
-	_event = event;
+	_user_event = event;
 
 	// So it is time to register our callback on our trigger
 	err_code = clSetEventCallback(trigger, CL_COMPLETE, solver, this);
@@ -220,7 +219,7 @@ ScalarExpression::_execute(const std::vector<cl_event> events)
 		throw std::runtime_error("OpenCL execution error");
 	}
 
-	return _event;
+	return _user_event;
 }
 
 void

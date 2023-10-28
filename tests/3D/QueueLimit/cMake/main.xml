@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+<sphInput>
+    <Variables>
+        <Variable length="N" name="r" symbol="r" type="vec*" />
+        <Variable length="1" name="h" symbol="h" type="float" value="1.0"/>
+        <Variable length="1" name="i" symbol="i" type="int" value="1"/>
+        <Variable length="1" name="v" symbol="v" type="vec" value="3.0, 4.0, 5.0, 6.0"/>
+    </Variables>
+    <ParticlesSet n="500">
+        <Load fields="r" file="particles.dat" format="FastASCII"/>
+        <Save fields="r" file="set0" format="ASCII"/>
+    </ParticlesSet>
+    <Tools>
+        <Tool action="add" name="set float" type="set_scalar" in="h" value="2.0"/>
+        <Tool action="add" name="recursive float" type="set_scalar" in="h" value="2.0 * h"/>
+        <Tool action="add" name="vector swap" type="set_scalar" in="v" value="v_y,v_x,v_z,v_w"/>
+        <Tool action="add" name="float * int" type="set_scalar" in="h" value="h * i"/>
+        <Tool action="add" name="vector * float" type="set_scalar" in="v" value="v_x * h,v_y / h,v_z,v_w"/>
+        <Tool action="add" name="i += 1" type="set_scalar" in="i" value="i + 1"/>
+        <Tool action="add" name="Stop" type="assert" condition="i &lt; 100"/>
+    </Tools>
+    <Settings>
+        <Device device="0" platform="0" type="ALL"/>
+        <RootPath path="@RESOURCES_DIR@/.."/>
+    </Settings>
+    <Timing>
+        <Option name="End" type="Steps" value="1"/>
+    </Timing>
+</sphInput>

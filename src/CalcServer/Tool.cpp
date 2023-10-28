@@ -40,6 +40,7 @@ Tool::Tool(const std::string tool_name, bool once)
   , _elapsed_time(0.f)
   , _average_elapsed_time(0.f)
   , _squared_elapsed_time(0.f)
+  , _event(NULL)
 {
 }
 
@@ -98,7 +99,7 @@ Tool::execute()
 
 	cl_int err_code;
 
-	// Launch the tool
+	// Collect the dependencies
 	CalcServer* C = CalcServer::singleton();
 	if (C->debug_mode()) {
 		std::stringstream msg;
@@ -106,9 +107,44 @@ Tool::execute()
 		LOG(L_DEBUG, msg.str());
 	}
 	std::vector<cl_event> events = getEvents();
+
+	// To avoid a infinite queues we block the execution until the previous
+	// execution event is finished.
+	if (_event) {
+		err_code = clWaitForEvents(1, &_event);
+		if (err_code != CL_SUCCESS) {
+			std::stringstream msg;
+			msg << "Failure waiting for \"" << name()
+			    << "\" tool previous event." << std::endl;
+			LOG(L_ERROR, msg.str());
+			InputOutput::Logger::singleton()->printOpenCLError(err_code);
+			throw std::runtime_error("OpenCL execution error");
+		}
+		err_code = clReleaseEvent(_event);
+		if (err_code != CL_SUCCESS) {
+			std::stringstream msg;
+			msg << "Failure releasing the \"" << name()
+			    << "\" tool previous event." << std::endl;
+			LOG(L_ERROR, msg.str());
+			InputOutput::Logger::singleton()->printOpenCLError(err_code);
+			throw std::runtime_error("OpenCL execution error");
+		}
+	}
+
 	cl_event event = _execute(events);
+	_event = event;
 
 	if (event != NULL) {
+		// Retain the event until we waited for it (see below)
+		err_code = clRetainEvent(event);
+		if (err_code != CL_SUCCESS) {
+			std::stringstream msg;
+			msg << "Failure reteaning the new event in \"" << name()
+			    << "\" tool." << std::endl;
+			LOG(L_ERROR, msg.str());
+			InputOutput::Logger::singleton()->printOpenCLError(err_code);
+			throw std::runtime_error("OpenCL execution error");
+		}
 		// Add the event to the reading dependencies
 		auto in_vars = getInputDependencies();
 		for (auto var : in_vars) {
@@ -119,7 +155,6 @@ Tool::execute()
 		for (auto var : out_vars) {
 			var->setEvent(event);
 		}
-
 
 		// Check for errors when the event is marked as completed
 		// NOTE: clReleaseEvent() will be called on the callback, so no need to
@@ -137,8 +172,8 @@ Tool::execute()
 	}
 
 	// Release the events in the wait list, which were retained by getEvents()
-	for (auto it = events.begin(); it < events.end(); it++) {
-		err_code = clReleaseEvent((*it));
+	for (auto e : events) {
+		err_code = clReleaseEvent(e);
 		if (err_code != CL_SUCCESS) {
 			std::stringstream msg;
 			msg << "Failure releasing a predecessor event in \"" << name()
@@ -154,7 +189,7 @@ Tool::execute()
 			err_code = clWaitForEvents(1, &event);
 			if (err_code != CL_SUCCESS) {
 				std::stringstream msg;
-				msg << "Failure waiting for \"" << name() << "\" event."
+				msg << "Failure waiting for \"" << name() << "\" tool event."
 				    << std::endl;
 				LOG(L_ERROR, msg.str());
 				InputOutput::Logger::singleton()->printOpenCLError(err_code);
