@@ -38,7 +38,8 @@ Assert::Assert(const std::string name, const std::string condition, bool once)
 
 Assert::~Assert() {}
 
-void Assert::_solve()
+void
+Assert::_solve()
 {
 	int result;
 	ScalarExpression::_solve();

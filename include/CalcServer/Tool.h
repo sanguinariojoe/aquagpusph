@@ -297,7 +297,6 @@ class Tool
 		_out_vars = vars;
 	}
 
-
 	/** @brief Set the depedencies of the tool
 	 *
 	 * The dependencies are the variables that this tool is either reading or

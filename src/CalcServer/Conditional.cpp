@@ -99,7 +99,8 @@ Conditional::next_tool()
 	return _ending_tool;
 }
 
-void Conditional::_solve()
+void
+Conditional::_solve()
 {
 	ScalarExpression::_solve();
 	// Check the result
@@ -138,7 +139,8 @@ If::next_tool()
 	return next_tool;
 }
 
-void If::_solve()
+void
+If::_solve()
 {
 	// Execute the tool just if _result is true. Otherwise is an End tool which
 	// has gave back the control to us

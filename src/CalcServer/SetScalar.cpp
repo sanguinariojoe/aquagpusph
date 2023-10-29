@@ -30,9 +30,9 @@ namespace Aqua {
 namespace CalcServer {
 
 ScalarExpression::ScalarExpression(const std::string name,
-	                               const std::string expr,
-	                               const std::string type,
-	                               bool once)
+                                   const std::string expr,
+                                   const std::string type,
+                                   bool once)
   : Tool(name, once)
   , _value(expr)
   , _output(NULL)
@@ -57,7 +57,8 @@ ScalarExpression::setup()
 	variables();
 }
 
-void ScalarExpression::setOutputType(const std::string type)
+void
+ScalarExpression::setOutputType(const std::string type)
 {
 	_output_type = type;
 	size_t typesize = InputOutput::Variables::typeToBytes(type);
@@ -65,14 +66,15 @@ void ScalarExpression::setOutputType(const std::string type)
 	_output = malloc(typesize);
 	if (!_output) {
 		std::ostringstream msg;
-		msg << "Failure allocating " << typesize << " bytes ("
-		    << type << ")for the output." << std::endl;
+		msg << "Failure allocating " << typesize << " bytes (" << type
+		    << ")for the output." << std::endl;
 		LOG(L_ERROR, msg.str());
 		throw std::bad_alloc();
 	}
 }
 
-void ScalarExpression::solve()
+void
+ScalarExpression::solve()
 {
 	cl_int err_code;
 	timeval tic, tac;
@@ -153,7 +155,8 @@ solver(cl_event event, cl_int event_command_status, void* user_data)
 	tool->solve();
 }
 
-void ScalarExpression::_solve()
+void
+ScalarExpression::_solve()
 {
 	InputOutput::Variables* vars = CalcServer::singleton()->variables();
 	try {
@@ -260,7 +263,8 @@ SetScalar::setup()
 	setOutputDependencies(out_vars);
 }
 
-void SetScalar::_solve()
+void
+SetScalar::_solve()
 {
 	ScalarExpression::_solve();
 	InputOutput::Variables* vars = CalcServer::singleton()->variables();
