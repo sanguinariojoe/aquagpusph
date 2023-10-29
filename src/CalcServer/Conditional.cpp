@@ -34,8 +34,7 @@ namespace CalcServer {
 Conditional::Conditional(const std::string name,
                          const std::string condition,
                          bool once)
-  : Tool(name, once)
-  , _condition(condition)
+  : ScalarExpression(name, condition, "int", once)
   , _ending_tool(NULL)
   , _result(true)
 {
@@ -79,40 +78,32 @@ Conditional::setup()
 	else
 		_ending_tool = tools.at(i + 1);
 
-	// Get the next tool in case the condition is fulfilled
-	Tool::setup();
+	ScalarExpression::setup();
 }
 
 Tool*
 Conditional::next_tool()
 {
+	cl_event event = getEvent();
+	cl_int err_code = clWaitForEvents(1, &event);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure waiting for \"" << name() << "\" conditional event."
+		    << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
 	if (_result)
 		return Tool::next_tool();
 	return _ending_tool;
 }
 
-cl_event
-Conditional::_execute(const std::vector<cl_event> events)
+void Conditional::_solve()
 {
-	int result;
-	InputOutput::Variables* vars = CalcServer::singleton()->variables();
-
-	void* data = malloc(sizeof(int));
-	if (!data) {
-		std::stringstream msg;
-		msg << "Failure allocating memory for the integer result" << std::endl;
-		LOG(L_ERROR, msg.str());
-		throw std::bad_alloc();
-	}
-
-	vars->solve("int", _condition, data, "if_result");
-
+	ScalarExpression::_solve();
 	// Check the result
-	memcpy(&result, data, sizeof(int));
-	free(data);
-	_result = result != 0;
-
-	return NULL;
+	memcpy(&_result, getValue(), sizeof(int));
 }
 
 While::While(const std::string name, const std::string condition, bool once)
@@ -122,30 +113,12 @@ While::While(const std::string name, const std::string condition, bool once)
 
 While::~While() {}
 
-void
-While::setup()
-{
-	std::ostringstream msg;
-	msg << "Loading the tool \"" << name() << "\"..." << std::endl;
-	LOG(L_INFO, msg.str());
-	Conditional::setup();
-}
-
 If::If(const std::string name, const std::string condition, bool once)
   : Conditional(name, condition, once)
 {
 }
 
 If::~If() {}
-
-void
-If::setup()
-{
-	std::ostringstream msg;
-	msg << "Loading the tool \"" << name() << "\"..." << std::endl;
-	LOG(L_INFO, msg.str());
-	Conditional::setup();
-}
 
 Tool*
 If::next_tool()
@@ -154,26 +127,24 @@ If::next_tool()
 	// There are several possibilities here:
 	// 1.- We have evaluated the condition, and it has been true, so we want
 	//     to skip the next evaluation (_result = false), when the associated
-	//     End ives back us the control
+	//     End gives back us the control
 	// 2.- We have evaluated the condition, and it has been false, we are
 	//     jumping out of our scope. Thus next time we has control we want to
 	//     evaluate the condition again (_result = true)
 	// 3.- End has gave back control to us, so _result = false (see point 1).
 	//     this situation is exactly the same than point 2.
-	// Therefore, all the casees are covered just simply swaping _result value
+	// Therefore, all the cases are covered just simply swaping _result value
 	_result = !_result;
 	return next_tool;
 }
 
-cl_event
-If::_execute(const std::vector<cl_event> events)
+void If::_solve()
 {
 	// Execute the tool just if _result is true. Otherwise is an End tool which
 	// has gave back the control to us
+	// See If::next_tool()
 	if (_result)
-		return Conditional::_execute(events);
-
-	return NULL;
+		Conditional::_solve();
 }
 
 End::End(const std::string name, bool once)
@@ -186,10 +157,6 @@ End::~End() {}
 void
 End::setup()
 {
-	std::ostringstream msg;
-	msg << "Loading the tool \"" << name() << "\"..." << std::endl;
-	LOG(L_INFO, msg.str());
-
 	std::vector<Tool*> tools = CalcServer::singleton()->tools();
 
 	// Locate the opening scope tool (which will be always the next tool on the

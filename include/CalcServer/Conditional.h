@@ -25,6 +25,7 @@
 #define IF_H_INCLUDED
 
 #include <CalcServer/Tool.h>
+#include <CalcServer/SetScalar.h>
 
 namespace Aqua {
 namespace CalcServer {
@@ -36,7 +37,7 @@ namespace CalcServer {
  * result will be considered false, and therefore all the tools until the next
  * End tool will be disabled
  */
-class Conditional : public Aqua::CalcServer::Tool
+class Conditional : public Aqua::CalcServer::ScalarExpression
 {
   public:
 	/** @brief Constructor.
@@ -73,15 +74,11 @@ class Conditional : public Aqua::CalcServer::Tool
 	const int scope_modifier() { return 1; }
 
   protected:
-	/** Execute the tool
-	 * @param events List of events that shall be waited before safe execution
-	 * @return OpenCL event to be waited before accessing the dependencies
+	/** @brief Evaluate the expression and check whether it is true or false
 	 */
-	cl_event _execute(const std::vector<cl_event> events);
+	void _solve();
 
   private:
-	/// Condition expression to evaluate
-	std::string _condition;
 	/// The next tool in the pipeline when the condition is not fulfilled
 	Tool* _ending_tool;
 
@@ -111,10 +108,6 @@ class While : public Aqua::CalcServer::Conditional
 
 	/// Destructor.
 	~While();
-
-	/** @brief Initialize the tool.
-	 */
-	void setup();
 };
 
 /** @class If Conditional.h CalcServer/Conditional.h
@@ -136,10 +129,6 @@ class If : public Aqua::CalcServer::Conditional
 	/// Destructor.
 	~If();
 
-	/** @brief Initialize the tool.
-	 */
-	void setup();
-
 	/** Get the next tool to be executed in the pipeline.
 	 *
 	 * Such tool will be the next one if the condition is fulfilled, or the tool
@@ -154,11 +143,9 @@ class If : public Aqua::CalcServer::Conditional
 	Tool* next_tool();
 
   protected:
-	/** Execute the tool
-	 * @param events List of events that shall be waited before safe execution
-	 * @return OpenCL event to be waited before accessing the dependencies
+	/** @brief Evaluate the expression and check whether it is true or false
 	 */
-	cl_event _execute(const std::vector<cl_event> events);
+	void _solve();
 };
 
 /** @class End Conditional.h CalcServer/Conditional.h

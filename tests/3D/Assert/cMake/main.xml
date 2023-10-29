@@ -10,9 +10,9 @@
     </ParticlesSet>
     <Tools>
         <Tool action="add" name="set float" type="set_scalar" in="h" value="2.0"/>
-        <Tool action="add" name="Good assertion" type="assert" condition="h > 0.0"/>
+        <Tool action="add" name="Good assertion" type="assert" condition="h &gt; 0.0"/>
         <Tool action="add" name="swap float" type="set_scalar" in="h" value="-h"/>
-        <Tool action="add" name="Bad assertion" type="assert" condition="h > 0.0"/>
+        <Tool action="add" name="Bad assertion" type="assert" condition="h &gt; 0.0"/>
         <Tool action="add" name="skipped tool" type="set_scalar" in="h" value="-h"/>
         <Tool action="add" name="iter += 1" type="set_scalar" in="iter" value="iter + 1"/>
         <Tool action="add" name="End" type="dummy"/>

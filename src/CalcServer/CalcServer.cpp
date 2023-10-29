@@ -534,11 +534,11 @@ CalcServer::update(InputOutput::TimeManager& t_manager)
 		while (tool) {
 			try {
 				tool->execute();
+				tool = tool->next_tool();
 			} catch (std::runtime_error& e) {
 				sleep(__ERROR_SHOW_TIME__);
 				throw;
 			}
-			tool = tool->next_tool();
 		}
 		strcpy(_current_tool_name, "__post execution__");
 
