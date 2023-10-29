@@ -1,0 +1,23 @@
+<?xml version="1.0" ?>
+<sphInput>
+    <Variables>
+        <Variable length="N" name="r" symbol="r" type="vec*" />
+        <Variable length="N" name="r_out" symbol="r_out" type="vec*" />
+        <Variable length="1" name="h" symbol="h" type="float" value="1.0"/>
+    </Variables>
+    <ParticlesSet n="500">
+        <Load fields="r" file="particles.dat" format="FastASCII"/>
+        <Save fields="r,r_out" file="set0" format="ASCII"/>
+    </ParticlesSet>
+    <Tools>
+        <Tool action="add" name="copy r" type="copy" in="r" out="r_out"/>
+        <Tool action="add" name="iter += 1" type="set_scalar" in="iter" value="iter + 1"/>
+    </Tools>
+    <Settings>
+        <Device device="0" platform="0" type="ALL"/>
+        <RootPath path="@RESOURCES_DIR@/.."/>
+    </Settings>
+    <Timing>
+        <Option name="End" type="Steps" value="1"/>
+    </Timing>
+</sphInput>

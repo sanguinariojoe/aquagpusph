@@ -157,8 +157,7 @@ Copy::variables()
 		throw std::runtime_error("Incompatible lenghts");
 	}
 
-	std::vector<InputOutput::Variable*> deps = { _input_var, _output_var };
-	setDependencies(deps);
+	setDependencies({ _input_var }, { _output_var });
 }
 
 }
