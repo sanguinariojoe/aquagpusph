@@ -1,0 +1,31 @@
+<?xml version="1.0" ?>
+<sphInput>
+    <Variables>
+        <Variable length="N" name="r" symbol="r" type="vec*" />
+        <Variable length="1" name="r_sum" symbol="r_sum" type="vec" />
+        <Variable length="1" name="r_max" symbol="r_max" type="vec" />
+        <Variable length="1" name="h" symbol="h" type="float" value="0.1"/>
+    </Variables>
+    <ParticlesSet n="500">
+        <Load fields="r" file="particles.dat" format="FastASCII"/>
+        <Save fields="r" file="set0" format="ASCII"/>
+    </ParticlesSet>
+    <Tools>
+        <Tool action="add" name="sum up" once="true" type="reduction" in="r" out="r_sum" null="VEC_ZERO">
+            c = a + b;
+        </Tool>
+        <Tool action="add" name="get max" once="true" type="reduction" in="r" out="r_max" null="VEC_NEG_INFINITY">
+            c = max(a, b);
+        </Tool>
+        <Tool action="add" name="output file" type="report_file" fields="r_sum,r_max" path="vars.out"/>
+        <Tool action="add" name="iter += 1" type="set_scalar" in="iter" value="iter + 1"/>
+    </Tools>
+
+    <Settings>
+        <Device device="0" platform="0" type="ALL"/>
+        <RootPath path="@RESOURCES_DIR@/.."/>
+    </Settings>
+    <Timing>
+        <Option name="End" type="Steps" value="1"/>
+    </Timing>
+</sphInput>

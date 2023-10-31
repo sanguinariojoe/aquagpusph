@@ -36,7 +36,7 @@ namespace Aqua {
 namespace CalcServer {
 
 /** @class LinkList LinkList.h CalcServer/LinkList.h
- * @brief Complex tool to perform the link-list based on the "pos" array. This
+ * @brief Complex tool to perform the link-list based on an array. This
  * tool include the following steps:
  *   -# Minimum and maximum positions computations
  *   -# Number of cells calculation
@@ -56,7 +56,7 @@ class LinkList : public Aqua::CalcServer::Tool
 	 * @param once Run this tool just once. Useful to make initializations.
 	 */
 	LinkList(const std::string tool_name,
-	         const std::string input = "pos",
+	         const std::string input = "r",
 	         bool once = false);
 
 	/** Destructor

@@ -57,39 +57,15 @@
 #define VEC_ALL_INFINITY ((float4)(INFINITY, INFINITY, INFINITY, INFINITY))
 #define matrix float16
 #define MAT_ZERO                                                               \
-	((float16)(0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f))
+	((float16)(0.f, 0.f, 0.f, 0.f,                                             \
+	           0.f, 0.f, 0.f, 0.f,                                             \
+	           0.f, 0.f, 0.f, 0.f,                                             \
+	           0.f, 0.f, 0.f, 0.f))
 #define MAT_EYE                                                                \
-	((float16)(1.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           1.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           1.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           1.f))
+	((float16)(1.f, 0.f, 0.f, 0.f,                                             \
+	           0.f, 1.f, 0.f, 0.f,                                             \
+	           0.f, 0.f, 1.f, 0.f,                                             \
+	           0.f, 0.f, 0.f, 1.f))
 #endif
 
 #define VEC_NEG_INFINITY (-VEC_INFINITY)
