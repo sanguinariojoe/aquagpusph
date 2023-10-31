@@ -121,7 +121,8 @@ Kernel::_execute(const std::vector<cl_event> events)
 			scalar_deps.push_back(var->getWritingEvent());
 	}
 	cl_uint num_scalar_events = scalar_deps.size();
-	const cl_event* scalar_events = scalar_deps.size() ? scalar_deps.data() : NULL;
+	const cl_event* scalar_events =
+	    scalar_deps.size() ? scalar_deps.data() : NULL;
 	err_code = clEnqueueMarkerWithWaitList(
 	    C->command_queue(), num_scalar_events, scalar_events, &trigger);
 	if (err_code != CL_SUCCESS) {
@@ -423,10 +424,8 @@ Kernel::setVariables(bool with_arrays)
 		if (var->isArray() && !with_arrays)
 			continue;
 		// Update the variable
-		err_code = clSetKernelArg(_kernel,
-		                          i,
-		                          var->typesize(),
-		                          var->get_async());
+		err_code =
+		    clSetKernelArg(_kernel, i, var->typesize(), var->get_async());
 		if (err_code != CL_SUCCESS) {
 			std::stringstream msg;
 			msg << "Failure setting the variable \"" << var->name()
@@ -469,8 +468,8 @@ Kernel::computeGlobalWorkSize()
 	{
 		std::stringstream msg;
 		msg << _global_work_size << " threads ("
-			<< _global_work_size / _work_group_size << " groups of "
-			<< _work_group_size << " threads)" << std::endl;
+		    << _global_work_size / _work_group_size << " groups of "
+		    << _work_group_size << " threads)" << std::endl;
 		LOG(L_INFO, msg.str());
 	}
 }
