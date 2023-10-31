@@ -860,7 +860,7 @@ State::parseTools(DOMElement* root, ProblemSetup& sim_data, std::string prefix)
 					          xmlAttribute(s_elem, "entry_point"));
 				}
 				if (!xmlHasAttribute(s_elem, "n")) {
-					tool->set("n", "N");
+					tool->set("n", "");
 				} else {
 					tool->set("n", xmlAttribute(s_elem, "n"));
 				}

@@ -47,13 +47,14 @@ class Kernel : public Aqua::CalcServer::Tool
 	/** Constructor.
 	 * @param tool_name Tool name.
 	 * @param kernel_path Kernel path.
-	 * @param n Number of threads to launch.
+	 * @param n Number of threads to launch. An empty string to autocompute it
+	 * from the length of the output array variables
 	 * @param once Run this tool just once. Useful to make initializations.
 	 */
 	Kernel(const std::string tool_name,
 	       const std::string kernel_path,
 	       const std::string entry_point = "entry",
-	       const std::string n = "N",
+	       const std::string n = "",
 	       bool once = false);
 
 	/** Destructor

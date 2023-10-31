@@ -442,20 +442,37 @@ Kernel::setVariables(bool with_arrays)
 void
 Kernel::computeGlobalWorkSize()
 {
-	unsigned int N;
+	unsigned int N = 0;
 	if (!_work_group_size) {
 		LOG(L_ERROR, "Work group size must be greater than 0.\n");
 		throw std::runtime_error("Null work group size");
 	}
 	InputOutput::Variables* vars = CalcServer::singleton()->variables();
-	try {
-		vars->solve("unsigned int", _n, &N);
-	} catch (...) {
-		LOG(L_ERROR, "Failure evaluating the number of threads.\n");
-		throw std::runtime_error("Invalid number of threads");
+	if (_n == "") {
+		for (auto var : _vars) {
+			if (!var->isArray())
+				continue;
+			unsigned int var_N = var->size() / vars->typeToBytes(var->type());
+			if (var_N > N)
+				N = var_N;
+		}
+	} else {
+		try {
+			vars->solve("unsigned int", _n, &N);
+		} catch (...) {
+			LOG(L_ERROR, "Failure evaluating the number of threads.\n");
+			throw std::runtime_error("Invalid number of threads");
+		}
 	}
 
 	_global_work_size = (size_t)roundUp(N, (unsigned int)_work_group_size);
+	{
+		std::stringstream msg;
+		msg << _global_work_size << " threads ("
+			<< _global_work_size / _work_group_size << " groups of "
+			<< _work_group_size << " threads)" << std::endl;
+		LOG(L_INFO, msg.str());
+	}
 }
 
 }
