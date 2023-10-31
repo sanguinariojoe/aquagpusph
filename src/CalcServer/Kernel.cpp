@@ -115,10 +115,15 @@ Kernel::_execute(const std::vector<cl_event> events)
 
 	// Ask to set the kernel arguments as fast as possible
 	cl_event trigger;
-	cl_uint num_events_in_wait_list = events.size();
-	const cl_event* event_wait_list = events.size() ? events.data() : NULL;
+	std::vector<cl_event> scalar_deps;
+	for (auto var : _scalar_vars) {
+		if (var->getWritingEvent())
+			scalar_deps.push_back(var->getWritingEvent());
+	}
+	cl_uint num_scalar_events = scalar_deps.size();
+	const cl_event* scalar_events = scalar_deps.size() ? scalar_deps.data() : NULL;
 	err_code = clEnqueueMarkerWithWaitList(
-	    C->command_queue(), num_events_in_wait_list, event_wait_list, &trigger);
+	    C->command_queue(), num_scalar_events, scalar_events, &trigger);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
 		msg << "Failure setting the trigger for tool \"" << name() << "\"."
@@ -163,14 +168,16 @@ Kernel::_execute(const std::vector<cl_event> events)
 
 	// And now we can enqueue the kernel execution
 	cl_event event;
+	std::vector<cl_event> kernel_events = events;
+	kernel_events.push_back(args_event);
 	err_code = clEnqueueNDRangeKernel(C->command_queue(),
 	                                  _kernel,
 	                                  1,
 	                                  NULL,
 	                                  &_global_work_size,
 	                                  &_work_group_size,
-	                                  1,
-	                                  &args_event,
+	                                  kernel_events.size(),
+	                                  kernel_events.data(),
 	                                  &event);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
@@ -398,6 +405,8 @@ Kernel::variables(const std::string entry_point)
 		else
 			out_vars.push_back(var);
 		_vars.push_back(var);
+		if (!var->isArray())
+			_scalar_vars.push_back(var);
 	}
 
 	setDependencies(in_vars, out_vars);

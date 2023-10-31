@@ -146,6 +146,9 @@ class Kernel : public Aqua::CalcServer::Tool
 	/// List of dependencies, in the same order they have as kernel arguments
 	std::vector<InputOutput::Variable*> _vars;
 
+	/// List of scalar dependencies
+	std::vector<InputOutput::Variable*> _scalar_vars;
+
 	/// Transactional event to know when the kernel args have been set
 	cl_event _user_event;
 };
