@@ -136,7 +136,7 @@ RadixSort::_execute(const std::vector<cl_event> events)
 {
 	cl_int err_code;
 	unsigned int i, max_val;
-	cl_event event, event_wait, event_perms_in;
+	cl_event event;
 	CalcServer* C = CalcServer::singleton();
 	InputOutput::Variables* vars = C->variables();
 
@@ -159,9 +159,9 @@ RadixSort::_execute(const std::vector<cl_event> events)
 	_n_pass = _key_bits / _bits;
 
 	// Even though we are using Tool dependencies stuff, we are really
-	// interested in following a more complex events chain, due to the large and
-	// complex net of tools we are executing
-	event_wait = _var->getEvent();
+	// interested in following a more complex events chain, due to the large
+	// and complex net of tools we are executing
+	auto var_event = _var->getWritingEvent();
 	err_code = clEnqueueCopyBuffer(C->command_queue(),
 	                               *(cl_mem*)_var->get(),
 	                               _in_keys,
@@ -169,7 +169,7 @@ RadixSort::_execute(const std::vector<cl_event> events)
 	                               0,
 	                               _n * sizeof(cl_uint),
 	                               1,
-	                               &event_wait,
+	                               &var_event,
 	                               &event);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
@@ -179,7 +179,7 @@ RadixSort::_execute(const std::vector<cl_event> events)
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL error");
 	}
-	_var->setEvent(event);
+	_var->addReadingEvent(event);
 	err_code = clReleaseEvent(event);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
@@ -190,9 +190,12 @@ RadixSort::_execute(const std::vector<cl_event> events)
 		throw std::runtime_error("OpenCL execution error");
 	}
 
-	event_perms_in = init();
+	// We initialize the permutations as the particles id, i.e. each
+	// particle is converted on itself
+	auto event_perms_in = init();
 
-	event_wait = NULL;
+	// Time to sort everything up
+	cl_event event_wait = NULL;
 	for (_pass = 0; _pass < _n_pass; _pass++) {
 		event_wait = histograms(event, event_wait);
 		event_wait = scan(event_wait);
@@ -208,15 +211,19 @@ RadixSort::_execute(const std::vector<cl_event> events)
 		throw std::runtime_error("OpenCL error");
 	}
 
-	const cl_event event_wait_list1[] = { event_wait, _var->getEvent() };
+	auto var_events = _var->getReadingEvents();
+	// We positively know that the last reading event is posterior to the
+	// last writing event, becuase of the clEnqueueCopyBuffer() above
+	// var_events.push_back(_var->getWritingEvent());
+	var_events.push_back(event_wait);
 	err_code = clEnqueueCopyBuffer(C->command_queue(),
 	                               _in_keys,
 	                               *(cl_mem*)_var->get(),
 	                               0,
 	                               0,
 	                               _n * sizeof(cl_uint),
-	                               2,
-	                               event_wait_list1,
+	                               var_events.size(),
+	                               var_events.data(),
 	                               &event);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
@@ -226,7 +233,7 @@ RadixSort::_execute(const std::vector<cl_event> events)
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL error");
 	}
-	_var->setEvent(event);
+	_var->setWritingEvent(event);
 	err_code = clReleaseEvent(event);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
@@ -237,15 +244,17 @@ RadixSort::_execute(const std::vector<cl_event> events)
 		throw std::runtime_error("OpenCL execution error");
 	}
 
-	const cl_event event_wait_list2[] = { event_wait, _perms->getEvent() };
+	auto perms_events = _perms->getReadingEvents();
+	perms_events.push_back(_perms->getWritingEvent());
+	perms_events.push_back(event_wait);
 	err_code = clEnqueueCopyBuffer(C->command_queue(),
 	                               _in_permut,
 	                               *(cl_mem*)_perms->get(),
 	                               0,
 	                               0,
 	                               _n * sizeof(cl_uint),
-	                               2,
-	                               event_wait_list2,
+	                               perms_events.size(),
+	                               perms_events.data(),
 	                               &event);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
@@ -255,7 +264,7 @@ RadixSort::_execute(const std::vector<cl_event> events)
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL error");
 	}
-	_perms->setEvent(event);
+	_perms->setWritingEvent(event);
 	err_code = clReleaseEvent(event);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
@@ -276,8 +285,11 @@ RadixSort::_execute(const std::vector<cl_event> events)
 		throw std::runtime_error("OpenCL error");
 	}
 
-	// The Tool dependencies system is actually restricted to the permutations
-	// array. The sorted variable event has been set above
+	// The events associated to _var and _perms was already set during the
+	// execution of this function, so we could eventually skip them as
+	// dependencies. However, the performance benefit would be rather small and
+	// the eventual regressions on the future a pain in the ass, so we better
+	// "block" the 3 of them until _inv_perms is already written
 	return inversePermutations();
 }
 
@@ -329,8 +341,10 @@ RadixSort::histograms(cl_event keys_event, cl_event histograms_event)
 	size_t local_work_size = _items;
 	size_t global_work_size = _groups * _items;
 
-	err_code =
-	    clSetKernelArg(_histograms_kernel, 0, sizeof(cl_mem), (void*)&_in_keys);
+	err_code = clSetKernelArg(_histograms_kernel,
+	                          0,
+	                          sizeof(cl_mem),
+	                          (void*)&_in_keys);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
 		msg << "Failure sending argument 0 to \"histogram\" within the tool \""
@@ -650,8 +664,10 @@ RadixSort::inversePermutations()
 	cl_event event;
 	CalcServer* C = CalcServer::singleton();
 
-	err_code = clSetKernelArg(
-	    _inv_perms_kernel, 0, sizeof(cl_mem), (void*)&_in_permut);
+	err_code = clSetKernelArg(_inv_perms_kernel,
+	                          0,
+	                          sizeof(cl_mem),
+	                          (void*)&_in_permut);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
 		msg << "Failure sending argument 0 to \"inversePermutation\" within "
@@ -661,8 +677,10 @@ RadixSort::inversePermutations()
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL error");
 	}
-	err_code =
-	    clSetKernelArg(_inv_perms_kernel, 1, sizeof(cl_mem), _inv_perms->get());
+	err_code = clSetKernelArg(_inv_perms_kernel,
+	                          1,
+	                          sizeof(cl_mem),
+	                          _inv_perms->get());
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
 		msg << "Failure sending argument 1 to \"inversePermutation\" within "
@@ -673,16 +691,19 @@ RadixSort::inversePermutations()
 		throw std::runtime_error("OpenCL error");
 	}
 
-	const cl_event event_wait_list[] = { _perms->getEvent(),
-		                                 _inv_perms->getEvent() };
+	auto perms_events = _inv_perms->getReadingEvents();
+	perms_events.push_back(_inv_perms->getWritingEvent());
+	// We just wrote on _perms before calling this function, so no need to add
+	// its reading events
+	perms_events.push_back(_perms->getWritingEvent());
 	err_code = clEnqueueNDRangeKernel(C->command_queue(),
 	                                  _inv_perms_kernel,
 	                                  1,
 	                                  NULL,
 	                                  &_global_work_size,
 	                                  NULL,
-	                                  2,
-	                                  event_wait_list,
+	                                  perms_events.size(),
+	                                  perms_events.data(),
 	                                  &event);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
@@ -818,8 +839,7 @@ RadixSort::variables()
 		throw std::runtime_error("Invalid variable length");
 	}
 
-	std::vector<InputOutput::Variable*> deps = { _perms, _inv_perms };
-	setDependencies(deps);
+	setOutputDependencies({ _var, _perms, _inv_perms });
 }
 
 void
