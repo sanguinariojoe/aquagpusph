@@ -54,7 +54,7 @@ iHoc(__global unsigned int* ihoc, unsigned int N, uivec4 n_cells)
  */
 __kernel void
 iCell(__global unsigned int* icell,
-      __global vec* r,
+      const __global vec* r,
       unsigned int N,
       unsigned int n_radix,
       vec r_min,

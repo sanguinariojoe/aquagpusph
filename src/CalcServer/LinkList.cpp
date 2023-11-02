@@ -57,23 +57,17 @@ LinkList::LinkList(const std::string tool_name,
   , _ll_lws(0)
   , _ll_gws(0)
 {
-	std::stringstream min_pos_name;
-	min_pos_name << tool_name << "->Min. Pos.";
-	std::string min_pos_op = "c.x = (a.x < b.x) ? a.x : b.x;\nc.y = (a.y < "
-	                         "b.y) ? a.y : b.y;\n#ifdef HAVE_3D\nc.z = (a.z < "
-	                         "b.z) ? a.z : b.z;\nc.w = 0.f;\n#endif\n";
-	_min_pos = new Reduction(
-	    min_pos_name.str(), input, "r_min", min_pos_op, "VEC_INFINITY");
-	std::stringstream max_pos_name;
-	max_pos_name << tool_name << "->Max. Pos.";
-	std::string max_pos_op = "c.x = (a.x > b.x) ? a.x : b.x;\nc.y = (a.y > "
-	                         "b.y) ? a.y : b.y;\n#ifdef HAVE_3D\nc.z = (a.z > "
-	                         "b.z) ? a.z : b.z;\nc.w = 0.f;\n#endif\n";
-	_max_pos = new Reduction(
-	    max_pos_name.str(), input, "r_max", max_pos_op, "-VEC_INFINITY");
-	std::stringstream sort_name;
-	sort_name << tool_name << "->Radix-Sort";
-	_sort = new RadixSort(sort_name.str());
+	_min_pos = new Reduction(tool_name + "->Min. Pos.",
+	                         input,
+	                         "r_min",
+	                         "c = min(a, b);",
+	                         "VEC_INFINITY");
+	_max_pos = new Reduction(tool_name + "->Max. Pos.",
+	                         input,
+	                         "r_max",
+	                         "c = max(a, b);",
+	                         "-VEC_INFINITY");
+	_sort = new RadixSort(tool_name + "->Radix-Sort");
 }
 
 LinkList::~LinkList()
@@ -136,50 +130,134 @@ LinkList::setup()
 	// Setup the radix-sort
 	_sort->setup();
 
-	// _input_name at front and icell at back on forward purpose!
-	std::vector<std::string> deps = { _input_name, "ihoc", "icell" };
-	setDependencies(deps);
+	setDependencies({_input_name, "N", "n_radix", "support", "h"},
+	                {"r_min", "r_max", "ihoc", "icell", "n_cells"});
 }
+
+/** @brief Callback called when everything is ready to compute the number of
+ * cells and eventually allocate memory.
+ *
+ * This function is just redirecting the work to
+ * Aqua::CalcServer::LinkList::nCells() and
+ * Aqua::CalcServer::LinkList::allocate()
+ * @param event The triggering event
+ * @param event_command_status CL_COMPLETE upon all dependencies successfully
+ * fulfilled. A negative integer if one or mor dependencies failed.
+ * @param user_data A casted pointer to the Aqua::CalcServer::LinkList
+ * tool (or the inherited one)
+ */
+void CL_CALLBACK
+ncells(cl_event event, cl_int event_command_status, void* user_data)
+{
+	clReleaseEvent(event);
+	auto tool = (LinkList*)user_data;
+	if (event_command_status != CL_COMPLETE) {
+		std::stringstream msg;
+		msg << "Skipping \"" << tool->name() << "\" due to dependency errors."
+		    << std::endl;
+		LOG(L_WARNING, msg.str());
+		clSetUserEventStatus(tool->getUserEvent(), event_command_status);
+		clReleaseEvent(tool->getUserEvent());
+		return;
+	}
+
+	// Compute the number of cells, and eventually allocate memory for ihoc
+	tool->nCells();
+	tool->allocate();
+	// Set the new allocated variables
+	tool->setVariables();
+	clSetUserEventStatus(tool->getUserEvent(), CL_COMPLETE);
+	clReleaseEvent(tool->getUserEvent());
+}
+
 
 cl_event
 LinkList::_execute(const std::vector<cl_event> events_prior)
 {
 	cl_int err_code;
-	cl_event event, event_wait;
+	cl_event trigger, event;
 	std::vector<cl_event> events;
 	CalcServer* C = CalcServer::singleton();
+	InputOutput::Variables* vars = C->variables();
+
+	auto r_min = getOutputDependencies()[0];
+	auto r_max = getOutputDependencies()[1];
+	auto ihoc = getOutputDependencies()[2];
+	auto icell = getOutputDependencies()[3];
+	auto n_cells = getOutputDependencies()[4];
 
 	// Reduction steps to find maximum and minimum position
 	_min_pos->execute();
 	_max_pos->execute();
 
-	// We should refresh the events adding the new one (we can just keep the
-	// outdated ones, which are already retained). The new events existence are
-	// granted while we don't set new events to those variables, which would not
-	// gonna happen until we returns the new event herein.
-	// The new event comes from the first dependency (see setup())
+	// We should refresh the events adding the new ones (we can just keep the
+	// outdated ones, which are already retained), associated to "r_min" and
+	// "r_max" variables
 	std::copy(
 	    events_prior.begin(), events_prior.end(), std::back_inserter(events));
-	events.push_back(getOutputDependencies().front()->getEvent());
+	events.push_back(r_min->getWritingEvent());
+	events.push_back(r_max->getWritingEvent());
 
-	// Compute the number of cells, and eventually allocate memory for ihoc
-	nCells();
-	allocate();
+	// We create a trigger event to be marked as completed when all the
+	// dependencies are fullfiled
+	err_code = clEnqueueMarkerWithWaitList(
+	    C->command_queue(), events.size(), events.data(), &trigger);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure setting the trigger for tool \"" << name() << "\"."
+		    << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
 
-	// Check the validity of the variables
-	setVariables();
+	// Now we create a user event that we will set as completed when we already
+	// computed the number of cells and allocated the new ihoc
+	event = clCreateUserEvent(C->context(), &err_code);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure creating the ncells event for tool \"" << name()
+		    << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
+	err_code = clRetainEvent(event);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure retaining the ncells event for tool \"" << name()
+		    << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
+	_user_event = event;
+
+	// So it is time to register our callback on our trigger
+	err_code = clSetEventCallback(trigger, CL_COMPLETE, ncells, this);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure registering the ncells callback in tool \"" << name()
+		    << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
+	// Remember to set the appropriate events to the affected variables
+	r_min->addReadingEvent(_user_event);
+	r_max->addReadingEvent(_user_event);
+	ihoc->setWritingEvent(_user_event);
+	n_cells->setWritingEvent(_user_event);
 
 	// Compute the cell of each particle
-	cl_uint num_events_in_wait_list = events.size();
-	const cl_event* event_wait_list = events.size() ? events.data() : NULL;
 	err_code = clEnqueueNDRangeKernel(C->command_queue(),
 	                                  _icell,
 	                                  1,
 	                                  NULL,
 	                                  &_icell_gws,
 	                                  &_icell_lws,
-	                                  num_events_in_wait_list,
-	                                  event_wait_list,
+	                                  1,
+	                                  &_user_event,
 	                                  &event);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
@@ -189,9 +267,19 @@ LinkList::_execute(const std::vector<cl_event> events_prior)
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
 	}
+	err_code = clReleaseEvent(_user_event);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure releasing the ncells event for tool \"" << name() <<
+		    "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
 
-	getOutputDependencies().front()->setEvent(event);
-	getOutputDependencies().back()->setEvent(event);
+	// Time to sort the icell array
+	icell->setWritingEvent(event);
+	n_cells->addReadingEvent(event);
 	err_code = clReleaseEvent(event);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
@@ -205,11 +293,11 @@ LinkList::_execute(const std::vector<cl_event> events_prior)
 	// Sort the particles from the cells
 	_sort->execute();
 
-	// Now our transactional event is the one coming from sorting algorithm
-	// Such a new event can be taken from the last dependency (see setup())
+	// Now our transactional event is the one coming from the sorting algorithm
+	// Such a new event can be taken from the icell dependency
 	// This transactional event SHALL NOT BE RELEASED. It is automagically
 	// destroyed when no more variables use it
-	event_wait = getOutputDependencies().back()->getEvent();
+	auto event_wait = icell->getWritingEvent();
 
 	// Compute the head of cells
 	err_code = clEnqueueNDRangeKernel(C->command_queue(),
@@ -229,7 +317,7 @@ LinkList::_execute(const std::vector<cl_event> events_prior)
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
 	}
-	event_wait = event; // This new transactional event should be released
+	event_wait = event;
 
 	err_code = clEnqueueNDRangeKernel(C->command_queue(),
 	                                  _ll,
@@ -259,6 +347,161 @@ LinkList::_execute(const std::vector<cl_event> events_prior)
 	}
 
 	return event;
+}
+
+void
+LinkList::nCells()
+{
+	vec pos_min, pos_max;
+	InputOutput::Variables* vars = CalcServer::singleton()->variables();
+
+	if (!_cell_length) {
+		std::stringstream msg;
+		msg << "Zero cell length detected in the tool \"" << name() << "\"."
+		    << std::endl;
+		LOG(L_ERROR, msg.str());
+		throw std::runtime_error("Invalid number of cells");
+	}
+
+	pos_min = *(vec*)vars->get("r_min")->get_async();
+	pos_max = *(vec*)vars->get("r_max")->get_async();
+
+	_n_cells.x = (unsigned int)((pos_max.x - pos_min.x) / _cell_length) + 6;
+	_n_cells.y = (unsigned int)((pos_max.y - pos_min.y) / _cell_length) + 6;
+#ifdef HAVE_3D
+	_n_cells.z = (unsigned int)((pos_max.z - pos_min.z) / _cell_length) + 6;
+#else
+	_n_cells.z = 1;
+#endif
+	_n_cells.w = _n_cells.x * _n_cells.y * _n_cells.z;
+}
+
+void
+LinkList::allocate()
+{
+	uivec4 n_cells;
+	cl_int err_code;
+	cl_event event;
+	CalcServer* C = CalcServer::singleton();
+	InputOutput::Variables* vars = C->variables();
+
+	auto n_cells_var = getOutputDependencies()[4];
+	if (n_cells_var->type().compare("uivec4")) {
+		std::stringstream msg;
+		msg << "\"n_cells\" has and invalid type for \"" << name() << "\"."
+		    << std::endl;
+		LOG(L_ERROR, msg.str());
+		msg.str("");
+		msg << "\tVariable \"n_cells\" type is \""
+		    << n_cells_var->type()
+		    << "\", while \"uivec4\" was expected" << std::endl;
+		LOG0(L_DEBUG, msg.str());
+		throw std::runtime_error("Invalid n_cells type");
+	}
+
+	n_cells = *(uivec4*)n_cells_var->get_async();
+
+	if (_n_cells.w <= n_cells.w) {
+		n_cells.x = _n_cells.x;
+		n_cells.y = _n_cells.y;
+		n_cells.z = _n_cells.z;
+		n_cells_var->set_async(&n_cells);
+		return;
+	}
+
+	// We have no alternative, we must sync here
+	auto ihoc_var = getOutputDependencies()[2];
+	cl_mem mem = *(cl_mem*)ihoc_var->get_async();
+	if (mem)
+		clReleaseMemObject(mem);
+	mem = NULL;
+
+	mem = clCreateBuffer(C->context(),
+	                     CL_MEM_READ_WRITE,
+	                     _n_cells.w * sizeof(cl_uint),
+	                     NULL,
+	                     &err_code);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure allocating " << _n_cells.w * sizeof(cl_uint)
+		    << " bytes on the device memory for tool \"" << name()
+		    << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL allocation error");
+	}
+
+	n_cells_var->set_async(&_n_cells);
+	ihoc_var->set_async(&mem);
+	_ihoc_gws = roundUp(_n_cells.w, _ihoc_lws);
+}
+
+void
+LinkList::setVariables()
+{
+	unsigned int i;
+	cl_int err_code;
+	InputOutput::Variables* vars = CalcServer::singleton()->variables();
+
+	const char* _ihoc_vars[3] = { "ihoc", "N", "n_cells" };
+	for (i = 0; i < 3; i++) {
+		InputOutput::Variable* var = vars->get(_ihoc_vars[i]);
+		if (!memcmp(var->get_async(), _ihoc_args.at(i), var->typesize())) {
+			continue;
+		}
+		err_code = clSetKernelArg(_ihoc, i, var->typesize(), var->get_async());
+		if (err_code != CL_SUCCESS) {
+			std::stringstream msg;
+			msg << "Failure setting the variable \"" << _ihoc_vars[i]
+			    << "\" to the tool \"" << name() << "\" (\"iHoc\")."
+			    << std::endl;
+			LOG(L_ERROR, msg.str());
+			InputOutput::Logger::singleton()->printOpenCLError(err_code);
+			throw std::runtime_error("OpenCL error");
+		}
+		memcpy(_ihoc_args.at(i), var->get_async(), var->typesize());
+	}
+
+	const char* _icell_vars[8] = {
+		"icell", _input_name.c_str(), "N", "n_radix",
+		"r_min", "support",           "h", "n_cells"
+	};
+	for (i = 0; i < 8; i++) {
+		InputOutput::Variable* var = vars->get(_icell_vars[i]);
+		if (!memcmp(var->get_async(), _icell_args.at(i), var->typesize())) {
+			continue;
+		}
+		err_code = clSetKernelArg(_icell, i, var->typesize(), var->get_async());
+		if (err_code != CL_SUCCESS) {
+			std::stringstream msg;
+			msg << "Failure setting the variable \"" << _ihoc_vars[i]
+			    << "\" to the tool \"" << name() << "\" (\"iCell\")."
+			    << std::endl;
+			LOG(L_ERROR, msg.str());
+			InputOutput::Logger::singleton()->printOpenCLError(err_code);
+			throw std::runtime_error("OpenCL error");
+		}
+		memcpy(_icell_args.at(i), var->get_async(), var->typesize());
+	}
+
+	const char* _ll_vars[3] = { "icell", "ihoc", "N" };
+	for (i = 0; i < 3; i++) {
+		InputOutput::Variable* var = vars->get(_ll_vars[i]);
+		if (!memcmp(var->get_async(), _ll_args.at(i), var->typesize())) {
+			continue;
+		}
+		err_code = clSetKernelArg(_ll, i, var->typesize(), var->get_async());
+		if (err_code != CL_SUCCESS) {
+			std::stringstream msg;
+			msg << "Failure setting the variable \"" << _ihoc_vars[i]
+			    << "\" to the tool \"" << name() << "\" (\"linkList\")."
+			    << std::endl;
+			LOG(L_ERROR, msg.str());
+			InputOutput::Logger::singleton()->printOpenCLError(err_code);
+			throw std::runtime_error("OpenCL error");
+		}
+		memcpy(_ll_args.at(i), var->get_async(), var->typesize());
+	}
 }
 
 void
@@ -408,161 +651,6 @@ LinkList::setupOpenCL()
 		memcpy(_ll_args.at(i),
 		       vars->get(_ll_vars[i])->get(),
 		       vars->get(_ll_vars[i])->typesize());
-	}
-}
-
-void
-LinkList::nCells()
-{
-	vec pos_min, pos_max;
-	InputOutput::Variables* vars = CalcServer::singleton()->variables();
-
-	if (!_cell_length) {
-		std::stringstream msg;
-		msg << "Zero cell length detected in the tool \"" << name() << "\"."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		throw std::runtime_error("Invalid number of cells");
-	}
-
-	pos_min = *(vec*)vars->get("r_min")->get();
-	pos_max = *(vec*)vars->get("r_max")->get();
-
-	_n_cells.x = (unsigned int)((pos_max.x - pos_min.x) / _cell_length) + 6;
-	_n_cells.y = (unsigned int)((pos_max.y - pos_min.y) / _cell_length) + 6;
-#ifdef HAVE_3D
-	_n_cells.z = (unsigned int)((pos_max.z - pos_min.z) / _cell_length) + 6;
-#else
-	_n_cells.z = 1;
-#endif
-	_n_cells.w = _n_cells.x * _n_cells.y * _n_cells.z;
-}
-
-void
-LinkList::allocate()
-{
-	uivec4 n_cells;
-	cl_int err_code;
-	cl_event event;
-	CalcServer* C = CalcServer::singleton();
-	InputOutput::Variables* vars = C->variables();
-
-	if (vars->get("n_cells")->type().compare("uivec4")) {
-		std::stringstream msg;
-		msg << "\"n_cells\" has and invalid type for \"" << name() << "\"."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		msg.str("");
-		msg << "\tVariable \"n_cells\" type is \""
-		    << vars->get("n_cells")->type()
-		    << "\", while \"uivec4\" was expected" << std::endl;
-		LOG0(L_DEBUG, msg.str());
-		throw std::runtime_error("Invalid n_cells type");
-	}
-
-	n_cells = *(uivec4*)vars->get("n_cells")->get();
-
-	if (_n_cells.w <= n_cells.w) {
-		n_cells.x = _n_cells.x;
-		n_cells.y = _n_cells.y;
-		n_cells.z = _n_cells.z;
-		vars->get("n_cells")->set(&n_cells);
-		return;
-	}
-
-	// We have no alternative, we must sync here
-	InputOutput::Variable* ihoc_var = vars->get("ihoc");
-	event = ihoc_var->getEvent();
-	clWaitForEvents(1, &event);
-	cl_mem mem = *(cl_mem*)ihoc_var->get();
-	if (mem)
-		clReleaseMemObject(mem);
-	mem = NULL;
-
-	mem = clCreateBuffer(C->context(),
-	                     CL_MEM_READ_WRITE,
-	                     _n_cells.w * sizeof(unsigned int),
-	                     NULL,
-	                     &err_code);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure allocating device memory in the tool \"" << name()
-		    << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL allocation error");
-	}
-
-	vars->get("n_cells")->set(&_n_cells);
-	ihoc_var->set(&mem);
-	_ihoc_gws = roundUp(_n_cells.w, _ihoc_lws);
-}
-
-void
-LinkList::setVariables()
-{
-	unsigned int i;
-	cl_int err_code;
-	InputOutput::Variables* vars = CalcServer::singleton()->variables();
-
-	const char* _ihoc_vars[3] = { "ihoc", "N", "n_cells" };
-	for (i = 0; i < 3; i++) {
-		InputOutput::Variable* var = vars->get(_ihoc_vars[i]);
-		if (!memcmp(var->get(), _ihoc_args.at(i), var->typesize())) {
-			continue;
-		}
-		err_code = clSetKernelArg(_ihoc, i, var->typesize(), var->get());
-		if (err_code != CL_SUCCESS) {
-			std::stringstream msg;
-			msg << "Failure setting the variable \"" << _ihoc_vars[i]
-			    << "\" to the tool \"" << name() << "\" (\"iHoc\")."
-			    << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL error");
-		}
-		memcpy(_ihoc_args.at(i), var->get(), var->typesize());
-	}
-
-	const char* _icell_vars[8] = {
-		"icell", _input_name.c_str(), "N", "n_radix",
-		"r_min", "support",           "h", "n_cells"
-	};
-	for (i = 0; i < 8; i++) {
-		InputOutput::Variable* var = vars->get(_icell_vars[i]);
-		if (!memcmp(var->get(), _icell_args.at(i), var->typesize())) {
-			continue;
-		}
-		err_code = clSetKernelArg(_icell, i, var->typesize(), var->get());
-		if (err_code != CL_SUCCESS) {
-			std::stringstream msg;
-			msg << "Failure setting the variable \"" << _ihoc_vars[i]
-			    << "\" to the tool \"" << name() << "\" (\"iCell\")."
-			    << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL error");
-		}
-		memcpy(_icell_args.at(i), var->get(), var->typesize());
-	}
-
-	const char* _ll_vars[3] = { "icell", "ihoc", "N" };
-	for (i = 0; i < 3; i++) {
-		InputOutput::Variable* var = vars->get(_ll_vars[i]);
-		if (!memcmp(var->get(), _ll_args.at(i), var->typesize())) {
-			continue;
-		}
-		err_code = clSetKernelArg(_ll, i, var->typesize(), var->get());
-		if (err_code != CL_SUCCESS) {
-			std::stringstream msg;
-			msg << "Failure setting the variable \"" << _ihoc_vars[i]
-			    << "\" to the tool \"" << name() << "\" (\"linkList\")."
-			    << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL error");
-		}
-		memcpy(_ll_args.at(i), var->get(), var->typesize());
 	}
 }
 
