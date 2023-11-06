@@ -29,6 +29,157 @@
 namespace Aqua {
 namespace CalcServer {
 
+/** @brief Callback called when the arguments can be set on an OpenCL kernel
+ *
+ * @param event The triggering event
+ * @param event_command_status CL_COMPLETE upon all dependencies successfully
+ * fulfilled. A negative integer if one or mor dependencies failed.
+ * @param user_data A casted pointer to the Aqua::CalcServer::ArgSetter
+ */
+void CL_CALLBACK
+args_setter(cl_event event, cl_int event_command_status, void* user_data)
+{
+	cl_int err_code;
+	clReleaseEvent(event);
+	auto tool = (ArgSetter*)user_data;
+	if (event_command_status != CL_COMPLETE) {
+		std::stringstream msg;
+		msg << "Skipping \"" << tool->name() << "\" due to dependency errors."
+		    << std::endl;
+		LOG(L_WARNING, msg.str());
+		clSetUserEventStatus(tool->getEvent(), event_command_status);
+		clReleaseEvent(tool->getEvent());
+		return;
+	}
+
+	for (unsigned int i = 0; i < tool->getVars().size(); i++) {
+		auto var = tool->getVars()[i];
+		if (!var)
+			continue;
+		// Update the variable
+		err_code = clSetKernelArg(tool->getKernel(),
+		                          i,
+		                          var->typesize(),
+		                          var->get_async());
+		if (err_code != CL_SUCCESS) {
+			std::stringstream msg;
+			msg << "Failure setting the variable \"" << var->name()
+			    << "\" (id=" << i << ") to the tool \"" << tool->name()
+			    << "\"." << std::endl;
+			LOG(L_ERROR, msg.str());
+			InputOutput::Logger::singleton()->printOpenCLError(err_code);
+			clSetUserEventStatus(tool->getEvent(), -1);
+			clReleaseEvent(tool->getEvent());
+		}
+	}
+
+	err_code = clSetUserEventStatus(tool->getEvent(), CL_COMPLETE);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure setting as completed the args event for the tool \""
+		    << tool->name() << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+	}
+	err_code = clReleaseEvent(tool->getEvent());
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure releasing the args event for the tool \""
+		    << tool->name() << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+	}
+}
+
+
+ArgSetter::ArgSetter(const std::string name,
+                     cl_kernel kernel,
+                     std::vector<InputOutput::Variable*> vars)
+  : _name(name)
+  , _kernel(kernel)
+  , _vars(vars)
+{
+}
+
+cl_event
+ArgSetter::execute(bool synchronous)
+{
+	cl_int err_code;
+	CalcServer* C = CalcServer::singleton();
+
+	// Collect all the output events of the variables. To set the arguments
+	// we do not need to wait until they are read in any case
+	std::vector<cl_event> events;
+	for (auto var : _vars) {
+		if (!var || !var->getWritingEvent())
+			continue;
+		events.push_back(var->getWritingEvent());
+	}
+
+	// Join them on a single trigger so we can register a callback
+	// NOTE: On the eventuality of an empty list of events, this will behave as
+	// a synchronization point, i.e. the arguments will not be set until all
+	// the previous enqueued commands are completed
+	cl_event trigger;
+	const cl_event* events_data = events.size() ? events.data() : NULL;
+	err_code = clEnqueueMarkerWithWaitList(
+	    C->command_queue(), events.size(), events_data, &trigger);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure setting the trigger for tool \"" << name() << "\"."
+		    << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
+
+	// Now we create a user event that we will set as completed when we already
+	// setted the kernel args
+	_event = clCreateUserEvent(C->context(), &err_code);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure creating the args setter event for tool \"" << name()
+		    << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
+	err_code = clRetainEvent(_event);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure retaining the args setter event for tool \"" << name()
+		    << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
+
+	// So it is time to register our callback on our trigger
+	err_code = clSetEventCallback(trigger, CL_COMPLETE, args_setter, this);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure registering the solver callback in tool \"" << name()
+		    << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
+
+	if (synchronous) {
+		err_code = clWaitForEvents(1, &_event);
+		if (err_code != CL_SUCCESS) {
+			std::stringstream msg;
+			msg << "Failure syncing after setting the args in tool \""
+			    << name() << "\"." << std::endl;
+			LOG(L_ERROR, msg.str());
+			InputOutput::Logger::singleton()->printOpenCLError(err_code);
+			throw std::runtime_error("OpenCL execution error");
+		}
+	}
+
+	return _event;
+}
+
 Kernel::Kernel(const std::string tool_name,
                const std::string kernel_path,
                const std::string entry_point,
@@ -41,6 +192,7 @@ Kernel::Kernel(const std::string tool_name,
   , _kernel(NULL)
   , _work_group_size(0)
   , _global_work_size(0)
+  , _args_setter(NULL)
 {
 }
 
@@ -48,7 +200,8 @@ Kernel::~Kernel()
 {
 	if (_kernel)
 		clReleaseKernel(_kernel);
-	_kernel = NULL;
+	if (_args_setter)
+		delete _args_setter;
 }
 
 void
@@ -62,49 +215,16 @@ Kernel::setup()
 	Tool::setup();
 	make(_entry_point);
 	variables(_entry_point);
-	setVariables(true);
 	computeGlobalWorkSize();
-}
-
-/** @brief Callback called when all the dependencies of the
- * Aqua::CalcServer::Kernel tool are fulfilled.
- *
- * This function is just redirecting the work to
- * Aqua::CalcServer::Kernel::setVariables()
- * @param event The triggering event
- * @param event_command_status CL_COMPLETE upon all dependencies successfully
- * fulfilled. A negative integer if one or mor dependencies failed.
- * @param user_data A casted pointer to the Aqua::CalcServer::Kernel
- * tool (or the inherited one)
- */
-void CL_CALLBACK
-args_setter(cl_event event, cl_int event_command_status, void* user_data)
-{
-	clReleaseEvent(event);
-	auto tool = (Kernel*)user_data;
-	if (event_command_status != CL_COMPLETE) {
+	_args_setter = new ArgSetter(name(), _kernel, _vars);
+	if (!_args_setter) {
 		std::stringstream msg;
-		msg << "Skipping \"" << tool->name() << "\" due to dependency errors."
+		msg << "Failure creating the arg setter for tool \"" << name()
 		    << std::endl;
-		LOG(L_WARNING, msg.str());
-		clSetUserEventStatus(tool->getUserEvent(), event_command_status);
-		clReleaseEvent(tool->getUserEvent());
-		return;
+		LOG(L_ERROR, msg.str());
+		throw std::bad_alloc();
 	}
-
-	try {
-		tool->setVariables();
-	} catch (...) {
-		std::stringstream msg;
-		msg << "Failure setting the \"" << tool->name() << "\" args"
-		    << std::endl;
-		LOG(L_WARNING, msg.str());
-		clSetUserEventStatus(tool->getUserEvent(), -1);
-		clReleaseEvent(tool->getUserEvent());
-		return;
-	}
-	clSetUserEventStatus(tool->getUserEvent(), CL_COMPLETE);
-	clReleaseEvent(tool->getUserEvent());
+	_args_setter->execute(true);
 }
 
 cl_event
@@ -113,64 +233,12 @@ Kernel::_execute(const std::vector<cl_event> events)
 	cl_int err_code;
 	CalcServer* C = CalcServer::singleton();
 
-	// Ask to set the kernel arguments as fast as possible
-	cl_event trigger;
-	std::vector<cl_event> scalar_deps;
-	for (auto var : _scalar_vars) {
-		if (var->getWritingEvent())
-			scalar_deps.push_back(var->getWritingEvent());
-	}
-	cl_uint num_scalar_events = scalar_deps.size();
-	const cl_event* scalar_events =
-	    scalar_deps.size() ? scalar_deps.data() : NULL;
-	err_code = clEnqueueMarkerWithWaitList(
-	    C->command_queue(), num_scalar_events, scalar_events, &trigger);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure setting the trigger for tool \"" << name() << "\"."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
-
-	// Now we create a user event that we will set as completed when we already
-	// setted the kernel args
-	auto args_event = clCreateUserEvent(C->context(), &err_code);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure creating the args setter event for tool \"" << name()
-		    << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
-	err_code = clRetainEvent(args_event);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure retaining the args setter event for tool \"" << name()
-		    << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
-	_user_event = args_event;
-
-	// So it is time to register our callback on our trigger
-	err_code = clSetEventCallback(trigger, CL_COMPLETE, args_setter, this);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure registering the solver callback in tool \"" << name()
-		    << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
-
-	// And now we can enqueue the kernel execution
-	cl_event event;
+	// Asynchronously set the kernel arguments
 	std::vector<cl_event> kernel_events = events;
-	kernel_events.push_back(args_event);
+	kernel_events.push_back(_args_setter->execute());
+
+	// And enque the kernel execution
+	cl_event event;
 	err_code = clEnqueueNDRangeKernel(C->command_queue(),
 	                                  _kernel,
 	                                  1,
@@ -187,7 +255,7 @@ Kernel::_execute(const std::vector<cl_event> events)
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
 	}
-	err_code = clReleaseEvent(args_event);
+	err_code = clReleaseEvent(kernel_events.back());
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
 		msg << "Failure releasing the args setter event for tool \"" << name()
@@ -406,36 +474,9 @@ Kernel::variables(const std::string entry_point)
 		else
 			out_vars.push_back(var);
 		_vars.push_back(var);
-		if (!var->isArray())
-			_scalar_vars.push_back(var);
 	}
 
 	setDependencies(in_vars, out_vars);
-}
-
-void
-Kernel::setVariables(bool with_arrays)
-{
-	unsigned int i;
-	cl_int err_code;
-
-	for (unsigned int i = 0; i < _vars.size(); i++) {
-		auto var = _vars[i];
-		if (var->isArray() && !with_arrays)
-			continue;
-		// Update the variable
-		err_code =
-		    clSetKernelArg(_kernel, i, var->typesize(), var->get_async());
-		if (err_code != CL_SUCCESS) {
-			std::stringstream msg;
-			msg << "Failure setting the variable \"" << var->name()
-			    << "\" (id=" << i << ") to the tool \"" << name() << "\"."
-			    << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL error");
-		}
-	}
 }
 
 void

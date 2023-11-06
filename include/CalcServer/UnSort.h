@@ -91,10 +91,6 @@ class UnSort : public Aqua::CalcServer::Tool
 	 */
 	void setupOpenCL();
 
-	/** Update the input looking for changed value.
-	 */
-	void setVariables();
-
 	/// Input variable name
 	std::string _var_name;
 
@@ -125,6 +121,9 @@ class UnSort : public Aqua::CalcServer::Tool
 	size_t _local_work_size;
 	/// Number of elements
 	unsigned int _n;
+
+	/// Arguments setter for the kernel
+	ArgSetter* _args_setter;
 };
 
 }

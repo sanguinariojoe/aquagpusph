@@ -78,6 +78,15 @@ UnSort::setup()
 	_input = *(cl_mem*)_var->get();
 	_n = _id_var->size() / InputOutput::Variables::typeToBytes(_id_var->type());
 	setupOpenCL();
+	_args_setter = new ArgSetter(name(), _kernel, {_id_var, _var});
+	if (!_args_setter) {
+		std::stringstream msg;
+		msg << "Failure creating the arg setter for tool \"" << name()
+		    << std::endl;
+		LOG(L_ERROR, msg.str());
+		throw std::bad_alloc();
+	}
+	_args_setter->execute(true);
 }
 
 cl_event
@@ -88,23 +97,28 @@ UnSort::_execute(const std::vector<cl_event> events)
 	cl_event event;
 	CalcServer* C = CalcServer::singleton();
 
-	setVariables();
-
-	cl_uint num_events_in_wait_list = events.size();
-	const cl_event* event_wait_list = events.size() ? events.data() : NULL;
-
+	auto args_event = _args_setter->execute();
 	err_code = clEnqueueNDRangeKernel(C->command_queue(),
 	                                  _kernel,
 	                                  1,
 	                                  NULL,
 	                                  &_global_work_size,
 	                                  &_local_work_size,
-	                                  num_events_in_wait_list,
-	                                  event_wait_list,
+	                                  1,
+	                                  &args_event,
 	                                  &event);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
 		msg << "Failure executing the tool \"" << name() << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
+	err_code = clReleaseEvent(args_event);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure releasing the args setter event for tool \"" << name()
+		    << "\"." << std::endl;
 		LOG(L_ERROR, msg.str());
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
@@ -158,7 +172,7 @@ UnSort::variables()
 	_var = (InputOutput::ArrayVariable*)vars->get(_var_name);
 
 	std::vector<InputOutput::Variable*> deps = { _id_var, _var };
-	setDependencies(deps);
+	setInputDependencies(deps);
 }
 
 void
@@ -266,38 +280,6 @@ UnSort::setupOpenCL()
 		LOG(L_ERROR, "Failure sending the array size argument\n");
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL error");
-	}
-}
-
-void
-UnSort::setVariables()
-{
-	cl_int err_code;
-
-	if (_id_input != *(cl_mem*)_id_var->get()) {
-		err_code =
-		    clSetKernelArg(_kernel, 0, _id_var->typesize(), _id_var->get());
-		if (err_code != CL_SUCCESS) {
-			std::stringstream msg;
-			msg << "Failure setting the variable \"" << _id_var->name()
-			    << "\" to the tool \"" << name() << "\"." << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL error");
-		}
-		_id_input = *(cl_mem*)_id_var->get();
-	}
-	if (_input != *(cl_mem*)_var->get()) {
-		err_code = clSetKernelArg(_kernel, 1, _var->typesize(), _var->get());
-		if (err_code != CL_SUCCESS) {
-			std::stringstream msg;
-			msg << "Failure setting the variable \"" << _var->name()
-			    << "\" to the tool \"" << name() << "\"." << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL error");
-		}
-		_input = *(cl_mem*)_var->get();
 	}
 }
 
