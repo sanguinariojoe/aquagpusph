@@ -56,19 +56,20 @@ namespace CalcServer {
  * computational and physical time, so it shall be thoroughly used.
  *
  * First, the tool should dispose the data in a convenient way,
- * which implies a sorting algorithm, as well as reduction operations to compute
- * the amount of data to be sent to each process.
- * After that, the data is sent by the network to the rest of processes, which
- * would take some time, depending on the amount of data to send, and the
- * network speed.
+ * which implies a sorting algorithm, as well as reduction operations to
+ * compute the amount of data to be sent to each process.
+ * After that, the data is sent by the network to the rest of processes. That
+ * would take some time, depending of course on the amount of data to send and
+ * the network speed.
  *
  * In parallel, the tool will prepare everything to download the data incoming
- * from the other processes, INSIDE THE SAME ARRAYS.
+ * from the other processes, OVERWRITING THE SAME ARRAYS.
  *
  * To reduce the computational cost and avoid aside effects, it is strongly
  * recommended to copy the actual data into helper arrays before synchronizing.
  *
- * @note Since the mask array shall be sorted, power of 2 arrays are required.
+ * @note Since the mask array shall be sorted, arrays with a power of 2 length
+ * are required.
  */
 class MPISync : public Aqua::CalcServer::Tool
 {
@@ -177,7 +178,8 @@ class MPISync : public Aqua::CalcServer::Tool
 	 * @brief Interprocess array synchronization base class.
 	 *
 	 * This class is used to setup host storages for the send & receive
-	 * operations, to provide some helper functions to translate
+	 * operations, to provide some helper functions to translate between OpenCL
+	 * types and MPI ones
 	 */
 	class Exchanger
 	{
@@ -200,7 +202,7 @@ class MPISync : public Aqua::CalcServer::Tool
 
 		/** Destructor.
 		 */
-		~Exchanger();
+		~Exchanger() {}
 
 		/** @brief Parent tool name
 		 * @return Parent tool name

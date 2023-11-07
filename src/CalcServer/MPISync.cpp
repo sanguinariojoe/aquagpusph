@@ -150,6 +150,18 @@ MPISync::setup()
 		setupFieldSort(field);
 	}
 
+	std::vector<InputOutput::Variable*> deps;
+	for (auto field : _fields) {
+		deps.push_back((InputOutput::Variable*)field);
+	}
+	deps.push_back((InputOutput::Variable*)_mask);
+	for (auto field : _fields_sorted) {
+		deps.push_back((InputOutput::Variable*)field);
+	}
+	deps.push_back((InputOutput::Variable*)_unsorted_id);
+	deps.push_back((InputOutput::Variable*)_sorted_id);
+	setOutputDependencies(deps);
+
 	setupSenders();
 	setupReceivers();
 }
@@ -266,13 +278,6 @@ MPISync::variables()
 		}
 		_fields.push_back((InputOutput::ArrayVariable*)vars->get(var_name));
 	}
-
-	std::vector<InputOutput::Variable*> deps;
-	for (auto field : _fields) {
-		deps.push_back((InputOutput::Variable*)field);
-	}
-	deps.push_back((InputOutput::Variable*)_mask);
-	setDependencies(deps);
 }
 
 void
@@ -457,8 +462,6 @@ MPISync::Exchanger::Exchanger(
 	_n = _mask->size() / InputOutput::Variables::typeToBytes(_mask->type());
 }
 
-MPISync::Exchanger::~Exchanger() {}
-
 const MPISync::Exchanger::MPIType
 MPISync::Exchanger::typeToMPI(std::string t)
 {
@@ -549,15 +552,36 @@ typedef struct
 	int tag;
 } MPISyncSendUserData;
 
+std::string get_MPI_Error_string(int errorcode) {
+	char err[MPI::MAX_ERROR_STRING];
+	int err_len = MPI::MAX_ERROR_STRING;
+	MPI::Get_error_string(errorcode, err, err_len);
+	std::string err_str(err);
+	return err_str;
+}
+
 void CL_CALLBACK
 cbMPISend(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 {
+	MPI::Request req;
+	MPI::Status status;
 	MPISyncSendUserData* data = (MPISyncSendUserData*)user_data;
 	unsigned int offset = *(data->offset);
 	unsigned int n = *(data->n);
 
 	if (data->tag == 1) {
-		MPI::COMM_WORLD.Isend(&n, 1, MPI::UNSIGNED, data->proc, 0);
+		req = MPI::COMM_WORLD.Isend(&n, 1, MPI::UNSIGNED, data->proc, 0);
+		req.Wait(status);
+		if (status.Get_error() != MPI::SUCCESS) {
+			std::ostringstream msg;
+			msg << "Failure sending the number of particles to process "
+			    << data->proc << ":" << std::endl
+			    << get_MPI_Error_string(status.Get_error())
+			    << std::endl;
+			LOG(L_ERROR, msg.str());
+			free(data);
+			throw std::runtime_error("MPI sending error");
+		}
 	}
 
 	if (!n) {
@@ -586,6 +610,7 @@ cbMPISend(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 		    << std::endl;
 		LOG(L_ERROR, msg.str());
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		free(data);
 		throw std::runtime_error("OpenCL execution error");
 	}
 
@@ -598,11 +623,23 @@ cbMPISend(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 		msg << "Unrecognized type \"" << field->type() << "\" for variable \""
 		    << field->name() << "\"" << std::endl;
 		LOG(L_ERROR, msg.str());
+		free(data);
 		throw std::runtime_error("Invalid type");
 	}
 
 	// Launch the missiles. Again we can proceed in synchronous mode
-	MPI::COMM_WORLD.Isend(ptr, n * mpi_t.n, mpi_t.t, data->proc, data->tag);
+	req = MPI::COMM_WORLD.Isend(ptr, n * mpi_t.n, mpi_t.t, data->proc,
+	                            data->tag);
+	if (status.Get_error() != MPI::SUCCESS) {
+		std::ostringstream msg;
+		msg << "Failure sending the field \"" << field->name()
+		    << "\" to process " << data->proc << ":" << std::endl
+		    << get_MPI_Error_string(status.Get_error())
+		    << std::endl;
+		LOG(L_ERROR, msg.str());
+		free(data);
+		throw std::runtime_error("MPI sending error");
+	}
 
 	free(data);
 }
@@ -617,7 +654,8 @@ MPISync::Sender::execute()
 	CalcServer* C = CalcServer::singleton();
 
 	// Compute the offset of the first particle to be sent
-	event_wait_list = { _mask->getEvent(), _n_offset_mask->getEvent() };
+	event_wait_list = { _mask->getWritingEvent(),
+	                    _n_offset_mask->getWritingEvent() };
 	err_code = clEnqueueNDRangeKernel(C->command_queue(),
 	                                  _n_offset_kernel,
 	                                  1,
@@ -635,12 +673,13 @@ MPISync::Sender::execute()
 		throw std::runtime_error("OpenCL execution error");
 	}
 	// Mark the variables with an event to be subsequently waited for
-	_mask->setEvent(event);
-	_n_offset_mask->setEvent(event);
+	_mask->addReadingEvent(event);
+	_n_offset_mask->setWritingEvent(event);
 	_n_offset_reduction->execute();
 
 	// Compute number of particles to be sent
-	event_wait_list = { _mask->getEvent(), _n_send_mask->getEvent() };
+	event_wait_list = { _mask->getWritingEvent(),
+	                    _n_send_mask->getWritingEvent() };
 	err_code = clEnqueueNDRangeKernel(C->command_queue(),
 	                                  _n_send_kernel,
 	                                  1,
@@ -658,16 +697,16 @@ MPISync::Sender::execute()
 		throw std::runtime_error("OpenCL execution error");
 	}
 	// Mark the variables with an event to be subsequently waited for
-	_mask->setEvent(event);
-	_n_send_mask->setEvent(event);
+	_mask->addReadingEvent(event);
+	_n_send_mask->setWritingEvent(event);
 	_n_send_reduction->execute();
 
 	for (unsigned int i = 0; i < _fields.size(); i++) {
-		// Setup a events syncing point to can register a callback to send the
-		// fields
-		event_wait_list = { _n_offset->getEvent(),
-			                _n_send->getEvent(),
-			                _fields.at(i)->getEvent() };
+		// Setup a events syncing point to can register a callback where the
+		// fields can be sent
+		event_wait_list = { _n_offset->getWritingEvent(),
+			                _n_send->getWritingEvent(),
+			                _fields.at(i)->getWritingEvent() };
 
 		err_code = clEnqueueMarkerWithWaitList(C->command_queue(),
 		                                       event_wait_list.size(),
@@ -734,6 +773,7 @@ MPISync::Sender::setupSubMaskMems()
 	_n_offset_mask = (InputOutput::ArrayVariable*)vars->get(name.str());
 
 	i = 0;
+	name.str("");
 	name << "__" << _mask->name() << "_n_send_mask_" << i;
 	while (vars->get(name.str()) != NULL) {
 		name << "__" << _mask->name() << "_n_send_mask_" << ++i;
