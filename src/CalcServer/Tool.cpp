@@ -135,16 +135,6 @@ Tool::execute()
 	_event = event;
 
 	if (event != NULL) {
-		// Retain the event until we waited for it (see below)
-		err_code = clRetainEvent(event);
-		if (err_code != CL_SUCCESS) {
-			std::stringstream msg;
-			msg << "Failure reteaning the new event in \"" << name()
-			    << "\" tool." << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL execution error");
-		}
 		// Add the event to the reading dependencies
 		auto in_vars = getInputDependencies();
 		for (auto var : in_vars) {
@@ -159,21 +149,21 @@ Tool::execute()
 		// Check for errors when the event is marked as completed
 		// NOTE: clReleaseEvent() will be called on the callback, so no need to
 		// do it here
+		err_code = clRetainEvent(event);
+		if (err_code != CL_SUCCESS) {
+			std::stringstream msg;
+			msg << "Failure reteaning the new event in \"" << name()
+			    << "\" tool." << std::endl;
+			LOG(L_ERROR, msg.str());
+			InputOutput::Logger::singleton()->printOpenCLError(err_code);
+			throw std::runtime_error("OpenCL execution error");
+		}
 		err_code =
 		    clSetEventCallback(event, CL_COMPLETE, exec_status_check, this);
 		if (err_code != CL_SUCCESS) {
 			std::stringstream msg;
 			msg << "Failure registering the CL_COMPLETE callback in tool \""
 			    << name() << "\"." << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL execution error");
-		}
-		err_code = clReleaseEvent(event);
-		if (err_code != CL_SUCCESS) {
-			std::stringstream msg;
-			msg << "Failure releasing the new event in \"" << name()
-			    << "\" tool." << std::endl;
 			LOG(L_ERROR, msg.str());
 			InputOutput::Logger::singleton()->printOpenCLError(err_code);
 			throw std::runtime_error("OpenCL execution error");
