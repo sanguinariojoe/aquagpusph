@@ -169,6 +169,15 @@ Tool::execute()
 			InputOutput::Logger::singleton()->printOpenCLError(err_code);
 			throw std::runtime_error("OpenCL execution error");
 		}
+		err_code = clReleaseEvent(event);
+		if (err_code != CL_SUCCESS) {
+			std::stringstream msg;
+			msg << "Failure releasing the new event in \"" << name()
+			    << "\" tool." << std::endl;
+			LOG(L_ERROR, msg.str());
+			InputOutput::Logger::singleton()->printOpenCLError(err_code);
+			throw std::runtime_error("OpenCL execution error");
+		}
 	}
 
 	// Release the events in the wait list, which were retained by getEvents()
