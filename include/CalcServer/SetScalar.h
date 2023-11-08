@@ -106,7 +106,7 @@ class ScalarExpression : public Aqua::CalcServer::Tool
 	 * @param events List of events that shall be waited before safe execution
 	 * @return OpenCL event to be waited before accessing the dependencies
 	 */
-	cl_event _execute(const std::vector<cl_event> events);
+	virtual cl_event _execute(const std::vector<cl_event> events);
 
 	/** @brief Evaluate the expression and store the value
 	 *

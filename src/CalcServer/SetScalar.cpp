@@ -200,6 +200,9 @@ ScalarExpression::_execute(const std::vector<cl_event> events)
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
 	}
+	_user_event = event;
+
+	// So it is time to register our callback on our trigger
 	err_code = clRetainEvent(event);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
@@ -209,9 +212,6 @@ ScalarExpression::_execute(const std::vector<cl_event> events)
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
 	}
-	_user_event = event;
-
-	// So it is time to register our callback on our trigger
 	err_code = clSetEventCallback(trigger, CL_COMPLETE, solver, this);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;

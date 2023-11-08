@@ -27,7 +27,7 @@
 #define SET_H_INCLUDED
 
 #include <CalcServer.h>
-#include <CalcServer/Tool.h>
+#include <CalcServer/SetScalar.h>
 
 namespace Aqua {
 namespace CalcServer {
@@ -35,7 +35,7 @@ namespace CalcServer {
 /** @class Set Set.h CalcServer/Set.h
  * @brief Set all the components of an array with the desired value.
  */
-class Set : public Aqua::CalcServer::Tool
+class Set final : public Aqua::CalcServer::ScalarExpression
 {
   public:
 	/** Constructor.
@@ -69,6 +69,10 @@ class Set : public Aqua::CalcServer::Tool
 	void setup();
 
   protected:
+	/** @brief Evaluate the expression if possible
+	 */
+	void _solve();
+
 	/** Execute the tool
 	 * @param events List of events that shall be waited before safe execution
 	 * @return OpenCL event to be waited before accessing the dependencies
@@ -83,14 +87,6 @@ class Set : public Aqua::CalcServer::Tool
 	/** Setup the OpenCL stuff
 	 */
 	void setupOpenCL();
-
-	/** Solve the equation.
-	 *
-	 * @note Solve may eventually fail. In that case, the _value string will be
-	 * directly used by means of a define. This way the user may use shortcuts
-	 * like VEC_ZERO
-	 */
-	void solve();
 
 	/** Update the input looking for changed value.
 	 * @return false if all gone right, true otherwise.

@@ -42,7 +42,7 @@ Set::Set(const std::string name,
          const std::string var_name,
          const std::string value,
          bool once)
-  : Tool(name, once)
+  : ScalarExpression(name, value, "float", once)
   , _var_name(var_name)
   , _value(value)
   , _var(NULL)
@@ -72,7 +72,6 @@ Set::setup()
 	msg << "Loading the tool \"" << name() << "\"..." << std::endl;
 	LOG(L_INFO, msg.str());
 
-	Tool::setup();
 	variable();
 
 	size_t typesize = InputOutput::Variables::typeToBytes(_var->type());
@@ -84,11 +83,32 @@ Set::setup()
 		LOG(L_ERROR, msg.str());
 		throw std::bad_alloc();
 	}
-	solve();
+	try {
+		ScalarExpression::setup();
+		setOutputType(_var->type());
+		ScalarExpression::_solve();
+	} catch (...) {
+		free(_data);
+		_data = NULL;
+		LOG(L_INFO, "Falling back to definition mode...\n");
+	}
 
 	_input = *(cl_mem*)_var->get();
 	_n = _var->size() / typesize;
 	setupOpenCL();
+}
+
+void
+Set::_solve()
+{
+	if(_data) {
+		ScalarExpression::_solve();
+		memcpy(_data,
+		       getValue(),
+		       InputOutput::Variables::typeToBytes(_var->type()));
+	}
+
+	setVariables();
 }
 
 cl_event
@@ -99,14 +119,11 @@ Set::_execute(const std::vector<cl_event> events)
 	cl_event event;
 	CalcServer* C = CalcServer::singleton();
 
-	if (_data) {
-		// A valid equation is available!
-		solve();
-	}
-	setVariables();
+	// Eventually evaluate the expression and set the variables to the kernel
+	cl_event args_event = ScalarExpression::_execute(events);
 
-	cl_uint num_events_in_wait_list = events.size();
-	const cl_event* event_wait_list = events.size() ? events.data() : NULL;
+	std::vector<cl_event> wait_list = events;
+	wait_list.push_back(args_event);
 
 	err_code = clEnqueueNDRangeKernel(C->command_queue(),
 	                                  _kernel,
@@ -114,12 +131,21 @@ Set::_execute(const std::vector<cl_event> events)
 	                                  NULL,
 	                                  &_global_work_size,
 	                                  &_local_work_size,
-	                                  num_events_in_wait_list,
-	                                  event_wait_list,
+	                                  wait_list.size(),
+	                                  wait_list.data(),
 	                                  &event);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
 		msg << "Failure executing the tool \"" << name() << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
+	err_code = clReleaseEvent(args_event);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure releasing the args setter event in \"" << name()
+			<< "\" tool." << std::endl;
 		LOG(L_ERROR, msg.str());
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
@@ -150,7 +176,7 @@ Set::variable()
 	_var = (InputOutput::ArrayVariable*)vars->get(_var_name);
 
 	std::vector<InputOutput::Variable*> deps = { _var };
-	setDependencies(deps);
+	setOutputDependencies(deps);
 }
 
 void
@@ -229,20 +255,6 @@ Set::setupOpenCL()
 }
 
 void
-Set::solve()
-{
-	InputOutput::Variables* vars = CalcServer::singleton()->variables();
-
-	try {
-		vars->solve(_var->type(), _value, _data, _var->name());
-	} catch (...) {
-		free(_data);
-		_data = NULL;
-		LOG(L_INFO, "Falling back to definition mode...\n");
-	}
-}
-
-void
 Set::setVariables()
 {
 	cl_int err_code;
@@ -255,8 +267,8 @@ Set::setVariables()
 		                   _data);
 		if (err_code != CL_SUCCESS) {
 			std::stringstream msg;
-			msg << "Failure setting the value to the tool \"" << name() << "\"."
-			    << std::endl;
+			msg << "Failure setting the value to the tool \"" << name()
+			    << "\"." << std::endl;
 			LOG(L_ERROR, msg.str());
 			InputOutput::Logger::singleton()->printOpenCLError(err_code);
 			throw std::runtime_error("OpenCL error");
