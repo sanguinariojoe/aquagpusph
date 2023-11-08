@@ -1314,7 +1314,7 @@ Variables::exprVariables(const std::string& expr)
 			continue;
 		if (!var) {
 			std::ostringstream msg;
-			msg << "Variable \"" << var->name()
+			msg << "Variable \"" << var_name
 			    << "\", referenced on the expression " << expr
 			    << ", cannot be found" << std::endl;
 			LOG(L_ERROR, msg.str());
