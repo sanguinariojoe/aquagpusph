@@ -34,6 +34,36 @@
 namespace Aqua {
 namespace CalcServer {
 
+/** @class Named Tool.h CalcServer/Tool.h
+ * @brief A helper class for named objects
+ */
+class Named
+{
+  public:
+	/** Constructor.
+	 * @param name The name
+	 */
+	Named(const std::string name) : _name(name) {}
+
+	/** Destructor
+	 */
+	~Named() {}
+
+	/** Set the tool name.
+	 * @param tool_name Tool name.
+	 */
+	inline void name(const std::string tool_name) { _name = tool_name; };
+
+	/** @brief Get the name
+	 * @return The name
+	 */
+	inline const std::string name() const { return _name; }
+
+  private:
+	/// Name
+	std::string _name;
+};
+
 /** @class Tool Tool.h CalcServer/Tool.h
  * @brief Tools base class. The way that AQUAgpusph compute each problem is set
  * through a set of tools that are computed sequentially. Several tools can be
@@ -43,7 +73,7 @@ namespace CalcServer {
  *   -# Python scripts
  *   -# Variables set
  */
-class Tool
+class Tool : public Aqua::CalcServer::Named
 {
   public:
 	/** Constructor.
@@ -55,16 +85,6 @@ class Tool
 	/** Destructor
 	 */
 	virtual ~Tool();
-
-	/** Set the tool name.
-	 * @param tool_name Tool name.
-	 */
-	inline void name(const std::string tool_name) { _name = tool_name; };
-
-	/** Get the tool name.
-	 * @return Tool name.
-	 */
-	inline const std::string name() const { return _name; }
 
 	/** Initialize the tool.
 	 */
@@ -364,9 +384,6 @@ class Tool
 	 */
 	std::vector<InputOutput::Variable*> namesToVars(
 	    const std::vector<std::string>& names) const;
-
-	/// Kernel name
-	std::string _name;
 
 	/// true if the tool shall be run just once, false otherwise
 	bool _once;

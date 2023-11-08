@@ -32,7 +32,7 @@ namespace Aqua {
 namespace CalcServer {
 
 Tool::Tool(const std::string tool_name, bool once)
-  : _name(tool_name)
+  : Named(tool_name)
   , _once(once)
   , _next_tool(NULL)
   , _allocated_memory(0)
