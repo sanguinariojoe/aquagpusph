@@ -28,6 +28,7 @@
 
 #include <CalcServer.h>
 #include <CalcServer/SetScalar.h>
+#include <CalcServer/Kernel.h>
 
 namespace Aqua {
 namespace CalcServer {
@@ -110,12 +111,15 @@ class Set final : public Aqua::CalcServer::ScalarExpression
 	/// Global work sizes in each step
 	size_t _global_work_size;
 	/// Local work sizes in each step
-	size_t _local_work_size;
+	size_t _work_group_size;
 	/// Number of elements
 	unsigned int _n;
 
 	/// Memory storage for the value
 	void* _data;
+
+	/// Kernel enqueuer
+	KernelEnqueuer* _kernel_enqueuer;
 };
 
 }

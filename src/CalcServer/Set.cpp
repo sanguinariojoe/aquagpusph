@@ -49,9 +49,10 @@ Set::Set(const std::string name,
   , _input(NULL)
   , _kernel(NULL)
   , _global_work_size(0)
-  , _local_work_size(0)
+  , _work_group_size(0)
   , _n(0)
   , _data(NULL)
+  , _kernel_enqueuer(NULL)
 {
 }
 
@@ -59,10 +60,10 @@ Set::~Set()
 {
 	if (_kernel)
 		clReleaseKernel(_kernel);
-	_kernel = NULL;
 	if (_data)
 		free(_data);
-	_data = NULL;
+	if (_kernel_enqueuer)
+		delete _kernel_enqueuer;
 }
 
 void
@@ -96,6 +97,15 @@ Set::setup()
 	_input = *(cl_mem*)_var->get();
 	_n = _var->size() / typesize;
 	setupOpenCL();
+
+	_kernel_enqueuer = new KernelEnqueuer(name());
+	if (!_kernel_enqueuer) {
+		std::stringstream msg;
+		msg << "Failure creating the kernel enqueuer for tool \"" << name()
+		    << std::endl;
+		LOG(L_ERROR, msg.str());
+		throw std::bad_alloc();
+	}
 }
 
 void
@@ -116,36 +126,22 @@ Set::_execute(const std::vector<cl_event> events)
 {
 	unsigned int i;
 	cl_int err_code;
-	cl_event event;
 	CalcServer* C = CalcServer::singleton();
 
 	// Eventually evaluate the expression and set the variables to the kernel
 	cl_event args_event = ScalarExpression::_execute(events);
 
-	std::vector<cl_event> wait_list = events;
-	wait_list.push_back(args_event);
-
-	err_code = clEnqueueNDRangeKernel(C->command_queue(),
-	                                  _kernel,
-	                                  1,
-	                                  NULL,
-	                                  &_global_work_size,
-	                                  &_local_work_size,
-	                                  wait_list.size(),
-	                                  wait_list.data(),
-	                                  &event);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure executing the tool \"" << name() << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	// And enqueue the kernel execution
+	auto event = _kernel_enqueuer->execute(args_event,
+	                                       _kernel,
+	                                       _global_work_size,
+	                                       _work_group_size,
+	                                       events);
 	err_code = clReleaseEvent(args_event);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
-		msg << "Failure releasing the args setter event in \"" << name()
-			<< "\" tool." << std::endl;
+		msg << "Failure releasing the args setter event for tool \"" << name()
+		    << "\"." << std::endl;
 		LOG(L_ERROR, msg.str());
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
@@ -211,7 +207,7 @@ Set::setupOpenCL()
 	                                    C->device(),
 	                                    CL_KERNEL_WORK_GROUP_SIZE,
 	                                    sizeof(size_t),
-	                                    &_local_work_size,
+	                                    &_work_group_size,
 	                                    NULL);
 	if (err_code != CL_SUCCESS) {
 		LOG(L_ERROR, "Failure querying the work group size.\n");
@@ -219,17 +215,17 @@ Set::setupOpenCL()
 		clReleaseKernel(kernel);
 		throw std::runtime_error("OpenCL error");
 	}
-	if (_local_work_size < __CL_MIN_LOCALSIZE__) {
+	if (_work_group_size < __CL_MIN_LOCALSIZE__) {
 		LOG(L_ERROR, "insufficient local memory.\n");
 		std::stringstream msg;
-		msg << "\t" << _local_work_size
+		msg << "\t" << _work_group_size
 		    << " local work group size with __CL_MIN_LOCALSIZE__="
 		    << __CL_MIN_LOCALSIZE__ << std::endl;
 		LOG0(L_DEBUG, msg.str());
 		throw std::runtime_error("OpenCL error");
 	}
 
-	_global_work_size = roundUp(_n, _local_work_size);
+	_global_work_size = roundUp(_n, _work_group_size);
 	_kernel = kernel;
 	err_code = clSetKernelArg(kernel, 0, _var->typesize(), _var->get());
 	if (err_code != CL_SUCCESS) {

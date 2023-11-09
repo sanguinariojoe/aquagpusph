@@ -20,6 +20,6 @@
         <RootPath path="@RESOURCES_DIR@/.."/>
     </Settings>
     <Timing>
-        <Option name="End" type="Steps" value="2"/>
+        <Option name="End" type="Steps" value="1"/>
     </Timing>
 </sphInput>
