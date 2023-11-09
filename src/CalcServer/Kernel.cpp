@@ -56,6 +56,9 @@ args_setter(cl_event event, cl_int event_command_status, void* user_data)
 		auto var = tool->getVars()[i];
 		if (!var)
 			continue;
+		auto arg = tool->getArgs()[i];
+		if (*arg == var)
+			continue;
 		// Update the variable
 		err_code = clSetKernelArg(tool->getKernel(),
 		                          i,
@@ -71,6 +74,7 @@ args_setter(cl_event event, cl_int event_command_status, void* user_data)
 			clSetUserEventStatus(tool->getEvent(), -1);
 			clReleaseEvent(tool->getEvent());
 		}
+		*arg = var;
 	}
 
 	err_code = clSetUserEventStatus(tool->getEvent(), CL_COMPLETE);
@@ -98,7 +102,12 @@ ArgSetter::ArgSetter(const std::string name,
   : Named(name)
   , _kernel(kernel)
   , _vars(vars)
+  , _event(NULL)
 {
+	for (unsigned int i=0; i < vars.size(); i++) {
+		Arg* arg = new Arg();
+		_args.push_back(arg);
+	}
 }
 
 cl_event
