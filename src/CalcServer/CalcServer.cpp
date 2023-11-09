@@ -564,7 +564,7 @@ CalcServer::getUnsortedMem(const std::string var_name,
 	// Generate the unsorted if it does not exist yet
 	UnSort* unsorter = NULL;
 	if (unsorters.find(var_name) == unsorters.end()) {
-		unsorter = new UnSort(var_name.c_str(), var_name.c_str());
+		unsorter = new UnSort("__unsort " + var_name, var_name.c_str());
 		try {
 			unsorter->setup();
 		} catch (std::runtime_error& e) {
@@ -581,7 +581,7 @@ CalcServer::getUnsortedMem(const std::string var_name,
 		return NULL;
 	}
 	cl_mem mem = unsorter->output();
-	cl_event event = NULL, event_wait = unsorter->input()->getEvent();
+	cl_event event, event_wait = unsorter->input()->getReadingEvents().back();
 	err_code = clEnqueueReadBuffer(command_queue(),
 	                               mem,
 	                               CL_FALSE,
