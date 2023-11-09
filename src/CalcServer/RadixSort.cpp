@@ -143,7 +143,9 @@ RadixSort::_execute(const std::vector<cl_event> events)
 	// Get maximum key bits, and needed pass
 	max_val = UINT_MAX;
 	if (!_var_name.compare("icell")) {
-		uivec4 n_cells = *(uivec4*)vars->get("n_cells")->get();
+		// NOTE: This is indeed a syncing point. Would it be faster to make
+		// more steps in exchange of a more asynchronous execution?
+		uivec4 n_cells = *(uivec4*)vars->get("n_cells")->get(true);
 		max_val = nextPowerOf2(n_cells.w);
 	} else if (!isPowerOf2(max_val)) {
 		max_val = nextPowerOf2(max_val / 2);
@@ -159,8 +161,9 @@ RadixSort::_execute(const std::vector<cl_event> events)
 	_n_pass = _key_bits / _bits;
 
 	// Even though we are using Tool dependencies stuff, we are really
-	// interested in following a more complex events chain, due to the large
-	// and complex net of tools we are executing
+	// interested in following a quite complex independent events chain.
+	// To this end we start enqueueing a task to copy the whole array in our
+	// custom OpenCL memory that we created ad-hoc
 	auto var_event = _var->getWritingEvent();
 	err_code = clEnqueueCopyBuffer(C->command_queue(),
 	                               *(cl_mem*)_var->get(),
@@ -213,8 +216,9 @@ RadixSort::_execute(const std::vector<cl_event> events)
 
 	auto var_events = _var->getReadingEvents();
 	// We positively know that the last reading event is posterior to the
-	// last writing event, becuase of the clEnqueueCopyBuffer() above
-	// var_events.push_back(_var->getWritingEvent());
+	// last writing event, because of the clEnqueueCopyBuffer() above
+	// We can anyway wait for it
+	var_events.push_back(_var->getWritingEvent());
 	var_events.push_back(event_wait);
 	err_code = clEnqueueCopyBuffer(C->command_queue(),
 	                               _in_keys,
@@ -680,7 +684,7 @@ RadixSort::inversePermutations()
 	err_code = clSetKernelArg(_inv_perms_kernel,
 	                          1,
 	                          sizeof(cl_mem),
-	                          _inv_perms->get());
+	                          _inv_perms->get_async());
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
 		msg << "Failure sending argument 1 to \"inversePermutation\" within "

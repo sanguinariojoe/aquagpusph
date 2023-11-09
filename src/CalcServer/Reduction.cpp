@@ -104,6 +104,7 @@ Reduction::setup()
 void CL_CALLBACK
 populator(cl_event event, cl_int event_command_status, void* user_data)
 {
+	cl_int err_code;
 	clReleaseEvent(event);
 	auto tool = (Reduction*)user_data;
 	if (event_command_status != CL_COMPLETE) {
@@ -119,7 +120,14 @@ populator(cl_event event, cl_int event_command_status, void* user_data)
 	auto var = tool->getOutputDependencies()[0];
 	InputOutput::Variables* vars = CalcServer::singleton()->variables();
 	vars->populate(var);
-	clSetUserEventStatus(tool->getUserEvent(), CL_COMPLETE);
+	err_code = clSetUserEventStatus(tool->getUserEvent(), CL_COMPLETE);
+	if (err_code != CL_SUCCESS) {
+		std::ostringstream msg;
+		msg << "Failure setting the variable population event on tool \""
+		    << tool->name() << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+	}
 	clReleaseEvent(tool->getUserEvent());
 }
 
@@ -132,8 +140,8 @@ Reduction::_execute(const std::vector<cl_event> events)
 	CalcServer* C = CalcServer::singleton();
 	InputOutput::Variables* vars = C->variables();
 
-	// We must execute several kernel in a sequential way, so we start waiting
-	// Just for the input variable.
+	// We must execute several kernels in a sequential way. The process is
+	// though seeded, by a reduction which just needs to read the input array
 	event = _input_var->getWritingEvent();
 	if (event) {
 		err_code = clRetainEvent(event);
@@ -204,7 +212,6 @@ Reduction::_execute(const std::vector<cl_event> events)
 		throw std::runtime_error("OpenCL error");
 	}
 
-	// Release the transactional event
 	err_code = clReleaseEvent(event);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
@@ -216,8 +223,9 @@ Reduction::_execute(const std::vector<cl_event> events)
 	}
 	event = out_event;
 
-	// Now we create a user event that we will set as completed when we already
-	// populated the variable
+	// Although the variable will be correctly set when clEnqueueReadBuffer()
+	// finish its job, we want to populate the variable so other parts of the
+	// code are aware of the change, like the math solver Aqua::Tokenizer
 	_user_event = clCreateUserEvent(C->context(), &err_code);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
@@ -227,6 +235,7 @@ Reduction::_execute(const std::vector<cl_event> events)
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
 	}
+
 	err_code = clRetainEvent(_user_event);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
@@ -236,8 +245,6 @@ Reduction::_execute(const std::vector<cl_event> events)
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
 	}
-
-	// So it is time to register our callback on our trigger
 	err_code = clSetEventCallback(event, CL_COMPLETE, populator, this);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;

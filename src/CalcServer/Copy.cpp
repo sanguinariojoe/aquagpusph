@@ -69,6 +69,7 @@ Copy::_execute(const std::vector<cl_event> events)
 	cl_uint num_events_in_wait_list = events.size();
 	const cl_event* event_wait_list = events.size() ? events.data() : NULL;
 
+	// NOTE: This wont work with ihoc, since it might be reallocated
 	err_code = clEnqueueCopyBuffer(C->command_queue(),
 	                               *(cl_mem*)_input_var->get(),
 	                               *(cl_mem*)_output_var->get(),
