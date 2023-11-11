@@ -59,6 +59,7 @@ Variable::Variable(const std::string varname, const std::string vartype)
   , _typename(vartype)
   , _event(NULL)
   , _synced(true)
+  , _synced_for_read(true)
 {
 	cl_int err_code;
 	CalcServer::CalcServer* C = CalcServer::CalcServer::singleton();
