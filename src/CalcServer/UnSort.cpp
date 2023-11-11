@@ -52,7 +52,7 @@ UnSort::UnSort(const std::string name,
   , _output(NULL)
   , _kernel(NULL)
   , _global_work_size(0)
-  , _local_work_size(0)
+  , _work_group_size(0)
   , _n(0)
 {
 }
@@ -86,7 +86,7 @@ UnSort::setup()
 		LOG(L_ERROR, msg.str());
 		throw std::bad_alloc();
 	}
-	_args_setter->execute(true);
+	_args_setter->execute();
 }
 
 cl_event
@@ -94,31 +94,24 @@ UnSort::_execute(const std::vector<cl_event> events)
 {
 	unsigned int i;
 	cl_int err_code;
-	cl_event event;
-	CalcServer* C = CalcServer::singleton();
+	auto C = CalcServer::singleton();
 
-	auto args_event = _args_setter->execute();
+	_args_setter->execute();
+
+	cl_event event;
+	const cl_event* wait_events = events.size() ? events.data() : NULL;
 	err_code = clEnqueueNDRangeKernel(C->command_queue(),
 	                                  _kernel,
 	                                  1,
 	                                  NULL,
 	                                  &_global_work_size,
-	                                  &_local_work_size,
-	                                  1,
-	                                  &args_event,
+	                                  &_work_group_size,
+	                                  events.size(),
+	                                  wait_events,
 	                                  &event);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
 		msg << "Failure executing the tool \"" << name() << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
-	err_code = clReleaseEvent(args_event);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure releasing the args setter event for tool \"" << name()
-		    << "\"." << std::endl;
 		LOG(L_ERROR, msg.str());
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
@@ -239,24 +232,24 @@ UnSort::setupOpenCL()
 	                                    C->device(),
 	                                    CL_KERNEL_WORK_GROUP_SIZE,
 	                                    sizeof(size_t),
-	                                    &_local_work_size,
+	                                    &_work_group_size,
 	                                    NULL);
 	if (err_code != CL_SUCCESS) {
 		LOG(L_ERROR, "Failure querying the work group size.\n");
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL error");
 	}
-	if (_local_work_size < __CL_MIN_LOCALSIZE__) {
+	if (_work_group_size < __CL_MIN_LOCALSIZE__) {
 		std::stringstream msg;
 		LOG(L_ERROR, "UnSort cannot be performed.\n");
-		msg << "\t" << _local_work_size
+		msg << "\t" << _work_group_size
 		    << " elements can be executed, but __CL_MIN_LOCALSIZE__="
 		    << __CL_MIN_LOCALSIZE__ << std::endl;
 		LOG0(L_DEBUG, msg.str());
 		throw std::runtime_error("OpenCL error");
 	}
 
-	_global_work_size = roundUp(_n, _local_work_size);
+	_global_work_size = roundUp(_n, _work_group_size);
 	err_code = clSetKernelArg(_kernel, 0, _id_var->typesize(), _id_var->get());
 	if (err_code != CL_SUCCESS) {
 		LOG(L_ERROR, "Failure sending the IDs argument\n");

@@ -225,8 +225,10 @@ class Variable
 	 * called until the previous syncing has been completed.
 	 *
 	 * This is obviously a blocking function
+	 * @param readonly true if it is just needed to sync for reading
+	 * operations, false otherwise
 	 */
-	void sync();
+	void sync(bool readonly=false);
 
 	/** @ingroup VariableEventsGroup
 	 * @brief Clean up the list of reading events
@@ -249,8 +251,18 @@ class Variable
 	/// List of reading events
 	std::vector<cl_event> _reading_events;
 
-	/// Shortcut to avoid calling the expensive OpenCL API
+	/** @brief Shortcut to avoid calling the expensive OpenCL API
+	 *
+	 * This is true when all the events (reading and writing) are marked as
+	 * completed
+	 */
 	bool _synced;
+
+	/** @brief Shortcut to avoid calling the expensive OpenCL API
+	 *
+	 * This is true when all the writing events are marked as completed
+	 */
+	bool _synced_for_read;
 };
 
 /** @class ScalarVariable Variable.h Variable.h
@@ -296,7 +308,7 @@ class ScalarVariable : public Variable
 	inline void* get(bool synced = true)
 	{
 		if (synced)
-			sync();
+			sync(true);
 		return &_value;
 	}
 
@@ -312,7 +324,7 @@ class ScalarVariable : public Variable
 	inline void get(T& value, bool synced = true)
 	{
 		if (synced)
-			sync();
+			sync(true);
 		value = _value;
 	}
 

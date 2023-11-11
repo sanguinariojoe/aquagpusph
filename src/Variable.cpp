@@ -110,6 +110,7 @@ Variable::setEvent(cl_event event)
 		throw std::runtime_error("OpenCL execution error");
 	}
 	_event = event;
+
 	// Output events are blocking all reading events, so we can forget about
 	// them
 	for (auto e : _reading_events) {
@@ -125,6 +126,7 @@ Variable::setEvent(cl_event event)
 	}
 	_reading_events.clear();
 	_synced = false;
+	_synced_for_read = false;
 }
 
 void
@@ -148,17 +150,26 @@ Variable::addReadingEvent(cl_event event)
 }
 
 void
-Variable::sync()
+Variable::sync(bool readonly)
 {
-	if (_synced)
+	if (_synced || (readonly && _synced_for_read))
 		return;
 
 	cl_int err_code;
-	std::vector<cl_event> events = _reading_events;
+	std::vector<cl_event> events;
+	if (!readonly)
+		events = _reading_events;
 	if (_event != NULL)
 		events.push_back(_event);
+
 	if (!events.size()) {
-		_synced = true;
+		if (readonly) {
+			_synced_for_read = true;
+			if (!_reading_events.size())
+				_synced = true;
+		} else {
+			_synced = true;
+		}
 		return;
 	}
 	err_code = clWaitForEvents(events.size(), events.data());
@@ -169,7 +180,14 @@ Variable::sync()
 		Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
 	}
-	_synced = true;
+
+	if (readonly) {
+		_synced_for_read = true;
+		if (!_reading_events.size())
+			_synced = true;
+	} else {
+		_synced = true;
+	}
 }
 
 void

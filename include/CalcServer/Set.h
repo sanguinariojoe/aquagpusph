@@ -117,9 +117,6 @@ class Set final : public Aqua::CalcServer::ScalarExpression
 
 	/// Memory storage for the value
 	void* _data;
-
-	/// Kernel enqueuer
-	KernelEnqueuer* _kernel_enqueuer;
 };
 
 }

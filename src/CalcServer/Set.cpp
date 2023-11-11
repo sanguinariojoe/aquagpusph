@@ -52,7 +52,6 @@ Set::Set(const std::string name,
   , _work_group_size(0)
   , _n(0)
   , _data(NULL)
-  , _kernel_enqueuer(NULL)
 {
 }
 
@@ -62,8 +61,6 @@ Set::~Set()
 		clReleaseKernel(_kernel);
 	if (_data)
 		free(_data);
-	if (_kernel_enqueuer)
-		delete _kernel_enqueuer;
 }
 
 void
@@ -97,15 +94,6 @@ Set::setup()
 	_input = *(cl_mem*)_var->get();
 	_n = _var->size() / typesize;
 	setupOpenCL();
-
-	_kernel_enqueuer = new KernelEnqueuer(name());
-	if (!_kernel_enqueuer) {
-		std::stringstream msg;
-		msg << "Failure creating the kernel enqueuer for tool \"" << name()
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		throw std::bad_alloc();
-	}
 }
 
 void
@@ -126,22 +114,44 @@ Set::_execute(const std::vector<cl_event> events)
 {
 	unsigned int i;
 	cl_int err_code;
-	CalcServer* C = CalcServer::singleton();
+	auto C = CalcServer::singleton();
 
 	// Eventually evaluate the expression and set the variables to the kernel
 	cl_event args_event = ScalarExpression::_execute(events);
-
-	// And enqueue the kernel execution
-	auto event = _kernel_enqueuer->execute(args_event,
-	                                       _kernel,
-	                                       _global_work_size,
-	                                       _work_group_size,
-	                                       events);
+	err_code = clWaitForEvents(1, &args_event);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure waiting for the args setter on tool \"" << name()
+		    << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
 	err_code = clReleaseEvent(args_event);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
 		msg << "Failure releasing the args setter event for tool \"" << name()
 		    << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
+
+	// And enqueue the kernel execution
+	cl_event event;
+	const cl_event* wait_events = events.size() ? events.data() : NULL;
+	err_code = clEnqueueNDRangeKernel(C->command_queue(),
+	                                  _kernel,
+	                                  1,
+	                                  NULL,
+	                                  &_global_work_size,
+	                                  &_work_group_size,
+	                                  events.size(),
+	                                  wait_events,
+	                                  &event);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure executing the tool \"" << name() << "\"." << std::endl;
 		LOG(L_ERROR, msg.str());
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");

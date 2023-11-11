@@ -118,7 +118,7 @@ class UnSort : public Aqua::CalcServer::Tool
 	/// Global work sizes in each step
 	size_t _global_work_size;
 	/// Local work sizes in each step
-	size_t _local_work_size;
+	size_t _work_group_size;
 	/// Number of elements
 	unsigned int _n;
 
