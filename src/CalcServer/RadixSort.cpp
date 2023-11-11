@@ -287,12 +287,37 @@ RadixSort::_execute(const std::vector<cl_event> events)
 		throw std::runtime_error("OpenCL error");
 	}
 
+	event_wait = inversePermutations();
+
 	// The events associated to _var and _perms was already set during the
-	// execution of this function, so we could eventually skip them as
-	// dependencies. However, the performance benefit would be rather small and
-	// the eventual regressions on the future a pain in the ass, so we better
-	// "block" the 3 of them until _inv_perms is already written
-	return inversePermutations();
+	// execution of this function. However, if we return the event coming
+	// from inversePermutations(), their events will get overwritten by
+	// Aqua::CalcServer::Tool::execute()
+	// Thus we can join all the events together with a marker
+	const cl_event out_events[3] = {_var->getWritingEvent(),
+	                                _perms->getWritingEvent(),
+	                                event_wait};
+	err_code = clEnqueueMarkerWithWaitList(
+	    C->command_queue(), 3, out_events, &event);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure joining the output events on tool \"" << name()
+		    << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
+	err_code = clReleaseEvent(event_wait);
+	if (err_code != CL_SUCCESS) {
+		std::ostringstream msg;
+		msg << "Failure releasing the inverse permutations event on tool \""
+		    << name() << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL error");
+	}
+
+	return event;
 }
 
 cl_event
