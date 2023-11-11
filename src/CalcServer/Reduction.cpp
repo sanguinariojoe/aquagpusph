@@ -224,8 +224,8 @@ Reduction::_execute(const std::vector<cl_event> events)
 	event = out_event;
 
 	// Although the variable will be correctly set when clEnqueueReadBuffer()
-	// finish its job, we want to populate the variable so other parts of the
-	// code are aware of the change, like the math solver Aqua::Tokenizer
+	// finish its job, we want to populate it so other parts of the code are
+	// aware of the change, like the math solver Aqua::Tokenizer
 	_user_event = clCreateUserEvent(C->context(), &err_code);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;

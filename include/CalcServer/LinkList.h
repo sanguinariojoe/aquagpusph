@@ -46,6 +46,8 @@ namespace CalcServer {
  * "id_unsorted" as well.
  * @note Hardcoded versions of the files CalcServer/LinkList.cl.in and
  * CalcServer/LinkList.hcl.in are internally included as a text array.
+ * @warning This tool is assuming that "support" and "h" variables remains
+ * constant
  */
 class LinkList : public Aqua::CalcServer::Tool
 {

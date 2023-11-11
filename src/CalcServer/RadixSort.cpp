@@ -143,8 +143,6 @@ RadixSort::_execute(const std::vector<cl_event> events)
 	// Get maximum key bits, and needed pass
 	max_val = UINT_MAX;
 	if (!_var_name.compare("icell")) {
-		// NOTE: This is indeed a syncing point. Would it be faster to make
-		// more steps in exchange of a more asynchronous execution?
 		uivec4 n_cells = *(uivec4*)vars->get("n_cells")->get(true);
 		max_val = nextPowerOf2(n_cells.w);
 	} else if (!isPowerOf2(max_val)) {

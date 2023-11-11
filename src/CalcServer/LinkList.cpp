@@ -134,49 +134,11 @@ LinkList::setup()
 	                {"r_min", "r_max", "ihoc", "icell", "n_cells"});
 }
 
-/** @brief Callback called when everything is ready to compute the number of
- * cells and eventually allocate memory.
- *
- * This function is just redirecting the work to
- * Aqua::CalcServer::LinkList::nCells() and
- * Aqua::CalcServer::LinkList::allocate()
- * @param event The triggering event
- * @param event_command_status CL_COMPLETE upon all dependencies successfully
- * fulfilled. A negative integer if one or mor dependencies failed.
- * @param user_data A casted pointer to the Aqua::CalcServer::LinkList
- * tool (or the inherited one)
- */
-void CL_CALLBACK
-ncells(cl_event event, cl_int event_command_status, void* user_data)
-{
-	clReleaseEvent(event);
-	auto tool = (LinkList*)user_data;
-	if (event_command_status != CL_COMPLETE) {
-		std::stringstream msg;
-		msg << "Skipping \"" << tool->name() << "\" due to dependency errors."
-		    << std::endl;
-		LOG(L_WARNING, msg.str());
-		clSetUserEventStatus(tool->getUserEvent(), event_command_status);
-		clReleaseEvent(tool->getUserEvent());
-		return;
-	}
-
-	// Compute the number of cells, and eventually allocate memory for ihoc
-	tool->nCells();
-	tool->allocate();
-	// Set the new allocated variables
-	tool->setVariables();
-	clSetUserEventStatus(tool->getUserEvent(), CL_COMPLETE);
-	clReleaseEvent(tool->getUserEvent());
-}
-
-
 cl_event
-LinkList::_execute(const std::vector<cl_event> events_prior)
+LinkList::_execute(const std::vector<cl_event> events)
 {
 	cl_int err_code;
 	cl_event trigger, event;
-	std::vector<cl_event> events;
 	CalcServer* C = CalcServer::singleton();
 	InputOutput::Variables* vars = C->variables();
 
@@ -190,64 +152,23 @@ LinkList::_execute(const std::vector<cl_event> events_prior)
 	_min_pos->execute();
 	_max_pos->execute();
 
-	// We should refresh the events adding the new ones (we can just keep the
-	// outdated ones, which are already retained), associated to "r_min" and
-	// "r_max" variables
-	std::copy(
-	    events_prior.begin(), events_prior.end(), std::back_inserter(events));
-	events.push_back(r_min->getWritingEvent());
-	events.push_back(r_max->getWritingEvent());
+	// Compute the number of cells and allocate ihoc accordingly
+	const cl_event ncells_events[2] = {r_min->getWritingEvent(),
+	                                   r_max->getWritingEvent()};
+	err_code = clWaitForEvents(2, ncells_events);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure waiting for the reductions on tool \"" << name() <<
+		    "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
+	nCells();
+	allocate();
 
-	// We create a trigger event to be marked as completed when all the
-	// dependencies are fullfiled
-	err_code = clEnqueueMarkerWithWaitList(
-	    C->command_queue(), events.size(), events.data(), &trigger);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure setting the trigger for tool \"" << name() << "\"."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
-
-	// Now we create a user event that we will set as completed when we already
-	// computed the number of cells and allocated the new ihoc
-	event = clCreateUserEvent(C->context(), &err_code);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure creating the ncells event for tool \"" << name()
-		    << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
-	err_code = clRetainEvent(event);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure retaining the ncells event for tool \"" << name()
-		    << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
-	_user_event = event;
-
-	// So it is time to register our callback on our trigger
-	err_code = clSetEventCallback(trigger, CL_COMPLETE, ncells, this);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure registering the ncells callback in tool \"" << name()
-		    << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
-	// Remember to set the appropriate events to the affected variables
-	r_min->addReadingEvent(_user_event);
-	r_max->addReadingEvent(_user_event);
-	ihoc->setWritingEvent(_user_event);
-	n_cells->setWritingEvent(_user_event);
+	// Set the new allocated variables
+	setVariables();
 
 	// Compute the cell of each particle
 	err_code = clEnqueueNDRangeKernel(C->command_queue(),
@@ -256,22 +177,13 @@ LinkList::_execute(const std::vector<cl_event> events_prior)
 	                                  NULL,
 	                                  &_icell_gws,
 	                                  &_icell_lws,
-	                                  1,
-	                                  &_user_event,
+	                                  events.size(),
+	                                  events.data(),
 	                                  &event);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
 		msg << "Failure executing \"iCell\" from tool \"" << name() << "\"."
 		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
-	err_code = clReleaseEvent(_user_event);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure releasing the ncells event for tool \"" << name() <<
-		    "\"." << std::endl;
 		LOG(L_ERROR, msg.str());
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");

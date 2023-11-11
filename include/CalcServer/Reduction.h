@@ -38,6 +38,8 @@ namespace CalcServer {
  * @see Reduction.cl
  * @note Hardcoded versions of the files CalcServer/Reduction.cl.in and
  * CalcServer/Reduction.hcl.in are internally included as a text array.
+ * @warning This tool will not work with ihoc array, since it might be
+ * reallocated
  */
 class Reduction : public Aqua::CalcServer::Tool
 {
