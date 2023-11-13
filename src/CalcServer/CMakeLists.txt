@@ -46,6 +46,7 @@ SET(Server_CPP_SRCS
     Reduction.cpp
     Set.cpp
     SetScalar.cpp
+    Sort.cpp
     Tool.cpp
     UnSort.cpp
     Reports/Performance.cpp

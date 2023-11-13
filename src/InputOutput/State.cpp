@@ -954,6 +954,19 @@ State::parseTools(DOMElement* root, ProblemSetup& sim_data, std::string prefix)
 					}
 					tool->set(atts[k], xmlAttribute(s_elem, atts[k]));
 				}
+			} else if (!xmlAttribute(s_elem, "type").compare("sort")) {
+				const char* atts[3] = { "in", "perm", "inv_perm" };
+				for (unsigned int k = 0; k < 3; k++) {
+					if (!xmlHasAttribute(s_elem, atts[k])) {
+						std::ostringstream msg;
+						msg << "Tool \"" << tool->get("name")
+						    << "\" is of type \"sort\", but \"" << atts[k]
+						    << "\" is not defined." << std::endl;
+						LOG(L_ERROR, msg.str());
+						throw std::runtime_error("Missing attribute");
+					}
+					tool->set(atts[k], xmlAttribute(s_elem, atts[k]));
+				}
 			} else if (!xmlAttribute(s_elem, "type").compare("assert")) {
 				if (!xmlHasAttribute(s_elem, "condition")) {
 					std::ostringstream msg;
@@ -1131,6 +1144,7 @@ State::parseTools(DOMElement* root, ProblemSetup& sim_data, std::string prefix)
 				LOG0(L_DEBUG, "\t\treduction\n");
 				LOG0(L_DEBUG, "\t\tlink-list\n");
 				LOG0(L_DEBUG, "\t\tradix-sort\n");
+				LOG0(L_DEBUG, "\t\tsort\n");
 				LOG0(L_DEBUG, "\t\tassert\n");
 				LOG0(L_DEBUG, "\t\tif\n");
 				LOG0(L_DEBUG, "\t\twhile\n");

@@ -4,7 +4,7 @@
 ADD_CUSTOM_TARGET(opencl_embed_directory ALL
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/CalcServer/)
 SET(embed_targets opencl_embed_directory)
-FOREACH(FNAME LinkList MPISync RadixSort Reduction Set UnSort)
+FOREACH(FNAME LinkList MPISync RadixSort Reduction Set Sort UnSort)
     FOREACH(FEXT .cl .hcl)
         ADD_CUSTOM_COMMAND(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/CalcServer/${FNAME}${FEXT}
             COMMAND echo "/** @file" > ${CMAKE_CURRENT_BINARY_DIR}/CalcServer/${FNAME}${FEXT}

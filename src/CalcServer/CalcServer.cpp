@@ -40,6 +40,7 @@
 #include <CalcServer/LinkList.h>
 #include <CalcServer/Python.h>
 #include <CalcServer/RadixSort.h>
+#include <CalcServer/Sort.h>
 #include <CalcServer/Reduction.h>
 #include <CalcServer/Set.h>
 #include <CalcServer/SetScalar.h>
@@ -266,6 +267,13 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 			                                t->get("perm"),
 			                                t->get("inv_perm"),
 			                                once);
+			_tools.push_back(tool);
+		} else if (!t->get("type").compare("sort")) {
+			Sort* tool = new Sort(t->get("name"),
+			                      t->get("in"),
+			                      t->get("perm"),
+			                      t->get("inv_perm"),
+			                      once);
 			_tools.push_back(tool);
 		} else if (!t->get("type").compare("assert")) {
 			Assert* tool =
