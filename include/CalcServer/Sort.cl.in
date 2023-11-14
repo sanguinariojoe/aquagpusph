@@ -22,7 +22,7 @@
  * @note The header CalcServer/Sort.hcl.in is automatically appended.
  */
 
-/** @brief Initializes the padded keys and permutations
+/** @brief Initializes the padded values and keys (permutations)
  *
  * The permutations are initialized in such a way each point is permuted on
  * itself
@@ -72,7 +72,7 @@ sort ## address(address T *a,                                                  \
                 address uint *kb,                                              \
                 const char dir)                                                \
 {                                                                              \
-	if ((*a > *b) != dir) swap ## address(a, b, ka, kb);                       \
+	if ((*a > *b) == dir) swap ## address(a, b, ka, kb);                       \
 }
 
 SWAP(__local);

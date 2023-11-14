@@ -109,13 +109,15 @@ Sort::_execute(const std::vector<cl_event> events)
 
 	// Fisrt we copy everything on our transactional memory objects, which are
 	// conveniently padded
+	// We also initialize the permutations as the particles id, i.e. each
+	// particle is converted on itself.
 	wait_event = _var->getWritingEvent();
 	err_code = clEnqueueNDRangeKernel(C->command_queue(),
 	                                  _init_kernel,
 	                                  1,
 	                                  NULL,
 	                                  &_global_work_size,
-	                                  &_local_work_size,
+	                                  NULL,
 	                                  1,
 	                                  &wait_event,
 	                                  &event);
@@ -130,11 +132,12 @@ Sort::_execute(const std::vector<cl_event> events)
 	wait_event = event;
 
 	// Now we carry ut the bitonic sort on our transactional memory objects
+	size_t bitonic_gsize = _global_work_size / 2;
 	err_code = clEnqueueNDRangeKernel(C->command_queue(),
 	                                  _start_kernel,
 	                                  1,
 	                                  NULL,
-	                                  &_global_work_size,
+	                                  &bitonic_gsize,
 	                                  &_local_work_size,
 	                                  1,
 	                                  &wait_event,
@@ -158,7 +161,7 @@ Sort::_execute(const std::vector<cl_event> events)
 	}
 	wait_event = event;
 
-	const unsigned int limit = (unsigned int)2 * _local_work_size;
+	const unsigned int limit = 2u * _local_work_size;
 	for (unsigned int bsize = limit; bsize <= _n_padded; bsize <<= 1) {
 		for (unsigned int stride = bsize / 2; stride > 0; stride >>= 1) {
 			// Execute either local or global, depending on whether the stride
@@ -187,10 +190,10 @@ Sort::_execute(const std::vector<cl_event> events)
 				throw std::runtime_error("OpenCL error");
 			}
 			err_code = clEnqueueNDRangeKernel(C->command_queue(),
-			                                  _start_kernel,
+			                                  kernel,
 			                                  1,
 			                                  NULL,
-			                                  &_global_work_size,
+			                                  &bitonic_gsize,
 			                                  &_local_work_size,
 			                                  1,
 			                                  &wait_event,
@@ -281,7 +284,7 @@ Sort::_execute(const std::vector<cl_event> events)
 	                                  1,
 	                                  NULL,
 	                                  &_global_work_size,
-	                                  &_local_work_size,
+	                                  NULL,
 	                                  inv_perms_events.size(),
 	                                  inv_perms_events.data(),
 	                                  &event);
