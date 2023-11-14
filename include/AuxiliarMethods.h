@@ -26,6 +26,8 @@
 #include <sphPrerequisites.h>
 #include <string>
 #include <vector>
+#include <tuple>
+#include <deque>
 
 namespace Aqua {
 

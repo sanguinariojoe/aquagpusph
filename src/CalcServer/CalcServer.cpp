@@ -98,6 +98,7 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
   , _device(NULL)
   , _command_queue(NULL)
   , _command_queue_parallel(NULL)
+  , _device_timer_offset(0)
   , _current_tool_name(NULL)
   , _sim_data(sim_data)
 {
@@ -1019,6 +1020,36 @@ context_error_notify(const char* errinfo,
 	LOG0(L_DEBUG, msg.str());
 }
 
+/** @brief Sample both the system clock and the devie timer to compute the
+ * offset.
+ * @param event The triggering event
+ * @param event_command_status CL_COMPLETE
+ * @param user_data A casted pointer to the
+ * Aqua::CalcServer::CalcServer::_device_timer_offset value
+ */
+void CL_CALLBACK
+device_timer_sampler(cl_event event, cl_int event_command_status, void* user_data)
+{
+	cl_int err_code;
+	cl_ulong device_timer;
+
+	auto host_timer = CalcServer::host_timer();
+
+	err_code = clGetEventProfilingInfo(event,
+	                                   CL_PROFILING_COMMAND_END,
+	                                   sizeof(cl_ulong),
+	                                   &device_timer,
+	                                   NULL);
+	if (err_code != CL_SUCCESS) {
+		LOG(L_ERROR, "Failure sampling the device timer.\n");
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		return;
+	}
+
+	cl_ulong *device_timer_offset = (cl_ulong*)user_data;
+	*device_timer_offset = host_timer - device_timer;
+}
+
 void
 CalcServer::setupDevices()
 {
@@ -1133,6 +1164,60 @@ CalcServer::setupDevices()
 		LOG(L_ERROR, "Failure generating the parallel command queue\n");
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL error");
+	}
+
+	// Let's sample the device timer
+	cl_event sampler;
+	auto trigger = clCreateUserEvent(_context, &err_code);
+	if (err_code != CL_SUCCESS) {
+		LOG(L_ERROR, "Failure generating the trigger event\n");
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL error");
+	}
+	err_code = clEnqueueMarkerWithWaitList(_command_queue,
+	                                       1,
+	                                       &trigger,
+	                                       &sampler);
+	if (err_code != CL_SUCCESS) {
+		LOG(L_ERROR, "Failure generating the sampler event\n");
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL error");
+	}
+	err_code = clSetEventCallback(sampler,
+	                              CL_COMPLETE,
+	                              device_timer_sampler,
+	                              &_device_timer_offset);
+	if (err_code != CL_SUCCESS) {
+		LOG(L_ERROR, "Failure registering the timer sampling callback\n");
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL error");
+	}
+	err_code = clSetUserEventStatus(trigger, CL_COMPLETE);
+	if (err_code != CL_SUCCESS) {
+		LOG(L_ERROR, "Failure triggering the timer sampler\n");
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL error");
+	}
+	err_code = clWaitForEvents(1, &sampler);
+	if (err_code != CL_SUCCESS) {
+		LOG(L_ERROR, "Failure waiting for the timer sampler\n");
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL error");
+	}
+	for (auto e : {trigger, sampler}) {
+		err_code = clReleaseEvent(e);
+		if (err_code != CL_SUCCESS) {
+			LOG(L_ERROR, "Failure releasing the timer sampler events\n");
+			InputOutput::Logger::singleton()->printOpenCLError(err_code);
+			throw std::runtime_error("OpenCL error");
+		}
+	}
+
+	{
+		std::ostringstream msg;
+		msg << "Device timer offset = " << _device_timer_offset << " ns"
+		    << std::endl;
+		LOG(L_INFO, msg.str());
 	}
 }
 

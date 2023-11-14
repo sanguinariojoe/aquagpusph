@@ -34,6 +34,7 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
+#include <numeric>
 
 #include <AuxiliarMethods.h>
 #include <ProblemSetup.h>

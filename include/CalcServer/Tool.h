@@ -27,9 +27,17 @@
 
 #include <sphPrerequisites.h>
 #include <Variable.h>
+#include <AuxiliarMethods.h>
 #include <math.h>
 #include <vector>
 #include <tuple>
+#include <deque>
+#include <algorithm>
+#include <numeric>
+
+#ifndef N_PROFILE_SAMPLES
+#define N_PROFILE_SAMPLES 100
+#endif
 
 namespace Aqua {
 namespace CalcServer {
@@ -64,10 +72,170 @@ class Named
 	std::string _name;
 };
 
+
+/** @brief Get the average and standard deviation values
+ * @param v Vector of values
+ * @return the average and standard deviation values
+ */
+template<typename T>
+inline std::tuple<T, T> stats(const std::deque<T>& v)
+{
+	const T sum = std::accumulate(v.begin(), v.end(), 0.0);
+	const T mean = sum / v.size();
+
+	const T sum2 = std::inner_product(v.begin(), v.end(), v.begin(), 0.0);
+	const T std = std::sqrt(sum2 / v.size() - mean * mean);
+
+	return {mean, std};
+}
+
+/** @class Profile Tool.h CalcServer/Tool.h
+ * @brief Profiler subinstance base class
+ */
+class Profile
+{
+  public:
+	/** Constructor
+	 */
+	Profile(const unsigned int n=N_PROFILE_SAMPLES) : _n(n) {};
+
+	/** Destructor
+	 */
+	~Profile() {}
+
+	/** @brief Get the elapsed time and its standard deviation
+	 * @return The average elapsed time and its standard deviation
+	 */
+	inline std::tuple<cl_ulong, cl_ulong> elapsed() const
+	{
+		return stats(elapsed_times());
+	}
+
+	/** @brief Get the list of beginnings at each sample
+	 * @return The list of beginnings
+	 */
+	inline std::deque<cl_ulong> begin() const { return _start; }
+
+	/** @brief Get the list of ends at each sample
+	 * @return The list of ends
+	 */
+	inline std::deque<cl_ulong> end() const { return _end; }
+
+  protected:
+	/** @brief Add profiling info
+	 * @param start Starting timestamp
+	 * @param end Ending timestamp
+	 */
+	inline void sample(cl_ulong start, cl_ulong end)
+	{
+		_start.push_back(start);
+		_end.push_back(end);
+		trim();
+	}
+
+	inline std::deque<cl_ulong> elapsed_times() const
+	{
+		std::deque<cl_ulong> v;
+		std::transform(_end.begin(), _end.end(),
+		               _start.begin(), v.begin(),
+		               std::minus<cl_ulong>());
+		return v;
+	}
+
+  private:
+	/** @brief Drop the older samples until the required length is obtained
+	 */
+	inline void trim()
+	{
+		while (_start.size() > _n) {
+			_start.pop_front();
+			_end.pop_front();
+		}
+	}
+
+	/// Number of time stamps to store
+	unsigned int _n;
+
+	/// The beginning time stamps in nanoseconds (FIFO list)
+	std::deque<cl_ulong> _start;
+
+	/// The ending time stamps in nanoseconds (FIFO list)
+	std::deque<cl_ulong> _end;
+};
+
+
+/** @class Profiler Tool.h CalcServer/Tool.h
+ * @brief Profiling base class
+ *
+ * Each tool is a Profiler, which might has several subinstances. Each
+ * subinstance counts when each part of the tool computation began and end.
+ * This class just collect all those subinstances together
+ */
+class Profiler
+{
+  public:
+	/** Constructor.
+	 * @param instances The list of subinstances that conforms this profiler
+	 */
+	Profiler(std::vector<Profile> instances) : _instances(instances) {}
+
+	/** Destructor
+	 */
+	~Profiler();
+
+	/** @brief Get the subinstances
+	 * @return The list of subinstances
+	 */
+	inline std::vector<Profile> subinstances() const { return _instances; }
+
+	/** @brief Get the elapsed time as well as its standard deviation
+	 *
+	 * The elapsed time is the total time took by the tool to compute. Gaps
+	 * between instances (the so called overhead) are not included
+	 * @return Elapsed time with its standard deviation
+	 */
+	std::tuple<cl_ulong, cl_ulong> elapsed() const;
+
+	/** @brief Get the list of beginnings at each sample
+	 * @return The list of beginnings
+	 * @warning It is assumed that the first subinstance is marking the
+	 * beginning
+	 */
+	inline std::deque<cl_ulong> begin() const
+	{
+		return _instances.front().begin();
+	}
+
+	/** @brief Get the list of ends at each sample
+	 * @return The list of ends
+	 * @warning It is assumed that the last subinstance is marking the
+	 * end
+	 */
+	inline std::deque<cl_ulong> end() const
+	{
+		return _instances.back().end();
+	}
+
+	/** @brief Get the total time took as well as its standard deviation
+	 *
+	 * The total time took might differ from the
+	 * Aqua::CalcServer::Profiler::elapsed() on the overhead
+	 * @return Elapsed time with its standard deviation
+	 */
+	std::tuple<cl_ulong, cl_ulong> total() const;
+
+  private:
+	/// List of subinstances
+	std::vector<Profile> _instances;
+};
+
+
 /** @class Tool Tool.h CalcServer/Tool.h
- * @brief Tools base class. The way that AQUAgpusph compute each problem is set
- * through a set of tools that are computed sequentially. Several tools can be
- * considered, for instance:
+ * @brief Tools base class.
+ * 
+ * The way that AQUAgpusph compute each problem is set through a set of tools
+ * that are computed sequentially. Several tools can be considered, for
+ * instance:
  *   -# A single OpenCL kernel
  *   -# A more complex OpenCL tool like Reductions or LinkList
  *   -# Python scripts

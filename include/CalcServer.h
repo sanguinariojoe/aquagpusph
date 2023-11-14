@@ -28,6 +28,7 @@
 #include <map>
 #include <string>
 #include <iterator>
+#include <chrono>
 
 #include <sphPrerequisites.h>
 #include <ProblemSetup.h>
@@ -128,32 +129,32 @@ class CalcServer : public Aqua::Singleton<Aqua::CalcServer::CalcServer>
 	/** Get the variables manager
 	 * @return Variables manager
 	 */
-	InputOutput::Variables* variables() { return &_vars; }
+	inline InputOutput::Variables* variables() { return &_vars; }
 
 	/** Get the definitions registered.
 	 * @return List of definitions.
 	 */
-	std::vector<std::string> definitions() const { return _definitions; }
+	inline std::vector<std::string> definitions() const { return _definitions; }
 
 	/** Get the tools registered.
 	 * @return List of tools.
 	 */
-	std::vector<Tool*> tools() const { return _tools; }
+	inline std::vector<Tool*> tools() const { return _tools; }
 
 	/** Get the active context
 	 * @return OpenCL context
 	 */
-	cl_context context() const { return _context; }
+	inline cl_context context() const { return _context; }
 
 	/** Get the platform
 	 * @return OpenCL platform
 	 */
-	cl_platform_id platform() const { return _platform; }
+	inline cl_platform_id platform() const { return _platform; }
 
 	/** Get the device
 	 * @return OpenCL device
 	 */
-	cl_device_id device() const { return _device; }
+	inline cl_device_id device() const { return _device; }
 
 	/** Get the command queue
 	 *
@@ -170,11 +171,26 @@ class CalcServer : public Aqua::Singleton<Aqua::CalcServer::CalcServer>
 	 * is queried, false otherwise
 	 * @return The command queue
 	 */
-	cl_command_queue command_queue(bool parallel = false) const
+	inline cl_command_queue command_queue(bool parallel = false) const
 	{
 		if (parallel)
 			return _command_queue_parallel;
 		return _command_queue;
+	}
+
+	/** @brief Get the offset between the device timer and the host one
+	 * @return The time offset, in nanoseconds
+	 */
+	inline cl_ulong device_timer_offset() const { return _device_timer_offset; }
+
+	/** @brief Get the host timer
+	 * @return The host timer in nanoseconds
+	 */
+	static inline cl_ulong host_timer()
+	{
+		auto now = std::chrono::system_clock::now();
+		return (cl_ulong)std::chrono::duration_cast<std::chrono::nanoseconds>(
+			now.time_since_epoch()).count();
 	}
 
 	/** @brief Download a unsorted variable from the device.
@@ -238,6 +254,9 @@ class CalcServer : public Aqua::Singleton<Aqua::CalcServer::CalcServer>
 	 * callbacks).
 	 */
 	cl_command_queue _command_queue_parallel;
+
+	/// The difference between the device timer and the system clock
+	cl_ulong _device_timer_offset;
 
 	/// User registered variables
 	InputOutput::Variables _vars;

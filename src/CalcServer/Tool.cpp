@@ -26,10 +26,32 @@
 #include <CalcServer.h>
 #include <InputOutput/Logger.h>
 #include <queue>
-#include <algorithm>
+#include <chrono>
 
 namespace Aqua {
 namespace CalcServer {
+
+std::tuple<cl_ulong, cl_ulong>
+Profiler::elapsed() const
+{
+	cl_ulong t, dt;
+	for (auto i : _instances) {
+		auto [avg, std] = i.elapsed();
+		t += avg;
+		dt += std;
+	}
+	return {t, dt};
+}
+
+std::tuple<cl_ulong, cl_ulong>
+Profiler::total() const
+{
+	std::deque<cl_ulong> dt;
+	std::transform(end().begin(), end().end(),
+	               begin().begin(), dt.begin(),
+	               std::minus<cl_ulong>());
+	return stats(dt);
+}
 
 Tool::Tool(const std::string tool_name, bool once)
   : Named(tool_name)
