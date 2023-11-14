@@ -199,6 +199,9 @@ class RadixSort : public Aqua::CalcServer::Tool
 	/// Number of keys to sort
 	unsigned int _n;
 
+	/// Padded number of keys to sort
+	unsigned int _n_padded;
+
 	/// OpenCL initialization kernel
 	cl_kernel _init_kernel;
 	/// OpenCL histogram kernel
@@ -212,10 +215,10 @@ class RadixSort : public Aqua::CalcServer::Tool
 	/// OpenCL reverse permutations kernel
 	cl_kernel _inv_perms_kernel;
 
-	/// Input keys
-	cl_mem _in_keys;
-	/// Output keys
-	cl_mem _out_keys;
+	/// Input values
+	cl_mem _in_vals;
+	/// Output values
+	cl_mem _out_vals;
 	/// Input permutations
 	cl_mem _in_permut;
 	/// Output permutations

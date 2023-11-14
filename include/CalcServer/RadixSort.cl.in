@@ -22,19 +22,33 @@
  * @note The header CalcServer/RadixSort.hcl.in is automatically appended.
  */
 
-/** Initializes the permutations assuming that the keys are sorted.
- * @param perms Initial permutations (null)
- * @param n Number of keys.
+/** @brief Initializes the padded values and keys (permutations)
+ *
+ * The permutations are initialized in such a way each point is permuted on
+ * itself
+ * @param in_vals Unpadded and unsorted values
+ * @param vals Padded but unsorted values
+ * @param keys Permutations (keys)
+ * @param n Unpadded number of values.
+ * @param N Padded number of values.
  */
 __kernel void
-init(__global unsigned int* perms, unsigned int n)
+init(const __global unsigned int* restrict in_vals,
+     __global unsigned int* restrict vals,
+     __global unsigned int* keys,
+     unsigned int n,
+     unsigned int N)
 {
 	// find position in global arrays
 	unsigned int i = get_global_id(0);
-	if (i >= n)
+	if (i >= N)
 		return;
 
-	perms[i] = i;
+	keys[i] = i;
+	if (i < n)
+		vals[i] = in_vals[i];
+	else
+		vals[i] = UINT_MAX;
 }
 
 /** Perform the local histograms. The histograms are the number of occurrences

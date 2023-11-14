@@ -51,14 +51,15 @@ RadixSort::RadixSort(const std::string tool_name,
   , _perms(NULL)
   , _inv_perms(NULL)
   , _n(0)
+  , _n_padded(0)
   , _init_kernel(NULL)
   , _histograms_kernel(NULL)
   , _scan_kernel(NULL)
   , _paste_kernel(NULL)
   , _sort_kernel(NULL)
   , _inv_perms_kernel(NULL)
-  , _in_keys(NULL)
-  , _out_keys(NULL)
+  , _in_vals(NULL)
+  , _out_vals(NULL)
   , _in_permut(NULL)
   , _out_permut(NULL)
   , _histograms(NULL)
@@ -76,43 +77,30 @@ RadixSort::~RadixSort()
 {
 	if (_init_kernel)
 		clReleaseKernel(_init_kernel);
-	_init_kernel = NULL;
 	if (_histograms_kernel)
 		clReleaseKernel(_histograms_kernel);
-	_histograms_kernel = NULL;
 	if (_scan_kernel)
 		clReleaseKernel(_scan_kernel);
-	_scan_kernel = NULL;
 	if (_paste_kernel)
 		clReleaseKernel(_paste_kernel);
-	_paste_kernel = NULL;
 	if (_sort_kernel)
 		clReleaseKernel(_sort_kernel);
-	_sort_kernel = NULL;
 	if (_inv_perms_kernel)
 		clReleaseKernel(_inv_perms_kernel);
-	_inv_perms_kernel = NULL;
-	if (_in_keys)
-		clReleaseMemObject(_in_keys);
-	_in_keys = NULL;
-	if (_out_keys)
-		clReleaseMemObject(_out_keys);
-	_out_keys = NULL;
+	if (_in_vals)
+		clReleaseMemObject(_in_vals);
+	if (_out_vals)
+		clReleaseMemObject(_out_vals);
 	if (_in_permut)
 		clReleaseMemObject(_in_permut);
-	_in_permut = NULL;
 	if (_out_permut)
 		clReleaseMemObject(_out_permut);
-	_out_permut = NULL;
 	if (_histograms)
 		clReleaseMemObject(_histograms);
-	_histograms = NULL;
 	if (_global_sums)
 		clReleaseMemObject(_global_sums);
-	_global_sums = NULL;
 	if (_temp_mem)
 		clReleaseMemObject(_temp_mem);
-	_temp_mem = NULL;
 }
 
 void
@@ -158,51 +146,20 @@ RadixSort::_execute(const std::vector<cl_event> events)
 	}
 	_n_pass = _key_bits / _bits;
 
-	// Even though we are using Tool dependencies stuff, we are really
-	// interested in following a quite complex independent events chain.
-	// To this end we start enqueueing a task to copy the whole array in our
-	// custom OpenCL memory that we created ad-hoc
-	auto var_event = _var->getWritingEvent();
-	err_code = clEnqueueCopyBuffer(C->command_queue(),
-	                               *(cl_mem*)_var->get(),
-	                               _in_keys,
-	                               0,
-	                               0,
-	                               _n * sizeof(cl_uint),
-	                               1,
-	                               &var_event,
-	                               &event);
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure copying the keys to sort within the tool \"" << name()
-		    << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
-	_var->addReadingEvent(event);
-	err_code = clReleaseEvent(event);
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure releasing keys event within the tool \"" << name()
-		    << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
-
-	// We initialize the permutations as the particles id, i.e. each
-	// particle is converted on itself
-	auto event_perms_in = init();
+	// Fisrt we copy everything on our transactional memory objects, which are
+	// conveniently padded
+	// We also initialize the permutations as the particles id, i.e. each
+	// particle is converted on itself.
+	auto event_init = init();
 
 	// Time to sort everything up
 	cl_event event_wait = NULL;
 	for (_pass = 0; _pass < _n_pass; _pass++) {
-		event_wait = histograms(event, event_wait);
+		event_wait = histograms(event_init, event_wait);
 		event_wait = scan(event_wait);
-		event_wait = reorder(event_perms_in, event_wait);
+		event_wait = reorder(event_init, event_wait);
 	}
-	err_code = clReleaseEvent(event_perms_in);
+	err_code = clReleaseEvent(event_init);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
 		msg << "Failure releasing permutations event within the tool \""
@@ -219,7 +176,7 @@ RadixSort::_execute(const std::vector<cl_event> events)
 	var_events.push_back(_var->getWritingEvent());
 	var_events.push_back(event_wait);
 	err_code = clEnqueueCopyBuffer(C->command_queue(),
-	                               _in_keys,
+	                               _in_vals,
 	                               *(cl_mem*)_var->get(),
 	                               0,
 	                               0,
@@ -327,25 +284,36 @@ RadixSort::init()
 	cl_event event;
 	CalcServer* C = CalcServer::singleton();
 
-	err_code =
-	    clSetKernelArg(_init_kernel, 0, sizeof(cl_mem), (void*)&_in_permut);
+	err_code = clSetKernelArg(
+		_init_kernel, 1, sizeof(cl_mem), (void*)&_in_vals);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
-		msg << "Failure sending argument 0 to \"init\" within the tool \""
+		msg << "Failure sending argument 1 to \"init\" within the tool \""
+		    << name() << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL error");
+	}
+	err_code = clSetKernelArg(
+		_init_kernel, 2, sizeof(cl_mem), (void*)&_in_permut);
+	if (err_code != CL_SUCCESS) {
+		std::ostringstream msg;
+		msg << "Failure sending argument 2 to \"init\" within the tool \""
 		    << name() << "\"." << std::endl;
 		LOG(L_ERROR, msg.str());
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL error");
 	}
 
+	auto var_event = _var->getWritingEvent();
 	err_code = clEnqueueNDRangeKernel(C->command_queue(),
 	                                  _init_kernel,
 	                                  1,
 	                                  NULL,
 	                                  &_global_work_size,
 	                                  NULL,
-	                                  0,
-	                                  NULL,
+	                                  1,
+	                                  &var_event,
 	                                  &event);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
@@ -355,6 +323,8 @@ RadixSort::init()
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
 	}
+
+	_var->addReadingEvent(event);
 
 	return event;
 }
@@ -371,7 +341,7 @@ RadixSort::histograms(cl_event keys_event, cl_event histograms_event)
 	err_code = clSetKernelArg(_histograms_kernel,
 	                          0,
 	                          sizeof(cl_mem),
-	                          (void*)&_in_keys);
+	                          (void*)&_in_vals);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
 		msg << "Failure sending argument 0 to \"histogram\" within the tool \""
@@ -590,7 +560,7 @@ RadixSort::reorder(cl_event perms_event, cl_event histograms_event)
 	size_t global_work_size = _groups * _items;
 
 	err_code =
-	    clSetKernelArg(_sort_kernel, 0, sizeof(cl_mem), (void*)&_in_keys);
+	    clSetKernelArg(_sort_kernel, 0, sizeof(cl_mem), (void*)&_in_vals);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
 		msg << "Failure sending argument 0 to \"sort\" within the tool \""
@@ -600,7 +570,7 @@ RadixSort::reorder(cl_event perms_event, cl_event histograms_event)
 		throw std::runtime_error("OpenCL error");
 	}
 	err_code =
-	    clSetKernelArg(_sort_kernel, 1, sizeof(cl_mem), (void*)&_out_keys);
+	    clSetKernelArg(_sort_kernel, 1, sizeof(cl_mem), (void*)&_out_vals);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
 		msg << "Failure sending argument 1 to \"sort\" within the tool \""
@@ -673,9 +643,9 @@ RadixSort::reorder(cl_event perms_event, cl_event histograms_event)
 	// Swap the memory identifiers for the next pass
 	cl_mem d_temp;
 
-	d_temp = _in_keys;
-	_in_keys = _out_keys;
-	_out_keys = d_temp;
+	d_temp = _in_vals;
+	_in_vals = _out_vals;
+	_out_vals = d_temp;
 
 	d_temp = _in_permut;
 	_in_permut = _out_permut;
@@ -748,8 +718,8 @@ void
 RadixSort::variables()
 {
 	size_t n;
-	CalcServer* C = CalcServer::singleton();
-	InputOutput::Variables* vars = C->variables();
+	auto C = CalcServer::singleton();
+	auto vars = C->variables();
 
 	// Check and get the variables
 	if (!vars->get(_var_name)) {
@@ -822,19 +792,9 @@ RadixSort::variables()
 	_inv_perms = (InputOutput::ArrayVariable*)vars->get(_inv_perms_name);
 
 	// Check the lengths
-	n = _var->size() / vars->typeToBytes(_var->type());
-	if (!isPowerOf2(n)) {
-		std::ostringstream msg;
-		msg << "Tool \"" << name() << "\" cannot process variable \""
-		    << _var_name << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		msg.str("");
-		msg << "\tThe variable has length, n=" << n
-		    << ", which is not power of 2." << std::endl;
-		LOG(L_DEBUG, msg.str());
-		throw std::runtime_error("Invalid variable length");
-	}
-	_n = n;
+	_n = _var->size() / vars->typeToBytes(_var->type());
+	_n_padded = nextPowerOf2(roundUp(_n, _ITEMS * _GROUPS));
+
 	n = _perms->size() / vars->typeToBytes(_perms->type());
 	if (n != _n) {
 		std::ostringstream msg;
@@ -1008,8 +968,8 @@ RadixSort::setupDims()
 		throw std::runtime_error("OpenCL error");
 	}
 
-	_local_work_size = getLocalWorkSize(_n, C->command_queue());
-	_global_work_size = getGlobalWorkSize(_n, _local_work_size);
+	_local_work_size = getLocalWorkSize(_n_padded, C->command_queue());
+	_global_work_size = getGlobalWorkSize(_n_padded, _local_work_size);
 }
 
 void
@@ -1018,12 +978,12 @@ RadixSort::setupMems()
 	cl_int err_code;
 	CalcServer* C = CalcServer::singleton();
 
-	if (_in_keys)
-		clReleaseMemObject(_in_keys);
-	_in_keys = NULL;
-	if (_out_keys)
-		clReleaseMemObject(_out_keys);
-	_out_keys = NULL;
+	if (_in_vals)
+		clReleaseMemObject(_in_vals);
+	_in_vals = NULL;
+	if (_out_vals)
+		clReleaseMemObject(_out_vals);
+	_out_vals = NULL;
 	if (_in_permut)
 		clReleaseMemObject(_in_permut);
 	_in_permut = NULL;
@@ -1042,9 +1002,9 @@ RadixSort::setupMems()
 	allocatedMemory(0);
 
 	// Get the memory identifiers
-	_in_keys = clCreateBuffer(C->context(),
+	_in_vals = clCreateBuffer(C->context(),
 	                          CL_MEM_READ_WRITE,
-	                          _n * sizeof(unsigned int),
+	                          _n_padded * sizeof(unsigned int),
 	                          NULL,
 	                          &err_code);
 	if (err_code != CL_SUCCESS) {
@@ -1055,9 +1015,9 @@ RadixSort::setupMems()
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL allocation error");
 	}
-	_out_keys = clCreateBuffer(C->context(),
+	_out_vals = clCreateBuffer(C->context(),
 	                           CL_MEM_READ_WRITE,
-	                           _n * sizeof(unsigned int),
+	                           _n_padded * sizeof(unsigned int),
 	                           NULL,
 	                           &err_code);
 	if (err_code != CL_SUCCESS) {
@@ -1070,7 +1030,7 @@ RadixSort::setupMems()
 	}
 	_in_permut = clCreateBuffer(C->context(),
 	                            CL_MEM_READ_WRITE,
-	                            _n * sizeof(unsigned int),
+	                            _n_padded * sizeof(unsigned int),
 	                            NULL,
 	                            &err_code);
 	if (err_code != CL_SUCCESS) {
@@ -1083,7 +1043,7 @@ RadixSort::setupMems()
 	}
 	_out_permut = clCreateBuffer(C->context(),
 	                             CL_MEM_READ_WRITE,
-	                             _n * sizeof(unsigned int),
+	                             _n_padded * sizeof(unsigned int),
 	                             NULL,
 	                             &err_code);
 	if (err_code != CL_SUCCESS) {
@@ -1132,7 +1092,7 @@ RadixSort::setupMems()
 		throw std::runtime_error("OpenCL allocation error");
 	}
 
-	allocatedMemory(4 * _n * sizeof(unsigned int) +
+	allocatedMemory(4 * _n_padded * sizeof(unsigned int) +
 	                (_radix * _groups * _items) * sizeof(unsigned int) +
 	                _histo_split * sizeof(unsigned int) + sizeof(unsigned int));
 }
@@ -1143,10 +1103,31 @@ RadixSort::setupArgs()
 	cl_int err_code;
 	CalcServer* C = CalcServer::singleton();
 
-	err_code = clSetKernelArg(_init_kernel, 1, sizeof(cl_uint), (void*)&_n);
+	err_code = clSetKernelArg(
+		_init_kernel, 0, sizeof(cl_mem), _var->get_async());
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
-		msg << "Failure sending argument 1 to \"init\" within the tool \""
+		msg << "Failure sending argument 0 to \"init\" within the tool \""
+		    << name() << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL error");
+	}
+	err_code = clSetKernelArg(
+		_init_kernel, 3, sizeof(cl_uint), (void*)&_n);
+	if (err_code != CL_SUCCESS) {
+		std::ostringstream msg;
+		msg << "Failure sending argument 3 to \"init\" within the tool \""
+		    << name() << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL error");
+	}
+	err_code = clSetKernelArg(
+		_init_kernel, 4, sizeof(cl_uint), (void*)&_n_padded);
+	if (err_code != CL_SUCCESS) {
+		std::ostringstream msg;
+		msg << "Failure sending argument 4 to \"init\" within the tool \""
 		    << name() << "\"." << std::endl;
 		LOG(L_ERROR, msg.str());
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
@@ -1174,7 +1155,7 @@ RadixSort::setupArgs()
 		throw std::runtime_error("OpenCL error");
 	}
 	err_code =
-	    clSetKernelArg(_histograms_kernel, 4, sizeof(cl_uint), (void*)&_n);
+	    clSetKernelArg(_histograms_kernel, 4, sizeof(cl_uint), (void*)&_n_padded);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
 		msg << "Failure sending argument 4 to \"histogram\" within the tool \""
@@ -1238,7 +1219,7 @@ RadixSort::setupArgs()
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL error");
 	}
-	err_code = clSetKernelArg(_sort_kernel, 7, sizeof(cl_uint), (void*)&_n);
+	err_code = clSetKernelArg(_sort_kernel, 7, sizeof(cl_uint), (void*)&_n_padded);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
 		msg << "Failure sending argument 7 to \"sort\" within the tool \""
