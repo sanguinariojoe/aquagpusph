@@ -34,9 +34,9 @@ namespace CalcServer {
 std::tuple<cl_ulong, cl_ulong>
 Profiler::elapsed() const
 {
-	cl_ulong t, dt;
+	cl_ulong t = 0, dt = 0;
 	for (auto i : _instances) {
-		auto [avg, std] = i.elapsed();
+		auto [avg, std] = i->elapsed();
 		t += avg;
 		dt += std;
 	}

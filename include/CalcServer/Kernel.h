@@ -47,6 +47,44 @@ namespace CalcServer {
 void
 sync_user_event(cl_event user_event, cl_event event);
 
+/** @class EventProfile kernel.h CalcServer/Kernel.h
+ * @brief Profiler for tools based on OpenCL enqueued commands
+ */
+class EventProfile : public Aqua::CalcServer::Profile
+{
+  public:
+	/** Constructor
+	 * @param name The name
+	 * @param n Number of samples to keep in memory
+	 */
+	EventProfile(const std::string name) : Profile(name) {}
+
+	/** Destructor
+	 */
+	~EventProfile() {}
+
+	/** @brief Starting event
+	 * @note It might be the same event passed to ::end()
+	 */
+	void start(cl_event event);
+
+	/** @brief Ending event
+	 * @note It might be the same event passed to ::start()
+	 */
+	void end(cl_event event);
+
+	/** @brief Compute the time stamps
+	 */
+	void sample();
+
+  private:
+	/// The starting event
+	cl_event _start;
+
+	/// The ending event
+	cl_event _end;
+};
+
 /** @class ArgsSetter Kernel.h CalcServer/Kernel.h
  * @brief A helper class to asynchronously set the arguments for an OpenCL
  * kernel.

@@ -39,6 +39,7 @@ ScalarExpression::ScalarExpression(const std::string name,
   , _output_type(type)
 {
 	setOutputType(type);
+	Profiler::subinstances( { new ScalarProfile("solver") } );
 }
 
 ScalarExpression::~ScalarExpression()
@@ -77,9 +78,9 @@ void
 ScalarExpression::solve()
 {
 	cl_int err_code;
-	timeval tic, tac;
 
-	gettimeofday(&tic, NULL);
+	dynamic_cast<ScalarProfile*>(Profiler::subinstances().front())->start();
+
 	cl_event user_event = getUserEvent();
 
 	try {
@@ -117,13 +118,7 @@ ScalarExpression::solve()
 		return;
 	}
 
-	gettimeofday(&tac, NULL);
-
-	float elapsed_seconds;
-	elapsed_seconds = (float)(tac.tv_sec - tic.tv_sec);
-	elapsed_seconds += (float)(tac.tv_usec - tic.tv_usec) * 1E-6f;
-
-	addElapsedTime(elapsed_seconds);
+	dynamic_cast<ScalarProfile*>(Profiler::subinstances().front())->end();
 }
 
 /** @brief Callback called when all the dependencies of the

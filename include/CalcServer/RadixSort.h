@@ -30,6 +30,7 @@
 #include <sphPrerequisites.h>
 #include <CalcServer.h>
 #include <CalcServer/Tool.h>
+#include <CalcServer/Kernel.h>
 
 /** @def _ITEMS Number of items in a group
  * @note Must be power of 2, and in some devices greather than 32.

@@ -80,6 +80,9 @@ class Named
 template<typename T>
 inline std::tuple<T, T> stats(const std::deque<T>& v)
 {
+	if (!v.size())
+		return {0, 0};
+
 	const T sum = std::accumulate(v.begin(), v.end(), 0.0);
 	const T mean = sum / v.size();
 
@@ -92,22 +95,28 @@ inline std::tuple<T, T> stats(const std::deque<T>& v)
 /** @class Profile Tool.h CalcServer/Tool.h
  * @brief Profiler subinstance base class
  */
-class Profile
+class Profile : public Aqua::CalcServer::Named
 {
   public:
 	/** Constructor
+	 * @param name The name
+	 * @param n Number of samples to keep in memory
 	 */
-	Profile(const unsigned int n=N_PROFILE_SAMPLES) : _n(n) {};
+	Profile(const std::string name, const unsigned int n=N_PROFILE_SAMPLES)
+		: Named(name)
+		, _n(n)
+	{ }
 
 	/** Destructor
 	 */
-	~Profile() {}
+	virtual ~Profile() {}
 
 	/** @brief Get the elapsed time and its standard deviation
 	 * @return The average elapsed time and its standard deviation
 	 */
 	inline std::tuple<cl_ulong, cl_ulong> elapsed() const
 	{
+		
 		return stats(elapsed_times());
 	}
 
@@ -136,9 +145,8 @@ class Profile
 	inline std::deque<cl_ulong> elapsed_times() const
 	{
 		std::deque<cl_ulong> v;
-		std::transform(_end.begin(), _end.end(),
-		               _start.begin(), v.begin(),
-		               std::minus<cl_ulong>());
+		for (unsigned int i = 0; i < _start.size(); i++)
+			v.push_back(_end[i] - _start[i]);
 		return v;
 	}
 
@@ -177,16 +185,19 @@ class Profiler
 	/** Constructor.
 	 * @param instances The list of subinstances that conforms this profiler
 	 */
-	Profiler(std::vector<Profile> instances) : _instances(instances) {}
+	Profiler() {}
 
 	/** Destructor
 	 */
-	~Profiler();
+	~Profiler() {
+		for (auto i : _instances)
+			delete i;
+	}
 
 	/** @brief Get the subinstances
 	 * @return The list of subinstances
 	 */
-	inline std::vector<Profile> subinstances() const { return _instances; }
+	inline std::vector<Profile*> subinstances() const { return _instances; }
 
 	/** @brief Get the elapsed time as well as its standard deviation
 	 *
@@ -203,7 +214,7 @@ class Profiler
 	 */
 	inline std::deque<cl_ulong> begin() const
 	{
-		return _instances.front().begin();
+		return _instances.front()->begin();
 	}
 
 	/** @brief Get the list of ends at each sample
@@ -213,7 +224,7 @@ class Profiler
 	 */
 	inline std::deque<cl_ulong> end() const
 	{
-		return _instances.back().end();
+		return _instances.back()->end();
 	}
 
 	/** @brief Get the total time took as well as its standard deviation
@@ -224,9 +235,18 @@ class Profiler
 	 */
 	std::tuple<cl_ulong, cl_ulong> total() const;
 
+  protected:
+	/** @brief Set the tool subinstances
+	 * @param instances The subinstances
+	 */
+	inline void subinstances(std::vector<Profile*> instances)
+	{
+		_instances = instances;
+	}
+
   private:
 	/// List of subinstances
-	std::vector<Profile> _instances;
+	std::vector<Profile*> _instances;
 };
 
 
@@ -241,7 +261,7 @@ class Profiler
  *   -# Python scripts
  *   -# Variables set
  */
-class Tool : public Aqua::CalcServer::Named
+class Tool : public Aqua::CalcServer::Named, public Aqua::CalcServer::Profiler
 {
   public:
 	/** Constructor.

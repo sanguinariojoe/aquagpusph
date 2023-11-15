@@ -111,35 +111,20 @@ cl_event Performance::_execute(const std::vector<cl_event> events)
 
     // Add the tools time elapsed
     std::vector<Tool*> tools = C->tools();
-    float elapsed = 0.f;
-    float elapsed_ave = 0.f;
+    float elapsed = 0.f, elapsed_std = 0.f;
     for(auto tool : tools){
         // Exclude the tool itself
         if(this == tool){
             continue;
         }
-        elapsed += tool->elapsedTime(false);
-        elapsed_ave += tool->elapsedTime();
+        auto [ t_ave, t_std ] = tool->elapsed();
+        elapsed += t_ave * 1.e-9;
+        elapsed_std += t_std * 1.e-9;
     }
 
-    timeval tac;
-    gettimeofday(&tac, NULL);
-    float elapsed_seconds;
-    elapsed_seconds = (float)(tac.tv_sec - _tic.tv_sec);
-    elapsed_seconds += (float)(tac.tv_usec - _tic.tv_usec) * 1E-6f;
-    gettimeofday(&_tic, NULL);
-    if(_first_execution){
-        _first_execution = false;
-        // Purge out all the tool building required time
-        elapsed_seconds = elapsed;
-    }
-    addElapsedTime(elapsed_seconds);
-
-    data << "Elapsed=" << std::setw(17) << elapsedTime()
-         << "s  (+-" << std::setw(16) << elapsedTimeVariance()
+    data << "Elapsed=" << std::setw(17) << elapsed
+         << "s  (+-" << std::setw(16) << elapsed_std
          << "s)" << std::endl;
-    data << "Overhead=" << std::setw(16) << elapsedTime() - elapsed_ave
-         << "s" << std::endl;
 
     // Compute the progress
     InputOutput::Variables *vars = C->variables();
@@ -155,7 +140,7 @@ cl_event Performance::_execute(const std::vector<cl_event> events)
     progress = max(progress, (float)frame / end_frame);
 
     // And the estimated time to arrive
-    float total_elapsed = elapsedTime() * used_times();
+    float total_elapsed = elapsed * used_times();
     float ETA = total_elapsed * (1.f / progress - 1.f);
 
     data << "Percentage=" << std::setw(14) << std::setprecision(2)
@@ -175,10 +160,7 @@ cl_event Performance::_execute(const std::vector<cl_event> events)
     // Write the output file
     if(_f.is_open()){
         _f << t << " "
-           << elapsedTime(false) << " " << elapsedTime() << " "
-           << elapsedTimeVariance() << " "
-           << elapsedTime(false) - elapsed << " "
-           << elapsedTime() - elapsed_ave << " "
+           << elapsed << " " << elapsed_std << " "
            << progress * 100.f << " " << ETA << std::endl;
     }
 

@@ -71,6 +71,11 @@ RadixSort::RadixSort(const std::string tool_name,
   , _radix(_RADIX)
   , _histo_split(_HISTOSPLIT)
 {
+	Profiler::subinstances( { new EventProfile("init"),
+	                          new EventProfile("radix-sort"),
+	                          new EventProfile("keys"),
+	                          new EventProfile("values"),
+	                          new EventProfile("inverse keys") } );
 }
 
 RadixSort::~RadixSort()
@@ -151,11 +156,19 @@ RadixSort::_execute(const std::vector<cl_event> events)
 	// We also initialize the permutations as the particles id, i.e. each
 	// particle is converted on itself.
 	auto event_init = init();
+	auto init_profiler = dynamic_cast<EventProfile*>(
+		Profiler::subinstances().at(0));
+	init_profiler->start(event_init);
+	init_profiler->end(event_init);
 
 	// Time to sort everything up
+	auto radixsort_profiler = dynamic_cast<EventProfile*>(
+		Profiler::subinstances().at(1));
 	cl_event event_wait = NULL;
 	for (_pass = 0; _pass < _n_pass; _pass++) {
 		event_wait = histograms(event_init, event_wait);
+		if (_pass == 0)
+			radixsort_profiler->start(event_wait);
 		event_wait = scan(event_wait);
 		event_wait = reorder(event_init, event_wait);
 	}
@@ -168,7 +181,9 @@ RadixSort::_execute(const std::vector<cl_event> events)
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL error");
 	}
+	radixsort_profiler->end(event_wait);
 
+	// Copy back the results
 	auto var_events = _var->getReadingEvents();
 	// We positively know that the last reading event is posterior to the
 	// last writing event, because of the clEnqueueCopyBuffer() above
@@ -193,6 +208,10 @@ RadixSort::_execute(const std::vector<cl_event> events)
 		throw std::runtime_error("OpenCL error");
 	}
 	_var->setWritingEvent(event);
+	auto vals_profiler = dynamic_cast<EventProfile*>(
+		Profiler::subinstances().at(3));
+	vals_profiler->start(event);
+	vals_profiler->end(event);
 	err_code = clReleaseEvent(event);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
@@ -224,6 +243,11 @@ RadixSort::_execute(const std::vector<cl_event> events)
 		throw std::runtime_error("OpenCL error");
 	}
 	_perms->setWritingEvent(event);
+	auto keys_profiler = dynamic_cast<EventProfile*>(
+		Profiler::subinstances().at(2));
+	keys_profiler->start(event);
+	keys_profiler->end(event);
+
 	err_code = clReleaseEvent(event);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
@@ -245,6 +269,9 @@ RadixSort::_execute(const std::vector<cl_event> events)
 	}
 
 	event_wait = inversePermutations();
+	auto inv_profiler = dynamic_cast<EventProfile*>(
+		Profiler::subinstances().at(4));
+	inv_profiler->start(event_wait);
 
 	// The events associated to _var and _perms was already set during the
 	// execution of this function. However, if we return the event coming
@@ -273,6 +300,7 @@ RadixSort::_execute(const std::vector<cl_event> events)
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL error");
 	}
+	inv_profiler->end(event);
 
 	return event;
 }

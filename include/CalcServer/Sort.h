@@ -30,6 +30,7 @@
 #include <sphPrerequisites.h>
 #include <CalcServer.h>
 #include <CalcServer/Tool.h>
+#include <CalcServer/Kernel.h>
 
 namespace Aqua {
 namespace CalcServer {

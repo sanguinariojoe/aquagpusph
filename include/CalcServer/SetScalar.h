@@ -31,6 +31,37 @@
 namespace Aqua {
 namespace CalcServer {
 
+/** @class ScalarProfile SetScalar.h CalcServer/SetScalar.h
+ * @brief Profiler for tools based on scalar solvers
+ */
+class ScalarProfile : public Aqua::CalcServer::Profile
+{
+  public:
+	/** Constructor
+	 * @param name The name
+	 * @param n Number of samples to keep in memory
+	 */
+	ScalarProfile(const std::string name) : Profile(name) {}
+
+	/** Destructor
+	 */
+	~ScalarProfile() {}
+
+	/** @brief Start sampling
+	 * @note It is expected that ::end() will be called afterwards
+	 */
+	inline void start() { _start = CalcServer::host_timer(); }
+
+	/** @brief End sampling
+	 * @note It is expected that ::start() was already called
+	 */
+	inline void end() { sample(_start, CalcServer::host_timer()); }
+
+  private:
+	/// The sampling start point
+	cl_ulong _start;
+};
+
 /** @class ScalarExpression SetScalar.h CalcServer/SetScalar.h
  * @brief Base class for tools that has to evaluate a scalar expression.
  *

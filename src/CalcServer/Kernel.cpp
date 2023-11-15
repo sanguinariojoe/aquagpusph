@@ -29,6 +29,94 @@
 namespace Aqua {
 namespace CalcServer {
 
+/** @brief Callback called when the profiler ending event has finished
+ *
+ * @param event The Ending event
+ * @param cmd_exec_status Event status
+ * @param user_data Recasted EventProfile pointer
+ */
+void CL_CALLBACK
+event_profile_cb(cl_event n_event, cl_int cmd_exec_status, void* user_data)
+{
+	cl_int err_code;
+	auto profiler = (EventProfile*)user_data;
+	profiler->sample();
+}
+
+void
+EventProfile::start(cl_event event)
+{
+	cl_int err_code;
+	_start = event;
+	err_code = clRetainEvent(event);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure retaining the event on profiler \"" << name()
+		    << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
+}
+
+void
+EventProfile::end(cl_event event)
+{
+	cl_int err_code;
+	_end = event;
+	err_code = clRetainEvent(event);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure retaining the event on profiler \"" << name()
+		    << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
+	err_code =
+	    clSetEventCallback(event, CL_COMPLETE, &event_profile_cb, this);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure setting the profiling callback on \"" << name()
+		    << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
+}
+
+void
+EventProfile::sample()
+{
+	cl_int err_code;
+	cl_ulong start = 0, end = 0;
+	err_code = clGetEventProfilingInfo(
+		_start, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, NULL);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure retrieving the profiling start on \"" << name()
+		    << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
+	err_code = clGetEventProfilingInfo(
+		_end, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, NULL);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure retrieving the profiling end on \"" << name()
+		    << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
+	auto C = CalcServer::singleton();
+	start += C->device_timer_offset();
+	end += C->device_timer_offset();
+	Profile::sample(start, end);
+	auto [t, dt] = Profile::elapsed();
+}
+
 ArgSetter::ArgSetter(const std::string name,
                      cl_kernel kernel,
                      std::vector<InputOutput::Variable*> vars)
@@ -149,6 +237,7 @@ Kernel::Kernel(const std::string tool_name,
   , _global_work_size(0)
   , _args_setter(NULL)
 {
+	Profiler::subinstances( { new EventProfile("Kernel") } );
 }
 
 Kernel::~Kernel()
@@ -209,6 +298,9 @@ Kernel::_execute(const std::vector<cl_event> events)
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
 	}
+	auto profiler = dynamic_cast<EventProfile*>(Profiler::subinstances().back());
+	profiler->start(event);
+	profiler->end(event);
 
 	return event;
 }

@@ -62,6 +62,11 @@ Sort::Sort(const std::string tool_name,
   , _local_work_size(0)
   , _global_work_size(0)
 {
+	Profiler::subinstances( { new EventProfile("init"),
+	                          new EventProfile("bitonic"),
+	                          new EventProfile("keys"),
+	                          new EventProfile("values"),
+	                          new EventProfile("inverse keys") } );
 }
 
 Sort::~Sort()
@@ -129,9 +134,15 @@ Sort::_execute(const std::vector<cl_event> events)
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
 	}
+	auto init_profiler = dynamic_cast<EventProfile*>(
+		Profiler::subinstances().at(0));
+	init_profiler->start(event);
+	init_profiler->end(event);
 	wait_event = event;
 
 	// Now we carry ut the bitonic sort on our transactional memory objects
+	auto bitonic_profiler = dynamic_cast<EventProfile*>(
+		Profiler::subinstances().at(1));
 	size_t bitonic_gsize = _global_work_size / 2;
 	err_code = clEnqueueNDRangeKernel(C->command_queue(),
 	                                  _start_kernel,
@@ -159,6 +170,7 @@ Sort::_execute(const std::vector<cl_event> events)
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
 	}
+	bitonic_profiler->start(event);
 	wait_event = event;
 
 	const unsigned int limit = 2u * _local_work_size;
@@ -219,12 +231,13 @@ Sort::_execute(const std::vector<cl_event> events)
 			wait_event = event;
 		}
 	}
+	bitonic_profiler->end(wait_event);
 
 	// Copy back the results
-	std::vector<cl_event> inv_perms_events = _inv_perms->getReadingEvents();
+	auto inv_perms_events = _inv_perms->getReadingEvents();
 	inv_perms_events.push_back(_inv_perms->getWritingEvent());
 
-	std::vector<cl_event> perms_events = _perms->getReadingEvents();
+	auto perms_events = _perms->getReadingEvents();
 	perms_events.push_back(_perms->getWritingEvent());
 	perms_events.push_back(wait_event);
 	err_code = clEnqueueCopyBuffer(C->command_queue(),
@@ -244,9 +257,13 @@ Sort::_execute(const std::vector<cl_event> events)
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL error");
 	}
+	auto keys_profiler = dynamic_cast<EventProfile*>(
+		Profiler::subinstances().at(2));
+	keys_profiler->start(event);
+	keys_profiler->end(event);
 	inv_perms_events.push_back(event);
 
-	std::vector<cl_event> vals_events = _var->getReadingEvents();
+	auto vals_events = _var->getReadingEvents();
 	vals_events.push_back(_var->getWritingEvent());
 	vals_events.push_back(wait_event);
 	err_code = clEnqueueCopyBuffer(C->command_queue(),
@@ -266,6 +283,10 @@ Sort::_execute(const std::vector<cl_event> events)
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL error");
 	}
+	auto vals_profiler = dynamic_cast<EventProfile*>(
+		Profiler::subinstances().at(3));
+	vals_profiler->start(event);
+	vals_profiler->end(event);
 	inv_perms_events.push_back(event);
 
 	err_code = clReleaseEvent(wait_event);
@@ -308,6 +329,10 @@ Sort::_execute(const std::vector<cl_event> events)
 		}
 		inv_perms_events.pop_back();
 	}
+	auto inv_profiler = dynamic_cast<EventProfile*>(
+		Profiler::subinstances().at(4));
+	inv_profiler->start(event);
+	inv_profiler->end(event);
 
 	return event;
 }
