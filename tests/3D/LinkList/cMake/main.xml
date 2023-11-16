@@ -29,6 +29,7 @@
         <Tool action="remove" name="fixed time step" type="dummy"/>
 
         <Tool action="insert" at="0" entry_point="init" name="init fields" once="true" path="init.cl" type="kernel"/>
+        <Tool action="add" name="performance" type="report_performance" color="white" bold="false"/>
     </Tools>
 
     <Settings>

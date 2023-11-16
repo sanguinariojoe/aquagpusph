@@ -31,6 +31,8 @@
 #include <AuxiliarMethods.h>
 #include <InputOutput/Logger.h>
 #include <CalcServer/MPISync.h>
+#include <CalcServer/Kernel.h>
+#include <CalcServer/LinkList.h>
 #include <CalcServer.h>
 
 namespace Aqua {
@@ -132,12 +134,14 @@ MPISync::setup()
 	LOG(L_INFO, msg.str());
 
 	Tool::setup();
+	std::vector<Profile*> profilers;
 
 	// Get the involved variables
 	variables();
 	// Setup the mask sorting subtool
 	try {
 		setupSort();
+		profilers.push_back(new SuperProfile("sort", _sort));
 	} catch (std::runtime_error& e) {
 		std::stringstream msg;
 		msg << "Error setting up the sorter for tool \"" << name() << "\""
@@ -148,6 +152,12 @@ MPISync::setup()
 	// Setup the field sorting subtools
 	for (auto field : _fields) {
 		setupFieldSort(field);
+		{
+			std::stringstream pname;
+			pname << "sorter " << field->name();
+			profilers.push_back(new SuperProfile(pname.str(),
+			                                     _field_sorters.back()));
+		}
 	}
 
 	std::vector<InputOutput::Variable*> deps;
@@ -163,7 +173,22 @@ MPISync::setup()
 	setOutputDependencies(deps);
 
 	setupSenders();
+	for (auto s : _senders)
+	{
+		std::stringstream pname;
+		pname << "sender " << s->proc();
+		profilers.push_back(new EventProfile(pname.str()));
+	}
+
 	setupReceivers();
+	for (auto s : _senders)
+	{
+		std::stringstream pname;
+		pname << "receiver " << s->proc();
+		profilers.push_back(new EventProfile(pname.str()));
+	}
+
+	Profiler::subinstances(profilers);
 }
 
 cl_event
@@ -200,15 +225,22 @@ MPISync::_execute(const std::vector<cl_event> events)
 	}
 
 	// Send the data to other processes
+	unsigned int i_profiler = _fields.size() + 1;
 	for (auto sender : _senders) {
-		sender->execute();
+		auto profiler = dynamic_cast<EventProfile*>(
+			Profiler::subinstances().at(i_profiler));
+		sender->execute(profiler);
+		i_profiler++;
 	}
 
 	// Receive the data from the other processes
 	_n_offset_recv_reinit->execute();
 	_mask_reinit->execute();
 	for (auto receiver : _receivers) {
-		receiver->execute();
+		auto profiler = dynamic_cast<EventProfile*>(
+			Profiler::subinstances().at(i_profiler));
+		receiver->execute(profiler);
+		i_profiler++;
 	}
 
 	return NULL;
@@ -668,7 +700,7 @@ cbMPISend(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 }
 
 void
-MPISync::Sender::execute()
+MPISync::Sender::execute(EventProfile *profiler)
 {
 	unsigned int i, j;
 	cl_int err_code;
@@ -695,6 +727,8 @@ MPISync::Sender::execute()
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
 	}
+	profiler->start(event);
+
 	// Mark the variables with an event to be subsequently waited for
 	_mask->addReadingEvent(event);
 	_n_offset_mask->setWritingEvent(event);
@@ -723,6 +757,7 @@ MPISync::Sender::execute()
 	_mask->addReadingEvent(event);
 	_n_send_mask->setWritingEvent(event);
 	_n_send_reduction->execute();
+	profiler->end(_n_send->getWritingEvent());
 
 	for (unsigned int i = 0; i < _fields.size(); i++) {
 		// Setup a events syncing point to can register a callback where the
@@ -969,11 +1004,13 @@ typedef struct
 	InputOutput::ArrayVariable* mask;
 	cl_kernel kernel;
 	size_t local_work_size;
-	// We shall store the events to avoid someone change them while the callback
-	// has not already processed the data
-	std::vector<cl_event> field_events;
+	// We shall store the events to avoid someone change them while the
+	// callback has not already processed the data
+	cl_event* field_events;
 	cl_event offset_event;
 	cl_event mask_event;
+	// Store the profiler so we can feed it up on the callback
+	EventProfile *profiler;
 } MPISyncRecvUserData;
 
 void CL_CALLBACK
@@ -1098,6 +1135,7 @@ cbMPIRecv(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
 	}
+	data->profiler->start(mask_event);
 
 	// Synchronize the mask writing event with the locking one
 	sync_user_event(data->mask_event, mask_event);
@@ -1159,17 +1197,19 @@ cbMPIRecv(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 
 		sync_user_event(data->field_events[i], field_event);
 	}
+	data->profiler->end(field_event);
 
+	free(data->field_events);
 	free(data);
 }
 
 void
-MPISync::Receiver::execute()
+MPISync::Receiver::execute(EventProfile *profiler)
 {
 	unsigned int i;
 	cl_int err_code;
 	cl_event event;
-	CalcServer* C = CalcServer::singleton();
+	auto C = CalcServer::singleton();
 
 	// Setup a syncing event to trigger the callback
 	std::vector<cl_event> event_wait_list = _n_offset->getReadingEvents();
@@ -1213,7 +1253,16 @@ MPISync::Receiver::execute()
 	user_data->mask = _mask;
 	user_data->kernel = _kernel;
 	user_data->local_work_size = _local_work_size;
-	user_data->field_events.assign(_fields.size(), NULL);
+	user_data->field_events = (cl_event*)malloc(
+		_fields.size() * sizeof(cl_event));
+	if (!user_data->field_events) {
+		std::stringstream msg;
+		msg << "Failure allocating " << _fields.size() * sizeof(cl_event)
+		    << " bytes for user data structure" << std::endl;
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::bad_alloc();
+	}
+	user_data->profiler = profiler;
 
 	// We specifically want to lock some members until they (or their host
 	// mirrors) are ready

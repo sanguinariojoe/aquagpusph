@@ -142,6 +142,9 @@ class Profile : public Aqua::CalcServer::Named
 		trim();
 	}
 
+	/** @brief Get the list of elapsed times
+	 * @return The elapsed time for all the took samples
+	 */
 	inline std::deque<cl_ulong> elapsed_times() const
 	{
 		std::deque<cl_ulong> v;

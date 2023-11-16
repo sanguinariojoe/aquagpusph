@@ -35,6 +35,58 @@
 namespace Aqua {
 namespace CalcServer {
 
+/** @class SuperProfile LinkList.h CalcServer/LinkList.h
+ * @brief Profiler for tools that has some other subtools
+ */
+class SuperProfile : public Aqua::CalcServer::Profile
+{
+  public:
+	/** Constructor
+	 * @param name The name
+	 * @param n Number of samples to keep in memory
+	 */
+	SuperProfile(const std::string name, Tool* tool)
+		: Profile(name)
+		, _tool(tool)
+	{}
+
+	/** Destructor
+	 */
+	~SuperProfile() {}
+
+	/** @brief Get the subtool
+	 * @return The subtool
+	 */
+	inline Tool* tool() const { return _tool; }
+
+	/** @brief Took the samples from a subtool
+	 * @param tool The subtool
+	 */
+	inline void tool(Tool* tool) { _tool = tool; }
+
+	/** @brief Get the elapsed time and its standard deviation
+	 * @return The average elapsed time and its standard deviation
+	 */
+	inline std::tuple<cl_ulong, cl_ulong> elapsed() const
+	{
+		return _tool->elapsed();
+	}
+
+	/** @brief Get the list of beginnings at each sample
+	 * @return The list of beginnings
+	 */
+	inline std::deque<cl_ulong> begin() const { return _tool->begin(); }
+
+	/** @brief Get the list of ends at each sample
+	 * @return The list of ends
+	 */
+	inline std::deque<cl_ulong> end() const { return _tool->end(); }
+
+  private:
+	/// The subtool
+	Tool* _tool;
+};
+
 /** @class LinkList LinkList.h CalcServer/LinkList.h
  * @brief Complex tool to perform the link-list based on an array. This
  * tool include the following steps:

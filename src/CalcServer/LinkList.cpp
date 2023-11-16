@@ -27,6 +27,8 @@
 #include <InputOutput/Logger.h>
 #include <CalcServer.h>
 #include <CalcServer/LinkList.h>
+#include <CalcServer/SetScalar.h>
+#include <CalcServer/Kernel.h>
 #include <algorithm>
 
 namespace Aqua {
@@ -68,6 +70,13 @@ LinkList::LinkList(const std::string tool_name,
 	                         "c = max(a, b);",
 	                         "-VEC_INFINITY");
 	_sort = new RadixSort(tool_name + "->Radix-Sort");
+	Profiler::subinstances( { new SuperProfile("min pos", _min_pos),
+	                          new SuperProfile("max pos", _max_pos),
+	                          new ScalarProfile("n_cells"),
+	                          new EventProfile("icell"),
+	                          new SuperProfile("radix-sort", _sort),
+	                          new EventProfile("ihoc"),
+	                          new EventProfile("link-list") } );
 }
 
 LinkList::~LinkList()
@@ -164,11 +173,14 @@ LinkList::_execute(const std::vector<cl_event> events)
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
 	}
+
+	dynamic_cast<ScalarProfile*>(Profiler::subinstances()[2])->start();
 	nCells();
 	allocate();
 
 	// Set the new allocated variables
 	setVariables();
+	dynamic_cast<ScalarProfile*>(Profiler::subinstances()[2])->end();
 
 	// Compute the cell of each particle
 	err_code = clEnqueueNDRangeKernel(C->command_queue(),
@@ -187,6 +199,12 @@ LinkList::_execute(const std::vector<cl_event> events)
 		LOG(L_ERROR, msg.str());
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
+	}
+	{
+		auto profiler = dynamic_cast<EventProfile*>(
+			Profiler::subinstances()[3]);
+		profiler->start(event);
+		profiler->end(event);
 	}
 
 	// Time to sort the icell array
@@ -230,6 +248,12 @@ LinkList::_execute(const std::vector<cl_event> events)
 		throw std::runtime_error("OpenCL execution error");
 	}
 	event_wait = event;
+	{
+		auto profiler = dynamic_cast<EventProfile*>(
+			Profiler::subinstances()[5]);
+		profiler->start(event);
+		profiler->end(event);
+	}
 
 	err_code = clEnqueueNDRangeKernel(C->command_queue(),
 	                                  _ll,
@@ -256,6 +280,12 @@ LinkList::_execute(const std::vector<cl_event> events)
 		LOG(L_ERROR, msg.str());
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
+	}
+	{
+		auto profiler = dynamic_cast<EventProfile*>(
+			Profiler::subinstances()[6]);
+		profiler->start(event);
+		profiler->end(event);
 	}
 
 	return event;

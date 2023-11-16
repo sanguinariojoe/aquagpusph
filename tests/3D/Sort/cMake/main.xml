@@ -16,6 +16,7 @@
         <Tool action="add" name="copy f" once="true" type="copy" in="f" out="f_orig" />
         <Tool action="add" name="sort f" once="true" type="sort" in="f" perm="perms" inv_perm="inv_perms" />
         <Tool action="add" name="iter += 1" type="set_scalar" in="iter" value="iter + 1"/>
+        <Tool action="add" name="performance" type="report_performance" color="white" bold="false"/>
     </Tools>
 
     <Settings>

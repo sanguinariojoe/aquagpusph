@@ -26,6 +26,7 @@
 #include <AuxiliarMethods.h>
 #include <InputOutput/Logger.h>
 #include <CalcServer/Reduction.h>
+#include <CalcServer/Kernel.h>
 #include <CalcServer.h>
 
 namespace Aqua {
@@ -53,6 +54,7 @@ Reduction::Reduction(const std::string name,
   , _output_var(NULL)
   , _input(NULL)
 {
+	Profiler::subinstances( { new EventProfile("Reduction") } );
 }
 
 Reduction::~Reduction()
@@ -118,7 +120,7 @@ populator(cl_event event, cl_int event_command_status, void* user_data)
 	}
 
 	auto var = tool->getOutputDependencies()[0];
-	InputOutput::Variables* vars = CalcServer::singleton()->variables();
+	auto vars = CalcServer::singleton()->variables();
 	vars->populate(var);
 	err_code = clSetUserEventStatus(tool->getUserEvent(), CL_COMPLETE);
 	if (err_code != CL_SUCCESS) {
@@ -137,11 +139,11 @@ Reduction::_execute(const std::vector<cl_event> events)
 	unsigned int i;
 	cl_event event, out_event;
 	cl_int err_code;
-	CalcServer* C = CalcServer::singleton();
-	InputOutput::Variables* vars = C->variables();
+	auto C = CalcServer::singleton();
+	auto vars = C->variables();
 
 	// We must execute several kernels in a sequential way. The process is
-	// though seeded, by a reduction which just needs to read the input array
+	// though seeded by a reduction which just needs to read the input array
 	event = _input_var->getWritingEvent();
 	if (event) {
 		err_code = clRetainEvent(event);
@@ -154,6 +156,7 @@ Reduction::_execute(const std::vector<cl_event> events)
 			throw std::runtime_error("OpenCL execution error");
 		}
 	}
+	auto profiler = dynamic_cast<EventProfile*>(Profiler::subinstances().back());
 	for (i = 0; i < _kernels.size(); i++) {
 		cl_uint num_events_in_wait_list = event ? 1 : 0;
 		cl_event* event_wait_list = event ? &event : NULL;
@@ -176,6 +179,9 @@ Reduction::_execute(const std::vector<cl_event> events)
 			InputOutput::Logger::singleton()->printOpenCLError(err_code);
 			throw std::runtime_error("OpenCL execution error");
 		}
+		if (i == 0)
+			profiler->start(out_event);
+
 		// Replace the event by the new one
 		if (event) {
 			err_code = clReleaseEvent(event);
@@ -255,7 +261,21 @@ Reduction::_execute(const std::vector<cl_event> events)
 		throw std::runtime_error("OpenCL execution error");
 	}
 
-	return _user_event;
+	// It is not really a good business to return an user event, which is kind
+	// of special. e.g. it cannot be profiled. So we create a mark on top of it
+	err_code = clEnqueueMarkerWithWaitList(
+	    C->command_queue(), 1, &_user_event, &event);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure setting the the output event for tool \"" << name()
+		    << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
+	profiler->end(event);
+
+	return event;
 }
 
 void

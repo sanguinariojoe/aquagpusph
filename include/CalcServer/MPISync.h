@@ -207,7 +207,12 @@ class MPISync : public Aqua::CalcServer::Tool
 		/** @brief Parent tool name
 		 * @return Parent tool name
 		 */
-		const std::string name() { return _name; }
+		inline const std::string name() const { return _name; }
+
+		/** @brief Processor
+		 * @return Processor
+		 */
+		inline const unsigned int proc() const { return _proc; }
 
 		/** @brief Data structure to store the type information required by MPI
 		 *
@@ -285,8 +290,9 @@ class MPISync : public Aqua::CalcServer::Tool
 		~Sender();
 
 		/** @brief Send the information
+		 * @param profiler The sending profiler
 		 */
-		void execute(void);
+		void execute(EventProfile *profiler);
 
 	  private:
 		/** Create the submask array
@@ -366,8 +372,9 @@ class MPISync : public Aqua::CalcServer::Tool
 		~Receiver();
 
 		/** @brief Receive the information
+		 * @param profiler The profiler
 		 */
-		void execute(void);
+		void execute(EventProfile *profiler);
 
 	  private:
 		/** Setup the OpenCL stuff

@@ -13,6 +13,7 @@
         <Tool action="add" name="set r" type="set" in="r" value="VEC_ZERO"/>
         <Tool action="add" name="set f" type="set" in="f" value="2 * h"/>
         <Tool action="add" name="iter += 1" type="set_scalar" in="iter" value="iter + 1"/>
+        <Tool action="add" name="performance" type="report_performance" color="white" bold="false"/>
     </Tools>
 
     <Settings>

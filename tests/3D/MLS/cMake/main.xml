@@ -35,6 +35,7 @@
             c = a + b;
         </Tool>
         <Tool action="insert" before="Rates" in="rmse" name="rmse" type="set_scalar" value="sqrt(rmse / N)"/>
+        <Tool action="add" name="performance" type="report_performance" color="white" bold="false"/>
     </Tools>
     <Reports>
         <Report type="file" name="error report" fields="rmse" path="rmse.dat"/>
