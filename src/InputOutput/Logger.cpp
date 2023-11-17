@@ -25,6 +25,7 @@
 #include <unistd.h>
 #include <sstream>
 #include <iostream>
+#include <mutex>
 
 #include <AuxiliarMethods.h>
 #include <InputOutput/Logger.h>
@@ -42,6 +43,8 @@ void* wnd;
 
 namespace Aqua {
 namespace InputOutput {
+
+std::mutex logging_mutex;
 
 Logger::Logger()
   : _last_row(0)
@@ -132,8 +135,22 @@ Logger::writeReport(std::string input, std::string color, bool bold)
 	if (!input.size()) {
 		return;
 	}
+	const std::lock_guard<std::mutex> lock(logging_mutex);
 
 	if (!wnd) {
+#ifdef HAVE_MPI
+		try {
+			auto mpi_rank = MPI::COMM_WORLD.Get_rank();
+			std::cout << "[Proc " << mpi_rank << "] ";
+		} catch (MPI::Exception e) {
+			std::ostringstream msg;
+			msg << "Error getting MPI rank. " << std::endl
+			    << e.Get_error_code() << ": " << e.Get_error_string()
+			    << std::endl;
+			addMessageF(L_ERROR, msg.str());
+			throw;
+		}
+#endif
 		std::cout << input;
 		if (!hasSuffix(input, "\n")) {
 			std::cout << std::endl;
@@ -209,6 +226,22 @@ Logger::writeReport(std::string input, std::string color, bool bold)
 		attron(A_BOLD);
 	}
 
+	// Append the processor index
+#ifdef HAVE_MPI
+	try {
+		auto mpi_rank = MPI::COMM_WORLD.Get_rank();
+		msg = "[Proc " + std::to_string(mpi_rank) + "] " + msg;
+		std::cout << "msg = " << msg << std::endl;
+	} catch (MPI::Exception e) {
+		std::ostringstream msg;
+		msg << "Error getting MPI rank. " << std::endl
+		    << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
+		addMessageF(L_ERROR, msg.str());
+		throw;
+	}
+#endif
+
+
 	// Print the message
 	int row = _last_row;
 	move(row, 0);
@@ -225,6 +258,8 @@ Logger::writeReport(std::string input, std::string color, bool bold)
 void
 Logger::addMessage(TLogLevel level, std::string log, std::string func)
 {
+	const std::lock_guard<std::mutex> lock(logging_mutex);
+
 	std::ostringstream fname;
 	if (func != "")
 		fname << "(" << func << "): ";
