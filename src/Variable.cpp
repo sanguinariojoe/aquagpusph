@@ -232,7 +232,7 @@ const std::string
 ScalarNumberVariable<T>::asString()
 {
 	std::ostringstream msg;
-	msg << *((T*)this->get());
+	msg << *((T*)this->get(true));
 	str_val = msg.str();
 	return str_val;
 }
@@ -371,7 +371,7 @@ template<class T>
 const std::string
 ScalarVecVariable<T>::asString()
 {
-	T* val = (T*)(this->get());
+	T* val = (T*)(this->get(true));
 	std::ostringstream msg;
 	msg << "(";
 	for (unsigned int i = 0; i < _dims; i++) {
@@ -1007,7 +1007,7 @@ ArrayVariable::setFromPythonObject(PyObject* obj, int i0, int n)
 const std::string
 ArrayVariable::asString()
 {
-	cl_mem* val = (cl_mem*)get();
+	cl_mem* val = (cl_mem*)get(true);
 	std::ostringstream msg;
 	msg << val;
 	str_val = msg.str();
@@ -1037,7 +1037,7 @@ ArrayVariable::asString(size_t i)
 		LOG0(L_DEBUG, msg.str());
 		return NULL;
 	}
-	cl_event event_wait = getEvent();
+	cl_event event_wait = getWritingEvent();
 	cl_int err_code = clEnqueueReadBuffer(C->command_queue(),
 	                                      _value,
 	                                      CL_TRUE,
