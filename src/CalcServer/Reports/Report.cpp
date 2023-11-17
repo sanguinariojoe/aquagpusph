@@ -118,7 +118,7 @@ void Report::processFields(const std::string input)
     }
     _vars_per_line.push_back(vars_in_line);
 
-    setDependencies(_vars);
+    setInputDependencies(_vars);
 }
 
 bool Report::mustUpdate()
