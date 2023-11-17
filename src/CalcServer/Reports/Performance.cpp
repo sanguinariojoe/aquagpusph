@@ -62,6 +62,7 @@ Performance::~Performance()
 void Performance::setup()
 {
     unsigned int i;
+    auto C = CalcServer::singleton();
 
     std::ostringstream msg;
     msg << "Loading the report \"" << name() << "\"..." << std::endl;
@@ -74,9 +75,14 @@ void Performance::setup()
     if(_output_file.compare("")) {
         _f.open(_output_file.c_str(), std::ios::out);
         // Write the header
-        _f << "# t elapsed average(elapsed) variance(elapsed) "
-           << "overhead average(overhead) variance(overhead) progress ETA"
-           << std::endl;
+        _f << "\"t\",\"elapsed average (s)\",\"elapsed variance (s)\"";
+        for(auto tool : C->tools()){
+            _f << ",\"" << tool->name() << " begin (ns)\""
+               << ",\"" << tool->name() << " begin variance (ns)\""
+               << ",\"" << tool->name() << " end (ns)\""
+               << ",\"" << tool->name() << " end variance (ns)\"";
+        }
+        _f << std::endl;
     }
 
     Tool::setup();
@@ -84,14 +90,14 @@ void Performance::setup()
 
 size_t Performance::computeAllocatedMemory(){
     size_t allocated_mem = 0;
-    CalcServer *C = CalcServer::singleton();
+    auto C = CalcServer::singleton();
 
     // Get the allocated memory in the variables
     InputOutput::Variables *vars = C->variables();
     allocated_mem += vars->allocatedMemory();
 
     // Gwet the additionally allocated memory in the tools
-    std::vector<Tool*> tools = C->tools();
+    auto tools = C->tools();
     for(auto tool : tools){
         allocated_mem += tool->allocatedMemory();
     }
@@ -99,9 +105,67 @@ size_t Performance::computeAllocatedMemory(){
     return allocated_mem;
 }
 
+/** @brief Get the starting timers
+ * @param tools The tools to analyze
+ * @return The reference timers
+ */
+std::deque<cl_ulong>
+ref_timer(std::vector<Tool*> tools)
+{
+    for (auto tool : tools)
+        if (tool->begin().size())
+            return tool->begin();
+    LOG(L_WARNING, "No profiled tools were found");
+    return tools.front()->begin();
+}
+
+/** @brief Get the average and standard deviation of the beginning timers
+ * @param tools The tools to analyze
+ * @return The reference timers
+ */
+std::tuple<std::vector<cl_ulong>, std::vector<cl_ulong>>
+begin_timers(std::vector<Tool*> tools)
+{
+    std::vector<cl_ulong> v, e;
+    auto t0 = ref_timer(tools);
+    for (auto tool : tools) {
+        if (!tool->begin().size()) {
+            v.push_back(0.0);
+            e.push_back(0.0);
+            continue;
+        }
+        auto [t, t_std] = stats(Profiler::delta(tool->begin(), t0));
+        v.push_back(t);
+        e.push_back(t_std);
+    }
+    return {v, e};
+}
+
+/** @brief Get the average and standard deviation of the ending timers
+ * @param tools The tools to analyze
+ * @return The reference timers
+ */
+std::tuple<std::vector<cl_ulong>, std::vector<cl_ulong>>
+end_timers(std::vector<Tool*> tools)
+{
+    std::vector<cl_ulong> v, e;
+    auto t0 = ref_timer(tools);
+    for (auto tool : tools) {
+        if (!tool->end().size()) {
+            v.push_back(0.0);
+            e.push_back(0.0);
+            continue;
+        }
+        auto [t, t_std] = stats(Profiler::delta(tool->end(), t0));
+        v.push_back(t);
+        e.push_back(t_std);
+    }
+    return {v, e};
+}
+
 cl_event Performance::_execute(const std::vector<cl_event> events)
 {
-    CalcServer *C = CalcServer::singleton();
+    auto C = CalcServer::singleton();
     clFinish(C->command_queue());
     std::stringstream data;
 
@@ -110,7 +174,7 @@ cl_event Performance::_execute(const std::vector<cl_event> events)
          << "Memory=" << std::setw(18) << allocated_MB << "MB" << std::endl;
 
     // Add the tools time elapsed
-    std::vector<Tool*> tools = C->tools();
+    auto tools = C->tools();
     float elapsed = 0.f, elapsed_std = 0.f;
     for(auto tool : tools){
         // Exclude the tool itself
@@ -154,14 +218,20 @@ cl_event Performance::_execute(const std::vector<cl_event> events)
     }
 
     InputOutput::Logger::singleton()->writeReport(data.str(),
-                                                         _color,
-                                                         _bold);
+                                                  _color,
+                                                  _bold);
 
     // Write the output file
     if(_f.is_open()){
-        _f << t << " "
-           << elapsed << " " << elapsed_std << " "
-           << progress * 100.f << " " << ETA << std::endl;
+        _f << t << ","
+           << elapsed << "," << elapsed_std;
+        auto [t0, t0_std] = begin_timers(tools);
+        auto [t1, t1_std] = end_timers(tools);
+        for (unsigned int i = 0; i < tools.size(); i++) {
+            _f << "," << t0[i] << "," << t0_std[i]
+               << "," << t1[i] << "," << t1_std[i];
+        }
+        _f << std::endl;
     }
 
     return NULL;

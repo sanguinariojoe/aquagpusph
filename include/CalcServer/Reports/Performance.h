@@ -55,8 +55,8 @@ public:
      *    - "cyan"
      * @param bold false if the report should not be highlighted with bolded
      * font, true otherwise
-     * @param output_file Path of the output file. Several scape strings can be
-     * used, as described in Aqua::newFilePath()
+     * @param output_file Path of the XML output file. Several scape strings
+     * can be used, as described in Aqua::newFilePath()
      */
     Performance(const std::string tool_name,
                 const std::string color="white",

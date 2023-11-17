@@ -47,9 +47,8 @@ std::tuple<cl_ulong, cl_ulong>
 Profiler::total() const
 {
 	std::deque<cl_ulong> dt;
-	std::transform(end().begin(), end().end(),
-	               begin().begin(), dt.begin(),
-	               std::minus<cl_ulong>());
+	for (unsigned int i = 0; i < end().size(); i++)
+		dt.push_back(end()[i] - begin()[i]);
 	return stats(dt);
 }
 

@@ -217,6 +217,8 @@ class Profiler
 	 */
 	inline std::deque<cl_ulong> begin() const
 	{
+		if (!_instances.size())
+			return {};
 		return _instances.front()->begin();
 	}
 
@@ -227,6 +229,8 @@ class Profiler
 	 */
 	inline std::deque<cl_ulong> end() const
 	{
+		if (!_instances.size())
+			return {};
 		return _instances.back()->end();
 	}
 
@@ -237,6 +241,44 @@ class Profiler
 	 * @return Elapsed time with its standard deviation
 	 */
 	std::tuple<cl_ulong, cl_ulong> total() const;
+
+	/** @brief Get the delta time
+	 * @param t Timer
+	 * @param t0 Timer reference to subtract
+	 * @return Time delta
+	 */
+	static inline cl_long delta(const cl_ulong& t, const cl_ulong& t0)
+	{
+		return (t > t0) ? t - t0 : -(t0 - t);
+	}
+
+	/** @brief Get the delta time
+	 * @param t List of timers
+	 * @param t0 Timer reference to subtract
+	 * @return List of time deltas
+	 */
+	static inline std::deque<cl_long> delta(const std::deque<cl_ulong> t,
+	                                        const cl_ulong& t0)
+	{
+		std::deque<cl_long> dt;
+		for (auto val : t)
+			dt.push_back(delta(val, t0));
+		return dt;
+	}
+
+	/** @brief Get the delta time
+	 * @param t List of timers
+	 * @param t0 List of timer references to subtract
+	 * @return List of time deltas
+	 */
+	static inline std::deque<cl_long> delta(const std::deque<cl_ulong> t,
+	                                        const std::deque<cl_ulong> t0)
+	{
+		std::deque<cl_long> dt;
+		for (unsigned int i = 0; i < t.size(); i++)
+			dt.push_back(delta(t[i], t0[i]));
+		return dt;
+	}
 
   protected:
 	/** @brief Set the tool subinstances
