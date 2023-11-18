@@ -263,8 +263,6 @@ INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR})
 # ===================================================== #
 # Global Compiler and Linker Settings                   #
 # ===================================================== #
-INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR}/include ${CMAKE_SOURCE_DIR}/include)
-
 # check for 64-bit platform
 IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
     MESSAGE(STATUS "Platform is 64-bit")
@@ -278,8 +276,7 @@ MESSAGE(STATUS "DEBUG: ${CMAKE_CXX_FLAGS_DEBUG}")
 # ===================================================== #
 # Compilation parts                                     #
 # ===================================================== #
-ADD_SUBDIRECTORY(include)
-ADD_SUBDIRECTORY(src)
+ADD_SUBDIRECTORY(aquagpusph)
 ADD_SUBDIRECTORY(resources)
 IF(AQUAGPUSPH_BUILD_TOOLS)
     ADD_SUBDIRECTORY(tools)
