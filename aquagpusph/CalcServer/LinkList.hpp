@@ -46,9 +46,10 @@ class SuperProfile : public Aqua::CalcServer::Profile
 	 * @param n Number of samples to keep in memory
 	 */
 	SuperProfile(const std::string name, Tool* tool)
-		: Profile(name)
-		, _tool(tool)
-	{}
+	  : Profile(name)
+	  , _tool(tool)
+	{
+	}
 
 	/** Destructor
 	 */

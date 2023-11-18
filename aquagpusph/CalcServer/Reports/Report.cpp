@@ -26,128 +26,137 @@
 #include "aquagpusph/CalcServer/CalcServer.hpp"
 #include "Report.hpp"
 
-namespace Aqua{ namespace CalcServer{ namespace Reports{
+namespace Aqua {
+namespace CalcServer {
+namespace Reports {
 
 Report::Report(const std::string tool_name,
                const std::string fields,
                unsigned int ipf,
                float fps)
-    : Tool(tool_name)
-    , _fields(fields)
-    , _ipf(ipf)
-    , _fps(fps)
-    , _iter(0)
-    , _t(0.f)
+  : Tool(tool_name)
+  , _fields(fields)
+  , _ipf(ipf)
+  , _fps(fps)
+  , _iter(0)
+  , _t(0.f)
 {
 }
 
 Report::~Report()
 {
-    _vars_per_line.clear();
-    _vars.clear();
+	_vars_per_line.clear();
+	_vars.clear();
 }
 
-void Report::setup()
+void
+Report::setup()
 {
-    Tool::setup();
-    processFields(_fields);
+	Tool::setup();
+	processFields(_fields);
 }
 
-const std::string Report::data(bool with_title, bool with_names)
+const std::string
+Report::data(bool with_title, bool with_names)
 {
-    unsigned int i, j, var_id=0;
+	unsigned int i, j, var_id = 0;
 
-    std::stringstream data;
+	std::stringstream data;
 
-    // Create the title
-    if(with_title){
-        data << name() << ":" << std::endl;
-    }
+	// Create the title
+	if (with_title) {
+		data << name() << ":" << std::endl;
+	}
 
-    // Set the variable per lines
-    for(i = 0; i < _vars_per_line.size(); i++){
-        for(j = 0; j < _vars_per_line.at(i); j++){
-            InputOutput::Variable* var = _vars.at(var_id);
-            if(with_names){
-                data << var->name() << "=";
-            }
-            data << var->asString() << " ";
-            var_id++;
-        }
-        // Replace the trailing space by a line break
-        data.seekp(-1, data.cur);
-        data << std::endl;
-    }
+	// Set the variable per lines
+	for (i = 0; i < _vars_per_line.size(); i++) {
+		for (j = 0; j < _vars_per_line.at(i); j++) {
+			InputOutput::Variable* var = _vars.at(var_id);
+			if (with_names) {
+				data << var->name() << "=";
+			}
+			data << var->asString() << " ";
+			var_id++;
+		}
+		// Replace the trailing space by a line break
+		data.seekp(-1, data.cur);
+		data << std::endl;
+	}
 
-    _data = data.str();
-    return _data;
+	_data = data.str();
+	return _data;
 }
 
-void Report::processFields(const std::string input)
+void
+Report::processFields(const std::string input)
 {
-    CalcServer *C = CalcServer::singleton();
-    std::istringstream fields(input);
-    std::string s;
-    // The user may ask to break lines by semicolon usage. In such a case,
-    // we are splitting the input and recursively calling this function with
-    // each piece
-    if(input.find(';') != std::string::npos) {
-        while (getline(fields, s, ';')) {
-            processFields(s);
-        }
-        return;
-    }
+	CalcServer* C = CalcServer::singleton();
+	std::istringstream fields(input);
+	std::string s;
+	// The user may ask to break lines by semicolon usage. In such a case,
+	// we are splitting the input and recursively calling this function with
+	// each piece
+	if (input.find(';') != std::string::npos) {
+		while (getline(fields, s, ';')) {
+			processFields(s);
+		}
+		return;
+	}
 
-    // Now we now that the fields should be process as a single line
-    InputOutput::Variables *vars = C->variables();
-    unsigned int vars_in_line = 0;
-    std::istringstream subfields(replaceAllCopy(input, " ", ","));
-    while (getline(subfields, s, ',')) {
-        if (s == "") continue;
-        InputOutput::Variable *var = vars->get(s);
-        if(!var){
-            std::stringstream msg;
-            msg << "The report \"" << name()
-                << "\" is asking the undeclared variable \""
-                << s << "\"" << std::endl;
-            LOG(L_ERROR, msg.str());
-            throw std::runtime_error("Invalid variable");
-        }
-        vars_in_line++;
-        _vars.push_back(var);
-    }
-    _vars_per_line.push_back(vars_in_line);
+	// Now we now that the fields should be process as a single line
+	InputOutput::Variables* vars = C->variables();
+	unsigned int vars_in_line = 0;
+	std::istringstream subfields(replaceAllCopy(input, " ", ","));
+	while (getline(subfields, s, ',')) {
+		if (s == "")
+			continue;
+		InputOutput::Variable* var = vars->get(s);
+		if (!var) {
+			std::stringstream msg;
+			msg << "The report \"" << name()
+			    << "\" is asking the undeclared variable \"" << s << "\""
+			    << std::endl;
+			LOG(L_ERROR, msg.str());
+			throw std::runtime_error("Invalid variable");
+		}
+		vars_in_line++;
+		_vars.push_back(var);
+	}
+	_vars_per_line.push_back(vars_in_line);
 
-    setInputDependencies(_vars);
+	setInputDependencies(_vars);
 }
 
-bool Report::mustUpdate()
+bool
+Report::mustUpdate()
 {
-    CalcServer *C = CalcServer::singleton();
-    InputOutput::Variables *vars = C->variables();
+	CalcServer* C = CalcServer::singleton();
+	InputOutput::Variables* vars = C->variables();
 
-    InputOutput::UIntVariable *iter_var =
-        (InputOutput::UIntVariable*)vars->get("iter");
-    unsigned int iter = *(unsigned int*)iter_var->get();
-    InputOutput::FloatVariable *time_var =
-        (InputOutput::FloatVariable*)vars->get("t");
-    float t = *(float*)time_var->get();
+	InputOutput::UIntVariable* iter_var =
+	    (InputOutput::UIntVariable*)vars->get("iter");
+	unsigned int iter = *(unsigned int*)iter_var->get();
+	InputOutput::FloatVariable* time_var =
+	    (InputOutput::FloatVariable*)vars->get("t");
+	float t = *(float*)time_var->get();
 
-    if(_ipf > 0){
-        if(iter - _iter >= _ipf){
-            _iter = iter;
-            _t = t;
-            return true;
-        }
-    }
-    if(_fps > 0.f){
-        if(t - _t >= 1.f / _fps){
-            _iter = iter;
-            _t = t;
-            return true;
-        }
-    }
-    return false;
+	if (_ipf > 0) {
+		if (iter - _iter >= _ipf) {
+			_iter = iter;
+			_t = t;
+			return true;
+		}
+	}
+	if (_fps > 0.f) {
+		if (t - _t >= 1.f / _fps) {
+			_iter = iter;
+			_t = t;
+			return true;
+		}
+	}
+	return false;
 }
 
-}}} // namespace
+}
+}
+} // namespace

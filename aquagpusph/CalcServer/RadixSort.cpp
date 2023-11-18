@@ -71,11 +71,11 @@ RadixSort::RadixSort(const std::string tool_name,
   , _radix(_RADIX)
   , _histo_split(_HISTOSPLIT)
 {
-	Profiler::subinstances( { new EventProfile("init"),
-	                          new EventProfile("radix-sort"),
-	                          new EventProfile("keys"),
-	                          new EventProfile("values"),
-	                          new EventProfile("inverse keys") } );
+	Profiler::subinstances({ new EventProfile("init"),
+	                         new EventProfile("radix-sort"),
+	                         new EventProfile("keys"),
+	                         new EventProfile("values"),
+	                         new EventProfile("inverse keys") });
 }
 
 RadixSort::~RadixSort()
@@ -156,14 +156,14 @@ RadixSort::_execute(const std::vector<cl_event> events)
 	// We also initialize the permutations as the particles id, i.e. each
 	// particle is converted on itself.
 	auto event_init = init();
-	auto init_profiler = dynamic_cast<EventProfile*>(
-		Profiler::subinstances().at(0));
+	auto init_profiler =
+	    dynamic_cast<EventProfile*>(Profiler::subinstances().at(0));
 	init_profiler->start(event_init);
 	init_profiler->end(event_init);
 
 	// Time to sort everything up
-	auto radixsort_profiler = dynamic_cast<EventProfile*>(
-		Profiler::subinstances().at(1));
+	auto radixsort_profiler =
+	    dynamic_cast<EventProfile*>(Profiler::subinstances().at(1));
 	cl_event event_wait = NULL;
 	for (_pass = 0; _pass < _n_pass; _pass++) {
 		event_wait = histograms(event_init, event_wait);
@@ -208,8 +208,8 @@ RadixSort::_execute(const std::vector<cl_event> events)
 		throw std::runtime_error("OpenCL error");
 	}
 	_var->setWritingEvent(event);
-	auto vals_profiler = dynamic_cast<EventProfile*>(
-		Profiler::subinstances().at(3));
+	auto vals_profiler =
+	    dynamic_cast<EventProfile*>(Profiler::subinstances().at(3));
 	vals_profiler->start(event);
 	vals_profiler->end(event);
 	err_code = clReleaseEvent(event);
@@ -243,8 +243,8 @@ RadixSort::_execute(const std::vector<cl_event> events)
 		throw std::runtime_error("OpenCL error");
 	}
 	_perms->setWritingEvent(event);
-	auto keys_profiler = dynamic_cast<EventProfile*>(
-		Profiler::subinstances().at(2));
+	auto keys_profiler =
+	    dynamic_cast<EventProfile*>(Profiler::subinstances().at(2));
 	keys_profiler->start(event);
 	keys_profiler->end(event);
 
@@ -269,8 +269,8 @@ RadixSort::_execute(const std::vector<cl_event> events)
 	}
 
 	event_wait = inversePermutations();
-	auto inv_profiler = dynamic_cast<EventProfile*>(
-		Profiler::subinstances().at(4));
+	auto inv_profiler =
+	    dynamic_cast<EventProfile*>(Profiler::subinstances().at(4));
 	inv_profiler->start(event_wait);
 
 	// The events associated to _var and _perms was already set during the
@@ -278,15 +278,15 @@ RadixSort::_execute(const std::vector<cl_event> events)
 	// from inversePermutations(), their events will get overwritten by
 	// Aqua::CalcServer::Tool::execute()
 	// Thus we can join all the events together with a marker
-	const cl_event out_events[3] = {_var->getWritingEvent(),
-	                                _perms->getWritingEvent(),
-	                                event_wait};
-	err_code = clEnqueueMarkerWithWaitList(
-	    C->command_queue(), 3, out_events, &event);
+	const cl_event out_events[3] = { _var->getWritingEvent(),
+		                             _perms->getWritingEvent(),
+		                             event_wait };
+	err_code =
+	    clEnqueueMarkerWithWaitList(C->command_queue(), 3, out_events, &event);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
-		msg << "Failure joining the output events on tool \"" << name()
-		    << "\"." << std::endl;
+		msg << "Failure joining the output events on tool \"" << name() << "\"."
+		    << std::endl;
 		LOG(L_ERROR, msg.str());
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
@@ -312,8 +312,8 @@ RadixSort::init()
 	cl_event event;
 	CalcServer* C = CalcServer::singleton();
 
-	err_code = clSetKernelArg(
-		_init_kernel, 1, sizeof(cl_mem), (void*)&_in_vals);
+	err_code =
+	    clSetKernelArg(_init_kernel, 1, sizeof(cl_mem), (void*)&_in_vals);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
 		msg << "Failure sending argument 1 to \"init\" within the tool \""
@@ -322,8 +322,8 @@ RadixSort::init()
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL error");
 	}
-	err_code = clSetKernelArg(
-		_init_kernel, 2, sizeof(cl_mem), (void*)&_in_permut);
+	err_code =
+	    clSetKernelArg(_init_kernel, 2, sizeof(cl_mem), (void*)&_in_permut);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
 		msg << "Failure sending argument 2 to \"init\" within the tool \""
@@ -366,10 +366,8 @@ RadixSort::histograms(cl_event keys_event, cl_event histograms_event)
 	size_t local_work_size = _items;
 	size_t global_work_size = _groups * _items;
 
-	err_code = clSetKernelArg(_histograms_kernel,
-	                          0,
-	                          sizeof(cl_mem),
-	                          (void*)&_in_vals);
+	err_code =
+	    clSetKernelArg(_histograms_kernel, 0, sizeof(cl_mem), (void*)&_in_vals);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
 		msg << "Failure sending argument 0 to \"histogram\" within the tool \""
@@ -689,10 +687,8 @@ RadixSort::inversePermutations()
 	cl_event event;
 	CalcServer* C = CalcServer::singleton();
 
-	err_code = clSetKernelArg(_inv_perms_kernel,
-	                          0,
-	                          sizeof(cl_mem),
-	                          (void*)&_in_permut);
+	err_code = clSetKernelArg(
+	    _inv_perms_kernel, 0, sizeof(cl_mem), (void*)&_in_permut);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
 		msg << "Failure sending argument 0 to \"inversePermutation\" within "
@@ -702,10 +698,8 @@ RadixSort::inversePermutations()
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL error");
 	}
-	err_code = clSetKernelArg(_inv_perms_kernel,
-	                          1,
-	                          sizeof(cl_mem),
-	                          _inv_perms->get_async());
+	err_code = clSetKernelArg(
+	    _inv_perms_kernel, 1, sizeof(cl_mem), _inv_perms->get_async());
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
 		msg << "Failure sending argument 1 to \"inversePermutation\" within "
@@ -1131,8 +1125,8 @@ RadixSort::setupArgs()
 	cl_int err_code;
 	CalcServer* C = CalcServer::singleton();
 
-	err_code = clSetKernelArg(
-		_init_kernel, 0, sizeof(cl_mem), _var->get_async());
+	err_code =
+	    clSetKernelArg(_init_kernel, 0, sizeof(cl_mem), _var->get_async());
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
 		msg << "Failure sending argument 0 to \"init\" within the tool \""
@@ -1141,8 +1135,7 @@ RadixSort::setupArgs()
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL error");
 	}
-	err_code = clSetKernelArg(
-		_init_kernel, 3, sizeof(cl_uint), (void*)&_n);
+	err_code = clSetKernelArg(_init_kernel, 3, sizeof(cl_uint), (void*)&_n);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
 		msg << "Failure sending argument 3 to \"init\" within the tool \""
@@ -1151,8 +1144,8 @@ RadixSort::setupArgs()
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL error");
 	}
-	err_code = clSetKernelArg(
-		_init_kernel, 4, sizeof(cl_uint), (void*)&_n_padded);
+	err_code =
+	    clSetKernelArg(_init_kernel, 4, sizeof(cl_uint), (void*)&_n_padded);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
 		msg << "Failure sending argument 4 to \"init\" within the tool \""
@@ -1182,8 +1175,8 @@ RadixSort::setupArgs()
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL error");
 	}
-	err_code =
-	    clSetKernelArg(_histograms_kernel, 4, sizeof(cl_uint), (void*)&_n_padded);
+	err_code = clSetKernelArg(
+	    _histograms_kernel, 4, sizeof(cl_uint), (void*)&_n_padded);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
 		msg << "Failure sending argument 4 to \"histogram\" within the tool \""
@@ -1247,7 +1240,8 @@ RadixSort::setupArgs()
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL error");
 	}
-	err_code = clSetKernelArg(_sort_kernel, 7, sizeof(cl_uint), (void*)&_n_padded);
+	err_code =
+	    clSetKernelArg(_sort_kernel, 7, sizeof(cl_uint), (void*)&_n_padded);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
 		msg << "Failure sending argument 7 to \"sort\" within the tool \""

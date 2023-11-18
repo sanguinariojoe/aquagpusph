@@ -190,7 +190,8 @@ class CalcServer : public Aqua::Singleton<Aqua::CalcServer::CalcServer>
 	{
 		auto now = std::chrono::system_clock::now();
 		return (cl_ulong)std::chrono::duration_cast<std::chrono::nanoseconds>(
-			now.time_since_epoch()).count();
+		           now.time_since_epoch())
+		    .count();
 	}
 
 	/** @brief Download a unsorted variable from the device.

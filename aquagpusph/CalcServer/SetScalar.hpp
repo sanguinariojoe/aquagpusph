@@ -41,7 +41,10 @@ class ScalarProfile : public Aqua::CalcServer::Profile
 	 * @param name The name
 	 * @param n Number of samples to keep in memory
 	 */
-	ScalarProfile(const std::string name) : Profile(name) {}
+	ScalarProfile(const std::string name)
+	  : Profile(name)
+	{
+	}
 
 	/** Destructor
 	 */

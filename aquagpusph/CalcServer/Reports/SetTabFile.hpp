@@ -28,7 +28,9 @@
 #include "aquagpusph/sphPrerequisites.hpp"
 #include "Report.hpp"
 
-namespace Aqua{ namespace CalcServer{ namespace Reports{
+namespace Aqua {
+namespace CalcServer {
+namespace Reports {
 
 /** @class SetTabFile SetTabFile.h CalcServer/SetTabFile.h
  * @brief Particles set runtime output.
@@ -60,72 +62,74 @@ namespace Aqua{ namespace CalcServer{ namespace Reports{
  */
 class SetTabFile : public Aqua::CalcServer::Reports::Report
 {
-public:
-    /** @brief Constructor
-     * @param tool_name Tool name
-     * @param fields Fields to be printed
-     * The fields are separated by commas or semicolons, and the spaces are just
-     * ignored.
-     * The semicolons will also force a line break in the report
-     * @param first First particle managed by this report (unsorted indexes)
-     * @param n Number of particles managed by this report (unsorted indexes)
-     * @param output_file File to be written. Several scape strings can be used,
-     * as described in Aqua::newFilePath()
-     * @param ipf Iterations per frame, 0 to just ignore this printing criteria
-     * @param fps Frames per second, 0 to just ignore this printing criteria
-     * @remarks The output file will be cleared
-     */
-    SetTabFile(const std::string tool_name,
-               const std::string fields,
-               unsigned int first,
-               unsigned int n,
-               const std::string output_file,
-               unsigned int ipf=1,
-               float fps=0.f);
+  public:
+	/** @brief Constructor
+	 * @param tool_name Tool name
+	 * @param fields Fields to be printed
+	 * The fields are separated by commas or semicolons, and the spaces are just
+	 * ignored.
+	 * The semicolons will also force a line break in the report
+	 * @param first First particle managed by this report (unsorted indexes)
+	 * @param n Number of particles managed by this report (unsorted indexes)
+	 * @param output_file File to be written. Several scape strings can be used,
+	 * as described in Aqua::newFilePath()
+	 * @param ipf Iterations per frame, 0 to just ignore this printing criteria
+	 * @param fps Frames per second, 0 to just ignore this printing criteria
+	 * @remarks The output file will be cleared
+	 */
+	SetTabFile(const std::string tool_name,
+	           const std::string fields,
+	           unsigned int first,
+	           unsigned int n,
+	           const std::string output_file,
+	           unsigned int ipf = 1,
+	           float fps = 0.f);
 
-    /** @brief Destructor
-     */
-    ~SetTabFile();
+	/** @brief Destructor
+	 */
+	~SetTabFile();
 
-    /** @brief Initialize the tool.
-     */
-    void setup();
+	/** @brief Initialize the tool.
+	 */
+	void setup();
 
-protected:
-    /** Execute the tool
-     * @param events List of events that shall be waited before safe execution
-     * @return OpenCL event to be waited before accessing the dependencies
-     */
-    cl_event _execute(const std::vector<cl_event> events);
+  protected:
+	/** Execute the tool
+	 * @param events List of events that shall be waited before safe execution
+	 * @return OpenCL event to be waited before accessing the dependencies
+	 */
+	cl_event _execute(const std::vector<cl_event> events);
 
-    /** @brief Get the particle index bounds of the "set of particles" managed
-     * by this class.
-     * @return The index bounds (first and last particle).
-     */
-    uivec2 bounds(){return _bounds;}
+	/** @brief Get the particle index bounds of the "set of particles" managed
+	 * by this class.
+	 * @return The index bounds (first and last particle).
+	 */
+	uivec2 bounds() { return _bounds; }
 
-    /** Download the data from the device, and store it.
-     * @param vars Fields to download.
-     * @return host allocated memory. A clear list if errors happened.
-     * @note The returned data must be manually cleared.
-     */
-    std::vector<void*> download(std::vector<InputOutput::Variable*> vars);
+	/** Download the data from the device, and store it.
+	 * @param vars Fields to download.
+	 * @return host allocated memory. A clear list if errors happened.
+	 * @note The returned data must be manually cleared.
+	 */
+	std::vector<void*> download(std::vector<InputOutput::Variable*> vars);
 
-private:
-    /** Remove the content of the data list.
-     * @param data List of memory allocated arrays to be cleared.
-     */
-    void clearList(std::vector<void*> *data);
+  private:
+	/** Remove the content of the data list.
+	 * @param data List of memory allocated arrays to be cleared.
+	 */
+	void clearList(std::vector<void*>* data);
 
-    /// Particles managed bounds
-    uivec2 _bounds;
+	/// Particles managed bounds
+	uivec2 _bounds;
 
-    /// Output file name
-    std::string _output_file;
-    /// Output file handler
-    std::ofstream _f;
+	/// Output file name
+	std::string _output_file;
+	/// Output file handler
+	std::ofstream _f;
 };
 
-}}} // namespace
+}
+}
+} // namespace
 
 #endif // SETSetTabFile_H_INCLUDED

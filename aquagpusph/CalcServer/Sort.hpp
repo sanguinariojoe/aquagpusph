@@ -56,10 +56,10 @@ class Sort : public Aqua::CalcServer::Tool
 	 * @param once Run this tool just once. Useful to make initializations.
 	 */
 	Sort(const std::string tool_name,
-	          const std::string variable = "icell",
-	          const std::string permutations = "id_unsorted",
-	          const std::string inv_permutations = "id_sorted",
-	          bool once = false);
+	     const std::string variable = "icell",
+	     const std::string permutations = "id_unsorted",
+	     const std::string inv_permutations = "id_sorted",
+	     bool once = false);
 
 	/** Destructor
 	 */

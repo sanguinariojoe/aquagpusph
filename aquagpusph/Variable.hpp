@@ -228,7 +228,7 @@ class Variable
 	 * @param readonly true if it is just needed to sync for reading
 	 * operations, false otherwise
 	 */
-	void sync(bool readonly=false);
+	void sync(bool readonly = false);
 
 	/** @ingroup VariableEventsGroup
 	 * @brief Clean up the list of reading events

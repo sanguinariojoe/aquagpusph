@@ -51,8 +51,8 @@ EventProfile::start(cl_event event)
 	err_code = clRetainEvent(event);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
-		msg << "Failure retaining the event on profiler \"" << name()
-		    << "\"." << std::endl;
+		msg << "Failure retaining the event on profiler \"" << name() << "\"."
+		    << std::endl;
 		LOG(L_ERROR, msg.str());
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
@@ -67,18 +67,17 @@ EventProfile::end(cl_event event)
 	err_code = clRetainEvent(event);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
-		msg << "Failure retaining the event on profiler \"" << name()
-		    << "\"." << std::endl;
+		msg << "Failure retaining the event on profiler \"" << name() << "\"."
+		    << std::endl;
 		LOG(L_ERROR, msg.str());
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
 	}
-	err_code =
-	    clSetEventCallback(event, CL_COMPLETE, &event_profile_cb, this);
+	err_code = clSetEventCallback(event, CL_COMPLETE, &event_profile_cb, this);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
-		msg << "Failure setting the profiling callback on \"" << name()
-		    << "\"." << std::endl;
+		msg << "Failure setting the profiling callback on \"" << name() << "\"."
+		    << std::endl;
 		LOG(L_ERROR, msg.str());
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
@@ -91,21 +90,21 @@ EventProfile::sample()
 	cl_int err_code;
 	cl_ulong start = 0, end = 0;
 	err_code = clGetEventProfilingInfo(
-		_start, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, NULL);
+	    _start, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, NULL);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
-		msg << "Failure retrieving the profiling start on \"" << name()
-		    << "\"." << std::endl;
+		msg << "Failure retrieving the profiling start on \"" << name() << "\"."
+		    << std::endl;
 		LOG(L_ERROR, msg.str());
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
 	}
 	err_code = clGetEventProfilingInfo(
-		_end, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, NULL);
+	    _end, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, NULL);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
-		msg << "Failure retrieving the profiling end on \"" << name()
-		    << "\"." << std::endl;
+		msg << "Failure retrieving the profiling end on \"" << name() << "\"."
+		    << std::endl;
 		LOG(L_ERROR, msg.str());
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
@@ -124,7 +123,7 @@ ArgSetter::ArgSetter(const std::string name,
   , _kernel(kernel)
   , _vars(vars)
 {
-	for (unsigned int i=0; i < vars.size(); i++) {
+	for (unsigned int i = 0; i < vars.size(); i++) {
 		Arg* arg = new Arg();
 		_args.push_back(Arg());
 	}
@@ -144,15 +143,12 @@ ArgSetter::execute()
 		else
 			arg = var;
 		// Update the variable
-		err_code = clSetKernelArg(_kernel,
-		                          i,
-		                          arg.size(),
-		                          arg.value());
+		err_code = clSetKernelArg(_kernel, i, arg.size(), arg.value());
 		if (err_code != CL_SUCCESS) {
 			std::stringstream msg;
 			msg << "Failure setting the variable \"" << var->name()
-			    << "\" (id=" << i << ") to the tool \"" << name()
-			    << "\"." << std::endl;
+			    << "\" (id=" << i << ") to the tool \"" << name() << "\"."
+			    << std::endl;
 			LOG(L_ERROR, msg.str());
 			InputOutput::Logger::singleton()->printOpenCLError(err_code);
 			throw std::runtime_error("OpenCL execution error");
@@ -237,7 +233,7 @@ Kernel::Kernel(const std::string tool_name,
   , _global_work_size(0)
   , _args_setter(NULL)
 {
-	Profiler::subinstances( { new EventProfile("Kernel") } );
+	Profiler::subinstances({ new EventProfile("Kernel") });
 }
 
 Kernel::~Kernel()
@@ -298,7 +294,8 @@ Kernel::_execute(const std::vector<cl_event> events)
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
 	}
-	auto profiler = dynamic_cast<EventProfile*>(Profiler::subinstances().back());
+	auto profiler =
+	    dynamic_cast<EventProfile*>(Profiler::subinstances().back());
 	profiler->start(event);
 	profiler->end(event);
 

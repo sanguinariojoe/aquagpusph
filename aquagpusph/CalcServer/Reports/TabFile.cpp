@@ -25,58 +25,65 @@
 #include "aquagpusph/InputOutput/Logger.hpp"
 #include "TabFile.hpp"
 
-namespace Aqua{ namespace CalcServer{ namespace Reports{
+namespace Aqua {
+namespace CalcServer {
+namespace Reports {
 
 TabFile::TabFile(const std::string tool_name,
                  const std::string fields,
                  const std::string output_file)
-    : Report(tool_name, fields)
-    , _output_file("")
+  : Report(tool_name, fields)
+  , _output_file("")
 {
-    try {
-        unsigned int i = 0;
-        _output_file = newFilePath(output_file, i, 1);
-    } catch(std::invalid_argument e) {
-        std::ostringstream msg;
-        _output_file = setStrConstantsCopy(output_file);
-        msg << "Overwriting '" << _output_file << "'" << std::endl;
-        LOG(L_WARNING, msg.str());
-    }
+	try {
+		unsigned int i = 0;
+		_output_file = newFilePath(output_file, i, 1);
+	} catch (std::invalid_argument e) {
+		std::ostringstream msg;
+		_output_file = setStrConstantsCopy(output_file);
+		msg << "Overwriting '" << _output_file << "'" << std::endl;
+		LOG(L_WARNING, msg.str());
+	}
 }
 
 TabFile::~TabFile()
 {
-    if(_f.is_open()) _f.close();
+	if (_f.is_open())
+		_f.close();
 }
 
-void TabFile::setup()
+void
+TabFile::setup()
 {
-    std::ostringstream msg;
-    msg << "Loading the report \"" << name() << "\"..." << std::endl;
-    LOG(L_INFO, msg.str());
+	std::ostringstream msg;
+	msg << "Loading the report \"" << name() << "\"..." << std::endl;
+	LOG(L_INFO, msg.str());
 
-    _f.open(_output_file.c_str(), std::ios::out);
+	_f.open(_output_file.c_str(), std::ios::out);
 
-    Report::setup();
+	Report::setup();
 
-    // Write the header
-    _f << "# ";
-    std::vector<InputOutput::Variable*> vars = variables();
-    for(auto var : vars){
-        _f << var->name() << " ";
-    }
-    _f << std::endl;
-    _f.flush();
+	// Write the header
+	_f << "# ";
+	std::vector<InputOutput::Variable*> vars = variables();
+	for (auto var : vars) {
+		_f << var->name() << " ";
+	}
+	_f << std::endl;
+	_f.flush();
 }
 
-cl_event TabFile::_execute(const std::vector<cl_event> events)
+cl_event
+TabFile::_execute(const std::vector<cl_event> events)
 {
-    // Change break lines by spaces
-    std::string out = replaceAllCopy(data(false, false), "\n", " ");
-    _f << out << std::endl;
-    _f.flush();
+	// Change break lines by spaces
+	std::string out = replaceAllCopy(data(false, false), "\n", " ");
+	_f << out << std::endl;
+	_f.flush();
 
-    return NULL;
+	return NULL;
 }
 
-}}} // namespace
+}
+}
+} // namespace

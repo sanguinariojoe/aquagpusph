@@ -57,7 +57,10 @@ class EventProfile : public Aqua::CalcServer::Profile
 	 * @param name The name
 	 * @param n Number of samples to keep in memory
 	 */
-	EventProfile(const std::string name) : Profile(name) {}
+	EventProfile(const std::string name)
+	  : Profile(name)
+	{
+	}
 
 	/** Destructor
 	 */
@@ -137,6 +140,7 @@ class ArgSetter : public Aqua::CalcServer::Named
 	 * for also
 	 */
 	void execute();
+
   private:
 	/// OpenCL kernel
 	cl_kernel _kernel;
@@ -159,21 +163,30 @@ class ArgSetter::Arg
 {
   public:
 	/// Constructor.
-	Arg() : _size(0), _value(NULL), _event(NULL) {}
+	Arg()
+	  : _size(0)
+	  , _value(NULL)
+	  , _event(NULL)
+	{
+	}
 
 	/** @brief Copy Constructor
 	 * @param arg The argument to copy
 	 */
 	Arg(const Arg& arg)
-		: _size(0)
-		, _value(NULL)
-		, _event(NULL)
+	  : _size(0)
+	  , _value(NULL)
+	  , _event(NULL)
 	{
 		set(arg.size(), arg.value(), arg.event());
 	}
 
 	/// Destructor
-	~Arg() { if (_value) free(_value); }
+	~Arg()
+	{
+		if (_value)
+			free(_value);
+	}
 
 	/** @brief Get the size of the argument
 	 * @return The size
@@ -195,7 +208,8 @@ class ArgSetter::Arg
 	 * @param var Variable to compare with
 	 * @return true if the variable still matches the argument, false otherwise
 	 */
-	inline bool operator==(InputOutput::Variable* var) {
+	inline bool operator==(InputOutput::Variable* var)
+	{
 		if (!var)
 			return false;
 		if (var->getWritingEvent() == _event)
@@ -210,7 +224,8 @@ class ArgSetter::Arg
 	 * @param var Variable to compare with
 	 * @return false if the variable still matches the argument, true otherwise
 	 */
-	inline bool operator!=(InputOutput::Variable* var) {
+	inline bool operator!=(InputOutput::Variable* var)
+	{
 		return !(*this == var);
 	}
 
@@ -218,7 +233,8 @@ class ArgSetter::Arg
 	 * @param arg Argument to copy
 	 * @throw std::bad_alloc If the memory required cannot be allocated
 	 */
-	inline void operator=(const Arg &arg) {
+	inline void operator=(const Arg& arg)
+	{
 		set(arg.size(), arg.value(), arg.event());
 	}
 
@@ -226,10 +242,11 @@ class ArgSetter::Arg
 	 * @param var Variable to assign
 	 * @throw std::bad_alloc If the memory required cannot be allocated
 	 */
-	inline void operator=(InputOutput::Variable* var) {
+	inline void operator=(InputOutput::Variable* var)
+	{
 		try {
 			set(var->typesize(), var->get(), var->getWritingEvent());
-		} catch(...) {
+		} catch (...) {
 			std::stringstream msg;
 			msg << "From variable " << var->name() << std::endl;
 			LOG0(L_DEBUG, msg.str());

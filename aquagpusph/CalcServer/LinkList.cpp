@@ -70,13 +70,13 @@ LinkList::LinkList(const std::string tool_name,
 	                         "c = max(a, b);",
 	                         "-VEC_INFINITY");
 	_sort = new RadixSort(tool_name + "->Radix-Sort");
-	Profiler::subinstances( { new SuperProfile("min pos", _min_pos),
-	                          new SuperProfile("max pos", _max_pos),
-	                          new ScalarProfile("n_cells"),
-	                          new EventProfile("icell"),
-	                          new SuperProfile("radix-sort", _sort),
-	                          new EventProfile("ihoc"),
-	                          new EventProfile("link-list") } );
+	Profiler::subinstances({ new SuperProfile("min pos", _min_pos),
+	                         new SuperProfile("max pos", _max_pos),
+	                         new ScalarProfile("n_cells"),
+	                         new EventProfile("icell"),
+	                         new SuperProfile("radix-sort", _sort),
+	                         new EventProfile("ihoc"),
+	                         new EventProfile("link-list") });
 }
 
 LinkList::~LinkList()
@@ -139,8 +139,8 @@ LinkList::setup()
 	// Setup the radix-sort
 	_sort->setup();
 
-	setDependencies({_input_name, "N", "n_radix", "support", "h"},
-	                {"r_min", "r_max", "ihoc", "icell", "n_cells"});
+	setDependencies({ _input_name, "N", "n_radix", "support", "h" },
+	                { "r_min", "r_max", "ihoc", "icell", "n_cells" });
 }
 
 cl_event
@@ -162,13 +162,13 @@ LinkList::_execute(const std::vector<cl_event> events)
 	_max_pos->execute();
 
 	// Compute the number of cells and allocate ihoc accordingly
-	const cl_event ncells_events[2] = {r_min->getWritingEvent(),
-	                                   r_max->getWritingEvent()};
+	const cl_event ncells_events[2] = { r_min->getWritingEvent(),
+		                                r_max->getWritingEvent() };
 	err_code = clWaitForEvents(2, ncells_events);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
-		msg << "Failure waiting for the reductions on tool \"" << name() <<
-		    "\"." << std::endl;
+		msg << "Failure waiting for the reductions on tool \"" << name()
+		    << "\"." << std::endl;
 		LOG(L_ERROR, msg.str());
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
@@ -201,8 +201,8 @@ LinkList::_execute(const std::vector<cl_event> events)
 		throw std::runtime_error("OpenCL execution error");
 	}
 	{
-		auto profiler = dynamic_cast<EventProfile*>(
-			Profiler::subinstances()[3]);
+		auto profiler =
+		    dynamic_cast<EventProfile*>(Profiler::subinstances()[3]);
 		profiler->start(event);
 		profiler->end(event);
 	}
@@ -249,8 +249,8 @@ LinkList::_execute(const std::vector<cl_event> events)
 	}
 	event_wait = event;
 	{
-		auto profiler = dynamic_cast<EventProfile*>(
-			Profiler::subinstances()[5]);
+		auto profiler =
+		    dynamic_cast<EventProfile*>(Profiler::subinstances()[5]);
 		profiler->start(event);
 		profiler->end(event);
 	}
@@ -282,8 +282,8 @@ LinkList::_execute(const std::vector<cl_event> events)
 		throw std::runtime_error("OpenCL execution error");
 	}
 	{
-		auto profiler = dynamic_cast<EventProfile*>(
-			Profiler::subinstances()[6]);
+		auto profiler =
+		    dynamic_cast<EventProfile*>(Profiler::subinstances()[6]);
 		profiler->start(event);
 		profiler->end(event);
 	}
@@ -334,8 +334,7 @@ LinkList::allocate()
 		    << std::endl;
 		LOG(L_ERROR, msg.str());
 		msg.str("");
-		msg << "\tVariable \"n_cells\" type is \""
-		    << n_cells_var->type()
+		msg << "\tVariable \"n_cells\" type is \"" << n_cells_var->type()
 		    << "\", while \"uivec4\" was expected" << std::endl;
 		LOG0(L_DEBUG, msg.str());
 		throw std::runtime_error("Invalid n_cells type");
@@ -366,8 +365,8 @@ LinkList::allocate()
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
 		msg << "Failure allocating " << _n_cells.w * sizeof(cl_uint)
-		    << " bytes on the device memory for tool \"" << name()
-		    << "\"." << std::endl;
+		    << " bytes on the device memory for tool \"" << name() << "\"."
+		    << std::endl;
 		LOG(L_ERROR, msg.str());
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL allocation error");

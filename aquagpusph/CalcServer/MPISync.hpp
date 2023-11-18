@@ -292,7 +292,7 @@ class MPISync : public Aqua::CalcServer::Tool
 		/** @brief Send the information
 		 * @param profiler The sending profiler
 		 */
-		void execute(EventProfile *profiler);
+		void execute(EventProfile* profiler);
 
 	  private:
 		/** Create the submask array
@@ -374,7 +374,7 @@ class MPISync : public Aqua::CalcServer::Tool
 		/** @brief Receive the information
 		 * @param profiler The profiler
 		 */
-		void execute(EventProfile *profiler);
+		void execute(EventProfile* profiler);
 
 	  private:
 		/** Setup the OpenCL stuff

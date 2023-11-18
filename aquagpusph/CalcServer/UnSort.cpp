@@ -78,7 +78,7 @@ UnSort::setup()
 	_input = *(cl_mem*)_var->get();
 	_n = _id_var->size() / InputOutput::Variables::typeToBytes(_id_var->type());
 	setupOpenCL();
-	_args_setter = new ArgSetter(name(), _kernel, {_id_var, _var});
+	_args_setter = new ArgSetter(name(), _kernel, { _id_var, _var });
 	if (!_args_setter) {
 		std::stringstream msg;
 		msg << "Failure creating the arg setter for tool \"" << name()

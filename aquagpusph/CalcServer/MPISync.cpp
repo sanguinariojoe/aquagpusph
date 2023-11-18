@@ -155,8 +155,8 @@ MPISync::setup()
 		{
 			std::stringstream pname;
 			pname << "sorter " << field->name();
-			profilers.push_back(new SuperProfile(pname.str(),
-			                                     _field_sorters.back()));
+			profilers.push_back(
+			    new SuperProfile(pname.str(), _field_sorters.back()));
 		}
 	}
 
@@ -173,16 +173,14 @@ MPISync::setup()
 	setOutputDependencies(deps);
 
 	setupSenders();
-	for (auto s : _senders)
-	{
+	for (auto s : _senders) {
 		std::stringstream pname;
 		pname << "sender " << s->proc();
 		profilers.push_back(new EventProfile(pname.str()));
 	}
 
 	setupReceivers();
-	for (auto s : _senders)
-	{
+	for (auto s : _senders) {
 		std::stringstream pname;
 		pname << "receiver " << s->proc();
 		profilers.push_back(new EventProfile(pname.str()));
@@ -228,7 +226,7 @@ MPISync::_execute(const std::vector<cl_event> events)
 	unsigned int i_profiler = _fields.size() + 1;
 	for (auto sender : _senders) {
 		auto profiler = dynamic_cast<EventProfile*>(
-			Profiler::subinstances().at(i_profiler));
+		    Profiler::subinstances().at(i_profiler));
 		sender->execute(profiler);
 		i_profiler++;
 	}
@@ -238,7 +236,7 @@ MPISync::_execute(const std::vector<cl_event> events)
 	_mask_reinit->execute();
 	for (auto receiver : _receivers) {
 		auto profiler = dynamic_cast<EventProfile*>(
-			Profiler::subinstances().at(i_profiler));
+		    Profiler::subinstances().at(i_profiler));
 		receiver->execute(profiler);
 		i_profiler++;
 	}
@@ -426,9 +424,7 @@ MPISync::setupReceivers()
 
 	// Create a tool to reinit it to zero value
 	_n_offset_recv_reinit = new SetScalar(
-		"__" + _n_offset_recv->name() + "->reset",
-		_n_offset_recv->name(),
-		"0");
+	    "__" + _n_offset_recv->name() + "->reset", _n_offset_recv->name(), "0");
 	_n_offset_recv_reinit->setup();
 
 	// Create a tool to reinit the mask
@@ -587,7 +583,9 @@ typedef struct
 	cl_event user_event;
 } MPISyncSendUserData;
 
-std::string get_MPI_Error_string(int errorcode) {
+std::string
+get_MPI_Error_string(int errorcode)
+{
 	char err[MPI::MAX_ERROR_STRING];
 	int err_len = MPI::MAX_ERROR_STRING;
 	MPI::Get_error_string(errorcode, err, err_len);
@@ -611,8 +609,7 @@ cbMPISend(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 			std::ostringstream msg;
 			msg << "Failure sending the number of particles to process "
 			    << data->proc << ":" << std::endl
-			    << get_MPI_Error_string(status.Get_error())
-			    << std::endl;
+			    << get_MPI_Error_string(status.Get_error()) << std::endl;
 			LOG(L_ERROR, msg.str());
 			free(data);
 			throw std::runtime_error("MPI sending error");
@@ -661,8 +658,8 @@ cbMPISend(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 	err_code = clReleaseEvent(data->user_event);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
-		msg << "Failure releasing the reading event of \""
-		    << field->name() << "\"." << std::endl;
+		msg << "Failure releasing the reading event of \"" << field->name()
+		    << "\"." << std::endl;
 		LOG(L_ERROR, msg.str());
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		free(data);
@@ -683,14 +680,13 @@ cbMPISend(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 	}
 
 	// Launch the missiles. Again we can proceed in synchronous mode
-	req = MPI::COMM_WORLD.Isend(ptr, n * mpi_t.n, mpi_t.t, data->proc,
-	                            data->tag);
+	req =
+	    MPI::COMM_WORLD.Isend(ptr, n * mpi_t.n, mpi_t.t, data->proc, data->tag);
 	if (status.Get_error() != MPI::SUCCESS) {
 		std::ostringstream msg;
 		msg << "Failure sending the field \"" << field->name()
 		    << "\" to process " << data->proc << ":" << std::endl
-		    << get_MPI_Error_string(status.Get_error())
-		    << std::endl;
+		    << get_MPI_Error_string(status.Get_error()) << std::endl;
 		LOG(L_ERROR, msg.str());
 		free(data);
 		throw std::runtime_error("MPI sending error");
@@ -700,7 +696,7 @@ cbMPISend(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 }
 
 void
-MPISync::Sender::execute(EventProfile *profiler)
+MPISync::Sender::execute(EventProfile* profiler)
 {
 	unsigned int i, j;
 	cl_int err_code;
@@ -710,7 +706,7 @@ MPISync::Sender::execute(EventProfile *profiler)
 
 	// Compute the offset of the first particle to be sent
 	event_wait_list = { _mask->getWritingEvent(),
-	                    _n_offset_mask->getWritingEvent() };
+		                _n_offset_mask->getWritingEvent() };
 	err_code = clEnqueueNDRangeKernel(C->command_queue(),
 	                                  _n_offset_kernel,
 	                                  1,
@@ -736,7 +732,7 @@ MPISync::Sender::execute(EventProfile *profiler)
 
 	// Compute number of particles to be sent
 	event_wait_list = { _mask->getWritingEvent(),
-	                    _n_send_mask->getWritingEvent() };
+		                _n_send_mask->getWritingEvent() };
 	err_code = clEnqueueNDRangeKernel(C->command_queue(),
 	                                  _n_send_kernel,
 	                                  1,
@@ -1010,7 +1006,7 @@ typedef struct
 	cl_event offset_event;
 	cl_event mask_event;
 	// Store the profiler so we can feed it up on the callback
-	EventProfile *profiler;
+	EventProfile* profiler;
 } MPISyncRecvUserData;
 
 void CL_CALLBACK
@@ -1030,9 +1026,8 @@ cbMPIRecv(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 	if (status.Get_error() != MPI::SUCCESS) {
 		std::ostringstream msg;
 		msg << "Failure receiving the number of particles from process "
-			<< data->proc << ":" << std::endl
-			<< get_MPI_Error_string(status.Get_error())
-			<< std::endl;
+		    << data->proc << ":" << std::endl
+		    << get_MPI_Error_string(status.Get_error()) << std::endl;
 		LOG(L_ERROR, msg.str());
 		free(data);
 		throw std::runtime_error("MPI receiving error");
@@ -1053,8 +1048,8 @@ cbMPIRecv(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 	err_code = clReleaseEvent(data->offset_event);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
-		msg << "Failure releasing user event for \""
-		    << data->offset->name() << "\" variable." << std::endl;
+		msg << "Failure releasing user event for \"" << data->offset->name()
+		    << "\" variable." << std::endl;
 		LOG(L_ERROR, msg.str());
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
@@ -1066,7 +1061,7 @@ cbMPIRecv(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 		if (err_code != CL_SUCCESS) {
 			std::stringstream msg;
 			msg << "Failure setting user event status for \""
-		    << data->mask->name() << "\" variable." << std::endl;
+			    << data->mask->name() << "\" variable." << std::endl;
 			LOG(L_ERROR, msg.str());
 			InputOutput::Logger::singleton()->printOpenCLError(err_code);
 			throw std::runtime_error("OpenCL execution error");
@@ -1074,16 +1069,15 @@ cbMPIRecv(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 		err_code = clReleaseEvent(data->mask_event);
 		if (err_code != CL_SUCCESS) {
 			std::stringstream msg;
-			msg << "Failure releasing user event for \""
-			    << data->mask->name() << "\" variable." << std::endl;
+			msg << "Failure releasing user event for \"" << data->mask->name()
+			    << "\" variable." << std::endl;
 			LOG(L_ERROR, msg.str());
 			InputOutput::Logger::singleton()->printOpenCLError(err_code);
 			throw std::runtime_error("OpenCL execution error");
 		}
 		for (unsigned int i = 0; i < data->n_fields; i++) {
 			InputOutput::ArrayVariable* field = data->fields[i];
-			err_code = clSetUserEventStatus(data->field_events[i],
-			                                CL_COMPLETE);
+			err_code = clSetUserEventStatus(data->field_events[i], CL_COMPLETE);
 			if (err_code != CL_SUCCESS) {
 				std::stringstream msg;
 				msg << "Failure setting user event status for \""
@@ -1142,8 +1136,7 @@ cbMPIRecv(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 
 	for (unsigned int i = 0; i < data->n_fields; i++) {
 		InputOutput::ArrayVariable* field = data->fields[i];
-		const size_t tsize = InputOutput::Variables::typeToBytes(
-			field->type());
+		const size_t tsize = InputOutput::Variables::typeToBytes(field->type());
 		void* ptr = (void*)((char*)(data->ptrs[i]) + offset * tsize);
 
 		// Select the appropriate datatype (MPI needs its own type decriptor),
@@ -1159,18 +1152,14 @@ cbMPIRecv(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 		}
 
 		// Get the data in synchronous mode
-		req = MPI::COMM_WORLD.Irecv(ptr,
-		                            n * mpi_t.n,
-		                            mpi_t.t,
-		                            data->proc,
-		                            i + 1);
+		req =
+		    MPI::COMM_WORLD.Irecv(ptr, n * mpi_t.n, mpi_t.t, data->proc, i + 1);
 		req.Wait(status);
 		if (status.Get_error() != MPI::SUCCESS) {
 			std::ostringstream msg;
-			msg << "Failure receiving the field \""
-			    << field->name() << " from process " << data->proc << ":"
-			    << std::endl << get_MPI_Error_string(status.Get_error())
-			    << std::endl;
+			msg << "Failure receiving the field \"" << field->name()
+			    << " from process " << data->proc << ":" << std::endl
+			    << get_MPI_Error_string(status.Get_error()) << std::endl;
 			LOG(L_ERROR, msg.str());
 			free(data);
 			throw std::runtime_error("MPI receiving error");
@@ -1204,7 +1193,7 @@ cbMPIRecv(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 }
 
 void
-MPISync::Receiver::execute(EventProfile *profiler)
+MPISync::Receiver::execute(EventProfile* profiler)
 {
 	unsigned int i;
 	cl_int err_code;
@@ -1253,8 +1242,8 @@ MPISync::Receiver::execute(EventProfile *profiler)
 	user_data->mask = _mask;
 	user_data->kernel = _kernel;
 	user_data->local_work_size = _local_work_size;
-	user_data->field_events = (cl_event*)malloc(
-		_fields.size() * sizeof(cl_event));
+	user_data->field_events =
+	    (cl_event*)malloc(_fields.size() * sizeof(cl_event));
 	if (!user_data->field_events) {
 		std::stringstream msg;
 		msg << "Failure allocating " << _fields.size() * sizeof(cl_event)

@@ -28,7 +28,9 @@
 #include <fstream>
 #include "Report.hpp"
 
-namespace Aqua{ namespace CalcServer{ namespace Reports{
+namespace Aqua {
+namespace CalcServer {
+namespace Reports {
 
 /** @class Performance Performance.h CalcServer/Performance.h
  * @brief On screen performance output.
@@ -42,78 +44,84 @@ namespace Aqua{ namespace CalcServer{ namespace Reports{
  */
 class Performance : public Aqua::CalcServer::Reports::Report
 {
-public:
-    /** @brief Constructor.
-     * @param tool_name Tool name
-     * @param color Color to print the report. Valid colors are:
-     *    - "white"
-     *    - "green"
-     *    - "blue"
-     *    - "yellow"
-     *    - "red"
-     *    - "magenta"
-     *    - "cyan"
-     * @param bold false if the report should not be highlighted with bolded
-     * font, true otherwise
-     * @param output_file Path of the XML output file. Several scape strings
-     * can be used, as described in Aqua::newFilePath()
-     */
-    Performance(const std::string tool_name,
-                const std::string color="white",
-                bool bold=false,
-                const std::string output_file="");
+  public:
+	/** @brief Constructor.
+	 * @param tool_name Tool name
+	 * @param color Color to print the report. Valid colors are:
+	 *    - "white"
+	 *    - "green"
+	 *    - "blue"
+	 *    - "yellow"
+	 *    - "red"
+	 *    - "magenta"
+	 *    - "cyan"
+	 * @param bold false if the report should not be highlighted with bolded
+	 * font, true otherwise
+	 * @param output_file Path of the XML output file. Several scape strings
+	 * can be used, as described in Aqua::newFilePath()
+	 */
+	Performance(const std::string tool_name,
+	            const std::string color = "white",
+	            bool bold = false,
+	            const std::string output_file = "");
 
-    /** @brief Destructor
-     */
-    ~Performance();
+	/** @brief Destructor
+	 */
+	~Performance();
 
-    /** @brief Initialize the tool.
-     */
-    void setup();
+	/** @brief Initialize the tool.
+	 */
+	void setup();
 
-    /** @brief Launch _execute() without measuring the elapsed time
-     *
-     * This tool is measuring the total time elapsed during a single time step
-     * computation, and comparing it with the time consumed by the other tools.
-     * Hence we should override the overloaded time measuring capabilities
-     * @see Aqua::CalcServer::Tool
-     */
-    void execute(){std::vector<cl_event> null; _execute(null);}
+	/** @brief Launch _execute() without measuring the elapsed time
+	 *
+	 * This tool is measuring the total time elapsed during a single time step
+	 * computation, and comparing it with the time consumed by the other tools.
+	 * Hence we should override the overloaded time measuring capabilities
+	 * @see Aqua::CalcServer::Tool
+	 */
+	void execute()
+	{
+		std::vector<cl_event> null;
+		_execute(null);
+	}
 
-protected:
-    /** @brief Get the allocated memory.
-     * @return Allocated memory in the computational device.
-     */
-    size_t computeAllocatedMemory();
+  protected:
+	/** @brief Get the allocated memory.
+	 * @return Allocated memory in the computational device.
+	 */
+	size_t computeAllocatedMemory();
 
-    /** Execute the tool
-     * @param events List of events that shall be waited before safe execution
-     * @return OpenCL event to be waited before accessing the dependencies
-     */
-    cl_event _execute(const std::vector<cl_event> events);
+	/** Execute the tool
+	 * @param events List of events that shall be waited before safe execution
+	 * @return OpenCL event to be waited before accessing the dependencies
+	 */
+	cl_event _execute(const std::vector<cl_event> events);
 
-private:
-    /// Output color
-    std::string _color;
-    /// Output bold or normal flag
-    bool _bold;
-    /// Output file name
-    std::string _output_file;
-    /** @brief Time mark at the end of the previous time step (to measure the
-     * total elapsed time per time step)
-     */
-    timeval _tic;
-    /** @brief First execution flag
-     *
-     * The first time step is including all the time required to build the tool,
-     * which may invalidate the average and variance values. In that case is
-     * therefore better using the elapsed time by the tools
-     */
-    bool _first_execution;
-    /// Output file handler
-    std::ofstream _f;
+  private:
+	/// Output color
+	std::string _color;
+	/// Output bold or normal flag
+	bool _bold;
+	/// Output file name
+	std::string _output_file;
+	/** @brief Time mark at the end of the previous time step (to measure the
+	 * total elapsed time per time step)
+	 */
+	timeval _tic;
+	/** @brief First execution flag
+	 *
+	 * The first time step is including all the time required to build the tool,
+	 * which may invalidate the average and variance values. In that case is
+	 * therefore better using the elapsed time by the tools
+	 */
+	bool _first_execution;
+	/// Output file handler
+	std::ofstream _f;
 };
 
-}}} // namespace
+}
+}
+} // namespace
 
 #endif // PERFORMANCE_H_INCLUDED

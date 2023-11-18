@@ -1028,25 +1028,24 @@ context_error_notify(const char* errinfo,
  * Aqua::CalcServer::CalcServer::_device_timer_offset value
  */
 void CL_CALLBACK
-device_timer_sampler(cl_event event, cl_int event_command_status, void* user_data)
+device_timer_sampler(cl_event event,
+                     cl_int event_command_status,
+                     void* user_data)
 {
 	cl_int err_code;
 	cl_ulong device_timer;
 
 	auto host_timer = CalcServer::host_timer();
 
-	err_code = clGetEventProfilingInfo(event,
-	                                   CL_PROFILING_COMMAND_END,
-	                                   sizeof(cl_ulong),
-	                                   &device_timer,
-	                                   NULL);
+	err_code = clGetEventProfilingInfo(
+	    event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &device_timer, NULL);
 	if (err_code != CL_SUCCESS) {
 		LOG(L_ERROR, "Failure sampling the device timer.\n");
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		return;
 	}
 
-	cl_ulong *device_timer_offset = (cl_ulong*)user_data;
+	cl_ulong* device_timer_offset = (cl_ulong*)user_data;
 	*device_timer_offset = host_timer - device_timer;
 }
 
@@ -1174,19 +1173,15 @@ CalcServer::setupDevices()
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL error");
 	}
-	err_code = clEnqueueMarkerWithWaitList(_command_queue,
-	                                       1,
-	                                       &trigger,
-	                                       &sampler);
+	err_code =
+	    clEnqueueMarkerWithWaitList(_command_queue, 1, &trigger, &sampler);
 	if (err_code != CL_SUCCESS) {
 		LOG(L_ERROR, "Failure generating the sampler event\n");
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL error");
 	}
-	err_code = clSetEventCallback(sampler,
-	                              CL_COMPLETE,
-	                              device_timer_sampler,
-	                              &_device_timer_offset);
+	err_code = clSetEventCallback(
+	    sampler, CL_COMPLETE, device_timer_sampler, &_device_timer_offset);
 	if (err_code != CL_SUCCESS) {
 		LOG(L_ERROR, "Failure registering the timer sampling callback\n");
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
@@ -1204,7 +1199,7 @@ CalcServer::setupDevices()
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL error");
 	}
-	for (auto e : {trigger, sampler}) {
+	for (auto e : { trigger, sampler }) {
 		err_code = clReleaseEvent(e);
 		if (err_code != CL_SUCCESS) {
 			LOG(L_ERROR, "Failure releasing the timer sampler events\n");

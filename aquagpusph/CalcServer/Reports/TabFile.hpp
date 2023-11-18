@@ -27,7 +27,9 @@
 #include <fstream>
 #include "Report.hpp"
 
-namespace Aqua{ namespace CalcServer{ namespace Reports{
+namespace Aqua {
+namespace CalcServer {
+namespace Reports {
 
 /** @class TabFile TabFile.h CalcServer/TabFile.h
  * @brief Runtime output file.
@@ -40,43 +42,45 @@ namespace Aqua{ namespace CalcServer{ namespace Reports{
  */
 class TabFile : public Aqua::CalcServer::Reports::Report
 {
-public:
-    /** @brief Constructor
-     * @param tool_name Tool name
-     * @param fields Fields to be printed
-     * The fields are separated by commas or semicolons, and the spaces are just
-     * ignored
-     * The semicolons will also force a line break in the report
-     * @param output_file File to be written. Several scape strings can be used,
-     * as described in Aqua::newFilePath()
-     * @remarks The output file will be cleared.
-     */
-    TabFile(const std::string tool_name,
-            const std::string fields,
-            const std::string output_file);
+  public:
+	/** @brief Constructor
+	 * @param tool_name Tool name
+	 * @param fields Fields to be printed
+	 * The fields are separated by commas or semicolons, and the spaces are just
+	 * ignored
+	 * The semicolons will also force a line break in the report
+	 * @param output_file File to be written. Several scape strings can be used,
+	 * as described in Aqua::newFilePath()
+	 * @remarks The output file will be cleared.
+	 */
+	TabFile(const std::string tool_name,
+	        const std::string fields,
+	        const std::string output_file);
 
-    /** @brief Destructor
-     */
-    ~TabFile();
+	/** @brief Destructor
+	 */
+	~TabFile();
 
-    /** @brief Initialize the tool.
-     */
-    void setup();
+	/** @brief Initialize the tool.
+	 */
+	void setup();
 
-protected:
-    /** Execute the tool
-     * @param events List of events that shall be waited before safe execution
-     * @return OpenCL event to be waited before accessing the dependencies
-     */
-    cl_event _execute(const std::vector<cl_event> events);
+  protected:
+	/** Execute the tool
+	 * @param events List of events that shall be waited before safe execution
+	 * @return OpenCL event to be waited before accessing the dependencies
+	 */
+	cl_event _execute(const std::vector<cl_event> events);
 
-private:
-    /// Output file name
-    std::string _output_file;
-    /// Output file handler
-    std::ofstream _f;
+  private:
+	/// Output file name
+	std::string _output_file;
+	/// Output file handler
+	std::ofstream _f;
 };
 
-}}} // namespace
+}
+}
+} // namespace
 
 #endif // TABFILE_H_INCLUDED

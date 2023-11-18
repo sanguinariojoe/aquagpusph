@@ -241,7 +241,6 @@ Logger::writeReport(std::string input, std::string color, bool bold)
 	}
 #endif
 
-
 	// Print the message
 	int row = _last_row;
 	move(row, 0);

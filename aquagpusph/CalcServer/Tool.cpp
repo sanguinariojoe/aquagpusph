@@ -40,7 +40,7 @@ Profiler::elapsed() const
 		t += avg;
 		dt += std;
 	}
-	return {t, dt};
+	return { t, dt };
 }
 
 std::tuple<cl_ulong, cl_ulong>

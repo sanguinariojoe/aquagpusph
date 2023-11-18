@@ -26,7 +26,9 @@
 #include "aquagpusph/CalcServer/CalcServer.hpp"
 #include "SetTabFile.hpp"
 
-namespace Aqua{ namespace CalcServer{ namespace Reports{
+namespace Aqua {
+namespace CalcServer {
+namespace Reports {
 
 SetTabFile::SetTabFile(const std::string tool_name,
                        const std::string fields,
@@ -35,289 +37,255 @@ SetTabFile::SetTabFile(const std::string tool_name,
                        const std::string output_file,
                        unsigned int ipf,
                        float fps)
-    : Report(tool_name, fields, ipf, fps)
-    , _output_file("")
+  : Report(tool_name, fields, ipf, fps)
+  , _output_file("")
 {
-    _bounds.x = first;
-    _bounds.y = first + n;
-    try {
-        unsigned int i = 0;
-        _output_file = newFilePath(output_file, i, 1);
-    } catch(std::invalid_argument e) {
-        std::ostringstream msg;
-        _output_file = setStrConstantsCopy(output_file);
-        msg << "Overwriting '" << _output_file << "'" << std::endl;
-        LOG(L_WARNING, msg.str());
-    }
+	_bounds.x = first;
+	_bounds.y = first + n;
+	try {
+		unsigned int i = 0;
+		_output_file = newFilePath(output_file, i, 1);
+	} catch (std::invalid_argument e) {
+		std::ostringstream msg;
+		_output_file = setStrConstantsCopy(output_file);
+		msg << "Overwriting '" << _output_file << "'" << std::endl;
+		LOG(L_WARNING, msg.str());
+	}
 }
 
 SetTabFile::~SetTabFile()
 {
-    if(_f.is_open()) _f.close();
+	if (_f.is_open())
+		_f.close();
 }
 
-void SetTabFile::setup()
+void
+SetTabFile::setup()
 {
-    unsigned int i;
+	unsigned int i;
 
-    std::ostringstream msg;
-    msg << "Loading the report \"" << name() << "\"..." << std::endl;
-    LOG(L_INFO, msg.str());
+	std::ostringstream msg;
+	msg << "Loading the report \"" << name() << "\"..." << std::endl;
+	LOG(L_INFO, msg.str());
 
-    _f.open(_output_file.c_str(), std::ios::out);
+	_f.open(_output_file.c_str(), std::ios::out);
 
-    Report::setup();
+	Report::setup();
 
-    // Write the header
-    _f << "# Time ";
-    std::vector<InputOutput::Variable*> vars = variables();
-    for(i = _bounds.x; i < _bounds.y; i++){
-        for(auto var : vars){
-            _f << var->name() << "_" << i;
-        }
-    }
-    _f << std::endl;
-    _f.flush();
+	// Write the header
+	_f << "# Time ";
+	std::vector<InputOutput::Variable*> vars = variables();
+	for (i = _bounds.x; i < _bounds.y; i++) {
+		for (auto var : vars) {
+			_f << var->name() << "_" << i;
+		}
+	}
+	_f << std::endl;
+	_f.flush();
 }
 
-cl_event SetTabFile::_execute(const std::vector<cl_event> events)
+cl_event
+SetTabFile::_execute(const std::vector<cl_event> events)
 {
-    if(!mustUpdate()){
-        return NULL;
-    }
+	if (!mustUpdate()) {
+		return NULL;
+	}
 
-    unsigned int i, j;
-    cl_int err_code;
-    CalcServer *C = CalcServer::singleton();
+	unsigned int i, j;
+	cl_int err_code;
+	CalcServer* C = CalcServer::singleton();
 
-    // Print the time instant
-    _f << C->variables()->get("t")->asString() << " ";
+	// Print the time instant
+	_f << C->variables()->get("t")->asString() << " ";
 
-    // Get the data to be printed
-    std::vector<InputOutput::Variable*> vars = variables();
-    for(auto var : vars){
-        if(var->type().find('*') == std::string::npos){
-            std::stringstream msg;
-            msg << "The report \"" << name()
-                << "\" may not save scalar variables (\""
-                << var->name() << "\")." << std::endl;
-            LOG(L_ERROR, msg.str());
-            throw std::runtime_error("Invalid variable type");
-        }
-        size_t typesize = C->variables()->typeToBytes(var->type());
-        size_t len = var->size() / typesize;
-        if(len < bounds().y){
-            std::stringstream msg;
-            msg << "The report \"" << name()
-                << "\" may not save field \""
-                << var->name() << "\" because is not long enough."
-                << std::endl;
-            LOG(L_ERROR, msg.str());
-            throw std::runtime_error("Invalid variable type");
-        }
-    }
-    std::vector<void*> data = download(vars);
+	// Get the data to be printed
+	std::vector<InputOutput::Variable*> vars = variables();
+	for (auto var : vars) {
+		if (var->type().find('*') == std::string::npos) {
+			std::stringstream msg;
+			msg << "The report \"" << name()
+			    << "\" may not save scalar variables (\"" << var->name()
+			    << "\")." << std::endl;
+			LOG(L_ERROR, msg.str());
+			throw std::runtime_error("Invalid variable type");
+		}
+		size_t typesize = C->variables()->typeToBytes(var->type());
+		size_t len = var->size() / typesize;
+		if (len < bounds().y) {
+			std::stringstream msg;
+			msg << "The report \"" << name() << "\" may not save field \""
+			    << var->name() << "\" because is not long enough." << std::endl;
+			LOG(L_ERROR, msg.str());
+			throw std::runtime_error("Invalid variable type");
+		}
+	}
+	std::vector<void*> data = download(vars);
 
-    // Print the data
-    for(i = 0; i < bounds().y - bounds().x; i++){
-        for(j = 0; j < vars.size(); j++){
-            InputOutput::ArrayVariable *var = (InputOutput::ArrayVariable*)vars.at(j);
-            const std::string type_name = var->type();
-            if(!type_name.compare("int*")){
-                int* v = (int*)data.at(j);
-                _f << v[i] << " ";
-            }
-            else if(!type_name.compare("unsigned int*")){
-                unsigned int* v = (unsigned int*)data.at(j);
-                _f << v[i] << " ";
-            }
-            else if(!type_name.compare("float*")){
-                float* v = (float*)data.at(j);
-                _f << v[i] << " ";
-            }
-            else if(!type_name.compare("ivec*")){
-                #ifdef HAVE_3D
-                    ivec* v = (ivec*)data.at(j);
-                    _f << "(" << v[i].x << ","
-                              << v[i].y << ","
-                              << v[i].z << ","
-                              << v[i].w << ") ";
-                #else
-                    ivec* v = (ivec*)data.at(j);
-                    _f << "(" << v[i].x << ","
-                              << v[i].y << ") ";
-                #endif // HAVE_3D
-            }
-            else if(!type_name.compare("ivec2*")){
-                ivec2* v = (ivec2*)data.at(j);
-                _f << "(" << v[i].x << ","
-                          << v[i].y << ") ";
-            }
-            else if(!type_name.compare("ivec3*")){
-                ivec3* v = (ivec3*)data.at(j);
-                _f << "(" << v[i].x << ","
-                          << v[i].y << ","
-                          << v[i].z << ") ";
-            }
-            else if(!type_name.compare("ivec4*")){
-                ivec4* v = (ivec4*)data.at(j);
-                _f << "(" << v[i].x << ","
-                          << v[i].y << ","
-                          << v[i].z << ","
-                          << v[i].w << ") ";
-            }
-            else if(!type_name.compare("uivec*")){
-                #ifdef HAVE_3D
-                    uivec* v = (uivec*)data.at(j);
-                    _f << "(" << v[i].x << ","
-                              << v[i].y << ","
-                              << v[i].z << ","
-                              << v[i].w << ") ";
-                #else
-                    uivec* v = (uivec*)data.at(j);
-                    _f << "(" << v[i].x << ","
-                              << v[i].y << ") ";
-                #endif // HAVE_3D
-            }
-            else if(!type_name.compare("uivec2*")){
-                uivec2* v = (uivec2*)data.at(j);
-                _f << "(" << v[i].x << ","
-                          << v[i].y << ") ";
-            }
-            else if(!type_name.compare("uivec3*")){
-                uivec3* v = (uivec3*)data.at(j);
-                _f << "(" << v[i].x << ","
-                          << v[i].y << ","
-                          << v[i].z << ") ";
-            }
-            else if(!type_name.compare("uivec4*")){
-                uivec4* v = (uivec4*)data.at(j);
-                _f << "(" << v[i].x << ","
-                          << v[i].y << ","
-                          << v[i].z << ","
-                          << v[i].w << ") ";
-            }
-            else if(!type_name.compare("vec*")){
-                #ifdef HAVE_3D
-                    vec* v = (vec*)data.at(j);
-                    _f << "(" << v[i].x << ","
-                              << v[i].y << ","
-                              << v[i].z << ","
-                              << v[i].w << ") ";
-                #else
-                    vec* v = (vec*)data.at(j);
-                    _f << "(" << v[i].x << ","
-                              << v[i].y << ") ";
-                #endif // HAVE_3D
-            }
-            else if(!type_name.compare("vec2*")){
-                vec2* v = (vec2*)data.at(j);
-                _f << "(" << v[i].x << ","
-                          << v[i].y << ") ";
-            }
-            else if(!type_name.compare("vec3*")){
-                vec3* v = (vec3*)data.at(j);
-                _f << "(" << v[i].x << ","
-                          << v[i].y << ","
-                          << v[i].z << ") ";
-            }
-            else if(!type_name.compare("vec4*")){
-                vec4* v = (vec4*)data.at(j);
-                    _f << "(" << v[i].x << ","
-                              << v[i].y << ","
-                              << v[i].z << ","
-                              << v[i].w << ") ";
-            }
-        }
-    }
-    _f << std::endl;
-    _f.flush();
+	// Print the data
+	for (i = 0; i < bounds().y - bounds().x; i++) {
+		for (j = 0; j < vars.size(); j++) {
+			InputOutput::ArrayVariable* var =
+			    (InputOutput::ArrayVariable*)vars.at(j);
+			const std::string type_name = var->type();
+			if (!type_name.compare("int*")) {
+				int* v = (int*)data.at(j);
+				_f << v[i] << " ";
+			} else if (!type_name.compare("unsigned int*")) {
+				unsigned int* v = (unsigned int*)data.at(j);
+				_f << v[i] << " ";
+			} else if (!type_name.compare("float*")) {
+				float* v = (float*)data.at(j);
+				_f << v[i] << " ";
+			} else if (!type_name.compare("ivec*")) {
+#ifdef HAVE_3D
+				ivec* v = (ivec*)data.at(j);
+				_f << "(" << v[i].x << "," << v[i].y << "," << v[i].z << ","
+				   << v[i].w << ") ";
+#else
+				ivec* v = (ivec*)data.at(j);
+				_f << "(" << v[i].x << "," << v[i].y << ") ";
+#endif // HAVE_3D
+			} else if (!type_name.compare("ivec2*")) {
+				ivec2* v = (ivec2*)data.at(j);
+				_f << "(" << v[i].x << "," << v[i].y << ") ";
+			} else if (!type_name.compare("ivec3*")) {
+				ivec3* v = (ivec3*)data.at(j);
+				_f << "(" << v[i].x << "," << v[i].y << "," << v[i].z << ") ";
+			} else if (!type_name.compare("ivec4*")) {
+				ivec4* v = (ivec4*)data.at(j);
+				_f << "(" << v[i].x << "," << v[i].y << "," << v[i].z << ","
+				   << v[i].w << ") ";
+			} else if (!type_name.compare("uivec*")) {
+#ifdef HAVE_3D
+				uivec* v = (uivec*)data.at(j);
+				_f << "(" << v[i].x << "," << v[i].y << "," << v[i].z << ","
+				   << v[i].w << ") ";
+#else
+				uivec* v = (uivec*)data.at(j);
+				_f << "(" << v[i].x << "," << v[i].y << ") ";
+#endif // HAVE_3D
+			} else if (!type_name.compare("uivec2*")) {
+				uivec2* v = (uivec2*)data.at(j);
+				_f << "(" << v[i].x << "," << v[i].y << ") ";
+			} else if (!type_name.compare("uivec3*")) {
+				uivec3* v = (uivec3*)data.at(j);
+				_f << "(" << v[i].x << "," << v[i].y << "," << v[i].z << ") ";
+			} else if (!type_name.compare("uivec4*")) {
+				uivec4* v = (uivec4*)data.at(j);
+				_f << "(" << v[i].x << "," << v[i].y << "," << v[i].z << ","
+				   << v[i].w << ") ";
+			} else if (!type_name.compare("vec*")) {
+#ifdef HAVE_3D
+				vec* v = (vec*)data.at(j);
+				_f << "(" << v[i].x << "," << v[i].y << "," << v[i].z << ","
+				   << v[i].w << ") ";
+#else
+				vec* v = (vec*)data.at(j);
+				_f << "(" << v[i].x << "," << v[i].y << ") ";
+#endif // HAVE_3D
+			} else if (!type_name.compare("vec2*")) {
+				vec2* v = (vec2*)data.at(j);
+				_f << "(" << v[i].x << "," << v[i].y << ") ";
+			} else if (!type_name.compare("vec3*")) {
+				vec3* v = (vec3*)data.at(j);
+				_f << "(" << v[i].x << "," << v[i].y << "," << v[i].z << ") ";
+			} else if (!type_name.compare("vec4*")) {
+				vec4* v = (vec4*)data.at(j);
+				_f << "(" << v[i].x << "," << v[i].y << "," << v[i].z << ","
+				   << v[i].w << ") ";
+			}
+		}
+	}
+	_f << std::endl;
+	_f.flush();
 
-    for(i = 0; i < vars.size(); i++){
-        free(data.at(i)); data.at(i) = NULL;
-    }
-    data.clear();
+	for (i = 0; i < vars.size(); i++) {
+		free(data.at(i));
+		data.at(i) = NULL;
+	}
+	data.clear();
 
-    return NULL;
+	return NULL;
 }
 
-std::vector<void*> SetTabFile::download(std::vector<InputOutput::Variable*> vars)
+std::vector<void*>
+SetTabFile::download(std::vector<InputOutput::Variable*> vars)
 {
-    std::vector<void*> data;
-    std::vector<cl_event> events;  // vector storage is continuous memory
-    size_t typesize, len;
-    cl_int err_code;
-    CalcServer *C = CalcServer::singleton();
+	std::vector<void*> data;
+	std::vector<cl_event> events; // vector storage is continuous memory
+	size_t typesize, len;
+	cl_int err_code;
+	CalcServer* C = CalcServer::singleton();
 
-    for(auto var : vars){
-        typesize = C->variables()->typeToBytes(var->type());
-        len = var->size() / typesize;
-        if(len < bounds().y){
-            std::stringstream msg;
-            msg << "The report \"" << name()
-                << "\" may not save field \""
-                << var->name() << "\" because is not long enough."
-                << std::endl;
-            LOG(L_ERROR, msg.str());
-            clearList(&data);
-            throw std::runtime_error("Invalid variable type");
-        }
-        void *store = malloc(typesize * (bounds().y - bounds().x));
-        if(!store){
-            std::stringstream msg;
-            msg << "Failure allocating " << typesize * (bounds().y - bounds().x)
-                << " bytes for the field \"" << var->name()
-                << "\"." << std::endl;
-            clearList(&data);
-            throw std::bad_alloc();
-        }
-        data.push_back(store);
+	for (auto var : vars) {
+		typesize = C->variables()->typeToBytes(var->type());
+		len = var->size() / typesize;
+		if (len < bounds().y) {
+			std::stringstream msg;
+			msg << "The report \"" << name() << "\" may not save field \""
+			    << var->name() << "\" because is not long enough." << std::endl;
+			LOG(L_ERROR, msg.str());
+			clearList(&data);
+			throw std::runtime_error("Invalid variable type");
+		}
+		void* store = malloc(typesize * (bounds().y - bounds().x));
+		if (!store) {
+			std::stringstream msg;
+			msg << "Failure allocating " << typesize * (bounds().y - bounds().x)
+			    << " bytes for the field \"" << var->name() << "\"."
+			    << std::endl;
+			clearList(&data);
+			throw std::bad_alloc();
+		}
+		data.push_back(store);
 
-        cl_event event;
-        try {
-            event = C->getUnsortedMem(var->name().c_str(),
-                                      typesize * bounds().x,
-                                      typesize * (bounds().y - bounds().x),
-                                      store);
-        } catch(...) {
-            clearList(&data);
-            throw;
-        }
+		cl_event event;
+		try {
+			event = C->getUnsortedMem(var->name().c_str(),
+			                          typesize * bounds().x,
+			                          typesize * (bounds().y - bounds().x),
+			                          store);
+		} catch (...) {
+			clearList(&data);
+			throw;
+		}
 
-        events.push_back(event);
-    }
+		events.push_back(event);
+	}
 
-    // Wait until all the data has been downloaded
-    err_code = clWaitForEvents(events.size(),
-                               events.data());
-    if(err_code != CL_SUCCESS){
-        LOG(L_ERROR, "Failure waiting for the variables download.\n");
-        InputOutput::Logger::singleton()->printOpenCLError(err_code);
-        clearList(&data);
-        throw std::runtime_error("OpenCL error");
-    }
+	// Wait until all the data has been downloaded
+	err_code = clWaitForEvents(events.size(), events.data());
+	if (err_code != CL_SUCCESS) {
+		LOG(L_ERROR, "Failure waiting for the variables download.\n");
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		clearList(&data);
+		throw std::runtime_error("OpenCL error");
+	}
 
-    // Destroy the events
-    for(auto event : events){
-        err_code = clReleaseEvent(event);
-        if(err_code != CL_SUCCESS){
-            LOG(L_ERROR, "Failure releasing the events.\n");
-            InputOutput::Logger::singleton()->printOpenCLError(err_code);
-            clearList(&data);
-            throw std::runtime_error("OpenCL error");
-        }
-    }
+	// Destroy the events
+	for (auto event : events) {
+		err_code = clReleaseEvent(event);
+		if (err_code != CL_SUCCESS) {
+			LOG(L_ERROR, "Failure releasing the events.\n");
+			InputOutput::Logger::singleton()->printOpenCLError(err_code);
+			clearList(&data);
+			throw std::runtime_error("OpenCL error");
+		}
+	}
 
-    return data;
+	return data;
 }
 
-void SetTabFile::clearList(std::vector<void*> *data)
+void
+SetTabFile::clearList(std::vector<void*>* data)
 {
-    for(auto d : *data){
-        if(d)
-            free(d);
-    }
-    data->clear();
+	for (auto d : *data) {
+		if (d)
+			free(d);
+	}
+	data->clear();
 }
 
-}}} // namespace
+}
+}
+} // namespace

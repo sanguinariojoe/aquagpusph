@@ -26,7 +26,9 @@
 
 #include "Report.hpp"
 
-namespace Aqua{ namespace CalcServer{ namespace Reports{
+namespace Aqua {
+namespace CalcServer {
+namespace Reports {
 
 /** @class Screen Screen.h CalcServer/Screen.h
  * @brief On screen runtime output.
@@ -40,44 +42,46 @@ namespace Aqua{ namespace CalcServer{ namespace Reports{
  */
 class Screen : public Aqua::CalcServer::Reports::Report
 {
-public:
-    /** @brief Constructor.
-     * @param tool_name Tool name.
-     * @param fields Fields to be printed.
-     * The fields are separated by commas or semicolons, and the spaces are just
-     * ignored.
-     * The semicolons will also force a line break in the report.
-     * @param color Output color.
-     * @param bold true if the text should be highlighted as bold text, false
-     * otherwise.
-     */
-    Screen(const std::string tool_name,
-           const std::string fields,
-           const std::string color="white",
-           bool bold=false);
+  public:
+	/** @brief Constructor.
+	 * @param tool_name Tool name.
+	 * @param fields Fields to be printed.
+	 * The fields are separated by commas or semicolons, and the spaces are just
+	 * ignored.
+	 * The semicolons will also force a line break in the report.
+	 * @param color Output color.
+	 * @param bold true if the text should be highlighted as bold text, false
+	 * otherwise.
+	 */
+	Screen(const std::string tool_name,
+	       const std::string fields,
+	       const std::string color = "white",
+	       bool bold = false);
 
-    /** @brief Destructor
-     */
-    ~Screen();
+	/** @brief Destructor
+	 */
+	~Screen();
 
-    /** @brief Initialize the tool.
-     */
-    void setup();
+	/** @brief Initialize the tool.
+	 */
+	void setup();
 
-protected:
-    /** Execute the tool
-     * @param events List of events that shall be waited before safe execution
-     * @return OpenCL event to be waited before accessing the dependencies
-     */
-    cl_event _execute(const std::vector<cl_event> events);
+  protected:
+	/** Execute the tool
+	 * @param events List of events that shall be waited before safe execution
+	 * @return OpenCL event to be waited before accessing the dependencies
+	 */
+	cl_event _execute(const std::vector<cl_event> events);
 
-private:
-    /// Output color
-    std::string _color;
-    /// Output bold or normal flag
-    bool _bold;
+  private:
+	/// Output color
+	std::string _color;
+	/// Output bold or normal flag
+	bool _bold;
 };
 
-}}} // namespace
+}
+}
+} // namespace
 
 #endif // SCREEN_H_INCLUDED

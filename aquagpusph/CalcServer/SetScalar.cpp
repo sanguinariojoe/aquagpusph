@@ -39,7 +39,7 @@ ScalarExpression::ScalarExpression(const std::string name,
   , _output_type(type)
 {
 	setOutputType(type);
-	Profiler::subinstances( { new ScalarProfile("solver") } );
+	Profiler::subinstances({ new ScalarProfile("solver") });
 }
 
 ScalarExpression::~ScalarExpression()

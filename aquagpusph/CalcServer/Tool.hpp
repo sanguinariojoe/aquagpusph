@@ -51,7 +51,10 @@ class Named
 	/** Constructor.
 	 * @param name The name
 	 */
-	Named(const std::string name) : _name(name) {}
+	Named(const std::string name)
+	  : _name(name)
+	{
+	}
 
 	/** Destructor
 	 */
@@ -72,16 +75,16 @@ class Named
 	std::string _name;
 };
 
-
 /** @brief Get the average and standard deviation values
  * @param v Vector of values
  * @return the average and standard deviation values
  */
 template<typename T>
-inline std::tuple<T, T> stats(const std::deque<T>& v)
+inline std::tuple<T, T>
+stats(const std::deque<T>& v)
 {
 	if (!v.size())
-		return {0, 0};
+		return { 0, 0 };
 
 	const T sum = std::accumulate(v.begin(), v.end(), 0.0);
 	const T mean = sum / v.size();
@@ -89,7 +92,7 @@ inline std::tuple<T, T> stats(const std::deque<T>& v)
 	const T sum2 = std::inner_product(v.begin(), v.end(), v.begin(), 0.0);
 	const T std = std::sqrt(sum2 / v.size() - mean * mean);
 
-	return {mean, std};
+	return { mean, std };
 }
 
 /** @class Profile Tool.h CalcServer/Tool.h
@@ -102,10 +105,11 @@ class Profile : public Aqua::CalcServer::Named
 	 * @param name The name
 	 * @param n Number of samples to keep in memory
 	 */
-	Profile(const std::string name, const unsigned int n=N_PROFILE_SAMPLES)
-		: Named(name)
-		, _n(n)
-	{ }
+	Profile(const std::string name, const unsigned int n = N_PROFILE_SAMPLES)
+	  : Named(name)
+	  , _n(n)
+	{
+	}
 
 	/** Destructor
 	 */
@@ -116,7 +120,7 @@ class Profile : public Aqua::CalcServer::Named
 	 */
 	inline std::tuple<cl_ulong, cl_ulong> elapsed() const
 	{
-		
+
 		return stats(elapsed_times());
 	}
 
@@ -174,7 +178,6 @@ class Profile : public Aqua::CalcServer::Named
 	std::deque<cl_ulong> _end;
 };
 
-
 /** @class Profiler Tool.h CalcServer/Tool.h
  * @brief Profiling base class
  *
@@ -192,7 +195,8 @@ class Profiler
 
 	/** Destructor
 	 */
-	~Profiler() {
+	~Profiler()
+	{
 		for (auto i : _instances)
 			delete i;
 	}
@@ -294,10 +298,9 @@ class Profiler
 	std::vector<Profile*> _instances;
 };
 
-
 /** @class Tool Tool.h CalcServer/Tool.h
  * @brief Tools base class.
- * 
+ *
  * The way that AQUAgpusph compute each problem is set through a set of tools
  * that are computed sequentially. Several tools can be considered, for
  * instance:
@@ -306,7 +309,9 @@ class Profiler
  *   -# Python scripts
  *   -# Variables set
  */
-class Tool : public Aqua::CalcServer::Named, public Aqua::CalcServer::Profiler
+class Tool
+  : public Aqua::CalcServer::Named
+  , public Aqua::CalcServer::Profiler
 {
   public:
 	/** Constructor.

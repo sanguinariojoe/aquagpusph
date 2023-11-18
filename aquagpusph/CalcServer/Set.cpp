@@ -102,7 +102,7 @@ Set::setup()
 void
 Set::_solve()
 {
-	if(_data) {
+	if (_data) {
 		ScalarExpression::_solve();
 		memcpy(_data,
 		       getValue(),
@@ -159,7 +159,8 @@ Set::_execute(const std::vector<cl_event> events)
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
 	}
-	auto profiler = dynamic_cast<EventProfile*>(Profiler::subinstances().back());
+	auto profiler =
+	    dynamic_cast<EventProfile*>(Profiler::subinstances().back());
 	profiler->start(event);
 	profiler->end(event);
 
@@ -279,8 +280,8 @@ Set::setVariables()
 		                   _data);
 		if (err_code != CL_SUCCESS) {
 			std::stringstream msg;
-			msg << "Failure setting the value to the tool \"" << name()
-			    << "\"." << std::endl;
+			msg << "Failure setting the value to the tool \"" << name() << "\"."
+			    << std::endl;
 			LOG(L_ERROR, msg.str());
 			InputOutput::Logger::singleton()->printOpenCLError(err_code);
 			throw std::runtime_error("OpenCL error");

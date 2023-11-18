@@ -265,7 +265,7 @@ Python::Python(const std::string tool_name, const std::string script, bool once)
 		_script = _script.substr(0, last_sep);
 	}
 
-	Profiler::subinstances( { new ScalarProfile("script") } );
+	Profiler::subinstances({ new ScalarProfile("script") });
 }
 
 Python::~Python()

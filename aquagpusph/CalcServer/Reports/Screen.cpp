@@ -25,55 +25,57 @@
 #include "aquagpusph/InputOutput/Logger.hpp"
 #include "Screen.hpp"
 
-namespace Aqua{ namespace CalcServer{ namespace Reports{
+namespace Aqua {
+namespace CalcServer {
+namespace Reports {
 
 Screen::Screen(const std::string tool_name,
                const std::string fields,
                const std::string color,
                bool bold)
-    : Report(tool_name, fields)
-    , _color(color)
-    , _bold(bold)
+  : Report(tool_name, fields)
+  , _color(color)
+  , _bold(bold)
 {
 }
 
-Screen::~Screen()
+Screen::~Screen() {}
+
+void
+Screen::setup()
 {
+	unsigned int i;
+
+	std::ostringstream msg;
+	msg << "Loading the report \"" << name() << "\"..." << std::endl;
+	LOG(L_INFO, msg.str());
+
+	// Set the color in lowercase
+	std::transform(_color.begin(), _color.end(), _color.begin(), ::tolower);
+
+	Report::setup();
 }
 
-void Screen::setup()
+cl_event
+Screen::_execute(const std::vector<cl_event> events)
 {
-    unsigned int i;
+	// For the time being, let's sync here
+	cl_uint num_events_in_wait_list = events.size();
+	const cl_event* event_wait_list = events.size() ? events.data() : NULL;
+	cl_int err_code = clWaitForEvents(num_events_in_wait_list, event_wait_list);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure syncing in tool \"" << name() << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
 
-    std::ostringstream msg;
-    msg << "Loading the report \"" << name() << "\"..." << std::endl;
-    LOG(L_INFO, msg.str());
+	InputOutput::Logger::singleton()->writeReport(data(), _color, _bold);
 
-    // Set the color in lowercase
-    std::transform(_color.begin(), _color.end(), _color.begin(), ::tolower);
-
-    Report::setup();
+	return NULL;
 }
 
-cl_event Screen::_execute(const std::vector<cl_event> events)
-{
-    // For the time being, let's sync here
-    cl_uint num_events_in_wait_list = events.size();
-    const cl_event *event_wait_list = events.size() ? events.data() : NULL;
-    cl_int err_code = clWaitForEvents(num_events_in_wait_list,
-                                      event_wait_list);
-    if(err_code != CL_SUCCESS) {
-        std::stringstream msg;
-        msg << "Failure syncing in tool \"" <<
-               name() << "\"." << std::endl;
-        LOG(L_ERROR, msg.str());
-        InputOutput::Logger::singleton()->printOpenCLError(err_code);
-        throw std::runtime_error("OpenCL execution error");
-    }
-
-    InputOutput::Logger::singleton()->writeReport(data(), _color, _bold);
-
-    return NULL;
 }
-
-}}} // namespace
+}
+} // namespace
