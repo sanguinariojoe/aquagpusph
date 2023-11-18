@@ -249,7 +249,7 @@ class Profiler
 	 */
 	static inline cl_long delta(const cl_ulong& t, const cl_ulong& t0)
 	{
-		return (t > t0) ? t - t0 : -(t0 - t);
+		return (t > t0) ? t - t0 : -(cl_long)(t0 - t);
 	}
 
 	/** @brief Get the delta time
