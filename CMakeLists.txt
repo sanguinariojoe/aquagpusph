@@ -98,10 +98,8 @@ else(WIN32)
 endif(WIN32)
 
 SET(CMAKE_INSTALL_DATADIR share/aquagpusph CACHE PATH "Output directory for data and resource files")
-SET(CMAKE_INSTALL_INCLUDEDIR include/AQUAgpusph CACHE PATH "Output directory for header files")
 SET(CMAKE_INSTALL_DOCDIR share/doc/aquagpusph CACHE PATH "Output directory for documentation and license files")
 SET(CMAKE_INSTALL_BINDIR bin CACHE PATH "Output directory for binary files")
-SET(CMAKE_INSTALL_LIBDIR lib CACHE PATH "Output directory for library files")
 
 # used as compiler defines
 SET(RESOURCEDIR "${CMAKE_INSTALL_DATADIR}")
@@ -111,7 +109,6 @@ MESSAGE(STATUS "prefix: ${CMAKE_INSTALL_PREFIX}")
 MESSAGE(STATUS "datadir: ${CMAKE_INSTALL_DATADIR}")
 MESSAGE(STATUS "docdir: ${CMAKE_INSTALL_DOCDIR}")
 MESSAGE(STATUS "bindir: ${CMAKE_INSTALL_BINDIR}")
-MESSAGE(STATUS "libdir: ${CMAKE_INSTALL_LIBDIR}")
 
 
 # ===================================================== #
@@ -302,7 +299,6 @@ ELSE(AQUAGPUSPH_3D)
     MESSAGE("Target: AQUAgpusph2D")
 ENDIF(AQUAGPUSPH_3D)
 MESSAGE("Binary destination: ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}")
-MESSAGE("Libraries destination: ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
 MESSAGE("Resources destination: ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/resources")
 IF(AQUAGPUSPH_BUILD_EXAMPLES)
     MESSAGE("Examples destination: ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/examples")
