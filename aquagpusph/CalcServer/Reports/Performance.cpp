@@ -57,9 +57,7 @@ Performance::Performance(const std::string tool_name,
 	}
 }
 
-Performance::~Performance()
-{
-}
+Performance::~Performance() {}
 
 void
 Performance::setup()
@@ -110,10 +108,10 @@ ref_timer(std::vector<Tool*> tools)
 	return tools.front()->begin();
 }
 
-
 /** @brief Timer data holder
  */
-typedef struct _timer {
+typedef struct _timer
+{
 	/// Average value
 	cl_long v;
 	/// Standard deviation
@@ -131,17 +129,17 @@ tools_timers(std::vector<Tool*> tools, std::deque<cl_ulong> t0)
 	std::vector<timer> begin, end;
 	for (auto tool : tools) {
 		if (!tool->begin().size()) {
-			begin.push_back(timer({0, 0}));
-			end.push_back(timer({0, 0}));
+			begin.push_back(timer({ 0, 0 }));
+			end.push_back(timer({ 0, 0 }));
 			continue;
 		}
 		{
 			auto [t, t_std] = stats(Profiler::delta(tool->begin(), t0));
-			begin.push_back(timer({t, t_std}));
+			begin.push_back(timer({ t, t_std }));
 		}
 		{
 			auto [t, t_std] = stats(Profiler::delta(tool->end(), t0));
-			end.push_back(timer({t, t_std}));
+			end.push_back(timer({ t, t_std }));
 		}
 	}
 	return { begin, end };
@@ -228,18 +226,14 @@ Performance::_execute(const std::vector<cl_event> events)
 	// Write the output file
 	if (_output_file.compare("")) {
 		auto f = writer();
-		json jdata = {
-			{"progress", progress},
-			{"elapsed", {
-				{"avg", elapsed},
-				{"std", elapsed_std}
-			}}
-		};
+		json jdata = { { "progress", progress },
+			           { "elapsed",
+			             { { "avg", elapsed }, { "std", elapsed_std } } } };
 		jdata["tools"] = json::array();
 		auto tref = ref_timer(tools);
 		auto [t0, t1] = tools_timers(tools, tref);
 		for (unsigned int i = 0; i < tools.size(); i++) {
-			auto tool =tools[i];
+			auto tool = tools[i];
 			auto jtool = json::object();
 			jtool["name"] = tool->name();
 			auto [indeps, outdeps] = tool->getDependencies();
@@ -287,7 +281,6 @@ Performance::writer()
 	}
 	return f;
 }
-
 
 }
 }
