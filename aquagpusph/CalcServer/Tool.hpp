@@ -118,7 +118,7 @@ class Profile : public Aqua::CalcServer::Named
 	/** @brief Get the elapsed time and its standard deviation
 	 * @return The average elapsed time and its standard deviation
 	 */
-	inline std::tuple<cl_ulong, cl_ulong> elapsed() const
+	virtual inline std::tuple<cl_ulong, cl_ulong> elapsed() const
 	{
 
 		return stats(elapsed_times());
@@ -127,12 +127,12 @@ class Profile : public Aqua::CalcServer::Named
 	/** @brief Get the list of beginnings at each sample
 	 * @return The list of beginnings
 	 */
-	inline std::deque<cl_ulong> begin() const { return _start; }
+	virtual inline std::deque<cl_ulong> begin() const { return _start; }
 
 	/** @brief Get the list of ends at each sample
 	 * @return The list of ends
 	 */
-	inline std::deque<cl_ulong> end() const { return _end; }
+	virtual inline std::deque<cl_ulong> end() const { return _end; }
 
   protected:
 	/** @brief Add profiling info
