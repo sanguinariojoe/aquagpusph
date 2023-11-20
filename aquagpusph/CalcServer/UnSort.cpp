@@ -55,6 +55,7 @@ UnSort::UnSort(const std::string name,
   , _work_group_size(0)
   , _n(0)
 {
+	Profiler::subinstances({ new EventProfile("Kernel") });
 }
 
 UnSort::~UnSort()
@@ -116,6 +117,10 @@ UnSort::_execute(const std::vector<cl_event> events)
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
 	}
+	auto profiler =
+	    dynamic_cast<EventProfile*>(Profiler::subinstances().back());
+	profiler->start(event);
+	profiler->end(event);
 
 	return event;
 }
