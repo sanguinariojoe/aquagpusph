@@ -22,7 +22,7 @@
         <Tool action="add" name="sync" type="mpi-sync" fields="mpi_r" mask="mpi_mask" once="false"/>
         <Tool action="add" name="copy out" type="kernel" path="copy.cl" entry_point="copy_out" once="false"/>
         <Tool action="add" name="iter += 1" type="set_scalar" in="iter" value="iter + 1"/>
-        <Tool action="add" name="performance" type="report_performance" color="white" bold="false" path="performance_{mpi_rank}.csv"/>
+        <Tool action="add" name="performance" type="report_performance" color="white" bold="false" path="performance_{mpi_rank}.json"/>
     </Tools>
 
     <Settings>

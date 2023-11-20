@@ -27,6 +27,9 @@
 #include "aquagpusph/InputOutput/Logger.hpp"
 #include "aquagpusph/CalcServer/CalcServer.hpp"
 #include "Performance.hpp"
+#include "aquagpusph/ext/json.hpp"
+
+using json = nlohmann::json;
 
 namespace Aqua {
 namespace CalcServer {
@@ -39,10 +42,8 @@ Performance::Performance(const std::string tool_name,
   : Report(tool_name, "dummy_fields_string")
   , _color(color)
   , _bold(bold)
-  , _output_file("")
-  , _first_execution(true)
+  , _output_file(output_file)
 {
-	gettimeofday(&_tic, NULL);
 	if (output_file != "") {
 		try {
 			unsigned int i = 0;
@@ -58,8 +59,6 @@ Performance::Performance(const std::string tool_name,
 
 Performance::~Performance()
 {
-	if (_f.is_open())
-		_f.close();
 }
 
 void
@@ -74,20 +73,6 @@ Performance::setup()
 
 	// Set the color in lowercase
 	std::transform(_color.begin(), _color.end(), _color.begin(), ::tolower);
-
-	// Open the output file
-	if (_output_file.compare("")) {
-		_f.open(_output_file.c_str(), std::ios::out);
-		// Write the header
-		_f << "\"t\",\"elapsed average (s)\",\"elapsed variance (s)\"";
-		for (auto tool : C->tools()) {
-			_f << ",\"" << tool->name() << " begin (ns)\""
-			   << ",\"" << tool->name() << " begin variance (ns)\""
-			   << ",\"" << tool->name() << " end (ns)\""
-			   << ",\"" << tool->name() << " end variance (ns)\"";
-		}
-		_f << std::endl;
-	}
 
 	Tool::setup();
 }
@@ -111,7 +96,7 @@ Performance::computeAllocatedMemory()
 	return allocated_mem;
 }
 
-/** @brief Get the starting timers
+/** @brief Get the reference timers
  * @param tools The tools to analyze
  * @return The reference timers
  */
@@ -125,48 +110,63 @@ ref_timer(std::vector<Tool*> tools)
 	return tools.front()->begin();
 }
 
-/** @brief Get the average and standard deviation of the beginning timers
- * @param tools The tools to analyze
- * @return The reference timers
+
+/** @brief Timer data holder
  */
-std::tuple<std::vector<cl_ulong>, std::vector<cl_ulong>>
-begin_timers(std::vector<Tool*> tools)
+typedef struct _timer {
+	/// Average value
+	cl_long v;
+	/// Standard deviation
+	cl_long e;
+} timer;
+
+/** @brief Get the timers of the tools
+ * @param tools The tools to analyze
+ * @param t0 Reference timer
+ * @return The beginning and ending timers
+ */
+std::tuple<std::vector<timer>, std::vector<timer>>
+tools_timers(std::vector<Tool*> tools, std::deque<cl_ulong> t0)
 {
-	std::vector<cl_ulong> v, e;
-	auto t0 = ref_timer(tools);
+	std::vector<timer> begin, end;
 	for (auto tool : tools) {
 		if (!tool->begin().size()) {
-			v.push_back(0.0);
-			e.push_back(0.0);
+			begin.push_back(timer({0, 0}));
+			end.push_back(timer({0, 0}));
 			continue;
 		}
-		auto [t, t_std] = stats(Profiler::delta(tool->begin(), t0));
-		v.push_back(t);
-		e.push_back(t_std);
+		{
+			auto [t, t_std] = stats(Profiler::delta(tool->begin(), t0));
+			begin.push_back(timer({t, t_std}));
+		}
+		{
+			auto [t, t_std] = stats(Profiler::delta(tool->end(), t0));
+			end.push_back(timer({t, t_std}));
+		}
 	}
-	return { v, e };
+	return { begin, end };
 }
 
-/** @brief Get the average and standard deviation of the ending timers
- * @param tools The tools to analyze
- * @return The reference timers
+/** @brief Get the substage timers
+ * @param substage The substage to analyze
+ * @param t0 Reference timer
+ * @return The beginning and ending timers
  */
-std::tuple<std::vector<cl_ulong>, std::vector<cl_ulong>>
-end_timers(std::vector<Tool*> tools)
+std::tuple<timer, timer>
+substage_timers(Profile* substage, std::deque<cl_ulong> t0)
 {
-	std::vector<cl_ulong> v, e;
-	auto t0 = ref_timer(tools);
-	for (auto tool : tools) {
-		if (!tool->end().size()) {
-			v.push_back(0.0);
-			e.push_back(0.0);
-			continue;
-		}
-		auto [t, t_std] = stats(Profiler::delta(tool->end(), t0));
-		v.push_back(t);
-		e.push_back(t_std);
+	timer begin, end;
+	{
+		auto [t, t_std] = stats(Profiler::delta(substage->begin(), t0));
+		begin.v = t;
+		begin.e = t_std;
 	}
-	return { v, e };
+	{
+		auto [t, t_std] = stats(Profiler::delta(substage->end(), t0));
+		end.v = t;
+		end.e = t_std;
+	}
+	return { begin, end };
 }
 
 cl_event
@@ -226,19 +226,68 @@ Performance::_execute(const std::vector<cl_event> events)
 	InputOutput::Logger::singleton()->writeReport(data.str(), _color, _bold);
 
 	// Write the output file
-	if (_f.is_open()) {
-		_f << t << "," << elapsed << "," << elapsed_std;
-		auto [t0, t0_std] = begin_timers(tools);
-		auto [t1, t1_std] = end_timers(tools);
+	if (_output_file.compare("")) {
+		auto f = writer();
+		json jdata = {
+			{"progress", progress},
+			{"elapsed", {
+				{"avg", elapsed},
+				{"std", elapsed_std}
+			}}
+		};
+		jdata["tools"] = json::array();
+		auto tref = ref_timer(tools);
+		auto [t0, t1] = tools_timers(tools, tref);
 		for (unsigned int i = 0; i < tools.size(); i++) {
-			_f << "," << t0[i] << "," << t0_std[i] << "," << t1[i] << ","
-			   << t1_std[i];
+			auto tool =tools[i];
+			auto jtool = json::object();
+			jtool["name"] = tool->name();
+			auto [indeps, outdeps] = tool->getDependencies();
+			auto jindeps = json::array();
+			for (auto dep : indeps)
+				jindeps.push_back(dep->name());
+			jtool["dependencies"]["in"] = jindeps;
+			auto joutdeps = json::array();
+			for (auto dep : outdeps)
+				joutdeps.push_back(dep->name());
+			jtool["dependencies"]["out"] = joutdeps;
+			jtool["start"]["avg"] = t0[i].v;
+			jtool["start"]["std"] = t0[i].e;
+			jtool["end"]["avg"] = t1[i].v;
+			jtool["end"]["std"] = t1[i].e;
+			jtool["substages"] = json::array();
+			auto substages = tool->subinstances();
+			for (auto substage : substages) {
+				auto [tt0, tt1] = substage_timers(substage, tref);
+				auto jsubstage = json::object();
+				jsubstage["name"] = substage->name();
+				jsubstage["start"]["avg"] = tt0.v;
+				jsubstage["start"]["std"] = tt0.e;
+				jsubstage["end"]["avg"] = tt1.v;
+				jsubstage["end"]["std"] = tt1.e;
+				jtool["substages"].push_back(jsubstage);
+			}
+			jdata["tools"].push_back(jtool);
 		}
-		_f << std::endl;
+		f << jdata.dump(4) << std::endl;
+		f.close();
 	}
 
 	return NULL;
 }
+
+std::ofstream
+Performance::writer()
+{
+	std::ofstream f(_output_file, std::ios::out | std::ios::trunc);
+	if (!f.is_open()) {
+		std::ostringstream msg;
+		msg << "Failure writing on '" << _output_file << "'" << std::endl;
+		LOG(L_ERROR, msg.str());
+	}
+	return f;
+}
+
 
 }
 }

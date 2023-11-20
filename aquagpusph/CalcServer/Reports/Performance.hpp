@@ -24,7 +24,6 @@
 #ifndef PERFORMANCE_H_INCLUDED
 #define PERFORMANCE_H_INCLUDED
 
-#include <sys/time.h>
 #include <fstream>
 #include "Report.hpp"
 
@@ -99,25 +98,17 @@ class Performance : public Aqua::CalcServer::Reports::Report
 	cl_event _execute(const std::vector<cl_event> events);
 
   private:
+	/** @brief Open the ouput file
+	 * @return The output stream
+	 */
+	std::ofstream writer();
+
 	/// Output color
 	std::string _color;
 	/// Output bold or normal flag
 	bool _bold;
 	/// Output file name
 	std::string _output_file;
-	/** @brief Time mark at the end of the previous time step (to measure the
-	 * total elapsed time per time step)
-	 */
-	timeval _tic;
-	/** @brief First execution flag
-	 *
-	 * The first time step is including all the time required to build the tool,
-	 * which may invalidate the average and variance values. In that case is
-	 * therefore better using the elapsed time by the tools
-	 */
-	bool _first_execution;
-	/// Output file handler
-	std::ofstream _f;
 };
 
 }
