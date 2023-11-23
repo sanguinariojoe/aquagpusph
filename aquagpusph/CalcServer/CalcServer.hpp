@@ -39,7 +39,7 @@
 #include "Tool.hpp"
 
 #ifndef N_PROFILING_SNAPSHOTS
-#define N_PROFILING_SNAPSHOTS 100
+#define N_PROFILING_SNAPSHOTS 2
 #endif
 
 namespace Aqua {
