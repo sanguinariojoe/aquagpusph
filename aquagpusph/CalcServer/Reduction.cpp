@@ -54,7 +54,6 @@ Reduction::Reduction(const std::string name,
   , _output_var(NULL)
   , _input(NULL)
 {
-	Profiler::substages({ new EventProfile("Reduction", this) });
 }
 
 Reduction::~Reduction()
@@ -91,6 +90,14 @@ Reduction::setup()
 	           InputOutput::Variables::typeToBytes(_input_var->type());
 	_n.push_back(n);
 	setupOpenCL();
+	std::vector<Profile*> profilers;
+	for (unsigned int i = 0; i < _kernels.size(); i++) {
+		std::stringstream reduction_stage;
+		reduction_stage << "step " << i + 1 << "/" << _kernels.size();
+		profilers.push_back(new EventProfile(reduction_stage.str(), this));
+	}
+	profilers.push_back(new EventProfile("read", this));
+	Profiler::substages(profilers);
 }
 
 /** @brief Callback called when Aqua::CalcServer::Reduction already set the new
@@ -145,22 +152,16 @@ Reduction::_execute(const std::vector<cl_event> events)
 	// We must execute several kernels in a sequential way. The process is
 	// though seeded by a reduction which just needs to read the input array
 	event = _input_var->getWritingEvent();
-	if (event) {
-		err_code = clRetainEvent(event);
-		if (err_code != CL_SUCCESS) {
-			std::ostringstream msg;
-			msg << "Failure retaining the input event for the step " << i
-			    << " of tool \"" << name() << "\"." << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL execution error");
-		}
+	err_code = clRetainEvent(event);
+	if (err_code != CL_SUCCESS) {
+		std::ostringstream msg;
+		msg << "Failure retaining the input event for the step " << i
+			<< " of tool \"" << name() << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
 	}
-	auto profiler =
-	    dynamic_cast<EventProfile*>(Profiler::substages().back());
 	for (i = 0; i < _kernels.size(); i++) {
-		cl_uint num_events_in_wait_list = event ? 1 : 0;
-		cl_event* event_wait_list = event ? &event : NULL;
 		const size_t global_work_size = _global_work_sizes.at(i);
 		const size_t local_work_size = _local_work_sizes.at(i);
 		err_code = clEnqueueNDRangeKernel(C->command_queue(),
@@ -169,8 +170,8 @@ Reduction::_execute(const std::vector<cl_event> events)
 		                                  NULL,
 		                                  &global_work_size,
 		                                  &local_work_size,
-		                                  num_events_in_wait_list,
-		                                  event_wait_list,
+		                                  1,
+		                                  &event,
 		                                  &out_event);
 		if (err_code != CL_SUCCESS) {
 			std::ostringstream msg;
@@ -180,20 +181,21 @@ Reduction::_execute(const std::vector<cl_event> events)
 			InputOutput::Logger::singleton()->printOpenCLError(err_code);
 			throw std::runtime_error("OpenCL execution error");
 		}
-		if (i == 0)
-			profiler->start(out_event);
+
+		auto profiler = dynamic_cast<EventProfile*>(
+		    Profiler::substages().at(i));
+		profiler->start(out_event);
+		profiler->end(out_event);
 
 		// Replace the event by the new one
-		if (event) {
-			err_code = clReleaseEvent(event);
-			if (err_code != CL_SUCCESS) {
-				std::ostringstream msg;
-				msg << "Failure releasing the input event for the step "
-				    << i - 1 << " of tool \"" << name() << "\"." << std::endl;
-				LOG(L_ERROR, msg.str());
-				InputOutput::Logger::singleton()->printOpenCLError(err_code);
-				throw std::runtime_error("OpenCL execution error");
-			}
+		err_code = clReleaseEvent(event);
+		if (err_code != CL_SUCCESS) {
+			std::ostringstream msg;
+			msg << "Failure releasing the input event for the step "
+				<< i - 1 << " of tool \"" << name() << "\"." << std::endl;
+			LOG(L_ERROR, msg.str());
+			InputOutput::Logger::singleton()->printOpenCLError(err_code);
+			throw std::runtime_error("OpenCL execution error");
 		}
 		event = out_event;
 	}
@@ -218,6 +220,9 @@ Reduction::_execute(const std::vector<cl_event> events)
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL error");
 	}
+
+	auto profiler = dynamic_cast<EventProfile*>(Profiler::substages().back());
+	profiler->start(out_event);
 
 	err_code = clReleaseEvent(event);
 	if (err_code != CL_SUCCESS) {
