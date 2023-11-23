@@ -54,7 +54,7 @@ Reduction::Reduction(const std::string name,
   , _output_var(NULL)
   , _input(NULL)
 {
-	Profiler::subinstances({ new EventProfile("Reduction") });
+	Profiler::substages({ new EventProfile("Reduction", this) });
 }
 
 Reduction::~Reduction()
@@ -157,7 +157,7 @@ Reduction::_execute(const std::vector<cl_event> events)
 		}
 	}
 	auto profiler =
-	    dynamic_cast<EventProfile*>(Profiler::subinstances().back());
+	    dynamic_cast<EventProfile*>(Profiler::substages().back());
 	for (i = 0; i < _kernels.size(); i++) {
 		cl_uint num_events_in_wait_list = event ? 1 : 0;
 		cl_event* event_wait_list = event ? &event : NULL;

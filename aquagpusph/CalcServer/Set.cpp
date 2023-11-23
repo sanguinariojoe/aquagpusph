@@ -53,9 +53,9 @@ Set::Set(const std::string name,
   , _n(0)
   , _data(NULL)
 {
-	auto profilers = Profiler::subinstances();
-	profilers.push_back(new EventProfile("Kernel"));
-	Profiler::subinstances(profilers);
+	auto profilers = Profiler::substages();
+	profilers.push_back(new EventProfile("Kernel", this));
+	Profiler::substages(profilers);
 }
 
 Set::~Set()
@@ -160,7 +160,7 @@ Set::_execute(const std::vector<cl_event> events)
 		throw std::runtime_error("OpenCL execution error");
 	}
 	auto profiler =
-	    dynamic_cast<EventProfile*>(Profiler::subinstances().back());
+	    dynamic_cast<EventProfile*>(Profiler::substages().back());
 	profiler->start(event);
 	profiler->end(event);
 

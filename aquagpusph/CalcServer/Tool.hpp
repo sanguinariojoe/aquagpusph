@@ -75,25 +75,7 @@ class Named
 	std::string _name;
 };
 
-/** @brief Get the average and standard deviation values
- * @param v Vector of values
- * @return the average and standard deviation values
- */
-template<typename T>
-inline std::tuple<T, T>
-stats(const std::deque<T>& v)
-{
-	if (!v.size())
-		return { 0, 0 };
-
-	const T sum = std::accumulate(v.begin(), v.end(), 0.0);
-	const T mean = sum / v.size();
-
-	const T sum2 = std::inner_product(v.begin(), v.end(), v.begin(), 0.0);
-	const T std = std::sqrt(sum2 / v.size() - mean * mean);
-
-	return { mean, std };
-}
+class Tool;
 
 /** @class Profile Tool.h CalcServer/Tool.h
  * @brief Profiler subinstance base class
@@ -101,95 +83,52 @@ stats(const std::deque<T>& v)
 class Profile : public Aqua::CalcServer::Named
 {
   public:
-	/** Constructor
+	/** @brief Constructor
 	 * @param name The name
-	 * @param n Number of samples to keep in memory
+	 * @param tool The owning tool
 	 */
-	Profile(const std::string name, const unsigned int n = N_PROFILE_SAMPLES)
+	Profile(const std::string name, Tool *tool)
 	  : Named(name)
-	  , _n(n)
+	  , _tool(tool)
+	  , _step(0)
 	{
 	}
 
-	/** Destructor
+	/** @brief Destructor
 	 */
 	virtual ~Profile() {}
 
-	/** @brief Get the elapsed time and its standard deviation
-	 * @return The average elapsed time and its standard deviation
+	/** @brief Get the step from the Aqua::CalcServer::CalcServer
 	 */
-	virtual inline std::tuple<cl_ulong, cl_ulong> elapsed() const
-	{
-
-		return stats(elapsed_times());
-	}
-
-	/** @brief Get the list of beginnings at each sample
-	 * @return The list of beginnings
-	 */
-	virtual inline std::deque<cl_ulong> begin() const { return _start; }
-
-	/** @brief Get the list of ends at each sample
-	 * @return The list of ends
-	 */
-	virtual inline std::deque<cl_ulong> end() const { return _end; }
+	void step();
 
   protected:
 	/** @brief Add profiling info
 	 * @param start Starting timestamp
 	 * @param end Ending timestamp
 	 */
-	inline void sample(cl_ulong start, cl_ulong end)
-	{
-		_start.push_back(start);
-		_end.push_back(end);
-		trim();
-	}
-
-	/** @brief Get the list of elapsed times
-	 * @return The elapsed time for all the took samples
-	 */
-	inline std::deque<cl_ulong> elapsed_times() const
-	{
-		std::deque<cl_ulong> v;
-		for (unsigned int i = 0; i < _start.size(); i++)
-			v.push_back(_end[i] - _start[i]);
-		return v;
-	}
+	void sample(cl_ulong start, cl_ulong end);
 
   private:
-	/** @brief Drop the older samples until the required length is obtained
-	 */
-	inline void trim()
-	{
-		while (_start.size() > _n) {
-			_start.pop_front();
-			_end.pop_front();
-		}
-	}
+	/// The owning tool
+	Tool* _tool;
 
-	/// Number of time stamps to store
-	unsigned int _n;
-
-	/// The beginning time stamps in nanoseconds (FIFO list)
-	std::deque<cl_ulong> _start;
-
-	/// The ending time stamps in nanoseconds (FIFO list)
-	std::deque<cl_ulong> _end;
+	/// The current profiling step
+	cl_ulong _step;
 };
 
 /** @class Profiler Tool.h CalcServer/Tool.h
  * @brief Profiling base class
  *
- * Each tool is a Profiler, which might has several subinstances. Each
+ * Each tool is a Profiler, which might has several substages. Each
  * subinstance counts when each part of the tool computation began and end.
- * This class just collect all those subinstances together
+ * This class just collect all those substages together
  */
 class Profiler
 {
   public:
 	/** Constructor.
-	 * @param instances The list of subinstances that conforms this profiler
+	 * @param instances The list of substages that conforms this profiler
 	 */
 	Profiler() {}
 
@@ -201,100 +140,22 @@ class Profiler
 			delete i;
 	}
 
-	/** @brief Get the subinstances
-	 * @return The list of subinstances
+	/** @brief Get the substages
+	 * @return The list of substages
 	 */
-	inline std::vector<Profile*> subinstances() const { return _instances; }
-
-	/** @brief Get the elapsed time as well as its standard deviation
-	 *
-	 * The elapsed time is the total time took by the tool to compute. Gaps
-	 * between instances (the so called overhead) are not included
-	 * @return Elapsed time with its standard deviation
-	 */
-	std::tuple<cl_ulong, cl_ulong> elapsed() const;
-
-	/** @brief Get the list of beginnings at each sample
-	 * @return The list of beginnings
-	 * @warning It is assumed that the first subinstance is marking the
-	 * beginning
-	 */
-	inline std::deque<cl_ulong> begin() const
-	{
-		if (!_instances.size())
-			return {};
-		return _instances.front()->begin();
-	}
-
-	/** @brief Get the list of ends at each sample
-	 * @return The list of ends
-	 * @warning It is assumed that the last subinstance is marking the
-	 * end
-	 */
-	inline std::deque<cl_ulong> end() const
-	{
-		if (!_instances.size())
-			return {};
-		return _instances.back()->end();
-	}
-
-	/** @brief Get the total time took as well as its standard deviation
-	 *
-	 * The total time took might differ from the
-	 * Aqua::CalcServer::Profiler::elapsed() on the overhead
-	 * @return Elapsed time with its standard deviation
-	 */
-	std::tuple<cl_ulong, cl_ulong> total() const;
-
-	/** @brief Get the delta time
-	 * @param t Timer
-	 * @param t0 Timer reference to subtract
-	 * @return Time delta
-	 */
-	static inline cl_long delta(const cl_ulong& t, const cl_ulong& t0)
-	{
-		return (t > t0) ? t - t0 : -(cl_long)(t0 - t);
-	}
-
-	/** @brief Get the delta time
-	 * @param t List of timers
-	 * @param t0 Timer reference to subtract
-	 * @return List of time deltas
-	 */
-	static inline std::deque<cl_long> delta(const std::deque<cl_ulong> t,
-	                                        const cl_ulong& t0)
-	{
-		std::deque<cl_long> dt;
-		for (auto val : t)
-			dt.push_back(delta(val, t0));
-		return dt;
-	}
-
-	/** @brief Get the delta time
-	 * @param t List of timers
-	 * @param t0 List of timer references to subtract
-	 * @return List of time deltas
-	 */
-	static inline std::deque<cl_long> delta(const std::deque<cl_ulong> t,
-	                                        const std::deque<cl_ulong> t0)
-	{
-		std::deque<cl_long> dt;
-		for (unsigned int i = 0; i < t.size(); i++)
-			dt.push_back(delta(t[i], t0[i]));
-		return dt;
-	}
+	inline std::vector<Profile*> substages() const { return _instances; }
 
   protected:
-	/** @brief Set the tool subinstances
-	 * @param instances The subinstances
+	/** @brief Set the tool substages
+	 * @param instances The substages
 	 */
-	inline void subinstances(std::vector<Profile*> instances)
+	inline void substages(std::vector<Profile*> instances)
 	{
 		_instances = instances;
 	}
 
   private:
-	/// List of subinstances
+	/// List of substages
 	std::vector<Profile*> _instances;
 };
 
@@ -309,9 +170,7 @@ class Profiler
  *   -# Python scripts
  *   -# Variables set
  */
-class Tool
-  : public Aqua::CalcServer::Named
-  , public Aqua::CalcServer::Profiler
+class Tool : public Aqua::CalcServer::Named, public Aqua::CalcServer::Profiler
 {
   public:
 	/** Constructor.
@@ -437,6 +296,16 @@ class Tool
 	 * @return The event
 	 */
 	inline cl_event getEvent() const { return _event; }
+
+	/** @brief Set the tool parent
+	 * @param tool Parent tool. It can be NULL to set a top level tool
+	 */
+	inline void parent(Tool* tool) { _parent = tool; }
+
+	/** @brief Get the tool parent
+	 * @return Parent tool. NULL if the tool has no parent
+	 */
+	inline Tool* parent() { return _parent; }
 
   protected:
 	/** Get the tool index in the pipeline
@@ -652,6 +521,9 @@ class Tool
 
 	/// Output event of the tool
 	cl_event _event;
+
+	/// Tool parent, if any
+	Tool *_parent;
 };
 
 }

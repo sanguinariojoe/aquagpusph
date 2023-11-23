@@ -29,6 +29,7 @@
 #include <assert.h>
 #include <signal.h>
 #include <tuple>
+#include <mutex>
 
 #include "CalcServer.hpp"
 #include "aquagpusph/AuxiliarMethods.hpp"
@@ -88,6 +89,29 @@ sigint_handler(int s)
 	sigint_received = true;
 }
 
+/** @brief A mutex to avoid several threads writing profiling smaples
+ * simultaneously
+ */
+std::mutex profiling_mutex;
+
+void
+ProfilingInfo::sample(cl_ulong step,
+                      Tool* tool,
+                      std::string name,
+                      cl_ulong start,
+                      cl_ulong end)
+{
+	const std::lock_guard<std::mutex> lock(profiling_mutex);
+
+	/// Traverse the snapshots looking for the step one
+	for (auto it = _snapshots.rbegin();  it != _snapshots.rend(); ++it ) {
+		if ((*it).step == step) {
+			(*it).samples.push_back({tool, name, start, end});
+			return;
+		}
+	}
+}
+
 CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
   : _num_platforms(0)
   , _platforms(NULL)
@@ -108,7 +132,7 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 
 	_base_path = _sim_data.settings.base_path;
 	_current_tool_name = new char[256];
-	strcpy(_current_tool_name, "");
+	memset(_current_tool_name, '\0', 256 * sizeof(char));
 
 	unsigned int num_sets = _sim_data.sets.size();
 	unsigned int N = 0;
@@ -538,9 +562,11 @@ CalcServer::update(InputOutput::TimeManager& t_manager)
 		InputOutput::Logger::singleton()->initFrame();
 
 		// Execute the tools
+		ProfilingInfo::newStep();
 		Tool* tool = _tools.front();
 		while (tool) {
 			try {
+				strncpy(_current_tool_name, tool->name().c_str(), 255);
 				tool->execute();
 				tool = tool->next_tool();
 			} catch (std::runtime_error& e) {

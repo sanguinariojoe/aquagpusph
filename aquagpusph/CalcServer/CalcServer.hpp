@@ -25,6 +25,7 @@
 #define CALCSERVER_H_INCLUDED
 
 #include <vector>
+#include <deque>
 #include <map>
 #include <string>
 #include <iterator>
@@ -37,23 +38,8 @@
 #include "aquagpusph/Singleton.hpp"
 #include "Tool.hpp"
 
-#ifndef _ITEMS
-/** @def _ITEMS
- * @brief Number of items in a group
- * @note Must be power of 2, and in some devices greather than 32.
- * @see Aqua::CalcServer::RadixSort
- */
-#define _ITEMS 128
-#endif
-
-#ifndef _GROUPS
-/** @def _GROUPS
- * @brief Number of groups
- * @note Must be power of 2, and the amount of data should be divisible by
- * _ITEMS*_GROUPS
- * @see Aqua::CalcServer::RadixSort
- */
-#define _GROUPS 32
+#ifndef N_PROFILING_SNAPSHOTS
+#define N_PROFILING_SNAPSHOTS 100
 #endif
 
 namespace Aqua {
@@ -77,6 +63,126 @@ class user_interruption : public std::runtime_error
 	  : std::runtime_error(msg){};
 };
 
+/// Profiling sample
+typedef struct _ProfilingSample {
+	/// The triggering tool
+	Tool* tool;
+	/// The name of the sample
+	std::string name;
+	/// The starting timer
+	cl_ulong start;
+	/// The ending timer
+	cl_ulong end;
+} ProfilingSample;
+
+/// Profiling snapshot
+typedef struct _ProfilingSnapshot {
+	/// The profiling step
+	cl_ulong step;
+	/// The list of samples
+	std::vector<ProfilingSample> samples;
+} ProfilingSnapshot;
+
+/** @class ProfilingInfo CalcServer.h CalcServer.h
+ * @brief A FIFO list of profiling snapshots
+ */
+class ProfilingInfo
+{
+  public:
+	/** @brief Constructor.
+	 * @param n Number of snapshots to keep
+	 */
+	ProfilingInfo(const cl_uint n=N_PROFILING_SNAPSHOTS)
+		: _step(0)
+		, _n(n)
+	{}
+
+	/// Destructor
+	~ProfilingInfo() {}
+
+	/** @brief Get the number of times the tools pack has been executed
+	 *
+	 * This might not match InputOutput::TimeManager::step(). This is actually
+	 * meant for profiling purposes
+	 */
+	inline cl_ulong step() const { return _step; }
+
+	/** @brief Add a new sample to an specific step
+	 * @param step The profiling step
+	 * @param tool Triggering tool
+	 * @param name Sample name
+	 * @param start Starting timer
+	 * @param end Ending timer
+	 */
+	void sample(cl_ulong step,
+	            Tool* tool,
+	            std::string name,
+	            cl_ulong start,
+	            cl_ulong end);
+
+	/** @brief Add a new sample to an specific step
+	 * @param step The profiling step
+	 * @param tool Triggering tool
+	 * @param substage Tool computation substage
+	 * @param start Starting timer
+	 * @param end Ending timer
+	 */
+	inline void sample(cl_ulong step,
+	                   Tool* tool,
+	                   Profile* substage,
+	                   cl_ulong start,
+	                   cl_ulong end)
+	{
+		std::string name = tool->name() + "::" + substage->name();
+		auto parent = tool;
+		while (parent = parent->parent()) {
+			name = parent->name() + "::" + name;
+		}
+		sample(step, tool, name, start, end);
+	}
+
+	/** @brief Get the stored snapshots
+	 * @return The list of stored snapshots
+	 */
+	inline std::deque<ProfilingSnapshot> get() const { return _snapshots; }
+
+	/** @brief Get the delta time
+	 *
+	 * Whereas the timers are big unsigned integers, the delta is conversely
+	 * a relatively small signed integer, although we keep the original 64 bits
+	 * size
+	 * @param t Timer
+	 * @param t0 Timer reference to subtract
+	 * @return Time delta
+	 */
+	static inline cl_long delta(const cl_ulong& t, const cl_ulong& t0)
+	{
+		return (t > t0) ? t - t0 : -(cl_long)(t0 - t);
+	}
+
+  protected:
+	/** @brief Let the profiler know that a new step of tools execution is
+	 * about to start
+	 */
+	inline void newStep()
+	{
+		_step++;
+		ProfilingSnapshot snapshot;
+		snapshot.step = _step;
+		_snapshots.push_back(snapshot);
+		if (_snapshots.size() > _n)
+			_snapshots.pop_front();
+	}
+
+  private:
+	/// A counter on the times the tools pack have been called
+	cl_ulong _step;
+	/// Maximum number of snapshots
+	cl_uint _n;
+	/// List of snaphsots
+	std::deque<ProfilingSnapshot> _snapshots;
+};
+
 /** @class CalcServer CalcServer.h CalcServer.h
  * @brief Entity that perform the main work of the simulation.
  *
@@ -89,7 +195,8 @@ class user_interruption : public std::runtime_error
  * @remarks Some output files are managed internally by this class, like the
  * log file, the energy file, pressure sensors file, or bounds file.
  */
-class CalcServer : public Aqua::Singleton<Aqua::CalcServer::CalcServer>
+class CalcServer : public Aqua::Singleton<Aqua::CalcServer::CalcServer>,
+                   public Aqua::CalcServer::ProfilingInfo
 {
   public:
 	/** @brief Constructor.
@@ -289,7 +396,6 @@ class CalcServer : public Aqua::Singleton<Aqua::CalcServer::CalcServer>
 	 */
 	std::map<std::string, UnSort*> unsorters;
 
-  private:
 	/// Simulation data read from XML files
 	Aqua::InputOutput::ProblemSetup _sim_data;
 };

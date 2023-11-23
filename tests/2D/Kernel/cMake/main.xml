@@ -12,7 +12,7 @@
     <Tools>
         <Tool action="add" entry_point="init" name="init fields" once="true" path="init.cl" type="kernel"/>
         <Tool action="add" name="iter += 1" type="set_scalar" in="iter" value="iter + 1"/>
-        <Tool action="add" name="performance" type="report_performance" color="white" bold="false"/>
+        <Tool action="add" name="performance" type="report_performance" color="white" bold="false" path="performance.json"/>
     </Tools>
 
     <Settings>

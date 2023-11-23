@@ -113,7 +113,6 @@ EventProfile::sample()
 	start += C->device_timer_offset();
 	end += C->device_timer_offset();
 	Profile::sample(start, end);
-	auto [t, dt] = Profile::elapsed();
 }
 
 ArgSetter::ArgSetter(const std::string name,
@@ -233,7 +232,7 @@ Kernel::Kernel(const std::string tool_name,
   , _global_work_size(0)
   , _args_setter(NULL)
 {
-	Profiler::subinstances({ new EventProfile("Kernel") });
+	Profiler::substages({ new EventProfile("Kernel", this) });
 }
 
 Kernel::~Kernel()
@@ -295,7 +294,7 @@ Kernel::_execute(const std::vector<cl_event> events)
 		throw std::runtime_error("OpenCL execution error");
 	}
 	auto profiler =
-	    dynamic_cast<EventProfile*>(Profiler::subinstances().back());
+	    dynamic_cast<EventProfile*>(Profiler::substages().back());
 	profiler->start(event);
 	profiler->end(event);
 

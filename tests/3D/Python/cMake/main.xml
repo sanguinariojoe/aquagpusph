@@ -10,7 +10,7 @@
     </ParticlesSet>
     <Tools>
         <Tool action="add" name="python script" type="python" path="tool.py" />
-        <Tool action="add" name="performance" type="report_performance" color="white" bold="false"/>
+        <Tool action="add" name="performance" type="report_performance" color="white" bold="false" path="performance.json"/>
     </Tools>
 
     <Settings>

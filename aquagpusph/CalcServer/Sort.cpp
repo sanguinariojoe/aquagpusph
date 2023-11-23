@@ -62,11 +62,11 @@ Sort::Sort(const std::string tool_name,
   , _local_work_size(0)
   , _global_work_size(0)
 {
-	Profiler::subinstances({ new EventProfile("init"),
-	                         new EventProfile("bitonic"),
-	                         new EventProfile("keys"),
-	                         new EventProfile("values"),
-	                         new EventProfile("inverse keys") });
+	Profiler::substages({ new EventProfile("init", this),
+	                      new EventProfile("bitonic", this),
+	                      new EventProfile("keys", this),
+	                      new EventProfile("values", this),
+	                      new EventProfile("inverse keys", this) });
 }
 
 Sort::~Sort()
@@ -135,14 +135,14 @@ Sort::_execute(const std::vector<cl_event> events)
 		throw std::runtime_error("OpenCL execution error");
 	}
 	auto init_profiler =
-	    dynamic_cast<EventProfile*>(Profiler::subinstances().at(0));
+	    dynamic_cast<EventProfile*>(Profiler::substages().at(0));
 	init_profiler->start(event);
 	init_profiler->end(event);
 	wait_event = event;
 
 	// Now we carry ut the bitonic sort on our transactional memory objects
 	auto bitonic_profiler =
-	    dynamic_cast<EventProfile*>(Profiler::subinstances().at(1));
+	    dynamic_cast<EventProfile*>(Profiler::substages().at(1));
 	size_t bitonic_gsize = _global_work_size / 2;
 	err_code = clEnqueueNDRangeKernel(C->command_queue(),
 	                                  _start_kernel,
@@ -258,7 +258,7 @@ Sort::_execute(const std::vector<cl_event> events)
 		throw std::runtime_error("OpenCL error");
 	}
 	auto keys_profiler =
-	    dynamic_cast<EventProfile*>(Profiler::subinstances().at(2));
+	    dynamic_cast<EventProfile*>(Profiler::substages().at(2));
 	keys_profiler->start(event);
 	keys_profiler->end(event);
 	inv_perms_events.push_back(event);
@@ -284,7 +284,7 @@ Sort::_execute(const std::vector<cl_event> events)
 		throw std::runtime_error("OpenCL error");
 	}
 	auto vals_profiler =
-	    dynamic_cast<EventProfile*>(Profiler::subinstances().at(3));
+	    dynamic_cast<EventProfile*>(Profiler::substages().at(3));
 	vals_profiler->start(event);
 	vals_profiler->end(event);
 	inv_perms_events.push_back(event);
@@ -330,7 +330,7 @@ Sort::_execute(const std::vector<cl_event> events)
 		inv_perms_events.pop_back();
 	}
 	auto inv_profiler =
-	    dynamic_cast<EventProfile*>(Profiler::subinstances().at(4));
+	    dynamic_cast<EventProfile*>(Profiler::substages().at(4));
 	inv_profiler->start(event);
 	inv_profiler->end(event);
 

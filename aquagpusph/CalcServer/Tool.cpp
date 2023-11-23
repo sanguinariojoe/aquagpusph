@@ -31,25 +31,18 @@
 namespace Aqua {
 namespace CalcServer {
 
-std::tuple<cl_ulong, cl_ulong>
-Profiler::elapsed() const
+void
+Profile::step()
 {
-	cl_ulong t = 0, dt = 0;
-	for (auto i : _instances) {
-		auto [avg, std] = i->elapsed();
-		t += avg;
-		dt += std;
-	}
-	return { t, dt };
+	auto C = CalcServer::singleton();
+	_step = C->step();
 }
 
-std::tuple<cl_ulong, cl_ulong>
-Profiler::total() const
+void
+Profile::sample(cl_ulong start, cl_ulong end)
 {
-	std::deque<cl_ulong> dt;
-	for (unsigned int i = 0; i < end().size(); i++)
-		dt.push_back(end()[i] - begin()[i]);
-	return stats(dt);
+	auto C = CalcServer::singleton();
+	C->sample(_step, _tool, this, start, end);
 }
 
 Tool::Tool(const std::string tool_name, bool once)
@@ -62,6 +55,7 @@ Tool::Tool(const std::string tool_name, bool once)
   , _average_elapsed_time(0.f)
   , _squared_elapsed_time(0.f)
   , _event(NULL)
+  , _parent(NULL)
 {
 }
 
@@ -121,7 +115,7 @@ Tool::execute()
 	cl_int err_code;
 
 	// Collect the dependencies
-	CalcServer* C = CalcServer::singleton();
+	auto C = CalcServer::singleton();
 	if (C->debug_mode()) {
 		std::stringstream msg;
 		msg << "Executing \"" << name() << "\"..." << std::endl;
@@ -152,6 +146,8 @@ Tool::execute()
 		}
 	}
 
+	for (auto substage : Profiler::substages())
+		substage->step();
 	cl_event event = _execute(events);
 	_event = event;
 

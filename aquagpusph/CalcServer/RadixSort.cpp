@@ -71,11 +71,11 @@ RadixSort::RadixSort(const std::string tool_name,
   , _radix(_RADIX)
   , _histo_split(_HISTOSPLIT)
 {
-	Profiler::subinstances({ new EventProfile("init"),
-	                         new EventProfile("radix-sort"),
-	                         new EventProfile("keys"),
-	                         new EventProfile("values"),
-	                         new EventProfile("inverse keys") });
+	Profiler::substages({ new EventProfile("init", this),
+	                      new EventProfile("radix-sort", this),
+	                      new EventProfile("keys", this),
+	                      new EventProfile("values", this),
+	                      new EventProfile("inverse keys", this) });
 }
 
 RadixSort::~RadixSort()
@@ -157,13 +157,13 @@ RadixSort::_execute(const std::vector<cl_event> events)
 	// particle is converted on itself.
 	auto event_init = init();
 	auto init_profiler =
-	    dynamic_cast<EventProfile*>(Profiler::subinstances().at(0));
+	    dynamic_cast<EventProfile*>(Profiler::substages().at(0));
 	init_profiler->start(event_init);
 	init_profiler->end(event_init);
 
 	// Time to sort everything up
 	auto radixsort_profiler =
-	    dynamic_cast<EventProfile*>(Profiler::subinstances().at(1));
+	    dynamic_cast<EventProfile*>(Profiler::substages().at(1));
 	cl_event event_wait = NULL;
 	for (_pass = 0; _pass < _n_pass; _pass++) {
 		event_wait = histograms(event_init, event_wait);
@@ -209,7 +209,7 @@ RadixSort::_execute(const std::vector<cl_event> events)
 	}
 	_var->setWritingEvent(event);
 	auto vals_profiler =
-	    dynamic_cast<EventProfile*>(Profiler::subinstances().at(3));
+	    dynamic_cast<EventProfile*>(Profiler::substages().at(3));
 	vals_profiler->start(event);
 	vals_profiler->end(event);
 	err_code = clReleaseEvent(event);
@@ -244,7 +244,7 @@ RadixSort::_execute(const std::vector<cl_event> events)
 	}
 	_perms->setWritingEvent(event);
 	auto keys_profiler =
-	    dynamic_cast<EventProfile*>(Profiler::subinstances().at(2));
+	    dynamic_cast<EventProfile*>(Profiler::substages().at(2));
 	keys_profiler->start(event);
 	keys_profiler->end(event);
 
@@ -270,7 +270,7 @@ RadixSort::_execute(const std::vector<cl_event> events)
 
 	event_wait = inversePermutations();
 	auto inv_profiler =
-	    dynamic_cast<EventProfile*>(Profiler::subinstances().at(4));
+	    dynamic_cast<EventProfile*>(Profiler::substages().at(4));
 	inv_profiler->start(event_wait);
 
 	// The events associated to _var and _perms was already set during the

@@ -19,7 +19,7 @@
         </Tool>
         <Tool action="add" name="output file" type="report_file" fields="r_sum,r_max" path="vars.out"/>
         <Tool action="add" name="iter += 1" type="set_scalar" in="iter" value="iter + 1"/>
-        <Tool action="add" name="performance" type="report_performance" color="white" bold="false"/>
+        <Tool action="add" name="performance" type="report_performance" color="white" bold="false" path="performance.json"/>
     </Tools>
 
     <Settings>

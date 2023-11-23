@@ -12,7 +12,7 @@
     <Tools>
         <Tool action="add" name="copy r" type="copy" in="r" out="r_out"/>
         <Tool action="add" name="iter += 1" type="set_scalar" in="iter" value="iter + 1"/>
-        <Tool action="add" name="performance" type="report_performance" color="white" bold="false"/>
+        <Tool action="add" name="performance" type="report_performance" color="white" bold="false" path="performance.json"/>
     </Tools>
     <Settings>
         <Device device="0" platform="0" type="ALL"/>

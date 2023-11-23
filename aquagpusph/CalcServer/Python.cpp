@@ -265,7 +265,7 @@ Python::Python(const std::string tool_name, const std::string script, bool once)
 		_script = _script.substr(0, last_sep);
 	}
 
-	Profiler::subinstances({ new ScalarProfile("script") });
+	Profiler::substages({ new ScalarProfile("script", this) });
 }
 
 Python::~Python()
@@ -295,7 +295,7 @@ Python::_execute(const std::vector<cl_event> events)
 {
 	PyObject* result;
 
-	dynamic_cast<ScalarProfile*>(Profiler::subinstances().front())->start();
+	dynamic_cast<ScalarProfile*>(Profiler::substages().front())->start();
 
 	result = PyObject_CallObject(_func, NULL);
 	if (!result) {
@@ -316,7 +316,7 @@ Python::_execute(const std::vector<cl_event> events)
 		throw std::runtime_error("Python invoked simulation stop");
 	}
 
-	dynamic_cast<ScalarProfile*>(Profiler::subinstances().front())->end();
+	dynamic_cast<ScalarProfile*>(Profiler::substages().front())->end();
 
 	// This function is not pruducing events by itself. This work is relayed
 	// to the setters

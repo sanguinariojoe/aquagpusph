@@ -109,6 +109,9 @@ class Performance : public Aqua::CalcServer::Reports::Report
 	bool _bold;
 	/// Output file name
 	std::string _output_file;
+
+	/// Timer at the last execution (0 when the tool has not been executed yet)
+	cl_ulong _timer;
 };
 
 }

@@ -141,7 +141,6 @@ MPISync::setup()
 	// Setup the mask sorting subtool
 	try {
 		setupSort();
-		profilers.push_back(new SuperProfile("sort", _sort));
 	} catch (std::runtime_error& e) {
 		std::stringstream msg;
 		msg << "Error setting up the sorter for tool \"" << name() << "\""
@@ -152,12 +151,6 @@ MPISync::setup()
 	// Setup the field sorting subtools
 	for (auto field : _fields) {
 		setupFieldSort(field);
-		{
-			std::stringstream pname;
-			pname << "sorter " << field->name();
-			profilers.push_back(
-			    new SuperProfile(pname.str(), _field_sorters.back()));
-		}
 	}
 
 	std::vector<InputOutput::Variable*> deps;
@@ -176,17 +169,17 @@ MPISync::setup()
 	for (auto s : _senders) {
 		std::stringstream pname;
 		pname << "sender " << s->proc();
-		profilers.push_back(new EventProfile(pname.str()));
+		profilers.push_back(new EventProfile(pname.str(), this));
 	}
 
 	setupReceivers();
 	for (auto s : _senders) {
 		std::stringstream pname;
 		pname << "receiver " << s->proc();
-		profilers.push_back(new EventProfile(pname.str()));
+		profilers.push_back(new EventProfile(pname.str(), this));
 	}
 
-	Profiler::subinstances(profilers);
+	Profiler::substages(profilers);
 }
 
 cl_event
@@ -223,10 +216,10 @@ MPISync::_execute(const std::vector<cl_event> events)
 	}
 
 	// Send the data to other processes
-	unsigned int i_profiler = _fields.size() + 1;
+	unsigned int i_profiler = 0;
 	for (auto sender : _senders) {
 		auto profiler = dynamic_cast<EventProfile*>(
-		    Profiler::subinstances().at(i_profiler));
+		    Profiler::substages().at(i_profiler));
 		sender->execute(profiler);
 		i_profiler++;
 	}
@@ -236,7 +229,7 @@ MPISync::_execute(const std::vector<cl_event> events)
 	_mask_reinit->execute();
 	for (auto receiver : _receivers) {
 		auto profiler = dynamic_cast<EventProfile*>(
-		    Profiler::subinstances().at(i_profiler));
+		    Profiler::substages().at(i_profiler));
 		receiver->execute(profiler);
 		i_profiler++;
 	}

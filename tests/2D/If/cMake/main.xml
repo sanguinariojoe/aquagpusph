@@ -17,7 +17,7 @@
         <Tool action="add" name="Good if" type="if" condition="iter &gt;= 1"/>
         <Tool action="add" name="Good assertion" type="assert" condition="h &lt; 0.0"/>
         <Tool action="add" name="End Good if" type="end"/>
-        <Tool action="add" name="performance" type="report_performance" color="white" bold="false"/>
+        <Tool action="add" name="performance" type="report_performance" color="white" bold="false" path="performance.json"/>
     </Tools>
     <Settings>
         <Device device="0" platform="0" type="ALL"/>

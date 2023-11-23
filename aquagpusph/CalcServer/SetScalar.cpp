@@ -39,7 +39,7 @@ ScalarExpression::ScalarExpression(const std::string name,
   , _output_type(type)
 {
 	setOutputType(type);
-	Profiler::subinstances({ new ScalarProfile("solver") });
+	Profiler::substages({ new ScalarProfile("solver", this) });
 }
 
 ScalarExpression::~ScalarExpression()
@@ -79,7 +79,7 @@ ScalarExpression::solve()
 {
 	cl_int err_code;
 
-	dynamic_cast<ScalarProfile*>(Profiler::subinstances().front())->start();
+	dynamic_cast<ScalarProfile*>(Profiler::substages().front())->start();
 
 	cl_event user_event = getUserEvent();
 
@@ -118,7 +118,7 @@ ScalarExpression::solve()
 		return;
 	}
 
-	dynamic_cast<ScalarProfile*>(Profiler::subinstances().front())->end();
+	dynamic_cast<ScalarProfile*>(Profiler::substages().front())->end();
 }
 
 /** @brief Callback called when all the dependencies of the

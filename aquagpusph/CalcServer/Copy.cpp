@@ -43,7 +43,7 @@ Copy::Copy(const std::string name,
   , _input_var(NULL)
   , _output_var(NULL)
 {
-	Profiler::subinstances({ new EventProfile("Copy") });
+	Profiler::substages({ new EventProfile("Copy", this) });
 }
 
 Copy::~Copy() {}
@@ -89,7 +89,7 @@ Copy::_execute(const std::vector<cl_event> events)
 	}
 
 	auto profiler =
-	    dynamic_cast<EventProfile*>(Profiler::subinstances().back());
+	    dynamic_cast<EventProfile*>(Profiler::substages().back());
 	profiler->start(event);
 	profiler->end(event);
 

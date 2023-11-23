@@ -70,13 +70,10 @@ LinkList::LinkList(const std::string tool_name,
 	                         "c = max(a, b);",
 	                         "-VEC_INFINITY");
 	_sort = new RadixSort(tool_name + "->Radix-Sort");
-	Profiler::subinstances({ new SuperProfile("min pos", _min_pos),
-	                         new SuperProfile("max pos", _max_pos),
-	                         new ScalarProfile("n_cells"),
-	                         new EventProfile("icell"),
-	                         new SuperProfile("radix-sort", _sort),
-	                         new EventProfile("ihoc"),
-	                         new EventProfile("link-list") });
+	Profiler::substages({ new ScalarProfile("n_cells", this),
+	                      new EventProfile("icell", this),
+	                      new EventProfile("ihoc", this),
+	                      new EventProfile("link-list", this) });
 }
 
 LinkList::~LinkList()
@@ -174,13 +171,13 @@ LinkList::_execute(const std::vector<cl_event> events)
 		throw std::runtime_error("OpenCL execution error");
 	}
 
-	dynamic_cast<ScalarProfile*>(Profiler::subinstances()[2])->start();
+	dynamic_cast<ScalarProfile*>(Profiler::substages()[0])->start();
 	nCells();
 	allocate();
 
 	// Set the new allocated variables
 	setVariables();
-	dynamic_cast<ScalarProfile*>(Profiler::subinstances()[2])->end();
+	dynamic_cast<ScalarProfile*>(Profiler::substages()[0])->end();
 
 	// Compute the cell of each particle
 	err_code = clEnqueueNDRangeKernel(C->command_queue(),
@@ -202,7 +199,7 @@ LinkList::_execute(const std::vector<cl_event> events)
 	}
 	{
 		auto profiler =
-		    dynamic_cast<EventProfile*>(Profiler::subinstances()[3]);
+		    dynamic_cast<EventProfile*>(Profiler::substages()[1]);
 		profiler->start(event);
 		profiler->end(event);
 	}
@@ -250,7 +247,7 @@ LinkList::_execute(const std::vector<cl_event> events)
 	event_wait = event;
 	{
 		auto profiler =
-		    dynamic_cast<EventProfile*>(Profiler::subinstances()[5]);
+		    dynamic_cast<EventProfile*>(Profiler::substages()[2]);
 		profiler->start(event);
 		profiler->end(event);
 	}
@@ -283,7 +280,7 @@ LinkList::_execute(const std::vector<cl_event> events)
 	}
 	{
 		auto profiler =
-		    dynamic_cast<EventProfile*>(Profiler::subinstances()[6]);
+		    dynamic_cast<EventProfile*>(Profiler::substages()[3]);
 		profiler->start(event);
 		profiler->end(event);
 	}

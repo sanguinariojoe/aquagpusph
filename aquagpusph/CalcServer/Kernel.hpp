@@ -55,10 +55,10 @@ class EventProfile : public Aqua::CalcServer::Profile
   public:
 	/** Constructor
 	 * @param name The name
-	 * @param n Number of samples to keep in memory
+	 * @param tool The owning tool
 	 */
-	EventProfile(const std::string name)
-	  : Profile(name)
+	EventProfile(const std::string name, Tool *tool)
+	  : Profile(name, tool)
 	{
 	}
 
