@@ -94,6 +94,13 @@ sigint_handler(int s)
  */
 std::mutex profiling_mutex;
 
+std::deque<ProfilingSnapshot>
+ProfilingInfo::get() const
+{
+	const std::lock_guard<std::mutex> lock(profiling_mutex);
+	return _snapshots;
+}
+
 void
 ProfilingInfo::sample(cl_ulong step,
                       Tool* tool,
@@ -102,7 +109,6 @@ ProfilingInfo::sample(cl_ulong step,
                       cl_ulong end)
 {
 	const std::lock_guard<std::mutex> lock(profiling_mutex);
-
 	/// Traverse the snapshots looking for the step one
 	for (auto it = _snapshots.rbegin();  it != _snapshots.rend(); ++it ) {
 		if ((*it).step == step) {
@@ -111,6 +117,19 @@ ProfilingInfo::sample(cl_ulong step,
 		}
 	}
 }
+
+void
+ProfilingInfo::newStep()
+{
+	const std::lock_guard<std::mutex> lock(profiling_mutex);
+	_step++;
+	ProfilingSnapshot snapshot;
+	snapshot.step = _step;
+	_snapshots.push_back(snapshot);
+	if (_snapshots.size() > _n)
+		_snapshots.pop_front();
+}
+
 
 CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
   : _num_platforms(0)

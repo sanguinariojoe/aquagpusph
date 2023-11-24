@@ -144,7 +144,7 @@ class ProfilingInfo
 	/** @brief Get the stored snapshots
 	 * @return The list of stored snapshots
 	 */
-	inline std::deque<ProfilingSnapshot> get() const { return _snapshots; }
+	std::deque<ProfilingSnapshot> get() const;
 
 	/** @brief Get the delta time
 	 *
@@ -164,15 +164,7 @@ class ProfilingInfo
 	/** @brief Let the profiler know that a new step of tools execution is
 	 * about to start
 	 */
-	inline void newStep()
-	{
-		_step++;
-		ProfilingSnapshot snapshot;
-		snapshot.step = _step;
-		_snapshots.push_back(snapshot);
-		if (_snapshots.size() > _n)
-			_snapshots.pop_front();
-	}
+	void newStep();
 
   private:
 	/// A counter on the times the tools pack have been called
