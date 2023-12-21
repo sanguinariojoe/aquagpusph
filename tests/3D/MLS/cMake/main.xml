@@ -4,7 +4,7 @@
     <Include file="@RESOURCES_DIR@/Presets/basic/MLS.xml" />
 
     <Variables>
-        <Variable length="1" name="h" symbol="h" type="float" value="0.1"/>
+        <Variable length="1" name="h" symbol="h" type="float" value="0.5"/>
         <Variable name="dt" type="float" symbol="\Delta t" value="1.0" />
         <Variable name="cs" type="float" symbol="c_s" value="1.0" />
         <Variable length="N" name="grad_p" symbol="\nabla p" type="vec*" value="0"/>
