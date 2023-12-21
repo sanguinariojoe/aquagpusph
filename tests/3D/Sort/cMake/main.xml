@@ -2,10 +2,10 @@
 <sphInput>
     <Variables>
         <Variable length="N" name="r" symbol="r" type="vec*" />
-        <Variable length="n_radix" name="f" symbol="f" type="unsigned int*" />
-        <Variable length="n_radix" name="f_orig" symbol="f_orig" type="unsigned int*" />
-        <Variable length="n_radix" name="perms" symbol="perms" type="unsigned int*" />
-        <Variable length="n_radix" name="inv_perms" symbol="inv_perms" type="unsigned int*" />
+        <Variable length="N" name="f" symbol="f" type="unsigned int*" />
+        <Variable length="N" name="f_orig" symbol="f_orig" type="unsigned int*" />
+        <Variable length="N" name="perms" symbol="perms" type="unsigned int*" />
+        <Variable length="N" name="inv_perms" symbol="inv_perms" type="unsigned int*" />
         <Variable length="1" name="h" symbol="h" type="float" value="0.1"/>
     </Variables>
     <ParticlesSet n="500">
