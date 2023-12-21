@@ -36,7 +36,7 @@ import numpy as np
 
 
 N = 500
-r = np.zeros((N, 4), dtype=np.float)
+r = np.zeros((N, 4), dtype=float)
 r[:, 0:-1] = np.random.rand(N, 3)
 # Let's create a completelly alone particle
 r[0, :] -= 2

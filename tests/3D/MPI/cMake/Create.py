@@ -38,7 +38,7 @@ import numpy as np
 N = 500
 PROCS = 2
 
-r = np.zeros((N, 4), dtype=np.float)
+r = np.zeros((N, 4), dtype=float)
 r[:, 0:-1] = np.random.rand(N, 3)
 
 n = [0]
