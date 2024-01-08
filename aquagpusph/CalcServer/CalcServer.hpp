@@ -255,26 +255,34 @@ class CalcServer : public Aqua::Singleton<Aqua::CalcServer::CalcServer>,
 	 */
 	inline cl_device_id device() const { return _device; }
 
-	/** Get the command queue
+	enum cmd_queue { cmd_queue_current, cmd_queue_new, cmd_queue_mpi };
+
+	/** Get a command queue
 	 *
-	 * Two different command queues are available. Indeed, OpenCL specification
-	 * allows to create the command queues with the
-	 * CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE option, which allows that a
-	 * subsequent kernel/task execution begins before the preceding one has
-	 * already finished. However, the specification does not allows, by any
-	 * means, that a preceding kernel/task execution can be triggered after
-	 * a subsequent one. Therefore, parallel tasks shall use a different queue
-	 * to ensure the correct order within each queue
-	 *
-	 * @param parallel true if the command queue for task executed in parallel
-	 * is queried, false otherwise
+	 * To allow the asynchronous "As-Fast-As-Possible" execution of commands
+	 * they can be enqueued on different queues. The queues are always reseted
+	 * when a new time step is executed.
+	 * @param which cmd_queue::cmd_queue_current to enqueue the command on the
+	 * current command queue, cmd_queue::cmd_queue_new to raise a new one where
+	 * commands can be executed in parallel, cmd_queue::cmd_queue_mpi to get
+	 * the command queue designed to exchange info with other processes
 	 * @return The command queue
+	 * @raise std::runtime_error if the command queue cannot be created
 	 */
-	inline cl_command_queue command_queue(bool parallel = false) const
+	cl_command_queue command_queue(
+		cmd_queue which=cmd_queue::cmd_queue_current);
+
+	/** Call clFinish() on top of all known command queues
+	 * @return CL_SUCCESS if clFinish() is correctly called on all queues, an
+	 * error code otherwise
+	 */
+	inline cl_int finish() const
 	{
-		if (parallel)
-			return _command_queue_parallel;
-		return _command_queue;
+		cl_int err_code = CL_SUCCESS;
+		for (auto queue : _command_queues)
+			err_code |= clFinish(queue);
+		err_code |= clFinish(_command_queue_parallel);
+		return err_code;
 	}
 
 	/** @brief Get the offset between the device timer and the host one
@@ -348,8 +356,10 @@ class CalcServer : public Aqua::Singleton<Aqua::CalcServer::CalcServer>,
 	cl_platform_id _platform;
 	/// Selected device
 	cl_device_id _device;
-	/// Main command queue
-	cl_command_queue _command_queue;
+	/// Current main command queue
+	unsigned int _command_queue_current;
+	/// Main command queues
+	std::vector<cl_command_queue> _command_queues;
 	/** Command queue for task carried out in parallel tasks (e.g. events
 	 * callbacks).
 	 */

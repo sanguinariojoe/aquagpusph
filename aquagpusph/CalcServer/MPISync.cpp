@@ -45,6 +45,8 @@ namespace CalcServer {
 std::string MPISYNC_INC = xxd2string(MPISync_hcl_in, MPISync_hcl_in_len);
 std::string MPISYNC_SRC = xxd2string(MPISync_cl_in, MPISync_cl_in_len);
 
+#define cmd_queue_mpi CalcServer::cmd_queue::cmd_queue_mpi
+
 MPISync::MPISync(const std::string name,
                  const std::string mask,
                  const std::vector<std::string> fields,
@@ -620,7 +622,7 @@ cbMPISend(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 
 	// Download the data
 	cl_int err_code;
-	err_code = clEnqueueReadBuffer(data->C->command_queue(true),
+	err_code = clEnqueueReadBuffer(data->C->command_queue(cmd_queue_mpi),
 	                               *(cl_mem*)field->get(),
 	                               CL_TRUE,
 	                               offset * tsize,
@@ -1108,7 +1110,7 @@ cbMPIRecv(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 		throw std::runtime_error("OpenCL error");
 	}
 	size_t global_work_size = roundUp(n, data->local_work_size);
-	err_code = clEnqueueNDRangeKernel(data->C->command_queue(true),
+	err_code = clEnqueueNDRangeKernel(data->C->command_queue(cmd_queue_mpi),
 	                                  data->kernel,
 	                                  1,
 	                                  NULL,
@@ -1159,7 +1161,7 @@ cbMPIRecv(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 		}
 
 		// But upload it in asynchronous mode
-		err_code = clEnqueueWriteBuffer(data->C->command_queue(true),
+		err_code = clEnqueueWriteBuffer(data->C->command_queue(cmd_queue_mpi),
 		                                *(cl_mem*)field->get(),
 		                                CL_FALSE,
 		                                offset * tsize,

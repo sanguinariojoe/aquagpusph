@@ -49,6 +49,7 @@ Tool::Tool(const std::string tool_name, bool once)
   : Named(tool_name)
   , _once(once)
   , _next_tool(NULL)
+  , _prev_tool(NULL)
   , _allocated_memory(0)
   , _n_iters(0)
   , _elapsed_time(0.f)
@@ -106,6 +107,27 @@ exec_status_check(cl_event event, cl_int event_command_status, void* user_data)
 	CalcServer::singleton()->raiseSIGINT();
 }
 
+bool need_new_cmd(const Tool* prev_tool, std::vector<cl_event> events)
+{
+	if (!prev_tool) {
+		// First tool, no new cmd required
+		return false;
+	} else if (!prev_tool->getEvent()) {
+		// The tool is not providing an event to check. Better to use the same
+		// queue, just in case
+		return false;
+	}
+
+	// OK, let's check if the event provided by the previous tool is blocking
+	// our execution, which would mean that we can get enqueued on the same
+	// queue.
+	for (auto event : events)
+		if (event == prev_tool->getEvent())
+			return false;
+	// It seems we can get executed before the last tool
+	return true;
+}
+
 void
 Tool::execute()
 {
@@ -122,6 +144,8 @@ Tool::execute()
 		LOG(L_DEBUG, msg.str());
 	}
 	std::vector<cl_event> events = getEvents();
+	if (need_new_cmd(_prev_tool, events))
+		C->command_queue(CalcServer::cmd_queue::cmd_queue_new);
 
 	// To avoid a infinite queues we block the execution until the previous
 	// execution event is finished.
@@ -212,9 +236,7 @@ Tool::execute()
 				throw std::runtime_error("OpenCL execution error");
 			}
 		}
-		err_code = clFinish(C->command_queue());
-		if (err_code == CL_SUCCESS)
-			err_code = clFinish(C->command_queue(true));
+		err_code = C->finish();
 		if (err_code != CL_SUCCESS) {
 			std::stringstream msg;
 			msg << "Failure calling clFinish() after launching \"" << name()

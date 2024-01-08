@@ -139,7 +139,7 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
   , _context(NULL)
   , _platform(NULL)
   , _device(NULL)
-  , _command_queue(NULL)
+  , _command_queue_current(0)
   , _command_queue_parallel(NULL)
   , _device_timer_offset(0)
   , _current_tool_name(NULL)
@@ -527,8 +527,8 @@ CalcServer::~CalcServer()
 	unsigned int i;
 	delete[] _current_tool_name;
 
-	if (_command_queue)
-		clReleaseCommandQueue(_command_queue);
+	for (auto queue : _command_queues)
+		clReleaseCommandQueue(queue);
 	if (_command_queue_parallel)
 		clReleaseCommandQueue(_command_queue_parallel);
 	if (_context)
@@ -581,13 +581,16 @@ CalcServer::update(InputOutput::TimeManager& t_manager)
 		InputOutput::Logger::singleton()->initFrame();
 
 		// Execute the tools
+		_command_queue_current = 0;
 		ProfilingInfo::newStep();
-		Tool* tool = _tools.front();
+		Tool *tool=_tools.front(), *prev_tool=NULL;
 		while (tool) {
 			try {
 				strncpy(_current_tool_name, tool->name().c_str(), 255);
+				tool->prev_tool(prev_tool);
 				tool->execute();
-				tool = tool->next_tool();
+				prev_tool = tool;
+				tool = tool->next_tool();;
 			} catch (std::runtime_error& e) {
 				sleep(__ERROR_SHOW_TIME__);
 				throw;
@@ -604,6 +607,65 @@ CalcServer::update(InputOutput::TimeManager& t_manager)
 
 		InputOutput::Logger::singleton()->endFrame();
 	}
+}
+
+/** @brief Create an OpenCL command queue
+ *
+ * This function is just a wrapper for backguard compatibility. More
+ * specifically, clCreateCommandQueue is deprecated since OpenCL 1.2
+ *
+ * @param context OpenCL context
+ * @param device OpenCL device
+ * @param errcode_ret Returning error code
+ * @see
+ * https://www.khronos.org/registry/OpenCL/sdk/2.0/docs/man/xhtml/deprecated.html
+ * @see
+ * https://www.khronos.org/registry/OpenCL/sdk/2.0/docs/man/xhtml/clCreateCommandQueueWithProperties.html
+ */
+cl_command_queue
+create_command_queue(cl_context context,
+                     cl_device_id device,
+                     cl_int* errcode_ret)
+{
+#if (OPENCL_PLATFORM_MAJOR > 1) ||                                             \
+    ((OPENCL_PLATFORM_MAJOR == 1) && (OPENCL_PLATFORM_MINOR > 1))
+	const cl_queue_properties properties[4] = {
+		CL_QUEUE_PROPERTIES, CL_QUEUE_PROFILING_ENABLE,
+		0
+	};
+	return clCreateCommandQueueWithProperties(
+	    context, device, properties, errcode_ret);
+#else
+	cl_command_queue_properties properties = CL_QUEUE_PROFILING_ENABLE;
+	return clCreateCommandQueue(context, device, properties, errcode_ret);
+#endif
+}
+
+cl_command_queue
+CalcServer::command_queue(cmd_queue which)
+{
+	cl_int err_code;
+	cl_command_queue queue = NULL;
+	switch (which) {
+		case cmd_queue::cmd_queue_new:
+			_command_queue_current++;
+			if (_command_queue_current >= _command_queues.size()) {
+				queue = create_command_queue(_context, _device, &err_code);
+				if (err_code != CL_SUCCESS) {
+					LOG(L_ERROR, "Failure generating a new command queue\n");
+					InputOutput::Logger::singleton()->printOpenCLError(
+						err_code);
+					throw std::runtime_error("OpenCL error");
+				}
+				_command_queues.push_back(queue);
+			}
+		case cmd_queue::cmd_queue_current:
+			queue = _command_queues[_command_queue_current];
+			break;
+		case cmd_queue::cmd_queue_mpi:
+			queue = _command_queue_parallel;
+	}
+	return queue;
 }
 
 cl_event
@@ -1000,40 +1062,6 @@ CalcServer::setupPlatform()
 	}
 }
 
-/** @brief Create an OpenCL command queue
- *
- * This function is just a wrapper for backguard compatibility. More
- * specifically, clCreateCommandQueue is deprecated since OpenCL 1.2
- *
- * @param context OpenCL context
- * @param device OpenCL device
- * @param errcode_ret Returning error code
- * @see
- * https://www.khronos.org/registry/OpenCL/sdk/2.0/docs/man/xhtml/deprecated.html
- * @see
- * https://www.khronos.org/registry/OpenCL/sdk/2.0/docs/man/xhtml/clCreateCommandQueueWithProperties.html
- */
-cl_command_queue
-create_command_queue(cl_context context,
-                     cl_device_id device,
-                     cl_int* errcode_ret)
-{
-#if (OPENCL_PLATFORM_MAJOR > 1) ||                                             \
-    ((OPENCL_PLATFORM_MAJOR == 1) && (OPENCL_PLATFORM_MINOR > 1))
-	const cl_queue_properties properties[4] = {
-		CL_QUEUE_PROPERTIES,
-		CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE | CL_QUEUE_PROFILING_ENABLE,
-		0
-	};
-	return clCreateCommandQueueWithProperties(
-	    context, device, properties, errcode_ret);
-#else
-	cl_command_queue_properties properties =
-	    CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE | CL_QUEUE_PROFILING_ENABLE;
-	return clCreateCommandQueue(context, device, properties, errcode_ret);
-#endif
-}
-
 /** @brief Runtime error reporting tool
  *
  * Errors reported in this way directly depends on the implementation.
@@ -1196,12 +1224,13 @@ CalcServer::setupDevices()
 	}
 
 	// Create the command queues
-	_command_queue = create_command_queue(_context, _device, &err_code);
+	auto queue = create_command_queue(_context, _device, &err_code);
 	if (err_code != CL_SUCCESS) {
 		LOG(L_ERROR, "Failure generating the main command queue\n");
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL error");
 	}
+	_command_queues.push_back(queue);
 	_command_queue_parallel =
 	    create_command_queue(_context, _device, &err_code);
 	if (err_code != CL_SUCCESS) {
@@ -1218,8 +1247,10 @@ CalcServer::setupDevices()
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL error");
 	}
-	err_code =
-	    clEnqueueMarkerWithWaitList(_command_queue, 1, &trigger, &sampler);
+	err_code = clEnqueueMarkerWithWaitList(_command_queues.front(),
+	                                       1,
+	                                       &trigger,
+	                                       &sampler);
 	if (err_code != CL_SUCCESS) {
 		LOG(L_ERROR, "Failure generating the sampler event\n");
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
@@ -1340,7 +1371,7 @@ CalcServer::setup()
 				throw;
 			}
 			cl_mem mem = *(cl_mem*)_vars.get(name.c_str())->get();
-			err_code = clEnqueueWriteBuffer(_command_queue,
+			err_code = clEnqueueWriteBuffer(_command_queues.front(),
 			                                mem,
 			                                CL_TRUE,
 			                                i * typesize,

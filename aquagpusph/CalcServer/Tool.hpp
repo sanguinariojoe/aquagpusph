@@ -209,6 +209,21 @@ class Tool : public Aqua::CalcServer::Named, public Aqua::CalcServer::Profiler
 	 */
 	virtual inline Tool* next_tool() { return _next_tool; }
 
+	/** Get the previous tool executed in the pipeline.
+	 *
+	 * CalcServer::CalcServer will provide with this information.
+	 * @return Previous enqueued tool. NULL if there is no previous tool on the
+	 * pipeline
+	 */
+	inline Tool* prev_tool() const { return _prev_tool; }
+
+	/** Set the previous tool executed in the pipeline.
+	 *
+	 * CalcServer::CalcServer will provide with this information.
+	 * @param tool Previous enqueued tool.
+	 */
+	inline void prev_tool(Tool* tool) { _prev_tool = tool; }
+
 	/** Get the allocated memory for this tool.
 	 * @return allocated memory by this tool.
 	 */
@@ -497,6 +512,9 @@ class Tool : public Aqua::CalcServer::Named, public Aqua::CalcServer::Profiler
 
 	/// Next tool in the execution pipeline
 	Tool* _next_tool;
+
+	/// Previous tool in the execution pipeline
+	Tool* _prev_tool;
 
 	/// Total auxiliar memory allocated in the device
 	size_t _allocated_memory;

@@ -25,10 +25,13 @@
 
 #include "Tokenizer.hpp"
 #include "aquagpusph/InputOutput/Logger.hpp"
+#include <mutex>
 
 using namespace std;
 
 namespace Aqua {
+
+std::mutex tokenizer_mutex;
 
 double
 mod_operator(double v, double w)
@@ -97,6 +100,7 @@ Tokenizer::~Tokenizer()
 bool
 Tokenizer::registerVariable(const std::string name, float value)
 {
+	const std::lock_guard<std::mutex> lock(tokenizer_mutex);
 	bool overwritten = false;
 	// Look for the variable in order to know if it already exist
 	if (isVariable(name)) {
@@ -110,6 +114,7 @@ Tokenizer::registerVariable(const std::string name, float value)
 void
 Tokenizer::clearVariables()
 {
+	const std::lock_guard<std::mutex> lock(tokenizer_mutex);
 	p.ClearConst();
 	defaultVariables();
 }
@@ -142,6 +147,7 @@ Tokenizer::variable(const std::string name)
 std::vector<std::string>
 Tokenizer::exprVariables(const std::string eq)
 {
+	const std::lock_guard<std::mutex> lock(tokenizer_mutex);
 	std::vector<std::string> vars;
 	q.SetExpr(eq);
 	auto variables = q.GetUsedVar();
@@ -153,6 +159,7 @@ Tokenizer::exprVariables(const std::string eq)
 float
 Tokenizer::solve(const std::string eq)
 {
+	const std::lock_guard<std::mutex> lock(tokenizer_mutex);
 	float result;
 
 	// First try a straight number conversion
@@ -176,6 +183,7 @@ Tokenizer::solve(const std::string eq)
 	} catch (mu::Parser::exception_type& e) {
 		std::ostringstream msg;
 		msg << "Error evaluating \"" << e.GetExpr() << "\"" << std::endl;
+		msg << "input = \"" << eq << "\"" << std::endl;
 		LOG(L_WARNING, msg.str());
 		msg.str("");
 		msg << "\t" << e.GetMsg() << std::endl;

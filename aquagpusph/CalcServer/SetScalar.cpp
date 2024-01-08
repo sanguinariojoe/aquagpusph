@@ -86,8 +86,6 @@ ScalarExpression::solve()
 	try {
 		_solve();
 	} catch (...) {
-		std::stringstream msg;
-		LOG(L_ERROR, msg.str());
 		err_code = clSetUserEventStatus(user_event, -1);
 		if (err_code != CL_SUCCESS) {
 			std::stringstream msg;
