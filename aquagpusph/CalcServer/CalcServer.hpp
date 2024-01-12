@@ -285,6 +285,12 @@ class CalcServer : public Aqua::Singleton<Aqua::CalcServer::CalcServer>,
 		return err_code;
 	}
 
+	/** Create a marker to be set as completed when all the enqued commnands on
+	 * all the command queues are finished.
+	 * @return the master event
+	 */
+	cl_event marker() const;
+
 	/** @brief Get the offset between the device timer and the host one
 	 * @return The time offset, in nanoseconds
 	 */

@@ -236,8 +236,8 @@ performance_cb(cl_event event, cl_int event_command_status, void* user_data)
 cl_event
 Performance::_execute(const std::vector<cl_event> events)
 {
-	std::vector<cl_event> no_events;
-	return setCallback(no_events, performance_cb);
+	auto C = CalcServer::singleton();
+	return setCallback({C->marker()}, performance_cb);
 }
 
 std::ofstream

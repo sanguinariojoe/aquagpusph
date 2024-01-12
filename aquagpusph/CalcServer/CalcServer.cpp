@@ -669,6 +669,42 @@ CalcServer::command_queue(cmd_queue which)
 }
 
 cl_event
+CalcServer::marker() const
+{
+	cl_int err_code;
+	cl_event event;
+	// Setup a list of markers for each command queue
+	std::vector<cl_event> events;
+	for (auto queue : _command_queues) {
+		err_code = clEnqueueMarkerWithWaitList(queue, 0, NULL, &event);
+		if (err_code != CL_SUCCESS) {
+			LOG(L_ERROR, "Failure setting the marker for a command queue\n");
+			InputOutput::Logger::singleton()->printOpenCLError(err_code);
+			throw std::runtime_error("OpenCL execution error");
+		}
+		events.push_back(event);
+	}
+	err_code = clEnqueueMarkerWithWaitList(
+		_command_queue_parallel, 0, NULL, &event);
+	if (err_code != CL_SUCCESS) {
+		LOG(L_ERROR, "Failure setting the marker for the MPI command queue\n");
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
+	events.push_back(event);
+	// Join all them together on a common marker
+	err_code = clEnqueueMarkerWithWaitList(
+		_command_queues[_command_queue_current], events.size(), events.data(),
+		&event);
+	if (err_code != CL_SUCCESS) {
+		LOG(L_ERROR, "Failure setting the master marker\n");
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
+	return event;
+}
+
+cl_event
 CalcServer::getUnsortedMem(const std::string var_name,
                            size_t offset,
                            size_t cb,
