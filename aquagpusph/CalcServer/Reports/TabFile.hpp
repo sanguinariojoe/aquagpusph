@@ -65,6 +65,12 @@ class TabFile : public Aqua::CalcServer::Reports::Report
 	 */
 	void setup();
 
+	/** Print the data on the tabulated file
+	 * @note This function is public to let the OpenCL callback call it, but it
+	 * is not meant to be used by regular users
+	 */
+	void print();
+
   protected:
 	/** Execute the tool
 	 * @param events List of events that shall be waited before safe execution

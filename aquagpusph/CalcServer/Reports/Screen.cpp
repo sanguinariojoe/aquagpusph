@@ -105,7 +105,6 @@ screenreport_cb(cl_event event, cl_int event_command_status, void* user_data)
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		return;
 	}
-
 }
 
 cl_event
