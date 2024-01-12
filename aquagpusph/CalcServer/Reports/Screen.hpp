@@ -66,6 +66,16 @@ class Screen : public Aqua::CalcServer::Reports::Report
 	 */
 	void setup();
 
+	/** @brief Get the output color
+	 * @return The output color
+	 */
+	inline std::string color() const { return _color; }
+
+	/** @brief Get the output boldness
+	 * @return True for bold output, false for normal one
+	 */
+	inline bool bold() const { return _bold; }
+
   protected:
 	/** Execute the tool
 	 * @param events List of events that shall be waited before safe execution

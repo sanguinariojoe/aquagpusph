@@ -56,24 +56,63 @@ Screen::setup()
 	Report::setup();
 }
 
+/** @brief Callback called when all the variables can be read by
+ * Aqua::CalcServer::Screen.
+ *
+ * This function is just redirecting the work to
+ * InputOutput::Logger::writeReport() using the
+ * Aqua::CalcServer::Report::data() function to extract the information
+ * @param event The triggering event
+ * @param event_command_status CL_COMPLETE upon all dependencies successfully
+ * fulfilled. A negative integer if one or mor dependencies failed.
+ * @param user_data A casted pointer to the Aqua::CalcServer::Screen
+ * tool (or the inherited one)
+ */
+void CL_CALLBACK
+screenreport_cb(cl_event event, cl_int event_command_status, void* user_data)
+{
+	clReleaseEvent(event);
+	auto tool = (Screen*)user_data;
+	if (event_command_status != CL_COMPLETE) {
+		std::stringstream msg;
+		msg << "Skipping \"" << tool->name() << "\" due to dependency errors."
+		    << std::endl;
+		LOG(L_WARNING, msg.str());
+		clSetUserEventStatus(tool->getUserEvent(), event_command_status);
+		clReleaseEvent(tool->getUserEvent());
+		return;
+	}
+
+	InputOutput::Logger::singleton()->writeReport(tool->data(),
+	                                              tool->color(),
+	                                              tool->bold());
+	cl_int err_code;
+	err_code = clSetUserEventStatus(tool->getUserEvent(), CL_COMPLETE);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure setting as complete the tool \"" << tool->name()
+		    << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		return;
+	}
+	err_code = clReleaseEvent(tool->getUserEvent());
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure releasing the user event at tool \"" << tool->name()
+		    << "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		return;
+	}
+
+}
+
 cl_event
 Screen::_execute(const std::vector<cl_event> events)
 {
-	// For the time being, let's sync here
-	cl_uint num_events_in_wait_list = events.size();
-	const cl_event* event_wait_list = events.size() ? events.data() : NULL;
-	cl_int err_code = clWaitForEvents(num_events_in_wait_list, event_wait_list);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure syncing in tool \"" << name() << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
-
-	InputOutput::Logger::singleton()->writeReport(data(), _color, _bold);
-
-	return NULL;
+	std::vector<cl_event> no_events;
+	return setCallback(no_events, screenreport_cb);
 }
 
 }

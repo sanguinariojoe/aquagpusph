@@ -44,7 +44,6 @@ Performance::Performance(const std::string tool_name,
   , _bold(bold)
   , _output_file(output_file)
   , _timer(0)
-  , _user_event(NULL)
 {
 	if (output_file != "") {
 		try {
@@ -166,7 +165,7 @@ Performance::print()
 	}
 
 	cl_int err_code;
-	err_code = clSetUserEventStatus(_user_event, CL_COMPLETE);
+	err_code = clSetUserEventStatus(getUserEvent(), CL_COMPLETE);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
 		msg << "Failure setting as complete the tool \"" << name() << "\"."
@@ -175,7 +174,7 @@ Performance::print()
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		return;
 	}
-	err_code = clReleaseEvent(_user_event);
+	err_code = clReleaseEvent(getUserEvent());
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
 		msg << "Failure releasing the user event at tool \"" << name() << "\"."
@@ -205,7 +204,7 @@ Performance::computeAllocatedMemory()
 	return allocated_mem;
 }
 
-/** @brief Callback called when all the command prior to
+/** @brief Callback called when all the commands prior to
  * Aqua::CalcServer::Performance are completed.
  *
  * This function is just redirecting the work to
@@ -237,55 +236,8 @@ performance_cb(cl_event event, cl_int event_command_status, void* user_data)
 cl_event
 Performance::_execute(const std::vector<cl_event> events)
 {
-	cl_int err_code;
-	auto C = CalcServer::singleton();
-	cl_event event;
-	// We are running everything on a parallel thread which is launched when
-	// all the previous enqueued commands are completed
-	err_code = clEnqueueMarkerWithWaitList(
-		C->command_queue(), 0, NULL, &event);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure setting the marker for tool \"" << name() << "\"."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
-
-	// Now we create a user event that we will set as completed when we already
-	// readed the input dependencies
-	_user_event = clCreateUserEvent(C->context(), &err_code);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure creating the event for tool \"" << name() << "\"."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
-
-	// So it is time to register our callback on our trigger
-	err_code = clRetainEvent(_user_event);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure retaining the event for tool \"" << name() << "\"."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
-	err_code = clSetEventCallback(event, CL_COMPLETE, performance_cb, this);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure registering the solver callback in tool \"" << name()
-		    << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
-
-	return _user_event;
+	std::vector<cl_event> no_events;
+	return setCallback(no_events, performance_cb);
 }
 
 std::ofstream
