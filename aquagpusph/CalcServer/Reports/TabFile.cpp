@@ -105,7 +105,7 @@ TabFile::print()
  * Aqua::CalcServer::TabFile.
  *
  * This function is just redirecting the work to
- * Aqua::CalcServer::Report::print()
+ * Aqua::CalcServer::TabFile::print()
  * @param event The triggering event
  * @param event_command_status CL_COMPLETE upon all dependencies successfully
  * fulfilled. A negative integer if one or mor dependencies failed.

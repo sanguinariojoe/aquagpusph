@@ -93,6 +93,12 @@ class SetTabFile : public Aqua::CalcServer::Reports::Report
 	 */
 	void setup();
 
+	/** Print the data on the tabulated file
+	 * @note This function is public to let the OpenCL callback call it, but it
+	 * is not meant to be used by regular users
+	 */
+	void print();
+
   protected:
 	/** Execute the tool
 	 * @param events List of events that shall be waited before safe execution
@@ -108,10 +114,10 @@ class SetTabFile : public Aqua::CalcServer::Reports::Report
 
 	/** Download the data from the device, and store it.
 	 * @param vars Fields to download.
-	 * @return host allocated memory. A clear list if errors happened.
-	 * @note The returned data must be manually cleared.
+	 * @return The events to be waited before the data is available.
+	 * @note The returned data must be manually freed.
 	 */
-	std::vector<void*> download(std::vector<InputOutput::Variable*> vars);
+	std::vector<cl_event> download(std::vector<InputOutput::Variable*> vars);
 
   private:
 	/** Remove the content of the data list.
@@ -121,6 +127,8 @@ class SetTabFile : public Aqua::CalcServer::Reports::Report
 
 	/// Particles managed bounds
 	uivec2 _bounds;
+	/// List of host allocated memory objects
+	std::vector<void*> _data;
 
 	/// Output file name
 	std::string _output_file;
