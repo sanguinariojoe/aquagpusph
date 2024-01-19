@@ -106,7 +106,9 @@ MPISync::~MPISync()
 	// releasing them twice while deleting the sorters
 	cl_mem inner_mem = NULL;
 	for (auto field : _fields_sorted) {
+		field->reallocatable(true);
 		field->set((void*)(&inner_mem));
+		field->reallocatable(false);
 	}
 	// Now we can delete the sorters
 	for (auto sorter : _field_sorters) {
@@ -347,6 +349,7 @@ MPISync::setupFieldSort(InputOutput::ArrayVariable* field)
 	_fields_sorted.push_back((InputOutput::ArrayVariable*)vars->get(var_name));
 	// Remove the inner memory object, since we are using the one computed by
 	// the sorting tool
+	_fields_sorted.back()->reallocatable(true);
 	inner_mem = *(cl_mem*)_fields_sorted.back()->get();
 	err_code = clReleaseMemObject(inner_mem);
 	if (err_code != CL_SUCCESS) {
@@ -369,6 +372,7 @@ MPISync::setupFieldSort(InputOutput::ArrayVariable* field)
 	// computed by the sorter
 	inner_mem = _field_sorters.back()->output();
 	_fields_sorted.back()->set((void*)(&inner_mem));
+	_fields_sorted.back()->reallocatable(false);
 }
 
 void

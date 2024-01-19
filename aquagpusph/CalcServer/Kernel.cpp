@@ -155,6 +155,37 @@ ArgSetter::execute()
 	}
 }
 
+bool
+ArgSetter::Arg::operator==(InputOutput::Variable* var)
+{
+	if (!var)
+		return false;
+	if (var->getWritingEvent() == _event)
+		return true;
+	if (var->typesize() != _size)
+		return false;
+	// We have 2 cases here:
+	//  - Non-reallocatable array variables, that are never changing so we can
+	//    get them asynchronously
+	//  - Reallocatable array variables and scalar variables, that we must wait
+	//    until they are wrote
+	if (!var->isArray() ||
+	    ((InputOutput::ArrayVariable*)var)->reallocatable())
+	{
+		auto event = var->getWritingEvent();
+		auto err_code = clWaitForEvents(1, &event);
+		if (err_code != CL_SUCCESS) {
+			std::stringstream msg;
+			msg << "Failure waiting for the variable \"" << var->name()
+				<< "\" to be written." << std::endl;
+			LOG(L_ERROR, msg.str());
+			InputOutput::Logger::singleton()->printOpenCLError(err_code);
+			throw std::runtime_error("OpenCL execution error");
+		}
+	}
+	return !memcmp(var->get_async(), _value, _size);
+}
+
 /** @brief Syncing utility to set an user event status to the same status of
  * another OpenCL event
  *

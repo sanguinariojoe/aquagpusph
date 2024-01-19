@@ -138,6 +138,11 @@ LinkList::setup()
 
 	setDependencies({ _input_name, "N", "n_radix", "support", "h" },
 	                { "r_min", "r_max", "ihoc", "icell", "n_cells" });
+
+	// This tool shall mark ihoc variable as reallocatable
+	InputOutput::ArrayVariable* ihoc =
+		(InputOutput::ArrayVariable*)getOutputDependencies()[2];
+	ihoc->reallocatable(true);
 }
 
 cl_event

@@ -728,6 +728,7 @@ ArrayVariable::ArrayVariable(const std::string varname,
                              const std::string vartype)
   : Variable(varname, vartype)
   , _value(NULL)
+  , _reallocatable(false)
 {
 }
 
@@ -771,6 +772,20 @@ ArrayVariable::size() const
 		Logger::singleton()->printOpenCLError(status);
 	}
 	return memsize;
+}
+
+void
+ArrayVariable::set(void* ptr, bool synced)
+{
+	if (_value && !_reallocatable) {
+		std::ostringstream msg;
+		msg << "Array variable \"" << name()
+			<< "\", cannot be set, because it has not been marked as "
+			<< "reallocatable" << std::endl;
+		LOG(L_ERROR, msg.str());
+		throw std::runtime_error("No reallocatable variable");
+	}
+	_value = *(cl_mem*)ptr;
 }
 
 PyObject*

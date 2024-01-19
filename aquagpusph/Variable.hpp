@@ -868,8 +868,21 @@ class ArrayVariable : public Variable
 	/** Set variable from memory
 	 * @param ptr Memory to copy.
 	 * @param synced Unused parameter
+	 * @throw std::runtime_error if the variable is not reallocatable and it
+	 * has been already set
 	 */
-	void set(void* ptr, bool synced = false) { _value = *(cl_mem*)ptr; }
+	void set(void* ptr, bool synced = false);
+
+	/** @brief Get if a variable is reallocatable
+	 * @return true if the variable is marked as reallocatable, false otherwise
+	 */
+	inline const bool reallocatable() const { return _reallocatable; }
+
+	/** @brief Set if a variable is reallocatable
+	 * @param is true if the variable is reallocatable, false otherwise
+	 * @note Non-reallocatable variables are in general way more efficient
+	 */
+	inline void reallocatable(bool is) { _reallocatable = is; }
 
 	/** Get a PyArrayObject interpretation of the variable
 	 * @param i0 First component to be read.
@@ -904,6 +917,10 @@ class ArrayVariable : public Variable
 
 	/// Variable value
 	cl_mem _value;
+
+	/// Mark if this memory buffer can be reallocated or not (false by default)
+	bool _reallocatable;
+
 	/** @brief List of helpers data array storages for the Python objects
 	 *
 	 * The memory array inside numpy objects must be dynamically allocated and
@@ -918,6 +935,7 @@ class ArrayVariable : public Variable
 	 * @see _objects
 	 */
 	std::vector<void*> _data;
+
 	/** @brief List of helpers data array storages for the Python objects
 	 * @see getPythonObject()
 	 * @see _data

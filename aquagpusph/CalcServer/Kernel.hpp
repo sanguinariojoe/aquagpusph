@@ -124,7 +124,10 @@ class ArgSetter : public Aqua::CalcServer::Named
 	/** @brief Get the list of variables to be set
 	 * @return The list of variables
 	 */
-	inline std::vector<InputOutput::Variable*> getVars() const { return _vars; }
+	inline std::vector<InputOutput::Variable*> getVars() const
+	{ 
+		return _vars;
+	}
 
 	/** @brief Get the list of variables to be set
 	 * @return The list of variables
@@ -208,16 +211,7 @@ class ArgSetter::Arg
 	 * @param var Variable to compare with
 	 * @return true if the variable still matches the argument, false otherwise
 	 */
-	inline bool operator==(InputOutput::Variable* var)
-	{
-		if (!var)
-			return false;
-		if (var->getWritingEvent() == _event)
-			return true;
-		if (var->typesize() != _size)
-			return false;
-		return !memcmp(var->get_async(), _value, _size);
-	}
+	bool operator==(InputOutput::Variable* var);
 
 	/** @brief Check whether the content of a variable is the same than this
 	 * argument
@@ -245,7 +239,9 @@ class ArgSetter::Arg
 	inline void operator=(InputOutput::Variable* var)
 	{
 		try {
-			set(var->typesize(), var->get(), var->getWritingEvent());
+			// We can read asynchronously as long as == operator already waited
+			// for the variable writing when required
+			set(var->typesize(), var->get_async(), var->getWritingEvent());
 		} catch (...) {
 			std::stringstream msg;
 			msg << "From variable " << var->name() << std::endl;
