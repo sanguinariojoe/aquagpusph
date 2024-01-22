@@ -24,7 +24,6 @@
 #include <string>
 
 #include "Particles.hpp"
-#include "Logger.hpp"
 #include "aquagpusph/CalcServer/CalcServer.hpp"
 #include "aquagpusph/AuxiliarMethods.hpp"
 
@@ -37,12 +36,88 @@ Particles::Particles(ProblemSetup& sim_data,
                      unsigned int n)
   : _sim_data(sim_data)
   , _iset(iset)
+  , _time(0.f)
+  , _user_event(NULL)
 {
 	_bounds.x = first;
 	_bounds.y = first + n;
 }
 
-Particles::~Particles() {}
+Particles::~Particles()
+{
+	if (_user_event)
+		clReleaseEvent(_user_event);
+	for (auto const& mem : _data)
+		free(mem.second);
+}
+
+/** @brief Callback called when all the fields have been downloaded.
+ *
+ * This function is just redirecting the work to
+ * Aqua::InputOutput::Particles::print_file()
+ * @param event The triggering event
+ * @param event_command_status CL_COMPLETE upon all dependencies successfully
+ * fulfilled. A negative integer if one or more dependencies failed.
+ * @param user_data A casted pointer to the Aqua::InputOutput::Particles
+ * tool (or the inherited one)
+ */
+void CL_CALLBACK
+particles_cb(cl_event event, cl_int event_command_status, void* user_data)
+{
+	clReleaseEvent(event);
+	auto tool = (Particles*)user_data;
+	if (event_command_status != CL_COMPLETE) {
+		std::stringstream msg;
+		LOG(L_WARNING, "Skipping the file saving due to errors.\n");
+		clSetUserEventStatus(tool->getUserEvent(), event_command_status);
+		clReleaseEvent(tool->getUserEvent());
+		return;
+	}
+
+	tool->print_file();
+}
+
+
+void
+Particles::save(float t)
+{
+	std::vector<std::string> fields =
+	    simData().sets.at(setId())->outputFields();
+	if (!fields.size()) {
+		LOG(L_ERROR, "0 fields were set to be saved into the file.\n");
+		throw std::runtime_error("No fields have been marked to be saved");
+	}
+
+	// Just one instance at a time
+	waitForSavers();
+	_time = t;
+
+	cl_int err_code;
+	auto C = CalcServer::CalcServer::singleton();
+	auto trigger = download(fields);
+	auto event = clCreateUserEvent(C->context(), &err_code);
+	if (err_code != CL_SUCCESS) {
+		LOG(L_ERROR, "Failure creating the user event \n.");
+		Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
+	_user_event = event;
+
+	// So it is time to register our callback on our trigger
+	err_code = clRetainEvent(event);
+	if (err_code != CL_SUCCESS) {
+		LOG(L_ERROR, "Failure retaining the user event\n.");
+		Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
+	err_code = clSetEventCallback(trigger, CL_COMPLETE, particles_cb, this);
+	if (err_code != CL_SUCCESS) {
+		LOG(L_ERROR, "Failure registering the printing callback.\n");
+		Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
+
+}
 
 void
 Particles::loadDefault()
@@ -51,7 +126,7 @@ Particles::loadDefault()
 	cl_int err_code;
 	ArrayVariable* var;
 	cl_mem mem;
-	CalcServer::CalcServer* C = CalcServer::CalcServer::singleton();
+	auto C = CalcServer::CalcServer::singleton();
 
 	unsigned int n = bounds().y - bounds().x;
 	unsigned int* iset = new unsigned int[n];
@@ -157,14 +232,13 @@ Particles::file(const std::string basename,
 	return i;
 }
 
-std::vector<void*>
+cl_event
 Particles::download(std::vector<std::string> fields)
 {
-	std::vector<void*> data;
 	std::vector<cl_event> events;
 	size_t typesize, len;
 	cl_int err_code;
-	CalcServer::CalcServer* C = CalcServer::CalcServer::singleton();
+	auto C = CalcServer::CalcServer::singleton();
 	Variables* vars = C->variables();
 
 	for (auto field : fields) {
@@ -173,14 +247,12 @@ Particles::download(std::vector<std::string> fields)
 			msg << "Can't download undeclared variable \"" << field << "\"."
 			    << std::endl;
 			LOG(L_ERROR, msg.str());
-			clearList(&data);
 			throw std::runtime_error("Invalid variable");
 		}
-		if (vars->get(field)->type().find('*') == std::string::npos) {
+		if (!vars->get(field)->isArray()) {
 			std::ostringstream msg;
 			msg << "Variable \"" << field << "\" is a scalar." << std::endl;
 			LOG(L_ERROR, msg.str());
-			clearList(&data);
 			throw std::runtime_error("Invalid variable type");
 		}
 		ArrayVariable* var = (ArrayVariable*)vars->get(field);
@@ -195,65 +267,38 @@ Particles::download(std::vector<std::string> fields)
 			msg << "length = " << bounds().y << "is required, but just " << len
 			    << " components are available." << std::endl;
 			LOG0(L_DEBUG, msg.str());
-			clearList(&data);
 			throw std::runtime_error("Invalid variable length");
 		}
-		void* store = malloc(typesize * (bounds().y - bounds().x));
-		if (!store) {
-			std::ostringstream msg;
-			msg << "Failure allocating " << typesize * (bounds().y - bounds().x)
-			    << "bytes for variable \"" << field << "\"." << std::endl;
-			LOG(L_ERROR, msg.str());
-			clearList(&data);
-			throw std::bad_alloc();
-		}
-		data.push_back(store);
-
-		cl_event event;
-		try {
-			event = C->getUnsortedMem(var->name().c_str(),
-			                          typesize * bounds().x,
-			                          typesize * (bounds().y - bounds().x),
-			                          store);
-		} catch (...) {
-			clearList(&data);
-			throw;
+		if (_data.find(field) == _data.end()) {
+			void* store = malloc(typesize * (bounds().y - bounds().x));
+			if (!store) {
+				std::ostringstream msg;
+				msg << "Failure allocating " << typesize * (bounds().y - bounds().x)
+					<< "bytes for variable \"" << field << "\"." << std::endl;
+				LOG(L_ERROR, msg.str());
+				throw std::bad_alloc();
+			}
+			_data.insert(std::make_pair(field, store));
 		}
 
+		auto event = C->getUnsortedMem(var->name().c_str(),
+			                           typesize * bounds().x,
+			                           typesize * (bounds().y - bounds().x),
+			                           _data.at(field));
 		events.push_back(event);
 	}
 
-	// Wait until all the data has been downloaded
-	err_code = clWaitForEvents(events.size(), events.data());
+	// Join all the events together
+	cl_event trigger;
+	err_code = clEnqueueMarkerWithWaitList(
+	    C->command_queue(), events.size(), events.data(), &trigger);
 	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure waiting for the variables download.\n");
+		LOG(L_ERROR, "Failure setting the trigger for data saving.\n");
 		Logger::singleton()->printOpenCLError(err_code);
-		clearList(&data);
-		throw std::runtime_error("OpenCL error");
+		throw std::runtime_error("OpenCL execution error");
 	}
 
-	// Destroy the events
-	for (auto event : events) {
-		err_code = clReleaseEvent(event);
-		if (err_code != CL_SUCCESS) {
-			LOG(L_ERROR, "Failure releasing the events.\n");
-			Logger::singleton()->printOpenCLError(err_code);
-			clearList(&data);
-			throw std::runtime_error("OpenCL error");
-		}
-	}
-
-	return data;
-}
-
-void
-Particles::clearList(std::vector<void*>* data)
-{
-	for (auto d : *data) {
-		if (d)
-			free(d);
-	}
-	data->clear();
+	return trigger;
 }
 
 }

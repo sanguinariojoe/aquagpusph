@@ -322,62 +322,23 @@ typedef struct
 	vtkXMLUnstructuredGridWriter* f;
 } data_pthread;
 
-/** @brief Parallel thread to write the data
- * @param data_void Input data of type data_pthread* (dynamically casted as
- * void*)
- */
-void*
-save_pthread(void* data_void)
+
+void
+VTK::print_file()
 {
 	unsigned int i, j;
-	data_pthread* data = (data_pthread*)data_void;
+	auto C = CalcServer::CalcServer::singleton();
+	auto fields = simData().sets.at(setId())->outputFields();
 
 	// Create storage arrays
 	std::vector<vtkSmartPointer<vtkDataArray>> vtk_arrays;
-	Variables* vars = data->C->variables();
-	for (auto field : data->fields) {
-		if (!vars->get(field)) {
-			std::ostringstream msg;
-			msg << "Can't save undeclared variable \"" << field << "\"."
-			    << std::endl;
-			data->S->addMessage(L_ERROR, msg.str());
-			for (auto d : data->data)
-				free(d);
-			data->data.clear();
-			data->f->Delete();
-			delete data;
-			data = NULL;
-			return NULL;
-		}
-		if (vars->get(field)->type().find('*') == std::string::npos) {
-			std::ostringstream msg;
-			msg << "Can't save scalar variable \"" << field << "\"."
-			    << std::endl;
-			data->S->addMessage(L_ERROR, msg.str());
-			for (auto d : data->data)
-				free(d);
-			data->data.clear();
-			data->f->Delete();
-			delete data;
-			data = NULL;
-			return NULL;
-		}
+	Variables* vars = C->variables();
+	for (auto field : fields) {
+		// If we are here is because the field exists and it has been correctly
+		// downloaded
 		ArrayVariable* var = (ArrayVariable*)vars->get(field);
 		size_t typesize = vars->typeToBytes(var->type());
 		size_t len = var->size() / typesize;
-		if (len < data->bounds.y) {
-			std::ostringstream msg;
-			msg << "Variable \"" << field << "\" is not long enough."
-			    << std::endl;
-			data->S->addMessageF(L_ERROR, msg.str());
-			for (auto d : data->data)
-				free(d);
-			data->data.clear();
-			data->f->Delete();
-			delete data;
-			data = NULL;
-			return NULL;
-		}
 
 		unsigned int n_components = vars->typeToN(var->type());
 		if (var->type().find("unsigned int") != std::string::npos ||
@@ -410,10 +371,10 @@ save_pthread(void* data_void)
 	vtkSmartPointer<vtkCellArray> vtk_cells =
 	    vtkSmartPointer<vtkCellArray>::New();
 
-	for (i = 0; i < data->bounds.y - data->bounds.x; i++) {
-		for (j = 0; j < data->fields.size(); j++) {
-			if (!data->fields.at(j).compare("r")) {
-				vec* ptr = (vec*)(data->data.at(j));
+	for (i = 0; i < bounds().y - bounds().x; i++) {
+		for (j = 0; j < fields.size(); j++) {
+			if (!fields.at(j).compare("r")) {
+				vec* ptr = (vec*)(data().at(fields.at(j)));
 #ifdef HAVE_3D
 				vtk_points->InsertNextPoint(ptr[i].x, ptr[i].y, ptr[i].z);
 #else
@@ -422,7 +383,7 @@ save_pthread(void* data_void)
 				continue;
 			}
 			ArrayVariable* var =
-			    (ArrayVariable*)(vars->get(data->fields.at(j)));
+			    (ArrayVariable*)(vars->get(fields.at(j)));
 			size_t typesize = vars->typeToBytes(var->type());
 			unsigned int n_components = vars->typeToN(var->type());
 			if (var->type().find("unsigned int") != std::string::npos ||
@@ -430,7 +391,7 @@ save_pthread(void* data_void)
 				unsigned int vect[n_components];
 				size_t offset = typesize * i;
 				memcpy(vect,
-				       (char*)(data->data.at(j)) + offset,
+				       (char*)(data().at(fields.at(j))) + offset,
 				       n_components * sizeof(unsigned int));
 				vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
 				    (vtkUnsignedIntArray*)(vtk_arrays.at(j).GetPointer());
@@ -444,7 +405,7 @@ save_pthread(void* data_void)
 				int vect[n_components];
 				size_t offset = typesize * i;
 				memcpy(vect,
-				       (char*)(data->data.at(j)) + offset,
+				       (char*)(data().at(fields.at(j))) + offset,
 				       n_components * sizeof(int));
 				vtkSmartPointer<vtkIntArray> vtk_array =
 				    (vtkIntArray*)(vtk_arrays.at(j).GetPointer());
@@ -459,7 +420,7 @@ save_pthread(void* data_void)
 				float vect[n_components];
 				size_t offset = typesize * i;
 				memcpy(vect,
-				       (char*)(data->data.at(j)) + offset,
+				       (char*)(data().at(fields.at(j))) + offset,
 				       n_components * sizeof(float));
 				vtkSmartPointer<vtkFloatArray> vtk_array =
 				    (vtkFloatArray*)(vtk_arrays.at(j).GetPointer());
@@ -480,12 +441,12 @@ save_pthread(void* data_void)
 	    vtkSmartPointer<vtkUnstructuredGrid>::New();
 	grid->SetPoints(vtk_points);
 	grid->SetCells(vtk_vertex->GetCellType(), vtk_cells);
-	for (i = 0; i < data->fields.size(); i++) {
-		if (!data->fields.at(i).compare("r")) {
+	for (i = 0; i < fields.size(); i++) {
+		if (!fields.at(i).compare("r")) {
 			continue;
 		}
 
-		ArrayVariable* var = (ArrayVariable*)(vars->get(data->fields.at(i)));
+		ArrayVariable* var = (ArrayVariable*)(vars->get(fields.at(i)));
 		if (var->type().find("unsigned int") != std::string::npos ||
 		    var->type().find("uivec") != std::string::npos) {
 			vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
@@ -505,45 +466,33 @@ save_pthread(void* data_void)
 		}
 	}
 
-// Write file
+	// Write file
+	auto f = create();
 #if VTK_MAJOR_VERSION <= 5
-	data->f->SetInput(grid);
+	f->SetInput(grid);
 #else  // VTK_MAJOR_VERSION
-	data->f->SetInputData(grid);
+	f->SetInputData(grid);
 #endif // VTK_MAJOR_VERSION
 
-	if (!data->f->Write()) {
-		data->S->addMessageF(L_ERROR,
-		                     std::string("Failure writing \"") +
-		                         data->f->GetFileName() + "\" VTK file.\n");
+	if (!f->Write()) {
+		LOG(L_ERROR, std::string("Failure writing \"") +
+		             f->GetFileName() + "\" VTK file.\n");
 	}
 
-	// Clean up
-	for (auto d : data->data)
-		free(d);
-	data->data.clear();
-	data->S->addMessageF(L_INFO,
-	                     std::string("Wrote \"") + data->f->GetFileName() +
-	                         "\" VTK file.\n");
-	data->f->Delete();
+	LOG(L_INFO, std::string("Wrote \"") + f->GetFileName() + "\" VTK file.\n");
+	f->Delete();
 
-	delete data;
-	data = NULL;
-	return NULL;
+	updatePVD(time());
+
+	Particles::print_file();
 }
 
 void
 VTK::save(float t)
 {
-	unsigned int i;
-
 	// Check the fields to write
 	std::vector<std::string> fields =
 	    simData().sets.at(setId())->outputFields();
-	if (!fields.size()) {
-		LOG(L_ERROR, "0 fields were set to be saved into the file.\n");
-		throw std::runtime_error("No fields have been marked to be saved");
-	}
 	bool have_r = false;
 	for (auto field : fields) {
 		if (!field.compare("r")) {
@@ -556,71 +505,7 @@ VTK::save(float t)
 		throw std::runtime_error("\"r\" field is mandatory");
 	}
 
-	// Setup the data struct for the parallel thread
-	data_pthread* data = new data_pthread;
-	data->fields = fields;
-	data->bounds = bounds();
-	data->C = CalcServer::CalcServer::singleton();
-	data->S = Logger::singleton();
-	data->data = download(fields);
-	if (!data->data.size()) {
-		LOG(L_ERROR, "\"r\" field was not set to be saved into the file.\n");
-		throw std::runtime_error("Failure downloading data");
-	}
-	data->f = create();
-
-	// Launch the thread
-	pthread_t tid;
-	int err;
-	err = pthread_create(&tid, NULL, &save_pthread, (void*)data);
-	if (err) {
-		LOG(L_ERROR, "Failure launching the parallel thread.\n");
-		char err_str[strlen(strerror(err)) + 2];
-		strcpy(err_str, strerror(err));
-		strcat(err_str, "\n");
-		LOG0(L_DEBUG, err_str);
-		throw std::runtime_error("Failure launching VTK saving thread");
-	}
-	_tids.push_back(tid);
-
-	// Clear the already finished threads
-	if (_tids.size() > 0) {
-		i = _tids.size() - 1;
-		while (true) {
-			if (pthread_kill(_tids.at(i), 0)) {
-				pthread_join(_tids.at(i), NULL);
-				_tids.erase(_tids.begin() + i);
-			}
-			if (i == 0)
-				break;
-			i--;
-		}
-	}
-
-	// Check and limit the number of active writing processes
-	if (_tids.size() > 2) {
-		LOG(L_WARNING, "More than 2 active writing tasks\n");
-		LOG(L_DEBUG,
-		    "This may result in heavy performance penalties, and hard disk "
-		    "failures\n");
-		LOG(L_DEBUG,
-		    "Please, consider a reduction of the output printing rate\n");
-		while (_tids.size() > 2) {
-			pthread_join(_tids.at(0), NULL);
-			_tids.erase(_tids.begin());
-		}
-	}
-
-	updatePVD(t);
-}
-
-void
-VTK::waitForSavers()
-{
-	for (auto tid : _tids) {
-		pthread_join(tid, NULL);
-	}
-	_tids.clear();
+	Particles::save(t);
 }
 
 const unsigned int

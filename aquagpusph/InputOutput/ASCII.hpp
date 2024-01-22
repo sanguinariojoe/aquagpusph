@@ -74,15 +74,15 @@ class ASCII : public Particles
 	/// Destructor
 	virtual ~ASCII();
 
-	/** @brief Save the data.
-	 *
-	 * @param t Simulation time
-	 */
-	void save(float t);
-
 	/** @brief Load the data.
 	 */
 	void load();
+
+	/** @brief Print the data to a file
+	 * @note This method is public to work with the OpenCL callbacks, but it is
+	 * not meant to be called by the users
+	 */
+	void print_file() final;
 
   private:
 	/** @brief Compute the number of particles handled by this instance

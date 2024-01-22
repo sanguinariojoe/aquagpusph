@@ -24,8 +24,6 @@
 #ifndef VTK_H_INCLUDED
 #define VTK_H_INCLUDED
 
-#include <pthread.h>
-
 #include <vtkVersion.h>
 #include <vtkSmartPointer.h>
 #include <vtkXMLUnstructuredGridWriter.h>
@@ -118,14 +116,11 @@ class VTK : public Particles
 	 */
 	void load();
 
-	/** @brief Wait for the parallel saving threads.
-	 *
-	 * VTK saver is launching parallel threads to save the data in an
-	 * asynchronous way, significantly improving the performance. Therefore,
-	 * AQUAgpusph shall wait them to finish before proceeding to destroy the
-	 * data
+	/** @brief Print the data to a file
+	 * @note This method is public to work with the OpenCL callbacks, but it is
+	 * not meant to be called by the users
 	 */
-	void waitForSavers();
+	void print_file() final;
 
   private:
 	/** @brief Compute the number of particles handled by this instance
@@ -169,10 +164,6 @@ class VTK : public Particles
 
 	/// PVD file name
 	std::string _namePVD;
-
-	/// Launched threads ids
-	std::vector<pthread_t> _tids;
-
 }; // class InputOutput
 
 }

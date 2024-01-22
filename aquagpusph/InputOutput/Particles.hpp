@@ -25,8 +25,10 @@
 #define PARTICLES_H_INCLUDED
 
 #include <vector>
+#include <map>
 #include "aquagpusph/sphPrerequisites.hpp"
 #include "aquagpusph/ProblemSetup.hpp"
+#include "Logger.hpp"
 #include "InputOutput.hpp"
 
 namespace Aqua {
@@ -77,6 +79,14 @@ class Particles : public InputOutput
 	 */
 	unsigned int n() { return _bounds.y - _bounds.x; }
 
+	/** @brief Get the user event to be waited for before the file saving is
+	 * finished
+	 * @return The event
+	 * @note In general ::waitForSavers() shall be used instead of this
+	 * function, which is provided just to work with the OpenCL callbacks
+	 */
+	inline cl_event getUserEvent() const { return _user_event; }
+
 	/** @brief Wait for the eventual parallel saving threads.
 	 *
 	 * Some savers may optionally launch parallel threads to save the data, in
@@ -84,7 +94,54 @@ class Particles : public InputOutput
 	 * AQUAgpusph shall wait them to finish before proceeding to destroy the
 	 * data
 	 */
-	virtual void waitForSavers() { return; }
+	virtual inline void waitForSavers()
+	{
+		if (!_user_event)
+			return;
+		cl_int err_code;
+		err_code = clWaitForEvents(1, &_user_event);
+		if (err_code != CL_SUCCESS) {
+			LOG(L_ERROR, "Failure waiting for a file writer\n");
+			Logger::singleton()->printOpenCLError(err_code);
+			throw std::runtime_error("OpenCL error");
+		}
+		err_code = clReleaseEvent(_user_event);
+		if (err_code != CL_SUCCESS) {
+			LOG(L_ERROR, "Failure releasing the user event\n");
+			Logger::singleton()->printOpenCLError(err_code);
+			throw std::runtime_error("OpenCL error");
+		}
+		_user_event = NULL;
+	}
+
+	/** @brief Save the data.
+	 *
+	 * @param t Simulation time
+	 */
+	virtual void save(float t);
+
+	/** @brief Print the data to a file
+	 *
+	 * This function shall be overloaded by the inherited classes. Remember to
+	 * call this function anyway to set the user event as completed
+	 * @note This method is public to work with the OpenCL callbacks, but it is
+	 * not meant to be called by the users
+	 */
+	virtual void print_file() {
+		cl_int err_code;
+		err_code = clSetUserEventStatus(_user_event, CL_COMPLETE);
+		if (err_code != CL_SUCCESS) {
+			LOG(L_ERROR, "Failure setting the user event as completed.\n");
+			Logger::singleton()->printOpenCLError(err_code);
+			throw std::runtime_error("OpenCL error");
+		}
+		err_code = clReleaseEvent(_user_event);
+		if (err_code != CL_SUCCESS) {
+			LOG(L_ERROR, "Failure releasing the user event.\n");
+			Logger::singleton()->printOpenCLError(err_code);
+			throw std::runtime_error("OpenCL error");
+		}
+	}
 
   protected:
 	/** @brief Get the simulation data structure
@@ -96,7 +153,13 @@ class Particles : public InputOutput
 	/** @brief Set the number of particles managed by this instance
 	 * @return Number of particles
 	 */
-	void n(unsigned int n) { _bounds.y = _bounds.x + n; }
+	void n(unsigned int n)
+	{
+		_bounds.y = _bounds.x + n;
+		for (auto const& mem : _data)
+			free(mem.second);
+		_data.clear();
+	}
 
 	/** @brief Get the particle index bounds of the "set of particles" managed
 	 * by this class.
@@ -136,19 +199,27 @@ class Particles : public InputOutput
 	                  unsigned int start_index,
 	                  unsigned int digits = 5);
 
-	/** Download the data from the device, and store it
-	 * @param fields Fields to download
-	 * @return host allocated memory
-	 * @note The returned data must be manually cleared.
+	/** @brief Get the current simulation time to be written
+	 * @return The simulation time
 	 */
-	std::vector<void*> download(std::vector<std::string> fields);
+	inline float time() const { return _time; }
+
+	/** @brief Download the data from the device and store it
+	 * @param fields Fields to download
+	 * @return The event that will be marked as completed when the data is
+	 * already available
+	 * @see ::data()
+	 */
+	cl_event download(std::vector<std::string> fields);
+
+	/** @brief Get the stored memory objects where the device data has been
+	 * downloaded
+	 * @return The memory objects
+	 * @see ::download()
+	 */
+	inline std::map<std::string, void*> data() const { return _data; }
 
   private:
-	/** Remove the content of the data list.
-	 * @param data List of memory allocated arrays to be cleared.
-	 */
-	void clearList(std::vector<void*>* data);
-
 	/// Simulation data
 	ProblemSetup _sim_data;
 
@@ -160,6 +231,18 @@ class Particles : public InputOutput
 
 	/// Last file printed
 	std::string _output_file;
+
+	/// Current simulation time to be written
+	float _time;
+
+	/** The user event to be marked as finished when the last call to
+	 * InputOutput::save() is dispatched
+	 */
+	cl_event _user_event;
+
+	/// List of host allocated memories
+	std::map<std::string, void*> _data;
+
 }; // class InputOutput
 
 }
