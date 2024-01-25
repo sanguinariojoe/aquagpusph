@@ -241,6 +241,15 @@ Particles::download(std::vector<std::string> fields)
 	auto C = CalcServer::CalcServer::singleton();
 	Variables* vars = C->variables();
 
+	{
+		std::ostringstream msg;
+		msg << "Reading particles set " << setId() << "..." << std::endl;
+		LOG(L_INFO, msg.str());
+	}
+
+	// We are doing all this process on a new parallel command queue
+	C->command_queue(CalcServer::CalcServer::cmd_queue::cmd_queue_new);
+
 	for (auto field : fields) {
 		if (!vars->get(field)) {
 			std::ostringstream msg;
@@ -297,6 +306,10 @@ Particles::download(std::vector<std::string> fields)
 		Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
 	}
+
+	// And we do not want everybody waiting for us, so we create another
+	// parallel command queue to continue the work, just in case
+	C->command_queue(CalcServer::CalcServer::cmd_queue::cmd_queue_new);
 
 	return trigger;
 }

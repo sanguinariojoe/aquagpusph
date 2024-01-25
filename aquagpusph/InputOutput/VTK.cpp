@@ -104,6 +104,7 @@ VTK::VTK(ProblemSetup& sim_data,
          unsigned int n_in)
   : Particles(sim_data, iset, first, n_in)
   , _next_file_index(0)
+  , _vtk(NULL)
 {
 	if (n() == 0) {
 		n(compute_n());
@@ -113,6 +114,8 @@ VTK::VTK(ProblemSetup& sim_data,
 VTK::~VTK()
 {
 	waitForSavers();
+	if (_vtk)
+		_vtk->Delete();
 }
 
 void
@@ -326,11 +329,44 @@ typedef struct
 void
 VTK::print_file()
 {
+	// Call create ASAP so we can log that we are working on printing the file
+	auto f = create();
+
+	if (!_vtk)
+		_vtk = makeVTK();
+	else {
+		editVTK();
+	}
+
+	// Write file
+#if VTK_MAJOR_VERSION <= 5
+	f->SetInput(_vtk);
+#else  // VTK_MAJOR_VERSION
+	f->SetInputData(_vtk);
+#endif // VTK_MAJOR_VERSION
+
+	if (!f->Write()) {
+		LOG(L_ERROR, std::string("Failure writing \"") +
+		             f->GetFileName() + "\" VTK file.\n");
+	}
+
+	LOG(L_INFO, std::string("Wrote \"") + f->GetFileName() + "\" VTK file.\n");
+	f->Delete();
+
+	updatePVD(time());
+
+	Particles::print_file();
+}
+
+vtkUnstructuredGrid*
+VTK::makeVTK()
+{
 	unsigned int i, j;
 	auto C = CalcServer::CalcServer::singleton();
 	auto fields = simData().sets.at(setId())->outputFields();
 
 	// Create storage arrays
+	const unsigned int n = bounds().y - bounds().x;
 	std::vector<vtkSmartPointer<vtkDataArray>> vtk_arrays;
 	Variables* vars = C->variables();
 	for (auto field : fields) {
@@ -346,6 +382,8 @@ VTK::print_file()
 			vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
 			    vtkSmartPointer<vtkUnsignedIntArray>::New();
 			vtk_array->SetNumberOfComponents(n_components);
+			vtk_array->Allocate(n);
+			vtk_array->SetNumberOfTuples(n);
 			vtk_array->SetName(field.c_str());
 			vtk_arrays.push_back(vtk_array);
 		} else if (var->type().find("int") != std::string::npos ||
@@ -353,6 +391,8 @@ VTK::print_file()
 			vtkSmartPointer<vtkIntArray> vtk_array =
 			    vtkSmartPointer<vtkIntArray>::New();
 			vtk_array->SetNumberOfComponents(n_components);
+			vtk_array->Allocate(n);
+			vtk_array->SetNumberOfTuples(n);
 			vtk_array->SetName(field.c_str());
 			vtk_arrays.push_back(vtk_array);
 		} else if (var->type().find("float") != std::string::npos ||
@@ -361,6 +401,8 @@ VTK::print_file()
 			vtkSmartPointer<vtkFloatArray> vtk_array =
 			    vtkSmartPointer<vtkFloatArray>::New();
 			vtk_array->SetNumberOfComponents(n_components);
+			vtk_array->Allocate(n);
+			vtk_array->SetNumberOfTuples(n);
 			vtk_array->SetName(field.c_str());
 			vtk_arrays.push_back(vtk_array);
 		}
@@ -368,77 +410,71 @@ VTK::print_file()
 
 	vtkSmartPointer<vtkVertex> vtk_vertex;
 	vtkSmartPointer<vtkPoints> vtk_points = vtkSmartPointer<vtkPoints>::New();
+	vtk_points->Allocate(n);
+	vtk_points->SetNumberOfPoints(n);
 	vtkSmartPointer<vtkCellArray> vtk_cells =
 	    vtkSmartPointer<vtkCellArray>::New();
+	vtk_cells->Allocate(n);
+	vtk_cells->SetNumberOfCells(n);
 
-	for (i = 0; i < bounds().y - bounds().x; i++) {
-		for (j = 0; j < fields.size(); j++) {
-			if (!fields.at(j).compare("r")) {
-				vec* ptr = (vec*)(data().at(fields.at(j)));
+	for (i = 0; i < fields.size(); i++) {
+		void *ptr = data()[fields[i]];
+
+		if (!fields[i].compare("r")) {
+			// The mesh points are a bit of a special case
+			for (j = 0; j < n; j++) {
+				vec* coords = (vec*)ptr;
 #ifdef HAVE_3D
-				vtk_points->InsertNextPoint(ptr[i].x, ptr[i].y, ptr[i].z);
+				vtk_points->SetPoint(j, coords[j].x, coords[j].y, coords[j].z);
 #else
-				vtk_points->InsertNextPoint(ptr[i].x, ptr[i].y, 0.f);
+				vtk_points->SetPoint(j, coords[j].x, coords[j].y, 0.f);
 #endif
-				continue;
+				vtk_vertex = vtkSmartPointer<vtkVertex>::New();
+				vtk_vertex->GetPointIds()->SetId(0, j);
+				vtk_cells->InsertNextCell(vtk_vertex);
 			}
-			ArrayVariable* var =
-			    (ArrayVariable*)(vars->get(fields.at(j)));
-			size_t typesize = vars->typeToBytes(var->type());
-			unsigned int n_components = vars->typeToN(var->type());
+			continue;
+		}
+
+		ArrayVariable* var = (ArrayVariable*)(vars->get(fields[i]));
+		const size_t typesize = vars->typeToBytes(var->type());
+		const unsigned int n_components = vars->typeToN(var->type());
+		for (j = 0; j < n; j++) {
+			const size_t offset = typesize * j;
 			if (var->type().find("unsigned int") != std::string::npos ||
 			    var->type().find("uivec") != std::string::npos) {
 				unsigned int vect[n_components];
-				size_t offset = typesize * i;
 				memcpy(vect,
-				       (char*)(data().at(fields.at(j))) + offset,
+				       (char*)ptr + offset,
 				       n_components * sizeof(unsigned int));
 				vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
-				    (vtkUnsignedIntArray*)(vtk_arrays.at(j).GetPointer());
-#if VTK_MAJOR_VERSION < 7
-				vtk_array->InsertNextTupleValue(vect);
-#else
-				vtk_array->InsertNextTypedTuple(vect);
-#endif // VTK_MAJOR_VERSION
+				    (vtkUnsignedIntArray*)(vtk_arrays[i].GetPointer());
+				vtk_array->SetTypedTuple(j, vect);
 			} else if (var->type().find("int") != std::string::npos ||
 			           var->type().find("ivec") != std::string::npos) {
 				int vect[n_components];
-				size_t offset = typesize * i;
 				memcpy(vect,
-				       (char*)(data().at(fields.at(j))) + offset,
+				       (char*)ptr + offset,
 				       n_components * sizeof(int));
 				vtkSmartPointer<vtkIntArray> vtk_array =
-				    (vtkIntArray*)(vtk_arrays.at(j).GetPointer());
-#if VTK_MAJOR_VERSION < 7
-				vtk_array->InsertNextTupleValue(vect);
-#else
-				vtk_array->InsertNextTypedTuple(vect);
-#endif // VTK_MAJOR_VERSION
+				    (vtkIntArray*)(vtk_arrays[i].GetPointer());
+				vtk_array->SetTypedTuple(j, vect);
 			} else if (var->type().find("float") != std::string::npos ||
 			           var->type().find("vec") != std::string::npos ||
 			           var->type().find("matrix") != std::string::npos) {
 				float vect[n_components];
-				size_t offset = typesize * i;
 				memcpy(vect,
-				       (char*)(data().at(fields.at(j))) + offset,
+				       (char*)ptr + offset,
 				       n_components * sizeof(float));
 				vtkSmartPointer<vtkFloatArray> vtk_array =
-				    (vtkFloatArray*)(vtk_arrays.at(j).GetPointer());
-#if VTK_MAJOR_VERSION < 7
-				vtk_array->InsertNextTupleValue(vect);
-#else
-				vtk_array->InsertNextTypedTuple(vect);
-#endif // VTK_MAJOR_VERSION
+				    (vtkFloatArray*)(vtk_arrays[i].GetPointer());
+				vtk_array->SetTypedTuple(j, vect);
 			}
 		}
-		vtk_vertex = vtkSmartPointer<vtkVertex>::New();
-		vtk_vertex->GetPointIds()->SetId(0, i);
-		vtk_cells->InsertNextCell(vtk_vertex);
 	}
 
 	// Setup the unstructured grid
-	vtkSmartPointer<vtkUnstructuredGrid> grid =
-	    vtkSmartPointer<vtkUnstructuredGrid>::New();
+	vtkUnstructuredGrid* grid = vtkUnstructuredGrid::New();
 	grid->SetPoints(vtk_points);
 	grid->SetCells(vtk_vertex->GetCellType(), vtk_cells);
 	for (i = 0; i < fields.size(); i++) {
@@ -466,25 +502,63 @@ VTK::print_file()
 		}
 	}
 
-	// Write file
-	auto f = create();
-#if VTK_MAJOR_VERSION <= 5
-	f->SetInput(grid);
-#else  // VTK_MAJOR_VERSION
-	f->SetInputData(grid);
-#endif // VTK_MAJOR_VERSION
+	return grid;
+}
 
-	if (!f->Write()) {
-		LOG(L_ERROR, std::string("Failure writing \"") +
-		             f->GetFileName() + "\" VTK file.\n");
+void
+VTK::editVTK()
+{
+	unsigned int i, j;
+	auto C = CalcServer::CalcServer::singleton();
+	auto vars = C->variables();
+	auto fields = simData().sets.at(setId())->outputFields();
+	const unsigned int n = bounds().y - bounds().x;
+
+	for (i = 0; i < fields.size(); i++) {
+		void *ptr = data()[fields[i]];
+
+		if (!fields[i].compare("r")) {
+			// The mesh points are a bit of a special case
+			auto points = _vtk->GetPoints();
+			vec* coords = (vec*)ptr;
+			for (j = 0; j < n; j++) {
+#ifdef HAVE_3D
+				points->SetPoint(j, coords[j].x, coords[j].y, coords[j].z);
+#else
+				points->SetPoint(j, coords[j].x, coords[j].y, 0.f);
+#endif
+			}
+			// _vtk->SetPoints(points);
+			points->Modified();
+			continue;
+		}
+
+		auto array = _vtk->GetPointData()->GetAbstractArray(fields[i].c_str());
+		auto var = (ArrayVariable*)(vars->get(fields[i]));
+		const size_t typesize = vars->typeToBytes(var->type());
+		const unsigned int n_components = vars->typeToN(var->type());
+		for (j = 0; j < n; j++) {
+			const size_t offset = typesize * j;
+			auto shifted = (char*)ptr + offset;
+			if (var->type().find("unsigned int") != std::string::npos ||
+			    var->type().find("uivec") != std::string::npos) {
+				auto vtk_array = (vtkUnsignedIntArray*)array;
+				vtk_array->SetTypedTuple(j, (unsigned int*)shifted);
+			} else if (var->type().find("int") != std::string::npos ||
+			           var->type().find("ivec") != std::string::npos) {
+				auto vtk_array = (vtkIntArray*)array;
+				vtk_array->SetTypedTuple(j, (int*)shifted);
+			} else if (var->type().find("float") != std::string::npos ||
+			           var->type().find("vec") != std::string::npos ||
+			           var->type().find("matrix") != std::string::npos) {
+				auto vtk_array = (vtkFloatArray*)array;
+				vtk_array->SetTypedTuple(j, (float*)shifted);
+			}
+		}
+		array->Modified();
 	}
 
-	LOG(L_INFO, std::string("Wrote \"") + f->GetFileName() + "\" VTK file.\n");
-	f->Delete();
-
-	updatePVD(time());
-
-	Particles::print_file();
+	_vtk->Modified();
 }
 
 void
@@ -543,7 +617,7 @@ VTK::create()
 	_next_file_index = file(basename, _next_file_index);
 
 	std::ostringstream msg;
-	msg << "Writing \"" << file() << "\" ASCII file..." << std::endl;
+	msg << "Writing \"" << file() << "\" VTK file..." << std::endl;
 	LOG(L_INFO, msg.str());
 
 	f = vtkXMLUnstructuredGridWriter::New();

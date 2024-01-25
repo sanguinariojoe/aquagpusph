@@ -1517,6 +1517,10 @@ State::write(std::string filepath,
 	output->release();
 	doc->release();
 	xmlClear();
+
+	msg.str("");
+	msg << "Wrote \"" << filepath << "\" SPH state file..." << std::endl;
+	LOG(L_INFO, msg.str());
 }
 
 void

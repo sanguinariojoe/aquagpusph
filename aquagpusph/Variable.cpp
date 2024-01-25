@@ -1032,7 +1032,7 @@ ArrayVariable::asString()
 const std::string
 ArrayVariable::asString(size_t i)
 {
-	CalcServer::CalcServer* C = CalcServer::CalcServer::singleton();
+	auto C = CalcServer::CalcServer::singleton();
 	size_t type_size = Variables::typeToBytes(type());
 	size_t length = size() / type_size;
 	if (i > length) {
@@ -1053,15 +1053,16 @@ ArrayVariable::asString(size_t i)
 		return NULL;
 	}
 	cl_event event_wait = getWritingEvent();
-	cl_int err_code = clEnqueueReadBuffer(C->command_queue(),
-	                                      _value,
-	                                      CL_TRUE,
-	                                      i * type_size,
-	                                      type_size,
-	                                      ptr,
-	                                      1,
-	                                      &event_wait,
-	                                      NULL);
+	cl_int err_code = clEnqueueReadBuffer(
+		C->command_queue(CalcServer::CalcServer::cmd_queue::cmd_queue_new),
+		_value,
+		CL_TRUE,
+		i * type_size,
+		type_size,
+		ptr,
+		1,
+		&event_wait,
+		NULL);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
 		msg << "Failure downloading the variable \"" << name() << "\""

@@ -153,7 +153,7 @@ class Particles : public InputOutput
 	/** @brief Set the number of particles managed by this instance
 	 * @return Number of particles
 	 */
-	void n(unsigned int n)
+	inline void n(unsigned int n)
 	{
 		_bounds.y = _bounds.x + n;
 		for (auto const& mem : _data)
@@ -165,12 +165,12 @@ class Particles : public InputOutput
 	 * by this class.
 	 * @return The index bounds (first and last particle).
 	 */
-	const uivec2 bounds() const { return _bounds; }
+	inline const uivec2 bounds() const { return _bounds; }
 
 	/** @brief Get the "particles set" index associated with this class
 	 * @return The "particles index" index.
 	 */
-	const unsigned int setId() const { return _iset; }
+	inline const unsigned int setId() const { return _iset; }
 
 	/** @brief Register some default arrays:
 	 *   -# iset
@@ -183,7 +183,7 @@ class Particles : public InputOutput
 	 * @param filename The new file to save/load. Optionally a null parameter
 	 * can be passed in order to clear the stored file name.
 	 */
-	void file(const std::string filename) { _output_file = filename; };
+	inline void file(const std::string filename) { _output_file = filename; };
 
 	/** Look for the first non-existing file path
 	 * @param basename The base name of the file
@@ -202,7 +202,7 @@ class Particles : public InputOutput
 	/** @brief Get the current simulation time to be written
 	 * @return The simulation time
 	 */
-	inline float time() const { return _time; }
+	inline const float time() const { return _time; }
 
 	/** @brief Download the data from the device and store it
 	 * @param fields Fields to download

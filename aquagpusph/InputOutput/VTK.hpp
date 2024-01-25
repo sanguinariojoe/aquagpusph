@@ -123,6 +123,19 @@ class VTK : public Particles
 	void print_file() final;
 
   private:
+	/** @brief Build the vtkUnstructuredGrid object
+	 * @note This method is quite slow, so it should be called just once.
+	 * Afterwards the returned object can be edited and saved for optimum
+	 * performance
+	 * @see ::editVTK()
+	 */
+	vtkUnstructuredGrid* makeVTK();
+
+	/** @brief Edit the vtkUnstructuredGrid object
+	 * @see ::makeVTK()
+	 */
+	void editVTK();
+
 	/** @brief Compute the number of particles handled by this instance
 	 * @return Number of particles
 	 */
@@ -161,6 +174,9 @@ class VTK : public Particles
 
 	/// Next output file index
 	unsigned int _next_file_index;
+
+	/// VTK object to be edited and saved
+	vtkUnstructuredGrid* _vtk;
 
 	/// PVD file name
 	std::string _namePVD;
