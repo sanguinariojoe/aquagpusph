@@ -46,7 +46,7 @@ struct TimeManager
 	 *
 	 * @param sim_data Simulation data
 	 */
-	TimeManager(ProblemSetup& sim_data);
+	TimeManager(const ProblemSetup& sim_data);
 
 	/// Destructor
 	~TimeManager();
