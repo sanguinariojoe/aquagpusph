@@ -360,15 +360,14 @@ Sort::variables()
 		LOG(L_ERROR, msg.str());
 		throw std::runtime_error("Invalid variable");
 	}
-	std::string var_type = vars->get(_var_name)->type();
-	_var_type = var_type.substr(0, -2);
+	_var_type = vars->get(_var_name)->type();
 	if (_var_type.find("vec") != std::string::npos) {
 		std::ostringstream msg;
 		msg << "Tool \"" << name() << "\" cannot process variable \""
 		    << _var_name << "\"." << std::endl;
 		LOG(L_ERROR, msg.str());
 		msg.str("");
-		msg << "\t\"" << var_type << "\" type is not supported." << std::endl;
+		msg << "\t\"" << _var_type << "\" type is not supported." << std::endl;
 		LOG(L_DEBUG, msg.str());
 		throw std::runtime_error("Invalid variable type");
 	}
