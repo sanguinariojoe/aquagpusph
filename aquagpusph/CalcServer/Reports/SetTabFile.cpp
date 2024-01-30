@@ -283,6 +283,7 @@ SetTabFile::download(std::vector<InputOutput::Variable*> vars)
 
 	for (unsigned int i = 0; i < vars.size(); i++) {
 		cl_event event;
+		typesize = C->variables()->typeToBytes(vars[i]->type());
 		try {
 			event = C->getUnsortedMem(vars[i]->name().c_str(),
 			                          typesize * bounds().x,

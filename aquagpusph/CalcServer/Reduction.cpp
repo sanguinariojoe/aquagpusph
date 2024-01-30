@@ -155,8 +155,8 @@ Reduction::_execute(const std::vector<cl_event> events)
 	err_code = clRetainEvent(event);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
-		msg << "Failure retaining the input event for the step " << i
-		    << " of tool \"" << name() << "\"." << std::endl;
+		msg << "Failure retaining the input event of tool \"" << name()
+		    << "\"." << std::endl;
 		LOG(L_ERROR, msg.str());
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
