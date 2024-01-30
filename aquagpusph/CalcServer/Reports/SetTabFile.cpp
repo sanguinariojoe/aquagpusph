@@ -196,7 +196,6 @@ settabfile_cb(cl_event event, cl_int event_command_status, void* user_data)
 	tool->print();
 }
 
-
 cl_event
 SetTabFile::_execute(const std::vector<cl_event> events)
 {
@@ -262,7 +261,8 @@ SetTabFile::download(std::vector<InputOutput::Variable*> vars)
 			if (len < bounds().y) {
 				std::stringstream msg;
 				msg << "The report \"" << name() << "\" may not save field \""
-					<< var->name() << "\" because is not long enough." << std::endl;
+				    << var->name() << "\" because is not long enough."
+				    << std::endl;
 				LOG(L_ERROR, msg.str());
 				clearList(&_data);
 				throw std::runtime_error("Invalid variable type");
@@ -270,9 +270,10 @@ SetTabFile::download(std::vector<InputOutput::Variable*> vars)
 			void* store = malloc(typesize * (bounds().y - bounds().x));
 			if (!store) {
 				std::stringstream msg;
-				msg << "Failure allocating " << typesize * (bounds().y - bounds().x)
-					<< " bytes for the field \"" << var->name() << "\"."
-					<< std::endl;
+				msg << "Failure allocating "
+				    << typesize * (bounds().y - bounds().x)
+				    << " bytes for the field \"" << var->name() << "\"."
+				    << std::endl;
 				clearList(&_data);
 				throw std::bad_alloc();
 			}

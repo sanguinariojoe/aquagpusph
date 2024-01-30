@@ -127,7 +127,8 @@ class Particles : public InputOutput
 	 * @note This method is public to work with the OpenCL callbacks, but it is
 	 * not meant to be called by the users
 	 */
-	virtual void print_file() {
+	virtual void print_file()
+	{
 		cl_int err_code;
 		err_code = clSetUserEventStatus(_user_event, CL_COMPLETE);
 		if (err_code != CL_SUCCESS) {

@@ -269,7 +269,7 @@ ASCII::print_file()
 			ArrayVariable* var =
 			    (ArrayVariable*)vars->get(fields.at(j).c_str());
 			std::string type_name = var->type();
-			void *ptr = data().at(fields.at(j));
+			void* ptr = data().at(fields.at(j));
 			if (!type_name.compare("int*")) {
 				int* v = (int*)ptr;
 				f << v[i] << ",";

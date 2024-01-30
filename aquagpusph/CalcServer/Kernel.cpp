@@ -170,14 +170,13 @@ ArgSetter::Arg::operator==(InputOutput::Variable* var)
 	//  - Reallocatable array variables and scalar variables, that we must wait
 	//    until they are wrote
 	if (!var->isArray() ||
-	    ((InputOutput::ArrayVariable*)var)->reallocatable())
-	{
+	    ((InputOutput::ArrayVariable*)var)->reallocatable()) {
 		auto event = var->getWritingEvent();
 		auto err_code = clWaitForEvents(1, &event);
 		if (err_code != CL_SUCCESS) {
 			std::stringstream msg;
 			msg << "Failure waiting for the variable \"" << var->name()
-				<< "\" to be written." << std::endl;
+			    << "\" to be written." << std::endl;
 			LOG(L_ERROR, msg.str());
 			InputOutput::Logger::singleton()->printOpenCLError(err_code);
 			throw std::runtime_error("OpenCL execution error");
@@ -324,8 +323,7 @@ Kernel::_execute(const std::vector<cl_event> events)
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
 	}
-	auto profiler =
-	    dynamic_cast<EventProfile*>(Profiler::substages().back());
+	auto profiler = dynamic_cast<EventProfile*>(Profiler::substages().back());
 	profiler->start(event);
 	profiler->end(event);
 

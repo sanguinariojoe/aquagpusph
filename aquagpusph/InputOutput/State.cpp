@@ -553,7 +553,10 @@ _toolsName(std::string name, ProblemSetup& sim_data, std::string prefix)
  * @param def_val The default string to be set if it cannot be found
  */
 static void
-_toolAttr(ProblemSetup::sphTool* tool, DOMElement* elem, std::string attr, std::string def_val)
+_toolAttr(ProblemSetup::sphTool* tool,
+          DOMElement* elem,
+          std::string attr,
+          std::string def_val)
 {
 	if (!xmlHasAttribute(elem, attr.c_str())) {
 		tool->set(attr, def_val);
@@ -577,8 +580,8 @@ _toolAttr(ProblemSetup::sphTool* tool, DOMElement* elem, std::string attr)
 	if (!xmlHasAttribute(elem, attr.c_str())) {
 		std::ostringstream msg;
 		msg << "Tool \"" << tool->get("name")
-			<< "\" requires the missing attribute \"" << attr
-			<< "\"." << std::endl;
+		    << "\" requires the missing attribute \"" << attr << "\"."
+		    << std::endl;
 		LOG(L_ERROR, msg.str());
 		throw std::runtime_error("Missing attribute");
 	}

@@ -34,13 +34,13 @@ Report::Report(const std::string tool_name,
                const std::string fields,
                unsigned int ipf,
                float fps)
-	: Tool(tool_name)
-	, _fields(fields)
-	, _ipf(ipf)
-	, _fps(fps)
-	, _iter(0)
-	, _t(0.f)
-	, _user_event(NULL)
+  : Tool(tool_name)
+  , _fields(fields)
+  , _ipf(ipf)
+  , _fps(fps)
+  , _iter(0)
+  , _t(0.f)
+  , _user_event(NULL)
 
 {
 }
@@ -161,7 +161,7 @@ Report::mustUpdate()
 
 cl_event
 Report::setCallback(const std::vector<cl_event> events,
-                    void (CL_CALLBACK *cb) (cl_event, cl_int, void*))
+                    void(CL_CALLBACK* cb)(cl_event, cl_int, void*))
 {
 	cl_int err_code;
 	cl_event event;
@@ -169,7 +169,7 @@ Report::setCallback(const std::vector<cl_event> events,
 	cl_uint num_events_in_wait_list = events.size();
 	const cl_event* event_wait_list = events.size() ? events.data() : NULL;
 	err_code = clEnqueueMarkerWithWaitList(
-		C->command_queue(), num_events_in_wait_list, event_wait_list, &event);
+	    C->command_queue(), num_events_in_wait_list, event_wait_list, &event);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
 		msg << "Failure setting the marker for tool \"" << name() << "\"."
@@ -204,8 +204,8 @@ Report::setCallback(const std::vector<cl_event> events,
 	err_code = clSetEventCallback(event, CL_COMPLETE, cb, this);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
-		msg << "Failure registering the callback in tool \"" << name()
-		    << "\"." << std::endl;
+		msg << "Failure registering the callback in tool \"" << name() << "\"."
+		    << std::endl;
 		LOG(L_ERROR, msg.str());
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
@@ -214,6 +214,6 @@ Report::setCallback(const std::vector<cl_event> events,
 	return _user_event;
 }
 
-}  // ::Reports
-}  // ::CalcServer
-}  // ::Aqua
+} // ::Reports
+} // ::CalcServer
+} // ::Aqua

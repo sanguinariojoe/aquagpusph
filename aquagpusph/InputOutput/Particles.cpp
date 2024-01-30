@@ -77,7 +77,6 @@ particles_cb(cl_event event, cl_int event_command_status, void* user_data)
 	tool->print_file();
 }
 
-
 void
 Particles::save(float t)
 {
@@ -116,7 +115,6 @@ Particles::save(float t)
 		Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
 	}
-
 }
 
 void
@@ -282,8 +280,9 @@ Particles::download(std::vector<std::string> fields)
 			void* store = malloc(typesize * (bounds().y - bounds().x));
 			if (!store) {
 				std::ostringstream msg;
-				msg << "Failure allocating " << typesize * (bounds().y - bounds().x)
-					<< "bytes for variable \"" << field << "\"." << std::endl;
+				msg << "Failure allocating "
+				    << typesize * (bounds().y - bounds().x)
+				    << "bytes for variable \"" << field << "\"." << std::endl;
 				LOG(L_ERROR, msg.str());
 				throw std::bad_alloc();
 			}
@@ -291,9 +290,9 @@ Particles::download(std::vector<std::string> fields)
 		}
 
 		auto event = C->getUnsortedMem(var->name().c_str(),
-			                           typesize * bounds().x,
-			                           typesize * (bounds().y - bounds().x),
-			                           _data.at(field));
+		                               typesize * bounds().x,
+		                               typesize * (bounds().y - bounds().x),
+		                               _data.at(field));
 		events.push_back(event);
 	}
 

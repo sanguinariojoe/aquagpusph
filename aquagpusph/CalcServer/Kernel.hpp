@@ -57,7 +57,7 @@ class EventProfile : public Aqua::CalcServer::Profile
 	 * @param name The name
 	 * @param tool The owning tool
 	 */
-	EventProfile(const std::string name, Tool *tool)
+	EventProfile(const std::string name, Tool* tool)
 	  : Profile(name, tool)
 	{
 	}
@@ -124,10 +124,7 @@ class ArgSetter : public Aqua::CalcServer::Named
 	/** @brief Get the list of variables to be set
 	 * @return The list of variables
 	 */
-	inline std::vector<InputOutput::Variable*> getVars() const
-	{ 
-		return _vars;
-	}
+	inline std::vector<InputOutput::Variable*> getVars() const { return _vars; }
 
 	/** @brief Get the list of variables to be set
 	 * @return The list of variables

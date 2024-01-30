@@ -780,8 +780,8 @@ ArrayVariable::set(void* ptr, bool synced)
 	if (_value && !_reallocatable) {
 		std::ostringstream msg;
 		msg << "Array variable \"" << name()
-			<< "\", cannot be set, because it has not been marked as "
-			<< "reallocatable" << std::endl;
+		    << "\", cannot be set, because it has not been marked as "
+		    << "reallocatable" << std::endl;
 		LOG(L_ERROR, msg.str());
 		throw std::runtime_error("No reallocatable variable");
 	}
@@ -1054,15 +1054,15 @@ ArrayVariable::asString(size_t i)
 	}
 	cl_event event_wait = getWritingEvent();
 	cl_int err_code = clEnqueueReadBuffer(
-		C->command_queue(CalcServer::CalcServer::cmd_queue::cmd_queue_new),
-		_value,
-		CL_TRUE,
-		i * type_size,
-		type_size,
-		ptr,
-		1,
-		&event_wait,
-		NULL);
+	    C->command_queue(CalcServer::CalcServer::cmd_queue::cmd_queue_new),
+	    _value,
+	    CL_TRUE,
+	    i * type_size,
+	    type_size,
+	    ptr,
+	    1,
+	    &event_wait,
+	    NULL);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
 		msg << "Failure downloading the variable \"" << name() << "\""

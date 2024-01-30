@@ -87,7 +87,7 @@ class Profile : public Aqua::CalcServer::Named
 	 * @param name The name
 	 * @param tool The owning tool
 	 */
-	Profile(const std::string name, Tool *tool)
+	Profile(const std::string name, Tool* tool)
 	  : Named(name)
 	  , _tool(tool)
 	  , _step(0)
@@ -170,7 +170,9 @@ class Profiler
  *   -# Python scripts
  *   -# Variables set
  */
-class Tool : public Aqua::CalcServer::Named, public Aqua::CalcServer::Profiler
+class Tool
+  : public Aqua::CalcServer::Named
+  , public Aqua::CalcServer::Profiler
 {
   public:
 	/** Constructor.
@@ -541,7 +543,7 @@ class Tool : public Aqua::CalcServer::Named, public Aqua::CalcServer::Profiler
 	cl_event _event;
 
 	/// Tool parent, if any
-	Tool *_parent;
+	Tool* _parent;
 };
 
 }

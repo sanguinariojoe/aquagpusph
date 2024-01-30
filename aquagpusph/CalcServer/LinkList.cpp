@@ -141,7 +141,7 @@ LinkList::setup()
 
 	// This tool shall mark ihoc variable as reallocatable
 	InputOutput::ArrayVariable* ihoc =
-		(InputOutput::ArrayVariable*)getOutputDependencies()[2];
+	    (InputOutput::ArrayVariable*)getOutputDependencies()[2];
 	ihoc->reallocatable(true);
 }
 
@@ -203,8 +203,7 @@ LinkList::_execute(const std::vector<cl_event> events)
 		throw std::runtime_error("OpenCL execution error");
 	}
 	{
-		auto profiler =
-		    dynamic_cast<EventProfile*>(Profiler::substages()[1]);
+		auto profiler = dynamic_cast<EventProfile*>(Profiler::substages()[1]);
 		profiler->start(event);
 		profiler->end(event);
 	}
@@ -251,8 +250,7 @@ LinkList::_execute(const std::vector<cl_event> events)
 	}
 	event_wait = event;
 	{
-		auto profiler =
-		    dynamic_cast<EventProfile*>(Profiler::substages()[2]);
+		auto profiler = dynamic_cast<EventProfile*>(Profiler::substages()[2]);
 		profiler->start(event);
 		profiler->end(event);
 	}
@@ -284,8 +282,7 @@ LinkList::_execute(const std::vector<cl_event> events)
 		throw std::runtime_error("OpenCL execution error");
 	}
 	{
-		auto profiler =
-		    dynamic_cast<EventProfile*>(Profiler::substages()[3]);
+		auto profiler = dynamic_cast<EventProfile*>(Profiler::substages()[3]);
 		profiler->start(event);
 		profiler->end(event);
 	}

@@ -64,7 +64,8 @@ class user_interruption : public std::runtime_error
 };
 
 /// Profiling sample
-typedef struct _ProfilingSample {
+typedef struct _ProfilingSample
+{
 	/// The triggering tool
 	Tool* tool;
 	/// The name of the sample
@@ -76,7 +77,8 @@ typedef struct _ProfilingSample {
 } ProfilingSample;
 
 /// Profiling snapshot
-typedef struct _ProfilingSnapshot {
+typedef struct _ProfilingSnapshot
+{
 	/// The profiling step
 	cl_ulong step;
 	/// The list of samples
@@ -92,10 +94,11 @@ class ProfilingInfo
 	/** @brief Constructor.
 	 * @param n Number of snapshots to keep
 	 */
-	ProfilingInfo(const cl_uint n=N_PROFILING_SNAPSHOTS)
-		: _step(0)
-		, _n(n)
-	{}
+	ProfilingInfo(const cl_uint n = N_PROFILING_SNAPSHOTS)
+	  : _step(0)
+	  , _n(n)
+	{
+	}
 
 	/// Destructor
 	~ProfilingInfo() {}
@@ -187,8 +190,9 @@ class ProfilingInfo
  * @remarks Some output files are managed internally by this class, like the
  * log file, the energy file, pressure sensors file, or bounds file.
  */
-class CalcServer : public Aqua::Singleton<Aqua::CalcServer::CalcServer>,
-                   public Aqua::CalcServer::ProfilingInfo
+class CalcServer
+  : public Aqua::Singleton<Aqua::CalcServer::CalcServer>
+  , public Aqua::CalcServer::ProfilingInfo
 {
   public:
 	/** @brief Constructor.
@@ -255,7 +259,12 @@ class CalcServer : public Aqua::Singleton<Aqua::CalcServer::CalcServer>,
 	 */
 	inline cl_device_id device() const { return _device; }
 
-	enum cmd_queue { cmd_queue_current, cmd_queue_new, cmd_queue_mpi };
+	enum cmd_queue
+	{
+		cmd_queue_current,
+		cmd_queue_new,
+		cmd_queue_mpi
+	};
 
 	/** Get a command queue
 	 *
@@ -270,7 +279,7 @@ class CalcServer : public Aqua::Singleton<Aqua::CalcServer::CalcServer>,
 	 * @raise std::runtime_error if the command queue cannot be created
 	 */
 	cl_command_queue command_queue(
-		cmd_queue which=cmd_queue::cmd_queue_current);
+	    cmd_queue which = cmd_queue::cmd_queue_current);
 
 	/** Call clFinish() on top of all known command queues
 	 * @return CL_SUCCESS if clFinish() is correctly called on all queues, an

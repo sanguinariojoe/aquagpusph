@@ -107,7 +107,8 @@ exec_status_check(cl_event event, cl_int event_command_status, void* user_data)
 	CalcServer::singleton()->raiseSIGINT();
 }
 
-bool need_new_cmd(const Tool* prev_tool, std::vector<cl_event> events)
+bool
+need_new_cmd(const Tool* prev_tool, std::vector<cl_event> events)
 {
 	if (!prev_tool) {
 		// First tool, no new cmd required

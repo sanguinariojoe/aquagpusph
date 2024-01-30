@@ -120,7 +120,7 @@ class Report : public Aqua::CalcServer::Tool
 	 * user event
 	 */
 	cl_event setCallback(const std::vector<cl_event> events,
-	                     void (CL_CALLBACK *cb) (cl_event, cl_int, void*));
+	                     void(CL_CALLBACK* cb)(cl_event, cl_int, void*));
 
   private:
 	/// Input fields string

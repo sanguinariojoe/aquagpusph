@@ -110,9 +110,9 @@ ProfilingInfo::sample(cl_ulong step,
 {
 	const std::lock_guard<std::mutex> lock(profiling_mutex);
 	/// Traverse the snapshots looking for the step one
-	for (auto it = _snapshots.rbegin();  it != _snapshots.rend(); ++it ) {
+	for (auto it = _snapshots.rbegin(); it != _snapshots.rend(); ++it) {
 		if ((*it).step == step) {
-			(*it).samples.push_back({tool, name, start, end});
+			(*it).samples.push_back({ tool, name, start, end });
 			return;
 		}
 	}
@@ -129,7 +129,6 @@ ProfilingInfo::newStep()
 	if (_snapshots.size() > _n)
 		_snapshots.pop_front();
 }
-
 
 CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
   : _num_platforms(0)
@@ -583,14 +582,14 @@ CalcServer::update(InputOutput::TimeManager& t_manager)
 		// Execute the tools
 		_command_queue_current = 0;
 		ProfilingInfo::newStep();
-		Tool *tool=_tools.front(), *prev_tool=NULL;
+		Tool *tool = _tools.front(), *prev_tool = NULL;
 		while (tool) {
 			try {
 				strncpy(_current_tool_name, tool->name().c_str(), 255);
 				tool->prev_tool(prev_tool);
 				tool->execute();
 				prev_tool = tool;
-				tool = tool->next_tool();;
+				tool = tool->next_tool();
 			} catch (std::runtime_error& e) {
 				sleep(__ERROR_SHOW_TIME__);
 				throw;
@@ -629,10 +628,9 @@ create_command_queue(cl_context context,
 {
 #if (OPENCL_PLATFORM_MAJOR > 1) ||                                             \
     ((OPENCL_PLATFORM_MAJOR == 1) && (OPENCL_PLATFORM_MINOR > 1))
-	const cl_queue_properties properties[4] = {
-		CL_QUEUE_PROPERTIES, CL_QUEUE_PROFILING_ENABLE,
-		0
-	};
+	const cl_queue_properties properties[4] = { CL_QUEUE_PROPERTIES,
+		                                        CL_QUEUE_PROFILING_ENABLE,
+		                                        0 };
 	return clCreateCommandQueueWithProperties(
 	    context, device, properties, errcode_ret);
 #else
@@ -654,7 +652,7 @@ CalcServer::command_queue(cmd_queue which)
 				if (err_code != CL_SUCCESS) {
 					LOG(L_ERROR, "Failure generating a new command queue\n");
 					InputOutput::Logger::singleton()->printOpenCLError(
-						err_code);
+					    err_code);
 					throw std::runtime_error("OpenCL error");
 				}
 				_command_queues.push_back(queue);
@@ -684,8 +682,8 @@ CalcServer::marker() const
 		}
 		events.push_back(event);
 	}
-	err_code = clEnqueueMarkerWithWaitList(
-		_command_queue_parallel, 0, NULL, &event);
+	err_code =
+	    clEnqueueMarkerWithWaitList(_command_queue_parallel, 0, NULL, &event);
 	if (err_code != CL_SUCCESS) {
 		LOG(L_ERROR, "Failure setting the marker for the MPI command queue\n");
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
@@ -693,9 +691,11 @@ CalcServer::marker() const
 	}
 	events.push_back(event);
 	// Join all them together on a common marker
-	err_code = clEnqueueMarkerWithWaitList(
-		_command_queues[_command_queue_current], events.size(), events.data(),
-		&event);
+	err_code =
+	    clEnqueueMarkerWithWaitList(_command_queues[_command_queue_current],
+	                                events.size(),
+	                                events.data(),
+	                                &event);
 	if (err_code != CL_SUCCESS) {
 		LOG(L_ERROR, "Failure setting the master marker\n");
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
@@ -1283,10 +1283,8 @@ CalcServer::setupDevices()
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL error");
 	}
-	err_code = clEnqueueMarkerWithWaitList(_command_queues.front(),
-	                                       1,
-	                                       &trigger,
-	                                       &sampler);
+	err_code = clEnqueueMarkerWithWaitList(
+	    _command_queues.front(), 1, &trigger, &sampler);
 	if (err_code != CL_SUCCESS) {
 		LOG(L_ERROR, "Failure generating the sampler event\n");
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);

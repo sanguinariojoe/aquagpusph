@@ -41,7 +41,7 @@ class ScalarProfile : public Aqua::CalcServer::Profile
 	 * @param name The name
 	 * @param tool The owning tool
 	 */
-	ScalarProfile(const std::string name, Tool *tool)
+	ScalarProfile(const std::string name, Tool* tool)
 	  : Profile(name, tool)
 	{
 	}

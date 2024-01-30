@@ -325,7 +325,6 @@ typedef struct
 	vtkXMLUnstructuredGridWriter* f;
 } data_pthread;
 
-
 void
 VTK::print_file()
 {
@@ -346,8 +345,9 @@ VTK::print_file()
 #endif // VTK_MAJOR_VERSION
 
 	if (!f->Write()) {
-		LOG(L_ERROR, std::string("Failure writing \"") +
-		             f->GetFileName() + "\" VTK file.\n");
+		LOG(L_ERROR,
+		    std::string("Failure writing \"") + f->GetFileName() +
+		        "\" VTK file.\n");
 	}
 
 	LOG(L_INFO, std::string("Wrote \"") + f->GetFileName() + "\" VTK file.\n");
@@ -418,7 +418,7 @@ VTK::makeVTK()
 	vtk_cells->SetNumberOfCells(n);
 
 	for (i = 0; i < fields.size(); i++) {
-		void *ptr = data()[fields[i]];
+		void* ptr = data()[fields[i]];
 
 		if (!fields[i].compare("r")) {
 			// The mesh points are a bit of a special case
@@ -453,9 +453,7 @@ VTK::makeVTK()
 			} else if (var->type().find("int") != std::string::npos ||
 			           var->type().find("ivec") != std::string::npos) {
 				int vect[n_components];
-				memcpy(vect,
-				       (char*)ptr + offset,
-				       n_components * sizeof(int));
+				memcpy(vect, (char*)ptr + offset, n_components * sizeof(int));
 				vtkSmartPointer<vtkIntArray> vtk_array =
 				    (vtkIntArray*)(vtk_arrays[i].GetPointer());
 				vtk_array->SetTypedTuple(j, vect);
@@ -463,9 +461,7 @@ VTK::makeVTK()
 			           var->type().find("vec") != std::string::npos ||
 			           var->type().find("matrix") != std::string::npos) {
 				float vect[n_components];
-				memcpy(vect,
-				       (char*)ptr + offset,
-				       n_components * sizeof(float));
+				memcpy(vect, (char*)ptr + offset, n_components * sizeof(float));
 				vtkSmartPointer<vtkFloatArray> vtk_array =
 				    (vtkFloatArray*)(vtk_arrays[i].GetPointer());
 				vtk_array->SetTypedTuple(j, vect);
@@ -515,7 +511,7 @@ VTK::editVTK()
 	const unsigned int n = bounds().y - bounds().x;
 
 	for (i = 0; i < fields.size(); i++) {
-		void *ptr = data()[fields[i]];
+		void* ptr = data()[fields[i]];
 
 		if (!fields[i].compare("r")) {
 			// The mesh points are a bit of a special case

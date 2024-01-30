@@ -76,7 +76,7 @@ Performance::setup()
 	Tool::setup();
 
 	setInputDependencies(
-		{ "t", "end_t", "iter", "end_iter", "frame", "end_frame" });
+	    { "t", "end_t", "iter", "end_iter", "frame", "end_frame" });
 }
 
 void
@@ -97,12 +97,11 @@ Performance::print()
 		tools_elapsed += ProfilingInfo::delta(sample.end, sample.start);
 	}
 	auto timer = CalcServer::host_timer();
-	auto elapsed = (!_timer) ? tools_elapsed : ProfilingInfo::delta(
-		timer, _timer);
+	auto elapsed =
+	    (!_timer) ? tools_elapsed : ProfilingInfo::delta(timer, _timer);
 	_timer = timer;
 	auto overhead = elapsed - tools_elapsed;
-	data << "Elapsed=" << std::setw(17) << elapsed * 1.e-9 << "s"
-	     << std::endl;
+	data << "Elapsed=" << std::setw(17) << elapsed * 1.e-9 << "s" << std::endl;
 	data << "Overhead=" << std::setw(17) << overhead * 1.e-9 << "s"
 	     << std::endl;
 
@@ -116,7 +115,8 @@ Performance::print()
 	unsigned int end_iter = *(unsigned int*)vars->get("end_iter")->get_async();
 	progress = max(progress, (float)iter / end_iter);
 	unsigned int frame = *(unsigned int*)vars->get("frame")->get_async();
-	unsigned int end_frame = *(unsigned int*)vars->get("end_frame")->get_async();
+	unsigned int end_frame =
+	    *(unsigned int*)vars->get("end_frame")->get_async();
 	progress = max(progress, (float)frame / end_frame);
 
 	// And the estimated time to arrive
@@ -138,8 +138,7 @@ Performance::print()
 	// Write the output file
 	if (_output_file.compare("")) {
 		auto f = writer();
-		json jdata = { { "progress", progress },
-		               { "elapsed", elapsed } };
+		json jdata = { { "progress", progress }, { "elapsed", elapsed } };
 		auto jsnapshot = json::object();
 		jsnapshot["step"] = snapshot.step;
 		jsnapshot["samples"] = json::array();
@@ -237,7 +236,7 @@ cl_event
 Performance::_execute(const std::vector<cl_event> events)
 {
 	auto C = CalcServer::singleton();
-	return setCallback({C->marker()}, performance_cb);
+	return setCallback({ C->marker() }, performance_cb);
 }
 
 std::ofstream

@@ -83,9 +83,8 @@ screenreport_cb(cl_event event, cl_int event_command_status, void* user_data)
 		return;
 	}
 
-	InputOutput::Logger::singleton()->writeReport(tool->data(),
-	                                              tool->color(),
-	                                              tool->bold());
+	InputOutput::Logger::singleton()->writeReport(
+	    tool->data(), tool->color(), tool->bold());
 	cl_int err_code;
 	err_code = clSetUserEventStatus(tool->getUserEvent(), CL_COMPLETE);
 	if (err_code != CL_SUCCESS) {

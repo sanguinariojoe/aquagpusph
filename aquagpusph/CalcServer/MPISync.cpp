@@ -222,8 +222,8 @@ MPISync::_execute(const std::vector<cl_event> events)
 	// Send the data to other processes
 	unsigned int i_profiler = 0;
 	for (auto sender : _senders) {
-		auto profiler = dynamic_cast<EventProfile*>(
-		    Profiler::substages().at(i_profiler));
+		auto profiler =
+		    dynamic_cast<EventProfile*>(Profiler::substages().at(i_profiler));
 		sender->execute(profiler);
 		i_profiler++;
 	}
@@ -232,8 +232,8 @@ MPISync::_execute(const std::vector<cl_event> events)
 	_n_offset_recv_reinit->execute();
 	_mask_reinit->execute();
 	for (auto receiver : _receivers) {
-		auto profiler = dynamic_cast<EventProfile*>(
-		    Profiler::substages().at(i_profiler));
+		auto profiler =
+		    dynamic_cast<EventProfile*>(Profiler::substages().at(i_profiler));
 		receiver->execute(profiler);
 		i_profiler++;
 	}
