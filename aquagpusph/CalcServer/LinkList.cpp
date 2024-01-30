@@ -314,7 +314,8 @@ LinkList::nCells()
 #else
 	_n_cells.z = 1;
 #endif
-	_n_cells.w = _n_cells.x * _n_cells.y * _n_cells.z;
+	const unsigned int nw = _n_cells.x * _n_cells.y * _n_cells.z;
+	_n_cells.w = nw;
 }
 
 void

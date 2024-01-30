@@ -156,7 +156,8 @@ class Particles : public InputOutput
 	 */
 	inline void n(unsigned int n)
 	{
-		_bounds.y = _bounds.x + n;
+		const unsigned int offset = _bounds.x;
+		_bounds.y = offset + n;
 		for (auto const& mem : _data)
 			free(mem.second);
 		_data.clear();
