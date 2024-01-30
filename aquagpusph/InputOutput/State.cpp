@@ -544,6 +544,47 @@ _toolsName(std::string name, ProblemSetup& sim_data, std::string prefix)
 	return _tool_places;
 }
 
+/** @brief Helper function to get and XML attribute for a tool
+ *
+ * This function will set the default value if the attribute is not found
+ * @param tool The tool to edit
+ * @param elem The XML element
+ * @param attr The XML element attribute
+ * @param def_val The default string to be set if it cannot be found
+ */
+static void
+_toolAttr(ProblemSetup::sphTool* tool, DOMElement* elem, std::string attr, std::string def_val)
+{
+	if (!xmlHasAttribute(elem, attr.c_str())) {
+		tool->set(attr, def_val);
+		return;
+	}
+	tool->set(attr, xmlAttribute(elem, attr.c_str()));
+}
+
+/** @brief Helper function to get and XML attribute for a tool
+ *
+ * This function will throw an exception if the attribute is missing
+ * @param tool The tool to edit
+ * @param elem The XML element
+ * @param attr The XML element attribute
+ * @throws std::runtime_error If @p attr is not an attribute of the @p elem XML
+ * element
+ */
+static void
+_toolAttr(ProblemSetup::sphTool* tool, DOMElement* elem, std::string attr)
+{
+	if (!xmlHasAttribute(elem, attr.c_str())) {
+		std::ostringstream msg;
+		msg << "Tool \"" << tool->get("name")
+			<< "\" requires the missing attribute \"" << attr
+			<< "\"." << std::endl;
+		LOG(L_ERROR, msg.str());
+		throw std::runtime_error("Missing attribute");
+	}
+	tool->set(attr, xmlAttribute(elem, attr.c_str()));
+}
+
 void
 State::parseTools(DOMElement* root, ProblemSetup& sim_data, std::string prefix)
 {
@@ -843,90 +884,23 @@ State::parseTools(DOMElement* root, ProblemSetup& sim_data, std::string prefix)
 
 			// Configure the tool
 			if (!xmlAttribute(s_elem, "type").compare("kernel")) {
-				if (!xmlHasAttribute(s_elem, "path")) {
-					std::ostringstream msg;
-					msg << "Tool \"" << tool->get("name")
-					    << "\" is of type \"kernel\", but \"path\" is not "
-					       "defined."
-					    << std::endl;
-					LOG(L_ERROR, msg.str());
-					throw std::runtime_error("Undefined OpenCL script path");
-				}
-				tool->set("path", xmlAttribute(s_elem, "path"));
-				if (!xmlHasAttribute(s_elem, "entry_point")) {
-					tool->set("entry_point", "entry");
-				} else {
-					tool->set("entry_point",
-					          xmlAttribute(s_elem, "entry_point"));
-				}
-				if (!xmlHasAttribute(s_elem, "n")) {
-					tool->set("n", "");
-				} else {
-					tool->set("n", xmlAttribute(s_elem, "n"));
-				}
+				_toolAttr(tool, s_elem, "path");
+				_toolAttr(tool, s_elem, "entry_point", "entry");
+				_toolAttr(tool, s_elem, "n", "");
 			} else if (!xmlAttribute(s_elem, "type").compare("copy")) {
-				const char* atts[2] = { "in", "out" };
-				for (unsigned int k = 0; k < 2; k++) {
-					if (!xmlHasAttribute(s_elem, atts[k])) {
-						std::ostringstream msg;
-						msg << "Tool \"" << tool->get("name")
-						    << "\" is of type \"copy\", but \"" << atts[k]
-						    << "\" is not defined." << std::endl;
-						LOG(L_ERROR, msg.str());
-						throw std::runtime_error("Missing attributes");
-					}
-					tool->set(atts[k], xmlAttribute(s_elem, atts[k]));
-				}
+				for (auto attr : { "in", "out" })
+					_toolAttr(tool, s_elem, attr);
 			} else if (!xmlAttribute(s_elem, "type").compare("python")) {
-				if (!xmlHasAttribute(s_elem, "path")) {
-					std::ostringstream msg;
-					msg << "Tool \"" << tool->get("name")
-					    << "\" is of type \"python\", but \""
-					    << "path"
-					    << "\" is not defined." << std::endl;
-					LOG(L_ERROR, msg.str());
-					throw std::runtime_error("Undefined Python script path");
-				}
-				tool->set("path", xmlAttribute(s_elem, "path"));
+				_toolAttr(tool, s_elem, "path");
 			} else if (!xmlAttribute(s_elem, "type").compare("set")) {
-				const char* atts[2] = { "in", "value" };
-				for (unsigned int k = 0; k < 2; k++) {
-					if (!xmlHasAttribute(s_elem, atts[k])) {
-						std::ostringstream msg;
-						msg << "Tool \"" << tool->get("name")
-						    << "\" is of type \"set\", but \"" << atts[k]
-						    << "\" is not defined." << std::endl;
-						LOG(L_ERROR, msg.str());
-						throw std::runtime_error("Missing attributes");
-					}
-					tool->set(atts[k], xmlAttribute(s_elem, atts[k]));
-				}
+				for (auto attr : { "in", "value" })
+					_toolAttr(tool, s_elem, attr);
 			} else if (!xmlAttribute(s_elem, "type").compare("set_scalar")) {
-				const char* atts[2] = { "in", "value" };
-				for (unsigned int k = 0; k < 2; k++) {
-					if (!xmlHasAttribute(s_elem, atts[k])) {
-						std::ostringstream msg;
-						msg << "Tool \"" << tool->get("name")
-						    << "\" is of type \"set\", but \"" << atts[k]
-						    << "\" is not defined." << std::endl;
-						LOG(L_ERROR, msg.str());
-						throw std::runtime_error("Missing attributes");
-					}
-					tool->set(atts[k], xmlAttribute(s_elem, atts[k]));
-				}
+				for (auto attr : { "in", "value" })
+					_toolAttr(tool, s_elem, attr);
 			} else if (!xmlAttribute(s_elem, "type").compare("reduction")) {
-				const char* atts[3] = { "in", "out", "null" };
-				for (unsigned int k = 0; k < 3; k++) {
-					if (!xmlHasAttribute(s_elem, atts[k])) {
-						std::ostringstream msg;
-						msg << "Tool \"" << tool->get("name")
-						    << "\" is of type \"reduction\", but \"" << atts[k]
-						    << "\" is not defined." << std::endl;
-						LOG(L_ERROR, msg.str());
-						throw std::runtime_error("Missing attributes");
-					}
-					tool->set(atts[k], xmlAttribute(s_elem, atts[k]));
-				}
+				for (auto attr : { "in", "out", "null" })
+					_toolAttr(tool, s_elem, attr);
 				if (!xmlS(s_elem->getTextContent()).compare("")) {
 					std::ostringstream msg;
 					msg << "No operation specified for the reduction \""
@@ -936,200 +910,55 @@ State::parseTools(DOMElement* root, ProblemSetup& sim_data, std::string prefix)
 				}
 				tool->set("operation", xmlS(s_elem->getTextContent()));
 			} else if (!xmlAttribute(s_elem, "type").compare("link-list")) {
-				if (!xmlHasAttribute(s_elem, "in")) {
-					tool->set("in", "r");
-					continue;
-				}
-				tool->set("in", xmlAttribute(s_elem, "in"));
+				_toolAttr(tool, s_elem, "in", "r");
 			} else if (!xmlAttribute(s_elem, "type").compare("radix-sort")) {
-				const char* atts[3] = { "in", "perm", "inv_perm" };
-				for (unsigned int k = 0; k < 3; k++) {
-					if (!xmlHasAttribute(s_elem, atts[k])) {
-						std::ostringstream msg;
-						msg << "Tool \"" << tool->get("name")
-						    << "\" is of type \"radix-sort\", but \"" << atts[k]
-						    << "\" is not defined." << std::endl;
-						LOG(L_ERROR, msg.str());
-						throw std::runtime_error("Missing attribute");
-					}
-					tool->set(atts[k], xmlAttribute(s_elem, atts[k]));
-				}
+				for (auto attr : { "in", "perm", "inv_perm" })
+					_toolAttr(tool, s_elem, attr);
 			} else if (!xmlAttribute(s_elem, "type").compare("sort")) {
-				const char* atts[3] = { "in", "perm", "inv_perm" };
-				for (unsigned int k = 0; k < 3; k++) {
-					if (!xmlHasAttribute(s_elem, atts[k])) {
-						std::ostringstream msg;
-						msg << "Tool \"" << tool->get("name")
-						    << "\" is of type \"sort\", but \"" << atts[k]
-						    << "\" is not defined." << std::endl;
-						LOG(L_ERROR, msg.str());
-						throw std::runtime_error("Missing attribute");
-					}
-					tool->set(atts[k], xmlAttribute(s_elem, atts[k]));
-				}
+				for (auto attr : { "in", "perm", "inv_perm" })
+					_toolAttr(tool, s_elem, attr);
 			} else if (!xmlAttribute(s_elem, "type").compare("assert")) {
-				if (!xmlHasAttribute(s_elem, "condition")) {
-					std::ostringstream msg;
-					msg << "Tool \"" << tool->get("name")
-					    << "\" is of type \"assert\", but \""
-					    << "condition"
-					    << "\" is not defined." << std::endl;
-					LOG(L_ERROR, msg.str());
-					throw std::runtime_error("Missing attribute");
-				}
-				tool->set("condition", xmlAttribute(s_elem, "condition"));
+				_toolAttr(tool, s_elem, "condition");
 			} else if (!xmlAttribute(s_elem, "type").compare("if")) {
-				if (!xmlHasAttribute(s_elem, "condition")) {
-					std::ostringstream msg;
-					msg << "Tool \"" << tool->get("name")
-					    << "\" is of type \"if\", but \""
-					    << "condition"
-					    << "\" is not defined." << std::endl;
-					LOG(L_ERROR, msg.str());
-					throw std::runtime_error("Missing attribute");
-				}
-				tool->set("condition", xmlAttribute(s_elem, "condition"));
+				_toolAttr(tool, s_elem, "condition");
 			} else if (!xmlAttribute(s_elem, "type").compare("while")) {
-				if (!xmlHasAttribute(s_elem, "condition")) {
-					std::ostringstream msg;
-					msg << "Tool \"" << tool->get("name")
-					    << "\" is of type \"while\", but \""
-					    << "condition"
-					    << "\" is not defined." << std::endl;
-					LOG(L_ERROR, msg.str());
-					throw std::runtime_error("Missing attribute");
-				}
-				tool->set("condition", xmlAttribute(s_elem, "condition"));
+				_toolAttr(tool, s_elem, "condition");
 			} else if (!xmlAttribute(s_elem, "type").compare("endif")) {
 			} else if (!xmlAttribute(s_elem, "type").compare("end")) {
 			}
 #ifdef HAVE_MPI
 			else if (!xmlAttribute(s_elem, "type").compare("mpi-sync")) {
-				const char* atts[2] = { "mask", "fields" };
-				for (unsigned int k = 0; k < 2; k++) {
-					if (!xmlHasAttribute(s_elem, atts[k])) {
-						std::ostringstream msg;
-						msg << "Tool \"" << tool->get("name")
-						    << "\" is of type \"mpi-sync\", but \"" << atts[k]
-						    << "\" is not defined." << std::endl;
-						LOG(L_ERROR, msg.str());
-						throw std::runtime_error("Missing attribute");
-					}
-					tool->set(atts[k], xmlAttribute(s_elem, atts[k]));
-				}
-
-				if (xmlHasAttribute(s_elem, "processes")) {
-					tool->set("procs", xmlAttribute(s_elem, "processes"));
-				} else {
-					tool->set("procs", xmlAttribute(s_elem, ""));
-				}
+				for (auto attr : { "mask", "fields" })
+					_toolAttr(tool, s_elem, attr);
+				_toolAttr(tool, s_elem, "processes", "");
 			}
 #endif
 			else if (!xmlAttribute(s_elem, "type").compare("installable")) {
-				if (!xmlHasAttribute(s_elem, "path")) {
-					std::ostringstream msg;
-					msg << "Tool \"" << tool->get("name")
-					    << "\" is of type \"installable\", but \""
-					    << "path"
-					    << "\" is not defined." << std::endl;
-					LOG(L_ERROR, msg.str());
-					throw std::runtime_error("Undefined library path");
-				}
-				tool->set("path", xmlAttribute(s_elem, "path"));
+				_toolAttr(tool, s_elem, "path");
 			} else if (!xmlAttribute(s_elem, "type").compare("dummy")) {
 				// Without options
 			}
 			// Reports directly dealt as tools. Suited for the non-linear
 			// simulations editor
 			else if (!xmlAttribute(s_elem, "type").compare("report_screen")) {
-				if (!xmlHasAttribute(s_elem, "fields")) {
-					LOG(L_ERROR, "Found a \"screen\" report without fields\n");
-					throw std::runtime_error("Missing report fields");
-				}
-				tool->set("fields", xmlAttribute(s_elem, "fields"));
-				if (xmlHasAttribute(s_elem, "bold")) {
-					tool->set("bold", xmlAttribute(s_elem, "bold"));
-				} else {
-					tool->set("bold", "false");
-				}
-				if (xmlHasAttribute(s_elem, "color")) {
-					tool->set("color", xmlAttribute(s_elem, "color"));
-				} else {
-					tool->set("color", "white");
-				}
+				_toolAttr(tool, s_elem, "fields");
+				_toolAttr(tool, s_elem, "bold", "false");
+				_toolAttr(tool, s_elem, "color", "white");
 			} else if (!xmlAttribute(s_elem, "type").compare("report_file")) {
-				if (!xmlHasAttribute(s_elem, "fields")) {
-					LOG(L_ERROR, "Found a \"file\" report without fields\n");
-					throw std::runtime_error("Missing report fields");
-				}
-				tool->set("fields", xmlAttribute(s_elem, "fields"));
-				if (!xmlHasAttribute(s_elem, "path")) {
-					std::ostringstream msg;
-					msg << "Report \"" << tool->get("name")
-					    << "\" is of type \"file\", but the output \"path\" is "
-					       "not defined."
-					    << std::endl;
-					LOG(L_ERROR, msg.str());
-					throw std::runtime_error("Missing report file path");
-				}
-				tool->set("path", xmlAttribute(s_elem, "path"));
+				_toolAttr(tool, s_elem, "fields");
+				_toolAttr(tool, s_elem, "path");
 			} else if (!xmlAttribute(s_elem, "type")
 			                .compare("report_particles")) {
-				if (!xmlHasAttribute(s_elem, "fields")) {
-					LOG(L_ERROR,
-					    "Found a \"particles\" report without fields\n");
-					throw std::runtime_error("Missing report fields");
-				}
-				tool->set("fields", xmlAttribute(s_elem, "fields"));
-				if (!xmlHasAttribute(s_elem, "path")) {
-					std::ostringstream msg;
-					msg << "Report \"" << tool->get("name")
-					    << "\" is of type \"particles\", but the output "
-					       "\"path\" is not defined."
-					    << std::endl;
-					LOG(L_ERROR, msg.str());
-					throw std::runtime_error("Missing report file path");
-				}
-				tool->set("path", xmlAttribute(s_elem, "path"));
-
-				if (!xmlHasAttribute(s_elem, "set")) {
-					std::ostringstream msg;
-					msg << "Report \"" << tool->get("name")
-					    << "\" is of type \"particles\", but the output "
-					       "\"set\" is not defined."
-					    << std::endl;
-					LOG(L_ERROR, msg.str());
-					throw std::runtime_error("Missing report particles set");
-				}
-				tool->set("set", xmlAttribute(s_elem, "set"));
-
-				if (!xmlHasAttribute(s_elem, "ipf")) {
-					tool->set("ipf", "1");
-				} else {
-					tool->set("ipf", xmlAttribute(s_elem, "ipf"));
-				}
-				if (!xmlHasAttribute(s_elem, "fps")) {
-					tool->set("fps", "0.0");
-				} else {
-					tool->set("fps", xmlAttribute(s_elem, "fps"));
-				}
+				_toolAttr(tool, s_elem, "fields");
+				_toolAttr(tool, s_elem, "path");
+				_toolAttr(tool, s_elem, "set");
+				_toolAttr(tool, s_elem, "ipf", "1");
+				_toolAttr(tool, s_elem, "fps", "0.0");
 			} else if (!xmlAttribute(s_elem, "type")
 			                .compare("report_performance")) {
-				if (xmlHasAttribute(s_elem, "bold")) {
-					tool->set("bold", xmlAttribute(s_elem, "bold"));
-				} else {
-					tool->set("bold", "false");
-				}
-				if (xmlHasAttribute(s_elem, "color")) {
-					tool->set("color", xmlAttribute(s_elem, "color"));
-				} else {
-					tool->set("color", "white");
-				}
-				if (xmlHasAttribute(s_elem, "path")) {
-					tool->set("path", xmlAttribute(s_elem, "path"));
-				} else {
-					tool->set("path", "");
-				}
+				_toolAttr(tool, s_elem, "bold", "false");
+				_toolAttr(tool, s_elem, "color", "white");
+				_toolAttr(tool, s_elem, "path", "");
 			} else {
 				std::ostringstream msg;
 				msg << "Unknown \"type\" for the tool \"" << tool->get("name")
