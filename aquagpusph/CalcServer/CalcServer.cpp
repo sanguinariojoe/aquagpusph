@@ -301,7 +301,19 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 			                                once);
 			_tools.push_back(tool);
 		} else if (!t->get("type").compare("link-list")) {
-			LinkList* tool = new LinkList(t->get("name"), t->get("in"));
+			bool recompute_grid = false;
+			if (!toLowerCopy(t->get("recompute_grid")).compare("true")) {
+				recompute_grid = true;
+			}
+			LinkList* tool = new LinkList(t->get("name"),
+			                              t->get("in"),
+			                              t->get("min"),
+			                              t->get("max"),
+			                              t->get("ihoc"),
+			                              t->get("icell"),
+			                              t->get("n_cells"),
+			                              recompute_grid,
+			                              once);
 			_tools.push_back(tool);
 		} else if (!t->get("type").compare("radix-sort")) {
 			RadixSort* tool = new RadixSort(t->get("name"),
@@ -384,8 +396,7 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 		// Reports
 		else if (!t->get("type").compare("report_screen")) {
 			bool bold = false;
-			if (!t->get("bold").compare("true") ||
-			    !t->get("bold").compare("True")) {
+			if (!toLowerCopy(t->get("recompute_grid")).compare("true")) {
 				bold = true;
 			}
 			Reports::Screen* tool = new Reports::Screen(
@@ -427,8 +438,7 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 			_tools.push_back(tool);
 		} else if (!t->get("type").compare("report_performance")) {
 			bool bold = false;
-			if (!t->get("bold").compare("true") ||
-			    !t->get("bold").compare("True")) {
+			if (!toLowerCopy(t->get("recompute_grid")).compare("true")) {
 				bold = true;
 			}
 			Reports::Performance* tool = new Reports::Performance(
@@ -450,8 +460,7 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 	for (auto r : _sim_data.reports) {
 		if (!r->get("type").compare("screen")) {
 			bool bold = false;
-			if (!r->get("bold").compare("true") ||
-			    !r->get("bold").compare("True")) {
+			if (!toLowerCopy(r->get("recompute_grid")).compare("true")) {
 				bold = true;
 			}
 			Reports::Screen* tool = new Reports::Screen(
@@ -493,8 +502,7 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 			_tools.push_back(tool);
 		} else if (!r->get("type").compare("performance")) {
 			bool bold = false;
-			if (!r->get("bold").compare("true") ||
-			    !r->get("bold").compare("True")) {
+			if (!toLowerCopy(r->get("recompute_grid")).compare("true")) {
 				bold = true;
 			}
 			Reports::Performance* tool = new Reports::Performance(

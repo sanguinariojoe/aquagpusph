@@ -43,12 +43,24 @@ std::string LINKLIST_SRC = xxd2string(LinkList_cl_in, LinkList_cl_in_len);
 
 LinkList::LinkList(const std::string tool_name,
                    const std::string input,
+                   const std::string input_min,
+                   const std::string input_max,
+                   const std::string ihoc,
+                   const std::string icell,
+                   const std::string n_cells,
+                   bool recompute_grid,
                    bool once)
   : Tool(tool_name, once)
   , _input_name(input)
+  , _input_min_name(input_min)
+  , _input_max_name(input_max)
+  , _ihoc_name(ihoc)
+  , _icell_name(icell)
+  , _n_cells_name(n_cells)
   , _cell_length(0.f)
   , _min_pos(NULL)
   , _max_pos(NULL)
+  , _recompute_minmax(recompute_grid)
   , _ihoc(NULL)
   , _ihoc_lws(0)
   , _ihoc_gws(0)
@@ -59,16 +71,18 @@ LinkList::LinkList(const std::string tool_name,
   , _ll_lws(0)
   , _ll_gws(0)
 {
-	_min_pos = new Reduction(tool_name + "->Min. Pos.",
-	                         input,
-	                         "r_min",
-	                         "c = min(a, b);",
-	                         "VEC_INFINITY");
-	_max_pos = new Reduction(tool_name + "->Max. Pos.",
-	                         input,
-	                         "r_max",
-	                         "c = max(a, b);",
-	                         "-VEC_INFINITY");
+	if (recompute_grid) {
+		_min_pos = new Reduction(tool_name + "->Min. Pos.",
+		                         input,
+		                         "r_min",
+		                         "c = min(a, b);",
+		                         "VEC_INFINITY");
+		_max_pos = new Reduction(tool_name + "->Max. Pos.",
+		                         input,
+		                         "r_max",
+		                         "c = max(a, b);",
+		                         "-VEC_INFINITY");
+	}
 	_sort = new RadixSort(tool_name + "->Radix-Sort");
 	Profiler::substages({ new ScalarProfile("n_cells", this),
 	                      new EventProfile("icell", this),
@@ -80,22 +94,16 @@ LinkList::~LinkList()
 {
 	if (_min_pos)
 		delete _min_pos;
-	_min_pos = NULL;
 	if (_max_pos)
 		delete _max_pos;
-	_max_pos = NULL;
 	if (_sort)
 		delete _sort;
-	_sort = NULL;
 	if (_ihoc)
 		clReleaseKernel(_ihoc);
-	_ihoc = NULL;
 	if (_icell)
 		clReleaseKernel(_icell);
-	_icell = NULL;
 	if (_ll)
 		clReleaseKernel(_ll);
-	_ll = NULL;
 	for (auto arg : _ihoc_args) {
 		free(arg);
 	}
@@ -122,8 +130,10 @@ LinkList::setup()
 	Tool::setup();
 
 	// Setup the reduction tools
-	_min_pos->setup();
-	_max_pos->setup();
+	if (_recompute_minmax) {
+		_min_pos->setup();
+		_max_pos->setup();
+	}
 
 	// Compute the cells length
 	InputOutput::Variable* s = vars->get("support");
@@ -136,12 +146,24 @@ LinkList::setup()
 	// Setup the radix-sort
 	_sort->setup();
 
-	setDependencies({ _input_name, "N", "n_radix", "support", "h" },
-	                { "r_min", "r_max", "ihoc", "icell", "n_cells" });
+	std::vector<std::string> inputs = {
+		_input_name, "N", "n_radix", "support", "h"
+	};
+	std::vector<std::string> outputs = { _ihoc_name,
+		                                 _icell_name,
+		                                 _n_cells_name };
+	if (_recompute_minmax) {
+		outputs.push_back(_input_min_name);
+		outputs.push_back(_input_min_name);
+	} else {
+		inputs.push_back(_input_min_name);
+		inputs.push_back(_input_min_name);
+	}
+	setDependencies(inputs, outputs);
 
 	// This tool shall mark ihoc variable as reallocatable
 	InputOutput::ArrayVariable* ihoc =
-	    (InputOutput::ArrayVariable*)getOutputDependencies()[2];
+	    (InputOutput::ArrayVariable*)getOutputDependencies()[0];
 	ihoc->reallocatable(true);
 }
 
@@ -153,15 +175,21 @@ LinkList::_execute(const std::vector<cl_event> events)
 	CalcServer* C = CalcServer::singleton();
 	InputOutput::Variables* vars = C->variables();
 
-	auto r_min = getOutputDependencies()[0];
-	auto r_max = getOutputDependencies()[1];
-	auto ihoc = getOutputDependencies()[2];
-	auto icell = getOutputDependencies()[3];
-	auto n_cells = getOutputDependencies()[4];
+	auto ihoc = getOutputDependencies()[0];
+	auto icell = getOutputDependencies()[1];
+	auto n_cells = getOutputDependencies()[2];
+	InputOutput::Variable *r_min, *r_max;
 
-	// Reduction steps to find maximum and minimum position
-	_min_pos->execute();
-	_max_pos->execute();
+	if (_recompute_minmax) {
+		r_min = getOutputDependencies()[3];
+		r_max = getOutputDependencies()[4];
+		// Reduction steps to find maximum and minimum position
+		_min_pos->execute();
+		_max_pos->execute();
+	} else {
+		r_min = getInputDependencies()[5];
+		r_max = getInputDependencies()[6];
+	}
 
 	// Compute the number of cells and allocate ihoc accordingly
 	const cl_event ncells_events[2] = { r_min->getWritingEvent(),
@@ -327,7 +355,7 @@ LinkList::allocate()
 	CalcServer* C = CalcServer::singleton();
 	InputOutput::Variables* vars = C->variables();
 
-	auto n_cells_var = getOutputDependencies()[4];
+	auto n_cells_var = getOutputDependencies()[2];
 	if (n_cells_var->type().compare("uivec4")) {
 		std::stringstream msg;
 		msg << "\"n_cells\" has and invalid type for \"" << name() << "\"."
@@ -351,7 +379,7 @@ LinkList::allocate()
 	}
 
 	// We have no alternative, we must sync here
-	auto ihoc_var = getOutputDependencies()[2];
+	auto ihoc_var = getOutputDependencies()[0];
 	cl_mem mem = *(cl_mem*)ihoc_var->get_async();
 	if (mem)
 		clReleaseMemObject(mem);

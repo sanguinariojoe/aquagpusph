@@ -55,10 +55,26 @@ class LinkList : public Aqua::CalcServer::Tool
 	/** Constructor.
 	 * @param tool_name Tool name.
 	 * @param input Input array to be used as the particles positions.
+	 * @param input_min Minimum of the particles positions.
+	 * @param input_max Maximum of the particles positions.
+	 * @param ihoc Head of cells array.
+	 * @param icell Cell of each particle.
+	 * @param n_cells Number of cells.
+	 * @param recompute_grid Should be @p input_min and @p input_max
+	 * recomputed or readed from the variables.
 	 * @param once Run this tool just once. Useful to make initializations.
+	 * @note @p ihoc array is marked as reallocatable with
+	 * Aqua::InputOutput::ArrayVariable::reallocatable(), since it might need
+	 * to be extended
 	 */
 	LinkList(const std::string tool_name,
 	         const std::string input = "r",
+	         const std::string input_min = "r_min",
+	         const std::string input_max = "r_max",
+	         const std::string ihoc = "ihoc",
+	         const std::string icell = "icell",
+	         const std::string n_cells = "n_cells",
+	         bool recompute_grid = true,
 	         bool once = false);
 
 	/** Destructor
@@ -109,6 +125,21 @@ class LinkList : public Aqua::CalcServer::Tool
 	/// Input variable name
 	std::string _input_name;
 
+	/// Minimum of the input variable name
+	std::string _input_min_name;
+
+	/// Maximum of the input variable name
+	std::string _input_max_name;
+
+	/// Head of chains variable name
+	std::string _ihoc_name;
+
+	/// Cells of each particle variable name
+	std::string _icell_name;
+
+	/// Number of cells variable name
+	std::string _n_cells_name;
+
 	/// Cells length
 	float _cell_length;
 
@@ -120,6 +151,9 @@ class LinkList : public Aqua::CalcServer::Tool
 
 	/// Maximum position computation tool
 	Reduction* _max_pos;
+
+	/// Shall be the maximum and minimum positions recomputed
+	bool _recompute_minmax;
 
 	/// Sorting by cells computation tool
 	RadixSort* _sort;

@@ -914,6 +914,12 @@ State::parseTools(DOMElement* root, ProblemSetup& sim_data, std::string prefix)
 				tool->set("operation", xmlS(s_elem->getTextContent()));
 			} else if (!xmlAttribute(s_elem, "type").compare("link-list")) {
 				_toolAttr(tool, s_elem, "in", "r");
+				_toolAttr(tool, s_elem, "min", "r_min");
+				_toolAttr(tool, s_elem, "max", "r_max");
+				_toolAttr(tool, s_elem, "ihoc", "ihoc");
+				_toolAttr(tool, s_elem, "icell", "icell");
+				_toolAttr(tool, s_elem, "n_cells", "n_cells");
+				_toolAttr(tool, s_elem, "recompute_grid", "true");
 			} else if (!xmlAttribute(s_elem, "type").compare("radix-sort")) {
 				for (auto attr : { "in", "perm", "inv_perm" })
 					_toolAttr(tool, s_elem, attr);
