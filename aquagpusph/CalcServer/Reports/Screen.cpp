@@ -23,6 +23,7 @@
 
 #include <algorithm>
 #include "aquagpusph/InputOutput/Logger.hpp"
+#include "aquagpusph/CalcServer/CalcServer.hpp"
 #include "Screen.hpp"
 
 namespace Aqua {
@@ -87,23 +88,14 @@ screenreport_cb(cl_event event, cl_int event_command_status, void* user_data)
 	    tool->data(), tool->color(), tool->bold());
 	cl_int err_code;
 	err_code = clSetUserEventStatus(tool->getUserEvent(), CL_COMPLETE);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure setting as complete the tool \"" << tool->name()
-		    << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		return;
-	}
+	CHECK_OCL_OR_THROW(err_code,
+	                   std::string("Failure setting as complete the tool \"") +
+	                       tool->name() + "\".");
 	err_code = clReleaseEvent(tool->getUserEvent());
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure releasing the user event at tool \"" << tool->name()
-		    << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		return;
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure releasing the user event in tool \"") +
+	        tool->name() + "\".");
 }
 
 cl_event

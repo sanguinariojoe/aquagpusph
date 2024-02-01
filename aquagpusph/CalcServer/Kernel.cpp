@@ -49,14 +49,10 @@ EventProfile::start(cl_event event)
 	cl_int err_code;
 	_start = event;
 	err_code = clRetainEvent(event);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure retaining the event on profiler \"" << name() << "\"."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure retaining the event on profiler \"") + name() +
+	        "\".");
 }
 
 void
@@ -65,23 +61,15 @@ EventProfile::end(cl_event event)
 	cl_int err_code;
 	_end = event;
 	err_code = clRetainEvent(event);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure retaining the event on profiler \"" << name() << "\"."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure retaining the event on profiler \"") + name() +
+	        "\".");
 	err_code = clSetEventCallback(event, CL_COMPLETE, &event_profile_cb, this);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure setting the profiling callback on \"" << name() << "\"."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure setting the profiling callback on \"") + name() +
+	        "\".");
 }
 
 void
@@ -91,24 +79,16 @@ EventProfile::sample()
 	cl_ulong start = 0, end = 0;
 	err_code = clGetEventProfilingInfo(
 	    _start, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, NULL);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure retrieving the profiling start on \"" << name() << "\"."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure retrieving the profiling start on \"") + name() +
+	        "\".");
 	err_code = clGetEventProfilingInfo(
 	    _end, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, NULL);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure retrieving the profiling end on \"" << name() << "\"."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure retrieving the profiling end on \"") + name() +
+	        "\".");
 	auto C = CalcServer::singleton();
 	start += C->device_timer_offset();
 	end += C->device_timer_offset();
@@ -143,15 +123,10 @@ ArgSetter::execute()
 			arg = var;
 		// Update the variable
 		err_code = clSetKernelArg(_kernel, i, arg.size(), arg.value());
-		if (err_code != CL_SUCCESS) {
-			std::stringstream msg;
-			msg << "Failure setting the variable \"" << var->name()
-			    << "\" (id=" << i << ") to the tool \"" << name() << "\"."
-			    << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL execution error");
-		}
+		CHECK_OCL_OR_THROW(err_code,
+		                   std::string("Failure setting the variable \"") +
+		                       var->name() + "\" (id=" + std::to_string(i) +
+		                       ") in tool \"" + name() + "\".");
 	}
 }
 
@@ -173,14 +148,9 @@ ArgSetter::Arg::operator==(InputOutput::Variable* var)
 	    ((InputOutput::ArrayVariable*)var)->reallocatable()) {
 		auto event = var->getWritingEvent();
 		auto err_code = clWaitForEvents(1, &event);
-		if (err_code != CL_SUCCESS) {
-			std::stringstream msg;
-			msg << "Failure waiting for the variable \"" << var->name()
-			    << "\" to be written." << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL execution error");
-		}
+		CHECK_OCL_OR_THROW(err_code,
+		                   std::string("Failure waiting for the variable \"") +
+		                       var->name() + "\" to be written");
 	}
 	return !memcmp(var->get_async(), _value, _size);
 }
@@ -204,23 +174,11 @@ cbUserEventSync(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 	cl_event event = *(cl_event*)user_data;
 
 	err_code = clSetUserEventStatus(event, cmd_exec_status);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure setting user event status");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(err_code, "Failure setting user event status");
 	err_code = clReleaseEvent(event);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure releasing user event");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(err_code, "Failure releasing user event");
 	err_code = clReleaseEvent(n_event);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure releasing triggering event");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(err_code, "Failure releasing the triggering event");
 	free(user_data);
 }
 
@@ -241,11 +199,7 @@ sync_user_event(cl_event user_event, cl_event event)
 
 	err_code =
 	    clSetEventCallback(event, CL_COMPLETE, &cbUserEventSync, user_data);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure setting the events syncing callback");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(err_code, "Failure setting the events syncing callback");
 }
 
 Kernel::Kernel(const std::string tool_name,
@@ -316,13 +270,9 @@ Kernel::_execute(const std::vector<cl_event> events)
 	                                  events.size(),
 	                                  wait_events,
 	                                  &event);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure executing the tool \"" << name() << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(err_code,
+	                   std::string("Failure executing the tool \"") + name() +
+	                       "\".");
 	auto profiler = dynamic_cast<EventProfile*>(Profiler::substages().back());
 	profiler->start(event);
 	profiler->end(event);
@@ -378,12 +328,10 @@ Kernel::make(const std::string entry_point,
 	                                    sizeof(size_t),
 	                                    &work_group_size,
 	                                    NULL);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure querying the work group size.\n");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		clReleaseKernel(kernel);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure querying CL_KERNEL_WORK_GROUP_SIZE in tool \"") +
+	        name() + "\".");
 	LOG0(L_DEBUG, "OK\n");
 
 	_kernel = kernel;
@@ -437,10 +385,10 @@ Kernel::make(const std::string entry_point,
 
 	// Swap kernels
 	err_code = clReleaseKernel(_kernel);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_WARNING, "Failure releasing non-local memory based kernel.\n");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure releasing non-local memory based kernel ") +
+	        "in tool \"" + name() + "\".");
 	_kernel = kernel;
 }
 
@@ -455,13 +403,10 @@ isKernelArgReadOnly(cl_kernel kernel, cl_uint arg_index)
 	                              sizeof(cl_kernel_arg_address_qualifier),
 	                              &address,
 	                              NULL);
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure asking for CL_KERNEL_ARG_ADDRESS_QUALIFIER on arg "
-		    << arg_index << std::endl;
-		LOG(L_WARNING, msg.str());
-		return false;
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure querying CL_KERNEL_ARG_ADDRESS_QUALIFIER ") +
+	        " on arg " + std::to_string(arg_index) + ".");
 	if (address != CL_KERNEL_ARG_ADDRESS_GLOBAL)
 		return true;
 	cl_kernel_arg_type_qualifier type;
@@ -471,13 +416,10 @@ isKernelArgReadOnly(cl_kernel kernel, cl_uint arg_index)
 	                              sizeof(cl_kernel_arg_type_qualifier),
 	                              &type,
 	                              NULL);
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure asking for CL_KERNEL_ARG_TYPE_QUALIFIER on arg "
-		    << arg_index << std::endl;
-		LOG(L_WARNING, msg.str());
-		return false;
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure querying CL_KERNEL_ARG_TYPE_QUALIFIER ") +
+	        " on arg " + std::to_string(arg_index) + ".");
 	if (type == CL_KERNEL_ARG_TYPE_CONST)
 		return true;
 	return false;

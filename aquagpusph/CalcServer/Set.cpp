@@ -122,23 +122,15 @@ Set::_execute(const std::vector<cl_event> events)
 	// Eventually evaluate the expression and set the variables to the kernel
 	cl_event args_event = ScalarExpression::_execute(events);
 	err_code = clWaitForEvents(1, &args_event);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure waiting for the args setter on tool \"" << name()
-		    << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure waiting for the args setter in tool \"") + name() +
+	        "\".");
 	err_code = clReleaseEvent(args_event);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure releasing the args setter event for tool \"" << name()
-		    << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure releasing the args setter event in tool \"") +
+	        name() + "\".");
 
 	// And enqueue the kernel execution
 	cl_event event;
@@ -152,13 +144,9 @@ Set::_execute(const std::vector<cl_event> events)
 	                                  events.size(),
 	                                  wait_events,
 	                                  &event);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure executing the tool \"" << name() << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(err_code,
+	                   std::string("Failure executing the tool \"") + name() +
+	                       "\".");
 	auto profiler = dynamic_cast<EventProfile*>(Profiler::substages().back());
 	profiler->start(event);
 	profiler->end(event);
@@ -225,12 +213,10 @@ Set::setupOpenCL()
 	                                    sizeof(size_t),
 	                                    &_work_group_size,
 	                                    NULL);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure querying the work group size.\n");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		clReleaseKernel(kernel);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure querying CL_KERNEL_WORK_GROUP_SIZE in tool \"") +
+	        name() + "\".");
 	if (_work_group_size < __CL_MIN_LOCALSIZE__) {
 		LOG(L_ERROR, "insufficient local memory.\n");
 		std::stringstream msg;
@@ -244,26 +230,23 @@ Set::setupOpenCL()
 	_global_work_size = roundUp(_n, _work_group_size);
 	_kernel = kernel;
 	err_code = clSetKernelArg(kernel, 0, _var->typesize(), _var->get());
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure sending the array argument\n");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure sending the array argument to tool \"") + name() +
+	        "\".");
 	err_code = clSetKernelArg(kernel, 1, sizeof(unsigned int), (void*)&_n);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure sending the array size argument\n");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure sending the array size argument to tool \"") +
+	        name() + "\".");
 	if (!_data)
 		return;
 	err_code = clSetKernelArg(
 	    kernel, 2, InputOutput::Variables::typeToBytes(_var->type()), _data);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure sending the value argument\n");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure sending the value argument to tool \"") + name() +
+	        "\".");
 }
 
 void
@@ -277,27 +260,19 @@ Set::setVariables()
 		                   2,
 		                   InputOutput::Variables::typeToBytes(_var->type()),
 		                   _data);
-		if (err_code != CL_SUCCESS) {
-			std::stringstream msg;
-			msg << "Failure setting the value to the tool \"" << name() << "\"."
-			    << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL error");
-		}
+		CHECK_OCL_OR_THROW(
+		    err_code,
+		    std::string("Failure setting the value to the tool \"") + name() +
+		        "\".");
 	}
 
 	if (_input != *(cl_mem*)_var->get()) {
 		// For some reason the input variable has changed...
 		err_code = clSetKernelArg(_kernel, 0, _var->typesize(), _var->get());
-		if (err_code != CL_SUCCESS) {
-			std::stringstream msg;
-			msg << "Failure setting the variable \"" << _var->name()
-			    << "\" to the tool \"" << name() << "\"." << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL error");
-		}
+		CHECK_OCL_OR_THROW(err_code,
+		                   std::string("Failure setting the variable \"") +
+		                       _var->name() + "\" to the tool \"" + name() +
+		                       "\".");
 
 		_input = *(cl_mem*)_var->get();
 	}

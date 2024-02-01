@@ -130,13 +130,8 @@ populator(cl_event event, cl_int event_command_status, void* user_data)
 	auto vars = CalcServer::singleton()->variables();
 	vars->populate(var);
 	err_code = clSetUserEventStatus(tool->getUserEvent(), CL_COMPLETE);
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure setting the variable population event on tool \""
-		    << tool->name() << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-	}
+	CHECK_OCL_OR_THROW(err_code,
+	                   "Failure setting the variable population event");
 	clReleaseEvent(tool->getUserEvent());
 }
 
@@ -153,14 +148,10 @@ Reduction::_execute(const std::vector<cl_event> events)
 	// though seeded by a reduction which just needs to read the input array
 	event = _input_var->getWritingEvent();
 	err_code = clRetainEvent(event);
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure retaining the input event of tool \"" << name() << "\"."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure retaining the input event of tool \"") + name() +
+	        "\".");
 	for (i = 0; i < _kernels.size(); i++) {
 		const size_t global_work_size = _global_work_sizes.at(i);
 		const size_t local_work_size = _local_work_sizes.at(i);
@@ -173,14 +164,10 @@ Reduction::_execute(const std::vector<cl_event> events)
 		                                  1,
 		                                  &event,
 		                                  &out_event);
-		if (err_code != CL_SUCCESS) {
-			std::ostringstream msg;
-			msg << "Failure executing the step " << i << " within the tool \""
-			    << name() << "\"." << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL execution error");
-		}
+		CHECK_OCL_OR_THROW(err_code,
+		                   std::string("Failure executing the step ") +
+		                       std::to_string(i) + " in tool \"" + name() +
+		                       "\".");
 
 		auto profiler =
 		    dynamic_cast<EventProfile*>(Profiler::substages().at(i));
@@ -189,14 +176,10 @@ Reduction::_execute(const std::vector<cl_event> events)
 
 		// Replace the event by the new one
 		err_code = clReleaseEvent(event);
-		if (err_code != CL_SUCCESS) {
-			std::ostringstream msg;
-			msg << "Failure releasing the input event for the step " << i - 1
-			    << " of tool \"" << name() << "\"." << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL execution error");
-		}
+		CHECK_OCL_OR_THROW(
+		    err_code,
+		    std::string("Failure releasing the input event for the step ") +
+		        std::to_string(i) + " in tool \"" + name() + "\".");
 		event = out_event;
 	}
 
@@ -212,73 +195,49 @@ Reduction::_execute(const std::vector<cl_event> events)
 	                               read_events.size(),
 	                               read_events.data(),
 	                               &out_event);
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure reading back the result within the tool \"" << name()
-		    << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure reading back the result in tool \"") + name() +
+	        "\".");
 
 	auto profiler = dynamic_cast<EventProfile*>(Profiler::substages().back());
 	profiler->start(out_event);
 
 	err_code = clReleaseEvent(event);
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure releasing the transactional event in the tool \""
-		    << name() << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure releasing the transactional event in tool \"") +
+	        name() + "\".");
 	event = out_event;
 
 	// Although the variable will be correctly set when clEnqueueReadBuffer()
 	// finish its job, we want to populate it so other parts of the code are
 	// aware of the change, like the math solver Aqua::Tokenizer
 	_user_event = clCreateUserEvent(C->context(), &err_code);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure creating the event for tool \"" << name() << "\"."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure creating the user event for tool \"") + name() +
+	        "\".");
 
 	err_code = clRetainEvent(_user_event);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure retaining the event for tool \"" << name() << "\"."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure retaining the user event for tool \"") + name() +
+	        "\".");
 	err_code = clSetEventCallback(event, CL_COMPLETE, populator, this);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure registering the solver callback in tool \"" << name()
-		    << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure registering the solver callback in tool \"") +
+	        name() + "\".");
 
 	// It is not really a good business to return an user event, which is kind
 	// of special. e.g. it cannot be profiled. So we create a mark on top of it
 	err_code = clEnqueueMarkerWithWaitList(
 	    C->command_queue(), 1, &_user_event, &event);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure setting the the output event for tool \"" << name()
-		    << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure setting the the output event for tool \"") +
+	        name() + "\".");
 	profiler->end(event);
 
 	return event;
@@ -370,12 +329,10 @@ Reduction::setupOpenCL()
 	                                    sizeof(size_t),
 	                                    &max_local_size,
 	                                    NULL);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure querying the work group size.\n");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		clReleaseKernel(kernel);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure querying the work group size in tool \"") +
+	        name() + "\".");
 	if (max_local_size < __CL_MIN_LOCALSIZE__) {
 		LOG(L_ERROR, "insufficient local memory.\n");
 		std::stringstream msg;
@@ -410,14 +367,11 @@ Reduction::setupOpenCL()
 		                        _number_groups.at(i) * data_size,
 		                        NULL,
 		                        &err_code);
-		if (err_code != CL_SUCCESS) {
-			std::stringstream msg;
-			msg << "Failure allocating " << _number_groups.at(i) * data_size
-			    << " bytes on the device." << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL allocation error");
-		}
+		CHECK_OCL_OR_THROW(
+		    err_code,
+		    std::string("Failure allocating ") +
+		        std::to_string(_number_groups.at(i) * data_size) +
+		        " bytes on the device for tool \"" + name() + "\".");
 		allocatedMemory(_number_groups.at(i) * data_size + allocatedMemory());
 		_mems.push_back(output);
 		// Build the kernel
@@ -426,30 +380,27 @@ Reduction::setupOpenCL()
 
 		err_code =
 		    clSetKernelArg(kernel, 0, sizeof(cl_mem), (void*)&(_mems.at(i)));
-		if (err_code != CL_SUCCESS) {
-			LOG(L_ERROR, "Failure sending input argument\n");
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL error");
-		}
+		CHECK_OCL_OR_THROW(
+		    err_code,
+		    std::string("Failure sending input argument in tool \"") + name() +
+		        "\".");
 		err_code = clSetKernelArg(
 		    kernel, 1, sizeof(cl_mem), (void*)&(_mems.at(i + 1)));
-		if (err_code != CL_SUCCESS) {
-			LOG(L_ERROR, "Failure sending output argument\n");
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL error");
-		}
+		CHECK_OCL_OR_THROW(
+		    err_code,
+		    std::string("Failure sending output argument in tool \"") + name() +
+		        "\".");
 		err_code = clSetKernelArg(kernel, 2, sizeof(cl_uint), (void*)&(n));
-		if (err_code != CL_SUCCESS) {
-			LOG(L_ERROR, "Failure sending number of threads argument\n");
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL error");
-		}
+		CHECK_OCL_OR_THROW(
+		    err_code,
+		    std::string(
+		        "Failure sending number of threads argument in tool \"") +
+		        name() + "\".");
 		err_code = clSetKernelArg(kernel, 3, local_size * data_size, NULL);
-		if (err_code != CL_SUCCESS) {
-			LOG(L_ERROR, "Failure setting local memory\n");
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL error");
-		}
+		CHECK_OCL_OR_THROW(
+		    err_code,
+		    std::string("Failure setting local memory in tool \"") + name() +
+		        "\".");
 		// Setup next step
 		std::stringstream msg;
 		msg << "\tStep " << i << ", " << n << " elements reduced to "
@@ -471,14 +422,10 @@ Reduction::setVariables()
 
 	err_code = clSetKernelArg(
 	    _kernels.at(0), 0, _input_var->typesize(), _input_var->get());
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure setting the input variable \"" << _input_var->name()
-		    << "\" to the tool \"" << name() << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(err_code,
+	                   std::string("Failure setting the input variable \"") +
+	                       _input_var->name() + "\" in tool \"" + name() +
+	                       "\".");
 
 	_input = *(cl_mem*)_input_var->get();
 	_mems.at(0) = _input;

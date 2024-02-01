@@ -195,14 +195,10 @@ LinkList::_execute(const std::vector<cl_event> events)
 	const cl_event ncells_events[2] = { r_min->getWritingEvent(),
 		                                r_max->getWritingEvent() };
 	err_code = clWaitForEvents(2, ncells_events);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure waiting for the reductions on tool \"" << name()
-		    << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure waiting for the reductions on tool \"") + name() +
+	        "\".");
 
 	dynamic_cast<ScalarProfile*>(Profiler::substages()[0])->start();
 	nCells();
@@ -222,14 +218,9 @@ LinkList::_execute(const std::vector<cl_event> events)
 	                                  events.size(),
 	                                  events.data(),
 	                                  &event);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure executing \"iCell\" from tool \"" << name() << "\"."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(err_code,
+	                   std::string("Failure executing \"iCell\" from tool \"") +
+	                       name() + "\".");
 	{
 		auto profiler = dynamic_cast<EventProfile*>(Profiler::substages()[1]);
 		profiler->start(event);
@@ -240,14 +231,11 @@ LinkList::_execute(const std::vector<cl_event> events)
 	icell->setWritingEvent(event);
 	n_cells->addReadingEvent(event);
 	err_code = clReleaseEvent(event);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure releasing transactional \"iCell\" event from tool \""
-		    << name() << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string(
+	        "Failure releasing transactional \"iCell\" event from tool \"") +
+	        name() + "\".");
 
 	// Sort the particles from the cells
 	_sort->execute();
@@ -268,14 +256,9 @@ LinkList::_execute(const std::vector<cl_event> events)
 	                                  1,
 	                                  &event_wait,
 	                                  &event);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure executing \"iHoc\" from tool \"" << name() << "\"."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(err_code,
+	                   std::string("Failure executing \"iHoc\" from tool \"") +
+	                       name() + "\".");
 	event_wait = event;
 	{
 		auto profiler = dynamic_cast<EventProfile*>(Profiler::substages()[2]);
@@ -292,23 +275,16 @@ LinkList::_execute(const std::vector<cl_event> events)
 	                                  1,
 	                                  &event_wait,
 	                                  &event);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure executing \"linkList\" from tool \"" << name() << "\"."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure executing \"linkList\" from tool \"") + name() +
+	        "\".");
 	err_code = clReleaseEvent(event_wait);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure releasing transactional \"linkList\" event from tool \""
-		    << name() << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string(
+	        "Failure releasing transactional \"linkList\" event in tool \"") +
+	        name() + "\".");
 	{
 		auto profiler = dynamic_cast<EventProfile*>(Profiler::substages()[3]);
 		profiler->start(event);
@@ -390,15 +366,11 @@ LinkList::allocate()
 	                     _n_cells.w * sizeof(cl_uint),
 	                     NULL,
 	                     &err_code);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure allocating " << _n_cells.w * sizeof(cl_uint)
-		    << " bytes on the device memory for tool \"" << name() << "\"."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL allocation error");
-	}
+	CHECK_OCL_OR_THROW(err_code,
+	                   std::string("Failure allocating ") +
+	                       std::to_string(_n_cells.w * sizeof(cl_uint)) +
+	                       " bytes on the device memory for tool \"" + name() +
+	                       "\".");
 
 	n_cells_var->set_async(&_n_cells);
 	ihoc_var->set_async(&mem);
@@ -419,15 +391,10 @@ LinkList::setVariables()
 			continue;
 		}
 		err_code = clSetKernelArg(_ihoc, i, var->typesize(), var->get_async());
-		if (err_code != CL_SUCCESS) {
-			std::stringstream msg;
-			msg << "Failure setting the variable \"" << _ihoc_vars[i]
-			    << "\" to the tool \"" << name() << "\" (\"iHoc\")."
-			    << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL error");
-		}
+		CHECK_OCL_OR_THROW(err_code,
+		                   std::string("Failure setting the variable \"") +
+		                       _ihoc_vars[i] + "\" to the tool \"" + name() +
+		                       "\" (\"iHoc\").");
 		memcpy(_ihoc_args.at(i), var->get_async(), var->typesize());
 	}
 
@@ -441,15 +408,10 @@ LinkList::setVariables()
 			continue;
 		}
 		err_code = clSetKernelArg(_icell, i, var->typesize(), var->get_async());
-		if (err_code != CL_SUCCESS) {
-			std::stringstream msg;
-			msg << "Failure setting the variable \"" << _ihoc_vars[i]
-			    << "\" to the tool \"" << name() << "\" (\"iCell\")."
-			    << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL error");
-		}
+		CHECK_OCL_OR_THROW(err_code,
+		                   std::string("Failure setting the variable \"") +
+		                       _ihoc_vars[i] + "\" to the tool \"" + name() +
+		                       "\" (\"iCell\").");
 		memcpy(_icell_args.at(i), var->get_async(), var->typesize());
 	}
 
@@ -460,15 +422,10 @@ LinkList::setVariables()
 			continue;
 		}
 		err_code = clSetKernelArg(_ll, i, var->typesize(), var->get_async());
-		if (err_code != CL_SUCCESS) {
-			std::stringstream msg;
-			msg << "Failure setting the variable \"" << _ihoc_vars[i]
-			    << "\" to the tool \"" << name() << "\" (\"linkList\")."
-			    << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL error");
-		}
+		CHECK_OCL_OR_THROW(err_code,
+		                   std::string("Failure setting the variable \"") +
+		                       _ihoc_vars[i] + "\" to the tool \"" + name() +
+		                       "\" (\"linkList\").");
 		memcpy(_ll_args.at(i), var->get_async(), var->typesize());
 	}
 }
@@ -499,11 +456,11 @@ LinkList::setupOpenCL()
 	                                    sizeof(size_t),
 	                                    &_ihoc_lws,
 	                                    NULL);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure querying the work group size (\"iHoc\").\n");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string(
+	        "Failure querying the work group size (\"iHoc\") in tool \"") +
+	        name() + "\".");
 	if (_ihoc_lws < __CL_MIN_LOCALSIZE__) {
 		LOG(L_ERROR, "insufficient local memory for \"iHoc\".\n");
 		std::stringstream msg;
@@ -521,14 +478,10 @@ LinkList::setupOpenCL()
 		                          i,
 		                          vars->get(_ihoc_vars[i])->typesize(),
 		                          vars->get(_ihoc_vars[i])->get());
-		if (err_code != CL_SUCCESS) {
-			std::stringstream msg;
-			msg << "Failure sending \"" << _ihoc_vars[i]
-			    << "\" argument to \"iHoc\"." << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL error");
-		}
+		CHECK_OCL_OR_THROW(err_code,
+		                   std::string("Failure sending \"") + _ihoc_vars[i] +
+		                       "\" argument to \"iHoc\" in tool \"" + name() +
+		                       "\".");
 		_ihoc_args.push_back(malloc(vars->get(_ihoc_vars[i])->typesize()));
 		memcpy(_ihoc_args.at(i),
 		       vars->get(_ihoc_vars[i])->get(),
@@ -541,11 +494,11 @@ LinkList::setupOpenCL()
 	                                    sizeof(size_t),
 	                                    &_icell_lws,
 	                                    NULL);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure querying the work group size (\"iCell\").\n");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string(
+	        "Failure querying the work group size (\"iCell\") in tool \"") +
+	        name() + "\".");
 	if (_icell_lws < __CL_MIN_LOCALSIZE__) {
 		LOG(L_ERROR, "insufficient local memory for \"iCell\".\n");
 		std::stringstream msg;
@@ -566,14 +519,10 @@ LinkList::setupOpenCL()
 		                          i,
 		                          vars->get(_icell_vars[i])->typesize(),
 		                          vars->get(_icell_vars[i])->get());
-		if (err_code != CL_SUCCESS) {
-			std::stringstream msg;
-			msg << "Failure sending \"" << _icell_vars[i]
-			    << "\" argument to \"iCell\"." << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL error");
-		}
+		CHECK_OCL_OR_THROW(err_code,
+		                   std::string("Failure sending \"") + _icell_vars[i] +
+		                       "\" argument to \"iCell\" in tool \"" + name() +
+		                       "\".");
 		_icell_args.push_back(malloc(vars->get(_icell_vars[i])->typesize()));
 		memcpy(_icell_args.at(i),
 		       vars->get(_icell_vars[i])->get(),
@@ -586,11 +535,11 @@ LinkList::setupOpenCL()
 	                                    sizeof(size_t),
 	                                    &_ll_lws,
 	                                    NULL);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure querying the work group size (\"linkList\").\n");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string(
+	        "Failure querying the work group size (\"linkList\") in tool \"") +
+	        name() + "\".");
 	if (_ll_lws < __CL_MIN_LOCALSIZE__) {
 		LOG(L_ERROR, "insufficient local memory for \"linkList\".\n");
 		std::stringstream msg;
@@ -608,14 +557,10 @@ LinkList::setupOpenCL()
 		                          i,
 		                          vars->get(_ll_vars[i])->typesize(),
 		                          vars->get(_ll_vars[i])->get());
-		if (err_code != CL_SUCCESS) {
-			std::stringstream msg;
-			msg << "Failure sending \"" << _ll_vars[i]
-			    << "\" argument to \"iCell\"." << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL error");
-		}
+		CHECK_OCL_OR_THROW(err_code,
+		                   std::string("Failure sending \"") + _ll_vars[i] +
+		                       "\" argument to \"iCell\" in tool \"" + name() +
+		                       "\".");
 		_ll_args.push_back(malloc(vars->get(_ll_vars[i])->typesize()));
 		memcpy(_ll_args.at(i),
 		       vars->get(_ll_vars[i])->get(),

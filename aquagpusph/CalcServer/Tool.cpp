@@ -152,23 +152,13 @@ Tool::execute()
 	// execution event is finished.
 	if (_event) {
 		err_code = clWaitForEvents(1, &_event);
-		if (err_code != CL_SUCCESS) {
-			std::stringstream msg;
-			msg << "Failure waiting for \"" << name()
-			    << "\" tool previous event." << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL execution error");
-		}
+		CHECK_OCL_OR_THROW(err_code,
+		                   std::string("Failure waiting for \"") + name() +
+		                       "\" tool previous event.");
 		err_code = clReleaseEvent(_event);
-		if (err_code != CL_SUCCESS) {
-			std::stringstream msg;
-			msg << "Failure releasing the \"" << name()
-			    << "\" tool previous event." << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL execution error");
-		}
+		CHECK_OCL_OR_THROW(err_code,
+		                   std::string("Failure releasing the \"") + name() +
+		                       "\" tool previous event.");
 	}
 
 	for (auto substage : Profiler::substages())
@@ -192,60 +182,39 @@ Tool::execute()
 		// NOTE: clReleaseEvent() will be called on the callback, so no need to
 		// do it here
 		err_code = clRetainEvent(event);
-		if (err_code != CL_SUCCESS) {
-			std::stringstream msg;
-			msg << "Failure reteaning the new event in \"" << name()
-			    << "\" tool." << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL execution error");
-		}
+		CHECK_OCL_OR_THROW(
+		    err_code,
+		    std::string("Failure retaining the new event in \"") + name() +
+		        "\" tool.");
 		err_code =
 		    clSetEventCallback(event, CL_COMPLETE, exec_status_check, this);
-		if (err_code != CL_SUCCESS) {
-			std::stringstream msg;
-			msg << "Failure registering the CL_COMPLETE callback in tool \""
-			    << name() << "\"." << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL execution error");
-		}
+		CHECK_OCL_OR_THROW(
+		    err_code,
+		    std::string("Failure registering the callback in tool \"") +
+		        name() + "\".");
 	}
 
 	// Release the events in the wait list, which were retained by getEvents()
 	for (auto e : events) {
 		err_code = clReleaseEvent(e);
-		if (err_code != CL_SUCCESS) {
-			std::stringstream msg;
-			msg << "Failure releasing a predecessor event in \"" << name()
-			    << "\" tool." << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL execution error");
-		}
+		CHECK_OCL_OR_THROW(
+		    err_code,
+		    std::string("Failure releasing a predecessor event in \"") +
+		        name() + "\" tool.");
 	}
 
 	if (C->debug_mode()) {
 		if (event != NULL) {
 			err_code = clWaitForEvents(1, &event);
-			if (err_code != CL_SUCCESS) {
-				std::stringstream msg;
-				msg << "Failure waiting for \"" << name() << "\" tool event."
-				    << std::endl;
-				LOG(L_ERROR, msg.str());
-				InputOutput::Logger::singleton()->printOpenCLError(err_code);
-				throw std::runtime_error("OpenCL execution error");
-			}
+			CHECK_OCL_OR_THROW(err_code,
+			                   std::string("Failure waiting for \"") + name() +
+			                       "\" tool event.");
 		}
 		err_code = C->finish();
-		if (err_code != CL_SUCCESS) {
-			std::stringstream msg;
-			msg << "Failure calling clFinish() after launching \"" << name()
-			    << "\"." << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL execution error");
-		}
+		CHECK_OCL_OR_THROW(
+		    err_code,
+		    std::string("Failure calling clFinish() after launching \"") +
+		        name() + "\".");
 		std::stringstream msg;
 		msg << "\"" << name() << "\" finished" << std::endl;
 		LOG(L_DEBUG, msg.str());
@@ -311,11 +280,7 @@ Tool::compile(const std::string source,
 	const char* source_cstr = source.c_str();
 	program = clCreateProgramWithSource(
 	    C->context(), 1, &source_cstr, &source_length, &err_code);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure creating the OpenCL program\n");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(err_code, "Failure creating the OpenCL program");
 	err_code =
 	    clBuildProgram(program, 0, NULL, flags.str().c_str(), NULL, NULL);
 	if (err_code != CL_SUCCESS) {
@@ -347,17 +312,9 @@ Tool::compile(const std::string source,
 	}
 	for (auto name : names) {
 		kernels.push_back(clCreateKernel(program, name.c_str(), &err_code));
-		if (err_code != CL_SUCCESS) {
-			std::stringstream msg;
-			msg << "Failure creating the \"" << name << "\" OpenCL kernel"
-			    << std::endl;
-			LOG0(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			LOG0(L_ERROR, "--- Source ---------------------------------\n");
-			LOG0(L_ERROR, source);
-			LOG0(L_ERROR, "--------------------------------- Source ---\n");
-			throw std::runtime_error("OpenCL error");
-		}
+		CHECK_OCL_OR_THROW(err_code,
+		                   std::string("Failure creating the \"") + name +
+		                       "\" OpenCL kernel.");
 	}
 
 	return kernels;
@@ -400,14 +357,9 @@ Tool::getEvents() const
 	for (auto event : res) {
 		// Retain the event until we work with it
 		err_code = clRetainEvent(event);
-		if (err_code != CL_SUCCESS) {
-			std::stringstream msg;
-			msg << "Failure retaining an event in \"" << name() << "\" tool."
-			    << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL execution error");
-		}
+		CHECK_OCL_OR_THROW(err_code,
+		                   std::string("Failure retaining an event in \"") +
+		                       name() + "\" tool.");
 	}
 
 	return res;

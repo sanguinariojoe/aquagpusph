@@ -86,14 +86,9 @@ Conditional::next_tool()
 {
 	cl_event event = getEvent();
 	cl_int err_code = clWaitForEvents(1, &event);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure waiting for \"" << name() << "\" conditional event."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(err_code,
+	                   std::string("Failure waiting for \"") + name() +
+	                       "\" conditional event.");
 	if (_result)
 		return Tool::next_tool();
 	return _ending_tool;

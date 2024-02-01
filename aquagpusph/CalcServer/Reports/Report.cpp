@@ -170,46 +170,29 @@ Report::setCallback(const std::vector<cl_event> events,
 	const cl_event* event_wait_list = events.size() ? events.data() : NULL;
 	err_code = clEnqueueMarkerWithWaitList(
 	    C->command_queue(), num_events_in_wait_list, event_wait_list, &event);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure setting the marker for tool \"" << name() << "\"."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(err_code,
+	                   std::string("Failure setting the marker in tool \"") +
+	                       name() + "\".");
 
 	// Now we create a user event that we will set as completed when we already
 	// readed the input dependencies
 	_user_event = clCreateUserEvent(C->context(), &err_code);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure creating the event for tool \"" << name() << "\"."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure creating the user event in tool \"") + name() +
+	        "\".");
 
 	// So it is time to register our callback on our trigger
 	err_code = clRetainEvent(_user_event);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure retaining the event for tool \"" << name() << "\"."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure retaining the user event in tool \"") + name() +
+	        "\".");
 	err_code = clSetEventCallback(event, CL_COMPLETE, cb, this);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure registering the callback in tool \"" << name() << "\"."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure registering the callback in tool \"") + name() +
+	        "\".");
 
 	return _user_event;
 }

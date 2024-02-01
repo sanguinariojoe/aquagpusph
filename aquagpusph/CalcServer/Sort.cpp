@@ -126,14 +126,9 @@ Sort::_execute(const std::vector<cl_event> events)
 	                                  1,
 	                                  &wait_event,
 	                                  &event);
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure executing \"init\" within the tool \"" << name()
-		    << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(err_code,
+	                   std::string("Failure executing \"init\" in tool \"") +
+	                       name() + "\".");
 	auto init_profiler =
 	    dynamic_cast<EventProfile*>(Profiler::substages().at(0));
 	init_profiler->start(event);
@@ -153,23 +148,15 @@ Sort::_execute(const std::vector<cl_event> events)
 	                                  1,
 	                                  &wait_event,
 	                                  &event);
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure executing \"init\" within the tool \"" << name()
-		    << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure executing \"bitonic_start\" in tool \"") + name() +
+	        "\".");
 	err_code = clReleaseEvent(wait_event);
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure releasing \"init\" event within the tool \"" << name()
-		    << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure releasing \"init\" event in tool \"") + name() +
+	        "\".");
 	bitonic_profiler->start(event);
 	wait_event = event;
 
@@ -183,24 +170,16 @@ Sort::_execute(const std::vector<cl_event> events)
 			    (stride >= limit) ? "bitonic_global" : "bitonic_local";
 			err_code =
 			    clSetKernelArg(kernel, 3, sizeof(cl_uint), (void*)&bsize);
-			if (err_code != CL_SUCCESS) {
-				std::ostringstream msg;
-				msg << "Failure sending argument 3 to \"" << kname
-				    << "\" within the tool \"" << name() << "\"." << std::endl;
-				LOG(L_ERROR, msg.str());
-				InputOutput::Logger::singleton()->printOpenCLError(err_code);
-				throw std::runtime_error("OpenCL error");
-			}
+			CHECK_OCL_OR_THROW(
+			    err_code,
+			    std::string("Failure sending argument 3 to kernel \"") + kname +
+			        "\" in tool \"" + name() + "\".");
 			err_code =
 			    clSetKernelArg(kernel, 4, sizeof(cl_uint), (void*)&stride);
-			if (err_code != CL_SUCCESS) {
-				std::ostringstream msg;
-				msg << "Failure sending argument 4 to \"" << kname
-				    << "\" within the tool \"" << name() << "\"." << std::endl;
-				LOG(L_ERROR, msg.str());
-				InputOutput::Logger::singleton()->printOpenCLError(err_code);
-				throw std::runtime_error("OpenCL error");
-			}
+			CHECK_OCL_OR_THROW(
+			    err_code,
+			    std::string("Failure sending argument 4 to kernel \"") + kname +
+			        "\" in tool \"" + name() + "\".");
 			err_code = clEnqueueNDRangeKernel(C->command_queue(),
 			                                  kernel,
 			                                  1,
@@ -210,24 +189,13 @@ Sort::_execute(const std::vector<cl_event> events)
 			                                  1,
 			                                  &wait_event,
 			                                  &event);
-			if (err_code != CL_SUCCESS) {
-				std::ostringstream msg;
-				msg << "Failure executing \"" << kname
-				    << "\" within the tool \"" << name() << "\"." << std::endl;
-				LOG(L_ERROR, msg.str());
-				InputOutput::Logger::singleton()->printOpenCLError(err_code);
-				throw std::runtime_error("OpenCL execution error");
-			}
+			CHECK_OCL_OR_THROW(err_code,
+			                   std::string("Failure executing kernel \"") +
+			                       kname + "\" in tool \"" + name() + "\".");
 			err_code = clReleaseEvent(wait_event);
-			if (err_code != CL_SUCCESS) {
-				std::ostringstream msg;
-				msg << "Failure releasing \"" << kname
-				    << "\" event within the tool \"" << name() << "\"."
-				    << std::endl;
-				LOG(L_ERROR, msg.str());
-				InputOutput::Logger::singleton()->printOpenCLError(err_code);
-				throw std::runtime_error("OpenCL execution error");
-			}
+			CHECK_OCL_OR_THROW(err_code,
+			                   std::string("Failure releasing \"") + kname +
+			                       "\" event in tool \"" + name() + "\".");
 			wait_event = event;
 		}
 	}
@@ -249,14 +217,10 @@ Sort::_execute(const std::vector<cl_event> events)
 	                               perms_events.size(),
 	                               perms_events.data(),
 	                               &event);
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure copying the permutations within the tool \"" << name()
-		    << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure copying the permutations in tool \"") + name() +
+	        "\".");
 	auto keys_profiler =
 	    dynamic_cast<EventProfile*>(Profiler::substages().at(2));
 	keys_profiler->start(event);
@@ -275,14 +239,9 @@ Sort::_execute(const std::vector<cl_event> events)
 	                               vals_events.size(),
 	                               vals_events.data(),
 	                               &event);
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure copying the permutations within the tool \"" << name()
-		    << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(err_code,
+	                   std::string("Failure copying the keys in tool \"") +
+	                       name() + "\".");
 	auto vals_profiler =
 	    dynamic_cast<EventProfile*>(Profiler::substages().at(3));
 	vals_profiler->start(event);
@@ -290,14 +249,10 @@ Sort::_execute(const std::vector<cl_event> events)
 	inv_perms_events.push_back(event);
 
 	err_code = clReleaseEvent(wait_event);
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure releasing bitonic event within the tool \"" << name()
-		    << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure releasing bitonic event in tool \"") + name() +
+	        "\".");
 
 	// And finally we can compute the inverse permutations
 	err_code = clEnqueueNDRangeKernel(C->command_queue(),
@@ -309,24 +264,16 @@ Sort::_execute(const std::vector<cl_event> events)
 	                                  inv_perms_events.size(),
 	                                  inv_perms_events.data(),
 	                                  &event);
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure executing \"inverse_keys\" within the tool \"" << name()
-		    << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure executing \"inverse_keys\" in tool \"") + name() +
+	        "\".");
 	for (unsigned int i = 0; i < 2; i++) {
 		err_code = clReleaseEvent(inv_perms_events.back());
-		if (err_code != CL_SUCCESS) {
-			std::ostringstream msg;
-			msg << "Failure releasing mem copy event within the tool \""
-			    << name() << "\"." << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL execution error");
-		}
+		CHECK_OCL_OR_THROW(
+		    err_code,
+		    std::string("Failure releasing mem copy event in tool \"") +
+		        name() + "\".");
 		inv_perms_events.pop_back();
 	}
 	auto inv_profiler =
@@ -478,14 +425,10 @@ Sort::setupOpenCL()
 	                           sizeof(cl_ulong),
 	                           &local_mem_size,
 	                           NULL);
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure querying \"CL_DEVICE_LOCAL_MEM_SIZE\" on tool \""
-		    << name() << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure querying CL_DEVICE_LOCAL_MEM_SIZE in tool \"") +
+	        name() + "\".");
 
 	cl_ulong thread_size = 2 * (vars->typeToBytes(_var->type()) +
 	                            vars->typeToBytes(_perms->type()));
@@ -504,14 +447,11 @@ Sort::setupOpenCL()
 		                                    sizeof(size_t),
 		                                    &local_work_size,
 		                                    NULL);
-		if (err_code != CL_SUCCESS) {
-			std::ostringstream msg;
-			msg << "Failure querying \"CL_KERNEL_WORK_GROUP_SIZE\" on tool \""
-			    << name() << "\"." << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL execution error");
-		}
+		CHECK_OCL_OR_THROW(
+		    err_code,
+		    std::string(
+		        "Failure querying CL_KERNEL_WORK_GROUP_SIZE in tool \"") +
+		        name() + "\".");
 		if (local_work_size < _local_work_size) {
 			valid_kernels = false;
 			_local_work_size = local_work_size;
@@ -593,29 +533,21 @@ Sort::setupMems()
 	                       _n_padded * vars->typeToBytes(_var->type()),
 	                       NULL,
 	                       &err_code);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure allocating"
-		    << _n_padded * vars->typeToBytes(_var->type())
-		    << " bytes for the tool \"" << name() << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL allocation error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure allocating") +
+	        std::to_string(_n_padded * vars->typeToBytes(_var->type())) +
+	        " bytes for tool \"" + name() + "\".");
 	_permut = clCreateBuffer(C->context(),
 	                         CL_MEM_READ_WRITE,
 	                         _n_padded * vars->typeToBytes(_perms->type()),
 	                         NULL,
 	                         &err_code);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure allocating"
-		    << _n_padded * vars->typeToBytes(_perms->type())
-		    << " bytes for the tool \"" << name() << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL allocation error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure allocating") +
+	        std::to_string(_n_padded * vars->typeToBytes(_var->type())) +
+	        " bytes for tool \"" + name() + "\".");
 
 	allocatedMemory(_n_padded * vars->typeToBytes(_var->type()) +
 	                _n_padded * vars->typeToBytes(_perms->type()));
@@ -629,171 +561,109 @@ Sort::setupArgs()
 
 	err_code =
 	    clSetKernelArg(_init_kernel, 0, sizeof(cl_mem), _var->get_async());
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure sending argument 0 to \"init\" within the tool \""
-		    << name() << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure sending argument 0 to \"init\" in tool \"") +
+	        name() + "\".");
 	err_code = clSetKernelArg(_init_kernel, 1, sizeof(cl_mem), (void*)&_vals);
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure sending argument 1 to \"init\" within the tool \""
-		    << name() << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure sending argument 1 to \"init\" in tool \"") +
+	        name() + "\".");
 	err_code = clSetKernelArg(_init_kernel, 2, sizeof(cl_mem), (void*)&_permut);
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure sending argument 2 to \"init\" within the tool \""
-		    << name() << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure sending argument 2 to \"init\" in tool \"") +
+	        name() + "\".");
 	err_code = clSetKernelArg(_init_kernel, 3, sizeof(cl_uint), (void*)&_n);
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure sending argument 3 to \"init\" within the tool \""
-		    << name() << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure sending argument 3 to \"init\" in tool \"") +
+	        name() + "\".");
 	err_code =
 	    clSetKernelArg(_init_kernel, 4, sizeof(cl_uint), (void*)&_n_padded);
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure sending argument 4 to \"init\" within the tool \""
-		    << name() << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure sending argument 4 to \"init\" in tool \"") +
+	        name() + "\".");
 
 	err_code = clSetKernelArg(_start_kernel, 0, sizeof(cl_mem), (void*)&_vals);
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure sending argument 0 to \"bitonic_start\" within the "
-		       "tool \""
-		    << name() << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string(
+	        "Failure sending argument 0 to \"bitonic_start\" in tool \"") +
+	        name() + "\".");
 	err_code =
 	    clSetKernelArg(_start_kernel, 1, sizeof(cl_mem), (void*)&_permut);
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure sending argument 1 to \"bitonic_start\" within the "
-		       "tool \""
-		    << name() << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string(
+	        "Failure sending argument 1 to \"bitonic_start\" in tool \"") +
+	        name() + "\".");
 
 	err_code = clSetKernelArg(_local_kernel, 0, sizeof(cl_mem), (void*)&_vals);
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure sending argument 0 to \"bitonic_local\" within the "
-		       "tool \""
-		    << name() << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string(
+	        "Failure sending argument 0 to \"bitonic_local\" in tool \"") +
+	        name() + "\".");
 	err_code =
 	    clSetKernelArg(_local_kernel, 1, sizeof(cl_mem), (void*)&_permut);
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure sending argument 1 to \"bitonic_local\" within the "
-		       "tool \""
-		    << name() << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string(
+	        "Failure sending argument 1 to \"bitonic_local\" in tool \"") +
+	        name() + "\".");
 	err_code =
 	    clSetKernelArg(_local_kernel, 2, sizeof(cl_uint), (void*)&_n_padded);
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure sending argument 2 to \"bitonic_local\" within the "
-		       "tool \""
-		    << name() << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string(
+	        "Failure sending argument 2 to \"bitonic_local\" in tool \"") +
+	        name() + "\".");
 
 	err_code = clSetKernelArg(_global_kernel, 0, sizeof(cl_mem), (void*)&_vals);
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure sending argument 0 to \"bitonic_global\" within the "
-		       "tool \""
-		    << name() << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string(
+	        "Failure sending argument 0 to \"bitonic_global\" in tool \"") +
+	        name() + "\".");
 	err_code =
 	    clSetKernelArg(_global_kernel, 1, sizeof(cl_mem), (void*)&_permut);
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure sending argument 1 to \"bitonic_global\" within the "
-		       "tool \""
-		    << name() << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string(
+	        "Failure sending argument 1 to \"bitonic_global\" in tool \"") +
+	        name() + "\".");
 	err_code =
 	    clSetKernelArg(_global_kernel, 2, sizeof(cl_uint), (void*)&_n_padded);
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure sending argument 2 to \"bitonic_global\" within the "
-		       "tool \""
-		    << name() << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string(
+	        "Failure sending argument 2 to \"bitonic_global\" in tool \"") +
+	        name() + "\".");
 
 	err_code = clSetKernelArg(
 	    _inv_perms_kernel, 0, sizeof(cl_mem), _perms->get_async());
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure sending argument 0 to \"\" within the tool \"" << name()
-		    << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string(
+	        "Failure sending argument 0 to \"inverse_keys\" in tool \"") +
+	        name() + "\".");
 	err_code = clSetKernelArg(
 	    _inv_perms_kernel, 1, sizeof(cl_mem), _inv_perms->get_async());
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure sending argument 1 to \"\" within the tool \"" << name()
-		    << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string(
+	        "Failure sending argument 1 to \"inverse_keys\" in tool \"") +
+	        name() + "\".");
 	err_code =
 	    clSetKernelArg(_inv_perms_kernel, 2, sizeof(cl_uint), (void*)&_n);
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure sending argument 2 to \"inverse_keys\" within the tool "
-		       "\""
-		    << name() << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string(
+	        "Failure sending argument 2 to \"inverse_keys\" in tool \"") +
+	        name() + "\".");
 }
 
 }

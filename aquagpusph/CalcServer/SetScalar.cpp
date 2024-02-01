@@ -97,24 +97,14 @@ ScalarExpression::solve()
 	}
 
 	err_code = clSetUserEventStatus(user_event, CL_COMPLETE);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure setting as complete the tool \"" << name() << "\""
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		return;
-	}
-
+	CHECK_OCL_OR_THROW(err_code,
+	                   std::string("Failure setting as complete the tool \"") +
+	                       name() + "\".");
 	err_code = clReleaseEvent(user_event);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure releasing the user even of tool \"" << name() << "\""
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		return;
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure releasing the user even of tool \"") + name() +
+	        "\".");
 
 	dynamic_cast<ScalarProfile*>(Profiler::substages().front())->end();
 }
@@ -173,47 +163,28 @@ ScalarExpression::_execute(const std::vector<cl_event> events)
 
 	err_code = clEnqueueMarkerWithWaitList(
 	    C->command_queue(), num_events_in_wait_list, event_wait_list, &trigger);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure setting the trigger for tool \"" << name() << "\"."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(err_code,
+	                   std::string("Failure setting the trigger for tool \"") +
+	                       name() + "\".");
 
 	// Now we create a user event that we will set as completed when we already
 	// solved the equation and set the varaible value
 	auto event = clCreateUserEvent(C->context(), &err_code);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure creating the event for tool \"" << name() << "\"."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(err_code,
+	                   std::string("Failure creating the event for tool \"") +
+	                       name() + "\".");
 	_user_event = event;
 
 	// So it is time to register our callback on our trigger
 	err_code = clRetainEvent(event);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure retaining the event for tool \"" << name() << "\"."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(err_code,
+	                   std::string("Failure retaining the event for tool \"") +
+	                       name() + "\".");
 	err_code = clSetEventCallback(trigger, CL_COMPLETE, solver, this);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure registering the solver callback in tool \"" << name()
-		    << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure registering the solver callback in tool \"") +
+	        name() + "\".");
 
 	return _user_event;
 }

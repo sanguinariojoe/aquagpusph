@@ -23,6 +23,7 @@
 
 #include "aquagpusph/AuxiliarMethods.hpp"
 #include "aquagpusph/InputOutput/Logger.hpp"
+#include "aquagpusph/CalcServer/CalcServer.hpp"
 #include "TabFile.hpp"
 
 namespace Aqua {
@@ -82,23 +83,14 @@ TabFile::print()
 
 	cl_int err_code;
 	err_code = clSetUserEventStatus(getUserEvent(), CL_COMPLETE);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure setting as complete the tool \"" << name() << "\"."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		return;
-	}
+	CHECK_OCL_OR_THROW(err_code,
+	                   std::string("Failure setting as complete the tool \"") +
+	                       name() + "\".");
 	err_code = clReleaseEvent(getUserEvent());
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure releasing the user event at tool \"" << name() << "\"."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		return;
-	}
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure releasing the user event in tool \"") + name() +
+	        "\".");
 }
 
 /** @brief Callback called when all the variables can be read by

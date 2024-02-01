@@ -42,6 +42,13 @@
 #define N_PROFILING_SNAPSHOTS 2
 #endif
 
+#define CHECK_OCL_OR_THROW(err_code, msg)                                      \
+	if (err_code != CL_SUCCESS) {                                              \
+		LOG(L_ERROR, msg);                                                     \
+		Aqua::InputOutput::Logger::singleton()->printOpenCLError(err_code);    \
+		throw std::runtime_error("OpenCL error");                              \
+	}
+
 namespace Aqua {
 /// @namespace Aqua::CalcServer Calculation server name space.
 namespace CalcServer {

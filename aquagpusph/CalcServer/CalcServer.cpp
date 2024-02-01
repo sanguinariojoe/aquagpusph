@@ -657,12 +657,8 @@ CalcServer::command_queue(cmd_queue which)
 			_command_queue_current++;
 			if (_command_queue_current >= _command_queues.size()) {
 				queue = create_command_queue(_context, _device, &err_code);
-				if (err_code != CL_SUCCESS) {
-					LOG(L_ERROR, "Failure generating a new command queue\n");
-					InputOutput::Logger::singleton()->printOpenCLError(
-					    err_code);
-					throw std::runtime_error("OpenCL error");
-				}
+				CHECK_OCL_OR_THROW(err_code,
+				                   "Failure generating a new command queue");
 				_command_queues.push_back(queue);
 			}
 		case cmd_queue::cmd_queue_current:
@@ -683,20 +679,14 @@ CalcServer::marker() const
 	std::vector<cl_event> events;
 	for (auto queue : _command_queues) {
 		err_code = clEnqueueMarkerWithWaitList(queue, 0, NULL, &event);
-		if (err_code != CL_SUCCESS) {
-			LOG(L_ERROR, "Failure setting the marker for a command queue\n");
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL execution error");
-		}
+		CHECK_OCL_OR_THROW(err_code,
+		                   "Failure setting the marker on a command queue");
 		events.push_back(event);
 	}
 	err_code =
 	    clEnqueueMarkerWithWaitList(_command_queue_parallel, 0, NULL, &event);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure setting the marker for the MPI command queue\n");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(err_code,
+	                   "Failure setting the marker on the MPI command queue");
 	events.push_back(event);
 	// Join all them together on a common marker
 	err_code =
@@ -704,11 +694,7 @@ CalcServer::marker() const
 	                                events.size(),
 	                                events.data(),
 	                                &event);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure setting the master marker\n");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(err_code, "Failure setting the master marker");
 	return event;
 }
 
@@ -750,14 +736,9 @@ CalcServer::getUnsortedMem(const std::string var_name,
 	                               1,
 	                               &event_wait,
 	                               &event);
-	if (err_code != CL_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure receiving the variable \"" << var_name
-		    << "\" from server." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		return NULL;
-	}
+	CHECK_OCL_OR_THROW(err_code,
+	                   std::string("Failure receiving the variable \"") +
+	                       var_name + "\"");
 
 	return event;
 }
@@ -880,11 +861,7 @@ getDeviceInfoStr(cl_device_id device, cl_device_info param_name)
 	char* param;
 	size_t param_len;
 	err_code = clGetDeviceInfo(device, param_name, 0, NULL, &param_len);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure getting the device param len.\n");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(err_code, "Failure getting the device parameter size");
 	param = new char[param_len + 1];
 	if (!param) {
 		std::ostringstream msg;
@@ -895,11 +872,7 @@ getDeviceInfoStr(cl_device_id device, cl_device_info param_name)
 	}
 	param[param_len] = '\0';
 	err_code = clGetDeviceInfo(device, param_name, param_len, param, NULL);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure getting the device param.\n");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(err_code, "Failure getting the device parameter");
 	std::string res(param);
 	delete[] param;
 	return res;
@@ -916,11 +889,7 @@ CalcServer::queryOpenCL()
 	_platforms = NULL;
 	// Gets the total number of platforms
 	err_code = clGetPlatformIDs(0, NULL, &_num_platforms);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure getting the number of platforms.\n");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(err_code, "Failure getting the number of platforms");
 	// Get the array of platforms
 	_platforms = new cl_platform_id[_num_platforms];
 	if (!_platforms) {
@@ -931,11 +900,7 @@ CalcServer::queryOpenCL()
 		throw std::bad_alloc();
 	}
 	err_code = clGetPlatformIDs(_num_platforms, _platforms, NULL);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure getting the platforms list.\n");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(err_code, "Failure getting the platforms list");
 	for (i = 0; i < _num_platforms; i++) {
 		auto [version_major, version_minor] = opencl_version(_platforms[i]);
 		std::ostringstream info;
@@ -944,11 +909,8 @@ CalcServer::queryOpenCL()
 
 		err_code = clGetPlatformInfo(
 		    _platforms[i], CL_PLATFORM_NAME, 0, NULL, &name_len);
-		if (err_code != CL_SUCCESS) {
-			LOG(L_ERROR, "Failure getting the platform name length.\n");
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL error");
-		}
+		CHECK_OCL_OR_THROW(err_code,
+		                   "Failure getting the platform name length");
 		name = new char[name_len + 1];
 		if (!name) {
 			std::ostringstream msg;
@@ -960,11 +922,7 @@ CalcServer::queryOpenCL()
 		name[name_len] = '\0';
 		err_code = clGetPlatformInfo(
 		    _platforms[i], CL_PLATFORM_NAME, name_len, name, NULL);
-		if (err_code != CL_SUCCESS) {
-			LOG(L_ERROR, "Failure getting the platform name.\n");
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL error");
-		}
+		CHECK_OCL_OR_THROW(err_code, "Failure getting the platform name");
 		info.str("");
 		info << "\tNAME: " << name << std::endl;
 		LOG0(L_DEBUG, info.str());
@@ -978,14 +936,10 @@ CalcServer::queryOpenCL()
 		// Get the number of devices
 		err_code = clGetDeviceIDs(
 		    _platforms[i], CL_DEVICE_TYPE_ALL, 0, NULL, &num_devices);
-		if (err_code != CL_SUCCESS) {
-			std::ostringstream msg;
-			msg << "Failure getting the number of devices (platform " << i
-			    << ")." << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL error");
-		}
+		CHECK_OCL_OR_THROW(
+		    err_code,
+		    std::string("Failure getting the number of devices (platform ") +
+		        std::to_string(i) + ").");
 		// Gets the devices array
 		devices = new cl_device_id[num_devices];
 		if (!devices) {
@@ -998,14 +952,10 @@ CalcServer::queryOpenCL()
 		}
 		err_code = clGetDeviceIDs(
 		    _platforms[i], CL_DEVICE_TYPE_ALL, num_devices, devices, NULL);
-		if (err_code != CL_SUCCESS) {
-			std::ostringstream msg;
-			msg << "Failure getting the devices list (platform " << i << ")."
-			    << std::endl;
-			LOG(L_ERROR, msg.str());
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL error");
-		}
+		CHECK_OCL_OR_THROW(
+		    err_code,
+		    std::string("Failure getting the devices list (platform ") +
+		        std::to_string(i) + ").");
 		// Shows device arrays
 		for (j = 0; j < num_devices; j++) {
 			info.str("");
@@ -1028,11 +978,10 @@ CalcServer::queryOpenCL()
 			                           sizeof(cl_device_type),
 			                           &dType,
 			                           NULL);
-			if (err_code != CL_SUCCESS) {
-				LOG(L_ERROR, "Failure getting the device type.\n");
-				InputOutput::Logger::singleton()->printOpenCLError(err_code);
-				throw std::runtime_error("OpenCL error");
-			}
+			CHECK_OCL_OR_THROW(
+			    err_code,
+			    std::string("Failure getting the device type (platform ") +
+			        std::to_string(i) + ", device " + std::to_string(j) + ").");
 			if (dType == CL_DEVICE_TYPE_CPU)
 				LOG0(L_DEBUG, "\t\tTYPE: CL_DEVICE_TYPE_CPU\n");
 			else if (dType == CL_DEVICE_TYPE_GPU)
@@ -1156,11 +1105,7 @@ device_timer_sampler(cl_event event,
 
 	err_code = clGetEventProfilingInfo(
 	    event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &device_timer, NULL);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure sampling the device timer.\n");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		return;
-	}
+	CHECK_OCL_OR_THROW(err_code, "Failure sampling the device timer.");
 
 	cl_ulong* device_timer_offset = (cl_ulong*)user_data;
 	*device_timer_offset = host_timer - device_timer;
@@ -1201,11 +1146,7 @@ CalcServer::setupDevices()
 
 	// Gets the number of valid devices
 	err_code = clGetDeviceIDs(_platform, device_type, 0, NULL, &_num_devices);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure getting the number of devices.\n");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(err_code, "Failure getting the number of devices.");
 	if (device_id >= _num_devices) {
 		LOG(L_ERROR, "The selected device can't be used.\n");
 		std::ostringstream msg;
@@ -1236,11 +1177,7 @@ CalcServer::setupDevices()
 	}
 	err_code = clGetDeviceIDs(
 	    _platform, device_type, _num_devices, _devices, &_num_devices);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure getting the devices list.\n");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(err_code, "Failure getting the devices list.");
 	// Create a devices context
 	_context = clCreateContext(0,
 	                           _num_devices,
@@ -1248,11 +1185,7 @@ CalcServer::setupDevices()
 	                           context_error_notify,
 	                           _current_tool_name,
 	                           &err_code);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure creating an OpenCL context.\n");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(err_code, "Failure creating an OpenCL context.");
 
 	// Select the appropriate device
 	_device = _devices[device_id];
@@ -1269,61 +1202,30 @@ CalcServer::setupDevices()
 
 	// Create the command queues
 	auto queue = create_command_queue(_context, _device, &err_code);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure generating the main command queue\n");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(err_code, "Failure generating the main command queue.");
 	_command_queues.push_back(queue);
 	_command_queue_parallel =
 	    create_command_queue(_context, _device, &err_code);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure generating the parallel command queue\n");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(err_code, "Failure generating the MPI command queue.");
 
 	// Let's sample the device timer
 	cl_event sampler;
 	auto trigger = clCreateUserEvent(_context, &err_code);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure generating the trigger event\n");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(err_code, "Failure generating the trigger event.");
 	err_code = clEnqueueMarkerWithWaitList(
 	    _command_queues.front(), 1, &trigger, &sampler);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure generating the sampler event\n");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(err_code, "Failure generating the sampler event.");
 	err_code = clSetEventCallback(
 	    sampler, CL_COMPLETE, device_timer_sampler, &_device_timer_offset);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure registering the timer sampling callback\n");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(err_code,
+	                   "Failure registering the timer sampling callback.");
 	err_code = clSetUserEventStatus(trigger, CL_COMPLETE);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure triggering the timer sampler\n");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
 	err_code = clWaitForEvents(1, &sampler);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure waiting for the timer sampler\n");
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL error");
-	}
+	CHECK_OCL_OR_THROW(err_code, "Failure waiting for the timer sampler.");
 	for (auto e : { trigger, sampler }) {
 		err_code = clReleaseEvent(e);
-		if (err_code != CL_SUCCESS) {
-			LOG(L_ERROR, "Failure releasing the timer sampler events\n");
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL error");
-		}
+		CHECK_OCL_OR_THROW(err_code,
+		                   "Failure releasing the timer sampler events.");
 	}
 
 	{
@@ -1424,14 +1326,11 @@ CalcServer::setup()
 			                                NULL);
 			free(data);
 			data = NULL;
-			if (err_code != CL_SUCCESS) {
-				std::ostringstream msg;
-				msg << "Particles set " << i << " failed sending variable, \""
-				    << name << "\" to the computational device." << std::endl;
-				LOG(L_ERROR, msg.str());
-				InputOutput::Logger::singleton()->printOpenCLError(err_code);
-				throw std::runtime_error("OpenCL error");
-			}
+			CHECK_OCL_OR_THROW(err_code,
+			                   std::string("Particles set ") +
+			                       std::to_string(i) +
+			                       " failed sending variable \"" + name +
+			                       "\"  to the computational device.");
 		}
 	}
 

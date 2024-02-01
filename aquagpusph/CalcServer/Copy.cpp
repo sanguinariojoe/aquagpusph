@@ -80,13 +80,9 @@ Copy::_execute(const std::vector<cl_event> events)
 	                               num_events_in_wait_list,
 	                               event_wait_list,
 	                               &event);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure executing the tool \"" << name() << "\"." << std::endl;
-		LOG(L_ERROR, msg.str());
-		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	CHECK_OCL_OR_THROW(err_code,
+	                   std::string("Failure executing the tool \"") + name() +
+	                       "\".");
 
 	auto profiler = dynamic_cast<EventProfile*>(Profiler::substages().back());
 	profiler->start(event);

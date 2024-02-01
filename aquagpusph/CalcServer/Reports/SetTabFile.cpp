@@ -237,11 +237,10 @@ SetTabFile::_execute(const std::vector<cl_event> events)
 	cl_event user_event = setCallback(new_events, settabfile_cb);
 	for (auto event : new_events) {
 		err_code = clReleaseEvent(event);
-		if (err_code != CL_SUCCESS) {
-			LOG(L_ERROR, "Failure releasing the downloading events.\n");
-			InputOutput::Logger::singleton()->printOpenCLError(err_code);
-			throw std::runtime_error("OpenCL error");
-		}
+		CHECK_OCL_OR_THROW(
+		    err_code,
+		    std::string("Failure releasing the downloading events in tool \"") +
+		        name() + "\".");
 	}
 	return user_event;
 }
