@@ -24,10 +24,8 @@ __kernel void entry(const __global vec* r,
                     const __global float* p,
                     const __global matrix* mls,
                     __global vec* grad_p,
-                    const __global uint *icell,
-                    const __global uint *ihoc,
                     uint N,
-                    uivec4 n_cells)
+                    LINKLIST_LOCAL_PARAMS)
 {
     const uint i = get_global_id(0);
     const uint it = get_local_id(0);
@@ -46,7 +44,8 @@ __kernel void entry(const __global vec* r,
         _GRADP_ = VEC_ZERO.XYZ;
     #endif
 
-    BEGIN_LOOP_OVER_NEIGHS(){
+    const unsigned int c_i = icell[i];
+    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
         if(i == j) {
             j++;
             continue;
@@ -61,7 +60,7 @@ __kernel void entry(const __global vec* r,
             const float f_ij = kernelF(q) * CONF * m[j];
             _GRADP_ += (p[j] - p_i) * f_ij * r_ij;
         }
-    }END_LOOP_OVER_NEIGHS()
+    }END_NEIGHS()
 
     grad_p[i] = MATRIX_DOT(mls[i], _GRADP_);
 }

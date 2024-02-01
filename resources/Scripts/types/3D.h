@@ -36,28 +36,6 @@
 #define uivec uint4
 #define matrix float16
 
-/** @brief Helper function for CONVERT()
- *
- * The helper is required because the preprocessor is only recursively expanding
- * macros if the definition is not affected by # nor ## string operators.
- * Then, this inner function is concatenating the unexpanded words, while
- * CONVERT() is effectively expanding the type name.
- */
-#define _CONVERT(TYPE) convert_ ## TYPE
-
-/** @brief Conversor between complex types.
- *
- * In OpenCL, to convert between complex types the functions convert_TYPEN
- * should be used. Otherwise casting errors will be received.
- *
- * This definition provides a convenient function to become used with the
- * overloaded types vec, ivec and uivec.
- *
- * For instance, to convert a vec variable, v, to an ivec variable, you can call
- * CONVERT(ivec, v);
- */
-#define CONVERT(TYPE, v) _CONVERT(TYPE)(v)
-
 /** @brief Null #vec, i.e. filled with zero components.
  */
 #define VEC_ZERO ((float4)(0.f,0.f,0.f,0.f))
@@ -162,15 +140,6 @@
  */
 #define XYZ xyz
 
-/** @brief Utility to can redefine the cell of the particle to be  computed.
- * 
- * It can be used for mirrrored particles, which are temporary associated to a
- * different cell.
- *
- * @see BEGIN_LOOP_OVER_NEIGHS
- */
-#define C_I() const uint c_i = icell[i]
-
 /** @brief Loop over the neighs to compute the interactions.
  * 
  * All the code between this macro and END_LOOP_OVER_NEIGHS will be executed for
@@ -180,7 +149,7 @@
  * intended to be computed) should be identified by an unsigned integer variable
  * i, while the resulting neighs will be automatically identified by the
  * unsigned integer variable j. To discard a neighbour particle, remember
- * calling \code{.c}j++\endcode before \code{.c}continue\endcode
+ * calling \code{.c} j++ \endcode before \code{.c} continue \endcode
  *
  * The following variables will be declared, and therefore cannot be used
  * elsewhere:
@@ -215,6 +184,59 @@
             }                                                                  \
         }                                                                      \
     }
+
+/** @brief Loop over the neighbours to compute the interactions.
+ * 
+ * All the code between this macro and END_NEIGHS will be executed for
+ * all the neighbours.
+ *
+ * The resulting neighs will be automatically identified by the unsigned
+ * integer variable j. To discard a neighbour particle, remember
+ * calling \code{.c} j++ \endcode followed by \code{.c} continue \endcode
+ *
+ * The following variables will be declared, and therefore cannot be used
+ * within the loop scope:
+ *   - __ci: Index of the cell of the neighbour particle j, in the x direction
+ *   - __cj: Index of the cell of the neighbour particle j, in the x direction
+ *   - __ck: Index of the cell of the neighbour particle j, in the x direction
+ *   - __c_j: Index of the cell of the neighbour particle j
+ *   - j: Index of the neighbour particle
+ *
+ * @param CELL Cell of the main particle (usually \code{.c} icell[i] \endcode)
+ * @param NPARTS Number of particles (usually \code{.c} N \endcode)
+ * @param NCELLS Number of cells at each direction (usually
+ * \code{.c} NCELLS \endcode)
+ * @param ICELL Array of cells for each particle (usually
+ * \code{.c} icell \endcode)
+ * @param IHOC Array of head of cells (usually \code{.c} ihoc \endcode)
+ * @see END_NEIGHS
+ * @note This macro is created to replace the old #BEGIN_LOOP_OVER_NEIGHS,
+ * which does not easily allows to do multi-gpu computations
+ */
+#define BEGIN_NEIGHS(CELL, NPARTS, NCELLS, ICELL, IHOC)                        \
+    for(int __ci = -1; __ci <= 1; __ci++) {                                    \
+        for(int __cj = -1; __cj <= 1; __cj++) {                                \
+            for(int __ck = -1; __ck <= 1; __ck++) {                            \
+                const uint __c_j = CELL +                                      \
+                                   __ci +                                      \
+                                   __cj * NCELLS.x +                           \
+                                   __ck * NCELLS.x * NCELLS.y;                 \
+                uint j = IHOC[__c_j];                                          \
+                while((j < NPARTS) && (ICELL[j] == __c_j)) {
+
+/** @brief End of the loop over the neighs to compute the interactions.
+ * 
+ * @see BEGIN_LOOP_OVER_NEIGHS
+ * @note This macro is created to replace the old #END_LOOP_OVER_NEIGHS, which
+ * does not easily allows to do multi-gpu computations
+ */
+#define END_NEIGHS()                                                           \
+                    j++;                                                       \
+                }                                                              \
+            }                                                                  \
+        }                                                                      \
+    }
+
 
 /** @brief Multiply a matrix by a vector (inner product)
  *

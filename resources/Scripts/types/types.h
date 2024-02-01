@@ -19,12 +19,54 @@
 /** @file
  * @brief Generic types definition file.
  *
- * This file is just simply redirecting to either 2D.hcl or 3D.hcl, depending
- * on HAVE_3D
+ * This file is redirecting to either 2D.hcl or 3D.hcl, depending on #HAVE_3D
  */
+
+/** @brief Helper function for #CONVERT
+ *
+ * The helper is required because the preprocessor is only recursively expanding
+ * macros if the definition is not affected by # nor ## string operators.
+ * Then, this inner function is concatenating the unexpanded words, while
+ * #CONVERT is effectively expanding the type name.
+ */
+#define _CONVERT(TYPE) convert_ ## TYPE
+
+/** @brief Conversor between complex types.
+ *
+ * In OpenCL, to convert between complex types the functions convert_TYPEN
+ * should be used. Otherwise casting errors will be received.
+ *
+ * This definition provides a convenient function to become used with the
+ * overloaded types vec, ivec and uivec.
+ *
+ * For instance, to convert a vec variable, v, to an ivec variable, you can
+ * call CONVERT(ivec, v);
+ */
+#define CONVERT(TYPE, v) _CONVERT(TYPE)(v)
+
+/** @brief Utility to can redefine the cell of the particle to be computed.
+ * 
+ * It can be used for mirrrored particles, which are temporary associated to a
+ * different cell.
+ *
+ * @see #BEGIN_LOOP_OVER_NEIGHS
+ */
+#define C_I() const uint c_i = icell[i]
 
 #ifdef HAVE_3D
     #include "resources/Scripts/types/3D.h"
 #else
     #include "resources/Scripts/types/2D.h"
 #endif
+
+/** @brief Macro to easily add the parameters to run #BEGIN_NEIGHS macro,
+ * interacting with the local set of particles, i.e. the particles handled by
+ * this process.
+ * 
+ * @see #BEGIN_NEIGHS
+ * @note The number of particles, N, is not included
+ */
+#define LINKLIST_LOCAL_PARAMS                                                  \
+    const __global uint * restrict icell,                                      \
+    const __global uint * restrict ihoc,                                       \
+    uivec4 n_cells
