@@ -43,19 +43,9 @@ Performance::Performance(const std::string tool_name,
   , _color(color)
   , _bold(bold)
   , _output_file(output_file)
+  , _output_file_index(0)
   , _timer(0)
 {
-	if (output_file != "") {
-		try {
-			unsigned int i = 0;
-			_output_file = newFilePath(output_file, i, 1);
-		} catch (std::invalid_argument e) {
-			std::ostringstream msg;
-			_output_file = setStrConstantsCopy(output_file);
-			msg << "Overwriting '" << _output_file << "'" << std::endl;
-			LOG(L_WARNING, msg.str());
-		}
-	}
 }
 
 Performance::~Performance() {}
@@ -233,7 +223,14 @@ Performance::_execute(const std::vector<cl_event> events)
 std::ofstream
 Performance::writer()
 {
-	std::ofstream f(_output_file, std::ios::out | std::ios::trunc);
+	std::string output_file;
+	try {
+		output_file = newFilePath(_output_file, _output_file_index, 6);
+	} catch (std::invalid_argument e) {
+		output_file = setStrConstantsCopy(_output_file);
+	}
+
+	std::ofstream f(output_file, std::ios::out | std::ios::trunc);
 	if (!f.is_open()) {
 		std::ostringstream msg;
 		msg << "Failure writing on '" << _output_file << "'" << std::endl;
