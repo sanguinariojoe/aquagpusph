@@ -41,34 +41,34 @@ Authors:
         <Variable name="H4" type="float" value="0.0" />
         <!-- Helper array to nullify the z coordinates of the particles far away
         from the sensor. -->
-        <Variable name="h_sensor_z" type="float*" length="N" />
+        <Variable name="h_sensorz" type="float*" length="N" />
         <!-- Definition of the points where the sensor should compute -->
-        <Variable name="h_sensor_x" type="float" value="0.0" />
+        <Variable name="h_sensorx" type="float" value="0.0" />
     </Variables>
 
     <Tools>
         <!-- H1 computation -->
-        <Tool action="insert" after="TimeStep" type="set_scalar" name="H1 x" in="h_sensor_x" value="-1.528"/>
+        <Tool action="insert" after="TimeStep" type="set_scalar" name="H1 x" in="h_sensorx" value="-1.528"/>
         <Tool action="insert" after="H1 x" type="kernel" name="H1 z" path="examples/3D/spheric_testcase2_dambreak_mpi/h_sensor.cl"/>
-        <Tool action="insert" after="H1 z" type="reduction" name="H1" in="h_sensor_z" out="H1" null="-INFINITY">
+        <Tool action="insert" after="H1 z" type="reduction" name="H1" in="h_sensorz" out="H1" null="-INFINITY">
             c = (a &lt; b) ? b : a;
         </Tool>
         <!-- H2 computation -->
-        <Tool action="insert" before="TimeStep" type="set_scalar" name="H2 x" in="h_sensor_x" value="-1.032"/>
+        <Tool action="insert" before="TimeStep" type="set_scalar" name="H2 x" in="h_sensorx" value="-1.032"/>
         <Tool action="insert" after="H2 x" type="kernel" name="H2 z" path="examples/3D/spheric_testcase2_dambreak_mpi/h_sensor.cl"/>
-        <Tool action="insert" after="H2 z" type="reduction" name="H2" in="h_sensor_z" out="H2" null="-INFINITY">
+        <Tool action="insert" after="H2 z" type="reduction" name="H2" in="h_sensorz" out="H2" null="-INFINITY">
             c = (a &lt; b) ? b : a;
         </Tool>
         <!-- H3 computation -->
-        <Tool action="insert" before="TimeStep" type="set_scalar" name="H3 x" in="h_sensor_x" value="-0.536"/>
+        <Tool action="insert" before="TimeStep" type="set_scalar" name="H3 x" in="h_sensorx" value="-0.536"/>
         <Tool action="insert" after="H3 x" type="kernel" name="H3 z" path="examples/3D/spheric_testcase2_dambreak_mpi/h_sensor.cl"/>
-        <Tool action="insert" after="H3 z" type="reduction" name="H3" in="h_sensor_z" out="H3" null="-INFINITY">
+        <Tool action="insert" after="H3 z" type="reduction" name="H3" in="h_sensorz" out="H3" null="-INFINITY">
             c = (a &lt; b) ? b : a;
         </Tool>
         <!-- H4 computation -->
-        <Tool action="insert" before="TimeStep" type="set_scalar" name="H4 x" in="h_sensor_x" value="0.614"/>
+        <Tool action="insert" before="TimeStep" type="set_scalar" name="H4 x" in="h_sensorx" value="0.614"/>
         <Tool action="insert" after="H4 x" type="kernel" name="H4 z" path="examples/3D/spheric_testcase2_dambreak_mpi/h_sensor.cl"/>
-        <Tool action="insert" after="H4 z" type="reduction" name="H4" in="h_sensor_z" out="H4" null="-INFINITY">
+        <Tool action="insert" after="H4 z" type="reduction" name="H4" in="h_sensorz" out="H4" null="-INFINITY">
             c = (a &lt; b) ? b : a;
         </Tool>
     </Tools>

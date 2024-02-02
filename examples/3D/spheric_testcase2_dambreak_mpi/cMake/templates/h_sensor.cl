@@ -25,18 +25,18 @@
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r} \f$.
- * @param h_sensor_z Helper array of z coordinates, where just the particles
+ * @param h_sensorz Helper array of z coordinates, where just the particles
  * close enough to the sensor are preserved.
  * @param N Number of particles.
- * @param h_sensor_x Position of the sensor (h_sensor_y = 0.0).
+ * @param h_sensorx Position of the sensor (h_sensor_y = 0.0).
  * @param dr Distance between particle \f$ \Delta r \f$.
  */
 __kernel void entry(const __global int* imove,
                     const __global vec* r,
-                    __global float *h_sensor_z,
+                    __global float *h_sensorz,
                     // Simulation data
                     uint N,
-                    float h_sensor_x,
+                    float h_sensorx,
                     float dr)
 {
     const uint i = get_global_id(0);
@@ -44,18 +44,18 @@ __kernel void entry(const __global int* imove,
         return;
 
     if(imove[i] <= 0){
-        h_sensor_z[i] = 0.f;
+        h_sensorz[i] = 0.f;
         return;
     }
 
-    const float x = r[i].x - h_sensor_x;
+    const float x = r[i].x - h_sensorx;
     const float y = r[i].y;
 
     if((fabs(x) > 2.f * dr) || (fabs(y) > 2.f * dr)){
-        h_sensor_z[i] = 0.f;
+        h_sensorz[i] = 0.f;
         return;        
     }
 
-    h_sensor_z[i] = r[i].z + 0.5f * dr;
+    h_sensorz[i] = r[i].z + 0.5f * dr;
 }
  
