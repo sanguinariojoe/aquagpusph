@@ -25,7 +25,6 @@
 #include <unistd.h>
 #include <sstream>
 #include <iostream>
-#include <mutex>
 
 #include "aquagpusph/AuxiliarMethods.hpp"
 #include "Logger.hpp"
@@ -44,7 +43,6 @@ void* wnd;
 namespace Aqua {
 namespace InputOutput {
 
-std::mutex logging_mutex;
 
 Logger::Logger()
   : _last_row(0)
@@ -132,10 +130,11 @@ Logger::endFrame()
 void
 Logger::writeReport(std::string input, std::string color, bool bold)
 {
+	const std::lock_guard<std::recursive_mutex> lock(_mutex);
+
 	if (!input.size()) {
 		return;
 	}
-	const std::lock_guard<std::mutex> lock(logging_mutex);
 
 	if (!wnd) {
 #ifdef HAVE_MPI
@@ -231,7 +230,6 @@ Logger::writeReport(std::string input, std::string color, bool bold)
 	try {
 		auto mpi_rank = MPI::COMM_WORLD.Get_rank();
 		msg = "[Proc " + std::to_string(mpi_rank) + "] " + msg;
-		std::cout << "msg = " << msg << std::endl;
 	} catch (MPI::Exception e) {
 		std::ostringstream msg;
 		msg << "Error getting MPI rank. " << std::endl
@@ -257,7 +255,7 @@ Logger::writeReport(std::string input, std::string color, bool bold)
 void
 Logger::addMessage(TLogLevel level, std::string log, std::string func)
 {
-	const std::lock_guard<std::mutex> lock(logging_mutex);
+	const std::lock_guard<std::recursive_mutex> lock(_mutex);
 
 	std::ostringstream fname;
 	if (func != "")
@@ -291,7 +289,7 @@ Logger::addMessage(TLogLevel level, std::string log, std::string func)
 		std::ostringstream msg;
 		msg << "Error getting MPI rank. " << std::endl
 		    << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
-		LOG(L_ERROR, msg.str());
+		addMessageF(L_ERROR, msg.str());
 		throw;
 	}
 #endif

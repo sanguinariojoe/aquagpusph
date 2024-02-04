@@ -1623,7 +1623,7 @@ State::writeSets(xercesc::DOMDocument* doc,
 			s_elem->setAttribute(xmlS("name"), xmlS(name));
 
 			ArrayVariable* var = (ArrayVariable*)C->variables()->get(name);
-			std::string value_txt = var->asString(i);
+			std::string value_txt = var->asString((size_t)i);
 			if (value_txt.at(0) == '(') {
 				value_txt.at(0) = ' ';
 			}

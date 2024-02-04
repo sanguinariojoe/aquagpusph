@@ -150,7 +150,7 @@ class Variable
 	/** @brief Get the variable text representation
 	 * @return The variable represented as a string, NULL in case of errors.
 	 */
-	virtual const std::string asString() { return ""; }
+	virtual const std::string asString(bool synced = true) { return ""; }
 
 	/**
 	 * \defgroup VariableEventsGroup Events tracked on variables
@@ -374,9 +374,11 @@ class ScalarVariable : public Variable
 	virtual bool setFromPythonObject(PyObject* obj, int i0 = 0, int n = 0) = 0;
 
 	/** @brief Get the variable text representation
+	 * @param synced true if the function shall block until the last writing
+	 * event is dispatched, false otherwise
 	 * @return The variable represented as a string, NULL in case of errors.
 	 */
-	virtual const std::string asString() = 0;
+	virtual const std::string asString(bool synced) = 0;
 
   protected:
 	/// Variable value
@@ -404,9 +406,11 @@ class ScalarNumberVariable : public ScalarVariable<T>
 	~ScalarNumberVariable(){};
 
 	/** @brief Get the variable text representation
+	 * @param synced true if the function shall block until the last writing
+	 * event is dispatched, false otherwise
 	 * @return The variable represented as a string, NULL in case of errors.
 	 */
-	virtual const std::string asString();
+	virtual const std::string asString(bool synced = true);
 };
 
 /** @class IntVariable Variable.h Variable.h
@@ -522,9 +526,11 @@ class ScalarVecVariable : public ScalarVariable<T>
 	~ScalarVecVariable(){};
 
 	/** @brief Get the variable text representation
+	 * @param synced true if the function shall block until the last writing
+	 * event is dispatched, false otherwise
 	 * @return The variable represented as a string, NULL in case of errors.
 	 */
-	virtual const std::string asString();
+	virtual const std::string asString(bool synced = true);
 
   protected:
 	/** @brief Check that a Python object is compatible with the variable type
@@ -901,15 +907,19 @@ class ArrayVariable : public Variable
 	bool setFromPythonObject(PyObject* obj, int i0 = 0, int n = 0);
 
 	/** Get the variable text representation
+	 * @param synced true if the function shall block until the last writing
+	 * event is dispatched, false otherwise
 	 * @return The variable represented as a string, NULL in case of errors.
 	 */
-	const std::string asString();
+	const std::string asString(bool synced = true);
 
 	/** Get a component text representation
 	 * @param i Index of the component to be extracted.
+	 * @param synced true if the function shall block until the last writing
+	 * event is dispatched, false otherwise
 	 * @return The component represented as a string, NULL in case of errors.
 	 */
-	const std::string asString(size_t i);
+	const std::string asString(size_t i, bool synced = true);
 
   private:
 	/// Check for abandoned python objects to destroy them.

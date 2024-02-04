@@ -997,7 +997,6 @@ cbMPIRecv(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 	                       data->offset->name() + "\" variable.");
 
 	if (!n) {
-		std::cout << "!n " << data->proc << std::endl;
 		err_code = clSetUserEventStatus(data->mask_event, CL_COMPLETE);
 		CHECK_OCL_OR_THROW(
 		    err_code,

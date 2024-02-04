@@ -51,7 +51,6 @@
 namespace Aqua {
 namespace InputOutput {
 
-static std::string str_val;
 static std::ostringstream pyerr;
 
 Variable::Variable(const std::string varname, const std::string vartype)
@@ -229,12 +228,11 @@ Variable::cleanReadingEvents()
 
 template<class T>
 const std::string
-ScalarNumberVariable<T>::asString()
+ScalarNumberVariable<T>::asString(bool synced)
 {
 	std::ostringstream msg;
-	msg << *((T*)this->get(true));
-	str_val = msg.str();
-	return str_val;
+	msg << *((T*)this->get(synced));
+	return msg.str();
 }
 
 IntVariable::IntVariable(const std::string varname)
@@ -369,17 +367,17 @@ ScalarVecVariable<T>::checkPyhonObjectDims(PyObject* obj)
 
 template<class T>
 const std::string
-ScalarVecVariable<T>::asString()
+ScalarVecVariable<T>::asString(bool synced)
 {
-	T* val = (T*)(this->get(true));
+	T* val = (T*)(this->get(synced));
 	std::ostringstream msg;
 	msg << "(";
 	for (unsigned int i = 0; i < _dims; i++) {
 		msg << val->s[i] << ",";
 	}
-	str_val = msg.str();
-	str_val.back() = ')';
-	return str_val;
+	std::string str = msg.str();
+	str.back() = ')';
+	return str;
 }
 
 Vec2Variable::Vec2Variable(const std::string varname)
@@ -1020,17 +1018,16 @@ ArrayVariable::setFromPythonObject(PyObject* obj, int i0, int n)
 }
 
 const std::string
-ArrayVariable::asString()
+ArrayVariable::asString(bool synced)
 {
-	cl_mem* val = (cl_mem*)get(true);
+	cl_mem* val = (cl_mem*)get(synced);
 	std::ostringstream msg;
 	msg << val;
-	str_val = msg.str();
-	return str_val;
+	return msg.str();
 }
 
 const std::string
-ArrayVariable::asString(size_t i)
+ArrayVariable::asString(size_t i, bool synced)
 {
 	auto C = CalcServer::CalcServer::singleton();
 	size_t type_size = Variables::typeToBytes(type());
@@ -1060,8 +1057,8 @@ ArrayVariable::asString(size_t i)
 	    i * type_size,
 	    type_size,
 	    ptr,
-	    1,
-	    &event_wait,
+	    synced ? 1 : 0,
+	    synced ? &event_wait : NULL,
 	    NULL);
 	if (err_code != CL_SUCCESS) {
 		std::ostringstream msg;
@@ -1141,8 +1138,7 @@ ArrayVariable::asString(size_t i)
 	}
 	free(ptr);
 
-	str_val = str_stream.str();
-	return str_val;
+	return str_stream.str();
 }
 
 void

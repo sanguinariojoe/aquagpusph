@@ -29,6 +29,7 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <mutex>
 #if __APPLE__
 #include <OpenCL/cl.h>
 #else
@@ -212,6 +213,9 @@ struct Logger
 	std::vector<std::string> _log;
 	/// Output log file
 	std::ofstream _log_file;
+
+	/// Mutex to avoid several threads printing at the same time
+	std::recursive_mutex _mutex;
 };
 
 }

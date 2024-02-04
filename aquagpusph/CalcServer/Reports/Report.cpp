@@ -59,7 +59,7 @@ Report::setup()
 }
 
 const std::string
-Report::data(bool with_title, bool with_names)
+Report::data(bool with_title, bool with_names, bool synced)
 {
 	unsigned int i, j, var_id = 0;
 
@@ -77,7 +77,7 @@ Report::data(bool with_title, bool with_names)
 			if (with_names) {
 				data << var->name() << "=";
 			}
-			data << var->asString() << " ";
+			data << var->asString(synced) << " ";
 			var_id++;
 		}
 		// Replace the trailing space by a line break
