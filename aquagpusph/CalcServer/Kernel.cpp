@@ -119,14 +119,14 @@ ArgSetter::execute()
 		auto arg = _args[i];
 		if (arg == var)
 			continue;
-		else
-			arg = var;
+		arg = var;
 		// Update the variable
 		err_code = clSetKernelArg(_kernel, i, arg.size(), arg.value());
 		CHECK_OCL_OR_THROW(err_code,
 		                   std::string("Failure setting the variable \"") +
 		                       var->name() + "\" (id=" + std::to_string(i) +
 		                       ") in tool \"" + name() + "\".");
+		_args[i] = arg;
 	}
 }
 
