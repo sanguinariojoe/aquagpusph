@@ -48,7 +48,7 @@ Authors:
 
     <Tools>
         <!-- H1 computation -->
-        <Tool action="insert" after="TimeStep" type="set_scalar" name="H1 x" in="h_sensorx" value="-1.528"/>
+        <Tool action="insert" before="TimeStep" type="set_scalar" name="H1 x" in="h_sensorx" value="-1.528"/>
         <Tool action="insert" after="H1 x" type="kernel" name="H1 z" path="examples/3D/spheric_testcase2_dambreak/h_sensor.cl"/>
         <Tool action="insert" after="H1 z" type="reduction" name="H1" in="h_sensorz" out="H1" null="-INFINITY">
             c = (a &lt; b) ? b : a;
