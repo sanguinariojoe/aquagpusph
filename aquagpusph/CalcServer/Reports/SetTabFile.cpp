@@ -165,6 +165,15 @@ SetTabFile::print()
 	}
 	_f << std::endl;
 	_f.flush();
+	cl_int err_code;
+	err_code = clSetUserEventStatus(getUserEvent(), CL_COMPLETE);
+	CHECK_OCL_OR_THROW(err_code,
+		std::string("Failure setting as complete the tool \"") +
+		name() + "\".");
+	err_code = clReleaseEvent(getUserEvent());
+	CHECK_OCL_OR_THROW(err_code,
+		std::string("Failure releasing the user event in tool \"") +
+		name() + "\".");
 }
 
 /** @brief Callback called when all the variables required by
