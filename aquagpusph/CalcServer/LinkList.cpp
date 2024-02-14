@@ -154,10 +154,10 @@ LinkList::setup()
 		                                 _n_cells_name };
 	if (_recompute_minmax) {
 		outputs.push_back(_input_min_name);
-		outputs.push_back(_input_min_name);
+		outputs.push_back(_input_max_name);
 	} else {
 		inputs.push_back(_input_min_name);
-		inputs.push_back(_input_min_name);
+		inputs.push_back(_input_max_name);
 	}
 	setDependencies(inputs, outputs);
 
@@ -246,7 +246,7 @@ LinkList::_execute(const std::vector<cl_event> events)
 	// destroyed when no more variables use it
 	auto event_wait = icell->getWritingEvent();
 
-	// Compute the head of cells
+	// Reinit the head of cells
 	err_code = clEnqueueNDRangeKernel(C->command_queue(),
 	                                  _ihoc,
 	                                  1,
