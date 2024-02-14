@@ -266,15 +266,14 @@ Set::setVariables()
 		        "\".");
 	}
 
-	if (_input != *(cl_mem*)_var->get()) {
+	if (_input != *(cl_mem*)_var->get(false)) {
 		// For some reason the input variable has changed...
 		err_code = clSetKernelArg(_kernel, 0, _var->typesize(), _var->get());
 		CHECK_OCL_OR_THROW(err_code,
 		                   std::string("Failure setting the variable \"") +
 		                       _var->name() + "\" to the tool \"" + name() +
 		                       "\".");
-
-		_input = *(cl_mem*)_var->get();
+		_input = *(cl_mem*)_var->get(false);
 	}
 }
 
