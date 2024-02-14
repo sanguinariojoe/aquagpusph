@@ -67,6 +67,6 @@
  * @note The number of particles, N, is not included
  */
 #define LINKLIST_LOCAL_PARAMS                                                  \
-    const __global uint * restrict icell,                                      \
-    const __global uint * restrict ihoc,                                       \
+    const __global uint * icell,                                               \
+    const __global uint * ihoc,                                                \
     uivec4 n_cells
