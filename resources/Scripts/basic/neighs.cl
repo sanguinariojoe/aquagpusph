@@ -51,17 +51,15 @@
  */
 __kernel void entry(const __global int* imove,
                     __global uint* n_neighs,
-                    const __global uint *icell,
-                    const __global uint *ihoc,
                     uint neighs_limit,
                     uint N,
-                    uivec4 n_cells)
+                    LINKLIST_LOCAL_PARAMS)
 {
     const uint i = get_global_id(0);
     const uint it = get_local_id(0);
     if(i >= N)
         return;
-    if(imove[i] == -255) {
+    if(imove[i] <= -255) {
         n_neighs[i] = 0;
         return;
     }
@@ -75,7 +73,8 @@ __kernel void entry(const __global int* imove,
     #endif
     _NEIGHS_ = 0;
 
-    BEGIN_LOOP_OVER_NEIGHS(){
+    const unsigned int c_i = icell[i];
+    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
         _NEIGHS_ += 1;
         if(_NEIGHS_ >= neighs_limit){
             // Ops! Too much neighbours! Stop right now!
@@ -84,7 +83,7 @@ __kernel void entry(const __global int* imove,
             #endif
             return;
         }
-    }END_LOOP_OVER_NEIGHS()
+    }END_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         n_neighs[i] = _NEIGHS_;
