@@ -186,7 +186,7 @@
  * @param CELL Cell of the main particle (usually \code{.c} icell[i] \endcode)
  * @param NPARTS Number of particles (usually \code{.c} N \endcode)
  * @param NCELLS Number of cells at each direction (usually
- * \code{.c} NCELLS \endcode)
+ * \code{.c} n_cells \endcode)
  * @param ICELL Array of cells for each particle (usually
  * \code{.c} icell \endcode)
  * @param IHOC Array of head of cells (usually \code{.c} ihoc \endcode)
