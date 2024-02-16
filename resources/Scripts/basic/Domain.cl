@@ -46,9 +46,9 @@
  * @param domain_max Maximum point of the domain.
  */
 __kernel void entry(__global int* imove,
-                    __global vec* r,
-                    __global vec* u,
-                    __global vec* dudt,
+                    __global vec* r_in,
+                    __global vec* u_in,
+                    __global vec* dudt_in,
                     __global float* m,
                     uint N,
                     vec domain_min,
@@ -60,7 +60,7 @@ __kernel void entry(__global int* imove,
     if(imove[i] <= -255)
         return;
 
-    const vec coords = r[i];
+    const vec coords = r_in[i];
     if(    (coords.x < domain_min.x)
         || (coords.y < domain_min.y)
         || (coords.x > domain_max.x)
@@ -75,11 +75,11 @@ __kernel void entry(__global int* imove,
         imove[i] = -256;
         m[i] = 0.f;
         // Stop the particle
-        u[i] = VEC_ZERO;
-        dudt[i] = VEC_ZERO;
+        u_in[i] = VEC_ZERO;
+        dudt_in[i] = VEC_ZERO;
         // Move the particle to a more convenient position (in order to can use
         // it as buffer)
-        r[i] = domain_max;
+        r_in[i] = domain_max;
     }
 }
 
