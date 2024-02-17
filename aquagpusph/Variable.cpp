@@ -60,23 +60,23 @@ Variable::Variable(const std::string varname, const std::string vartype)
   , _synced(true)
   , _synced_for_read(true)
 {
+	_event = Variable::createDummyEvent();
+}
+
+void
+Variable::set(void* ptr, bool synced)
+{
+	if(!synced)
+		return;
+
 	cl_int err_code;
-	CalcServer::CalcServer* C = CalcServer::CalcServer::singleton();
-	// Create a dummy starting event for the queue
-	_event = clCreateUserEvent(C->context(), &err_code);
+	cl_event e = Variable::createDummyEvent();
+	setWritingEvent(e);
+	err_code = clReleaseEvent(e);
 	if (err_code != CL_SUCCESS) {
 		std::stringstream msg;
-		msg << "Failure creating user event for \"" << varname << "\" variable."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
-	err_code = clSetUserEventStatus(_event, CL_COMPLETE);
-	if (err_code != CL_SUCCESS) {
-		std::stringstream msg;
-		msg << "Failure setting user event status for \"" << varname
-		    << "\" variable." << std::endl;
+		msg << "Failure releasing the dummy writing event for \"" << name()
+			<< "\" variable." << std::endl;
 		LOG(L_ERROR, msg.str());
 		Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL execution error");
@@ -224,6 +224,29 @@ Variable::cleanReadingEvents()
 		} else
 			++it;
 	}
+}
+
+cl_event Variable::createDummyEvent()
+{
+	cl_int err_code;
+	auto C = CalcServer::CalcServer::singleton();
+	cl_event event = clCreateUserEvent(C->context(), &err_code);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure creating an user event" << std::endl;
+		LOG(L_ERROR, msg.str());
+		Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
+	err_code = clSetUserEventStatus(event, CL_COMPLETE);
+	if (err_code != CL_SUCCESS) {
+		std::stringstream msg;
+		msg << "Failure setting the CL_COMPLETE status" << std::endl;
+		LOG(L_ERROR, msg.str());
+		Logger::singleton()->printOpenCLError(err_code);
+		throw std::runtime_error("OpenCL execution error");
+	}
+	return event;
 }
 
 template<class T>
@@ -401,19 +424,28 @@ Vec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 	if (checkPyhonObjectDims(obj))
 		return true;
 	PyArrayObject* array_obj = (PyArrayObject*)obj;
-	int typ = PyArray_TYPE(array_obj);
-	if (typ != NPY_FLOAT32) {
+	if (PyArray_TYPE(array_obj) != NPY_FLOAT32) {
 		pyerr.str("");
 		pyerr << "Variable \"" << name() << "\" expected a NPY_FLOAT32 array"
 		      << std::endl;
 		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
 		return true;
 	}
-
-	vec2* vv = (vec2*)get();
-	void* data = PyArray_DATA(array_obj);
-	memcpy(vv->s, data, sizeof(vec2));
-
+	if (PyArray_NDIM(array_obj) != 1) {
+		pyerr.str("");
+		pyerr << "Variable \"" << name() << "\" expected a 1-dimension array"
+		      << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
+	if (PyArray_Size(array_obj) != 2) {
+		pyerr.str("");
+		pyerr << "Variable \"" << name()
+		      << "\" expected an array of 2 elements" << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
+	set(PyArray_DATA(array_obj));
 	return false;
 }
 
@@ -439,19 +471,28 @@ Vec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 	if (checkPyhonObjectDims(obj))
 		return true;
 	PyArrayObject* array_obj = (PyArrayObject*)obj;
-	int typ = PyArray_TYPE(array_obj);
-	if (typ != NPY_FLOAT32) {
+	if (PyArray_TYPE(array_obj) != NPY_FLOAT32) {
 		pyerr.str("");
 		pyerr << "Variable \"" << name() << "\" expected a NPY_FLOAT32 array"
 		      << std::endl;
 		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
 		return true;
 	}
-
-	vec3* vv = (vec3*)get();
-	void* data = PyArray_DATA(array_obj);
-	memcpy(vv->s, data, sizeof(vec3));
-
+	if (PyArray_NDIM(array_obj) != 1) {
+		pyerr.str("");
+		pyerr << "Variable \"" << name() << "\" expected a 1-dimension array"
+		      << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
+	if (PyArray_Size(array_obj) != 4) {
+		pyerr.str("");
+		pyerr << "Variable \"" << name()
+		      << "\" expected an array of 4 elements" << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
+	set(PyArray_DATA(array_obj));
 	return false;
 }
 
@@ -478,19 +519,27 @@ Vec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 	if (checkPyhonObjectDims(obj))
 		return true;
 	PyArrayObject* array_obj = (PyArrayObject*)obj;
-	int typ = PyArray_TYPE(array_obj);
-	if (typ != NPY_FLOAT32) {
+	if (PyArray_TYPE(array_obj) != NPY_FLOAT32) {
 		pyerr.str("");
 		pyerr << "Variable \"" << name() << "\" expected a NPY_FLOAT32 array"
 		      << std::endl;
 		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
 		return true;
 	}
-
-	vec4* vv = (vec4*)get();
-	void* data = PyArray_DATA(array_obj);
-	memcpy(vv->s, data, sizeof(vec4));
-
+	if (PyArray_NDIM(array_obj) != 1) {
+		pyerr.str("");
+		pyerr << "Variable \"" << name() << "\" expected a 1-dimension array"
+		      << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
+	if (PyArray_Size(array_obj) != 4) {
+		pyerr.str("");
+		pyerr << "Variable \"" << name()
+		      << "\" expected an array of 4 elements" << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
 	return false;
 }
 
@@ -516,18 +565,28 @@ IVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 		return true;
 	PyArrayObject* array_obj = (PyArrayObject*)obj;
 	int typ = PyArray_TYPE(array_obj);
-	if (typ != NPY_INT32) {
+	if (PyArray_TYPE(array_obj) != NPY_INT32) {
 		pyerr.str("");
-		pyerr << "Variable \"" << name() << "\" expected a NPY_INT32 array"
+		pyerr << "Variable \"" << name() << "\" expected a NPY_FLOAT32 array"
 		      << std::endl;
 		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
 		return true;
 	}
-
-	ivec2* vv = (ivec2*)get();
-	void* data = PyArray_DATA(array_obj);
-	memcpy(vv->s, data, sizeof(ivec2));
-
+	if (PyArray_NDIM(array_obj) != 1) {
+		pyerr.str("");
+		pyerr << "Variable \"" << name() << "\" expected a 1-dimension array"
+		      << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
+	if (PyArray_Size(array_obj) != 2) {
+		pyerr.str("");
+		pyerr << "Variable \"" << name()
+		      << "\" expected an array of 2 elements" << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
+	set(PyArray_DATA(array_obj));
 	return false;
 }
 
@@ -553,19 +612,28 @@ IVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 	if (checkPyhonObjectDims(obj))
 		return true;
 	PyArrayObject* array_obj = (PyArrayObject*)obj;
-	int typ = PyArray_TYPE(array_obj);
-	if (typ != NPY_INT32) {
+	if (PyArray_TYPE(array_obj) != NPY_INT32) {
 		pyerr.str("");
-		pyerr << "Variable \"" << name() << "\" expected a NPY_INT32 array"
+		pyerr << "Variable \"" << name() << "\" expected a NPY_FLOAT32 array"
 		      << std::endl;
 		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
 		return true;
 	}
-
-	ivec3* vv = (ivec3*)get();
-	void* data = PyArray_DATA(array_obj);
-	memcpy(vv->s, data, sizeof(ivec3));
-
+	if (PyArray_NDIM(array_obj) != 1) {
+		pyerr.str("");
+		pyerr << "Variable \"" << name() << "\" expected a 1-dimension array"
+		      << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
+	if (PyArray_Size(array_obj) != 4) {
+		pyerr.str("");
+		pyerr << "Variable \"" << name()
+		      << "\" expected an array of 4 elements" << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
+	set(PyArray_DATA(array_obj));
 	return false;
 }
 
@@ -592,19 +660,28 @@ IVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 	if (checkPyhonObjectDims(obj))
 		return true;
 	PyArrayObject* array_obj = (PyArrayObject*)obj;
-	int typ = PyArray_TYPE(array_obj);
-	if (typ != NPY_INT32) {
+	if (PyArray_TYPE(array_obj) != NPY_INT32) {
 		pyerr.str("");
-		pyerr << "Variable \"" << name() << "\" expected a NPY_INT32 array"
+		pyerr << "Variable \"" << name() << "\" expected a NPY_FLOAT32 array"
 		      << std::endl;
 		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
 		return true;
 	}
-
-	ivec4* vv = (ivec4*)get();
-	void* data = PyArray_DATA(array_obj);
-	memcpy(vv->s, data, sizeof(ivec4));
-
+	if (PyArray_NDIM(array_obj) != 1) {
+		pyerr.str("");
+		pyerr << "Variable \"" << name() << "\" expected a 1-dimension array"
+		      << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
+	if (PyArray_Size(array_obj) != 4) {
+		pyerr.str("");
+		pyerr << "Variable \"" << name()
+		      << "\" expected an array of 4 elements" << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
+	set(PyArray_DATA(array_obj));
 	return false;
 }
 
@@ -629,19 +706,28 @@ UIVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 	if (checkPyhonObjectDims(obj))
 		return true;
 	PyArrayObject* array_obj = (PyArrayObject*)obj;
-	int typ = PyArray_TYPE(array_obj);
-	if (typ != NPY_UINT32) {
+	if (PyArray_TYPE(array_obj) != NPY_UINT32) {
 		pyerr.str("");
-		pyerr << "Variable \"" << name() << "\" expected a NPY_UINT32 array"
+		pyerr << "Variable \"" << name() << "\" expected a NPY_FLOAT32 array"
 		      << std::endl;
 		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
 		return true;
 	}
-
-	uivec2* vv = (uivec2*)get();
-	void* data = PyArray_DATA(array_obj);
-	memcpy(vv->s, data, sizeof(uivec2));
-
+	if (PyArray_NDIM(array_obj) != 1) {
+		pyerr.str("");
+		pyerr << "Variable \"" << name() << "\" expected a 1-dimension array"
+		      << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
+	if (PyArray_Size(array_obj) != 2) {
+		pyerr.str("");
+		pyerr << "Variable \"" << name()
+		      << "\" expected an array of 2 elements" << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
+	set(PyArray_DATA(array_obj));
 	return false;
 }
 
@@ -667,19 +753,28 @@ UIVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 	if (checkPyhonObjectDims(obj))
 		return true;
 	PyArrayObject* array_obj = (PyArrayObject*)obj;
-	int typ = PyArray_TYPE(array_obj);
-	if (typ != NPY_UINT32) {
+	if (PyArray_TYPE(array_obj) != NPY_UINT32) {
 		pyerr.str("");
-		pyerr << "Variable \"" << name() << "\" expected a NPY_UINT32 array"
+		pyerr << "Variable \"" << name() << "\" expected a NPY_FLOAT32 array"
 		      << std::endl;
 		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
 		return true;
 	}
-
-	uivec3* vv = (uivec3*)get();
-	void* data = PyArray_DATA(array_obj);
-	memcpy(vv->s, data, sizeof(uivec3));
-
+	if (PyArray_NDIM(array_obj) != 1) {
+		pyerr.str("");
+		pyerr << "Variable \"" << name() << "\" expected a 1-dimension array"
+		      << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
+	if (PyArray_Size(array_obj) != 4) {
+		pyerr.str("");
+		pyerr << "Variable \"" << name()
+		      << "\" expected an array of 4 elements" << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
+	set(PyArray_DATA(array_obj));
 	return false;
 }
 
@@ -706,19 +801,28 @@ UIVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 	if (checkPyhonObjectDims(obj))
 		return true;
 	PyArrayObject* array_obj = (PyArrayObject*)obj;
-	int typ = PyArray_TYPE(array_obj);
-	if (typ != NPY_UINT32) {
+	if (PyArray_TYPE(array_obj) != NPY_UINT32) {
 		pyerr.str("");
-		pyerr << "Variable \"" << name() << "\" expected a NPY_UINT32 array"
+		pyerr << "Variable \"" << name() << "\" expected a NPY_FLOAT32 array"
 		      << std::endl;
 		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
 		return true;
 	}
-
-	uivec4* vv = (uivec4*)get();
-	void* data = PyArray_DATA(array_obj);
-	memcpy(vv->s, data, sizeof(uivec4));
-
+	if (PyArray_NDIM(array_obj) != 1) {
+		pyerr.str("");
+		pyerr << "Variable \"" << name() << "\" expected a 1-dimension array"
+		      << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
+	if (PyArray_Size(array_obj) != 4) {
+		pyerr.str("");
+		pyerr << "Variable \"" << name()
+		      << "\" expected an array of 4 elements" << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
+	set(PyArray_DATA(array_obj));
 	return false;
 }
 
@@ -784,6 +888,7 @@ ArrayVariable::set(void* ptr, bool synced)
 		throw std::runtime_error("No reallocatable variable");
 	}
 	_value = *(cl_mem*)ptr;
+	this->Variable::set(ptr, synced);
 }
 
 PyObject*

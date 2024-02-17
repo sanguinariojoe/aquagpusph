@@ -113,11 +113,15 @@ class Variable
 	inline void* get_async() { return get(false); }
 
 	/** @brief Set variable from memory
-	 * @param ptr Memory to copy.
+	 *
+	 * If @p synced, this method is setting a completed user event as the
+	 * variable writing event. Remeber to call this at the end of any
+	 * overloaded function
+	 * @param ptr Unused parameter, it is of use for overloaded functions
 	 * @param synced true if the operation shall block the execution until the
 	 * variable events are dispatched
 	 */
-	virtual void set(void* ptr, bool synced = true) = 0;
+	virtual void set(void* ptr, bool synced = true);
 
 	/** @brief Set variable from memory
 	 *
@@ -238,6 +242,13 @@ class Variable
 	 */
 	void cleanReadingEvents();
 
+	/** @brief Create a competed user event to be set as the writing event when
+	 * synced writing operations are carried out.
+	 * @return The completed event
+	 * @throw std::runtime_error If the OpenCL event creation fails
+	 */
+	static cl_event createDummyEvent();
+
   private:
 	/// Name of the variable
 	std::string _name;
@@ -341,6 +352,7 @@ class ScalarVariable : public Variable
 		if (synced)
 			sync();
 		memcpy(&_value, ptr, sizeof(T));
+		this->Variable::set(ptr, synced);
 	}
 
 	/** @brief Set variable value
@@ -356,6 +368,7 @@ class ScalarVariable : public Variable
 		if (synced)
 			sync();
 		_value = value;
+		this->Variable::set(NULL, synced);
 	}
 
 	/** @brief Get a Python Object representation of the variable
