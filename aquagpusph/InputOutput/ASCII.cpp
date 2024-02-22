@@ -356,6 +356,7 @@ ASCII::print_file()
 	}
 
 	f.close();
+	LOG(L_INFO, std::string("Wrote \"") + file() + "\" ASCII file.\n");
 
 	Particles::print_file();
 }
