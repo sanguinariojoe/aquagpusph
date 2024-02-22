@@ -918,10 +918,16 @@ CalcServer::queryOpenCL()
 		// Get the number of devices
 		err_code = clGetDeviceIDs(
 		    _platforms[i], CL_DEVICE_TYPE_ALL, 0, NULL, &num_devices);
+		if (err_code == CL_DEVICE_NOT_FOUND) {
+			num_devices = 0;
+			err_code = CL_SUCCESS;
+		}
 		CHECK_OCL_OR_THROW(
 		    err_code,
 		    std::string("Failure getting the number of devices (platform ") +
 		        std::to_string(i) + ").");
+		if (!num_devices)
+			continue;
 		// Gets the devices array
 		devices = new cl_device_id[num_devices];
 		if (!devices) {
