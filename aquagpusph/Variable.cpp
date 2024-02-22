@@ -438,7 +438,7 @@ Vec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
 		return true;
 	}
-	if (PyArray_Size(array_obj) != 2) {
+	if (PyArray_Size(obj) != 2) {
 		pyerr.str("");
 		pyerr << "Variable \"" << name()
 		      << "\" expected an array of 2 elements" << std::endl;
@@ -485,7 +485,7 @@ Vec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
 		return true;
 	}
-	if (PyArray_Size(array_obj) != 4) {
+	if (PyArray_Size(obj) != 4) {
 		pyerr.str("");
 		pyerr << "Variable \"" << name()
 		      << "\" expected an array of 4 elements" << std::endl;
@@ -533,7 +533,7 @@ Vec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
 		return true;
 	}
-	if (PyArray_Size(array_obj) != 4) {
+	if (PyArray_Size(obj) != 4) {
 		pyerr.str("");
 		pyerr << "Variable \"" << name()
 		      << "\" expected an array of 4 elements" << std::endl;
@@ -579,7 +579,7 @@ IVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
 		return true;
 	}
-	if (PyArray_Size(array_obj) != 2) {
+	if (PyArray_Size(obj) != 2) {
 		pyerr.str("");
 		pyerr << "Variable \"" << name()
 		      << "\" expected an array of 2 elements" << std::endl;
@@ -626,7 +626,7 @@ IVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
 		return true;
 	}
-	if (PyArray_Size(array_obj) != 4) {
+	if (PyArray_Size(obj) != 4) {
 		pyerr.str("");
 		pyerr << "Variable \"" << name()
 		      << "\" expected an array of 4 elements" << std::endl;
@@ -674,7 +674,7 @@ IVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
 		return true;
 	}
-	if (PyArray_Size(array_obj) != 4) {
+	if (PyArray_Size(obj) != 4) {
 		pyerr.str("");
 		pyerr << "Variable \"" << name()
 		      << "\" expected an array of 4 elements" << std::endl;
@@ -720,7 +720,7 @@ UIVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
 		return true;
 	}
-	if (PyArray_Size(array_obj) != 2) {
+	if (PyArray_Size(obj) != 2) {
 		pyerr.str("");
 		pyerr << "Variable \"" << name()
 		      << "\" expected an array of 2 elements" << std::endl;
@@ -767,7 +767,7 @@ UIVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
 		return true;
 	}
-	if (PyArray_Size(array_obj) != 4) {
+	if (PyArray_Size(obj) != 4) {
 		pyerr.str("");
 		pyerr << "Variable \"" << name()
 		      << "\" expected an array of 4 elements" << std::endl;
@@ -815,7 +815,7 @@ UIVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
 		return true;
 	}
-	if (PyArray_Size(array_obj) != 4) {
+	if (PyArray_Size(obj) != 4) {
 		pyerr.str("");
 		pyerr << "Variable \"" << name()
 		      << "\" expected an array of 4 elements" << std::endl;
