@@ -29,6 +29,10 @@
 #include <tuple>
 #include <deque>
 
+#ifdef HAVE_MPI
+#include <mpi.h>
+#endif
+
 namespace Aqua {
 
 /// Returns if a key press event has been registered.
@@ -492,6 +496,85 @@ cross(vec a, vec b);
 unsigned int
 numberOfDigits(unsigned int number);
 
-} // namespace
+#ifdef HAVE_MPI
+
+namespace MPI {
+
+/** @brief Wrapper for MPI_Error_string()
+ * @param errorcode Error code returned by an MPI routine or an MPI error class
+ * @return Text that corresponds to the errorcode
+ */
+std::string error_str(int errorcode);
+
+/** @brief Wrapper for MPI_Init()
+ * @param argc Pointer to the number of arguments
+ * @param argv Argument vector
+ * @throw std::runtime_error If MPI errors are detected
+ */
+void init(int *argc, char ***argv);
+
+/** @brief Wrapper for MPI_Finalize()
+ * @throw std::runtime_error If MPI errors are detected
+ */
+void finalize();
+
+/** @brief Wrapper for MPI_Comm_rank()
+ * @param comm Communicator
+ * @return Rank of the calling process in group of comm
+ * @throw std::runtime_error If MPI errors are detected
+ */
+int rank(MPI_Comm comm);
+
+/** @brief Wrapper for MPI_Comm_size()
+ * @param comm Communicator
+ * @return Number of processes in the group of comm
+ * @throw std::runtime_error If MPI errors are detected
+ */
+int size(MPI_Comm comm);
+
+/** @brief Wrapper for MPI_Barrier()
+ * @param comm Communicator
+ * @throw std::runtime_error If MPI errors are detected
+ */
+void barrier(MPI_Comm comm);
+
+/** @brief Wrapper for MPI_Isend()
+ * @param buf Initial address of send buffer
+ * @param count Number of elements in send buffer
+ * @param datatype Datatype of each send buffer element 
+ * @param dest Rank of destination
+ * @param tag Message tag
+ * @param comm Communicator
+ * @return Communication request
+ * @throw std::runtime_error If MPI errors are detected
+ */
+MPI_Request isend(const void *buf, int count, MPI_Datatype datatype, int dest,
+                  int tag, MPI_Comm comm);
+
+/** @brief Wrapper for MPI_Irecv()
+ * @param buf Initial address of receive buffer
+ * @param count Number of elements in receive buffer
+ * @param datatype Datatype of each receive buffer element
+ * @param source Rank of source
+ * @param tag Message tag
+ * @param comm Communicator
+ * @return Communication request
+ * @throw std::runtime_error If MPI errors are detected
+ */
+MPI_Request irecv(void *buf, int count, MPI_Datatype datatype,
+                  int source, int tag, MPI_Comm comm);
+
+/** @brief Wrapper for MPI_Wait()
+ * @param request Request
+ * @return Status object
+ * @throw std::runtime_error If MPI errors are detected
+ */
+MPI_Status wait(MPI_Request *request);
+
+} // ::MPI
+
+#endif
+
+} // ::Aqua
 
 #endif // AUXILIARMETHODS_H_INCLUDED

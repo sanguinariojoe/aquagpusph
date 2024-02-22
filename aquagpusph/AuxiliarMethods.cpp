@@ -40,10 +40,6 @@
 #include "ProblemSetup.hpp"
 #include "InputOutput/Logger.hpp"
 
-#ifdef HAVE_MPI
-#include <mpi.h>
-#endif
-
 namespace Aqua {
 
 int
@@ -181,15 +177,7 @@ setStrConstants(std::string& str)
 
 	int mpi_rank = 0;
 #ifdef HAVE_MPI
-	try {
-		mpi_rank = MPI::COMM_WORLD.Get_rank();
-	} catch (MPI::Exception e) {
-		std::ostringstream msg;
-		msg << "Error getting MPI rank. " << std::endl
-		    << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
-		LOG(L_ERROR, msg.str());
-		throw;
-	}
+	mpi_rank = Aqua::MPI::rank(MPI_COMM_WORLD);
 #endif
 	number_str << mpi_rank;
 	replaceAll(str, "{mpi_rank}", number_str.str());
@@ -560,4 +548,107 @@ numberOfDigits(unsigned int number)
 	return number > 0 ? (int)log10((double)number) + 1 : 1;
 }
 
-} // namespace
+#ifdef HAVE_MPI
+
+namespace MPI {
+
+std::string error_str(int errorcode)
+{
+	char str[MPI_MAX_ERROR_STRING + 1];
+	int l;
+	MPI_Error_string(errorcode, str, &l);
+	if (l > MPI_MAX_ERROR_STRING)
+		l = MPI_MAX_ERROR_STRING;
+	str[l] = '\0';
+	return std::string(str);
+}
+
+void init(int *argc, char ***argv)
+{
+	const int err = MPI_Init(argc, argv);
+	if (err != MPI_SUCCESS) {
+		LOG(L_ERROR, "MPI_Init() failed: " + error_str(err) + "\n");
+		throw std::runtime_error("MPI error");
+	}
+}
+
+void finalize()
+{
+	const int err = MPI_Finalize();
+	if (err != MPI_SUCCESS) {
+		LOG(L_ERROR, "MPI_Finalize() failed: " + error_str(err) + "\n");
+		throw std::runtime_error("MPI error");
+	}
+}
+
+int rank(MPI_Comm comm)
+{
+	int rank;
+	const int err = MPI_Comm_rank(comm, &rank);
+	if (err != MPI_SUCCESS) {
+		LOG(L_ERROR, "MPI_Comm_rank() failed: " + error_str(err) + "\n");
+		throw std::runtime_error("MPI error");
+	}
+	return rank;
+}
+
+int size(MPI_Comm comm)
+{
+	int size;
+	const int err = MPI_Comm_size(comm, &size);
+	if (err != MPI_SUCCESS) {
+		LOG(L_ERROR, "MPI_Comm_size() failed: " + error_str(err) + "\n");
+		throw std::runtime_error("MPI error");
+	}
+	return size;
+}
+
+void barrier(MPI_Comm comm)
+{
+	const int err = MPI_Barrier(comm);
+	if (err != MPI_SUCCESS) {
+		LOG(L_ERROR, "MPI_Barrier() failed: " + error_str(err) + "\n");
+		MPI_Abort(comm, err);
+		throw std::runtime_error("MPI error");
+	}
+}
+
+MPI_Request isend(const void *buf, int count, MPI_Datatype datatype, int dest,
+                  int tag, MPI_Comm comm)
+{
+	MPI_Request req;
+	const int err = MPI_Isend(buf, count, datatype, dest, tag, comm, &req);
+	if (err != MPI_SUCCESS) {
+		LOG(L_ERROR, "MPI_Isend() failed: " + error_str(err) + "\n");
+		MPI_Abort(comm, err);
+		throw std::runtime_error("MPI error");
+	}
+	return req;
+}
+
+MPI_Request irecv(void *buf, int count, MPI_Datatype datatype,
+                  int source, int tag, MPI_Comm comm)
+{
+	MPI_Request req;
+	const int err = MPI_Irecv(buf, count, datatype, source, tag, comm, &req);
+	if (err != MPI_SUCCESS) {
+		LOG(L_ERROR, "MPI_Irecv() failed: " + error_str(err) + "\n");
+		MPI_Abort(comm, err);
+		throw std::runtime_error("MPI error");
+	}
+	return req;
+}
+
+MPI_Status wait(MPI_Request *request)
+{
+	MPI_Status status;
+	const int err = MPI_Wait(request, &status);
+	return status;
+}
+
+} // ::MPI
+
+#endif
+
+
+} // ::Aqua

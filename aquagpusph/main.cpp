@@ -110,15 +110,7 @@ main(int argc, char* argv[])
 {
 	std::ostringstream msg;
 #ifdef HAVE_MPI
-	try {
-		MPI::Init(argc, argv);
-	} catch (MPI::Exception e) {
-		LOG(L_INFO, "MPI cannot be initialized\n");
-		msg << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
-		LOG0(L_DEBUG, msg.str());
-		return EXIT_FAILURE;
-	}
-	MPI::COMM_WORLD.Set_errhandler(MPI::ERRORS_THROW_EXCEPTIONS);
+	Aqua::MPI::init(&argc, &argv);
 #endif
 
 	InputOutput::Logger* logger = new InputOutput::Logger();
@@ -235,15 +227,8 @@ main(int argc, char* argv[])
 	if (Py_IsInitialized())
 		Py_Finalize();
 #ifdef HAVE_MPI
-	try {
-		MPI::COMM_WORLD.Barrier();
-		MPI::Finalize();
-	} catch (MPI::Exception e) {
-		LOG(L_INFO, "MPI cannot be correctly finished\n");
-		msg << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
-		LOG0(L_DEBUG, msg.str());
-		MPI::COMM_WORLD.Abort(-1);
-	}
+	Aqua::MPI::barrier(MPI_COMM_WORLD);
+	Aqua::MPI::finalize();
 #endif
 
 	return EXIT_SUCCESS;

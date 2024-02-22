@@ -164,16 +164,8 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 	std::ostringstream valstr;
 	int mpi_rank = 0, mpi_size = 1;
 #ifdef HAVE_MPI
-	try {
-		mpi_rank = MPI::COMM_WORLD.Get_rank();
-		mpi_size = MPI::COMM_WORLD.Get_size();
-	} catch (MPI::Exception e) {
-		std::ostringstream msg;
-		msg << "Error getting MPI rank and size. " << std::endl
-		    << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
-		LOG(L_ERROR, msg.str());
-		throw;
-	}
+	mpi_rank = Aqua::MPI::rank(MPI_COMM_WORLD);
+	mpi_size = Aqua::MPI::size(MPI_COMM_WORLD);
 	assert(mpi_rank >= 0);
 	assert(mpi_size > 0);
 #endif
@@ -573,17 +565,7 @@ CalcServer::update(InputOutput::TimeManager& t_manager)
 	unsigned int i;
 	while (!t_manager.mustPrintOutput() && !t_manager.mustStop()) {
 #ifdef HAVE_MPI
-		try {
-			MPI::COMM_WORLD.Barrier();
-		} catch (MPI::Exception e) {
-			LOG(L_INFO, "MPI error while syncing at the beggining\n");
-			std::ostringstream msg;
-			msg << e.Get_error_code() << ": " << e.Get_error_string()
-			    << std::endl;
-			LOG0(L_DEBUG, msg.str());
-			MPI::COMM_WORLD.Abort(-1);
-			throw;
-		}
+		Aqua::MPI::barrier(MPI_COMM_WORLD);
 #endif
 		InputOutput::Logger::singleton()->initFrame();
 
@@ -1015,15 +997,7 @@ CalcServer::setupPlatform()
 {
 	int rank = 0;
 #ifdef HAVE_MPI
-	try {
-		rank = MPI::COMM_WORLD.Get_rank();
-	} catch (MPI::Exception e) {
-		std::ostringstream msg;
-		msg << "Error getting MPI rank. " << std::endl
-		    << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
-		LOG(L_ERROR, msg.str());
-		throw;
-	}
+	rank = Aqua::MPI::rank(MPI_COMM_WORLD);
 #endif
 	if (rank >= _sim_data.settings.devices.size()) {
 		std::ostringstream msg;
@@ -1121,15 +1095,7 @@ CalcServer::setupDevices()
 	// Get the selected device index and type
 	int rank = 0;
 #ifdef HAVE_MPI
-	try {
-		rank = MPI::COMM_WORLD.Get_rank();
-	} catch (MPI::Exception e) {
-		std::ostringstream msg;
-		msg << "Error getting MPI rank. " << std::endl
-		    << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
-		LOG(L_ERROR, msg.str());
-		throw;
-	}
+	rank = Aqua::MPI::rank(MPI_COMM_WORLD);
 #endif
 	if (rank >= _sim_data.settings.devices.size()) {
 		std::ostringstream msg;

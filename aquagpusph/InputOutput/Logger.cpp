@@ -138,17 +138,8 @@ Logger::writeReport(std::string input, std::string color, bool bold)
 
 	if (!wnd) {
 #ifdef HAVE_MPI
-		try {
-			auto mpi_rank = MPI::COMM_WORLD.Get_rank();
-			std::cout << "[Proc " << mpi_rank << "] ";
-		} catch (MPI::Exception e) {
-			std::ostringstream msg;
-			msg << "Error getting MPI rank. " << std::endl
-			    << e.Get_error_code() << ": " << e.Get_error_string()
-			    << std::endl;
-			addMessageF(L_ERROR, msg.str());
-			throw;
-		}
+		auto mpi_rank = Aqua::MPI::rank(MPI_COMM_WORLD);
+		std::cout << "[Proc " << mpi_rank << "] ";
 #endif
 		std::cout << input;
 		if (!hasSuffix(input, "\n")) {
@@ -227,16 +218,8 @@ Logger::writeReport(std::string input, std::string color, bool bold)
 
 	// Append the processor index
 #ifdef HAVE_MPI
-	try {
-		auto mpi_rank = MPI::COMM_WORLD.Get_rank();
-		msg = "[Proc " + std::to_string(mpi_rank) + "] " + msg;
-	} catch (MPI::Exception e) {
-		std::ostringstream msg;
-		msg << "Error getting MPI rank. " << std::endl
-		    << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
-		addMessageF(L_ERROR, msg.str());
-		throw;
-	}
+	auto mpi_rank = Aqua::MPI::rank(MPI_COMM_WORLD);
+	msg = "[Proc " + std::to_string(mpi_rank) + "] " + msg;
 #endif
 
 	// Print the message
@@ -283,15 +266,7 @@ Logger::addMessage(TLogLevel level, std::string log, std::string func)
 
 	int mpi_rank = 0;
 #ifdef HAVE_MPI
-	try {
-		mpi_rank = MPI::COMM_WORLD.Get_rank();
-	} catch (MPI::Exception e) {
-		std::ostringstream msg;
-		msg << "Error getting MPI rank. " << std::endl
-		    << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
-		addMessageF(L_ERROR, msg.str());
-		throw;
-	}
+	mpi_rank = Aqua::MPI::rank(MPI_COMM_WORLD);
 #endif
 	if ((level < L_ERROR) && (mpi_rank > 0))
 		return;

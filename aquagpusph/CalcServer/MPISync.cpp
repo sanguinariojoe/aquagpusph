@@ -64,16 +64,8 @@ MPISync::MPISync(const std::string name,
   , _n_offset_recv(NULL)
 {
 	int mpi_rank, mpi_size;
-	try {
-		mpi_rank = MPI::COMM_WORLD.Get_rank();
-		mpi_size = MPI::COMM_WORLD.Get_size();
-	} catch (MPI::Exception e) {
-		std::ostringstream msg;
-		msg << "Error getting MPI rank and size. " << std::endl
-		    << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
-		LOG(L_ERROR, msg.str());
-		throw;
-	}
+	mpi_rank = Aqua::MPI::rank(MPI_COMM_WORLD);
+	mpi_size = Aqua::MPI::size(MPI_COMM_WORLD);
 	assert(mpi_rank >= 0);
 	assert(mpi_size > 0);
 
@@ -424,15 +416,7 @@ MPISync::setupReceivers()
 	// Create a tool to reinit the mask
 	std::ostringstream valstr;
 	int mpi_rank, mpi_size;
-	try {
-		mpi_rank = MPI::COMM_WORLD.Get_rank();
-	} catch (MPI::Exception e) {
-		std::ostringstream msg;
-		msg << "Error getting MPI rank. " << std::endl
-		    << e.Get_error_code() << ": " << e.Get_error_string() << std::endl;
-		LOG(L_ERROR, msg.str());
-		throw;
-	}
+	mpi_rank = Aqua::MPI::rank(MPI_COMM_WORLD);
 	assert(mpi_rank >= 0);
 
 	valstr << mpi_rank;
@@ -492,7 +476,7 @@ MPISync::Exchanger::typeToMPI(std::string t)
 	MPISync::Exchanger::MPIType mpi_t;
 
 	mpi_t.n = 1;
-	mpi_t.t = MPI::DATATYPE_NULL;
+	mpi_t.t = MPI_DATATYPE_NULL;
 
 	if (t.back() == '*') {
 		t.pop_back();
@@ -515,11 +499,11 @@ MPISync::Exchanger::typeToMPI(std::string t)
 	}
 
 	if ((!t.compare("int")) || (!t.compare("ivec"))) {
-		mpi_t.t = MPI::INT;
+		mpi_t.t = MPI_INT;
 	} else if ((!t.compare("unsigned int")) || (!t.compare("uivec"))) {
-		mpi_t.t = MPI::UNSIGNED;
+		mpi_t.t = MPI_UNSIGNED;
 	} else if ((!t.compare("float")) || (!t.compare("vec"))) {
-		mpi_t.t = MPI::FLOAT;
+		mpi_t.t = MPI_FLOAT;
 	}
 
 	return mpi_t;
@@ -577,33 +561,24 @@ typedef struct
 	cl_event user_event;
 } MPISyncSendUserData;
 
-std::string
-get_MPI_Error_string(int errorcode)
-{
-	char err[MPI::MAX_ERROR_STRING];
-	int err_len = MPI::MAX_ERROR_STRING;
-	MPI::Get_error_string(errorcode, err, err_len);
-	std::string err_str(err);
-	return err_str;
-}
-
 void CL_CALLBACK
 cbMPISend(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 {
-	MPI::Request req;
-	MPI::Status status;
+	MPI_Request req;
+	MPI_Status status;
 	MPISyncSendUserData* data = (MPISyncSendUserData*)user_data;
 	unsigned int offset = *(data->offset);
 	unsigned int n = *(data->n);
 
 	if (data->tag == 1) {
-		req = MPI::COMM_WORLD.Isend(&n, 1, MPI::UNSIGNED, data->proc, 0);
-		req.Wait(status);
-		if (status.Get_error() != MPI::SUCCESS) {
+		req = Aqua::MPI::isend(&n, 1, MPI_UNSIGNED, data->proc, 0,
+		                       MPI_COMM_WORLD);
+		status = Aqua::MPI::wait(&req);
+		if (status.MPI_ERROR != MPI_SUCCESS) {
 			std::ostringstream msg;
 			msg << "Failure sending the number of particles to process "
 			    << data->proc << ":" << std::endl
-			    << get_MPI_Error_string(status.Get_error()) << std::endl;
+			    << Aqua::MPI::error_str(status.MPI_ERROR) << std::endl;
 			LOG(L_ERROR, msg.str());
 			free(data);
 			throw std::runtime_error("MPI sending error");
@@ -648,7 +623,7 @@ cbMPISend(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 	// addapt the array length (vectorial types)
 	const MPISync::Exchanger::MPIType mpi_t =
 	    MPISync::Exchanger::typeToMPI(field->type());
-	if (mpi_t.t == MPI::DATATYPE_NULL) {
+	if (mpi_t.t == MPI_DATATYPE_NULL) {
 		std::ostringstream msg;
 		msg << "Unrecognized type \"" << field->type() << "\" for variable \""
 		    << field->name() << "\"" << std::endl;
@@ -658,13 +633,13 @@ cbMPISend(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 	}
 
 	// Launch the missiles. Again we can proceed in synchronous mode
-	req =
-	    MPI::COMM_WORLD.Isend(ptr, n * mpi_t.n, mpi_t.t, data->proc, data->tag);
-	if (status.Get_error() != MPI::SUCCESS) {
+	req = Aqua::MPI::isend(ptr, n * mpi_t.n, mpi_t.t, data->proc, data->tag,
+	                       MPI_COMM_WORLD);
+	if (status.MPI_ERROR != MPI_SUCCESS) {
 		std::ostringstream msg;
 		msg << "Failure sending the field \"" << field->name()
 		    << "\" to process " << data->proc << ":" << std::endl
-		    << get_MPI_Error_string(status.Get_error()) << std::endl;
+		    << Aqua::MPI::error_str(status.MPI_ERROR) << std::endl;
 		LOG(L_ERROR, msg.str());
 		free(data);
 		throw std::runtime_error("MPI sending error");
@@ -964,21 +939,22 @@ void CL_CALLBACK
 cbMPIRecv(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 {
 	cl_int err_code;
-	MPI::Request req;
-	MPI::Status status;
+	MPI_Request req;
+	MPI_Status status;
 	cl_event mask_event = NULL, field_event = NULL;
 	MPISyncRecvUserData* data = (MPISyncRecvUserData*)user_data;
 	unsigned int offset = *(unsigned int*)data->offset->get_async();
 	unsigned int n;
 
 	// We need to receive the number of transmitted elements
-	req = MPI::COMM_WORLD.Irecv(&n, 1, MPI::UNSIGNED, data->proc, 0);
-	req.Wait(status);
-	if (status.Get_error() != MPI::SUCCESS) {
+	req = Aqua::MPI::irecv(&n, 1, MPI_UNSIGNED, data->proc, 0,
+	                       MPI_COMM_WORLD);
+	status = Aqua::MPI::wait(&req);
+	if (status.MPI_ERROR != MPI_SUCCESS) {
 		std::ostringstream msg;
 		msg << "Failure receiving the number of particles from process "
 		    << data->proc << ":" << std::endl
-		    << get_MPI_Error_string(status.Get_error()) << std::endl;
+		    << Aqua::MPI::error_str(status.MPI_ERROR) << std::endl;
 		LOG(L_ERROR, msg.str());
 		free(data);
 		throw std::runtime_error("MPI receiving error");
@@ -1054,7 +1030,7 @@ cbMPIRecv(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 		// and addapt the array length (vectorial types)
 		const MPISync::Exchanger::MPIType mpi_t =
 		    MPISync::Exchanger::typeToMPI(field->type());
-		if (mpi_t.t == MPI::DATATYPE_NULL) {
+		if (mpi_t.t == MPI_DATATYPE_NULL) {
 			std::ostringstream msg;
 			msg << "Unrecognized type \"" << field->type()
 			    << "\" for variable \"" << field->name() << "\"" << std::endl;
@@ -1063,14 +1039,14 @@ cbMPIRecv(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 		}
 
 		// Get the data in synchronous mode
-		req =
-		    MPI::COMM_WORLD.Irecv(ptr, n * mpi_t.n, mpi_t.t, data->proc, i + 1);
-		req.Wait(status);
-		if (status.Get_error() != MPI::SUCCESS) {
+		req = Aqua::MPI::irecv(ptr, n * mpi_t.n, mpi_t.t, data->proc, i + 1,
+		                       MPI_COMM_WORLD);
+		status = Aqua::MPI::wait(&req);
+		if (status.MPI_ERROR != MPI_SUCCESS) {
 			std::ostringstream msg;
 			msg << "Failure receiving the field \"" << field->name()
 			    << " from process " << data->proc << ":" << std::endl
-			    << get_MPI_Error_string(status.Get_error()) << std::endl;
+			    << Aqua::MPI::error_str(status.MPI_ERROR) << std::endl;
 			LOG(L_ERROR, msg.str());
 			free(data);
 			throw std::runtime_error("MPI receiving error");
