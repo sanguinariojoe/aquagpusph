@@ -44,7 +44,7 @@
 
 #define CHECK_OCL_OR_THROW(err_code, msg)                                      \
 	if (err_code != CL_SUCCESS) {                                              \
-		LOG(L_ERROR, msg);                                                     \
+		LOG(L_ERROR, std::string(msg) + "\n");                                 \
 		Aqua::InputOutput::Logger::singleton()->printOpenCLError(err_code);    \
 		throw std::runtime_error("OpenCL error");                              \
 	}
