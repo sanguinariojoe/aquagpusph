@@ -167,6 +167,10 @@ Tool::execute()
 		substage->step();
 	cl_event event = _execute(events);
 	_event = event;
+	err_code = clFlush(C->command_queue());
+	CHECK_OCL_OR_THROW(err_code,
+		std::string("Failure flushing the command queue at \"") + name() +
+		"\".");
 
 	if (event != NULL) {
 		// Add the event to the reading dependencies

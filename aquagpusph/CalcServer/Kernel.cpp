@@ -46,6 +46,7 @@ event_profile_cb(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 void
 EventProfile::start(cl_event event)
 {
+#ifdef HAVE_GPUPROFILE
 	cl_int err_code;
 	_start = event;
 	err_code = clRetainEvent(event);
@@ -53,11 +54,13 @@ EventProfile::start(cl_event event)
 	    err_code,
 	    std::string("Failure retaining the event on profiler \"") + name() +
 	        "\".");
+#endif
 }
 
 void
 EventProfile::end(cl_event event)
 {
+#ifdef HAVE_GPUPROFILE
 	cl_int err_code;
 	_end = event;
 	err_code = clRetainEvent(event);
@@ -70,6 +73,7 @@ EventProfile::end(cl_event event)
 	    err_code,
 	    std::string("Failure setting the profiling callback on \"") + name() +
 	        "\".");
+#endif
 }
 
 void
@@ -83,12 +87,22 @@ EventProfile::sample()
 	    err_code,
 	    std::string("Failure retrieving the profiling start on \"") + name() +
 	        "\".");
+	err_code = clReleaseEvent(_start);
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure releasing the start event on profiler \"") +
+	        name() + "\".");
 	err_code = clGetEventProfilingInfo(
 	    _end, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, NULL);
 	CHECK_OCL_OR_THROW(
 	    err_code,
 	    std::string("Failure retrieving the profiling end on \"") + name() +
 	        "\".");
+	err_code = clReleaseEvent(_start);
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure releasing the end event on profiler \"") +
+	        name() + "\".");
 	auto C = CalcServer::singleton();
 	start += C->device_timer_offset();
 	end += C->device_timer_offset();
@@ -200,6 +214,16 @@ sync_user_event(cl_event user_event, cl_event event)
 	err_code =
 	    clSetEventCallback(event, CL_COMPLETE, &cbUserEventSync, user_data);
 	CHECK_OCL_OR_THROW(err_code, "Failure setting the events syncing callback");
+
+	// Let's try to flush the command queue
+	cl_command_queue queue;
+	err_code = clGetEventInfo(event, CL_EVENT_COMMAND_QUEUE,
+	                          sizeof(cl_command_queue), &queue, NULL);
+	CHECK_OCL_OR_THROW(err_code, "Failure getting the event command queue");
+	if (queue) {
+		err_code = clFlush(queue);
+		CHECK_OCL_OR_THROW(err_code, "Failure flushing the command queue");
+	}
 }
 
 Kernel::Kernel(const std::string tool_name,
@@ -273,11 +297,9 @@ Kernel::_execute(const std::vector<cl_event> events)
 	CHECK_OCL_OR_THROW(err_code,
 	                   std::string("Failure executing the tool \"") + name() +
 	                       "\".");
-#ifdef HAVE_GPUPROFILE
 	auto profiler = dynamic_cast<EventProfile*>(Profiler::substages().back());
 	profiler->start(event);
 	profiler->end(event);
-#endif
 
 	return event;
 }

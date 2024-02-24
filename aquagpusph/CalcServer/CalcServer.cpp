@@ -640,6 +640,7 @@ CalcServer::command_queue(cmd_queue which)
 {
 	cl_int err_code;
 	cl_command_queue queue = NULL;
+	cl_command_queue curr_queue = _command_queues[_command_queue_current];
 	switch (which) {
 		case cmd_queue::cmd_queue_new:
 			_command_queue_current++;
@@ -649,6 +650,10 @@ CalcServer::command_queue(cmd_queue which)
 				                   "Failure generating a new command queue");
 				_command_queues.push_back(queue);
 			}
+			// We can wait no more, we must flush the queue now
+			err_code = clFlush(curr_queue);
+			CHECK_OCL_OR_THROW(err_code,
+			                   "Failure flushing the command queue");
 		case cmd_queue::cmd_queue_current:
 			queue = _command_queues[_command_queue_current];
 			break;
@@ -1199,6 +1204,11 @@ CalcServer::setupDevices()
 	CHECK_OCL_OR_THROW(err_code,
 	                   "Failure registering the timer sampling callback.");
 	err_code = clSetUserEventStatus(trigger, CL_COMPLETE);
+	CHECK_OCL_OR_THROW(err_code,
+	                   "Failure triggering the timer sampling callback.");
+	err_code = clFlush(_command_queues.front());
+	CHECK_OCL_OR_THROW(err_code,
+	                   "Failure flushing the marker command");
 	err_code = clWaitForEvents(1, &sampler);
 	CHECK_OCL_OR_THROW(err_code, "Failure waiting for the timer sampler.");
 	for (auto e : { trigger, sampler }) {
