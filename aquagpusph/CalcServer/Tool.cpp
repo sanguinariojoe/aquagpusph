@@ -82,6 +82,7 @@ exec_status_check(cl_event event, cl_int event_command_status, void* user_data)
 {
 	auto tool = (Tool*)user_data;
 
+#ifdef HAVE_GPUPROFILE
 	cl_command_type event_type;
 	clGetEventInfo(event,
 	               CL_EVENT_COMMAND_TYPE,
@@ -96,6 +97,7 @@ exec_status_check(cl_event event, cl_int event_command_status, void* user_data)
 		    event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, NULL);
 		tool->addElapsedTime((cl_double)(end - start) * (cl_double)(1e-06));
 	}
+#endif
 
 	clReleaseEvent(event);
 	if (event_command_status == CL_COMPLETE)

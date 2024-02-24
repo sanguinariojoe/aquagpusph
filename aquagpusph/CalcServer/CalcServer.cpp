@@ -618,13 +618,19 @@ create_command_queue(cl_context context,
 {
 #if (OPENCL_PLATFORM_MAJOR > 1) ||                                             \
     ((OPENCL_PLATFORM_MAJOR == 1) && (OPENCL_PLATFORM_MINOR > 1))
-	const cl_queue_properties properties[4] = { CL_QUEUE_PROPERTIES,
-		                                        CL_QUEUE_PROFILING_ENABLE,
-		                                        0 };
+	// Create the properties with eventual space for the profiling
+	cl_queue_properties properties[3] = { 0, 0, 0 };
+#ifdef HAVE_GPUPROFILE
+	properties[0] = CL_QUEUE_PROPERTIES;
+	properties[1] = CL_QUEUE_PROFILING_ENABLE;
+#endif
 	return clCreateCommandQueueWithProperties(
 	    context, device, properties, errcode_ret);
 #else
-	cl_command_queue_properties properties = CL_QUEUE_PROFILING_ENABLE;
+	cl_command_queue_properties properties = 0;
+#ifdef HAVE_GPUPROFILE
+	properties = CL_QUEUE_PROFILING_ENABLE;
+#endif
 	return clCreateCommandQueue(context, device, properties, errcode_ret);
 #endif
 }
@@ -1180,6 +1186,7 @@ CalcServer::setupDevices()
 	    create_command_queue(_context, _device, &err_code);
 	CHECK_OCL_OR_THROW(err_code, "Failure generating the MPI command queue.");
 
+#ifdef HAVE_GPUPROFILE
 	// Let's sample the device timer
 	cl_event sampler;
 	auto trigger = clCreateUserEvent(_context, &err_code);
@@ -1206,6 +1213,7 @@ CalcServer::setupDevices()
 		    << std::endl;
 		LOG(L_INFO, msg.str());
 	}
+#endif
 }
 
 void

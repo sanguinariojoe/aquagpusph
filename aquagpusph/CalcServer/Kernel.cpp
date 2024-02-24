@@ -273,9 +273,11 @@ Kernel::_execute(const std::vector<cl_event> events)
 	CHECK_OCL_OR_THROW(err_code,
 	                   std::string("Failure executing the tool \"") + name() +
 	                       "\".");
+#ifdef HAVE_GPUPROFILE
 	auto profiler = dynamic_cast<EventProfile*>(Profiler::substages().back());
 	profiler->start(event);
 	profiler->end(event);
+#endif
 
 	return event;
 }
