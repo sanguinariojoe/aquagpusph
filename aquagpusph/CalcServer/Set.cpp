@@ -121,11 +121,16 @@ Set::_execute(const std::vector<cl_event> events)
 
 	// Eventually evaluate the expression and set the variables to the kernel
 	cl_event args_event = ScalarExpression::_execute(events);
+	err_code = clFlush(C->command_queue());
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure flushing the command queue at \"") + name() +
+	        "\".");
 	err_code = clWaitForEvents(1, &args_event);
 	CHECK_OCL_OR_THROW(
 	    err_code,
-	    std::string("Failure waiting for the args setter in tool \"") + name() +
-	        "\".");
+	    std::string("Failure waiting for the args setter in tool \"") +
+	        name() + "\".");
 	err_code = clReleaseEvent(args_event);
 	CHECK_OCL_OR_THROW(
 	    err_code,
