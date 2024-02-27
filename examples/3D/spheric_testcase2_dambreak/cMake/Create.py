@@ -472,9 +472,10 @@ templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
 XML = ('Fluids.xml', 'Main.xml', 'Sensors.xml', 'Settings.xml', 'SPH.xml',
        'Time.xml', 'h_sensor.cl')
 
-domain_min = (-(L - l + 0.1), -(0.5 * D + 0.1), -0.1, 0.0)
+s = 10.0 * hfac * dr
+domain_min = (-(L - l + s), -(0.5 * D + s), -s, 0.0)
 domain_min = str(domain_min).replace('(', '').replace(')', '')
-domain_max = (l + 0.1, 0.5 * D + 0.1, H + 0.1, 0.0)
+domain_max = (l + s, 0.5 * D + s, H + s, 0.0)
 domain_max = str(domain_max).replace('(', '').replace(')', '')
 
 data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
