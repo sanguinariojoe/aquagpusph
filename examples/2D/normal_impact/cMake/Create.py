@@ -82,12 +82,13 @@ with open("Fluid.dat", "w") as f:
 # =========================
 
 templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
-XML = ('Fluids.xml', 'Main.xml', 'Settings.xml', 'SPH.xml', 'Time.xml')
+XML = ('Fluids.xml', 'Main.xml', 'Settings.xml', 'SPH.xml', 'Time.xml',
+       'plot_e.py')
 
 data = {'DR':str(dr), 'HFAC':str(hfac), 'MA':str(Ma), 'COURANT':str(courant),
         'L':str(L), 'H':str(H), 'U':str(U), 'REFD':str(refd), 'T':str(T * Ma),
         'FPS':str(int(round(FPT / Ma))), 'NX':str(nx), 'NY':str(ny),
-        'N':str(n)}
+        'N':str(n), 'E0':str(0.5 * L * H * refd * U**2)}
 for fname in XML:
     # Read the template
     f = open(path.join(templates_path, fname), 'r')

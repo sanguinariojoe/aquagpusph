@@ -8,8 +8,15 @@ if [[ $1 == "--run" ]]; then
     rm -f output.pvd
     @EXAMPLE_DEST_DIR@/Create.py
     @BINARY_DIR@/AQUAgpusph2D -i Main.xml
+elif [[ $1 == "--plot" ]]; then
+    python @EXAMPLE_DEST_DIR@/plot_$2.py
 else
     echo ""
-    echo "Usage: run.sh [--run]"
+    echo "Usage: run.sh [--run/--plot e]"
+    echo ""
+    echo "run.sh --run"
+    echo "    Runs the simulation. You can stop simulation pressing the 'c' key"
+    echo "run.sh --plot e"
+    echo "    Plot the resulting energy"
     echo ""
 fi

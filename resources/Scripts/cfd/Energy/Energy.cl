@@ -27,13 +27,13 @@
  * Actually, in this kernel the energy componets variation are computed per each
  * particle.
  *
- * @param energy_dekindt Variation of the kinetic energy:
+ * @param energy_dekdt Variation of the kinetic energy:
  * \f$ \frac{dE^{kin}_a}{dt} =
  *   m_a \mathbf{u}_a \cdot \frac{d \mathbf{u}_a}{dt}\f$
- * @param energy_depotdt Variation of the potential energy:
+ * @param energy_depdt Variation of the potential energy:
  * \f$ \frac{dE^{pot}_a}{dt} =
  *   - m_a \mathbf{g} \cdot \mathbf{u}_a\f$
- * @param energy_decomdt Variation of the compressibility energy:
+ * @param energy_decdt Variation of the compressibility energy:
  * \f$ \frac{dE^{com}_a}{dt} =
  *   \frac{m_a}{\rho_a} \frac{p_a}{\rho_a} \frac{d \rho_a}{dt} \f$
  * @param imove Moving flags.
@@ -51,9 +51,9 @@
  * @param N Number of particles.
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  */
-__kernel void entry(__global float* energy_dekindt,
-                    __global float* energy_depotdt,
-                    __global float* energy_decomdt,
+__kernel void entry(__global float* energy_dekdt,
+                    __global float* energy_depdt,
+                    __global float* energy_decdt,
                     const __global int* imove,
                     const __global vec* u,
                     const __global float* rho,
@@ -69,13 +69,13 @@ __kernel void entry(__global float* energy_dekindt,
     if(i >= N)
         return;
     if(imove[i] != 1){
-        energy_dekindt[i] = 0.f;
-        energy_depotdt[i] = 0.f;
-        energy_decomdt[i] = 0.f;
+        energy_dekdt[i] = 0.f;
+        energy_depdt[i] = 0.f;
+        energy_decdt[i] = 0.f;
         return;
     }
 
-    energy_depotdt[i] = -m[i] * dot(g, u[i]);
-    energy_dekindt[i] = m[i] * dot(u[i], dudt[i]);
-    energy_decomdt[i] = m[i] * p[i] / (rho[i] * rho[i]) * drhodt[i];
+    energy_depdt[i] = -m[i] * dot(g, u[i]);
+    energy_dekdt[i] = m[i] * dot(u[i], dudt[i]);
+    energy_decdt[i] = m[i] * p[i] / (rho[i] * rho[i]) * drhodt[i];
 }

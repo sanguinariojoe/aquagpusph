@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
 <sphInput>
     <Reports>
-        <Report type="screen" name="Energy" fields="energy_Ekin,energy_Epot,energy_W; energy_Eint,energy_S,energy_Ecom;" color="blue" bold="false"/>
-        <Report type="file" name="Energy file" fields="t,dt, energy_Ekin,energy_Epot,energy_W,energy_Eint,energy_S,energy_Ecom, energy_dEkindt,energy_dEpotdt,energy_dWdt,energy_dEintdt,energy_dSdt,energy_dEcomdt" path="Energy.dat"/>
+        <Report type="screen" name="Energy" fields="energy_Ek,energy_Ep,energy_Ec" color="blue" bold="false"/>
+        <Report type="file" name="Energy file" fields="t,energy_Ek,energy_Ep,energy_Ec,energy_dEkdt,energy_dEpdt,energy_dEcdt" path="Energy.dat"/>
     </Reports>
 </sphInput>
  
