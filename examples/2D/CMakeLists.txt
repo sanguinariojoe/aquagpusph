@@ -1,5 +1,6 @@
 ADD_SUBDIRECTORY(built_in_beam)
 ADD_SUBDIRECTORY(cylinder_inside_channel)
+ADD_SUBDIRECTORY(normal_impact)
 ADD_SUBDIRECTORY(shock_chamber)
 ADD_SUBDIRECTORY(souto_etal_2012_standingwave)
 ADD_SUBDIRECTORY(spheric_testcase3_liddriven)
