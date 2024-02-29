@@ -1,0 +1,37 @@
+<?xml version="1.0" ?>
+
+<!-- BI.xml
+Allows the usage of boundary integrals to enforce a solid boundary condition.
+
+Remarks:
+  - This file should be included once.
+  - For the boundary integrals, it is intended that the boundary elements have
+    the flag imove = -3, and a unit normal. Also the area of the elements should
+    be stored in the mass array "m".
+  - Boundary integrals have significant advantages when complex geometries
+    are considered in the problem.
+  - The boundary integrals require renormalizing the differential operators
+    computed, having undesired effects in the momentum, mass and energy
+    conservation.
+  - By default, free-slip boundary condition is considered. To enforce the
+    no-slip boundary condition include the preset BINoSlip.xml
+-->
+
+<sphInput>
+    <Definitions>
+        <Define name="__CFD_BIE__"/>
+    </Definitions>
+
+    <Variables>
+        <Variable name="grad_w_bi" type="vec*" length="N" />
+        <Variable name="div_u_bi" type="vec*" length="N" />
+    </Variables>
+
+    <Tools>
+        <Tool name="cfd BIe init grad_w_bi" action="insert" before="Interactions" type="set" in="grad_w_bi" value="VEC_ZERO"/>
+        <Tool name="cfd BIe init div_u_bi" action="insert" after="cfd BIe init grad_w_bi" type="set" in="div_u_bi" value="0.0"/>
+        <Tool name="cfd BIe interactions" action="insert" after="cfd BIe init div_u_bi" type="kernel" entry_point="entry" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/BIe/Interactions.cl"/>
+        <Tool name="cfd BIe rates" action="insert" after="cfd BIe interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/BIe/Rates.cl"/>
+        <Tool name="cfd BIe elastic bounce" action="insert" after="Rates" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/BIe/ElasticBounce.cl"/>
+    </Tools>
+</sphInput>
