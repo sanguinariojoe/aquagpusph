@@ -24,6 +24,8 @@ Authors:
     <Include file="@RESOURCES_DIR@/Presets/basic/time_scheme/midpoint.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/time_scheme/midpoint/autostop.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/BIe.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd/BIe/Force.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd/BIe/Force.report.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/energy.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/energy.report.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/timing.report.xml" />

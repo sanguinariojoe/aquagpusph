@@ -33,7 +33,7 @@
      * @brief The boundary elements effect is restricted to a quadrangular area
      * of \f$ R \times R \f$, where \f$ R = DR_FACTOR \cdot \Delta r \f$.
      */
-    #define __DR_FACTOR__ 0.6f
+    #define __DR_FACTOR__ 0.5f
 #endif
 
 #ifndef __MIN_BOUND_DIST__
@@ -64,11 +64,11 @@
  *   - imove < 0 for boundary elements/particles.
  * @param r Position \f$ \mathbf{r} \f$.
  * @param normal Normal \f$ \mathbf{n} \f$.
+ * @param m Area \f$ s \f$.
  * @param u_in Velocity \f$ \mathbf{u} \f$.
  * @param dudt Velocity rate of change
  * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n+1} \f$.
  * @param N Number of particles.
- * @param dr Distance between particles \f$ \Delta r \f$.
  * @param dt Time step \f$ \Delta t \f$.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
@@ -77,10 +77,10 @@
 __kernel void entry(const __global int* imove,
                     const __global vec* r,
                     const __global vec* normal,
+                    const __global float* m,
                     const __global vec* u_in,
                     __global vec* dudt,
                     uint N,
-                    float dr,
                     float dt,
                     LINKLIST_LOCAL_PARAMS)
 {
@@ -91,10 +91,9 @@ __kernel void entry(const __global int* imove,
     if(imove[i] != 1)
         return;
 
-    const float R = __DR_FACTOR__ * dr;
     const vec_xyz r_i = r[i].XYZ;
     vec_xyz dudt_i = dudt[i].XYZ;
-    const vec_xyz u_i = u_in[i].XYZ + 0.5f * dt * dudt_i;
+    vec_xyz u_i = u_in[i].XYZ + 0.5f * dt * dudt_i;
 
     const unsigned int c_i = icell[i];
     BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
@@ -110,6 +109,8 @@ __kernel void entry(const __global int* imove,
             j++;
             continue;
         }
+        const float dr = m[j];
+        const float R = __DR_FACTOR__ * dr;
         const vec_xyz rt = r_ij - r0 * n_j;
         if(dot(rt, rt) >= R * R){
             // The particle is passing too far from the boundary element
@@ -140,7 +141,40 @@ __kernel void entry(const __global int* imove,
 
                 // Modify the value for the next walls test.
                 dudt_i = dudt[i].XYZ;
+                u_i = u_in[i].XYZ + 0.5f * dt * dudt_i;
             }
         }
     }END_NEIGHS()
+}
+
+/** @brief Compute the force of each fluid particle on the boundary due to the
+ * elastic bounce.
+ *
+ * @param imove Moving flags.
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param m Mass \f$ m \f$.
+ * @param dudt_preelastic Velocity rate of change before the elastic bounce
+ * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n+1} \f$.
+ * @param dudt_elastic Velocity rate of change after the elatic bounce
+ * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n+1} \f$.
+ * @param N Number of particles.
+ */
+__kernel void force_bound(const __global int* imove,
+                          const __global float* m,
+                          const __global vec* dudt_preelastic,
+                          const __global vec* dudt_elastic,
+                          __global vec* force_elastic,
+                          unsigned int N)
+{
+    unsigned int i = get_global_id(0);
+    if(i >= N)
+        return;
+    if(imove[i] != 1) {
+        force_elastic[i] = VEC_ZERO;
+        return;
+    }
+
+    force_elastic[i] = -m[i] * (dudt_elastic[i] - dudt_preelastic[i]);
 }

@@ -12,11 +12,13 @@ elif [[ $1 == "--plot" ]]; then
     python @EXAMPLE_DEST_DIR@/plot_$2.py
 else
     echo ""
-    echo "Usage: run.sh [--run/--plot e]"
+    echo "Usage: run.sh [--run/--plot e/--plot f]"
     echo ""
     echo "run.sh --run"
     echo "    Runs the simulation. You can stop simulation pressing the 'c' key"
     echo "run.sh --plot e"
     echo "    Plot the resulting energy"
+    echo "run.sh --plot f"
+    echo "    Plot the resulting force on the wall"
     echo ""
 fi

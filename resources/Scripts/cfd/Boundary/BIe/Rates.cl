@@ -60,3 +60,33 @@ __kernel void entry(const __global int* imove,
     grad_p[i] += 2.f * p[i] / rho[i] * grad_w_bi[i];
     div_u[i] -= 2.f * rho[i] * (dot(u[i], grad_w_bi[i]) + div_u_bi[i]);
 }
+
+/** @brief Filter out the fluid particles from the forces.
+ *
+ * @param imove Moving flags.
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param normal Normal \f$ \mathbf{n} \f$.
+ * @param m Area of the boundary element \f$ s \f$.
+ * @param p Pressure of the boundary element \f$ p \f$.
+ * @param force_p Pressure force on the boundary element
+ * @param N Number of particles.
+ */
+__kernel void force_press(const __global int* imove,
+                          const __global vec* normal,
+                          const __global float* m,
+                          const __global float* p,
+                          __global vec* force_p,
+                          unsigned int N)
+{
+    unsigned int i = get_global_id(0);
+    if(i >= N)
+        return;
+    if(imove[i] != -3) {
+        force_p[i] = VEC_ZERO;
+        return;
+    }
+
+    force_p[i] = p[i] * m[i] * normal[i];
+}

@@ -106,3 +106,65 @@ __kernel void entry(const __global int* imove,
         div_u_bi[i] = _DIVU_;
     #endif
 }
+
+/** @brief Compute the pressure on each boundary element.
+ * @param imove Moving flags.
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param r Position \f$ \mathbf{r} \f$.
+ * @param m Particle mass \f$ m \f$.
+ * @param rho Particle density \f$ \rho \f$.
+ * @param p Particle pressure \f$ p \f$.
+ * @param N Number of particles.
+ * @param icell Cell where each particle is located.
+ * @param ihoc Head of chain for each cell (first particle found).
+ * @param n_cells Number of cells in each direction
+ */
+__kernel void p_boundary(const __global int* imove,
+                         const __global vec* r,
+                         const __global float* m,
+                         const __global float* rho,
+                         __global float* p,
+                         uint N,
+                         LINKLIST_LOCAL_PARAMS)
+{
+    const uint i = get_global_id(0);
+    const uint it = get_local_id(0);
+    if(i >= N)
+        return;
+    if(imove[i] != -3)
+        return;
+
+    const vec_xyz r_i = r[i].XYZ;
+
+    // Initialize the output
+    #ifndef LOCAL_MEM_SIZE
+        #define _P_ p[i]
+    #else
+        #define _P_ p_l[it]
+        __local float p_l[LOCAL_MEM_SIZE];
+    #endif
+    _P_ = 0.0;
+
+    const unsigned int c_i = icell[i];
+    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
+        if(imove[j] != 1){
+            j++;
+            continue;
+        }
+        const vec_xyz r_ij = r[j].XYZ - r_i;
+        const float q = length(r_ij) / H;
+        if(q >= SUPPORT)
+        {
+            j++;
+            continue;
+        }
+
+        _P_ += 2.f * p[j] * kernelW(q) * CONW * m[j] / rho[j];
+    }END_NEIGHS()
+
+    #ifdef LOCAL_MEM_SIZE
+        p[i] = _P_;
+    #endif
+}

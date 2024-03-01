@@ -95,7 +95,7 @@ with open("Fluid.dat", "w") as f:
 
 templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
 XML = ('Fluids.xml', 'Main.xml', 'Settings.xml', 'SPH.xml', 'Time.xml',
-       'plot_e.py')
+       'plot_e.py', 'plot_f.py')
 
 data = {'DR':str(dr), 'HFAC':str(hfac), 'MA':str(Ma), 'COURANT':str(courant),
         'L':str(L), 'H':str(H), 'U':str(U), 'REFD':str(refd), 'T':str(T * Ma),

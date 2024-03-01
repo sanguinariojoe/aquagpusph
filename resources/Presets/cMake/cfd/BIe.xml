@@ -1,20 +1,14 @@
 <?xml version="1.0" ?>
 
 <!-- BI.xml
-Allows the usage of boundary integrals to enforce a solid boundary condition.
+Allows the usage of conservative boundary integrals to enforce a solid boundary
+condition.
 
 Remarks:
   - This file should be included once.
   - For the boundary integrals, it is intended that the boundary elements have
-    the flag imove = -3, and a unit normal. Also the area of the elements should
-    be stored in the mass array "m".
-  - Boundary integrals have significant advantages when complex geometries
-    are considered in the problem.
-  - The boundary integrals require renormalizing the differential operators
-    computed, having undesired effects in the momentum, mass and energy
-    conservation.
-  - By default, free-slip boundary condition is considered. To enforce the
-    no-slip boundary condition include the preset BINoSlip.xml
+    the flag imove = -3, and a unit normal. Also the area of the elements
+    should be stored in the mass array "m".
 -->
 
 <sphInput>
@@ -24,7 +18,7 @@ Remarks:
 
     <Variables>
         <Variable name="grad_w_bi" type="vec*" length="N" />
-        <Variable name="div_u_bi" type="vec*" length="N" />
+        <Variable name="div_u_bi" type="float*" length="N" />
     </Variables>
 
     <Tools>
