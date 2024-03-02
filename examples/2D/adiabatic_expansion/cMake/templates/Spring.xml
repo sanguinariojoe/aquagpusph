@@ -1,0 +1,52 @@
+<?xml version="1.0" ?>
+<!--
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
+
+Another QUAlity GPU-SPH, by CEHINAV.
+    http://canal.etsin.upm.es/
+Authors:
+    Jose Luis Cercos-Pita
+    Leo Miguel Gonzalez
+    Antonio Souto-Iglesias
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="x0" type="float" length="1" value="{{X0}}" />
+        <Variable name="x" type="float" length="1" value="{{X0}}" />
+        <Variable name="dxdt" type="float" length="1" value="0.0" />
+        <Variable name="ddxddt" type="float" length="1" value="0.0" />
+        <Variable name="r0_in" type="vec*" length="N" />
+        <Variable name="r0" type="vec*" length="N" />
+        <Variable name="nx" type="unsigned int" length="1" value="{{NX}}" />
+        <Variable name="spring_k" type="float" length="1" value="{{k}}" />
+        <Variable name="spring_l" type="float" length="1" value="{{l}}" />
+        <Variable name="spring_m" type="float" length="1" value="{{m}}" />
+    </Variables>
+
+    <Tools>
+        <!-- Get always a copy of the initial position of the particles,
+        specially the boundary elements, which will be really useful when
+        moving the piston, and we need to deform the top and bottom walls -->
+        <Tool name="spring init r0" action="insert" before="predictor" type="copy" in="r" out="r0" once="true"/>
+        <Tool name="spring backup r0" action="insert" before="sort stage1" type="copy" in="r0" out="r0_in"/>
+        <Tool name="spring sort r0" action="insert" after="sort stage2" type="kernel" entry_point="sort" path="spring.cl"/>
+        <!-- Compute the piston motion -->
+        <Tool name="spring drop forces" action="insert" before="cfd BIe Force_p" type="kernel" entry_point="force" path="spring.cl"/>
+        <Tool name="spring ddxddt" action="insert" before="Corrector" type="set_scalar" in="ddxddt" value="(Force_p_x - spring_k * (spring_l + x)) / spring_m"/>
+        <Tool name="spring x" action="insert" after="spring ddxddt" type="set_scalar" in="x" value="x + dt * dxdt + 0.5 * dt * dt * ddxddt"/>
+        <Tool name="spring dxdt" action="insert" after="spring x" type="set_scalar" in="dxdt" value="dxdt + dt * ddxddt"/>
+        <!-- Set the boundary particles -->
+        <Tool name="spring set piston particles" action="insert" after="spring dxdt" type="kernel" entry_point="piston" path="spring.cl"/>
+        <Tool name="spring set bounds particles" action="insert" after="spring dxdt" type="kernel" entry_point="bounds" path="spring.cl"/>
+        <Tool name="spring report" action="insert" after="spring dxdt" type="report_screen" fields="t,x,dxdt,ddxddt" bold="false" color="white" />
+        <Tool name="spring report" action="insert" after="spring dxdt" type="report_file" fields="t,x,dxdt,ddxddt"  path="spring.out" />
+    </Tools>
+</sphInput>

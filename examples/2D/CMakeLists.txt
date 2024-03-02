@@ -1,3 +1,4 @@
+ADD_SUBDIRECTORY(adiabatic_expansion)
 ADD_SUBDIRECTORY(built_in_beam)
 ADD_SUBDIRECTORY(cylinder_inside_channel)
 ADD_SUBDIRECTORY(normal_impact)
