@@ -82,6 +82,7 @@ exec_status_check(cl_event event, cl_int event_command_status, void* user_data)
 {
 	auto tool = (Tool*)user_data;
 
+	cl_ulong start = 0, end = 0;
 #ifdef HAVE_GPUPROFILE
 	cl_command_type event_type;
 	clGetEventInfo(event,
@@ -90,14 +91,15 @@ exec_status_check(cl_event event, cl_int event_command_status, void* user_data)
 	               &event_type,
 	               NULL);
 	if (event_type != CL_COMMAND_USER) {
-		cl_ulong start = 0, end = 0;
 		clGetEventProfilingInfo(
 		    event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, NULL);
 		clGetEventProfilingInfo(
 		    event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, NULL);
-		tool->addElapsedTime((cl_double)(end - start) * (cl_double)(1e-06));
 	}
 #endif
+	// We definitely want to call this, so the _n_iters var is increased.
+	// Otherwise "once" option renders useless
+	tool->addElapsedTime((cl_double)(end - start) * (cl_double)(1e-06));
 
 	clReleaseEvent(event);
 	if (event_command_status == CL_COMPLETE)
