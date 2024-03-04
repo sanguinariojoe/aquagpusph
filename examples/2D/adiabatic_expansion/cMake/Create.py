@@ -30,6 +30,9 @@
 #
 #########################################################################
 
+# Rüchardt's experiment generalization
+# See Dittman, Richard H., and Mark W. Zemansky. "Heat and thermodynamics".
+
 import os.path as path
 import math
 
@@ -41,22 +44,18 @@ ny = nx = 400
 hfac = 4.0
 # Box size (on still state)
 L = H = 1.0
-# Fluid ref density
+# Fluid properties
 refd = 1.0
+cs = 1.0
 # Match number
-Ma = 0.001
+Ma = 0.01
 # Maximum expansion before we get negative pressure
 rho_eq = (1. + Ma) * refd
-kl_cs2 = (rho_eq - refd) * H
-x_max = kl_cs2 / refd * L / H
+F = cs * cs * refd * H * Ma
+x_max = Ma * L
 # Mass ratio between the fluid and the piston
-M = refd * L * H + kl_cs2 * L
-mass = 1.0 * M
-# Initial compression length of the spring
-l = 1.0 * L
-# Resulting spring and fluid constants
-k = (kl_cs2 * mass / l)**0.5 * L / Ma
-cs = (k * l / kl_cs2)**0.5
+M = (1. + Ma) * refd * L * H
+mass = 0.1 * M
 # Initial fluid compression
 x_0 = -0.5 * x_max
 V_0 = (L + x_0) * H
@@ -66,15 +65,10 @@ dr = L / nx
 h = hfac * dr
 courant = 0.5
 # Simulation time
-print(f'k = {k}')
-print(f'l = {l}')
-print(f'm = {mass}')
-print(f'cs = {cs}')
-print(f'x_0 = {x_0}')
-print(f'p_eq = {cs**2 * (rho_eq - refd)}')
-print('T', -20.6 * x_max / x_0 * Ma)
-T = 3.0 * (-20.6 * x_max / x_0 * Ma)
-FPS = 100 / (-20.6 * x_max / x_0 * Ma)
+T0_factor = -math.log(mass / M)
+T0 = T0_factor * 2. * math.pi / cs * (H * L**2 * mass / M)**0.5
+T = 1.0 * T0
+FPS = 100 / T0
 
 def particle(f, r):
     m = dr**2 * rho
@@ -143,9 +137,9 @@ XML = ('Fluids.xml', 'Main.xml', 'Settings.xml', 'SPH.xml', 'Time.xml',
        'Spring.xml', 'plot_f.py', 'plot_e.py', 'plot_x.py')
 
 data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
-        'L':str(L), 'H':str(H), 'REFD':str(refd), 'T':str(T),
+        'L':str(L), 'H':str(H), 'REFD':str(refd), 'T':str(T), 'T0':str(T0),
         'FPS':str(FPS), 'NX':str(nx), 'NY':str(ny),
-        'N':str(n), 'X0':str(x_0), 'k':str(k), 'l':str(l), 'm':str(mass)}
+        'N':str(n), 'X0':str(x_0), 'F':str(F), 'M':str(mass)}
 for fname in XML:
     # Read the template
     f = open(path.join(templates_path, fname), 'r')

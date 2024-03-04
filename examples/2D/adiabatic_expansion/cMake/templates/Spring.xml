@@ -21,14 +21,14 @@ Authors:
     <Variables>
         <Variable name="x0" type="float" length="1" value="{{X0}}" />
         <Variable name="x" type="float" length="1" value="{{X0}}" />
+        <Variable name="dxdt_in" type="float" length="1" value="0.0" />
         <Variable name="dxdt" type="float" length="1" value="0.0" />
         <Variable name="ddxddt" type="float" length="1" value="0.0" />
         <Variable name="r0_in" type="vec*" length="N" />
         <Variable name="r0" type="vec*" length="N" />
         <Variable name="nx" type="unsigned int" length="1" value="{{NX}}" />
-        <Variable name="spring_k" type="float" length="1" value="{{k}}" />
-        <Variable name="spring_l" type="float" length="1" value="{{l}}" />
-        <Variable name="spring_m" type="float" length="1" value="{{m}}" />
+        <Variable name="spring_f" type="float" length="1" value="{{F}}" />
+        <Variable name="spring_m" type="float" length="1" value="{{M}}" />
     </Variables>
 
     <Tools>
@@ -38,11 +38,18 @@ Authors:
         <Tool name="spring init r0" action="insert" before="predictor" type="copy" in="r" out="r0" once="true"/>
         <Tool name="spring backup r0" action="insert" before="sort stage1" type="copy" in="r0" out="r0_in"/>
         <Tool name="spring sort r0" action="insert" after="sort stage2" type="kernel" entry_point="sort" path="spring.cl"/>
-        <!-- Compute the piston motion -->
+        <!-- Backup the velocity at the start of the semi-implicit iteration -->
+        <Tool name="spring backup dxdt" action="insert" before="midpoint loop" type="set_scalar" in="dxdt_in" value="dxdt"/>
+        <!-- Set the piston velocity at the midpoint -->
+        <Tool name="spring midpoint advance" action="insert" after="midpoint advance" type="set_scalar" in="dxdt" value="dxdt_in + 0.5 * dt * ddxddt"/>        
+        <Tool name="spring set piston vel" action="insert" after="spring midpoint advance" type="kernel" entry_point="piston_u" path="spring.cl"/>
+        <!-- Update the piston acceleration -->
         <Tool name="spring drop forces" action="insert" before="cfd BIe Force_p" type="kernel" entry_point="force" path="spring.cl"/>
-        <Tool name="spring ddxddt" action="insert" before="Corrector" type="set_scalar" in="ddxddt" value="(Force_p_x - spring_k * (spring_l + x)) / spring_m"/>
-        <Tool name="spring x" action="insert" after="spring ddxddt" type="set_scalar" in="x" value="x + dt * dxdt + 0.5 * dt * dt * ddxddt"/>
-        <Tool name="spring dxdt" action="insert" after="spring x" type="set_scalar" in="dxdt" value="dxdt + dt * ddxddt"/>
+        <Tool name="spring ddxddt" action="insert" before="midpoint residuals" type="set_scalar" in="ddxddt" value="(Force_p_x - spring_f) / spring_m"/>
+        <!-- Compute the piston motion -->
+        <Tool name="spring ddxddt" action="insert" before="Corrector" type="set_scalar" in="ddxddt" value="(Force_p_x - spring_f) / spring_m"/>
+        <Tool name="spring x" action="insert" before="Corrector" type="set_scalar" in="x" value="x + dt * dxdt"/>
+        <Tool name="spring dxdt" action="insert" after="spring x" type="set_scalar" in="dxdt" value="dxdt_in + dt * ddxddt"/>
         <!-- Set the boundary particles -->
         <Tool name="spring set piston particles" action="insert" after="spring dxdt" type="kernel" entry_point="piston" path="spring.cl"/>
         <Tool name="spring set bounds particles" action="insert" after="spring dxdt" type="kernel" entry_point="bounds" path="spring.cl"/>

@@ -95,11 +95,11 @@ line_et, = ax.plot(t,
 # Set some options
 ax.grid()
 ax.legend(loc='best')
-ax.set_xlim(0.0, {{T}} / 0.0412)
-ax.set_ylim(-0.035, 0.005)
+ax.set_xlim(0.0, {{T}} / {{T0}})
+ax.set_ylim(-2.1, 0.3)
 ax.set_autoscale_on(False)
 ax.set_xlabel(r"$t / T$")
-ax.set_ylabel(r"$\mathcal{E}(t)$")
+ax.set_ylabel(r"$\mathcal{E}(t) / (F \cdot x(t=0))$")
 
 
 # Animate
@@ -107,9 +107,9 @@ def update(frame_index):
     plt.tight_layout()
     try:
         data = readFile('Energy.dat')
-        t = [d / 0.0412 for d in data[0]]
-        ek = data[1]
-        ec = data[3]
+        t = [d / {{T0}} for d in data[0]]
+        ek = [d / abs({{F}} * {{X0}}) for d in data[1]]
+        ec = [d / abs({{F}} * {{X0}}) for d in data[3]]
         et = [ek[i] + ec[i] for i in range(len(ek))]
     except IndexError:
         return

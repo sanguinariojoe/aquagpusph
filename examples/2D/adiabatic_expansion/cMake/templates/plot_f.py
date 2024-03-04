@@ -95,11 +95,11 @@ line_ft, = ax.plot(t,
 # Set some options
 ax.grid()
 ax.legend(loc='best')
-ax.set_xlim(0.0, {{T}} / 0.0412)
-ax.set_ylim(0.0, 50.0)
+ax.set_xlim(0.0, {{T}} / {{T0}})
+ax.set_ylim(0.0, 1.6)
 ax.set_autoscale_on(False)
 ax.set_xlabel(r"$t / T$")
-ax.set_ylabel(r"$\boldsymbol{f}(t)$")
+ax.set_ylabel(r"$f(t) / F$")
 
 
 # Animate
@@ -107,9 +107,9 @@ def update(frame_index):
     plt.tight_layout()
     try:
         data = readFile('force.out')
-        t = [d / 0.0412 for d in data[0]]
-        fp = data[1]
-        fe = data[3]
+        t = [d / {{T0}} for d in data[0]]
+        fp = [d / {{F}} for d in data[1]]
+        fe = [d / {{F}} for d in data[3]]
         ft = [fp[i] + fe[i] for i in range(len(fp))]
     except IndexError:
         return

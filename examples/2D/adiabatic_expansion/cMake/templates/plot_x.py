@@ -81,7 +81,7 @@ line, = ax.plot(t,
                 linewidth=1.0)
 # Set some options
 ax.grid()
-ax.set_xlim(0.0, {{T}} / 0.0412)
+ax.set_xlim(0.0, {{T}} / {{T0}})
 ax.set_ylim(1.1 * {{X0}} / {{L}}, -1.1 * {{X0}} / {{L}})
 ax.set_autoscale_on(False)
 ax.set_xlabel(r"$t / T$")
@@ -93,7 +93,7 @@ def update(frame_index):
     plt.tight_layout()
     try:
         data = readFile('spring.out')
-        t = [d / 0.0412 for d in data[0]]
+        t = [d / {{T0}} for d in data[0]]
         x = [d / {{L}} for d in data[1]]
     except IndexError:
         return

@@ -65,45 +65,36 @@ __kernel void force(const __global int* imove,
         force_p[i] = VEC_ZERO;
 }
 
-/** @brief 1st order Semi-implicit Euler time integration scheme corrector
- * stage
+/** @brief Set the velocity of the piston particles
+ *
+ * This method is used within the semi-implicit midpoint iterator
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param r Position \f$ \mathbf{r}_{n+1/2} \f$.
- * @param u_in Velocity \f$ \mathbf{u}_{n} \f$.
+ * @param normal Sorted normal \f$ \mathbf{n} \f$.
  * @param u Velocity \f$ \mathbf{u}_{n+1/2} \f$.
- * @param dudt Velocity rate of change
- * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n+1/2} \f$.
- * @param rho_in Density \f$ \rho_{n} \f$.
- * @param rho Density \f$ \rho_{n+1/2} \f$.
- * @param drhodt Density rate of change
- * \f$ \left. \frac{d \rho}{d t} \right\vert_{n+1/2} \f$.
+ * @param dxdt Piston velocity \f$ \frac{d x}{d t} \f$.
  * @param N Number of particles.
- * @param dt Time step \f$ \Delta t \f$.
  */
-__kernel void corrector(__global int* imove,
-                        __global vec* r,
-                        __global vec* u_in,
-                        __global vec* u,
-                        __global vec* dudt,
-                        __global float* rho_in,
-                        __global float* rho,
-                        __global float* drhodt,
-                        unsigned int N,
-                        float dt)
+__kernel void piston_u(const __global int* imove,
+                       const __global vec* normal,
+                       __global vec* u,
+                       float dxdt,
+                       unsigned int N)
 {
-    unsigned int i = get_global_id(0);
+    uint i = get_global_id(0);
     if(i >= N)
         return;
-    if(imove[i] <= 0)
+    if(imove[i] != -3)
         return;
 
-    r[i] += dt * u_in[i] + 0.5f * dt * dt * dudt[i];
-    u[i] = u_in[i] + dt * dudt[i];
-    rho[i] = rho_in[i] + dt * drhodt[i];
+    if (dot(normal[i], (vec2)(1.f, 0.f)) < 0.9f)
+        return;
+
+    u[i].x = dxdt;
 }
+
 
 /** @brief Set the position and velocity of the piston particles
  * @param imove Moving flags.
