@@ -90,10 +90,12 @@ Performance::print()
 	auto elapsed =
 	    (!_timer) ? tools_elapsed : ProfilingInfo::delta(timer, _timer);
 	_timer = timer;
-	auto overhead = elapsed - tools_elapsed;
 	data << "Elapsed=" << std::setw(17) << elapsed * 1.e-9 << "s" << std::endl;
+#ifdef HAVE_GPUPROFILE
+	auto overhead = elapsed - tools_elapsed;
 	data << "Overhead=" << std::setw(17) << overhead * 1.e-9 << "s"
 	     << std::endl;
+#endif
 
 	// Compute the progress
 	InputOutput::Variables* vars = C->variables();
