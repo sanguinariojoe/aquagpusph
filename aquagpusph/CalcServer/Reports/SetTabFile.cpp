@@ -78,7 +78,7 @@ SetTabFile::setup()
 	std::vector<InputOutput::Variable*> vars = variables();
 	for (i = _bounds.x; i < _bounds.y; i++) {
 		for (auto var : vars) {
-			_f << var->name() << "_" << i;
+			_f << var->name() << "_" << i << " ";
 		}
 	}
 	_f << std::endl;
