@@ -48,13 +48,13 @@ L = H = 1.0
 refd = 1.0
 cs = 1.0
 # Match number
-Ma = 0.01
+Ma = 0.1
 # Maximum expansion before we get negative pressure
-rho_eq = (1. + Ma) * refd
-F = cs * cs * refd * H * Ma
-x_max = Ma * L
+rho_eq = (1. + Ma**2) * refd
+F = cs * cs * refd * H * Ma**2
+x_max = Ma**2 * L
 # Mass ratio between the fluid and the piston
-M = (1. + Ma) * refd * L * H
+M = rho_eq * L * H
 mass = 0.1 * M
 # Initial fluid compression
 x_0 = -0.5 * x_max
