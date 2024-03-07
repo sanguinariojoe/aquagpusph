@@ -69,6 +69,32 @@ Performance::setup()
 	    { "t", "end_t", "iter", "end_iter", "frame", "end_frame" });
 }
 
+/// List of time format multipliers
+static const std::vector<float> time_mults(
+	{ 1.0, 1.e-3, 1.e-6, 1.e-9, 1.e-9 / 60, 1.e-9 / 3600 });
+/// List of time units
+static const std::vector<std::string> time_units(
+	{ "ns", "μs", "ms", "s", "m", "h" });
+
+/** @brief Reformat the time in nanoseconds as the best possible alternative
+ * between nanoseconds, microseconds, milliseconds, seconds minutes or hours
+ * @param t Time in nanoseconds
+ * @return The reformated time as well as the resulting units, i.e. ns, μs, ms,
+ * s, m or h
+ */
+std::tuple<float, std::string> reformat_nanosec(float t)
+{
+	float t_val;
+	std::string t_units;
+	for (unsigned int i = 0; i < time_mults.size(); i++) {
+		t_val = t * time_mults[i];
+		t_units = time_units[i];
+		if(t_val < 1.0)
+			break;
+	}
+	return { t_val, t_units };
+}
+
 void
 Performance::print()
 {
@@ -90,10 +116,12 @@ Performance::print()
 	auto elapsed =
 	    (!_timer) ? tools_elapsed : ProfilingInfo::delta(timer, _timer);
 	_timer = timer;
-	data << "Elapsed=" << std::setw(17) << elapsed * 1.e-9 << "s" << std::endl;
+	auto [elapsed_v, elapsed_u] = reformat_nanosec(elapsed);
+	data << "Elapsed=" << std::setw(17) << elapsed_v << elapsed_u << std::endl;
 #ifdef HAVE_GPUPROFILE
 	auto overhead = elapsed - tools_elapsed;
-	data << "Overhead=" << std::setw(17) << overhead * 1.e-9 << "s"
+	auto [overhead_v, overhead_u] = reformat_nanosec(overhead);
+	data << "Overhead=" << std::setw(17) << overhead_v << overhead_u
 	     << std::endl;
 #endif
 
@@ -117,7 +145,8 @@ Performance::print()
 
 	data << "Percentage=" << std::setw(14) << std::setprecision(2)
 	     << progress * 100.f;
-	data << "   ETA=" << ETA << std::endl;
+	auto [ETA_v, ETA_u] = reformat_nanosec(ETA);
+	data << "   ETA=" << ETA_v << ETA_u << std::endl;
 
 	// Replace the trailing space by a line break
 	if (data.str().back() == ' ') {
