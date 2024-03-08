@@ -26,6 +26,6 @@ Authors:
         <Save format="VTK" file="sensors" fields="r, normal, u, dudt, rho, drhodt, m, p, imove" />
     </ParticlesSet>
     <Reports>
-        <Report type="particles" name="Sensors" fields="p" path="sensors.out" set="1" ipf="1" fps="0.0"/>
+        <Report type="particles" name="Sensors" fields="p,shepard" path="sensors.out" set="1" ipf="1" fps="0.0"/>
     </Reports>
 </sphInput>

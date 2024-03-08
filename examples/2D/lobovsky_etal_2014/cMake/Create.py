@@ -46,7 +46,7 @@ H = 0.300
 refd = 997.0
 visc_kin = 8.9e-7
 # Discretization
-nx = 1600
+nx = 800
 dr = B / nx
 ny = int(round(H / dr))
 H = ny * dr
@@ -59,8 +59,8 @@ D = Ny * dr
 hfac = 4.0
 h = hfac * dr
 courant = 0.1
-Ma = 0.01
-cs = (g * H / Ma)**0.5
+Ma = 0.1
+cs = (g * H)**0.5 / Ma
 # Time
 T = 7.15 / (g / H)**0.5
 FPS = 300

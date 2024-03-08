@@ -74,16 +74,16 @@ line = None
 fig = plt.figure()
 ax = fig.add_subplot(111)
 
-# Load the percentiles
-data = readFile('Fig21_h30_sensor1_pressure_th.csv')
-ax.plot(data[0], data[1], label=None, color="black", linewidth=1.0,
-        linestyle='--')
-ax.plot(data[0], data[3], label=None, color="black", linewidth=1.0,
-        linestyle='--')
 # Create the SPH line
 t = [0.0]
 p = [0.0]
 line, = ax.plot(t, p, label=r'$p(t)$', color="red", linewidth=1.0)
+# Load the percentiles
+data = readFile('Fig31_Wemmenhove_sensor2_compared_graph.csv')
+ax.plot(data[0], data[1], label=None, color="black", linewidth=1.0,
+        linestyle='--')
+ax.plot(data[0], data[3], label=None, color="black", linewidth=1.0,
+        linestyle='--')
 # Set some options
 ax.grid()
 T = ({{H}} / {{G}})**0.5
@@ -100,7 +100,7 @@ def update(frame_index):
     try:
         data = readFile('sensors.out')
         t = [d / T for d in data[0]]
-        p = [d / P for d in data[2]]
+        p = [d * s * 2 / P for d, s in zip(data[3], data[4])]
     except IndexError:
         return
     except FileNotFoundError:
