@@ -565,24 +565,12 @@ void CL_CALLBACK
 cbMPISend(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 {
 	MPI_Request req;
-	MPI_Status status;
 	MPISyncSendUserData* data = (MPISyncSendUserData*)user_data;
 	unsigned int offset = *(data->offset);
 	unsigned int n = *(data->n);
 
 	if (data->tag == 1) {
-		req = Aqua::MPI::isend(&n, 1, MPI_UNSIGNED, data->proc, 0,
-		                       MPI_COMM_WORLD);
-		status = Aqua::MPI::wait(&req);
-		if (status.MPI_ERROR != MPI_SUCCESS) {
-			std::ostringstream msg;
-			msg << "Failure sending the number of particles to process "
-			    << data->proc << ":" << std::endl
-			    << Aqua::MPI::error_str(status.MPI_ERROR) << std::endl;
-			LOG(L_ERROR, msg.str());
-			free(data);
-			throw std::runtime_error("MPI sending error");
-		}
+		Aqua::MPI::send(&n, 1, MPI_UNSIGNED, data->proc, 0, MPI_COMM_WORLD);
 	}
 
 	if (!n) {
@@ -635,16 +623,6 @@ cbMPISend(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 	// Launch the missiles. Again we can proceed in synchronous mode
 	req = Aqua::MPI::isend(ptr, n * mpi_t.n, mpi_t.t, data->proc, data->tag,
 	                       MPI_COMM_WORLD);
-	if (status.MPI_ERROR != MPI_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure sending the field \"" << field->name()
-		    << "\" to process " << data->proc << ":" << std::endl
-		    << Aqua::MPI::error_str(status.MPI_ERROR) << std::endl;
-		LOG(L_ERROR, msg.str());
-		free(data);
-		throw std::runtime_error("MPI sending error");
-	}
-
 	free(data);
 }
 
@@ -947,18 +925,7 @@ cbMPIRecv(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 	unsigned int n;
 
 	// We need to receive the number of transmitted elements
-	req = Aqua::MPI::irecv(&n, 1, MPI_UNSIGNED, data->proc, 0,
-	                       MPI_COMM_WORLD);
-	status = Aqua::MPI::wait(&req);
-	if (status.MPI_ERROR != MPI_SUCCESS) {
-		std::ostringstream msg;
-		msg << "Failure receiving the number of particles from process "
-		    << data->proc << ":" << std::endl
-		    << Aqua::MPI::error_str(status.MPI_ERROR) << std::endl;
-		LOG(L_ERROR, msg.str());
-		free(data);
-		throw std::runtime_error("MPI receiving error");
-	}
+	Aqua::MPI::recv(&n, 1, MPI_UNSIGNED, data->proc, 0, MPI_COMM_WORLD);
 
 	// So we can set the offset for the next receivers
 	unsigned int next_offset = offset + n;
@@ -1039,18 +1006,8 @@ cbMPIRecv(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 		}
 
 		// Get the data in synchronous mode
-		req = Aqua::MPI::irecv(ptr, n * mpi_t.n, mpi_t.t, data->proc, i + 1,
-		                       MPI_COMM_WORLD);
-		status = Aqua::MPI::wait(&req);
-		if (status.MPI_ERROR != MPI_SUCCESS) {
-			std::ostringstream msg;
-			msg << "Failure receiving the field \"" << field->name()
-			    << " from process " << data->proc << ":" << std::endl
-			    << Aqua::MPI::error_str(status.MPI_ERROR) << std::endl;
-			LOG(L_ERROR, msg.str());
-			free(data);
-			throw std::runtime_error("MPI receiving error");
-		}
+		Aqua::MPI::recv(ptr, n * mpi_t.n, mpi_t.t, data->proc, i + 1,
+		                MPI_COMM_WORLD);
 
 		// But upload it in asynchronous mode
 		err_code = clEnqueueWriteBuffer(data->C->command_queue(cmd_queue_mpi),

@@ -40,6 +40,9 @@
 #include "ProblemSetup.hpp"
 #include "InputOutput/Logger.hpp"
 
+
+#include <iostream>
+
 namespace Aqua {
 
 int
@@ -552,6 +555,10 @@ numberOfDigits(unsigned int number)
 
 namespace MPI {
 
+void error_handler(MPI_Comm *comm, int *err, ...) {
+	LOG(L_ERROR, "MPI reported an error: " + error_str(*err) + "\n");
+}
+
 std::string error_str(int errorcode)
 {
 	char str[MPI_MAX_ERROR_STRING + 1];
@@ -565,10 +572,22 @@ std::string error_str(int errorcode)
 
 void init(int *argc, char ***argv)
 {
-	const int err = MPI_Init(argc, argv);
+	int err = MPI_Init(argc, argv);
 	if (err != MPI_SUCCESS) {
 		LOG(L_ERROR, "MPI_Init() failed: " + error_str(err) + "\n");
 		throw std::runtime_error("MPI error");
+	}
+	MPI_Errhandler mpi_err_handler;
+	err = MPI_Comm_create_errhandler(&Aqua::MPI::error_handler,
+	                                 &mpi_err_handler);
+	if (err != MPI_SUCCESS) {
+		LOG(L_WARNING, "Failure creating a MPI error handler: " +
+			error_str(err) + "\n");
+	}
+    err = MPI_Comm_set_errhandler(MPI_COMM_WORLD, mpi_err_handler);
+	if (err != MPI_SUCCESS) {
+		LOG(L_WARNING, "Failure installing the MPI error handler: " +
+			error_str(err) + "\n");
 	}
 }
 
@@ -613,6 +632,17 @@ void barrier(MPI_Comm comm)
 	}
 }
 
+void send(const void *buf, int count, MPI_Datatype datatype, int dest, int tag,
+          MPI_Comm comm)
+{
+	const int err = MPI_Send(buf, count, datatype, dest, tag, comm);
+	if (err != MPI_SUCCESS) {
+		LOG(L_ERROR, "MPI_Isend() failed: " + error_str(err) + "\n");
+		MPI_Abort(comm, err);
+		throw std::runtime_error("MPI error");
+	}
+}
+
 MPI_Request isend(const void *buf, int count, MPI_Datatype datatype, int dest,
                   int tag, MPI_Comm comm)
 {
@@ -624,6 +654,19 @@ MPI_Request isend(const void *buf, int count, MPI_Datatype datatype, int dest,
 		throw std::runtime_error("MPI error");
 	}
 	return req;
+}
+
+MPI_Status recv(void *buf, int count, MPI_Datatype datatype, int source,
+                int tag, MPI_Comm comm)
+{
+	MPI_Status status;
+	const int err = MPI_Recv(buf, count, datatype, source, tag, comm, &status);
+	if (err != MPI_SUCCESS) {
+		LOG(L_ERROR, "MPI_Irecv() failed: " + error_str(err) + "\n");
+		MPI_Abort(comm, err);
+		throw std::runtime_error("MPI error");
+	}
+	return status;
 }
 
 MPI_Request irecv(void *buf, int count, MPI_Datatype datatype,
@@ -643,6 +686,10 @@ MPI_Status wait(MPI_Request *request)
 {
 	MPI_Status status;
 	const int err = MPI_Wait(request, &status);
+	if (err != MPI_SUCCESS) {
+		LOG(L_ERROR, "MPI_Wait() failed: " + error_str(err) + "\n");
+		status.MPI_ERROR = err;
+	}
 	return status;
 }
 

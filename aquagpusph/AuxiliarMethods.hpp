@@ -538,10 +538,22 @@ int size(MPI_Comm comm);
  */
 void barrier(MPI_Comm comm);
 
+/** @brief Wrapper for MPI_Send()
+ * @param buf Initial address of send buffer
+ * @param count Number of elements in send buffer
+ * @param datatype Datatype of each send buffer element
+ * @param dest Rank of destination
+ * @param tag Message tag
+ * @param comm Communicator
+ * @throw std::runtime_error If MPI errors are detected
+ */
+void send(const void *buf, int count, MPI_Datatype datatype, int dest, int tag,
+          MPI_Comm comm);
+
 /** @brief Wrapper for MPI_Isend()
  * @param buf Initial address of send buffer
  * @param count Number of elements in send buffer
- * @param datatype Datatype of each send buffer element 
+ * @param datatype Datatype of each send buffer element
  * @param dest Rank of destination
  * @param tag Message tag
  * @param comm Communicator
@@ -550,6 +562,19 @@ void barrier(MPI_Comm comm);
  */
 MPI_Request isend(const void *buf, int count, MPI_Datatype datatype, int dest,
                   int tag, MPI_Comm comm);
+
+/** @brief Wrapper for MPI_Recv()
+ * @param buf Initial address of receive buffer
+ * @param count Number of elements in receive buffer
+ * @param datatype Datatype of each receive buffer element
+ * @param source Rank of source
+ * @param tag Message tag
+ * @param comm Communicator
+ * @return Status object
+ * @throw std::runtime_error If MPI errors are detected
+ */
+MPI_Status recv(void *buf, int count, MPI_Datatype datatype, int source,
+                int tag, MPI_Comm comm);
 
 /** @brief Wrapper for MPI_Irecv()
  * @param buf Initial address of receive buffer
