@@ -79,9 +79,6 @@
 #include "ProblemSetup.hpp"
 #include "CalcServer/CalcServer.hpp"
 #include "TimeManager.hpp"
-#ifdef HAVE_MPI
-#include <mpi.h>
-#endif
 
 /** @namespace Aqua
  * @brief Main AQUAgpusph namespace.
