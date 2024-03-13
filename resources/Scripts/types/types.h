@@ -22,6 +22,24 @@
  * This file is redirecting to either 2D.hcl or 3D.hcl, depending on #HAVE_3D
  */
 
+#ifndef INFINITY
+    #define INFINITY FLT_MAX
+#endif
+
+#define unit unsigned int
+#define vec2 float2
+#define vec3 float3
+#define vec4 float4
+#define vec8 float8
+#define ivec2 int2
+#define ivec3 int3
+#define ivec4 int4
+#define ivec8 int8
+#define uivec2 uint2
+#define uivec3 uint3
+#define uivec4 uint4
+#define uivec8 uint8
+
 /** @brief Helper function for #CONVERT
  *
  * The helper is required because the preprocessor is only recursively expanding
@@ -69,4 +87,17 @@
 #define LINKLIST_LOCAL_PARAMS                                                  \
     const __global uint * icell,                                               \
     const __global uint * ihoc,                                                \
+    uivec4 n_cells
+
+/** @brief Macro to easily add the parameters to run #BEGIN_NEIGHS macro,
+ * interacting with the local set of particles, i.e. the particles handled by
+ * this process.
+ * 
+ * @see #BEGIN_NEIGHS
+ * @note The number of particles, N, is not included
+ */
+#define LINKLIST_REMOTE_PARAMS                                                 \
+    const __global uint * icell,                                               \
+    const __global uint * mpi_icell,                                           \
+    const __global uint * mpi_ihoc,                                            \
     uivec4 n_cells

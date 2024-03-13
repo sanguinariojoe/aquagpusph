@@ -20,21 +20,6 @@
  * @brief Type definitions for the OpenCL kernels (2D version).
  */
 
-#ifndef INFINITY
-    #define INFINITY FLT_MAX
-#endif
-
-#define unit unsigned int
-#define vec2 float2
-#define vec3 float3
-#define vec4 float4
-#define ivec2 int2
-#define ivec3 int3
-#define ivec4 int4
-#define uivec2 uint2
-#define uivec3 uint3
-#define uivec4 uint4
-
 #define vec float2
 #define ivec int2
 #define uivec uint2

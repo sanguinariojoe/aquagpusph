@@ -20,17 +20,6 @@
  * @brief Type definitions for the OpenCL kernels (3D version).
  */
 
-#define unit unsigned int
-#define vec2 float2
-#define vec3 float3
-#define vec4 float4
-#define ivec2 int2
-#define ivec3 int3
-#define ivec4 int4
-#define uivec2 uint2
-#define uivec3 uint3
-#define uivec4 uint4
-
 #define vec float4
 #define ivec int4
 #define uivec uint4

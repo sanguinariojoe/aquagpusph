@@ -540,6 +540,59 @@ Vec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
 		return true;
 	}
+	set(PyArray_DATA(array_obj));
+	return false;
+}
+
+Vec8Variable::Vec8Variable(const std::string varname)
+  : ScalarVecVariable(varname, "vec8", 8)
+{
+	_value.s0 = 0.f;
+	_value.s1 = 0.f;
+	_value.s2 = 0.f;
+	_value.s3 = 0.f;
+	_value.s4 = 0.f;
+	_value.s5 = 0.f;
+	_value.s6 = 0.f;
+	_value.s7 = 0.f;
+}
+
+PyObject*
+Vec8Variable::getPythonObject(int i0, int n)
+{
+	vec8* vv = (vec8*)get();
+	npy_intp dims[] = { 8 };
+	return PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, vv->s);
+}
+
+bool
+Vec8Variable::setFromPythonObject(PyObject* obj, int i0, int n)
+{
+	if (checkPyhonObjectDims(obj))
+		return true;
+	PyArrayObject* array_obj = (PyArrayObject*)obj;
+	if (PyArray_TYPE(array_obj) != NPY_FLOAT32) {
+		pyerr.str("");
+		pyerr << "Variable \"" << name() << "\" expected a NPY_FLOAT32 array"
+		      << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
+	if (PyArray_NDIM(array_obj) != 1) {
+		pyerr.str("");
+		pyerr << "Variable \"" << name() << "\" expected a 1-dimension array"
+		      << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
+	if (PyArray_Size(obj) != 8) {
+		pyerr.str("");
+		pyerr << "Variable \"" << name()
+		      << "\" expected an array of 8 elements" << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
+	set(PyArray_DATA(array_obj));
 	return false;
 }
 
@@ -685,6 +738,58 @@ IVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 	return false;
 }
 
+IVec8Variable::IVec8Variable(const std::string varname)
+  : ScalarVecVariable(varname, "ivec8", 8)
+{
+	_value.s0 = 0;
+	_value.s1 = 0;
+	_value.s2 = 0;
+	_value.s3 = 0;
+	_value.s4 = 0;
+	_value.s5 = 0;
+	_value.s6 = 0;
+	_value.s7 = 0;
+}
+
+PyObject*
+IVec8Variable::getPythonObject(int i0, int n)
+{
+	ivec8* vv = (ivec8*)get();
+	npy_intp dims[] = { 8 };
+	return PyArray_SimpleNewFromData(1, dims, NPY_INT32, vv->s);
+}
+
+bool
+IVec8Variable::setFromPythonObject(PyObject* obj, int i0, int n)
+{
+	if (checkPyhonObjectDims(obj))
+		return true;
+	PyArrayObject* array_obj = (PyArrayObject*)obj;
+	if (PyArray_TYPE(array_obj) != NPY_INT32) {
+		pyerr.str("");
+		pyerr << "Variable \"" << name() << "\" expected a NPY_FLOAT32 array"
+		      << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
+	if (PyArray_NDIM(array_obj) != 1) {
+		pyerr.str("");
+		pyerr << "Variable \"" << name() << "\" expected a 1-dimension array"
+		      << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
+	if (PyArray_Size(obj) != 8) {
+		pyerr.str("");
+		pyerr << "Variable \"" << name()
+		      << "\" expected an array of 8 elements" << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
+	set(PyArray_DATA(array_obj));
+	return false;
+}
+
 UIVec2Variable::UIVec2Variable(const std::string varname)
   : ScalarVecVariable(varname, "uivec2", 2)
 {
@@ -819,6 +924,58 @@ UIVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
 		pyerr.str("");
 		pyerr << "Variable \"" << name()
 		      << "\" expected an array of 4 elements" << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
+	set(PyArray_DATA(array_obj));
+	return false;
+}
+
+UIVec8Variable::UIVec8Variable(const std::string varname)
+  : ScalarVecVariable(varname, "uivec8", 8)
+{
+	_value.s0 = 0;
+	_value.s1 = 0;
+	_value.s2 = 0;
+	_value.s3 = 0;
+	_value.s4 = 0;
+	_value.s5 = 0;
+	_value.s6 = 0;
+	_value.s7 = 0;
+}
+
+PyObject*
+UIVec8Variable::getPythonObject(int i0, int n)
+{
+	uivec8* vv = (uivec8*)get();
+	npy_intp dims[] = { 8 };
+	return PyArray_SimpleNewFromData(1, dims, NPY_UINT32, vv->s);
+}
+
+bool
+UIVec8Variable::setFromPythonObject(PyObject* obj, int i0, int n)
+{
+	if (checkPyhonObjectDims(obj))
+		return true;
+	PyArrayObject* array_obj = (PyArrayObject*)obj;
+	if (PyArray_TYPE(array_obj) != NPY_UINT32) {
+		pyerr.str("");
+		pyerr << "Variable \"" << name() << "\" expected a NPY_FLOAT32 array"
+		      << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
+	if (PyArray_NDIM(array_obj) != 1) {
+		pyerr.str("");
+		pyerr << "Variable \"" << name() << "\" expected a 1-dimension array"
+		      << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
+	if (PyArray_Size(obj) != 8) {
+		pyerr.str("");
+		pyerr << "Variable \"" << name()
+		      << "\" expected an array of 8 elements" << std::endl;
 		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
 		return true;
 	}
@@ -1940,6 +2097,23 @@ Variables::registerScalar(const std::string name,
 			var->set(&val);
 		}
 		_vars.push_back(var);
+	} else if (!type.compare("vec8")) {
+		Vec8Variable* var = new Vec8Variable(name);
+		if (value.compare("")) {
+			vec8 val;
+			float auxval[8];
+			readComponents(name, value, 8, auxval);
+			val.s0 = auxval[0];
+			val.s1 = auxval[1];
+			val.s2 = auxval[2];
+			val.s3 = auxval[3];
+			val.s4 = auxval[4];
+			val.s5 = auxval[5];
+			val.s6 = auxval[6];
+			val.s7 = auxval[7];
+			var->set(&val);
+		}
+		_vars.push_back(var);
 	} else if (!type.compare("ivec")) {
 		IVecVariable* var = new IVecVariable(name);
 		if (value.compare("")) {
@@ -1993,6 +2167,23 @@ Variables::registerScalar(const std::string name,
 			val.y = round(auxval[1]);
 			val.z = round(auxval[2]);
 			val.w = round(auxval[3]);
+			var->set(&val);
+		}
+		_vars.push_back(var);
+	} else if (!type.compare("ivec8")) {
+		IVec8Variable* var = new IVec8Variable(name);
+		if (value.compare("")) {
+			ivec8 val;
+			float auxval[8];
+			readComponents(name, value, 8, auxval);
+			val.s0 = round(auxval[0]);
+			val.s1 = round(auxval[1]);
+			val.s2 = round(auxval[2]);
+			val.s3 = round(auxval[3]);
+			val.s4 = round(auxval[4]);
+			val.s5 = round(auxval[5]);
+			val.s6 = round(auxval[6]);
+			val.s7 = round(auxval[7]);
 			var->set(&val);
 		}
 		_vars.push_back(var);
@@ -2052,6 +2243,23 @@ Variables::registerScalar(const std::string name,
 			var->set(&val);
 		}
 		_vars.push_back(var);
+	} else if (!type.compare("uivec8")) {
+		UIVec8Variable* var = new UIVec8Variable(name);
+		if (value.compare("")) {
+			uivec8 val;
+			float auxval[8];
+			readComponents(name, value, 8, auxval);
+			val.s0 = (unsigned int)round(auxval[0]);
+			val.s1 = (unsigned int)round(auxval[1]);
+			val.s2 = (unsigned int)round(auxval[2]);
+			val.s3 = (unsigned int)round(auxval[3]);
+			val.s4 = (unsigned int)round(auxval[4]);
+			val.s5 = (unsigned int)round(auxval[5]);
+			val.s6 = (unsigned int)round(auxval[6]);
+			val.s7 = (unsigned int)round(auxval[7]);
+			var->set(&val);
+		}
+		_vars.push_back(var);
 	} else {
 		std::ostringstream msg;
 		msg << "\"" << name << "\" declared as \"" << type
@@ -2065,14 +2273,17 @@ Variables::registerScalar(const std::string name,
 		LOG0(L_DEBUG, "\tvec2\n");
 		LOG0(L_DEBUG, "\tvec3\n");
 		LOG0(L_DEBUG, "\tvec4\n");
+		LOG0(L_DEBUG, "\tvec8\n");
 		LOG0(L_DEBUG, "\tivec\n");
 		LOG0(L_DEBUG, "\tivec2\n");
 		LOG0(L_DEBUG, "\tivec3\n");
 		LOG0(L_DEBUG, "\tivec4\n");
+		LOG0(L_DEBUG, "\tivec8\n");
 		LOG0(L_DEBUG, "\tuivec\n");
 		LOG0(L_DEBUG, "\tuivec2\n");
 		LOG0(L_DEBUG, "\tuivec3\n");
 		LOG0(L_DEBUG, "\tuivec4\n");
+		LOG0(L_DEBUG, "\tuivec8\n");
 		throw std::runtime_error("Invalid scalar variable type");
 	}
 }

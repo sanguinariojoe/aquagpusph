@@ -78,6 +78,12 @@
  */
 #define vec4 cl_float4
 #endif
+#ifndef vec8
+/** @def vec8
+ * @brief Vector of 8 real components.
+ */
+#define vec8 cl_float8
+#endif
 
 #ifndef ivec2
 /** @def ivec2
@@ -97,6 +103,12 @@
  */
 #define ivec4 cl_int4
 #endif
+#ifndef ivec8
+/** @def ivec8
+ * @brief Vector of 8 integer components.
+ */
+#define ivec8 cl_int8
+#endif
 
 #ifndef uivec2
 /** @def uivec2
@@ -115,6 +127,12 @@
  * @brief Vector of 4 unsigned integer components.
  */
 #define uivec4 cl_uint4
+#endif
+#ifndef uivec8
+/** @def uivec8
+ * @brief Vector of 8 unsigned integer components.
+ */
+#define uivec8 cl_uint8
 #endif
 
 #ifdef HAVE_3D
