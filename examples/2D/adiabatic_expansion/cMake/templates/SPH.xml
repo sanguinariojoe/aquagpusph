@@ -20,6 +20,7 @@ Authors:
 <sphInput>
     <Variables>
         <Variable name="g" type="vec" value="0.0, 0.0" />
+        <Variable name="p0" type="float" value="{{P0}}" />
         <Variable name="dr" type="float" value="{{DR}}" />
         <Variable name="hfac" type="float" value="{{HFAC}}" />
         <Variable name="h" type="float" value="hfac * dr" />
@@ -27,8 +28,8 @@ Authors:
         <Variable name="H" type="float" length="1" value="{{H}}"/>
         <Variable name="cs" type="float" value="{{CS}}" />
         <Variable name="courant" type="float" value="{{COURANT}}" />
-        <Variable name="iter_midpoint_max" type="unsigned int" length="1" value="400"/>
+        <Variable name="iter_midpoint_max" type="unsigned int" length="1" value="100"/>
         <Variable name="relax_midpoint" type="float" length="1" value="1. - 1. / iter_midpoint_max"/>
-        <Variable name="Residual_midpoint_max" type="float" length="1" value="1.e-9" symbol="E_{\Delta t}^{max}"/>
+        <Variable name="Residual_midpoint_max" type="float" length="1" value="-1.e-3 * {{F}} * {{X0}}" symbol="E_{\Delta t}^{max}"/>
     </Variables>
 </sphInput>

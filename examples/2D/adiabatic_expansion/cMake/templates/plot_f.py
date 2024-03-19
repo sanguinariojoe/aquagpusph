@@ -34,6 +34,7 @@ import os
 from os import path
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import quasi_static
 
 
 def readFile(filepath):
@@ -92,11 +93,15 @@ line_ft, = ax.plot(t,
                    label=r'$\boldsymbol{f}_t$',
                    color="black",
                    linewidth=1.0)
+t, _, f, _ = quasi_static.simulate()
+t = [d / {{T0}} for d in t]
+f = [d / {{F}} for d in f]
+ax.plot(t, f, color="black", linewidth=1.0, linestyle='--')
 # Set some options
 ax.grid()
 ax.legend(loc='best')
 ax.set_xlim(0.0, {{T}} / {{T0}})
-ax.set_ylim(0.0, 1.6)
+ax.set_ylim(0.0, 2.1)
 ax.set_autoscale_on(False)
 ax.set_xlabel(r"$t / T$")
 ax.set_ylabel(r"$f(t) / F$")

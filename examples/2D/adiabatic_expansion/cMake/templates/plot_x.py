@@ -34,6 +34,7 @@ import os
 from os import path
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import quasi_static
 
 
 def readFile(filepath):
@@ -79,6 +80,10 @@ line, = ax.plot(t,
                 x,
                 color="black",
                 linewidth=1.0)
+t, x, _, _ = quasi_static.simulate()
+t = [d / {{T0}} for d in t]
+x = [d / {{L}} for d in x]
+ax.plot(t, x, color="black", linewidth=1.0, linestyle='--')
 # Set some options
 ax.grid()
 ax.set_xlim(0.0, {{T}} / {{T0}})

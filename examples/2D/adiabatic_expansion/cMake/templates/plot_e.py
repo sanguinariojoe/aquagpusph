@@ -34,6 +34,8 @@ import os
 from os import path
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import quasi_static
+
 
 
 def readFile(filepath):
@@ -76,6 +78,7 @@ ax = fig.add_subplot(111)
 t = [0.0]
 ek = [0.0]
 ec = [0.0]
+ew = [0.0]
 et = [0.0]
 line_ek, = ax.plot(t,
                    ek,
@@ -87,16 +90,25 @@ line_ec, = ax.plot(t,
                    label=r'$E_c$',
                    color="blue",
                    linewidth=1.0)
+line_ew, = ax.plot(t,
+                   ew,
+                   label=r'$W$',
+                   color="green",
+                   linewidth=1.0)
 line_et, = ax.plot(t,
                    et,
                    label=r'$E_t$',
                    color="black",
                    linewidth=1.0)
+t, _, _, e = quasi_static.simulate()
+t = [d / {{T0}} for d in t]
+e = [d / abs({{F}} * {{X0}}) for d in e]
+ax.plot(t, e, color="black", linewidth=1.0, linestyle='--')
 # Set some options
 ax.grid()
 ax.legend(loc='best')
 ax.set_xlim(0.0, {{T}} / {{T0}})
-ax.set_ylim(-2.1, 0.3)
+ax.set_ylim(-2.1, 2.1)
 ax.set_autoscale_on(False)
 ax.set_xlabel(r"$t / T$")
 ax.set_ylabel(r"$\mathcal{E}(t) / (F \cdot x(t=0))$")
@@ -110,13 +122,19 @@ def update(frame_index):
         t = [d / {{T0}} for d in data[0]]
         ek = [d / abs({{F}} * {{X0}}) for d in data[1]]
         ec = [d / abs({{F}} * {{X0}}) for d in data[3]]
-        et = [ek[i] + ec[i] for i in range(len(ek))]
+        data = readFile('spring.out')
+        x = [d - ({{X0}}) for d in data[1]]
+        dxdt = data[2]
+        ew = [(0.5 * {{M}} * dxdt[i]**2 + {{F}} * x[i]) / abs({{F}} * {{X0}}) \
+            for i in range(len(t))]
+        et = [ek[i] + ec[i] + ew[i] for i in range(len(ek))]
     except IndexError:
         return
     except FileNotFoundError:
         return
     line_ek.set_data(t, ek)
     line_ec.set_data(t, ec)
+    line_ew.set_data(t, ew)
     line_et.set_data(t, et)
 
 
