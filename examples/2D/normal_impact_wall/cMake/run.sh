@@ -20,5 +20,7 @@ else
     echo "    Plot the resulting energy"
     echo "run.sh --plot f"
     echo "    Plot the resulting force on the wall"
+    echo "run.sh --plot r"
+    echo "    Plot the residues statistics"
     echo ""
 fi

@@ -18,5 +18,7 @@ else
     echo "    Runs the simulation. You can stop simulation pressing the 'c' key"
     echo "run.sh --plot e"
     echo "    Plot the resulting energy"
+    echo "run.sh --plot r"
+    echo "    Plot the residues statistics"
     echo ""
 fi
