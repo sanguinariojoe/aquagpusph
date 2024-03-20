@@ -28,8 +28,8 @@ Authors:
         <Variable name="H" type="float" length="1" value="{{H}}"/>
         <Variable name="cs" type="float" value="{{CS}}" />
         <Variable name="courant" type="float" value="{{COURANT}}" />
-        <Variable name="iter_midpoint_max" type="unsigned int" length="1" value="100"/>
-        <Variable name="relax_midpoint" type="float" length="1" value="1. - 1. / iter_midpoint_max"/>
+        <Variable name="iter_midpoint_max" type="unsigned int" length="1" value="50"/>
+        <Variable name="relax_midpoint" type="float" length="1" value="0"/>
         <Variable name="Residual_midpoint_max" type="float" length="1" value="-1.e-3 * {{F}} * {{X0}}" symbol="E_{\Delta t}^{max}"/>
     </Variables>
 </sphInput>

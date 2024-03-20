@@ -5,9 +5,8 @@
 
     To use this module, include it any time after basic.xml, and set the
     variable "iter_midpoint_max" to the maximum number of iterations per time
-    step you want to run (50 by default). Remember also to tweak the relaxation
-    factor, "relax_midpoint". "1. - 1. / iter_midpoint_max" is a good point to
-    start.
+    step you want to run (50 by default). Remember that you are entitled to
+    set some relaxation with the variable "relax_midpoint".
 
     You can also consider using some other modules under the folder midpoint.
 -->
@@ -20,7 +19,7 @@
     <Variables>
         <Variable name="iter_midpoint" type="unsigned int" length="1" value="0" symbol="iter_{\Delta t}"/>
         <Variable name="iter_midpoint_max" type="unsigned int" length="1" value="50" symbol="iter_{\Delta t}^{max}"/>
-        <Variable name="relax_midpoint" type="float" length="1" value="1. - 1. / iter_midpoint_max" symbol="f_{\Delta t}"/>
+        <Variable name="relax_midpoint" type="float" length="1" value="0" symbol="f_{\Delta t}"/>
     </Variables>
 
     <Tools>

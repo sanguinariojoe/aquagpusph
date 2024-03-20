@@ -21,5 +21,9 @@ else
     echo "    Runs the simulation"
     echo "run.sh --plot e"
     echo "    Plot the resulting energy"
+    echo "run.sh --plot p"
+    echo "    Plot the pressure at sensor 2"
+    echo "run.sh --plot r"
+    echo "    Plot the residues statistics"
     echo ""
 fi

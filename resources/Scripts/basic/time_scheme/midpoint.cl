@@ -124,8 +124,8 @@ __kernel void relax(const __global int* imove,
     if(imove[i] <= 0)
         return;
 
-    dudt[i] = (1.f - relax_midpoint) * dudt_in[i] + relax_midpoint * dudt[i];
-    drhodt[i] = (1.f - relax_midpoint) * drhodt_in[i] + relax_midpoint * drhodt[i];
+    dudt[i] = relax_midpoint * dudt_in[i] + (1.f - relax_midpoint) * dudt[i];
+    drhodt[i] = relax_midpoint * drhodt_in[i] + (1.f - relax_midpoint) * drhodt[i];
 }
 
 __kernel void residuals(const __global int* imove,

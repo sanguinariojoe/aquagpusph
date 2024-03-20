@@ -44,7 +44,7 @@ ny = nx = 400
 hfac = 4.0
 # Box size (on still state)
 L = H = 1.0
-# Match number
+# Mach number (the compressibility ratio associated one)
 Ma = 0.1
 # Fluid properties
 refd = 1.0
@@ -64,6 +64,7 @@ p0 = 1.5 * cs**2 * (rho0 - refd)
 F = p0 * H
 # Simulation time
 omega = cs / L * (M / mass)**0.5
+print(f"Ma = {-x0 * omega / cs}")  # Piston Mach number
 T0 = 2.0 * math.pi / omega
 T = 1.0 * T0
 FPS = 100 / T0

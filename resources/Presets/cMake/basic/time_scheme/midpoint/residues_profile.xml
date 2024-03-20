@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+
+<!-- Report the residues iteration by iteration
+
+     Include this after autostop.xml. It is also recommended to include this
+     after autorelax.xml, if such tool is included.
+-->
+
+<sphInput>
+    <Tools>
+        <Tool action="insert" before="midpoint autostop" name="midpoint residual profile" type="report_file" fields="t,iter_midpoint,relax_midpoint,Residual_midpoint" path="midpoint.out" />
+    </Tools>
+</sphInput>
