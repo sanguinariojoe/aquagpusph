@@ -29,8 +29,10 @@ Authors:
         <Variable name="Ma" type="float" length="1" value="{{MA}}"/>
         <Variable name="cs" type="float" value="U / Ma" />
         <Variable name="courant" type="float" value="{{COURANT}}" />
-        <Variable name="iter_midpoint_max" type="unsigned int" length="1" value="100"/>
-        <Variable name="relax_midpoint" type="float" length="1" value="1. - 1. / iter_midpoint_max"/>
+        <Variable name="iter_midpoint_max" type="unsigned int" length="1" value="15"/>
+        <Variable name="relax_midpoint" type="float" length="1" value="0.0"/>
         <Variable name="Residual_midpoint_max" type="float" length="1" value="1.e-3" symbol="E_{\Delta t}^{max}"/>
+        <Variable name="Residual_midpoint_mindec" type="float" length="1" value="1.0 / 3.0" symbol="E_{\Delta t} / E_{\Delta t,m-1}"/>
+        <Variable name="relax_midpoint_inc" type="float" length="1" value="0.2" symbol="f_{\Delta t,0}"/>
     </Variables>
 </sphInput>
