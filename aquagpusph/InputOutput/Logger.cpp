@@ -362,6 +362,21 @@ Logger::printOpenCLError(cl_int error, TLogLevel level)
 			addMessage(level,
 			           "\tCL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST\n");
 			break;
+		case CL_COMPILE_PROGRAM_FAILURE:
+			addMessage(level, "\tCL_COMPILE_PROGRAM_FAILURE\n");
+			break;
+		case CL_LINKER_NOT_AVAILABLE:
+			addMessage(level, "\tCL_LINKER_NOT_AVAILABLE\n");
+			break;
+		case CL_LINK_PROGRAM_FAILURE:
+			addMessage(level, "\tCL_LINK_PROGRAM_FAILURE\n");
+			break;
+		case CL_DEVICE_PARTITION_FAILED:
+			addMessage(level, "\tCL_DEVICE_PARTITION_FAILED\n");
+			break;
+		case CL_KERNEL_ARG_INFO_NOT_AVAILABLE:
+			addMessage(level, "\tCL_KERNEL_ARG_INFO_NOT_AVAILABLE\n");
+			break;
 		case CL_INVALID_VALUE:
 			addMessage(level, "\tCL_INVALID_VALUE\n");
 			break;
@@ -466,6 +481,18 @@ Logger::printOpenCLError(cl_int error, TLogLevel level)
 			break;
 		case CL_INVALID_PROPERTY:
 			addMessage(level, "\tCL_INVALID_PROPERTY\n");
+			break;
+		case CL_INVALID_IMAGE_DESCRIPTOR:
+			addMessage(level, "\tCL_INVALID_IMAGE_DESCRIPTOR\n");
+			break;
+		case CL_INVALID_COMPILER_OPTIONS:
+			addMessage(level, "\tCL_INVALID_COMPILER_OPTIONS\n");
+			break;
+		case CL_INVALID_LINKER_OPTIONS:
+			addMessage(level, "\tCL_INVALID_LINKER_OPTIONS\n");
+			break;
+		case CL_INVALID_DEVICE_PARTITION_COUNT:
+			addMessage(level, "\tCL_INVALID_DEVICE_PARTITION_COUNT\n");
 			break;
 		default:
 			addMessage(level, "\tUnhandled exception\n");
