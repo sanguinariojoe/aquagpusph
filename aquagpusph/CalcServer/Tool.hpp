@@ -328,7 +328,18 @@ class Tool
 	/** Get the tool index in the pipeline
 	 * @return Index of the tool in the pipeline. -1 if the tool cannot be find
 	 */
-	int id_in_pipeline();
+	int id_in_pipeline() const;
+
+	/** @brief Produce a variable name prefix
+	 *
+	 * The prefix produced is unique for each instance of this class, granting
+	 * that the variable will have a unique name, as long as the same name is
+	 * not used elsewhere on the same class
+	 */
+	inline std::string varPrefix() const
+	{
+		return "__tid" + std::to_string(id_in_pipeline()) + "_";
+	}
 
 	/** Set the next tool to be executed in the pipeline.
 	 * @param tool Next tool to be executed. NULL if this is the last tool of
@@ -454,6 +465,21 @@ class Tool
 		setDependencies(inputs, vars);
 	}
 
+	enum dep_events
+	{
+		in = 0x01,
+		out = 0x02,
+		all = 0x03
+	};
+
+	/** @brief Get the list of events that this tool shall wait for
+	 * @return List of events
+	 * @note The events returned have been retained, so call clReleaseEvent()
+	 * after using them
+	 */
+	const std::vector<cl_event> getEvents(
+		dep_events which = dep_events::all) const;
+
 	/** @brief Compile an OpenCL source code and generate the corresponding
 	 * kernel
 	 *
@@ -494,14 +520,8 @@ class Tool
 	                                const std::string kernel_name,
 	                                const std::string flags = "");
 
-  private:
-	/** @brief Get the list of events that this tool shall wait for
-	 * @return List of events
-	 * @note The events returned have been retained, so call clReleaseEvent()
-	 * after using them
-	 */
-	const std::vector<cl_event> getEvents() const;
 
+  private:
 	/** @brief Get a list of variables from their names
 	 * @param names List of names
 	 * @return List of varaibles

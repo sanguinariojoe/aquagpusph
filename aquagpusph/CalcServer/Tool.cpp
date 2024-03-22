@@ -230,7 +230,7 @@ Tool::execute()
 }
 
 int
-Tool::id_in_pipeline()
+Tool::id_in_pipeline() const
 {
 	std::vector<Tool*> tools = CalcServer::singleton()->tools();
 	auto it = std::find(tools.begin(), tools.end(), this);
@@ -276,7 +276,7 @@ Tool::compile(const std::string source,
 #else
 	flags << " -DNDEBUG ";
 #endif
-	flags << " -cl-mad-enable -cl-fast-relaxed-math";
+	flags << " -cl-mad-enable -cl-fast-relaxed-math -cl-kernel-arg-info";
 #ifdef HAVE_3D
 	flags << " -DHAVE_3D";
 #else
@@ -337,28 +337,32 @@ Tool::compile_kernel(const std::string source,
 }
 
 const std::vector<cl_event>
-Tool::getEvents() const
+Tool::getEvents(dep_events which) const
 {
 	cl_int err_code;
 	std::vector<cl_event> res;
 	// First traverse the input variables. We must wait for their writing
 	// events
-	for (auto var : _in_vars) {
-		cl_event event = var->getWritingEvent();
-		if (std::find(res.begin(), res.end(), event) != res.end())
-			continue;
-		res.push_back(event);
+	if (which & dep_events::in) {
+		for (auto var : _in_vars) {
+			cl_event event = var->getWritingEvent();
+			if (std::find(res.begin(), res.end(), event) != res.end())
+				continue;
+			res.push_back(event);
+		}
 	}
 	// Now we must parse the output variables. On output variables we must wait
 	// for both their writing and their reading events
-	for (auto var : _out_vars) {
-		auto events = var->getReadingEvents();
-		if (var->getWritingEvent())
-			events.push_back(var->getWritingEvent());
-		for (auto e : events) {
-			if (std::find(res.begin(), res.end(), e) != res.end())
-				continue;
-			res.push_back(e);
+	if (which & dep_events::out) {
+		for (auto var : _out_vars) {
+			auto events = var->getReadingEvents();
+			if (var->getWritingEvent())
+				events.push_back(var->getWritingEvent());
+			for (auto e : events) {
+				if (std::find(res.begin(), res.end(), e) != res.end())
+					continue;
+				res.push_back(e);
+			}
 		}
 	}
 
