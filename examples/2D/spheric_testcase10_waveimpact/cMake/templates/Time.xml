@@ -18,10 +18,6 @@ Authors:
 -->
 
 <sphInput>
-    <Variables>
-        <Variable name="dt_min" type="float" value="0.25 * courant * h / cs" />
-    </Variables>
-
     <Timing>
         <!-- Set the simulation end citeria             
             type="Frames" Simulation ends after print a number of frames

@@ -41,8 +41,8 @@ hfac = 4.0
 cs = 45.0
 courant = 0.1
 refd = 998.0
-alpha = 0.001
-delta = 10.0
+alpha = 0.0
+delta = 0.1
 visc_dyn = 0.000894
 # Tank dimensions
 H = 0.508

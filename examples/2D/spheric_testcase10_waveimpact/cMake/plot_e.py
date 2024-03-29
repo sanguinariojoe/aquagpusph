@@ -29,10 +29,9 @@
 #                                                                             *
 #******************************************************************************
 
+import sys
 import os
 from os import path
-import numpy as np
-from scipy.signal import savgol_filter
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
@@ -50,70 +49,84 @@ def readFile(filepath):
     f.close()
     data = []
     for l in lines[1:-1]:  # Skip the last line, which may be unready
-        l = l.strip()
+        l = l.replace('\t', ' ')
+        l = l.replace('(', ' ')
+        l = l.replace(')', ' ')
+        l = l.replace(',', ' ')
         while l.find('  ') != -1:
             l = l.replace('  ', ' ')
-        fields = l.split(' ')
+        fields = l.strip().split(' ')
+        if len(data) and len(fields) != len(data[-1]):
+            # Probably the system is writing it
+            continue
         try:
-            data.append(map(float, fields))
+            data.append(list(map(float, fields)))
         except:
             continue
     # Transpose the data
-    return [list(d) for d in zip(*data)]
+    return list(map(list, zip(*data)))
 
 
 line = None
 
 
+fig = plt.figure()
+ax = fig.add_subplot(111)
+
+t = [0.0]
+ek = [0.0]
+ec = [0.0]
+et = [0.0]
+line_ek, = ax.plot(t,
+                   ek,
+                   label=r'$E_k$',
+                   color="red",
+                   linewidth=1.0)
+line_ep, = ax.plot(t,
+                   ec,
+                   label=r'$E_p$',
+                   color="green",
+                   linewidth=1.0)
+line_ec, = ax.plot(t,
+                   ec,
+                   label=r'$E_c$',
+                   color="blue",
+                   linewidth=1.0)
+line_et, = ax.plot(t,
+                   et,
+                   label=r'$E_t$',
+                   color="black",
+                   linewidth=1.0)
+# Set some options
+ax.grid()
+ax.legend(loc='best')
+ax.set_xlim(0.0, 5.0)
+ax.set_ylim(-2.0, 25.0)
+ax.set_autoscale_on(False)
+ax.set_xlabel(r"$t$")
+ax.set_ylabel(r"$\mathcal{E}(t)$")
+
+
+# Animate
 def update(frame_index):
     plt.tight_layout()
     try:
-        data = readFile('sensors.out')
+        data = readFile('Energy.dat')
         t = data[0]
-        p = [d * s * 2 for d, s in zip(data[1], data[2])]
+        ek = data[1]
+        ep = data[2]
+        ec = data[3]
+        et = [ek[i] + ep[i] + ec[i] for i in range(len(ek))]
     except IndexError:
         return
     except FileNotFoundError:
         return
-    try:
-        line.set_data(t, savgol_filter(p, 5, 3))
-    except ValueError:
-        # Not enough data yet
-        line.set_data(t, p)
+    line_ek.set_data(t, ek)
+    line_ep.set_data(t, ep)
+    line_ec.set_data(t, ec)
+    line_et.set_data(t, et)
 
-
-fig = plt.figure()
-ax = fig.add_subplot(111)
-
-FNAME = path.join('@EXAMPLE_DEST_DIR@', 'lateral_water_1x.txt')
-T,P,A,DADT,_,_ = np.loadtxt(FNAME,
-                            delimiter='\t',
-                            skiprows=1,
-                            unpack=True)
-exp_t = T
-exp_p = 100.0 * P
-
-ax.plot(exp_t,
-        exp_p,
-        label=r'$\mathrm{Experiments}$',
-        color="red",
-        linewidth=1.0)
-t = [0.0]
-p = [0.0]
-line, = ax.plot(t,
-                p,
-                label=r'$\mathrm{SPH}$',
-                color="black",
-                linewidth=1.0)
-# Set some options
-ax.grid()
-ax.legend(loc='best')
-ax.set_xlim(0, 5)
-ax.set_ylim(-1000, 5000)
-ax.set_autoscale_on(False)
-ax.set_xlabel(r"$t \, [\mathrm{s}]$")
-ax.set_ylabel(r"$p \, [\mathrm{Pa}]$")
 
 update(0)
-ani = animation.FuncAnimation(fig, update, interval=5000)
+ani = animation.FuncAnimation(fig, update, interval=1000)
 plt.show()

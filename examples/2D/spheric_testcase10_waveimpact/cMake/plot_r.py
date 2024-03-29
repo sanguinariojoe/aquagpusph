@@ -29,12 +29,13 @@
 #                                                                             *
 #******************************************************************************
 
+import sys
 import os
+import math
 from os import path
-import numpy as np
-from scipy.signal import savgol_filter
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import numpy as np
 
 
 def readFile(filepath):
@@ -50,70 +51,80 @@ def readFile(filepath):
     f.close()
     data = []
     for l in lines[1:-1]:  # Skip the last line, which may be unready
-        l = l.strip()
+        l = l.replace('\t', ' ')
+        l = l.replace('(', ' ')
+        l = l.replace(')', ' ')
+        l = l.replace(',', ' ')
         while l.find('  ') != -1:
             l = l.replace('  ', ' ')
-        fields = l.split(' ')
+        fields = l.strip().split(' ')
+        if len(data) and len(fields) != len(data[-1]):
+            # Probably the system is writing it
+            continue
         try:
-            data.append(map(float, fields))
+            data.append(list(map(float, fields)))
         except:
             continue
     # Transpose the data
-    return [list(d) for d in zip(*data)]
+    return list(map(list, zip(*data)))
 
 
-line = None
-
-
-def update(frame_index):
-    plt.tight_layout()
-    try:
-        data = readFile('sensors.out')
-        t = data[0]
-        p = [d * s * 2 for d, s in zip(data[1], data[2])]
-    except IndexError:
-        return
-    except FileNotFoundError:
-        return
-    try:
-        line.set_data(t, savgol_filter(p, 5, 3))
-    except ValueError:
-        # Not enough data yet
-        line.set_data(t, p)
-
+def stats(residues):
+    """ Compute the minimum, maximum and average value for each iteration
+    :param residues The stack of residues grouped by iteration
+    """
+    y_min = []
+    y = []
+    y_max = []
+    for it in range(len(residues)):
+        y_min.append(np.percentile(residues[it], 0.05))
+        y_max.append(np.percentile(residues[it], 0.95))
+        y.append(np.percentile(residues[it], 0.5))
+    return y_min, y, y_max
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
 
-FNAME = path.join('@EXAMPLE_DEST_DIR@', 'lateral_water_1x.txt')
-T,P,A,DADT,_,_ = np.loadtxt(FNAME,
-                            delimiter='\t',
-                            skiprows=1,
-                            unpack=True)
-exp_t = T
-exp_p = 100.0 * P
-
-ax.plot(exp_t,
-        exp_p,
-        label=r'$\mathrm{Experiments}$',
-        color="red",
-        linewidth=1.0)
+# Create the SPH line
 t = [0.0]
-p = [0.0]
-line, = ax.plot(t,
-                p,
-                label=r'$\mathrm{SPH}$',
-                color="black",
-                linewidth=1.0)
+r = [0.0]
+line_min, = ax.plot([0.0], [0.0], color="black", linewidth=1.0, linestyle='--')
+line, = ax.plot([0.0], [0.0], color="black", linewidth=1.0, linestyle='-')
+line_max, = ax.plot([0.0], [0.0], color="black", linewidth=1.0, linestyle='--')
 # Set some options
 ax.grid()
-ax.legend(loc='best')
-ax.set_xlim(0, 5)
-ax.set_ylim(-1000, 5000)
+ax.set_xlim(0.0, 1.0)
+ax.set_ylim(1e-8, 1.0)
 ax.set_autoscale_on(False)
-ax.set_xlabel(r"$t \, [\mathrm{s}]$")
-ax.set_ylabel(r"$p \, [\mathrm{Pa}]$")
+ax.set_xlabel(r"$iter$")
+ax.set_ylabel(r"$R_{\Delta t}$")
+ax.set_yscale('log')
+
+# Animate
+def update(frame_index):
+    plt.tight_layout()
+    try:
+        data = readFile('midpoint.out')
+        # Stack the values according to its own iteration
+        r = []
+        for i in range(len(data[0])):
+            it = int(data[1][i])
+            if len(r) < it + 1:
+                r.append([])
+            r[it].append(data[-1][i])
+        # Get the stats for each iteration
+        x = list(range(len(r)))
+        y_min, y, y_max = stats(r)
+        ax.set_xlim(0.0, x[-1])
+        ax.set_ylim(min(y_min), max(y_max))
+    except IndexError:
+        return
+    except FileNotFoundError:
+        return
+    line_min.set_data(x, y_min)
+    line.set_data(x, y)
+    line_max.set_data(x, y_max)
 
 update(0)
-ani = animation.FuncAnimation(fig, update, interval=5000)
+ani = animation.FuncAnimation(fig, update, interval=1000)
 plt.show()
