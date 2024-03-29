@@ -48,6 +48,8 @@ LinkList::LinkList(const std::string tool_name,
                    const std::string ihoc,
                    const std::string icell,
                    const std::string n_cells,
+                   const std::string permutations,
+                   const std::string inv_permutations,
                    bool recompute_grid,
                    bool once)
   : Tool(tool_name, once)
@@ -83,7 +85,8 @@ LinkList::LinkList(const std::string tool_name,
 		                         "c = max(a, b);",
 		                         "-VEC_INFINITY");
 	}
-	_sort = new RadixSort(tool_name + "->Radix-Sort");
+	_sort = new RadixSort(tool_name + "->Radix-Sort",
+	                      icell, permutations, inv_permutations);
 	Profiler::substages({ new ScalarProfile("n_cells", this),
 	                      new EventProfile("icell", this),
 	                      new EventProfile("ihoc", this),
@@ -344,18 +347,16 @@ LinkList::allocate()
 		throw std::runtime_error("Invalid n_cells type");
 	}
 
-	n_cells = *(uivec4*)n_cells_var->get_async();
+	n_cells_var->set_async(&_n_cells);
+	_ihoc_gws = roundUp(_n_cells.w, _ihoc_lws);
 
-	if (_n_cells.w <= n_cells.w) {
-		n_cells.x = _n_cells.x;
-		n_cells.y = _n_cells.y;
-		n_cells.z = _n_cells.z;
-		n_cells_var->set_async(&n_cells);
+	// Check if the size of ihoc is already bigger than the required one
+	auto ihoc_var = getOutputDependencies()[0];
+	const size_t tsize = InputOutput::Variables::typeToBytes(ihoc_var->type());
+	if (ihoc_var->size() / tsize >= _n_cells.w)
 		return;
-	}
 
 	// We have no alternative, we must sync here
-	auto ihoc_var = getOutputDependencies()[0];
 	cl_mem mem = *(cl_mem*)ihoc_var->get_async();
 	if (mem)
 		clReleaseMemObject(mem);
@@ -371,10 +372,7 @@ LinkList::allocate()
 	                       std::to_string(_n_cells.w * sizeof(cl_uint)) +
 	                       " bytes on the device memory for tool \"" + name() +
 	                       "\".");
-
-	n_cells_var->set_async(&_n_cells);
 	ihoc_var->set_async(&mem);
-	_ihoc_gws = roundUp(_n_cells.w, _ihoc_lws);
 }
 
 void
@@ -384,8 +382,8 @@ LinkList::setVariables()
 	cl_int err_code;
 	InputOutput::Variables* vars = CalcServer::singleton()->variables();
 
-	const char* _ihoc_vars[3] = { "ihoc", "N", "n_cells" };
-	for (i = 0; i < 3; i++) {
+	std::vector<std::string> _ihoc_vars = { _ihoc_name, "N", _n_cells_name };
+	for (i = 0; i < _ihoc_vars.size(); i++) {
 		InputOutput::Variable* var = vars->get(_ihoc_vars[i]);
 		if (!memcmp(var->get_async(), _ihoc_args.at(i), var->typesize())) {
 			continue;
@@ -398,11 +396,11 @@ LinkList::setVariables()
 		memcpy(_ihoc_args.at(i), var->get_async(), var->typesize());
 	}
 
-	const char* _icell_vars[8] = {
-		"icell", _input_name.c_str(), "N", "n_radix",
-		"r_min", "support",           "h", "n_cells"
+	std::vector<std::string> _icell_vars = {
+		_icell_name, _input_name, "N", "n_radix", _input_min_name,
+		"support", "h", _n_cells_name
 	};
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < _icell_vars.size(); i++) {
 		InputOutput::Variable* var = vars->get(_icell_vars[i]);
 		if (!memcmp(var->get_async(), _icell_args.at(i), var->typesize())) {
 			continue;
@@ -415,8 +413,8 @@ LinkList::setVariables()
 		memcpy(_icell_args.at(i), var->get_async(), var->typesize());
 	}
 
-	const char* _ll_vars[3] = { "icell", "ihoc", "N" };
-	for (i = 0; i < 3; i++) {
+	std::vector<std::string> _ll_vars = { _icell_name, _ihoc_name, "N" };
+	for (i = 0; i < _ll_vars.size(); i++) {
 		InputOutput::Variable* var = vars->get(_ll_vars[i]);
 		if (!memcmp(var->get_async(), _ll_args.at(i), var->typesize())) {
 			continue;

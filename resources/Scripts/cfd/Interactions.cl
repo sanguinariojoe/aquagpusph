@@ -52,9 +52,9 @@
  * @param grad_p Pressure gradient \f$ \frac{\nabla p}{rho} \f$.
  * @param lap_u Velocity laplacian \f$ \frac{\Delta \mathbf{u}}{rho} \f$.
  * @param div_u Velocity divergence \f$ \rho \nabla \cdot \mathbf{u} \f$.
+ * @param N Number of particles.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
- * @param N Number of particles.
  * @param n_cells Number of cells in each direction
  */
 __kernel void entry(const __global int* imove,

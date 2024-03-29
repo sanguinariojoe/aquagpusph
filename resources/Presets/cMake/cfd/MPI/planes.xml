@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+
+<!-- This module allows to use an infinite plane to set a boundaries with other
+process.
+
+You just need to include this module after MPI.xml, and set the variables:
+
+ - mpi_plane_r: Bottom-left-back corner of the bounding box
+ - mpi_plane_n: The outward pointing normal of the planes
+ - mpi_plane_proc: Process id at the other side of the plane
+
+You can add this module several times to add several bounding planes. In that
+case, just edit the mpi_plane_r and mpi_plane_normal before the tool is
+executed ("mpi bound" tool). You can use prefixes when including for that.
+-->
+
+<sphInput>
+	<Variables>
+		<Variable name="mpi_plane_r" symbol="r_{mpi,min}" type="vec"/>
+		<Variable name="mpi_plane_n" symbol="n_{mpi}" type="vec"/>
+		<Variable name="mpi_plane_proc" symbol="pid_{mpi}" type="unsigned int" value="mpi_rank"/>
+	</Variables>
+
+	<Tools>
+		<Tool action="insert" after="mpi neighs mask reset" name="mpi bound" type="kernel" path="resources/Scripts/cfd/MPI/planes.cl" />
+	</Tools>
+
+	<Include file="@RESOURCES_OUTPUT_DIR@/Presets/basic/setBuffer.xml" when="end"/>
+</sphInput>

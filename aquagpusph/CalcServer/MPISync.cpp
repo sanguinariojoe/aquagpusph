@@ -309,15 +309,15 @@ MPISync::setupSort()
 
 	// Register the variables to store the permutations
 	valstr << _n;
-	var_name = "__" + _mask_name + "_unsorted";
+	var_name = varPrefix() + _mask_name + "_unsorted";
 	vars->registerVariable(var_name, "unsigned int*", valstr.str(), "");
 	_unsorted_id = (InputOutput::ArrayVariable*)vars->get(var_name);
-	var_name = "__" + _mask_name + "_sorted";
+	var_name = varPrefix() + _mask_name + "_sorted";
 	vars->registerVariable(var_name, "unsigned int*", valstr.str(), "");
 	_sorted_id = (InputOutput::ArrayVariable*)vars->get(var_name);
 
 	// Create the sorter
-	var_name = "__" + _mask_name + "->Radix-Sort";
+	var_name = varPrefix() + _mask_name + "->Radix-Sort";
 	_sort = new RadixSort(
 	    var_name, _mask_name, _unsorted_id->name(), _sorted_id->name());
 	_sort->setup();
@@ -336,7 +336,7 @@ MPISync::setupFieldSort(InputOutput::ArrayVariable* field)
 	// Register the variable to store the sorted copy
 	valstr.str("");
 	valstr << _n;
-	var_name = "__" + field->name() + "_sorted";
+	var_name = varPrefix() + field->name() + "_sorted";
 	vars->registerVariable(var_name, field->type(), valstr.str(), "");
 	_fields_sorted.push_back((InputOutput::ArrayVariable*)vars->get(var_name));
 	// Remove the inner memory object, since we are using the one computed by
@@ -385,8 +385,12 @@ MPISync::setupSenders()
 
 	// Create the senders
 	for (auto proc : _procs) {
-		Sender* sender =
-		    new Sender(name(), _mask, _fields_sorted, _fields_send, proc);
+		Sender* sender = new Sender(name(),
+		                            varPrefix(),
+		                            _mask,
+		                            _fields_sorted,
+		                            _fields_send,
+		                            proc);
 		if (!sender) {
 			std::stringstream msg;
 			msg << "Failure Allocating memory for the process " << proc
@@ -405,8 +409,9 @@ MPISync::setupReceivers()
 	InputOutput::Variables* vars = C->variables();
 
 	// Create a variable for the cumulative offset computation
-	vars->registerVariable("__mpi_offset", "unsigned int", "", "0");
-	_n_offset_recv = (InputOutput::UIntVariable*)vars->get("__mpi_offset");
+	std::string var_name = varPrefix() + "mpi_offset";
+	vars->registerVariable(var_name, "unsigned int", "", "0");
+	_n_offset_recv = (InputOutput::UIntVariable*)vars->get(var_name);
 
 	// Create a tool to reinit it to zero value
 	_n_offset_recv_reinit = new SetScalar(
@@ -441,8 +446,13 @@ MPISync::setupReceivers()
 
 	// Create the receivers
 	for (auto proc : _procs) {
-		Receiver* receiver = new Receiver(
-		    name(), _mask, _fields, _fields_recv, proc, _n_offset_recv);
+		Receiver* receiver = new Receiver(name(),
+		                                  varPrefix(),
+		                                  _mask,
+		                                  _fields,
+		                                  _fields_recv,
+		                                  proc,
+		                                  _n_offset_recv);
 		if (!receiver) {
 			std::stringstream msg;
 			msg << "Failure Allocating memory for the process " << proc
@@ -455,12 +465,14 @@ MPISync::setupReceivers()
 }
 
 MPISync::Exchanger::Exchanger(
-    const std::string tool_name,
-    InputOutput::ArrayVariable* mask,
-    const std::vector<InputOutput::ArrayVariable*> fields,
-    const std::vector<void*> field_hosts,
-    const unsigned int proc)
+	const std::string tool_name,
+	const std::string vars_prefix,
+	InputOutput::ArrayVariable* mask,
+	const std::vector<InputOutput::ArrayVariable*> fields,
+	const std::vector<void*> field_hosts,
+	const unsigned int proc)
   : _name(tool_name)
+  , _var_prefix(vars_prefix)
   , _mask(mask)
   , _fields(fields)
   , _fields_host(field_hosts)
@@ -510,11 +522,12 @@ MPISync::Exchanger::typeToMPI(std::string t)
 }
 
 MPISync::Sender::Sender(const std::string name,
+                        const std::string vars_prefix,
                         InputOutput::ArrayVariable* mask,
                         const std::vector<InputOutput::ArrayVariable*> fields,
                         const std::vector<void*> field_hosts,
                         const unsigned int proc)
-  : MPISync::Exchanger(name, mask, fields, field_hosts, proc)
+  : MPISync::Exchanger(name, vars_prefix, mask, fields, field_hosts, proc)
   , _n_offset(NULL)
   , _n_offset_mask(NULL)
   , _n_offset_kernel(NULL)
@@ -570,7 +583,7 @@ cbMPISend(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 	unsigned int n = *(data->n);
 
 	if (data->tag == 1) {
-		Aqua::MPI::send(&n, 1, MPI_UNSIGNED, data->proc, 0, MPI_COMM_WORLD);
+		Aqua::MPI::isend(&n, 1, MPI_UNSIGNED, data->proc, 0, MPI_COMM_WORLD);
 	}
 
 	if (!n) {
@@ -621,8 +634,8 @@ cbMPISend(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 	}
 
 	// Launch the missiles. Again we can proceed in synchronous mode
-	req = Aqua::MPI::isend(ptr, n * mpi_t.n, mpi_t.t, data->proc, data->tag,
-	                       MPI_COMM_WORLD);
+	Aqua::MPI::isend(ptr, n * mpi_t.n, mpi_t.t, data->proc, data->tag,
+	                 MPI_COMM_WORLD);
 	free(data);
 }
 
@@ -726,6 +739,11 @@ MPISync::Sender::execute(EventProfile* profiler)
 		    err_code,
 		    std::string("Failure setting the download & send callback for \"") +
 		        _fields.at(i)->name() + "\" in tool \"" + name() + "\".");
+		err_code = clFlush(C->command_queue());
+		CHECK_OCL_OR_THROW(
+		    err_code,
+		    std::string("Failure flushing the command queue for \"") +
+		        _fields.at(i)->name() + "\" in tool \"" + name() + "\".");
 	}
 }
 
@@ -739,20 +757,21 @@ MPISync::Sender::setupSubMaskMems()
 	valstr << _n;
 
 	i = 0;
-	name << "__" << _mask->name() << "_n_offset_mask_" << i;
+	name << _var_prefix << _mask->name() << "_n_offset_mask_" << i;
 	while (vars->get(name.str()) != NULL) {
-		name << "__" << _mask->name() << "_n_offset_mask_" << ++i;
+		name << _var_prefix << _mask->name() << "_n_offset_mask_" << ++i;
 	}
 	vars->registerVariable(name.str(), "unsigned int*", valstr.str(), "");
 	_n_offset_mask = (InputOutput::ArrayVariable*)vars->get(name.str());
 
 	i = 0;
 	name.str("");
-	name << "__" << _mask->name() << "_n_send_mask_" << i;
+	name << _var_prefix << _mask->name() << "_n_send_mask_" << i;
 	while (vars->get(name.str()) != NULL) {
-		name << "__" << _mask->name() << "_n_send_mask_" << ++i;
+		name << _var_prefix << _mask->name() << "_n_send_mask_" << ++i;
 	}
-	vars->registerVariable(name.str(), "unsigned int*", valstr.str(), "");
+	if (!vars->get(name.str()))
+		vars->registerVariable(name.str(), "unsigned int*", valstr.str(), "");
 	_n_send_mask = (InputOutput::ArrayVariable*)vars->get(name.str());
 }
 
@@ -845,11 +864,12 @@ MPISync::Sender::setupReduction(const std::string var_name)
 
 	// Register a variable where we can reduce the result
 	i = 0;
-	name << "__" << var_name << "_" << i;
+	name << _var_prefix << var_name << "_" << i;
 	while (vars->get(name.str()) != NULL) {
-		name << "__" << var_name << "_" << ++i;
+		name << _var_prefix << var_name << "_" << ++i;
 	}
-	vars->registerVariable(name.str(), "unsigned int", "", "0");
+	if (!vars->get(name.str()))
+		vars->registerVariable(name.str(), "unsigned int", "", "0");
 	InputOutput::Variable* var = vars->get(name.str());
 	if (!var_name.compare("n_offset")) {
 		_n_offset = (InputOutput::UIntVariable*)var;
@@ -872,12 +892,13 @@ MPISync::Sender::setupReduction(const std::string var_name)
 
 MPISync::Receiver::Receiver(
     const std::string name,
+    const std::string vars_prefix,
     InputOutput::ArrayVariable* mask,
     const std::vector<InputOutput::ArrayVariable*> fields,
     const std::vector<void*> field_hosts,
     const unsigned int proc,
     InputOutput::UIntVariable* n_offset)
-  : MPISync::Exchanger(name, mask, fields, field_hosts, proc)
+  : MPISync::Exchanger(name, vars_prefix, mask, fields, field_hosts, proc)
   , _kernel(NULL)
   , _n_offset(n_offset)
   , _local_work_size(0)
@@ -963,6 +984,7 @@ cbMPIRecv(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 			        field->name() + "\" variable.");
 		}
 		free(data);
+
 		return;
 	}
 
@@ -1120,6 +1142,11 @@ MPISync::Receiver::execute(EventProfile* profiler)
 	    std::string(
 	        "Failure setting the download & receive callback for process") +
 	        std::to_string(_proc) + " in tool \"" + name() + "\"");
+	err_code = clFlush(C->command_queue());
+	CHECK_OCL_OR_THROW(
+		err_code,
+		std::string("Failure flushing the command queue for process") +
+			std::to_string(_proc) + " in tool \"" + name() + "\".");
 }
 
 void

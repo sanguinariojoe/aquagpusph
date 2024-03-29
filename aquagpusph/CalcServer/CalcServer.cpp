@@ -308,6 +308,8 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 			                              t->get("ihoc"),
 			                              t->get("icell"),
 			                              t->get("n_cells"),
+			                              t->get("perm"),
+			                              t->get("inv_perm"),
 			                              recompute_grid,
 			                              once);
 			_tools.push_back(tool);

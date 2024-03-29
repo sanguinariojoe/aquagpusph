@@ -120,12 +120,21 @@ Set::_execute(const std::vector<cl_event> events)
 	auto C = CalcServer::singleton();
 
 	// Eventually evaluate the expression and set the variables to the kernel
-	cl_event args_event = ScalarExpression::_execute(events);
+	// To do that we do not need to wait until the output variable is ready
+	auto in_events = getEvents(dep_events::in);
+	cl_event args_event = ScalarExpression::_execute(in_events);
 	err_code = clFlush(C->command_queue());
 	CHECK_OCL_OR_THROW(
 	    err_code,
 	    std::string("Failure flushing the command queue at \"") + name() +
 	        "\".");
+	for (auto event : in_events) {
+		// Retain the event until we work with it
+		err_code = clReleaseEvent(event);
+		CHECK_OCL_OR_THROW(err_code,
+		                   std::string("Failure releasing an event in \"") +
+		                       name() + "\" tool.");
+	}
 	err_code = clWaitForEvents(1, &args_event);
 	CHECK_OCL_OR_THROW(
 	    err_code,

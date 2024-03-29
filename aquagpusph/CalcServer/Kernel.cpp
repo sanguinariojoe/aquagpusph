@@ -472,6 +472,7 @@ Kernel::variables(const std::string entry_point)
 		if (err_code != CL_SUCCESS) {
 			LOG(L_WARNING, "Failure asking for CL_KERNEL_ARG_NAME len.\n");
 			InputOutput::Logger::singleton()->printOpenCLError(err_code);
+			continue;
 		}
 		arg_name = new char[arg_name_len + 1];
 		if (!arg_name) {

@@ -157,15 +157,28 @@ ScalarExpression::_execute(const std::vector<cl_event> events)
 	CalcServer* C = CalcServer::singleton();
 
 	// We create a trigger event to be marked as completed when all the
-	// dependencies are fullfiled
-	cl_uint num_events_in_wait_list = events.size();
-	const cl_event* event_wait_list = events.size() ? events.data() : NULL;
-
-	err_code = clEnqueueMarkerWithWaitList(
-	    C->command_queue(), num_events_in_wait_list, event_wait_list, &trigger);
-	CHECK_OCL_OR_THROW(err_code,
-	                   std::string("Failure setting the trigger for tool \"") +
-	                       name() + "\".");
+	// dependencies are fullfiled.
+	// If there are no dependencies, we are not using
+	// clEnqueueMarkerWithWaitList() because it will set a marker waiting for
+	// everything enqueued before
+	if (events.size()) {
+		err_code = clEnqueueMarkerWithWaitList(C->command_queue(),
+		                                       events.size(),
+		                                       events.data(),
+		                                       &trigger);
+		CHECK_OCL_OR_THROW(err_code,
+			std::string("Failure setting the trigger for tool \"") +
+			name() + "\".");
+	} else {
+		trigger = clCreateUserEvent(C->context(), &err_code);
+		CHECK_OCL_OR_THROW(err_code,
+			std::string("Failure creating the trigger for tool \"") +
+			name() + "\".");
+		err_code = clSetUserEventStatus(trigger, CL_COMPLETE);
+		CHECK_OCL_OR_THROW(err_code,
+			std::string("Failure completing the trigger for tool \"") +
+			name() + "\".");
+	}
 
 	// Now we create a user event that we will set as completed when we already
 	// solved the equation and set the varaible value

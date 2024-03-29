@@ -37,7 +37,7 @@
 
 #include "resources/Scripts/types/types.h"
 
-/** @brief Stiffness Equation Of State (EOS) computation
+/** @brief Stiff Equation Of State (EOS) computation
  *
  * The equation of state relates the pressure and the density fields,
  * \f$ p = p_0 + c_s^2 \left(\rho - \rho_0 \right) \f$

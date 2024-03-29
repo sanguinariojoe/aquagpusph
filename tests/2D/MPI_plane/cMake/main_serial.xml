@@ -1,0 +1,38 @@
+<?xml version="1.0" ?>
+<sphInput>
+    <Include file="/home/pepe/SPH/Code/gcc/resources/Presets/basic.xml" />
+    <Include file="/home/pepe/SPH/Code/gcc/resources/Presets/cfd.xml" />
+    <Include file="/home/pepe/SPH/Code/gcc/resources/Presets/basic/time_scheme/midpoint.xml" />
+
+    <Variables>
+        <Variable name="g" type="vec" value="0.0, 0.0" />
+        <Variable name="dr" type="float" value="0.01" />
+        <Variable name="hfac" type="float" value="4.0" />
+        <Variable name="h" type="float" value="hfac * dr" />
+        <Variable name="L" type="float" length="1" value="1.0"/>
+        <Variable name="H" type="float" length="1" value="1.0"/>
+        <Variable name="U" type="float" length="1" value="1.0"/>
+        <Variable name="Ma" type="float" length="1" value="0.01"/>
+        <Variable name="cs" type="float" value="U / Ma" />
+        <Variable name="courant" type="float" value="0.5" />
+        <Variable name="iter_midpoint_max" type="unsigned int" length="1" value="1"/>
+        <Variable name="relax_midpoint" type="float" length="1" value="1.0"/>
+    </Variables>
+
+    <ParticlesSet n="10000">
+        <Scalar name="refd" value="1.0" />
+        <Scalar name="visc_dyn" value="0.0" />
+
+        <Load format="FastASCII" file="particles.dat" fields="r, u, dudt, rho, drhodt, m, imove" />
+        <Save fields="r, u, dudt, rho, drhodt, m, imove" file="out" format="ASCII"/>
+    </ParticlesSet>
+
+    <Settings>
+        <Device platform="0" device="0" type="ALL" />
+        <RootPath path="@RESOURCES_DIR@/.."/>
+    </Settings>
+    <Timing>
+        <Option name="End" type="Steps" value="1"/>
+        <Option name="Output" type="IPF" value="1" />
+    </Timing>
+</sphInput>

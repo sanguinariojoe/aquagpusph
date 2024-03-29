@@ -35,6 +35,7 @@
 #include <sstream>
 #include <iomanip>
 #include <numeric>
+#include <mutex>
 
 #include "AuxiliarMethods.hpp"
 #include "ProblemSetup.hpp"

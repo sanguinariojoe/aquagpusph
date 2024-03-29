@@ -187,6 +187,8 @@ class MPISync : public Aqua::CalcServer::Tool
 		/** Constructor
 		 * @param name The same name that the owner tool (See
 		 * Aqua::CalcServer::MPISync)
+		 * @param vars_prefix The unique prefix to register new variables (See
+		 * Aqua::CalcServer::MPISync::varPrefix())
 		 * @param mask Already sorted mask
 		 * @param fields Already sorted fields
 		 * @param field_hosts Allocated host memory to temporary copy the data,
@@ -195,6 +197,7 @@ class MPISync : public Aqua::CalcServer::Tool
 		 * @param proc Process to which the data shall be sent
 		 */
 		Exchanger(const std::string name,
+		          const std::string vars_prefix,
 		          InputOutput::ArrayVariable* mask,
 		          const std::vector<InputOutput::ArrayVariable*> fields,
 		          const std::vector<void*> field_hosts,
@@ -237,6 +240,9 @@ class MPISync : public Aqua::CalcServer::Tool
 		static const MPIType typeToMPI(std::string t);
 
 	  protected:
+		/// Variables prefix
+		std::string _var_prefix;
+		
 		/// Mask
 		InputOutput::ArrayVariable* _mask;
 
@@ -268,6 +274,8 @@ class MPISync : public Aqua::CalcServer::Tool
 		/** Constructor
 		 * @param name The same name that the owner tool (See
 		 * Aqua::CalcServer::MPISync)
+		 * @param vars_prefix The unique prefix to register new variables (See
+		 * Aqua::CalcServer::MPISync::varPrefix())
 		 * @param mask Already sorted mask
 		 * @param fields Already sorted fields
 		 * @param field_hosts Allocated host memory to temporary copy the data,
@@ -280,6 +288,7 @@ class MPISync : public Aqua::CalcServer::Tool
 		 * fields
 		 */
 		Sender(const std::string name,
+		       const std::string vars_prefix,
 		       InputOutput::ArrayVariable* mask,
 		       const std::vector<InputOutput::ArrayVariable*> fields,
 		       const std::vector<void*> field_hosts,
@@ -351,6 +360,8 @@ class MPISync : public Aqua::CalcServer::Tool
 		/** Constructor
 		 * @param name The same name that the owner tool (See
 		 * Aqua::CalcServer::MPISync)
+		 * @param vars_prefix The unique prefix to register new variables (See
+		 * Aqua::CalcServer::MPISync::varPrefix())
 		 * @param mask Incoming data process mask
 		 * @param fields Fields to store the incoming data
 		 * @param field_hosts Allocated host memory to temporary copy the
@@ -361,6 +372,7 @@ class MPISync : public Aqua::CalcServer::Tool
 		 * particles should be stored.
 		 */
 		Receiver(const std::string name,
+		         const std::string vars_prefix,
 		         InputOutput::ArrayVariable* mask,
 		         const std::vector<InputOutput::ArrayVariable*> fields,
 		         const std::vector<void*> field_hosts,

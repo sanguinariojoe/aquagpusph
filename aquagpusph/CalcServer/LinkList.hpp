@@ -60,6 +60,9 @@ class LinkList : public Aqua::CalcServer::Tool
 	 * @param ihoc Head of cells array.
 	 * @param icell Cell of each particle.
 	 * @param n_cells Number of cells.
+	 * @param permutations Variable where the permutations will be stored.
+	 * @param inv_permutations Variable where the inverse permutations will be
+	 * stored.
 	 * @param recompute_grid Should be @p input_min and @p input_max
 	 * recomputed or readed from the variables.
 	 * @param once Run this tool just once. Useful to make initializations.
@@ -74,6 +77,8 @@ class LinkList : public Aqua::CalcServer::Tool
 	         const std::string ihoc = "ihoc",
 	         const std::string icell = "icell",
 	         const std::string n_cells = "n_cells",
+	         const std::string permutations = "id_unsorted",
+	         const std::string inv_permutations = "id_sorted",
 	         bool recompute_grid = true,
 	         bool once = false);
 
