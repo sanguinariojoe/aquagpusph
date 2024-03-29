@@ -100,7 +100,7 @@ __kernel void feed(__global int* imove,
         // particle is not required
         return;
     }
-    const unsigned int ii = i + N - nbuffer;
+    const unsigned int ii = N - nbuffer + i;
 
     // Compute the generation point
     #ifndef HAVE_3D

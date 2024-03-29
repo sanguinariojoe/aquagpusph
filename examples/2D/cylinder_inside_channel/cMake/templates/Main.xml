@@ -33,7 +33,6 @@ Authors:
         <Define name="__LAP_FORMULATION__" value="__LAP_MORRIS__" evaluate="false"/>
         <!-- Elastic bounce is ignoring multiresolution by default -->
         <Define name="__MIN_BOUND_DIST__" value="0.05f" evaluate="false"/>
-        <Define name="M_ITERS" value="{{M_ITERS}}" evaluate="false"/>
     </Definitions>
     <Include file="@RESOURCES_DIR@/Presets/cfd/inlet.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/outlet.xml" />
@@ -46,7 +45,6 @@ Authors:
     <Include file="Settings.xml" />
     <Include file="Time.xml" />
     <Include file="SPH.xml" />
-    <Include file="Refinement.xml" />
     <Include file="Fluids.xml" />
     <Include file="Initialization.xml" />
 </sphInput>

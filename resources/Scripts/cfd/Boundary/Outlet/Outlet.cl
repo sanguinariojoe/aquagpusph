@@ -99,14 +99,14 @@ __kernel void rates(__global int* imove,
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param r Position \f$ \mathbf{r} \f$.
+ * @param r_in Position \f$ \mathbf{r} \f$.
  * @param N Number of particles.
  * @param domain_max Maximum point of the computational domain.
  * @param outlet_r Lower corner of the outlet square.
  * @param outlet_n = Velocity direction of the generated particles.
  */
 __kernel void feed(__global int* imove,
-                   __global vec* r,
+                   __global vec* r_in,
                    unsigned int N,
                    vec domain_max,
                    vec outlet_r,
@@ -120,13 +120,13 @@ __kernel void feed(__global int* imove,
         return;
 
     // Compute the distance to the outlet plane
-    const float dist = dot(r[i] - outlet_r, outlet_n);
+    const float dist = dot(r_in[i] - outlet_r, outlet_n);
     if(dist < 0.f)
         return;
 
     // Destroy the particles far away from the outlet plane
     if(dist > SUPPORT * H){
-        r[i] = domain_max + VEC_ONE;
+        r_in[i] = domain_max + VEC_ONE;
         imove[i] = -256;
     }
 }
