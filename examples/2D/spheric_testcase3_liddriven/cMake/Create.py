@@ -32,7 +32,6 @@
 
 import os.path as path
 import math
-from samba.dcerpc.lsa import RefDomainList
 
 # Input data
 # ==========
@@ -40,7 +39,7 @@ from samba.dcerpc.lsa import RefDomainList
 g = 0.0
 hfac = 4.0
 cs = 50.0
-courant = 0.25
+courant = 0.1
 refd = 1.0
 L = H = 1.0
 U = 1.0
@@ -55,7 +54,7 @@ visc_dyn = refd * U * L / Re
 p0 = 3.0 * refd * U**2
 
 alpha = 8.0 * visc_dyn / (refd * hfac * dr * cs)
-delta = 10.0 if alpha < 0.03 else 0.0
+delta = 1.0 if alpha < 0.03 else 0.0
 
 Nx = nx
 Ny = ny
