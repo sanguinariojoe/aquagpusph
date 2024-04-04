@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
 <sphInput>
-    <Include file="/home/pepe/SPH/Code/gcc/resources/Presets/basic.xml" />
-    <Include file="/home/pepe/SPH/Code/gcc/resources/Presets/cfd.xml" />
-    <Include file="/home/pepe/SPH/Code/gcc/resources/Presets/basic/time_scheme/midpoint.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/basic.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/basic/time_scheme/midpoint.xml" />
 
     <Variables>
         <Variable name="g" type="vec" value="0.0, 0.0" />
