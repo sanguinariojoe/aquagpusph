@@ -1106,7 +1106,7 @@ class Variables
 	/** Get all the registered variables.
 	 * @return Variable, NULL if the variable cannot be found.
 	 */
-	std::vector<Variable*> getAll() { return _vars; }
+	std::vector<Variable*> getAll() const { return _vars; }
 
 	/** Get the number of variables.
 	 * @return Number of registered variables.

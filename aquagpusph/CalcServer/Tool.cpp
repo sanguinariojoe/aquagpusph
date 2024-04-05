@@ -133,6 +133,35 @@ need_new_cmd(const Tool* prev_tool, std::vector<cl_event> events)
 	return true;
 }
 
+/** @brief Auxiliar function to print information about events, for debugging
+ * purposes
+ * @param event The event to debug
+ * @param C The CalcServer instance
+ * @param log_level The log level
+ * @param indent Base indent level
+ */
+void
+debug_event(cl_event event,
+            CalcServer* C,
+            TLogLevel log_level=L_DEBUG,
+            const char* indent="\t\t")
+{
+	std::stringstream msg;
+	msg << indent << event << std::endl;
+	auto tool = C->eventTool(event);
+	if (tool)
+		msg << indent << "\t" << "triggered by \"" << tool->name() << "\""
+		    << std::endl;
+	auto [vars_out, vars_in] = C->eventVars(event);
+	for (auto var : vars_in) {
+		msg << indent << "\t" << "read \"" << var->name() << "\"" << std::endl;
+	}
+	for (auto var : vars_out) {
+		msg << indent << "\t" << "write \"" << var->name() << "\"" << std::endl;
+	}
+	LOG0(log_level, msg.str());
+}
+
 void
 Tool::execute()
 {
@@ -167,7 +196,17 @@ Tool::execute()
 
 	for (auto substage : Profiler::substages())
 		substage->step();
+	if (C->debug_mode()) {
+		LOG0(L_DEBUG, "\tdepends on...\n");
+		for (auto e : events) {
+			debug_event(e, C);
+		}
+	}
 	cl_event event = _execute(events);
+	if (C->debug_mode()) {
+		LOG0(L_DEBUG, "\ttriggers...\n");
+		debug_event(event, C);
+	}
 	_event = event;
 	err_code = clFlush(C->command_queue());
 	CHECK_OCL_OR_THROW(err_code,

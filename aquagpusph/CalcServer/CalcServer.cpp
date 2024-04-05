@@ -747,6 +747,31 @@ CalcServer::getUnsortedMem(const std::string var_name,
 	return event;
 }
 
+std::tuple<std::vector<InputOutput::Variable*>,
+           std::vector<InputOutput::Variable*>>
+CalcServer::eventVars(cl_event event) const
+{
+	std::vector<InputOutput::Variable*> outs, ins;
+	for (auto var : _vars.getAll()) {
+		if (var->getWritingEvent() == event)
+			outs.push_back(var);
+		auto revs = var->getReadingEvents();
+		if (std::find(revs.begin(), revs.end(), event) != revs.end())
+			ins.push_back(var);
+	}
+	return {outs, ins};
+}
+
+Tool*
+CalcServer::eventTool(cl_event event) const
+{
+	for (auto tool : _tools) {
+		if (tool->getEvent() == event)
+			return tool;
+	}
+	return NULL;
+}
+
 void
 CalcServer::setupOpenCL()
 {

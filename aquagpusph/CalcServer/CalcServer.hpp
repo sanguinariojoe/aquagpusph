@@ -350,6 +350,19 @@ class CalcServer
 	 */
 	inline bool debug_mode() const { return _sim_data.settings.debug_tools; }
 
+	/** @brief Get the variables associated to an event, if any
+	 * @return The list of variables that depends on the event, both for
+	 * writing and reading
+	 */
+	std::tuple<std::vector<InputOutput::Variable*>,
+	           std::vector<InputOutput::Variable*>>
+	eventVars(cl_event event) const;
+
+	/** @brief Get the tool that emitted an event, if any
+	 * @return The tool that created the event. Null if no tool is found
+	 */
+	Tool* eventTool(cl_event event) const;
+
   private:
 	/** Setup the OpenCL stuff.
 	 */
