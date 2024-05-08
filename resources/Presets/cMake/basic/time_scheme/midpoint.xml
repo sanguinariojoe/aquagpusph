@@ -32,6 +32,7 @@
         <Tool action="insert" before="midpoint loop" name="midpoint init iter" type="set_scalar" in="iter_midpoint" value="0" />
         <Tool action="insert" before="midpoint loop" name="midpoint init drhodt" type="copy" in="drhodt_in" out="drhodt" />
         <Tool action="insert" before="midpoint loop" name="midpoint init dudt" type="copy" in="dudt_in" out="dudt" />
+        <Tool action="insert" before="midpoint loop" name="midpoint backup r" type="copy" in="r" out="r_in" />
         <Tool action="insert" before="midpoint loop" name="midpoint backup u" type="copy" in="u" out="u_in" />
         <Tool action="insert" before="midpoint loop" name="midpoint backup rho" type="copy" in="rho" out="rho_in" />
         <Tool action="insert" after="midpoint loop" name="midpoint backup drhodt" type="copy" in="drhodt" out="drhodt_in" />
