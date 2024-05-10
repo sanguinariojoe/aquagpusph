@@ -143,14 +143,14 @@ Report::mustUpdate()
 	float t = *(float*)time_var->get();
 
 	if (_ipf > 0) {
-		if (iter - _iter >= _ipf) {
+		if (!_iter || (iter - _iter >= _ipf)) {
 			_iter = iter;
 			_t = t;
 			return true;
 		}
 	}
 	if (_fps > 0.f) {
-		if (t - _t >= 1.f / _fps) {
+		if ((_t == 0.f) || (t - _t >= 1.f / _fps)) {
 			_iter = iter;
 			_t = t;
 			return true;
