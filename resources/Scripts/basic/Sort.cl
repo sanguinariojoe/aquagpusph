@@ -116,8 +116,8 @@ __kernel void stage2(const __global float *rho_in, __global float *rho,
     rho[i_out] = rho_in[i];
     m[i_out] = m_in[i];
     u[i_out] = u_in[i];
-    // Take care with the variation rates, since they are epheremeral. Thus, the
-    // output is actually the _in variable, whilst the other one will be
+    // Take care with the variation rates, since they are epheremeral. Thus,
+    // the output is actually the _in variable, whilst the other one will be
     // overwritten
     dudt_in[i_out] = dudt[i];
     drhodt_in[i_out] = drhodt[i];
