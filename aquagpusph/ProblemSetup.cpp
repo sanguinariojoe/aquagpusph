@@ -32,7 +32,8 @@ namespace Aqua {
 namespace InputOutput {
 
 ProblemSetup::ProblemSetup()
-  : _copy(false)
+  : _n_cmd_queues(15)
+  , _copy(false)
 {
 	time_opts.sim_end_mode = __NO_OUTPUT_MODE__;
 	time_opts.sim_end_time = 0.f;

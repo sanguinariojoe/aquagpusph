@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <string.h>
+#include <string>
 
 #include "ArgumentsManager.hpp"
 #include "FileManager.hpp"
@@ -33,14 +34,14 @@
 
 // Short and long runtime options (see
 // http://www.gnu.org/software/libc/manual/html_node/Getopt.html#Getopt)
-static const char* opts = "i:vh";
+static const char* opts = "i:q:vh";
 static const struct option longOpts[] = {
 	{ "input", required_argument, NULL, 'i' },
+	{ "queues", required_argument, NULL, 'q' },
 	{ "version", no_argument, NULL, 'v' },
 	{ "help", no_argument, NULL, 'h' },
 	{ NULL, no_argument, NULL, 0 }
 };
-extern char* optarg;
 
 namespace Aqua {
 namespace InputOutput {
@@ -63,6 +64,8 @@ displayUsage()
 	          << "the short ones." << std::endl;
 	std::cout << "  -i, --input=INPUT            XML definition input file "
 	          << "(Input.xml by default)" << std::endl;
+	std::cout << "  -q, --queues=QUEUES          Maximum number of OpenCL "
+	          << "command queues (15 by default)" << std::endl;
 	std::cout << "  -v, --version                Show the AQUAgpusph version"
 	          << std::endl;
 	std::cout << "  -h, --help                   Show this help page"
@@ -72,7 +75,7 @@ displayUsage()
 void
 parse(int argc, char** argv, FileManager& file_manager)
 {
-	int index;
+	int index, queues;
 
 	int opt = getopt_long(argc, argv, opts, longOpts, &index);
 	while (opt != -1) {
@@ -85,6 +88,39 @@ parse(int argc, char** argv, FileManager& file_manager)
 				LOG(L_INFO, msg.str());
 				break;
 
+			case 'q':
+				try {
+					queues = std::stoi(optarg);
+				} catch (const std::invalid_argument& e) {
+					msg.str(std::string());
+					msg << "Error parsing the number of command queues: '"
+					    << optarg << "' cannot be converted to an integer"
+					    << std::endl;
+					LOG(L_ERROR, msg.str());
+					throw;
+				} catch (const std::out_of_range& e) {
+					msg.str(std::string());
+					msg << "Error parsing the number of command queues: '"
+					    << optarg << "' is too large"
+					    << std::endl;
+					LOG(L_ERROR, msg.str());
+					throw;
+				}
+				if (queues <= 0) {
+					msg.str(std::string());
+					msg << "Error parsing the number of command queues: '"
+					    << optarg << "' is not a positive number"
+					    << std::endl;
+					LOG(L_ERROR, msg.str());
+					throw std::invalid_argument("Invalid queues");
+				}
+				file_manager.problemSetup().nCmdQueues(queues);
+				msg.str(std::string());
+				msg << file_manager.problemSetup().nCmdQueues()
+				    << " command queues can be spawned" << std::endl;
+				LOG(L_INFO, msg.str());
+				break;
+
 			case 'v':
 				std::cout << "VERSION: " << PACKAGE_VERSION << std::endl
 				          << std::endl;
@@ -92,12 +128,13 @@ parse(int argc, char** argv, FileManager& file_manager)
 
 			case ':':
 			case '?':
-				LOG(L_ERROR, "Error parsing the runtime args\n\n");
+				LOG(L_ERROR, "Error parsing the runtime args\n");
+				throw std::runtime_error("Invalid args");
 			case 'h':
 				displayUsage();
 
 			default:
-				LOG(L_ERROR, "Unhandled exception\n");
+				LOG(L_ERROR, "Invalid command line argument\n");
 				displayUsage();
 				throw std::invalid_argument("Invalid command line argument");
 		}

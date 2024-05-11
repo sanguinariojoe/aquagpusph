@@ -101,6 +101,20 @@ class ProblemSetup
 	 */
 	~ProblemSetup();
 
+	/** @brief Set the maximum number of main OpenCL queues to be spawned
+	 * @param n The number of command queues
+	 * @note The parallel MPI command queue used for communications is not
+	 * took into account here
+	 */
+	inline void nCmdQueues(unsigned int n) { _n_cmd_queues = n; }
+
+	/** @brief Get the maximum number of main OpenCL queues to be spawned
+	 * @return n The number of command queues
+	 * @note The parallel MPI command queue used for communications is not
+	 * took into account here
+	 */
+	inline unsigned int nCmdQueues() const { return _n_cmd_queues; }
+
 	/** @brief General program settings.
 	 *
 	 * These setting are set between the following XML tags:
@@ -737,6 +751,11 @@ class ProblemSetup
 	std::vector<sphParticlesSet*> sets;
 
   private:
+	/** Maximum number of main OpenCL command queues (there is always a
+	 * parallel one for MPI communications)
+	 */
+	unsigned int _n_cmd_queues;
+
 	/// Hack to avoid local copies try to remove the class
 	bool _copy;
 };

@@ -56,10 +56,6 @@
 #include "MPISync.hpp"
 #endif
 
-#ifndef MAX_COMMAND_QUEUES
-#define MAX_COMMAND_QUEUES 15
-#endif
-
 namespace Aqua {
 namespace CalcServer {
 
@@ -650,12 +646,10 @@ CalcServer::command_queue(cmd_queue which)
 	switch (which) {
 		case cmd_queue::cmd_queue_new:
 			_command_queue_current++;
-			if (_command_queue_current > MAX_COMMAND_QUEUES) {
-				// We reset to the command queue 1, becuase 0 will be selected
-				// when a new time step starts on ::update()
-				_command_queue_current = 1;
+			if (_command_queue_current > _sim_data.nCmdQueues()) {
+				_command_queue_current = 0;
 			}
-			if (_command_queue_current >= _command_queues.size()) {
+			else if (_command_queue_current >= _command_queues.size()) {
 				queue = create_command_queue(_context, _device, &err_code);
 				CHECK_OCL_OR_THROW(err_code,
 				                   "Failure generating a new command queue");
