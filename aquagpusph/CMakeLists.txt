@@ -64,6 +64,7 @@ SET(CPP_SRCS
     CalcServer/Sort.cpp
     CalcServer/Tool.cpp
     CalcServer/UnSort.cpp
+    CalcServer/Reports/Dump.cpp
     CalcServer/Reports/Performance.cpp
     CalcServer/Reports/Report.cpp
     CalcServer/Reports/Screen.cpp

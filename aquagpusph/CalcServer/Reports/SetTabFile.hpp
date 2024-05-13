@@ -21,8 +21,8 @@
  * (See Aqua::CalcServer::Reports::SetSetTabFile for details)
  */
 
-#ifndef SETSetTabFile_H_INCLUDED
-#define SETSetTabFile_H_INCLUDED
+#ifndef SETTABFILE_H_INCLUDED
+#define SETTABFILE_H_INCLUDED
 
 #include <fstream>
 #include "aquagpusph/sphPrerequisites.hpp"
@@ -140,4 +140,4 @@ class SetTabFile : public Aqua::CalcServer::Reports::Report
 }
 } // namespace
 
-#endif // SETSetTabFile_H_INCLUDED
+#endif // SETTABFILE_H_INCLUDED

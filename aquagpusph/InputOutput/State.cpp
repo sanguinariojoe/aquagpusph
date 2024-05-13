@@ -966,6 +966,11 @@ State::parseTools(DOMElement* root, ProblemSetup& sim_data, std::string prefix)
 				_toolAttr(tool, s_elem, "ipf", "1");
 				_toolAttr(tool, s_elem, "fps", "0.0");
 			} else if (!xmlAttribute(s_elem, "type")
+			                .compare("report_dump")) {
+				_toolAttr(tool, s_elem, "fields");
+				_toolAttr(tool, s_elem, "path");
+				_toolAttr(tool, s_elem, "binary", "false");
+			} else if (!xmlAttribute(s_elem, "type")
 			                .compare("report_performance")) {
 				_toolAttr(tool, s_elem, "bold", "false");
 				_toolAttr(tool, s_elem, "color", "white");

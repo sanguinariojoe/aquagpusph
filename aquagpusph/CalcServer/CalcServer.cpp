@@ -46,10 +46,11 @@
 #include "Set.hpp"
 #include "SetScalar.hpp"
 #include "UnSort.hpp"
+#include "Reports/Dump.hpp"
 #include "Reports/Performance.hpp"
 #include "Reports/Screen.hpp"
-#include "Reports/TabFile.hpp"
 #include "Reports/SetTabFile.hpp"
+#include "Reports/TabFile.hpp"
 
 #ifdef HAVE_MPI
 #include <mpi.h>
@@ -429,6 +430,18 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 			                            t->get("path"),
 			                            ipf,
 			                            fps);
+			_tools.push_back(tool);
+		} else if (!t->get("type").compare("report_dump")) {
+			bool binary = false;
+			if (!toLowerCopy(t->get("binary")).compare("true")) {
+				binary = true;
+			}
+
+			Reports::Dump* tool =
+			    new Reports::Dump(t->get("name"),
+			                      t->get("fields"),
+			                      t->get("path"),
+			                      binary);
 			_tools.push_back(tool);
 		} else if (!t->get("type").compare("report_performance")) {
 			bool bold = false;
