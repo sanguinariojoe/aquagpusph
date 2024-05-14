@@ -144,18 +144,36 @@ class ProblemSetup
 		 */
 		bool save_on_fail;
 
-		/** @brief Setup the tools debugging mode
+		/// @brief Possible debugging modes
+		typedef enum _debug {
+			/// Do not debug
+			NO_DEBUG = 0,
+			/// Print information about the events and tools execution
+			DEBUG_EVENTS = 1<<0,
+			/// Print information about kernel arguments setting
+			DEBUG_ARGS = 1<<1,
+			/// Wait for a tool dependencies to finish after executing it
+			DEBUG_DEPS_SYNC = 1<<2,
+			/// Wait for a tool to finish right after executing it
+			DEBUG_SYNC = 1<<3
+		} debug_opts;
+
+		/** @brief Debugging mode
 		 *
-		 * On the tools debugging mode the tools are executed one by one, while
-		 * they are logged. No tool is launched until the previous one
-		 * finished.
+		 * Several options can be activated (see ::debug_opts).
+		 * Some options are just printing additional information, while some
+		 * others are forcing tools to be executed one by one, while
+		 * they are logged.
 		 * This obviously has a quite negative impact on the performance, but
 		 * can be of use to find the tool which is causing issues.
 		 *
 		 * You can enable the tools debugging with the following tag:
-		 * `<DebugTools value="true" />`
+		 * `<DebugTools events="true" args="true" sync="true" deps="true" />`
+		 *
+		 * Please, note that when sync attribute is true, deps attribute
+		 * becomes useless
 		 */
-		bool debug_tools;
+		int debug_tools;
 
 		/** @brief AQUAgpusph root path.
 		 *

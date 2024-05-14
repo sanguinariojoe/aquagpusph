@@ -325,10 +325,20 @@ State::parseSettings(DOMElement* root,
 			if (s_node->getNodeType() != DOMNode::ELEMENT_NODE)
 				continue;
 			DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
-			if (!toLowerCopy(xmlAttribute(s_elem, "value")).compare("true")) {
-				sim_data.settings.debug_tools = true;
-			} else {
-				sim_data.settings.debug_tools = false;
+			std::vector<std::pair<std::string, ProblemSetup::sphSettings::debug_opts>> attrs = {
+				{"events", ProblemSetup::sphSettings::DEBUG_EVENTS},
+				{"args", ProblemSetup::sphSettings::DEBUG_ARGS},
+				{"sync", ProblemSetup::sphSettings::DEBUG_DEPS_SYNC},
+				{"deps", ProblemSetup::sphSettings::DEBUG_SYNC}};
+			for (const auto& attr : attrs) {
+				const std::string s = attr.first;
+				const ProblemSetup::sphSettings::debug_opts o = attr.second;
+				if (!toLowerCopy(xmlAttribute(s_elem, s)).compare("true")) {
+					sim_data.settings.debug_tools |= o;
+				} else if (!toLowerCopy(xmlAttribute(s_elem, s)).compare("")){
+					if(sim_data.settings.debug_tools & o)
+						sim_data.settings.debug_tools -= o;
+				}
 			}
 		}
 

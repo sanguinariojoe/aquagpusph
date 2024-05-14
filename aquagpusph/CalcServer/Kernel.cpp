@@ -122,10 +122,35 @@ ArgSetter::ArgSetter(const std::string name,
 	}
 }
 
+/** @brief Auxiliar function to print information about arguments
+ * @param i The index of the argument
+ * @param var The variable to be set
+ * @param C The CalcServer instance
+ * @param log_level The log level
+ * @param indent Base indent level
+ */
+void
+debug_arg(unsigned int i,
+            InputOutput::Variable* var,
+            CalcServer* C,
+            TLogLevel log_level=L_DEBUG,
+            const char* indent="\t\t")
+{
+	std::stringstream msg;
+	msg << indent << "Argument " << i << ", variable \"" << var->name() << "\""
+	    << std::endl;
+	msg << indent << "\ttype = " << var->type() << std::endl;
+	msg << indent << "\tvalue = " << var->asString() << std::endl;
+	LOG0(log_level, msg.str());
+}
+
 void
 ArgSetter::execute()
 {
 	cl_int err_code;
+	auto C = CalcServer::singleton();
+	if (C->debug_mode(InputOutput::ProblemSetup::sphSettings::DEBUG_ARGS))
+		LOG0(L_DEBUG, "\tSetting kernel arguments...\n");
 	for (unsigned int i = 0; i < _vars.size(); i++) {
 		auto var = _vars[i];
 		if (!var)
@@ -135,6 +160,8 @@ ArgSetter::execute()
 			continue;
 		arg = var;
 		// Update the variable
+		if (C->debug_mode(InputOutput::ProblemSetup::sphSettings::DEBUG_ARGS))
+			debug_arg(i, var, C);
 		err_code = clSetKernelArg(_kernel, i, arg.size(), arg.value());
 		CHECK_OCL_OR_THROW(err_code,
 		                   std::string("Failure setting the variable \"") +

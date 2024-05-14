@@ -82,7 +82,7 @@ ProblemSetup::~ProblemSetup()
 
 ProblemSetup::sphSettings::sphSettings()
   : save_on_fail(true)
-  , debug_tools(false)
+  , debug_tools(NO_DEBUG)
   , base_path("")
 {
 }

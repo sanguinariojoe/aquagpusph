@@ -54,6 +54,7 @@ namespace Aqua {
 namespace CalcServer {
 
 class UnSort;
+typedef InputOutput::ProblemSetup::sphSettings::debug_opts debug_opts;
 
 /** @class CalcServer CalcServer.h CalcServer.h
  * @brief Exception raised when the user manually interrupts the simulation.
@@ -344,11 +345,24 @@ class CalcServer
 	 */
 	const std::string base_path() const { return _base_path.c_str(); }
 
-	/** @brief Report if the tools debug mode is enabled.
+	/** @brief Report if any tools debug option is enabled.
 	 * @see Aqua::InputOutput::ProblemSetup::sphSettings::debug_tools
-	 * @return true if the tools debug mode is enabled, false otherwise
+	 * @return true if any tools debug mode option is enabled, false otherwise
 	 */
-	inline bool debug_mode() const { return _sim_data.settings.debug_tools; }
+	inline bool debug_mode() const
+	{
+		return _sim_data.settings.debug_tools;
+	}
+
+	/** @brief Report if the tools debug mode option is enabled.
+	 * @param opt The options to check
+	 * @see Aqua::InputOutput::ProblemSetup::sphSettings::debug_tools
+	 * @return true if the tools debug mode option is enabled, false otherwise
+	 */
+	inline bool debug_mode(debug_opts opt) const
+	{
+		return _sim_data.settings.debug_tools & opt;
+	}
 
 	/** @brief Get the variables associated to an event, if any
 	 * @return The list of variables that depends on the event, both for

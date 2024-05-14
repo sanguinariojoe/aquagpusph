@@ -196,14 +196,14 @@ Tool::execute()
 
 	for (auto substage : Profiler::substages())
 		substage->step();
-	if (C->debug_mode()) {
+	if (C->debug_mode(InputOutput::ProblemSetup::sphSettings::DEBUG_EVENTS)) {
 		LOG0(L_DEBUG, "\tdepends on...\n");
 		for (auto e : events) {
 			debug_event(e, C);
 		}
 	}
 	cl_event event = _execute(events);
-	if (C->debug_mode()) {
+	if (C->debug_mode(InputOutput::ProblemSetup::sphSettings::DEBUG_EVENTS)) {
 		LOG0(L_DEBUG, "\ttriggers...\n");
 		debug_event(event, C);
 	}
@@ -243,6 +243,14 @@ Tool::execute()
 
 	// Release the events in the wait list, which were retained by getEvents()
 	for (auto e : events) {
+		if (C->debug_mode(InputOutput::ProblemSetup::sphSettings::DEBUG_DEPS_SYNC))
+		{
+			err_code = clWaitForEvents(1, &e);
+			CHECK_OCL_OR_THROW(
+				err_code,
+				std::string("Failure waiting for a predecessor event in \"") +
+					name() + "\" tool.");
+		}
 		err_code = clReleaseEvent(e);
 		CHECK_OCL_OR_THROW(
 		    err_code,
@@ -250,7 +258,7 @@ Tool::execute()
 		        name() + "\" tool.");
 	}
 
-	if (C->debug_mode()) {
+	if (C->debug_mode(InputOutput::ProblemSetup::sphSettings::DEBUG_SYNC)) {
 		if (event != NULL) {
 			err_code = clWaitForEvents(1, &event);
 			CHECK_OCL_OR_THROW(err_code,
