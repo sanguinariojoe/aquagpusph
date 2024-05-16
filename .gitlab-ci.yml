@@ -64,7 +64,7 @@ compile-and-test-2D:
     - cmake --build build2D/ --config Release
     - cmake --install build2D/ --config Release
     - cd build2D
-    - ctest --output-on-failure -C Release
+    - ctest --output-on-failure --timeout 30 -C Release
   artifacts:
     paths:
       - build2D/
@@ -92,7 +92,7 @@ compile-and-test-3D:
     - cmake --build build3D/ --config Release
     - cmake --install build3D/ --config Release
     - cd build3D
-    - ctest --output-on-failure -C Release
+    - ctest --output-on-failure --timeout 30 -C Release
   artifacts:
     paths:
       - buil3D/
