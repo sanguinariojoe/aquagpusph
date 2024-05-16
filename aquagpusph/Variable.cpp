@@ -1634,7 +1634,7 @@ Variables::exprVariables(const std::string& expr)
 #define SCALAR_SOLVER(vartype, toktype)                                        \
 	template<>                                                                 \
 	vartype                                                                    \
-	Variables::solve(const std::string& name, const std::string& value)       \
+	Variables::solve(const std::string& name, const std::string& value)        \
 	{                                                                          \
 		SPLIT_EXPR_AND_CHECK(name, value, value_strs, 1);                      \
 		toktype val = tok.solve<toktype>(value_strs[0]);                       \

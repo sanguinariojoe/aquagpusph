@@ -114,24 +114,22 @@ class Tokenizer
 		const std::lock_guard<std::mutex> lock(this->mutex);
 		T result;
 
-		// First try a straight number conversion
+		// First try straight number conversions
 		try {
 			std::string::size_type sz;
-			result = std::stof(eq, &sz);
+			result = cast<T>(std::stod(eq, &sz));
 			if (sz == eq.size()) {
-				// There is not remaining content
+				// There is not remaining content, so we nailed it
 				return result;
 			}
 		} catch (...) {
-			// No possible conversion (by a variety of errors), just proceed with
-			// the parser
 		}
 
 		// No way, let's evaluate it as an expression
 		p.SetExpr(eq);
 
 		try {
-			result = p.Eval();
+			result = cast<T>(p.Eval());
 		} catch (mu::Parser::exception_type& e) {
 			std::ostringstream msg;
 			msg << "Error evaluating \"" << e.GetExpr() << "\"" << std::endl;
@@ -147,7 +145,7 @@ class Tokenizer
 			throw;
 		}
 
-		return cast<T>(result);
+		return result;
 	}
 
   protected:
