@@ -259,7 +259,7 @@ ScalarNumberVariable<T>::asString(bool synced)
 }
 
 IntVariable::IntVariable(const std::string varname)
-  : ScalarNumberVariable<int>(varname, "int")
+  : ScalarNumberVariable<icl>(varname, "int")
 {
 	_value = 0;
 }
@@ -267,7 +267,7 @@ IntVariable::IntVariable(const std::string varname)
 PyObject*
 IntVariable::getPythonObject(int i0, int n)
 {
-	long val = *((int*)get());
+	long val = *((icl*)get());
 	return PyLong_FromLong(val);
 }
 
@@ -282,7 +282,7 @@ IntVariable::setFromPythonObject(PyObject* obj, int i0, int n)
 		return true;
 	}
 
-	int value = (int)PyLong_AsLong(obj);
+	icl value = (icl)PyLong_AsLong(obj);
 	set(&value);
 
 	return false;
@@ -297,7 +297,7 @@ UIntVariable::UIntVariable(const std::string varname)
 PyObject*
 UIntVariable::getPythonObject(int i0, int n)
 {
-	unsigned long val = *(unsigned int*)get();
+	unsigned long val = *(uicl*)get();
 	return PyLong_FromUnsignedLong(val);
 }
 
@@ -312,7 +312,7 @@ UIntVariable::setFromPythonObject(PyObject* obj, int i0, int n)
 		return true;
 	}
 
-	unsigned int value = (unsigned int)PyLong_AsLong(obj);
+	uicl value = (uicl)PyLong_AsLong(obj);
 	set(&value);
 
 	return false;
@@ -327,7 +327,7 @@ FloatVariable::FloatVariable(const std::string varname)
 PyObject*
 FloatVariable::getPythonObject(int i0, int n)
 {
-	double val = *((float*)get());
+	double val = *((fcl*)get());
 	return PyFloat_FromDouble(val);
 }
 
@@ -342,7 +342,7 @@ FloatVariable::setFromPythonObject(PyObject* obj, int i0, int n)
 		return true;
 	}
 
-	float value = (float)PyFloat_AsDouble(obj);
+	fcl value = (fcl)PyFloat_AsDouble(obj);
 	set(&value);
 
 	return false;
@@ -1335,60 +1335,60 @@ ArrayVariable::asString(size_t i, bool synced)
 	std::ostringstream str_stream;
 
 	if (!type().compare("unsigned int*")) {
-		str_stream << ((unsigned int*)ptr)[0];
+		str_stream << ((uicl*)ptr)[0];
 	} else if (!type().compare("uivec2*")) {
 		str_stream << "(" << ((unsigned int*)ptr)[0] << ","
-		           << ((unsigned int*)ptr)[1] << ")";
+		           << ((uicl*)ptr)[1] << ")";
 	} else if (!type().compare("uivec3*")) {
-		str_stream << "(" << ((unsigned int*)ptr)[0] << ","
-		           << ((unsigned int*)ptr)[1] << "," << ((unsigned int*)ptr)[2]
+		str_stream << "(" << ((uicl*)ptr)[0] << ","
+		           << ((uicl*)ptr)[1] << "," << ((uicl*)ptr)[2]
 		           << ")";
 	} else if (!type().compare("uivec4*")) {
-		str_stream << "(" << ((unsigned int*)ptr)[0] << ","
-		           << ((unsigned int*)ptr)[1] << "," << ((unsigned int*)ptr)[2]
-		           << "," << ((unsigned int*)ptr)[3] << ")";
+		str_stream << "(" << ((uicl*)ptr)[0] << ","
+		           << ((uicl*)ptr)[1] << "," << ((uicl*)ptr)[2]
+		           << "," << ((uicl*)ptr)[3] << ")";
 	} else if (!type().compare("uivec*")) {
 #ifdef HAVE_3D
-		str_stream << "(" << ((unsigned int*)ptr)[0] << ","
-		           << ((unsigned int*)ptr)[1] << "," << ((unsigned int*)ptr)[2]
-		           << "," << ((unsigned int*)ptr)[3] << ")";
+		str_stream << "(" << ((uicl*)ptr)[0] << ","
+		           << ((uicl*)ptr)[1] << "," << ((uicl*)ptr)[2]
+		           << "," << ((uicl*)ptr)[3] << ")";
 #else
-		str_stream << "(" << ((unsigned int*)ptr)[0] << ","
-		           << ((unsigned int*)ptr)[1] << ")";
+		str_stream << "(" << ((uicl*)ptr)[0] << ","
+		           << ((uicl*)ptr)[1] << ")";
 #endif
 	} else if (!type().compare("int*")) {
-		str_stream << ((int*)ptr)[0];
+		str_stream << ((icl*)ptr)[0];
 	} else if (!type().compare("ivec2*")) {
-		str_stream << "(" << ((int*)ptr)[0] << "," << ((int*)ptr)[1] << ")";
+		str_stream << "(" << ((icl*)ptr)[0] << "," << ((icl*)ptr)[1] << ")";
 	} else if (!type().compare("ivec3*")) {
-		str_stream << "(" << ((int*)ptr)[0] << "," << ((int*)ptr)[1] << ","
-		           << ((int*)ptr)[2] << ")";
+		str_stream << "(" << ((icl*)ptr)[0] << "," << ((icl*)ptr)[1] << ","
+		           << ((icl*)ptr)[2] << ")";
 	} else if (!type().compare("ivec4*")) {
-		str_stream << "(" << ((int*)ptr)[0] << "," << ((int*)ptr)[1] << ","
-		           << ((int*)ptr)[2] << "," << ((int*)ptr)[3] << ")";
+		str_stream << "(" << ((icl*)ptr)[0] << "," << ((icl*)ptr)[1] << ","
+		           << ((icl*)ptr)[2] << "," << ((icl*)ptr)[3] << ")";
 	} else if (!type().compare("ivec*")) {
 #ifdef HAVE_3D
-		str_stream << "(" << ((int*)ptr)[0] << "," << ((int*)ptr)[1] << ","
-		           << ((int*)ptr)[2] << "," << ((int*)ptr)[3] << ")";
+		str_stream << "(" << ((icl*)ptr)[0] << "," << ((icl*)ptr)[1] << ","
+		           << ((icl*)ptr)[2] << "," << ((icl*)ptr)[3] << ")";
 #else
-		str_stream << "(" << ((int*)ptr)[0] << "," << ((int*)ptr)[1] << ")";
+		str_stream << "(" << ((icl*)ptr)[0] << "," << ((icl*)ptr)[1] << ")";
 #endif
 	} else if (!type().compare("float*")) {
-		str_stream << ((float*)ptr)[0];
+		str_stream << ((fcl*)ptr)[0];
 	} else if (!type().compare("vec2*")) {
-		str_stream << "(" << ((float*)ptr)[0] << "," << ((float*)ptr)[1] << ")";
+		str_stream << "(" << ((fcl*)ptr)[0] << "," << ((fcl*)ptr)[1] << ")";
 	} else if (!type().compare("vec3*")) {
-		str_stream << "(" << ((float*)ptr)[0] << "," << ((float*)ptr)[1] << ","
-		           << ((float*)ptr)[2] << ")";
+		str_stream << "(" << ((fcl*)ptr)[0] << "," << ((fcl*)ptr)[1] << ","
+		           << ((fcl*)ptr)[2] << ")";
 	} else if (!type().compare("vec4*")) {
-		str_stream << "(" << ((float*)ptr)[0] << "," << ((float*)ptr)[1] << ","
-		           << ((float*)ptr)[2] << "," << ((float*)ptr)[3] << ")";
+		str_stream << "(" << ((fcl*)ptr)[0] << "," << ((fcl*)ptr)[1] << ","
+		           << ((fcl*)ptr)[2] << "," << ((fcl*)ptr)[3] << ")";
 	} else if (!type().compare("vec*")) {
 #ifdef HAVE_3D
-		str_stream << "(" << ((float*)ptr)[0] << "," << ((float*)ptr)[1] << ","
-		           << ((float*)ptr)[2] << "," << ((float*)ptr)[3] << ")";
+		str_stream << "(" << ((fcl*)ptr)[0] << "," << ((fcl*)ptr)[1] << ","
+		           << ((fcl*)ptr)[2] << "," << ((fcl*)ptr)[3] << ")";
 #else
-		str_stream << "(" << ((float*)ptr)[0] << "," << ((float*)ptr)[1] << ")";
+		str_stream << "(" << ((fcl*)ptr)[0] << "," << ((fcl*)ptr)[1] << ")";
 #endif
 	} else {
 		std::ostringstream msg;
@@ -1425,7 +1425,6 @@ Variables::Variables() {}
 
 Variables::~Variables()
 {
-	unsigned int i;
 	for (auto var : _vars) {
 		delete var;
 	}
@@ -1495,14 +1494,14 @@ Variables::typeToBytes(const std::string type)
 
 	if (type.find("unsigned int") != std::string::npos ||
 	    type.find("uivec") != std::string::npos) {
-		type_size = sizeof(unsigned int);
+		type_size = sizeof(uicl);
 	} else if (type.find("int") != std::string::npos ||
 	           type.find("ivec") != std::string::npos) {
-		type_size = sizeof(int);
+		type_size = sizeof(icl);
 	} else if (type.find("float") != std::string::npos ||
 	           type.find("vec") != std::string::npos ||
 	           type.find("matrix") != std::string::npos) {
-		type_size = sizeof(float);
+		type_size = sizeof(fcl);
 	} else {
 		std::ostringstream msg;
 		msg << "Unvalid type \"" << type << "\"" << std::endl;
@@ -1618,6 +1617,65 @@ Variables::exprVariables(const std::string& expr)
 	return vars;
 }
 
+#define SPLIT_EXPR_AND_CHECK(var_name, expr, exprs_out, n)                     \
+	std::vector<std::string> exprs_out = split_formulae(expr);                 \
+	if (exprs_out.size() < n) {                                                \
+		std::ostringstream msg;                                                \
+		msg << "Failure parsing the expression \"" << expr                     \
+		    << "\" for variable \"" << var_name << "\"" << std::endl;          \
+		LOG(L_ERROR, msg.str());                                               \
+		msg.str("");                                                           \
+		msg << n << " fields required instead of " << exprs_out.size()         \
+		    << std::endl;                                                      \
+		LOG0(L_DEBUG, msg.str());                                              \
+		throw std::runtime_error("Invalid number of fields");                  \
+	}
+
+#define SCALAR_SOLVER(vartype, toktype)                                        \
+	template<>                                                                 \
+	vartype                                                                    \
+	Variables::solve(const std::string& name, const std::string& value)       \
+	{                                                                          \
+		SPLIT_EXPR_AND_CHECK(name, value, value_strs, 1);                      \
+		toktype val = tok.solve<toktype>(value_strs[0]);                       \
+		tok.registerVariable<toktype>(name, val);                              \
+		return (vartype)val;                                                   \
+	}
+
+SCALAR_SOLVER(icl, int)
+SCALAR_SOLVER(uicl, unsigned int)
+SCALAR_SOLVER(fcl, float)
+
+#define VEC_SOLVER(vartype, toktype, n)                                        \
+	template<>                                                                 \
+	vartype                                                                    \
+	Variables::solve(const std::string& name, const std::string& value)       \
+	{                                                                          \
+		vartype out;                                                           \
+		const char* extensions[4] = { "_x", "_y", "_z", "_w" };                \
+		SPLIT_EXPR_AND_CHECK(name, value, value_strs, n);                      \
+		for (unsigned int i = 0; i < n; i++) {                                 \
+			toktype val = tok.solve<toktype>(value_strs[i]);                   \
+			tok.registerVariable(name + extensions[i], val);                   \
+			out.s[i] = val;                                                    \
+		}                                                                      \
+		return out;                                                            \
+	}
+
+// NOTE: 3 components OpenCL vectors are actually an alias for the 4 components
+VEC_SOLVER(ivec2, int, 2)
+// VEC_SOLVER(ivec3, int, 3)
+VEC_SOLVER(ivec4, int, 4)
+VEC_SOLVER(ivec8, int, 8)
+VEC_SOLVER(uivec2, unsigned int, 2)
+// VEC_SOLVER(uivec3, unsigned int, 3)
+VEC_SOLVER(uivec4, unsigned int, 4)
+VEC_SOLVER(uivec8, unsigned int, 8)
+VEC_SOLVER(vec2, float, 2)
+// VEC_SOLVER(vec3, float, 3)
+VEC_SOLVER(vec4, float, 4)
+VEC_SOLVER(vec8, float, 8)
+
 void
 Variables::solve(const std::string type_name,
                  const std::string value,
@@ -1639,143 +1697,49 @@ Variables::solve(const std::string type_name,
 		type.pop_back();
 
 	if (!type.compare("int")) {
-		int val;
-		float auxval;
-		readComponents(name, value, 1, &auxval);
-		val = round(auxval);
+		icl val = solve<icl>(name, value);
 		memcpy(data, &val, typesize);
 	} else if (!type.compare("unsigned int")) {
-		unsigned int val;
-		float auxval;
-		readComponents(name, value, 1, &auxval);
-		val = (unsigned int)round(auxval);
+		uicl val = solve<uicl>(name, value);
 		memcpy(data, &val, typesize);
 	} else if (!type.compare("float")) {
-		float val;
-		readComponents(name, value, 1, &val);
+		fcl val = solve<fcl>(name, value);
 		memcpy(data, &val, typesize);
 	} else if (!type.compare("vec")) {
-		vec val;
-#ifdef HAVE_3D
-		float auxval[4];
-		readComponents(name, value, 4, auxval);
-		val.x = auxval[0];
-		val.y = auxval[1];
-		val.z = auxval[2];
-		val.w = auxval[3];
-		memcpy(data, &val, typesize);
-#else
-		float auxval[2];
-		readComponents(name, value, 2, auxval);
-		val.x = auxval[0];
-		val.y = auxval[1];
-#endif
+		vec val = solve<vec>(name, value);
 		memcpy(data, &val, typesize);
 	} else if (!type.compare("vec2")) {
-		vec2 val;
-		float auxval[2];
-		readComponents(name, value, 2, auxval);
-		val.x = auxval[0];
-		val.y = auxval[1];
+		vec2 val = solve<vec2>(name, value);
 		memcpy(data, &val, typesize);
 	} else if (!type.compare("vec3")) {
-		vec3 val;
-		float auxval[3];
-		readComponents(name, value, 3, auxval);
-		val.x = auxval[0];
-		val.y = auxval[1];
-		val.z = auxval[2];
+		vec3 val = solve<vec3>(name, value);
 		memcpy(data, &val, typesize);
 	} else if (!type.compare("vec4")) {
-		vec4 val;
-		float auxval[4];
-		readComponents(name, value, 4, auxval);
-		val.x = auxval[0];
-		val.y = auxval[1];
-		val.z = auxval[2];
-		val.w = auxval[3];
+		vec4 val = solve<vec4>(name, value);
 		memcpy(data, &val, typesize);
 	} else if (!type.compare("ivec")) {
-		ivec val;
-#ifdef HAVE_3D
-		float auxval[4];
-		readComponents(name, value, 4, auxval);
-		val.x = round(auxval[0]);
-		val.y = round(auxval[1]);
-		val.z = round(auxval[2]);
-		val.w = round(auxval[3]);
-		memcpy(data, &val, typesize);
-#else
-		float auxval[2];
-		readComponents(name, value, 2, auxval);
-		val.x = round(auxval[0]);
-		val.y = round(auxval[1]);
-#endif
+		ivec val = solve<ivec>(name, value);
 		memcpy(data, &val, typesize);
 	} else if (!type.compare("ivec2")) {
-		ivec2 val;
-		float auxval[2];
-		readComponents(name, value, 2, auxval);
-		val.x = round(auxval[0]);
-		val.y = round(auxval[1]);
+		ivec2 val = solve<ivec2>(name, value);
 		memcpy(data, &val, typesize);
 	} else if (!type.compare("ivec3")) {
-		ivec3 val;
-		float auxval[3];
-		readComponents(name, value, 3, auxval);
-		val.x = round(auxval[0]);
-		val.y = round(auxval[1]);
-		val.z = round(auxval[2]);
+		ivec3 val = solve<ivec3>(name, value);
 		memcpy(data, &val, typesize);
 	} else if (!type.compare("ivec4")) {
-		ivec4 val;
-		float auxval[4];
-		readComponents(name, value, 4, auxval);
-		val.x = round(auxval[0]);
-		val.y = round(auxval[1]);
-		val.z = round(auxval[2]);
-		val.w = round(auxval[3]);
+		ivec4 val = solve<ivec4>(name, value);
 		memcpy(data, &val, typesize);
 	} else if (!type.compare("uivec")) {
-		uivec val;
-#ifdef HAVE_3D
-		float auxval[4];
-		readComponents(name, value, 4, auxval);
-		val.x = (unsigned int)round(auxval[0]);
-		val.y = (unsigned int)round(auxval[1]);
-		val.z = (unsigned int)round(auxval[2]);
-		val.w = (unsigned int)round(auxval[3]);
-		memcpy(data, &val, typesize);
-#else
-		float auxval[2];
-		readComponents(name, value, 2, auxval);
-		val.x = (unsigned int)round(auxval[0]);
-		val.y = (unsigned int)round(auxval[1]);
-#endif
+		uivec val = solve<uivec>(name, value);
 		memcpy(data, &val, typesize);
 	} else if (!type.compare("uivec2")) {
-		uivec2 val;
-		float auxval[2];
-		readComponents(name, value, 2, auxval);
-		val.x = (unsigned int)round(auxval[0]);
-		val.y = (unsigned int)round(auxval[1]);
+		uivec2 val = solve<uivec2>(name, value);
 		memcpy(data, &val, typesize);
 	} else if (!type.compare("uivec3")) {
-		uivec3 val;
-		float auxval[3];
-		readComponents(name, value, 3, auxval);
-		val.x = (unsigned int)round(auxval[0]);
-		val.y = (unsigned int)round(auxval[1]);
-		val.z = (unsigned int)round(auxval[2]);
+		uivec3 val = solve<uivec3>(name, value);
 		memcpy(data, &val, typesize);
 	} else if (!type.compare("uivec4")) {
-		uivec4 val;
-		float auxval[4];
-		readComponents(name, value, 4, auxval);
-		val.x = (unsigned int)round(auxval[0]);
-		val.y = (unsigned int)round(auxval[1]);
-		val.z = (unsigned int)round(auxval[2]);
-		val.w = (unsigned int)round(auxval[3]);
+		uivec4 val = solve<uivec4>(name, value);
 		memcpy(data, &val, typesize);
 	} else {
 		throw std::runtime_error("Invalid variable type");
@@ -1807,189 +1771,105 @@ Variables::populate(const std::string name)
 void
 Variables::populate(Variable* var)
 {
-	std::ostringstream name;
+	const char* extensions[4] = { "_x", "_y", "_z", "_w" };
 	const std::string type = trimCopy(var->type());
 	if (!type.compare("int")) {
-		int val = *(int*)var->get_async();
-		tok.registerVariable(var->name(), (float)val);
+		icl val = *(icl*)var->get_async();
+		tok.registerVariable<int>(var->name(), (int)val);
 	} else if (!type.compare("unsigned int")) {
-		unsigned int val = *(unsigned int*)var->get_async();
-		tok.registerVariable(var->name(), (float)val);
+		uicl val = *(uicl*)var->get_async();
+		tok.registerVariable<unsigned int>(var->name(), (unsigned int)val);
 	} else if (!type.compare("float")) {
-		float val = *(float*)var->get_async();
-		tok.registerVariable(var->name(), (float)val);
+		fcl val = *(fcl*)var->get_async();
+		tok.registerVariable<float>(var->name(), (float)val);
 	} else if (!type.compare("vec")) {
 		vec val = *(vec*)var->get_async();
 #ifdef HAVE_3D
-		name.str("");
-		name << var->name() << "_x";
-		tok.registerVariable(name.str(), (float)(val.x));
-		name.str("");
-		name << var->name() << "_y";
-		tok.registerVariable(name.str(), (float)(val.y));
-		name.str("");
-		name << var->name() << "_z";
-		tok.registerVariable(name.str(), (float)(val.z));
-		name.str("");
-		name << var->name() << "_w";
-		tok.registerVariable(name.str(), (float)(val.w));
+		for (unsigned int i = 0; i < 4; i++) {
 #else
-		name.str("");
-		name << var->name() << "_x";
-		tok.registerVariable(name.str(), (float)(val.x));
-		name.str("");
-		name << var->name() << "_y";
-		tok.registerVariable(name.str(), (float)(val.y));
-#endif // HAVE_3D
+		for (unsigned int i = 0; i < 2; i++) {
+#endif
+			tok.registerVariable<float>(var->name() + extensions[i],
+			                            (float)(val.s[i]));
+		}
 	} else if (!type.compare("vec2")) {
 		vec2 val = *(vec2*)var->get_async();
-		name.str("");
-		name << var->name() << "_x";
-		tok.registerVariable(name.str(), (float)(val.x));
-		name.str("");
-		name << var->name() << "_y";
-		tok.registerVariable(name.str(), (float)(val.y));
+		for (unsigned int i = 0; i < 2; i++) {
+			tok.registerVariable<float>(var->name() + extensions[i],
+			                            (float)(val.s[i]));
+		}
 	} else if (!type.compare("vec3")) {
 		vec3 val = *(vec3*)var->get_async();
-		name.str("");
-		name << var->name() << "_x";
-		tok.registerVariable(name.str(), (float)(val.x));
-		name.str("");
-		name << var->name() << "_y";
-		tok.registerVariable(name.str(), (float)(val.y));
-		name.str("");
-		name << var->name() << "_z";
-		tok.registerVariable(name.str(), (float)(val.z));
+		for (unsigned int i = 0; i < 3; i++) {
+			tok.registerVariable<float>(var->name() + extensions[i],
+			                            (float)(val.s[i]));
+		}
 	} else if (!type.compare("vec4")) {
 		vec4 val = *(vec4*)var->get_async();
-		name.str("");
-		name << var->name() << "_x";
-		tok.registerVariable(name.str(), (float)(val.x));
-		name.str("");
-		name << var->name() << "_y";
-		tok.registerVariable(name.str(), (float)(val.y));
-		name.str("");
-		name << var->name() << "_z";
-		tok.registerVariable(name.str(), (float)(val.z));
-		name.str("");
-		name << var->name() << "_w";
-		tok.registerVariable(name.str(), (float)(val.w));
+		for (unsigned int i = 0; i < 4; i++) {
+			tok.registerVariable<float>(var->name() + extensions[i],
+			                            (float)(val.s[i]));
+		}
 	} else if (!type.compare("ivec")) {
 		ivec val = *(ivec*)var->get_async();
 #ifdef HAVE_3D
-		name.str("");
-		name << var->name() << "_x";
-		tok.registerVariable(name.str(), (float)(val.x));
-		name.str("");
-		name << var->name() << "_y";
-		tok.registerVariable(name.str(), (float)(val.y));
-		name.str("");
-		name << var->name() << "_z";
-		tok.registerVariable(name.str(), (float)(val.z));
-		name.str("");
-		name << var->name() << "_w";
-		tok.registerVariable(name.str(), (float)(val.w));
+		for (unsigned int i = 0; i < 4; i++) {
 #else
-		name.str("");
-		name << var->name() << "_x";
-		tok.registerVariable(name.str(), (float)(val.x));
-		name.str("");
-		name << var->name() << "_y";
-		tok.registerVariable(name.str(), (float)(val.y));
-#endif // HAVE_3D
+		for (unsigned int i = 0; i < 2; i++) {
+#endif
+			tok.registerVariable<int>(var->name() + extensions[i],
+			                            (int)(val.s[i]));
+		}
 	} else if (!type.compare("ivec2")) {
 		ivec2 val = *(ivec2*)var->get_async();
-		name.str("");
-		name << var->name() << "_x";
-		tok.registerVariable(name.str(), (float)(val.x));
-		name.str("");
-		name << var->name() << "_y";
-		tok.registerVariable(name.str(), (float)(val.y));
+		for (unsigned int i = 0; i < 2; i++) {
+			tok.registerVariable<int>(var->name() + extensions[i],
+			                            (int)(val.s[i]));
+		}
 	} else if (!type.compare("ivec3")) {
 		ivec3 val = *(ivec3*)var->get_async();
-		name.str("");
-		name << var->name() << "_x";
-		tok.registerVariable(name.str(), (float)(val.x));
-		name.str("");
-		name << var->name() << "_y";
-		tok.registerVariable(name.str(), (float)(val.y));
-		name.str("");
-		name << var->name() << "_z";
-		tok.registerVariable(name.str(), (float)(val.z));
+		for (unsigned int i = 0; i < 3; i++) {
+			tok.registerVariable<int>(var->name() + extensions[i],
+			                            (int)(val.s[i]));
+		}
 	} else if (!type.compare("ivec4")) {
 		ivec4 val = *(ivec4*)var->get_async();
-		name.str("");
-		name << var->name() << "_x";
-		tok.registerVariable(name.str(), (float)(val.x));
-		name.str("");
-		name << var->name() << "_y";
-		tok.registerVariable(name.str(), (float)(val.y));
-		name.str("");
-		name << var->name() << "_z";
-		tok.registerVariable(name.str(), (float)(val.z));
-		name.str("");
-		name << var->name() << "_w";
-		tok.registerVariable(name.str(), (float)(val.w));
+		for (unsigned int i = 0; i < 4; i++) {
+			tok.registerVariable<int>(var->name() + extensions[i],
+			                            (int)(val.s[i]));
+		}
 	} else if (!type.compare("uivec")) {
 		uivec val = *(uivec*)var->get_async();
 #ifdef HAVE_3D
-		name.str("");
-		name << var->name() << "_x";
-		tok.registerVariable(name.str(), (float)(val.x));
-		name.str("");
-		name << var->name() << "_y";
-		tok.registerVariable(name.str(), (float)(val.y));
-		name.str("");
-		name << var->name() << "_z";
-		tok.registerVariable(name.str(), (float)(val.z));
-		name.str("");
-		name << var->name() << "_w";
-		tok.registerVariable(name.str(), (float)(val.w));
+		for (unsigned int i = 0; i < 4; i++) {
 #else
-		name.str("");
-		name << var->name() << "_x";
-		tok.registerVariable(name.str(), (float)(val.x));
-		name.str("");
-		name << var->name() << "_y";
-		tok.registerVariable(name.str(), (float)(val.y));
-#endif // HAVE_3D
+		for (unsigned int i = 0; i < 2; i++) {
+#endif
+			tok.registerVariable<unsigned int>(var->name() + extensions[i],
+			                                   (unsigned int)(val.s[i]));
+		}
 	} else if (!type.compare("uivec2")) {
 		uivec2 val = *(uivec2*)var->get_async();
-		name.str("");
-		name << var->name() << "_x";
-		tok.registerVariable(name.str(), (float)(val.x));
-		name.str("");
-		name << var->name() << "_y";
-		tok.registerVariable(name.str(), (float)(val.y));
+		for (unsigned int i = 0; i < 2; i++) {
+			tok.registerVariable<unsigned int>(var->name() + extensions[i],
+			                                   (unsigned int)(val.s[i]));
+		}
 	} else if (!type.compare("uivec3")) {
 		uivec3 val = *(uivec3*)var->get_async();
-		name.str("");
-		name << var->name() << "_x";
-		tok.registerVariable(name.str(), (float)(val.x));
-		name.str("");
-		name << var->name() << "_y";
-		tok.registerVariable(name.str(), (float)(val.y));
-		name.str("");
-		name << var->name() << "_z";
-		tok.registerVariable(name.str(), (float)(val.z));
+		for (unsigned int i = 0; i < 3; i++) {
+			tok.registerVariable<unsigned int>(var->name() + extensions[i],
+			                                   (unsigned int)(val.s[i]));
+		}
 	} else if (!type.compare("uivec4")) {
 		uivec4 val = *(uivec4*)var->get_async();
-		name.str("");
-		name << var->name() << "_x";
-		tok.registerVariable(name.str(), (float)(val.x));
-		name.str("");
-		name << var->name() << "_y";
-		tok.registerVariable(name.str(), (float)(val.y));
-		name.str("");
-		name << var->name() << "_z";
-		tok.registerVariable(name.str(), (float)(val.z));
-		name.str("");
-		name << var->name() << "_w";
-		tok.registerVariable(name.str(), (float)(val.w));
+		for (unsigned int i = 0; i < 4; i++) {
+			tok.registerVariable<unsigned int>(var->name() + extensions[i],
+			                                   (unsigned int)(val.s[i]));
+		}
 	} else {
 		std::ostringstream msg;
 		msg << "\"" << var->name() << "\" declared as \"" << type
-		    << "\", which is not a scalar type" << std::endl;
+		    << "\", which is not a valid scalar type" << std::endl;
 		LOG(L_ERROR, msg.str());
 		LOG0(L_DEBUG, "Valid types are:\n");
 		LOG0(L_DEBUG, "\tint\n");
@@ -2020,243 +1900,126 @@ Variables::registerScalar(const std::string name,
 	if (!type.compare("int")) {
 		IntVariable* var = new IntVariable(name);
 		if (value.compare("")) {
-			int val = round(tok.solve(value));
-			tok.registerVariable(name, (float)val);
+			icl val = solve<icl>(name, value);
 			var->set(&val);
 		}
 		_vars.push_back(var);
 	} else if (!type.compare("unsigned int")) {
 		UIntVariable* var = new UIntVariable(name);
 		if (value.compare("")) {
-			unsigned int val = (unsigned int)round(tok.solve(value));
-			tok.registerVariable(name, (float)val);
+			uicl val = solve<uicl>(name, value);
 			var->set(&val);
 		}
 		_vars.push_back(var);
 	} else if (!type.compare("float")) {
 		FloatVariable* var = new FloatVariable(name);
 		if (value.compare("")) {
-			float val = tok.solve(value);
-			tok.registerVariable(name, val);
+			fcl val = solve<fcl>(name, value);
 			var->set(&val);
 		}
 		_vars.push_back(var);
 	} else if (!type.compare("vec")) {
 		VecVariable* var = new VecVariable(name);
 		if (value.compare("")) {
-			vec val;
-#ifdef HAVE_3D
-			float auxval[4];
-			readComponents(name, value, 4, auxval);
-			val.x = auxval[0];
-			val.y = auxval[1];
-			val.z = auxval[2];
-			val.w = auxval[3];
-#else
-			float auxval[2];
-			readComponents(name, value, 2, auxval);
-			val.x = auxval[0];
-			val.y = auxval[1];
-#endif // HAVE_3D
+			vec val = solve<vec>(name, value);
 			var->set(&val);
 		}
 		_vars.push_back(var);
 	} else if (!type.compare("vec2")) {
 		Vec2Variable* var = new Vec2Variable(name);
 		if (value.compare("")) {
-			vec2 val;
-			float auxval[2];
-			readComponents(name, value, 2, auxval);
-			val.x = auxval[0];
-			val.y = auxval[1];
+			vec2 val = solve<vec2>(name, value);
 			var->set(&val);
 		}
 		_vars.push_back(var);
 	} else if (!type.compare("vec3")) {
 		Vec3Variable* var = new Vec3Variable(name);
 		if (value.compare("")) {
-			vec3 val;
-			float auxval[3];
-			readComponents(name, value, 3, auxval);
-			val.x = auxval[0];
-			val.y = auxval[1];
-			val.z = auxval[2];
+			vec3 val = solve<vec3>(name, value);
 			var->set(&val);
 		}
 		_vars.push_back(var);
 	} else if (!type.compare("vec4")) {
 		Vec4Variable* var = new Vec4Variable(name);
 		if (value.compare("")) {
-			vec4 val;
-			float auxval[4];
-			readComponents(name, value, 4, auxval);
-			val.x = auxval[0];
-			val.y = auxval[1];
-			val.z = auxval[2];
-			val.w = auxval[3];
+			vec4 val = solve<vec4>(name, value);
 			var->set(&val);
 		}
 		_vars.push_back(var);
 	} else if (!type.compare("vec8")) {
 		Vec8Variable* var = new Vec8Variable(name);
 		if (value.compare("")) {
-			vec8 val;
-			float auxval[8];
-			readComponents(name, value, 8, auxval);
-			val.s0 = auxval[0];
-			val.s1 = auxval[1];
-			val.s2 = auxval[2];
-			val.s3 = auxval[3];
-			val.s4 = auxval[4];
-			val.s5 = auxval[5];
-			val.s6 = auxval[6];
-			val.s7 = auxval[7];
+			vec8 val = solve<vec8>(name, value);
 			var->set(&val);
 		}
 		_vars.push_back(var);
 	} else if (!type.compare("ivec")) {
 		IVecVariable* var = new IVecVariable(name);
 		if (value.compare("")) {
-			ivec val;
-#ifdef HAVE_3D
-			float auxval[4];
-			readComponents(name, value, 4, auxval);
-			val.x = round(auxval[0]);
-			val.y = round(auxval[1]);
-			val.z = round(auxval[2]);
-			val.w = round(auxval[3]);
-#else
-			float auxval[2];
-			readComponents(name, value, 2, auxval);
-			val.x = round(auxval[0]);
-			val.y = round(auxval[1]);
-#endif // HAVE_3D
+			ivec val = solve<ivec>(name, value);
 			var->set(&val);
 		}
 		_vars.push_back(var);
 	} else if (!type.compare("ivec2")) {
 		IVec2Variable* var = new IVec2Variable(name);
 		if (value.compare("")) {
-			ivec2 val;
-			float auxval[2];
-			readComponents(name, value, 2, auxval);
-			val.x = round(auxval[0]);
-			val.y = round(auxval[1]);
+			ivec2 val = solve<ivec2>(name, value);
 			var->set(&val);
 		}
 		_vars.push_back(var);
 	} else if (!type.compare("ivec3")) {
 		IVec3Variable* var = new IVec3Variable(name);
 		if (value.compare("")) {
-			ivec3 val;
-			float auxval[3];
-			readComponents(name, value, 3, auxval);
-			val.x = round(auxval[0]);
-			val.y = round(auxval[1]);
-			val.z = round(auxval[2]);
+			ivec3 val = solve<ivec3>(name, value);
 			var->set(&val);
 		}
 		_vars.push_back(var);
 	} else if (!type.compare("ivec4")) {
 		IVec4Variable* var = new IVec4Variable(name);
 		if (value.compare("")) {
-			ivec4 val;
-			float auxval[4];
-			readComponents(name, value, 4, auxval);
-			val.x = round(auxval[0]);
-			val.y = round(auxval[1]);
-			val.z = round(auxval[2]);
-			val.w = round(auxval[3]);
+			ivec4 val = solve<ivec4>(name, value);
 			var->set(&val);
 		}
 		_vars.push_back(var);
 	} else if (!type.compare("ivec8")) {
 		IVec8Variable* var = new IVec8Variable(name);
 		if (value.compare("")) {
-			ivec8 val;
-			float auxval[8];
-			readComponents(name, value, 8, auxval);
-			val.s0 = round(auxval[0]);
-			val.s1 = round(auxval[1]);
-			val.s2 = round(auxval[2]);
-			val.s3 = round(auxval[3]);
-			val.s4 = round(auxval[4]);
-			val.s5 = round(auxval[5]);
-			val.s6 = round(auxval[6]);
-			val.s7 = round(auxval[7]);
+			ivec8 val = solve<ivec8>(name, value);
 			var->set(&val);
 		}
 		_vars.push_back(var);
 	} else if (!type.compare("uivec")) {
 		UIVecVariable* var = new UIVecVariable(name);
 		if (value.compare("")) {
-			uivec val;
-#ifdef HAVE_3D
-			float auxval[4];
-			readComponents(name, value, 4, auxval);
-			val.x = (unsigned int)round(auxval[0]);
-			val.y = (unsigned int)round(auxval[1]);
-			val.z = (unsigned int)round(auxval[2]);
-			val.w = (unsigned int)round(auxval[3]);
-#else
-			float auxval[2];
-			readComponents(name, value, 2, auxval);
-			val.x = (unsigned int)round(auxval[0]);
-			val.y = (unsigned int)round(auxval[1]);
-#endif // HAVE_3D
+			uivec val = solve<uivec>(name, value);
 			var->set(&val);
 		}
 		_vars.push_back(var);
 	} else if (!type.compare("uivec2")) {
 		UIVec2Variable* var = new UIVec2Variable(name);
 		if (value.compare("")) {
-			uivec2 val;
-			float auxval[2];
-			readComponents(name, value, 2, auxval);
-			val.x = (unsigned int)round(auxval[0]);
-			val.y = (unsigned int)round(auxval[1]);
+			uivec2 val = solve<uivec2>(name, value);
 			var->set(&val);
 		}
 		_vars.push_back(var);
 	} else if (!type.compare("uivec3")) {
 		UIVec3Variable* var = new UIVec3Variable(name);
 		if (value.compare("")) {
-			uivec3 val;
-			float auxval[3];
-			readComponents(name, value, 3, auxval);
-			val.x = (unsigned int)round(auxval[0]);
-			val.y = (unsigned int)round(auxval[1]);
-			val.z = (unsigned int)round(auxval[2]);
+			uivec3 val = solve<uivec3>(name, value);
 			var->set(&val);
 		}
 		_vars.push_back(var);
 	} else if (!type.compare("uivec4")) {
 		UIVec4Variable* var = new UIVec4Variable(name);
 		if (value.compare("")) {
-			uivec4 val;
-			float auxval[4];
-			readComponents(name, value, 4, auxval);
-			val.x = (unsigned int)round(auxval[0]);
-			val.y = (unsigned int)round(auxval[1]);
-			val.z = (unsigned int)round(auxval[2]);
-			val.w = (unsigned int)round(auxval[3]);
+			uivec4 val = solve<uivec4>(name, value);
 			var->set(&val);
 		}
 		_vars.push_back(var);
 	} else if (!type.compare("uivec8")) {
 		UIVec8Variable* var = new UIVec8Variable(name);
 		if (value.compare("")) {
-			uivec8 val;
-			float auxval[8];
-			readComponents(name, value, 8, auxval);
-			val.s0 = (unsigned int)round(auxval[0]);
-			val.s1 = (unsigned int)round(auxval[1]);
-			val.s2 = (unsigned int)round(auxval[2]);
-			val.s3 = (unsigned int)round(auxval[3]);
-			val.s4 = (unsigned int)round(auxval[4]);
-			val.s5 = (unsigned int)round(auxval[5]);
-			val.s6 = (unsigned int)round(auxval[6]);
-			val.s7 = (unsigned int)round(auxval[7]);
+			uivec8 val = solve<uivec8>(name, value);
 			var->set(&val);
 		}
 		_vars.push_back(var);
@@ -2366,67 +2129,6 @@ Variables::registerClMem(const std::string name,
 	var->set(&mem);
 
 	_vars.push_back(var);
-}
-
-void
-Variables::readComponents(const std::string name,
-                          const std::string value,
-                          unsigned int n,
-                          float* v)
-{
-	float val;
-	unsigned int i, j;
-	if (n == 0) {
-		std::ostringstream msg;
-		msg << n << " components required for the variable \"" << name << "\"."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		throw std::runtime_error("0 components variable registration");
-	}
-	if (n > 4) {
-		LOG(L_ERROR, "No more than 4 components can be required\n");
-		std::ostringstream msg;
-		msg << n << " components required for the variable \"" << name << "\"."
-		    << std::endl;
-		LOG0(L_DEBUG, msg.str());
-		throw std::runtime_error("5+ components variable registration");
-	}
-
-	// Split and parse subexpressions
-	std::vector<std::string> value_strs = split_formulae(value);
-	const char* extensions[4] = { "_x", "_y", "_z", "_w" };
-	i = 0;
-	for (auto s : value_strs) {
-		try {
-			val = tok.solve(s);
-		} catch (...) {
-			std::ostringstream msg;
-			msg << "parsing variable \"" << name << "\"" << std::endl;
-			LOG0(L_DEBUG, msg.str());
-			throw std::runtime_error("Variable evaluation error");
-		}
-		std::ostringstream tok_name;
-		if (n != 1) {
-			tok_name << name << extensions[i];
-		} else {
-			tok_name << name;
-		}
-		tok.registerVariable(tok_name.str(), val);
-		v[i] = val;
-		if (++i == n) {
-			break;
-		}
-	}
-	if (i != n) {
-		std::ostringstream msg;
-		msg << "Failure parsing the variable \"" << name << "\" value"
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		msg.str("");
-		msg << n << " fields expected, " << i << " received" << std::endl;
-		LOG0(L_DEBUG, msg.str());
-		throw std::runtime_error("Invalid number of fields");
-	}
 }
 
 }

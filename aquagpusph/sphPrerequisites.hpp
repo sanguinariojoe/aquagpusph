@@ -60,6 +60,25 @@
 #define HAVE_3D
 #endif
 
+#ifndef icl
+/** @def icl
+ * @brief Signed integer number
+ */
+#define icl cl_int
+#endif
+#ifndef uicl
+/** @def uicl
+ * @brief Unsigned integer number
+ */
+#define uicl cl_uint
+#endif
+#ifndef fcl
+/** @def fcl
+ * @brief Floating point number
+ */
+#define fcl cl_float
+#endif
+
 #ifndef vec2
 /** @def vec2
  * @brief Vector of 2 real components.

@@ -429,7 +429,7 @@ class ScalarNumberVariable : public ScalarVariable<T>
 /** @class IntVariable Variable.h Variable.h
  * @brief An integer variable.
  */
-class IntVariable final : public ScalarNumberVariable<int>
+class IntVariable final : public ScalarNumberVariable<icl>
 {
   public:
 	/** @brief Constructor.
@@ -460,7 +460,7 @@ class IntVariable final : public ScalarNumberVariable<int>
 /** @class UIntVariable Variable.h Variable.h
  * @brief An integer variable.
  */
-class UIntVariable final : public ScalarNumberVariable<unsigned int>
+class UIntVariable final : public ScalarNumberVariable<uicl>
 {
   public:
 	/** @brief Constructor.
@@ -491,7 +491,7 @@ class UIntVariable final : public ScalarNumberVariable<unsigned int>
 /** @class FloatVariable Variable.h Variable.h
  * @brief A float variable.
  */
-class FloatVariable final : public ScalarNumberVariable<float>
+class FloatVariable final : public ScalarNumberVariable<fcl>
 {
   public:
 	/** @brief Constructor.
@@ -1201,10 +1201,8 @@ class Variables
 	 * @param n Number of components to read.
 	 * @param v Allocated array where the components should be stored
 	 */
-	void readComponents(const std::string name,
-	                    const std::string value,
-	                    unsigned int n,
-	                    float* v);
+	template<typename T>
+	T solve(const std::string& name, const std::string& value);
 
 	/// Set of available variables
 	std::vector<Variable*> _vars;

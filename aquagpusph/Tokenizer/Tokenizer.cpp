@@ -24,14 +24,12 @@
 // #include <matheval.h>
 
 #include "Tokenizer.hpp"
-#include "aquagpusph/InputOutput/Logger.hpp"
-#include <mutex>
 
 using namespace std;
 
 namespace Aqua {
 
-std::mutex tokenizer_mutex;
+std::mutex Tokenizer::mutex;
 
 double
 mod_operator(double v, double w)
@@ -47,8 +45,9 @@ mod_operator(double v, double w)
 double
 not_operator(double v)
 {
-	return v == 0;
+	return v == 0.0;
 }
+
 
 Tokenizer::Tokenizer()
 {
@@ -97,24 +96,10 @@ Tokenizer::~Tokenizer()
 	p.ClearConst();
 }
 
-bool
-Tokenizer::registerVariable(const std::string name, float value)
-{
-	const std::lock_guard<std::mutex> lock(tokenizer_mutex);
-	bool overwritten = false;
-	// Look for the variable in order to know if it already exist
-	if (isVariable(name)) {
-		// The variable already exist
-		overwritten = true;
-	}
-	p.DefineConst(name, (mu::value_type)value);
-	return overwritten;
-}
-
 void
 Tokenizer::clearVariables()
 {
-	const std::lock_guard<std::mutex> lock(tokenizer_mutex);
+	const std::lock_guard<std::mutex> lock(this->mutex);
 	p.ClearConst();
 	defaultVariables();
 }
@@ -134,20 +119,10 @@ Tokenizer::isVariable(const std::string name)
 	return false;
 }
 
-float
-Tokenizer::variable(const std::string name)
-{
-	if (!isVariable(name)) {
-		return 0.f;
-	}
-	mu::valmap_type cmap = p.GetConst();
-	return (float)cmap[name.c_str()];
-}
-
 std::vector<std::string>
 Tokenizer::exprVariables(const std::string eq)
 {
-	const std::lock_guard<std::mutex> lock(tokenizer_mutex);
+	const std::lock_guard<std::mutex> lock(this->mutex);
 	std::vector<std::string> vars;
 	q.SetExpr(eq);
 	auto variables = q.GetUsedVar();
@@ -156,52 +131,38 @@ Tokenizer::exprVariables(const std::string eq)
 	return vars;
 }
 
-float
-Tokenizer::solve(const std::string eq)
-{
-	const std::lock_guard<std::mutex> lock(tokenizer_mutex);
-	float result;
-
-	// First try a straight number conversion
-	try {
-		std::string::size_type sz;
-		result = std::stof(eq, &sz);
-		if (sz == eq.size()) {
-			// There is not remaining content
-			return result;
-		}
-	} catch (...) {
-		// No possible conversion (by a variety of errors), just proceed with
-		// the parser
-	}
-
-	// No way, let's evaluate it as a expression
-	p.SetExpr(eq);
-
-	try {
-		result = (float)p.Eval();
-	} catch (mu::Parser::exception_type& e) {
-		std::ostringstream msg;
-		msg << "Error evaluating \"" << e.GetExpr() << "\"" << std::endl;
-		msg << "input = \"" << eq << "\"" << std::endl;
-		LOG(L_WARNING, msg.str());
-		msg.str("");
-		msg << "\t" << e.GetMsg() << std::endl;
-		LOG0(L_DEBUG, msg.str());
-		msg.str("");
-		msg << "\tToken " << e.GetToken() << " in position " << e.GetPos()
-		    << std::endl;
-		LOG0(L_DEBUG, msg.str());
-		throw;
-	}
-
-	return result;
-}
-
 void
 Tokenizer::defaultVariables()
 {
 	// Pi and e are registered variables out of the box
 }
 
-} // namespace
+template<>
+double
+Tokenizer::cast(const mu::value_type& val)
+{
+	return val;
+}
+
+template<>
+float
+Tokenizer::cast(const mu::value_type& val)
+{
+	return (float)val;
+}
+
+template<>
+int
+Tokenizer::cast(const mu::value_type& val)
+{
+	return Aqua::round(val);
+}
+
+template<>
+unsigned int
+Tokenizer::cast(const mu::value_type& val)
+{
+	return (unsigned int)Aqua::round(val);
+}
+
+} // Aqua::

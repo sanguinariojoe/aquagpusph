@@ -302,15 +302,6 @@ roundUp(unsigned int n, unsigned int divisor)
 	return n;
 }
 
-int
-round(float n)
-{
-	if (n < 0.f) {
-		return (int)(n - 0.5f);
-	}
-	return (int)(n + 0.5f);
-}
-
 static std::string folder;
 
 const std::string

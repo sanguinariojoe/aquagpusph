@@ -27,6 +27,9 @@
 #include <map>
 #include <string>
 #include <muParser.h>
+#include <mutex>
+#include "aquagpusph/InputOutput/Logger.hpp"
+#include "aquagpusph/AuxiliarMethods.hpp"
 
 namespace Aqua {
 
@@ -58,7 +61,16 @@ class Tokenizer
 	 * @param value Value of the variable.
 	 * @return true if the variable already exists, false otherwise.
 	 */
-	bool registerVariable(const std::string name, float value);
+	template<typename T>
+	bool registerVariable(const std::string name, T value)
+	{
+		const std::lock_guard<std::mutex> lock(this->mutex);
+		bool overwritten = false;
+		if (isVariable(name))
+			overwritten = true;
+		p.DefineConst(name, (mu::value_type)value);
+		return overwritten;
+	}
 
 	/** @brief Clear/unregister all the registered variables.
 	 */
@@ -76,7 +88,14 @@ class Tokenizer
 	 * @return The Value of the variable, or 0.0 if the variable cannot be
 	 * found.
 	 */
-	float variable(const std::string name);
+	template<typename T=float>
+	T variable(const std::string name)
+	{
+		if (!isVariable(name))
+			return 0.f;
+		mu::valmap_type cmap = p.GetConst();
+		return cast<T>(cmap[name.c_str()]);
+	}
 
 	/** @brief Get the list of variables used on an mathematical expression.
 	 * @param eq Math expression to solve.
@@ -89,7 +108,47 @@ class Tokenizer
 	 * @return Expression value, 0.0 if the evaluation failed (it will be
 	 * reported by terminal).
 	 */
-	float solve(const std::string eq);
+	template<typename T=float>
+	T solve(const std::string eq)
+	{
+		const std::lock_guard<std::mutex> lock(this->mutex);
+		T result;
+
+		// First try a straight number conversion
+		try {
+			std::string::size_type sz;
+			result = std::stof(eq, &sz);
+			if (sz == eq.size()) {
+				// There is not remaining content
+				return result;
+			}
+		} catch (...) {
+			// No possible conversion (by a variety of errors), just proceed with
+			// the parser
+		}
+
+		// No way, let's evaluate it as an expression
+		p.SetExpr(eq);
+
+		try {
+			result = p.Eval();
+		} catch (mu::Parser::exception_type& e) {
+			std::ostringstream msg;
+			msg << "Error evaluating \"" << e.GetExpr() << "\"" << std::endl;
+			msg << "input = \"" << eq << "\"" << std::endl;
+			LOG(L_WARNING, msg.str());
+			msg.str("");
+			msg << "\t" << e.GetMsg() << std::endl;
+			LOG0(L_DEBUG, msg.str());
+			msg.str("");
+			msg << "\tToken " << e.GetToken() << " in position " << e.GetPos()
+				<< std::endl;
+			LOG0(L_DEBUG, msg.str());
+			throw;
+		}
+
+		return cast<T>(result);
+	}
 
   protected:
 	/** @brief Register the default variables.
@@ -101,12 +160,23 @@ class Tokenizer
 	virtual void defaultVariables();
 
   private:
+	/** @brief Several useful castings
+	 * @param val The value returned by MuParser
+	 * @return The casted value to type T
+	 */
+	template<typename T>
+	T
+	cast(const mu::value_type& val);
+
 	/// Mathematical expressions variables inspector
 	mu::Parser q;
 	/// Mathematical expressions parser
 	mu::Parser p;
+
+	/// Shared mutex to avoid race conditions
+	static std::mutex mutex;
 }; // class Tokenizer
 
-} // namespaces
+} // Aqua::
 
 #endif // TOKENIZER_H_INCLUDED
