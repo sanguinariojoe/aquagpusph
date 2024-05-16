@@ -66,17 +66,35 @@
  */
 #define icl cl_int
 #endif
+#ifndef lcl
+/** @def lcl
+ * @brief Signed 64bits integer number
+ */
+#define lcl cl_long
+#endif
 #ifndef uicl
 /** @def uicl
  * @brief Unsigned integer number
  */
 #define uicl cl_uint
 #endif
+#ifndef ulcl
+/** @def lcl
+ * @brief Unsigned 64bits integer number
+ */
+#define ulcl cl_ulong
+#endif
 #ifndef fcl
 /** @def fcl
  * @brief Floating point number
  */
 #define fcl cl_float
+#endif
+#ifndef dcl
+/** @def fcl
+ * @brief Double precission floating point number
+ */
+#define dcl cl_double
 #endif
 
 #ifndef vec2
@@ -104,6 +122,31 @@
 #define vec8 cl_float8
 #endif
 
+#ifndef dvec2
+/** @def dvec2
+ * @brief Vector of 2 64bits real components.
+ */
+#define dvec2 cl_double2
+#endif
+#ifndef dvec3
+/** @def dvec3
+ * @brief Vector of 3 64bits real components.
+ */
+#define dvec3 cl_double3
+#endif
+#ifndef dvec4
+/** @def dvec4
+ * @brief Vector of 4 64bits real components.
+ */
+#define dvec4 cl_double4
+#endif
+#ifndef dvec8
+/** @def dvec8
+ * @brief Vector of 8 64bits real components.
+ */
+#define dvec8 cl_double8
+#endif
+
 #ifndef ivec2
 /** @def ivec2
  * @brief Vector of 2 integer components.
@@ -127,6 +170,31 @@
  * @brief Vector of 8 integer components.
  */
 #define ivec8 cl_int8
+#endif
+
+#ifndef lvec2
+/** @def lvec2
+ * @brief Vector of 2 64bits integer components.
+ */
+#define lvec2 cl_long2
+#endif
+#ifndef lvec3
+/** @def lvec3
+ * @brief Vector of 3 64bits integer components.
+ */
+#define lvec3 cl_long3
+#endif
+#ifndef lvec4
+/** @def lvec4
+ * @brief Vector of 4 64bits integer components.
+ */
+#define lvec4 cl_long4
+#endif
+#ifndef lvec8
+/** @def lvec8
+ * @brief Vector of 8 64bits integer components.
+ */
+#define lvec8 cl_long8
 #endif
 
 #ifndef uivec2
@@ -154,6 +222,31 @@
 #define uivec8 cl_uint8
 #endif
 
+#ifndef ulvec2
+/** @def ulvec2
+ * @brief Vector of 2 64bits unsigned integer components.
+ */
+#define ulvec2 cl_ulong2
+#endif
+#ifndef ulvec3
+/** @def ulvec3
+ * @brief Vector of 3 64bits unsigned integer components.
+ */
+#define ulvec3 cl_ulong3
+#endif
+#ifndef ulvec4
+/** @def ulvec4
+ * @brief Vector of 4 64bits unsigned integer components.
+ */
+#define ulvec4 cl_ulong4
+#endif
+#ifndef ulvec8
+/** @def ulvec8
+ * @brief Vector of 8 64bits unsigned integer components.
+ */
+#define ulvec8 cl_ulong8
+#endif
+
 #ifdef HAVE_3D
 #ifndef vec
 /** @def vec
@@ -166,6 +259,17 @@
  */
 #define vec vec4
 #endif
+#ifndef dvec
+/** @def dvec
+ * @brief Vector of 64bits real components.
+ *
+ * The number of components depends on weather the 2D version or 3D
+ * version is compiled:
+ *   - 2D = 2 components
+ *   - 3D = 4 components
+ */
+#define dvec dvec4
+#endif
 #ifndef ivec
 /** @def ivec
  * @brief Vector of integer components.
@@ -177,6 +281,17 @@
  */
 #define ivec ivec4
 #endif
+#ifndef lvec
+/** @def lvec
+ * @brief Vector of 64bits integer components.
+ *
+ * The number of components depends on weather the 2D version or 3D
+ * version is compiled:
+ *   - 2D = 2 components
+ *   - 3D = 4 components
+ */
+#define lvec lvec4
+#endif
 #ifndef uivec
 /** @def uivec
  * @brief Vector of unsigned integer components.
@@ -187,6 +302,17 @@
  *   - 3D = 4 components
  */
 #define uivec uivec4
+#endif
+#ifndef ulvec
+/** @def ulvec
+ * @brief Vector of 64bits unsigned integer components.
+ *
+ * The number of components depends on weather the 2D version or 3D
+ * version is compiled:
+ *   - 2D = 2 components
+ *   - 3D = 4 components
+ */
+#define ulvec ulvec4
 #endif
 #ifndef matrix
 /** @def matrix
@@ -203,11 +329,20 @@
 #ifndef vec
 #define vec vec2
 #endif
+#ifndef dvec
+#define dvec dvec2
+#endif
 #ifndef ivec
 #define ivec ivec2
 #endif
+#ifndef lvec
+#define lvec lvec2
+#endif
 #ifndef uivec
 #define uivec uivec2
+#endif
+#ifndef ulvec
+#define ulvec ulvec2
 #endif
 #ifndef matrix
 #define matrix cl_float4

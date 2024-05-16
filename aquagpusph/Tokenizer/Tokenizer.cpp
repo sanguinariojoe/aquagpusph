@@ -24,6 +24,7 @@
 // #include <matheval.h>
 
 #include "Tokenizer.hpp"
+#include <cstdint>
 
 using namespace std;
 
@@ -139,30 +140,86 @@ Tokenizer::defaultVariables()
 
 template<>
 double
-Tokenizer::cast(const mu::value_type& val)
+Tokenizer::cast(const double& val)
 {
 	return val;
 }
 
 template<>
 float
-Tokenizer::cast(const mu::value_type& val)
+Tokenizer::cast(const double& val)
 {
 	return (float)val;
 }
 
 template<>
-int
-Tokenizer::cast(const mu::value_type& val)
+int32_t
+Tokenizer::cast(const double& val)
 {
-	return Aqua::round(val);
+	return Aqua::round<int32_t>(val);
 }
 
 template<>
-unsigned int
-Tokenizer::cast(const mu::value_type& val)
+int64_t
+Tokenizer::cast(const double& val)
 {
-	return (unsigned int)Aqua::round(val);
+	return Aqua::round<int64_t>(val);
+}
+
+template<>
+uint32_t
+Tokenizer::cast(const double& val)
+{
+	return Aqua::round<uint32_t>(val);
+}
+
+template<>
+uint64_t
+Tokenizer::cast(const double& val)
+{
+	return Aqua::round<uint64_t>(val);
+}
+
+template<>
+double
+Tokenizer::cast(const int64_t& val)
+{
+	return (double)val;
+}
+
+template<>
+float
+Tokenizer::cast(const int64_t& val)
+{
+	return (float)val;
+}
+
+template<>
+int32_t
+Tokenizer::cast(const int64_t& val)
+{
+	return (int32_t)val;
+}
+
+template<>
+int64_t
+Tokenizer::cast(const int64_t& val)
+{
+	return (int64_t)val;
+}
+
+template<>
+uint32_t
+Tokenizer::cast(const int64_t& val)
+{
+	return (uint32_t)val;
+}
+
+template<>
+uint64_t
+Tokenizer::cast(const int64_t& val)
+{
+	return (uint64_t)val;
 }
 
 } // Aqua::

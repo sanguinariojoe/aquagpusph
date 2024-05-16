@@ -28,6 +28,28 @@
 #include <Python.h>
 #include <string>
 #include <vector>
+
+/** @def PY_ARRAY_UNIQUE_SYMBOL
+ * @brief Define the extension module which this Python stuff should be linked
+ * to.
+ *
+ * In AQUAgpusph all the Python stuff is linked in the same group
+ * AQUA_ARRAY_API
+ * @see
+ * http://docs.scipy.org/doc/numpy/reference/c-api.array.html#importing-the-api
+ */
+#define PY_ARRAY_UNIQUE_SYMBOL AQUA_ARRAY_API
+/** @def NO_IMPORT_ARRAY
+ * @brief Set this file as a helper of the group AQUA_ARRAY_API.
+ * @see
+ * http://docs.scipy.org/doc/numpy/reference/c-api.array.html#importing-the-api
+ */
+#define NO_IMPORT_ARRAY
+#include <numpy/npy_no_deprecated_api.h>
+#include <numpy/ndarraytypes.h>
+#include <numpy/ufuncobject.h>
+#include <numpy/npy_3kcompat.h>
+
 #include "sphPrerequisites.hpp"
 #include "Tokenizer/Tokenizer.hpp"
 
@@ -294,7 +316,7 @@ class ScalarVariable : public Variable
 
 	/** @brief Destructor.
 	 */
-	~ScalarVariable(){};
+	~ScalarVariable() {};
 
 	/** @brief Report that the varaible is not an array
 	 *
@@ -369,6 +391,28 @@ class ScalarVariable : public Variable
 			sync();
 		_value = value;
 		this->Variable::set(NULL, synced);
+	}
+
+	/** @brief Get the variable value
+	 * @param synced true if the operation shall block the execution until the
+	 * variable events are dispatched
+	 * @return Output value
+	 */
+	inline T value(bool synced = true)
+	{
+		if (synced)
+			sync(true);
+		return _value;
+	}
+
+	/** @brief Set the variable value
+	 * @param synced true if the operation shall block the execution until the
+	 * variable events are dispatched
+	 * @return Output value
+	 */
+	inline void value(T& value, bool synced = true)
+	{
+		this->set(value, synced);
 	}
 
 	/** @brief Get a Python Object representation of the variable
@@ -457,8 +501,39 @@ class IntVariable final : public ScalarNumberVariable<icl>
 	bool setFromPythonObject(PyObject* obj, int i0 = 0, int n = 0);
 };
 
+/** @class LongVariable Variable.h Variable.h
+ * @brief A 64bits integer variable.
+ */
+class LongVariable final : public ScalarNumberVariable<lcl>
+{
+  public:
+	/** @brief Constructor.
+	 * @param varname Name of the variable.
+	 */
+	LongVariable(const std::string varname);
+
+	/** @brief Destructor.
+	 */
+	~LongVariable(){};
+
+	/** @brief Get a PyLongObject interpretation of the variable
+	 * @param i0 ignored parameter.
+	 * @param n ignored parameter.
+	 * @return PyLongObject Python object.
+	 */
+	PyObject* getPythonObject(int i0 = 0, int n = 0);
+
+	/** @brief Set the variable from a Python object
+	 * @param obj PyLongObject object.
+	 * @param i0 ignored parameter.
+	 * @param n ignored parameter
+	 * @return false if all gone right, true otherwise.
+	 */
+	bool setFromPythonObject(PyObject* obj, int i0 = 0, int n = 0);
+};
+
 /** @class UIntVariable Variable.h Variable.h
- * @brief An integer variable.
+ * @brief An unsigned integer variable.
  */
 class UIntVariable final : public ScalarNumberVariable<uicl>
 {
@@ -471,6 +546,37 @@ class UIntVariable final : public ScalarNumberVariable<uicl>
 	/** @brief Destructor.
 	 */
 	~UIntVariable(){};
+
+	/** @brief Get a PyLongObject interpretation of the variable
+	 * @param i0 ignored parameter.
+	 * @param n ignored parameter
+	 * @return PyLongObject Python object.
+	 */
+	PyObject* getPythonObject(int i0 = 0, int n = 0);
+
+	/** @brief Set the variable from a Python object
+	 * @param obj PyLongObject object.
+	 * @param i0 ignored parameter.
+	 * @param n ignored parameter
+	 * @return false if all gone right, true otherwise.
+	 */
+	bool setFromPythonObject(PyObject* obj, int i0 = 0, int n = 0);
+};
+
+/** @class ULongVariable Variable.h Variable.h
+ * @brief An integer variable.
+ */
+class ULongVariable final : public ScalarNumberVariable<ulcl>
+{
+  public:
+	/** @brief Constructor.
+	 * @param varname Name of the variable.
+	 */
+	ULongVariable(const std::string varname);
+
+	/** @brief Destructor.
+	 */
+	~ULongVariable(){};
 
 	/** @brief Get a PyLongObject interpretation of the variable
 	 * @param i0 ignored parameter.
@@ -519,6 +625,37 @@ class FloatVariable final : public ScalarNumberVariable<fcl>
 	bool setFromPythonObject(PyObject* obj, int i0 = 0, int n = 0);
 };
 
+/** @class DoubleVariable Variable.h Variable.h
+ * @brief A double variable.
+ */
+class DoubleVariable final : public ScalarNumberVariable<dcl>
+{
+  public:
+	/** @brief Constructor.
+	 * @param varname Name of the variable.
+	 */
+	DoubleVariable(const std::string varname);
+
+	/** @brief Destructor.
+	 */
+	~DoubleVariable(){};
+
+	/** @brief Get a PyFloatObject interpretation of the variable
+	 * @param i0 ignored parameter.
+	 * @param n ignored parameter
+	 * @return PyFloatObject Python object.
+	 */
+	PyObject* getPythonObject(int i0 = 0, int n = 0);
+
+	/** @brief Set the variable from a Python object
+	 * @param obj PyFloatObject object.
+	 * @param i0 ignored parameter.
+	 * @param n ignored parameter
+	 * @return false if all gone right, true otherwise.
+	 */
+	bool setFromPythonObject(PyObject* obj, int i0 = 0, int n = 0);
+};
+
 /** @class ScalarVecVariable Variable.h Variable.h
  * @brief A generic Scalar variable, of 2 or more components.
  */
@@ -529,14 +666,32 @@ class ScalarVecVariable : public ScalarVariable<T>
 	/** @brief Constructor.
 	 * @param varname Name of the variable.
 	 * @param vartype Type of the variable.
+	 * @param dims Number of components of the type.
+	 * @param np_type Type of the numpy associated object.
 	 */
 	ScalarVecVariable(const std::string varname,
 	                  const std::string vartype,
-	                  const unsigned int dims);
+	                  const unsigned int dims,
+	                  int np_type);
 
 	/** @brief Destructor.
 	 */
 	~ScalarVecVariable(){};
+
+	/** Get a PyArrayObject interpretation of the variable
+	 * @param i0 ignored parameter.
+	 * @param n ignored parameter
+	 * @return PyArrayObject Python object (PyArray_FLOAT subtype).
+	 */
+	PyObject* getPythonObject(int i0 = 0, int n = 0);
+
+	/** Set the variable from a Python object
+	 * @param obj PyArrayObject object (PyArray_FLOAT subtype).
+	 * @param i0 ignored parameter.
+	 * @param n ignored parameter
+	 * @return false if all gone right, true otherwise.
+	 */
+	bool setFromPythonObject(PyObject* obj, int i0 = 0, int n = 0);
 
 	/** @brief Get the variable text representation
 	 * @param synced true if the function shall block until the last writing
@@ -561,382 +716,140 @@ class ScalarVecVariable : public ScalarVariable<T>
   private:
 	/// Number of components of the type
 	unsigned int _dims;
+	/// Number of components of the type
+	int _np_type;
 };
 
-/** @class Vec2Variable Variable.h Variable.h
- * @brief A vec2 variable.
- */
-class Vec2Variable final : public ScalarVecVariable<vec2>
-{
-  public:
-	/** Constructor.
-	 * @param varname Name of the variable.
-	 */
-	Vec2Variable(const std::string varname);
-
-	/** Destructor.
-	 */
-	~Vec2Variable(){};
-
-	/** Get a PyArrayObject interpretation of the variable
-	 * @param i0 ignored parameter.
-	 * @param n ignored parameter
-	 * @return PyArrayObject Python object (PyArray_FLOAT subtype).
-	 */
-	PyObject* getPythonObject(int i0 = 0, int n = 0);
-
-	/** Set the variable from a Python object
-	 * @param obj PyArrayObject object (PyArray_FLOAT subtype).
-	 * @param i0 ignored parameter.
-	 * @param n ignored parameter
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool setFromPythonObject(PyObject* obj, int i0 = 0, int n = 0);
-};
-
-/** @class Vec3Variable Variable.h Variable.h
- * @brief A vec3 variable.
- */
-class Vec3Variable : public ScalarVecVariable<vec3>
-{
-  public:
-	/** Constructor.
-	 * @param varname Name of the variable.
-	 */
-	Vec3Variable(const std::string varname);
-
-	/** Destructor.
-	 */
-	~Vec3Variable(){};
-
-	/** Get a PyArrayObject interpretation of the variable
-	 * @param i0 ignored parameter.
-	 * @param n ignored parameter
-	 * @return PyArrayObject Python object (PyArray_FLOAT subtype).
-	 */
-	PyObject* getPythonObject(int i0 = 0, int n = 0);
-
-	/** Set the variable from a Python object
-	 * @param obj PyArrayObject object (PyArray_FLOAT subtype).
-	 * @param i0 ignored parameter.
-	 * @param n ignored parameter
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool setFromPythonObject(PyObject* obj, int i0 = 0, int n = 0);
-};
-
-/** @class Vec4Variable Variable.h Variable.h
- * @brief A vec4 variable.
- */
-class Vec4Variable : public ScalarVecVariable<vec4>
-{
-  public:
-	/** Constructor.
-	 * @param varname Name of the variable.
-	 */
-	Vec4Variable(const std::string varname);
-
-	/** Destructor.
-	 */
-	~Vec4Variable(){};
-
-	/** Get a PyArrayObject interpretation of the variable
-	 * @param i0 ignored parameter.
-	 * @param n ignored parameter
-	 * @return PyArrayObject Python object (PyArray_FLOAT subtype).
-	 */
-	PyObject* getPythonObject(int i0 = 0, int n = 0);
-
-	/** Set the variable from a Python object
-	 * @param obj PyArrayObject object (PyArray_FLOAT subtype).
-	 * @param i0 ignored parameter.
-	 * @param n ignored parameter
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool setFromPythonObject(PyObject* obj, int i0 = 0, int n = 0);
-};
-
-/** @class Vec8Variable Variable.h Variable.h
- * @brief A vec8 variable.
- */
-class Vec8Variable : public ScalarVecVariable<vec8>
-{
-  public:
-	/** Constructor.
-	 * @param varname Name of the variable.
-	 */
-	Vec8Variable(const std::string varname);
-
-	/** Destructor.
-	 */
-	~Vec8Variable(){};
-
-	/** Get a PyArrayObject interpretation of the variable
-	 * @param i0 ignored parameter.
-	 * @param n ignored parameter
-	 * @return PyArrayObject Python object (PyArray_FLOAT subtype).
-	 */
-	PyObject* getPythonObject(int i0 = 0, int n = 0);
-
-	/** Set the variable from a Python object
-	 * @param obj PyArrayObject object (PyArray_FLOAT subtype).
-	 * @param i0 ignored parameter.
-	 * @param n ignored parameter
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool setFromPythonObject(PyObject* obj, int i0 = 0, int n = 0);
-};
+#define __DECLARE_AQUA_VEC(NAME, TYPE)                                         \
+	class NAME final : public ScalarVecVariable<TYPE>                          \
+	{                                                                          \
+	public:                                                                    \
+		NAME(const std::string varname);                                       \
+		~NAME(){};                                                             \
+	};
 
 /** @class IVec2Variable Variable.h Variable.h
  * @brief A ivec2 variable.
  */
-class IVec2Variable : public ScalarVecVariable<ivec2>
-{
-  public:
-	/** Constructor.
-	 * @param varname Name of the variable.
-	 */
-	IVec2Variable(const std::string varname);
-
-	/** Destructor.
-	 */
-	~IVec2Variable(){};
-
-	/** Get a PyArrayObject interpretation of the variable
-	 * @param i0 ignored parameter.
-	 * @param n ignored parameter
-	 * @return PyArrayObject Python object (PyArray_INT subtype).
-	 */
-	PyObject* getPythonObject(int i0 = 0, int n = 0);
-
-	/** Set the variable from a Python object
-	 * @param obj PyArrayObject object (PyArray_INT subtype).
-	 * @param i0 ignored parameter.
-	 * @param n ignored parameter
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool setFromPythonObject(PyObject* obj, int i0 = 0, int n = 0);
-};
+__DECLARE_AQUA_VEC(IVec2Variable, ivec2)
 
 /** @class IVec3Variable Variable.h Variable.h
  * @brief A ivec3 variable.
  */
-class IVec3Variable : public ScalarVecVariable<ivec3>
-{
-  public:
-	/** Constructor.
-	 * @param varname Name of the variable.
-	 */
-	IVec3Variable(const std::string varname);
-
-	/** Destructor.
-	 */
-	~IVec3Variable(){};
-
-	/** Get a PyArrayObject interpretation of the variable
-	 * @param i0 ignored parameter.
-	 * @param n ignored parameter
-	 * @return PyArrayObject Python object (PyArray_INT subtype).
-	 */
-	PyObject* getPythonObject(int i0 = 0, int n = 0);
-
-	/** Set the variable from a Python object
-	 * @param obj PyArrayObject object (PyArray_INT subtype).
-	 * @param i0 ignored parameter.
-	 * @param n ignored parameter
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool setFromPythonObject(PyObject* obj, int i0 = 0, int n = 0);
-};
+__DECLARE_AQUA_VEC(IVec3Variable, ivec3)
 
 /** @class IVec4Variable Variable.h Variable.h
  * @brief A ivec4 variable.
  */
-class IVec4Variable : public ScalarVecVariable<ivec4>
-{
-  public:
-	/** Constructor.
-	 * @param varname Name of the variable.
-	 */
-	IVec4Variable(const std::string varname);
-
-	/** Destructor.
-	 */
-	~IVec4Variable(){};
-
-	/** Get a PyArrayObject interpretation of the variable
-	 * @param i0 ignored parameter.
-	 * @param n ignored parameter
-	 * @return PyArrayObject Python object (PyArray_INT subtype).
-	 */
-	PyObject* getPythonObject(int i0 = 0, int n = 0);
-
-	/** Set the variable from a Python object
-	 * @param obj PyArrayObject object (PyArray_INT subtype).
-	 * @param i0 ignored parameter.
-	 * @param n ignored parameter
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool setFromPythonObject(PyObject* obj, int i0 = 0, int n = 0);
-};
+__DECLARE_AQUA_VEC(IVec4Variable, ivec4)
 
 /** @class IVec8Variable Variable.h Variable.h
  * @brief A ivec8 variable.
  */
-class IVec8Variable : public ScalarVecVariable<ivec8>
-{
-  public:
-	/** Constructor.
-	 * @param varname Name of the variable.
-	 */
-	IVec8Variable(const std::string varname);
+__DECLARE_AQUA_VEC(IVec8Variable, ivec8)
 
-	/** Destructor.
-	 */
-	~IVec8Variable(){};
+/** @class LVec2Variable Variable.h Variable.h
+ * @brief A lvec2 variable.
+ */
+__DECLARE_AQUA_VEC(LVec2Variable, lvec2)
 
-	/** Get a PyArrayObject interpretation of the variable
-	 * @param i0 ignored parameter.
-	 * @param n ignored parameter
-	 * @return PyArrayObject Python object (PyArray_INT subtype).
-	 */
-	PyObject* getPythonObject(int i0 = 0, int n = 0);
+/** @class LVec3Variable Variable.h Variable.h
+ * @brief A lvec3 variable.
+ */
+__DECLARE_AQUA_VEC(LVec3Variable, lvec3)
 
-	/** Set the variable from a Python object
-	 * @param obj PyArrayObject object (PyArray_INT subtype).
-	 * @param i0 ignored parameter.
-	 * @param n ignored parameter
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool setFromPythonObject(PyObject* obj, int i0 = 0, int n = 0);
-};
+/** @class LVec4Variable Variable.h Variable.h
+ * @brief A lvec4 variable.
+ */
+__DECLARE_AQUA_VEC(LVec4Variable, lvec4)
+
+/** @class LVec8Variable Variable.h Variable.h
+ * @brief A ivec8 variable.
+ */
+__DECLARE_AQUA_VEC(LVec8Variable, lvec8)
 
 /** @class UIVec2Variable Variable.h Variable.h
  * @brief A uivec2 variable.
  */
-class UIVec2Variable : public ScalarVecVariable<uivec2>
-{
-  public:
-	/** Constructor.
-	 * @param varname Name of the variable.
-	 */
-	UIVec2Variable(const std::string varname);
+__DECLARE_AQUA_VEC(UIVec2Variable, uivec2)
 
-	/** Destructor.
-	 */
-	~UIVec2Variable(){};
-
-	/** Get a PyArrayObject interpretation of the variable
-	 * @param i0 ignored parameter.
-	 * @param n ignored parameter
-	 * @return PyArrayObject Python object (PyArray_UINT subtype).
-	 */
-	PyObject* getPythonObject(int i0 = 0, int n = 0);
-
-	/** Set the variable from a Python object
-	 * @param obj PyArrayObject object (PyArray_UINT subtype).
-	 * @param i0 ignored parameter.
-	 * @param n ignored parameter
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool setFromPythonObject(PyObject* obj, int i0 = 0, int n = 0);
-};
-
-/** @class IVec3Variable Variable.h Variable.h
+/** @class UIVec3Variable Variable.h Variable.h
  * @brief A uivec3 variable.
  */
-class UIVec3Variable : public ScalarVecVariable<uivec3>
-{
-  public:
-	/** Constructor.
-	 * @param varname Name of the variable.
-	 */
-	UIVec3Variable(const std::string varname);
-
-	/** Destructor.
-	 */
-	~UIVec3Variable(){};
-
-	/** Get a PyArrayObject interpretation of the variable
-	 * @param i0 ignored parameter.
-	 * @param n ignored parameter
-	 * @return PyArrayObject Python object (PyArray_UINT subtype).
-	 */
-	PyObject* getPythonObject(int i0 = 0, int n = 0);
-
-	/** Set the variable from a Python object
-	 * @param obj PyArrayObject object (PyArray_UINT subtype).
-	 * @param i0 ignored parameter.
-	 * @param n ignored parameter
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool setFromPythonObject(PyObject* obj, int i0 = 0, int n = 0);
-};
+__DECLARE_AQUA_VEC(UIVec3Variable, uivec3)
 
 /** @class UIVec4Variable Variable.h Variable.h
  * @brief A uivec4 variable.
  */
-class UIVec4Variable : public ScalarVecVariable<uivec4>
-{
-  public:
-	/** Constructor.
-	 * @param varname Name of the variable.
-	 */
-	UIVec4Variable(const std::string varname);
-
-	/** Destructor.
-	 */
-	~UIVec4Variable(){};
-
-	/** Get a PyArrayObject interpretation of the variable
-	 * @param i0 ignored parameter.
-	 * @param n ignored parameter
-	 * @return PyArrayObject Python object (PyArray_UINT subtype).
-	 */
-	PyObject* getPythonObject(int i0 = 0, int n = 0);
-
-	/** Set the variable from a Python object
-	 * @param obj PyArrayObject object (PyArray_UINT subtype).
-	 * @param i0 ignored parameter.
-	 * @param n ignored parameter
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool setFromPythonObject(PyObject* obj, int i0 = 0, int n = 0);
-};
+__DECLARE_AQUA_VEC(UIVec4Variable, uivec4)
 
 /** @class UIVec8Variable Variable.h Variable.h
  * @brief A uivec8 variable.
  */
-class UIVec8Variable : public ScalarVecVariable<uivec8>
-{
-  public:
-	/** Constructor.
-	 * @param varname Name of the variable.
-	 */
-	UIVec8Variable(const std::string varname);
+__DECLARE_AQUA_VEC(UIVec8Variable, uivec8)
 
-	/** Destructor.
-	 */
-	~UIVec8Variable(){};
+/** @class ULVec2Variable Variable.h Variable.h
+ * @brief A ulvec2 variable.
+ */
+__DECLARE_AQUA_VEC(ULVec2Variable, ulvec2)
 
-	/** Get a PyArrayObject interpretation of the variable
-	 * @param i0 ignored parameter.
-	 * @param n ignored parameter
-	 * @return PyArrayObject Python object (PyArray_UINT subtype).
-	 */
-	PyObject* getPythonObject(int i0 = 0, int n = 0);
+/** @class ULVec3Variable Variable.h Variable.h
+ * @brief A ulvec3 variable.
+ */
+__DECLARE_AQUA_VEC(ULVec3Variable, ulvec3)
 
-	/** Set the variable from a Python object
-	 * @param obj PyArrayObject object (PyArray_UINT subtype).
-	 * @param i0 ignored parameter.
-	 * @param n ignored parameter
-	 * @return false if all gone right, true otherwise.
-	 */
-	bool setFromPythonObject(PyObject* obj, int i0 = 0, int n = 0);
-};
+/** @class ULVec4Variable Variable.h Variable.h
+ * @brief A ulvec4 variable.
+ */
+__DECLARE_AQUA_VEC(ULVec4Variable, ulvec4)
 
-/** @class FloatVariable Variable.h Variable.h
- * @brief A float variable.
+/** @class ULVec8Variable Variable.h Variable.h
+ * @brief A ulvec8 variable.
+ */
+__DECLARE_AQUA_VEC(ULVec8Variable, ulvec8)
+
+/** @class Vec2Variable Variable.h Variable.h
+ * @brief A vec2 variable.
+ */
+__DECLARE_AQUA_VEC(Vec2Variable, vec2)
+
+/** @class Vec3Variable Variable.h Variable.h
+ * @brief A vec3 variable.
+ */
+__DECLARE_AQUA_VEC(Vec3Variable, vec3)
+
+/** @class Vec4Variable Variable.h Variable.h
+ * @brief A vec4 variable.
+ */
+__DECLARE_AQUA_VEC(Vec4Variable, vec4)
+
+/** @class Vec8Variable Variable.h Variable.h
+ * @brief A vec8 variable.
+ */
+__DECLARE_AQUA_VEC(Vec8Variable, vec8)
+
+/** @class DVec2Variable Variable.h Variable.h
+ * @brief A dvec2 variable.
+ */
+__DECLARE_AQUA_VEC(DVec2Variable, dvec2)
+
+/** @class DVec3Variable Variable.h Variable.h
+ * @brief A dvec3 variable.
+ */
+__DECLARE_AQUA_VEC(DVec3Variable, dvec3)
+
+/** @class DVec4Variable Variable.h Variable.h
+ * @brief A dvec4 variable.
+ */
+__DECLARE_AQUA_VEC(DVec4Variable, dvec4)
+
+/** @class DVec8Variable Variable.h Variable.h
+ * @brief A dvec8 variable.
+ */
+__DECLARE_AQUA_VEC(DVec8Variable, dvec8)
+
+/** @class ArrayVariable Variable.h Variable.h
+ * @brief An array variable.
  */
 class ArrayVariable : public Variable
 {

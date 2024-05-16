@@ -21,11 +21,6 @@
  * (See Aqua::CalcServer::Python for details)
  */
 
-#include "aquagpusph/AuxiliarMethods.hpp"
-#include "aquagpusph/InputOutput/Logger.hpp"
-#include "Python.hpp"
-#include "SetScalar.hpp"
-
 /** @def PY_ARRAY_UNIQUE_SYMBOL
  * @brief Define the extension module which this Python stuff should be linked
  * to.
@@ -39,6 +34,11 @@
 #include <numpy/ndarraytypes.h>
 #include <numpy/ufuncobject.h>
 #include <numpy/npy_3kcompat.h>
+
+#include "aquagpusph/AuxiliarMethods.hpp"
+#include "aquagpusph/InputOutput/Logger.hpp"
+#include "Python.hpp"
+#include "SetScalar.hpp"
 
 /** @brief stdout Python redirector.
  * @see logMsg

@@ -115,6 +115,15 @@ class Tokenizer
 		T result;
 
 		// First try straight number conversions
+		size_t sz;
+		try {
+			result = cast<T>((int64_t)std::stoll(eq, &sz));
+			if (sz == eq.size()) {
+				// There is not remaining content, so we nailed it
+				return result;
+			}
+		} catch (...) {
+		}
 		try {
 			std::string::size_type sz;
 			result = cast<T>(std::stod(eq, &sz));
@@ -162,9 +171,9 @@ class Tokenizer
 	 * @param val The value returned by MuParser
 	 * @return The casted value to type T
 	 */
-	template<typename T>
-	T
-	cast(const mu::value_type& val);
+	template<typename Tout, typename Tin>
+	Tout
+	cast(const Tin& val);
 
 	/// Mathematical expressions variables inspector
 	mu::Parser q;

@@ -192,7 +192,7 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 	valstr << std::numeric_limits<float>::max();
 	_vars.registerVariable("end_t", "float", "", valstr.str());
 	valstr.str("");
-	valstr << std::numeric_limits<int>::max();
+	valstr << std::numeric_limits<uint64_t>::max();
 	_vars.registerVariable("end_iter", "unsigned int", "", valstr.str());
 	_vars.registerVariable("end_frame", "unsigned int", "", valstr.str());
 	valstr.str("");

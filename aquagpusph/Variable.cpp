@@ -28,26 +28,6 @@
 #include "CalcServer/CalcServer.hpp"
 #include <algorithm>
 
-/** @def PY_ARRAY_UNIQUE_SYMBOL
- * @brief Define the extension module which this Python stuff should be linked
- * to.
- *
- * In AQUAgpusph all the Python stuff is linked in the same group AQUA_ARRAY_API
- * @see
- * http://docs.scipy.org/doc/numpy/reference/c-api.array.html#importing-the-api
- */
-#define PY_ARRAY_UNIQUE_SYMBOL AQUA_ARRAY_API
-/** @def NO_IMPORT_ARRAY
- * @brief Set this file as a helper of the group AQUA_ARRAY_API.
- * @see
- * http://docs.scipy.org/doc/numpy/reference/c-api.array.html#importing-the-api
- */
-#define NO_IMPORT_ARRAY
-#include <numpy/npy_no_deprecated_api.h>
-#include <numpy/ndarraytypes.h>
-#include <numpy/ufuncobject.h>
-#include <numpy/npy_3kcompat.h>
-
 namespace Aqua {
 namespace InputOutput {
 
@@ -254,7 +234,7 @@ const std::string
 ScalarNumberVariable<T>::asString(bool synced)
 {
 	std::ostringstream msg;
-	msg << *((T*)this->get(synced));
+	msg << this->value(synced);
 	return msg.str();
 }
 
@@ -267,7 +247,7 @@ IntVariable::IntVariable(const std::string varname)
 PyObject*
 IntVariable::getPythonObject(int i0, int n)
 {
-	long val = *((icl*)get());
+	long val = value();
 	return PyLong_FromLong(val);
 }
 
@@ -288,8 +268,38 @@ IntVariable::setFromPythonObject(PyObject* obj, int i0, int n)
 	return false;
 }
 
+LongVariable::LongVariable(const std::string varname)
+  : ScalarNumberVariable<lcl>(varname, "long")
+{
+	_value = 0;
+}
+
+PyObject*
+LongVariable::getPythonObject(int i0, int n)
+{
+	long val = value();
+	return PyLong_FromLong(val);
+}
+
+bool
+LongVariable::setFromPythonObject(PyObject* obj, int i0, int n)
+{
+	if (!PyLong_Check(obj)) {
+		pyerr.str("");
+		pyerr << "Variable \"" << name() << "\" expected a PyLongObject"
+		      << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
+
+	lcl value = (lcl)PyLong_AsLong(obj);
+	this->value(value);
+
+	return false;
+}
+
 UIntVariable::UIntVariable(const std::string varname)
-  : ScalarNumberVariable<unsigned int>(varname, "unsigned int")
+  : ScalarNumberVariable<uicl>(varname, "unsigned int")
 {
 	_value = 0u;
 }
@@ -297,7 +307,7 @@ UIntVariable::UIntVariable(const std::string varname)
 PyObject*
 UIntVariable::getPythonObject(int i0, int n)
 {
-	unsigned long val = *(uicl*)get();
+	unsigned long val = value();
 	return PyLong_FromUnsignedLong(val);
 }
 
@@ -312,14 +322,44 @@ UIntVariable::setFromPythonObject(PyObject* obj, int i0, int n)
 		return true;
 	}
 
-	uicl value = (uicl)PyLong_AsLong(obj);
+	uicl value = (uicl)PyLong_AsUnsignedLong(obj);
+	this->value(value);
+
+	return false;
+}
+
+ULongVariable::ULongVariable(const std::string varname)
+  : ScalarNumberVariable<ulcl>(varname, "unsigned long")
+{
+	_value = 0u;
+}
+
+PyObject*
+ULongVariable::getPythonObject(int i0, int n)
+{
+	unsigned long val = value();
+	return PyLong_FromUnsignedLong(val);
+}
+
+bool
+ULongVariable::setFromPythonObject(PyObject* obj, int i0, int n)
+{
+	if (!PyLong_Check(obj)) {
+		pyerr.str("");
+		pyerr << "Variable \"" << name() << "\" expected a PyLongObject"
+		      << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
+
+	ulcl value = (ulcl)PyLong_AsUnsignedLong(obj);
 	set(&value);
 
 	return false;
 }
 
 FloatVariable::FloatVariable(const std::string varname)
-  : ScalarNumberVariable<float>(varname, "float")
+  : ScalarNumberVariable<fcl>(varname, "float")
 {
 	_value = 0.f;
 }
@@ -327,7 +367,7 @@ FloatVariable::FloatVariable(const std::string varname)
 PyObject*
 FloatVariable::getPythonObject(int i0, int n)
 {
-	double val = *((fcl*)get());
+	double val = value();
 	return PyFloat_FromDouble(val);
 }
 
@@ -348,12 +388,44 @@ FloatVariable::setFromPythonObject(PyObject* obj, int i0, int n)
 	return false;
 }
 
+DoubleVariable::DoubleVariable(const std::string varname)
+  : ScalarNumberVariable<dcl>(varname, "double")
+{
+	_value = 0.0;
+}
+
+PyObject*
+DoubleVariable::getPythonObject(int i0, int n)
+{
+	double val = value();
+	return PyFloat_FromDouble(val);
+}
+
+bool
+DoubleVariable::setFromPythonObject(PyObject* obj, int i0, int n)
+{
+	if (!PyFloat_Check(obj)) {
+		pyerr.str("");
+		pyerr << "Variable \"" << name() << "\" expected a PyFloatObject"
+		      << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
+
+	fcl value = (fcl)PyFloat_AsDouble(obj);
+	set(&value);
+
+	return false;
+}
+
 template<class T>
 ScalarVecVariable<T>::ScalarVecVariable(const std::string varname,
                                         const std::string vartype,
-                                        const unsigned int dims)
+                                        const unsigned int dims,
+                                        int np_type)
   : ScalarVariable<T>(varname, vartype)
   , _dims(dims)
+  , _np_type(np_type)
 {
 }
 
@@ -389,599 +461,131 @@ ScalarVecVariable<T>::checkPyhonObjectDims(PyObject* obj)
 }
 
 template<class T>
+PyObject*
+ScalarVecVariable<T>::getPythonObject(int i0, int n)
+{
+	T v = this->value();
+	npy_intp dims[] = { _dims };
+	return PyArray_SimpleNewFromData(1, dims, _np_type, v.s);
+}
+
+std::string npy_type_name(int np_type)
+{
+	std::string name("NPY_NOTYPE");
+	switch(np_type) {
+		case NPY_BOOL:
+			name = "NPY_BOOL";
+			break;
+		case NPY_INT8:
+			name = "NPY_INT8";
+			break;
+		case NPY_INT16:
+			name = "NPY_INT16";
+			break;
+		case NPY_INT32:
+			name = "NPY_INT32";
+			break;
+		case NPY_INT64:
+			name = "NPY_INT64";
+			break;
+		case NPY_UINT8:
+			name = "NPY_UINT8";
+			break;
+		case NPY_UINT16:
+			name = "NPY_UINT16";
+			break;
+		case NPY_UINT32:
+			name = "NPY_UINT32";
+			break;
+		case NPY_UINT64:
+			name = "NPY_UINT64";
+			break;
+		case NPY_FLOAT16:
+			name = "NPY_FLOAT16";
+			break;
+		case NPY_FLOAT32:
+			name = "NPY_FLOAT32";
+			break;
+		case NPY_FLOAT64:
+			name = "NPY_FLOAT64";
+			break;
+		default:
+			name = "NPY_NOTYPE";
+	}
+	return name;
+}
+
+template<class T>
+bool
+ScalarVecVariable<T>::setFromPythonObject(PyObject* obj, int i0, int n)
+{
+	if (checkPyhonObjectDims(obj))
+		return true;
+	PyArrayObject* array_obj = (PyArrayObject*)obj;
+	if (PyArray_TYPE(array_obj) != _np_type) {
+		pyerr.str("");
+		pyerr << "Variable \"" << this->name() << "\" expected a "
+		      << npy_type_name(_np_type) << " but got a "
+		      << npy_type_name(PyArray_TYPE(array_obj)) << std::endl;
+		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
+		return true;
+	}
+	this->set(PyArray_DATA(array_obj));
+	return false;
+}
+
+template<class T>
 const std::string
 ScalarVecVariable<T>::asString(bool synced)
 {
-	T* val = (T*)(this->get(synced));
+	T val = this->value(synced);
 	std::ostringstream msg;
 	msg << "(";
 	for (unsigned int i = 0; i < _dims; i++) {
-		msg << val->s[i] << ",";
+		msg << val.s[i] << ",";
 	}
 	std::string str = msg.str();
 	str.back() = ')';
 	return str;
 }
 
-Vec2Variable::Vec2Variable(const std::string varname)
-  : ScalarVecVariable(varname, "vec2", 2)
-{
-	_value.x = 0.f;
-	_value.y = 0.f;
-}
+#define __DEFINE_AQUA_VEC(NAME, TYPE, DIMS, NPTYPE)                            \
+	NAME::NAME(const std::string varname)                                      \
+		: ScalarVecVariable(varname, "#TYPE", 2, NPTYPE)                       \
+	{                                                                          \
+		for (unsigned int i = 0; i < DIMS; i++)                                \
+			_value.s[i] = 0;                                                   \
+	}
 
-PyObject*
-Vec2Variable::getPythonObject(int i0, int n)
-{
-	vec2* vv = (vec2*)get();
-	npy_intp dims[] = { 2 };
-	return PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, vv->s);
-}
+__DEFINE_AQUA_VEC(IVec2Variable, ivec2, 2, NPY_INT32)
+__DEFINE_AQUA_VEC(IVec3Variable, ivec3, 3, NPY_INT32)
+__DEFINE_AQUA_VEC(IVec4Variable, ivec4, 4, NPY_INT32)
+__DEFINE_AQUA_VEC(IVec8Variable, ivec8, 8, NPY_INT32)
 
-bool
-Vec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
-{
-	if (checkPyhonObjectDims(obj))
-		return true;
-	PyArrayObject* array_obj = (PyArrayObject*)obj;
-	if (PyArray_TYPE(array_obj) != NPY_FLOAT32) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name() << "\" expected a NPY_FLOAT32 array"
-		      << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	if (PyArray_NDIM(array_obj) != 1) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name() << "\" expected a 1-dimension array"
-		      << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	if (PyArray_Size(obj) != 2) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name()
-		      << "\" expected an array of 2 elements" << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	set(PyArray_DATA(array_obj));
-	return false;
-}
+__DEFINE_AQUA_VEC(LVec2Variable, lvec2, 2, NPY_INT64)
+__DEFINE_AQUA_VEC(LVec3Variable, lvec3, 3, NPY_INT64)
+__DEFINE_AQUA_VEC(LVec4Variable, lvec4, 4, NPY_INT64)
+__DEFINE_AQUA_VEC(LVec8Variable, lvec8, 8, NPY_INT64)
 
-Vec3Variable::Vec3Variable(const std::string varname)
-  : ScalarVecVariable(varname, "vec3", 3)
-{
-	_value.x = 0.f;
-	_value.y = 0.f;
-	_value.z = 0.f;
-}
+__DEFINE_AQUA_VEC(UIVec2Variable, uivec2, 2, NPY_UINT32)
+__DEFINE_AQUA_VEC(UIVec3Variable, uivec3, 3, NPY_UINT32)
+__DEFINE_AQUA_VEC(UIVec4Variable, uivec4, 4, NPY_UINT32)
+__DEFINE_AQUA_VEC(UIVec8Variable, uivec8, 8, NPY_UINT32)
 
-PyObject*
-Vec3Variable::getPythonObject(int i0, int n)
-{
-	vec3* vv = (vec3*)get();
-	npy_intp dims[] = { 3 };
-	return PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, vv->s);
-}
+__DEFINE_AQUA_VEC(ULVec2Variable, ulvec2, 2, NPY_UINT64)
+__DEFINE_AQUA_VEC(ULVec3Variable, ulvec3, 3, NPY_UINT64)
+__DEFINE_AQUA_VEC(ULVec4Variable, ulvec4, 4, NPY_UINT64)
+__DEFINE_AQUA_VEC(ULVec8Variable, ulvec8, 8, NPY_UINT64)
 
-bool
-Vec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
-{
-	if (checkPyhonObjectDims(obj))
-		return true;
-	PyArrayObject* array_obj = (PyArrayObject*)obj;
-	if (PyArray_TYPE(array_obj) != NPY_FLOAT32) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name() << "\" expected a NPY_FLOAT32 array"
-		      << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	if (PyArray_NDIM(array_obj) != 1) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name() << "\" expected a 1-dimension array"
-		      << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	if (PyArray_Size(obj) != 4) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name()
-		      << "\" expected an array of 4 elements" << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	set(PyArray_DATA(array_obj));
-	return false;
-}
+__DEFINE_AQUA_VEC(Vec2Variable, vec2, 2, NPY_FLOAT32)
+__DEFINE_AQUA_VEC(Vec3Variable, vec3, 3, NPY_FLOAT32)
+__DEFINE_AQUA_VEC(Vec4Variable, vec4, 4, NPY_FLOAT32)
+__DEFINE_AQUA_VEC(Vec8Variable, vec8, 8, NPY_FLOAT32)
 
-Vec4Variable::Vec4Variable(const std::string varname)
-  : ScalarVecVariable(varname, "vec4", 4)
-{
-	_value.x = 0.f;
-	_value.y = 0.f;
-	_value.z = 0.f;
-	_value.w = 0.f;
-}
-
-PyObject*
-Vec4Variable::getPythonObject(int i0, int n)
-{
-	vec4* vv = (vec4*)get();
-	npy_intp dims[] = { 4 };
-	return PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, vv->s);
-}
-
-bool
-Vec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
-{
-	if (checkPyhonObjectDims(obj))
-		return true;
-	PyArrayObject* array_obj = (PyArrayObject*)obj;
-	if (PyArray_TYPE(array_obj) != NPY_FLOAT32) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name() << "\" expected a NPY_FLOAT32 array"
-		      << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	if (PyArray_NDIM(array_obj) != 1) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name() << "\" expected a 1-dimension array"
-		      << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	if (PyArray_Size(obj) != 4) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name()
-		      << "\" expected an array of 4 elements" << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	set(PyArray_DATA(array_obj));
-	return false;
-}
-
-Vec8Variable::Vec8Variable(const std::string varname)
-  : ScalarVecVariable(varname, "vec8", 8)
-{
-	_value.s0 = 0.f;
-	_value.s1 = 0.f;
-	_value.s2 = 0.f;
-	_value.s3 = 0.f;
-	_value.s4 = 0.f;
-	_value.s5 = 0.f;
-	_value.s6 = 0.f;
-	_value.s7 = 0.f;
-}
-
-PyObject*
-Vec8Variable::getPythonObject(int i0, int n)
-{
-	vec8* vv = (vec8*)get();
-	npy_intp dims[] = { 8 };
-	return PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, vv->s);
-}
-
-bool
-Vec8Variable::setFromPythonObject(PyObject* obj, int i0, int n)
-{
-	if (checkPyhonObjectDims(obj))
-		return true;
-	PyArrayObject* array_obj = (PyArrayObject*)obj;
-	if (PyArray_TYPE(array_obj) != NPY_FLOAT32) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name() << "\" expected a NPY_FLOAT32 array"
-		      << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	if (PyArray_NDIM(array_obj) != 1) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name() << "\" expected a 1-dimension array"
-		      << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	if (PyArray_Size(obj) != 8) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name()
-		      << "\" expected an array of 8 elements" << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	set(PyArray_DATA(array_obj));
-	return false;
-}
-
-IVec2Variable::IVec2Variable(const std::string varname)
-  : ScalarVecVariable(varname, "ivec2", 2)
-{
-	_value.x = 0;
-	_value.y = 0;
-}
-
-PyObject*
-IVec2Variable::getPythonObject(int i0, int n)
-{
-	ivec2* vv = (ivec2*)get();
-	npy_intp dims[] = { 2 };
-	return PyArray_SimpleNewFromData(1, dims, NPY_INT32, vv->s);
-}
-
-bool
-IVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
-{
-	if (checkPyhonObjectDims(obj))
-		return true;
-	PyArrayObject* array_obj = (PyArrayObject*)obj;
-	int typ = PyArray_TYPE(array_obj);
-	if (PyArray_TYPE(array_obj) != NPY_INT32) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name() << "\" expected a NPY_FLOAT32 array"
-		      << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	if (PyArray_NDIM(array_obj) != 1) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name() << "\" expected a 1-dimension array"
-		      << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	if (PyArray_Size(obj) != 2) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name()
-		      << "\" expected an array of 2 elements" << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	set(PyArray_DATA(array_obj));
-	return false;
-}
-
-IVec3Variable::IVec3Variable(const std::string varname)
-  : ScalarVecVariable(varname, "ivec3", 3)
-{
-	_value.x = 0;
-	_value.y = 0;
-	_value.z = 0;
-}
-
-PyObject*
-IVec3Variable::getPythonObject(int i0, int n)
-{
-	ivec3* vv = (ivec3*)get();
-	npy_intp dims[] = { 3 };
-	return PyArray_SimpleNewFromData(1, dims, NPY_INT32, vv->s);
-}
-
-bool
-IVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
-{
-	if (checkPyhonObjectDims(obj))
-		return true;
-	PyArrayObject* array_obj = (PyArrayObject*)obj;
-	if (PyArray_TYPE(array_obj) != NPY_INT32) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name() << "\" expected a NPY_FLOAT32 array"
-		      << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	if (PyArray_NDIM(array_obj) != 1) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name() << "\" expected a 1-dimension array"
-		      << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	if (PyArray_Size(obj) != 4) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name()
-		      << "\" expected an array of 4 elements" << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	set(PyArray_DATA(array_obj));
-	return false;
-}
-
-IVec4Variable::IVec4Variable(const std::string varname)
-  : ScalarVecVariable(varname, "ivec4", 4)
-{
-	_value.x = 0;
-	_value.y = 0;
-	_value.z = 0;
-	_value.w = 0;
-}
-
-PyObject*
-IVec4Variable::getPythonObject(int i0, int n)
-{
-	ivec4* vv = (ivec4*)get();
-	npy_intp dims[] = { 4 };
-	return PyArray_SimpleNewFromData(1, dims, NPY_INT32, vv->s);
-}
-
-bool
-IVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
-{
-	if (checkPyhonObjectDims(obj))
-		return true;
-	PyArrayObject* array_obj = (PyArrayObject*)obj;
-	if (PyArray_TYPE(array_obj) != NPY_INT32) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name() << "\" expected a NPY_FLOAT32 array"
-		      << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	if (PyArray_NDIM(array_obj) != 1) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name() << "\" expected a 1-dimension array"
-		      << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	if (PyArray_Size(obj) != 4) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name()
-		      << "\" expected an array of 4 elements" << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	set(PyArray_DATA(array_obj));
-	return false;
-}
-
-IVec8Variable::IVec8Variable(const std::string varname)
-  : ScalarVecVariable(varname, "ivec8", 8)
-{
-	_value.s0 = 0;
-	_value.s1 = 0;
-	_value.s2 = 0;
-	_value.s3 = 0;
-	_value.s4 = 0;
-	_value.s5 = 0;
-	_value.s6 = 0;
-	_value.s7 = 0;
-}
-
-PyObject*
-IVec8Variable::getPythonObject(int i0, int n)
-{
-	ivec8* vv = (ivec8*)get();
-	npy_intp dims[] = { 8 };
-	return PyArray_SimpleNewFromData(1, dims, NPY_INT32, vv->s);
-}
-
-bool
-IVec8Variable::setFromPythonObject(PyObject* obj, int i0, int n)
-{
-	if (checkPyhonObjectDims(obj))
-		return true;
-	PyArrayObject* array_obj = (PyArrayObject*)obj;
-	if (PyArray_TYPE(array_obj) != NPY_INT32) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name() << "\" expected a NPY_FLOAT32 array"
-		      << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	if (PyArray_NDIM(array_obj) != 1) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name() << "\" expected a 1-dimension array"
-		      << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	if (PyArray_Size(obj) != 8) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name()
-		      << "\" expected an array of 8 elements" << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	set(PyArray_DATA(array_obj));
-	return false;
-}
-
-UIVec2Variable::UIVec2Variable(const std::string varname)
-  : ScalarVecVariable(varname, "uivec2", 2)
-{
-	_value.x = 0;
-	_value.y = 0;
-}
-
-PyObject*
-UIVec2Variable::getPythonObject(int i0, int n)
-{
-	uivec2* vv = (uivec2*)get();
-	npy_intp dims[] = { 2 };
-	return PyArray_SimpleNewFromData(1, dims, NPY_UINT32, vv->s);
-}
-
-bool
-UIVec2Variable::setFromPythonObject(PyObject* obj, int i0, int n)
-{
-	if (checkPyhonObjectDims(obj))
-		return true;
-	PyArrayObject* array_obj = (PyArrayObject*)obj;
-	if (PyArray_TYPE(array_obj) != NPY_UINT32) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name() << "\" expected a NPY_FLOAT32 array"
-		      << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	if (PyArray_NDIM(array_obj) != 1) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name() << "\" expected a 1-dimension array"
-		      << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	if (PyArray_Size(obj) != 2) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name()
-		      << "\" expected an array of 2 elements" << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	set(PyArray_DATA(array_obj));
-	return false;
-}
-
-UIVec3Variable::UIVec3Variable(const std::string varname)
-  : ScalarVecVariable(varname, "uivec3", 3)
-{
-	_value.x = 0;
-	_value.y = 0;
-	_value.z = 0;
-}
-
-PyObject*
-UIVec3Variable::getPythonObject(int i0, int n)
-{
-	uivec3* vv = (uivec3*)get();
-	npy_intp dims[] = { 3 };
-	return PyArray_SimpleNewFromData(1, dims, NPY_UINT32, vv->s);
-}
-
-bool
-UIVec3Variable::setFromPythonObject(PyObject* obj, int i0, int n)
-{
-	if (checkPyhonObjectDims(obj))
-		return true;
-	PyArrayObject* array_obj = (PyArrayObject*)obj;
-	if (PyArray_TYPE(array_obj) != NPY_UINT32) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name() << "\" expected a NPY_FLOAT32 array"
-		      << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	if (PyArray_NDIM(array_obj) != 1) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name() << "\" expected a 1-dimension array"
-		      << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	if (PyArray_Size(obj) != 4) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name()
-		      << "\" expected an array of 4 elements" << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	set(PyArray_DATA(array_obj));
-	return false;
-}
-
-UIVec4Variable::UIVec4Variable(const std::string varname)
-  : ScalarVecVariable(varname, "uivec4", 4)
-{
-	_value.x = 0;
-	_value.y = 0;
-	_value.z = 0;
-	_value.w = 0;
-}
-
-PyObject*
-UIVec4Variable::getPythonObject(int i0, int n)
-{
-	uivec4* vv = (uivec4*)get();
-	npy_intp dims[] = { 4 };
-	return PyArray_SimpleNewFromData(1, dims, NPY_UINT32, vv->s);
-}
-
-bool
-UIVec4Variable::setFromPythonObject(PyObject* obj, int i0, int n)
-{
-	if (checkPyhonObjectDims(obj))
-		return true;
-	PyArrayObject* array_obj = (PyArrayObject*)obj;
-	if (PyArray_TYPE(array_obj) != NPY_UINT32) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name() << "\" expected a NPY_FLOAT32 array"
-		      << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	if (PyArray_NDIM(array_obj) != 1) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name() << "\" expected a 1-dimension array"
-		      << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	if (PyArray_Size(obj) != 4) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name()
-		      << "\" expected an array of 4 elements" << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	set(PyArray_DATA(array_obj));
-	return false;
-}
-
-UIVec8Variable::UIVec8Variable(const std::string varname)
-  : ScalarVecVariable(varname, "uivec8", 8)
-{
-	_value.s0 = 0;
-	_value.s1 = 0;
-	_value.s2 = 0;
-	_value.s3 = 0;
-	_value.s4 = 0;
-	_value.s5 = 0;
-	_value.s6 = 0;
-	_value.s7 = 0;
-}
-
-PyObject*
-UIVec8Variable::getPythonObject(int i0, int n)
-{
-	uivec8* vv = (uivec8*)get();
-	npy_intp dims[] = { 8 };
-	return PyArray_SimpleNewFromData(1, dims, NPY_UINT32, vv->s);
-}
-
-bool
-UIVec8Variable::setFromPythonObject(PyObject* obj, int i0, int n)
-{
-	if (checkPyhonObjectDims(obj))
-		return true;
-	PyArrayObject* array_obj = (PyArrayObject*)obj;
-	if (PyArray_TYPE(array_obj) != NPY_UINT32) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name() << "\" expected a NPY_FLOAT32 array"
-		      << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	if (PyArray_NDIM(array_obj) != 1) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name() << "\" expected a 1-dimension array"
-		      << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	if (PyArray_Size(obj) != 8) {
-		pyerr.str("");
-		pyerr << "Variable \"" << name()
-		      << "\" expected an array of 8 elements" << std::endl;
-		PyErr_SetString(PyExc_ValueError, pyerr.str().c_str());
-		return true;
-	}
-	set(PyArray_DATA(array_obj));
-	return false;
-}
+__DEFINE_AQUA_VEC(DVec2Variable, dvec2, 2, NPY_FLOAT64)
+__DEFINE_AQUA_VEC(DVec3Variable, dvec3, 3, NPY_FLOAT64)
+__DEFINE_AQUA_VEC(DVec4Variable, dvec4, 4, NPY_FLOAT64)
+__DEFINE_AQUA_VEC(DVec8Variable, dvec8, 8, NPY_FLOAT64)
 
 ArrayVariable::ArrayVariable(const std::string varname,
                              const std::string vartype)
@@ -1102,16 +706,25 @@ ArrayVariable::getPythonObject(int i0, int n)
 	}
 	npy_intp dims[] = { static_cast<npy_intp>(len), components };
 	// Get the appropiate type
-	int pytype = NPY_FLOAT32;
-	if (!type().compare("unsigned int") || !type().compare("unsigned int*") ||
-	    !type().compare("uivec") || !type().compare("uivec*")) {
+	int pytype = NPY_NOTYPE;
+	if (startswith(type(), "unsigned int") ||
+	    startswith(type(), "uivec")) {
 		pytype = NPY_UINT32;
-	} else if (!type().compare("int") || !type().compare("int*") ||
-	           !type().compare("ivec") || !type().compare("ivec*")) {
+	} else if (startswith(type(), "unsigned long") ||
+	           startswith(type(), "ulvec")) {
+		pytype = NPY_UINT64;
+	} else if (startswith(type(), "int") ||
+	           startswith(type(), "ivec")) {
 		pytype = NPY_INT32;
-	} else if (!type().compare("float") || !type().compare("float*") ||
-	           !type().compare("vec") || !type().compare("vec*")) {
+	} else if (startswith(type(), "long") ||
+	           startswith(type(), "lvec")) {
+		pytype = NPY_INT64;
+	} else if (startswith(type(), "float") ||
+	           startswith(type(), "vec")) {
 		pytype = NPY_FLOAT32;
+	} else if (startswith(type(), "double") ||
+	           startswith(type(), "dvec")) {
+		pytype = NPY_FLOAT64;
 	} else {
 		pyerr.str("");
 		pyerr << "Variable \"" << name() << "\" is of type \"" << type()
@@ -1288,6 +901,27 @@ ArrayVariable::asString(bool synced)
 	return msg.str();
 }
 
+/** @brief Stringify a value pointer
+ * @param ptr Pointer to the value
+ * @param n Number of fields into the data
+ */
+template<typename T>
+const std::string
+valptr_as_string(T* ptr, unsigned int n)
+{
+	if (!n)
+		return "";
+	std::ostringstream out;
+	if (n > 1)
+		out << "(";
+	for (unsigned int i = 0; i < n - 1; n++)
+		out << ptr[i] << ",";
+	out << ptr[n - 1];
+	if (n > 1)
+		out << ")";
+	return out.str();
+}
+
 const std::string
 ArrayVariable::asString(size_t i, bool synced)
 {
@@ -1332,64 +966,26 @@ ArrayVariable::asString(size_t i, bool synced)
 		return NULL;
 	}
 
-	std::ostringstream str_stream;
-
-	if (!type().compare("unsigned int*")) {
-		str_stream << ((uicl*)ptr)[0];
-	} else if (!type().compare("uivec2*")) {
-		str_stream << "(" << ((unsigned int*)ptr)[0] << ","
-		           << ((uicl*)ptr)[1] << ")";
-	} else if (!type().compare("uivec3*")) {
-		str_stream << "(" << ((uicl*)ptr)[0] << ","
-		           << ((uicl*)ptr)[1] << "," << ((uicl*)ptr)[2]
-		           << ")";
-	} else if (!type().compare("uivec4*")) {
-		str_stream << "(" << ((uicl*)ptr)[0] << ","
-		           << ((uicl*)ptr)[1] << "," << ((uicl*)ptr)[2]
-		           << "," << ((uicl*)ptr)[3] << ")";
-	} else if (!type().compare("uivec*")) {
-#ifdef HAVE_3D
-		str_stream << "(" << ((uicl*)ptr)[0] << ","
-		           << ((uicl*)ptr)[1] << "," << ((uicl*)ptr)[2]
-		           << "," << ((uicl*)ptr)[3] << ")";
-#else
-		str_stream << "(" << ((uicl*)ptr)[0] << ","
-		           << ((uicl*)ptr)[1] << ")";
-#endif
-	} else if (!type().compare("int*")) {
-		str_stream << ((icl*)ptr)[0];
-	} else if (!type().compare("ivec2*")) {
-		str_stream << "(" << ((icl*)ptr)[0] << "," << ((icl*)ptr)[1] << ")";
-	} else if (!type().compare("ivec3*")) {
-		str_stream << "(" << ((icl*)ptr)[0] << "," << ((icl*)ptr)[1] << ","
-		           << ((icl*)ptr)[2] << ")";
-	} else if (!type().compare("ivec4*")) {
-		str_stream << "(" << ((icl*)ptr)[0] << "," << ((icl*)ptr)[1] << ","
-		           << ((icl*)ptr)[2] << "," << ((icl*)ptr)[3] << ")";
-	} else if (!type().compare("ivec*")) {
-#ifdef HAVE_3D
-		str_stream << "(" << ((icl*)ptr)[0] << "," << ((icl*)ptr)[1] << ","
-		           << ((icl*)ptr)[2] << "," << ((icl*)ptr)[3] << ")";
-#else
-		str_stream << "(" << ((icl*)ptr)[0] << "," << ((icl*)ptr)[1] << ")";
-#endif
-	} else if (!type().compare("float*")) {
-		str_stream << ((fcl*)ptr)[0];
-	} else if (!type().compare("vec2*")) {
-		str_stream << "(" << ((fcl*)ptr)[0] << "," << ((fcl*)ptr)[1] << ")";
-	} else if (!type().compare("vec3*")) {
-		str_stream << "(" << ((fcl*)ptr)[0] << "," << ((fcl*)ptr)[1] << ","
-		           << ((fcl*)ptr)[2] << ")";
-	} else if (!type().compare("vec4*")) {
-		str_stream << "(" << ((fcl*)ptr)[0] << "," << ((fcl*)ptr)[1] << ","
-		           << ((fcl*)ptr)[2] << "," << ((fcl*)ptr)[3] << ")";
-	} else if (!type().compare("vec*")) {
-#ifdef HAVE_3D
-		str_stream << "(" << ((fcl*)ptr)[0] << "," << ((fcl*)ptr)[1] << ","
-		           << ((fcl*)ptr)[2] << "," << ((fcl*)ptr)[3] << ")";
-#else
-		str_stream << "(" << ((fcl*)ptr)[0] << "," << ((fcl*)ptr)[1] << ")";
-#endif
+	const unsigned int n = Variables::typeToN(type());
+	std::string res = "";
+	if (startswith(type(), "int") ||
+	    startswith(type(), "ivec")) {
+		res = valptr_as_string((icl*)ptr, n);
+	} else if (startswith(type(), "long") ||
+	    startswith(type(), "lvec")) {
+		res = valptr_as_string((lcl*)ptr, n);
+	} else if (startswith(type(), "unsigned int") ||
+	    startswith(type(), "uivec")) {
+		res = valptr_as_string((uicl*)ptr, n);
+	} else if (startswith(type(), "unsigned long") ||
+	    startswith(type(), "ulvec")) {
+		res = valptr_as_string((ulcl*)ptr, n);
+	} else if (startswith(type(), "float") ||
+	    startswith(type(), "vec")) {
+		res = valptr_as_string((fcl*)ptr, n);
+	} else if (startswith(type(), "double") ||
+	    startswith(type(), "dvec")) {
+		res = valptr_as_string((dcl*)ptr, n);
 	} else {
 		std::ostringstream msg;
 		msg << "Variable \"" << name() << "\" has unknown type \"" << type()
@@ -1400,7 +996,7 @@ ArrayVariable::asString(size_t i, bool synced)
 	}
 	free(ptr);
 
-	return str_stream.str();
+	return res;
 }
 
 void
@@ -1495,9 +1091,18 @@ Variables::typeToBytes(const std::string type)
 	if (type.find("unsigned int") != std::string::npos ||
 	    type.find("uivec") != std::string::npos) {
 		type_size = sizeof(uicl);
+	} else if (type.find("unigned long") != std::string::npos ||
+	           type.find("ulvec") != std::string::npos) {
+		type_size = sizeof(ulcl);
 	} else if (type.find("int") != std::string::npos ||
 	           type.find("ivec") != std::string::npos) {
 		type_size = sizeof(icl);
+	} else if (type.find("long") != std::string::npos ||
+	           type.find("lvec") != std::string::npos) {
+		type_size = sizeof(lcl);
+	} else if (type.find("double") != std::string::npos ||
+	           type.find("dvec") != std::string::npos) {
+		type_size = sizeof(dcl);
 	} else if (type.find("float") != std::string::npos ||
 	           type.find("vec") != std::string::npos ||
 	           type.find("matrix") != std::string::npos) {
@@ -1521,6 +1126,8 @@ Variables::typeToN(const std::string type)
 		n = 3;
 	} else if (type.find("vec4") != std::string::npos) {
 		n = 4;
+	} else if (type.find("vec8") != std::string::npos) {
+		n = 8;
 	} else if (type.find("vec") != std::string::npos) {
 #ifdef HAVE_3D
 		n = 4;
@@ -1642,17 +1249,23 @@ Variables::exprVariables(const std::string& expr)
 		return (vartype)val;                                                   \
 	}
 
-SCALAR_SOLVER(icl, int)
-SCALAR_SOLVER(uicl, unsigned int)
+SCALAR_SOLVER(icl, int32_t)
+SCALAR_SOLVER(lcl, int64_t)
+SCALAR_SOLVER(uicl, uint32_t)
+SCALAR_SOLVER(ulcl, uint64_t)
 SCALAR_SOLVER(fcl, float)
+SCALAR_SOLVER(dcl, double)
 
 #define VEC_SOLVER(vartype, toktype, n)                                        \
 	template<>                                                                 \
 	vartype                                                                    \
-	Variables::solve(const std::string& name, const std::string& value)       \
+	Variables::solve(const std::string& name, const std::string& value)        \
 	{                                                                          \
 		vartype out;                                                           \
-		const char* extensions[4] = { "_x", "_y", "_z", "_w" };                \
+		const char* extensions[16] = { "_x",  "_y",  "_z",  "_w",              \
+		                               "_yx", "_yy", "_yz", "_yw",             \
+		                               "_zx", "_zy", "_zz", "_zw",             \
+		                               "_wx", "_wy", "_wz", "_ww" };           \
 		SPLIT_EXPR_AND_CHECK(name, value, value_strs, n);                      \
 		for (unsigned int i = 0; i < n; i++) {                                 \
 			toktype val = tok.solve<toktype>(value_strs[i]);                   \
@@ -1667,14 +1280,26 @@ VEC_SOLVER(ivec2, int, 2)
 // VEC_SOLVER(ivec3, int, 3)
 VEC_SOLVER(ivec4, int, 4)
 VEC_SOLVER(ivec8, int, 8)
+VEC_SOLVER(lvec2, long, 2)
+// VEC_SOLVER(lvec3, long, 3)
+VEC_SOLVER(lvec4, long, 4)
+VEC_SOLVER(lvec8, long, 8)
 VEC_SOLVER(uivec2, unsigned int, 2)
 // VEC_SOLVER(uivec3, unsigned int, 3)
 VEC_SOLVER(uivec4, unsigned int, 4)
 VEC_SOLVER(uivec8, unsigned int, 8)
+VEC_SOLVER(ulvec2, unsigned long, 2)
+// VEC_SOLVER(ulvec3, unsigned long, 3)
+VEC_SOLVER(ulvec4, unsigned long, 4)
+VEC_SOLVER(ulvec8, unsigned long, 8)
 VEC_SOLVER(vec2, float, 2)
 // VEC_SOLVER(vec3, float, 3)
 VEC_SOLVER(vec4, float, 4)
 VEC_SOLVER(vec8, float, 8)
+VEC_SOLVER(dvec2, double, 2)
+// VEC_SOLVER(dvec3, double, 3)
+VEC_SOLVER(dvec4, double, 4)
+VEC_SOLVER(dvec8, double, 8)
 
 void
 Variables::solve(const std::string type_name,
@@ -1699,11 +1324,20 @@ Variables::solve(const std::string type_name,
 	if (!type.compare("int")) {
 		icl val = solve<icl>(name, value);
 		memcpy(data, &val, typesize);
+	} else if (!type.compare("long")) {
+		lcl val = solve<lcl>(name, value);
+		memcpy(data, &val, typesize);
 	} else if (!type.compare("unsigned int")) {
 		uicl val = solve<uicl>(name, value);
 		memcpy(data, &val, typesize);
+	} else if (!type.compare("unsigned long")) {
+		ulcl val = solve<ulcl>(name, value);
+		memcpy(data, &val, typesize);
 	} else if (!type.compare("float")) {
 		fcl val = solve<fcl>(name, value);
+		memcpy(data, &val, typesize);
+	} else if (!type.compare("double")) {
+		dcl val = solve<dcl>(name, value);
 		memcpy(data, &val, typesize);
 	} else if (!type.compare("vec")) {
 		vec val = solve<vec>(name, value);
@@ -1717,6 +1351,24 @@ Variables::solve(const std::string type_name,
 	} else if (!type.compare("vec4")) {
 		vec4 val = solve<vec4>(name, value);
 		memcpy(data, &val, typesize);
+	} else if (!type.compare("vec8")) {
+		vec8 val = solve<vec8>(name, value);
+		memcpy(data, &val, typesize);
+	} else if (!type.compare("dvec")) {
+		dvec val = solve<dvec>(name, value);
+		memcpy(data, &val, typesize);
+	} else if (!type.compare("dvec2")) {
+		dvec2 val = solve<dvec2>(name, value);
+		memcpy(data, &val, typesize);
+	} else if (!type.compare("dvec3")) {
+		dvec3 val = solve<dvec3>(name, value);
+		memcpy(data, &val, typesize);
+	} else if (!type.compare("dvec4")) {
+		dvec4 val = solve<dvec4>(name, value);
+		memcpy(data, &val, typesize);
+	} else if (!type.compare("dvec8")) {
+		dvec8 val = solve<dvec8>(name, value);
+		memcpy(data, &val, typesize);
 	} else if (!type.compare("ivec")) {
 		ivec val = solve<ivec>(name, value);
 		memcpy(data, &val, typesize);
@@ -1729,6 +1381,24 @@ Variables::solve(const std::string type_name,
 	} else if (!type.compare("ivec4")) {
 		ivec4 val = solve<ivec4>(name, value);
 		memcpy(data, &val, typesize);
+	} else if (!type.compare("ivec8")) {
+		ivec8 val = solve<ivec8>(name, value);
+		memcpy(data, &val, typesize);
+	} else if (!type.compare("lvec")) {
+		lvec val = solve<lvec>(name, value);
+		memcpy(data, &val, typesize);
+	} else if (!type.compare("lvec2")) {
+		lvec2 val = solve<lvec2>(name, value);
+		memcpy(data, &val, typesize);
+	} else if (!type.compare("lvec3")) {
+		lvec3 val = solve<lvec3>(name, value);
+		memcpy(data, &val, typesize);
+	} else if (!type.compare("lvec4")) {
+		lvec4 val = solve<lvec4>(name, value);
+		memcpy(data, &val, typesize);
+	} else if (!type.compare("lvec8")) {
+		lvec8 val = solve<lvec8>(name, value);
+		memcpy(data, &val, typesize);
 	} else if (!type.compare("uivec")) {
 		uivec val = solve<uivec>(name, value);
 		memcpy(data, &val, typesize);
@@ -1740,6 +1410,24 @@ Variables::solve(const std::string type_name,
 		memcpy(data, &val, typesize);
 	} else if (!type.compare("uivec4")) {
 		uivec4 val = solve<uivec4>(name, value);
+		memcpy(data, &val, typesize);
+	} else if (!type.compare("uivec8")) {
+		uivec8 val = solve<uivec8>(name, value);
+		memcpy(data, &val, typesize);
+	} else if (!type.compare("ulvec")) {
+		ulvec val = solve<ulvec>(name, value);
+		memcpy(data, &val, typesize);
+	} else if (!type.compare("ulvec2")) {
+		ulvec2 val = solve<ulvec2>(name, value);
+		memcpy(data, &val, typesize);
+	} else if (!type.compare("ulvec3")) {
+		ulvec3 val = solve<ulvec3>(name, value);
+		memcpy(data, &val, typesize);
+	} else if (!type.compare("ulvec4")) {
+		ulvec4 val = solve<ulvec4>(name, value);
+		memcpy(data, &val, typesize);
+	} else if (!type.compare("ulvec8")) {
+		ulvec8 val = solve<ulvec8>(name, value);
 		memcpy(data, &val, typesize);
 	} else {
 		throw std::runtime_error("Invalid variable type");
@@ -1771,100 +1459,70 @@ Variables::populate(const std::string name)
 void
 Variables::populate(Variable* var)
 {
-	const char* extensions[4] = { "_x", "_y", "_z", "_w" };
+	const char* extensions[16] = { "_x",  "_y",  "_z",  "_w",
+	                               "_yx", "_yy", "_yz", "_yw",
+	                               "_zx", "_zy", "_zz", "_zw",
+	                               "_wx", "_wy", "_wz", "_ww" };
 	const std::string type = trimCopy(var->type());
 	if (!type.compare("int")) {
 		icl val = *(icl*)var->get_async();
 		tok.registerVariable<int>(var->name(), (int)val);
+	} else if (!type.compare("long")) {
+		lcl val = *(lcl*)var->get_async();
+		tok.registerVariable<int64_t>(var->name(), (int64_t)val);
 	} else if (!type.compare("unsigned int")) {
 		uicl val = *(uicl*)var->get_async();
 		tok.registerVariable<unsigned int>(var->name(), (unsigned int)val);
+	} else if (!type.compare("unsigned long")) {
+		ulcl val = *(ulcl*)var->get_async();
+		tok.registerVariable<uint64_t>(var->name(), (uint64_t)val);
 	} else if (!type.compare("float")) {
 		fcl val = *(fcl*)var->get_async();
 		tok.registerVariable<float>(var->name(), (float)val);
-	} else if (!type.compare("vec")) {
-		vec val = *(vec*)var->get_async();
-#ifdef HAVE_3D
-		for (unsigned int i = 0; i < 4; i++) {
-#else
-		for (unsigned int i = 0; i < 2; i++) {
-#endif
+	} else if (!type.compare("double")) {
+		dcl val = *(dcl*)var->get_async();
+		tok.registerVariable<double>(var->name(), (double)val);
+	} else if (startswith(type, "ivec")) {
+		const unsigned int n = typeToN(type);
+		icl* ptr = (icl*)(var->get_async());
+		for (unsigned int i = 0; i < n; i++) {
+			tok.registerVariable<int32_t>(var->name() + extensions[i],
+			                              (int32_t)(ptr[i]));
+		}
+	} else if (startswith(type, "lvec")) {
+		const unsigned int n = typeToN(type);
+		lcl* ptr = (lcl*)(var->get_async());
+		for (unsigned int i = 0; i < n; i++) {
+			tok.registerVariable<int64_t>(var->name() + extensions[i],
+			                              (int64_t)(ptr[i]));
+		}
+	} else if (startswith(type, "uivec")) {
+		const unsigned int n = typeToN(type);
+		uicl* ptr = (uicl*)(var->get_async());
+		for (unsigned int i = 0; i < n; i++) {
+			tok.registerVariable<uint32_t>(var->name() + extensions[i],
+			                               (uint32_t)(ptr[i]));
+		}
+	} else if (startswith(type, "ulvec")) {
+		const unsigned int n = typeToN(type);
+		ulcl* ptr = (ulcl*)(var->get_async());
+		for (unsigned int i = 0; i < n; i++) {
+			tok.registerVariable<uint64_t>(var->name() + extensions[i],
+			                               (uint64_t)(ptr[i]));
+		}
+	} else if (startswith(type, "dvec")) {
+		const unsigned int n = typeToN(type);
+		dcl* ptr = (dcl*)(var->get_async());
+		for (unsigned int i = 0; i < n; i++) {
+			tok.registerVariable<double>(var->name() + extensions[i],
+			                             (double)(ptr[i]));
+		}
+	} else if (startswith(type, "vec")) {
+		const unsigned int n = typeToN(type);
+		fcl* ptr = (fcl*)(var->get_async());
+		for (unsigned int i = 0; i < n; i++) {
 			tok.registerVariable<float>(var->name() + extensions[i],
-			                            (float)(val.s[i]));
-		}
-	} else if (!type.compare("vec2")) {
-		vec2 val = *(vec2*)var->get_async();
-		for (unsigned int i = 0; i < 2; i++) {
-			tok.registerVariable<float>(var->name() + extensions[i],
-			                            (float)(val.s[i]));
-		}
-	} else if (!type.compare("vec3")) {
-		vec3 val = *(vec3*)var->get_async();
-		for (unsigned int i = 0; i < 3; i++) {
-			tok.registerVariable<float>(var->name() + extensions[i],
-			                            (float)(val.s[i]));
-		}
-	} else if (!type.compare("vec4")) {
-		vec4 val = *(vec4*)var->get_async();
-		for (unsigned int i = 0; i < 4; i++) {
-			tok.registerVariable<float>(var->name() + extensions[i],
-			                            (float)(val.s[i]));
-		}
-	} else if (!type.compare("ivec")) {
-		ivec val = *(ivec*)var->get_async();
-#ifdef HAVE_3D
-		for (unsigned int i = 0; i < 4; i++) {
-#else
-		for (unsigned int i = 0; i < 2; i++) {
-#endif
-			tok.registerVariable<int>(var->name() + extensions[i],
-			                            (int)(val.s[i]));
-		}
-	} else if (!type.compare("ivec2")) {
-		ivec2 val = *(ivec2*)var->get_async();
-		for (unsigned int i = 0; i < 2; i++) {
-			tok.registerVariable<int>(var->name() + extensions[i],
-			                            (int)(val.s[i]));
-		}
-	} else if (!type.compare("ivec3")) {
-		ivec3 val = *(ivec3*)var->get_async();
-		for (unsigned int i = 0; i < 3; i++) {
-			tok.registerVariable<int>(var->name() + extensions[i],
-			                            (int)(val.s[i]));
-		}
-	} else if (!type.compare("ivec4")) {
-		ivec4 val = *(ivec4*)var->get_async();
-		for (unsigned int i = 0; i < 4; i++) {
-			tok.registerVariable<int>(var->name() + extensions[i],
-			                            (int)(val.s[i]));
-		}
-	} else if (!type.compare("uivec")) {
-		uivec val = *(uivec*)var->get_async();
-#ifdef HAVE_3D
-		for (unsigned int i = 0; i < 4; i++) {
-#else
-		for (unsigned int i = 0; i < 2; i++) {
-#endif
-			tok.registerVariable<unsigned int>(var->name() + extensions[i],
-			                                   (unsigned int)(val.s[i]));
-		}
-	} else if (!type.compare("uivec2")) {
-		uivec2 val = *(uivec2*)var->get_async();
-		for (unsigned int i = 0; i < 2; i++) {
-			tok.registerVariable<unsigned int>(var->name() + extensions[i],
-			                                   (unsigned int)(val.s[i]));
-		}
-	} else if (!type.compare("uivec3")) {
-		uivec3 val = *(uivec3*)var->get_async();
-		for (unsigned int i = 0; i < 3; i++) {
-			tok.registerVariable<unsigned int>(var->name() + extensions[i],
-			                                   (unsigned int)(val.s[i]));
-		}
-	} else if (!type.compare("uivec4")) {
-		uivec4 val = *(uivec4*)var->get_async();
-		for (unsigned int i = 0; i < 4; i++) {
-			tok.registerVariable<unsigned int>(var->name() + extensions[i],
-			                                   (unsigned int)(val.s[i]));
+			                            (float)(ptr[i]));
 		}
 	} else {
 		std::ostringstream msg;
@@ -1873,20 +1531,17 @@ Variables::populate(Variable* var)
 		LOG(L_ERROR, msg.str());
 		LOG0(L_DEBUG, "Valid types are:\n");
 		LOG0(L_DEBUG, "\tint\n");
+		LOG0(L_DEBUG, "\tlong\n");
 		LOG0(L_DEBUG, "\tunsigned int\n");
+		LOG0(L_DEBUG, "\tunsigned long\n");
 		LOG0(L_DEBUG, "\tfloat\n");
-		LOG0(L_DEBUG, "\tvec\n");
-		LOG0(L_DEBUG, "\tvec2\n");
-		LOG0(L_DEBUG, "\tvec3\n");
-		LOG0(L_DEBUG, "\tvec4\n");
-		LOG0(L_DEBUG, "\tivec\n");
-		LOG0(L_DEBUG, "\tivec2\n");
-		LOG0(L_DEBUG, "\tivec3\n");
-		LOG0(L_DEBUG, "\tivec4\n");
-		LOG0(L_DEBUG, "\tuivec\n");
-		LOG0(L_DEBUG, "\tuivec2\n");
-		LOG0(L_DEBUG, "\tuivec3\n");
-		LOG0(L_DEBUG, "\tuivec4\n");
+		LOG0(L_DEBUG, "\tdouble\n");
+		for (auto prefix : {"vec", "dvec", "ivec", "lvec", "uivec", "ulvec"}) {
+			for (auto n : {2, 3, 4, 8}) {
+				LOG0(L_DEBUG, std::string("\t") + prefix + std::to_string(n) +
+				              "\n");
+			}
+		}
 		throw std::runtime_error("Invalid variable type");
 	}
 }
@@ -2030,23 +1685,17 @@ Variables::registerScalar(const std::string name,
 		LOG(L_ERROR, msg.str());
 		LOG0(L_DEBUG, "Valid types are:\n");
 		LOG0(L_DEBUG, "\tint\n");
+		LOG0(L_DEBUG, "\tlong\n");
 		LOG0(L_DEBUG, "\tunsigned int\n");
+		LOG0(L_DEBUG, "\tunsigned long\n");
 		LOG0(L_DEBUG, "\tfloat\n");
-		LOG0(L_DEBUG, "\tvec\n");
-		LOG0(L_DEBUG, "\tvec2\n");
-		LOG0(L_DEBUG, "\tvec3\n");
-		LOG0(L_DEBUG, "\tvec4\n");
-		LOG0(L_DEBUG, "\tvec8\n");
-		LOG0(L_DEBUG, "\tivec\n");
-		LOG0(L_DEBUG, "\tivec2\n");
-		LOG0(L_DEBUG, "\tivec3\n");
-		LOG0(L_DEBUG, "\tivec4\n");
-		LOG0(L_DEBUG, "\tivec8\n");
-		LOG0(L_DEBUG, "\tuivec\n");
-		LOG0(L_DEBUG, "\tuivec2\n");
-		LOG0(L_DEBUG, "\tuivec3\n");
-		LOG0(L_DEBUG, "\tuivec4\n");
-		LOG0(L_DEBUG, "\tuivec8\n");
+		LOG0(L_DEBUG, "\tdouble\n");
+		for (auto prefix : {"vec", "dvec", "ivec", "lvec", "uivec", "ulvec"}) {
+			for (auto n : {2, 3, 4, 8}) {
+				LOG0(L_DEBUG, std::string("\t") + prefix + std::to_string(n) +
+				              "\n");
+			}
+		}
 		throw std::runtime_error("Invalid scalar variable type");
 	}
 }

@@ -288,8 +288,9 @@ roundUp(unsigned int x, unsigned int divisor);
  * @param n Number to round.
  * @return The closest integer to @paramname{n}.
  */
-inline int
-round(float n) { return (int)(n + ((n >= 0) ? 0.5 : -0.5)); }
+template<typename T=int>
+inline T
+round(float n) { return (T)(n + ((n >= 0) ? 0.5 : -0.5)); }
 
 /// Gets the folder path which contains the file @paramname{file_path}.
 /**
