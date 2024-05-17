@@ -59,11 +59,11 @@ __kernel void entry(__global unsigned int* iset,
                     __global float* rho,
                     __global float* p,
                     __constant float* refd,
-                    unsigned int N,
+                    usize N,
                     float cs,
                     float p0)
 {
-    unsigned int i = get_global_id(0);
+    usize i = get_global_id(0);
     if(i >= N)
         return;
     if(EXCLUDED_PARTICLE(i))

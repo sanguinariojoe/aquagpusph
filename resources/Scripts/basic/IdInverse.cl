@@ -32,11 +32,11 @@
  * @param id_inverse Sorted index of each particle (unsort -> sort space)
  * @param N Number of particles.
  */
-__kernel void entry(__global uint *id,
-                    __global uint *id_inverse,
-                    unsigned int N)
+__kernel void entry(__global usize *id,
+                    __global usize *id_inverse,
+                    usize N)
 {
-    uint i = get_global_id(0);
+    usize i = get_global_id(0);
     if(i >= N)
         return;
 

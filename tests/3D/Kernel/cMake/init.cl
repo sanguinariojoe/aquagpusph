@@ -20,9 +20,9 @@
 
 __kernel void init(const __global vec* r,
                    __global vec* r_out,
-                   uint N)
+                   usize N)
 {
-    const uint i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     

@@ -41,10 +41,10 @@ __kernel void entry(__global float* energy_kin,
                     const __global int* imove,
                     const __global vec* u,
                     const __global float* m,
-                    unsigned int N)
+                    usize N)
 {
     // find position in global arrays
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] != 1){

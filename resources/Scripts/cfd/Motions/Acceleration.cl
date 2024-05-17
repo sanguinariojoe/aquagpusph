@@ -72,7 +72,7 @@ __kernel void entry(const __global uint* iset,
                     const __global int* imove,
                     __global vec* r,
                     __global vec* dudt,
-                     unsigned int N,
+                    usize N,
                     unsigned int motion_iset,
                     vec motion_r,
                     vec motion_ddrddt,
@@ -80,7 +80,7 @@ __kernel void entry(const __global uint* iset,
                     vec4 motion_ddaddt)
 {
     // find position in global arrays
-    int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if((iset[i] != motion_iset) || (imove[i] == 1)){

@@ -61,11 +61,11 @@ __kernel void entry(__global float* energy_dekdt,
                     const __global float* p,
                     const __global vec* dudt,
                     const __global float* drhodt,
-                    unsigned int N,
+                    usize N,
                     vec g)
 {
     // find position in global arrays
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] != 1){

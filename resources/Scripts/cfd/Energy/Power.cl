@@ -79,12 +79,12 @@ __kernel void fluid(__global float* dekdt,
                     __constant float* refd,
                     __constant float* visc_dyn,
                     __constant float* delta,
-                    unsigned int N,
+                    usize N,
                     vec g,
                     float dt)
 {
     // find position in global arrays
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] != 1){
@@ -150,10 +150,10 @@ __kernel void bound(__global float* desdt,
                     const __global float* drhodt,
                     const __global float* dekdt,
                     const __global float* decdt,
-                    unsigned int N)
+                    usize N)
 {
     // find position in global arrays
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] != 1){

@@ -80,12 +80,12 @@ __kernel void entry(const __global int* imove,
                     const __global float* m,
                     const __global vec* u_in,
                     __global vec* dudt,
-                    uint N,
+                    usize N,
                     float dt,
                     LINKLIST_LOCAL_PARAMS)
 {
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
+    const usize i = get_global_id(0);
+    const usize it = get_local_id(0);
     if(i >= N)
         return;
     if(imove[i] != 1)
@@ -95,7 +95,7 @@ __kernel void entry(const __global int* imove,
     vec_xyz dudt_i = dudt[i].XYZ;
     vec_xyz u_i = u_in[i].XYZ + 0.5f * dt * dudt_i;
 
-    const unsigned int c_i = icell[i];
+    const usize c_i = icell[i];
     BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
         if (imove[j] != -3) {
             j++;
@@ -166,9 +166,9 @@ __kernel void force_bound(const __global int* imove,
                           const __global vec* dudt_preelastic,
                           const __global vec* dudt_elastic,
                           __global vec* force_elastic,
-                          unsigned int N)
+                          usize N)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] != 1) {

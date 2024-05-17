@@ -54,12 +54,12 @@ __kernel void entry(__global vec* forces_f,
                     __global vec* r,
                     __global vec* dudt,
                     __global float* m,
-                    unsigned int N,
+                    usize N,
                     vec g,
                     vec forces_r)
 {
     // find position in global arrays
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] != 1){

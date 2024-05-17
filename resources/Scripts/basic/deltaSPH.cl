@@ -58,10 +58,10 @@ __kernel void simple(const __global unsigned int* iset,
                      const __global int* imove,
                      __global vec* lap_p_corr,
                      __constant float* refd,
-                     unsigned int N,
+                     usize N,
                      vec g)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(EXCLUDED_PARTICLE(i))
@@ -97,13 +97,11 @@ __kernel void full(const __global int* imove,
                    const __global float* m,
                    const __global float* p,
                    __global vec* lap_p_corr,
-                   const __global uint *icell,
-                   const __global uint *ihoc,
-                   uint N,
-                   uivec4 n_cells)
+                   usize N,
+                   LINKLIST_LOCAL_PARAMS)
 {
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
+    const usize i = get_global_id(0);
+    const usize it = get_local_id(0);
     if(i >= N)
         return;
     if(EXCLUDED_PARTICLE(i)){
@@ -122,7 +120,8 @@ __kernel void full(const __global int* imove,
         _GRADP_ = VEC_ZERO.XYZ;
     #endif
 
-    BEGIN_LOOP_OVER_NEIGHS(){
+    const usize c_i = icell[i];
+    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
         if( (i == j) || (EXCLUDED_PARTICLE(j))){
             j++;
             continue;
@@ -138,7 +137,7 @@ __kernel void full(const __global int* imove,
             const float f_ij = kernelF(q) * CONF * m[j] / rho[j];
             _GRADP_ += (p[j] - p_i) * f_ij * r_ij;
         }
-    }END_LOOP_OVER_NEIGHS()
+    }END_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         lap_p_corr[i].XYZ = _GRADP_;
@@ -161,9 +160,9 @@ __kernel void full(const __global int* imove,
 __kernel void full_mls(const __global int* imove,
                    const __global matrix* mls,
                    __global vec* lap_p_corr,
-                   uint N)
+                   usize N)
 {
-    const uint i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(EXCLUDED_PARTICLE(i)){
@@ -195,13 +194,11 @@ __kernel void lapp(const __global int* imove,
                    const __global float* m,
                    const __global float* p,
                    __global float* lap_p,
-                   const __global uint *icell,
-                   const __global uint *ihoc,
-                   uint N,
-                   uivec4 n_cells)
+                   usize N,
+                   LINKLIST_LOCAL_PARAMS)
 {
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
+    const usize i = get_global_id(0);
+    const usize it = get_local_id(0);
     if(i >= N)
         return;
     if(EXCLUDED_PARTICLE(i)){
@@ -220,7 +217,8 @@ __kernel void lapp(const __global int* imove,
         _LAPP_ = 0.f;
     #endif
 
-    BEGIN_LOOP_OVER_NEIGHS(){
+    const usize c_i = icell[i];
+    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
         if( (i == j) || (EXCLUDED_PARTICLE(j))){
             j++;
             continue;
@@ -236,7 +234,7 @@ __kernel void lapp(const __global int* imove,
             const float f_ij = kernelF(q) * CONF * m[j] / rho[j];
             _LAPP_ += (p[j] - p_i) * f_ij;
         }
-    }END_LOOP_OVER_NEIGHS()
+    }END_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         lap_p[i] = _LAPP_;
@@ -266,13 +264,11 @@ __kernel void lapp_corr(const __global int* imove,
                         const __global float* m,
                         const __global vec* lap_p_corr,
                         __global float* lap_p,
-                        const __global uint *icell,
-                        const __global uint *ihoc,
-                        uint N,
-                        uivec4 n_cells)
+                        usize N,
+                        LINKLIST_LOCAL_PARAMS)
 {
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
+    const usize i = get_global_id(0);
+    const usize it = get_local_id(0);
     if(i >= N)
         return;
     if(EXCLUDED_PARTICLE(i)){
@@ -291,7 +287,8 @@ __kernel void lapp_corr(const __global int* imove,
         _LAPP_ = lap_p[i];
     #endif
 
-    BEGIN_LOOP_OVER_NEIGHS(){
+    const usize c_i = icell[i];
+    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
         if( (i == j) || (EXCLUDED_PARTICLE(j))){
             j++;
             continue;
@@ -308,7 +305,7 @@ __kernel void lapp_corr(const __global int* imove,
             const float f_ij = kernelF(q) * CONF * m[j] / rho[j];
             _LAPP_ -= 0.5f * dot(gradp_ij, r_ij) * f_ij;
         }
-    }END_LOOP_OVER_NEIGHS()
+    }END_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         lap_p[i] = _LAPP_;
@@ -331,16 +328,16 @@ __kernel void lapp_corr(const __global int* imove,
  * @param dt Time step \f$ \Delta t \f$.
  */
 __kernel void deltaSPH(const __global unsigned int* iset,
-                    const __global int* imove,
-                    const __global float* rho,
-                    const __global float* lap_p,
-                    __global float* drhodt,
-                    __constant float* refd,
-                    __constant float* delta,
-                    unsigned int N,
-                    float dt)
+                       const __global int* imove,
+                       const __global float* rho,
+                       const __global float* lap_p,
+                       __global float* drhodt,
+                       __constant float* refd,
+                       __constant float* delta,
+                       usize N,
+                      float dt)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(EXCLUDED_PARTICLE(i))

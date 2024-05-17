@@ -29,15 +29,15 @@
  * @param n_cells Number of cells at each direction, and the total number of
  * allocated cells.
  */
-unsigned int cell(vec r, vec r_min, uivec4 n_cells)
+usize cell(vec r, vec r_min, svec4 n_cells)
 {
-    uivec cell;
+    svec_xyz cell;
 
     const float idist = 1.f / (SUPPORT * H);
-    cell.x = (unsigned int)((r.x - r_min.x) * idist) + 3u;
-    cell.y = (unsigned int)((r.y - r_min.y) * idist) + 3u;
+    cell.x = (usize)((r.x - r_min.x) * idist) + 3u;
+    cell.y = (usize)((r.y - r_min.y) * idist) + 3u;
     #ifdef HAVE_3D
-        cell.z = (unsigned int)((r.z - r_min.z) * idist) + 3u;
+        cell.z = (usize)((r.z - r_min.z) * idist) + 3u;
         return cell.x - 1u +
                (cell.y - 1u) * n_cells.x +
                (cell.z - 1u) * n_cells.x * n_cells.y;
@@ -65,15 +65,15 @@ unsigned int cell(vec r, vec r_min, uivec4 n_cells)
  */
 __kernel void mirror(__global vec* r,
                      __global int* imirrored,
-                     __global unsigned int *icell,
-                     unsigned int N,
+                     __global usize *icell,
+                     usize N,
                      vec portal_in_r,
                      vec portal_out_r,
                      vec portal_n,
                      vec r_min,
                      uivec4 n_cells)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
 
@@ -106,12 +106,12 @@ __kernel void mirror(__global vec* r,
  */
 __kernel void unmirror(__global vec* r,
                        const __global int* imirrored,
-                       unsigned int N,
+                       usize N,
                        vec portal_in_r,
                        vec portal_out_r,
                        vec portal_n)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
 
@@ -135,12 +135,12 @@ __kernel void unmirror(__global vec* r,
  * @param portal_n Portal infinite planes normal
  */
 __kernel void teleport(__global vec* r,
-                       unsigned int N,
+                       usize N,
                        vec portal_in_r,
                        vec portal_out_r,
                        vec portal_n)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
 

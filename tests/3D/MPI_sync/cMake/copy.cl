@@ -22,9 +22,9 @@ __kernel void copy_in(const __global vec* r,
                       const __global unsigned int* mask,
                       __global vec* mpi_r,
                       __global unsigned int* mpi_mask,
-                      uint N)
+                      usize N)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
 
@@ -36,9 +36,9 @@ __kernel void copy_out(__global vec* r,
                        __global unsigned int* mask,
                        const __global vec* mpi_r,
                        const __global unsigned int* mpi_mask,
-                       uint N)
+                       usize N)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
 

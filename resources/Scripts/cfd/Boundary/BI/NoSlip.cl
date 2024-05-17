@@ -68,17 +68,13 @@ __kernel void entry(const __global uint* iset,
                     const __global float* rho,
                     const __global float* m,
                     __global vec* lap_u,
-                    // Link-list data
-                    __global uint *icell,
-                    __global uint *ihoc,
-                    // Simulation data
-                    uint N,
-                    uivec4 n_cells,
+                    usize N,
                     uint noslip_iset,
-                    float dr)
+                    float dr,
+                    LINKLIST_LOCAL_PARAMS)
 {
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
+    const usize i = get_global_id(0);
+    const usize it = get_local_id(0);
     if(i >= N)
         return;
     if(imove[i] != 1)
@@ -97,7 +93,8 @@ __kernel void entry(const __global uint* iset,
         _LAPU_ = lap_u[i].XYZ;
     #endif
 
-    BEGIN_LOOP_OVER_NEIGHS(){
+    const usize c_i = icell[i];
+    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
         if((imove[j] != -3) || (iset[j] != noslip_iset)){
             j++;
             continue;
@@ -128,7 +125,7 @@ __kernel void entry(const __global uint* iset,
                 _LAPU_ += 2.f * w_ij / (rho_i * dr_n) * du_t;
             #endif
         }
-    }END_LOOP_OVER_NEIGHS()
+    }END_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         lap_u[i].XYZ = _LAPU_;

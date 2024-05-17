@@ -71,16 +71,12 @@ __kernel void main(__global float* GP_energy_delapudt,
                    const __global float* rho,
                    const __global float* m,
                    __constant float* visc_dyn,
-                   // Link-list data
-                   const __global uint *icell,
-                   const __global uint *ihoc,
-                   // Simulation data
-                   uint N,
-                   uivec4 n_cells,
-                   uint GP_energy_iset)
+                   usize N,
+                   uint GP_energy_iset,
+                   LINKLIST_LOCAL_PARAMS)
 {
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
+    const usize i = get_global_id(0);
+    const usize it = get_local_id(0);
     if(i >= N)
         return;
 
@@ -102,7 +98,8 @@ __kernel void main(__global float* GP_energy_delapudt,
     #endif
     _E_LAPU_ = 0.f;
 
-    BEGIN_LOOP_OVER_NEIGHS(){
+    const usize c_i = icell[i];
+    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
         if((iset[j] != GP_energy_iset) || (imove[j] != -1)){
             j++;
             continue;
@@ -127,7 +124,7 @@ __kernel void main(__global float* GP_energy_delapudt,
                 #error Unknown Laplacian formulation: __LAP_FORMULATION__
             #endif
         }
-    }END_LOOP_OVER_NEIGHS()
+    }END_NEIGHS()
 
     _E_LAPU_ *= visc_dyn_i * m[i] / rho[i];
 

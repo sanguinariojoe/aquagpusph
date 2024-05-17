@@ -24,11 +24,11 @@ __kernel void entry(const __global vec* r,
                     const __global float* p,
                     const __global matrix* mls,
                     __global vec* grad_p,
-                    uint N,
+                    usize N,
                     LINKLIST_LOCAL_PARAMS)
 {
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
+    const usize i = get_global_id(0);
+    const usize it = get_local_id(0);
     if(i >= N)
         return;
 
@@ -67,9 +67,9 @@ __kernel void entry(const __global vec* r,
 
 __kernel void squared_error(const __global vec* grad_p,
                             __global float* se,
-                            uint N)
+                            usize N)
 {
-    const uint i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
 

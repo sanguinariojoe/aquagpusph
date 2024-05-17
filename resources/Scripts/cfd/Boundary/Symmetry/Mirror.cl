@@ -36,12 +36,12 @@
  */
 __kernel void drop(__global int* imove,
                    __global vec* r,
-                   unsigned int N,
+                   usize N,
                    vec symmetry_r,
                    vec symmetry_n,
                    vec domain_max)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] <= -255)
@@ -72,11 +72,11 @@ __kernel void drop(__global int* imove,
 __kernel void detect(const __global int* imove,
                      const __global vec* r_in,
                      __global unsigned int* imirror,
-                     unsigned int N,
+                     usize N,
                      vec symmetry_r,
                      vec symmetry_n)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] <= -255) {
@@ -141,7 +141,7 @@ vec_xyz reflection(vec_xyz u, vec_xyz n)
 __kernel void feed(__global int* imove,
                    __global int* iset,
                    __global unsigned int* imirror,
-                   __global unsigned int* imirror_invperm,
+                   __global usize* imirror_invperm,
                    __global float* m,
                    __global vec* normal,
                    __global vec* tangent,
@@ -150,27 +150,27 @@ __kernel void feed(__global int* imove,
                    __global vec* dudt_in,
                    __global float* rho_in,
                    __global float* drhodt_in,
-                   unsigned int N,
-                   unsigned int nbuffer,
+                   usize N,
+                   usize nbuffer,
                    vec symmetry_r,
                    vec symmetry_n)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] <= -255)
         return;
 
     // Check whether the particle should become mirrored or not
-    const unsigned int j = imirror_invperm[i];
+    const usize j = imirror_invperm[i];
     if(imirror[j] != 1)
         return;
 
     // Compute the index of the first buffer particle to steal. Take care, the
     // radix sort is storing the particles to become split at the end of the
     // list
-    const unsigned int i0 = N - nbuffer;
-    unsigned int ii = i0 + (N - j - 1);
+    const usize i0 = N - nbuffer;
+    usize ii = i0 + (N - j - 1);
     // Check that there are buffer particles enough
     if(ii >= N){
         // PROBLEMS! This particle cannot be mirrored because we have not buffer

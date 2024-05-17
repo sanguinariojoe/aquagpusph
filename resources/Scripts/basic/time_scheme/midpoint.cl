@@ -60,9 +60,9 @@ __kernel void predictor(const __global vec* r,
                         __global vec* dudt_in,
                         __global float* rho_in,
                         __global float* drhodt_in,
-                        unsigned int N)
+                        usize N)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
 
@@ -97,10 +97,10 @@ __kernel void midpoint(const __global int* imove,
                        const __global float* rho_in,
                        __global float* rho,
                        const __global float* drhodt,
-                       unsigned int N,
+                       usize N,
                        float dt)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] <= 0)
@@ -125,10 +125,10 @@ __kernel void midpoint_r(const __global int* imove,
                          const __global vec* r_in,
                          __global vec* r,
                          const __global vec* u,
-                         unsigned int N,
+                         usize N,
                          float dt)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] <= 0)
@@ -143,10 +143,10 @@ __kernel void relax(const __global int* imove,
                     __global vec* dudt,
                     __global float* drhodt_in,
                     __global float* drhodt,
-                    unsigned int N,
+                    usize N,
                     float relax_midpoint)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] <= 0)
@@ -166,9 +166,9 @@ __kernel void residuals(const __global int* imove,
                         const __global float* drhodt_in,
                         const __global float* drhodt,
                         __global float* residual_midpoint,
-                        unsigned int N)
+                        usize N)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] <= 0) {
@@ -212,10 +212,10 @@ __kernel void corrector(const __global int* imove,
                         const __global float* rho_in,
                         __global float* rho,
                         const __global float* drhodt,
-                        unsigned int N,
+                        usize N,
                         float dt)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] <= 0)

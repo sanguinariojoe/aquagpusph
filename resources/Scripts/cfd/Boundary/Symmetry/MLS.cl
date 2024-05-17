@@ -69,15 +69,11 @@ __kernel void entry(const __global int* imove,
                      const __global float* rho,
                     const __global float* m,
                     __global matrix* mls,
-                    // Link-list data
-                    __global uint *icell,
-                     __global uint *ihoc,
-                    // Simulation data
-                    uint N,
-                    uivec4 n_cells)
+                    usize N,
+                    LINKLIST_LOCAL_PARAMS)
 {
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
+    const usize i = get_global_id(0);
+    const usize it = get_local_id(0);
     if(i >= N)
         return;
     if((!imirrored[i]) || (imove[i] != 1))
@@ -94,24 +90,25 @@ __kernel void entry(const __global int* imove,
         _MLS_ = mls[i];
     #endif
 
-	BEGIN_LOOP_OVER_NEIGHS(){
+    const usize c_i = icell[i];
+    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
         if(!imirrored[j] || (imove[j] != 1)){
-			j++;
-			continue;
-		}
-		const vec_xyz r_ij = rmirrored[j].XYZ - r_i;
-		const float q = length(r_ij) / H;
-		if(q >= SUPPORT)
-		{
-			j++;
-			continue;
-		}
+            j++;
+            continue;
+        }
+        const vec_xyz r_ij = rmirrored[j].XYZ - r_i;
+        const float q = length(r_ij) / H;
+        if(q >= SUPPORT)
+        {
+            j++;
+            continue;
+        }
 
-		{
+        {
             const float f_ij = kernelF(q) * CONF * m[j] / rho[j];
             _MLS_ += outer(r_ij, f_ij * r_ij);
-		}
-	}END_LOOP_OVER_NEIGHS()
+        }
+    }END_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         mls[i] = _MLS_;

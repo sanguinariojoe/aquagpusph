@@ -60,15 +60,11 @@ __kernel void entry(const __global int* imove,
                     const __global float* m,
                     const __global float* h_var,
                     __global float* Omega,
-                    // Link-list data
-                    const __global uint *icell,
-                    const __global uint *ihoc,
-                    // Simulation data
-                    uint N,
-                    uivec4 n_cells)
+                    usize N,
+                    LINKLIST_LOCAL_PARAMS)
 {
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
+    const usize i = get_global_id(0);
+    const usize it = get_local_id(0);
     if(i >= N)
         return;
     if(((imove[i] != 1) && (imove[i] != -1)) || (!imirrored[i]))
@@ -99,11 +95,12 @@ __kernel void entry(const __global int* imove,
         _OMEGA_ = Omega[i];
     #endif
 
-    BEGIN_LOOP_OVER_NEIGHS(){
+    const usize c_i = icell[i];
+    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
         if(((imove[j] != 1) && (imove[j] != -1)) || (!imirrored[j])){
-			j++;
-			continue;
-		}
+            j++;
+            continue;
+        }
         const vec_xyz r_ij = rmirrored[j].XYZ - r_i;
         const float q = length(r_ij) / h_i;
         if(q >= SUPPORT)
@@ -115,7 +112,7 @@ __kernel void entry(const __global int* imove,
             // n-scheme
             _OMEGA_ -= m_i * dhdrho_i * conh * kernelH(q);
         }
-    }END_LOOP_OVER_NEIGHS()
+    }END_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         Omega[i] = _OMEGA_;

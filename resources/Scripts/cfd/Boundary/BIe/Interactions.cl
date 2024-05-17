@@ -52,11 +52,11 @@ __kernel void entry(const __global int* imove,
                     const __global float* m,
                     __global vec* grad_w_bi,
                     __global float* div_u_bi,
-                    uint N,
+                    usize N,
                     LINKLIST_LOCAL_PARAMS)
 {
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
+    const usize i = get_global_id(0);
+    const usize it = get_local_id(0);
     if(i >= N)
         return;
     if(imove[i] != 1)
@@ -77,7 +77,7 @@ __kernel void entry(const __global int* imove,
         _DIVU_ = 0.f;
     #endif
 
-    const unsigned int c_i = icell[i];
+    const usize c_i = icell[i];
     BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
         if(imove[j] != -3){
             j++;
@@ -126,11 +126,11 @@ __kernel void p_boundary(const __global int* imove,
                          const __global float* m,
                          const __global float* rho,
                          __global float* p,
-                         uint N,
+                         usize N,
                          LINKLIST_LOCAL_PARAMS)
 {
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
+    const usize i = get_global_id(0);
+    const usize it = get_local_id(0);
     if(i >= N)
         return;
     if(imove[i] != -3)
@@ -147,7 +147,7 @@ __kernel void p_boundary(const __global int* imove,
     #endif
     _P_ = 0.0;
 
-    const unsigned int c_i = icell[i];
+    const usize c_i = icell[i];
     BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
         if(imove[j] != 1){
             j++;

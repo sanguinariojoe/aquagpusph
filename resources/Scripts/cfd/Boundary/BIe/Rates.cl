@@ -49,9 +49,9 @@ __kernel void entry(const __global int* imove,
                     const __global float* div_u_bi,
                     __global vec* grad_p,
                     __global float* div_u,
-                    unsigned int N)
+                    usize N)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] != 1)
@@ -78,9 +78,9 @@ __kernel void force_press(const __global int* imove,
                           const __global float* m,
                           const __global float* p,
                           __global vec* force_p,
-                          unsigned int N)
+                          usize N)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] != -3) {

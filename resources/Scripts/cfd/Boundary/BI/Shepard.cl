@@ -65,15 +65,11 @@ __kernel void compute(const __global int* imove,
                       const __global vec* binormal,
                       const __global float* m,
                       __global float* shepard,
-                      // Link-list data
-                      const __global uint *icell,
-                      const __global uint *ihoc,
-                      // Simulation data
-                      uint N,
-                      uivec4 n_cells)
+                      usize N,
+                      LINKLIST_LOCAL_PARAMS)
 {
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
+    const usize i = get_global_id(0);
+    const usize it = get_local_id(0);
     if(i >= N)
         return;
     if((imove[i] < -3) || (imove[i] > 1))
@@ -92,7 +88,8 @@ __kernel void compute(const __global int* imove,
     _SHEPARD_ = 1.f;
     bool self_added = false;
 
-    BEGIN_LOOP_OVER_NEIGHS(){
+    const usize c_i = icell[i];
+    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
         if(imove[j] != -3){
             j++;
             continue;
@@ -145,7 +142,7 @@ __kernel void compute(const __global int* imove,
             _SHEPARD_ += r_n * CONW * kernelS_P(q) * area_j +
                          kernelS_D(fabs(r_n), r_t, r_b, area_j);
         }
-    }END_LOOP_OVER_NEIGHS()
+    }END_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         shepard[i] = _SHEPARD_;
@@ -178,10 +175,10 @@ __kernel void apply(const __global int* imove,
                     __global vec* grad_p,
                     __global vec* lap_u,
                     __global float* div_u,
-                    uint N,
+                    usize N,
                     float cs)
 {
-    uint i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
 

@@ -47,9 +47,9 @@ __kernel void entry(const __global int* imove,
                     vec mpi_plane_r,
                     vec mpi_plane_n,
                     unsigned int mpi_plane_proc,
-                    unsigned int N)
+                    usize N)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] <= 0)

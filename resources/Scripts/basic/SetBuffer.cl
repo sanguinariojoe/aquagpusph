@@ -36,9 +36,9 @@
  */
 __kernel void count(__global const int* imove,
                     __global unsigned int* ibuffer,
-                    uint N)
+                    usize N)
 {
-    unsigned int i = get_global_id(0);
+    usize i = get_global_id(0);
     if(i >= N)
         return;
 
@@ -62,9 +62,9 @@ __kernel void count(__global const int* imove,
  * @param N Number of particles.
  */
 __kernel void set_imove(__global int* imove,
-                        uint N)
+                        usize N)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
 

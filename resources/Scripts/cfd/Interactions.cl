@@ -66,11 +66,11 @@ __kernel void entry(const __global int* imove,
                     __global vec* grad_p,
                     __global vec* lap_u,
                     __global float* div_u,
-                    uint N,
+                    usize N,
                     LINKLIST_LOCAL_PARAMS)
 {
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
+    const usize i = get_global_id(0);
+    const usize it = get_local_id(0);
     if(i >= N)
         return;
     if(imove[i] != 1){
@@ -99,7 +99,7 @@ __kernel void entry(const __global int* imove,
         _DIVU_ = 0.f;
     #endif
 
-    const unsigned int c_i = icell[i];
+    const usize c_i = icell[i];
     BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
         if(i == j){
             j++;

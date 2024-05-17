@@ -63,16 +63,12 @@ __kernel void entry(const __global int* imove,
                     const __global float* rho,
                     const __global float* m,
                     __global matrix* mls,
-                    // Link-list data
-                    const __global uint *icell,
-                    const __global uint *ihoc,
-                    // Simulation data
-                    uint N,
-                    uivec4 n_cells,
-                    uint mls_imove)
+                    usize N,
+                    uint mls_imove,
+                    LINKLIST_LOCAL_PARAMS)
 {
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
+    const usize i = get_global_id(0);
+    const usize it = get_local_id(0);
     if(i >= N)
         return;
     if((imove[i] != 1) || (!imirrored[i]))
@@ -89,7 +85,8 @@ __kernel void entry(const __global int* imove,
         _MLS_ = mls[i];
     #endif
 
-    BEGIN_LOOP_OVER_NEIGHS(){
+    const usize c_i = icell[i];
+    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
         if((imove[j] != mls_imove) || (imirrored[j])){
             j++;
             continue;
@@ -107,7 +104,7 @@ __kernel void entry(const __global int* imove,
             const float f_ij = kernelF(q) * CONF * m[j] / rho[j];
             _MLS_ += outer(r_ij, f_ij * r_ij);
         }
-    }END_LOOP_OVER_NEIGHS()
+    }END_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         mls[i] = _MLS_;

@@ -54,13 +54,11 @@ __kernel void full(const __global int* imove,
                    const __global float* m,
                    const __global float* p,
                    __global vec* lap_p_corr,
-                   const __global uint *icell,
-                   const __global uint *ihoc,
-                   uint N,
-                   uivec4 n_cells)
+                   usize N,
+                   LINKLIST_LOCAL_PARAMS)
 {
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
+    const usize i = get_global_id(0);
+    const usize it = get_local_id(0);
     if(i >= N)
         return;
     if((!imirrored[i]) || (imove[i] != 1)){
@@ -79,7 +77,8 @@ __kernel void full(const __global int* imove,
         _GRADP_ = lap_p_corr[i].XYZ;
     #endif
 
-    BEGIN_LOOP_OVER_NEIGHS(){
+    const usize c_i = icell[i];
+    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
         if(imirrored[j] || (imove[j] != 1)){
             j++;
             continue;
@@ -95,7 +94,7 @@ __kernel void full(const __global int* imove,
             const float f_ij = kernelF(q) * CONF * m[j] / rho[j];
             _GRADP_ += (p[j] - p_i) * f_ij * r_ij;
         }
-    }END_LOOP_OVER_NEIGHS()
+    }END_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         lap_p_corr[i] = _GRADP_;
@@ -126,15 +125,11 @@ __kernel void lapp(const __global int* imove,
                    const __global float* m,
                    const __global float* p,
                    __global float* lap_p,
-                   // Link-list data
-                   __global uint *icell,
-                   __global uint *ihoc,
-                   // Simulation data
-                   uint N,
-                   uivec4 n_cells)
+                   usize N,
+                   LINKLIST_LOCAL_PARAMS)
 {
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
+    const usize i = get_global_id(0);
+    const usize it = get_local_id(0);
     if(i >= N)
         return;
     if((!imirrored[i]) || (imove[i] != 1))
@@ -152,24 +147,25 @@ __kernel void lapp(const __global int* imove,
         _LAPP_ = lap_p[i];
     #endif
 
-	BEGIN_LOOP_OVER_NEIGHS(){
-		if(imirrored[j] || (imove[j] != 1)){
-			j++;
-			continue;
-		}
-		const vec_xyz r_ij = r[j].XYZ - r_i;
-		const float q = length(r_ij) / H;
-		if(q >= SUPPORT)
-		{
-			j++;
-			continue;
-		}
+    const usize c_i = icell[i];
+    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
+        if(imirrored[j] || (imove[j] != 1)){
+            j++;
+            continue;
+        }
+        const vec_xyz r_ij = r[j].XYZ - r_i;
+        const float q = length(r_ij) / H;
+        if(q >= SUPPORT)
+        {
+            j++;
+            continue;
+        }
 
-		{
+        {
             const float f_ij = kernelF(q) * CONF * m[j] / rho[j];
             _LAPP_ += (p[j] - p_i) * f_ij;
-		}
-	}END_LOOP_OVER_NEIGHS()
+        }
+    }END_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         lap_p[i] = _LAPP_;
@@ -201,13 +197,11 @@ __kernel void lapp_corr(const __global int* imove,
                         const __global float* m,
                         const __global vec* lap_p_corr,
                         __global float* lap_p,
-                        const __global uint *icell,
-                        const __global uint *ihoc,
-                        uint N,
-                        uivec4 n_cells)
+                        usize N,
+                        LINKLIST_LOCAL_PARAMS)
 {
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
+    const usize i = get_global_id(0);
+    const usize it = get_local_id(0);
     if(i >= N)
         return;
     if((!imirrored[i]) || (imove[i] != 1))
@@ -226,8 +220,9 @@ __kernel void lapp_corr(const __global int* imove,
         _LAPP_ = lap_p[i];
     #endif
 
-    BEGIN_LOOP_OVER_NEIGHS(){
-		if(imirrored[j] || (imove[j] != 1)){
+    const usize c_i = icell[i];
+    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
+        if(imirrored[j] || (imove[j] != 1)){
             j++;
             continue;
         }
@@ -243,7 +238,7 @@ __kernel void lapp_corr(const __global int* imove,
             const float f_ij = kernelF(q) * CONF * m[j] / rho[j];
             _LAPP_ -= 0.5f * dot(gradp_ij, r_ij) * f_ij;
         }
-    }END_LOOP_OVER_NEIGHS()
+    }END_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         lap_p[i] = _LAPP_;

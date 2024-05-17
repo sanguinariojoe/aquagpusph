@@ -81,15 +81,11 @@ __kernel void entry(const __global int* imove,
                     const __global float* m,
                     const __global float* h_var,
                     __global float* shepard,
-                    // Link-list data
-                    const __global uint *icell,
-                    const __global uint *ihoc,
-                    // Simulation data
-                    uint N,
-                    uivec4 n_cells)
+                    usize N,
+                    LINKLIST_LOCAL_PARAMS)
 {
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
+    const usize i = get_global_id(0);
+    const usize it = get_local_id(0);
     if(i >= N)
         return;
     if((imove[i] < -3) || ((imove[i] > 0) && (EXCLUDED_PARTICLE(i))))
@@ -112,7 +108,8 @@ __kernel void entry(const __global int* imove,
         _SHEPARD_ = 0.f;
     #endif
 
-    BEGIN_LOOP_OVER_NEIGHS(){
+    const usize c_i = icell[i];
+    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
         if(EXCLUDED_PARTICLE(j)){
             j++;
             continue;
@@ -129,7 +126,7 @@ __kernel void entry(const __global int* imove,
         {
             _SHEPARD_ += conw * kernelW(q) * m[j] / rho[j];
         }
-    }END_LOOP_OVER_NEIGHS()
+    }END_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         shepard[i] = _SHEPARD_;

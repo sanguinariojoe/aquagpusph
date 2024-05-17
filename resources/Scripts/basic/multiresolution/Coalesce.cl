@@ -67,12 +67,12 @@ __kernel void seed_candidates(__global const unsigned int* iset,
                               __global int* miter,
                               __global const vec* r,
                               __global unsigned int* isplit,
-                              __global ivec* split_cell,
+                              __global svec* split_cell,
                               __global float* split_dist,
                               __constant float* dr_level0,
-                              unsigned int N)
+                              usize N)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
 
@@ -98,7 +98,7 @@ __kernel void seed_candidates(__global const unsigned int* iset,
     const float dr = dr_level0[iset[i]] / ilevel[i];
     // We add a "virtual" cell to clearly split negative and positive
     // (otherwise it maybe rounded and mixed)
-    split_cell[i] = CONVERT(ivec, r[i] / dr + sign(r[i]));
+    split_cell[i] = CONVERT(svec, r[i] / dr + sign(r[i]));
     const vec r_cell = (CONVERT(vec, split_cell[i]) + 0.5f * VEC_ONE) * dr;
     split_dist[i] = length(r[i] - r_cell);
 }
@@ -128,23 +128,22 @@ __kernel void seeds(__global const unsigned int* iset,
                     __global const unsigned int* isplit_in,
                     __global unsigned int* isplit,
                     __global int* miter,
-                    __global const ivec* split_cell,
+                    __global const svec* split_cell,
                     __global const float* split_dist,
-                    __global const uint *icell,
-                    __global const uint *ihoc,
-                    unsigned int N,
-                    uivec4 n_cells)
+                    usize N,
+                    LINKLIST_LOCAL_PARAMS)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(isplit_in[i] != 2)
         return;
 
-    const ivec_xyz isplit_cell = split_cell[i].XYZ;
+    const svec_xyz isplit_cell = split_cell[i].XYZ;
     const float isplit_dist = split_dist[i];
 
-    BEGIN_LOOP_OVER_NEIGHS(){
+    const usize c_i = icell[i];
+    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
         if(i == j){
             j++;
             continue;
@@ -173,7 +172,7 @@ __kernel void seeds(__global const unsigned int* iset,
                 }
             }
         }
-    }END_LOOP_OVER_NEIGHS()
+    }END_NEIGHS()
 }
 
 /** @brief Create a copy of isplit, where everything is 0 except the seeds,
@@ -192,9 +191,9 @@ __kernel void seeds(__global const unsigned int* iset,
  */
 __kernel void set_isplit_in(__global const unsigned int* isplit,
                             __global unsigned int* isplit_in,
-                            unsigned int N)
+                            usize N)
 {
-    unsigned int i = get_global_id(0);
+    usize i = get_global_id(0);
     if(i >= N)
         return;
 
@@ -236,13 +235,11 @@ __kernel void children(__global const int* imove,
                        __global const unsigned int* ilevel,
                        __global unsigned int* isplit,
                        __global int* miter,
-                       __global const uint *icell,
-                       __global const uint *ihoc,
                        __constant float* dr_level0,
-                       unsigned int N,
-                       uivec4 n_cells)
+                       usize N,
+                       LINKLIST_LOCAL_PARAMS)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(isplit[i] != 2)
@@ -252,7 +249,8 @@ __kernel void children(__global const int* imove,
     const float dr = dr_level0[iset[i]] / ilevel[i];
 
 
-    BEGIN_LOOP_OVER_NEIGHS(){
+    const usize c_i = icell[i];
+    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
         if((isplit[j] != 0) ||        // It is a seed or already a child
            (imove[j] <= 0) ||         // Neglect boundaries/sensors
            (miter[j] <= M_ITERS) ||   // It is already splitting/coalescing
@@ -271,7 +269,7 @@ __kernel void children(__global const int* imove,
             isplit[j] = 1;
             miter[j] = -1;
         }
-    }END_LOOP_OVER_NEIGHS()
+    }END_NEIGHS()
 }
 
 
@@ -301,13 +299,11 @@ __kernel void weights(__global const unsigned int* iset,
                       __global const vec* r,
                       __global const unsigned int* isplit,
                       __global float* split_weight,
-                      __global const uint *icell,
-                      __global const uint *ihoc,
                       __constant float* dr_level0,
-                      unsigned int N,
-                      uivec4 n_cells)
+                      usize N,
+                      LINKLIST_LOCAL_PARAMS)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if((isplit[i] != 1) && (isplit[i] != 2))
@@ -317,7 +313,8 @@ __kernel void weights(__global const unsigned int* iset,
     const vec_xyz r_i = r[i].XYZ;
     split_weight[i] = 0.f;
 
-    BEGIN_LOOP_OVER_NEIGHS(){
+    const usize c_i = icell[i];
+    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
         if((isplit[j] != 2) ||             // Not a seed
            (iset[i] != iset[j]) ||         // Different set of particles
            (ilevel[i] != ilevel[j])        // Different level of refinement
@@ -331,7 +328,7 @@ __kernel void weights(__global const unsigned int* iset,
         ){
             split_weight[i] += 1.f;
         }
-    }END_LOOP_OVER_NEIGHS()
+    }END_NEIGHS()
 
     if(split_weight[i] == 0.f){
         // May it happens???
@@ -368,15 +365,15 @@ __kernel void weights(__global const unsigned int* iset,
 __kernel void generate(__global int* imove,
                        __global int* iset,
                        __global const unsigned int* isplit,
-                       __global unsigned int* split_invperm,
+                       __global usize* split_invperm,
                        __global unsigned int* ilevel,
                        __global unsigned int* level,
                        __global int* miter,
-                       __global uint *mybuffer,
-                       unsigned int N,
-                       unsigned int nbuffer)
+                       __global usize *mybuffer,
+                       usize N,
+                       usize nbuffer)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     mybuffer[i] = N;
@@ -386,15 +383,15 @@ __kernel void generate(__global int* imove,
         return;
 
     // Check whether the particle is a seed or not
-    const unsigned int j = split_invperm[i];
+    const usize j = split_invperm[i];
     if(isplit[j] != 2){
         return;
     }
 
     // Compute the index of the buffer particle to steal. Take care, the radix
     // sort is storing the particles to become split at the end of the list
-    const unsigned int i0 = N - nbuffer;
-    unsigned int ii = i0 + (N - j - 1);
+    const usize i0 = N - nbuffer;
+    usize ii = i0 + (N - j - 1);
     // Check that there are buffer particles enough
     if(ii >= N){
         // PROBLEMS! This seed cannot generate a partner
@@ -434,7 +431,7 @@ __kernel void generate(__global int* imove,
  */
 __kernel void fields(__global const unsigned int* iset,
                      __global const uint* isplit,
-                     __global const uint* mybuffer,
+                     __global const usize* mybuffer,
                      __global const unsigned int* ilevel,
                      __global const float* split_weight,
                      __global float* m0,
@@ -444,17 +441,15 @@ __kernel void fields(__global const unsigned int* iset,
                      __global vec* dudt,
                      __global float* rho,
                      __global float* drhodt,
-                     __global const uint *icell,
-                     __global const uint *ihoc,
                      __constant float* dr_level0,
-                     unsigned int N,
-                     uivec4 n_cells)
+                     usize N,
+                     LINKLIST_LOCAL_PARAMS)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
 
-    const uint ii = mybuffer[i];
+    const usize ii = mybuffer[i];
     if(ii >= N){
         return;
     }
@@ -470,7 +465,8 @@ __kernel void fields(__global const unsigned int* iset,
     rho[ii] = 0.f;
     drhodt[ii] = 0.f;
 
-    BEGIN_LOOP_OVER_NEIGHS(){
+    const usize c_i = icell[i];
+    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
         if(((isplit[j] != 1) && (isplit[j] != 2)) ||  // Not a child
            (iset[i] != iset[j]) ||                    // Different set of particles
            (ilevel[i] != ilevel[j])                   // Different level of refinement
@@ -491,7 +487,7 @@ __kernel void fields(__global const unsigned int* iset,
             rho[ii] += w_j * rho[j];
             drhodt[ii] += w_j * drhodt[j];
         }
-    }END_LOOP_OVER_NEIGHS()
+    }END_NEIGHS()
 
     m[ii] = 0.f;
     // m0[ii] /= 1.f;                 // The mass is integrated, not averaged

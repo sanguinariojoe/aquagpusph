@@ -61,10 +61,10 @@ __kernel void freeslip(const __global uint* iset,
                        __global vec* grad_p,
                        __constant float* visc_dyn,
                        __constant float* refd,
-                       unsigned int N,
+                       usize N,
                        vec g)
 {
-    uint i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
 

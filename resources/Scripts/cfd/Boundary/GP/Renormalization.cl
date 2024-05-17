@@ -46,9 +46,9 @@ __kernel void entry(const __global int* imove,
                     __global float* gp_rho,
                     __global float* gp_p,
                     __global vec* gp_u,
-                    uint N)
+                    usize N)
 {
-    uint i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
 

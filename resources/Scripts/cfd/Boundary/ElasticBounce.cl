@@ -79,17 +79,13 @@ __kernel void entry(const __global int* imove,
                     const __global vec* normal,
                     __global vec* u,
                     __global vec* dudt,
-                    // Link-list data
-                    __global uint *icell,
-                    __global uint *ihoc,
-                    // Simulation data
-                    uint N,
-                    uivec4 n_cells,
+                    usize N,
                     float dr,
-                    float dt)
+                    float dt,
+                    LINKLIST_LOCAL_PARAMS)
 {
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
+    const usize i = get_global_id(0);
+    const usize it = get_local_id(0);
     if(i >= N)
         return;
     if(imove[i] != 1)
@@ -100,7 +96,8 @@ __kernel void entry(const __global int* imove,
     vec_xyz u_i = u[i].XYZ;
     vec_xyz dudt_i = dudt[i].XYZ;
 
-    BEGIN_LOOP_OVER_NEIGHS(){
+    const usize c_i = icell[i];
+    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
         if((imove[j] != -2) && (imove[j] != -3)){
             j++;
             continue;
@@ -147,5 +144,5 @@ __kernel void entry(const __global int* imove,
                 dudt_i = dudt[i].XYZ;
             }
         }
-    }END_LOOP_OVER_NEIGHS()
+    }END_NEIGHS()
 }

@@ -50,11 +50,11 @@ __kernel void entry(__global int* imove,
                     __global vec* u_in,
                     __global vec* dudt_in,
                     __global float* m,
-                    uint N,
+                    usize N,
                     vec domain_min,
                     vec domain_max)
 {
-    unsigned int i = get_global_id(0);
+    usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] <= -255)

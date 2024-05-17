@@ -23,9 +23,9 @@ __kernel void init(__global int* imove,
                    __global float* m,
                    __global vec* u,
                    __global vec* dudt,
-                   uint N)
+                   usize N)
 {
-    const uint i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     
@@ -38,9 +38,9 @@ __kernel void init(__global int* imove,
 
 __kernel void eos(const __global vec* r,
                   __global float* p,
-                  uint N)
+                  usize N)
 {
-    const uint i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     

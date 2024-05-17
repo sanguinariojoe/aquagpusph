@@ -88,7 +88,7 @@
  *
  * @see #BEGIN_LOOP_OVER_NEIGHS
  */
-#define C_I() const uint c_i = icell[i]
+#define C_I() const usize c_i = icell[i]
 
 #ifdef HAVE_3D
     #include "resources/Scripts/types/3D.h"
@@ -104,9 +104,9 @@
  * @note The number of particles, N, is not included
  */
 #define LINKLIST_LOCAL_PARAMS                                                  \
-    const __global uint * icell,                                               \
-    const __global uint * ihoc,                                                \
-    uivec4 n_cells
+    const __global usize * icell,                                              \
+    const __global usize * ihoc,                                               \
+    svec4 n_cells
 
 /** @brief Macro to easily add the parameters to run #BEGIN_NEIGHS macro,
  * interacting with the local set of particles, i.e. the particles handled by
@@ -116,7 +116,7 @@
  * @note The number of particles, N, is not included
  */
 #define LINKLIST_REMOTE_PARAMS                                                 \
-    const __global uint * icell,                                               \
-    const __global uint * mpi_icell,                                           \
-    const __global uint * mpi_ihoc,                                            \
-    uivec4 n_cells
+    const __global usize * icell,                                              \
+    const __global usize * mpi_icell,                                          \
+    const __global usize * mpi_ihoc,                                           \
+    svec4 n_cells

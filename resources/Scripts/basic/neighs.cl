@@ -52,11 +52,11 @@
 __kernel void entry(const __global int* imove,
                     __global uint* n_neighs,
                     uint neighs_limit,
-                    uint N,
+                    usize N,
                     LINKLIST_LOCAL_PARAMS)
 {
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
+    const usize i = get_global_id(0);
+    const usize it = get_local_id(0);
     if(i >= N)
         return;
     if(imove[i] <= -255) {
@@ -73,7 +73,7 @@ __kernel void entry(const __global int* imove,
     #endif
     _NEIGHS_ = 0;
 
-    const unsigned int c_i = icell[i];
+    const usize c_i = icell[i];
     BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
         _NEIGHS_ += 1;
         if(_NEIGHS_ >= neighs_limit){

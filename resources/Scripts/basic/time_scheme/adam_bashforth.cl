@@ -85,9 +85,9 @@ __kernel void predictor(__global vec* r,
                         __global vec* dudt_in,
                         __global float* rho_in,
                         __global float* drhodt_in,
-                        unsigned int N)
+                        usize N)
 {
-    unsigned int i = get_global_id(0);
+    usize i = get_global_id(0);
     if(i >= N)
         return;
 
@@ -131,14 +131,14 @@ __kernel void sort(const __global vec *dudt_as1_in, __global vec *dudt_as1,
                    const __global float *drhodt_as2_in, __global float *drhodt_as2,
                    const __global float *drhodt_as3_in, __global float *drhodt_as3,
                    const __global float *drhodt_as4_in, __global float *drhodt_as4,
-                   const __global unit *id_sorted,
-                   unsigned int N)
+                   const __global usize *id_sorted,
+                   usize N)
 {
-    uint i = get_global_id(0);
+    usize i = get_global_id(0);
     if(i >= N)
         return;
 
-    const uint i_out = id_sorted[i];
+    const usize i_out = id_sorted[i];
 
     dudt_as1[i_out] = dudt_as1_in[i];
     dudt_as2[i_out] = dudt_as2_in[i];
@@ -199,11 +199,11 @@ __kernel void corrector(__global int* imove,
                         __global float* drhodt_as3,
                         __global vec* dudt_as4,
                         __global float* drhodt_as4,
-                        unsigned int N,
+                        usize N,
                         float dt,
                         unsigned int iter)
 {
-    unsigned int i = get_global_id(0);
+    usize i = get_global_id(0);
     if(i >= N)
         return;
 
@@ -287,9 +287,9 @@ __kernel void postcorrector(const __global vec* dudt_as1,
                             __global float* drhodt_as3_in,
                             __global vec* dudt_as4_in,
                             __global float* drhodt_as4_in,
-                            unsigned int N)
+                            usize N)
 {
-    unsigned int i = get_global_id(0);
+    usize i = get_global_id(0);
     if(i >= N)
         return;
 

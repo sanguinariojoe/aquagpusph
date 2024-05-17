@@ -60,9 +60,9 @@ __kernel void check_split(__global const int* imove,
                           __global const unsigned int* ilevel,
                           __global const unsigned int* level,
                           __global unsigned int* isplit,
-                          unsigned int N)
+                          usize N)
 {
-    unsigned int i = get_global_id(0);
+    usize i = get_global_id(0);
     if(i >= N)
         return;
 
@@ -104,9 +104,9 @@ __kernel void check_split(__global const int* imove,
  */
 __kernel void set_isplit_in(__global const unsigned int* isplit,
                             __global unsigned int* isplit_in,
-                            unsigned int N)
+                            usize N)
 {
-    unsigned int i = get_global_id(0);
+    usize i = get_global_id(0);
     if(i >= N)
         return;
 
@@ -144,7 +144,7 @@ __kernel void set_isplit_in(__global const unsigned int* isplit,
 __kernel void generate(__global int* imove,
                        __global int* iset,
                        __global unsigned int* isplit,
-                       __global unsigned int* split_invperm,
+                       __global usize* split_invperm,
                        __global unsigned int* ilevel,
                        __global unsigned int* level,
                        __global float* m0,
@@ -155,10 +155,10 @@ __kernel void generate(__global int* imove,
                        __global vec* dudt,
                        __global float* rho,
                        __global float* drhodt,
-                       unsigned int N,
-                       unsigned int nbuffer)
+                       usize N,
+                       usize nbuffer)
 {
-    unsigned int i = get_global_id(0);
+    usize i = get_global_id(0);
     if(i >= N)
         return;
 
@@ -167,7 +167,7 @@ __kernel void generate(__global int* imove,
         return;
 
     // Check whether the particle should become split or not
-    const unsigned int j = split_invperm[i];
+    const usize j = split_invperm[i];
     if(isplit[j] != 1){
         return;
     }
@@ -175,8 +175,8 @@ __kernel void generate(__global int* imove,
     // Compute the index of the first buffer particle to steal. Take care, the
     // radix sort is storing the particles to become split at the end of the
     // list
-    const unsigned int i0 = N - nbuffer;
-    unsigned int ii = i0 + N_DAUGHTER * (N - j - 1);
+    const usize i0 = N - nbuffer;
+    usize ii = i0 + N_DAUGHTER * (N - j - 1);
     // Check that there are buffer particles enough
     if(ii + N_DAUGHTER >= N){
         // PROBLEMS! This particle cannot be split because we have not buffer

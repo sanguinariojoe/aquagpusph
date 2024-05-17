@@ -51,11 +51,11 @@ __kernel void entry(const __global uint* iset,
                     __global float* rho,
                     __global float* p,
                     __constant float* refd,
-                    uint N,
+                    usize N,
                     float cs,
                     float p0)
 {
-    uint i = get_global_id(0);
+    usize i = get_global_id(0);
     if(i >= N)
         return;
 

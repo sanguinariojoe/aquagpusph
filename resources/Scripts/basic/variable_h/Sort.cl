@@ -39,14 +39,14 @@
  * @param N Number of particles.
  */
 __kernel void entry(const __global float *h_var_in, __global float *h_var,
-                    const __global unit *id_sorted,
-                    unsigned int N)
+                    const __global usize *id_sorted,
+                    usize N)
 {
-    uint i = get_global_id(0);
+    usize i = get_global_id(0);
     if(i >= N)
         return;
 
-    const uint i_out = id_sorted[i];
+    const usize i_out = id_sorted[i];
 
     h_var[i_out] = h_var_in[i];
 }

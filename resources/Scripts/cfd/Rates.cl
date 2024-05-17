@@ -61,10 +61,10 @@ __kernel void entry(const __global uint* iset,
                     __global vec* dudt,
                     __global float* drhodt,
                     __constant float* visc_dyn,
-                    unsigned int N,
+                    usize N,
                     vec g)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] != 1)

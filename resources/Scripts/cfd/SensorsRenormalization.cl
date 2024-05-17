@@ -44,11 +44,11 @@ __kernel void entry(const __global int* imove,
                     __global vec* u,
                     __global float* rho,
                     __global float* p,
-                    unsigned int N,
+                    usize N,
                     float dt,
                     vec g)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] != 0)

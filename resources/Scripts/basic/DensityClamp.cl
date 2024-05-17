@@ -39,11 +39,11 @@
  * @param rho_max Maximum tolerated density value \f$ \rho_{max} \f$.
  */
 __kernel void entry(__global float* rho_in,
-                    uint N,
-					float rho_min,
+                    usize N,
+                    float rho_min,
                     float rho_max)
 {
-    unsigned int i = get_global_id(0);
+    usize i = get_global_id(0);
     if(i >= N)
         return;
 

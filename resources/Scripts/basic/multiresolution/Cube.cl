@@ -44,12 +44,12 @@ __kernel void entry(__global const int* imove,
                     __global const unsigned int* ilevel,
                     __global const vec* r,
                     __global unsigned int* level,
-                    unsigned int N,
+                    usize N,
                     vec multiresolution_cube_min,
                     vec multiresolution_cube_max,
                     unsigned int multiresolution_cube_level)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
 

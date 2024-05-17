@@ -61,18 +61,14 @@ __kernel void entry(__global vec* pressureForces_f,
                     const __global float* rho,
                     const __global float* p,
                     const __global float* m,
-                    // Link-list data
-                    const __global uint *icell,
-                    const __global uint *ihoc,
-                    // Simulation data
-                    uint N,
-                    uivec4 n_cells,
+                    usize N,
                     unsigned int pressureForces_iset,
-                    vec pressureForces_r)
+                    vec pressureForces_r,
+                    LINKLIST_LOCAL_PARAMS)
 {
     // find position in global arrays
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
+    const usize i = get_global_id(0);
+    const usize it = get_local_id(0);
     if(i >= N)
         return;
     if((iset[i] != pressureForces_iset) || (imove[i] != -1)){
@@ -93,7 +89,8 @@ __kernel void entry(__global vec* pressureForces_f,
     #endif
     _F_ = VEC_ZERO.XYZ;
 
-    BEGIN_LOOP_OVER_NEIGHS(){
+    const usize c_i = icell[i];
+    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
         if(imove[j] != 1){
             j++;
             continue;
@@ -109,7 +106,7 @@ __kernel void entry(__global vec* pressureForces_f,
         {
             _F_ -= (p_i + p[j]) * kernelF(q) * CONF * m[j] / rho[j] * r_ij;
         }
-    }END_LOOP_OVER_NEIGHS()
+    }END_NEIGHS()
 
     _F_ *= m[i] / rho[i];
 

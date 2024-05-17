@@ -58,13 +58,13 @@
 __kernel void entry(__global float* dt_var,
                     __global vec* u,
                     __global vec* dudt,
-                    unsigned int N,
+                    usize N,
                     float dt,
                     float dt_min,
                     float courant,
                     float h)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
 

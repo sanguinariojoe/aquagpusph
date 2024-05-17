@@ -65,13 +65,13 @@ __kernel void entry(__global vec* pressureForces_f,
                     const __global float* p,
                     const __global float* rho,
                     const __global float* m,
-                    uint N,
+                    usize N,
                     unsigned int pressureForces_iset,
                     vec pressureForces_r)
 {
     // find position in global arrays
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
+    const usize i = get_global_id(0);
+    const usize it = get_local_id(0);
     if(i >= N)
         return;
     if((iset[i] != pressureForces_iset) || (imove[i] != -3)){

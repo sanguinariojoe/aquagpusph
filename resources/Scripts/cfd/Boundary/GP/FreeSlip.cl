@@ -45,20 +45,20 @@
  */
 __kernel void entry(const __global uint* iset,
                     const __global int* imove,
-                    const __global uint* associations,
+                    const __global usize* associations,
                     const __global vec* gp_u,
                     __global vec* u,
-                    uint N,
+                    usize N,
                     uint freeslip_iset)
 {
-    const uint i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if((imove[i] != -1) || (iset[i] != freeslip_iset))
         return;
 
     // Let's get the associated boundary element, and check it is valid
-    const uint iref = associations[i];
+    const usize iref = associations[i];
     if(iref >= N)
         return;
 

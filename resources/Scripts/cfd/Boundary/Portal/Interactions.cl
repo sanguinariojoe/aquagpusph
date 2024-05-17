@@ -71,15 +71,11 @@ __kernel void entry(const __global int* imove,
                     __global vec* grad_p,
                     __global vec* lap_u,
                     __global float* div_u,
-                    // Link-list data
-                    __global uint *icell,
-                     __global uint *ihoc,
-                    // Simulation data
-                    uint N,
-                    uivec4 n_cells)
+                    usize N,
+                    LINKLIST_LOCAL_PARAMS)
 {
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
+    const usize i = get_global_id(0);
+    const usize it = get_local_id(0);
     if(i >= N)
         return;
     if((!imirrored[i]) || (imove[i] != 1))
@@ -107,22 +103,23 @@ __kernel void entry(const __global int* imove,
         _DIVU_ = div_u[i];
     #endif
 
-	BEGIN_LOOP_OVER_NEIGHS(){
-		if((imirrored[j]) || ((imove[j] != 1) && (imove[j] != -1))){
-			j++;
-			continue;
-		}
-		const vec_xyz r_ij = r[j].XYZ - r_i;
-		const float q = length(r_ij) / H;
-		if(q >= SUPPORT)
-		{
-			j++;
-			continue;
-		}
+    const usize c_i = icell[i];
+    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
+        if((imirrored[j]) || ((imove[j] != 1) && (imove[j] != -1))){
+            j++;
+            continue;
+        }
+        const vec_xyz r_ij = r[j].XYZ - r_i;
+        const float q = length(r_ij) / H;
+        if(q >= SUPPORT)
+        {
+            j++;
+            continue;
+        }
 
-		{
+        {
             const float rho_j = rho[j];
-			const float m_j = m[j];
+            const float m_j = m[j];
             const float p_j = p[j];
             const float udr = dot(u[j].XYZ - u_i, r_ij);
             const float f_ij = kernelF(q) * CONF * m_j;
@@ -139,8 +136,8 @@ __kernel void entry(const __global int* imove,
             #endif
 
             _DIVU_ += udr * f_ij * rho_i / rho_j;
-		}
-	}END_LOOP_OVER_NEIGHS()
+        }
+    }END_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         grad_p[i].XYZ = _GRADP_;

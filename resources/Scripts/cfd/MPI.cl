@@ -75,9 +75,9 @@ __kernel void copy(__global unsigned int* mpi_iset,
                    const __global float* rho,
                    const __global float* drhodt,
                    const __global float* m,
-                   unsigned int N)
+                   usize N)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
 
@@ -132,10 +132,10 @@ __kernel void append(__global unsigned int* iset,
                      const __global float* mpi_drhodt,
                      const __global float* mpi_m,
                      unsigned int mpi_rank,
-                     unsigned int nbuffer,
-                     unsigned int N)
+                     usize nbuffer,
+                     usize N)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(mpi_local_mask[i] == mpi_rank)
@@ -145,7 +145,7 @@ __kernel void append(__global unsigned int* iset,
     // would consume particles from the buffer, which is at the end of the list
     // of particles. Never consume particles straight from the end, or the
     // buffer will be ruined for future executions
-    const unsigned int i_out = N - nbuffer + i;
+    const usize i_out = N - nbuffer + i;
     imove[i_out] = 1;
     iset[i_out] = mpi_iset[i];
     r[i_out] = mpi_r[i];
@@ -171,9 +171,9 @@ __kernel void remove(__global int* imove,
                      __global vec* r,
                      const __global unsigned int* mpi_local_mask,
                      unsigned int mpi_rank,
-                     unsigned int N)
+                     usize N)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(mpi_local_mask[i] == mpi_rank)
@@ -202,10 +202,10 @@ __kernel void backup_r(const __global unsigned int* mpi_neigh_mask,
                        __global vec* mpi_r_in,
                        vec r_max,
                        unsigned int mpi_rank,
-                       unsigned int N,
-                       unsigned int n_radix)
+                       usize N,
+                       usize n_radix)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= n_radix)
         return;
     if((i >= N) || (mpi_neigh_mask[i] == mpi_rank)) {
@@ -238,14 +238,14 @@ __kernel void sort(const __global unsigned int *mpi_iset_in, __global unsigned i
                    const __global vec *mpi_u_in, __global vec *mpi_u,
                    const __global float *mpi_rho_in, __global float *mpi_rho,
                    const __global float *mpi_m_in, __global float *mpi_m,
-                   const __global unit *mpi_id_sorted,
-                   unsigned int N)
+                   const __global usize *mpi_id_sorted,
+                   usize N)
 {
-    uint i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
 
-    const uint i_out = mpi_id_sorted[i];
+    const usize i_out = mpi_id_sorted[i];
 
     mpi_iset[i_out] = mpi_iset_in[i];
     mpi_r[i_out] = mpi_r_in[i];
@@ -271,11 +271,11 @@ __kernel void eos(__global unsigned int* mpi_iset,
                   __global float* mpi_rho,
                   __global float* mpi_p,
                   __constant float* refd,
-                  unsigned int N,
+                  usize N,
                   float cs,
                   float p0)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
 
@@ -323,11 +323,11 @@ __kernel void interactions(const __global int* imove,
                            __global vec* grad_p,
                            __global vec* lap_u,
                            __global float* div_u,
-                           uint N,
+                           usize N,
                            LINKLIST_REMOTE_PARAMS)
 {
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
+    const usize i = get_global_id(0);
+    const usize it = get_local_id(0);
     if(i >= N)
         return;
     if(imove[i] != 1){
@@ -356,7 +356,7 @@ __kernel void interactions(const __global int* imove,
         _DIVU_ = 0.f;
     #endif
 
-    const unsigned int c_i = icell[i];
+    const usize c_i = icell[i];
     BEGIN_NEIGHS(c_i, N, n_cells, mpi_icell, mpi_ihoc){
         const vec_xyz r_ij = mpi_r[j].XYZ - r_i;
         const float q = length(r_ij) / H;

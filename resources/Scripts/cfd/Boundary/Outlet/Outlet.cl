@@ -60,7 +60,7 @@ __kernel void rates(__global int* imove,
                     __global float* drhodt,
                     __global float* drhodt_in,
                     __constant float* refd,
-                    unsigned int N,
+                    usize N,
                     float cs,
                     float p0,
                     vec g,
@@ -70,7 +70,7 @@ __kernel void rates(__global int* imove,
                     vec outlet_rFS)
 {
     // find position in global arrays
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] != 1)
@@ -107,13 +107,13 @@ __kernel void rates(__global int* imove,
  */
 __kernel void feed(__global int* imove,
                    __global vec* r_in,
-                   unsigned int N,
+                   usize N,
                    vec domain_max,
                    vec outlet_r,
                    vec outlet_n)
 {
     // find position in global arrays
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] != 1)

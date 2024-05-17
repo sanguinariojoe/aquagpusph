@@ -61,10 +61,10 @@ __kernel void entry(__global float* outlet_energy_dekindt,
                     const __global vec* r,
                     vec outlet_r,
                     vec outlet_n,
-                    unsigned int N)
+                    usize N)
 {
     // find position in global arrays
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
 
     if(i >= N)
         return;

@@ -68,16 +68,12 @@ __kernel void entry(const __global int* imove,
                     __global float* gp_p,
                     __global vec* gp_u,
                     __global float* shepard,
-                    // Link-list data
-                    const __global uint *icell,
-                    const __global uint *gp_icell,
-                    const __global uint *ihoc,
-                    // Simulation data
-                    uint N,
-                    uivec4 n_cells)
+                    usize N,
+                    const __global usize *gp_icell,
+                    LINKLIST_LOCAL_PARAMS)
 {
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
+    const usize i = get_global_id(0);
+    const usize it = get_local_id(0);
     if(i >= N)
         return;
     if(imove[i] != -1)
@@ -113,7 +109,7 @@ __kernel void entry(const __global int* imove,
     _SHEPARD_ = 0.f;
 
     #undef C_I()
-    #define C_I() const uint c_i = gp_icell[i]
+    #define C_I() const usize c_i = gp_icell[i]
     BEGIN_LOOP_OVER_NEIGHS(){
         if(imove[j] != 1){
             j++;

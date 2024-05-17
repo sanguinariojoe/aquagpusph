@@ -45,22 +45,22 @@
  * @param n_cells Number of cells in each direction
  */
 __kernel void entry(const __global int* imove,
-                    const __global uint* associations,
+                    const __global usize* associations,
                     const __global vec* normal,
                     __global vec* r,
-                    __global uint *gp_icell,
-                    uint N,
+                    __global usize *gp_icell,
+                    usize N,
                     vec r_min,
                     uivec4 n_cells)
 {
-    const uint i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] != -1)
         return;
 
     // Let's get the associated boundary element, and check it is valid
-    const uint iref = associations[i];
+    const usize iref = associations[i];
     if(iref >= N)
         return;
 
@@ -71,13 +71,13 @@ __kernel void entry(const __global int* imove,
     r[i].XYZ += 2.f * dr_i;
 
     // Compute the new cell
-    uivec cell;
-    unsigned int cell_id;
+    svec_xyz cell;
+    usize cell_id;
     const float idist = 1.f / (SUPPORT * H);
-    cell.x = (unsigned int)((r[i].x - r_min.x) * idist) + 3u;
-    cell.y = (unsigned int)((r[i].y - r_min.y) * idist) + 3u;
+    cell.x = (usize)((r[i].x - r_min.x) * idist) + 3u;
+    cell.y = (usize)((r[i].y - r_min.y) * idist) + 3u;
     #ifdef HAVE_3D
-        cell.z = (unsigned int)((r[i].z - r_min.z) * idist) + 3u;
+        cell.z = (usize)((r[i].z - r_min.z) * idist) + 3u;
         cell_id = cell.x - 1u +
                   (cell.y - 1u) * n_cells.x +
                   (cell.z - 1u) * n_cells.x * n_cells.y;

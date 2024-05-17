@@ -52,9 +52,9 @@ __kernel void mask_planes(__global unsigned int* mpi_mask,
                           unsigned int mpi_rank,
                           vec mpi_planes_orig,
                           vec mpi_planes_dist,
-                          unsigned int N)
+                          usize N)
 {
-    unsigned int i = get_global_id(0);
+    usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] <= 0)
@@ -113,9 +113,9 @@ __kernel void copy(__global vec* mpi_r,
                    const __global float* rho_in,
                    const __global float* drhodt_in,
                    const __global float* m,
-                   unsigned int N)
+                   usize N)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
 
@@ -167,10 +167,10 @@ __kernel void restore(__global vec* r_in,
                       const __global float* mpi_drhodt,
                       const __global float* mpi_m,
                       unsigned int mpi_rank,
-                      unsigned int nbuffer,
-                      unsigned int N)
+                      usize nbuffer,
+                      usize N)
 {
-    unsigned int i = get_global_id(0);
+    usize i = get_global_id(0);
     if(i >= N)
         return;
     if(mpi_mask[i] == mpi_rank)
@@ -180,7 +180,7 @@ __kernel void restore(__global vec* r_in,
     // would consume particles from the buffer, which is at the end of the list
     // of particles. Never consume particles straight from the end, or the
     // buffer will be ruined for future executions
-    const unsigned int i_out = N - nbuffer + i;
+    const usize i_out = N - nbuffer + i;
     imove[i_out] = 1;
     r_in[i_out] = mpi_r[i];
     u_in[i_out] = mpi_u[i];
@@ -203,14 +203,14 @@ __kernel void restore(__global vec* r_in,
  */
 __kernel void sort(const __global unsigned int* mpi_mask_in,
                    __global unsigned int* mpi_mask,
-                   const __global unit *id_sorted,
-                   unsigned int N)
+                   const __global usize *id_sorted,
+                   usize N)
 {
-    unsigned int i = get_global_id(0);
+    usize i = get_global_id(0);
     if(i >= N)
         return;
 
-    const uint i_out = id_sorted[i];
+    const usize i_out = id_sorted[i];
 
     mpi_mask[id_sorted[i]] = mpi_mask_in[i];
 }
@@ -239,9 +239,9 @@ __kernel void drop_planes(__global int* imove,
                           vec mpi_planes_orig,
                           vec mpi_planes_dist,
                           vec domain_max,
-                          unsigned int N)
+                          usize N)
 {
-    unsigned int i = get_global_id(0);
+    usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] <= 0)

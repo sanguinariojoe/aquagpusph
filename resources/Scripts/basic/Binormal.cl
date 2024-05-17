@@ -37,9 +37,9 @@
 __kernel void entry(const __global vec* normal,
                     __global vec* tangent,
                     __global vec* binormal,
-                    unsigned int N)
+                    usize N)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
 

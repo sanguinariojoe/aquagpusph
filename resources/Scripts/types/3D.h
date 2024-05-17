@@ -93,7 +93,7 @@
                                0.f, 0.f, 1.f, 0.f,                             \
                                0.f, 0.f, 0.f, 1.f))
 
-/** @brief Vector of real components with the minimum number of components.
+/** @brief Vectors with the minimum number of components.
  *
  * The number of components depends on weather the 2D version or 3D
  * version is compiled:
@@ -102,29 +102,16 @@
  *
  * This type can be used for the local variables to reduce the VGPRs.
  */
+/// @{
 #define vec_xyz vec3
-
-/** @brief Vector of integer components.
- *
- * The number of components depends on weather the 2D version or 3D
- * version is compiled:
- *   - 2D = 2 components
- *   - 3D = 3 components
- *
- * This type can be used for the local variables to reduce the VGPRs.
- */
+#define dvec_xyz dvec3
 #define ivec_xyz ivec3
-
-/** @brief Vector of unsigned integer components.
- *
- * The number of components depends on weather the 2D version or 3D
- * version is compiled:
- *   - 2D = 2 components
- *   - 3D = 3 components
- *
- * This type can be used for the local variables to reduce the VGPRs.
- */
+#define lvec_xyz lvec3
 #define uivec_xyz uivec3
+#define ulvec_xyz ulvec3
+#define svec_xyz svec3
+#define ssvec_xyz ssvec3
+/// @}
 
 /** @brief Convenient access to the vector components.
  * 
@@ -161,11 +148,11 @@
     for(int ci = -1; ci <= 1; ci++) {                                          \
         for(int cj = -1; cj <= 1; cj++) {                                      \
             for(int ck = -1; ck <= 1; ck++) {                                  \
-                const uint c_j = c_i +                                         \
-                                 ci +                                          \
-                                 cj * n_cells.x +                              \
-                                 ck * n_cells.x * n_cells.y;                   \
-                uint j = ihoc[c_j];                                            \
+                const usize c_j = c_i +                                        \
+                                  ci +                                         \
+                                  cj * n_cells.x +                             \
+                                  ck * n_cells.x * n_cells.y;                  \
+                usize j = ihoc[c_j];                                           \
                 while((j < N) && (icell[j] == c_j)) {
 
 /** @brief End of the loop over the neighs to compute the interactions.

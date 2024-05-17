@@ -38,9 +38,9 @@ __kernel void entry(const __global uint* iset,
                     const __global uint *associations,
                     __global vec* dudt,
                     __global float* drhodt,
-                    uint N)
+                    usize N)
 {
-    const uint i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] != -1)

@@ -60,12 +60,12 @@ __kernel void entry(const __global int* imove,
                     const __global float* rho,
                     const __global float* m,
                     __global matrix* mls,
-                    uint N,
+                    usize N,
                     uint mls_imove,
                     LINKLIST_LOCAL_PARAMS)
 {
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
+    const usize i = get_global_id(0);
+    const usize it = get_local_id(0);
     if(i >= N)
         return;
     if(imove[i] != mls_imove){
@@ -83,7 +83,7 @@ __kernel void entry(const __global int* imove,
     #endif
     _MLS_ = MAT_ZERO;
 
-    const unsigned int c_i = icell[i];
+    const usize c_i = icell[i];
     BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
         if(i == j){
             j++;
@@ -129,11 +129,10 @@ __kernel void entry(const __global int* imove,
  */
 __kernel void mls_inv(const __global int* imove,
                       __global matrix* mls,
-                      uint N,
+                      usize N,
                       uint mls_imove)
 {
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] != mls_imove){

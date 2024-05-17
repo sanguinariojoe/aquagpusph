@@ -51,10 +51,10 @@ __kernel void entry(__global const int* imove,
                     __global const float* rho_in,
                     __global const float* m,
                     __global float* h_var_in,
-                    unsigned int N,
+                    usize N,
                     float hfac)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
 

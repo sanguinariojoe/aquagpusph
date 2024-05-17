@@ -45,14 +45,14 @@ __kernel void entry(const __global float *m0_in, __global float *m0,
                     const __global int *miter_in, __global int *miter,
                     const __global uint *ilevel_in, __global uint *ilevel,
                     const __global uint *level_in, __global uint *level,
-                    const __global unit *id_sorted,
-                    unsigned int N)
+                    const __global usize *id_sorted,
+                    usize N)
 {
-    uint i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
 
-    const uint i_out = id_sorted[i];
+    const usize i_out = id_sorted[i];
 
     m0[i_out] = m0_in[i];
     miter[i_out] = miter_in[i];

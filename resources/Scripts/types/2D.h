@@ -73,7 +73,7 @@
  */
 #define MAT_ALL_EYE MAT_EYE
 
-/** @brief Vector of real components with the minimum number of components.
+/** @brief Vectors with the minimum number of components.
  *
  * The number of components depends on weather the 2D version or 3D
  * version is compiled:
@@ -82,29 +82,16 @@
  *
  * This type can be used for the local variables to reduce the VGPRs.
  */
+/// @{
 #define vec_xyz vec2
-
-/** @brief Vector of integer components.
- *
- * The number of components depends on weather the 2D version or 3D
- * version is compiled:
- *   - 2D = 2 components
- *   - 3D = 3 components
- *
- * This type can be used for the local variables to reduce the VGPRs.
- */
+#define dvec_xyz dvec2
 #define ivec_xyz ivec2
-
-/** @brief Vector of unsigned integer components.
- *
- * The number of components depends on weather the 2D version or 3D
- * version is compiled:
- *   - 2D = 2 components
- *   - 3D = 3 components
- *
- * This type can be used for the local variables to reduce the VGPRs.
- */
+#define lvec_xyz lvec2
 #define uivec_xyz uivec2
+#define ulvec_xyz ulvec2
+#define svec_xyz svec2
+#define ssvec_xyz ssvec2
+/// @}
 
 /** @brief Convenient access to the vector components.
  * 
@@ -140,10 +127,10 @@
     C_I();                                                                     \
     for(int ci = -1; ci <= 1; ci++) {                                          \
         for(int cj = -1; cj <= 1; cj++) {                                      \
-            const uint c_j = c_i +                                             \
-                             ci +                                              \
-                             cj * n_cells.x;                                   \
-            uint j = ihoc[c_j];                                                \
+            const usize c_j = c_i +                                            \
+                              ci +                                             \
+                              cj * n_cells.x;                                  \
+            usize j = ihoc[c_j];                                               \
             while((j < N) && (icell[j] == c_j)) {
 
 /** @brief End of the loop over the neighs to compute the interactions.
@@ -187,10 +174,10 @@
 #define BEGIN_NEIGHS(CELL, NPARTS, NCELLS, ICELL, IHOC)                        \
     for(int __ci = -1; __ci <= 1; __ci++) {                                    \
         for(int __cj = -1; __cj <= 1; __cj++) {                                \
-            const uint __c_j = CELL +                                          \
-                               __ci +                                          \
-                               __cj * NCELLS.x;                                \
-            uint j = IHOC[__c_j];                                              \
+            const usize __c_j = CELL +                                         \
+                                __ci +                                         \
+                                __cj * NCELLS.x;                               \
+            usize j = IHOC[__c_j];                                             \
             while((j < NPARTS) && (ICELL[j] == __c_j)) {
 
 /** @brief End of the loop over the neighs to compute the interactions.

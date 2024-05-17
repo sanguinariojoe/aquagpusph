@@ -52,9 +52,9 @@ __kernel void entry(__global int* imove,
                     __global const int* miter,
                     __global vec* r,
                     vec domain_max,
-                    unsigned int N)
+                    usize N)
 {
-    unsigned int i = get_global_id(0);
+    usize i = get_global_id(0);
     if(i >= N)
         return;
 

@@ -76,16 +76,14 @@ __kernel void entry(const __global uint* iset,
                     const __global float* rho,
                     const __global float* m,
                      __constant float* visc_dyn,
-                    const __global uint *icell,
-                    const __global uint *ihoc,
-                    uint N,
-                    uivec4 n_cells,
+                    usize N,
                     float dr,
                     unsigned int viscousForces_iset,
-                    vec viscousForces_r)
+                    vec viscousForces_r,
+                    LINKLIST_LOCAL_PARAMS)
 {
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
+    const usize i = get_global_id(0);
+    const usize it = get_local_id(0);
     if(i >= N)
         return;
     if((iset[i] != viscousForces_iset) || (imove[i] != -3)){
@@ -109,7 +107,8 @@ __kernel void entry(const __global uint* iset,
     #endif
     _F_ = VEC_ZERO.XYZ;
 
-    BEGIN_LOOP_OVER_NEIGHS(){
+    const usize c_i = icell[i];
+    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
         if(imove[j] != 1){
             j++;
             continue;
@@ -139,7 +138,7 @@ __kernel void entry(const __global uint* iset,
                 _F_ += 2.f * m_j * w_ij / (rho_j * dr_n) * du_t;
             #endif
         }
-    }END_LOOP_OVER_NEIGHS()
+    }END_NEIGHS()
 
     _F_ *= visc_dyn_i;
 

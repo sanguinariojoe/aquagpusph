@@ -58,9 +58,9 @@ __kernel void set_mass(__global const int* imove,
                        __global const float* m0,
                        __global int* miter,
                        __global float* m,
-                       unsigned int N)
+                       usize N)
 {
-    unsigned int i = get_global_id(0);
+    usize i = get_global_id(0);
     if(i >= N)
         return;
 

@@ -61,15 +61,11 @@ __kernel void entry(const __global int* imove,
                     const __global float* rho,
                     const __global float* m,
                     __global vec* lap_u,
-                    // Link-list data
-                    const __global uint *icell,
-                     const __global uint *ihoc,
-                    // Simulation data
-                    uint N,
-                    uivec4 n_cells)
+                    usize N,
+                    LINKLIST_LOCAL_PARAMS)
 {
-    const uint i = get_global_id(0);
-    const uint it = get_local_id(0);
+    const usize i = get_global_id(0);
+    const usize it = get_local_id(0);
     if(i >= N)
         return;
     const int imove_i = imove[i];
@@ -90,7 +86,8 @@ __kernel void entry(const __global int* imove,
         _LAPU_ = lap_u[i].XYZ;
     #endif
 
-    BEGIN_LOOP_OVER_NEIGHS(){
+    const usize c_i = icell[i];
+    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
         const int imove_j = imove[j];
         if((imove_j != 1) && (imove_j != -1)){
             j++;
@@ -122,7 +119,7 @@ __kernel void entry(const __global int* imove,
                 #error Unknown Laplacian formulation: __LAP_FORMULATION__
             #endif
         }
-    }END_LOOP_OVER_NEIGHS()
+    }END_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         lap_u[i].XYZ = _LAPU_;

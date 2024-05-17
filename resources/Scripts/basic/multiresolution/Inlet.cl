@@ -91,8 +91,8 @@ __kernel void feed(__global int* imove,
                    __global unsigned int* level,
                    __global float* p,
                    __constant float* refd,
-                   unsigned int N,
-                   unsigned int nbuffer,
+                   usize N,
+                   usize nbuffer,
                    float dt,
                    float cs,
                    float p0,
@@ -109,7 +109,7 @@ __kernel void feed(__global int* imove,
                    int inlet_starving)
 {
     // find position in global arrays
-    const unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(inlet_starving == 0)
         return;
     if((i >= nbuffer) || (i >= (inlet_N.x * inlet_N.y))){
@@ -117,15 +117,15 @@ __kernel void feed(__global int* imove,
         // particle is not required
         return;
     }
-    const unsigned int ii = i + N - nbuffer;
+    const usize ii = i + N - nbuffer;
 
     // Compute the generation point
     #ifndef HAVE_3D
         const float u_fac = ((float)i + 0.5f) / inlet_N.x;
         const float v_fac = 0.f;
     #else
-        const unsigned int u_id = i % inlet_N.x;
-        const unsigned int v_id = i / inlet_N.x;
+        const usize u_id = i % inlet_N.x;
+        const usize v_id = i / inlet_N.x;
         const float u_fac = ((float)u_id + 0.5f) / inlet_N.x;
         const float v_fac = ((float)v_id + 0.5f) / inlet_N.y;
     #endif
