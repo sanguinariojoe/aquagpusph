@@ -159,7 +159,7 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 		N += set->n();
 	}
 
-	const unsigned int num_icell = nextPowerOf2(roundUp(N, _ITEMS * _GROUPS));
+	const unsigned int num_icell = nextPowerOf2(roundUp<size_t>(N, _ITEMS * _GROUPS));
 
 	// Register default scalars
 	std::ostringstream valstr;

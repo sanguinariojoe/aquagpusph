@@ -241,7 +241,7 @@ Set::setupOpenCL()
 		throw std::runtime_error("OpenCL error");
 	}
 
-	_global_work_size = roundUp(_n, _work_group_size);
+	_global_work_size = roundUp<size_t>(_n, _work_group_size);
 	_kernel = kernel;
 	err_code = clSetKernelArg(kernel, 0, _var->typesize(), _var->get());
 	CHECK_OCL_OR_THROW(

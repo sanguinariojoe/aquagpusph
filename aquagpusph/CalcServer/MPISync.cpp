@@ -815,7 +815,7 @@ MPISync::Sender::setupOpenCL(const std::string kernel_name)
 		throw std::runtime_error("OpenCL error");
 	}
 
-	_global_work_size = roundUp(_n, _local_work_size);
+	_global_work_size = roundUp<size_t>(_n, _local_work_size);
 	err_code = clSetKernelArg(kernel, 0, _mask->typesize(), _mask->get());
 	CHECK_OCL_OR_THROW(
 	    err_code,
@@ -994,7 +994,7 @@ cbMPIRecv(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 	CHECK_OCL_OR_THROW(err_code, "Failure sending the offset argument");
 	err_code = clSetKernelArg(data->kernel, 3, sizeof(unsigned int), (void*)&n);
 	CHECK_OCL_OR_THROW(err_code, "Failure sending the n argument");
-	size_t global_work_size = roundUp(n, data->local_work_size);
+	size_t global_work_size = roundUp<size_t>(n, data->local_work_size);
 	err_code = clEnqueueNDRangeKernel(data->C->command_queue(cmd_queue_mpi),
 	                                  data->kernel,
 	                                  1,

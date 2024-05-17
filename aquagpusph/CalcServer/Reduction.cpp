@@ -357,7 +357,7 @@ Reduction::setupOpenCL()
 		// Get work sizes
 		_n.push_back(n);
 		_local_work_sizes.push_back(local_size);
-		_global_work_sizes.push_back(roundUp(n, local_size));
+		_global_work_sizes.push_back(roundUp<size_t>(n, local_size));
 		_number_groups.push_back(_global_work_sizes.at(i) /
 		                         _local_work_sizes.at(i));
 		// Build the output memory object

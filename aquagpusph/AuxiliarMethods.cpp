@@ -383,9 +383,9 @@ getLocalWorkSize(cl_uint n, cl_command_queue queue)
 }
 
 size_t
-getGlobalWorkSize(cl_uint n, size_t local_work_size)
+getGlobalWorkSize(cl_ulong n, size_t local_work_size)
 {
-	return roundUp(n, local_work_size);
+	return roundUp<size_t>(n, local_work_size);
 }
 
 vec

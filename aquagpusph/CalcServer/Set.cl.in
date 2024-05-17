@@ -28,14 +28,14 @@
  */
 __kernel void
 set(__global T* var,
-    unsigned int N
+    usize N
 #ifndef VALUE
     ,
     T value
 #endif
 )
 {
-	unsigned int i = get_global_id(0);
+	const usize i = get_global_id(0);
 	if (i >= N)
 		return;
 

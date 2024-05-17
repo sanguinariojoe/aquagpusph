@@ -144,7 +144,7 @@ RadixSort::_execute(const std::vector<cl_event> events)
 	for (i = 0; (max_val & 1) == 0; max_val >>= 1, i++)
 		;
 	_key_bits = i;
-	_key_bits = roundUp(_key_bits, _bits);
+	_key_bits = roundUp<size_t>(_key_bits, _bits);
 	if (_key_bits > __UINTBITS__) {
 		LOG(L_ERROR, "Resultant keys overflows unsigned int type.\n");
 		throw std::runtime_error("Unsigned int overflow");
@@ -671,7 +671,7 @@ RadixSort::variables()
 
 	// Check the lengths
 	_n = _var->size() / vars->typeToBytes(_var->type());
-	_n_padded = nextPowerOf2(roundUp(_n, _ITEMS * _GROUPS));
+	_n_padded = nextPowerOf2(roundUp<size_t>(_n, _ITEMS * _GROUPS));
 
 	n = _perms->size() / vars->typeToBytes(_perms->type());
 	if (n != _n) {

@@ -30,10 +30,10 @@
  * allocated cells.
  */
 __kernel void
-iHoc(__global unsigned int* ihoc, unsigned int N, uivec4 n_cells)
+iHoc(__global usize* ihoc, usize N, svec4 n_cells)
 {
 	// find position in global arrays
-	unsigned int i = get_global_id(0);
+	usize i = get_global_id(0);
 
 	if (i >= n_cells.w)
 		return;
@@ -53,31 +53,31 @@ iHoc(__global unsigned int* ihoc, unsigned int N, uivec4 n_cells)
  * allocated cells.
  */
 __kernel void
-iCell(__global unsigned int* icell,
+iCell(__global usize* icell,
       const __global vec* r,
-      unsigned int N,
-      unsigned int n_radix,
+      const usize N,
+      const usize n_radix,
       vec r_min,
       float support,
       float h,
       uivec4 n_cells)
 {
 	// find position in global arrays
-	unsigned int i = get_global_id(0);
+	const usize i = get_global_id(0);
 	if (i >= n_radix)
 		return;
 
-	uivec cell;
+	svec_xyz cell;
 	float idist;
-	unsigned int cell_id;
+	usize cell_id;
 
 	if (i < N) {
 		// Normal particles
 		idist = 1.f / (support * h);
-		cell.x = (unsigned int)((r[i].x - r_min.x) * idist) + 3u;
-		cell.y = (unsigned int)((r[i].y - r_min.y) * idist) + 3u;
+		cell.x = (usize)((r[i].x - r_min.x) * idist) + 3u;
+		cell.y = (usize)((r[i].y - r_min.y) * idist) + 3u;
 #ifdef HAVE_3D
-		cell.z = (unsigned int)((r[i].z - r_min.z) * idist) + 3u;
+		cell.z = (usize)((r[i].z - r_min.z) * idist) + 3u;
 		cell_id = cell.x - 1u + (cell.y - 1u) * n_cells.x +
 		          (cell.z - 1u) * n_cells.x * n_cells.y;
 		icell[i] = cell_id;
@@ -98,20 +98,19 @@ iCell(__global unsigned int* icell,
  * @param N Number of particles.
  */
 __kernel void
-linkList(__global unsigned int* icell,
-         __global unsigned int* ihoc,
-         unsigned int N)
+linkList(const __global usize* icell,
+         __global usize* ihoc,
+         const usize N)
 {
 	// find position in global arrays
-	unsigned int i = get_global_id(0);
+	const usize i = get_global_id(0);
 	if (i >= N - 1)
 		return;
 
 	// We are looking the first particle on each cell, which can be detected
 	// just checking if the previous particle is in the same cell.
-	unsigned int c, c2;
-	c = icell[i];
-	c2 = icell[i + 1];
+	const usize c = icell[i];
+	const usize c2 = icell[i + 1];
 	if (i == 0) {
 		// As a particular case, the first particle is ever the head of chain.
 		ihoc[c] = 0;

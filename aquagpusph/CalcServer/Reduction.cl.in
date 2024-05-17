@@ -35,14 +35,14 @@
 __kernel void
 reduction(__global T* input,
           __global T* output,
-          unsigned int N,
+          usize N,
           __local T* lmem)
 {
-	unsigned int i;
+	usize i;
 	// Get the global index (to ensure not out of bounds reading operations)
-	unsigned int gid = get_global_id(0);
+	const usize gid = get_global_id(0);
 	// Get id into the work group
-	unsigned int tid = get_local_id(0);
+	const usize tid = get_local_id(0);
 
 	if (gid >= N)
 		lmem[tid] = IDENTITY;

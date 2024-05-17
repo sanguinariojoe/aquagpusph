@@ -32,9 +32,9 @@ __kernel void
 n_offset_mask(const __global unsigned int* mask,
               __global unsigned int* submask,
               unsigned int proc,
-              unsigned int N)
+              usize N)
 {
-	unsigned int i = get_global_id(0);
+	const usize i = get_global_id(0);
 	if (i >= N)
 		return;
 
@@ -51,9 +51,9 @@ __kernel void
 n_send_mask(const __global unsigned int* mask,
             __global unsigned int* submask,
             unsigned int proc,
-            unsigned int N)
+            usize N)
 {
-	unsigned int i = get_global_id(0);
+	const usize i = get_global_id(0);
 	if (i >= N)
 		return;
 
@@ -69,10 +69,10 @@ n_send_mask(const __global unsigned int* mask,
 __kernel void
 set_mask(__global unsigned int* mask,
          unsigned int proc,
-         unsigned int offset,
-         unsigned int n)
+         usize offset,
+         usize n)
 {
-	unsigned int i = get_global_id(0);
+	const usize i = get_global_id(0);
 	if (i >= n)
 		return;
 

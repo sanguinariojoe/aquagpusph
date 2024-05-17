@@ -348,7 +348,7 @@ LinkList::allocate()
 	}
 
 	n_cells_var->set_async(&_n_cells);
-	_ihoc_gws = roundUp(_n_cells.w, _ihoc_lws);
+	_ihoc_gws = roundUp<size_t>(_n_cells.w, _ihoc_lws);
 
 	// Check if the size of ihoc is already bigger than the required one
 	auto ihoc_var = getOutputDependencies()[0];
@@ -469,7 +469,7 @@ LinkList::setupOpenCL()
 		throw std::runtime_error("OpenCL error");
 	}
 	n_cells = *(uivec4*)vars->get("n_cells")->get();
-	_ihoc_gws = roundUp(n_cells.w, _ihoc_lws);
+	_ihoc_gws = roundUp<size_t>(n_cells.w, _ihoc_lws);
 	const char* _ihoc_vars[3] = { "ihoc", "N", "n_cells" };
 	for (i = 0; i < 3; i++) {
 		err_code = clSetKernelArg(_ihoc,
@@ -507,7 +507,7 @@ LinkList::setupOpenCL()
 		throw std::runtime_error("OpenCL error");
 	}
 	n_radix = *(unsigned int*)vars->get("n_radix")->get();
-	_icell_gws = roundUp(n_radix, _icell_lws);
+	_icell_gws = roundUp<size_t>(n_radix, _icell_lws);
 	const char* _icell_vars[8] = {
 		"icell", _input_name.c_str(), "N", "n_radix",
 		"r_min", "support",           "h", "n_cells"
@@ -548,7 +548,7 @@ LinkList::setupOpenCL()
 		throw std::runtime_error("OpenCL error");
 	}
 	N = *(unsigned int*)vars->get("N")->get();
-	_ll_gws = roundUp(N, _ll_lws);
+	_ll_gws = roundUp<size_t>(N, _ll_lws);
 	const char* _ll_vars[3] = { "icell", "ihoc", "N" };
 	for (i = 0; i < 3; i++) {
 		err_code = clSetKernelArg(_ll,

@@ -29,12 +29,12 @@
  * @param N Number of elements into the variable.
  */
 __kernel void
-unsort(const __global unsigned int* id,
+unsort(const __global usize* id,
        const __global T* input,
        __global T* output,
-       unsigned int N)
+       usize N)
 {
-	unsigned int i = get_global_id(0);
+	const usize i = get_global_id(0);
 	if (i >= N)
 		return;
 

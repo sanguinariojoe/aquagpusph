@@ -253,7 +253,7 @@ UnSort::setupOpenCL()
 		throw std::runtime_error("OpenCL error");
 	}
 
-	_global_work_size = roundUp(_n, _work_group_size);
+	_global_work_size = roundUp<size_t>(_n, _work_group_size);
 	err_code = clSetKernelArg(_kernel, 0, _id_var->typesize(), _id_var->get());
 	if (err_code != CL_SUCCESS) {
 		LOG(L_ERROR, "Failure sending the IDs argument\n");

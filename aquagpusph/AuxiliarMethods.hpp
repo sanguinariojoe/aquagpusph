@@ -285,12 +285,12 @@ template<typename T=unsigned int>
 T
 roundUp(T x, T divisor)
 {
-	T rest = n % divisor;
+	T rest = x % divisor;
 	if (rest) {
-		n -= rest;
-		n += divisor;
+		x -= rest;
+		x += divisor;
 	}
-	return n;
+	return x;
 }
 
 /** @brief Round an float value to an integer one.

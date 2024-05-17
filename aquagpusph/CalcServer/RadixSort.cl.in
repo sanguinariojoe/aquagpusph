@@ -33,14 +33,14 @@
  * @param N Padded number of values.
  */
 __kernel void
-init(const __global unsigned int* restrict in_vals,
-     __global unsigned int* restrict vals,
-     __global unsigned int* keys,
-     unsigned int n,
-     unsigned int N)
+init(const __global usize* restrict in_vals,
+     __global usize* restrict vals,
+     __global usize* keys,
+     usize n,
+     usize N)
 {
 	// find position in global arrays
-	unsigned int i = get_global_id(0);
+	const usize i = get_global_id(0);
 	if (i >= N)
 		return;
 
@@ -73,18 +73,18 @@ init(const __global unsigned int* restrict in_vals,
  * @param n Number of keys.
  */
 __kernel void
-histogram(const __global unsigned int* keys,
-          __global unsigned int* histograms,
+histogram(const __global usize* keys,
+          __global usize* histograms,
           const unsigned int pass,
-          __local unsigned int* loc_histo,
-          const unsigned int n)
+          __local usize* loc_histo,
+          const usize n)
 {
-	unsigned int it = get_local_id(0);
-	unsigned int ig = get_global_id(0);
-	unsigned int gr = get_group_id(0);
+	const usize it = get_local_id(0);
+	const usize ig = get_global_id(0);
+	const usize gr = get_group_id(0);
 
-	unsigned int groups = get_num_groups(0);
-	unsigned int items = get_local_size(0);
+	const usize groups = get_num_groups(0);
+	const usize items = get_local_size(0);
 
 	// Initializate the histograms in each thread of this work group
 	for (unsigned int ir = 0; ir < _RADIX; ir++) {
@@ -94,15 +94,15 @@ histogram(const __global unsigned int* keys,
 	barrier(CLK_LOCAL_MEM_FENCE);
 
 	// Set the keys analized by each thread
-	unsigned int size = n / groups / items;
+	usize size = n / groups / items;
 #ifndef TRANSPOSE
 	// If the data has not been transposed we must start reading from a
 	// different place of ig
-	unsigned int start = ig * size;
+	usize start = ig * size;
 #endif
 
-	unsigned int key, radix, k;
-	for (unsigned int j = 0; j < size; j++) {
+	usize key, radix, k;
+	for (usize j = 0; j < size; j++) {
 		k = j + start;
 		if (k >= n)
 			return;
@@ -145,15 +145,15 @@ histogram(const __global unsigned int* keys,
  * accumulated histogram.
  */
 __kernel void
-scan(__global unsigned int* histograms,
-     __local unsigned int* temp,
-     __global unsigned int* globsum)
+scan(__global usize* histograms,
+     __local usize* temp,
+     __global usize* globsum)
 {
-	unsigned int it = get_local_id(0);
-	unsigned int ig = get_global_id(0);
-	unsigned int n = get_local_size(0) * 2;
-	unsigned int gr = get_group_id(0);
-	unsigned int decale = 1;
+	const usize it = get_local_id(0);
+	const usize ig = get_global_id(0);
+	const usize n = get_local_size(0) * 2;
+	const usize gr = get_group_id(0);
+	const usize decale = 1;
 
 	temp[2 * it] = histograms[2 * ig];
 	temp[2 * it + 1] = histograms[2 * ig + 1];
@@ -167,11 +167,11 @@ scan(__global unsigned int* histograms,
 	// Therefore at the end we have the global sum of the local histograms
 	// stored in the last component (we want to save this value, and discard it
 	// for the next stage).
-	for (unsigned int d = n >> 1; d > 0; d >>= 1) {
+	for (usize d = n >> 1; d > 0; d >>= 1) {
 		barrier(CLK_LOCAL_MEM_FENCE);
 		if (it < d) {
-			unsigned int ai = decale * (2 * it + 1) - 1;
-			unsigned int bi = decale * (2 * it + 2) - 1;
+			usize ai = decale * (2 * it + 1) - 1;
+			usize bi = decale * (2 * it + 2) - 1;
 			temp[bi] += temp[ai];
 		}
 		decale *= 2;
@@ -190,15 +190,15 @@ scan(__global unsigned int* histograms,
 	//   -# [h0, 0, h2, h0+h1]
 	//   -# [0, h0, h0+h1, h0+h1+h2]
 	// Which is the desired accumulated histogram.
-	for (unsigned int d = 1; d < n; d *= 2) {
+	for (usize d = 1; d < n; d *= 2) {
 		decale >>= 1;
 		barrier(CLK_LOCAL_MEM_FENCE);
 
 		if (it < d) {
-			unsigned int ai = decale * (2 * it + 1) - 1;
-			unsigned int bi = decale * (2 * it + 2) - 1;
+			usize ai = decale * (2 * it + 1) - 1;
+			usize bi = decale * (2 * it + 2) - 1;
 
-			unsigned int t = temp[ai];
+			usize t = temp[ai];
 			temp[ai] = temp[bi];
 			temp[bi] += t;
 		}
@@ -222,11 +222,11 @@ scan(__global unsigned int* histograms,
  * @param globsum Accumulated global sums (_HISTOSPLIT components).
  */
 __kernel void
-paste(__global unsigned int* histograms, __global unsigned int* globsum)
+paste(__global usize* histograms, __global usize* globsum)
 {
-	unsigned int ig = get_global_id(0);
-	unsigned int gr = get_group_id(0);
-	unsigned int s;
+	const usize ig = get_global_id(0);
+	const usize gr = get_group_id(0);
+	const usize s;
 
 	s = globsum[gr];
 
@@ -250,25 +250,25 @@ paste(__global unsigned int* histograms, __global unsigned int* globsum)
  * the OpenCL identifiers (for keys and permutations).
  */
 __kernel void
-sort(const __global unsigned int* in_keys,
-     __global unsigned int* out_keys,
-     __global unsigned int* histograms,
+sort(const __global usize* in_keys,
+     __global usize* out_keys,
+     __global usize* histograms,
      const unsigned int pass,
-     __global unsigned int* in_permut,
-     __global unsigned int* out_permut,
-     __local unsigned int* loc_histo,
-     const unsigned int n)
+     __global usize* in_permut,
+     __global usize* out_permut,
+     __local usize* loc_histo,
+     const usize n)
 {
-	unsigned int it = get_local_id(0);
-	unsigned int ig = get_global_id(0);
-	unsigned int gr = get_group_id(0);
+	const usize it = get_local_id(0);
+	const usize ig = get_global_id(0);
+	const usize gr = get_group_id(0);
 
-	unsigned int groups = get_num_groups(0);
-	unsigned int items = get_local_size(0);
+	const usize groups = get_num_groups(0);
+	const usize items = get_local_size(0);
 
 	// Set the keys analized by each thread
-	unsigned int size = n / groups / items;
-	unsigned int start = ig * (n / groups / items);
+	const usize size = n / groups / items;
+	const usize start = ig * (n / groups / items);
 
 	// take the accumulated histogram in the cache
 	for (unsigned int ir = 0; ir < _RADIX; ir++) {
@@ -277,8 +277,8 @@ sort(const __global unsigned int* in_keys,
 	}
 	barrier(CLK_LOCAL_MEM_FENCE);
 
-	unsigned int newpos, key, radix, k;
-	for (unsigned int j = 0; j < size; j++) {
+	usize newpos, key, radix, k;
+	for (usize j = 0; j < size; j++) {
 		// Get the key to sort
 		k = j + start;
 		if (k >= n)
@@ -317,14 +317,13 @@ sort(const __global unsigned int* in_keys,
  * @param n Number of keys.
  */
 __kernel void
-inversePermutation(__global unsigned int* perms,
-                   __global unsigned int* inv_perms,
-                   unsigned int n)
+inversePermutation(const __global usize* perms,
+                   __global usize* inv_perms,
+                   usize n)
 {
-	unsigned int i = get_global_id(0);
+	const usize i = get_global_id(0);
 	if (i >= n)
 		return;
 
-	unsigned int permut = perms[i];
-	inv_perms[permut] = i;
+	inv_perms[perms[i]] = i;
 }

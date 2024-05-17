@@ -35,12 +35,12 @@
 __kernel void
 init(const __global T* restrict in_vals,
      __global T* restrict vals,
-     __global unsigned int* keys,
-     unsigned int n,
-     unsigned int N)
+     __global usize* keys,
+     usize n,
+     usize N)
 {
 	// find position in global arrays
-	unsigned int i = get_global_id(0);
+	const usize i = get_global_id(0);
 	if (i >= N)
 		return;
 
@@ -86,15 +86,15 @@ SORT(__global);
  */
 __kernel void
 bitonic_start(__global T* restrict vals,
-              __global unsigned int* restrict keys)
+              __global usize* restrict keys)
 {
 	__local T local_vals[MAX_LOCAL_SIZE * 2];
-	__local unsigned int local_keys[MAX_LOCAL_SIZE * 2];
-	const unsigned int gid = get_global_id(0);
-	const unsigned int lid = get_local_id(0);
+	__local usize local_keys[MAX_LOCAL_SIZE * 2];
+	const usize gid = get_global_id(0);
+	const usize lid = get_local_id(0);
 
-	const unsigned int index = get_group_id(0) * (MAX_LOCAL_SIZE * 2) + lid;
-	const unsigned int clamped_gid = gid & (MAX_LOCAL_SIZE - 1);
+	const usize index = get_group_id(0) * (MAX_LOCAL_SIZE * 2) + lid;
+	const usize clamped_gid = gid & (MAX_LOCAL_SIZE - 1);
 
 	local_vals[lid] = vals[index];
 	local_vals[lid + MAX_LOCAL_SIZE] = vals[index + MAX_LOCAL_SIZE];
@@ -102,14 +102,14 @@ bitonic_start(__global T* restrict vals,
 	local_keys[lid + MAX_LOCAL_SIZE] = keys[index + MAX_LOCAL_SIZE];
 
 	// bitonic merge
-	for (unsigned int bsize = 2; bsize < MAX_LOCAL_SIZE * 2; bsize <<= 1) {
+	for (usize bsize = 2; bsize < MAX_LOCAL_SIZE * 2; bsize <<= 1) {
 		// sort every other block in the other direction (faster % calc)
 		const char dir = (clamped_gid & (bsize / 2)) == 0;
 #pragma unroll
-		for (unsigned int stride = bsize >> 1; stride > 0; stride >>= 1){
+		for (usize stride = bsize >> 1; stride > 0; stride >>= 1){
 			barrier(CLK_LOCAL_MEM_FENCE);
 			//take every other input BUT starting neighbouring within one block
-			const unsigned int idx = 2 * lid - (lid & (stride - 1));
+			const usize idx = 2 * lid - (lid & (stride - 1));
 			sort__local(&local_vals[idx],
 			            &local_vals[idx + stride],
 			            &local_keys[idx],
@@ -122,9 +122,9 @@ bitonic_start(__global T* restrict vals,
 	// need ifs in the part above)
 	const char dir = (clamped_gid & 0);
 #pragma unroll
-	for (unsigned int stride = MAX_LOCAL_SIZE; stride > 0; stride >>= 1){
+	for (usize stride = MAX_LOCAL_SIZE; stride > 0; stride >>= 1){
 		barrier(CLK_LOCAL_MEM_FENCE);
-		const unsigned int idx = 2 * lid - (lid & (stride - 1));
+		const usize idx = 2 * lid - (lid & (stride - 1));
 		sort__local(&local_vals[idx],
 		            &local_vals[idx + stride],
 		            &local_keys[idx],
@@ -151,18 +151,18 @@ bitonic_start(__global T* restrict vals,
  */
 __kernel void
 bitonic_local(__global T* restrict vals,
-              __global unsigned int* restrict keys,
-              const unsigned int N,
-              const unsigned int bsize,
-              unsigned int stride)
+              __global usize* restrict keys,
+              const usize N,
+              const usize bsize,
+              usize stride)
 {
 	__local T local_vals[MAX_LOCAL_SIZE * 2];
-	__local unsigned int local_keys[MAX_LOCAL_SIZE * 2];
-	const unsigned int gid = get_global_id(0);
-	const unsigned int lid = get_local_id(0);
+	__local usize local_keys[MAX_LOCAL_SIZE * 2];
+	const usize gid = get_global_id(0);
+	const usize lid = get_local_id(0);
 
-	const unsigned int index = get_group_id(0) * (MAX_LOCAL_SIZE * 2) + lid;
-	const unsigned int clamped_gid = gid & (N / 2 - 1);
+	const usize index = get_group_id(0) * (MAX_LOCAL_SIZE * 2) + lid;
+	const usize clamped_gid = gid & (N / 2 - 1);
 
 	local_vals[lid] = vals[index];
 	local_vals[lid + MAX_LOCAL_SIZE] = vals[index + MAX_LOCAL_SIZE];
@@ -174,7 +174,7 @@ bitonic_local(__global T* restrict vals,
 #pragma unroll
 	for (; stride > 0; stride >>= 1) {
 		barrier(CLK_LOCAL_MEM_FENCE);
-		const unsigned int idx = 2 * lid - (lid & (stride - 1));
+		const usize idx = 2 * lid - (lid & (stride - 1));
 		sort__local(&local_vals[idx],
 		            &local_vals[idx + stride],
 		            &local_keys[idx],
@@ -201,16 +201,16 @@ bitonic_local(__global T* restrict vals,
  */
 __kernel void
 bitonic_global(__global T* restrict vals,
-               __global unsigned int* restrict keys,
-               const unsigned int N,
-               const unsigned int bsize,
-               const unsigned int stride)
+               __global usize* restrict keys,
+               const usize N,
+               const usize bsize,
+               const usize stride)
 {
-	const unsigned int gid = get_global_id(0);
-	const unsigned int clamped_gid = gid & (N / 2 - 1);
+	const usize gid = get_global_id(0);
+	const usize clamped_gid = gid & (N / 2 - 1);
 
 	//calculate index and dir like above
-	const unsigned int index = 2 * clamped_gid - (clamped_gid & (stride - 1));
+	const usize index = 2 * clamped_gid - (clamped_gid & (stride - 1));
 	const char dir = (clamped_gid & (bsize / 2)) == 0;
 
 	sort__global(&vals[index],
@@ -229,11 +229,11 @@ bitonic_global(__global T* restrict vals,
  * @param n Unpadded number of values.
  */
 __kernel void
-inverse_keys(const __global unsigned int* restrict keys,
-             __global unsigned int* inv_keys,
-             unsigned int n)
+inverse_keys(const __global usize* restrict keys,
+             __global usize* inv_keys,
+             usize n)
 {
-	unsigned int i = get_global_id(0);
+	usize i = get_global_id(0);
 	if (i >= n)
 		return;
 
