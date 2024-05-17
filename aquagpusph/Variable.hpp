@@ -1148,11 +1148,17 @@ class Variables
 	 *  - "uint32" = "unsigned int"
 	 *  - "uint64" = "unsigned long"
 	 *  - "size_t" = Either "unsigned int" or "unsigned long"
+	 *  - "ssize_t" = Either "int" or "long"
 	 *  - "svec" = Either "uivec" or "ulvec"
 	 *  - "svec2" = Either "uivec2" or "ulvec2"
 	 *  - "svec3" = Either "uivec3" or "ulvec3"
 	 *  - "svec4" = Either "uivec4" or "ulvec4"
 	 *  - "svec8" = Either "uivec8" or "ulvec8"
+	 *  - "ssvec" = Either "ivec" or "lvec"
+	 *  - "ssvec2" = Either "ivec2" or "lvec2"
+	 *  - "ssvec3" = Either "ivec3" or "lvec3"
+	 *  - "ssvec4" = Either "ivec4" or "lvec4"
+	 *  - "ssvec8" = Either "ivec8" or "lvec8"
 	 * @param t Input aliased type
 	 * @return Base type
 	 * @see Aqua::CalcServer::CalcServer::device_addr_bits()

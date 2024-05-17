@@ -205,22 +205,22 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 	valstr << num_icell;
 	_vars.registerVariable("n_radix", "size_t", "", valstr.str());
 	// Number of cells in x, y, z directions, and the total (n_x * n_y * n_z)
-	_vars.registerVariable("n_cells", "uivec4", "", "1, 1, 1, 1");
+	_vars.registerVariable("n_cells", "svec4", "", "1, 1, 1, 1");
 	// Kernel support
 	_vars.registerVariable("support", "float", "", "2");
 
 	// Register default arrays
 	valstr.str("");
 	valstr << N;
-	_vars.registerVariable("id", "unsigned int*", valstr.str(), "");
+	_vars.registerVariable("id", "size_t*", valstr.str(), "");
 	_vars.registerVariable("r", "vec*", valstr.str(), "");
 	_vars.registerVariable("iset", "unsigned int*", valstr.str(), "");
 	valstr.str("");
 	valstr << num_icell;
-	_vars.registerVariable("id_sorted", "unsigned int*", valstr.str(), "");
-	_vars.registerVariable("id_unsorted", "unsigned int*", valstr.str(), "");
-	_vars.registerVariable("icell", "unsigned int*", valstr.str(), "");
-	_vars.registerVariable("ihoc", "unsigned int*", "n_cells_w", "");
+	_vars.registerVariable("id_sorted", "size_t*", valstr.str(), "");
+	_vars.registerVariable("id_unsorted", "size_t*", valstr.str(), "");
+	_vars.registerVariable("icell", "size_t*", valstr.str(), "");
+	_vars.registerVariable("ihoc", "size_t*", "n_cells_w", "");
 
 	// Register the user variables and arrays
 	for (i = 0; i < _sim_data.variables.names.size(); i++) {

@@ -1562,12 +1562,21 @@ Variables::typeAlias(const std::string& t)
 		if (C->device_addr_bits() == 64)
 			return "unsigned long";
 		return "unsigned int";
-	}
-	else if (startswith(t, "svec")) {
+	} else if (t == "ssize_t") {
+		auto C = CalcServer::CalcServer::singleton();
+		if (C->device_addr_bits() == 64)
+			return "long";
+		return "int";
+	} else if (startswith(t, "svec")) {
 		auto C = CalcServer::CalcServer::singleton();
 		if (C->device_addr_bits() == 64)
 			return replaceAllCopy(t, "svec", "ulvec");
 		return replaceAllCopy(t, "svec", "uivec");
+	} else if (startswith(t, "ssvec")) {
+		auto C = CalcServer::CalcServer::singleton();
+		if (C->device_addr_bits() == 64)
+			return replaceAllCopy(t, "ssvec", "lvec");
+		return replaceAllCopy(t, "ssvec", "ivec");
 	}
 	return t;
 }
