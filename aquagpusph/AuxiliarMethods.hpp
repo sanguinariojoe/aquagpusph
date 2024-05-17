@@ -281,8 +281,17 @@ isPowerOf2(unsigned int x);
  * @param divisor Divisor.
  * @return Rounded up number.
  */
-unsigned int
-roundUp(unsigned int x, unsigned int divisor);
+template<typename T=unsigned int>
+T
+roundUp(T x, T divisor)
+{
+	T rest = n % divisor;
+	if (rest) {
+		n -= rest;
+		n += divisor;
+	}
+	return n;
+}
 
 /** @brief Round an float value to an integer one.
  * @param n Number to round.

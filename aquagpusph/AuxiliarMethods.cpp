@@ -291,17 +291,6 @@ isPowerOf2(unsigned int n)
 	return ((n & (n - 1)) == 0);
 }
 
-unsigned int
-roundUp(unsigned int n, unsigned int divisor)
-{
-	unsigned int rest = n % divisor;
-	if (rest) {
-		n -= rest;
-		n += divisor;
-	}
-	return n;
-}
-
 static std::string folder;
 
 const std::string

@@ -1320,6 +1320,7 @@ Variables::solve(const std::string type_name,
 	std::string type = trimCopy(type_name);
 	if (type.back() == '*')
 		type.pop_back();
+	type = typeAlias(type);
 
 	if (!type.compare("int")) {
 		icl val = solve<icl>(name, value);
