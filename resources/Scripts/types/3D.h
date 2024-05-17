@@ -21,8 +21,13 @@
  */
 
 #define vec float4
+#define dvec double4
 #define ivec int4
+#define lvec long4
 #define uivec uint4
+#define ulvec ulong4
+#define svec usize4
+#define ssvec ssize4
 #define matrix float16
 
 /** @brief Null #vec, i.e. filled with zero components.

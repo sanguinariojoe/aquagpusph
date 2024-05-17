@@ -56,7 +56,7 @@ namespace CalcServer {
 class UnSort;
 typedef InputOutput::ProblemSetup::sphSettings::debug_opts debug_opts;
 
-/** @class CalcServer CalcServer.h CalcServer.h
+/** @class user_interruption CalcServer.h CalcServer.h
  * @brief Exception raised when the user manually interrupts the simulation.
  *
  * The target of this exception is handling the users interrumptions without
@@ -267,6 +267,11 @@ class CalcServer
 	 */
 	inline cl_device_id device() const { return _device; }
 
+	/** @brief Get the device address bits
+	 * @return The device address bits (either 32 or 64)
+	 */
+	inline cl_uint device_addr_bits() const { return _device_bits; }
+
 	enum cmd_queue
 	{
 		cmd_queue_current,
@@ -405,6 +410,8 @@ class CalcServer
 	cl_platform_id _platform;
 	/// Selected device
 	cl_device_id _device;
+	/// Supported device bits (CL_DEVICE_ADDRESS_BITS)
+	cl_uint _device_bits;
 	/// Current main command queue
 	unsigned int _command_queue_current;
 	/// Main command queues

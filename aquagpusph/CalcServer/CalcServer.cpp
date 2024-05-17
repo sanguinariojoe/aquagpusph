@@ -192,18 +192,18 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 	valstr << std::numeric_limits<float>::max();
 	_vars.registerVariable("end_t", "float", "", valstr.str());
 	valstr.str("");
-	valstr << std::numeric_limits<uint64_t>::max();
+	valstr << std::numeric_limits<int32_t>::max();
 	_vars.registerVariable("end_iter", "unsigned int", "", valstr.str());
 	_vars.registerVariable("end_frame", "unsigned int", "", valstr.str());
 	valstr.str("");
 	valstr << N;
-	_vars.registerVariable("N", "unsigned int", "", valstr.str());
+	_vars.registerVariable("N", "size_t", "", valstr.str());
 	valstr.str("");
 	valstr << _sim_data.sets.size();
 	_vars.registerVariable("n_sets", "unsigned int", "", valstr.str());
 	valstr.str("");
 	valstr << num_icell;
-	_vars.registerVariable("n_radix", "unsigned int", "", valstr.str());
+	_vars.registerVariable("n_radix", "size_t", "", valstr.str());
 	// Number of cells in x, y, z directions, and the total (n_x * n_y * n_z)
 	_vars.registerVariable("n_cells", "uivec4", "", "1, 1, 1, 1");
 	// Kernel support
@@ -250,6 +250,16 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 			}
 		}
 		_definitions.push_back(valstr.str());
+	}
+	// Let the kernels know if 64 bits are supported, and provide some useful
+	// types
+	if (_device_bits == 64) {
+		_definitions.push_back(std::string("-DX64"));
+		_definitions.push_back(std::string("-Dusize=ulong"));
+		_definitions.push_back(std::string("-Dssize=long"));
+	} else {
+		_definitions.push_back(std::string("-Dusize=uint"));
+		_definitions.push_back(std::string("-Dssize=int"));
 	}
 
 	// Register the tools
@@ -1046,6 +1056,17 @@ CalcServer::queryOpenCL()
 			info << "\t\tOPENCL: " << version_major << "." << version_minor
 			     << std::endl;
 			LOG0(L_DEBUG, info.str());
+			cl_uint bits;
+			err_code = clGetDeviceInfo(devices[j],
+			                           CL_DEVICE_ADDRESS_BITS,
+			                           sizeof(cl_uint),
+			                           &bits,
+			                           NULL);
+			CHECK_OCL_OR_THROW(
+			    err_code,
+			    std::string("Failure getting the address bits (platform ") +
+			        std::to_string(i) + ", device " + std::to_string(j) + ").");
+			LOG0(L_DEBUG, "\t\tBITS: " + std::to_string(bits) + "\n");
 		}
 		delete[] devices;
 		devices = NULL;
@@ -1225,6 +1246,12 @@ CalcServer::setupDevices()
 		LOG0(L_DEBUG, msg.str());
 		throw std::runtime_error("Insufficient OpenCL support");
 	}
+	err_code = clGetDeviceInfo(_device,
+	                           CL_DEVICE_ADDRESS_BITS,
+	                           sizeof(cl_uint),
+	                           &_device_bits,
+	                           NULL);
+	CHECK_OCL_OR_THROW(err_code, "Failure querying CL_DEVICE_ADDRESS_BITS\n");
 
 	// Create the command queues
 	auto queue = create_command_queue(_context, _device, &err_code);

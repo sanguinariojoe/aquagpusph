@@ -119,7 +119,6 @@ class Tokenizer
 		try {
 			result = cast<T>((int64_t)std::stoll(eq, &sz));
 			if (sz == eq.size()) {
-				// There is not remaining content, so we nailed it
 				return result;
 			}
 		} catch (...) {
@@ -128,7 +127,6 @@ class Tokenizer
 			std::string::size_type sz;
 			result = cast<T>(std::stod(eq, &sz));
 			if (sz == eq.size()) {
-				// There is not remaining content, so we nailed it
 				return result;
 			}
 		} catch (...) {

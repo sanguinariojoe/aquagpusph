@@ -848,6 +848,57 @@ __DECLARE_AQUA_VEC(DVec4Variable, dvec4)
  */
 __DECLARE_AQUA_VEC(DVec8Variable, dvec8)
 
+/** @name Variable aliases
+ * @brief Some alias to make easier to create preprocessor directives
+ */
+/// @{
+typedef IntVariable iclVariable;
+typedef LongVariable lclVariable;
+typedef UIntVariable uiclVariable;
+typedef ULongVariable ulclVariable;
+typedef FloatVariable fclVariable;
+typedef DoubleVariable dclVariable;
+typedef IVec2Variable ivec2Variable;
+typedef IVec3Variable ivec3Variable;
+typedef IVec4Variable ivec4Variable;
+typedef IVec8Variable ivec8Variable;
+typedef LVec2Variable lvec2Variable;
+typedef LVec3Variable lvec3Variable;
+typedef LVec4Variable lvec4Variable;
+typedef LVec8Variable lvec8Variable;
+typedef UIVec2Variable uivec2Variable;
+typedef UIVec3Variable uivec3Variable;
+typedef UIVec4Variable uivec4Variable;
+typedef UIVec8Variable uivec8Variable;
+typedef ULVec2Variable ulvec2Variable;
+typedef ULVec3Variable ulvec3Variable;
+typedef ULVec4Variable ulvec4Variable;
+typedef ULVec8Variable ulvec8Variable;
+typedef Vec2Variable vec2Variable;
+typedef Vec3Variable vec3Variable;
+typedef Vec4Variable vec4Variable;
+typedef Vec8Variable vec8Variable;
+typedef DVec2Variable dvec2Variable;
+typedef DVec3Variable dvec3Variable;
+typedef DVec4Variable dvec4Variable;
+typedef DVec8Variable dvec8Variable;
+#ifdef HAVE_3D
+typedef IVec4Variable ivecVariable;
+typedef LVec4Variable lvecVariable;
+typedef UIVec4Variable uivecVariable;
+typedef ULVec4Variable ulvecVariable;
+typedef Vec4Variable vecVariable;
+typedef DVec4Variable dvecVariable;
+#else
+typedef IVec2Variable ivecVariable;
+typedef LVec2Variable lvecVariable;
+typedef UIVec2Variable uivecVariable;
+typedef ULVec2Variable ulvecVariable;
+typedef Vec2Variable vecVariable;
+typedef DVec2Variable dvecVariable;
+#endif
+/// @}
+
 /** @class ArrayVariable Variable.h Variable.h
  * @brief An array variable.
  */
@@ -1087,6 +1138,27 @@ class Variables
 	void populate(Variable* var);
 
   private:
+	/** @brief Resolve some type aliases
+	 *
+	 * Several types have aliases to make them easier to use, which might
+	 * depend on the device arch:
+	 *
+	 *  - "int32" = "int"
+	 *  - "int64" = "long"
+	 *  - "uint32" = "unsigned int"
+	 *  - "uint64" = "unsigned long"
+	 *  - "size_t" = Either "unsigned int" or "unsigned long"
+	 *  - "svec" = Either "uivec" or "ulvec"
+	 *  - "svec2" = Either "uivec2" or "ulvec2"
+	 *  - "svec3" = Either "uivec3" or "ulvec3"
+	 *  - "svec4" = Either "uivec4" or "ulvec4"
+	 *  - "svec8" = Either "uivec8" or "ulvec8"
+	 * @param t Input aliased type
+	 * @return Base type
+	 * @see Aqua::CalcServer::CalcServer::device_addr_bits()
+	 */
+	std::string typeAlias(const std::string& t);
+
 	/** Register a scalar variable
 	 * @param name Name of the variable.
 	 * @param type Type of the variable.

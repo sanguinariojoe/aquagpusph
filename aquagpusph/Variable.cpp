@@ -551,7 +551,7 @@ ScalarVecVariable<T>::asString(bool synced)
 
 #define __DEFINE_AQUA_VEC(NAME, TYPE, DIMS, NPTYPE)                            \
 	NAME::NAME(const std::string varname)                                      \
-		: ScalarVecVariable(varname, "#TYPE", 2, NPTYPE)                       \
+		: ScalarVecVariable(varname, #TYPE, 2, NPTYPE)                         \
 	{                                                                          \
 		for (unsigned int i = 0; i < DIMS; i++)                                \
 			_value.s[i] = 0;                                                   \
@@ -1546,16 +1546,59 @@ Variables::populate(Variable* var)
 	}
 }
 
+std::string
+Variables::typeAlias(const std::string& t)
+{
+	if (t == "int32")
+		return "int";
+	else if (t == "int64")
+		return "long";
+	else if (t == "uint32")
+		return "unsigned int";
+	else if (t == "uint64")
+		return "unsigned long";
+	else if (t == "size_t") {
+		auto C = CalcServer::CalcServer::singleton();
+		if (C->device_addr_bits() == 64)
+			return "unsigned long";
+		return "unsigned int";
+	}
+	else if (startswith(t, "svec")) {
+		auto C = CalcServer::CalcServer::singleton();
+		if (C->device_addr_bits() == 64)
+			return replaceAllCopy(t, "svec", "ulvec");
+		return replaceAllCopy(t, "svec", "uivec");
+	}
+	return t;
+}
+
+#define REG_VEC_BLOCK(TYPE)                                                    \
+	else if (!type.compare(#TYPE)) {                                           \
+		TYPE ## Variable* var = new TYPE ## Variable(name);                    \
+		if (value.compare("")) {                                               \
+			TYPE val = solve<TYPE>(name, value);                               \
+			var->set(&val);                                                    \
+		}                                                                      \
+		_vars.push_back(var);                                                  \
+	}
+
 void
 Variables::registerScalar(const std::string name,
                           const std::string type_name,
                           const std::string value)
 {
-	std::string type = trimCopy(type_name);
+	std::string type = typeAlias(trimCopy(type_name));
 	if (!type.compare("int")) {
 		IntVariable* var = new IntVariable(name);
 		if (value.compare("")) {
 			icl val = solve<icl>(name, value);
+			var->set(&val);
+		}
+		_vars.push_back(var);
+	} else if (!type.compare("long")) {
+		LongVariable* var = new LongVariable(name);
+		if (value.compare("")) {
+			lcl val = solve<lcl>(name, value);
 			var->set(&val);
 		}
 		_vars.push_back(var);
@@ -1566,6 +1609,13 @@ Variables::registerScalar(const std::string name,
 			var->set(&val);
 		}
 		_vars.push_back(var);
+	} else if (!type.compare("unsigned long")) {
+		ULongVariable* var = new ULongVariable(name);
+		if (value.compare("")) {
+			ulcl val = solve<ulcl>(name, value);
+			var->set(&val);
+		}
+		_vars.push_back(var);
 	} else if (!type.compare("float")) {
 		FloatVariable* var = new FloatVariable(name);
 		if (value.compare("")) {
@@ -1573,112 +1623,45 @@ Variables::registerScalar(const std::string name,
 			var->set(&val);
 		}
 		_vars.push_back(var);
-	} else if (!type.compare("vec")) {
-		VecVariable* var = new VecVariable(name);
+	} else if (!type.compare("double")) {
+		DoubleVariable* var = new DoubleVariable(name);
 		if (value.compare("")) {
-			vec val = solve<vec>(name, value);
+			dcl val = solve<dcl>(name, value);
 			var->set(&val);
 		}
 		_vars.push_back(var);
-	} else if (!type.compare("vec2")) {
-		Vec2Variable* var = new Vec2Variable(name);
-		if (value.compare("")) {
-			vec2 val = solve<vec2>(name, value);
-			var->set(&val);
-		}
-		_vars.push_back(var);
-	} else if (!type.compare("vec3")) {
-		Vec3Variable* var = new Vec3Variable(name);
-		if (value.compare("")) {
-			vec3 val = solve<vec3>(name, value);
-			var->set(&val);
-		}
-		_vars.push_back(var);
-	} else if (!type.compare("vec4")) {
-		Vec4Variable* var = new Vec4Variable(name);
-		if (value.compare("")) {
-			vec4 val = solve<vec4>(name, value);
-			var->set(&val);
-		}
-		_vars.push_back(var);
-	} else if (!type.compare("vec8")) {
-		Vec8Variable* var = new Vec8Variable(name);
-		if (value.compare("")) {
-			vec8 val = solve<vec8>(name, value);
-			var->set(&val);
-		}
-		_vars.push_back(var);
-	} else if (!type.compare("ivec")) {
-		IVecVariable* var = new IVecVariable(name);
-		if (value.compare("")) {
-			ivec val = solve<ivec>(name, value);
-			var->set(&val);
-		}
-		_vars.push_back(var);
-	} else if (!type.compare("ivec2")) {
-		IVec2Variable* var = new IVec2Variable(name);
-		if (value.compare("")) {
-			ivec2 val = solve<ivec2>(name, value);
-			var->set(&val);
-		}
-		_vars.push_back(var);
-	} else if (!type.compare("ivec3")) {
-		IVec3Variable* var = new IVec3Variable(name);
-		if (value.compare("")) {
-			ivec3 val = solve<ivec3>(name, value);
-			var->set(&val);
-		}
-		_vars.push_back(var);
-	} else if (!type.compare("ivec4")) {
-		IVec4Variable* var = new IVec4Variable(name);
-		if (value.compare("")) {
-			ivec4 val = solve<ivec4>(name, value);
-			var->set(&val);
-		}
-		_vars.push_back(var);
-	} else if (!type.compare("ivec8")) {
-		IVec8Variable* var = new IVec8Variable(name);
-		if (value.compare("")) {
-			ivec8 val = solve<ivec8>(name, value);
-			var->set(&val);
-		}
-		_vars.push_back(var);
-	} else if (!type.compare("uivec")) {
-		UIVecVariable* var = new UIVecVariable(name);
-		if (value.compare("")) {
-			uivec val = solve<uivec>(name, value);
-			var->set(&val);
-		}
-		_vars.push_back(var);
-	} else if (!type.compare("uivec2")) {
-		UIVec2Variable* var = new UIVec2Variable(name);
-		if (value.compare("")) {
-			uivec2 val = solve<uivec2>(name, value);
-			var->set(&val);
-		}
-		_vars.push_back(var);
-	} else if (!type.compare("uivec3")) {
-		UIVec3Variable* var = new UIVec3Variable(name);
-		if (value.compare("")) {
-			uivec3 val = solve<uivec3>(name, value);
-			var->set(&val);
-		}
-		_vars.push_back(var);
-	} else if (!type.compare("uivec4")) {
-		UIVec4Variable* var = new UIVec4Variable(name);
-		if (value.compare("")) {
-			uivec4 val = solve<uivec4>(name, value);
-			var->set(&val);
-		}
-		_vars.push_back(var);
-	} else if (!type.compare("uivec8")) {
-		UIVec8Variable* var = new UIVec8Variable(name);
-		if (value.compare("")) {
-			uivec8 val = solve<uivec8>(name, value);
-			var->set(&val);
-		}
-		_vars.push_back(var);
-	} else {
+	}
+	REG_VEC_BLOCK(vec)
+	REG_VEC_BLOCK(vec2)
+	REG_VEC_BLOCK(vec3)
+	REG_VEC_BLOCK(vec4)
+	REG_VEC_BLOCK(vec8)
+	REG_VEC_BLOCK(dvec)
+	REG_VEC_BLOCK(dvec2)
+	REG_VEC_BLOCK(dvec3)
+	REG_VEC_BLOCK(dvec4)
+	REG_VEC_BLOCK(dvec8)
+	REG_VEC_BLOCK(ivec)
+	REG_VEC_BLOCK(ivec2)
+	REG_VEC_BLOCK(ivec3)
+	REG_VEC_BLOCK(ivec4)
+	REG_VEC_BLOCK(ivec8)
+	REG_VEC_BLOCK(lvec)
+	REG_VEC_BLOCK(lvec2)
+	REG_VEC_BLOCK(lvec3)
+	REG_VEC_BLOCK(lvec4)
+	REG_VEC_BLOCK(lvec8)
+	REG_VEC_BLOCK(uivec)
+	REG_VEC_BLOCK(uivec2)
+	REG_VEC_BLOCK(uivec3)
+	REG_VEC_BLOCK(uivec4)
+	REG_VEC_BLOCK(uivec8)
+	REG_VEC_BLOCK(ulvec)
+	REG_VEC_BLOCK(ulvec2)
+	REG_VEC_BLOCK(ulvec3)
+	REG_VEC_BLOCK(ulvec4)
+	REG_VEC_BLOCK(ulvec8)
+	else {
 		std::ostringstream msg;
 		msg << "\"" << name << "\" declared as \"" << type
 		    << "\", which is not a valid scalar type" << std::endl;
@@ -1688,6 +1671,10 @@ Variables::registerScalar(const std::string name,
 		LOG0(L_DEBUG, "\tlong\n");
 		LOG0(L_DEBUG, "\tunsigned int\n");
 		LOG0(L_DEBUG, "\tunsigned long\n");
+		for (auto alias : {"int32", "int64", "uint32", "uint64", "size_t"}) {
+			LOG0(L_DEBUG, std::string("\t") + alias + " (same than " +
+			              typeAlias(alias) + ")\n");
+		}
 		LOG0(L_DEBUG, "\tfloat\n");
 		LOG0(L_DEBUG, "\tdouble\n");
 		for (auto prefix : {"vec", "dvec", "ivec", "lvec", "uivec", "ulvec"}) {
@@ -1710,6 +1697,7 @@ Variables::registerClMem(const std::string name,
 	// Get the type size
 	std::string type = trimCopy(type_name);
 	type.pop_back(); // Remove the asterisk
+	type = typeAlias(type);
 	const size_t typesize = typeToBytes(type);
 	if (!typesize) {
 		std::ostringstream msg;
@@ -1718,20 +1706,21 @@ Variables::registerClMem(const std::string name,
 		LOG(L_ERROR, msg.str());
 		LOG0(L_DEBUG, "Valid types are:\n");
 		LOG0(L_DEBUG, "\tint*\n");
+		LOG0(L_DEBUG, "\tlong*\n");
 		LOG0(L_DEBUG, "\tunsigned int*\n");
+		LOG0(L_DEBUG, "\tunsigned long*\n");
+		for (auto alias : {"int32", "int64", "uint32", "uint64", "size_t"}) {
+			LOG0(L_DEBUG, std::string("\t") + alias + "* (same than " +
+			              typeAlias(alias) + "*)\n");
+		}
 		LOG0(L_DEBUG, "\tfloat*\n");
-		LOG0(L_DEBUG, "\tvec*\n");
-		LOG0(L_DEBUG, "\tvec2*\n");
-		LOG0(L_DEBUG, "\tvec3*\n");
-		LOG0(L_DEBUG, "\tvec4*\n");
-		LOG0(L_DEBUG, "\tivec*\n");
-		LOG0(L_DEBUG, "\tivec2*\n");
-		LOG0(L_DEBUG, "\tivec3*\n");
-		LOG0(L_DEBUG, "\tivec4*\n");
-		LOG0(L_DEBUG, "\tuivec*\n");
-		LOG0(L_DEBUG, "\tuivec2*\n");
-		LOG0(L_DEBUG, "\tuivec3*\n");
-		LOG0(L_DEBUG, "\tuivec4*\n");
+		LOG0(L_DEBUG, "\tdouble*\n");
+		for (auto prefix : {"vec", "dvec", "ivec", "lvec", "uivec", "ulvec"}) {
+			for (auto n : {2, 3, 4, 8}) {
+				LOG0(L_DEBUG, std::string("\t") + prefix + "*" +
+				              std::to_string(n) + "\n");
+			}
+		}
 		LOG0(L_DEBUG, "\tmatrix*\n");
 		throw std::runtime_error("Invalid array variable type");
 	}
