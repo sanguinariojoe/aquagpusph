@@ -30,8 +30,11 @@
 #include <vtkXMLUnstructuredGridReader.h>
 #include <vtkUnstructuredGrid.h>
 #include <vtkFloatArray.h>
-#include <vtkIntArray.h>
-#include <vtkUnsignedIntArray.h>
+#include <vtkDoubleArray.h>
+#include <vtkTypeInt32Array.h>
+#include <vtkTypeInt64Array.h>
+#include <vtkTypeUInt32Array.h>
+#include <vtkTypeUInt64Array.h>
 #include <vtkPointData.h>
 #include <vtkPoints.h>
 #include <vtkVertex.h>
@@ -100,8 +103,8 @@ class VTK : public Particles
 	 */
 	VTK(ProblemSetup& sim_data,
 	    unsigned int iset,
-	    unsigned int offset,
-	    unsigned int n = 0);
+	    size_t offset,
+	    size_t n = 0);
 
 	/// Destructor
 	~VTK();
@@ -139,7 +142,7 @@ class VTK : public Particles
 	/** @brief Compute the number of particles handled by this instance
 	 * @return Number of particles
 	 */
-	const unsigned int compute_n();
+	const size_t compute_n();
 
 	/** @brief Create a new file to write.
 	 * @return The file handler, NULL if errors happened.

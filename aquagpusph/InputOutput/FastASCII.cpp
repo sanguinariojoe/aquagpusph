@@ -28,18 +28,15 @@
 #include "aquagpusph/CalcServer/CalcServer.hpp"
 #include "aquagpusph/AuxiliarMethods.hpp"
 
-#ifndef MAX_LINE_LEN
-#define MAX_LINE_LEN 1024
-#endif // MAX_LINE_LEN
-
 namespace Aqua {
 namespace InputOutput {
 
 FastASCII::FastASCII(ProblemSetup& sim_data,
                      unsigned int iset,
-                     unsigned int first,
-                     unsigned int n)
-  : ASCII(sim_data, iset, first, n)
+                     size_t first,
+                     size_t n,
+                     const std::string file_ext)
+  : ASCII(sim_data, iset, first, n, file_ext)
 {
 }
 
@@ -48,7 +45,7 @@ FastASCII::~FastASCII() {}
 std::string
 FastASCII::readField(const std::string field,
                      const std::string line,
-                     unsigned int index,
+                     size_t index,
                      void* data)
 {
 	unsigned int i;
@@ -71,17 +68,30 @@ FastASCII::readField(const std::string field,
 		std::string::size_type end_pos;
 		try {
 			if (!type.compare("unsigned int") ||
-			    (type.find("uivec") != std::string::npos)) {
-				unsigned int val =
-				    (unsigned int)std::stoul(remaining, &end_pos);
-				memcpy(ptr, &val, sizeof(unsigned int));
+			    startswith(type, "uivec")) {
+				uicl val =
+				    (uicl)std::stoul(remaining, &end_pos);
+				memcpy(ptr, &val, sizeof(uicl));
+			} else if (!type.compare("unsigned long") ||
+			           startswith(type, "ulvec")) {
+				ulcl val =
+				    (ulcl)std::stoull(remaining, &end_pos);
+				memcpy(ptr, &val, sizeof(ulcl));
 			} else if (!type.compare("int") ||
-			           (type.find("ivec") != std::string::npos)) {
-				int val = std::stoi(remaining, &end_pos);
-				memcpy(ptr, &val, sizeof(int));
+			           startswith(type, "ivec")) {
+				icl val = (icl)std::stoi(remaining, &end_pos);
+				memcpy(ptr, &val, sizeof(icl));
+			} else if (!type.compare("long") ||
+			           startswith(type, "lvec")) {
+				lcl val = (lcl)std::stoi(remaining, &end_pos);
+				memcpy(ptr, &val, sizeof(lcl));
+			} else if (!type.compare("float") ||
+			           startswith(type, "vec")) {
+				fcl val = (fcl)std::stof(remaining, &end_pos);
+				memcpy(ptr, &val, sizeof(fcl));
 			} else {
-				float val = std::stof(remaining, &end_pos);
-				memcpy(ptr, &val, sizeof(int));
+				dcl val = std::stod(remaining, &end_pos);
+				memcpy(ptr, &val, sizeof(dcl));
 			}
 		} catch (const std::invalid_argument& e) {
 			std::ostringstream msg;

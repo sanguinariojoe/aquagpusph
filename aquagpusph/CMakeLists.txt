@@ -48,6 +48,7 @@ SET(CPP_SRCS
     InputOutput/Particles.cpp
     InputOutput/ASCII.cpp
     InputOutput/FastASCII.cpp
+    InputOutput/CSV.cpp
     InputOutput/VTK.cpp
     Tokenizer/Tokenizer.cpp
     CalcServer/Assert.cpp

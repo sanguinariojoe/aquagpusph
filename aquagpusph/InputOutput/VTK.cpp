@@ -100,8 +100,8 @@ namespace InputOutput {
 
 VTK::VTK(ProblemSetup& sim_data,
          unsigned int iset,
-         unsigned int first,
-         unsigned int n_in)
+         size_t first,
+         size_t n_in)
   : Particles(sim_data, iset, first, n_in)
   , _next_file_index(0)
   , _vtk(NULL)
@@ -121,7 +121,7 @@ VTK::~VTK()
 void
 VTK::load()
 {
-	unsigned int i, j, k, n, N, progress;
+	unsigned int n, N, progress;
 	int aux;
 	cl_int err_code;
 	CalcServer::CalcServer* C = CalcServer::CalcServer::singleton();
@@ -148,7 +148,7 @@ VTK::load()
 
 	// Assert that the number of particles is right
 	n = bounds().y - bounds().x;
-	N = (unsigned int)grid->GetNumberOfPoints();
+	N = (size_t)grid->GetNumberOfPoints();
 	if (n != N) {
 		std::ostringstream msg;
 		msg << "Expected " << n << " particles, but the file contains just "
@@ -217,8 +217,8 @@ VTK::load()
 	progress = -1;
 	vtkSmartPointer<vtkPoints> vtk_points = grid->GetPoints();
 	vtkSmartPointer<vtkPointData> vtk_data = grid->GetPointData();
-	for (i = 0; i < n; i++) {
-		for (j = 0; j < fields.size(); j++) {
+	for (size_t i = 0; i < n; i++) {
+		for (unsigned int j = 0; j < fields.size(); j++) {
 			if (!fields.at(j).compare("r")) {
 				double* vect = vtk_points->GetPoint(i);
 				vec* ptr = (vec*)data.at(j);
@@ -233,27 +233,53 @@ VTK::load()
 			ArrayVariable* var = (ArrayVariable*)vars->get(fields.at(j));
 			size_t type_size = vars->typeToBytes(var->type());
 			unsigned int n_components = vars->typeToN(var->type());
-			if (var->type().find("unsigned int") != std::string::npos ||
-			    var->type().find("uivec") != std::string::npos) {
-				vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
-				    (vtkUnsignedIntArray*)(vtk_data->GetArray(
+			if (startswith(var->type(), "unsigned int") ||
+			    startswith(var->type(), "uivec")) {
+				vtkSmartPointer<vtkTypeUInt32Array> vtk_array =
+				    (vtkTypeUInt32Array*)(vtk_data->GetArray(
 				        fields.at(j).c_str(), aux));
-				for (k = 0; k < n_components; k++) {
-					unsigned int component = vtk_array->GetComponent(i, k);
-					size_t offset = type_size * i + sizeof(unsigned int) * k;
+				for (unsigned int k = 0; k < n_components; k++) {
+					uicl component = vtk_array->GetComponent(i, k);
+					size_t offset = type_size * i + sizeof(uicl) * k;
 					memcpy((char*)data.at(j) + offset,
 					       &component,
-					       sizeof(unsigned int));
+					       sizeof(uicl));
 				}
-			} else if (var->type().find("int") != std::string::npos ||
-			           var->type().find("ivec") != std::string::npos) {
-				vtkSmartPointer<vtkIntArray> vtk_array =
-				    (vtkIntArray*)(vtk_data->GetArray(fields.at(j).c_str(),
-				                                      aux));
-				for (k = 0; k < n_components; k++) {
-					int component = vtk_array->GetComponent(i, k);
-					size_t offset = type_size * i + sizeof(int) * k;
-					memcpy((char*)data.at(j) + offset, &component, sizeof(int));
+			} else if (startswith(var->type(), "unsigned long") ||
+			           startswith(var->type(), "ulvec")) {
+				vtkSmartPointer<vtkTypeUInt64Array> vtk_array =
+				    (vtkTypeUInt64Array*)(vtk_data->GetArray(
+				        fields.at(j).c_str(), aux));
+				for (unsigned int k = 0; k < n_components; k++) {
+					ulcl component = vtk_array->GetComponent(i, k);
+					size_t offset = type_size * i + sizeof(ulcl) * k;
+					memcpy((char*)data.at(j) + offset,
+					       &component,
+					       sizeof(ulcl));
+				}
+			} else if (startswith(var->type(), "int") ||
+			    startswith(var->type(), "ivec")) {
+				vtkSmartPointer<vtkTypeInt32Array> vtk_array =
+				    (vtkTypeInt32Array*)(vtk_data->GetArray(
+				        fields.at(j).c_str(), aux));
+				for (unsigned int k = 0; k < n_components; k++) {
+					icl component = vtk_array->GetComponent(i, k);
+					size_t offset = type_size * i + sizeof(icl) * k;
+					memcpy((char*)data.at(j) + offset,
+					       &component,
+					       sizeof(icl));
+				}
+			} else if (startswith(var->type(), "long") ||
+			           startswith(var->type(), "lvec")) {
+				vtkSmartPointer<vtkTypeInt64Array> vtk_array =
+				    (vtkTypeInt64Array*)(vtk_data->GetArray(
+				        fields.at(j).c_str(), aux));
+				for (unsigned int k = 0; k < n_components; k++) {
+					lcl component = vtk_array->GetComponent(i, k);
+					size_t offset = type_size * i + sizeof(lcl) * k;
+					memcpy((char*)data.at(j) + offset,
+					       &component,
+					       sizeof(lcl));
 				}
 			} else if (var->type().find("float") != std::string::npos ||
 			           var->type().find("vec") != std::string::npos ||
@@ -261,11 +287,24 @@ VTK::load()
 				vtkSmartPointer<vtkFloatArray> vtk_array =
 				    (vtkFloatArray*)(vtk_data->GetArray(fields.at(j).c_str(),
 				                                        aux));
-				for (k = 0; k < n_components; k++) {
-					float component = vtk_array->GetComponent(i, k);
-					size_t offset = type_size * i + sizeof(float) * k;
-					memcpy(
-					    (char*)data.at(j) + offset, &component, sizeof(float));
+				for (unsigned int k = 0; k < n_components; k++) {
+					fcl component = vtk_array->GetComponent(i, k);
+					size_t offset = type_size * i + sizeof(fcl) * k;
+					memcpy((char*)data.at(j) + offset,
+					       &component,
+					       sizeof(fcl));
+				}
+			} else if (var->type().find("double") != std::string::npos ||
+			           var->type().find("dvec") != std::string::npos) {
+				vtkSmartPointer<vtkFloatArray> vtk_array =
+				    (vtkFloatArray*)(vtk_data->GetArray(fields.at(j).c_str(),
+				                                        aux));
+				for (unsigned int k = 0; k < n_components; k++) {
+					dcl component = vtk_array->GetComponent(i, k);
+					size_t offset = type_size * i + sizeof(dcl) * k;
+					memcpy((char*)data.at(j) + offset,
+					       &component,
+					       sizeof(dcl));
 				}
 			}
 		}
@@ -280,7 +319,7 @@ VTK::load()
 	}
 
 	// Send the data to the server and release it
-	for (i = 0; i < fields.size(); i++) {
+	for (unsigned int i = 0; i < fields.size(); i++) {
 		ArrayVariable* var = (ArrayVariable*)vars->get(fields.at(i));
 		size_t typesize = vars->typeToBytes(var->type());
 		cl_mem mem = *(cl_mem*)var->get();
@@ -328,6 +367,21 @@ typedef struct
 void
 VTK::print_file()
 {
+	// Do a fast check about VTK and 64 bits
+	const size_t n = bounds().y - bounds().x;
+	if (n > VTK_ID_MAX) {
+		LOG(L_ERROR,
+		    std::string("Failure writing the VTK file for set ") +
+		    std::to_string(setId()) + "\n");
+		LOG0(L_DEBUG,
+		     std::string("VTK can handle ") + std::to_string(VTK_ID_MAX) +
+		     " particles, but " + std::to_string(n) + " ones were found\n");
+		LOG0(L_DEBUG, "Some possible solutions are:\n");
+		LOG0(L_DEBUG, " - Reducing the number of particles\n");
+		LOG0(L_DEBUG, " - Splitting the particles set on smaller ones\n");
+		LOG0(L_DEBUG, " - Recompiling VTK with -DVTK_USE_64BIT_IDS=ON\n");
+	}
+
 	// Call create ASAP so we can log that we are working on printing the file
 	auto f = create();
 
@@ -361,12 +415,11 @@ VTK::print_file()
 vtkUnstructuredGrid*
 VTK::makeVTK()
 {
-	unsigned int i, j;
 	auto C = CalcServer::CalcServer::singleton();
 	auto fields = simData().sets.at(setId())->outputFields();
 
 	// Create storage arrays
-	const unsigned int n = bounds().y - bounds().x;
+	const size_t n = bounds().y - bounds().x;
 	std::vector<vtkSmartPointer<vtkDataArray>> vtk_arrays;
 	Variables* vars = C->variables();
 	for (auto field : fields) {
@@ -377,29 +430,56 @@ VTK::makeVTK()
 		size_t len = var->size() / typesize;
 
 		unsigned int n_components = vars->typeToN(var->type());
-		if (var->type().find("unsigned int") != std::string::npos ||
-		    var->type().find("uivec") != std::string::npos) {
-			vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
-			    vtkSmartPointer<vtkUnsignedIntArray>::New();
+		if (startswith(var->type(), "unsigned int") ||
+		    startswith(var->type(), "uivec")) {
+			vtkSmartPointer<vtkTypeUInt32Array> vtk_array =
+			    vtkSmartPointer<vtkTypeUInt32Array>::New();
 			vtk_array->SetNumberOfComponents(n_components);
 			vtk_array->Allocate(n);
 			vtk_array->SetNumberOfTuples(n);
 			vtk_array->SetName(field.c_str());
 			vtk_arrays.push_back(vtk_array);
-		} else if (var->type().find("int") != std::string::npos ||
-		           var->type().find("ivec") != std::string::npos) {
-			vtkSmartPointer<vtkIntArray> vtk_array =
-			    vtkSmartPointer<vtkIntArray>::New();
+		} else if (startswith(var->type(), "unsigned long") ||
+		           startswith(var->type(), "ulvec")) {
+			vtkSmartPointer<vtkTypeUInt64Array> vtk_array =
+			    vtkSmartPointer<vtkTypeUInt64Array>::New();
 			vtk_array->SetNumberOfComponents(n_components);
 			vtk_array->Allocate(n);
 			vtk_array->SetNumberOfTuples(n);
 			vtk_array->SetName(field.c_str());
 			vtk_arrays.push_back(vtk_array);
-		} else if (var->type().find("float") != std::string::npos ||
-		           var->type().find("vec") != std::string::npos ||
-		           var->type().find("matrix") != std::string::npos) {
+		} else if (startswith(var->type(), "int") ||
+		           startswith(var->type(), "ivec")) {
+			vtkSmartPointer<vtkTypeInt32Array> vtk_array =
+			    vtkSmartPointer<vtkTypeInt32Array>::New();
+			vtk_array->SetNumberOfComponents(n_components);
+			vtk_array->Allocate(n);
+			vtk_array->SetNumberOfTuples(n);
+			vtk_array->SetName(field.c_str());
+			vtk_arrays.push_back(vtk_array);
+		} else if (startswith(var->type(), "long") ||
+		           startswith(var->type(), "lvec")) {
+			vtkSmartPointer<vtkTypeInt64Array> vtk_array =
+			    vtkSmartPointer<vtkTypeInt64Array>::New();
+			vtk_array->SetNumberOfComponents(n_components);
+			vtk_array->Allocate(n);
+			vtk_array->SetNumberOfTuples(n);
+			vtk_array->SetName(field.c_str());
+			vtk_arrays.push_back(vtk_array);
+		} else if (startswith(var->type(), "float") ||
+		           startswith(var->type(), "vec") ||
+		           startswith(var->type(), "matrix")) {
 			vtkSmartPointer<vtkFloatArray> vtk_array =
 			    vtkSmartPointer<vtkFloatArray>::New();
+			vtk_array->SetNumberOfComponents(n_components);
+			vtk_array->Allocate(n);
+			vtk_array->SetNumberOfTuples(n);
+			vtk_array->SetName(field.c_str());
+			vtk_arrays.push_back(vtk_array);
+		} else if (startswith(var->type(), "double") ||
+		           startswith(var->type(), "dvec")) {
+			vtkSmartPointer<vtkDoubleArray> vtk_array =
+			    vtkSmartPointer<vtkDoubleArray>::New();
 			vtk_array->SetNumberOfComponents(n_components);
 			vtk_array->Allocate(n);
 			vtk_array->SetNumberOfTuples(n);
@@ -417,12 +497,12 @@ VTK::makeVTK()
 	vtk_cells->Allocate(n);
 	vtk_cells->SetNumberOfCells(n);
 
-	for (i = 0; i < fields.size(); i++) {
+	for (unsigned int i = 0; i < fields.size(); i++) {
 		void* ptr = data()[fields[i]];
 
 		if (!fields[i].compare("r")) {
 			// The mesh points are a bit of a special case
-			for (j = 0; j < n; j++) {
+			for (size_t j = 0; j < n; j++) {
 				vec* coords = (vec*)ptr;
 #ifdef HAVE_3D
 				vtk_points->SetPoint(j, coords[j].x, coords[j].y, coords[j].z);
@@ -439,31 +519,62 @@ VTK::makeVTK()
 		ArrayVariable* var = (ArrayVariable*)(vars->get(fields[i]));
 		const size_t typesize = vars->typeToBytes(var->type());
 		const unsigned int n_components = vars->typeToN(var->type());
-		for (j = 0; j < n; j++) {
+		for (size_t j = 0; j < n; j++) {
 			const size_t offset = typesize * j;
-			if (var->type().find("unsigned int") != std::string::npos ||
-			    var->type().find("uivec") != std::string::npos) {
-				unsigned int vect[n_components];
+			if (startswith(var->type(), "unsigned int") ||
+			    startswith(var->type(), "uivec")) {
+				vtkTypeUInt32 vect[n_components];
 				memcpy(vect,
 				       (char*)ptr + offset,
-				       n_components * sizeof(unsigned int));
-				vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
-				    (vtkUnsignedIntArray*)(vtk_arrays[i].GetPointer());
+				       n_components * sizeof(vtkTypeUInt32));
+				vtkSmartPointer<vtkTypeUInt32Array> vtk_array =
+				    (vtkTypeUInt32Array*)(vtk_arrays[i].GetPointer());
 				vtk_array->SetTypedTuple(j, vect);
-			} else if (var->type().find("int") != std::string::npos ||
-			           var->type().find("ivec") != std::string::npos) {
-				int vect[n_components];
-				memcpy(vect, (char*)ptr + offset, n_components * sizeof(int));
-				vtkSmartPointer<vtkIntArray> vtk_array =
-				    (vtkIntArray*)(vtk_arrays[i].GetPointer());
+			} else if (startswith(var->type(), "unsigned long") ||
+			           startswith(var->type(), "ulvec")) {
+				vtkTypeUInt64 vect[n_components];
+				memcpy(vect,
+				       (char*)ptr + offset,
+				       n_components * sizeof(vtkTypeUInt64));
+				vtkSmartPointer<vtkTypeUInt64Array> vtk_array =
+				    (vtkTypeUInt64Array*)(vtk_arrays[i].GetPointer());
 				vtk_array->SetTypedTuple(j, vect);
-			} else if (var->type().find("float") != std::string::npos ||
-			           var->type().find("vec") != std::string::npos ||
-			           var->type().find("matrix") != std::string::npos) {
-				float vect[n_components];
-				memcpy(vect, (char*)ptr + offset, n_components * sizeof(float));
+			} else if (startswith(var->type(), "int") ||
+			           startswith(var->type(), "ivec")) {
+				vtkTypeInt32 vect[n_components];
+				memcpy(vect,
+				       (char*)ptr + offset,
+				       n_components * sizeof(vtkTypeInt32));
+				vtkSmartPointer<vtkTypeInt32Array> vtk_array =
+				    (vtkTypeInt32Array*)(vtk_arrays[i].GetPointer());
+				vtk_array->SetTypedTuple(j, vect);
+			} else if (startswith(var->type(), "long") ||
+			           startswith(var->type(), "lvec")) {
+				vtkTypeInt64 vect[n_components];
+				memcpy(vect,
+				       (char*)ptr + offset,
+				       n_components * sizeof(vtkTypeInt64));
+				vtkSmartPointer<vtkTypeInt64Array> vtk_array =
+				    (vtkTypeInt64Array*)(vtk_arrays[i].GetPointer());
+				vtk_array->SetTypedTuple(j, vect);
+			} else if (startswith(var->type(), "float") ||
+			           startswith(var->type(), "vec") ||
+			           startswith(var->type(), "matrix")) {
+				fcl vect[n_components];
+				memcpy(vect,
+				       (char*)ptr + offset,
+				       n_components * sizeof(fcl));
 				vtkSmartPointer<vtkFloatArray> vtk_array =
 				    (vtkFloatArray*)(vtk_arrays[i].GetPointer());
+				vtk_array->SetTypedTuple(j, vect);
+			} else if (startswith(var->type(), "double") ||
+			           startswith(var->type(), "dvec")) {
+				dcl vect[n_components];
+				memcpy(vect,
+				       (char*)ptr + offset,
+				       n_components * sizeof(dcl));
+				vtkSmartPointer<vtkDoubleArray> vtk_array =
+				    (vtkDoubleArray*)(vtk_arrays[i].GetPointer());
 				vtk_array->SetTypedTuple(j, vect);
 			}
 		}
@@ -473,27 +584,42 @@ VTK::makeVTK()
 	vtkUnstructuredGrid* grid = vtkUnstructuredGrid::New();
 	grid->SetPoints(vtk_points);
 	grid->SetCells(vtk_vertex->GetCellType(), vtk_cells);
-	for (i = 0; i < fields.size(); i++) {
+	for (unsigned int i = 0; i < fields.size(); i++) {
 		if (!fields.at(i).compare("r")) {
 			continue;
 		}
 
 		ArrayVariable* var = (ArrayVariable*)(vars->get(fields.at(i)));
-		if (var->type().find("unsigned int") != std::string::npos ||
-		    var->type().find("uivec") != std::string::npos) {
-			vtkSmartPointer<vtkUnsignedIntArray> vtk_array =
-			    (vtkUnsignedIntArray*)(vtk_arrays.at(i).GetPointer());
+		if (startswith(var->type(), "unsigned int") ||
+		    startswith(var->type(), "uivec")) {
+			vtkSmartPointer<vtkTypeUInt32Array> vtk_array =
+			    (vtkTypeUInt32Array*)(vtk_arrays.at(i).GetPointer());
 			grid->GetPointData()->AddArray(vtk_array);
-		} else if (var->type().find("int") != std::string::npos ||
-		           var->type().find("ivec") != std::string::npos) {
-			vtkSmartPointer<vtkIntArray> vtk_array =
-			    (vtkIntArray*)(vtk_arrays.at(i).GetPointer());
+		} else if (startswith(var->type(), "unsigned long") ||
+		           startswith(var->type(), "ulvec")) {
+			vtkSmartPointer<vtkTypeUInt64Array> vtk_array =
+			    (vtkTypeUInt64Array*)(vtk_arrays.at(i).GetPointer());
 			grid->GetPointData()->AddArray(vtk_array);
-		} else if (var->type().find("float") != std::string::npos ||
-		           var->type().find("vec") != std::string::npos ||
-		           var->type().find("matrix") != std::string::npos) {
+		} else if (startswith(var->type(), "int") ||
+		           startswith(var->type(), "ivec")) {
+			vtkSmartPointer<vtkTypeInt32Array> vtk_array =
+			    (vtkTypeInt32Array*)(vtk_arrays.at(i).GetPointer());
+			grid->GetPointData()->AddArray(vtk_array);
+		} else if (startswith(var->type(), "long") ||
+		           startswith(var->type(), "lvec")) {
+			vtkSmartPointer<vtkTypeInt64Array> vtk_array =
+			    (vtkTypeInt64Array*)(vtk_arrays.at(i).GetPointer());
+			grid->GetPointData()->AddArray(vtk_array);
+		} else if (startswith(var->type(), "float") ||
+		           startswith(var->type(), "vec") ||
+		           startswith(var->type(), "matrix")) {
 			vtkSmartPointer<vtkFloatArray> vtk_array =
 			    (vtkFloatArray*)(vtk_arrays.at(i).GetPointer());
+			grid->GetPointData()->AddArray(vtk_array);
+		} else if (startswith(var->type(), "double") ||
+		           startswith(var->type(), "dvec")) {
+			vtkSmartPointer<vtkDoubleArray> vtk_array =
+			    (vtkDoubleArray*)(vtk_arrays.at(i).GetPointer());
 			grid->GetPointData()->AddArray(vtk_array);
 		}
 	}
@@ -578,7 +704,7 @@ VTK::save(float t)
 	Particles::save(t);
 }
 
-const unsigned int
+const size_t
 VTK::compute_n()
 {
 	vtkSmartPointer<vtkXMLUnstructuredGridReader> f =

@@ -65,49 +65,39 @@ class ASCII : public Particles
 	 * @param n Number of particles managed by this saver/loader. If 0,
 	 * the number of particles will be obtained from the input file (thus only
 	 * valid for loaders)
+	 * @param file_ext Extension for the output files
 	 */
 	ASCII(ProblemSetup& sim_data,
 	      unsigned int iset,
-	      unsigned int offset,
-	      unsigned int n = 0);
+	      size_t offset,
+	      size_t n = 0,
+	      const std::string file_ext = ".dat");
 
 	/// Destructor
 	virtual ~ASCII();
 
 	/** @brief Load the data.
 	 */
-	void load();
+	virtual void load();
 
 	/** @brief Print the data to a file
+	 * @param sep Fields separator
+	 * @param comp_sep Components separator (for vectorial types)
 	 * @note This method is public to work with the OpenCL callbacks, but it is
 	 * not meant to be called by the users
 	 */
-	void print_file() final;
+	virtual void print_file(const char sep = ',', const char comp_sep = ' ');
 
-  private:
-	/** @brief Compute the number of particles handled by this instance
-	 * @return Number of particles
+  protected:
+	/** @brief Write the file header
+	 * @param f The file handler
 	 */
-	const unsigned int compute_n();
-
-	/** @brief Count the number of particles present in the input file.
-	 * @param f File to be read.
-	 * @return The number of particles found in the file.
-	 */
-	unsigned int readNParticles(std::ifstream& f);
+	virtual void print_header(std::ofstream& f) const;
 
 	/** @brief Conveniently format a read line.
 	 * @param l Line text.
 	 */
-	void formatLine(std::string& l);
-
-	/** @brief Count the number of fields in a text line.
-	 * @param l Line text.
-	 * @return The number of fields found in the line.
-	 * @warning It is assumed that the line text has been formatted calling
-	 * formatLine().
-	 */
-	unsigned int readNFields(std::string l);
+	virtual void formatLine(std::string& l);
 
 	/** @brief Extract the field value from a line.
 	 * @param field Field name.
@@ -118,8 +108,28 @@ class ASCII : public Particles
 	 */
 	virtual std::string readField(const std::string field,
 	                              const std::string line,
-	                              unsigned int index,
+	                              size_t index,
 	                              void* data);
+
+  private:
+	/** @brief Compute the number of particles handled by this instance
+	 * @return Number of particles
+	 */
+	const size_t compute_n();
+
+	/** @brief Count the number of particles present in the input file.
+	 * @param f File to be read.
+	 * @return The number of particles found in the file.
+	 */
+	size_t readNParticles(std::ifstream& f);
+
+	/** @brief Count the number of fields in a text line.
+	 * @param l Line text.
+	 * @return The number of fields found in the line.
+	 * @warning It is assumed that the line text has been formatted calling
+	 * formatLine().
+	 */
+	unsigned int readNFields(std::string l);
 
 	/** @brief Create a new file to write.
 	 * @param f The file handler to be overwritten.
@@ -129,6 +139,9 @@ class ASCII : public Particles
 
 	/// Next output file index
 	unsigned int _next_file_index;
+
+	/// Default output file extension
+	std::string _file_ext;
 }; // class InputOutput
 
 }

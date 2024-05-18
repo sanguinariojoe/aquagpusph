@@ -63,8 +63,8 @@ class Particles : public InputOutput
 	 */
 	Particles(ProblemSetup& sim_data,
 	          unsigned int iset,
-	          unsigned int offset,
-	          unsigned int n = 0);
+	          size_t offset,
+	          size_t n = 0);
 
 	/// Destructor
 	virtual ~Particles();
@@ -72,12 +72,12 @@ class Particles : public InputOutput
 	/** @brief Get the last printed file path.
 	 * @return The last printed file, NULL if a file has not been printed yet.
 	 */
-	const std::string file() { return _output_file; }
+	const std::string& file() { return _output_file; }
 
 	/** @brief Get the number of particles managed by this instance
 	 * @return Number of particles
 	 */
-	unsigned int n() { return _bounds.y - _bounds.x; }
+	const size_t n() const { return _bounds.y - _bounds.x; }
 
 	/** @brief Get the user event to be waited for before the file saving is
 	 * finished
@@ -149,14 +149,14 @@ class Particles : public InputOutput
 	 *
 	 * @return Simulation data
 	 */
-	ProblemSetup& simData() { return _sim_data; }
+	const ProblemSetup& simData() const { return _sim_data; }
 
 	/** @brief Set the number of particles managed by this instance
 	 * @return Number of particles
 	 */
-	inline void n(unsigned int n)
+	inline void n(const size_t& n)
 	{
-		const unsigned int offset = _bounds.x;
+		const size_t offset = _bounds.x;
 		_bounds.y = offset + n;
 		for (auto const& mem : _data)
 			free(mem.second);
@@ -167,7 +167,7 @@ class Particles : public InputOutput
 	 * by this class.
 	 * @return The index bounds (first and last particle).
 	 */
-	inline const uivec2 bounds() const { return _bounds; }
+	inline const ulvec2 bounds() const { return _bounds; }
 
 	/** @brief Get the "particles set" index associated with this class
 	 * @return The "particles index" index.
@@ -226,7 +226,7 @@ class Particles : public InputOutput
 	ProblemSetup _sim_data;
 
 	/// Particles managed bounds
-	uivec2 _bounds;
+	ulvec2 _bounds;
 
 	/// Fluid index
 	unsigned int _iset;

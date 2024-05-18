@@ -21,34 +21,19 @@
  * (See Aqua::InputOutput::FastASCII for details)
  */
 
-#ifndef FastASCII_H_INCLUDED
-#define FastASCII_H_INCLUDED
+#pragma once
 
 #include "aquagpusph/sphPrerequisites.hpp"
-#include "ASCII.hpp"
+#include "FastASCII.hpp"
 
 namespace Aqua {
 namespace InputOutput {
 
-/** @class FastASCII FastASCII.h InputOutput/FastASCII.h
- * @brief Plain text particles data files loader/saver.
+/** @class CSV CSV.h InputOutput/CSV.h
+ * @brief CSV particles data files loader/saver.
  *
  * These files are formatted as ASCCI plain text where the particles data are
  * stored by rows, and where the fields are separated by columns.
- *
- * @note Comments are allowed using the symbol `"#"`, such that all the text
- * after this symbol, and in the same line, will be discarded.
- * The fields can be separated by the following symbols:
- *   - `" "`
- *   - `","`
- *   - `";"`
- *   - `"("`
- *   - `")"`
- *   - `"["`
- *   - `"]"`
- *   - `"{"`
- *   - `"}"`
- *   - tabulator
  * @remarks In the case of integer numbers (signed or unsigned) this class does
  * not care about decimal points, just truncating the value, i.e. 1.5 will be
  * interpreted as 1, and -1.5 will be interpreted as -1.
@@ -56,7 +41,7 @@ namespace InputOutput {
  * disk demanding, and therefore it is strongly recommended to consider binary
  * formats like Aqua::InputOutput::VTK.
  */
-class FastASCII : public ASCII
+class CSV : public FastASCII
 {
   public:
 	/** @brief Constructor
@@ -67,30 +52,47 @@ class FastASCII : public ASCII
 	 * the number of particles will be obtained from the input file (thus only
 	 * valid for loaders)
 	 */
-	FastASCII(ProblemSetup& sim_data,
-	          unsigned int iset,
-	          size_t offset,
-	          size_t n = 0,
-	          const std::string file_ext = ".dat");
+	CSV(ProblemSetup& sim_data,
+	    unsigned int iset,
+	    size_t offset,
+	    size_t n = 0,
+	    const std::string file_ext = ".csv",
+	    const char sep = ',');
 
 	/// Destructor
-	~FastASCII();
+	~CSV();
+
+	/** @brief Load the data.
+	 */
+	void load() final;
+
+	/** @brief Print the data to a file
+	 * @param sep Fields separator
+	 * @param comp_sep Components separator (for vectorial types)
+	 * @note This method is public to work with the OpenCL callbacks, but it is
+	 * not meant to be called by the users
+	 */
+	void print_file() final;
 
   protected:
-	/** @brief Extract the field value from a line.
-	 * @param field Field name.
-	 * @param line Text line,
-	 * @param index Index of the particle to read.
-	 * @param data Data array.
-	 * @return Remaining text after extracting the field values.
+	/** @brief Write the file header
+	 * @param f The file handler
 	 */
-	std::string readField(const std::string field,
-	                      const std::string line,
-	                      size_t index,
-	                      void* data);
+	void print_header(std::ofstream& f) const final;
+
+	/** @brief Conveniently format a read line.
+	 * @param l Line text.
+	 */
+	void formatLine(std::string& l) final;
+
+  private:
+	/// The separator
+	char _sep;
+
+	/// A flag to mark whether the file header shall be still looked for
+	bool _has_header;
+
 }; // class InputOutput
 
-}
-} // namespaces
-
-#endif // FastASCII_H_INCLUDED
+} // InputOutput::
+} // Aqua::

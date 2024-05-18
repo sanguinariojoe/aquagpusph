@@ -32,8 +32,8 @@ namespace InputOutput {
 
 Particles::Particles(ProblemSetup& sim_data,
                      unsigned int iset,
-                     unsigned int first,
-                     unsigned int n)
+                     size_t first,
+                     size_t n)
   : _sim_data(sim_data)
   , _iset(iset)
   , _time(0.f)
@@ -126,9 +126,11 @@ Particles::loadDefault()
 	cl_mem mem;
 	auto C = CalcServer::CalcServer::singleton();
 
-	unsigned int n = bounds().y - bounds().x;
+	size_t n = bounds().y - bounds().x;
 	unsigned int* iset = new unsigned int[n];
-	unsigned int* id = new unsigned int[n];
+	// Let's assume we have 64bits. Otherwise we will recast this during the
+	// assingments
+	ulcl* id = new ulcl[n];
 
 	if (!iset || !id) {
 		LOG(L_ERROR, "Failure allocating memory.\n");
@@ -136,7 +138,10 @@ Particles::loadDefault()
 
 	for (i = 0; i < n; i++) {
 		iset[i] = setId();
-		id[i] = bounds().x + i;
+		if (C->device_addr_bits() == 64)
+			id[i] = bounds().x + i;
+		else
+			((uicl*)id)[i] = (uicl)(bounds().x + i);
 	}
 
 	Variables* vars = C->variables();
@@ -161,8 +166,8 @@ Particles::loadDefault()
 	err_code = clEnqueueWriteBuffer(C->command_queue(),
 	                                mem,
 	                                CL_TRUE,
-	                                sizeof(unsigned int) * bounds().x,
-	                                sizeof(unsigned int) * n,
+	                                var->typesize() * bounds().x,
+	                                var->typesize() * n,
 	                                id,
 	                                0,
 	                                NULL,
@@ -177,8 +182,8 @@ Particles::loadDefault()
 	err_code = clEnqueueWriteBuffer(C->command_queue(),
 	                                mem,
 	                                CL_TRUE,
-	                                sizeof(unsigned int) * bounds().x,
-	                                sizeof(unsigned int) * n,
+	                                var->typesize() * bounds().x,
+	                                var->typesize() * n,
 	                                id,
 	                                0,
 	                                NULL,
@@ -193,8 +198,8 @@ Particles::loadDefault()
 	err_code = clEnqueueWriteBuffer(C->command_queue(),
 	                                mem,
 	                                CL_TRUE,
-	                                sizeof(unsigned int) * bounds().x,
-	                                sizeof(unsigned int) * n,
+	                                var->typesize() * bounds().x,
+	                                var->typesize() * n,
 	                                id,
 	                                0,
 	                                NULL,

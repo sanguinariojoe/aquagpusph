@@ -25,6 +25,7 @@
 #include "InputOutput/Logger.hpp"
 #include "InputOutput/ASCII.hpp"
 #include "InputOutput/FastASCII.hpp"
+#include "InputOutput/CSV.hpp"
 #ifdef HAVE_VTK
 #include "InputOutput/VTK.hpp"
 #endif // HAVE_VTK
@@ -75,6 +76,9 @@ FileManager::load()
 			_loaders.push_back((Particles*)loader);
 		} else if (!set->inputFormat().compare("FastASCII")) {
 			FastASCII* loader = new FastASCII(_simulation, i, offset, set->n());
+			_loaders.push_back((Particles*)loader);
+		} else if (!set->inputFormat().compare("CSV")) {
+			CSV* loader = new CSV(_simulation, i, offset, set->n());
 			_loaders.push_back((Particles*)loader);
 		} else if (!set->inputFormat().compare("VTK")) {
 #ifdef HAVE_VTK
