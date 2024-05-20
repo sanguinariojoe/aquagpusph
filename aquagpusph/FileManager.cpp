@@ -109,6 +109,9 @@ FileManager::load()
 		    !set->outputFormat().compare("FastASCII")) {
 			ASCII* saver = new ASCII(_simulation, i, offset, set->n());
 			_savers.push_back((Particles*)saver);
+		} else if (!set->outputFormat().compare("CSV")) {
+			CSV* saver = new CSV(_simulation, i, offset, set->n());
+			_savers.push_back((Particles*)saver);
 		} else if (!set->outputFormat().compare("VTK")) {
 #ifdef HAVE_VTK
 			VTK* saver = new VTK(_simulation, i, offset, set->n());
