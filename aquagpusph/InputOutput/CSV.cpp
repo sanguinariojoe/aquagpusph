@@ -92,5 +92,14 @@ CSV::formatLine(std::string& l)
 	_has_header = true;
 }
 
+size_t
+CSV::readNParticles(std::ifstream& f)
+{
+	_has_header = false;
+	size_t s = ASCII::readNParticles(f);
+	_has_header = false;
+	return s;
+}
+
 } // InputOutput::
 } // Aqua::

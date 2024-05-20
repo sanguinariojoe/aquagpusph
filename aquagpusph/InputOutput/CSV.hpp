@@ -85,6 +85,12 @@ class CSV : public FastASCII
 	 */
 	void formatLine(std::string& l) final;
 
+	/** @brief Count the number of particles present in the input file.
+	 * @param f File to be read.
+	 * @return The number of particles found in the file.
+	 */
+	size_t readNParticles(std::ifstream& f) final;
+
   private:
 	/// The separator
 	char _sep;

@@ -105,6 +105,12 @@ class ASCII : public Particles
 	                              size_t index,
 	                              void* data);
 
+	/** @brief Count the number of particles present in the input file.
+	 * @param f File to be read.
+	 * @return The number of particles found in the file.
+	 */
+	virtual size_t readNParticles(std::ifstream& f);
+
 	/** @brief Print the data to a file
 	 * @param sep Fields separator
 	 * @param comp_sep Components separator (for vectorial types)
@@ -118,11 +124,6 @@ class ASCII : public Particles
 	 */
 	const size_t compute_n();
 
-	/** @brief Count the number of particles present in the input file.
-	 * @param f File to be read.
-	 * @return The number of particles found in the file.
-	 */
-	size_t readNParticles(std::ifstream& f);
 
 	/** @brief Count the number of fields in a text line.
 	 * @param l Line text.
