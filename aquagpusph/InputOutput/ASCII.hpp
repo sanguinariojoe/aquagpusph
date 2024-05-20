@@ -80,13 +80,7 @@ class ASCII : public Particles
 	 */
 	virtual void load();
 
-	/** @brief Print the data to a file
-	 * @param sep Fields separator
-	 * @param comp_sep Components separator (for vectorial types)
-	 * @note This method is public to work with the OpenCL callbacks, but it is
-	 * not meant to be called by the users
-	 */
-	virtual void print_file(const char sep = ',', const char comp_sep = ' ');
+	virtual inline void print_file() { print_file(',', ' '); }
 
   protected:
 	/** @brief Write the file header
@@ -111,6 +105,13 @@ class ASCII : public Particles
 	                              size_t index,
 	                              void* data);
 
+	/** @brief Print the data to a file
+	 * @param sep Fields separator
+	 * @param comp_sep Components separator (for vectorial types)
+	 * @note This method is public to work with the OpenCL callbacks, but it is
+	 * not meant to be called by the users
+	 */
+	void print_file(const char sep, const char comp_sep);
   private:
 	/** @brief Compute the number of particles handled by this instance
 	 * @return Number of particles

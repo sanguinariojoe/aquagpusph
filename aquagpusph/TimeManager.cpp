@@ -121,7 +121,7 @@ TimeManager::mustPrintOutput()
 		*_step = 0;
 		return false;
 	}
-	if (((_output_fps >= 0.f) || (_output_ipf >= 0.f)) && (frame() == 0) &&
+	if (((_output_fps >= 0.f) || (_output_ipf >= 0)) && (frame() == 0) &&
 	    (step() == 1)) {
 		_output_time = time();
 		_output_step = step();
