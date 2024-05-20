@@ -21,6 +21,7 @@
  * (see Aqua::CalcServer::Kernel for details)
  */
 
+#include <sstream>
 #include "aquagpusph/AuxiliarMethods.hpp"
 #include "aquagpusph/InputOutput/Logger.hpp"
 #include "CalcServer.hpp"

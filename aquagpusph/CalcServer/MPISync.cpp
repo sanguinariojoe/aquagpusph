@@ -28,6 +28,7 @@
 
 #ifdef HAVE_MPI
 
+#include <sstream>
 #include "aquagpusph/AuxiliarMethods.hpp"
 #include "aquagpusph/InputOutput/Logger.hpp"
 #include "MPISync.hpp"

@@ -22,11 +22,12 @@
  * (see Aqua::InpuOutput::Variable and Aqua::InpuOutput::Variables)
  */
 
+#include <algorithm>
+#include <sstream>
 #include "Variable.hpp"
 #include "AuxiliarMethods.hpp"
 #include "InputOutput/Logger.hpp"
 #include "CalcServer/CalcServer.hpp"
-#include <algorithm>
 
 namespace Aqua {
 namespace InputOutput {

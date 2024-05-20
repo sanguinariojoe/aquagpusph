@@ -22,6 +22,7 @@
  */
 
 #include <string>
+#include <sstream>
 #include "TimeManager.hpp"
 #include "CalcServer/CalcServer.hpp"
 #include "InputOutput/Logger.hpp"

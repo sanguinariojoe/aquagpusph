@@ -22,11 +22,12 @@
  * (see Aqua::CalcServer::Tool)
  */
 
+#include <queue>
+#include <chrono>
+#include <sstream>
 #include "Tool.hpp"
 #include "CalcServer.hpp"
 #include "aquagpusph/InputOutput/Logger.hpp"
-#include <queue>
-#include <chrono>
 
 namespace Aqua {
 namespace CalcServer {

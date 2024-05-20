@@ -24,6 +24,7 @@
  * CalcServer/RadixSort.hcl.in are internally included as a text array.
  */
 
+#include <sstream>
 #include "aquagpusph/AuxiliarMethods.hpp"
 #include "aquagpusph/InputOutput/Logger.hpp"
 #include "RadixSort.hpp"

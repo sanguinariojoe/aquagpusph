@@ -21,12 +21,11 @@
  * (See Aqua::InputOutput::ArgumentsManager for details)
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include <getopt.h>
-#include <string.h>
+#include <iostream>
 #include <string>
+#include <sstream>
 
 #include "ArgumentsManager.hpp"
 #include "FileManager.hpp"

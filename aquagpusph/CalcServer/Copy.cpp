@@ -21,9 +21,8 @@
  * (see Aqua::CalcServer::Copy for details)
  */
 
-#include <stdlib.h>
-#include <math.h>
 #include <vector>
+#include <sstream>
 
 #include "aquagpusph/AuxiliarMethods.hpp"
 #include "aquagpusph/InputOutput/Logger.hpp"

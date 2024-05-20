@@ -21,7 +21,7 @@
  * (See Aqua::CalcServer::Conditional and Aqua::CalcServer::End for details)
  */
 
-#include <math.h>
+#include <sstream>
 
 #include "aquagpusph/AuxiliarMethods.hpp"
 #include "aquagpusph/InputOutput/Logger.hpp"

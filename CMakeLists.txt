@@ -119,7 +119,8 @@ IF(NOT CMAKE_BUILD_TYPE)
 ENDIF(NOT CMAKE_BUILD_TYPE)
 OPTION(AQUAGPUSPH_3D "Build 3D AQUAgpusph version. 2D and 3D versions can be installed on the same system." ON)
 OPTION(AQUAGPUSPH_USE_MPI "Build AQUAgpusph with MPI support, for multidevice running." ON)
-OPTION(AQUAGPUSPH_USE_VTK "Build AQUAgpusph with VTK output format support (on development)." ON)
+OPTION(AQUAGPUSPH_USE_VTK "Build AQUAgpusph with VTK output format support." ON)
+OPTION(AQUAGPUSPH_USE_MUPARSER "Replace ExprTk+METL by MuParser." OFF)
 OPTION(AQUAGPUSPH_BUILD_TOOLS "Build AQUAgpusph tools" ON)
 OPTION(AQUAGPUSPH_BUILD_EXAMPLES "Build AQUAgpusph examples" ON)
 OPTION(AQUAGPUSPH_USE_NCURSES "Build AQUAgpusph with Ncurses terminal support." OFF)
@@ -127,6 +128,7 @@ OPTION(AQUAGPUSPH_BUILD_DOC "Build AQUAgpusph documentation" OFF)
 OPTION(AQUAGPUSPH_GPU_PROFILE "Profile the GPU during the runtime (consuming additional resources)" OFF)
 MARK_AS_ADVANCED(
   AQUAGPUSPH_GPU_PROFILE
+  AQUAGPUSPH_USE_MUPARSER
 )
 
 # ===================================================== #
@@ -206,11 +208,15 @@ IF(AQUAGPUSPH_USE_VTK)
 ENDIF(AQUAGPUSPH_USE_VTK)
 
 # muparser
-FIND_PACKAGE(MuParser REQUIRED)
+IF(AQUAGPUSPH_USE_MUPARSER)
+    FIND_PACKAGE(MuParser REQUIRED)
 
-IF(NOT MUPARSER_FOUND)
-MESSAGE(FATAL_ERROR "MuParser not found, but ${PACKAGE_NAME} requires it. Please install MuParser!")
-ENDIF(NOT MUPARSER_FOUND)
+    IF(NOT MUPARSER_FOUND)
+    MESSAGE(FATAL_ERROR "MuParser not found, but AQUAGPUSPH_USE_MUPARSER is on. Install MuParser or set AQUAGPUSPH_USE_MUPARSER=OFF")
+    ENDIF(NOT MUPARSER_FOUND)
+    SET(HAVE_MUPARSER TRUE)
+ENDIF(AQUAGPUSPH_USE_MUPARSER)
+
 
 # GPU profile
 IF(AQUAGPUSPH_GPU_PROFILE)

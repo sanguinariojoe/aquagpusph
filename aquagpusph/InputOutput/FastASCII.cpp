@@ -22,6 +22,8 @@
  */
 
 #include <string>
+#include <sstream>
+
 #include "FastASCII.hpp"
 #include "Logger.hpp"
 #include "aquagpusph/ProblemSetup.hpp"

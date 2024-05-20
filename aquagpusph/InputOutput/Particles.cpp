@@ -22,6 +22,7 @@
  */
 
 #include <string>
+#include <sstream>
 
 #include "Particles.hpp"
 #include "aquagpusph/CalcServer/CalcServer.hpp"

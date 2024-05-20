@@ -162,3 +162,6 @@
 
 /* VTK */
 #cmakedefine HAVE_VTK
+
+/* ExprTk or MuParser */
+#cmakedefine HAVE_MUPARSER

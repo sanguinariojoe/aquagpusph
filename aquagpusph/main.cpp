@@ -72,6 +72,8 @@
  */
 
 #include "sphPrerequisites.hpp"
+#include <iostream>
+#include <sstream>
 #include <Python.h>
 #include "InputOutput/Logger.hpp"
 #include "ArgumentsManager.hpp"

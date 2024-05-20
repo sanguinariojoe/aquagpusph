@@ -21,6 +21,7 @@
  * (See Aqua::CalcServer::Reports::SetTabFile for details)
  */
 
+#include <sstream>
 #include "aquagpusph/AuxiliarMethods.hpp"
 #include "aquagpusph/InputOutput/Logger.hpp"
 #include "aquagpusph/CalcServer/CalcServer.hpp"

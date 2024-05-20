@@ -26,6 +26,7 @@
 #include <limits>
 #include <vector>
 #include <algorithm>
+#include <sstream>
 
 #include "aquagpusph/sphPrerequisites.hpp"
 #include "State.hpp"

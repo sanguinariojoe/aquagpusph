@@ -30,7 +30,7 @@ using namespace std;
 
 namespace Aqua {
 
-std::mutex Tokenizer::mutex;
+std::mutex Tokenizer_muparser::mutex;
 
 double
 mod_operator(double v, double w)
@@ -50,7 +50,7 @@ not_operator(double v)
 }
 
 
-Tokenizer::Tokenizer()
+Tokenizer_muparser::Tokenizer_muparser()
 {
 	struct lconv* lc;
 	char* s;
@@ -92,21 +92,25 @@ Tokenizer::Tokenizer()
 	q.DefineInfixOprt("!", not_operator, 0);
 }
 
-Tokenizer::~Tokenizer()
+Tokenizer_muparser::~Tokenizer_muparser()
 {
 	p.ClearConst();
 }
 
-void
-Tokenizer::clearVariables()
+std::vector<std::string>
+Tokenizer_muparser::exprVariables(const std::string eq)
 {
 	const std::lock_guard<std::mutex> lock(this->mutex);
-	p.ClearConst();
-	defaultVariables();
+	std::vector<std::string> vars;
+	q.SetExpr(eq);
+	auto variables = q.GetUsedVar();
+	for (auto it = variables.begin(); it != variables.end(); ++it)
+		vars.push_back(it->first);
+	return vars;
 }
 
 bool
-Tokenizer::isVariable(const std::string name)
+Tokenizer_muparser::isVariable(const std::string name)
 {
 	mu::valmap_type cmap = p.GetConst();
 	if (cmap.size()) {
@@ -120,104 +124,86 @@ Tokenizer::isVariable(const std::string name)
 	return false;
 }
 
-std::vector<std::string>
-Tokenizer::exprVariables(const std::string eq)
-{
-	const std::lock_guard<std::mutex> lock(this->mutex);
-	std::vector<std::string> vars;
-	q.SetExpr(eq);
-	auto variables = q.GetUsedVar();
-	for (auto it = variables.begin(); it != variables.end(); ++it)
-		vars.push_back(it->first);
-	return vars;
-}
-
-void
-Tokenizer::defaultVariables()
-{
-	// Pi and e are registered variables out of the box
-}
-
 template<>
 double
-Tokenizer::cast(const double& val)
+Tokenizer_muparser::cast(const double& val)
 {
 	return val;
 }
 
 template<>
 float
-Tokenizer::cast(const double& val)
+Tokenizer_muparser::cast(const double& val)
 {
 	return (float)val;
 }
 
 template<>
 int32_t
-Tokenizer::cast(const double& val)
+Tokenizer_muparser::cast(const double& val)
 {
 	return Aqua::round<int32_t>(val);
 }
 
 template<>
 int64_t
-Tokenizer::cast(const double& val)
+Tokenizer_muparser::cast(const double& val)
 {
 	return Aqua::round<int64_t>(val);
 }
 
 template<>
 uint32_t
-Tokenizer::cast(const double& val)
+Tokenizer_muparser::cast(const double& val)
 {
 	return Aqua::round<uint32_t>(val);
 }
 
 template<>
 uint64_t
-Tokenizer::cast(const double& val)
+Tokenizer_muparser::cast(const double& val)
 {
 	return Aqua::round<uint64_t>(val);
 }
 
 template<>
 double
-Tokenizer::cast(const int64_t& val)
+Tokenizer_muparser::cast(const int64_t& val)
 {
 	return (double)val;
 }
 
 template<>
 float
-Tokenizer::cast(const int64_t& val)
+Tokenizer_muparser::cast(const int64_t& val)
 {
 	return (float)val;
 }
 
 template<>
 int32_t
-Tokenizer::cast(const int64_t& val)
+Tokenizer_muparser::cast(const int64_t& val)
 {
 	return (int32_t)val;
 }
 
 template<>
 int64_t
-Tokenizer::cast(const int64_t& val)
+Tokenizer_muparser::cast(const int64_t& val)
 {
 	return (int64_t)val;
 }
 
 template<>
 uint32_t
-Tokenizer::cast(const int64_t& val)
+Tokenizer_muparser::cast(const int64_t& val)
 {
 	return (uint32_t)val;
 }
 
 template<>
 uint64_t
-Tokenizer::cast(const int64_t& val)
+Tokenizer_muparser::cast(const int64_t& val)
 {
 	return (uint64_t)val;
 }

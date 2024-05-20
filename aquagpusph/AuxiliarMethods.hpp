@@ -401,6 +401,21 @@ clamp(float x, float a, float b)
 	return x < a ? a : (x > b ? b : x);
 }
 
+/** @brief Cast a value, checking that it is not overflowing
+ * @param val Value to cast
+ * @return Casted value
+ * @throw std::out_of_range If the casting would overflow the variable
+ */
+template<class Target, class Source>
+inline Target
+narrow_cast(Source v)
+{
+   auto r = static_cast<Target>(v);
+   if (static_cast<Source>(r) != v)
+      throw std::out_of_range("narrow_cast<>() failed");
+   return r;
+}
+
 /// Return a null vector.
 /**
  * @return zeroes vector.

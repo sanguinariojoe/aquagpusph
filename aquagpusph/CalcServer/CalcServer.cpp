@@ -25,6 +25,7 @@
 #include <dlfcn.h>
 #include <limits>
 #include <string>
+#include <sstream>
 #include <stack>
 #include <assert.h>
 #include <signal.h>

@@ -23,13 +23,14 @@
  * CalcServer/LinkList.hcl.in are internally included as a text array.
  */
 
+#include <sstream>
+#include <algorithm>
 #include "aquagpusph/AuxiliarMethods.hpp"
 #include "aquagpusph/InputOutput/Logger.hpp"
 #include "CalcServer.hpp"
 #include "LinkList.hpp"
 #include "SetScalar.hpp"
 #include "Kernel.hpp"
-#include <algorithm>
 
 namespace Aqua {
 namespace CalcServer {

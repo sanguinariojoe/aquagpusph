@@ -21,6 +21,7 @@
  * (See Aqua::CalcServer::Reports::Screen for details)
  */
 
+#include <sstream>
 #include <algorithm>
 #include "aquagpusph/InputOutput/Logger.hpp"
 #include "aquagpusph/CalcServer/CalcServer.hpp"

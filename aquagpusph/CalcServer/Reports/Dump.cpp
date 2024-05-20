@@ -21,11 +21,12 @@
  * (See Aqua::CalcServer::Reports::Dump for details)
  */
 
+#include <sstream>
+#include <fstream>
 #include "aquagpusph/AuxiliarMethods.hpp"
 #include "aquagpusph/InputOutput/Logger.hpp"
 #include "aquagpusph/CalcServer/CalcServer.hpp"
 #include "Dump.hpp"
-#include <fstream>
 
 namespace Aqua {
 namespace CalcServer {

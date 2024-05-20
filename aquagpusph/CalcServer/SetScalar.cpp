@@ -21,10 +21,11 @@
  * (See Aqua::CalcServer::SetScalar for details)
  */
 
+#include <sstream>
+#include <sys/time.h>
 #include "aquagpusph/InputOutput/Logger.hpp"
 #include "SetScalar.hpp"
 #include "CalcServer.hpp"
-#include <sys/time.h>
 
 namespace Aqua {
 namespace CalcServer {
