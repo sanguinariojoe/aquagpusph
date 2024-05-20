@@ -79,8 +79,8 @@ class SetTabFile : public Aqua::CalcServer::Reports::Report
 	 */
 	SetTabFile(const std::string tool_name,
 	           const std::string fields,
-	           unsigned int first,
-	           unsigned int n,
+	           size_t first,
+	           size_t n,
 	           const std::string output_file,
 	           unsigned int ipf = 1,
 	           float fps = 0.f);
@@ -110,7 +110,7 @@ class SetTabFile : public Aqua::CalcServer::Reports::Report
 	 * by this class.
 	 * @return The index bounds (first and last particle).
 	 */
-	uivec2 bounds() { return _bounds; }
+	ulvec2 bounds() { return _bounds; }
 
 	/** Download the data from the device, and store it.
 	 * @param vars Fields to download.
@@ -126,7 +126,7 @@ class SetTabFile : public Aqua::CalcServer::Reports::Report
 	void clearList(std::vector<void*>* data);
 
 	/// Particles managed bounds
-	uivec2 _bounds;
+	ulvec2 _bounds;
 	/// List of host allocated memory objects
 	std::vector<void*> _data;
 

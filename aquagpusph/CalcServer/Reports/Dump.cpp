@@ -54,14 +54,34 @@ Dump::~Dump()
 void
 Dump::setup()
 {
-	unsigned int i;
-
 	std::ostringstream msg;
 	msg << "Loading the dump report \"" << name() << "\"..." << std::endl;
 	LOG(L_INFO, msg.str());
 
 	Report::setup();
 }
+
+#define __ASCII_WRITE_SCALAR_BLOCK(TYPE)                                       \
+	TYPE* v = (TYPE* )ptr;                                                     \
+	f << v[i];
+
+#define __ASCII_WRITE_MATRIX_BLOCK(TYPE)                                       \
+	TYPE* v = (TYPE *)ptr;                                                     \
+	for (auto k = 0; k < nc - 1; k++) {                                        \
+		f << v[i].s[k] << ' ';                                                 \
+	}                                                                          \
+	f << v[i].s[nc - 1];                                                       \
+
+#define __ASCII_WRITE_VEC_BLOCK(TYPE)                                          \
+	if (nc == 2) {                                                             \
+		__ASCII_WRITE_MATRIX_BLOCK( TYPE ## 2 )                                \
+	} else if (nc == 3) {                                                      \
+		__ASCII_WRITE_MATRIX_BLOCK( TYPE ## 3 )                                \
+	} else if (nc == 4) {                                                      \
+		__ASCII_WRITE_MATRIX_BLOCK( TYPE ## 4 )                                \
+	} else if (nc == 8) {                                                      \
+		__ASCII_WRITE_MATRIX_BLOCK( TYPE ## 8 )                                \
+	}
 
 void
 Dump::print()
@@ -71,95 +91,60 @@ Dump::print()
 	std::ios_base::openmode mode = _binary ?
 		std::ios::out | std::ios::binary:
 		std::ios::out;
-	std::ofstream fs(fpath, mode);
+	std::ofstream f(fpath, mode);
 	std::vector<InputOutput::Variable*> vars = variables();
 
 	if (_binary) {
-		for (unsigned int i = 0; i < vars.size(); i++) {
+		for (size_t i = 0; i < vars.size(); i++) {
 			InputOutput::ArrayVariable* var =
 			    (InputOutput::ArrayVariable*)vars[i];
 			size_t datasize = var->size();
-			fs.write(reinterpret_cast<const char*>(_data[i]), datasize);
+			f.write(reinterpret_cast<const char*>(_data[i]), datasize);
 		}
 	} else {
-		for (unsigned int i = 0; i < _n; i++) {
-			for (unsigned int j = 0; j < vars.size(); j++) {
+		for (size_t i = 0; i < _n; i++) {
+			for (size_t j = 0; j < vars.size(); j++) {
 				InputOutput::ArrayVariable* var =
 					(InputOutput::ArrayVariable*)vars.at(j);
 				const std::string type_name = var->type();
-				
-				if (!type_name.compare("int*")) {
-					int* v = (int*)_data.at(j);
-					fs << v[i] << " ";
-				} else if (!type_name.compare("unsigned int*")) {
-					unsigned int* v = (unsigned int*)_data.at(j);
-					fs << v[i] << " ";
-				} else if (!type_name.compare("float*")) {
-					float* v = (float*)_data.at(j);
-					fs << v[i] << " ";
-				} else if (!type_name.compare("ivec*")) {
-	#ifdef HAVE_3D
-					ivec* v = (ivec*)_data.at(j);
-					fs << v[i].x << " " << v[i].y << " " << v[i].z << " "
-					<< v[i].w << " ";
-	#else
-					ivec* v = (ivec*)_data.at(j);
-					fs << v[i].x << " " << v[i].y << " ";
-	#endif // HAVE_3D
-				} else if (!type_name.compare("ivec2*")) {
-					ivec2* v = (ivec2*)_data.at(j);
-					fs << v[i].x << " " << v[i].y << " ";
-				} else if (!type_name.compare("ivec3*")) {
-					ivec3* v = (ivec3*)_data.at(j);
-					fs << v[i].x << " " << v[i].y << " " << v[i].z << " ";
-				} else if (!type_name.compare("ivec4*")) {
-					ivec4* v = (ivec4*)_data.at(j);
-					fs << v[i].x << " " << v[i].y << " " << v[i].z << " "
-					<< v[i].w << " ";
-				} else if (!type_name.compare("uivec*")) {
-	#ifdef HAVE_3D
-					uivec* v = (uivec*)_data.at(j);
-					fs << v[i].x << " " << v[i].y << " " << v[i].z << " "
-					<< v[i].w << " ";
-	#else
-					uivec* v = (uivec*)_data.at(j);
-					fs << v[i].x << " " << v[i].y << " ";
-	#endif // HAVE_3D
-				} else if (!type_name.compare("uivec2*")) {
-					uivec2* v = (uivec2*)_data.at(j);
-					fs << v[i].x << " " << v[i].y << " ";
-				} else if (!type_name.compare("uivec3*")) {
-					uivec3* v = (uivec3*)_data.at(j);
-					fs << v[i].x << " " << v[i].y << " " << v[i].z << " ";
-				} else if (!type_name.compare("uivec4*")) {
-					uivec4* v = (uivec4*)_data.at(j);
-					fs << v[i].x << " " << v[i].y << " " << v[i].z << " "
-					<< v[i].w << " ";
-				} else if (!type_name.compare("vec*")) {
-	#ifdef HAVE_3D
-					vec* v = (vec*)_data.at(j);
-					fs << v[i].x << " " << v[i].y << " " << v[i].z << " "
-					<< v[i].w << " ";
-	#else
-					vec* v = (vec*)_data.at(j);
-					fs << v[i].x << " " << v[i].y << " ";
-	#endif // HAVE_3D
-				} else if (!type_name.compare("vec2*")) {
-					vec2* v = (vec2*)_data.at(j);
-					fs << v[i].x << " " << v[i].y << " ";
-				} else if (!type_name.compare("vec3*")) {
-					vec3* v = (vec3*)_data.at(j);
-					fs << v[i].x << " " << v[i].y << " " << v[i].z << " ";
-				} else if (!type_name.compare("vec4*")) {
-					vec4* v = (vec4*)_data.at(j);
-					fs << v[i].x << " " << v[i].y << " " << v[i].z << " "
-					<< v[i].w << " ";
+				const void* ptr = _data.at(j);
+				const auto nc = Aqua::InputOutput::Variables::typeToN(
+					type_name);
+				if (startswith(var->type(), "int")) {
+					__ASCII_WRITE_SCALAR_BLOCK(icl)
+				} else if (startswith(var->type(), "long")) {
+					__ASCII_WRITE_SCALAR_BLOCK(lcl)
+				} else if (startswith(var->type(), "unsigned int")) {
+					__ASCII_WRITE_SCALAR_BLOCK(uicl)
+				} else if (startswith(var->type(), "unsigned long")) {
+					__ASCII_WRITE_SCALAR_BLOCK(ulcl)
+				} else if (startswith(var->type(), "float")) {
+					__ASCII_WRITE_SCALAR_BLOCK(fcl)
+				} else if (startswith(var->type(), "double")) {
+					__ASCII_WRITE_SCALAR_BLOCK(dcl)
+				} else if (startswith(var->type(), "ivec")) {
+					__ASCII_WRITE_VEC_BLOCK(ivec)
+				} else if (startswith(var->type(), "lvec")) {
+					__ASCII_WRITE_VEC_BLOCK(lvec)
+				} else if (startswith(var->type(), "uivec")) {
+					__ASCII_WRITE_VEC_BLOCK(uivec)
+				} else if (startswith(var->type(), "ulvec")) {
+					__ASCII_WRITE_VEC_BLOCK(ulvec)
+				} else if (startswith(var->type(), "vec")) {
+					__ASCII_WRITE_VEC_BLOCK(vec)
+				} else if (startswith(var->type(), "dvec")) {
+					__ASCII_WRITE_VEC_BLOCK(dvec)
+				} else if (startswith(var->type(), "matrix")) {
+					__ASCII_WRITE_MATRIX_BLOCK(matrix)
 				}
+				if (j < vars.size() - 1)
+					f << ' ';
 			}
-			fs << std::endl;
+			f << std::endl;
+			f.flush();
 		}
 	}
-	fs.close();
+	f.close();
 	cl_int err_code;
 	err_code = clSetUserEventStatus(getUserEvent(), CL_COMPLETE);
 	CHECK_OCL_OR_THROW(err_code,

@@ -33,8 +33,8 @@ namespace Reports {
 
 SetTabFile::SetTabFile(const std::string tool_name,
                        const std::string fields,
-                       unsigned int first,
-                       unsigned int n,
+                       size_t first,
+                       size_t n,
                        const std::string output_file,
                        unsigned int ipf,
                        float fps)
@@ -64,8 +64,6 @@ SetTabFile::~SetTabFile()
 void
 SetTabFile::setup()
 {
-	unsigned int i;
-
 	std::ostringstream msg;
 	msg << "Loading the report \"" << name() << "\"..." << std::endl;
 	LOG(L_INFO, msg.str());
@@ -77,7 +75,7 @@ SetTabFile::setup()
 	// Write the header
 	_f << "# Time ";
 	std::vector<InputOutput::Variable*> vars = variables();
-	for (i = _bounds.x; i < _bounds.y; i++) {
+	for (ulcl i = _bounds.x; i < _bounds.y; i++) {
 		for (auto var : vars) {
 			_f << var->name() << "_" << i << " ";
 		}
@@ -86,82 +84,68 @@ SetTabFile::setup()
 	_f.flush();
 }
 
+#define __ASCII_WRITE_SCALAR_BLOCK(TYPE)                                       \
+	TYPE* v = (TYPE* )ptr;                                                     \
+	_f << v[i];
+
+#define __ASCII_WRITE_MATRIX_BLOCK(TYPE)                                       \
+	TYPE* v = (TYPE *)ptr;                                                     \
+	_f << '(';                                                                 \
+	for (auto k = 0; k < nc - 1; k++) {                                        \
+		_f << v[i].s[k] << ',';                                                \
+	}                                                                          \
+	_f << v[i].s[nc - 1] << ')';                                               \
+
+#define __ASCII_WRITE_VEC_BLOCK(TYPE)                                          \
+	if (nc == 2) {                                                             \
+		__ASCII_WRITE_MATRIX_BLOCK( TYPE ## 2 )                                \
+	} else if (nc == 3) {                                                      \
+		__ASCII_WRITE_MATRIX_BLOCK( TYPE ## 3 )                                \
+	} else if (nc == 4) {                                                      \
+		__ASCII_WRITE_MATRIX_BLOCK( TYPE ## 4 )                                \
+	} else if (nc == 8) {                                                      \
+		__ASCII_WRITE_MATRIX_BLOCK( TYPE ## 8 )                                \
+	}
+
 void
 SetTabFile::print()
 {
 	std::vector<InputOutput::Variable*> vars = variables();
-	for (unsigned int i = 0; i < bounds().y - bounds().x; i++) {
-		for (unsigned int j = 0; j < vars.size(); j++) {
-			InputOutput::ArrayVariable* var =
-			    (InputOutput::ArrayVariable*)vars.at(j);
+	for (size_t i = 0; i < bounds().y - bounds().x; i++) {
+		for (size_t j = 0; j < vars.size(); j++) {
+			Aqua::InputOutput::ArrayVariable* var =
+				(Aqua::InputOutput::ArrayVariable*)vars.at(j);
 			const std::string type_name = var->type();
-			if (!type_name.compare("int*")) {
-				int* v = (int*)_data.at(j);
-				_f << v[i] << " ";
-			} else if (!type_name.compare("unsigned int*")) {
-				unsigned int* v = (unsigned int*)_data.at(j);
-				_f << v[i] << " ";
-			} else if (!type_name.compare("float*")) {
-				float* v = (float*)_data.at(j);
-				_f << v[i] << " ";
-			} else if (!type_name.compare("ivec*")) {
-#ifdef HAVE_3D
-				ivec* v = (ivec*)_data.at(j);
-				_f << "(" << v[i].x << "," << v[i].y << "," << v[i].z << ","
-				   << v[i].w << ") ";
-#else
-				ivec* v = (ivec*)_data.at(j);
-				_f << "(" << v[i].x << "," << v[i].y << ") ";
-#endif // HAVE_3D
-			} else if (!type_name.compare("ivec2*")) {
-				ivec2* v = (ivec2*)_data.at(j);
-				_f << "(" << v[i].x << "," << v[i].y << ") ";
-			} else if (!type_name.compare("ivec3*")) {
-				ivec3* v = (ivec3*)_data.at(j);
-				_f << "(" << v[i].x << "," << v[i].y << "," << v[i].z << ") ";
-			} else if (!type_name.compare("ivec4*")) {
-				ivec4* v = (ivec4*)_data.at(j);
-				_f << "(" << v[i].x << "," << v[i].y << "," << v[i].z << ","
-				   << v[i].w << ") ";
-			} else if (!type_name.compare("uivec*")) {
-#ifdef HAVE_3D
-				uivec* v = (uivec*)_data.at(j);
-				_f << "(" << v[i].x << "," << v[i].y << "," << v[i].z << ","
-				   << v[i].w << ") ";
-#else
-				uivec* v = (uivec*)_data.at(j);
-				_f << "(" << v[i].x << "," << v[i].y << ") ";
-#endif // HAVE_3D
-			} else if (!type_name.compare("uivec2*")) {
-				uivec2* v = (uivec2*)_data.at(j);
-				_f << "(" << v[i].x << "," << v[i].y << ") ";
-			} else if (!type_name.compare("uivec3*")) {
-				uivec3* v = (uivec3*)_data.at(j);
-				_f << "(" << v[i].x << "," << v[i].y << "," << v[i].z << ") ";
-			} else if (!type_name.compare("uivec4*")) {
-				uivec4* v = (uivec4*)_data.at(j);
-				_f << "(" << v[i].x << "," << v[i].y << "," << v[i].z << ","
-				   << v[i].w << ") ";
-			} else if (!type_name.compare("vec*")) {
-#ifdef HAVE_3D
-				vec* v = (vec*)_data.at(j);
-				_f << "(" << v[i].x << "," << v[i].y << "," << v[i].z << ","
-				   << v[i].w << ") ";
-#else
-				vec* v = (vec*)_data.at(j);
-				_f << "(" << v[i].x << "," << v[i].y << ") ";
-#endif // HAVE_3D
-			} else if (!type_name.compare("vec2*")) {
-				vec2* v = (vec2*)_data.at(j);
-				_f << "(" << v[i].x << "," << v[i].y << ") ";
-			} else if (!type_name.compare("vec3*")) {
-				vec3* v = (vec3*)_data.at(j);
-				_f << "(" << v[i].x << "," << v[i].y << "," << v[i].z << ") ";
-			} else if (!type_name.compare("vec4*")) {
-				vec4* v = (vec4*)_data.at(j);
-				_f << "(" << v[i].x << "," << v[i].y << "," << v[i].z << ","
-				   << v[i].w << ") ";
+			const void* ptr = _data.at(j);
+			const auto nc = Aqua::InputOutput::Variables::typeToN(type_name);
+			if (startswith(var->type(), "int")) {
+				__ASCII_WRITE_SCALAR_BLOCK(icl)
+			} else if (startswith(var->type(), "long")) {
+				__ASCII_WRITE_SCALAR_BLOCK(lcl)
+			} else if (startswith(var->type(), "unsigned int")) {
+				__ASCII_WRITE_SCALAR_BLOCK(uicl)
+			} else if (startswith(var->type(), "unsigned long")) {
+				__ASCII_WRITE_SCALAR_BLOCK(ulcl)
+			} else if (startswith(var->type(), "float")) {
+				__ASCII_WRITE_SCALAR_BLOCK(fcl)
+			} else if (startswith(var->type(), "double")) {
+				__ASCII_WRITE_SCALAR_BLOCK(dcl)
+			} else if (startswith(var->type(), "ivec")) {
+				__ASCII_WRITE_VEC_BLOCK(ivec)
+			} else if (startswith(var->type(), "lvec")) {
+				__ASCII_WRITE_VEC_BLOCK(lvec)
+			} else if (startswith(var->type(), "uivec")) {
+				__ASCII_WRITE_VEC_BLOCK(uivec)
+			} else if (startswith(var->type(), "ulvec")) {
+				__ASCII_WRITE_VEC_BLOCK(ulvec)
+			} else if (startswith(var->type(), "vec")) {
+				__ASCII_WRITE_VEC_BLOCK(vec)
+			} else if (startswith(var->type(), "dvec")) {
+				__ASCII_WRITE_VEC_BLOCK(dvec)
+			} else if (startswith(var->type(), "matrix")) {
+				__ASCII_WRITE_MATRIX_BLOCK(matrix)
 			}
+			_f << ' ';
 		}
 	}
 	_f << std::endl;
@@ -290,7 +274,7 @@ SetTabFile::download(std::vector<InputOutput::Variable*> vars)
 		}
 	}
 
-	for (unsigned int i = 0; i < vars.size(); i++) {
+	for (size_t i = 0; i < vars.size(); i++) {
 		cl_event event;
 		typesize = C->variables()->typeToBytes(vars[i]->type());
 		try {
