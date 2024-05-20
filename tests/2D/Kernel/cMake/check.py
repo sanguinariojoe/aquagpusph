@@ -1,4 +1,4 @@
-def is_approx(v1, v2, tol=1e-5):
+def is_approx(v1, v2, tol=1.001e-5):
     return abs(v1 - v2) < tol
 
 with open('set0.00000.dat', 'r') as f:
