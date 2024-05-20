@@ -123,6 +123,13 @@ class LinkList : public Aqua::CalcServer::Tool
 	cl_event _execute(const std::vector<cl_event> events);
 
   private:
+	inline uivec4 nCells32() const {
+		uivec4 n_cells;
+		for (unsigned int i = 0; i < 4; i++)
+			n_cells.s[i] = narrow_cast<uicl>(_n_cells.s[i]);
+		return n_cells;
+	}
+
 	/** Setup the OpenCL stuff
 	 */
 	void setupOpenCL();
@@ -149,7 +156,7 @@ class LinkList : public Aqua::CalcServer::Tool
 	float _cell_length;
 
 	/// Number of cells
-	uivec4 _n_cells;
+	ulvec4 _n_cells;
 
 	/// Minimum position computation tool
 	Reduction* _min_pos;

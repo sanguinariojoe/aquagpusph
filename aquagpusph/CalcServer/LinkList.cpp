@@ -315,28 +315,27 @@ LinkList::nCells()
 	pos_min = *(vec*)vars->get("r_min")->get_async();
 	pos_max = *(vec*)vars->get("r_max")->get_async();
 
-	_n_cells.x = (unsigned int)((pos_max.x - pos_min.x) / _cell_length) + 6;
-	_n_cells.y = (unsigned int)((pos_max.y - pos_min.y) / _cell_length) + 6;
+	_n_cells.x = narrow_cast<ulcl>((pos_max.x - pos_min.x) / _cell_length) + 6;
+	_n_cells.y = narrow_cast<ulcl>((pos_max.y - pos_min.y) / _cell_length) + 6;
 #ifdef HAVE_3D
-	_n_cells.z = (unsigned int)((pos_max.z - pos_min.z) / _cell_length) + 6;
+	_n_cells.z = narrow_cast<ulcl>((pos_max.z - pos_min.z) / _cell_length) + 6;
 #else
 	_n_cells.z = 1;
 #endif
-	const unsigned int nw = _n_cells.x * _n_cells.y * _n_cells.z;
+	const ulcl nw = _n_cells.x * _n_cells.y * _n_cells.z;
 	_n_cells.w = nw;
 }
 
 void
 LinkList::allocate()
 {
-	uivec4 n_cells;
 	cl_int err_code;
 	cl_event event;
 	CalcServer* C = CalcServer::singleton();
 	InputOutput::Variables* vars = C->variables();
 
 	auto n_cells_var = getOutputDependencies()[2];
-	if (n_cells_var->type().compare("uivec4")) {
+	if (n_cells_var->type().compare("ulvec4")) {
 		std::stringstream msg;
 		msg << "\"n_cells\" has and invalid type for \"" << name() << "\"."
 		    << std::endl;
@@ -348,7 +347,12 @@ LinkList::allocate()
 		throw std::runtime_error("Invalid n_cells type");
 	}
 
-	n_cells_var->set_async(&_n_cells);
+	if (C->device_addr_bits() == 64)
+		n_cells_var->set_async(&_n_cells);
+	else {
+		uivec4 n_cells = nCells32();
+		n_cells_var->set_async(&n_cells);
+	}
 	_ihoc_gws = roundUp<size_t>(_n_cells.w, _ihoc_lws);
 
 	// Check if the size of ihoc is already bigger than the required one
@@ -363,16 +367,17 @@ LinkList::allocate()
 		clReleaseMemObject(mem);
 	mem = NULL;
 
+	const size_t ihoc_t_size = ihoc_var->typesize();
 	mem = clCreateBuffer(C->context(),
 	                     CL_MEM_READ_WRITE,
-	                     _n_cells.w * sizeof(cl_uint),
+	                     _n_cells.w * sizeof(ihoc_t_size),
 	                     NULL,
 	                     &err_code);
 	CHECK_OCL_OR_THROW(err_code,
 	                   std::string("Failure allocating ") +
-	                       std::to_string(_n_cells.w * sizeof(cl_uint)) +
-	                       " bytes on the device memory for tool \"" + name() +
-	                       "\".");
+	                   std::to_string(_n_cells.w * sizeof(ihoc_t_size)) +
+	                   " bytes on the device memory for tool \"" + name() +
+	                   "\".");
 	ihoc_var->set_async(&mem);
 }
 
@@ -433,8 +438,6 @@ void
 LinkList::setupOpenCL()
 {
 	unsigned int i;
-	uivec4 n_cells;
-	unsigned int n_radix, N;
 	cl_int err_code;
 	CalcServer* C = CalcServer::singleton();
 	InputOutput::Variables* vars = C->variables();
@@ -469,8 +472,12 @@ LinkList::setupOpenCL()
 		LOG0(L_DEBUG, msg.str());
 		throw std::runtime_error("OpenCL error");
 	}
-	n_cells = *(uivec4*)vars->get("n_cells")->get();
-	_ihoc_gws = roundUp<size_t>(n_cells.w, _ihoc_lws);
+	size_t n_cells;
+	if (C->device_addr_bits() == 64)
+		n_cells = ((ulvec4*)vars->get("n_cells")->get())->w;
+	else
+		n_cells = ((uivec4*)vars->get("n_cells")->get())->w;
+	_ihoc_gws = roundUp<size_t>(n_cells, _ihoc_lws);
 	const char* _ihoc_vars[3] = { "ihoc", "N", "n_cells" };
 	for (i = 0; i < 3; i++) {
 		err_code = clSetKernelArg(_ihoc,
@@ -507,7 +514,11 @@ LinkList::setupOpenCL()
 		LOG0(L_DEBUG, msg.str());
 		throw std::runtime_error("OpenCL error");
 	}
-	n_radix = *(unsigned int*)vars->get("n_radix")->get();
+	size_t n_radix;
+	if (C->device_addr_bits() == 64)
+		n_radix = *(ulcl*)vars->get("n_radix")->get();
+	else
+		n_radix = *(uicl*)vars->get("n_radix")->get();
 	_icell_gws = roundUp<size_t>(n_radix, _icell_lws);
 	const char* _icell_vars[8] = {
 		"icell", _input_name.c_str(), "N", "n_radix",
@@ -548,7 +559,11 @@ LinkList::setupOpenCL()
 		LOG0(L_DEBUG, msg.str());
 		throw std::runtime_error("OpenCL error");
 	}
-	N = *(unsigned int*)vars->get("N")->get();
+	size_t N;
+	if (C->device_addr_bits() == 64)
+		N = *(ulcl*)vars->get("N")->get();
+	else
+		N = *(uicl*)vars->get("N")->get();
 	_ll_gws = roundUp<size_t>(N, _ll_lws);
 	const char* _ll_vars[3] = { "icell", "ihoc", "N" };
 	for (i = 0; i < 3; i++) {

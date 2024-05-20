@@ -72,8 +72,8 @@ class stderrWriter(object):              \n\
 static PyObject*
 get(PyObject* self, PyObject* args, PyObject* keywds)
 {
-	Aqua::CalcServer::CalcServer* C = Aqua::CalcServer::CalcServer::singleton();
-	Aqua::InputOutput::Variables* vars = C->variables();
+	auto C = Aqua::CalcServer::CalcServer::singleton();
+	auto vars = C->variables();
 	const char* varname;
 
 	int i0 = 0;
@@ -86,7 +86,7 @@ get(PyObject* self, PyObject* args, PyObject* keywds)
 		return NULL;
 	}
 
-	Aqua::InputOutput::Variable* var = vars->get(varname);
+	auto var = vars->get(varname);
 	if (!var) {
 		std::ostringstream errstr;
 		errstr << "Variable \"" << varname << "\" has not been declared";
@@ -107,8 +107,8 @@ get(PyObject* self, PyObject* args, PyObject* keywds)
 static PyObject*
 set(PyObject* self, PyObject* args, PyObject* keywds)
 {
-	Aqua::CalcServer::CalcServer* C = Aqua::CalcServer::CalcServer::singleton();
-	Aqua::InputOutput::Variables* vars = C->variables();
+	auto C = Aqua::CalcServer::CalcServer::singleton();
+	auto vars = C->variables();
 	const char* varname;
 	PyObject* value;
 
@@ -122,7 +122,7 @@ set(PyObject* self, PyObject* args, PyObject* keywds)
 		return NULL;
 	}
 
-	Aqua::InputOutput::Variable* var = vars->get(varname);
+	auto var = vars->get(varname);
 	if (!var) {
 		std::ostringstream errstr;
 		errstr << "Variable \"" << varname << "\" has not been declared";

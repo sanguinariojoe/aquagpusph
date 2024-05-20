@@ -44,15 +44,11 @@
 #ifndef _GROUPS
 #define _GROUPS 32
 #endif
-/// @def __UINTBITS__ Bits of an unsigned integer variable
-#ifndef __UINTBITS__
-#define __UINTBITS__ 32
-#endif
-/// @def _STEPBITS Bits that be sorted in each pass
+/// @def _STEPBITS Bits to be sorted on each pass
 #ifndef _STEPBITS
 #define _STEPBITS 4
 #endif
-/// @def _RADIX Bits that be sorted in each pass
+/// @def _RADIX Bits to be sorted on each pass
 #define _RADIX (1 << _STEPBITS)
 /** @def _HISTOSPLIT Number of splits of the histogram
  * @remarks (_GROUPS * _ITEMS * _RADIX) % _HISTOSPLIT must be equal to zero
@@ -177,7 +173,13 @@ class RadixSort : public Aqua::CalcServer::Tool
 
 	/** Send the fixed arguments to the kernels.
 	 */
+	/// @{
+	template<typename T>
+	void setupTypedArgs();
+
 	void setupArgs();
+	/// @}
+
 
 	/// Variable to sort name
 	std::string _var_name;
@@ -198,10 +200,10 @@ class RadixSort : public Aqua::CalcServer::Tool
 	InputOutput::ArrayVariable* _inv_perms;
 
 	/// Number of keys to sort
-	unsigned int _n;
+	size_t _n;
 
 	/// Padded number of keys to sort
-	unsigned int _n_padded;
+	size_t _n_padded;
 
 	/// OpenCL initialization kernel
 	cl_kernel _init_kernel;
@@ -232,18 +234,18 @@ class RadixSort : public Aqua::CalcServer::Tool
 	cl_mem _temp_mem;
 
 	/// Number of items in a group
-	unsigned int _items;
+	size_t _items;
 	/// Number of groups in a radix
-	unsigned int _groups;
+	size_t _groups;
 	/// Bits of the Radix
-	unsigned int _bits;
+	size_t _bits;
 	/// Number of Radices
-	unsigned int _radix;
+	size_t _radix;
 	/// Splits of the histogram
-	unsigned int _histo_split;
+	size_t _histo_split;
 
 	/// Key bits (maximum)
-	unsigned int _key_bits;
+	size_t _key_bits;
 	/// Needed radix pass (_key_bits / _STEPBITS)
 	unsigned int _n_pass;
 	/// Pass of the radix decomposition

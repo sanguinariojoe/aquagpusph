@@ -103,7 +103,7 @@ Copy::variables()
 		LOG(L_ERROR, msg.str());
 		throw std::runtime_error("Invalid variable");
 	}
-	if (vars->get(_input_name)->type().find('*') == std::string::npos) {
+	if (!vars->get(_input_name)->isArray()) {
 		std::stringstream msg;
 		msg << "The tool \"" << name() << "\" may not use a scalar variable (\""
 		    << _input_name << "\")." << std::endl;
@@ -120,7 +120,7 @@ Copy::variables()
 		LOG(L_ERROR, msg.str());
 		throw std::runtime_error("Invalid variable");
 	}
-	if (vars->get(_output_name)->type().find('*') == std::string::npos) {
+	if (!vars->get(_output_name)->isArray()) {
 		std::stringstream msg;
 		msg << "The tool \"" << name() << "\" may not use a scalar variable (\""
 		    << _output_name << "\")." << std::endl;

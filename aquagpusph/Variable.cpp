@@ -1598,6 +1598,9 @@ Variables::registerScalar(const std::string name,
                           const std::string type_name,
                           const std::string value)
 {
+	LOG(L_INFO,
+	    std::string("Registering the scalar \"") + name + "\" (" +
+	    type_name + ") = \"" + value + "\"\n");
 	std::string type = typeAlias(trimCopy(type_name));
 	if (!type.compare("int")) {
 		IntVariable* var = new IntVariable(name);
@@ -1703,6 +1706,10 @@ Variables::registerClMem(const std::string name,
                          const std::string type_name,
                          const std::string length)
 {
+	LOG(L_INFO,
+	    std::string("Registering the array \"") + name + "\" (" +
+	    type_name + ") of length \"" + length + "\"\n");
+
 	unsigned int n;
 	CalcServer::CalcServer* C = CalcServer::CalcServer::singleton();
 	// Get the type size

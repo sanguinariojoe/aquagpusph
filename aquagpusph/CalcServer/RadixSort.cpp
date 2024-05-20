@@ -25,6 +25,7 @@
  */
 
 #include <sstream>
+#include <limits>
 #include "aquagpusph/AuxiliarMethods.hpp"
 #include "aquagpusph/InputOutput/Logger.hpp"
 #include "RadixSort.hpp"
@@ -129,16 +130,23 @@ cl_event
 RadixSort::_execute(const std::vector<cl_event> events)
 {
 	cl_int err_code;
-	unsigned int i, max_val;
+	size_t i, max_val;
 	cl_event event;
 	CalcServer* C = CalcServer::singleton();
 	InputOutput::Variables* vars = C->variables();
 
 	// Get maximum key bits, and needed pass
-	max_val = UINT_MAX;
+	if (C->device_addr_bits() == 64)
+		max_val = std::numeric_limits<ulcl>::max();
+	else
+		max_val = std::numeric_limits<uicl>::max();
 	if (!_var_name.compare("icell")) {
-		uivec4 n_cells = *(uivec4*)vars->get("n_cells")->get(true);
-		max_val = nextPowerOf2(n_cells.w);
+		size_t n_cells;
+		if (C->device_addr_bits() == 64)
+			n_cells = ((ulvec4*)vars->get("n_cells")->get())->w;
+		else
+			n_cells = ((uivec4*)vars->get("n_cells")->get())->w;
+		max_val = nextPowerOf2(n_cells);
 	} else if (!isPowerOf2(max_val)) {
 		max_val = nextPowerOf2(max_val / 2);
 	}
@@ -146,11 +154,15 @@ RadixSort::_execute(const std::vector<cl_event> events)
 		;
 	_key_bits = i;
 	_key_bits = roundUp<size_t>(_key_bits, _bits);
-	if (_key_bits > __UINTBITS__) {
-		LOG(L_ERROR, "Resultant keys overflows unsigned int type.\n");
+	if (_key_bits > C->device_addr_bits()) {
+		LOG(L_ERROR,
+		    std::string("Resultant keys=") + std::to_string(_key_bits) +
+		    "bits overflows the " + std::to_string(C->device_addr_bits()) +
+		    "bits available for unsigned int types\n");
 		throw std::runtime_error("Unsigned int overflow");
 	}
 	_n_pass = _key_bits / _bits;
+	size_t uint_size = C->device_addr_bits() / 8;
 
 	// Fisrt we copy everything on our transactional memory objects, which are
 	// conveniently padded
@@ -192,7 +204,7 @@ RadixSort::_execute(const std::vector<cl_event> events)
 	                               *(cl_mem*)_var->get(),
 	                               0,
 	                               0,
-	                               _n * sizeof(cl_uint),
+	                               _n * uint_size,
 	                               var_events.size(),
 	                               var_events.data(),
 	                               &event);
@@ -218,7 +230,7 @@ RadixSort::_execute(const std::vector<cl_event> events)
 	                               *(cl_mem*)_perms->get(),
 	                               0,
 	                               0,
-	                               _n * sizeof(cl_uint),
+	                               _n * uint_size,
 	                               perms_events.size(),
 	                               perms_events.data(),
 	                               &event);
@@ -600,6 +612,9 @@ RadixSort::variables()
 	auto C = CalcServer::singleton();
 	auto vars = C->variables();
 
+	std::string size_t_name = (C->device_addr_bits() == 64) ?
+		"unsigned long*" :
+		"unsigned int*";
 	// Check and get the variables
 	if (!vars->get(_var_name)) {
 		std::ostringstream msg;
@@ -609,13 +624,13 @@ RadixSort::variables()
 		LOG(L_ERROR, msg.str());
 		throw std::runtime_error("Invalid variable");
 	}
-	if (vars->get(_var_name)->type().compare("unsigned int*")) {
+	if (vars->get(_var_name)->type() != size_t_name) {
 		std::ostringstream msg;
 		msg << "Tool \"" << name() << "\" cannot process variable \""
 		    << _var_name << "\"." << std::endl;
 		LOG(L_ERROR, msg.str());
 		msg.str("");
-		msg << "\t\"unsigned int*\" type was expected, but \""
+		msg << "\t\"" << size_t_name << "\" type was expected, but \""
 		    << vars->get(_var_name)->type() << "\" has been received."
 		    << std::endl;
 		LOG(L_DEBUG, msg.str());
@@ -631,15 +646,15 @@ RadixSort::variables()
 		LOG(L_ERROR, msg.str());
 		throw std::runtime_error("Invalid variable");
 	}
-	if (vars->get(_perms_name)->type().compare("unsigned int*")) {
+	if (vars->get(_perms_name)->type() != size_t_name) {
 		std::ostringstream msg;
 		msg << "Tool \"" << name()
 		    << "\" cannot process permutations variable \"" << _perms_name
 		    << "\"." << std::endl;
 		LOG(L_ERROR, msg.str());
 		msg.str("");
-		msg << "\t\"unsigned int*\" type was expected, but \""
-		    << vars->get(_perms_name)->type() << "\" has been received."
+		msg << "\t\"" << size_t_name << "\" type was expected, but \""
+		    << vars->get(_var_name)->type() << "\" has been received."
 		    << std::endl;
 		LOG(L_DEBUG, msg.str());
 		throw std::runtime_error("Invalid variable type");
@@ -655,15 +670,15 @@ RadixSort::variables()
 		LOG(L_ERROR, msg.str());
 		throw std::runtime_error("Invalid variable");
 	}
-	if (vars->get(_inv_perms_name)->type().compare("unsigned int*")) {
+	if (vars->get(_inv_perms_name)->type() != size_t_name) {
 		std::ostringstream msg;
 		msg << "Tool \"" << name()
 		    << "\" cannot process inverse permutations variable \""
 		    << _inv_perms_name << "\"." << std::endl;
 		LOG(L_ERROR, msg.str());
 		msg.str("");
-		msg << "\t\"unsigned int*\" type was expected, but \""
-		    << vars->get(_inv_perms_name)->type() << "\" has been received."
+		msg << "\t\"" << size_t_name << "\" type was expected, but \""
+		    << vars->get(_var_name)->type() << "\" has been received."
 		    << std::endl;
 		LOG(L_DEBUG, msg.str());
 		throw std::runtime_error("Invalid variable type");
@@ -873,9 +888,12 @@ RadixSort::setupMems()
 	allocatedMemory(0);
 
 	// Get the memory identifiers
+	size_t type_size = (C->device_addr_bits() == 64) ?
+		sizeof(ulcl) : sizeof(uicl);
+
 	_in_vals = clCreateBuffer(C->context(),
 	                          CL_MEM_READ_WRITE,
-	                          _n_padded * sizeof(unsigned int),
+	                          _n_padded * type_size,
 	                          NULL,
 	                          &err_code);
 	CHECK_OCL_OR_THROW(
@@ -884,7 +902,7 @@ RadixSort::setupMems()
 	        "\".");
 	_out_vals = clCreateBuffer(C->context(),
 	                           CL_MEM_READ_WRITE,
-	                           _n_padded * sizeof(unsigned int),
+	                           _n_padded * type_size,
 	                           NULL,
 	                           &err_code);
 	CHECK_OCL_OR_THROW(
@@ -893,7 +911,7 @@ RadixSort::setupMems()
 	        "\".");
 	_in_permut = clCreateBuffer(C->context(),
 	                            CL_MEM_READ_WRITE,
-	                            _n_padded * sizeof(unsigned int),
+	                            _n_padded * type_size,
 	                            NULL,
 	                            &err_code);
 	CHECK_OCL_OR_THROW(
@@ -902,7 +920,7 @@ RadixSort::setupMems()
 	        "\".");
 	_out_permut = clCreateBuffer(C->context(),
 	                             CL_MEM_READ_WRITE,
-	                             _n_padded * sizeof(unsigned int),
+	                             _n_padded * type_size,
 	                             NULL,
 	                             &err_code);
 	CHECK_OCL_OR_THROW(
@@ -912,7 +930,7 @@ RadixSort::setupMems()
 	_histograms =
 	    clCreateBuffer(C->context(),
 	                   CL_MEM_READ_WRITE,
-	                   (_radix * _groups * _items) * sizeof(unsigned int),
+	                   (_radix * _groups * _items) * type_size,
 	                   NULL,
 	                   &err_code);
 	CHECK_OCL_OR_THROW(
@@ -921,7 +939,7 @@ RadixSort::setupMems()
 	        "\".");
 	_global_sums = clCreateBuffer(C->context(),
 	                              CL_MEM_READ_WRITE,
-	                              _histo_split * sizeof(unsigned int),
+	                              _histo_split * type_size,
 	                              NULL,
 	                              &err_code);
 	CHECK_OCL_OR_THROW(
@@ -935,16 +953,19 @@ RadixSort::setupMems()
 	    std::string("Failure allocating device memory in tool \"") + name() +
 	        "\".");
 
-	allocatedMemory(4 * _n_padded * sizeof(unsigned int) +
-	                (_radix * _groups * _items) * sizeof(unsigned int) +
-	                _histo_split * sizeof(unsigned int) + sizeof(unsigned int));
+	allocatedMemory((4 * _n_padded + (_radix * _groups * _items) +
+	                 _histo_split + 1) * type_size);
 }
 
+template<typename T>
 void
-RadixSort::setupArgs()
+RadixSort::setupTypedArgs()
 {
 	cl_int err_code;
 	CalcServer* C = CalcServer::singleton();
+
+	T n = narrow_cast<T>(_n);
+	T n_padded = narrow_cast<T>(_n_padded);
 
 	err_code =
 	    clSetKernelArg(_init_kernel, 0, sizeof(cl_mem), _var->get_async());
@@ -952,13 +973,13 @@ RadixSort::setupArgs()
 	    err_code,
 	    std::string("Failure sending argument 0 to \"init\" in tool \"") +
 	        name() + "\".");
-	err_code = clSetKernelArg(_init_kernel, 3, sizeof(cl_uint), (void*)&_n);
+	err_code = clSetKernelArg(_init_kernel, 3, sizeof(T), (void*)&n);
 	CHECK_OCL_OR_THROW(
 	    err_code,
 	    std::string("Failure sending argument 3 to \"init\" in tool \"") +
 	        name() + "\".");
 	err_code =
-	    clSetKernelArg(_init_kernel, 4, sizeof(cl_uint), (void*)&_n_padded);
+	    clSetKernelArg(_init_kernel, 4, sizeof(T), (void*)&n_padded);
 	CHECK_OCL_OR_THROW(
 	    err_code,
 	    std::string("Failure sending argument 4 to \"init\" in tool \"") +
@@ -971,13 +992,13 @@ RadixSort::setupArgs()
 	    std::string("Failure sending argument 1 to \"histogram\" in tool \"") +
 	        name() + "\".");
 	err_code = clSetKernelArg(
-	    _histograms_kernel, 3, sizeof(cl_uint) * _radix * _items, NULL);
+	    _histograms_kernel, 3, sizeof(T) * _radix * _items, NULL);
 	CHECK_OCL_OR_THROW(
 	    err_code,
 	    std::string("Failure sending argument 3 to \"histogram\" in tool \"") +
 	        name() + "\".");
 	err_code = clSetKernelArg(
-	    _histograms_kernel, 4, sizeof(cl_uint), (void*)&_n_padded);
+	    _histograms_kernel, 4, sizeof(T), (void*)&n_padded);
 	CHECK_OCL_OR_THROW(
 	    err_code,
 	    std::string("Failure sending argument 4 to \"histogram\" in tool \"") +
@@ -986,7 +1007,7 @@ RadixSort::setupArgs()
 	unsigned int maxmemcache =
 	    max(_histo_split, _items * _groups * _radix / _histo_split);
 	err_code =
-	    clSetKernelArg(_scan_kernel, 1, sizeof(cl_uint) * maxmemcache, NULL);
+	    clSetKernelArg(_scan_kernel, 1, sizeof(T) * maxmemcache, NULL);
 	CHECK_OCL_OR_THROW(
 	    err_code,
 	    std::string("Failure sending argument 1 to \"scan\" in tool \"") +
@@ -1012,13 +1033,13 @@ RadixSort::setupArgs()
 	    std::string("Failure sending argument 2 to \"sort\" in tool \"") +
 	        name() + "\".");
 	err_code = clSetKernelArg(
-	    _sort_kernel, 6, sizeof(cl_uint) * _radix * _items, NULL);
+	    _sort_kernel, 6, sizeof(T) * _radix * _items, NULL);
 	CHECK_OCL_OR_THROW(
 	    err_code,
 	    std::string("Failure sending argument 6 to \"sort\" in tool \"") +
 	        name() + "\".");
 	err_code =
-	    clSetKernelArg(_sort_kernel, 7, sizeof(cl_uint), (void*)&_n_padded);
+	    clSetKernelArg(_sort_kernel, 7, sizeof(T), (void*)&n_padded);
 	CHECK_OCL_OR_THROW(
 	    err_code,
 	    std::string("Failure sending argument 7 to \"sort\" in tool \"") +
@@ -1031,11 +1052,20 @@ RadixSort::setupArgs()
 	    std::string("Failure sending argument 1 to \"inversePermutation\" ") +
 	        "in tool \"" + name() + "\".");
 	err_code =
-	    clSetKernelArg(_inv_perms_kernel, 2, sizeof(cl_uint), (void*)&_n);
+	    clSetKernelArg(_inv_perms_kernel, 2, sizeof(T), (void*)&n);
 	CHECK_OCL_OR_THROW(
 	    err_code,
 	    std::string("Failure sending argument 2 to \"inversePermutation\" ") +
 	        "in tool \"" + name() + "\".");
+}
+
+void
+RadixSort::setupArgs()
+{
+	if (CalcServer::singleton()->device_addr_bits() == 64)
+		setupTypedArgs<ulcl>();
+	else
+		setupTypedArgs<uicl>();
 }
 
 }

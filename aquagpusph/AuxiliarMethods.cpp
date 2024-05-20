@@ -348,7 +348,7 @@ isRelativePath(const std::string path)
 }
 
 size_t
-getLocalWorkSize(cl_uint n, cl_command_queue queue)
+getLocalWorkSize(size_t n, cl_command_queue queue)
 {
 	cl_int flag;
 	cl_device_id d;
@@ -383,7 +383,7 @@ getLocalWorkSize(cl_uint n, cl_command_queue queue)
 }
 
 size_t
-getGlobalWorkSize(cl_ulong n, size_t local_work_size)
+getGlobalWorkSize(size_t n, size_t local_work_size)
 {
 	return roundUp<size_t>(n, local_work_size);
 }

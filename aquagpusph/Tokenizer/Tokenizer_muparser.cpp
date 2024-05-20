@@ -23,7 +23,7 @@
 
 // #include <matheval.h>
 
-#include "Tokenizer.hpp"
+#include "Tokenizer_muparser.hpp"
 #include <cstdint>
 
 using namespace std;
@@ -122,90 +122,6 @@ Tokenizer_muparser::isVariable(const std::string name)
 		}
 	}
 	return false;
-}
-
-template<>
-double
-Tokenizer_muparser::cast(const double& val)
-{
-	return val;
-}
-
-template<>
-float
-Tokenizer_muparser::cast(const double& val)
-{
-	return (float)val;
-}
-
-template<>
-int32_t
-Tokenizer_muparser::cast(const double& val)
-{
-	return Aqua::round<int32_t>(val);
-}
-
-template<>
-int64_t
-Tokenizer_muparser::cast(const double& val)
-{
-	return Aqua::round<int64_t>(val);
-}
-
-template<>
-uint32_t
-Tokenizer_muparser::cast(const double& val)
-{
-	return Aqua::round<uint32_t>(val);
-}
-
-template<>
-uint64_t
-Tokenizer_muparser::cast(const double& val)
-{
-	return Aqua::round<uint64_t>(val);
-}
-
-template<>
-double
-Tokenizer_muparser::cast(const int64_t& val)
-{
-	return (double)val;
-}
-
-template<>
-float
-Tokenizer_muparser::cast(const int64_t& val)
-{
-	return (float)val;
-}
-
-template<>
-int32_t
-Tokenizer_muparser::cast(const int64_t& val)
-{
-	return (int32_t)val;
-}
-
-template<>
-int64_t
-Tokenizer_muparser::cast(const int64_t& val)
-{
-	return (int64_t)val;
-}
-
-template<>
-uint32_t
-Tokenizer_muparser::cast(const int64_t& val)
-{
-	return (uint32_t)val;
-}
-
-template<>
-uint64_t
-Tokenizer_muparser::cast(const int64_t& val)
-{
-	return (uint64_t)val;
 }
 
 } // Aqua::

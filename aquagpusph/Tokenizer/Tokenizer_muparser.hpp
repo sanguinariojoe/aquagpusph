@@ -87,31 +87,32 @@ class Tokenizer_muparser
 	T solve(const std::string eq)
 	{
 		const std::lock_guard<std::mutex> lock(this->mutex);
-		T result;
+		T res;
 
 		// First try straight number conversions
 		size_t sz;
 		try {
-			result = cast<T>((int64_t)std::stoll(eq, &sz));
+			res = narrow_cast<T>((int64_t)std::stoll(eq, &sz));
 			if (sz == eq.size()) {
-				return result;
+				return res;
 			}
 		} catch (...) {
 		}
 		try {
 			std::string::size_type sz;
-			result = cast<T>(std::stod(eq, &sz));
+			res = narrow_cast<T>(std::stod(eq, &sz));
 			if (sz == eq.size()) {
-				return result;
+				return res;
 			}
 		} catch (...) {
 		}
 
 		// No way, let's evaluate it as an expression
+		mu::value_type res_org;
 		p.SetExpr(eq);
-
 		try {
-			result = cast<T>(p.Eval());
+			res_org = p.Eval();
+			res = narrow_cast<T>(res_org);
 		} catch (mu::Parser::exception_type& e) {
 			std::ostringstream msg;
 			msg << "Error evaluating \"" << e.GetExpr() << "\"" << std::endl;
@@ -125,9 +126,17 @@ class Tokenizer_muparser
 				<< std::endl;
 			LOG0(L_DEBUG, msg.str());
 			throw;
+		} catch(std::out_of_range) {
+			LOG(L_ERROR, std::string("Error evaluating \"") + eq + "\":\n");
+			LOG0(L_DEBUG, "\n");
+			LOG0(L_DEBUG, std::string("The result ") +
+			     std::to_string(res_org) + " overflows the type \"" +
+			     typeid(res).name() + "\"\n");
+			LOG0(L_DEBUG, "\n");
+			throw;
 		}
 
-		return result;
+		return res;
 	}
 
   protected:
@@ -149,18 +158,10 @@ class Tokenizer_muparser
 		if (!isVariable(name))
 			return 0.f;
 		mu::valmap_type cmap = p.GetConst();
-		return cast<T>(cmap[name.c_str()]);
+		return narrow_cast<T>(cmap[name.c_str()]);
 	}
 
   private:
-	/** @brief Several useful castings
-	 * @param val The value returned by MuParser
-	 * @return The casted value to type T
-	 */
-	template<typename Tout, typename Tin>
-	Tout
-	cast(const Tin& val);
-
 	/// Mathematical expressions variables inspector
 	mu::Parser q;
 	/// Mathematical expressions parser

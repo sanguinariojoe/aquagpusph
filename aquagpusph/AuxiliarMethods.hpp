@@ -28,6 +28,8 @@
 #include <vector>
 #include <tuple>
 #include <deque>
+#include <limits>
+#include "aquagpusph/ext/boost/numeric/conversion/cast.hpp"
 
 #ifdef HAVE_MPI
 #include <mpi.h>
@@ -297,9 +299,9 @@ roundUp(T x, T divisor)
  * @param n Number to round.
  * @return The closest integer to @paramname{n}.
  */
-template<typename T=int>
-inline T
-round(float n) { return (T)(n + ((n >= 0) ? 0.5 : -0.5)); }
+template<typename Tout=int, typename Tin>
+inline Tout
+round(Tin n) { return (Tout)(n + ((n >= 0) ? 0.5 : -0.5)); }
 
 /// Gets the folder path which contains the file @paramname{file_path}.
 /**
@@ -349,7 +351,7 @@ isRelativePath(const std::string path);
  * @return The local work size, 0 if it is not possible to find a valid value.
  */
 size_t
-getLocalWorkSize(cl_uint n, cl_command_queue queue);
+getLocalWorkSize(size_t n, cl_command_queue queue);
 
 /// Compute the global work size needed to compute @paramname{n} threads.
 /**
@@ -360,7 +362,7 @@ getLocalWorkSize(cl_uint n, cl_command_queue queue);
  * @see roundUp()
  */
 size_t
-getGlobalWorkSize(cl_uint n, size_t local_work_size);
+getGlobalWorkSize(size_t n, size_t local_work_size);
 
 /// Gets the minimum of two values.
 /**
@@ -402,18 +404,26 @@ clamp(float x, float a, float b)
 }
 
 /** @brief Cast a value, checking that it is not overflowing
+ *
+ * This is just a wrapper around boost::numeric_cast<>()
  * @param val Value to cast
  * @return Casted value
  * @throw std::out_of_range If the casting would overflow the variable
  */
-template<class Target, class Source>
-inline Target
-narrow_cast(Source v)
+template<class Tdst, class Torg>
+inline Tdst
+narrow_cast(Torg v)
 {
-   auto r = static_cast<Target>(v);
-   if (static_cast<Source>(r) != v)
-      throw std::out_of_range("narrow_cast<>() failed");
-   return r;
+	Tdst r;
+	try 
+	{
+		 r = boost::numeric_cast<Torg>(v);
+	}
+	catch(boost::numeric::bad_numeric_cast& e) {
+	throw std::out_of_range("narrow_cast<>() failed");
+		throw std::out_of_range(e.what());
+	}
+	return r;
 }
 
 /// Return a null vector.

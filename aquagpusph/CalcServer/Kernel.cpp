@@ -132,10 +132,10 @@ ArgSetter::ArgSetter(const std::string name,
  */
 void
 debug_arg(unsigned int i,
-            InputOutput::Variable* var,
-            CalcServer* C,
-            TLogLevel log_level=L_DEBUG,
-            const char* indent="\t\t")
+          InputOutput::Variable* var,
+          CalcServer* C,
+          TLogLevel log_level=L_DEBUG,
+          const char* indent="\t\t")
 {
 	std::stringstream msg;
 	msg << indent << "Argument " << i << ", variable \"" << var->name() << "\""
@@ -539,7 +539,7 @@ Kernel::variables(const std::string entry_point)
 void
 Kernel::computeGlobalWorkSize()
 {
-	uint64_t N = 0;
+	ulcl N = 0;
 	if (!_work_group_size) {
 		LOG(L_ERROR, "Work group size must be greater than 0.\n");
 		throw std::runtime_error("Null work group size");
@@ -549,7 +549,8 @@ Kernel::computeGlobalWorkSize()
 		for (auto var : _vars) {
 			if (!var->isArray())
 				continue;
-			uint64_t var_N = var->size() / vars->typeToBytes(var->type());
+			const ulcl var_N = narrow_cast<ulcl>(
+				var->size() / vars->typeToBytes(var->type()));
 			if (var_N > N)
 				N = var_N;
 		}
@@ -562,7 +563,8 @@ Kernel::computeGlobalWorkSize()
 		}
 	}
 
-	_global_work_size = roundUp<size_t>((size_t)N, _work_group_size);
+	_global_work_size = roundUp<size_t>(narrow_cast<size_t>(N),
+	                                    _work_group_size);
 	{
 		std::stringstream msg;
 		msg << _global_work_size << " threads ("

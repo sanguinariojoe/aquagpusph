@@ -272,7 +272,7 @@ MPISync::variables()
 			LOG(L_ERROR, msg.str());
 			throw std::runtime_error("Invalid variable");
 		}
-		if (vars->get(var_name)->type().find('*') == std::string::npos) {
+		if (!vars->get(var_name)->isArray()) {
 			std::stringstream msg;
 			msg << "The tool \"" << name()
 			    << "\" may not use a scalar variable (\"" << var_name << "\")."
@@ -311,10 +311,10 @@ MPISync::setupSort()
 	// Register the variables to store the permutations
 	valstr << _n;
 	var_name = varPrefix() + _mask_name + "_unsorted";
-	vars->registerVariable(var_name, "unsigned int*", valstr.str(), "");
+	vars->registerVariable(var_name, "size_t*", valstr.str(), "");
 	_unsorted_id = (InputOutput::ArrayVariable*)vars->get(var_name);
 	var_name = varPrefix() + _mask_name + "_sorted";
-	vars->registerVariable(var_name, "unsigned int*", valstr.str(), "");
+	vars->registerVariable(var_name, "size_t*", valstr.str(), "");
 	_sorted_id = (InputOutput::ArrayVariable*)vars->get(var_name);
 
 	// Create the sorter
@@ -366,9 +366,6 @@ MPISync::setupFieldSort(InputOutput::ArrayVariable* field)
 void
 MPISync::setupSenders()
 {
-	CalcServer* C = CalcServer::singleton();
-	InputOutput::Variables* vars = C->variables();
-
 	// Allocate the host memory to download the fields and subsequently send
 	// them
 	for (auto field : _fields) {
@@ -411,8 +408,8 @@ MPISync::setupReceivers()
 
 	// Create a variable for the cumulative offset computation
 	std::string var_name = varPrefix() + "mpi_offset";
-	vars->registerVariable(var_name, "unsigned int", "", "0");
-	_n_offset_recv = (InputOutput::UIntVariable*)vars->get(var_name);
+	vars->registerVariable(var_name, "size_t", "", "0");
+	_n_offset_recv = (InputOutput::Variable*)vars->get(var_name);
 
 	// Create a tool to reinit it to zero value
 	_n_offset_recv_reinit = new SetScalar(
@@ -512,11 +509,17 @@ MPISync::Exchanger::typeToMPI(std::string t)
 	}
 
 	if ((!t.compare("int")) || (!t.compare("ivec"))) {
-		mpi_t.t = MPI_INT;
+		mpi_t.t = MPI_INT32_T;
+	} else if ((!t.compare("long")) || (!t.compare("lvec"))) {
+		mpi_t.t = MPI_INT64_T;
 	} else if ((!t.compare("unsigned int")) || (!t.compare("uivec"))) {
-		mpi_t.t = MPI_UNSIGNED;
+		mpi_t.t = MPI_UINT32_T;
+	} else if ((!t.compare("unsigned long")) || (!t.compare("ulvec"))) {
+		mpi_t.t = MPI_UINT64_T;
 	} else if ((!t.compare("float")) || (!t.compare("vec"))) {
 		mpi_t.t = MPI_FLOAT;
+	} else if ((!t.compare("double")) || (!t.compare("dvec"))) {
+		mpi_t.t = MPI_DOUBLE;
 	}
 
 	return mpi_t;
@@ -569,8 +572,8 @@ typedef struct
 	InputOutput::ArrayVariable* field;
 	void* ptr;
 	unsigned int proc;
-	unsigned int* offset;
-	unsigned int* n;
+	size_t offset;
+	size_t n;
 	int tag;
 	cl_event user_event;
 } MPISyncSendUserData;
@@ -580,11 +583,14 @@ cbMPISend(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 {
 	MPI_Request req;
 	MPISyncSendUserData* data = (MPISyncSendUserData*)user_data;
-	unsigned int offset = *(data->offset);
-	unsigned int n = *(data->n);
+	size_t offset = data->offset;
+	size_t n = data->n;
 
 	if (data->tag == 1) {
-		Aqua::MPI::isend(&n, 1, MPI_UNSIGNED, data->proc, 0, MPI_COMM_WORLD);
+		MPI_Datatype t = (sizeof(size_t) == sizeof(uint32_t)) ?
+			MPI_UINT32_T :
+			MPI_UINT64_T;
+		Aqua::MPI::isend(&n, 1, t, data->proc, 0, MPI_COMM_WORLD);
 	}
 
 	if (!n) {
@@ -723,8 +729,13 @@ MPISync::Sender::execute(EventProfile* profiler)
 		user_data->field = _fields.at(i);
 		user_data->ptr = _fields_host.at(i);
 		user_data->proc = _proc;
-		user_data->offset = (unsigned int*)(_n_offset->get_async());
-		user_data->n = (unsigned int*)(_n_send->get_async());
+		if (C->device_addr_bits() == 64) {
+			user_data->offset = *(ulcl*)_n_offset->get_async();
+			user_data->n = *(ulcl*)_n_send->get_async();
+		} else {
+			user_data->offset = *(uicl*)_n_offset->get_async();
+			user_data->n = *(uicl*)_n_send->get_async();
+		}
 		user_data->tag = i + 1;
 		user_data->user_event = clCreateUserEvent(C->context(), &err_code);
 		CHECK_OCL_OR_THROW(
@@ -832,7 +843,7 @@ MPISync::Sender::setupOpenCL(const std::string kernel_name)
 	    err_code,
 	    std::string("Failure sending the proc argument in tool \"") + name() +
 	        "\".");
-	err_code = clSetKernelArg(kernel, 3, sizeof(unsigned int), (void*)&_n);
+	err_code = clSetKernelArg(kernel, 3, sizeof(ulcl), (void*)&_n);
 	CHECK_OCL_OR_THROW(
 	    err_code,
 	    std::string("Failure sending the array size argument in tool \"") +
@@ -870,12 +881,12 @@ MPISync::Sender::setupReduction(const std::string var_name)
 		name << _var_prefix << var_name << "_" << ++i;
 	}
 	if (!vars->get(name.str()))
-		vars->registerVariable(name.str(), "unsigned int", "", "0");
+		vars->registerVariable(name.str(), "size_t", "", "0");
 	InputOutput::Variable* var = vars->get(name.str());
 	if (!var_name.compare("n_offset")) {
-		_n_offset = (InputOutput::UIntVariable*)var;
+		_n_offset = var;
 	} else if (!var_name.compare("n_send")) {
-		_n_send = (InputOutput::UIntVariable*)var;
+		_n_send = var;
 	}
 
 	name << "->Sum";
@@ -898,7 +909,7 @@ MPISync::Receiver::Receiver(
     const std::vector<InputOutput::ArrayVariable*> fields,
     const std::vector<void*> field_hosts,
     const unsigned int proc,
-    InputOutput::UIntVariable* n_offset)
+    InputOutput::Variable* n_offset)
   : MPISync::Exchanger(name, vars_prefix, mask, fields, field_hosts, proc)
   , _kernel(NULL)
   , _n_offset(n_offset)
@@ -921,7 +932,7 @@ typedef struct
 	InputOutput::ArrayVariable** fields;
 	void** ptrs;
 	unsigned int proc;
-	InputOutput::UIntVariable* offset;
+	InputOutput::Variable* offset;
 	// To set the mask
 	InputOutput::ArrayVariable* mask;
 	cl_kernel kernel;
@@ -943,14 +954,21 @@ cbMPIRecv(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 	MPI_Status status;
 	cl_event mask_event = NULL, field_event = NULL;
 	MPISyncRecvUserData* data = (MPISyncRecvUserData*)user_data;
-	unsigned int offset = *(unsigned int*)data->offset->get_async();
-	unsigned int n;
+	size_t offset;
+	size_t n;
+	if (data->offset->typesize() == sizeof(ulcl))
+		offset = *(ulcl*)data->offset->get_async();
+	else
+		offset = *(uicl*)data->offset->get_async();
 
 	// We need to receive the number of transmitted elements
-	Aqua::MPI::recv(&n, 1, MPI_UNSIGNED, data->proc, 0, MPI_COMM_WORLD);
+	MPI_Datatype t = (sizeof(size_t) == sizeof(uint32_t)) ?
+		MPI_UINT32_T :
+		MPI_UINT64_T;
+	Aqua::MPI::recv(&n, 1, t, data->proc, 0, MPI_COMM_WORLD);
 
 	// So we can set the offset for the next receivers
-	unsigned int next_offset = offset + n;
+	size_t next_offset = offset + n;
 	data->offset->set_async((void*)(&offset));
 	err_code = clSetUserEventStatus(data->offset_event, CL_COMPLETE);
 	CHECK_OCL_OR_THROW(err_code,
@@ -990,11 +1008,35 @@ cbMPIRecv(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 	}
 
 	// We can now set the mask values
-	err_code =
-	    clSetKernelArg(data->kernel, 2, sizeof(unsigned int), (void*)&offset);
-	CHECK_OCL_OR_THROW(err_code, "Failure sending the offset argument");
-	err_code = clSetKernelArg(data->kernel, 3, sizeof(unsigned int), (void*)&n);
-	CHECK_OCL_OR_THROW(err_code, "Failure sending the n argument");
+	if (data->offset->typesize() == sizeof(ulcl)) {
+		ulcl nn;
+		nn = offset;
+		err_code = clSetKernelArg(data->kernel,
+		                          2,
+		                          sizeof(ulcl),
+		                          (void*)&nn);
+		CHECK_OCL_OR_THROW(err_code, "Failure sending the offset argument");
+		nn = n;
+		err_code = clSetKernelArg(data->kernel,
+		                          2,
+		                          sizeof(ulcl),
+		                          (void*)&nn);
+		CHECK_OCL_OR_THROW(err_code, "Failure sending the n argument");
+	} else {
+		uicl nn;
+		nn = narrow_cast<uicl>(offset);
+		err_code = clSetKernelArg(data->kernel,
+		                          2,
+		                          sizeof(ulcl),
+		                          (void*)&nn);
+		CHECK_OCL_OR_THROW(err_code, "Failure sending the offset argument");
+		nn = narrow_cast<uicl>(n);
+		err_code = clSetKernelArg(data->kernel,
+		                          2,
+		                          sizeof(ulcl),
+		                          (void*)&nn);
+		CHECK_OCL_OR_THROW(err_code, "Failure sending the n argument");
+	}
 	size_t global_work_size = roundUp<size_t>(n, data->local_work_size);
 	err_code = clEnqueueNDRangeKernel(data->C->command_queue(cmd_queue_mpi),
 	                                  data->kernel,

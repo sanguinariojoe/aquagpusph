@@ -171,7 +171,7 @@ class MPISync : public Aqua::CalcServer::Tool
 	std::vector<UnSort*> _field_sorters;
 
 	/// Total number of elements
-	unsigned int _n;
+	size_t _n;
 
   public:
 	/** @class Exchanger MPISync.h CalcServer/MPISync.h
@@ -227,7 +227,7 @@ class MPISync : public Aqua::CalcServer::Tool
 		typedef struct
 		{
 			/// Number of components
-			unsigned int n;
+			size_t n;
 			/// Underlying type, in MPI format
 			MPI_Datatype t;
 		} MPIType;
@@ -253,7 +253,7 @@ class MPISync : public Aqua::CalcServer::Tool
 		unsigned int _proc;
 
 		/// Total number of elements
-		unsigned int _n;
+		size_t _n;
 
 		/// Host memory arrays to download, send, receive and upload the data
 		std::vector<void*> _fields_host;
@@ -320,7 +320,7 @@ class MPISync : public Aqua::CalcServer::Tool
 		void setupReduction(const std::string var_name);
 
 		/// Accumulated number of elements sent
-		InputOutput::UIntVariable* _n_offset;
+		InputOutput::Variable* _n_offset;
 
 		/// Submask memory object
 		InputOutput::ArrayVariable* _n_offset_mask;
@@ -332,7 +332,7 @@ class MPISync : public Aqua::CalcServer::Tool
 		Reduction* _n_offset_reduction;
 
 		/// Number of elements to be sent
-		InputOutput::UIntVariable* _n_send;
+		InputOutput::Variable* _n_send;
 
 		/// Submask of elements to be sent
 		InputOutput::ArrayVariable* _n_send_mask;
@@ -377,7 +377,7 @@ class MPISync : public Aqua::CalcServer::Tool
 		         const std::vector<InputOutput::ArrayVariable*> fields,
 		         const std::vector<void*> field_hosts,
 		         const unsigned int proc,
-		         InputOutput::UIntVariable* n_offset);
+		         InputOutput::Variable* n_offset);
 
 		/** Destructor.
 		 */
@@ -397,7 +397,7 @@ class MPISync : public Aqua::CalcServer::Tool
 		cl_kernel _kernel;
 
 		/// Accumulated number of received elements
-		InputOutput::UIntVariable* _n_offset;
+		InputOutput::Variable* _n_offset;
 
 		/// Local work sizes in each step
 		size_t _local_work_size;
@@ -414,7 +414,7 @@ class MPISync : public Aqua::CalcServer::Tool
 	Set* _mask_reinit;
 
 	/// Cumulative number of particles sent
-	InputOutput::UIntVariable* _n_offset_recv;
+	InputOutput::Variable* _n_offset_recv;
 
 	/// Offset reinitialization tool
 	SetScalar* _n_offset_recv_reinit;

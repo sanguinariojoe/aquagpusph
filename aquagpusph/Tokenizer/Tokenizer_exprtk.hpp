@@ -27,6 +27,8 @@
 #include <map>
 #include <string>
 #include <mutex>
+#include <typeinfo>
+#include <iostream>
 #include "aquagpusph/ext/exprtk.hpp"
 #include "aquagpusph/InputOutput/Logger.hpp"
 #include "aquagpusph/AuxiliarMethods.hpp"
@@ -90,6 +92,25 @@ class Tokenizer_exprtk
 		exprtk::parser<tokenizer_t> parser;
 		exprtk::expression<tokenizer_t> expr;
 
+		// First try straight number conversions
+		T res = 0;
+		size_t sz;
+		try {
+			res = narrow_cast<T>((int64_t)std::stoll(eq, &sz));
+			if (sz == eq.size()) {
+				return res;
+			}
+		} catch (...) {
+		}
+		try {
+			std::string::size_type sz;
+			res = narrow_cast<T>(std::stod(eq, &sz));
+			if (sz == eq.size()) {
+				return res;
+			}
+		} catch (...) {
+		}
+
 		expr.register_symbol_table(vars);
 		// expr.register_symbol_table(ivars);
 
@@ -102,15 +123,16 @@ class Tokenizer_exprtk
 			throw std::runtime_error("Invalid expression");
 		}
 
-		T res = 0;
+		tokenizer_t res_org;
 		try {
-			res = narrow_cast<T>(expr.value());
-			return narrow_cast<T>(res);
+			res_org = expr.value();
+			res = narrow_cast<T>(res_org);
 		} catch(std::out_of_range) {
 			LOG(L_ERROR, std::string("Error parsing \"") + eq + "\":\n");
 			LOG0(L_DEBUG, "\n");
-			LOG0(L_DEBUG, std::string("The result ") + std::to_string(res) +
-				"overflows the type float\n");
+			LOG0(L_DEBUG, std::string("The result ") +
+			     std::to_string(res_org) + " overflows the type \"" +
+			     typeid(res).name() + "\"\n");
 			LOG0(L_DEBUG, "\n");
 			throw;
 		}
