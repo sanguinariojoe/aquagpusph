@@ -1116,9 +1116,18 @@ State::parseSets(DOMElement* root, ProblemSetup& sim_data, std::string prefix)
 		    new ProblemSetup::sphParticlesSet();
 		// Now the number of particles can be let unknown, and will be
 		// determined later, from the input file. See FileManager::load()
-		unsigned int n = 0;
 		if (xmlHasAttribute(elem, "n")) {
-			set->n(std::stoi(xmlAttribute(elem, "n")));
+			unsigned long long n = std::stoll(xmlAttribute(elem, "n"));
+			try {
+				set->n(narrow_cast<size_t>(n));
+			} catch(std::out_of_range) {
+				LOG(L_ERROR,
+				    std::string("The particles set ") +
+				    std::to_string(sim_data.sets.size()) +
+				    " has the attribute n=" + xmlAttribute(elem, "n") +
+				    ", which overflows the type size_t\n");
+				throw;
+			}
 		}
 
 		DOMNodeList* s_nodes = elem->getElementsByTagName(xmlS("Scalar"));

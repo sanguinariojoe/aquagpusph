@@ -642,12 +642,12 @@ class ProblemSetup
 		/** @brief Set the number of particles
 		 * @param N Number of particles.
 		 */
-		void n(unsigned int N) { _n = N; }
+		void n(size_t N) { _n = N; }
 
 		/** @brief Get the number of particles
 		 * @return Number of particles.
 		 */
-		unsigned int n() const { return _n; }
+		size_t n() const { return _n; }
 
 		/** @brief Add a scalar property for this particles set.
 		 *
@@ -739,7 +739,7 @@ class ProblemSetup
 
 	  private:
 		/// Number of particles
-		unsigned int _n;
+		size_t _n;
 
 		/// Scalars names
 		std::vector<std::string> _snames;
