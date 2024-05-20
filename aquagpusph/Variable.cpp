@@ -1710,7 +1710,7 @@ Variables::registerClMem(const std::string name,
 	    std::string("Registering the array \"") + name + "\" (" +
 	    type_name + ") of length \"" + length + "\"\n");
 
-	unsigned int n;
+	size_t n;
 	CalcServer::CalcServer* C = CalcServer::CalcServer::singleton();
 	// Get the type size
 	std::string type = trimCopy(type_name);
@@ -1753,7 +1753,7 @@ Variables::registerClMem(const std::string name,
 	}
 
 	try {
-		n = (unsigned int)round(tok.solve(length));
+		n = round(tok.solve<size_t>(length));
 	} catch (...) {
 		std::ostringstream msg;
 		msg << "Failure evaluating variable \"" << name << "\" length"
@@ -1770,7 +1770,7 @@ Variables::registerClMem(const std::string name,
 	}
 
 	// Generate the variable
-	ArrayVariable* var = new ArrayVariable(name, trimCopy(type_name));
+	ArrayVariable* var = new ArrayVariable(name, type + '*');
 
 	// Allocate memory on device
 	cl_int status;

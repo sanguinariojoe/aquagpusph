@@ -120,10 +120,10 @@ class Sort : public Aqua::CalcServer::Tool
 	InputOutput::ArrayVariable* _inv_perms;
 
 	/// Number of keys to sort
-	unsigned int _n;
+	size_t _n;
 
 	/// Padded number of keys to sort (power of 2)
-	unsigned int _n_padded;
+	size_t _n_padded;
 
 	/// Type of the variable
 	std::string _var_type;

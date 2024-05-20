@@ -120,7 +120,7 @@ class UnSort : public Aqua::CalcServer::Tool
 	/// Local work sizes in each step
 	size_t _work_group_size;
 	/// Number of elements
-	unsigned int _n;
+	size_t _n;
 
 	/// Arguments setter for the kernel
 	ArgSetter* _args_setter;

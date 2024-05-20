@@ -272,6 +272,17 @@ class CalcServer
 	 */
 	inline cl_uint device_addr_bits() const { return _device_bits; }
 
+	/** @brief wrapper to clSetKernelArg to set variables which size depends on
+	 * the device address bits
+	 * @param kernel OpenCL kernel object
+	 * @param arg_index is the argument index
+	 * @param arg_value is a pointer to data
+	 */
+	template <typename T>
+	cl_int setKernelSizeArg(cl_kernel kernel,
+	                        cl_uint arg_index,
+	                        const T arg_value);
+
 	enum cmd_queue
 	{
 		cmd_queue_current,

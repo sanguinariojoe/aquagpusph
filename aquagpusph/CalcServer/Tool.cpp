@@ -311,7 +311,7 @@ Tool::compile(const std::string source,
 	cl_int err_code;
 	cl_program program;
 	std::vector<cl_kernel> kernels;
-	Aqua::CalcServer::CalcServer* C = Aqua::CalcServer::CalcServer::singleton();
+	auto C = Aqua::CalcServer::CalcServer::singleton();
 
 	if (!names.size()) {
 		LOG(L_WARNING, "compile() called without kernel names\n");
@@ -330,6 +330,13 @@ Tool::compile(const std::string source,
 #else
 	flags << " -DHAVE_2D";
 #endif
+	if (C->device_addr_bits() == 64) {
+		flags << " -Dusize=ulong";
+		flags << " -Dssize=long";
+	} else {
+		flags << " -Dusize=uint";
+		flags << " -Dssize=int";
+	}
 	flags << " " << additional_flags;
 
 	size_t source_length = source.size();

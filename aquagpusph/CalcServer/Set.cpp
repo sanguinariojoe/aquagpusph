@@ -116,7 +116,6 @@ Set::_solve()
 cl_event
 Set::_execute(const std::vector<cl_event> events)
 {
-	unsigned int i;
 	cl_int err_code;
 	auto C = CalcServer::singleton();
 
@@ -181,7 +180,7 @@ Set::variable()
 		LOG(L_ERROR, msg.str());
 		throw std::runtime_error("Invalid variable");
 	}
-	if (vars->get(_var_name)->type().find('*') == std::string::npos) {
+	if (!vars->get(_var_name)->isArray()) {
 		std::stringstream msg;
 		msg << "The tool \"" << name() << "\" is asking the variable \""
 		    << _var_name << "\", which is a scalar." << std::endl;
@@ -215,11 +214,14 @@ Set::setupOpenCL()
 	std::ostringstream flags;
 	if (!_var->type().compare("unsigned int*")) {
 		// Spaces are not a good business into definitions passed as args
-		flags << "-DT=uint";
+		flags << " -DT=uint";
+	} else if (!_var->type().compare("unsigned long*")) {
+		// Spaces are not a good business into definitions passed as args
+		flags << " -DT=ulong";
 	} else {
 		std::string t = trimCopy(_var->type());
 		t.pop_back(); // Remove the asterisk
-		flags << "-DT=" << t;
+		flags << " -DT=" << t;
 	}
 	kernel = compile_kernel(source.str(), "set", flags.str());
 	err_code = clGetKernelWorkGroupInfo(kernel,
@@ -249,7 +251,7 @@ Set::setupOpenCL()
 	    err_code,
 	    std::string("Failure sending the array argument to tool \"") + name() +
 	        "\".");
-	err_code = clSetKernelArg(kernel, 1, sizeof(unsigned int), (void*)&_n);
+	err_code = C->setKernelSizeArg(kernel, 1, _n);
 	CHECK_OCL_OR_THROW(
 	    err_code,
 	    std::string("Failure sending the array size argument to tool \"") +

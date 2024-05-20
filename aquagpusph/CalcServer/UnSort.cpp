@@ -130,6 +130,9 @@ UnSort::variables()
 {
 	CalcServer* C = CalcServer::singleton();
 	InputOutput::Variables* vars = C->variables();
+	const std::string size_type = (C->device_addr_bits() == 64) ?
+		"unsigned long*" :
+		"unsigned int*";
 	if (!vars->get(_perms_name)) {
 		std::stringstream msg;
 		msg << "The tool \"" << name()
@@ -138,14 +141,14 @@ UnSort::variables()
 		LOG(L_ERROR, msg.str());
 		throw std::runtime_error("Invalid variable");
 	}
-	if (vars->get(_perms_name)->type().compare("unsigned int*")) {
+	if (vars->get(_perms_name)->type().compare(size_type)) {
 		std::stringstream msg;
 		msg << "The tool \"" << name()
-		    << "\" is asking the variable \"id\", which has an invalid type"
-		    << std::endl;
+		    << "\" is asking the variable \"" << _perms_name
+		    << "\", which has an invalid type" << std::endl;
 		LOG(L_ERROR, msg.str());
 		msg.str("");
-		msg << "\t\"unsigned int*\" was expected, but \""
+		msg << "\t\"" << size_type << "\" was expected, but \""
 		    << vars->get(_perms_name)->type() << "\" was found." << std::endl;
 		LOG0(L_DEBUG, msg.str());
 		throw std::runtime_error("Invalid variable type");
@@ -160,7 +163,7 @@ UnSort::variables()
 		LOG(L_ERROR, msg.str());
 		throw std::runtime_error("Invalid variable");
 	}
-	if (vars->get(_var_name)->type().find('*') == std::string::npos) {
+	if (!vars->get(_var_name)->isArray()) {
 		std::stringstream msg;
 		msg << "The tool \"" << name() << "\" may not use a scalar variable (\""
 		    << _var_name << "\")." << std::endl;
@@ -225,11 +228,14 @@ UnSort::setupOpenCL()
 	std::ostringstream flags;
 	if (!_var->type().compare("unsigned int*")) {
 		// Spaces are not a good business to define a variable
-		flags << "-DT=uint";
+		flags << " -DT=uint";
+	} else if (!_var->type().compare("unsigned long*")) {
+		// Spaces are not a good business to define a variable
+		flags << " -DT=ulong";
 	} else {
 		std::string t = trimCopy(_var->type());
 		t.pop_back(); // Remove the asterisk
-		flags << "-DT=" << t;
+		flags << " -DT=" << t;
 	}
 	_kernel = compile_kernel(source.str(), "unsort", flags.str());
 
@@ -273,7 +279,7 @@ UnSort::setupOpenCL()
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		throw std::runtime_error("OpenCL error");
 	}
-	err_code = clSetKernelArg(_kernel, 3, sizeof(unsigned int), (void*)&_n);
+	err_code = C->setKernelSizeArg(_kernel, 3, _n);
 	if (err_code != CL_SUCCESS) {
 		LOG(L_ERROR, "Failure sending the array size argument\n");
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);

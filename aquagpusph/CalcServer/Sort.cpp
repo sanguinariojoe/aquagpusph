@@ -161,9 +161,9 @@ Sort::_execute(const std::vector<cl_event> events)
 	bitonic_profiler->start(event);
 	wait_event = event;
 
-	const unsigned int limit = 2u * _local_work_size;
-	for (unsigned int bsize = limit; bsize <= _n_padded; bsize <<= 1) {
-		for (unsigned int stride = bsize / 2; stride > 0; stride >>= 1) {
+	const size_t limit = 2u * _local_work_size;
+	for (size_t bsize = limit; bsize <= _n_padded; bsize <<= 1) {
+		for (size_t stride = bsize / 2; stride > 0; stride >>= 1) {
 			// Execute either local or global, depending on whether the stride
 			// is too big for the local memory or not
 			auto kernel = (stride >= limit) ? _global_kernel : _local_kernel;
@@ -322,11 +322,19 @@ Sort::variables()
 	_var = (InputOutput::ArrayVariable*)vars->get(_var_name);
 	if (_var_type.find("float") != std::string::npos)
 		_var_max = "FLT_MAX";
+	else if (_var_type.find("double") != std::string::npos)
+		_var_max = "DBL_MAX";
 	else if (_var_type.find("unsigned int") != std::string::npos)
 		_var_max = "UINT_MAX";
+	else if (_var_type.find("unsigned long") != std::string::npos)
+		_var_max = "ULONG_MAX";
 	else if (_var_type.find("int") != std::string::npos)
 		_var_max = "INT_MAX";
+	else if (_var_type.find("long") != std::string::npos)
+		_var_max = "long_MAX";
 
+	const std::string size_type = (C->device_addr_bits() == 64) ?
+		"unsigned long*" : "unsigned int*";
 	if (!vars->get(_perms_name)) {
 		std::ostringstream msg;
 		msg << "Tool \"" << name()
@@ -335,14 +343,14 @@ Sort::variables()
 		LOG(L_ERROR, msg.str());
 		throw std::runtime_error("Invalid variable");
 	}
-	if (vars->get(_perms_name)->type().compare("unsigned int*")) {
+	if (vars->get(_perms_name)->type().compare(size_type)) {
 		std::ostringstream msg;
 		msg << "Tool \"" << name()
 		    << "\" cannot process permutations variable \"" << _perms_name
 		    << "\"." << std::endl;
 		LOG(L_ERROR, msg.str());
 		msg.str("");
-		msg << "\t\"unsigned int*\" type was expected, but \""
+		msg << "\t\"" << size_type << "\" type was expected, but \""
 		    << vars->get(_perms_name)->type() << "\" has been received."
 		    << std::endl;
 		LOG(L_DEBUG, msg.str());
@@ -359,14 +367,14 @@ Sort::variables()
 		LOG(L_ERROR, msg.str());
 		throw std::runtime_error("Invalid variable");
 	}
-	if (vars->get(_inv_perms_name)->type().compare("unsigned int*")) {
+	if (vars->get(_inv_perms_name)->type().compare(size_type)) {
 		std::ostringstream msg;
 		msg << "Tool \"" << name()
 		    << "\" cannot process inverse permutations variable \""
 		    << _inv_perms_name << "\"." << std::endl;
 		LOG(L_ERROR, msg.str());
 		msg.str("");
-		msg << "\t\"unsigned int*\" type was expected, but \""
+		msg << "\t\"" << size_type << "\" type was expected, but \""
 		    << vars->get(_inv_perms_name)->type() << "\" has been received."
 		    << std::endl;
 		LOG(L_DEBUG, msg.str());
@@ -505,7 +513,7 @@ Sort::compileOpenCL()
 	source << SORT_INC << SORT_SRC;
 
 	std::ostringstream flags;
-	flags << "-DMAX_LOCAL_SIZE=" << _local_work_size;
+	flags << " -DMAX_LOCAL_SIZE=" << _local_work_size;
 	return compile(source.str(),
 	               { "init",
 	                 "bitonic_start",
@@ -576,13 +584,12 @@ Sort::setupArgs()
 	    err_code,
 	    std::string("Failure sending argument 2 to \"init\" in tool \"") +
 	        name() + "\".");
-	err_code = clSetKernelArg(_init_kernel, 3, sizeof(cl_uint), (void*)&_n);
+	err_code = C->setKernelSizeArg(_init_kernel, 3, _n);
 	CHECK_OCL_OR_THROW(
 	    err_code,
 	    std::string("Failure sending argument 3 to \"init\" in tool \"") +
 	        name() + "\".");
-	err_code =
-	    clSetKernelArg(_init_kernel, 4, sizeof(cl_uint), (void*)&_n_padded);
+	err_code = C->setKernelSizeArg(_init_kernel, 4, _n_padded);
 	CHECK_OCL_OR_THROW(
 	    err_code,
 	    std::string("Failure sending argument 4 to \"init\" in tool \"") +
@@ -615,8 +622,7 @@ Sort::setupArgs()
 	    std::string(
 	        "Failure sending argument 1 to \"bitonic_local\" in tool \"") +
 	        name() + "\".");
-	err_code =
-	    clSetKernelArg(_local_kernel, 2, sizeof(cl_uint), (void*)&_n_padded);
+	err_code = C->setKernelSizeArg(_local_kernel, 2, _n_padded);
 	CHECK_OCL_OR_THROW(
 	    err_code,
 	    std::string(
@@ -636,8 +642,7 @@ Sort::setupArgs()
 	    std::string(
 	        "Failure sending argument 1 to \"bitonic_global\" in tool \"") +
 	        name() + "\".");
-	err_code =
-	    clSetKernelArg(_global_kernel, 2, sizeof(cl_uint), (void*)&_n_padded);
+	err_code = C->setKernelSizeArg(_global_kernel, 2, _n_padded);
 	CHECK_OCL_OR_THROW(
 	    err_code,
 	    std::string(
@@ -658,8 +663,7 @@ Sort::setupArgs()
 	    std::string(
 	        "Failure sending argument 1 to \"inverse_keys\" in tool \"") +
 	        name() + "\".");
-	err_code =
-	    clSetKernelArg(_inv_perms_kernel, 2, sizeof(cl_uint), (void*)&_n);
+	err_code = C->setKernelSizeArg(_inv_perms_kernel, 2, _n);
 	CHECK_OCL_OR_THROW(
 	    err_code,
 	    std::string(

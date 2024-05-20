@@ -542,7 +542,7 @@ class Tool
 	size_t _allocated_memory;
 
 	/// Times that this tool has been called
-	unsigned int _n_iters;
+	size_t _n_iters;
 
 	/// Average elapsed time
 	float _elapsed_time;

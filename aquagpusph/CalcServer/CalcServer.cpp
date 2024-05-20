@@ -252,16 +252,11 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 		}
 		_definitions.push_back(valstr.str());
 	}
-	// Let the kernels know if 64 bits are supported, and provide some useful
-	// types
-	if (_device_bits == 64) {
+	// Let the kernels know if 64 bits are supported
+	if (_device_bits == 64)
 		_definitions.push_back(std::string("-DX64"));
-		_definitions.push_back(std::string("-Dusize=ulong"));
-		_definitions.push_back(std::string("-Dssize=long"));
-	} else {
-		_definitions.push_back(std::string("-Dusize=uint"));
-		_definitions.push_back(std::string("-Dssize=int"));
-	}
+	else
+		_definitions.push_back(std::string("-DX32"));
 
 	// Register the tools
 	for (auto t : _sim_data.tools) {
@@ -622,6 +617,20 @@ CalcServer::update(InputOutput::TimeManager& t_manager)
 
 		InputOutput::Logger::singleton()->endFrame();
 	}
+}
+
+template <>
+cl_int
+CalcServer::setKernelSizeArg(cl_kernel kernel,
+                             cl_uint arg_index,
+                             const size_t arg_value)
+{
+	if (device_addr_bits() == 64) {
+		ulcl val = narrow_cast<ulcl>(arg_value);
+		return clSetKernelArg(kernel, arg_index, sizeof(ulcl), &val);
+	}
+	uicl val = narrow_cast<uicl>(arg_value);
+	return clSetKernelArg(kernel, arg_index, sizeof(uicl), &val);
 }
 
 /** @brief Create an OpenCL command queue

@@ -92,7 +92,7 @@ Reduction::setup()
 	_n.push_back(n);
 	setupOpenCL();
 	std::vector<Profile*> profilers;
-	for (unsigned int i = 0; i < _kernels.size(); i++) {
+	for (size_t i = 0; i < _kernels.size(); i++) {
 		std::stringstream reduction_stage;
 		reduction_stage << "step " << i + 1 << "/" << _kernels.size();
 		profilers.push_back(new EventProfile(reduction_stage.str(), this));
@@ -139,7 +139,6 @@ populator(cl_event event, cl_int event_command_status, void* user_data)
 cl_event
 Reduction::_execute(const std::vector<cl_event> events)
 {
-	unsigned int i;
 	cl_event event, out_event;
 	cl_int err_code;
 	auto C = CalcServer::singleton();
@@ -153,7 +152,7 @@ Reduction::_execute(const std::vector<cl_event> events)
 	    err_code,
 	    std::string("Failure retaining the input event of tool \"") + name() +
 	        "\".");
-	for (i = 0; i < _kernels.size(); i++) {
+	for (size_t i = 0; i < _kernels.size(); i++) {
 		const size_t global_work_size = _global_work_sizes.at(i);
 		const size_t local_work_size = _local_work_sizes.at(i);
 		err_code = clEnqueueNDRangeKernel(C->command_queue(),
@@ -189,7 +188,7 @@ Reduction::_execute(const std::vector<cl_event> events)
 	read_events.push_back(event);
 	err_code = clEnqueueReadBuffer(C->command_queue(),
 	                               _mems.at(_mems.size() - 1),
-	                               CL_TRUE,
+	                               CL_FALSE,
 	                               0,
 	                               _output_var->typesize(),
 	                               _output_var->get(),
@@ -241,15 +240,14 @@ Reduction::_execute(const std::vector<cl_event> events)
 	        name() + "\".");
 	profiler->end(event);
 
-	return event;
+	return _user_event;
 }
 
 void
 Reduction::variables()
 {
 	InputOutput::Variables* vars = CalcServer::singleton()->variables();
-	_input_var = (InputOutput::ArrayVariable*)vars->get(_input_name);
-	if (!_input_var) {
+	if (!vars->get(_input_name)) {
 		std::stringstream msg;
 		msg << "The tool \"" << name()
 		    << "\" is asking the undeclared input variable \"" << _input_name
@@ -257,15 +255,15 @@ Reduction::variables()
 		LOG(L_ERROR, msg.str());
 		throw std::runtime_error("Invalid variable");
 	}
-	if (!_input_var->isArray()) {
+	if (!vars->get(_input_name)->isArray()) {
 		std::stringstream msg;
 		msg << "The tool \"" << name() << "\" is asking the input variable \""
 		    << _input_name << "\", which is a scalar." << std::endl;
 		LOG(L_ERROR, msg.str());
 		throw std::runtime_error("Invalid variable type");
 	}
-	_output_var = vars->get(_output_name);
-	if (!_output_var) {
+	_input_var = (InputOutput::ArrayVariable*)vars->get(_input_name);
+	if (!vars->get(_output_name)) {
 		std::stringstream msg;
 		msg << "The tool \"" << name()
 		    << "\" is asking the undeclared output variable \"" << _output_name
@@ -273,21 +271,22 @@ Reduction::variables()
 		LOG(L_ERROR, msg.str());
 		throw std::runtime_error("Invalid variable");
 	}
-	if (_output_var->isArray()) {
+	if (vars->get(_output_name)->isArray()) {
 		std::stringstream msg;
 		msg << "The tool \"" << name() << "\" is asking the output variable \""
 		    << _output_name << "\", which is an array." << std::endl;
 		LOG(L_ERROR, msg.str());
 		throw std::runtime_error("Invalid variable type");
 	}
+	_output_var = vars->get(_output_name);
 	if (!vars->isSameType(_input_var->type(), _output_var->type())) {
 		std::stringstream msg;
-		msg << "Mismatching input and output types within the tool \"" << name()
-		    << "\"." << std::endl;
+		msg << "Mismatching input and output types within the tool \""
+		    << name() << "\"." << std::endl;
 		LOG(L_ERROR, msg.str());
 		msg.str("");
-		msg << "\tInput variable \"" << _input_var->name() << "\" is of type \""
-		    << _input_var->type() << "\"." << std::endl;
+		msg << "\tInput variable \"" << _input_var->name()
+		    << "\" is of type \"" << _input_var->type() << "\"." << std::endl;
 		LOG0(L_DEBUG, msg.str());
 		msg << "\tOutput variable \"" << _output_var->name()
 		    << "\" is of type \"" << _output_var->type() << "\"." << std::endl;
@@ -351,9 +350,9 @@ Reduction::setupOpenCL()
 
 	// Now we can start a loop while the amount of reduced data is greater than
 	// one
-	unsigned int n = _n.at(0);
+	size_t n = _n.at(0);
 	_n.clear();
-	unsigned int i = 0;
+	size_t i = 0;
 	while (n > 1) {
 		// Get work sizes
 		_n.push_back(n);
@@ -391,7 +390,7 @@ Reduction::setupOpenCL()
 		    err_code,
 		    std::string("Failure sending output argument in tool \"") + name() +
 		        "\".");
-		err_code = clSetKernelArg(kernel, 2, sizeof(cl_uint), (void*)&(n));
+		err_code = C->setKernelSizeArg(kernel, 2, n);
 		CHECK_OCL_OR_THROW(
 		    err_code,
 		    std::string(
@@ -438,9 +437,12 @@ Reduction::flags(const size_t local_size)
 	std::ostringstream f;
 	if (!_output_var->type().compare("unsigned int")) {
 		// Spaces are not a good business into definitions passed as args
-		f << "-DT=uint";
+		f << " -DT=uint";
+	} else if (!_output_var->type().compare("unsigned long")) {
+		// Spaces are not a good business into definitions passed as args
+		f << " -DT=ulong";
 	} else {
-		f << "-DT=" << _output_var->type();
+		f << " -DT=" << _output_var->type();
 	}
 	f << " -DLOCAL_WORK_SIZE=" << local_size << "u";
 

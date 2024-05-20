@@ -729,7 +729,7 @@ RadixSort::setupOpenCL()
 	std::ostringstream source;
 	source << RADIXSORT_INC << RADIXSORT_SRC;
 	std::ostringstream flags;
-	flags << "-D_BITS=" << _bits << " -D_RADIX=" << _radix << " -DPERMUT";
+	flags << " -D_BITS=" << _bits << " -D_RADIX=" << _radix << " -DPERMUT";
 	std::vector<cl_kernel> kernels = compile(
 	    source.str(),
 	    { "init", "histogram", "scan", "paste", "sort", "inversePermutation" },

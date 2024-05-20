@@ -113,7 +113,7 @@ class Set final : public Aqua::CalcServer::ScalarExpression
 	/// Local work sizes in each step
 	size_t _work_group_size;
 	/// Number of elements
-	unsigned int _n;
+	size_t _n;
 
 	/// Memory storage for the value
 	void* _data;
