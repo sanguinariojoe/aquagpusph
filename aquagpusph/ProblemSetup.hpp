@@ -202,13 +202,19 @@ class ProblemSetup
 			 * @param device_index Index of the OpenCL device to use from the
 			 * platform
 			 * @param t Type of OpenCL device
+			 * @param bits The address bits of the device. 0 to consider
+			 * CL_DEVICE_ADDRESS_BITS
+			 * @see https://registry.khronos.org/OpenCL/sdk/3.0/docs/man/html/clGetDeviceInfo.html
 			 */
 			device(const unsigned int platform_index,
 			       const unsigned int device_index,
-			       const cl_device_type t = CL_DEVICE_TYPE_ALL)
+			       const cl_device_type t = CL_DEVICE_TYPE_ALL,
+			       const unsigned int bits = 0)
 			  : platform_id(platform_index)
 			  , device_id(device_index)
-			  , device_type(t){};
+			  , device_type(t)
+			  , addr_bits(bits)
+			{};
 
 			/// Destructor
 			~device(){};
@@ -219,7 +225,7 @@ class ProblemSetup
 			 * devices into them.
 			 *
 			 * This field can be set with the tag `Device`, for instance:
-			 * `<Device platform="0" device="0" type="GPU" />`
+			 * `<Device platform="0" device="0" type="GPU" addr_bits="0" />`
 			 */
 			unsigned int platform_id;
 
@@ -230,7 +236,7 @@ class ProblemSetup
 			 * devices into them.
 			 *
 			 * This field can be set with the tag `Device`, for instance:
-			 * `<Device platform="0" device="0" type="GPU" />`
+			 * `<Device platform="0" device="0" type="GPU" addr_bits="0" />`
 			 *
 			 * @remarks The index of the device is refered to the available ones
 			 * compatibles with the selected type #device_type.
@@ -241,11 +247,22 @@ class ProblemSetup
 			 * #platform_id.
 			 *
 			 * This field can be set with the tag `Device`, for instance:
-			 * `<Device platform="0" device="0" type="GPU" />`
+			 * `<Device platform="0" device="0" type="GPU" addr_bits="0" />`
 			 *
 			 * @see #device_id.
 			 */
 			cl_device_type device_type;
+
+			/** @brief Address bits of the device.
+			 *
+			 * If not provided, 0 will be considered, i.e. the
+			 * CL_DEVICE_ADDRESS_BITS will be queried
+			 *
+			 * This field can be set with the tag `Device`, for instance:
+			 * `<Device platform="0" device="0" type="GPU" addr_bits="0" />`
+			 * @see https://registry.khronos.org/OpenCL/sdk/3.0/docs/man/html/clGetDeviceInfo.html
+			 */
+			unsigned int addr_bits;
 		};
 
 		/** @brief The list of devices to be considered

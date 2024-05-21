@@ -1256,12 +1256,18 @@ CalcServer::setupDevices()
 		LOG0(L_DEBUG, msg.str());
 		throw std::runtime_error("Insufficient OpenCL support");
 	}
-	err_code = clGetDeviceInfo(_device,
-	                           CL_DEVICE_ADDRESS_BITS,
-	                           sizeof(cl_uint),
-	                           &_device_bits,
-	                           NULL);
-	CHECK_OCL_OR_THROW(err_code, "Failure querying CL_DEVICE_ADDRESS_BITS\n");
+	_device_bits = _sim_data.settings.devices.at(rank).addr_bits;
+	if (!_device_bits) {
+		err_code = clGetDeviceInfo(_device,
+		                           CL_DEVICE_ADDRESS_BITS,
+		                           sizeof(cl_uint),
+		                           &_device_bits,
+		                           NULL);
+		CHECK_OCL_OR_THROW(err_code,
+		                   "Failure querying CL_DEVICE_ADDRESS_BITS\n");
+	}
+	LOG(L_INFO, std::string("Device bits = ") +
+	            std::to_string(_device_bits) + "bits\n");
 
 	// Create the command queues
 	auto queue = create_command_queue(_context, _device, &err_code);

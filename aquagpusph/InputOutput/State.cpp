@@ -362,7 +362,7 @@ State::parseSettings(DOMElement* root,
 			    std::stoi(xmlAttribute(s_elem, "platform"));
 			unsigned int device_id = std::stoi(xmlAttribute(s_elem, "device"));
 			cl_device_type device_type = CL_DEVICE_TYPE_ALL;
-			if (!xmlHasAttribute(s_elem, "type")) {
+			if (xmlHasAttribute(s_elem, "type")) {
 				if (!xmlAttribute(s_elem, "type").compare("ALL"))
 					device_type = CL_DEVICE_TYPE_ALL;
 				else if (!xmlAttribute(s_elem, "type").compare("CPU"))
@@ -387,9 +387,13 @@ State::parseSettings(DOMElement* root,
 					throw std::runtime_error("Invalid device type");
 				}
 			}
+			unsigned int addr_bits = 0;
+			if (xmlHasAttribute(s_elem, "addr_bits")) {
+				addr_bits = std::stoi(xmlAttribute(s_elem, "addr_bits"));
+			}
 			sim_data.settings.devices.push_back(
 			    ProblemSetup::sphSettings::device(
-			        platform_id, device_id, device_type));
+			        platform_id, device_id, device_type, addr_bits));
 		}
 	}
 }

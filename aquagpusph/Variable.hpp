@@ -1137,7 +1137,6 @@ class Variables
 	 */
 	void populate(Variable* var);
 
-  private:
 	/** @brief Resolve some type aliases
 	 *
 	 * Several types have aliases to make them easier to use, which might
@@ -1165,6 +1164,7 @@ class Variables
 	 */
 	std::string typeAlias(const std::string& t);
 
+  private:
 	/** Register a scalar variable
 	 * @param name Name of the variable.
 	 * @param type Type of the variable.

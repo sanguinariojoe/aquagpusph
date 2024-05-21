@@ -1168,22 +1168,18 @@ Variables::isSameType(const std::string type_a,
 	if (ta.back() == '*') {
 		ta.pop_back();
 	}
-	if ((ta.back() == '2') || (ta.back() == '3') || (ta.back() == '4')) {
+	ta = typeAlias(ta);
+	if (std::isdigit(ta.back()))
 		ta.pop_back();
-	}
 	std::string tb = trimCopy(type_b);
 	if (tb.back() == '*') {
 		tb.pop_back();
 	}
-	if ((tb.back() == '2') || (tb.back() == '3') || (tb.back() == '4')) {
+	tb = typeAlias(tb);
+	if (std::isdigit(tb.back()))
 		tb.pop_back();
-	}
 
-	if (ta.compare(tb)) {
-		return false;
-	}
-
-	return true;
+	return ta == tb;
 }
 
 /** @brief Convert the names populated at the tokenizer to variable names

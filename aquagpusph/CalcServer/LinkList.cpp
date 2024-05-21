@@ -335,14 +335,15 @@ LinkList::allocate()
 	InputOutput::Variables* vars = C->variables();
 
 	auto n_cells_var = getOutputDependencies()[2];
-	if (n_cells_var->type().compare("ulvec4")) {
+	if (!vars->isSameType(n_cells_var->type(), "svec4")) {
 		std::stringstream msg;
 		msg << "\"n_cells\" has and invalid type for \"" << name() << "\"."
 		    << std::endl;
 		LOG(L_ERROR, msg.str());
 		msg.str("");
 		msg << "\tVariable \"n_cells\" type is \"" << n_cells_var->type()
-		    << "\", while \"uivec4\" was expected" << std::endl;
+		    << "\", while \"" << vars->typeAlias("uivec4") << "\" was expected"
+		    << std::endl;
 		LOG0(L_DEBUG, msg.str());
 		throw std::runtime_error("Invalid n_cells type");
 	}
