@@ -30,15 +30,14 @@
  * @param N Number of particles.
  */
 __kernel void sort(const __global vec *r0_in, __global vec *r0,
-                   const __global unit *id_sorted,
-                   unsigned int N)
+                   const __global usize *id_sorted,
+                   const usize N)
 {
-    uint i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
 
-    const uint i_out = id_sorted[i];
-    r0[i_out] = r0_in[i];
+    r0[id_sorted[i]] = r0_in[i];
 }
 
 /** @brief Drop the forces on all the boundaries but the piston
@@ -53,9 +52,9 @@ __kernel void sort(const __global vec *r0_in, __global vec *r0,
 __kernel void force(const __global int* imove,
                     const __global vec* normal,
                     __global vec *force_p,
-                    unsigned int N)
+                    const usize N)
 {
-    uint i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] != -3)
@@ -81,9 +80,9 @@ __kernel void piston_u(const __global int* imove,
                        const __global vec* normal,
                        __global vec* u,
                        float dxdt,
-                       unsigned int N)
+                       const usize N)
 {
-    uint i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] != -3)
@@ -114,9 +113,9 @@ __kernel void piston(const __global int* imove,
                      __global vec* u,
                      float x,
                      float dxdt,
-                     unsigned int N)
+                     const usize N)
 {
-    uint i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] != -3)
@@ -152,10 +151,10 @@ __kernel void bounds(const __global int* imove,
                      float x,
                      float x0,
                      float L,
-                     unsigned int nx,
-                     unsigned int N)
+                     const usize nx,
+                     const usize N)
 {
-    uint i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] != -3)

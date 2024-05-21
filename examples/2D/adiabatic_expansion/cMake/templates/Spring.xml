@@ -26,7 +26,7 @@ Authors:
         <Variable name="ddxddt" type="float" length="1" value="0.0" />
         <Variable name="r0_in" type="vec*" length="N" />
         <Variable name="r0" type="vec*" length="N" />
-        <Variable name="nx" type="unsigned int" length="1" value="{{NX}}" />
+        <Variable name="nx" type="size_t" length="1" value="{{NX}}" />
         <Variable name="spring_f" type="float" length="1" value="{{F}}" />
         <Variable name="spring_m" type="float" length="1" value="{{M}}" />
     </Variables>
