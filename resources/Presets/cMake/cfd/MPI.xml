@@ -21,13 +21,13 @@ processors each particle shall be sent to (if any)
 	<Variables>
 		<!-- The masks to let know AQUAgpusph where each particle shall be sent
 		     to -->
-		<Variable length="n_radix" name="mpi_local_mask" symbol="i_{mpi}" type="unsigned int*"/>
-		<Variable length="n_radix" name="mpi_neigh_mask" symbol="j_{mpi}" type="unsigned int*"/>
+		<Variable length="n_radix" name="mpi_local_mask" symbol="i_{mpi}" type="size_t*"/>
+		<Variable length="n_radix" name="mpi_neigh_mask" symbol="j_{mpi}" type="size_t*"/>
 		<!-- Link-list data for the neighbour particles -->
-		<Variable length="n_radix" name="mpi_icell" symbol="cell_{mpi}" type="unsigned int*"/>
-		<Variable length="n_radix" name="mpi_ihoc" symbol="hoc_{mpi}" type="unsigned int*"/>
-		<Variable length="n_radix" name="mpi_id_sorted" symbol="i_{mpi,sorted}" type="unsigned int*"/>
-		<Variable length="n_radix" name="mpi_id_unsorted" symbol="i_{mpi,unsorted}" type="unsigned int*"/>
+		<Variable length="n_radix" name="mpi_icell" symbol="cell_{mpi}" type="size_t*"/>
+		<Variable length="n_radix" name="mpi_ihoc" symbol="hoc_{mpi}" type="size_t*"/>
+		<Variable length="n_radix" name="mpi_id_sorted" symbol="i_{mpi,sorted}" type="size_t*"/>
+		<Variable length="n_radix" name="mpi_id_unsorted" symbol="i_{mpi,unsorted}" type="size_t*"/>
 		<!-- MPI fields -->
 		<Variable length="n_radix" name="mpi_iset" symbol="\boldsymbol{set}_{mpi}" type="unsigned int*"/>
 		<Variable length="n_radix" name="mpi_r" symbol="\boldsymbol{r}_{mpi}" type="vec*"/>

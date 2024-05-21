@@ -249,13 +249,13 @@ MPISync::variables()
 		LOG(L_ERROR, msg.str());
 		throw std::runtime_error("Invalid variable");
 	}
-	if (vars->get(_mask_name)->type().compare("unsigned int*")) {
+	if (!vars->isSameType(vars->get(_mask_name)->type(), "size_t*")) {
 		std::stringstream msg;
 		msg << "The tool \"" << name() << "\" is asking the variable \""
 		    << _mask_name << "\", which has an invalid type" << std::endl;
 		LOG(L_ERROR, msg.str());
 		msg.str("");
-		msg << "\t\"unsigned int*\" was expected, but \""
+		msg << "\t\"" + vars->typeAlias("size_t") << "*\" was expected, but \""
 		    << vars->get(_mask_name)->type() << "\" was found." << std::endl;
 		LOG0(L_DEBUG, msg.str());
 		throw std::runtime_error("Invalid variable type");
@@ -773,7 +773,7 @@ MPISync::Sender::setupSubMaskMems()
 	while (vars->get(name.str()) != NULL) {
 		name << _var_prefix << _mask->name() << "_n_offset_mask_" << ++i;
 	}
-	vars->registerVariable(name.str(), "unsigned int*", valstr.str(), "");
+	vars->registerVariable(name.str(), "size_t*", valstr.str(), "");
 	_n_offset_mask = (InputOutput::ArrayVariable*)vars->get(name.str());
 
 	i = 0;
@@ -783,7 +783,7 @@ MPISync::Sender::setupSubMaskMems()
 		name << _var_prefix << _mask->name() << "_n_send_mask_" << ++i;
 	}
 	if (!vars->get(name.str()))
-		vars->registerVariable(name.str(), "unsigned int*", valstr.str(), "");
+		vars->registerVariable(name.str(), "size_t*", valstr.str(), "");
 	_n_send_mask = (InputOutput::ArrayVariable*)vars->get(name.str());
 }
 
@@ -838,12 +838,12 @@ MPISync::Sender::setupOpenCL(const std::string kernel_name)
 	    err_code,
 	    std::string("Failure sending the submask argument in tool \"") +
 	        name() + "\".");
-	err_code = clSetKernelArg(kernel, 2, sizeof(unsigned int), (void*)&_proc);
+	err_code = clSetKernelArg(kernel, 2, sizeof(uicl), (void*)&_proc);
 	CHECK_OCL_OR_THROW(
 	    err_code,
 	    std::string("Failure sending the proc argument in tool \"") + name() +
 	        "\".");
-	err_code = clSetKernelArg(kernel, 3, sizeof(ulcl), (void*)&_n);
+	err_code = C->setKernelSizeArg(kernel, 3, _n);
 	CHECK_OCL_OR_THROW(
 	    err_code,
 	    std::string("Failure sending the array size argument in tool \"") +
@@ -1227,7 +1227,7 @@ MPISync::Receiver::setupOpenCL()
 	    err_code,
 	    std::string("Failure sending the mask argument in tool \"") + name() +
 	        "\"");
-	err_code = clSetKernelArg(_kernel, 1, sizeof(unsigned int), (void*)&_proc);
+	err_code = clSetKernelArg(_kernel, 1, sizeof(uicl), (void*)&_proc);
 	CHECK_OCL_OR_THROW(
 	    err_code,
 	    std::string("Failure sending the proc argument in tool \"") + name() +

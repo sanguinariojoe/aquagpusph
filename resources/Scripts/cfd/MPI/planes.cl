@@ -42,8 +42,8 @@
  */
 __kernel void entry(const __global int* imove,
                     const __global vec* r,
-                    __global unsigned int* mpi_local_mask,
-                    __global unsigned int* mpi_neigh_mask,
+                    __global size_t* mpi_local_mask,
+                    __global size_t* mpi_neigh_mask,
                     vec mpi_plane_r,
                     vec mpi_plane_n,
                     unsigned int mpi_plane_proc,

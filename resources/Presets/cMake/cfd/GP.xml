@@ -32,10 +32,10 @@ Remarks:
 <sphInput>
     <Variables>
         <!-- Ghost particles - Mirroring boundary elements associations -->
-        <Variable name="associations" type="unsigned int*" length="N" />
-        <Variable name="associations_in" type="unsigned int*" length="N" />
+        <Variable name="associations" type="size_t*" length="N" />
+        <Variable name="associations_in" type="size_t*" length="N" />
         <!-- Mirrored ghost particles cell index -->
-        <Variable name="gp_icell" type="unsigned int*" length="N" />
+        <Variable name="gp_icell" type="size_t*" length="N" />
         <!-- Interpolated field values in the mirrored position -->
         <Variable name="gp_rho" type="float*" length="N" />
         <Variable name="gp_p" type="float*" length="N" />

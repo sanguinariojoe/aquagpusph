@@ -6,9 +6,9 @@
         <Variable name="cs" type="float" symbol="c_s" value="1.0" />
 
         <Variable name="r" length="N" symbol="\boldsymbol{r}" type="vec*"/>
-        <Variable name="mask" length="N" symbol="j" type="unsigned int*"/>
+        <Variable name="mask" length="N" symbol="j" type="size_t*"/>
         <Variable name="mpi_r" length="n_radix" symbol="\boldsymbol{r}_{mpi}" type="vec*"/>
-        <Variable name="mpi_mask" length="n_radix" symbol="j_{mpi}" type="unsigned int*"/>
+        <Variable name="mpi_mask" length="n_radix" symbol="j_{mpi}" type="size_t*"/>
     </Variables>
 
     <ParticlesSet>

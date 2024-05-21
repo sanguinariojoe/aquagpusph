@@ -152,7 +152,7 @@ class MPISync : public Aqua::CalcServer::Tool
 	std::vector<InputOutput::ArrayVariable*> _fields_sorted;
 
 	/// List of processes to be considered at the time of sending data
-	std::vector<unsigned int> _procs;
+	std::vector<uicl> _procs;
 
 	/** Auxiliar variable to store the original index of each sorted component
 	 * of the mask.

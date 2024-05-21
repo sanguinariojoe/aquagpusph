@@ -44,9 +44,9 @@ You can find an usage example in examples/2D/cylinder_inside_channel
         -->
         <Variable name="isplit" type="unsigned int*" length="n_radix" />
         <Variable name="isplit_in" type="unsigned int*" length="n_radix" />
-        <Variable name="split_perm" type="unsigned int*" length="n_radix" />
-        <Variable name="split_invperm" type="unsigned int*" length="n_radix" />
-        <Variable name="split_cell" type="ivec*" length="N" />
+        <Variable name="split_perm" type="size_t*" length="n_radix" />
+        <Variable name="split_invperm" type="size_t*" length="n_radix" />
+        <Variable name="split_cell" type="ssvec*" length="N" />
         <Variable name="split_dist" type="float*" length="N" />
         <!-- Since each particle may contribute to several partner particles
         while coalescing, we should weight such contribution -->
@@ -55,7 +55,7 @@ You can find an usage example in examples/2D/cylinder_inside_channel
         -->
         <Variable name="mybuffer" type="unsigned int*" length="N" />
         <!-- Internal variable to check there are enough buffer particles -->
-        <Variable name="required_nbuffer" type="unsigned int" />        
+        <Variable name="required_nbuffer" type="size_t" />        
     </Variables>
 
     <Tools>

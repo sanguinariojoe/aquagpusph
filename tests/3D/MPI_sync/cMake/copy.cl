@@ -19,9 +19,9 @@
 #include "resources/Scripts/types/types.h"
 
 __kernel void copy_in(const __global vec* r,
-                      const __global unsigned int* mask,
+                      const __global usize* mask,
                       __global vec* mpi_r,
-                      __global unsigned int* mpi_mask,
+                      __global usize* mpi_mask,
                       usize N)
 {
     const usize i = get_global_id(0);
@@ -33,9 +33,9 @@ __kernel void copy_in(const __global vec* r,
 }
 
 __kernel void copy_out(__global vec* r,
-                       __global unsigned int* mask,
+                       __global usize* mask,
                        const __global vec* mpi_r,
-                       const __global unsigned int* mpi_mask,
+                       const __global usize* mpi_mask,
                        usize N)
 {
     const usize i = get_global_id(0);

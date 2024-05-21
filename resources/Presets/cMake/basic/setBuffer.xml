@@ -32,8 +32,8 @@ been executed.
 
 <sphInput>
     <Variables>
-        <Variable name="ibuffer" type="unsigned int*" length="N" />
-        <Variable name="nbuffer" type="unsigned int" value="0" />
+        <Variable name="ibuffer" type="size_t*" length="N" />
+        <Variable name="nbuffer" type="size_t" value="0" />
     </Variables>
 
     <Tools>
