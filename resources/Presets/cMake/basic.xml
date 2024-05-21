@@ -71,13 +71,13 @@ later:
         | n_radix     | unsigned int  | 1       | Rounded up value from N which is a power of 2
         | n_cells     | uivec4        | 1       | Number of cells at each direction, and the total one
         | support     | float         | 1       | Kernel support (as a factor of the kernel length h)
-        | id          | unsigned int* | N       | Original ID of each particle
+        | id          | size_t*       | N       | Original ID of each particle
         | r           | vec*          | N       | Positions
         | iset        | unsigned int* | N       | Particle set of each particle
-        | id_sorted   | unsigned int* | n_radix | Permutations from unsorted space to sorted space
-        | id_unsorted | unsigned int* | n_radix | Permutations from sorted space to unsorted space
-        | icell       | unsigned int* | n_radix | Cell where each particle is located
-        | ihoc        | unsigned int* | n_cells | First particle in each cell
+        | id_sorted   | size_t*       | n_radix | Permutations from unsorted space to sorted space
+        | id_unsorted | size_t*       | n_radix | Permutations from sorted space to unsorted space
+        | icell       | size_t*       | n_radix | Cell where each particle is located
+        | ihoc        | size_t*       | n_cells | First particle in each cell
          -->
         <Variable name="g" type="vec" value="0.0, 0.0, 0.0, 0.0" />
         <Variable name="p0" type="float" value="0.0" />
@@ -104,7 +104,7 @@ later:
         <Variable name="drhodt" type="float*" length="N" />
         <Variable name="m" type="float*" length="N" />
 
-        <Variable name="id_in" type="unsigned int*" length="N" />
+        <Variable name="id_in" type="size_t*" length="N" />
         <Variable name="iset_in" type="unsigned int*" length="N" />
         <Variable name="imove_in" type="int*" length="N" />
         <Variable name="r_in" type="vec*" length="N" />

@@ -32,21 +32,21 @@
 #include "Tool.hpp"
 #include "Kernel.hpp"
 
-/** @def _ITEMS Number of items in a group
+/** @def _ITEMS Number of items per group
  * @note Must be power of 2, and in some devices greather than 32.
  */
 #ifndef _ITEMS
-#define _ITEMS 128
+#define _ITEMS 64U
 #endif
 /** @def _GROUPS Number of groups (data must be divisible of _ITEMS*_GROUPS)
  * @note Must be power of 2
  */
 #ifndef _GROUPS
-#define _GROUPS 32
+#define _GROUPS 16U
 #endif
 /// @def _STEPBITS Bits to be sorted on each pass
 #ifndef _STEPBITS
-#define _STEPBITS 4
+#define _STEPBITS 4U
 #endif
 /// @def _RADIX Bits to be sorted on each pass
 #define _RADIX (1 << _STEPBITS)
@@ -56,7 +56,7 @@
  * @remarks Must be power of 2, and in some devices greather than 64.
  */
 #ifndef _HISTOSPLIT
-#define _HISTOSPLIT 512
+#define _HISTOSPLIT 512U
 #endif
 
 /* Modify data in order to impose that local size don't be lower than
@@ -247,9 +247,9 @@ class RadixSort : public Aqua::CalcServer::Tool
 	/// Key bits (maximum)
 	size_t _key_bits;
 	/// Needed radix pass (_key_bits / _STEPBITS)
-	unsigned int _n_pass;
+	uicl _n_pass;
 	/// Pass of the radix decomposition
-	unsigned int _pass;
+	uicl _pass;
 
 	/// Maximum local work size allowed by the device
 	size_t _local_work_size;

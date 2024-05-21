@@ -130,7 +130,7 @@ cl_event
 RadixSort::_execute(const std::vector<cl_event> events)
 {
 	cl_int err_code;
-	size_t i, max_val;
+	size_t max_val;
 	cl_event event;
 	CalcServer* C = CalcServer::singleton();
 	InputOutput::Variables* vars = C->variables();
@@ -140,7 +140,7 @@ RadixSort::_execute(const std::vector<cl_event> events)
 		max_val = std::numeric_limits<ulcl>::max();
 	else
 		max_val = std::numeric_limits<uicl>::max();
-	if (!_var_name.compare("icell")) {
+	if (_var_name == "icell") {
 		size_t n_cells;
 		if (C->device_addr_bits() == 64)
 			n_cells = ((ulvec4*)vars->get("n_cells")->get())->w;
@@ -150,9 +150,8 @@ RadixSort::_execute(const std::vector<cl_event> events)
 	} else if (!isPowerOf2(max_val)) {
 		max_val = nextPowerOf2(max_val / 2);
 	}
-	for (i = 0; (max_val & 1) == 0; max_val >>= 1, i++)
+	for (_key_bits = 0; (max_val & 1) == 0; max_val >>= 1, _key_bits++)
 		;
-	_key_bits = i;
 	_key_bits = roundUp<size_t>(_key_bits, _bits);
 	if (_key_bits > C->device_addr_bits()) {
 		LOG(L_ERROR,
@@ -342,7 +341,7 @@ RadixSort::histograms(cl_event keys_event, cl_event histograms_event)
 	    std::string("Failure sending argument 0 to \"histogram\" in tool \"") +
 	        name() + "\".");
 	err_code =
-	    clSetKernelArg(_histograms_kernel, 2, sizeof(cl_uint), (void*)&_pass);
+	    clSetKernelArg(_histograms_kernel, 2, sizeof(uicl), (void*)&_pass);
 	CHECK_OCL_OR_THROW(
 	    err_code,
 	    std::string("Failure sending argument 2 to \"histogram\" in tool \"") +
@@ -509,7 +508,7 @@ RadixSort::reorder(cl_event perms_event, cl_event histograms_event)
 	    err_code,
 	    std::string("Failure sending argument 1 to \"sort\" in tool \"") +
 	        name() + "\".");
-	err_code = clSetKernelArg(_sort_kernel, 3, sizeof(cl_uint), (void*)&_pass);
+	err_code = clSetKernelArg(_sort_kernel, 3, sizeof(uicl), (void*)&_pass);
 	CHECK_OCL_OR_THROW(
 	    err_code,
 	    std::string("Failure sending argument 3 to \"sort\" in tool \"") +
@@ -756,6 +755,9 @@ RadixSort::setupOpenCL()
 	LOG0(L_DEBUG, msg.str());
 	msg.str("");
 	msg << "\tsplits: " << _histo_split << std::endl;
+	LOG0(L_DEBUG, msg.str());
+	msg.str("");
+	msg << "\tn: " << _n << " -> " << _n_padded << std::endl;
 	LOG0(L_DEBUG, msg.str());
 }
 
@@ -1045,8 +1047,8 @@ RadixSort::setupTypedArgs()
 	    std::string("Failure sending argument 7 to \"sort\" in tool \"") +
 	        name() + "\".");
 
-	err_code =
-	    clSetKernelArg(_inv_perms_kernel, 1, sizeof(cl_mem), _inv_perms->get());
+	err_code = clSetKernelArg(
+		_inv_perms_kernel, 1, sizeof(cl_mem), _inv_perms->get());
 	CHECK_OCL_OR_THROW(
 	    err_code,
 	    std::string("Failure sending argument 1 to \"inversePermutation\" ") +

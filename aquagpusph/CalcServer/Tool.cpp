@@ -330,12 +330,11 @@ Tool::compile(const std::string source,
 #else
 	flags << " -DHAVE_2D";
 #endif
-	if (C->device_addr_bits() == 64) {
-		flags << " -Dusize=ulong";
-		flags << " -Dssize=long";
-	} else {
-		flags << " -Dusize=uint";
-		flags << " -Dssize=int";
+	std::string size_type = (C->device_addr_bits() == 64) ?
+		"long" : "int";
+	for (auto nc : {"", "2", "3", "4", "8"}) {
+		flags << " -Dusize" << nc << "=u" << size_type << nc;
+		flags << " -Dssize" << nc << "=" << size_type << nc;
 	}
 	flags << " " << additional_flags;
 

@@ -255,25 +255,38 @@ newFilePath(const std::string& basename,
             unsigned int& i,
             unsigned int digits = 5);
 
-/// Next number which is power of 2.
-/** Compute a value which, being power of two, is greater or equal than
- * @paramname{x}.
- *
- * @param x Number to round up to a power of two.
- * @return Next value which is power of two (it can be the same input value
- * @paramname{x}).
- */
-unsigned int
-nextPowerOf2(unsigned int x);
-
 /// Check if a number is power of 2.
 /** Compute if a value is power of 2.
  *
- * @param x Value to test.
+ * @param n Value to test.
  * @return 1 if it is a power of two, 0 otherwise.
  */
-unsigned int
-isPowerOf2(unsigned int x);
+template <typename T>
+inline bool
+isPowerOf2(T x) { return !(x & (x - 1)); }
+
+/// Next number which is power of 2.
+/** Compute a value which, being power of two, is greater or equal than
+ * @p n.
+ *
+ * @param n Number to round up to a power of two.
+ * @return Next value which is power of two (it can be the same input value
+ * @p n).
+ */
+template <typename T>
+inline T
+nextPowerOf2(T n)
+{
+	if (n & isPowerOf2(n))
+		return n;
+
+	T p = 1;
+	while (p < n) {
+		p <<= 1;
+	}
+	return p;
+}
+
 
 /// Rounded up value which is divisible by @paramname{divisor}.
 /** Compute a value, which being divisible by @paramname{divisor}, is greater

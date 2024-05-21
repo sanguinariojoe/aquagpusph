@@ -57,10 +57,10 @@ iCell(__global usize* icell,
       const __global vec* r,
       const usize N,
       const usize n_radix,
-      vec r_min,
-      float support,
-      float h,
-      uivec4 n_cells)
+      const vec r_min,
+      const float support,
+      const float h,
+      const svec4 n_cells)
 {
 	// find position in global arrays
 	const usize i = get_global_id(0);

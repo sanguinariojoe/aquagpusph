@@ -63,6 +63,8 @@
 #define svec svec2
 #define ssvec ssvec2
 #define matrix float4
+#define svec_xyz svec2
+#define ssvec_xyz ssvec2
 #else
 #define vec vec4
 #define dvec dvec4
@@ -73,4 +75,6 @@
 #define svec svec4
 #define ssvec ssvec4
 #define matrix float16
+#define svec_xyz svec3
+#define ssvec_xyz ssvec3
 #endif

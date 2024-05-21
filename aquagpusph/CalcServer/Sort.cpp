@@ -169,14 +169,12 @@ Sort::_execute(const std::vector<cl_event> events)
 			auto kernel = (stride >= limit) ? _global_kernel : _local_kernel;
 			std::string kname =
 			    (stride >= limit) ? "bitonic_global" : "bitonic_local";
-			err_code =
-			    clSetKernelArg(kernel, 3, sizeof(cl_uint), (void*)&bsize);
+			err_code = C->setKernelSizeArg(kernel, 3, bsize);
 			CHECK_OCL_OR_THROW(
 			    err_code,
 			    std::string("Failure sending argument 3 to kernel \"") + kname +
 			        "\" in tool \"" + name() + "\".");
-			err_code =
-			    clSetKernelArg(kernel, 4, sizeof(cl_uint), (void*)&stride);
+			err_code = C->setKernelSizeArg(kernel, 4, stride);
 			CHECK_OCL_OR_THROW(
 			    err_code,
 			    std::string("Failure sending argument 4 to kernel \"") + kname +
@@ -214,7 +212,7 @@ Sort::_execute(const std::vector<cl_event> events)
 	                               *(cl_mem*)_perms->get(),
 	                               0,
 	                               0,
-	                               _n * sizeof(cl_uint),
+	                               _n * vars->typeToBytes(_perms->type()),
 	                               perms_events.size(),
 	                               perms_events.data(),
 	                               &event);
@@ -236,7 +234,7 @@ Sort::_execute(const std::vector<cl_event> events)
 	                               *(cl_mem*)_var->get(),
 	                               0,
 	                               0,
-	                               _n * sizeof(cl_uint),
+	                               _n * vars->typeToBytes(_var->type()),
 	                               vals_events.size(),
 	                               vals_events.data(),
 	                               &event);
@@ -555,7 +553,7 @@ Sort::setupMems()
 	CHECK_OCL_OR_THROW(
 	    err_code,
 	    std::string("Failure allocating") +
-	        std::to_string(_n_padded * vars->typeToBytes(_var->type())) +
+	        std::to_string(_n_padded * vars->typeToBytes(_perms->type())) +
 	        " bytes for tool \"" + name() + "\".");
 
 	allocatedMemory(_n_padded * vars->typeToBytes(_var->type()) +

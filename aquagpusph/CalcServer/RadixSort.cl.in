@@ -153,7 +153,7 @@ scan(__global usize* histograms,
 	const usize ig = get_global_id(0);
 	const usize n = get_local_size(0) * 2;
 	const usize gr = get_group_id(0);
-	const usize decale = 1;
+	usize decale = 1;
 
 	temp[2 * it] = histograms[2 * ig];
 	temp[2 * it + 1] = histograms[2 * ig + 1];
@@ -226,9 +226,7 @@ paste(__global usize* histograms, __global usize* globsum)
 {
 	const usize ig = get_global_id(0);
 	const usize gr = get_group_id(0);
-	const usize s;
-
-	s = globsum[gr];
+	const usize s = globsum[gr];
 
 	histograms[2 * ig] += s;
 	histograms[2 * ig + 1] += s;
