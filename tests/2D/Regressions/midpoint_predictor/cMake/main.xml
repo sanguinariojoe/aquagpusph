@@ -1,0 +1,50 @@
+<?xml version="1.0" ?>
+<sphInput>
+    <Variables>
+        <Variable name="dt" type="float" symbol="\Delta t" value="1.0" />
+        <Variable name="cs" type="float" symbol="c_s" value="1.0" />
+        <Variable name="g" type="vec" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="p0" type="float" value="0.0" />
+        <Variable name="h" type="float" value="0.008"/>
+        <Variable name="imove" type="int*" length="N" />
+        <Variable name="r" type="vec*" length="N" />
+        <Variable name="u" type="vec*" length="N" />
+        <Variable name="dudt" type="vec*" length="N" />
+        <Variable name="rho" type="float*" length="N" />
+        <Variable name="drhodt" type="float*" length="N" />
+        <Variable name="m" type="float*" length="N" />
+        <Variable name="r_in" type="vec*" length="N" />
+        <Variable name="u_in" type="vec*" length="N" />
+        <Variable name="dudt_in" type="vec*" length="N" />
+        <Variable name="rho_in" type="float*" length="N" />
+        <Variable name="drhodt_in" type="float*" length="N" />
+    </Variables>
+    <Definitions>
+        <Define evaluate="true" name="DIMS" value="dims"/>
+        <Define evaluate="true" name="H" value="h"/>
+        <Define evaluate="true" name="CONW" value="1/(h^dims)"/>
+        <Define evaluate="true" name="CONF" value="1/(h^(dims+2))"/>
+        <Define evaluate="true" name="SUPPORT" value="support"/>
+        <Define evaluate="false" name="KERNEL_NAME" value="Wendland"/>
+    </Definitions>
+    <ParticlesSet n="252000">
+        <Load fields="r,u,dudt,rho,drhodt,m,imove" file="Fluid.dat" format="FastASCII"/>
+        <Save fields="r,u,dudt,rho,drhodt,m,imove" file="output" format="ASCII"/>
+    </ParticlesSet>
+    <Tools>
+        <Tool binary="false" fields="r,u,dudt" name="dump_pre_predictor" once="false" path="pre_predictor_dump.{index}.txt" type="report_dump"/>
+        <Tool fields="r,u,dudt" fps="0.0" ipf="1" name="report_pre_predictor" once="false" path="pre_predictor" set="0" type="report_particles"/>
+        <Tool entry_point="predictor" n="" name="predictor" once="false" path="resources/Scripts/basic/time_scheme/midpoint.cl" type="kernel"/>
+        <Tool fields="r_in,u_in,dudt_in" fps="0.0" ipf="1" name="report_post_predictor" once="false" path="post_predictor" set="0" type="report_particles"/>
+        <Tool binary="false" fields="r_in,u_in,dudt_in" name="dump_post_predictor" once="false" path="post_predictor_dump.{index}.txt" type="report_dump"/>
+        <Tool in="iter" name="iter += 1" once="false" type="set_scalar" value="iter + 1"/>
+    </Tools>
+
+    <Settings>
+        <Device device="0" platform="0" type="ALL"/>
+        <RootPath path="@RESOURCES_DIR@/.."/>
+    </Settings>
+    <Timing>
+        <Option name="End" type="Steps" value="1"/>
+    </Timing>
+</sphInput>
