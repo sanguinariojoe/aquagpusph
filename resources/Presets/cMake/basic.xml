@@ -130,7 +130,8 @@ later:
         <Define name="KERNEL_NAME" value="Wendland" evaluate="false"/>
         <Define name="TSCHEME_EULER" value="0" evaluate="false"/>
         <Define name="TSCHEME_IMPROVED_EULER" value="1" evaluate="false"/>
-        <Define name="TSCHEME_TSCHEME_ADAMS_BASHFORTH" value="2" evaluate="false"/>
+        <Define name="TSCHEME_ADAMS_BASHFORTH" value="2" evaluate="false"/>
+        <Define name="TSCHEME_MIDPOINT" value="3" evaluate="false"/>
         <Define name="TSCHEME" value="TSCHEME_EULER" evaluate="false"/>
     </Definitions>
     
