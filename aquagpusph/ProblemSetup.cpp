@@ -52,6 +52,7 @@ ProblemSetup::ProblemSetup(const ProblemSetup& p)
   , reports(p.reports)
   , time_opts(p.time_opts)
   , sets(p.sets)
+  , _n_cmd_queues(p.nCmdQueues())
   , _copy(true)
 {
 }
