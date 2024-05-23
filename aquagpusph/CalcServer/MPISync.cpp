@@ -572,8 +572,8 @@ typedef struct
 	InputOutput::ArrayVariable* field;
 	void* ptr;
 	unsigned int proc;
-	size_t offset;
-	size_t n;
+	ulcl offset;
+	ulcl n;
 	int tag;
 	cl_event user_event;
 } MPISyncSendUserData;
@@ -583,14 +583,11 @@ cbMPISend(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 {
 	MPI_Request req;
 	MPISyncSendUserData* data = (MPISyncSendUserData*)user_data;
-	size_t offset = data->offset;
-	size_t n = data->n;
+	ulcl offset = data->offset;
+	ulcl n = data->n;
 
 	if (data->tag == 1) {
-		MPI_Datatype t = (sizeof(size_t) == sizeof(uint32_t)) ?
-			MPI_UINT32_T :
-			MPI_UINT64_T;
-		Aqua::MPI::isend(&n, 1, t, data->proc, 0, MPI_COMM_WORLD);
+		Aqua::MPI::isend(&n, 1, MPI_UINT64_T, data->proc, 0, MPI_COMM_WORLD);
 	}
 
 	if (!n) {
@@ -953,19 +950,16 @@ cbMPIRecv(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 	MPI_Request req;
 	MPI_Status status;
 	cl_event mask_event = NULL, field_event = NULL;
+	auto C = CalcServer::singleton();
 	MPISyncRecvUserData* data = (MPISyncRecvUserData*)user_data;
-	size_t offset;
-	size_t n;
+	ulcl offset, n;
 	if (data->offset->typesize() == sizeof(ulcl))
 		offset = *(ulcl*)data->offset->get_async();
 	else
 		offset = *(uicl*)data->offset->get_async();
 
 	// We need to receive the number of transmitted elements
-	MPI_Datatype t = (sizeof(size_t) == sizeof(uint32_t)) ?
-		MPI_UINT32_T :
-		MPI_UINT64_T;
-	Aqua::MPI::recv(&n, 1, t, data->proc, 0, MPI_COMM_WORLD);
+	Aqua::MPI::recv(&n, 1, MPI_UINT64_T, data->proc, 0, MPI_COMM_WORLD);
 
 	// So we can set the offset for the next receivers
 	size_t next_offset = offset + n;
@@ -1008,35 +1002,10 @@ cbMPIRecv(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 	}
 
 	// We can now set the mask values
-	if (data->offset->typesize() == sizeof(ulcl)) {
-		ulcl nn;
-		nn = offset;
-		err_code = clSetKernelArg(data->kernel,
-		                          2,
-		                          sizeof(ulcl),
-		                          (void*)&nn);
-		CHECK_OCL_OR_THROW(err_code, "Failure sending the offset argument");
-		nn = n;
-		err_code = clSetKernelArg(data->kernel,
-		                          2,
-		                          sizeof(ulcl),
-		                          (void*)&nn);
-		CHECK_OCL_OR_THROW(err_code, "Failure sending the n argument");
-	} else {
-		uicl nn;
-		nn = narrow_cast<uicl>(offset);
-		err_code = clSetKernelArg(data->kernel,
-		                          2,
-		                          sizeof(ulcl),
-		                          (void*)&nn);
-		CHECK_OCL_OR_THROW(err_code, "Failure sending the offset argument");
-		nn = narrow_cast<uicl>(n);
-		err_code = clSetKernelArg(data->kernel,
-		                          2,
-		                          sizeof(ulcl),
-		                          (void*)&nn);
-		CHECK_OCL_OR_THROW(err_code, "Failure sending the n argument");
-	}
+	err_code = C->setKernelSizeArg(data->kernel, 2, offset);
+	CHECK_OCL_OR_THROW(err_code, "Failure sending the offset argument");
+	err_code = C->setKernelSizeArg(data->kernel, 3, n);
+	CHECK_OCL_OR_THROW(err_code, "Failure sending the n argument");
 	size_t global_work_size = roundUp<size_t>(n, data->local_work_size);
 	err_code = clEnqueueNDRangeKernel(data->C->command_queue(cmd_queue_mpi),
 	                                  data->kernel,

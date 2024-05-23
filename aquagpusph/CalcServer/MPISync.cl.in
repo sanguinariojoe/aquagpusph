@@ -29,10 +29,10 @@
  * @param N Number of elements into the mask
  */
 __kernel void
-n_offset_mask(const __global unsigned int* mask,
-              __global unsigned int* submask,
-              unsigned int proc,
-              usize N)
+n_offset_mask(const __global usize* mask,
+              __global usize* submask,
+              const unsigned int proc,
+              const usize N)
 {
 	const usize i = get_global_id(0);
 	if (i >= N)
@@ -48,10 +48,10 @@ n_offset_mask(const __global unsigned int* mask,
  * @param N Number of elements into the mask
  */
 __kernel void
-n_send_mask(const __global unsigned int* mask,
-            __global unsigned int* submask,
-            unsigned int proc,
-            usize N)
+n_send_mask(const __global usize* mask,
+            __global usize* submask,
+            const unsigned int proc,
+            const usize N)
 {
 	const usize i = get_global_id(0);
 	if (i >= N)
@@ -67,10 +67,10 @@ n_send_mask(const __global unsigned int* mask,
  * @param n Number of elements to be set
  */
 __kernel void
-set_mask(__global unsigned int* mask,
-         unsigned int proc,
-         usize offset,
-         usize n)
+set_mask(__global usize* mask,
+         const unsigned int proc,
+         const usize offset,
+         const usize n)
 {
 	const usize i = get_global_id(0);
 	if (i >= n)
