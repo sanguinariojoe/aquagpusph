@@ -324,6 +324,15 @@ class CalcServer
 	 */
 	cl_event marker() const;
 
+	/** Wrapper over clEnqueueMarkerWithWaitList()
+	 *
+	 * @note 2024/05/24 NVIDIA's platform clEnqueueMarkerWithWaitList() is
+	 * broken. This method is circumventing it by a less performant method
+	 * @return The marker event
+	 * @see https://registry.khronos.org/OpenCL/sdk/3.0/docs/man/html/clEnqueueMarkerWithWaitList.html
+	 */
+	cl_event marker(cl_command_queue cmd, std::vector<cl_event> events) const;
+
 	/** @brief Get the offset between the device timer and the host one
 	 * @return The time offset, in nanoseconds
 	 */
@@ -423,6 +432,15 @@ class CalcServer
 	cl_device_id _device;
 	/// Supported device bits (CL_DEVICE_ADDRESS_BITS)
 	cl_uint _device_bits;
+	/** @brief Flag to let the implementation know if it is the NVIDIA's
+	 * platform
+	 *
+	 * Some workarounds are sometimes required on NVIDIA. Even when the
+	 * issues are fixed, there is no grant that they will land on relatively
+	 * recent hardware
+	 * @see ::marker()
+	 */
+	bool _is_nvidia;
 	/// Current main command queue
 	unsigned int _command_queue_current;
 	/// Main command queues

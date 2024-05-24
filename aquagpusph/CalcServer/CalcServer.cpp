@@ -140,6 +140,7 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
   , _context(NULL)
   , _platform(NULL)
   , _device(NULL)
+  , _is_nvidia(false)
   , _command_queue_current(0)
   , _command_queue_parallel(NULL)
   , _device_timer_offset(0)
@@ -729,6 +730,89 @@ CalcServer::marker() const
 	return event;
 }
 
+typedef struct __marker_cb_data {
+	/// The event to be set as completed when the others on the wait list are
+	/// completed
+	cl_event event;
+	/// The number of events on the wait list
+	unsigned int num_events_in_wait_list;
+	/// The events on the wait list
+	cl_event* event_wait_list;
+} marker_cb_data;
+
+void CL_CALLBACK
+marker_cb(cl_event n_event, cl_int cmd_exec_status, void* user_data)
+{
+	cl_int err_code;
+	marker_cb_data* data = (marker_cb_data*)user_data;
+
+	err_code = clWaitForEvents(data->num_events_in_wait_list,
+	                           data->event_wait_list);
+	CHECK_OCL_OR_THROW(err_code, "Failure waiting for the events");
+
+	err_code = clSetUserEventStatus(data->event, CL_COMPLETE);
+	CHECK_OCL_OR_THROW(err_code, "Failure setting as completed the marker");
+
+	err_code = clReleaseEvent(data->event);
+	CHECK_OCL_OR_THROW(err_code, "Failure releasing the marker");
+	for (unsigned int i = 0; i < data->num_events_in_wait_list; i++) {
+		err_code = clReleaseEvent(data->event_wait_list[i]);
+		CHECK_OCL_OR_THROW(err_code, "Failure releasing a wait event");
+	}
+}
+
+cl_event
+CalcServer::marker(cl_command_queue cmd, std::vector<cl_event> events) const
+{
+	cl_int err_code;
+	cl_event event;
+	if (!events.size()) {
+		err_code = clEnqueueMarkerWithWaitList(cmd, 0, NULL, &event);
+		CHECK_OCL_OR_THROW(err_code, "Failure creating the marker");
+		return event;
+	}
+
+	if (!_is_nvidia) {
+		err_code = clEnqueueMarkerWithWaitList(
+			cmd, events.size(), events.data(), &event);
+		CHECK_OCL_OR_THROW(err_code, "Failure creating the marker");
+		return event;
+	}
+
+	// Workaround for NVIDIA's bug 4665567
+	event = clCreateUserEvent(context(), &err_code);
+	CHECK_OCL_OR_THROW(err_code, "Failure creating the user event");
+	err_code = clRetainEvent(event);
+	CHECK_OCL_OR_THROW(err_code, "Failure retaining the user event");
+	marker_cb_data* data = (marker_cb_data*)malloc(sizeof(marker_cb_data));
+	if (!data) {
+		std::ostringstream msg;
+		msg << "Failure allocating " << sizeof(marker_cb_data)
+		    << " bytes for the phony marker data" << std::endl;
+		LOG(L_ERROR, msg.str());
+	}
+	data->num_events_in_wait_list = events.size();
+	data->event_wait_list = (cl_event*)malloc(
+		sizeof(cl_event) * events.size());
+	if (!data->event_wait_list) {
+		std::ostringstream msg;
+		msg << "Failure allocating " << sizeof(cl_event) * events.size()
+		    << " bytes for the phony events wait list" << std::endl;
+		LOG(L_ERROR, msg.str());
+	}
+	for (unsigned int i = 0; i < events.size(); i++) {
+		err_code = clRetainEvent(event);
+		CHECK_OCL_OR_THROW(err_code, "Failure retaining a wait event");
+		data->event_wait_list[i] = events[i];
+	}
+	err_code = clSetEventCallback(
+		events[0], CL_COMPLETE, &marker_cb, (void*)(data));
+	CHECK_OCL_OR_THROW(err_code, "Failure setting the phony marker command");
+	err_code = clFlush(cmd);
+	CHECK_OCL_OR_THROW(err_code, "Failure flushing the command queue");
+	return event;
+}
+
 cl_event
 CalcServer::getUnsortedMem(const std::string var_name,
                            size_t offset,
@@ -1117,6 +1201,33 @@ CalcServer::setupPlatform()
 		    << version_major << "." << version_minor << std::endl;
 		LOG0(L_DEBUG, msg.str());
 		throw std::runtime_error("Insufficient OpenCL support");
+	}
+	// Check if we have an NVIDIA platform
+	char* name;
+	size_t name_len;
+	cl_int err_code;
+	err_code = clGetPlatformInfo(
+		_platform, CL_PLATFORM_NAME, 0, NULL, &name_len);
+	CHECK_OCL_OR_THROW(err_code, "Failure getting the platform name length");
+	name = new char[name_len + 1];
+	if (!name) {
+		std::ostringstream msg;
+		msg << "Failure allocating " << name_len + 1
+			<< " bytes for the platform's name" << std::endl;
+		LOG(L_ERROR, msg.str());
+		throw std::bad_alloc();
+	}
+	err_code = clGetPlatformInfo(
+		_platform, CL_PLATFORM_NAME, name_len, name, NULL);
+	CHECK_OCL_OR_THROW(err_code, "Failure getting the platform name");
+	name[name_len] = '\0';
+	if (std::string(name).find("NVIDIA CUDA") != std::string::npos) {
+		_is_nvidia = true;
+		LOG(L_WARNING, std::string("NVIDIA CUDA platform selected.") +
+		               " The following patches will be applied:");
+		LOG0(L_DEBUG, std::string("\tclEnqueueMarkerWithWaitList()") +
+		                          " is replaced by a set of callbacks" +
+		                          " (NVIDIA Bug 4665567)");
 	}
 }
 
