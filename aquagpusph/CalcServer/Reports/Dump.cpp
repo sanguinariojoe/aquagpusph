@@ -263,7 +263,7 @@ Dump::_execute(const std::vector<cl_event> events)
 std::vector<cl_event>
 Dump::download(std::vector<InputOutput::Variable*> vars)
 {
-	std::vector<cl_event> events;
+	std::vector<cl_event> events(vars.size(), NULL);
 	size_t typesize, len;
 	cl_int err_code;
 	CalcServer* C = CalcServer::singleton();
@@ -297,7 +297,7 @@ Dump::download(std::vector<InputOutput::Variable*> vars)
 		CHECK_OCL_OR_THROW(err_code,
 		                   std::string("Failure receiving the variable \"") +
 		                   var->name() + "\"");
-		events.push_back(event);
+		events[i] = event;
 	}
 
 	return events;
