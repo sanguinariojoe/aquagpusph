@@ -468,7 +468,7 @@ MPISync::Exchanger::Exchanger(
 	InputOutput::ArrayVariable* mask,
 	const std::vector<InputOutput::ArrayVariable*> fields,
 	const std::vector<void*> field_hosts,
-	const unsigned int proc)
+	const uicl proc)
   : _name(tool_name)
   , _var_prefix(vars_prefix)
   , _mask(mask)
@@ -530,7 +530,7 @@ MPISync::Sender::Sender(const std::string name,
                         InputOutput::ArrayVariable* mask,
                         const std::vector<InputOutput::ArrayVariable*> fields,
                         const std::vector<void*> field_hosts,
-                        const unsigned int proc)
+                        const uicl proc)
   : MPISync::Exchanger(name, vars_prefix, mask, fields, field_hosts, proc)
   , _n_offset(NULL)
   , _n_offset_mask(NULL)
@@ -571,9 +571,10 @@ typedef struct
 	CalcServer* C;
 	InputOutput::ArrayVariable* field;
 	void* ptr;
-	unsigned int proc;
-	ulcl offset;
-	ulcl n;
+	uicl proc;
+	void* offset;
+	void* n;
+	cl_uint n_bits;
 	int tag;
 	cl_event user_event;
 } MPISyncSendUserData;
@@ -583,12 +584,17 @@ cbMPISend(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 {
 	MPI_Request req;
 	MPISyncSendUserData* data = (MPISyncSendUserData*)user_data;
-	ulcl offset = data->offset;
-	ulcl n = data->n;
-
-	if (data->tag == 1) {
-		Aqua::MPI::isend(&n, 1, MPI_UINT64_T, data->proc, 0, MPI_COMM_WORLD);
+	ulcl offset, n;
+	if (data->n_bits == 64) {
+		offset = *(ulcl*)data->offset;
+		n = *(ulcl*)data->n;
+	} else {
+		offset = narrow_cast<ulcl>(*(uicl*)data->offset);
+		n = narrow_cast<ulcl>(*(uicl*)data->n);
 	}
+
+	if (data->tag == 1)
+		Aqua::MPI::isend(&n, 1, MPI_UINT64_T, data->proc, 0, MPI_COMM_WORLD);
 
 	if (!n) {
 		free(data);
@@ -654,7 +660,7 @@ MPISync::Sender::execute(EventProfile* profiler)
 
 	// Compute the offset of the first particle to be sent
 	event_wait_list = { _mask->getWritingEvent(),
-		                _n_offset_mask->getWritingEvent() };
+	                    _n_offset_mask->getWritingEvent() };
 	err_code = clEnqueueNDRangeKernel(C->command_queue(),
 	                                  _n_offset_kernel,
 	                                  1,
@@ -726,13 +732,9 @@ MPISync::Sender::execute(EventProfile* profiler)
 		user_data->field = _fields.at(i);
 		user_data->ptr = _fields_host.at(i);
 		user_data->proc = _proc;
-		if (C->device_addr_bits() == 64) {
-			user_data->offset = *(ulcl*)_n_offset->get_async();
-			user_data->n = *(ulcl*)_n_send->get_async();
-		} else {
-			user_data->offset = *(uicl*)_n_offset->get_async();
-			user_data->n = *(uicl*)_n_send->get_async();
-		}
+		user_data->offset = _n_offset->get_async();
+		user_data->n = _n_send->get_async();
+		user_data->n_bits = C->device_addr_bits();
 		user_data->tag = i + 1;
 		user_data->user_event = clCreateUserEvent(C->context(), &err_code);
 		CHECK_OCL_OR_THROW(
@@ -816,7 +818,7 @@ MPISync::Sender::setupOpenCL(const std::string kernel_name)
 	        name() + "\".");
 	if (_local_work_size < __CL_MIN_LOCALSIZE__) {
 		std::stringstream msg;
-		LOG(L_ERROR, "UnSort cannot be performed.\n");
+		LOG(L_ERROR, kernel_name + " cannot be performed.\n");
 		msg << "\t" << _local_work_size
 		    << " elements can be executed, but __CL_MIN_LOCALSIZE__="
 		    << __CL_MIN_LOCALSIZE__ << std::endl;
@@ -905,7 +907,7 @@ MPISync::Receiver::Receiver(
     InputOutput::ArrayVariable* mask,
     const std::vector<InputOutput::ArrayVariable*> fields,
     const std::vector<void*> field_hosts,
-    const unsigned int proc,
+    const uicl proc,
     InputOutput::Variable* n_offset)
   : MPISync::Exchanger(name, vars_prefix, mask, fields, field_hosts, proc)
   , _kernel(NULL)
@@ -928,7 +930,7 @@ typedef struct
 	size_t n_fields;
 	InputOutput::ArrayVariable** fields;
 	void** ptrs;
-	unsigned int proc;
+	uicl proc;
 	InputOutput::Variable* offset;
 	// To set the mask
 	InputOutput::ArrayVariable* mask;

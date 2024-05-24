@@ -201,7 +201,7 @@ class MPISync : public Aqua::CalcServer::Tool
 		          InputOutput::ArrayVariable* mask,
 		          const std::vector<InputOutput::ArrayVariable*> fields,
 		          const std::vector<void*> field_hosts,
-		          const unsigned int proc);
+		          const uicl proc);
 
 		/** Destructor.
 		 */
@@ -215,7 +215,7 @@ class MPISync : public Aqua::CalcServer::Tool
 		/** @brief Processor
 		 * @return Processor
 		 */
-		inline const unsigned int proc() const { return _proc; }
+		inline const uicl proc() const { return _proc; }
 
 		/** @brief Data structure to store the type information required by MPI
 		 *
@@ -250,7 +250,7 @@ class MPISync : public Aqua::CalcServer::Tool
 		std::vector<InputOutput::ArrayVariable*> _fields;
 
 		/// Processor
-		unsigned int _proc;
+		uicl _proc;
 
 		/// Total number of elements
 		size_t _n;
@@ -292,7 +292,7 @@ class MPISync : public Aqua::CalcServer::Tool
 		       InputOutput::ArrayVariable* mask,
 		       const std::vector<InputOutput::ArrayVariable*> fields,
 		       const std::vector<void*> field_hosts,
-		       const unsigned int proc);
+		       const uicl proc);
 
 		/** Destructor.
 		 */
@@ -376,7 +376,7 @@ class MPISync : public Aqua::CalcServer::Tool
 		         InputOutput::ArrayVariable* mask,
 		         const std::vector<InputOutput::ArrayVariable*> fields,
 		         const std::vector<void*> field_hosts,
-		         const unsigned int proc,
+		         const uicl proc,
 		         InputOutput::Variable* n_offset);
 
 		/** Destructor.
