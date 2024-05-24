@@ -22,6 +22,7 @@
  */
 
 #include <sstream>
+#include <iomanip>
 #include "aquagpusph/AuxiliarMethods.hpp"
 #include "aquagpusph/InputOutput/Logger.hpp"
 #include "aquagpusph/CalcServer/CalcServer.hpp"
@@ -69,6 +70,16 @@ SetTabFile::setup()
 	LOG(L_INFO, msg.str());
 
 	_f.open(_output_file.c_str(), std::ios::out);
+	CalcServer* C = CalcServer::singleton();
+	if (C->device_addr_bits() == 64) {
+		constexpr auto max_precision{
+			std::numeric_limits<double>::digits10 + 1};
+		_f << std::setprecision(max_precision);
+	} else {
+		constexpr auto max_precision{
+			std::numeric_limits<float>::digits10 + 1};
+		_f << std::setprecision(max_precision);
+	}
 
 	Report::setup();
 

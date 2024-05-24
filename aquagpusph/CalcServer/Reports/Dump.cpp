@@ -23,6 +23,7 @@
 
 #include <sstream>
 #include <fstream>
+#include <iomanip>
 #include "aquagpusph/AuxiliarMethods.hpp"
 #include "aquagpusph/InputOutput/Logger.hpp"
 #include "aquagpusph/CalcServer/CalcServer.hpp"
@@ -86,12 +87,22 @@ Dump::setup()
 void
 Dump::print()
 {
+	CalcServer* C = CalcServer::singleton();
 	unsigned int findex=0;
 	const auto fpath = newFilePath(_output_file, findex);
 	std::ios_base::openmode mode = _binary ?
 		std::ios::out | std::ios::binary:
 		std::ios::out;
 	std::ofstream f(fpath, mode);
+	if (C->device_addr_bits() == 64) {
+		constexpr auto max_precision{
+			std::numeric_limits<double>::digits10 + 1};
+		f << std::setprecision(max_precision);
+	} else {
+		constexpr auto max_precision{
+			std::numeric_limits<float>::digits10 + 1};
+		f << std::setprecision(max_precision);
+	}
 	std::vector<InputOutput::Variable*> vars = variables();
 
 	if (_binary) {

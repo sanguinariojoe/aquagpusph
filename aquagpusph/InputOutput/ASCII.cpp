@@ -239,7 +239,8 @@ void
 ASCII::print_file(const char sep, const char csep)
 {
 	cl_int err_code;
-	Variables* vars = CalcServer::CalcServer::singleton()->variables();
+	auto C = CalcServer::CalcServer::singleton();
+	auto vars = C->variables();
 
 	auto fields = simData().sets.at(setId())->outputFields();
 
@@ -248,7 +249,15 @@ ASCII::print_file(const char sep, const char csep)
 	print_header(f);
 
 	// Set the precision as the maximum for float numbers
-	const auto max_precision = std::numeric_limits<float>::digits10 + 1;
+	if (C->device_addr_bits() == 64) {
+		constexpr auto max_precision{
+			std::numeric_limits<double>::digits10 + 1};
+		f << std::setprecision(max_precision);
+	} else {
+		constexpr auto max_precision{
+			std::numeric_limits<float>::digits10 + 1};
+		f << std::setprecision(max_precision);
+	}
 
 	for (size_t i = 0; i < bounds().y - bounds().x; i++) {
 		for (size_t j = 0; j < fields.size(); j++) {
