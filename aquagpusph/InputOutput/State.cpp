@@ -387,7 +387,7 @@ State::parseSettings(DOMElement* root,
 					throw std::runtime_error("Invalid device type");
 				}
 			}
-			unsigned int addr_bits = 0;
+			unsigned int addr_bits = 32;
 			if (xmlHasAttribute(s_elem, "addr_bits")) {
 				addr_bits = std::stoi(xmlAttribute(s_elem, "addr_bits"));
 			}

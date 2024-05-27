@@ -209,7 +209,7 @@ class ProblemSetup
 			device(const unsigned int platform_index,
 			       const unsigned int device_index,
 			       const cl_device_type t = CL_DEVICE_TYPE_ALL,
-			       const unsigned int bits = 0)
+			       const unsigned int bits = 32)
 			  : platform_id(platform_index)
 			  , device_id(device_index)
 			  , device_type(t)
@@ -255,7 +255,7 @@ class ProblemSetup
 
 			/** @brief Address bits of the device.
 			 *
-			 * If not provided, 0 will be considered, i.e. the
+			 * If not provided, 32 will be considered, i.e. the
 			 * CL_DEVICE_ADDRESS_BITS will be queried
 			 *
 			 * This field can be set with the tag `Device`, for instance:
