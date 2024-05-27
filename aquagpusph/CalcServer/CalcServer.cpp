@@ -1220,7 +1220,6 @@ CalcServer::setupPlatform()
 
 	for (const auto& [key, value] : device_config.patches) {
 		const std::string id = split(key, '#')[1];
-		std::cout << _is_nvidia << " vs. " << key << " (" << value << ")" << std::endl;
 		if (_is_nvidia && device_config.isPatchEnabled(key)) {
 			LOG(L_INFO, std::string("The NVIDIA CUDA bug #") + id +
 						" patch will be applied as requested\n");
