@@ -763,7 +763,9 @@ CalcServer::marker(cl_command_queue cmd, std::vector<cl_event> events) const
 #endif
 	const auto device_config = _sim_data.settings.devices.at(rank);
 
-	if (device_config.isPatchDisabled("nvidia_#4665567") || !_is_nvidia) {
+	if (device_config.isPatchDisabled("nvidia_#4665567") ||
+		(!_is_nvidia && !device_config.isPatchEnabled("nvidia_#4665567"))) {
+		// We can use the regular implementation
 		err_code = clEnqueueMarkerWithWaitList(
 			cmd, events.size(), events.data(), &event);
 		CHECK_OCL_OR_THROW(err_code, "Failure creating the marker");
@@ -782,6 +784,7 @@ CalcServer::marker(cl_command_queue cmd, std::vector<cl_event> events) const
 		    << " bytes for the phony marker data" << std::endl;
 		LOG(L_ERROR, msg.str());
 	}
+	data->event = event;
 	data->num_events_in_wait_list = events.size();
 	data->event_wait_list = (cl_event*)malloc(
 		sizeof(cl_event) * events.size());
@@ -792,7 +795,7 @@ CalcServer::marker(cl_command_queue cmd, std::vector<cl_event> events) const
 		LOG(L_ERROR, msg.str());
 	}
 	for (unsigned int i = 0; i < events.size(); i++) {
-		err_code = clRetainEvent(event);
+		err_code = clRetainEvent(events[i]);
 		CHECK_OCL_OR_THROW(err_code, "Failure retaining a wait event");
 		data->event_wait_list[i] = events[i];
 	}
