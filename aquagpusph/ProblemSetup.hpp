@@ -196,6 +196,16 @@ class ProblemSetup
 		class device
 		{
 		  public:
+			/// @brief Possible patch enabling states
+			typedef enum _patch {
+				/// Let AQUAgpusph decide
+				AUTO = 0,
+				/// Enabled
+				ENABLED = 1,
+				/// Disabled
+				DISABLED = 2
+			} patch_state;
+
 			/** @brief Constructor
 			 *
 			 * @param platform_index Index of the OpenCL platform to use
@@ -214,6 +224,7 @@ class ProblemSetup
 			  , device_id(device_index)
 			  , device_type(t)
 			  , addr_bits(bits)
+			  , patches({{"nvidia_#4665567", patch_state::AUTO}})
 			{};
 
 			/// Destructor
@@ -263,6 +274,47 @@ class ProblemSetup
 			 * @see https://registry.khronos.org/OpenCL/sdk/3.0/docs/man/html/clGetDeviceInfo.html
 			 */
 			unsigned int addr_bits;
+
+			/** @brief List of patchs to be forcibly enabled/disabled
+			 *
+			 * The several patches currently exist:
+			 *
+			 *  - nvidia_#4665567 : NVIDIA CUDA platform bug #4665567.
+			 *                      clEnqueueMarkerWithWaitList() does not
+			 *                      properly works
+			 *
+			 * If a patch is not forcibly enabled/disabled, AQUAgpusph will
+			 * automatically decide whether it is required or not.
+			 *
+			 * This field can be set with the tag `Device`, using the
+			 * attributes enable_patch and disable_patch. The patchs are
+			 * separated by commas. If a patch is found simultaneously on
+			 * enable_patch and disable_patch attributes, it will be disabled.
+			 * For instance:
+			 * `<Device platform="0" device="0" type="GPU" enable_patch="nvidia_#4665567" />`
+			 * @see https://registry.khronos.org/OpenCL/sdk/3.0/docs/man/html/clGetDeviceInfo.html
+			 */
+			std::map<std::string, int> patches;
+
+			/** @brief Is the patch enabled?
+			 * @param patch Patch name
+			 * @return true if the patch is enabled, false if it is either
+			 * disabled or automatically decided by AQUAgpusph
+			 */
+			inline bool isPatchEnabled(const std::string name) const
+			{
+				return patches.at(name) == patch_state::ENABLED;
+			}
+
+			/** @brief Is the patch disabled?
+			 * @param patch Patch name
+			 * @return true if the patch is disabled, false if it is either
+			 * enabled or automatically decided by AQUAgpusph
+			 */
+			inline bool isPatchDisabled(const std::string name) const
+			{
+				return patches.at(name) == patch_state::DISABLED;
+			}
 		};
 
 		/** @brief The list of devices to be considered
@@ -275,6 +327,7 @@ class ProblemSetup
 		 * the MPI machine file must hold a strict relation
 		 */
 		std::vector<ProblemSetup::sphSettings::device> devices;
+
 	};
 
 	/// Stored settings

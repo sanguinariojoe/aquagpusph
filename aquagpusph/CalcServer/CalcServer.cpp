@@ -772,7 +772,13 @@ CalcServer::marker(cl_command_queue cmd, std::vector<cl_event> events) const
 		return event;
 	}
 
-	if (!_is_nvidia) {
+	int rank = 0;
+#ifdef HAVE_MPI
+	rank = Aqua::MPI::rank(MPI_COMM_WORLD);
+#endif
+	const auto device_config = _sim_data.settings.devices.at(rank);
+
+	if (device_config.isPatchDisabled("nvidia_#4665567") || !_is_nvidia) {
 		err_code = clEnqueueMarkerWithWaitList(
 			cmd, events.size(), events.data(), &event);
 		CHECK_OCL_OR_THROW(err_code, "Failure creating the marker");
@@ -1182,8 +1188,8 @@ CalcServer::setupPlatform()
 		LOG(L_ERROR, msg.str());
 		throw std::runtime_error("Out of bounds");
 	}
-	const unsigned int platform_id =
-	    _sim_data.settings.devices.at(rank).platform_id;
+	const auto device_config = _sim_data.settings.devices.at(rank);
+	const unsigned int platform_id = device_config.platform_id;
 	if (platform_id >= _num_platforms) {
 		std::ostringstream msg;
 		LOG(L_ERROR, "The requested OpenCL platform can't be used.\n");
@@ -1223,11 +1229,23 @@ CalcServer::setupPlatform()
 	name[name_len] = '\0';
 	if (std::string(name).find("NVIDIA CUDA") != std::string::npos) {
 		_is_nvidia = true;
-		LOG(L_WARNING, std::string("NVIDIA CUDA platform selected.") +
-		               " The following patches will be applied:");
-		LOG0(L_DEBUG, std::string("\tclEnqueueMarkerWithWaitList()") +
-		                          " is replaced by a set of callbacks" +
-		                          " (NVIDIA Bug 4665567)");
+		for (const auto& [key, value] : device_config.patches) {
+			const std::string id = split(key, '#')[1];
+			if (_is_nvidia && device_config.isPatchEnabled(key)) {
+				LOG(L_INFO, std::string("The NVIDIA CUDA bug #") + id +
+				            " patch will be applied as requested\n");
+			} else if (_is_nvidia && device_config.isPatchDisabled(key)) {
+				LOG(L_WARNING, std::string("The NVIDIA CUDA bug #") + id +
+				               " patch will not be applied as requested\n");
+			} else if (_is_nvidia) {
+				LOG(L_WARNING, std::string("NVIDIA CUDA platform detected, ") +
+				               " so bug #" + id + " patch will be applied\n");
+			} else if (!_is_nvidia && device_config.isPatchEnabled(key)) {
+				LOG(L_WARNING, std::string("The NVIDIA CUDA bug #") + id +
+				            " patch will be applied, although the paltform " +
+				            " does not seem a NVIDIA CUDA one\n");
+			}
+		}
 	}
 }
 

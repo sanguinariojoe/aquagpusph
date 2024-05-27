@@ -394,6 +394,24 @@ State::parseSettings(DOMElement* root,
 			sim_data.settings.devices.push_back(
 			    ProblemSetup::sphSettings::device(
 			        platform_id, device_id, device_type, addr_bits));
+			std::vector<std::pair<
+				std::string,
+				ProblemSetup::sphSettings::device::patch_state>> attrs = {
+					{"enable_patch",
+					 ProblemSetup::sphSettings::device::patch_state::ENABLED},
+					{"disable_patch",
+					 ProblemSetup::sphSettings::device::patch_state::DISABLED}
+				};
+			for (const auto& attr : attrs) {
+				const std::string s = attr.first;
+				const auto o = attr.second;
+				if (xmlHasAttribute(s_elem, s)) {
+					for (auto name : split(xmlAttribute(s_elem, s))) {
+						sim_data.settings.devices.back().patches[name] = o;
+					}
+				}
+			}
+
 		}
 	}
 }
