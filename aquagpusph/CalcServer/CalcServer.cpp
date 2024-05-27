@@ -705,29 +705,14 @@ CalcServer::command_queue(cmd_queue which)
 cl_event
 CalcServer::marker() const
 {
-	cl_int err_code;
-	cl_event event;
 	// Setup a list of markers for each command queue
 	std::vector<cl_event> events;
 	for (auto queue : _command_queues) {
-		err_code = clEnqueueMarkerWithWaitList(queue, 0, NULL, &event);
-		CHECK_OCL_OR_THROW(err_code,
-		                   "Failure setting the marker on a command queue");
-		events.push_back(event);
+		events.push_back(marker(queue, {}));
 	}
-	err_code =
-	    clEnqueueMarkerWithWaitList(_command_queue_parallel, 0, NULL, &event);
-	CHECK_OCL_OR_THROW(err_code,
-	                   "Failure setting the marker on the MPI command queue");
-	events.push_back(event);
+	events.push_back(marker(_command_queue_parallel, {}));
 	// Join all them together on a common marker
-	err_code =
-	    clEnqueueMarkerWithWaitList(_command_queues[_command_queue_current],
-	                                events.size(),
-	                                events.data(),
-	                                &event);
-	CHECK_OCL_OR_THROW(err_code, "Failure setting the master marker");
-	return event;
+	return marker(_command_queues[_command_queue_current], events);
 }
 
 typedef struct __marker_cb_data {
@@ -1227,24 +1212,25 @@ CalcServer::setupPlatform()
 		_platform, CL_PLATFORM_NAME, name_len, name, NULL);
 	CHECK_OCL_OR_THROW(err_code, "Failure getting the platform name");
 	name[name_len] = '\0';
-	if (std::string(name).find("NVIDIA CUDA") != std::string::npos) {
+	if (std::string(name).find("NVIDIA CUDA") != std::string::npos)
 		_is_nvidia = true;
-		for (const auto& [key, value] : device_config.patches) {
-			const std::string id = split(key, '#')[1];
-			if (_is_nvidia && device_config.isPatchEnabled(key)) {
-				LOG(L_INFO, std::string("The NVIDIA CUDA bug #") + id +
-				            " patch will be applied as requested\n");
-			} else if (_is_nvidia && device_config.isPatchDisabled(key)) {
-				LOG(L_WARNING, std::string("The NVIDIA CUDA bug #") + id +
-				               " patch will not be applied as requested\n");
-			} else if (_is_nvidia) {
-				LOG(L_WARNING, std::string("NVIDIA CUDA platform detected, ") +
-				               " so bug #" + id + " patch will be applied\n");
-			} else if (!_is_nvidia && device_config.isPatchEnabled(key)) {
-				LOG(L_WARNING, std::string("The NVIDIA CUDA bug #") + id +
-				            " patch will be applied, although the paltform " +
-				            " does not seem a NVIDIA CUDA one\n");
-			}
+
+	for (const auto& [key, value] : device_config.patches) {
+		const std::string id = split(key, '#')[1];
+		std::cout << _is_nvidia << " vs. " << key << " (" << value << ")" << std::endl;
+		if (_is_nvidia && device_config.isPatchEnabled(key)) {
+			LOG(L_INFO, std::string("The NVIDIA CUDA bug #") + id +
+						" patch will be applied as requested\n");
+		} else if (_is_nvidia && device_config.isPatchDisabled(key)) {
+			LOG(L_WARNING, std::string("The NVIDIA CUDA bug #") + id +
+							" patch will not be applied as requested\n");
+		} else if (_is_nvidia) {
+			LOG(L_WARNING, std::string("NVIDIA CUDA platform detected, ") +
+							" so bug #" + id + " patch will be applied\n");
+		} else if (!_is_nvidia && device_config.isPatchEnabled(key)) {
+			LOG(L_WARNING, std::string("The NVIDIA CUDA bug #") + id +
+						" patch will be applied, although the paltform " +
+						" does not seem a NVIDIA CUDA one\n");
 		}
 	}
 }
@@ -1411,9 +1397,11 @@ CalcServer::setupDevices()
 	cl_event sampler;
 	auto trigger = clCreateUserEvent(_context, &err_code);
 	CHECK_OCL_OR_THROW(err_code, "Failure generating the trigger event.");
-	err_code = clEnqueueMarkerWithWaitList(
-	    _command_queues.front(), 1, &trigger, &sampler);
-	CHECK_OCL_OR_THROW(err_code, "Failure generating the sampler event.");
+	try {
+		sampler = marker(_command_queues.front(), { trigger });
+	} catch (std::runtime_error e) {
+		LOG(L_ERROR, std::string("While generating the sampler event.\n");
+	}
 	err_code = clSetEventCallback(
 	    sampler, CL_COMPLETE, device_timer_sampler, &_device_timer_offset);
 	CHECK_OCL_OR_THROW(err_code,

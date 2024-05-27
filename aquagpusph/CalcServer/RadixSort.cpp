@@ -265,15 +265,14 @@ RadixSort::_execute(const std::vector<cl_event> events)
 	// from inversePermutations(), their events will get overwritten by
 	// Aqua::CalcServer::Tool::execute()
 	// Thus we can join all the events together with a marker
-	const cl_event out_events[3] = { _var->getWritingEvent(),
-		                             _perms->getWritingEvent(),
-		                             event_wait };
-	err_code =
-	    clEnqueueMarkerWithWaitList(C->command_queue(), 3, out_events, &event);
-	CHECK_OCL_OR_THROW(
-	    err_code,
-	    std::string("Failure joining the output events in tool \"") + name() +
-	        "\".");
+	try {
+		event = C->marker(C->command_queue(), { _var->getWritingEvent(),
+		                                        _perms->getWritingEvent(),
+		                                        event_wait });
+	} catch (std::runtime_error e) {
+		LOG(L_ERROR, std::string("While joining the output events in tool ") +
+		             name() + ".\n");
+	}
 	err_code = clReleaseEvent(event_wait);
 	CHECK_OCL_OR_THROW(
 	    err_code,

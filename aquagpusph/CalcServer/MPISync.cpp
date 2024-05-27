@@ -708,15 +708,15 @@ MPISync::Sender::execute(EventProfile* profiler)
 			                _n_send->getWritingEvent(),
 			                _fields.at(i)->getWritingEvent() };
 
-		err_code = clEnqueueMarkerWithWaitList(C->command_queue(),
-		                                       event_wait_list.size(),
-		                                       event_wait_list.data(),
-		                                       &event);
-		CHECK_OCL_OR_THROW(
-		    err_code,
-		    std::string(
-		        "Failure creating send events syncing point in tool \"") +
-		        name() + "\".");
+		try {
+			event = C->marker(C->command_queue(), {
+				_n_offset->getWritingEvent(),
+				_n_send->getWritingEvent(),
+				_fields.at(i)->getWritingEvent() });
+		} catch (std::runtime_error e) {
+			LOG(L_ERROR, std::string("While creating send events ") +
+			             "syncing point in tool \"" + name() + "\".\n");
+		}
 
 		// Setup the data to pass to the callback
 		MPISyncSendUserData* user_data =
@@ -1084,14 +1084,12 @@ MPISync::Receiver::execute(EventProfile* profiler)
 		event_wait_list.push_back(field->getWritingEvent());
 	}
 
-	err_code = clEnqueueMarkerWithWaitList(C->command_queue(),
-	                                       event_wait_list.size(),
-	                                       event_wait_list.data(),
-	                                       &event);
-	CHECK_OCL_OR_THROW(
-	    err_code,
-	    std::string("Failure creating recv events syncing point for tool \"") +
-	        name() + "\".");
+	try {
+		event = C->marker(C->command_queue(), event_wait_list);
+	} catch (std::runtime_error e) {
+		LOG(L_ERROR, std::string("While creating recv events ") +
+						"syncing point in tool \"" + name() + "\".\n");
+	}
 
 	// Setup the data to pass to the callback
 	MPISyncRecvUserData* user_data =

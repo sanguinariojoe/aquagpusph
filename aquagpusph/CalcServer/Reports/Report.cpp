@@ -167,13 +167,12 @@ Report::setCallback(const std::vector<cl_event> events,
 	cl_int err_code;
 	cl_event event;
 	auto C = CalcServer::singleton();
-	cl_uint num_events_in_wait_list = events.size();
-	const cl_event* event_wait_list = events.size() ? events.data() : NULL;
-	err_code = clEnqueueMarkerWithWaitList(
-	    C->command_queue(), num_events_in_wait_list, event_wait_list, &event);
-	CHECK_OCL_OR_THROW(err_code,
-	                   std::string("Failure setting the marker in tool \"") +
-	                       name() + "\".");
+	try {
+		event = C->marker(C->command_queue(), events);
+	} catch (std::runtime_error e) {
+		LOG(L_ERROR, std::string("While setting the trigger in tool \"") +
+		             name() + "\".\n");
+	}
 
 	// Now we create a user event that we will set as completed when we already
 	// readed the input dependencies

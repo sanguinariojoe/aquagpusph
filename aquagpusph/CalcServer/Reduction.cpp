@@ -232,12 +232,13 @@ Reduction::_execute(const std::vector<cl_event> events)
 
 	// It is not really a good business to return an user event, which is kind
 	// of special. e.g. it cannot be profiled. So we create a mark on top of it
-	err_code = clEnqueueMarkerWithWaitList(
-	    C->command_queue(), 1, &_user_event, &event);
-	CHECK_OCL_OR_THROW(
-	    err_code,
-	    std::string("Failure setting the the output event for tool \"") +
-	        name() + "\".");
+	try {
+		event = C->marker(C->command_queue(), { _user_event });
+	} catch (std::runtime_error e) {
+		LOG(L_ERROR, std::string("While setting an output event for tool \"") +
+		             name() + "\".\n");
+	}
+
 	profiler->end(event);
 
 	return _user_event;

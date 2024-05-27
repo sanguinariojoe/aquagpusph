@@ -159,17 +159,15 @@ ScalarExpression::_execute(const std::vector<cl_event> events)
 
 	// We create a trigger event to be marked as completed when all the
 	// dependencies are fullfiled.
-	// If there are no dependencies, we are not using
-	// clEnqueueMarkerWithWaitList() because it will set a marker waiting for
-	// everything enqueued before
+	// If there are no dependencies, we are not using CalcServer::marker()
+	// because it will set a marker waiting for everything enqueued before
 	if (events.size()) {
-		err_code = clEnqueueMarkerWithWaitList(C->command_queue(),
-		                                       events.size(),
-		                                       events.data(),
-		                                       &trigger);
-		CHECK_OCL_OR_THROW(err_code,
-			std::string("Failure setting the trigger for tool \"") +
-			name() + "\".");
+		try {
+			trigger = C->marker(C->command_queue(), events);
+		} catch (std::runtime_error e) {
+			LOG(L_ERROR, std::string("While executing the tool ") +
+			             name() + ".\n");
+		}
 	} else {
 		trigger = clCreateUserEvent(C->context(), &err_code);
 		CHECK_OCL_OR_THROW(err_code,
