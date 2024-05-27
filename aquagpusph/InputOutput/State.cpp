@@ -1410,6 +1410,22 @@ State::writeSettings(xercesc::DOMDocument* doc,
 		s_elem->setAttribute(xmlS("value"), xmlS("false"));
 	elem->appendChild(s_elem);
 
+	s_elem = doc->createElement(xmlS("DebugTools"));
+	std::vector<std::pair<std::string, ProblemSetup::sphSettings::debug_opts>> attrs = {
+		{"events", ProblemSetup::sphSettings::DEBUG_EVENTS},
+		{"args", ProblemSetup::sphSettings::DEBUG_ARGS},
+		{"sync", ProblemSetup::sphSettings::DEBUG_DEPS_SYNC},
+		{"deps", ProblemSetup::sphSettings::DEBUG_SYNC}};
+	for (const auto& attr : attrs) {
+		const std::string s = attr.first;
+		const ProblemSetup::sphSettings::debug_opts o = attr.second;
+		if (sim_data.settings.debug_tools & o)
+			s_elem->setAttribute(xmlS(s), xmlS("true"));
+		else
+			s_elem->setAttribute(xmlS(s), xmlS("false"));
+	}
+	elem->appendChild(s_elem);
+
 	s_elem = doc->createElement(xmlS("RootPath"));
 	s_elem->setAttribute(xmlS("path"), xmlS(sim_data.settings.base_path));
 	elem->appendChild(s_elem);
@@ -1441,6 +1457,9 @@ State::writeSettings(xercesc::DOMDocument* doc,
 				break;
 		}
 		s_elem->setAttribute(xmlS("type"), xmlS(att.str()));
+		att.str("");
+		att << device.addr_bits;
+		s_elem->setAttribute(xmlS("addr_bits"), xmlS(att.str()));
 		elem->appendChild(s_elem);
 	}
 }
