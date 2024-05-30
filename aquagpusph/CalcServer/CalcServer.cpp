@@ -91,7 +91,7 @@ sigint_handler(int s)
 	sigint_received = true;
 }
 
-/** @brief A mutex to avoid several threads writing profiling smaples
+/** @brief A mutex to avoid several threads writing profiling samples
  * simultaneously
  */
 std::mutex profiling_mutex;
@@ -719,31 +719,67 @@ typedef struct __marker_cb_data {
 	/// The event to be set as completed when the others on the wait list are
 	/// completed
 	cl_event event;
+	/// The event status candidate
+	/// (CL_COMPLETE unless an event on the wait list report an error)
+	cl_int status;
 	/// The number of events on the wait list
-	unsigned int num_events_in_wait_list;
+	cl_uint num_events_in_wait_list;
 	/// The events on the wait list
 	cl_event* event_wait_list;
 } marker_cb_data;
 
+/** @brief A phony clEnqueueMarkerWithWaitList()
+ *
+ * This callback is used to workaround the NVIDIA CUDA platform bug #4665567,
+ * identified as nvidia_#4665567 patch
+ */
 void CL_CALLBACK
-marker_cb(cl_event n_event, cl_int cmd_exec_status, void* user_data)
+marker_cb(cl_event event, cl_int cmd_exec_status, void* user_data)
 {
 	cl_int err_code;
 	marker_cb_data* data = (marker_cb_data*)user_data;
 
-	err_code = clWaitForEvents(data->num_events_in_wait_list,
-	                           data->event_wait_list);
-	CHECK_OCL_OR_THROW(err_code, "Failure waiting for the events");
+	if (cmd_exec_status < data->status)
+		data->status = cmd_exec_status;
+	// Check if all the events on the wait list are finished
+	// We cannot call clWaitForEvents or we will probably face a race condition
+	cl_int status = CL_COMPLETE;
+	for (cl_uint i = 0; i < data->num_events_in_wait_list; i++) {
+		if (data->event_wait_list[i] == event)
+			continue;
+		cl_int e_status;
+		err_code = clGetEventInfo(data->event_wait_list[i],
+		                          CL_EVENT_COMMAND_EXECUTION_STATUS,
+		                          sizeof(cl_int),
+		                          &e_status,
+		                          NULL);
+		CHECK_OCL_OR_THROW(err_code, "Failure getting a status event");
+		if (e_status > CL_COMPLETE)
+			status = e_status;
+		if ((e_status < CL_COMPLETE) && (status == CL_COMPLETE))
+			status = e_status;
+	}
+	for (cl_uint i = 0; i < data->num_events_in_wait_list; i++) {
+		err_code = clReleaseEvent(data->event_wait_list[i]);
+		CHECK_OCL_OR_THROW(err_code, "Failure releasing a wait event");
+	}
 
-	err_code = clSetUserEventStatus(data->event, CL_COMPLETE);
+	if (status > CL_COMPLETE) {
+		err_code = clReleaseEvent(data->event);
+		CHECK_OCL_OR_THROW(err_code, "Failure releasing the marker");
+		return;
+	}
+
+	err_code = clSetUserEventStatus(data->event, data->status);
+	if (err_code == CL_INVALID_OPERATION)
+		return;
 	CHECK_OCL_OR_THROW(err_code, "Failure setting as completed the marker");
 
 	err_code = clReleaseEvent(data->event);
 	CHECK_OCL_OR_THROW(err_code, "Failure releasing the marker");
-	for (unsigned int i = 0; i < data->num_events_in_wait_list; i++) {
-		err_code = clReleaseEvent(data->event_wait_list[i]);
-		CHECK_OCL_OR_THROW(err_code, "Failure releasing a wait event");
-	}
+
+	free(data->event_wait_list);
+	free(data);
 }
 
 cl_event
@@ -772,38 +808,55 @@ CalcServer::marker(cl_command_queue cmd, std::vector<cl_event> events) const
 		return event;
 	}
 
-	// Workaround for NVIDIA's bug 4665567
+	// Workaround for NVIDIA's bug #4665567
 	event = clCreateUserEvent(context(), &err_code);
 	CHECK_OCL_OR_THROW(err_code, "Failure creating the user event");
-	err_code = clRetainEvent(event);
-	CHECK_OCL_OR_THROW(err_code, "Failure retaining the user event");
-	marker_cb_data* data = (marker_cb_data*)malloc(sizeof(marker_cb_data));
+	for (cl_uint i = 0; i < events.size(); i++) {
+		err_code = clRetainEvent(event);
+		CHECK_OCL_OR_THROW(err_code, "Failure retaining the user event");
+	}
+	marker_cb_data** data = (marker_cb_data**)malloc(
+		events.size() * sizeof(marker_cb_data*));
 	if (!data) {
 		std::ostringstream msg;
-		msg << "Failure allocating " << sizeof(marker_cb_data)
-		    << " bytes for the phony marker data" << std::endl;
+		msg << "Failure allocating " << events.size() * sizeof(marker_cb_data*)
+		    << " bytes for the phony markers data sets" << std::endl;
 		LOG(L_ERROR, msg.str());
 	}
-	data->event = event;
-	data->num_events_in_wait_list = events.size();
-	data->event_wait_list = (cl_event*)malloc(
-		sizeof(cl_event) * events.size());
-	if (!data->event_wait_list) {
-		std::ostringstream msg;
-		msg << "Failure allocating " << sizeof(cl_event) * events.size()
-		    << " bytes for the phony events wait list" << std::endl;
-		LOG(L_ERROR, msg.str());
+	for (cl_uint i = 0; i < events.size(); i++) {
+		data[i] = (marker_cb_data*)malloc(sizeof(marker_cb_data));
+		if (!data) {
+			std::ostringstream msg;
+			msg << "Failure allocating " << sizeof(marker_cb_data)
+				<< " bytes for a phony marker data" << std::endl;
+			LOG(L_ERROR, msg.str());
+		}
+		data[i]->event = event;
+		data[i]->status = CL_COMPLETE;
+		data[i]->num_events_in_wait_list = events.size();
+		data[i]->event_wait_list = (cl_event*)malloc(
+			sizeof(cl_event) * events.size());
+		if (!data[i]->event_wait_list) {
+			std::ostringstream msg;
+			msg << "Failure allocating " << sizeof(cl_event) * events.size()
+				<< " bytes for a phony events wait list" << std::endl;
+			LOG(L_ERROR, msg.str());
+		}
 	}
-	for (unsigned int i = 0; i < events.size(); i++) {
-		err_code = clRetainEvent(events[i]);
-		CHECK_OCL_OR_THROW(err_code, "Failure retaining a wait event");
-		data->event_wait_list[i] = events[i];
+
+	for (cl_uint i = 0; i < events.size(); i++) {
+		for (cl_uint j = 0; j < events.size(); j++) {
+			err_code = clRetainEvent(events[i]);
+			CHECK_OCL_OR_THROW(err_code, "Failure retaining a wait event");
+			data[i]->event_wait_list[j] = events[j];
+		}
 	}
-	err_code = clSetEventCallback(
-		events[0], CL_COMPLETE, &marker_cb, (void*)(data));
-	CHECK_OCL_OR_THROW(err_code, "Failure setting the phony marker command");
-	err_code = clFlush(cmd);
-	CHECK_OCL_OR_THROW(err_code, "Failure flushing the command queue");
+	for (cl_uint i = 0; i < events.size(); i++) {
+		err_code = clSetEventCallback(
+			events[i], CL_COMPLETE, &marker_cb, (void*)(data[i]));
+		CHECK_OCL_OR_THROW(err_code,
+		                   "Failure setting the phony marker command");
+	}
 	return event;
 }
 
