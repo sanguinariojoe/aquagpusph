@@ -1280,7 +1280,7 @@ CalcServer::setupPlatform()
 			LOG(L_WARNING, std::string("The NVIDIA CUDA bug #") + id +
 							" patch will not be applied as requested\n");
 		} else if (_is_nvidia) {
-			LOG(L_WARNING, std::string("NVIDIA CUDA platform detected, ") +
+			LOG(L_WARNING, std::string("NVIDIA CUDA platform detected,") +
 							" so bug #" + id + " patch will be applied\n");
 		} else if (!_is_nvidia && device_config.isPatchEnabled(key)) {
 			LOG(L_WARNING, std::string("The NVIDIA CUDA bug #") + id +
@@ -1455,7 +1455,7 @@ CalcServer::setupDevices()
 	try {
 		sampler = marker(_command_queues.front(), { trigger });
 	} catch (std::runtime_error e) {
-		LOG(L_ERROR, std::string("While generating the sampler event.\n");
+		LOG(L_ERROR, std::string("While generating the sampler event.\n"));
 	}
 	err_code = clSetEventCallback(
 	    sampler, CL_COMPLETE, device_timer_sampler, &_device_timer_offset);
