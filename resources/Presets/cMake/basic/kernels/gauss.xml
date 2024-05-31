@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 
-<!-- wendland.xml
-Quintic Wendland kernel-->
+<!-- gauss.xml
+Gaussian kernel-->
 
 <sphInput>
     <Definitions>

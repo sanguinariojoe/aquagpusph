@@ -1,11 +1,16 @@
 <?xml version="1.0" ?>
 
-<!-- wendland.xml
-Quintic Wendland kernel-->
+<!-- spiky.xml
+Cubic Spline kernel that grants the maximum of the derivative is at 1/hfac
+(on renormalized coordinates)
+
+This kernel has the particularity that hfac variable has to be defined
+-->
 
 <sphInput>
     <Definitions>
         <Define name="SUPPORT" value="2.f" evaluate="false"/>
+        <Define name="HFAC" value="hfac" evaluate="true"/>
         <Define name="KERNEL_NAME" value="Spiky" evaluate="false"/>
     </Definitions>
 
