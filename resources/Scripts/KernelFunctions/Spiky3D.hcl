@@ -20,6 +20,9 @@
  * @brief Spiky kernel definition (3D version). The spiky kernel is a common
  * Cubic Spline kernel, where the middle know is displaced to grant that the
  * maximum of the gradient lies on 1 / hfac
+ *
+ * see Lahiri, Saptarshi Kumar, et al. "A stable SPH with adaptive B-spline
+ * kernel." Journal of Computational Physics 422 (2020): 109761.
  */
 
 #ifndef _KERNEL_H_INCLUDED_
@@ -33,14 +36,14 @@
 #endif
 
 /// Spline middle knot
-#define A 2.f / (4.f * HFAC - 1.f)
-static float a = A;
+#define WA 2.f / (2.f * HFAC - 1.f)
+__constant float wa = WA;
 /// Renormalization factors
-#define WCON 15.f * (A - 2.f) * A * A * (A + 2.f) /                            \
-    (M_PI * (10.f * A * A * A - 28.f * A * A + 15.f * A - 4.f))
+15.0 / (2.0 * np.pi * (a**2 + 4.0))
+#define WCON 15.f / (2.f * M_PI * (WA * WA + 4.f))
 #define FCON 3.f / 2.f * WCON
-static float wcon = WCON;
-static float fcon = FCON;
+__constant float wcon = WCON;
+__constant float fcon = FCON;
 
 /** @brief The kernel value
  * \f$ W \left(\mathbf{r_j} - \mathbf{r_i}; h\right) \f$.
@@ -49,10 +52,11 @@ static float fcon = FCON;
  */
 inline float kernelW(float q)
 {
-    if (q < a)
-        return wcon * ((a + 2.f) * q * q * q - 6.f * a * q * q + 4.f * a * a) /
-            (2.f * a * a * (a + 2.f));
-    return wcon * (2.f - q) * (2.f - q) * (2.f - q);
+    if (q < wa)
+        return wcon *
+            ((wa + 2.f) * q * q * q - 6.f * wa * q * q + 4.f * wa * wa) /
+            (2.f * wa * wa * (wa + 2.f));
+    return wcon * (2.f - q) * (2.f - q) * (2.f - q) / (2.f * (4.f - wa * wa));
 }
 
 /** @brief The kernel gradient factor
@@ -69,9 +73,9 @@ inline float kernelW(float q)
  */
 inline float kernelF(float q)
 {
-    if (q < a)
-        return -fcon * ((a + 2.f) * q - 4.f * a) / (a * a * (a + 2.f));
-    return -fcon * ((2.f - q) * (2.f - q)) / ((a - 2.f) * (a + 2.f) * q);
+    if (q < wa)
+        return -fcon * ((wa + 2.f) * q - 4.f * wa) / (wa * wa * (wa + 2.f));
+    return -fcon * ((2.f - q) * (2.f - q)) / ((wa - 2.f) * (wa + 2.f) * q);
 }
 
 #endif    // _KERNEL_H_INCLUDED_
