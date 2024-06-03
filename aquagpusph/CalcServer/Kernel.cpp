@@ -126,6 +126,7 @@ ArgSetter::ArgSetter(const std::string name,
 /** @brief Auxiliar function to print information about arguments
  * @param i The index of the argument
  * @param var The variable to be set
+ * @param kernel The kernel where the variable has to be set
  * @param C The CalcServer instance
  * @param log_level The log level
  * @param indent Base indent level
@@ -133,16 +134,31 @@ ArgSetter::ArgSetter(const std::string name,
 void
 debug_arg(unsigned int i,
           InputOutput::Variable* var,
+          cl_kernel kernel,
           CalcServer* C,
           TLogLevel log_level=L_DEBUG,
           const char* indent="\t\t")
 {
+	cl_int err_code;
 	std::stringstream msg;
 	msg << indent << "Argument " << i << ", variable \"" << var->name() << "\""
 	    << std::endl;
 	msg << indent << "\ttype = " << var->type() << std::endl;
 	msg << indent << "\tvalue = " << var->asString() << std::endl;
 	LOG0(log_level, msg.str());
+	// Check the type
+	char type_name[MAX_TYPE_NAME_LEN + 1];
+	type_name[MAX_TYPE_NAME_LEN] = '\0';
+	err_code = clGetKernelArgInfo(kernel, i, CL_KERNEL_ARG_TYPE_NAME,
+                                  MAX_TYPE_NAME_LEN, type_name, NULL);
+	CHECK_OCL_OR_THROW(err_code, std::string("Error getting the type name\n"));
+	if(!InputOutput::Variables::isSameType(var->type(), type_name)) {
+		msg.str("");
+		msg << "The variable \"" << var->name() << "\" type, \"" << var->type()
+		    << "\", does not match the kernel expected one, \"" << type_name
+		    << "\"" << std::endl;
+		LOG(L_WARNING, msg.str());
+	}
 }
 
 void
@@ -162,7 +178,7 @@ ArgSetter::execute()
 		arg = var;
 		// Update the variable
 		if (C->debug_mode(InputOutput::ProblemSetup::sphSettings::DEBUG_ARGS))
-			debug_arg(i, var, C);
+			debug_arg(i, var, _kernel, C);
 		err_code = clSetKernelArg(_kernel, i, arg.size(), arg.value());
 		CHECK_OCL_OR_THROW(err_code,
 		                   std::string("Failure setting the variable \"") +

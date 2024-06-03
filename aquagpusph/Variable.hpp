@@ -63,6 +63,10 @@
 #define UIVecVariable UIVec2Variable
 #endif
 
+#ifndef MAX_TYPE_NAME_LEN
+#define MAX_TYPE_NAME_LEN 128
+#endif
+
 namespace Aqua {
 namespace InputOutput {
 
@@ -1101,9 +1105,9 @@ class Variables
 	 * @param ignore_asterisk true to ignore the asterisk of arrays.
 	 * @return true if it is the same type, false otherwise.
 	 */
-	bool isSameType(const std::string type_a,
-	                const std::string type_b,
-	                bool ignore_asterisk = true);
+	static bool isSameType(const std::string type_a,
+	                       const std::string type_b,
+	                       bool ignore_asterisk = true);
 
 	/** Get the list of variables called on a expression.
 	 * @param expr Expression to parse.
@@ -1162,7 +1166,7 @@ class Variables
 	 * @return Base type
 	 * @see Aqua::CalcServer::CalcServer::device_addr_bits()
 	 */
-	std::string typeAlias(const std::string& t);
+	static std::string typeAlias(const std::string& t);
 
   private:
 	/** Register a scalar variable

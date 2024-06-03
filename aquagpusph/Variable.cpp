@@ -1150,10 +1150,6 @@ Variables::isSameType(const std::string type_a,
                       const std::string type_b,
                       bool ignore_asterisk)
 {
-	if (typeToN(type_a) != typeToN(type_b)) {
-		return false;
-	}
-
 	if (!ignore_asterisk) {
 		if ((type_a.find('*') != std::string::npos) &&
 		    (type_b.find('*') == std::string::npos)) {
@@ -1169,13 +1165,18 @@ Variables::isSameType(const std::string type_a,
 		ta.pop_back();
 	}
 	ta = typeAlias(ta);
-	if (std::isdigit(ta.back()))
-		ta.pop_back();
 	std::string tb = trimCopy(type_b);
 	if (tb.back() == '*') {
 		tb.pop_back();
 	}
 	tb = typeAlias(tb);
+
+	if (typeToN(ta) != typeToN(tb)) {
+		return false;
+	}
+
+	if (std::isdigit(ta.back()))
+		ta.pop_back();
 	if (std::isdigit(tb.back()))
 		tb.pop_back();
 
@@ -1551,7 +1552,7 @@ Variables::typeAlias(const std::string& t)
 		return "int";
 	else if (t == "int64")
 		return "long";
-	else if (t == "uint32")
+	else if ((t == "uint32") || (t == "uint"))
 		return "unsigned int";
 	else if (t == "uint64")
 		return "unsigned long";
@@ -1575,6 +1576,20 @@ Variables::typeAlias(const std::string& t)
 		if (C->device_addr_bits() == 64)
 			return replaceAllCopy(t, "ssvec", "lvec");
 		return replaceAllCopy(t, "ssvec", "ivec");
+	}
+	// Vector types base names, i.e. int2, int3, int4, float2, float3, ...
+	else if (startswith(t, "int") && (t != "int")) {
+		return replaceAllCopy(t, "int", "ivec");
+	} else if (startswith(t, "long") && (t != "long")) {
+		return replaceAllCopy(t, "long", "lvec");
+	} else if (startswith(t, "uint") && (t != "uint")) {
+		return replaceAllCopy(t, "uint", "uivec");
+	} else if (startswith(t, "ulong") && (t != "ulong")) {
+		return replaceAllCopy(t, "ulong", "ulvec");
+	} else if (startswith(t, "float") && (t != "float")) {
+		return replaceAllCopy(t, "float", "vec");
+	} else if (startswith(t, "double") && (t != "double")) {
+		return replaceAllCopy(t, "double", "dvec");
 	}
 	return t;
 }
