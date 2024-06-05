@@ -183,7 +183,12 @@ RadixSort::_execute(const std::vector<cl_event> events)
 			radixsort_profiler->start(event_wait);
 		event_wait = scan(event_wait);
 		event_wait = reorder(event_init, event_wait);
+		err_code = clFlush(C->command_queue());
+		CHECK_OCL_OR_THROW(err_code,
+			std::string("Failure flushing the command queue in tool \"") +
+			name() + "\" at pass " + std::to_string(_pass) + ".");
 	}
+
 	err_code = clReleaseEvent(event_init);
 	CHECK_OCL_OR_THROW(
 	    err_code,
@@ -349,8 +354,6 @@ RadixSort::histograms(cl_event keys_event, cl_event histograms_event)
 	std::vector<cl_event> events = { keys_event };
 	if (histograms_event)
 		events.push_back(histograms_event);
-	cl_uint num_events_in_wait_list = events.size();
-	const cl_event* event_wait_list = events.size() ? events.data() : NULL;
 
 	err_code = clEnqueueNDRangeKernel(C->command_queue(),
 	                                  _histograms_kernel,
@@ -358,8 +361,8 @@ RadixSort::histograms(cl_event keys_event, cl_event histograms_event)
 	                                  NULL,
 	                                  &global_work_size,
 	                                  &local_work_size,
-	                                  num_events_in_wait_list,
-	                                  event_wait_list,
+	                                  events.size(),
+	                                  events.data(),
 	                                  &event);
 	CHECK_OCL_OR_THROW(
 	    err_code,
@@ -526,17 +529,14 @@ RadixSort::reorder(cl_event perms_event, cl_event histograms_event)
 	        name() + "\".");
 
 	std::vector<cl_event> events = { perms_event, histograms_event };
-	cl_uint num_events_in_wait_list = events.size();
-	const cl_event* event_wait_list = events.size() ? events.data() : NULL;
-
 	err_code = clEnqueueNDRangeKernel(C->command_queue(),
 	                                  _sort_kernel,
 	                                  1,
 	                                  NULL,
 	                                  &global_work_size,
 	                                  &local_work_size,
-	                                  num_events_in_wait_list,
-	                                  event_wait_list,
+	                                  events.size(),
+	                                  events.data(),
 	                                  &event);
 	CHECK_OCL_OR_THROW(err_code,
 	                   std::string("Failure executing \"sort\" in tool \"") +
@@ -727,7 +727,7 @@ RadixSort::setupOpenCL()
 	std::ostringstream source;
 	source << RADIXSORT_INC << RADIXSORT_SRC;
 	std::ostringstream flags;
-	flags << " -D_BITS=" << _bits << " -D_RADIX=" << _radix << " -DPERMUT";
+	flags << " -D_BITS=" << _bits << " -D_RADIX=" << _radix;
 	std::vector<cl_kernel> kernels = compile(
 	    source.str(),
 	    { "init", "histogram", "scan", "paste", "sort", "inversePermutation" },

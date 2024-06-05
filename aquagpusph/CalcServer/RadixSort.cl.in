@@ -75,7 +75,7 @@ init(const __global usize* restrict in_vals,
 __kernel void
 histogram(const __global usize* keys,
           __global usize* histograms,
-          const unsigned int pass,
+          const uint pass,
           __local usize* loc_histo,
           const usize n)
 {
@@ -87,7 +87,7 @@ histogram(const __global usize* keys,
 	const usize items = get_local_size(0);
 
 	// Initializate the histograms in each thread of this work group
-	for (unsigned int ir = 0; ir < _RADIX; ir++) {
+	for (uint ir = 0; ir < _RADIX; ir++) {
 		loc_histo[ir * items + it] = 0;
 	}
 
@@ -95,11 +95,9 @@ histogram(const __global usize* keys,
 
 	// Set the keys analized by each thread
 	usize size = n / groups / items;
-#ifndef TRANSPOSE
 	// If the data has not been transposed we must start reading from a
 	// different place of ig
 	usize start = ig * size;
-#endif
 
 	usize key, radix, k;
 	for (usize j = 0; j < size; j++) {
@@ -120,12 +118,12 @@ histogram(const __global usize* keys,
 
 	barrier(CLK_LOCAL_MEM_FENCE);
 
-	for (unsigned int ir = 0; ir < _RADIX; ir++) {
+	for (uint ir = 0; ir < _RADIX; ir++) {
 		histograms[items * (ir * groups + gr) + it] =
 		    loc_histo[ir * items + it];
 	}
 
-	barrier(CLK_GLOBAL_MEM_FENCE);
+	// barrier(CLK_GLOBAL_MEM_FENCE);
 }
 
 /** perform a parallel prefix sum (a scan) on the local histograms (see
@@ -151,12 +149,12 @@ scan(__global usize* histograms,
 {
 	const usize it = get_local_id(0);
 	const usize ig = get_global_id(0);
-	const usize n = get_local_size(0) * 2;
+	const usize n = get_local_size(0) << 1;
 	const usize gr = get_group_id(0);
 	usize decale = 1;
 
-	temp[2 * it] = histograms[2 * ig];
-	temp[2 * it + 1] = histograms[2 * ig + 1];
+	temp[(it << 1)] = histograms[(ig << 1)];
+	temp[(it << 1) + 1] = histograms[(ig << 1) + 1];
 
 	// parallel prefix sum (algorithm of Blelloch 1990)
 	// In each stage (the first line is the input data) following process is
@@ -170,11 +168,11 @@ scan(__global usize* histograms,
 	for (usize d = n >> 1; d > 0; d >>= 1) {
 		barrier(CLK_LOCAL_MEM_FENCE);
 		if (it < d) {
-			usize ai = decale * (2 * it + 1) - 1;
-			usize bi = decale * (2 * it + 2) - 1;
+			usize ai = decale * ((it << 1) + 1) - 1;
+			usize bi = decale * ((it << 1) + 2) - 1;
 			temp[bi] += temp[ai];
 		}
-		decale *= 2;
+		decale <<= 1;
 	}
 
 	if (it == 0) {
@@ -190,13 +188,13 @@ scan(__global usize* histograms,
 	//   -# [h0, 0, h2, h0+h1]
 	//   -# [0, h0, h0+h1, h0+h1+h2]
 	// Which is the desired accumulated histogram.
-	for (usize d = 1; d < n; d *= 2) {
+	for (usize d = 1; d < n; d <<= 1) {
 		decale >>= 1;
 		barrier(CLK_LOCAL_MEM_FENCE);
 
 		if (it < d) {
-			usize ai = decale * (2 * it + 1) - 1;
-			usize bi = decale * (2 * it + 2) - 1;
+			usize ai = decale * ((it << 1) + 1) - 1;
+			usize bi = decale * ((it << 1) + 2) - 1;
 
 			usize t = temp[ai];
 			temp[ai] = temp[bi];
@@ -207,10 +205,10 @@ scan(__global usize* histograms,
 	barrier(CLK_LOCAL_MEM_FENCE);
 
 	// Save the accumulated histogram
-	histograms[2 * ig] = temp[2 * it];
-	histograms[2 * ig + 1] = temp[2 * it + 1];
+	histograms[(ig << 1)] = temp[(it << 1)];
+	histograms[(ig << 1) + 1] = temp[(it << 1) + 1];
 
-	barrier(CLK_GLOBAL_MEM_FENCE);
+	// barrier(CLK_GLOBAL_MEM_FENCE);
 }
 
 /** Paste the _HISTOSPLIT accumulated global sums into the splited accumulated
@@ -226,12 +224,13 @@ paste(__global usize* histograms, __global usize* globsum)
 {
 	const usize ig = get_global_id(0);
 	const usize gr = get_group_id(0);
+
 	const usize s = globsum[gr];
 
-	histograms[2 * ig] += s;
-	histograms[2 * ig + 1] += s;
+	histograms[(ig << 1)] += s;
+	histograms[(ig << 1) + 1] += s;
 
-	barrier(CLK_GLOBAL_MEM_FENCE);
+	// barrier(CLK_GLOBAL_MEM_FENCE);
 }
 
 /** Perform permutations using the accumulated histogram.
@@ -269,7 +268,7 @@ sort(const __global usize* in_keys,
 	const usize start = ig * (n / groups / items);
 
 	// take the accumulated histogram in the cache
-	for (unsigned int ir = 0; ir < _RADIX; ir++) {
+	for (uint ir = 0; ir < _RADIX; ir++) {
 		loc_histo[ir * items + it] =
 		    histograms[items * (ir * groups + gr) + it];
 	}
@@ -294,10 +293,7 @@ sort(const __global usize* in_keys,
 
 		// And set the new key
 		out_keys[newpos] = key;
-
-#ifdef PERMUT
 		out_permut[newpos] = in_permut[k];
-#endif
 
 		// The position is filled, modify the histogram to point to the
 		// next available one
