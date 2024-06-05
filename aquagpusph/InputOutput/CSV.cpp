@@ -24,6 +24,7 @@
 #include <string>
 #include "CSV.hpp"
 #include "aquagpusph/ProblemSetup.hpp"
+#include "aquagpusph/CalcServer/CalcServer.hpp"
 #include "aquagpusph/AuxiliarMethods.hpp"
 
 namespace Aqua {
@@ -59,10 +60,25 @@ CSV::print_file()
 void
 CSV::print_header(std::ofstream& f) const
 {
-	const char str = _sep == '"' ? '\'' : '"'; 
+	auto vars = CalcServer::CalcServer::singleton()->variables();
+	const char str = _sep == '"' ? '\'' : '"';
+	const char* extensions[16] = { "_x",  "_y",  "_z",  "_w",
+	                               "_yx", "_yy", "_yz", "_yw",
+	                               "_zx", "_zy", "_zz", "_zw",
+	                               "_wx", "_wy", "_wz", "_ww" };
 	auto fields = simData().sets.at(setId())->outputFields();
 	for (unsigned int i = 0; i < fields.size(); i++) {
-		f << str << fields[i] << str;
+		const auto var = vars->get(fields[i]);
+		const auto n_subfields = vars->typeToN(var->type());
+		if (n_subfields == 1)
+			f << str << fields[i] << str;
+		else {
+			for (unsigned int j = 0; j < n_subfields; j++) {
+				f << str << fields[i] << extensions[j] << str;
+				if (j < n_subfields - 1)
+					f << _sep;
+			}
+		}
 		if (i < fields.size() - 1)
 			f << _sep;
 	}
