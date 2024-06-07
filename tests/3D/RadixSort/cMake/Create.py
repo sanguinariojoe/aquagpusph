@@ -35,7 +35,7 @@
 import numpy as np
 
 
-N = 512
+N = 500
 r = np.random.rand(N, 3)
 f = np.random.randint(2 * N, size=N)
 
