@@ -552,7 +552,7 @@ ScalarVecVariable<T>::asString(bool synced)
 
 #define __DEFINE_AQUA_VEC(NAME, TYPE, DIMS, NPTYPE)                            \
 	NAME::NAME(const std::string varname)                                      \
-		: ScalarVecVariable(varname, #TYPE, 2, NPTYPE)                         \
+		: ScalarVecVariable(varname, #TYPE, DIMS, NPTYPE)                      \
 	{                                                                          \
 		for (unsigned int i = 0; i < DIMS; i++)                                \
 			_value.s[i] = 0;                                                   \
