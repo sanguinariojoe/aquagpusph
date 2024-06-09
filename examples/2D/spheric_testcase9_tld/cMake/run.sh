@@ -18,10 +18,10 @@ if [[ $1 == "--run" ]]; then
     rm -f Forces.dat
     rm -f Performance.dat
     @EXAMPLE_DEST_DIR@/Create.py
-    @BINARY_DIR@/AQUAgpusph2D -i particlesPacking.xml
+    @BINARY_DIR@/AQUAgpusph -d 2 -i particlesPacking.xml
     rm -f FreeSurface.*.vtu
     rm -f FreeSurface.pvd
-    @BINARY_DIR@/AQUAgpusph2D -i Main.xml
+    @BINARY_DIR@/AQUAgpusph -d 2 -i Main.xml
     rm -f Fluid.*.vtu
     rm -f Fluid.pvd
 elif [[ $1 == "--plot" ]]; then

@@ -370,6 +370,13 @@ class CalcServer
 	 */
 	const std::string base_path() const { return _base_path.c_str(); }
 
+	/** @brief Get if 3 dimensions are considered
+	 * @see Aqua::InputOutput::ProblemSetup::dims()
+	 * @return true if a 3D simulation is considered, false if it is conversely
+	 * a 2D simulation
+	 */
+	inline bool have_3d() const { return _sim_data.dims() == 3; }
+
 	/** @brief Report if any tools debug option is enabled.
 	 * @see Aqua::InputOutput::ProblemSetup::sphSettings::debug_tools
 	 * @return true if any tools debug mode option is enabled, false otherwise

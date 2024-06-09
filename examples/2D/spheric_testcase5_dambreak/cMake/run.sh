@@ -9,7 +9,7 @@ if [[ $1 == "--run" ]]; then
     rm -f Timing.dat
     rm -f Performance.dat
     @EXAMPLE_DEST_DIR@/Create.py
-    @BINARY_DIR@/AQUAgpusph2D -i Main.xml
+    @BINARY_DIR@/AQUAgpusph -d 2 -i Main.xml
 else
     echo ""
     echo "Usage: run.sh --run"

@@ -32,7 +32,8 @@ namespace Aqua {
 namespace InputOutput {
 
 ProblemSetup::ProblemSetup()
-  : _n_cmd_queues(15)
+  : _dims(3)
+  , _n_cmd_queues(15)
   , _copy(false)
 {
 	time_opts.sim_end_mode = __NO_OUTPUT_MODE__;
@@ -52,6 +53,7 @@ ProblemSetup::ProblemSetup(const ProblemSetup& p)
   , reports(p.reports)
   , time_opts(p.time_opts)
   , sets(p.sets)
+  , _dims(p.dims())
   , _n_cmd_queues(p.nCmdQueues())
   , _copy(true)
 {

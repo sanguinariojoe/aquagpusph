@@ -43,7 +43,7 @@ version_check_job:
     - echo "Checking if $TAG release already exist"
     - if wget https://gitlab.com/sanguinariojoe/aquagpusph/-/releases/$TAG ; then echo "$TAG already exist, please increase the version"; exit 1; fi
 
-compile-and-test-2D:
+compile-and-test:
   image: "ubuntu:latest"
   stage: build_and_test
   rules:
@@ -57,46 +57,18 @@ compile-and-test-2D:
     - apt-get -qq install -y libxerces-c-dev libmuparser-dev
     - apt-get -qq install -y ocl-icd-opencl-dev pocl-opencl-icd
     - apt-get -qq install -y libopenmpi-dev libvtk9-dev
-    - mkdir -p build2D
-    - mkdir -p install2D
+    - mkdir -p build
+    - mkdir -p install
   script:
-    - cmake -B build2D/ -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=install2D -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DAQUAGPUSPH_3D:BOOL=OFF -DAQUAGPUSPH_USE_MPI:BOOL=ON -DAQUAGPUSPH_USE_VTK:BOOL=ON -DBUILD_TESTING=ON
-    - cmake --build build2D/ --config Release
-    - cmake --install build2D/ --config Release
-    - cd build2D
+    - cmake -B build/ -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=install -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DAQUAGPUSPH_USE_MPI:BOOL=ON -DAQUAGPUSPH_USE_VTK:BOOL=ON -DBUILD_TESTING=ON
+    - cmake --build build/ --config Release
+    - cmake --install build/ --config Release
+    - cd build
     - ctest --output-on-failure --timeout 30 -C Release
   artifacts:
     paths:
-      - build2D/
-      - install2D/
-
-compile-and-test-3D:
-  image: "ubuntu:latest"
-  stage: build_and_test
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-  before_script:
-    - echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
-    - DEBIAN_FRONTEND=noninteractive apt-get -qq update && apt-get -qq -y --no-install-recommends install tzdata
-    - cp /usr/share/zoneinfo/Europe/Madrid /etc/localtime
-    - apt-get -qq install -y build-essential git cmake xxd
-    - apt-get -qq install -y python3-numpy python3-dev python-is-python3
-    - apt-get -qq install -y libxerces-c-dev libmuparser-dev
-    - apt-get -qq install -y llvm-dev clang libclang-dev
-    - apt-get -qq install -y ocl-icd-opencl-dev pocl-opencl-icd
-    - apt-get -qq install -y libopenmpi-dev libvtk9-dev
-    - mkdir -p build3D
-    - mkdir -p install3D
-  script:
-    - cmake -B build3D/ -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=install3D -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DAQUAGPUSPH_3D:BOOL=ON -DAQUAGPUSPH_USE_MPI:BOOL=ON -DAQUAGPUSPH_USE_VTK:BOOL=ON -DBUILD_TESTING=ON
-    - cmake --build build3D/ --config Release
-    - cmake --install build3D/ --config Release
-    - cd build3D
-    - ctest --output-on-failure --timeout 30 -C Release
-  artifacts:
-    paths:
-      - buil3D/
-      - install3D/
+      - build/
+      - install/
 
 release_job:
   stage: release

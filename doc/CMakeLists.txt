@@ -31,11 +31,7 @@ ADD_CUSTOM_TARGET(DoxygenDoc ALL
 	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ${CMAKE_CURRENT_BINARY_DIR}/Doxygen)
-IF(AQUAGPUSPH_3D)
-	ADD_DEPENDENCIES( DoxygenDoc AQUAgpusph )
-ELSE(AQUAGPUSPH_3D)
-	ADD_DEPENDENCIES( DoxygenDoc AQUAgpusph2D )
-ENDIF(AQUAGPUSPH_3D)
+ADD_DEPENDENCIES( DoxygenDoc AQUAgpusph )
 
 # ===================================================== #
 # Install                                               #

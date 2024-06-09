@@ -1122,27 +1122,25 @@ Variables::typeToN(const std::string type)
 {
 	unsigned int n = 1;
 	if (type.find("vec2") != std::string::npos) {
-		n = 2;
+		return 2;
 	} else if (type.find("vec3") != std::string::npos) {
-		n = 3;
+		return 3;
 	} else if (type.find("vec4") != std::string::npos) {
-		n = 4;
+		return 4;
 	} else if (type.find("vec8") != std::string::npos) {
-		n = 8;
+		return 8;
 	} else if (type.find("vec") != std::string::npos) {
-#ifdef HAVE_3D
-		n = 4;
-#else
-		n = 2;
-#endif // HAVE_3D
+		auto C = CalcServer::CalcServer::singleton();
+		if (C->have_3d())
+			return 4;
+		return 2;
 	} else if (type.find("matrix") != std::string::npos) {
-#ifdef HAVE_3D
-		n = 16;
-#else
-		n = 4;
-#endif // HAVE_3D
+		auto C = CalcServer::CalcServer::singleton();
+		if (C->have_3d())
+			return 16;
+		return 4;
 	}
-	return n;
+	return 1;
 }
 
 bool
@@ -1338,9 +1336,6 @@ Variables::solve(const std::string type_name,
 	} else if (!type.compare("double")) {
 		dcl val = solve<dcl>(name, value);
 		memcpy(data, &val, typesize);
-	} else if (!type.compare("vec")) {
-		vec val = solve<vec>(name, value);
-		memcpy(data, &val, typesize);
 	} else if (!type.compare("vec2")) {
 		vec2 val = solve<vec2>(name, value);
 		memcpy(data, &val, typesize);
@@ -1352,9 +1347,6 @@ Variables::solve(const std::string type_name,
 		memcpy(data, &val, typesize);
 	} else if (!type.compare("vec8")) {
 		vec8 val = solve<vec8>(name, value);
-		memcpy(data, &val, typesize);
-	} else if (!type.compare("dvec")) {
-		dvec val = solve<dvec>(name, value);
 		memcpy(data, &val, typesize);
 	} else if (!type.compare("dvec2")) {
 		dvec2 val = solve<dvec2>(name, value);
@@ -1368,9 +1360,6 @@ Variables::solve(const std::string type_name,
 	} else if (!type.compare("dvec8")) {
 		dvec8 val = solve<dvec8>(name, value);
 		memcpy(data, &val, typesize);
-	} else if (!type.compare("ivec")) {
-		ivec val = solve<ivec>(name, value);
-		memcpy(data, &val, typesize);
 	} else if (!type.compare("ivec2")) {
 		ivec2 val = solve<ivec2>(name, value);
 		memcpy(data, &val, typesize);
@@ -1382,9 +1371,6 @@ Variables::solve(const std::string type_name,
 		memcpy(data, &val, typesize);
 	} else if (!type.compare("ivec8")) {
 		ivec8 val = solve<ivec8>(name, value);
-		memcpy(data, &val, typesize);
-	} else if (!type.compare("lvec")) {
-		lvec val = solve<lvec>(name, value);
 		memcpy(data, &val, typesize);
 	} else if (!type.compare("lvec2")) {
 		lvec2 val = solve<lvec2>(name, value);
@@ -1398,9 +1384,6 @@ Variables::solve(const std::string type_name,
 	} else if (!type.compare("lvec8")) {
 		lvec8 val = solve<lvec8>(name, value);
 		memcpy(data, &val, typesize);
-	} else if (!type.compare("uivec")) {
-		uivec val = solve<uivec>(name, value);
-		memcpy(data, &val, typesize);
 	} else if (!type.compare("uivec2")) {
 		uivec2 val = solve<uivec2>(name, value);
 		memcpy(data, &val, typesize);
@@ -1412,9 +1395,6 @@ Variables::solve(const std::string type_name,
 		memcpy(data, &val, typesize);
 	} else if (!type.compare("uivec8")) {
 		uivec8 val = solve<uivec8>(name, value);
-		memcpy(data, &val, typesize);
-	} else if (!type.compare("ulvec")) {
-		ulvec val = solve<ulvec>(name, value);
 		memcpy(data, &val, typesize);
 	} else if (!type.compare("ulvec2")) {
 		ulvec2 val = solve<ulvec2>(name, value);
@@ -1548,6 +1528,8 @@ Variables::populate(Variable* var)
 std::string
 Variables::typeAlias(const std::string& t)
 {
+	auto C = CalcServer::CalcServer::singleton();
+	// Straight type aliases
 	if (t == "int32")
 		return "int";
 	else if (t == "int64")
@@ -1557,22 +1539,18 @@ Variables::typeAlias(const std::string& t)
 	else if (t == "uint64")
 		return "unsigned long";
 	else if (t == "size_t") {
-		auto C = CalcServer::CalcServer::singleton();
 		if (C->device_addr_bits() == 64)
 			return "unsigned long";
 		return "unsigned int";
 	} else if (t == "ssize_t") {
-		auto C = CalcServer::CalcServer::singleton();
 		if (C->device_addr_bits() == 64)
 			return "long";
 		return "int";
 	} else if (startswith(t, "svec")) {
-		auto C = CalcServer::CalcServer::singleton();
 		if (C->device_addr_bits() == 64)
 			return replaceAllCopy(t, "svec", "ulvec");
 		return replaceAllCopy(t, "svec", "uivec");
 	} else if (startswith(t, "ssvec")) {
-		auto C = CalcServer::CalcServer::singleton();
 		if (C->device_addr_bits() == 64)
 			return replaceAllCopy(t, "ssvec", "lvec");
 		return replaceAllCopy(t, "ssvec", "ivec");
@@ -1588,8 +1566,40 @@ Variables::typeAlias(const std::string& t)
 		return replaceAllCopy(t, "ulong", "ulvec");
 	} else if (startswith(t, "float") && (t != "float")) {
 		return replaceAllCopy(t, "float", "vec");
+	} else if (startswith(t, "fvec") && (t != "fvec")) {
+		return replaceAllCopy(t, "fvec", "vec");
 	} else if (startswith(t, "double") && (t != "double")) {
 		return replaceAllCopy(t, "double", "dvec");
+	}
+	// Dimensions
+	else if (t == "ivec") {
+		if (C->have_3d())
+			return "ivec4";
+		return "ivec2";
+	} else if (t == "lvec") {
+		if (C->have_3d())
+			return "lvec4";
+		return "lvec2";
+	} else if (t == "uivec") {
+		if (C->have_3d())
+			return "uivec4";
+		return "uivec2";
+	} else if (t == "ulvec") {
+		if (C->have_3d())
+			return "ulvec4";
+		return "ulvec2";
+	} else if (t == "lvec") {
+		if (C->have_3d())
+			return "lvec4";
+		return "lvec2";
+	} else if ((t == "vec") || (t == "fvec")) {
+		if (C->have_3d())
+			return "vec4";
+		return "vec2";
+	} else if (t == "dvec") {
+		if (C->have_3d())
+			return "dvec4";
+		return "dvec2";
 	}
 	return t;
 }
@@ -1656,32 +1666,26 @@ Variables::registerScalar(const std::string name,
 		}
 		_vars.push_back(var);
 	}
-	REG_VEC_BLOCK(vec)
 	REG_VEC_BLOCK(vec2)
 	REG_VEC_BLOCK(vec3)
 	REG_VEC_BLOCK(vec4)
 	REG_VEC_BLOCK(vec8)
-	REG_VEC_BLOCK(dvec)
 	REG_VEC_BLOCK(dvec2)
 	REG_VEC_BLOCK(dvec3)
 	REG_VEC_BLOCK(dvec4)
 	REG_VEC_BLOCK(dvec8)
-	REG_VEC_BLOCK(ivec)
 	REG_VEC_BLOCK(ivec2)
 	REG_VEC_BLOCK(ivec3)
 	REG_VEC_BLOCK(ivec4)
 	REG_VEC_BLOCK(ivec8)
-	REG_VEC_BLOCK(lvec)
 	REG_VEC_BLOCK(lvec2)
 	REG_VEC_BLOCK(lvec3)
 	REG_VEC_BLOCK(lvec4)
 	REG_VEC_BLOCK(lvec8)
-	REG_VEC_BLOCK(uivec)
 	REG_VEC_BLOCK(uivec2)
 	REG_VEC_BLOCK(uivec3)
 	REG_VEC_BLOCK(uivec4)
 	REG_VEC_BLOCK(uivec8)
-	REG_VEC_BLOCK(ulvec)
 	REG_VEC_BLOCK(ulvec2)
 	REG_VEC_BLOCK(ulvec3)
 	REG_VEC_BLOCK(ulvec4)

@@ -113,12 +113,7 @@ ADD_DEPENDENCIES(opencl_embed ${embed_targets})
 # ===================================================== #
 SOURCE_GROUP("AQUAgpusph" FILES ${CPP_SRCS})
 
-IF(AQUAGPUSPH_3D)
-    SET(TargetName AQUAgpusph)
-ELSE(AQUAGPUSPH_3D)
-    SET(TargetName AQUAgpusph2D)
-ENDIF(AQUAGPUSPH_3D)
-
+SET(TargetName AQUAgpusph)
 ADD_EXECUTABLE(${TargetName} ${CPP_SRCS})
 TARGET_LINK_LIBRARIES(${TargetName} ${DEP_LIBS})
 ADD_DEPENDENCIES(${TargetName} opencl_embed)

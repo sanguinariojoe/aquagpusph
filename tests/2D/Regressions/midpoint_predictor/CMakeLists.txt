@@ -19,4 +19,4 @@ FOREACH(FNAME ${FNAMES})
     ENDIF()
 ENDFOREACH()
 
-ADD_TEST (midpoint_predictor_test ${BASH_PROGRAM} ${TEST_DEST_DIR}/run.sh)
+ADD_TEST (2D/midpoint_predictor_test ${BASH_PROGRAM} ${TEST_DEST_DIR}/run.sh)

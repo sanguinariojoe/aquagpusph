@@ -53,16 +53,6 @@
 #include "sphPrerequisites.hpp"
 #include "Tokenizer/Tokenizer.hpp"
 
-#ifdef HAVE_3D
-#define VecVariable Vec4Variable
-#define IVecVariable IVec4Variable
-#define UIVecVariable UIVec4Variable
-#else
-#define VecVariable Vec2Variable
-#define IVecVariable IVec2Variable
-#define UIVecVariable UIVec2Variable
-#endif
-
 #ifndef MAX_TYPE_NAME_LEN
 #define MAX_TYPE_NAME_LEN 128
 #endif
@@ -886,21 +876,6 @@ typedef DVec2Variable dvec2Variable;
 typedef DVec3Variable dvec3Variable;
 typedef DVec4Variable dvec4Variable;
 typedef DVec8Variable dvec8Variable;
-#ifdef HAVE_3D
-typedef IVec4Variable ivecVariable;
-typedef LVec4Variable lvecVariable;
-typedef UIVec4Variable uivecVariable;
-typedef ULVec4Variable ulvecVariable;
-typedef Vec4Variable vecVariable;
-typedef DVec4Variable dvecVariable;
-#else
-typedef IVec2Variable ivecVariable;
-typedef LVec2Variable lvecVariable;
-typedef UIVec2Variable uivecVariable;
-typedef ULVec2Variable ulvecVariable;
-typedef Vec2Variable vecVariable;
-typedef DVec2Variable dvecVariable;
-#endif
 /// @}
 
 /** @class ArrayVariable Variable.h Variable.h

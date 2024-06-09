@@ -5,7 +5,7 @@
 rm -f AQUAgpusph.save.* log.* set0.*.dat set1.*.dat
 
 # Run the "simulation"
-@BINARY_DIR@/AQUAgpusph2D -i main.xml
+@BINARY_DIR@/AQUAgpusph -d 2 -i main.xml
 
 set -e
 

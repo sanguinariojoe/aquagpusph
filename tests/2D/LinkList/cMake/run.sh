@@ -7,7 +7,7 @@ set -e
 rm -f AQUAgpusph.save.* log.* set0.*.dat set1.*.dat vars.out
 
 # Run the "simulation"
-@BINARY_DIR@/AQUAgpusph2D -i main.xml
+@BINARY_DIR@/AQUAgpusph -d 2 -i main.xml
 
 # Check the result
 python @TEST_DEST_DIR@/check.py

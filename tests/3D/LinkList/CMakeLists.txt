@@ -19,4 +19,4 @@ FOREACH(FNAME ${FNAMES})
     ENDIF()
 ENDFOREACH()
 
-ADD_TEST (LinkList_test ${BASH_PROGRAM} ${TEST_DEST_DIR}/run.sh)
+ADD_TEST (3D/LinkList_test ${BASH_PROGRAM} ${TEST_DEST_DIR}/run.sh)

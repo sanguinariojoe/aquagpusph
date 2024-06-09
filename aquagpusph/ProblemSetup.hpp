@@ -101,6 +101,16 @@ class ProblemSetup
 	 */
 	~ProblemSetup();
 
+	/** @brief Set the number of dimensions
+	 * @param n The number of dimensions, either 2 or 3
+	 */
+	inline void dims(unsigned int n) { _dims = n; }
+
+	/** @brief Get the the number of dimensions
+	 * @return The number of dimensions, either 2 or 3
+	 */
+	inline unsigned int dims() const { return _dims; }
+
 	/** @brief Set the maximum number of main OpenCL queues to be spawned
 	 * @param n The number of command queues
 	 * @note The parallel MPI command queue used for communications is not
@@ -109,7 +119,7 @@ class ProblemSetup
 	inline void nCmdQueues(unsigned int n) { _n_cmd_queues = n; }
 
 	/** @brief Get the maximum number of main OpenCL queues to be spawned
-	 * @return n The number of command queues
+	 * @return The number of command queues
 	 * @note The parallel MPI command queue used for communications is not
 	 * took into account here
 	 */
@@ -408,8 +418,8 @@ class ProblemSetup
 	 * 3 types of definitions can be practised:
 	 *    - Named definitions, like -DHAVE_3D
 	 *    - Value definitions, like -DNEIGH_CELLS=9
-	 *    - Float evaluated definitions, like -DH=h, where h will be replaced by
-	 *      the variable value
+	 *    - Float evaluated definitions, like -DH=h, where h will be replaced
+	 *      by the variable value
 	 *
 	 * The definitions are set between the following XML tags:
 	 * @code{.xml}
@@ -839,6 +849,9 @@ class ProblemSetup
 	std::vector<sphParticlesSet*> sets;
 
   private:
+	/// The number of dimensions, either 2 or 3
+	unsigned int _dims;
+
 	/** Maximum number of main OpenCL command queues (there is always a
 	 * parallel one for MPI communications)
 	 */

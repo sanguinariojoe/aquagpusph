@@ -117,7 +117,6 @@ MESSAGE(STATUS "bindir: ${CMAKE_INSTALL_BINDIR}")
 IF(NOT CMAKE_BUILD_TYPE)
     SET(CMAKE_BUILD_TYPE "Release")
 ENDIF(NOT CMAKE_BUILD_TYPE)
-OPTION(AQUAGPUSPH_3D "Build 3D AQUAgpusph version. 2D and 3D versions can be installed on the same system." ON)
 OPTION(AQUAGPUSPH_USE_MPI "Build AQUAgpusph with MPI support, for multidevice running." ON)
 OPTION(AQUAGPUSPH_USE_VTK "Build AQUAgpusph with VTK output format support." ON)
 OPTION(AQUAGPUSPH_USE_MUPARSER "Replace ExprTk (Experimental support) by MuParser." YES)
@@ -134,12 +133,6 @@ MARK_AS_ADVANCED(
 # ===================================================== #
 # Search the packages                                   #
 # ===================================================== #
-# 2D/3D
-IF(AQUAGPUSPH_3D)
-    ADD_DEFINITIONS(-DHAVE_3D)
-ELSE(AQUAGPUSPH_3D)
-    ADD_DEFINITIONS(-DHAVE_2D)
-ENDIF(AQUAGPUSPH_3D)
 
 # xxd
 FIND_PACKAGE(XXD REQUIRED)
@@ -295,11 +288,7 @@ ENDIF()
 # Show a brief                                          #
 # ===================================================== #
 MESSAGE("=====================================================")
-IF(AQUAGPUSPH_3D)
-    MESSAGE("Target: AQUAgpusph")
-ELSE(AQUAGPUSPH_3D)
-    MESSAGE("Target: AQUAgpusph2D")
-ENDIF(AQUAGPUSPH_3D)
+MESSAGE("Target: AQUAgpusph")
 MESSAGE("Binary destination: ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}")
 MESSAGE("Resources destination: ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/resources")
 IF(AQUAGPUSPH_BUILD_EXAMPLES)

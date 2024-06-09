@@ -233,6 +233,8 @@ ASCII::load()
 		__ASCII_WRITE_MATRIX_BLOCK( TYPE ## 4 )                                \
 	} else if (nc == 8) {                                                      \
 		__ASCII_WRITE_MATRIX_BLOCK( TYPE ## 8 )                                \
+	} else if (nc == 16) {                                                     \
+		__ASCII_WRITE_MATRIX_BLOCK( TYPE ## 16 )                               \
 	}
 
 void
@@ -291,7 +293,7 @@ ASCII::print_file(const char sep, const char csep)
 			} else if (startswith(var->type(), "dvec")) {
 				__ASCII_WRITE_VEC_BLOCK(dvec)
 			} else if (startswith(var->type(), "matrix")) {
-				__ASCII_WRITE_MATRIX_BLOCK(matrix)
+				__ASCII_WRITE_VEC_BLOCK(vec)
 			}
 			if (j < fields.size() - 1)
 				f << sep;

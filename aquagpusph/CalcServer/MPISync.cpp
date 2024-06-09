@@ -491,34 +491,19 @@ MPISync::Exchanger::typeToMPI(std::string t)
 	if (t.back() == '*') {
 		t.pop_back();
 	}
-	if (hasSuffix(t, "vec")) {
-#ifdef HAVE_3D
-		mpi_t.n = 4;
-#else
-		mpi_t.n = 2;
-#endif
-	} else if (hasSuffix(t, "2")) {
-		mpi_t.n = 2;
-		t.pop_back();
-	} else if (hasSuffix(t, "3")) {
-		mpi_t.n = 3;
-		t.pop_back();
-	} else if (hasSuffix(t, "4")) {
-		mpi_t.n = 4;
-		t.pop_back();
-	}
+	mpi_t.n = InputOutput::Variables::typeToN(t);
 
-	if ((!t.compare("int")) || (!t.compare("ivec"))) {
+	if (startswith(t, "int") || startswith(t, "ivec")) {
 		mpi_t.t = MPI_INT32_T;
-	} else if ((!t.compare("long")) || (!t.compare("lvec"))) {
+	} else if (startswith(t, "long") || startswith(t, "lvec")) {
 		mpi_t.t = MPI_INT64_T;
-	} else if ((!t.compare("unsigned int")) || (!t.compare("uivec"))) {
+	} else if (startswith(t, "unsigned int") || startswith(t, "uivec")) {
 		mpi_t.t = MPI_UINT32_T;
-	} else if ((!t.compare("unsigned long")) || (!t.compare("ulvec"))) {
+	} else if (startswith(t, "unsigned long") || startswith(t, "ulvec")) {
 		mpi_t.t = MPI_UINT64_T;
-	} else if ((!t.compare("float")) || (!t.compare("vec"))) {
+	} else if (startswith(t, "float") || startswith(t, "vec")) {
 		mpi_t.t = MPI_FLOAT;
-	} else if ((!t.compare("double")) || (!t.compare("dvec"))) {
+	} else if (startswith(t, "double") || startswith(t, "dvec")) {
 		mpi_t.t = MPI_DOUBLE;
 	}
 

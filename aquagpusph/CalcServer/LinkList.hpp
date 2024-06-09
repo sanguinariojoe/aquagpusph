@@ -97,10 +97,12 @@ class LinkList : public Aqua::CalcServer::Tool
 	 */
 	inline cl_event getUserEvent() const { return _user_event; }
 
+  protected:
 	/** @brief Compute the number of cells
 	 * @note This method is publicly available to make it accessible from an
 	 * OpenCL callback
 	 */
+	template<typename T>
 	void nCells();
 
 	/** @brief Allocate the "ihoc" array
@@ -115,7 +117,6 @@ class LinkList : public Aqua::CalcServer::Tool
 	 */
 	void setVariables();
 
-  protected:
 	/** Execute the tool
 	 * @param events List of events that shall be waited before safe execution
 	 * @return OpenCL event to be waited before accessing the dependencies

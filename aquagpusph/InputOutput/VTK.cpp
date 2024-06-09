@@ -85,14 +85,6 @@ xmlClear()
 #endif
 #define xmlHasAttribute(elem, att) elem->hasAttribute(xmlS(att))
 
-#ifndef REQUESTED_FIELDS
-#ifdef HAVE_3D
-#define REQUESTED_FIELDS 17
-#else
-#define REQUESTED_FIELDS 13
-#endif
-#endif // REQUESTED_FIELDS
-
 using namespace xercesc;
 
 namespace Aqua {
@@ -221,13 +213,17 @@ VTK::load()
 		for (unsigned int j = 0; j < fields.size(); j++) {
 			if (!fields.at(j).compare("r")) {
 				double* vect = vtk_points->GetPoint(i);
-				vec* ptr = (vec*)data.at(j);
-				ptr[i].x = vect[0];
-				ptr[i].y = vect[1];
-#ifdef HAVE_3D
-				ptr[i].z = vect[2];
-				ptr[i].w = 0.f;
-#endif
+				if (C->have_3d()) {
+					vec4* ptr = (vec4*)data.at(j);
+					ptr[i].x = vect[0];
+					ptr[i].y = vect[1];
+					ptr[i].z = vect[2];
+					ptr[i].w = 0.f;
+				} else {
+					vec2* ptr = (vec2*)data.at(j);
+					ptr[i].x = vect[0];
+					ptr[i].y = vect[1];
+				}
 				continue;
 			}
 			ArrayVariable* var = (ArrayVariable*)vars->get(fields.at(j));
@@ -503,12 +499,17 @@ VTK::makeVTK()
 		if (!fields[i].compare("r")) {
 			// The mesh points are a bit of a special case
 			for (size_t j = 0; j < n; j++) {
-				vec* coords = (vec*)ptr;
-#ifdef HAVE_3D
-				vtk_points->SetPoint(j, coords[j].x, coords[j].y, coords[j].z);
-#else
-				vtk_points->SetPoint(j, coords[j].x, coords[j].y, 0.f);
-#endif
+				if (C->have_3d()) {
+					vec4* coords = (vec4*)ptr;
+					vtk_points->SetPoint(j, coords[j].x,
+					                        coords[j].y,
+					                        coords[j].z);
+				} else {
+					vec2* coords = (vec2*)ptr;
+					vtk_points->SetPoint(j, coords[j].x,
+					                        coords[j].y,
+					                        0.0);
+				}
 				vtk_vertex = vtkSmartPointer<vtkVertex>::New();
 				vtk_vertex->GetPointIds()->SetId(0, j);
 				vtk_cells->InsertNextCell(vtk_vertex);
@@ -642,13 +643,14 @@ VTK::editVTK()
 		if (!fields[i].compare("r")) {
 			// The mesh points are a bit of a special case
 			auto points = _vtk->GetPoints();
-			vec* coords = (vec*)ptr;
 			for (j = 0; j < n; j++) {
-#ifdef HAVE_3D
-				points->SetPoint(j, coords[j].x, coords[j].y, coords[j].z);
-#else
-				points->SetPoint(j, coords[j].x, coords[j].y, 0.f);
-#endif
+				if (C->have_3d()) {
+					vec4* coords = (vec4*)ptr;
+					points->SetPoint(j, coords[j].x, coords[j].y, coords[j].z);
+				} else {
+					vec2* coords = (vec2*)ptr;
+					points->SetPoint(j, coords[j].x, coords[j].y, 0.0);
+				}
 			}
 			// _vtk->SetPoints(points);
 			points->Modified();

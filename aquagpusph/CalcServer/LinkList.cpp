@@ -171,138 +171,11 @@ LinkList::setup()
 	ihoc->reallocatable(true);
 }
 
-cl_event
-LinkList::_execute(const std::vector<cl_event> events)
-{
-	cl_int err_code;
-	cl_event trigger, event;
-	CalcServer* C = CalcServer::singleton();
-	InputOutput::Variables* vars = C->variables();
-
-	auto ihoc = getOutputDependencies()[0];
-	auto icell = getOutputDependencies()[1];
-	auto n_cells = getOutputDependencies()[2];
-	InputOutput::Variable *r_min, *r_max;
-
-	if (_recompute_minmax) {
-		r_min = getOutputDependencies()[3];
-		r_max = getOutputDependencies()[4];
-		// Reduction steps to find maximum and minimum position
-		_min_pos->execute();
-		_max_pos->execute();
-	} else {
-		r_min = getInputDependencies()[5];
-		r_max = getInputDependencies()[6];
-	}
-
-	// Compute the number of cells and allocate ihoc accordingly
-	const cl_event ncells_events[2] = { r_min->getWritingEvent(),
-		                                r_max->getWritingEvent() };
-	err_code = clWaitForEvents(2, ncells_events);
-	CHECK_OCL_OR_THROW(
-	    err_code,
-	    std::string("Failure waiting for the reductions on tool \"") + name() +
-	        "\".");
-
-	dynamic_cast<ScalarProfile*>(Profiler::substages()[0])->start();
-	nCells();
-	allocate();
-
-	// Set the new allocated variables
-	setVariables();
-	dynamic_cast<ScalarProfile*>(Profiler::substages()[0])->end();
-
-	// Compute the cell of each particle
-	err_code = clEnqueueNDRangeKernel(C->command_queue(),
-	                                  _icell,
-	                                  1,
-	                                  NULL,
-	                                  &_icell_gws,
-	                                  &_icell_lws,
-	                                  events.size(),
-	                                  events.data(),
-	                                  &event);
-	CHECK_OCL_OR_THROW(err_code,
-	                   std::string("Failure executing \"iCell\" from tool \"") +
-	                       name() + "\".");
-	{
-		auto profiler = dynamic_cast<EventProfile*>(Profiler::substages()[1]);
-		profiler->start(event);
-		profiler->end(event);
-	}
-
-	// Time to sort the icell array
-	icell->setWritingEvent(event);
-	n_cells->addReadingEvent(event);
-	err_code = clReleaseEvent(event);
-	CHECK_OCL_OR_THROW(
-	    err_code,
-	    std::string(
-	        "Failure releasing transactional \"iCell\" event from tool \"") +
-	        name() + "\".");
-
-	// Sort the particles from the cells
-	_sort->execute();
-
-	// Now our transactional event is the one coming from the sorting algorithm
-	// Such a new event can be taken from the icell dependency
-	// This transactional event SHALL NOT BE RELEASED. It is automagically
-	// destroyed when no more variables use it
-	auto event_wait = icell->getWritingEvent();
-
-	// Reinit the head of cells
-	err_code = clEnqueueNDRangeKernel(C->command_queue(),
-	                                  _ihoc,
-	                                  1,
-	                                  NULL,
-	                                  &_ihoc_gws,
-	                                  &_ihoc_lws,
-	                                  1,
-	                                  &event_wait,
-	                                  &event);
-	CHECK_OCL_OR_THROW(err_code,
-	                   std::string("Failure executing \"iHoc\" from tool \"") +
-	                       name() + "\".");
-	event_wait = event;
-	{
-		auto profiler = dynamic_cast<EventProfile*>(Profiler::substages()[2]);
-		profiler->start(event);
-		profiler->end(event);
-	}
-
-	err_code = clEnqueueNDRangeKernel(C->command_queue(),
-	                                  _ll,
-	                                  1,
-	                                  NULL,
-	                                  &_ll_gws,
-	                                  &_ll_lws,
-	                                  1,
-	                                  &event_wait,
-	                                  &event);
-	CHECK_OCL_OR_THROW(
-	    err_code,
-	    std::string("Failure executing \"linkList\" from tool \"") + name() +
-	        "\".");
-	err_code = clReleaseEvent(event_wait);
-	CHECK_OCL_OR_THROW(
-	    err_code,
-	    std::string(
-	        "Failure releasing transactional \"linkList\" event in tool \"") +
-	        name() + "\".");
-	{
-		auto profiler = dynamic_cast<EventProfile*>(Profiler::substages()[3]);
-		profiler->start(event);
-		profiler->end(event);
-	}
-
-	return event;
-}
-
+template<>
 void
-LinkList::nCells()
+LinkList::nCells<vec2>()
 {
-	vec pos_min, pos_max;
-	InputOutput::Variables* vars = CalcServer::singleton()->variables();
+	auto vars = CalcServer::singleton()->variables();
 
 	if (!_cell_length) {
 		std::stringstream msg;
@@ -312,16 +185,36 @@ LinkList::nCells()
 		throw std::runtime_error("Invalid number of cells");
 	}
 
-	pos_min = *(vec*)vars->get("r_min")->get_async();
-	pos_max = *(vec*)vars->get("r_max")->get_async();
+	const vec2 pos_min = *(vec2*)vars->get("r_min")->get_async();
+	const vec2 pos_max = *(vec2*)vars->get("r_max")->get_async();
 
 	_n_cells.x = narrow_cast<ulcl>((pos_max.x - pos_min.x) / _cell_length) + 6;
 	_n_cells.y = narrow_cast<ulcl>((pos_max.y - pos_min.y) / _cell_length) + 6;
-#ifdef HAVE_3D
-	_n_cells.z = narrow_cast<ulcl>((pos_max.z - pos_min.z) / _cell_length) + 6;
-#else
 	_n_cells.z = 1;
-#endif
+	const ulcl nw = _n_cells.x * _n_cells.y * _n_cells.z;
+	_n_cells.w = nw;
+}
+
+template<>
+void
+LinkList::nCells<vec4>()
+{
+	auto vars = CalcServer::singleton()->variables();
+
+	if (!_cell_length) {
+		std::stringstream msg;
+		msg << "Zero cell length detected in the tool \"" << name() << "\"."
+		    << std::endl;
+		LOG(L_ERROR, msg.str());
+		throw std::runtime_error("Invalid number of cells");
+	}
+
+	const vec4 pos_min = *(vec4*)vars->get("r_min")->get_async();
+	const vec4 pos_max = *(vec4*)vars->get("r_max")->get_async();
+
+	_n_cells.x = narrow_cast<ulcl>((pos_max.x - pos_min.x) / _cell_length) + 6;
+	_n_cells.y = narrow_cast<ulcl>((pos_max.y - pos_min.y) / _cell_length) + 6;
+	_n_cells.z = narrow_cast<ulcl>((pos_max.z - pos_min.z) / _cell_length) + 6;
 	const ulcl nw = _n_cells.x * _n_cells.y * _n_cells.z;
 	_n_cells.w = nw;
 }
@@ -433,6 +326,136 @@ LinkList::setVariables()
 		                       "\" (\"linkList\").");
 		memcpy(_ll_args.at(i), var->get_async(), var->typesize());
 	}
+}
+
+cl_event
+LinkList::_execute(const std::vector<cl_event> events)
+{
+	cl_int err_code;
+	cl_event trigger, event;
+	auto C = CalcServer::singleton();
+	auto vars = C->variables();
+
+	auto ihoc = getOutputDependencies()[0];
+	auto icell = getOutputDependencies()[1];
+	auto n_cells = getOutputDependencies()[2];
+	InputOutput::Variable *r_min, *r_max;
+
+	if (_recompute_minmax) {
+		r_min = getOutputDependencies()[3];
+		r_max = getOutputDependencies()[4];
+		// Reduction steps to find maximum and minimum position
+		_min_pos->execute();
+		_max_pos->execute();
+	} else {
+		r_min = getInputDependencies()[5];
+		r_max = getInputDependencies()[6];
+	}
+
+	// Compute the number of cells and allocate ihoc accordingly
+	const cl_event ncells_events[2] = { r_min->getWritingEvent(),
+		                                r_max->getWritingEvent() };
+	err_code = clWaitForEvents(2, ncells_events);
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure waiting for the reductions on tool \"") + name() +
+	        "\".");
+
+	dynamic_cast<ScalarProfile*>(Profiler::substages()[0])->start();
+	if (C->have_3d())
+		nCells<vec4>();
+	else
+		nCells<vec2>();
+	allocate();
+
+	// Set the new allocated variables
+	setVariables();
+	dynamic_cast<ScalarProfile*>(Profiler::substages()[0])->end();
+
+	// Compute the cell of each particle
+	err_code = clEnqueueNDRangeKernel(C->command_queue(),
+	                                  _icell,
+	                                  1,
+	                                  NULL,
+	                                  &_icell_gws,
+	                                  &_icell_lws,
+	                                  events.size(),
+	                                  events.data(),
+	                                  &event);
+	CHECK_OCL_OR_THROW(err_code,
+	                   std::string("Failure executing \"iCell\" from tool \"") +
+	                       name() + "\".");
+	{
+		auto profiler = dynamic_cast<EventProfile*>(Profiler::substages()[1]);
+		profiler->start(event);
+		profiler->end(event);
+	}
+
+	// Time to sort the icell array
+	icell->setWritingEvent(event);
+	n_cells->addReadingEvent(event);
+	err_code = clReleaseEvent(event);
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string(
+	        "Failure releasing transactional \"iCell\" event from tool \"") +
+	        name() + "\".");
+
+	// Sort the particles from the cells
+	_sort->execute();
+
+	// Now our transactional event is the one coming from the sorting algorithm
+	// Such a new event can be taken from the icell dependency
+	// This transactional event SHALL NOT BE RELEASED. It is automagically
+	// destroyed when no more variables use it
+	auto event_wait = icell->getWritingEvent();
+
+	// Reinit the head of cells
+	err_code = clEnqueueNDRangeKernel(C->command_queue(),
+	                                  _ihoc,
+	                                  1,
+	                                  NULL,
+	                                  &_ihoc_gws,
+	                                  &_ihoc_lws,
+	                                  1,
+	                                  &event_wait,
+	                                  &event);
+	CHECK_OCL_OR_THROW(err_code,
+	                   std::string("Failure executing \"iHoc\" from tool \"") +
+	                       name() + "\".");
+	event_wait = event;
+	{
+		auto profiler = dynamic_cast<EventProfile*>(Profiler::substages()[2]);
+		profiler->start(event);
+		profiler->end(event);
+	}
+
+	err_code = clEnqueueNDRangeKernel(C->command_queue(),
+	                                  _ll,
+	                                  1,
+	                                  NULL,
+	                                  &_ll_gws,
+	                                  &_ll_lws,
+	                                  1,
+	                                  &event_wait,
+	                                  &event);
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure executing \"linkList\" from tool \"") + name() +
+	        "\".");
+	err_code = clReleaseEvent(event_wait);
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string(
+	        "Failure releasing transactional \"linkList\" event in tool \"") +
+	        name() + "\".");
+	{
+		auto profiler = dynamic_cast<EventProfile*>(Profiler::substages()[3]);
+		profiler->start(event);
+		profiler->end(event);
+	}
+
+	return event;
 }
 
 void

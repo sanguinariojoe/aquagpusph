@@ -33,10 +33,11 @@
 
 // Short and long runtime options (see
 // http://www.gnu.org/software/libc/manual/html_node/Getopt.html#Getopt)
-static const char* opts = "i:q:vh";
+static const char* opts = "i:q:d:vh";
 static const struct option longOpts[] = {
 	{ "input", required_argument, NULL, 'i' },
 	{ "queues", required_argument, NULL, 'q' },
+	{ "dimensions", required_argument, NULL, 'd' },
 	{ "version", no_argument, NULL, 'v' },
 	{ "help", no_argument, NULL, 'h' },
 	{ NULL, no_argument, NULL, 0 }
@@ -55,16 +56,16 @@ void
 displayUsage()
 {
 	std::cout << "Usage:\tAQUAgpusph [Option]..." << std::endl;
-	std::cout << "   or:\tAQUAgpusph2D [Option]..." << std::endl;
-	std::cout << "Performs particles based (SPH method) simulation "
-	          << "(use AQUAgpusph2D for 2D simulations)" << std::endl;
-	std::cout << std::endl;
+	std::cout << "Performs particles based (SPH method) simulations"
+	          << std::endl;
 	std::cout << "Required arguments for long options are also required for "
 	          << "the short ones." << std::endl;
 	std::cout << "  -i, --input=INPUT            XML definition input file "
 	          << "(Input.xml by default)" << std::endl;
 	std::cout << "  -q, --queues=QUEUES          Maximum number of OpenCL "
 	          << "command queues (15 by default)" << std::endl;
+	std::cout << "  -d, --dimensions=DIMS        Simulations dimensions, "
+	          << "either 2 or 3 (3 by default)" << std::endl;
 	std::cout << "  -v, --version                Show the AQUAgpusph version"
 	          << std::endl;
 	std::cout << "  -h, --help                   Show this help page"
@@ -75,21 +76,24 @@ void
 parse(int argc, char** argv, FileManager& file_manager)
 {
 	int index, queues;
+	std::string optstr;
 
 	int opt = getopt_long(argc, argv, opts, longOpts, &index);
 	while (opt != -1) {
 		std::ostringstream msg;
 		switch (opt) {
 			case 'i':
-				file_manager.inputFile(optarg);
+				optstr = trimCopy(optarg);
+				file_manager.inputFile(optstr);
 				msg.str(std::string());
 				msg << "Input file = " << file_manager.inputFile() << std::endl;
 				LOG(L_INFO, msg.str());
 				break;
 
 			case 'q':
+				optstr = trimCopy(optarg);
 				try {
-					queues = std::stoi(optarg);
+					queues = std::stoi(optstr);
 				} catch (const std::invalid_argument& e) {
 					msg.str(std::string());
 					msg << "Error parsing the number of command queues: '"
@@ -118,6 +122,21 @@ parse(int argc, char** argv, FileManager& file_manager)
 				msg << file_manager.problemSetup().nCmdQueues()
 				    << " command queues can be spawned" << std::endl;
 				LOG(L_INFO, msg.str());
+				break;
+
+			case 'd':
+				optstr = trimCopy(optarg);
+				if (optstr == "2") {
+					file_manager.problemSetup().dims(2);
+					LOG(L_INFO, "2D simulation is selected");
+				} else if (optstr == "3") {
+					file_manager.problemSetup().dims(3);
+					LOG(L_INFO, "3D simulation is selected");
+				} else {
+					LOG(L_ERROR, std::string("Cannot parse the number of ") +
+					             "dimension \"" + optstr + "\"\n");
+					std::invalid_argument("Invalid command line argument");
+				}
 				break;
 
 			case 'v':

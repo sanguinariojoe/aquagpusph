@@ -178,13 +178,8 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 	valstr.str("");
 	valstr << mpi_size;
 	_vars.registerVariable("mpi_size", "unsigned int", "", valstr.str());
-#ifdef HAVE_3D
-	unsigned int dims = 3;
-#else
-	unsigned int dims = 2;
-#endif
 	valstr.str("");
-	valstr << dims;
+	valstr << _sim_data.dims();
 	_vars.registerVariable("dims", "unsigned int", "", valstr.str());
 	_vars.registerVariable("t", "float", "", "0");
 	_vars.registerVariable("dt", "float", "", "0");

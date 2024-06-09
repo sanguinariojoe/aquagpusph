@@ -325,11 +325,10 @@ Tool::compile(const std::string source,
 	flags << " -DNDEBUG ";
 #endif
 	flags << " -cl-mad-enable -cl-fast-relaxed-math -cl-kernel-arg-info";
-#ifdef HAVE_3D
-	flags << " -DHAVE_3D";
-#else
-	flags << " -DHAVE_2D";
-#endif
+	if (C->have_3d())
+		flags << " -DHAVE_3D";
+	else
+		flags << " -DHAVE_2D";
 	std::string size_type = (C->device_addr_bits() == 64) ?
 		"long" : "int";
 	for (auto nc : {"", "2", "3", "4", "8"}) {
