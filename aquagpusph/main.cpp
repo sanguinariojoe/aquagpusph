@@ -179,6 +179,7 @@ main(int argc, char* argv[])
 	logger->printDate();
 	logger->initNCurses();
 
+	auto status = EXIT_SUCCESS;
 	while (!t_manager.mustStop()) {
 		try {
 			calc_server->update(t_manager);
@@ -186,37 +187,26 @@ main(int argc, char* argv[])
 		} catch (const Aqua::CalcServer::user_interruption& e) {
 			// The user has interrupted the simulation, just exit normally
 #ifndef HAVE_MPI
-			// In case of MPI it is not much useful to ask for a new file, since
-			// we can hardly enforce the software to wait for the current
-			// writers before MPI send a kill signal
+			// In case of MPI it is not much useful to ask for a new file,
+			// as long as we can hardly enforce the software to wait for the
+			// current writers before MPI send a kill signal
 			file_manager.save(t_manager.time());
 #endif
 			break;
 		} catch (...) {
-			logger->endNCurses();
-			sleep(__ERROR_SHOW_TIME__);
-			file_manager.waitForSavers();
-			logger->printDate();
-			msg << "Simulation finished abnormally (t = " << t_manager.time()
-			    << " s)" << std::endl
-			    << std::endl;
-			LOG(L_INFO, msg.str());
-
-			delete logger;
-			logger = NULL;
-			delete calc_server;
-			calc_server = NULL;
-			if (Py_IsInitialized())
-				Py_Finalize();
-			return EXIT_FAILURE;
+			status = EXIT_FAILURE;
+			break;
 		}
 	}
 
 	logger->endNCurses();
+	if (status != EXIT_SUCCESS)
+		sleep(__ERROR_SHOW_TIME__);
 	file_manager.waitForSavers();
 	logger->printDate();
-	msg << "Simulation finished OK (t = " << t_manager.time() << " s)"
-	    << std::endl;
+	msg << "Simulation finished "
+	    << ((status == EXIT_SUCCESS) ? "OK " : "abnormally ")
+		<< "(t = " << t_manager.time() << " s)" << std::endl;
 	LOG(L_INFO, msg.str());
 
 	delete logger;
@@ -230,5 +220,5 @@ main(int argc, char* argv[])
 	Aqua::MPI::finalize();
 #endif
 
-	return EXIT_SUCCESS;
+	return status;
 }
