@@ -37,6 +37,7 @@ Authors:
     <Include file="Settings.xml" />
     <Include file="SPH.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/neighs_limit.xml" />
+    <Include file="neighs_limit.xml" />
     <Include file="Time.xml" />
     <Include file="Fluids.xml" />
     <Include file="Sensors.xml" />

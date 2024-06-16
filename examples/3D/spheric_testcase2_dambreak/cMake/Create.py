@@ -470,7 +470,7 @@ output.close()
 
 templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
 XML = ('Fluids.xml', 'Main.xml', 'Sensors.xml', 'Settings.xml', 'SPH.xml',
-       'Time.xml', 'h_sensor.cl')
+       'Time.xml', 'neighs_limit.xml', 'h_sensor.cl')
 
 s = 10.0 * hfac * dr
 domain_min = (-(L - l + s), -(0.5 * D + s), -s, 0.0)
