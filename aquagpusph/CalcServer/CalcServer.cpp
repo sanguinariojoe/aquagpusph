@@ -541,8 +541,13 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 CalcServer::~CalcServer()
 {
 	unsigned int i;
-	delete[] _current_tool_name;
+	// Wait until all pending operations are finished
+	auto events = all_events();
+	clWaitForEvents(events.size(), events.data());
+	finish();
 
+	// Proceed to destroy everything
+	delete[] _current_tool_name;
 	for (auto queue : _command_queues)
 		clReleaseCommandQueue(queue);
 	if (_command_queue_parallel)
@@ -695,6 +700,24 @@ CalcServer::command_queue(cmd_queue which)
 			queue = _command_queue_parallel;
 	}
 	return queue;
+}
+
+std::vector<cl_event>
+CalcServer::all_events() const
+{
+	// Collect all the events from all the variables
+	std::vector<cl_event> events;
+	for (auto var : _vars.getAll()) {
+		auto reading = var->getReadingEvents();
+		events.insert(events.end(), reading.begin(), reading.end());
+		auto writing = var->getWritingEvent();
+		events.push_back(writing);
+	}
+	// Remove the duplicates
+	std::sort(events.begin(), events.end());
+	auto last = std::unique(events.begin(), events.end());
+	events.erase(last, events.end());
+	return events;
 }
 
 cl_event

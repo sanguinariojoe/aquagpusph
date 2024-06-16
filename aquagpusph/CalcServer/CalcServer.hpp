@@ -318,6 +318,15 @@ class CalcServer
 		return err_code;
 	}
 
+	/** Collect all the events stored on the variables
+	 *
+	 * This includes the user events that shall be set by callbacks. Thus, this
+	 * function is more powerful than ::finish() at the time to set a
+	 * synchronization point. It is slower also.
+	 * @return The full list of events, collected from the variables
+	 */
+	std::vector<cl_event> all_events() const;
+
 	/** Create a marker to be set as completed when all the enqued commnands on
 	 * all the command queues are finished.
 	 * @return the master event
