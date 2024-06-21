@@ -44,19 +44,6 @@
     #define __MIN_BOUND_DIST__ 0.f
 #endif
 
-#ifndef __ELASTIC_FACTOR__
-    /** @def __ELASTIC_FACTOR__
-     * @brief The amount of kinetic energy conserved in the interaction.
-     *
-     * A factor of 1 imply that the velocity of the particle will be preserved
-     * (except for the direction), while a factor of 0 imply that the particle
-     * will loss all its normal to the boundary velocity.
-     *
-     * The tangential velocity is not affected.
-     */
-    #define __ELASTIC_FACTOR__ 1.0f
-#endif
-
 /** @brief Performs the boundary effect on the fluid particles.
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
@@ -92,8 +79,7 @@ __kernel void entry(const __global int* imove,
         return;
 
     const vec_xyz r_i = r[i].XYZ;
-    vec_xyz dudt_i = dudt[i].XYZ;
-    vec_xyz u_i = u_in[i].XYZ + 0.5f * dt * dudt_i;
+    vec_xyz u_i = u_in[i].XYZ + 0.5f * dt * dudt[i].XYZ;
 
     const usize c_i = icell[i];
     BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
@@ -109,7 +95,11 @@ __kernel void entry(const __global int* imove,
             j++;
             continue;
         }
+#ifdef HAVE_3D
+        const float dr = sqrt(m[j]);
+#else
         const float dr = m[j];
+#endif
         const float R = __DR_FACTOR__ * dr;
         const vec_xyz rt = r_ij - r0 * n_j;
         if(dot(rt, rt) >= R * R){
@@ -119,29 +109,23 @@ __kernel void entry(const __global int* imove,
         }
 
         {
-            if(dot(dudt_i, n_j) < 0.f){
-                // The particle is accelerating away from the boundary, we
-                // cannot do anything more
+            if(dot(u_i, n_j) < 0.f){
+                // The particle is already running away from the boundary
                 j++;
                 continue;
             }
 
             const float dist = dt * dot(u_i - u_in[j].XYZ, n_j);
-            // ------------------------------------------------------------------
             // The particle should be corrected if:
             //   - It is already placed in the effect zone.
             //   - It is entering inside the effect zone.
-            // ------------------------------------------------------------------
             if(r0 - dist <= __MIN_BOUND_DIST__ * dr){
-                // ------------------------------------------------------------------
-                // Reflect particle acceleration (using elastic factor)
-                // ------------------------------------------------------------------
-                dudt[i].XYZ = dudt_i -
-                    (1.f + __ELASTIC_FACTOR__) * dot(dudt_i, n_j) * n_j;
-
-                // Modify the value for the next walls test.
-                dudt_i = dudt[i].XYZ;
-                u_i = u_in[i].XYZ + 0.5f * dt * dudt_i;
+                // Reflect the particle velocity, so its module remains
+                // constant
+                const vec_xyz u = u_i - 2.f * dot(u_i, n_j) * n_j;
+                // Modify the values for the next wall tests.
+                dudt[i].XYZ = (u - u_i) / 0.5f * dt;
+                u_i = u;
             }
         }
     }END_NEIGHS()
