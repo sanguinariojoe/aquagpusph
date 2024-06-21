@@ -310,24 +310,6 @@
 #define __CL_MAX_LOCALSIZE__ 1024
 #endif
 
-#ifndef __ERROR_SHOW_TIME__
-#ifndef HAVE_NCURSES
-/** @def __ERROR_SHOW_TIME__
- * @brief Time let to the user to notice and read the error.
- *
- * 0 seconds if ncurses is disabled, and 3 seconds otherwise.
- */
-#define __ERROR_SHOW_TIME__ 0u
-#else
-/** @def __ERROR_SHOW_TIME__
- * @brief Time let to the user to notice and read the error.
- *
- * 0 seconds if ncurses is disabled, and 3 seconds otherwise.
- */
-#define __ERROR_SHOW_TIME__ 3u
-#endif
-#endif
-
 /// Helper string for #methodAndClassName function.
 static std::string methodAndClassName_str;
 

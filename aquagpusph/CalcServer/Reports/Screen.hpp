@@ -54,9 +54,7 @@ class Screen : public Aqua::CalcServer::Reports::Report
 	 * otherwise.
 	 */
 	Screen(const std::string tool_name,
-	       const std::string fields,
-	       const std::string color = "white",
-	       bool bold = false);
+	       const std::string fields);
 
 	/** @brief Destructor
 	 */
@@ -66,28 +64,12 @@ class Screen : public Aqua::CalcServer::Reports::Report
 	 */
 	void setup();
 
-	/** @brief Get the output color
-	 * @return The output color
-	 */
-	inline std::string color() const { return _color; }
-
-	/** @brief Get the output boldness
-	 * @return True for bold output, false for normal one
-	 */
-	inline bool bold() const { return _bold; }
-
   protected:
 	/** Execute the tool
 	 * @param events List of events that shall be waited before safe execution
 	 * @return OpenCL event to be waited before accessing the dependencies
 	 */
 	cl_event _execute(const std::vector<cl_event> events);
-
-  private:
-	/// Output color
-	std::string _color;
-	/// Output bold or normal flag
-	bool _bold;
 };
 
 }

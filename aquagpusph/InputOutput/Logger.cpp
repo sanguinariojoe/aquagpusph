@@ -30,12 +30,6 @@
 #include "Logger.hpp"
 #include "aquagpusph/ProblemSetup.hpp"
 
-#ifdef HAVE_NCURSES
-WINDOW *wnd, *log_wnd;
-#else
-void* wnd;
-#endif
-
 #ifdef HAVE_MPI
 #include <mpi.h>
 #endif
@@ -45,9 +39,7 @@ namespace InputOutput {
 
 
 Logger::Logger()
-  : _last_row(0)
 {
-	wnd = NULL;
 	open();
 	gettimeofday(&_start_time, NULL);
 }
@@ -58,181 +50,21 @@ Logger::~Logger()
 }
 
 void
-Logger::initNCurses()
-{
-#ifdef HAVE_NCURSES
-	if (wnd)
-		return;
-
-	wnd = initscr();
-	if (!wnd) {
-		addMessageF(L_INFO, "Failure initializating the screen manager\n");
-		return;
-	}
-	if (has_colors())
-		start_color();
-	log_wnd = NULL;
-#endif
-}
-
-void
-Logger::endNCurses()
-{
-#ifdef HAVE_NCURSES
-	if (!wnd)
-		return;
-
-	endwin();
-	// Avoid problems if endNCurses is called several times
-	wnd = NULL;
-	log_wnd = NULL;
-#endif
-}
-
-void
-Logger::initFrame()
-{
-#ifdef HAVE_NCURSES
-	// Clear the entire frame
-	if (!wnd)
-		return;
-	clear();
-
-	// Init the colour pairs
-	init_pair(1, COLOR_WHITE, COLOR_BLACK);
-	init_pair(2, COLOR_GREEN, COLOR_BLACK);
-	init_pair(3, COLOR_BLUE, COLOR_BLACK);
-	init_pair(4, COLOR_YELLOW, COLOR_BLACK);
-	init_pair(5, COLOR_RED, COLOR_BLACK);
-	init_pair(6, COLOR_MAGENTA, COLOR_BLACK);
-	init_pair(7, COLOR_CYAN, COLOR_BLACK);
-
-	// Setup the default font
-	attrset(A_NORMAL);
-	attron(COLOR_PAIR(1));
-
-	// Set the cursor at the start of the window
-	_last_row = 0;
-#endif
-}
-
-void
-Logger::endFrame()
-{
-#ifdef HAVE_NCURSES
-	printLog();
-	refreshAll();
-#else
-	std::cout << std::flush;
-#endif
-}
-
-void
-Logger::writeReport(std::string input, std::string color, bool bold)
+Logger::writeReport(std::string input)
 {
 	const std::lock_guard<std::recursive_mutex> lock(_mutex);
 
-	if (!input.size()) {
-		return;
-	}
-
-	if (!wnd) {
-#ifdef HAVE_MPI
-		auto mpi_rank = Aqua::MPI::rank(MPI_COMM_WORLD);
-		std::cout << "[Proc " << mpi_rank << "] ";
-#endif
-		std::cout << input;
-		if (!hasSuffix(input, "\n")) {
-			std::cout << std::endl;
-		}
-		return;
-	}
-
-#ifdef HAVE_NCURSES
-	std::string msg = rtrimCopy(input);
-	if (msg == "")
+	if (!input.size())
 		return;
 
-	// In case of multiline messages, report it by pieces
-	size_t end = 0;
-	if (msg.find("\n") != std::string::npos) {
-		std::string remain = msg;
-		while (remain.find("\n") != std::string::npos) {
-			end = remain.find("\n");
-			writeReport(remain.substr(0, end), color, bold);
-			remain = remain.substr(end + 1);
-		}
-		writeReport(remain, color, bold);
-		return;
-	}
-
-	// Replace the tabulators by spaces
-	replaceAll(msg, "\t", " ");
-
-	// Check if the message is larger than the terminal output
-	int rows, cols;
-	getmaxyx(wnd, rows, cols);
-	if (msg.size() > cols) {
-		// We can try to split it by a blank space, and if it fails just let
-		// ncurses select how to divide the string
-		size_t last = 0;
-		end = 0;
-		while ((end = msg.find(" ", end)) != std::string::npos) {
-			if (end > cols)
-				break;
-			last = end;
-		}
-		if (last) {
-			writeReport(msg.substr(0, last), color, bold);
-			writeReport(msg.substr(last), color, bold);
-			return;
-		}
-	}
-
-	// Select the font
-	attrset(A_NORMAL);
-	unsigned int pair_id = 1;
-	if (!color.compare("white")) {
-		pair_id = 1;
-	} else if (!color.compare("green")) {
-		pair_id = 2;
-	} else if (!color.compare("blue")) {
-		pair_id = 3;
-	} else if (!color.compare("yellow")) {
-		pair_id = 4;
-	} else if (!color.compare("red")) {
-		pair_id = 5;
-	} else if (!color.compare("magenta")) {
-		pair_id = 6;
-	} else if (!color.compare("cyan")) {
-		pair_id = 7;
-	} else {
-		std::ostringstream err_msg;
-		err_msg << "Invalid message color \"" << color << "\"" << std::endl;
-		addMessageF(L_ERROR, err_msg.str());
-	}
-	attron(COLOR_PAIR(pair_id));
-	if (bold) {
-		attron(A_BOLD);
-	}
-
-	// Append the processor index
 #ifdef HAVE_MPI
 	auto mpi_rank = Aqua::MPI::rank(MPI_COMM_WORLD);
-	msg = "[Proc " + std::to_string(mpi_rank) + "] " + msg;
+	std::cout << "[Proc " << mpi_rank << "] ";
 #endif
-
-	// Print the message
-	int row = _last_row;
-	move(row, 0);
-	printw(msg.c_str());
-	// The message may require several lines
-	_last_row += msg.size() / cols + 1;
-
-	// Refresh
-	// printLog();
-	// refresh();
-#endif
+	std::cout << input;
+	if (!hasSuffix(input, "\n")) {
+		std::cout << std::endl;
+	}
 }
 
 void
@@ -272,36 +104,13 @@ Logger::addMessage(TLogLevel level, std::string log, std::string func)
 		return;
 
 	// Just in case the Logger has been destroyed
-	if (!Logger::singleton() || !wnd) {
-		if (level == L_INFO)
-			std::cout << "INFO ";
-		else if (level == L_WARNING)
-			std::cout << "WARNING ";
-		else if (level == L_ERROR)
-			std::cout << "ERROR ";
-		std::cout << fname.str() << log << std::flush;
-		return;
-	}
-
-	// Add the new message to the log register
-	std::ostringstream msg;
-	msg << fname.str() << log;
-	_log_level.insert(_log_level.begin(), level);
-	_log.insert(_log.begin(), msg.str());
-
-	// Filter out the messages that never would be printed because the window
-	// has not space enough (1 if ncurses is not activated)
-	int rows = 1, cols;
-#ifdef HAVE_NCURSES
-	getmaxyx(wnd, rows, cols);
-#endif
-	while (_log_level.size() >= (unsigned int)rows) {
-		_log_level.pop_back();
-		_log.pop_back();
-	}
-
-	printLog();
-	refreshAll();
+	if (level == L_INFO)
+		std::cout << "INFO ";
+	else if (level == L_WARNING)
+		std::cout << "WARNING ";
+	else if (level == L_ERROR)
+		std::cout << "ERROR ";
+	std::cout << fname.str() << log << std::flush;
 }
 
 void
@@ -498,77 +307,6 @@ Logger::printOpenCLError(cl_int error, TLogLevel level)
 			addMessage(level, "\tUnhandled exception\n");
 			break;
 	}
-}
-
-void
-Logger::printLog()
-{
-	unsigned int i;
-	if (!wnd) {
-		for (i = 0; i < _log_level.size(); i++) {
-			if (_log_level.at(i) == L_INFO)
-				std::cout << "INFO ";
-			else if (_log_level.at(i) == L_WARNING)
-				std::cout << "WARNING ";
-			else if (_log_level.at(i) == L_ERROR)
-				std::cout << "ERROR ";
-			std::cout << _log.at(i) << std::flush;
-		}
-		return;
-	}
-#ifdef HAVE_NCURSES
-	// Get a good position candidate
-	int row = _last_row + 2, rows, cols;
-	getmaxyx(wnd, rows, cols);
-	if (row > rows - 2) {
-		row = rows - 2;
-	}
-
-	// Setup the subwindow
-	if (log_wnd) {
-		wclear(log_wnd);
-		delwin(log_wnd);
-		log_wnd = NULL;
-	}
-	log_wnd = subwin(wnd, rows - row, cols, row, 0);
-	wclear(log_wnd);
-
-	// Print the info
-	wattrset(log_wnd, A_NORMAL);
-	wattron(log_wnd, A_BOLD);
-	wattron(log_wnd, COLOR_PAIR(1));
-	wmove(log_wnd, 0, 0);
-	wprintw(log_wnd, "--- Log registry ------------------------------");
-	unsigned int lines = 1;
-	for (i = 0; i < _log_level.size(); i++) {
-		wattrset(log_wnd, A_NORMAL);
-		wattron(log_wnd, COLOR_PAIR(1));
-		if (_log_level.at(i) == L_INFO) {
-			wattron(log_wnd, A_NORMAL);
-			wattron(log_wnd, COLOR_PAIR(1));
-		} else if (_log_level.at(i) == L_WARNING) {
-			wattron(log_wnd, A_BOLD);
-			wattron(log_wnd, COLOR_PAIR(4));
-		} else if (_log_level.at(i) == L_ERROR) {
-			wattron(log_wnd, A_BOLD);
-			wattron(log_wnd, COLOR_PAIR(5));
-		} else {
-		}
-		wmove(log_wnd, lines, 0);
-		wprintw(log_wnd, _log.at(i).c_str());
-		lines += _log.at(i).size() / cols + 1;
-	}
-	// wrefresh(log_wnd);
-#endif
-}
-
-void
-Logger::refreshAll()
-{
-#ifdef HAVE_NCURSES
-	refresh();
-	wrefresh(log_wnd);
-#endif
 }
 
 void

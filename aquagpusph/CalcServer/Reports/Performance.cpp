@@ -36,12 +36,8 @@ namespace CalcServer {
 namespace Reports {
 
 Performance::Performance(const std::string tool_name,
-                         const std::string color,
-                         bool bold,
                          const std::string output_file)
   : Report(tool_name, "dummy_fields_string")
-  , _color(color)
-  , _bold(bold)
   , _output_file(output_file)
   , _output_file_index(0)
   , _timer(0)
@@ -59,9 +55,6 @@ Performance::setup()
 	std::ostringstream msg;
 	msg << "Loading the report \"" << name() << "\"..." << std::endl;
 	LOG(L_INFO, msg.str());
-
-	// Set the color in lowercase
-	std::transform(_color.begin(), _color.end(), _color.begin(), ::tolower);
 
 	Tool::setup();
 
@@ -154,7 +147,7 @@ Performance::print()
 		data << std::endl;
 	}
 
-	InputOutput::Logger::singleton()->writeReport(data.str(), _color, _bold);
+	InputOutput::Logger::singleton()->writeReport(data.str());
 
 	// Write the output file
 	if (_output_file.compare("")) {

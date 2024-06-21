@@ -32,12 +32,8 @@ namespace CalcServer {
 namespace Reports {
 
 Screen::Screen(const std::string tool_name,
-               const std::string fields,
-               const std::string color,
-               bool bold)
+               const std::string fields)
   : Report(tool_name, fields)
-  , _color(color)
-  , _bold(bold)
 {
 }
 
@@ -51,9 +47,6 @@ Screen::setup()
 	std::ostringstream msg;
 	msg << "Loading the report \"" << name() << "\"..." << std::endl;
 	LOG(L_INFO, msg.str());
-
-	// Set the color in lowercase
-	std::transform(_color.begin(), _color.end(), _color.begin(), ::tolower);
 
 	Report::setup();
 }
@@ -86,7 +79,7 @@ screenreport_cb(cl_event event, cl_int event_command_status, void* user_data)
 	}
 
 	InputOutput::Logger::singleton()->writeReport(
-	    tool->data(), tool->color(), tool->bold());
+	    tool->data());
 	cl_int err_code;
 	err_code = clSetUserEventStatus(tool->getUserEvent(), CL_COMPLETE);
 	CHECK_OCL_OR_THROW(err_code,

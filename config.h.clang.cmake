@@ -123,9 +123,6 @@
 /* MPI */
 #cmakedefine HAVE_MPI
 
-/* NCurses */
-#cmakedefine HAVE_NCURSES
-
 /* VTK */
 #cmakedefine HAVE_VTK
 

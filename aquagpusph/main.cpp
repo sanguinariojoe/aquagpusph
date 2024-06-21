@@ -177,7 +177,6 @@ main(int argc, char* argv[])
 
 	LOG(L_INFO, "Start of simulation...\n");
 	logger->printDate();
-	logger->initNCurses();
 
 	auto status = EXIT_SUCCESS;
 	while (!t_manager.mustStop()) {
@@ -199,9 +198,6 @@ main(int argc, char* argv[])
 		}
 	}
 
-	logger->endNCurses();
-	if (status != EXIT_SUCCESS)
-		sleep(__ERROR_SHOW_TIME__);
 	file_manager.waitForSavers();
 	logger->printDate();
 	msg << "Simulation finished "

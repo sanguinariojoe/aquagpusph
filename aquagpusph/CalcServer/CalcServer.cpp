@@ -392,12 +392,8 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 		}
 		// Reports
 		else if (!t->get("type").compare("report_screen")) {
-			bool bold = false;
-			if (!toLowerCopy(t->get("recompute_grid")).compare("true")) {
-				bold = true;
-			}
 			Reports::Screen* tool = new Reports::Screen(
-			    t->get("name"), t->get("fields"), t->get("color"), bold);
+			    t->get("name"), t->get("fields"));
 			_tools.push_back(tool);
 		} else if (!t->get("type").compare("report_file")) {
 			Reports::TabFile* tool = new Reports::TabFile(
@@ -446,12 +442,8 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 			                      binary);
 			_tools.push_back(tool);
 		} else if (!t->get("type").compare("report_performance")) {
-			bool bold = false;
-			if (!toLowerCopy(t->get("recompute_grid")).compare("true")) {
-				bold = true;
-			}
 			Reports::Performance* tool = new Reports::Performance(
-			    t->get("name"), t->get("color"), bold, t->get("path"));
+			    t->get("name"), t->get("path"));
 			_tools.push_back(tool);
 		}
 		// Error
@@ -468,12 +460,8 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 	// Register the reporters
 	for (auto r : _sim_data.reports) {
 		if (!r->get("type").compare("screen")) {
-			bool bold = false;
-			if (!toLowerCopy(r->get("recompute_grid")).compare("true")) {
-				bold = true;
-			}
 			Reports::Screen* tool = new Reports::Screen(
-			    r->get("name"), r->get("fields"), r->get("color"), bold);
+			    r->get("name"), r->get("fields"));
 			_tools.push_back(tool);
 		} else if (!r->get("type").compare("file")) {
 			Reports::TabFile* tool = new Reports::TabFile(
@@ -510,12 +498,8 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 			                            fps);
 			_tools.push_back(tool);
 		} else if (!r->get("type").compare("performance")) {
-			bool bold = false;
-			if (!toLowerCopy(r->get("recompute_grid")).compare("true")) {
-				bold = true;
-			}
 			Reports::Performance* tool = new Reports::Performance(
-			    r->get("name"), r->get("color"), bold, r->get("path"));
+			    r->get("name"), r->get("path"));
 			_tools.push_back(tool);
 		} else {
 			std::ostringstream msg;
@@ -589,8 +573,6 @@ CalcServer::update(InputOutput::TimeManager& t_manager)
 #ifdef HAVE_MPI
 		Aqua::MPI::barrier(MPI_COMM_WORLD);
 #endif
-		InputOutput::Logger::singleton()->initFrame();
-
 		// Execute the tools
 		_command_queue_current = 0;
 		ProfilingInfo::newStep();
@@ -603,7 +585,6 @@ CalcServer::update(InputOutput::TimeManager& t_manager)
 				prev_tool = tool;
 				tool = tool->next_tool();
 			} catch (std::runtime_error& e) {
-				sleep(__ERROR_SHOW_TIME__);
 				throw;
 			}
 		}
@@ -612,11 +593,8 @@ CalcServer::update(InputOutput::TimeManager& t_manager)
 		// Key events
 		if (sigint_received) {
 			LOG(L_WARNING, "Interrumption request (SIGINT/SIGTERM) detected\n");
-			sleep(__ERROR_SHOW_TIME__);
 			throw user_interruption("Simulation interrupted by the user");
 		}
-
-		InputOutput::Logger::singleton()->endFrame();
 	}
 }
 

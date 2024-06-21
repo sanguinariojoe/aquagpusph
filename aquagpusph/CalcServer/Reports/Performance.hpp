@@ -60,8 +60,6 @@ class Performance : public Aqua::CalcServer::Reports::Report
 	 * can be used, as described in Aqua::newFilePath()
 	 */
 	Performance(const std::string tool_name,
-	            const std::string color = "white",
-	            bool bold = false,
 	            const std::string output_file = "");
 
 	/** @brief Destructor

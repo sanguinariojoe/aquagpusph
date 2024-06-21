@@ -36,10 +36,6 @@
 #include <CL/cl.h>
 #endif
 
-#ifdef HAVE_NCURSES
-#include <ncurses.h>
-#endif
-
 #include "Report.hpp"
 #include "aquagpusph/Singleton.hpp"
 
@@ -100,56 +96,13 @@ struct Logger
 	/// Destructor.
 	~Logger();
 
-	/** @brief Transform the terminal into an ncurses one.
-	 *
-	 * This method should be called ONCE before starting the simulation main
-	 * loop
-	 */
-	void initNCurses();
-
-	/** @brief Transform the terminal into an ncurses one.
-	 *
-	 * This method should be called after finishing the simulation main loop
-	 */
-	void endNCurses();
-
-	/** @brief Call to setup a new terminal frame.
-	 *
-	 * This method should be called at the start of every time step.
-	 */
-	void initFrame();
-
-	/** @brief Call to refresh the terminal frame.
-	 *
-	 * This method should be called at the end of every time step.
-	 */
-	void endFrame();
-
 	/** @brief Write a new message in the terminal output.
 	 *
 	 * This method is not redirecting the data to the log file.
-	 * In case that ncurses is active:
-	 *    - Tabulators '\\t' are interpreted as 1 blank space
-	 *    - Line breaks '\\n' are intepreted as line breaks
-	 *    - It is fitting the message replacing spaces by lines break
-	 * Otherwise:
-	 *    - stdout will be used
-	 *    - A line break '\\n' is appended if it is not detected at the end
-	 *
+	 * A line break '\\n' is appended if it is not detected at the end
 	 * @param msg Message to print in the screen.
-	 * @param color Color name. Valid colors are:
-	 *    -# white
-	 *    -# green
-	 *    -# blue
-	 *    -# yellow
-	 *    -# red
-	 *    -# magenta
-	 *    -# cyan
-	 * @param bold true if bold font should be used, false otherwise
 	 */
-	void writeReport(std::string msg,
-	                 std::string color = "white",
-	                 bool bold = false);
+	void writeReport(std::string msg);
 
 	/** @brief Add a new log record message.
 	 *
@@ -181,17 +134,6 @@ struct Logger
 	void save(float t){};
 
   protected:
-	/** @brief Print the log record
-	 *
-	 * This function will compute automatically where the log record should be
-	 * placed
-	 */
-	void printLog();
-
-	/** Call to refresh the output screen, useless if ncurses is not active.
-	 */
-	void refreshAll();
-
 	/// Create the log file
 	void open();
 
@@ -199,18 +141,11 @@ struct Logger
 	void close();
 
   private:
-	/// Last row where datas was printed (used to locate the registry position)
-	int _last_row;
-
 	/// Start time
 	struct timeval _start_time;
 	/// Actual time
 	struct timeval _actual_time;
 
-	/// List of log messages level
-	std::vector<int> _log_level;
-	/// List of log messages
-	std::vector<std::string> _log;
 	/// Output log file
 	std::ofstream _log_file;
 
