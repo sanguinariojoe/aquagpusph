@@ -347,27 +347,32 @@ Tool::compile(const std::string source,
 	if (err_code != CL_SUCCESS) {
 		LOG(L_ERROR, "Error compiling the OpenCL script\n");
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
-		LOG0(L_ERROR, "--- Build log ---------------------------------\n");
+	}
+	{
 		size_t log_size = 0;
 		clGetProgramBuildInfo(
 		    program, C->device(), CL_PROGRAM_BUILD_LOG, 0, NULL, &log_size);
-		char* log = (char*)malloc(log_size + sizeof(char));
-		if (!log) {
-			std::stringstream msg;
-			msg << "Failure allocating " << log_size
-			    << " bytes for the building log" << std::endl;
-			LOG0(L_ERROR, msg.str());
-			LOG0(L_ERROR, "--------------------------------- Build log ---\n");
-			throw std::bad_alloc();
+		if (log_size > 1) {
+			char* log = (char*)malloc(log_size + 2 * sizeof(char));
+			if (!log) {
+				std::stringstream msg;
+				msg << "Failure allocating " << log_size + 2 * sizeof(char)
+					<< " bytes for the building log" << std::endl;
+				LOG0(L_ERROR, msg.str());
+				throw std::bad_alloc();
+			}
+			log[log_size] = '\n';
+			log[log_size + 1] = '\0';
+			clGetProgramBuildInfo(program, C->device(), CL_PROGRAM_BUILD_LOG,
+			                      log_size, log, NULL);
+			LOG0(L_DEBUG, "--- Build log ---------------------------------\n");
+			LOG0(L_DEBUG, log);
+			LOG0(L_DEBUG, "--------------------------------- Build log ---\n");
+			free(log);
+			log = NULL;
 		}
-		strcpy(log, "");
-		clGetProgramBuildInfo(
-		    program, C->device(), CL_PROGRAM_BUILD_LOG, log_size, log, NULL);
-		strcat(log, "\n");
-		LOG0(L_DEBUG, log);
-		LOG0(L_ERROR, "--------------------------------- Build log ---\n");
-		free(log);
-		log = NULL;
+	}
+	if (err_code != CL_SUCCESS) {
 		clReleaseProgram(program);
 		throw std::runtime_error("OpenCL compilation error");
 	}

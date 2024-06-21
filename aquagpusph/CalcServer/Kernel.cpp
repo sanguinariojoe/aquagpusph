@@ -386,7 +386,7 @@ Kernel::make(const std::string entry_point,
 	flags << add_flags;
 
 	// Try to compile without using local memory
-	LOG(L_INFO, "Compiling without local memory... ");
+	LOG(L_INFO, "Compiling without local memory...\n");
 	kernel = compile_kernel(source.str(), entry_point, flags.str());
 
 	// Get the work group size
@@ -406,7 +406,7 @@ Kernel::make(const std::string entry_point,
 	_work_group_size = work_group_size;
 
 	// Try to compile with local memory
-	LOG(L_INFO, "Compiling with local memory... ");
+	LOG(L_INFO, "Compiling with local memory...\n");
 	flags << " -DLOCAL_MEM_SIZE=" << work_group_size;
 	try {
 		kernel = compile_kernel(source.str(), entry_point, flags.str());
