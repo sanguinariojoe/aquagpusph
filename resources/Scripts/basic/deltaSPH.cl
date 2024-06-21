@@ -335,7 +335,7 @@ __kernel void deltaSPH(const __global unsigned int* iset,
                        __constant float* refd,
                        __constant float* delta,
                        usize N,
-                      float dt)
+                       float dt)
 {
     const usize i = get_global_id(0);
     if(i >= N)
