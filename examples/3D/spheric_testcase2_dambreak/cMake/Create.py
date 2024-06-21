@@ -39,10 +39,10 @@ import math
 g = 9.81
 hfac = 2.0
 cs = 40.0
-courant = 0.1
+courant = 0.5
 refd = 998.0
 alpha = 0.0
-delta = 10.0
+delta = 1.0
 visc_dyn = 0.000894
 # Initial fluid dimensions
 h = 0.55
@@ -122,7 +122,8 @@ for i in range(nx):
         for k in range(nz):
             z = z0 + (k + 0.5) * dr
             imove = 1
-            press = refd * g * (hFluid - z)
+            press = refd * g * (hFluid - z) * math.cos(
+                0.5 * math.pi * (l - x) / l)
             dens = refd + press / cs**2 
             mass = dens * dr**3.0
             string = ("{} {} {} 0.0, " * 5 + "{}, {}, {}, {}\n").format(

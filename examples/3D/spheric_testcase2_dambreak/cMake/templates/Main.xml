@@ -21,17 +21,15 @@ Authors:
     <!-- In this file we will just include other XML definition files -->
     <Include file="@RESOURCES_DIR@/Presets/root_path.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic.xml" />
-    <Include file="@RESOURCES_DIR@/Presets/basic/time_scheme/improved_euler.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/basic/time_scheme/midpoint.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/basic/time_scheme/midpoint/autostop.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/basic/time_scheme/midpoint/autorelax.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/basic/time_scheme/midpoint/residues_profile.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/domain.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/deltaSPH.xml" />
-    <!-- Include file="@RESOURCES_DIR@/Presets/cfd/deltaSPH-full.xml" / -->
-    <Include file="@RESOURCES_DIR@/Presets/cfd/BI.xml" />
-    <Include file="@RESOURCES_DIR@/Presets/cfd/elasticBounce.xml" />
-    <Definitions>
-        <Define name="__MIN_BOUND_DIST__" value="0.1f" evaluate="false"/>
-    </Definitions>
-    <Include file="@RESOURCES_DIR@/Presets/cfd/variableTimeStep.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd/deltaSPH-full.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd/BIe.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/timing.report.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/performance.report.xml" />
     <Include file="Settings.xml" />

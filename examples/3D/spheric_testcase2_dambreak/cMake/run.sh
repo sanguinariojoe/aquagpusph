@@ -29,5 +29,7 @@ else
     echo "    Plot the wave height"
     echo "run.sh --plot t"
     echo "    Plot the performance"
+    echo "run.sh --plot r"
+    echo "    Plot the residues statistics"
     echo ""
 fi
