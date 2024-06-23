@@ -77,7 +77,7 @@ def update(frame_index):
         return
     for i, p in enumerate(pp):
         try:
-            lines[i].set_data(t, savgol_filter(p, 71, 3))
+            lines[i].set_data(t, savgol_filter(p, 31, 3))
         except ValueError:
             # Not enough data yet
             lines[i].set_data(t, p)

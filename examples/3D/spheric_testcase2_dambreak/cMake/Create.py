@@ -37,9 +37,9 @@ import math
 # ==========
 
 g = 9.81
-hfac = 2.0
+hfac = 3.0
 cs = 40.0
-courant = 0.5
+courant = 0.25
 refd = 998.0
 alpha = 0.0
 delta = 1.0
