@@ -62,7 +62,7 @@
  * @param n_cells Number of cells in each direction
  */
 __kernel void entry(const __global int* imove,
-                    const __global vec* r,
+                    const __global vec* r_in,
                     const __global vec* normal,
                     const __global float* m,
                     const __global vec* u_in,
@@ -78,7 +78,7 @@ __kernel void entry(const __global int* imove,
     if(imove[i] != 1)
         return;
 
-    const vec_xyz r_i = r[i].XYZ;
+    const vec_xyz r_i = r_in[i].XYZ;
     vec_xyz u_i = u_in[i].XYZ + 0.5f * dt * dudt[i].XYZ;
 
     const usize c_i = icell[i];
@@ -87,10 +87,10 @@ __kernel void entry(const __global int* imove,
             j++;
             continue;
         }
-        const vec_xyz r_ij = r[j].XYZ - r_i;
+        const vec_xyz r_ij = r_in[j].XYZ - r_i;
         const vec_xyz n_j = normal[j].XYZ;
-        const float r0 = dot(r_ij, n_j);
-        if(r0 < 0.f){
+        const float rn = dot(r_ij, n_j);
+        if(rn < 0.f){
             // The particle is on the "wrong" side of the wall.
             j++;
             continue;
@@ -101,7 +101,7 @@ __kernel void entry(const __global int* imove,
         const float dr = m[j];
 #endif
         const float R = __DR_FACTOR__ * dr;
-        const vec_xyz rt = r_ij - r0 * n_j;
+        const vec_xyz rt = r_ij - rn * n_j;
         if(dot(rt, rt) >= R * R){
             // The particle is passing too far from the boundary element
             j++;
@@ -109,17 +109,17 @@ __kernel void entry(const __global int* imove,
         }
 
         {
-            if(dot(u_i, n_j) < 0.f){
+            const float drn = dt * dot(u_i, n_j);
+            if(drn < 0.f){
                 // The particle is already running away from the boundary
                 j++;
                 continue;
             }
 
-            const float dist = dt * dot(u_i - u_in[j].XYZ, n_j);
             // The particle should be corrected if:
             //   - It is already placed in the effect zone.
             //   - It is entering inside the effect zone.
-            if(r0 - dist <= __MIN_BOUND_DIST__ * dr){
+            if(rn - drn <= __MIN_BOUND_DIST__ * dr){
                 // Reflect the particle velocity, so its module remains
                 // constant
                 const vec_xyz u = u_i - 2.f * dot(u_i, n_j) * n_j;
