@@ -27,5 +27,6 @@ Remarks:
         <Tool name="cfd BIe interactions" action="insert" after="cfd BIe init div_u_bi" type="kernel" entry_point="entry" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/BIe/Interactions.cl"/>
         <Tool name="cfd BIe rates" action="insert" after="cfd BIe interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/BIe/Rates.cl"/>
         <Tool name="cfd BIe elastic bounce" action="insert" after="Rates" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/BIe/ElasticBounce.cl"/>
+        <Tool name="cfd BIe pst" action="insert" before="Corrector" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/BIe/PST.cl"/>
     </Tools>
 </sphInput>
