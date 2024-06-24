@@ -30,6 +30,8 @@ Authors:
     <Include file="@RESOURCES_DIR@/Presets/cfd/deltaSPH.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/deltaSPH-full.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/BIe.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd/BIe/Force.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd/variableTimeStep.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/timing.report.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/performance.report.xml" />
     <Include file="Settings.xml" />

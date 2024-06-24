@@ -70,14 +70,16 @@ def update(frame_index):
     try:
         data = readFile('sensors.out')
         t = data[0]
-        pp = data[1:]
+        pp = []
+        for i in range(1, len(data), 2):
+            pp.append([p * s * 2 for p, s in zip(data[i], data[i + 1])])
     except IndexError:
         return
     except FileNotFoundError:
         return
     for i, p in enumerate(pp):
         try:
-            lines[i].set_data(t, savgol_filter(p, 31, 3))
+            lines[i].set_data(t, savgol_filter(p, 5, 3))
         except ValueError:
             # Not enough data yet
             lines[i].set_data(t, p)

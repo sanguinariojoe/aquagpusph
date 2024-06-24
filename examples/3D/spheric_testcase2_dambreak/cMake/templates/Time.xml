@@ -18,6 +18,10 @@ Authors:
 -->
 
 <sphInput>
+    <Variables>
+        <Variable name="dt_min" type="float" value="0.05 * courant * h / cs" />
+    </Variables>
+
     <Timing>
         <!-- Set the simulation end citeria             
             type="Frames" Simulation ends after print a number of frames
@@ -25,7 +29,7 @@ Authors:
             type="Time" Simulation ends after simulate some seconds
         You can conveniently combine several stop criterias.
         -->
-        <Option name="End" type="Time" value="6.0" />
+        <Option name="End" type="Time" value="1.75" />
 
         <!-- Set output files print criteria
             type="FPS" Frames per second

@@ -18,6 +18,10 @@ Authors:
 -->
 
 <sphInput>
+    <Definitions>
+        <Define name="__DR_FACTOR__" value="0.75f"/>
+    </Definitions>
+
     <Variables>
         <Variable name="g" type="vec" value="0.0, 0.0, -{{G}}, 0.0" />
         <Variable name="dr" type="float" value="{{DR}}" />
@@ -27,10 +31,10 @@ Authors:
         <Variable name="courant" type="float" value="{{COURANT}}" />
         <Variable name="domain_min" type="vec" value="{{DOMAIN_MIN}}" />
         <Variable name="domain_max" type="vec" value="{{DOMAIN_MAX}}" />
-        <Variable name="iter_midpoint_max" type="unsigned int" length="1" value="20"/>
+        <Variable name="iter_midpoint_max" type="unsigned int" length="1" value="30"/>
         <Variable name="relax_midpoint" type="float" length="1" value="0"/>
         <Variable name="Residual_midpoint_max" type="float" length="1" value="1.e-1" symbol="E_{\Delta t}^{max}"/>
         <Variable name="Residual_midpoint_mindec" type="float" length="1" value="1.0 / 2.0" symbol="E_{\Delta t} / E_{\Delta t,m-1}"/>
-        <Variable name="relax_midpoint_inc" type="float" length="1" value="0.15" symbol="f_{\Delta t,0}"/>
+        <Variable name="relax_midpoint_inc" type="float" length="1" value="0.1" symbol="f_{\Delta t,0}"/>
     </Variables>
 </sphInput>

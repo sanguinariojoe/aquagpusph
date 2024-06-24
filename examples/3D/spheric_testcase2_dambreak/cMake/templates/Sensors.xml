@@ -29,7 +29,7 @@ Authors:
         <Save format="VTK" file="sensors" fields="r, normal, tangent, binormal, u, dudt, rho, drhodt, m, p, imove, shepard" />
     </ParticlesSet>
     <Reports>
-        <Report type="particles" name="Sensors" fields="p" path="sensors.out" set="1" ipf="0" fps="1000"/>
+        <Report type="particles" name="Sensors" fields="p,shepard" path="sensors.out" set="1" ipf="0" fps="1000"/>
     </Reports>
 
     <!-- Wave heigh sensors. -->
