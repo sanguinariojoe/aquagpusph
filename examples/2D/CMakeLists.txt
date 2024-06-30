@@ -1,5 +1,4 @@
 ADD_SUBDIRECTORY(adiabatic_expansion)
-ADD_SUBDIRECTORY(built_in_beam)
 ADD_SUBDIRECTORY(cylinder_inside_channel)
 ADD_SUBDIRECTORY(lobovsky_etal_2014)
 ADD_SUBDIRECTORY(normal_impact)
