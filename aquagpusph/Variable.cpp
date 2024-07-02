@@ -465,9 +465,9 @@ template<class T>
 PyObject*
 ScalarVecVariable<T>::getPythonObject(int i0, int n)
 {
-	T v = this->value();
-	npy_intp dims[] = { _dims };
-	return PyArray_SimpleNewFromData(1, dims, _np_type, v.s);
+	void* v = this->get();
+	npy_intp dims[1] = { _dims };
+	return PyArray_SimpleNewFromData(1, dims, _np_type, v);
 }
 
 std::string npy_type_name(int np_type)
