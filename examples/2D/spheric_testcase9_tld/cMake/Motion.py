@@ -166,7 +166,7 @@ def main():
     dXi = np.interp(t, T, DXI)
     exp_theta = np.interp(t, T, THETA)
     # Compute the angular acceleration, ddTheta
-    M = aqua.get("forces_M")[2]
+    M = aqua.get("Moment_p")[2]
     dt_list.insert(0, dt)
     ddtheta_list.insert(0, angularForce(M * D, xi, dXi, Theta, dTheta))
     ddtheta_list, dt_list, ddTheta = win_filter(ddtheta_list, dt_list)

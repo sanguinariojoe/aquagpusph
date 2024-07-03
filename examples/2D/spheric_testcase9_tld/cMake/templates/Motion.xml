@@ -18,6 +18,8 @@ Authors:
 -->
 
 <sphInput>
+    <Include file="@RESOURCES_DIR@/Presets/cfd/motion.xml" />
+
     <Variables>
         <Variable name="motion_iset" type="unsigned int" value="1" />
         <Variable name="motion_r" type="vec" value="0.0, 0.47" />

@@ -67,17 +67,24 @@ __kernel void entry(const __global int* imove,
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
+ * @param r Position \f$ \mathbf{r} \f$.
  * @param normal Normal \f$ \mathbf{n} \f$.
  * @param m Area of the boundary element \f$ s \f$.
  * @param p Pressure of the boundary element \f$ p \f$.
  * @param force_p Pressure force on the boundary element
+ * @param moment_p Pressure moment on the boundary element
+ * @param forces_r Point with respect the moments are computed
+ * \f$ \mathbf{r}_0 \f$.
  * @param N Number of particles.
  */
 __kernel void force_press(const __global int* imove,
+                          const __global vec* r,
                           const __global vec* normal,
                           const __global float* m,
                           const __global float* p,
                           __global vec* force_p,
+                          __global vec4* moment_p,
+                          vec forces_r,
                           usize N)
 {
     const usize i = get_global_id(0);
@@ -88,5 +95,11 @@ __kernel void force_press(const __global int* imove,
         return;
     }
 
-    force_p[i] = p[i] * m[i] * normal[i];
+    // Expand the force and the arm as 3D variables
+    vec4 F = (vec4)(0.f);
+    vec4 R = (vec4)(0.f);
+    F.XYZ = p[i] * m[i] * normal[i].XYZ;
+    R.XYZ = r[i].XYZ - forces_r.XYZ;
+    force_p[i] = F.XYZ;
+    moment_p[i] = cross(R, F);    
 }

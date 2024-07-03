@@ -31,9 +31,11 @@
 
 import sys
 import os
+import math
 from os import path
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import numpy as np
 
 
 def readFile(filepath):
@@ -67,69 +69,61 @@ def readFile(filepath):
     return list(map(list, zip(*data)))
 
 
-line = None
-
+def stats(residues):
+    """ Compute the minimum, maximum and average value for each iteration
+    :param residues The stack of residues grouped by iteration
+    """
+    y_min = []
+    y = []
+    y_max = []
+    for it in range(len(residues)):
+        y_min.append(np.percentile(residues[it], 0.05))
+        y_max.append(np.percentile(residues[it], 0.95))
+        y.append(np.percentile(residues[it], 0.5))
+    return y_min, y, y_max
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
 
+# Create the SPH line
 t = [0.0]
-ek = [0.0]
-ec = [0.0]
-et = [0.0]
-line_ek, = ax.plot(t,
-                   ek,
-                   label=r'$E_k$',
-                   color="red",
-                   linewidth=1.0)
-line_ep, = ax.plot(t,
-                   ec,
-                   label=r'$E_p$',
-                   color="green",
-                   linewidth=1.0)
-line_ec, = ax.plot(t,
-                   ec,
-                   label=r'$E_c$',
-                   color="blue",
-                   linewidth=1.0)
-line_et, = ax.plot(t,
-                   et,
-                   label=r'$E_t$',
-                   color="black",
-                   linewidth=1.0)
+r = [0.0]
+line_min, = ax.plot([0.0], [0.0], color="black", linewidth=1.0, linestyle='--')
+line, = ax.plot([0.0], [0.0], color="black", linewidth=1.0, linestyle='-')
+line_max, = ax.plot([0.0], [0.0], color="black", linewidth=1.0, linestyle='--')
 # Set some options
 ax.grid()
-ax.legend(loc='best')
-ax.set_xlim(0.0, 0.1)
-ax.set_ylim(-2.0, 25.0)
+ax.set_xlim(0.0, 1.0)
+ax.set_ylim(1e-8, 1.0)
 ax.set_autoscale_on(False)
-ax.set_xlabel(r"$t$")
-ax.set_ylabel(r"$\mathcal{E}(t)$")
-
+ax.set_xlabel(r"$iter$")
+ax.set_ylabel(r"$R_{\Delta t}$")
+ax.set_yscale('log')
 
 # Animate
 def update(frame_index):
     plt.tight_layout()
     try:
-        data = readFile('Energy.dat')
-        t = data[0]
-        ek = data[1]
-        ep = data[2]
-        ec = data[3]
-        et = [ek[i] + ep[i] + ec[i] for i in range(len(ek))]
+        data = readFile('midpoint.out')
+        # Stack the values according to its own iteration
+        r = []
+        for i in range(len(data[0])):
+            it = int(data[1][i])
+            if len(r) < it + 1:
+                r.append([])
+            r[it].append(data[-1][i])
+        # Get the stats for each iteration
+        x = list(range(len(r)))
+        y_min, y, y_max = stats(r)
+        ax.set_xlim(0.0, x[-1])
+        ax.set_ylim(min(y_min), max(y_max))
     except IndexError:
         return
     except FileNotFoundError:
         return
-    ax.set_xlim(0, t[-1])
-    bounds = [min(ek + ep + ec + et), max(ek + ep + ec + et)]
-    dbound = 0.05 * max(abs(bounds[0]), abs(bounds[1]))
-    ax.set_ylim(bounds[0] - dbound, bounds[1] + dbound)
-    line_ek.set_data(t, ek)
-    line_ep.set_data(t, ep)
-    line_ec.set_data(t, ec)
-    line_et.set_data(t, et)
-
+    line_min.set_data(x, y_min)
+    line.set_data(x, y)
+    line_max.set_data(x, y_max)
 
 update(0)
 ani = animation.FuncAnimation(fig, update, interval=1000)

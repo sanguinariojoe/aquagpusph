@@ -30,7 +30,8 @@ Authors:
     <Include file="@RESOURCES_DIR@/Presets/cfd/energy.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/energy.report.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/deltaSPH.xml" />
-    <Include file="@RESOURCES_DIR@/Presets/cfd/deltaSPH-simple.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd/deltaSPH-full.xml" />
+    <!-- Include file="@RESOURCES_DIR@/Presets/cfd/deltaSPH-simple.xml" / -->
     <Include file="@RESOURCES_DIR@/Presets/basic/domain.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/timing.report.xml" />
     <Include file="Settings.xml" />

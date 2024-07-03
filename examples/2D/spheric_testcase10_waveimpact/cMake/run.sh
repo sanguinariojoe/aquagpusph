@@ -11,6 +11,7 @@ if [[ $1 == "--run" ]]; then
     rm -f sensors.pvd
     rm -f sensors.out
     rm -f Timing.dat
+    rm -f force.out
     rm -f Performance.dat
     rm -f Energy.dat
     rm -f midpoint.out
@@ -20,7 +21,7 @@ elif [[ $1 == "--plot" ]]; then
     python @EXAMPLE_DEST_DIR@/plot_$2.py
 else
     echo ""
-    echo "Usage: run.sh [--run/--plot]"
+    echo "Usage: run.sh [--run/--plot [PLOTTER]]"
     echo ""
     echo "run.sh --run"
     echo "    Run the simulation"
