@@ -95,8 +95,7 @@ screenreport_cb(cl_event event, cl_int event_command_status, void* user_data)
 cl_event
 Screen::_execute(const std::vector<cl_event> events)
 {
-	std::vector<cl_event> no_events;
-	return setCallback(no_events, screenreport_cb);
+	return setCallback(events, screenreport_cb);
 }
 
 }
