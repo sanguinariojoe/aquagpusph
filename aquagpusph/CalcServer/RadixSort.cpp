@@ -137,20 +137,21 @@ RadixSort::_execute(const std::vector<cl_event> events)
 
 	// Get maximum key bits, and needed pass
 	if (C->device_addr_bits() == 64)
-		max_val = std::numeric_limits<ulcl>::max();
+		max_val = std::numeric_limits<ulcl>::max() >> 1;
 	else
-		max_val = std::numeric_limits<uicl>::max();
+		max_val = std::numeric_limits<uicl>::max() >> 1;
 	if (_var_name == "icell") {
 		size_t n_cells;
 		if (C->device_addr_bits() == 64)
 			n_cells = ((ulvec4*)vars->get("n_cells")->get())->w;
 		else
 			n_cells = ((uivec4*)vars->get("n_cells")->get())->w;
-		max_val = nextPowerOf2(n_cells);
-	} else if (!isPowerOf2(max_val)) {
-		max_val = nextPowerOf2(max_val / 2);
+		max_val = n_cells;
 	}
-	for (_key_bits = 0; (max_val & 1) == 0; max_val >>= 1, _key_bits++)
+	if (!isPowerOf2(max_val)) {
+		max_val = nextPowerOf2(max_val);
+	}
+	for (_key_bits = 1; (max_val & 1) == 0; max_val >>= 1, _key_bits++)
 		;
 	_key_bits = roundUp<size_t>(_key_bits, _bits);
 	if (_key_bits > C->device_addr_bits()) {
