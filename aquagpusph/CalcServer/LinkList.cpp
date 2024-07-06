@@ -29,6 +29,8 @@
 #include "aquagpusph/InputOutput/Logger.hpp"
 #include "CalcServer.hpp"
 #include "LinkList.hpp"
+#include "RadixSort.hpp"
+#include "Sort.hpp"
 #include "SetScalar.hpp"
 #include "Kernel.hpp"
 
@@ -52,6 +54,7 @@ LinkList::LinkList(const std::string tool_name,
                    const std::string permutations,
                    const std::string inv_permutations,
                    bool recompute_grid,
+                   const std::string sorter,
                    bool once)
   : Tool(tool_name, once)
   , _input_name(input)
@@ -86,8 +89,16 @@ LinkList::LinkList(const std::string tool_name,
 		                         "c = max(a, b);",
 		                         "-VEC_INFINITY");
 	}
-	_sort = new RadixSort(tool_name + "->Radix-Sort",
-	                      icell, permutations, inv_permutations);
+	if (toLowerCopy(sorter) == "radix-sort") {
+		_sort = new RadixSort(tool_name + "->Radix-Sort",
+		                      icell, permutations, inv_permutations);
+	} else if (toLowerCopy(sorter) == "bitonic") {
+		_sort = new Sort(tool_name + "->Bitonic-Sort",
+		                 icell, permutations, inv_permutations);
+	} else {
+		LOG(L_ERROR, std::string("Invalid sorter '") + sorter + "'\n");
+		throw std::invalid_argument("Invalid sorter on link-list");
+	}
 	Profiler::substages({ new ScalarProfile("n_cells", this),
 	                      new EventProfile("icell", this),
 	                      new EventProfile("ihoc", this),

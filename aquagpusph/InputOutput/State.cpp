@@ -955,6 +955,7 @@ State::parseTools(DOMElement* root, ProblemSetup& sim_data, std::string prefix)
 				_toolAttr(tool, s_elem, "perm", "id_unsorted");
 				_toolAttr(tool, s_elem, "inv_perm", "id_sorted");
 				_toolAttr(tool, s_elem, "recompute_grid", "true");
+				_toolAttr(tool, s_elem, "sorter", "radix-sort");
 			} else if (!xmlAttribute(s_elem, "type").compare("radix-sort")) {
 				for (auto attr : { "in", "perm", "inv_perm" })
 					_toolAttr(tool, s_elem, attr);

@@ -309,6 +309,7 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 			                              t->get("perm"),
 			                              t->get("inv_perm"),
 			                              recompute_grid,
+			                              t->get("sorter"),
 			                              once);
 			_tools.push_back(tool);
 		} else if (!t->get("type").compare("radix-sort")) {

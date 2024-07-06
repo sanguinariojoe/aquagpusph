@@ -30,7 +30,6 @@
 #include <vector>
 #include "Tool.hpp"
 #include "Reduction.hpp"
-#include "RadixSort.hpp"
 
 namespace Aqua {
 namespace CalcServer {
@@ -65,6 +64,7 @@ class LinkList : public Aqua::CalcServer::Tool
 	 * stored.
 	 * @param recompute_grid Should be @p input_min and @p input_max
 	 * recomputed or readed from the variables.
+	 * @param sorter The sorting tool, either "bitonic" or "radix-sort"
 	 * @param once Run this tool just once. Useful to make initializations.
 	 * @note @p ihoc array is marked as reallocatable with
 	 * Aqua::InputOutput::ArrayVariable::reallocatable(), since it might need
@@ -80,6 +80,7 @@ class LinkList : public Aqua::CalcServer::Tool
 	         const std::string permutations = "id_unsorted",
 	         const std::string inv_permutations = "id_sorted",
 	         bool recompute_grid = true,
+	         const std::string sorter = "radix-sort",
 	         bool once = false);
 
 	/** Destructor
@@ -169,7 +170,7 @@ class LinkList : public Aqua::CalcServer::Tool
 	bool _recompute_minmax;
 
 	/// Sorting by cells computation tool
-	RadixSort* _sort;
+	Tool* _sort;
 
 	/// "ihoc" array initialization
 	cl_kernel _ihoc;
