@@ -48,7 +48,7 @@ deltaSPH-full). Just simply ignore them
         <Variable name="imirrored" type="int*" length="N" />
         <!-- Helper variable to restore the icell after the mirroring (to avoid
         that truncation errors may destroy the linklist) -->
-        <Variable name="icell_backup" type="size_t*" length="n_radix" />
+        <Variable name="icell_backup" type="size_t*" length="N" />
     </Variables>
 
     <Tools>

@@ -31,6 +31,13 @@ default value).
             c = (a &gt; b) ? a : b;
         </Tool>
         <Tool name="number of neighbours prompt" action="insert" before="CountNeighbours" type="report_screen" fields="max_neighs" bold="false" color="blue"/>
+        <Tool name="check number of neighbours" action="insert" before="CountNeighbours" type="if" condition="max_neighs &gt;= neighs_limit"/>
+        <Tool name="report cells on number of neighbours" action="insert" before="CountNeighbours" type="report_screen" fields="n_cells" bold="false" color="red"/>
+        <Tool name="dump particles on number of neighbours" action="insert" before="CountNeighbours" type="report_dump" fields="r_in,r,icell,id_sorted,id_unsorted" path="fail_dump_parts.txt" binary="false"/>
+        <Tool name="dump ihoc on number of neighbours" action="insert" before="CountNeighbours" type="report_dump" fields="ihoc" path="fail_dump_ihoc.txt" binary="false"/>
+        <Tool name="fail on number of neighbours" action="insert" before="CountNeighbours" type="assert" condition="max_neighs &lt; neighs_limit"/>
+        <Tool name="end check number of neighbours" action="insert" before="CountNeighbours" type="end"/>
+
         <Tool name="check number of neighbours" action="insert" before="CountNeighbours" type="assert" condition="max_neighs &lt; neighs_limit"/>
     </Tools>
 </sphInput>

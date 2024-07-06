@@ -179,12 +179,6 @@ __kernel void seeds(__global const unsigned int* iset,
  * which take the value 1. Such array can be used to count the number of new
  * particles to become generated.
  *
- * Since isplit is used to sort the particles, it should have "n_radix" items,
- * which is bigger than "N". But in order to conveniently sort isplit, you must
- * ensure that the values "out of bounds" are bigger than the other ones (and
- * therefore kept at the end of the list). in this case a value of 3 is
- * selected.
- *
  * @param isplit 0 if the particle should not become split, 1 otherwise
  * @param isplit_in 0 if the particle should not become split, 1 otherwise
  * @param N Number of particles.

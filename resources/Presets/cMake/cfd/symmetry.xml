@@ -26,16 +26,15 @@ prefix, for instance:
         <Variable name="symmetry_r" type="vec" value="0.0, 0.0, 0.0, 0.0" />
         <Variable name="symmetry_n" type="vec" value="1.0, 0.0, 0.0, 0.0" />
         <!-- flag to identify the particles to be symmetrized -->
-        <Variable name="imirror" type="unsigned int*" length="n_radix" />
-        <Variable name="imirror_perm" type="size_t*" length="n_radix" />
-        <Variable name="imirror_invperm" type="size_t*" length="n_radix" />
+        <Variable name="imirror" type="unsigned int*" length="N" />
+        <Variable name="imirror_perm" type="size_t*" length="N" />
+        <Variable name="imirror_invperm" type="size_t*" length="N" />
         <!-- Internal variable to check there are enough buffer particles -->
         <Variable name="required_nbuffer" type="size_t" />        
     </Variables>
 
     <Tools>
         <!-- Detect the particles to be mirrored -->
-        <Tool name="cfd symmetry init" action="insert" before="Predictor" type="set" in="imirror" value="2"/>
         <Tool name="cfd symmetry detect" action="insert" before="Predictor" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/Mirror.cl" entry_point="detect"/>
 
         <!-- Sort imirror so we can consume buffer particles in a consistent way -->
@@ -46,7 +45,7 @@ prefix, for instance:
         <Tool name="cfd symmetry count buffer particles" action="insert" before="Predictor" type="reduction" in="imirror" out="required_nbuffer" null="0">
             c = a + b;
         </Tool>
-        <Tool name="cfd symmetry check buffer particles" action="insert" before="Predictor" type="assert" condition="nbuffer >= required_nbuffer - 2 * (n_radix - N)"/>
+        <Tool name="cfd symmetry check buffer particles" action="insert" before="Predictor" type="assert" condition="nbuffer >= required_nbuffer"/>
 
         <!-- Feed the system with the new particles -->
         <Tool name="cfd symmetry feed" action="insert" before="Predictor" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/Mirror.cl" entry_point="feed"/>

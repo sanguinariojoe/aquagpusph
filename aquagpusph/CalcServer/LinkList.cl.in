@@ -45,7 +45,6 @@ iHoc(__global usize* ihoc, usize N, svec4 n_cells)
  * @param icell Cell where each particle is allocated.
  * @param r Position \f$ \mathbf{r} \f$.
  * @param N Number of particles.
- * @param n_radix N if it is a power of 2, the next power of 2 otherwise.
  * @param r_min Minimum of r.
  * @param support Kernel support as a factor of h.
  * @param h Kernel characteristic length.
@@ -56,7 +55,6 @@ __kernel void
 iCell(__global usize* icell,
       const __global vec* r,
       const usize N,
-      const usize n_radix,
       const vec r_min,
       const float support,
       const float h,
@@ -64,32 +62,26 @@ iCell(__global usize* icell,
 {
 	// find position in global arrays
 	const usize i = get_global_id(0);
-	if (i >= n_radix)
+	if (i >= N)
 		return;
 
 	svec_xyz cell;
 	float idist;
 	usize cell_id;
 
-	if (i < N) {
-		// Normal particles
-		idist = 1.f / (support * h);
-		cell.x = (usize)((r[i].x - r_min.x) * idist) + 3u;
-		cell.y = (usize)((r[i].y - r_min.y) * idist) + 3u;
+	// Normal particles
+	idist = 1.f / (support * h);
+	cell.x = (usize)((r[i].x - r_min.x) * idist) + 3u;
+	cell.y = (usize)((r[i].y - r_min.y) * idist) + 3u;
 #ifdef HAVE_3D
-		cell.z = (usize)((r[i].z - r_min.z) * idist) + 3u;
-		cell_id = cell.x - 1u + (cell.y - 1u) * n_cells.x +
-		          (cell.z - 1u) * n_cells.x * n_cells.y;
-		icell[i] = cell_id;
+	cell.z = (usize)((r[i].z - r_min.z) * idist) + 3u;
+	cell_id = cell.x - 1u + (cell.y - 1u) * n_cells.x +
+	          (cell.z - 1u) * n_cells.x * n_cells.y;
+	icell[i] = cell_id;
 #else
-		cell_id = cell.x - 1u + (cell.y - 1u) * n_cells.x;
-		icell[i] = cell_id;
+	cell_id = cell.x - 1u + (cell.y - 1u) * n_cells.x;
+	icell[i] = cell_id;
 #endif
-		return;
-	}
-
-	// Particles out of bounds (n_radix - N)
-	icell[i] = n_cells.w;
 }
 
 /** Compute the linklist after the sort of the icell array.

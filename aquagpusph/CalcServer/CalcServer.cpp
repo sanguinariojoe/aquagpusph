@@ -161,7 +161,8 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 		N += set->n();
 	}
 
-	const unsigned int num_icell = nextPowerOf2(roundUp<size_t>(N, _ITEMS * _GROUPS));
+	const unsigned int n_radix = nextPowerOf2(roundUp<size_t>(
+		N, _ITEMS * _GROUPS));
 
 	// Register default scalars
 	std::ostringstream valstr;
@@ -199,7 +200,7 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 	valstr << _sim_data.sets.size();
 	_vars.registerVariable("n_sets", "unsigned int", "", valstr.str());
 	valstr.str("");
-	valstr << num_icell;
+	valstr << n_radix;
 	_vars.registerVariable("n_radix", "size_t", "", valstr.str());
 	// Number of cells in x, y, z directions, and the total (n_x * n_y * n_z)
 	_vars.registerVariable("n_cells", "svec4", "", "1, 1, 1, 1");
@@ -212,8 +213,6 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 	_vars.registerVariable("id", "size_t*", valstr.str(), "");
 	_vars.registerVariable("r", "vec*", valstr.str(), "");
 	_vars.registerVariable("iset", "unsigned int*", valstr.str(), "");
-	valstr.str("");
-	valstr << num_icell;
 	_vars.registerVariable("id_sorted", "size_t*", valstr.str(), "");
 	_vars.registerVariable("id_unsorted", "size_t*", valstr.str(), "");
 	_vars.registerVariable("icell", "size_t*", valstr.str(), "");

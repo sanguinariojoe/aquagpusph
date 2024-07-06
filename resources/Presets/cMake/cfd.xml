@@ -35,9 +35,9 @@ In the sensors the values of density, pressure and velocity are interpolated.
         | id          | unsigned int* | N       | Original ID of each particle
         | r           | vec*          | N       | Positions
         | iset        | unsigned int* | N       | Particle set of each particle
-        | id_sorted   | unsigned int* | n_radix | Permutations from unsorted space to sorted space
-        | id_unsorted | unsigned int* | n_radix | Permutations from sorted space to unsorted space
-        | icell       | unsigned int* | n_radix | Cell where each particle is located
+        | id_sorted   | unsigned int* | N       | Permutations from unsorted space to sorted space
+        | id_unsorted | unsigned int* | N       | Permutations from sorted space to unsorted space
+        | icell       | unsigned int* | N       | Cell where each particle is located
         | ihoc        | unsigned int* | n_cells | First particle in each cell
          -->
         <Variable name="visc_dyn" type="float*" length="n_sets" />

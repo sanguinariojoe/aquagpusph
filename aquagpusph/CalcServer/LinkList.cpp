@@ -151,7 +151,7 @@ LinkList::setup()
 	_sort->setup();
 
 	std::vector<std::string> inputs = {
-		_input_name, "N", "n_radix", "support", "h"
+		_input_name, "N", "support", "h"
 	};
 	std::vector<std::string> outputs = { _ihoc_name,
 		                                 _icell_name,
@@ -297,7 +297,7 @@ LinkList::setVariables()
 	}
 
 	std::vector<std::string> _icell_vars = {
-		_icell_name, _input_name, "N", "n_radix", _input_min_name,
+		_icell_name, _input_name, "N", _input_min_name,
 		"support", "h", _n_cells_name
 	};
 	for (i = 0; i < _icell_vars.size(); i++) {
@@ -502,8 +502,11 @@ LinkList::setupOpenCL()
 	else
 		n_cells = ((uivec4*)vars->get("n_cells")->get())->w;
 	_ihoc_gws = roundUp<size_t>(n_cells, _ihoc_lws);
-	const char* _ihoc_vars[3] = { "ihoc", "N", "n_cells" };
-	for (i = 0; i < 3; i++) {
+
+	std::vector<std::string> _ihoc_vars = {
+		_ihoc_name, "N", _n_cells_name
+	};
+	for (i = 0; i < _ihoc_vars.size(); i++) {
 		err_code = clSetKernelArg(_ihoc,
 		                          i,
 		                          vars->get(_ihoc_vars[i])->typesize(),
@@ -538,17 +541,18 @@ LinkList::setupOpenCL()
 		LOG0(L_DEBUG, msg.str());
 		throw std::runtime_error("OpenCL error");
 	}
-	size_t n_radix;
+	size_t N;
 	if (C->device_addr_bits() == 64)
-		n_radix = *(ulcl*)vars->get("n_radix")->get();
+		N = *(ulcl*)vars->get("N")->get();
 	else
-		n_radix = *(uicl*)vars->get("n_radix")->get();
-	_icell_gws = roundUp<size_t>(n_radix, _icell_lws);
-	const char* _icell_vars[8] = {
-		"icell", _input_name.c_str(), "N", "n_radix",
-		"r_min", "support",           "h", "n_cells"
+		N = *(uicl*)vars->get("N")->get();
+	_icell_gws = roundUp<size_t>(N, _icell_lws);
+
+	std::vector<std::string> _icell_vars = {
+		_icell_name, _input_name, "N",
+		_input_min_name, "support", "h", _n_cells_name
 	};
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < _icell_vars.size(); i++) {
 		err_code = clSetKernelArg(_icell,
 		                          i,
 		                          vars->get(_icell_vars[i])->typesize(),
@@ -583,14 +587,12 @@ LinkList::setupOpenCL()
 		LOG0(L_DEBUG, msg.str());
 		throw std::runtime_error("OpenCL error");
 	}
-	size_t N;
-	if (C->device_addr_bits() == 64)
-		N = *(ulcl*)vars->get("N")->get();
-	else
-		N = *(uicl*)vars->get("N")->get();
 	_ll_gws = roundUp<size_t>(N, _ll_lws);
-	const char* _ll_vars[3] = { "icell", "ihoc", "N" };
-	for (i = 0; i < 3; i++) {
+
+	std::vector<std::string> _ll_vars = {
+		_icell_name, _ihoc_name, "N"
+	};
+	for (i = 0; i < _ll_vars.size(); i++) {
 		err_code = clSetKernelArg(_ll,
 		                          i,
 		                          vars->get(_ll_vars[i])->typesize(),

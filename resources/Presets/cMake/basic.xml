@@ -61,23 +61,23 @@ later:
 
     <Variables>
         <!-- Some variables are automatically defined:
-        | NAME        | TYPE          | LEN     | DESCRIPTION
-        | dims        | unsigned int  | 1       | 2 for 2D, 3 for 3D
-        | t           | float         | 1       | Simulation time
-        | dt          | float         | 1       | Time step
-        | iter        | unsigned int  | 1       | Step
-        | N           | unsigned int  | 1       | n + n_sensors
-        | n_sets      | unsigned int  | 1       | Number of particles sets
-        | n_radix     | unsigned int  | 1       | Rounded up value from N which is a power of 2
-        | n_cells     | uivec4        | 1       | Number of cells at each direction, and the total one
-        | support     | float         | 1       | Kernel support (as a factor of the kernel length h)
-        | id          | size_t*       | N       | Original ID of each particle
-        | r           | vec*          | N       | Positions
-        | iset        | unsigned int* | N       | Particle set of each particle
-        | id_sorted   | size_t*       | n_radix | Permutations from unsorted space to sorted space
-        | id_unsorted | size_t*       | n_radix | Permutations from sorted space to unsorted space
-        | icell       | size_t*       | n_radix | Cell where each particle is located
-        | ihoc        | size_t*       | n_cells | First particle in each cell
+        | NAME        | TYPE          | LEN | DESCRIPTION
+        | dims        | unsigned int  | 1   | 2 for 2D, 3 for 3D
+        | t           | float         | 1   | Simulation time
+        | dt          | float         | 1   | Time step
+        | iter        | unsigned int  | 1   | Step
+        | N           | unsigned int  | 1   | n + n_sensors
+        | n_sets      | unsigned int  | 1   | Number of particles sets
+        | n_radix     | unsigned int  | 1   | Rounded up value from N which is a power of 2
+        | n_cells     | uivec4        | 1   | Number of cells at each direction, and the total one
+        | support     | float         | 1   | Kernel support (as a factor of the kernel length h)
+        | id          | size_t*       | N   | Original ID of each particle
+        | r           | vec*          | N   | Positions
+        | iset        | unsigned int* | N   | Particle set of each particle
+        | id_sorted   | size_t*       | N   | Permutations from unsorted space to sorted space
+        | id_unsorted | size_t*       | N   | Permutations from sorted space to unsorted space
+        | icell       | size_t*       | N   | Cell where each particle is located
+        | ihoc        | size_t*       | N   | First particle in each cell
          -->
         <Variable name="g" type="vec" value="0.0, 0.0, 0.0, 0.0" />
         <Variable name="p0" type="float" value="0.0" />
