@@ -234,10 +234,6 @@ class Variable
 		return _reading_events;
 	}
 
-	/**
-	 * @}
-	 */
-  protected:
 	/** @ingroup VariableEventsGroup
 	 * @brief Wait for variable reading and writing events to be completed
 	 *
@@ -250,6 +246,10 @@ class Variable
 	 */
 	void sync(bool readonly = false);
 
+	/**
+	 * @}
+	 */
+  protected:
 	/** @ingroup VariableEventsGroup
 	 * @brief Clean up the list of reading events
 	 *

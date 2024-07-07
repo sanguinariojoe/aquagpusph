@@ -27,7 +27,7 @@
  * The permutations are initialized in such a way each point is permuted on
  * itself
  * @param in_vals Unpadded and unsorted values
- * @param vals Padded but unsorted values
+ * @param vals Padded and unsorted values
  * @param keys Permutations (keys)
  * @param n Unpadded number of values.
  * @param N Padded number of values.

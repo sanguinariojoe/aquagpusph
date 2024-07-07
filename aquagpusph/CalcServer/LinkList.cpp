@@ -267,9 +267,15 @@ LinkList::allocate()
 		return;
 
 	// We have no alternative, we must sync here
-	cl_mem mem = *(cl_mem*)ihoc_var->get_async();
-	if (mem)
-		clReleaseMemObject(mem);
+	cl_mem mem = *(cl_mem*)ihoc_var->get();
+	ihoc_var->sync();
+	if (mem) {
+		err_code = clReleaseMemObject(mem);
+		CHECK_OCL_OR_THROW(err_code,
+			std::string("Failure releasing ") +
+			std::to_string(ihoc_var->size()) +
+			" bytes on the device memory for tool \"" + name() + "\".");
+	}
 	mem = NULL;
 
 	const size_t ihoc_t_size = ihoc_var->typesize();
@@ -279,10 +285,9 @@ LinkList::allocate()
 	                     NULL,
 	                     &err_code);
 	CHECK_OCL_OR_THROW(err_code,
-	                   std::string("Failure allocating ") +
-	                   std::to_string(_n_cells.w * sizeof(ihoc_t_size)) +
-	                   " bytes on the device memory for tool \"" + name() +
-	                   "\".");
+		std::string("Failure allocating ") +
+		std::to_string(_n_cells.w * sizeof(ihoc_t_size)) +
+		" bytes on the device memory for tool \"" + name() + "\".");
 	ihoc_var->set_async(&mem);
 }
 
@@ -353,11 +358,11 @@ LinkList::_execute(const std::vector<cl_event> events)
 	InputOutput::Variable *r_min, *r_max;
 
 	if (_recompute_minmax) {
-		r_min = getOutputDependencies()[3];
-		r_max = getOutputDependencies()[4];
 		// Reduction steps to find maximum and minimum position
 		_min_pos->execute();
 		_max_pos->execute();
+		r_min = getOutputDependencies()[3];
+		r_max = getOutputDependencies()[4];
 	} else {
 		r_min = getInputDependencies()[5];
 		r_max = getInputDependencies()[6];
@@ -396,6 +401,11 @@ LinkList::_execute(const std::vector<cl_event> events)
 	CHECK_OCL_OR_THROW(err_code,
 	                   std::string("Failure executing \"iCell\" from tool \"") +
 	                       name() + "\".");
+	err_code = clFlush(C->command_queue());
+	CHECK_OCL_OR_THROW(err_code,
+		std::string("Failure flushing the command queue in tool \"") +
+		name() + "\" when executing \"iCell\".");
+
 	{
 		auto profiler = dynamic_cast<EventProfile*>(Profiler::substages()[1]);
 		profiler->start(event);
@@ -434,6 +444,11 @@ LinkList::_execute(const std::vector<cl_event> events)
 	CHECK_OCL_OR_THROW(err_code,
 	                   std::string("Failure executing \"iHoc\" from tool \"") +
 	                       name() + "\".");
+	err_code = clFlush(C->command_queue());
+	CHECK_OCL_OR_THROW(err_code,
+		std::string("Failure flushing the command queue in tool \"") +
+		name() + "\" when executing \"iHoc\".");
+
 	event_wait = event;
 	{
 		auto profiler = dynamic_cast<EventProfile*>(Profiler::substages()[2]);
@@ -441,6 +456,7 @@ LinkList::_execute(const std::vector<cl_event> events)
 		profiler->end(event);
 	}
 
+	// And compute them
 	err_code = clEnqueueNDRangeKernel(C->command_queue(),
 	                                  _ll,
 	                                  1,

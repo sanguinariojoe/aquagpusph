@@ -135,7 +135,21 @@ RadixSort::_execute(const std::vector<cl_event> events)
 	CalcServer* C = CalcServer::singleton();
 	InputOutput::Variables* vars = C->variables();
 
-	// Get maximum key bits, and needed pass
+	// Fisrt we copy everything on our transactional memory objects, which are
+	// conveniently padded
+	// We also initialize the permutations as the particles id, i.e. each
+	// particle is converted on itself.
+	auto event_init = init();
+	err_code = clFlush(C->command_queue());
+	CHECK_OCL_OR_THROW(err_code,
+		std::string("Failure flushing the command queue in tool \"") +
+		name() + "\" at the initialization.");
+	auto init_profiler =
+	    dynamic_cast<EventProfile*>(Profiler::substages().at(0));
+	init_profiler->start(event_init);
+	init_profiler->end(event_init);
+
+	// Get maximum key bits and the associated needed passes
 	if (C->device_addr_bits() == 64)
 		max_val = std::numeric_limits<ulcl>::max() >> 1;
 	else
@@ -148,9 +162,7 @@ RadixSort::_execute(const std::vector<cl_event> events)
 			n_cells = ((uivec4*)vars->get("n_cells")->get())->w;
 		max_val = n_cells;
 	}
-	if (!isPowerOf2(max_val)) {
-		max_val = nextPowerOf2(max_val);
-	}
+	max_val = nextPowerOf2(max_val);
 	for (_key_bits = 1; (max_val & 1) == 0; max_val >>= 1, _key_bits++)
 		;
 	_key_bits = roundUp<size_t>(_key_bits, _bits);
@@ -163,16 +175,6 @@ RadixSort::_execute(const std::vector<cl_event> events)
 	}
 	_n_pass = _key_bits / _bits;
 	size_t uint_size = C->device_addr_bits() / 8;
-
-	// Fisrt we copy everything on our transactional memory objects, which are
-	// conveniently padded
-	// We also initialize the permutations as the particles id, i.e. each
-	// particle is converted on itself.
-	auto event_init = init();
-	auto init_profiler =
-	    dynamic_cast<EventProfile*>(Profiler::substages().at(0));
-	init_profiler->start(event_init);
-	init_profiler->end(event_init);
 
 	// Time to sort everything up
 	auto radixsort_profiler =
@@ -213,9 +215,10 @@ RadixSort::_execute(const std::vector<cl_event> events)
 	                               var_events.size(),
 	                               var_events.data(),
 	                               &event);
-	CHECK_OCL_OR_THROW(err_code,
-	                   std::string("Failure copying the sort keys in tool \"") +
-	                       name() + "\".");
+	CHECK_OCL_OR_THROW(
+		err_code,
+		std::string("Failure copying the sort keys in tool \"") + name() +
+			"\".");
 	_var->setWritingEvent(event);
 	auto vals_profiler =
 	    dynamic_cast<EventProfile*>(Profiler::substages().at(3));
@@ -240,9 +243,14 @@ RadixSort::_execute(const std::vector<cl_event> events)
 	                               perms_events.data(),
 	                               &event);
 	CHECK_OCL_OR_THROW(
-	    err_code,
-	    std::string("Failure copying the permutations in tool \"") + name() +
-	        "\".");
+		err_code,
+		std::string("Failure copying the permutations in tool \"") + name() +
+			"\".");
+	err_code = clFlush(C->command_queue());
+	CHECK_OCL_OR_THROW(err_code,
+		std::string("Failure flushing the command queue in tool \"") +
+		name() + "\" when copying.");
+
 	_perms->setWritingEvent(event);
 	auto keys_profiler =
 	    dynamic_cast<EventProfile*>(Profiler::substages().at(2));
@@ -262,6 +270,10 @@ RadixSort::_execute(const std::vector<cl_event> events)
 	        name() + "\".");
 
 	event_wait = inversePermutations();
+	err_code = clFlush(C->command_queue());
+	CHECK_OCL_OR_THROW(err_code,
+		std::string("Failure flushing the command queue in tool \"") +
+		name() + "\" when computing the inverse permutations.");
 	auto inv_profiler =
 	    dynamic_cast<EventProfile*>(Profiler::substages().at(4));
 	inv_profiler->start(event_wait);

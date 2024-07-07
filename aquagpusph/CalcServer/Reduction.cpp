@@ -165,9 +165,12 @@ Reduction::_execute(const std::vector<cl_event> events)
 		                                  &event,
 		                                  &out_event);
 		CHECK_OCL_OR_THROW(err_code,
-		                   std::string("Failure executing the step ") +
-		                       std::to_string(i) + " in tool \"" + name() +
-		                       "\".");
+			std::string("Failure executing the step ") + std::to_string(i) +
+				" in tool \"" + name() + "\".");
+		err_code = clFlush(C->command_queue());
+		CHECK_OCL_OR_THROW(err_code,
+			std::string("Failure flushing the command queue in tool \"") +
+				name() + "\" at pass " + std::to_string(i) + ".");
 
 		auto profiler =
 		    dynamic_cast<EventProfile*>(Profiler::substages().at(i));
@@ -177,9 +180,9 @@ Reduction::_execute(const std::vector<cl_event> events)
 		// Replace the event by the new one
 		err_code = clReleaseEvent(event);
 		CHECK_OCL_OR_THROW(
-		    err_code,
-		    std::string("Failure releasing the input event for the step ") +
-		        std::to_string(i) + " in tool \"" + name() + "\".");
+			err_code,
+			std::string("Failure releasing the input event for the step ") +
+				std::to_string(i) + " in tool \"" + name() + "\".");
 		event = out_event;
 	}
 
@@ -195,10 +198,13 @@ Reduction::_execute(const std::vector<cl_event> events)
 	                               read_events.size(),
 	                               read_events.data(),
 	                               &out_event);
-	CHECK_OCL_OR_THROW(
-	    err_code,
-	    std::string("Failure reading back the result in tool \"") + name() +
-	        "\".");
+	CHECK_OCL_OR_THROW(err_code,
+		std::string("Failure reading back the result in tool \"") + name() +
+			"\".");
+	err_code = clFlush(C->command_queue());
+	CHECK_OCL_OR_THROW(err_code,
+		std::string("Failure flushing the command queue in tool \"") +
+			name() + "\" when reading back.");
 
 	auto profiler = dynamic_cast<EventProfile*>(Profiler::substages().back());
 	profiler->start(out_event);

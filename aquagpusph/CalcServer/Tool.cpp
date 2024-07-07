@@ -204,15 +204,15 @@ Tool::execute()
 		}
 	}
 	cl_event event = _execute(events);
+	err_code = clFlush(C->command_queue());
+	CHECK_OCL_OR_THROW(err_code,
+		std::string("Failure flushing the command queue at \"") + name() +
+			"\".");
 	if (C->debug_mode(InputOutput::ProblemSetup::sphSettings::DEBUG_EVENTS)) {
 		LOG0(L_DEBUG, "\ttriggers...\n");
 		debug_event(event, C);
 	}
 	_event = event;
-	err_code = clFlush(C->command_queue());
-	CHECK_OCL_OR_THROW(err_code,
-		std::string("Failure flushing the command queue at \"") + name() +
-		"\".");
 
 	if (event != NULL) {
 		// Add the event to the reading dependencies
