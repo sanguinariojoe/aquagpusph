@@ -61,11 +61,17 @@ __kernel void entry(__global int* imove,
         return;
 
     const vec coords = r_in[i];
-    if(    (coords.x < domain_min.x)
+    if(    isnan(coords.x)
+        || isinf(coords.x)
+        || isnan(coords.y)
+        || isinf(coords.y)
+        || (coords.x < domain_min.x)
         || (coords.y < domain_min.y)
         || (coords.x > domain_max.x)
         || (coords.y > domain_max.y)
         #ifdef HAVE_3D
+        || isnan(coords.z)
+        || isinf(coords.z)
         || (coords.z < domain_min.z)
         || (coords.z > domain_max.z)
         #endif
@@ -77,7 +83,7 @@ __kernel void entry(__global int* imove,
         // Stop the particle
         u_in[i] = VEC_ZERO;
         dudt_in[i] = VEC_ZERO;
-        // Move the particle to a more convenient position (in order to can use
+        // Move the particle to a more convenient position (in order to use
         // it as buffer)
         r_in[i] = domain_max;
     }
