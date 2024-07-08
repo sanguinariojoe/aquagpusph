@@ -74,7 +74,7 @@ __kernel void entry(const __global int* imove,
     if(imove[i] != 1)
         return;
 
-    const float R = 0.5f * pow(m[i] / rho[i], 1.f / DIMS);
+    const float Ri = 0.5f * pow(m[i] / rho[i], 1.f / DIMS);
 
     const usize c_i = icell[i];
     BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
@@ -85,7 +85,7 @@ __kernel void entry(const __global int* imove,
         const vec_xyz r_ij = r[j].XYZ - r[i].XYZ;
         const vec_xyz n_j = normal[j].XYZ;
         const float rn = dot(r_ij, n_j);
-        if(fabs(rn) > R){
+        if(fabs(rn) > Ri){
             // Either the particle is just OK, or it is too far away from the
             // boundary to consider it
             j++;
@@ -97,14 +97,14 @@ __kernel void entry(const __global int* imove,
 #else
         const float dr = m[j];
 #endif
-        const float R = __DR_FACTOR__ * dr;
+        const float Rj = __DR_FACTOR__ * dr;
         const vec_xyz rt = r_ij - rn * n_j;
-        if(dot(rt, rt) >= R * R){
+        if(dot(rt, rt) >= Rj * Rj){
             // The particle is passing too far from the boundary element
             j++;
             continue;
         }
 
-        r[i].XYZ += (rn - R) * n_j;
+        r[i].XYZ += (rn - Ri) * n_j;
     }END_NEIGHS()
 }
