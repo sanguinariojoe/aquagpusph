@@ -219,7 +219,7 @@ XML = ('Fluids.xml', 'Main.xml', 'Motion.xml', 'Sensors.xml', 'Settings.xml',
        'SPH.xml', 'Time.xml')
 
 radius = math.sqrt((0.5 * L)**2 + H**2)
-domain_min = (-1.1 * radius, -0.5 * L * math.sin(0.5 * math.pi))
+domain_min = (-1.1 * radius, -1.1 * radius)
 domain_min = str(domain_min).replace('(', '').replace(')', '')
 domain_max = (1.1 * radius, 1.1 * radius)
 domain_max = str(domain_max).replace('(', '').replace(')', '')
