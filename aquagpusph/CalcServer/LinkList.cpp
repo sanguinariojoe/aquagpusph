@@ -210,7 +210,8 @@ template<>
 void
 LinkList::nCells<vec4>()
 {
-	auto vars = CalcServer::singleton()->variables();
+	auto C = CalcServer::singleton();
+	auto vars = C->variables();
 
 	if (!_cell_length) {
 		std::stringstream msg;
@@ -220,8 +221,8 @@ LinkList::nCells<vec4>()
 		throw std::runtime_error("Invalid number of cells");
 	}
 
-	const vec4 pos_min = *(vec4*)vars->get("r_min")->get_async();
-	const vec4 pos_max = *(vec4*)vars->get("r_max")->get_async();
+	const vec4 pos_min = *(vec4*)vars->get("r_min")->get(true);
+	const vec4 pos_max = *(vec4*)vars->get("r_max")->get(true);
 
 	_n_cells.x = narrow_cast<ulcl>((pos_max.x - pos_min.x) / _cell_length) + 6;
 	_n_cells.y = narrow_cast<ulcl>((pos_max.y - pos_min.y) / _cell_length) + 6;
@@ -235,29 +236,9 @@ LinkList::allocate()
 {
 	cl_int err_code;
 	cl_event event;
-	CalcServer* C = CalcServer::singleton();
-	InputOutput::Variables* vars = C->variables();
+	auto C = CalcServer::singleton();
+	auto vars = C->variables();
 
-	auto n_cells_var = getOutputDependencies()[2];
-	if (!vars->isSameType(n_cells_var->type(), "svec4")) {
-		std::stringstream msg;
-		msg << "\"n_cells\" has and invalid type for \"" << name() << "\"."
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		msg.str("");
-		msg << "\tVariable \"n_cells\" type is \"" << n_cells_var->type()
-		    << "\", while \"" << vars->typeAlias("uivec4") << "\" was expected"
-		    << std::endl;
-		LOG0(L_DEBUG, msg.str());
-		throw std::runtime_error("Invalid n_cells type");
-	}
-
-	if (C->device_addr_bits() == 64)
-		n_cells_var->set_async(&_n_cells);
-	else {
-		uivec4 n_cells = nCells32();
-		n_cells_var->set_async(&n_cells);
-	}
 	_ihoc_gws = roundUp<size_t>(_n_cells.w, _ihoc_lws);
 
 	// Check if the size of ihoc is already bigger than the required one
@@ -382,6 +363,36 @@ LinkList::_execute(const std::vector<cl_event> events)
 		nCells<vec4>();
 	else
 		nCells<vec2>();
+	auto n_cells_var = getOutputDependencies()[2];
+	if (!vars->isSameType(n_cells_var->type(), "svec4")) {
+		std::stringstream msg;
+		msg << "\"n_cells\" has and invalid type for \"" << name() << "\"."
+		    << std::endl;
+		LOG(L_ERROR, msg.str());
+		msg.str("");
+		msg << "\tVariable \"n_cells\" type is \"" << n_cells_var->type()
+		    << "\", while \"" << vars->typeAlias("uivec4") << "\" was expected"
+		    << std::endl;
+		LOG0(L_DEBUG, msg.str());
+		throw std::runtime_error("Invalid n_cells type");
+	}
+
+	if (C->device_addr_bits() == 64)
+		n_cells_var->set_async(&_n_cells);
+	else {
+		uivec4 n_cells = nCells32();
+		n_cells_var->set_async(&n_cells);
+	}
+
+	if (_recompute_minmax) {
+		std::stringstream report;
+		report << name() << ":" << std::endl;
+		report << r_min->name() << "=" << r_min->asString(true) << " ";
+		report << r_max->name() << "=" << r_max->asString(true) << " ";
+		report << n_cells->name() << "=" << n_cells->asString(true);
+		InputOutput::Logger::singleton()->writeReport(report.str());
+	}
+
 	allocate();
 
 	// Set the new allocated variables
