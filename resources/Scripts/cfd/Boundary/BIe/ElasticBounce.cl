@@ -41,7 +41,7 @@
      * @brief The elastic bounce is not tolerating that a particle becomes
      * closer than this distance (multiplied by \f$ \Delta r \f$).
      */
-    #define __MIN_BOUND_DIST__ 0.f
+    #define __MIN_BOUND_DIST__ 0.1f
 #endif
 
 /** @brief Performs the boundary effect on the fluid particles.
@@ -77,9 +77,24 @@ __kernel void entry(const __global int* imove,
         return;
     if(imove[i] != 1)
         return;
+    if(!dt)
+        return;
 
     const vec_xyz r_i = r_in[i].XYZ;
-    vec_xyz u_i = u_in[i].XYZ + 0.5f * dt * dudt[i].XYZ;
+
+    // Initialize the output
+    #ifndef LOCAL_MEM_SIZE
+        #define _U_ u_i
+        #define _DUDT_ dudt[i].XYZ
+        vec_xyz u_i;
+    #else
+        #define _U_ u_i[it]
+        #define _DUDT_ dudt_l[it]
+        __local vec_xyz u_i[LOCAL_MEM_SIZE];
+        __local vec_xyz dudt_l[LOCAL_MEM_SIZE];
+        _DUDT_ = dudt[i].XYZ;
+    #endif
+    _U_ = u_in[i].XYZ + 0.5f * dt * dudt[i].XYZ;
 
     const usize c_i = icell[i];
     BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
@@ -109,7 +124,7 @@ __kernel void entry(const __global int* imove,
         }
 
         {
-            const float drn = dt * dot(u_i, n_j);
+            const float drn = dt * dot(_U_, n_j);
             if(drn < 0.f){
                 // The particle is already running away from the boundary
                 j++;
@@ -122,13 +137,17 @@ __kernel void entry(const __global int* imove,
             if(rn - drn <= __MIN_BOUND_DIST__ * dr){
                 // Reflect the particle velocity, so its module remains
                 // constant
-                const vec_xyz u = u_i - 2.f * dot(u_i, n_j) * n_j;
+                const vec_xyz u = _U_ - 2.f * dot(_U_, n_j) * n_j;
                 // Modify the values for the next wall tests.
-                dudt[i].XYZ = (u - u_i) / 0.5f * dt;
-                u_i = u;
+                _DUDT_ = (u - u_in[i].XYZ) / 0.5f * dt;
+                _U_ = u;
             }
         }
     }END_NEIGHS()
+
+    #ifdef LOCAL_MEM_SIZE
+        dudt[i].XYZ = _DUDT_;
+    #endif
 }
 
 /** @brief Compute the force of each fluid particle on the boundary due to the
