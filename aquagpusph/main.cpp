@@ -205,8 +205,6 @@ main(int argc, char* argv[])
 		<< "(t = " << t_manager.time() << " s)" << std::endl;
 	LOG(L_INFO, msg.str());
 
-	delete logger;
-	logger = NULL;
 	delete calc_server;
 	calc_server = NULL;
 	if (Py_IsInitialized())
@@ -215,6 +213,8 @@ main(int argc, char* argv[])
 	Aqua::MPI::barrier(MPI_COMM_WORLD);
 	Aqua::MPI::finalize();
 #endif
+	delete logger;
+	logger = NULL;
 
 	return status;
 }
