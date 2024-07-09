@@ -144,12 +144,14 @@ parse(int argc, char** argv, FileManager& file_manager)
 				          << std::endl;
 				return;
 
+			case 'h':
+				displayUsage();
+				break;
+
 			case ':':
 			case '?':
 				LOG(L_ERROR, "Error parsing the runtime args\n");
 				throw std::runtime_error("Invalid args");
-			case 'h':
-				displayUsage();
 
 			default:
 				LOG(L_ERROR, "Invalid command line argument\n");

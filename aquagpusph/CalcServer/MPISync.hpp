@@ -215,7 +215,7 @@ class MPISync : public Aqua::CalcServer::Tool
 		/** @brief Processor
 		 * @return Processor
 		 */
-		inline const uicl proc() const { return _proc; }
+		inline uicl proc() const { return _proc; }
 
 		/** @brief Data structure to store the type information required by MPI
 		 *

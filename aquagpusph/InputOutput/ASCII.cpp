@@ -54,7 +54,6 @@ ASCII::load()
 {
 	std::ifstream f;
 	cl_int err_code;
-	char* pos = NULL;
 	size_t n, N, n_fields;
 	CalcServer::CalcServer* C = CalcServer::CalcServer::singleton();
 
@@ -219,7 +218,7 @@ ASCII::load()
 
 #define __ASCII_WRITE_MATRIX_BLOCK(TYPE)                                       \
 	TYPE* v = (TYPE *)ptr;                                                     \
-	for (auto k = 0; k < nc - 1; k++) {                                        \
+	for (unsigned int k = 0; k < nc - 1; k++) {                                \
 		f << v[i].s[k] << csep;                                                \
 	}                                                                          \
 	f << v[i].s[nc - 1];                                                       \
@@ -240,7 +239,6 @@ ASCII::load()
 void
 ASCII::print_file(const char sep, const char csep)
 {
-	cl_int err_code;
 	auto C = CalcServer::CalcServer::singleton();
 	auto vars = C->variables();
 
@@ -267,7 +265,7 @@ ASCII::print_file(const char sep, const char csep)
 			    (ArrayVariable*)vars->get(fields.at(j).c_str());
 			const std::string type_name = var->type();
 			const void* ptr = data().at(fields.at(j));
-			const auto nc = vars->typeToN(type_name);
+			const unsigned int nc = vars->typeToN(type_name);
 			if (startswith(var->type(), "int")) {
 				__ASCII_WRITE_SCALAR_BLOCK(icl)
 			} else if (startswith(var->type(), "long")) {
@@ -333,7 +331,7 @@ ASCII::print_header(std::ofstream& f) const
 	f.flush();
 }
 
-const size_t
+size_t
 ASCII::compute_n()
 {
 	std::ifstream f;

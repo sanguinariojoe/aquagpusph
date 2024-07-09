@@ -48,8 +48,8 @@ UnSort::UnSort(const std::string name,
   , _perms_name(permutations_name)
   , _var(NULL)
   , _id_var(NULL)
-  , _input(NULL)
   , _id_input(NULL)
+  , _input(NULL)
   , _output(NULL)
   , _kernel(NULL)
   , _global_work_size(0)
@@ -94,7 +94,6 @@ UnSort::setup()
 cl_event
 UnSort::_execute(const std::vector<cl_event> events)
 {
-	unsigned int i;
 	cl_int err_code;
 	auto C = CalcServer::singleton();
 

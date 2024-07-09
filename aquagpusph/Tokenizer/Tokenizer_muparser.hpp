@@ -126,7 +126,7 @@ class Tokenizer_muparser
 				<< std::endl;
 			LOG0(L_DEBUG, msg.str());
 			throw;
-		} catch(std::out_of_range) {
+		} catch(std::out_of_range&) {
 			LOG(L_ERROR, std::string("Error evaluating \"") + eq + "\":\n");
 			LOG0(L_DEBUG, "\n");
 			LOG0(L_DEBUG, std::string("The result ") +

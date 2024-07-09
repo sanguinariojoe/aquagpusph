@@ -70,7 +70,7 @@ class stderrWriter(object):              \n\
  * @return Computed value, NULL if errors have been detected.
  */
 static PyObject*
-get(PyObject* self, PyObject* args, PyObject* keywds)
+get(PyObject UNUSED_PARAM *self, PyObject* args, PyObject* keywds)
 {
 	auto C = Aqua::CalcServer::CalcServer::singleton();
 	auto vars = C->variables();
@@ -105,7 +105,7 @@ get(PyObject* self, PyObject* args, PyObject* keywds)
  * @return Computed value, NULL if errors have been detected.
  */
 static PyObject*
-set(PyObject* self, PyObject* args, PyObject* keywds)
+set(PyObject UNUSED_PARAM *self, PyObject* args, PyObject* keywds)
 {
 	auto C = Aqua::CalcServer::CalcServer::singleton();
 	auto vars = C->variables();
@@ -158,7 +158,7 @@ set(PyObject* self, PyObject* args, PyObject* keywds)
  * @return Computed value, NULL if errors have been detected.
  */
 static PyObject*
-logMsg(PyObject* self, PyObject* args, PyObject* keywds)
+logMsg(PyObject UNUSED_PARAM *self, PyObject* args, PyObject* keywds)
 {
 	int level;
 	const char* msg;
@@ -190,8 +190,14 @@ logMsg(PyObject* self, PyObject* args, PyObject* keywds)
 
 /// List of methods declared in the module
 static PyMethodDef methods[] = {
-	{ "get", (PyCFunction)get, METH_VARARGS | METH_KEYWORDS, "Get a variable" },
-	{ "set", (PyCFunction)set, METH_VARARGS | METH_KEYWORDS, "Set a variable" },
+	{ "get",
+	  (PyCFunction)get,
+	  METH_VARARGS | METH_KEYWORDS,
+	  "Get a variable" },
+	{ "set",
+	  (PyCFunction)set,
+	  METH_VARARGS | METH_KEYWORDS,
+	  "Set a variable" },
 	{ "log",
 	  (PyCFunction)logMsg,
 	  METH_VARARGS | METH_KEYWORDS,
@@ -292,7 +298,7 @@ Python::setup()
 }
 
 cl_event
-Python::_execute(const std::vector<cl_event> events)
+Python::_execute(const std::vector<cl_event> UNUSED_PARAM events)
 {
 	PyObject* result;
 

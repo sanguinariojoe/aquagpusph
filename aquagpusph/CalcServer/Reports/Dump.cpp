@@ -68,7 +68,7 @@ Dump::setup()
 
 #define __ASCII_WRITE_MATRIX_BLOCK(TYPE)                                       \
 	TYPE* v = (TYPE *)ptr;                                                     \
-	for (auto k = 0; k < nc - 1; k++) {                                        \
+	for (unsigned int k = 0; k < nc - 1; k++) {                                \
 		f << v[i].s[k] << ' ';                                                 \
 	}                                                                          \
 	f << v[i].s[nc - 1];                                                       \
@@ -121,7 +121,7 @@ Dump::print()
 					(InputOutput::ArrayVariable*)vars.at(j);
 				const std::string type_name = var->type();
 				const void* ptr = _data.at(j);
-				const auto nc = Aqua::InputOutput::Variables::typeToN(
+				const unsigned int nc = Aqua::InputOutput::Variables::typeToN(
 					type_name);
 				if (startswith(var->type(), "int")) {
 					__ASCII_WRITE_SCALAR_BLOCK(icl)
@@ -199,7 +199,7 @@ dumpfile_cb(cl_event event, cl_int event_command_status, void* user_data)
 }
 
 cl_event
-Dump::_execute(const std::vector<cl_event> events)
+Dump::_execute(const std::vector<cl_event> UNUSED_PARAM events)
 {
 	// We are always dumping
 	// if (!mustUpdate()) {
@@ -277,7 +277,6 @@ std::vector<cl_event>
 Dump::download(std::vector<InputOutput::Variable*> vars)
 {
 	std::vector<cl_event> events(vars.size(), NULL);
-	size_t typesize, len;
 	cl_int err_code;
 	CalcServer* C = CalcServer::singleton();
 

@@ -77,7 +77,7 @@ static bool sigint_received = false;
  * @param s Recevied signal, SIGINT
  */
 void
-sigint_handler(int s)
+sigint_handler(int UNUSED_PARAM s)
 {
 	// Log the reception, and afterwards the processing. That way, in case of
 	// MPI jobs we can know if some uncoordinated processes have failed to
@@ -155,7 +155,6 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 	_current_tool_name = new char[256];
 	memset(_current_tool_name, '\0', 256 * sizeof(char));
 
-	unsigned int num_sets = _sim_data.sets.size();
 	unsigned int N = 0;
 	for (auto set : _sim_data.sets) {
 		N += set->n();
@@ -524,7 +523,6 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 
 CalcServer::~CalcServer()
 {
-	unsigned int i;
 	// Wait until all pending operations are finished
 	auto events = all_events();
 	clWaitForEvents(events.size(), events.data());
@@ -568,7 +566,6 @@ CalcServer::raiseSIGINT()
 void
 CalcServer::update(InputOutput::TimeManager& t_manager)
 {
-	unsigned int i;
 	while (!t_manager.mustPrintOutput() && !t_manager.mustStop()) {
 #ifdef HAVE_MPI
 		Aqua::MPI::barrier(MPI_COMM_WORLD);
@@ -671,6 +668,8 @@ CalcServer::command_queue(cmd_queue which)
 			err_code = clFlush(curr_queue);
 			CHECK_OCL_OR_THROW(err_code,
 			                   "Failure flushing the command queue");
+			queue = _command_queues[_command_queue_current];
+			break;
 		case cmd_queue::cmd_queue_current:
 			queue = _command_queues[_command_queue_current];
 			break;
@@ -967,7 +966,6 @@ opencl_version(cl_platform_id platform)
 	cl_int err_code;
 	char* opencl_version_str;
 	size_t opencl_version_str_len;
-	unsigned int opencl_version_major, opencl_version_minor;
 	err_code = clGetPlatformInfo(
 	    platform, CL_PLATFORM_VERSION, 0, NULL, &opencl_version_str_len);
 	if (err_code != CL_SUCCESS) {
@@ -1005,7 +1003,6 @@ opencl_version(cl_device_id device)
 	cl_int err_code;
 	char* opencl_version_str;
 	size_t opencl_version_str_len;
-	unsigned int opencl_version_major, opencl_version_minor;
 	err_code = clGetDeviceInfo(
 	    device, CL_DEVICE_VERSION, 0, NULL, &opencl_version_str_len);
 	if (err_code != CL_SUCCESS) {
@@ -1217,7 +1214,7 @@ CalcServer::setupPlatform()
 #ifdef HAVE_MPI
 	rank = Aqua::MPI::rank(MPI_COMM_WORLD);
 #endif
-	if (rank >= _sim_data.settings.devices.size()) {
+	if ((size_t)rank >= _sim_data.settings.devices.size()) {
 		std::ostringstream msg;
 		msg << "Process " << rank << " has not an OpenCL declared device ("
 		    << _sim_data.settings.devices.size() << " devices declared)"
@@ -1298,8 +1295,8 @@ CalcServer::setupPlatform()
  */
 void CL_CALLBACK
 context_error_notify(const char* errinfo,
-                     const void* private_info,
-                     size_t cb,
+                     const void UNUSED_PARAM *private_info,
+                     size_t UNUSED_PARAM cb,
                      void* user_data)
 {
 	const char* current_tool_name = (const char*)user_data;
@@ -1326,7 +1323,7 @@ context_error_notify(const char* errinfo,
  */
 void CL_CALLBACK
 device_timer_sampler(cl_event event,
-                     cl_int event_command_status,
+                     cl_int UNUSED_PARAM event_command_status,
                      void* user_data)
 {
 	cl_int err_code;
@@ -1346,7 +1343,6 @@ void
 CalcServer::setupDevices()
 {
 	cl_int err_code;
-	cl_uint i;
 	_devices = NULL;
 
 	// Get the selected device index and type
@@ -1354,7 +1350,7 @@ CalcServer::setupDevices()
 #ifdef HAVE_MPI
 	rank = Aqua::MPI::rank(MPI_COMM_WORLD);
 #endif
-	if (rank >= _sim_data.settings.devices.size()) {
+	if ((size_t)rank >= _sim_data.settings.devices.size()) {
 		std::ostringstream msg;
 		msg << "Process " << rank << " has not an OpenCL declared device ("
 		    << _sim_data.settings.devices.size() << " devices declared)"
@@ -1533,8 +1529,6 @@ CalcServer::setup()
 				LOG(L_ERROR, msg.str());
 				throw std::runtime_error("Invalid variable type");
 			}
-			InputOutput::ArrayVariable* var =
-			    (InputOutput::ArrayVariable*)_vars.get(name);
 			size_t typesize = _vars.typeToBytes(_vars.get(name)->type());
 			size_t len = _vars.get(name)->size() / typesize;
 			if (len != _sim_data.sets.size()) {

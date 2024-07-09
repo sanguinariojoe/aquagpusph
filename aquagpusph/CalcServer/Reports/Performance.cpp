@@ -49,9 +49,6 @@ Performance::~Performance() {}
 void
 Performance::setup()
 {
-	unsigned int i;
-	auto C = CalcServer::singleton();
-
 	std::ostringstream msg;
 	msg << "Loading the report \"" << name() << "\"..." << std::endl;
 	LOG(L_INFO, msg.str());
@@ -238,7 +235,7 @@ performance_cb(cl_event event, cl_int event_command_status, void* user_data)
 }
 
 cl_event
-Performance::_execute(const std::vector<cl_event> events)
+Performance::_execute(const std::vector<cl_event> UNUSED_PARAM events)
 {
 	auto C = CalcServer::singleton();
 	return setCallback({ C->marker() }, performance_cb);
@@ -250,7 +247,7 @@ Performance::writer()
 	std::string output_file;
 	try {
 		output_file = newFilePath(_output_file, _output_file_index, 6);
-	} catch (std::invalid_argument e) {
+	} catch (std::invalid_argument& e) {
 		output_file = setStrConstantsCopy(_output_file);
 	}
 

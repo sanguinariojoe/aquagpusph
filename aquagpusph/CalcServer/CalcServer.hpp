@@ -146,7 +146,7 @@ class ProfilingInfo
 	{
 		std::string name = tool->name() + "::" + substage->name();
 		auto parent = tool;
-		while (parent = parent->parent()) {
+		while ((parent = parent->parent())) {
 			name = parent->name() + "::" + name;
 		}
 		sample(step, tool, name, start, end);

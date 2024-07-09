@@ -279,7 +279,7 @@ class Tool
 	 * created subscope, returning to the previous one
 	 * @note scopes shall be always balanced
 	 */
-	virtual const int scope_modifier() { return 0; }
+	virtual inline int scope_modifier() const { return 0; }
 
 	/** @brief Get the input depedencies of the tool
 	 * @return The input and output dependencies
@@ -356,7 +356,7 @@ class Tool
 	 * @param events List of events that shall be waited before safe execution
 	 * @return OpenCL event to be waited before accessing the dependencies
 	 */
-	virtual cl_event _execute(const std::vector<cl_event> events)
+	virtual cl_event _execute(const UNUSED_PARAM std::vector<cl_event> events)
 	{
 		return NULL;
 	}

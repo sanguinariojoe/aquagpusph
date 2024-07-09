@@ -72,7 +72,7 @@ Tool::setup()
 	int i = id_in_pipeline();
 	// There are some tools which can be out of the pipeline (e.g. UnSort or
 	// reports)
-	if ((i >= 0) && (i + 1 < tools.size())) {
+	if ((i >= 0) && ((unsigned int)i + 1u < tools.size())) {
 		next_tool(tools.at(i + 1));
 	}
 	return;
@@ -382,6 +382,8 @@ Tool::compile(const std::string source,
 		                   std::string("Failure creating the \"") + name +
 		                       "\" OpenCL kernel.");
 	}
+	err_code = clReleaseProgram(program);
+	CHECK_OCL_OR_THROW(err_code, "Failure releasing the program.");
 
 	return kernels;
 }

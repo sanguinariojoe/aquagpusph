@@ -105,7 +105,7 @@ Sort::setup()
 }
 
 cl_event
-Sort::_execute(const std::vector<cl_event> events)
+Sort::_execute(const std::vector<cl_event> UNUSED_PARAM events)
 {
 	cl_int err_code;
 	cl_event event, wait_event;

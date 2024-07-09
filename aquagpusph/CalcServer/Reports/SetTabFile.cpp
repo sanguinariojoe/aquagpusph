@@ -47,7 +47,7 @@ SetTabFile::SetTabFile(const std::string tool_name,
 	try {
 		unsigned int i = 0;
 		_output_file = newFilePath(output_file, i, 1);
-	} catch (std::invalid_argument e) {
+	} catch (std::invalid_argument& e) {
 		std::ostringstream msg;
 		_output_file = setStrConstantsCopy(output_file);
 		msg << "Overwriting '" << _output_file << "'" << std::endl;
@@ -102,7 +102,7 @@ SetTabFile::setup()
 #define __ASCII_WRITE_MATRIX_BLOCK(TYPE)                                       \
 	TYPE* v = (TYPE *)ptr;                                                     \
 	_f << '(';                                                                 \
-	for (auto k = 0; k < nc - 1; k++) {                                        \
+	for (unsigned int k = 0; k < nc - 1; k++) {                                \
 		_f << v[i].s[k] << ',';                                                \
 	}                                                                          \
 	_f << v[i].s[nc - 1] << ')';                                               \
@@ -130,7 +130,8 @@ SetTabFile::print()
 				(Aqua::InputOutput::ArrayVariable*)vars.at(j);
 			const std::string type_name = var->type();
 			const void* ptr = _data.at(j);
-			const auto nc = Aqua::InputOutput::Variables::typeToN(type_name);
+			const unsigned int nc = Aqua::InputOutput::Variables::typeToN(
+				type_name);
 			if (startswith(var->type(), "int")) {
 				__ASCII_WRITE_SCALAR_BLOCK(icl)
 			} else if (startswith(var->type(), "long")) {
@@ -204,13 +205,12 @@ settabfile_cb(cl_event event, cl_int event_command_status, void* user_data)
 }
 
 cl_event
-SetTabFile::_execute(const std::vector<cl_event> events)
+SetTabFile::_execute(const std::vector<cl_event> UNUSED_PARAM events)
 {
 	if (!mustUpdate()) {
 		return NULL;
 	}
 
-	unsigned int i, j;
 	cl_int err_code;
 	CalcServer* C = CalcServer::singleton();
 
@@ -257,7 +257,6 @@ SetTabFile::download(std::vector<InputOutput::Variable*> vars)
 {
 	std::vector<cl_event> events; // vector storage is continuous memory
 	size_t typesize, len;
-	cl_int err_code;
 	CalcServer* C = CalcServer::singleton();
 
 	if (_data.size() != vars.size()) {

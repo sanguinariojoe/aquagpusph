@@ -229,7 +229,7 @@ Particles::file(const std::string basename,
 	unsigned int i = startindex;
 	try {
 		file(newFilePath(basename, i, digits));
-	} catch (std::invalid_argument e) {
+	} catch (std::invalid_argument& e) {
 		std::ostringstream msg;
 		msg << "It is forbidden to overwrite particles output file '"
 		    << setStrConstantsCopy(basename) << "'" << std::endl;

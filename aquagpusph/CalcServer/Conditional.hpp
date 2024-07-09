@@ -71,7 +71,7 @@ class Conditional : public Aqua::CalcServer::ScalarExpression
 	 * @return 1
 	 * @note The scope shall be close at some point by an EndIf tool
 	 */
-	const int scope_modifier() { return 1; }
+	inline int scope_modifier() const { return 1; }
 
   protected:
 	/** @brief Evaluate the expression and check whether it is true or false
@@ -173,7 +173,7 @@ class End : public Aqua::CalcServer::Tool
 	/** Close an already open scope
 	 * @return -1
 	 */
-	const int scope_modifier() { return -1; }
+	inline int scope_modifier() const { return -1; }
 };
 
 }

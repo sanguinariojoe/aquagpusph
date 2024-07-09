@@ -169,7 +169,7 @@ Report::setCallback(const std::vector<cl_event> events,
 	auto C = CalcServer::singleton();
 	try {
 		event = C->marker(C->command_queue(), events);
-	} catch (std::runtime_error e) {
+	} catch (std::runtime_error& e) {
 		LOG(L_ERROR, std::string("While setting the trigger in tool \"") +
 		             name() + "\".\n");
 	}

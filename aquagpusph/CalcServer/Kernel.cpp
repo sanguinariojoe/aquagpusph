@@ -37,9 +37,10 @@ namespace CalcServer {
  * @param user_data Recasted EventProfile pointer
  */
 void CL_CALLBACK
-event_profile_cb(cl_event n_event, cl_int cmd_exec_status, void* user_data)
+event_profile_cb(cl_event UNUSED_PARAM n_event,
+                 cl_int UNUSED_PARAM cmd_exec_status,
+                 void* user_data)
 {
-	cl_int err_code;
 	auto profiler = (EventProfile*)user_data;
 	profiler->sample();
 }
@@ -55,6 +56,8 @@ EventProfile::start(cl_event event)
 	    err_code,
 	    std::string("Failure retaining the event on profiler \"") + name() +
 	        "\".");
+#else
+	(void)(event);
 #endif
 }
 
@@ -74,6 +77,8 @@ EventProfile::end(cl_event event)
 	    err_code,
 	    std::string("Failure setting the profiling callback on \"") + name() +
 	        "\".");
+#else
+	(void)(event);
 #endif
 }
 
@@ -99,7 +104,7 @@ EventProfile::sample()
 	    err_code,
 	    std::string("Failure retrieving the profiling end on \"") + name() +
 	        "\".");
-	err_code = clReleaseEvent(_start);
+	err_code = clReleaseEvent(_end);
 	CHECK_OCL_OR_THROW(
 	    err_code,
 	    std::string("Failure releasing the end event on profiler \"") +
@@ -118,7 +123,6 @@ ArgSetter::ArgSetter(const std::string name,
   , _vars(vars)
 {
 	for (unsigned int i = 0; i < vars.size(); i++) {
-		Arg* arg = new Arg();
 		_args.push_back(Arg());
 	}
 }
@@ -135,7 +139,6 @@ void
 debug_arg(unsigned int i,
           InputOutput::Variable* var,
           cl_kernel kernel,
-          CalcServer* C,
           TLogLevel log_level=L_DEBUG,
           const char* indent="\t\t")
 {
@@ -178,7 +181,7 @@ ArgSetter::execute()
 		arg = var;
 		// Update the variable
 		if (C->debug_mode(InputOutput::ProblemSetup::sphSettings::DEBUG_ARGS))
-			debug_arg(i, var, _kernel, C);
+			debug_arg(i, var, _kernel);
 		err_code = clSetKernelArg(_kernel, i, arg.size(), arg.value());
 		CHECK_OCL_OR_THROW(err_code,
 		                   std::string("Failure setting the variable \"") +
@@ -305,7 +308,7 @@ Kernel::setup()
 
 	Tool::setup();
 	make(_entry_point);
-	variables(_entry_point);
+	variables();
 	computeGlobalWorkSize();
 	_args_setter = new ArgSetter(name(), _kernel, _vars);
 	if (!_args_setter) {
@@ -353,12 +356,9 @@ Kernel::make(const std::string entry_point,
              const std::string add_flags,
              const std::string header)
 {
-	unsigned int i;
-	cl_program program;
 	cl_kernel kernel;
 	std::ostringstream source;
 	std::ostringstream flags;
-	size_t source_length = 0;
 	cl_int err_code = CL_SUCCESS;
 	size_t work_group_size = 0;
 	CalcServer* C = CalcServer::singleton();
@@ -494,7 +494,7 @@ isKernelArgReadOnly(cl_kernel kernel, cl_uint arg_index)
 }
 
 void
-Kernel::variables(const std::string entry_point)
+Kernel::variables()
 {
 	cl_int err_code;
 

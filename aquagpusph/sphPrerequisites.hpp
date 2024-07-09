@@ -364,4 +364,13 @@ methodAndClassName(const std::string& pretty_function)
  */
 #define __METHOD_CLASS_NAME__ methodAndClassName(__PRETTY_FUNCTION__)
 
+/** @def UNUSED
+ * @brief Set a parameter as unused
+ */
+#ifdef __GNUC__
+#  define UNUSED_PARAM __attribute__((__unused__))
+#else
+#  define UNUSED_PARAM
+#endif
+
 #endif // SPHPREREQUISITES_H_INCLUDED

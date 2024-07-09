@@ -122,7 +122,7 @@ class ASCII : public Particles
 	/** @brief Compute the number of particles handled by this instance
 	 * @return Number of particles
 	 */
-	const size_t compute_n();
+	size_t compute_n();
 
 
 	/** @brief Count the number of fields in a text line.

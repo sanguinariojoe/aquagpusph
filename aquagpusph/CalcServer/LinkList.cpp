@@ -235,9 +235,7 @@ void
 LinkList::allocate()
 {
 	cl_int err_code;
-	cl_event event;
 	auto C = CalcServer::singleton();
-	auto vars = C->variables();
 
 	_ihoc_gws = roundUp<size_t>(_n_cells.w, _ihoc_lws);
 
@@ -329,11 +327,10 @@ cl_event
 LinkList::_execute(const std::vector<cl_event> events)
 {
 	cl_int err_code;
-	cl_event trigger, event;
+	cl_event event;
 	auto C = CalcServer::singleton();
 	auto vars = C->variables();
 
-	auto ihoc = getOutputDependencies()[0];
 	auto icell = getOutputDependencies()[1];
 	auto n_cells = getOutputDependencies()[2];
 	InputOutput::Variable *r_min, *r_max;

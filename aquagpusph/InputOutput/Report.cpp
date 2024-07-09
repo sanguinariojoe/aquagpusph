@@ -45,7 +45,7 @@ Report::file(std::string basename, unsigned int start_index)
 {
 	try {
 		file(newFilePath(basename, start_index));
-	} catch (std::invalid_argument e) {
+	} catch (std::invalid_argument& e) {
 		file(setStrConstantsCopy(basename));
 		std::ostringstream msg;
 		msg << "Overwriting file '" << file() << "'" << std::endl;

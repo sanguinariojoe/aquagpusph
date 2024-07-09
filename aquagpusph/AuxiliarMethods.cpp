@@ -154,10 +154,16 @@ trimCopy(std::string s)
 std::string
 xxd2string(unsigned char* arr, unsigned int len)
 {
-	char txt[len + 1];
+	char* txt = (char*)malloc((len + 1) * sizeof(char));
+	if (!txt) {
+		LOG(L_ERROR, std::string("Failure allocating ") +
+		             std::to_string((len + 1) * sizeof(char)) + "bytes\n");
+		throw std::bad_alloc();
+	}
 	strncpy(txt, (const char*)arr, len);
 	txt[len] = '\0';
 	std::string xxd_str(txt);
+	free(txt);
 	return xxd_str;
 }
 
@@ -348,7 +354,7 @@ isRelativePath(const std::string path)
 }
 
 size_t
-getLocalWorkSize(size_t n, cl_command_queue queue)
+getLocalWorkSize(cl_command_queue queue)
 {
 	cl_int flag;
 	cl_device_id d;
@@ -357,29 +363,13 @@ getLocalWorkSize(size_t n, cl_command_queue queue)
 	if (flag != CL_SUCCESS) {
 		return 0;
 	}
-	// Start trying maximum local work size per dimension
-	cl_uint dims;
-	flag = clGetDeviceInfo(
-	    d, CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, sizeof(cl_uint), &dims, NULL);
-	if (flag != CL_SUCCESS) {
-		return 0;
-	}
-	size_t l[dims];
-	flag = clGetDeviceInfo(
-	    d, CL_DEVICE_MAX_WORK_ITEM_SIZES, dims * sizeof(size_t), l, NULL);
-	if (flag != CL_SUCCESS) {
-		return 0;
-	}
-	// Correct it with maximum local size
 	size_t max_l;
 	flag = clGetDeviceInfo(
 	    d, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &max_l, NULL);
 	if (flag != CL_SUCCESS) {
 		return 0;
 	}
-	if (max_l < l[0])
-		l[0] = max_l;
-	return l[0];
+	return max_l;
 }
 
 size_t
@@ -398,7 +388,7 @@ numberOfDigits(unsigned int number)
 
 namespace MPI {
 
-void error_handler(MPI_Comm *comm, int *err, ...) {
+void error_handler(MPI_Comm UNUSED_PARAM *comm, int *err, ...) {
 	LOG(L_ERROR, "MPI reported an error: " + error_str(*err) + "\n");
 }
 

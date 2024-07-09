@@ -256,6 +256,7 @@ MESSAGE(STATUS "DEBUG: ${CMAKE_CXX_FLAGS_DEBUG}")
 # ===================================================== #
 # Compilation parts                                     #
 # ===================================================== #
+add_compile_options(-Wall -Wextra -Wpedantic)
 ADD_SUBDIRECTORY(aquagpusph)
 ADD_SUBDIRECTORY(resources)
 IF(AQUAGPUSPH_BUILD_TOOLS)

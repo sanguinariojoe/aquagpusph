@@ -42,8 +42,6 @@ Screen::~Screen() {}
 void
 Screen::setup()
 {
-	unsigned int i;
-
 	std::ostringstream msg;
 	msg << "Loading the report \"" << name() << "\"..." << std::endl;
 	LOG(L_INFO, msg.str());

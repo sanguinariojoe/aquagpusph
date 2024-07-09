@@ -58,7 +58,7 @@ Conditional::setup()
 	}
 
 	int scope = 1;
-	while (i < tools.size() - 1) {
+	while ((unsigned int)i < tools.size() - 1) {
 		i++;
 		scope += tools.at(i)->scope_modifier();
 		if (!scope)
@@ -73,7 +73,7 @@ Conditional::setup()
 	}
 	// We cannot use next_tool() attribute since that tool has not been setup
 	// yet
-	if (i == tools.size() - 1)
+	if ((unsigned int)i == tools.size() - 1)
 		_ending_tool = NULL;
 	else
 		_ending_tool = tools.at(i + 1);

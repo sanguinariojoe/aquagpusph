@@ -131,7 +131,7 @@ struct Logger
 	 *
 	 * @param t Simulation time
 	 */
-	void save(float t){};
+	void save(float UNUSED_PARAM t) {};
 
   protected:
 	/// Create the log file

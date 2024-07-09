@@ -45,7 +45,7 @@ Variable::Variable(const std::string varname, const std::string vartype)
 }
 
 void
-Variable::set(void* ptr, bool synced)
+Variable::set(void UNUSED_PARAM *ptr, bool synced)
 {
 	if(!synced)
 		return;
@@ -246,14 +246,16 @@ IntVariable::IntVariable(const std::string varname)
 }
 
 PyObject*
-IntVariable::getPythonObject(int i0, int n)
+IntVariable::getPythonObject(int UNUSED_PARAM i0, int UNUSED_PARAM n)
 {
 	long val = value();
 	return PyLong_FromLong(val);
 }
 
 bool
-IntVariable::setFromPythonObject(PyObject* obj, int i0, int n)
+IntVariable::setFromPythonObject(PyObject* obj,
+                                 int UNUSED_PARAM i0,
+                                 int UNUSED_PARAM n)
 {
 	if (!PyLong_Check(obj)) {
 		pyerr.str("");
@@ -276,14 +278,16 @@ LongVariable::LongVariable(const std::string varname)
 }
 
 PyObject*
-LongVariable::getPythonObject(int i0, int n)
+LongVariable::getPythonObject(int UNUSED_PARAM i0, int UNUSED_PARAM n)
 {
 	long val = value();
 	return PyLong_FromLong(val);
 }
 
 bool
-LongVariable::setFromPythonObject(PyObject* obj, int i0, int n)
+LongVariable::setFromPythonObject(PyObject* obj,
+                                  int UNUSED_PARAM i0,
+                                  int UNUSED_PARAM n)
 {
 	if (!PyLong_Check(obj)) {
 		pyerr.str("");
@@ -306,14 +310,16 @@ UIntVariable::UIntVariable(const std::string varname)
 }
 
 PyObject*
-UIntVariable::getPythonObject(int i0, int n)
+UIntVariable::getPythonObject(int UNUSED_PARAM i0, int UNUSED_PARAM n)
 {
 	unsigned long val = value();
 	return PyLong_FromUnsignedLong(val);
 }
 
 bool
-UIntVariable::setFromPythonObject(PyObject* obj, int i0, int n)
+UIntVariable::setFromPythonObject(PyObject* obj,
+                                  int UNUSED_PARAM i0,
+                                  int UNUSED_PARAM n)
 {
 	if (!PyLong_Check(obj)) {
 		pyerr.str("");
@@ -336,14 +342,16 @@ ULongVariable::ULongVariable(const std::string varname)
 }
 
 PyObject*
-ULongVariable::getPythonObject(int i0, int n)
+ULongVariable::getPythonObject(int UNUSED_PARAM i0, int UNUSED_PARAM n)
 {
 	unsigned long val = value();
 	return PyLong_FromUnsignedLong(val);
 }
 
 bool
-ULongVariable::setFromPythonObject(PyObject* obj, int i0, int n)
+ULongVariable::setFromPythonObject(PyObject* obj,
+                                   int UNUSED_PARAM i0,
+                                   int UNUSED_PARAM n)
 {
 	if (!PyLong_Check(obj)) {
 		pyerr.str("");
@@ -366,14 +374,16 @@ FloatVariable::FloatVariable(const std::string varname)
 }
 
 PyObject*
-FloatVariable::getPythonObject(int i0, int n)
+FloatVariable::getPythonObject(int UNUSED_PARAM i0, int UNUSED_PARAM n)
 {
 	double val = value();
 	return PyFloat_FromDouble(val);
 }
 
 bool
-FloatVariable::setFromPythonObject(PyObject* obj, int i0, int n)
+FloatVariable::setFromPythonObject(PyObject* obj,
+                                   int UNUSED_PARAM i0,
+                                   int UNUSED_PARAM n)
 {
 	if (!PyFloat_Check(obj)) {
 		pyerr.str("");
@@ -396,14 +406,16 @@ DoubleVariable::DoubleVariable(const std::string varname)
 }
 
 PyObject*
-DoubleVariable::getPythonObject(int i0, int n)
+DoubleVariable::getPythonObject(int UNUSED_PARAM i0, int UNUSED_PARAM n)
 {
 	double val = value();
 	return PyFloat_FromDouble(val);
 }
 
 bool
-DoubleVariable::setFromPythonObject(PyObject* obj, int i0, int n)
+DoubleVariable::setFromPythonObject(PyObject* obj,
+                                    int UNUSED_PARAM i0,
+                                    int UNUSED_PARAM n)
 {
 	if (!PyFloat_Check(obj)) {
 		pyerr.str("");
@@ -463,7 +475,7 @@ ScalarVecVariable<T>::checkPyhonObjectDims(PyObject* obj)
 
 template<class T>
 PyObject*
-ScalarVecVariable<T>::getPythonObject(int i0, int n)
+ScalarVecVariable<T>::getPythonObject(int UNUSED_PARAM i0, int UNUSED_PARAM n)
 {
 	void* v = this->get();
 	npy_intp dims[1] = { _dims };
@@ -518,7 +530,9 @@ std::string npy_type_name(int np_type)
 
 template<class T>
 bool
-ScalarVecVariable<T>::setFromPythonObject(PyObject* obj, int i0, int n)
+ScalarVecVariable<T>::setFromPythonObject(PyObject* obj,
+                                          int UNUSED_PARAM i0,
+                                          int UNUSED_PARAM n)
 {
 	if (checkPyhonObjectDims(obj))
 		return true;
@@ -1120,7 +1134,6 @@ Variables::typeToBytes(const std::string type)
 unsigned int
 Variables::typeToN(const std::string type)
 {
-	unsigned int n = 1;
 	if (type.find("vec2") != std::string::npos) {
 		return 2;
 	} else if (type.find("vec3") != std::string::npos) {
@@ -1416,7 +1429,6 @@ Variables::solve(const std::string type_name,
 void
 Variables::populate(const std::string name)
 {
-	unsigned int i;
 	Variable* var = NULL;
 	if (name.compare("")) {
 		var = get(name);

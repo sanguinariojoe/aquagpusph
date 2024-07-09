@@ -142,7 +142,6 @@ Reduction::_execute(const std::vector<cl_event> events)
 	cl_event event, out_event;
 	cl_int err_code;
 	auto C = CalcServer::singleton();
-	auto vars = C->variables();
 
 	// We must execute several kernels in a sequential way. The process is
 	// though seeded by a reduction which just needs to read the input array
@@ -240,7 +239,7 @@ Reduction::_execute(const std::vector<cl_event> events)
 	// of special. e.g. it cannot be profiled. So we create a mark on top of it
 	try {
 		event = C->marker(C->command_queue(), { _user_event });
-	} catch (std::runtime_error e) {
+	} catch (std::runtime_error& e) {
 		LOG(L_ERROR, std::string("While setting an output event for tool \"") +
 		             name() + "\".\n");
 	}

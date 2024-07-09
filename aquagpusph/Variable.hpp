@@ -116,7 +116,7 @@ class Variable
 	 * variable events are dispatched
 	 * @return Implementation pointer, NULL for this class.
 	 */
-	virtual inline void* get(bool synced = true) { return NULL; }
+	virtual inline void* get(bool UNUSED_PARAM synced = true) { return NULL; }
 
 	/** @brief Get variable pointer basis pointer
 	 *
@@ -154,7 +154,11 @@ class Variable
 	 * @param n Number of component to be read, just for array variables.
 	 * @return Python object, NULL for this class.
 	 */
-	virtual PyObject* getPythonObject(int i0 = 0, int n = 0) { return NULL; }
+	virtual PyObject* getPythonObject(int UNUSED_PARAM i0 = 0,
+	                                  int UNUSED_PARAM n = 0)
+	{
+		return NULL;
+	}
 
 	/** @brief Set the variable from a Python object
 	 * @param obj Python object.
@@ -162,7 +166,9 @@ class Variable
 	 * @param n Number of component to be set, just for array variables.
 	 * @return true, i.e. an error.
 	 */
-	virtual bool setFromPythonObject(PyObject* obj, int i0 = 0, int n = 0)
+	virtual bool setFromPythonObject(PyObject UNUSED_PARAM *obj,
+	                                 int UNUSED_PARAM i0 = 0,
+	                                 int UNUSED_PARAM n = 0)
 	{
 		return true;
 	}
@@ -170,7 +176,10 @@ class Variable
 	/** @brief Get the variable text representation
 	 * @return The variable represented as a string, NULL in case of errors.
 	 */
-	virtual const std::string asString(bool synced = true) { return ""; }
+	virtual const std::string asString(bool UNUSED_PARAM synced = true)
+	{
+		return "";
+	}
 
 	/**
 	 * \defgroup VariableEventsGroup Events tracked on variables
@@ -918,7 +927,7 @@ class ArrayVariable : public Variable
 	 * @param synced Unused parameter
 	 * @return Implementation pointer.
 	 */
-	void* get(bool synced = false) { return &_value; }
+	void* get(bool UNUSED_PARAM synced = false) { return &_value; }
 
 	/** Set variable from memory
 	 * @param ptr Memory to copy.
@@ -931,7 +940,7 @@ class ArrayVariable : public Variable
 	/** @brief Get if a variable is reallocatable
 	 * @return true if the variable is marked as reallocatable, false otherwise
 	 */
-	inline const bool reallocatable() const { return _reallocatable; }
+	inline bool reallocatable() const { return _reallocatable; }
 
 	/** @brief Set if a variable is reallocatable
 	 * @param is true if the variable is reallocatable, false otherwise

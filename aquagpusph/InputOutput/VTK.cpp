@@ -58,7 +58,6 @@ xmlTranscode(const std::string txt)
 static void
 xmlClear()
 {
-	unsigned int i;
 	cpp_str.clear();
 	for (auto str : xml_str) {
 		xercesc::XMLString::release(&str);
@@ -422,8 +421,6 @@ VTK::makeVTK()
 		// If we are here is because the field exists and it has been correctly
 		// downloaded
 		ArrayVariable* var = (ArrayVariable*)vars->get(field);
-		size_t typesize = vars->typeToBytes(var->type());
-		size_t len = var->size() / typesize;
 
 		unsigned int n_components = vars->typeToN(var->type());
 		if (startswith(var->type(), "unsigned int") ||
@@ -520,65 +517,66 @@ VTK::makeVTK()
 		ArrayVariable* var = (ArrayVariable*)(vars->get(fields[i]));
 		const size_t typesize = vars->typeToBytes(var->type());
 		const unsigned int n_components = vars->typeToN(var->type());
+		void *vect = malloc(typesize);
+		if (!vect) {
+			LOG(L_ERROR, std::string("Failure allocating ") +
+				std::to_string(typesize) + "bytes.\n");
+			throw std::bad_alloc();
+		}
 		for (size_t j = 0; j < n; j++) {
 			const size_t offset = typesize * j;
 			if (startswith(var->type(), "unsigned int") ||
 			    startswith(var->type(), "uivec")) {
-				vtkTypeUInt32 vect[n_components];
 				memcpy(vect,
 				       (char*)ptr + offset,
 				       n_components * sizeof(vtkTypeUInt32));
 				vtkSmartPointer<vtkTypeUInt32Array> vtk_array =
 				    (vtkTypeUInt32Array*)(vtk_arrays[i].GetPointer());
-				vtk_array->SetTypedTuple(j, vect);
+				vtk_array->SetTypedTuple(j, (vtkTypeUInt32*)vect);
 			} else if (startswith(var->type(), "unsigned long") ||
 			           startswith(var->type(), "ulvec")) {
-				vtkTypeUInt64 vect[n_components];
 				memcpy(vect,
 				       (char*)ptr + offset,
 				       n_components * sizeof(vtkTypeUInt64));
 				vtkSmartPointer<vtkTypeUInt64Array> vtk_array =
 				    (vtkTypeUInt64Array*)(vtk_arrays[i].GetPointer());
-				vtk_array->SetTypedTuple(j, vect);
+				vtk_array->SetTypedTuple(j, (vtkTypeUInt64*)vect);
 			} else if (startswith(var->type(), "int") ||
 			           startswith(var->type(), "ivec")) {
-				vtkTypeInt32 vect[n_components];
 				memcpy(vect,
 				       (char*)ptr + offset,
 				       n_components * sizeof(vtkTypeInt32));
 				vtkSmartPointer<vtkTypeInt32Array> vtk_array =
 				    (vtkTypeInt32Array*)(vtk_arrays[i].GetPointer());
-				vtk_array->SetTypedTuple(j, vect);
+				vtk_array->SetTypedTuple(j, (vtkTypeInt32*)vect);
 			} else if (startswith(var->type(), "long") ||
 			           startswith(var->type(), "lvec")) {
-				vtkTypeInt64 vect[n_components];
 				memcpy(vect,
 				       (char*)ptr + offset,
 				       n_components * sizeof(vtkTypeInt64));
 				vtkSmartPointer<vtkTypeInt64Array> vtk_array =
 				    (vtkTypeInt64Array*)(vtk_arrays[i].GetPointer());
-				vtk_array->SetTypedTuple(j, vect);
+				vtk_array->SetTypedTuple(j, (vtkTypeInt64*)vect);
 			} else if (startswith(var->type(), "float") ||
 			           startswith(var->type(), "vec") ||
 			           startswith(var->type(), "matrix")) {
-				fcl vect[n_components];
 				memcpy(vect,
 				       (char*)ptr + offset,
 				       n_components * sizeof(fcl));
 				vtkSmartPointer<vtkFloatArray> vtk_array =
 				    (vtkFloatArray*)(vtk_arrays[i].GetPointer());
-				vtk_array->SetTypedTuple(j, vect);
+				vtk_array->SetTypedTuple(j, (fcl*)vect);
 			} else if (startswith(var->type(), "double") ||
 			           startswith(var->type(), "dvec")) {
-				dcl vect[n_components];
 				memcpy(vect,
 				       (char*)ptr + offset,
 				       n_components * sizeof(dcl));
 				vtkSmartPointer<vtkDoubleArray> vtk_array =
 				    (vtkDoubleArray*)(vtk_arrays[i].GetPointer());
-				vtk_array->SetTypedTuple(j, vect);
+				vtk_array->SetTypedTuple(j, (dcl*)vect);
 			}
 		}
+		free(vect);
 	}
 
 	// Setup the unstructured grid
@@ -660,7 +658,6 @@ VTK::editVTK()
 		auto array = _vtk->GetPointData()->GetAbstractArray(fields[i].c_str());
 		auto var = (ArrayVariable*)(vars->get(fields[i]));
 		const size_t typesize = vars->typeToBytes(var->type());
-		const unsigned int n_components = vars->typeToN(var->type());
 		for (j = 0; j < n; j++) {
 			const size_t offset = typesize * j;
 			auto shifted = (char*)ptr + offset;
@@ -706,7 +703,7 @@ VTK::save(float t)
 	Particles::save(t);
 }
 
-const size_t
+size_t
 VTK::compute_n()
 {
 	vtkSmartPointer<vtkXMLUnstructuredGridReader> f =
@@ -725,7 +722,7 @@ VTK::compute_n()
 
 	vtkSmartPointer<vtkUnstructuredGrid> grid = f->GetOutput();
 
-	return (const unsigned int)grid->GetNumberOfPoints();
+	return (size_t)grid->GetNumberOfPoints();
 }
 
 vtkXMLUnstructuredGridWriter*
@@ -898,7 +895,7 @@ VTK::filenamePVD()
 			unsigned int i = 0;
 			_namePVD = newFilePath(
 			    simData().sets.at(setId())->outputPath() + ".pvd", i, 1);
-		} catch (std::invalid_argument e) {
+		} catch (std::invalid_argument& e) {
 			std::ostringstream msg;
 			_namePVD =
 			    setStrConstantsCopy(simData().sets.at(setId())->outputPath()) +

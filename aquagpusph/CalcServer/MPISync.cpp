@@ -72,12 +72,13 @@ MPISync::MPISync(const std::string name,
 
 	// Check that we have a good list of processes
 	if (_procs.size() == 0) {
-		for (unsigned int proc = 0; proc < mpi_size; proc++) {
+		for (unsigned int proc = 0; proc < (unsigned int)mpi_size; proc++) {
 			_procs.push_back(proc);
 		}
 	}
 	for (unsigned int i = 0; i < _procs.size(); i++) {
-		if ((_procs.at(i) == mpi_rank) || (_procs.at(i) >= mpi_size)) {
+		if ((_procs.at(i) == (uicl)mpi_rank) ||
+			(_procs.at(i) >= (uicl)mpi_size)) {
 			_procs.erase(_procs.begin() + i);
 		}
 	}
@@ -180,12 +181,8 @@ MPISync::setup()
 }
 
 cl_event
-MPISync::_execute(const std::vector<cl_event> events)
+MPISync::_execute(const std::vector<cl_event> UNUSED_PARAM events)
 {
-	unsigned int i;
-	cl_int err_code;
-	CalcServer* C = CalcServer::singleton();
-
 	if (!_procs.size())
 		return NULL;
 
@@ -418,7 +415,7 @@ MPISync::setupReceivers()
 
 	// Create a tool to reinit the mask
 	std::ostringstream valstr;
-	int mpi_rank, mpi_size;
+	int mpi_rank;
 	mpi_rank = Aqua::MPI::rank(MPI_COMM_WORLD);
 	assert(mpi_rank >= 0);
 
@@ -469,13 +466,13 @@ MPISync::Exchanger::Exchanger(
 	const std::vector<InputOutput::ArrayVariable*> fields,
 	const std::vector<void*> field_hosts,
 	const uicl proc)
-  : _name(tool_name)
-  , _var_prefix(vars_prefix)
+  : _var_prefix(vars_prefix)
   , _mask(mask)
   , _fields(fields)
-  , _fields_host(field_hosts)
   , _proc(proc)
   , _n(0)
+  , _fields_host(field_hosts)
+  , _name(tool_name)
 {
 	_n = _mask->size() / InputOutput::Variables::typeToBytes(_mask->type());
 }
@@ -565,9 +562,10 @@ typedef struct
 } MPISyncSendUserData;
 
 void CL_CALLBACK
-cbMPISend(cl_event n_event, cl_int cmd_exec_status, void* user_data)
+cbMPISend(cl_event UNUSED_PARAM n_event,
+          cl_int UNUSED_PARAM cmd_exec_status,
+          void* user_data)
 {
-	MPI_Request req;
 	MPISyncSendUserData* data = (MPISyncSendUserData*)user_data;
 	ulcl offset, n;
 	if (data->n_bits == 64) {
@@ -637,7 +635,6 @@ cbMPISend(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 void
 MPISync::Sender::execute(EventProfile* profiler)
 {
-	unsigned int i, j;
 	cl_int err_code;
 	cl_event event;
 	std::vector<cl_event> event_wait_list;
@@ -698,7 +695,7 @@ MPISync::Sender::execute(EventProfile* profiler)
 				_n_offset->getWritingEvent(),
 				_n_send->getWritingEvent(),
 				_fields.at(i)->getWritingEvent() });
-		} catch (std::runtime_error e) {
+		} catch (std::runtime_error& e) {
 			LOG(L_ERROR, std::string("While creating send events ") +
 			             "syncing point in tool \"" + name() + "\".\n");
 		}
@@ -931,11 +928,11 @@ typedef struct
 } MPISyncRecvUserData;
 
 void CL_CALLBACK
-cbMPIRecv(cl_event n_event, cl_int cmd_exec_status, void* user_data)
+cbMPIRecv(cl_event UNUSED_PARAM n_event,
+          cl_int UNUSED_PARAM cmd_exec_status,
+          void* user_data)
 {
 	cl_int err_code;
-	MPI_Request req;
-	MPI_Status status;
 	cl_event mask_event = NULL, field_event = NULL;
 	auto C = CalcServer::singleton();
 	MPISyncRecvUserData* data = (MPISyncRecvUserData*)user_data;
@@ -950,7 +947,7 @@ cbMPIRecv(cl_event n_event, cl_int cmd_exec_status, void* user_data)
 
 	// So we can set the offset for the next receivers
 	size_t next_offset = offset + n;
-	data->offset->set_async((void*)(&offset));
+	data->offset->set_async((void*)(&next_offset));
 	err_code = clSetUserEventStatus(data->offset_event, CL_COMPLETE);
 	CHECK_OCL_OR_THROW(err_code,
 	                   std::string("Failure setting user event status for \"") +
@@ -1071,7 +1068,7 @@ MPISync::Receiver::execute(EventProfile* profiler)
 
 	try {
 		event = C->marker(C->command_queue(), event_wait_list);
-	} catch (std::runtime_error e) {
+	} catch (std::runtime_error& e) {
 		LOG(L_ERROR, std::string("While creating recv events ") +
 						"syncing point in tool \"" + name() + "\".\n");
 	}

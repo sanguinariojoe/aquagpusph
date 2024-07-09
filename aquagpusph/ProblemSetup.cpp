@@ -196,7 +196,7 @@ ProblemSetup::sphTool::has(const std::string name)
 unsigned int
 ProblemSetup::toolInstances(ProblemSetup::sphTool* tool)
 {
-	unsigned int i, n = 0;
+	unsigned int n = 0;
 	for (auto t : tools) {
 		if (tool == t) {
 			n++;

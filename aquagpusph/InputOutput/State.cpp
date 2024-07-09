@@ -155,7 +155,6 @@ State::State()
 
 State::~State()
 {
-	unsigned int i;
 	// Terminate Xerces
 	try {
 		XMLPlatformUtils::Terminate();
@@ -298,7 +297,7 @@ State::parse(std::string filepath, ProblemSetup& sim_data, std::string prefix)
 void
 State::parseSettings(DOMElement* root,
                      ProblemSetup& sim_data,
-                     std::string prefix)
+                     std::string UNUSED_PARAM prefix)
 {
 	DOMNodeList* nodes = root->getElementsByTagName(xmlS("Settings"));
 	for (XMLSize_t i = 0; i < nodes->getLength(); i++) {
@@ -419,7 +418,7 @@ State::parseSettings(DOMElement* root,
 void
 State::parseVariables(DOMElement* root,
                       ProblemSetup& sim_data,
-                      std::string prefix)
+                      std::string UNUSED_PARAM prefix)
 {
 	DOMNodeList* nodes = root->getElementsByTagName(xmlS("Variables"));
 	for (XMLSize_t i = 0; i < nodes->getLength(); i++) {
@@ -477,7 +476,7 @@ State::parseVariables(DOMElement* root,
 void
 State::parseDefinitions(DOMElement* root,
                         ProblemSetup& sim_data,
-                        std::string prefix)
+                        std::string UNUSED_PARAM prefix)
 {
 	DOMNodeList* nodes = root->getElementsByTagName(xmlS("Definitions"));
 	for (XMLSize_t i = 0; i < nodes->getLength(); i++) {
@@ -1041,7 +1040,9 @@ State::parseTools(DOMElement* root, ProblemSetup& sim_data, std::string prefix)
 }
 
 void
-State::parseTiming(DOMElement* root, ProblemSetup& sim_data, std::string prefix)
+State::parseTiming(DOMElement* root,
+                   ProblemSetup& sim_data,
+                   std::string UNUSED_PARAM prefix)
 {
 	DOMNodeList* nodes = root->getElementsByTagName(xmlS("Timing"));
 	for (XMLSize_t i = 0; i < nodes->getLength(); i++) {
@@ -1126,7 +1127,9 @@ State::parseTiming(DOMElement* root, ProblemSetup& sim_data, std::string prefix)
 }
 
 void
-State::parseSets(DOMElement* root, ProblemSetup& sim_data, std::string prefix)
+State::parseSets(DOMElement* root,
+                 ProblemSetup& sim_data,
+                 std::string UNUSED_PARAM prefix)
 {
 	DOMNodeList* nodes = root->getElementsByTagName(xmlS("ParticlesSet"));
 	for (XMLSize_t i = 0; i < nodes->getLength(); i++) {
@@ -1143,7 +1146,7 @@ State::parseSets(DOMElement* root, ProblemSetup& sim_data, std::string prefix)
 			unsigned long long n = std::stoll(xmlAttribute(elem, "n"));
 			try {
 				set->n(narrow_cast<size_t>(n));
-			} catch(std::out_of_range) {
+			} catch(std::out_of_range&) {
 				LOG(L_ERROR,
 				    std::string("The particles set ") +
 				    std::to_string(sim_data.sets.size()) +
@@ -1486,9 +1489,8 @@ State::writeSettings(xercesc::DOMDocument* doc,
 void
 State::writeVariables(xercesc::DOMDocument* doc,
                       xercesc::DOMElement* root,
-                      ProblemSetup& sim_data)
+                      ProblemSetup UNUSED_PARAM &sim_data)
 {
-	unsigned int i;
 	DOMElement *elem, *s_elem;
 	CalcServer::CalcServer* C = CalcServer::CalcServer::singleton();
 

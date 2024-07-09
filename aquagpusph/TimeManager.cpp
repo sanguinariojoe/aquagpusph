@@ -43,7 +43,6 @@ TimeManager::TimeManager(const ProblemSetup& sim_data)
   , _output_step(0)
   , _output_ipf(-1)
 {
-	unsigned int i;
 	Variables* vars = CalcServer::CalcServer::singleton()->variables();
 	// Check the variables validity
 	std::map<std::string, std::string> var_types{
@@ -134,7 +133,7 @@ TimeManager::mustPrintOutput()
 		*_frame += 1;
 		return true;
 	}
-	if ((_output_ipf > 0) && (step() - _output_step >= _output_ipf)) {
+	if ((_output_ipf > 0) && ((int)(step() - _output_step) >= _output_ipf)) {
 		_output_time = time();
 		_output_step = step();
 		*_frame += 1;

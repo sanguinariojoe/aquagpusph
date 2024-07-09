@@ -164,7 +164,7 @@ ScalarExpression::_execute(const std::vector<cl_event> events)
 	if (events.size()) {
 		try {
 			trigger = C->marker(C->command_queue(), events);
-		} catch (std::runtime_error e) {
+		} catch (std::runtime_error& e) {
 			LOG(L_ERROR, std::string("While executing the tool ") +
 			             name() + ".\n");
 		}

@@ -364,7 +364,7 @@ isRelativePath(const std::string path);
  * @return The local work size, 0 if it is not possible to find a valid value.
  */
 size_t
-getLocalWorkSize(size_t n, cl_command_queue queue);
+getLocalWorkSize(cl_command_queue queue);
 
 /// Compute the global work size needed to compute @paramname{n} threads.
 /**

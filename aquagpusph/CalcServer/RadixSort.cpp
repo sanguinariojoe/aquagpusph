@@ -127,7 +127,7 @@ RadixSort::setup()
 }
 
 cl_event
-RadixSort::_execute(const std::vector<cl_event> events)
+RadixSort::_execute(const std::vector<cl_event> UNUSED_PARAM events)
 {
 	cl_int err_code;
 	size_t max_val;
@@ -287,7 +287,7 @@ RadixSort::_execute(const std::vector<cl_event> events)
 		event = C->marker(C->command_queue(), { _var->getWritingEvent(),
 		                                        _perms->getWritingEvent(),
 		                                        event_wait });
-	} catch (std::runtime_error e) {
+	} catch (std::runtime_error& e) {
 		LOG(L_ERROR, std::string("While joining the output events in tool ") +
 		             name() + ".\n");
 	}
@@ -401,8 +401,6 @@ RadixSort::scan(cl_event event_histo)
 	CalcServer* C = CalcServer::singleton();
 	size_t global_work_size = _radix * _groups * _items / 2;
 	size_t local_work_size = global_work_size / _histo_split;
-	unsigned int maxmemcache =
-	    max(_histo_split, _items * _groups * _radix / _histo_split);
 
 	// 1st scan
 	// ========
@@ -868,7 +866,7 @@ RadixSort::setupDims()
 		throw std::runtime_error("OpenCL error");
 	}
 
-	_local_work_size = getLocalWorkSize(_n_padded, C->command_queue());
+	_local_work_size = getLocalWorkSize(C->command_queue());
 	_global_work_size = getGlobalWorkSize(_n_padded, _local_work_size);
 }
 
@@ -976,7 +974,6 @@ void
 RadixSort::setupTypedArgs()
 {
 	cl_int err_code;
-	CalcServer* C = CalcServer::singleton();
 
 	T n = narrow_cast<T>(_n);
 	T n_padded = narrow_cast<T>(_n_padded);

@@ -72,12 +72,12 @@ class Particles : public InputOutput
 	/** @brief Get the last printed file path.
 	 * @return The last printed file, NULL if a file has not been printed yet.
 	 */
-	const std::string& file() { return _output_file; }
+	inline const std::string& file() const { return _output_file; }
 
 	/** @brief Get the number of particles managed by this instance
 	 * @return Number of particles
 	 */
-	const size_t n() const { return _bounds.y - _bounds.x; }
+	inline size_t n() const { return _bounds.y - _bounds.x; }
 
 	/** @brief Get the user event to be waited for before the file saving is
 	 * finished
@@ -172,7 +172,7 @@ class Particles : public InputOutput
 	/** @brief Get the "particles set" index associated with this class
 	 * @return The "particles index" index.
 	 */
-	inline const unsigned int setId() const { return _iset; }
+	inline unsigned int setId() const { return _iset; }
 
 	/** @brief Register some default arrays:
 	 *   -# iset
@@ -204,7 +204,7 @@ class Particles : public InputOutput
 	/** @brief Get the current simulation time to be written
 	 * @return The simulation time
 	 */
-	inline const float time() const { return _time; }
+	inline float time() const { return _time; }
 
 	/** @brief Download the data from the device and store it
 	 * @param fields Fields to download

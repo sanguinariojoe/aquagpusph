@@ -61,7 +61,6 @@ Copy::setup()
 cl_event
 Copy::_execute(const std::vector<cl_event> events)
 {
-	unsigned int i;
 	cl_int err_code;
 	cl_event event;
 	CalcServer* C = CalcServer::singleton();

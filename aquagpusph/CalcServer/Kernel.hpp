@@ -191,17 +191,17 @@ class ArgSetter::Arg
 	/** @brief Get the size of the argument
 	 * @return The size
 	 */
-	const size_t size() const { return _size; }
+	inline size_t size() const { return _size; }
 
 	/** @brief Get the value of the argument
 	 * @return The value memory
 	 */
-	const void* value() const { return _value; }
+	inline const void* value() const { return _value; }
 
 	/** @brief Get the last recorded writing event
 	 * @return The event
 	 */
-	const cl_event event() const { return _event; }
+	inline cl_event event() const { return _event; }
 
 	/** @brief Check whether the content of a variable is the same than this
 	 * argument
@@ -345,10 +345,9 @@ class Kernel : public Aqua::CalcServer::Tool
 	          const std::string header = "");
 
 	/** Compute the variables required by the program
-	 * @param entry_point Program entry point method.
 	 * @return false if all gone right, true otherwise.
 	 */
-	void variables(const std::string entry_point = "main");
+	void variables();
 
 	/** Compute the global work size
 	 */
