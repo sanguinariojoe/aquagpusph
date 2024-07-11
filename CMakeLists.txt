@@ -124,9 +124,11 @@ option(AQUAGPUSPH_BUILD_TOOLS "Build AQUAgpusph tools" ON)
 option(AQUAGPUSPH_BUILD_EXAMPLES "Build AQUAgpusph examples" ON)
 option(AQUAGPUSPH_BUILD_DOC "Build AQUAgpusph documentation" OFF)
 option(AQUAGPUSPH_GPU_PROFILE "Profile the GPU during the runtime (consuming additional resources)" OFF)
+option(AQUAGPUSPH_CHRONO_EXAMPLES "If AQUAGPUSPH_BUILD_EXAMPLES is ON, build the examples using PROJECTCHRONO" ON)
 mark_as_advanced(
   AQUAGPUSPH_GPU_PROFILE
   AQUAGPUSPH_USE_MUPARSER
+  AQUAGPUSPH_CHRONO_EXAMPLES
 )
 
 # ===================================================== #
@@ -197,6 +199,15 @@ if(AQUAGPUSPH_USE_MUPARSER)
     endif(NOT MUPARSER_FOUND)
     set(HAVE_MUPARSER TRUE)
 endif(AQUAGPUSPH_USE_MUPARSER)
+
+if(AQUAGPUSPH_BUILD_EXAMPLES AND AQUAGPUSPH_CHRONO_EXAMPLES)
+    find_package(Chrono)
+
+    if(NOT Chrono_FOUND)
+        message(FATAL_ERROR "PROJECTCHRONO not found, but AQUAGPUSPH_CHRONO_EXAMPLES is on. Install PROJECTCHRONO or set AQUAGPUSPH_CHRONO_EXAMPLES=OFF")
+    endif(NOT Chrono_FOUND)
+    add_definitions(-DHAVE_CHRONO)
+endif(AQUAGPUSPH_BUILD_EXAMPLES AND AQUAGPUSPH_CHRONO_EXAMPLES)
 
 
 # GPU profile
