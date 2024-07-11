@@ -91,40 +91,40 @@ endif(WIN32)
 # Output directories for install target                 #
 # ===================================================== #
 if(WIN32)
-    SET(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install CACHE PATH "Installation root directory")
+    set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install CACHE PATH "Installation root directory")
 else(WIN32)
-    SET(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "Installation root directory")
-    SET(INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+    set(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "Installation root directory")
+    set(INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 endif(WIN32)
 
-SET(CMAKE_INSTALL_DATADIR share/aquagpusph CACHE PATH "Output directory for data and resource files")
-SET(CMAKE_INSTALL_DOCDIR share/doc/aquagpusph CACHE PATH "Output directory for documentation and license files")
-SET(CMAKE_INSTALL_BINDIR bin CACHE PATH "Output directory for binary files")
+set(CMAKE_INSTALL_DATADIR share/aquagpusph CACHE PATH "Output directory for data and resource files")
+set(CMAKE_INSTALL_DOCDIR share/doc/aquagpusph CACHE PATH "Output directory for documentation and license files")
+set(CMAKE_INSTALL_BINDIR bin CACHE PATH "Output directory for binary files")
 
 # used as compiler defines
-SET(RESOURCEDIR "${CMAKE_INSTALL_DATADIR}")
-SET(DOCDIR "${CMAKE_INSTALL_DOCDIR}")
+set(RESOURCEDIR "${CMAKE_INSTALL_DATADIR}")
+set(DOCDIR "${CMAKE_INSTALL_DOCDIR}")
 
-MESSAGE(STATUS "prefix: ${CMAKE_INSTALL_PREFIX}")
-MESSAGE(STATUS "datadir: ${CMAKE_INSTALL_DATADIR}")
-MESSAGE(STATUS "docdir: ${CMAKE_INSTALL_DOCDIR}")
-MESSAGE(STATUS "bindir: ${CMAKE_INSTALL_BINDIR}")
+message(STATUS "prefix: ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "datadir: ${CMAKE_INSTALL_DATADIR}")
+message(STATUS "docdir: ${CMAKE_INSTALL_DOCDIR}")
+message(STATUS "bindir: ${CMAKE_INSTALL_BINDIR}")
 
 
 # ===================================================== #
 # All the options for the build process                 #
 # ===================================================== #
-IF(NOT CMAKE_BUILD_TYPE)
-    SET(CMAKE_BUILD_TYPE "Release")
-ENDIF(NOT CMAKE_BUILD_TYPE)
-OPTION(AQUAGPUSPH_USE_MPI "Build AQUAgpusph with MPI support, for multidevice running." ON)
-OPTION(AQUAGPUSPH_USE_VTK "Build AQUAgpusph with VTK output format support." ON)
-OPTION(AQUAGPUSPH_USE_MUPARSER "Replace ExprTk (Experimental support) by MuParser." YES)
-OPTION(AQUAGPUSPH_BUILD_TOOLS "Build AQUAgpusph tools" ON)
-OPTION(AQUAGPUSPH_BUILD_EXAMPLES "Build AQUAgpusph examples" ON)
-OPTION(AQUAGPUSPH_BUILD_DOC "Build AQUAgpusph documentation" OFF)
-OPTION(AQUAGPUSPH_GPU_PROFILE "Profile the GPU during the runtime (consuming additional resources)" OFF)
-MARK_AS_ADVANCED(
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release")
+endif(NOT CMAKE_BUILD_TYPE)
+option(AQUAGPUSPH_USE_MPI "Build AQUAgpusph with MPI support, for multidevice running." ON)
+option(AQUAGPUSPH_USE_VTK "Build AQUAgpusph with VTK output format support." ON)
+option(AQUAGPUSPH_USE_MUPARSER "Replace ExprTk (Experimental support) by MuParser." YES)
+option(AQUAGPUSPH_BUILD_TOOLS "Build AQUAgpusph tools" ON)
+option(AQUAGPUSPH_BUILD_EXAMPLES "Build AQUAgpusph examples" ON)
+option(AQUAGPUSPH_BUILD_DOC "Build AQUAgpusph documentation" OFF)
+option(AQUAGPUSPH_GPU_PROFILE "Profile the GPU during the runtime (consuming additional resources)" OFF)
+mark_as_advanced(
   AQUAGPUSPH_GPU_PROFILE
   AQUAGPUSPH_USE_MUPARSER
 )
@@ -134,167 +134,191 @@ MARK_AS_ADVANCED(
 # ===================================================== #
 
 # xxd
-FIND_PACKAGE(XXD REQUIRED)
-IF(NOT XXD_FOUND)
-MESSAGE(FATAL_ERROR "xxd not found, but ${PACKAGE_NAME} requires it. Please install vim!")
-ENDIF(NOT XXD_FOUND)
+find_package(XXD REQUIRED)
+if(NOT XXD_FOUND)
+message(FATAL_ERROR "xxd not found, but ${PACKAGE_NAME} requires it. Please install vim!")
+endif(NOT XXD_FOUND)
 
 # MPI
-IF(AQUAGPUSPH_USE_MPI)
-    FIND_PACKAGE(MPI)
-    SET(HAVE_MPI TRUE)
-ENDIF(AQUAGPUSPH_USE_MPI)
+if(AQUAGPUSPH_USE_MPI)
+    find_package(MPI)
+    set(HAVE_MPI TRUE)
+endif(AQUAGPUSPH_USE_MPI)
 
 # Python
-FIND_PACKAGE(Python REQUIRED COMPONENTS
+find_package(Python REQUIRED COMPONENTS
     Interpreter
     Development
     NumPy)
 
-IF(NOT Python_FOUND)
-MESSAGE(FATAL_ERROR "Python not found, but ${PACKAGE_NAME} requires it. Please install Python!")
-ENDIF(NOT Python_FOUND)
+if(NOT Python_FOUND)
+message(FATAL_ERROR "Python not found, but ${PACKAGE_NAME} requires it. Please install Python!")
+endif(NOT Python_FOUND)
 
 # Xerces-C
-FIND_PACKAGE(XercesC REQUIRED)
+find_package(XercesC REQUIRED)
 
-IF(NOT XercesC_FOUND)
-MESSAGE(FATAL_ERROR "Xerces-C not found, but ${PACKAGE_NAME} requires it. Please install Xerces-C!")
-ENDIF(NOT XercesC_FOUND)
+if(NOT XercesC_FOUND)
+message(FATAL_ERROR "Xerces-C not found, but ${PACKAGE_NAME} requires it. Please install Xerces-C!")
+endif(NOT XercesC_FOUND)
 
 # OpenCL
-FIND_PACKAGE(OpenCL REQUIRED)
+find_package(OpenCL REQUIRED)
 
-IF(NOT OpenCL_FOUND)
-MESSAGE(FATAL_ERROR "OpenCL not found, but ${PACKAGE_NAME} requires it. Please install OpenCL!")
-ENDIF(NOT OpenCL_FOUND)
+if(NOT OpenCL_FOUND)
+message(FATAL_ERROR "OpenCL not found, but ${PACKAGE_NAME} requires it. Please install OpenCL!")
+endif(NOT OpenCL_FOUND)
 
-IF(OpenCL_VERSION_MAJOR LESS 2)
-MESSAGE(FATAL_ERROR "OpenCL ${OpenCL_VERSION_MAJOR}.${OpenCL_VERSION_MINOR} found, but OpenCL >= 2.0 is required.")
-ENDIF(OpenCL_VERSION_MAJOR LESS 2)
+if(OpenCL_VERSION_MAJOR LESS 2)
+message(FATAL_ERROR "OpenCL ${OpenCL_VERSION_MAJOR}.${OpenCL_VERSION_MINOR} found, but OpenCL >= 2.0 is required.")
+endif(OpenCL_VERSION_MAJOR LESS 2)
 
 # VTK
-IF(AQUAGPUSPH_USE_VTK)
-    FIND_PACKAGE(VTK REQUIRED COMPONENTS
+if(AQUAGPUSPH_USE_VTK)
+    find_package(VTK REQUIRED COMPONENTS
         CommonCore
         IOXML)
-    IF(NOT VTK_FOUND)
-        MESSAGE(FATAL_ERROR "VTK not found, but AQUAGPUSPH_USE_VTK is ON. Install VTK or set AQUAGPUSPH_USE_VTK=OFF")
-    ENDIF(NOT VTK_FOUND)
-    IF (VTK_VERSION VERSION_LESS "8.90.0")
-        MESSAGE(FATAL_ERROR "VTK >= 8.9 is required if AQUAGPUSPH_USE_VTK is ON. Update VTK or set AQUAGPUSPH_USE_VTK=OFF")
-    ENDIF (VTK_VERSION VERSION_LESS "8.90.0")
-    MESSAGE(STATUS "Found VTK ${VTK_VERSION}")
-    SET(HAVE_VTK TRUE)
-ENDIF(AQUAGPUSPH_USE_VTK)
+    if(NOT VTK_FOUND)
+        message(FATAL_ERROR "VTK not found, but AQUAGPUSPH_USE_VTK is ON. Install VTK or set AQUAGPUSPH_USE_VTK=OFF")
+    endif(NOT VTK_FOUND)
+    if (VTK_VERSION VERSION_LESS "8.90.0")
+        message(FATAL_ERROR "VTK >= 8.9 is required if AQUAGPUSPH_USE_VTK is ON. Update VTK or set AQUAGPUSPH_USE_VTK=OFF")
+    endif (VTK_VERSION VERSION_LESS "8.90.0")
+    message(STATUS "Found VTK ${VTK_VERSION}")
+    set(HAVE_VTK TRUE)
+endif(AQUAGPUSPH_USE_VTK)
 
 # muparser
-IF(AQUAGPUSPH_USE_MUPARSER)
-    FIND_PACKAGE(MuParser REQUIRED)
+if(AQUAGPUSPH_USE_MUPARSER)
+    find_package(MuParser REQUIRED)
 
-    IF(NOT MUPARSER_FOUND)
-    MESSAGE(FATAL_ERROR "MuParser not found, but AQUAGPUSPH_USE_MUPARSER is on. Install MuParser or set AQUAGPUSPH_USE_MUPARSER=OFF")
-    ENDIF(NOT MUPARSER_FOUND)
-    SET(HAVE_MUPARSER TRUE)
-ENDIF(AQUAGPUSPH_USE_MUPARSER)
+    if(NOT MUPARSER_FOUND)
+    message(FATAL_ERROR "MuParser not found, but AQUAGPUSPH_USE_MUPARSER is on. Install MuParser or set AQUAGPUSPH_USE_MUPARSER=OFF")
+    endif(NOT MUPARSER_FOUND)
+    set(HAVE_MUPARSER TRUE)
+endif(AQUAGPUSPH_USE_MUPARSER)
 
 
 # GPU profile
-IF(AQUAGPUSPH_GPU_PROFILE)
-    ADD_DEFINITIONS(-DHAVE_GPUPROFILE)
-ENDIF(AQUAGPUSPH_GPU_PROFILE)
+if(AQUAGPUSPH_GPU_PROFILE)
+    add_definitions(-DHAVE_GPUPROFILE)
+endif(AQUAGPUSPH_GPU_PROFILE)
 
 # Tests building
-IF(BUILD_TESTING)
-    FIND_PROGRAM(BASH_PROGRAM bash)
-    IF(NOT BASH_PROGRAM)
-        MESSAGE(FATAL_ERROR "Bash not found, but BUILD_TESTING has been set. Install Bash or set BUILD_TESTING=OFF")
-    ENDIF(NOT BASH_PROGRAM)
-    MARK_AS_ADVANCED(BASH_PROGRAM)
-ENDIF()
+if(BUILD_TESTING)
+    find_program(BASH_PROGRAM bash)
+    if(NOT BASH_PROGRAM)
+        message(FATAL_ERROR "Bash not found, but BUILD_TESTING has been set. Install Bash or set BUILD_TESTING=OFF")
+    endif(NOT BASH_PROGRAM)
+    mark_as_advanced(BASH_PROGRAM)
+endif()
 
 # ===================================================== #
 # Search special packages needed to build doc           #
 # ===================================================== #
-IF(AQUAGPUSPH_BUILD_DOC)
-    FIND_PACKAGE(Doxygen)
-    IF(NOT DOXYGEN_FOUND)
-        MESSAGE(FATAL_ERROR "Doxygen not found, but AQUAGPUSPH_BUILD_DOC is ON. Install Doxygen or set AQUAGPUSPH_BUILD_DOC=OFF")
-    ENDIF(NOT DOXYGEN_FOUND)
-    IF(NOT DOXYGEN_DOT_FOUND)
-        MESSAGE(FATAL_ERROR "Graphviz not found, but AQUAGPUSPH_BUILD_DOC is ON. Install Graphviz or set AQUAGPUSPH_BUILD_DOC=OFF")
-    ENDIF(NOT DOXYGEN_DOT_FOUND)
-ENDIF(AQUAGPUSPH_BUILD_DOC)
+if(AQUAGPUSPH_BUILD_DOC)
+    find_package(Doxygen)
+    if(NOT DOXYGEN_FOUND)
+        message(FATAL_ERROR "Doxygen not found, but AQUAGPUSPH_BUILD_DOC is ON. Install Doxygen or set AQUAGPUSPH_BUILD_DOC=OFF")
+    endif(NOT DOXYGEN_FOUND)
+    if(NOT DOXYGEN_DOT_FOUND)
+        message(FATAL_ERROR "Graphviz not found, but AQUAGPUSPH_BUILD_DOC is ON. Install Graphviz or set AQUAGPUSPH_BUILD_DOC=OFF")
+    endif(NOT DOXYGEN_DOT_FOUND)
+endif(AQUAGPUSPH_BUILD_DOC)
 
 # ===================================================== #
 # config.h stuff                                        #
 # ===================================================== #
 include(cMake/ConfigureChecks.cmake)
-IF(CMAKE_COMPILER_IS_GNUCXX)
-    CONFIGURE_FILE(config.h.gcc.cmake ${CMAKE_BINARY_DIR}/config.h)
-ELSEIF (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    CONFIGURE_FILE(config.h.clang.cmake ${CMAKE_BINARY_DIR}/config.h)
-ENDIF()
+if(CMAKE_COMPILER_IS_GNUCXX)
+    configure_file(config.h.gcc.cmake ${CMAKE_BINARY_DIR}/config.h)
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    configure_file(config.h.clang.cmake ${CMAKE_BINARY_DIR}/config.h)
+endif()
 add_definitions(-DHAVE_CONFIG_H)
-add_definitions(-Wno-write-strings)
-add_definitions(-Wno-deprecated)
-INCLUDE_DIRECTORIES(${CMAKE_BINARY_DIR})
 
 # ===================================================== #
 # Global Compiler and Linker Settings                   #
 # ===================================================== #
 # check for 64-bit platform
-IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    MESSAGE(STATUS "Platform is 64-bit")
-ELSE(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    MESSAGE(STATUS "Platform is 32-bit")
-ENDIF(CMAKE_SIZEOF_VOID_P EQUAL 8)
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    message(STATUS "Platform is 64-bit")
+else(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    message(STATUS "Platform is 32-bit")
+endif(CMAKE_SIZEOF_VOID_P EQUAL 8)
 
-SET (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DAQUA_DEBUG")
-MESSAGE(STATUS "DEBUG: ${CMAKE_CXX_FLAGS_DEBUG}")
+set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DAQUA_DEBUG")
+message(STATUS "DEBUG: ${CMAKE_CXX_FLAGS_DEBUG}")
 
 # ===================================================== #
 # Compilation parts                                     #
 # ===================================================== #
-add_compile_options(-Wall -Wextra -Wpedantic)
-ADD_SUBDIRECTORY(aquagpusph)
-ADD_SUBDIRECTORY(resources)
-IF(AQUAGPUSPH_BUILD_TOOLS)
-    ADD_SUBDIRECTORY(tools)
-ENDIF(AQUAGPUSPH_BUILD_TOOLS)
-IF(AQUAGPUSPH_BUILD_EXAMPLES)
-    ADD_SUBDIRECTORY(examples)
-ENDIF(AQUAGPUSPH_BUILD_EXAMPLES)
-IF(AQUAGPUSPH_BUILD_DOC)
-    ADD_SUBDIRECTORY(doc)
-ENDIF(AQUAGPUSPH_BUILD_DOC)
+if(HAVE_MPI)
+    set(OPTIONAL_LIBS ${OPTIONAL_LIBS} MPI::MPI_CXX)
+    set(OPTIONAL_SRCS ${OPTIONAL_SRCS} CalcServer/MPISync.cpp)
+endif(HAVE_MPI)
+if(HAVE_MUPARSER)
+    set(OPTIONAL_INCLUDE_PATH ${OPTIONAL_INCLUDE_PATH} ${MUPARSER_INCLUDE_DIRS})
+    set(OPTIONAL_LIBS ${OPTIONAL_LIBS} ${MUPARSER_LIBRARIES})
+    set(OPTIONAL_SRCS ${OPTIONAL_SRCS} Tokenizer/Tokenizer_muparser.cpp)
+else(HAVE_MUPARSER)
+    set(OPTIONAL_SRCS ${OPTIONAL_SRCS} Tokenizer/Tokenizer_exprtk.cpp)
+endif(HAVE_MUPARSER)
+if(HAVE_VTK)
+    set(OPTIONAL_LIBS ${OPTIONAL_LIBS} VTK::CommonCore VTK::IOXML)
+endif(HAVE_VTK)
+include_directories(
+    ${CMAKE_BINARY_DIR}
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/aquagpusph/ext
+    ${OPTIONAL_INCLUDE_PATH}
+)
+set(DEP_LIBS
+    Python::Python
+    Python::NumPy
+    XercesC::XercesC
+    OpenCL::OpenCL
+    ${OPTIONAL_LIBS}
+)
+add_compile_options(-Wno-write-strings -Wno-deprecated -Wall -Wextra -Wpedantic)
+add_subdirectory(aquagpusph)
+add_subdirectory(resources)
+if(AQUAGPUSPH_BUILD_TOOLS)
+    add_subdirectory(tools)
+endif(AQUAGPUSPH_BUILD_TOOLS)
+if(AQUAGPUSPH_BUILD_EXAMPLES)
+    add_subdirectory(examples)
+endif(AQUAGPUSPH_BUILD_EXAMPLES)
+if(AQUAGPUSPH_BUILD_DOC)
+    add_subdirectory(doc)
+endif(AQUAGPUSPH_BUILD_DOC)
 
-IF(BUILD_TESTING)
-    ADD_SUBDIRECTORY(tests)
-ENDIF()
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
 
 # ===================================================== #
 # Show a brief                                          #
 # ===================================================== #
-MESSAGE("=====================================================")
-MESSAGE("Target: AQUAgpusph")
-MESSAGE("Binary destination: ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}")
-MESSAGE("Resources destination: ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/resources")
-IF(AQUAGPUSPH_BUILD_EXAMPLES)
-    MESSAGE("Examples destination: ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/examples")
-ENDIF(AQUAGPUSPH_BUILD_EXAMPLES)
-IF(AQUAGPUSPH_BUILD_DOC)
-    MESSAGE("Documentation destination: ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DOCDIR}")
-ENDIF(AQUAGPUSPH_BUILD_DOC)
-MESSAGE("OPTIONS:")
-IF(AQUAGPUSPH_USE_MPI)
-    MESSAGE("    - With MPI")
-ELSE(AQUAGPUSPH_USE_MPI)
-    MESSAGE("    - Without MPI")
-ENDIF(AQUAGPUSPH_USE_MPI)
-IF(AQUAGPUSPH_USE_VTK)
-    MESSAGE("    - With VTK")
-ELSE(AQUAGPUSPH_USE_VTK)
-    MESSAGE("    - Without VTK")
-ENDIF(AQUAGPUSPH_USE_VTK)
-MESSAGE("=====================================================")
+message("=====================================================")
+message("Target: AQUAgpusph")
+message("Binary destination: ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}")
+message("Resources destination: ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/resources")
+if(AQUAGPUSPH_BUILD_EXAMPLES)
+    message("Examples destination: ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/examples")
+endif(AQUAGPUSPH_BUILD_EXAMPLES)
+if(AQUAGPUSPH_BUILD_DOC)
+    message("Documentation destination: ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DOCDIR}")
+endif(AQUAGPUSPH_BUILD_DOC)
+message("OPTIONS:")
+if(AQUAGPUSPH_USE_MPI)
+    message("    - With MPI")
+else(AQUAGPUSPH_USE_MPI)
+    message("    - Without MPI")
+endif(AQUAGPUSPH_USE_MPI)
+if(AQUAGPUSPH_USE_VTK)
+    message("    - With VTK")
+else(AQUAGPUSPH_USE_VTK)
+    message("    - Without VTK")
+endif(AQUAGPUSPH_USE_VTK)
+message("=====================================================")

@@ -1,40 +1,4 @@
 # ===================================================== #
-# Dependencies                                          #
-# ===================================================== #
-IF(HAVE_MPI)
-    SET(OPTIONAL_LIBS ${OPTIONAL_LIBS} MPI::MPI_CXX)
-    SET(OPTIONAL_SRCS ${OPTIONAL_SRCS} CalcServer/MPISync.cpp)
-ENDIF(HAVE_MPI)
-IF(HAVE_MUPARSER)
-    SET(OPTIONAL_INCLUDE_PATH ${OPTIONAL_INCLUDE_PATH} ${MUPARSER_INCLUDE_DIRS})
-    SET(OPTIONAL_LIBS ${OPTIONAL_LIBS} ${MUPARSER_LIBRARIES})
-    SET(OPTIONAL_SRCS ${OPTIONAL_SRCS} Tokenizer/Tokenizer_muparser.cpp)
-ELSE(HAVE_MUPARSER)
-    SET(OPTIONAL_SRCS ${OPTIONAL_SRCS} Tokenizer/Tokenizer_exprtk.cpp)
-ENDIF(HAVE_MUPARSER)
-IF(HAVE_VTK)
-    SET(OPTIONAL_LIBS ${OPTIONAL_LIBS} VTK::CommonCore VTK::IOXML)
-ENDIF(HAVE_VTK)
-
-# ===================================================== #
-# Include & Link                                        #
-# ===================================================== #
-INCLUDE_DIRECTORIES(
-    ${CMAKE_BINARY_DIR}
-    ${CMAKE_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/ext
-    ${OPTIONAL_INCLUDE_PATH}
-)
-
-SET(DEP_LIBS
-    Python::Python
-    Python::NumPy
-    XercesC::XercesC
-    OpenCL::OpenCL
-    ${OPTIONAL_LIBS}
-)
-
-# ===================================================== #
 # Sources to compile                                    #
 # ===================================================== #
 SET(CPP_SRCS
@@ -73,7 +37,6 @@ SET(CPP_SRCS
     CalcServer/Reports/SetTabFile.cpp
     CalcServer/Reports/TabFile.cpp
     ${OPTIONAL_SRCS}
-    main.cpp
 )
 
 # ===================================================== #
@@ -105,38 +68,68 @@ ADD_CUSTOM_TARGET(opencl_embed ALL)
 ADD_DEPENDENCIES(opencl_embed ${embed_targets})
 
 # ===================================================== #
-# target                                                #
+# library compilation                                   #
 # ===================================================== #
 SOURCE_GROUP("AQUAgpusph" FILES ${CPP_SRCS})
 
-SET(TargetName AQUAgpusph)
-ADD_EXECUTABLE(${TargetName} ${CPP_SRCS})
-TARGET_LINK_LIBRARIES(${TargetName} ${DEP_LIBS})
-ADD_DEPENDENCIES(${TargetName} opencl_embed)
+SET(LibName aquagpusph)
+ADD_LIBRARY(${LibName} SHARED ${CPP_SRCS})
+TARGET_LINK_LIBRARIES(${LibName} ${DEP_LIBS})
+ADD_DEPENDENCIES(${LibName} opencl_embed)
 
-# ===================================================== #
-# Install App                                           #
-# ===================================================== #
 if(MSVC)
-    set_target_properties(${TargetName} PROPERTIES DEBUG_OUTPUT_NAME "${TargetName}D")
-    set_target_properties(${TargetName} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
+    set_target_properties(${LibName} PROPERTIES DEBUG_OUTPUT_NAME "${LibName}D")
+    set_target_properties(${LibName} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
     # dirty hack to avoid Debug/Release subdirectory
-    set_target_properties(${TargetName} PROPERTIES PREFIX "../")
+    set_target_properties(${LibName} PROPERTIES PREFIX "../")
 elseif(MINGW)
-    set_target_properties(${TargetName} PROPERTIES DEBUG_OUTPUT_NAME "${TargetName}D")
-    set_target_properties(${TargetName} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
+    set_target_properties(${LibName} PROPERTIES DEBUG_OUTPUT_NAME "${LibName}D")
+    set_target_properties(${LibName} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
 else(MSVC)
-    set_target_properties(${TargetName} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
-    set_target_properties(${TargetName} PROPERTIES INSTALL_RPATH ${INSTALL_RPATH})
+    set_target_properties(${LibName} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
+    set_target_properties(${LibName} PROPERTIES INSTALL_RPATH ${INSTALL_RPATH})
 endif(MSVC)
 
 if(WIN32)
-    INSTALL(TARGETS ${TargetName}
+    INSTALL(TARGETS ${LibName}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     )
 else(WIN32)
-    INSTALL(TARGETS ${TargetName}
+    INSTALL(TARGETS ${LibName}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    )
+endif(WIN32)
+
+
+# ===================================================== #
+# program compilation                                   #
+# ===================================================== #
+SET(AppName AQUAgpusph)
+ADD_EXECUTABLE(${AppName} main.cpp)
+TARGET_LINK_LIBRARIES(${AppName} ${LibName} ${DEP_LIBS})
+
+if(MSVC)
+    set_target_properties(${AppName} PROPERTIES DEBUG_OUTPUT_NAME "${AppName}D")
+    set_target_properties(${AppName} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
+    # dirty hack to avoid Debug/Release subdirectory
+    set_target_properties(${AppName} PROPERTIES PREFIX "../")
+elseif(MINGW)
+    set_target_properties(${AppName} PROPERTIES DEBUG_OUTPUT_NAME "${AppName}D")
+    set_target_properties(${AppName} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
+else(MSVC)
+    set_target_properties(${AppName} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
+    set_target_properties(${AppName} PROPERTIES INSTALL_RPATH ${INSTALL_RPATH})
+endif(MSVC)
+
+if(WIN32)
+    INSTALL(TARGETS ${AppName}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    )
+else(WIN32)
+    INSTALL(TARGETS ${AppName}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     )
