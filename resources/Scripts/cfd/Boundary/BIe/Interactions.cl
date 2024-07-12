@@ -145,7 +145,7 @@ __kernel void p_boundary(const __global int* imove,
         #define _P_ p_l[it]
         __local float p_l[LOCAL_MEM_SIZE];
     #endif
-    _P_ = 0.0;
+    _P_ = 0.f;
 
     const usize c_i = icell[i];
     BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
