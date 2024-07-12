@@ -18,11 +18,9 @@ file(GLOB_RECURSE FNAMES RELATIVE ${TEST_ORIG_DIR} "${TEST_ORIG_DIR}/*")
 foreach(FNAME ${FNAMES})
     get_filename_component(FEXT ${FNAME} EXT)
     if((${FEXT} MATCHES ".xml") OR (${FEXT} MATCHES ".py") OR (${FEXT} MATCHES ".sh"))
-        message(STATUS "${TEST_ORIG_DIR}/${FNAME} -> ${TEST_DEST_DIR}/${FNAME}")
         configure_file(${TEST_ORIG_DIR}/${FNAME}
             ${TEST_DEST_DIR}/${FNAME} @ONLY)
     else()
-        message(STATUS "${TEST_ORIG_DIR}/${FNAME} -> ${TEST_DEST_DIR}/${FNAME}")
         configure_file(${TEST_ORIG_DIR}/${FNAME}
             ${TEST_DEST_DIR}/${FNAME} COPYONLY)
     endif()

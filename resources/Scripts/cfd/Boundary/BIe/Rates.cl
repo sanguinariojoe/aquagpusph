@@ -61,7 +61,36 @@ __kernel void entry(const __global int* imove,
     div_u[i] -= 2.f * rho[i] * (dot(u[i], grad_w_bi[i]) + div_u_bi[i]);
 }
 
-/** @brief Filter out the fluid particles from the forces.
+/** @brief Filter out other boundaries from the pressure.
+ *
+ * This is used to compute the force on an specific iset
+ * @param iset Particle set
+ * @param imove Moving flags.
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param p Pressure of the boundary element \f$ p \f$.
+ * @param forces_iset Particles set of interest.
+ * @param N Number of particles.
+ */
+__kernel void filter_press(const __global uint* iset,
+                           const __global int* imove,
+                           __global float* p,
+                           unsigned int forces_iset,
+                           usize N)
+{
+    const usize i = get_global_id(0);
+    if(i >= N)
+        return;
+    if(imove[i] != -3) {
+        return;
+    }
+
+    if(iset[i] != forces_iset)
+        p[i] = 0.f;
+}
+
+/** @brief Compute the force and torque at the boundary.
  *
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
@@ -100,6 +129,6 @@ __kernel void force_press(const __global int* imove,
     vec4 R = (vec4)(0.f);
     F.XYZ = p[i] * m[i] * normal[i].XYZ;
     R.XYZ = r[i].XYZ - forces_r.XYZ;
-    force_p[i] = F.XYZ;
+    force_p[i] = F;
     moment_p[i] = cross(R, F);    
 }

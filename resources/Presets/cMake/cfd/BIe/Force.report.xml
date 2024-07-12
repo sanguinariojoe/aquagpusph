@@ -7,6 +7,6 @@ Report the force computed by Force.xml
 <sphInput>
     <Tools>
         <Tool name="cfd BIe Force screen report" action="insert" after="Corrector" type="report_screen" fields="t,Force_p,Moment_p,Force_elastic" color="blue" bold="false"/>
-        <Tool name="cfd BIe Force screen report" action="insert" after="Corrector" type="report_file" fields="t,Force_p,Moment_p,Force_elastic" path="force.out"/>
+        <Tool name="cfd BIe Force file report" action="insert" after="Corrector" type="report_file" fields="t,Force_p,Moment_p,Force_elastic" path="force.out"/>
     </Tools>
 </sphInput>
