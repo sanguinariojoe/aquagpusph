@@ -18,7 +18,7 @@ can set the variable forces_iset.
 
     <Tools>
         <Tool name="cfd BIe backup p" action="try_remove" type="dummy"></Tool>
-        <Tool name="cfd BIe backup p" action="insert" before="cfd BIe p_boundary" type="copy" in="p" out="p_backup"/>
+        <Tool name="cfd BIe backup p" action="insert" after="cfd BIe p_boundary" type="copy" in="p" out="p_backup"/>
         <Tool name="cfd BIe p_iset" action="insert" before="cfd BIe force_p" type="kernel" entry_point="filter_press" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/BIe/Rates.cl"/>
         <Tool name="cfd BIe force_p_iset" action="insert" before="cfd BIe force_p" type="kernel" entry_point="force_press" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/BIe/Rates.cl"/>
         <Tool name="cfd BIe Force_p_iset" action="insert" before="cfd BIe force_p" type="reduction" in="force_p" out="Force_p_iset" null="VEC_ZERO">c = a + b</Tool>
