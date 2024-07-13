@@ -129,6 +129,6 @@ __kernel void force_press(const __global int* imove,
     vec4 R = (vec4)(0.f);
     F.XYZ = p[i] * m[i] * normal[i].XYZ;
     R.XYZ = r[i].XYZ - forces_r.XYZ;
-    force_p[i] = F;
+    force_p[i].XYZ = F.XYZ;
     moment_p[i] = cross(R, F);    
 }
