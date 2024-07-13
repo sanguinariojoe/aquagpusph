@@ -97,6 +97,7 @@ setForce(std::shared_ptr<chrono::ChForce> var, vec4 value)
     } else {
         const auto norm = v.Length();
         v.Scale(1.0 / norm);
+        var->SetVrelpoint(chrono::ChVector3d(0, 0, 0));
         var->SetDir(v);
         var->SetMforce(norm);
     }
@@ -116,8 +117,13 @@ setVec(Aqua::InputOutput::Variable* var, chrono::ChVector3d value)
 cl_event
 TitanSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
 {
+    // On NWU coordinates:
+    //    x : Positive moment = negative roll = portside goes down
+    //    y : Positive moment = negative pitch = bow goes up
+    //    z : Positive moment = negative yaw = bow goes to the boardside
+    // Thus we are inverting the angles to match the AQUAgpusph criteria
     auto vars = CalcServer::singleton()->variables();
-    // Get the data from AQUAgpusph
+    // Get the forces from AQUAgpusph
     float dt = *((float*)vars->get("dt")->get(true));
     const vec4 F = *((vec4*)vars->get("Force_p_iset")->get(true));
     const vec4 M = *((vec4*)vars->get("Moment_p_iset")->get(true));
@@ -129,7 +135,7 @@ TitanSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
     const chrono::ChVector3d r = _titan->GetPos();
     const chrono::ChVector3d drdt = _titan->GetLinVel();
     const chrono::ChVector3d ddrddt = _titan->GetLinAcc();
-    const chrono::ChVector3d a = _titan->GetRotMat().GetCardanAnglesXYZ();
+    const chrono::ChVector3d a = -_titan->GetRotMat().GetCardanAnglesXYZ();
     vec4 a_prev = *((vec4*)vars->get("motion_dadt")->get(true));
     const chrono::ChVector3d dadt = a - chrono::ChVector3d(
         a_prev.x, a_prev.y, a_prev.z);
