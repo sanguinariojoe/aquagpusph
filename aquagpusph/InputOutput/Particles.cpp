@@ -244,7 +244,6 @@ Particles::download(std::vector<std::string> fields)
 {
 	std::vector<cl_event> events;
 	size_t typesize, len;
-	cl_int err_code;
 	auto C = CalcServer::CalcServer::singleton();
 	Variables* vars = C->variables();
 
@@ -306,14 +305,7 @@ Particles::download(std::vector<std::string> fields)
 	}
 
 	// Join all the events together
-	cl_event trigger;
-	err_code = clEnqueueMarkerWithWaitList(
-	    C->command_queue(), events.size(), events.data(), &trigger);
-	if (err_code != CL_SUCCESS) {
-		LOG(L_ERROR, "Failure setting the trigger for data saving.\n");
-		Logger::singleton()->printOpenCLError(err_code);
-		throw std::runtime_error("OpenCL execution error");
-	}
+	cl_event trigger = C->marker(C->command_queue(), events);
 
 	// And we do not want everybody waiting for us, so we create another
 	// parallel command queue to continue the work, just in case
