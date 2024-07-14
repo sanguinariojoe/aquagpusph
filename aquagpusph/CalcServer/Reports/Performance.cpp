@@ -254,7 +254,7 @@ Performance::writer()
 	std::ofstream f(output_file, std::ios::out | std::ios::trunc);
 	if (!f.is_open()) {
 		std::ostringstream msg;
-		msg << "Failure writing on '" << _output_file << "'" << std::endl;
+		msg << "Failure writing on '" << output_file << "'" << std::endl;
 		LOG(L_ERROR, msg.str());
 	}
 	return f;

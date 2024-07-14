@@ -40,21 +40,8 @@
 #include <vtkVertex.h>
 #include <vtkCellArray.h>
 
-#include <xercesc/dom/DOM.hpp>
-#include <xercesc/dom/DOMDocument.hpp>
-#include <xercesc/dom/DOMDocumentType.hpp>
-#include <xercesc/dom/DOMElement.hpp>
-#include <xercesc/dom/DOMImplementation.hpp>
-#include <xercesc/dom/DOMImplementationLS.hpp>
-#include <xercesc/dom/DOMNodeIterator.hpp>
-#include <xercesc/dom/DOMNodeList.hpp>
-#include <xercesc/dom/DOMText.hpp>
-#include <xercesc/parsers/XercesDOMParser.hpp>
-#include <xercesc/framework/StdOutFormatTarget.hpp>
-#include <xercesc/framework/LocalFileFormatTarget.hpp>
-#include <xercesc/util/XMLUni.hpp>
-
 #include "aquagpusph/sphPrerequisites.hpp"
+#include "aquagpusph/ext/json.hpp"
 #include "Particles.hpp"
 
 namespace Aqua {
@@ -152,28 +139,18 @@ class VTK : public Particles
 	 */
 	vtkXMLUnstructuredGridWriter* create();
 
-	/** @brief Create/Update the Paraview Data File.
+	/** @brief Create/Update the VTK series json file.
 	 *
-	 * Such file is used to indicates Paraview the list of files which compose
-	 * an animation, and the time instant of each one.
+	 * Such file provides info about the simulation time associated to each
+	 * snapshot.
 	 * @param t Simulation time
 	 */
-	void updatePVD(float t);
+	void updateSeries(float t);
 
-	/** @brief Check if the Paraview Data File exist, creating it otherwise.
-	 *
-	 * Such file is used to indicates Paraview the list of files which compose
-	 * an animation, and the time instant of each one.
-	 * @param generate true if the file should be generated in case it does not
-	 * exist, false if the document should be associated to an existing file.
-	 * @return The document object. NULL if the file cannot be open/generated
+	/** @brief VTK series file name
+	 * @return the VTK series file name
 	 */
-	xercesc::DOMDocument* getPVD(bool generate = true);
-
-	/** @brief PVD file name
-	 * @return the PVD file name
-	 */
-	const std::string filenamePVD();
+	const std::string filenameSeries();
 
 	/// Next output file index
 	unsigned int _next_file_index;
@@ -181,8 +158,12 @@ class VTK : public Particles
 	/// VTK object to be edited and saved
 	vtkUnstructuredGrid* _vtk;
 
-	/// PVD file name
-	std::string _namePVD;
+	/// VTK series file name
+	std::string _name_series;
+
+	/// VTK series data
+	nlohmann::json _data_series;
+
 }; // class InputOutput
 
 }

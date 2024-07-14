@@ -6,7 +6,7 @@ if [[ $1 == "--run" ]]; then
     rm -f AQUAgpusph.save.*.xml
     rm -f log.*.html
     rm -f *.vtu
-    rm -f *.pvd
+    rm -f *.vtu.series
     rm -f Timing.dat
     rm -f Performance.dat
     @EXAMPLE_DEST_DIR@/Create.py

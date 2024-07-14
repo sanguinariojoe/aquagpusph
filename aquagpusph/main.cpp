@@ -148,7 +148,7 @@ main(int argc, char* argv[])
 	std::cout << "\t\tLeo Miguel Gonzalez" << std::endl;
 	std::cout << "\t\tAntonio Souto-Iglesias" << std::endl;
 	std::cout << "\t\tJavier Calderon-Sanchez" << std::endl;
-	std::cout << "\tAQUAgpusph Copyright (C) 2012-2018  Jose Luis Cercos-Pita"
+	std::cout << "\tAQUAgpusph Copyright (C) 2012-2024  Jose Luis Cercos-Pita"
 	          << std::endl;
 	std::cout << "\tThis program comes with ABSOLUTELY NO WARRANTY; for "
 	             "details see LICENSE."

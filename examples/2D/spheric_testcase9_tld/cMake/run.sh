@@ -6,9 +6,9 @@ if [[ $1 == "--run" ]]; then
     rm -f AQUAgpusph.save.*.xml
     rm -f log.*.html
     rm -f output.*.vtu
-    rm -f output.pvd
+    rm -f output.vtu.series
     rm -f output_bc.*.vtu
-    rm -f output_bc.pvd
+    rm -f output_bc.vtu.series
     rm -f Timing.dat
     rm -f force.out
     rm -f Performance.dat

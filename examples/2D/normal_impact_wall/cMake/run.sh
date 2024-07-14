@@ -5,7 +5,7 @@ if [[ $1 == "--run" ]]; then
     rm -f AQUAgpusph.save.*.xml
     rm -f log.*.html
     rm -f output.*.vtu
-    rm -f output.pvd
+    rm -f output.vtu.series
     @EXAMPLE_DEST_DIR@/Create.py
     @BINARY_DIR@/AQUAgpusph -d 2 -i Main.xml
 elif [[ $1 == "--plot" ]]; then

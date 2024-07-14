@@ -35,56 +35,8 @@
 #include "aquagpusph/AuxiliarMethods.hpp"
 
 #include <vector>
-static std::vector<std::string> cpp_str;
-static std::vector<XMLCh*> xml_str;
-static std::vector<xercesc::XercesDOMParser*> parsers;
 
-static std::string
-xmlTranscode(const XMLCh* txt)
-{
-	std::string str = xercesc::XMLString::transcode(txt);
-	cpp_str.push_back(str);
-	return str;
-}
-
-static XMLCh*
-xmlTranscode(const std::string txt)
-{
-	XMLCh* str = xercesc::XMLString::transcode(txt.c_str());
-	xml_str.push_back(str);
-	return str;
-}
-
-static void
-xmlClear()
-{
-	cpp_str.clear();
-	for (auto str : xml_str) {
-		xercesc::XMLString::release(&str);
-	}
-	xml_str.clear();
-	for (auto parser : parsers) {
-		delete parser;
-	}
-	parsers.clear();
-}
-
-#ifdef xmlS
-#undef xmlS
-#endif // xmlS
-#define xmlS(txt) xmlTranscode(txt)
-
-#ifdef xmlAttribute
-#undef xmlAttribute
-#endif
-#define xmlAttribute(elem, att) xmlS(elem->getAttribute(xmlS(att)))
-
-#ifdef xmlHasAttribute
-#undef xmlHasAttribute
-#endif
-#define xmlHasAttribute(elem, att) elem->hasAttribute(xmlS(att))
-
-using namespace xercesc;
+using json = nlohmann::json;
 
 namespace Aqua {
 namespace InputOutput {
@@ -96,6 +48,9 @@ VTK::VTK(ProblemSetup& sim_data,
   : Particles(sim_data, iset, first, n_in)
   , _next_file_index(0)
   , _vtk(NULL)
+  , _name_series("")
+  , _data_series({ { "file-series-version", "1.0" },
+                   { "files", json::array() } })
 {
 	if (n() == 0) {
 		n(compute_n());
@@ -402,7 +357,7 @@ VTK::print_file()
 	LOG(L_INFO, std::string("Wrote \"") + f->GetFileName() + "\" VTK file.\n");
 	f->Delete();
 
-	updatePVD(time());
+	updateSeries(time());
 
 	Particles::print_file();
 }
@@ -750,161 +705,47 @@ VTK::create()
 }
 
 void
-VTK::updatePVD(float t)
+VTK::updateSeries(float t)
 {
-	unsigned int n;
-
 	std::ostringstream msg;
-	msg << "Writing \"" << filenamePVD() << "\" Paraview data file..."
+	msg << "Writing \"" << filenameSeries() << "\" Paraview data file..."
 	    << std::endl;
 	LOG(L_INFO, msg.str());
 
-	bool should_release_doc = false;
-	DOMDocument* doc = getPVD(false);
-	if (!doc) {
-		should_release_doc = true;
-		doc = getPVD(true);
-	}
-	DOMElement* root = doc->getDocumentElement();
-	if (!root) {
-		LOG(L_ERROR, "Empty XML file found!\n");
-		throw std::runtime_error("Bad XML file format");
-	}
-	n = doc->getElementsByTagName(xmlS("VTKFile"))->getLength();
-	if (n != 1) {
-		std::ostringstream msg;
-		msg << "Expected 1 VTKFile root section, but " << n << "have been found"
-		    << std::endl;
-		LOG(L_ERROR, msg.str());
-		throw std::runtime_error("Bad XML file format");
-	}
+	auto jfile = json::object();
+	jfile["name"] = file();
+	jfile["time"] = t;
+	_data_series["files"].push_back(jfile);
 
-	DOMNodeList* nodes = root->getElementsByTagName(xmlS("Collection"));
-	if (nodes->getLength() != 1) {
+	std::ofstream f(filenameSeries(), std::ios::out | std::ios::trunc);
+	if (!f.is_open()) {
 		std::ostringstream msg;
-		msg << "Expected 1 collection, but " << nodes->getLength()
-		    << "have been found" << std::endl;
+		msg << "Failure writing on '" << filenameSeries() << "'" << std::endl;
 		LOG(L_ERROR, msg.str());
 	}
-	DOMNode* node = nodes->item(0);
-	DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
-
-	DOMElement* s_elem;
-	s_elem = doc->createElement(xmlS("DataSet"));
-	s_elem->setAttribute(xmlS("timestep"), xmlS(std::to_string(t)));
-	s_elem->setAttribute(xmlS("group"), xmlS(""));
-	s_elem->setAttribute(xmlS("part"), xmlS("0"));
-	s_elem->setAttribute(xmlS("file"), xmlS(file()));
-	elem->appendChild(s_elem);
-
-	// Save the XML document to a file
-	DOMImplementation* impl;
-	DOMLSSerializer* saver;
-	impl = DOMImplementationRegistry::getDOMImplementation(xmlS("LS"));
-	saver = ((DOMImplementationLS*)impl)->createLSSerializer();
-
-	if (saver->getDomConfig()->canSetParameter(
-	        XMLUni::fgDOMWRTFormatPrettyPrint, true))
-		saver->getDomConfig()->setParameter(XMLUni::fgDOMWRTFormatPrettyPrint,
-		                                    true);
-	saver->setNewLine(xmlS("\r\n"));
-
-	std::string fname = filenamePVD();
-	XMLFormatTarget* target = new LocalFileFormatTarget(fname.c_str());
-	// XMLFormatTarget *target = new StdOutFormatTarget();
-	DOMLSOutput* output = ((DOMImplementationLS*)impl)->createLSOutput();
-	output->setByteStream(target);
-	output->setEncoding(xmlS("UTF-8"));
-
-	try {
-		saver->write(doc, output);
-	} catch (XMLException& e) {
-		std::string message = xmlS(e.getMessage());
-		LOG(L_ERROR, "XML toolkit writing error.\n");
-		std::ostringstream msg;
-		msg << "\t" << message << std::endl;
-		LOG0(L_DEBUG, msg.str());
-		xmlClear();
-		throw;
-	} catch (DOMException& e) {
-		std::string message = xmlS(e.getMessage());
-		LOG(L_ERROR, "XML DOM writing error.\n");
-		std::ostringstream msg;
-		msg << "\t" << message << std::endl;
-		LOG0(L_DEBUG, msg.str());
-		xmlClear();
-		throw;
-	} catch (...) {
-		LOG(L_ERROR, "Writing error.\n");
-		LOG0(L_DEBUG, "\tUnhandled exception\n");
-		xmlClear();
-		throw;
-	}
-
-	target->flush();
-
-	delete target;
-	saver->release();
-	output->release();
-	if (should_release_doc)
-		doc->release();
-	xmlClear();
-}
-
-DOMDocument*
-VTK::getPVD(bool generate)
-{
-	DOMDocument* doc = NULL;
-	FILE* dummy = NULL;
-
-	// Try to open as ascii file, just to know if the file already exist
-	dummy = fopen(filenamePVD().c_str(), "r");
-	if (!dummy) {
-		if (!generate) {
-			return NULL;
-		}
-		DOMImplementation* impl;
-		impl = DOMImplementationRegistry::getDOMImplementation(xmlS("Range"));
-		DOMDocument* doc = impl->createDocument(NULL, xmlS("VTKFile"), NULL);
-		DOMElement* root = doc->getDocumentElement();
-		root->setAttribute(xmlS("type"), xmlS("Collection"));
-		root->setAttribute(xmlS("version"), xmlS("0.1"));
-		DOMElement* elem;
-		elem = doc->createElement(xmlS("Collection"));
-		root->appendChild(elem);
-		return doc;
-	}
-	fclose(dummy);
-	XercesDOMParser* parser = new XercesDOMParser();
-	parser->setValidationScheme(XercesDOMParser::Val_Never);
-	parser->setDoNamespaces(false);
-	parser->setDoSchema(false);
-	parser->setLoadExternalDTD(false);
-	std::string fname = filenamePVD();
-	parser->parse(fname.c_str());
-	doc = parser->getDocument();
-	parsers.push_back(parser);
-	return doc;
+	f << _data_series.dump(4) << std::endl;
+	f.close();
 }
 
 const std::string
-VTK::filenamePVD()
+VTK::filenameSeries()
 {
-	if (_namePVD == "") {
+	const std::string ext(".vtu.series");
+	if (_name_series == "") {
 		try {
 			unsigned int i = 0;
-			_namePVD = newFilePath(
-			    simData().sets.at(setId())->outputPath() + ".pvd", i, 1);
+			_name_series = newFilePath(
+			    simData().sets.at(setId())->outputPath() + ext, i, 1);
 		} catch (std::invalid_argument& e) {
 			std::ostringstream msg;
-			_namePVD =
+			_name_series =
 			    setStrConstantsCopy(simData().sets.at(setId())->outputPath()) +
-			    ".pvd";
-			msg << "Overwriting '" << _namePVD << "'" << std::endl;
+			    ext;
+			msg << "Overwriting '" << _name_series << "'" << std::endl;
 			LOG(L_WARNING, msg.str());
 		}
 	}
-	return _namePVD;
+	return _name_series;
 }
 
 }
