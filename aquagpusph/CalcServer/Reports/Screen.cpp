@@ -71,23 +71,13 @@ screenreport_cb(cl_event event, cl_int event_command_status, void* user_data)
 		msg << "Skipping \"" << tool->name() << "\" due to dependency errors."
 		    << std::endl;
 		LOG(L_WARNING, msg.str());
-		clSetUserEventStatus(tool->getUserEvent(), event_command_status);
-		clReleaseEvent(tool->getUserEvent());
+		tool->setUserEventStatus(event_command_status);
 		return;
 	}
 
 	InputOutput::Logger::singleton()->writeReport(
 	    tool->data());
-	cl_int err_code;
-	err_code = clSetUserEventStatus(tool->getUserEvent(), CL_COMPLETE);
-	CHECK_OCL_OR_THROW(err_code,
-	                   std::string("Failure setting as complete the tool \"") +
-	                       tool->name() + "\".");
-	err_code = clReleaseEvent(tool->getUserEvent());
-	CHECK_OCL_OR_THROW(
-	    err_code,
-	    std::string("Failure releasing the user event in tool \"") +
-	        tool->name() + "\".");
+	tool->setUserEventStatus(CL_COMPLETE);
 }
 
 cl_event

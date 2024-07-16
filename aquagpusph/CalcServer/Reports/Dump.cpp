@@ -158,15 +158,7 @@ Dump::print()
 		}
 	}
 	f.close();
-	cl_int err_code;
-	err_code = clSetUserEventStatus(getUserEvent(), CL_COMPLETE);
-	CHECK_OCL_OR_THROW(err_code,
-		std::string("Failure setting as complete the tool \"") +
-		name() + "\".");
-	err_code = clReleaseEvent(getUserEvent());
-	CHECK_OCL_OR_THROW(err_code,
-		std::string("Failure releasing the user event in tool \"") +
-		name() + "\".");
+	setUserEventStatus(CL_COMPLETE);
 }
 
 /** @brief Callback called when all the variables required by
@@ -190,8 +182,7 @@ dumpfile_cb(cl_event event, cl_int event_command_status, void* user_data)
 		msg << "Skipping \"" << tool->name() << "\" due to dependency errors."
 		    << std::endl;
 		LOG(L_WARNING, msg.str());
-		clSetUserEventStatus(tool->getUserEvent(), event_command_status);
-		clReleaseEvent(tool->getUserEvent());
+		tool->setUserEventStatus(event_command_status);
 		return;
 	}
 

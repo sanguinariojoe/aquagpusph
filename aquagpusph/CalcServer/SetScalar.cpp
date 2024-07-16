@@ -78,7 +78,7 @@ ScalarExpression::setOutputType(const std::string type)
 void
 ScalarExpression::solve()
 {
-	cl_int err_code;
+	cl_int err_code, status = CL_COMPLETE;
 
 	dynamic_cast<ScalarProfile*>(Profiler::substages().front())->start();
 
@@ -87,17 +87,10 @@ ScalarExpression::solve()
 	try {
 		_solve();
 	} catch (...) {
-		err_code = clSetUserEventStatus(user_event, -1);
-		if (err_code != CL_SUCCESS) {
-			std::stringstream msg;
-			msg << "Failure setting the error on the tool \"" << name()
-			    << "\" user event." << std::endl;
-			LOG(L_ERROR, msg.str());
-		}
-		return;
+		status = -1;
 	}
 
-	err_code = clSetUserEventStatus(user_event, CL_COMPLETE);
+	err_code = clSetUserEventStatus(user_event, status);
 	CHECK_OCL_OR_THROW(err_code,
 	                   std::string("Failure setting as complete the tool \"") +
 	                       name() + "\".");

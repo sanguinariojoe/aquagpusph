@@ -92,6 +92,28 @@ class Report : public Aqua::CalcServer::Tool
 	 */
 	inline cl_event getUserEvent() const { return _user_event; }
 
+	/** @brief Set the user event status
+	 *
+	 * @param status Either CL_COMPLETE or a negative integer
+	 * @throw std::runtime_error if an OpenCL error is detected
+	 * @warning After calling this function, the event eventually got with
+	 * ::getUserEvent() is not valid anymore
+	 */
+	inline void setUserEventStatus(cl_int status) const {
+		cl_int err_code;
+		// We need to store the user event so it is not getting overwritten
+		// between clSetUserEventStatus() and clReleaseEvent()
+		const cl_event user_event = getUserEvent();
+		err_code = clSetUserEventStatus(user_event, status);
+		CHECK_OCL_OR_THROW(err_code,
+			std::string("Failure setting as complete the tool \"") +
+			name() + "\".");
+		err_code = clReleaseEvent(user_event);
+		CHECK_OCL_OR_THROW(err_code,
+			std::string("Failure releasing the user event in tool \"") +
+			name() + "\".");
+	}
+
   protected:
 	/** @brief Compute the fields by lines
 	 */
