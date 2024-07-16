@@ -1263,6 +1263,7 @@ CalcServer::setupPlatform()
 	name[name_len] = '\0';
 	if (std::string(name).find("NVIDIA CUDA") != std::string::npos)
 		_is_nvidia = true;
+	delete[] name;
 
 	for (const auto& [key, value] : device_config.patches) {
 		const std::string id = split(key, '#')[1];
