@@ -75,7 +75,7 @@ class Variable
 
 	/** @brief Destructor.
 	 */
-	virtual ~Variable(){};
+	virtual ~Variable();
 
 	/** @brief Let efficiently know whether the variable is an array or not
 	 *

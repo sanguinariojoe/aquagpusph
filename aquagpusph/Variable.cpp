@@ -44,6 +44,13 @@ Variable::Variable(const std::string varname, const std::string vartype)
 	_event = Variable::createDummyEvent();
 }
 
+Variable::~Variable()
+{
+	cleanReadingEvents();
+	if (_event)
+		clReleaseEvent(_event);
+}
+
 void
 Variable::set(void UNUSED_PARAM *ptr, bool synced)
 {
