@@ -67,6 +67,7 @@ UnSort::~UnSort()
 	if (_kernel)
 		clReleaseKernel(_kernel);
 	_kernel = NULL;
+	delete _args_setter;
 }
 
 void
