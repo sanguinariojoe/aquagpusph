@@ -534,6 +534,7 @@ Kernel::variables()
 			InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		}
 		auto var = vars->get(arg_name);
+		delete[] arg_name;
 		if (!var) {
 			std::stringstream msg;
 			msg << "The tool \"" << name()
