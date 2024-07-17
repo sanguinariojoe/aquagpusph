@@ -61,7 +61,13 @@ Tool::Tool(const std::string tool_name, bool once)
 {
 }
 
-Tool::~Tool() {}
+Tool::~Tool()
+{
+	// We are not waiting for the event. Someone outside should take care on
+	// this
+	if (_event)
+		clReleaseEvent(_event);
+}
 
 void
 Tool::setup()
