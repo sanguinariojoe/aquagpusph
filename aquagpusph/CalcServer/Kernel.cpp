@@ -372,6 +372,7 @@ Kernel::make(const std::string entry_point,
 		throw std::ifstream::failure(msg.str());
 	}
 	source << header << script.rdbuf();
+	script.close();
 
 	// Setup the default flags
 	flags << "-I" << getFolderFromFilePath(path()) << " ";
