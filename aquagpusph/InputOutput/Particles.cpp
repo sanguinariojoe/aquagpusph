@@ -242,6 +242,7 @@ Particles::file(const std::string basename,
 cl_event
 Particles::download(std::vector<std::string> fields)
 {
+	cl_int err_code;
 	std::vector<cl_event> events;
 	size_t typesize, len;
 	auto C = CalcServer::CalcServer::singleton();
@@ -302,10 +303,16 @@ Particles::download(std::vector<std::string> fields)
 		                               typesize * (bounds().y - bounds().x),
 		                               _data.at(field));
 		events.push_back(event);
+		err_code = clFlush(C->command_queue());
+		CHECK_OCL_OR_THROW(err_code, "Failure flushing the command queue");
 	}
 
 	// Join all the events together
 	cl_event trigger = C->marker(C->command_queue(), events);
+	for (auto e : events) {
+		err_code = clReleaseEvent(e);
+		CHECK_OCL_OR_THROW(err_code, "Failure releasing a reading event");
+	}
 
 	// And we do not want everybody waiting for us, so we create another
 	// parallel command queue to continue the work, just in case
