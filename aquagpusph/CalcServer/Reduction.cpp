@@ -117,23 +117,26 @@ populator(cl_event event, cl_int event_command_status, void* user_data)
 	cl_int err_code;
 	clReleaseEvent(event);
 	auto tool = (Reduction*)user_data;
+	const cl_event user_event = tool->getUserEvent();
 	if (event_command_status != CL_COMPLETE) {
 		std::stringstream msg;
 		msg << "Skipping \"" << tool->name()
 		    << "\" variable population due to dependency errors." << std::endl;
 		LOG(L_WARNING, msg.str());
-		clSetUserEventStatus(tool->getUserEvent(), event_command_status);
-		clReleaseEvent(tool->getUserEvent());
+		clSetUserEventStatus(user_event, event_command_status);
+		clReleaseEvent(user_event);
 		return;
 	}
 
 	auto var = tool->getOutputDependencies()[0];
 	auto vars = CalcServer::singleton()->variables();
 	vars->populate(var);
-	err_code = clSetUserEventStatus(tool->getUserEvent(), CL_COMPLETE);
+	err_code = clSetUserEventStatus(user_event, CL_COMPLETE);
 	CHECK_OCL_OR_THROW(err_code,
 	                   "Failure setting the variable population event");
-	clReleaseEvent(tool->getUserEvent());
+	err_code = clReleaseEvent(user_event);
+	CHECK_OCL_OR_THROW(err_code,
+	                   "Failure releasing the variable population event");
 }
 
 cl_event
@@ -245,8 +248,13 @@ Reduction::_execute(const std::vector<cl_event> events)
 	}
 
 	profiler->end(event);
+	err_code = clReleaseEvent(_user_event);
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure releasing the user event for tool \"") + name() +
+	        "\".");
 
-	return _user_event;
+	return event;
 }
 
 void
