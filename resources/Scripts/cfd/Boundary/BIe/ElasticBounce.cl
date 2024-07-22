@@ -137,13 +137,10 @@ __kernel void entry(const __global int* imove,
             if(rn - drn <= __MIN_BOUND_DIST__ * dr){
                 // Reflect the particle velocity, so its module remains
                 // constant
-                const vec_xyz u_1 = u_in[i].XYZ + dt * dudt[i].XYZ; // full step velocity
-                const vec_xyz u_r = u_in[i].XYZ - 2.f * dot(u_1, n_j) * n_j;  // reversed-normal initial velocity
+                const vec_xyz u_r = - 2.f * dot(u_in[i].XYZ, n_j) * n_j;  // -2 x normal initial velocity
                 // Modify the values for the next wall tests.
-                _DUDT_ = (u_r - u_1) / dt;
-
-//                _U_ = u_r;  // I think this would apply the elastic force twice!
-
+                _DUDT_ = -_DUDT_  + u_r / dt;
+                _U_ = u_in[i].XYZ + dt * _DUDT_;
             }
         }
     }END_NEIGHS()
