@@ -60,7 +60,7 @@ compile-and-test:
     - mkdir -p build
     - mkdir -p install
   script:
-    - cmake -B build/ -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=install -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DAQUAGPUSPH_USE_MPI:BOOL=ON -DAQUAGPUSPH_USE_VTK:BOOL=ON -DBUILD_TESTING=ON
+    - cmake -B build/ -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=install -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DAQUAGPUSPH_USE_MPI:BOOL=ON -DAQUAGPUSPH_USE_VTK:BOOL=ON -DAQUAGPUSPH_CHRONO_EXAMPLES=OFF -DBUILD_TESTING=ON
     - cmake --build build/ --config Release
     - cmake --install build/ --config Release
     - cd build
