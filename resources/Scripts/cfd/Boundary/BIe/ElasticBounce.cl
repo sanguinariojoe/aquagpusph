@@ -94,7 +94,7 @@ __kernel void entry(const __global int* imove,
         __local vec_xyz dudt_l[LOCAL_MEM_SIZE];
         _DUDT_ = dudt[i].XYZ;
     #endif
-    _U_ = u_in[i].XYZ + 0.5f * dt * dudt[i].XYZ;
+    _U_ = u_in[i].XYZ + 0.5f * dt * _DUDT_;
 
     const usize c_i = icell[i];
     BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
@@ -137,10 +137,11 @@ __kernel void entry(const __global int* imove,
             if(rn - drn <= __MIN_BOUND_DIST__ * dr){
                 // Reflect the particle velocity, so its module remains
                 // constant
-                const vec_xyz u_r = - 2.f * dot(u_in[i].XYZ, n_j) * n_j;  // -2 x normal initial velocity
+                const vec_xyz u = u_in[i].XYZ + dt * _DUDT_;
+                const vec_xyz u_r = u - 2.f * dot(u, n_j) * n_j;
                 // Modify the values for the next wall tests.
-                _DUDT_ = -_DUDT_  + u_r / dt;
-                _U_ = u_in[i].XYZ + dt * _DUDT_;
+                _DUDT_ = (u_r - u_in[i].XYZ) / dt;
+                _U_ = u_in[i].XYZ + 0.5f * dt * _DUDT_;
             }
         }
     }END_NEIGHS()
