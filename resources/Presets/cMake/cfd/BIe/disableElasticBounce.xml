@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 
 <!-- disablePST.xml
-Disable the particle shifting that grants the particles are never tresspassing
+Disable the elastic bounce that grants the particles are never tresspassing
 the boundary.
 
 This file should be included after BIe.xml.
@@ -9,6 +9,6 @@ This file should be included after BIe.xml.
 
 <sphInput>
     <Tools>
-        <Tool name="cfd BIe pst" action="replace" type="dummy"/>
+        <Tool name="cfd BIe elastic bounce" action="replace" type="dummy"/>
     </Tools>
 </sphInput>
