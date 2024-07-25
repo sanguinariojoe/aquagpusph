@@ -57,6 +57,15 @@ protected:
     cl_event _execute(const std::vector<cl_event> events);
 
 private:
+    /// The pitch angle of the simulation
+    float _pitch;
+
+    /// The starting vertical velocity
+    float _vel;
+
+    /// The initial position of the center of gravity
+    float _cogz;
+
     /// Chrono simulation
     std::shared_ptr<chrono::ChSystemNSC> _sys;
 

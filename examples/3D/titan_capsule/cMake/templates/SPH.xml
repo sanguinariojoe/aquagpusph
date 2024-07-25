@@ -19,6 +19,9 @@ Authors:
 
 <sphInput>
     <Variables>
+        <Variable name="pitch" type="float" value="{{PITCH}}" />
+        <Variable name="u0" type="float" value="{{VEL}}" />
+        <Variable name="cogz" type="float" value="{{COGZ}}" />
         <Variable name="g" type="vec" value="0.0, 0.0, -{{G}}, 0.0" />
         <Variable name="dr" type="float" value="{{DR}}" />
         <Variable name="hfac" type="float" value="{{HFAC}}" />

@@ -56,6 +56,11 @@ L = 8.0
 # Fluid
 h = 6.0
 
+# Estimate the simulation time
+z0 = hfac * dr
+t0 = (VEL - np.sqrt(VEL * VEL + 2.0 * g * z0)) / g
+T = t0 + L / cs
+
 # Read the mesh file and create the titan capsule particles
 # =========================================================
 mesh = meshio.read("CAD/Mesh.med")
@@ -63,9 +68,9 @@ verts = mesh.points
 Rot = Rotation.from_euler('y', PITCH, degrees=True)
 verts = Rot.apply(verts)
 cog = Rot.apply(COG)
-verts = np.subtract(verts, -cog)
+verts = np.subtract(verts, cog)
 minz = np.min(verts[:, -1])
-cogz = 2.0 * hfac * dr - np.min(verts[:, -1])
+cogz = z0 - np.min(verts[:, -1])
 verts[:, -1] += cogz
 maxz = np.max(verts[:, -1])
 print(f"Initial COGz={cogz} (This must match the value on chronosim.cpp)")
@@ -250,7 +255,7 @@ domain_max = str(domain_max).replace('(', '').replace(')', '')
 data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
         'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max, 'REFD':str(refd),
         'VISC_DYN':str(visc_dyn), 'DELTA':str(delta), 'G':str(g),
-        'COGZ':str(cogz), 'VEL':str(VEL), 'PITCH':str(PITCH),
+        'COGZ':str(cogz), 'VEL':str(VEL), 'PITCH':str(PITCH), 'T':str(T),
         'n_titan':str(n_titan), 'n_pool':str(n_pool)}
 for fname in XML:
     # Read the template

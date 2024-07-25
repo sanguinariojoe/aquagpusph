@@ -53,6 +53,13 @@ TitanSim::setup()
 {
     Tool::setup();
 
+    // Get the configuration variables
+    auto vars = CalcServer::singleton()->variables();
+    _pitch = *((float*)vars->get("pitch")->get(true));
+    _vel = *((float*)vars->get("u0")->get(true));
+    _cogz = *((float*)vars->get("cogz")->get(true));
+    _pitch *= M_PI / 180.0;
+
     _sys = chrono_types::make_shared<chrono::ChSystemNSC>();
     _titan = chrono_types::make_shared<chrono::ChBody>();
     _sys->AddBody(_titan);
@@ -61,26 +68,38 @@ TitanSim::setup()
     _titan->AddForce(_force);
     _titan->AddForce(_moment);
 
+    _titan->SetName("Titan");
     _sys->SetGravitationalAcceleration(chrono::ChVector3d(0, 0, -9.81));
-    _titan->SetPos(chrono::ChVector3d(0.0, 0.0, COGz));
-    _titan->SetLinVel(chrono::ChVector3d(0, 0, -VEL));
-    // Simulating Space Capsule Water Landing with Explicit Finite Element Method
+    // Simulating Space Capsule Water Landing with Explicit Finite Element
+    // Method
     // _titan->SetMass(16200 * LB2KG);
     // _titan->SetInertiaXX(chrono::ChVector3d(
     //     66169823 * LB2KG * IN2M * IN2M,
     //     71179525 * LB2KG * IN2M * IN2M,
     //     80721115 * LB2KG * IN2M * IN2M
     // ));
-    // Pitching Angle on Space Capsule Water Landing Using Smooth Particle Hydrodynamic Method
+    // Pitching Angle on Space Capsule Water Landing Using Smooth Particle
+    // Hydrodynamic Method
     _titan->SetMass(3900);
     _titan->SetInertiaXX(chrono::ChVector3d(4180, 5270, 5560));
-    _titan->SetName("Titan");
+
     _force->SetMode(chrono::ChForce::FORCE);
     _force->SetFrame(chrono::ChForce::BODY);
     _force->SetAlign(chrono::ChForce::WORLD_DIR);
     _moment->SetMode(chrono::ChForce::TORQUE);
     _moment->SetFrame(chrono::ChForce::BODY);
     _moment->SetAlign(chrono::ChForce::WORLD_DIR);
+
+    _titan->SetPos(chrono::ChVector3d(0, 0, _cogz));
+    _titan->SetLinVel(chrono::ChVector3d(0, 0, -_vel));
+    // On NWU coordinates:
+    //    x : Positive moment = negative roll = portside goes down
+    //    y : Positive moment = negative pitch = bow goes up
+    //    z : Positive moment = negative yaw = bow goes to the boardside
+    // Thus we are inverting the angles to match the AQUAgpusph criteria
+    chrono::ChMatrix33<double> R;
+    R.SetFromCardanAnglesXYZ(chrono::ChVector3d(0, -_pitch, 0));
+    _titan->SetRot(R);
 
     setInputDependencies({"dt", "Force_p", "Moment_p"});
     setOutputDependencies({"motion_r", "motion_drdt", "motion_ddrddt",
@@ -117,11 +136,6 @@ setVec(Aqua::InputOutput::Variable* var, chrono::ChVector3d value)
 cl_event
 TitanSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
 {
-    // On NWU coordinates:
-    //    x : Positive moment = negative roll = portside goes down
-    //    y : Positive moment = negative pitch = bow goes up
-    //    z : Positive moment = negative yaw = bow goes to the boardside
-    // Thus we are inverting the angles to match the AQUAgpusph criteria
     auto vars = CalcServer::singleton()->variables();
     // Get the forces from AQUAgpusph
     float dt = *((float*)vars->get("dt")->get(true));
@@ -136,12 +150,17 @@ TitanSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
     const chrono::ChVector3d drdt = _titan->GetLinVel();
     const chrono::ChVector3d ddrddt = _titan->GetLinAcc();
     const chrono::ChVector3d a = -_titan->GetRotMat().GetCardanAnglesXYZ();
-    vec4 a_prev = *((vec4*)vars->get("motion_dadt")->get(true));
-    const chrono::ChVector3d dadt = a - chrono::ChVector3d(
-        a_prev.x, a_prev.y, a_prev.z);
-    vec4 dadt_prev = *((vec4*)vars->get("motion_ddaddt")->get(true));
-    const chrono::ChVector3d ddaddt = dadt - chrono::ChVector3d(
-        dadt_prev.x, dadt_prev.y, dadt_prev.z);
+    vec4 a_prev = *((vec4*)vars->get("motion_a")->get(true));
+    std::cout << "DT " << dt << std::endl;
+    const chrono::ChVector3d dadt = dt > 0.f ?
+        (a - chrono::ChVector3d(a_prev.x, a_prev.y, a_prev.z)) / dt :
+        chrono::ChVector3d(0, 0, 0);
+    vec4 dadt_prev = *((vec4*)vars->get("motion_dadt")->get(true));
+    const chrono::ChVector3d ddaddt = dt > 0.f ?
+        (dadt - chrono::ChVector3d(dadt_prev.x, dadt_prev.y, dadt_prev.z)) / dt :
+        chrono::ChVector3d(0, 0, 0);
+    std::cout << "dadt " << dadt.y() << std::endl;
+    std::cout << "dadt_prev " << dadt_prev.y << std::endl;
     setVec(vars->get("motion_r"), r);
     setVec(vars->get("motion_drdt"), drdt);
     setVec(vars->get("motion_ddrddt"), ddrddt);

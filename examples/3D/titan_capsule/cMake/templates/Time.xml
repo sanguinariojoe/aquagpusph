@@ -25,7 +25,7 @@ Authors:
             type="Time" Simulation ends after simulate some seconds
         You can conveniently combine several stop criterias.
         -->
-        <Option name="End" type="Time" value="0.35" />
+        <Option name="End" type="Time" value="{{T}}" />
 
         <!-- Set output files print criteria
             type="FPS" Frames per second

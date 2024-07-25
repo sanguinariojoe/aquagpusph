@@ -23,7 +23,10 @@ Authors:
     <Variables>
         <Variable name="motion_r" type="vec" value="0.0, 0.0, {{COGZ}}, 0.0" />
         <Variable name="motion_drdt" type="vec" value="0.0, 0.0, -{{VEL}}, 0.0" />
-        <Variable name="motion_drdt" type="vec" value="0.0, 0.0, -{{G}}, 0.0" />
+        <Variable name="motion_ddrddt" type="vec" value="0.0, 0.0, -{{G}}, 0.0" />
+        <Variable name="motion_a" type="vec4" value="0.0, {{PITCH}} * _pi / 180.0, 0.0, 0.0" />
+        <Variable name="motion_dadt" type="vec4" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="motion_ddaddt" type="vec4" value="0.0, 0.0, 0.0, 0.0" />
         <Variable name="motion_iset" type="unsigned int" value="0" />
     </Variables>
 
