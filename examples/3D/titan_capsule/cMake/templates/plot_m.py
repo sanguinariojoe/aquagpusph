@@ -32,8 +32,13 @@
 import sys
 import os
 from os import path
+import math
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+
+
+G = {{G}}
+EXTP_T0 = 0.02
 
 
 def readFile(filepath):
@@ -50,7 +55,13 @@ def readFile(filepath):
     data = []
     for l in lines[:-1]:  # Skip the last line, which may be unready
         l = l.strip()
-        fields = l.split('\t')
+        if l.startswith('#') or l == '':
+            continue
+        l = l.replace('(', ' ').replace(')', ' ').replace(',', ' ')
+        while l.find('  ') != -1:
+            l = l.replace('  ', ' ')
+        l = l.strip()
+        fields = l.split(' ')
         try:
             data.append(map(float, fields))
         except:
@@ -59,75 +70,88 @@ def readFile(filepath):
     return list(map(list, zip(*data)))
 
 
-line = None
+def rotate_pitch(ax, az, theta):
+    rx = [x * math.cos(t) - z * math.sin(t) for x,z,t in zip(ax, az, theta)]
+    rz = [z * math.cos(t) + x * math.sin(t) for x,z,t in zip(ax, az, theta)]
+    return rx, rz
 
 
-fig = plt.figure()
-ax = fig.add_subplot(111)
-
-exp_line, = ax.plot([0.0], [0.0],
-                    label=r'$\theta_{Exp}$',
-                    color="black",
-                    linestyle="--",
-                    linewidth=1.0)
-
-line, = ax.plot([0.0], [0.0],
-                label=r'$\theta_{SPH}$',
-                color="black",
-                linestyle="-",
-                linewidth=1.0)
+fig, ((ax_accx, ax_accy), (ax_accz, ax_acca)) = plt.subplots(2, 2)
+t, a = readFile('rsc/accx.csv')
+ax_accx.plot([tx + EXTP_T0 for tx in t], [-ax for ax in a],
+             color="black",
+             linestyle="--",
+             linewidth=1.0)
+accx, = ax_accx.plot([0.0], [0.0],
+                     color="black",
+                     linestyle="-",
+                     linewidth=1.0)
+t, a = readFile('rsc/accy.csv')
+ax_accy.plot([ty + EXTP_T0 for ty in t], a,
+             color="black",
+             linestyle="--",
+             linewidth=1.0)
+accy, = ax_accy.plot([0.0], [0.0],
+                     color="black",
+                     linestyle="-",
+                     linewidth=1.0)
+t, a = readFile('rsc/accz.csv')
+ax_accz.plot([tz + EXTP_T0 for tz in t], a,
+             color="black",
+             linestyle="--",
+             linewidth=1.0)
+accz, = ax_accz.plot([0.0], [0.0],
+                     color="black",
+                     linestyle="-",
+                     linewidth=1.0)
+t, a = readFile('rsc/accx.csv')
+ax_acca.plot([ta + EXTP_T0 for ta in t], [-aa for aa in a],
+             color="black",
+             linestyle="--",
+             linewidth=1.0)
+acca, = ax_acca.plot([0.0], [0.0],
+                     color="black",
+                     linestyle="-",
+                     linewidth=1.0)
 # Set some options
-ax.grid()
-ax.legend(loc='upper left')
-ax.set_xlim(0.0, 0.1)
-ax.set_ylim(-0.1, 0.1)
-ax.set_autoscale_on(False)
-ax.set_xlabel(r"$t \, [\mathrm{s}]$")
-ax.set_ylabel(r"$\theta \, [\mathrm{deg}]$")
-
-# Create a secondary set of axes for the moment
-ax2 = ax.twinx()
-mline, = ax2.plot([0.0], [0.0],
-                  label=r'$M_{SPH}$',
-                  color="blue",
-                  linewidth=1.0)
-# Set some options
-ax2.set_xlim(0, 0.1)
-ax2.set_ylim(-0.1, 0.1)
-ax2.set_autoscale_on(False)
-ax2.set_ylabel(r"$M_{fluid} \, [\mathrm{N} \cdot \mathrm{m}]$", color="blue")
-for tl in ax2.get_yticklabels():
-    tl.set_color("blue")
-
+for ax in (ax_accx, ax_accy, ax_accz, ax_acca):
+    ax.grid()
+    ax.set_xlim(0.0, {{T}})
+    ax.set_autoscale_on(False)
+    ax.set_xlabel(r"$t \, [\mathrm{s}]$")
+ax_accx.set_ylabel(r"$\ddot{x} \,\, \vert \boldsymbol{g} \vert^{-1}$")
+ax_accy.set_ylabel(r"$\ddot{y} \,\, \vert \boldsymbol{g} \vert^{-1}$")
+ax_accz.set_ylabel(r"$\ddot{z} \,\, \vert \boldsymbol{g} \vert^{-1}$")
+ax_acca.set_ylabel(r"$\ddot{\theta} \,\, [\mathrm{rad} \cdot \mathrm{s}^{-2}]$")
 
 # Animate
 def update(frame_index):
     plt.tight_layout()
     try:
-        data = readFile('Motion.dat')
+        data = readFile('motion.out')
         t = data[0]
-        exp_a = data[2]
-        a = data[3]
-        m = data[5]
+        ax = [a / G for a in data[9]]
+        ay = [a / G for a in data[10]]
+        az = [a / G for a in data[11]]
+        theta = data[14]
+        aa = data[22]
+        ax, az = rotate_pitch(ax, az, theta)
     except IndexError:
         return
     except FileNotFoundError:
         return
-    exp_line.set_data(t, exp_a)
-    line.set_data(t, a)
-    mline.set_data(t, m)
-
-    ax.set_xlim(0, t[-1])
-    ymax_exp = max(abs(max(exp_a)), abs(min(exp_a)))
-    ymax_sph = max(abs(max(a)), abs(min(a)))
-    ymax = max((ymax_exp, ymax_sph))
-    ax.set_ylim(-1.1 * ymax, 1.1 * ymax)
-
-    ax2.set_xlim(0, t[-1])
-    ymax = max(abs(max(m)), abs(min(m)))
-    ax2.set_ylim(-1.1 * ymax, 1.1 * ymax)
-    for tl in ax2.get_yticklabels():
-        tl.set_color("blue")
+    accx.set_data(t, ax)
+    ax_accx.set_xlim(0, max(t))
+    ax_accx.set_ylim(min(ax), max(ax))
+    accy.set_data(t, ay)
+    ax_accy.set_xlim(0, max(t))
+    ax_accy.set_ylim(min(ay), max(ay))
+    accz.set_data(t, az)
+    ax_accz.set_xlim(0, max(t))
+    ax_accz.set_ylim(min(az), max(az))
+    acca.set_data(t, aa)
+    ax_acca.set_xlim(0, max(t))
+    ax_acca.set_ylim(min(aa), max(aa))
 
 
 update(0)

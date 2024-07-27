@@ -4,6 +4,7 @@
         <Variable name="courant" type="float" value="0.25" />
         <Variable name="dt_var" type="float*" length="N" />
         <Variable name="dt_min" type="float" value="0.0" />
+        <Variable name="dt_Ma" type="float" value="0.1" />
     </Variables>
 
     <Tools>

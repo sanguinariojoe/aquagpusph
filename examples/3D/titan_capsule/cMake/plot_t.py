@@ -30,6 +30,7 @@
 #******************************************************************************
 
 import math
+import decimal
 import os
 from os import path
 import matplotlib.pyplot as plt
@@ -50,6 +51,8 @@ def readFile(filepath):
     data = []
     for l in lines[1:-1]:  # Skip the last line, which may be unready
         l = l.strip()
+        if l.startswith('#'):
+            continue
         while l.find('  ') != -1:
             l = l.replace('  ', ' ')
         fields = l.split(' ')
@@ -63,86 +66,32 @@ def readFile(filepath):
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
-
-t = [0.0]
-e = [0.0]
-fove = ax.fill_between(t,
-                       0,
-                       e,
-                       facecolor='red',
-                       linewidth=0.0)
-fave = ax.fill_between(t,
-                       0,
-                       e,
-                       facecolor='blue',
-                       linestyle="-",
-                       linewidth=0.0)
-love, = ax.plot(t,
-                       e,
-                       color='#990000',
-                       linestyle="-",
-                       linewidth=2.0,
-                       label='Average overhead')
-lave, = ax.plot(t,
-                       e,
-                       color='#000099',
-                       linestyle="-",
-                       linewidth=2.0,
-                       label='Average elapsed')
-line, = ax.plot(t,
-                       e,
-                       color="black",
-                       linestyle="-",
-                       linewidth=1.0,
-                       alpha=0.5,
-                       label='Elapsed')
+line, = ax.plot([0], [0],
+                color='black',
+                linestyle="-",
+                linewidth=1.0,
+                label=r'$\Delta t \,\, [\mathrm{s}]$')
 
 
 def update(frame_index):
     plt.tight_layout()
-    data = readFile('Performance.dat')
-    t = data[0]
-    e = data[1]
-    e_ela = data[2]
-    e_ove = data[5]
-    # Clear nan values
-    for i in range(len(e_ela)):
-        if math.isnan(e_ela[i]):
-            e_ela[i] = 0.0
-        if math.isnan(e_ove[i]):
-            e_ove[i] = 0.0
-    e_ave = [e_ela[i] - e_ove[i] for i in range(len(e_ela))]
-    # clear the fills
-    for coll in (ax.collections):
-        ax.collections.remove(coll)
-    fove = ax.fill_between(t,
-                           0,
-                           e_ela,
-                           facecolor='red',
-                           linestyle="-",
-                           linewidth=2.0)
-    fave = ax.fill_between(t,
-                           0,
-                           e_ave,
-                           facecolor='blue',
-                           linestyle="-",
-                           linewidth=2.0)
-    love.set_data(t, e_ela)
-    lave.set_data(t, e_ave)
-    line.set_data(t, e)
+    data = readFile('Timing.dat')
+    it, t, dt = data[0:3]
+    line.set_data(t, dt)
 
     ax.set_xlim(0, t[-1])
-    ax.set_ylim(0, 1.5 * e_ela[-1])
+    t = decimal.Decimal(min(dt)).as_tuple()
+    ax.set_ylim(10**(t.exponent + len(t.digits) - 1), max(dt))
 
 
 # Set some options
 ax.grid()
-ax.set_xlim(0, 0.1)
-ax.set_ylim(-0.1, 0.1)
+ax.set_xlim(0, 1e-16)
+ax.set_ylim(1e-16, 1e-15)
 ax.set_autoscale_on(False)
-ax.set_xlabel(r"$t \, [\mathrm{s}]$", fontsize=21)
-ax.set_ylabel(r"$t_{CPU} \, [\mathrm{s}]$", fontsize=21)
-ax.legend(handles=[lave, love, line], loc='upper right')
+ax.set_xlabel(r"$t \, [\mathrm{s}]$")
+ax.set_ylabel(r"$\Delta t \,\, [\mathrm{s}]$")
+ax.set_yscale('log')
 
 ani = animation.FuncAnimation(fig, update, interval=5000)
 plt.show()

@@ -25,51 +25,53 @@
 /** @brief Compute the maximum time step for each particle.
  *
  * In SPH the time step is selected to enforce the particles may not move more
- * than \f$ 0.1 h \f$, where the Courant factor is not taken into account yet.
+ * than \f$ Ma_{\Delta t} h \f$, where the Courant factor is not taken into
+ * account yet.
  *
  * Along this line, the distance moved by a particle can be written as follows:
  *
  * \f$ \vert \mathbf{r}_{n+1} - \mathbf{r}_{n} \vert = 
  *     \vert \mathbf{u} \vert \Delta t +
- *     \frac{1}{2} \left\vert
- *                     \frac{\mathrm{d} \mathbf{u}}{\mathrm{d} t}
- *                 \right\vert {\Delta t}^2 +
-       \mathcal{O}({\Delta t}^3) \f$
+ *     \mathcal{O}({\Delta t}^2) \f$
  *
- * Such that, taking maximums, and rearraging the equation:
+ * Such that rearraging the equation:
  *
- * \f$ \Delta t = \frac{1}{20} \min \left(
- *     \frac{h}{\vert \mathbf{u} \vert},
- *     \sqrt{\frac{2 h}{\left\vert
- *                          \frac{\mathrm{d} \mathbf{u}}{\mathrm{d} t}
- *                      \right\vert}}
- * \right) \f$
+ * \f$ \Delta t = Ma \frac{h}{\vert \mathbf{u} \vert} \f$
  *
+ * @param imove Moving flags.
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param u Velocity \f$ \mathbf{u}_{n+1/2} \f$.
  * @param dt_var Variable time step \f$ \mathrm{min} \left(
  * C_f \frac{h}{c_s}, C_f \frac{h}{10 \vert \mathbf{u} \vert}\right)\f$.
- * @param u Velocity \f$ \mathbf{u}_{n+1/2} \f$.
- * @param dudt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
- * @param N Number of particles.
+ * @param dt_Ma The maximum Mach number, \f$ Ma_{\Delta t} \f$
  * @param dt Fixed time step \f$ \Delta t = C_f \frac{h}{c_s} \f$.
  * @param dt_min Minimum time step \f$ \Delta t_{\mathrm{min}} \f$.
- * @param courant Courant factor \f$ C_f \f$.
+ * @param courant Courant factor \f$ C_{\Delta t} \f$.
  * @param h Kernel characteristic length \f$ h \f$.
+ * @param Ma Mach number \f$ Ma \f$.
+ * @param N Number of particles.
  */
-__kernel void entry(__global float* dt_var,
-                    __global vec* u,
-                    __global vec* dudt,
-                    usize N,
-                    float dt,
-                    float dt_min,
-                    float courant,
-                    float h)
+__kernel void entry(const __global int* imove,
+                    const __global vec* u,
+                    __global float* dt_var,
+                    const usize N,
+                    const float dt,
+                    const float dt_min,
+                    const float courant,
+                    const float dt_Ma,
+                    const float h)
 {
     const usize i = get_global_id(0);
     if(i >= N)
         return;
+    if(imove[i] <= 0) {
+        dt_var[i] = dt;
+        return;
+    }
 
-    const float dr_max = 0.1f * h;
-    const float dt_u = courant * min(dr_max / length(u[i]),
-                                     sqrt(dr_max / (0.5f * length(dudt[i]))));
+    const float dr_max = dt_Ma * h;
+    const float dt_u = courant * dr_max / length(u[i]);
     dt_var[i] = max(min(dt, dt_u), dt_min);
 }

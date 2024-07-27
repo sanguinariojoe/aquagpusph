@@ -150,17 +150,16 @@ TitanSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
     const chrono::ChVector3d drdt = _titan->GetLinVel();
     const chrono::ChVector3d ddrddt = _titan->GetLinAcc();
     const chrono::ChVector3d a = -_titan->GetRotMat().GetCardanAnglesXYZ();
-    vec4 a_prev = *((vec4*)vars->get("motion_a")->get(true));
-    std::cout << "DT " << dt << std::endl;
-    const chrono::ChVector3d dadt = dt > 0.f ?
-        (a - chrono::ChVector3d(a_prev.x, a_prev.y, a_prev.z)) / dt :
-        chrono::ChVector3d(0, 0, 0);
-    vec4 dadt_prev = *((vec4*)vars->get("motion_dadt")->get(true));
-    const chrono::ChVector3d ddaddt = dt > 0.f ?
-        (dadt - chrono::ChVector3d(dadt_prev.x, dadt_prev.y, dadt_prev.z)) / dt :
-        chrono::ChVector3d(0, 0, 0);
-    std::cout << "dadt " << dadt.y() << std::endl;
-    std::cout << "dadt_prev " << dadt_prev.y << std::endl;
+    const chrono::ChVector3d dadt = -_titan->GetAngVelParent();
+    const chrono::ChVector3d ddaddt = -_titan->GetAngAccParent();
+    // vec4 a_prev = *((vec4*)vars->get("motion_a")->get(true));
+    // const chrono::ChVector3d dadt = dt > 0.f ?
+    //     (a - chrono::ChVector3d(a_prev.x, a_prev.y, a_prev.z)) / dt :
+    //     chrono::ChVector3d(0, 0, 0);
+    // vec4 dadt_prev = *((vec4*)vars->get("motion_dadt")->get(true));
+    // const chrono::ChVector3d ddaddt = dt > 0.f ?
+    //     (dadt - chrono::ChVector3d(dadt_prev.x, dadt_prev.y, dadt_prev.z)) / dt :
+    //     chrono::ChVector3d(0, 0, 0);
     setVec(vars->get("motion_r"), r);
     setVec(vars->get("motion_drdt"), drdt);
     setVec(vars->get("motion_ddrddt"), ddrddt);

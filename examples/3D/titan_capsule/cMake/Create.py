@@ -41,11 +41,13 @@ import meshio
 COG = [0.142, 0.0, 0.318]
 PITCH = 20.0
 VEL = 9.66
+DT = 5e-7
+Ma = 1e-5  # This is just used for the variable time step
+courant = 0.1
 g = 9.81
 hfac = 2.0
-dr = 0.16
+dr = 0.08
 cs = 185.0
-courant = 0.05
 refd = 998.0
 alpha = 0.0
 delta = 0.0
@@ -57,8 +59,8 @@ L = 8.0
 h = 6.0
 
 # Estimate the simulation time
-z0 = hfac * dr
-t0 = (VEL - np.sqrt(VEL * VEL + 2.0 * g * z0)) / g
+z0 = 2.0 * hfac * dr
+t0 = (np.sqrt(VEL * VEL + 2.0 * g * z0) - VEL) / g
 T = t0 + L / cs
 
 # Read the mesh file and create the titan capsule particles
@@ -245,7 +247,7 @@ output.close()
 
 templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
 XML = ('Fluids.xml', 'Main.xml', 'Motion.xml', 'Settings.xml', 'SPH.xml',
-       'Time.xml')
+       'Time.xml', 'plot_m.py')
 
 domain_min = (-L, -L, -H, 0.0)
 domain_min = str(domain_min).replace('(', '').replace(')', '')
@@ -254,9 +256,9 @@ domain_max = str(domain_max).replace('(', '').replace(')', '')
 
 data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
         'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max, 'REFD':str(refd),
-        'VISC_DYN':str(visc_dyn), 'DELTA':str(delta), 'G':str(g),
-        'COGZ':str(cogz), 'VEL':str(VEL), 'PITCH':str(PITCH), 'T':str(T),
-        'n_titan':str(n_titan), 'n_pool':str(n_pool)}
+        'VISC_DYN':str(visc_dyn), 'DELTA':str(delta), 'G':str(g), 'MA':str(Ma),
+        'DTMIN':str(DT),  'COGZ':str(cogz), 'VEL':str(VEL), 'PITCH':str(PITCH),
+        'T':str(T), 'n_titan':str(n_titan), 'n_pool':str(n_pool)}
 for fname in XML:
     # Read the template
     f = open(path.join(templates_path, fname), 'r')

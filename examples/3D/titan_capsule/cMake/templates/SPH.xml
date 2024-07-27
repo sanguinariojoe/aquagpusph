@@ -23,6 +23,8 @@ Authors:
         <Variable name="u0" type="float" value="{{VEL}}" />
         <Variable name="cogz" type="float" value="{{COGZ}}" />
         <Variable name="g" type="vec" value="0.0, 0.0, -{{G}}, 0.0" />
+        <Variable name="dt_Ma" type="float" value="{{MA}}" />
+        <Variable name="dt_min" type="float" value="{{DTMIN}}" />
         <Variable name="dr" type="float" value="{{DR}}" />
         <Variable name="hfac" type="float" value="{{HFAC}}" />
         <Variable name="h" type="float" value="hfac * dr" />
@@ -32,6 +34,6 @@ Authors:
         <Variable name="domain_max" type="vec" value="{{DOMAIN_MAX}}" />
         <Variable name="iter_midpoint_max" type="unsigned int" length="1" value="10"/>
         <Variable name="relax_midpoint" type="float" length="1" value="0"/>
-        <Variable name="Residual_midpoint_max" type="float" length="1" value="1.e-5" symbol="E_{\Delta t}^{max}"/>
+        <Variable name="Residual_midpoint_max" type="float" length="1" value="1.e-2" symbol="E_{\Delta t}^{max}"/>
     </Variables>
 </sphInput>
