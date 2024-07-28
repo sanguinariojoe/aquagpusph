@@ -330,7 +330,7 @@ Tool::compile(const std::string source,
 #else
 	flags << " -DNDEBUG ";
 #endif
-	flags << " -cl-mad-enable -cl-fast-relaxed-math -cl-kernel-arg-info";
+	flags << " -cl-kernel-arg-info";
 	if (C->have_3d())
 		flags << " -DHAVE_3D";
 	else
