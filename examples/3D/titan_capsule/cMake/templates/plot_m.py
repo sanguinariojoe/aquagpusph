@@ -104,7 +104,7 @@ accz, = ax_accz.plot([0.0], [0.0],
                      color="black",
                      linestyle="-",
                      linewidth=1.0)
-t, a = readFile('rsc/accx.csv')
+t, a = readFile('rsc/acca.csv')
 ax_acca.plot([ta + EXTP_T0 for ta in t], [-aa for aa in a],
              color="black",
              linestyle="--",
