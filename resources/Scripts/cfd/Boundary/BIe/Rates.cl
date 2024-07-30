@@ -121,6 +121,7 @@ __kernel void force_press(const __global int* imove,
         return;
     if(imove[i] != -3) {
         force_p[i] = VEC_ZERO;
+        moment_p[i] = vec4(0.f);
         return;
     }
 
