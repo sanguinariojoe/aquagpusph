@@ -21,7 +21,6 @@ Authors:
     <ParticlesSet n="{{n_apollo}}">
         <Scalar name="refd" value="{{REFD}}" />
         <Scalar name="visc_dyn" value="{{VISC_DYN}}" />
-        <Scalar name="delta" value="{{DELTA}}" />
 
         <Load format="FastASCII" file="Titan.dat" fields="r, normal, tangent, u, dudt, rho, drhodt, m, imove" />
         <Save format="VTK" file="apollo" fields="r, normal, tangent, binormal, u, dudt, rho, drhodt, m, p, imove, shepard" />
@@ -29,7 +28,6 @@ Authors:
     <ParticlesSet n="{{n_pool}}">
         <Scalar name="refd" value="{{REFD}}" />
         <Scalar name="visc_dyn" value="{{VISC_DYN}}" />
-        <Scalar name="delta" value="{{DELTA}}" />
 
         <Load format="FastASCII" file="Pool.dat" fields="r, normal, tangent, u, dudt, rho, drhodt, m, imove" />
         <Save format="VTK" file="pool" fields="r, normal, tangent, binormal, u, dudt, rho, drhodt, m, p, imove, shepard" />

@@ -50,7 +50,6 @@ dr = 0.08
 cs = 185.0
 refd = 998.0
 alpha = 0.0
-delta = 0.0
 visc_dyn = 0.000894
 # Tank dimensions
 H = 8.0
@@ -256,8 +255,8 @@ domain_max = str(domain_max).replace('(', '').replace(')', '')
 
 data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
         'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max, 'REFD':str(refd),
-        'VISC_DYN':str(visc_dyn), 'DELTA':str(delta), 'G':str(g), 'MA':str(Ma),
-        'DTMIN':str(DT),  'COGZ':str(cogz), 'VEL':str(VEL), 'PITCH':str(PITCH),
+        'VISC_DYN':str(visc_dyn), 'G':str(g), 'MA':str(Ma), 'DTMIN':str(DT),
+        'COGZ':str(cogz), 'VEL':str(VEL), 'PITCH':str(PITCH),
         'T':str(T), 'n_apollo':str(n_apollo), 'n_pool':str(n_pool)}
 for fname in XML:
     # Read the template
