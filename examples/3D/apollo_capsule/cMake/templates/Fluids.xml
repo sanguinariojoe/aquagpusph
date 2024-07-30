@@ -18,13 +18,13 @@ Authors:
 -->
 
 <sphInput>
-    <ParticlesSet n="{{n_titan}}">
+    <ParticlesSet n="{{n_apollo}}">
         <Scalar name="refd" value="{{REFD}}" />
         <Scalar name="visc_dyn" value="{{VISC_DYN}}" />
         <Scalar name="delta" value="{{DELTA}}" />
 
         <Load format="FastASCII" file="Titan.dat" fields="r, normal, tangent, u, dudt, rho, drhodt, m, imove" />
-        <Save format="VTK" file="titan" fields="r, normal, tangent, binormal, u, dudt, rho, drhodt, m, p, imove, shepard" />
+        <Save format="VTK" file="apollo" fields="r, normal, tangent, binormal, u, dudt, rho, drhodt, m, p, imove, shepard" />
     </ParticlesSet>
     <ParticlesSet n="{{n_pool}}">
         <Scalar name="refd" value="{{REFD}}" />

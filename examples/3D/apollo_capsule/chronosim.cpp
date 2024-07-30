@@ -61,27 +61,27 @@ TitanSim::setup()
     _pitch *= M_PI / 180.0;
 
     _sys = chrono_types::make_shared<chrono::ChSystemNSC>();
-    _titan = chrono_types::make_shared<chrono::ChBody>();
-    _sys->AddBody(_titan);
+    _apollo = chrono_types::make_shared<chrono::ChBody>();
+    _sys->AddBody(_apollo);
     _force = chrono_types::make_shared<chrono::ChForce>();
     _moment = chrono_types::make_shared<chrono::ChForce>();
-    _titan->AddForce(_force);
-    _titan->AddForce(_moment);
+    _apollo->AddForce(_force);
+    _apollo->AddForce(_moment);
 
-    _titan->SetName("Titan");
+    _apollo->SetName("Titan");
     _sys->SetGravitationalAcceleration(chrono::ChVector3d(0, 0, -9.81));
     // Simulating Space Capsule Water Landing with Explicit Finite Element
     // Method
-    // _titan->SetMass(16200 * LB2KG);
-    // _titan->SetInertiaXX(chrono::ChVector3d(
+    // _apollo->SetMass(16200 * LB2KG);
+    // _apollo->SetInertiaXX(chrono::ChVector3d(
     //     66169823 * LB2KG * IN2M * IN2M,
     //     71179525 * LB2KG * IN2M * IN2M,
     //     80721115 * LB2KG * IN2M * IN2M
     // ));
     // Pitching Angle on Space Capsule Water Landing Using Smooth Particle
     // Hydrodynamic Method
-    _titan->SetMass(3900);
-    _titan->SetInertiaXX(chrono::ChVector3d(4180, 5270, 5560));
+    _apollo->SetMass(3900);
+    _apollo->SetInertiaXX(chrono::ChVector3d(4180, 5270, 5560));
 
     _force->SetMode(chrono::ChForce::FORCE);
     _force->SetFrame(chrono::ChForce::BODY);
@@ -90,8 +90,8 @@ TitanSim::setup()
     _moment->SetFrame(chrono::ChForce::BODY);
     _moment->SetAlign(chrono::ChForce::WORLD_DIR);
 
-    _titan->SetPos(chrono::ChVector3d(0, 0, _cogz));
-    _titan->SetLinVel(chrono::ChVector3d(0, 0, -_vel));
+    _apollo->SetPos(chrono::ChVector3d(0, 0, _cogz));
+    _apollo->SetLinVel(chrono::ChVector3d(0, 0, -_vel));
     // On NWU coordinates:
     //    x : Positive moment = negative roll = portside goes down
     //    y : Positive moment = negative pitch = bow goes up
@@ -99,7 +99,7 @@ TitanSim::setup()
     // Thus we are inverting the angles to match the AQUAgpusph criteria
     chrono::ChMatrix33<double> R;
     R.SetFromCardanAnglesXYZ(chrono::ChVector3d(0, -_pitch, 0));
-    _titan->SetRot(R);
+    _apollo->SetRot(R);
 
     setInputDependencies({"dt", "Force_p", "Moment_p"});
     setOutputDependencies({"motion_r", "motion_drdt", "motion_ddrddt",
@@ -146,12 +146,12 @@ TitanSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
     setForce(_moment, M);
     _sys->DoStepDynamics(dt);
     // Get the new position and angle
-    const chrono::ChVector3d r = _titan->GetPos();
-    const chrono::ChVector3d drdt = _titan->GetLinVel();
-    const chrono::ChVector3d ddrddt = _titan->GetLinAcc();
-    const chrono::ChVector3d a = -_titan->GetRotMat().GetCardanAnglesXYZ();
-    const chrono::ChVector3d dadt = -_titan->GetAngVelParent();
-    const chrono::ChVector3d ddaddt = -_titan->GetAngAccParent();
+    const chrono::ChVector3d r = _apollo->GetPos();
+    const chrono::ChVector3d drdt = _apollo->GetLinVel();
+    const chrono::ChVector3d ddrddt = _apollo->GetLinAcc();
+    const chrono::ChVector3d a = -_apollo->GetRotMat().GetCardanAnglesXYZ();
+    const chrono::ChVector3d dadt = -_apollo->GetAngVelParent();
+    const chrono::ChVector3d ddaddt = -_apollo->GetAngAccParent();
     // vec4 a_prev = *((vec4*)vars->get("motion_a")->get(true));
     // const chrono::ChVector3d dadt = dt > 0.f ?
     //     (a - chrono::ChVector3d(a_prev.x, a_prev.y, a_prev.z)) / dt :

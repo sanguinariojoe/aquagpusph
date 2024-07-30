@@ -28413,11 +28413,11 @@
     </Proxy>
     <Proxy group="sources" type="XMLUnstructuredGridReader" id="18914" servers="1">
       <Property name="FileName" id="18914.FileName" number_of_elements="1">
-        <Element index="0" value="./titan.vtu.series"/>
+        <Element index="0" value="./apollo.vtu.series"/>
         <Domain name="files" id="18914.FileName.files"/>
       </Property>
       <Property name="FileNameInfo" id="18914.FileNameInfo" number_of_elements="1">
-        <Element index="0" value="./titan.00000.vtu"/>
+        <Element index="0" value="./apollo.00000.vtu"/>
       </Property>
       <Property name="TimestepValues" id="18914.TimestepValues" number_of_elements="10">
         <Element index="0" value="0.00008648648508824408"/>
@@ -29644,7 +29644,7 @@
       <Item id="19925" name="light" logname="Calculator1"/>
       <Item id="19674" name="normal" logname="Calculator1"/>
       <Item id="18651" name="pool.vtu.series" logname="pool.00000.vtu*"/>
-      <Item id="18914" name="titan.vtu.series" logname="titan.00000.vtu*"/>
+      <Item id="18914" name="apollo.vtu.series" logname="apollo.00000.vtu*"/>
     </ProxyCollection>
     <ProxyCollection name="timekeeper">
       <Item id="256" name="TimeKeeper1"/>

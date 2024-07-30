@@ -69,8 +69,8 @@ private:
     /// Chrono simulation
     std::shared_ptr<chrono::ChSystemNSC> _sys;
 
-    /// The titan capsule chrono entity
-    std::shared_ptr<chrono::ChBody> _titan;
+    /// The apollo capsule chrono entity
+    std::shared_ptr<chrono::ChBody> _apollo;
 
     /// The force from AQUAgpusph to Chrono
     std::shared_ptr<chrono::ChForce> _force;

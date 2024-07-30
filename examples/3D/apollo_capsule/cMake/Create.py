@@ -63,7 +63,7 @@ z0 = 2.0 * hfac * dr
 t0 = (np.sqrt(VEL * VEL + 2.0 * g * z0) - VEL) / g
 T = t0 + L / cs
 
-# Read the mesh file and create the titan capsule particles
+# Read the mesh file and create the apollo capsule particles
 # =========================================================
 mesh = meshio.read("CAD/Mesh.med")
 verts = mesh.points
@@ -76,7 +76,7 @@ cogz = z0 - np.min(verts[:, -1])
 verts[:, -1] += cogz
 maxz = np.max(verts[:, -1])
 print(f"Initial COGz={cogz} (This must match the value on chronosim.cpp)")
-print("Writing titan...")
+print("Writing apollo...")
 output = open("Titan.dat", "w")
 output.write("# r.x, r.y, r.z, r.w")
 output.write(", normal.x, normal.y, normal.z, normal.w")
@@ -84,7 +84,7 @@ output.write(", tangent.x, tangent.y, tangent.z, tangent.w")
 output.write(", u.x, u.y, u.z, u.w")
 output.write(", dudt.x, dudt.y, dudt.z, dudt.w")
 output.write(", rho, drhodt, m, imove\n")
-n_titan = 0
+n_apollo = 0
 for cell in mesh.cells:
     def triangle(cell, verts):
         a, b, c = [verts[i] for i in cell]
@@ -130,7 +130,7 @@ for cell in mesh.cells:
             s,
             imove)
         output.write(string)
-        n_titan += 1
+        n_apollo += 1
 output.close()
 
 print("Writing pool...")
@@ -258,7 +258,7 @@ data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
         'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max, 'REFD':str(refd),
         'VISC_DYN':str(visc_dyn), 'DELTA':str(delta), 'G':str(g), 'MA':str(Ma),
         'DTMIN':str(DT),  'COGZ':str(cogz), 'VEL':str(VEL), 'PITCH':str(PITCH),
-        'T':str(T), 'n_titan':str(n_titan), 'n_pool':str(n_pool)}
+        'T':str(T), 'n_apollo':str(n_apollo), 'n_pool':str(n_pool)}
 for fname in XML:
     # Read the template
     f = open(path.join(templates_path, fname), 'r')

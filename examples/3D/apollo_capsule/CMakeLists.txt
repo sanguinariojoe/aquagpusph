@@ -4,11 +4,11 @@ FILE(GLOB_RECURSE FNAMES RELATIVE ${EXAMPLE_ORIG_DIR} "${EXAMPLE_ORIG_DIR}/*")
 # ===================================================== #
 # Compile the chrono simulation tool                    #
 # ===================================================== #
-add_library(titan_capsule_sim SHARED chronosim.cpp)
-target_include_directories(titan_capsule_sim PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CHRONO_INCLUDE_DIRS})
-target_compile_options(titan_capsule_sim PRIVATE ${CHRONO_CXX_FLAGS})
-target_link_libraries(titan_capsule_sim aquagpusph ${DEP_LIBS} ${CHRONO_LIBRARIES})
-set_target_properties(titan_capsule_sim PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_library(apollo_capsule_sim SHARED chronosim.cpp)
+target_include_directories(apollo_capsule_sim PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CHRONO_INCLUDE_DIRS})
+target_compile_options(apollo_capsule_sim PRIVATE ${CHRONO_CXX_FLAGS})
+target_link_libraries(apollo_capsule_sim aquagpusph ${DEP_LIBS} ${CHRONO_LIBRARIES})
+set_target_properties(apollo_capsule_sim PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 # ===================================================== #
 # Configuration                                         #

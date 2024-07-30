@@ -7,5 +7,5 @@ if(HAVE_MPI)
 endif(HAVE_MPI)
 
 if(HAVE_CHRONO)
-    add_subdirectory(titan_capsule)
+    add_subdirectory(apollo_capsule)
 endif(HAVE_CHRONO)
