@@ -45,8 +45,6 @@ TitanSim::~TitanSim()
 
 #define LB2KG 0.4535924
 #define IN2M 0.0254
-#define VEL 9.66
-#define COGz 1.2366120307925486
 
 void
 TitanSim::setup()
@@ -81,7 +79,7 @@ TitanSim::setup()
     // Pitching Angle on Space Capsule Water Landing Using Smooth Particle
     // Hydrodynamic Method
     _apollo->SetMass(3900);
-    _apollo->SetInertiaXX(chrono::ChVector3d(4180, 5270, 5560));
+    _apollo->SetInertiaXX(chrono::ChVector3d(5560, 5270, 4180));
 
     _force->SetMode(chrono::ChForce::FORCE);
     _force->SetFrame(chrono::ChForce::BODY);

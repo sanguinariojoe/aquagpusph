@@ -38,7 +38,7 @@ import matplotlib.animation as animation
 
 
 G = {{G}}
-EXTP_T0 = 0.02
+EXTP_T0 = 0.0
 
 
 def readFile(filepath):
@@ -78,7 +78,7 @@ def rotate_pitch(ax, az, theta):
 
 fig, ((ax_accx, ax_accy), (ax_accz, ax_acca)) = plt.subplots(2, 2)
 t, a = readFile('rsc/accx.csv')
-ax_accx.plot([tx + EXTP_T0 for tx in t], [-ax for ax in a],
+ax_accx.plot([tx + EXTP_T0 for tx in t], a,
              color="black",
              linestyle="--",
              linewidth=1.0)
@@ -105,7 +105,7 @@ accz, = ax_accz.plot([0.0], [0.0],
                      linestyle="-",
                      linewidth=1.0)
 t, a = readFile('rsc/acca.csv')
-ax_acca.plot([ta + EXTP_T0 for ta in t], [-aa for aa in a],
+ax_acca.plot([ta + EXTP_T0 for ta in t], a,
              color="black",
              linestyle="--",
              linewidth=1.0)
