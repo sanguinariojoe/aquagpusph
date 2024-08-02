@@ -38,7 +38,7 @@ import matplotlib.animation as animation
 
 
 G = {{G}}
-EXTP_T0 = 0.0
+ACCX, ACCY, ACCZ, ACCA = 5.9, 0.0, 33.5, 168
 
 
 def readFile(filepath):
@@ -77,8 +77,7 @@ def rotate_pitch(ax, az, theta):
 
 
 fig, ((ax_accx, ax_accy), (ax_accz, ax_acca)) = plt.subplots(2, 2)
-t, a = readFile('rsc/accx.csv')
-ax_accx.plot([tx + EXTP_T0 for tx in t], a,
+ax_accx.plot([0.0, {{T}}], [ACCX, ACCX],
              color="black",
              linestyle="--",
              linewidth=1.0)
@@ -87,7 +86,7 @@ accx, = ax_accx.plot([0.0], [0.0],
                      linestyle="-",
                      linewidth=1.0)
 t, a = readFile('rsc/accy.csv')
-ax_accy.plot([ty + EXTP_T0 for ty in t], a,
+ax_accy.plot([0.0, {{T}}], [ACCY, ACCY],
              color="black",
              linestyle="--",
              linewidth=1.0)
@@ -96,7 +95,7 @@ accy, = ax_accy.plot([0.0], [0.0],
                      linestyle="-",
                      linewidth=1.0)
 t, a = readFile('rsc/accz.csv')
-ax_accz.plot([tz + EXTP_T0 for tz in t], a,
+ax_accz.plot([0.0, {{T}}], [ACCZ, ACCZ],
              color="black",
              linestyle="--",
              linewidth=1.0)
@@ -105,7 +104,7 @@ accz, = ax_accz.plot([0.0], [0.0],
                      linestyle="-",
                      linewidth=1.0)
 t, a = readFile('rsc/acca.csv')
-ax_acca.plot([ta + EXTP_T0 for ta in t], a,
+ax_acca.plot([0.0, {{T}}], [ACCA, ACCA],
              color="black",
              linestyle="--",
              linewidth=1.0)
@@ -142,16 +141,16 @@ def update(frame_index):
         return
     accx.set_data(t, ax)
     ax_accx.set_xlim(0, max(t))
-    ax_accx.set_ylim(min(ax), max(ax))
+    ax_accx.set_ylim(min(ax) - 0.05 * ACCX, max(max(ax), ACCX) + 0.05 * ACCX)
     accy.set_data(t, ay)
     ax_accy.set_xlim(0, max(t))
-    ax_accy.set_ylim(min(ay), max(ay))
+    ax_accy.set_ylim(min(ay) - 0.05 * ACCY, max(max(ay), ACCY) + 0.05 * ACCY)
     accz.set_data(t, az)
     ax_accz.set_xlim(0, max(t))
-    ax_accz.set_ylim(min(az), max(az))
+    ax_accz.set_ylim(min(az) - 0.05 * ACCZ, max(max(az), ACCZ) + 0.05 * ACCZ)
     acca.set_data(t, aa)
     ax_acca.set_xlim(0, max(t))
-    ax_acca.set_ylim(min(aa), max(aa))
+    ax_acca.set_ylim(min(aa) - 0.05 * ACCA, max(max(aa), ACCA) + 0.05 * ACCA)
 
 
 update(0)

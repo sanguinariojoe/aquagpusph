@@ -39,31 +39,33 @@ import meshio
 # ==========
 
 COG = [0.142, 0.0, 0.318]
-PITCH = -20.0
-VEL = 9.66
-DT = 5e-7
+PITCH = -12.0
+VEL = 9.88
+DT = 1e-6
 Ma = 1e-1  # This is just used for the variable time step
 courant = 0.1
 g = 9.81
 hfac = 2.0
-dr = 0.08
-cs = 185.0
+dr = 0.16
+cs = 1000.0
 refd = 998.0
 alpha = 0.0
 visc_dyn = 0.000894
 # Tank dimensions
-H = 8.0
-L = 8.0
+H = 16.0
+L = 16.0
 # Fluid
-h = 6.0
+h = 8.0
 
 # Estimate the simulation time
-z0 = hfac * dr
-t0 = (np.sqrt(VEL * VEL + 2.0 * g * z0) - VEL) / g
-# T = t0 + L / cs
-VEL -= g * t0
+z0 = 2.0 * hfac * dr
+assert VEL**2 - 2 * g * z0 > 0.0
+v0 = -np.sqrt(VEL**2 - 2 * g * z0)
+t0 = (v0 + VEL) / g
+VEL = -v0
 T = t0 + 0.18
-
+print(f"Releasing velocity = {VEL} m / s")
+print(f"Flying time = {t0} s")
 
 # Read the mesh file and create the apollo capsule particles
 # =========================================================
@@ -77,7 +79,7 @@ minz = np.min(verts[:, -1])
 cogz = z0 - minz
 verts[:, -1] += cogz
 maxz = np.max(verts[:, -1])
-print(f"Initial COGz={cogz} (This must match the value on chronosim.cpp)")
+print(f"Initial COGz = {cogz} m")
 print("Writing apollo...")
 output = open("Titan.dat", "w")
 output.write("# r.x, r.y, r.z, r.w")
@@ -249,7 +251,7 @@ output.close()
 
 templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
 XML = ('Fluids.xml', 'Main.xml', 'Motion.xml', 'Settings.xml', 'SPH.xml',
-       'Time.xml', 'plot_m.py')
+       'Time.xml', 'plot_m.py', 'plot_e.py')
 
 domain_min = (-L, -L, -H, 0.0)
 domain_min = str(domain_min).replace('(', '').replace(')', '')

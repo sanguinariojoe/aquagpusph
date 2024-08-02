@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 if [[ $1 == "--run" ]]; then
     rm -f Titan.dat
     rm -f Pool.dat

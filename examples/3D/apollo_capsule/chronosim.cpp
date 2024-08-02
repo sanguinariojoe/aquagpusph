@@ -17,7 +17,7 @@
  */
 
 /** @file
- * @brief The simulation of the Titan capsule rigid body, using
+ * @brief The simulation of the Apollo capsule rigid body, using
  * https://projectchrono.org/
  */
 
@@ -26,20 +26,20 @@
 #include <aquagpusph/InputOutput/Logger.hpp>
 #include <cmath>
 
-extern "C" Aqua::CalcServer::TitanSim* create_object(
+extern "C" Aqua::CalcServer::ApolloSim* create_object(
     const std::string name, bool once)
 {
-    return new Aqua::CalcServer::TitanSim(name, once);
+    return new Aqua::CalcServer::ApolloSim(name, once);
 }
 
 namespace Aqua{ namespace CalcServer{
 
-TitanSim::TitanSim(const std::string name, bool once)
+ApolloSim::ApolloSim(const std::string name, bool once)
     : Tool(name, once)
 {
 }
 
-TitanSim::~TitanSim()
+ApolloSim::~ApolloSim()
 {
 }
 
@@ -47,7 +47,7 @@ TitanSim::~TitanSim()
 #define IN2M 0.0254
 
 void
-TitanSim::setup()
+ApolloSim::setup()
 {
     Tool::setup();
 
@@ -66,7 +66,7 @@ TitanSim::setup()
     _apollo->AddForce(_force);
     _apollo->AddForce(_moment);
 
-    _apollo->SetName("Titan");
+    _apollo->SetName("Apollo");
     _sys->SetGravitationalAcceleration(chrono::ChVector3d(0, 0, -9.81));
     // Simulating Space Capsule Water Landing with Explicit Finite Element
     // Method
@@ -84,19 +84,20 @@ TitanSim::setup()
     _force->SetMode(chrono::ChForce::FORCE);
     _force->SetFrame(chrono::ChForce::BODY);
     _force->SetAlign(chrono::ChForce::WORLD_DIR);
+    _force->SetVrelpoint(chrono::ChVector3d(0, 0, 0));
     _moment->SetMode(chrono::ChForce::TORQUE);
     _moment->SetFrame(chrono::ChForce::BODY);
     _moment->SetAlign(chrono::ChForce::WORLD_DIR);
+    _moment->SetVrelpoint(chrono::ChVector3d(0, 0, 0));
 
     _apollo->SetPos(chrono::ChVector3d(0, 0, _cogz));
     _apollo->SetLinVel(chrono::ChVector3d(0, 0, -_vel));
     // On NWU coordinates:
-    //    x : Positive moment = negative roll = portside goes down
-    //    y : Positive moment = negative pitch = bow goes up
-    //    z : Positive moment = negative yaw = bow goes to the boardside
-    // Thus we are inverting the angles to match the AQUAgpusph criteria
-    chrono::ChMatrix33<double> R;
-    R.SetFromCardanAnglesXYZ(chrono::ChVector3d(0, -_pitch, 0));
+    //    x : Positive moment = positive roll = portside goes up
+    //    y : Positive moment = positive pitch = bow goes down
+    //    z : Positive moment = positive yaw = bow goes to the portside
+    chrono::ChQuaternion<double> R;
+    R.SetFromCardanAnglesXYZ(chrono::ChVector3d(0, _pitch, 0));
     _apollo->SetRot(R);
 
     setInputDependencies({"dt", "Force_p", "Moment_p"});
@@ -132,7 +133,7 @@ setVec(Aqua::InputOutput::Variable* var, chrono::ChVector3d value)
 }
 
 cl_event
-TitanSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
+ApolloSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
 {
     auto vars = CalcServer::singleton()->variables();
     // Get the forces from AQUAgpusph
@@ -147,17 +148,9 @@ TitanSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
     const chrono::ChVector3d r = _apollo->GetPos();
     const chrono::ChVector3d drdt = _apollo->GetLinVel();
     const chrono::ChVector3d ddrddt = _apollo->GetLinAcc();
-    const chrono::ChVector3d a = -_apollo->GetRotMat().GetCardanAnglesXYZ();
-    const chrono::ChVector3d dadt = -_apollo->GetAngVelParent();
-    const chrono::ChVector3d ddaddt = -_apollo->GetAngAccParent();
-    // vec4 a_prev = *((vec4*)vars->get("motion_a")->get(true));
-    // const chrono::ChVector3d dadt = dt > 0.f ?
-    //     (a - chrono::ChVector3d(a_prev.x, a_prev.y, a_prev.z)) / dt :
-    //     chrono::ChVector3d(0, 0, 0);
-    // vec4 dadt_prev = *((vec4*)vars->get("motion_dadt")->get(true));
-    // const chrono::ChVector3d ddaddt = dt > 0.f ?
-    //     (dadt - chrono::ChVector3d(dadt_prev.x, dadt_prev.y, dadt_prev.z)) / dt :
-    //     chrono::ChVector3d(0, 0, 0);
+    const chrono::ChVector3d a = _apollo->GetRot().GetCardanAnglesXYZ();
+    const chrono::ChVector3d dadt = _apollo->GetAngVelLocal();
+    const chrono::ChVector3d ddaddt = _apollo->GetAngAccLocal();
     setVec(vars->get("motion_r"), r);
     setVec(vars->get("motion_drdt"), drdt);
     setVec(vars->get("motion_ddrddt"), ddrddt);

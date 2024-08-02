@@ -17,7 +17,7 @@
  */
 
 /** @file
- * @brief The simulation of the Titan capsule rigid body, using
+ * @brief The simulation of the Apollo capsule rigid body, using
  * https://projectchrono.org/
  */
 
@@ -31,21 +31,21 @@
 
 namespace Aqua{ namespace CalcServer{
 
-/** @class TitanSim TitanSim.h
- * @brief Titan capsule landing simulation
+/** @class ApolloSim ApolloSim.h
+ * @brief Apollo capsule landing simulation
  */
-class TitanSim : public Aqua::CalcServer::Tool
+class ApolloSim : public Aqua::CalcServer::Tool
 {
 public:
     /** Constructor, with same arguments than Tool.
      * @param name Tool name.
      * @param once Run this tool just once. Useful to make initializations.
      */
-    TitanSim(const std::string tool_name, bool once);
+    ApolloSim(const std::string tool_name, bool once);
 
     /** Destructor.
      */
-    ~TitanSim();
+    ~ApolloSim();
 
     /** Initialize the tool.
      */

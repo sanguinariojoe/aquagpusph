@@ -33,6 +33,5 @@ Authors:
         You can conveniently combine several printing criterias.
         -->
         <Option name="Output" type="FPS" value="1000" />
-        <Option name="Output" type="IPF" value="500" />
     </Timing>
 </sphInput>

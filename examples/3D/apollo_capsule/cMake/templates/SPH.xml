@@ -32,7 +32,7 @@ Authors:
         <Variable name="courant" type="float" value="{{COURANT}}" />
         <Variable name="domain_min" type="vec" value="{{DOMAIN_MIN}}" />
         <Variable name="domain_max" type="vec" value="{{DOMAIN_MAX}}" />
-        <Variable name="iter_midpoint_max" type="unsigned int" length="1" value="10"/>
+        <Variable name="iter_midpoint_max" type="unsigned int" length="1" value="6"/>
         <Variable name="relax_midpoint" type="float" length="1" value="0"/>
         <Variable name="Residual_midpoint_max" type="float" length="1" value="1.e-2" symbol="E_{\Delta t}^{max}"/>
     </Variables>
