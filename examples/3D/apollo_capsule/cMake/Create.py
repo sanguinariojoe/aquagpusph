@@ -38,7 +38,7 @@ import meshio
 # Input data
 # ==========
 
-COG = [0.142, 0.0, 0.318]
+COG = [-0.142, 0.0, 0.318]
 PITCH = -12.0
 VEL = 9.88
 DT = 1e-6
@@ -59,10 +59,7 @@ h = 8.0
 
 # Estimate the simulation time
 z0 = 2.0 * hfac * dr
-assert VEL**2 - 2 * g * z0 > 0.0
-v0 = -np.sqrt(VEL**2 - 2 * g * z0)
-t0 = (v0 + VEL) / g
-VEL = -v0
+t0 = (np.sqrt(VEL**2 + 2 * g * z0) - VEL) / g
 T = t0 + 0.18
 print(f"Releasing velocity = {VEL} m / s")
 print(f"Flying time = {t0} s")
