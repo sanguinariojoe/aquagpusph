@@ -85,7 +85,6 @@ accx, = ax_accx.plot([0.0], [0.0],
                      color="black",
                      linestyle="-",
                      linewidth=1.0)
-t, a = readFile('rsc/accy.csv')
 ax_accy.plot([0.0, {{T}}], [ACCY, ACCY],
              color="black",
              linestyle="--",
@@ -94,7 +93,6 @@ accy, = ax_accy.plot([0.0], [0.0],
                      color="black",
                      linestyle="-",
                      linewidth=1.0)
-t, a = readFile('rsc/accz.csv')
 ax_accz.plot([0.0, {{T}}], [ACCZ, ACCZ],
              color="black",
              linestyle="--",
@@ -103,7 +101,6 @@ accz, = ax_accz.plot([0.0], [0.0],
                      color="black",
                      linestyle="-",
                      linewidth=1.0)
-t, a = readFile('rsc/acca.csv')
 ax_acca.plot([0.0, {{T}}], [ACCA, ACCA],
              color="black",
              linestyle="--",
