@@ -56,7 +56,7 @@ def main():
     aqua.set("motion_r_in", motion_r[motion_iset])
     aqua.set("motion_a_in", motion_a[motion_iset])
 
-    # Backuo the new state variables
+    # Backup the new state variables
     motion_r[motion_iset] = np.copy(aqua.get("motion_r"))
     motion_a[motion_iset] = np.copy(aqua.get("motion_a"))
 
