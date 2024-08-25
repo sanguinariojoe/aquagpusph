@@ -62,7 +62,6 @@
  * @param u Velocity \f$ \mathbf{u} \f$.
  * @param N Number of particles.
  * @param motion_iset Set of particles affected.
- * @param motion_r Center of rotation.
  * @param motion_drdt Center of rotation velocity.
  * @param motion_a Rotation angles \f$ \phi, \theta, \psi \f$.
  * @param motion_dadt Angular velocities.
@@ -74,7 +73,6 @@ __kernel void entry(const __global uint* iset,
                     __global vec* u,
                     usize N,
                     unsigned int motion_iset,
-                    vec motion_r,
                     vec motion_drdt,
                     vec4 motion_a,
                     vec4 motion_dadt)
