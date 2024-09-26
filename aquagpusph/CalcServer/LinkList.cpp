@@ -342,8 +342,8 @@ LinkList::_execute(const std::vector<cl_event> events)
 		r_min = getOutputDependencies()[3];
 		r_max = getOutputDependencies()[4];
 	} else {
-		r_min = getInputDependencies()[5];
-		r_max = getInputDependencies()[6];
+		r_min = getInputDependencies()[4];
+		r_max = getInputDependencies()[5];
 	}
 
 	// Compute the number of cells and allocate ihoc accordingly
