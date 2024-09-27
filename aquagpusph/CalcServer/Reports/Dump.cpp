@@ -91,11 +91,20 @@ Dump::print()
 {
 	CalcServer* C = CalcServer::singleton();
 	unsigned int findex=0;
-	const auto fpath = newFilePath(_output_file, findex);
+	std::string fpath = _output_file;
+	try {
+		fpath = newFilePath(_output_file, findex);
+	} catch (...) {
+		setStrConstants(fpath);
+	}
 	std::ios_base::openmode mode = _binary ?
 		std::ios::out | std::ios::binary:
 		std::ios::out;
 	std::ofstream f(fpath, mode);
+	if (!f.good()) {
+		LOG(L_ERROR, std::string("Failure opening the file '") + fpath +
+		             "' for writing");
+	}
 	if (C->device_addr_bits() == 64) {
 		constexpr auto max_precision{
 			std::numeric_limits<double>::digits10 + 1};
