@@ -1113,7 +1113,7 @@ Variables::typeToBytes(const std::string type)
 	if (type.find("unsigned int") != std::string::npos ||
 	    type.find("uivec") != std::string::npos) {
 		type_size = sizeof(uicl);
-	} else if (type.find("unigned long") != std::string::npos ||
+	} else if (type.find("unsigned long") != std::string::npos ||
 	           type.find("ulvec") != std::string::npos) {
 		type_size = sizeof(ulcl);
 	} else if (type.find("int") != std::string::npos ||
