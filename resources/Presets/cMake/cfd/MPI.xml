@@ -76,5 +76,5 @@ processors each particle shall be sent to (if any)
 		<Tool action="insert" after="mpi eos"           name="mpi interactions"      type="kernel"   entry_point="interactions" path="resources/Scripts/cfd/MPI.cl" />
 	</Tools>
 
-	<!-- Include file="@RESOURCES_OUTPUT_DIR@/Presets/basic/setBuffer.xml" when="end"/ -->
+	<Include file="@RESOURCES_OUTPUT_DIR@/Presets/basic/setBuffer.xml" when="end"/>
 </sphInput>

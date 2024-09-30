@@ -123,7 +123,7 @@ __kernel void append(__global unsigned int* iset,
                      __global float* drhodt,
                      __global float* m,
                      __global int* imove,
-                     const __global size_t* mpi_local_mask,
+                     const __global usize* mpi_local_mask,
                      const __global unsigned int* mpi_iset,
                      const __global vec* mpi_r,
                      const __global vec* mpi_u,
@@ -169,7 +169,7 @@ __kernel void append(__global unsigned int* iset,
  */
 __kernel void remove(__global int* imove,
                      __global vec* r,
-                     const __global size_t* mpi_local_mask,
+                     const __global usize* mpi_local_mask,
                      unsigned int mpi_rank,
                      usize N)
 {
@@ -197,7 +197,7 @@ __kernel void remove(__global int* imove,
  * @param N Number of particles
  * @param n_radix Number of elements on @p mpi_r_in
  */
-__kernel void backup_r(const __global size_t* mpi_neigh_mask,
+__kernel void backup_r(const __global usize* mpi_neigh_mask,
                        const __global vec* mpi_r,
                        __global vec* mpi_r_in,
                        vec r_max,
