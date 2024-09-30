@@ -115,50 +115,32 @@ main(int argc, char* argv[])
 	InputOutput::Logger* logger = new InputOutput::Logger();
 	InputOutput::FileManager file_manager;
 
-	std::cout << std::endl;
-	std::cout << "\t#########################################################"
-	          << std::endl;
-	std::cout << "\t#                                                       #"
-	          << std::endl;
-	std::cout << "\t#    #    ##   #  #   #                           #     #"
-	          << std::endl;
-	std::cout << "\t#   # #  #  #  #  #  # #                          #     #"
-	          << std::endl;
-	std::cout << "\t#  ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###   #"
-	          << std::endl;
-	std::cout << "\t#  #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #  #"
-	          << std::endl;
-	std::cout << "\t#  #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #  #"
-	          << std::endl;
-	std::cout << "\t#  #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #  #"
-	          << std::endl;
-	std::cout << "\t#                            # #             #          #"
-	          << std::endl;
-	std::cout << "\t#                          ##  #             #          #"
-	          << std::endl;
-	std::cout << "\t#                                                       #"
-	          << std::endl;
-	std::cout << "\t#########################################################"
-	          << std::endl;
-	std::cout << "\tAnother QUAlity GPU-SPH, by CEHINAV (UPM) group."
-	          << std::endl;
-	std::cout << "\t\thttp://canal.etsin.upm.es/" << std::endl;
-	std::cout << "\tAuthors:" << std::endl;
-	std::cout << "\t\tJose Luis Cercos Pita" << std::endl;
-	std::cout << "\t\tLeo Miguel Gonzalez" << std::endl;
-	std::cout << "\t\tAntonio Souto-Iglesias" << std::endl;
-	std::cout << "\t\tJavier Calderon-Sanchez" << std::endl;
-	std::cout << "\tAQUAgpusph Copyright (C) 2012-2024  Jose Luis Cercos-Pita"
-	          << std::endl;
-	std::cout << "\tThis program comes with ABSOLUTELY NO WARRANTY; for "
-	             "details see LICENSE."
-	          << std::endl;
-	std::cout
-	    << "\tThis is free software, and you are welcome to redistribute it"
+	msg << std::endl
+	    << "\t#########################################################" << std::endl
+	    << "\t#                                                       #" << std::endl
+	    << "\t#    #    ##   #  #   #                           #     #" << std::endl
+	    << "\t#   # #  #  #  #  #  # #                          #     #" << std::endl
+	    << "\t#  ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###   #" << std::endl
+	    << "\t#  #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #  #" << std::endl
+	    << "\t#  #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #  #" << std::endl
+	    << "\t#  #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #  #" << std::endl
+	    << "\t#                            # #             #          #" << std::endl
+	    << "\t#                          ##  #             #          #" << std::endl
+	    << "\t#                                                       #" << std::endl
+	    << "\t#########################################################" << std::endl
+	    << "\tAnother QUAlity GPU-SPH, by CEHINAV (UPM) group." << std::endl
+	    << "\t\thttp://canal.etsin.upm.es/" << std::endl
+	    << "\tAuthors:" << std::endl
+	    << "\t\tJose Luis Cercos Pita" << std::endl
+	    << "\t\tLeo Miguel Gonzalez" << std::endl
+	    << "\t\tAntonio Souto-Iglesias" << std::endl
+	    << "\t\tJavier Calderon-Sanchez" << std::endl
+	    << "\tAQUAgpusph Copyright (C) 2012-2024  Jose Luis Cercos-Pita" << std::endl
+	    << "\tThis program comes with ABSOLUTELY NO WARRANTY; for details see LICENSE." << std::endl
+	    << "\tThis is free software, and you are welcome to redistribute it" << std::endl
+	    << "\tunder certain conditions; see LICENSE for details." << std::endl
 	    << std::endl;
-	std::cout << "\tunder certain conditions; see LICENSE for details."
-	          << std::endl;
-	std::cout << std::endl;
+	LOG(L_INFO, msg.str());
 
 	InputOutput::CommandLineArgs::parse(argc, argv, file_manager);
 
@@ -200,6 +182,7 @@ main(int argc, char* argv[])
 
 	file_manager.waitForSavers();
 	logger->printDate();
+	msg.str(std::string());
 	msg << "Simulation finished "
 	    << ((status == EXIT_SUCCESS) ? "OK " : "abnormally ")
 		<< "(t = " << t_manager.time() << " s)" << std::endl;

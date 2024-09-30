@@ -31,10 +31,15 @@
 #include "FileManager.hpp"
 #include "InputOutput/Logger.hpp"
 
+#ifdef HAVE_MPI
+#include <mpi.h>
+#endif
+
 // Short and long runtime options (see
 // http://www.gnu.org/software/libc/manual/html_node/Getopt.html#Getopt)
-static const char* opts = "i:q:d:vh";
+static const char* opts = "l:i:q:d:vh";
 static const struct option longOpts[] = {
+	{ "log-level", required_argument, NULL, 'l' },
 	{ "input", required_argument, NULL, 'i' },
 	{ "queues", required_argument, NULL, 'q' },
 	{ "dimensions", required_argument, NULL, 'd' },
@@ -60,6 +65,10 @@ displayUsage()
 	          << std::endl;
 	std::cout << "Required arguments for long options are also required for "
 	          << "the short ones." << std::endl;
+	std::cout << "  -l, --log-level=LEVEL        2 digits number indicating "
+	          << "the log level of the main instance and the parallel ones. "
+	          << "The levels are: 0=Debug, 1=Info, 2=Warning, 3=error, 4=none."
+	          << " (02 by default)"<< std::endl;
 	std::cout << "  -i, --input=INPUT            XML definition input file "
 	          << "(Input.xml by default)" << std::endl;
 	std::cout << "  -q, --queues=QUEUES          Maximum number of OpenCL "
@@ -78,10 +87,29 @@ parse(int argc, char** argv, FileManager& file_manager)
 	int index, queues;
 	std::string optstr;
 
+#ifdef HAVE_MPI
+	const int mpi_rank = Aqua::MPI::rank(MPI_COMM_WORLD);
+#else
+	const int mpi_rank = 0;
+#endif
 	int opt = getopt_long(argc, argv, opts, longOpts, &index);
 	while (opt != -1) {
 		std::ostringstream msg;
 		switch (opt) {
+			case 'l':
+				optstr = trimCopy(optarg);
+				if (optstr.length() != 2) {
+					msg.str(std::string());
+					msg << "Error parsing the log level: '"
+					    << optarg << "' should be a 2 digits number"
+					    << std::endl;
+					LOG(L_ERROR, msg.str());
+					throw std::invalid_argument("Invalid log level");
+				}
+				Aqua::InputOutput::Logger::singleton()->setLevel(
+					optstr[(int)(mpi_rank > 0)] - '0');
+				break;
+
 			case 'i':
 				optstr = trimCopy(optarg);
 				file_manager.inputFile(optstr);

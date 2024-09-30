@@ -73,7 +73,8 @@ enum TLogLevel
 	L_DEBUG,
 	L_INFO,
 	L_WARNING,
-	L_ERROR
+	L_ERROR,
+	L_NONE
 };
 
 namespace InputOutput {
@@ -95,6 +96,14 @@ struct Logger
 
 	/// Destructor.
 	~Logger();
+
+	/** @brief Set the log level
+	 * @param level The minimum message log level to get printed
+	 */
+	inline void setLevel(int level)
+	{
+		_level = (std::min)((std::max)(level, (int)L_DEBUG), (int)L_NONE);
+	}
 
 	/** @brief Write a new message in the terminal output.
 	 *
@@ -145,6 +154,9 @@ struct Logger
 	struct timeval _start_time;
 	/// Actual time
 	struct timeval _actual_time;
+
+	/// Minimum log level to get the message printed
+	int _level;
 
 	/// Output log file
 	std::ofstream _log_file;

@@ -39,7 +39,13 @@ namespace InputOutput {
 
 
 Logger::Logger()
+	: _level(L_DEBUG)
 {
+#ifdef HAVE_MPI
+	auto mpi_rank = Aqua::MPI::rank(MPI_COMM_WORLD);
+	if (mpi_rank > 0)
+		_level = L_ERROR;
+#endif
 	open();
 	gettimeofday(&_start_time, NULL);
 }
@@ -96,13 +102,13 @@ Logger::addMessage(TLogLevel level, std::string log, std::string func)
 		_log_file.flush();
 	}
 
-	int mpi_rank = 0;
-#ifdef HAVE_MPI
-	mpi_rank = Aqua::MPI::rank(MPI_COMM_WORLD);
-#endif
-	if ((level < L_ERROR) && (mpi_rank > 0))
+	if (level < _level)
 		return;
 
+#ifdef HAVE_MPI
+	auto mpi_rank = Aqua::MPI::rank(MPI_COMM_WORLD);
+	std::cout << "[Proc " << mpi_rank << "] ";
+#endif
 	// Just in case the Logger has been destroyed
 	if (level == L_INFO)
 		std::cout << "INFO ";

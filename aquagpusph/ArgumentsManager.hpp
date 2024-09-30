@@ -32,7 +32,9 @@ namespace InputOutput {
 namespace CommandLineArgs {
 
 /** @brief Parse the command line arguments.
- *
+ * @param argc Number of arguments passed by command line
+ * @param argv Arguments passed by command line
+ * @param file_manager The files loader and reader
  * @return false if the excution must continue, true otherwise.
  */
 void
