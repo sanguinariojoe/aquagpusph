@@ -188,7 +188,7 @@ class MPISync : public Aqua::CalcServer::Tool
 		 * @param name The same name that the owner tool (See
 		 * Aqua::CalcServer::MPISync)
 		 * @param vars_prefix The unique prefix to register new variables (See
-		 * Aqua::CalcServer::MPISync::varPrefix())
+		 * Aqua::CalcServer::Tool::varPrefix())
 		 * @param mask Already sorted mask
 		 * @param fields Already sorted fields
 		 * @param field_hosts Allocated host memory to temporary copy the data,
@@ -275,7 +275,7 @@ class MPISync : public Aqua::CalcServer::Tool
 		 * @param name The same name that the owner tool (See
 		 * Aqua::CalcServer::MPISync)
 		 * @param vars_prefix The unique prefix to register new variables (See
-		 * Aqua::CalcServer::MPISync::varPrefix())
+		 * Aqua::CalcServer::Tool::varPrefix())
 		 * @param mask Already sorted mask
 		 * @param fields Already sorted fields
 		 * @param field_hosts Allocated host memory to temporary copy the data,
@@ -361,7 +361,7 @@ class MPISync : public Aqua::CalcServer::Tool
 		 * @param name The same name that the owner tool (See
 		 * Aqua::CalcServer::MPISync)
 		 * @param vars_prefix The unique prefix to register new variables (See
-		 * Aqua::CalcServer::MPISync::varPrefix())
+		 * Aqua::CalcServer::Tool::varPrefix())
 		 * @param mask Incoming data process mask
 		 * @param fields Fields to store the incoming data
 		 * @param field_hosts Allocated host memory to temporary copy the

@@ -566,6 +566,7 @@ cbMPISend(cl_event UNUSED_PARAM n_event,
           cl_int UNUSED_PARAM cmd_exec_status,
           void* user_data)
 {
+	cl_int err_code;
 	MPISyncSendUserData* data = (MPISyncSendUserData*)user_data;
 	ulcl offset, n;
 	if (data->n_bits == 64) {
@@ -580,6 +581,11 @@ cbMPISend(cl_event UNUSED_PARAM n_event,
 		Aqua::MPI::isend(&n, 1, MPI_UINT64_T, data->proc, 0, MPI_COMM_WORLD);
 
 	if (!n) {
+		err_code = clSetUserEventStatus(data->user_event, CL_COMPLETE);
+		CHECK_OCL_OR_THROW(
+			err_code,
+			std::string("Failure finishing the empty sending task of \"") +
+				data->field->name() + "\".");
 		free(data);
 		return;
 	}
@@ -589,7 +595,6 @@ cbMPISend(cl_event UNUSED_PARAM n_event,
 	void* ptr = (void*)((char*)(data->ptr) + offset * tsize);
 
 	// Download the data
-	cl_int err_code;
 	err_code = clEnqueueReadBuffer(data->C->command_queue(cmd_queue_mpi),
 	                               *(cl_mem*)field->get(),
 	                               CL_TRUE,
@@ -691,10 +696,7 @@ MPISync::Sender::execute(EventProfile* profiler)
 			                _fields.at(i)->getWritingEvent() };
 
 		try {
-			event = C->marker(C->command_queue(), {
-				_n_offset->getWritingEvent(),
-				_n_send->getWritingEvent(),
-				_fields.at(i)->getWritingEvent() });
+			event = C->marker(C->command_queue(), event_wait_list);
 		} catch (std::runtime_error& e) {
 			LOG(L_ERROR, std::string("While creating send events ") +
 			             "syncing point in tool \"" + name() + "\".\n");
