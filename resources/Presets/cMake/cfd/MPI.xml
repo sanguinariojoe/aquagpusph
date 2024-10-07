@@ -15,6 +15,15 @@ computation.
 This module is just managing the synchronization. The user still need to add
 a module to set the mpi_local_mask and mpi_neigh_mask variables with the
 processors each particle shall be sent to (if any)
+
+Include this module after domain.xml
+
+TODO: On the semi-implicit schemes, the position is actually constant, so there
+      is no need to sync the position and carry out the link-list at each
+      subiteration.
+WARNING: All the processes are considering now the same domain_min and
+         domain_max. Thus, it may happens that some processes have a lot of
+         cells. Can we figure out something better?
 -->
 
 <sphInput>

@@ -12,6 +12,8 @@ You just need to include this module after MPI.xml, and set the variables:
 You can add this module several times to add several bounding planes. In that
 case, just edit the mpi_plane_r and mpi_plane_normal before the tool is
 executed ("mpi bound" tool). You can use prefixes when including for that.
+
+TODO: Test with several planes. I think this should work... But...
 -->
 
 <sphInput>
@@ -22,7 +24,8 @@ executed ("mpi bound" tool). You can use prefixes when including for that.
 	</Variables>
 
 	<Tools>
-		<Tool action="insert" after="mpi neighs mask reset" name="mpi bound" type="kernel" path="resources/Scripts/cfd/MPI/planes.cl" />
+		<Tool action="insert" after="mpi local mask reset" name="mpi local mask" type="kernel" path="resources/Scripts/cfd/MPI/planes.cl" entry_point="local_mask" />
+		<Tool action="insert" after="mpi remove" name="mpi neighs mask" type="kernel" path="resources/Scripts/cfd/MPI/planes.cl" entry_point="neigh_mask"  />
 	</Tools>
 
 	<Include file="@RESOURCES_OUTPUT_DIR@/Presets/basic/setBuffer.xml" when="end"/>

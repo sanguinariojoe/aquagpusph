@@ -22,8 +22,8 @@
 
 #include "resources/Scripts/types/types.h"
 
-/** @brief Set the masks to let AQUAgpusph to which process it shall send the
- * particle
+/** @brief Set the masks to let AQUAgpusph to which process each particle
+ * belongs
  *
  * Just fluid particles are exchanged
  *
@@ -33,21 +33,18 @@
  *   - imove < 0 for boundary elements/particles
  * @param mpi_local_mask Particles that shall be handled by another process
  * from now on
- * @param mpi_neigh_mask Particles that shall be sent to another process so it
- * can consider them as neighbours
  * @param mpi_plane_r Bounding plane position
  * @param mpi_plane_n Outward bounding plane normal
  * @param mpi_plane_proc Neighbour process
  * @param N Number of particles
  */
-__kernel void entry(const __global int* imove,
-                    const __global vec* r,
-                    __global usize* mpi_local_mask,
-                    __global usize* mpi_neigh_mask,
-                    vec mpi_plane_r,
-                    vec mpi_plane_n,
-                    unsigned int mpi_plane_proc,
-                    usize N)
+__kernel void local_mask(const __global int* imove,
+                         const __global vec* r,
+                         __global usize* mpi_local_mask,
+                         vec mpi_plane_r,
+                         vec mpi_plane_n,
+                         unsigned int mpi_plane_proc,
+                         usize N)
 {
     const usize i = get_global_id(0);
     if(i >= N)
@@ -60,7 +57,42 @@ __kernel void entry(const __global int* imove,
         // The particle has crossed the boundary, so it is not our problem
         // anymore
         mpi_local_mask[i] = mpi_plane_proc;
-    } else if (d >= -SUPPORT * H) {
+    }
+}
+
+
+/** @brief Set the masks to let AQUAgpusph to which process each particle is
+ * neighbour of
+ *
+ * Just fluid particles are exchanged
+ *
+ * @param imove Moving flags
+ *   - imove > 0 for regular fluid particles
+ *   - imove = 0 for sensors
+ *   - imove < 0 for boundary elements/particles
+ * @param mpi_neigh_mask Particles that shall be sent to another process so it
+ * can consider them as neighbours
+ * @param mpi_plane_r Bounding plane position
+ * @param mpi_plane_n Outward bounding plane normal
+ * @param mpi_plane_proc Neighbour process
+ * @param N Number of particles
+ */
+__kernel void neigh_mask(const __global int* imove,
+                         const __global vec* r,
+                         __global usize* mpi_neigh_mask,
+                         vec mpi_plane_r,
+                         vec mpi_plane_n,
+                         unsigned int mpi_plane_proc,
+                         usize N)
+{
+    const usize i = get_global_id(0);
+    if(i >= N)
+        return;
+    if(imove[i] <= 0)
+        return;
+
+    const float d = dot(r[i] - mpi_plane_r, mpi_plane_n);
+    if (d >= -SUPPORT * H) {
         // The particle is needed by the neighboring process to compute
         mpi_neigh_mask[i] = mpi_plane_proc;
     }

@@ -171,6 +171,7 @@ __kernel void remove(__global int* imove,
                      __global vec* r,
                      const __global usize* mpi_local_mask,
                      unsigned int mpi_rank,
+                     vec domain_max,
                      usize N)
 {
     const usize i = get_global_id(0);
@@ -179,7 +180,7 @@ __kernel void remove(__global int* imove,
     if(mpi_local_mask[i] == mpi_rank)
         return;
 
-    r[i] = VEC_INFINITY;
+    r[i] = domain_max;
     // We mark the particle as -256, to be turned into a buffer one (-255)
     // later on
     imove[i] = -256;

@@ -2,6 +2,7 @@
 <sphInput>
     <Include file="@RESOURCES_DIR@/Presets/basic.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/basic/domain.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/time_scheme/midpoint.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/MPI.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/MPI/planes.xml" />
@@ -17,6 +18,8 @@
         <Variable name="Ma" type="float" length="1" value="0.01"/>
         <Variable name="cs" type="float" value="U / Ma" />
         <Variable name="courant" type="float" value="0.5" />
+        <Variable name="domain_min" symbol="r_{min}" type="vec" value="-1,-1"/>
+        <Variable name="domain_max" symbol="r_{max}" type="vec" value="1,1"/>
         <Variable name="iter_midpoint_max" type="unsigned int" length="1" value="1"/>
         <Variable name="relax_midpoint" type="float" length="1" value="1.0"/>
         <Variable name="mpi_plane_r" symbol="r_{mpi,min}" type="vec" value="0,0"/>
