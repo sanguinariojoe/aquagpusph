@@ -798,8 +798,8 @@ CalcServer::getUnsortedMem(const std::string var_name,
 	rank = Aqua::MPI::rank(MPI_COMM_WORLD);
 #endif
 	const auto device_config = _sim_data.settings.devices.at(rank);
-	if (device_config.isPatchEnabled("nvidia_sync_writing") ||
-		(_is_nvidia && !device_config.isPatchDisabled("nvidia_sync_writing")))
+	if (device_config.isPatchEnabled("nvidia_#9999999") ||
+		(_is_nvidia && !device_config.isPatchDisabled("nvidia_#9999999")))
 	{
 		// On NVIDIA the asynchronous files writing is not working properly
 		// TODO: Debug and report to NVIDIA

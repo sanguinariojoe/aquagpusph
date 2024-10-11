@@ -235,7 +235,7 @@ class ProblemSetup
 			  , device_type(t)
 			  , addr_bits(bits)
 			  , patches({{"nvidia_#4665567", patch_state::AUTO},
-			             {"nvidia_sync_writing", patch_state::AUTO},
+			             {"nvidia_#9999999", patch_state::AUTO},
 			            })
 			{};
 
