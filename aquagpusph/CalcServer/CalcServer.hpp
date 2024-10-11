@@ -501,6 +501,13 @@ class CalcServer
 
 	/// Simulation data read from XML files
 	Aqua::InputOutput::ProblemSetup _sim_data;
+
+	/** 2 memory phony objects to call to call to clEnqueueCopyBuffer() instead
+	 * of clEnqueueMarkerWithWaitList()
+	 * @note 2024/05/24 NVIDIA's platform clEnqueueMarkerWithWaitList() is
+	 * broken
+	 */
+	cl_mem __phony_mems[2];
 };
 
 }

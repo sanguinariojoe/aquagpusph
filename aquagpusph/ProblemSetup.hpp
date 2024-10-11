@@ -234,7 +234,9 @@ class ProblemSetup
 			  , device_id(device_index)
 			  , device_type(t)
 			  , addr_bits(bits)
-			  , patches({{"nvidia_#4665567", patch_state::AUTO}})
+			  , patches({{"nvidia_#4665567", patch_state::AUTO},
+			             {"nvidia_sync_writing", patch_state::AUTO},
+			            })
 			{};
 
 			/// Destructor

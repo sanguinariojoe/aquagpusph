@@ -146,6 +146,7 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
   , _device_timer_offset(0)
   , _current_tool_name(NULL)
   , _sim_data(sim_data)
+  , __phony_mems{NULL, NULL}
 {
 	unsigned int i, j;
 
@@ -529,6 +530,12 @@ CalcServer::~CalcServer()
 	finish();
 
 	// Proceed to destroy everything
+	for (unsigned int i = 0; i < 2; i++) {
+		if (!__phony_mems[i])
+			continue;
+		clReleaseMemObject(__phony_mems[i]);
+	}
+
 	delete[] _current_tool_name;
 	for (auto queue : _command_queues)
 		clReleaseCommandQueue(queue);
@@ -710,73 +717,6 @@ CalcServer::marker() const
 	return marker(_command_queues[_command_queue_current], events);
 }
 
-typedef struct __marker_cb_data {
-	/// The event to be set as completed when the others on the wait list are
-	/// completed
-	cl_event event;
-	/// The event status candidate
-	/// (CL_COMPLETE unless an event on the wait list report an error)
-	cl_int status;
-	/// The number of events on the wait list
-	cl_uint num_events_in_wait_list;
-	/// The events on the wait list
-	cl_event* event_wait_list;
-} marker_cb_data;
-
-/** @brief A phony clEnqueueMarkerWithWaitList()
- *
- * This callback is used to workaround the NVIDIA CUDA platform bug #4665567,
- * identified as nvidia_#4665567 patch
- */
-void CL_CALLBACK
-marker_cb(cl_event event, cl_int cmd_exec_status, void* user_data)
-{
-	cl_int err_code;
-	marker_cb_data* data = (marker_cb_data*)user_data;
-
-	if (cmd_exec_status < data->status)
-		data->status = cmd_exec_status;
-	// Check if all the events on the wait list are finished
-	// We cannot call clWaitForEvents or we will probably face a race condition
-	cl_int status = CL_COMPLETE;
-	for (cl_uint i = 0; i < data->num_events_in_wait_list; i++) {
-		if (data->event_wait_list[i] == event)
-			continue;
-		cl_int e_status;
-		err_code = clGetEventInfo(data->event_wait_list[i],
-		                          CL_EVENT_COMMAND_EXECUTION_STATUS,
-		                          sizeof(cl_int),
-		                          &e_status,
-		                          NULL);
-		CHECK_OCL_OR_THROW(err_code, "Failure getting a status event");
-		if (e_status > CL_COMPLETE)
-			status = e_status;
-		if ((e_status < CL_COMPLETE) && (status == CL_COMPLETE))
-			status = e_status;
-	}
-	for (cl_uint i = 0; i < data->num_events_in_wait_list; i++) {
-		err_code = clReleaseEvent(data->event_wait_list[i]);
-		CHECK_OCL_OR_THROW(err_code, "Failure releasing a wait event");
-	}
-
-	if (status > CL_COMPLETE) {
-		err_code = clReleaseEvent(data->event);
-		CHECK_OCL_OR_THROW(err_code, "Failure releasing the marker");
-		return;
-	}
-
-	err_code = clSetUserEventStatus(data->event, data->status);
-	if (err_code == CL_INVALID_OPERATION)
-		return;
-	CHECK_OCL_OR_THROW(err_code, "Failure setting as completed the marker");
-
-	err_code = clReleaseEvent(data->event);
-	CHECK_OCL_OR_THROW(err_code, "Failure releasing the marker");
-
-	free(data->event_wait_list);
-	free(data);
-}
-
 cl_event
 CalcServer::marker(cl_command_queue cmd, std::vector<cl_event> events) const
 {
@@ -804,54 +744,10 @@ CalcServer::marker(cl_command_queue cmd, std::vector<cl_event> events) const
 	}
 
 	// Workaround for NVIDIA's bug #4665567
-	event = clCreateUserEvent(context(), &err_code);
-	CHECK_OCL_OR_THROW(err_code, "Failure creating the user event");
-	for (cl_uint i = 0; i < events.size(); i++) {
-		err_code = clRetainEvent(event);
-		CHECK_OCL_OR_THROW(err_code, "Failure retaining the user event");
-	}
-	marker_cb_data** data = (marker_cb_data**)malloc(
-		events.size() * sizeof(marker_cb_data*));
-	if (!data) {
-		std::ostringstream msg;
-		msg << "Failure allocating " << events.size() * sizeof(marker_cb_data*)
-		    << " bytes for the phony markers data sets" << std::endl;
-		LOG(L_ERROR, msg.str());
-	}
-	for (cl_uint i = 0; i < events.size(); i++) {
-		data[i] = (marker_cb_data*)malloc(sizeof(marker_cb_data));
-		if (!data) {
-			std::ostringstream msg;
-			msg << "Failure allocating " << sizeof(marker_cb_data)
-				<< " bytes for a phony marker data" << std::endl;
-			LOG(L_ERROR, msg.str());
-		}
-		data[i]->event = event;
-		data[i]->status = CL_COMPLETE;
-		data[i]->num_events_in_wait_list = events.size();
-		data[i]->event_wait_list = (cl_event*)malloc(
-			sizeof(cl_event) * events.size());
-		if (!data[i]->event_wait_list) {
-			std::ostringstream msg;
-			msg << "Failure allocating " << sizeof(cl_event) * events.size()
-				<< " bytes for a phony events wait list" << std::endl;
-			LOG(L_ERROR, msg.str());
-		}
-	}
-
-	for (cl_uint i = 0; i < events.size(); i++) {
-		for (cl_uint j = 0; j < events.size(); j++) {
-			err_code = clRetainEvent(events[i]);
-			CHECK_OCL_OR_THROW(err_code, "Failure retaining a wait event");
-			data[i]->event_wait_list[j] = events[j];
-		}
-	}
-	for (cl_uint i = 0; i < events.size(); i++) {
-		err_code = clSetEventCallback(
-			events[i], CL_COMPLETE, &marker_cb, (void*)(data[i]));
-		CHECK_OCL_OR_THROW(err_code,
-		                   "Failure setting the phony marker command");
-	}
+	err_code = clEnqueueCopyBuffer(
+		cmd, __phony_mems[0], __phony_mems[1], 0, 0, sizeof(cl_int),
+		events.size(), events.data(), &event);
+	CHECK_OCL_OR_THROW(err_code, "Failure creating the NVIDIA phony marker");
 	return event;
 }
 
@@ -897,6 +793,21 @@ CalcServer::getUnsortedMem(const std::string var_name,
 	                   std::string("Failure receiving the variable \"") +
 	                       var_name + "\"");
 
+	int rank = 0;
+#ifdef HAVE_MPI
+	rank = Aqua::MPI::rank(MPI_COMM_WORLD);
+#endif
+	const auto device_config = _sim_data.settings.devices.at(rank);
+	if (device_config.isPatchEnabled("nvidia_sync_writing") ||
+		(_is_nvidia && !device_config.isPatchDisabled("nvidia_sync_writing")))
+	{
+		// On NVIDIA the asynchronous files writing is not working properly
+		// TODO: Debug and report to NVIDIA
+		// NOTE: It seems related to NVIDIA's bug #4665567
+		err_code = clWaitForEvents(1, &event);
+		CHECK_OCL_OR_THROW(err_code, "Failure syncing the data read");
+	}
+
 	return event;
 }
 
@@ -933,6 +844,27 @@ CalcServer::setupOpenCL()
 	setupPlatform();
 	setupDevices();
 	LOG(L_INFO, "OpenCL is ready to work!\n");
+
+	// We need 2 phony memory objects to patch the NVIDIA's bug #4665567
+	int rank = 0;
+#ifdef HAVE_MPI
+	rank = Aqua::MPI::rank(MPI_COMM_WORLD);
+#endif
+	const auto device_config = _sim_data.settings.devices.at(rank);
+	if (device_config.isPatchEnabled("nvidia_#4665567") ||
+	    (_is_nvidia && !device_config.isPatchDisabled("nvidia_#4665567"))) {
+		for (unsigned int i = 0; i < 2; i++) {
+			cl_int err_code;
+			__phony_mems[i] = clCreateBuffer(context(),
+			                                 CL_MEM_READ_WRITE,
+			                                 sizeof(cl_int),
+			                                 NULL,
+			                                 &err_code);
+			CHECK_OCL_OR_THROW(err_code,
+			                   "Failure creating a NVIDIA's phony buffer");
+		}
+	}
+
 }
 
 /** @brief Get the OpenCL major and minor version from the string returned by

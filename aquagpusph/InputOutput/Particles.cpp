@@ -313,10 +313,8 @@ Particles::download(std::vector<std::string> fields)
 		err_code = clReleaseEvent(e);
 		CHECK_OCL_OR_THROW(err_code, "Failure releasing a reading event");
 	}
-
-	// And we do not want everybody waiting for us, so we create another
-	// parallel command queue to continue the work, just in case
-	C->command_queue(CalcServer::CalcServer::cmd_queue::cmd_queue_new);
+	err_code = clFlush(C->command_queue());
+	CHECK_OCL_OR_THROW(err_code, "Failure flushing the fields reading");
 
 	return trigger;
 }
