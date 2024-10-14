@@ -163,12 +163,18 @@ __kernel void append(__global unsigned int* iset,
  *   - imove = 0 for sensors
  *   - imove < 0 for boundary elements/particles
  * @param r Position \f$ \mathbf{r} \f$
+ * @param u Velocity \f$ \mathbf{u} \f$.
+ * @param dudt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
+ * @param m Mass \f$ m \f$.
  * @param mpi_local_mask Incoming processes mask
  * @param mpi_rank The current process id
  * @param N Number of particles
  */
 __kernel void remove(__global int* imove,
                      __global vec* r,
+                     __global vec* u,
+                     __global vec* dudt,
+                     __global float* m,
                      const __global usize* mpi_local_mask,
                      unsigned int mpi_rank,
                      vec domain_max,
@@ -180,10 +186,15 @@ __kernel void remove(__global int* imove,
     if(mpi_local_mask[i] == mpi_rank)
         return;
 
-    r[i] = domain_max;
-    // We mark the particle as -256, to be turned into a buffer one (-255)
-    // later on
+    // Set it as a void particle, to be turned into a buffer one later (-255)
     imove[i] = -256;
+    m[i] = 0.f;
+    // Stop the particle
+    u[i] = VEC_ZERO;
+    dudt[i] = VEC_ZERO;
+    // Move the particle to a more convenient position (in order to use
+    // it as buffer)
+    r[i] = domain_max;
 }
 
 /** @brief Backup the position of the MPI particles to sort that later.
@@ -281,6 +292,85 @@ __kernel void eos(__global unsigned int* mpi_iset,
         return;
 
     mpi_p[i] = p0 + cs * cs * (mpi_rho[i] - refd[mpi_iset[i]]);
+}
+
+/** @brief Shepard factor computation.
+ *
+ * \f[ \gamma(\mathbf{x}) = \int_{\Omega}
+ *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{y} \f]
+ *
+ * The shepard renormalization factor is applied for several purposes:
+ *   - To interpolate values
+ *   - To recover the consistency with the Boundary Integrals formulation
+ *   - Debugging
+ *
+ * In the shepard factor computation the fluid extension particles are not taken
+ * into account.
+ *
+ * @param imove Moving flags.
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param r Position \f$ \mathbf{r} \f$.
+ * @param rho Density \f$ \rho \f$.
+ * @param m Mass \f$ m \f$.
+ * @param mpi_r Neighs position \f$ \mathbf{r} \f$.
+ * @param mpi_rho Neighs density \f$ \rho \f$.
+ * @param mpi_m Neighs mass \f$ m \f$.
+ * @param shepard Shepard term
+ * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
+ *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{y} \f$.
+ * @param icell Cell where each particle is located.
+ * @param ihoc Head of chain for each cell (first particle found).
+ * @param N Number of particles.
+ * @param n_cells Number of cells in each direction
+ */
+__kernel void gamma(const __global int* imove,
+                    const __global vec* r,
+                    const __global float* rho,
+                    const __global float* m,
+                    const __global vec* mpi_r,
+                    const __global float* mpi_rho,
+                    const __global float* mpi_m,
+                    __global float* shepard,
+                    usize N,
+                    LINKLIST_REMOTE_PARAMS)
+{
+    const usize i = get_global_id(0);
+    const usize it = get_local_id(0);
+    if(i >= N)
+        return;
+    if((imove[i] < -3) || ((imove[i] > 0) && (imove[i] != 1)))
+        return;
+
+    const vec_xyz r_i = r[i].XYZ;
+
+    // Initialize the output
+    #ifndef LOCAL_MEM_SIZE
+        #define _SHEPARD_ shepard[i]
+    #else
+        #define _SHEPARD_ shepard_l[it]
+        __local float shepard_l[LOCAL_MEM_SIZE];
+        _SHEPARD_ = 0.f;
+    #endif
+
+    const usize c_i = icell[i];
+    BEGIN_NEIGHS(c_i, N, n_cells, mpi_icell, mpi_ihoc){
+        const vec_xyz r_ij = mpi_r[j].XYZ - r_i;
+        const float q = length(r_ij) / H;
+        if(q >= SUPPORT)
+        {
+            j++;
+            continue;
+        }
+        {
+            _SHEPARD_ += kernelW(q) * CONW * mpi_m[j] / mpi_rho[j];
+        }
+    }END_NEIGHS()
+
+    #ifdef LOCAL_MEM_SIZE
+        shepard[i] += _SHEPARD_;
+    #endif
 }
 
 /** @brief Fluid particles interactions with the neighbours from other

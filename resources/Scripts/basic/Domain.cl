@@ -37,9 +37,9 @@
  *   - imove > 0 for regular fluid/solid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param r Position \f$ \mathbf{r} \f$.
- * @param u Velocity \f$ \mathbf{u} \f$.
- * @param dudt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
+ * @param r_in Position \f$ \mathbf{r} \f$.
+ * @param u_in Velocity \f$ \mathbf{u} \f$.
+ * @param dudt_in Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
  * @param m Mass \f$ m \f$.
  * @param N Number of particles.
  * @param domain_min Minimum point of the domain.

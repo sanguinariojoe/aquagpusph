@@ -82,6 +82,7 @@ WARNING: All the processes are considering now the same domain_min and
 		<Tool action="insert" after="mpi backup m"      name="mpi link-list"         type="link-list" icell="mpi_icell" ihoc="mpi_ihoc" in="mpi_r_in" max="r_max" min="r_min" n_cells="n_cells" recompute_grid="false" perm="mpi_id_unsorted" inv_perm="mpi_id_sorted" />
 		<Tool action="insert" after="mpi link-list"     name="mpi sort"              type="kernel"   entry_point="sort" path="resources/Scripts/cfd/MPI.cl" />
 		<Tool action="insert" after="mpi sort"          name="mpi eos"               type="kernel"   entry_point="eos" path="resources/Scripts/cfd/MPI.cl" />
+		<Tool action="insert" after="mpi eos"           name="mpi shepard"           type="kernel"   entry_point="gamma" path="resources/Scripts/cfd/MPI.cl" />
 		<Tool action="insert" after="mpi eos"           name="mpi interactions"      type="kernel"   entry_point="interactions" path="resources/Scripts/cfd/MPI.cl" />
 	</Tools>
 
