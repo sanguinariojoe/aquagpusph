@@ -570,8 +570,8 @@ with open(path.join(templates_path, 'Settings.xml'), 'r') as fin, \
             "{{CLTYPE}}", "ALL"))
     fout.write(txt[dev_end:])
 
-XML = ('Fluids.xml', 'Main.xml', 'Sensors.xml', 'SPH.xml', 'Time.xml',
-       'h_sensor.cl')
+XML = ('Fluids.xml', 'Main.xml', 'MPI.xml', 'Sensors.xml', 'SPH.xml',
+       'Time.xml', 'h_sensor.cl')
 
 domain_min = str(domain_min).replace('(', '').replace(')', '')
 domain_max = str(domain_max).replace('(', '').replace(')', '')

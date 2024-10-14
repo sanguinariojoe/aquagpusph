@@ -27,7 +27,13 @@ Authors:
         <Variable name="courant" type="float" value="{{COURANT}}" />
         <Variable name="domain_min" type="vec" value="{{DOMAIN_MIN}}" />
         <Variable name="domain_max" type="vec" value="{{DOMAIN_MAX}}" />
-        <Variable name="mpi_planes_orig" type="vec" value="domain_min_x, domain_min_y, domain_min_z, 0"/>
-        <Variable name="mpi_planes_dist" type="vec" value="0, (domain_max_y - domain_min_y) / mpi_size, 0, 0"/>
+        <Variable name="iter_midpoint_max" type="unsigned int" length="1" value="30"/>
+        <Variable name="relax_midpoint" type="float" length="1" value="0"/>
+        <Variable name="Residual_midpoint_max" type="float" length="1" value="1.e-1" symbol="E_{\Delta t}^{max}"/>
+        <Variable name="Residual_midpoint_mindec" type="float" length="1" value="1.0 / 2.0" symbol="E_{\Delta t} / E_{\Delta t,m-1}"/>
+        <Variable name="relax_midpoint_inc" type="float" length="1" value="0.1" symbol="f_{\Delta t,0}"/>
+        <Variable name="mpi_plane_r" type="vec" value="domain_min_x, domain_min_y, domain_min_z, 0"/>
+        <Variable name="mpi_plane_n" type="vec" value="0, (domain_max_y - domain_min_y) / mpi_size, 0, 0"/>
+        <Variable name="mpi_plane_proc" type="vec" value="0, (domain_max_y - domain_min_y) / mpi_size, 0, 0"/>
     </Variables>
 </sphInput>
