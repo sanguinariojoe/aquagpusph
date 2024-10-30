@@ -1363,6 +1363,10 @@ CalcServer::setupDevices()
 	}
 	LOG(L_INFO, std::string("Device bits = ") +
 	            std::to_string(_device_bits) + "bits\n");
+	_device_compile_flags =
+		_sim_data.settings.devices.at(rank).compilation_flags;
+	LOG(L_INFO, std::string("Compilation flags = ") + _device_compile_flags +
+	            "\n");
 
 	// Create the command queues
 	auto queue = create_command_queue(_context, _device, &err_code);

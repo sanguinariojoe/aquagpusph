@@ -535,15 +535,16 @@ Kernel::variables()
 			InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		}
 		auto var = vars->get(arg_name);
-		delete[] arg_name;
 		if (!var) {
 			std::stringstream msg;
 			msg << "The tool \"" << name()
 			    << "\" is asking the undeclared variable \"" << arg_name
 			    << "\"." << std::endl;
 			LOG(L_ERROR, msg.str());
+			delete[] arg_name;
 			throw std::runtime_error("Invalid variable");
 		}
+		delete[] arg_name;
 		if (isKernelArgReadOnly(_kernel, i))
 			in_vars.push_back(var);
 		else

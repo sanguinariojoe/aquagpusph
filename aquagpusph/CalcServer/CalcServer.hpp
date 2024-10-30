@@ -272,6 +272,14 @@ class CalcServer
 	 */
 	inline cl_uint device_addr_bits() const { return _device_bits; }
 
+	/** @brief Get the device compilation flags
+	 * @return The device compilation flags
+	 */
+	inline const char* device_compile_flags() const
+	{
+		return _device_compile_flags.c_str();
+	}
+
 	/** @brief wrapper to clSetKernelArg to set variables which size depends on
 	 * the device address bits
 	 * @param kernel OpenCL kernel object
@@ -448,6 +456,8 @@ class CalcServer
 	cl_device_id _device;
 	/// Supported device bits (CL_DEVICE_ADDRESS_BITS)
 	cl_uint _device_bits;
+	/// The compilation flags to be considered when calling clBuildProgram()
+	std::string _device_compile_flags;
 	/** @brief Flag to let the implementation know if it is the NVIDIA's
 	 * platform
 	 *

@@ -229,11 +229,13 @@ class ProblemSetup
 			device(const unsigned int platform_index,
 			       const unsigned int device_index,
 			       const cl_device_type t = CL_DEVICE_TYPE_ALL,
-			       const unsigned int bits = 32)
+			       const unsigned int bits = 32,
+				   const std::string compile_flags = "")
 			  : platform_id(platform_index)
 			  , device_id(device_index)
 			  , device_type(t)
 			  , addr_bits(bits)
+			  , compilation_flags(compile_flags)
 			  , patches({{"nvidia_#4665567", patch_state::AUTO},
 			             {"nvidia_#9999999", patch_state::AUTO},
 			            })
@@ -287,6 +289,22 @@ class ProblemSetup
 			 */
 			unsigned int addr_bits;
 
+			/** @brief Extra flags considered by this device when compiling
+			 * kernels.
+			 *
+			 * By default no compilation flags are considered. Note that
+			 * AQUAgpusph will allways enable the compilation flag
+			 * "-cl-kernel-arg-info", since it is a requirement to get it
+			 * properly working
+			 *
+			 * This field can be set with the tag `Device`, using the
+			 * attributes compile_flags. For instance:
+			 * `<Device platform="0" device="0" type="GPU" compile_flags="-g -cl-opt-disable" />`
+			 * @see https://registry.khronos.org/OpenCL/sdk/3.0/docs/man/html/clBuildProgram.html
+			 * @see https://registry.khronos.org/OpenCL/specs/3.0-unified/html/OpenCL_API.html#compiler-options
+			 */
+			std::string compilation_flags;
+
 			/** @brief List of patchs to be forcibly enabled/disabled
 			 *
 			 * The several patches currently exist:
@@ -294,6 +312,9 @@ class ProblemSetup
 			 *  - nvidia_#4665567 : NVIDIA CUDA platform bug #4665567.
 			 *                      clEnqueueMarkerWithWaitList() does not
 			 *                      properly works
+			 *  - nvidia_#9999999 : NVIDIA CUDA platform needs a
+			 *                      synchronization point when saving files.
+			 *                      (probably related with #4665567)
 			 *
 			 * If a patch is not forcibly enabled/disabled, AQUAgpusph will
 			 * automatically decide whether it is required or not.

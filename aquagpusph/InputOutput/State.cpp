@@ -390,9 +390,16 @@ State::parseSettings(DOMElement* root,
 			if (xmlHasAttribute(s_elem, "addr_bits")) {
 				addr_bits = std::stoi(xmlAttribute(s_elem, "addr_bits"));
 			}
+			std::string compile_flags = "";
+			if (xmlHasAttribute(s_elem, "addr_bits")) {
+				compile_flags = xmlAttribute(s_elem, "compile_flags");
+			}
 			sim_data.settings.devices.push_back(
-			    ProblemSetup::sphSettings::device(
-			        platform_id, device_id, device_type, addr_bits));
+				ProblemSetup::sphSettings::device(platform_id,
+				                                  device_id,
+				                                  device_type,
+				                                  addr_bits,
+				                                  compile_flags));
 			std::vector<std::pair<
 				std::string,
 				ProblemSetup::sphSettings::device::patch_state>> attrs = {

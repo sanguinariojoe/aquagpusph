@@ -330,7 +330,7 @@ Tool::compile(const std::string source,
 #else
 	flags << " -DNDEBUG ";
 #endif
-	flags << " -cl-kernel-arg-info";
+	flags << " -cl-kernel-arg-info " << C->device_compile_flags();
 	if (C->have_3d())
 		flags << " -DHAVE_3D";
 	else
