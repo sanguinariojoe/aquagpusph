@@ -82,16 +82,34 @@ line_ek, = ax.plot(t,
                    label=r'$E_k$',
                    color="red",
                    linewidth=1.0)
+line_ek_ref, = ax.plot(t,
+                       ek,
+                       label=None,
+                       color="red",
+                       linewidth=2.0,
+                       linestyle='--')
 line_ec, = ax.plot(t,
                    ec,
                    label=r'$E_c$',
                    color="blue",
                    linewidth=1.0)
+line_ec_ref, = ax.plot(t,
+                       ec,
+                       label=None,
+                       color="blue",
+                       linewidth=2.0,
+                       linestyle='--')
 line_et, = ax.plot(t,
                    et,
                    label=r'$E_t$',
                    color="black",
                    linewidth=1.0)
+line_et_ref, = ax.plot(t,
+                       et,
+                       label=None,
+                       color="black",
+                       linewidth=2.0,
+                       linestyle='--')
 # Set some options
 ax.grid()
 ax.legend(loc='best')
@@ -111,6 +129,9 @@ def update(frame_index):
         ek = [1. + d / {{E0}} for d in data[1]]
         ec = [d / {{E0}} for d in data[3]]
         et = [ek[i] + ec[i] for i in range(len(ek))]
+        ek_ref = [d / {{E0}} for d in data[7]]
+        ec_ref = [d / {{E0}} for d in data[9]]
+        et_ref = [ek_ref[i] + ec_ref[i] for i in range(len(ek_ref))]
     except IndexError:
         return
     except FileNotFoundError:
@@ -118,6 +139,9 @@ def update(frame_index):
     line_ek.set_data(t, ek)
     line_ec.set_data(t, ec)
     line_et.set_data(t, et)
+    line_ek_ref.set_data(t, ek_ref)
+    line_ec_ref.set_data(t, ec_ref)
+    line_et_ref.set_data(t, et_ref)
 
 
 update(0)

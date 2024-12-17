@@ -2,7 +2,7 @@
 <sphInput>
     <Reports>
         <Report type="screen" name="Energy" fields="energy_Ek,energy_Ep,energy_Ec" color="blue" bold="false"/>
-        <Report type="file" name="Energy file" fields="t,energy_Ek,energy_Ep,energy_Ec,energy_dEkdt,energy_dEpdt,energy_dEcdt" path="Energy.dat"/>
+        <Report type="file" name="Energy file" fields="t,energy_Ek,energy_Ep,energy_Ec,energy_dEkdt,energy_dEpdt,energy_dEcdt,energy_Ek_ref,energy_Ep_ref,energy_Ec_ref" path="Energy.dat"/>
     </Reports>
 </sphInput>
  
