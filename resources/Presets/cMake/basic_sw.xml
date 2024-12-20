@@ -159,7 +159,7 @@ later:
         <Tool action="add" name="Sort" type="dummy"/>
 
         <!-- Particles interactions -->
-        <!--<Tool action="add" name="Interactions" type="dummy"/>-->
+        <Tool action="add" name="Interactions" type="dummy"/>
 
         <!-- Rates computation -->
         <Tool action="add" name="Rates_sw" type="dummy"/>
