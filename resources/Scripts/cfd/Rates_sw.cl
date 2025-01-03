@@ -56,6 +56,7 @@
 
 #define gamma 1.4
 
+
 __kernel void entry(const __global uint* iset,
                     const __global int* imove,
                     const __global vec* r,
@@ -86,11 +87,13 @@ __kernel void entry(const __global uint* iset,
     const float e_i = eee[i];
     const float s_i = sqrt(gamma * p_i / rho_i);
     const float m_i = m[i];
-
+    const float D_i = sqrt(4.0f*m_i*0.318309886f/rho_i);
 
     drhodt[i] = 0.0f;
     dudt[i] = VEC_ZERO.XYZ;
     dedt[i] = 0.0f;
+
+    //printf("H=%f", H);
 
     BEGIN_LOOP_OVER_NEIGHS(){
         if(i == j){
@@ -102,36 +105,58 @@ __kernel void entry(const __global uint* iset,
             continue;
         }
         const vec_xyz r_ij = r[j].XYZ - r_i;
-        const float q = length(r_ij) / H;
+        //const float q = length(r_ij) / H;
         const float tyni = 1.0e-12f;
         const float auxval = 1.0f / (length(r_ij)+tyni);
         const vec_xyz l_ij = r_ij * auxval;
 
+        const float rho_j = rho[j];
+        const float p_j = p[j];
+        const float e_j = eee[j];
+        const float m_j = m[j];
+        const float D_j = sqrt(4.0f*m_j*0.318309886f/rho_j);
+        const float s_j = sqrt(gamma * p_j / rho_j);
 
-
+        const float hh = 0.5 * (D_i+D_j);
+        const float beta = 0.7 * M_PI_F * hh * hh;
+        const float im_beta = 1.0f / beta;
+        const float q = length(r_ij) / hh;
+         
         if(q >= SUPPORT)
         {
             j++;
             continue;
         }
 
-        const float rho_j = rho[j];
-        const float p_j = p[j];
-        const float e_j = eee[j];
-        const float m_j = m[j];
-        const float u_R_i = 1.0f/H*dot(u[i].XYZ, l_ij);
-        const float u_R_j = 1.0f/H*dot(u[j].XYZ, l_ij);
-        const float s_j = sqrt(gamma * p_j / rho_j);
+        float Wij_prima = 0.0f;
+        if(q<=2.0f)
+        {
+            Wij_prima = -0.75f * ( 2.0f - q) * ( 2.0f - q) * im_beta;
+        }
+        if(q<=1.0f)
+        {
+            Wij_prima = (2.25f* q * q - 3 * q) *  im_beta;
+        }
 
+
+     //   const float u_R_i = 1.0f/H*dot(u[i].XYZ, l_ij);
+     //   const float u_R_j = 1.0f/H*dot(u[j].XYZ, l_ij);
+     
+        const float u_R_i = dot(u[i].XYZ, l_ij);
+        const float u_R_j = dot(u[j].XYZ, l_ij);
+        
         const float u_star = (u_R_j * rho_j * s_j + u_R_i * rho_i * s_i - p_j + p_i)/(rho_j * s_j + rho_i * s_i);
         const float p_star = (p_j* rho_i * s_i + p_i * rho_j * s_j - rho_j * s_j * rho_i * s_i * (u_R_j- u_R_i))/(rho_j * s_j + rho_i * s_i);
 
-        const vec_xyz auxu = 2.0f * m_j * p_star /(rho_j * rho_i * H) * kernelF(q) * l_ij;
+        //const vec_xyz auxu = 2.0f * m_j * p_star /(rho_j * rho_i * H) * kernelF(q) * l_ij;
+        const vec_xyz auxu = 2.0f * m_j * p_star /(rho_j * rho_i * hh) * Wij_prima * l_ij;
 
-        drhodt[i] -= 2.0f * m_j * rho_i / (rho_j * H) * (u_R_i - u_star) * kernelF(q);
+        //drhodt[i] -= 2.0f * m_j * rho_i / (rho_j * H) * (u_R_i - u_star) * kernelF(q); 
+        drhodt[i] -= 2.0f * m_j * rho_i / (rho_j * hh) * (u_R_i - u_star) * Wij_prima;
         //dudt[i]   += 2.0f * m_j * p_star /(rho_j * rho_i * H) * kernelF(q) * l_ij;
         dudt[i]   += auxu;
-        dedt[i]   -= 2.0f * m_j * p_star /(rho_j * rho_i * H) * (u_R_i - u_star) * kernelF(q);
+        //dedt[i]   -= 2.0f * m_j * p_star /(rho_j * rho_i * H) * (u_R_i - u_star) * kernelF(q);
+        dedt[i]   -= 2.0f * m_j * p_star /(rho_j * rho_i * hh) * (u_R_i - u_star) * Wij_prima;
 
     }END_LOOP_OVER_NEIGHS()
 }

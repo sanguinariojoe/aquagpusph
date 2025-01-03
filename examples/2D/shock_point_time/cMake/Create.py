@@ -57,7 +57,7 @@ ssound=max(c1,c2)
 e1=p1/((gamma-1.0)*rho1)
 e2=p2/((gamma-1.0)*rho2)
 
-print(e2)
+#print(e2)
 # Distance between particles
 # ==========================
 Vol = 4 * l0 * h0
@@ -66,6 +66,10 @@ dr = dv**0.5
 
 h = 2.0 * dr
 dt = 1.0E-5
+
+print("")
+print("H=%d"%(h,))
+print("")
 
 # Particles generation
 # ====================
