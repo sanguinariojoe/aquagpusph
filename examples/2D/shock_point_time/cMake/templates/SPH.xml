@@ -22,7 +22,7 @@ Authors:
         <Variable name="dr" type="float" value="{{DR}}" />
         <Variable name="h" type="float" value="{{H}}" />
         <Variable name="cs" type="float" value="{{CS}}" />
-        <Variable name="courant" type="float" value="{{COURANT}}" />
+        <!--<Variable name="courant" type="float" value="{{COURANT}}" />-->
         <Variable name="domain_min" type="vec" value="{{DOMAIN_MIN}}" />
         <Variable name="domain_max" type="vec" value="{{DOMAIN_MAX}}" />
     </Variables>
