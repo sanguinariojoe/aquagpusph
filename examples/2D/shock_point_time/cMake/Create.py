@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 #########################################################################
 #                                                                       #
 #            #    ##   #  #   #                           #             #
@@ -62,13 +62,15 @@ e2=p2/((gamma-1.0)*rho2)
 # ==========================
 Vol = 4 * l0 * h0
 dv = Vol / n
+#dr = (dv/3.1415)**0.5
 dr = dv**0.5
+dd= 2.0*dr
 
-h = 2.0 * dr
+h = 2.0 * dd
 dt = 1.0E-5
 
 print("")
-print("H=%d"%(h,))
+print("H=%f"%(h,))
 print("")
 
 # Particles generation
@@ -146,7 +148,7 @@ print('{} particles'.format(N))
 templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
 XML = ('Fluids.xml', 'Main.xml', 'Settings.xml', 'SPH.xml', 'Time.xml')
 
-factor=1.5
+factor=5.0
 domain_min = (-factor*l0, -factor*h0)
 domain_min = str(domain_min).replace('(', '').replace(')', '')
 domain_max = (factor*l0, factor*h0)

@@ -64,6 +64,7 @@ __kernel void entry(__global float* dt_var,
                     const __global float* rho,
                     const __global float* p,
                     const unsigned int N,
+                    const __global float* m,
                     const float dt,
                     const float dt_min,
                     const float courant,
@@ -72,10 +73,12 @@ __kernel void entry(__global float* dt_var,
     unsigned int i = get_global_id(0);
     if(i >= N)
         return;
+    
+    float dxx=sqrt(m[i]/rho[i]);
 
-    const float dr_max = 0.1f * h;
-    const float s_i = sqrt(gamma * p[i] / rho[i]);
-    const float dt_u = courant * min(dr_max / (length(u[i])+s_i),
+    float dr_max = 0.1f * dxx;
+    float s_i = sqrt(gamma * p[i] / rho[i]);
+    float dt_u = courant * min(dr_max / (length(u[i])+s_i),
                                      sqrt(dr_max / (0.5f * length(dudt[i]))));
     dt_var[i] = max(min(dt, dt_u), dt_min);
 }
