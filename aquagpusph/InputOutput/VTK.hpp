@@ -41,7 +41,7 @@
 #include <vtkCellArray.h>
 
 #include "aquagpusph/sphPrerequisites.hpp"
-#include "aquagpusph/ext/json.hpp"
+#include VTK_NLOHMANN_JSON(json.hpp)
 #include "Particles.hpp"
 
 namespace Aqua {

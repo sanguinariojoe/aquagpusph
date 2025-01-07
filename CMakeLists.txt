@@ -175,6 +175,18 @@ if(OpenCL_VERSION_MAJOR LESS 2)
 message(FATAL_ERROR "OpenCL ${OpenCL_VERSION_MAJOR}.${OpenCL_VERSION_MINOR} found, but OpenCL >= 2.0 is required.")
 endif(OpenCL_VERSION_MAJOR LESS 2)
 
+# NLOHMANN JSON
+# VTK is already integrating NLOHMANN JSON. To avoid collisions with different
+# versions of the library, we better use the same one included by VTK (which
+# hopefully it is the external one)
+if(NOT AQUAGPUSPH_USE_VTK)
+    find_package(nlohmann_json REQUIRED)
+
+    if(NOT nlohmann_json_FOUND)
+    message(FATAL_ERROR "NLOHMANN JSON not found, but ${PACKAGE_NAME} requires it. Please install NLOHMANN JSON!")
+    endif(NOT nlohmann_json_FOUND)
+endif(AQUAGPUSPH_USE_VTK)
+
 # VTK
 if(AQUAGPUSPH_USE_VTK)
     find_package(VTK REQUIRED COMPONENTS
@@ -277,6 +289,8 @@ else(HAVE_MUPARSER)
 endif(HAVE_MUPARSER)
 if(HAVE_VTK)
     set(OPTIONAL_LIBS ${OPTIONAL_LIBS} VTK::CommonCore VTK::IOXML)
+else(HAVE_VTK)
+    set(OPTIONAL_LIBS ${OPTIONAL_LIBS} nlohmann_json::nlohmann_json)
 endif(HAVE_VTK)
 include_directories(
     ${CMAKE_BINARY_DIR}
@@ -332,4 +346,9 @@ if(AQUAGPUSPH_USE_VTK)
 else(AQUAGPUSPH_USE_VTK)
     message("    - Without VTK")
 endif(AQUAGPUSPH_USE_VTK)
+if(AQUAGPUSPH_USE_MUPARSER)
+    message("    - With MuParser")
+else(AQUAGPUSPH_USE_MUPARSER)
+    message("    - With exprtk")
+endif(AQUAGPUSPH_USE_MUPARSER)
 message("=====================================================")
