@@ -92,7 +92,9 @@ __kernel void entry(const __global uint* iset,
     dudt[i] = VEC_ZERO.XYZ;
     dedt[i] = 0.0f;
 
-    BEGIN_LOOP_OVER_NEIGHS(){
+    const usize c_i = icell[i];
+    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
+    //BEGIN_LOOP_OVER_NEIGHS(){
         if(i == j){
             j++;
             continue;
@@ -118,7 +120,7 @@ __kernel void entry(const __global uint* iset,
 
         //float hh = 0.5 * (D_i + D_j);
         float hh = 2.0f*(D_i + D_j);
-        float beta = 0.7 * M_PI_F * hh * hh;
+        float beta = 0.7f * M_PI_F * hh * hh;
         float im_beta = 1.0f / (beta + tyni);
         float q = length(r_ij) / (hh + tyni);
         
@@ -136,7 +138,7 @@ __kernel void entry(const __global uint* iset,
         //}
         if(q<=1.0f)
         {
-            Wij_prima = (2.25f* q * q - 3 * q) *  im_beta;
+            Wij_prima = (2.25f* q * q - 3.0f * q) *  im_beta;
         }
 
 
@@ -160,5 +162,6 @@ __kernel void entry(const __global uint* iset,
         //dedt[i]   -= 2.0f * m_j * p_star /(rho_j * rho_i * H) * (u_R_i - u_star) * kernelF(q);
         dedt[i]   -= 2.0f * m_j * p_star /(rho_j * rho_i * hh) * (u_R_i - u_star) * Wij_prima;
 
-    }END_LOOP_OVER_NEIGHS()
+    //}END_LOOP_OVER_NEIGHS()
+    }END_NEIGHS()
 }

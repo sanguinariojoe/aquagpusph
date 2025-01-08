@@ -7,6 +7,7 @@ if [[ $1 == "--run" ]]; then
     rm -f output.*.vtu
     rm -f *.vtu
     rm -f output.vtu.series
+    rm -f Performance.dat
     @EXAMPLE_DEST_DIR@/Create.py
     @BINARY_DIR@/AQUAgpusph -d 2 -i Main.xml
 else
