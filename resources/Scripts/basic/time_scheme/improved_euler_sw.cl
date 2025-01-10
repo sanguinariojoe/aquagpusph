@@ -24,24 +24,33 @@
  */
 
 /** @file
- *  @brief 1st order Euler time integration scheme
+ *  @brief Improved Euler time integration scheme
  *
- * Time integration is based in the following 1st order integration scheme:
- *   - \f$ \mathbf{u}_{n+1} = \mathbf{u}_{n} + \Delta t
-        \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n}
+ * Time integration is based in the following quasi-second order
+ * Predictor-Corrector integration scheme:
+ *   - \f$ \mathbf{u}_{n+1} = \mathbf{u}_{n}
+     + \frac{\Delta t}{2} \left(
+        \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n+1/2} +
+        \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n-1/2}
+     \right)
      \f$
  *   - \f$ \mathbf{r}_{n+1} = \mathbf{r}_{n} + \Delta t \, \mathbf{u}_{n}
-     + \frac{\Delta t^2}{2}
-        \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n}
+     + \frac{\Delta t^2}{4} \left(
+        \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n+1/2} +
+        \left. \frac{\mathrm{d}\mathbf{u}}{\mathrm{d}t} \right\vert_{n-1/2}
+     \right)
      \f$
- *   - \f$ \rho_{n+1} = \rho_{n} + \Delta t
-        \left. \frac{\mathrm{d}\rho}{\mathrm{d}t} \right\vert_{n}
+ *   - \f$ \rho_{n+1} = \rho_{n}
+     + \frac{\Delta t}{2} \left(
+        \left. \frac{\mathrm{d}\rho}{\mathrm{d}t} \right\vert_{n+1/2} +
+        \left. \frac{\mathrm{d}\rho}{\mathrm{d}t} \right\vert_{n-1/2}
+     \right)
      \f$
  */
 
 #include "resources/Scripts/types/types.h"
 
-/** @brief 1st order Euler time integration scheme predictor stage
+/** @brief Improved Euler time integration scheme predictor stage
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid/solid particles.
  *   - imove = 0 for sensors.
@@ -61,42 +70,46 @@
  * @param drhodt_in Density rate of change
  * \f$ \left. \frac{d \rho}{d t} \right\vert_{n+1/2} \f$.
  * @param N Number of particles.
+ * @param dt Time step \f$ \Delta t \f$.
  */
-__kernel void predictor(const __global vec* r,
+__kernel void predictor(const __global int* imove,
+                        const __global vec* r,
                         const __global vec* u,
-                        const __global float* rho,
-                        const __global float* eee,
                         const __global vec* dudt,
-                        const __global float* drhodt,
+                        const __global float* rho,
+                        const __global float* drhodt, 
+                        const __global float* eee,
                         const __global float* dedt,
                         __global vec* r_in,
                         __global vec* u_in,
-                        __global float* rho_in,
-                        __global float* e_in,
                         __global vec* dudt_in,
-                        __global float* drhodt_in,
+                        __global float* rho_in,
+                        __global float* drhodt_in,   
+                        __global float* e_in,
                         __global float* dedt_in,
-                        const unsigned int N)
+                        const usize N,
+                        const float dt)
 {
-    unsigned int i = get_global_id(0);
+    usize i = get_global_id(0);
     if(i >= N)
         return;
 
-    u_in[i] = u[i];
-    r_in[i] = r[i];
-    rho_in[i] = rho[i];
-    e_in[i] = eee[i];
+    float DT = dt;
+    if(imove[i] <= 0)
+        DT = 0.f;
 
     dudt_in[i] = dudt[i];
+    u_in[i] = u[i] + DT * dudt[i];
+    r_in[i] = r[i] + DT * u[i] + 0.5f * DT * DT * dudt[i];
+    
     drhodt_in[i] = drhodt[i];
+    rho_in[i] = rho[i] + DT * drhodt[i];
+    
     dedt_in[i] = dedt[i];
+    e_in[i] = eee[i] + DT * dedt[i];
 }
 
-
-
-
-
-/** @brief 1st orderv Euler time integration scheme corrector stage
+/** @brief Improved Euler time integration scheme corrector stage
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
@@ -109,6 +122,10 @@ __kernel void predictor(const __global vec* r,
  * @param rho Density \f$ \rho_{n+1/2} \f$.
  * @param drhodt Density rate of change
  * \f$ \left. \frac{d \rho}{d t} \right\vert_{n+1/2} \f$.
+ * @param dudt_in Velocity rate of change
+ * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n-1/2} \f$.
+ * @param drhodt_in Density rate of change
+ * \f$ \left. \frac{d \rho}{d t} \right\vert_{n-1/2} \f$.
  * @param N Number of particles.
  * @param dt Time step \f$ \Delta t \f$.
  */
@@ -116,29 +133,27 @@ __kernel void corrector(const __global int* imove,
                         const __global unsigned int* iset,
                         __global vec* r,
                         __global vec* u,
-                        __global float* rho,
-                        __global float* eee,
                         const __global vec* dudt,
+                        __global float* rho,
                         const __global float* drhodt,
+                        __global float* eee,
                         const __global float* dedt,
-                        const __global float* div_u,
-                        const unsigned int N,
+                        const __global vec* dudt_in,
+                        const __global float* drhodt_in,
+                        const __global float* dedt_in,
+                        const usize N,
                         const float dt)
 {
-    unsigned int i = get_global_id(0);
+    usize i = get_global_id(0);
     if(i >= N)
         return;
 
     if(imove[i] > 0) {
-        
-        r[i] += dt * u[i] + 0.5f * dt * dt * dudt[i];
-
-        u[i] += dt * dudt[i];
-        
-        rho[i] += dt * drhodt[i];
-        //rho[i] += -2.0f * drhodt[i] * dt /(2.0f + div_u[i] * dt);
-        
-        eee[i] += dt * dedt[i];
+        const float DT = 0.5f * dt;
+        u[i] += DT * (dudt[i] - dudt_in[i]);
+        r[i] += DT * DT * (dudt[i] - dudt_in[i]);
+        rho[i] += DT * (drhodt[i] - drhodt_in[i]);
+        eee[i] += DT * (dedt[i] - dedt_in[i]);
     }
 }
 

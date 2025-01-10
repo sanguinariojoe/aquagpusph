@@ -20,6 +20,10 @@ In the sensors the values of density, pressure and velocity are interpolated.
 -->
 
 <sphInput>
+    <Variables>
+        <Variable name="div_u" type="float*" length="N" />
+        <Variable name="grad_p" type="vec*" length="N" />
+    </Variables>
 
     <Tools>
         <Tool action="insert" before="Rates_sw" type="kernel" name="cfd rates" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Rates_sw.cl"/>

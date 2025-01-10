@@ -54,9 +54,9 @@
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  */
 
-#define gamma 1.4
+#define gamma 1.4f
 
-__kernel void entry(const __global uint* iset,
+__kernel void entry(//const __global uint* iset,
                     const __global int* imove,
                     const __global vec* r,
                     const __global vec* u,
@@ -67,11 +67,15 @@ __kernel void entry(const __global uint* iset,
                     __global vec* dudt,
                     __global float* drhodt,
                     __global float* dedt,
-                    const __global uint *icell,
+                    __global float* div_u,
+                    __global vec* grad_p,
+/*                     const __global uint *icell,
                     const __global uint *ihoc,
+                    const uivec4 n_cells, */
                     // Simulation data
                     const uint N,
-                    const uivec4 n_cells)
+                    LINKLIST_LOCAL_PARAMS
+                    )
 {
     unsigned int i = get_global_id(0);
     if(i >= N)
@@ -86,8 +90,9 @@ __kernel void entry(const __global uint* iset,
     const float e_i = eee[i];
     const float s_i = sqrt(gamma * p_i / rho_i);
     const float m_i = m[i];
-    //const float D_i = sqrt(4.0f*m_i*M_1_PI_F/rho_i);
-    const float D_i = sqrt(m_i/rho_i);
+    const float D_i = sqrt(4.0f*m_i*M_1_PI_F/rho_i);
+    //const float D_i = sqrt(m_i/rho_i);
+    
     drhodt[i] = 0.0f;
     dudt[i] = VEC_ZERO.XYZ;
     dedt[i] = 0.0f;
@@ -114,8 +119,8 @@ __kernel void entry(const __global uint* iset,
         float p_j = p[j];
         float e_j = eee[j];
         float m_j = m[j];
-        //float D_j = sqrt(4.0f*m_j*M_1_PI_F/rho_j);
-        float D_j = sqrt(m_j/rho_j);
+        float D_j = sqrt(4.0f*m_j*M_1_PI_F/rho_j);
+        //float D_j = sqrt(m_j/rho_j);
         float s_j = sqrt(gamma * p_j / rho_j);
 
         //float hh = 0.5 * (D_i + D_j);
@@ -155,6 +160,7 @@ __kernel void entry(const __global uint* iset,
         //vec_xyz auxu = 2.0f * m_j * p_star /(rho_j * rho_i * hh) * Wij_prima * l_ij;
 
         //drhodt[i] -= 2.0f * m_j * rho_i / (rho_j * H) * (u_R_i - u_star) * kernelF(q); 
+    
         drhodt[i] -= 2.0f * m_j * rho_i / (rho_j * hh) * (u_R_i - u_star) * Wij_prima;
         //dudt[i]   += 2.0f * m_j * p_star /(rho_j * rho_i * H) * kernelF(q) * l_ij;
         //dudt[i]   += auxu;
@@ -164,4 +170,8 @@ __kernel void entry(const __global uint* iset,
 
     //}END_LOOP_OVER_NEIGHS()
     }END_NEIGHS()
+
+    div_u[i] = drhodt[i] / rho_i;
+    grad_p[i] = dudt[i] / rho_i;
+
 }

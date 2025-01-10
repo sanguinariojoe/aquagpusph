@@ -139,6 +139,7 @@ later:
     
     <Tools>
         <!-- Improved Euler time integration predictor stage -->
+        <!--<Tool action="add" name="predictor" type="kernel" entry_point="predictor" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/time_scheme/improved_euler_sw.cl"/>-->
         <Tool action="add" name="predictor" type="kernel" entry_point="predictor" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/time_scheme/euler_sw.cl"/>
         <Tool action="add" name="Predictor" type="dummy"/>
 
@@ -165,6 +166,7 @@ later:
         <Tool action="add" name="Rates_sw" type="dummy"/>
 
         <!-- Improved Euler time integration corrector stage -->
+        <!--<Tool action="add" name="corrector" type="kernel" entry_point="corrector" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/time_scheme/improved_euler_sw.cl"/>-->
         <Tool action="add" name="corrector" type="kernel" entry_point="corrector" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/time_scheme/euler_sw.cl"/>
         <Tool action="add" name="Corrector" type="dummy"/>
 
