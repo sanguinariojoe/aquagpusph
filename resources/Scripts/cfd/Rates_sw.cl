@@ -112,14 +112,14 @@ __kernel void entry(//const __global uint* iset,
         vec_xyz r_ij = r[j].XYZ - r_i;
 
         const float tyni = 1.0e-12f;
-        float auxval = 1.0f / (length(r_ij)+tyni);
+        float auxval = 1.0f / (length(r_ij) + tyni);
         vec_xyz l_ij = r_ij * auxval;
 
         float rho_j = rho[j];
         float p_j = p[j];
         float e_j = eee[j];
         float m_j = m[j];
-        float D_j = sqrt(4.0f*m_j*M_1_PI_F/rho_j);
+        float D_j = sqrt(4.0f * m_j * M_1_PI_F / rho_j);
         //float D_j = sqrt(m_j/rho_j);
         float s_j = sqrt(gamma * p_j / rho_j);
 

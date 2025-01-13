@@ -76,12 +76,12 @@ print("")
 # Particles generation
 # ====================
 def writeParticle(output, p, n=(0.0,0.0), u=(0.0,0.0),
-                  dudt=(0.0,0.0), rho=0.0, drhodt=0.0, e=0.0, dedt=0.0,
+                  dudt=(0.0,0.0), rho=0.0, drhodt=0.0, e=0.0, dedt=0.0, pres=0.0,
                   imove=1):
 
     m=rho*dr**2
     #m=dr**2
-    string = ("{} {}, " * 4 + "{}, {}, {:.4f}, {}, {}, {}\n").format(
+    string = ("{} {}, " * 4 + "{}, {}, {:.4f}, {}, {}, {}, {}\n").format(
         np.float32(p[0]), np.float32(p[1]),
         np.float32(n[0]), np.float32(n[1]),
         np.float32(u[0]), np.float32(u[1]),
@@ -91,6 +91,7 @@ def writeParticle(output, p, n=(0.0,0.0), u=(0.0,0.0),
         np.float32(e),
         np.float32(dedt),
         np.float32(m),
+        np.float32(pres),
         imove)
     output.write(string)
 
@@ -126,14 +127,17 @@ while x < l0:
         if np.sqrt(x**2 + y**2)<0.5:
             rho=0.0
             ener=0.0
+            pres=0.0
             if np.sqrt(x**2 + y**2)<R0:
                 rho=rho1
                 ener=e1
+                pres=p1
             else:
                 rho=rho2
                 ener=e2
+                pres=p2
 
-            writeParticle(output=output, p=(x,y), rho=rho, e=ener)
+            writeParticle(output=output, p=(x,y), rho=rho, e=ener, pres=pres)
             N += 1
         y += dr
     x += dr

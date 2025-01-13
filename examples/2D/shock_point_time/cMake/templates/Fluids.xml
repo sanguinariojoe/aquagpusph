@@ -19,7 +19,7 @@ Authors:
 
 <sphInput>
     <ParticlesSet n="{{N}}">
-        <Load format="FastASCII" file="Fluid.dat" fields="r, normal, u, dudt, rho, drhodt, eee, dedt, m, imove" />
+        <Load format="FastASCII" file="Fluid.dat" fields="r, normal, u, dudt, rho, drhodt, eee, dedt, m, p, imove" />
         <Save format="VTK" file="output" fields="r, normal, u, dudt, rho, drhodt, eee, dedt, m, p, imove" />
     </ParticlesSet>
 </sphInput>
