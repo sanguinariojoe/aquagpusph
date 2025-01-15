@@ -130,7 +130,7 @@ __kernel void entry(//const __global uint* iset,
         float hh = H;
         float beta = 0.7f * M_PI_F * hh * hh;
         float im_beta = 1.0f / (beta + tyni);
-        float q = length(r_ij) / (h + tyni);
+        float q = length(r_ij) / (hh + tyni);
         
 //        printf("SUPPORT=%f\n",SUPPORT);
         if(q >= SUPPORT)
