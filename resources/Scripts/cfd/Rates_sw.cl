@@ -56,8 +56,7 @@
 
 #define gamma 1.4f
 
-__kernel void entry(//const __global uint* iset,
-                    const __global int* imove,
+__kernel void entry(const __global int* imove,
                     const __global vec* r,
                     const __global vec* u,
                     const __global float* rho,
@@ -69,10 +68,6 @@ __kernel void entry(//const __global uint* iset,
                     __global float* dedt,
                     __global float* div_u,
                     __global vec* grad_p,
-/*                     const __global uint *icell,
-                    const __global uint *ihoc,
-                    const uivec4 n_cells, */
-                    // Simulation data
                     const uint N,
                     LINKLIST_LOCAL_PARAMS
                     )
@@ -82,7 +77,7 @@ __kernel void entry(//const __global uint* iset,
         return;
     if(imove[i] != 1)
         return;
-    printf("Estoy aqui");
+    
 
     const vec_xyz r_i = r[i].XYZ;
     const vec_xyz u_i = u[i].XYZ;
@@ -101,6 +96,7 @@ __kernel void entry(//const __global uint* iset,
     const usize c_i = icell[i];
     BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
     //BEGIN_LOOP_OVER_NEIGHS(){
+        printf("Estoy aqui");
         if(i == j){
             j++;
             continue;
