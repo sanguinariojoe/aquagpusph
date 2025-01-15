@@ -73,6 +73,12 @@ print("")
 print("H=%f"%(h,))
 print("")
 
+# ================
+# ================
+
+
+
+
 # Particles generation
 # ====================
 def writeParticle(output, p, n=(0.0,0.0), u=(0.0,0.0),
@@ -139,6 +145,8 @@ while x < l0:
 
             writeParticle(output=output, p=(x,y), rho=rho, e=ener, pres=pres)
             N += 1
+        else:
+            writeParticle(output=output, p=(x,y), rho=rho1, e=e1, pres=p1, imove=-1)
         y += dr
     x += dr
     y = -h0

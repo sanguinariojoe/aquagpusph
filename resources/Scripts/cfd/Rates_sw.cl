@@ -124,10 +124,12 @@ __kernel void entry(//const __global uint* iset,
         float s_j = sqrt(gamma * p_j / rho_j);
 
         //float hh = 0.5 * (D_i + D_j);
-        float hh = 2.0f*(D_i + D_j);
-        float beta = 0.7f * M_PI_F * hh * hh;
+        
+        //comentado por escoger h constante
+        //float hh = 2.0f*(D_i + D_j);
+        float beta = 0.7f * M_PI_F * h * h;
         float im_beta = 1.0f / (beta + tyni);
-        float q = length(r_ij) / (hh + tyni);
+        float q = length(r_ij) / (h + tyni);
         
 //        printf("SUPPORT=%f\n",SUPPORT);
         if(q >= SUPPORT)
@@ -161,12 +163,12 @@ __kernel void entry(//const __global uint* iset,
 
         //drhodt[i] -= 2.0f * m_j * rho_i / (rho_j * H) * (u_R_i - u_star) * kernelF(q); 
     
-        drhodt[i] -= 2.0f * m_j * rho_i / (rho_j * hh) * (u_R_i - u_star) * Wij_prima;
+        drhodt[i] -= 2.0f * m_j * rho_i / (rho_j * h) * (u_R_i - u_star) * Wij_prima;
         //dudt[i]   += 2.0f * m_j * p_star /(rho_j * rho_i * H) * kernelF(q) * l_ij;
         //dudt[i]   += auxu;
-        dudt[i]   += 2.0f * m_j * p_star /(rho_j * rho_i * hh) * Wij_prima * l_ij;
+        dudt[i]   += 2.0f * m_j * p_star /(rho_j * rho_i * h) * Wij_prima * l_ij;
         //dedt[i]   -= 2.0f * m_j * p_star /(rho_j * rho_i * H) * (u_R_i - u_star) * kernelF(q);
-        dedt[i]   -= 2.0f * m_j * p_star /(rho_j * rho_i * hh) * (u_R_i - u_star) * Wij_prima;
+        dedt[i]   -= 2.0f * m_j * p_star /(rho_j * rho_i * h) * (u_R_i - u_star) * Wij_prima;
 
     //}END_LOOP_OVER_NEIGHS()
     }END_NEIGHS()
