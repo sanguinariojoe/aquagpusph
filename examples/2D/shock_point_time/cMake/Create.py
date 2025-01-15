@@ -147,6 +147,7 @@ while x < l0:
             N += 1
         else:
             writeParticle(output=output, p=(x,y), rho=rho1, e=e1, pres=p1, imove=-1)
+            N += 1
         y += dr
     x += dr
     y = -h0
