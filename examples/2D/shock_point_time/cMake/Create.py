@@ -66,7 +66,7 @@ dv = Vol / n
 dr = dv**0.5
 dd= 2.0*dr
 
-h = 4.0 * dd
+h = 10.0 * dd
 dt = 1.0E-5
 
 print("")
@@ -143,7 +143,7 @@ while x < l0:
                 ener=e2
                 pres=p2
 
-            writeParticle(output=output, p=(x,y), rho=rho, e=ener, pres=pres)
+            writeParticle(output=output, p=(x,y), rho=rho, e=ener, pres=pres, imove=1)
             N += 1
         else:
             writeParticle(output=output, p=(x,y), rho=rho2, e=e2, pres=p2, imove=-1)

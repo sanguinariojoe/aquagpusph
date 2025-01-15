@@ -175,6 +175,6 @@ __kernel void entry(//const __global uint* iset,
     }END_NEIGHS()
 
     div_u[i] = drhodt[i] / rho_i;
-    grad_p[i] = dudt[i] / rho_i;
+    grad_p[i] = dudt[i] * rho_i;
 
 }
