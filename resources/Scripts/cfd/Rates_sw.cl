@@ -133,6 +133,7 @@ __kernel void entry(//const __global uint* iset,
         float q = length(r_ij) / (hh + tyni);
         
 //        printf("SUPPORT=%f\n",SUPPORT);
+        printf("H=%f\n",hh);
         if(q >= SUPPORT)
         {
             j++;

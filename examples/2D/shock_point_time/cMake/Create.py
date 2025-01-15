@@ -66,7 +66,8 @@ dv = Vol / n
 dr = dv**0.5
 dd= 2.0*dr
 
-h = 10.0 * dd
+#h = 10.0 * dd
+h=0.1
 dt = 1.0E-5
 
 print("")
