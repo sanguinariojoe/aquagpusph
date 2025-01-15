@@ -139,7 +139,7 @@ __kernel void entry(//const __global uint* iset,
             j++;
             continue;
         }
-
+        printf("tiene vecinos, particle %i=%i\n",i,j);
         //float Wij_prima = 0.0f;
         //if(q<=2.0f)
         //{
