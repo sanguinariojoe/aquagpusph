@@ -138,6 +138,7 @@ __kernel void entry(//const __global uint* iset,
         {
             j++;
             continue;
+            printf("q=%f\n",q);
         }
         printf("tiene vecinos, particle %i=%i\n",i,j);
         //float Wij_prima = 0.0f;
