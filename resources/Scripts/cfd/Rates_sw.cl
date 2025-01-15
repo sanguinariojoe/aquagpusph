@@ -82,6 +82,7 @@ __kernel void entry(//const __global uint* iset,
         return;
     if(imove[i] != 1)
         return;
+    printf("Estoy aqui");
 
     const vec_xyz r_i = r[i].XYZ;
     const vec_xyz u_i = u[i].XYZ;
