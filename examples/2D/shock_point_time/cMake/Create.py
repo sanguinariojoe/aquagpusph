@@ -44,7 +44,7 @@ n = 50000
 p1=2.0e5
 p2=1.0e5
 
-rho1=.5
+rho1=1.00001
 rho2=1.00001
 
 gamma=1.44
@@ -63,11 +63,10 @@ e2=p2/((gamma-1.0)*rho2)
 Vol = 4 * l0 * h0
 dv = Vol / n
 #dr = (dv/3.1415)**0.5
-dr = dv**0.5
-dd= 2.0*dr
+dr = dv**0.5/rho1
 
-#h = 10.0 * dd
-h=0.1
+h = 10.0 * dr
+#h=0.1
 dt = 1.0E-5
 
 print("")
@@ -99,7 +98,7 @@ def writeParticle(output, p, n=(0.0,0.0), u=(0.0,0.0),
         np.float32(dedt),
         np.float32(m),
         np.float32(pres),
-        imove)
+        np.int16(imove))
     output.write(string)
 
 print("Opening output file...")
