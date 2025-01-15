@@ -54,35 +54,7 @@
  * one.
  * @param N Number of particles.
  */
-/*__kernel void stage1(const __global uint *id_in,
-                     __global uint *id,
-                     const __global uint *iset_in,
-                     __global uint *iset,
-                     const __global int *imove_in,
-                     __global int *imove,
-                     const __global vec *r_in,
-                     __global vec *r,
-                     const __global vec *normal_in,
-                     __global vec *normal,
-                     const __global vec *tangent_in,
-                     __global vec *tangent,
-                     const __global unit *id_sorted,
-                     unsigned int N)*/
-/*
-__kernel void stage1(const __global usize *id_in,
-                     __global usize *id,
-                     const __global uint *iset_in,
-                     __global uint *iset,
-                     const __global int *imove_in,
-                     __global int *imove,
-                     const __global vec *r_in,
-                     __global vec *r,
-                     const __global vec *normal_in,
-                     __global vec *normal,
-                     const __global vec *tangent_in,
-                     __global vec *tangent,
-                     const __global unit *id_sorted,
-                     unsigned int N)*/
+
 __kernel void stage1(const __global usize *id_in,
 		     __global usize *id,
                      const __global uint *iset_in,
@@ -98,11 +70,11 @@ __kernel void stage1(const __global usize *id_in,
                      const __global usize *id_sorted,
                      usize N)
 {
-    uint i = get_global_id(0);
+    usize i = get_global_id(0);
     if(i >= N)
         return;
 
-    const uint i_out = id_sorted[i];
+    const usize i_out = id_sorted[i];
 
     id[i_out] = id_in[i];
     iset[i_out] = iset_in[i];
@@ -149,13 +121,13 @@ __kernel void stage2(const __global float *rho_in,
                      const __global float *dedt,
                      __global float *dedt_in,
                      const __global usize *id_sorted,
-                     unsigned int N)
+                     usize N)
 {
-    uint i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
 
-    const uint i_out = id_sorted[i];
+    const usize i_out = id_sorted[i];
 
     rho[i_out] = rho_in[i];
     m[i_out] = m_in[i];

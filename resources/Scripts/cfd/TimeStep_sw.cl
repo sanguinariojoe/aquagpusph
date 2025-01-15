@@ -64,8 +64,8 @@ __kernel void entry(__global float* dt_var,
                     const __global vec* dudt,
                     const __global float* rho,
                     const __global float* p,
-                    const unsigned int N,
-                    const __global float* m,
+		    const __global float* m,
+                    const usize N,
                     const float dt,
                     const float dt_min,
                     const float courant,
@@ -73,10 +73,13 @@ __kernel void entry(__global float* dt_var,
                     const __global float* div_u,
                     const __global vec* grad_p)
 {
-    unsigned int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
-    
+    if(imove[i] <= 0) {
+        dt_var[i] = dt;
+        return;
+    }
     const float tiny = 1.0e-12f;
 
     float dxx = 0.5f * sqrt(4.0f * M_1_PI_F * m[i] / rho[i]);

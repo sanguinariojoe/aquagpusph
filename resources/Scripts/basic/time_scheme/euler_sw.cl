@@ -76,9 +76,9 @@ __kernel void predictor(const __global vec* r,
                         __global vec* dudt_in,
                         __global float* drhodt_in,
                         __global float* dedt_in,
-                        const unsigned int N)
+                        const usize N)
 {
-    unsigned int i = get_global_id(0);
+    usize i = get_global_id(0);
     if(i >= N)
         return;
 
@@ -122,10 +122,10 @@ __kernel void corrector(const __global int* imove,
                         const __global float* drhodt,
                         const __global float* dedt,
                         const __global float* div_u,
-                        const unsigned int N,
+                        const usize N,
                         const float dt)
 {
-    unsigned int i = get_global_id(0);
+    usize i = get_global_id(0);
     if(i >= N)
         return;
 

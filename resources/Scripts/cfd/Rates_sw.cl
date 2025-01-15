@@ -68,11 +68,11 @@ __kernel void entry(const __global int* imove,
                     __global float* dedt,
                     __global float* div_u,
                     __global vec* grad_p,
-                    const uint N,
+                    const usize N,
                     LINKLIST_LOCAL_PARAMS
                     )
 {
-    unsigned int i = get_global_id(0);
+    cont usize int i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] != 1)
