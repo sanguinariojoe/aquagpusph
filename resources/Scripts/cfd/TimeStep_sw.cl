@@ -60,11 +60,12 @@
 #define gamma 1.4f
 
 __kernel void entry(__global float* dt_var,
+                    const __global int* imove,
                     const __global vec* u,
                     const __global vec* dudt,
                     const __global float* rho,
                     const __global float* p,
-		    const __global float* m,
+		            const __global float* m,
                     const usize N,
                     const float dt,
                     const float dt_min,
