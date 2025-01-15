@@ -72,7 +72,7 @@ __kernel void entry(const __global int* imove,
                     LINKLIST_LOCAL_PARAMS
                     )
 {
-    cont usize int i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
     if(imove[i] != 1)
