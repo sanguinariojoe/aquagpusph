@@ -66,7 +66,7 @@ dv = Vol / n
 dr = dv**0.5
 dd= 2.0*dr
 
-h = 2.0 * dd
+h = 4.0 * dd
 dt = 1.0E-5
 
 print("")
@@ -130,7 +130,7 @@ y=-h0
 
 while x < l0:
     while y < h0:
-        if np.sqrt(x**2 + y**2)<0.5:
+        if np.sqrt(x**2 + y**2)<0.45:
             rho=0.0
             ener=0.0
             pres=0.0
@@ -146,7 +146,7 @@ while x < l0:
             writeParticle(output=output, p=(x,y), rho=rho, e=ener, pres=pres)
             N += 1
         else:
-            writeParticle(output=output, p=(x,y), rho=rho1, e=e1, pres=p1, imove=-1)
+            writeParticle(output=output, p=(x,y), rho=rho2, e=e2, pres=p2, imove=-1)
             N += 1
         y += dr
     x += dr
