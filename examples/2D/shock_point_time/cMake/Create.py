@@ -138,7 +138,8 @@ print(f'{N} particles. Volume = {N * dr**2} vs {Vol}')
 # =========================
 
 templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
-XML = ('Fluids.xml', 'Main.xml', 'Settings.xml', 'SPH.xml', 'Time.xml')
+XML = ('Fluids.xml', 'Main.xml', 'Settings.xml', 'SPH.xml', 'Time.xml',
+       'BC.xml')
 
 factor = 2.0
 R_domain = R + 4.0 * h
@@ -148,7 +149,7 @@ domain_max = (R_domain, R_domain)
 domain_max = str(domain_max).replace('(', '').replace(')', '')
 
 data = {'DR':str(dr), 'HFAC':str(hfac), 'H':str(h), 'COURANT':str(courant),
-        'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max,
+        'R':str(R), 'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max,
         'N':str(N), 'DT':str(dt), 'CS':str(ssound)}
 for fname in XML:
     # Read the template

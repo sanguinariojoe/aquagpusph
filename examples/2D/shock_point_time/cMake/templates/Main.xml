@@ -30,4 +30,5 @@ Authors:
     <Include file="SPH.xml" />
     <Include file="Time.xml" />
     <Include file="Fluids.xml" />
+    <Include file="BC.xml" />
 </sphInput>
