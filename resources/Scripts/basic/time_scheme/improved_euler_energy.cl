@@ -73,18 +73,8 @@
  * @param dt Time step \f$ \Delta t \f$.
  */
 __kernel void predictor(const __global int* imove,
-                        const __global vec* r,
-                        const __global vec* u,
-                        const __global vec* dudt,
-                        const __global float* rho,
-                        const __global float* drhodt, 
                         const __global float* eee,
                         const __global float* dedt,
-                        __global vec* r_in,
-                        __global vec* u_in,
-                        __global vec* dudt_in,
-                        __global float* rho_in,
-                        __global float* drhodt_in,   
                         __global float* e_in,
                         __global float* dedt_in,
                         const usize N,
@@ -98,13 +88,6 @@ __kernel void predictor(const __global int* imove,
     if(imove[i] <= 0)
         DT = 0.f;
 
-    dudt_in[i] = dudt[i];
-    u_in[i] = u[i] + DT * dudt[i];
-    r_in[i] = r[i] + DT * u[i] + 0.5f * DT * DT * dudt[i];
-    
-    drhodt_in[i] = drhodt[i];
-    rho_in[i] = rho[i] + DT * drhodt[i];
-    
     dedt_in[i] = dedt[i];
     e_in[i] = eee[i] + DT * dedt[i];
 }
@@ -131,15 +114,8 @@ __kernel void predictor(const __global int* imove,
  */
 __kernel void corrector(const __global int* imove,
                         const __global unsigned int* iset,
-                        __global vec* r,
-                        __global vec* u,
-                        const __global vec* dudt,
-                        __global float* rho,
-                        const __global float* drhodt,
                         __global float* eee,
                         const __global float* dedt,
-                        const __global vec* dudt_in,
-                        const __global float* drhodt_in,
                         const __global float* dedt_in,
                         const usize N,
                         const float dt)
@@ -150,9 +126,6 @@ __kernel void corrector(const __global int* imove,
 
     if(imove[i] > 0) {
         const float DT = 0.5f * dt;
-        u[i] += DT * (dudt[i] - dudt_in[i]);
-        r[i] += DT * DT * (dudt[i] - dudt_in[i]);
-        rho[i] += DT * (drhodt[i] - drhodt_in[i]);
         eee[i] += DT * (dedt[i] - dedt_in[i]);
     }
 }

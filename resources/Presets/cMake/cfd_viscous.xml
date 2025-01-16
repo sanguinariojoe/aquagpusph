@@ -41,34 +41,10 @@ In the sensors the values of density, pressure and velocity are interpolated.
         | ihoc        | unsigned int* | n_cells | First particle in each cell
          -->
         <Variable name="visc_dyn" type="float*" length="n_sets" />
-
-        <Variable name="grad_p" type="vec*" length="N" />
-        <Variable name="lap_u" type="vec*" length="N" />
-        <Variable name="div_u" type="float*" length="N" />
-        <Variable name="shepard" type="float*" length="N" />
     </Variables>
-
-    <Definitions>
-        <Define name="__LAP_MONAGHAN__" value="1" evaluate="false"/>
-        <Define name="__LAP_MORRIS__" value="2" evaluate="false"/>
-        <Define name="__LAP_FORMULATION__" value="__LAP_MONAGHAN__" evaluate="false"/>
-    </Definitions>
     
     <Tools>
         <!-- Particles interactions -->
-        <Tool action="insert" after="Sort" type="set" name="cfd Reinit shepard" in="shepard" value="0.f"/>
-        <Tool action="insert" after="Sort" type="set" name="cfd Reinit grad_p" in="grad_p" value="VEC_ZERO"/>
-        <Tool action="insert" after="Sort" type="set" name="cfd Reinit div_u" in="div_u" value="0.f"/>
-        <Tool action="insert" after="Sort" type="set" name="cfd Reinit lap_u" in="lap_u" value="VEC_ZERO"/>
-
-        <Tool action="insert" before="Interactions" type="kernel" name="cfd Shepard" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Shepard.cl"/>
-        <Tool action="insert" before="Interactions" type="kernel" name="cfd interactions" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Interactions.cl"/>
-
-        <Tool action="insert" before="Interactions" type="kernel" name="cfd sensors" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Sensors.cl"/>
-        <Tool action="insert" before="Interactions" type="kernel" name="cfd sensors renormalization" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/SensorsRenormalization.cl"/>
-
-        <!-- Velocity and density variation rates computation -->
-        <Tool action="insert" before="Rates" type="kernel" name="cfd rates" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Rates_inviscid.cl"/>
         <Tool action="insert" before="Rates" type="kernel" name="cfd rates" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Rates_viscous.cl"/>
     </Tools>
 </sphInput>

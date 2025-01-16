@@ -18,8 +18,10 @@
 
 #include "resources/Scripts/types/types.h"
 
-__kernel void entry(const __global float *eint_in, __global float *eint,
-                    const __global float *deintdt, __global float *deintdt_in,
+__kernel void entry(const __global float *eint_in, 
+                    __global float *eint,
+                    const __global float *deintdt, 
+                    __global float *deintdt_in,
                     const __global usize *id_sorted,
                     usize N)
 {

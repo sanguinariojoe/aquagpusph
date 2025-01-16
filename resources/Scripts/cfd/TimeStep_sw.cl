@@ -71,6 +71,7 @@ __kernel void entry(__global float* dt_var,
                     const float dt_min,
                     const float courant,
                     const float h,
+                    //div_u is rho *  div_u for compatibility
                     const __global float* div_u,
                     const __global vec* grad_p)
 {
@@ -83,13 +84,14 @@ __kernel void entry(__global float* dt_var,
     }
     const float tiny = 1.0e-12f;
 
+    //2D
     float dxx = 0.5f * sqrt(4.0f * M_1_PI_F * m[i] / rho[i]);
 
     //float dr_max = dxx;
     float s_i = sqrt(gamma * p[i] / rho[i]);
 
-    float dt_u1 = courant * 0.4f * dxx / sqrt((4.0f * dxx * div_u[i])*(4.0f * dxx * div_u[i]) + s_i * s_i);
-    float dt_u2 = courant * sqrt(dxx / (length(grad_p[i] / rho[i]) + tiny));
+    float dt_u1 = courant * 0.4f * dxx / sqrt((4.0f * dxx * div_u[i])*(4.0f * dxx * div_u[i]) / (rho[i] * rho[i])+ s_i * s_i);
+    float dt_u2 = courant * sqrt(dxx / (length(grad_p[i]) + tiny));
     float dt_u3 = courant * sqrt(dxx / (0.5f * length(dudt[i]) + tiny)); 
     float dt_u4 = courant * 0.4f * dxx / sqrt(length(u[i]) * length(u[i]) + s_i * s_i);
     //float dt_u = min(min(dt_u1, dt_u2), dt_u3);
