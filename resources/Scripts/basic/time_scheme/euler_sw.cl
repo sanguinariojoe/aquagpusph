@@ -62,39 +62,19 @@
  * \f$ \left. \frac{d \rho}{d t} \right\vert_{n+1/2} \f$.
  * @param N Number of particles.
  */
-__kernel void predictor(const __global vec* r,
-                        const __global vec* u,
-                        const __global float* rho,
-                        const __global float* eee,
-                        const __global vec* dudt,
-                        const __global float* drhodt,
-                        const __global float* dedt,
-                        __global vec* r_in,
-                        __global vec* u_in,
-                        __global float* rho_in,
-                        __global float* e_in,
-                        __global vec* dudt_in,
-                        __global float* drhodt_in,
-                        __global float* dedt_in,
+__kernel void predictor(const __global float* eint,
+                        const __global float* deintdt,
+                        __global float* eint_in,
+                        __global float* deintdt_in,
                         const usize N)
 {
-    usize i = get_global_id(0);
+    const usize i = get_global_id(0);
     if(i >= N)
         return;
 
-    u_in[i] = u[i];
-    r_in[i] = r[i];
-    rho_in[i] = rho[i];
-    e_in[i] = eee[i];
-
-    dudt_in[i] = dudt[i];
-    drhodt_in[i] = drhodt[i];
-    dedt_in[i] = dedt[i];
+    eint_in[i] = eint[i];
+    deintdt_in[i] = deintdt[i];
 }
-
-
-
-
 
 /** @brief 1st orderv Euler time integration scheme corrector stage
  * @param imove Moving flags.
@@ -113,16 +93,9 @@ __kernel void predictor(const __global vec* r,
  * @param dt Time step \f$ \Delta t \f$.
  */
 __kernel void corrector(const __global int* imove,
-                        const __global unsigned int* iset,
-                        __global vec* r,
-                        __global vec* u,
-                        __global float* rho,
-                        __global float* eee,
-                        const __global vec* dudt,
-                        const __global float* drhodt,
-                        const __global float* dedt,
-                        const __global float* div_u,
-                        const usize N,
+                        __global float* eint,
+                        const __global float* deintdt,
+                        const unsigned int N,
                         const float dt)
 {
     usize i = get_global_id(0);
@@ -130,15 +103,7 @@ __kernel void corrector(const __global int* imove,
         return;
 
     if(imove[i] > 0) {
-        
-        r[i] += dt * u[i] + 0.5f * dt * dt * dudt[i];
-
-        u[i] += dt * dudt[i];
-        
-        rho[i] += dt * drhodt[i];
-        //rho[i] += -2.0f * drhodt[i] * dt /(2.0f + div_u[i] * dt);
-        
-        eee[i] += dt * dedt[i];
+        eint[i] += dt * deintdt[i];
     }
 }
 

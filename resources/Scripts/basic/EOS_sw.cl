@@ -61,16 +61,16 @@ __kernel void entry(const __global unsigned int* iset,
                     const __global int* imove,
                     const __global float* rho,
                     __global float* p,
-                    const __global float* eee,                    
+                    const __global float* eint,
                     usize N)
 {
-    unsigned int i = get_global_id(0);
+    usize i = get_global_id(0);
     if(i >= N)
         return;
     if(EXCLUDED_PARTICLE(i))
         return;
 
-    p[i] = (gamma-1.0f)*rho[i]*eee[i];
+    p[i] = (gamma - 1.0f) * rho[i] * eint[i];
 }
 
 /*

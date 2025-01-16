@@ -29,13 +29,13 @@ Authors:
             type="Time" Simulation ends after simulate some seconds
         You can conveniently combine several stop criterias.
         -->
-        <Option name="End" type="Time" value="3.2e-3" />
+        <Option name="End" type="Steps" value="10000" />
 
         <!-- Set output files print criteria
             type="FPS" Frames per second
             type="IPF" Iterations per frame
         You can conveniently combine several printing criterias.
         -->
-        <Option name="Output" type="IPF" value="1000" />
+        <Option name="Output" type="IPF" value="1" />
     </Timing>
 </sphInput>
