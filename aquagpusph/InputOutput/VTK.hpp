@@ -40,8 +40,14 @@
 #include <vtkVertex.h>
 #include <vtkCellArray.h>
 
-#include "aquagpusph/sphPrerequisites.hpp"
+#ifdef VTK_NLOHMANN_JSON
+#include <vtk_nlohmannjson.h>
 #include VTK_NLOHMANN_JSON(json.hpp)
+#else
+#include <nlohmann/json.hpp>
+#endif // VTK_NLOHMANN JSON
+
+#include "aquagpusph/sphPrerequisites.hpp"
 #include "Particles.hpp"
 
 namespace Aqua {

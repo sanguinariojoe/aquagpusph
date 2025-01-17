@@ -27,12 +27,12 @@
 #include "aquagpusph/InputOutput/Logger.hpp"
 #include "aquagpusph/CalcServer/CalcServer.hpp"
 #include "Performance.hpp"
-#ifdef HAVE_VTK
+#ifdef VTK_NLOHMANN_JSON
 #include <vtk_nlohmannjson.h>
 #include VTK_NLOHMANN_JSON(json.hpp)
 #else
-#include "nlohmann/json.hpp"
-#endif // HAVE_VTK
+#include <nlohmann/json.hpp>
+#endif // VTK_NLOHMANN JSON
 
 
 using json = nlohmann::json;
