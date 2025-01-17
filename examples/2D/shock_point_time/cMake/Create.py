@@ -64,7 +64,8 @@ dv = Vol / n
 dr = dv**0.5
 h = hfac * dr
 
-dt = 1.0E-5
+#dt = 1.0E-5
+dt = 0.1*min(dr / c1 , dr / c2)
 
 print("")
 print(f"dr = {dr}")
