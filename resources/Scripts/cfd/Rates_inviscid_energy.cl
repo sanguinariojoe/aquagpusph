@@ -56,7 +56,7 @@ __kernel void entry(const __global uint* iset,
                     const __global int* imove,
                     const __global float* rho,
                     const __global float* p,
-                    __global float* dedt,
+                    __global float* deintdt,
                     const __global float* div_u,
                     const usize N,
                     const vec g)
@@ -68,5 +68,5 @@ __kernel void entry(const __global uint* iset,
         return;
 
     // Conservation of energy equation
-    dedt[i] = -p[i] / (rho[i] * rho[i]) * div_u[i];
+    deintdt[i] = -p[i] / (rho[i] * rho[i]) * div_u[i];
 }
