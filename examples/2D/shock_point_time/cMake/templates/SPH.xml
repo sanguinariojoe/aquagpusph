@@ -20,6 +20,7 @@ Authors:
 <sphInput>
     <Variables>
         <Variable name="dr" type="float" value="{{DR}}" />
+        <Variable name="hfac" type="float" value="{{HFAC}}" />
         <Variable name="h" type="float" value="{{H}}" />
         <Variable name="cs" type="float" value="{{CS}}" />
         <Variable name="courant" type="float" value="{{COURANT}}" />

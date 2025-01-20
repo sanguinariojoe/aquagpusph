@@ -27,8 +27,8 @@ Authors:
 
     <Tools>
         <Tool action="insert" before="predictor" name="set fixed parts" type="kernel" entry_point="set_fixed" path="bc.cl"/>
-        <Tool action="insert" after="predictor_sw" name="unset fixed parts" type="kernel" entry_point="unset_fixed" path="bc.cl"/>
+        <Tool action="insert" after="predictor ideal gas" name="unset fixed parts" type="kernel" entry_point="unset_fixed" path="bc.cl"/>
         <Tool action="insert" before="corrector" name="set fixed parts" type="kernel" entry_point="set_fixed" path="bc.cl"/>
-        <Tool action="insert" after="corrector_sw" name="unset fixed parts" type="kernel" entry_point="unset_fixed" path="bc.cl"/>
+        <Tool action="insert" after="corrector ideal gas" name="unset fixed parts" type="kernel" entry_point="unset_fixed" path="bc.cl"/>
     </Tools>
 </sphInput>
