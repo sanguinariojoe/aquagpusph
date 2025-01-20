@@ -117,7 +117,6 @@ __kernel void entry(const __global int* imove,
             continue;
         }
         {
-            //printf("la particula %i tiene amiga %i\n", i, j);
             const float rho_j = rho[j];
             const float p_j = p[j];
             const float udr = dot(u[j].XYZ - u_i, r_ij);
