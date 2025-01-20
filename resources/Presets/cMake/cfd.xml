@@ -68,7 +68,6 @@ In the sensors the values of density, pressure and velocity are interpolated.
         <Tool action="insert" before="Interactions" type="kernel" name="cfd sensors renormalization" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/SensorsRenormalization.cl"/>
 
         <!-- Velocity and density variation rates computation -->
-        <Tool action="insert" before="Rates" type="kernel" name="cfd rates" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Rates_inviscid.cl"/>
-        <Tool action="insert" before="Rates" type="kernel" name="cfd rates" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Rates_viscous.cl"/>
+        <Tool action="insert" before="Rates" type="kernel" name="cfd rates" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Rates.cl"/>
     </Tools>
 </sphInput>
