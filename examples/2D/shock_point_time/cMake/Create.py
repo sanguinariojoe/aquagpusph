@@ -52,6 +52,11 @@ gamma = 1.44
 c1 = np.sqrt(gamma * p1 / rho1)
 c2 = np.sqrt(gamma * p2 / rho2)
 
+print("")
+print(f"c1 = {c1}")
+print(f"c2 = {c2}")
+print("")
+
 ssound=max(c1, c2)
 
 e1=p1 / ((gamma - 1.0) * rho1)
