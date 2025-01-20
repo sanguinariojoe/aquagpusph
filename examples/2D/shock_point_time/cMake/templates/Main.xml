@@ -23,7 +23,7 @@ Authors:
     <Include file="@RESOURCES_DIR@/Presets/basic_energy.xml" />
     <Include file="@RESOURCES_DIR@/Presets/perfect_gas.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/domain.xml" />
-    <Include file="@RESOURCES_DIR@/Presets/cfd_inviscid.xml" />    
+    <Include file="@RESOURCES_DIR@/Presets/cfd.xml" />    
     <Include file="@RESOURCES_DIR@/Presets/cfd_inviscid_energy.xml" />
     <!-- Include file="@RESOURCES_DIR@/Presets/cfd/variableTimeStep.xml" / -->
     <Include file="@RESOURCES_DIR@/Presets/basic/timing.report.xml" />
