@@ -35,7 +35,7 @@ prefix, for instance:
 
     <Tools>
         <!-- Detect the particles to be mirrored -->
-        <Tool name="cfd symmetry detect" action="insert" before="Predictor" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/Mirror.cl" entry_point="detect"/>
+        <Tool name="cfd symmetry init detect" action="insert" before="Predictor" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/Mirror.cl" entry_point="detect"/>
 
         <!-- Sort imirror so we can consume buffer particles in a consistent way -->
         <Tool name="cfd symmetry sort" action="insert" before="Predictor" type="radix-sort" in="imirror" perm="imirror_perm" inv_perm="imirror_invperm"/>
