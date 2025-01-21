@@ -65,5 +65,5 @@ __kernel void entry(const __global uint* iset,
         return;
 
     // Conservation of energy equation
-    deintdt[i] = -work_density;
+    deintdt[i] = -work_density[i];
 }

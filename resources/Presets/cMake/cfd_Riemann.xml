@@ -46,6 +46,8 @@ In the sensors the values of density, pressure and velocity are interpolated.
         <Variable name="div_u" type="float*" length="N" />
         <Variable name="work_density" type="float*" length="N" />
         
+        <!--for compatibility-->
+        <Variable name="lap_u" type="vec*" length="N" />
     </Variables>
 
     
@@ -56,5 +58,8 @@ In the sensors the values of density, pressure and velocity are interpolated.
 
         <!-- Velocity and density variation rates computation -->
         <Tool action="insert" before="Rates" type="kernel" name="cfd rates" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Rates.cl"/>
+
+        <!--Override the Wetland kernel<Tool action="replace" name="EOS" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/EOS_sw.cl"/>-->
+        
     </Tools>
 </sphInput>

@@ -41,6 +41,8 @@ hfac = 2.0
 
 n = 50000
 
+gamma=1.4
+
 p1 = 2.0e5
 p2 = 1.0e5
 
@@ -154,9 +156,9 @@ domain_min = str(domain_min).replace('(', '').replace(')', '')
 domain_max = (R_domain, R_domain)
 domain_max = str(domain_max).replace('(', '').replace(')', '')
 
-data = {'DR':str(dr), 'HFAC':str(hfac), 'H':str(h), 'COURANT':str(courant),
+data = {'DR':str(dr), 'HFAC':str(hfac), 'H':str(h), 'GAMMA':str(gamma), 'COURANT':str(courant),
         'R':str(R), 'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max,
-        'N':str(N), 'DT':str(dt), 'CS':str(ssound)}
+        'N':str(N), 'DT':str(dt), 'CS':str(ssound), 'DT':str(dt)}
 for fname in XML:
     # Read the template
     f = open(path.join(templates_path, fname), 'r')

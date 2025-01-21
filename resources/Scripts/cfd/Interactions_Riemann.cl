@@ -50,6 +50,9 @@
  * @param ihoc Head of chain for each cell (first particle found).
  * @param n_cells Number of cells in each direction
  */
+
+#define gamma 1.44f
+
 __kernel void entry(const __global int* imove,
                     const __global vec* r,
                     const __global vec* u,
@@ -58,7 +61,7 @@ __kernel void entry(const __global int* imove,
                     const __global float* m,
                     const __global float* p,
                     __global vec* grad_p,
-                    __global vec* lap_u,
+                    __global float* div_u,
                     __global float* work_density,
                     usize N,
                     LINKLIST_LOCAL_PARAMS)
@@ -133,10 +136,10 @@ __kernel void entry(const __global int* imove,
 
             const float aux = 2.0f * m_j / (rho_j * H) * (u_R_i - u_star) * kernelF(q) * CONF;
 
-            _DIVU_ += rho_i * aux;
             //_DIVU_ +=  2.0f * m_j * rho_i / (rho_j * H) * (u_R_i - u_star) * kernelF(q) * CONF;
-
-            _GRADP_ += 2.0f * m_j * p_star /(rho_j * rho_i * H) * kernelF(q) * CONF * l_ij;
+            _DIVU_ += rho_i * aux;
+            
+            _GRADP_ += -2.0f * m_j * p_star /(rho_j * rho_i * H) * kernelF(q) * CONF * l_ij;
             
             //_W_DEN_ += 2.0f * m_j * p_star /(rho_j * rho_i * H) * (u_R_i - u_star) * Wij_prima
             _W_DEN_ += p_star / rho_i * aux;
