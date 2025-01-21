@@ -59,7 +59,9 @@ In the sensors the values of density, pressure and velocity are interpolated.
         <!-- Velocity and density variation rates computation -->
         <Tool action="insert" before="Rates" type="kernel" name="cfd rates" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Rates.cl"/>
 
-        <!--Override the Wetland kernel<Tool action="replace" name="EOS" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/EOS_sw.cl"/>-->
+        <!--Override the Wetland kernel
+        <Tool action="replace" name="EOS" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/EOS_sw.cl"/>
+        -->
         
     </Tools>
 </sphInput>

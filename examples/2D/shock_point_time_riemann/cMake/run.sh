@@ -19,6 +19,7 @@ elif [[ $1 == "--clean" ]]; then
     rm -f *.vtu
     rm -f output.vtu.series
     rm -f Performance.dat
+    rm -f Timing.dat
 else
     echo ""
     echo "Usage: run.sh [--run/--plot e/--plot f]"
