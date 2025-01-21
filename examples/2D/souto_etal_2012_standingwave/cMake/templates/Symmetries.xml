@@ -22,6 +22,9 @@ Authors:
     <Include file="@RESOURCES_DIR@/Presets/cfd/symmetry.xml" prefix="right_"/>
 
     <Tools>
+        <Tool action="remove" name="left_basic ibuffer" type="dummy"/>
+        <Tool action="remove" name="left_basic nbuffer" type="dummy"/>
+        <Tool action="remove" name="left_basic buffer set imove" type="dummy"/>
         <Tool action="insert" before="left_cfd symmetry init*" name="left_symmetry_r" type="set_scalar" in="symmetry_r" value="0.0, 0.0"/>
         <Tool action="insert" after="left_symmetry_r" name="left_symmetry_n" type="set_scalar" in="symmetry_n" value="-1.0, 0.0"/>
         <Tool action="insert" before="right_cfd symmetry init*" name="right_symmetry_r" type="set_scalar" in="symmetry_r" value="{{L}}, 0.0"/>
