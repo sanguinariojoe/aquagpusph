@@ -19,7 +19,5 @@ else
     echo ""
     echo "run.sh --plot m"
     echo "    Plot the resulting motion"
-    echo "run.sh --plot t"
-    echo "    Plot the performance"
     echo ""
 fi

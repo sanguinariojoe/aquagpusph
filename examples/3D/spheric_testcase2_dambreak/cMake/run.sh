@@ -27,8 +27,6 @@ else
     echo "    Plot the pressure"
     echo "run.sh --plot h"
     echo "    Plot the wave height"
-    echo "run.sh --plot t"
-    echo "    Plot the performance"
     echo "run.sh --plot r"
     echo "    Plot the residues statistics"
     echo ""

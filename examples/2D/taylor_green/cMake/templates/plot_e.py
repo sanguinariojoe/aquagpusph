@@ -63,7 +63,7 @@ def readFile(filepath):
         except:
             continue
     # Transpose the data
-    return map(list, zip(*data))
+    return list(map(list, zip(*data)))
 
 
 line = None
@@ -93,8 +93,8 @@ def update(frame_index):
         t = data[0]
         e = data[1]
         for i in range(len(t)):
-            t[i] /= self.T
-            e[i] /= self.Ek
+            t[i] /= T
+            e[i] /= Ek
     except IndexError:
         return
     except FileNotFoundError:

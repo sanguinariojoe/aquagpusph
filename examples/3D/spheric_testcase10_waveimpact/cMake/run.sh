@@ -22,7 +22,5 @@ else
     echo ""
     echo "run.sh --plot p"
     echo "    Plot the pressure in the sensor"
-    echo "run.sh --plot t"
-    echo "    Plot the performance"
     echo ""
 fi

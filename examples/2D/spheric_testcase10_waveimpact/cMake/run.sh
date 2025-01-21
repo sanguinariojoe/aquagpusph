@@ -27,8 +27,6 @@ else
     echo "    Run the simulation"
     echo "run.sh --plot p"
     echo "    Plot the pressure in the sensor"
-    echo "run.sh --plot t"
-    echo "    Plot the performance"
     echo "run.sh --plot e"
     echo "    Plot the energy profile"
     echo "run.sh --plot r"

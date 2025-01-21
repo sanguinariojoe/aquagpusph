@@ -26,8 +26,6 @@ else
     echo "    Runs the simulation. You can stop simulation pressing the 'c' key"
     echo "run.sh --plot m"
     echo "    Plot the resulting motion"
-    echo "run.sh --plot t"
-    echo "    Plot the performance"
     echo "run.sh --plot e"
     echo "    Plot the energy profile"
     echo "run.sh --plot r"
