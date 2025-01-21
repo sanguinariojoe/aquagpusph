@@ -26,7 +26,5 @@ else
     echo "    Plot the Drag coefficient"
     echo "run.sh --plot f"
     echo "    Plot the Power terms"
-    echo "run.sh --plot t"
-    echo "    Plot the performance"
     echo ""
 fi

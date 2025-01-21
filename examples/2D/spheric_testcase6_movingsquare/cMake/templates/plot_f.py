@@ -81,16 +81,16 @@ fig = plt.figure()
 data = readFile('doc/Force_Re100.dat')
 t = np.asarray(data[0])
 fx = np.asarray(data[1]) + np.asarray(data[2])
-exp, = plt.plot([0], [0],
+exp, = plt.plot(t, fx,
                  label=r'$\mathrm{FDM}$',
                  color="red",
                  linestyle="-",
                  linewidth=1.0)
-cd, = ax_em.plot([0], [0],
-                 label=r'$\mathrm{AQUAgpusph}$',
-                 color="black",
-                 linestyle="-",
-                 linewidth=1.0)
+cd, = plt.plot([0], [0],
+               label=r'$\mathrm{AQUAgpusph}$',
+               color="black",
+               linestyle="-",
+               linewidth=1.0)
 ax = plt.gca()
 ax.grid()
 ax.legend(loc='upper right')
@@ -103,25 +103,6 @@ ax.set_ylabel(r"$c_D$")
 
 # Animate
 def update(frame_index):
-        data = self.readFile('PressureForces.dat')
-        tp = np.asarray(data[0]) * TIME_FAC
-        fpx = (np.asarray(data[1]) + np.asarray(data[7])) * COEFF_FAC
-        data = self.readFile('ViscousForces.dat')
-        tv = np.asarray(data[0]) * TIME_FAC
-        fvx = (np.asarray(data[1]) + np.asarray(data[7])) * COEFF_FAC
-        t = tp if len(tp) < len(tv) else tv
-        fx = fpx[:len(t)] + fvx[:len(t)]
-        self.cd.set_data(t, -fx)
-
-        cdmax = np.max(np.abs(fx))
-        self.ax_cd.set_xlim(0, np.max(t))
-        self.ax_cd.set_ylim(-1.05 * cdmax, 1.05 * cdmax)
-
-        # Redraw
-        self.fig.canvas.draw()
-
-
-    plt.tight_layout()
     try:
         data = readFile('PressureForces.dat')
         tp = np.asarray(data[0]) * TIME_FAC
@@ -137,6 +118,7 @@ def update(frame_index):
         ax = plt.gca()
         ax.set_xlim(0, np.max(t))
         ax.set_ylim(-1.05 * cdmax, 1.05 * cdmax)
+        plt.tight_layout()
     except IndexError:
         return
     except FileNotFoundError:
