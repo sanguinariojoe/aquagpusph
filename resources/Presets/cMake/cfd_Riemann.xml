@@ -1,0 +1,60 @@
+<?xml version="1.0" ?>
+
+<!-- cfd.xml
+This is the main preset to create CFD simulations using SPH. To use it,
+basic.xml should be loaded first.
+
+Within this preset, no boundary conditions are loaded, or in other words, purely
+dummy particles are considered.
+
+In case that solid boundaries should be enforced, consider loading Boundary
+Integrals (BI.xml) or Mirror particles(GhostParticles.xml). Also you can add the
+elastic bounce condition to enforce the unpenetrability.
+
+In case or symmetric planes use symmetry.xml.
+
+In case of inflow/outflow use inlet.xml and outlet.xml.
+
+However, sensor values are already computed within this preset, out of the box.
+In the sensors the values of density, pressure and velocity are interpolated.
+-->
+
+<sphInput>
+    <Variables>
+        <!-- Some variables are automatically defined:
+        | NAME        | TYPE          | LEN     | DESCRIPTION
+        | dims        | unsigned int  | 1       | 2 for 2D, 3 for 3D
+        | t           | float         | 1       | Simulation time
+        | dt          | float         | 1       | Time step
+        | iter        | unsigned int  | 1       | Step
+        | N           | unsigned int  | 1       | n + n_sensors
+        | n_sets      | unsigned int  | 1       | Number of particles sets
+        | n_radix     | unsigned int  | 1       | Rounded up value from N which is a power of 2
+        | n_cells     | uivec4        | 1       | Number of cells at each direction, and the total one
+        | support     | float         | 1       | Kernel support (as a factor of the kernel length h)
+        | id          | unsigned int* | N       | Original ID of each particle
+        | r           | vec*          | N       | Positions
+        | iset        | unsigned int* | N       | Particle set of each particle
+        | id_sorted   | unsigned int* | N       | Permutations from unsorted space to sorted space
+        | id_unsorted | unsigned int* | N       | Permutations from sorted space to unsorted space
+        | icell       | unsigned int* | N       | Cell where each particle is located
+        | ihoc        | unsigned int* | n_cells | First particle in each cell
+         -->
+        <Variable name="visc_dyn" type="float*" length="n_sets" />
+
+        <Variable name="grad_p" type="vec*" length="N" />        
+        <Variable name="div_u" type="float*" length="N" />
+        <Variable name="work_density" type="float*" length="N" />
+        
+    </Variables>
+
+    
+    <Tools>
+        <!-- Particles interactions -->
+
+        <Tool action="insert" before="Interactions" type="kernel" name="cfd interactions" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Interactions_Riemann.cl"/>
+
+        <!-- Velocity and density variation rates computation -->
+        <Tool action="insert" before="Rates" type="kernel" name="cfd rates" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Rates.cl"/>
+    </Tools>
+</sphInput>
