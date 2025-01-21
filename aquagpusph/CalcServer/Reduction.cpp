@@ -347,6 +347,17 @@ Reduction::setupOpenCL()
 	    err_code,
 	    std::string("Failure querying the work group size in tool \"") +
 	        name() + "\".");
+	cl_ulong local_mem;
+	err_code = clGetDeviceInfo(C->device(),
+	                           CL_DEVICE_LOCAL_MEM_SIZE,
+	                           sizeof(cl_ulong),
+	                           &local_mem,
+	                           NULL);
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure querying the available local memory in tool \"") +
+	        name() + "\".");
+	max_local_size = (std::min)(max_local_size, local_mem / data_size);
 	if (max_local_size < __CL_MIN_LOCALSIZE__) {
 		LOG(L_ERROR, "insufficient local memory.\n");
 		std::stringstream msg;
