@@ -25,7 +25,7 @@ Authors:
     <Include file="@RESOURCES_DIR@/Presets/cfd/ideal_gas_Riemann.xml" />
 
     <!--LEt see what we do with this-->
-    <!-- I<Include file="@RESOURCES_DIR@/Presets/cfd/variableTimeStep_gas.xml" />-->
+    <Include file="@RESOURCES_DIR@/Presets/cfd/variableTimeStep_gas.xml" />
     <!-- Include file="@RESOURCES_DIR@/Presets/cfd/variableTimeStep.xml" / -->
     <Include file="@RESOURCES_DIR@/Presets/basic/timing.report.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/performance.report.xml" />

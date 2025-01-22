@@ -58,10 +58,11 @@
  * @param h Kernel characteristic length \f$ h \f$.
  */
 
-#define gamma 1.4f
+//#define gamma 1.4f
 
 __kernel void entry(__global float* dt_var,
                     const __global int* imove,
+                    const __global unsigned int* iset,
                     const __global vec* u,
                     const __global vec* dudt,
                     const __global float* rho,
