@@ -34,7 +34,7 @@ import os.path as path
 import math
 import numpy as np
 
-courant = 0.1
+courant = 0.001
 R = 0.5
 R0 = 0.2
 hfac = 2.0

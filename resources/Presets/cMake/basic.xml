@@ -167,7 +167,7 @@ later:
         <Tool action="add" name="Corrector" type="dummy"/>
 
         <!-- Time step computation -->
-        <Tool action="add" name="fixed time step" type="set_scalar" in="dt" value="courant * h / cs / 10.0f"/>
+        <Tool action="add" name="fixed time step" type="set_scalar" in="dt" value="courant * h / cs "/>
         <Tool action="add" name="TimeStep" type="dummy"/>
 
         <!-- Next time step -->
