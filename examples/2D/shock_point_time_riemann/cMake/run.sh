@@ -10,7 +10,8 @@ if [[ $1 == "--run" ]]; then
     rm -f Performance.dat
     rm -f Timing.dat
     @EXAMPLE_DEST_DIR@/Create.py
-    RUSTICL_ENABLE=zink @BINARY_DIR@/AQUAgpusph -d 2 -i Main.xml
+    export RUSTICL_ENABLE=zink 
+    @BINARY_DIR@/AQUAgpusph -d 2 -i Main.xml
 elif [[ $1 == "--clean" ]]; then
     rm -f Fluid.dat
     rm -f AQUAgpusph.save.*.xml
