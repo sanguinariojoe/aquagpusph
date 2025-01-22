@@ -64,4 +64,6 @@ In the sensors the values of density, pressure and velocity are interpolated.
         -->
         
     </Tools>
+
+    <Include file="@RESOURCES_OUTPUT_DIR@/Presets/basic/kernels/cubicSpline.xml" when="end"/>
 </sphInput>

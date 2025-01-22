@@ -22,6 +22,7 @@
 
 #include "resources/Scripts/types/types.h"
 #include "resources/Scripts/KernelFunctions/Kernel.h"
+#include "resources/Scripts/cfd/ideal_gas/sound_speed.hcl"
 
 /** @brief Compute the maximum time step for each particle.
  *
@@ -72,7 +73,8 @@ __kernel void entry(__global float* dt_var,
                     const float courant,
                     const float h,
                     const __global float* div_u,
-                    const __global vec* grad_p)
+                    const __global vec* grad_p,
+                    __constant float* gamma)
 {
     const usize i = get_global_id(0);
     if(i >= N)
@@ -87,10 +89,11 @@ __kernel void entry(__global float* dt_var,
     
     float dxx=H;
 
-    float s_i = sqrt(gamma * p[i] / rho[i]);
+    //float s_i = sqrt(gamma * p[i] / rho[i]);
+    float s_i = SoundSpeedPerfectGas(gamma[iset[i]], p[i], rho[i]);
 
-    float dt_u1 = courant * 0.4f * dxx / sqrt((4.0f * dxx * div_u[i])*(4.0f * dxx * div_u[i]) + s_i * s_i);
-    float dt_u2 = courant * sqrt(dxx / (length(grad_p[i] / rho[i])) );
+    float dt_u1 = courant * 0.4f * dxx / sqrt((4.0f * dxx * div_u[i] / rho[i])*(4.0f * dxx * div_u[i] / rho[i]) + s_i * s_i);
+    float dt_u2 = courant * sqrt(dxx / (length(grad_p[i])) );
     float dt_u3 = courant * sqrt(dxx / (0.5f * length(dudt[i]))); 
     float dt_u4 = courant * 0.4f * dxx / sqrt(length(u[i]) * length(u[i]) + s_i * s_i);
 

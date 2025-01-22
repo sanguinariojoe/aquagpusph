@@ -26,6 +26,7 @@
 
 #include "resources/Scripts/types/types.h"
 #include "resources/Scripts/KernelFunctions/Kernel.h"
+#include "resources/Scripts/cfd/ideal_gas/sound_speed.hcl"
 
 
 /** @brief Fluid particles interactions computation.
@@ -51,9 +52,10 @@
  * @param n_cells Number of cells in each direction
  */
 
-#define gamma 1.44f
 
-__kernel void entry(const __global int* imove,
+
+__kernel void entry(const __global unsigned int* iset,
+                    const __global int* imove,
                     const __global vec* r,
                     const __global vec* u,
                     const __global float* rho,
@@ -63,6 +65,7 @@ __kernel void entry(const __global int* imove,
                     __global vec* grad_p,
                     __global float* div_u,
                     __global float* work_density,
+                    __constant float* gamma,
                     usize N,
                     LINKLIST_LOCAL_PARAMS)
 {
@@ -79,7 +82,8 @@ __kernel void entry(const __global int* imove,
     const float p_i = p[i];
     const float rho_i = rho[i];
     const float e_i = eint[i];
-    const float s_i = sqrt(gamma * p_i / rho_i);
+    const float gamma_i = gamma[iset[i]];    
+    const float s_i = SoundSpeedPerfectGas(gamma_i, p_i, rho_i);    
     const float m_i = m[i];
 
 
@@ -124,8 +128,8 @@ __kernel void entry(const __global int* imove,
             const float p_j = p[j]; 
             float e_j = eint[j];
             float m_j = m[j];
-            float s_j = sqrt(gamma * p_j / rho_j);
-
+            float gamma_j = gamma[iset[j]];            
+            float s_j = SoundSpeedPerfectGas(gamma_j, p_j, rho_j); 
             
             const vec_xyz l_ij = r_ij / length(r_ij);
             const float u_R_i = dot(u[i].XYZ, l_ij);
@@ -134,12 +138,14 @@ __kernel void entry(const __global int* imove,
             const float u_star = (u_R_j * rho_j * s_j + u_R_i * rho_i * s_i - p_j + p_i)/(rho_j * s_j + rho_i * s_i);
             const float p_star = (p_j * rho_i * s_i + p_i * rho_j * s_j - rho_j * s_j * rho_i * s_i * (u_R_j- u_R_i))/(rho_j * s_j + rho_i * s_i);
 
-            const float aux = 2.0f * m_j / (rho_j * H) * (u_R_i - u_star) * kernelF(q) * CONF;
+            const float Wij_prima = kernelF(q) * CONW;
 
-            //_DIVU_ +=  2.0f * m_j * rho_i / (rho_j * H) * (u_R_i - u_star) * kernelF(q) * CONF;
+            const float aux = 2.0f * m_j / (rho_j * H) * (u_R_i - u_star) * Wij_prima;
+
+            //_DIVU_ +=  2.0f * m_j * rho_i / (rho_j * H) * (u_R_i - u_star) * kernelF(q) * CONW;
             _DIVU_ += rho_i * aux;
             
-            _GRADP_ += -2.0f * m_j * p_star /(rho_j * rho_i * H) * kernelF(q) * CONF * l_ij;
+            _GRADP_ -= 2.0f * m_j * p_star /(rho_j * rho_i * H) * Wij_prima * l_ij;
             
             //_W_DEN_ += 2.0f * m_j * p_star /(rho_j * rho_i * H) * (u_R_i - u_star) * Wij_prima
             _W_DEN_ += p_star / rho_i * aux;
