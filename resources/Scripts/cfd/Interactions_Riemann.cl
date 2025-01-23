@@ -101,10 +101,10 @@ __kernel void entry(const __global unsigned int* iset,
         __local vec_xyz grad_p_l[LOCAL_MEM_SIZE];
         __local float work_density_l[LOCAL_MEM_SIZE];
         __local float div_u_l[LOCAL_MEM_SIZE];
-        _GRADP_ = VEC_ZERO.XYZ;
-        _W_DEN_ = 0.f;
-        _DIVU_ = 0.f;
     #endif
+    _GRADP_ = VEC_ZERO.XYZ;
+    _W_DEN_ = 0.f;
+    _DIVU_ = 0.f;
 
     const usize c_i = icell[i];
     BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
@@ -126,10 +126,10 @@ __kernel void entry(const __global unsigned int* iset,
         {
             const float rho_j = rho[j];
             const float p_j = p[j]; 
-            float e_j = eint[j];
-            float m_j = m[j];
-            float gamma_j = gamma[iset[j]];            
-            float s_j = SoundSpeedPerfectGas(gamma_j, p_j, rho_j); 
+            const float e_j = eint[j];
+            const float m_j = m[j];
+            const float gamma_j = gamma[iset[j]];            
+            const float s_j = SoundSpeedPerfectGas(gamma_j, p_j, rho_j); 
             
             const vec_xyz l_ij = r_ij / length(r_ij);
             const float u_R_i = dot(u[i].XYZ, l_ij);
@@ -138,7 +138,7 @@ __kernel void entry(const __global unsigned int* iset,
             const float u_star = (u_R_j * rho_j * s_j + u_R_i * rho_i * s_i - p_j + p_i)/(rho_j * s_j + rho_i * s_i);
             const float p_star = (p_j * rho_i * s_i + p_i * rho_j * s_j - rho_j * s_j * rho_i * s_i * (u_R_j- u_R_i))/(rho_j * s_j + rho_i * s_i);
 
-            const float Wij_prima = kernelF(q) * CONW;
+            const float Wij_prima = -q * kernelF(q) * CONW;
 
             const float aux = 2.0f * m_j / (rho_j * H) * (u_R_i - u_star) * Wij_prima;
 

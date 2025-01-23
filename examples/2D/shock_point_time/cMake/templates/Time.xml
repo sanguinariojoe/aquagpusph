@@ -32,5 +32,6 @@ Authors:
         You can conveniently combine several printing criterias.
         -->
         <Option name="Output" type="IPF" value="1" />
+        
     </Timing>
 </sphInput>
