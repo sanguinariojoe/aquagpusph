@@ -53,6 +53,10 @@ In the sensors the values of density, pressure and velocity are interpolated.
     
     <Tools>
         <!-- Particles interactions -->
+        
+        <Tool action="insert" after="Sort" type="set" name="cfd Reinit grad_p" in="grad_p" value="VEC_ZERO"/>
+        <Tool action="insert" after="Sort" type="set" name="cfd Reinit div_u" in="div_u" value="0.f"/>
+        <Tool action="insert" after="Sort" type="set" name="cfd Reinit work_density" in="work_density" value="0.f"/>
 
         <Tool action="insert" before="Interactions" type="kernel" name="cfd interactions" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Interactions_Riemann.cl"/>
 

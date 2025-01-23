@@ -57,7 +57,9 @@ __kernel void entry(const __global unsigned int* iset,
                     const __global float* rho,
                     const __global float* eint,
                     __global float* p,
+                    __global float* T,
                     __constant float* gamma,
+                    __constant float* cv,
                     usize N)
 {
     usize i = get_global_id(0);
@@ -67,6 +69,7 @@ __kernel void entry(const __global unsigned int* iset,
         return;
 
     p[i] = (gamma[iset[i]] - 1.0f) * rho[i] * eint[i];
+    T[i] = eint[i]/cv[iset[i]];
 }
 
 /*

@@ -42,6 +42,7 @@ hfac = 2.0
 n = 50000
 
 gamma=1.4
+cv=716.0
 
 p1 = 2.0e5
 p2 = 1.0e5
@@ -49,7 +50,7 @@ p2 = 1.0e5
 rho1 = 1.00001
 rho2 = 1.00001
 
-gamma = 1.44
+#gamma = 1.44
 
 c1 = np.sqrt(gamma * p1 / rho1)
 c2 = np.sqrt(gamma * p2 / rho2)
@@ -158,7 +159,7 @@ domain_max = str(domain_max).replace('(', '').replace(')', '')
 
 data = {'DR':str(dr), 'HFAC':str(hfac), 'H':str(h), 'GAMMA':str(gamma), 'COURANT':str(courant),
         'R':str(R), 'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max,
-        'N':str(N), 'DT':str(dt), 'CS':str(ssound), 'DT':str(dt)}
+        'N':str(N), 'DT':str(dt), 'CS':str(ssound), 'DT':str(dt), 'CV':str(cv)}
 for fname in XML:
     # Read the template
     f = open(path.join(templates_path, fname), 'r')

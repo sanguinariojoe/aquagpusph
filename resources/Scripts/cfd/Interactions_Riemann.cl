@@ -101,10 +101,11 @@ __kernel void entry(const __global unsigned int* iset,
         __local vec_xyz grad_p_l[LOCAL_MEM_SIZE];
         __local float work_density_l[LOCAL_MEM_SIZE];
         __local float div_u_l[LOCAL_MEM_SIZE];
+        _GRADP_ = VEC_ZERO.XYZ;
+        _W_DEN_ = 0.f;
+        _DIVU_ = 0.f;
     #endif
-    _GRADP_ = VEC_ZERO.XYZ;
-    _W_DEN_ = 0.f;
-    _DIVU_ = 0.f;
+
 
     const usize c_i = icell[i];
     BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){

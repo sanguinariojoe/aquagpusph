@@ -7,7 +7,9 @@ Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
 <sphInput>
     <Variables>
         <Variable name="gamma" type="float*" length="n_sets" />
+        <Variable name="cv" type="float*" length="n_sets" />
         <Variable name="eint" type="float*" length="N" />
+        <Variable name="T" type="float*" length="N" />
         <Variable name="deintdt" type="float*" length="N" />
         <Variable name="eint_in" type="float*" length="N" />
         <Variable name="deintdt_in" type="float*" length="N" />
