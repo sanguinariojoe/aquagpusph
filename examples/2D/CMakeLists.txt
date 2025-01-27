@@ -12,4 +12,5 @@ ADD_SUBDIRECTORY(spheric_testcase10_waveimpact)
 ADD_SUBDIRECTORY(taylor_green)
 ADD_SUBDIRECTORY(shock_point_time)
 ADD_SUBDIRECTORY(shock_point_time_riemann)
+ADD_SUBDIRECTORY(shock_band_riemann)
 

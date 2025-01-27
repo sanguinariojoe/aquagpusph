@@ -1,0 +1,35 @@
+<?xml version="1.0" ?>
+<!--
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
+
+Another QUAlity GPU-SPH, by CEHINAV.
+    http://canal.etsin.upm.es/
+Authors:
+    Jose Luis Cercos-Pita
+    Leo Miguel Gonzalez
+    Antonio Souto-Iglesias
+-->
+
+<sphInput>
+    <!-- We are just changing the imove state of the particles right before
+    they are about to evolve, so the particles on the border do not change
+    -->
+    <Variables>
+        <Variable name="b0" type="float" length="1" value="{{B0}}" />
+        <Variable name="h0" type="float" length="1" value="{{H0}}" />
+    </Variables>
+
+    <Tools>
+        <Tool action="insert" before="predictor" name="set fixed parts" type="kernel" entry_point="set_fixed" path="bc.cl"/>
+        <Tool action="insert" after="predictor ideal gas" name="unset fixed parts" type="kernel" entry_point="unset_fixed" path="bc.cl"/>
+        <Tool action="insert" before="corrector" name="set fixed parts" type="kernel" entry_point="set_fixed" path="bc.cl"/>
+        <Tool action="insert" after="corrector ideal gas" name="unset fixed parts" type="kernel" entry_point="unset_fixed" path="bc.cl"/>
+    </Tools>
+</sphInput>
