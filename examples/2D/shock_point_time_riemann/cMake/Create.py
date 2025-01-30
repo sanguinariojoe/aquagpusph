@@ -50,20 +50,15 @@ p2 = 1.0e5
 rho1 = 1.00001
 rho2 = 1.00001
 
-#gamma = 1.44
-
 c1 = np.sqrt(gamma * p1 / rho1)
 c2 = np.sqrt(gamma * p2 / rho2)
 
-print("")
-print(f"c1 = {c1}")
-print(f"c2 = {c2}")
-print("")
+cs = max(c1, c2)
 
-ssound=max(c1, c2)
+e1 = p1 / ((gamma - 1.0) * rho1)
+e2 = p2 / ((gamma - 1.0) * rho2)
 
-e1=p1 / ((gamma - 1.0) * rho1)
-e2=p2 / ((gamma - 1.0) * rho2)
+t_max = R0 / cs
 
 # Distance between particles
 # ==========================
@@ -72,14 +67,15 @@ dv = Vol / n
 dr = dv**0.5
 h = hfac * dr
 
-#dt = 1.0E-5
-dt = 0.1*min(dr / c1 , dr / c2)
+dt = courant * min(dr / c1 , dr / c2)
 
 print("")
+print(f"c1 = {c1}")
+print(f"c2 = {c2}")
 print(f"dr = {dr}")
 print(f"h = {h}")
+print(f"dt = {dt}")
 print("")
-
 
 # Particles generation
 # ====================
@@ -141,14 +137,14 @@ while x < R:
         y += dr
     x += dr
 
-print(f'{N} particles. Volume = {N * dr**2} vs {Vol}')
+print(f'{N} particles.')
 
 # XML definition generation
 # =========================
 
 templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
 XML = ('Fluids.xml', 'Main.xml', 'Settings.xml', 'SPH.xml', 'Time.xml',
-       'BC.xml')
+       'BC.xml', 'plot_p.py', 'plot_rho.py', 'plot_u.py', 'plot_e.py')
 
 factor = 2.0
 R_domain = R + 4.0 * h
@@ -157,9 +153,12 @@ domain_min = str(domain_min).replace('(', '').replace(')', '')
 domain_max = (R_domain, R_domain)
 domain_max = str(domain_max).replace('(', '').replace(')', '')
 
-data = {'DR':str(dr), 'HFAC':str(hfac), 'H':str(h), 'GAMMA':str(gamma), 'COURANT':str(courant),
-        'R':str(R), 'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max,
-        'N':str(N), 'DT':str(dt), 'CS':str(ssound), 'DT':str(dt), 'CV':str(cv)}
+data = {'DR':str(dr), 'HFAC':str(hfac), 'H':str(h), 'COURANT':str(courant),
+        'R':str(R), 'R0':str(R0), 'T':str(t_max), 'DT':str(dt),
+        'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max,
+        'N':str(N), 'CS':str(cs), 'GAMMA':str(gamma), 'CV':str(cv),
+        'P1':str(p1), 'P2':str(p2), 'RHO1':str(rho1), 'RHO2':str(rho2),
+        'E1':str(e1), 'E2':str(e2),}
 for fname in XML:
     # Read the template
     f = open(path.join(templates_path, fname), 'r')
