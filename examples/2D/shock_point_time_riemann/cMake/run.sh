@@ -11,15 +11,6 @@ if [[ $1 == "--run" ]]; then
     rm -f Timing.dat
     @EXAMPLE_DEST_DIR@/Create.py
     @BINARY_DIR@/AQUAgpusph -d 2 -i Main.xml
-elif [[ $1 == "--clean" ]]; then
-    rm -f Fluid.dat
-    rm -f AQUAgpusph.save.*.xml
-    rm -f log.*.html
-    rm -f output.*.vtu
-    rm -f *.vtu
-    rm -f output.vtu.series
-    rm -f Performance.dat
-    rm -f Timing.dat
 elif [[ $1 == "--plot" ]]; then
     python @EXAMPLE_DEST_DIR@/plot_$2.py
 else
