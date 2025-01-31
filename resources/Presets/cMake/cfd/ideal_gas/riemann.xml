@@ -1,7 +1,9 @@
 <?xml version="1.0" ?>
 
 <!-- ideal_gas.xml
-Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
+Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion. 
+Introduce the variables necessary for Riemann calculation
+Introduces the Riemann treatment of the energy term.
 -->
 
 <sphInput>

@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
 
 <!-- cfd.xml
-This is the main preset to create CFD simulations using SPH. To use it,
-basic.xml should be loaded first.
+This is the main preset to create CFD compressible simulations with a Riemann solver in SPH. 
+To use it, basic.xml should be loaded first.
 
 Within this preset, no boundary conditions are loaded, or in other words, purely
 dummy particles are considered.
@@ -15,8 +15,10 @@ In case or symmetric planes use symmetry.xml.
 
 In case of inflow/outflow use inlet.xml and outlet.xml.
 
-However, sensor values are already computed within this preset, out of the box.
-In the sensors the values of density, pressure and velocity are interpolated.
+The method has been implemented following the papers:
+Parshikov et al. International Journal of Impact Engineering 24 (2000) 779-796
+Parshikov et al. Journal Computational Physics 180, 358-382 (2002)
+ 
 -->
 
 <sphInput>

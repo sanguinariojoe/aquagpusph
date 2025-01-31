@@ -22,7 +22,7 @@ Authors:
     <Include file="@RESOURCES_DIR@/Presets/basic.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/domain.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd_Riemann.xml" />    
-    <Include file="@RESOURCES_DIR@/Presets/cfd/ideal_gas_Riemann.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd/ideal_gas/Riemann.xml" />
 
     <!--LEt see what we do with this-->
     <Include file="@RESOURCES_DIR@/Presets/cfd/variableTimeStep_gas.xml" />
