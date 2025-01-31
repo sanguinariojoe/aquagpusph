@@ -41,8 +41,8 @@ hfac = 2.0
 
 n = 50000
 
-gamma=1.4
-cv=716.0
+gamma = 1.4
+cv = 716.0
 
 p1 = 2.0e5
 p2 = 1.0e5
@@ -67,7 +67,7 @@ dv = Vol / n
 dr = dv**0.5
 h = hfac * dr
 
-dt = courant * min(dr / c1 , dr / c2)
+dt = courant * min(dr / c1, dr / c2)
 
 print("")
 print(f"c1 = {c1}")
@@ -79,6 +79,8 @@ print("")
 
 # Particles generation
 # ====================
+
+
 def writeParticle(output, p, n=(0.0, 0.0), u=(0.0, 0.0),
                   dudt=(0.0, 0.0), rho=0.0, drhodt=0.0, e=0.0, dedt=0.0,
                   imove=1):
@@ -95,6 +97,7 @@ def writeParticle(output, p, n=(0.0, 0.0), u=(0.0, 0.0),
         m,
         imove)
     output.write(string)
+
 
 print("Opening output file...")
 output = open("Fluid.dat", "w")
@@ -130,8 +133,8 @@ while x < R:
             continue
 
         rho, ener = (rho1, e1) if r < R0 else (rho2, e2)
-            
-        writeParticle(output, (x,y), rho=rho, e=ener)
+
+        writeParticle(output, (x, y), rho=rho, e=ener)
         N += 1
 
         y += dr
@@ -153,12 +156,12 @@ domain_min = str(domain_min).replace('(', '').replace(')', '')
 domain_max = (R_domain, R_domain)
 domain_max = str(domain_max).replace('(', '').replace(')', '')
 
-data = {'DR':str(dr), 'HFAC':str(hfac), 'H':str(h), 'COURANT':str(courant),
-        'R':str(R), 'R0':str(R0), 'T':str(t_max), 'DT':str(dt),
-        'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max,
-        'N':str(N), 'CS':str(cs), 'GAMMA':str(gamma), 'CV':str(cv),
-        'P1':str(p1), 'P2':str(p2), 'RHO1':str(rho1), 'RHO2':str(rho2),
-        'E1':str(e1), 'E2':str(e2),}
+data = {'DR': str(dr), 'HFAC': str(hfac), 'H': str(h), 'COURANT': str(courant),
+        'R': str(R), 'R0': str(R0), 'T': str(t_max), 'DT': str(dt),
+        'DOMAIN_MIN': domain_min, 'DOMAIN_MAX': domain_max,
+        'N': str(N), 'CS': str(cs), 'GAMMA': str(gamma), 'CV': str(cv),
+        'P1': str(p1), 'P2': str(p2), 'RHO1': str(rho1), 'RHO2': str(rho2),
+        'E1': str(e1), 'E2': str(e2), }
 for fname in XML:
     # Read the template
     f = open(path.join(templates_path, fname), 'r')
