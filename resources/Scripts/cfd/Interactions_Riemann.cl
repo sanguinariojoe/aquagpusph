@@ -81,7 +81,7 @@ __kernel void entry(const __global unsigned int* iset,
     const float p_i = p[i];
     const float rho_i = rho[i];    
     const float gamma_i = gamma[iset[i]];    
-    const float s_i = SoundSpeedPerfectGas(gamma_i, p_i, rho_i);    
+    const float s_i = sound_speed_perfect_gas(gamma_i, p_i, rho_i);    
     const float m_i = m[i];
 
 
@@ -127,7 +127,7 @@ __kernel void entry(const __global unsigned int* iset,
             const float p_j = p[j];             
             const float m_j = m[j];
             const float gamma_j = gamma[iset[j]];            
-            const float s_j = SoundSpeedPerfectGas(gamma_j, p_j, rho_j); 
+            const float s_j = sound_speed_perfect_gas(gamma_j, p_j, rho_j); 
             
             const vec_xyz l_ij = r_ij / length(r_ij);
             const float u_R_i = dot(u[i].XYZ, l_ij);
