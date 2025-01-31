@@ -18,7 +18,10 @@ In case of inflow/outflow use inlet.xml and outlet.xml.
 The method has been implemented following the papers:
 Parshikov et al. International Journal of Impact Engineering 24 (2000) 779-796
 Parshikov et al. Journal Computational Physics 180, 358-382 (2002)
- 
+
+Riemann problem can be studied in the book of Toro on Riemann solvers.
+
+
 -->
 
 <sphInput>
