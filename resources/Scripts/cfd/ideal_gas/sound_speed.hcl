@@ -19,7 +19,7 @@
 #ifndef _SOUND_SPEED_PERFECT_GAS_H_INCLUDED_
 #define _SOUND_SPEED_PERFECT_GAS_H_INCLUDED_
 
-float SoundSpeedPerfectGas(float gamma, float p, float rho)
+float sound_speed_perfect_gas(float gamma, float p, float rho)
 {
     return sqrt(gamma * p / rho);
 }

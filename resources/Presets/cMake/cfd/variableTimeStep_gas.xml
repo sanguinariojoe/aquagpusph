@@ -8,7 +8,7 @@
 
     <Tools>
         <!--<Tool name="EOS_sw" action="insert"  before="TimeStep" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/EOS_sw.cl"/>-->
-        <Tool name="cfd variable time step" action="insert" before="TimeStep" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/TimeStep_gas.cl"/>
+        <Tool name="cfd variable time step" action="insert" before="TimeStep" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/ideal_gas/TimeStep.cl"/>
         <Tool name="cfd minimum time step" action="insert" before="TimeStep" type="reduction" in="dt_var" out="dt" null="INFINITY">
             c = min(a, b);
         </Tool>
