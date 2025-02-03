@@ -8,10 +8,8 @@ Introduces the Riemann treatment of the energy term.
 
 <sphInput>
     <Variables>
-        <Variable name="gamma" type="float*" length="n_sets" />
-        <Variable name="cv" type="float*" length="n_sets" />
+        <Variable name="gamma" type="float*" length="n_sets" />        
         <Variable name="eint" type="float*" length="N" />
-        <Variable name="T" type="float*" length="N" />
         <Variable name="deintdt" type="float*" length="N" />
         <Variable name="eint_in" type="float*" length="N" />
         <Variable name="deintdt_in" type="float*" length="N" />

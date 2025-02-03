@@ -22,7 +22,6 @@ Authors:
         <Scalar name="refd" value="0.0" />
         <Scalar name="visc_dyn" value="0.0" />
         <Scalar name="gamma" value="{{GAMMA}}" />
-        <Scalar name="cv" value="{{CV}}" />
         <Load format="FastASCII" file="Fluid.dat" fields="r, normal, u, dudt, rho, drhodt, eint, deintdt, m, imove" />
         <Save format="VTK" file="output" fields="r, normal, u, dudt, rho, drhodt, eint, deintdt, m, p, T, imove" />
     </ParticlesSet>
