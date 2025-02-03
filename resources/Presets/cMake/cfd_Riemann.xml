@@ -49,7 +49,7 @@ Riemann problem can be studied in the book of Toro on Riemann solvers.
 
         <Variable name="grad_p" type="vec*" length="N" />        
         <Variable name="div_u" type="float*" length="N" />
-        <Variable name="work_density" type="float*" length="N" />
+        <!--<Variable name="work_density" type="float*" length="N" />-->
         
         <!--for compatibility-->
         <Variable name="lap_u" type="vec*" length="N" />
