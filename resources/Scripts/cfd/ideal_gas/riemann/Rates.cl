@@ -22,35 +22,19 @@
 
 #include "resources/Scripts/types/types.h"
 
-/** @brief Velocity and density variation rates computation.
+/** @brief Energy variation rates computation.
  *
- * The mass conservation and momentum equations are applied from the already
+ * The energy conservation are applied from the already
  * computed differential operators:
- *
- *   - \f$ \frac{\mathrm{d} \mathbf{u}}{\mathrm{d} t} =
- *     - \frac{\nabla p}{rho}
- *     + \frac{\mu}{rho} \Delta \mathbf{u}
- *     + \mathbf{g}\f$
- *   - \f$ \frac{\mathrm{d} \rho}{\mathrm{d} t} =
- *     - \rho \nabla \cdot \mathbf{u}
- *     + \delta \Delta t \frac{\rho_a}{\rho_0} \Delta p\f$
  *
  * @param iset Set of particles index.
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param rho Density \f$ \rho_{n+1} \f$.
- * @param grad_p Pressure gradient \f$ \frac{\nabla p}{rho} \f$.
- * @param lap_u Velocity laplacian \f$ \frac{\Delta \mathbf{u}}{rho} \f$.
- * @param div_u Velocity divergence \f$ \rho \nabla \cdot \mathbf{u} \f$.
- * @param dudt Velocity rate of change
- * \f$ \left. \frac{d \mathbf{u}}{d t} \right\vert_{n+1} \f$.
- * @param drhodt Density rate of change
- * \f$ \left. \frac{d \rho}{d t} \right\vert_{n+1} \f$.
- * @param visc_dyn Dynamic viscosity \f$ \mu \f$.
+ * @param work_density compression work
+ * @param deintdt Energy rate of change
  * @param N Number of particles.
- * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  */
 __kernel void entry(const __global uint* iset,
                     const __global int* imove,

@@ -21,7 +21,7 @@ Introduces the Riemann treatment of the energy term.
         <Tool action="insert" after="sort stage1,sort stage2" name="sort ideal gas" type="kernel" entry_point="entry" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/ideal_gas/Sort.cl"/>
         <Tool action="replace" name="EOS" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/ideal_gas/EOS.cl"/>
 
-        <Tool action="insert" before="Rates" type="kernel" name="cfd rates ideal gas" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/ideal_gas/Rates_Riemann.cl"/>
+        <Tool action="insert" before="Rates" type="kernel" name="cfd rates ideal gas" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/ideal_gas/riemann/Rates.cl"/>
         
         <Tool action="insert" after="corrector" name="corrector ideal gas" type="kernel" entry_point="corrector" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/ideal_gas/euler.cl"/>
     </Tools>
