@@ -63,7 +63,7 @@ Riemann problem can be studied in the book of Toro on Riemann solvers.
         <Tool action="insert" after="Sort" type="set" name="cfd Reinit div_u" in="div_u" value="0.f"/>
         <Tool action="insert" after="Sort" type="set" name="cfd Reinit work_density" in="work_density" value="0.f"/>
 
-        <Tool action="insert" before="Interactions" type="kernel" name="cfd interactions" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Interactions_Riemann.cl"/>
+        <Tool action="insert" before="Interactions" type="kernel" name="cfd interactions" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/ideal_gas/riemann/Interactions.cl"/>
 
         <!-- Velocity and density variation rates computation -->
         <Tool action="insert" before="Rates" type="kernel" name="cfd rates" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Rates.cl"/>
