@@ -74,5 +74,5 @@ Riemann problem can be studied in the book of Toro on Riemann solvers.
         
     </Tools>
 
-    <Include file="@RESOURCES_OUTPUT_DIR@/Presets/basic/kernels/cubicSpline.xml" when="end"/>
+    
 </sphInput>

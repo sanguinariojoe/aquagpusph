@@ -35,4 +35,7 @@ Authors:
     <Include file="Time.xml" />
     <Include file="Fluids.xml" />
     <Include file="BC.xml" />
+
+    <Include file="@RESOURCES_OUTPUT_DIR@/Presets/basic/kernels/cubicSpline.xml" when="end"/>
+    
 </sphInput>
