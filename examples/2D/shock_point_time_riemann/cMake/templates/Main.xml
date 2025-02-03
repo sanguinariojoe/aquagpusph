@@ -21,8 +21,11 @@ Authors:
     <!-- In this file we will just include other XML definition files -->
     <Include file="@RESOURCES_DIR@/Presets/basic.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/domain.xml" />
-    <Include file="@RESOURCES_DIR@/Presets/cfd_Riemann.xml" />    
-    <Include file="@RESOURCES_DIR@/Presets/cfd/ideal_gas/Riemann.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd_Riemann.xml" />
+
+    <!-- intermediate step. riemann should be now expanded-->
+    <Include file="@RESOURCES_DIR@/Presets/ideal_gas.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd/ideal_gas/riemann.xml" />
 
     <!--LEt see what we do with this-->
     <Include file="@RESOURCES_DIR@/Presets/cfd/variableTimeStep.xml" />
@@ -37,5 +40,5 @@ Authors:
     <Include file="BC.xml" />
 
     <Include file="@RESOURCES_OUTPUT_DIR@/Presets/basic/kernels/cubicSpline.xml" when="end"/>
-    
+
 </sphInput>
