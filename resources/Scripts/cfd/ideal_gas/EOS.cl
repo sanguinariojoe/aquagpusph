@@ -56,7 +56,7 @@ __kernel void entry(const __global unsigned int* iset,
                     const __global int* imove,
                     const __global float* rho,
                     const __global float* eint,
-                    __global float* p, 
+                    __global float* p,
                     __constant float* gamma,
                     usize N)
 {
