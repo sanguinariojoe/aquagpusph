@@ -83,7 +83,7 @@ __kernel void entry(const __global unsigned int* iset,
     const float gamma_i = gamma[iset[i]];    
     const float s_i = sound_speed_perfect_gas(gamma_i, p_i, rho_i);    
     const float m_i = m[i];
-
+    const float rs_i = rho_i * s_i;
 
     //const float D_i = sqrt(m_i/rho_i);
 
@@ -133,9 +133,18 @@ __kernel void entry(const __global unsigned int* iset,
             const float u_R_i = dot(u[i].XYZ, l_ij);
             const float u_R_j = dot(u[j].XYZ, l_ij);
 
-            const float u_star = (u_R_j * rho_j * s_j + u_R_i * rho_i * s_i - p_j + p_i)/(rho_j * s_j + rho_i * s_i);
-            const float p_star = (p_j * rho_i * s_i + p_i * rho_j * s_j - rho_j * s_j * rho_i * s_i * (u_R_j- u_R_i))/(rho_j * s_j + rho_i * s_i);
+            // origial functions
+            //const float u_star = (u_R_j * rho_j * s_j + u_R_i * rho_i * s_i - p_j + p_i)/(rho_j * s_j + rho_i * s_i);
+            //const float p_star = (p_j * rho_i * s_i + p_i * rho_j * s_j - rho_j * s_j * rho_i * s_i * (u_R_j- u_R_i))/(rho_j * s_j + rho_i * s_i);
+            
+            // trying to save time            
+            const float rs_j = rho_j * s_j;
+            const float auxiliary_val = 1.0f / (rs_j + rs_i);
 
+            const float u_star = (u_R_j * rs_j + u_R_i * rs_i - p_j + p_i) * auxiliary_val;
+            const float p_star = (p_j * rs_i + p_i * rs_j - rs_j * rs_i * (u_R_j- u_R_i)) * auxiliary_val;
+
+            //continue normal
             const float Wij_prima = -q * kernelF(q) * CONW;
 
             const float aux = 2.0f * m_j / (rho_j * H) * (u_R_i - u_star) * Wij_prima;
@@ -153,7 +162,7 @@ __kernel void entry(const __global unsigned int* iset,
 
     #ifdef LOCAL_MEM_SIZE
         grad_p[i].XYZ = _GRADP_;
-        work_density[i].XYZ = _W_DEN_;
+        work_density[i] = _W_DEN_;
         div_u[i] = _DIVU_;
     #endif
 }
