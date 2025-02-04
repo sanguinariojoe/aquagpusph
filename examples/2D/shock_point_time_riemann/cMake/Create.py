@@ -41,13 +41,13 @@ hfac = 2.0
 
 n = 50000
 
+gamma = 1.4
+
 p1 = 2.0e5
 p2 = 1.0e5
 
 rho1 = 1.00001
 rho2 = 1.00001
-
-gamma = 1.44
 
 c1 = np.sqrt(gamma * p1 / rho1)
 c2 = np.sqrt(gamma * p2 / rho2)
@@ -66,12 +66,14 @@ dv = Vol / n
 dr = dv**0.5
 h = hfac * dr
 
+dt = courant * min(dr / c1, dr / c2)
+
 print("")
 print(f"c1 = {c1}")
 print(f"c2 = {c2}")
 print(f"dr = {dr}")
 print(f"h = {h}")
-print(f"dt = {courant * h / cs}")
+print(f"dt = {dt}")
 print("")
 
 # Particles generation
@@ -137,7 +139,7 @@ while x < R:
         y += dr
     x += dr
 
-print(f'Wrote {N} particles.')
+print(f'{N} particles.')
 
 # XML definition generation
 # =========================
@@ -154,9 +156,9 @@ domain_max = (R_domain, R_domain)
 domain_max = str(domain_max).replace('(', '').replace(')', '')
 
 data = {'DR': str(dr), 'HFAC': str(hfac), 'H': str(h), 'COURANT': str(courant),
-        'R': str(R), 'R0': str(R0), 'T': str(t_max),
+        'R': str(R), 'R0': str(R0), 'T': str(t_max), 'DT': str(dt),
         'DOMAIN_MIN': domain_min, 'DOMAIN_MAX': domain_max,
-        'N': str(N), 'CS': str(cs), 'GAMMA': str(gamma),
+        'N': str(N), 'CS': str(cs), 'GAMMA': str(gamma), 'CV': str(cv),
         'P1': str(p1), 'P2': str(p2), 'RHO1': str(rho1), 'RHO2': str(rho2),
         'E1': str(e1), 'E2': str(e2), }
 for fname in XML:

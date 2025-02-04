@@ -18,6 +18,10 @@ Authors:
 -->
 
 <sphInput>
+    <Variables>
+        <Variable name="dt_min" type="float" value="0.0" />
+    </Variables>
+
     <Timing>
         <!-- Set the simulation end citeria             
             type="Frames" Simulation ends after print a number of frames
