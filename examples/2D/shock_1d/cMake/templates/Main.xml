@@ -1,0 +1,38 @@
+<?xml version="1.0" ?>
+<!--
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
+
+Another QUAlity GPU-SPH, by CEHINAV.
+    http://canal.etsin.upm.es/
+Authors:
+    Jose Luis Cercos-Pita
+    Leo Miguel Gonzalez
+    Antonio Souto-Iglesias
+-->
+
+<sphInput>
+    <!-- In this file we will just include other XML definition files -->
+    <Include file="@RESOURCES_DIR@/Presets/basic.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/basic/domain.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd/ideal_gas.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd/ideal_gas/riemann.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd/variableTimeStep.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd/ideal_gas/variableTimeStep.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/basic/timing.report.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/basic/performance.report.xml" />
+    <Include file="Settings.xml" />
+    <Include file="SPH.xml" />
+    <Include file="Time.xml" />
+    <Include file="Fluids.xml" />
+    <Include file="BC.xml" />
+
+    <Include file="@RESOURCES_DIR@/Presets/basic/kernels/cubicSpline.xml" when="end"/>
+</sphInput>

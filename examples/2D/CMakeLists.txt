@@ -10,6 +10,7 @@ ADD_SUBDIRECTORY(spheric_testcase6_movingsquare)
 ADD_SUBDIRECTORY(spheric_testcase9_tld)
 ADD_SUBDIRECTORY(spheric_testcase10_waveimpact)
 ADD_SUBDIRECTORY(taylor_green)
+ADD_SUBDIRECTORY(shock_1d)
 ADD_SUBDIRECTORY(shock_point_time)
 ADD_SUBDIRECTORY(shock_point_time_riemann)
 
