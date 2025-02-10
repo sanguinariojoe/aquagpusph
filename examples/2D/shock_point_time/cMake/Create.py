@@ -71,7 +71,6 @@ print(f"c1 = {c1}")
 print(f"c2 = {c2}")
 print(f"dr = {dr}")
 print(f"h = {h}")
-print(f"dt = {courant * h / cs}")
 print("")
 
 # Particles generation

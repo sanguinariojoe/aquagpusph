@@ -66,14 +66,11 @@ dv = Vol / n
 dr = dv**0.5
 h = hfac * dr
 
-dt = courant * min(dr / c1, dr / c2)
-
 print("")
 print(f"c1 = {c1}")
 print(f"c2 = {c2}")
 print(f"dr = {dr}")
 print(f"h = {h}")
-print(f"dt = {dt}")
 print("")
 
 # Particles generation
@@ -156,7 +153,7 @@ domain_max = (R_domain, R_domain)
 domain_max = str(domain_max).replace('(', '').replace(')', '')
 
 data = {'DR': str(dr), 'HFAC': str(hfac), 'H': str(h), 'COURANT': str(courant),
-        'R': str(R), 'R0': str(R0), 'T': str(t_max), 'DT': str(dt),
+        'R': str(R), 'R0': str(R0), 'T': str(t_max),
         'DOMAIN_MIN': domain_min, 'DOMAIN_MAX': domain_max,
         'N': str(N), 'CS': str(cs), 'GAMMA': str(gamma), 'CV': str(cv),
         'P1': str(p1), 'P2': str(p2), 'RHO1': str(rho1), 'RHO2': str(rho2),
