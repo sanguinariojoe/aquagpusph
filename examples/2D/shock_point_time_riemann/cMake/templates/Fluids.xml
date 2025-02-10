@@ -23,6 +23,6 @@ Authors:
         <Scalar name="visc_dyn" value="0.0" />
         <Scalar name="gamma" value="{{GAMMA}}" />
         <Load format="FastASCII" file="Fluid.dat" fields="r, normal, u, dudt, rho, drhodt, eint, deintdt, m, imove" />
-        <Save format="VTK" file="output" fields="r, normal, u, dudt, rho, drhodt, eint, deintdt, m, p, T, imove" />
+        <Save format="VTK" file="output" fields="r, normal, u, dudt, rho, drhodt, eint, deintdt, m, p, imove" />
     </ParticlesSet>
 </sphInput>

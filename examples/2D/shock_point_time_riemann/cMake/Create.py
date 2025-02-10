@@ -155,7 +155,7 @@ domain_max = str(domain_max).replace('(', '').replace(')', '')
 data = {'DR': str(dr), 'HFAC': str(hfac), 'H': str(h), 'COURANT': str(courant),
         'R': str(R), 'R0': str(R0), 'T': str(t_max),
         'DOMAIN_MIN': domain_min, 'DOMAIN_MAX': domain_max,
-        'N': str(N), 'CS': str(cs), 'GAMMA': str(gamma), 'CV': str(cv),
+        'N': str(N), 'CS': str(cs), 'GAMMA': str(gamma),
         'P1': str(p1), 'P2': str(p2), 'RHO1': str(rho1), 'RHO2': str(rho2),
         'E1': str(e1), 'E2': str(e2), }
 for fname in XML:
