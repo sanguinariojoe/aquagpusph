@@ -1,7 +1,5 @@
 <?xml version="1.0" ?>
 
-<?xml version="1.0" ?>
-
 <!-- cfd.xml
 This is the main preset to create CFD compressible simulations with a Riemann solver in SPH. 
 To use it, basic.xml, cfd.xml and ideal_gas.xml should be loaded first.
@@ -25,8 +23,7 @@ Riemann problem can be studied in the book of Toro on Riemann solvers.
         <Tool action="insert" after="Sort" type="set" name="cfd Reinit work_density" in="work_density" value="0.f"/>
         
         <!-- Particles interactions -->
-        <Tool action="replace" name="Interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/ideal_gas/riemann/Interactions.cl"/>
-        <Tool action="remove" name="cfd Shepard" type="kernel"/>
+        <Tool action="replace" name="cfd interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/ideal_gas/riemann/Interactions.cl"/>
         
         <!-- Rates of work of compression for Riemann solver -->
         <Tool action="replace" name="cfd rates ideal gas" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/ideal_gas/riemann/Rates.cl"/>
