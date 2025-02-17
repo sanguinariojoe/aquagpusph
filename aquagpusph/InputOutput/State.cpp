@@ -391,7 +391,7 @@ State::parseSettings(DOMElement* root,
 				addr_bits = std::stoi(xmlAttribute(s_elem, "addr_bits"));
 			}
 			std::string compile_flags = "";
-			if (xmlHasAttribute(s_elem, "addr_bits")) {
+			if (xmlHasAttribute(s_elem, "compile_flags")) {
 				compile_flags = xmlAttribute(s_elem, "compile_flags");
 			}
 			sim_data.settings.devices.push_back(
