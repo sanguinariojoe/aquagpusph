@@ -18,7 +18,7 @@ Riemann problem can be studied in the book of Toro on Riemann solvers.
     </Variables>
     <Tools>
         <!-- The module is inviscid. It must be inviscid! -->
-        <Tool action="insert" at="0" type="set" name="cfd Riemann inviscid" in="visc_dyn" value="0.f"/>
+        <Tool action="insert" at="0" type="set" name="cfd Riemann inviscid" in="visc_dyn" value="0.f" once="true"/>
         <!-- Initialization -->
         <Tool action="insert" after="Sort" type="set" name="cfd Reinit work_density" in="work_density" value="0.f"/>
         
