@@ -19,6 +19,6 @@ example would read:
 
 <sphInput>
     <Tools>
-        <Tool action="replace" name="*cfd symmetry feed" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/ideal_gas/symmetry/Mirror.cl" entry_point="feed"/>    
+        <Tool action="insert" after="*cfd symmetry set" name="cfd symmetry set eint" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/ideal_gas/symmetry/Mirror.cl" entry_point="set"/>
     </Tools>
 </sphInput>

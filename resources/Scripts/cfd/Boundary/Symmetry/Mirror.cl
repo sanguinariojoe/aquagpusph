@@ -117,6 +117,9 @@ vec_xyz reflection(vec_xyz u, vec_xyz n)
 
 /** @brief Mirror the particles marked with a flag \a imirror = 1.
  *
+ * The mirrored particles will keep track of the source particle with the
+ * array mirror_source
+ *
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid/solid particles.
  *   - imove = 0 for sensors.
@@ -125,14 +128,10 @@ vec_xyz reflection(vec_xyz u, vec_xyz n)
  * @param imirror 0 if the particle should not be mirrored, 1 otherwise.
  * @param imirror_invperm Permutation to find the index of the particle in the
  * list of particles to become split.
- * @param m Mass, \f$ m \f$.
+ * @param mirror_src Source particle associated with each mirrored one.
  * @param normal Normal, \f$ \mathbf{n} \f$.
  * @param tangent Tangent, \f$ \mathbf{t} \f$.
  * @param r_in Position \f$ \mathbf{r} \f$.
- * @param u_in Velocity \f$ \mathbf{u} \f$.
- * @param dudt_in Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
- * @param rho_in Density \f$ \rho \f$.
- * @param drhodt_in Density rate of change \f$ \frac{d \rho}{d t} \f$.
  * @param N Number of particles.
  * @param nbuffer Number of available buffer particles.
  * @param symmetry_r Position of the symmetry plane.
@@ -140,16 +139,12 @@ vec_xyz reflection(vec_xyz u, vec_xyz n)
  */
 __kernel void feed(__global int* imove,
                    __global int* iset,
-                   __global unsigned int* imirror,
-                   __global usize* imirror_invperm,
-                   __global float* m,
+                   const __global unsigned int* imirror,
+                   const __global usize* imirror_invperm,
+                   __global usize* mirror_src,
                    __global vec* normal,
                    __global vec* tangent,
                    __global vec* r_in,
-                   __global vec* u_in,
-                   __global vec* dudt_in,
-                   __global float* rho_in,
-                   __global float* drhodt_in,
                    usize N,
                    usize nbuffer,
                    vec symmetry_r,
@@ -170,7 +165,7 @@ __kernel void feed(__global int* imove,
     // radix sort is storing the particles to become split at the end of the
     // list
     const usize i0 = N - nbuffer;
-    usize ii = i0 + (N - j - 1);
+    const usize ii = i0 + (N - j - 1);
     // Check that there are buffer particles enough
     if(ii >= N){
         // PROBLEMS! This particle cannot be mirrored because we have not buffer
@@ -180,19 +175,77 @@ __kernel void feed(__global int* imove,
     }
 
     // Create the mirrored particle
+    mirror_src[ii] = i;
     imove[ii] = imove[i];
     iset[ii] = iset[i];
-    m[ii] = m[i];
-    rho_in[ii] = rho_in[i];
-    drhodt_in[ii] = drhodt_in[i];
     normal[ii].XYZ = normal[i].XYZ + reflection(normal[i].XYZ,
                                                 symmetry_n.XYZ);
     tangent[ii].XYZ = tangent[i].XYZ + reflection(tangent[i].XYZ,
                                                   symmetry_n.XYZ);
     r_in[ii].XYZ = r_in[i].XYZ + reflection(r_in[i].XYZ - symmetry_r.XYZ,
                                             symmetry_n.XYZ);
-    u_in[ii].XYZ = u_in[i].XYZ + reflection(u_in[i].XYZ,
-                                            symmetry_n.XYZ);
-    dudt_in[ii].XYZ = dudt_in[i].XYZ + reflection(dudt_in[i].XYZ,
-                                                  symmetry_n.XYZ);
+}
+
+/** @brief Set the fields of the mirrored particles.
+ *
+ * @param mirror_src Source particle associated with each mirrored one.
+ * @param m Mass, \f$ m \f$.
+ * @param u_in Velocity \f$ \mathbf{u} \f$.
+ * @param dudt_in Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
+ * @param dudt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
+ * @param rho_in Density \f$ \rho \f$.
+ * @param drhodt_in Density rate of change \f$ \frac{d \rho}{d t} \f$.
+ * @param drhodt Density rate of change \f$ \frac{d \rho}{d t} \f$.
+ * @param N Number of particles.
+ * @param symmetry_r Position of the symmetry plane.
+ * @param symmetry_n Normal of the symmetry plane. It is assumed as normalized.
+ */
+__kernel void set(const __global usize* mirror_src,
+                  __global float* m,
+                  __global vec* u_in,
+                  __global vec* dudt_in,
+                  __global vec* dudt,
+                  __global float* rho_in,
+                  __global float* drhodt_in,
+                  __global float* drhodt,
+                  usize N,
+                  vec symmetry_r,
+                  vec symmetry_n)
+{
+    const usize ii = get_global_id(0);
+    if(ii >= N)
+        return;
+    const usize i = mirror_src[ii];
+    if(i >= N)
+        return;
+
+    m[ii] = m[i];
+    rho_in[ii] = rho_in[i];
+    drhodt[ii] = drhodt_in[ii] = drhodt_in[i];
+    u_in[ii].XYZ = u_in[i].XYZ + reflection(
+        u_in[i].XYZ, symmetry_n.XYZ);
+    dudt[ii].XYZ = dudt_in[ii].XYZ = dudt_in[i].XYZ + reflection(
+        dudt_in[i].XYZ, symmetry_n.XYZ);
+}
+
+/** @brief Sort the sources of the mirrored particles.
+ *
+ * @param mirror_src_in Unsorted sources
+ * @param mirror_src Sorted sources
+ * @param id_sorted Permutations list from the unsorted space to the sorted
+ * one.
+ * @param N Number of particles.
+ */
+__kernel void sort(const __global usize *mirror_src_in, 
+                   __global usize *mirror_src,
+                   const __global usize *id_sorted,
+                   usize N)
+{
+    usize i = get_global_id(0);
+    if(i >= N)
+        return;
+
+    const usize i_out = id_sorted[i];
+
+    mirror_src[i_out] = mirror_src_in[i];
 }

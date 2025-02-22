@@ -29,11 +29,21 @@ prefix, for instance:
         <Variable name="imirror" type="unsigned int*" length="N" />
         <Variable name="imirror_perm" type="size_t*" length="N" />
         <Variable name="imirror_invperm" type="size_t*" length="N" />
+        <!-- Index of the source particle of each mirrored one. Useful to make
+             extensions to this module. N for all particles that are not
+             mirrored
+        -->
+        <Variable name="mirror_src" type="size_t*" length="N" />
+        <Variable name="mirror_src_in" type="size_t*" length="N" />
         <!-- Internal variable to check there are enough buffer particles -->
         <Variable name="required_nbuffer" type="size_t" />        
     </Variables>
 
     <Tools>
+        <!-- Reinit the array of sources -->
+        <Tool name="cfd symmetry reset mirror_src" action="try_remove" type="dummy"/>
+        <Tool name="cfd symmetry reset mirror_src" action="insert" at="0" type="set" in="mirror_src" value="N"/>
+
         <!-- Detect the particles to be mirrored -->
         <Tool name="cfd symmetry init detect" action="insert" before="Predictor" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/Mirror.cl" entry_point="detect"/>
 
@@ -49,10 +59,19 @@ prefix, for instance:
 
         <!-- Feed the system with the new particles -->
         <Tool name="cfd symmetry feed" action="insert" before="Predictor" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/Mirror.cl" entry_point="feed"/>
+        <Tool name="cfd symmetry set" action="insert" before="Predictor" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/Mirror.cl" entry_point="set"/>
+        <Tool name="cfd symmetry backup mirror_src" action="insert" before="Predictor" type="copy" in="mirror_src" out="mirror_src_in"/>
+
+        <!-- Keep a track of the mirrored particles sources -->
+        <Tool name="cfd symmetry sort" action="insert" before="Sort" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/Mirror.cl" entry_point="sort"/>
+
+        <!-- Set again the fields on midpoint schemes -->
+        <Tool name="cfd symmetry set" action="try_insert" before="midpoint advance" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/Mirror.cl" entry_point="set"/>
+        <Tool name="cfd symmetry set" action="try_insert" before="midpoint residuals" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/Mirror.cl" entry_point="set"/>
 
         <!-- Remove the symmetrized particles, i.e. the ones at the other side
              of the mirror -->
-        <Tool name="cfd symmetry init clean" action="insert" before="Interactions" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/Mirror.cl" entry_point="drop"/>
+        <Tool name="cfd symmetry init clean" action="insert" before="corrector" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/Boundary/Symmetry/Mirror.cl" entry_point="drop"/>
     </Tools>
 
     <Include file="@RESOURCES_OUTPUT_DIR@/Presets/basic/setBuffer.xml" when="end"/>
