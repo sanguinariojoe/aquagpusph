@@ -34,7 +34,7 @@ import os.path as path
 import math
 import numpy as np
 
-courant = 0.1
+courant = 0.5
 L = 1.0
 support = 2.0 
 hfac = 2.0

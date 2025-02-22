@@ -25,7 +25,7 @@ Authors:
     <Include file="@RESOURCES_DIR@/Presets/basic/time_scheme/midpoint/autostop.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/time_scheme/midpoint/autorelax.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/time_scheme/midpoint/residues_profile.xml" />
-    <Include file="@RESOURCES_DIR@/Presets/cfd.xml" />    
+    <Include file="@RESOURCES_DIR@/Presets/cfd.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/ideal_gas.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/ideal_gas/time_scheme/midpoint.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/timing.report.xml" />

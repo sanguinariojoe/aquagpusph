@@ -18,10 +18,6 @@ Authors:
 -->
 
 <sphInput>
-    <Variables>
-        <Variable name="dt_min" type="float" value="0.0" />
-    </Variables>
-
     <Timing>
         <!-- Set the simulation end citeria             
             type="Frames" Simulation ends after print a number of frames
@@ -29,15 +25,12 @@ Authors:
             type="Time" Simulation ends after simulate some seconds
         You can conveniently combine several stop criterias.
         -->
-
         <Option name="End" type="Time" value="{{T}}" />
-
         <!-- Set output files print criteria
             type="FPS" Frames per second
             type="IPF" Iterations per frame
         You can conveniently combine several printing criterias.
         -->
-
         <Option name="Output" type="IPF" value="1" />
         
     </Timing>

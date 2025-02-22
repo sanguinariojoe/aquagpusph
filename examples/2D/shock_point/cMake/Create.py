@@ -34,20 +34,20 @@ import os.path as path
 import math
 import numpy as np
 
-courant = 0.1
+courant = 0.25
 R = 0.5
 R0 = 0.2
 hfac = 2.0
 
 n = 50000
 
+gamma = 1.4
+
 p1 = 2.0e5
 p2 = 1.0e5
 
 rho1 = 1.00001
 rho2 = 1.00001
-
-gamma = 1.44
 
 c1 = np.sqrt(gamma * p1 / rho1)
 c2 = np.sqrt(gamma * p2 / rho2)
@@ -136,7 +136,7 @@ while x < R:
         y += dr
     x += dr
 
-print(f'Wrote {N} particles.')
+print(f'{N} particles.')
 
 # XML definition generation
 # =========================

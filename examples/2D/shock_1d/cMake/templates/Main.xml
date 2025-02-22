@@ -21,8 +21,13 @@ Authors:
     <!-- In this file we will just include other XML definition files -->
     <Include file="@RESOURCES_DIR@/Presets/basic.xml" />
     <Include file="@RESOURCES_DIR@/Presets/basic/domain.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/basic/time_scheme/midpoint.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/basic/time_scheme/midpoint/autostop.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/basic/time_scheme/midpoint/autorelax.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/basic/time_scheme/midpoint/residues_profile.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/ideal_gas.xml" />
+    <Include file="@RESOURCES_DIR@/Presets/cfd/ideal_gas/time_scheme/midpoint.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/ideal_gas/riemann.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/variableTimeStep.xml" />
     <Include file="@RESOURCES_DIR@/Presets/cfd/ideal_gas/variableTimeStep.xml" />

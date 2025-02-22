@@ -30,5 +30,7 @@ Authors:
         <Tool action="insert" after="predictor ideal gas" name="unset fixed parts" type="kernel" entry_point="unset_fixed" path="bc.cl"/>
         <Tool action="insert" before="corrector" name="set fixed parts" type="kernel" entry_point="set_fixed" path="bc.cl"/>
         <Tool action="insert" after="corrector ideal gas" name="unset fixed parts" type="kernel" entry_point="unset_fixed" path="bc.cl"/>
+        <Tool action="try_insert" before="midpoint advance" name="set fixed parts" type="kernel" entry_point="set_fixed" path="bc.cl"/>
+        <Tool action="try_insert" after="midpoint advance ideal gas" name="unset fixed parts" type="kernel" entry_point="unset_fixed" path="bc.cl"/>
     </Tools>
 </sphInput>

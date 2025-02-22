@@ -47,5 +47,9 @@ Authors:
         <Tool action="insert" after="corrector ideal gas" name="unset fixed parts" type="kernel" entry_point="unset_fixed" path="bc.cl"/>
         <Tool action="try_insert" before="midpoint advance" name="set fixed parts" type="kernel" entry_point="set_fixed" path="bc.cl"/>
         <Tool action="try_insert" after="midpoint advance ideal gas" name="unset fixed parts" type="kernel" entry_point="unset_fixed" path="bc.cl"/>
+
+        <!-- Nullify the numerical errors on y direction, which shall be always null -->
+        <Tool action="insert" before="Rates" name="1D" type="kernel" entry_point="set_1d" path="bc.cl"/>
+
     </Tools>
 </sphInput>

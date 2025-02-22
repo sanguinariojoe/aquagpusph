@@ -8,7 +8,7 @@ if [[ $1 == "--run" ]]; then
     rm -f *.vtu
     rm -f output.vtu.series
     rm -f Performance.dat
-    rm -f Timing.dat
+    rm -f midpoint.out
     @EXAMPLE_DEST_DIR@/Create.py
     @BINARY_DIR@/AQUAgpusph -d 2 -i Main.xml
 elif [[ $1 == "--plot" ]]; then
@@ -27,5 +27,7 @@ else
     echo "    Plot the velocity profile"
     echo "run.sh --plot e"
     echo "    Plot the energy profile"
+    echo "run.sh --plot r"
+    echo "    Plot the residues statistics"
     echo ""
 fi

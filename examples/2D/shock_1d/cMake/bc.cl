@@ -72,3 +72,12 @@ __kernel void unset_fixed(__global int* imove,
     imove[i] = 1;
 }
 
+__kernel void set_1d(__global vec* dudt,
+                     const usize N)
+{
+    const usize i = get_global_id(0);
+    if(i >= N)
+        return;
+    dudt[i].y = 0.f;
+}
+

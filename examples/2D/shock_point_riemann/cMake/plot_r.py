@@ -31,82 +31,99 @@
 
 import sys
 import os
-import json
-import meshio
-import numpy as np
-import sodshock
+import math
+from os import path
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import numpy as np
 
 
-DR = {{DR}}
-R = {{R}}
-R0 = {{R0}}
-T = {{T}}
-CS = {{CS}}
-GAMMA = {{GAMMA}}
-P = [{{P1}}, {{P2}}]
-RHO = [{{RHO1}}, {{RHO2}}]
-E = [{{E1}}, {{E2}}]
+def readFile(filepath):
+    """ Read and extract data from a file
+    :param filepath File ot read
+    """
+    abspath = filepath
+    if not path.isabs(filepath):
+        abspath = path.join(path.dirname(path.abspath(__file__)), filepath)
+    # Read the file by lines
+    f = open(abspath, "r")
+    lines = f.readlines()
+    f.close()
+    data = []
+    for l in lines[1:-1]:  # Skip the last line, which may be unready
+        l = l.replace('\t', ' ')
+        l = l.replace('(', ' ')
+        l = l.replace(')', ' ')
+        l = l.replace(',', ' ')
+        while l.find('  ') != -1:
+            l = l.replace('  ', ' ')
+        fields = l.strip().split(' ')
+        if len(data) and len(fields) != len(data[-1]):
+            # Probably the system is writing it
+            continue
+        try:
+            data.append(list(map(float, fields)))
+        except:
+            continue
+    # Transpose the data
+    return list(map(list, zip(*data)))
 
 
-def read_vtu():
-    with open('output.vtu.series') as json_data:
-        data = json.load(json_data)
-        fname, t = data['files'][-1]['name'], data['files'][-1]['time']
-    mesh = meshio.read(fname)
-    # We must choose the points.
-    mask = np.zeros(len(mesh.points), dtype=bool)
-    mask[(mesh.points[:, 0] > 0) & (mesh.points[:, 1] > -0.25 * DR) & \
-        (mesh.points[:, 1] < 0.75 * DR)] = True
-    x = np.linalg.norm(mesh.points[mask, :], axis=1)
-    rho = mesh.point_data['rho'][mask]
-    p = mesh.point_data['p'][mask]
-    eint = mesh.point_data['eint'][mask]
-    u = np.linalg.norm(mesh.point_data['u'][mask, :], axis=1)
-    sorter = np.argsort(x)
-    return t, x[sorter], rho[sorter], p[sorter], eint[sorter], u[sorter]
-
+def stats(residues):
+    """ Compute the minimum, maximum and average value for each iteration
+    :param residues The stack of residues grouped by iteration
+    """
+    y_min = []
+    y = []
+    y_max = []
+    for it in range(len(residues)):
+        y_min.append(np.percentile(residues[it], 0.05))
+        y_max.append(np.percentile(residues[it], 0.95))
+        y.append(np.percentile(residues[it], 0.5))
+    return y_min, y, y_max
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
 
-# Create the lines
-exp, = ax.plot([0.0], [0.0], color="black", linewidth=1.0, linestyle='-')
-sph, = ax.plot([0.0], [0.0], color="red", linewidth=1.0, linestyle='--')
+# Create the SPH line
+t = [0.0]
+r = [0.0]
+line_min, = ax.plot([0.0], [0.0], color="black", linewidth=1.0, linestyle='--')
+line, = ax.plot([0.0], [0.0], color="black", linewidth=1.0, linestyle='-')
+line_max, = ax.plot([0.0], [0.0], color="black", linewidth=1.0, linestyle='--')
 # Set some options
 ax.grid()
 ax.set_xlim(0.0, 1.0)
-ax.set_ylim(0, 1.05)
+ax.set_ylim(1e-8, 1.0)
 ax.set_autoscale_on(False)
-ax.set_xlabel(r"$x / R$")
-ax.set_ylabel(r"$e / e_0$")
-ax.set_title(r"$t = 0$")
+ax.set_xlabel(r"$iter$")
+ax.set_ylabel(r"$R_{\Delta t}$")
+ax.set_yscale('log')
 
 # Animate
 def update(frame_index):
     plt.tight_layout()
     try:
-        # SPH data
-        t, x, _, _, e, _ = read_vtu()
-        # Analytic solution
-        npts = len(x)
-        left_state = (P[0], RHO[0], 0)
-        right_state = (P[1], RHO[1], 0.)
-        _, _, exp_data = sodshock.solve(left_state=left_state,
-                                        right_state=right_state,
-                                        geometry=(0., R, R0),
-                                        t=t, 
-                                        gamma=GAMMA,
-                                        npts=npts,
-                                        dustFrac=0.0)
+        data = readFile('midpoint.out')
+        # Stack the values according to its own iteration
+        r = []
+        for i in range(len(data[0])):
+            it = int(data[1][i])
+            if len(r) < it + 1:
+                r.append([])
+            r[it].append(data[-1][i])
+        # Get the stats for each iteration
+        x = list(range(len(r)))
+        y_min, y, y_max = stats(r)
+        ax.set_xlim(0.0, x[-1])
+        ax.set_ylim(min(y_min), max(y_max))
     except IndexError:
         return
     except FileNotFoundError:
         return
-    sph.set_data(x / R, e / max(E))
-    exp.set_data(exp_data['x'] / R, exp_data['energy'] / max(E))
-    ax.set_title(r"$t \,\, c_0 / R = {}$".format(t / T))
+    line_min.set_data(x, y_min)
+    line.set_data(x, y)
+    line_max.set_data(x, y_max)
 
 update(0)
 ani = animation.FuncAnimation(fig, update, interval=1000)
