@@ -27,6 +27,7 @@
 #include <sstream>
 #include <iomanip>
 #include <iostream>
+#include <atomic>
 
 #include "aquagpusph/AuxiliarMethods.hpp"
 #include "Logger.hpp"
@@ -40,7 +41,8 @@ namespace Aqua {
 namespace InputOutput {
 
 /// Singleton instance of Aqua::InputOutput::Logger
-static Logger* g_logger_singleton_ptr = nullptr;
+
+std::atomic<Logger*> g_logger_singleton_ptr(nullptr);
 
 Logger::Logger()
 	: _level(L_DEBUG)

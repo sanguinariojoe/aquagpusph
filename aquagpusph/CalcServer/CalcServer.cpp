@@ -31,6 +31,7 @@
 #include <signal.h>
 #include <tuple>
 #include <mutex>
+#include <atomic>
 
 #include "CalcServer.hpp"
 #include "aquagpusph/AuxiliarMethods.hpp"
@@ -133,7 +134,7 @@ ProfilingInfo::newStep()
 }
 
 /// Singleton instance of Aqua::CalcServer::CalcServer
-static CalcServer* g_calcserver_singleton_ptr = nullptr;
+std::atomic<CalcServer*> g_calcserver_singleton_ptr(nullptr);
 
 CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
   : _num_platforms(0)
