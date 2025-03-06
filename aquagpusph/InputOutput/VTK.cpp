@@ -25,9 +25,6 @@
 
 #ifdef HAVE_VTK
 
-#include <unistd.h>
-#include <signal.h>
-
 #include "VTK.hpp"
 #include "Logger.hpp"
 #include "aquagpusph/ProblemSetup.hpp"

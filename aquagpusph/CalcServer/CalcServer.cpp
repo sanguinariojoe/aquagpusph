@@ -132,6 +132,9 @@ ProfilingInfo::newStep()
 		_snapshots.pop_front();
 }
 
+/// Singleton instance of Aqua::CalcServer::CalcServer
+static CalcServer* g_calcserver_singleton_ptr = nullptr;
+
 CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
   : _num_platforms(0)
   , _platforms(NULL)
@@ -148,6 +151,13 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
   , _sim_data(sim_data)
   , __phony_mems{NULL, NULL}
 {
+	if (g_calcserver_singleton_ptr) {
+		LOG(L_ERROR,
+		    "CalcServer was already built. Just one instance is allow\n");
+		throw std::runtime_error("Multiple instances of CalcServer");
+	}
+	g_calcserver_singleton_ptr = this;
+
 	unsigned int i, j;
 
 	setupOpenCL();
@@ -379,7 +389,8 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 			if (!maker) {
 				std::ostringstream msg;
 				msg << "Installable tool \"" << t->get("name")
-				    << "\" failed loading \"create_tool\" symbol." << std::endl;
+				    << "\" failed loading \"create_object\" symbol."
+				    << std::endl;
 				LOG(L_ERROR, msg.str());
 				LOG0(L_DEBUG, dlerror());
 				throw std::runtime_error("failure loading library");
@@ -560,6 +571,12 @@ CalcServer::~CalcServer()
 	for (auto& unsorter : unsorters) {
 		delete unsorter.second;
 	}
+}
+
+CalcServer*
+CalcServer::singleton()
+{
+	return g_calcserver_singleton_ptr;
 }
 
 void

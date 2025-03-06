@@ -7,7 +7,7 @@ set -e
 rm -f AQUAgpusph.save.* log.* out_*.dat
 
 # Run the "simulation"
-mpirun --hostfile hostfile @BINARY_DIR@/AQUAgpusph -l 00 -d 2 -i main.xml
+mpirun --hostfile hostfile @BINARY_DIR@/@BINARY_NAME@ -l 00 -d 2 -i main.xml
 
 # Check the result
 python @TEST_DEST_DIR@/check.py

@@ -64,7 +64,7 @@ namespace InputOutput {
  * @brief A generic variable. Almost useless, use the overloaded classes
  * instead of this one.
  */
-class Variable
+class DECLDIR Variable
 {
   public:
 	/** @brief Constructor.
@@ -305,7 +305,7 @@ class Variable
  * @brief A generic Scalar variable.
  */
 template<class T>
-class ScalarVariable : public Variable
+class DECLDIR ScalarVariable : public Variable
 {
   public:
 	/** @brief Constructor.
@@ -449,7 +449,7 @@ class ScalarVariable : public Variable
  * @brief A generic Scalar variable.
  */
 template<class T>
-class ScalarNumberVariable : public ScalarVariable<T>
+class DECLDIR ScalarNumberVariable : public ScalarVariable<T>
 {
   public:
 	/** @brief Constructor.
@@ -476,7 +476,7 @@ class ScalarNumberVariable : public ScalarVariable<T>
 /** @class IntVariable Variable.h Variable.h
  * @brief An integer variable.
  */
-class IntVariable final : public ScalarNumberVariable<icl>
+class DECLDIR IntVariable final : public ScalarNumberVariable<icl>
 {
   public:
 	/** @brief Constructor.
@@ -507,7 +507,7 @@ class IntVariable final : public ScalarNumberVariable<icl>
 /** @class LongVariable Variable.h Variable.h
  * @brief A 64bits integer variable.
  */
-class LongVariable final : public ScalarNumberVariable<lcl>
+class DECLDIR LongVariable final : public ScalarNumberVariable<lcl>
 {
   public:
 	/** @brief Constructor.
@@ -538,7 +538,7 @@ class LongVariable final : public ScalarNumberVariable<lcl>
 /** @class UIntVariable Variable.h Variable.h
  * @brief An unsigned integer variable.
  */
-class UIntVariable final : public ScalarNumberVariable<uicl>
+class DECLDIR UIntVariable final : public ScalarNumberVariable<uicl>
 {
   public:
 	/** @brief Constructor.
@@ -569,7 +569,7 @@ class UIntVariable final : public ScalarNumberVariable<uicl>
 /** @class ULongVariable Variable.h Variable.h
  * @brief An integer variable.
  */
-class ULongVariable final : public ScalarNumberVariable<ulcl>
+class DECLDIR ULongVariable final : public ScalarNumberVariable<ulcl>
 {
   public:
 	/** @brief Constructor.
@@ -600,7 +600,7 @@ class ULongVariable final : public ScalarNumberVariable<ulcl>
 /** @class FloatVariable Variable.h Variable.h
  * @brief A float variable.
  */
-class FloatVariable final : public ScalarNumberVariable<fcl>
+class DECLDIR FloatVariable final : public ScalarNumberVariable<fcl>
 {
   public:
 	/** @brief Constructor.
@@ -631,7 +631,7 @@ class FloatVariable final : public ScalarNumberVariable<fcl>
 /** @class DoubleVariable Variable.h Variable.h
  * @brief A double variable.
  */
-class DoubleVariable final : public ScalarNumberVariable<dcl>
+class DECLDIR DoubleVariable final : public ScalarNumberVariable<dcl>
 {
   public:
 	/** @brief Constructor.
@@ -663,7 +663,7 @@ class DoubleVariable final : public ScalarNumberVariable<dcl>
  * @brief A generic Scalar variable, of 2 or more components.
  */
 template<class T>
-class ScalarVecVariable : public ScalarVariable<T>
+class DECLDIR ScalarVecVariable : public ScalarVariable<T>
 {
   public:
 	/** @brief Constructor.
@@ -724,7 +724,7 @@ class ScalarVecVariable : public ScalarVariable<T>
 };
 
 #define __DECLARE_AQUA_VEC(NAME, TYPE)                                         \
-	class NAME final : public ScalarVecVariable<TYPE>                          \
+	class DECLDIR NAME final : public ScalarVecVariable<TYPE>                  \
 	{                                                                          \
 	public:                                                                    \
 		NAME(const std::string varname);                                       \
@@ -890,7 +890,7 @@ typedef DVec8Variable dvec8Variable;
 /** @class ArrayVariable Variable.h Variable.h
  * @brief An array variable.
  */
-class ArrayVariable : public Variable
+class DECLDIR ArrayVariable : public Variable
 {
   public:
 	/** Constructor.
@@ -1018,7 +1018,7 @@ class ArrayVariable : public Variable
 /** @class Variables Variables.h Variables.h
  * @brief Variables manager, which can interpret the types on the fly.
  */
-class Variables
+class DECLDIR Variables
 {
   public:
 	/** Constructor.

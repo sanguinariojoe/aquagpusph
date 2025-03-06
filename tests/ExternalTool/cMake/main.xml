@@ -9,7 +9,7 @@
         <Save fields="r" file="set0" format="ASCII"/>
     </ParticlesSet>
     <Tools>
-        <Tool action="add" name="InstallableTool" once="false" type="installable" path="./libexttooltest.so" />
+        <Tool action="add" name="InstallableTool" once="false" type="installable" path="./@EXTTOOL_LIB_NAME@" />
         <Tool action="add" name="iter += 1" type="set_scalar" in="iter" value="iter + 1"/>
     </Tools>
     <Settings>

@@ -18,7 +18,7 @@ if [[ $1 == "--run" ]]; then
     clinfo | grep "Number of devices" > clinfo_platforms
     clinfo | grep "Device Type" > clinfo_devices
     @EXAMPLE_DEST_DIR@/Create.py
-    mpirun --hostfile hostfile @BINARY_DIR@/AQUAgpusph -i Main.xml
+    mpirun --hostfile hostfile @BINARY_DIR@/@BINARY_NAME@ -i Main.xml
 elif [[ $1 == "--plot" ]]; then
     python @EXAMPLE_DEST_DIR@/plot_$2.py
 else

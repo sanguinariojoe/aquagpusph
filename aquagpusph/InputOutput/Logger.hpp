@@ -37,7 +37,6 @@
 #endif
 
 #include "Report.hpp"
-#include "aquagpusph/Singleton.hpp"
 
 #ifndef addMessageF
 /** @def addMessageF
@@ -86,16 +85,22 @@ namespace InputOutput {
  * execution folder, and named log.X.html, where X is replaced by the first
  * unsigned integer which generates a non-existing file.
  */
-struct Logger
-  : public Aqua::Singleton<Aqua::InputOutput::Logger>
-  , public Aqua::InputOutput::Report
+class DECLDIR Logger
+  : public Aqua::InputOutput::Report
 {
-  public:
-	/// @brief Constructor.
-	Logger();
-
+public:
 	/// Destructor.
 	~Logger();
+
+    // Deleting the copy constructor to prevent copies
+    Logger(const Logger& obj) = delete;
+
+	/** @brief Get --creating it the first time-- the logger instance
+	 *
+	 * Just one logger can simultaneously exist
+	 * @return The logger
+	 */
+	static Logger* singleton();
 
 	/** @brief Set the log level
 	 * @param level The minimum message log level to get printed
@@ -150,10 +155,11 @@ struct Logger
 	void close();
 
   private:
-	/// Start time
-	struct timeval _start_time;
-	/// Actual time
-	struct timeval _actual_time;
+	/** @brief Constructor
+	 *
+	 * This calss is a singleton, and thus we keep the constructor away
+	 */
+	Logger();
 
 	/// Minimum log level to get the message printed
 	int _level;

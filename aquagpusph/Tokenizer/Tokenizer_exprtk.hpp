@@ -45,7 +45,7 @@ typedef long double tokenizer_t;
  *
  * http://www.gnu.org/software/libmatheval
  */
-class Tokenizer_exprtk
+class DECLDIR Tokenizer_exprtk
 {
   public:
 	/// Constructor

@@ -39,7 +39,7 @@ namespace InputOutput {
  *
  * @see Aqua::InputOutput::ProblemSetup::sphTimingParameters
  */
-struct TimeManager
+class DECLDIR TimeManager
 {
   public:
 	/** Constructor

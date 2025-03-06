@@ -37,7 +37,7 @@ namespace CommandLineArgs {
  * @param file_manager The files loader and reader
  * @return false if the excution must continue, true otherwise.
  */
-void
+DECLDIR void
 parse(int argc, char** argv, FileManager& file_manager);
 
 }

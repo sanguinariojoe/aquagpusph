@@ -68,7 +68,7 @@ namespace InputOutput {
  * @see Aqua::InputOutput::Report
  * @see Aqua::InputOutput::Particles
  */
-class State
+class DECLDIR State
 {
   public:
 	/** @brief Constructor

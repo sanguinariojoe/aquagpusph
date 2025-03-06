@@ -13,7 +13,7 @@ if [[ $1 == "--run" ]]; then
     rm -f Timing.dat
     rm -f Performance.dat
     @EXAMPLE_DEST_DIR@/Create.py
-    @BINARY_DIR@/AQUAgpusph -i Main.xml
+    @BINARY_DIR@/@BINARY_NAME@ -i Main.xml
 elif [[ $1 == "--plot" ]]; then
     python @EXAMPLE_DEST_DIR@/plot_$2.py
 else

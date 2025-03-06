@@ -21,7 +21,6 @@
  * (See Aqua::InputOutput::ArgumentsManager for details)
  */
 
-#include <unistd.h>
 #include <getopt.h>
 #include <iostream>
 #include <string>

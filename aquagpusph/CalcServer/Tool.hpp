@@ -170,7 +170,7 @@ class Profiler
  *   -# Python scripts
  *   -# Variables set
  */
-class Tool
+class DECLDIR Tool
   : public Aqua::CalcServer::Named
   , public Aqua::CalcServer::Profiler
 {

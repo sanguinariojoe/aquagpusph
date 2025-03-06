@@ -111,8 +111,6 @@ main(int argc, char* argv[])
 #ifdef HAVE_MPI
 	Aqua::MPI::init(&argc, &argv);
 #endif
-
-	InputOutput::Logger* logger = new InputOutput::Logger();
 	InputOutput::FileManager file_manager;
 
 	msg << std::endl
@@ -158,7 +156,7 @@ main(int argc, char* argv[])
 	InputOutput::TimeManager t_manager(file_manager.problemSetup());
 
 	LOG(L_INFO, "Start of simulation...\n");
-	logger->printDate();
+	Aqua::InputOutput::Logger::singleton()->printDate();
 
 	auto status = EXIT_SUCCESS;
 	while (!t_manager.mustStop()) {
@@ -181,7 +179,7 @@ main(int argc, char* argv[])
 	}
 
 	file_manager.waitForSavers();
-	logger->printDate();
+	Aqua::InputOutput::Logger::singleton()->printDate();
 	msg.str(std::string());
 	msg << "Simulation finished "
 	    << ((status == EXIT_SUCCESS) ? "OK " : "abnormally ")
@@ -196,8 +194,6 @@ main(int argc, char* argv[])
 	Aqua::MPI::barrier(MPI_COMM_WORLD);
 	Aqua::MPI::finalize();
 #endif
-	delete logger;
-	logger = NULL;
 
 	return status;
 }

@@ -87,7 +87,7 @@ namespace InputOutput {
  *
  * @see Aqua::InputOutput::State
  */
-class ProblemSetup
+class DECLDIR ProblemSetup
 {
   public:
 	/** @brief Constructor.

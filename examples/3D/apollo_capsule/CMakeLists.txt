@@ -1,71 +1,29 @@
-SET(EXAMPLE_ORIG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cMake)
-FILE(GLOB_RECURSE FNAMES RELATIVE ${EXAMPLE_ORIG_DIR} "${EXAMPLE_ORIG_DIR}/*")
+include(${CMAKE_MODULE_PATH}/example.cmake)
 
-# ===================================================== #
-# Compile the chrono simulation tool                    #
-# ===================================================== #
 add_library(apollo_capsule_sim SHARED chronosim.cpp)
 target_include_directories(apollo_capsule_sim PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CHRONO_INCLUDE_DIRS})
 target_compile_options(apollo_capsule_sim PRIVATE ${CHRONO_CXX_FLAGS})
-target_link_libraries(apollo_capsule_sim aquagpusph ${DEP_LIBS} ${CHRONO_LIBRARIES})
+target_link_libraries(apollo_capsule_sim aquagpusphlib ${DEP_LIBS} ${CHRONO_LIBRARIES})
+target_compile_definitions(apollo_capsule_sim PUBLIC AQUAgpusph_EXPORTS)
 set_target_properties(apollo_capsule_sim PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+if(WIN32)
+    set(EXTTOOL_LIB_NAME apollo_capsule_sim.dll)
+else()
+    set(EXTTOOL_LIB_NAME libapollo_capsule_sim.so)
+endif()
 
-# ===================================================== #
-# Configuration                                         #
-# ===================================================== #
-SET(RESOURCES_DIR ${CMAKE_BINARY_DIR}/resources)
-SET(EXAMPLE_DEST_DIR ${CMAKE_CURRENT_BINARY_DIR})
-SET(BINARY_DIR ${CMAKE_BINARY_DIR}/bin)
+if(WIN32)
+    add_custom_target(copy_apollo_capsule_sim_dll_to_example ALL)
+    add_custom_command(TARGET copy_apollo_capsule_sim_dll_to_example POST_BUILD
+                       COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:apollo_capsule_sim> ${CMAKE_CURRENT_BINARY_DIR}/${EXTTOOL_LIB_NAME}
+    )
+    add_dependencies(copy_apollo_capsule_sim_dll_to_example apollo_capsule_sim)
+endif()
 
-FOREACH(FNAME ${FNAMES})
-    GET_FILENAME_COMPONENT(FEXT ${FNAME} EXT)
-    IF((${FEXT} MATCHES ".xml") OR (${FEXT} MATCHES ".py") OR (${FEXT} MATCHES ".sh"))
-        configure_file(${EXAMPLE_ORIG_DIR}/${FNAME}
-            ${EXAMPLE_DEST_DIR}/${FNAME} @ONLY)
-    ELSE()
-        configure_file(${EXAMPLE_ORIG_DIR}/${FNAME}
-            ${EXAMPLE_DEST_DIR}/${FNAME} COPYONLY)
-    ENDIF()
-ENDFOREACH()
-
-# ===================================================== #
-# Installable version (and targets)                     #
-# ===================================================== #
-FILE(RELATIVE_PATH RUN_REL_PATH ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/cMake/run.sh)
-GET_FILENAME_COMPONENT(EXAMPLE_REL_PATH ${RUN_REL_PATH} PATH)
-SET(RESOURCES_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/resources)
-SET(EXAMPLE_AUX_DIR ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp)
-SET(EXAMPLE_DEST_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/${EXAMPLE_REL_PATH}/..)
-cmake_path(NORMAL_PATH EXAMPLE_DEST_DIR)
-SET(BINARY_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
-
-FOREACH(FNAME ${FNAMES})
-    GET_FILENAME_COMPONENT(FEXT ${FNAME} EXT)
-    IF((${FEXT} MATCHES ".xml") OR (${FEXT} MATCHES ".py") OR (${FEXT} MATCHES ".sh"))
-        configure_file(${EXAMPLE_ORIG_DIR}/${FNAME}
-            ${EXAMPLE_AUX_DIR}/${FNAME} @ONLY)
-    ELSE()
-        configure_file(${EXAMPLE_ORIG_DIR}/${FNAME}
-            ${EXAMPLE_AUX_DIR}/${FNAME} COPYONLY)
-    ENDIF()
-ENDFOREACH()
-
-INSTALL(
-    DIRECTORY
-        ${EXAMPLE_AUX_DIR}/
-    DESTINATION
-        ${EXAMPLE_DEST_DIR}
-    FILES_MATCHING
-    PATTERN "*"
-    PATTERN "*.sh" EXCLUDE
-)
-
-INSTALL(
-    FILES
-        ${EXAMPLE_AUX_DIR}/run.sh
-    DESTINATION
-        ${EXAMPLE_DEST_DIR}
-    PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
-                GROUP_EXECUTE             GROUP_READ
-                WORLD_EXECUTE             WORLD_READ             
-)
+if(WIN32)
+    add_custom_target(copy_apollo_capsule_sim_dll_to_example_aux ALL)
+    add_custom_command(TARGET copy_apollo_capsule_sim_dll_to_example_aux POST_BUILD
+                       COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:apollo_capsule_sim> ${EXAMPLE_AUX_DIR}/${EXTTOOL_LIB_NAME}
+    )
+    add_dependencies(copy_apollo_capsule_sim_dll_to_example_aux apollo_capsule_sim)
+endif()

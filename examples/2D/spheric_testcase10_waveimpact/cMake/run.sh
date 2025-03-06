@@ -16,7 +16,7 @@ if [[ $1 == "--run" ]]; then
     rm -f Energy.dat
     rm -f midpoint.out
     python Create.py
-    @BINARY_DIR@/AQUAgpusph -d 2 -i Main.xml
+    @BINARY_DIR@/@BINARY_NAME@ -d 2 -i Main.xml
 elif [[ $1 == "--plot" ]]; then
     python @EXAMPLE_DEST_DIR@/plot_$2.py
 else

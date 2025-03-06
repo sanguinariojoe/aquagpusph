@@ -63,6 +63,8 @@ set(AQUAGPUSPH_VERSION_PATCH ${PACKAGE_VERSION_PATCH})
 set(AQUAGPUSPH_VERSION ${PACKAGE_VERSION})
 set(PACKAGE_STRING "${PACKAGE_NAME} ${PACKAGE_VERSION}")
 
+set (CMAKE_CXX_STANDARD 17)
+
 # include local modules
 include(AddFileDependencies)
 
@@ -100,6 +102,7 @@ endif(WIN32)
 set(CMAKE_INSTALL_DATADIR share/aquagpusph CACHE PATH "Output directory for data and resource files")
 set(CMAKE_INSTALL_DOCDIR share/doc/aquagpusph CACHE PATH "Output directory for documentation and license files")
 set(CMAKE_INSTALL_BINDIR bin CACHE PATH "Output directory for binary files")
+set(CMAKE_INSTALL_LIBDIR lib CACHE PATH "Output directory for Library files")
 
 # used as compiler defines
 set(RESOURCEDIR "${CMAKE_INSTALL_DATADIR}")
@@ -130,6 +133,10 @@ mark_as_advanced(
   AQUAGPUSPH_USE_MUPARSER
   AQUAGPUSPH_CHRONO_EXAMPLES
 )
+if(WIN32)
+    set(AQUAGPUSPH_VENDOR_DLLS_FOLDER true CACHE PATH "${CMAKE_CURRENT_SOURCE_DIR}/")
+    mark_as_advanced(AQUAGPUSPH_VENDOR_DLLS_FOLDER)
+endif()
 
 # ===================================================== #
 # Search the packages                                   #
@@ -252,12 +259,7 @@ endif(AQUAGPUSPH_BUILD_DOC)
 # ===================================================== #
 # config.h stuff                                        #
 # ===================================================== #
-include(cMake/ConfigureChecks.cmake)
-if(CMAKE_COMPILER_IS_GNUCXX)
-    configure_file(config.h.gcc.cmake ${CMAKE_BINARY_DIR}/config.h)
-elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    configure_file(config.h.clang.cmake ${CMAKE_BINARY_DIR}/config.h)
-endif()
+configure_file(config.h.cmake ${CMAKE_BINARY_DIR}/config.h)
 add_definitions(-DHAVE_CONFIG_H)
 
 # ===================================================== #
@@ -276,6 +278,11 @@ message(STATUS "DEBUG: ${CMAKE_CXX_FLAGS_DEBUG}")
 # ===================================================== #
 # Compilation parts                                     #
 # ===================================================== #
+if(WIN32)
+    set(OPTIONAL_SRCS ${OPTIONAL_SRCS} win32/getopt.c
+                                       win32/dlfcn.c)
+    set(OPTIONAL_INCLUDE_PATH ${OPTIONAL_INCLUDE_PATH} ${CMAKE_SOURCE_DIR}/aquagpusph/win32)
+endif()
 if(HAVE_MPI)
     set(OPTIONAL_LIBS ${OPTIONAL_LIBS} MPI::MPI_CXX)
     set(OPTIONAL_SRCS ${OPTIONAL_SRCS} CalcServer/MPISync.cpp)
@@ -306,7 +313,9 @@ set(DEP_LIBS
     OpenCL::OpenCL
     ${OPTIONAL_LIBS}
 )
-add_compile_options(-Wno-write-strings -Wno-deprecated -Wall -Wextra -Wpedantic)
+if(NOT WIN32)
+    add_compile_options(-Wno-write-strings -Wno-deprecated -Wall -Wextra -Wpedantic)
+endif()
 add_subdirectory(aquagpusph)
 add_subdirectory(resources)
 if(AQUAGPUSPH_BUILD_TOOLS)
@@ -322,6 +331,46 @@ endif(AQUAGPUSPH_BUILD_DOC)
 if(BUILD_TESTING)
     add_subdirectory(tests)
 endif()
+
+# ===================================================== #
+# Packaging                                             #
+# ===================================================== #
+include(InstallRequiredSystemLibraries)
+
+if(WIN32)
+    file(GLOB_RECURSE FNAMES RELATIVE ${AQUAGPUSPH_VENDOR_DLLS_FOLDER} "${AQUAGPUSPH_VENDOR_DLLS_FOLDER}/*.dll")
+    foreach(FNAME ${FNAMES})
+        install(FILES ${AQUAGPUSPH_VENDOR_DLLS_FOLDER}/${FNAME} DESTINATION bin)
+    endforeach()
+endif()
+
+set(CPACK_PACKAGE_VENDOR "Jose Luis Cercos-Pita")
+set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.md")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
+set(CPACK_PACKAGE_VERSION_MAJOR "${AQUAGPUSPH_VERSION_MAJOR}")
+set(CPACK_PACKAGE_VERSION_MINOR "${AQUAGPUSPH_VERSION_MINOR}")
+set(CPACK_PACKAGE_VERSION_PATCH "${AQUAGPUSPH_VERSION_PATCH}")
+if(WIN32)
+    set(CPACK_GENERATOR "NSIS")
+    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "AQUAgpusph windows installer")
+    set(CPACK_PACKAGE_INSTALL_DIRECTORY "AQUAgpusph-${AQUAGPUSPH_VERSION_MAJOR}.${AQUAGPUSPH_VERSION_MINOR}")
+    set(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY}")
+    set(CPACK_NSIS_HELP_LINK "https:\\\\\\\\gitlab.com/sanguinariojoe/aquagpusph/-/wikis/home")
+    set(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\canal.etsin.upm.es/aquagpusph/")
+    set(CPACK_NSIS_CONTACT "jlcercos@gmail.com")
+    set(CPACK_NSIS_MODIFY_PATH ON)
+elseif(UNIX)
+    set(CPACK_GENERATOR "STGZ")
+    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Redistributable package")
+endif()
+
+include(CPack)
+
+if(WIN32)
+    configure_file(${PROJECT_SOURCE_DIR}/cMake/NSIS.definitions.nsh.in
+                   ${CMAKE_CURRENT_BINARY_DIR}/cMake/NSIS.definitions.nsh)
+endif()
+
 
 # ===================================================== #
 # Show a brief                                          #

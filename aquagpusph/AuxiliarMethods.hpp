@@ -37,13 +37,6 @@
 
 namespace Aqua {
 
-/// Returns if a key press event has been registered.
-/**
- * @return 0 if no keys have been pressed, 1 otherwise.
- */
-int
-isKeyPressed();
-
 /** @brief Check if a string starts with an specific prefix
  *
  * @param str String to be checked
@@ -277,7 +270,7 @@ template <typename T>
 inline T
 nextPowerOf2(T n)
 {
-	if (n & isPowerOf2(n))
+	if (n && isPowerOf2(n))
 		return n;
 
 	T p = 1;
@@ -462,12 +455,12 @@ std::string error_str(int errorcode);
  * @param argv Argument vector
  * @throw std::runtime_error If MPI errors are detected
  */
-void init(int *argc, char ***argv);
+DECLDIR void init(int *argc, char ***argv);
 
 /** @brief Wrapper for MPI_Finalize()
  * @throw std::runtime_error If MPI errors are detected
  */
-void finalize();
+DECLDIR void finalize();
 
 /** @brief Wrapper for MPI_Comm_rank()
  * @param comm Communicator
@@ -487,7 +480,7 @@ int size(MPI_Comm comm);
  * @param comm Communicator
  * @throw std::runtime_error If MPI errors are detected
  */
-void barrier(MPI_Comm comm);
+DECLDIR void barrier(MPI_Comm comm);
 
 /** @brief Wrapper for MPI_Send()
  * @param buf Initial address of send buffer

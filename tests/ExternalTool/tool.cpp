@@ -24,10 +24,11 @@
 #include "tool.hpp"
 #include <aquagpusph/InputOutput/Logger.hpp>
 
-extern "C" Aqua::CalcServer::InstallableDemo* create_object(
+extern "C" InstallableTool create_object(
     const std::string name, bool once)
 {
-    return new Aqua::CalcServer::InstallableDemo(name, once);
+    return (InstallableTool)(
+        new Aqua::CalcServer::InstallableDemo(name, once));
 }
 
 namespace Aqua{ namespace CalcServer{

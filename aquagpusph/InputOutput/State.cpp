@@ -21,7 +21,6 @@
  * (See Aqua::InputOutput::State for details)
  */
 
-#include <fnmatch.h>
 #include <map>
 #include <limits>
 #include <vector>
@@ -33,6 +32,59 @@
 #include "Logger.hpp"
 #include "aquagpusph/CalcServer/CalcServer.hpp"
 #include "aquagpusph/AuxiliarMethods.hpp"
+
+/** @brief Checks if two given strings match.
+ * 
+ * The first string may contain wildcard characters.
+ * @param first First string, which may contain wildcards
+ * @param second Second string
+ * @return true if they match, false otherwise
+ * @see https://www.geeksforgeeks.org/wildcard-character-matching/
+ */
+bool __match(const char* first, const char* second) 
+{ 
+    // If we reach at the end of both strings, we are done 
+    if (*first == '\0' && *second == '\0') 
+        return true; 
+  
+    // Make sure to eliminate consecutive '*' 
+    if (*first == '*') { 
+        while (*(first + 1) == '*') 
+            first++; 
+    } 
+  
+    // Make sure that the characters after '*' are present 
+    // in second string. This function assumes that the 
+    // first string will not contain two consecutive '*' 
+    if (*first == '*' && *(first + 1) != '\0'
+        && *second == '\0') 
+        return false; 
+  
+    // If the first string contains '?', or current 
+    // characters of both strings match 
+    if (*first == '?' || *first == *second) 
+        return __match(first + 1, second + 1); 
+  
+    // If there is *, then there are two possibilities 
+    // a) We consider current character of second string 
+    // b) We ignore current character of second string. 
+    if (*first == '*') 
+        return __match(first + 1, second) 
+               || __match(first, second + 1); 
+    return false; 
+}
+
+/** @brief Wrapper for __match().
+ * @param first First string, which may contain wildcards
+ * @param second Second string
+ * @return true if they match, false otherwise
+ */
+bool match(const std::string first, const std::string second) 
+{
+	if (first == second)
+		return true;
+	return __match(first.c_str(), second.c_str());
+}
 
 static std::vector<std::string> cpp_str;
 static std::vector<XMLCh*> xml_str;
@@ -573,9 +625,7 @@ _toolsName(std::string name, ProblemSetup& sim_data, std::string prefix)
 	// Look for the patterns in the already defined tool names
 	unsigned int place;
 	for (place = 0; place < sim_data.tools.size(); place++) {
-		if (!fnmatch(toolname.str().c_str(),
-		             sim_data.tools.at(place)->get("name").c_str(),
-		             0)) {
+		if (match(toolname.str(), sim_data.tools.at(place)->get("name"))) {
 			_tool_places.push_back(place);
 		}
 	}

@@ -1,3 +1,2 @@
-import filecmp
-
-assert(filecmp.cmp('set0.00000.vtu', 'ref.vtu', shallow=False))
+with open('set0.00000.vtu', mode='r') as fa, open('ref.vtu', mode='r') as fb:
+    assert(fa.read() == fb.read())

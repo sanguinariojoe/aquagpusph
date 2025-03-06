@@ -41,7 +41,7 @@ namespace Aqua {
  *
  * http://www.gnu.org/software/libmatheval
  */
-class Tokenizer_muparser
+class DECLDIR Tokenizer_muparser
 {
   public:
 	/// Constructor

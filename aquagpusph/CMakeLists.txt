@@ -1,7 +1,7 @@
 # ===================================================== #
 # Sources to compile                                    #
 # ===================================================== #
-SET(CPP_SRCS
+set(CPP_SRCS
     ArgumentsManager.cpp
     AuxiliarMethods.cpp
     FileManager.cpp
@@ -42,95 +42,89 @@ SET(CPP_SRCS
 # ===================================================== #
 # Embed OpenCL codes                                    #
 # ===================================================== #
-ADD_CUSTOM_TARGET(opencl_embed_directory ALL
+add_custom_target(opencl_embed_directory ALL
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/CalcServer/)
-SET(embed_targets opencl_embed_directory)
-FOREACH(FNAME LinkList MPISync RadixSort Reduction Set Sort UnSort)
-    FOREACH(FEXT .cl .hcl)
-        ADD_CUSTOM_COMMAND(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/CalcServer/${FNAME}${FEXT}
-            COMMAND echo "/** @file" > ${CMAKE_CURRENT_BINARY_DIR}/CalcServer/${FNAME}${FEXT}
-            COMMAND echo " * @brief Hardcoded version of the file CalcServer/${FNAME}${FEXT}.in" >> ${CMAKE_CURRENT_BINARY_DIR}/CalcServer/${FNAME}${FEXT}
-            COMMAND echo " */" >> ${CMAKE_CURRENT_BINARY_DIR}/CalcServer/${FNAME}${FEXT}
-            COMMAND echo "" >> ${CMAKE_CURRENT_BINARY_DIR}/CalcServer/${FNAME}${FEXT}
-            COMMAND ${XXD_BIN} -i ${FNAME}${FEXT}.in >> ${CMAKE_CURRENT_BINARY_DIR}/CalcServer/${FNAME}${FEXT}
+set(embed_targets "")
+foreach(FNAME LinkList MPISync RadixSort Reduction Set Sort UnSort)
+    foreach(FEXT .cl .hcl)
+        add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/CalcServer/${FNAME}${FEXT}
+            COMMAND ${XXD_BIN} -i ${FNAME}${FEXT}.in > ${CMAKE_CURRENT_BINARY_DIR}/CalcServer/${FNAME}${FEXT}
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/CalcServer/
             DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/CalcServer/${FNAME}${FEXT}.in)
 
-        ADD_CUSTOM_TARGET(opencl_embed_${FNAME}${FEXT} ALL
+        add_custom_target(opencl_embed_${FNAME}${FEXT} ALL
             DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/CalcServer/${FNAME}${FEXT}
         )
-        ADD_DEPENDENCIES(opencl_embed_${FNAME}${FEXT} opencl_embed_directory)
-        LIST(APPEND embed_targets opencl_embed_${FNAME}${FEXT})
-    ENDFOREACH()
-ENDFOREACH()
-
-ADD_CUSTOM_TARGET(opencl_embed ALL)
-ADD_DEPENDENCIES(opencl_embed ${embed_targets})
+        add_dependencies(opencl_embed_${FNAME}${FEXT} opencl_embed_directory)
+        list(APPEND embed_targets opencl_embed_${FNAME}${FEXT})
+    endforeach()
+endforeach()
 
 # ===================================================== #
 # library compilation                                   #
 # ===================================================== #
-SOURCE_GROUP("AQUAgpusph" FILES ${CPP_SRCS})
+source_group("AQUAgpusph" FILES ${CPP_SRCS})
 
-SET(LibName aquagpusph)
-ADD_LIBRARY(${LibName} SHARED ${CPP_SRCS})
-TARGET_LINK_LIBRARIES(${LibName} ${DEP_LIBS})
-ADD_DEPENDENCIES(${LibName} opencl_embed)
+# NOTE: The library cannot be called aquagpusph, because VSC is apparently
+# case insensitive, so it will overwrite it with the executable target
+set(LibName aquagpusphlib)
+add_library(${LibName} SHARED ${CPP_SRCS})
+target_link_libraries(${LibName} ${DEP_LIBS})
+target_compile_definitions(${LibName} PUBLIC AQUAgpusph_EXPORTS)
+add_dependencies(${LibName} ${embed_targets})
 
-if(MSVC)
-    set_target_properties(${LibName} PROPERTIES DEBUG_OUTPUT_NAME "${LibName}D")
-    set_target_properties(${LibName} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
-    # dirty hack to avoid Debug/Release subdirectory
-    set_target_properties(${LibName} PROPERTIES PREFIX "../")
-elseif(MINGW)
-    set_target_properties(${LibName} PROPERTIES DEBUG_OUTPUT_NAME "${LibName}D")
-    set_target_properties(${LibName} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
-else(MSVC)
-    set_target_properties(${LibName} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
-    set_target_properties(${LibName} PROPERTIES INSTALL_RPATH ${INSTALL_RPATH})
-endif(MSVC)
-
-if(WIN32)
-    INSTALL(TARGETS ${LibName}
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    )
-else(WIN32)
-    INSTALL(TARGETS ${LibName}
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    )
-endif(WIN32)
+install(TARGETS ${LibName}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
 
 
 # ===================================================== #
 # program compilation                                   #
 # ===================================================== #
-SET(AppName AQUAgpusph)
-ADD_EXECUTABLE(${AppName} main.cpp)
-TARGET_LINK_LIBRARIES(${AppName} ${LibName} ${DEP_LIBS})
+set(AppName AQUAgpusph)
+add_executable(${AppName} main.cpp)
+target_link_libraries(${AppName} ${LibName} ${DEP_LIBS})
 
-if(MSVC)
-    set_target_properties(${AppName} PROPERTIES DEBUG_OUTPUT_NAME "${AppName}D")
-    set_target_properties(${AppName} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
-    # dirty hack to avoid Debug/Release subdirectory
-    set_target_properties(${AppName} PROPERTIES PREFIX "../")
-elseif(MINGW)
-    set_target_properties(${AppName} PROPERTIES DEBUG_OUTPUT_NAME "${AppName}D")
-    set_target_properties(${AppName} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
-else(MSVC)
-    set_target_properties(${AppName} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
-    set_target_properties(${AppName} PROPERTIES INSTALL_RPATH ${INSTALL_RPATH})
-endif(MSVC)
+install(TARGETS ${AppName}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
 
-if(WIN32)
-    INSTALL(TARGETS ${AppName}
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    )
-else(WIN32)
-    INSTALL(TARGETS ${AppName}
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    )
-endif(WIN32)
+install(
+  FILES
+    ArgumentsManager.hpp
+    AuxiliarMethods.hpp
+    FileManager.hpp
+    ProblemSetup.hpp
+    sphPrerequisites.hpp
+    TimeManager.hpp
+    Variable.hpp
+    ${CMAKE_BINARY_DIR}/config.h
+  DESTINATION
+    include/aquagpusph
+)
+
+install(
+  FILES
+    InputOutput/Logger.hpp
+    InputOutput/State.hpp
+  DESTINATION
+    include/aquagpusph/InputOutput
+)
+
+install(
+  FILES
+    Tokenizer/Tokenizer.hpp
+    Tokenizer/Tokenizer_exprtk.hpp
+    Tokenizer/Tokenizer_muparser.hpp
+  DESTINATION
+    include/aquagpusph/Tokenizer
+)
+
+install(
+  FILES
+    CalcServer/CalcServer.hpp
+    CalcServer/Tool.hpp
+  DESTINATION
+    include/aquagpusph/CalcServer
+)

@@ -22,7 +22,6 @@
  */
 
 #include <sstream>
-#include <sys/time.h>
 #include "aquagpusph/InputOutput/Logger.hpp"
 #include "SetScalar.hpp"
 #include "CalcServer.hpp"

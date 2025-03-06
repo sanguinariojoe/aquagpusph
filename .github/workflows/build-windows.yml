@@ -1,0 +1,262 @@
+name: CMake
+
+on:
+  push:
+    branches: [ $default-branch, master, windows ]
+  pull_request:
+    branches:
+      - "**"
+
+permissions: write-all
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+  VIM_VERSION_MAJOR: 9
+  VIM_VERSION_MINOR: 1
+  VIM_VERSION_PATCH: 0
+  XERCESC_VERSION_MAJOR: 3
+  XERCESC_VERSION_MINOR: 3
+  XERCESC_VERSION_PATCH: 0
+  OPENCL_SDK_VERSION: v2024.10.24
+  VTK_VERSION_MAJOR: 9
+  VTK_VERSION_MINOR: 3
+  VTK_VERSION_PATCH: 1
+  NLOHMANN_JSON_VERSION_MAJOR: 3
+  NLOHMANN_JSON_VERSION_MINOR: 11
+  NLOHMANN_JSON_VERSION_PATCH: 3
+  MUPARSER_VERSION_MAJOR: 2
+  MUPARSER_VERSION_MINOR: 3
+  MUPARSER_VERSION_PATCH: 5
+  INTEL_OPENCL_RUNTIME_VERSION: 2025.0.0.1166
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+        matrix:
+            os: [windows-latest]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Version getter
+      id: aquagpusph_version
+      shell: bash
+      run: |
+        major=`cat CMakeLists.txt | grep PACKAGE_VERSION_MAJOR | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}'`
+        minor=`cat CMakeLists.txt | grep PACKAGE_VERSION_MINOR | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}'`
+        patch=`cat CMakeLists.txt | grep PACKAGE_VERSION_PATCH | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}'`
+        echo "aquagpusph_version=$major.$minor.$patch" >> $GITHUB_OUTPUT
+
+
+    - name: Create 3rd parties vendored folder
+      run: |
+          mkdir -p ${{github.workspace}}/vendor
+
+    - name: download the prebuilt OpenCL-SDK
+      uses: suisei-cn/actions-download-file@v1.6.0
+      with:
+        url: https://github.com/KhronosGroup/OpenCL-SDK/releases/download/${{env.OPENCL_SDK_VERSION}}/OpenCL-SDK-${{env.OPENCL_SDK_VERSION}}-Win-x64.zip
+        target: ${{github.workspace}}/
+
+    - name: Extract OpenCL-SDK
+      shell: bash
+      run: |
+          7z x OpenCL-SDK-${{env.OPENCL_SDK_VERSION}}-Win-x64.zip
+          mv OpenCL-SDK-${{env.OPENCL_SDK_VERSION}}-Win-x64/* vendor/
+
+    # We also need to install an OpenCL platform to run the tests
+    - name: run clinfo (I)
+      run: |
+          vendor/bin/clinfo.exe
+
+    - name: download Intel CPU Runtime for OpenCL
+      uses: suisei-cn/actions-download-file@v1.6.0
+      with:
+        url: https://registrationcenter-download.intel.com/akdlm/IRC_NAS/db03a347-5fd2-46f9-993f-1368e992a44b/w_opencl_runtime_p_${{env.INTEL_OPENCL_RUNTIME_VERSION}}.exe
+        target: ${{github.workspace}}/
+
+    - name: Extract the Intel CPU Runtime for OpenCL
+      run: |
+          $procMain = Start-Process "w_opencl_runtime_p_${{env.INTEL_OPENCL_RUNTIME_VERSION}}.exe" "-s -x -f w_opencl_runtime_extracted --log extract.log" -NoNewWindow -PassThru
+          $procLog = Start-Process "powershell" "Get-Content -Path `"extract.log`" -Wait" -NoNewWindow -PassThru 
+          $procMain.WaitForExit() 
+          $procLog.Kill()
+          del w_opencl_runtime_p_${{env.INTEL_OPENCL_RUNTIME_VERSION}}.exe
+
+    - name: Move the Intel CPU Runtime for OpenCL installer
+      shell: bash
+      run: |
+          mv w_opencl_runtime_extracted/w_opencl_runtime_p_${{env.INTEL_OPENCL_RUNTIME_VERSION}}.msi ./w_opencl_runtime_p.msi
+          rm -rf w_opencl_runtime_extracted
+
+    - name: Install the Intel CPU Runtime for OpenCL
+      run: |
+          $file = "w_opencl_runtime_p.msi" 
+          $log = "install.log" 
+          $procMain = Start-Process "msiexec" "/i `"$file`" /qn /l*! `"$log`"" -NoNewWindow -PassThru
+          $procMain.WaitForExit() 
+          dir ./
+          del w_opencl_runtime_p.msi
+
+    - name: Intel CPU Runtime for OpenCL installation log
+      shell: bash
+      run: |
+          cat install.log
+          rm -f install.log
+
+    - name: Register the Intel CPU Runtime for OpenCL ICD
+      run: |
+        REG ADD HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\OpenCL\Vendors /v "C:\Program Files (x86)\Common Files\Intel\Shared Libraries\bin\OpenCL.dll" /t REG_DWORD /d 1 /f
+        REG ADD HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Khronos\OpenCL\Vendors /v "C:\Program Files (x86)\Common Files\Intel\Shared Libraries\bin\OpenCL.dll" /t REG_DWORD /d 1 /f
+
+    - name: Add the Intel CPU Runtime for OpenCL to $PATH
+      run: Add-Content $env:GITHUB_PATH "C:\Program Files (x86)\Common Files\Intel\Shared Libraries\bin\"
+
+    - name: run clinfo (II)
+      run: |
+          vendor/bin/clinfo.exe
+
+    - name: download XXD from GVim
+      uses: suisei-cn/actions-download-file@v1.6.0
+      with:
+        url: https://github.com/vim/vim-win32-installer/releases/download/v${{env.VIM_VERSION_MAJOR}}.${{env.VIM_VERSION_MINOR}}.${{env.VIM_VERSION_PATCH}}/gvim_${{env.VIM_VERSION_MAJOR}}.${{env.VIM_VERSION_MINOR}}.${{env.VIM_VERSION_PATCH}}_x64_signed.zip
+        target: ${{github.workspace}}/
+
+    - name: Extract XXD from GVim
+      shell: bash
+      run: |
+          7z x gvim_${{env.VIM_VERSION_MAJOR}}.${{env.VIM_VERSION_MINOR}}.${{env.VIM_VERSION_PATCH}}_x64_signed.zip
+
+    - name: Install Python
+      id: cp313
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
+
+    - name: Install Numpy
+      run: pip install --upgrade numpy
+
+    - name: download Xerces-C sources
+      uses: suisei-cn/actions-download-file@v1.6.0
+      with:
+        url: https://dlcdn.apache.org//xerces/c/3/sources/xerces-c-${{env.XERCESC_VERSION_MAJOR}}.${{env.XERCESC_VERSION_MINOR}}.${{env.XERCESC_VERSION_PATCH}}.tar.gz
+        target: ${{github.workspace}}/
+
+    - name: Create Xerces-C folders
+      shell: bash
+      run: |
+          mkdir -p xercesc
+          mkdir -p xercesc.build
+
+    - name: Extract Xerces-C sources
+      shell: bash
+      run: |
+          tar -xvzf xerces-c-${{env.XERCESC_VERSION_MAJOR}}.${{env.XERCESC_VERSION_MINOR}}.${{env.XERCESC_VERSION_PATCH}}.tar.gz -C xercesc/
+
+    - name: Build Xerces-C
+      run: |
+          cmake -B ${{github.workspace}}/xercesc.build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/vendor -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DBUILD_TESTING=OFF ${{github.workspace}}/xercesc/xerces-c-${{env.XERCESC_VERSION_MAJOR}}.${{env.XERCESC_VERSION_MINOR}}.${{env.XERCESC_VERSION_PATCH}}
+          cmake --build ${{github.workspace}}/xercesc.build --config Release
+          cmake --install ${{github.workspace}}/xercesc.build --config Release
+
+    - name: download pre-built VTK static library
+      uses: suisei-cn/actions-download-file@v1.6.0
+      with:
+        url: https://github.com/sanguinariojoe/vtk-builds/releases/download/VTK-${{env.VTK_VERSION_MAJOR}}.${{env.VTK_VERSION_MINOR}}.${{env.VTK_VERSION_PATCH}}-static/vtk-${{runner.os}}-x86_64.tar.gz
+        target: ${{github.workspace}}/
+
+    - name: Create VTK folder
+      shell: bash
+      run: |
+          mkdir -p vtk
+
+    - name: Extract VTK tgz
+      shell: bash
+      run: |
+          tar -xvzf vtk-${{runner.os}}-x86_64.tar.gz -C vtk/
+          ls vtk/
+
+    - name: download JSON for Modern C++ sources
+      uses: suisei-cn/actions-download-file@v1.6.0
+      with:
+        url: https://github.com/nlohmann/json/archive/refs/tags/v${{env.NLOHMANN_JSON_VERSION_MAJOR}}.${{env.NLOHMANN_JSON_VERSION_MINOR}}.${{env.NLOHMANN_JSON_VERSION_PATCH}}.tar.gz
+        target: ${{github.workspace}}/
+
+    - name: Create JSON for Modern C++ folders
+      shell: bash
+      run: |
+          mkdir -p json
+          mkdir -p json.build
+
+    - name: Extract JSON for Modern C++ sources
+      shell: bash
+      run: |
+          tar -xvzf v${{env.NLOHMANN_JSON_VERSION_MAJOR}}.${{env.NLOHMANN_JSON_VERSION_MINOR}}.${{env.NLOHMANN_JSON_VERSION_PATCH}}.tar.gz -C json/
+
+    - name: Build JSON for Modern C++
+      run: |
+          cmake -B ${{github.workspace}}/json.build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/vendor -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DBUILD_TESTING=OFF -DJSON_BuildTests=OFF ${{github.workspace}}/json/json-${{env.NLOHMANN_JSON_VERSION_MAJOR}}.${{env.NLOHMANN_JSON_VERSION_MINOR}}.${{env.NLOHMANN_JSON_VERSION_PATCH}}
+          cmake --build ${{github.workspace}}/json.build --config Release
+          cmake --install ${{github.workspace}}/json.build --config Release
+
+    - name: download MuParser sources
+      uses: suisei-cn/actions-download-file@v1.6.0
+      with:
+        url: https://github.com/beltoforion/muparser/archive/refs/tags/v${{env.MUPARSER_VERSION_MAJOR}}.${{env.MUPARSER_VERSION_MINOR}}.${{env.MUPARSER_VERSION_PATCH}}.tar.gz
+        target: ${{github.workspace}}/
+
+    - name: Create MuParser folders
+      shell: bash
+      run: |
+          mkdir -p muparser
+          mkdir -p muparser.build
+
+    - name: Extract MuParser sources
+      shell: bash
+      run: |
+          tar -xvzf v${{env.MUPARSER_VERSION_MAJOR}}.${{env.MUPARSER_VERSION_MINOR}}.${{env.MUPARSER_VERSION_PATCH}}.tar.gz -C muparser/
+
+    - name: Build MuParser
+      run: |
+          cmake -B ${{github.workspace}}/muparser.build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/vendor -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DBUILD_TESTING=OFF ${{github.workspace}}/muparser/muparser-${{env.MUPARSER_VERSION_MAJOR}}.${{env.MUPARSER_VERSION_MINOR}}.${{env.MUPARSER_VERSION_PATCH}}
+          cmake --build ${{github.workspace}}/muparser.build --config Release
+          cmake --install ${{github.workspace}}/muparser.build --config Release
+
+    - name: Create folders
+      run: |
+          mkdir -p build
+          mkdir -p ${{github.workspace}}/install
+
+    - name: Configure CMake
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/install -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DCMAKE_PREFIX_PATH=${{github.workspace}}/vendor/ -DXXD_BIN_ROOT=${{github.workspace}}/vim/vim${{env.VIM_VERSION_MAJOR}}${{env.VIM_VERSION_MINOR}} -DAQUAGPUSPH_USE_MPI:BOOL=OFF -DAQUAGPUSPH_USE_VTK=ON -DVTK_DIR=${{github.workspace}}/vtk/lib/cmake/vtk-${{env.VTK_VERSION_MAJOR}}.${{env.VTK_VERSION_MINOR}}/ -DAQUAGPUSPH_BUILD_TOOLS=OFF -DAQUAGPUSPH_CHRONO_EXAMPLES=OFF -DBUILD_TESTING=ON -DAQUAGPUSPH_VENDOR_DLLS_FOLDER=${{github.workspace}}/vendor/bin/
+
+    - name: Build
+      id: build
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+    # We do a little hack here. We install the library so we perfectly know the
+    # path. Then we set the environment variable to let the OS find the
+    # libraries
+
+    - name: Install
+      run: cmake --install ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+    - name: Set $PATH (Windows)
+      run: Add-Content $env:GITHUB_PATH "${{github.workspace}}\install\bin"
+
+    - name: Test
+      working-directory: ${{github.workspace}}/build
+      run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure
+
+    - name: Create Installer
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      run: cpack -C ${{env.BUILD_TYPE}}
+
+    - name: Upload the Windows installer
+      uses: actions/upload-artifact@v4
+      with:
+        name: Windows installer
+        path: build/AQUAgpusph-${{steps.aquagpusph_version.outputs.aquagpusph_version}}-win64.exe

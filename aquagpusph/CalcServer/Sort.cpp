@@ -439,7 +439,8 @@ Sort::setupOpenCL()
 
 	cl_ulong thread_size = 2 * (vars->typeToBytes(_var->type()) +
 	                            vars->typeToBytes(_perms->type()));
-	_local_work_size = (std::min)(local_mem_size / thread_size, 256ul);
+	_local_work_size = (std::min)(local_mem_size / thread_size,
+	                              cl_ulong(256ul));
 	if (!isPowerOf2(_local_work_size)) {
 		_local_work_size = nextPowerOf2(_local_work_size) >> 1;
 	}

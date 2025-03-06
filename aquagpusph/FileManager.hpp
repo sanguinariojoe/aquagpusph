@@ -46,7 +46,7 @@ namespace InputOutput {
  * @see Aqua::InputOutput::Particles
  * @note The Log file is controlled by Aqua::InputOutput::Logger
  */
-class FileManager
+class DECLDIR FileManager
 {
   public:
 	/// Constructor

@@ -35,7 +35,6 @@
 #include "aquagpusph/ProblemSetup.hpp"
 #include "aquagpusph/TimeManager.hpp"
 #include "aquagpusph/Variable.hpp"
-#include "aquagpusph/Singleton.hpp"
 #include "Tool.hpp"
 
 #ifndef N_PROFILING_SNAPSHOTS
@@ -198,9 +197,8 @@ class ProfilingInfo
  * @remarks Some output files are managed internally by this class, like the
  * log file, the energy file, pressure sensors file, or bounds file.
  */
-class CalcServer
-  : public Aqua::Singleton<Aqua::CalcServer::CalcServer>
-  , public Aqua::CalcServer::ProfilingInfo
+class DECLDIR CalcServer
+  : public Aqua::CalcServer::ProfilingInfo
 {
   public:
 	/** @brief Constructor.
@@ -210,6 +208,13 @@ class CalcServer
 
 	/// Destructor
 	~CalcServer();
+
+	/** @brief Get --creating it the first time-- the logger instance
+	 *
+	 * Just one logger can simultaneously exist
+	 * @return The logger
+	 */
+	static CalcServer* singleton();
 
 	/** @brief Raise a SIGINT/SIGTERM signal
 	 *

@@ -25,6 +25,20 @@
 
 #include <aquagpusph/CalcServer/Tool.hpp>
 
+extern "C"
+{
+    /// Fake abstract pointer
+    typedef struct __InstallableTool* InstallableTool;
+    /** @brief C wrapper to the
+     * Aqua::CalcServer::InstallableDemo::InstallableDemo() constructor
+     *
+     * @param name The tool name
+     * @param once Whether the tool should be executed just once or not
+     * @return The Aqua::CalcServer::InstallableDemo built tool
+     */
+    InstallableTool DECLDIR create_object(const std::string name, bool once);
+}
+
 namespace Aqua{ namespace CalcServer{
 
 /** @class InstallableDemo InstallableDemo.h

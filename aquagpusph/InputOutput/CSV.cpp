@@ -98,7 +98,7 @@ CSV::formatLine(std::string& l)
 	// we discard the line as a header
 	for (auto field : split(l, _sep)) {
 		try {
-			std::stod(field);
+			auto _ = std::stod(field);
 		} catch(...) {
 			l = "";
 			break;

@@ -21,9 +21,11 @@
  * (See Aqua::InputOutput::Logger for details)
  */
 
-#include <sys/time.h>
-#include <unistd.h>
+#include <cstring>
+#include <chrono>
+#include <ctime>
 #include <sstream>
+#include <iomanip>
 #include <iostream>
 
 #include "aquagpusph/AuxiliarMethods.hpp"
@@ -37,6 +39,8 @@
 namespace Aqua {
 namespace InputOutput {
 
+/// Singleton instance of Aqua::InputOutput::Logger
+static Logger* g_logger_singleton_ptr = nullptr;
 
 Logger::Logger()
 	: _level(L_DEBUG)
@@ -47,12 +51,19 @@ Logger::Logger()
 		_level = L_ERROR;
 #endif
 	open();
-	gettimeofday(&_start_time, NULL);
 }
 
 Logger::~Logger()
 {
 	close();
+}
+
+Logger*
+Logger::singleton()
+{
+	if (!g_logger_singleton_ptr)
+		g_logger_singleton_ptr = new Logger();
+	return g_logger_singleton_ptr;
 }
 
 void
@@ -109,6 +120,7 @@ Logger::addMessage(TLogLevel level, std::string log, std::string func)
 	auto mpi_rank = Aqua::MPI::rank(MPI_COMM_WORLD);
 	std::cout << "[Proc " << mpi_rank << "] ";
 #endif
+
 	// Just in case the Logger has been destroyed
 	if (level == L_INFO)
 		std::cout << "INFO ";
@@ -119,15 +131,25 @@ Logger::addMessage(TLogLevel level, std::string log, std::string func)
 	std::cout << fname.str() << log << std::flush;
 }
 
+/** @brief Get a string with the date and time
+ * @return The date and time string
+ * @see https://stackoverflow.com/questions/17223096/outputting-date-and-time-in-c-using-stdchrono
+ */
+std::string
+time_and_date()
+{
+    auto now = std::chrono::system_clock::now();
+    auto in_time_t = std::chrono::system_clock::to_time_t(now);
+
+    std::stringstream ss;
+    ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %X");
+    return ss.str();
+}
+
 void
 Logger::printDate(TLogLevel level)
 {
-	std::ostringstream msg;
-	struct timeval now_time;
-	gettimeofday(&now_time, NULL);
-	const time_t seconds = now_time.tv_sec;
-	msg << ctime(&seconds) << std::endl;
-	addMessage(level, msg.str());
+	addMessage(level, time_and_date() + "\n");
 }
 
 void
@@ -334,10 +356,8 @@ Logger::open()
 	_log_file << "<body bgcolor=\"#f0ffff\">" << std::endl;
 	_log_file << "<h1 align=\"center\">AQUAgpusph log file.</h1>" << std::endl;
 	// Starting data
-	struct timeval now_time;
-	gettimeofday(&now_time, NULL);
-	const time_t seconds = now_time.tv_sec;
-	_log_file << "<p align=\"left\">" << ctime(&seconds) << "</p>" << std::endl;
+	_log_file << "<p align=\"left\">" << time_and_date() << "</p>"
+	          << std::endl;
 	_log_file << "<hr><br>" << std::endl;
 	_log_file.flush();
 }
@@ -350,12 +370,10 @@ Logger::close()
 	}
 
 	_log_file << "<br><hr>" << std::endl;
-	struct timeval now_time;
-	gettimeofday(&now_time, NULL);
-	const time_t seconds = now_time.tv_sec;
 	_log_file << "<b><font color=\"#000000\">End of simulation</font></b><br>"
 	          << std::endl;
-	_log_file << "<p align=\"left\">" << ctime(&seconds) << "</p>" << std::endl;
+	_log_file << "<p align=\"left\">" << time_and_date() << "</p>"
+	          << std::endl;
 	_log_file << "</body>" << std::endl;
 	_log_file << "</html>" << std::endl;
 	_log_file.close();

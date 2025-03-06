@@ -49,6 +49,23 @@
 #include <CL/cl.h>
 #endif
 
+#include <boost/current_function.hpp>
+
+#ifdef AQUAgpusph_EXPORTS
+#ifdef WIN32
+#define DECLDIR __declspec(dllexport)
+#else
+#define DECLDIR
+#endif
+#else
+#ifdef WIN32
+#define DECLDIR __declspec(dllimport)
+#else
+/// Prefix to export C functions on the compiled library
+#define DECLDIR
+#endif
+#endif
+
 #ifndef icl
 /** @def icl
  * @brief Signed integer number
@@ -314,14 +331,15 @@
 static std::string methodAndClassName_str;
 
 /** @brief Function to extract the class and function from
- * @paramname{__PRETTY_FUNCTION__} macro.
+ * @paramname{BOOST_CURRENT_FUNCTION} macro.
  *
- * The GNU compiler (GCC) macro @paramname{__PRETTY_FUNCTION__} contains a lot
- * of information about the name space, the returning value, and the parameters.
+ * The GNU compiler (GCC) macro @paramname{BOOST_CURRENT_FUNCTION} contains a
+ * lot of information about the name space, the returning value, and the
+ * parameters.
  *
  * In order to print log information this data should be simplified.
  *
- * @param pretty_function GCC @paramname{__PRETTY_FUNCTION__} macro
+ * @param pretty_function GCC @paramname{BOOST_CURRENT_FUNCTION} macro
  * @return Class and function name ("Class::function")
  * @see #__METHOD_CLASS_NAME__
  */
@@ -362,7 +380,7 @@ methodAndClassName(const std::string& pretty_function)
  * @see methodAndClassName()
  * @see #addMessageF
  */
-#define __METHOD_CLASS_NAME__ methodAndClassName(__PRETTY_FUNCTION__)
+#define __METHOD_CLASS_NAME__ methodAndClassName(BOOST_CURRENT_FUNCTION)
 
 /** @def UNUSED
  * @brief Set a parameter as unused

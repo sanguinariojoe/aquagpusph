@@ -31,7 +31,7 @@ Authors:
     </Variables>
 
     <Tools>
-        <Tool action="replace" name="cfd motion data" type="installable" path="@EXAMPLE_DEST_DIR@/libapollo_capsule_sim.so"/>
+        <Tool action="replace" name="cfd motion data" type="installable" path="@EXAMPLE_DEST_DIR@/@EXTTOOL_LIB_NAME@"/>
         <Tool action="insert" after="cfd motion data,iset1_cfd motion data" name="Motion screen report" type="report_screen" fields="t,motion_r,motion_drdt,motion_ddrddt,motion_a,motion_dadt,motion_ddaddt"/>
         <Tool action="insert" after="cfd motion data,iset1_cfd motion data" name="Motion file report" type="report_file" fields="t,motion_r,motion_drdt,motion_ddrddt,motion_a,motion_dadt,motion_ddaddt"  path="motion.out"/>
     </Tools>

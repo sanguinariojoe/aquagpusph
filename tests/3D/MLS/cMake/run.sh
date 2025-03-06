@@ -7,7 +7,7 @@ set -e
 rm -f AQUAgpusph.save.* fluid.* log.* set0.*.dat set1.*.dat rmse.dat
 
 # Run the "simulation", and clear everything but the main result
-@BINARY_DIR@/AQUAgpusph -i main.xml
+@BINARY_DIR@/@BINARY_NAME@ -i main.xml
 
 # Check the result
 python @TEST_DEST_DIR@/check.py

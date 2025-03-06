@@ -15,7 +15,7 @@ ENDFOREACH()
 # Installable version (and targets)                     #
 # ===================================================== #
 SET(SCRIPTS_AUX_DIR ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/CMakeTmp)
-SET(SCRIPTS_DEST_DIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/resources/Scripts)
+SET(SCRIPTS_DEST_DIR ${CMAKE_INSTALL_DATADIR}/resources/Scripts)
 
 FOREACH(FNAME ${FNAMES})
     CONFIGURE_FILE(${SCRIPTS_ORIG_DIR}/${FNAME}
