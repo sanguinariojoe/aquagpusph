@@ -53,8 +53,6 @@ later:
 -->
 
 <sphInput>
-    <Include file="root_path.xml" when="end"/>
-
     <Variables>
         <!-- Some variables are automatically defined:
         | NAME        | TYPE          | LEN | DESCRIPTION
