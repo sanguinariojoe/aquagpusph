@@ -31,8 +31,49 @@ env:
   INTEL_OPENCL_RUNTIME_VERSION: 2025.0.0.1166
 
 jobs:
+  create_release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    outputs:
+      release_id: ${{ steps.create_release.outputs.id }}
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+    - uses: actions/checkout@v4
+      if: github.event_name == 'push'
+
+    - name: aquagpusph_tag_name
+      id: aquagpusph_tag_name
+      shell: bash
+      run: |
+        major=`cat CMakeLists.txt | grep PACKAGE_VERSION_MAJOR | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}'`
+        minor=`cat CMakeLists.txt | grep PACKAGE_VERSION_MINOR | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}'`
+        patch=`cat CMakeLists.txt | grep PACKAGE_VERSION_PATCH | head -1 | awk -F' ' '{print $2}' | awk -F')' '{print $1}'`
+        echo "aquagpusph_tag_name=v$major.$minor.$patch" >> $GITHUB_OUTPUT
+      if: github.event_name == 'push'
+
+    - uses: rickstaa/action-create-tag@v1
+      id: create_tag
+      with:
+        tag: ${{steps.aquagpusph_tag_name.outputs.aquagpusph_tag_name}}
+        message: "Latest release (${{steps.aquagpusph_tag_name.outputs.aquagpusph_tag_name}})"
+        force_push_tag: true
+      if: github.event_name == 'push'
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{steps.aquagpusph_tag_name.outputs.aquagpusph_tag_name}}
+        release_name: ${{steps.aquagpusph_tag_name.outputs.aquagpusph_tag_name}}
+        draft: false
+        prerelease: false
+      if: github.event_name == 'push'
+
   build:
     runs-on: ${{ matrix.os }}
+    needs: [create_release]
     strategy:
         matrix:
             os: [windows-latest]
@@ -255,8 +296,14 @@ jobs:
       shell: bash
       run: cpack -C ${{env.BUILD_TYPE}}
 
-    - name: Upload the Windows installer
-      uses: actions/upload-artifact@v4
+    - name: Upload Windows installer
+      id: upload-windows-installer
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        name: Windows installer
-        path: build/AQUAgpusph-${{steps.aquagpusph_version.outputs.aquagpusph_version}}-win64.exe
+        upload_url: ${{ needs.create_release.outputs.upload_url }}
+        asset_path: ${{github.workspace}}/build/AQUAgpusph-${{steps.aquagpusph_version.outputs.aquagpusph_version}}-win64.exe
+        asset_name: AQUAgpusph-${{steps.aquagpusph_version.outputs.aquagpusph_version}}-win64.exe
+        asset_content_type: application/exe
+      if: github.event_name == 'push'
