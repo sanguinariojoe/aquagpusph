@@ -32,4 +32,4 @@
  * @}
  */
 
-#include "../basic/Shepard.cl"
+#include "resources/Scripts/basic/Shepard.cl"

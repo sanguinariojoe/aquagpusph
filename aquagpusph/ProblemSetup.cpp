@@ -88,6 +88,12 @@ ProblemSetup::sphSettings::sphSettings()
   , debug_tools(NO_DEBUG)
   , base_path("")
 {
+	try {
+		base_path = getRootPath();
+		LOG(L_INFO, std::string("RootPath='") + base_path + "'\n");
+	} catch(const std::filesystem::filesystem_error& e) {
+		LOG(L_WARNING, "Cannot locate a RootPath\n");
+	}
 }
 
 void

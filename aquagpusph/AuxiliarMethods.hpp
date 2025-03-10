@@ -29,6 +29,7 @@
 #include <tuple>
 #include <deque>
 #include <limits>
+#include <filesystem>
 #include "aquagpusph/ext/boost/numeric/conversion/cast.hpp"
 
 #ifdef HAVE_MPI
@@ -308,6 +309,24 @@ roundUp(T x, T divisor)
 template<typename Tout=int, typename Tin>
 inline Tout
 round(Tin n) { return (Tout)(n + ((n >= 0) ? 0.5 : -0.5)); }
+
+/** @brief Get the executable path
+ * @return The executable path, not necessarily a canonical one
+ */
+const std::string
+getExePath();
+
+/** @brief Get the root path
+ *
+ * The root path is actually the data path, where the resources folder can be
+ * found. The root path is either Aqua::getExePath() / "../" or
+ * Aqua::getExePath() / "../share/aquagpusph"
+ * @return The executable path, not necessarily a canonical one
+ * @throw std::filesystem::filesystem_error if none of the path candidates
+ * exists
+ */
+const std::string
+getRootPath();
 
 /// Gets the folder path which contains the file @paramname{file_path}.
 /**

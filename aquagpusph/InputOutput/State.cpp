@@ -26,6 +26,8 @@
 #include <vector>
 #include <algorithm>
 #include <sstream>
+#include <filesystem>
+#include <system_error>
 
 #include "aquagpusph/sphPrerequisites.hpp"
 #include "State.hpp"
@@ -235,6 +237,41 @@ State::load(std::string input_file, ProblemSetup& sim_data)
 	return parse(input_file, sim_data);
 }
 
+const std::string
+State::findPath(const std::string& filepath, ProblemSetup& sim_data)
+{
+	std::vector<std::string> candidates;
+	auto fp = std::filesystem::path(filepath);
+	if (std::filesystem::exists(fp)) {
+		return std::filesystem::canonical(fp).string();
+	}
+	candidates.push_back(std::filesystem::current_path() / fp.string());
+	if (fp.is_relative()) {
+		if (sim_data.settings.base_path != "") {
+			auto f =
+				std::filesystem::path(sim_data.settings.base_path) / fp;
+			if (std::filesystem::exists(f)) {
+				return std::filesystem::canonical(f).string();
+			}
+			candidates.push_back(f.string());
+		}
+		auto f =
+			std::filesystem::path(_xml_paths.back()) / fp;
+		if (std::filesystem::exists(f)) {
+			return std::filesystem::canonical(f).string();
+		}
+		candidates.push_back(f.string());
+	}
+
+	std::ostringstream msg;
+	msg << "No such file or directory '" << fp.string() << "'" << std::endl
+	    << "The following paths were checked:" << std::endl;
+	for (auto candidate : candidates) {
+		msg << "  '" << candidate << "'" << std::endl;
+	}
+	throw std::filesystem::filesystem_error(msg.str(), std::error_code());
+}
+
 void
 State::parse(std::string filepath, ProblemSetup& sim_data, std::string prefix)
 {
@@ -251,6 +288,9 @@ State::parse(std::string filepath, ProblemSetup& sim_data, std::string prefix)
 		throw std::ifstream::failure("File inaccessible!");
 	}
 	f.close();
+
+	auto fp = std::filesystem::path(filepath);
+	_xml_paths.push_back(fp.parent_path().string());
 
 	// Now we can proceed to properly parse the XML file
 	XercesDOMParser* parser = new XercesDOMParser();
@@ -279,18 +319,12 @@ State::parse(std::string filepath, ProblemSetup& sim_data, std::string prefix)
 				continue;
 		}
 		std::string included_file = trimCopy(xmlAttribute(elem, "file"));
-		if (!isFile(included_file) && isRelativePath(included_file)) {
-			// Check if there is such file relative to some root paths
-			std::vector<std::string> root_paths = {
-				sim_data.settings.base_path + "/",
-				getFolderFromFilePath(filepath) + "/"
-			};
-			for (auto root_path : root_paths) {
-				if (isFile(root_path + included_file)) {
-					included_file = root_path + included_file;
-					break;
-				}
-			}
+		try {
+			included_file = findPath(included_file, sim_data);
+		} catch (std::filesystem::filesystem_error const& e) {
+			LOG(L_ERROR,
+			    std::string("Failure including XML:\n") + e.what() + "\n");
+			throw;
 		}
 		std::string included_prefix = prefix;
 		if (xmlHasAttribute(elem, "prefix")) {
@@ -329,7 +363,14 @@ State::parse(std::string filepath, ProblemSetup& sim_data, std::string prefix)
 			continue;
 		if (xmlAttribute(elem, "when").compare("end"))
 			continue;
-		std::string included_file = xmlAttribute(elem, "file");
+		std::string included_file = trimCopy(xmlAttribute(elem, "file"));
+		try {
+			included_file = findPath(included_file, sim_data);
+		} catch (std::filesystem::filesystem_error const& e) {
+			LOG(L_ERROR,
+			    std::string("Failure including XML:\n") + e.what() + "\n");
+			throw;
+		}
 		std::string included_prefix = prefix;
 		if (xmlHasAttribute(elem, "prefix")) {
 			included_prefix = xmlAttribute(elem, "prefix");
@@ -343,6 +384,7 @@ State::parse(std::string filepath, ProblemSetup& sim_data, std::string prefix)
 	}
 
 	xmlClear();
+	_xml_paths.pop_back();
 	delete parser;
 }
 
@@ -400,7 +442,23 @@ State::parseSettings(DOMElement* root,
 			if (s_node->getNodeType() != DOMNode::ELEMENT_NODE)
 				continue;
 			DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
-			sim_data.settings.base_path = xmlAttribute(s_elem, "path");
+			if (!xmlHasAttribute(s_elem, "path")) {
+				LOG(L_ERROR, "RootPath requires a \"path\" attribute\n");
+				throw std::runtime_error("Missing attribute");
+			}
+			std::string p;
+			try {
+				p = findPath(xmlAttribute(s_elem, "path"), sim_data);
+			} catch (std::filesystem::filesystem_error const& e) {
+				std::ostringstream msg;
+				msg << "Invalid RootPath \""
+					<< xmlAttribute(s_elem, "path") << "\"" << std::endl
+					<< e.what() << std::endl;
+				LOG(L_WARNING, msg.str());
+				continue;
+			}
+			LOG(L_INFO, std::string("RootPath='") + p + "'\n");
+			sim_data.settings.base_path = p;
 		}
 
 		s_nodes = elem->getElementsByTagName(xmlS("Device"));
@@ -976,14 +1034,56 @@ State::parseTools(DOMElement* root, ProblemSetup& sim_data, std::string prefix)
 
 			// Configure the tool
 			if (!xmlAttribute(s_elem, "type").compare("kernel")) {
-				_toolAttr(tool, s_elem, "path");
+				if (!xmlHasAttribute(s_elem, "path")) {
+					std::ostringstream msg;
+					msg << "Tool \"" << tool->get("name")
+					    << "\" requires the missing attribute \"path\"."
+					    << std::endl;
+					LOG(L_ERROR, msg.str());
+					throw std::runtime_error("Missing attribute");
+				}
+				std::string p;
+				try {
+					p = findPath(xmlAttribute(s_elem, "path"), sim_data);
+				} catch (std::filesystem::filesystem_error const& e) {
+					std::ostringstream msg;
+					msg << "Tool \"" << tool->get("name")
+					    << "\" asks for the inaccessible file \""
+					    << xmlAttribute(s_elem, "path") << "\"" << std::endl
+					    << e.what() << std::endl;
+					LOG(L_ERROR, msg.str());
+					throw;
+				}
+				tool->set("path", p);
 				_toolAttr(tool, s_elem, "entry_point", "entry");
 				_toolAttr(tool, s_elem, "n", "");
+		std::string included_file = trimCopy(xmlAttribute(elem, "file"));
+
 			} else if (!xmlAttribute(s_elem, "type").compare("copy")) {
 				for (auto attr : { "in", "out" })
 					_toolAttr(tool, s_elem, attr);
 			} else if (!xmlAttribute(s_elem, "type").compare("python")) {
-				_toolAttr(tool, s_elem, "path");
+				if (!xmlHasAttribute(s_elem, "path")) {
+					std::ostringstream msg;
+					msg << "Tool \"" << tool->get("name")
+					    << "\" requires the missing attribute \"path\"."
+					    << std::endl;
+					LOG(L_ERROR, msg.str());
+					throw std::runtime_error("Missing attribute");
+				}
+				std::string p;
+				try {
+					p = findPath(xmlAttribute(s_elem, "path"), sim_data);
+				} catch (std::filesystem::filesystem_error const& e) {
+					std::ostringstream msg;
+					msg << "Tool \"" << tool->get("name")
+					    << "\" asks for the inaccessible file \""
+					    << xmlAttribute(s_elem, "path") << "\"" << std::endl
+					    << e.what() << std::endl;
+					LOG(L_ERROR, msg.str());
+					throw;
+				}
+				tool->set("path", p);
 			} else if (!xmlAttribute(s_elem, "type").compare("set")) {
 				for (auto attr : { "in", "value" })
 					_toolAttr(tool, s_elem, attr);
@@ -1035,7 +1135,27 @@ State::parseTools(DOMElement* root, ProblemSetup& sim_data, std::string prefix)
 			}
 #endif
 			else if (!xmlAttribute(s_elem, "type").compare("installable")) {
-				_toolAttr(tool, s_elem, "path");
+				if (!xmlHasAttribute(s_elem, "path")) {
+					std::ostringstream msg;
+					msg << "Tool \"" << tool->get("name")
+					    << "\" requires the missing attribute \"path\"."
+					    << std::endl;
+					LOG(L_ERROR, msg.str());
+					throw std::runtime_error("Missing attribute");
+				}
+				std::string p;
+				try {
+					p = findPath(xmlAttribute(s_elem, "path"), sim_data);
+				} catch (std::filesystem::filesystem_error const& e) {
+					std::ostringstream msg;
+					msg << "Tool \"" << tool->get("name")
+					    << "\" asks for the inaccessible file \""
+					    << xmlAttribute(s_elem, "path") << "\"" << std::endl
+					    << e.what() << std::endl;
+					LOG(L_ERROR, msg.str());
+					throw;
+				}
+				tool->set("path", p);
 			} else if (!xmlAttribute(s_elem, "type").compare("dummy")) {
 				// Without options
 			}

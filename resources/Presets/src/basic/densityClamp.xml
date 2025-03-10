@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<sphInput>
+    <Variables>
+        <Variable name="rho_min" type="float" value="0.0" />
+        <Variable name="rho_max" type="float" value="2.25*10^10" />
+    </Variables>
+
+    <Tools>
+        <Tool action="insert" before="Predictor" type="kernel" name="DensClamp" path="../../Scripts/cfd/DensityClamp.cl"/>
+    </Tools>
+</sphInput>

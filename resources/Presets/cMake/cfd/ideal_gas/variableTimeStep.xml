@@ -1,6 +1,0 @@
-<?xml version="1.0" ?>
-<sphInput>
-    <Tools>        
-        <Tool action="replace" name="cfd variable time step" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/ideal_gas/TimeStep.cl"/>
-    </Tools>
-</sphInput>

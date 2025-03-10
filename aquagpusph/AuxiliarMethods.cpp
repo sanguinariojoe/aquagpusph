@@ -34,6 +34,13 @@
 #include <numeric>
 #include <mutex>
 
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <limits.h>
+#include <unistd.h>
+#endif
+
 #include "AuxiliarMethods.hpp"
 #include "ProblemSetup.hpp"
 #include "InputOutput/Logger.hpp"
@@ -267,45 +274,50 @@ isPowerOf2(unsigned int n)
 	return ((n & (n - 1)) == 0);
 }
 
-static std::string folder;
+const std::string
+getExePath()
+{
+	#ifdef _WIN32
+		wchar_t path[MAX_PATH] = { 0 };
+		GetModuleFileNameW(NULL, path, MAX_PATH);
+		std::filesystem::path fp(path);
+		return fp.string();
+	#else
+		char result[PATH_MAX];
+		ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
+		return std::string(result, (count > 0) ? count : 0);
+	#endif
+}
+
+const std::string
+getRootPath()
+{
+	std::filesystem::path ep(getFolderFromFilePath(getExePath()));
+	if (std::filesystem::exists(ep / "../resources")) {
+		return std::filesystem::canonical(ep / "../").string();
+	}
+	return std::filesystem::canonical(ep / "../share/aquagpusph/").string();
+}
 
 const std::string
 getFolderFromFilePath(const std::string file_path)
 {
-	std::ostringstream str;
-	if (file_path[0] != '/')
-		str << "./";
-	std::size_t last_sep = file_path.find_last_of("/\\");
-	if (last_sep != std::string::npos)
-		str << file_path.substr(0, last_sep);
-	folder = str.str();
-	return folder;
+	std::filesystem::path fp(file_path);
+	return std::filesystem::canonical(fp.parent_path()).string();
 }
-
-static std::string filename;
 
 const std::string
 getFileNameFromFilePath(const std::string file_path)
 {
-	std::size_t last_sep = file_path.find_last_of("/\\");
-	if (last_sep != std::string::npos)
-		filename = file_path.substr(last_sep + 1);
-	else
-		filename = file_path;
-	return filename;
+	std::filesystem::path fp(file_path);
+	return fp.filename().string();
 }
-
-static std::string extension;
 
 const std::string
 getExtensionFromFilePath(const std::string file_path)
 {
-	std::size_t last_sep = file_path.find_last_of(".");
-	if (last_sep != std::string::npos)
-		extension = file_path.substr(last_sep + 1);
-	else
-		extension = "";
-	return extension;
+	std::filesystem::path fp(file_path);
+	return fp.extension().string();
 }
 
 bool

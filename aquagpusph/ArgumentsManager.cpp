@@ -113,7 +113,8 @@ parse(int argc, char** argv, FileManager& file_manager)
 				optstr = trimCopy(optarg);
 				file_manager.inputFile(optstr);
 				msg.str(std::string());
-				msg << "Input file = " << file_manager.inputFile() << std::endl;
+				msg << "Input file = " << file_manager.inputFile()
+				    << std::endl;
 				LOG(L_INFO, msg.str());
 				break;
 
@@ -155,10 +156,10 @@ parse(int argc, char** argv, FileManager& file_manager)
 				optstr = trimCopy(optarg);
 				if (optstr == "2") {
 					file_manager.problemSetup().dims(2);
-					LOG(L_INFO, "2D simulation is selected");
+					LOG(L_INFO, "2D simulation is selected\n");
 				} else if (optstr == "3") {
 					file_manager.problemSetup().dims(3);
-					LOG(L_INFO, "3D simulation is selected");
+					LOG(L_INFO, "3D simulation is selected\n");
 				} else {
 					LOG(L_ERROR, std::string("Cannot parse the number of ") +
 					             "dimension \"" + optstr + "\"\n");

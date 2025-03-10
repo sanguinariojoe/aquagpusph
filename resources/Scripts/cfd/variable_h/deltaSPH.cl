@@ -32,4 +32,4 @@
  * @}
  */
 
-#include "../../basic/variable_h/deltaSPH.cl"
+#include "resources/Scripts/basic/variable_h/deltaSPH.cl"

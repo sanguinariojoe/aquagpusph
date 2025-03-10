@@ -1,0 +1,50 @@
+<?xml version="1.0" ?>
+
+<!-- This preset replaces the time integration scheme by a 2-steps
+    Adams-Bashforth one.
+
+    To use this module, just simply include it any time after basic.xml
+    You can also tweak the number of Adams-Bashforth steps, from 0 to 4 (0 is
+    the 1st order Euler scheme), defining the variable
+    TSCHEME_ADAMS_BASHFORTH_STEPS:
+
+    <Definitions>
+        <Define name="TSCHEME_ADAMS_BASHFORTH_STEPS" value="3u" evaluate="false"/>
+    </Definitions>
+
+    By defualt TSCHEME_ADAMS_BASHFORTH_STEPS=3 will be considered
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="dudt_as1" type="vec*" length="N" />
+        <Variable name="drhodt_as1" type="float*" length="N" />
+        <Variable name="dudt_as1_in" type="vec*" length="N" />
+        <Variable name="drhodt_as1_in" type="float*" length="N" />
+        <Variable name="dudt_as2" type="vec*" length="N" />
+        <Variable name="drhodt_as2" type="float*" length="N" />
+        <Variable name="dudt_as2_in" type="vec*" length="N" />
+        <Variable name="drhodt_as2_in" type="float*" length="N" />
+        <Variable name="dudt_as3" type="vec*" length="N" />
+        <Variable name="drhodt_as3" type="float*" length="N" />
+        <Variable name="dudt_as3_in" type="vec*" length="N" />
+        <Variable name="drhodt_as3_in" type="float*" length="N" />
+        <Variable name="dudt_as4" type="vec*" length="N" />
+        <Variable name="drhodt_as4" type="float*" length="N" />
+        <Variable name="dudt_as4_in" type="vec*" length="N" />
+        <Variable name="drhodt_as4_in" type="float*" length="N" />
+    </Variables>
+
+    <Definitions>
+        <Define name="TSCHEME" value="TSCHEME_ADAMS_BASHFORTH" evaluate="false"/>
+        <Define name="TSCHEME_ADAMS_BASHFORTH_STEPS" value="5u" evaluate="false"/>
+    </Definitions>
+
+    <Tools>
+        <Tool action="replace" name="predictor" type="kernel" entry_point="predictor" path="../../../Scripts/basic/time_scheme/adam_bashforth.cl"/>
+        <Tool action="replace" name="corrector" type="kernel" entry_point="corrector" path="../../../Scripts/basic/time_scheme/adam_bashforth.cl"/>
+
+        <Tool action="insert" before="Sort" name="sort adams-bashforth" type="kernel" entry_point="sort" path="../../../Scripts/basic/time_scheme/adam_bashforth.cl"/>
+        <Tool action="insert" before="Corrector" name="backup adams-bashforth" type="kernel" entry_point="postcorrector" path="../../../Scripts/basic/time_scheme/adam_bashforth.cl"/>
+    </Tools>
+</sphInput>

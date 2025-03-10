@@ -1,0 +1,41 @@
+<?xml version="1.0" ?>
+
+<!-- GP.xml
+Fixed ghost particles boundary condition. Actually, this boundary condition is
+an extension of the dummy particles boundary condition, where the physical
+fields are interpolated from the fluid.
+To do that, the dummy particles (imove=-1) are associated with a boundary
+element (imove=-2), such that the position of the ghost particles can be
+mirrored with respect such element in order to interpolate the fields.
+
+The main benefit of the ghost particles are the great conservation properties.
+However treating with complex geometries may become hard due to the requirement
+of the generation of the extended fluid.
+
+To use this boundary condition you should include this preset, and properly set
+the associations array within the input file (set it to N for the particles
+which should not be mirrored at all).
+
+Remarks:
+  - This file should be included once.
+  - It is intended that the ghost particles have the flag imove = -1.
+  - Regarding the mirroring boundary elements, it is intended that they have
+    the flag imove = -2, and a unit normal. Also the area of the elements should
+    be stored in the mass array "m".
+  - Ghost particles have a very good momentum, mass and energy conservation
+    properties.
+  - Unfortunately, leading with complex geometries is not so easy.
+  - By default, no-slip boundary condition is considered. To enforce the
+    free-slip boundary condition include the preset GPFreeSlip.xml
+-->
+
+<sphInput>
+    <!-- Include the default GP.xml, and replace the affected tools -->
+    <Include file="../cfd/GP.xml" />
+
+    <Tools>
+        <Tool action="replace" name="cfd GP interpolation" type="kernel" path="../../../Scripts/cfd/variable_h/Boundary/GP/Interpolation.cl"/>
+        <Tool action="replace" name="cfd GP LapU" type="kernel" path="../../../Scripts/cfd/variable_h/Boundary/GP/LapU.cl"/>
+        <Tool action="replace" name="cfd GP interactions" type="kernel" path="../../../Scripts/cfd/variable_h/Boundary/GP/Interactions.cl"/>
+    </Tools>
+</sphInput>

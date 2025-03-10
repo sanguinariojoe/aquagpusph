@@ -1,0 +1,38 @@
+<?xml version="1.0" ?>
+<!--
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
+
+Another QUAlity GPU-SPH, by CEHINAV.
+    http://canal.etsin.upm.es/
+Authors:
+    Jose Luis Cercos-Pita
+    Leo Miguel Gonzalez
+    Antonio Souto-Iglesias
+-->
+
+<sphInput>
+    <!-- In this file we will just include other XML definition files -->
+    <Include file="resources/Presets/basic.xml" />
+    <Include file="resources/Presets/basic/domain.xml" />
+    <Include file="resources/Presets/basic/time_scheme/midpoint.xml" />
+    <Include file="resources/Presets/basic/time_scheme/midpoint/autostop.xml" />
+    <Include file="resources/Presets/basic/time_scheme/midpoint/autorelax.xml" />
+    <Include file="resources/Presets/basic/time_scheme/midpoint/residues_profile.xml" />
+    <Include file="resources/Presets/cfd.xml" />
+    <Include file="resources/Presets/cfd/ideal_gas.xml" />
+    <Include file="resources/Presets/cfd/ideal_gas/time_scheme/midpoint.xml" />
+    <Include file="resources/Presets/basic/timing.report.xml" />
+    <Include file="resources/Presets/basic/performance.report.xml" />
+    <Include file="Settings.xml" />
+    <Include file="SPH.xml" />
+    <Include file="Time.xml" />
+    <Include file="Fluids.xml" />
+    <Include file="BC.xml" />
+</sphInput>

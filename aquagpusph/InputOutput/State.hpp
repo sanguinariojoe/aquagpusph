@@ -103,6 +103,25 @@ class DECLDIR State
 	void load(std::string input_file, ProblemSetup& sim_data);
 
   protected:
+	/** @brief Search for a file
+	 *
+	 * If the path is an absolute one, this function will only check that it
+	 * exists.
+	 * If it is a relative one, it will be searched on the following paths
+	 * (the first hit will be chosen):
+	 *
+	 *  - On the working directory, or cmd
+	 *  - On the ProblemSetup::sphSettings::base_path
+	 *  - On the currently parsed XML file path (see ::parse())
+	 *
+	 * @param path The path, that can be a relative or an absolute one
+	 * @param sim_data Simulation data
+	 * @return The absolute path
+	 * @throw std::filesystem::filesystem_error if the path cannot be found
+	 */
+	const std::string findPath(const std::string& path,
+	                           ProblemSetup& sim_data);
+
 	/** @brief Parse the XML file
 	 * @param filepath file to be parsed.
 	 * @param sim_data Simulation data
@@ -287,6 +306,8 @@ class DECLDIR State
   private:
 	/// Output file
 	std::string _output_file;
+	/// FILO stack of paths
+	std::vector<std::string> _xml_paths;
 }; // class InputOutput
 
 }

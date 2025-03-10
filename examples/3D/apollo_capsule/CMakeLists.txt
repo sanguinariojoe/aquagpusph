@@ -20,10 +20,6 @@ if(WIN32)
     add_dependencies(copy_apollo_capsule_sim_dll_to_example apollo_capsule_sim)
 endif()
 
-if(WIN32)
-    add_custom_target(copy_apollo_capsule_sim_dll_to_example_aux ALL)
-    add_custom_command(TARGET copy_apollo_capsule_sim_dll_to_example_aux POST_BUILD
-                       COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:apollo_capsule_sim> ${EXAMPLE_AUX_DIR}/${EXTTOOL_LIB_NAME}
-    )
-    add_dependencies(copy_apollo_capsule_sim_dll_to_example_aux apollo_capsule_sim)
-endif()
+install(TARGETS apollo_capsule_sim
+  LIBRARY DESTINATION ${EXAMPLE_INSTALL_DIR}
+)

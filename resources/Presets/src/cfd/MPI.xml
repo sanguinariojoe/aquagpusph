@@ -1,0 +1,90 @@
+<?xml version="1.0" ?>
+
+<!-- The MPI synchronization is divided in 2 stages:
+
+ - 1.- Localization: Exchage the particles that from now on shall be handled
+       by a different process, i.e. the particles crossing an inter-processes
+       boundary
+ - 2.- Feeding: Exchange the particles that are close enough to the boundary
+       so they need to be considered as neighbours by the local ones
+
+The first stage is blocking the computation, while the second one
+might be started, taking the information later to continue the
+computation.
+
+This module is just managing the synchronization. The user still need to add
+a module to set the mpi_local_mask and mpi_neigh_mask variables with the
+processors each particle shall be sent to (if any)
+
+Include this module after domain.xml
+
+TODO: On the semi-implicit schemes, the position is actually constant, so there
+      is no need to sync the position and carry out the link-list at each
+      subiteration.
+WARNING: All the processes are considering now the same domain_min and
+         domain_max. Thus, it may happens that some processes have a lot of
+         cells. Can we figure out something better?
+-->
+
+<sphInput>
+	<Variables>
+		<!-- The masks to let know AQUAgpusph where each particle shall be sent
+		     to -->
+		<Variable length="n_radix" name="mpi_local_mask" symbol="i_{mpi}" type="size_t*"/>
+		<Variable length="n_radix" name="mpi_neigh_mask" symbol="j_{mpi}" type="size_t*"/>
+		<!-- Link-list data for the neighbour particles -->
+		<Variable length="n_radix" name="mpi_icell" symbol="cell_{mpi}" type="size_t*"/>
+		<Variable length="n_radix" name="mpi_ihoc" symbol="hoc_{mpi}" type="size_t*"/>
+		<Variable length="n_radix" name="mpi_id_sorted" symbol="i_{mpi,sorted}" type="size_t*"/>
+		<Variable length="n_radix" name="mpi_id_unsorted" symbol="i_{mpi,unsorted}" type="size_t*"/>
+		<!-- MPI fields -->
+		<Variable length="n_radix" name="mpi_iset" symbol="\boldsymbol{set}_{mpi}" type="unsigned int*"/>
+		<Variable length="n_radix" name="mpi_r" symbol="\boldsymbol{r}_{mpi}" type="vec*"/>
+		<Variable length="n_radix" name="mpi_u" symbol="\boldsymbol{u}_{mpi}" type="vec*"/>
+		<Variable length="n_radix" name="mpi_dudt" symbol="\frac{d\boldsymbol{u}_{mpi}}{d t}" type="vec*"/>
+		<Variable length="n_radix" name="mpi_rho" symbol="\rho_{mpi}" type="float*"/>
+		<Variable length="n_radix" name="mpi_drhodt" symbol="\frac{d\rho_{mpi}}{d t}" type="float*"/>
+		<Variable length="n_radix" name="mpi_m" symbol="m_{mpi}" type="float*"/>
+		<Variable length="n_radix" name="mpi_p" symbol="p_{mpi}" type="float*"/>
+		<!-- MPI field backup to sort the neighs -->
+		<Variable length="n_radix" name="mpi_iset_in" symbol="\boldsymbol{set}_{mpi,in}" type="unsigned int*"/>
+		<Variable length="n_radix" name="mpi_r_in" symbol="\boldsymbol{r}_{mpi,in}" type="vec*"/>
+		<Variable length="n_radix" name="mpi_u_in" symbol="\boldsymbol{u}_{mpi,in}" type="vec*"/>
+		<Variable length="n_radix" name="mpi_dudt_in" symbol="\frac{d\boldsymbol{u}_{mpi,in}}{d t}" type="vec*"/>
+		<Variable length="n_radix" name="mpi_rho_in" symbol="\rho_{mpi}" type="float*"/>
+		<Variable length="n_radix" name="mpi_drhodt_in" symbol="\frac{d\rho_{mpi,in}}{d t}" type="float*"/>
+		<Variable length="n_radix" name="mpi_m_in" symbol="m_{mpi,in}" type="float*"/>
+	</Variables>
+
+	<Tools>
+		<!-- Local particles exchange
+		     ========================
+		-->
+		<Tool action="insert" before="predictor"        name="Set buffer"            type="dummy" />
+		<Tool action="insert" after="Set buffer"        name="MPI"                   type="dummy"/>
+		<Tool action="insert" before="MPI"              name="mpi local mask reset"  type="set"      in="mpi_local_mask" value="mpi_rank"/>
+		<Tool action="insert" before="MPI"              name="mpi neighs mask reset" type="set"      in="mpi_neigh_mask" value="mpi_rank"/>
+		<Tool action="insert" before="MPI"              name="mpi copy"              type="kernel"   entry_point="copy" path="resources/Scripts/cfd/MPI.cl"/>
+		<Tool action="insert" before="MPI"              name="mpi local sync"        type="mpi-sync" fields="mpi_iset,mpi_r,mpi_u,mpi_dudt,mpi_rho,mpi_drhodt,mpi_m" mask="mpi_local_mask" />
+		<Tool action="insert" before="MPI"              name="mpi append"            type="kernel"   entry_point="append" path="resources/Scripts/cfd/MPI.cl"/>
+		<Tool action="insert" before="MPI"              name="mpi remove"            type="kernel"   entry_point="remove" path="resources/Scripts/cfd/MPI.cl"/>
+
+		<!-- Neighbours exchange
+		     ===================
+		-->
+		<Tool action="insert" before="cfd Reinit lap_u" name="mpi neighs copy"       type="kernel"   entry_point="copy" path="resources/Scripts/cfd/MPI.cl"/>
+		<Tool action="insert" after="mpi neighs copy"   name="mpi neighs sync"       type="mpi-sync" fields="mpi_iset,mpi_r,mpi_u,mpi_rho,mpi_m" mask="mpi_neigh_mask" />
+		<Tool action="insert" after="cfd interactions"  name="mpi backup r"          type="kernel"   entry_point="backup_r" path="resources/Scripts/cfd/MPI.cl" n="n_radix" />
+		<Tool action="insert" after="mpi backup r"      name="mpi backup iset"       type="copy"     in="mpi_iset" out="mpi_iset_in" />
+		<Tool action="insert" after="mpi backup iset"   name="mpi backup u"          type="copy"     in="mpi_u" out="mpi_u_in" />
+		<Tool action="insert" after="mpi backup u"      name="mpi backup rho"        type="copy"     in="mpi_rho" out="mpi_rho_in" />
+		<Tool action="insert" after="mpi backup rho"    name="mpi backup m"          type="copy"     in="mpi_m" out="mpi_m_in" />
+		<Tool action="insert" after="mpi backup m"      name="mpi link-list"         type="link-list" icell="mpi_icell" ihoc="mpi_ihoc" in="mpi_r_in" max="r_max" min="r_min" n_cells="n_cells" recompute_grid="false" perm="mpi_id_unsorted" inv_perm="mpi_id_sorted" />
+		<Tool action="insert" after="mpi link-list"     name="mpi sort"              type="kernel"   entry_point="sort" path="resources/Scripts/cfd/MPI.cl" />
+		<Tool action="insert" after="mpi sort"          name="mpi eos"               type="kernel"   entry_point="eos" path="resources/Scripts/cfd/MPI.cl" />
+		<Tool action="insert" after="mpi eos"           name="mpi shepard"           type="kernel"   entry_point="gamma" path="resources/Scripts/cfd/MPI.cl" />
+		<Tool action="insert" after="mpi eos"           name="mpi interactions"      type="kernel"   entry_point="interactions" path="resources/Scripts/cfd/MPI.cl" />
+	</Tools>
+
+	<Include file="../basic/setBuffer.xml" when="end"/>
+</sphInput>

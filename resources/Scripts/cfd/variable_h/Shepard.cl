@@ -33,4 +33,4 @@
  * @}
  */
 
-#include "../../basic/variable_h/Shepard.cl"
+#include "resources/Scripts/basic/variable_h/Shepard.cl"

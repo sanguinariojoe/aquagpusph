@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+
+<!-- This preset replaces the time integration scheme by a 1st order
+    semi-implicit Euler scheme.
+
+    To use this module, just simply include it any time after cfd/ideal_gas.xml
+    and basic/time_scheme/midpoint.xml
+-->
+
+<sphInput>
+    <Tools>
+        <Tool action="replace" name="predictor ideal gas" type="kernel" entry_point="predictor" path="../../../../Scripts/cfd/ideal_gas/time_scheme/midpoint.cl"/>
+        <Tool action="replace" name="corrector ideal gas" type="kernel" entry_point="corrector" path="../../../../Scripts/cfd/ideal_gas/time_scheme/midpoint.cl"/>
+        <Tool action="replace" name="midpoint eos" type="kernel" entry_point="entry" path="../../../../Scripts/cfd/ideal_gas/EOS.cl" />
+        <!-- Initialize some variables before the loop -->
+        <Tool action="insert" before="midpoint loop" name="midpoint init deintdt" type="copy" in="deintdt_in" out="deintdt" />
+        <Tool action="insert" before="midpoint loop" name="midpoint backup eint" type="copy" in="eint" out="eint_in" />
+        <Tool action="insert" after="midpoint loop" name="midpoint backup deintdt" type="copy" in="deintdt" out="deintdt_in" />
+        <!-- Advance to the midpoint -->
+        <Tool action="insert" after="midpoint advance" name="midpoint advance ideal gas" type="kernel" entry_point="midpoint" path="../../../../Scripts/cfd/ideal_gas/time_scheme/midpoint.cl" />
+        <!-- Relax the output -->
+        <Tool action="insert" after="midpoint relax" name="midpoint relax ideal gas" type="kernel" entry_point="relax" path="../../../../Scripts/cfd/ideal_gas/time_scheme/midpoint.cl" />
+    </Tools>
+</sphInput>

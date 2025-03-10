@@ -1,0 +1,38 @@
+<?xml version="1.0" ?>
+<!--
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
+
+Another QUAlity GPU-SPH, by CEHINAV.
+    http://canal.etsin.upm.es/
+Authors:
+    Jose Luis Cercos-Pita
+    Leo Miguel Gonzalez
+    Antonio Souto-Iglesias
+-->
+
+<sphInput>
+    <Include file="resources/Presets/cfd/motion.xml" />
+
+    <Variables>
+        <Variable name="motion_r" type="vec" value="0.0, 0.0, {{COGZ}}, 0.0" />
+        <Variable name="motion_drdt" type="vec" value="0.0, 0.0, -{{VEL}}, 0.0" />
+        <Variable name="motion_ddrddt" type="vec" value="0.0, 0.0, -{{G}}, 0.0" />
+        <Variable name="motion_a" type="vec4" value="0.0, {{PITCH}} * _pi / 180.0, 0.0, 0.0" />
+        <Variable name="motion_dadt" type="vec4" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="motion_ddaddt" type="vec4" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="motion_iset" type="unsigned int" value="0" />
+    </Variables>
+
+    <Tools>
+        <Tool action="replace" name="cfd motion data" type="installable" path="{{EXTTOOL_LIB_PATH}}"/>
+        <Tool action="insert" after="cfd motion data,iset1_cfd motion data" name="Motion screen report" type="report_screen" fields="t,motion_r,motion_drdt,motion_ddrddt,motion_a,motion_dadt,motion_ddaddt"/>
+        <Tool action="insert" after="cfd motion data,iset1_cfd motion data" name="Motion file report" type="report_file" fields="t,motion_r,motion_drdt,motion_ddrddt,motion_a,motion_dadt,motion_ddaddt"  path="motion.out"/>
+    </Tools>
+</sphInput>
