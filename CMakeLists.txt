@@ -340,7 +340,7 @@ include(InstallRequiredSystemLibraries)
 if(WIN32)
     file(GLOB_RECURSE FNAMES RELATIVE ${AQUAGPUSPH_VENDOR_DLLS_FOLDER} "${AQUAGPUSPH_VENDOR_DLLS_FOLDER}/*.dll")
     foreach(FNAME ${FNAMES})
-        install(FILES ${AQUAGPUSPH_VENDOR_DLLS_FOLDER}/${FNAME} DESTINATION bin)
+        install(FILES ${AQUAGPUSPH_VENDOR_DLLS_FOLDER}/${FNAME} DESTINATION ${CMAKE_INSTALL_BINDIR})
     endforeach()
 endif()
 
@@ -359,6 +359,22 @@ if(WIN32)
     set(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\canal.etsin.upm.es/aquagpusph/")
     set(CPACK_NSIS_CONTACT "jlcercos@gmail.com")
     set(CPACK_NSIS_MODIFY_PATH ON)
+    file(DOWNLOAD
+        https://www.python.org/ftp/python/${Python_VERSION}/python-${Python_VERSION}-amd64.exe
+        ${CMAKE_CURRENT_BINARY_DIR}/python-amd64.exe
+        SHOW_PROGRESS
+    )
+    install(
+        FILES
+            ${CMAKE_CURRENT_BINARY_DIR}/python-amd64.exe
+        DESTINATION
+            ${CMAKE_INSTALL_BINDIR}
+    )
+    list(APPEND CPACK_NSIS_EXTRA_INSTALL_COMMANDS "  MessageBox MB_YESNO 'Install Python ${Python_VERSION}?' /SD IDYES IDNO endInstallPython")
+    list(APPEND CPACK_NSIS_EXTRA_INSTALL_COMMANDS "    ExecWait '\\\$INSTDIR\\\\bin\\\\python-amd64.exe'")
+    list(APPEND CPACK_NSIS_EXTRA_INSTALL_COMMANDS "    ExecWait 'py -${Python_VERSION_MAJOR}.${Python_VERSION_MINOR} -m pip install --upgrade numpy'")
+    list(APPEND CPACK_NSIS_EXTRA_INSTALL_COMMANDS "  endInstallPython:")
+    string (REPLACE ";" "\n" CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}")
 elseif(UNIX)
     set(CPACK_GENERATOR "STGZ")
     set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Redistributable package")
