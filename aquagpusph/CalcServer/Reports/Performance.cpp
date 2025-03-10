@@ -126,14 +126,14 @@ Performance::print()
 	float progress = 0.f;
 	float t = *(float*)vars->get("t")->get_async();
 	float end_t = *(float*)vars->get("end_t")->get_async();
-	progress = max(progress, t / end_t);
+	progress = (std::max)(progress, t / end_t);
 	unsigned int iter = *(unsigned int*)vars->get("iter")->get_async();
 	unsigned int end_iter = *(unsigned int*)vars->get("end_iter")->get_async();
-	progress = max(progress, (float)iter / end_iter);
+	progress = (std::max)(progress, (float)iter / end_iter);
 	unsigned int frame = *(unsigned int*)vars->get("frame")->get_async();
 	unsigned int end_frame =
 	    *(unsigned int*)vars->get("end_frame")->get_async();
-	progress = max(progress, (float)frame / end_frame);
+	progress = (std::max)(progress, (float)frame / end_frame);
 
 	// And the estimated time to arrive
 	float total_elapsed = elapsed * used_times();

@@ -836,7 +836,8 @@ RadixSort::setupDims()
 	    err_code,
 	    std::string("Failure getting CL_KERNEL_WORK_GROUP_SIZE from ") +
 	        "\"paste\" in tool " + name() + "\".");
-	max_local_work_size = min(max_local_work_size, scan_local_work_size);
+	max_local_work_size = (std::min)(max_local_work_size,
+	                                 scan_local_work_size);
 	while (max_local_work_size < _radix * _groups * _items / 2 / _histo_split) {
 		// We can't increase _histo_split, so we may start decreasing the number
 		// of items
@@ -1016,7 +1017,7 @@ RadixSort::setupTypedArgs()
 	        name() + "\".");
 
 	unsigned int maxmemcache =
-	    max(_histo_split, _items * _groups * _radix / _histo_split);
+	    (std::max)(_histo_split, _items * _groups * _radix / _histo_split);
 	err_code =
 	    clSetKernelArg(_scan_kernel, 1, sizeof(T) * maxmemcache, NULL);
 	CHECK_OCL_OR_THROW(

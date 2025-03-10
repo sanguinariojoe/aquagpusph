@@ -389,32 +389,6 @@ getLocalWorkSize(cl_command_queue queue);
 size_t
 getGlobalWorkSize(size_t n, size_t local_work_size);
 
-/// Gets the minimum of two values.
-/**
- * @param a First value.
- * @param b Second value.
- * @return Minimum value.
- */
-template<typename T>
-inline T
-min(T a, T b)
-{
-	return (a > b) ? b : a;
-}
-
-/// Gets the maximum of two values.
-/**
- * @param a First value.
- * @param b Second value.
- * @return Maximum value.
- */
-template<typename T>
-inline T
-max(T a, T b)
-{
-	return (a < b) ? b : a;
-}
-
 /// Clamps a value between the bounds.
 /**
  * @param x Value to adjust into the bounds.
