@@ -245,7 +245,7 @@ State::findPath(const std::string& filepath, ProblemSetup& sim_data)
 	if (std::filesystem::exists(fp)) {
 		return std::filesystem::canonical(fp).string();
 	}
-	candidates.push_back(std::filesystem::current_path() / fp.string());
+	candidates.push_back((std::filesystem::current_path() / fp).string());
 	if (fp.is_relative()) {
 		if (sim_data.settings.base_path != "") {
 			auto f =
