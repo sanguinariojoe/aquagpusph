@@ -83,7 +83,12 @@ install(TARGETS ${LibName}
 # program compilation                                   #
 # ===================================================== #
 set(AppName AQUAgpusph)
-add_executable(${AppName} main.cpp)
+
+set(EXE_SRCS main.cpp)
+if(WIN32)
+    list(APPEND EXE_SRCS main.rc)
+endif()
+add_executable(${AppName} ${EXE_SRCS})
 target_link_libraries(${AppName} ${LibName} ${DEP_LIBS})
 
 install(TARGETS ${AppName}
