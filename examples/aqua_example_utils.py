@@ -32,7 +32,7 @@ def configure(replacements, in_path, out_path="./"):
     if "AQUAGPUSPH_EXE" not in replacements.keys():
         replacements["AQUAGPUSPH_EXE"] = find_aquagpusph_exe()
     for (in_dir, _, fnames) in os.walk(in_path):
-        out_dir = os.path.join(out_path, in_dir.replace(in_path, ""))
+        out_dir = os.path.join(out_path, os.path.relpath(in_dir, in_path))
         for fname in fnames:
             with open(os.path.join(in_dir, fname), "r") as fin, \
                  open(os.path.join(out_dir, fname), "w") as fout:
