@@ -271,7 +271,7 @@ jobs:
           mkdir -p ${{github.workspace}}/install
 
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/install -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DCMAKE_PREFIX_PATH=${{github.workspace}}/vendor/ -DXXD_BIN_ROOT=${{github.workspace}}/vim/vim${{env.VIM_VERSION_MAJOR}}${{env.VIM_VERSION_MINOR}} -DAQUAGPUSPH_USE_MPI:BOOL=OFF -DAQUAGPUSPH_USE_VTK=ON -DVTK_DIR=${{github.workspace}}/vtk/lib/cmake/vtk-${{env.VTK_VERSION_MAJOR}}.${{env.VTK_VERSION_MINOR}}/ -DAQUAGPUSPH_BUILD_TOOLS=OFF -DAQUAGPUSPH_CHRONO_EXAMPLES=OFF -DBUILD_TESTING=ON -DAQUAGPUSPH_VENDOR_DLLS_FOLDER=${{github.workspace}}/vendor/bin/
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/install -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DCMAKE_PREFIX_PATH=${{github.workspace}}/vendor/ -DXXD_BIN_ROOT=${{github.workspace}}/vim/vim${{env.VIM_VERSION_MAJOR}}${{env.VIM_VERSION_MINOR}} -DAQUAGPUSPH_USE_MPI:BOOL=OFF -DAQUAGPUSPH_USE_VTK=ON -DVTK_DIR=${{github.workspace}}/vtk/lib/cmake/vtk-${{env.VTK_VERSION_MAJOR}}.${{env.VTK_VERSION_MINOR}}/ -DAQUAGPUSPH_CHRONO_EXAMPLES=OFF -DBUILD_TESTING=ON -DAQUAGPUSPH_VENDOR_DLLS_FOLDER=${{github.workspace}}/vendor/bin/
 
     - name: Build
       id: build
