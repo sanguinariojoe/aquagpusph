@@ -104,7 +104,7 @@ install(
     sphPrerequisites.hpp
     TimeManager.hpp
     Variable.hpp
-    ${CMAKE_BINARY_DIR}/config.h
+    ${CMAKE_BINARY_DIR}/aquagpusph/config.h
   DESTINATION
     include/aquagpusph
 )

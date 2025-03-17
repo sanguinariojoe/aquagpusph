@@ -1,5 +1,5 @@
-#ifndef CLANG_CONFIG_H
-#define CLANG_CONFIG_H
+#ifndef AQUAGPUSPH_CONFIG_H
+#define AQUAGPUSPH_CONFIG_H
 
 /* Name of package */
 #define PACKAGE "AQUAgpusph"

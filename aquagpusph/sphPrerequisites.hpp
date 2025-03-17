@@ -41,7 +41,7 @@
 #include <string>
 
 // CMake configuration file
-#include <config.h>
+#include "aquagpusph/config.h"
 
 #if __APPLE__
 #include <OpenCL/cl.h>
