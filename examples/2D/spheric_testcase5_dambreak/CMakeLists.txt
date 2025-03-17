@@ -1,1 +1,1 @@
-include(${CMAKE_MODULE_PATH}/example.cmake)
+include(${AQUAGPUSPH_CMAKE_MODULE_PATH}/example.cmake)
