@@ -1,22 +1,42 @@
-##  (2025-01-21)
+## [5.0.0](https://gitlab.com/sanguinariojoe/aquagpusph/compare/v4.1.2...v5.0.0) (2025-03-10)
+
+### ⚠ BREAKING CHANGES
+
+* **build:** Windows installer crafting
+* **scripts:** Path-agnostic resources
 
 ### Features
 
 * Add logging levels control ([a596a0a](https://gitlab.com/sanguinariojoe/aquagpusph/commit/a596a0ad214aadedafe43bd881fcae0e76bab769))
+* **build:** Windows installer crafting ([e9d1b57](https://gitlab.com/sanguinariojoe/aquagpusph/commit/e9d1b57b75afe7416f8b117c6ffba1402d62d32a))
+* **ci:** Create automatic release with the sources and the Windows installer ([771b5cf](https://gitlab.com/sanguinariojoe/aquagpusph/commit/771b5cf1ebc5875226ae1f5f58d4f8a23c0fe9b9))
 * **core:** Added the possibility to set custom compilation flags for the OpenCL kernels ([6d66481](https://gitlab.com/sanguinariojoe/aquagpusph/commit/6d664817434bc963681fc07179a8106210d5b416))
+* **core:** Windows executable icon ([fa33d5e](https://gitlab.com/sanguinariojoe/aquagpusph/commit/fa33d5e746df4f948bd8edf85ad921c4bea65909))
+* **examples:** 1D Sod shock ([b377586](https://gitlab.com/sanguinariojoe/aquagpusph/commit/b377586598a1104cc27366f577c5d7d945973f58))
+* **examples:** Midpoint and Riemann on the shocks ([ca30372](https://gitlab.com/sanguinariojoe/aquagpusph/commit/ca30372a4d2e9236816b1d88feb417939d1e4ffb))
+* **install:** Offer the possibility to auto-install the required Python version on Windows ([37d72a2](https://gitlab.com/sanguinariojoe/aquagpusph/commit/37d72a296d43434b98b02da5dce3c2a06113210a))
 * **scripts:** Added energy state variables ([9405b16](https://gitlab.com/sanguinariojoe/aquagpusph/commit/9405b16fa1eb71d8b767247b2a6fa43cfef25bff))
 * **scripts:** Added the shepard factor computation to MPI ([2f4c155](https://gitlab.com/sanguinariojoe/aquagpusph/commit/2f4c1555bc32d1769171fc9682f83c54277ef4c4))
+* **scripts:** Ideal gases EOS ([4dd230c](https://gitlab.com/sanguinariojoe/aquagpusph/commit/4dd230cb4ae82638fa07650d4e3abbdde94f2fde))
+* **scripts:** Path-agnostic resources ([8d4a1ea](https://gitlab.com/sanguinariojoe/aquagpusph/commit/8d4a1ea755b611757a13781c99d21e1a72bb16cb))
+* **scripts:** Riemann solver for ideal gases ([ef7e094](https://gitlab.com/sanguinariojoe/aquagpusph/commit/ef7e0949f5f72948f9e68ce6cc704815e38d5f5e))
+* **scripts:** Symmetry planes are now compatible with the midpoint scheme ([f76fd9a](https://gitlab.com/sanguinariojoe/aquagpusph/commit/f76fd9a67fe00b56303a92d9453d2a91796c2dbd))
+* **scripts:** Symmetry planes for ideal gases ([28addbf](https://gitlab.com/sanguinariojoe/aquagpusph/commit/28addbfdb7fc2056ecd8ab7c32b07c47d6000fce))
 
 ### Bug Fixes
 
 * Added the possibility to select the sorter ([2497882](https://gitlab.com/sanguinariojoe/aquagpusph/commit/2497882ebd4d0ba2fe7ec736b497d5f367f47ac1))
 * Be a bit more eager at the time of flushing the command queues ([507f11e](https://gitlab.com/sanguinariojoe/aquagpusph/commit/507f11e5703f5b1284206bc480e4759c04502226))
 * **build:** Added compatibility with VTK<9.4 ([263f343](https://gitlab.com/sanguinariojoe/aquagpusph/commit/263f34372f708232773ef7e618c33ee19b8b7716))
+* **build:** Drop Visual Studio auxiliar files ([b3a42e9](https://gitlab.com/sanguinariojoe/aquagpusph/commit/b3a42e9b9e33152b6b7aa908abc542b6128be39a))
 * **build:** Non-normalized paths ([e10b8e1](https://gitlab.com/sanguinariojoe/aquagpusph/commit/e10b8e103e781c6a42b4c76e00e6f4e3eff12e00))
 * **builds:** Use externally provided NLOHMANN JSON ([99f1484](https://gitlab.com/sanguinariojoe/aquagpusph/commit/99f148498525ce671ecff01b08972e76bd4b7dda))
+* **ci:** Drop the windows branch from the autobuilds ([5bbb38e](https://gitlab.com/sanguinariojoe/aquagpusph/commit/5bbb38e13356d6d472fe717538e3e1880b6086a8))
 * **core:** A marker was working around the nvidia patch 4665567 ([d3fe08c](https://gitlab.com/sanguinariojoe/aquagpusph/commit/d3fe08c01ca1effbba68826a7f93eeac03d8f1fa))
 * **core:** Close the file read file ([51f43d3](https://gitlab.com/sanguinariojoe/aquagpusph/commit/51f43d32e8c65db7f895bf533493b368b7ab14fc))
+* **core:** Convert to string after assembling the path ([90c64a4](https://gitlab.com/sanguinariojoe/aquagpusph/commit/90c64a45b6f86ddc5049906d99feb46f503f7477))
 * **core:** Disable the relaxed math by default ([abb2dad](https://gitlab.com/sanguinariojoe/aquagpusph/commit/abb2dadc17c350dc9a99b74fae93b77710e85f17))
+* **core:** Make the singletons thread-safe ([4b38fea](https://gitlab.com/sanguinariojoe/aquagpusph/commit/4b38feab7d6fd6b2e6212c08f6e3ef2939fcbcdb))
 * **core:** Memory leak on the kernel arguments set ([6f8f48e](https://gitlab.com/sanguinariojoe/aquagpusph/commit/6f8f48e5ac386a00e10a9467556250600cc6223d))
 * **core:** Patches shall be correctly named ([0b52806](https://gitlab.com/sanguinariojoe/aquagpusph/commit/0b52806458205eb12d747037079ced91e29f4339))
 * **core:** Race condition that would make an event become released twice ([b64fb19](https://gitlab.com/sanguinariojoe/aquagpusph/commit/b64fb19badb43dd5e079d5f0e6d4794e8b3f8736))
@@ -29,15 +49,25 @@
 * **core:** The arguments setter was never released ([7b62ed3](https://gitlab.com/sanguinariojoe/aquagpusph/commit/7b62ed3560393d383b04554c504ecc7a20c90384))
 * **core:** The linklist do not need padded variables anymore ([1039627](https://gitlab.com/sanguinariojoe/aquagpusph/commit/1039627d5fd58b3a49f0b71a1225861695844c49))
 * **core:** Unfreed memory during the initialization ([5628138](https://gitlab.com/sanguinariojoe/aquagpusph/commit/56281386e7c56053c4f22603f8212f4de52bd0ea))
+* **core:** Use std::min and std::max ([10b0716](https://gitlab.com/sanguinariojoe/aquagpusph/commit/10b071605208af87b4712fed72525ed1550ebfd2))
+* **core:** Wrong attribute name ([3676ee3](https://gitlab.com/sanguinariojoe/aquagpusph/commit/3676ee3ad1621c9d3145b0068126e8021a971ec8))
 * Error assembling Numpy arrays from the OpenCL vectorial types ([90673ad](https://gitlab.com/sanguinariojoe/aquagpusph/commit/90673add391905c1f1e0f5e52221fb116bf043ab))
+* **exampels:** Clean Visual Studio stuff ([844f9f6](https://gitlab.com/sanguinariojoe/aquagpusph/commit/844f9f6d54fa7f3121f824ce9de08db413e8dcce))
 * **exampes:** fixed column number in plot utility ([f312eb2](https://gitlab.com/sanguinariojoe/aquagpusph/commit/f312eb2c2061ff4204d8f82428bb496ad276c908))
 * **exampes:** Rebranded the apollo capsule example ([8649b2c](https://gitlab.com/sanguinariojoe/aquagpusph/commit/8649b2c8320f97cd6055619d44dd4d4392fe28fd))
 * **examples:** Angular acceleration reference was wrong ([1ae45e1](https://gitlab.com/sanguinariojoe/aquagpusph/commit/1ae45e183313077273af8fd5b8e16d60e4241a9c))
+* **examples:** Clean up the new examples ([ba187d4](https://gitlab.com/sanguinariojoe/aquagpusph/commit/ba187d4047d63f01aed2472f5276ecacab056c7a))
 * **examples:** Do not try to read the old validation data ([540a3f0](https://gitlab.com/sanguinariojoe/aquagpusph/commit/540a3f0c38e5ddeb039c4d629e09295ddc0b060f))
 * **examples:** Drop the unused delta-SPH from the Apollo example ([e49ba52](https://gitlab.com/sanguinariojoe/aquagpusph/commit/e49ba524c10fa7387b7b3fb844408804edfcbf6e))
+* **examples:** Fixed the plotting tools on spheric_testcase6_movingsquare ([e10d89a](https://gitlab.com/sanguinariojoe/aquagpusph/commit/e10d89ae04fb8f7332deef09abd516b3f1038307))
+* **examples:** Fixed the Shock point with Riemann solvers ([bd7badb](https://gitlab.com/sanguinariojoe/aquagpusph/commit/bd7badb4938dbc7158c629f10fdb0df705ec1220))
 * **examples:** Increase the time step ([3b93c19](https://gitlab.com/sanguinariojoe/aquagpusph/commit/3b93c19a0f909f70a86962c0410b46f6498a2b99))
 * **examples:** Parameters tweak ([5a0e6aa](https://gitlab.com/sanguinariojoe/aquagpusph/commit/5a0e6aac3c0b6409eca7afd4bd8be66d214a5424))
 * **examples:** Paraview helper update ([be5bf7c](https://gitlab.com/sanguinariojoe/aquagpusph/commit/be5bf7c1058c46a526803560cf99243e5334f4d7))
+* **examples:** Plotters on all examples ([e7be67c](https://gitlab.com/sanguinariojoe/aquagpusph/commit/e7be67c98af249e11c1e3281061e198cd40f20a0))
+* **examples:** Remove the autogenerated initial condition ([4ed3321](https://gitlab.com/sanguinariojoe/aquagpusph/commit/4ed3321d1fac8de94b7908dbc8e081c730274162))
+* **examples:** Removed the outdated shock chamber ([4d6bdac](https://gitlab.com/sanguinariojoe/aquagpusph/commit/4d6bdaca7618dbfb51c392c99c3f28fe0a399701))
+* **examples:** Renamed the Shock point examples ([79eb016](https://gitlab.com/sanguinariojoe/aquagpusph/commit/79eb016e02a6034715619436c53d0f9a089cfb37))
 * **examples:** Simplified the case generation ([f8cb49c](https://gitlab.com/sanguinariojoe/aquagpusph/commit/f8cb49cd727fb682cbfff7f5a3bfcfd864bd1f16))
 * **examples:** Spacecraft example candidate ([3345eaa](https://gitlab.com/sanguinariojoe/aquagpusph/commit/3345eaaa7edbe8f535b3133a04cf5039a48ac03e))
 * **examples:** Spacecraft example paraview helper ([54a8cda](https://gitlab.com/sanguinariojoe/aquagpusph/commit/54a8cdabbab646d3ba840e12a67f14dea05aae54))
@@ -49,14 +79,18 @@
 * Never-ending sending tasks where there is nothing to send ([82d063a](https://gitlab.com/sanguinariojoe/aquagpusph/commit/82d063a2d7a870eec1b8fcafe1293cb49c02ba27))
 * **scripts:** Add a module for disabling the Elastic Bounce on BIe ([3862c63](https://gitlab.com/sanguinariojoe/aquagpusph/commit/3862c63d3a654fd294cdcc7b29e1a23442ca19bb))
 * **scripts:** Backup the pressure after computing it ([c2c0532](https://gitlab.com/sanguinariojoe/aquagpusph/commit/c2c05325d577ffa919b814bc4a4438b3fc24d6db))
+* **scripts:** basic_energy is not used ([55ab030](https://gitlab.com/sanguinariojoe/aquagpusph/commit/55ab030e86b10275211d0086f21d189bebe796af))
 * **scripts:** Cancel also the moment for non-boundary elements ([e80ec9b](https://gitlab.com/sanguinariojoe/aquagpusph/commit/e80ec9b28091ef64c8e0028c59b98ad635adbb8d))
 * **scripts:** Different radius shall be considered at each stage ([933a76b](https://gitlab.com/sanguinariojoe/aquagpusph/commit/933a76bb428dc84756308d17fb4c39ed59f78c98))
 * **scripts:** Discard particles with NaNs or Infs ([5a2c4eb](https://gitlab.com/sanguinariojoe/aquagpusph/commit/5a2c4ebabd0ca5ea64aced6d44dd144c69687695))
 * **scripts:** elastic force totally re-written ([2cde656](https://gitlab.com/sanguinariojoe/aquagpusph/commit/2cde656ada3fd2fd95c12dc72bbcee25e2f3f142))
 * **scripts:** fixed factor of 2 ([c558418](https://gitlab.com/sanguinariojoe/aquagpusph/commit/c558418d7070dee41abd540eb434f624f66f9934))
 * **scripts:** Invalid use of the private memory ([0bfd064](https://gitlab.com/sanguinariojoe/aquagpusph/commit/0bfd064ed12bd54a10f9fcf338deb1eed7de49ff))
+* **scripts:** It is not required to set the resources path anymore ([e071087](https://gitlab.com/sanguinariojoe/aquagpusph/commit/e071087f73914857c8d0735ef7dfa77c35403a2c))
 * **scripts:** No need to load buffer tools on the MPI planes preset ([2e675a1](https://gitlab.com/sanguinariojoe/aquagpusph/commit/2e675a1c945bbdb2c8f09704e4c3117afc8f7a26))
 * **scripts:** Rename the detection tool so it is marked by the cfd symmetry init* wildcard ([0438345](https://gitlab.com/sanguinariojoe/aquagpusph/commit/0438345489644a31caddfcf0c0da1ab99c676305))
+* **scripts:** Set visc_dyn just once ([d55b47d](https://gitlab.com/sanguinariojoe/aquagpusph/commit/d55b47dd5b63b41cd4a288cbb91b99e520cb3b8c))
+* **scripts:** The Riemann solver was replacing the wrong interactions tool ([d976731](https://gitlab.com/sanguinariojoe/aquagpusph/commit/d97673157278b4da67940349c6b125da372ae1d5))
 * **scripts:** Typo ([9bee8c8](https://gitlab.com/sanguinariojoe/aquagpusph/commit/9bee8c8c9209291c426c278eb9f23c9b1cacf8e8))
 * **scripts:** Unused parameter ([152f057](https://gitlab.com/sanguinariojoe/aquagpusph/commit/152f0577286b1f98932e97026ee274954f40e1b2))
 * **scripts:** Use the final velocity to compute the mirroring ([23a9f11](https://gitlab.com/sanguinariojoe/aquagpusph/commit/23a9f1190bdee65b930a036d411d8d4c627fba70))
@@ -67,3 +101,14 @@
 * **tools:** Drop the pvd-locale tool ([a53d348](https://gitlab.com/sanguinariojoe/aquagpusph/commit/a53d3489d6b912a9d3d71b7e1e947e92945d8d93))
 * **tools:** pvd-locale from stable branch added ([37e4275](https://gitlab.com/sanguinariojoe/aquagpusph/commit/37e4275dea5cfe0b0f15978084149f1d860627e7))
 * Upgraded the 2D TLD example ([856d5f7](https://gitlab.com/sanguinariojoe/aquagpusph/commit/856d5f7fe4ed0acaddc0ebc54f7d5a0d9a80bf60))
+## [5.0.1](https://gitlab.com/sanguinariojoe/aquagpusph/compare/v5.0.0...v5.0.1) (2025-03-17)
+
+### Bug Fixes
+
+* **build:** Drop the outdated tools ([0f17f0f](https://gitlab.com/sanguinariojoe/aquagpusph/commit/0f17f0f3c0d3dc14814358b1a61ac6494caaa09e))
+* **examples:** The helper should work fine with subfolders ([33ab51d](https://gitlab.com/sanguinariojoe/aquagpusph/commit/33ab51d9aea342c97afdf5f8e93c767cc458dae5))
+## [5.0.2](https://gitlab.com/sanguinariojoe/aquagpusph/compare/v5.0.1...v) (2025-03-17)
+
+### Bug Fixes
+
+* **build:** Correct usage of CMAKE_MODULE_PATH ([7e9613f](https://gitlab.com/sanguinariojoe/aquagpusph/commit/7e9613f414a8b6a487834a81a6ef084aea9ac600))
