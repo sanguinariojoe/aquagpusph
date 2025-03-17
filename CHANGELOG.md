@@ -112,3 +112,8 @@
 ### Bug Fixes
 
 * **build:** Correct usage of CMAKE_MODULE_PATH ([7e9613f](https://gitlab.com/sanguinariojoe/aquagpusph/commit/7e9613f414a8b6a487834a81a6ef084aea9ac600))
+## [5.0.3](https://gitlab.com/sanguinariojoe/aquagpusph/compare/v5.0.2...v) (2025-03-17)
+
+### Bug Fixes
+
+* **core:** Installing config.h file ([c5f6fc9](https://gitlab.com/sanguinariojoe/aquagpusph/commit/c5f6fc98cb0d9bb2a742a743e7a0f6def40e1d77))
