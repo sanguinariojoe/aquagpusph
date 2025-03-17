@@ -55,7 +55,7 @@ project(AQUAgpusph)
 set(PACKAGE_NAME "AQUAgpusph")
 set(PACKAGE_VERSION_MAJOR 5)
 set(PACKAGE_VERSION_MINOR 0)
-set(PACKAGE_VERSION_PATCH 3)
+set(PACKAGE_VERSION_PATCH 4)
 set(PACKAGE_VERSION "${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR}.${PACKAGE_VERSION_PATCH}")
 set(AQUAGPUSPH_VERSION_MAJOR ${PACKAGE_VERSION_MAJOR})
 set(AQUAGPUSPH_VERSION_MINOR ${PACKAGE_VERSION_MINOR})
@@ -260,7 +260,6 @@ endif(AQUAGPUSPH_BUILD_DOC)
 # config.h stuff                                        #
 # ===================================================== #
 configure_file(config.h.cmake ${CMAKE_BINARY_DIR}/aquagpusph/config.h)
-add_definitions(-DHAVE_CONFIG_H)
 
 # ===================================================== #
 # Global Compiler and Linker Settings                   #
