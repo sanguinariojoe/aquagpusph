@@ -36,8 +36,44 @@ set(CPP_SRCS
     CalcServer/Reports/Screen.cpp
     CalcServer/Reports/SetTabFile.cpp
     CalcServer/Reports/TabFile.cpp
-    ${OPTIONAL_SRCS}
 )
+set(PUBLIC_LIBS
+    Python::Python
+    Python::NumPy
+    XercesC::XercesC
+    OpenCL::OpenCL
+)
+set(PRIVATE_LIBS
+)
+set(PRIVATE_INCS
+    ${CMAKE_BINARY_DIR}
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/aquagpusph/ext
+)
+set(PUBLIC_INCS
+)
+
+if(HAVE_MPI)
+    list(APPEND PUBLIC_LIBS MPI::MPI_C)
+    list(APPEND CPP_SRCS CalcServer/MPISync.cpp)
+endif(HAVE_MPI)
+if(HAVE_MUPARSER)
+    list(APPEND PUBLIC_INCS ${MUPARSER_INCLUDE_DIRS})
+    list(APPEND PUBLIC_LIBS ${MUPARSER_LIBRARIES})
+    list(APPEND CPP_SRCS Tokenizer/Tokenizer_muparser.cpp)
+else(HAVE_MUPARSER)
+    list(APPEND CPP_SRCS Tokenizer/Tokenizer_exprtk.cpp)
+endif(HAVE_MUPARSER)
+if(HAVE_VTK)
+    if(AQUAGPUSPH_PACKAGE_IGNORE_VTK_DEPENDENCY)
+        list(APPEND PRIVATE_LIBS VTK::CommonCore VTK::IOXML)
+    else(AQUAGPUSPH_PACKAGE_IGNORE_VTK_DEPENDENCY)
+        list(APPEND PUBLIC_LIBS VTK::CommonCore VTK::IOXML)
+    endif(AQUAGPUSPH_PACKAGE_IGNORE_VTK_DEPENDENCY)
+endif(HAVE_VTK)
+if(nlohmann_json_FOUND)
+    list(APPEND PUBLIC_LIBS nlohmann_json::nlohmann_json)
+endif(nlohmann_json_FOUND)
 
 # ===================================================== #
 # Embed OpenCL codes                                    #
@@ -67,17 +103,20 @@ source_group("AQUAgpusph" FILES ${CPP_SRCS})
 
 # NOTE: The library cannot be called aquagpusph, because VSC is apparently
 # case insensitive, so it will overwrite it with the executable target
-set(LibName aquagpusphlib)
-add_library(${LibName} SHARED ${CPP_SRCS})
-target_link_libraries(${LibName} ${DEP_LIBS})
-target_compile_definitions(${LibName} PUBLIC AQUAgpusph_EXPORTS)
-add_dependencies(${LibName} ${embed_targets})
+add_library(aquagpusphlib SHARED ${CPP_SRCS})
+target_compile_definitions(aquagpusphlib PUBLIC AQUAgpusph_EXPORTS)
+target_link_libraries(aquagpusphlib PUBLIC ${PUBLIC_LIBS}
+                                    PRIVATE ${PRIVATE_LIBS})
+target_include_directories(aquagpusphlib PUBLIC ${PUBLIC_INCS}
+                                         PRIVATE ${PRIVATE_INCS})
+add_dependencies(aquagpusphlib ${embed_targets})
 
-install(TARGETS ${LibName}
+install(TARGETS aquagpusphlib
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  INCLUDES DESTINATION include
 )
-
 
 # ===================================================== #
 # program compilation                                   #
@@ -88,10 +127,12 @@ set(EXE_SRCS main.cpp)
 if(WIN32)
     list(APPEND EXE_SRCS main.rc)
 endif()
-add_executable(${AppName} ${EXE_SRCS})
-target_link_libraries(${AppName} ${LibName} ${DEP_LIBS})
+add_executable(AQUAgpusph ${EXE_SRCS})
+target_include_directories(AQUAgpusph PUBLIC ${PUBLIC_INCS}
+                                      PRIVATE ${PRIVATE_INCS})
+target_link_libraries(AQUAgpusph aquagpusphlib)
 
-install(TARGETS ${AppName}
+install(TARGETS AQUAgpusph
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 

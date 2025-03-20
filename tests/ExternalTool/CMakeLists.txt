@@ -2,7 +2,9 @@
 # Compile the external tool                             #
 # ===================================================== #
 add_library(exttooltest SHARED tool.cpp)
-target_include_directories(exttooltest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(exttooltest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+                                               ${CMAKE_BINARY_DIR}
+                                               ${CMAKE_SOURCE_DIR})
 target_link_libraries(exttooltest aquagpusphlib ${DEP_LIBS})
 target_compile_definitions(exttooltest PUBLIC AQUAgpusph_EXPORTS)
 set_target_properties(exttooltest PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})

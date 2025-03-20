@@ -117,3 +117,4 @@
 ### Bug Fixes
 
 * **core:** Installing config.h file ([c5f6fc9](https://gitlab.com/sanguinariojoe/aquagpusph/commit/c5f6fc98cb0d9bb2a742a743e7a0f6def40e1d77))
+## [5.0.4](https://gitlab.com/sanguinariojoe/aquagpusph/compare/v5.0.4...v) (2025-03-17)

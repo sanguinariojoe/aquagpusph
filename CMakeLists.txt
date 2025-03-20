@@ -123,14 +123,16 @@ if(NOT CMAKE_BUILD_TYPE)
 endif(NOT CMAKE_BUILD_TYPE)
 option(AQUAGPUSPH_USE_MPI "Build AQUAgpusph with MPI support, for multidevice running." ON)
 option(AQUAGPUSPH_USE_VTK "Build AQUAgpusph with VTK output format support." ON)
+option(AQUAGPUSPH_PACKAGE_IGNORE_VTK_DEPENDENCY "Tells AQUAgpusph to ignore the VTK dependency on the exported package. This can be useful if VTK was linked statically" OFF)
 option(AQUAGPUSPH_USE_MUPARSER "Replace ExprTk (Experimental support) by MuParser." YES)
 option(AQUAGPUSPH_BUILD_EXAMPLES "Build AQUAgpusph examples" ON)
 option(AQUAGPUSPH_BUILD_DOC "Build AQUAgpusph documentation" OFF)
 option(AQUAGPUSPH_GPU_PROFILE "Profile the GPU during the runtime (consuming additional resources)" OFF)
 option(AQUAGPUSPH_CHRONO_EXAMPLES "If AQUAGPUSPH_BUILD_EXAMPLES is ON, build the examples using PROJECTCHRONO" ON)
 mark_as_advanced(
-  AQUAGPUSPH_GPU_PROFILE
+  AQUAGPUSPH_PACKAGE_IGNORE_VTK_DEPENDENCY
   AQUAGPUSPH_USE_MUPARSER
+  AQUAGPUSPH_GPU_PROFILE
   AQUAGPUSPH_CHRONO_EXAMPLES
 )
 if(WIN32)
@@ -205,7 +207,7 @@ if(AQUAGPUSPH_USE_VTK AND (VTK_VERSION VERSION_GREATER_EQUAL 9.4))
 else()
     find_package(nlohmann_json REQUIRED)
     if(NOT nlohmann_json_FOUND)
-    message(FATAL_ERROR "NLOHMANN JSON not found, but ${PACKAGE_NAME} requires it. Please install NLOHMANN JSON!")
+        message(FATAL_ERROR "NLOHMANN JSON not found, but ${PACKAGE_NAME} requires it. Please install NLOHMANN JSON!")
     endif(NOT nlohmann_json_FOUND)
 endif()
 
@@ -299,12 +301,6 @@ endif(HAVE_VTK)
 if(nlohmann_json_FOUND)
     set(OPTIONAL_LIBS ${OPTIONAL_LIBS} nlohmann_json::nlohmann_json)
 endif(nlohmann_json_FOUND)
-include_directories(
-    ${CMAKE_BINARY_DIR}
-    ${CMAKE_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/aquagpusph/ext
-    ${OPTIONAL_INCLUDE_PATH}
-)
 set(DEP_LIBS
     Python::Python
     Python::NumPy

@@ -1,6 +1,10 @@
 include(${AQUAGPUSPH_CMAKE_MODULE_PATH}/example.cmake)
 
 add_library(apollo_capsule_sim SHARED chronosim.cpp)
+target_include_directories(apollo_capsule_sim PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+                                                      ${CHRONO_INCLUDE_DIRS}
+                                                      ${CMAKE_BINARY_DIR}
+                                                      ${CMAKE_SOURCE_DIR})
 target_include_directories(apollo_capsule_sim PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CHRONO_INCLUDE_DIRS})
 target_compile_options(apollo_capsule_sim PRIVATE ${CHRONO_CXX_FLAGS})
 target_link_libraries(apollo_capsule_sim aquagpusphlib ${DEP_LIBS} ${CHRONO_LIBRARIES})
