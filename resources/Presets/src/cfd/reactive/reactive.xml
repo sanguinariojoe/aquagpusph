@@ -1,0 +1,54 @@
+<?xml version="1.0" ?>
+
+<!-- ideal_gas.xml
+Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="T" type="float*" length="N" />
+        <Variable name="gamma" type="float*" length="N" />
+        <Variable name="cv" type="float*" length="N" />
+
+        <Variable name="z" type="float*" length="N" />
+        <Variable name="z_in" type="float*" length="N" />
+        
+        <Variable name="y_H2" type="float*" length="N" />
+        <Variable name="y_O2" type="float*" length="N" />
+        <Variable name="y_N2" type="float*" length="N" />
+        <Variable name="y_H2O" type="float*" length="N" />
+
+        <Variable name="dy_H2dt" type="float*" length="N" />
+        <Variable name="dy_O2dt" type="float*" length="N" />
+        <Variable name="dy_N2dt" type="float*" length="N" />
+        <Variable name="dy_H2Odt" type="float*" length="N" />
+
+        <Variable name="y_H2_in" type="float*" length="N" />
+        <Variable name="y_O2_in" type="float*" length="N" />
+        <Variable name="y_N2_in" type="float*" length="N" />
+        <Variable name="y_H2O_in" type="float*" length="N" />
+
+        <Variable name="dy_H2dt_in" type="float*" length="N" />
+        <Variable name="dy_O2dt_in" type="float*" length="N" />
+        <Variable name="dy_N2dt_in" type="float*" length="N" />
+        <Variable name="dy_H2Odt_in" type="float*" length="N" />
+
+        <Variable name="x_H2" type="float*" length="N" />
+        <Variable name="x_O2" type="float*" length="N" />
+        <Variable name="x_N2" type="float*" length="N" />
+        <Variable name="x_H2O" type="float*" length="N" />
+
+        <Variable name="zeta_dot" type="float*" length="N" />
+    </Variables>
+
+    <Tools>
+        <Tool action="insert" after="predictor" name="predictor mass fractions" type="kernel" entry_point="predictor" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/reaction/euler.cl"/>
+
+        <Tool action="insert" after="sort stage1,sort stage2" name="sort ideal gas" type="kernel" entry_point="entry" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/reaction/Sort.cl"/>
+        <Tool action="replace" name="EOS" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/reaction/EOS.cl"/>
+
+        <Tool action="insert" before="Rates" type="kernel" name="cfd rates ideal gas" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/reaction/rates_chem.cl"/>
+        
+        <Tool action="insert" after="corrector" name="corrector reactive ideal gas" type="kernel" entry_point="corrector" path="@RESOURCES_OUTPUT_DIR@/Scripts/cfd/reaction/euler.cl"/>
+    </Tools>
+</sphInput>
