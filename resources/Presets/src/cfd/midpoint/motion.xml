@@ -1,0 +1,33 @@
+<?xml version="1.0" ?>
+
+<!-- cfd/midpoint/motion.xml
+Estends cfd/motion.xml, introducing a motion computation entry also on the
+midpoint
+
+This module can be loaded after basic/time_scheme/midpoint.xml and
+cfd/motion.xml.
+
+As it happened on cfd/motion.xml, you must replace the tool "cfd motion data"
+with the tool that will provide the data.
+-->
+
+<sphInput>
+    <Tools>
+        <!-- We should start calling a generic Python script, which should be
+        defined, in order to set the motion parameters for the current time
+        step -->
+        <Tool action="insert" after="midpoint advance" type="python" name="cfd motion data midpoint" path="Motion.py"/>
+        <!-- In case several motions are required, they are all trying to use
+        the same variables motion_r, motion_a. Therefore, in order to can revert
+        the transformation and set the new one, we must save the motion state
+        and restore the previous one. -->
+        <Tool action="insert" after_prefix="cfd motion data midpoint" type="python" name="cfd motion state midpoint" path="../../../Scripts/cfd/Motions/State.py"/>
+        <!-- We must start recovering the initial position of the particles
+        undoing the previous time step transformation. -->
+        <Tool action="insert" after_prefix="cfd motion state midpoint" type="kernel" name="cfd motion unTransform midpoint" path="../../../Scripts/cfd/Motions/UnTransform.cl"/>
+        <!-- Such that we can apply the new transformation -->
+        <Tool action="insert" after_prefix="cfd motion unTransform midpoint" type="kernel" name="cfd motion velocity midpoint" path="../../../Scripts/cfd/Motions/Velocity.cl"/>
+        <Tool action="insert" after_prefix="cfd motion velocity midpoint" type="kernel" name="cfd motion acceleration midpoint" path="../../../Scripts/cfd/Motions/Acceleration.cl"/>
+        <Tool action="insert" after_prefix="cfd motion acceleration midpoint" type="kernel" name="cfd motion transform midpoint" path="../../../Scripts/cfd/Motions/Transform.cl"/>
+    </Tools>
+</sphInput>
