@@ -30,7 +30,14 @@
 #
 #########################################################################
 
-import os.path as path
+#import os.path as path
+
+import os
+import sys
+script_folder = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(script_folder, "../../"))
+import aqua_example_utils as utils
+
 import math
 import numpy as np
 
@@ -145,15 +152,15 @@ print(f'{N} particles.')
 # XML definition generation
 # =========================
 
-templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
-XML = ('Fluids.xml', 'Main.xml', 'Settings.xml', 'SPH.xml', 'Time.xml',
-       'bc.cl', 'BC.xml', 
-       'shifting-detector.cl', 'shifting-detector.xml', 
-	   'detector.xml', 'Detector.cl', # Free surface detector
-	   'DeltaShepard.cl','BI_DeltaShepard.cl', # BI boundary conditions modifications
-       'MLS.xml', 'MLS.cl', 'MLS2.xml','MLS_BI.xml', 'MLS_BI.cl',
-	   'shifting.xml', 'shifting.cl', 'shifting-freesurface.xml', 'shifting-freesurface.cl',# Shifting
-       'BC.xml', 'plot_p.py', 'plot_rho.py', 'plot_u.py', 'plot_e.py')
+#templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
+#XML = ('Fluids.xml', 'Main.xml', 'Settings.xml', 'SPH.xml', 'Time.xml',
+#       'bc.cl', 'BC.xml', 
+#       'shifting-detector.cl', 'shifting-detector.xml', 
+#	   'detector.xml', 'Detector.cl', # Free surface detector
+#	   'DeltaShepard.cl','BI_DeltaShepard.cl', # BI boundary conditions modifications
+#       'MLS.xml', 'MLS.cl', 'MLS2.xml','MLS_BI.xml', 'MLS_BI.cl',
+#	   'shifting.xml', 'shifting.cl', 'shifting-freesurface.xml', 'shifting-freesurface.cl',# Shifting
+#       'BC.xml', 'plot_p.py', 'plot_rho.py', 'plot_u.py', 'plot_e.py')
 
 factor = 2.0
 R_domain = R + 4.0 * h
@@ -169,15 +176,17 @@ data = {'DR': str(dr), 'HFAC': str(hfac), 'H': str(h), 'COURANT': str(courant),
         'P1': str(p1), 'P2': str(p2), 'RHO1': str(rho1), 'RHO2': str(rho2),
         'E1': str(e1), 'E2': str(e2), 'UREF':str(Uref), }
 
-for fname in XML:
-    # Read the template
-    f = open(path.join(templates_path, fname), 'r')
-    txt = f.read()
-    f.close()
-    # Replace the data
-    for k in data.keys():
-        txt = txt.replace('{{' + k + '}}', data[k])
-    # Write the file
-    f = open(fname, 'w')
-    f.write(txt)
-    f.close()
+utils.configure(data, os.path.join(script_folder, "templates"))
+
+#for fname in XML:
+#    # Read the template
+#    f = open(path.join(templates_path, fname), 'r')
+#    txt = f.read()
+#    f.close()
+#    # Replace the data
+#    for k in data.keys():
+#        txt = txt.replace('{{' + k + '}}', data[k])
+#    # Write the file
+#    f = open(fname, 'w')
+#    f.write(txt)
+#    f.close()
