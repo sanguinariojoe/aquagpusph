@@ -30,7 +30,14 @@
 #
 #########################################################################
 
-import os.path as path
+#import os.path as path
+
+import os
+import sys
+script_folder = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(script_folder, "../../"))
+import aqua_example_utils as utils
+
 import math
 import numpy as np
 
@@ -191,9 +198,9 @@ print(f'{N} particles. Volume = {N * dr**2} vs {Vol}')
 # XML definition generation
 # =========================
 
-templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
-XML = ('Fluids.xml', 'Main.xml', 'Settings.xml', 'SPH.xml', 'Time.xml',
-       'BC.xml')
+#templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
+#XML = ('Fluids.xml', 'Main.xml', 'Settings.xml', 'SPH.xml', 'Time.xml',
+#       'BC.xml')
 
 
 R_domain = R + 4.0 * h
@@ -206,15 +213,17 @@ data = {'DR':str(dr), 'HFAC':str(hfac), 'H':str(h), 'GAMMA':str(gamma), 'COURANT
         'R':str(R), 'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max,
         'N':str(N), 'DT':str(dt), 'CS':str(ssound), 'DT':str(dt), 'CV':str(cv)}
 
-for fname in XML:
-    # Read the template
-    f = open(path.join(templates_path, fname), 'r')
-    txt = f.read()
-    f.close()
-    # Replace the data
-    for k in data.keys():
-        txt = txt.replace('{{' + k + '}}', data[k])
-    # Write the file
-    f = open(fname, 'w')
-    f.write(txt)
-    f.close()
+utils.configure(data, os.path.join(script_folder, "templates"))
+
+#for fname in XML:
+#    # Read the template
+#    f = open(path.join(templates_path, fname), 'r')
+#    txt = f.read()
+#    f.close()
+#    # Replace the data
+#    for k in data.keys():
+#        txt = txt.replace('{{' + k + '}}', data[k])
+#    # Write the file
+#    f = open(fname, 'w')
+#    f.write(txt)
+#    f.close()
