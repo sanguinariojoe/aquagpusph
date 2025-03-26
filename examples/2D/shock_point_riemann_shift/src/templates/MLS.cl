@@ -155,7 +155,8 @@ __kernel void mls_inv(const __global int* imove,
 	    mls[i] = MATRIX_INV(mls[i]);
 	}
 	else {
-		mls[i] = scalar(100.f, MAT_EYE);
+		//s[i] = scalar(100.f, MAT_EYE);
+        mls[i] = 100.f * MAT_EYE;
 	}
 
 

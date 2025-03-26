@@ -154,7 +154,8 @@ __kernel void renorm_inv(const __global int* imove,
 	    renorm[i] = MATRIX_INV(renorm[i]);
 	}
 	else {
-		renorm[i] = scalar(100.f, MAT_EYE);
+		//norm[i] = scalar(100.f, MAT_EYE);
+        renorm[i] = 100.f*MAT_EYE;
 	}
 }
 
