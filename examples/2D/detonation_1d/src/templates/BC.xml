@@ -23,13 +23,13 @@ Authors:
     -->
 
     <!--
-    <Include file="@RESOURCES_DIR@/Presets/cfd/symmetry.xml" prefix="bottom_"/>
-    <Include file="@RESOURCES_DIR@/Presets/cfd/symmetry.xml" prefix="top_"/>
+    <Include file="resources//Presets/cfd/symmetry.xml" prefix="bottom_"/>
+    <Include file="resources//Presets/cfd/symmetry.xml" prefix="top_"/>
     -->
 
-    <Include file="@RESOURCES_DIR@/Presets/cfd/symmetry.xml" prefix="bottom_"/>
-    <Include file="@RESOURCES_DIR@/Presets/cfd/symmetry.xml" prefix="top_"/>
-    <Include file="@RESOURCES_DIR@/Presets/cfd/reactive/symmetry.xml"/>
+    <Include file="resources/Presets/cfd/symmetry.xml" prefix="bottom_"/>
+    <Include file="resources/Presets/cfd/symmetry.xml" prefix="top_"/>
+    <Include file="resources/Presets/cfd/reactive/symmetry.xml"/>
   
 
 

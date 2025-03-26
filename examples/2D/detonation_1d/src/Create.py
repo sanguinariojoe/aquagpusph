@@ -30,7 +30,15 @@
 #
 #########################################################################
 
-import os.path as path
+
+
+import os
+import sys
+script_folder = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(script_folder, "../../"))
+import aqua_example_utils as utils
+
+
 import math
 import numpy as np
 
@@ -200,24 +208,26 @@ domain_max = str(domain_max).replace('(', '').replace(')', '')
 # XML definition generation
 # =========================
 
-templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
-XML = ('Fluids.xml', 'Main.xml', 'Settings.xml', 'SPH.xml', 'Time.xml',
-       'BC.xml')
+#templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
+#XML = ('Fluids.xml', 'Main.xml', 'Settings.xml', 'SPH.xml', 'Time.xml',
+#       'BC.xml')
 
 data = {'DR':str(dr), 'HFAC':str(hfac), 'H':str(h),  'COURANT':str(courant),
         'B0minus':str(b0minus),'B0plus':str(b0plus), 'R': str(R), 
         'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max,
         'N':str(N),  'CS':str(ssound), 'DT':str(dt)}
 
-for fname in XML:
-    # Read the template
-    f = open(path.join(templates_path, fname), 'r')
-    txt = f.read()
-    f.close()
-    # Replace the data
-    for k in data.keys():
-        txt = txt.replace('{{' + k + '}}', data[k])
-    # Write the file
-    f = open(fname, 'w')
-    f.write(txt)
-    f.close()
+utils.configure(data, os.path.join(script_folder, "templates"))
+
+#for fname in XML:
+#    # Read the template
+#    f = open(path.join(templates_path, fname), 'r')
+#    txt = f.read()
+#    f.close()
+#    # Replace the data
+#    for k in data.keys():
+#        txt = txt.replace('{{' + k + '}}', data[k])
+#    # Write the file
+#    f = open(fname, 'w')
+#    f.write(txt)
+#    f.close()
