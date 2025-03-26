@@ -14,4 +14,7 @@ ADD_SUBDIRECTORY(taylor_green_IMP)
 ADD_SUBDIRECTORY(shock_1d)
 ADD_SUBDIRECTORY(shock_point)
 ADD_SUBDIRECTORY(shock_point_riemann)
-
+ADD_SUBDIRECTORY(shock_point_riemann_shift)
+ADD_SUBDIRECTORY(detonation_point_time)
+ADD_SUBDIRECTORY(detonation_band)
+ADD_SUBDIRECTORY(detonation_1d)
