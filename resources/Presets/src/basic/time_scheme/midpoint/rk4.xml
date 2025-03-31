@@ -1,0 +1,62 @@
+<?xml version="1.0" ?>
+
+<!-- Modify the midpoint scheme to start becoming triggered by a Runge-Kutta-4
+scheme
+
+To use this module, just load it after basic/midpoint.xml
+
+This module has been added for comparison purposes.
+The performance of the midpoint scheme is not boosted at all by using RK4 as
+initializer.
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="dudt0" type="vec*" length="N" value="0" symbol="\left.\frac{d\boldsymbol{u}}{dt}\right\vert_0"/>
+        <Variable name="dudt1" type="vec*" length="N" value="0" symbol="\left.\frac{d\boldsymbol{u}}{dt}\right\vert_0"/>
+        <Variable name="dudt2" type="vec*" length="N" value="0" symbol="\left.\frac{d\boldsymbol{u}}{dt}\right\vert_0"/>
+        <Variable name="drhodt0" type="float*" length="N" value="0" symbol="\left.\frac{d\rho}{dt}\right\vert_0"/>
+        <Variable name="drhodt1" type="float*" length="N" value="0" symbol="\left.\frac{d\rho}{dt}\right\vert_0"/>
+        <Variable name="drhodt2" type="float*" length="N" value="0" symbol="\left.\frac{d\rho}{dt}\right\vert_0"/>
+        <Variable name="dt_backup" type="float" length="1" value="dt" symbol="\Delta t"/>
+    </Variables>
+
+    <Tools>
+        <!-- Backup the dt -->
+        <Tool action="insert" before="midpoint loop" name="midpoint backup dt" type="set_scalar" in="dt_backup" value="dt" />
+        <!-- Change the dt before advancing to the midpoint -->
+        <Tool action="insert" before="midpoint advance" name="midpoint advance rk4 iter 0" type="if" condition="iter_midpoint == 0" />
+            <Tool action="insert" before="midpoint advance" name="midpoint advance rk4 iter 0 dt" type="set_scalar" in="dt" value="0.0" />
+        <Tool action="insert" before="midpoint advance" name="midpoint advance rk4 iter 0 end" type="end" />
+        <Tool action="insert" before="midpoint advance" name="midpoint advance rk4 iter 1" type="if" condition="iter_midpoint == 1" />
+            <Tool action="insert" before="midpoint advance" name="midpoint advance rk4 iter 1 dt" type="set_scalar" in="dt" value="dt_backup" />
+        <Tool action="insert" before="midpoint advance" name="midpoint advance rk4 iter 1 end" type="end" />
+        <Tool action="insert" before="midpoint advance" name="midpoint advance rk4 iter 2" type="if" condition="iter_midpoint == 2" />
+            <Tool action="insert" before="midpoint advance" name="midpoint advance rk4 iter 2 dt" type="set_scalar" in="dt" value="dt_backup" />
+        <Tool action="insert" before="midpoint advance" name="midpoint advance rk4 iter 2 end" type="end" />
+        <Tool action="insert" before="midpoint advance" name="midpoint advance rk4 iter 3" type="if" condition="iter_midpoint == 3" />
+            <Tool action="insert" before="midpoint advance" name="midpoint advance rk4 iter 3 dt" type="set_scalar" in="dt" value="2 * dt_backup" />
+        <Tool action="insert" before="midpoint advance" name="midpoint advance rk4 iter 3 end" type="end" />
+        <!-- Restore dt -->
+        <Tool action="insert" after="midpoint advance" name="midpoint backup dt" type="set_scalar" in="dt" value="dt_backup" />
+
+        <!-- Store the middle derivatives -->
+        <Tool action="insert" before="midpoint loop end" name="midpoint store rk4 iter 0" type="if" condition="iter_midpoint == 0" />
+            <Tool action="insert" before="midpoint loop end" name="midpoint store rk4 iter 0 dudt" type="copy" in="dudt" out="dudt0" />
+            <Tool action="insert" before="midpoint loop end" name="midpoint store rk4 iter 0 drhodt" type="copy" in="drhodt" out="drhodt0" />
+        <Tool action="insert" before="midpoint loop end" name="midpoint store rk4 iter 0 end" type="end" />
+        <Tool action="insert" before="midpoint loop end" name="midpoint store rk4 iter 1" type="if" condition="iter_midpoint == 1" />
+            <Tool action="insert" before="midpoint loop end" name="midpoint store rk4 iter 1 dudt" type="copy" in="dudt" out="dudt1" />
+            <Tool action="insert" before="midpoint loop end" name="midpoint store rk4 iter 1 drhodt" type="copy" in="drhodt" out="drhodt1" />
+        <Tool action="insert" before="midpoint loop end" name="midpoint store rk4 iter 1 end" type="end" />
+        <Tool action="insert" before="midpoint loop end" name="midpoint store rk4 iter 2" type="if" condition="iter_midpoint == 2" />
+            <Tool action="insert" before="midpoint loop end" name="midpoint store rk4 iter 2 dudt" type="copy" in="dudt" out="dudt2" />
+            <Tool action="insert" before="midpoint loop end" name="midpoint store rk4 iter 2 drhodt" type="copy" in="drhodt" out="drhodt2" />
+        <Tool action="insert" before="midpoint loop end" name="midpoint store rk4 iter 2 end" type="end" />
+
+        <!-- Compute the RK4 final derivative -->
+        <Tool action="insert" before="midpoint loop end" name="midpoint store rk4 iter 3" type="if" condition="iter_midpoint == 3" />
+            <Tool action="insert" before="midpoint loop end" name="midpoint store rk4 finish" type="kernel" path="../../../../Scripts/basic/time_scheme/midpoint/rk4.cl" />
+        <Tool action="insert" before="midpoint loop end" name="midpoint store rk4 iter 3 end" type="end" />
+    </Tools>
+</sphInput>
