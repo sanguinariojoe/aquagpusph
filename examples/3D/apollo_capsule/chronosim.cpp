@@ -100,6 +100,9 @@ ApolloSim::setup()
     R.SetFromCardanAnglesXYZ(chrono::ChVector3d(0, _pitch, 0));
     _apollo->SetRot(R);
 
+    _sys->SetTimestepperType(chrono::ChTimestepper::Type::EULER_EXPLICIT);
+    _sys->Setup();
+
     setInputDependencies({"dt", "Force_p", "Moment_p"});
     setOutputDependencies({"motion_r", "motion_drdt", "motion_ddrddt",
                            "motion_a", "motion_dadt", "motion_ddaddt",
@@ -136,28 +139,114 @@ cl_event
 ApolloSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
 {
     auto vars = CalcServer::singleton()->variables();
+    // Check whether we are on the midpoint, or at the final iteration
+    const unsigned int iter =
+        *((unsigned int*)vars->get("iter_midpoint")->get(true));
+    const unsigned int iter_max =
+        *((unsigned int*)vars->get("iter_midpoint_max")->get(true));
+    const bool is_midpoint = iter < iter_max;
     // Get the forces from AQUAgpusph
     float dt = *((float*)vars->get("dt")->get(true));
     const vec4 F = *((vec4*)vars->get("Force_p_iset")->get(true));
     const vec4 M = *((vec4*)vars->get("Moment_p_iset")->get(true));
-    // Simulate the body motion
+
+    if (iter == 0) {
+        // At the beggining of the time step we must copy the results from
+        // the other instance of this solver
+        vec4 data;
+        chrono::ChQuaternion<double> R;
+        data = *((vec4*)vars->get("motion_r")->get(true));
+        _apollo->SetPos(chrono::ChVector3d(data.x, data.y, data.z));
+        data = *((vec4*)vars->get("motion_drdt")->get(true));
+        _apollo->SetLinVel(chrono::ChVector3d(data.x, data.y, data.z));
+        data = *((vec4*)vars->get("motion_ddrddt")->get(true));
+        _apollo->SetLinAcc(chrono::ChVector3d(data.x, data.y, data.z));
+        data = *((vec4*)vars->get("motion_a")->get(true));
+        R.SetFromCardanAnglesXYZ(chrono::ChVector3d(data.x, data.y, data.z));
+        _apollo->SetRot(R);
+        data = *((vec4*)vars->get("motion_dadt")->get(true));
+        _apollo->SetAngVelLocal(chrono::ChVector3d(data.x, data.y, data.z));
+        data = *((vec4*)vars->get("motion_ddaddt")->get(true));
+        _apollo->SetAngAccLocal(chrono::ChVector3d(data.x, data.y, data.z));
+    }
+
+    // Book-keeping, so we can restore the state within the midpoint iterations
+    // This is actually needed also at the final iterator because of the Euler
+    // explicit (see below)
+    double T = _sys->GetChTime();
+    chrono::ChState X(_sys->GetNumCoordsPosLevel(), _sys.get());
+    chrono::ChStateDelta V(_sys->GetNumCoordsVelLevel(), _sys.get());
+    chrono::ChStateDelta A(_sys->GetNumCoordsVelLevel(), _sys.get());
+    chrono::ChVectorDynamic<> L(_sys->GetNumConstraints());
+    const chrono::ChVector3d drdt0 = _apollo->GetLinVel();
+    const chrono::ChVector3d ddrddt0 = _apollo->GetLinAcc();
+    const chrono::ChVector3d dadt0 = _apollo->GetAngVelLocal();
+    const chrono::ChVector3d ddaddt0 = _apollo->GetAngAccLocal();
+    _sys->StateGather(X, V, T);
+    _sys->StateGatherAcceleration(A);
+    _sys->StateGatherReactions(L);
+
+    // Compute the dynamics
     setForce(_force, F);
     setForce(_moment, M);
     _sys->DoStepDynamics(dt);
+
+    // Explicit Euler is not considering the force we setted, so we must rewind
+    // and repeat
+    if (!is_midpoint) {
+        _sys->SetChTime(T);
+        _sys->StateScatterReactions(L);
+        _sys->StateScatterAcceleration(A);
+        _sys->StateScatter(X, V, T, true);
+        setForce(_force, F);
+        setForce(_moment, M);
+        _sys->DoStepDynamics(dt);
+    }
+
     // Get the new position and angle
-    const chrono::ChVector3d r = _apollo->GetPos();
+    chrono::ChVector3d r = _apollo->GetPos();
     const chrono::ChVector3d drdt = _apollo->GetLinVel();
     const chrono::ChVector3d ddrddt = _apollo->GetLinAcc();
     const chrono::ChVector3d a = _apollo->GetRot().GetCardanAnglesXYZ();
     const chrono::ChVector3d dadt = _apollo->GetAngVelLocal();
     const chrono::ChVector3d ddaddt = _apollo->GetAngAccLocal();
-    setVec(vars->get("motion_r"), r);
-    setVec(vars->get("motion_drdt"), drdt);
-    setVec(vars->get("motion_ddrddt"), ddrddt);
-    setVec(vars->get("motion_a"), a);
-    setVec(vars->get("motion_dadt"), dadt);
-    setVec(vars->get("motion_ddaddt"), ddaddt);
-    setVec(vars->get("forces_r"), r);
+
+    // On the explicit Euler scheme the position is integrated directly from
+    // the velocity at the beggining. We want to use the midpoint velocity
+    // instead
+    r = r + ddrddt * (0.5 * dt * dt);
+    _apollo->SetPos(r);
+
+    // Update AQUAgpusph
+    if (is_midpoint) {
+        _sys->SetChTime(T);
+        _sys->StateScatterReactions(L);
+        _sys->StateScatterAcceleration(A);
+        _sys->StateScatter(X, V, T, true);
+        setVec(vars->get("motion_drdt"), 0.5 * (drdt + drdt0));
+        setVec(vars->get("motion_ddrddt"), 0.5 * (ddrddt + ddrddt0));
+        setVec(vars->get("motion_dadt"), 0.5 * (dadt + dadt0));
+        setVec(vars->get("motion_ddaddt"), 0.5 * (ddaddt + ddaddt0));
+        vars->populate("motion_drdt");
+        vars->populate("motion_ddrddt");
+        vars->populate("motion_dadt");
+        vars->populate("motion_ddaddt");
+    } else {
+        setVec(vars->get("motion_r"), r);
+        setVec(vars->get("motion_a"), a);
+        setVec(vars->get("forces_r"), r);
+        setVec(vars->get("motion_drdt"), drdt);
+        setVec(vars->get("motion_ddrddt"), ddrddt);
+        setVec(vars->get("motion_dadt"), dadt);
+        setVec(vars->get("motion_ddaddt"), ddaddt);
+        vars->populate("motion_r");
+        vars->populate("motion_a");
+        vars->populate("forces_r");
+        vars->populate("motion_drdt");
+        vars->populate("motion_ddrddt");
+        vars->populate("motion_dadt");
+        vars->populate("motion_ddaddt");
+    }
     return NULL;
 }
 
