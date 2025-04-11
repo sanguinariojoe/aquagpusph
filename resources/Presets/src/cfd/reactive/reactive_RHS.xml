@@ -1,0 +1,31 @@
+<?xml version="1.0" ?>
+
+<!-- ideal_gas.xml
+Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
+-->
+
+<sphInput>
+    <Variables>
+
+        <Variable name="D_H2" type="float*" length="N" />
+        <Variable name="D_O2" type="float*" length="N" />
+        <Variable name="D_N2" type="float*" length="N" />
+        <Variable name="D_H2O" type="float*" length="N" />        
+        <Variable name="rhs_yh2" type="float*" length="N" />
+        <Variable name="rhs_yo2" type="float*" length="N" />
+        <Variable name="rhs_yn2" type="float*" length="N" />
+        <Variable name="rhs_yh2o" type="float*" length="N" />
+
+    </Variables>
+
+    <Tools>
+        
+        <Tool action="insert" after="Sort" type="set" name="Reinit rhs yh2" in="rhs_yh2" value="0.f"/>
+        <Tool action="insert" after="Sort" type="set" name="Reinit rhs yo2" in="rhs_yo2" value="0.f"/>
+        <Tool action="insert" after="Sort" type="set" name="Reinit rhs yn2" in="rhs_yn2" value="0.f"/>
+        <Tool action="insert" after="Sort" type="set" name="Reinit rhs yh2o" in="rhs_yh2o" value="0.f"/>
+
+        <Tool action="insert" before="Rates" type="kernel" name="rhs y rates" path="../../../Scripts/cfd/RHS_reactive.cl"/>
+
+    </Tools>
+</sphInput>
