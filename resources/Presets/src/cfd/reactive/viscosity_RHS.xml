@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+
+<!-- ideal_gas.xml
+Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
+-->
+
+<sphInput>
+    <Variables>
+
+        <!--redefinition, it must be a variable and not a set-->
+        <Variable name="visc_dyn" type="float*" length="n_sets" />
+        
+        
+        <Variable name="rhs_dissipation_energy" type="float*" length="N" />        
+        <Variable name="rhs_dissipation_impulse" type="vec*" length="N" />
+
+        
+    </Variables>
+
+    <Tools>
+        
+        <Tool action="insert" after="Sort" type="set" name="Reinit rhs visc disp" in="rhs_dissipation_energy" value="0.f"/>        
+        <Tool action="insert" after="Sort" type="set" name="Reinit rhs visc vel" in="rhs_dissipation_impulse" value="VEC_ZERO"/>
+
+        <Tool action="insert" before="Rates" type="kernel" name="rhs y rates" path="../../../Scripts/cfd/RHS_viscosity.cl"/>
+
+    </Tools>
+</sphInput>
