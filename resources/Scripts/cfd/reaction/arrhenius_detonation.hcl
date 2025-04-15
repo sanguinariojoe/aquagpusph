@@ -92,6 +92,28 @@ void calc_gamma_cv(float y_H2, float y_O2, float y_N2, float y_H2O, __global flo
     return;
 }
 
+void calc_gamma_cp_cv(float y_H2, float y_O2, float y_N2, float y_H2O, __global float* gamma, __global float* cv, __global float* cp){
+
+    float MMix, R_mix, cp_local, cv_local;
+    
+    MMix = molar_mass_mixture(y_H2, y_O2, y_N2, y_H2O);
+    cp_local = calc_cp_mix(y_H2, y_O2, y_N2, y_H2O);
+    
+    R_mix = R_gas / MMix;
+
+    //cv_local = cp_local / (cp_local-R_mix);
+    cv_local = cp_local - R_mix;
+
+    *gamma = cp_local / cv_local;
+    
+    *cv = cv_local;
+    //printf("%f, %f, %f\n", MMix, cp_local, cv_local);
+
+    *cp = cp_local;
+    
+    return;
+}
+
 
 void w_rhos(float z, float T, float y_H2, float y_O2, float y_N2, float y_H2O, 
             __global float* w_rho_H2, __global float* w_rho_O2, 

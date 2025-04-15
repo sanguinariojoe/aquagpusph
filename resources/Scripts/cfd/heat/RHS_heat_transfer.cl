@@ -58,7 +58,7 @@ __kernel void entry(const __global int* imove,
                     //const __global float* p,
                     const __global float* rhs_qdot,
                     const __global float* T,
-                    const __global float* kappa,
+                    const __global float* lambda,
                     usize N,
                     LINKLIST_LOCAL_PARAMS)
 {
@@ -73,7 +73,7 @@ __kernel void entry(const __global int* imove,
     const vec_xyz r_i = r[i].XYZ;
    
     const float T_i = T[i];
-    const float kappa_i = kappa[i];
+    const float lambda_i = lambda[i];
 
     const float rho_i = rho[i];
 
@@ -114,10 +114,10 @@ __kernel void entry(const __global int* imove,
             const float f_ij = kernelF(q) * CONF * m[j];
     
             const float T_j = T[j];
-            const float kappa_j = kappa[j];
+            const float lambda_j = lambda[j];
             const float rho_j = rho[j];
 
-            _RHS_QDOT_ += 4.0f * kappa_i * kappa_j / (rho_i * kappa_i + rho_j * kappa_j)*(T_i-T_j)*f_ij;
+            _RHS_QDOT_ += 4.0f * lambda_i * lambda_j / (rho_i * lambda_i + rho_j * lambda_j)*(T_i-T_j)*f_ij;
 
         }
     }END_NEIGHS()

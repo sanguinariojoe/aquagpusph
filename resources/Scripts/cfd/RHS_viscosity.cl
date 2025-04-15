@@ -58,7 +58,7 @@ __kernel void entry(const __global int* imove,
                     //const __global float* p,
                     const __global float* rhs_dissipation_energy,
                     const __global vec* rhs_dissipation_impulse,
-                    const __global float* visc_dyn,
+                    const __global float* mu,
                     usize N,
                     LINKLIST_LOCAL_PARAMS)
 {
@@ -75,7 +75,7 @@ __kernel void entry(const __global int* imove,
     const vec_xyz r_i = r[i].XYZ;
     const vec_xyz u_i = u[i].XYZ;
     const float rho_i = rho[i];
-    const float visc_dyn_i = visc_dyn[i];
+    const float mu_i = mu[i];
 
     // Initialize the output
     #ifndef LOCAL_MEM_SIZE
@@ -118,14 +118,14 @@ __kernel void entry(const __global int* imove,
         }
         {
             const float rho_j = rho[j];
-            const float visc_dyn_j = visc_dyn[j];
+            const float mu_j = mu[j];
             const float f_ij = kernelF(q) * CONF * m[j];
     
             //const float T_j = T[j];
             //const float kappa_j = kappa[j];
             //const float rho_j = rho[j];
 
-            const float pi_ij = -16.0f * visc_dyn_i * visc_dyn_j / (rho_i * rho_j * (visc_dyn_i + visc_dyn_j)) * udr / (rdr + tinie * H * H);
+            const float pi_ij = -16.0f * mu_i * mu_j / (rho_i * rho_j * (mu_i + mu_j)) * udr / (rdr + tinie * H * H);
 
             _RHS_IMPULSE_DISSIPATION_ -= pi_ij * r_ij * f_ij;
             _RHS_ENERGY_DISSIPATION_ += 0.5f * pi_ij * udr * f_ij;

@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+
+<!-- ideal_gas.xml
+Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="xi" type="float*" length="N" />
+        <Variable name="lambda" type="float*" length="N" />
+        <Variable name="rhs_qdot" type="float*" length="N" />
+        
+    </Variables>
+
+    <Tools>
+        <Tool action="replace" name="EOS" type="kernel" path="../../../Scripts/cfd/reaction/EOS_properties.cl"/>
+
+        <Tool action="insert" after="Sort" type="set" name="Reinit rhs qdot" in="rhs_qdot" value="0.f"/>
+
+
+
+        <Tool action="insert" after="predictor" name="predictor heat" type="kernel" entry_point="predictor" path="../../../Scripts/cfd/heat/euler.cl"/>
+        <Tool action="insert" after="sort stage1,sort stage2" name="sort heat" type="kernel" entry_point="entry" path="../../../Scripts/cfd/heat/Sort.cl"/>
+
+        <Tool action="insert" before="Rates" type="kernel" name="rhs y rates" path="../../../Scripts/cfd/heat/RHS_heat_transfer.cl"/>
+        
+        <Tool action="insert" after="corrector" name="corrector reactive ideal gas" type="kernel" entry_point="corrector" path="../../../Scripts/cfd/reaction/euler.cl"/>
+    </Tools>
+</sphInput>
