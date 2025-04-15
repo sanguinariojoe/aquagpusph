@@ -42,10 +42,10 @@
  * @param N Number of particles.
  */
 __kernel void entry(const __global usize *id_sorted,
-                    const __global float* xi,
-                    __global float* xi_in,
-                    const __global float* rhs_qdot,
-                    __global float* rhs_qdot_in,
+                    __global float* xi,
+                    const __global float* xi_in,
+                    __global float* rhs_qdot,
+                    const __global float* rhs_qdot_in,
                     usize N)
 {
     usize i = get_global_id(0);

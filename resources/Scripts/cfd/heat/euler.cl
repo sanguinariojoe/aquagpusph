@@ -47,7 +47,7 @@ __kernel void predictor(const __global float* xi,
         return;
 
     rhs_qdot_in[i] = rhs_qdot[i];
-    lambda_in[i] = lambda[i];
+    xi_in[i] = xi[i];
 
 }
 
