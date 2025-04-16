@@ -56,10 +56,10 @@ __kernel void entry(const __global int* imove,
                     const __global float* rho,
                     const __global float* m,
                     //const __global float* p,
-                    const __global float* rhs_yh2,
-                    const __global float* rhs_yo2,
-                    const __global float* rhs_yn2,
-                    const __global float* rhs_yh2o,
+                    __global float* rhs_yh2,
+                    __global float* rhs_yo2,
+                    __global float* rhs_yn2,
+                    __global float* rhs_yh2o,
                     const __global float* y_H2,
                     const __global float* y_O2,
                     const __global float* y_N2,
@@ -98,7 +98,7 @@ __kernel void entry(const __global int* imove,
 
         #define _RHS_YH2_ rhs_yh2[i]
         #define _RHS_YO2_ rhs_yo2[i]
-        #define _RHS_YN2_ rhs_yN2[i]
+        #define _RHS_YN2_ rhs_yn2[i]
         #define _RHS_YH2O_ rhs_yh2o[i]
 
     #else
@@ -106,7 +106,7 @@ __kernel void entry(const __global int* imove,
         #define _RHS_YH2_  rhs_yh2_l[it] 
         #define _RHS_YO2_  rhs_yo2_l[it] 
         #define _RHS_YN2_  rhs_yn2_l[it] 
-        #define _RHS_YH2O  rhs_yh2o_l[it] 
+        #define _RHS_YH2O_  rhs_yh2o_l[it] 
 
         __local float rhs_yh2_l[LOCAL_MEM_SIZE];
         __local float rhs_yo2_l[LOCAL_MEM_SIZE];
@@ -151,7 +151,6 @@ __kernel void entry(const __global int* imove,
             const float Dn2_j = D_N2[j];
             const float Do2_j = D_O2[j];
 
-            const float rho_j = rho[j];
 
             _RHS_YH2_ += 4.0f * Dh2_i * Dh2_j / (rho_i * Dh2_i + rho_j * Dh2_j)*(yh2_i-yh2_j)*f_ij;
             _RHS_YO2_ += 4.0f * Do2_i * Do2_j / (rho_i * Do2_i + rho_j * Do2_j)*(yo2_i-yo2_j)*f_ij;
