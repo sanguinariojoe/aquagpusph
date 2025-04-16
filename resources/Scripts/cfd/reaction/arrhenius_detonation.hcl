@@ -2,7 +2,7 @@
 #ifndef _ARRHENIUS_DETONATION_H_INCLUDED_
 #define _ARRHENIUS_DETONATION_H_INCLUDED_
 
-#include "resources/Scripts/cfd/species/species_auxiliary.hcl
+#include "resources/Scripts/cfd/species/species_auxiliary.hcl"
 
 #define E_ch 7000.0f
 #define K_ch 1000000.0f
