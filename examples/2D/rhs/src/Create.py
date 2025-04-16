@@ -43,6 +43,8 @@ import math
 import numpy as np
 
 #zone 2 h2+air
+nu=1.0e-5
+xi=1.0e-5
 
 n_H2 = 0.0
 n_O2 = 0.21
@@ -147,8 +149,8 @@ def writeParticle(output, p, n=(0.0, 0.0), u=(0.0, 0.0),
         y_N2, dy_N2dt,
         y_H2O, dy_H2Odt,
         m,
-        1.0e-5,
-        1.0e-5,
+        nu,
+        xi,
         imove)
     output.write(string)
 
