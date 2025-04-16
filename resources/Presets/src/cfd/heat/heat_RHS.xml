@@ -7,11 +7,15 @@ Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
 <sphInput>
     <Variables>
         <Variable name="xi" type="float*" length="N" />
-        <Variable name="xi_in" type="float*" length="N" />
+        <Variable name="xi_in" type="float*" length="N" /> 
+        <Variable name="nu" type="float*" length="N" />
+        <Variable name="nu_in" type="float*" length="N" />
         <Variable name="lambda" type="float*" length="N" />
         <Variable name="rhs_qdot" type="float*" length="N" />
         <Variable name="rhs_qdot_in" type="float*" length="N" />
-        
+        <Variable name="cp" type="float*" length="N" /> 
+        <Variable name="mu" type="float*" length="N" />         
+        <Variable name="lambda" type="float*" length="N" />
     </Variables>
 
     <Tools>

@@ -56,7 +56,7 @@ __kernel void entry(const __global int* imove,
                     const __global float* rho,
                     const __global float* m,
                     //const __global float* p,
-                    const __global float* rhs_qdot,
+                    __global float* rhs_qdot,
                     const __global float* T,
                     const __global float* lambda,
                     usize N,
@@ -115,7 +115,7 @@ __kernel void entry(const __global int* imove,
     
             const float T_j = T[j];
             const float lambda_j = lambda[j];
-            const float rho_j = rho[j];
+            
 
             _RHS_QDOT_ += 4.0f * lambda_i * lambda_j / (rho_i * lambda_i + rho_j * lambda_j)*(T_i-T_j)*f_ij;
 

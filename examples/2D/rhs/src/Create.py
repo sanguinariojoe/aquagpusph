@@ -30,58 +30,109 @@
 #
 #########################################################################
 
+
+
 import os
 import sys
 script_folder = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(script_folder, "../../"))
 import aqua_example_utils as utils
+
+
 import math
+import numpy as np
 
+#zone 2 h2+air
 
-courant = 0.5
-L = 1.0
+n_H2 = 0.0
+n_O2 = 0.21
+n_N2 = 0.79
+
+M_H2 = 0.002
+M_O2 = 0.032
+M_N2 = 0.028
+
+sum_n = n_H2 + n_O2 + n_N2
+n_H2 = n_H2 / sum_n
+n_O2 = n_O2 / sum_n
+n_N2 = n_N2 / sum_n
+
+MM2 = n_H2 * M_H2 + n_O2 * M_O2 + n_N2 * M_N2
+
+y_H2_2 = n_H2 * M_H2 / MM2
+y_O2_2 = n_O2 * M_O2 / MM2
+y_N2_2 = n_N2 * M_N2 / MM2
+y_H2O_2 = 0.
+#z = y_H2
+
+#zone 1 pure air
+
+MM1=0.21 * M_O2 + 0.79 * M_N2
+y_H2_1 = 0.0
+y_O2_1 = 0.21 * M_O2 / MM1
+y_N2_1 = 0.79 * M_N2 / MM1
+y_H2O_1 = 0.
+
+courant = 0.1
 support = 2.0 
+
+b0plus=0.7
+b0minus=0.1
+
 hfac = 2.0
-nx = 500
 
-gamma = 1.4
+nx = 5000
 
-p1 = 2.0e5
+p1 = 1.0e5
 p2 = 1.0e5
 
-rho1 = 1.00001
+T1 = 2000.0
+
+rho1 = p1 * MM1 /(8.31 * T1)
 rho2 = 1.00001
 
-c1 = math.sqrt(gamma * p1 / rho1)
-c2 = math.sqrt(gamma * p2 / rho2)
+gamma=1.4
 
-cs = max(c1, c2)
-
-e1 = p1 / ((gamma - 1.0) * rho1)
-e2 = p2 / ((gamma - 1.0) * rho2)
-
-# Distance between particles
-# ==========================
-dr = L / nx
-h = hfac * dr
-t_max = (0.5 * L - support * h) / cs
-# For the vertical dimension, we need to grant that no particle can see
-# simultaneously both, the top and bottom symmetry planes.
-# On top of that, we are interested on having a file of particles at y=0
-R = 2 * support * h + dr  # Distance between the symmetry planes
+c1 = np.sqrt(gamma * p1 / rho1)
+c2 = np.sqrt(gamma * p2 / rho2)
 
 print("")
 print(f"c1 = {c1}")
 print(f"c2 = {c2}")
-print(f"dr = {dr}")
-print(f"h = {h}")
 print("")
 
+ssound=max(c1, c2)
+cs = ssound
+e1=p1 / ((gamma - 1.0) * rho1)
+e2=p2 / ((gamma - 1.0) * rho2)
+
+# Distance between particles
+# ==========================
+courant = 0.5
+L = b0minus+b0plus
+dr = L / nx
+h = hfac * dr
+R = 2 * support * h + dr
+#dt = 1.0E-5
+dt = 0.1*min(dr / c1 , dr / c2)
+t_max = (0.5 * L - support * h) / cs
+
+
+print("")
+print(f"dr = {dr}")
+print(f"h = {h}")
+print(f"R={R}")
+print("")
+
+
+# Particles generation
+# ====================
 def writeParticle(output, p, n=(0.0, 0.0), u=(0.0, 0.0),
                   dudt=(0.0, 0.0), rho=0.0, drhodt=0.0, e=0.0, dedt=0.0,
+                  z=0, y_H2=0, dy_H2dt=0, y_O2=0, dy_O2dt=0, y_N2=0, dy_N2dt=0, y_H2O=0, dy_H2Odt=0,
                   imove=1):
     m = rho * dr**2
-    string = ("{} {}, " * 4 + "{}, {}, {}, {}, {}, {}, {}, {}\n").format(
+    string = ("{} {}, " * 4 + "{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n").format(
         p[0], p[1],
         n[0], n[1],
         u[0], u[1],
@@ -90,12 +141,16 @@ def writeParticle(output, p, n=(0.0, 0.0), u=(0.0, 0.0),
         drhodt,
         e,
         dedt,
+        z,
+        y_H2, dy_H2dt,
+        y_O2, dy_O2dt,
+        y_N2, dy_N2dt,
+        y_H2O, dy_H2Odt,
         m,
         1.0e-5,
         1.0e-5,
         imove)
     output.write(string)
-
 
 print("Opening output file...")
 output = open("Fluid.dat", "w")
@@ -117,35 +172,54 @@ print(string)
 
 N = 0
 string = """
-    Writing fluid particles...
+    Writing reservoir fluid particles...
 """
 print(string)
 
-x = -0.5 * (L - dr)
-while x < 0.5 * L:
-    rho, ener = (rho1, e1) if x < 0 else (rho2, e2)
+x = -b0minus + 0.5 * dr 
+while x < b0plus:
     y = -0.5 * (R - dr)
     while y < 0.5 * R:
-        writeParticle(output, (x, y), rho=rho, e=ener)
+
+        rho, ener, y_H2, y_O2, y_N2, y_H2O = (rho1, e1, y_H2_1, y_O2_1, y_N2_1, y_H2O_1) if x < 0 else (rho2, e2, y_H2_2, y_O2_2, y_N2_2, y_H2O_2)
+        z=y_H2
+        
+        writeParticle(output, (x,y), rho=rho, e=ener, z=z, y_H2=y_H2, y_O2=y_O2, y_N2=y_N2, y_H2O=y_H2O)
         N += 1
         y += dr
     x += dr
 
-print(f'{N} particles.')
+#print(f'{N} particles. Volume = {N * dr**2} vs {Vol}')
 
-string = """
-    Writing buffer particles...
-"""
-print(string)
-domain_min = (-0.5 * L - support * h, -1.5 * R - support * h)
-domain_max = (0.5 * L + support * h, 1.5 * R + support * h)
+print(f'{N} particles. Volume = {N * dr**2}')
+# Domain definition & Symmetry particles
+# ==================
+
+domain_min = (-b0minus - support * h, -1.5 * R - support * h)
+domain_max = (b0plus + support * h, 1.5 * R + support * h)
+
 x, y = domain_max[0] + support * h, domain_max[1] + support * h
-for _ in range(2 * N):
-    writeParticle(output, (x, y), imove=-255)
+
+for _ in range(2*N):
+    rho, ener, y_H2, y_O2, y_N2, y_H2O = (rho1, e1, y_H2_1, y_O2_1, y_N2_1, y_H2O_1)
+    z=y_H2
+    writeParticle(output, (x,y), rho=rho, e=ener, z=z, y_H2=y_H2, y_O2=y_O2, y_N2=y_N2, y_H2O=y_H2O, imove=-255)
 N *= 3
 
 domain_min = str(domain_min).replace('(', '').replace(')', '')
 domain_max = str(domain_max).replace('(', '').replace(')', '')
+
+# XML definition generation
+# =========================
+
+#templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
+#XML = ('Fluids.xml', 'Main.xml', 'Settings.xml', 'SPH.xml', 'Time.xml',
+#       'BC.xml')
+
+#data = {'DR':str(dr), 'HFAC':str(hfac), 'H':str(h),  'COURANT':str(courant),
+#        'B0minus':str(b0minus),'B0plus':str(b0plus), 'R': str(R), 
+#        'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max,
+#        'N':str(N),  'CS':str(ssound), 'DT':str(dt)}
 
 data = {'DR': str(dr), 'HFAC': str(hfac), 'H': str(h), 'COURANT': str(courant),
         'L': str(L), 'R': str(R), 'T': str(t_max),
@@ -154,3 +228,16 @@ data = {'DR': str(dr), 'HFAC': str(hfac), 'H': str(h), 'COURANT': str(courant),
         'P1': str(p1), 'P2': str(p2), 'RHO1': str(rho1), 'RHO2': str(rho2),
         'E1': str(e1), 'E2': str(e2), }
 utils.configure(data, os.path.join(script_folder, "templates"))
+
+#for fname in XML:
+#    # Read the template
+#    f = open(path.join(templates_path, fname), 'r')
+#    txt = f.read()
+#    f.close()
+#    # Replace the data
+#    for k in data.keys():
+#        txt = txt.replace('{{' + k + '}}', data[k])
+#    # Write the file
+#    f = open(fname, 'w')
+#    f.write(txt)
+#    f.close()
