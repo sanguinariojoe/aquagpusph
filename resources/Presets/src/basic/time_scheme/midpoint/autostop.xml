@@ -5,20 +5,25 @@
      iterator stops
 
      To use this module, include it and set the variable
-     "Residual_midpoint_max" to a sensible value (1.e-8 by default)
+     "Residual_midpoint_max" and "Residual_midpoint_maxrel" to sensible values
+     (1.e-8 by default for both of them)
 -->
 
 <sphInput>
     <Variables>
-        <Variable name="residual_midpoint" type="float*" length="N" symbol="\varepsilon_{\Delta t}"/>
-        <Variable name="Residual_midpoint" type="float" length="1" value="0.0" symbol="E_{\Delta t}"/>
-        <Variable name="Residual_midpoint_max" type="float" length="1" value="1.e-8" symbol="E_{\Delta t}^{max}"/>
+        <Variable name="residual_midpoint" type="float*" length="N" symbol="\varepsilon_{\Delta t}^{iter}"/>
+        <Variable name="Residual_midpoint0" type="float" length="1" value="0.0" symbol="E_{\Delta t}^0"/>
+        <Variable name="Residual_midpoint" type="float" length="1" value="0.0" symbol="E_{\Delta t}^{iter}"/>
+        <Variable name="Residual_midpoint_max" type="float" length="1" value="1.e-8" symbol="\left. E_{\Delta t} \right\vert_{max}"/>
+        <Variable name="Residual_midpoint_maxrel" type="float" length="1" value="1.e-8" symbol="\left.\frac{E_{\Delta t}^0}{E_{\Delta t}^{iter}}\right\vert_{max}"/>
     </Variables>
 
     <Tools>
         <Tool action="insert" before="midpoint relax" name="midpoint residuals" type="kernel" entry_point="residuals" path="../../../../Scripts/basic/time_scheme/midpoint.cl" />
         <Tool action="insert" after="midpoint residuals" name="midpoint residual" type="reduction" in="residual_midpoint" out="Residual_midpoint" null="0">c = a + b</Tool>
-        <Tool action="insert" after="midpoint residual" name="midpoint autostop" type="set_scalar" in="iter_midpoint" value="Residual_midpoint &lt; Residual_midpoint_max ? iter_midpoint_max : iter_midpoint" />
+        <Tool action="insert" after="midpoint residual" name="midpoint residual 0" type="set_scalar" in="Residual_midpoint0" value="iter_midpoint == 0 ? Residual_midpoint : Residual_midpoint0" />
+        <Tool action="insert" after="midpoint residual" name="midpoint autostop abs" type="set_scalar" in="iter_midpoint" value="Residual_midpoint &lt; Residual_midpoint_max ? iter_midpoint_max : iter_midpoint" />
+        <Tool action="insert" after="midpoint residual 0" name="midpoint autostop rel" type="set_scalar" in="iter_midpoint" value="Residual_midpoint / Residual_midpoint0 &lt; Residual_midpoint_maxrel ? iter_midpoint_max : iter_midpoint" />
         <Tool action="insert" after="midpoint loop end" name="midpoint residual report" type="report_screen" fields="t,Residual_midpoint" color="red" bold="false" />
     </Tools>
 </sphInput>

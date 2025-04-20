@@ -8,6 +8,6 @@
 
 <sphInput>
     <Tools>
-        <Tool action="insert" before="midpoint autostop" name="midpoint residual profile" type="report_file" fields="t,iter_midpoint,relax_midpoint,Residual_midpoint" path="midpoint.out" />
+        <Tool action="insert" before="midpoint autostop abs" name="midpoint residual profile" type="report_file" fields="t,iter_midpoint,relax_midpoint,Residual_midpoint" path="midpoint.out" />
     </Tools>
 </sphInput>
