@@ -21,9 +21,11 @@
     <Tools>
         <Tool action="insert" before="midpoint relax" name="midpoint residuals" type="kernel" entry_point="residuals" path="../../../../Scripts/basic/time_scheme/midpoint.cl" />
         <Tool action="insert" after="midpoint residuals" name="midpoint residual" type="reduction" in="residual_midpoint" out="Residual_midpoint" null="0">c = a + b</Tool>
-        <Tool action="insert" after="midpoint residual" name="midpoint residual 0" type="set_scalar" in="Residual_midpoint0" value="iter_midpoint == 0 ? Residual_midpoint : Residual_midpoint0" />
-        <Tool action="insert" after="midpoint residual" name="midpoint autostop abs" type="set_scalar" in="iter_midpoint" value="Residual_midpoint &lt; Residual_midpoint_max ? iter_midpoint_max : iter_midpoint" />
-        <Tool action="insert" after="midpoint residual 0" name="midpoint autostop rel" type="set_scalar" in="iter_midpoint" value="Residual_midpoint / Residual_midpoint0 &lt; Residual_midpoint_maxrel ? iter_midpoint_max : iter_midpoint" />
+        <Tool action="insert" after="midpoint residual" name="midpoint autostop if" type="if" condition="iter_midpoint &gt; 0" />
+        <Tool action="insert" after="midpoint autostop if" name="midpoint autostop endif" type="end" />
+            <Tool action="insert" after="midpoint autostop if" name="midpoint autostop abs" type="set_scalar" in="iter_midpoint" value="Residual_midpoint &lt; Residual_midpoint_max ? iter_midpoint_max : iter_midpoint" />
+            <Tool action="insert" after="midpoint autostop if" name="midpoint residual 0" type="set_scalar" in="Residual_midpoint0" value="iter_midpoint == 1 ? Residual_midpoint : Residual_midpoint0" />
+            <Tool action="insert" after="midpoint residual 0" name="midpoint autostop rel" type="set_scalar" in="iter_midpoint" value="Residual_midpoint / Residual_midpoint0 &lt; Residual_midpoint_maxrel ? iter_midpoint_max : iter_midpoint" />
         <Tool action="insert" after="midpoint loop end" name="midpoint residual report" type="report_screen" fields="t,Residual_midpoint" color="red" bold="false" />
     </Tools>
 </sphInput>

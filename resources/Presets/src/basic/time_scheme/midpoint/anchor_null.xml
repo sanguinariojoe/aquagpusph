@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+
+<!-- This preset sets the midpoint iterator anchor as null, which is
+     theoretically giving more stability to the scheme
+
+     To use this module, include it after midpoint.xml
+-->
+
+<sphInput>
+    <Tools>
+        <Tool action="replace" name="midpoint anchor drhodt" type="set" in="drhodt_in" value="0.f" />
+        <Tool action="replace" name="midpoint anchor dudt" type="set" in="dudt_in" value="VEC_ZERO" />
+    </Tools>
+</sphInput>

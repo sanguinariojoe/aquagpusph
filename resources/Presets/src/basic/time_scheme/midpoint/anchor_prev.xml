@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+
+<!-- This preset sets the midpoint iterator anchor as the last one from the
+     previous time step, which is theoretically closer to the actual fixed
+     point (specuially for small Courant factors). This is the default option
+
+     To use this module, include it after midpoint.xml
+-->
+
+<sphInput>
+    <Tools>
+        <Tool action="replace" name="midpoint anchor drhodt" type="dummy" />
+        <Tool action="replace" name="midpoint anchor dudt" type="dummy" />
+    </Tools>
+</sphInput>

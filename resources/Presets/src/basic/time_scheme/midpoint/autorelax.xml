@@ -23,7 +23,7 @@
         <!-- Eventually increase the relaxation factor -->
         <Tool action="insert" before="midpoint autostop abs" name="midpoint addapt relax" type="set_scalar" in="relax_midpoint" value="Residual_midpoint / Residual_midpoint_prev &gt; Residual_midpoint_mindec ? relax_midpoint_inc + (1.0 - relax_midpoint_inc) * relax_midpoint : relax_midpoint" />
         <!-- Reinit the relaxation factor at the first inner iteration -->
-        <Tool action="insert" after="midpoint addapt relax" name="midpoint start relax" type="set_scalar" in="relax_midpoint" value="iter_midpoint == 0 ? relax_midpoint_0 : relax_midpoint" />
+        <Tool action="insert" after="midpoint addapt relax" name="midpoint start relax" type="set_scalar" in="relax_midpoint" value="iter_midpoint == 1 ? relax_midpoint_0 : relax_midpoint" />
         <!-- Do not relax at all at the last inner iteration -->
         <Tool action="insert" after="midpoint autostop abs" name="midpoint end relax" type="set_scalar" in="relax_midpoint" value="iter_midpoint == iter_midpoint_max ? 0.0 : relax_midpoint" />
         <!-- Store the previous residual -->
