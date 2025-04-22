@@ -30,6 +30,6 @@ Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
 
         <Tool action="insert" before="Rates" type="kernel" name="rhs y rates" path="../../../Scripts/cfd/heat/RHS_heat_transfer.cl"/>
         
-        <Tool action="insert" after="corrector" name="corrector reactive ideal gas" type="kernel" entry_point="corrector" path="../../../Scripts/cfd/species/euler.cl"/>
+        <Tool action="insert" after="corrector" name="corrector reactive ideal gas" type="kernel" entry_point="corrector" path="../../../Scripts/cfd/heat/euler.cl"/>
     </Tools>
 </sphInput>
