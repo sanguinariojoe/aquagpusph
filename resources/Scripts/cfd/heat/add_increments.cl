@@ -61,7 +61,7 @@
  * @param N Number of particles.
  * @param dt Time step \f$ \Delta t \f$.
  */
-__kernel void corrector(const __global int* imove,
+__kernel void add(const __global int* imove,
                         //__global float* eint,
                         __global float* deintdt,
                         const __global float* rhs_qdot,

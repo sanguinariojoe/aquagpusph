@@ -95,6 +95,8 @@ __kernel void corrector(const __global int* imove,
                         const __global float* dy_N2dt,
                         __global float* y_H2O,
                         const __global float* dy_H2Odt,
+                        __global float* z,
+                        const __global float* dz_dt,                     
                         const unsigned int N,
                         const float dt)
 {
@@ -103,6 +105,7 @@ __kernel void corrector(const __global int* imove,
         return;
 
     if(imove[i] > 0) {
+        z[i] += dt * dz_dt[i];
         y_H2[i] += dt * dy_H2dt[i];
         y_O2[i] += dt * dy_O2dt[i];
         y_N2[i] += dt * dy_N2dt[i];

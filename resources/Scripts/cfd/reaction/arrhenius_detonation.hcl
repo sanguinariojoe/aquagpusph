@@ -62,10 +62,10 @@ void w_rhos(float z, float T, float y_H2, float y_O2, float y_N2, float y_H2O,
     //const float Mis[4] = {0.002f, 0.032f, 0.028f, 0.018f};
     //const float h_h20 = -285.83e3f/0.018f;
 
-    *w_rho_H2 = nus[0] * Mis[0] * M_zeta_dot_val;
-    *w_rho_O2 = nus[1] * Mis[1] * M_zeta_dot_val;
-    *w_rho_N2 = nus[2] * Mis[2] * M_zeta_dot_val;
-    *w_rho_H2O = nus[3] * Mis[3] * M_zeta_dot_val;
+    *w_rho_H2 += nus[0] * Mis[0] * M_zeta_dot_val;
+    *w_rho_O2 += nus[1] * Mis[1] * M_zeta_dot_val;
+    *w_rho_N2 += nus[2] * Mis[2] * M_zeta_dot_val;
+    *w_rho_H2O += nus[3] * Mis[3] * M_zeta_dot_val;
     *deintdt -= h_h20 * *w_rho_H2O;
     
     //printf("%g\n",*w_rho_H2O);
