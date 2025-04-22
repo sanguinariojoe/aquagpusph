@@ -10,19 +10,25 @@ Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
         <!--redefinition, it must be a variable and not a set-->
         <Variable name="visc_dyn" type="float*" length="n_sets" />
         
-        
+        <Variable name="nu" type="float*" length="N" />
+        <Variable name="nu_in" type="float*" length="N" />
+
         <Variable name="rhs_dissipation_energy" type="float*" length="N" />        
         <Variable name="rhs_dissipation_impulse" type="vec*" length="N" />
-
+        <Variable name="mu" type="float*" length="N" />
         
     </Variables>
 
     <Tools>
-        
+        <Tool action="add" name="Backup nu" type="copy" in="nu" out="nu_in"/>
+
         <Tool action="insert" after="Sort" type="set" name="Reinit rhs visc disp" in="rhs_dissipation_energy" value="0.f"/>        
         <Tool action="insert" after="Sort" type="set" name="Reinit rhs visc vel" in="rhs_dissipation_impulse" value="VEC_ZERO"/>
 
+        <Tool action="insert" after="sort stage1,sort stage2" name="sort viscous" type="kernel" entry_point="entry" path="../../../Scripts/cfd/viscous/Sort.cl"/>
+
         <Tool action="insert" before="Rates" type="kernel" name="rhs y rates" path="../../../Scripts/cfd/RHS_viscosity.cl"/>
 
+        <Tool action="insert" before="corrector" name="add increments heat transfer" type="kernel" entry_point="add" path="../../../Scripts/cfd/viscous/add_increments.cl"/>
     </Tools>
 </sphInput>

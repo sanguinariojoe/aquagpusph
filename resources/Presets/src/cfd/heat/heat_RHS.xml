@@ -14,7 +14,7 @@ Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
         <Variable name="rhs_qdot" type="float*" length="N" />
          <!--<Variable name="rhs_qdot_in" type="float*" length="N" />-->
         <Variable name="cp" type="float*" length="N" /> 
-        <Variable name="mu" type="float*" length="N" />         
+        <!--<Variable name="mu" type="float*" length="N" />-->
         <Variable name="lambda" type="float*" length="N" />
     </Variables>
 
