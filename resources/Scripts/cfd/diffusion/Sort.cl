@@ -49,14 +49,14 @@ __kernel void entry(const __global float* D_H2_in,
                     __global float* D_O2,
                     __global float* D_N2,
                     __global float* D_H2O,
-                    __global float* rhs_yh2,
+/*                    __global float* rhs_yh2,
                     __global float* rhs_yo2,
                     __global float* rhs_yn2,
                     __global float* rhs_yh2o,
                     __global float* rhs_yh2_in,
                     __global float* rhs_yo2_in,
                     __global float* rhs_yn2_in,
-                    __global float* rhs_yh2o_in,
+                    __global float* rhs_yh2o_in,*/
                     const __global usize *id_sorted,
                     usize N)
 {
@@ -71,10 +71,10 @@ __kernel void entry(const __global float* D_H2_in,
     D_N2[i_out] = D_N2_in[i];
     D_H2O[i_out] = D_H2O_in[i];
 
-    rhs_yh2[i_out] = rhs_yh2_in[i];
+/*    rhs_yh2[i_out] = rhs_yh2_in[i];
     rhs_yo2[i_out] = rhs_yo2_in[i];
     rhs_yn2[i_out] = rhs_yn2_in[i];
-    rhs_yh2o[i_out] = rhs_yh2o_in[i];
+    rhs_yh2o[i_out] = rhs_yh2o_in[i];*/
 
 }
 

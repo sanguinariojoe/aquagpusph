@@ -36,7 +36,7 @@
  * \f$ \left. \frac{d e}{d t} \right\vert_{n+1} \f$.
  * @param N Number of particles.
  */
-__kernel void predictor(const __global float* D_H2,
+/*__kernel void predictor(const __global float* D_H2,
                         const __global float* D_O2,
                         const __global float* D_N2,
                         const __global float* D_H2O,
@@ -68,6 +68,7 @@ __kernel void predictor(const __global float* D_H2,
     D_N2_in[i] = D_N2[i];
     D_H2O_in[i] = D_H2O[i];
 }
+*/
 
 /** @brief 1st order Euler time integration scheme corrector stage
  * @param imove Moving flags.
@@ -80,12 +81,12 @@ __kernel void predictor(const __global float* D_H2,
  * @param N Number of particles.
  * @param dt Time step \f$ \Delta t \f$.
  */
-__kernel void corrector(const __global int* imove,
-                        __global float* z,
-                        __global float* y_H2,
-                        __global float* y_O2,                        
-                        __global float* y_N2,                        
-                        __global float* y_H2O,                        
+__kernel void add(const __global int* imove,
+                        __global float* dz_dt,
+                        __global float* dy_H2dt,
+                        __global float* dy_O2dt,                        
+                        __global float* dy_N2dt,                        
+                        __global float* dy_H2Odt,                        
                         const __global float* rhs_yh2,
                         const __global float* rhs_yo2,
                         const __global float* rhs_yn2,
@@ -98,11 +99,13 @@ __kernel void corrector(const __global int* imove,
         return;
 
     if(imove[i] > 0) {
-        z[i] += dt * rhs_yh2[i];
-        y_H2[i] += dt * rhs_yh2[i];
-        y_O2[i] += dt * rhs_yo2[i];
-        y_N2[i] += dt * rhs_yn2[i];
-        y_H2O[i] += dt * rhs_yh2o[i];
+
+        dz_dt[i] += rhs_yh2[i]
+        dy_H2dt[i] += rhs_yh2[i];
+        dy_O2dt[i] += rhs_yo2[i];
+        dy_N2dt[i] += rhs_yn2[i];
+        dy_H2Odt[i] += rhs_yh2o[i];
+
     }
 }
 
