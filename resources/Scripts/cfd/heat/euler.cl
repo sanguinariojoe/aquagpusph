@@ -36,20 +36,19 @@
  * \f$ \left. \frac{d e}{d t} \right\vert_{n+1} \f$.
  * @param N Number of particles.
  */
-__kernel void predictor(const __global float* xi,
+/*__kernel void predictor(const __global float* xi,
                         __global float* xi_in,
-                        const __global float* rhs_qdot,
-                        __global float* rhs_qdot_in,
                         const usize N)
 {
     const usize i = get_global_id(0);
     if(i >= N)
         return;
 
-    rhs_qdot_in[i] = rhs_qdot[i];
+    //rhs_qdot_in[i] = rhs_qdot[i];
     xi_in[i] = xi[i];
 
 }
+*/
 
 /** @brief 1st order Euler time integration scheme corrector stage
  * @param imove Moving flags.
@@ -63,7 +62,8 @@ __kernel void predictor(const __global float* xi,
  * @param dt Time step \f$ \Delta t \f$.
  */
 __kernel void corrector(const __global int* imove,
-                        __global float* eint,
+                        //__global float* eint,
+                        __global float* deintdt,
                         const __global float* rhs_qdot,
                         const unsigned int N,
                         const float dt)
@@ -73,7 +73,8 @@ __kernel void corrector(const __global int* imove,
         return;
 
     if(imove[i] > 0) {
-        eint[i] += dt * rhs_qdot[i];
+        //eint[i] += dt * rhs_qdot[i];
+        deintdt[i] += rhs_qdot[i];
     }
 }
 

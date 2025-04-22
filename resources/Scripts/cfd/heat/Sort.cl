@@ -44,8 +44,8 @@
 __kernel void entry(const __global usize *id_sorted,
                     __global float* xi,
                     const __global float* xi_in,
-                    __global float* rhs_qdot,
-                    const __global float* rhs_qdot_in,
+//                    __global float* rhs_qdot,
+//                    const __global float* rhs_qdot_in,
                     usize N)
 {
     usize i = get_global_id(0);
@@ -55,7 +55,7 @@ __kernel void entry(const __global usize *id_sorted,
     const usize i_out = id_sorted[i];
 
     xi[i_out] = xi_in[i];
-    rhs_qdot[i_out] = rhs_qdot_in[i];
+//    rhs_qdot[i_out] = rhs_qdot_in[i];
     
 }
 
