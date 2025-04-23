@@ -61,6 +61,8 @@
  * @param N Number of particles.
  * @param dt Time step \f$ \Delta t \f$.
  */
+#include "resources/Scripts/types/types.h"
+
 __kernel void add(const __global int* imove,
                         //__global float* eint,
                         __global vec* dudt,

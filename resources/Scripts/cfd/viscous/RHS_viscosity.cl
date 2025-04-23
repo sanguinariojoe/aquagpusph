@@ -78,25 +78,20 @@ __kernel void entry(const __global int* imove,
     const float mu_i = mu[i];
 
     // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
+    #ifndef LOCAL_MEM_SIZE    
         #define _RHS_IMPULSE_DISSIPATION_ rhs_dissipation_impulse[i].XYZ
         #define _RHS_ENERGY_DISSIPATION_ rhs_dissipation_energy[i]
-
     #else
-        #define _RHS_IMPULSE_DISSIPATION_  rhs_dissipation_impulse_l[it] 
-        #define _RHS_ENERGY_DISSIPATION_  rhs_dissipation_energy_l[it] 
+        #define _RHS_IMPULSE_DISSIPATION_ rhs_dissipation_impulse_l[it] 
+        #define _RHS_ENERGY_DISSIPATION_ rhs_dissipation_energy_l[it] 
         __local vec_xyz rhs_dissipation_impulse_l[LOCAL_MEM_SIZE];
         __local float rhs_dissipation_energy_l[LOCAL_MEM_SIZE];
         
         _RHS_IMPULSE_DISSIPATION_ = VEC_ZERO.XYZ;
         _RHS_ENERGY_DISSIPATION_ = 0.f;
-
     #endif
 
     const usize c_i = icell[i];
-
-    
-
     BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
         if(i == j){
             j++;
@@ -127,7 +122,7 @@ __kernel void entry(const __global int* imove,
 
             const float pi_ij = -16.0f * mu_i * mu_j / (rho_i * rho_j * (mu_i + mu_j)) * udr / (rdr + tinie * H * H);
 
-            _RHS_IMPULSE_DISSIPATION_ -= pi_ij * r_ij * f_ij;
+            _RHS_IMPULSE_DISSIPATION_ += -pi_ij * r_ij * f_ij;
             _RHS_ENERGY_DISSIPATION_ += 0.5f * pi_ij * udr * f_ij;
 //            _RHS_QDOT_ += 4.0f * kappa_i * kappa_j / (rho_i * kappa_i + rho_j * kappa_j)*(T_i-T_j)*f_ij;
 

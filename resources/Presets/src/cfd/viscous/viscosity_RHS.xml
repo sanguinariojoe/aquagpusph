@@ -8,7 +8,7 @@ Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
     <Variables>
 
         <!--redefinition, it must be a variable and not a set-->
-        <Variable name="visc_dyn" type="float*" length="n_sets" />
+        <!--<Variable name="visc_dyn" type="float*" length="n_sets" />-->
         
         <Variable name="nu" type="float*" length="N" />
         <Variable name="nu_in" type="float*" length="N" />
@@ -27,7 +27,7 @@ Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
 
         <Tool action="insert" after="sort stage1,sort stage2" name="sort viscous" type="kernel" entry_point="entry" path="../../../Scripts/cfd/viscous/Sort.cl"/>
 
-        <Tool action="insert" before="Interactions" type="kernel" name="rhs y rates" path="../../../Scripts/cfd/RHS_viscosity.cl"/>
+        <Tool action="insert" before="Interactions" type="kernel" name="rhs y rates" path="../../../Scripts/cfd/viscous/RHS_viscosity.cl"/>
 
         <Tool action="insert" before="Rates" name="add increments heat transfer" type="kernel" entry_point="add" path="../../../Scripts/cfd/viscous/add_increments.cl"/>
     </Tools>
