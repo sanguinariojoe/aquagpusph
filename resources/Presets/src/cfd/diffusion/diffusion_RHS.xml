@@ -46,7 +46,7 @@ Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
 
         <Tool action="insert" before="Rates" type="kernel" name="rhs y rates" path="../../../Scripts/cfd/diffusion/RHS_diffusion.cl"/>
 
-        <Tool action="insert" before="corrector" name="add increments gas multicomponents" type="kernel" entry_point="add" path="../../../Scripts/cfd/diffusion/add_increments.cl"/>
+        <Tool action="insert" before="Corrector" name="add increments gas multicomponents" type="kernel" entry_point="add" path="../../../Scripts/cfd/diffusion/add_increments.cl"/>
 
     </Tools>
 </sphInput>
