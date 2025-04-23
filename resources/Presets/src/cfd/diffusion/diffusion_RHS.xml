@@ -44,9 +44,9 @@ Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
         <!--<Tool action="insert" after="predictor" name="predictor heat" type="kernel" entry_point="predictor" path="../../../Scripts/cfd/diffusion/euler.cl"/>-->
         <Tool action="insert" after="sort stage1,sort stage2" name="sort heat" type="kernel" entry_point="entry" path="../../../Scripts/cfd/diffusion/Sort.cl"/>
 
-        <Tool action="insert" before="Rates" type="kernel" name="rhs y rates" path="../../../Scripts/cfd/diffusion/RHS_diffusion.cl"/>
+        <Tool action="insert" before="Interactions" type="kernel" name="rhs y rates" path="../../../Scripts/cfd/diffusion/RHS_diffusion.cl"/>
 
-        <Tool action="insert" before="Corrector" name="add increments gas multicomponents" type="kernel" entry_point="add" path="../../../Scripts/cfd/diffusion/add_increments.cl"/>
+        <Tool action="insert" before="Rates" name="add increments gas multicomponents" type="kernel" entry_point="add" path="../../../Scripts/cfd/diffusion/add_increments.cl"/>
 
     </Tools>
 </sphInput>

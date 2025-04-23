@@ -88,6 +88,7 @@ __kernel void entry(const __global unsigned int* iset,
     calc_gamma_cp_cv(y_H2[i], y_O2[i], y_N2[i], y_H2O[i], gamma + i, cv + i, cp + i);
     X_from_Y(y_H2[i], y_O2[i], y_N2[i], y_H2O[i], x_H2 + i, x_O2 + i, x_N2 + i, x_H2O + i);
 
+  
     p[i] = (gamma[i] - 1.0f) * rho[i] * eint[i];
     T[i] = eint[i]/cv[i];
 

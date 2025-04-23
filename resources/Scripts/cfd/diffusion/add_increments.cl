@@ -100,7 +100,7 @@ __kernel void add(const __global int* imove,
 
     if(imove[i] > 0) {
 
-        dz_dt[i] += rhs_yh2[i]
+        dz_dt[i] += rhs_yh2[i];
         dy_H2dt[i] += rhs_yh2[i];
         dy_O2dt[i] += rhs_yo2[i];
         dy_N2dt[i] += rhs_yn2[i];

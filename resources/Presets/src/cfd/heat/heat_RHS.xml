@@ -8,13 +8,13 @@ Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
     <Variables>
         <Variable name="xi" type="float*" length="N" />
         <Variable name="xi_in" type="float*" length="N" /> 
-        <!--<Variable name="nu" type="float*" length="N" />-->
-        <!--<Variable name="nu_in" type="float*" length="N" />-->
+        <Variable name="nu" type="float*" length="N" />
+        <Variable name="nu_in" type="float*" length="N" />
         <!--<Variable name="lambda" type="float*" length="N" />-->
         <Variable name="rhs_qdot" type="float*" length="N" />
          <!--<Variable name="rhs_qdot_in" type="float*" length="N" />-->
         <Variable name="cp" type="float*" length="N" /> 
-        <!--<Variable name="mu" type="float*" length="N" />-->
+        <Variable name="mu" type="float*" length="N" />
         <Variable name="lambda" type="float*" length="N" />
     </Variables>
 
@@ -31,8 +31,8 @@ Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
         <!--<Tool action="insert" after="predictor" name="predictor heat" type="kernel" entry_point="predictor" path="../../../Scripts/cfd/heat/euler.cl"/>-->
         <Tool action="insert" after="sort stage1,sort stage2" name="sort heat" type="kernel" entry_point="entry" path="../../../Scripts/cfd/heat/Sort.cl"/>
 
-        <Tool action="insert" before="Rates" type="kernel" name="rhs y rates" path="../../../Scripts/cfd/heat/RHS_heat_transfer.cl"/>
+        <Tool action="insert" before="Interactions" type="kernel" name="rhs y rates" path="../../../Scripts/cfd/heat/RHS_heat_transfer.cl"/>
         
-        <Tool action="insert" before="Corrector" name="add increments heat transfer" type="kernel" entry_point="add" path="../../../Scripts/cfd/heat/add_increments.cl"/>
+        <Tool action="insert" before="Rates" name="add increments heat transfer" type="kernel" entry_point="add" path="../../../Scripts/cfd/heat/add_increments.cl"/>
     </Tools>
 </sphInput>
