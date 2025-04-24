@@ -78,12 +78,12 @@ y_H2O_1 = 0.
 courant = 0.1
 support = 2.0 
 
-b0plus=0.7
+b0plus=0.1
 b0minus=0.1
 
 hfac = 2.0
 
-nx = 5000
+nx = 100
 
 p1 = 1.0e5
 p2 = 1.0e5
@@ -138,20 +138,20 @@ def writeParticle(output, p, n=(0.0, 0.0), u=(0.0, 0.0),
         p[0], p[1],
         n[0], n[1],
         u[0], u[1],
-        dudt[0], dudt[1],
+        dudt[0], dudt[1],#r, normal, u, dudt, 
         rho,
-        drhodt,
+        drhodt,#rho, drhodt,
         e,
-        dedt,
-        z,
-        y_H2, dy_H2dt,
-        y_O2, dy_O2dt,
-        y_N2, dy_N2dt,
-        y_H2O, dy_H2Odt,
-        m,
+        dedt,#eint, deintdt, 
+        z,#z, 
+        y_H2, dy_H2dt,#y_H2, dy_H2dt, 
+        y_O2, dy_O2dt,#y_O2, dy_O2dt, 
+        y_N2, dy_N2dt,#y_N2, dy_N2dt, 
+        y_H2O, dy_H2Odt,#y_H2O, dy_H2Odt, 
+        m,#m, 
         nu,
-        xi,
-        imove)
+        xi,#nu, xi, 
+        imove)#imove
     output.write(string)
 
 print("Opening output file...")

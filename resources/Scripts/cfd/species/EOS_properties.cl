@@ -34,7 +34,7 @@
 #endif
 
 #include "resources/Scripts/types/types.h"
-#include "resources/Scripts/cfd/reaction/arrhenius_detonation.hcl"
+#include "resources/Scripts/cfd/species/species_auxiliary.hcl"
 
 /** @brief Ideal gas Equation Of State (EOS) computation
  *
@@ -91,6 +91,8 @@ __kernel void entry(const __global unsigned int* iset,
   
     p[i] = (gamma[i] - 1.0f) * rho[i] * eint[i];
     T[i] = eint[i]/cv[i];
+    printf("nu is %f\n", nu[i]);
+    //printf("xi is %f\n", xi[i]);
 
     lambda[i] = cp[i] * rho[i] * xi[i] * sqrt(T[i]/298.0f);
     mu[i] = rho[i] * nu[i] * sqrt(T[i]/298.0f);

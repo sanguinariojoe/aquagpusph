@@ -13,7 +13,7 @@ __kernel void entry(const __global unsigned int* iset,
                     const __global float* y_O2,
                     const __global float* y_N2,
                     const __global float* y_H2O,
-                    //const __global vec* grad_p,
+                    const __global vec* grad_zeta,
                     //const __global float* div_u,
                     //const __global float* work_density,
                     //__global vec* dudt,
@@ -38,6 +38,9 @@ __kernel void entry(const __global unsigned int* iset,
     dudt[i] = -grad_p[i] + g;
     deintdt[i] = -work_density[i];*/
     
-    w_rhos_arrhenius_det(z[i], T[i], y_H2[i], y_O2[i], y_N2[i], y_H2O[i], 
-                        dy_H2dt+i, dy_O2dt+i, dy_N2dt+i, dy_H2Odt+i, deintdt+i, zeta_dot+i);
+    w_rhos_zimont_def(z[i], T[i], y_H2[i], y_O2[i], y_N2[i], y_H2O[i], 
+                        dy_H2dt+i, dy_O2dt+i, dy_N2dt+i, dy_H2Odt+i, 
+                        deintdt+i, 
+                        zeta_dot+i,
+                        grad_zeta+i);
 }
