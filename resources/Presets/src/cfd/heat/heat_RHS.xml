@@ -25,8 +25,9 @@ Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
 
         
         <!-- This is for time being, untill a more advance transpor model will be programmed-->
-        <Tool action="add" name="Backup nu" type="copy" in="nu" out="nu_in"/>
-        <Tool action="add" name="Backup xi" type="copy" in="xi" out="xi_in"/>
+        
+        <Tool action="insert" name="Backup nu" before="sort stage1,sort stage2" type="copy" in="nu" out="nu_in"/>
+        <Tool action="insert" name="Backup xi" before="sort stage1,sort stage2" type="copy" in="xi" out="xi_in"/>
 
         <!-- This is commented after conversation with Cercos-->
         <!--<Tool action="insert" after="predictor" name="predictor heat" type="kernel" entry_point="predictor" path="../../../Scripts/cfd/heat/euler.cl"/>-->

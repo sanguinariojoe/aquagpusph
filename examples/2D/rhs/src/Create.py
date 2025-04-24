@@ -44,7 +44,7 @@ import numpy as np
 
 #zone 2 h2+air
 nu=1.0e-5
-xi=1.0e-5
+xi=1.0e-2
 
 n_H2 = 0.0
 n_O2 = 0.21
@@ -118,7 +118,7 @@ R = 2 * support * h + dr
 #dt = 1.0E-5
 dt = 0.1*min(dr / c1 , dr / c2)
 t_max = (0.5 * L - support * h) / cs
-
+t_max = 1.0e-3
 
 print("")
 print(f"dr = {dr}")

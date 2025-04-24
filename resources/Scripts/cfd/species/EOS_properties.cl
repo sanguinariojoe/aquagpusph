@@ -91,7 +91,7 @@ __kernel void entry(const __global unsigned int* iset,
   
     p[i] = (gamma[i] - 1.0f) * rho[i] * eint[i];
     T[i] = eint[i]/cv[i];
-    printf("nu is %f\n", nu[i]);
+    //printf("nu is %f\n", nu[i]);
     //printf("xi is %f\n", xi[i]);
 
     lambda[i] = cp[i] * rho[i] * xi[i] * sqrt(T[i]/298.0f);

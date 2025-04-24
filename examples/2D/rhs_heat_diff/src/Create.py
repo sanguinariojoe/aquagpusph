@@ -45,10 +45,10 @@ import numpy as np
 #zone 2 h2+air
 nu = 1.0e-5
 xi = 1.0e-5
-Dh2 = 1.0e-5
-Dn2 = 1.0e-5
-Do2 = 1.0e-5
-Dh2o = 1.0e-5
+Dh2 = 1.0e-2
+Dn2 = 1.0e-2
+Do2 = 1.0e-2
+Dh2o = 1.0e-2
 
 
 n_H2 = 1.0
@@ -83,12 +83,12 @@ y_H2O_1 = 0.
 courant = 0.1
 support = 2.0 
 
-b0plus=0.7
+b0plus=0.1
 b0minus=0.1
 
 hfac = 2.0
 
-nx = 5000
+nx = 100
 
 p1 = 1.0e5
 p2 = 1.0e5
@@ -124,7 +124,7 @@ R = 2 * support * h + dr
 #dt = 1.0E-5
 dt = 0.1*min(dr / c1 , dr / c2)
 t_max = (0.5 * L - support * h) / cs
-
+t_max = 1.0e-3
 
 print("")
 print(f"dr = {dr}")

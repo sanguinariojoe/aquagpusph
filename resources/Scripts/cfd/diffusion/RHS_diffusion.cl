@@ -93,6 +93,8 @@ __kernel void entry(const __global int* imove,
 
     const float rho_i = rho[i];
 
+    //printf("D in i is %f\n", D_H2[i]);
+
     // Initialize the output
     #ifndef LOCAL_MEM_SIZE
 
