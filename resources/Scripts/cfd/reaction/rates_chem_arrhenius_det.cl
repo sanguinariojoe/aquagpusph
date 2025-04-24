@@ -1,4 +1,5 @@
 #include "resources/Scripts/types/types.h"
+#include "resources/Scripts/cfd/reaction/reaction_generic.hcl"
 #include "resources/Scripts/cfd/reaction/arrhenius_detonation.hcl"
 
 __kernel void entry(const __global unsigned int* iset,
@@ -37,6 +38,6 @@ __kernel void entry(const __global unsigned int* iset,
     dudt[i] = -grad_p[i] + g;
     deintdt[i] = -work_density[i];*/
     
-    w_rhos(z[i], T[i], y_H2[i], y_O2[i], y_N2[i], y_H2O[i], 
-           dy_H2dt+i, dy_O2dt+i, dy_N2dt+i, dy_H2Odt+i, deintdt+i, zeta_dot+i);
+    w_rhos_arrhenius_det(z[i], T[i], y_H2[i], y_O2[i], y_N2[i], y_H2O[i], 
+                        dy_H2dt+i, dy_O2dt+i, dy_N2dt+i, dy_H2Odt+i, deintdt+i, zeta_dot+i);
 }
