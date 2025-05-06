@@ -4,7 +4,7 @@
 
 #define R_gas 8.31f
 
-__constant float cps[4] = {14200.0f, 913.0f, 1040.0f, 2050.0f};
+__constant float cps[4] = {14200.0f, 918.0f, 1040.0f, 2050.0f};
 __constant float Mis[4] = {0.002f, 0.032f, 0.028f, 0.018f};
 __constant float nus[4] = {-1.0f, -0.5f, 0.0f, 1.0f};
 
@@ -41,6 +41,7 @@ void X_from_Y(float y_H2, float y_O2, float y_N2, float y_H2O, __global float* x
     *x_N2 = MMix / Mis[2] * y_N2;
     *x_H2O = MMix / Mis[3] * y_H2O;
     
+    //printf("x_O2 = %f   x_N2 = %f\n", *x_O2, *x_N2);
     return;
 }
 

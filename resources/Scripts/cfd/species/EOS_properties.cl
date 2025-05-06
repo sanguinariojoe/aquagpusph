@@ -87,14 +87,18 @@ __kernel void entry(const __global unsigned int* iset,
 
     calc_gamma_cp_cv(y_H2[i], y_O2[i], y_N2[i], y_H2O[i], gamma + i, cv + i, cp + i);
     X_from_Y(y_H2[i], y_O2[i], y_N2[i], y_H2O[i], x_H2 + i, x_O2 + i, x_N2 + i, x_H2O + i);
-
   
     p[i] = (gamma[i] - 1.0f) * rho[i] * eint[i];
     T[i] = eint[i]/cv[i];
-    //printf("nu is %f\n", nu[i]);
-    //printf("xi is %f\n", xi[i]);
-
+    //printf("cv = %f\n", cv[i]);
+    //printf("T = %f\n", T[i]);
     lambda[i] = cp[i] * rho[i] * xi[i] * sqrt(T[i]/298.0f);
+    
+    //This line is for debug!!!!
+    lambda[i] =  1012.0f * xi[i];
+
+
+
     mu[i] = rho[i] * nu[i] * sqrt(T[i]/298.0f);
 }
 

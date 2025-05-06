@@ -116,15 +116,16 @@ __kernel void entry(const __global int* imove,
             const float T_j = T[j];
             const float lambda_j = lambda[j];
             
-
-            _RHS_QDOT_ += 4.0f * lambda_i * lambda_j / (rho_i * lambda_i + rho_j * lambda_j)*(T_i-T_j)*f_ij;
-
+            _RHS_QDOT_ += -4.0f * lambda_i * lambda_j / ((rho_i * rho_j) *(lambda_i + lambda_j))*(T_i-T_j)*f_ij;
+            
+            //_RHS_QDOT_ += 4.0f * lambda_i * lambda_j / (rho_i * lambda_i + rho_j * lambda_j)*(T_i-T_j)*f_ij;
+            //_RHS_QDOT_ = 0.0f;
         }
     }END_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
 
         rhs_qdot[i] = _RHS_QDOT_;
-
+        //rhs_qdot[i] = 0.0f;
     #endif
 }

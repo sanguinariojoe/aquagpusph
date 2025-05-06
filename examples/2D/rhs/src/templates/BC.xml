@@ -26,7 +26,7 @@ Authors:
     <Include file="resources/Presets/cfd/symmetry.xml" prefix="bottom_"/>
     <Include file="resources/Presets/cfd/symmetry.xml" prefix="top_"/>
     <!--<Include file="resources/Presets/cfd/ideal_gas/symmetry.xml"/>-->
-    <Include file="resources/Presets/cfd/species/symmetry.xml"/>
+    <Include file="resources/Presets/cfd/heat/symmetry.xml"/>
     
     <Variables>
         <Variable name="L" type="float" length="1" value="{{L}}" />

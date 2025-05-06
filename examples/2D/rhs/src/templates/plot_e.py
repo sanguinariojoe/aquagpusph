@@ -34,7 +34,7 @@ import os
 import json
 import meshio
 import numpy as np
-import sodshock
+#import sodshock
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
@@ -75,7 +75,7 @@ sph, = ax.plot([0.0], [0.0], color="red", linewidth=1.0, linestyle='--')
 # Set some options
 ax.grid()
 ax.set_xlim(-0.5, 0.5)
-ax.set_ylim(0, 1.05)
+ax.set_ylim(0.99, 1.01)
 ax.set_autoscale_on(False)
 ax.set_xlabel(r"$x / R$")
 ax.set_ylabel(r"$e / e_0$")
@@ -91,19 +91,19 @@ def update(frame_index):
         npts = len(x)
         left_state = (P[0], RHO[0], 0)
         right_state = (P[1], RHO[1], 0.)
-        _, _, exp_data = sodshock.solve(left_state=left_state,
-                                        right_state=right_state,
-                                        geometry=(-0.5 * L, 0.5 * L, 0),
-                                        t=t, 
-                                        gamma=GAMMA,
-                                        npts=npts,
-                                        dustFrac=0.0)
+        #_, _, exp_data = sodshock.solve(left_state=left_state,
+        #                                right_state=right_state,
+        #                                geometry=(-0.5 * L, 0.5 * L, 0),
+        #                                t=t, 
+        #                                gamma=GAMMA,
+        #                                npts=npts,
+        #                                dustFrac=0.0)
     except IndexError:
         return
     except FileNotFoundError:
         return
     sph.set_data(x / L, e / max(E))
-    exp.set_data(exp_data['x'] / L, exp_data['energy'] / max(E))
+    #exp.set_data(exp_data['x'] / L, exp_data['energy'] / max(E))
     ax.set_title(r"$t \,\, c_0 / L = {}$".format(t / T))
 
 update(0)
