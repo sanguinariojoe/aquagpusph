@@ -154,11 +154,16 @@ __kernel void entry(const __global int* imove,
             const float Do2_j = D_O2[j];
 
 
-            _RHS_YH2_ += 4.0f * Dh2_i * Dh2_j / (rho_i * Dh2_i + rho_j * Dh2_j)*(yh2_i-yh2_j)*f_ij;
-            _RHS_YO2_ += 4.0f * Do2_i * Do2_j / (rho_i * Do2_i + rho_j * Do2_j)*(yo2_i-yo2_j)*f_ij;
-            _RHS_YN2_ += 4.0f * Dn2_i * Dn2_j / (rho_i * Dn2_i + rho_j * Dn2_j)*(yn2_i-yn2_j)*f_ij;
-            _RHS_YH2O_ += 4.0f * Dh2o_i * Dh2o_j / (rho_i * Dh2o_i + rho_j * Dh2o_j) * (yh2o_i - yh2o_j)*f_ij;
+            //_RHS_YH2_ += 4.0f * Dh2_i * Dh2_j / (rho_i * Dh2_i + rho_j * Dh2_j)*(yh2_i-yh2_j)*f_ij;
+            //_RHS_YO2_ += 4.0f * Do2_i * Do2_j / (rho_i * Do2_i + rho_j * Do2_j)*(yo2_i-yo2_j)*f_ij;
+            //_RHS_YN2_ += 4.0f * Dn2_i * Dn2_j / (rho_i * Dn2_i + rho_j * Dn2_j)*(yn2_i-yn2_j)*f_ij;
+            //_RHS_YH2O_ += 4.0f * Dh2o_i * Dh2o_j / (rho_i * Dh2o_i + rho_j * Dh2o_j) * (yh2o_i - yh2o_j)*f_ij;
 
+
+            _RHS_YH2_ += -4.0f * Dh2_i * Dh2_j / ((rho_i * rho_j) * (Dh2_i + Dh2_j)) * (yh2_i - yh2_j) * f_ij;
+            _RHS_YO2_ += -4.0f * Do2_i * Do2_j / ((rho_i * rho_j) * (Do2_i + Do2_j)) * (yo2_i - yo2_j) * f_ij;
+            _RHS_YN2_ += -4.0f * Dn2_i * Dn2_j / ((rho_i * rho_j) * (Dn2_i + Dn2_j)) * (yn2_i - yn2_j) * f_ij;
+            _RHS_YH2O_ += -4.0f * Dh2o_i * Dh2o_j / ((rho_i * rho_j) * (Dh2o_i + Dh2o_j)) * (yh2o_i - yh2o_j) * f_ij;
         }
     }END_NEIGHS()
 
