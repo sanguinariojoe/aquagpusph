@@ -95,6 +95,7 @@ __kernel void entry(const __global unsigned int* iset,
     lambda[i] = cp[i] * rho[i] * xi[i] * sqrt(T[i]/298.0f);
     
     //This line is for debug!!!!
+    // to get ferr profile
     lambda[i] =  1012.0f * xi[i];
 
     mu[i] = rho[i] * nu[i] * sqrt(T[i]/298.0f);

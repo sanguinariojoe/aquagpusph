@@ -27,6 +27,7 @@ Authors:
     <Include file="resources/Presets/cfd/species/species.xml" />
     <!--<Include file="resources/Presets/cfd/reactive/reactive.xml" />-->
     <Include file="resources/Presets/cfd/heat/heat_RHS.xml" />
+    <Tool action="replace" name="EOS" type="kernel" path="EOS_fixed_lambda.cl"/>
     <Include file="resources/Presets/cfd/variableTimeStep.xml" />
     <Include file="resources/Presets/cfd/heat/variableTimeStep.xml" />
     <Include file="resources/Presets/basic/timing.report.xml" />

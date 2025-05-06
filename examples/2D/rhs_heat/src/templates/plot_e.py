@@ -75,7 +75,7 @@ sph, = ax.plot([0.0], [0.0], color="red", linewidth=1.0, linestyle='--')
 # Set some options
 ax.grid()
 ax.set_xlim(-0.5, 0.5)
-ax.set_ylim(0.99, 1.01)
+ax.set_ylim(0.9950, 1.0001)
 ax.set_autoscale_on(False)
 ax.set_xlabel(r"$x / R$")
 ax.set_ylabel(r"$e / e_0$")
