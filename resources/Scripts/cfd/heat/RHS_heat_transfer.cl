@@ -41,10 +41,9 @@
  * @param u Velocity \f$ \mathbf{u} \f$.
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
- * @param p Pressure \f$ p \f$.
- * @param grad_p Pressure gradient \f$ \frac{\nabla p}{rho} \f$.
- * @param lap_u Velocity laplacian \f$ \frac{\Delta \mathbf{u}}{rho} \f$.
- * @param div_u Velocity divergence \f$ \rho \nabla \cdot \mathbf{u} \f$.
+ * @param rhs_qdot total heat conduction
+ * @param T temperature
+ * @param lambda thermal conductivity
  * @param N Number of particles.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
@@ -52,10 +51,8 @@
  */
 __kernel void entry(const __global int* imove,
                     const __global vec* r,
-                    //const __global vec* u,
                     const __global float* rho,
                     const __global float* m,
-                    //const __global float* p,
                     __global float* rhs_qdot,
                     const __global float* T,
                     const __global float* lambda,

@@ -31,15 +31,14 @@
 
 /** @brief Sort the internal energy.
  *
- * @param eint_in Unsorted internal energy \f$ e \f$.
- * @param eint Sorted internal energy \f$ e \f$.
- * @param deintdt Unsorted internal energy rate of change
- * \f$ \frac{d e}{d t} \f$.
- * @param deintdt_in Sorted internal energy rate of change
- * \f$ \frac{d e}{d t} \f$.
  * @param id_sorted Permutations list from the unsorted space to the sorted
  * one.
  * @param N Number of particles.
+ * @param z first gas component
+ * @param y_xx_in ordered mass fraction
+ * @param y_xx unordered mass fraction
+ * @param dy_xxdt_in ordered mass fraction rate of change
+ * @param dy_xxdt unordered mass fraction rate of change
  */
 __kernel void entry(__global float* z,
                     __global float* y_H2,

@@ -16,46 +16,13 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
- * \addtogroup ideal_gas
- * @{
- */
-
-/** @file
- * @brief 1st order Euler integration scheme for the internal energy.
- *
- * This is an extension of resources/Scripts/basic/time_scheme/euler.cl
- */
-
-/** @brief 1st order Euler time integration scheme predictor stage
- * @param eint Internal energy \f$ \e_{n+1/2} \f$.
- * @param deintdt Internal energy rate of change
- * \f$ \left. \frac{d e}{d t} \right\vert_{n+1/2} \f$.
- * @param eint_in Internal energy \f$ e_{n+1} \f$.
- * @param deintdt_in Internal energy rate of change
- * \f$ \left. \frac{d e}{d t} \right\vert_{n+1} \f$.
- * @param N Number of particles.
- */
-/*__kernel void predictor(const __global float* xi,
-                        __global float* xi_in,
-                        const usize N)
-{
-    const usize i = get_global_id(0);
-    if(i >= N)
-        return;
-
-    //rhs_qdot_in[i] = rhs_qdot[i];
-    xi_in[i] = xi[i];
-
-}
-*/
 
 /** @brief 1st order Euler time integration scheme corrector stage
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param eint Internal energy \f$ \e_{n+1/2} \f$.
+ * @param rhs_qdot change of internal energy due to heat conduction
  * @param deintdt Internal energy rate of change
  * \f$ \left. \frac{d e}{d t} \right\vert_{n+1/2} \f$.
  * @param N Number of particles.

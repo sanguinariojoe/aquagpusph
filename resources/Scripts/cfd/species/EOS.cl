@@ -52,6 +52,17 @@
  * @param p Pressure \f$ p_{n+1/2} \f$.
  * @param gamma Heat capacity ratio \f$ \gamma \f$.
  * @param N Number of particles.
+ * @param x_xx molar fraction
+ * @param y_xx mas fraction
+ * @param p pressure
+ * @param T temperature
+ * @param gamma polytropic coefficient
+ * @param cp heat at constant pressure
+ * @param cv heat at constant volume
+ * @param nu kinematic viscosity
+ * @param xi thermal diffisivity
+ * @param mu dynamic viscosity
+ * @param lambda thermal conductivity 
  */
 
 __kernel void entry(const __global unsigned int* iset,

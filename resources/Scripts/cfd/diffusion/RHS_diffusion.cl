@@ -30,8 +30,7 @@
 
 /** @brief Fluid particles interactions computation.
  *
- * Compute the differential operators involved in the numerical scheme, taking
- * into account just the fluid-fluid interactions.
+ * computation of diffusion of the different speceis
  *
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
@@ -41,14 +40,13 @@
  * @param u Velocity \f$ \mathbf{u} \f$.
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
- * @param p Pressure \f$ p \f$.
- * @param grad_p Pressure gradient \f$ \frac{\nabla p}{rho} \f$.
- * @param lap_u Velocity laplacian \f$ \frac{\Delta \mathbf{u}}{rho} \f$.
- * @param div_u Velocity divergence \f$ \rho \nabla \cdot \mathbf{u} \f$.
  * @param N Number of particles.
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
  * @param n_cells Number of cells in each direction
+ * @param y_xx mass fraction
+ * @param D_xx diffusion coeficient
+ *
  */
 __kernel void entry(const __global int* imove,
                     const __global vec* r,

@@ -44,6 +44,16 @@ vec_xyz reflection(vec_xyz u, vec_xyz n)
     return -2.f * dot(u, n) * n;
 }
 
+/**
+ * @brief reflection routine for the species and diffusion 
+ * mirroring
+ * 
+ */
+/// @param D_H2_in Diffusion coefficient H2
+/// @param D_O2_in Diffusion coefficient O2
+/// @param D_N2_in Diffusion coefficient N2
+/// @param D_H2O_in Diffusion coefficient H2O
+
 __kernel void feed(__global int* imove,
                    __global int* iset,
                    __global unsigned int* imirror,

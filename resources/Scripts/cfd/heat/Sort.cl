@@ -16,38 +16,28 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
- * \addtogroup ideal_gas
- * @{
- */
-
-/** @file
- * @brief Sort the internal energy by the cell indexes
- *
- * This is an extension of resources/Scripts/basic/Sort.cl
- */
 
 #include "resources/Scripts/types/types.h"
 
 /** @brief Sort the internal energy.
  *
- * @param eint_in Unsorted internal energy \f$ e \f$.
- * @param eint Sorted internal energy \f$ e \f$.
- * @param deintdt Unsorted internal energy rate of change
- * \f$ \frac{d e}{d t} \f$.
- * @param deintdt_in Sorted internal energy rate of change
- * \f$ \frac{d e}{d t} \f$.
- * @param id_sorted Permutations list from the unsorted space to the sorted
- * one.
+
  * @param N Number of particles.
  */
+
+
+
+/// @param xi unordered thermal difusivity
+/// @param xi_in ordered thermal difusivity
+/// @param nu unordered kinematic viscosity
+/// @param nu_in ordered kinematic viscosity
+
+
 __kernel void entry(const __global usize *id_sorted,
                     __global float* xi,
                     const __global float* xi_in,
                     __global float* nu,
                     const __global float* nu_in,
-//                    __global float* rhs_qdot,
-//                    const __global float* rhs_qdot_in,
                     usize N)
 {
     usize i = get_global_id(0);
@@ -58,7 +48,6 @@ __kernel void entry(const __global usize *id_sorted,
 
     xi[i_out] = xi_in[i];
     nu[i_out] = nu_in[i];
-//    rhs_qdot[i_out] = rhs_qdot_in[i];
     
 }
 

@@ -19,6 +19,12 @@
 #ifndef _SOUND_SPEED_PERFECT_GAS_H_INCLUDED_
 #define _SOUND_SPEED_PERFECT_GAS_H_INCLUDED_
 
+/// @brief 
+/// @param gamma polytropic coefficient
+/// @param p pressure
+/// @param rho density
+/// @return speed of sound
+
 float sound_speed_perfect_gas(float gamma, float p, float rho)
 {
     return sqrt(gamma * p / rho);

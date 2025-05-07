@@ -28,12 +28,11 @@
  */
 
 /** @brief 1st order Euler time integration scheme predictor stage
- * @param eint Internal energy \f$ \e_{n+1/2} \f$.
- * @param deintdt Internal energy rate of change
- * \f$ \left. \frac{d e}{d t} \right\vert_{n+1/2} \f$.
- * @param eint_in Internal energy \f$ e_{n+1} \f$.
- * @param deintdt_in Internal energy rate of change
- * \f$ \left. \frac{d e}{d t} \right\vert_{n+1} \f$.
+ * @param z first gas component
+ * @param y_xx_in ordered mass fraction
+ * @param y_xx unordered mass fraction
+ * @param dy_xxdt_in ordered mass fraction rate of change
+ * @param dy_xxdt unordered mass fraction rate of change
  * @param N Number of particles.
  */
 __kernel void predictor(const __global float* z,
@@ -80,11 +79,13 @@ __kernel void predictor(const __global float* z,
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param eint Internal energy \f$ \e_{n+1/2} \f$.
- * @param deintdt Internal energy rate of change
- * \f$ \left. \frac{d e}{d t} \right\vert_{n+1/2} \f$.
+
  * @param N Number of particles.
  * @param dt Time step \f$ \Delta t \f$.
+ * @param y_xx unordered mass fraction
+ * @param dy_xxdt unordered mass fraction rate of change
+ * @param z first gas component
+ * @param dz_dt first gas component rate of change
  */
 __kernel void corrector(const __global int* imove,
                         __global float* y_H2,

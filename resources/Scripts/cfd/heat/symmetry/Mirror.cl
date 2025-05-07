@@ -44,6 +44,15 @@ vec_xyz reflection(vec_xyz u, vec_xyz n)
     return -2.f * dot(u, n) * n;
 }
 
+
+/// @param eint_in ordered internal energy
+/// @param deintdt_in ordered internal energy variation
+/// @param z_in ordered mass fraction of first gas
+/// @param y_xx_in ordered mass fraction 
+/// @param dy_xxdt_in ordered variation of mass fraction 
+/// @param xi_in ordered thermal diffusivity
+/// @param nu_in ordered kinematic viscosity
+
 __kernel void feed(__global int* imove,
                    __global int* iset,
                    __global unsigned int* imirror,

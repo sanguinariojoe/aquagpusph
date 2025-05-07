@@ -75,8 +75,8 @@
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param eint Internal energy \f$ \e_{n+1/2} \f$.
- * @param deintdt Internal energy rate of change
+ * @param rhs_yxx increments in the gases calculated in previous routine (diffusion)
+ * @param dy_xxdt add to the increments of the composition variation
  * \f$ \left. \frac{d e}{d t} \right\vert_{n+1/2} \f$.
  * @param N Number of particles.
  * @param dt Time step \f$ \Delta t \f$.

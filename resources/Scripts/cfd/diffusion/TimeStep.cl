@@ -56,6 +56,12 @@
  * @param dt_min Minimum time step \f$ \Delta t_{\mathrm{min}} \f$.
  * @param courant Courant factor \f$ C_f \f$.
  * @param h Kernel characteristic length \f$ h \f$.
+ * @param div_u divergence of u * rho
+ * @param grad_p grad of p / rho
+ * @param gamma politropic coeficient
+ * @param lambda thermal conductivity
+ * @param C_p heat t constat pressure
+ * @param D_xx diffusion coeficcient
  */
 
 __kernel void entry(__global float* dt_var,

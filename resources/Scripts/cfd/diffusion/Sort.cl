@@ -31,12 +31,8 @@
 
 /** @brief Sort the internal energy.
  *
- * @param eint_in Unsorted internal energy \f$ e \f$.
- * @param eint Sorted internal energy \f$ e \f$.
- * @param deintdt Unsorted internal energy rate of change
- * \f$ \frac{d e}{d t} \f$.
- * @param deintdt_in Sorted internal energy rate of change
- * \f$ \frac{d e}{d t} \f$.
+ * @param D_xx unsorted diffusion coeficient
+ * @param D_xx_in sorted diffusion coeficient
  * @param id_sorted Permutations list from the unsorted space to the sorted
  * one.
  * @param N Number of particles.
@@ -49,14 +45,6 @@ __kernel void entry(const __global float* D_H2_in,
                     __global float* D_O2,
                     __global float* D_N2,
                     __global float* D_H2O,
-/*                    __global float* rhs_yh2,
-                    __global float* rhs_yo2,
-                    __global float* rhs_yn2,
-                    __global float* rhs_yh2o,
-                    __global float* rhs_yh2_in,
-                    __global float* rhs_yo2_in,
-                    __global float* rhs_yn2_in,
-                    __global float* rhs_yh2o_in,*/
                     const __global usize *id_sorted,
                     usize N)
 {

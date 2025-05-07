@@ -27,7 +27,7 @@ Authors:
     <Include file="resources/Presets/cfd/species/species.xml" />
     <Include file="resources/Presets/cfd/reactive/reactive_arrhenius_det.xml" />
     <Include file="resources/Presets/cfd/variableTimeStep.xml" />
-    <Include file="resources/Presets/cfd/variableTimeStep_det.xml" />
+    <Include file="resources/Presets/cfd/reactive/variableTimeStep_detonation.xml" />
 
     <Include file="resources/Presets/basic/timing.report.xml" />
     <Include file="resources/Presets/basic/performance.report.xml" />

@@ -56,6 +56,11 @@
  * @param dt_min Minimum time step \f$ \Delta t_{\mathrm{min}} \f$.
  * @param courant Courant factor \f$ C_f \f$.
  * @param h Kernel characteristic length \f$ h \f$.
+ * @param div_u divergence of u * rho
+ * @param grad_p grad of p / rho
+ * @param gamma politropic coeficient
+ * @param lambda thermal conductivity
+ * @param C_p heat t constat pressure
  */
 
 __kernel void entry(__global float* dt_var,
@@ -94,8 +99,6 @@ __kernel void entry(__global float* dt_var,
     const float dt_u3 = courant * 0.4f * dxx / sqrt(length(u[i]) * length(u[i]) + s_i * s_i);
     
     const float dt_u4 = courant * dxx / (length(u[i])+1.0e-12f);
-    //const float dt_u5 = 0.1f / zeta_dot[i];
-    //float xi_loc = lambda[i] / (rho[i] * cp[i]);
     const float dt_u5 = courant * dxx * dxx / (lambda[i] / (rho[i] * cp[i]));
     const float dt_u6 = courant * dxx / (s_i + dxx * sqrt(div_u[i]*div_u[i])/ rho[i]);
 
