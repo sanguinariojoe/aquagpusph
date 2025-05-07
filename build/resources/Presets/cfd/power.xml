@@ -1,0 +1,88 @@
+<?xml version="1.0" ?>
+
+<!-- energy.xml
+Fluid power components computation, according to the formulation described in
+
+Cercos-Pita, J.L. (2016). A novel generalized diffusive SPH model: Theoretical
+analysis and 3D HPC implementation (Doctoral dissertation).
+
+The following power terms will be computed:
+
+dEkdt: Kinetic energy variation rate due to the interactions between fluid
+       particles (The boundary effect is computed as a separate term).
+dEpdt: Potential energy variation rate.
+dEvdt: Viscous dissipation function, i.e. Power dissipated due to the viscous
+       interactions between fluid particles (again, the boundary effects are not
+       taken into account). This term is part of the kinetic energy.
+dEcdt: Power due to the fluid compressibility, caused by the fluid particles
+       interactions (again, the boundary effects are not taken into account).
+dEddt: Energy due to the compressibility dissipated by the delta-SPH term.
+dEsdt: Energy variation rate due to the interaction of the particles with the
+       boundary.
+
+To use this preset you must include this file once. If the work done by the
+fluid to the boundaries, dWdt, has been already computed, then the Internal
+energy can be comptued as:
+
+dEidt = dWdt - dEkindt
+
+Note: power.xml should be included before inlet.xml and outlet.xml in order to
+exclude the "buffer" particles becoming injected/removing from the system.
+-->
+
+<sphInput>
+    <Variables>
+        <!-- Kinetic energy -->
+        <Variable name="dekdt" type="float*" length="N" />
+        <Variable name="dEkdt" type="float" value="0.0" />
+        <!-- Potential energy -->
+        <Variable name="depdt" type="float*" length="N" />
+        <Variable name="dEpdt" type="float" value="0.0" />
+        <!-- Viscous dissipation function -->
+        <Variable name="devdt" type="float*" length="N" />
+        <Variable name="dEvdt" type="float" value="0.0" />
+        <!-- Compressibility energy -->
+        <Variable name="decdt" type="float*" length="N" />
+        <Variable name="dEcdt" type="float" value="0.0" />
+        <!-- delta-SPH energy -->
+        <Variable name="deddt" type="float*" length="N" />
+        <Variable name="dEddt" type="float" value="0.0" />
+        <!-- Energy variation caused by the interaction wiht the boudnary -->
+        <Variable name="desdt" type="float*" length="N" />
+        <Variable name="dEsdt" type="float" value="0.0" />
+        <!-- Helper variables to take into account if delta-SPH has not been
+        included -->
+        <Variable name="delta" type="float*" length="n_sets" />
+        <Variable name="lap_p" type="float*" length="N" />
+    </Variables>
+
+    <Tools>
+        <!-- Ensure that lap_p is reinitializated -->
+        <Tool action="try_remove" name="cfd reinit lap_p" type="dummy"/>
+        <Tool action="insert" after="Sort" name="cfd reinit lap_p" type="set" in="lap_p" value="0.f"/>
+        <!-- Compute the energy variations per particle, right before the
+        interactions with the boundary -->
+        <Tool action="insert" after="cfd interactions,cfd lap p" name="cfd fluid power" entry_point="fluid" path="../../Scripts/cfd/Energy/Power.cl" type="kernel"/>
+        <!-- Now use this information to know the effect of the boudnaries -->
+        <Tool action="insert" after="Rates" name="cfd power" entry_point="bound" path="../../Scripts/cfd/Energy/Power.cl" type="kernel"/>
+        <!-- Integrate them to the global power components -->
+        <Tool action="insert" after="cfd power" type="reduction" name="cfd dEkindt" in="dekdt" out="dEkdt" null="0.f">
+            c = a + b;
+        </Tool>
+        <Tool action="insert" after="cfd power" type="reduction" name="cfd dEpdt" in="depdt" out="dEpdt" null="0.f">
+            c = a + b;
+        </Tool>
+        <Tool action="insert" after="cfd power" type="reduction" name="cfd dEvdt" in="devdt" out="dEvdt" null="0.f">
+            c = a + b;
+        </Tool>
+        <Tool action="insert" after="cfd power" type="reduction" name="cfd dEcdt" in="decdt" out="dEcdt" null="0.f">
+            c = a + b;
+        </Tool>
+        <Tool action="insert" after="cfd power" type="reduction" name="cfd dEddt" in="deddt" out="dEddt" null="0.f">
+            c = a + b;
+        </Tool>
+        <Tool action="insert" after="cfd power" type="reduction" name="cfd dEsdt" in="desdt" out="dEsdt" null="0.f">
+            c = a + b;
+        </Tool>
+    </Tools>
+</sphInput>

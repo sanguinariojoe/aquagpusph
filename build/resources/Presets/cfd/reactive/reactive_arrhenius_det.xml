@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+
+<!-- ideal_gas.xml
+Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
+-->
+
+<sphInput>
+    <Tools>
+        <Tool action="insert" before="Rates" type="kernel" name="cfd rates ideal gas" path="../../../Scripts/cfd/reaction/rates_chem_arrhenius_det.cl"/>
+    </Tools>
+</sphInput>

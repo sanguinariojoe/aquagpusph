@@ -52,26 +52,27 @@
  * @param N Number of particles.
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  */
-__kernel void entry(const __global uint* iset,
-                    const __global int* imove,
-                    const __global float* rho,
-                    const __global vec* grad_p,
-                    const __global vec* lap_u,
-                    const __global float* div_u,
-                    __global vec* dudt,
-                    __global float* drhodt,
-                    __constant float* visc_dyn,
-                    usize N,
-                    vec g)
+__kernel void
+entry(const __global uint* iset,
+      const __global int* imove,
+      const __global float* rho,
+      const __global vec* grad_p,
+      const __global vec* lap_u,
+      const __global float* div_u,
+      __global vec* dudt,
+      __global float* drhodt,
+      __constant float* visc_dyn,
+      usize N,
+      vec g)
 {
-    const usize i = get_global_id(0);
-    if(i >= N)
-        return;
-    if(imove[i] != 1)
-        return;
+	const usize i = get_global_id(0);
+	if (i >= N)
+		return;
+	if (imove[i] != 1)
+		return;
 
-    // Momentum equation
-    dudt[i] = 0.0f;
-    // Conservation of mass equation
-    drhodt[i] = 0.0f;
+	// Momentum equation
+	dudt[i] = 0.0f;
+	// Conservation of mass equation
+	drhodt[i] = 0.0f;
 }

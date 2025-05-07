@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "*.hcl": "cpp",
+        "__locale": "cpp"
+    }
+}

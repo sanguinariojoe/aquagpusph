@@ -1,0 +1,38 @@
+# CMake generated Testfile for 
+# Source directory: /home/yanez/src/c++/branch_yanez/tests
+# Build directory: /home/yanez/src/c++/branch_yanez/build/tests
+# 
+# This file includes the relevant testing commands required for 
+# testing this directory and lists subdirectories to be tested as well.
+subdirs("ExternalTool")
+subdirs("If")
+subdirs("While")
+subdirs("QueueLimit")
+subdirs("Python")
+subdirs("CSV")
+subdirs("3D/SetScalar")
+subdirs("3D/Assert")
+subdirs("3D/Copy")
+subdirs("3D/Kernel")
+subdirs("3D/Set")
+subdirs("3D/Reduction")
+subdirs("3D/RadixSort")
+subdirs("3D/Sort")
+subdirs("3D/LinkList")
+subdirs("3D/MPI_sync")
+subdirs("3D/MLS")
+subdirs("3D/SaveVTK")
+subdirs("2D/SetScalar")
+subdirs("2D/Assert")
+subdirs("2D/Copy")
+subdirs("2D/Kernel")
+subdirs("2D/Set")
+subdirs("2D/Reduction")
+subdirs("2D/RadixSort")
+subdirs("2D/Sort")
+subdirs("2D/LinkList")
+subdirs("2D/MPI_sync")
+subdirs("2D/MPI_plane")
+subdirs("2D/MLS")
+subdirs("2D/SaveVTK")
+subdirs("2D/Regressions/midpoint_predictor")

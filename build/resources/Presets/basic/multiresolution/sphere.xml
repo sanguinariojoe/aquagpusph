@@ -1,0 +1,41 @@
+<?xml version="1.0" ?>
+
+<!-- Particles refinement sphere
+
+This module depends on basic/multiresolution.xml module, which should be
+included BEFORE this one.
+
+To use this module, include this file, and modify the sphere center and radius,
+as well as the level of refinement, multiresolution_sphere_level. Several
+refinement areas can be defined, including this file several times, and
+conveniently reevaluating the variables before the tool "basic refinement
+sphere":
+
+<Include file="basic/multiresolution/sphere.xml" prefix="sphere0_"/>
+<Include file="basic/multiresolution/sphere.xml" prefix="sphere1_"/>
+<Tools>
+    <Tool action="insert" before="sphere0_basic refinement sphere" type="set_scalar" name="sphere0_min" in="multiresolution_sphere_center" value="0.0,0.0"/>
+    <Tool action="insert" before="sphere0_basic refinement sphere" type="set_scalar" name="sphere0_max" in="multiresolution_sphere_radius" value="1.0"/>
+    <Tool action="insert" before="sphere0_basic refinement sphere" type="set_scalar" name="sphere0_level" in="multiresolution_sphere_level" value="1"/>
+    <Tool action="insert" before="sphere1_basic refinement sphere" type="set_scalar" name="sphere1_min" in="multiresolution_sphere_center" value="2.0,0.0"/>
+    <Tool action="insert" before="sphere1_basic refinement sphere" type="set_scalar" name="sphere1_max" in="multiresolution_sphere_radius" value="1.5"/>
+    <Tool action="insert" before="sphere1_basic refinement sphere" type="set_scalar" name="sphere1_level" in="multiresolution_sphere_level" value="2"/>
+</Tools>
+
+In case of several refinement areas overlapped, the highest refinement level
+will be chosen. Ensure that the particle may not jump more than one refinement
+level in a single time step. Otherwise the gamma_m variable may become wrongly
+computed.
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="multiresolution_sphere_center" type="vec" />
+        <Variable name="multiresolution_sphere_radius" type="float" />
+        <Variable name="multiresolution_sphere_level" type="unsigned int" />
+    </Variables>
+
+    <Tools>
+        <Tool action="insert" before="Refinement level" type="kernel" name="basic refinement sphere" path="../../../Scripts/basic/multiresolution/Sphere.cl"/>
+    </Tools>
+</sphInput>

@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+
+<!-- id_inverse.xml
+Tool to compute a unsorter array, which can be used to locate the sorted data
+of a particle from the unsorted id.
+
+In general the user can rely on AQUAgpusph to do this job. But this tool might
+be eventually useful for debugging purposes
+-->
+
+<sphInput>
+    <Variables>
+        <!-- Get the sorted position form the unsorted one -->
+        <Variable name="id_inverse" type="size_t*" length="N" />
+    </Variables>
+
+    <Tools>
+        <Tool action="insert" before="Sort" type="kernel" name="Id-inverse" path="../../Scripts/basic/IdInverse.cl"/>
+    </Tools>
+</sphInput>

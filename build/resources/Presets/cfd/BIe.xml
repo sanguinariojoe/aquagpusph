@@ -1,0 +1,32 @@
+<?xml version="1.0" ?>
+
+<!-- BIe.xml
+Allows the usage of conservative boundary integrals to enforce a solid boundary
+condition.
+
+Remarks:
+  - This file should be included once.
+  - For the boundary integrals, it is intended that the boundary elements have
+    the flag imove = -3, and a unit normal. Also the area of the elements
+    should be stored in the mass array "m".
+-->
+
+<sphInput>
+    <Definitions>
+        <Define name="__CFD_BIE__"/>
+    </Definitions>
+
+    <Variables>
+        <Variable name="grad_w_bi" type="vec*" length="N" />
+        <Variable name="div_u_bi" type="float*" length="N" />
+    </Variables>
+
+    <Tools>
+        <Tool name="cfd BIe init grad_w_bi" action="insert" before="Interactions" type="set" in="grad_w_bi" value="VEC_ZERO"/>
+        <Tool name="cfd BIe init div_u_bi" action="insert" after="cfd BIe init grad_w_bi" type="set" in="div_u_bi" value="0.0"/>
+        <Tool name="cfd BIe interactions" action="insert" after="cfd BIe init div_u_bi" type="kernel" entry_point="entry" path="../../Scripts/cfd/Boundary/BIe/Interactions.cl"/>
+        <Tool name="cfd BIe rates" action="insert" after="cfd BIe interactions" type="kernel" path="../../Scripts/cfd/Boundary/BIe/Rates.cl"/>
+        <Tool name="cfd BIe elastic bounce" action="insert" after="Rates" type="kernel" path="../../Scripts/cfd/Boundary/BIe/ElasticBounce.cl"/>
+        <Tool name="cfd BIe pst" action="insert" before="Corrector" type="kernel" path="../../Scripts/cfd/Boundary/BIe/PST.cl"/>
+    </Tools>
+</sphInput>

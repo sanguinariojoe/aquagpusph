@@ -16,7 +16,6 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 /** @brief 1st order Euler time integration scheme corrector stage
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
@@ -28,21 +27,22 @@
  * @param N Number of particles.
  * @param dt Time step \f$ \Delta t \f$.
  */
-__kernel void add(const __global int* imove,
-                        //__global float* eint,
-                        __global float* deintdt,
-                        const __global float* rhs_qdot,
-                        const unsigned int N,
-                        const float dt)
+__kernel void
+add(const __global int* imove,
+    //__global float* eint,
+    __global float* deintdt,
+    const __global float* rhs_qdot,
+    const unsigned int N,
+    const float dt)
 {
-    usize i = get_global_id(0);
-    if(i >= N)
-        return;
+	usize i = get_global_id(0);
+	if (i >= N)
+		return;
 
-    if(imove[i] > 0) {
-        //eint[i] += dt * rhs_qdot[i];
-        deintdt[i] += rhs_qdot[i];
-    }
+	if (imove[i] > 0) {
+		// eint[i] += dt * rhs_qdot[i];
+		deintdt[i] += rhs_qdot[i];
+	}
 }
 
 /*

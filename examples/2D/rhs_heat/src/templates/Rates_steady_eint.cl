@@ -36,18 +36,19 @@
  * @param deintdt Energy rate of change
  * @param N Number of particles.
  */
-__kernel void entry(const __global uint* iset,
-                    const __global int* imove,
-                    const __global float* work_density,
-                    __global float* deintdt,
-                    const usize N)
+__kernel void
+entry(const __global uint* iset,
+      const __global int* imove,
+      const __global float* work_density,
+      __global float* deintdt,
+      const usize N)
 {
-    const usize i = get_global_id(0);
-    if(i >= N)
-        return;
-    if(imove[i] != 1)
-        return;
+	const usize i = get_global_id(0);
+	if (i >= N)
+		return;
+	if (imove[i] != 1)
+		return;
 
-    // Conservation of energy equation
-    deintdt[i] = 0.0f;
+	// Conservation of energy equation
+	deintdt[i] = 0.0f;
 }

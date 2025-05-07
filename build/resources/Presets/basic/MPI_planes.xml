@@ -1,0 +1,34 @@
+<?xml version="1.0" ?>
+<sphInput>
+	<Include file="domain.xml"/>
+
+	<Variables>
+		<Variable name="mpi_planes_orig" symbol="r_{0,mpi}" type="vec"/>
+		<Variable name="mpi_planes_dist" symbol="\Delta r_{mpi}" type="vec"/>
+		<Variable length="n_radix" name="mpi_mask" symbol="j_{mpi}" type="unsigned int*"/>
+		<Variable length="n_radix" name="mpi_r" symbol="\boldsymbol{r}_{mpi}" type="vec*"/>
+		<Variable length="n_radix" name="mpi_u" symbol="\boldsymbol{u}_{mpi}" type="vec*"/>
+		<Variable length="n_radix" name="mpi_dudt" symbol="\frac{d\boldsymbol{u}_{mpi}}{d t}" type="vec*"/>
+		<Variable length="n_radix" name="mpi_rho" symbol="\rho_{mpi}" type="float*"/>
+		<Variable length="n_radix" name="mpi_drhodt" symbol="\frac{d\rho_{mpi}}{d t}" type="float*"/>
+		<Variable length="n_radix" name="mpi_m" symbol="m_{mpi}" type="float*"/>
+		<!-- Variable length="n_radix" name="mpi_mask_in" symbol="j_{mpi}^{in}" type="unsigned int*"/ -->
+	</Variables>
+
+	<Tools>
+		<Tool action="insert" after="Predictor" name="MPI"  once="false" type="dummy"/>
+		<Tool action="insert" before="MPI" in="mpi_mask" name="mpi mask reset" once="false" type="set" value="mpi_rank"/>
+		<Tool action="insert" after="mpi mask reset" entry_point="mask_planes" name="mpi mask (planes)" once="false" path="../../Scripts/basic/MPI.cl" type="kernel"/>
+		<Tool action="insert" after="mpi mask (planes)" fields="mpi_r,mpi_u,mpi_dudt,mpi_rho,mpi_drhodt,mpi_m" mask="mpi_mask" name="mpi sync" once="false" processes="mpi_rank-1,mpi_rank+1" type="mpi-sync"/>
+		<Tool action="insert" after="mpi mask reset" entry_point="copy" name="mpi copy" once="false" path="../../Scripts/basic/MPI.cl" type="kernel"/>
+		<Tool action="insert" after="mpi copy" name="Set buffer"  type="dummy" />
+		<Tool action="insert" before="MPI" entry_point="restore" name="mpi restore" once="false" path="../../Scripts/basic/MPI.cl" type="kernel"/>
+
+		<!-- Tool action="insert" before="Sort" in="mpi_mask" name="Backup mpi_mask" once="false" out="mpi_mask_in" type="copy"/>
+		<Tool action="insert" before="Sort" entry_point="sort" name="sort mpi_mask" once="false" path="../../Scripts/basic/MPI.cl" type="kernel"/ -->
+
+		<Tool action="insert" after="Interactions" entry_point="drop_planes" name="MPI-drop (planes)" once="false" path="../../Scripts/basic/MPI.cl" type="kernel"/>
+	</Tools>
+
+	<Include file="setBuffer.xml" when="end"/>
+</sphInput>

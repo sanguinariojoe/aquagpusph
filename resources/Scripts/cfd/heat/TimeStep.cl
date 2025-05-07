@@ -31,7 +31,7 @@
  *
  * Along this line, the distance moved by a particle can be written as follows:
  *
- * \f$ \vert \mathbf{r}_{n+1} - \mathbf{r}_{n} \vert = 
+ * \f$ \vert \mathbf{r}_{n+1} - \mathbf{r}_{n} \vert =
  *     \vert \mathbf{u} \vert \Delta t +
  *     \frac{1}{2} \left\vert
  *                     \frac{\mathrm{d} \mathbf{u}}{\mathrm{d} t}
@@ -63,46 +63,53 @@
  * @param C_p heat t constat pressure
  */
 
-__kernel void entry(__global float* dt_var,
-                    const __global int* imove,
-                    const __global unsigned int* iset,
-                    const __global vec* u,
-                    const __global vec* dudt,
-                    const __global float* rho,
-                    const __global float* p,
-		            const __global float* m,
-                    const usize N,
-                    const float dt,
-                    const float dt_min,
-                    const float courant,
-                    const float h,
-                    const __global float* div_u,
-                    const __global vec* grad_p,
-                    __constant float* gamma,
-                    const __global float* lambda,
-                    const __global float* cp)
+__kernel void
+entry(__global float* dt_var,
+      const __global int* imove,
+      const __global unsigned int* iset,
+      const __global vec* u,
+      const __global vec* dudt,
+      const __global float* rho,
+      const __global float* p,
+      const __global float* m,
+      const usize N,
+      const float dt,
+      const float dt_min,
+      const float courant,
+      const float h,
+      const __global float* div_u,
+      const __global vec* grad_p,
+      __constant float* gamma,
+      const __global float* lambda,
+      const __global float* cp)
 {
-    const usize i = get_global_id(0);
-    if(i >= N)
-        return;
-    if(imove[i] <= 0) {
-        dt_var[i] = dt;
-        return;
-    }
-    
-    float dxx=H;
+	const usize i = get_global_id(0);
+	if (i >= N)
+		return;
+	if (imove[i] <= 0) {
+		dt_var[i] = dt;
+		return;
+	}
 
-    float s_i = sound_speed_perfect_gas(gamma[iset[i]], p[i], rho[i]);
-    
-    const float dt_u1 = courant * 0.4f * dxx / sqrt((4.0f * dxx * div_u[i] / rho[i])*(4.0f * dxx * div_u[i] / rho[i]) + s_i * s_i);
-    const float dt_u2 = courant * sqrt(dxx / (length(grad_p[i]) + 1.0e-12f));
-    const float dt_u3 = courant * 0.4f * dxx / sqrt(length(u[i]) * length(u[i]) + s_i * s_i);
-    
-    const float dt_u4 = courant * dxx / (length(u[i])+1.0e-12f);
-    const float dt_u5 = courant * dxx * dxx / (lambda[i] / (rho[i] * cp[i]));
-    const float dt_u6 = courant * dxx / (s_i + dxx * sqrt(div_u[i]*div_u[i])/ rho[i]);
+	float dxx = H;
 
-    const float dt_u = min(min(min(min(min(dt_u1, dt_u2), dt_u3), dt_u4), dt_u5), dt_u6);
+	float s_i = sound_speed_perfect_gas(gamma[iset[i]], p[i], rho[i]);
 
-    dt_var[i] = max(min(dt, dt_u), dt_min);
+	const float dt_u1 = courant * 0.4f * dxx /
+	                    sqrt((4.0f * dxx * div_u[i] / rho[i]) *
+	                             (4.0f * dxx * div_u[i] / rho[i]) +
+	                         s_i * s_i);
+	const float dt_u2 = courant * sqrt(dxx / (length(grad_p[i]) + 1.0e-12f));
+	const float dt_u3 =
+	    courant * 0.4f * dxx / sqrt(length(u[i]) * length(u[i]) + s_i * s_i);
+
+	const float dt_u4 = courant * dxx / (length(u[i]) + 1.0e-12f);
+	const float dt_u5 = courant * dxx * dxx / (lambda[i] / (rho[i] * cp[i]));
+	const float dt_u6 =
+	    courant * dxx / (s_i + dxx * sqrt(div_u[i] * div_u[i]) / rho[i]);
+
+	const float dt_u =
+	    min(min(min(min(min(dt_u1, dt_u2), dt_u3), dt_u4), dt_u5), dt_u6);
+
+	dt_var[i] = max(min(dt, dt_u), dt_min);
 }

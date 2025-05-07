@@ -1,0 +1,82 @@
+<?xml version="1.0" ?>
+
+<!-- GP.xml
+Fixed ghost particles boundary condition. Actually, this boundary condition is
+an extension of the dummy particles boundary condition, where the physical
+fields are interpolated from the fluid.
+To do that, the dummy particles (imove=-1) are associated with a boundary
+element (imove=-2), such that the position of the ghost particles can be
+mirrored with respect such element in order to interpolate the fields.
+
+The main benefit of the ghost particles are the great conservation properties.
+However treating with complex geometries may become hard due to the requirement
+of the generation of the extended fluid.
+
+To use this boundary condition you should include this preset, and properly set
+the associations array within the input file (set it to N for the particles
+which should not be mirrored at all).
+
+Remarks:
+  - This file should be included once.
+  - It is intended that the ghost particles have the flag imove = -1.
+  - Regarding the mirroring boundary elements, it is intended that they have
+    the flag imove = -2, and a unit normal. Also the area of the elements should
+    be stored in the mass array "m".
+  - Ghost particles have a very good momentum, mass and energy conservation
+    properties.
+  - Unfortunately, leading with complex geometries is not so easy.
+  - By default, no-slip boundary condition is considered. To enforce the
+    free-slip boundary condition include the preset GPFreeSlip.xml
+-->
+
+<sphInput>
+    <Variables>
+        <!-- Ghost particles - Mirroring boundary elements associations -->
+        <Variable name="associations" type="size_t*" length="N" />
+        <Variable name="associations_in" type="size_t*" length="N" />
+        <!-- Mirrored ghost particles cell index -->
+        <Variable name="gp_icell" type="size_t*" length="N" />
+        <!-- Interpolated field values in the mirrored position -->
+        <Variable name="gp_rho" type="float*" length="N" />
+        <Variable name="gp_p" type="float*" length="N" />
+        <Variable name="gp_u" type="vec*" length="N" />
+        <!-- Fields backup to can restore them after the mirroring/extensions -->
+        <Variable name="gp_r_in" type="vec*" length="N" />
+        <Variable name="gp_u_in" type="vec*" length="N" />
+    </Variables>
+
+    <Definitions>
+        <Define name="__GP_LAPU_TAKEDA__" value="1" evaluate="false"/>
+        <Define name="__GP_LAPU_U0M__" value="2" evaluate="false"/>
+        <Define name="__GP_LAPU_MODEL__" value="__GP_LAPU_U0M__" evaluate="false"/>
+    </Definitions>
+
+    <Tools>
+        <!-- Regenerate the particles associations in the sort space. -->
+        <Tool action="insert" before="Sort" name="Backup associations" type="copy" in="associations" out="associations_in"/>
+        <Tool action="insert" before="Sort" name="Sort associations" type="kernel" path="../../Scripts/cfd/Boundary/GP/Sort.cl"/>
+        <!-- Mirror the particles and interpolate the field values -->
+        <Tool action="insert" after="cfd Shepard" name="cfd GP backup r" type="copy" in="r" out="gp_r_in"/>        
+        <Tool action="insert" after="cfd GP backup r" name="cfd GP mirror" type="kernel" path="../../Scripts/cfd/Boundary/GP/Mirror.cl"/>
+        <Tool action="insert" after="cfd GP mirror" name="cfd reinit gp_rho" type="set" in="gp_rho" value="0.f"/>
+        <Tool action="insert" after="cfd reinit gp_rho" name="cfd reinit gp_p" type="set" in="gp_p" value="0.f"/>
+        <Tool action="insert" after="cfd reinit gp_p" name="cfd reinit gp_u" type="set" in="gp_u" value="VEC_ZERO"/>
+        <Tool action="insert" after="cfd reinit gp_u" name="cfd GP interpolation" type="kernel" path="../../Scripts/cfd/Boundary/GP/Interpolation.cl"/>
+        <Tool action="insert" after="cfd GP interpolation" name="cfd GP renormalization" type="kernel" path="../../Scripts/cfd/Boundary/GP/Renormalization.cl"/>
+        <!-- Unmirror the particles to compute the interactions -->
+        <Tool action="insert" after="cfd GP renormalization" name="cfd GP unmirror" type="copy" in="gp_r_in" out="r"/>        
+        <!-- Backup the velocity before start overwriting its value -->
+        <Tool action="insert" after="cfd GP unmirror" name="cfd GP backup u" type="copy" in="u" out="gp_u_in"/>        
+        <!-- We must compute first the Laplacian of the velocity because:
+             1.- It requires a special fluid extension
+             2.- The resulting value is required for the pressure extension. -->
+        <Tool action="insert" before="Interactions" name="cfd GP preLapU" type="kernel" path="../../Scripts/cfd/Boundary/GP/PreLapU.cl"/>
+        <Tool action="insert" after="cfd GP preLapU" name="cfd GP LapU" type="kernel" path="../../Scripts/cfd/Boundary/GP/LapU.cl"/>
+        <!-- Now we can extend the pressure and velocity to compute grad_p,
+        div_u, lap_p. -->
+        <Tool action="insert" after="cfd GP LapU" name="cfd GP preInteractions" type="kernel" path="../../Scripts/cfd/Boundary/GP/PreInteractions.cl"/>
+        <Tool action="insert" after="cfd GP preInteractions" name="cfd GP interactions" type="kernel" path="../../Scripts/cfd/Boundary/GP/Interactions.cl"/>
+        <!-- Restore the velocity -->
+        <Tool action="insert" after="cfd GP interactions" name="cfd GP restore u" type="copy" in="gp_u_in" out="u"/>        
+    </Tools>
+</sphInput>

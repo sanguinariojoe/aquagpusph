@@ -1,0 +1,43 @@
+<?xml version="1.0" ?>
+
+<!-- Control of the number of neighbours. This tool can be useful to both,
+control the number of neighbours of each particle, as well as avoiding that
+a set of clamped particles may hangs your computer.
+
+To use this preset, just include this file (it's strongly recommended to include
+it as the last module), and eventually set maximum number of neighbours per
+particle, "neighs_limit".
+
+<Include file="Presets/basic/neighsLimit.xml" />
+<Variables>
+    <Variable name="neighs_limit" type="float" value="2.0 * (3.0 * support * hfac)^dims" />
+</Variables>
+
+The expression above allows twice more neighbours than the expectable ones (the
+default value).
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="neighs_limit" type="unsigned int" value="2.0 * (3.0 * support * hfac)^dims" />
+        <Variable name="max_neighs" type="unsigned int" />
+        <Variable name="n_neighs" type="unsigned int*" length="N" />
+    </Variables>
+
+    <Tools>
+        <Tool name="CountNeighbours" action="insert" after="Sort" type="dummy"/>
+        <Tool name="number of neighbours" action="insert" before="CountNeighbours" type="kernel" path="../../Scripts/basic/neighs.cl"/>
+        <Tool name="max number of neighbours" action="insert" before="CountNeighbours" type="reduction" in="n_neighs" out="max_neighs" null="0">
+            c = (a &gt; b) ? a : b;
+        </Tool>
+        <Tool name="number of neighbours prompt" action="insert" before="CountNeighbours" type="report_screen" fields="max_neighs" bold="false" color="blue"/>
+        <Tool name="check number of neighbours" action="insert" before="CountNeighbours" type="if" condition="max_neighs &gt;= neighs_limit"/>
+        <Tool name="report cells on number of neighbours" action="insert" before="CountNeighbours" type="report_screen" fields="n_cells" bold="false" color="red"/>
+        <Tool name="dump particles on number of neighbours" action="insert" before="CountNeighbours" type="report_dump" fields="r_in,r,icell,id_sorted,id_unsorted" path="fail_dump_parts.txt" binary="false"/>
+        <Tool name="dump ihoc on number of neighbours" action="insert" before="CountNeighbours" type="report_dump" fields="ihoc" path="fail_dump_ihoc.txt" binary="false"/>
+        <Tool name="fail on number of neighbours" action="insert" before="CountNeighbours" type="assert" condition="max_neighs &lt; neighs_limit"/>
+        <Tool name="end check number of neighbours" action="insert" before="CountNeighbours" type="end"/>
+
+        <Tool name="check number of neighbours" action="insert" before="CountNeighbours" type="assert" condition="max_neighs &lt; neighs_limit"/>
+    </Tools>
+</sphInput>

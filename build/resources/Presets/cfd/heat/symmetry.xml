@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+
+
+
+<sphInput>
+    <!-- ?????????????????? -->
+    <!--<Include file="@RESOURCES_OUTPUT_DIR@/Presets/cfd/symmetry.xml"/>-->
+    <!-- ?????????????????? -->
+    <Tools>
+            <Tool action="replace" name="*cfd symmetry feed" type="kernel" path="../../../Scripts/cfd/heat/symmetry/Mirror.cl" entry_point="feed"/>
+    
+    </Tools>
+
+</sphInput>

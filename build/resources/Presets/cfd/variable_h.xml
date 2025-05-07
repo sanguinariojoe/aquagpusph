@@ -1,0 +1,45 @@
+<?xml version="1.0" ?>
+
+<!-- Variable kernel length implementation. It allows to modify the kernel
+length as a function of the mass and density.
+
+This module should be included once (and only once), after cfd.xml. After that,
+the presets of the variable_h subfolder should be considered.
+
+When this module is loaded, the variable hfac (the ratio between h and dr)
+becomes mandatory. Even though the kernel length of each particle will be
+modified each time step, an initial h value should be provided
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="h_var" type="float*" length="N" />
+        <Variable name="h_var_in" type="float*" length="N" />
+        <Variable name="Omega" type="float*" length="N" />
+    </Variables>
+
+    <Tools>
+        <!-- We should start computing the new kernel length as part of the
+        Predictor stage -->
+        <Tool action="insert" before="Predictor" name="cfd h_var" type="kernel" path="../../Scripts/cfd/variable_h/Predictor.cl"/>
+        <Tool action="insert" before="Predictor" type="reduction" name="cfd maximum h_var" in="h_var_in" out="h" null="-INFINITY">
+            c = (a &gt; b) ? a : b;
+        </Tool>
+        <Tool action="insert" before="Sort" name="sort h_var" type="kernel" path="../../Scripts/basic/variable_h/Sort.cl"/>
+        <!-- We must compute the Omega function of each particle. Since Omega
+        computation requires a completely different interactions stage, prior
+        to the differential operator, we are inserting a dummy flag tool -->
+        <Tool action="insert" after="Sort" name="Omega" type="dummy"/>
+        <Tool action="insert" before="Omega" type="set" name="cfd Reinit Omega" in="Omega" value="1.f"/>
+        <Tool action="insert" before="Omega" name="cfd Omega" type="kernel" path="../../Scripts/cfd/variable_h/Omega.cl"/>
+        <!-- And we should replace all the affected differential operators -->
+        <Tool action="try_replace" name="cfd Shepard" type="kernel" path="../../Scripts/cfd/variable_h/Shepard.cl"/>
+        <Tool action="try_replace" name="cfd interactions" type="kernel" path="../../Scripts/cfd/variable_h/Interactions.cl"/>
+
+        <!-- We should get the minimum kernel length to recompute the time
+        step -->
+        <Tool action="insert" before="fixed time step" type="reduction" name="cfd minimum h_var" in="h_var" out="h" null="INFINITY">
+            c = (a &lt; b) ? a : b;
+        </Tool>
+    </Tools>
+</sphInput>

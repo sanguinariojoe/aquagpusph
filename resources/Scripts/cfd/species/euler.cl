@@ -35,43 +35,43 @@
  * @param dy_xxdt unordered mass fraction rate of change
  * @param N Number of particles.
  */
-__kernel void predictor(const __global float* z,
-                        const __global float* y_H2,
-                        const __global float* dy_H2dt,
-                        const __global float* y_O2,
-                        const __global float* dy_O2dt,
-                        const __global float* y_N2,
-                        const __global float* dy_N2dt,
-                        const __global float* y_H2O,
-                        const __global float* dy_H2Odt,
-                        __global float* z_in,
-                        __global float* y_H2_in,
-                        __global float* dy_H2dt_in,
-                        __global float* y_O2_in,
-                        __global float* dy_O2dt_in,
-                        __global float* y_N2_in,
-                        __global float* dy_N2dt_in,
-                        __global float* y_H2O_in,
-                        __global float* dy_H2Odt_in,
-                        const usize N)
+__kernel void
+predictor(const __global float* z,
+          const __global float* y_H2,
+          const __global float* dy_H2dt,
+          const __global float* y_O2,
+          const __global float* dy_O2dt,
+          const __global float* y_N2,
+          const __global float* dy_N2dt,
+          const __global float* y_H2O,
+          const __global float* dy_H2Odt,
+          __global float* z_in,
+          __global float* y_H2_in,
+          __global float* dy_H2dt_in,
+          __global float* y_O2_in,
+          __global float* dy_O2dt_in,
+          __global float* y_N2_in,
+          __global float* dy_N2dt_in,
+          __global float* y_H2O_in,
+          __global float* dy_H2Odt_in,
+          const usize N)
 {
-    const usize i = get_global_id(0);
-    if(i >= N)
-        return;
-    z_in[i] = z[i];
+	const usize i = get_global_id(0);
+	if (i >= N)
+		return;
+	z_in[i] = z[i];
 
-    y_H2_in[i] = y_H2[i];
-    dy_H2dt_in[i] = dy_H2dt[i];
+	y_H2_in[i] = y_H2[i];
+	dy_H2dt_in[i] = dy_H2dt[i];
 
-    y_O2_in[i] = y_O2[i];
-    dy_O2dt_in[i] = dy_O2dt[i];
-    
-    y_N2_in[i] = y_N2[i];
-    dy_N2dt_in[i] = dy_N2dt[i];
-    
-    y_H2O_in[i] = y_H2O[i];
-    dy_H2Odt_in[i] = dy_H2Odt[i];
+	y_O2_in[i] = y_O2[i];
+	dy_O2dt_in[i] = dy_O2dt[i];
 
+	y_N2_in[i] = y_N2[i];
+	dy_N2dt_in[i] = dy_N2dt[i];
+
+	y_H2O_in[i] = y_H2O[i];
+	dy_H2Odt_in[i] = dy_H2Odt[i];
 }
 
 /** @brief 1st order Euler time integration scheme corrector stage
@@ -87,31 +87,32 @@ __kernel void predictor(const __global float* z,
  * @param z first gas component
  * @param dz_dt first gas component rate of change
  */
-__kernel void corrector(const __global int* imove,
-                        __global float* y_H2,
-                        const __global float* dy_H2dt,
-                        __global float* y_O2,
-                        const __global float* dy_O2dt,
-                        __global float* y_N2,
-                        const __global float* dy_N2dt,
-                        __global float* y_H2O,
-                        const __global float* dy_H2Odt,
-                        __global float* z,
-                        const __global float* dz_dt,                     
-                        const unsigned int N,
-                        const float dt)
+__kernel void
+corrector(const __global int* imove,
+          __global float* y_H2,
+          const __global float* dy_H2dt,
+          __global float* y_O2,
+          const __global float* dy_O2dt,
+          __global float* y_N2,
+          const __global float* dy_N2dt,
+          __global float* y_H2O,
+          const __global float* dy_H2Odt,
+          __global float* z,
+          const __global float* dz_dt,
+          const unsigned int N,
+          const float dt)
 {
-    usize i = get_global_id(0);
-    if(i >= N)
-        return;
+	usize i = get_global_id(0);
+	if (i >= N)
+		return;
 
-    if(imove[i] > 0) {
-        z[i] += dt * dz_dt[i];
-        y_H2[i] += dt * dy_H2dt[i];
-        y_O2[i] += dt * dy_O2dt[i];
-        y_N2[i] += dt * dy_N2dt[i];
-        y_H2O[i] += dt * dy_H2Odt[i];
-    }
+	if (imove[i] > 0) {
+		z[i] += dt * dz_dt[i];
+		y_H2[i] += dt * dy_H2dt[i];
+		y_O2[i] += dt * dy_O2dt[i];
+		y_N2[i] += dt * dy_N2dt[i];
+		y_H2O[i] += dt * dy_H2Odt[i];
+	}
 }
 
 /*

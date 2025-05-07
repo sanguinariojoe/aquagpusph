@@ -1,0 +1,42 @@
+<?xml version="1.0" ?>
+
+<!-- Force.xml
+Compute the force by momentum conservation imposing
+
+Just include this file after including BIe.xml. You can also set forces_r to
+set the reference point to compute moments
+-->
+
+<sphInput>
+    <Variables>
+        <!-- center of reference for the forces -->
+        <Variable name="forces_r" type="vec" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="dudt_fluid" type="vec*" length="N" />
+        <Variable name="force_p" type="vec*" length="N" />
+        <Variable name="Force_p" type="vec" length="N" value="0.0,0.0,0.0,0.0" />
+        <Variable name="moment_p" type="vec4*" length="N" />
+        <Variable name="Moment_p" type="vec4" length="N" value="0.0,0.0,0.0,0.0" />
+        <Variable name="dudt_preelastic" type="vec*" length="N" />
+        <Variable name="dudt_elastic" type="vec*" length="N" />
+        <Variable name="force_elastic" type="vec*" length="N" />
+        <Variable name="Force_elastic" type="vec" length="N" value="0.0,0.0,0.0,0.0" />
+    </Variables>
+
+    <Tools>
+        <!-- Compute the pressure force -->
+        <Tool name="cfd BIe init force_p" action="insert" after="cfd BIe init div_u_bi" type="set" in="force_p" value="VEC_ZERO"/>
+        <Tool name="cfd BIe init moment_p" action="insert" after="cfd BIe init force_p" type="set" in="moment_p" value="((vec4)(0.f))"/>
+        <Tool name="cfd BIe init force_elastic" action="insert" after="cfd BIe init moment_p" type="set" in="force_elastic" value="VEC_ZERO"/>
+        <Tool name="cfd BIe dudt" action="insert" before="cfd BIe rates" type="kernel" path="../../../Scripts/cfd/Rates.cl"/>
+        <Tool name="cfd BIe dudt_fluid" action="insert" after="cfd BIe dudt" type="copy" in="dudt" out="dudt_fluid" />
+        <Tool name="cfd BIe p_boundary" action="insert" before="Interactions" type="kernel" entry_point="p_boundary" path="../../../Scripts/cfd/Boundary/BIe/Interactions.cl"/>
+        <Tool name="cfd BIe force_p" action="insert" before="Rates" type="kernel" entry_point="force_press" path="../../../Scripts/cfd/Boundary/BIe/Rates.cl"/>
+        <Tool name="cfd BIe Force_p" action="insert" before="Rates" type="reduction" in="force_p" out="Force_p" null="VEC_ZERO">c = a + b</Tool>
+        <Tool name="cfd BIe Moment_p" action="insert" before="Rates" type="reduction" in="moment_p" out="Moment_p" null="((vec4)(0.f))">c = a + b</Tool>
+        <!-- Compute the elastic bounce effect -->
+        <Tool name="cfd BIe dudt_preelastic" action="insert" before="cfd BIe elastic bounce" type="copy" in="dudt" out="dudt_preelastic" />
+        <Tool name="cfd BIe dudt_postelastic" action="insert" after="cfd BIe elastic bounce" type="copy" in="dudt" out="dudt_elastic" />
+        <Tool name="cfd BIe force_elastic" action="insert" after="cfd BIe dudt_postelastic" type="kernel" entry_point="force_bound" path="../../../Scripts/cfd/Boundary/BIe/ElasticBounce.cl"/>
+        <Tool name="cfd BIe Force_elastic" action="insert" after="cfd BIe force_elastic" type="reduction" in="force_elastic" out="Force_elastic" null="VEC_ZERO">c = a + b</Tool>
+    </Tools>
+</sphInput>

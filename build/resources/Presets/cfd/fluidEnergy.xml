@@ -1,0 +1,48 @@
+<?xml version="1.0" ?>
+
+<!-- fluidEnergy.xml
+Energy components computation, restricted to the effects of the interactions
+between fluid particles.
+
+To use this preset you just need to include this file.
+
+Actually this preset only provide the power terms, without integrating them on
+time.
+-->
+
+<sphInput>
+    <Variables>
+        <!-- Kinetic energy -->
+        <Variable name="fluid_energy_dekindt" type="float*" length="N" />
+        <Variable name="fluid_energy_dEkindt" type="float" value="0.0" />
+        <!-- Potential energy -->
+        <Variable name="fluid_energy_depotdt" type="float*" length="N" />
+        <Variable name="fluid_energy_dEpotdt" type="float" value="0.0" />
+        <!-- Compressibility energy -->
+        <Variable name="fluid_energy_decomdt" type="float*" length="N" />
+        <Variable name="fluid_energy_dEcomdt" type="float" value="0.0" />
+        <!-- Internal energy -->
+        <Variable name="fluid_energy_dEintdt" type="float" value="0.0" />
+        <!-- Entropy -->
+        <Variable name="fluid_energy_dSdt" type="float" value="0.0" />
+    </Variables>
+
+    <Tools>
+        <!-- Compute the energy variations per particle -->
+        <Tool action="insert" after="cfd interactions" type="kernel" name="cfd fluid energy rates" path="../../Scripts/cfd/Rates.cl"/>
+        <Tool action="insert" after="cfd fluid energy rates" type="kernel" name="cfd fluid energy" path="../../Scripts/cfd/Energy/FluidEnergy.cl"/>
+        <!-- Integrate them to the global energy components variation -->
+        <Tool action="insert" after="Rates" type="reduction" name="cfd fluid dEkindt" in="fluid_energy_dekindt" out="fluid_energy_dEkindt" null="0.f">
+            c = a + b;
+        </Tool>
+        <Tool action="insert" after="cfd fluid dEkindt" type="reduction" name="cfd fluid dEpotdt" in="fluid_energy_depotdt" out="fluid_energy_dEpotdt" null="0.f">
+            c = a + b;
+        </Tool>
+        <Tool action="insert" after="cfd fluid dEpotdt" type="reduction" name="cfd fluid dEcomdt" in="fluid_energy_decomdt" out="fluid_energy_dEcomdt" null="0.f">
+            c = a + b;
+        </Tool>
+        <!-- Deduce the internal energy and entropy -->
+        <Tool action="insert" after="cfd fluid dEcomdt" type="set_scalar" name="cfd fluid dEintdt" in="fluid_energy_dEintdt" value="-fluid_energy_dEkindt - fluid_energy_dEpotdt"/>
+        <Tool action="insert" after="cfd fluid dEintdt" type="set_scalar" name="cfd fluid dSdt" in="fluid_energy_dSdt" value="fluid_energy_dEintdt - fluid_energy_dEcomdt"/>
+    </Tools>
+</sphInput>

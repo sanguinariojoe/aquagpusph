@@ -1,0 +1,31 @@
+<?xml version="1.0" ?>
+
+<!-- cfd.xml
+This is the main preset to create CFD compressible simulations with a Riemann solver in SPH. 
+To use it, basic.xml, cfd.xml and ideal_gas.xml should be loaded first.
+
+The method has been implemented following the papers:
+Parshikov et al. International Journal of Impact Engineering 24 (2000) 779-796
+Parshikov et al. Journal Computational Physics 180, 358-382 (2002)
+
+Riemann problem can be studied in the book of Toro on Riemann solvers.
+
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="work_density" type="float*" length="N" />
+    </Variables>
+    <Tools>
+        <!-- The module is inviscid. It must be inviscid! -->
+        <Tool action="insert" at="0" type="set" name="cfd Riemann inviscid" in="visc_dyn" value="0.f" once="true"/>
+        <!-- Initialization -->
+        <Tool action="insert" after="Sort" type="set" name="cfd Reinit work_density" in="work_density" value="0.f"/>
+        
+        <!-- Particles interactions -->
+        <Tool action="replace" name="cfd interactions" type="kernel" path="../../../Scripts/cfd/ideal_gas/riemann/Interactions.cl"/>
+        
+        <!-- Rates of work of compression for Riemann solver -->
+        <Tool action="replace" name="cfd rates ideal gas" type="kernel" path="../../../Scripts/cfd/ideal_gas/riemann/Rates.cl"/>
+    </Tools>
+</sphInput>

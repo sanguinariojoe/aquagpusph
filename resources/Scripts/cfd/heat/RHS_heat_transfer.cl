@@ -21,12 +21,11 @@
  */
 
 #if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
-    #error NO_LOCAL_MEM has been set.
+#error NO_LOCAL_MEM has been set.
 #endif
 
 #include "resources/Scripts/types/types.h"
 #include "resources/Scripts/KernelFunctions/Kernel.h"
-
 
 /** @brief Fluid particles interactions computation.
  *
@@ -49,80 +48,84 @@
  * @param ihoc Head of chain for each cell (first particle found).
  * @param n_cells Number of cells in each direction
  */
-__kernel void entry(const __global int* imove,
-                    const __global vec* r,
-                    const __global float* rho,
-                    const __global float* m,
-                    __global float* rhs_qdot,
-                    const __global float* T,
-                    const __global float* lambda,
-                    usize N,
-                    LINKLIST_LOCAL_PARAMS)
+__kernel void
+entry(const __global int* imove,
+      const __global vec* r,
+      const __global float* rho,
+      const __global float* m,
+      __global float* rhs_qdot,
+      const __global float* T,
+      const __global float* lambda,
+      usize N,
+      LINKLIST_LOCAL_PARAMS)
 {
-    const usize i = get_global_id(0);
-    const usize it = get_local_id(0);
-    if(i >= N)
-        return;
-    if(imove[i] != 1){
-        return;
-    }
+	const usize i = get_global_id(0);
+	const usize it = get_local_id(0);
+	if (i >= N)
+		return;
+	if (imove[i] != 1) {
+		return;
+	}
 
-    const vec_xyz r_i = r[i].XYZ;
-   
-    const float T_i = T[i];
-    const float lambda_i = lambda[i];
+	const vec_xyz r_i = r[i].XYZ;
 
-    const float rho_i = rho[i];
+	const float T_i = T[i];
+	const float lambda_i = lambda[i];
 
-    // Initialize the output
-    #ifndef LOCAL_MEM_SIZE
+	const float rho_i = rho[i];
 
-        #define _RHS_QDOT_ rhs_qdot[i]
+// Initialize the output
+#ifndef LOCAL_MEM_SIZE
 
-    #else
+#define _RHS_QDOT_ rhs_qdot[i]
 
-        #define _RHS_QDOT_  rhs_qdot_l[it] 
+#else
 
-        __local float rhs_qdot_l[LOCAL_MEM_SIZE];
+#define _RHS_QDOT_ rhs_qdot_l[it]
 
-        _RHS_QDOT_ = 0.f;
+	__local float rhs_qdot_l[LOCAL_MEM_SIZE];
 
-    #endif
+	_RHS_QDOT_ = 0.f;
 
-    const usize c_i = icell[i];
-    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
-        if(i == j){
-            j++;
-            continue;
-        }
-        if(imove[j] != 1){
-            j++;
-            continue;
-        }
-        const vec_xyz r_ij = r[j].XYZ - r_i;
-        const float q = length(r_ij) / H;
-        if(q >= SUPPORT)
-        {
-            j++;
-            continue;
-        }
-        {
-            const float rho_j = rho[j];
-            const float f_ij = kernelF(q) * CONF * m[j];
-    
-            const float T_j = T[j];
-            const float lambda_j = lambda[j];
-            
-            _RHS_QDOT_ += -4.0f * lambda_i * lambda_j / ((rho_i * rho_j) *(lambda_i + lambda_j))*(T_i-T_j)*f_ij;
-            
-            //_RHS_QDOT_ += 4.0f * lambda_i * lambda_j / (rho_i * lambda_i + rho_j * lambda_j)*(T_i-T_j)*f_ij;
-            //_RHS_QDOT_ = 0.0f;
-        }
-    }END_NEIGHS()
+#endif
 
-    #ifdef LOCAL_MEM_SIZE
+	const usize c_i = icell[i];
+	BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc)
+	{
+		if (i == j) {
+			j++;
+			continue;
+		}
+		if (imove[j] != 1) {
+			j++;
+			continue;
+		}
+		const vec_xyz r_ij = r[j].XYZ - r_i;
+		const float q = length(r_ij) / H;
+		if (q >= SUPPORT) {
+			j++;
+			continue;
+		}
+		{
+			const float rho_j = rho[j];
+			const float f_ij = kernelF(q) * CONF * m[j];
 
-        rhs_qdot[i] = _RHS_QDOT_;
-        //rhs_qdot[i] = 0.0f;
-    #endif
+			const float T_j = T[j];
+			const float lambda_j = lambda[j];
+
+			_RHS_QDOT_ += -4.0f * lambda_i * lambda_j /
+			              ((rho_i * rho_j) * (lambda_i + lambda_j)) *
+			              (T_i - T_j) * f_ij;
+
+			//_RHS_QDOT_ += 4.0f * lambda_i * lambda_j / (rho_i * lambda_i +
+			//rho_j * lambda_j)*(T_i-T_j)*f_ij; _RHS_QDOT_ = 0.0f;
+		}
+	}
+	END_NEIGHS()
+
+#ifdef LOCAL_MEM_SIZE
+
+	rhs_qdot[i] = _RHS_QDOT_;
+	// rhs_qdot[i] = 0.0f;
+#endif
 }

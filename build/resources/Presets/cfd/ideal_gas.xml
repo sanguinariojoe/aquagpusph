@@ -1,0 +1,26 @@
+<?xml version="1.0" ?>
+
+<!-- ideal_gas.xml
+Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="gamma" type="float*" length="n_sets" />
+        <Variable name="eint" type="float*" length="N" />
+        <Variable name="deintdt" type="float*" length="N" />
+        <Variable name="eint_in" type="float*" length="N" />
+        <Variable name="deintdt_in" type="float*" length="N" />
+    </Variables>
+
+    <Tools>
+        <Tool action="insert" after="predictor" name="predictor ideal gas" type="kernel" entry_point="predictor" path="../../Scripts/cfd/ideal_gas/time_scheme/euler.cl"/>
+
+        <Tool action="insert" after="sort stage1,sort stage2" name="sort ideal gas" type="kernel" entry_point="entry" path="../../Scripts/cfd/ideal_gas/Sort.cl"/>
+        <Tool action="replace" name="EOS" type="kernel" path="../../Scripts/cfd/ideal_gas/EOS.cl"/>
+
+        <Tool action="insert" before="Rates" type="kernel" name="cfd rates ideal gas" path="../../Scripts/cfd/ideal_gas/Rates.cl"/>
+        
+        <Tool action="insert" after="corrector" name="corrector ideal gas" type="kernel" entry_point="corrector" path="../../Scripts/cfd/ideal_gas/time_scheme/euler.cl"/>
+    </Tools>
+</sphInput>

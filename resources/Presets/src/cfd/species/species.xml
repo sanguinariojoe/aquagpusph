@@ -1,4 +1,4 @@
-<?xml version="1.0" ?>
+<?xml version="1.0"?>
 
 <!-- ideal_gas.xml
 Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
@@ -12,12 +12,12 @@ Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
 
         <Variable name="z" type="float*" length="N" />
         <Variable name="z_in" type="float*" length="N" />
-        
+
         <Variable name="y_H2" type="float*" length="N" />
         <Variable name="y_O2" type="float*" length="N" />
         <Variable name="y_N2" type="float*" length="N" />
         <Variable name="y_H2O" type="float*" length="N" />
-        
+
         <Variable name="y_H2_in" type="float*" length="N" />
         <Variable name="y_O2_in" type="float*" length="N" />
         <Variable name="y_N2_in" type="float*" length="N" />
@@ -43,16 +43,20 @@ Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
 
     <Tools>
 
-        <Tool action="insert" after="Sort" type="set" name="reinit dy_H2dt" in="dy_H2dt" value="0.f"/>
-        <Tool action="insert" after="Sort" type="set" name="reinit dy_O2dt" in="dy_O2dt" value="0.f"/>
-        <Tool action="insert" after="Sort" type="set" name="reinit dy_N2dt" in="dy_N2dt" value="0.f"/>
-        <Tool action="insert" after="Sort" type="set" name="reinit dy_H2Odt" in="dy_H2Odt" value="0.f"/>
+        <Tool action="insert" after="Sort" type="set" name="reinit dy_H2dt" in="dy_H2dt" value="0.f" />
+        <Tool action="insert" after="Sort" type="set" name="reinit dy_O2dt" in="dy_O2dt" value="0.f" />
+        <Tool action="insert" after="Sort" type="set" name="reinit dy_N2dt" in="dy_N2dt" value="0.f" />
+        <Tool action="insert" after="Sort" type="set" name="reinit dy_H2Odt" in="dy_H2Odt"
+            value="0.f" />
 
-        <Tool action="insert" after="predictor" name="predictor mass fractions" type="kernel" entry_point="predictor" path="../../../Scripts/cfd/species/euler.cl"/>
+        <Tool action="insert" after="predictor" name="predictor mass fractions" type="kernel"
+            entry_point="predictor" path="../../../Scripts/cfd/species/euler.cl" />
 
-        <Tool action="insert" after="sort stage1,sort stage2" name="sort ideal gas" type="kernel" entry_point="entry" path="../../../Scripts/cfd/species/Sort.cl"/>
-        <Tool action="replace" name="EOS" type="kernel" path="../../../Scripts/cfd/species/EOS.cl"/>
-       
-        <Tool action="insert" after="corrector" name="corrector reactive ideal gas" type="kernel" entry_point="corrector" path="../../../Scripts/cfd/species/euler.cl"/>
+        <Tool action="insert" after="sort stage1,sort stage2" name="sort ideal gas" type="kernel"
+            entry_point="entry" path="../../../Scripts/cfd/species/Sort.cl" />
+        <Tool action="replace" name="EOS" type="kernel" path="../../../Scripts/cfd/species/EOS.cl" />
+
+        <Tool action="insert" after="corrector" name="corrector reactive ideal gas" type="kernel"
+            entry_point="corrector" path="../../../Scripts/cfd/species/euler.cl" />
     </Tools>
 </sphInput>

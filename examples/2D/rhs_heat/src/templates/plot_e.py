@@ -1,4 +1,4 @@
-#******************************************************************************
+# ******************************************************************************
 #                                                                             *
 #              *    **   *  *   *                           *                 *
 #             * *  *  *  *  *  * *                          *                 *
@@ -9,7 +9,7 @@
 #                                      * *             *                      *
 #                                    **  *             *                      *
 #                                                                             *
-#******************************************************************************
+# ******************************************************************************
 #                                                                             *
 #  This file is part of AQUAgpusph, a free CFD program based on SPH.          *
 #  Copyright (C) 2012  Jose Luis Cercos Pita <jl.cercos@upm.es>               *
@@ -27,14 +27,14 @@
 #  You should have received a copy of the GNU General Public License          *
 #  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.        *
 #                                                                             *
-#******************************************************************************
+# ******************************************************************************
 
 import sys
 import os
 import json
 import meshio
 import numpy as np
-#import sodshock
+# import sodshock
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
@@ -82,6 +82,8 @@ ax.set_ylabel(r"$e / e_0$")
 ax.set_title(r"$t = 0$")
 
 # Animate
+
+
 def update(frame_index):
     plt.tight_layout()
     try:
@@ -91,10 +93,10 @@ def update(frame_index):
         npts = len(x)
         left_state = (P[0], RHO[0], 0)
         right_state = (P[1], RHO[1], 0.)
-        #_, _, exp_data = sodshock.solve(left_state=left_state,
+        # _, _, exp_data = sodshock.solve(left_state=left_state,
         #                                right_state=right_state,
         #                                geometry=(-0.5 * L, 0.5 * L, 0),
-        #                                t=t, 
+        #                                t=t,
         #                                gamma=GAMMA,
         #                                npts=npts,
         #                                dustFrac=0.0)
@@ -103,8 +105,9 @@ def update(frame_index):
     except FileNotFoundError:
         return
     sph.set_data(x / L, e / max(E))
-    #exp.set_data(exp_data['x'] / L, exp_data['energy'] / max(E))
+    # exp.set_data(exp_data['x'] / L, exp_data['energy'] / max(E))
     ax.set_title(r"$t \,\, c_0 / L = {}$".format(t / T))
+
 
 update(0)
 ani = animation.FuncAnimation(fig, update, interval=1000)

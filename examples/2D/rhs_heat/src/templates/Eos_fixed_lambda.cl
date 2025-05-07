@@ -19,7 +19,7 @@
 /** @defgroup ideal_gas Preset to model ideal gases
  *
  * @brief A preset to model ideal gases within @ref cfd preset
- * 
+ *
  * @{
  */
 
@@ -30,7 +30,7 @@
  */
 
 #ifndef EXCLUDED_PARTICLE
-    #define EXCLUDED_PARTICLE(index) (imove[index] <= 0) && (imove[index] != -1)
+#define EXCLUDED_PARTICLE(index) (imove[index] <= 0) && (imove[index] != -1)
 #endif
 
 #include "resources/Scripts/types/types.h"
@@ -54,51 +54,60 @@
  * @param N Number of particles.
  */
 
-__kernel void entry(const __global unsigned int* iset,
-                    const __global int* imove,
-                    const __global float* rho,
-                    const __global float* eint,
-                    const __global float* y_H2,
-                    const __global float* y_O2,
-                    const __global float* y_N2,
-                    const __global float* y_H2O,
-                    __global float* x_H2,
-                    __global float* x_O2,
-                    __global float* x_N2,
-                    __global float* x_H2O,
-                    __global float* p,
-                    __global float* T,
-                    __global float* gamma,
-                    __global float* cp,
-                    __global float* cv,
-                    const __global float* nu,
-                    const __global float* xi,
-                    __global float* mu,         
-                    __global float* lambda,  
-                    usize N)
+__kernel void
+entry(const __global unsigned int* iset,
+      const __global int* imove,
+      const __global float* rho,
+      const __global float* eint,
+      const __global float* y_H2,
+      const __global float* y_O2,
+      const __global float* y_N2,
+      const __global float* y_H2O,
+      __global float* x_H2,
+      __global float* x_O2,
+      __global float* x_N2,
+      __global float* x_H2O,
+      __global float* p,
+      __global float* T,
+      __global float* gamma,
+      __global float* cp,
+      __global float* cv,
+      const __global float* nu,
+      const __global float* xi,
+      __global float* mu,
+      __global float* lambda,
+      usize N)
 {
-    usize i = get_global_id(0);
-    if(i >= N)
-        return;
-    if(EXCLUDED_PARTICLE(i))
-        return;
-    
-    //__global float cp[]={0.0f,};
+	usize i = get_global_id(0);
+	if (i >= N)
+		return;
+	if (EXCLUDED_PARTICLE(i))
+		return;
 
-    calc_gamma_cp_cv(y_H2[i], y_O2[i], y_N2[i], y_H2O[i], gamma + i, cv + i, cp + i);
-    X_from_Y(y_H2[i], y_O2[i], y_N2[i], y_H2O[i], x_H2 + i, x_O2 + i, x_N2 + i, x_H2O + i);
-  
-    p[i] = (gamma[i] - 1.0f) * rho[i] * eint[i];
-    T[i] = eint[i]/cv[i];
-    //printf("cv = %f\n", cv[i]);
-    //printf("T = %f\n", T[i]);
-    lambda[i] = cp[i] * rho[i] * xi[i] * sqrt(T[i]/298.0f);
-    
-    //This line is for debug!!!!
-    // to get ferr profile
-    lambda[i] =  1012.0f * xi[i];
+	//__global float cp[]={0.0f,};
 
-    mu[i] = rho[i] * nu[i] * sqrt(T[i]/298.0f);
+	calc_gamma_cp_cv(
+	    y_H2[i], y_O2[i], y_N2[i], y_H2O[i], gamma + i, cv + i, cp + i);
+	X_from_Y(y_H2[i],
+	         y_O2[i],
+	         y_N2[i],
+	         y_H2O[i],
+	         x_H2 + i,
+	         x_O2 + i,
+	         x_N2 + i,
+	         x_H2O + i);
+
+	p[i] = (gamma[i] - 1.0f) * rho[i] * eint[i];
+	T[i] = eint[i] / cv[i];
+	// printf("cv = %f\n", cv[i]);
+	// printf("T = %f\n", T[i]);
+	lambda[i] = cp[i] * rho[i] * xi[i] * sqrt(T[i] / 298.0f);
+
+	// This line is for debug!!!!
+	//  to get ferr profile
+	lambda[i] = 1012.0f * xi[i];
+
+	mu[i] = rho[i] * nu[i] * sqrt(T[i] / 298.0f);
 }
 
 /*

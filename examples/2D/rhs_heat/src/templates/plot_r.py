@@ -1,4 +1,4 @@
-#******************************************************************************
+# ******************************************************************************
 #                                                                             *
 #              *    **   *  *   *                           *                 *
 #             * *  *  *  *  *  * *                          *                 *
@@ -9,7 +9,7 @@
 #                                      * *             *                      *
 #                                    **  *             *                      *
 #                                                                             *
-#******************************************************************************
+# ******************************************************************************
 #                                                                             *
 #  This file is part of AQUAgpusph, a free CFD program based on SPH.          *
 #  Copyright (C) 2012  Jose Luis Cercos Pita <jl.cercos@upm.es>               *
@@ -27,7 +27,7 @@
 #  You should have received a copy of the GNU General Public License          *
 #  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.        *
 #                                                                             *
-#******************************************************************************
+# ******************************************************************************
 
 import sys
 import os
@@ -82,6 +82,7 @@ def stats(residues):
         y.append(np.percentile(residues[it], 0.5))
     return y_min, y, y_max
 
+
 fig = plt.figure()
 ax = fig.add_subplot(111)
 
@@ -101,6 +102,8 @@ ax.set_ylabel(r"$R_{\Delta t}$")
 ax.set_yscale('log')
 
 # Animate
+
+
 def update(frame_index):
     plt.tight_layout()
     try:
@@ -124,6 +127,7 @@ def update(frame_index):
     line_min.set_data(x, y_min)
     line.set_data(x, y)
     line_max.set_data(x, y_max)
+
 
 update(0)
 ani = animation.FuncAnimation(fig, update, interval=1000)

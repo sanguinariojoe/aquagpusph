@@ -1,4 +1,4 @@
-<?xml version="1.0" ?>
+<?xml version="1.0"?>
 
 <!-- ideal_gas.xml
 Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
@@ -10,43 +10,54 @@ Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
         <Variable name="D_H2" type="float*" length="N" />
         <Variable name="D_O2" type="float*" length="N" />
         <Variable name="D_N2" type="float*" length="N" />
-        <Variable name="D_H2O" type="float*" length="N" />  
+        <Variable name="D_H2O" type="float*" length="N" />
 
         <Variable name="D_H2_in" type="float*" length="N" />
         <Variable name="D_O2_in" type="float*" length="N" />
         <Variable name="D_N2_in" type="float*" length="N" />
-        <Variable name="D_H2O_in" type="float*" length="N" />        
+        <Variable name="D_H2O_in" type="float*" length="N" />
 
         <Variable name="rhs_yh2" type="float*" length="N" />
         <Variable name="rhs_yo2" type="float*" length="N" />
         <Variable name="rhs_yn2" type="float*" length="N" />
         <Variable name="rhs_yh2o" type="float*" length="N" />
 
-        <!--<Variable name="rhs_yh2_in" type="float*" length="N" />
+        <!--<Variable
+        name="rhs_yh2_in" type="float*" length="N" />
         <Variable name="rhs_yo2_in" type="float*" length="N" />
         <Variable name="rhs_yn2_in" type="float*" length="N" />
         <Variable name="rhs_yh2o_in" type="float*" length="N" />-->
     </Variables>
 
     <Tools>
-        
-        <Tool action="insert" after="Sort" type="set" name="Reinit rhs yh2" in="rhs_yh2" value="0.f"/>
-        <Tool action="insert" after="Sort" type="set" name="Reinit rhs yo2" in="rhs_yo2" value="0.f"/>
-        <Tool action="insert" after="Sort" type="set" name="Reinit rhs yn2" in="rhs_yn2" value="0.f"/>
-        <Tool action="insert" after="Sort" type="set" name="Reinit rhs yh2o" in="rhs_yh2o" value="0.f"/>
-        
+
+        <Tool action="insert" after="Sort" type="set" name="Reinit rhs yh2" in="rhs_yh2" value="0.f" />
+        <Tool action="insert" after="Sort" type="set" name="Reinit rhs yo2" in="rhs_yo2" value="0.f" />
+        <Tool action="insert" after="Sort" type="set" name="Reinit rhs yn2" in="rhs_yn2" value="0.f" />
+        <Tool action="insert" after="Sort" type="set" name="Reinit rhs yh2o" in="rhs_yh2o"
+            value="0.f" />
+
         <!-- This is for time being, untill a more advance transpor model will be programmed-->
-        <Tool action="insert" name="Backup D_H2" before="sort stage1,sort stage2" type="copy" in="D_H2" out="D_H2_in"/>
-        <Tool action="insert" name="Backup D_O2" before="sort stage1,sort stage2" type="copy" in="D_O2" out="D_O2_in"/>
-        <Tool action="insert" name="Backup D_N2" before="sort stage1,sort stage2" type="copy" in="D_N2" out="D_N2_in"/>
-        <Tool action="insert" name="Backup D_H2O" before="sort stage1,sort stage2" type="copy" in="D_H2O" out="D_H2O_in"/>
+        <Tool action="insert" name="Backup D_H2" before="sort stage1,sort stage2" type="copy"
+            in="D_H2" out="D_H2_in" />
+        <Tool action="insert" name="Backup D_O2" before="sort stage1,sort stage2" type="copy"
+            in="D_O2" out="D_O2_in" />
+        <Tool action="insert" name="Backup D_N2" before="sort stage1,sort stage2" type="copy"
+            in="D_N2" out="D_N2_in" />
+        <Tool action="insert" name="Backup D_H2O" before="sort stage1,sort stage2" type="copy"
+            in="D_H2O" out="D_H2O_in" />
 
-        <!--<Tool action="insert" after="predictor" name="predictor heat" type="kernel" entry_point="predictor" path="../../../Scripts/cfd/diffusion/euler.cl"/>-->
-        <Tool action="insert" after="sort stage1,sort stage2" name="sort heat" type="kernel" entry_point="entry" path="../../../Scripts/cfd/diffusion/Sort.cl"/>
+        <!--<Tool
+        action="insert" after="predictor" name="predictor heat" type="kernel"
+        entry_point="predictor" path="../../../Scripts/cfd/diffusion/euler.cl"/>-->
+        <Tool action="insert" after="sort stage1,sort stage2" name="sort heat" type="kernel"
+            entry_point="entry" path="../../../Scripts/cfd/diffusion/Sort.cl" />
 
-        <Tool action="insert" before="Interactions" type="kernel" name="rhs y rates" path="../../../Scripts/cfd/diffusion/RHS_diffusion.cl"/>
+        <Tool action="insert" before="Interactions" type="kernel" name="rhs y rates"
+            path="../../../Scripts/cfd/diffusion/RHS_diffusion.cl" />
 
-        <Tool action="insert" before="Rates" name="add increments gas multicomponents" type="kernel" entry_point="add" path="../../../Scripts/cfd/diffusion/add_increments.cl"/>
+        <Tool action="insert" before="Rates" name="add increments gas multicomponents" type="kernel"
+            entry_point="add" path="../../../Scripts/cfd/diffusion/add_increments.cl" />
 
     </Tools>
 </sphInput>

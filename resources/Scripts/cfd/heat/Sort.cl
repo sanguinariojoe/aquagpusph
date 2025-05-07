@@ -16,7 +16,6 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "resources/Scripts/types/types.h"
 
 /** @brief Sort the internal energy.
@@ -25,30 +24,27 @@
  * @param N Number of particles.
  */
 
-
-
 /// @param xi unordered thermal difusivity
 /// @param xi_in ordered thermal difusivity
 /// @param nu unordered kinematic viscosity
 /// @param nu_in ordered kinematic viscosity
 
-
-__kernel void entry(const __global usize *id_sorted,
-                    __global float* xi,
-                    const __global float* xi_in,
-                    __global float* nu,
-                    const __global float* nu_in,
-                    usize N)
+__kernel void
+entry(const __global usize* id_sorted,
+      __global float* xi,
+      const __global float* xi_in,
+      __global float* nu,
+      const __global float* nu_in,
+      usize N)
 {
-    usize i = get_global_id(0);
-    if(i >= N)
-        return;
+	usize i = get_global_id(0);
+	if (i >= N)
+		return;
 
-    const usize i_out = id_sorted[i];
+	const usize i_out = id_sorted[i];
 
-    xi[i_out] = xi_in[i];
-    nu[i_out] = nu_in[i];
-    
+	xi[i_out] = xi_in[i];
+	nu[i_out] = nu_in[i];
 }
 
 /*

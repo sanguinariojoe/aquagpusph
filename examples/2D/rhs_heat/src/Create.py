@@ -31,20 +31,18 @@
 #########################################################################
 
 
-
+import numpy as np
+import math
+import aqua_example_utils as utils
 import os
 import sys
 script_folder = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(script_folder, "../../"))
-import aqua_example_utils as utils
 
 
-import math
-import numpy as np
-
-#zone 2 h2+air
-nu=1.0e-5
-xi=1.0e-2
+# zone 2 h2+air
+nu = 1.0e-5
+xi = 1.0e-2
 
 n_H2 = 0.0
 n_O2 = 0.21
@@ -65,21 +63,21 @@ y_H2_2 = n_H2 * M_H2 / MM2
 y_O2_2 = n_O2 * M_O2 / MM2
 y_N2_2 = n_N2 * M_N2 / MM2
 y_H2O_2 = 0.
-#z = y_H2
+# z = y_H2
 
-#zone 1 pure air
+# zone 1 pure air
 
-MM1=0.21 * M_O2 + 0.79 * M_N2
+MM1 = 0.21 * M_O2 + 0.79 * M_N2
 y_H2_1 = 0.0
 y_O2_1 = 0.21 * M_O2 / MM1
 y_N2_1 = 0.79 * M_N2 / MM1
 y_H2O_1 = 0.
 
 courant = 0.1
-support = 2.0 
+support = 2.0
 
-b0plus=0.1
-b0minus=0.1
+b0plus = 0.1
+b0minus = 0.1
 
 hfac = 2.0
 
@@ -91,11 +89,11 @@ p2 = 1.0e5
 T1 = 300.0
 T2 = 301.0
 
-rho1 = p1 * MM1 /(8.31 * T1)
-rho2 = p2 * MM1 /(8.31 * T2)
-#rho2 = 1.00001
+rho1 = p1 * MM1 / (8.31 * T1)
+rho2 = p2 * MM1 / (8.31 * T2)
+# rho2 = 1.00001
 
-gamma=1.4
+gamma = 1.4
 
 c1 = np.sqrt(gamma * p1 / rho1)
 c2 = np.sqrt(gamma * p2 / rho2)
@@ -105,10 +103,10 @@ print(f"c1 = {c1}")
 print(f"c2 = {c2}")
 print("")
 
-ssound=max(c1, c2)
+ssound = max(c1, c2)
 cs = ssound
-e1=p1 / ((gamma - 1.0) * rho1)
-e2=p2 / ((gamma - 1.0) * rho2)
+e1 = p1 / ((gamma - 1.0) * rho1)
+e2 = p2 / ((gamma - 1.0) * rho2)
 
 # Distance between particles
 # ==========================
@@ -117,8 +115,8 @@ L = b0minus+b0plus
 dr = L / nx
 h = hfac * dr
 R = 2 * support * h + dr
-#dt = 1.0E-5
-dt = 0.1*min(dr / c1 , dr / c2)
+# dt = 1.0E-5
+dt = 0.1*min(dr / c1, dr / c2)
 t_max = (0.5 * L - support * h) / cs
 t_max = 1.0e-3
 
@@ -140,21 +138,22 @@ def writeParticle(output, p, n=(0.0, 0.0), u=(0.0, 0.0),
         p[0], p[1],
         n[0], n[1],
         u[0], u[1],
-        dudt[0], dudt[1],#r, normal, u, dudt, 
+        dudt[0], dudt[1],  # r, normal, u, dudt,
         rho,
-        drhodt,#rho, drhodt,
+        drhodt,  # rho, drhodt,
         e,
-        dedt,#eint, deintdt, 
-        z,#z, 
-        y_H2, dy_H2dt,#y_H2, dy_H2dt, 
-        y_O2, dy_O2dt,#y_O2, dy_O2dt, 
-        y_N2, dy_N2dt,#y_N2, dy_N2dt, 
-        y_H2O, dy_H2Odt,#y_H2O, dy_H2Odt, 
-        m,#m, 
+        dedt,  # eint, deintdt,
+        z,  # z,
+        y_H2, dy_H2dt,  # y_H2, dy_H2dt,
+        y_O2, dy_O2dt,  # y_O2, dy_O2dt,
+        y_N2, dy_N2dt,  # y_N2, dy_N2dt,
+        y_H2O, dy_H2Odt,  # y_H2O, dy_H2Odt,
+        m,  # m,
         nu,
-        xi,#nu, xi, 
-        imove)#imove
+        xi,  # nu, xi,
+        imove)  # imove
     output.write(string)
+
 
 print("Opening output file...")
 output = open("Fluid.dat", "w")
@@ -180,20 +179,22 @@ string = """
 """
 print(string)
 
-x = -b0minus + 0.5 * dr 
+x = -b0minus + 0.5 * dr
 while x < b0plus:
     y = -0.5 * (R - dr)
     while y < 0.5 * R:
 
-        rho, ener, y_H2, y_O2, y_N2, y_H2O = (rho1, e1, y_H2_1, y_O2_1, y_N2_1, y_H2O_1) if x < 0 else (rho2, e2, y_H2_2, y_O2_2, y_N2_2, y_H2O_2)
-        z=y_H2
-        
-        writeParticle(output, (x,y), rho=rho, e=ener, z=z, y_H2=y_H2, y_O2=y_O2, y_N2=y_N2, y_H2O=y_H2O)
+        rho, ener, y_H2, y_O2, y_N2, y_H2O = (rho1, e1, y_H2_1, y_O2_1, y_N2_1, y_H2O_1) if x < 0 else (
+            rho2, e2, y_H2_2, y_O2_2, y_N2_2, y_H2O_2)
+        z = y_H2
+
+        writeParticle(output, (x, y), rho=rho, e=ener, z=z,
+                      y_H2=y_H2, y_O2=y_O2, y_N2=y_N2, y_H2O=y_H2O)
         N += 1
         y += dr
     x += dr
 
-#print(f'{N} particles. Volume = {N * dr**2} vs {Vol}')
+# print(f'{N} particles. Volume = {N * dr**2} vs {Vol}')
 
 print(f'{N} particles. Volume = {N * dr**2}')
 # Domain definition & Symmetry particles
@@ -205,9 +206,11 @@ domain_max = (b0plus + support * h, 1.5 * R + support * h)
 x, y = domain_max[0] + support * h, domain_max[1] + support * h
 
 for _ in range(2*N):
-    rho, ener, y_H2, y_O2, y_N2, y_H2O = (rho1, e1, y_H2_1, y_O2_1, y_N2_1, y_H2O_1)
-    z=y_H2
-    writeParticle(output, (x,y), rho=rho, e=ener, z=z, y_H2=y_H2, y_O2=y_O2, y_N2=y_N2, y_H2O=y_H2O, imove=-255)
+    rho, ener, y_H2, y_O2, y_N2, y_H2O = (
+        rho1, e1, y_H2_1, y_O2_1, y_N2_1, y_H2O_1)
+    z = y_H2
+    writeParticle(output, (x, y), rho=rho, e=ener, z=z, y_H2=y_H2,
+                  y_O2=y_O2, y_N2=y_N2, y_H2O=y_H2O, imove=-255)
 N *= 3
 
 domain_min = str(domain_min).replace('(', '').replace(')', '')
@@ -216,24 +219,24 @@ domain_max = str(domain_max).replace('(', '').replace(')', '')
 # XML definition generation
 # =========================
 
-#templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
-#XML = ('Fluids.xml', 'Main.xml', 'Settings.xml', 'SPH.xml', 'Time.xml',
+# templates_path = path.join('@EXAMPLE_DEST_DIR@', 'templates')
+# XML = ('Fluids.xml', 'Main.xml', 'Settings.xml', 'SPH.xml', 'Time.xml',
 #       'BC.xml')
 
-#data = {'DR':str(dr), 'HFAC':str(hfac), 'H':str(h),  'COURANT':str(courant),
-#        'B0minus':str(b0minus),'B0plus':str(b0plus), 'R': str(R), 
+# data = {'DR':str(dr), 'HFAC':str(hfac), 'H':str(h),  'COURANT':str(courant),
+#        'B0minus':str(b0minus),'B0plus':str(b0plus), 'R': str(R),
 #        'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max,
 #        'N':str(N),  'CS':str(ssound), 'DT':str(dt)}
 
 data = {'DR': str(dr), 'HFAC': str(hfac), 'H': str(h), 'COURANT': str(courant),
         'L': str(L), 'R': str(R), 'T': str(t_max),
         'DOMAIN_MIN': domain_min, 'DOMAIN_MAX': domain_max,
-        'N': str(N), 'CS': str(cs), 'GAMMA': str(gamma), 
+        'N': str(N), 'CS': str(cs), 'GAMMA': str(gamma),
         'P1': str(p1), 'P2': str(p2), 'RHO1': str(rho1), 'RHO2': str(rho2),
         'E1': str(e1), 'E2': str(e2), }
 utils.configure(data, os.path.join(script_folder, "templates"))
 
-#for fname in XML:
+# for fname in XML:
 #    # Read the template
 #    f = open(path.join(templates_path, fname), 'r')
 #    txt = f.read()

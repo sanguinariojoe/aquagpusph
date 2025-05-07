@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+
+<!-- viscousForces.report.xml
+This report is working just with the last compute pressure forces, therefore, if
+pressure forces over several bodies are required, you'll need to create your own
+reporter.
+-->
+
+<sphInput>
+    <Reports>
+        <Report type="screen" name="Viscous forces (GP)" fields="viscousForces_F_GP;viscousForces_M_GP" color="red" bold="false"/>
+        <Report type="screen" name="Viscous forces (BI)" fields="viscousForces_F_BI;viscousForces_M_BI" color="red" bold="false"/>
+        <Report type="file" name="Viscous forces file" fields="t, viscousForces_F_GP, viscousForces_M_GP, viscousForces_F_BI, viscousForces_M_BI" path="ViscousForces.dat"/>
+    </Reports>
+</sphInput>
+ 

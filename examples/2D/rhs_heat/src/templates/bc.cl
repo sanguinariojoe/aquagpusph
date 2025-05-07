@@ -19,7 +19,7 @@
 /** @defgroup basic Basic preset
  *
  * @brief Basic preset of tools to build more complex sets of tools later
- * 
+ *
  * @{
  */
 
@@ -41,43 +41,43 @@
 
 #include "resources/Scripts/types/types.h"
 
-__kernel void set_fixed(__global int* imove,
-                        const __global vec* r,
-                        const usize N,
-                        const float L)
+__kernel void
+set_fixed(__global int* imove,
+          const __global vec* r,
+          const usize N,
+          const float L)
 {
-    const usize i = get_global_id(0);
-    if(i >= N)
-        return;
-    if(imove[i] < 0) {
-        // Forget about the buffer particles
-        return;
-    }
+	const usize i = get_global_id(0);
+	if (i >= N)
+		return;
+	if (imove[i] < 0) {
+		// Forget about the buffer particles
+		return;
+	}
 
-    if(fabs(r[i].x) > 0.5 * L - SUPPORT * H)
-        imove[i] = 0;
+	if (fabs(r[i].x) > 0.5 * L - SUPPORT * H)
+		imove[i] = 0;
 }
 
-__kernel void unset_fixed(__global int* imove,
-                          const usize N)
+__kernel void
+unset_fixed(__global int* imove, const usize N)
 {
-    const usize i = get_global_id(0);
-    if(i >= N)
-        return;
-    if(imove[i] < 0) {
-        // Forget about the buffer particles
-        return;
-    }
+	const usize i = get_global_id(0);
+	if (i >= N)
+		return;
+	if (imove[i] < 0) {
+		// Forget about the buffer particles
+		return;
+	}
 
-    imove[i] = 1;
+	imove[i] = 1;
 }
 
-__kernel void set_1d(__global vec* dudt,
-                     const usize N)
+__kernel void
+set_1d(__global vec* dudt, const usize N)
 {
-    const usize i = get_global_id(0);
-    if(i >= N)
-        return;
-    dudt[i].y = 0.f;
+	const usize i = get_global_id(0);
+	if (i >= N)
+		return;
+	dudt[i].y = 0.f;
 }
-

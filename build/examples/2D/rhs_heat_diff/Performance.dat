@@ -1,0 +1,382 @@
+{
+    "elapsed": 68220547,
+    "progress": 1.0005741119384766,
+    "snapshot": {
+        "samples": [
+            {
+                "dependencies": {
+                    "in": [
+                        "N"
+                    ],
+                    "out": [
+                        "mirror_src"
+                    ]
+                },
+                "end": 1746546635443513376,
+                "name": "top_cfd symmetry reset mirror_src::solver",
+                "start": 1746546635443460789
+            },
+            {
+                "dependencies": {
+                    "in": [
+                        "N"
+                    ],
+                    "out": [
+                        "mirror_src"
+                    ]
+                },
+                "end": 1746546635443787722,
+                "name": "bottom_cfd symmetry reset mirror_src::solver",
+                "start": 1746546635443735759
+            },
+            {
+                "dependencies": {
+                    "in": [],
+                    "out": [
+                        "symmetry_n"
+                    ]
+                },
+                "end": 1746546635444332633,
+                "name": "bottom_symmetry_n::solver",
+                "start": 1746546635444248620
+            },
+            {
+                "dependencies": {
+                    "in": [
+                        "R"
+                    ],
+                    "out": [
+                        "symmetry_r"
+                    ]
+                },
+                "end": 1746546635468532430,
+                "name": "bottom_symmetry_r::solver",
+                "start": 1746546635468426065
+            },
+            {
+                "dependencies": {
+                    "in": [
+                        "nbuffer",
+                        "required_nbuffer"
+                    ],
+                    "out": []
+                },
+                "end": 1746546635472742763,
+                "name": "bottom_cfd symmetry check buffer particles::solver",
+                "start": 1746546635472685652
+            },
+            {
+                "dependencies": {
+                    "in": [],
+                    "out": [
+                        "symmetry_n"
+                    ]
+                },
+                "end": 1746546635473301137,
+                "name": "top_symmetry_n::solver",
+                "start": 1746546635473225502
+            },
+            {
+                "dependencies": {
+                    "in": [
+                        "R"
+                    ],
+                    "out": [
+                        "symmetry_r"
+                    ]
+                },
+                "end": 1746546635473410796,
+                "name": "top_symmetry_r::solver",
+                "start": 1746546635473236520
+            },
+            {
+                "dependencies": {
+                    "in": [
+                        "nbuffer",
+                        "required_nbuffer"
+                    ],
+                    "out": []
+                },
+                "end": 1746546635476794791,
+                "name": "top_cfd symmetry check buffer particles::solver",
+                "start": 1746546635476725116
+            },
+            {
+                "dependencies": {
+                    "in": [
+                        "r_in",
+                        "N",
+                        "support",
+                        "h"
+                    ],
+                    "out": [
+                        "ihoc",
+                        "icell",
+                        "n_cells",
+                        "r_min",
+                        "r_max"
+                    ]
+                },
+                "end": 1746546635477748231,
+                "name": "link-list::n_cells",
+                "start": 1746546635477655125
+            },
+            {
+                "dependencies": {
+                    "in": [],
+                    "out": [
+                        "rhs_yh2o"
+                    ]
+                },
+                "end": 1746546635479114786,
+                "name": "Reinit rhs yh2o::solver",
+                "start": 1746546635479110383
+            },
+            {
+                "dependencies": {
+                    "in": [],
+                    "out": [
+                        "rhs_yn2"
+                    ]
+                },
+                "end": 1746546635479161006,
+                "name": "Reinit rhs yn2::solver",
+                "start": 1746546635479159253
+            },
+            {
+                "dependencies": {
+                    "in": [],
+                    "out": [
+                        "rhs_yo2"
+                    ]
+                },
+                "end": 1746546635479202866,
+                "name": "Reinit rhs yo2::solver",
+                "start": 1746546635479199299
+            },
+            {
+                "dependencies": {
+                    "in": [],
+                    "out": [
+                        "rhs_yh2"
+                    ]
+                },
+                "end": 1746546635479265072,
+                "name": "Reinit rhs yh2::solver",
+                "start": 1746546635479262275
+            },
+            {
+                "dependencies": {
+                    "in": [],
+                    "out": [
+                        "rhs_qdot"
+                    ]
+                },
+                "end": 1746546635479327611,
+                "name": "Reinit rhs qdot::solver",
+                "start": 1746546635479325779
+            },
+            {
+                "dependencies": {
+                    "in": [],
+                    "out": [
+                        "dy_H2Odt"
+                    ]
+                },
+                "end": 1746546635479369792,
+                "name": "reinit dy_H2Odt::solver",
+                "start": 1746546635479368132
+            },
+            {
+                "dependencies": {
+                    "in": [],
+                    "out": [
+                        "dy_N2dt"
+                    ]
+                },
+                "end": 1746546635479419003,
+                "name": "reinit dy_N2dt::solver",
+                "start": 1746546635479416681
+            },
+            {
+                "dependencies": {
+                    "in": [],
+                    "out": [
+                        "dy_O2dt"
+                    ]
+                },
+                "end": 1746546635479478276,
+                "name": "reinit dy_O2dt::solver",
+                "start": 1746546635479476606
+            },
+            {
+                "dependencies": {
+                    "in": [],
+                    "out": [
+                        "dy_H2dt"
+                    ]
+                },
+                "end": 1746546635479529382,
+                "name": "reinit dy_H2dt::solver",
+                "start": 1746546635479527485
+            },
+            {
+                "dependencies": {
+                    "in": [],
+                    "out": [
+                        "work_density"
+                    ]
+                },
+                "end": 1746546635479574228,
+                "name": "cfd Reinit work_density::solver",
+                "start": 1746546635479572527
+            },
+            {
+                "dependencies": {
+                    "in": [],
+                    "out": [
+                        "lap_u"
+                    ]
+                },
+                "end": 1746546635479611273,
+                "name": "cfd Reinit lap_u::solver",
+                "start": 1746546635479609665
+            },
+            {
+                "dependencies": {
+                    "in": [],
+                    "out": [
+                        "div_u"
+                    ]
+                },
+                "end": 1746546635479659292,
+                "name": "cfd Reinit div_u::solver",
+                "start": 1746546635479657667
+            },
+            {
+                "dependencies": {
+                    "in": [],
+                    "out": [
+                        "grad_p"
+                    ]
+                },
+                "end": 1746546635479694595,
+                "name": "cfd Reinit grad_p::solver",
+                "start": 1746546635479692983
+            },
+            {
+                "dependencies": {
+                    "in": [],
+                    "out": [
+                        "shepard"
+                    ]
+                },
+                "end": 1746546635479731110,
+                "name": "cfd Reinit shepard::solver",
+                "start": 1746546635479729106
+            },
+            {
+                "dependencies": {
+                    "in": [],
+                    "out": [
+                        "symmetry_n"
+                    ]
+                },
+                "end": 1746546635493910487,
+                "name": "bottom_symmetry_n::solver",
+                "start": 1746546635493643759
+            },
+            {
+                "dependencies": {
+                    "in": [
+                        "R"
+                    ],
+                    "out": [
+                        "symmetry_r"
+                    ]
+                },
+                "end": 1746546635493951438,
+                "name": "bottom_symmetry_r::solver",
+                "start": 1746546635493646042
+            },
+            {
+                "dependencies": {
+                    "in": [
+                        "R"
+                    ],
+                    "out": [
+                        "symmetry_r"
+                    ]
+                },
+                "end": 1746546635505055498,
+                "name": "top_symmetry_r::solver",
+                "start": 1746546635504929014
+            },
+            {
+                "dependencies": {
+                    "in": [],
+                    "out": [
+                        "symmetry_n"
+                    ]
+                },
+                "end": 1746546635505083334,
+                "name": "top_symmetry_n::solver",
+                "start": 1746546635504932894
+            },
+            {
+                "dependencies": {
+                    "in": [
+                        "courant",
+                        "cs",
+                        "h"
+                    ],
+                    "out": [
+                        "dt"
+                    ]
+                },
+                "end": 1746546635505674953,
+                "name": "fixed time step::solver",
+                "start": 1746546635505575244
+            },
+            {
+                "dependencies": {
+                    "in": [
+                        "iter"
+                    ],
+                    "out": [
+                        "iter"
+                    ]
+                },
+                "end": 1746546635506000221,
+                "name": "iter += 1::solver",
+                "start": 1746546635505925850
+            },
+            {
+                "dependencies": {
+                    "in": [
+                        "dt"
+                    ],
+                    "out": []
+                },
+                "end": 1746546635506126971,
+                "name": "cfd check time step::solver",
+                "start": 1746546635506066583
+            },
+            {
+                "dependencies": {
+                    "in": [
+                        "dt",
+                        "t"
+                    ],
+                    "out": [
+                        "t"
+                    ]
+                },
+                "end": 1746546635506183683,
+                "name": "t = t + dt::solver",
+                "start": 1746546635506076833
+            }
+        ],
+        "step": 435
+    }
+}

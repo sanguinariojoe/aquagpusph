@@ -31,7 +31,7 @@
  *
  * Along this line, the distance moved by a particle can be written as follows:
  *
- * \f$ \vert \mathbf{r}_{n+1} - \mathbf{r}_{n} \vert = 
+ * \f$ \vert \mathbf{r}_{n+1} - \mathbf{r}_{n} \vert =
  *     \vert \mathbf{u} \vert \Delta t +
  *     \frac{1}{2} \left\vert
  *                     \frac{\mathrm{d} \mathbf{u}}{\mathrm{d} t}
@@ -64,58 +64,69 @@
  * @param D_xx diffusion coeficcient
  */
 
-__kernel void entry(__global float* dt_var,
-                    const __global int* imove,
-                    const __global unsigned int* iset,
-                    const __global vec* u,
-                    const __global vec* dudt,
-                    const __global float* rho,
-                    const __global float* p,
-		            const __global float* m,
-                    const usize N,
-                    const float dt,
-                    const float dt_min,
-                    const float courant,
-                    const float h,
-                    const __global float* div_u,
-                    const __global vec* grad_p,
-                    __constant float* gamma,
-                    const __global float* lambda,
-                    const __global float* cp,
-                    const __global float* D_H2,
-                    const __global float* D_O2,
-                    const __global float* D_N2,
-                    const __global float* D_H2O)
+__kernel void
+entry(__global float* dt_var,
+      const __global int* imove,
+      const __global unsigned int* iset,
+      const __global vec* u,
+      const __global vec* dudt,
+      const __global float* rho,
+      const __global float* p,
+      const __global float* m,
+      const usize N,
+      const float dt,
+      const float dt_min,
+      const float courant,
+      const float h,
+      const __global float* div_u,
+      const __global vec* grad_p,
+      __constant float* gamma,
+      const __global float* lambda,
+      const __global float* cp,
+      const __global float* D_H2,
+      const __global float* D_O2,
+      const __global float* D_N2,
+      const __global float* D_H2O)
 {
-    const usize i = get_global_id(0);
-    if(i >= N)
-        return;
-    if(imove[i] <= 0) {
-        dt_var[i] = dt;
-        return;
-    }
-    
-    float dxx=H;
+	const usize i = get_global_id(0);
+	if (i >= N)
+		return;
+	if (imove[i] <= 0) {
+		dt_var[i] = dt;
+		return;
+	}
 
-    float s_i = sound_speed_perfect_gas(gamma[iset[i]], p[i], rho[i]);
-    
-    const float dt_u1 = courant * 0.4f * dxx / sqrt((4.0f * dxx * div_u[i] / rho[i])*(4.0f * dxx * div_u[i] / rho[i]) + s_i * s_i);
-    const float dt_u2 = courant * sqrt(dxx / (length(grad_p[i]) + 1.0e-12f));
-    const float dt_u3 = courant * 0.4f * dxx / sqrt(length(u[i]) * length(u[i]) + s_i * s_i);
-    
-    const float dt_u4 = courant * dxx / (length(u[i])+1.0e-12f);
-    //const float dt_u5 = 0.1f / zeta_dot[i];
-    //float xi_loc = lambda[i] / (rho[i] * cp[i]);
-    const float dt_u5 = courant * dxx * dxx / (lambda[i] / (rho[i] * cp[i]));
-    const float dt_u6 = courant * dxx / (s_i + dxx * sqrt(div_u[i]*div_u[i])/ rho[i]);
-    
-    const float dt_u7 = courant * dxx * dxx / ( D_H2[i] / rho[i]);
-    const float dt_u8 = courant * dxx * dxx / ( D_O2[i] / rho[i]);
-    const float dt_u9 = courant * dxx * dxx / ( D_N2[i] / rho[i]);
-    const float dt_u10 = courant * dxx * dxx / ( D_H2O[i] / rho[i]);
+	float dxx = H;
 
+	float s_i = sound_speed_perfect_gas(gamma[iset[i]], p[i], rho[i]);
 
-    const float dt_u = min(min(min(min(min(min(min(min(min(dt_u1, dt_u2), dt_u3), dt_u4), dt_u5), dt_u6), dt_u7), dt_u8), dt_u9), dt_u10);
+	const float dt_u1 = courant * 0.4f * dxx /
+	                    sqrt((4.0f * dxx * div_u[i] / rho[i]) *
+	                             (4.0f * dxx * div_u[i] / rho[i]) +
+	                         s_i * s_i);
+	const float dt_u2 = courant * sqrt(dxx / (length(grad_p[i]) + 1.0e-12f));
+	const float dt_u3 =
+	    courant * 0.4f * dxx / sqrt(length(u[i]) * length(u[i]) + s_i * s_i);
 
-    dt_var[i] = max(min(dt, dt_u), dt_min);
+	const float dt_u4 = courant * dxx / (length(u[i]) + 1.0e-12f);
+	// const float dt_u5 = 0.1f / zeta_dot[i];
+	// float xi_loc = lambda[i] / (rho[i] * cp[i]);
+	const float dt_u5 = courant * dxx * dxx / (lambda[i] / (rho[i] * cp[i]));
+	const float dt_u6 =
+	    courant * dxx / (s_i + dxx * sqrt(div_u[i] * div_u[i]) / rho[i]);
+
+	const float dt_u7 = courant * dxx * dxx / (D_H2[i] / rho[i]);
+	const float dt_u8 = courant * dxx * dxx / (D_O2[i] / rho[i]);
+	const float dt_u9 = courant * dxx * dxx / (D_N2[i] / rho[i]);
+	const float dt_u10 = courant * dxx * dxx / (D_H2O[i] / rho[i]);
+
+	const float dt_u = min(
+	    min(min(min(min(min(min(min(min(dt_u1, dt_u2), dt_u3), dt_u4), dt_u5),
+	                    dt_u6),
+	                dt_u7),
+	            dt_u8),
+	        dt_u9),
+	    dt_u10);
+
+	dt_var[i] = max(min(dt, dt_u), dt_min);
 }

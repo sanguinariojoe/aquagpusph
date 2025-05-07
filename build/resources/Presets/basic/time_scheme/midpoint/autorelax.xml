@@ -1,0 +1,32 @@
+<?xml version="1.0" ?>
+
+<!-- This preset adds an addaptive relaxation factor
+
+     To use this module, include it after autostop.xml, and set the required
+     geometric residual decreasing factor, "Residual_midpoint_min_dec",
+     and the progressive relaxation increment factor, "relax_midpoint_inc"
+
+     It is also recommended to include this before residues_profile.xml (in
+     case it is included)
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="relax_midpoint_0" type="float" length="1" value="relax_midpoint" symbol="f_{\Delta t,0}"/>
+        <Variable name="Residual_midpoint_prev" type="float" length="1" value="1.0" symbol="E_{\Delta t,m-1}"/>
+        <Variable name="Residual_midpoint_mindec" type="float" length="1" value="1.0 / 5.0" symbol="E_{\Delta t} / E_{\Delta t,m-1}"/>
+        <Variable name="relax_midpoint_inc" type="float" length="1" value="0.25" symbol="f_{\Delta t,0}"/>
+    </Variables>
+
+    <Tools>
+        <Tool action="insert" before="predictor" name="midpoint relax backup" type="set_scalar" in="relax_midpoint_0" value="relax_midpoint" once="true" />
+        <!-- Eventually increase the relaxation factor -->
+        <Tool action="insert" before="midpoint autostop" name="midpoint addapt relax" type="set_scalar" in="relax_midpoint" value="Residual_midpoint / Residual_midpoint_prev &gt; Residual_midpoint_mindec ? relax_midpoint_inc + (1.0 - relax_midpoint_inc) * relax_midpoint : relax_midpoint" />
+        <!-- Reinit the relaxation factor at the first inner iteration -->
+        <Tool action="insert" after="midpoint addapt relax" name="midpoint start relax" type="set_scalar" in="relax_midpoint" value="iter_midpoint == 0 ? relax_midpoint_0 : relax_midpoint" />
+        <!-- Do not relax at all at the last inner iteration -->
+        <Tool action="insert" after="midpoint autostop" name="midpoint end relax" type="set_scalar" in="relax_midpoint" value="iter_midpoint == iter_midpoint_max ? 0.0 : relax_midpoint" />
+        <!-- Store the previous residual -->
+        <Tool action="insert" after="midpoint end relax" name="midpoint backup residual" type="set_scalar" in="Residual_midpoint_prev" value="Residual_midpoint" />
+    </Tools>
+</sphInput>

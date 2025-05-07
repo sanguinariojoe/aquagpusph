@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+
+<!-- This preset replaces the time integration scheme by a 1st order Euler one.
+
+    To use this module, just simply include it any time after cfd/ideal_gas.xml
+    and basic/time_scheme/euler.xml
+    This is the time integration scheme used by default
+-->
+
+<sphInput>
+    <Tools>
+        <Tool action="replace" name="predictor ideal gas" type="kernel" entry_point="predictor" path="../../../../Scripts/cfd/ideal_gas/time_scheme/time_scheme/euler.cl"/>
+        <Tool action="replace" name="corrector ideal gas" type="kernel" entry_point="corrector" path="../../../../Scripts/cfd/ideal_gas/time_scheme/time_scheme/euler.cl"/>
+    </Tools>
+</sphInput>

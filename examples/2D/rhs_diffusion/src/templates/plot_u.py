@@ -1,4 +1,4 @@
-#******************************************************************************
+# ******************************************************************************
 #                                                                             *
 #              *    **   *  *   *                           *                 *
 #             * *  *  *  *  *  * *                          *                 *
@@ -9,7 +9,7 @@
 #                                      * *             *                      *
 #                                    **  *             *                      *
 #                                                                             *
-#******************************************************************************
+# ******************************************************************************
 #                                                                             *
 #  This file is part of AQUAgpusph, a free CFD program based on SPH.          *
 #  Copyright (C) 2012  Jose Luis Cercos Pita <jl.cercos@upm.es>               *
@@ -27,7 +27,7 @@
 #  You should have received a copy of the GNU General Public License          *
 #  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.        *
 #                                                                             *
-#******************************************************************************
+# ******************************************************************************
 
 import sys
 import os
@@ -82,6 +82,8 @@ ax.set_ylabel(r"$u / c_0$")
 ax.set_title(r"$t = 0$")
 
 # Animate
+
+
 def update(frame_index):
     plt.tight_layout()
     try:
@@ -94,7 +96,7 @@ def update(frame_index):
         _, _, exp_data = sodshock.solve(left_state=left_state,
                                         right_state=right_state,
                                         geometry=(-0.5 * L, 0.5 * L, 0),
-                                        t=t, 
+                                        t=t,
                                         gamma=GAMMA,
                                         npts=npts,
                                         dustFrac=0.0)
@@ -106,6 +108,7 @@ def update(frame_index):
     exp.set_data(exp_data['x'] / L, exp_data['u'] / CS)
     ax.set_title(r"$t \,\, c_0 / L = {}$".format(t / T))
     ax.set_ylim(0, np.max(np.concatenate([u, exp_data['u']])) / CS)
+
 
 update(0)
 ani = animation.FuncAnimation(fig, update, interval=1000)

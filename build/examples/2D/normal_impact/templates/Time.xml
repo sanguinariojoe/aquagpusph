@@ -1,0 +1,37 @@
+<?xml version="1.0" ?>
+<!--
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
+
+Another QUAlity GPU-SPH, by CEHINAV.
+    http://canal.etsin.upm.es/
+Authors:
+    Jose Luis Cercos-Pita
+    Leo Miguel Gonzalez
+    Antonio Souto-Iglesias
+-->
+
+<sphInput>
+    <Timing>
+        <!-- Set the simulation end citeria             
+            type="Frames" Simulation ends after print a number of frames
+            type="Steps" Simulation ends after perform a number of time steps
+            type="Time" Simulation ends after simulate some seconds
+        You can conveniently combine several stop criterias.
+        -->
+        <Option name="End" type="Time" value="{{T}}" />
+
+        <!-- Set output files print criteria
+            type="FPS" Frames per second
+            type="IPF" Iterations per frame
+        You can conveniently combine several printing criterias.
+        -->
+        <Option name="Output" type="FPS" value="{{FPS}}" />
+    </Timing>
+</sphInput>

@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+
+<!-- Force_iset.xml
+Filter out the forces and moments that do not belong to an specific iset
+
+To use this preset just simply include Force.xml and then this preset. Then you
+can set the variable forces_iset.
+-->
+
+<sphInput>
+    <Variables>
+        <!-- center of reference for the forces -->
+        <Variable name="forces_iset" type="unsigned int" value="0" />
+        <Variable name="p_backup" type="float*" length="N" />
+        <Variable name="Force_p_iset" type="vec" length="N" value="0.0,0.0,0.0,0.0" />
+        <Variable name="Moment_p_iset" type="vec4" length="N" value="0.0,0.0,0.0,0.0" />
+    </Variables>
+
+    <Tools>
+        <Tool name="cfd BIe backup p" action="try_remove" type="dummy"></Tool>
+        <Tool name="cfd BIe backup p" action="insert" after="cfd BIe p_boundary" type="copy" in="p" out="p_backup"/>
+        <Tool name="cfd BIe p_iset" action="insert" before="cfd BIe force_p" type="kernel" entry_point="filter_press" path="../../../Scripts/cfd/Boundary/BIe/Rates.cl"/>
+        <Tool name="cfd BIe force_p_iset" action="insert" before="cfd BIe force_p" type="kernel" entry_point="force_press" path="../../../Scripts/cfd/Boundary/BIe/Rates.cl"/>
+        <Tool name="cfd BIe Force_p_iset" action="insert" before="cfd BIe force_p" type="reduction" in="force_p" out="Force_p_iset" null="VEC_ZERO">c = a + b</Tool>
+        <Tool name="cfd BIe Moment_p_iset" action="insert" before="cfd BIe force_p" type="reduction" in="moment_p" out="Moment_p_iset" null="((vec4)(0.f))">c = a + b</Tool>
+        <Tool name="cfd BIe restore p" action="insert" before="cfd BIe force_p" type="copy" in="p_backup" out="p"/>
+    </Tools>
+</sphInput>

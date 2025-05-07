@@ -1,0 +1,40 @@
+<?xml version="1.0" ?>
+<!--
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
+
+Another QUAlity GPU-SPH, by CEHINAV.
+    http://canal.etsin.upm.es/
+Authors:
+    Jose Luis Cercos-Pita
+    Leo Miguel Gonzalez
+    Antonio Souto-Iglesias
+-->
+
+<sphInput>
+    <Include file="resources/Presets/cfd/MPI/planes.xml" prefix="left_"/>
+    <Include file="resources/Presets/cfd/MPI/planes.xml" prefix="right_"/>
+    <Variables>
+        <Variable name="mpi_planes_dy" type="float" value="(domain_max_y - domain_min_y) / mpi_size" />
+    </Variables>
+    <Tools>
+        <Tool action="insert" before="left_mpi local mask" type="set_scalar" name="left_mpi local mpi_plane_r" in="mpi_plane_r" value="0, domain_min_y + mpi_rank * mpi_planes_dy, 0, 0"/>
+        <Tool action="insert" before="left_mpi local mask" type="set_scalar" name="left_mpi local mpi_plane_n" in="mpi_plane_n" value="0, -1, 0, 0"/>
+        <Tool action="insert" before="left_mpi local mask" type="set_scalar" name="left_mpi local mpi_plane_proc" in="mpi_plane_proc" value="mpi_rank &gt; 0 ? mpi_rank - 1 : mpi_rank"/>
+        <Tool action="insert" before="left_mpi neighs mask" type="set_scalar" name="left_mpi neighs mpi_plane_r" in="mpi_plane_r" value="0, domain_min_y + mpi_rank * mpi_planes_dy, 0, 0"/>
+        <Tool action="insert" before="left_mpi neighs mask" type="set_scalar" name="left_mpi neighs mpi_plane_n" in="mpi_plane_n" value="0, -1, 0, 0"/>
+        <Tool action="insert" before="left_mpi neighs mask" type="set_scalar" name="left_mpi neighs mpi_plane_proc" in="mpi_plane_proc" value="mpi_rank &gt; 0 ? mpi_rank - 1 : mpi_rank"/>
+        <Tool action="insert" before="right_mpi local mask" type="set_scalar" name="right_mpi local mpi_plane_r" in="mpi_plane_r" value="0, domain_min_y + (mpi_rank + 1) * mpi_planes_dy, 0, 0"/>
+        <Tool action="insert" before="right_mpi local mask" type="set_scalar" name="right_mpi local mpi_plane_n" in="mpi_plane_n" value="0, 1, 0, 0"/>
+        <Tool action="insert" before="right_mpi local mask" type="set_scalar" name="right_mpi local mpi_plane_proc" in="mpi_plane_proc" value="mpi_rank &lt; mpi_size - 1 ? mpi_rank + 1 : mpi_rank"/>
+        <Tool action="insert" before="right_mpi neighs mask" type="set_scalar" name="right_mpi neighs mpi_plane_r" in="mpi_plane_r" value="0, domain_min_y + (mpi_rank + 1) * mpi_planes_dy, 0, 0"/>
+        <Tool action="insert" before="right_mpi neighs mask" type="set_scalar" name="right_mpi neighs mpi_plane_n" in="mpi_plane_n" value="0, 1, 0, 0"/>
+        <Tool action="insert" before="right_mpi neighs mask" type="set_scalar" name="right_mpi neighs mpi_plane_proc" in="mpi_plane_proc" value="mpi_rank &lt; mpi_size - 1 ? mpi_rank + 1 : mpi_rank"/>
+    </Tools>
+</sphInput>

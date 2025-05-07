@@ -1,4 +1,4 @@
-<?xml version="1.0" ?>
+<?xml version="1.0"?>
 <!--
    #    ##   #  #   #
   # #  #  #  #  #  # #                          #
@@ -23,11 +23,12 @@ Authors:
     <Include file="resources/Presets/basic/domain.xml" />
     <Include file="cfd_steady.xml" />
     <Include file="ideal_gas_steady.xml" />
-    <Include file="riemann_steady.xml" /> 
+    <Include file="riemann_steady.xml" />
     <Include file="resources/Presets/cfd/species/species.xml" />
-    <!--<Include file="resources/Presets/cfd/reactive/reactive.xml" />-->
+    <!--<Include
+    file="resources/Presets/cfd/reactive/reactive.xml" />-->
     <Include file="heat_RHS_steady.xml" />
-    <Include file="resources/Presets/cfd/diffusion/diffusion_RHS.xml" />   
+    <Include file="resources/Presets/cfd/diffusion/diffusion_RHS.xml" />
     <Include file="resources/Presets/cfd/variableTimeStep.xml" />
     <Include file="resources/Presets/cfd/diffusion/variableTimeStep.xml" />
     <Include file="resources/Presets/basic/timing.report.xml" />
@@ -38,5 +39,5 @@ Authors:
     <Include file="Fluids.xml" />
     <Include file="BC.xml" />
 
-    <Include file="resources/Presets/basic/kernels/cubicSpline.xml" when="end"/>
+    <Include file="resources/Presets/basic/kernels/cubicSpline.xml" when="end" />
 </sphInput>

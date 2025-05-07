@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<!-- Request no local memory usage during the kernels compilation
+ -->
+<sphInput>
+    <Definitions>
+        <Define name="NO_LOCAL_MEM"/>
+    </Definitions>
+</sphInput>
