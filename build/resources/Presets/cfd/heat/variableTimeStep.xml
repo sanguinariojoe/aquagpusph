@@ -1,6 +1,0 @@
-<?xml version="1.0" ?>
-<sphInput>
-    <Tools>        
-        <Tool action="replace" name="cfd variable time step" type="kernel" path="../../../Scripts/cfd/heat/TimeStep.cl"/>
-    </Tools>
-</sphInput>
