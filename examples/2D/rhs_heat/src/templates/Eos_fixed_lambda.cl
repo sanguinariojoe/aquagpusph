@@ -101,7 +101,7 @@ entry(const __global unsigned int* iset,
 	T[i] = eint[i] / cv[i];
 	// printf("cv = %f\n", cv[i]);
 	// printf("T = %f\n", T[i]);
-	lambda[i] = cp[i] * rho[i] * xi[i] * sqrt(T[i] / 298.0f);
+	//lambda[i] = cp[i] * rho[i] * xi[i] * sqrt(T[i] / 298.0f);
 
 	// This line is for debug!!!!
 	//  to get ferr profile

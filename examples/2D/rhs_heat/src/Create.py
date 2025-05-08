@@ -31,18 +31,19 @@
 #########################################################################
 
 
-import numpy as np
-import math
-import aqua_example_utils as utils
+
 import os
 import sys
 script_folder = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(script_folder, "../../"))
-
+import numpy as np
+import math
+import aqua_example_utils as utils
 
 # zone 2 h2+air
 nu = 1.0e-5
 xi = 1.0e-2
+
 
 n_H2 = 0.0
 n_O2 = 0.21
@@ -233,7 +234,7 @@ data = {'DR': str(dr), 'HFAC': str(hfac), 'H': str(h), 'COURANT': str(courant),
         'DOMAIN_MIN': domain_min, 'DOMAIN_MAX': domain_max,
         'N': str(N), 'CS': str(cs), 'GAMMA': str(gamma),
         'P1': str(p1), 'P2': str(p2), 'RHO1': str(rho1), 'RHO2': str(rho2),
-        'E1': str(e1), 'E2': str(e2), }
+        'E1': str(e1), 'E2': str(e2), 'DT':str(xi)}
 utils.configure(data, os.path.join(script_folder, "templates"))
 
 # for fname in XML:
