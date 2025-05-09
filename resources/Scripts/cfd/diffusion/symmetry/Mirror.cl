@@ -38,11 +38,12 @@
  * important in case of position vectors, from which an arbitrary point of the
  * plane should be substracted
  */
-vec_xyz
-reflection(vec_xyz u, vec_xyz n)
-{
-	return -2.f * dot(u, n) * n;
-}
+
+//vec_xyz
+//reflection(vec_xyz u, vec_xyz n)
+//{
+//	return -2.f * dot(u, n) * n;
+//}
 
 /**
  * @brief reflection routine for the species and diffusion
@@ -53,7 +54,7 @@ reflection(vec_xyz u, vec_xyz n)
 /// @param D_O2_in Diffusion coefficient O2
 /// @param D_N2_in Diffusion coefficient N2
 /// @param D_H2O_in Diffusion coefficient H2O
-
+/*
 __kernel void
 feed(__global int* imove,
      __global int* iset,
@@ -130,6 +131,56 @@ feed(__global int* imove,
 	eint_in[ii] = eint_in[i];
 	deintdt_in[ii] = deintdt_in[i];
 
+	z_in[ii] = z_in[i];
+
+	y_H2_in[ii] = y_H2_in[i];
+	dy_H2dt_in[ii] = dy_H2dt_in[i];
+
+	y_O2_in[ii] = y_O2_in[i];
+	dy_O2dt_in[ii] = dy_O2dt_in[i];
+
+	y_N2_in[ii] = y_N2_in[i];
+	dy_N2dt_in[ii] = dy_N2dt_in[i];
+
+	y_H2O_in[ii] = y_H2O_in[i];
+	dy_H2Odt_in[ii] = dy_H2Odt_in[i];
+
+	nu_in[ii] = nu_in[i];
+	xi_in[ii] = xi_in[i];
+
+	D_H2_in[ii] = D_H2_in[i];
+	D_O2_in[ii] = D_O2_in[i];
+	D_N2_in[ii] = D_N2_in[i];
+	D_H2O_in[ii] = D_H2O_in[i];
+}
+*/
+
+__kernel void
+feed(const __global usize* mirror_src,
+     usize N,
+     __global float* z_in,
+     __global float* y_H2_in,
+     __global float* dy_H2dt_in,
+     __global float* y_O2_in,
+     __global float* dy_O2dt_in,
+     __global float* y_N2_in,
+     __global float* dy_N2dt_in,
+     __global float* y_H2O_in,
+     __global float* dy_H2Odt_in,
+     __global float* xi_in,
+     __global float* nu_in,
+     __global float* D_H2_in,
+     __global float* D_O2_in,
+     __global float* D_N2_in,
+     __global float* D_H2O_in)
+{
+	const usize ii = get_global_id(0);
+	if (ii >= N)
+		return;
+	const usize i = mirror_src[ii];
+	if (i >= N)
+		return;
+		
 	z_in[ii] = z_in[i];
 
 	y_H2_in[ii] = y_H2_in[i];
