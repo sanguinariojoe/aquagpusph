@@ -53,6 +53,10 @@ set(PRIVATE_INCS
 set(PUBLIC_INCS
 )
 
+if(WIN32)
+    list(APPEND PRIVATE_INCS ${CMAKE_SOURCE_DIR}/aquagpusph/win32)
+    list(APPEND CPP_SRCS win32/getopt.c win32/dlfcn.c)
+endif(WIN32)
 if(HAVE_MPI)
     list(APPEND PUBLIC_LIBS MPI::MPI_C)
     list(APPEND CPP_SRCS CalcServer/MPISync.cpp)
