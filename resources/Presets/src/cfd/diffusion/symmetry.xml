@@ -7,9 +7,11 @@
     file="@RESOURCES_OUTPUT_DIR@/Presets/cfd/symmetry.xml"/>-->
     <!-- ?????????????????? -->
     <Tools>
-        <Tool action="replace" name="*cfd symmetry feed" type="kernel"
-            path="../../../Scripts/cfd/diffusion/symmetry/Mirror.cl" entry_point="feed" />
+        <!--<Tool action="replace" name="*cfd symmetry feed" type="kernel"
+            path="../../../Scripts/cfd/diffusion/symmetry/Mirror.cl" entry_point="feed" />-->
 
+        <Tool action="insert" after="*cfd symmetry set" name="cfd symmetry set diffusion" type="kernel"
+            path="../../../Scripts/cfd/diffusion/symmetry/Mirror.cl" entry_point="feed" />
     </Tools>
 
 </sphInput>
