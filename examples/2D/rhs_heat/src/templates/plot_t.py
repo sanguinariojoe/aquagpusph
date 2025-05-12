@@ -82,7 +82,7 @@ ax.set_xlim(-0.5, 0.5)
 #ax.set_ylim(0.9950, 1.0001)
 ax.set_autoscale_on(False)
 ax.set_xlabel(r"$x / R$")
-ax.set_ylabel(r"$e / e_0$")
+ax.set_ylabel(r"$T$")
 ax.set_title(r"$t = 0$")
 
 # Animate
@@ -128,13 +128,14 @@ def update(frame_index):
     minT=min(T_sph)
     
     
-    ax.set_ylim(minT*0.95, maxT*1.05)
+    
     
     sph.set_data(x / L, T_sph)
     exp.set_data(x / L, minT + (maxT-minT)/2.0 * (T_exp+1.0))
     
     #exp.set_data(x / L, T_exp)
     ax.set_title(r"$t \,\, c_0 / L = {}$".format(t / T))
+    ax.set_ylim(minT*0.95, maxT*1.05)
 
 
 update(0)

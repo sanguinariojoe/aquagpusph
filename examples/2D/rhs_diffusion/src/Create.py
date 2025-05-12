@@ -30,15 +30,13 @@
 #
 #########################################################################
 
-
-import numpy as np
-import math
-import aqua_example_utils as utils
 import os
 import sys
 script_folder = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(script_folder, "../../"))
-
+import numpy as np
+import math
+import aqua_example_utils as utils
 
 # zone 2 h2+air
 nu = 1.0e-5
