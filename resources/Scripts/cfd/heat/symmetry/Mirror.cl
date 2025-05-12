@@ -148,15 +148,6 @@ feed(__global int* imove,
 __kernel void
 feed(const __global usize* mirror_src,
      usize N,
-     __global float* z_in,
-     __global float* y_H2_in,
-     __global float* dy_H2dt_in,
-     __global float* y_O2_in,
-     __global float* dy_O2dt_in,
-     __global float* y_N2_in,
-     __global float* dy_N2dt_in,
-     __global float* y_H2O_in,
-     __global float* dy_H2Odt_in,
      __global float* xi_in,
      __global float* nu_in)
 {
@@ -167,20 +158,6 @@ feed(const __global usize* mirror_src,
 	const usize i = mirror_src[ii];
 	if (i >= N)
 		return;
-
-	z_in[ii] = z_in[i];
-
-	y_H2_in[ii] = y_H2_in[i];
-	dy_H2dt_in[ii] = dy_H2dt_in[i];
-
-	y_O2_in[ii] = y_O2_in[i];
-	dy_O2dt_in[ii] = dy_O2dt_in[i];
-
-	y_N2_in[ii] = y_N2_in[i];
-	dy_N2dt_in[ii] = dy_N2dt_in[i];
-
-	y_H2O_in[ii] = y_H2O_in[i];
-	dy_H2Odt_in[ii] = dy_H2Odt_in[i];
 
 	nu_in[ii] = nu_in[i];
 	xi_in[ii] = xi_in[i];

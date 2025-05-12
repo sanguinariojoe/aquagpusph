@@ -38,12 +38,14 @@
  * important in case of position vectors, from which an arbitrary point of the
  * plane should be substracted
  */
-vec_xyz
+/*vec_xyz
 reflection(vec_xyz u, vec_xyz n)
 {
 	return -2.f * dot(u, n) * n;
 }
+*/
 
+/*
 __kernel void
 feed(__global int* imove,
      __global int* iset,
@@ -113,6 +115,43 @@ feed(__global int* imove,
 	    dudt_in[i].XYZ + reflection(dudt_in[i].XYZ, symmetry_n.XYZ);
 	eint_in[ii] = eint_in[i];
 	deintdt_in[ii] = deintdt_in[i];
+
+	z_in[ii] = z_in[i];
+
+	y_H2_in[ii] = y_H2_in[i];
+	dy_H2dt_in[ii] = dy_H2dt_in[i];
+
+	y_O2_in[ii] = y_O2_in[i];
+	dy_O2dt_in[ii] = dy_O2dt_in[i];
+
+	y_N2_in[ii] = y_N2_in[i];
+	dy_N2dt_in[ii] = dy_N2dt_in[i];
+
+	y_H2O_in[ii] = y_H2O_in[i];
+	dy_H2Odt_in[ii] = dy_H2Odt_in[i];
+}
+*/
+
+__kernel void
+feed(const __global usize* mirror_src,
+     usize N,
+     __global float* z_in,
+     __global float* y_H2_in,
+     __global float* dy_H2dt_in,
+     __global float* y_O2_in,
+     __global float* dy_O2dt_in,
+     __global float* y_N2_in,
+     __global float* dy_N2dt_in,
+     __global float* y_H2O_in,
+     __global float* dy_H2Odt_in)
+{
+
+	const usize ii = get_global_id(0);
+	if (ii >= N)
+		return;
+	const usize i = mirror_src[ii];
+	if (i >= N)
+		return;
 
 	z_in[ii] = z_in[i];
 
