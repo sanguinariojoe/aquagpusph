@@ -76,17 +76,12 @@ entry(const __global int* imove,
 
 // Initialize the output
 #ifndef LOCAL_MEM_SIZE
-
 #define _RHS_QDOT_ rhs_qdot[i]
-
 #else
 
 #define _RHS_QDOT_ rhs_qdot_l[it]
-
 	__local float rhs_qdot_l[LOCAL_MEM_SIZE];
-
 	_RHS_QDOT_ = 0.f;
-
 #endif
 
 	const usize c_i = icell[i];
@@ -124,7 +119,6 @@ entry(const __global int* imove,
 	END_NEIGHS()
 
 #ifdef LOCAL_MEM_SIZE
-
 	rhs_qdot[i] = _RHS_QDOT_;
 	// rhs_qdot[i] = 0.0f;
 #endif

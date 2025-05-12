@@ -1,23 +1,29 @@
+/*
+ *  This file is part of AQUAgpusph, a free CFD program based on SPH.
+ *  Copyright (C) 2012  Jose Luis Cercos Pita <jl.cercos@upm.es>
+ *
+ *  AQUAgpusph is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  AQUAgpusph is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
-#ifndef _SPECIES_AUXILIARY_H_INCLUDED_
-#define _SPECIES_AUXILIARY_H_INCLUDED_
+#ifndef _SPECIES_H_INCLUDED_
+#define _SPECIES_H_INCLUDED_
 
 #define R_gas 8.31f
 
 __constant float cps[4] = { 14200.0f, 918.0f, 1040.0f, 2050.0f };
 __constant float Mis[4] = { 0.002f, 0.032f, 0.028f, 0.018f };
 __constant float nus[4] = { -1.0f, -0.5f, 0.0f, 1.0f };
-
-/*
-float arrhenius_detonation(float zeta, float T);
-float calc_cp_mix(float y_H2, float y_O2, float y_N2, float y_H2O);
-void calc_gamma_cp_cv(float y_H2, float y_O2, float y_N2, float y_H2O, float*
-gamma, float* cp, float* cv); float molar_mass_mixture(float y_H2, float y_O2,
-float y_N2, float y_H2O); float M_zeta_dot(float z, float T, float y_H2, float
-y_O2, float y_N2, float y_H2O); void w_rhos(float z, float T, float y_H2, float
-y_O2, float y_N2, float y_H2O, float* w_rho_H2, float* w_rho_O2, float*
-w_rho_N2, float* w_rho_H2O, float* deintdt);
-*/
 
 float
 molar_mass_mixture(float y_H2, float y_O2, float y_N2, float y_H2O)
@@ -115,4 +121,4 @@ calc_gamma_cp_cv(float y_H2,
 	return;
 }
 
-#endif // _SPECIES_AUXILIARY_H_INCLUDED_
+#endif // _SPECIES_H_INCLUDED_
