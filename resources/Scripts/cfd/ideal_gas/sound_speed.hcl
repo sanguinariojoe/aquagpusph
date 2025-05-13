@@ -24,7 +24,6 @@
 /// @param p pressure
 /// @param rho density
 /// @return speed of sound
-
 float sound_speed_perfect_gas(float gamma, float p, float rho)
 {
     return sqrt(gamma * p / rho);
