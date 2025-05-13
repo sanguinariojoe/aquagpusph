@@ -1,4 +1,8 @@
 <?xml version="1.0"?>
+<!-- variableTimeStep.xml
+Variable tiem step control for the heat.
+-->
+
 <sphInput>
     <Tools>
         <Tool action="replace" name="cfd variable time step" type="kernel"

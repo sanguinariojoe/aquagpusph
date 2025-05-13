@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
-<!-- ideal_gas.xml
-Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
+<!-- diffusion_RHS.xml
+Introduced the Fick's Law of diffusion in the equations for multiple species.
 -->
 
 <sphInput>

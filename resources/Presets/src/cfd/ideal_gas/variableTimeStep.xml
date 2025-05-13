@@ -1,4 +1,7 @@
 <?xml version="1.0" ?>
+<!-- variableTimeStep.xml
+Variable tiem step control for comrpessible flow.
+-->
 <sphInput>
     <Tools>        
         <Tool action="replace" name="cfd variable time step" type="kernel" path="../../../Scripts/cfd/ideal_gas/TimeStep.cl"/>
