@@ -21,12 +21,10 @@ Authors:
     <!-- In this file we will just include other XML definition files -->
     <Include file="resources/Presets/basic.xml" />
     <Include file="resources/Presets/cfd.xml" />
-
     <Include file="resources/Presets/basic/time_scheme/midpoint.xml" />
     <Include file="resources/Presets/basic/time_scheme/midpoint/autostop.xml" />
     <Include file="resources/Presets/basic/time_scheme/midpoint/autorelax.xml" />
     <Include file="resources/Presets/basic/time_scheme/midpoint/residues_profile.xml" />
-
     <Include file="resources/Presets/basic/domain.xml" />
     <!-- Morris laplacian formulations works fine without free surfaces -->
     <Definitions>

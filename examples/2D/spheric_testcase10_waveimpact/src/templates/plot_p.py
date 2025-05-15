@@ -85,8 +85,9 @@ def update(frame_index):
 fig = plt.figure()
 ax = fig.add_subplot(111)
 
-FNAME = path.join('@EXAMPLE_DEST_DIR@', 'lateral_water_1x.txt')
-T,P,A,DADT,_,_ = np.loadtxt(FNAME,
+script_folder = os.path.dirname(os.path.realpath(__file__))
+fname = path.join(script_folder, 'lateral_water_1x.txt')
+T,P,A,DADT,_,_ = np.loadtxt(fname,
                             delimiter='\t',
                             skiprows=1,
                             unpack=True)
