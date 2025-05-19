@@ -43,14 +43,16 @@
 __kernel void
 add(const __global int* imove,
     __global float* dz_dt,
-    __global float* dy_H2dt,
+    __global vec16* dysdt,
+/*    __global float* dy_H2dt,
     __global float* dy_O2dt,
     __global float* dy_N2dt,
-    __global float* dy_H2Odt,
-    const __global float* rhs_yh2,
+    __global float* dy_H2Odt,*/
+    const __global vec16* rhs_y,
+/*    const __global float* rhs_yh2,
     const __global float* rhs_yo2,
     const __global float* rhs_yn2,
-    const __global float* rhs_yh2o,
+    const __global float* rhs_yh2o,*/
     const unsigned int N,
     const float dt)
 {
@@ -60,11 +62,16 @@ add(const __global int* imove,
 
 	if (imove[i] > 0) {
 
-		dz_dt[i] += rhs_yh2[i];
+		//dz_dt[i] += rhs_yh2[i];
+        dz_dt[i] += rhs_ys[i].COMPONENT0;
+        dysdt[i] += rhs_y[i];
+
+        /*
 		dy_H2dt[i] += rhs_yh2[i];
 		dy_O2dt[i] += rhs_yo2[i];
 		dy_N2dt[i] += rhs_yn2[i];
 		dy_H2Odt[i] += rhs_yh2o[i];
+        */
 	}
 }
 

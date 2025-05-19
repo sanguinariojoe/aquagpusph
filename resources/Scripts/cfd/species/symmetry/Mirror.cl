@@ -32,6 +32,9 @@ __kernel void
 feed(const __global usize* mirror_src,
      usize N,
      __global float* z_in,
+	__global vec16* ys_in,
+	__global vec16* dysdt_in
+	/*,
      __global float* y_H2_in,
      __global float* dy_H2dt_in,
      __global float* y_O2_in,
@@ -39,7 +42,8 @@ feed(const __global usize* mirror_src,
      __global float* y_N2_in,
      __global float* dy_N2dt_in,
      __global float* y_H2O_in,
-     __global float* dy_H2Odt_in)
+     __global float* dy_H2Odt_in*/
+	 )
 {
 
 	const usize ii = get_global_id(0);
@@ -50,7 +54,10 @@ feed(const __global usize* mirror_src,
 		return;
 
 	z_in[ii] = z_in[i];
+	ys_in[ii] = ys_in[i];
+	dysdt_in[ii] = dysdt_in[i];
 
+	/*
 	y_H2_in[ii] = y_H2_in[i];
 	dy_H2dt_in[ii] = dy_H2dt_in[i];
 
@@ -62,4 +69,5 @@ feed(const __global usize* mirror_src,
 
 	y_H2O_in[ii] = y_H2O_in[i];
 	dy_H2Odt_in[ii] = dy_H2Odt_in[i];
+	*/
 }

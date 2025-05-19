@@ -37,41 +37,47 @@
  */
 __kernel void
 predictor(const __global float* z,
-          const __global float* y_H2,
+          const __global vec16* ys,
+          const __global vec16* dysdt,
+          /*const __global float* y_H2,
           const __global float* dy_H2dt,
           const __global float* y_O2,
           const __global float* dy_O2dt,
           const __global float* y_N2,
           const __global float* dy_N2dt,
           const __global float* y_H2O,
-          const __global float* dy_H2Odt,
+          const __global float* dy_H2Odt,*/
           __global float* z_in,
-          __global float* y_H2_in,
+          __global vec16* ys_in,
+          __global vec16* dysdt_in,
+          /*__global float* y_H2_in,
           __global float* dy_H2dt_in,
           __global float* y_O2_in,
           __global float* dy_O2dt_in,
           __global float* y_N2_in,
           __global float* dy_N2dt_in,
           __global float* y_H2O_in,
-          __global float* dy_H2Odt_in,
+          __global float* dy_H2Odt_in,*/
           const usize N)
 {
 	const usize i = get_global_id(0);
 	if (i >= N)
 		return;
 	z_in[i] = z[i];
+    ysin[i]= ys[i];
+    dysdt_in[i] = dysdt[i];
 
-	y_H2_in[i] = y_H2[i];
-	dy_H2dt_in[i] = dy_H2dt[i];
+	/*ys_in[i].H2 = y_H2[i];
+	dysdt_in[i].H2 = dy_H2dt[i];
 
-	y_O2_in[i] = y_O2[i];
-	dy_O2dt_in[i] = dy_O2dt[i];
+	ys_O2_in[i] = y_O2[i];
+	dys_O2dt_in[i] = dy_O2dt[i];
 
-	y_N2_in[i] = y_N2[i];
-	dy_N2dt_in[i] = dy_N2dt[i];
+	ys_N2_in[i] = y_N2[i];
+	dys_N2dt_in[i] = dy_N2dt[i];
 
-	y_H2O_in[i] = y_H2O[i];
-	dy_H2Odt_in[i] = dy_H2Odt[i];
+	ys_H2O_in[i] = y_H2O[i];
+	dys_H2Odt_in[i] = dy_H2Odt[i];*/
 }
 
 /** @brief 1st order Euler time integration scheme corrector stage
@@ -89,6 +95,8 @@ predictor(const __global float* z,
  */
 __kernel void
 corrector(const __global int* imove,
+          __global vec16* ys,
+          const __global vec16* dysdt,/*
           __global float* y_H2,
           const __global float* dy_H2dt,
           __global float* y_O2,
@@ -96,7 +104,7 @@ corrector(const __global int* imove,
           __global float* y_N2,
           const __global float* dy_N2dt,
           __global float* y_H2O,
-          const __global float* dy_H2Odt,
+          const __global float* dy_H2Odt,*/
           __global float* z,
           const __global float* dz_dt,
           const unsigned int N,
@@ -108,10 +116,14 @@ corrector(const __global int* imove,
 
 	if (imove[i] > 0) {
 		z[i] += dt * dz_dt[i];
+        ys[i] += dt * dysdt[i];
+
+        /*
 		y_H2[i] += dt * dy_H2dt[i];
 		y_O2[i] += dt * dy_O2dt[i];
 		y_N2[i] += dt * dy_N2dt[i];
 		y_H2O[i] += dt * dy_H2Odt[i];
+        */
 	}
 }
 

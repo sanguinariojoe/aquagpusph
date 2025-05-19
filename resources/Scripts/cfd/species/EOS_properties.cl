@@ -34,7 +34,8 @@
 #endif
 
 #include "resources/Scripts/types/types.h"
-#include "resources/Scripts/cfd/species/species_auxiliary.hcl"
+//#include "resources/Scripts/cfd/species/species_auxiliary.hcl"
+#include SPECIES_HEADER
 
 /** @brief Ideal gas Equation Of State (EOS) computation
  *
@@ -52,8 +53,8 @@
  * @param p Pressure \f$ p_{n+1/2} \f$.
  * @param gamma Heat capacity ratio \f$ \gamma \f$.
  * @param N Number of particles.
- * @param x_xx molar fraction
- * @param y_xx mas fraction
+ * @param xs molar fraction
+ * @param ys mass fraction
  * @param p pressure
  * @param T temperature
  * @param gamma polytropic coefficient
@@ -70,14 +71,16 @@ entry(const __global unsigned int* iset,
       const __global int* imove,
       const __global float* rho,
       const __global float* eint,
-      const __global float* y_H2,
+	  const __global vec16* ys,
+/*      const __global float* y_H2,
       const __global float* y_O2,
       const __global float* y_N2,
-      const __global float* y_H2O,
-      __global float* x_H2,
+      const __global float* y_H2O,*/
+	  const __global vec16* xs,
+/*      __global float* x_H2,
       __global float* x_O2,
       __global float* x_N2,
-      __global float* x_H2O,
+      __global float* x_H2O,*/
       __global float* p,
       __global float* T,
       __global float* gamma,
@@ -98,15 +101,19 @@ entry(const __global unsigned int* iset,
 	//__global float cp[]={0.0f,};
 
 	calc_gamma_cp_cv(
-	    y_H2[i], y_O2[i], y_N2[i], y_H2O[i], gamma + i, cv + i, cp + i);
-	X_from_Y(y_H2[i],
+	    //y_H2[i], y_O2[i], y_N2[i], y_H2O[i], 
+		ys[i],
+		gamma + i, cv + i, cp + i);
+	X_from_Y(/*y_H2[i],
 	         y_O2[i],
 	         y_N2[i],
-	         y_H2O[i],
-	         x_H2 + i,
+	         y_H2O[i],*/
+			 ys[i],
+	         /*x_H2 + i,
 	         x_O2 + i,
 	         x_N2 + i,
-	         x_H2O + i);
+	         x_H2O + i*/
+			 xs+i);
 
 	p[i] = (gamma[i] - 1.0f) * rho[i] * eint[i];
 	T[i] = eint[i] / cv[i];

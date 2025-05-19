@@ -42,15 +42,19 @@
  */
 __kernel void
 entry(__global float* z,
-      __global float* y_H2,
+      const __global float* z_in,
+      __global vec16* ys,
+      const __global vec16* dysdt,
+      const __global vec16* ys_in,
+      __global vec16* dysdt_in,
+      /*__global float* y_H2,
       const __global float* dy_H2dt,
       __global float* y_O2,
       const __global float* dy_O2dt,
       __global float* y_N2,
       const __global float* dy_N2dt,
       __global float* y_H2O,
-      const __global float* dy_H2Odt,
-      const __global float* z_in,
+      const __global float* dy_H2Odt,      
       const __global float* y_H2_in,
       __global float* dy_H2dt_in,
       const __global float* y_O2_in,
@@ -58,7 +62,7 @@ entry(__global float* z,
       const __global float* y_N2_in,
       __global float* dy_N2dt_in,
       const __global float* y_H2O_in,
-      __global float* dy_H2Odt_in,
+      __global float* dy_H2Odt_in,*/
       const __global usize* id_sorted,
       usize N)
 {
@@ -70,6 +74,10 @@ entry(__global float* z,
 
 	z[i_out] = z_in[i];
 
+      ys[i_out] = ys_in[i];
+      dysdt_in[i_out] = dysdt[i];
+
+      /*
 	y_H2[i_out] = y_H2_in[i];
 	dy_H2dt_in[i_out] = dy_H2dt[i];
 
@@ -81,6 +89,7 @@ entry(__global float* z,
 
 	y_H2O[i_out] = y_H2O_in[i];
 	dy_H2Odt_in[i_out] = dy_H2Odt[i];
+      */
 }
 
 /*

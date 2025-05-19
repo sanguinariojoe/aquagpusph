@@ -38,14 +38,16 @@
  * @param N Number of particles.
  */
 __kernel void
-entry(const __global float* D_H2_in,
+entry(const __global vec16* Ds_in,
+	/*const __global float* D_H2_in,
       const __global float* D_O2_in,
       const __global float* D_N2_in,
-      const __global float* D_H2O_in,
-      __global float* D_H2,
+      const __global float* D_H2O_in,*/
+	  __global vec16* Ds,
+/*      __global float* D_H2,
       __global float* D_O2,
       __global float* D_N2,
-      __global float* D_H2O,
+      __global float* D_H2O,*/
       const __global usize* id_sorted,
       usize N)
 {
@@ -55,10 +57,12 @@ entry(const __global float* D_H2_in,
 
 	const usize i_out = id_sorted[i];
 
-	D_H2[i_out] = D_H2_in[i];
+	Ds[i_out] = Ds_in[i];
+
+	/*D_H2[i_out] = D_H2_in[i];
 	D_O2[i_out] = D_O2_in[i];
 	D_N2[i_out] = D_N2_in[i];
-	D_H2O[i_out] = D_H2O_in[i];
+	D_H2O[i_out] = D_H2O_in[i];*/
 
 	/*    rhs_yh2[i_out] = rhs_yh2_in[i];
 	    rhs_yo2[i_out] = rhs_yo2_in[i];

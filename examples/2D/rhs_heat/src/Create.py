@@ -31,14 +31,13 @@
 #########################################################################
 
 
-
+import aqua_example_utils as utils
+import math
+import numpy as np
 import os
 import sys
 script_folder = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(script_folder, "../../"))
-import numpy as np
-import math
-import aqua_example_utils as utils
 
 # zone 2 h2+air
 nu = 1.0e-5
@@ -135,7 +134,11 @@ def writeParticle(output, p, n=(0.0, 0.0), u=(0.0, 0.0),
                   z=0, y_H2=0, dy_H2dt=0, y_O2=0, dy_O2dt=0, y_N2=0, dy_N2dt=0, y_H2O=0, dy_H2Odt=0,
                   imove=1):
     m = rho * dr**2
-    string = ("{} {}, " * 4 + "{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n").format(
+    string = ("{} {}, " * 4 + "{}, {}, {}, {}, {}, " 
+              +
+              "{} " * 15 + "{}, "+ 
+              +
+              "{}, {}, {}, {}\n").format(
         p[0], p[1],
         n[0], n[1],
         u[0], u[1],
@@ -145,10 +148,14 @@ def writeParticle(output, p, n=(0.0, 0.0), u=(0.0, 0.0),
         e,
         dedt,  # eint, deintdt,
         z,  # z,
-        y_H2, dy_H2dt,  # y_H2, dy_H2dt,
-        y_O2, dy_O2dt,  # y_O2, dy_O2dt,
-        y_N2, dy_N2dt,  # y_N2, dy_N2dt,
-        y_H2O, dy_H2Odt,  # y_H2O, dy_H2Odt,
+        y_H2, y_O2, y_N2, y_H2O,
+        0.0, 0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0, 0.0,
+        dy_H2dt, dy_O2dt, dy_N2dt, dy_H2Odt,
+        0.0, 0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0, 0.0,       
         m,  # m,
         nu,
         xi,  # nu, xi,
@@ -234,7 +241,7 @@ data = {'DR': str(dr), 'HFAC': str(hfac), 'H': str(h), 'COURANT': str(courant),
         'DOMAIN_MIN': domain_min, 'DOMAIN_MAX': domain_max,
         'N': str(N), 'CS': str(cs), 'GAMMA': str(gamma),
         'P1': str(p1), 'P2': str(p2), 'RHO1': str(rho1), 'RHO2': str(rho2),
-        'E1': str(e1), 'E2': str(e2), 'DT':str(xi)}
+        'E1': str(e1), 'E2': str(e2), 'DT': str(xi)}
 utils.configure(data, os.path.join(script_folder, "templates"))
 
 # for fname in XML:
