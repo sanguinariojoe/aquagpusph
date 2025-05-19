@@ -34,6 +34,8 @@ Authors:
     <Include file="resources/Presets/basic/timing.report.xml" />
     <Include file="resources/Presets/basic/performance.report.xml" />
     <Include file="resources/Presets/cfd/energy_kin.report.xml" />
+    <Include file="resources/Presets/cfd/energy.xml" />
+    <Include file="resources/Presets/cfd/energy.report.xml" />
     <Include file="Settings.xml" />
     <Include file="Time.xml" />
     <Include file="BCs.xml" />
