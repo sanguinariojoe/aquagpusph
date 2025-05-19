@@ -82,7 +82,7 @@ __kernel void power(__global float* energy_dekdt,
 
 /** @brief Tool to compute the fluid energy components.
  *
- * Actually, in this kernel the energy componets are computed per particle.
+ * Actually, in this kernel the energy components are computed per particle.
  *
  * @param energy_ek Kinetic energy:
  * \f$ E^{kin}_a =
@@ -105,6 +105,7 @@ __kernel void power(__global float* energy_dekdt,
  * @param N Number of particles.
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  * @param cs Speed of sound \f$ c_s \f$.
+ * @param p0 Background pressure \f$ p_0 \f$.
  */
 __kernel void energy(__global float* energy_ek,
                      __global float* energy_ep,
@@ -118,7 +119,8 @@ __kernel void energy(__global float* energy_ek,
                      __constant float* refd,
                      usize N,
                      vec g,
-                     float cs)
+                     float cs ,
+                     float p0)
 {
     // find position in global arrays
     const usize i = get_global_id(0);
@@ -134,5 +136,10 @@ __kernel void energy(__global float* energy_ek,
     energy_ek[i] = 0.5f * m[i] * dot(u[i], u[i]);
     energy_ep[i] = -m[i] * dot(g, r[i]);
     const float rho0 = refd[iset[i]];
-    energy_ec[i] = m[i] * cs * cs * (rho0 / rho[i] + log(rho[i] / rho0) - 1.f);
+//    energy_ec[i] = m[i] * cs * cs * (rho0 / rho[i] + log(rho[i] / rho0) - 1.f);
+    energy_ec[i] = m[i] *
+		(
+		  cs * cs * log(rho[i] / rho0) +
+		( cs * cs * rho0 - p0 ) * ( 1.f/rho[i] - 1.f/rho0)
+		);
 }
