@@ -31,13 +31,14 @@
 #########################################################################
 
 
-import aqua_example_utils as utils
-import math
-import numpy as np
+
 import os
 import sys
 script_folder = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(script_folder, "../../"))
+import aqua_example_utils as utils
+import math
+import numpy as np
 
 # zone 2 h2+air
 nu = 1.0e-5
@@ -136,7 +137,7 @@ def writeParticle(output, p, n=(0.0, 0.0), u=(0.0, 0.0),
     m = rho * dr**2
     string = ("{} {}, " * 4 + "{}, {}, {}, {}, {}, " 
               +
-              "{} " * 15 + "{}, "+ 
+              "{} " * 15 + "{}, " 
               +
               "{}, {}, {}, {}\n").format(
         p[0], p[1],
