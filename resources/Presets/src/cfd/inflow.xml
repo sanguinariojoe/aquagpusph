@@ -51,5 +51,5 @@ first component. Also the inflow_rv variable will be useless
         <Tool name="cfd inflow" action="insert" before="Rates" type="kernel" entry_point="rates" path="../../Scripts/cfd/Boundary/Inflow/Inflow.cl"/>
     </Tools>
 
-    <Include file="../../basic/setBuffer.xml" when="end"/>
+    <Include file="../basic/setBuffer.xml" when="end"/>
 </sphInput>

@@ -20,19 +20,21 @@ Authors:
 <sphInput>
     <!-- In this file we will just include other XML definition files -->
     <Include file="resources/Presets/basic.xml" />
-    <Include file="resources/Presets/basic/time_scheme/improved_euler.xml" />
     <Include file="resources/Presets/basic/domain.xml" />
     <Include file="resources/Presets/cfd.xml" />
+    <Include file="resources/Presets/basic/time_scheme/midpoint.xml" />
+    <Include file="resources/Presets/basic/time_scheme/midpoint/autostop.xml" />
+    <Include file="resources/Presets/basic/time_scheme/midpoint/residues_profile.xml" />
     <Include file="resources/Presets/cfd/deltaSPH.xml" />
     <Include file="resources/Presets/cfd/deltaSPH-full.xml" />
-    <Include file="resources/Presets/cfd/BI.xml" />
-    <Include file="resources/Presets/cfd/BINoSlip.xml" />
-    <Include file="resources/Presets/cfd/elasticBounce.xml" />
+    <Include file="resources/Presets/cfd/BIe.xml" />
+    <Include file="resources/Presets/cfd/BIe/Force.xml" />
+    <Include file="resources/Presets/cfd/BIe/Force_iset.xml" />
+    <Include file="resources/Presets/cfd/BIe/Force_iset.report.xml" />
+    <Include file="resources/Presets/cfd/BIe/NoSlip.xml" />
     <Definitions>
         <!-- Morris laplacian formulations works fine without free surfaces -->
         <Define name="__LAP_FORMULATION__" value="__LAP_MORRIS__" evaluate="false"/>
-        <!-- Elastic bounce is ignoring multiresolution by default -->
-        <Define name="__MIN_BOUND_DIST__" value="0.05f" evaluate="false"/>
     </Definitions>
     <Include file="resources/Presets/cfd/inlet.xml" />
     <Include file="resources/Presets/cfd/outlet.xml" />

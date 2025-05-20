@@ -79,6 +79,6 @@ def main():
     # Set the modified variables
     aqua.set("U", float(U))
     aqua.set("dUdt", float(dUdt))
-    aqua.set("inlet_U", float(U))
-    aqua.set("outlet_U", float(U))
+    aqua.set("inflow_U", float(U))
+    aqua.set("outflow_U", float(U))
     return True

@@ -1,55 +1,36 @@
 <?xml version="1.0" ?>
 
 <!-- inlet.xml
-Inlet (i.e. Inflow) boundary condition. With this template a square plane inlet
-is defined.
+Inlet boundary condition. This is the same than inflow, but non-reflective
+capabilities are added upon
 
-To create such inlet boundary condition you must include this preset, setting
-later the following variables:
-inlet_r = Lower corner of the inlet square
-inlet_ru = Square U vector
-inlet_rv = Square V vector
-inlet_N = Number of particles to be generated in each direction
-inlet_n = Velocity direction of the particles
-inlet_U = Constant inlet velocity magnitude
-inlet_rFS = The point where the pressure is the reference one (0 Pa).
-
-Also a buffer of particles should be created in the upper corner of the
-computational device. Remember that, when the buffer is empty, the inlet will
-start hijacking fluid particles, so ensure that the buffer is large enough.
-
-In 2-D simulations, inlet_N is still a 2D vector, just appropiately set the
-first component. Also the inlet_rv variable will be useless
+See Lastiwka, Martin, Mihai Basa, and Nathan J. Quinlan, Permeable and
+non‐reflecting boundary conditions in SPH. International journal for numerical
+methods in fluids, 2009, 61.7: 709-724.
 -->
 
 <sphInput>
+    <Include file="inflow.xml"/>
+
     <Variables>
-        <!-- position and size of the inlet -->
-        <Variable name="inlet_r" type="vec" value="0.0, 0.0, 0.0, 0.0" />
-        <Variable name="inlet_ru" type="vec" value="0.0, 1.0, 0.0, 0.0" />
-        <Variable name="inlet_rv" type="vec" value="0.0, 0.0, 1.0, 0.0" />
-        <!-- Particles generation -->
-        <Variable name="inlet_N" type="svec2" value="1, 1" />
-        <Variable name="inlet_n" type="vec" value="1.0, 0.0, 0.0, 0.0" />
-        <Variable name="inlet_U" type="float" value="0.0" />
-        <Variable name="inlet_rFS" type="vec" value="0.0, 0.0, 0.0, 0.0" />
-        <!-- Internal variables to know when the inlet should be feed -->
-        <Variable name="inlet_R" type="float" value="0.0" />
-        <Variable name="inlet_starving" type="int" value="0" />
+        <Variable name="io_r" type="vec" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="io_n" type="vec" value="1.0, 0.0, 0.0, 0.0" />
+        <Variable name="io_U" type="float" value="0.0" />
+        <Variable name="io_rFS" type="vec" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="j1" type="float*" length="N" symbol="J_1" />
+        <Variable name="j2" type="float*" length="N" symbol="J_2" />
+        <Variable name="j3" type="float*" length="N" symbol="J_3" />
     </Variables>
 
     <Tools>
-        <!-- Let's start feeding the inlet (if required). -->
-        <Tool name="Inlet" action="insert" after="Corrector" type="dummy"/>
-        <Tool name="Set buffer" action="insert" before="Inlet" type="dummy" />
-        <Tool name="cfd inlet starvation" action="insert" before="Inlet" type="set_scalar" in="inlet_starving" value="inlet_R >= dr ? 1 : 0"/>
-        <Tool name="cfd inlet R correction" action="insert" before="Inlet" type="set_scalar" in="inlet_R" value="inlet_R >= dr ? inlet_R - dr : inlet_R"/>
-        <Tool name="cfd increment inlet_R" action="insert" before="Inlet" type="set_scalar" in="inlet_R" value="inlet_R + inlet_U * dt"/>
-        <Tool name="cfd check buffer particles" action="insert" before="Inlet" type="assert" condition="nbuffer >= inlet_starving * inlet_N_x * inlet_N_y"/>
-        <Tool name="cfd inlet feed" action="insert" before="Inlet" type="kernel" entry_point="feed" path="../../Scripts/cfd/Boundary/Inlet/Inlet.cl"/>
-        <!-- Now ensure that particles in the inlet are not affected by the interactions -->
-        <Tool name="cfd inlet" action="insert" before="Rates" type="kernel" entry_point="rates" path="../../Scripts/cfd/Boundary/Inlet/Inlet.cl"/>
+        <Tool name="cfd inlet io_r" action="insert" after="cfd Shepard" type="set_scalar" in="io_r" value="inflow_r_x,inflow_r_y,inflow_r_z,inflow_r_w"/>
+        <Tool name="cfd inlet io_n" action="insert" after="cfd Shepard" type="set_scalar" in="io_n" value="inflow_n_x,inflow_n_y,inflow_n_z,inflow_n_w"/>
+        <Tool name="cfd inlet io_U" action="insert" after="cfd Shepard" type="set_scalar" in="io_U" value="inflow_U"/>
+        <Tool name="cfd inlet io_rFS" action="insert" after="cfd Shepard" type="set_scalar" in="io_rFS" value="inflow_rFS_x,inflow_rFS_y,inflow_rFS_z,inflow_rFS_w"/>
+        <Tool name="cfd inlet characteristics" action="insert" after="cfd inlet io_r,cfd inlet io_n,cfd inlet io_U,cfd inlet io_rFS" type="kernel" entry_point="characteristics" path="../../Scripts/cfd/Boundary/Inlet/Inlet.cl"/>
+        <Tool name="cfd inlet extrapolate" action="insert" after="cfd inlet characteristics" type="kernel" entry_point="extrapolate" path="../../Scripts/cfd/Boundary/Inlet/Inlet.cl"/>
+        <Tool name="cfd inlet J1=0" action="insert" after="cfd inlet extrapolate" type="set" in="j1" value="0.f"/>
+        <Tool name="cfd inlet J2=0" action="insert" after="cfd inlet extrapolate" type="set" in="j2" value="0.f"/>
+        <Tool name="cfd inlet set" action="insert" after="cfd inlet J1=0,cfd inlet J2=0" type="kernel" entry_point="values" path="../../Scripts/cfd/Boundary/Inlet/Inlet.cl"/>
     </Tools>
-
-    <Include file="../basic/setBuffer.xml" when="end"/>
 </sphInput>

@@ -22,17 +22,17 @@
 
 /** @file
  * @brief Vanish the velocity and desnity rates of variation of the velocity
- * and density for the dummy particles of the inlet.
+ * and density for the dummy particles of the inflow.
  */
 
 #include "resources/Scripts/types/types.h"
 
-/** @brief Particles generation at the inlet (i.e. inflow) boundary condition.
+/** @brief Particles generation at the inflow boundary condition.
  *
- * Particles are generated just when the inlet is starving, i.e. the previously
- * generated layer of particles have moved more than dr. To do that inlet is
- * extracting the particles from the "buffer", which are the last particles in
- * the sorted list.
+ * Particles are generated just when the inflow is starving, i.e. the
+ * previously generated layer of particles have moved more than dr. To do that
+ * /outlet is extracting the particles from the "buffer", which are the last
+ * particles in the sorted list.
  *
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
@@ -54,15 +54,15 @@
  * @param p0 Background pressure \f$ p_0 \f$.
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  * @param dr Distance between particles \f$ \Delta r \f$.
- * @param inlet_r Lower corner of the inlet square.
- * @param inlet_ru Square U vector.
- * @param inlet_rv Square V vector.
- * @param inlet_N Number of particles to be generated in each direction.
- * @param inlet_n = Velocity direction of the generated particles.
- * @param inlet_U = Constant inlet velocity magnitude
- * @param inlet_rFS The point where the pressure is the reference one (0 Pa).
- * @param inlet_R Accumulated displacement (to be added to the generation point)
- * @param inlet_starving Is the inlet starving, so we need to feed it?
+ * @param inflow_r Lower corner of the inflow square.
+ * @param inflow_ru Square U vector.
+ * @param inflow_rv Square V vector.
+ * @param inflow_N Number of particles to be generated in each direction.
+ * @param inflow_n = Velocity direction of the generated particles.
+ * @param inflow_U = Constant inflow velocity magnitude
+ * @param inflow_rFS The point where the pressure is the reference one (0 Pa).
+ * @param inflow_R Accumulated displacement (to be added to the generation point)
+ * @param inflow_starving Is the inflow starving, so we need to feed it?
  */
 __kernel void feed(__global int* imove,
                    __global unsigned int* iset,
@@ -81,21 +81,21 @@ __kernel void feed(__global int* imove,
                    float p0,
                    vec g,
                    float dr,
-                   vec inlet_r,
-                   vec inlet_ru,
-                   vec inlet_rv,
-                   svec2 inlet_N,
-                   vec inlet_n,
-                   float inlet_U,
-                   vec inlet_rFS,
-                   float inlet_R,
-                   int inlet_starving)
+                   vec inflow_r,
+                   vec inflow_ru,
+                   vec inflow_rv,
+                   svec2 inflow_N,
+                   vec inflow_n,
+                   float inflow_U,
+                   vec inflow_rFS,
+                   float inflow_R,
+                   int inflow_starving)
 {
     // find position in global arrays
     const usize i = get_global_id(0);
-    if(inlet_starving == 0)
+    if(inflow_starving == 0)
         return;
-    if((i >= nbuffer) || (i >= (inlet_N.x * inlet_N.y))){
+    if((i >= nbuffer) || (i >= (inflow_N.x * inflow_N.y))){
         // Either the thread has not a buffer particle to consume or such buffer
         // particle is not required
         return;
@@ -104,23 +104,23 @@ __kernel void feed(__global int* imove,
 
     // Compute the generation point
     #ifndef HAVE_3D
-        const float u_fac = ((float)i + 0.5f) / inlet_N.x;
+        const float u_fac = ((float)i + 0.5f) / inflow_N.x;
         const float v_fac = 0.f;
     #else
-        const usize u_id = i % inlet_N.x;
-        const usize v_id = i / inlet_N.x;
-        const float u_fac = ((float)u_id + 0.5f) / inlet_N.x;
-        const float v_fac = ((float)v_id + 0.5f) / inlet_N.y;
+        const usize u_id = i % inflow_N.x;
+        const usize v_id = i / inflow_N.x;
+        const float u_fac = ((float)u_id + 0.5f) / inflow_N.x;
+        const float v_fac = ((float)v_id + 0.5f) / inflow_N.y;
     #endif
-    r[ii] = inlet_r + u_fac * inlet_ru + v_fac * inlet_rv
-            + (inlet_R - SUPPORT * H - 0.5f * dr) * inlet_n;
+    r[ii] = inflow_r + u_fac * inflow_ru + v_fac * inflow_rv
+            + (inflow_R - SUPPORT * H - 0.5f * dr) * inflow_n;
 
     // Set the particle data
     imove[ii] = 1;
     dudt[ii] = VEC_ZERO;
     drhodt[ii] = 0.f;
-    u[ii] = inlet_U * inlet_n;
-    p[ii] = refd[iset[ii]] * dot(g, r[ii] - inlet_rFS);
+    u[ii] = inflow_U * inflow_n;
+    p[ii] = refd[iset[ii]] * dot(g, r[ii] - inflow_rFS);
     #ifdef HAVE_3D
         m[ii] = refd[iset[ii]] * dr * dr * dr;
     #else
@@ -132,7 +132,7 @@ __kernel void feed(__global int* imove,
 }
 
 /** @brief Vanish the velocity and desnity rates of variation of the velocity
- * and density for the dummy particles of the inlet.
+ * and density for the dummy particles of the inflow.
  *
  * @param imove Moving flags.
  *   - imove > 0 for regular fluid particles.
@@ -143,9 +143,9 @@ __kernel void feed(__global int* imove,
  * @param dudt Velocity rate of change \f$ \frac{d \mathbf{u}}{d t} \f$.
  * @param drhodt Density rate of change \f$ \frac{d \rho}{d t} \f$.
  * @param N Number of particles.
- * @param inlet_r Lower corner of the inlet square.
- * @param inlet_U Velocity magnitude of the generated particles.
- * @param inlet_n Velocity direction of the generated particles.
+ * @param inflow_r Lower corner of the inflow square.
+ * @param inflow_U Velocity magnitude of the generated particles.
+ * @param inflow_n Velocity direction of the generated particles.
  */
 __kernel void rates(__global int* imove,
                     __global vec* r,
@@ -153,9 +153,9 @@ __kernel void rates(__global int* imove,
                     __global vec* dudt,
                     __global float* drhodt,
                     usize N,
-                    vec inlet_r,
-                    float inlet_U,
-                    vec inlet_n)
+                    vec inflow_r,
+                    float inflow_U,
+                    vec inflow_n)
 {
     // find position in global arrays
     const usize i = get_global_id(0);
@@ -164,11 +164,11 @@ __kernel void rates(__global int* imove,
     if(imove[i] != 1)
         return;
 
-    // Discard the particles already passed through the inlet
-    if(dot(r[i] - inlet_r, inlet_n) > 0.f)
+    // Discard the particles already passed through the inflow
+    if(dot(r[i] - inflow_r, inflow_n) > 0.f)
         return;
 
-    u[i] = inlet_U * inlet_n;
+    u[i] = inflow_U * inflow_n;
     dudt[i] = VEC_ZERO;
     drhodt[i] = 0.f;
 }

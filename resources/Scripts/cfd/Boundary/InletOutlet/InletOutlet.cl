@@ -1,0 +1,291 @@
+/*
+ *  This file is part of AQUAgpusph, a free CFD program based on SPH.
+ *  Copyright (C) 2012  Jose Luis Cercos Pita <jl.cercos@upm.es>
+ *
+ *  AQUAgpusph is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  AQUAgpusph is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** @addtogroup cfd
+ * @{
+ */
+
+/** @file
+ * @brief Compute the fields on the inlet/outlet so they can transmit the waves
+ * out the domain without reflecting them.
+ *
+ * This file is actually meant to be included by either Inlet.cl or Outlet.cl,
+ * which are defining INWARD_NORMAL_SIGN before
+ */
+
+#if defined(LOCAL_MEM_SIZE) && defined(NO_LOCAL_MEM)
+    #error NO_LOCAL_MEM has been set.
+#endif
+
+#ifndef INWARD_NORMAL_SIGN
+    #define INWARD_NORMAL_SIGN 1.f
+#endif
+
+#ifndef J_SHEPARD_LIMIT
+    #define J_SHEPARD_LIMIT FLT_EPSILON
+#endif
+
+#include "resources/Scripts/types/types.h"
+#include "resources/Scripts/KernelFunctions/Kernel.h"
+
+/** @brief Compute the characteristics of the outwards waves.
+ * @param imove Moving flags.
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param iset Set of particles index.
+ * @param r Position \f$ \mathbf{r} \f$.
+ * @param u Velocity \f$ \mathbf{u} \f$.
+ * @param rho Density \f$ \rho \f$.
+ * @param p Pressure \f$ p \f$.
+ * @param j1 First characteristic \f$ J_1 \f$.
+ * @param j2 Second characteristic \f$ J_2 \f$.
+ * @param j3 Third characteristic \f$ J_3 \f$.
+ * @param refd Density of reference of the fluid \f$ \rho_0 \f$.
+ * @param N Number of particles.
+ * @param dt Time step \f$ \Delta t \f$.
+ * @param cs Speed of sound \f$ c_s \f$.
+ * @param p0 Background pressure \f$ p_0 \f$.
+ * @param g Gravity acceleration \f$ \mathbf{g} \f$.
+ * @param io_r Lower corner of the inlet/outlet square.
+ * @param io_n = Velocity direction.
+ * @param io_U = Constant velocity magnitude.
+ * @param io_rFS The point where the pressure is the reference one
+ * (\f$ p_0 \f$).
+ */
+__kernel void characteristics(const __global int* imove,
+                              const __global unsigned int* iset,
+                              const __global vec* r,
+                              const __global vec* u,
+                              const __global float* rho,
+                              const __global float* p,
+                              __global float* j1,
+                              __global float* j2,
+                              __global float* j3,
+                              const __constant float* refd,
+                              usize N,
+                              usize nbuffer,
+                              float dt,
+                              float cs,
+                              float p0,
+                              vec g,
+                              vec io_r,
+                              vec io_n,
+                              float io_U,
+                              vec io_rFS)
+{
+    const usize i = get_global_id(0);
+    if(i >= N)
+        return;
+    if(imove[i] != 1)
+        return;
+
+    // Discard the particles at the inlet/outlet
+    if(dot(r[i] - io_r, INWARD_NORMAL_SIGN * io_n) < 0.f)
+        return;
+
+    const float cs2 = cs * cs;
+    const float un = dot(u[i], io_n);
+
+    // Get the reference values
+    const float uref = io_U;
+    const float pref = refd[iset[i]] * dot(g, r[i] - io_rFS) + p0;
+    const float rhoref = refd[iset[i]] + (p[i] - p0) / cs2;
+
+    j1[i] = -cs2 * (rho[i] - rhoref) + p[i] - pref;
+    j2[i] = rho[i] * cs * (un - uref) + p[i] - pref;
+    j3[i] = -rho[i] * cs * (un - uref) + p[i] - pref;
+}
+
+/** @brief Extrapolate the characteristics to the particles at the
+ * inlet/outlet.
+ * @param imove Moving flags.
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param r Position \f$ \mathbf{r} \f$.
+ * @param rho Density \f$ \rho \f$.
+ * @param m Mass \f$ m \f$.
+ * @param j1 First characteristic \f$ J_1 \f$.
+ * @param j2 Second characteristic \f$ J_2 \f$.
+ * @param j3 Third characteristic \f$ J_3 \f$.
+ * @param shepard Shepard renormalization factor \f$ \gamma \f$.
+ * @param io_r Lower corner of the inlet/outlet square.
+ * @param io_n = Velocity direction.
+ * @param icell Cell where each particle is located.
+ * @param ihoc Head of chain for each cell (first particle found).
+ * @param N Number of particles.
+ * @param n_cells Number of cells in each direction
+ */
+__kernel void extrapolate(const __global int* imove,
+                          const __global vec* r,
+                          const __global float* rho,
+                          const __global float* m,
+                          __global float* j1,
+                          __global float* j2,
+                          __global float* j3,
+                          __global float* shepard,
+                          const __constant float* refd,
+                          usize N,
+                          vec io_r,
+                          vec io_n,
+                          LINKLIST_LOCAL_PARAMS)
+{
+    const usize i = get_global_id(0);
+    const usize it = get_local_id(0);
+    if(i >= N)
+        return;
+    if(imove[i] != 1)
+        return;
+
+    const vec_xyz r_i = r[i].XYZ;
+
+    // Discard the particles that already passed through the inlet/outlet
+    if(dot(r_i - io_r.XYZ, INWARD_NORMAL_SIGN * io_n.XYZ) > 0.f)
+        return;
+
+    // Initialize the output
+    #ifndef LOCAL_MEM_SIZE
+        #define _J1_ j1[i]
+        #define _J2_ j2[i]
+        #define _J3_ j3[i]
+        #define _S_ shepard[i]
+    #else
+        #define _J1_ j1_l[it]
+        #define _J2_ j2_l[it]
+        #define _J3_ j3_l[it]
+        #define _S_ shepard_l[it]
+        __local float j1_l[LOCAL_MEM_SIZE];
+        __local float j2_l[LOCAL_MEM_SIZE];
+        __local float j3_l[LOCAL_MEM_SIZE];
+        __local float shepard_l[LOCAL_MEM_SIZE];
+    #endif
+    _J1_ = 0.f;
+    _J2_ = 0.f;
+    _J3_ = 0.f;
+    _S_ = 0.f;
+
+    const usize c_i = icell[i];
+    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
+        if(imove[j] != 1){
+            j++;
+            continue;
+        }
+        if(dot(r[j] - io_r, INWARD_NORMAL_SIGN * io_n) <= 0.f) {
+            // Do not use other inlet/outlet particles to interpolate
+            j++;
+            continue;            
+        }
+            
+        const vec_xyz r_ij = r[j].XYZ - r_i;
+        const float q = length(r_ij) / H;
+        if(q >= SUPPORT)
+        {
+            j++;
+            continue;
+        }
+        {
+            const float w_ij = kernelW(q) * CONW * m[j] / rho[j];
+
+            _S_ += w_ij;
+            _J1_ += j1[j] * w_ij;
+            _J2_ += j2[j] * w_ij;
+            _J3_ += j3[j] * w_ij;
+        }
+    }END_NEIGHS()
+
+    const float div = _S_ > J_SHEPARD_LIMIT ? 1.f / _S_ : 1.f;
+    j1[i] = _J1_ * div;
+    j2[i] = _J2_ * div;
+    j3[i] = _J3_ * div;
+    #ifdef LOCAL_MEM_SIZE
+        shepard[i] = _S_;
+    #endif
+
+}
+
+/** @brief Set the field values at the inlet
+ * @param imove Moving flags.
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param iset Set of particles index.
+ * @param r Position \f$ \mathbf{r} \f$.
+ * @param u Velocity \f$ \mathbf{u} \f$.
+ * @param rho Density \f$ \rho \f$.
+ * @param p Pressure \f$ p \f$.
+ * @param j1 First characteristic \f$ J_1 \f$.
+ * @param j2 Second characteristic \f$ J_2 \f$.
+ * @param j3 Third characteristic \f$ J_3 \f$.
+ * @param refd Density of reference of the fluid \f$ \rho_0 \f$.
+ * @param N Number of particles.
+ * @param dt Time step \f$ \Delta t \f$.
+ * @param cs Speed of sound \f$ c_s \f$.
+ * @param p0 Background pressure \f$ p_0 \f$.
+ * @param g Gravity acceleration \f$ \mathbf{g} \f$.
+ * @param io_r Lower corner of the inlet/outlet square.
+ * @param io_n = Velocity direction.
+ * @param io_U = Constant velocity magnitude.
+ * @param io_rFS The point where the pressure is the reference one
+ * (\f$ p_0 \f$).
+ */
+__kernel void values(const __global int* imove,
+                     const __global unsigned int* iset,
+                     const __global vec* r,
+                     __global vec* u,
+                     __global float* rho,
+                     __global float* p,
+                     const __global float* j1,
+                     const __global float* j2,
+                     const __global float* j3,
+                     const __constant float* refd,
+                     usize N,
+                     float dt,
+                     float cs,
+                     float p0,
+                     vec g,
+                     vec io_r,
+                     vec io_n,
+                     float io_U,
+                     vec io_rFS)
+{
+    const usize i = get_global_id(0);
+    if(i >= N)
+        return;
+    if(imove[i] != 1)
+        return;
+
+    // Discard the particles that already passed through the inlet/outlet
+    if(dot(r[i] - io_r, INWARD_NORMAL_SIGN * io_n) > 0.f)
+        return;
+
+    const float cs2 = cs * cs;
+
+    // Get the reference values
+    const float uref = io_U;
+    const float pref = refd[iset[i]] * dot(g, r[i] - io_rFS) + p0;
+    const float rhoref = refd[iset[i]] + (p[i] - p0) / cs2;
+
+    rho[i] = rhoref + 1.f / cs2 * (-j1[i] + 0.5f * j2[i] + 0.5f * j3[i]);
+    u[i] = (uref + 1.f / (2.f * rho[i] * cs) * (j2[i] - j3[i])) * io_n;
+    p[i] = pref + 0.5f * (j2[i] + j3[i]);
+}
+
+/*
+ * @}
+ */

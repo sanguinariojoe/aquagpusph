@@ -39,7 +39,7 @@ import math
 
 g = 0.0
 hfac = 3.0
-courant = 0.05
+courant = 0.1
 courant_ramp_iters = 1000
 courant_ramp_factor = 0.001
 refd = 1.0

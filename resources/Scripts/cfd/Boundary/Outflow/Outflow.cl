@@ -44,10 +44,10 @@
  * @param cs Speed of sound \f$ c_s \f$.
  * @param p0 Background pressure \f$ p_0 \f$.
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
- * @param outlet_r Lower corner of the outlet square.
- * @param outlet_n = Velocity direction of the generated particles.
- * @param outlet_U = Constant outlet velocity magnitude
- * @param outlet_rFS The point where the pressure is the reference one (0 Pa).
+ * @param outflow_r Lower corner of the outlet square.
+ * @param outflow_n = Velocity direction of the generated particles.
+ * @param outflow_U = Constant outlet velocity magnitude
+ * @param outflow_rFS The point where the pressure is the reference one (0 Pa).
  */
 __kernel void rates(__global int* imove,
                     __global unsigned int* iset,
@@ -64,10 +64,10 @@ __kernel void rates(__global int* imove,
                     float cs,
                     float p0,
                     vec g,
-                    vec outlet_r,
-                    vec outlet_n,
-                    float outlet_U,
-                    vec outlet_rFS)
+                    vec outflow_r,
+                    vec outflow_n,
+                    float outflow_U,
+                    vec outflow_rFS)
 {
     // find position in global arrays
     const usize i = get_global_id(0);
@@ -77,7 +77,7 @@ __kernel void rates(__global int* imove,
         return;
 
     // Compute the distance to the outlet plane
-    const float dist = dot(r[i] - outlet_r, outlet_n);
+    const float dist = dot(r[i] - outflow_r, outflow_n);
     if(dist < 0.f)
         return;
 
@@ -85,8 +85,8 @@ __kernel void rates(__global int* imove,
     drhodt_in[i] = 0.f;
     dudt[i] = VEC_ZERO;
     dudt_in[i] = VEC_ZERO;
-    u[i] = outlet_U * outlet_n;
-    p[i] = refd[iset[i]] * dot(g, r[i] - outlet_rFS);
+    u[i] = outflow_U * outflow_n;
+    p[i] = refd[iset[i]] * dot(g, r[i] - outflow_rFS);
     // reversed EOS
     rho[i] = refd[iset[i]] + p[i] / (cs * cs);
     p[i] += p0;
@@ -99,18 +99,18 @@ __kernel void rates(__global int* imove,
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param r Position \f$ \mathbf{r} \f$.
+ * @param r_in Position \f$ \mathbf{r} \f$.
  * @param N Number of particles.
  * @param domain_max Maximum point of the computational domain.
- * @param outlet_r Lower corner of the outlet square.
- * @param outlet_n = Velocity direction of the generated particles.
+ * @param outflow_r Lower corner of the outlet square.
+ * @param outflow_n = Velocity direction of the generated particles.
  */
 __kernel void feed(__global int* imove,
-                   __global vec* r,
+                   __global vec* r_in,
                    usize N,
                    vec domain_max,
-                   vec outlet_r,
-                   vec outlet_n)
+                   vec outflow_r,
+                   vec outflow_n)
 {
     // find position in global arrays
     const usize i = get_global_id(0);
@@ -120,13 +120,13 @@ __kernel void feed(__global int* imove,
         return;
 
     // Compute the distance to the outlet plane
-    const float dist = dot(r[i] - outlet_r, outlet_n);
+    const float dist = dot(r_in[i] - outflow_r, outflow_n);
     if(dist < 0.f)
         return;
 
     // Destroy the particles far away from the outlet plane
     if(dist > SUPPORT * H){
-        r[i] = domain_max + VEC_ONE;
+        r_in[i] = domain_max + VEC_ONE;
         imove[i] = -256;
     }
 }

@@ -1,32 +1,35 @@
 <?xml version="1.0" ?>
 
 <!-- outlet.xml
-Outlet (i.e. outflow) boundary condition. An infinite outlet plane can be
-defined using this preset.
+Outlet boundary condition. This is the same than outflow, but non-reflective
+capabilities are added upon
 
-This preset depends on the computational domain preset domain.xml. Therefore, to
-create such outlet boundary condition you must include domain.xml preset and
-this file, and after that the following variables should be set:
-outlet_r = Infinite plane position.
-outlet_n = Outward normal of the infinite plane.
-
-The main defference between the computational domain and the outlet boundary
-condition is that the latter is not removing the particles right after they are
-tresspasing the boundary, but they are preserved while they are close enough to
-affect the fluid particles, such that the domain is not truncated. During this
-period drhodt will be enforced to be 0.
+See Lastiwka, Martin, Mihai Basa, and Nathan J. Quinlan, Permeable and
+non‐reflecting boundary conditions in SPH. International journal for numerical
+methods in fluids, 2009, 61.7: 709-724.
 -->
 
 <sphInput>
+    <Include file="outflow.xml"/>
+
     <Variables>
-        <Variable name="outlet_r" type="vec" value="0.0, 0.0, 0.0, 0.0" />
-        <Variable name="outlet_n" type="vec" value="1.0, 0.0, 0.0, 0.0" />
-        <Variable name="outlet_U" type="float" value="0.0" />
-        <Variable name="outlet_rFS" type="vec" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="io_r" type="vec" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="io_n" type="vec" value="1.0, 0.0, 0.0, 0.0" />
+        <Variable name="io_U" type="float" value="0.0" />
+        <Variable name="io_rFS" type="vec" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="j1" type="float*" length="N" symbol="J_1" />
+        <Variable name="j2" type="float*" length="N" symbol="J_2" />
+        <Variable name="j3" type="float*" length="N" symbol="J_3" />
     </Variables>
 
     <Tools>
-        <Tool action="insert" before="Rates" type="kernel" name="cfd outlet" entry_point="rates" path="../../Scripts/cfd/Boundary/Outlet/Outlet.cl"/>
-        <Tool action="insert" before="Domain" type="kernel" name="cfd outlet feed" entry_point="feed" path="../../Scripts/cfd/Boundary/Outlet/Outlet.cl"/>
+        <Tool name="cfd outlet io_r" action="insert" after="cfd Shepard" type="set_scalar" in="io_r" value="outflow_r_x,outflow_r_y,outflow_r_z,outflow_r_w"/>
+        <Tool name="cfd outlet io_n" action="insert" after="cfd Shepard" type="set_scalar" in="io_n" value="outflow_n_x,outflow_n_y,outflow_n_z,outflow_n_w"/>
+        <Tool name="cfd outlet io_U" action="insert" after="cfd Shepard" type="set_scalar" in="io_U" value="outflow_U"/>
+        <Tool name="cfd outlet io_rFS" action="insert" after="cfd Shepard" type="set_scalar" in="io_rFS" value="outflow_rFS_x,outflow_rFS_y,outflow_rFS_z,outflow_rFS_w"/>
+        <Tool name="cfd outlet characteristics" action="insert" after="cfd outlet io_r,cfd outlet io_n,cfd outlet io_U,cfd outlet io_rFS" type="kernel" entry_point="characteristics" path="../../Scripts/cfd/Boundary/Outlet/Outlet.cl"/>
+        <Tool name="cfd outlet extrapolate" action="insert" after="cfd outlet characteristics" type="kernel" entry_point="extrapolate" path="../../Scripts/cfd/Boundary/Outlet/Outlet.cl"/>
+        <Tool name="cfd outlet J3=0" action="insert" after="cfd outlet extrapolate" type="set" in="j3" value="0.f"/>
+        <Tool name="cfd outlet set" action="insert" after="cfd outlet J3=0" type="kernel" entry_point="values" path="../../Scripts/cfd/Boundary/Outlet/Outlet.cl"/>
     </Tools>
 </sphInput>

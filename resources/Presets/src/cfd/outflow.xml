@@ -1,12 +1,12 @@
 <?xml version="1.0" ?>
 
 <!-- outflow.xml
-Outflow (i.e. outflow) boundary condition. An infinite outflow plane can be
-defined using this preset.
+Outflow boundary condition. An infinite outflow plane can be defined using this
+preset.
 
-This preset depends on the computational domain preset domain.xml. Therefore, to
-create such outflow boundary condition you must include domain.xml preset and
-this file, and after that the following variables should be set:
+This preset depends on the computational domain preset domain.xml. Therefore,
+to create such outflow boundary condition you must include domain.xml preset
+and this file. After that, the following variables should be set:
 outflow_r = Infinite plane position.
 outflow_n = Outward normal of the infinite plane.
 
