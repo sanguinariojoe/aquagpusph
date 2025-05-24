@@ -12,16 +12,16 @@ can set the variable forces_iset.
         <!-- center of reference for the forces -->
         <Variable name="forces_iset" type="unsigned int" value="0" />
         <Variable name="p_backup" type="float*" length="N" />
-        <Variable name="Force_p_iset" type="vec" length="N" value="0.0,0.0,0.0,0.0" />
-        <Variable name="Moment_p_iset" type="vec4" length="N" value="0.0,0.0,0.0,0.0" />
+        <Variable name="Force_p_iset" type="vec" value="0.0,0.0,0.0,0.0" />
+        <Variable name="Moment_p_iset" type="vec4" value="0.0,0.0,0.0,0.0" />
         <Variable name="force_visc_backup" type="vec*" length="N" />
         <Variable name="moment_visc_backup" type="vec4*" length="N" />
-        <Variable name="Force_visc_iset" type="vec" length="N" value="0.0,0.0,0.0,0.0" />
-        <Variable name="Moment_visc_iset" type="vec4" length="N" value="0.0,0.0,0.0,0.0" />
+        <Variable name="Force_visc_iset" type="vec" value="0.0,0.0,0.0,0.0" />
+        <Variable name="Moment_visc_iset" type="vec4" value="0.0,0.0,0.0,0.0" />
     </Variables>
 
     <Tools>
-        <Tool name="cfd BIe backup p" action="try_remove" type="dummy"></Tool>
+        <Tool name="*cfd BIe backup p" action="try_remove" type="dummy"></Tool>
         <Tool name="cfd BIe backup p" action="insert" after="cfd BIe p_boundary" type="copy" in="p" out="p_backup"/>
         <Tool name="cfd BIe p_iset" action="insert" before="cfd BIe force_p" type="kernel" entry_point="filter_press" path="../../../Scripts/cfd/Boundary/BIe/Rates.cl"/>
         <Tool name="cfd BIe force_p_iset" action="insert" before="cfd BIe force_p" type="kernel" entry_point="force_press" path="../../../Scripts/cfd/Boundary/BIe/Rates.cl"/>
@@ -29,14 +29,14 @@ can set the variable forces_iset.
         <Tool name="cfd BIe Moment_p_iset" action="insert" before="cfd BIe force_p" type="reduction" in="moment_p" out="Moment_p_iset" null="((vec4)(0.f))">c = a + b</Tool>
         <Tool name="cfd BIe restore p" action="insert" before="cfd BIe force_p" type="copy" in="p_backup" out="p"/>
 
-        <Tool name="cfd BIe backup force_visc" action="try_remove" type="dummy"></Tool>
-        <Tool name="cfd BIe backup moment_visc" action="try_remove" type="dummy"></Tool>
+        <Tool name="*cfd BIe backup force_visc" action="try_remove" type="dummy"></Tool>
+        <Tool name="*cfd BIe backup moment_visc" action="try_remove" type="dummy"></Tool>
         <Tool name="cfd BIe backup force_visc" action="insert" after="cfd BIe force_visc" type="copy" in="force_visc" out="force_visc_backup"/>
         <Tool name="cfd BIe backup moment_visc" action="insert" after="cfd BIe moment_visc" type="copy" in="moment_visc" out="moment_visc_backup"/>
-        <Tool name="cfd BIe force_visc_iset" action="insert" after="cfd BIe backup force_visc,cfd BIe backup moment_visc" type="kernel" entry_point="filter_force" path="../../../Scripts/cfd/Boundary/BIe/NoSlip.cl"/>
-        <Tool name="cfd BIe Force_visc_iset" action="insert" after="cfd BIe force_visc_iset" type="reduction" in="force_visc" out="Force_visc_iset" null="VEC_ZERO">c = a + b</Tool>
-        <Tool name="cfd BIe Moment_visc_iset" action="insert" after="cfd BIe force_visc_iset" type="reduction" in="moment_visc" out="Moment_visc_iset" null="((vec4)(0.f))">c = a + b</Tool>
-        <Tool name="cfd BIe restore force_visc" action="insert" after="cfd BIe Force_visc_iset" type="copy" in="force_visc_backup" out="force_visc"/>
-        <Tool name="cfd BIe restore moment_visc" action="insert" after="cfd BIe Moment_visc_iset" type="copy" in="moment_visc_backup" out="moment_visc"/>
+        <Tool name="cfd BIe force_visc_iset" action="insert" after_prefix="cfd BIe backup force_visc,cfd BIe backup moment_visc" type="kernel" entry_point="filter_force" path="../../../Scripts/cfd/Boundary/BIe/NoSlip.cl"/>
+        <Tool name="cfd BIe Force_visc_iset" action="insert" after_prefix="cfd BIe force_visc_iset" type="reduction" in="force_visc" out="Force_visc_iset" null="VEC_ZERO">c = a + b</Tool>
+        <Tool name="cfd BIe Moment_visc_iset" action="insert" after_prefix="cfd BIe force_visc_iset" type="reduction" in="moment_visc" out="Moment_visc_iset" null="((vec4)(0.f))">c = a + b</Tool>
+        <Tool name="cfd BIe restore force_visc" action="insert" after_prefix="cfd BIe Force_visc_iset" type="copy" in="force_visc_backup" out="force_visc"/>
+        <Tool name="cfd BIe restore moment_visc" action="insert" after_prefix="cfd BIe Moment_visc_iset" type="copy" in="moment_visc_backup" out="moment_visc"/>
     </Tools>
 </sphInput>

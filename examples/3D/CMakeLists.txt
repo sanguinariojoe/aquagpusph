@@ -8,4 +8,5 @@ endif(HAVE_MPI)
 
 if(HAVE_CHRONO)
     add_subdirectory(apollo_capsule)
+    add_subdirectory(flow_through_rocks)
 endif(HAVE_CHRONO)

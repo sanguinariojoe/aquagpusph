@@ -103,7 +103,8 @@ ApolloSim::setup()
     _sys->SetTimestepperType(chrono::ChTimestepper::Type::EULER_EXPLICIT);
     _sys->Setup();
 
-    setInputDependencies({"dt", "Force_p", "Moment_p"});
+    setInputDependencies({"dt", "iter_midpoint", "iter_midpoint_max",
+                          "Force_p_iset", "Moment_p_iset"});
     setOutputDependencies({"motion_r", "motion_drdt", "motion_ddrddt",
                            "motion_a", "motion_dadt", "motion_ddaddt",
                            "forces_r"});

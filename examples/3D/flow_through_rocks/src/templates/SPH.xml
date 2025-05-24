@@ -1,0 +1,54 @@
+<?xml version="1.0" ?>
+<!--
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
+
+Another QUAlity GPU-SPH, by CEHINAV.
+    http://canal.etsin.upm.es/
+Authors:
+    Jose Luis Cercos-Pita
+    Leo Miguel Gonzalez
+    Antonio Souto-Iglesias
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="g" type="vec" value="0.0, 0.0, -{{G}}, 0.0" />
+        <Variable name="dr" type="float" value="{{DR}}" />
+        <Variable name="hfac" type="float" value="{{HFAC}}" />
+        <Variable name="h" type="float" value="hfac * dr" />
+        <Variable name="cs" type="float" value="{{CS}}" />
+        <Variable name="p0" type="float" value="{{P0}}" />
+        <Variable name="courant" type="float" value="{{COURANT}}" />
+        <Variable name="domain_min" type="vec" value="{{DOMAIN_MIN}}" />
+        <Variable name="domain_max" type="vec" value="{{DOMAIN_MAX}}" />
+        <Variable name="iter_midpoint_max" type="unsigned int" length="1" value="7"/>
+        <Variable name="relax_midpoint" type="float" length="1" value="0"/>
+        <Variable name="Residual_midpoint_max" type="float" length="1" value="1.e-2" symbol="E_{\Delta t}^{max}"/>
+        <Variable name="U" type="float" value="{{U}}" />
+        <Variable name="ramp_time" type="float" value="{{RAMP_TIME}}" />
+        <Variable name="L" type="float" value="{{L}}" />
+        <Variable name="B" type="float" value="{{B}}" />
+        <Variable name="REFD" type="float" value="{{REFD}}" />
+        <Variable name="n_solids" type="unsigned int" value="{{NROCKS}}" />
+        <!-- Inlet boundary condition -->
+        <Variable name="inflow_r" type="vec" value="-0.5*{{L}}, -0.5*{{B}}, 0.0, 0.0" />
+        <Variable name="inflow_ru" type="vec" value="0.0, {{B}}, 0.0, 0.0" />
+        <Variable name="inflow_rv" type="vec" value="0.0, 0.0, {{H}}, 0.0" />
+        <Variable name="inflow_rFS" type="vec" value="-0.5*{{L}}, 0.0, {{H}}, 0.0" />
+        <Variable name="inflow_N" type="uivec2" value="{{NY}}, {{NZ}}" />
+        <Variable name="inflow_n" type="vec" value="1.0, 0.0, 0.0, 0.0" />
+        <Variable name="inflow_U" type="float" value="0.0" />
+        <!-- Outlet boundary condition -->
+        <Variable name="outflow_r" type="vec" value="0.5*{{L}}, -0.5*{{B}}, 0.0, 0.0" />
+        <Variable name="outflow_rFS" type="vec" value="0.5*{{L}}, 0.0, {{H}}, 0.0" />
+        <Variable name="outflow_n" type="vec" value="1.0, 0.0, 0.0, 0.0" />
+        <Variable name="outflow_U" type="float" value="0.0" />
+    </Variables>
+</sphInput>

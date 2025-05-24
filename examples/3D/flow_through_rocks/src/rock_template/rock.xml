@@ -1,0 +1,64 @@
+<?xml version="1.0" ?>
+<!--
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
+
+Another QUAlity GPU-SPH, by CEHINAV.
+    http://canal.etsin.upm.es/
+Authors:
+    Jose Luis Cercos-Pita
+    Leo Miguel Gonzalez
+    Antonio Souto-Iglesias
+-->
+
+<sphInput>
+    <ParticlesSet n="{{N_PARTS}}">
+        <Scalar name="refd" value="{{REFD}}" />
+        <Scalar name="visc_dyn" value="{{VISC_DYN}}" />
+
+        <Load format="FastASCII" file="{{FIN}}" fields="r, normal, tangent, u, dudt, rho, drhodt, m, imove" />
+        <Save format="VTK" file="{{FOUT}}" fields="r, normal, tangent, binormal, u, dudt, rho, drhodt, m, p, imove, shepard" />
+    </ParticlesSet>
+
+    <!-- Forces measurement -->
+    <Include file="resources/Presets/cfd/BIe/Force_iset_post.xml" prefix="{{PREFIX}}"/>
+    <Variables>
+        <Variable name="{{PREFIX}}forces_r" type="vec" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="{{PREFIX}}Force_p" type="vec" value="0.0,0.0,0.0,0.0" />
+        <Variable name="{{PREFIX}}Moment_p" type="vec4" value="0.0,0.0,0.0,0.0" />
+    </Variables>
+    <Tools>
+        <Tool name="{{PREFIX}}cfd BIe forces_r" action="insert" before="{{PREFIX}}cfd BIe p_iset" type="set_scalar" in="forces_r" value="{{PREFIX}}forces_r_x,{{PREFIX}}forces_r_y,{{PREFIX}}forces_r_z,{{PREFIX}}forces_r_w"/>
+        <Tool name="{{PREFIX}}cfd BIe forces_iset" action="insert" before="{{PREFIX}}cfd BIe p_iset" type="set_scalar" in="forces_iset" value="{{ISET}}"/>
+        <Tool name="{{PREFIX}}cfd BIe copy force" action="insert" after="{{PREFIX}}cfd BIe Force_p_iset" type="set_scalar" in="{{PREFIX}}Force_p" value="Force_p_iset_x,Force_p_iset_y,Force_p_iset_z,Force_p_iset_w"/>
+        <Tool name="{{PREFIX}}cfd BIe copy moment" action="insert" after="{{PREFIX}}cfd BIe Moment_p_iset" type="set_scalar" in="{{PREFIX}}Moment_p" value="Moment_p_iset_x,Moment_p_iset_y,Moment_p_iset_z,Moment_p_iset_w"/>
+    </Tools>
+
+    <!-- Motion -->
+    <Include file="resources/Presets/cfd/motion.xml" prefix="{{PREFIX}}" />
+    <Variables>
+        <Variable name="{{PREFIX}}motion_r" type="vec" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="{{PREFIX}}motion_drdt" type="vec" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="{{PREFIX}}motion_ddrddt" type="vec" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="{{PREFIX}}motion_a" type="vec4" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="{{PREFIX}}motion_dadt" type="vec4" value="0.0, 0.0, 0.0, 0.0" />
+        <Variable name="{{PREFIX}}motion_ddaddt" type="vec4" value="0.0, 0.0, 0.0, 0.0" />
+    </Variables>
+    <Tools>
+        <Tool name="{{PREFIX}}cfd motion data" action="replace" type="dummy"/>
+        <Tool name="{{PREFIX}}cfd motion data motion_iset" action="insert" after="{{PREFIX}}cfd motion data" type="set_scalar" in="motion_iset" value="{{ISET}}"/>
+        <Tool name="{{PREFIX}}cfd motion data motion_r" action="insert" after="{{PREFIX}}cfd motion data" type="set_scalar" in="motion_r" value="{{PREFIX}}motion_r_x,{{PREFIX}}motion_r_y,{{PREFIX}}motion_r_z,{{PREFIX}}motion_r_w"/>
+        <Tool name="{{PREFIX}}cfd motion data motion_drdt" action="insert" after="{{PREFIX}}cfd motion data" type="set_scalar" in="motion_drdt" value="{{PREFIX}}motion_drdt_x,{{PREFIX}}motion_drdt_y,{{PREFIX}}motion_drdt_z,{{PREFIX}}motion_drdt_w"/>
+        <Tool name="{{PREFIX}}cfd motion data motion_ddrddt" action="insert" after="{{PREFIX}}cfd motion data" type="set_scalar" in="motion_ddrddt" value="{{PREFIX}}motion_ddrddt_x,{{PREFIX}}motion_ddrddt_y,{{PREFIX}}motion_ddrddt_z,{{PREFIX}}motion_ddrddt_w"/>
+        <Tool name="{{PREFIX}}cfd motion data motion_a" action="insert" after="{{PREFIX}}cfd motion data" type="set_scalar" in="motion_a" value="{{PREFIX}}motion_a_x,{{PREFIX}}motion_a_y,{{PREFIX}}motion_a_z,{{PREFIX}}motion_a_w"/>
+        <Tool name="{{PREFIX}}cfd motion data motion_dadt" action="insert" after="{{PREFIX}}cfd motion data" type="set_scalar" in="motion_dadt" value="{{PREFIX}}motion_dadt_x,{{PREFIX}}motion_dadt_y,{{PREFIX}}motion_dadt_z,{{PREFIX}}motion_dadt_w"/>
+        <Tool name="{{PREFIX}}cfd motion data motion_ddaddt" action="insert" after="{{PREFIX}}cfd motion data" type="set_scalar" in="motion_ddaddt" value="{{PREFIX}}motion_ddaddt_x,{{PREFIX}}motion_ddaddt_y,{{PREFIX}}motion_ddaddt_z,{{PREFIX}}motion_ddaddt_w"/>
+    </Tools>
+
+</sphInput>
