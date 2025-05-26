@@ -371,6 +371,13 @@ class DECLDIR CalcServer
 		    .count();
 	}
 
+	/** @brief Start a series of callings to ::getUnsortedMem()
+	 *
+	 * This method shall be called before starting a series of callings to
+	 * ::getUnsortedMem(), so the same variable is not unsorted over and over
+	 */
+	inline void beginUnsortingMem() { _unsorted_vars.clear(); }
+
 	/** @brief Download a unsorted variable from the device.
 	 * @param var_name Variable to unsort and download.
 	 * @param offset The offset in bytes in the memory object to read from.
@@ -512,7 +519,13 @@ class DECLDIR CalcServer
 	/** Map with the unsorter for each variable. Storing the unsorters should
 	 * dramatically reduce the saving files overhead in some platforms
 	 */
-	std::map<std::string, UnSort*> unsorters;
+	std::map<std::string, UnSort*> _unsorters;
+
+	/** List of variables already unsorted
+	 * @note ::beginUnsortingMem() shall be called before a series of callings
+	 * to ::getUnsortedMem(), so the same variable is not sorted over and over
+	 */
+	std::vector<std::string> _unsorted_vars;
 
 	/// Simulation data read from XML files
 	Aqua::InputOutput::ProblemSetup _sim_data;

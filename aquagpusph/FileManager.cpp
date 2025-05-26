@@ -146,6 +146,8 @@ void
 FileManager::save(float t)
 {
 	// Execute the savers
+	auto C = CalcServer::CalcServer::singleton();
+	C->beginUnsortingMem();
 	for (auto saver : _savers) {
 		saver->save(t);
 	}

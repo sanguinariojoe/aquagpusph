@@ -32,6 +32,7 @@
 #include <tuple>
 #include <mutex>
 #include <atomic>
+#include <algorithm>
 
 #include "CalcServer.hpp"
 #include "aquagpusph/AuxiliarMethods.hpp"
@@ -569,7 +570,7 @@ CalcServer::~CalcServer()
 	}
 	_tools.clear();
 
-	for (auto& unsorter : unsorters) {
+	for (auto& unsorter : _unsorters) {
 		delete unsorter.second;
 	}
 }
@@ -779,7 +780,7 @@ CalcServer::getUnsortedMem(const std::string var_name,
 
 	// Generate the unsorted if it does not exist yet
 	UnSort* unsorter = NULL;
-	if (unsorters.find(var_name) == unsorters.end()) {
+	if (_unsorters.find(var_name) == _unsorters.end()) {
 		unsorter = new UnSort("__unsort " + var_name, var_name.c_str());
 		try {
 			unsorter->setup();
@@ -787,17 +788,23 @@ CalcServer::getUnsortedMem(const std::string var_name,
 			delete unsorter;
 			return NULL;
 		}
-		unsorters.insert(std::make_pair(var_name, unsorter));
+		_unsorters.insert(std::make_pair(var_name, unsorter));
 	}
 	// Get the unsorter
-	unsorter = unsorters[var_name];
-	try {
-		unsorter->execute();
-	} catch (std::runtime_error& e) {
-		return NULL;
+	unsorter = _unsorters[var_name];
+	if (std::find(_unsorted_vars.begin(),
+	              _unsorted_vars.end(),
+	              var_name) == _unsorted_vars.end())
+	{
+		try {
+			unsorter->execute();
+		} catch (std::runtime_error& e) {
+			return NULL;
+		}
+		_unsorted_vars.push_back(var_name);
 	}
 	cl_mem mem = unsorter->output();
-	cl_event event, event_wait = unsorter->input()->getReadingEvents().back();
+	cl_event event, event_wait = unsorter->getEvent();
 	err_code = clEnqueueReadBuffer(command_queue(),
 	                               mem,
 	                               CL_FALSE,

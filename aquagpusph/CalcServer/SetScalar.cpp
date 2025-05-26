@@ -159,6 +159,7 @@ ScalarExpression::_execute(const std::vector<cl_event> events)
 		} catch (std::runtime_error& e) {
 			LOG(L_ERROR, std::string("While executing the tool ") +
 			             name() + ".\n");
+			throw;
 		}
 	} else {
 		trigger = clCreateUserEvent(C->context(), &err_code);
