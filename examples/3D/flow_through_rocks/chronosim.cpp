@@ -84,7 +84,6 @@ RocksSim::setup()
     const unsigned int n_solids =
         *((unsigned int*)vars->get("n_solids")->get(true));
     const float L = *((float*)vars->get("L")->get(true));
-    const float B = *((float*)vars->get("B")->get(true));
     const float rho = *((float*)vars->get("REFD")->get(true));
 
     // Setup the chrono system
@@ -97,17 +96,17 @@ RocksSim::setup()
         chrono_types::make_shared<chrono::ChContactMaterialNSC>();
     ground_mat->SetFriction(1.0);
 
-    auto ground = chrono_types::make_shared<chrono::ChBodyEasyBox>(
-        L, B, 0.5 * B,                  // Box size (we choose the position later)
+    _ground = chrono_types::make_shared<chrono::ChBodyEasyBox>(
+        2 * L, 2 * L, 2 * L,            // Box size (we choose the position later)
         1e6,                            // Density (fixed, it does not matter)
         false,                          // No visual needed
         true,                           // Collisions enabled
         ground_mat);                    // Material
-    ground->SetName("g");
-    ground->GetCollisionModel()->SetEnvelope(ENVELOPE_SIZE);
-    _sys->AddBody(ground);
-    ground->SetPos(chrono::ChVector3d(0.0, 0.0, -0.25 * B));
-    ground->SetFixed(true);
+    _ground->SetName("g");
+    _ground->GetCollisionModel()->SetEnvelope(ENVELOPE_SIZE);
+    _sys->AddBody(_ground);
+    _ground->SetPos(chrono::ChVector3d(0.0, 0.0, -(L + ENVELOPE_SIZE)));
+    _ground->SetFixed(true);
 
     // Setup the rocks
     const unsigned int digits = num_digits(n_solids);
@@ -118,6 +117,7 @@ RocksSim::setup()
         chrono::ChVector3d cog;
         chrono::ChMatrix33<> inertia;
         trimesh->ComputeMassProperties(true, vol, cog, inertia);
+        trimesh->Transform(-cog, chrono::ChMatrix33<>(1));
 
         // Setup the rock body
         auto rock = chrono_types::make_shared<chrono::ChBody>();
@@ -136,13 +136,13 @@ RocksSim::setup()
         coll_model->SetEnvelope(ENVELOPE_SIZE);
         auto rock_mat =
             chrono_types::make_shared<chrono::ChContactMaterialNSC>();
-        rock_mat->SetFriction(0.65);
+        rock_mat->SetFriction(0.5);
         rock_mat->SetDampingF(0.01);
         auto coll_shape =
             chrono_types::make_shared<chrono::ChCollisionShapeTriangleMesh>(
                 rock_mat, trimesh, false, false, 0.010f);
-        coll_model->AddShape(coll_shape, chrono::ChFrame<>(-cog,
-                                                           chrono::QUNIT));
+        coll_model->AddShape(coll_shape, chrono::ChFrame<>(
+            chrono::ChVector3d(0, 0, 0), chrono::QUNIT));
         rock->AddCollisionModel(coll_model);
         rock->EnableCollision(true);
         rock->SetPos(cog);
@@ -176,9 +176,7 @@ RocksSim::setup()
     // _sys->SetTimestepperType(chrono::ChTimestepper::Type::EULER_IMPLICIT);
     _sys->Setup();
 
-    std::vector<std::string> indeps, outdeps;
-    indeps.push_back("dt");
-    indeps.push_back("t");
+    std::vector<std::string> indeps({"dt"}), outdeps;
     for (unsigned int i=0; i < n_solids; i++) {
         indeps.push_back(
             std::string("rock_") + int2string(i, digits) + "_Force_p");
@@ -247,6 +245,7 @@ RocksSim::_execute(const std::vector<cl_event> UNUSED_PARAM events)
 
     // Compute the dynamics
     _sys->DoStepDynamics(dt);
+
 
     // Get the new positions and angles
     for (unsigned int i = 0; i < n_solids; i++) {

@@ -60,6 +60,9 @@ private:
     /// Chrono simulation
     std::shared_ptr<chrono::ChSystemNSC> _sys;
 
+    /// The ground
+    std::shared_ptr<chrono::ChBody> _ground;
+
     /// The rocks
     std::vector<std::shared_ptr<chrono::ChBody>> _rocks;
 
@@ -68,6 +71,18 @@ private:
 
     /// The hydrodynamic torques
     std::vector<std::shared_ptr<chrono::ChForce>> _torques;
+
+    /// Velocity at the begginning of the time step
+    std::vector<std::shared_ptr<chrono::ChVector3d>> _drdt0;
+
+    /// Acceleration at the begginning of the time step
+    std::vector<std::shared_ptr<chrono::ChVector3d>> _ddrddt0;
+
+    /// Angular velocity at the begginning of the time step
+    std::vector<std::shared_ptr<chrono::ChVector3d>> _dadt0;
+
+    /// Angular acceleration at the begginning of the time step
+    std::vector<std::shared_ptr<chrono::ChVector3d>> _ddaddt0;
 };
 
 }}  // namespace
