@@ -55,12 +55,14 @@ compile-and-test:
     - apt-get -qq install -y build-essential git cmake xxd
     - apt-get -qq install -y python3-numpy python3-dev python-is-python3
     - apt-get -qq install -y libxerces-c-dev libmuparser-dev
-    - apt-get -qq install -y ocl-icd-opencl-dev pocl-opencl-icd
+    - apt-get -qq install -y ocl-icd-opencl-dev opencl-headers clinfo
     - apt-get -qq install -y libopenmpi-dev libvtk9-dev
     - apt-get -qq install -y nlohmann-json3-dev
     - mkdir -p build
     - mkdir -p install
   script:
+    - export RUSTICL_ENABLE=llvmpipe
+    - clinfo
     - cmake -B build/ -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=install -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DAQUAGPUSPH_USE_MPI:BOOL=ON -DAQUAGPUSPH_USE_VTK:BOOL=ON -DAQUAGPUSPH_CHRONO_EXAMPLES=OFF -DBUILD_TESTING=ON
     - cmake --build build/ --config Release
     - cmake --install build/ --config Release
