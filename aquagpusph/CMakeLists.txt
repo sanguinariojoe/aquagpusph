@@ -138,6 +138,7 @@ if(WIN32)
     list(APPEND EXE_SRCS main.rc)
 endif()
 add_executable(AQUAgpusph ${EXE_SRCS})
+target_compile_definitions(aquagpusphlib PUBLIC OMPI_SKIP_MPICXX)
 target_include_directories(AQUAgpusph PUBLIC ${PUBLIC_INCS}
                                       PRIVATE ${PRIVATE_INCS})
 target_link_libraries(AQUAgpusph PUBLIC aquagpusphlib ${PUBLIC_LIBS})
