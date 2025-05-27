@@ -70,8 +70,11 @@ class DECLDIR Tokenizer_exprtk
 	{
 		tokenizer_t val = narrow_cast<tokenizer_t>(value);
 		const std::lock_guard<std::mutex> lock(this->mutex);
-		removeVariable(name);
-		vars.add_variable(name, val);
+		if (vars.is_variable(name)) {
+			vars.get_variable(name)->ref() = value;
+		} else {
+			vars.create_variable(name, val);
+		}
 	}
 
 	/** @brief Get the list of variables used on an mathematical expression.
@@ -123,11 +126,11 @@ class DECLDIR Tokenizer_exprtk
 			throw std::runtime_error("Invalid expression");
 		}
 
-		tokenizer_t res_org;
+		tokenizer_t res_org = 0;
 		try {
 			res_org = expr.value();
 			res = narrow_cast<T>(res_org);
-		} catch(std::out_of_range) {
+		} catch(std::out_of_range const &) {
 			LOG(L_ERROR, std::string("Error parsing \"") + eq + "\":\n");
 			LOG0(L_DEBUG, "\n");
 			LOG0(L_DEBUG, std::string("The result ") +
