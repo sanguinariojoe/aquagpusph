@@ -126,6 +126,12 @@ install(TARGETS aquagpusphlib
 # program compilation                                   #
 # ===================================================== #
 set(AppName AQUAgpusph)
+set(PUBLIC_LIBS
+    Python::Python
+)
+if(HAVE_MPI)
+    list(APPEND PUBLIC_LIBS MPI::MPI_C)
+endif(HAVE_MPI)
 
 set(EXE_SRCS main.cpp)
 if(WIN32)
@@ -134,7 +140,7 @@ endif()
 add_executable(AQUAgpusph ${EXE_SRCS})
 target_include_directories(AQUAgpusph PUBLIC ${PUBLIC_INCS}
                                       PRIVATE ${PRIVATE_INCS})
-target_link_libraries(AQUAgpusph aquagpusphlib)
+target_link_libraries(AQUAgpusph PUBLIC aquagpusphlib ${PUBLIC_LIBS})
 
 install(TARGETS AQUAgpusph
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
