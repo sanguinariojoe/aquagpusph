@@ -172,6 +172,7 @@ Report::setCallback(const std::vector<cl_event> events,
 	} catch (std::runtime_error& e) {
 		LOG(L_ERROR, std::string("While setting the trigger in tool \"") +
 		             name() + "\".\n");
+		throw;
 	}
 
 	// Now we create a user event that we will set as completed when we already
