@@ -44,7 +44,7 @@ version_check_job:
     - if wget https://gitlab.com/sanguinariojoe/aquagpusph/-/releases/$TAG ; then echo "$TAG already exist, please increase the version"; exit 1; fi
 
 compile-and-test:
-  image: "ubuntu:latest"
+  image: "ubuntu:rolling"
   stage: build_and_test
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
