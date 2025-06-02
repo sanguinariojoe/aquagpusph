@@ -29,6 +29,7 @@
 #include <mutex>
 #include <typeinfo>
 #include <iostream>
+#define exprtk_disable_caseinsensitivity
 #include "aquagpusph/ext/exprtk.hpp"
 #include "aquagpusph/InputOutput/Logger.hpp"
 #include "aquagpusph/AuxiliarMethods.hpp"
