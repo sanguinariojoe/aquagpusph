@@ -26,6 +26,7 @@
 #include <sstream>
 #include <cstdint>
 #include "Tokenizer.hpp"
+#include "aquagpusph/AuxiliarMethods.hpp"
 
 using namespace std;
 
@@ -83,9 +84,19 @@ Tokenizer_exprtk::~Tokenizer_exprtk()
 std::vector<std::string>
 Tokenizer_exprtk::exprVariables(const std::string eq)
 {
+	std::vector<std::string> vars_list;
+
+	auto subeqs = split_formulae(eq);
+	if (subeqs.size() > 1) {
+		for (auto subeq : subeqs) {
+			auto subvars = exprVariables(subeq);
+			vars_list.insert(vars_list.end(), subvars.begin(), subvars.end());
+		}
+		return vars_list;
+	}
+
 	const std::lock_guard<std::mutex> lock(this->mutex);
 
-	std::vector<std::string> vars_list;
 	exprtk::parser<tokenizer_t> parser;
 	exprtk::expression<tokenizer_t> expr;
 
