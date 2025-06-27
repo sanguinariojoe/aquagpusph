@@ -25,6 +25,7 @@ add_subdirectory(While)
 add_subdirectory(QueueLimit)
 add_subdirectory(Python)
 add_subdirectory(CSV)
+add_subdirectory(IncludeMacro)
 
 add_subdirectory(3D/SetScalar)
 add_subdirectory(3D/Assert)
