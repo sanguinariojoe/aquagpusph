@@ -30,6 +30,7 @@
 #define vec3 float3
 #define vec4 float4
 #define vec8 float8
+#define vec16 float16
 #define dvec2 double2
 #define dvec3 double3
 #define dvec4 double4

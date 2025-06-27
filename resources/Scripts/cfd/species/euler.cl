@@ -35,6 +35,9 @@
  * @param dy_xxdt unordered mass fraction rate of change
  * @param N Number of particles.
  */
+ 
+#include "resources/Scripts/types/types.h"
+
 __kernel void
 predictor(const __global float* z,
           const __global vec16* ys,
@@ -64,7 +67,7 @@ predictor(const __global float* z,
 	if (i >= N)
 		return;
 	z_in[i] = z[i];
-    ysin[i]= ys[i];
+    ys_in[i]= ys[i];
     dysdt_in[i] = dysdt[i];
 
 	/*ys_in[i].H2 = y_H2[i];

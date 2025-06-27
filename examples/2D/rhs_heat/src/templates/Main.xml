@@ -18,6 +18,9 @@ Authors:
 -->
 
 <sphInput>
+
+    <Define name="SPECIES_HEADER" value="&quotspecies_h2.hcl&quot" evaluate="false" />
+
     <!-- In this file we will just include other XML definition files -->
     <Include file="resources/Presets/basic.xml" />
     <Include file="resources/Presets/basic/domain.xml" />
@@ -38,6 +41,7 @@ Authors:
     <Include file="Time.xml" />
     <Include file="Fluids.xml" />
     <Include file="BC.xml" />
+
 
     <Include file="resources/Presets/basic/kernels/cubicSpline.xml" when="end" />
 </sphInput>
