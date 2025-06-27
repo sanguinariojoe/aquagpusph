@@ -408,9 +408,10 @@ Kernel::make(const std::string entry_point,
 
 	// Try to compile with local memory
 	LOG(L_INFO, "Compiling with local memory...\n");
-	flags << " -DLOCAL_MEM_SIZE=" << work_group_size;
 	try {
-		kernel = compile_kernel(source.str(), entry_point, flags.str());
+		auto flags_local_mem = flags.str() + " -DLOCAL_MEM_SIZE=" +
+			std::to_string(work_group_size);
+		kernel = compile_kernel(source.str(), entry_point, flags_local_mem);
 	} catch (std::runtime_error& e) {
 		LOG(L_INFO, "Falling back to no local memory usage.\n");
 		return;
@@ -443,10 +444,51 @@ Kernel::make(const std::string entry_point,
 		return;
 	}
 
-	if (available_local_mem < used_local_mem) {
+	if (available_local_mem >= used_local_mem) {
+		LOG0(L_DEBUG, "OK\n");
+		// Swap kernels
+		err_code = clReleaseKernel(_kernel);
+		CHECK_OCL_OR_THROW(
+			err_code,
+			std::string("Failure releasing non-local memory based kernel ") +
+				"in tool \"" + name() + "\".");
+		_kernel = kernel;
+		return;
+	}
+
+	size_t pwgsm;
+	err_code = clGetKernelWorkGroupInfo(kernel,
+	                                    C->device(),
+	                                    CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
+	                                    sizeof(size_t),
+	                                    &pwgsm,
+	                                    NULL);
+	if (err_code != CL_SUCCESS) {
+		LOG(L_ERROR, "Failure querying the preferred work group size.\n");
+		InputOutput::Logger::singleton()->printOpenCLError(err_code);
+		clReleaseKernel(kernel);
+		LOG(L_INFO, "Falling back to no local memory usage.\n");
+		return;
+	}
+
+	work_group_size = work_group_size * available_local_mem / used_local_mem;
+	if (work_group_size < pwgsm) {
 		LOG(L_ERROR, "Not enough available local memory.\n");
 		InputOutput::Logger::singleton()->printOpenCLError(err_code);
 		clReleaseKernel(kernel);
+		LOG(L_INFO, "Falling back to no local memory usage.\n");
+		return;
+	}
+
+	work_group_size = pwgsm * (work_group_size / pwgsm);
+	LOG(L_INFO, std::string("Reducing the number of threads to ")
+	            + std::to_string(work_group_size) + "...\n");
+	flags << " -DLOCAL_MEM_SIZE=" << work_group_size;
+	try {
+		auto flags_local_mem = flags.str() + " -DLOCAL_MEM_SIZE=" +
+			std::to_string(work_group_size);
+		kernel = compile_kernel(source.str(), entry_point, flags_local_mem);
+	} catch (std::runtime_error& e) {
 		LOG(L_INFO, "Falling back to no local memory usage.\n");
 		return;
 	}
