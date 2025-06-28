@@ -36,7 +36,8 @@
 #include "resources/Scripts/types/types.h"
 //#include "resources/Scripts/cfd/species/species_auxiliary.hcl"
 #include SPECIES_HEADER
-
+//#define TEST_HEADER_MACRO "species_h2.hcl"
+//#include TEST_HEADER_MACRO
 /** @brief Ideal gas Equation Of State (EOS) computation
  *
  * The equation of state relates the pressure, density and internal energy

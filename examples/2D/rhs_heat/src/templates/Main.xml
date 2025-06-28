@@ -19,7 +19,8 @@ Authors:
 
 <sphInput>
 
-    <Define name="SPECIES_HEADER" value="&quotspecies_h2.hcl&quot" evaluate="false" />
+    <Define name="SPECIES_HEADER" value="&lt;species_h2.cl&gt;" evaluate="false" />
+    <!--<Define name="SPECIES_HEADER" value="&quot;species_h2.hcl&quot;" evaluate="false" />-->
 
     <!-- In this file we will just include other XML definition files -->
     <Include file="resources/Presets/basic.xml" />
