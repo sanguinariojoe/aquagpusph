@@ -11,4 +11,5 @@
 
     <Variables>
         <Variable name="support" type="float" value="2.0" />
+    </Variables>
 </sphInput>

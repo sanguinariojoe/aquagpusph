@@ -28,6 +28,8 @@
 #include <sstream>
 #include <filesystem>
 #include <system_error>
+#include <xercesc/sax/HandlerBase.hpp>
+#include <xercesc/sax/SAXParseException.hpp>
 
 #include "aquagpusph/sphPrerequisites.hpp"
 #include "State.hpp"
@@ -272,6 +274,11 @@ State::findPath(const std::string& filepath, ProblemSetup& sim_data)
 	throw std::filesystem::filesystem_error(msg.str(), std::error_code());
 }
 
+class XMLErrorHandler : public HandlerBase {
+public:
+    virtual void fatalError(const SAXParseException &exc) { throw exc; }
+};
+
 void
 State::parse(std::string filepath, ProblemSetup& sim_data, std::string prefix)
 {
@@ -294,11 +301,32 @@ State::parse(std::string filepath, ProblemSetup& sim_data, std::string prefix)
 
 	// Now we can proceed to properly parse the XML file
 	XercesDOMParser* parser = new XercesDOMParser();
-	parser->setValidationScheme(XercesDOMParser::Val_Never);
-	parser->setDoNamespaces(false);
-	parser->setDoSchema(false);
+	XMLErrorHandler handler;
+	parser->setErrorHandler(&handler);
+	parser->setValidationScheme(XercesDOMParser::Val_Always);
+	parser->setDoNamespaces(true);
+	parser->setDoSchema(true);
 	parser->setLoadExternalDTD(false);
-	parser->parse(filepath.c_str());
+	try {
+		parser->parse(filepath.c_str());
+	} catch (XMLException& e) {
+		LOG(L_ERROR, std::string("XML error:\n") +
+		             xmlS(e.getMessage()) + "\n");
+		throw;
+	} catch (DOMException& e) {
+		LOG(L_ERROR, std::string("XML DOM error:\n") +
+		             xmlS(e.getMessage()) + "\n");
+		throw;
+	} catch (SAXParseException& e) {
+		LOG(L_ERROR, std::string("XML SAX error, line ") +
+		             std::to_string(e.getLineNumber()) +
+		             ":\n" + xmlS(e.getMessage()) + "\n");
+		throw;
+	} catch (...) {
+		LOG(L_ERROR, "XML parsing unhandled exception\n");
+		throw;
+	}
+
 	DOMDocument* doc = parser->getDocument();
 	DOMElement* root = doc->getDocumentElement();
 	if (!root) {

@@ -19,6 +19,7 @@ if(WIN32)
     )
 endif()
 
+add_subdirectory(InvalidXML)
 add_subdirectory(ExternalTool)
 add_subdirectory(If)
 add_subdirectory(While)
