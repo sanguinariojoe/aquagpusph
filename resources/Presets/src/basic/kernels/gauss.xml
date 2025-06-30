@@ -11,4 +11,5 @@ Gaussian kernel-->
 
     <Variables>
         <Variable name="support" type="float" value="3.0" />
+    </Variables>
 </sphInput>

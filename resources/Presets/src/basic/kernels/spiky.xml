@@ -16,4 +16,5 @@ This kernel has the particularity that hfac variable has to be defined
 
     <Variables>
         <Variable name="support" type="float" value="2.0" />
+    </Variables>
 </sphInput>
