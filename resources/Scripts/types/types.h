@@ -35,6 +35,7 @@
 #define dvec3 double3
 #define dvec4 double4
 #define dvec8 double8
+#define dvec16 double16
 #define ivec2 int2
 #define ivec3 int3
 #define ivec4 int4
