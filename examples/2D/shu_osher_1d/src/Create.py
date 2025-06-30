@@ -39,10 +39,10 @@ import math
 
 
 courant = 0.5
-L = 1.0
+L = 5.0
 support = 2.0 
-hfac = 2.0
-nx = 500
+hfac = 4.0
+nx = 5000
 
 gamma = 1.4
 
@@ -70,7 +70,7 @@ v2=0.0
 # ==========================
 dr = L / nx
 h = hfac * dr
-t_max = (0.5 * L - support * h) / cs
+t_max = (0.5 * L - support * h) / cs /100.0
 # For the vertical dimension, we need to grant that no particle can see
 # simultaneously both, the top and bottom symmetry planes.
 # On top of that, we are interested on having a file of particles at y=0
@@ -126,8 +126,8 @@ string = """
 print(string)
 
 x = -0.5 * (L - dr)
-while x < 0.5 * L:
-    rho, v, ener = (rho1, v1, e1) if x < 0 else (rho2+0.1*math.sin(5.0*x/L), v2, e2)
+while x < 0.5 * L: 
+    rho, v, ener = (rho1, v1, e1) if x < 0 else (rho2 + 0.2 * math.sin(5.0* x / (L*0.02) ), v2, e2)
     y = -0.5 * (R - dr)
     while y < 0.5 * R:
         writeParticle(output, (x, y), u=(v, 0.0), rho=rho, e=ener)
