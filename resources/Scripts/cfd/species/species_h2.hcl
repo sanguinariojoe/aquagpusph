@@ -16,8 +16,8 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _SPECIES_H_INCLUDED_
-#define _SPECIES_H_INCLUDED_
+#ifndef _SPECIES_H2_INCLUDED_
+#define _SPECIES_H2_INCLUDED_
 
 #define R_gas 8.31f
 
@@ -144,4 +144,4 @@ calc_gamma_cp_cv(/*float y_H2,
 	return;
 }
 
-#endif // _SPECIES_H_INCLUDED_
+#endif // _SPECIES_H2_INCLUDED_
