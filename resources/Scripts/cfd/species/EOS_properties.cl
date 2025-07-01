@@ -103,13 +103,13 @@ entry(const __global unsigned int* iset,
 
 	calc_gamma_cp_cv(
 	    //y_H2[i], y_O2[i], y_N2[i], y_H2O[i], 
-		ys[i],
+		ys+i,
 		gamma + i, cv + i, cp + i);
 	X_from_Y(/*y_H2[i],
 	         y_O2[i],
 	         y_N2[i],
 	         y_H2O[i],*/
-			 ys[i],
+			 ys+i,
 	         /*x_H2 + i,
 	         x_O2 + i,
 	         x_N2 + i,

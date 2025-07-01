@@ -57,17 +57,17 @@ X_from_Y(/*float y_H2,
 	// const float Mis[4] = {0.002f, 0.032f, 0.028f, 0.018f};
 
 	float y_H2, y_O2, y_N2, y_H2O;
-	y_H2=ys.H2;
-	y_O2=ys.O2;
-	y_N2=ys.N2;
-	y_H2O=ys.H2O;
+	y_H2=(*ys).H2;
+	y_O2=(*ys).O2;
+	y_N2=(*ys).N2;
+	y_H2O=(*ys).H2O;
 
 	MMix = molar_mass_mixture(y_H2, y_O2, y_N2, y_H2O);
 
-	*xs.H2 = MMix / Mis[0] * y_H2;
-	*xs.O2 = MMix / Mis[1] * y_O2;
-	*xs.N2 = MMix / Mis[2] * y_N2;
-	*xs.H2O = MMix / Mis[3] * y_H2O;
+	(*xs).H2 = MMix / Mis[0] * y_H2;
+	(*xs).O2 = MMix / Mis[1] * y_O2;
+	(*xs).N2 = MMix / Mis[2] * y_N2;
+	(*xs).H2O = MMix / Mis[3] * y_H2O;
 
 	// printf("x_O2 = %f   x_N2 = %f\n", *x_O2, *x_N2);
 	return;
@@ -86,10 +86,10 @@ calc_gamma_cv(/*float y_H2,
 	float MMix, R_mix, cp_local, cv_local;
 	
 	float y_H2, y_O2, y_N2, y_H2O;
-	y_H2=ys.H2;
-	y_O2=ys.O2;
-	y_N2=ys.N2;
-	y_H2O=ys.H2O;
+	y_H2=(*ys).H2;
+	y_O2=(*ys).O2;
+	y_N2=(*ys).N2;
+	y_H2O=(*ys).H2O;
 
 	MMix = molar_mass_mixture(y_H2, y_O2, y_N2, y_H2O);
 	cp_local = calc_cp_mix(y_H2, y_O2, y_N2, y_H2O);
@@ -121,10 +121,10 @@ calc_gamma_cp_cv(/*float y_H2,
 	float MMix, R_mix, cp_local, cv_local;
 
 	float y_H2, y_O2, y_N2, y_H2O;
-	y_H2=ys.H2;
-	y_O2=ys.O2;
-	y_N2=ys.N2;
-	y_H2O=ys.H2O;
+	y_H2=(*ys).H2;
+	y_O2=(*ys).O2;
+	y_N2=(*ys).N2;
+	y_H2O=(*ys).H2O;
 
 	MMix = molar_mass_mixture(y_H2, y_O2, y_N2, y_H2O);
 	cp_local = calc_cp_mix(y_H2, y_O2, y_N2, y_H2O);

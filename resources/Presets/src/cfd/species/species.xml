@@ -25,8 +25,9 @@
     </Variables>
 
     <Tools>
-
-        <Tool action="insert" after="Sort" type="set" name="reinit dysdt" in="dysdt" value="vec16(0.f)" />
+        
+        <Tool action="insert" after="Sort" type="set" name="reinit dysdt" in="dysdt" value="VEC16_ZERO" />
+        <!--<Tool action="insert" after="Sort" type="set" name="reinit dysdt" in="dysdt" value="vec16(0.f)" />-->
 
         <Tool action="insert" after="predictor" name="predictor mass fractions" type="kernel"
             entry_point="predictor" path="../../../Scripts/cfd/species/euler.cl" />
