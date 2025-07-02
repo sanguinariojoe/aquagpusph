@@ -13,7 +13,7 @@
 
         <Variable name="z" type="float*" length="N" />
         <Variable name="z_in" type="float*" length="N" />
-        <Variable name="dzdt" type="float*" length="N" />
+        <Variable name="dz_dt" type="float*" length="N" />
 
         <Variable name="ys" type="vec16*" length="N" />
         <Variable name="ys_in" type="vec16*" length="N" />
