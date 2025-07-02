@@ -583,31 +583,37 @@ __DEFINE_AQUA_VEC(IVec2Variable, ivec2, 2, NPY_INT32)
 __DEFINE_AQUA_VEC(IVec3Variable, ivec3, 3, NPY_INT32)
 __DEFINE_AQUA_VEC(IVec4Variable, ivec4, 4, NPY_INT32)
 __DEFINE_AQUA_VEC(IVec8Variable, ivec8, 8, NPY_INT32)
+__DEFINE_AQUA_VEC(IVec16Variable, ivec16, 16, NPY_INT32)
 
 __DEFINE_AQUA_VEC(LVec2Variable, lvec2, 2, NPY_INT64)
 __DEFINE_AQUA_VEC(LVec3Variable, lvec3, 3, NPY_INT64)
 __DEFINE_AQUA_VEC(LVec4Variable, lvec4, 4, NPY_INT64)
 __DEFINE_AQUA_VEC(LVec8Variable, lvec8, 8, NPY_INT64)
+__DEFINE_AQUA_VEC(LVec16Variable, lvec16, 16, NPY_INT64)
 
 __DEFINE_AQUA_VEC(UIVec2Variable, uivec2, 2, NPY_UINT32)
 __DEFINE_AQUA_VEC(UIVec3Variable, uivec3, 3, NPY_UINT32)
 __DEFINE_AQUA_VEC(UIVec4Variable, uivec4, 4, NPY_UINT32)
 __DEFINE_AQUA_VEC(UIVec8Variable, uivec8, 8, NPY_UINT32)
+__DEFINE_AQUA_VEC(UIVec16Variable, uivec16, 16, NPY_UINT32)
 
 __DEFINE_AQUA_VEC(ULVec2Variable, ulvec2, 2, NPY_UINT64)
 __DEFINE_AQUA_VEC(ULVec3Variable, ulvec3, 3, NPY_UINT64)
 __DEFINE_AQUA_VEC(ULVec4Variable, ulvec4, 4, NPY_UINT64)
 __DEFINE_AQUA_VEC(ULVec8Variable, ulvec8, 8, NPY_UINT64)
+__DEFINE_AQUA_VEC(ULVec16Variable, ulvec16, 16, NPY_UINT64)
 
 __DEFINE_AQUA_VEC(Vec2Variable, vec2, 2, NPY_FLOAT32)
 __DEFINE_AQUA_VEC(Vec3Variable, vec3, 3, NPY_FLOAT32)
 __DEFINE_AQUA_VEC(Vec4Variable, vec4, 4, NPY_FLOAT32)
 __DEFINE_AQUA_VEC(Vec8Variable, vec8, 8, NPY_FLOAT32)
+__DEFINE_AQUA_VEC(Vec16Variable, vec16, 16, NPY_FLOAT32)
 
 __DEFINE_AQUA_VEC(DVec2Variable, dvec2, 2, NPY_FLOAT64)
 __DEFINE_AQUA_VEC(DVec3Variable, dvec3, 3, NPY_FLOAT64)
 __DEFINE_AQUA_VEC(DVec4Variable, dvec4, 4, NPY_FLOAT64)
 __DEFINE_AQUA_VEC(DVec8Variable, dvec8, 8, NPY_FLOAT64)
+__DEFINE_AQUA_VEC(DVec16Variable, dvec16, 16, NPY_FLOAT64)
 
 ArrayVariable::ArrayVariable(const std::string varname,
                              const std::string vartype)
@@ -1149,6 +1155,8 @@ Variables::typeToN(const std::string type)
 		return 4;
 	} else if (type.find("vec8") != std::string::npos) {
 		return 8;
+	} else if (type.find("vec16") != std::string::npos) {
+		return 16;
 	} else if (type.find("vec") != std::string::npos) {
 		auto C = CalcServer::CalcServer::singleton();
 		if (C->have_3d())
@@ -1296,26 +1304,32 @@ VEC_SOLVER(ivec2, int, 2)
 // VEC_SOLVER(ivec3, int, 3)
 VEC_SOLVER(ivec4, int, 4)
 VEC_SOLVER(ivec8, int, 8)
+VEC_SOLVER(ivec16, int, 16)
 VEC_SOLVER(lvec2, long, 2)
 // VEC_SOLVER(lvec3, long, 3)
 VEC_SOLVER(lvec4, long, 4)
 VEC_SOLVER(lvec8, long, 8)
+VEC_SOLVER(lvec16, long, 16)
 VEC_SOLVER(uivec2, unsigned int, 2)
 // VEC_SOLVER(uivec3, unsigned int, 3)
 VEC_SOLVER(uivec4, unsigned int, 4)
 VEC_SOLVER(uivec8, unsigned int, 8)
+VEC_SOLVER(uivec16, unsigned int, 16)
 VEC_SOLVER(ulvec2, unsigned long, 2)
 // VEC_SOLVER(ulvec3, unsigned long, 3)
 VEC_SOLVER(ulvec4, unsigned long, 4)
 VEC_SOLVER(ulvec8, unsigned long, 8)
+VEC_SOLVER(ulvec16, unsigned long, 16)
 VEC_SOLVER(vec2, float, 2)
 // VEC_SOLVER(vec3, float, 3)
 VEC_SOLVER(vec4, float, 4)
 VEC_SOLVER(vec8, float, 8)
+VEC_SOLVER(vec16, float, 16)
 VEC_SOLVER(dvec2, double, 2)
 // VEC_SOLVER(dvec3, double, 3)
 VEC_SOLVER(dvec4, double, 4)
 VEC_SOLVER(dvec8, double, 8)
+VEC_SOLVER(dvec16, double, 16)
 
 void
 Variables::solve(const std::string type_name,
@@ -1368,6 +1382,9 @@ Variables::solve(const std::string type_name,
 	} else if (!type.compare("vec8")) {
 		vec8 val = solve<vec8>(name, value);
 		memcpy(data, &val, typesize);
+	} else if (!type.compare("vec16")) {
+		vec16 val = solve<vec16>(name, value);
+		memcpy(data, &val, typesize);
 	} else if (!type.compare("dvec2")) {
 		dvec2 val = solve<dvec2>(name, value);
 		memcpy(data, &val, typesize);
@@ -1379,6 +1396,9 @@ Variables::solve(const std::string type_name,
 		memcpy(data, &val, typesize);
 	} else if (!type.compare("dvec8")) {
 		dvec8 val = solve<dvec8>(name, value);
+		memcpy(data, &val, typesize);
+	} else if (!type.compare("dvec16")) {
+		dvec16 val = solve<dvec16>(name, value);
 		memcpy(data, &val, typesize);
 	} else if (!type.compare("ivec2")) {
 		ivec2 val = solve<ivec2>(name, value);
@@ -1392,6 +1412,9 @@ Variables::solve(const std::string type_name,
 	} else if (!type.compare("ivec8")) {
 		ivec8 val = solve<ivec8>(name, value);
 		memcpy(data, &val, typesize);
+	} else if (!type.compare("ivec16")) {
+		ivec16 val = solve<ivec16>(name, value);
+		memcpy(data, &val, typesize);
 	} else if (!type.compare("lvec2")) {
 		lvec2 val = solve<lvec2>(name, value);
 		memcpy(data, &val, typesize);
@@ -1403,6 +1426,9 @@ Variables::solve(const std::string type_name,
 		memcpy(data, &val, typesize);
 	} else if (!type.compare("lvec8")) {
 		lvec8 val = solve<lvec8>(name, value);
+		memcpy(data, &val, typesize);
+	} else if (!type.compare("lvec16")) {
+		lvec16 val = solve<lvec16>(name, value);
 		memcpy(data, &val, typesize);
 	} else if (!type.compare("uivec2")) {
 		uivec2 val = solve<uivec2>(name, value);
@@ -1416,6 +1442,9 @@ Variables::solve(const std::string type_name,
 	} else if (!type.compare("uivec8")) {
 		uivec8 val = solve<uivec8>(name, value);
 		memcpy(data, &val, typesize);
+	} else if (!type.compare("uivec16")) {
+		uivec16 val = solve<uivec16>(name, value);
+		memcpy(data, &val, typesize);
 	} else if (!type.compare("ulvec2")) {
 		ulvec2 val = solve<ulvec2>(name, value);
 		memcpy(data, &val, typesize);
@@ -1427,6 +1456,9 @@ Variables::solve(const std::string type_name,
 		memcpy(data, &val, typesize);
 	} else if (!type.compare("ulvec8")) {
 		ulvec8 val = solve<ulvec8>(name, value);
+		memcpy(data, &val, typesize);
+	} else if (!type.compare("ulvec16")) {
+		ulvec16 val = solve<ulvec16>(name, value);
 		memcpy(data, &val, typesize);
 	} else {
 		throw std::runtime_error("Invalid variable type");
@@ -1535,7 +1567,7 @@ Variables::populate(Variable* var)
 		LOG0(L_DEBUG, "\tfloat\n");
 		LOG0(L_DEBUG, "\tdouble\n");
 		for (auto prefix : {"vec", "dvec", "ivec", "lvec", "uivec", "ulvec"}) {
-			for (auto n : {2, 3, 4, 8}) {
+			for (auto n : {2, 3, 4, 8, 16}) {
 				LOG0(L_DEBUG, std::string("\t") + prefix + std::to_string(n) +
 				              "\n");
 			}
@@ -1689,26 +1721,32 @@ Variables::registerScalar(const std::string name,
 	REG_VEC_BLOCK(vec3)
 	REG_VEC_BLOCK(vec4)
 	REG_VEC_BLOCK(vec8)
+	REG_VEC_BLOCK(vec16)
 	REG_VEC_BLOCK(dvec2)
 	REG_VEC_BLOCK(dvec3)
 	REG_VEC_BLOCK(dvec4)
 	REG_VEC_BLOCK(dvec8)
+	REG_VEC_BLOCK(dvec16)
 	REG_VEC_BLOCK(ivec2)
 	REG_VEC_BLOCK(ivec3)
 	REG_VEC_BLOCK(ivec4)
 	REG_VEC_BLOCK(ivec8)
+	REG_VEC_BLOCK(ivec16)
 	REG_VEC_BLOCK(lvec2)
 	REG_VEC_BLOCK(lvec3)
 	REG_VEC_BLOCK(lvec4)
 	REG_VEC_BLOCK(lvec8)
+	REG_VEC_BLOCK(lvec16)
 	REG_VEC_BLOCK(uivec2)
 	REG_VEC_BLOCK(uivec3)
 	REG_VEC_BLOCK(uivec4)
 	REG_VEC_BLOCK(uivec8)
+	REG_VEC_BLOCK(uivec16)
 	REG_VEC_BLOCK(ulvec2)
 	REG_VEC_BLOCK(ulvec3)
 	REG_VEC_BLOCK(ulvec4)
 	REG_VEC_BLOCK(ulvec8)
+	REG_VEC_BLOCK(ulvec16)
 	else {
 		std::ostringstream msg;
 		msg << "\"" << name << "\" declared as \"" << type
@@ -1726,7 +1764,7 @@ Variables::registerScalar(const std::string name,
 		LOG0(L_DEBUG, "\tfloat\n");
 		LOG0(L_DEBUG, "\tdouble\n");
 		for (auto prefix : {"vec", "dvec", "ivec", "lvec", "uivec", "ulvec"}) {
-			for (auto n : {2, 3, 4, 8}) {
+			for (auto n : {2, 3, 4, 8, 16}) {
 				LOG0(L_DEBUG, std::string("\t") + prefix + std::to_string(n) +
 				              "\n");
 			}
@@ -1768,7 +1806,7 @@ Variables::registerClMem(const std::string name,
 		LOG0(L_DEBUG, "\tfloat*\n");
 		LOG0(L_DEBUG, "\tdouble*\n");
 		for (auto prefix : {"vec", "dvec", "ivec", "lvec", "uivec", "ulvec"}) {
-			for (auto n : {2, 3, 4, 8}) {
+			for (auto n : {2, 3, 4, 8, 16}) {
 				LOG0(L_DEBUG, std::string("\t") + prefix + "*" +
 				              std::to_string(n) + "\n");
 			}

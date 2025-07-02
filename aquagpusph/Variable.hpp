@@ -751,6 +751,11 @@ __DECLARE_AQUA_VEC(IVec4Variable, ivec4)
  */
 __DECLARE_AQUA_VEC(IVec8Variable, ivec8)
 
+/** @class IVec16Variable Variable.h Variable.h
+ * @brief A ivec16 variable.
+ */
+__DECLARE_AQUA_VEC(IVec16Variable, ivec16)
+
 /** @class LVec2Variable Variable.h Variable.h
  * @brief A lvec2 variable.
  */
@@ -770,6 +775,11 @@ __DECLARE_AQUA_VEC(LVec4Variable, lvec4)
  * @brief A ivec8 variable.
  */
 __DECLARE_AQUA_VEC(LVec8Variable, lvec8)
+
+/** @class LVec16Variable Variable.h Variable.h
+ * @brief A ivec16 variable.
+ */
+__DECLARE_AQUA_VEC(LVec16Variable, lvec16)
 
 /** @class UIVec2Variable Variable.h Variable.h
  * @brief A uivec2 variable.
@@ -791,6 +801,11 @@ __DECLARE_AQUA_VEC(UIVec4Variable, uivec4)
  */
 __DECLARE_AQUA_VEC(UIVec8Variable, uivec8)
 
+/** @class UIVec16Variable Variable.h Variable.h
+ * @brief A uivec16 variable.
+ */
+__DECLARE_AQUA_VEC(UIVec16Variable, uivec16)
+
 /** @class ULVec2Variable Variable.h Variable.h
  * @brief A ulvec2 variable.
  */
@@ -810,6 +825,11 @@ __DECLARE_AQUA_VEC(ULVec4Variable, ulvec4)
  * @brief A ulvec8 variable.
  */
 __DECLARE_AQUA_VEC(ULVec8Variable, ulvec8)
+
+/** @class ULVec16Variable Variable.h Variable.h
+ * @brief A ulvec16 variable.
+ */
+__DECLARE_AQUA_VEC(ULVec16Variable, ulvec16)
 
 /** @class Vec2Variable Variable.h Variable.h
  * @brief A vec2 variable.
@@ -831,6 +851,11 @@ __DECLARE_AQUA_VEC(Vec4Variable, vec4)
  */
 __DECLARE_AQUA_VEC(Vec8Variable, vec8)
 
+/** @class Vec16Variable Variable.h Variable.h
+ * @brief A vec16 variable.
+ */
+__DECLARE_AQUA_VEC(Vec16Variable, vec16)
+
 /** @class DVec2Variable Variable.h Variable.h
  * @brief A dvec2 variable.
  */
@@ -851,6 +876,11 @@ __DECLARE_AQUA_VEC(DVec4Variable, dvec4)
  */
 __DECLARE_AQUA_VEC(DVec8Variable, dvec8)
 
+/** @class DVec16Variable Variable.h Variable.h
+ * @brief A dvec16 variable.
+ */
+__DECLARE_AQUA_VEC(DVec16Variable, dvec16)
+
 /** @name Variable aliases
  * @brief Some alias to make easier to create preprocessor directives
  */
@@ -865,26 +895,32 @@ typedef IVec2Variable ivec2Variable;
 typedef IVec3Variable ivec3Variable;
 typedef IVec4Variable ivec4Variable;
 typedef IVec8Variable ivec8Variable;
+typedef IVec16Variable ivec16Variable;
 typedef LVec2Variable lvec2Variable;
 typedef LVec3Variable lvec3Variable;
 typedef LVec4Variable lvec4Variable;
 typedef LVec8Variable lvec8Variable;
+typedef LVec16Variable lvec16Variable;
 typedef UIVec2Variable uivec2Variable;
 typedef UIVec3Variable uivec3Variable;
 typedef UIVec4Variable uivec4Variable;
 typedef UIVec8Variable uivec8Variable;
+typedef UIVec16Variable uivec16Variable;
 typedef ULVec2Variable ulvec2Variable;
 typedef ULVec3Variable ulvec3Variable;
 typedef ULVec4Variable ulvec4Variable;
 typedef ULVec8Variable ulvec8Variable;
+typedef ULVec16Variable ulvec16Variable;
 typedef Vec2Variable vec2Variable;
 typedef Vec3Variable vec3Variable;
 typedef Vec4Variable vec4Variable;
 typedef Vec8Variable vec8Variable;
+typedef Vec16Variable vec16Variable;
 typedef DVec2Variable dvec2Variable;
 typedef DVec3Variable dvec3Variable;
 typedef DVec4Variable dvec4Variable;
 typedef DVec8Variable dvec8Variable;
+typedef DVec16Variable dvec16Variable;
 /// @}
 
 /** @class ArrayVariable Variable.h Variable.h
@@ -1141,11 +1177,13 @@ class DECLDIR Variables
 	 *  - "svec3" = Either "uivec3" or "ulvec3"
 	 *  - "svec4" = Either "uivec4" or "ulvec4"
 	 *  - "svec8" = Either "uivec8" or "ulvec8"
+	 *  - "svec16" = Either "uivec16" or "ulvec16"
 	 *  - "ssvec" = Either "ivec" or "lvec"
 	 *  - "ssvec2" = Either "ivec2" or "lvec2"
 	 *  - "ssvec3" = Either "ivec3" or "lvec3"
 	 *  - "ssvec4" = Either "ivec4" or "lvec4"
 	 *  - "ssvec8" = Either "ivec8" or "lvec8"
+	 *  - "ssvec16" = Either "ivec16" or "lvec16"
 	 * @param t Input aliased type
 	 * @return Base type
 	 * @see Aqua::CalcServer::CalcServer::device_addr_bits()

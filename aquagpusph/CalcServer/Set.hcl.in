@@ -24,34 +24,74 @@
 #define vec3 float3
 #define vec4 float4
 #define vec8 float8
+#define vec16 float16
 #define dvec2 double2
 #define dvec3 double3
 #define dvec4 double4
 #define dvec8 double8
+#define dvec16 double16
 #define ivec2 int2
 #define ivec3 int3
 #define ivec4 int4
 #define ivec8 int8
+#define ivec16 int16
 #define lvec2 long2
 #define lvec3 long3
 #define lvec4 long4
 #define lvec8 long8
+#define lvec16 long16
 #define uivec2 uint2
 #define uivec3 uint3
 #define uivec4 uint4
 #define uivec8 uint8
+#define uivec16 uint16
 #define ulvec2 ulong2
 #define ulvec3 ulong3
 #define ulvec4 ulong4
 #define ulvec8 ulong8
+#define ulvec16 ulong16
 #define svec2 usize2
 #define svec3 usize3
 #define svec4 usize4
 #define svec8 usize8
+#define svec16 usize16
 #define ssvec2 ssize2
 #define ssvec3 ssize3
 #define ssvec4 ssize4
 #define ssvec8 ssize8
+#define ssvec16 ssize16
+
+#define VEC2_ZERO ((float2)(0.f))
+#define VEC3_ZERO ((float3)(0.f))
+#define VEC4_ZERO ((float4)(0.f))
+#define VEC8_ZERO ((float8)(0.f))
+#define VEC16_ZERO ((float16)(0.0))
+#define DVEC2_ZERO ((double2)(0.0))
+#define DVEC3_ZERO ((double3)(0.0))
+#define DVEC4_ZERO ((double4)(0.0))
+#define DVEC8_ZERO ((double8)(0.0))
+#define DVEC16_ZERO ((double16)(0.0))
+#define IVEC2_ZERO ((int2)(0))
+#define IVEC3_ZERO ((int3)(0))
+#define IVEC4_ZERO ((int4)(0))
+#define IVEC8_ZERO ((int8)(0))
+#define IVEC16_ZERO ((int16)(0))
+#define LVEC2_ZERO ((long2)(0l))
+#define LVEC3_ZERO ((long3)(0l))
+#define LVEC4_ZERO ((long4)(0l))
+#define LVEC8_ZERO ((long8)(0l))
+#define LVEC16_ZERO ((long16)(0l))
+#define UIVEC2_ZERO ((uint2)(0u))
+#define UIVEC3_ZERO ((uint3)(0u))
+#define UIVEC4_ZERO ((uint4)(0u))
+#define UIVEC8_ZERO ((uint8)(0u))
+#define UIVEC16_ZERO ((uint16)(0u))
+#define ULVEC2_ZERO ((ulong2)(0ul))
+#define ULVEC3_ZERO ((ulong3)(0ul))
+#define ULVEC4_ZERO ((ulong4)(0ul))
+#define ULVEC8_ZERO ((ulong8)(0ul))
+#define ULVEC16_ZERO ((ulong16)(0ul))
+
 
 #ifndef HAVE_3D
 #define vec vec2
@@ -63,13 +103,14 @@
 #define svec svec2
 #define ssvec ssvec2
 #define matrix float4
-#define VEC_ZERO (float2)(0.f, 0.f)
+#define VEC_ZERO VEC2_ZERO
 #define VEC_ONE (float2)(1.f, 1.f)
 #define VEC_ALL_ONE VEC_ONE
 #define VEC_INFINITY (float2)(INFINITY, INFINITY)
 #define VEC_ALL_INFINITY VEC_INFINITY
-#define MAT_ZERO ((float4)(0.f, 0.f, 0.f, 0.f))
-#define MAT_EYE ((float4)(1.f, 0.f, 0.f, 1.f))
+#define MAT_ZERO VEC4_ZERO
+#define MAT_EYE ((float4)(1.f, 0.f,                                            \
+                          0.f, 1.f))
 #else
 #define vec vec4
 #define dvec dvec4
@@ -80,45 +121,17 @@
 #define svec svec4
 #define ssvec ssvec4
 #define matrix float16
-#define VEC_ZERO (float4)(0.f, 0.f, 0.f, 0.f)
+#define VEC_ZERO VEC4_ZERO
 #define VEC_ONE (float4)(1.f, 1.f, 1.f, 0.f)
 #define VEC_ALL_ONE (float4)(1.f, 1.f, 1.f, 1.f)
 #define VEC_INFINITY (float4)(INFINITY, INFINITY, INFINITY, 0.f)
 #define VEC_ALL_INFINITY (float4)(INFINITY, INFINITY, INFINITY, INFINITY)
-#define MAT_ZERO                                                               \
-	((float16)(0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f))
+#define MAT_ZERO VEC16_ZERO
 #define MAT_EYE                                                                \
-	((float16)(1.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           1.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           1.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           0.f,                                                            \
-	           1.f))
+	((float16)(1.f, 0.f, 0.f, 0.f,                                             \
+	           0.f, 1.f, 0.f, 0.f,                                             \
+	           0.f, 0.f, 1.f, 0.f,                                             \
+	           0.f, 0.f, 0.f, 1.f))
 #endif
 
 #define VEC_NEG_INFINITY (-VEC_INFINITY)
