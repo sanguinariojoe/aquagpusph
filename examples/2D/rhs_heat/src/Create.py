@@ -132,10 +132,12 @@ print("")
 # ====================
 def writeParticle(output, p, n=(0.0, 0.0), u=(0.0, 0.0),
                   dudt=(0.0, 0.0), rho=0.0, drhodt=0.0, e=0.0, dedt=0.0,
-                  z=0, y_H2=0, dy_H2dt=0, y_O2=0, dy_O2dt=0, y_N2=0, dy_N2dt=0, y_H2O=0, dy_H2Odt=0,
+                  z=0.0, y_H2=0.0, dy_H2dt=0.0, y_O2=0.0, dy_O2dt=0.0, y_N2=0.0, dy_N2dt=0.0, y_H2O=0.0, dy_H2Odt=0.0,
                   imove=1):
     m = rho * dr**2
     string = ("{} {}, " * 4 + "{}, {}, {}, {}, {}, " 
+              +
+              "{} " * 15 + "{}, "   
               +
               "{} " * 15 + "{}, " 
               +
