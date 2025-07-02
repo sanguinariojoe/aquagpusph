@@ -39,14 +39,33 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
 
-DR = {{DR}}
-L = {{L}}
-T = {{T}}
-GAMMA = {{GAMMA}}
-CS = {{CS}}
-P = [{{P1}}, {{P2}}]
-RHO = [{{RHO1}}, {{RHO2}}]
-E = [{{E1}}, {{E2}}]
+#DR = {{DR}}
+#L = {{L}}
+#T = {{T}}
+#GAMMA = {{GAMMA}}
+#CS = {{CS}}
+#P = [{{P1}}, {{P2}}]
+#RHO = [{{RHO1}}, {{RHO2}}]
+#E = [{{E1}}, {{E2}}]
+
+L=10.0
+DR = 0.001
+
+def one_vtu(num):
+    with open('output.vtu.series') as json_data:
+        data = json.load(json_data)
+        fname, t = data['files'][num]['name'], data['files'][num]['time']
+    mesh = meshio.read(fname)
+    # We must choose the points.
+    mask = np.zeros(len(mesh.points), dtype=bool)
+    mask[(np.abs(mesh.points[:, 1]) < 0.25 * DR)] = True
+    x = mesh.points[mask, 0]
+    rho = mesh.point_data['rho'][mask]
+    p = mesh.point_data['p'][mask]
+    eint = mesh.point_data['eint'][mask]
+    u = np.linalg.norm(mesh.point_data['u'][mask, :], axis=1)
+    sorter = np.argsort(x)
+    return t, x[sorter], rho[sorter], p[sorter], eint[sorter], u[sorter]
 
 
 def read_vtu():
@@ -74,38 +93,26 @@ exp, = ax.plot([0.0], [0.0], color="black", linewidth=1.0, linestyle='-')
 sph, = ax.plot([0.0], [0.0], color="red", linewidth=1.0, linestyle='--')
 # Set some options
 ax.grid()
-ax.set_xlim(-0.5, 0.5)
-ax.set_ylim(0, 1.6)
-ax.set_autoscale_on(False)
-ax.set_xlabel(r"$x / R$")
-ax.set_ylabel(r"$rho / rho_0$")
+ax.set_xlim(-L, L)
+ax.set_ylim(0.0, 4.5)
+ax.set_autoscale_on(True)
+ax.set_xlabel(r"$x [-]$")
+ax.set_ylabel(r"$rho [-]$")
 ax.set_title(r"$t = 0$")
 
-# Animate
-def update(frame_index):
-    plt.tight_layout()
-    try:
-        # SPH data
-        t, x, rho, _, _, _ = read_vtu()
-        # Analytic solution
-        npts = len(x)
-        left_state = (P[0], RHO[0], 0)
-        right_state = (P[1], RHO[1], 0.)
-#        _, _, exp_data = sodshock.solve(left_state=left_state,
-#                                        right_state=right_state,
-#                                        geometry=(-0.5 * L, 0.5 * L, 0),
-#                                        t=t, 
-#                                        gamma=GAMMA,
-#                                        npts=npts,
-#                                        dustFrac=0.0)
-    except IndexError:
-        return
-    except FileNotFoundError:
-        return
-    sph.set_data(x / L, rho / max(RHO))
-#    exp.set_data(exp_data['x'] / L, exp_data['rho'] / max(RHO))
-    ax.set_title(r"$t \,\, c_0 / L = {}$".format(t / T))
+plt.tight_layout()
+#t, x, rho, _, _, _ = read_vtu()
 
-update(0)
-ani = animation.FuncAnimation(fig, update, interval=1000)
-plt.show()
+nfiles=0
+with open('output.vtu.series') as json_data:
+    data = json.load(json_data)
+    nfiles = len(data['files'])
+
+for i in range(nfiles):
+    t, x, rho, _, _, _ = one_vtu(i)
+
+    sph.set_data(x * 0.1*L, rho)
+    
+    
+    plt.savefig('rho_'+str(i)+'.png', dpi=300)
+    
