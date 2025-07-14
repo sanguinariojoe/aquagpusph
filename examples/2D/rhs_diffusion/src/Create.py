@@ -30,17 +30,20 @@
 #
 #########################################################################
 
+
+
 import os
 import sys
 script_folder = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(script_folder, "../../"))
-import numpy as np
-import math
 import aqua_example_utils as utils
+import math
+import numpy as np
 
 # zone 2 h2+air
 nu = 1.0e-5
 xi = 1.0e-5
+
 Dh2 = 1.0e-2
 Dn2 = 1.0e-2
 Do2 = 1.0e-2
@@ -93,7 +96,7 @@ T1 = 300.0
 T2 = 300.0
 
 rho1 = p1 * MM1 / (8.31 * T1)
-rho2 = p1 * MM2 / (8.31 * T2)
+rho2 = p2 * MM2 / (8.31 * T2)
 
 gamma = 1.4
 
@@ -133,28 +136,45 @@ print("")
 # ====================
 def writeParticle(output, p, n=(0.0, 0.0), u=(0.0, 0.0),
                   dudt=(0.0, 0.0), rho=0.0, drhodt=0.0, e=0.0, dedt=0.0,
-                  z=0, y_H2=0, dy_H2dt=0, y_O2=0, dy_O2dt=0, y_N2=0, dy_N2dt=0, y_H2O=0, dy_H2Odt=0,
+                  z=0.0, y_H2=0.0, dy_H2dt=0.0, y_O2=0.0, dy_O2dt=0.0, y_N2=0.0, dy_N2dt=0.0, y_H2O=0.0, dy_H2Odt=0.0,
                   imove=1):
     m = rho * dr**2
-    string = ("{} {}, " * 4 + "{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n").format(
+    string = ("{} {}, " * 4 + "{}, {}, {}, {}, {}, " 
+              +
+              "{} " * 15 + "{}, "   
+              +
+              "{} " * 15 + "{}, " 
+              +
+              "{}, {}, {},"
+              +
+	          "{} " * 15 + "{}, "
+	          +
+	          "{}\n").format(
         p[0], p[1],
         n[0], n[1],
         u[0], u[1],
-        dudt[0], dudt[1],
+        dudt[0], dudt[1],  # r, normal, u, dudt,
         rho,
-        drhodt,
+        drhodt,  # rho, drhodt,
         e,
-        dedt,
-        z,
-        y_H2, dy_H2dt,
-        y_O2, dy_O2dt,
-        y_N2, dy_N2dt,
-        y_H2O, dy_H2Odt,
-        m,
+        dedt,  # eint, deintdt,
+        z,  # z,
+        y_H2, y_O2, y_N2, y_H2O,
+        0.0, 0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0, 0.0,
+        dy_H2dt, dy_O2dt, dy_N2dt, dy_H2Odt,
+        0.0, 0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0, 0.0,       
+        m,  # m,
         nu,
-        xi,
+        xi,  # nu, xi,
         Dh2, Do2, Dn2, Dh2o,
-        imove)
+        0.0, 0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0, 0.0,  
+        imove)  # imove
     output.write(string)
 
 
