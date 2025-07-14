@@ -27,6 +27,7 @@
  * This is an extension of resources/Scripts/basic/time_scheme/euler.cl
  */
 
+#include "resources/Scripts/types/types.h"
 
 /** @brief 1st order Euler time integration scheme corrector stage
  * @param imove Moving flags.
@@ -48,7 +49,7 @@ add(const __global int* imove,
     __global float* dy_O2dt,
     __global float* dy_N2dt,
     __global float* dy_H2Odt,*/
-    const __global vec16* rhs_y,
+    const __global vec16* rhsy,
 /*    const __global float* rhs_yh2,
     const __global float* rhs_yo2,
     const __global float* rhs_yn2,
@@ -63,8 +64,8 @@ add(const __global int* imove,
 	if (imove[i] > 0) {
 
 		//dz_dt[i] += rhs_yh2[i];
-        dz_dt[i] += rhs_ys[i].COMPONENT0;
-        dysdt[i] += rhs_y[i];
+        dz_dt[i] += rhsy[i].COMPONENT0;
+        dysdt[i] += rhsy[i];
 
         /*
 		dy_H2dt[i] += rhs_yh2[i];

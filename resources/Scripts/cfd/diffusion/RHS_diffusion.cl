@@ -54,7 +54,7 @@ entry(const __global int* imove,
       const __global float* rho,
       const __global float* m,
       // const __global float* p,
-	  __global vec16* rhs_y,
+	  __global vec16* rhsy,
 	  const __global vec16* ys,
 	  const __global vec16* Ds,
       /*__global float* rhs_yh2,
@@ -106,7 +106,7 @@ entry(const __global int* imove,
 // Initialize the output
 #ifndef LOCAL_MEM_SIZE
 
-#define _RHS_YS_ rhs_y[i]
+#define _RHS_YS_ rhsy[i]
 
 /*
 #define _RHS_YH2_ rhs_yh2[i]
@@ -116,7 +116,7 @@ entry(const __global int* imove,
 */
 
 #else
-#define _RHS_YS_ rhs_y_l[it]
+#define _RHS_YS_ rhsyl[it]
 
 /*
 #define _RHS_YH2_ rhs_yh2_l[it]
@@ -124,7 +124,7 @@ entry(const __global int* imove,
 #define _RHS_YN2_ rhs_yn2_l[it]
 #define _RHS_YH2O_ rhs_yh2o_l[it]
 */
-	__local vec16 rhs_y_l[LOCAL_MEM_SIZE];
+	__local vec16 rhsyl[LOCAL_MEM_SIZE];
 
 /*	__local float rhs_yh2_l[LOCAL_MEM_SIZE];
 	__local float rhs_yo2_l[LOCAL_MEM_SIZE];
@@ -132,7 +132,7 @@ entry(const __global int* imove,
 	__local float rhs_yh2o_l[LOCAL_MEM_SIZE];
 */
 
-	_RHS_YS_ = vec16(0.f);
+	_RHS_YS_ = VEC16_ZERO;
 
 /*	_RHS_YH2_ = 0.f;
 	_RHS_YO2_ = 0.f;
@@ -212,10 +212,12 @@ entry(const __global int* imove,
 
 #ifdef LOCAL_MEM_SIZE
 
-	rhs_yh2[i] = _RHS_YH2_;
-	rhs_yo2[i] = _RHS_YO2_;
-	rhs_yn2[i] = _RHS_YN2_;
-	rhs_yh2o[i] = _RHS_YH2O_;
+	rhsy[i] = _RHS_YS_;
+
+//	rhs_yh2[i] = _RHS_YH2_;
+//	rhs_yo2[i] = _RHS_YO2_;
+//	rhs_yn2[i] = _RHS_YN2_;
+//	rhs_yh2o[i] = _RHS_YH2O_;
 
 #endif
 }

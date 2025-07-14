@@ -8,7 +8,7 @@ Introduced the Fick's Law of diffusion in the equations for multiple species.
     <Variables>
         <Variable name="Ds" type="vec16*" length="N" />
         <Variable name="Ds_in" type="vec16*" length="N" />
-        <Variable name="rhs_y" type="vec16*" length="N" />
+        <Variable name="rhsy" type="vec16*" length="N" />
         
 <!--
         <Variable name="D_H2" type="float*" length="N" />
@@ -35,7 +35,7 @@ Introduced the Fick's Law of diffusion in the equations for multiple species.
     </Variables>
 
     <Tools>
-        <Tool action="insert" after="Sort" type="set" name="reinit rhs y" in="rhs_y" value="vec16(0.f)" />
+        <Tool action="insert" after="Sort" type="set" name="reinit rhs y" in="rhsy" value="VEC16_ZERO" />
 
         <!--
         <Tool action="insert" after="Sort" type="set" name="Reinit rhs yh2" in="rhs_yh2" value="0.f" />

@@ -63,33 +63,13 @@
  * @param C_p heat t constat pressure
  * @param D_xx diffusion coeficcient
  */
-/*float
-givemax(const local vec16 ddss)
-{
-	return max(max(max(max(max(max(max(max(max(max(max(max(max(max(max(ddss.s0,
-	                                                                   ddss.s1),
-	                                                               ddss.s2),
-	                                                           ddss.s3),
-	                                                       ddss.s4),
-	                                                   ddss.s5),
-	                                               ddss.s6),
-	                                           ddss.s7),
-	                                       ddss.s8),
-	                                   ddss.s9),
-	                               ddss.sA),
-	                           ddss.sB),
-	                       ddss.sC),
-	                   ddss.sD),
-	               ddss.sE),
-	           ddss.sF);
-}
-*/
+
 
 float
-givemax(const local vec16 ddss)
+givemax(const vec16 ddss)
 {
 
-const vec8 tmp1 = max(dt_u7.s01234567, dt_u7.s89ABCDEF);
+const vec8 tmp1 = max(ddss.s01234567, ddss.s89ABCDEF);
 const vec4 tmp2 = max(tmp1.s0123, tmp1.s4567);
 const vec2 tmp3 = max(tmp2.s01, tmp1.s23);
 const float tmp4 = max(tmp2.s0, tmp1.s1);
@@ -145,10 +125,12 @@ entry(__global float* dt_var,
       __constant float* gamma,
       const __global float* lambda,
       const __global float* cp,
-      const __global float* D_H2,
+	  const __global vec16* Ds
+      /*const __global float* D_H2,
       const __global float* D_O2,
       const __global float* D_N2,
-      const __global float* D_H2O)
+      const __global float* D_H2O*/
+	  )
 {
 	const usize i = get_global_id(0);
 	if (i >= N)
@@ -181,6 +163,9 @@ entry(__global float* dt_var,
 	const float dt_u8 = courant * dxx * dxx / (D_O2[i] / rho[i]);
 	const float dt_u9 = courant * dxx * dxx / (D_N2[i] / rho[i]);
 	const float dt_u10 = courant * dxx * dxx / (D_H2O[i] / rho[i]);*/
+
+	//const local vec16* dt_many;
+	//*dt_many = courant * dxx * dxx / (Ds[i] / rho[i]);
 
 	const vec16 dt_many = courant * dxx * dxx / (Ds[i] / rho[i]);
 	const float dt_u7 = givemax(dt_many);

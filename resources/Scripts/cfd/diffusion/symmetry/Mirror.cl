@@ -28,17 +28,17 @@
  * mirroring
  *
  */
-/// @param D_H2_in Diffusion coefficient H2
-/// @param D_O2_in Diffusion coefficient O2
-/// @param D_N2_in Diffusion coefficient N2
-/// @param D_H2O_in Diffusion coefficient H2O
+/// @param Ds_in Diffusion coefficients 
+
 __kernel void
 feed(const __global usize* mirror_src,
      usize N,
+	 __global vec16* Ds_in /*,
      __global float* D_H2_in,
      __global float* D_O2_in,
      __global float* D_N2_in,
-     __global float* D_H2O_in)
+     __global float* D_H2O_in*/
+	 )
 {
 	const usize ii = get_global_id(0);
 	if (ii >= N)
@@ -46,9 +46,11 @@ feed(const __global usize* mirror_src,
 	const usize i = mirror_src[ii];
 	if (i >= N)
 		return;
+
+	Ds_in[ii] = Ds_in[i];
 		
-	D_H2_in[ii] = D_H2_in[i];
+	/*D_H2_in[ii] = D_H2_in[i];
 	D_O2_in[ii] = D_O2_in[i];
 	D_N2_in[ii] = D_N2_in[i];
-	D_H2O_in[ii] = D_H2O_in[i];
+	D_H2O_in[ii] = D_H2O_in[i];*/
 }
