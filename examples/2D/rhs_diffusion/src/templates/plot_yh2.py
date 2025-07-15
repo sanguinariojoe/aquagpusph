@@ -47,7 +47,8 @@ CS = {{CS}}
 P = [{{P1}}, {{P2}}]
 RHO = [{{RHO1}}, {{RHO2}}]
 E = [{{E1}}, {{E2}}]
-
+DH2={{DH2}}
+H2MAX={{H2MAX}}
 
 def read_vtu():
     with open('output.vtu.series') as json_data:
@@ -66,6 +67,16 @@ def read_vtu():
     sorter = np.argsort(x)
     return t, x[sorter], rho[sorter], p[sorter], eint[sorter], u[sorter], y_h2[sorter]
 
+def solutionferrc(minx, maxx, time, npts):
+    
+    from scipy import special
+    from numpy import linspace, sqrt
+    
+    x = linspace(minx, maxx, npts)
+    
+    solf = H2MAX/2.0*(1.0+special.erf(x/(2*sqrt(DH2 * time)))) 
+    
+    return solf
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
@@ -101,11 +112,13 @@ def update(frame_index):
         #                                gamma=GAMMA,
         #                                npts=npts,
         #                                dustFrac=0.0)
+        H2_exp = solutionferrc(min(x), max(x), t, npts)
     except IndexError:
         return
     except FileNotFoundError:
         return
     sph.set_data(x / L, y_H2 )
+    exp.set_data(x / L, H2_exp)
     # exp.set_data(exp_data['x'] / L, exp_data['energy'] / max(E))
     ax.set_title(r"$t \,\, c_0 / L = {}$".format(t / T))
 

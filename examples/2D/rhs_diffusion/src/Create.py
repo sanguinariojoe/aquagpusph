@@ -259,7 +259,7 @@ data = {'DR': str(dr), 'HFAC': str(hfac), 'H': str(h), 'COURANT': str(courant),
         'DOMAIN_MIN': domain_min, 'DOMAIN_MAX': domain_max,
         'N': str(N), 'CS': str(cs), 'GAMMA': str(gamma),
         'P1': str(p1), 'P2': str(p2), 'RHO1': str(rho1), 'RHO2': str(rho2),
-        'E1': str(e1), 'E2': str(e2), }
+        'E1': str(e1), 'E2': str(e2), 'DH2': str(Dh2), 'H2MAX':str(y_H2_2)}
 utils.configure(data, os.path.join(script_folder, "templates"))
 
 # for fname in XML:
