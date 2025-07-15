@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <!-- ideal_gas.xml
-Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
+Replace the stiffened EOS by an ideal gas EOS with isoentropic expansion
 -->
 
 <sphInput>
