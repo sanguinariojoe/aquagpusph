@@ -43,32 +43,18 @@
  * @param icell Cell where each particle is located.
  * @param ihoc Head of chain for each cell (first particle found).
  * @param n_cells Number of cells in each direction
- * @param y_xx mass fraction
- * @param D_xx diffusion coeficient
- *
+ * @param ys mass fraction
+ * @param Ds diffusion coeficient
+ * @param rhsy right hand sides of mass fractions equations
  */
 __kernel void
 entry(const __global int* imove,
       const __global vec* r,
-      // const __global vec* u,
       const __global float* rho,
       const __global float* m,
-      // const __global float* p,
-	  __global vec16* rhsy,
-	  const __global vec16* ys,
-	  const __global vec16* Ds,
-      /*__global float* rhs_yh2,
-      __global float* rhs_yo2,
-      __global float* rhs_yn2,
-      __global float* rhs_yh2o,
-      const __global float* y_H2,
-      const __global float* y_O2,
-      const __global float* y_N2,
-      const __global float* y_H2O,
-      const __global float* D_H2,
-      const __global float* D_O2,
-      const __global float* D_N2,
-      const __global float* D_H2O,*/
+      __global vec16* rhsy,
+      const __global vec16* ys,
+      const __global vec16* Ds,
       usize N,
       LINKLIST_LOCAL_PARAMS)
 {
@@ -83,62 +69,20 @@ entry(const __global int* imove,
 	const vec_xyz r_i = r[i].XYZ;
 
 	const vec16 ys_i = ys[i];
-	/*
-	const float yh2_i = y_H2[i];
-	const float yh2o_i = y_H2O[i];
-	const float yn2_i = y_N2[i];
-	const float yo2_i = y_O2[i];
-	*/
-
 	const vec16 Ds_i = Ds[i];
-
-	/*
-	const float Dh2_i = D_H2[i];
-	const float Dh2o_i = D_H2O[i];
-	const float Dn2_i = D_N2[i];
-	const float Do2_i = D_O2[i];
-	*/
 
 	const float rho_i = rho[i];
 
-// printf("D in i is %f\n", D_H2[i]);
-
-// Initialize the output
 #ifndef LOCAL_MEM_SIZE
 
 #define _RHS_YS_ rhsy[i]
 
-/*
-#define _RHS_YH2_ rhs_yh2[i]
-#define _RHS_YO2_ rhs_yo2[i]
-#define _RHS_YN2_ rhs_yn2[i]
-#define _RHS_YH2O_ rhs_yh2o[i]
-*/
-
 #else
 #define _RHS_YS_ rhsyl[it]
 
-/*
-#define _RHS_YH2_ rhs_yh2_l[it]
-#define _RHS_YO2_ rhs_yo2_l[it]
-#define _RHS_YN2_ rhs_yn2_l[it]
-#define _RHS_YH2O_ rhs_yh2o_l[it]
-*/
 	__local vec16 rhsyl[LOCAL_MEM_SIZE];
 
-/*	__local float rhs_yh2_l[LOCAL_MEM_SIZE];
-	__local float rhs_yo2_l[LOCAL_MEM_SIZE];
-	__local float rhs_yn2_l[LOCAL_MEM_SIZE];
-	__local float rhs_yh2o_l[LOCAL_MEM_SIZE];
-*/
-
 	_RHS_YS_ = VEC16_ZERO;
-
-/*	_RHS_YH2_ = 0.f;
-	_RHS_YO2_ = 0.f;
-	_RHS_YN2_ = 0.f;
-	_RHS_YH2O_ = 0.f;
-	*/
 
 #endif
 
@@ -165,47 +109,11 @@ entry(const __global int* imove,
 
 			const vec16 ys_j = ys[j];
 
-			/*
-			const float yh2_j = y_H2[j];
-			const float yh2o_j = y_H2O[j];
-			const float yn2_j = y_N2[j];
-			const float yo2_j = y_O2[j];
-			*/
-
 			const vec16 Ds_j = Ds[j];
 
-			/*
-			const float Dh2_j = D_H2[j];
-			const float Dh2o_j = D_H2O[j];
-			const float Dn2_j = D_N2[j];
-			const float Do2_j = D_O2[j];
-			*/
-
-			//_RHS_YH2_ += 4.0f * Dh2_i * Dh2_j / (rho_i * Dh2_i + rho_j *
-			//Dh2_j)*(yh2_i-yh2_j)*f_ij; _RHS_YO2_ += 4.0f * Do2_i * Do2_j /
-			//(rho_i * Do2_i + rho_j * Do2_j)*(yo2_i-yo2_j)*f_ij; _RHS_YN2_
-			//+= 4.0f * Dn2_i * Dn2_j / (rho_i * Dn2_i + rho_j *
-			//Dn2_j)*(yn2_i-yn2_j)*f_ij; _RHS_YH2O_ += 4.0f * Dh2o_i * Dh2o_j /
-			//(rho_i * Dh2o_i + rho_j * Dh2o_j) * (yh2o_i - yh2o_j)*f_ij;
-			
 			_RHS_YS_ += -4.0f * Ds_i * Ds_j /
-			             ((rho_i * rho_j) * (Ds_i + Ds_j)) * (ys_i - ys_j) *
-			             f_ij;
-
-			/*
-			_RHS_YH2_ += -4.0f * Dh2_i * Dh2_j /
-			             ((rho_i * rho_j) * (Dh2_i + Dh2_j)) * (yh2_i - yh2_j) *
-			             f_ij;
-			_RHS_YO2_ += -4.0f * Do2_i * Do2_j /
-			             ((rho_i * rho_j) * (Do2_i + Do2_j)) * (yo2_i - yo2_j) *
-			             f_ij;
-			_RHS_YN2_ += -4.0f * Dn2_i * Dn2_j /
-			             ((rho_i * rho_j) * (Dn2_i + Dn2_j)) * (yn2_i - yn2_j) *
-			             f_ij;
-			_RHS_YH2O_ += -4.0f * Dh2o_i * Dh2o_j /
-			              ((rho_i * rho_j) * (Dh2o_i + Dh2o_j)) *
-			              (yh2o_i - yh2o_j) * f_ij;
-						  */
+			            ((rho_i * rho_j) * (Ds_i + Ds_j)) * (ys_i - ys_j) *
+			            f_ij;
 		}
 	}
 	END_NEIGHS()
@@ -213,11 +121,6 @@ entry(const __global int* imove,
 #ifdef LOCAL_MEM_SIZE
 
 	rhsy[i] = _RHS_YS_;
-
-//	rhs_yh2[i] = _RHS_YH2_;
-//	rhs_yo2[i] = _RHS_YO2_;
-//	rhs_yn2[i] = _RHS_YN2_;
-//	rhs_yh2o[i] = _RHS_YH2O_;
 
 #endif
 }

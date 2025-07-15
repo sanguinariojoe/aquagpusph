@@ -22,9 +22,8 @@
 
 #include "resources/Scripts/types/types.h"
 
-
-/// @brief 
-/// @param mirror_src 
+/// @brief
+/// @param mirror_src
 /// @param N cells
 /// @param xi_in heat diffusivity
 /// @param nu_in kinemaitc viscosity

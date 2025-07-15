@@ -64,47 +64,17 @@
  * @param D_xx diffusion coeficcient
  */
 
-
 float
 givemax(const vec16 ddss)
 {
 
-const vec8 tmp1 = max(ddss.s01234567, ddss.s89ABCDEF);
-const vec4 tmp2 = max(tmp1.s0123, tmp1.s4567);
-const vec2 tmp3 = max(tmp2.s01, tmp1.s23);
-const float tmp4 = max(tmp2.s0, tmp1.s1);
+	const vec8 tmp1 = max(ddss.s01234567, ddss.s89ABCDEF);
+	const vec4 tmp2 = max(tmp1.s0123, tmp1.s4567);
+	const vec2 tmp3 = max(tmp2.s01, tmp1.s23);
+	const float tmp4 = max(tmp2.s0, tmp1.s1);
 
-return tmp4;
+	return tmp4;
 }
-
-/*
-float
-givemax(const local vec16 ddss)
-{
-
-	float all[16] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-		              0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
-
-	all[0] = ddss.s0;
-	all[1] = ddss.s1;
-	all[2] = ddss.s2;
-	all[3] = ddss.s3;
-	all[4] = ddss.s4;
-	all[5] = ddss.s5;
-	all[6] = ddss.s6;
-	all[7] = ddss.s7;
-	all[8] = ddss.s8;
-	all[9] = ddss.s9;
-	all[10] = ddss.sA;
-	all[11] = ddss.sB;
-	all[12] = ddss.sC;
-	all[13] = ddss.sD;
-	all[14] = ddss.sE;
-	all[15] = ddss.sF;
-
-	return max(all);
-}
-*/
 
 __kernel void
 entry(__global float* dt_var,
@@ -125,12 +95,7 @@ entry(__global float* dt_var,
       __constant float* gamma,
       const __global float* lambda,
       const __global float* cp,
-	  const __global vec16* Ds
-      /*const __global float* D_H2,
-      const __global float* D_O2,
-      const __global float* D_N2,
-      const __global float* D_H2O*/
-	  )
+      const __global vec16* Ds)
 {
 	const usize i = get_global_id(0);
 	if (i >= N)
@@ -154,26 +119,13 @@ entry(__global float* dt_var,
 
 	const float dt_u4 = courant * dxx / (length(u[i]) + 1.0e-12f);
 	// const float dt_u5 = 0.1f / zeta_dot[i];
-	// float xi_loc = lambda[i] / (rho[i] * cp[i]);
+
 	const float dt_u5 = courant * dxx * dxx / (lambda[i] / (rho[i] * cp[i]));
 	const float dt_u6 =
 	    courant * dxx / (s_i + dxx * sqrt(div_u[i] * div_u[i]) / rho[i]);
 
-	/*const float dt_u7 = courant * dxx * dxx / (D_H2[i] / rho[i]);
-	const float dt_u8 = courant * dxx * dxx / (D_O2[i] / rho[i]);
-	const float dt_u9 = courant * dxx * dxx / (D_N2[i] / rho[i]);
-	const float dt_u10 = courant * dxx * dxx / (D_H2O[i] / rho[i]);*/
-
-	//const local vec16* dt_many;
-	//*dt_many = courant * dxx * dxx / (Ds[i] / rho[i]);
-
 	const vec16 dt_many = courant * dxx * dxx / (Ds[i] / rho[i]);
 	const float dt_u7 = givemax(dt_many);
-
-	/*	const float dt_u = min(
-	        min(min(min(min(min(min(min(min(dt_u1, dt_u2), dt_u3), dt_u4),
-	   dt_u5), dt_u6), dt_u7), dt_u8), dt_u9), dt_u10);
-	        */
 
 	const float dt_u =
 	    min(min(min(min(min(min(dt_u1, dt_u2), dt_u3), dt_u4), dt_u5), dt_u6),

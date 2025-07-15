@@ -29,7 +29,6 @@
  */
 __kernel void
 add(const __global int* imove,
-    //__global float* eint,
     __global float* deintdt,
     const __global float* rhs_qdot,
     const unsigned int N,

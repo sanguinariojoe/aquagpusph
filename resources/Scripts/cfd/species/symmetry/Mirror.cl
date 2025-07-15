@@ -25,8 +25,8 @@
 
 /// @brief 
 /// @param z_in first component... Tracer unreacting
-/// @param y_xx_in ordered mass fraction 
-/// @param dy_xxdt_in rate of change ordered mass fraction
+/// @param ys_in ordered mass fraction 
+/// @param dysdt_in rate of change ordered mass fraction
  
 __kernel void
 feed(const __global usize* mirror_src,
@@ -34,15 +34,6 @@ feed(const __global usize* mirror_src,
      __global float* z_in,
 	__global vec16* ys_in,
 	__global vec16* dysdt_in
-	/*,
-     __global float* y_H2_in,
-     __global float* dy_H2dt_in,
-     __global float* y_O2_in,
-     __global float* dy_O2dt_in,
-     __global float* y_N2_in,
-     __global float* dy_N2dt_in,
-     __global float* y_H2O_in,
-     __global float* dy_H2Odt_in*/
 	 )
 {
 
@@ -57,17 +48,4 @@ feed(const __global usize* mirror_src,
 	ys_in[ii] = ys_in[i];
 	dysdt_in[ii] = dysdt_in[i];
 
-	/*
-	y_H2_in[ii] = y_H2_in[i];
-	dy_H2dt_in[ii] = dy_H2dt_in[i];
-
-	y_O2_in[ii] = y_O2_in[i];
-	dy_O2dt_in[ii] = dy_O2dt_in[i];
-
-	y_N2_in[ii] = y_N2_in[i];
-	dy_N2dt_in[ii] = dy_N2dt_in[i];
-
-	y_H2O_in[ii] = y_H2O_in[i];
-	dy_H2Odt_in[ii] = dy_H2Odt_in[i];
-	*/
 }

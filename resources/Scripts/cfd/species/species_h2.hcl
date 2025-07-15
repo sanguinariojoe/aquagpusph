@@ -42,25 +42,16 @@ calc_cp_mix(float y_H2, float y_O2, float y_N2, float y_H2O)
 }
 
 void
-X_from_Y(/*float y_H2,
-         float y_O2,
-         float y_N2,
-         float y_H2O,*/
-		 const __global vec16* ys,
-         /*__global float* x_H2,
-         __global float* x_O2,
-         __global float* x_N2,
-         __global float* x_H2O,*/
-		 __global vec16* xs)
+X_from_Y(const __global vec16* ys, __global vec16* xs)
 {
 	float MMix;
 	// const float Mis[4] = {0.002f, 0.032f, 0.028f, 0.018f};
 
 	float y_H2, y_O2, y_N2, y_H2O;
-	y_H2=(*ys).H2;
-	y_O2=(*ys).O2;
-	y_N2=(*ys).N2;
-	y_H2O=(*ys).H2O;
+	y_H2 = (*ys).H2;
+	y_O2 = (*ys).O2;
+	y_N2 = (*ys).N2;
+	y_H2O = (*ys).H2O;
 
 	MMix = molar_mass_mixture(y_H2, y_O2, y_N2, y_H2O);
 
@@ -74,22 +65,18 @@ X_from_Y(/*float y_H2,
 }
 
 void
-calc_gamma_cv(/*float y_H2,
-              float y_O2,
-              float y_N2,
-              float y_H2O,*/
-			  const __global vec16* ys,
+calc_gamma_cv(const __global vec16* ys,
               __global float* gamma,
               __global float* cv)
 {
 
 	float MMix, R_mix, cp_local, cv_local;
-	
+
 	float y_H2, y_O2, y_N2, y_H2O;
-	y_H2=(*ys).H2;
-	y_O2=(*ys).O2;
-	y_N2=(*ys).N2;
-	y_H2O=(*ys).H2O;
+	y_H2 = (*ys).H2;
+	y_O2 = (*ys).O2;
+	y_N2 = (*ys).N2;
+	y_H2O = (*ys).H2O;
 
 	MMix = molar_mass_mixture(y_H2, y_O2, y_N2, y_H2O);
 	cp_local = calc_cp_mix(y_H2, y_O2, y_N2, y_H2O);
@@ -108,11 +95,7 @@ calc_gamma_cv(/*float y_H2,
 }
 
 void
-calc_gamma_cp_cv(/*float y_H2,
-                 float y_O2,
-                 float y_N2,
-                 float y_H2O,*/
-				const __global vec16* ys,
+calc_gamma_cp_cv(const __global vec16* ys,
                  __global float* gamma,
                  __global float* cv,
                  __global float* cp)
@@ -121,10 +104,10 @@ calc_gamma_cp_cv(/*float y_H2,
 	float MMix, R_mix, cp_local, cv_local;
 
 	float y_H2, y_O2, y_N2, y_H2O;
-	y_H2=(*ys).H2;
-	y_O2=(*ys).O2;
-	y_N2=(*ys).N2;
-	y_H2O=(*ys).H2O;
+	y_H2 = (*ys).H2;
+	y_O2 = (*ys).O2;
+	y_N2 = (*ys).N2;
+	y_H2O = (*ys).H2O;
 
 	MMix = molar_mass_mixture(y_H2, y_O2, y_N2, y_H2O);
 	cp_local = calc_cp_mix(y_H2, y_O2, y_N2, y_H2O);

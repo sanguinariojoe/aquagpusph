@@ -31,23 +31,15 @@
 
 /** @brief Sort the internal energy.
  *
- * @param D_xx unsorted diffusion coeficient
- * @param D_xx_in sorted diffusion coeficient
+ * @param Ds unsorted diffusion coeficient
+ * @param Ds_in sorted diffusion coeficient
  * @param id_sorted Permutations list from the unsorted space to the sorted
  * one.
  * @param N Number of particles.
  */
 __kernel void
 entry(const __global vec16* Ds_in,
-	/*const __global float* D_H2_in,
-      const __global float* D_O2_in,
-      const __global float* D_N2_in,
-      const __global float* D_H2O_in,*/
-	  __global vec16* Ds,
-/*      __global float* D_H2,
-      __global float* D_O2,
-      __global float* D_N2,
-      __global float* D_H2O,*/
+      __global vec16* Ds,
       const __global usize* id_sorted,
       usize N)
 {
@@ -58,16 +50,6 @@ entry(const __global vec16* Ds_in,
 	const usize i_out = id_sorted[i];
 
 	Ds[i_out] = Ds_in[i];
-
-	/*D_H2[i_out] = D_H2_in[i];
-	D_O2[i_out] = D_O2_in[i];
-	D_N2[i_out] = D_N2_in[i];
-	D_H2O[i_out] = D_H2O_in[i];*/
-
-	/*    rhs_yh2[i_out] = rhs_yh2_in[i];
-	    rhs_yo2[i_out] = rhs_yo2_in[i];
-	    rhs_yn2[i_out] = rhs_yn2_in[i];
-	    rhs_yh2o[i_out] = rhs_yh2o_in[i];*/
 }
 
 /*

@@ -34,9 +34,9 @@
  *   - imove > 0 for regular fluid particles.
  *   - imove = 0 for sensors.
  *   - imove < 0 for boundary elements/particles.
- * @param rhs_yxx increments in the gases calculated in previous routine
+ * @param rhsy increments in the gases calculated in previous routine
  * (diffusion)
- * @param dy_xxdt add to the increments of the composition variation
+ * @param dysdt add to the increments of the composition variation
  * \f$ \left. \frac{d e}{d t} \right\vert_{n+1/2} \f$.
  * @param N Number of particles.
  * @param dt Time step \f$ \Delta t \f$.
@@ -45,15 +45,7 @@ __kernel void
 add(const __global int* imove,
     __global float* dz_dt,
     __global vec16* dysdt,
-/*    __global float* dy_H2dt,
-    __global float* dy_O2dt,
-    __global float* dy_N2dt,
-    __global float* dy_H2Odt,*/
     const __global vec16* rhsy,
-/*    const __global float* rhs_yh2,
-    const __global float* rhs_yo2,
-    const __global float* rhs_yn2,
-    const __global float* rhs_yh2o,*/
     const unsigned int N,
     const float dt)
 {
@@ -63,16 +55,8 @@ add(const __global int* imove,
 
 	if (imove[i] > 0) {
 
-		//dz_dt[i] += rhs_yh2[i];
-        dz_dt[i] += rhsy[i].COMPONENT0;
-        dysdt[i] += rhsy[i];
-
-        /*
-		dy_H2dt[i] += rhs_yh2[i];
-		dy_O2dt[i] += rhs_yo2[i];
-		dy_N2dt[i] += rhs_yn2[i];
-		dy_H2Odt[i] += rhs_yh2o[i];
-        */
+		dz_dt[i] += rhsy[i].COMPONENT0;
+		dysdt[i] += rhsy[i];
 	}
 }
 

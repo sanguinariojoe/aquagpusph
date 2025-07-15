@@ -71,15 +71,7 @@ entry(const __global unsigned int* iset,
       const __global float* rho,
       const __global float* eint,
       const __global vec16* ys,
-      /*const __global float* y_H2,
-      const __global float* y_O2,
-      const __global float* y_N2,
-      const __global float* y_H2O,*/
       const __global vec16* xs,
-      /*__global float* x_H2,
-      __global float* x_O2,
-      __global float* x_N2,
-      __global float* x_H2O,*/
       __global float* p,
       __global float* T,
       __global float* gamma,
@@ -92,18 +84,8 @@ entry(const __global unsigned int* iset,
 	if (EXCLUDED_PARTICLE(i))
 		return;
 
-	calc_gamma_cv(//y_H2[i], y_O2[i], y_N2[i], y_H2O[i], 
-      ys, gamma + i, cv + i);
-	X_from_Y(/*y_H2[i],
-	         y_O2[i],
-	         y_N2[i],
-	         y_H2O[i],*/
-               ys[i],
-	         /*x_H2 + i,
-	         x_O2 + i,
-	         x_N2 + i,
-	         x_H2O + i*/
-               xs+i);
+	calc_gamma_cv(ys, gamma + i, cv + i);
+	X_from_Y(ys[i], xs + i);
 
 	p[i] = (gamma[i] - 1.0f) * rho[i] * eint[i];
 	T[i] = eint[i] / cv[i];
