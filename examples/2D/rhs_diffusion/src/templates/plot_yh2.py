@@ -61,10 +61,10 @@ def read_vtu():
     rho = mesh.point_data['rho'][mask]
     p = mesh.point_data['p'][mask]
     eint = mesh.point_data['eint'][mask]
-    y_H2 = mesh.point_data['y_H2'][mask]
+    y_h2 = mesh.point_data['ys'][:,0][mask]
     u = np.linalg.norm(mesh.point_data['u'][mask, :], axis=1)
     sorter = np.argsort(x)
-    return t, x[sorter], rho[sorter], p[sorter], eint[sorter], u[sorter], y_H2[sorter]
+    return t, x[sorter], rho[sorter], p[sorter], eint[sorter], u[sorter], y_h2[sorter]
 
 
 fig = plt.figure()
@@ -76,7 +76,7 @@ sph, = ax.plot([0.0], [0.0], color="red", linewidth=1.0, linestyle='--')
 # Set some options
 ax.grid()
 ax.set_xlim(-0.5, 0.5)
-ax.set_ylim(0, 0.03)
+ax.set_ylim(0, 0.001)
 ax.set_autoscale_on(False)
 ax.set_xlabel(r"$x / R$")
 ax.set_ylabel(r"$e / e_0$")
@@ -105,7 +105,7 @@ def update(frame_index):
         return
     except FileNotFoundError:
         return
-    sph.set_data(x / L, y_H2 / max(y_H2))
+    sph.set_data(x / L, y_H2 )
     # exp.set_data(exp_data['x'] / L, exp_data['energy'] / max(E))
     ax.set_title(r"$t \,\, c_0 / L = {}$".format(t / T))
 

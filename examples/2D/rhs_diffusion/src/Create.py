@@ -79,6 +79,9 @@ y_O2_1 = 0.21 * M_O2 / MM1
 y_N2_1 = 0.79 * M_N2 / MM1
 y_H2O_1 = 0.
 
+print("Y_H2 zone 1 %f"%(y_H2_1,))
+print("Y_H2 zone 2 %f"%(y_H2_2,))
+
 courant = 0.1
 support = 2.0
 
