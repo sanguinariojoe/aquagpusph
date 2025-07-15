@@ -1,19 +1,13 @@
 <?xml version="1.0"?>
 <!-- symmetry.xml
-Symmetrization of the terms for diffusion.
+Symmetrization of the terms for diffusion. 
+This takes into account the diffusion coefficient.
+For msot logical application, use this module in conjunction 
+with the symmetrization of the mass fractions. The latter is carried out in species/symmetry.xml.
 -->
-
 <sphInput>
-    <!-- ?????????????????? -->
-    <!--<Include
-    file="@RESOURCES_OUTPUT_DIR@/Presets/cfd/symmetry.xml"/>-->
-    <!-- ?????????????????? -->
     <Tools>
-        <!--<Tool action="replace" name="*cfd symmetry feed" type="kernel"
-            path="../../../Scripts/cfd/diffusion/symmetry/Mirror.cl" entry_point="feed" />-->
-
         <Tool action="insert" after="*cfd symmetry set" name="cfd symmetry set diffusion" type="kernel"
             path="../../../Scripts/cfd/diffusion/symmetry/Mirror.cl" entry_point="feed" />
     </Tools>
-
 </sphInput>

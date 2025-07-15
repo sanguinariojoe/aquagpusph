@@ -22,23 +22,17 @@
 
 #include "resources/Scripts/types/types.h"
 
-
 /**
  * @brief reflection routine for the species and diffusion
  * mirroring
  *
  */
-/// @param Ds_in Diffusion coefficients 
+/// @param Ds_in Diffusion coefficients
 
 __kernel void
-feed(const __global usize* mirror_src,
-     usize N,
-	 __global vec16* Ds_in /*,
-     __global float* D_H2_in,
-     __global float* D_O2_in,
-     __global float* D_N2_in,
-     __global float* D_H2O_in*/
-	 )
+feed(const __global usize* mirror_src, 
+	usize N, 
+	__global vec16* Ds_in)
 {
 	const usize ii = get_global_id(0);
 	if (ii >= N)
@@ -48,9 +42,4 @@ feed(const __global usize* mirror_src,
 		return;
 
 	Ds_in[ii] = Ds_in[i];
-		
-	/*D_H2_in[ii] = D_H2_in[i];
-	D_O2_in[ii] = D_O2_in[i];
-	D_N2_in[ii] = D_N2_in[i];
-	D_H2O_in[ii] = D_H2O_in[i];*/
 }
