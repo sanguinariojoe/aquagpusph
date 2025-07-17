@@ -34,6 +34,9 @@
 #endif
 
 #include "resources/Scripts/types/types.h"
+#ifndef SPECIES_HEADER
+#error "species.xml module requires to load a backend module"
+#endif
 #include SPECIES_HEADER
 
 /** @brief Ideal gas Equation Of State (EOS) computation
