@@ -22,7 +22,7 @@ Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
 
     <Tools>
         <Tool action="replace" name="EOS" type="kernel"
-            path="../../../resources/Scripts/cfd/species/EOS_properties.cl" />
+            path="../../../resources/Scripts/cfd/species/EOS.cl" />
 
         <Tool action="insert" after="Sort" type="set" name="Reinit rhs qdot" in="rhs_qdot"
             value="0.f" />

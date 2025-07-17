@@ -34,8 +34,10 @@
 #endif
 
 #include "resources/Scripts/types/types.h"
-#include "resources/Scripts/cfd/reaction/arrhenius_detonation.hcl"
-
+// #include "resources/Scripts/cfd/species/species_auxiliary.hcl"
+#include SPECIES_HEADER
+// #define TEST_HEADER_MACRO "species_h2.hcl"
+// #include TEST_HEADER_MACRO
 /** @brief Ideal gas Equation Of State (EOS) computation
  *
  * The equation of state relates the pressure, density and internal energy
@@ -75,7 +77,12 @@ entry(const __global unsigned int* iset,
       __global float* p,
       __global float* T,
       __global float* gamma,
+      __global float* cp,
       __global float* cv,
+      const __global float* nu,
+      const __global float* xi,
+      __global float* mu,
+      __global float* lambda,
       usize N)
 {
 	usize i = get_global_id(0);
@@ -84,11 +91,21 @@ entry(const __global unsigned int* iset,
 	if (EXCLUDED_PARTICLE(i))
 		return;
 
-	calc_gamma_cv(ys, gamma + i, cv + i);
-	X_from_Y(ys[i], xs + i);
+	//__global float cp[]={0.0f,};
+
+	calc_gamma_cp_cv(ys + i, gamma + i, cv + i, cp + i);
+	X_from_Y(ys + i, xs + i);
 
 	p[i] = (gamma[i] - 1.0f) * rho[i] * eint[i];
 	T[i] = eint[i] / cv[i];
+	// printf("cv = %f\n", cv[i]);
+	// printf("T = %f\n", T[i]);
+	lambda[i] = cp[i] * rho[i] * xi[i] * sqrt(T[i] / 298.0f);
+
+	// This line is for debug!!!!
+	lambda[i] = 1012.0f * xi[i];
+
+	mu[i] = rho[i] * nu[i] * sqrt(T[i] / 298.0f);
 }
 
 /*
