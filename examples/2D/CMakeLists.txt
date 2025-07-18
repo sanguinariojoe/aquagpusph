@@ -16,4 +16,4 @@ ADD_SUBDIRECTORY(shock_point)
 ADD_SUBDIRECTORY(shock_point_riemann)
 ADD_SUBDIRECTORY(rhs_heat)
 ADD_SUBDIRECTORY(rhs_diffusion)
-ADD_SUBDIRECTORY(shu_osher_1d)
+
