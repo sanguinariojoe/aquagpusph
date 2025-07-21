@@ -27,6 +27,8 @@
 #include "aquagpusph/ProblemSetup.hpp"
 #include "aquagpusph/CalcServer/CalcServer.hpp"
 #include "aquagpusph/AuxiliarMethods.hpp"
+#include <sstream>
+#include <iostream>
 #include <iomanip>
 #include <limits>
 
