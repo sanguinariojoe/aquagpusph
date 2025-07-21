@@ -113,6 +113,11 @@ target_link_libraries(aquagpusphlib PUBLIC ${PUBLIC_LIBS}
                                     PRIVATE ${PRIVATE_LIBS})
 target_include_directories(aquagpusphlib PUBLIC ${PUBLIC_INCS}
                                          PRIVATE ${PRIVATE_INCS})
+if (MSVC)
+    target_compile_options(aquagpusphlib PRIVATE /bigobj)
+else ()
+    # target_compile_options(aquagpusphlib PRIVATE -Wa,-mbig-obj)
+endif ()
 add_dependencies(aquagpusphlib ${embed_targets})
 
 install(TARGETS aquagpusphlib
