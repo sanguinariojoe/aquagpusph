@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+
+<!-- diffusion_RHS.xml
+Introduced the Fick's Law of diffusion in the equations for multiple species.
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="Ds" type="vec16*" length="N" />
+        <Variable name="Ds_in" type="vec16*" length="N" />
+        <Variable name="rhsy" type="vec16*" length="N" />
+        
+    </Variables>
+
+    <Tools>
+        <Tool action="insert" after="Sort" type="set" name="reinit rhs y" in="rhsy" value="VEC16_ZERO" />
+
+        <!-- This is for time being, untill a more advance transpor model will be programmed-->
+        <Tool action="insert" name="Backup Ds" before="sort stage1,sort stage2" type="copy"
+            in="Ds" out="Ds_in" />   
+
+        <Tool action="insert" after="sort stage1,sort stage2" name="sort heat" type="kernel"
+            entry_point="entry" path="../../../Scripts/cfd/diffusion/Sort.cl" />
+
+        <Tool action="insert" before="Interactions" type="kernel" name="rhs y rates"
+            path="../../../Scripts/cfd/diffusion/RHS_diffusion.cl" />
+
+        <Tool action="insert" before="Rates" name="add increments gas multicomponents" type="kernel"
+            entry_point="add" path="../../../Scripts/cfd/diffusion/add_increments.cl" />
+
+    </Tools>
+</sphInput>

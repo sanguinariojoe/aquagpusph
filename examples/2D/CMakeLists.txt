@@ -14,4 +14,6 @@ ADD_SUBDIRECTORY(taylor_green_IMP)
 ADD_SUBDIRECTORY(shock_1d)
 ADD_SUBDIRECTORY(shock_point)
 ADD_SUBDIRECTORY(shock_point_riemann)
+ADD_SUBDIRECTORY(rhs_heat)
+ADD_SUBDIRECTORY(rhs_diffusion)
 

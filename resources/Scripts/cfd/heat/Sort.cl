@@ -16,17 +16,37 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _SOUND_SPEED_PERFECT_GAS_H_INCLUDED_
-#define _SOUND_SPEED_PERFECT_GAS_H_INCLUDED_
+#include "resources/Scripts/types/types.h"
 
-/// @brief 
-/// @param gamma polytropic coefficient
-/// @param p pressure
-/// @param rho density
-/// @return speed of sound
-float sound_speed_perfect_gas(float gamma, float p, float rho)
+/** @brief Sort the internal energy.
+ *
+
+ * @param N Number of particles.
+ */
+
+/// @param xi unordered thermal difusivity
+/// @param xi_in ordered thermal difusivity
+/// @param nu unordered kinematic viscosity
+/// @param nu_in ordered kinematic viscosity
+
+__kernel void
+entry(const __global usize* id_sorted,
+      __global float* xi,
+      const __global float* xi_in,
+      __global float* nu,
+      const __global float* nu_in,
+      usize N)
 {
-    return sqrt(gamma * p / rho);
+	usize i = get_global_id(0);
+	if (i >= N)
+		return;
+
+	const usize i_out = id_sorted[i];
+
+	xi[i_out] = xi_in[i];
+	nu[i_out] = nu_in[i];
 }
 
-#endif    // _SOUND_SPEED_PERFECT_GAS_H_INCLUDED_
+/*
+ * @}
+ */

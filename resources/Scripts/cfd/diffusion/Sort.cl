@@ -16,17 +16,42 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _SOUND_SPEED_PERFECT_GAS_H_INCLUDED_
-#define _SOUND_SPEED_PERFECT_GAS_H_INCLUDED_
+/**
+ * \addtogroup ideal_gas
+ * @{
+ */
 
-/// @brief 
-/// @param gamma polytropic coefficient
-/// @param p pressure
-/// @param rho density
-/// @return speed of sound
-float sound_speed_perfect_gas(float gamma, float p, float rho)
+/** @file
+ * @brief Sort the internal energy by the cell indexes
+ *
+ * This is an extension of resources/Scripts/basic/Sort.cl
+ */
+
+#include "resources/Scripts/types/types.h"
+
+/** @brief Sort the internal energy.
+ *
+ * @param Ds unsorted diffusion coeficient
+ * @param Ds_in sorted diffusion coeficient
+ * @param id_sorted Permutations list from the unsorted space to the sorted
+ * one.
+ * @param N Number of particles.
+ */
+__kernel void
+entry(const __global vec16* Ds_in,
+      __global vec16* Ds,
+      const __global usize* id_sorted,
+      usize N)
 {
-    return sqrt(gamma * p / rho);
+	usize i = get_global_id(0);
+	if (i >= N)
+		return;
+
+	const usize i_out = id_sorted[i];
+
+	Ds[i_out] = Ds_in[i];
 }
 
-#endif    // _SOUND_SPEED_PERFECT_GAS_H_INCLUDED_
+/*
+ * @}
+ */

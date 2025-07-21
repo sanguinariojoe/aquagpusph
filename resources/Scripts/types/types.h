@@ -30,10 +30,12 @@
 #define vec3 float3
 #define vec4 float4
 #define vec8 float8
+#define vec16 float16
 #define dvec2 double2
 #define dvec3 double3
 #define dvec4 double4
 #define dvec8 double8
+//#define dvec16 double16
 #define ivec2 int2
 #define ivec3 int3
 #define ivec4 int4
@@ -120,3 +122,19 @@
     const __global usize * mpi_icell,                                          \
     const __global usize * mpi_ihoc,                                           \
     svec4 n_cells
+
+    /** @brief Null #vec, i.e. filled with zero components.
+ */
+#define VEC2_ZERO ((float2)(0.f,0.f))
+/** @brief Null #vec, i.e. filled with zero components.
+ */
+#define VEC3_ZERO ((float3)(0.f,0.f,0.f))
+/** @brief Null #vec, i.e. filled with zero components.
+ */
+#define VEC4_ZERO ((float4)(0.f,0.f,0.f,0.f))
+/** @brief Null #vec, i.e. filled with zero components.
+ */
+#define VEC8_ZERO ((float8)(0.f,0.f,0.f,0.f,0.f,0.f,0.f,0.f))
+/** @brief Null #vec, i.e. filled with zero components.
+ */
+#define VEC16_ZERO ((float16)(0.f,0.f,0.f,0.f,0.f,0.f,0.f,0.f,0.f,0.f,0.f,0.f,0.f,0.f,0.f,0.f))

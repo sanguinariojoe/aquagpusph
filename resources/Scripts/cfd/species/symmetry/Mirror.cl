@@ -16,17 +16,36 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _SOUND_SPEED_PERFECT_GAS_H_INCLUDED_
-#define _SOUND_SPEED_PERFECT_GAS_H_INCLUDED_
+/** @file
+ * @brief Mirroring process for the symmetry boundary condition.
+ */
+
+#include "resources/Scripts/types/types.h"
+
 
 /// @brief 
-/// @param gamma polytropic coefficient
-/// @param p pressure
-/// @param rho density
-/// @return speed of sound
-float sound_speed_perfect_gas(float gamma, float p, float rho)
+/// @param z_in first component... Tracer unreacting
+/// @param ys_in ordered mass fraction 
+/// @param dysdt_in rate of change ordered mass fraction
+ 
+__kernel void
+feed(const __global usize* mirror_src,
+     usize N,
+     __global float* z_in,
+	__global vec16* ys_in,
+	__global vec16* dysdt_in
+	 )
 {
-    return sqrt(gamma * p / rho);
-}
 
-#endif    // _SOUND_SPEED_PERFECT_GAS_H_INCLUDED_
+	const usize ii = get_global_id(0);
+	if (ii >= N)
+		return;
+	const usize i = mirror_src[ii];
+	if (i >= N)
+		return;
+
+	z_in[ii] = z_in[i];
+	ys_in[ii] = ys_in[i];
+	dysdt_in[ii] = dysdt_in[i];
+
+}

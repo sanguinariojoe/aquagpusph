@@ -9,4 +9,6 @@ CodeBlocks/*.layout
 # gedit backup files
 *~
 # Visual Studio
-*/.idea/
+#*/.idea/
+**/.idea/
+**/.vscode/

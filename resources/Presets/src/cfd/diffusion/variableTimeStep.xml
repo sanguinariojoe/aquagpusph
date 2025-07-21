@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<!-- variableTimeStep.xml
+Variable tiem step control for the diffusion term.
+-->
+<sphInput>
+    <Tools>
+        <Tool action="replace" name="cfd variable time step" type="kernel"
+            path="../../../Scripts/cfd/diffusion/TimeStep.cl" />
+    </Tools>
+</sphInput>

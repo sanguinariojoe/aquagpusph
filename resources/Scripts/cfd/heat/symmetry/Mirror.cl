@@ -16,17 +16,32 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _SOUND_SPEED_PERFECT_GAS_H_INCLUDED_
-#define _SOUND_SPEED_PERFECT_GAS_H_INCLUDED_
+/** @file
+ * @brief Mirroring process for the symmetry boundary condition.
+ */
 
-/// @brief 
-/// @param gamma polytropic coefficient
-/// @param p pressure
-/// @param rho density
-/// @return speed of sound
-float sound_speed_perfect_gas(float gamma, float p, float rho)
+#include "resources/Scripts/types/types.h"
+
+/// @brief
+/// @param mirror_src
+/// @param N cells
+/// @param xi_in heat diffusivity
+/// @param nu_in kinemaitc viscosity
+
+__kernel void
+feed(const __global usize* mirror_src,
+     usize N,
+     __global float* xi_in,
+     __global float* nu_in)
 {
-    return sqrt(gamma * p / rho);
-}
 
-#endif    // _SOUND_SPEED_PERFECT_GAS_H_INCLUDED_
+	const usize ii = get_global_id(0);
+	if (ii >= N)
+		return;
+	const usize i = mirror_src[ii];
+	if (i >= N)
+		return;
+
+	nu_in[ii] = nu_in[i];
+	xi_in[ii] = xi_in[i];
+}

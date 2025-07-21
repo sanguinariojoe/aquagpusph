@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!--
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
+
+Another QUAlity GPU-SPH, by CEHINAV.
+    http://canal.etsin.upm.es/
+Authors:
+    Jose Luis Cercos-Pita
+    Leo Miguel Gonzalez
+    Antonio Souto-Iglesias
+-->
+
+<sphInput>
+    <!--<Definitions>
+        <Define name="SPECIES_HEADER" value="&lt;species_h2.hcl&gt;" evaluate="false" />
+    </Definitions>-->
+    <!--<Define name="SPECIES_HEADER" value="&quot;species_h2.hcl&quot;" evaluate="false" />-->
+
+    <!-- In this file we will just include other XML definition files -->
+    <Include file="resources/Presets/basic.xml" />
+    <Include file="resources/Presets/basic/domain.xml" />
+    <Include file="cfd_steady.xml" />
+    <Include file="ideal_gas_steady.xml" />
+    <Include file="riemann_steady.xml" />
+    <Include file="resources/Presets/cfd/species/species.xml" />
+    <Include file="resources/Presets/cfd/species/gases/hydrogen_air_bulk.xml" />
+    <!--<Include
+    file="resources/Presets/cfd/reactive/reactive.xml" />-->
+    <Include file="resources/Presets/cfd/heat/RHS.xml" />
+    <Tool action="replace" name="EOS" type="kernel" path="EOS_fixed_lambda.cl" />
+    <Include file="resources/Presets/cfd/variableTimeStep.xml" />
+    <Include file="resources/Presets/cfd/heat/variableTimeStep.xml" />
+    <Include file="resources/Presets/basic/timing.report.xml" />
+    <Include file="resources/Presets/basic/performance.report.xml" />
+    <Include file="Settings.xml" />
+    <Include file="SPH.xml" />
+    <Include file="Time.xml" />
+    <Include file="Fluids.xml" />
+    <Include file="BC.xml" />
+
+
+    <Include file="resources/Presets/basic/kernels/cubicSpline.xml" when="end" />
+</sphInput>

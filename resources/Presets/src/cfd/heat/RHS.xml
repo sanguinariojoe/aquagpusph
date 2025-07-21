@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+
+<!-- ideal_gas.xml
+Replace the stiffened EOS by an ideal gas EOS with isoentropic expansion
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="xi" type="float*" length="N" />
+        <Variable name="xi_in" type="float*" length="N" />
+        <Variable name="nu" type="float*" length="N" />
+        <Variable name="nu_in" type="float*" length="N" />
+        <!--<Variable
+        name="lambda" type="float*" length="N" />-->
+        <Variable name="rhs_qdot" type="float*" length="N" />
+        <!--<Variable
+        name="rhs_qdot_in" type="float*" length="N" />-->
+        <Variable name="cp" type="float*" length="N" />
+        <Variable name="mu" type="float*" length="N" />
+        <Variable name="lambda" type="float*" length="N" />
+    </Variables>
+
+    <Tools>
+        <Tool action="replace" name="EOS" type="kernel"
+            path="../../../Scripts/cfd/species/EOS.cl" />
+
+        <Tool action="insert" after="Sort" type="set" name="Reinit rhs qdot" in="rhs_qdot"
+            value="0.f" />
+
+
+        <!-- This is for time being, untill a more advance transpor model will be programmed-->
+
+        <Tool action="insert" name="Backup nu" before="sort stage1,sort stage2" type="copy" in="nu"
+            out="nu_in" />
+        <Tool action="insert" name="Backup xi" before="sort stage1,sort stage2" type="copy" in="xi"
+            out="xi_in" />
+
+        <!-- This is commented after conversation with Cercos-->
+        <!--<Tool
+        action="insert" after="predictor" name="predictor heat" type="kernel"
+        entry_point="predictor" path="../../../Scripts/cfd/heat/euler.cl"/>-->
+        <Tool action="insert" after="sort stage1,sort stage2" name="sort heat" type="kernel"
+            entry_point="entry" path="../../../Scripts/cfd/heat/Sort.cl" />
+
+        <Tool action="insert" before="Interactions" type="kernel" name="heat rates"
+            path="../../../Scripts/cfd/heat/RHS_heat_transfer.cl" />
+
+        <Tool action="insert" before="Rates" name="add increments heat transfer" type="kernel"
+            entry_point="add" path="../../../Scripts/cfd/heat/add_increments.cl" />
+    </Tools>
+</sphInput>

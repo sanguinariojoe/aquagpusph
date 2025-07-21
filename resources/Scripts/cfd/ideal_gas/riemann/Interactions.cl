@@ -100,8 +100,8 @@ __kernel void entry(const __global unsigned int* iset,
         __local float work_density_l[LOCAL_MEM_SIZE];
         __local float div_u_l[LOCAL_MEM_SIZE];
         _GRADP_ = VEC_ZERO.XYZ;
-        _W_DEN_ = 0.f;
-        _DIVU_ = 0.f;
+        _W_DEN_ = 0.0f;
+        _DIVU_ = 0.0f;
     #endif
 
 

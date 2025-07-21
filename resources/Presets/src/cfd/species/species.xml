@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+
+<!-- DOC HERE
+-->
+
+<sphInput>
+    <Variables>
+        <!-- Are these variables belonging to somewhere else? It is not really a big deal to redefine them though -->
+        <Variable name="T" type="float*" length="N" />
+        <Variable name="gamma" type="float*" length="N" />
+        <Variable name="cv" type="float*" length="N" />
+
+
+        <Variable name="z" type="float*" length="N" />
+        <Variable name="z_in" type="float*" length="N" />
+        <Variable name="dz_dt" type="float*" length="N" />
+
+        <Variable name="ys" type="vec16*" length="N" />
+        <Variable name="ys_in" type="vec16*" length="N" />
+
+        <Variable name="xs" type="vec16*" length="N" />        
+
+        <Variable name="dysdt" type="vec16*" length="N" />
+        <Variable name="dysdt_in" type="vec16*" length="N" />
+    </Variables>
+
+    <Tools>
+        
+        <Tool action="insert" after="Sort" type="set" name="reinit dysdt" in="dysdt" value="VEC16_ZERO" />
+        <!--<Tool action="insert" after="Sort" type="set" name="reinit dysdt" in="dysdt" value="vec16(0.f)" />-->
+
+        <Tool action="insert" after="predictor" name="predictor mass fractions" type="kernel"
+            entry_point="predictor" path="../../../Scripts/cfd/species/euler.cl" />
+
+        <Tool action="insert" after="sort stage1,sort stage2" name="sort species" type="kernel"
+            entry_point="entry" path="../../../Scripts/cfd/species/Sort.cl" />
+        <Tool action="replace" name="EOS" type="kernel" path="../../../Scripts/cfd/species/EOS.cl" />
+
+        <Tool action="insert" after="corrector" name="corrector species" type="kernel"
+            entry_point="corrector" path="../../../Scripts/cfd/species/euler.cl" />
+    </Tools>
+</sphInput>

@@ -16,17 +16,34 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _SOUND_SPEED_PERFECT_GAS_H_INCLUDED_
-#define _SOUND_SPEED_PERFECT_GAS_H_INCLUDED_
-
-/// @brief 
-/// @param gamma polytropic coefficient
-/// @param p pressure
-/// @param rho density
-/// @return speed of sound
-float sound_speed_perfect_gas(float gamma, float p, float rho)
+/** @brief 1st order Euler time integration scheme corrector stage
+ * @param imove Moving flags.
+ *   - imove > 0 for regular fluid particles.
+ *   - imove = 0 for sensors.
+ *   - imove < 0 for boundary elements/particles.
+ * @param rhs_qdot change of internal energy due to heat conduction
+ * @param deintdt Internal energy rate of change
+ * \f$ \left. \frac{d e}{d t} \right\vert_{n+1/2} \f$.
+ * @param N Number of particles.
+ * @param dt Time step \f$ \Delta t \f$.
+ */
+__kernel void
+add(const __global int* imove,
+    __global float* deintdt,
+    const __global float* rhs_qdot,
+    const unsigned int N,
+    const float dt)
 {
-    return sqrt(gamma * p / rho);
+	usize i = get_global_id(0);
+	if (i >= N)
+		return;
+
+	if (imove[i] > 0) {
+		// eint[i] += dt * rhs_qdot[i];
+		deintdt[i] += rhs_qdot[i];
+	}
 }
 
-#endif    // _SOUND_SPEED_PERFECT_GAS_H_INCLUDED_
+/*
+ * @}
+ */

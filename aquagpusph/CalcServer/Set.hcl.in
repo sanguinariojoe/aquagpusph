@@ -92,7 +92,6 @@
 #define ULVEC8_ZERO ((ulong8)(0ul))
 #define ULVEC16_ZERO ((ulong16)(0ul))
 
-
 #ifndef HAVE_3D
 #define vec vec2
 #define dvec dvec2
