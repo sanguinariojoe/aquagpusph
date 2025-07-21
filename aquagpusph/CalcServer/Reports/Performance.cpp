@@ -23,6 +23,8 @@
 
 #include <algorithm>
 #include <iomanip>
+#include <sstream>
+#include <iostream>
 #include "aquagpusph/AuxiliarMethods.hpp"
 #include "aquagpusph/InputOutput/Logger.hpp"
 #include "aquagpusph/CalcServer/CalcServer.hpp"
