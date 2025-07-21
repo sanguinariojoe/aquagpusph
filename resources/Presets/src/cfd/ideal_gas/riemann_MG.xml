@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+
+<!-- cfd.xml
+This is the main preset to create CFD compressible simulations with a Riemann solver in SPH. 
+To use it, basic.xml, cfd.xml and ideal_gas.xml should be loaded first.
+
+The method has been implemented following the papers:
+Parshikov et al. International Journal of Impact Engineering 24 (2000) 779-796
+Parshikov et al. Journal Computational Physics 180, 358-382 (2002)
+
+Riemann problem can be studied in the book of Toro on Riemann solvers.
+
+-->
+
+<sphInput>
+    <Tools>
+       
+        <!-- Particles interactions -->
+        <Tool action="replace" name="cfd interactions" type="kernel" path="../../../Scripts/cfd/ideal_gas/riemann/Interactions_Monaghan_Gingold.cl"/>
+
+    </Tools>
+</sphInput>
