@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+<!--
+   #    ##   #  #   #
+  # #  #  #  #  #  # #                          #
+ ##### #  #  #  # #####  ##  ###  #  #  ## ###  ###
+ #   # #  #  #  # #   # #  # #  # #  # #   #  # #  #
+ #   # #  #  #  # #   # #  # #  # #  #   # #  # #  #
+ #   #  ## #  ##  #   #  ### ###   ### ##  ###  #  #
+                           # #             #
+                         ##  #             #
+
+Another QUAlity GPU-SPH, by CEHINAV.
+    http://canal.etsin.upm.es/
+Authors:
+    Jose Luis Cercos-Pita
+    Leo Miguel Gonzalez
+    Antonio Souto-Iglesias
+-->
+
+<sphInput>
+    <ParticlesSet n="{{N}}">
+        <Scalar name="refd" value="0.0" />
+        <Scalar name="visc_dyn" value="0.0" />
+        <Scalar name="gamma" value="{{GAMMA}}" />
+        <Load format="FastASCII" file="Fluid.dat" fields="r, normal, u, dudt, rho, drhodt, eint, deintdt, m, imove" />
+        <Save format="VTK" file="output" fields="r, normal, u, dudt, rho, drhodt, eint, deintdt, m, p, imove" />
+    </ParticlesSet>
+</sphInput>
