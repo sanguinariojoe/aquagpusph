@@ -571,7 +571,25 @@ State::parseVariables(DOMElement* root,
 		if (node->getNodeType() != DOMNode::ELEMENT_NODE)
 			continue;
 		DOMElement* elem = dynamic_cast<xercesc::DOMElement*>(node);
-		DOMNodeList* s_nodes = elem->getElementsByTagName(xmlS("Variable"));
+		DOMNodeList* s_nodes = elem->getElementsByTagName(xmlS("TypeAlias"));
+		for (XMLSize_t j = 0; j < s_nodes->getLength(); j++) {
+			DOMNode* s_node = s_nodes->item(j);
+			if (s_node->getNodeType() != DOMNode::ELEMENT_NODE)
+				continue;
+			DOMElement* s_elem = dynamic_cast<xercesc::DOMElement*>(s_node);
+			if (!xmlHasAttribute(s_elem, "name")) {
+				LOG(L_ERROR, "Unnamed type alias");
+				throw std::runtime_error("Invalid alias name");
+			}
+			std::string alias_name = xmlAttribute(s_elem, "name");
+			if (!xmlHasAttribute(s_elem, "type")) {
+				LOG(L_ERROR, "Missing alias type target");
+				throw std::runtime_error("Invalid alias type target");
+			}
+			std::string alias_target = xmlAttribute(s_elem, "type");
+			sim_data.variables.registerAlias(alias_name, alias_target);
+		}
+		s_nodes = elem->getElementsByTagName(xmlS("Variable"));
 		for (XMLSize_t j = 0; j < s_nodes->getLength(); j++) {
 			DOMNode* s_node = s_nodes->item(j);
 			if (s_node->getNodeType() != DOMNode::ELEMENT_NODE)

@@ -52,9 +52,9 @@ entry(const __global int* imove,
       const __global vec* r,
       const __global float* rho,
       const __global float* m,
-      __global vec16* rhsy,
-      const __global vec16* ys,
-      const __global vec16* Ds,
+      __global species_t* rhsy,
+      const __global species_t* ys,
+      const __global species_t* Ds,
       usize N,
       LINKLIST_LOCAL_PARAMS)
 {
@@ -68,8 +68,8 @@ entry(const __global int* imove,
 
 	const vec_xyz r_i = r[i].XYZ;
 
-	const vec16 ys_i = ys[i];
-	const vec16 Ds_i = Ds[i];
+	const species_t ys_i = ys[i];
+	const species_t Ds_i = Ds[i];
 
 	const float rho_i = rho[i];
 
@@ -80,7 +80,7 @@ entry(const __global int* imove,
 #else
 #define _RHS_YS_ rhsyl[it]
 
-	__local vec16 rhsyl[LOCAL_MEM_SIZE];
+	__local species_t rhsyl[LOCAL_MEM_SIZE];
 
 	_RHS_YS_ = VEC16_ZERO;
 
@@ -107,9 +107,9 @@ entry(const __global int* imove,
 			const float rho_j = rho[j];
 			const float f_ij = kernelF(q) * CONF * m[j];
 
-			const vec16 ys_j = ys[j];
+			const species_t ys_j = ys[j];
 
-			const vec16 Ds_j = Ds[j];
+			const species_t Ds_j = Ds[j];
 
 			_RHS_YS_ += -4.0f * Ds_i * Ds_j /
 			            ((rho_i * rho_j) * (Ds_i + Ds_j)) * (ys_i - ys_j) *

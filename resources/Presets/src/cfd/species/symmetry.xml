@@ -1,19 +1,14 @@
 <?xml version="1.0"?>
 <!-- symmetry.xml
 Symmetrization of the terms for species.
+
+To use this module, just include it after cfd/species/species.xml and
+cfd/symmetry.xml
 -->
 
 <sphInput>
-    <!-- ?????????????????? -->
-    <!--<Include
-    file="@RESOURCES_OUTPUT_DIR@/Presets/cfd/symmetry.xml"/>-->
-    <!-- ?????????????????? -->
     <Tools>
-        <!--<Tool action="replace" name="*cfd symmetry feed" type="kernel"
-            path="../../../Scripts/cfd/species/symmetry/Mirror.cl" entry_point="feed" />-->
-
         <Tool action="insert" after="*cfd symmetry set" name="cfd symmetry set species" type="kernel"
             path="../../../Scripts/cfd/species/symmetry/Mirror.cl" entry_point="feed" />
     </Tools>
-
 </sphInput>

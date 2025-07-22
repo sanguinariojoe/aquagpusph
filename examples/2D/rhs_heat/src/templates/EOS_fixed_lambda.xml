@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+
+<!-- ideal_gas.xml
+Replace the stiffened EOS by an ideal gas EOS with isotentropic expansion
+-->
+
+<sphInput>
+    <Tools>
+        <Tool action="replace" name="EOS" type="kernel" path="EOS_fixed_lambda.cl" />
+    </Tools>
+</sphInput>

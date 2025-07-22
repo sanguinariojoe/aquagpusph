@@ -32,8 +32,8 @@ __kernel void
 feed(const __global usize* mirror_src,
      usize N,
      __global float* z_in,
-	__global vec16* ys_in,
-	__global vec16* dysdt_in
+	__global species_t* ys_in,
+	__global species_t* dysdt_in
 	 )
 {
 

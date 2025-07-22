@@ -1,21 +1,31 @@
 <?xml version="1.0"?>
 
-<!-- diffusion_RHS.xml
+<!-- RHS.xml
 Introduced the Fick's Law of diffusion in the equations for multiple species.
+
+This module needs that a type alias and definition of "species_t" is created
+before loading it. It also needs a definition of "SPECIES_COMPONENT0".
+
+See for instance cfd/species/gases/hydrogen_air_bulk.xml
+
+Thus, this module shall be included AFTER that backend. e.g.
+
+<Include file="resources/Presets/cfd/species/gases/hydrogen_air_bulk.xml" />
+<Include file="resources/Presets/cfd/diffusion/RHS.xml" />
 -->
 
 <sphInput>
     <Variables>
-        <Variable name="Ds" type="vec16*" length="N" />
-        <Variable name="Ds_in" type="vec16*" length="N" />
-        <Variable name="rhsy" type="vec16*" length="N" />
+        <Variable name="Ds" type="species_t*" length="N" />
+        <Variable name="Ds_in" type="species_t*" length="N" />
+        <Variable name="rhsy" type="species_t*" length="N" />
         
     </Variables>
 
     <Tools>
-        <Tool action="insert" after="Sort" type="set" name="reinit rhs y" in="rhsy" value="VEC16_ZERO" />
+        <Tool action="insert" after="Sort" type="set" name="reinit rhs y" in="rhsy" value="(species_t)(0.f)" />
 
-        <!-- This is for time being, untill a more advance transpor model will be programmed-->
+        <!-- This is for time being, until a more advanced transport model is programmed-->
         <Tool action="insert" name="Backup Ds" before="sort stage1,sort stage2" type="copy"
             in="Ds" out="Ds_in" />   
 

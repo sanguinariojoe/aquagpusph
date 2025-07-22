@@ -97,6 +97,34 @@ ProblemSetup::sphSettings::sphSettings()
 }
 
 void
+ProblemSetup::sphVariables::registerAlias(std::string name,
+                                          std::string type)
+{
+	if (aliases.find(name) != aliases.end()) {
+		if (aliases[name] == type) {
+			return;
+		}
+		LOG(L_WARNING, "Overwriting the type alias '" + name + "', from '" +
+			aliases[name] + "' to '" + type + "'\n");
+		aliases[name] = type;
+		aliases[name + "*"] = type + "*";
+		return;
+	}
+	LOG(L_DEBUG, "Defining the type alias '" + name + "' = '" + type + "'\n");
+	aliases.insert(std::make_pair(name, type));
+	aliases.insert(std::make_pair(name + "*", type + "*"));
+}
+
+std::string
+ProblemSetup::sphVariables::resolveType(std::string name) {
+	LOG(L_DEBUG, "Resolving alias '" + name + "'\n");
+	if (aliases.find(name) == aliases.end()) {
+		return name;
+	}
+	return resolveType(aliases[name]);
+}
+
+void
 ProblemSetup::sphVariables::registerVariable(std::string name,
                                              std::string type,
                                              std::string length,

@@ -20,6 +20,10 @@
  * @brief Variable time step computation.
  */
 
+#define PASTE(x,y) x ## _ ## y
+#define EVALUATE_AND_PASTE(x,y) PASTE(x,y)
+#define reduce_max EVALUATE_AND_PASTE(reduce_max, species_t)
+
 #include "resources/Scripts/types/types.h"
 #include "resources/Scripts/KernelFunctions/Kernel.h"
 #include "resources/Scripts/cfd/ideal_gas/sound_speed.hcl"
@@ -63,19 +67,6 @@
  * @param C_p heat t constat pressure
  * @param D_xx diffusion coeficcient
  */
-
-float
-givemax(const vec16 ddss)
-{
-
-	const vec8 tmp1 = max(ddss.s01234567, ddss.s89ABCDEF);
-	const vec4 tmp2 = max(tmp1.s0123, tmp1.s4567);
-	const vec2 tmp3 = max(tmp2.s01, tmp1.s23);
-	const float tmp4 = max(tmp2.s0, tmp1.s1);
-
-	return tmp4;
-}
-
 __kernel void
 entry(__global float* dt_var,
       const __global int* imove,
@@ -95,7 +86,7 @@ entry(__global float* dt_var,
       __constant float* gamma,
       const __global float* lambda,
       const __global float* cp,
-      const __global vec16* Ds)
+      const __global species_t* Ds)
 {
 	const usize i = get_global_id(0);
 	if (i >= N)
@@ -124,8 +115,8 @@ entry(__global float* dt_var,
 	const float dt_u6 =
 	    courant * dxx / (s_i + dxx * sqrt(div_u[i] * div_u[i]) / rho[i]);
 
-	const vec16 dt_many = courant * dxx * dxx / (Ds[i] / rho[i]);
-	const float dt_u7 = givemax(dt_many);
+	const species_t dt_many = courant * dxx * dxx / (Ds[i] / rho[i]);
+	const float dt_u7 = reduce_max(dt_many);
 
 	const float dt_u =
 	    min(min(min(min(min(min(dt_u1, dt_u2), dt_u3), dt_u4), dt_u5), dt_u6),

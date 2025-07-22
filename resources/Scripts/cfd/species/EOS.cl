@@ -73,8 +73,8 @@ entry(const __global unsigned int* iset,
       const __global int* imove,
       const __global float* rho,
       const __global float* eint,
-      const __global vec16* ys,
-      const __global vec16* xs,
+      const __global species_t* ys,
+      const __global species_t* xs,
       __global float* p,
       __global float* T,
       __global float* gamma,
@@ -92,19 +92,12 @@ entry(const __global unsigned int* iset,
 	if (EXCLUDED_PARTICLE(i))
 		return;
 
-	//__global float cp[]={0.0f,};
-
 	calc_gamma_cp_cv(ys + i, gamma + i, cv + i, cp + i);
 	X_from_Y(ys + i, xs + i);
 
 	p[i] = (gamma[i] - 1.0f) * rho[i] * eint[i];
 	T[i] = eint[i] / cv[i];
-	// printf("cv = %f\n", cv[i]);
-	// printf("T = %f\n", T[i]);
 	lambda[i] = cp[i] * rho[i] * xi[i] * sqrt(T[i] / 298.0f);
-
-	// This line is for debug!!!!
-	lambda[i] = 1012.0f * xi[i];
 
 	mu[i] = rho[i] * nu[i] * sqrt(T[i] / 298.0f);
 }

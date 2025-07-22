@@ -38,8 +38,8 @@
  * @param N Number of particles.
  */
 __kernel void
-entry(const __global vec16* Ds_in,
-      __global vec16* Ds,
+entry(const __global species_t* Ds_in,
+      __global species_t* Ds,
       const __global usize* id_sorted,
       usize N)
 {
