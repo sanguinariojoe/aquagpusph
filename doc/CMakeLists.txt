@@ -3,8 +3,7 @@
 # ===================================================== #
 # Included source directories
 SET(DOXYGEN_SOURCE_DIR
-	${CMAKE_SOURCE_DIR}/src
-	${CMAKE_SOURCE_DIR}/include
+	${CMAKE_SOURCE_DIR}/aquagpusph
 	${CMAKE_SOURCE_DIR}/resources
 )
 STRING(REGEX REPLACE ";" " " DOXYGEN_INPUT_LIST "${DOXYGEN_SOURCE_DIR}")
