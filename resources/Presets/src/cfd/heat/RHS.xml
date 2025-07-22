@@ -2,6 +2,8 @@
 
 <!-- ideal_gas.xml
 Replace the stiffened EOS by an ideal gas EOS with isoentropic expansion
+
+You can load this model any time after cfd.xml
 -->
 
 <sphInput>
@@ -28,17 +30,12 @@ Replace the stiffened EOS by an ideal gas EOS with isoentropic expansion
             value="0.f" />
 
 
-        <!-- This is for time being, untill a more advance transpor model will be programmed-->
-
+        <!-- This is for time being, until a more advanced transport model is programmed-->
         <Tool action="insert" name="Backup nu" before="sort stage1,sort stage2" type="copy" in="nu"
             out="nu_in" />
         <Tool action="insert" name="Backup xi" before="sort stage1,sort stage2" type="copy" in="xi"
             out="xi_in" />
 
-        <!-- This is commented after conversation with Cercos-->
-        <!--<Tool
-        action="insert" after="predictor" name="predictor heat" type="kernel"
-        entry_point="predictor" path="../../../Scripts/cfd/heat/euler.cl"/>-->
         <Tool action="insert" after="sort stage1,sort stage2" name="sort heat" type="kernel"
             entry_point="entry" path="../../../Scripts/cfd/heat/Sort.cl" />
 

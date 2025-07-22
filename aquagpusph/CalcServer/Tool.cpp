@@ -341,6 +341,9 @@ Tool::compile(const std::string source,
 		flags << " -Dusize" << nc << "=u" << size_type << nc;
 		flags << " -Dssize" << nc << "=" << size_type << nc;
 	}
+	for (auto def : C->definitions()) {
+		flags << " " << def;
+	}
 	flags << " " << additional_flags;
 
 	size_t source_length = source.size();

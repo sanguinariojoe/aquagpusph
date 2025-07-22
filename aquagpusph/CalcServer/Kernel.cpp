@@ -379,10 +379,6 @@ Kernel::make(const std::string entry_point,
 	if (C->base_path().compare("")) {
 		flags << "-I" << C->base_path() << " ";
 	}
-	// Setup the user registered flags
-	for (auto def : C->definitions()) {
-		flags << def << " ";
-	}
 	// Add the additionally specified flags
 	flags << add_flags;
 

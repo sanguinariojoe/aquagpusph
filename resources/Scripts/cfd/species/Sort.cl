@@ -43,10 +43,10 @@
 __kernel void
 entry(__global float* z,
       const __global float* z_in,
-      __global vec16* ys,
-      const __global vec16* dysdt,
-      const __global vec16* ys_in,
-      __global vec16* dysdt_in,
+      __global species_t* ys,
+      const __global species_t* dysdt,
+      const __global species_t* ys_in,
+      __global species_t* dysdt_in,
       const __global usize* id_sorted,
       usize N)
 {

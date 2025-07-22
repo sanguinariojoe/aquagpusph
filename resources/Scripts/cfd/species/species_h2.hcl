@@ -19,67 +19,57 @@
 #ifndef _SPECIES_H2_INCLUDED_
 #define _SPECIES_H2_INCLUDED_
 
+#define PASTE(x,y) x ## _ ## y
+#define EVALUATE_AND_PASTE(x,y) PASTE(x,y)
+#define reduce_sum EVALUATE_AND_PASTE(reduce_sum, species_t)
+
 #define R_gas 8.31f
+#define CPS (species_t)(14200.f, 918.f, 1040.f, 2050.f)
+#define MIS (species_t)(0.002f, 0.032f, 0.028f, 0.018f)
+#define NUS (species_t)(-1.0f, -0.5f, 0.0f, 1.0f)
 
-__constant float cps[4] = { 14200.0f, 918.0f, 1040.0f, 2050.0f };
-__constant float Mis[4] = { 0.002f, 0.032f, 0.028f, 0.018f };
-__constant float nus[4] = { -1.0f, -0.5f, 0.0f, 1.0f };
-
-float
-molar_mass_mixture(float y_H2, float y_O2, float y_N2, float y_H2O)
+inline float
+molar_mass_mixture(species_t y)
 {
-	// const float Mis[4] = {0.002f, 0.032f, 0.028f, 0.018f};
-	return 1.0f /
-	       (y_H2 / Mis[0] + y_O2 / Mis[1] + y_N2 / Mis[2] + y_H2O / Mis[3]);
+	const species_t Mis = MIS;
+	return 1.0f / reduce_sum(y * MIS);
 }
 
-float
-calc_cp_mix(float y_H2, float y_O2, float y_N2, float y_H2O)
+inline float
+calc_cp_mix(species_t y)
 {
-
-	// const float cps[4] = {14200.0f, 913.0f, 1040.0f, 2050.0f};
-	return y_H2 * cps[0] + y_O2 * cps[1] + y_N2 * cps[2] + y_H2O * cps[3];
+	const species_t cps = CPS;
+	return reduce_sum(y * cps);
 }
 
 void
-X_from_Y(const __global vec16* ys, __global vec16* xs)
+X_from_Y(const __global species_t* ys, __global species_t* xs)
 {
 	float MMix;
-	// const float Mis[4] = {0.002f, 0.032f, 0.028f, 0.018f};
+	const species_t Mis = MIS;
 
-	float y_H2, y_O2, y_N2, y_H2O;
-	y_H2 = (*ys).H2;
-	y_O2 = (*ys).O2;
-	y_N2 = (*ys).N2;
-	y_H2O = (*ys).H2O;
+	MMix = molar_mass_mixture(*ys);
 
-	MMix = molar_mass_mixture(y_H2, y_O2, y_N2, y_H2O);
+	*xs = MMix / Mis * *ys;
 
-	(*xs).H2 = MMix / Mis[0] * y_H2;
-	(*xs).O2 = MMix / Mis[1] * y_O2;
-	(*xs).N2 = MMix / Mis[2] * y_N2;
-	(*xs).H2O = MMix / Mis[3] * y_H2O;
-
-	// printf("x_O2 = %f   x_N2 = %f\n", *x_O2, *x_N2);
 	return;
 }
 
 void
-calc_gamma_cv(const __global vec16* ys,
+calc_gamma_cv(const __global species_t* ys,
               __global float* gamma,
               __global float* cv)
 {
 
 	float MMix, R_mix, cp_local, cv_local;
 
-	float y_H2, y_O2, y_N2, y_H2O;
-	y_H2 = (*ys).H2;
-	y_O2 = (*ys).O2;
-	y_N2 = (*ys).N2;
-	y_H2O = (*ys).H2O;
+	const float y_H2 = (*ys).H2;
+	const float y_O2 = (*ys).O2;
+	const float y_N2 = (*ys).N2;
+	const float y_H2O = (*ys).H2O;
 
-	MMix = molar_mass_mixture(y_H2, y_O2, y_N2, y_H2O);
-	cp_local = calc_cp_mix(y_H2, y_O2, y_N2, y_H2O);
+	MMix = molar_mass_mixture(*ys);
+	cp_local = calc_cp_mix(*ys);
 
 	R_mix = R_gas / MMix;
 
@@ -87,30 +77,21 @@ calc_gamma_cv(const __global vec16* ys,
 	cv_local = cp_local - R_mix;
 
 	*gamma = cp_local / cv_local;
-
 	*cv = cv_local;
-	// printf("%f, %f, %f\n", MMix, cp_local, cv_local);
 
 	return;
 }
 
 void
-calc_gamma_cp_cv(const __global vec16* ys,
+calc_gamma_cp_cv(const __global species_t* ys,
                  __global float* gamma,
                  __global float* cv,
                  __global float* cp)
 {
-
 	float MMix, R_mix, cp_local, cv_local;
 
-	float y_H2, y_O2, y_N2, y_H2O;
-	y_H2 = (*ys).H2;
-	y_O2 = (*ys).O2;
-	y_N2 = (*ys).N2;
-	y_H2O = (*ys).H2O;
-
-	MMix = molar_mass_mixture(y_H2, y_O2, y_N2, y_H2O);
-	cp_local = calc_cp_mix(y_H2, y_O2, y_N2, y_H2O);
+	MMix = molar_mass_mixture(*ys);
+	cp_local = calc_cp_mix(*ys);
 
 	R_mix = R_gas / MMix;
 
@@ -118,10 +99,7 @@ calc_gamma_cp_cv(const __global vec16* ys,
 	cv_local = cp_local - R_mix;
 
 	*gamma = cp_local / cv_local;
-
 	*cv = cv_local;
-	// printf("%f, %f, %f\n", MMix, cp_local, cv_local);
-
 	*cp = cp_local;
 
 	return;

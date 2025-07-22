@@ -232,8 +232,10 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 
 	// Register the user variables and arrays
 	for (i = 0; i < _sim_data.variables.names.size(); i++) {
+		const std::string var_type = _sim_data.variables.resolveType(
+			_sim_data.variables.types.at(i));
 		_vars.registerVariable(_sim_data.variables.names.at(i),
-		                       _sim_data.variables.types.at(i),
+		                       var_type,
 		                       _sim_data.variables.lengths.at(i),
 		                       _sim_data.variables.values.at(i));
 	}

@@ -35,31 +35,37 @@
 #define dvec3 double3
 #define dvec4 double4
 #define dvec8 double8
-//#define dvec16 double16
+#define dvec16 double16
 #define ivec2 int2
 #define ivec3 int3
 #define ivec4 int4
 #define ivec8 int8
+#define ivec16 int16
 #define lvec2 long2
 #define lvec3 long3
 #define lvec4 long4
 #define lvec8 long8
+#define lvec16 long16
 #define uivec2 uint2
 #define uivec3 uint3
 #define uivec4 uint4
 #define uivec8 uint8
+#define uivec16 uint16
 #define ulvec2 ulong2
 #define ulvec3 ulong3
 #define ulvec4 ulong4
 #define ulvec8 ulong8
+#define ulvec16 ulong16
 #define svec2 usize2
 #define svec3 usize3
 #define svec4 usize4
 #define svec8 usize8
+#define svec16 usize16
 #define ssvec2 ssize2
 #define ssvec3 ssize3
 #define ssvec4 ssize4
 #define ssvec8 ssize8
+#define ssvec16 ssize16
 
 /** @brief Helper function for #CONVERT
  *
@@ -123,7 +129,7 @@
     const __global usize * mpi_ihoc,                                           \
     svec4 n_cells
 
-    /** @brief Null #vec, i.e. filled with zero components.
+/** @brief Null #vec, i.e. filled with zero components.
  */
 #define VEC2_ZERO ((float2)(0.f,0.f))
 /** @brief Null #vec, i.e. filled with zero components.
@@ -138,3 +144,5 @@
 /** @brief Null #vec, i.e. filled with zero components.
  */
 #define VEC16_ZERO ((float16)(0.f,0.f,0.f,0.f,0.f,0.f,0.f,0.f,0.f,0.f,0.f,0.f,0.f,0.f,0.f,0.f))
+
+#include "resources/Scripts/types/reductions.h"

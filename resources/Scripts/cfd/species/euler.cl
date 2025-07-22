@@ -40,11 +40,11 @@
 
 __kernel void
 predictor(const __global float* z,
-          const __global vec16* ys,
-          const __global vec16* dysdt,
+          const __global species_t* ys,
+          const __global species_t* dysdt,
           __global float* z_in,
-          __global vec16* ys_in,
-          __global vec16* dysdt_in,
+          __global species_t* ys_in,
+          __global species_t* dysdt_in,
           const usize N)
 {
 	const usize i = get_global_id(0);
@@ -70,8 +70,8 @@ predictor(const __global float* z,
  */
 __kernel void
 corrector(const __global int* imove,
-          __global vec16* ys,
-          const __global vec16* dysdt,
+          __global species_t* ys,
+          const __global species_t* dysdt,
           __global float* z,
           const __global float* dz_dt,
           const unsigned int N,

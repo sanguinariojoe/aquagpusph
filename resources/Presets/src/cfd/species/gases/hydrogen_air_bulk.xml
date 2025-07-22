@@ -1,16 +1,18 @@
 <?xml version="1.0" ?>
 
 <sphInput>
+    <Variables>
+        <TypeAlias name="species_t" type="vec4" />
+    </Variables>
+
     <Definitions>
         <Define name="H2" value="s0" evaluate="false"/>
         <Define name="O2" value="s1" evaluate="false"/>
         <Define name="N2" value="s2" evaluate="false"/>
         <Define name="H2O" value="s3" evaluate="false"/>
 
-        <Definitions>
-            <!--<Define name="SPECIES_HEADER" value="&quot;resources/Scripts/cfd/species/species_h2.hcl&quot;" evaluate="false"/>-->
-            <Define name="SPECIES_HEADER" value="&lt;resources/Scripts/cfd/species/species_h2.hcl&gt;" evaluate="false" />
-            <Define name="COMPONENT0" value="H2" evaluate="false"/>
-        </Definitions>
+        <Define name="species_t" value="vec4" evaluate="false" />
+        <Define name="SPECIES_HEADER" value="&lt;resources/Scripts/cfd/species/species_h2.hcl&gt;" evaluate="false" />
+        <Define name="SPECIES_COMPONENT0" value="H2" evaluate="false"/>
     </Definitions>
 </sphInput>

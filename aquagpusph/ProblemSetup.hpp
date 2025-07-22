@@ -401,6 +401,9 @@ class DECLDIR ProblemSetup
 		/// Destructor
 		~sphVariables(){};
 
+		/// List of user defined type aliases
+		std::map<std::string, std::string> aliases;
+
 		/// Name of the variables
 		std::vector<std::string> names;
 		/// Type of variables
@@ -409,6 +412,21 @@ class DECLDIR ProblemSetup
 		std::vector<std::string> lengths;
 		/// Values
 		std::vector<std::string> values;
+
+		/** @brief Register a new type alias.
+		 *
+		 * @param name Name of the alias.
+		 * @param type Target type of the alias.
+		 */
+		void registerAlias(std::string name,
+		                   std::string type);
+
+		/** @brief Register a new type alias.
+		 *
+		 * @param name Name of the alias.
+		 * @param type Target type of the alias.
+		 */
+		std::string resolveType(std::string name);
 
 		/** @brief Add a new variable.
 		 *

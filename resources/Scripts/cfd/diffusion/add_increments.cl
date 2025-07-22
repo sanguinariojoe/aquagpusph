@@ -44,8 +44,8 @@
 __kernel void
 add(const __global int* imove,
     __global float* dz_dt,
-    __global vec16* dysdt,
-    const __global vec16* rhsy,
+    __global species_t* dysdt,
+    const __global species_t* rhsy,
     const unsigned int N,
     const float dt)
 {
@@ -55,7 +55,7 @@ add(const __global int* imove,
 
 	if (imove[i] > 0) {
 
-		dz_dt[i] += rhsy[i].COMPONENT0;
+		dz_dt[i] += rhsy[i].SPECIES_COMPONENT0;
 		dysdt[i] += rhsy[i];
 	}
 }

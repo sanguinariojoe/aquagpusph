@@ -32,7 +32,7 @@
 __kernel void
 feed(const __global usize* mirror_src, 
 	usize N, 
-	__global vec16* Ds_in)
+	__global species_t* Ds_in)
 {
 	const usize ii = get_global_id(0);
 	if (ii >= N)
