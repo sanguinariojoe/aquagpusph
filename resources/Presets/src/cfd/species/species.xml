@@ -21,7 +21,11 @@ Thus, this module shall be included AFTER that backend. e.g.
         <Variable name="T" type="float*" length="N" />
         <Variable name="gamma" type="float*" length="N" />
         <Variable name="cv" type="float*" length="N" />
-
+        <Variable name="cp" type="float*" length="N" />
+        <Variable name="nu" type="float*" length="N" />
+        <Variable name="xi" type="float*" length="N" />
+        <Variable name="mu" type="float*" length="N" />
+        <Variable name="lambda" type="float*" length="N" />
 
         <Variable name="z" type="float*" length="N" />
         <Variable name="z_in" type="float*" length="N" />

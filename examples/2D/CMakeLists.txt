@@ -19,4 +19,6 @@ ADD_SUBDIRECTORY(rhs_heat)
 ADD_SUBDIRECTORY(rhs_diffusion)
 ADD_SUBDIRECTORY(shock_1d_MG)
 ADD_SUBDIRECTORY(shock_point_riemann_MG)
+ADD_SUBDIRECTORY(detonation_1d)
+
 

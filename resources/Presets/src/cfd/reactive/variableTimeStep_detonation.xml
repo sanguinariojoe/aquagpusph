@@ -4,11 +4,12 @@
         <Variable name="courant" type="float" value="0.25" />
         <Variable name="dt_var" type="float*" length="N" />
         <Variable name="dt_min" type="float" value="0.0" />
+        <Variable name="zeta_dot" type="float*" length="N" />  
     </Variables>
 
     <Tools>
         <!--<Tool name="EOS_sw" action="insert"  before="TimeStep" type="kernel" path="@RESOURCES_OUTPUT_DIR@/Scripts/basic/EOS_sw.cl"/>-->
-        <Tool name="cfd variable time step" action="insert" before="TimeStep" type="kernel" path="../../../Scripts/cfd/reaction/TimeStep_detonation.cl"/>
+        <Tool name="cfd variable time step" action="insert" before="TimeStep" type="kernel" path="../../../Scripts/cfd/reactive/TimeStep_detonation.cl"/>
         <Tool name="cfd minimum time step" action="insert" before="TimeStep" type="reduction" in="dt_var" out="dt" null="INFINITY">
             c = min(a, b);
         </Tool>

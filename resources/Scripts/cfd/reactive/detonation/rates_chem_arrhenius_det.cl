@@ -1,6 +1,6 @@
 #include "resources/Scripts/types/types.h"
 #include "resources/Scripts/cfd/reactive/reaction_generic.hcl"
-#include "resources/Scripts/cfd/reactive/arrhenius_detonation.hcl"
+#include "resources/Scripts/cfd/reactive/detonation/arrhenius_detonation.hcl"
 
 __kernel void entry(const __global unsigned int* iset,
                     const __global int* imove,

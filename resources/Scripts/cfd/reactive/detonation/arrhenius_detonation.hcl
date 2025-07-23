@@ -7,7 +7,7 @@
 #endif
 #include SPECIES_HEADER
 //#include "resources/Scripts/cfd/species/species_auxiliary.hcl"
-#include "resources/Scripts/cfd/reaction/reaction_generic.hcl"
+#include "resources/Scripts/cfd/reactive/reaction_generic.hcl"
 
 #define E_ch 7000.0f
 #define K_ch 1000000.0f
@@ -50,7 +50,7 @@ void
 w_rhos_arrhenius_det(
     float z,
     float T, /*float y_H2, float y_O2, float y_N2, float y_H2O, */
-    __global species_t* ys,
+    species_t ys,
     /*__global float* w_rho_H2,
     __global float* w_rho_O2,
     __global float* w_rho_N2,
@@ -64,7 +64,7 @@ w_rhos_arrhenius_det(
 
 	// float inv_MMix = 1.0f / MMix;
 
-	*zeta_dot = zeta_dot_calc_arrhenius(z, T, (*ys).SPECIES_COMPONENT0, MMix);
+	*zeta_dot = zeta_dot_calc_arrhenius(z, T, ys.SPECIES_COMPONENT0, MMix);
 
 	w_from_zeta_dot(w_rhos,
 	    /*w_rho_H2, w_rho_O2, w_rho_N2, w_rho_H2O,*/ deintdt, zeta_dot, MMix);

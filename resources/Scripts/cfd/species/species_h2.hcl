@@ -27,6 +27,7 @@
 #define CPS (species_t)(14200.f, 918.f, 1040.f, 2050.f)
 #define MIS (species_t)(0.002f, 0.032f, 0.028f, 0.018f)
 #define NUS (species_t)(-1.0f, -0.5f, 0.0f, 1.0f)
+#define HPLUS_MASS (species_t)(0.0f, 0.0f, 0.0f, -285.83e3f/0.018f)
 
 inline float
 molar_mass_mixture(species_t y)
