@@ -51,9 +51,9 @@
  * @param n_cells Number of cells in each direction
  */
 
-#define alpha_mg 1.0f
-#define beta_mg 2.0f
-#define tiny_eps 0.01f
+#define ALPHA_MG 1.0f
+#define BETA_MG 2.0f
+#define TINY_EPS 0.01f
 
 __kernel void
 entry(const __global unsigned int* iset,
@@ -87,9 +87,6 @@ entry(const __global unsigned int* iset,
 	const float m_i = m[i];
 	//const float rs_i = rho_i * s_i;
 
-
-
-// Initialize the output
 #ifndef LOCAL_MEM_SIZE
 	#define _GRADP_ grad_p[i].XYZ
 	#define _W_DEN_ work_density[i]
@@ -146,12 +143,12 @@ entry(const __global unsigned int* iset,
 
 			const float mu_ij =
 			    h_ij_med * v_dot_r /
-			    (dot(r_ij, r_ij) + tiny_eps * h_ij_med * h_ij_med);
+			    (dot(r_ij, r_ij) + TINY_EPS * h_ij_med * h_ij_med);
 
 			float PI_ij = 0.0f;
 			if (mu_ij < 0.0f) {
-				PI_ij = rho_ij_med_inv * (-alpha_mg * s_ij_med * mu_ij +
-				                          beta_mg * mu_ij * mu_ij);
+				PI_ij = rho_ij_med_inv * (-ALPHA_MG * s_ij_med * mu_ij +
+				                          BETA_MG * mu_ij * mu_ij);
 			}
 
 			const float local_div = v_dot_r * f_ij;
@@ -159,8 +156,8 @@ entry(const __global unsigned int* iset,
 			_DIVU_ += local_div;
 
 			_GRADP_ -= 
-			           (p_i / (rho_i * rho_i) + p_j / (rho_j * rho_j) + PI_ij) *
-			           r_ij * f_ij;
+				(p_i / (rho_i * rho_i) + p_j / (rho_j * rho_j) + PI_ij) *
+				r_ij * f_ij;
 
 			_W_DEN_ += p[i] / (rho[i] * rho[i]) * local_div +
 			           0.5f * PI_ij * v_dot_r * f_ij;
