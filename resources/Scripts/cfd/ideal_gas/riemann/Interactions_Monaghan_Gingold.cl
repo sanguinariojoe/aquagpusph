@@ -145,9 +145,9 @@ entry(const __global unsigned int* iset,
 			    h_ij_med * v_dot_r /
 			    (dot(r_ij, r_ij) + TINY_EPS * h_ij_med * h_ij_med);
 
-			float PI_ij = 0.0f;
+			float pi_ij = 0.0f;
 			if (mu_ij < 0.0f) {
-				PI_ij = rho_ij_med_inv * (-ALPHA_MG * s_ij_med * mu_ij +
+				pi_ij = rho_ij_med_inv * (-ALPHA_MG * s_ij_med * mu_ij +
 				                          BETA_MG * mu_ij * mu_ij);
 			}
 
@@ -156,11 +156,11 @@ entry(const __global unsigned int* iset,
 			_DIVU_ += local_div;
 
 			_GRADP_ -= 
-				(p_i / (rho_i * rho_i) + p_j / (rho_j * rho_j) + PI_ij) *
+				(p_i / (rho_i * rho_i) + p_j / (rho_j * rho_j) + pi_ij) *
 				r_ij * f_ij;
 
 			_W_DEN_ += p[i] / (rho[i] * rho[i]) * local_div +
-			           0.5f * PI_ij * v_dot_r * f_ij;
+			           0.5f * pi_ij * v_dot_r * f_ij;
 		}
 	}
 	END_NEIGHS()

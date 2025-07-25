@@ -30,7 +30,7 @@ Authors:
         You can conveniently combine several stop criterias.
         -->
         <!--<Option name="End" type="Steps" value="10000" />-->
-        <Option name="End" type="Time" value="5.0e-4" />
+        <Option name="End" type="Time" value="5.0e-5" />
         <!-- Set output files print criteria
             type="FPS" Frames per second
             type="IPF" Iterations per frame
@@ -38,6 +38,8 @@ Authors:
         -->
         <!--<Option name="Output" type="IPF" value="1" />-->
         <!-- Option name="Output" type="IPF" value="1000" / -->
+        <!-- <Option name="Output" type="FPS" value="100000" /> -->
         <Option name="Output" type="IPF" value="100" />
+
     </Timing>
 </sphInput>

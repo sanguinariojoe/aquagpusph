@@ -38,6 +38,7 @@ Authors:
         -->
         <!--<Option name="Output" type="IPF" value="1" />-->
         <!-- Option name="Output" type="IPF" value="1000" / -->
+        <!-- <Option name="Output" type="FPS" value="100000" /> -->
         <Option name="Output" type="IPF" value="100" />
     </Timing>
 </sphInput>

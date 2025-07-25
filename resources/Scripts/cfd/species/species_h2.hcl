@@ -30,10 +30,11 @@
 #define HPLUS_MASS (species_t)(0.0f, 0.0f, 0.0f, -285.83e3f/0.018f)
 
 inline float
-molar_mass_mixture(species_t y)
+molar_mass_mixture(const species_t y)
 {
 	const species_t Mis = MIS;
-	return 1.0f / reduce_sum(y * MIS);
+	//return 1.0f / reduce_sum(y * MIS);
+	return reduce_sum(y * MIS);
 }
 
 inline float
@@ -64,10 +65,10 @@ calc_gamma_cv(const __global species_t* ys,
 
 	float MMix, R_mix, cp_local, cv_local;
 
-	const float y_H2 = (*ys).H2;
+	/*const float y_H2 = (*ys).H2;
 	const float y_O2 = (*ys).O2;
 	const float y_N2 = (*ys).N2;
-	const float y_H2O = (*ys).H2O;
+	const float y_H2O = (*ys).H2O;*/
 
 	MMix = molar_mass_mixture(*ys);
 	cp_local = calc_cp_mix(*ys);
@@ -95,7 +96,7 @@ calc_gamma_cp_cv(const __global species_t* ys,
 	cp_local = calc_cp_mix(*ys);
 
 	R_mix = R_gas / MMix;
-
+	//printf("%f\n", MMix);
 	// cv_local = cp_local / (cp_local-R_mix);
 	cv_local = cp_local - R_mix;
 

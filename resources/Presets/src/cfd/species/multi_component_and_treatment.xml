@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+
+<!-- species.xml
+Implement mixtures.
+
+This module is just adding the basic variables and tools. However, it needs
+an actual definition of the mixtures and their behavior. That is done by
+creating a type alias and definition of "species_t", and a definition of
+"SPECIES_HEADER".
+
+See for instance cfd/species/gases/hydrogen_air_bulk.xml
+
+Thus, this module shall be included AFTER that backend. e.g.
+
+<Include file="resources/Presets/cfd/species/gases/hydrogen_air_bulk.xml" />
+<Include file="resources/Presets/cfd/species/species.xml" />
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="ys" type="species_t*" length="N" />
+        <Variable name="ys_in" type="species_t*" length="N" />
+
+        <Variable name="z" type="float*" length="N" />
+        <Variable name="z_in" type="float*" length="N" />
+
+        <Variable name="dysdt" type="species_t*" length="N" />
+        <Variable name="dysdt_in" type="species_t*" length="N" />
+        <Variable name="dz_dt" type="float*" length="N" />
+
+    </Variables>
+
+    <Tools>
+
+        <Tool action="insert" after="Sort" type="set" name="reinit dysdt" in="dysdt"
+            value="(species_t)(0.f)" />
+        <Tool action="insert" after="Sort" type="set" name="reinit dz_dt" in="dz_dt"
+            value="0.f" />
+
+        <Tool action="insert" after="predictor" name="predictor mass fractions" type="kernel"
+            entry_point="predictor" path="../../../Scripts/cfd/species/euler.cl" />
+
+        <Tool action="insert" after="sort stage1,sort stage2" name="sort species" type="kernel"
+            entry_point="entry" path="../../../Scripts/cfd/species/Sort.cl" />
+
+        <Tool action="insert" after="corrector" name="corrector species" type="kernel"
+            entry_point="corrector" path="../../../Scripts/cfd/species/euler.cl" />
+    </Tools>
+</sphInput>

@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+
+<!-- ideal_gas.xml
+Replace the stiffened EOS by an ideal gas EOS with isoentropic expansion
+
+You can load this model any time after cfd.xml
+-->
+
+<sphInput>
+    <Variables>
+        <Variable name="xi" type="float*" length="N" />
+        <Variable name="xi_in" type="float*" length="N" />
+    </Variables>
+
+    <Tools>
+        <Tool action="insert" name="Backup xi" before="sort stage1,sort stage2" type="copy" in="xi"
+            out="xi_in" />
+
+        <Tool action="insert" after="sort stage1,sort stage2" name="sort heat" type="kernel"
+            entry_point="entry" path="../../../Scripts/cfd/heat/Sort_xi
+            .cl" />
+    </Tools>
+</sphInput>

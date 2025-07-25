@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<sphInput>
+    <Variables>
+        <Variable name="mu" type="float*" length="N" />
+        <Variable name="lambda" type="float*" length="N" />
+    </Variables>
+
+    <Tools>
+
+        <Tool action="insert" after="calculate temperature" name="properties on temperature" type="kernel"
+            entry_point="entry" path="../../../Scripts/cfd/species/temperature_dependent_properties.cl" />
+    </Tools>
+</sphInput>

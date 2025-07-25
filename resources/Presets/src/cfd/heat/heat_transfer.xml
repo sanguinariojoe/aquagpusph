@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+
+<!-- ideal_gas.xml
+Replace the stiffened EOS by an ideal gas EOS with isoentropic expansion
+
+You can load this model any time after cfd.xml
+-->
+
+<sphInput>
+
+
+
+    <Variables>
+        <Variable name="rhs_qdot" type="float*" length="N" />
+    </Variables>
+
+    <Tools>
+
+        <Tool action="insert" after="Sort" type="set" name="Reinit rhs qdot" in="rhs_qdot"
+            value="0.f" />
+
+        <Tool action="insert" before="Interactions" type="kernel" name="heat rates"
+            path="../../../Scripts/cfd/heat/RHS_heat_transfer.cl" />
+
+        <Tool action="insert" before="Rates" name="add increments heat transfer" type="kernel"
+            entry_point="add" path="../../../Scripts/cfd/heat/add_increments.cl" />
+    </Tools>
+</sphInput>

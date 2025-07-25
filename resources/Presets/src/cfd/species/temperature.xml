@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<sphInput>
+    <Variables>
+        <Variable name="T" type="float*" length="N" />
+    </Variables>
+
+    <Tools>
+
+        <Tool action="insert" after="EOS" name="calculate temperature" type="kernel"
+            entry_point="entry" path="../../../Scripts/cfd/species/temperature.cl" />
+    </Tools>
+</sphInput>

@@ -20,5 +20,9 @@ ADD_SUBDIRECTORY(rhs_diffusion)
 ADD_SUBDIRECTORY(shock_1d_MG)
 ADD_SUBDIRECTORY(shock_point_riemann_MG)
 ADD_SUBDIRECTORY(detonation_1d)
-
+ADD_SUBDIRECTORY(detonation_1d_MG)
+ADD_SUBDIRECTORY(detonation_point_time)
+ADD_SUBDIRECTORY(detonation_point_time_MG)
+ADD_SUBDIRECTORY(detonation_point_time_MG2)
+ADD_SUBDIRECTORY(shock_1d_MG_multispecies)
 

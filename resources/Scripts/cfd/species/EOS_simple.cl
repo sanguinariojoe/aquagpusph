@@ -55,17 +55,11 @@
  * @param p Pressure \f$ p_{n+1/2} \f$.
  * @param gamma Heat capacity ratio \f$ \gamma \f$.
  * @param N Number of particles.
- * @param xs molar fraction
  * @param ys mass fraction
  * @param p pressure
- * @param T temperature
  * @param gamma polytropic coefficient
  * @param cp heat at constant pressure
  * @param cv heat at constant volume
- * @param nu kinematic viscosity
- * @param xi thermal diffisivity
- * @param mu dynamic viscosity
- * @param lambda thermal conductivity
  */
 
 __kernel void
@@ -74,16 +68,10 @@ entry(const __global unsigned int* iset,
       const __global float* rho,
       const __global float* eint,
       const __global species_t* ys,
-      __global species_t* xs,
       __global float* p,
-      __global float* T,
       __global float* gamma,
       __global float* cp,
       __global float* cv,
-      const __global float* nu,
-      const __global float* xi,
-      __global float* mu,
-      __global float* lambda,
       usize N)
 {
 	usize i = get_global_id(0);
@@ -93,15 +81,8 @@ entry(const __global unsigned int* iset,
 		return;
 
 	calc_gamma_cp_cv(ys + i, gamma + i, cv + i, cp + i);
-	X_from_Y(ys + i, xs + i);
-
 	p[i] = (gamma[i] - 1.0f) * rho[i] * eint[i];
-      //printf("%f\n",gamma[i]);
-      //printf("\n");
-	T[i] = eint[i] / cv[i];
-	lambda[i] = cp[i] * rho[i] * xi[i] * sqrt(T[i] / 298.0f);
 
-	mu[i] = rho[i] * nu[i] * sqrt(T[i] / 298.0f);
 }
 
 /*

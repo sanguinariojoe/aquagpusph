@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<sphInput>
+    <Variables>
+        <Variable name="gamma" type="float*" length="N" />
+        <Variable name="cv" type="float*" length="N" />
+        <Variable name="cp" type="float*" length="N" />
+    </Variables>
+
+    <Tools>
+        <Tool action="replace" name="EOS" type="kernel" path="../../../Scripts/cfd/species/EOS_simple.cl" />
+    </Tools>
+</sphInput>
