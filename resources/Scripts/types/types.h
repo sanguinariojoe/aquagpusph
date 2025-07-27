@@ -126,7 +126,7 @@
 #define LINKLIST_REMOTE_PARAMS                                                 \
     const __global usize * icell,                                              \
     const __global usize * mpi_icell,                                          \
-    const __global usize * mpi_ihoc,                                           \
+    const __global svec2 * mpi_ihoc,                                           \
     svec4 n_cells
 
 /** @brief Loop over the particle-by-particle neighbour chains
