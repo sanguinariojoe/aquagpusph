@@ -218,6 +218,8 @@
         }                                                                      \
     }
 
+/// @brief Number of Neighbour Chains (NNC) per particle
+#define NNC 9
 
 /** @brief Multiply a matrix by a vector (inner product)
  *

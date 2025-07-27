@@ -129,6 +129,41 @@
     const __global usize * mpi_ihoc,                                           \
     svec4 n_cells
 
+/** @brief Loop over the particle-by-particle neighbour chains
+ *
+ * All the code between this macro and END_FOR_NEIGHS will be executed for
+ * all the neighbours.
+ *
+ * The resulting neighs will be automatically identified by the unsigned
+ * integer variable j. You are always entitled to discard a neighbour by
+ * executing \code{.c} continue \endcode
+ *
+ * The following variables will be declared, and therefore cannot be redeclared
+ * within the loop scope:
+ *   - __jhoc_id: Index of the JHOC entry to be read
+ *   - j: Index of the neighbour particle
+ *
+ * @param NPARTS Number of particles (usually \code{.c} N \endcode)
+ * @param JHOC Array of head of chains (usually \code{.c} jhoc \endcode)
+ * @see #END_FOR_NEIGHS
+ * @note This macro is created to replace the old #BEGIN_NEIGHS, which was
+ * performing suboptimally
+ */
+#define FOR_NEIGHS(NPARTS, JHOC)                                               \
+    for(unsigned int row = 0; row < NNC; row++) {                              \
+        const unsigned int __jhoc_id = i + row * NPARTS                        \
+        for(unsigned int j = JHOC[__jhoc_id].x; j < JHOC[__jhoc_id].y; j++) {
+
+/** @brief End of the loop over the neighs to compute the interactions.
+ * 
+ * @see #FOR_NEIGHS
+ * @note This macro is created to replace the old #END_NEIGHS, which was
+ * performing suboptimally
+ */
+#define END_FOR_NEIGHS()                                                       \
+        }                                                                      \
+    }
+
 /** @brief Null #vec, i.e. filled with zero components.
  */
 #define VEC2_ZERO ((float2)(0.f,0.f))

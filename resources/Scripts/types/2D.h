@@ -192,6 +192,9 @@
         }                                                                      \
     }
 
+/// @brief Number of Neighbour Chains (NNC) per particle
+#define NNC 3
+
 /** @brief Multiply a matrix by a vector (inner product)
  */
 #define MATRIX_DOT(_M, _V)                                                     \
