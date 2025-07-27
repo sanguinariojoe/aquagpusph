@@ -152,7 +152,7 @@
                                   ci +                                         \
                                   cj * n_cells.x +                             \
                                   ck * n_cells.x * n_cells.y;                  \
-                usize j = ihoc[c_j];                                           \
+                usize j = ihoc[c_j].x;                                         \
                 while((j < N) && (icell[j] == c_j)) {
 
 /** @brief End of the loop over the neighs to compute the interactions.
@@ -202,7 +202,7 @@
                                    __ci +                                      \
                                    __cj * NCELLS.x +                           \
                                    __ck * NCELLS.x * NCELLS.y;                 \
-                uint j = IHOC[__c_j];                                          \
+                uint j = IHOC[__c_j].x;                                        \
                 while((j < NPARTS) && (ICELL[j] == __c_j)) {
 
 /** @brief End of the loop over the neighs to compute the interactions.

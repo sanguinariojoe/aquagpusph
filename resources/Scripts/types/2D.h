@@ -130,7 +130,7 @@
             const usize c_j = c_i +                                            \
                               ci +                                             \
                               cj * n_cells.x;                                  \
-            usize j = ihoc[c_j];                                               \
+            usize j = ihoc[c_j].x;                                             \
             while((j < N) && (icell[j] == c_j)) {
 
 /** @brief End of the loop over the neighs to compute the interactions.
@@ -177,7 +177,7 @@
             const usize __c_j = CELL +                                         \
                                 __ci +                                         \
                                 __cj * NCELLS.x;                               \
-            usize j = IHOC[__c_j];                                             \
+            usize j = IHOC[__c_j].x;                                           \
             while((j < NPARTS) && (ICELL[j] == __c_j)) {
 
 /** @brief End of the loop over the neighs to compute the interactions.
