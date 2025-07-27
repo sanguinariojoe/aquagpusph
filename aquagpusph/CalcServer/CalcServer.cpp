@@ -228,7 +228,7 @@ CalcServer::CalcServer(const Aqua::InputOutput::ProblemSetup& sim_data)
 	_vars.registerVariable("id_sorted", "size_t*", valstr.str(), "");
 	_vars.registerVariable("id_unsorted", "size_t*", valstr.str(), "");
 	_vars.registerVariable("icell", "size_t*", valstr.str(), "");
-	_vars.registerVariable("ihoc", "size_t*", "n_cells_w", "");
+	_vars.registerVariable("ihoc", "svec2*", "n_cells_w", "");
 
 	// Register the user variables and arrays
 	for (i = 0; i < _sim_data.variables.names.size(); i++) {

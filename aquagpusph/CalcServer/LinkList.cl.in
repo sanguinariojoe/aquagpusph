@@ -30,7 +30,7 @@
  * allocated cells.
  */
 __kernel void
-iHoc(__global usize* ihoc, usize N, svec4 n_cells)
+iHoc(__global svec2* ihoc, usize N, svec4 n_cells)
 {
 	// find position in global arrays
 	usize i = get_global_id(0);
@@ -38,7 +38,7 @@ iHoc(__global usize* ihoc, usize N, svec4 n_cells)
 	if (i >= n_cells.w)
 		return;
 
-	ihoc[i] = N;
+	ihoc[i] = (svec2)(N);
 }
 
 /** Compute the cell where each particle is allocated.
@@ -91,7 +91,7 @@ iCell(__global usize* icell,
  */
 __kernel void
 linkList(const __global usize* icell,
-         __global usize* ihoc,
+         __global svec2* ihoc,
          const usize N)
 {
 	// find position in global arrays
@@ -104,10 +104,15 @@ linkList(const __global usize* icell,
 	const usize c = icell[i];
 	const usize c2 = icell[i + 1];
 	if (i == 0) {
-		// As a particular case, the first particle is ever the head of chain.
-		ihoc[c] = 0;
+		// As a particular case, the first particle is always a head of chain.
+		ihoc[c].x = 0;
+	}
+	if (i + 1 == N - 1) {
+		// As a particular case, the last particle is always a tail of chain.
+		ihoc[c2].y = N;
 	}
 	if (c2 != c) {
-		ihoc[c2] = i + 1;
+		ihoc[c2].x = i + 1;
+		ihoc[c].y = i + 1;
 	}
 }
