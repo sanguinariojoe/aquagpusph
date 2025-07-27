@@ -113,7 +113,7 @@
  */
 #define LINKLIST_LOCAL_PARAMS                                                  \
     const __global usize * icell,                                              \
-    const __global usize * ihoc,                                               \
+    const __global svec2 * ihoc,                                               \
     svec4 n_cells
 
 /** @brief Macro to easily add the parameters to run #BEGIN_NEIGHS macro,
