@@ -52,7 +52,7 @@
  */
 __kernel void neigh_chains(const __global usize *icell,
                            const __global svec2 * ihoc,
-                           const __global svec2 * jhoc,
+                           __global svec2 * jhoc,
                            usize N,
                            svec4 n_cells)
 {
