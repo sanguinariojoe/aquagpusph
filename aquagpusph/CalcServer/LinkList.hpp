@@ -57,7 +57,6 @@ class LinkList : public Aqua::CalcServer::Tool
 	 * @param input_min Minimum of the particles positions.
 	 * @param input_max Maximum of the particles positions.
 	 * @param ihoc Head of cells array.
-	 * @param itoc Tail of cells array.
 	 * @param icell Cell of each particle.
 	 * @param n_cells Number of cells.
 	 * @param permutations Variable where the permutations will be stored.
@@ -76,7 +75,6 @@ class LinkList : public Aqua::CalcServer::Tool
 	         const std::string input_min = "r_min",
 	         const std::string input_max = "r_max",
 	         const std::string ihoc = "ihoc",
-	         const std::string itoc = "itoc",
 	         const std::string icell = "icell",
 	         const std::string n_cells = "n_cells",
 	         const std::string permutations = "id_unsorted",
@@ -108,7 +106,7 @@ class LinkList : public Aqua::CalcServer::Tool
 	template<typename T>
 	void nCells();
 
-	/** @brief Allocate the "ihoc" & "itoc" arrays
+	/** @brief Allocate the "ihoc" array
 	 * @note This method is publicly available to make it accessible from an
 	 * OpenCL callback
 	 */
@@ -149,9 +147,6 @@ class LinkList : public Aqua::CalcServer::Tool
 
 	/// Head of chains variable name
 	std::string _ihoc_name;
-
-	/// Tail of chains variable name
-	std::string _itoc_name;
 
 	/// Cells of each particle variable name
 	std::string _icell_name;
