@@ -73,23 +73,31 @@ y_O2_1 = 0.21 * M_O2 / MM1
 y_N2_1 = 0.79 * M_N2 / MM1
 y_H2O_1 = 0.
 
+
+#MM1=MM2
+#y_H2_1 = y_H2_2
+#y_O2_1 = y_O2_2
+#y_N2_1 = y_N2_2
+#y_H2O_1 = y_H2O_2
+
 courant = 0.5
 support = 2.0 
 
-b0plus=0.3
+b0plus=0.1
 b0minus=0.1
 
 hfac = 2.0
 
 nx = 5000
 
-p1 = 50.0e5
+p1 = 100.0e5
 p2 = 1.0e5
 
 T1 = 2000.0
-
+T2 = 300.0
 rho1 = p1 * MM1 /(8.31 * T1)
 rho2 = 1.00001
+#rho2 = p2 * MM2 /(8.31 * T2)
 
 gamma=1.4
 
@@ -129,7 +137,7 @@ print("")
 
 def writeParticle(output, p, n=(0.0, 0.0), u=(0.0, 0.0),
                   dudt=(0.0, 0.0), rho=0.0, drhodt=0.0, e=0.0, dedt=0.0,
-                  z=0.0, y_H2=0.0, dy_H2dt=0.0, y_O2=0.0, dy_O2dt=0.0, y_N2=0.0, dy_N2dt=0.0, y_H2O=0.0, dy_H2Odt=0.0,
+                  z=0.0, y_H2=0.0, dy_H2dt=0.0, y_O2=0.0, dy_O2dt=0.0, y_N2=0.0, dy_N2dt=0.0, y_H2O=0.0, dy_H2Odt=0.0, Trigger=0,
                   imove=1):
     m = rho * dr**2
     string = ("{} {}, " * 4 + "{}, {}, {}, {}, {}, " 
@@ -138,7 +146,7 @@ def writeParticle(output, p, n=(0.0, 0.0), u=(0.0, 0.0),
               +
               "{} " * 3 + "{}, " 
               +
-              "{}, {}\n").format(
+              "{}, {}, {}\n").format(
         p[0], p[1],
         n[0], n[1],
         u[0], u[1],
@@ -150,6 +158,7 @@ def writeParticle(output, p, n=(0.0, 0.0), u=(0.0, 0.0),
         z,  # z,
         y_H2, y_O2, y_N2, y_H2O,
         dy_H2dt, dy_O2dt, dy_N2dt, dy_H2Odt,
+        Trigger,
         m,  # m,
  # nu, xi,       
         imove)  # imove

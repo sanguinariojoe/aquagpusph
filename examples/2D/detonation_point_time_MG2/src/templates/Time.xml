@@ -19,7 +19,7 @@ Authors:
 
 <sphInput>
     <Variables>
-        <Variable name="dt_min" type="float" value="0.0" />
+        <Variable name="dt_min" type="float" value="1.0e-11" />
     </Variables>
 
     <Timing>

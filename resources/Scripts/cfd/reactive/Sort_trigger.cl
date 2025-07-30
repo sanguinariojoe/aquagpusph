@@ -16,33 +16,30 @@
  *  along with AQUAgpusph.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @brief 1st order Euler time integration scheme corrector stage
- * @param imove Moving flags.
- *   - imove > 0 for regular fluid particles.
- *   - imove = 0 for sensors.
- *   - imove < 0 for boundary elements/particles.
- * @param rhs_qdot change of internal energy due to heat conduction
- * @param deintdt Internal energy rate of change
- * \f$ \left. \frac{d e}{d t} \right\vert_{n+1/2} \f$.
+#include "resources/Scripts/types/types.h"
+
+/** @brief Sort the internal energy.
+ *
+
  * @param N Number of particles.
- * @param dt Time step \f$ \Delta t \f$.
  */
+
+/// @param trigger unordered trigger
+/// @param trigger_in ordered trigger
+
 __kernel void
-add(const __global int* imove,
-    __global float* deintdt,
-    const __global float* rhs_qdot,
-    const unsigned int N,
-    const float dt)
+entry(const __global usize* id_sorted,
+      __global int* trigger,
+      const __global int* trigger_in,
+      usize N)
 {
 	usize i = get_global_id(0);
 	if (i >= N)
 		return;
 
-	if (imove[i] > 0) {
-		// eint[i] += dt * rhs_qdot[i];
-		deintdt[i] += rhs_qdot[i];
-		//printf("%f\t",deintdt[i]);
-	}
+	const usize i_out = id_sorted[i];
+
+	trigger[i_out] = trigger_in[i];
 }
 
 /*

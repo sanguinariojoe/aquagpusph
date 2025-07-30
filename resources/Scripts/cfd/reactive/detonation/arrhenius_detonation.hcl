@@ -10,7 +10,7 @@
 #include "resources/Scripts/cfd/reactive/reaction_generic.hcl"
 
 #define E_ch 7000.0f
-#define K_ch 1000000.0f
+#define K_ch 1.0e7f
 
 inline float
 arrhenius_detonation(float zeta, float T)
@@ -20,7 +20,7 @@ arrhenius_detonation(float zeta, float T)
 }
 
 #define LOW_CONC 4.0e-2f
-float
+inline float
 zeta_dot_calc_arrhenius(float z, float T, float y_0, float MMix)
 {
 
@@ -49,12 +49,8 @@ zeta_dot_calc_arrhenius(float z, float T, float y_0, float MMix)
 void
 w_rhos_arrhenius_det(
     float z,
-    float T, /*float y_H2, float y_O2, float y_N2, float y_H2O, */
+    float T, 
     species_t ys,
-    /*__global float* w_rho_H2,
-    __global float* w_rho_O2,
-    __global float* w_rho_N2,
-    __global float* w_rho_H2O,*/
     __global species_t* w_rhos,
     __global float* deintdt,
     __global float* zeta_dot)
@@ -66,8 +62,7 @@ w_rhos_arrhenius_det(
 
 	*zeta_dot = zeta_dot_calc_arrhenius(z, T, ys.SPECIES_COMPONENT0, MMix);
 
-	w_from_zeta_dot(w_rhos,
-	    /*w_rho_H2, w_rho_O2, w_rho_N2, w_rho_H2O,*/ deintdt, zeta_dot, MMix);
+	w_from_zeta_dot(w_rhos, deintdt, zeta_dot, MMix);
 
 	return;
 }

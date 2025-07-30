@@ -99,7 +99,7 @@ __kernel void entry(__global float* dt_var,
     //const float dt_u3 = courant * sqrt(dxx / (length(dudt[i]))); 
     const float dt_u3 = courant * dxx / (length(u[i])+1.0e-12f);
     const float dt_u4 = courant * 0.4f * dxx / sqrt(length(u[i]) * length(u[i]) + s_i * s_i);
-    const float dt_u5 = 0.1f / zeta_dot[i];
+    const float dt_u5 = courant * 0.5f / zeta_dot[i];
     const float dt_u6 = courant * dxx / (s_i + dxx * sqrt(div_u[i]*div_u[i])/ rho[i]);
     //float dt_u = min(min(min(dt_u1, dt_u2), dt_u3), dt_u4);
     const float dt_u = min(min(min(min(min(dt_u1, dt_u2), dt_u3), dt_u4), dt_u5), dt_u6);

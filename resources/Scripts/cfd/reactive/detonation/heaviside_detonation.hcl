@@ -1,0 +1,75 @@
+
+#ifndef _HEAVISIDE_DETONATION_H_INCLUDED_
+#define _HEAVISIDE_DETONATION_H_INCLUDED_
+
+#ifndef SPECIES_HEADER
+#error "species.xml module requires to load a backend module"
+#endif
+#include SPECIES_HEADER
+#include "resources/Scripts/cfd/reactive/reaction_generic.hcl"
+
+#define TLOW 800.0f
+#define THIGH 1700.0f
+
+inline float
+heaviside_factor(float T){
+
+	float Tempfact = (T-TLOW)/(THIGH-TLOW);
+	if(Tempfact>1.0f){
+		return 1.0f;
+	}else if(Tempfact<0.0f){
+		return 0.0f;
+	}else{
+		return Tempfact;
+	}
+}
+
+#define LOW_CONC 4.0e-2f
+inline float
+zeta_dot_calc_heaviside(float z, float T, float y_0, float MMix, int trigger)
+{
+
+    const species_t Mis = MIS;
+	float zx = MMix / Mis.SPECIES_COMPONENT0 * z;
+
+	float zeta;
+	float hevfact;
+	// check that there is mroe than 4%
+	if (zx > LOW_CONC) {
+		zeta = give_zeta(z, y_0);
+		hevfact = heaviside_factor(T);
+
+		if(trigger==1)
+		{
+			hevfact = 1.0f;
+		}		
+		return 75.0f / H * (1.0f - zeta) * hevfact;
+	} else {		
+		return 0.0f;
+	}
+
+}
+
+void
+w_rhos_heaviside_det(
+    float z,
+    float T, 
+    species_t ys, 
+	int trigger,
+    __global species_t* w_rhos,
+    __global float* deintdt,
+    __global float* zeta_dot)
+{
+
+    float MMix = molar_mass_mixture(ys);
+
+	// float inv_MMix = 1.0f / MMix;
+
+	*zeta_dot = zeta_dot_calc_heaviside(z, T, ys.SPECIES_COMPONENT0, MMix, trigger);
+
+	w_from_zeta_dot(w_rhos, deintdt, zeta_dot, MMix);
+
+	return;
+}
+
+#endif // _HEAVISIDE_DETONATION_H_INCLUDED_

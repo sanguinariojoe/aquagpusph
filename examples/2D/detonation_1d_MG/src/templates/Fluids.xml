@@ -24,6 +24,6 @@ Authors:
         <Load format="FastASCII" file="Fluid.dat" fields="r, normal, u, dudt, rho, drhodt, eint, deintdt, 
         z, ys, dysdt, m, imove" />
         <Save format="VTK" file="output" fields="r, normal, u, dudt, rho, drhodt, eint, deintdt, 
-        z, ys, dysdt, xs, m, p, T, cv, imove" />
+        z, ys, dysdt, xs, m, p, T, cp, cv, gamma, imove" />
     </ParticlesSet>
 </sphInput>

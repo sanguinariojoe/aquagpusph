@@ -17,7 +17,6 @@ You can load this model any time after cfd.xml
             out="xi_in" />
 
         <Tool action="insert" after="sort stage1,sort stage2" name="sort heat" type="kernel"
-            entry_point="entry" path="../../../Scripts/cfd/heat/Sort_xi
-            .cl" />
+            entry_point="entry" path="../../../Scripts/cfd/heat/Sort_xi.cl" />
     </Tools>
 </sphInput>

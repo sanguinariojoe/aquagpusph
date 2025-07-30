@@ -72,6 +72,7 @@ entry(const __global int* imove,
 	const float T_i = T[i];
 	const float lambda_i = lambda[i];
 
+	//printf("%f\n",T_i);
 	const float rho_i = rho[i];
 
 // Initialize the output
@@ -114,8 +115,10 @@ entry(const __global int* imove,
 
 			//_RHS_QDOT_ += 4.0f * lambda_i * lambda_j / (rho_i * lambda_i +
 			//rho_j * lambda_j)*(T_i-T_j)*f_ij; _RHS_QDOT_ = 0.0f;
-		}
+			//printf("%g\t", T_i);
+		}		
 	}
+
 	END_NEIGHS()
 
 #ifdef LOCAL_MEM_SIZE

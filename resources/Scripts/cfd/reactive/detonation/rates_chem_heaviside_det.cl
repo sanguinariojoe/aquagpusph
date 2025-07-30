@@ -1,6 +1,6 @@
 #include "resources/Scripts/types/types.h"
 #include "resources/Scripts/cfd/reactive/reaction_generic.hcl"
-#include "resources/Scripts/cfd/reactive/detonation/arrhenius_detonation.hcl"
+#include "resources/Scripts/cfd/reactive/detonation/heaviside_detonation.hcl"
 
 __kernel void entry(const __global unsigned int* iset,
                     const __global int* imove,
@@ -10,6 +10,7 @@ __kernel void entry(const __global unsigned int* iset,
                     const __global float* T,
                     const __global float* z,
                     const __global species_t* ys,
+                    const __global int* trigger,
                     __global float* deintdt,
                     __global species_t* dysdt,
                     __global float* zeta_dot,                    
@@ -24,5 +25,5 @@ __kernel void entry(const __global unsigned int* iset,
         return;
     }
 
-    w_rhos_arrhenius_det(z[i], T[i], ys[i], dysdt+i, deintdt+i, zeta_dot+i);
+    w_rhos_heaviside_det(z[i], T[i], ys[i], trigger[i], dysdt+i, deintdt+i, zeta_dot+i);
 }

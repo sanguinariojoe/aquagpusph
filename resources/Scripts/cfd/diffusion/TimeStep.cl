@@ -84,7 +84,7 @@ entry(__global float* dt_var,
       const __global float* div_u,
       const __global vec* grad_p,
       __constant float* gamma,
-      const __global float* lambda,
+      //const __global float* lambda,
       const __global float* cp,
       const __global species_t* Ds)
 {
@@ -111,16 +111,14 @@ entry(__global float* dt_var,
 	const float dt_u4 = courant * dxx / (length(u[i]) + 1.0e-12f);
 	// const float dt_u5 = 0.1f / zeta_dot[i];
 
-	const float dt_u5 = courant * dxx * dxx / (lambda[i] / (rho[i] * cp[i]));
+	//const float dt_u5 = courant * dxx * dxx / (lambda[i] / (rho[i] * cp[i]));
 	const float dt_u6 =
 	    courant * dxx / (s_i + dxx * sqrt(div_u[i] * div_u[i]) / rho[i]);
 
 	const species_t dt_many = courant * dxx * dxx / (Ds[i] / rho[i]);
 	const float dt_u7 = reduce_max(dt_many);
 
-	const float dt_u =
-	    min(min(min(min(min(min(dt_u1, dt_u2), dt_u3), dt_u4), dt_u5), dt_u6),
-	        dt_u7);
+	const float dt_u = /*min(*/min(min(min(min(min(dt_u1, dt_u2), dt_u3), dt_u4), /*dt_u5),*/ dt_u6), dt_u7);
 
 	dt_var[i] = max(min(dt, dt_u), dt_min);
 }

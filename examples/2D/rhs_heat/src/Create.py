@@ -88,7 +88,7 @@ p1 = 1.0e5
 p2 = 1.0e5
 
 T1 = 300.0
-T2 = 301.0
+T2 = 310.0
 
 rho1 = p1 * MM1 / (8.31 * T1)
 rho2 = p2 * MM1 / (8.31 * T2)
@@ -109,6 +109,15 @@ cs = ssound
 e1 = p1 / ((gamma - 1.0) * rho1)
 e2 = p2 / ((gamma - 1.0) * rho2)
 
+print("")
+print(f"rho1 = {rho1}")
+print(f"rho2 = {rho2}")
+print("")
+
+print("")
+print(f"e1 = {e1}")
+print(f"e2 = {e2}")
+print("")
 # Distance between particles
 # ==========================
 courant = 0.5

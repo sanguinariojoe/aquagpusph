@@ -25,7 +25,7 @@ Authors:
     <Include file="resources/Presets/cfd/ideal_gas.xml" />
     <Include file="resources/Presets/cfd/ideal_gas/riemann.xml" />
     <Include file="resources/Presets/cfd/ideal_gas/riemann_MG.xml" />
-    <Include file="resources/Presets/cfd/species/gases/hydrogen_air_bulk.xml" />
+    
     <!--<Include file="resources/Presets/cfd/species/species.xml" />-->
 
     <Include file="resources/Presets/cfd/species/gases/hydrogen_air_bulk.xml" />
@@ -33,8 +33,8 @@ Authors:
     <Include file="resources/Presets/cfd/species/EOS.xml" />
     <Include file="resources/Presets/cfd/species/temperature.xml" />
     <Include file="resources/Presets/cfd/species/X_from_Y.xml" />
-
-    <Include file="resources/Presets/cfd/reactive/reactive_arrhenius_det.xml" />
+    <Include file="resources/Presets/cfd/reactive/reactive_trigger.xml" />
+    <Include file="resources/Presets/cfd/reactive/reactive_heaviside_det.xml" />
     <Include file="resources/Presets/cfd/variableTimeStep.xml" />
     <Include file="resources/Presets/cfd/reactive/variableTimeStep_detonation.xml" />
 
