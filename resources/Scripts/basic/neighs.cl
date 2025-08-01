@@ -81,7 +81,7 @@ __kernel void neigh_chains(const __global usize *icell,
                 // We are always taking the last possible tail of chain
                 jhoc[iout].y = ihoc[c_j].y;
                 // But we only want the first hit for head of chain
-                if (jhoc[iout].x < N) {
+                if (jhoc[iout].x == N) {
                     jhoc[iout].x = ihoc[c_j].x;
                 }
             }
@@ -106,9 +106,7 @@ __kernel void neigh_chains(const __global usize *icell,
 __kernel void entry(const __global int* imove,
                     const __global svec2* jhoc,
                     __global uint* n_neighs,
-                    uint neighs_limit,
-                    usize N,
-                    LINKLIST_LOCAL_PARAMS)
+                    usize N)
 {
     const usize i = get_global_id(0);
     const usize it = get_local_id(0);

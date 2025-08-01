@@ -73,7 +73,8 @@ LinkList::LinkList(const std::string tool_name,
   , _icell(NULL)
   , _icell_lws(0)
   , _icell_gws(0)
-  , _ll(NULL)
+  , _ll_ihoc(NULL)
+  , _ll_itoc(NULL)
   , _ll_lws(0)
   , _ll_gws(0)
 {
@@ -117,8 +118,10 @@ LinkList::~LinkList()
 		clReleaseKernel(_ihoc);
 	if (_icell)
 		clReleaseKernel(_icell);
-	if (_ll)
-		clReleaseKernel(_ll);
+	if (_ll_ihoc)
+		clReleaseKernel(_ll_ihoc);
+	if (_ll_itoc)
+		clReleaseKernel(_ll_itoc);
 	for (auto arg : _ihoc_args) {
 		free(arg);
 	}
@@ -314,11 +317,16 @@ LinkList::setVariables()
 		if (!memcmp(var->get_async(), _ll_args.at(i), var->typesize())) {
 			continue;
 		}
-		err_code = clSetKernelArg(_ll, i, var->typesize(), var->get_async());
+		err_code = clSetKernelArg(_ll_ihoc, i, var->typesize(), var->get_async());
 		CHECK_OCL_OR_THROW(err_code,
 		                   std::string("Failure setting the variable \"") +
 		                       _ihoc_vars[i] + "\" to the tool \"" + name() +
-		                       "\" (\"linkList\").");
+		                       "\" (\"LinkList_ihoc\").");
+		err_code = clSetKernelArg(_ll_itoc, i, var->typesize(), var->get_async());
+		CHECK_OCL_OR_THROW(err_code,
+		                   std::string("Failure setting the variable \"") +
+		                       _ihoc_vars[i] + "\" to the tool \"" + name() +
+		                       "\" (\"LinkList_itoc\").");
 		memcpy(_ll_args.at(i), var->get_async(), var->typesize());
 	}
 }
@@ -466,7 +474,7 @@ LinkList::_execute(const std::vector<cl_event> events)
 
 	// And compute them
 	err_code = clEnqueueNDRangeKernel(C->command_queue(),
-	                                  _ll,
+	                                  _ll_ihoc,
 	                                  1,
 	                                  NULL,
 	                                  &_ll_gws,
@@ -476,14 +484,35 @@ LinkList::_execute(const std::vector<cl_event> events)
 	                                  &event);
 	CHECK_OCL_OR_THROW(
 	    err_code,
-	    std::string("Failure executing \"linkList\" from tool \"") + name() +
+	    std::string("Failure executing \"LinkList_ihoc\" from tool \"") + name() +
 	        "\".");
 	err_code = clReleaseEvent(event_wait);
 	CHECK_OCL_OR_THROW(
 	    err_code,
 	    std::string(
-	        "Failure releasing transactional \"linkList\" event in tool \"") +
+	        "Failure releasing transactional \"LinkList_ihoc\" event in \"") +
 	        name() + "\".");
+	event_wait = event;
+	err_code = clEnqueueNDRangeKernel(C->command_queue(),
+	                                  _ll_itoc,
+	                                  1,
+	                                  NULL,
+	                                  &_ll_gws,
+	                                  &_ll_lws,
+	                                  1,
+	                                  &event_wait,
+	                                  &event);
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string("Failure executing \"LinkList_itoc\" from tool \"") + name() +
+	        "\".");
+	err_code = clReleaseEvent(event_wait);
+	CHECK_OCL_OR_THROW(
+	    err_code,
+	    std::string(
+	        "Failure releasing transactional \"LinkList_itoc\" event in \"") +
+	        name() + "\".");
+
 	{
 		auto profiler = dynamic_cast<EventProfile*>(Profiler::substages()[3]);
 		profiler->start(event);
@@ -506,10 +535,14 @@ LinkList::setupOpenCL()
 	source << LINKLIST_INC << LINKLIST_SRC;
 
 	std::vector<cl_kernel> kernels =
-	    compile(source.str(), { "iHoc", "iCell", "linkList" });
+	    compile(source.str(), { "iHoc",
+	                            "iCell",
+	                            "LinkList_ihoc",
+	                            "LinkList_itoc" });
 	_ihoc = kernels.at(0);
 	_icell = kernels.at(1);
-	_ll = kernels.at(2);
+	_ll_ihoc = kernels.at(2);
+	_ll_itoc = kernels.at(3);
 
 	err_code = clGetKernelWorkGroupInfo(_ihoc,
 	                                    C->device(),
@@ -602,7 +635,7 @@ LinkList::setupOpenCL()
 		       vars->get(_icell_vars[i])->typesize());
 	}
 
-	err_code = clGetKernelWorkGroupInfo(_ll,
+	err_code = clGetKernelWorkGroupInfo(_ll_ihoc,
 	                                    C->device(),
 	                                    CL_KERNEL_WORK_GROUP_SIZE,
 	                                    sizeof(size_t),
@@ -611,10 +644,10 @@ LinkList::setupOpenCL()
 	CHECK_OCL_OR_THROW(
 	    err_code,
 	    std::string(
-	        "Failure querying the work group size (\"linkList\") in tool \"") +
+	        "Failure querying the work group size (\"LinkList_ihoc\") in \"") +
 	        name() + "\".");
 	if (_ll_lws < __CL_MIN_LOCALSIZE__) {
-		LOG(L_ERROR, "insufficient local memory for \"linkList\".\n");
+		LOG(L_ERROR, "insufficient local memory for \"LinkList_ihoc\".\n");
 		std::stringstream msg;
 		msg << "\t" << _ll_lws
 		    << " local work group size with __CL_MIN_LOCALSIZE__="
@@ -628,14 +661,22 @@ LinkList::setupOpenCL()
 		_icell_name, _ihoc_name, "N"
 	};
 	for (i = 0; i < _ll_vars.size(); i++) {
-		err_code = clSetKernelArg(_ll,
+		err_code = clSetKernelArg(_ll_ihoc,
 		                          i,
 		                          vars->get(_ll_vars[i])->typesize(),
 		                          vars->get(_ll_vars[i])->get());
 		CHECK_OCL_OR_THROW(err_code,
 		                   std::string("Failure sending \"") + _ll_vars[i] +
-		                       "\" argument to \"iCell\" in tool \"" + name() +
-		                       "\".");
+		                       "\" argument to \"LinkList_ihoc\" in tool \"" +
+		                       name() + "\".");
+		err_code = clSetKernelArg(_ll_itoc,
+		                          i,
+		                          vars->get(_ll_vars[i])->typesize(),
+		                          vars->get(_ll_vars[i])->get());
+		CHECK_OCL_OR_THROW(err_code,
+		                   std::string("Failure sending \"") + _ll_vars[i] +
+		                       "\" argument to \"LinkList_itoc\" in tool \"" +
+		                       name() + "\".");
 		_ll_args.push_back(malloc(vars->get(_ll_vars[i])->typesize()));
 		memcpy(_ll_args.at(i),
 		       vars->get(_ll_vars[i])->get(),

@@ -29,6 +29,10 @@ add_subdirectory(CSV)
 add_subdirectory(IncludeMacro)
 add_subdirectory(Vec16)
 
+if(AQUAGPUSPH_GPU_PROFILE)
+    add_subdirectory(Optim)
+endif(AQUAGPUSPH_GPU_PROFILE)
+
 add_subdirectory(3D/SetScalar)
 add_subdirectory(3D/Assert)
 add_subdirectory(3D/Copy)

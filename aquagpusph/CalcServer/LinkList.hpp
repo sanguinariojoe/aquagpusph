@@ -190,8 +190,10 @@ class LinkList : public Aqua::CalcServer::Tool
 	/// "icell" array computation sent arguments
 	std::vector<void*> _icell_args;
 
-	/// "ihoc" array computation
-	cl_kernel _ll;
+	/// "ihoc" array computation (just the x component)
+	cl_kernel _ll_ihoc;
+	/// "ihoc" array computation (just the y component)
+	cl_kernel _ll_itoc;
 	/// "ihoc" array computation local work size
 	size_t _ll_lws;
 	/// "ihoc" array computation global work size

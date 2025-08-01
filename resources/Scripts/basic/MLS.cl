@@ -45,11 +45,9 @@
  * @param r Position \f$ \mathbf{r}_{n+1} \f$.
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
+ * @param jhoc Head of chain for each cell (first particle found).
  * @param mls Kernel MLS transformation matrix \f$ L \f$.
- * @param icell Cell where each particle is located.
- * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
- * @param n_cells Number of cells in each direction
  * @param mls_imove Type of particles affected
  * @note The MLS kernel transformation will be computed just for the particles
  * with the moving flag mls_imove, and using just the information of the
@@ -59,10 +57,10 @@ __kernel void entry(const __global int* imove,
                     const __global vec* r,
                     const __global float* rho,
                     const __global float* m,
+                    const __global svec2* jhoc,
                     __global matrix* mls,
                     usize N,
-                    uint mls_imove,
-                    LINKLIST_LOCAL_PARAMS)
+                    uint mls_imove)
 {
     const usize i = get_global_id(0);
     const usize it = get_local_id(0);
@@ -83,28 +81,24 @@ __kernel void entry(const __global int* imove,
     #endif
     _MLS_ = MAT_ZERO;
 
-    const usize c_i = icell[i];
-    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
+    FOR_NEIGHS(N, jhoc){
         if(i == j){
-            j++;
             continue;
         }
         if(imove[j] != mls_imove){
-            j++;
             continue;
         }
         const vec_xyz r_ij = r[j].XYZ - r_i;
         const float q = length(r_ij) / H;
         if(q >= SUPPORT)
         {
-            j++;
             continue;
         }
         {
             const float f_ij = kernelF(q) * CONF * m[j] / rho[j];
             _MLS_ += outer(r_ij, f_ij * r_ij);
         }
-    }END_NEIGHS()
+    }END_FOR_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         mls[i] = _MLS_;
