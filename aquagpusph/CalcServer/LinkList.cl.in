@@ -84,15 +84,15 @@ iCell(__global usize* icell,
 #endif
 }
 
-/** Compute the linklist after the sort of the icell array.
+/** Compute the head of chain of each cell after sorting icell array.
  * @param icell Cell where each particle is allocated.
  * @param ihoc Head of chain of each cell.
  * @param N Number of particles.
  */
 __kernel void
-linkList(const __global usize* icell,
-         __global svec2* ihoc,
-         const usize N)
+LinkList_ihoc(const __global usize* icell,
+              __global svec2* ihoc,
+              const usize N)
 {
 	// find position in global arrays
 	const usize i = get_global_id(0);
@@ -107,12 +107,31 @@ linkList(const __global usize* icell,
 		// As a particular case, the first particle is always a head of chain.
 		ihoc[c].x = 0;
 	}
-	if (i + 1 == N - 1) {
-		// As a particular case, the last particle is always a tail of chain.
-		ihoc[c2].y = N;
-	}
 	if (c2 != c) {
 		ihoc[c2].x = i + 1;
+	}
+}
+
+/** Compute the head of chain of each cell after sorting icell array.
+ * @param icell Cell where each particle is allocated.
+ * @param ihoc Head of chain of each cell.
+ * @param N Number of particles.
+ */
+__kernel void
+LinkList_itoc(const __global usize* icell,
+              __global svec2* ihoc,
+              const usize N)
+{
+	// find position in global arrays
+	const usize i = get_global_id(0);
+	if (i >= N - 1)
+		return;
+
+	// We are looking the first particle on each cell, which can be detected
+	// just checking if the previous particle is in the same cell.
+	const usize c = icell[i];
+	const usize c2 = icell[i + 1];
+	if (c2 != c) {
 		ihoc[c].y = i + 1;
 	}
 }

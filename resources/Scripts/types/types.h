@@ -151,7 +151,7 @@
  */
 #define FOR_NEIGHS(NPARTS, JHOC)                                               \
     for(unsigned int row = 0; row < NNC; row++) {                              \
-        const unsigned int __jhoc_id = i + row * NPARTS                        \
+        const unsigned int __jhoc_id = i + row * NPARTS;                       \
         for(unsigned int j = JHOC[__jhoc_id].x; j < JHOC[__jhoc_id].y; j++) {
 
 /** @brief End of the loop over the neighs to compute the interactions.
