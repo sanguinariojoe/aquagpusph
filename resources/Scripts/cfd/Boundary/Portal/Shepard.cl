@@ -53,22 +53,20 @@
  * @param r Position \f$ \mathbf{r} \f$.
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
+ * @param jhoc Head and tail of chains for each cell.
  * @param shepard Shepard term
  * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
  *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{x} \f$.
- * @param icell Cell where each particle is located.
- * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
- * @param n_cells Number of cells in each direction
  */
-__kernel void entry(const __global int* imove,
-                    const __global int* imirrored,
-                    const __global vec* r,
-                    const __global float* rho,
-                    const __global float* m,
-                    __global float* shepard,
-                    usize N,
-                    LINKLIST_LOCAL_PARAMS)
+__kernel void entry(const __global int* restrict imove,
+                    const __global int* restrict imirrored,
+                    const __global vec* restrict r,
+                    const __global float* restrict rho,
+                    const __global float* restrict m,
+                    const __global svec2* restrict jhoc,
+                    __global float* restrict shepard,
+                    usize N)
 {
     const usize i = get_global_id(0);
     const usize it = get_local_id(0);
@@ -88,25 +86,19 @@ __kernel void entry(const __global int* imove,
         _SHEPARD_ = shepard[i];
     #endif
 
-    const usize c_i = icell[i];
-    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
-        if((imove[j] != 1) || (imirrored[j])){
-            j++;
+    FOR_NEIGHS(N, jhoc){
+        if((imove[j] != 1) || (imirrored[j]))
             continue;
-        }
 
         const vec_xyz r_ij = r[j].XYZ - r_i;
         const float q = length(r_ij) / H;
         if(q >= SUPPORT)
-        {
-            j++;
             continue;
-        }
 
         {
             _SHEPARD_ += kernelW(q) * CONW * m[j] / rho[j];
         }
-    }END_NEIGHS()
+    }END_FOR_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         shepard[i] = _SHEPARD_;

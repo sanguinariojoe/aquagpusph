@@ -57,30 +57,27 @@
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
  * @param visc_dyn Dynamic viscosity \f$ \mu \f$.
- * @param icell Cell where each particle is located.
- * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
- * @param n_cells Number of cells in each direction
  * @param dr Distance between particles \f$ \Delta r \f$.
  * @param viscousForces_iset Particles set to be computed.
  * @param viscousForces_r Point with respect the moments are computed
  * \f$ \mathbf{r}_0 \f$.
  */
-__kernel void entry(const __global uint* iset,
-                    const __global int* imove,
-                    __global vec* viscousForces_f,
-                    __global vec4* viscousForces_m,
-                    const __global vec* r,
-                    const __global vec* normal,
-                    const __global vec* u,
-                    const __global float* rho,
-                    const __global float* m,
-                     __constant float* visc_dyn,
+__kernel void entry(const __global uint* restrict iset,
+                    const __global int* restrict imove,
+                    __global vec* restrict viscousForces_f,
+                    __global vec4* restrict viscousForces_m,
+                    const __global vec* restrict r,
+                    const __global vec* restrict normal,
+                    const __global vec* restrict u,
+                    const __global float* restrict rho,
+                    const __global float* restrict m,
+                    const __global svec2* restrict jhoc,
+                     __constant float* restrict visc_dyn,
                     usize N,
                     float dr,
                     unsigned int viscousForces_iset,
-                    vec viscousForces_r,
-                    LINKLIST_LOCAL_PARAMS)
+                    vec viscousForces_r)
 {
     const usize i = get_global_id(0);
     const usize it = get_local_id(0);
@@ -107,19 +104,13 @@ __kernel void entry(const __global uint* iset,
     #endif
     _F_ = VEC_ZERO.XYZ;
 
-    const usize c_i = icell[i];
-    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
-        if(imove[j] != 1){
-            j++;
+    FOR_NEIGHS(N, jhoc){
+        if(imove[j] != 1)
             continue;
-        }
         const vec_xyz r_ij = r[j].XYZ - r_i;
         const float q = length(r_ij) / H;
         if(q >= SUPPORT)
-        {
-            j++;
             continue;
-        }
 
         {
             const float rho_j = rho[j];
@@ -138,7 +129,7 @@ __kernel void entry(const __global uint* iset,
                 _F_ += 2.f * m_j * w_ij / (rho_j * dr_n) * du_t;
             #endif
         }
-    }END_NEIGHS()
+    }END_FOR_NEIGHS()
 
     _F_ *= visc_dyn_i;
 

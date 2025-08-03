@@ -46,23 +46,20 @@
  * @param u Velocity \f$ \mathbf{u} \f$.
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
- * @param p Pressure \f$ p \f$.
+ * @param jhoc Head and tail of chains for each cell.
  * @param grad_p Pressure gradient \f$ \frac{\nabla p}{rho} \f$.
  * @param lap_u Velocity laplacian \f$ \Delta \mathbf{u} \f$.
  * @param div_u Velocity divergence \f$ \rho \nabla \cdot \mathbf{u} \f$.
- * @param icell Cell where each particle is located.
- * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
- * @param n_cells Number of cells in each direction
  */
-__kernel void freeslip(const __global int* imove,
-                       const __global vec* r,
-                       const __global vec* u,
-                       const __global float* rho,
-                       const __global float* m,
-                       __global vec* lap_u,
-                       usize N,
-                       LINKLIST_LOCAL_PARAMS)
+__kernel void freeslip(const __global int* restrict imove,
+                       const __global vec* restrict r,
+                       const __global vec* restrict u,
+                       const __global float* restrict rho,
+                       const __global float* restrict m,
+                       const __global svec2* restrict jhoc,
+                       __global vec* restrict lap_u,
+                       usize N)
 {
     const usize i = get_global_id(0);
     const usize it = get_local_id(0);
@@ -84,23 +81,15 @@ __kernel void freeslip(const __global int* imove,
         _LAPU_ = VEC_ZERO.XYZ;
     #endif
 
-    const usize c_i = icell[i];
-    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
-        if(i == j){
-            j++;
+    FOR_NEIGHS(N, jhoc){
+        if(i == j)
             continue;
-        }
-        if(imove[j] != 1){
-            j++;
+        if(imove[j] != 1)
             continue;
-        }
         const vec_xyz r_ij = r[j].XYZ - r_i;
         const float q = length(r_ij) / H;
         if(q >= SUPPORT)
-        {
-            j++;
             continue;
-        }
         {
             const float rho_j = rho[j];
             const float f_ij = kernelF(q) * CONF * m[j];
@@ -115,7 +104,7 @@ __kernel void freeslip(const __global int* imove,
                 #error Unknown Laplacian formulation: __LAP_FORMULATION__
             #endif
         }
-    }END_NEIGHS()
+    }END_FOR_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         lap_u[i].XYZ = _LAPU_;

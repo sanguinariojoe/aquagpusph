@@ -34,8 +34,8 @@
  * @param symmetry_n Normal of the symmetry plane. It is assumed as normalized.
  * @param domain_max Top-right-back corner of the computational domain.
  */
-__kernel void drop(__global int* imove,
-                   __global vec* r,
+__kernel void drop(__global int* restrict imove,
+                   __global vec* restrict r,
                    usize N,
                    vec symmetry_r,
                    vec symmetry_n,
@@ -69,9 +69,9 @@ __kernel void drop(__global int* imove,
  * @param symmetry_r Position of the symmetry plane.
  * @param symmetry_n Normal of the symmetry plane. It is assumed as normalized.
  */
-__kernel void detect(const __global int* imove,
-                     const __global vec* r_in,
-                     __global unsigned int* imirror,
+__kernel void detect(const __global int* restrict imove,
+                     const __global vec* restrict r_in,
+                     __global unsigned int* restrict imirror,
                      usize N,
                      vec symmetry_r,
                      vec symmetry_n)
@@ -137,14 +137,14 @@ vec_xyz reflection(vec_xyz u, vec_xyz n)
  * @param symmetry_r Position of the symmetry plane.
  * @param symmetry_n Normal of the symmetry plane. It is assumed as normalized.
  */
-__kernel void feed(__global int* imove,
-                   __global int* iset,
-                   const __global unsigned int* imirror,
-                   const __global usize* imirror_invperm,
-                   __global usize* mirror_src,
-                   __global vec* normal,
-                   __global vec* tangent,
-                   __global vec* r_in,
+__kernel void feed(__global int* restrict imove,
+                   __global int* restrict iset,
+                   const __global unsigned int* restrict imirror,
+                   const __global usize* restrict imirror_invperm,
+                   __global usize* restrict mirror_src,
+                   __global vec* restrict normal,
+                   __global vec* restrict tangent,
+                   __global vec* restrict r_in,
                    usize N,
                    usize nbuffer,
                    vec symmetry_r,
@@ -200,14 +200,14 @@ __kernel void feed(__global int* imove,
  * @param symmetry_r Position of the symmetry plane.
  * @param symmetry_n Normal of the symmetry plane. It is assumed as normalized.
  */
-__kernel void set(const __global usize* mirror_src,
-                  __global float* m,
-                  __global vec* u_in,
-                  __global vec* dudt_in,
-                  __global vec* dudt,
-                  __global float* rho_in,
-                  __global float* drhodt_in,
-                  __global float* drhodt,
+__kernel void set(const __global usize* restrict mirror_src,
+                  __global float* restrict m,
+                  __global vec* restrict u_in,
+                  __global vec* restrict dudt_in,
+                  __global vec* restrict dudt,
+                  __global float* restrict rho_in,
+                  __global float* restrict drhodt_in,
+                  __global float* restrict drhodt,
                   usize N,
                   vec symmetry_r,
                   vec symmetry_n)
@@ -236,9 +236,9 @@ __kernel void set(const __global usize* mirror_src,
  * one.
  * @param N Number of particles.
  */
-__kernel void sort(const __global usize *mirror_src_in, 
-                   __global usize *mirror_src,
-                   const __global usize *id_sorted,
+__kernel void sort(const __global usize* restrict mirror_src_in, 
+                   __global usize* restrict mirror_src,
+                   const __global usize* restrict id_sorted,
                    usize N)
 {
     usize i = get_global_id(0);

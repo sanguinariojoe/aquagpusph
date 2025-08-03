@@ -39,32 +39,27 @@
  * @param rho Density \f$ \rho \f$.
  * @param p Pressure \f$ p \f$.
  * @param m Area of the boundary element \f$ s \f$.
+ * @param jhoc Head and tail of chains for each cell.
  * @param refd Density of reference \f$ \rho_0 \f$ (one per set of particles)
  * @param grad_p Pressure gradient \f$ \nabla p \f$.
  * @param div_u Velocity divergence \f$ \nabla \cdot \mathbf{u} \f$.
- * @param icell Cell where each particle is located.
- * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
- * @param n_cells Number of cells in each direction
  * @param g Gravity acceleration \f$ \mathbf{g} \f$.
  */
-__kernel void entry(const __global uint* iset,
-                    const __global int* imove,
-                    const __global vec* r,
-                    const __global vec* normal,
-                    const __global vec* u,
-                    const __global float* rho,
-                    const __global float* m,
-                    const __global float* p,
-                    __constant float* refd,
-                    __global vec* grad_p,
-                    __global float* div_u,
-                    // Link-list data
-                    __global uint *icell,
-                    __global uint *ihoc,
+__kernel void entry(const __global uint* restrict iset,
+                    const __global int* restrict imove,
+                    const __global vec* restrict r,
+                    const __global vec* restrict normal,
+                    const __global vec* restrict u,
+                    const __global float* restrict rho,
+                    const __global float* restrict p,
+                    const __global float* restrict m,
+                    const __global svec2* restrict jhoc,
+                    __constant float* restrict refd,
+                    __global vec* restrict grad_p,
+                    __global float* restrict div_u,
                     // Simulation data
                     usize N,
-                    uivec4 n_cells,
                     vec g)
 {
     const usize i = get_global_id(0);
@@ -93,30 +88,17 @@ __kernel void entry(const __global uint* iset,
         _DIVU_ = div_u[i];
     #endif
 
-    const usize c_i = icell[i];
-    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
-        if(imove[j] != -3){
-            j++;
+    FOR_NEIGHS(N, jhoc){
+        if(imove[j] != -3)
             continue;
-        }
         const vec_xyz r_ij = r[j].XYZ - r_i;
         const float q = length(r_ij) / H;
         if(q >= SUPPORT)
-        {
-            j++;
             continue;
-        }
-
-        // const float rho_j = rho[j];
-        // if(rho_j <= 0.01f * refd_i){
-        //     j++;
-        //     continue;
-        // }
 
         {
             const vec_xyz n_j = normal[j].XYZ;  // Assumed outwarding oriented
             const float area_j = m[j];
-            // const float p_j = p_i + dot(rho[j] * grad_p[j].XYZ, r_ij);
             const float p_j = p[j];
             const vec_xyz du = u[j].XYZ - u_i;
             const float w_ij = kernelW(q) * CONW * area_j;
@@ -124,7 +106,7 @@ __kernel void entry(const __global uint* iset,
             _GRADP_ += (p_i + p_j) / rho_i * w_ij * n_j;
             _DIVU_ += rho_i * dot(du, n_j) * w_ij;
         }
-    }END_NEIGHS()
+    }END_FOR_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         grad_p[i].XYZ = _GRADP_;

@@ -36,24 +36,22 @@
  * @param normal Normal \f$ \mathbf{n} \f$.
  * @param u Velocity \f$ \mathbf{u} \f$.
  * @param m Area of the boundary element \f$ s \f$.
+ * @param jhoc Head and tail of chains for each cell.
  * @param grad_w_bi Gradient of constant fields due to the boundary integral
  * \f$ \langle \nabla 1 \rangle^{\partial \Omega} \f$.
  * @param div_u Velocity divergence \f$ \nabla \cdot \mathbf{u} \f$. Actually
  * this is just the part that has to do with the boundary element velocity
  * @param N Number of particles.
- * @param icell Cell where each particle is located.
- * @param ihoc Head of chain for each cell (first particle found).
- * @param n_cells Number of cells in each direction
  */
-__kernel void entry(const __global int* imove,
-                    const __global vec* r,
-                    const __global vec* normal,
-                    const __global vec* u,
-                    const __global float* m,
-                    __global vec* grad_w_bi,
-                    __global float* div_u_bi,
-                    usize N,
-                    LINKLIST_LOCAL_PARAMS)
+__kernel void entry(const __global int* restrict imove,
+                    const __global vec* restrict r,
+                    const __global vec* restrict normal,
+                    const __global vec* restrict u,
+                    const __global float* restrict m,
+                    const __global svec2* restrict jhoc,
+                    __global vec* restrict grad_w_bi,
+                    __global float* restrict div_u_bi,
+                    usize N)
 {
     const usize i = get_global_id(0);
     const usize it = get_local_id(0);
@@ -77,19 +75,13 @@ __kernel void entry(const __global int* imove,
         _DIVU_ = 0.f;
     #endif
 
-    const usize c_i = icell[i];
-    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
-        if(imove[j] != -3){
-            j++;
+    FOR_NEIGHS(N, jhoc){
+        if(imove[j] != -3)
             continue;
-        }
         const vec_xyz r_ij = r[j].XYZ - r_i;
         const float q = length(r_ij) / H;
         if(q >= SUPPORT)
-        {
-            j++;
             continue;
-        }
 
         {
             const vec_xyz n_j = normal[j].XYZ;  // Assumed outwarding oriented
@@ -99,7 +91,7 @@ __kernel void entry(const __global int* imove,
             _GRADW_ += grad_w;
             _DIVU_ -= dot(u_j, grad_w);
         }
-    }END_NEIGHS()
+    }END_FOR_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         grad_w_bi[i].XYZ = _GRADW_;
@@ -115,19 +107,17 @@ __kernel void entry(const __global int* imove,
  * @param r Position \f$ \mathbf{r} \f$.
  * @param m Particle mass \f$ m \f$.
  * @param rho Particle density \f$ \rho \f$.
+ * @param jhoc Head and tail of chains for each cell.
  * @param p Particle pressure \f$ p \f$.
  * @param N Number of particles.
- * @param icell Cell where each particle is located.
- * @param ihoc Head of chain for each cell (first particle found).
- * @param n_cells Number of cells in each direction
  */
-__kernel void p_boundary(const __global int* imove,
-                         const __global vec* r,
-                         const __global float* m,
-                         const __global float* rho,
-                         __global float* p,
-                         usize N,
-                         LINKLIST_LOCAL_PARAMS)
+__kernel void p_boundary(const __global int* restrict imove,
+                         const __global vec* restrict r,
+                         const __global float* restrict m,
+                         const __global float* restrict rho,
+                         const __global svec2* restrict jhoc,
+                         __global float* restrict p,
+                         usize N)
 {
     const usize i = get_global_id(0);
     const usize it = get_local_id(0);
@@ -147,22 +137,16 @@ __kernel void p_boundary(const __global int* imove,
     #endif
     _P_ = 0.f;
 
-    const usize c_i = icell[i];
-    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
-        if(imove[j] != 1){
-            j++;
+    FOR_NEIGHS(N, jhoc){
+        if(imove[j] != 1)
             continue;
-        }
         const vec_xyz r_ij = r[j].XYZ - r_i;
         const float q = length(r_ij) / H;
         if(q >= SUPPORT)
-        {
-            j++;
             continue;
-        }
 
         _P_ += 2.f * p[j] * kernelW(q) * CONW * m[j] / rho[j];
-    }END_NEIGHS()
+    }END_FOR_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         p[i] = _P_;

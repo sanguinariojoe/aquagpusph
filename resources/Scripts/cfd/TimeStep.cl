@@ -53,9 +53,9 @@
  * @param Ma Mach number \f$ Ma \f$.
  * @param N Number of particles.
  */
-__kernel void entry(const __global int* imove,
-                    const __global vec* u,
-                    __global float* dt_var,
+__kernel void entry(const __global int* restrict imove,
+                    const __global vec* restrict u,
+                    __global float* restrict dt_var,
                     const usize N,
                     const float dt,
                     const float dt_min,

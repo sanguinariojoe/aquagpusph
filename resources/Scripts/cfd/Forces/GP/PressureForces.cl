@@ -45,26 +45,24 @@
  * @param rho Density \f$ \rho \f$.
  * @param p Pressure \f$ p \f$.
  * @param m Mass \f$ m \f$.
- * @param icell Cell where each particle is located.
- * @param ihoc Head of chain for each cell (first particle found).
+ * @param jhoc Head and tail of chains for each cell.
  * @param N Number of particles.
- * @param n_cells Number of cells in each direction
  * @param pressureForces_iset Particles set to be computed.
  * @param pressureForces_r Point with respect the moments are computed
  * \f$ \mathbf{r}_0 \f$.
  */
-__kernel void entry(__global vec* pressureForces_f,
-                    __global vec4* pressureForces_m,
-                    const __global uint* iset,
-                    const __global int* imove,
-                    const __global vec* r,
-                    const __global float* rho,
-                    const __global float* p,
-                    const __global float* m,
+__kernel void entry(__global vec* restrict pressureForces_f,
+                    __global vec4* restrict pressureForces_m,
+                    const __global uint* restrict iset,
+                    const __global int* restrict imove,
+                    const __global vec* restrict r,
+                    const __global float* restrict rho,
+                    const __global float* restrict p,
+                    const __global float* restrict m,
+                    const __global svec2* restrict jhoc,
                     usize N,
                     unsigned int pressureForces_iset,
-                    vec pressureForces_r,
-                    LINKLIST_LOCAL_PARAMS)
+                    vec pressureForces_r)
 {
     // find position in global arrays
     const usize i = get_global_id(0);
@@ -89,24 +87,18 @@ __kernel void entry(__global vec* pressureForces_f,
     #endif
     _F_ = VEC_ZERO.XYZ;
 
-    const usize c_i = icell[i];
-    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
-        if(imove[j] != 1){
-            j++;
+    FOR_NEIGHS(N, jhoc){
+        if(imove[j] != 1)
             continue;
-        }
         const vec_xyz r_ij = r[j].XYZ - r_i;
         const float q = length(r_ij) / H;
         if(q >= SUPPORT)
-        {
-            j++;
             continue;
-        }
 
         {
             _F_ -= (p_i + p[j]) * kernelF(q) * CONF * m[j] / rho[j] * r_ij;
         }
-    }END_NEIGHS()
+    }END_FOR_NEIGHS()
 
     _F_ *= m[i] / rho[i];
 

@@ -48,13 +48,13 @@
  * @param u Velocity \f$ \mathbf{u} \f$.
  * @param N Number of particles.
  */
-__kernel void entry(const __global int* imove,
-                    const __global usize* associations,
-                    const __global vec* normal,
-                    const __global float* gp_rho,
-                    const __global vec* gp_u,
-                    __global float* rho,
-                    __global vec* u,
+__kernel void entry(const __global int* restrict imove,
+                    const __global usize* restrict associations,
+                    const __global vec* restrict normal,
+                    const __global float* restrict gp_rho,
+                    const __global vec* restrict gp_u,
+                    __global float* restrict rho,
+                    __global vec* restrict u,
                     usize N)
 {
     const usize i = get_global_id(0);

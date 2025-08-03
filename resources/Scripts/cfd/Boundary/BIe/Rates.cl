@@ -41,14 +41,14 @@
  * @param div_u Velocity divergence \f$ \rho \nabla \cdot \mathbf{u} \f$.
  * @param N Number of particles.
  */
-__kernel void entry(const __global int* imove,
-                    const __global float* rho,
-                    const __global float* p,
-                    const __global vec* u,
-                    const __global vec* grad_w_bi,
-                    const __global float* div_u_bi,
-                    __global vec* grad_p,
-                    __global float* div_u,
+__kernel void entry(const __global int* restrict imove,
+                    const __global float* restrict rho,
+                    const __global float* restrict p,
+                    const __global vec* restrict u,
+                    const __global vec* restrict grad_w_bi,
+                    const __global float* restrict div_u_bi,
+                    __global vec* restrict grad_p,
+                    __global float* restrict div_u,
                     usize N)
 {
     const usize i = get_global_id(0);
@@ -73,9 +73,9 @@ __kernel void entry(const __global int* imove,
  * @param forces_iset Particles set of interest.
  * @param N Number of particles.
  */
-__kernel void filter_press(const __global uint* iset,
-                           const __global int* imove,
-                           __global float* p,
+__kernel void filter_press(const __global uint* restrict iset,
+                           const __global int* restrict imove,
+                           __global float* restrict p,
                            unsigned int forces_iset,
                            usize N)
 {
@@ -106,13 +106,13 @@ __kernel void filter_press(const __global uint* iset,
  * \f$ \mathbf{r}_0 \f$.
  * @param N Number of particles.
  */
-__kernel void force_press(const __global int* imove,
-                          const __global vec* r,
-                          const __global vec* normal,
-                          const __global float* m,
-                          const __global float* p,
-                          __global vec* force_p,
-                          __global vec4* moment_p,
+__kernel void force_press(const __global int* restrict imove,
+                          const __global vec* restrict r,
+                          const __global vec* restrict normal,
+                          const __global float* restrict m,
+                          const __global float* restrict p,
+                          __global vec* restrict force_p,
+                          __global vec4* restrict moment_p,
                           vec forces_r,
                           usize N)
 {

@@ -63,9 +63,9 @@ usize cell(vec r, vec r_min, svec4 n_cells)
  * @param n_cells Number of cells at each direction, and the total number of
  * allocated cells.
  */
-__kernel void mirror(__global vec* r,
-                     __global int* imirrored,
-                     __global usize *icell,
+__kernel void mirror(__global vec* restrict r,
+                     __global int* restrict imirrored,
+                     __global usize* restrict icell,
                      usize N,
                      vec portal_in_r,
                      vec portal_out_r,
@@ -104,8 +104,8 @@ __kernel void mirror(__global vec* r,
  * @param portal_out_r Out portal infinite plane position
  * @param portal_n Portal infinite planes normal
  */
-__kernel void unmirror(__global vec* r,
-                       const __global int* imirrored,
+__kernel void unmirror(__global vec* restrict r,
+                       const __global int* restrict imirrored,
                        usize N,
                        vec portal_in_r,
                        vec portal_out_r,
@@ -134,7 +134,7 @@ __kernel void unmirror(__global vec* r,
  * @param portal_out_r Out portal infinite plane position
  * @param portal_n Portal infinite planes normal
  */
-__kernel void teleport(__global vec* r,
+__kernel void teleport(__global vec* restrict r,
                        usize N,
                        vec portal_in_r,
                        vec portal_out_r,

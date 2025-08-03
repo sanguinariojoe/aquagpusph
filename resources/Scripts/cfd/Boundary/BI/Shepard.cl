@@ -50,21 +50,20 @@
  * @param tangent Tangent \f$ \mathbf{t} \f$.
  * @param binormal Binormal \f$ \mathbf{b} \f$.
  * @param m Area of the boundary element \f$ s \f$.
+ * @param jhoc Head and tail of chains for each cell.
  * @param shepard Shepard term
  * \f$ \gamma(\mathbf{x}) = \int_{\Omega}
  *     W(\mathbf{y} - \mathbf{x}) \mathrm{d}\mathbf{y} \f$.
- * @param icell Cell where each particle is located.
- * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
- * @param n_cells Number of cells in each direction
  */
-__kernel void compute(const __global int* imove,
-                      const __global vec* r,
-                      const __global vec* normal,
-                      const __global vec* tangent,
-                      const __global vec* binormal,
-                      const __global float* m,
-                      __global float* shepard,
+__kernel void compute(const __global int* restrict imove,
+                      const __global vec* restrict r,
+                      const __global vec* restrict normal,
+                      const __global vec* restrict tangent,
+                      const __global vec* restrict binormal,
+                      const __global float* restrict m,
+                      const __global svec2* restrict jhoc,
+                      __global float* restrict shepard,
                       usize N,
                       LINKLIST_LOCAL_PARAMS)
 {
@@ -88,12 +87,9 @@ __kernel void compute(const __global int* imove,
     _SHEPARD_ = 1.f;
     bool self_added = false;
 
-    const usize c_i = icell[i];
-    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
-        if(imove[j] != -3){
-            j++;
+    FOR_NEIGHS(N, jhoc){
+        if(imove[j] != -3)
             continue;
-        }
 
         if(i == j){
             // Boundary element trying to interact with itself
@@ -101,7 +97,6 @@ __kernel void compute(const __global int* imove,
                 self_added = true;
                 _SHEPARD_ -= 0.5f;
             }
-            j++;
             continue;
         }
         
@@ -109,7 +104,6 @@ __kernel void compute(const __global int* imove,
         const float q = length(r_ij) / H;
         if(q >= SUPPORT)
         {
-            j++;
             continue;
         }
 
@@ -132,7 +126,6 @@ __kernel void compute(const __global int* imove,
                     _SHEPARD_ -= 0.5f;
                 }
             }
-            j++;
             continue;
         }
 
@@ -142,7 +135,7 @@ __kernel void compute(const __global int* imove,
             _SHEPARD_ += r_n * CONW * kernelS_P(q) * area_j +
                          kernelS_D(fabs(r_n), r_t, r_b, area_j);
         }
-    }END_NEIGHS()
+    }END_FOR_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         shepard[i] = _SHEPARD_;
@@ -170,11 +163,11 @@ __kernel void compute(const __global int* imove,
  * @param cs Speed of sound \f$ c_s \f$.
  * @see Boundary/BI/Interactions.cl
  */
-__kernel void apply(const __global int* imove,
-                    const __global float* shepard,
-                    __global vec* grad_p,
-                    __global vec* lap_u,
-                    __global float* div_u,
+__kernel void apply(const __global int* restrict imove,
+                    const __global float* restrict shepard,
+                    __global vec* restrict grad_p,
+                    __global vec* restrict lap_u,
+                    __global float* restrict div_u,
                     usize N,
                     float cs)
 {

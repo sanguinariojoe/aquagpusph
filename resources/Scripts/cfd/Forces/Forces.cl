@@ -48,12 +48,12 @@
  * @param forces_r Point with respect the moments are computed
  * \f$ \mathbf{r}_0 \f$.
  */
-__kernel void entry(__global vec* forces_f,
-                    __global vec4* forces_m,
-                    __global int* imove,
-                    __global vec* r,
-                    __global vec* dudt,
-                    __global float* m,
+__kernel void entry(__global vec* restrict forces_f,
+                    __global vec4* restrict forces_m,
+                    __global int* restrict imove,
+                    __global vec* restrict r,
+                    __global vec* restrict dudt,
+                    __global float* restrict m,
                     usize N,
                     vec g,
                     vec forces_r)

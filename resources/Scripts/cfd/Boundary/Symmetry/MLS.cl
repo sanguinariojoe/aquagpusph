@@ -53,24 +53,22 @@
  * false (0).
  * @param rho Density \f$ \rho \f$.
  * @param m Mass \f$ m \f$.
+ * @param jhoc Head and tail of chains for each cell.
  * @param mls Kernel MLS transformation matrix \f$ L \f$.
- * @param icell Cell where each particle is located.
- * @param ihoc Head of chain for each cell (first particle found).
  * @param N Number of particles.
- * @param n_cells Number of cells in each direction
  * @note The MLS kernel transformation will be computed just for the particles
  * with the moving flag mls_imove, and using just the information of the
  * particles with the moving flag mls_imove
  */
-__kernel void entry(const __global int* imove,
-                    const __global int* imirrored,
-                    const __global vec* r,
-                    const __global vec* rmirrored,
-                     const __global float* rho,
-                    const __global float* m,
-                    __global matrix* mls,
-                    usize N,
-                    LINKLIST_LOCAL_PARAMS)
+__kernel void entry(const __global int* restrict imove,
+                    const __global int* restrict imirrored,
+                    const __global vec* restrict r,
+                    const __global vec* restrict rmirrored,
+                    const __global float* restrict rho,
+                    const __global float* restrict m,
+                    const __global svec2* restrict jhoc,
+                    __global matrix* restrict mls,
+                    usize N)
 {
     const usize i = get_global_id(0);
     const usize it = get_local_id(0);
@@ -90,25 +88,19 @@ __kernel void entry(const __global int* imove,
         _MLS_ = mls[i];
     #endif
 
-    const usize c_i = icell[i];
-    BEGIN_NEIGHS(c_i, N, n_cells, icell, ihoc){
-        if(!imirrored[j] || (imove[j] != 1)){
-            j++;
+    FOR_NEIGHS(N, jhoc){
+        if(!imirrored[j] || (imove[j] != 1))
             continue;
-        }
         const vec_xyz r_ij = rmirrored[j].XYZ - r_i;
         const float q = length(r_ij) / H;
         if(q >= SUPPORT)
-        {
-            j++;
             continue;
-        }
 
         {
             const float f_ij = kernelF(q) * CONF * m[j] / rho[j];
             _MLS_ += outer(r_ij, f_ij * r_ij);
         }
-    }END_NEIGHS()
+    }END_FOR_NEIGHS()
 
     #ifdef LOCAL_MEM_SIZE
         mls[i] = _MLS_;
