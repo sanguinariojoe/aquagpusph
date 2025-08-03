@@ -38,7 +38,7 @@ import aqua_example_utils as utils
 import math
 
 g = 0.0
-hfac = 3.0
+hfac = 2.0
 courant = 0.1
 courant_ramp_iters = 1000
 courant_ramp_factor = 0.001
@@ -57,7 +57,7 @@ H = 5.0 * D
 x_cyl = 4.0 * D
 y_cyl = 0.0 * D
 # Number of fluid particles in y direction
-ny = 300
+ny = 150
 
 
 sep = 2.0

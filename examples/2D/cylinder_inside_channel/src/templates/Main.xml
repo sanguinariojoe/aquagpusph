@@ -38,12 +38,8 @@ Authors:
     </Definitions>
     <Include file="resources/Presets/cfd/inlet.xml" />
     <Include file="resources/Presets/cfd/outlet.xml" />
-    <Include file="resources/Presets/cfd/pressureForces.xml" />
-    <Include file="resources/Presets/cfd/viscousForces.xml" />
     <Include file="resources/Presets/basic/timing.report.xml" />
     <Include file="resources/Presets/basic/performance.report.xml" />
-    <Include file="resources/Presets/cfd/pressureForces.report.xml" />
-    <Include file="resources/Presets/cfd/viscousForces.report.xml" />
     <Include file="Settings.xml" />
     <Include file="Time.xml" />
     <Include file="SPH.xml" />
