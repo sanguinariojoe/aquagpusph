@@ -273,7 +273,7 @@ data = {'DR':str(dr), 'HFAC':str(hfac), 'CS':str(cs), 'COURANT':str(courant),
         'DOMAIN_MIN':domain_min, 'DOMAIN_MAX':domain_max, 'REFD':str(refd),
         'VISC_DYN':str(visc_dyn), 'DELTA':str(delta), 'G':str(g),
         'N':str(n), 'NY':str(ny), 'L':str(L), 'H':str(H), 'D':str(D),
-        'U':str(U), 'P0':str(p0),
+        'U':str(U), 'P0':str(p0), 'RE':str(Re),
         'NCYL':str(n_cyl), 'XCYL':str(x_cyl), 'YCYL':str(y_cyl),
         'COURANT_RAMP_ITERS':str(courant_ramp_iters),
         'COURANT_RAMP_FACTOR':str(courant_ramp_factor)}

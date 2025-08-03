@@ -40,6 +40,7 @@ import matplotlib.animation as animation
 rho = {{REFD}}
 D = {{D}}
 U = {{U}}
+Re = {{RE}}
 # Coefficients adimensionalization factor
 COEFF_FAC = 1.0 / (0.5 * rho * D * U**2)
 TIME_FAC = U / D
@@ -76,11 +77,31 @@ def readFile(filepath):
     return [list(d) for d in zip(*data)]
 
 
+# Find the Cd from the F. M. White experiments
+fexp = open('F.M.White.csv', "r")
+lines = fexp.readlines()
+fexp.close()
+re, cd = [], []
+for line in lines:
+    line = line.strip()
+    if line == "":
+        continue
+    line = line.replace(" ", "")
+    fields = [float(field) for field in line.split(",")]
+    if fields[0] >= Re:
+        re.append(fields[0])
+        cd.append(fields[1])
+        break
+    re, cd = [fields[0]], [fields[1]]
+factor = (Re - re[0]) / (re[1] - re[0])
+cd_exp = (1 - factor) * cd[0] + factor * cd[1]
+
 fig = plt.figure()
 ax_cl = fig.add_subplot(111)
 ax_cd = ax_cl.twinx()
 line_cl, = ax_cl.plot([0], [0], color="black", linewidth=1.0)
 line_cd, = ax_cd.plot([0], [0], color="red", linewidth=1.0)
+line_cd_exp, = ax_cd.plot([0], [0], color="red", linestyle='--', linewidth=1.0)
 
 # Set some options
 ax_cl.grid()
@@ -110,6 +131,7 @@ def update(frame_index):
         fy.append((fpy[i] + fvy[i]) * COEFF_FAC)
     line_cl.set_data(t, fy)
     line_cd.set_data(t, fx)
+    line_cd_exp.set_data([t[0], t[-1]], [cd_exp, cd_exp])
 
     clmax = max(max(fy), abs(min(fy)))
     cdmax = max(max(fx), abs(min(fx)))
